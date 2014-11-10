@@ -1,0 +1,9 @@
+[package]
+
+name = "time"
+version = "0.0.1"
+authors = ["The Rust Project Developers"]
+build = "build.rs"
+
+[build-dependencies.gcc]
+git = "https://github.com/alexcrichton/gcc-rs"
