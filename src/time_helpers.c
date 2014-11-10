@@ -37,10 +37,6 @@
 #endif
 #endif
 
-/* Foreign builtins. */
-//include valgrind.h after stdint.h so that uintptr_t is defined for msys2 w64
-#include "valgrind/valgrind.h"
-
 #ifdef __ANDROID__
 static time_t timegm(struct tm *tm) {
     time_t ret;
