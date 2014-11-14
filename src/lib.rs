@@ -20,7 +20,7 @@ extern crate libc;
 use std::fmt::Show;
 use std::fmt;
 use std::io::BufReader;
-use std::num;
+use std::num::SignedInt;
 use std::string::String;
 use std::time::Duration;
 
@@ -747,7 +747,7 @@ impl<'a> fmt::Show for TmFmt<'a> {
               'Z' => if tm.tm_utcoff == 0_i32 { "UTC"} else { "" }, // FIXME (#2350): support locale
               'z' => {
                 let sign = if tm.tm_utcoff > 0_i32 { '+' } else { '-' };
-                let mut m = num::abs(tm.tm_utcoff) / 60_i32;
+                let mut m = tm.tm_utcoff.abs() / 60_i32;
                 let h = m / 60_i32;
                 m -= h * 60_i32;
                 return write!(fmt, "{}{:02d}{:02d}", sign, h, m);
@@ -789,7 +789,7 @@ impl<'a> fmt::Show for TmFmt<'a> {
                         format: FmtStr("%Y-%m-%dT%H:%M:%S"),
                     };
                     let sign = if self.tm.tm_utcoff > 0_i32 { '+' } else { '-' };
-                    let mut m = num::abs(self.tm.tm_utcoff) / 60_i32;
+                    let mut m = self.tm.tm_utcoff.abs() / 60_i32;
                     let h = m / 60_i32;
                     m -= h * 60_i32;
                     write!(fmt, "{}{}{:02d}:{:02d}", s, sign, h as int, m as int)
