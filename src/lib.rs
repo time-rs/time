@@ -20,7 +20,7 @@ extern crate libc;
 use std::fmt::Show;
 use std::fmt;
 use std::io::BufReader;
-use std::num::SignedInt;
+use std::num::Signed;
 use std::string::String;
 use std::time::Duration;
 
