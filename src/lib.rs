@@ -1170,13 +1170,18 @@ pub fn strptime(s: &str, format: &str) -> Result<Tm, ParseError> {
             let range = s.char_range_at(pos);
 
             if range.ch == '+' || range.ch == '-' {
+                let sign = if range.ch == '+' { 1 } else { -1 };
+
                 match match_digits(s, range.next, 4u, false) {
                   Some(item) => {
                     let (v, pos) = item;
                     if v == 0_i32 {
                         tm.tm_utcoff = 0_i32;
+                    } else {
+                        let hours = v / 100_i32;
+                        let minutes = v - hours * 100_i32;
+                        tm.tm_utcoff = sign * (hours * 60_i32 * 60_i32 + minutes * 60_i32);
                     }
-
                     Ok(pos)
                   }
                   None => Err(InvalidZoneOffset)
@@ -1551,8 +1556,9 @@ mod tests {
         assert!(test("09", "%y"));
         assert!(strptime("-0000", "%z").unwrap().tm_utcoff ==
             0);
-        assert!(strptime("-0800", "%z").unwrap().tm_utcoff ==
-            0);
+        assert_eq!(-28800, strptime("-0800", "%z").unwrap().tm_utcoff);
+        assert_eq!(28800, strptime("+0800", "%z").unwrap().tm_utcoff);
+        assert_eq!(5400, strptime("+0130", "%z").unwrap().tm_utcoff);
         assert!(test("%", "%%"));
 
         // Test for #7256
