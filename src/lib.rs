@@ -24,6 +24,13 @@ use std::num::SignedInt;
 use std::string::String;
 use std::time::Duration;
 
+use self::Fmt::{FmtCtime, FmtRfc3339, FmtStr};
+use self::ParseError::{InvalidDay, InvalidDayOfMonth, InvalidDayOfWeek,
+                       InvalidDayOfYear, InvalidFormatSpecifier, InvalidHour,
+                       InvalidMinute, InvalidMonth, InvalidSecond, InvalidTime,
+                       InvalidYear, InvalidZoneOffset, MissingFormatConverter,
+                       UnexpectedCharacter};
+
 static NSEC_PER_SEC: i32 = 1_000_000_000_i32;
 
 mod rustrt {
@@ -1266,9 +1273,10 @@ pub fn strftime(format: &str, tm: &Tm) -> Result<String, ParseError> {
 #[cfg(test)]
 mod tests {
     extern crate test;
-    use super::{Timespec, InvalidTime, InvalidYear, get_time, precise_time_ns,
-                precise_time_s, tzset, at_utc, at, strptime, MissingFormatConverter,
-                InvalidFormatSpecifier};
+    use super::{Timespec, get_time, precise_time_ns, precise_time_s, tzset,
+                at_utc, at, strptime};
+    use super::ParseError::{InvalidTime, InvalidYear, MissingFormatConverter,
+                            InvalidFormatSpecifier};
 
     use std::f64;
     use std::result::{Err, Ok};
