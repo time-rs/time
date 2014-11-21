@@ -11,5 +11,5 @@ description = """
 Utilities for working with time-related functions in Rust.
 """
 
-[build-dependencies.gcc]
-git = "https://github.com/alexcrichton/gcc-rs"
+[build-dependencies]
+gcc = "*"
