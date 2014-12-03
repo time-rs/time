@@ -124,10 +124,17 @@ static struct tm* LOCALTIME(const time_t *clock, struct tm *result) {
 #define TIMEGM(result) mktime((result)) - _timezone
 #endif
 #else
+
+#ifdef __native_client__
+#define TIMEGM(result) mktime((result)) - _timezone
+#else
+#define TIMEGM(result) timegm(result)
+#endif
+
 #define TZSET() tzset()
 #define GMTIME(clock, result) gmtime_r((clock), (result))
 #define LOCALTIME(clock, result) localtime_r((clock), (result))
-#define TIMEGM(result) timegm(result)
+
 #endif
 
 void
@@ -152,6 +159,8 @@ rust_time_localtime(int64_t sec, int32_t nsec, rust_time_tm *timeptr) {
 
 #if defined(__WIN32__)
     int32_t utcoff = -timezone;
+#elif defined(__native_client__)
+    int32_t utcoff = _timezone;
 #else
     int32_t utcoff = tm.tm_gmtoff;
 #endif
