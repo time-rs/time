@@ -381,16 +381,14 @@ impl Tm {
      * utc:   "Thu, 22 Mar 2012 14:53:18 GMT"
      */
     pub fn rfc822(&self) -> TmFmt {
-        if self.tm_utcoff == 0_i32 {
-            TmFmt {
-                tm: self,
-                format: FmtStr("%a, %d %b %Y %T GMT"),
-            }
+        let fmt = if self.tm_utcoff == 0_i32 {
+            "%a, %d %b %Y %T GMT"
         } else {
-            TmFmt {
-                tm: self,
-                format: FmtStr("%a, %d %b %Y %T %Z"),
-            }
+            "%a, %d %b %Y %T %Z"
+        };
+        TmFmt {
+            tm: self,
+            format: FmtStr(fmt),
         }
     }
 
@@ -549,12 +547,13 @@ fn validate_format<'a>(fmt: TmFmt<'a>) -> Result<TmFmt<'a>, ParseError> {
 
 impl<'a> fmt::Show for TmFmt<'a> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fn is_leap_year(year: int) -> bool {
+            (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0))
+        }
+
         fn days_in_year(year: int) -> i32 {
-            if (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0)) {
-                366    /* Days in a leap year */
-            } else {
-                365    /* Days in a non-leap year */
-            }
+            if is_leap_year(year) { 366 }
+            else                  { 365 }
         }
 
         fn iso_week_days(yday: i32, wday: i32) -> int {
@@ -857,10 +856,7 @@ pub fn strptime(s: &str, format: &str) -> Result<Tm, ParseError> {
         let mut multiplier = NSEC_PER_SEC / 10;
         let mut pos = pos;
 
-        loop {
-            if pos >= len {
-                break;
-            }
+        while pos < len {
             let range = ss.char_range_at(pos);
 
             match range.ch {
