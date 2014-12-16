@@ -93,8 +93,8 @@ impl Timespec {
     }
 }
 
-impl Add<Duration, Timespec> for Timespec {
-    fn add(&self, other: &Duration) -> Timespec {
+impl<'a> Add<&'a Duration, Timespec> for &'a Timespec {
+    fn add(self, other: &'a Duration) -> Timespec {
         let d_sec = other.num_seconds();
         // It is safe to unwrap the nanoseconds, because there cannot be
         // more than one second left, which fits in i64 and in i32.
@@ -113,8 +113,8 @@ impl Add<Duration, Timespec> for Timespec {
     }
 }
 
-impl Sub<Timespec, Duration> for Timespec {
-    fn sub(&self, other: &Timespec) -> Duration {
+impl<'a> Sub<&'a Timespec, Duration> for &'a Timespec {
+    fn sub(self, other: &'a Timespec) -> Duration {
         let sec = self.sec - other.sec;
         let nsec = self.nsec - other.nsec;
         Duration::seconds(sec) + Duration::nanoseconds(nsec as i64)
