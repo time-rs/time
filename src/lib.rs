@@ -113,6 +113,26 @@ impl Add<Duration, Timespec> for Timespec {
     }
 }
 
+impl Sub<Duration, Timespec> for Timespec {
+    fn sub(self, other: Duration) -> Timespec {
+        let d_sec = other.num_seconds();
+        // It is safe to unwrap the nanoseconds, because there cannot be
+        // more than one second left, which fits in i64 and in i32.
+        let d_nsec = (other - Duration::seconds(d_sec))
+                     .num_nanoseconds().unwrap() as i32;
+        let mut sec = self.sec - d_sec;
+        let mut nsec = self.nsec - d_nsec;
+        if nsec >= NSEC_PER_SEC {
+            nsec -= NSEC_PER_SEC;
+            sec += 1;
+        } else if nsec < 0 {
+            nsec += NSEC_PER_SEC;
+            sec -= 1;
+        }
+        Timespec::new(sec, nsec)
+    }
+}
+
 impl Sub<Timespec, Duration> for Timespec {
     fn sub(self, other: Timespec) -> Duration {
         let sec = self.sec - other.sec;
@@ -273,6 +293,36 @@ pub struct Tm {
 
     /// Nanoseconds after the second - [0, 10<sup>9</sup> - 1]
     pub tm_nsec: i32,
+}
+
+impl Add<Duration, Tm> for Tm {
+    /// The resulting Tm is in UTC.
+    // FIXME:  The resulting Tm should have the same timezone as `self`; however, we need a
+    // function such as `at_tm(clock: Timespec, offset: i32)` for this.
+    fn add(self, other: Duration) -> Tm {
+        at_utc(self.to_timespec() + other)
+    }
+}
+
+impl Sub<Duration, Tm> for Tm {
+    /// The resulting Tm is in UTC.
+    // FIXME:  The resulting Tm should have the same timezone as `self`; however, we need a
+    // function such as `at_tm(clock: Timespec, offset: i32)` for this.
+    fn sub(self, other: Duration) -> Tm {
+        at_utc(self.to_timespec() - other)
+    }
+}
+
+impl PartialOrd for Tm {
+    fn partial_cmp(&self, other: &Tm) -> Option<Ordering> {
+        self.to_timespec().partial_cmp(&other.to_timespec())
+    }
+}
+
+impl Ord for Tm {
+    fn cmp(&self, other: &Tm) -> Ordering {
+        self.to_timespec().cmp(&other.to_timespec())
+    }
 }
 
 pub fn empty_tm() -> Tm {
