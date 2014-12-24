@@ -16,5 +16,7 @@ Utilities for working with time-related functions in Rust.
 gcc = "0.1"
 
 [dependencies]
-log = "0.1"
 rustc-serialize = "0.1"
+
+[dev-dependencies]
+log = "0.1"
