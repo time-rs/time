@@ -17,7 +17,6 @@
 
 #[cfg(test)] #[phase(plugin, link)] extern crate log;
 
-extern crate "rustc-serialize" as rustc_serialize;
 extern crate libc;
 
 use std::fmt::Show;
@@ -75,8 +74,7 @@ mod imp {
 }
 
 /// A record specifying a time value in seconds and nanoseconds.
-#[deriving(Copy, Clone, PartialEq, Eq, PartialOrd, Ord,
-           RustcEncodable, RustcDecodable, Show)]
+#[deriving(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Show)]
 pub struct Timespec { pub sec: i64, pub nsec: i32 }
 /*
  * Timespec assumes that pre-epoch Timespecs have negative sec and positive
