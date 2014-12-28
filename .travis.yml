@@ -2,6 +2,7 @@ language: rust
 script:
   - cargo build --verbose
   - cargo test --verbose
+  - cargo test --verbose --features rustc-serialize
   - cargo doc
 after_success: |
   [ $TRAVIS_BRANCH = master ] &&
