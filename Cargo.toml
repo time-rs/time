@@ -14,7 +14,7 @@ Utilities for working with time-related functions in Rust.
 
 [dependencies.rustc-serialize]
 optional = true
-version = "0.1"
+version = "0.2"
 
 [build-dependencies]
 gcc = "0.1"
