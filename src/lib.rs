@@ -21,10 +21,12 @@ extern crate libc;
 #[cfg(feature = "rustc-serialize")]
 extern crate "rustc-serialize" as rustc_serialize;
 
+use std::cmp::Ordering;
 use std::fmt::Show;
 use std::fmt;
 use std::io::BufReader;
 use std::num::SignedInt;
+use std::ops::{Add, Sub};
 use std::string::String;
 use std::time::Duration;
 
@@ -76,8 +78,8 @@ mod imp {
 }
 
 /// A record specifying a time value in seconds and nanoseconds.
-#[deriving(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Show)]
-#[cfg_attr(feature = "rustc-serialize", deriving(RustcEncodable, RustcDecodable))]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Show)]
+#[cfg_attr(feature = "rustc-serialize", derive(RustcEncodable, RustcDecodable))]
 pub struct Timespec { pub sec: i64, pub nsec: i32 }
 /*
  * Timespec assumes that pre-epoch Timespecs have negative sec and positive
@@ -165,8 +167,8 @@ pub fn get_time() -> Timespec {
         // A FILETIME contains a 64-bit value representing the number of
         // hectonanosecond (100-nanosecond) intervals since 1601-01-01T00:00:00Z.
         // http://support.microsoft.com/kb/167296/en-us
-        let ns_since_1601 = ((time.dwHighDateTime as u64 << 32) |
-                             (time.dwLowDateTime  as u64 <<  0)) / 10;
+        let ns_since_1601 = (((time.dwHighDateTime as u64) << 32) |
+                             ((time.dwLowDateTime  as u64) <<  0)) / 10;
         let ns_since_1970 = ns_since_1601 - NANOSECONDS_FROM_1601_TO_1970;
 
         ((ns_since_1970 / 1000000) as i64,
@@ -255,7 +257,7 @@ pub fn tzset() {
 /// also called a broken-down time value.
 // FIXME: use c_int instead of i32?
 #[repr(C)]
-#[deriving(Copy, Clone, PartialEq, Eq, Show)]
+#[derive(Copy, Clone, PartialEq, Eq, Show)]
 pub struct Tm {
     /// Seconds after the minute - [0, 60]
     pub tm_sec: i32,
@@ -475,7 +477,7 @@ impl Tm {
     }
 }
 
-#[deriving(Copy, PartialEq)]
+#[derive(Copy, PartialEq)]
 pub enum ParseError {
     InvalidSecond,
     InvalidMinute,
