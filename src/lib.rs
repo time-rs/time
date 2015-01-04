@@ -10,7 +10,7 @@
 
 //! Simple time handling.
 
-#![feature(phase, old_orphan_check)]
+#![feature(associated_types, default_type_params, phase)]
 #![doc(html_logo_url = "http://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
        html_favicon_url = "http://www.rust-lang.org/favicon.ico",
        html_root_url = "http://doc.rust-lang.org/time/")]
@@ -96,7 +96,9 @@ impl Timespec {
     }
 }
 
-impl Add<Duration, Timespec> for Timespec {
+impl Add<Duration> for Timespec {
+    type Output = Timespec;
+
     fn add(self, other: Duration) -> Timespec {
         let d_sec = other.num_seconds();
         // It is safe to unwrap the nanoseconds, because there cannot be
@@ -116,7 +118,9 @@ impl Add<Duration, Timespec> for Timespec {
     }
 }
 
-impl Sub<Duration, Timespec> for Timespec {
+impl Sub<Duration> for Timespec {
+    type Output = Timespec;
+
     fn sub(self, other: Duration) -> Timespec {
         let d_sec = other.num_seconds();
         // It is safe to unwrap the nanoseconds, because there cannot be
@@ -136,7 +140,9 @@ impl Sub<Duration, Timespec> for Timespec {
     }
 }
 
-impl Sub<Timespec, Duration> for Timespec {
+impl Sub<Timespec> for Timespec {
+    type Output = Duration;
+
     fn sub(self, other: Timespec) -> Duration {
         let sec = self.sec - other.sec;
         let nsec = self.nsec - other.nsec;
@@ -298,7 +304,9 @@ pub struct Tm {
     pub tm_nsec: i32,
 }
 
-impl Add<Duration, Tm> for Tm {
+impl Add<Duration> for Tm {
+    type Output = Tm;
+
     /// The resulting Tm is in UTC.
     // FIXME:  The resulting Tm should have the same timezone as `self`; however, we need a
     // function such as `at_tm(clock: Timespec, offset: i32)` for this.
@@ -307,7 +315,9 @@ impl Add<Duration, Tm> for Tm {
     }
 }
 
-impl Sub<Duration, Tm> for Tm {
+impl Sub<Duration> for Tm {
+    type Output = Tm;
+
     /// The resulting Tm is in UTC.
     // FIXME:  The resulting Tm should have the same timezone as `self`; however, we need a
     // function such as `at_tm(clock: Timespec, offset: i32)` for this.
