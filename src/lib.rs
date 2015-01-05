@@ -253,6 +253,53 @@ pub fn precise_time_s() -> f64 {
     return (precise_time_ns() as f64) / 1000000000.;
 }
 
+/// An opaque structure representing a moment in time.
+///
+/// The only operation that can be performed on a `PreciseTime` is the
+/// calculation of the `Duration` of time that lies between them.
+///
+/// # Examples
+///
+/// Repeatedly call a function for 1 second:
+/// ```rust
+/// # fn do_some_work() {}
+/// let start = PreciseTime::now();
+///
+/// while start.to(PreciseTime::now()) < Duration::seconds(1) {
+///     do_some_work();
+/// }
+/// ```
+#[derive(Copy, Clone)]
+pub struct PreciseTime(u64);
+
+impl PreciseTime {
+    /// Returns a `PreciseTime` representing the current moment in time.
+    pub fn now() -> PreciseTime {
+        PreciseTime(precise_time_ns())
+    }
+
+    /// Returns a `Duration` representing the span of time from the value of
+    /// `self` to the value of `later`.
+    ///
+    /// # Notes
+    ///
+    /// If `later` represents a time before `self`, the result of this method
+    /// is unspecified.
+    ///
+    /// If `later` represents a time more than 293 years after `self`, the
+    /// result of this method is unspecified.
+    #[inline]
+    pub fn to(&self, later: PreciseTime) -> Duration {
+        // NB: even if later is less than self due to overflow, this will work
+        // since the subtraction will underflow properly as well.
+        //
+        // We could deal with the overflow when casting to an i64, but all that
+        // gets us is the ability to handle intervals of up to 584 years, which
+        // seems not very useful :)
+        Duration::nanoseconds((later.0 - self.0) as i64)
+    }
+}
+
 pub fn tzset() {
     unsafe {
         rustrt::rust_time_tzset();
@@ -1338,11 +1385,12 @@ pub fn strftime(format: &str, tm: &Tm) -> Result<String, ParseError> {
 mod tests {
     extern crate test;
     use super::{Timespec, get_time, precise_time_ns, precise_time_s, tzset,
-                at_utc, at, strptime};
+                at_utc, at, strptime, PreciseTime};
     use super::ParseError::{InvalidTime, InvalidYear, MissingFormatConverter,
                             InvalidFormatSpecifier};
 
     use std::f64;
+    use std::u64;
     use std::time::Duration;
     use self::test::Bencher;
 
@@ -1408,6 +1456,16 @@ mod tests {
         let ns2 = precise_time_ns();
         debug!("ns2={} ns", ns2);
         assert!(ns2 >= ns1);
+    }
+
+    fn test_precise_time_to() {
+        let t0 = PreciseTime(1000);
+        let t1 = PreciseTime(1023);
+        assert_eq!(Duration::nanoseconds(23), t0.to(t1));
+
+        let t0 = PreciseTime(u64::MAX - 10);
+        let t1 = PreciseTime(15);
+        assert_eq!(Duration::nanoseconds(26), t0.to(t1));
     }
 
     fn test_at_utc() {
@@ -1820,6 +1878,7 @@ mod tests {
         // tests, we will just call the functions now.
         test_get_time();
         test_precise_time();
+        test_precise_time_to();
         test_at_utc();
         test_at();
         test_to_timespec();
