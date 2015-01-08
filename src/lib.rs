@@ -21,7 +21,6 @@ extern crate libc;
 extern crate "rustc-serialize" as rustc_serialize;
 
 use std::cmp::Ordering;
-use std::fmt::Show;
 use std::fmt;
 use std::io::BufReader;
 use std::num::SignedInt;
@@ -551,7 +550,13 @@ pub enum ParseError {
     UnexpectedCharacter(char, char),
 }
 
-impl Show for ParseError {
+impl fmt::Show for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::String::fmt(self, f)
+    }
+}
+
+impl fmt::String for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             InvalidSecond => write!(f, "Invalid second."),
@@ -659,6 +664,12 @@ fn validate_format<'a>(fmt: TmFmt<'a>) -> Result<TmFmt<'a>, ParseError> {
 }
 
 impl<'a> fmt::Show for TmFmt<'a> {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt::String::fmt(self, fmt)
+    }
+}
+
+impl<'a> fmt::String for TmFmt<'a> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         fn is_leap_year(year: int) -> bool {
             (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0))
