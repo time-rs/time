@@ -35,6 +35,8 @@ use self::ParseError::{InvalidDay, InvalidDayOfMonth, InvalidDayOfWeek,
                        InvalidYear, InvalidZoneOffset, MissingFormatConverter,
                        UnexpectedCharacter};
 
+pub use steady::SteadyTime;
+
 static NSEC_PER_SEC: i32 = 1_000_000_000;
 
 mod rustrt {
@@ -67,11 +69,42 @@ mod imp {
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 mod imp {
     use libc::{timeval, timezone, c_int, mach_timebase_info};
+    use std::sync::{Once, ONCE_INIT};
 
     extern {
         pub fn gettimeofday(tp: *mut timeval, tzp: *mut timezone) -> c_int;
         pub fn mach_absolute_time() -> u64;
         pub fn mach_timebase_info(info: *mut mach_timebase_info) -> c_int;
+    }
+
+    pub fn info() -> &'static mach_timebase_info {
+        static mut INFO: mach_timebase_info = mach_timebase_info {
+            numer: 0,
+            denom: 0,
+        };
+        static ONCE: Once = ONCE_INIT;
+
+        unsafe {
+            ONCE.call_once(|| {
+                mach_timebase_info(&mut INFO);
+            });
+            &INFO
+        }
+    }
+}
+
+#[cfg(windows)]
+mod imp {
+    pub fn frequency() -> libc::LARGE_INTEGER {
+        static mut FREQUENCY: libc::LARGE_INTEGER = 0;
+        static ONCE: Once = ONCE_INIT;
+
+        unsafe {
+            ONCE.call_once(|| {
+                libc::QueryPerformanceFrequency(&mut FREQUENCY);
+            });
+            FREQUENCY
+        }
     }
 }
 
@@ -205,31 +238,19 @@ pub fn precise_time_ns() -> u64 {
 
     #[cfg(windows)]
     fn os_precise_time_ns() -> u64 {
-        let mut ticks_per_s = 0;
-        assert_eq!(unsafe {
-            libc::QueryPerformanceFrequency(&mut ticks_per_s)
-        }, 1);
-        let ticks_per_s = if ticks_per_s == 0 {1} else {ticks_per_s};
         let mut ticks = 0;
         assert_eq!(unsafe {
             libc::QueryPerformanceCounter(&mut ticks)
         }, 1);
 
-        return (ticks as u64 * 1000000000) / (ticks_per_s as u64);
+        return (ticks as u64 * 1000000000) / (imp::frequency() as u64);
     }
 
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     fn os_precise_time_ns() -> u64 {
-        static mut TIMEBASE: libc::mach_timebase_info = libc::mach_timebase_info { numer: 0,
-                                                                                   denom: 0 };
-        static ONCE: std::sync::Once = std::sync::ONCE_INIT;
-        unsafe {
-            ONCE.call_once(|| {
-                imp::mach_timebase_info(&mut TIMEBASE);
-            });
-            let time = imp::mach_absolute_time();
-            time * TIMEBASE.numer as u64 / TIMEBASE.denom as u64
-        }
+        let time = imp::mach_absolute_time();
+        let info = imp::info();
+        time * info.numer as u64 / info.denom as u64
     }
 
     #[cfg(not(any(windows, target_os = "macos", target_os = "ios")))]
@@ -295,6 +316,212 @@ impl PreciseTime {
         // gets us is the ability to handle intervals of up to 584 years, which
         // seems not very useful :)
         Duration::nanoseconds((later.0 - self.0) as i64)
+    }
+}
+
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+mod steady {
+    use imp;
+    use std::time::Duration;
+    use std::ops::{Sub, Add};
+
+    #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Show)]
+    pub struct SteadyTime {
+        t: u64,
+    }
+
+    impl SteadyTime {
+        pub fn now() -> SteadyTime {
+            SteadyTime {
+                t: unsafe { imp::mach_absolute_time() },
+            }
+        }
+    }
+
+    impl Sub for SteadyTime {
+        type Output = Duration;
+
+        fn sub(self, other: SteadyTime) -> Duration {
+            let info = imp::info();
+            let diff = self.t as i64 - other.t as i64;
+            Duration::nanoseconds(diff * info.numer as i64 / info.denom as i64)
+        }
+    }
+
+    impl Sub<Duration> for SteadyTime {
+        type Output = SteadyTime;
+
+        fn sub(self, other: Duration) -> SteadyTime {
+            self + -other
+        }
+    }
+
+    impl Add<Duration> for SteadyTime {
+        type Output = SteadyTime;
+
+        fn add(self, other: Duration) -> SteadyTime {
+            let info = imp::info();
+            let delta = other.num_nanoseconds().unwrap() * info.denom as i64 / info.numer as i64;
+            SteadyTime {
+                t: (self.t as i64 + delta) as u64
+            }
+        }
+    }
+}
+
+#[cfg(not(any(windows, target_os = "macos", target_os = "ios")))]
+mod steady {
+    use {imp, NSEC_PER_SEC};
+    use libc;
+    use std::cmp::{PartialOrd, Ord, Ordering, PartialEq, Eq};
+    use std::ops::{Sub, Add};
+    use std::time::Duration;
+    use std::fmt;
+
+    #[derive(Copy)]
+    pub struct SteadyTime {
+        t: libc::timespec,
+    }
+
+    impl fmt::Show for SteadyTime {
+        fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+            write!(fmt, "SteadyTime {{ t: timespec {{ tv_sec: {:?}, tv_nsec: {:?} }} }}",
+                   self.t.tv_sec, self.t.tv_nsec)
+        }
+    }
+
+    impl Clone for SteadyTime {
+        fn clone(&self) -> SteadyTime {
+            SteadyTime { t: self.t }
+        }
+    }
+
+    impl SteadyTime {
+        pub fn now() -> SteadyTime {
+            let mut t = SteadyTime {
+                t: libc::timespec {
+                    tv_sec: 0,
+                    tv_nsec: 0,
+                }
+            };
+            unsafe {
+                assert_eq!(0, imp::clock_gettime(libc::CLOCK_MONOTONIC, &mut t.t));
+            }
+            t
+        }
+    }
+
+    impl Sub for SteadyTime {
+        type Output = Duration;
+
+        fn sub(self, other: SteadyTime) -> Duration {
+            if self.t.tv_nsec >= other.t.tv_nsec {
+                Duration::seconds(self.t.tv_sec as i64 - other.t.tv_sec as i64) +
+                    Duration::nanoseconds(self.t.tv_nsec as i64 - other.t.tv_nsec as i64)
+            } else {
+                Duration::seconds(self.t.tv_sec as i64 - 1 - other.t.tv_sec as i64) +
+                    Duration::nanoseconds(self.t.tv_nsec as i64 + NSEC_PER_SEC as i64 -
+                                          other.t.tv_nsec as i64)
+            }
+        }
+    }
+
+    impl Sub<Duration> for SteadyTime {
+        type Output = SteadyTime;
+
+        fn sub(self, other: Duration) -> SteadyTime {
+            self + -other
+        }
+    }
+
+    impl Add<Duration> for SteadyTime {
+        type Output = SteadyTime;
+
+        fn add(mut self, other: Duration) -> SteadyTime {
+            let seconds = other.num_seconds();
+            let nanoseconds = (other - Duration::seconds(seconds)).num_nanoseconds().unwrap();
+            self.t.tv_sec += seconds as libc::time_t;
+            self.t.tv_nsec += nanoseconds as libc::c_long;
+            if self.t.tv_nsec >= NSEC_PER_SEC as libc::c_long {
+                self.t.tv_nsec -= NSEC_PER_SEC as libc::c_long;
+                self.t.tv_sec += 1;
+            } else if self.t.tv_nsec < 0 {
+                self.t.tv_sec -= 1;
+                self.t.tv_nsec += NSEC_PER_SEC as libc::c_long;
+            }
+            self
+        }
+    }
+
+    impl PartialOrd for SteadyTime {
+        fn partial_cmp(&self, other: &SteadyTime) -> Option<Ordering> {
+            Some(self.cmp(other))
+        }
+    }
+
+    impl Ord for SteadyTime {
+        fn cmp(&self, other: &SteadyTime) -> Ordering {
+            match self.t.tv_sec.cmp(&other.t.tv_sec) {
+                Ordering::Equal => self.t.tv_nsec.cmp(&other.t.tv_nsec),
+                ord => ord
+            }
+        }
+    }
+
+    impl PartialEq for SteadyTime {
+        fn eq(&self, other: &SteadyTime) -> bool {
+            self.t.tv_sec == other.t.tv_sec && self.t.tv_nsec == other.t.tv_nsec
+        }
+    }
+
+    impl Eq for SteadyTime {}
+}
+
+#[cfg(windows)]
+mod steady {
+    use imp;
+    use libc;
+    use std::ops::{Sub, Add};
+    use std::time::Duration;
+
+    #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Show)]
+    pub struct SteadyTime {
+        t: libc::LARGE_INTEGER,
+    }
+
+    impl SteadyTime {
+        pub fn now() -> SteadyTime {
+            let mut t = SteadyTime { t: 0 };
+            unsafe { libc::QueryPerformanceCounter(&mut t.t); }
+            t
+        }
+    }
+
+    impl Sub for SteadyTime {
+        type Output = Duration;
+
+        fn sub(self, other: SteadyTime) -> Duration {
+            let diff = self.t as i64 - other.t as i64;
+            Duration::microseconds(diff * 1_000_000 / imp::frequency() as i64)
+        }
+    }
+
+    impl Sub<Duration> for SteadyTime {
+        type Output = SteadyTime;
+
+        fn sub(self, other: Duration) -> SteadyTime {
+            self + -other
+        }
+    }
+
+    impl Add<Duration> for SteadyTime {
+        type Output = Duration;
+
+        fn add(mut self, other: Duration) -> Duration {
+            self.t += (other.num_microseconds() * imp::frequency() as i64 / 1_000_000)
+                as libc::LARGE_INTEGER;
+            self
+        }
     }
 }
 
