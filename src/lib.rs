@@ -246,9 +246,11 @@ pub fn precise_time_ns() -> u64 {
 
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     fn os_precise_time_ns() -> u64 {
-        let time = imp::mach_absolute_time();
-        let info = imp::info();
-        time * info.numer as u64 / info.denom as u64
+        unsafe {
+            let time = imp::mach_absolute_time();
+            let info = imp::info();
+            time * info.numer as u64 / info.denom as u64
+        }
     }
 
     #[cfg(not(any(windows, target_os = "macos", target_os = "ios")))]
