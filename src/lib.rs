@@ -93,6 +93,9 @@ mod imp {
 
 #[cfg(windows)]
 mod imp {
+    use libc;
+    use std::sync::{Once, ONCE_INIT};
+
     pub fn frequency() -> libc::LARGE_INTEGER {
         static mut FREQUENCY: libc::LARGE_INTEGER = 0;
         static ONCE: Once = ONCE_INIT;
@@ -575,10 +578,10 @@ mod steady {
     }
 
     impl Add<Duration> for SteadyTime {
-        type Output = Duration;
+        type Output = SteadyTime;
 
-        fn add(mut self, other: Duration) -> Duration {
-            self.t += (other.num_microseconds() * imp::frequency() as i64 / 1_000_000)
+        fn add(mut self, other: Duration) -> SteadyTime {
+            self.t += (other.num_microseconds().unwrap() * imp::frequency() as i64 / 1_000_000)
                 as libc::LARGE_INTEGER;
             self
         }
@@ -1686,6 +1689,7 @@ mod tests {
     #[cfg(windows)]
     fn set_time_zone() {
         use libc;
+        use std::ffi::CString;
         // Windows crt doesn't see any environment variable set by
         // `SetEnvironmentVariable`, which `os::setenv` internally uses.
         // It is why we use `putenv` here.
@@ -1697,9 +1701,8 @@ mod tests {
             // Windows does not understand "America/Los_Angeles".
             // PST+08 may look wrong, but not! "PST" indicates
             // the name of timezone. "+08" means UTC = local + 08.
-            "TZ=PST+08".with_c_str(|env| {
-                _putenv(env);
-            })
+            let c = CString::from_slice(b"TZ=PST+08");
+            _putenv(c.as_ptr());
         }
         tzset();
     }
