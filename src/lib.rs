@@ -107,7 +107,7 @@ mod imp {
 }
 
 /// A record specifying a time value in seconds and nanoseconds.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Show)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 #[cfg_attr(feature = "rustc-serialize", derive(RustcEncodable, RustcDecodable))]
 pub struct Timespec { pub sec: i64, pub nsec: i32 }
 /*
@@ -338,7 +338,7 @@ impl PreciseTime {
 ///     do_some_work();
 /// }
 /// ```
-#[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
 pub struct SteadyTime(steady::SteadyTime);
 
 impl SteadyTime {
@@ -348,9 +348,10 @@ impl SteadyTime {
     }
 }
 
-impl fmt::Show for SteadyTime {
+impl fmt::Display for SteadyTime {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        self.0.fmt(fmt)
+        // TODO: needs a display customization
+        fmt::Debug::fmt(self, fmt)
     }
 }
 
@@ -384,7 +385,7 @@ mod steady {
     use std::time::Duration;
     use std::ops::{Sub, Add};
 
-    #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Show)]
+    #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
     pub struct SteadyTime {
         t: u64,
     }
@@ -442,7 +443,7 @@ mod steady {
         t: libc::timespec,
     }
 
-    impl fmt::Show for SteadyTime {
+    impl fmt::Debug for SteadyTime {
         fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
             write!(fmt, "SteadyTime {{ tv_sec: {:?}, tv_nsec: {:?} }}",
                    self.t.tv_sec, self.t.tv_nsec)
@@ -543,7 +544,7 @@ mod steady {
     use std::ops::{Sub, Add};
     use std::time::Duration;
 
-    #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Show)]
+    #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
     pub struct SteadyTime {
         t: libc::LARGE_INTEGER,
     }
@@ -594,7 +595,7 @@ pub fn tzset() {
 /// also called a broken-down time value.
 // FIXME: use c_int instead of i32?
 #[repr(C)]
-#[derive(Copy, Clone, PartialEq, Eq, Show)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct Tm {
     /// Seconds after the minute - [0, 60]
     pub tm_sec: i32,
@@ -818,7 +819,7 @@ impl Tm {
     }
 }
 
-#[derive(Copy, PartialEq, Show)]
+#[derive(Copy, PartialEq, Debug)]
 pub enum ParseError {
     InvalidSecond,
     InvalidMinute,
@@ -836,7 +837,7 @@ pub enum ParseError {
     UnexpectedCharacter(char, char),
 }
 
-impl fmt::String for ParseError {
+impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
             InvalidSecond => write!(f, "Invalid second."),
@@ -857,12 +858,14 @@ impl fmt::String for ParseError {
     }
 }
 
-/// A wrapper around a `Tm` and format string that implements Show.
+/// A wrapper around a `Tm` and format string that implements Display.
+#[derive(Debug)]
 pub struct TmFmt<'a> {
     tm: &'a Tm,
     format: Fmt<'a>
 }
 
+#[derive(Debug)]
 enum Fmt<'a> {
     FmtStr(&'a str),
     FmtRfc3339,
@@ -943,8 +946,10 @@ fn validate_format<'a>(fmt: TmFmt<'a>) -> Result<TmFmt<'a>, ParseError> {
     Ok(fmt)
 }
 
-impl<'a> fmt::String for TmFmt<'a> {
+impl<'a> fmt::Display for TmFmt<'a> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        use std::fmt::Display;
+
         fn is_leap_year(year: i32) -> bool {
             (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0))
         }
@@ -1204,16 +1209,10 @@ impl<'a> fmt::String for TmFmt<'a> {
     }
 }
 
-impl<'a> fmt::Show for TmFmt<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        fmt::String::fmt(self, f)
-    }
-}
-
 /// Parses the time from the string according to the format string.
 pub fn strptime(s: &str, format: &str) -> Result<Tm, ParseError> {
     fn match_str(s: &str, pos: usize, needle: &str) -> bool {
-        s.slice_from(pos).starts_with(needle)
+        s[pos..].starts_with(needle)
     }
 
     fn match_strs(ss: &str, pos: usize, strs: &[(&str, i32)])
