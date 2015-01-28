@@ -23,7 +23,7 @@ extern crate "rustc-serialize" as rustc_serialize;
 
 use std::cmp::Ordering;
 use std::fmt;
-use std::io::BufReader;
+use std::old_io::BufReader;
 use std::num::SignedInt;
 use std::ops::{Add, Sub};
 use std::time::Duration;
