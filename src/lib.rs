@@ -283,8 +283,12 @@ pub fn precise_time_s() -> f64 {
 /// # Examples
 ///
 /// Repeatedly call a function for 1 second:
+///
 /// ```rust
+/// use std::time::Duration;
+/// use time::PreciseTime;
 /// # fn do_some_work() {}
+///
 /// let start = PreciseTime::now();
 ///
 /// while start.to(PreciseTime::now()) < Duration::seconds(1) {
