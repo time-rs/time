@@ -1014,7 +1014,7 @@ impl<'a> fmt::Display for TmFmt<'a> {
         }
 
         fn parse_type(fmt: &mut fmt::Formatter, ch: char, tm: &Tm) -> fmt::Result {
-            let die = |:| {
+            let die = || {
                 unreachable!()
             };
             match ch {
