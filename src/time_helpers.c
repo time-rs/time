@@ -25,7 +25,6 @@
 #include <windows.h>
 #include <wincrypt.h>
 #include <stdio.h>
-#include <tchar.h>
 #endif
 
 #ifdef __APPLE__
