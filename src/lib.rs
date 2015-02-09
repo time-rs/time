@@ -1891,7 +1891,7 @@ mod tests {
             "Saturday".to_string()
         ];
         for day in days.iter() {
-            assert!(test(day.as_slice(), "%A"));
+            assert!(test(&day, "%A"));
         }
 
         let days = [
@@ -1904,7 +1904,7 @@ mod tests {
             "Sat".to_string()
         ];
         for day in days.iter() {
-            assert!(test(day.as_slice(), "%a"));
+            assert!(test(&day, "%a"));
         }
 
         let months = [
@@ -1922,7 +1922,7 @@ mod tests {
             "December".to_string()
         ];
         for day in months.iter() {
-            assert!(test(day.as_slice(), "%B"));
+            assert!(test(&day, "%B"));
         }
 
         let months = [
@@ -1940,7 +1940,7 @@ mod tests {
             "Dec".to_string()
         ];
         for day in months.iter() {
-            assert!(test(day.as_slice(), "%b"));
+            assert!(test(&day, "%b"));
         }
 
         assert!(test("19", "%C"));
