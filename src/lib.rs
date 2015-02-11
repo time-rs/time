@@ -341,10 +341,11 @@ impl PreciseTime {
 ///
 /// ```rust
 /// # use time::SteadyTime;
+/// # use std::time::Duration;
 /// # fn do_some_work() {}
 /// let start = SteadyTime::now();
 ///
-/// while start - SteadyTime::now() < Duration::seconds(1) {
+/// while SteadyTime::now() - start < Duration::seconds(1) {
 ///     do_some_work();
 /// }
 /// ```
