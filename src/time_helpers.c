@@ -36,6 +36,8 @@
 #endif
 #endif
 
+// Gonk has this symbol, but Android doesn't
+#ifndef TARGET_OS_GONK
 #ifdef __ANDROID__
 static time_t timegm(struct tm *tm) {
     time_t ret;
@@ -55,6 +57,7 @@ static time_t timegm(struct tm *tm) {
     tzset();
     return ret;
 }
+#endif
 #endif
 
 typedef struct {
