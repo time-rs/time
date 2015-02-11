@@ -338,6 +338,7 @@ impl PreciseTime {
 /// # Examples
 ///
 /// Repeatedly call a function for 1 second:
+///
 /// ```rust
 /// # use time::SteadyTime;
 /// # fn do_some_work() {}
