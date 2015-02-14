@@ -20,7 +20,7 @@ optional = true
 version = "0.2"
 
 [build-dependencies]
-gcc = "0.1"
+gcc = "0.2"
 
 [dev-dependencies]
 log = "0.2"
