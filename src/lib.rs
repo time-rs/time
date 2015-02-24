@@ -13,7 +13,7 @@
 #![doc(html_logo_url = "http://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
        html_favicon_url = "http://www.rust-lang.org/favicon.ico",
        html_root_url = "http://doc.rust-lang.org/time/")]
-#![feature(old_io, core, collections, std_misc)]
+#![feature(io, core, collections, std_misc)]
 #![cfg_attr(test, deny(warnings))]
 #![cfg_attr(test, feature(test, env))]
 
@@ -25,7 +25,8 @@ extern crate "rustc-serialize" as rustc_serialize;
 
 use std::cmp::Ordering;
 use std::fmt;
-use std::old_io::BufReader;
+use std::io::prelude::*;
+use std::io::{Cursor, SeekFrom};
 use std::num::SignedInt;
 use std::ops::{Add, Sub};
 use std::time::Duration;
@@ -1613,7 +1614,7 @@ pub fn strptime(s: &str, format: &str) -> Result<Tm, ParseError> {
         }
     }
 
-    let mut rdr = BufReader::new(format.as_bytes());
+    let mut rdr = Cursor::new(format.as_bytes());
     let mut tm = Tm {
         tm_sec: 0,
         tm_min: 0,
@@ -1659,7 +1660,7 @@ pub fn strptime(s: &str, format: &str) -> Result<Tm, ParseError> {
         }
     }
 
-    if pos == len && rdr.tell().unwrap() == format.len() as u64 {
+    if pos == len && rdr.seek(SeekFrom::Current(0)).unwrap() == format.len() as u64 {
         Ok(Tm {
             tm_sec: tm.tm_sec,
             tm_min: tm.tm_min,
