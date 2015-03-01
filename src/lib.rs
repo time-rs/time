@@ -15,7 +15,7 @@
        html_root_url = "http://doc.rust-lang.org/time/")]
 #![feature(io, core, collections, std_misc)]
 #![cfg_attr(test, deny(warnings))]
-#![cfg_attr(test, feature(test, env))]
+#![cfg_attr(test, feature(test))]
 
 #[cfg(test)] #[macro_use] extern crate log;
 
