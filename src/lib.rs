@@ -13,7 +13,7 @@
 #![doc(html_logo_url = "http://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
        html_favicon_url = "http://www.rust-lang.org/favicon.ico",
        html_root_url = "http://doc.rust-lang.org/time/")]
-#![feature(io, core, collections, std_misc)]
+#![feature(core, std_misc)]
 #![cfg_attr(test, deny(warnings))]
 #![cfg_attr(test, feature(test))]
 
@@ -25,7 +25,6 @@ extern crate "rustc-serialize" as rustc_serialize;
 
 use std::cmp::Ordering;
 use std::fmt;
-use std::io::prelude::*;
 use std::ops::{Add, Sub};
 use std::time::Duration;
 
@@ -869,9 +868,15 @@ impl fmt::Display for ParseError {
             InvalidDayOfYear => write!(f, "Invalid day of the year."),
             InvalidZoneOffset => write!(f, "Invalid zone offset."),
             InvalidTime => write!(f, "Invalid time."),
-            MissingFormatConverter => write!(f, "Missing format converter after `%`"),
-            InvalidFormatSpecifier(ch) => write!(f, "Invalid format specifier: %{}", ch),
-            UnexpectedCharacter(a, b) => write!(f, "Expected: {}, found: {}.", a, b),
+            MissingFormatConverter => {
+                write!(f, "missing format converter after `%`")
+            }
+            InvalidFormatSpecifier(ch) => {
+                write!(f, "invalid format specifier: %{}", ch)
+            }
+            UnexpectedCharacter(a, b) => {
+                write!(f, "expected: `{}`, found: `{}`", a, b)
+            }
         }
     }
 }
@@ -940,7 +945,7 @@ pub fn strftime(format: &str, tm: &Tm) -> Result<String, ParseError> {
 mod tests {
     extern crate test;
     use super::{Timespec, get_time, precise_time_ns, precise_time_s, tzset,
-                at_utc, at, strptime, PreciseTime};
+                at_utc, at, strptime, PreciseTime, ParseError};
     use super::ParseError::{InvalidTime, InvalidYear, MissingFormatConverter,
                             InvalidFormatSpecifier};
 
@@ -1092,41 +1097,41 @@ mod tests {
         set_time_zone();
 
         match strptime("", "") {
-          Ok(ref tm) => {
-            assert!(tm.tm_sec == 0);
-            assert!(tm.tm_min == 0);
-            assert!(tm.tm_hour == 0);
-            assert!(tm.tm_mday == 0);
-            assert!(tm.tm_mon == 0);
-            assert!(tm.tm_year == 0);
-            assert!(tm.tm_wday == 0);
-            assert!(tm.tm_isdst == 0);
-            assert!(tm.tm_utcoff == 0);
-            assert!(tm.tm_nsec == 0);
-          }
-          Err(_) => ()
+            Ok(ref tm) => {
+                assert!(tm.tm_sec == 0);
+                assert!(tm.tm_min == 0);
+                assert!(tm.tm_hour == 0);
+                assert!(tm.tm_mday == 0);
+                assert!(tm.tm_mon == 0);
+                assert!(tm.tm_year == 0);
+                assert!(tm.tm_wday == 0);
+                assert!(tm.tm_isdst == 0);
+                assert!(tm.tm_utcoff == 0);
+                assert!(tm.tm_nsec == 0);
+            }
+            Err(_) => ()
         }
 
         let format = "%a %b %e %T.%f %Y";
-        assert_eq!(strptime("", format), Err(InvalidTime));
-        assert!(strptime("Fri Feb 13 15:31:30", format)
-            == Err(InvalidTime));
+        assert_eq!(strptime("", format), Err(ParseError::InvalidDay));
+        assert_eq!(strptime("Fri Feb 13 15:31:30", format),
+                   Err(InvalidTime));
 
         match strptime("Fri Feb 13 15:31:30.01234 2009", format) {
-          Err(e) => panic!(e),
-          Ok(ref tm) => {
-            assert!(tm.tm_sec == 30);
-            assert!(tm.tm_min == 31);
-            assert!(tm.tm_hour == 15);
-            assert!(tm.tm_mday == 13);
-            assert!(tm.tm_mon == 1);
-            assert!(tm.tm_year == 109);
-            assert!(tm.tm_wday == 5);
-            assert!(tm.tm_yday == 0);
-            assert!(tm.tm_isdst == 0);
-            assert!(tm.tm_utcoff == 0);
-            assert!(tm.tm_nsec == 12340000);
-          }
+            Err(e) => panic!("{}", e),
+            Ok(ref tm) => {
+                assert_eq!(tm.tm_sec, 30);
+                assert_eq!(tm.tm_min, 31);
+                assert_eq!(tm.tm_hour, 15);
+                assert_eq!(tm.tm_mday, 13);
+                assert_eq!(tm.tm_mon, 1);
+                assert_eq!(tm.tm_year, 109);
+                assert_eq!(tm.tm_wday, 5);
+                assert_eq!(tm.tm_yday, 0);
+                assert_eq!(tm.tm_isdst, 0);
+                assert_eq!(tm.tm_utcoff, 0);
+                assert_eq!(tm.tm_nsec, 12340000);
+            }
         }
 
         fn test(s: &str, format: &str) -> bool {
