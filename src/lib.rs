@@ -27,16 +27,16 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::io::prelude::*;
 use std::io::{Cursor, SeekFrom};
-use std::num::SignedInt;
 use std::ops::{Add, Sub};
 use std::time::Duration;
 
-use self::Fmt::{FmtCtime, FmtRfc3339, FmtStr};
 use self::ParseError::{InvalidDay, InvalidDayOfMonth, InvalidDayOfWeek,
                        InvalidDayOfYear, InvalidFormatSpecifier, InvalidHour,
                        InvalidMinute, InvalidMonth, InvalidSecond, InvalidTime,
                        InvalidYear, InvalidZoneOffset, MissingFormatConverter,
                        UnexpectedCharacter};
+
+mod display;
 
 static NSEC_PER_SEC: i32 = 1_000_000_000;
 
@@ -760,7 +760,7 @@ impl Tm {
     pub fn ctime(&self) -> TmFmt {
         TmFmt {
             tm: self,
-            format: FmtCtime,
+            format: Fmt::Ctime,
         }
     }
 
@@ -773,7 +773,7 @@ impl Tm {
     pub fn asctime(&self) -> TmFmt {
         TmFmt {
             tm: self,
-            format: FmtStr("%c"),
+            format: Fmt::Str("%c"),
         }
     }
 
@@ -781,7 +781,7 @@ impl Tm {
     pub fn strftime<'a>(&'a self, format: &'a str) -> Result<TmFmt<'a>, ParseError> {
         validate_format(TmFmt {
             tm: self,
-            format: FmtStr(format),
+            format: Fmt::Str(format),
         })
     }
 
@@ -799,7 +799,7 @@ impl Tm {
         };
         TmFmt {
             tm: self,
-            format: FmtStr(fmt),
+            format: Fmt::Str(fmt),
         }
     }
 
@@ -812,7 +812,7 @@ impl Tm {
     pub fn rfc822z(&self) -> TmFmt {
         TmFmt {
             tm: self,
-            format: FmtStr("%a, %d %b %Y %T %z"),
+            format: Fmt::Str("%a, %d %b %Y %T %z"),
         }
     }
 
@@ -826,7 +826,7 @@ impl Tm {
     pub fn rfc3339<'a>(&'a self) -> TmFmt {
         TmFmt {
             tm: self,
-            format: FmtRfc3339,
+            format: Fmt::Rfc3339,
         }
     }
 }
@@ -879,9 +879,9 @@ pub struct TmFmt<'a> {
 
 #[derive(Debug)]
 enum Fmt<'a> {
-    FmtStr(&'a str),
-    FmtRfc3339,
-    FmtCtime,
+    Str(&'a str),
+    Rfc3339,
+    Ctime,
 }
 
 fn validate_format<'a>(fmt: TmFmt<'a>) -> Result<TmFmt<'a>, ParseError> {
@@ -893,57 +893,24 @@ fn validate_format<'a>(fmt: TmFmt<'a>) -> Result<TmFmt<'a>, ParseError> {
         _ => return Err(InvalidDay)
     }
     match fmt.format {
-        FmtStr(ref s) => {
+        Fmt::Str(ref s) => {
             let mut chars = s.chars();
             loop {
                 match chars.next() {
                     Some('%') => {
                         match chars.next() {
-                            Some('A') |
-                            Some('a') |
-                            Some('B') |
-                            Some('b') |
-                            Some('C') |
-                            Some('c') |
-                            Some('D') |
-                            Some('d') |
-                            Some('e') |
-                            Some('F') |
-                            Some('f') |
-                            Some('G') |
-                            Some('g') |
-                            Some('H') |
-                            Some('h') |
-                            Some('I') |
-                            Some('j') |
-                            Some('k') |
-                            Some('l') |
-                            Some('M') |
-                            Some('m') |
-                            Some('n') |
-                            Some('P') |
-                            Some('p') |
-                            Some('R') |
-                            Some('r') |
-                            Some('S') |
-                            Some('s') |
-                            Some('T') |
-                            Some('t') |
-                            Some('U') |
-                            Some('u') |
-                            Some('V') |
-                            Some('v') |
-                            Some('W') |
-                            Some('w') |
-                            Some('X') |
-                            Some('x') |
-                            Some('Y') |
-                            Some('y') |
-                            Some('Z') |
-                            Some('z') |
-                            Some('+') |
-                            Some('%')
-                                => (),
+                            Some('A') | Some('a') | Some('B') | Some('b') |
+                            Some('C') | Some('c') | Some('D') | Some('d') |
+                            Some('e') | Some('F') | Some('f') | Some('G') |
+                            Some('g') | Some('H') | Some('h') | Some('I') |
+                            Some('j') | Some('k') | Some('l') | Some('M') |
+                            Some('m') | Some('n') | Some('P') | Some('p') |
+                            Some('R') | Some('r') | Some('S') | Some('s') |
+                            Some('T') | Some('t') | Some('U') | Some('u') |
+                            Some('V') | Some('v') | Some('W') | Some('w') |
+                            Some('X') | Some('x') | Some('Y') | Some('y') |
+                            Some('Z') | Some('z') | Some('+') | Some('%') => (),
+
                             Some(c) => return Err(InvalidFormatSpecifier(c)),
                             None => return Err(MissingFormatConverter),
                         }
@@ -956,269 +923,6 @@ fn validate_format<'a>(fmt: TmFmt<'a>) -> Result<TmFmt<'a>, ParseError> {
         _ => ()
     }
     Ok(fmt)
-}
-
-impl<'a> fmt::Display for TmFmt<'a> {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        use std::fmt::Display;
-
-        fn is_leap_year(year: i32) -> bool {
-            (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0))
-        }
-
-        fn days_in_year(year: i32) -> i32 {
-            if is_leap_year(year) { 366 }
-            else                  { 365 }
-        }
-
-        fn iso_week_days(yday: i32, wday: i32) -> i32 {
-            /* The number of days from the first day of the first ISO week of this
-            * year to the year day YDAY with week day WDAY.
-            * ISO weeks start on Monday. The first ISO week has the year's first
-            * Thursday.
-            * YDAY may be as small as yday_minimum.
-            */
-            let yday: i32 = yday as i32;
-            let wday: i32 = wday as i32;
-            let iso_week_start_wday: i32 = 1;                     /* Monday */
-            let iso_week1_wday: i32 = 4;                          /* Thursday */
-            let yday_minimum: i32 = 366;
-            /* Add enough to the first operand of % to make it nonnegative. */
-            let big_enough_multiple_of_7: i32 = (yday_minimum / 7 + 2) * 7;
-
-            yday - (yday - wday + iso_week1_wday + big_enough_multiple_of_7) % 7
-                + iso_week1_wday - iso_week_start_wday
-        }
-
-        fn iso_week(fmt: &mut fmt::Formatter, ch:char, tm: &Tm) -> fmt::Result {
-            let mut year = tm.tm_year + 1900;
-            let mut days = iso_week_days(tm.tm_yday, tm.tm_wday);
-
-            if days < 0 {
-                /* This ISO week belongs to the previous year. */
-                year -= 1;
-                days = iso_week_days(tm.tm_yday + (days_in_year(year)), tm.tm_wday);
-            } else {
-                let d = iso_week_days(tm.tm_yday - (days_in_year(year)),
-                                      tm.tm_wday);
-                if 0 <= d {
-                    /* This ISO week belongs to the next year. */
-                    year += 1;
-                    days = d;
-                }
-            }
-
-            match ch {
-                'G' => write!(fmt, "{}", year),
-                'g' => write!(fmt, "{:02}", (year % 100 + 100) % 100),
-                'V' => write!(fmt, "{:02}", days / 7 + 1),
-                _ => Ok(())
-            }
-        }
-
-        fn parse_type(fmt: &mut fmt::Formatter, ch: char, tm: &Tm) -> fmt::Result {
-            let die = || {
-                unreachable!()
-            };
-            match ch {
-              'A' => match tm.tm_wday {
-                0 => "Sunday",
-                1 => "Monday",
-                2 => "Tuesday",
-                3 => "Wednesday",
-                4 => "Thursday",
-                5 => "Friday",
-                6 => "Saturday",
-                _ => return die()
-              },
-             'a' => match tm.tm_wday {
-                0 => "Sun",
-                1 => "Mon",
-                2 => "Tue",
-                3 => "Wed",
-                4 => "Thu",
-                5 => "Fri",
-                6 => "Sat",
-                _ => return die()
-              },
-              'B' => match tm.tm_mon {
-                0 => "January",
-                1 => "February",
-                2 => "March",
-                3 => "April",
-                4 => "May",
-                5 => "June",
-                6 => "July",
-                7 => "August",
-                8 => "September",
-                9 => "October",
-                10 => "November",
-                11 => "December",
-                _ => return die()
-              },
-              'b' | 'h' => match tm.tm_mon {
-                0 => "Jan",
-                1 => "Feb",
-                2 => "Mar",
-                3 => "Apr",
-                4 => "May",
-                5 => "Jun",
-                6 => "Jul",
-                7 => "Aug",
-                8 => "Sep",
-                9 => "Oct",
-                10 => "Nov",
-                11 => "Dec",
-                _  => return die()
-              },
-              'C' => return write!(fmt, "{:02}", (tm.tm_year + 1900) / 100),
-              'c' => {
-                    try!(parse_type(fmt, 'a', tm));
-                    try!(' '.fmt(fmt));
-                    try!(parse_type(fmt, 'b', tm));
-                    try!(' '.fmt(fmt));
-                    try!(parse_type(fmt, 'e', tm));
-                    try!(' '.fmt(fmt));
-                    try!(parse_type(fmt, 'T', tm));
-                    try!(' '.fmt(fmt));
-                    return parse_type(fmt, 'Y', tm);
-              }
-              'D' | 'x' => {
-                    try!(parse_type(fmt, 'm', tm));
-                    try!('/'.fmt(fmt));
-                    try!(parse_type(fmt, 'd', tm));
-                    try!('/'.fmt(fmt));
-                    return parse_type(fmt, 'y', tm);
-              }
-              'd' => return write!(fmt, "{:02}", tm.tm_mday),
-              'e' => return write!(fmt, "{:2}", tm.tm_mday),
-              'f' => return write!(fmt, "{:09}", tm.tm_nsec),
-              'F' => {
-                    try!(parse_type(fmt, 'Y', tm));
-                    try!('-'.fmt(fmt));
-                    try!(parse_type(fmt, 'm', tm));
-                    try!('-'.fmt(fmt));
-                    return parse_type(fmt, 'd', tm);
-              }
-              'G' => return iso_week(fmt, 'G', tm),
-              'g' => return iso_week(fmt, 'g', tm),
-              'H' => return write!(fmt, "{:02}", tm.tm_hour),
-              'I' => {
-                let mut h = tm.tm_hour;
-                if h == 0 { h = 12 }
-                if h > 12 { h -= 12 }
-                return write!(fmt, "{:02}", h)
-              }
-              'j' => return write!(fmt, "{:03}", tm.tm_yday + 1),
-              'k' => return write!(fmt, "{:2}", tm.tm_hour),
-              'l' => {
-                let mut h = tm.tm_hour;
-                if h == 0 { h = 12 }
-                if h > 12 { h -= 12 }
-                return write!(fmt, "{:2}", h)
-              }
-              'M' => return write!(fmt, "{:02}", tm.tm_min),
-              'm' => return write!(fmt, "{:02}", tm.tm_mon + 1),
-              'n' => "\n",
-              'P' => if (tm.tm_hour) < 12 { "am" } else { "pm" },
-              'p' => if (tm.tm_hour) < 12 { "AM" } else { "PM" },
-              'R' => {
-                    try!(parse_type(fmt, 'H', tm));
-                    try!(':'.fmt(fmt));
-                    return parse_type(fmt, 'M', tm);
-              }
-              'r' => {
-                    try!(parse_type(fmt, 'I', tm));
-                    try!(':'.fmt(fmt));
-                    try!(parse_type(fmt, 'M', tm));
-                    try!(':'.fmt(fmt));
-                    try!(parse_type(fmt, 'S', tm));
-                    try!(' '.fmt(fmt));
-                    return parse_type(fmt, 'p', tm);
-              }
-              'S' => return write!(fmt, "{:02}", tm.tm_sec),
-              's' => return write!(fmt, "{}", tm.to_timespec().sec),
-              'T' | 'X' => {
-                    try!(parse_type(fmt, 'H', tm));
-                    try!(':'.fmt(fmt));
-                    try!(parse_type(fmt, 'M', tm));
-                    try!(':'.fmt(fmt));
-                    return parse_type(fmt, 'S', tm);
-              }
-              't' => "\t",
-              'U' => return write!(fmt, "{:02}", (tm.tm_yday - tm.tm_wday + 7) / 7),
-              'u' => {
-                let i = tm.tm_wday;
-                return (if i == 0 { 7 } else { i }).fmt(fmt);
-              }
-              'V' => return iso_week(fmt, 'V', tm),
-              'v' => {
-                  try!(parse_type(fmt, 'e', tm));
-                  try!('-'.fmt(fmt));
-                  try!(parse_type(fmt, 'b', tm));
-                  try!('-'.fmt(fmt));
-                  return parse_type(fmt, 'Y', tm);
-              }
-              'W' => {
-                  return write!(fmt, "{:02}",
-                                 (tm.tm_yday - (tm.tm_wday - 1 + 7) % 7 + 7) / 7)
-              }
-              'w' => return (tm.tm_wday).fmt(fmt),
-              'Y' => return (tm.tm_year + 1900).fmt(fmt),
-              'y' => return write!(fmt, "{:02}", (tm.tm_year + 1900) % 100),
-              'Z' => if tm.tm_utcoff == 0 { "UTC"} else { "" }, // FIXME (#2350): support locale
-              'z' => {
-                let sign = if tm.tm_utcoff > 0 { '+' } else { '-' };
-                let mut m = tm.tm_utcoff.abs() / 60;
-                let h = m / 60;
-                m -= h * 60;
-                return write!(fmt, "{}{:02}{:02}", sign, h, m);
-              }
-              '+' => return tm.rfc3339().fmt(fmt),
-              '%' => "%",
-              _   => return die()
-            }.fmt(fmt)
-        }
-
-        match self.format {
-            FmtStr(ref s) => {
-                let mut chars = s.chars();
-                loop {
-                    match chars.next() {
-                        Some('%') => {
-                            // we've already validated that % always precedes another char
-                            try!(parse_type(fmt, chars.next().unwrap(), self.tm));
-                        }
-                        Some(ch) => try!(ch.fmt(fmt)),
-                        None => break,
-                    }
-                }
-
-                Ok(())
-            }
-            FmtCtime => {
-                self.tm.to_local().asctime().fmt(fmt)
-            }
-            FmtRfc3339 => {
-                if self.tm.tm_utcoff == 0 {
-                    TmFmt {
-                        tm: self.tm,
-                        format: FmtStr("%Y-%m-%dT%H:%M:%SZ"),
-                    }.fmt(fmt)
-                } else {
-                    let s = TmFmt {
-                        tm: self.tm,
-                        format: FmtStr("%Y-%m-%dT%H:%M:%S"),
-                    };
-                    let sign = if self.tm.tm_utcoff > 0 { '+' } else { '-' };
-                    let mut m = self.tm.tm_utcoff.abs() / 60;
-                    let h = m / 60;
-                    m -= h * 60;
-                    write!(fmt, "{}{}{:02}:{:02}", s, sign, h, m)
-                }
-            }
-        }
-    }
 }
 
 /// Parses the time from the string according to the format string.
@@ -1320,9 +1024,9 @@ pub fn strptime(s: &str, format: &str) -> Result<Tm, ParseError> {
               ("Thursday", 4),
               ("Friday", 5),
               ("Saturday", 6)
-          ]) {
-            Some(item) => { let (v, pos) = item; tm.tm_wday = v; Ok(pos) }
-            None => Err(InvalidDay)
+            ]) {
+                  Some(item) => { let (v, pos) = item; tm.tm_wday = v; Ok(pos) }
+                  None => Err(InvalidDay)
           },
           'a' => match match_strs(s, pos, &[
               ("Sun", 0),
