@@ -39,6 +39,9 @@
 // Gonk has this symbol, but Android doesn't
 #ifndef TARGET_OS_GONK
 #ifdef __ANDROID__
+
+#include <android/api-level.h>
+#if __ANDROID_API__ < 21
 static time_t timegm(struct tm *tm) {
     time_t ret;
     char *tz;
@@ -57,6 +60,7 @@ static time_t timegm(struct tm *tm) {
     tzset();
     return ret;
 }
+#endif
 #endif
 #endif
 
