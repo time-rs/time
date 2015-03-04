@@ -355,19 +355,15 @@ fn match_digits_in_range(ss: &mut &str, digits: usize, ws: bool,
 }
 
 fn parse_char(s: &mut &str, c: char) -> Result<(), ParseError> {
-    let mut i = s.char_indices();
-    match i.next() {
-        Some((_, c2)) => {
-            if c != c2 {
-                return Err(ParseError::UnexpectedCharacter(c, c2))
+    match s.char_indices().next() {
+        Some((i, c2)) => {
+            if c == c2 {
+                *s = &s[i + c2.len_utf8()..];
+                Ok(())
+            } else {
+                Err(ParseError::UnexpectedCharacter(c, c2))
             }
         }
-        None => return Err(ParseError::InvalidTime),
+        None => Err(ParseError::InvalidTime),
     }
-    if let Some((i, _)) = i.next() {
-        *s = &s[i..];
-    } else {
-        *s = "";
-    }
-    Ok(())
 }
