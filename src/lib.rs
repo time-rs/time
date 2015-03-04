@@ -15,7 +15,7 @@
        html_root_url = "http://doc.rust-lang.org/time/")]
 #![feature(core, std_misc)]
 #![cfg_attr(test, deny(warnings))]
-#![cfg_attr(test, feature(test))]
+#![cfg_attr(test, feature(test, collections))]
 
 #[cfg(test)] #[macro_use] extern crate log;
 
@@ -950,7 +950,6 @@ mod tests {
                             InvalidFormatSpecifier};
 
     use std::f64;
-    use std::u64;
     use std::time::Duration;
     use self::test::Bencher;
 
@@ -1022,10 +1021,6 @@ mod tests {
         let t0 = PreciseTime(1000);
         let t1 = PreciseTime(1023);
         assert_eq!(Duration::nanoseconds(23), t0.to(t1));
-
-        let t0 = PreciseTime(u64::MAX - 10);
-        let t1 = PreciseTime(15);
-        assert_eq!(Duration::nanoseconds(26), t0.to(t1));
     }
 
     fn test_at_utc() {
