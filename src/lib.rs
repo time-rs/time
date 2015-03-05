@@ -248,7 +248,7 @@ pub fn precise_time_ns() -> u64 {
             libc::QueryPerformanceCounter(&mut ticks)
         }, 1);
 
-        return (ticks as u64 * 1000000000) / (imp::frequency() as u64);
+        mul_div_i64(ticks as i64, 1000000000, imp::frequency() as i64) as u64
     }
 
     #[cfg(any(target_os = "macos", target_os = "ios"))]
@@ -575,7 +575,8 @@ mod steady {
 
         fn sub(self, other: SteadyTime) -> Duration {
             let diff = self.t as i64 - other.t as i64;
-            Duration::microseconds(diff * 1_000_000 / imp::frequency() as i64)
+            Duration::nanoseconds(::mul_div_i64(diff, 1000000000,
+                                                imp::frequency() as i64))
         }
     }
 
@@ -941,17 +942,45 @@ pub fn strftime(format: &str, tm: &Tm) -> Result<String, ParseError> {
     tm.strftime(format).map(|fmt| fmt.to_string())
 }
 
+// Computes (value*numer)/denom without overflow, as long as both
+// (numer*denom) and the overall result fit into i64 (which is the case
+// for our time conversions).
+#[allow(dead_code)]
+fn mul_div_i64(value: i64, numer: i64, denom: i64) -> i64 {
+    let q = value / denom;
+    let r = value % denom;
+    // Decompose value as (value/denom*denom + value%denom),
+    // substitute into (value*numer)/denom and simplify.
+    // r < denom, so (denom*numer) is the upper bound of (r*numer)
+    q * numer + r * numer / denom
+}
+
 #[cfg(test)]
 mod tests {
     extern crate test;
     use super::{Timespec, get_time, precise_time_ns, precise_time_s, tzset,
                 at_utc, at, strptime, PreciseTime, ParseError};
+    use super::mul_div_i64;
     use super::ParseError::{InvalidTime, InvalidYear, MissingFormatConverter,
                             InvalidFormatSpecifier};
 
     use std::f64;
     use std::time::Duration;
     use self::test::Bencher;
+
+    #[test]
+    fn test_muldiv() {
+        assert_eq!(mul_div_i64( 1_000_000_000_001, 1_000_000_000, 1_000_000),
+                   1_000_000_000_001_000);
+        assert_eq!(mul_div_i64(-1_000_000_000_001, 1_000_000_000, 1_000_000),
+                   -1_000_000_000_001_000);
+        assert_eq!(mul_div_i64(-1_000_000_000_001,-1_000_000_000, 1_000_000),
+                   1_000_000_000_001_000);
+        assert_eq!(mul_div_i64( 1_000_000_000_001, 1_000_000_000,-1_000_000),
+                   -1_000_000_000_001_000);
+        assert_eq!(mul_div_i64( 1_000_000_000_001,-1_000_000_000,-1_000_000),
+                   1_000_000_000_001_000);
+    }
 
     #[cfg(windows)]
     fn set_time_zone() {
@@ -968,7 +997,7 @@ mod tests {
             // Windows does not understand "America/Los_Angeles".
             // PST+08 may look wrong, but not! "PST" indicates
             // the name of timezone. "+08" means UTC = local + 08.
-            let c = CString::from_slice(b"TZ=PST+08");
+            let c = CString::new("TZ=PST+08").unwrap();
             _putenv(c.as_ptr());
         }
         tzset();
