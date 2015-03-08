@@ -676,6 +676,14 @@ impl Sub<Duration> for Tm {
     }
 }
 
+impl Sub<Tm> for Tm {
+    type Output = Duration;
+
+    fn sub(self, other: Tm) -> Duration {
+        self.to_timespec() - other.to_timespec()
+    }
+}
+
 impl PartialOrd for Tm {
     fn partial_cmp(&self, other: &Tm) -> Option<Ordering> {
         self.to_timespec().partial_cmp(&other.to_timespec())
@@ -1455,6 +1463,13 @@ mod tests {
         assert_eq!(w.num_nanoseconds(), Some(-super::NSEC_PER_SEC as i64 - 1));
     }
 
+    fn test_time_sub() {
+        let a = ::now();
+        let b = at(a.to_timespec() + Duration::seconds(5));
+        let c = b - a;
+        assert_eq!(c.num_nanoseconds(), Some(super::NSEC_PER_SEC as i64 * 5));
+    }
+
     #[test]
     #[cfg_attr(target_os = "android", ignore)] // FIXME #10958
     fn run_tests() {
@@ -1474,6 +1489,7 @@ mod tests {
         test_timespec_eq_ord();
         test_timespec_add();
         test_timespec_sub();
+        test_time_sub();
     }
 
     #[bench]
