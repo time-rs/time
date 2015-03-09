@@ -1,5 +1,4 @@
 use std::fmt::{self, Display};
-use std::num::SignedInt;
 
 use super::{TmFmt, Tm, Fmt};
 
@@ -33,7 +32,7 @@ impl<'a> fmt::Display for TmFmt<'a> {
                         format: Fmt::Str("%Y-%m-%dT%H:%M:%S"),
                     };
                     let sign = if self.tm.tm_utcoff > 0 { '+' } else { '-' };
-                    let mut m = self.tm.tm_utcoff.abs() / 60;
+                    let mut m = abs(self.tm.tm_utcoff) / 60;
                     let h = m / 60;
                     m -= h * 60;
                     write!(fmt, "{}{}{:02}:{:02}", s, sign, h, m)
@@ -247,7 +246,7 @@ fn parse_type(fmt: &mut fmt::Formatter, ch: char, tm: &Tm) -> fmt::Result {
         'Z' => write!(fmt, "{}", if tm.tm_utcoff == 0 { "UTC"} else { "" }),
         'z' => {
             let sign = if tm.tm_utcoff > 0 { '+' } else { '-' };
-            let mut m = tm.tm_utcoff.abs() / 60;
+            let mut m = abs(tm.tm_utcoff) / 60;
             let h = m / 60;
             m -= h * 60;
             write!(fmt, "{}{:02}{:02}", sign, h, m)
@@ -256,4 +255,8 @@ fn parse_type(fmt: &mut fmt::Formatter, ch: char, tm: &Tm) -> fmt::Result {
         '%' => write!(fmt, "{}", "%"),
         _   => unreachable!(),
     }
+}
+
+fn abs(i: i32) -> i32 {
+    if i < 0 {-i} else {i}
 }
