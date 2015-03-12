@@ -109,7 +109,6 @@ static void tm_to_rust_tm(struct tm* in_tm,
 }
 
 #if defined(__WIN32__)
-#define TZSET() _tzset()
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
 #define GMTIME(clock, result) gmtime_s((result), (clock))
 #define LOCALTIME(clock, result) localtime_s((result), (clock))
@@ -137,16 +136,10 @@ static struct tm* LOCALTIME(const time_t *clock, struct tm *result) {
 #define TIMEGM(result) timegm(result)
 #endif
 
-#define TZSET() tzset()
 #define GMTIME(clock, result) gmtime_r((clock), (result))
 #define LOCALTIME(clock, result) localtime_r((clock), (result))
 
 #endif
-
-void
-rust_time_tzset() {
-    TZSET();
-}
 
 void
 rust_time_gmtime(int64_t sec, int32_t nsec, rust_time_tm *timeptr) {

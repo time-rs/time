@@ -45,7 +45,6 @@ mod rustrt {
     use super::Tm;
 
     extern {
-        pub fn rust_time_tzset();
         pub fn rust_time_gmtime(sec: i64, nsec: i32, result: &mut Tm);
         pub fn rust_time_localtime(sec: i64, nsec: i32, result: &mut Tm);
         pub fn rust_time_timegm(tm: &Tm) -> i64;
@@ -600,9 +599,9 @@ mod steady {
 }
 
 pub fn tzset() {
-    unsafe {
-        rustrt::rust_time_tzset();
-    }
+    #[cfg(windows)] extern { #[link_name = "_tzset"] fn tzset(); }
+    #[cfg(not(windows))] extern { fn tzset(); }
+    unsafe { tzset() }
 }
 
 /// Holds a calendar date and time broken down into its components (year, month,
