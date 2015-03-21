@@ -15,7 +15,7 @@
        html_root_url = "http://doc.rust-lang.org/time/")]
 #![feature(std_misc)]
 #![cfg_attr(test, deny(warnings))]
-#![cfg_attr(test, feature(test, collections))]
+#![cfg_attr(test, feature(test, str_char))]
 
 #[cfg(test)] #[macro_use] extern crate log;
 
@@ -1170,7 +1170,7 @@ mod tests {
               Ok(ref tm) => {
                 tm.strftime(format).unwrap().to_string() == s.to_string()
               },
-              Err(e) => panic!(e)
+              Err(e) => panic!("{:?},  s={:?}, format={:?}", e, s, format)
             }
         }
 
@@ -1237,6 +1237,7 @@ mod tests {
         }
 
         assert!(test("19", "%C"));
+        assert!(test("Fri Feb  3 23:31:30 2009", "%c"));
         assert!(test("Fri Feb 13 23:31:30 2009", "%c"));
         assert!(test("02/13/09", "%D"));
         assert!(test("03", "%d"));

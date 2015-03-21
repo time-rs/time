@@ -304,8 +304,8 @@ fn match_digits(ss: &mut &str, digits: usize, ws: bool) -> Option<i32> {
         n = ss.len() - s2.len();
         if n > digits { return None }
     }
-    let mut chars = ss[n..].char_indices();
-    for (_, ch) in chars.by_ref().take(digits - n) {
+    let chars = ss[n..].char_indices();
+    for (_, ch) in chars.take(digits - n) {
         match ch {
             '0' ... '9' => value = value * 10 + (ch as i32 - '0' as i32),
             _ => break,
@@ -313,10 +313,7 @@ fn match_digits(ss: &mut &str, digits: usize, ws: bool) -> Option<i32> {
         n += 1;
     }
     if n == digits {
-        match chars.next() {
-            Some((i, _)) => *ss = &ss[i..],
-            None => *ss = "",
-        }
+        *ss = &ss[n..];
         Some(value)
     } else {
         None
