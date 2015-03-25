@@ -288,6 +288,7 @@ pub fn precise_time_s() -> f64 {
 /// Repeatedly call a function for 1 second:
 ///
 /// ```rust
+/// # #![feature(std_misc)]
 /// use std::time::Duration;
 /// use time::PreciseTime;
 /// # fn do_some_work() {}
@@ -341,6 +342,7 @@ impl PreciseTime {
 /// Repeatedly call a function for 1 second:
 ///
 /// ```rust
+/// # #![feature(std_misc)]
 /// # use time::SteadyTime;
 /// # use std::time::Duration;
 /// # fn do_some_work() {}
