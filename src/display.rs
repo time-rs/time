@@ -58,8 +58,6 @@ fn iso_week_days(yday: i32, wday: i32) -> i32 {
     * Thursday.
     * YDAY may be as small as yday_minimum.
     */
-    let yday: i32 = yday as i32;
-    let wday: i32 = wday as i32;
     let iso_week_start_wday: i32 = 1;                     /* Monday */
     let iso_week1_wday: i32 = 4;                          /* Thursday */
     let yday_minimum: i32 = 366;

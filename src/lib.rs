@@ -14,6 +14,7 @@
        html_favicon_url = "http://www.rust-lang.org/favicon.ico",
        html_root_url = "http://doc.rust-lang.org/time/")]
 #![feature(std_misc)]
+#![allow(trivial_numeric_casts)]
 #![cfg_attr(test, deny(warnings))]
 #![cfg_attr(test, feature(test, str_char))]
 
@@ -21,7 +22,7 @@
 
 extern crate libc;
 #[cfg(feature = "rustc-serialize")]
-extern crate "rustc-serialize" as rustc_serialize;
+extern crate rustc_serialize;
 
 use std::cmp::Ordering;
 use std::fmt;
