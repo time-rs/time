@@ -13,7 +13,7 @@
 #![doc(html_logo_url = "http://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
        html_favicon_url = "http://www.rust-lang.org/favicon.ico",
        html_root_url = "http://doc.rust-lang.org/time/")]
-#![feature(std_misc)]
+#![cfg_attr(feature = "std-duration", feature(std_misc))]
 #![allow(trivial_numeric_casts)]
 #![cfg_attr(test, deny(warnings))]
 #![cfg_attr(test, feature(test, str_char))]
@@ -27,7 +27,9 @@ extern crate rustc_serialize;
 use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Sub};
-use std::time::Duration;
+
+#[cfg(feature = "std-duration")]      pub use std::time::Duration;
+#[cfg(not(feature = "std-duration"))] pub use duration::Duration;
 
 use self::ParseError::{InvalidDay, InvalidDayOfMonth, InvalidDayOfWeek,
                        InvalidDayOfYear, InvalidFormatSpecifier, InvalidHour,
@@ -39,6 +41,8 @@ pub use parse::strptime;
 
 mod display;
 mod parse;
+#[cfg(not(feature = "std-duration"))]
+mod duration;
 
 static NSEC_PER_SEC: i32 = 1_000_000_000;
 
@@ -290,8 +294,7 @@ pub fn precise_time_s() -> f64 {
 ///
 /// ```rust
 /// # #![feature(std_misc)]
-/// use std::time::Duration;
-/// use time::PreciseTime;
+/// use time::{Duration, PreciseTime};
 /// # fn do_some_work() {}
 ///
 /// let start = PreciseTime::now();
@@ -344,8 +347,7 @@ impl PreciseTime {
 ///
 /// ```rust
 /// # #![feature(std_misc)]
-/// # use time::SteadyTime;
-/// # use std::time::Duration;
+/// # use time::{Duration, SteadyTime};
 /// # fn do_some_work() {}
 /// let start = SteadyTime::now();
 ///
@@ -397,7 +399,7 @@ impl Add<Duration> for SteadyTime {
 #[cfg(any(target_os = "macos", target_os = "ios"))]
 mod steady {
     use imp;
-    use std::time::Duration;
+    use Duration;
     use std::ops::{Sub, Add};
 
     #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
@@ -446,11 +448,10 @@ mod steady {
 
 #[cfg(not(any(windows, target_os = "macos", target_os = "ios")))]
 mod steady {
-    use {imp, NSEC_PER_SEC};
+    use {imp, NSEC_PER_SEC, Duration};
     use libc;
     use std::cmp::{PartialOrd, Ord, Ordering, PartialEq, Eq};
     use std::ops::{Sub, Add};
-    use std::time::Duration;
     use std::fmt;
 
     #[derive(Copy)]
@@ -554,10 +555,9 @@ mod steady {
 
 #[cfg(windows)]
 mod steady {
-    use imp;
+    use {imp, Duration};
     use libc;
     use std::ops::{Sub, Add};
-    use std::time::Duration;
 
     #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
     pub struct SteadyTime {
@@ -969,13 +969,11 @@ fn mul_div_i64(value: i64, numer: i64, denom: i64) -> i64 {
 mod tests {
     extern crate test;
     use super::{Timespec, get_time, precise_time_ns, precise_time_s, tzset,
-                at_utc, at, strptime, PreciseTime, ParseError};
+                at_utc, at, strptime, PreciseTime, ParseError, Duration};
     use super::mul_div_i64;
     use super::ParseError::{InvalidTime, InvalidYear, MissingFormatConverter,
                             InvalidFormatSpecifier};
 
-    use std::f64;
-    use std::time::Duration;
     use self::test::Bencher;
 
     #[test]
@@ -1042,7 +1040,7 @@ mod tests {
 
     fn test_precise_time() {
         let s0 = precise_time_s();
-        debug!("s0={} sec", f64::to_str_digits(s0, 9));
+        debug!("s0={} sec", s0);
         assert!(s0 > 0.);
 
         let ns0 = precise_time_ns();

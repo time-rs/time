@@ -3,6 +3,8 @@ sudo: false
 script:
   - cargo build --verbose
   - cargo test --verbose
+  - cargo build --verbose --features std-duration
+  - cargo test --verbose -features std-duration
   - cargo test --verbose --features rustc-serialize
   - cargo doc
 after_success: |
