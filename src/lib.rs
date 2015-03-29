@@ -61,9 +61,10 @@ mod rustrt {
 mod imp {
     use libc::{c_int, timespec};
 
-    // Apparently android provides this in some other library?
     #[cfg(all(not(target_os = "android"),
-              not(target_os = "nacl")))]
+              not(target_os = "bitrig"),
+              not(target_os = "nacl"),
+              not(target_os = "openbsd")))]
     #[link(name = "rt")]
     extern {}
 
