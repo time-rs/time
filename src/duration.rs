@@ -12,7 +12,6 @@
 
 use std::{fmt, i64};
 use std::ops::{Add, Sub, Mul, Div, Neg, FnOnce};
-use std::num::Int;
 
 /// The number of nanoseconds in a microsecond.
 const NANOS_PER_MICRO: i32 = 1000;
