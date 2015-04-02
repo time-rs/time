@@ -27,6 +27,7 @@ extern crate rustc_serialize;
 use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Sub};
+use std::io;
 
 #[cfg(feature = "std-duration")]      pub use std::time::Duration;
 #[cfg(not(feature = "std-duration"))] pub use duration::Duration;
@@ -51,7 +52,7 @@ mod rustrt {
 
     extern {
         pub fn rust_time_gmtime(sec: i64, nsec: i32, result: &mut Tm);
-        pub fn rust_time_localtime(sec: i64, nsec: i32, result: &mut Tm);
+        pub fn rust_time_localtime(sec: i64, nsec: i32, result: &mut Tm) -> i32;
         pub fn rust_time_timegm(tm: &Tm) -> i64;
         pub fn rust_time_mktime(tm: &Tm) -> i64;
     }
@@ -735,7 +736,10 @@ pub fn at(clock: Timespec) -> Tm {
     unsafe {
         let Timespec { sec, nsec } = clock;
         let mut tm = empty_tm();
-        rustrt::rust_time_localtime(sec, nsec, &mut tm);
+        if rustrt::rust_time_localtime(sec, nsec, &mut tm) == 0 {
+            panic!("failed to call localtime: {}",
+                   io::Error::last_os_error());
+        }
         tm
     }
 }

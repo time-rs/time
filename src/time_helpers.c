@@ -150,11 +150,11 @@ rust_time_gmtime(int64_t sec, int32_t nsec, rust_time_tm *timeptr) {
     tm_to_rust_tm(&tm, timeptr, 0, nsec);
 }
 
-void
+int32_t
 rust_time_localtime(int64_t sec, int32_t nsec, rust_time_tm *timeptr) {
     struct tm tm;
     time_t s = sec;
-    LOCALTIME(&s, &tm);
+    if (LOCALTIME(&s, &tm) == NULL) { return 0; }
 
 #if defined(__WIN32__)
     int32_t utcoff = -timezone;
@@ -165,6 +165,7 @@ rust_time_localtime(int64_t sec, int32_t nsec, rust_time_tm *timeptr) {
 #endif
 
     tm_to_rust_tm(&tm, timeptr, utcoff, nsec);
+    return 1;
 }
 
 int64_t
