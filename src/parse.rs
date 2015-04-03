@@ -258,18 +258,42 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
                        else if parse_char(s, '-').is_ok() {-1}
                        else { return Err(ParseError::InvalidZoneOffset) };
 
-            match match_digits(s, 4, 4, false) {
-                Some(v) => {
-                    if v == 0 {
-                        tm.tm_utcoff = 0;
-                    } else {
-                        let hours = v / 100;
-                        let minutes = v - hours * 100;
-                        tm.tm_utcoff = sign * (hours * 60 * 60 + minutes * 60);
-                    }
-                    Ok(())
+            let mut failed = false;
+            let mut hours = 0;
+            let mut minutes = 0;
+
+            match match_digits(s, 2, 2, false) {
+                Some(h) => {
+                    hours = h;
+                },
+                None => {
+                    failed = true;
                 }
-                None => Err(ParseError::InvalidZoneOffset)
+            }
+
+            if !failed {
+                // consume the colon if its present,
+                // just ignore it otherwise
+                match parse_char(s, ':') {
+                    Ok(_) => {}
+                    _ => {}
+                }
+
+                match match_digits(s, 2, 2, false) {
+                    Some(m) => {
+                        minutes = m;
+                    },
+                    None => {
+                        failed = true;
+                    }
+                }
+            }
+
+            if failed {
+                Err(ParseError::InvalidZoneOffset)
+            } else {
+                tm.tm_utcoff = sign * (hours * 60 * 60 + minutes * 60);
+                Ok(())
             }
         }
         '%' => parse_char(s, '%'),
