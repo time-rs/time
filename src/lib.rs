@@ -1176,7 +1176,7 @@ mod tests {
 
         fn test(s: &str, format: &str) -> bool {
             match strptime(s, format) {
-              Ok(_) => {
+              Ok(tm) => {
                 tm.strftime(format).unwrap().to_string() == s.to_string()
               },
               Err(e) => panic!("{:?},  s={:?}, format={:?}", e, s, format)
