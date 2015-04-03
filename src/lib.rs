@@ -852,7 +852,7 @@ impl Tm {
     }
 }
 
-#[derive(Copy, PartialEq, Debug)]
+#[derive(Copy, PartialEq, Debug, Clone)]
 pub enum ParseError {
     InvalidSecond,
     InvalidMinute,
