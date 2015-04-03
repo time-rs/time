@@ -1022,7 +1022,6 @@ mod tests {
         tzset();
     }
 
-    #[test]
     fn test_get_time() {
         static SOME_RECENT_DATE: i64 = 1325376000i64; // 2012-01-01T00:00:00Z
         static SOME_FUTURE_DATE: i64 = 1577836800i64; // 2020-01-01T00:00:00Z
@@ -1042,13 +1041,6 @@ mod tests {
         if tv2.sec == tv1.sec {
             assert!(tv2.nsec >= tv1.nsec);
         }
-    }
-
-    #[test]
-    fn test_is_2015() {
-        let tm = at(get_time());
-        println!("Year is {}", tm.tm_year);
-        assert!(tm.tm_year == 115);
     }
 
     fn test_precise_time() {
