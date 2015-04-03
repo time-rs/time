@@ -312,27 +312,9 @@ fn match_strs(ss: &mut &str, strs: &[(&str, i32)]) -> Option<i32> {
 }
 
 fn match_digits(ss: &mut &str, min_digits : usize, max_digits: usize, ws: bool) -> Option<i32> {
-    let mut value = 0;
-    let mut n = 0;
-    if ws {
-        let s2 = ss.trim_left_matches(" ");
-        n = ss.len() - s2.len();
-        if n > max_digits { return None }
-    }
-    let chars = ss[n..].char_indices();
-    for (_, ch) in chars.take(max_digits - n) {
-        match ch {
-            '0' ... '9' => value = value * 10 + (ch as i32 - '0' as i32),
-            _ => break,
-        }
-        n += 1;
-    }
-
-    if n >= min_digits && n <= max_digits {
-        *ss = &ss[n..];
-        Some(value)
-    } else {
-        None
+    match match_digits_i64(ss, min_digits, max_digits, ws) {
+        Ok(v) => Ok(v as i32),
+        None => None
     }
 }
 
