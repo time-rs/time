@@ -83,7 +83,7 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
             Some(v) => { tm.tm_mon = v; Ok(()) }
             None => Err(ParseError::InvalidMonth)
         },
-        'C' => match match_digits_in_range(s, 2, false, 0, 99) {
+        'C' => match match_digits_in_range(s, 1, 2, false, 0, 99) {
             Some(v) => { tm.tm_year += (v * 100) - 1900; Ok(()) }
             None => Err(ParseError::InvalidYear)
         },
@@ -105,11 +105,11 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
                 .and_then(|()| parse_char(s, '/'))
                 .and_then(|()| parse_type(s, 'y', tm))
         }
-        'd' => match match_digits_in_range(s, 2, false, 1, 31) {
+        'd' => match match_digits_in_range(s, 1, 2, false, 1, 31) {
             Some(v) => { tm.tm_mday = v; Ok(()) }
             None => Err(ParseError::InvalidDayOfMonth)
         },
-        'e' => match match_digits_in_range(s, 2, true, 1, 31) {
+        'e' => match match_digits_in_range(s, 1, 2, true, 1, 31) {
             Some(v) => { tm.tm_mday = v; Ok(()) }
             None => Err(ParseError::InvalidDayOfMonth)
         },
@@ -125,43 +125,43 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
                 .and_then(|()| parse_type(s, 'd', tm))
         }
         'H' => {
-            match match_digits_in_range(s, 2, false, 0, 23) {
+            match match_digits_in_range(s, 1, 2, false, 0, 23) {
                 Some(v) => { tm.tm_hour = v; Ok(()) }
                 None => Err(ParseError::InvalidHour)
             }
         }
         'I' => {
-            match match_digits_in_range(s, 2, false, 1, 12) {
+            match match_digits_in_range(s, 1, 2, false, 1, 12) {
                 Some(v) => { tm.tm_hour = if v == 12 { 0 } else { v }; Ok(()) }
                 None => Err(ParseError::InvalidHour)
             }
         }
         'j' => {
-            match match_digits_in_range(s, 3, false, 1, 366) {
+            match match_digits_in_range(s, 1, 3, false, 1, 366) {
                 Some(v) => { tm.tm_yday = v - 1; Ok(()) }
                 None => Err(ParseError::InvalidDayOfYear)
             }
         }
         'k' => {
-            match match_digits_in_range(s, 2, true, 0, 23) {
+            match match_digits_in_range(s, 1, 2, true, 0, 23) {
                 Some(v) => { tm.tm_hour = v; Ok(()) }
                 None => Err(ParseError::InvalidHour)
             }
         }
         'l' => {
-            match match_digits_in_range(s, 2, true, 1, 12) {
+            match match_digits_in_range(s, 1, 2, true, 1, 12) {
                 Some(v) => { tm.tm_hour = if v == 12 { 0 } else { v }; Ok(()) }
                 None => Err(ParseError::InvalidHour)
             }
         }
         'M' => {
-            match match_digits_in_range(s, 2, false, 0, 59) {
+            match match_digits_in_range(s, 1, 2, false, 0, 59) {
                 Some(v) => { tm.tm_min = v; Ok(()) }
                 None => Err(ParseError::InvalidMinute)
             }
         }
         'm' => {
-            match match_digits_in_range(s, 2, false, 1, 12) {
+            match match_digits_in_range(s, 1, 2, false, 1, 12) {
                 Some(v) => { tm.tm_mon = v - 1; Ok(()) }
                 None => Err(ParseError::InvalidMonth)
             }
@@ -190,7 +190,7 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
                 .and_then(|()| parse_type(s, 'p', tm))
         }
         'S' => {
-            match match_digits_in_range(s, 2, false, 0, 60) {
+            match match_digits_in_range(s, 1, 2, false, 0, 60) {
                 Some(v) => { tm.tm_sec = v; Ok(()) }
                 None => Err(ParseError::InvalidSecond)
             }
@@ -205,7 +205,7 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
         }
         't' => parse_char(s, '\t'),
         'u' => {
-            match match_digits_in_range(s, 1, false, 1, 7) {
+            match match_digits_in_range(s, 1, 1, false, 1, 7) {
                 Some(v) => { tm.tm_wday = if v == 7 { 0 } else { v }; Ok(()) }
                 None => Err(ParseError::InvalidDayOfWeek)
             }
@@ -219,19 +219,19 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
         }
         //'W' {}
         'w' => {
-            match match_digits_in_range(s, 1, false, 0, 6) {
+            match match_digits_in_range(s, 1, 1, false, 0, 6) {
                 Some(v) => { tm.tm_wday = v; Ok(()) }
                 None => Err(ParseError::InvalidDayOfWeek)
             }
         }
         'Y' => {
-            match match_digits(s, 4, false) {
+            match match_digits(s, 4, 4, false) {
                 Some(v) => { tm.tm_year = v - 1900; Ok(()) }
                 None => Err(ParseError::InvalidYear)
             }
         }
         'y' => {
-            match match_digits_in_range(s, 2, false, 0, 99) {
+            match match_digits_in_range(s, 1, 2, false, 0, 99) {
                 Some(v) => { tm.tm_year = v; Ok(()) }
                 None => Err(ParseError::InvalidYear)
             }
@@ -258,7 +258,7 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
                        else if parse_char(s, '-').is_ok() {-1}
                        else { return Err(ParseError::InvalidZoneOffset) };
 
-            match match_digits(s, 4, false) {
+            match match_digits(s, 4, 4, false) {
                 Some(v) => {
                     if v == 0 {
                         tm.tm_utcoff = 0;
@@ -296,23 +296,24 @@ fn match_strs(ss: &mut &str, strs: &[(&str, i32)]) -> Option<i32> {
     None
 }
 
-fn match_digits(ss: &mut &str, digits: usize, ws: bool) -> Option<i32> {
+fn match_digits(ss: &mut &str, min_digits : usize, max_digits: usize, ws: bool) -> Option<i32> {
     let mut value = 0;
     let mut n = 0;
     if ws {
         let s2 = ss.trim_left_matches(" ");
         n = ss.len() - s2.len();
-        if n > digits { return None }
+        if n > max_digits { return None }
     }
     let chars = ss[n..].char_indices();
-    for (_, ch) in chars.take(digits - n) {
+    for (_, ch) in chars.take(max_digits - n) {
         match ch {
             '0' ... '9' => value = value * 10 + (ch as i32 - '0' as i32),
             _ => break,
         }
         n += 1;
     }
-    if n == digits {
+
+    if n >= min_digits && n <= max_digits {
         *ss = &ss[n..];
         Some(value)
     } else {
@@ -342,10 +343,11 @@ fn match_fractional_seconds(ss: &mut &str) -> i32 {
     value
 }
 
-fn match_digits_in_range(ss: &mut &str, digits: usize, ws: bool,
-                         min: i32, max: i32) -> Option<i32> {
+fn match_digits_in_range(ss: &mut &str,
+                         min_digits : usize, max_digits : usize,
+                         ws: bool, min: i32, max: i32) -> Option<i32> {
     let before = *ss;
-    match match_digits(ss, digits, ws) {
+    match match_digits(ss, min_digits, max_digits, ws) {
         Some(val) if val >= min && val <= max => Some(val),
         _ => { *ss = before; None }
     }
