@@ -257,9 +257,9 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
             let sign = if parse_char(s, '+').is_ok() {1}
                        else if parse_char(s, '-').is_ok() {-1}
                        else { return Err(ParseError::InvalidZoneOffset) };
-                       
-            let mut hours = 0;
-            let mut minutes = 0;
+
+            let hours;
+            let minutes;
 
             match match_digits(s, 2, 2, false) {
                 Some(h) => hours = h,
@@ -272,7 +272,7 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
 
             match match_digits(s, 2, 2, false) {
                 Some(m) => minutes = m,
-                None => return Err(ParseError::InvalidZoneOffset)   
+                None => return Err(ParseError::InvalidZoneOffset)
             }
 
             tm.tm_utcoff = sign * (hours * 60 * 60 + minutes * 60);
