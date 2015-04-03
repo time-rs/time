@@ -268,7 +268,7 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
 
             // consume the colon if its present,
             // just ignore it otherwise
-            parse_char(s, ':');
+            let _ = parse_char(s, ':');
 
             match match_digits(s, 2, 2, false) {
                 Some(m) => minutes = m,
