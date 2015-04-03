@@ -35,8 +35,8 @@ use std::io;
 use self::ParseError::{InvalidDay, InvalidDayOfMonth, InvalidDayOfWeek,
                        InvalidDayOfYear, InvalidFormatSpecifier, InvalidHour,
                        InvalidMinute, InvalidMonth, InvalidSecond, InvalidTime,
-                       InvalidYear, InvalidZoneOffset, MissingFormatConverter,
-                       UnexpectedCharacter};
+                       InvalidYear, InvalidZoneOffset, InvalidSecondsSinceEpoch,
+                       MissingFormatConverter, UnexpectedCharacter};
 
 pub use parse::strptime;
 
@@ -868,6 +868,7 @@ pub enum ParseError {
     InvalidDayOfYear,
     InvalidZoneOffset,
     InvalidTime,
+    InvalidSecondsSinceEpoch,
     MissingFormatConverter,
     InvalidFormatSpecifier(char),
     UnexpectedCharacter(char, char),
@@ -887,6 +888,7 @@ impl fmt::Display for ParseError {
             InvalidDayOfYear => write!(f, "Invalid day of the year."),
             InvalidZoneOffset => write!(f, "Invalid zone offset."),
             InvalidTime => write!(f, "Invalid time."),
+            InvalidSecondsSinceEpoch => write!(f, "Invalid seconds since epoch."),
             MissingFormatConverter => {
                 write!(f, "missing format converter after `%`")
             }
@@ -1315,6 +1317,20 @@ mod tests {
 
         // Test for #7256
         assert_eq!(strptime("360", "%Y-%m-%d"), Err(InvalidYear));
+
+        // Test for epoch seconds parsing
+        {
+            assert!(test("1428035610", "%s"));
+            let tm = strptime("1428035610", "%s").unwrap();
+            assert_eq!(tm.tm_utcoff, 0);
+            assert_eq!(tm.tm_isdst, 0);
+            assert_eq!(tm.tm_yday, 92);
+            assert_eq!(tm.tm_wday, 5);
+            assert_eq!(tm.tm_year, 115);
+            assert_eq!(tm.tm_mon, 3);
+            assert_eq!(tm.tm_mday, 3);
+            assert_eq!(tm.tm_hour, 4);
+        }
     }
 
     fn test_asctime() {
