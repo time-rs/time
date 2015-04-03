@@ -313,7 +313,7 @@ fn match_strs(ss: &mut &str, strs: &[(&str, i32)]) -> Option<i32> {
 
 fn match_digits(ss: &mut &str, min_digits : usize, max_digits: usize, ws: bool) -> Option<i32> {
     match match_digits_i64(ss, min_digits, max_digits, ws) {
-        Ok(v) => Ok(v as i32),
+        Some(v) => Some(v as i32),
         None => None
     }
 }
