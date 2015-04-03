@@ -769,7 +769,10 @@ impl Tm {
 
     /// Convert time to the UTC
     pub fn to_utc(&self) -> Tm {
-        at_utc(self.to_timespec())
+        match self.tm_utcoff {
+            0 => *self,
+            _ => at_utc(self.to_timespec())
+        }
     }
 
     /**
