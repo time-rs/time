@@ -1178,7 +1178,6 @@ mod tests {
             match strptime(s, format) {
               Ok(_) => {
                 tm.strftime(format).unwrap().to_string() == s.to_string()
-                true
               },
               Err(e) => panic!("{:?},  s={:?}, format={:?}", e, s, format)
             }
