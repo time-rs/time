@@ -204,7 +204,7 @@ pub fn get_time() -> Timespec {
 
     #[cfg(windows)]
     unsafe fn os_get_time() -> (i64, i32) {
-        static NANOSECONDS_FROM_1601_TO_1970: u64 = 11644473600000000;
+        static MICROSECONDS_FROM_1601_TO_1970: u64 = 11644473600000000;
 
         let mut time = libc::FILETIME {
             dwLowDateTime: 0,
@@ -215,12 +215,12 @@ pub fn get_time() -> Timespec {
         // A FILETIME contains a 64-bit value representing the number of
         // hectonanosecond (100-nanosecond) intervals since 1601-01-01T00:00:00Z.
         // http://support.microsoft.com/kb/167296/en-us
-        let ns_since_1601 = (((time.dwHighDateTime as u64) << 32) |
+        let us_since_1601 = (((time.dwHighDateTime as u64) << 32) |
                              ((time.dwLowDateTime  as u64) <<  0)) / 10;
-        let ns_since_1970 = ns_since_1601 - NANOSECONDS_FROM_1601_TO_1970;
+        let us_since_1970 = us_since_1601 - MICROSECONDS_FROM_1601_TO_1970;
 
-        ((ns_since_1970 / 1000000) as i64,
-         ((ns_since_1970 % 1000000) * 1000) as i32)
+        ((us_since_1970 / 1000000) as i64,
+         ((us_since_1970 % 1000000) * 1000) as i32)
     }
 
     #[cfg(any(target_os = "macos", target_os = "ios"))]
