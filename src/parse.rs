@@ -257,8 +257,7 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
             let sign = if parse_char(s, '+').is_ok() {1}
                        else if parse_char(s, '-').is_ok() {-1}
                        else { return Err(ParseError::InvalidZoneOffset) };
-
-            let mut failed = false;
+                       
             let mut hours = 0;
             let mut minutes = 0;
 
