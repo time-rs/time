@@ -217,7 +217,7 @@ pub fn get_time() -> Timespec {
         // http://support.microsoft.com/kb/167296/en-us
         let us_since_1601 = (((time.dwHighDateTime as u64) << 32) |
                              ((time.dwLowDateTime  as u64) <<  0)) / 10;
-        let us_since_1970 = ns_since_1601 - MICROSECONDS_FROM_1601_TO_1970;
+        let us_since_1970 = us_since_1601 - MICROSECONDS_FROM_1601_TO_1970;
 
         ((us_since_1970 / 1000000) as i64,
          ((us_since_1970 % 1000000) * 1000) as i32)
