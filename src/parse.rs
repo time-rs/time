@@ -1,4 +1,4 @@
-use super::{Tm, ParseError, NSEC_PER_SEC};
+use super::{Timespec, Tm, at_utc, ParseError, NSEC_PER_SEC};
 use super::ParseError::*;
 
 /// Parses the time from the string according to the format string.
@@ -189,6 +189,15 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
                 .and_then(|()| parse_char(s, ' '))
                 .and_then(|()| parse_type(s, 'p', tm))
         }
+        's' => {
+            match match_digits_i64(s, 1, 18, false) {
+                Some(v) => {
+                    *tm = at_utc(Timespec::new(v, 0));
+                    Ok(())
+                },
+                None => Err(ParseError::InvalidSecondsSinceEpoch)
+            }
+        }
         'S' => {
             match match_digits_in_range(s, 1, 2, false, 0, 60) {
                 Some(v) => { tm.tm_sec = v; Ok(()) }
@@ -303,7 +312,14 @@ fn match_strs(ss: &mut &str, strs: &[(&str, i32)]) -> Option<i32> {
 }
 
 fn match_digits(ss: &mut &str, min_digits : usize, max_digits: usize, ws: bool) -> Option<i32> {
-    let mut value = 0;
+    match match_digits_i64(ss, min_digits, max_digits, ws) {
+        Some(v) => Some(v as i32),
+        None => None
+    }
+}
+
+fn match_digits_i64(ss: &mut &str, min_digits : usize, max_digits: usize, ws: bool) -> Option<i64> {
+    let mut value : i64 = 0;
     let mut n = 0;
     if ws {
         let s2 = ss.trim_left_matches(" ");
@@ -313,7 +329,7 @@ fn match_digits(ss: &mut &str, min_digits : usize, max_digits: usize, ws: bool) 
     let chars = ss[n..].char_indices();
     for (_, ch) in chars.take(max_digits - n) {
         match ch {
-            '0' ... '9' => value = value * 10 + (ch as i32 - '0' as i32),
+            '0' ... '9' => value = value * 10 + (ch as i64 - '0' as i64),
             _ => break,
         }
         n += 1;
