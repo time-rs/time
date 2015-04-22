@@ -39,7 +39,6 @@ macro_rules! try_opt {
 
 /// ISO 8601 time duration with nanosecond precision.
 /// This also allows for the negative duration; see individual methods for details.
-#[unstable(feature = "std_misc")]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct Duration {
     secs: i64,
@@ -47,14 +46,12 @@ pub struct Duration {
 }
 
 /// The minimum possible `Duration`: `i64::MIN` milliseconds.
-#[unstable(feature = "std_misc")]
 pub const MIN: Duration = Duration {
     secs: i64::MIN / MILLIS_PER_SEC - 1,
     nanos: NANOS_PER_SEC + (i64::MIN % MILLIS_PER_SEC) as i32 * NANOS_PER_MILLI
 };
 
 /// The maximum possible `Duration`: `i64::MAX` milliseconds.
-#[unstable(feature = "std_misc")]
 pub const MAX: Duration = Duration {
     secs: i64::MAX / MILLIS_PER_SEC,
     nanos: (i64::MAX % MILLIS_PER_SEC) as i32 * NANOS_PER_MILLI
@@ -65,7 +62,6 @@ impl Duration {
     /// Equivalent to `Duration::seconds(weeks * 7 * 24 * 60 * 60)` with overflow checks.
     /// Panics when the duration is out of bounds.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn weeks(weeks: i64) -> Duration {
         let secs = weeks.checked_mul(SECS_PER_WEEK).expect("Duration::weeks out of bounds");
         Duration::seconds(secs)
@@ -75,7 +71,6 @@ impl Duration {
     /// Equivalent to `Duration::seconds(days * 24 * 60 * 60)` with overflow checks.
     /// Panics when the duration is out of bounds.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn days(days: i64) -> Duration {
         let secs = days.checked_mul(SECS_PER_DAY).expect("Duration::days out of bounds");
         Duration::seconds(secs)
@@ -85,7 +80,6 @@ impl Duration {
     /// Equivalent to `Duration::seconds(hours * 60 * 60)` with overflow checks.
     /// Panics when the duration is out of bounds.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn hours(hours: i64) -> Duration {
         let secs = hours.checked_mul(SECS_PER_HOUR).expect("Duration::hours ouf of bounds");
         Duration::seconds(secs)
@@ -95,7 +89,6 @@ impl Duration {
     /// Equivalent to `Duration::seconds(minutes * 60)` with overflow checks.
     /// Panics when the duration is out of bounds.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn minutes(minutes: i64) -> Duration {
         let secs = minutes.checked_mul(SECS_PER_MINUTE).expect("Duration::minutes out of bounds");
         Duration::seconds(secs)
@@ -105,7 +98,6 @@ impl Duration {
     /// Panics when the duration is more than `i64::MAX` milliseconds
     /// or less than `i64::MIN` milliseconds.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn seconds(seconds: i64) -> Duration {
         let d = Duration { secs: seconds, nanos: 0 };
         if d < MIN || d > MAX {
@@ -116,7 +108,6 @@ impl Duration {
 
     /// Makes a new `Duration` with given number of milliseconds.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn milliseconds(milliseconds: i64) -> Duration {
         let (secs, millis) = div_mod_floor_64(milliseconds, MILLIS_PER_SEC);
         let nanos = millis as i32 * NANOS_PER_MILLI;
@@ -125,7 +116,6 @@ impl Duration {
 
     /// Makes a new `Duration` with given number of microseconds.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn microseconds(microseconds: i64) -> Duration {
         let (secs, micros) = div_mod_floor_64(microseconds, MICROS_PER_SEC);
         let nanos = micros as i32 * NANOS_PER_MICRO;
@@ -134,7 +124,6 @@ impl Duration {
 
     /// Makes a new `Duration` with given number of nanoseconds.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn nanoseconds(nanos: i64) -> Duration {
         let (secs, nanos) = div_mod_floor_64(nanos, NANOS_PER_SEC as i64);
         Duration { secs: secs, nanos: nanos as i32 }
@@ -142,7 +131,6 @@ impl Duration {
 
     /// Runs a closure, returning the duration of time it took to run the
     /// closure.
-    #[unstable(feature = "std_misc")]
     pub fn span<F>(f: F) -> Duration where F: FnOnce() {
         let before = super::precise_time_ns();
         f();
@@ -151,33 +139,28 @@ impl Duration {
 
     /// Returns the total number of whole weeks in the duration.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn num_weeks(&self) -> i64 {
         self.num_days() / 7
     }
 
     /// Returns the total number of whole days in the duration.
-    #[unstable(feature = "std_misc")]
     pub fn num_days(&self) -> i64 {
         self.num_seconds() / SECS_PER_DAY
     }
 
     /// Returns the total number of whole hours in the duration.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn num_hours(&self) -> i64 {
         self.num_seconds() / SECS_PER_HOUR
     }
 
     /// Returns the total number of whole minutes in the duration.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn num_minutes(&self) -> i64 {
         self.num_seconds() / SECS_PER_MINUTE
     }
 
     /// Returns the total number of whole seconds in the duration.
-    #[unstable(feature = "std_misc")]
     pub fn num_seconds(&self) -> i64 {
         // If secs is negative, nanos should be subtracted from the duration.
         if self.secs < 0 && self.nanos > 0 {
@@ -199,7 +182,6 @@ impl Duration {
     }
 
     /// Returns the total number of whole milliseconds in the duration,
-    #[unstable(feature = "std_misc")]
     pub fn num_milliseconds(&self) -> i64 {
         // A proper Duration will not overflow, because MIN and MAX are defined
         // such that the range is exactly i64 milliseconds.
@@ -210,7 +192,6 @@ impl Duration {
 
     /// Returns the total number of whole microseconds in the duration,
     /// or `None` on overflow (exceeding 2^63 microseconds in either direction).
-    #[unstable(feature = "std_misc")]
     pub fn num_microseconds(&self) -> Option<i64> {
         let secs_part = try_opt!(self.num_seconds().checked_mul(MICROS_PER_SEC));
         let nanos_part = self.nanos_mod_sec() / NANOS_PER_MICRO;
@@ -219,7 +200,6 @@ impl Duration {
 
     /// Returns the total number of whole nanoseconds in the duration,
     /// or `None` on overflow (exceeding 2^63 nanoseconds in either direction).
-    #[unstable(feature = "std_misc")]
     pub fn num_nanoseconds(&self) -> Option<i64> {
         let secs_part = try_opt!(self.num_seconds().checked_mul(NANOS_PER_SEC as i64));
         let nanos_part = self.nanos_mod_sec();
@@ -227,7 +207,6 @@ impl Duration {
     }
 
     /// Add two durations, returning `None` if overflow occurred.
-    #[unstable(feature = "std_misc")]
     pub fn checked_add(&self, rhs: &Duration) -> Option<Duration> {
         let mut secs = try_opt!(self.secs.checked_add(rhs.secs));
         let mut nanos = self.nanos + rhs.nanos;
@@ -242,7 +221,6 @@ impl Duration {
     }
 
     /// Subtract two durations, returning `None` if overflow occurred.
-    #[unstable(feature = "std_misc")]
     pub fn checked_sub(&self, rhs: &Duration) -> Option<Duration> {
         let mut secs = try_opt!(self.secs.checked_sub(rhs.secs));
         let mut nanos = self.nanos - rhs.nanos;
@@ -258,30 +236,25 @@ impl Duration {
 
     /// The minimum possible `Duration`: `i64::MIN` milliseconds.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn min_value() -> Duration { MIN }
 
     /// The maximum possible `Duration`: `i64::MAX` milliseconds.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn max_value() -> Duration { MAX }
 
     /// A duration where the stored seconds and nanoseconds are equal to zero.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn zero() -> Duration {
         Duration { secs: 0, nanos: 0 }
     }
 
     /// Returns `true` if the duration equals `Duration::zero()`.
     #[inline]
-    #[unstable(feature = "std_misc")]
     pub fn is_zero(&self) -> bool {
         self.secs == 0 && self.nanos == 0
     }
 }
 
-#[unstable(feature = "std_misc")]
 impl Neg for Duration {
     type Output = Duration;
 
@@ -295,7 +268,6 @@ impl Neg for Duration {
     }
 }
 
-#[unstable(feature = "std_misc")]
 impl Add for Duration {
     type Output = Duration;
 
@@ -310,7 +282,6 @@ impl Add for Duration {
     }
 }
 
-#[unstable(feature = "std_misc")]
 impl Sub for Duration {
     type Output = Duration;
 
@@ -325,7 +296,6 @@ impl Sub for Duration {
     }
 }
 
-#[unstable(feature = "std_misc")]
 impl Mul<i32> for Duration {
     type Output = Duration;
 
@@ -338,7 +308,6 @@ impl Mul<i32> for Duration {
     }
 }
 
-#[unstable(feature = "std_misc")]
 impl Div<i32> for Duration {
     type Output = Duration;
 
@@ -359,7 +328,6 @@ impl Div<i32> for Duration {
     }
 }
 
-#[stable(feature = "rust1", since = "1.0.0")]
 impl fmt::Display for Duration {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // technically speaking, negative duration is not valid ISO 8601,
