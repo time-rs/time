@@ -305,7 +305,6 @@ pub fn precise_time_s() -> f64 {
 ///     do_some_work();
 /// }
 /// ```
-#[deprecated = "use SteadyTime instead"]
 #[derive(Copy, Clone)]
 pub struct PreciseTime(u64);
 
