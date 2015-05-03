@@ -9,6 +9,22 @@
 // except according to those terms.
 
 //! Simple time handling.
+//!
+//! # Usage
+//!
+//! This crates is [on crates.io](https://crates.io/crates/time) and can be
+//! used by adding `rand` to your dependencies in your project's `Cargo.toml`.
+//!
+//! ```toml
+//! [dependencies]
+//! time = "*"
+//! ```
+//! 
+//! And this in your crate root:
+//! 
+//! ```rust
+//! extern crate time;
+//! ```
 
 #![doc(html_logo_url = "http://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
        html_favicon_url = "http://www.rust-lang.org/favicon.ico",
