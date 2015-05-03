@@ -17,11 +17,11 @@
 //!
 //! ```toml
 //! [dependencies]
-//! time = "*"
+//! time = "0.1"
 //! ```
-//! 
+//!
 //! And this in your crate root:
-//! 
+//!
 //! ```rust
 //! extern crate time;
 //! ```
