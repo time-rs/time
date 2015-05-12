@@ -44,6 +44,7 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Sub};
 use std::io;
+use std::str::FromStr;
 
 #[cfg(feature = "std-duration")]      pub use std::time::Duration;
 #[cfg(not(feature = "std-duration"))] pub use duration::Duration;
@@ -52,7 +53,8 @@ use self::ParseError::{InvalidDay, InvalidDayOfMonth, InvalidDayOfWeek,
                        InvalidDayOfYear, InvalidFormatSpecifier, InvalidHour,
                        InvalidMinute, InvalidMonth, InvalidSecond, InvalidTime,
                        InvalidYear, InvalidZoneOffset, InvalidSecondsSinceEpoch,
-                       MissingFormatConverter, UnexpectedCharacter};
+                       MissingFormatConverter, UnexpectedCharacter,
+                       UnknownFormat};
 
 pub use parse::strptime;
 
@@ -870,6 +872,26 @@ impl Tm {
     }
 }
 
+impl FromStr for Tm {
+    type Err = ParseError;
+
+    /// Try to parse the given string into a time using a few common formats.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut timestr = s.clone();
+        let patterns = vec!["%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%d"];
+
+        for pattern in patterns {
+            match strptime(&mut timestr, pattern) {
+                Ok(t)  => { return Ok(t); },
+                Err(_) => {}
+            };
+        }
+
+        Err(UnknownFormat)
+    }
+
+}
+
 #[derive(Copy, PartialEq, Debug, Clone)]
 pub enum ParseError {
     InvalidSecond,
@@ -887,6 +909,7 @@ pub enum ParseError {
     MissingFormatConverter,
     InvalidFormatSpecifier(char),
     UnexpectedCharacter(char, char),
+    UnknownFormat,
 }
 
 impl fmt::Display for ParseError {
@@ -913,6 +936,7 @@ impl fmt::Display for ParseError {
             UnexpectedCharacter(a, b) => {
                 write!(f, "expected: `{}`, found: `{}`", a, b)
             }
+            UnknownFormat => write!(f, "Unable to determine appropriate time format."),
         }
     }
 }
@@ -993,11 +1017,11 @@ fn mul_div_i64(value: i64, numer: i64, denom: i64) -> i64 {
 #[cfg(test)]
 mod tests {
     extern crate test;
-    use super::{Timespec, get_time, precise_time_ns, precise_time_s, tzset,
+    use super::{Timespec, Tm, get_time, precise_time_ns, precise_time_s, tzset,
                 at_utc, at, strptime, PreciseTime, ParseError, Duration};
     use super::mul_div_i64;
     use super::ParseError::{InvalidTime, InvalidYear, MissingFormatConverter,
-                            InvalidFormatSpecifier};
+                            InvalidFormatSpecifier, UnknownFormat};
 
     use self::test::Bencher;
 
@@ -1348,6 +1372,27 @@ mod tests {
         }
     }
 
+    fn test_from_str() {
+        use std::str::FromStr;
+
+        set_time_zone();
+        let valid_inputs = vec!["2015-04-28T17:23:32Z", "2015-04-28T13:23:32-0400", "2015-04-28"];
+
+        let invalid_inputs = vec!["foob", "5-12-95"];
+
+        for input in valid_inputs {
+            let tm = Tm::from_str(input);
+            assert!(tm.is_ok());
+            let tm = tm.unwrap();
+            assert_eq!(tm.tm_year, 115);
+            assert_eq!(tm.tm_mon, 3);
+            assert_eq!(tm.tm_mday, 28);
+        };
+        for input in invalid_inputs {
+            assert_eq!(Tm::from_str(input), Err(UnknownFormat));
+        };
+    }
+
     fn test_asctime() {
         set_time_zone();
 
@@ -1545,6 +1590,7 @@ mod tests {
         test_to_timespec();
         test_conversions();
         test_strptime();
+        test_from_str();
         test_asctime();
         test_ctime();
         test_strftime();
