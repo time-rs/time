@@ -20,7 +20,4 @@ rustc-serialize = { version = "0.3", optional = true }
 gcc = "0.3"
 
 [dev-dependencies]
-log = "0.2"
-
-[features]
-std-duration = []
+log = "0.3"

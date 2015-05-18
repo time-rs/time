@@ -29,7 +29,6 @@
 #![doc(html_logo_url = "http://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
        html_favicon_url = "http://www.rust-lang.org/favicon.ico",
        html_root_url = "http://doc.rust-lang.org/time/")]
-#![cfg_attr(feature = "std-duration", feature(std_misc))]
 #![allow(trivial_numeric_casts)]
 #![cfg_attr(test, deny(warnings))]
 #![cfg_attr(test, feature(test, str_char))]
@@ -45,8 +44,7 @@ use std::fmt;
 use std::ops::{Add, Sub};
 use std::io;
 
-#[cfg(feature = "std-duration")]      pub use std::time::Duration;
-#[cfg(not(feature = "std-duration"))] pub use duration::Duration;
+pub use duration::Duration;
 
 use self::ParseError::{InvalidDay, InvalidDayOfMonth, InvalidDayOfWeek,
                        InvalidDayOfYear, InvalidFormatSpecifier, InvalidHour,
@@ -58,7 +56,6 @@ pub use parse::strptime;
 
 mod display;
 mod parse;
-#[cfg(not(feature = "std-duration"))]
 mod duration;
 
 static NSEC_PER_SEC: i32 = 1_000_000_000;
