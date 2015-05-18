@@ -14,7 +14,7 @@ Put this in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-time = "*"
+time = "0.1"
 ```
 
 And this in your crate root:

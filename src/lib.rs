@@ -31,7 +31,6 @@
        html_root_url = "http://doc.rust-lang.org/time/")]
 #![allow(trivial_numeric_casts)]
 #![cfg_attr(test, deny(warnings))]
-#![cfg_attr(test, feature(test, str_char))]
 
 #[cfg(test)] #[macro_use] extern crate log;
 
@@ -308,7 +307,6 @@ pub fn precise_time_s() -> f64 {
 /// Repeatedly call a function for 1 second:
 ///
 /// ```rust
-/// # #![feature(std_misc)]
 /// use time::{Duration, PreciseTime};
 /// # fn do_some_work() {}
 ///
@@ -360,7 +358,6 @@ impl PreciseTime {
 /// Repeatedly call a function for 1 second:
 ///
 /// ```rust
-/// # #![feature(std_misc)]
 /// # use time::{Duration, SteadyTime};
 /// # fn do_some_work() {}
 /// let start = SteadyTime::now();
@@ -989,14 +986,12 @@ fn mul_div_i64(value: i64, numer: i64, denom: i64) -> i64 {
 
 #[cfg(test)]
 mod tests {
-    extern crate test;
     use super::{Timespec, get_time, precise_time_ns, precise_time_s, tzset,
                 at_utc, at, strptime, PreciseTime, ParseError, Duration};
     use super::mul_div_i64;
     use super::ParseError::{InvalidTime, InvalidYear, MissingFormatConverter,
                             InvalidFormatSpecifier};
 
-    use self::test::Bencher;
 
     #[test]
     fn test_muldiv() {
@@ -1431,7 +1426,8 @@ mod tests {
 
          let invalid_specifiers = ["%E", "%J", "%K", "%L", "%N", "%O", "%o", "%Q", "%q"];
         for &sp in invalid_specifiers.iter() {
-            assert_eq!(local.strftime(sp).unwrap_err(), InvalidFormatSpecifier(sp.char_at(1)));
+            assert_eq!(local.strftime(sp).unwrap_err(),
+                       InvalidFormatSpecifier(sp[1..].chars().next().unwrap()));
         }
         assert_eq!(local.strftime("%").unwrap_err(), MissingFormatConverter);
         assert_eq!(local.strftime("%A %").unwrap_err(), MissingFormatConverter);
@@ -1549,10 +1545,5 @@ mod tests {
         test_timespec_add();
         test_timespec_sub();
         test_time_sub();
-    }
-
-    #[bench]
-    fn bench_precise_time_ns(b: &mut Bencher) {
-        b.iter(|| precise_time_ns())
     }
 }
