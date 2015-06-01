@@ -131,7 +131,11 @@ mod imp {
     }
 }
 
-/// A record specifying a time value in seconds and nanoseconds, where nanoseconds represent the offset from the given second. E.g. a timespec of 1.2 seconds after the beginning of the epoch would be represented as {sec: 1, nsec: 200000000}.
+/// A record specifying a time value in seconds and nanoseconds, where
+/// nanoseconds represent the offset from the given second.
+///
+/// For example a timespec of 1.2 seconds after the beginning of the epoch would
+/// be represented as {sec: 1, nsec: 200000000}.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 #[cfg_attr(feature = "rustc-serialize", derive(RustcEncodable, RustcDecodable))]
 pub struct Timespec { pub sec: i64, pub nsec: i32 }
