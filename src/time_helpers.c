@@ -14,7 +14,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#if !defined(__WIN32__)
+#if !defined(_WIN32)
 #include <sys/time.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -108,7 +108,7 @@ static void tm_to_rust_tm(struct tm* in_tm,
     out_tm->tm_nsec = nsec;
 }
 
-#if defined(__WIN32__)
+#if defined(_WIN32)
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
 #define GMTIME(clock, result) gmtime_s((result), (clock))
 #define LOCALTIME(clock, result) localtime_s((result), (clock))
@@ -156,7 +156,7 @@ rust_time_localtime(int64_t sec, int32_t nsec, rust_time_tm *timeptr) {
     time_t s = sec;
     if (LOCALTIME(&s, &tm) == NULL) { return 0; }
 
-#if defined(__WIN32__)
+#if defined(_WIN32)
     int32_t utcoff = -timezone;
 #elif defined(__native_client__)
     int32_t utcoff = _timezone;
