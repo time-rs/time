@@ -1318,6 +1318,7 @@ mod tests {
 
         assert!(strptime("-0000", "%z").unwrap().tm_utcoff == 0);
         assert!(strptime("-00:00", "%z").unwrap().tm_utcoff == 0);
+        assert!(strptime("Z", "%z").unwrap().tm_utcoff == 0);
         assert_eq!(-28800, strptime("-0800", "%z").unwrap().tm_utcoff);
         assert_eq!(-28800, strptime("-08:00", "%z").unwrap().tm_utcoff);
         assert_eq!(28800, strptime("+0800", "%z").unwrap().tm_utcoff);

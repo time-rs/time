@@ -263,29 +263,34 @@ fn parse_type(s: &mut &str, ch: char, tm: &mut Tm) -> Result<(), ParseError> {
             }
         }
         'z' => {
-            let sign = if parse_char(s, '+').is_ok() {1}
-                       else if parse_char(s, '-').is_ok() {-1}
-                       else { return Err(ParseError::InvalidZoneOffset) };
+            if parse_char(s, 'Z').is_ok() {
+                tm.tm_utcoff = 0;
+                Ok(())
+            } else {
+                let sign = if parse_char(s, '+').is_ok() {1}
+                           else if parse_char(s, '-').is_ok() {-1}
+                           else { return Err(ParseError::InvalidZoneOffset) };
 
-            let hours;
-            let minutes;
+                let hours;
+                let minutes;
 
-            match match_digits(s, 2, 2, false) {
-                Some(h) => hours = h,
-                None => return Err(ParseError::InvalidZoneOffset)
+                match match_digits(s, 2, 2, false) {
+                    Some(h) => hours = h,
+                    None => return Err(ParseError::InvalidZoneOffset)
+                }
+
+                // consume the colon if its present,
+                // just ignore it otherwise
+                let _ = parse_char(s, ':');
+
+                match match_digits(s, 2, 2, false) {
+                    Some(m) => minutes = m,
+                    None => return Err(ParseError::InvalidZoneOffset)
+                }
+
+                tm.tm_utcoff = sign * (hours * 60 * 60 + minutes * 60);
+                Ok(())
             }
-
-            // consume the colon if its present,
-            // just ignore it otherwise
-            let _ = parse_char(s, ':');
-
-            match match_digits(s, 2, 2, false) {
-                Some(m) => minutes = m,
-                None => return Err(ParseError::InvalidZoneOffset)
-            }
-
-            tm.tm_utcoff = sign * (hours * 60 * 60 + minutes * 60);
-            Ok(())
         }
         '%' => parse_char(s, '%'),
         ch => Err(ParseError::InvalidFormatSpecifier(ch))
