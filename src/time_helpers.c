@@ -111,8 +111,13 @@ static void tm_to_rust_tm(struct tm* in_tm,
 #if defined(_WIN32)
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
 #define GMTIME(clock, result) gmtime_s((result), (clock))
-#define LOCALTIME(clock, result) localtime_s((result), (clock))
 #define TIMEGM(result) _mkgmtime64(result)
+static struct tm* LOCALTIME(const time_t *clock, struct tm *result) {
+    if (localtime_s(result, clock) == 0) {
+        return result;
+    }
+    return NULL;
+}
 #else
 static struct tm* GMTIME(const time_t *clock, struct tm *result) {
     struct tm* t = gmtime(clock);
