@@ -3,7 +3,6 @@
 name = "time"
 version = "0.1.26"
 authors = ["The Rust Project Developers"]
-build = "build.rs"
 license = "MIT/Apache-2.0"
 homepage = "https://github.com/rust-lang/time"
 repository = "https://github.com/rust-lang/time"
@@ -14,10 +13,9 @@ Utilities for working with time-related functions in Rust.
 
 [dependencies]
 libc = "0.1"
+winapi = "0.1.23"
+kernel32-sys = "0.1.2"
 rustc-serialize = { version = "0.3", optional = true }
-
-[build-dependencies]
-gcc = "0.3"
 
 [dev-dependencies]
 log = "0.3"
