@@ -237,12 +237,16 @@ impl PreciseTime {
 /// }
 /// ```
 #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
-pub struct SteadyTime(steady::SteadyTime);
+pub struct SteadyTime {
+    t: u64
+}
 
 impl SteadyTime {
     /// Returns a `SteadyTime` representing the current moment in time.
     pub fn now() -> SteadyTime {
-        SteadyTime(steady::SteadyTime::now())
+        SteadyTime {
+            t: precise_time_ns()
+        }
     }
 }
 
@@ -257,7 +261,7 @@ impl Sub for SteadyTime {
     type Output = Duration;
 
     fn sub(self, other: SteadyTime) -> Duration {
-        self.0 - other.0
+        Duration::nanoseconds((self.t - other.t) as i64)
     }
 }
 
@@ -265,7 +269,7 @@ impl Sub<Duration> for SteadyTime {
     type Output = SteadyTime;
 
     fn sub(self, other: Duration) -> SteadyTime {
-        SteadyTime(self.0 - other)
+        self + -other
     }
 }
 
@@ -273,211 +277,13 @@ impl Add<Duration> for SteadyTime {
     type Output = SteadyTime;
 
     fn add(self, other: Duration) -> SteadyTime {
-        SteadyTime(self.0 + other)
-    }
-}
-
-#[cfg(any(target_os = "macos", target_os = "ios"))]
-mod steady {
-    use imp;
-    use Duration;
-    use std::ops::{Sub, Add};
-
-    #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
-    pub struct SteadyTime {
-        t: u64,
-    }
-
-    impl SteadyTime {
-        pub fn now() -> SteadyTime {
-            SteadyTime {
-                t: precise_time_ns()
-            }
-        }
-    }
-
-    impl Sub for SteadyTime {
-        type Output = Duration;
-
-        fn sub(self, other: SteadyTime) -> Duration {
-            Duration::nanoseconds((self.t - other.t) as i64)
-        }
-    }
-
-    impl Sub<Duration> for SteadyTime {
-        type Output = SteadyTime;
-
-        fn sub(self, other: Duration) -> SteadyTime {
-            self + -other
-        }
-    }
-
-    impl Add<Duration> for SteadyTime {
-        type Output = SteadyTime;
-
-        fn add(self, other: Duration) -> SteadyTime {
-            let delta = other.num_nanoseconds().unwrap();
-            SteadyTime {
-                t: (self.t as i64 + delta) as u64
-            }
+        let delta = other.num_nanoseconds().unwrap();
+        SteadyTime {
+            t: (self.t as i64 + delta) as u64
         }
     }
 }
 
-#[cfg(not(any(windows, target_os = "macos", target_os = "ios")))]
-mod steady {
-    use {sys, NSEC_PER_SEC, Duration};
-    use libc;
-    use std::cmp::{PartialOrd, Ord, Ordering, PartialEq, Eq};
-    use std::ops::{Sub, Add};
-    use std::fmt;
-
-    #[derive(Copy)]
-    pub struct SteadyTime {
-        t: libc::timespec,
-    }
-
-    impl fmt::Debug for SteadyTime {
-        fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-            write!(fmt, "SteadyTime {{ tv_sec: {:?}, tv_nsec: {:?} }}",
-                   self.t.tv_sec, self.t.tv_nsec)
-        }
-    }
-
-    impl Clone for SteadyTime {
-        fn clone(&self) -> SteadyTime {
-            SteadyTime { t: self.t }
-        }
-    }
-
-    impl SteadyTime {
-        pub fn now() -> SteadyTime {
-            let mut t = SteadyTime {
-                t: libc::timespec {
-                    tv_sec: 0,
-                    tv_nsec: 0,
-                }
-            };
-            unsafe {
-                assert_eq!(0, sys::clock_gettime(libc::CLOCK_MONOTONIC, &mut t.t));
-            }
-            t
-        }
-    }
-
-    impl Sub for SteadyTime {
-        type Output = Duration;
-
-        fn sub(self, other: SteadyTime) -> Duration {
-            if self.t.tv_nsec >= other.t.tv_nsec {
-                Duration::seconds(self.t.tv_sec as i64 - other.t.tv_sec as i64) +
-                    Duration::nanoseconds(self.t.tv_nsec as i64 - other.t.tv_nsec as i64)
-            } else {
-                Duration::seconds(self.t.tv_sec as i64 - 1 - other.t.tv_sec as i64) +
-                    Duration::nanoseconds(self.t.tv_nsec as i64 + NSEC_PER_SEC as i64 -
-                                          other.t.tv_nsec as i64)
-            }
-        }
-    }
-
-    impl Sub<Duration> for SteadyTime {
-        type Output = SteadyTime;
-
-        fn sub(self, other: Duration) -> SteadyTime {
-            self + -other
-        }
-    }
-
-    impl Add<Duration> for SteadyTime {
-        type Output = SteadyTime;
-
-        fn add(mut self, other: Duration) -> SteadyTime {
-            let seconds = other.num_seconds();
-            let nanoseconds = (other - Duration::seconds(seconds)).num_nanoseconds().unwrap();
-            self.t.tv_sec += seconds as libc::time_t;
-            self.t.tv_nsec += nanoseconds as libc::c_long;
-            if self.t.tv_nsec >= NSEC_PER_SEC as libc::c_long {
-                self.t.tv_nsec -= NSEC_PER_SEC as libc::c_long;
-                self.t.tv_sec += 1;
-            } else if self.t.tv_nsec < 0 {
-                self.t.tv_sec -= 1;
-                self.t.tv_nsec += NSEC_PER_SEC as libc::c_long;
-            }
-            self
-        }
-    }
-
-    impl PartialOrd for SteadyTime {
-        fn partial_cmp(&self, other: &SteadyTime) -> Option<Ordering> {
-            Some(self.cmp(other))
-        }
-    }
-
-    impl Ord for SteadyTime {
-        fn cmp(&self, other: &SteadyTime) -> Ordering {
-            match self.t.tv_sec.cmp(&other.t.tv_sec) {
-                Ordering::Equal => self.t.tv_nsec.cmp(&other.t.tv_nsec),
-                ord => ord
-            }
-        }
-    }
-
-    impl PartialEq for SteadyTime {
-        fn eq(&self, other: &SteadyTime) -> bool {
-            self.t.tv_sec == other.t.tv_sec && self.t.tv_nsec == other.t.tv_nsec
-        }
-    }
-
-    impl Eq for SteadyTime {}
-}
-
-#[cfg(windows)]
-mod steady {
-    use {sys, Duration};
-    use libc;
-    use std::ops::{Sub, Add};
-
-    #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
-    pub struct SteadyTime {
-        t: libc::LARGE_INTEGER,
-    }
-
-    impl SteadyTime {
-        pub fn now() -> SteadyTime {
-            let mut t = SteadyTime { t: 0 };
-            unsafe { libc::QueryPerformanceCounter(&mut t.t); }
-            t
-        }
-    }
-
-    impl Sub for SteadyTime {
-        type Output = Duration;
-
-        fn sub(self, other: SteadyTime) -> Duration {
-            let diff = self.t as i64 - other.t as i64;
-            Duration::nanoseconds(sys::mul_div_i64(diff, 1000000000,
-                                                sys::frequency() as i64))
-        }
-    }
-
-    impl Sub<Duration> for SteadyTime {
-        type Output = SteadyTime;
-
-        fn sub(self, other: Duration) -> SteadyTime {
-            self + -other
-        }
-    }
-
-    impl Add<Duration> for SteadyTime {
-        type Output = SteadyTime;
-
-        fn add(mut self, other: Duration) -> SteadyTime {
-            self.t += (other.num_microseconds().unwrap() * sys::frequency() as i64 / 1_000_000)
-                as libc::LARGE_INTEGER;
-            self
-        }
-    }
-}
 #[cfg(not(windows))]
 pub fn tzset() {
     extern { fn tzset(); }

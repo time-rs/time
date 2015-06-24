@@ -99,7 +99,7 @@ mod inner {
             fn mach_timebase_info(info: *mut mach_timebase_info) -> c_int;
         }
 
-        pub fn info() -> &'static mach_timebase_info {
+        fn info() -> &'static mach_timebase_info {
             static mut INFO: mach_timebase_info = mach_timebase_info {
                 numer: 0,
                 denom: 0,
@@ -142,7 +142,7 @@ mod inner {
         extern {}
 
         extern {
-            pub fn clock_gettime(clk_id: c_int, tp: *mut timespec) -> c_int;
+            fn clock_gettime(clk_id: c_int, tp: *mut timespec) -> c_int;
         }
 
         pub fn get_time() -> (i64, i32) {
