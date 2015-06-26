@@ -136,7 +136,7 @@ mod imp {
 ///
 /// For example a timespec of 1.2 seconds after the beginning of the epoch would
 /// be represented as {sec: 1, nsec: 200000000}.
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 #[cfg_attr(feature = "rustc-serialize", derive(RustcEncodable, RustcDecodable))]
 pub struct Timespec { pub sec: i64, pub nsec: i32 }
 /*
@@ -626,7 +626,7 @@ pub fn tzset() {
 /// day, and so on), also called a broken-down time value.
 // FIXME: use c_int instead of i32?
 #[repr(C)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 pub struct Tm {
     /// Seconds after the minute - [0, 60]
     pub tm_sec: i32,
@@ -1480,6 +1480,38 @@ mod tests {
         assert!(d.gt(c));
     }
 
+    fn test_timespec_hash() {
+        use std::hash::{Hash, Hasher};
+
+        let c = &Timespec::new(3, 2);
+        let d = &Timespec::new(2, 1);
+        let e = &Timespec::new(2, 1);
+
+        let mut hasher = ::std::hash::SipHasher::new();
+
+        let d_hash:u64 = {
+          d.hash(&mut hasher);
+          hasher.finish()
+        };
+
+        hasher = ::std::hash::SipHasher::new();
+
+        let e_hash:u64 = {
+          e.hash(&mut hasher);
+          hasher.finish()
+        };
+
+        hasher = ::std::hash::SipHasher::new();
+
+        let c_hash:u64 = {
+          c.hash(&mut hasher);
+          hasher.finish()
+        };
+
+        assert_eq!(d_hash, e_hash);
+        assert!(c_hash != e_hash);
+    }
+
     fn test_timespec_add() {
         let a = Timespec::new(1, 2);
         let b = Duration::seconds(2) + Duration::nanoseconds(3);
@@ -1547,6 +1579,7 @@ mod tests {
         test_ctime();
         test_strftime();
         test_timespec_eq_ord();
+        test_timespec_hash();
         test_timespec_add();
         test_timespec_sub();
         test_time_sub();
