@@ -43,7 +43,7 @@ use std::fmt;
 use std::ops::{Add, Sub};
 use std::io;
 #[cfg(feature = "rustc-serialize")]
-use rustc_serialize::json::{self, Json, ToJson};
+use rustc_serialize::json::{Json, ToJson};
 
 pub use duration::Duration;
 
@@ -213,7 +213,10 @@ impl Sub<Timespec> for Timespec {
 #[cfg(feature = "rustc-serialize")]
 impl ToJson for Timespec {
     fn to_json(&self) -> Json {
-        Json::String(json::encode(&self).unwrap())
+        let mut container = std::collections::BTreeMap::new();
+        container.insert("sec".to_string(), self.sec.to_json());
+        container.insert("nsec".to_string(), self.nsec.to_json());
+        Json::Object(container)
     }
 }
 
