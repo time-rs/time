@@ -37,6 +37,8 @@
 extern crate libc;
 #[cfg(feature = "rustc-serialize")]
 extern crate rustc_serialize;
+#[cfg(feature = "postgres")]
+#[macro_use] extern crate postgres;
 
 use std::cmp::Ordering;
 use std::fmt;
@@ -58,6 +60,8 @@ pub use parse::strptime;
 mod display;
 mod parse;
 mod duration;
+#[cfg(feature = "postgres")]
+mod type_postgres;
 
 static NSEC_PER_SEC: i32 = 1_000_000_000;
 
