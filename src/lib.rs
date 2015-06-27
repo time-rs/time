@@ -37,11 +37,15 @@
 extern crate libc;
 #[cfg(feature = "rustc-serialize")]
 extern crate rustc_serialize;
+#[cfg(feature = "postgres")]
+#[macro_use] extern crate postgres;
 
 use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Sub};
 use std::io;
+#[cfg(feature = "rustc-serialize")]
+use rustc_serialize::json::{self, Json, ToJson};
 
 pub use duration::Duration;
 
@@ -56,6 +60,8 @@ pub use parse::strptime;
 mod display;
 mod parse;
 mod duration;
+#[cfg(feature = "postgres")]
+mod type_postgres;
 
 static NSEC_PER_SEC: i32 = 1_000_000_000;
 
@@ -205,6 +211,13 @@ impl Sub<Timespec> for Timespec {
         let sec = self.sec - other.sec;
         let nsec = self.nsec - other.nsec;
         Duration::seconds(sec) + Duration::nanoseconds(nsec as i64)
+    }
+}
+
+#[cfg(feature = "rustc-serialize")]
+impl ToJson for Timespec {
+    fn to_json(&self) -> Json {
+        Json::String(json::encode(&self).unwrap())
     }
 }
 

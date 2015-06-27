@@ -15,6 +15,8 @@ Utilities for working with time-related functions in Rust.
 [dependencies]
 libc = "0.1"
 rustc-serialize = { version = "0.3", optional = true }
+postgres = { version = "*", optional = true }
+byteorder = "*" # required by postgres
 
 [build-dependencies]
 gcc = "0.3"
