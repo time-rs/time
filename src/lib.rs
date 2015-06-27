@@ -42,6 +42,8 @@ use std::cmp::Ordering;
 use std::fmt;
 use std::ops::{Add, Sub};
 use std::io;
+#[cfg(feature = "rustc-serialize")]
+use rustc_serialize::json::{self, Json, ToJson};
 
 pub use duration::Duration;
 
@@ -205,6 +207,13 @@ impl Sub<Timespec> for Timespec {
         let sec = self.sec - other.sec;
         let nsec = self.nsec - other.nsec;
         Duration::seconds(sec) + Duration::nanoseconds(nsec as i64)
+    }
+}
+
+#[cfg(feature = "rustc-serialize")]
+impl ToJson for Timespec {
+    fn to_json(&self) -> Json {
+        Json::String(json::encode(&self).unwrap())
     }
 }
 
