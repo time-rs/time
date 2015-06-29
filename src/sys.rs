@@ -169,6 +169,7 @@ mod inner {
 #[allow(non_snake_case)]
 mod inner {
     use ::Tm;
+    use std::io;
     use std::mem;
     use std::sync::{Once, ONCE_INIT};
 
@@ -242,11 +243,20 @@ mod inner {
         }
     }
 
+    macro_rules! call {
+        ($name:ident($($arg:expr),*)) => {
+            if $name($($arg),*) == 0 {
+                panic!(concat!(stringify!($name), " failed with: {}"),
+                       io::Error::last_os_error());
+            }
+        }
+    }
+
     pub fn time_to_utc_tm(sec: i64, tm: &mut Tm) {
         let mut out = unsafe { mem::zeroed() };
         let ft = time_to_file_time(sec);
         unsafe {
-            FileTimeToSystemTime(&ft, &mut out);
+            call!(FileTimeToSystemTime(&ft, &mut out));
         }
         system_time_to_tm(&out, tm);
         tm.tm_utcoff = 0;
@@ -258,8 +268,8 @@ mod inner {
         let ft = time_to_file_time(sec);
         unsafe {
             let mut utc = mem::zeroed();
-            FileTimeToSystemTime(&ft, &mut utc);
-            SystemTimeToTzSpecificLocalTime(tz, &mut utc, &mut out);
+            call!(FileTimeToSystemTime(&ft, &mut utc));
+            call!(SystemTimeToTzSpecificLocalTime(tz, &mut utc, &mut out));
             system_time_to_tm(&out, tm);
             tm.tm_utcoff = -(*tz).Bias * 60;
         }
@@ -269,7 +279,7 @@ mod inner {
         unsafe {
             let mut ft = mem::zeroed();
             let sys_time = tm_to_system_time(tm);
-            SystemTimeToFileTime(&sys_time, &mut ft);
+            call!(SystemTimeToFileTime(&sys_time, &mut ft));
             file_time_to_time(&ft)
         }
     }
@@ -279,8 +289,9 @@ mod inner {
             let mut ft = mem::zeroed();
             let mut utc = mem::zeroed();
             let mut sys_time = tm_to_system_time(tm);
-            TzSpecificLocalTimeToSystemTime(time_zone(None), &mut sys_time, &mut utc);
-            SystemTimeToFileTime(&utc, &mut ft);
+            call!(TzSpecificLocalTimeToSystemTime(time_zone(None),
+                                                  &mut sys_time, &mut utc));
+            call!(SystemTimeToFileTime(&utc, &mut ft));
             file_time_to_time(&ft)
         }
     }
