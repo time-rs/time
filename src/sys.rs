@@ -1,10 +1,10 @@
-
 pub use self::inner::*;
 
 #[cfg(unix)]
 mod inner {
     use libc::{c_int, c_long, c_char, time_t};
     use std::mem;
+    use std::io;
     use ::Tm;
 
     #[cfg(any(target_os = "macos", target_os = "ios"))]
@@ -63,7 +63,9 @@ mod inner {
     pub fn time_to_utc_tm(sec: i64, tm: &mut Tm) {
         unsafe {
             let mut out = mem::zeroed();
-            gmtime_r(&sec, &mut out);
+            if gmtime_r(&sec, &mut out).is_null() {
+                panic!("gmtime_r failed: {}", io::Error::last_os_error());
+            }
             tm_to_rust_tm(&out, 0, tm);
         }
     }
@@ -71,7 +73,9 @@ mod inner {
     pub fn time_to_local_tm(sec: i64, tm: &mut Tm) {
         unsafe {
             let mut out = mem::zeroed();
-            localtime_r(&sec, &mut out);
+            if localtime_r(&sec, &mut out).is_null() {
+                panic!("localtime_r failed: {}", io::Error::last_os_error());
+            }
             tm_to_rust_tm(&out, out.tm_gmtoff as i32, tm);
         }
     }
@@ -238,8 +242,6 @@ mod inner {
         }
     }
 
-
- 
     pub fn time_to_utc_tm(sec: i64, tm: &mut Tm) {
         let mut out = unsafe { mem::zeroed() };
         let ft = time_to_file_time(sec);
