@@ -201,10 +201,10 @@ mod inner {
 
     fn file_time_to_nsec(ft: &FILETIME) -> i32 {
         let t = ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64);
-        (((t - HECTONANOSEC_TO_UNIX_EPOCH) % HECTONANOSECS_IN_SEC) * 100) as i32
+        ((t % HECTONANOSECS_IN_SEC) * 100) as i32
     }
 
-    fn file_time_to_time(ft: &FILETIME) -> i64 {
+    fn file_time_to_unix_seconds(ft: &FILETIME) -> i64 {
         let t = ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64);
         ((t - HECTONANOSEC_TO_UNIX_EPOCH) / HECTONANOSECS_IN_SEC) as i64
     }
@@ -263,14 +263,14 @@ mod inner {
     }
 
     pub fn time_to_local_tm(sec: i64, tm: &mut Tm) {
-        let mut out = unsafe { mem::zeroed() };
         let tz = time_zone(None);
         let ft = time_to_file_time(sec);
         unsafe {
             let mut utc = mem::zeroed();
+            let mut local = mem::zeroed();
             call!(FileTimeToSystemTime(&ft, &mut utc));
-            call!(SystemTimeToTzSpecificLocalTime(tz, &mut utc, &mut out));
-            system_time_to_tm(&out, tm);
+            call!(SystemTimeToTzSpecificLocalTime(tz, &mut utc, &mut local));
+            system_time_to_tm(&local, tm);
             tm.tm_utcoff = -(*tz).Bias * 60;
         }
     }
@@ -280,7 +280,7 @@ mod inner {
             let mut ft = mem::zeroed();
             let sys_time = tm_to_system_time(tm);
             call!(SystemTimeToFileTime(&sys_time, &mut ft));
-            file_time_to_time(&ft)
+            file_time_to_unix_seconds(&ft)
         }
     }
 
@@ -292,7 +292,7 @@ mod inner {
             call!(TzSpecificLocalTimeToSystemTime(time_zone(None),
                                                   &mut sys_time, &mut utc));
             call!(SystemTimeToFileTime(&utc, &mut ft));
-            file_time_to_time(&ft)
+            file_time_to_unix_seconds(&ft)
         }
     }
 
@@ -300,7 +300,7 @@ mod inner {
         unsafe {
             let mut ft = mem::zeroed();
             GetSystemTimeAsFileTime(&mut ft);
-            (file_time_to_time(&ft), file_time_to_nsec(&ft))
+            (file_time_to_unix_seconds(&ft), file_time_to_nsec(&ft))
         }
     }
 
