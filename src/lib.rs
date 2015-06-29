@@ -32,17 +32,13 @@
 #![allow(trivial_numeric_casts)]
 #![cfg_attr(test, deny(warnings))]
 
-#[cfg(test)] #[macro_use] extern crate log;
+#[cfg(unix)] extern crate libc;
+#[cfg(windows)] extern crate kernel32;
+#[cfg(windows)] extern crate winapi;
+#[cfg(feature = "rustc-serialize")] extern crate rustc_serialize;
 
-extern crate libc;
-#[cfg(windows)]
-extern crate winapi;
-#[cfg(windows)]
-extern crate kernel32;
-#[cfg(all(windows, test))]
-extern crate advapi32;
-#[cfg(feature = "rustc-serialize")]
-extern crate rustc_serialize;
+#[cfg(test)] #[macro_use] extern crate log;
+#[cfg(all(windows, test))] extern crate advapi32;
 
 use std::cmp::Ordering;
 use std::fmt;
