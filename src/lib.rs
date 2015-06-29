@@ -235,16 +235,12 @@ impl PreciseTime {
 /// }
 /// ```
 #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
-pub struct SteadyTime {
-    t: u64
-}
+pub struct SteadyTime(sys::SteadyTime);
 
 impl SteadyTime {
     /// Returns a `SteadyTime` representing the current moment in time.
     pub fn now() -> SteadyTime {
-        SteadyTime {
-            t: precise_time_ns()
-        }
+        SteadyTime(sys::SteadyTime::now())
     }
 }
 
@@ -259,7 +255,7 @@ impl Sub for SteadyTime {
     type Output = Duration;
 
     fn sub(self, other: SteadyTime) -> Duration {
-        Duration::nanoseconds((self.t - other.t) as i64)
+        self.0 - other.0
     }
 }
 
@@ -267,7 +263,7 @@ impl Sub<Duration> for SteadyTime {
     type Output = SteadyTime;
 
     fn sub(self, other: Duration) -> SteadyTime {
-        self + -other
+        SteadyTime(self.0 - other)
     }
 }
 
@@ -275,10 +271,7 @@ impl Add<Duration> for SteadyTime {
     type Output = SteadyTime;
 
     fn add(self, other: Duration) -> SteadyTime {
-        let delta = other.num_nanoseconds().unwrap();
-        SteadyTime {
-            t: (self.t as i64 + delta) as u64
-        }
+        SteadyTime(self.0 + other)
     }
 }
 
