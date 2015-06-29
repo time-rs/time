@@ -39,6 +39,8 @@ extern crate libc;
 extern crate winapi;
 #[cfg(windows)]
 extern crate kernel32;
+#[cfg(all(windows, test))]
+extern crate advapi32;
 #[cfg(feature = "rustc-serialize")]
 extern crate rustc_serialize;
 
@@ -649,9 +651,7 @@ mod tests {
 
     #[cfg(windows)]
     fn set_time_zone() {
-        use sys;
-        let mins_from_utc = 60 * 8;
-        sys::time_zone(Some(mins_from_utc));
+        ::sys::set_los_angeles_time_zone();
         tzset();
     }
     #[cfg(not(windows))]

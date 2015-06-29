@@ -173,8 +173,8 @@ mod inner {
     use std::mem;
     use std::sync::{Once, ONCE_INIT};
 
-    use winapi::*;
     use kernel32::*;
+    use winapi::*;
 
     fn frequency() -> LARGE_INTEGER {
         static mut FREQUENCY: LARGE_INTEGER = 0;
@@ -263,15 +263,18 @@ mod inner {
     }
 
     pub fn time_to_local_tm(sec: i64, tm: &mut Tm) {
-        let tz = time_zone(None);
         let ft = time_to_file_time(sec);
         unsafe {
             let mut utc = mem::zeroed();
             let mut local = mem::zeroed();
             call!(FileTimeToSystemTime(&ft, &mut utc));
-            call!(SystemTimeToTzSpecificLocalTime(tz, &mut utc, &mut local));
+            call!(SystemTimeToTzSpecificLocalTime(0 as *const _,
+                                                  &mut utc, &mut local));
             system_time_to_tm(&local, tm);
-            tm.tm_utcoff = -(*tz).Bias * 60;
+
+            let mut tz = mem::zeroed();
+            GetTimeZoneInformation(&mut tz);
+            tm.tm_utcoff = -tz.Bias * 60;
         }
     }
 
@@ -289,7 +292,7 @@ mod inner {
             let mut ft = mem::zeroed();
             let mut utc = mem::zeroed();
             let mut sys_time = tm_to_system_time(tm);
-            call!(TzSpecificLocalTimeToSystemTime(time_zone(None),
+            call!(TzSpecificLocalTimeToSystemTime(0 as *mut _,
                                                   &mut sys_time, &mut utc));
             call!(SystemTimeToFileTime(&utc, &mut ft));
             file_time_to_unix_seconds(&ft)
@@ -313,24 +316,45 @@ mod inner {
 
     }
 
-    pub fn time_zone(bias: Option<i32>) -> *const TIME_ZONE_INFORMATION {
-        use std::ptr;
-        static mut TZ: Option<TIME_ZONE_INFORMATION> = None;
-        static ONCE: Once = ONCE_INIT;
-
+    // Only used during tests to ensure that we have a constant time zone to
+    // work with. The crux of this method is calling the SetTimeZoneInformation
+    // function, but this requires some extra privileges on Windows.
+    // Consequently, we have some extra code to ensure the privilege is
+    // available. This is all transcribed from an example here:
+    // https://msdn.microsoft.com/en-us/library/windows/desktop/ms724944%28v=vs.85%29.aspx
+    #[cfg(test)]
+    pub fn set_los_angeles_time_zone() {
+        use advapi32::*;
+        const SE_PRIVILEGE_ENABLED: DWORD = 2;
+        extern "system" {
+            fn LookupPrivilegeValueA(lpSystemName: LPCSTR,
+                                     lpName: LPCSTR,
+                                     lpLuid: PLUID) -> BOOL;
+        }
+        #[repr(C)]
+        struct TKP {
+            tkp: TOKEN_PRIVILEGES,
+            laa: LUID_AND_ATTRIBUTES,
+        }
         unsafe {
-            ONCE.call_once(|| {
-                if let Some(bias) = bias {
-                    let mut tz: TIME_ZONE_INFORMATION = mem::zeroed();
-                    tz.Bias = bias;
-                    TZ = Some(tz);
-                }
-            });
+            let mut hToken = 0 as *mut _;
+            call!(OpenProcessToken(GetCurrentProcess(),
+                                   TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
+                                   &mut hToken));
 
-            match TZ {
-                Some(ref tz) => tz,
-                None => ptr::null()
-            }
+            let mut tkp = mem::zeroed::<TKP>();
+            assert_eq!(tkp.tkp.Privileges.len(), 0);
+            let c = ::std::ffi::CString::new("SeTimeZonePrivilege").unwrap();
+            call!(LookupPrivilegeValueA(0 as *const _, c.as_ptr(),
+                                        &mut tkp.laa.Luid));
+            tkp.tkp.PrivilegeCount = 1;
+            tkp.laa.Attributes = SE_PRIVILEGE_ENABLED;
+            call!(AdjustTokenPrivileges(hToken, FALSE, &mut tkp.tkp, 0,
+                                        0 as *mut _, 0 as *mut _));
+
+            let mut tz = mem::zeroed::<TIME_ZONE_INFORMATION>();
+            tz.Bias = 60 * 8;
+            call!(SetTimeZoneInformation(&tz));
         }
     }
 
