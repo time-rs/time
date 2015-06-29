@@ -134,6 +134,17 @@ mod inner {
         }
     }
 
+    #[cfg(test)]
+    pub struct TzReset;
+
+    #[cfg(test)]
+    pub fn set_los_angeles_time_zone() -> TzReset {
+        use std::env;
+        env::set_var("TZ", "America/Los_Angeles");
+        ::tzset();
+        TzReset
+    }
+
     #[cfg(all(not(target_os = "macos"), not(target_os = "ios")))]
     mod unix {
         use libc::{self, c_int, timespec};
@@ -316,27 +327,57 @@ mod inner {
 
     }
 
-    // Only used during tests to ensure that we have a constant time zone to
-    // work with. The crux of this method is calling the SetTimeZoneInformation
-    // function, but this requires some extra privileges on Windows.
-    // Consequently, we have some extra code to ensure the privilege is
-    // available. This is all transcribed from an example here:
+    #[cfg(test)]
+    pub struct TzReset {
+        old: TIME_ZONE_INFORMATION,
+    }
+
+    #[cfg(test)]
+    impl Drop for TzReset {
+        fn drop(&mut self) {
+            unsafe {
+                call!(SetTimeZoneInformation(&self.old));
+            }
+        }
+    }
+
+    #[cfg(test)]
+    pub fn set_los_angeles_time_zone() -> TzReset {
+        acquire_privileges();
+
+        unsafe {
+            let mut tz = mem::zeroed::<TIME_ZONE_INFORMATION>();
+            GetTimeZoneInformation(&mut tz);
+            let ret = TzReset { old: tz };
+            tz.Bias = 60 * 8;
+            call!(SetTimeZoneInformation(&tz));
+            return ret
+        }
+    }
+
+    // Ensures that this process has the necessary privileges to set a new time
+    // zone, and this is all transcribed from:
     // https://msdn.microsoft.com/en-us/library/windows/desktop/ms724944%28v=vs.85%29.aspx
     #[cfg(test)]
-    pub fn set_los_angeles_time_zone() {
+    fn acquire_privileges() {
+        use std::sync::{ONCE_INIT, Once};
         use advapi32::*;
         const SE_PRIVILEGE_ENABLED: DWORD = 2;
-        extern "system" {
-            fn LookupPrivilegeValueA(lpSystemName: LPCSTR,
-                                     lpName: LPCSTR,
-                                     lpLuid: PLUID) -> BOOL;
-        }
+        static INIT: Once = ONCE_INIT;
+
         #[repr(C)]
         struct TKP {
             tkp: TOKEN_PRIVILEGES,
             laa: LUID_AND_ATTRIBUTES,
         }
-        unsafe {
+
+        extern "system" {
+            fn LookupPrivilegeValueA(lpSystemName: LPCSTR,
+                                     lpName: LPCSTR,
+                                     lpLuid: PLUID) -> BOOL;
+        }
+
+        INIT.call_once(|| unsafe {
             let mut hToken = 0 as *mut _;
             call!(OpenProcessToken(GetCurrentProcess(),
                                    TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
@@ -351,12 +392,10 @@ mod inner {
             tkp.laa.Attributes = SE_PRIVILEGE_ENABLED;
             call!(AdjustTokenPrivileges(hToken, FALSE, &mut tkp.tkp, 0,
                                         0 as *mut _, 0 as *mut _));
-
-            let mut tz = mem::zeroed::<TIME_ZONE_INFORMATION>();
-            tz.Bias = 60 * 8;
-            call!(SetTimeZoneInformation(&tz));
-        }
+        });
     }
+
+
 
     // Computes (value*numer)/denom without overflow, as long as both
     // (numer*denom) and the overall result fit into i64 (which is the case

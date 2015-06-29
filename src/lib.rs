@@ -640,23 +640,36 @@ pub fn strftime(format: &str, tm: &Tm) -> Result<String, ParseError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Timespec, get_time, precise_time_ns, precise_time_s, tzset,
+    use super::{Timespec, get_time, precise_time_ns, precise_time_s,
                 at_utc, at, strptime, PreciseTime, ParseError, Duration};
     use super::ParseError::{InvalidTime, InvalidYear, MissingFormatConverter,
                             InvalidFormatSpecifier};
 
-    #[cfg(windows)]
-    fn set_time_zone() {
-        ::sys::set_los_angeles_time_zone();
-        tzset();
-    }
-    #[cfg(not(windows))]
-    fn set_time_zone() {
-        use std::env;
-        env::set_var("TZ", "America/Los_Angeles");
-        tzset();
+    use std::sync::{Once, ONCE_INIT, Mutex, MutexGuard, LockResult};
+    use std::mem;
+
+    struct TzReset {
+        _tzreset: ::sys::TzReset,
+        _lock: LockResult<MutexGuard<'static, ()>>,
     }
 
+    fn set_time_zone() -> TzReset {
+        static mut LOCK: *mut Mutex<()> = 0 as *mut _;
+        static INIT: Once = ONCE_INIT;
+
+        unsafe {
+            INIT.call_once(|| {
+                LOCK = mem::transmute(Box::new(Mutex::new(())));
+            });
+
+            TzReset {
+                _lock: (*LOCK).lock(),
+                _tzreset: ::sys::set_los_angeles_time_zone(),
+            }
+        }
+    }
+
+    #[test]
     fn test_get_time() {
         static SOME_RECENT_DATE: i64 = 1325376000i64; // 2012-01-01T00:00:00Z
         static SOME_FUTURE_DATE: i64 = 1577836800i64; // 2020-01-01T00:00:00Z
@@ -678,6 +691,7 @@ mod tests {
         }
     }
 
+    #[test]
     fn test_precise_time() {
         let s0 = precise_time_s();
         debug!("s0={} sec", s0);
@@ -694,14 +708,16 @@ mod tests {
         assert!(ns2 >= ns1);
     }
 
+    #[test]
     fn test_precise_time_to() {
         let t0 = PreciseTime(1000);
         let t1 = PreciseTime(1023);
         assert_eq!(Duration::nanoseconds(23), t0.to(t1));
     }
 
+    #[test]
     fn test_at_utc() {
-        set_time_zone();
+        let _reset = set_time_zone();
 
         let time = Timespec::new(1234567890, 54321);
         let utc = at_utc(time);
@@ -719,8 +735,9 @@ mod tests {
         assert_eq!(utc.tm_nsec, 54321);
     }
 
+    #[test]
     fn test_at() {
-        set_time_zone();
+        let _reset = set_time_zone();
 
         let time = Timespec::new(1234567890, 54321);
         let local = at(time);
@@ -740,8 +757,9 @@ mod tests {
         assert_eq!(local.tm_nsec, 54321);
     }
 
+    #[test]
     fn test_to_timespec() {
-        set_time_zone();
+        let _reset = set_time_zone();
 
         let time = Timespec::new(1234567890, 54321);
         let utc = at_utc(time);
@@ -750,8 +768,9 @@ mod tests {
         assert_eq!(utc.to_local().to_timespec(), time);
     }
 
+    #[test]
     fn test_conversions() {
-        set_time_zone();
+        let _reset = set_time_zone();
 
         let time = Timespec::new(1234567890, 54321);
         let utc = at_utc(time);
@@ -765,8 +784,9 @@ mod tests {
         assert!(utc.to_local().to_utc() == utc);
     }
 
+    #[test]
     fn test_strptime() {
-        set_time_zone();
+        let _reset = set_time_zone();
 
         match strptime("", "") {
             Ok(ref tm) => {
@@ -964,8 +984,9 @@ mod tests {
         }
     }
 
+    #[test]
     fn test_asctime() {
-        set_time_zone();
+        let _reset = set_time_zone();
 
         let time = Timespec::new(1234567890, 54321);
         let utc   = at_utc(time);
@@ -977,8 +998,9 @@ mod tests {
         assert_eq!(local.asctime().to_string(), "Fri Feb 13 15:31:30 2009".to_string());
     }
 
+    #[test]
     fn test_ctime() {
-        set_time_zone();
+        let _reset = set_time_zone();
 
         let time = Timespec::new(1234567890, 54321);
         let utc   = at_utc(time);
@@ -990,8 +1012,9 @@ mod tests {
         assert_eq!(local.ctime().to_string(), "Fri Feb 13 15:31:30 2009".to_string());
     }
 
+    #[test]
     fn test_strftime() {
-        set_time_zone();
+        let _reset = set_time_zone();
 
         let time = Timespec::new(1234567890, 54321);
         let utc = at_utc(time);
@@ -1068,6 +1091,7 @@ mod tests {
         assert_eq!(utc.rfc3339().to_string(), "2009-02-13T23:31:30Z".to_string());
     }
 
+    #[test]
     fn test_timespec_eq_ord() {
         let a = &Timespec::new(-2, 1);
         let b = &Timespec::new(-1, 2);
@@ -1099,6 +1123,7 @@ mod tests {
         assert!(d.gt(c));
     }
 
+    #[test]
     fn test_timespec_hash() {
         use std::hash::{Hash, Hasher};
 
@@ -1131,6 +1156,7 @@ mod tests {
         assert!(c_hash != e_hash);
     }
 
+    #[test]
     fn test_timespec_add() {
         let a = Timespec::new(1, 2);
         let b = Duration::seconds(2) + Duration::nanoseconds(3);
@@ -1157,6 +1183,7 @@ mod tests {
         assert_eq!(m.nsec, 999_999_999);
     }
 
+    #[test]
     fn test_timespec_sub() {
         let a = Timespec::new(2, 3);
         let b = Timespec::new(1, 2);
@@ -1174,33 +1201,11 @@ mod tests {
         assert_eq!(w.num_nanoseconds(), Some(-super::NSEC_PER_SEC as i64 - 1));
     }
 
+    #[test]
     fn test_time_sub() {
         let a = ::now();
         let b = at(a.to_timespec() + Duration::seconds(5));
         let c = b - a;
         assert_eq!(c.num_nanoseconds(), Some(super::NSEC_PER_SEC as i64 * 5));
-    }
-
-    #[test]
-    #[cfg_attr(target_os = "android", ignore)] // FIXME #10958
-    fn run_tests() {
-        // The tests race on tzset. So instead of having many independent
-        // tests, we will just call the functions now.
-        test_get_time();
-        test_precise_time();
-        test_precise_time_to();
-        test_at_utc();
-        test_at();
-        test_to_timespec();
-        test_conversions();
-        test_strptime();
-        test_asctime();
-        test_ctime();
-        test_strftime();
-        test_timespec_eq_ord();
-        test_timespec_hash();
-        test_timespec_add();
-        test_timespec_sub();
-        test_time_sub();
     }
 }
