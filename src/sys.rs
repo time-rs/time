@@ -62,6 +62,7 @@ mod inner {
 
     pub fn time_to_utc_tm(sec: i64, tm: &mut Tm) {
         unsafe {
+            let sec = sec as time_t;
             let mut out = mem::zeroed();
             if gmtime_r(&sec, &mut out).is_null() {
                 panic!("gmtime_r failed: {}", io::Error::last_os_error());
@@ -72,6 +73,7 @@ mod inner {
 
     pub fn time_to_local_tm(sec: i64, tm: &mut Tm) {
         unsafe {
+            let sec = sec as time_t;
             let mut out = mem::zeroed();
             if localtime_r(&sec, &mut out).is_null() {
                 panic!("localtime_r failed: {}", io::Error::last_os_error());
@@ -83,13 +85,13 @@ mod inner {
     pub fn utc_tm_to_time(rust_tm: &Tm) -> i64 {
         let mut tm = unsafe { mem::zeroed() };
         rust_tm_to_tm(rust_tm, &mut tm);
-        unsafe { timegm(&tm) }
+        unsafe { timegm(&tm) as i64 }
     }
 
     pub fn local_tm_to_time(rust_tm: &Tm) -> i64 {
         let mut tm = unsafe { mem::zeroed() };
         rust_tm_to_tm(rust_tm, &mut tm);
-        unsafe { mktime(&tm) }
+        unsafe { mktime(&tm) as i64 }
     }
 
     #[cfg(any(target_os = "macos", target_os = "ios"))]
