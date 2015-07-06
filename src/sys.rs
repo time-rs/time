@@ -148,7 +148,7 @@ mod inner {
         impl Sub for SteadyTime {
             type Output = Duration;
             fn sub(self, other: SteadyTime) -> Duration {
-                Duration::nanoseconds((self.t - other.t) as i64)
+                Duration::nanoseconds(self.t as i64 - other.t as i64)
             }
         }
         impl Sub<Duration> for SteadyTime {
