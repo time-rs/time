@@ -634,7 +634,7 @@ pub fn strftime(format: &str, tm: &Tm) -> Result<String, ParseError> {
 #[cfg(test)]
 mod tests {
     use super::{Timespec, get_time, precise_time_ns, precise_time_s,
-                at_utc, at, strptime, PreciseTime, ParseError, Duration};
+                at_utc, at, strptime, PreciseTime, SteadyTime, ParseError, Duration};
     use super::ParseError::{InvalidTime, InvalidYear, MissingFormatConverter,
                             InvalidFormatSpecifier};
 
@@ -1200,5 +1200,13 @@ mod tests {
         let b = at(a.to_timespec() + Duration::seconds(5));
         let c = b - a;
         assert_eq!(c.num_nanoseconds(), Some(super::NSEC_PER_SEC as i64 * 5));
+    }
+
+    #[test]
+    fn test_steadytime_sub() {
+        let a = SteadyTime::now();
+        let b = a + Duration::seconds(1);
+        assert_eq!(b - a, Duration::seconds(1));
+        assert_eq!(a - b, Duration::seconds(-1));
     }
 }
