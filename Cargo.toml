@@ -19,4 +19,4 @@ rustc-serialize = { version = "0.3", optional = true }
 
 [dev-dependencies]
 log = "0.3"
-advapi32-sys = "0.1"
+advapi32-sys = "0.1.2"

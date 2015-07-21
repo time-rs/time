@@ -547,12 +547,6 @@ mod inner {
             laa: LUID_AND_ATTRIBUTES,
         }
 
-        extern "system" {
-            fn LookupPrivilegeValueA(lpSystemName: LPCSTR,
-                                     lpName: LPCSTR,
-                                     lpLuid: PLUID) -> BOOL;
-        }
-
         INIT.call_once(|| unsafe {
             let mut hToken = 0 as *mut _;
             call!(OpenProcessToken(GetCurrentProcess(),
