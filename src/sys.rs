@@ -56,8 +56,33 @@ mod inner {
     extern {
         fn gmtime_r(time_p: *const time_t, result: *mut tm) -> *mut tm;
         fn localtime_r(time_p: *const time_t, result: *mut tm) -> *mut tm;
-        fn timegm(tm: *const tm) -> time_t;
         fn mktime(tm: *const tm) -> time_t;
+    }
+
+    #[cfg(not(target_os = "android"))]
+    extern {
+        fn timegm(tm: *const tm) -> time_t;
+    }
+
+    // Android only has timegm64 rather than timegm. time64_t seems to be
+    // unavailable in libc so I'm using i64 at the moment.
+    #[cfg(target_os = "android")]
+    extern {
+        fn timegm64(tm: *const tm) -> i64;
+    }
+
+    #[cfg(target_os = "android")]
+    unsafe fn timegm(tm: *const tm) -> time_t {
+        use std::i32;
+        // android's time_t is 32-bit.
+        let res = timegm64(tm);
+        if res > (i32::MAX as i64) || res < (i32::MIN as i64) {
+            // Overflow case.
+            -1
+        }
+        else {
+            res as time_t
+        }
     }
 
     pub fn time_to_utc_tm(sec: i64, tm: &mut Tm) {
