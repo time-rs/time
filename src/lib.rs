@@ -45,6 +45,7 @@
 #[cfg(all(windows, test))] extern crate advapi32;
 
 use std::cmp::Ordering;
+use std::error::Error;
 use std::fmt;
 use std::ops::{Add, Sub};
 
@@ -550,27 +551,35 @@ pub enum ParseError {
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            InvalidSecond => write!(f, "Invalid second."),
-            InvalidMinute => write!(f, "Invalid minute."),
-            InvalidHour => write!(f, "Invalid hour."),
-            InvalidDay => write!(f, "Invalid day."),
-            InvalidMonth => write!(f, "Invalid month."),
-            InvalidYear => write!(f, "Invalid year."),
-            InvalidDayOfWeek => write!(f, "Invalid day of the week."),
-            InvalidDayOfMonth => write!(f, "Invalid day of the month."),
-            InvalidDayOfYear => write!(f, "Invalid day of the year."),
-            InvalidZoneOffset => write!(f, "Invalid zone offset."),
-            InvalidTime => write!(f, "Invalid time."),
-            InvalidSecondsSinceEpoch => write!(f, "Invalid seconds since epoch."),
-            MissingFormatConverter => {
-                write!(f, "missing format converter after `%`")
-            }
             InvalidFormatSpecifier(ch) => {
-                write!(f, "invalid format specifier: %{}", ch)
+                write!(f, "{}: %{}", self.description(), ch)
             }
             UnexpectedCharacter(a, b) => {
                 write!(f, "expected: `{}`, found: `{}`", a, b)
             }
+            _ => write!(f, "{}", self.description())
+        }
+    }
+}
+
+impl Error for ParseError {
+    fn description(&self) -> &str {
+        match *self {
+            InvalidSecond => "Invalid second.",
+            InvalidMinute => "Invalid minute.",
+            InvalidHour => "Invalid hour.",
+            InvalidDay => "Invalid day.",
+            InvalidMonth => "Invalid month.",
+            InvalidYear => "Invalid year.",
+            InvalidDayOfWeek => "Invalid day of the week.",
+            InvalidDayOfMonth => "Invalid day of the month.",
+            InvalidDayOfYear => "Invalid day of the year.",
+            InvalidZoneOffset => "Invalid zone offset.",
+            InvalidTime => "Invalid time.",
+            InvalidSecondsSinceEpoch => "Invalid seconds since epoch.",
+            MissingFormatConverter => "missing format converter after `%`",
+            InvalidFormatSpecifier(..) => "invalid format specifier",
+            UnexpectedCharacter(..) => "Unexpected character.",
         }
     }
 }
