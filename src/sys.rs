@@ -61,9 +61,9 @@ mod inner {
         fn gmtime_r(time_p: *const time_t, result: *mut tm) -> *mut tm;
         fn localtime_r(time_p: *const time_t, result: *mut tm) -> *mut tm;
         fn mktime(tm: *const tm) -> time_t;
-        #[cfg(not(any(target_os = "android", target_os = "nacl")))]
+        #[cfg(not(any(all(target_os = "android", not(target_arch = "aarch64")), target_os = "nacl")))]
         fn timegm(tm: *const tm) -> time_t;
-        #[cfg(target_os = "android")]
+        #[cfg(all(target_os = "android", not(target_arch = "aarch64")))]
         fn timegm64(tm: *const tm) -> time64_t;
     }
 
@@ -115,7 +115,7 @@ mod inner {
     }
 
     pub fn utc_tm_to_time(rust_tm: &Tm) -> i64 {
-        #[cfg(target_os = "android")]
+        #[cfg(all(target_os = "android", not(target_arch = "aarch64")))]
         use self::timegm64 as timegm;
 
         let mut tm = unsafe { mem::zeroed() };
