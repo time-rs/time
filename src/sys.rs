@@ -214,6 +214,14 @@ mod inner {
         TzReset
     }
 
+    #[cfg(test)]
+    pub fn set_london_with_dst_time_zone() -> TzReset {
+        use std::env;
+        env::set_var("TZ", "Europe/London");
+        ::tzset();
+        TzReset
+    }
+
     #[cfg(all(not(target_os = "macos"), not(target_os = "ios")))]
     mod unix {
         use std::fmt;
@@ -372,25 +380,37 @@ mod inner {
         }
     }
 
-    const HECTONANOSECS_IN_SEC: u64 = 10_000_000;
-    const HECTONANOSEC_TO_UNIX_EPOCH: u64 = 11_644_473_600 * HECTONANOSECS_IN_SEC;
+    const HECTONANOSECS_IN_SEC: i64 = 10_000_000;
+    const HECTONANOSEC_TO_UNIX_EPOCH: i64 = 11_644_473_600 * HECTONANOSECS_IN_SEC;
 
     fn time_to_file_time(sec: i64) -> FILETIME {
-        let t = (sec as u64 * HECTONANOSECS_IN_SEC) + HECTONANOSEC_TO_UNIX_EPOCH;
+        let t = (((sec * HECTONANOSECS_IN_SEC) + HECTONANOSEC_TO_UNIX_EPOCH)) as u64;
         FILETIME {
             dwLowDateTime: t as DWORD,
             dwHighDateTime: (t >> 32) as DWORD
         }
     }
+    
+    fn file_time_as_u64(ft: &FILETIME) -> u64 {
+        ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64)
+    }
 
     fn file_time_to_nsec(ft: &FILETIME) -> i32 {
-        let t = ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64);
+        let t = file_time_as_u64(ft) as i64;
         ((t % HECTONANOSECS_IN_SEC) * 100) as i32
     }
 
     fn file_time_to_unix_seconds(ft: &FILETIME) -> i64 {
-        let t = ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64);
+        let t = file_time_as_u64(ft) as i64;
         ((t - HECTONANOSEC_TO_UNIX_EPOCH) / HECTONANOSECS_IN_SEC) as i64
+    }
+
+    fn system_time_to_file_time(sys: &SYSTEMTIME) -> FILETIME {
+        unsafe {
+            let mut ft = mem::zeroed();
+            SystemTimeToFileTime(sys, &mut ft);
+            ft
+        }
     }
 
     fn tm_to_system_time(tm: &Tm) -> SYSTEMTIME {
@@ -456,9 +476,14 @@ mod inner {
                                                   &mut utc, &mut local));
             system_time_to_tm(&local, tm);
 
+            let local_sec = file_time_to_unix_seconds(&system_time_to_file_time(&local));
+
             let mut tz = mem::zeroed();
             GetTimeZoneInformation(&mut tz);
-            tm.tm_utcoff = -tz.Bias * 60;
+
+            // SystemTimeToTzSpecificLocalTime already applied the biases so check if it non standard
+            tm.tm_utcoff = (local_sec - sec) as i32;
+            tm.tm_isdst = if tm.tm_utcoff == -60 * (tz.Bias + tz.StandardBias) { 0 } else { 1 };
         }
     }
 
@@ -561,6 +586,33 @@ mod inner {
             GetTimeZoneInformation(&mut tz);
             let ret = TzReset { old: tz };
             tz.Bias = 60 * 8;
+            call!(SetTimeZoneInformation(&tz));
+            return ret
+        }
+    }
+
+    #[cfg(test)]
+    pub fn set_london_with_dst_time_zone() -> TzReset {
+        acquire_privileges();
+
+        unsafe {
+            let mut tz = mem::zeroed::<TIME_ZONE_INFORMATION>();
+            GetTimeZoneInformation(&mut tz);
+            let ret = TzReset { old: tz };
+            // Since date set precisely this is 2015's dates
+            tz.Bias = 0;
+            tz.DaylightBias = -60;
+            tz.DaylightDate.wYear = 0;
+            tz.DaylightDate.wMonth = 3;
+            tz.DaylightDate.wDayOfWeek = 0;
+            tz.DaylightDate.wDay = 5;
+            tz.DaylightDate.wHour = 2;
+            tz.StandardBias = 0;
+            tz.StandardDate.wYear = 0;
+            tz.StandardDate.wMonth = 10;
+            tz.StandardDate.wDayOfWeek = 0;
+            tz.StandardDate.wDay = 5;
+            tz.StandardDate.wHour = 2;
             call!(SetTimeZoneInformation(&tz));
             return ret
         }

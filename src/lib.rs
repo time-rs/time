@@ -659,7 +659,8 @@ mod tests {
         _lock: LockResult<MutexGuard<'static, ()>>,
     }
 
-    fn set_time_zone() -> TzReset {
+    fn set_time_zone_la_or_london(london: bool) -> TzReset {
+        // Lock manages current timezone because some tests require LA some London
         static mut LOCK: *mut Mutex<()> = 0 as *mut _;
         static INIT: Once = ONCE_INIT;
 
@@ -668,11 +669,22 @@ mod tests {
                 LOCK = mem::transmute(Box::new(Mutex::new(())));
             });
 
+            let timezone_lock = (*LOCK).lock();
+            let reset_func = if london { ::sys::set_london_with_dst_time_zone() }
+                                  else { ::sys::set_los_angeles_time_zone() };
             TzReset {
-                _lock: (*LOCK).lock(),
-                _tzreset: ::sys::set_los_angeles_time_zone(),
+                _lock: timezone_lock,
+                _tzreset: reset_func,
             }
         }
+    }
+
+    fn set_time_zone() -> TzReset {
+        set_time_zone_la_or_london(false)
+    }
+
+    fn set_time_zone_london_dst() -> TzReset {
+        set_time_zone_la_or_london(true)
     }
 
     #[test]
@@ -1221,5 +1233,38 @@ mod tests {
         let b = a + Duration::seconds(1);
         assert_eq!(b - a, Duration::seconds(1));
         assert_eq!(a - b, Duration::seconds(-1));
+    }
+
+    #[test]
+    fn test_date_before_1970() {
+        let early = strptime("1901-01-06", "%F").unwrap();
+        let late = strptime("2000-01-01", "%F").unwrap();
+        assert!(early < late);
+    }
+
+    #[test]
+    fn test_dst() {
+        let _reset = set_time_zone_london_dst();
+        let utc_in_feb = strptime("2015-02-01Z", "%F%z").unwrap();
+        let utc_in_jun = strptime("2015-06-01Z", "%F%z").unwrap();
+        let utc_in_nov = strptime("2015-11-01Z", "%F%z").unwrap();
+        let local_in_feb = utc_in_feb.to_local();
+        let local_in_jun = utc_in_jun.to_local();
+        let local_in_nov = utc_in_nov.to_local();
+
+        assert_eq!(local_in_feb.tm_mon, 1);
+        assert_eq!(local_in_feb.tm_hour, 0);
+        assert_eq!(local_in_feb.tm_utcoff, 0);
+        assert_eq!(local_in_feb.tm_isdst, 0);
+
+        assert_eq!(local_in_jun.tm_mon, 5);
+        assert_eq!(local_in_jun.tm_hour, 1);
+        assert_eq!(local_in_jun.tm_utcoff, 3600);
+        assert_eq!(local_in_jun.tm_isdst, 1);
+
+        assert_eq!(local_in_nov.tm_mon, 10);
+        assert_eq!(local_in_nov.tm_hour, 0);
+        assert_eq!(local_in_nov.tm_utcoff, 0);
+        assert_eq!(local_in_nov.tm_isdst, 0)
     }
 }
