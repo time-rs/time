@@ -61,7 +61,9 @@ mod inner {
         fn gmtime_r(time_p: *const time_t, result: *mut tm) -> *mut tm;
         fn localtime_r(time_p: *const time_t, result: *mut tm) -> *mut tm;
         fn mktime(tm: *const tm) -> time_t;
-        #[cfg(not(any(all(target_os = "android", not(target_arch = "aarch64")), target_os = "nacl")))]
+        #[cfg(not(any(all(target_os = "android",
+                          not(target_arch = "aarch64")),
+                      target_os = "nacl")))]
         fn timegm(tm: *const tm) -> time_t;
         #[cfg(all(target_os = "android", not(target_arch = "aarch64")))]
         fn timegm64(tm: *const tm) -> time64_t;
@@ -390,7 +392,7 @@ mod inner {
             dwHighDateTime: (t >> 32) as DWORD
         }
     }
-    
+
     fn file_time_as_u64(ft: &FILETIME) -> u64 {
         ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64)
     }
@@ -476,14 +478,20 @@ mod inner {
                                                   &mut utc, &mut local));
             system_time_to_tm(&local, tm);
 
-            let local_sec = file_time_to_unix_seconds(&system_time_to_file_time(&local));
+            let local = system_time_to_file_time(&local);
+            let local_sec = file_time_to_unix_seconds(&local);
 
             let mut tz = mem::zeroed();
             GetTimeZoneInformation(&mut tz);
 
-            // SystemTimeToTzSpecificLocalTime already applied the biases so check if it non standard
+            // SystemTimeToTzSpecificLocalTime already applied the biases so
+            // check if it non standard
             tm.tm_utcoff = (local_sec - sec) as i32;
-            tm.tm_isdst = if tm.tm_utcoff == -60 * (tz.Bias + tz.StandardBias) { 0 } else { 1 };
+            tm.tm_isdst = if tm.tm_utcoff == -60 * (tz.Bias + tz.StandardBias) {
+                0
+            } else {
+                1
+            };
         }
     }
 

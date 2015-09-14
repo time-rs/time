@@ -25,7 +25,7 @@
 //! ```rust
 //! extern crate time;
 //! ```
-//! 
+//!
 //! This crate uses the same syntax for format strings as the [strftime()]
 //! (http://man7.org/linux/man-pages/man3/strftime.3.html) function from the C
 //! standard library.
@@ -660,7 +660,8 @@ mod tests {
     }
 
     fn set_time_zone_la_or_london(london: bool) -> TzReset {
-        // Lock manages current timezone because some tests require LA some London
+        // Lock manages current timezone because some tests require LA some
+        // London
         static mut LOCK: *mut Mutex<()> = 0 as *mut _;
         static INIT: Once = ONCE_INIT;
 
@@ -670,8 +671,11 @@ mod tests {
             });
 
             let timezone_lock = (*LOCK).lock();
-            let reset_func = if london { ::sys::set_london_with_dst_time_zone() }
-                                  else { ::sys::set_los_angeles_time_zone() };
+            let reset_func = if london {
+                ::sys::set_london_with_dst_time_zone()
+            } else {
+                ::sys::set_los_angeles_time_zone()
+            };
             TzReset {
                 _lock: timezone_lock,
                 _tzreset: reset_func,
