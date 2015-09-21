@@ -6,7 +6,7 @@ Utilities for working with time-related functions in Rust
 [![Build Status](https://travis-ci.org/rust-lang/time.svg?branch=master)](https://travis-ci.org/rust-lang/time)
 [![Build status](https://ci.appveyor.com/api/projects/status/55m7rbaj9a5v3ad7?svg=true)](https://ci.appveyor.com/project/alexcrichton/time)
 
-[Documentation](http://doc.rust-lang.org/time)
+[Documentation](https://doc.rust-lang.org/time)
 
 ## Usage
 
