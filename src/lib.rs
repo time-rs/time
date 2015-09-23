@@ -295,6 +295,7 @@ pub fn tzset() {}
 // FIXME: use c_int instead of i32?
 #[repr(C)]
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
+#[cfg_attr(feature = "rustc-serialize", derive(RustcEncodable, RustcDecodable))]
 pub struct Tm {
     /// Seconds after the minute - [0, 60]
     pub tm_sec: i32,
