@@ -236,6 +236,7 @@ mod inner {
         #[cfg(all(not(target_os = "android"),
                   not(target_os = "bitrig"),
                   not(target_os = "nacl"),
+                  not(target_os = "netbsd"),
                   not(target_os = "openbsd")))]
         #[link(name = "rt")]
         extern {}
