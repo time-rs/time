@@ -13,9 +13,11 @@ Utilities for working with time-related functions in Rust.
 
 [dependencies]
 libc = "0.1"
+rustc-serialize = { version = "0.3", optional = true }
+
+[target.x86_64-pc-windows-gnu.dependencies]
 winapi = "0.2.0"
 kernel32-sys = "0.1.2"
-rustc-serialize = { version = "0.3", optional = true }
 
 [dev-dependencies]
 log = "0.3"
