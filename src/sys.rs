@@ -4,7 +4,7 @@ pub use self::inner::*;
 
 #[cfg(unix)]
 mod inner {
-    use libc::{c_int, c_long, c_char, time_t};
+    use libc::{self, time_t};
     use std::mem;
     use std::io;
     use Tm;
@@ -14,23 +14,7 @@ mod inner {
     #[cfg(all(not(target_os = "macos"), not(target_os = "ios")))]
     pub use self::unix::*;
 
-    /// ctime's `tm`
-    #[repr(C)]
-    struct tm {
-        tm_sec: c_int,
-        tm_min: c_int,
-        tm_hour: c_int,
-        tm_mday: c_int,
-        tm_mon: c_int,
-        tm_year: c_int,
-        tm_wday: c_int,
-        tm_yday: c_int,
-        tm_isdst: c_int,
-        tm_gmtoff: c_long,
-        tm_zone: *const c_char,
-    }
-
-    fn rust_tm_to_tm(rust_tm: &Tm, tm: &mut tm) {
+    fn rust_tm_to_tm(rust_tm: &Tm, tm: &mut libc::tm) {
         tm.tm_sec = rust_tm.tm_sec;
         tm.tm_min = rust_tm.tm_min;
         tm.tm_hour = rust_tm.tm_hour;
@@ -42,7 +26,7 @@ mod inner {
         tm.tm_isdst = rust_tm.tm_isdst;
     }
 
-    fn tm_to_rust_tm(tm: &tm, utcoff: i32, rust_tm: &mut Tm) {
+    fn tm_to_rust_tm(tm: &libc::tm, utcoff: i32, rust_tm: &mut Tm) {
         rust_tm.tm_sec = tm.tm_sec;
         rust_tm.tm_min = tm.tm_min;
         rust_tm.tm_hour = tm.tm_hour;
@@ -57,20 +41,8 @@ mod inner {
 
     type time64_t = i64;
 
-    extern {
-        fn gmtime_r(time_p: *const time_t, result: *mut tm) -> *mut tm;
-        fn localtime_r(time_p: *const time_t, result: *mut tm) -> *mut tm;
-        fn mktime(tm: *const tm) -> time_t;
-        #[cfg(not(any(all(target_os = "android",
-                          not(target_arch = "aarch64")),
-                      target_os = "nacl")))]
-        fn timegm(tm: *const tm) -> time_t;
-        #[cfg(all(target_os = "android", not(target_arch = "aarch64")))]
-        fn timegm64(tm: *const tm) -> time64_t;
-    }
-
     #[cfg(target_os = "nacl")]
-    unsafe fn timegm(tm: *const tm) -> time_t {
+    unsafe fn timegm(tm: *const libc::tm) -> time_t {
         use std::env::{set_var, var_os, remove_var};
         extern {
             fn tzset();
@@ -82,7 +54,7 @@ mod inner {
         set_var("TZ", "UTC");
         tzset();
 
-        ret = mktime(tm);
+        ret = libc::mktime(tm);
 
         if let Some(tz) = current_tz {
             set_var("TZ", tz);
@@ -98,7 +70,7 @@ mod inner {
         unsafe {
             let sec = sec as time_t;
             let mut out = mem::zeroed();
-            if gmtime_r(&sec, &mut out).is_null() {
+            if libc::gmtime_r(&sec, &mut out).is_null() {
                 panic!("gmtime_r failed: {}", io::Error::last_os_error());
             }
             tm_to_rust_tm(&out, 0, tm);
@@ -109,7 +81,7 @@ mod inner {
         unsafe {
             let sec = sec as time_t;
             let mut out = mem::zeroed();
-            if localtime_r(&sec, &mut out).is_null() {
+            if libc::localtime_r(&sec, &mut out).is_null() {
                 panic!("localtime_r failed: {}", io::Error::last_os_error());
             }
             tm_to_rust_tm(&out, out.tm_gmtoff as i32, tm);
@@ -118,17 +90,19 @@ mod inner {
 
     pub fn utc_tm_to_time(rust_tm: &Tm) -> i64 {
         #[cfg(all(target_os = "android", not(target_arch = "aarch64")))]
-        use self::timegm64 as timegm;
+        use libc::timegm64 as timegm;
+        #[cfg(not(all(target_os = "android", not(target_arch = "aarch64"))))]
+        use libc::timegm;
 
         let mut tm = unsafe { mem::zeroed() };
         rust_tm_to_tm(rust_tm, &mut tm);
-        unsafe { timegm(&tm) as i64 }
+        unsafe { timegm(&mut tm) as i64 }
     }
 
     pub fn local_tm_to_time(rust_tm: &Tm) -> i64 {
         let mut tm = unsafe { mem::zeroed() };
         rust_tm_to_tm(rust_tm, &mut tm);
-        unsafe { mktime(&tm) as i64 }
+        unsafe { libc::mktime(&mut tm) as i64 }
     }
 
     #[cfg(any(target_os = "macos", target_os = "ios"))]
@@ -137,12 +111,6 @@ mod inner {
         use std::sync::{Once, ONCE_INIT};
         use std::ops::{Add, Sub};
         use Duration;
-
-        extern {
-            fn gettimeofday(tp: *mut timeval, tzp: *mut timezone) -> c_int;
-            fn mach_absolute_time() -> u64;
-            fn mach_timebase_info(info: *mut mach_timebase_info) -> c_int;
-        }
 
         fn info() -> &'static mach_timebase_info {
             static mut INFO: mach_timebase_info = mach_timebase_info {
@@ -162,13 +130,13 @@ mod inner {
         pub fn get_time() -> (i64, i32) {
             use std::ptr;
             let mut tv = timeval { tv_sec: 0, tv_usec: 0 };
-            unsafe { gettimeofday(&mut tv, ptr::null_mut()); }
+            unsafe { libc::gettimeofday(&mut tv, ptr::null_mut()); }
             (tv.tv_sec as i64, tv.tv_usec * 1000)
         }
 
         pub fn get_precise_ns() -> u64 {
             unsafe {
-                let time = mach_absolute_time();
+                let time = libc::mach_absolute_time();
                 let info = info();
                 time * info.numer as u64 / info.denom as u64
             }
@@ -229,32 +197,20 @@ mod inner {
         use std::fmt;
         use std::cmp::Ordering;
         use std::ops::{Add, Sub};
-        use libc::{self, c_int, timespec};
+        use libc::{self, timespec};
 
         use Duration;
 
-        #[cfg(all(not(target_os = "android"),
-                  not(target_os = "bitrig"),
-                  not(target_os = "nacl"),
-                  not(target_os = "netbsd"),
-                  not(target_os = "openbsd")))]
-        #[link(name = "rt")]
-        extern {}
-
-        extern {
-            fn clock_gettime(clk_id: c_int, tp: *mut timespec) -> c_int;
-        }
-
         pub fn get_time() -> (i64, i32) {
             let mut tv = libc::timespec { tv_sec: 0, tv_nsec: 0 };
-            unsafe { clock_gettime(libc::CLOCK_REALTIME, &mut tv); }
+            unsafe { libc::clock_gettime(libc::CLOCK_REALTIME, &mut tv); }
             (tv.tv_sec as i64, tv.tv_nsec as i32)
         }
 
         pub fn get_precise_ns() -> u64 {
             let mut ts = libc::timespec { tv_sec: 0, tv_nsec: 0 };
             unsafe {
-                clock_gettime(libc::CLOCK_MONOTONIC, &mut ts);
+                libc::clock_gettime(libc::CLOCK_MONOTONIC, &mut ts);
             }
             (ts.tv_sec as u64) * 1000000000 + (ts.tv_nsec as u64)
         }
@@ -286,7 +242,8 @@ mod inner {
                     }
                 };
                 unsafe {
-                    assert_eq!(0, clock_gettime(libc::CLOCK_MONOTONIC, &mut t.t));
+                    assert_eq!(0, libc::clock_gettime(libc::CLOCK_MONOTONIC,
+                                                      &mut t.t));
                 }
                 t
             }
