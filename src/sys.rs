@@ -107,7 +107,7 @@ mod inner {
 
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     mod mac {
-        use libc::{timeval, timezone, c_int, mach_timebase_info};
+        use libc::{self, timeval, mach_timebase_info};
         use std::sync::{Once, ONCE_INIT};
         use std::ops::{Add, Sub};
         use Duration;
