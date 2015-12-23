@@ -197,7 +197,7 @@ mod inner {
         use std::fmt;
         use std::cmp::Ordering;
         use std::ops::{Add, Sub};
-        use libc::{self, timespec};
+        use libc;
 
         use Duration;
 
