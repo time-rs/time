@@ -35,7 +35,10 @@
        html_root_url = "https://doc.rust-lang.org/time/")]
 #![allow(trivial_numeric_casts)]
 #![cfg_attr(test, deny(warnings))]
+#![cfg_attr(feature = "heap_size", feature(custom_derive, plugin))]
+#![cfg_attr(feature = "heap_size", plugin(heapsize_plugin))]
 
+#[cfg(feature = "heap_size")] extern crate heapsize;
 #[cfg(unix)] extern crate libc;
 #[cfg(windows)] extern crate kernel32;
 #[cfg(windows)] extern crate winapi;
@@ -72,6 +75,7 @@ static NSEC_PER_SEC: i32 = 1_000_000_000;
 /// For example a timespec of 1.2 seconds after the beginning of the epoch would
 /// be represented as {sec: 1, nsec: 200000000}.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
+#[cfg_attr(feature = "heap_size", derive(HeapSizeOf))]
 #[cfg_attr(feature = "rustc-serialize", derive(RustcEncodable, RustcDecodable))]
 pub struct Timespec { pub sec: i64, pub nsec: i32 }
 /*
@@ -190,6 +194,7 @@ pub fn precise_time_s() -> f64 {
 /// }
 /// ```
 #[derive(Copy, Clone)]
+#[cfg_attr(feature = "heap_size", derive(HeapSizeOf))]
 pub struct PreciseTime(u64);
 
 impl PreciseTime {
@@ -240,6 +245,7 @@ impl PreciseTime {
 /// }
 /// ```
 #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "heap_size", derive(HeapSizeOf))]
 pub struct SteadyTime(sys::SteadyTime);
 
 impl SteadyTime {
@@ -295,6 +301,7 @@ pub fn tzset() {}
 // FIXME: use c_int instead of i32?
 #[repr(C)]
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
+#[cfg_attr(feature = "heap_size", derive(HeapSizeOf))]
 #[cfg_attr(feature = "rustc-serialize", derive(RustcEncodable, RustcDecodable))]
 pub struct Tm {
     /// Seconds after the minute - [0, 60]
@@ -531,6 +538,7 @@ impl Tm {
 }
 
 #[derive(Copy, PartialEq, Debug, Clone)]
+#[cfg_attr(feature = "heap_size", derive(HeapSizeOf))]
 pub enum ParseError {
     InvalidSecond,
     InvalidMinute,

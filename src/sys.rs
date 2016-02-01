@@ -143,6 +143,7 @@ mod inner {
         }
 
         #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
+        #[cfg_attr(feature = "heap_size", derive(HeapSizeOf))]
         pub struct SteadyTime { t: u64 }
 
         impl SteadyTime {

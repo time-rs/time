@@ -20,3 +20,14 @@ rustc-serialize = { version = "0.3", optional = true }
 [dev-dependencies]
 log = "0.3"
 advapi32-sys = "0.1.2"
+
+[dependencies.heapsize]
+version = "0.2.2"
+optional = true
+
+[dependencies.heapsize_plugin]
+version = "0.1.2"
+optional = true
+
+[features]
+heap_size = ["heapsize", "heapsize_plugin"]
