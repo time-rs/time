@@ -12,6 +12,7 @@
 
 use std::{fmt, i64};
 use std::ops::{Add, Sub, Mul, Div, Neg, FnOnce};
+use std::time::Duration as StdDuration;
 
 /// The number of nanoseconds in a microsecond.
 const NANOS_PER_MICRO: i32 = 1000;
@@ -359,6 +360,32 @@ impl fmt::Display for Duration {
     }
 }
 
+impl From<StdDuration> for Duration {
+    fn from(duration: StdDuration) -> Duration {
+        // We need to check secs as u64 before coercing to i64
+        if duration.as_secs() > MAX.secs as u64 {
+            panic!("std::time::Duration is out of bounds for time::Duration");
+        }
+        let d = Duration {
+            secs: duration.as_secs() as i64,
+            nanos: duration.subsec_nanos() as i32,
+        };
+        if d > MAX {
+            panic!("std::time::Duration is out of bounds for time::Duration");
+        }
+        d
+    }
+}
+
+impl Into<StdDuration> for Duration {
+    fn into(self) -> StdDuration {
+        assert!(self.secs >= 0,
+            "Only positive durations can be represented as \
+             std::time::Duration, current value {:?}", self);
+        StdDuration::new(self.secs as u64, self.nanos as u32)
+    }
+}
+
 // Copied from libnum
 #[inline]
 fn div_mod_floor_64(this: i64, other: i64) -> (i64, i64) {
@@ -392,6 +419,7 @@ fn div_rem_64(this: i64, other: i64) -> (i64, i64) {
 mod tests {
     use super::{Duration, MIN, MAX};
     use std::{i32, i64};
+    use std::time::Duration as StdDuration;
 
     #[test]
     fn test_duration() {
@@ -556,5 +584,57 @@ mod tests {
         // the format specifier should have no effect on `Duration`
         assert_eq!(format!("{:30}", Duration::days(1) + Duration::milliseconds(2345)),
                    "P1DT2.345S");
+    }
+
+    fn to_std(dur: Duration) -> StdDuration {
+        dur.into()
+    }
+
+    #[test]
+    fn test_into_std() {
+        assert_eq!(to_std(Duration::seconds(1)), StdDuration::new(1, 0));
+        assert_eq!(to_std(Duration::seconds(86401)), StdDuration::new(86401, 0));
+        assert_eq!(to_std(Duration::milliseconds(123)), StdDuration::new(0, 123000000));
+        assert_eq!(to_std(Duration::milliseconds(123765)), StdDuration::new(123, 765000000));
+        assert_eq!(to_std(Duration::nanoseconds(777)), StdDuration::new(0, 777));
+        assert_eq!(to_std(MAX), StdDuration::new(9223372036854775, 807000000));
+    }
+
+    #[test]
+    #[should_panic(message="Only positive durations can be represented")]
+    fn test_into_std_negative() {
+       to_std(Duration::seconds(-1));
+    }
+
+    #[test]
+    #[should_panic(message="Only positive durations can be represented")]
+    fn test_into_std_negative_millis() {
+        to_std(Duration::milliseconds(-1));
+    }
+
+    fn from_std(dur: StdDuration) -> Duration {
+        dur.into()
+    }
+
+    #[test]
+    fn test_from_std() {
+        assert_eq!(Duration::seconds(1), from_std(StdDuration::new(1, 0)));
+        assert_eq!(Duration::seconds(86401), from_std(StdDuration::new(86401, 0)));
+        assert_eq!(Duration::milliseconds(123), from_std(StdDuration::new(0, 123000000)));
+        assert_eq!(Duration::milliseconds(123765), from_std(StdDuration::new(123, 765000000)));
+        assert_eq!(Duration::nanoseconds(777), from_std(StdDuration::new(0, 777)));
+        assert_eq!(MAX, from_std(StdDuration::new(9223372036854775, 807000000)));
+    }
+
+    #[test]
+    #[should_panic(message="out of bounds")]
+    fn test_from_std_too_many_seconds() {
+       from_std(StdDuration::new(9223372036854776, 0));
+    }
+
+    #[test]
+    #[should_panic(message="out of bounds")]
+    fn test_from_std_too_many_millis() {
+       from_std(StdDuration::new(9223372036854775, 807000001));
     }
 }
