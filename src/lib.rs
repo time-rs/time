@@ -49,7 +49,7 @@ use std::error::Error;
 use std::fmt;
 use std::ops::{Add, Sub};
 
-pub use duration::Duration;
+pub use duration::{Duration, OutOfRangeError};
 
 use self::ParseError::{InvalidDay, InvalidDayOfMonth, InvalidDayOfWeek,
                        InvalidDayOfYear, InvalidFormatSpecifier, InvalidHour,
