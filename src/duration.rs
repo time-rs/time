@@ -263,14 +263,14 @@ impl Duration {
     pub fn from_std(duration: StdDuration) -> Result<Duration, OutOfRangeError> {
         // We need to check secs as u64 before coercing to i64
         if duration.as_secs() > MAX.secs as u64 {
-            return Err(OutOfRangeError);
+            return Err(OutOfRangeError(()));
         }
         let d = Duration {
             secs: duration.as_secs() as i64,
             nanos: duration.subsec_nanos() as i32,
         };
         if d > MAX {
-            return Err(OutOfRangeError);
+            return Err(OutOfRangeError(()));
         }
         Ok(d)
     }
@@ -281,7 +281,7 @@ impl Duration {
     /// library implementation is limited to non-negative values.
     pub fn to_std(&self) -> Result<StdDuration, OutOfRangeError> {
         if self.secs < 0 {
-            return Err(OutOfRangeError);
+            return Err(OutOfRangeError(()));
         }
         Ok(StdDuration::new(self.secs as u64, self.nanos as u32))
     }
@@ -398,7 +398,7 @@ impl fmt::Display for Duration {
 /// *seconds*, while this module supports signed range of up to
 /// `i64::MAX` of *milliseconds*.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct OutOfRangeError;
+pub struct OutOfRangeError(());
 
 impl fmt::Display for OutOfRangeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -620,8 +620,10 @@ mod tests {
         assert_eq!(Duration::milliseconds(123765).to_std(), Ok(StdDuration::new(123, 765000000)));
         assert_eq!(Duration::nanoseconds(777).to_std(), Ok(StdDuration::new(0, 777)));
         assert_eq!(MAX.to_std(), Ok(StdDuration::new(9223372036854775, 807000000)));
-        assert_eq!(Duration::seconds(-1).to_std(), Err(OutOfRangeError));
-        assert_eq!(Duration::milliseconds(-1).to_std(), Err(OutOfRangeError));
+        assert_eq!(Duration::seconds(-1).to_std(),
+                   Err(OutOfRangeError(())));
+        assert_eq!(Duration::milliseconds(-1).to_std(),
+                   Err(OutOfRangeError(())));
     }
 
     #[test]
@@ -639,8 +641,8 @@ mod tests {
         assert_eq!(Ok(MAX),
                    Duration::from_std(StdDuration::new(9223372036854775, 807000000)));
         assert_eq!(Duration::from_std(StdDuration::new(9223372036854776, 0)),
-                   Err(OutOfRangeError));
+                   Err(OutOfRangeError(())));
         assert_eq!(Duration::from_std(StdDuration::new(9223372036854775, 807000001)),
-                   Err(OutOfRangeError));
+                   Err(OutOfRangeError(())));
     }
 }
