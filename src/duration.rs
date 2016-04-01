@@ -11,7 +11,9 @@
 //! Temporal quantification
 
 use std::{fmt, i64};
+use std::error::Error;
 use std::ops::{Add, Sub, Mul, Div, Neg, FnOnce};
+use std::time::Duration as StdDuration;
 
 /// The number of nanoseconds in a microsecond.
 const NANOS_PER_MICRO: i32 = 1000;
@@ -253,6 +255,36 @@ impl Duration {
     pub fn is_zero(&self) -> bool {
         self.secs == 0 && self.nanos == 0
     }
+
+    /// Creates a `time::Duration` object from `std::time::Duration`
+    ///
+    /// This function errors when original duration is larger than the maximum
+    /// value supported for this type.
+    pub fn from_std(duration: StdDuration) -> Result<Duration, OutOfRangeError> {
+        // We need to check secs as u64 before coercing to i64
+        if duration.as_secs() > MAX.secs as u64 {
+            return Err(OutOfRangeError);
+        }
+        let d = Duration {
+            secs: duration.as_secs() as i64,
+            nanos: duration.subsec_nanos() as i32,
+        };
+        if d > MAX {
+            return Err(OutOfRangeError);
+        }
+        Ok(d)
+    }
+
+    /// Creates a `std::time::Duration` object from `time::Duration`
+    ///
+    /// This function errors when duration is less than zero. As standard
+    /// library implementation is limited to non-negative values.
+    pub fn to_std(&self) -> Result<StdDuration, OutOfRangeError> {
+        if self.secs < 0 {
+            return Err(OutOfRangeError);
+        }
+        Ok(StdDuration::new(self.secs as u64, self.nanos as u32))
+    }
 }
 
 impl Neg for Duration {
@@ -359,6 +391,27 @@ impl fmt::Display for Duration {
     }
 }
 
+/// Represents error when converting `Duration` to/from a standard library
+/// implementation
+///
+/// The `std::time::Duration` supports a range from zero to `u64::MAX`
+/// *seconds*, while this module supports signed range of up to
+/// `i64::MAX` of *milliseconds*.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct OutOfRangeError;
+
+impl fmt::Display for OutOfRangeError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.description())
+    }
+}
+
+impl Error for OutOfRangeError {
+    fn description(&self) -> &str {
+        "Source duration value is out of range for the target type"
+    }
+}
+
 // Copied from libnum
 #[inline]
 fn div_mod_floor_64(this: i64, other: i64) -> (i64, i64) {
@@ -390,8 +443,9 @@ fn div_rem_64(this: i64, other: i64) -> (i64, i64) {
 
 #[cfg(test)]
 mod tests {
-    use super::{Duration, MIN, MAX};
+    use super::{Duration, MIN, MAX, OutOfRangeError};
     use std::{i32, i64};
+    use std::time::Duration as StdDuration;
 
     #[test]
     fn test_duration() {
@@ -556,5 +610,37 @@ mod tests {
         // the format specifier should have no effect on `Duration`
         assert_eq!(format!("{:30}", Duration::days(1) + Duration::milliseconds(2345)),
                    "P1DT2.345S");
+    }
+
+    #[test]
+    fn test_to_std() {
+        assert_eq!(Duration::seconds(1).to_std(), Ok(StdDuration::new(1, 0)));
+        assert_eq!(Duration::seconds(86401).to_std(), Ok(StdDuration::new(86401, 0)));
+        assert_eq!(Duration::milliseconds(123).to_std(), Ok(StdDuration::new(0, 123000000)));
+        assert_eq!(Duration::milliseconds(123765).to_std(), Ok(StdDuration::new(123, 765000000)));
+        assert_eq!(Duration::nanoseconds(777).to_std(), Ok(StdDuration::new(0, 777)));
+        assert_eq!(MAX.to_std(), Ok(StdDuration::new(9223372036854775, 807000000)));
+        assert_eq!(Duration::seconds(-1).to_std(), Err(OutOfRangeError));
+        assert_eq!(Duration::milliseconds(-1).to_std(), Err(OutOfRangeError));
+    }
+
+    #[test]
+    fn test_from_std() {
+        assert_eq!(Ok(Duration::seconds(1)),
+                   Duration::from_std(StdDuration::new(1, 0)));
+        assert_eq!(Ok(Duration::seconds(86401)),
+                   Duration::from_std(StdDuration::new(86401, 0)));
+        assert_eq!(Ok(Duration::milliseconds(123)),
+                   Duration::from_std(StdDuration::new(0, 123000000)));
+        assert_eq!(Ok(Duration::milliseconds(123765)),
+                   Duration::from_std(StdDuration::new(123, 765000000)));
+        assert_eq!(Ok(Duration::nanoseconds(777)),
+                   Duration::from_std(StdDuration::new(0, 777)));
+        assert_eq!(Ok(MAX),
+                   Duration::from_std(StdDuration::new(9223372036854775, 807000000)));
+        assert_eq!(Duration::from_std(StdDuration::new(9223372036854776, 0)),
+                   Err(OutOfRangeError));
+        assert_eq!(Duration::from_std(StdDuration::new(9223372036854775, 807000001)),
+                   Err(OutOfRangeError));
     }
 }
