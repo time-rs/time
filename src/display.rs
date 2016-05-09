@@ -1,4 +1,4 @@
-use std::fmt::{self, Display};
+use std::fmt;
 
 use super::{TmFmt, Tm, Fmt};
 
