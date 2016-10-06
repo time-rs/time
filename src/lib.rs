@@ -1147,6 +1147,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_timespec_hash() {
         use std::hash::{Hash, Hasher};
 
