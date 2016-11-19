@@ -9,7 +9,7 @@ before_script:
 script:
   - cargo build --verbose
   - cargo test --verbose
-  - cargo test --verbose --features --rustc-serialize
+  - cargo test --verbose --features rustc-serialize
   - cargo doc --no-deps
 after_success:
   - travis-cargo --only nightly doc-upload
