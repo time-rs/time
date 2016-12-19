@@ -39,8 +39,6 @@ mod inner {
         rust_tm.tm_utcoff = utcoff;
     }
 
-    type time64_t = i64;
-
     #[cfg(target_os = "nacl")]
     unsafe fn timegm(tm: *const libc::tm) -> time_t {
         use std::env::{set_var, var_os, remove_var};
