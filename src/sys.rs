@@ -76,6 +76,7 @@ mod inner {
     }
 
     pub fn time_to_local_tm(sec: i64, tm: &mut Tm) {
+        // FIXME: Add timezone logic
         time_to_tm(sec, tm);
     }
 
@@ -84,6 +85,7 @@ mod inner {
     }
 
     pub fn local_tm_to_time(tm: &Tm) -> i64 {
+        // FIXME: Add timezone logic
         tm_to_time(tm)
     }
 
