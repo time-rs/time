@@ -57,8 +57,8 @@ mod inner {
     }
 
     fn tm_to_time(tm: &Tm) -> i64 {
-        let mut y = tm.tm_year as i64;
-        let mut m = tm.tm_mon as i64;
+        let mut y = tm.tm_year as i64 + 1900;
+        let mut m = tm.tm_mon as i64 + 1;
         if m <= 2 {
             y -= 1;
             m += 12;
