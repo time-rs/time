@@ -282,9 +282,9 @@ mod inner {
     }
 
     pub fn utc_tm_to_time(rust_tm: &Tm) -> i64 {
-        #[cfg(all(target_os = "android", not(target_arch = "aarch64")))]
+        #[cfg(all(target_os = "android", target_pointer_width = "32"))]
         use libc::timegm64 as timegm;
-        #[cfg(not(all(target_os = "android", not(target_arch = "aarch64"))))]
+        #[cfg(not(all(target_os = "android", target_pointer_width = "32")))]
         use libc::timegm;
 
         let mut tm = unsafe { mem::zeroed() };
