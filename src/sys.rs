@@ -2,14 +2,19 @@
 
 pub use self::inner::*;
 
-#[cfg(target_os = "redox")]
+#[cfg(any(target_os = "redox", not(feature = "std")))]
 mod inner {
-    use std::fmt;
-    use std::cmp::Ordering;
-    use std::ops::{Add, Sub};
+    use core::fmt;
+    use core::cmp::Ordering;
+    use core::ops::{Add, Sub};
+
+
+    #[cfg(feature = "std")]
     use syscall;
 
+    #[cfg(feature = "std")]
     use Duration;
+
     use Tm;
 
     fn time_to_tm(ts: i64, tm: &mut Tm) {
@@ -89,12 +94,14 @@ mod inner {
         tm_to_time(tm)
     }
 
+    #[cfg(feature = "std")]
     pub fn get_time() -> (i64, i32) {
         let mut tv = syscall::TimeSpec { tv_sec: 0, tv_nsec: 0 };
         syscall::clock_gettime(syscall::CLOCK_REALTIME, &mut tv).unwrap();
         (tv.tv_sec as i64, tv.tv_nsec as i32)
     }
 
+    #[cfg(feature = "std")]
     pub fn get_precise_ns() -> u64 {
         let mut ts = syscall::TimeSpec { tv_sec: 0, tv_nsec: 0 };
         syscall::clock_gettime(syscall::CLOCK_MONOTONIC, &mut ts).unwrap();
@@ -102,10 +109,12 @@ mod inner {
     }
 
     #[derive(Copy)]
+    #[cfg(feature = "std")]
     pub struct SteadyTime {
         t: syscall::TimeSpec,
     }
 
+    #[cfg(feature = "std")]
     impl fmt::Debug for SteadyTime {
         fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
             write!(fmt, "SteadyTime {{ tv_sec: {:?}, tv_nsec: {:?} }}",
@@ -113,12 +122,14 @@ mod inner {
         }
     }
 
+    #[cfg(feature = "std")]
     impl Clone for SteadyTime {
         fn clone(&self) -> SteadyTime {
             SteadyTime { t: self.t }
         }
     }
 
+    #[cfg(feature = "std")]
     impl SteadyTime {
         pub fn now() -> SteadyTime {
             let mut t = SteadyTime {
@@ -132,6 +143,7 @@ mod inner {
         }
     }
 
+    #[cfg(feature = "std")]
     impl Sub for SteadyTime {
         type Output = Duration;
         fn sub(self, other: SteadyTime) -> Duration {
@@ -146,6 +158,7 @@ mod inner {
         }
     }
 
+    #[cfg(feature = "std")]
     impl Sub<Duration> for SteadyTime {
         type Output = SteadyTime;
         fn sub(self, other: Duration) -> SteadyTime {
@@ -153,6 +166,7 @@ mod inner {
         }
     }
 
+    #[cfg(feature = "std")]
     impl Add<Duration> for SteadyTime {
         type Output = SteadyTime;
         fn add(mut self, other: Duration) -> SteadyTime {
@@ -172,12 +186,14 @@ mod inner {
         }
     }
 
+    #[cfg(feature = "std")]
     impl PartialOrd for SteadyTime {
         fn partial_cmp(&self, other: &SteadyTime) -> Option<Ordering> {
             Some(self.cmp(other))
         }
     }
 
+    #[cfg(feature = "std")]
     impl Ord for SteadyTime {
         fn cmp(&self, other: &SteadyTime) -> Ordering {
             match self.t.tv_sec.cmp(&other.t.tv_sec) {
@@ -187,6 +203,7 @@ mod inner {
         }
     }
 
+    #[cfg(feature = "std")]
     impl PartialEq for SteadyTime {
         fn eq(&self, other: &SteadyTime) -> bool {
             self.t.tv_sec == other.t.tv_sec &&
@@ -194,10 +211,11 @@ mod inner {
         }
     }
 
+    #[cfg(feature = "std")]
     impl Eq for SteadyTime {}
 }
 
-#[cfg(unix)]
+#[cfg(all(unix, feature = "std"))]
 mod inner {
     use libc::{self, time_t};
     use std::mem;
@@ -530,7 +548,7 @@ mod inner {
     }
 }
 
-#[cfg(windows)]
+#[cfg(all(windows, feature = "std"))]
 #[allow(non_snake_case)]
 mod inner {
     use std::io;

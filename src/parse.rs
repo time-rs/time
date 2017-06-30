@@ -1,4 +1,4 @@
-use super::{Timespec, Tm, at_utc, ParseError, NSEC_PER_SEC};
+use super::{Timespec, Tm, ParseError, NSEC_PER_SEC, at_utc};
 
 /// Parses the time from the string according to the format string.
 pub fn strptime(mut s: &str, format: &str) -> Result<Tm, ParseError> {

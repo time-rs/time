@@ -10,10 +10,21 @@
 
 //! Temporal quantification
 
+#[cfg(feature = "std")]
 use std::{fmt, i64};
-use std::error::Error;
+#[cfg(feature = "std")]
 use std::ops::{Add, Sub, Mul, Div, Neg, FnOnce};
+
+#[cfg(not(feature = "std"))]
+use core::{fmt, i64};
+#[cfg(not(feature = "std"))]
+use core::ops::{Add, Sub, Mul, Div, Neg, FnOnce};
+
+#[cfg(feature = "std")]
 use std::time::Duration as StdDuration;
+
+#[cfg(feature = "std")]
+use std::error::Error;
 
 /// The number of nanoseconds in a microsecond.
 const NANOS_PER_MICRO: i32 = 1000;
@@ -133,6 +144,7 @@ impl Duration {
 
     /// Runs a closure, returning the duration of time it took to run the
     /// closure.
+    #[cfg(feature = "std")]
     pub fn span<F>(f: F) -> Duration where F: FnOnce() {
         let before = super::precise_time_ns();
         f();
@@ -260,6 +272,7 @@ impl Duration {
     ///
     /// This function errors when original duration is larger than the maximum
     /// value supported for this type.
+    #[cfg(feature = "std")]
     pub fn from_std(duration: StdDuration) -> Result<Duration, OutOfRangeError> {
         // We need to check secs as u64 before coercing to i64
         if duration.as_secs() > MAX.secs as u64 {
@@ -279,6 +292,7 @@ impl Duration {
     ///
     /// This function errors when duration is less than zero. As standard
     /// library implementation is limited to non-negative values.
+    #[cfg(feature = "std")]
     pub fn to_std(&self) -> Result<StdDuration, OutOfRangeError> {
         if self.secs < 0 {
             return Err(OutOfRangeError(()));
@@ -401,11 +415,18 @@ impl fmt::Display for Duration {
 pub struct OutOfRangeError(());
 
 impl fmt::Display for OutOfRangeError {
+    #[cfg(feature = "std")]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.description())
     }
+
+    #[cfg(not(feature = "std"))]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,"Source duration value is out of range for the target type")
+    }
 }
 
+#[cfg(feature = "std")]
 impl Error for OutOfRangeError {
     fn description(&self) -> &str {
         "Source duration value is out of range for the target type"
@@ -444,8 +465,20 @@ fn div_rem_64(this: i64, other: i64) -> (i64, i64) {
 #[cfg(test)]
 mod tests {
     use super::{Duration, MIN, MAX, OutOfRangeError};
-    use std::{i32, i64};
+
+    #[cfg(feature = "std")]
     use std::time::Duration as StdDuration;
+
+    #[cfg(feature = "std")]
+    use std::string::ToString;
+
+    #[cfg(feature = "nightly")]
+    use alloc::string::ToString;
+
+    #[cfg(feature = "std")]
+    use std::{i32, i64};
+    #[cfg(not(feature = "std"))]
+    use core::{i32, i64};
 
     #[test]
     fn test_duration() {
@@ -594,6 +627,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(any(feature = "nightly", feature = "std"))]
     fn test_duration_fmt() {
         assert_eq!(Duration::zero().to_string(), "PT0S");
         assert_eq!(Duration::days(42).to_string(), "P42D");
@@ -613,6 +647,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(any(feature = "std"))]
     fn test_to_std() {
         assert_eq!(Duration::seconds(1).to_std(), Ok(StdDuration::new(1, 0)));
         assert_eq!(Duration::seconds(86401).to_std(), Ok(StdDuration::new(86401, 0)));
@@ -627,6 +662,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "std")]
     fn test_from_std() {
         assert_eq!(Ok(Duration::seconds(1)),
                    Duration::from_std(StdDuration::new(1, 0)));

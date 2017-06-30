@@ -7,9 +7,15 @@ license = "MIT/Apache-2.0"
 homepage = "https://github.com/rust-lang/time"
 repository = "https://github.com/rust-lang/time"
 documentation = "https://doc.rust-lang.org/time"
+keywords = ["no_std"]
 description = """
 Utilities for working with time-related functions in Rust.
 """
+
+[features]
+default = ["std"]
+std = []
+nightly = []
 
 [dependencies]
 libc = "0.2.1"
