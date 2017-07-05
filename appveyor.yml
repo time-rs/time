@@ -15,4 +15,4 @@ build: false
 
 test_script:
   - cargo test --verbose
-  - cargo test --no-default-features --features nightly --verbose
+  - cargo test --no-default-features --verbose

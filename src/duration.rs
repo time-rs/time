@@ -513,9 +513,6 @@ mod tests {
     #[cfg(feature = "std")]
     use std::string::ToString;
 
-    #[cfg(feature = "nightly")]
-    use alloc::string::ToString;
-
     use core::{i32, i64};
 
     #[test]
@@ -763,7 +760,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(any(feature = "nightly", feature = "std"))]
+    #[cfg(any(feature = "std"))]
     fn test_duration_fmt() {
         assert_eq!(Duration::zero().to_string(), "PT0S");
         assert_eq!(Duration::days(42).to_string(), "P42D");

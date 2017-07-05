@@ -10,7 +10,7 @@ script:
   - cargo build --verbose
   - cargo test --verbose
   - cargo test --verbose --features rustc-serialize
-  - if [[ `rustc -V` == *'nightly'* ]]; then cargo test --verbose --no-default-features --features nightly; fi
+  - cargo test --verbose --no-default-features 
   - cargo doc --no-deps 
 after_success:
   - travis-cargo --only nightly doc-upload

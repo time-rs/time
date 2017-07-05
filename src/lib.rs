@@ -37,7 +37,6 @@
 #![cfg_attr(test, deny(warnings))]
 #![cfg_attr(test, allow(deprecated))]
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(feature = "nightly", feature(alloc))]
 
 #[cfg(target_os = "redox")] extern crate syscall;
 #[cfg(unix)] extern crate libc;
@@ -50,10 +49,6 @@
 
 #[cfg(feature = "std")]
 mod std_impl;
-
-#[cfg(feature = "nightly")]
-#[macro_use]
-extern crate alloc;
 
 #[cfg(feature = "std")]
 extern crate core;
@@ -499,9 +494,6 @@ mod tests {
     #[cfg(feature = "std")]
     use std::string::ToString;
 
-    #[cfg(feature = "nightly")]
-    use alloc::string::ToString;
-
     use core::hash::{Hash, Hasher, SipHasher};
 
     #[cfg(feature = "std")]
@@ -647,7 +639,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(any(feature = "std", feature = "nightly"))]
+    #[cfg(feature = "std")]
     fn test_strptime() {
         let _reset = set_time_zone();
 
@@ -878,7 +870,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(any(feature = "nightly", feature = "std"))]
+    #[cfg(feature = "std")]
     fn test_strftime_utc() {
         let _reset = set_time_zone();
 

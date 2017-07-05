@@ -15,7 +15,6 @@ Utilities for working with time-related functions in Rust.
 [features]
 default = ["std"]
 std = []
-nightly = []
 
 [dependencies]
 rustc-serialize = { version = "0.3", optional = true }
