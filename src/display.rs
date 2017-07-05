@@ -1,6 +1,3 @@
-#[cfg(feature = "std")]
-use std::fmt::{self, Write};
-#[cfg(not(feature = "std"))]
 use core::fmt::{self, Write};
 
 use super::{TmFmt, Tm, Fmt};

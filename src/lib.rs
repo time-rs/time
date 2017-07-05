@@ -56,21 +56,14 @@ mod std_impl;
 extern crate alloc;
 
 #[cfg(feature = "std")]
+extern crate core;
+
+#[cfg(feature = "std")]
 pub use std_impl::*;
 
-#[cfg(not(feature = "std"))]
 use core::cmp::Ordering;
-#[cfg(not(feature = "std"))]
 use core::fmt;
-#[cfg(not(feature = "std"))]
 use core::ops::{Add, Sub};
-
-#[cfg(feature = "std")]
-use std::cmp::Ordering;
-#[cfg(feature = "std")]
-use std::fmt;
-#[cfg(feature = "std")]
-use std::ops::{Add, Sub};
 
 pub use duration::{Duration, OutOfRangeError};
 
@@ -509,10 +502,7 @@ mod tests {
     #[cfg(feature = "nightly")]
     use alloc::string::ToString;
 
-    #[cfg(not(feature = "std"))]
     use core::hash::{Hash, Hasher, SipHasher};
-    #[cfg(feature = "std")]
-    use std::hash::{Hash, Hasher, SipHasher};
 
     #[cfg(feature = "std")]
     struct TzReset {
@@ -552,10 +542,10 @@ mod tests {
     fn set_time_zone() -> TzReset {
         set_time_zone_la_or_london(false)
     }
-    
+
     #[cfg(not(feature = "std"))]
     fn set_time_zone() -> TzReset {
-        TzReset {} 
+        TzReset {}
     }
 
     #[cfg(feature = "std")]

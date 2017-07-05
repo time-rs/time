@@ -10,14 +10,7 @@
 
 //! Temporal quantification
 
-#[cfg(feature = "std")]
-use std::{fmt, i64};
-#[cfg(feature = "std")]
-use std::ops::{Add, Sub, Mul, Div, Neg, FnOnce};
-
-#[cfg(not(feature = "std"))]
 use core::{fmt, i64};
-#[cfg(not(feature = "std"))]
 use core::ops::{Add, Sub, Mul, Div, Neg, FnOnce};
 
 #[cfg(feature = "std")]
@@ -475,9 +468,6 @@ mod tests {
     #[cfg(feature = "nightly")]
     use alloc::string::ToString;
 
-    #[cfg(feature = "std")]
-    use std::{i32, i64};
-    #[cfg(not(feature = "std"))]
     use core::{i32, i64};
 
     #[test]

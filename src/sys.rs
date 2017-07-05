@@ -8,7 +8,6 @@ mod inner {
     use core::cmp::Ordering;
     use core::ops::{Add, Sub};
 
-
     #[cfg(feature = "std")]
     use syscall;
 
