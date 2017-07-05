@@ -18,8 +18,12 @@ std = []
 nightly = []
 
 [dependencies]
-libc = "0.2.1"
 rustc-serialize = { version = "0.3", optional = true }
+
+[dependencies.libc]
+version = "0.2.1"
+default-features = false
+features = []
 
 [target.'cfg(target_os = "redox")'.dependencies]
 redox_syscall = "0.1"
