@@ -14,7 +14,7 @@ Utilities for working with time-related functions in Rust.
 
 [features]
 default = ["std"]
-std = []
+std = ["libc"]
 
 [dependencies]
 rustc-serialize = { version = "0.3", optional = true }
@@ -22,6 +22,7 @@ rustc-serialize = { version = "0.3", optional = true }
 [dependencies.libc]
 version = "0.2.1"
 default-features = false
+optional = true
 features = []
 
 [target.'cfg(target_os = "redox")'.dependencies]

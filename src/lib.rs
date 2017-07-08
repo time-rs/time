@@ -39,7 +39,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(target_os = "redox")] extern crate syscall;
-#[cfg(unix)] extern crate libc;
+#[cfg(all(unix, feature = "std"))] extern crate libc;
 #[cfg(windows)] extern crate kernel32;
 #[cfg(windows)] extern crate winapi;
 #[cfg(feature = "rustc-serialize")] extern crate rustc_serialize;
