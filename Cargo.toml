@@ -11,6 +11,10 @@ description = """
 Utilities for working with time-related functions in Rust.
 """
 
+[badges]
+travis-ci = { repository = "rust-lang-deprecated/time" }
+appveyor = { repository = "alexcrichton/time" }
+
 [dependencies]
 libc = "0.2.1"
 rustc-serialize = { version = "0.3", optional = true }
