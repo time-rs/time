@@ -241,7 +241,7 @@ mod inner {
     }
 
     #[cfg(any(target_os = "nacl", target_os = "solaris"))]
-    unsafe fn timegm(tm: *const libc::tm) -> time_t {
+    unsafe fn timegm(tm: *mut libc::tm) -> time_t {
         use std::env::{set_var, var_os, remove_var};
         extern {
             fn tzset();
