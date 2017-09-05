@@ -240,7 +240,7 @@ mod inner {
         rust_tm.tm_utcoff = utcoff;
     }
 
-    #[cfg(target_os = "nacl")]
+    #[cfg(any(target_os = "nacl", target_os = "solaris"))]
     unsafe fn timegm(tm: *const libc::tm) -> time_t {
         use std::env::{set_var, var_os, remove_var};
         extern {
