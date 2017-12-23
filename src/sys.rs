@@ -539,18 +539,38 @@ mod inner {
     use std::ops::{Add, Sub};
     use {Tm, Duration};
 
-    use kernel32::*;
-    use winapi::*;
+    use winapi::um::winnt::*;
+    use winapi::shared::minwindef::*;
+    use winapi::um::minwinbase::SYSTEMTIME;
+    use winapi::um::profileapi::*;
+    use winapi::um::timezoneapi::*;
+    use winapi::um::sysinfoapi::GetSystemTimeAsFileTime;
 
-    fn frequency() -> LARGE_INTEGER {
-        static mut FREQUENCY: LARGE_INTEGER = 0;
+    fn frequency() -> i64 {
+        static mut FREQUENCY: i64 = 0;
         static ONCE: Once = ONCE_INIT;
 
         unsafe {
             ONCE.call_once(|| {
-                QueryPerformanceFrequency(&mut FREQUENCY);
+                let mut l = i64_to_large_integer(0);
+                QueryPerformanceFrequency(&mut l);
+                FREQUENCY = large_integer_to_i64(l);
             });
             FREQUENCY
+        }
+    }
+
+    fn i64_to_large_integer(i: i64) -> LARGE_INTEGER {
+        unsafe {
+            let mut large_integer: LARGE_INTEGER = mem::zeroed();
+            *large_integer.QuadPart_mut() = i;
+            large_integer
+        }
+    }
+
+    fn large_integer_to_i64(l: LARGE_INTEGER) -> i64 {
+        unsafe {
+            *l.QuadPart()
         }
     }
 
@@ -697,24 +717,24 @@ mod inner {
     }
 
     pub fn get_precise_ns() -> u64 {
-        let mut ticks = 0;
+        let mut ticks = i64_to_large_integer(0);
         unsafe {
             assert!(QueryPerformanceCounter(&mut ticks) == 1);
         }
-        mul_div_i64(ticks as i64, 1000000000, frequency() as i64) as u64
+        mul_div_i64(large_integer_to_i64(ticks), 1000000000, frequency()) as u64
 
     }
 
-    #[derive(Clone, Copy, PartialOrd, Ord, PartialEq, Eq, Debug)]
+    #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
     pub struct SteadyTime {
-        t: LARGE_INTEGER,
+        t: i64,
     }
 
     impl SteadyTime {
         pub fn now() -> SteadyTime {
-            let mut t = SteadyTime { t: 0 };
-            unsafe { QueryPerformanceCounter(&mut t.t); }
-            t
+            let mut l = i64_to_large_integer(0);
+            unsafe { QueryPerformanceCounter(&mut l); }
+            SteadyTime { t : large_integer_to_i64(l) }
         }
     }
 
@@ -723,7 +743,7 @@ mod inner {
         fn sub(self, other: SteadyTime) -> Duration {
             let diff = self.t as i64 - other.t as i64;
             Duration::nanoseconds(mul_div_i64(diff, 1000000000,
-                                              frequency() as i64))
+                                              frequency()))
         }
     }
 
@@ -737,8 +757,8 @@ mod inner {
     impl Add<Duration> for SteadyTime {
         type Output = SteadyTime;
         fn add(mut self, other: Duration) -> SteadyTime {
-            self.t += (other.num_microseconds().unwrap() * frequency() as i64 /
-                       1_000_000) as LARGE_INTEGER;
+            self.t += (other.num_microseconds().unwrap() * frequency() /
+                       1_000_000) as i64;
             self
         }
     }
@@ -804,9 +824,18 @@ mod inner {
     #[cfg(test)]
     fn acquire_privileges() {
         use std::sync::{ONCE_INIT, Once};
-        use advapi32::*;
+        use winapi::um::processthreadsapi::*;
+        use winapi::um::winbase::LookupPrivilegeValueA;
         const SE_PRIVILEGE_ENABLED: DWORD = 2;
         static INIT: Once = ONCE_INIT;
+
+        // TODO: FIXME
+        extern "system" {
+            fn AdjustTokenPrivileges(
+                TokenHandle: HANDLE, DisableAllPrivileges: BOOL, NewState: PTOKEN_PRIVILEGES,
+                BufferLength: DWORD, PreviousState: PTOKEN_PRIVILEGES, ReturnLength: PDWORD,
+            ) -> BOOL;
+        }
 
         #[repr(C)]
         struct TKP {
