@@ -156,6 +156,7 @@ pub fn get_time() -> Timespec {
  * Returns the current value of a high-resolution performance counter
  * in nanoseconds since an unspecified epoch.
  */
+#[inline]
 pub fn precise_time_ns() -> u64 {
     sys::get_precise_ns()
 }
