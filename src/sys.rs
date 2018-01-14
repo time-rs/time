@@ -348,6 +348,7 @@ mod inner {
             (tv.tv_sec as i64, tv.tv_usec * 1000)
         }
 
+        #[inline]
         pub fn get_precise_ns() -> u64 {
             unsafe {
                 let time = libc::mach_absolute_time();
