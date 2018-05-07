@@ -491,14 +491,20 @@ mod inner {
                 let seconds = other.num_seconds();
                 let nanoseconds = other - Duration::seconds(seconds);
                 let nanoseconds = nanoseconds.num_nanoseconds().unwrap();
+
+                #[cfg(all(target_arch = "x86_64", target_pointer_width = "32"))]
+                type nsec = i64;
+                #[cfg(not(all(target_arch = "x86_64", target_pointer_width = "32")))]
+                type nsec = libc::c_long;
+
                 self.t.tv_sec += seconds as libc::time_t;
-                self.t.tv_nsec += nanoseconds as libc::c_long;
-                if self.t.tv_nsec >= ::NSEC_PER_SEC as libc::c_long {
-                    self.t.tv_nsec -= ::NSEC_PER_SEC as libc::c_long;
+                self.t.tv_nsec += nanoseconds as nsec;
+                if self.t.tv_nsec >= ::NSEC_PER_SEC as nsec {
+                    self.t.tv_nsec -= ::NSEC_PER_SEC as nsec;
                     self.t.tv_sec += 1;
                 } else if self.t.tv_nsec < 0 {
                     self.t.tv_sec -= 1;
-                    self.t.tv_nsec += ::NSEC_PER_SEC as libc::c_long;
+                    self.t.tv_nsec += ::NSEC_PER_SEC as nsec;
                 }
                 self
             }
