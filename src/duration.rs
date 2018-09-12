@@ -133,10 +133,10 @@ impl Duration {
 
     /// Runs a closure, returning the duration of time it took to run the
     /// closure.
-    pub fn span<F>(f: F) -> Duration where F: FnOnce() {
+    pub fn span<F,R>(f: F) -> (Duration, R) where F: FnOnce() -> R {
         let before = super::precise_time_ns();
-        f();
-        Duration::nanoseconds((super::precise_time_ns() - before) as i64)
+        let r = f();
+        (Duration::nanoseconds((super::precise_time_ns() - before) as i64), r)
     }
 
     /// Returns the total number of whole weeks in the duration.
