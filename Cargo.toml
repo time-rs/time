@@ -10,6 +10,7 @@ documentation = "https://doc.rust-lang.org/time"
 description = """
 Utilities for working with time-related functions in Rust.
 """
+exclude = ["/.travis.yml", "/appveyor.yml"]
 
 [badges]
 travis-ci = { repository = "rust-lang-deprecated/time" }
