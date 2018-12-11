@@ -5,6 +5,7 @@ pub use self::inner::*;
 #[cfg(any(
     all(target_arch = "wasm32", not(target_os = "emscripten")),
     target_os = "redox",
+    target_env = "sgx"
 ))]
 mod common {
     use Tm;
@@ -268,6 +269,82 @@ mod inner {
     }
 
     impl Eq for SteadyTime {}
+}
+
+#[cfg(target_env = "sgx")]
+mod inner {
+    use std::ops::{Add, Sub};
+    use Tm;
+    use Duration;
+    use super::common::{time_to_tm, tm_to_time};
+    use std::time::SystemTime;
+
+    /// The number of nanoseconds in seconds.
+    const NANOS_PER_SEC: u64 = 1_000_000_000;
+
+    #[derive(Copy, Clone, Debug, PartialOrd, Ord, PartialEq, Eq)]
+    pub struct SteadyTime {
+        t: Duration
+    }
+
+    pub fn time_to_utc_tm(sec: i64, tm: &mut Tm) {
+        time_to_tm(sec, tm);
+    }
+
+    pub fn time_to_local_tm(sec: i64, tm: &mut Tm) {
+        // FIXME: Add timezone logic
+        time_to_tm(sec, tm);
+    }
+
+    pub fn utc_tm_to_time(tm: &Tm) -> i64 {
+        tm_to_time(tm)
+    }
+
+    pub fn local_tm_to_time(tm: &Tm) -> i64 {
+        // FIXME: Add timezone logic
+        tm_to_time(tm)
+    }
+
+    pub fn get_time() -> (i64, i32) {
+        SteadyTime::now().t.raw()
+    }
+
+    pub fn get_precise_ns() -> u64 {
+        // This unwrap is safe because current time is well ahead of UNIX_EPOCH, unless system clock is adjusted backward.
+        let std_duration = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
+        std_duration.as_secs() * NANOS_PER_SEC + std_duration.subsec_nanos() as u64
+    }
+
+    impl SteadyTime {
+        pub fn now() -> SteadyTime {
+            // This unwrap is safe because current time is well ahead of UNIX_EPOCH, unless system clock is adjusted backward.
+            let std_duration = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
+            // This unwrap is safe because duration is well within the limits of i64.
+            let duration = Duration::from_std(std_duration).unwrap();
+            SteadyTime { t: duration }
+        }
+    }
+
+    impl Sub for SteadyTime {
+        type Output = Duration;
+        fn sub(self, other: SteadyTime) -> Duration {
+            self.t - other.t
+        }
+    }
+
+    impl Sub<Duration> for SteadyTime {
+        type Output = SteadyTime;
+        fn sub(self, other: Duration) -> SteadyTime {
+            SteadyTime { t: self.t - other }
+        }
+    }
+
+    impl Add<Duration> for SteadyTime {
+        type Output = SteadyTime;
+        fn add(self, other: Duration) -> SteadyTime {
+            SteadyTime { t: self.t + other }
+        }
+    }
 }
 
 #[cfg(unix)]
