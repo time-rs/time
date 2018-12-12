@@ -285,6 +285,12 @@ impl Duration {
         }
         Ok(StdDuration::new(self.secs as u64, self.nanos as u32))
     }
+
+    /// Returns the raw value of duration.
+    #[cfg(target_env = "sgx")]
+    pub(crate) fn raw(&self) -> (i64, i32) {
+        (self.secs, self.nanos)
+    }
 }
 
 impl Neg for Duration {
