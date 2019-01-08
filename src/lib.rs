@@ -280,14 +280,14 @@ impl Add<Duration> for SteadyTime {
     }
 }
 
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_env = "sgx")))]
 pub fn tzset() {
     extern { fn tzset(); }
     unsafe { tzset() }
 }
 
 
-#[cfg(windows)]
+#[cfg(any(windows, target_env = "sgx"))]
 pub fn tzset() {}
 
 /// Holds a calendar date and time broken down into its components (year, month,
