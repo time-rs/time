@@ -83,7 +83,7 @@ impl Duration {
     /// Panics when the duration is out of bounds.
     #[inline]
     pub fn hours(hours: i64) -> Duration {
-        let secs = hours.checked_mul(SECS_PER_HOUR).expect("Duration::hours ouf of bounds");
+        let secs = hours.checked_mul(SECS_PER_HOUR).expect("Duration::hours out of bounds");
         Duration::seconds(secs)
     }
 
