@@ -347,7 +347,7 @@ mod inner {
     }
 }
 
-#[cfg(unix)]
+#[cfg(all(unix, not(target_env = "sgx")))]
 mod inner {
     use libc::{self, time_t};
     use std::mem;
@@ -687,7 +687,7 @@ mod inner {
     }
 }
 
-#[cfg(windows)]
+#[cfg(all(windows, not(target_env = "sgx")))]
 #[allow(non_snake_case)]
 mod inner {
     use std::io;
