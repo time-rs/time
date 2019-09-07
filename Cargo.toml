@@ -25,6 +25,9 @@ redox_syscall = "0.1"
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.0", features = ["std", "minwinbase", "minwindef", "ntdef", "profileapi", "sysinfoapi", "timezoneapi"] }
 
+[target.'cfg(all(target_arch = "wasm32", not(target_os = "emscripten")))'.dependencies]
+js-sys = { version = "0.3" }
+
 [dev-dependencies]
 log = "0.4"
 winapi = { version = "0.3.0", features = ["std", "processthreadsapi", "winbase"] }

@@ -99,7 +99,11 @@ mod inner {
     }
 
     pub fn get_time() -> (i64, i32) {
-        unimplemented!()
+        let now = js_sys::Date::new_0();
+        let millisecs_since_unix_epoch: u64 = now.get_time() as u64;
+        let secs  = millisecs_since_unix_epoch / 1000;
+        let nanos = 1_000_000 * (millisecs_since_unix_epoch - 1000 * secs);
+        (secs as i64, nanos as i32)
     }
 
     pub fn get_precise_ns() -> u64 {

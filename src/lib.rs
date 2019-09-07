@@ -39,6 +39,7 @@
 #[cfg(target_os = "redox")] extern crate syscall;
 #[cfg(unix)] extern crate libc;
 #[cfg(windows)] extern crate winapi;
+#[cfg(all(target_arch = "wasm32", not(target_os = "emscripten")))] extern crate js_sys;
 #[cfg(feature = "rustc-serialize")] extern crate rustc_serialize;
 
 #[cfg(test)] #[macro_use] extern crate log;
