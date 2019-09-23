@@ -19,9 +19,6 @@ appveyor = { repository = "alexcrichton/time" }
 libc = "0.2.1"
 rustc-serialize = { version = "0.3", optional = true }
 
-[target.'cfg(target_os = "redox")'.dependencies]
-redox_syscall = "0.1"
-
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.0", features = ["std", "minwinbase", "minwindef", "ntdef", "profileapi", "sysinfoapi", "timezoneapi"] }
 
