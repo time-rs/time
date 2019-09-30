@@ -10,9 +10,10 @@ Utilities for working with time-related functions in Rust
 
 ## Notes
 
-This library is no longer actively maintained, but bugfixes will be added ([details](https://github.com/rust-lang-deprecated/time/issues/136)).
+Version 0.1 of this library is no longer actively maintained.
+A 0.2 version will be released in the future, which will contain a number of breaking changes.
 
-In case you're looking for something a little fresher and more actively maintained have a look at the [`chrono`](https://github.com/lifthrasiir/rust-chrono) crate.
+If you need additional functionality that this crate does not provide, check out the [`chrono`](https://github.com/chronotope/chrono) crate.
 
 ## Usage
 
