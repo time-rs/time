@@ -3,7 +3,11 @@ name = "time"
 version = "0.2.0"
 authors = ["Jacob Pratt <the.z.cuber@gmail.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+exclude = [".github", ".editorconfig", "rustfmt.toml"]
+repository = "https://github.com/time-rs/time"
+keywords = []
+categories = ["date-and-time", "no-std"]
+license = "MIT OR Apache-2.0"
+# TODO Add GitHub Actions badge once rust-lang/crates.io#1838 is merged.
 
 [dependencies]
