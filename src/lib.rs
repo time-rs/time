@@ -1,4 +1,4 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![deny(
     anonymous_parameters,
     rust_2018_idioms,
@@ -42,14 +42,29 @@ mod duration;
 mod shim;
 /// The `Sign` struct and its associated `impl`s.
 mod sign;
+/// Days of the week.
+mod weekday;
 
 pub use duration::Duration;
 pub(crate) use shim::NumberExt;
 pub use sign::Sign;
+pub use weekday::Weekday;
 
 #[allow(missing_docs)]
 #[deprecated(
     since = "0.2.0",
     note = "This error will never be produced by non-deprecated methods."
 )]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct OutOfRangeError;
+
+#[allow(deprecated)]
+impl core::fmt::Display for OutOfRangeError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str("Source duration value is out of range for the target type")
+    }
+}
+
+#[cfg(feature = "std")]
+#[allow(deprecated)]
+impl std::error::Error for OutOfRangeError {}

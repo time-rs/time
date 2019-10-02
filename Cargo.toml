@@ -10,5 +10,9 @@ categories = ["date-and-time", "no-std"]
 license = "MIT OR Apache-2.0"
 # TODO Add GitHub Actions badge once rust-lang/crates.io#1838 is merged.
 
+[features]
+default = ["std"]
+std = []
+
 [dependencies]
 log = "0.4.8"
