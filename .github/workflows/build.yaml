@@ -23,7 +23,13 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
-      - name: Run `cargo check`
+      - name: Run `cargo check` without any features
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --no-default-features
+
+      - name: Run `cargo check` with all features
         uses: actions-rs/cargo@v1
         with:
           command: check
@@ -49,7 +55,13 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
-      - name: Run `cargo test`
+      - name: Run `cargo test` without any features
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-default-features
+
+      - name: Run `cargo test` with all features
         uses: actions-rs/cargo@v1
         with:
           command: test

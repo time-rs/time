@@ -5,19 +5,19 @@
 /// `PartialOrd` or `Ord`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Weekday {
-    #[allow(missing_docs, clippy::missing_docs_in_private_items)]
+    #[allow(clippy::missing_docs_in_private_items)]
     Monday,
-    #[allow(missing_docs, clippy::missing_docs_in_private_items)]
+    #[allow(clippy::missing_docs_in_private_items)]
     Tuesday,
-    #[allow(missing_docs, clippy::missing_docs_in_private_items)]
+    #[allow(clippy::missing_docs_in_private_items)]
     Wednesday,
-    #[allow(missing_docs, clippy::missing_docs_in_private_items)]
+    #[allow(clippy::missing_docs_in_private_items)]
     Thursday,
-    #[allow(missing_docs, clippy::missing_docs_in_private_items)]
+    #[allow(clippy::missing_docs_in_private_items)]
     Friday,
-    #[allow(missing_docs, clippy::missing_docs_in_private_items)]
+    #[allow(clippy::missing_docs_in_private_items)]
     Saturday,
-    #[allow(missing_docs, clippy::missing_docs_in_private_items)]
+    #[allow(clippy::missing_docs_in_private_items)]
     Sunday,
 }
 use Weekday::{Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday};

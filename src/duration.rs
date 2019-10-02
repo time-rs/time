@@ -205,6 +205,22 @@ impl Duration {
         self.sign
     }
 
+    /// Get the absolute value of the duration.
+    ///
+    /// ```rust
+    /// # use time::Duration;
+    /// assert_eq!(Duration::seconds(1).abs(), Duration::seconds(1));
+    /// assert_eq!(Duration::zero().abs(), Duration::zero());
+    /// assert_eq!(Duration::seconds(-1).abs(), Duration::seconds(1));
+    /// ```
+    pub fn abs(self) -> Self {
+        match self.sign() {
+            Zero => Self::zero(),
+            Positive | Negative => Self::positive(self.std),
+            Unknown => unreachable!("A `Duration` cannot have an unknown sign"),
+        }
+    }
+
     /// Create a new `Duration` with the provided seconds and nanoseconds. If
     /// nanoseconds is at least 10^9, it will wrap to the number of seconds.
     ///
@@ -620,7 +636,7 @@ impl Duration {
 }
 
 /// Functions that have been renamed or had signatures changed since v0.1.
-#[allow(missing_docs, clippy::missing_docs_in_private_items)]
+#[allow(clippy::missing_docs_in_private_items)]
 impl Duration {
     #[deprecated(since = "0.2.0", note = "Use the `whole_weeks` function")]
     pub fn num_weeks(&self) -> i64 {

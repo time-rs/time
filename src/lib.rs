@@ -20,7 +20,6 @@
     box_pointers,
     missing_copy_implementations,
     missing_debug_implementations,
-    missing_docs,
     single_use_lifetimes,
     unused_qualifications,
     unused_results,
@@ -40,6 +39,9 @@
 
 /// The `Duration` struct and its associated `impl`s.
 mod duration;
+/// The `Instant` struct and its associated `impl`s.
+#[cfg(feature = "std")]
+mod instant;
 /// Ensure certain methods are present on all types.
 mod shim;
 /// The `Sign` struct and its associated `impl`s.
@@ -48,11 +50,13 @@ mod sign;
 mod weekday;
 
 pub use duration::Duration;
+#[cfg(feature = "std")]
+pub use instant::Instant;
 pub(crate) use shim::NumberExt;
 pub use sign::Sign;
 pub use weekday::Weekday;
 
-#[allow(missing_docs, clippy::missing_docs_in_private_items, deprecated)]
+#[allow(clippy::missing_docs_in_private_items, deprecated)]
 #[deprecated(
     since = "0.2.0",
     note = "This error will never be produced by non-deprecated methods."
