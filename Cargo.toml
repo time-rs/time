@@ -11,3 +11,4 @@ license = "MIT OR Apache-2.0"
 # TODO Add GitHub Actions badge once rust-lang/crates.io#1838 is merged.
 
 [dependencies]
+log = "0.4.8"
