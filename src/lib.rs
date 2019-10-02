@@ -1,3 +1,5 @@
+//! Simple time handling.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(
     anonymous_parameters,
@@ -50,7 +52,7 @@ pub(crate) use shim::NumberExt;
 pub use sign::Sign;
 pub use weekday::Weekday;
 
-#[allow(missing_docs, clippy::missing_docs_in_private_items)]
+#[allow(missing_docs, clippy::missing_docs_in_private_items, deprecated)]
 #[deprecated(
     since = "0.2.0",
     note = "This error will never be produced by non-deprecated methods."
