@@ -133,6 +133,14 @@ impl Instant {
     }
 }
 
+impl Instant {
+    #[allow(clippy::missing_docs_in_private_items)]
+    #[deprecated(since = "0.2.0", note = "Use `rhs.duration_since(lhs)` or `rhs - lhs`")]
+    pub fn to(&self, later: Self) -> Duration {
+        later.duration_since(*self)
+    }
+}
+
 // TODO Should we actually implement `Deref`? It could lead to confusing results
 // with Rust's implicit dereferencing, and the desired behavior can still be
 // achieved explicitly with `.into()`.

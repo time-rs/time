@@ -56,6 +56,18 @@ pub(crate) use shim::NumberExt;
 pub use sign::Sign;
 pub use weekday::Weekday;
 
+// For some back-compatibility, we're also implementing some deprecated methods.
+
+#[cfg(feature = "std")]
+#[allow(clippy::missing_docs_in_private_items)]
+#[deprecated(since = "0.2.0", note = "Use `Instant`")]
+pub type PreciseTime = Instant;
+
+#[cfg(feature = "std")]
+#[allow(clippy::missing_docs_in_private_items)]
+#[deprecated(since = "0.2.0", note = "Use `Instant`")]
+pub type SteadyTime = Instant;
+
 #[allow(clippy::missing_docs_in_private_items, deprecated)]
 #[deprecated(
     since = "0.2.0",
