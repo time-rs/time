@@ -129,7 +129,7 @@ impl Weekday {
         self.number_days_from_sunday() + 1
     }
 
-    /// Get the one-indexed number of days from Monday.
+    /// Get the zero-indexed number of days from Monday.
     ///
     /// ```rust
     /// # use time::Weekday;
@@ -147,7 +147,7 @@ impl Weekday {
         self as u8
     }
 
-    /// Get the one-indexed number of days from Sunday.
+    /// Get the zero-indexed number of days from Sunday.
     ///
     /// ```rust
     /// # use time::Weekday;

@@ -50,7 +50,7 @@ pub(crate) use shim::NumberExt;
 pub use sign::Sign;
 pub use weekday::Weekday;
 
-#[allow(missing_docs)]
+#[allow(missing_docs, clippy::missing_docs_in_private_items)]
 #[deprecated(
     since = "0.2.0",
     note = "This error will never be produced by non-deprecated methods."
