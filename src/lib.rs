@@ -22,7 +22,6 @@
     missing_debug_implementations,
     single_use_lifetimes,
     unused_qualifications,
-    unused_results,
     variant_size_differences,
     clippy::pedantic,
     clippy::nursery,

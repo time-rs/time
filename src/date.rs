@@ -77,7 +77,8 @@ pub fn weeks_in_year(year: i32) -> u8 {
 
 /// ISO 8601 calendar date. All reasonable proleptic Gregorian dates are able to
 /// be stored.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+// TODO implement `PartialOrd`, `Ord`
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
     #[allow(clippy::missing_docs_in_private_items)]
     year: i32,
@@ -535,14 +536,18 @@ mod test {
 
     #[test]
     fn weeks_in_year_exhaustive() {
-        use maplit::hashset;
-
-        let years_with_53 = hashset![
+        extern crate alloc;
+        let mut years_with_53 = alloc::collections::btree_set::BTreeSet::new();
+        for year in [
             4, 9, 15, 20, 26, 32, 37, 43, 48, 54, 60, 65, 71, 76, 82, 88, 93, 99, 105, 111, 116,
             122, 128, 133, 139, 144, 150, 156, 161, 167, 172, 178, 184, 189, 195, 201, 207, 212,
             218, 224, 229, 235, 240, 246, 252, 257, 263, 268, 274, 280, 285, 291, 296, 303, 308,
             314, 320, 325, 331, 336, 342, 348, 353, 359, 364, 370, 376, 381, 387, 392, 398,
-        ];
+        ]
+        .iter()
+        {
+            years_with_53.insert(year);
+        }
 
         for year in 0..400 {
             assert_eq!(
