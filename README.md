@@ -13,5 +13,9 @@ The following structs are currently useable with `#![no_std]`.
 - `Duration`
 - `Weekday`
 - `Sign`
+- `Date`
 
 To enable this, you must use `default_features = false` in your `Cargo.toml`.
+
+`Instant` is not useable with `#![no_std]`. This will not happen unless
+`std::time::Instant` moves to `core`.

@@ -743,7 +743,7 @@ impl Duration {
     )]
     pub fn to_std(&self) -> Result<StdDuration, crate::OutOfRangeError> {
         if self.sign.is_negative() {
-            Err(crate::OutOfRangeError)
+            Err(crate::OutOfRangeError(()))
         } else {
             Ok(self.std)
         }

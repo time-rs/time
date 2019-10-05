@@ -16,3 +16,6 @@ std = []
 
 [dependencies]
 log = "0.4.8"
+
+[dev-dependencies]
+maplit = "1.0.2"

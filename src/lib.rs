@@ -37,6 +37,8 @@
     clippy::cast_lossless,
 )]
 
+/// The `Date` struct and its associated `impl`s.
+mod date;
 /// The `Duration` struct and its associated `impl`s.
 mod duration;
 /// The `Instant` struct and its associated `impl`s.
@@ -49,6 +51,7 @@ mod sign;
 /// Days of the week.
 mod weekday;
 
+pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use duration::Duration;
 #[cfg(feature = "std")]
 pub use instant::Instant;
@@ -68,13 +71,14 @@ pub type PreciseTime = Instant;
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type SteadyTime = Instant;
 
+// Include zero-sized field so users can't construct this explicitly.
 #[allow(clippy::missing_docs_in_private_items, deprecated)]
 #[deprecated(
     since = "0.2.0",
-    note = "This error will never be produced by non-deprecated methods."
+    note = "This error is only produced by deprecated methods."
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct OutOfRangeError;
+pub struct OutOfRangeError(());
 
 #[allow(deprecated)]
 impl core::fmt::Display for OutOfRangeError {
