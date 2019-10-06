@@ -20,3 +20,6 @@ To enable this, you must use `default_features = false` in your `Cargo.toml`.
 
 `Instant` is not useable with `#![no_std]`. This will not happen unless
 `std::time::Instant` moves to `core`.
+
+Of the structs that _are_ useable, some method may only be enabled due a
+reliance on `Instant`. These will be documented alongside the method.

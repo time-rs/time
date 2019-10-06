@@ -36,57 +36,53 @@
     clippy::cast_lossless,
 )]
 
+// Include the `format!` macro in `#![no_std]` environments.
+#[macro_use]
+extern crate alloc;
+
 macro_rules! format_conditional {
-    ($conditional:ident) => {{
+    ($conditional:ident) => {
         format!(concat!(stringify!($conditional), "={}"), $conditional)
-    }};
+    };
 
     ($first_conditional:ident, $($conditional:ident),*) => {{
-        let mut s = String::new();
+        let mut s = alloc::string::String::new();
         s.push_str(&format_conditional!($first_conditional));
-        $(
-            s.push_str(&format!(concat!(", ", stringify!($conditional), "={}"), $conditional));
-        )*
+        $(s.push_str(&format!(concat!(", ", stringify!($conditional), "={}"), $conditional));)*
         s
     }}
 }
 
 macro_rules! assert_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
-        assert!(
-            ($start..=$end).contains(&$value),
-            format!(
-                "{}{}..={}",
-                concat!(stringify!($value), " must be in the range "),
+        if !($start..=$end).contains(&$value) {
+            panic!(
+                concat!(stringify!($value), " must be in the range {}..={}"),
                 $start,
                 $end,
-            )
-        );
+            );
+        }
     };
 
     ($value:ident in $start:expr => exclusive $end:expr) => {
-        assert!(
-            ($start..$end).contains(&$value),
-            format!(
-                "{}{}..{}",
-                concat!(stringify!($value), " must be in the range "),
+        if !($start..$end).contains(&$value) {
+            panic!(
+                concat!(stringify!($value), " must be in the range {}..{}"),
                 $start,
                 $end,
-            )
-        );
+            );
+        }
     };
 
     ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
-        assert!(
-            ($start..=$end).contains(&$value),
-            format!(
-                concat!("{}{}..={} given {}"),
-                concat!(stringify!($value), " must be in the range "),
+        if !($start..=$end).contains(&$value) {
+            panic!(
+                concat!(stringify!($value), " must be in the range {}..={} given{}"),
                 $start,
                 $end,
-                format_conditional!($($conditional),+)
-            )
-        );
+                &format_conditional!($($conditional),+)
+            );
+        };
     };
 }
 

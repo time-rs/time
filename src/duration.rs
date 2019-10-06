@@ -1,5 +1,7 @@
+#[cfg(feature = "std")]
+use crate::Instant;
+use crate::NumberExt;
 use crate::Sign::{self, Negative, Positive, Unknown, Zero};
-use crate::{Instant, NumberExt};
 use core::cmp::Ordering::{self, Equal, Greater, Less};
 use core::convert::{From, TryFrom};
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
@@ -630,6 +632,9 @@ impl Duration {
 
     /// Runs a closure, returning the duration of time it took to run. The
     /// return value of the closure is provided in the second half of the tuple.
+    ///
+    /// This method is not available with `#![no_std]`.
+    #[cfg(feature = "std")]
     pub fn time_fn<T: FnOnce() -> U, U>(f: T) -> (Self, U) {
         let start = Instant::now();
         let return_value = f();
@@ -726,6 +731,7 @@ impl Duration {
         }
     }
 
+    #[cfg(feature = "std")]
     #[deprecated(since = "0.2.0", note = "Use the `time_fn` function")]
     pub fn span<F: FnOnce()>(f: F) -> Self {
         Self::time_fn(f).0
