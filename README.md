@@ -14,6 +14,7 @@ The following structs are currently useable with `#![no_std]`.
 - `Weekday`
 - `Sign`
 - `Date`
+- `Time`
 
 To enable this, you must use `default_features = false` in your `Cargo.toml`.
 

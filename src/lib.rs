@@ -36,6 +36,19 @@
     clippy::cast_lossless,
 )]
 
+macro_rules! assert_value_in_range {
+    ($value:ident, $range:expr) => {
+        assert!(
+            $range.contains(&$value),
+            concat!(
+                stringify!($value),
+                " must be in the range ",
+                stringify!($range)
+            )
+        );
+    };
+}
+
 /// The `Date` struct and its associated `impl`s.
 mod date;
 /// The `Duration` struct and its associated `impl`s.
@@ -47,9 +60,13 @@ mod instant;
 mod shim;
 /// The `Sign` struct and its associated `impl`s.
 mod sign;
+/// The `Time` struct and its associated `impl`s.
+#[macro_use]
+mod time;
 /// Days of the week.
 mod weekday;
 
+pub use self::time::Time;
 pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use duration::Duration;
 #[cfg(feature = "std")]
