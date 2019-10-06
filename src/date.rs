@@ -102,13 +102,8 @@ impl Date {
     /// Date::from_ymd(2019, 2, 29); // 2019 isn't a leap year.
     /// ```
     pub fn from_ymd(year: i32, month: u8, day: u8) -> Self {
-        assert!(month != 0 && month < 13, "Invalid month {}", month);
-        assert!(
-            day != 0 && day <= days_in_year_month(year, month),
-            "There aren't {} days in the month {}",
-            day,
-            month
-        );
+        assert_value_in_range!(month in 1 => 12);
+        assert_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
 
         let ordinal: u16 = if is_leap_year(year) {
             DAYS_IN_MONTH_LEAP[..month as usize - 1].iter().sum()
@@ -138,12 +133,7 @@ impl Date {
     /// ```
     #[allow(clippy::missing_const_for_fn)]
     pub fn from_yo(year: i32, ordinal: u16) -> Self {
-        assert!(
-            ordinal <= days_in_year(year),
-            "There aren't {} days in {}!",
-            ordinal,
-            year
-        );
+        assert_value_in_range!(ordinal in 1 => days_in_year(year), given year);
         Self { year, ordinal }
     }
 

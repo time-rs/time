@@ -52,9 +52,9 @@ impl Time {
     /// Time::from_hms(0, 0, 60); // 60 isn't a valid second.
     /// ```
     pub fn from_hms(hours: u8, minutes: u8, seconds: u8) -> Self {
-        assert_value_in_range!(hours, 0..24);
-        assert_value_in_range!(minutes, 0..60);
-        assert_value_in_range!(seconds, 0..60);
+        assert_value_in_range!(hours in 0 => exclusive 24);
+        assert_value_in_range!(minutes in 0 => exclusive 60);
+        assert_value_in_range!(seconds in 0 => exclusive 60);
         Self {
             hours,
             minutes,
@@ -97,10 +97,10 @@ impl Time {
     /// Time::from_hms_milli(0, 0, 0, 1_000); // 1_000 isn't a valid millisecond.
     /// ```
     pub fn from_hms_milli(hours: u8, minutes: u8, seconds: u8, milliseconds: u16) -> Self {
-        assert_value_in_range!(hours, 0..24);
-        assert_value_in_range!(minutes, 0..60);
-        assert_value_in_range!(seconds, 0..60);
-        assert_value_in_range!(milliseconds, 0..1_000);
+        assert_value_in_range!(hours in 0 => exclusive 24);
+        assert_value_in_range!(minutes in 0 => exclusive 60);
+        assert_value_in_range!(seconds in 0 => exclusive 60);
+        assert_value_in_range!(milliseconds in 0 => exclusive 1_000);
         Self {
             hours,
             minutes,
@@ -143,10 +143,10 @@ impl Time {
     /// Time::from_hms_micro(0, 0, 0, 1_000_000); // 1_000_000 isn't a valid microsecond.
     /// ```
     pub fn from_hms_micro(hours: u8, minutes: u8, seconds: u8, microseconds: u32) -> Self {
-        assert_value_in_range!(hours, 0..24);
-        assert_value_in_range!(minutes, 0..60);
-        assert_value_in_range!(seconds, 0..60);
-        assert_value_in_range!(microseconds, 0..1_000_000);
+        assert_value_in_range!(hours in 0 => exclusive 24);
+        assert_value_in_range!(minutes in 0 => exclusive 60);
+        assert_value_in_range!(seconds in 0 => exclusive 60);
+        assert_value_in_range!(microseconds in 0 => exclusive 1_000_000);
         Self {
             hours,
             minutes,
@@ -188,10 +188,10 @@ impl Time {
     /// Time::from_hms_nano(0, 0, 0, 1_000_000_000); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
     pub fn from_hms_nano(hours: u8, minutes: u8, seconds: u8, nanoseconds: u32) -> Self {
-        assert_value_in_range!(hours, 0..24);
-        assert_value_in_range!(minutes, 0..60);
-        assert_value_in_range!(seconds, 0..60);
-        assert_value_in_range!(nanoseconds, 0..1_000_000_000);
+        assert_value_in_range!(hours in 0 => exclusive 24);
+        assert_value_in_range!(minutes in 0 => exclusive 60);
+        assert_value_in_range!(seconds in 0 => exclusive 60);
+        assert_value_in_range!(nanoseconds in 0 => exclusive 1_000_000_000);
         Self {
             hours,
             minutes,

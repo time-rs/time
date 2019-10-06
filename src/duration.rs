@@ -1,5 +1,5 @@
-use crate::NumberExt;
 use crate::Sign::{self, Negative, Positive, Unknown, Zero};
+use crate::{Instant, NumberExt};
 use core::cmp::Ordering::{self, Equal, Greater, Less};
 use core::convert::{From, TryFrom};
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
@@ -630,8 +630,12 @@ impl Duration {
 
     /// Runs a closure, returning the duration of time it took to run. The
     /// return value of the closure is provided in the second half of the tuple.
-    pub fn time_fn<T: FnOnce() -> U, U>(_: T) -> (Self, U) {
-        unimplemented!("Implement this once an `Instant` equivalent is created")
+    pub fn time_fn<T: FnOnce() -> U, U>(f: T) -> (Self, U) {
+        let start = Instant::now();
+        let return_value = f();
+        let end = Instant::now();
+
+        (end - start, return_value)
     }
 }
 

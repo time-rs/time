@@ -36,14 +36,55 @@
     clippy::cast_lossless,
 )]
 
+macro_rules! format_conditional {
+    ($conditional:ident) => {{
+        format!(concat!(stringify!($conditional), "={}"), $conditional)
+    }};
+
+    ($first_conditional:ident, $($conditional:ident),*) => {{
+        let mut s = String::new();
+        s.push_str(&format_conditional!($first_conditional));
+        $(
+            s.push_str(&format!(concat!(", ", stringify!($conditional), "={}"), $conditional));
+        )*
+        s
+    }}
+}
+
 macro_rules! assert_value_in_range {
-    ($value:ident, $range:expr) => {
+    ($value:ident in $start:expr => $end:expr) => {
         assert!(
-            $range.contains(&$value),
-            concat!(
-                stringify!($value),
-                " must be in the range ",
-                stringify!($range)
+            ($start..=$end).contains(&$value),
+            format!(
+                "{}{}..={}",
+                concat!(stringify!($value), " must be in the range "),
+                $start,
+                $end,
+            )
+        );
+    };
+
+    ($value:ident in $start:expr => exclusive $end:expr) => {
+        assert!(
+            ($start..$end).contains(&$value),
+            format!(
+                "{}{}..{}",
+                concat!(stringify!($value), " must be in the range "),
+                $start,
+                $end,
+            )
+        );
+    };
+
+    ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
+        assert!(
+            ($start..=$end).contains(&$value),
+            format!(
+                concat!("{}{}..={} given {}"),
+                concat!(stringify!($value), " must be in the range "),
+                $start,
+                $end,
+                format_conditional!($($conditional),+)
             )
         );
     };
@@ -61,7 +102,6 @@ mod shim;
 /// The `Sign` struct and its associated `impl`s.
 mod sign;
 /// The `Time` struct and its associated `impl`s.
-#[macro_use]
 mod time;
 /// Days of the week.
 mod weekday;
