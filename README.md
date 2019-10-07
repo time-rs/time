@@ -8,19 +8,27 @@
 
 ## Features
 
-The following structs are currently useable with `#![no_std]`.
+### `#![no_std]`
 
-- `Duration`
-- `Weekday`
-- `Sign`
-- `Date`
-- `Time`
-- `DateTime`
+Currently, all structs except `Instant` are useable wiht `#![no_std]`. As
+support for the standard library is enabled be default, you muse use
+`default_features = false` in your `Cargo.toml` to enable this.
 
-To enable this, you must use `default_features = false` in your `Cargo.toml`.
+```none
+[dependencies]
+time = { version = "0.2", default-features = false }
+```
 
-`Instant` is not useable with `#![no_std]`. This will not happen unless
-`std::time::Instant` moves to `core`.
+Of the structs that are useable, some methods may only be enabled due a reliance
+on `Instant`. These will be documented alongside the method.
 
-Of the structs that _are_ useable, some method may only be enabled due a
-reliance on `Instant`. These will be documented alongside the method.
+### Serde
+
+[Serde](https://github.com/serde-rs/serde) support is behind a feature flag. To
+enable it, use the `serialization` feature. This is not enabled by default. It
+_is_ compatible with `#![no_std]`, so long as an allocator is present.
+
+```none
+[dependencies]
+time = { version = "0.2", features = ["serialization"] }
+```

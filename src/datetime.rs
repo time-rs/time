@@ -9,6 +9,7 @@ use core::ops::{Add, AddAssign, Sub, SubAssign};
 use std::time::{Duration as StdDuration, SystemTime};
 
 /// Combined date and time.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DateTime {
     #[allow(clippy::missing_docs_in_private_items)]

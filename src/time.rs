@@ -11,6 +11,7 @@ const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
 ///
 /// As order is dependent on context (is noon before or after midnight?), this
 /// type does not implement `PartialOrd` or `Ord`.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Time {
     #[allow(clippy::missing_docs_in_private_items)]

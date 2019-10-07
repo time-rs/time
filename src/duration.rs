@@ -8,7 +8,7 @@ use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAss
 use core::time::Duration as StdDuration;
 use log::warn;
 
-/// A `Duration` type to represent a span of time.
+/// A span of time with nanosecond precision.
 ///
 /// Each `Duration` is composed of a whole number of seconds and a fractional
 /// part represented in nanoseconds.
@@ -18,6 +18,7 @@ use log::warn;
 ///
 /// This implementation allows for negative durations, unlike
 /// [`core::time::Duration`].
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Debug, Default, Eq)]
 pub struct Duration {
     /// Is the `Duration` positive, negative, or zero? `Sign::Unknown` is not a

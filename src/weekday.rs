@@ -3,6 +3,7 @@
 /// As order is dependent on context (Sunday could be either
 /// two days after or five days before Friday), this type does not implement
 /// `PartialOrd` or `Ord`.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Weekday {
     #[allow(clippy::missing_docs_in_private_items)]

@@ -11,6 +11,7 @@ use Sign::{Negative, Positive, Unknown, Zero};
 /// types. Where the value is `Unknown`, the sign of the value is left
 /// unchanged. `Sign`s can also be multiplied and divided by another `Sign`,
 /// which follows the same rules as real numbers.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Sign {
     /// A positive value.

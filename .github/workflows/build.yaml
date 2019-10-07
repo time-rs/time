@@ -23,13 +23,19 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
-      - name: Run `cargo check` without any features
+      - name: Run `cargo check --no-default-features`
         uses: actions-rs/cargo@v1
         with:
           command: check
           args: --no-default-features
 
-      - name: Run `cargo check` with all features
+      - name: Run `cargo check --no-default-features --features serde`
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --no-default-features --features serde
+
+      - name: Run `cargo check --all-features`
         uses: actions-rs/cargo@v1
         with:
           command: check
@@ -55,13 +61,13 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
-      - name: Run `cargo test` without any features
+      - name: Run `cargo test --no-default-features`
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: --no-default-features
 
-      - name: Run `cargo test` with all features
+      - name: Run `cargo test --all-features`
         uses: actions-rs/cargo@v1
         with:
           command: test
@@ -86,7 +92,7 @@ jobs:
       - name: Install rustfmt
         run: rustup component add rustfmt
 
-      - name: Run `cargo fmt`
+      - name: Run `cargo fmt -- --check`
         uses: actions-rs/cargo@v1
         with:
           command: fmt
@@ -108,7 +114,7 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Run `cargo doc`
+      - name: Run `cargo doc --all-features`
         uses: actions-rs/cargo@v1
         with:
           command: doc
@@ -133,7 +139,7 @@ jobs:
       - name: Install clippy
         run: rustup component add clippy
 
-      - name: Run `cargo clippy`
+      - name: Run `cargo clippy --all-features`
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

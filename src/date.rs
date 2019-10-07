@@ -78,6 +78,7 @@ pub fn weeks_in_year(year: i32) -> u8 {
 
 /// Calendar date. All reasonable proleptic Gregorian dates are able to be
 /// stored.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
     #[allow(clippy::missing_docs_in_private_items)]
