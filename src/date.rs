@@ -3,9 +3,9 @@ use crate::{DateTime, Duration, Time};
 use core::cmp::{Ord, Ordering, PartialOrd};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 
-// TODO There are a few instances where we could currently use `const fn`.
-// Should these be `const`, or should they be left alone? The former would
-// essentially prohibit changing the internal structure of `Date` in the future.
+// Some methods could be `const fn` due to the internal structure of `Date`, but
+// are explicitly not (and have linting disabled) as it could lead to
+// compatibility issues down the road if the internal structure is changed.
 
 /// The number of days in a month in a non-leap year.
 const DAYS_IN_MONTH: [u16; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -76,8 +76,8 @@ pub fn weeks_in_year(year: i32) -> u8 {
     }
 }
 
-/// ISO 8601 calendar date. All reasonable proleptic Gregorian dates are able to
-/// be stored.
+/// Calendar date. All reasonable proleptic Gregorian dates are able to be
+/// stored.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
     #[allow(clippy::missing_docs_in_private_items)]
@@ -194,7 +194,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 12, 31).month(), 12);
     /// ```
     pub fn month(self) -> u8 {
-        self.date().0
+        self.month_day().0
     }
 
     /// Get the day of the date. If fetching both the month and day, use
@@ -208,7 +208,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 12, 31).day(), 31);
     /// ```
     pub fn day(self) -> u8 {
-        self.date().1
+        self.month_day().1
     }
 
     /// Get the month and day of the date.
@@ -218,11 +218,10 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).date(), (1, 1));
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).date(), (12, 31));
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).month_day(), (1, 1));
+    /// assert_eq!(Date::from_ymd(2019, 12, 31).month_day(), (12, 31));
     /// ```
-    // TODO This needs a better name.
-    pub fn date(self) -> (u8, u8) {
+    pub fn month_day(self) -> (u8, u8) {
         let mut ordinal = self.ordinal;
 
         let days = if is_leap_year(self.year) {
@@ -303,7 +302,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).as_ymd(), (2019, 1, 1));
     /// ```
     pub fn as_ymd(self) -> (i32, u8, u8) {
-        let (month, day) = self.date();
+        let (month, day) = self.month_day();
         (self.year, month, day)
     }
 
@@ -340,7 +339,7 @@ impl Date {
     /// ```
     pub fn weekday(self) -> Weekday {
         // Don't recalculate the value every time.
-        let (mut month, day) = self.date();
+        let (mut month, day) = self.month_day();
 
         let adjusted_year = if month < 3 {
             month += 12;
@@ -414,7 +413,7 @@ impl Date {
     /// ```
     pub fn julian_day(self) -> i64 {
         let year = self.year as i64;
-        let (month, day) = self.date();
+        let (month, day) = self.month_day();
         let month = month as i64;
         let day = day as i64;
         (1_461 * (year + 4_800 + (month - 14) / 12)) / 4

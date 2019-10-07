@@ -2,12 +2,12 @@ use crate::Duration;
 use crate::Sign::{Negative, Positive, Unknown, Zero};
 use core::cmp::Ordering;
 use core::convert::TryFrom;
-use core::ops::{Add, AddAssign, Deref, DerefMut, Sub, SubAssign};
+use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 use std::time::Instant as StdInstant;
 
 /// A measurement of a monotonically nondecreasing clock. Opaque and useful only
-/// with [`Duration`].
+/// with [`Duration`](Duration).
 ///
 /// Instants are always guaranteed to be no less than any previously measured
 /// instant when created, and are often useful for tasks such as measuring
@@ -24,11 +24,8 @@ use std::time::Instant as StdInstant;
 /// allows measuring the duration between two instants (or comparing two
 /// instants).
 ///
-/// The size of an `Instant` struct may vary depending on the target operating
-/// system.
-///
-/// Allows for operations with signed [`Duration`]s, but is otherwise identical
-/// to [`std::time::Instant`].
+/// Allows for operations with signed [`Duration`](Duration)s, but is otherwise
+/// identical to [`std::time::Instant`](std::time::Instant).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Instant {
     /// Inner representation, using `std::time::Instant`.
@@ -43,40 +40,6 @@ impl Instant {
         }
     }
 
-    /// Returns the amount of time elapsed from another instant to this one.
-    ///
-    /// ```rust,no_run
-    /// # use core::convert::TryInto;
-    /// # use time::{Duration, Instant};
-    /// let now = Instant::now();
-    /// std::thread::sleep(Duration::second().try_into().unwrap());
-    /// let new_now = Instant::now();
-    /// println!("{:?}", new_now.duration_since(now));
-    /// ```
-    ///
-    /// This implementation also supports finding the duration from a newer
-    /// instant to an older, which will result in a negative `Duration`.
-    ///
-    /// ```rust,no_run
-    /// # use core::convert::TryInto;
-    /// # use time::{Duration, Instant};
-    /// let now = Instant::now();
-    /// std::thread::sleep(Duration::second().try_into().unwrap());
-    /// let new_now = Instant::now();
-    /// println!("{:?}", now.duration_since(new_now));
-    /// ```
-    ///
-    /// If the instants are equal, `Duration::zero()` will be returned.
-    ///
-    /// ```rust
-    /// # use time::{Duration, Instant};
-    /// let now = Instant::now();
-    /// assert!(now.duration_since(now).is_zero());
-    /// ```
-    pub fn duration_since(self, other: Self) -> Duration {
-        self - other
-    }
-
     /// Returns the amount of time elapsed since this instant was created. The
     /// duration will always be nonnegative if the instant is not synthetically
     /// created.
@@ -84,7 +47,6 @@ impl Instant {
     /// ```rust
     /// # use core::convert::TryInto;
     /// # use time::{Duration, Instant};
-    ///
     /// let instant = Instant::now();
     /// std::thread::sleep(Duration::second().try_into().unwrap());
     /// assert!(instant.elapsed() >= Duration::second());
@@ -135,26 +97,9 @@ impl Instant {
 
 impl Instant {
     #[allow(clippy::missing_docs_in_private_items)]
-    #[deprecated(since = "0.2.0", note = "Use `rhs.duration_since(lhs)` or `rhs - lhs`")]
+    #[deprecated(since = "0.2.0", note = "Use `rhs - lhs`")]
     pub fn to(&self, later: Self) -> Duration {
-        later.duration_since(*self)
-    }
-}
-
-// TODO Should we actually implement `Deref`? It could lead to confusing results
-// with Rust's implicit dereferencing, and the desired behavior can still be
-// achieved explicitly with `.into()`.
-impl Deref for Instant {
-    type Target = StdInstant;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
-    }
-}
-
-impl DerefMut for Instant {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
+        later - *self
     }
 }
 

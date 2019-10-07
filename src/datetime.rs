@@ -57,10 +57,10 @@ impl DateTime {
                 ordinal: 1,
             },
             time: Time {
-                hours: 0,
-                minutes: 0,
-                seconds: 0,
-                nanoseconds: 0,
+                hour: 0,
+                minute: 0,
+                second: 0,
+                nanosecond: 0,
             },
         }
     }
@@ -122,9 +122,8 @@ impl DateTime {
         self.date().year()
     }
 
-    // TODO Update the recommendation when the name is changed.
     /// Get the month of the date. If fetching both the month and day, use
-    /// [`Date::date`](Date::date) instead.
+    /// [`DateTime::month_day`](DateTime::month_day) instead.
     ///
     /// The returned value will always be in the range `1..=12`.
     ///
@@ -137,9 +136,8 @@ impl DateTime {
         self.date().month()
     }
 
-    // TODO Update the recommendation when the name is changed.
     /// Get the day of the date. If fetching both the month and day, use
-    /// [`Date::date`](Date::date) instead.
+    /// [`DateTime::month_day`](DateTime::month_day) instead.
     ///
     /// The returned value will always be in the range `1..=31`.
     ///
@@ -150,6 +148,20 @@ impl DateTime {
     /// ```
     pub fn day(self) -> u8 {
         self.date().day()
+    }
+
+    /// Get the month and day of the date.
+    ///
+    /// The month component will always be in the range `1..=12`;
+    /// the day component in `1..=31`.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().month_day(), (1, 1));
+    /// assert_eq!(Date::from_ymd(2019, 12, 31).midnight().month_day(), (12, 31));
+    /// ```
+    pub fn month_day(self) -> (u8, u8) {
+        self.date().month_day()
     }
 
     /// Get the day of the year of the date.
@@ -215,7 +227,7 @@ impl DateTime {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms(23, 59, 59).hour(), 23);
     /// ```
     pub const fn hour(self) -> u8 {
-        self.time().hours()
+        self.time().hour()
     }
 
     /// Returns the minute within the hour.
@@ -228,7 +240,7 @@ impl DateTime {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms(23, 59, 59).minute(), 59);
     /// ```
     pub const fn minute(self) -> u8 {
-        self.time().minutes()
+        self.time().minute()
     }
 
     /// Returns the second within the minute.
@@ -241,7 +253,7 @@ impl DateTime {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms(23, 59, 59).second(), 59);
     /// ```
     pub const fn second(self) -> u8 {
-        self.time().seconds()
+        self.time().second()
     }
 
     /// Return the milliseconds within the second.
@@ -254,7 +266,7 @@ impl DateTime {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms_milli(23, 59, 59, 999).millisecond(), 999);
     /// ```
     pub const fn millisecond(self) -> u16 {
-        self.time().milliseconds()
+        self.time().millisecond()
     }
 
     /// Return the microseconds within the second.
@@ -267,7 +279,7 @@ impl DateTime {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms_micro(23, 59, 59, 999_999).microsecond(), 999_999);
     /// ```
     pub const fn microsecond(self) -> u32 {
-        self.time().microseconds()
+        self.time().microsecond()
     }
 
     /// Return the nanoseconds within the second.
@@ -280,7 +292,7 @@ impl DateTime {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms_nano(23, 59, 59, 999_999_999).nanosecond(), 999_999_999);
     /// ```
     pub const fn nanosecond(self) -> u32 {
-        self.time().nanoseconds()
+        self.time().nanosecond()
     }
 }
 
@@ -329,10 +341,10 @@ impl PartialOrd for DateTime {
 impl Ord for DateTime {
     fn cmp(&self, other: &Self) -> Ordering {
         match self.date.cmp(&other.date) {
-            Ordering::Equal => match self.time.hours.cmp(&other.time.hours) {
-                Ordering::Equal => match self.time.minutes.cmp(&other.time.minutes) {
-                    Ordering::Equal => match self.time.seconds.cmp(&other.time.seconds) {
-                        Ordering::Equal => self.time.nanoseconds.cmp(&other.time.nanoseconds),
+            Ordering::Equal => match self.time.hour.cmp(&other.time.hour) {
+                Ordering::Equal => match self.time.minute.cmp(&other.time.minute) {
+                    Ordering::Equal => match self.time.second.cmp(&other.time.second) {
+                        Ordering::Equal => self.time.nanosecond.cmp(&other.time.nanosecond),
                         other => other,
                     },
                     other => other,

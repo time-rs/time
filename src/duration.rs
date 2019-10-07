@@ -141,7 +141,10 @@ impl Duration {
     /// # use time::Duration;
     /// assert_eq!(Duration::max_value().whole_nanoseconds(), 18_446_744_073_709_551_615_999_999_999);
     /// ```
-    // TODO Deprecate? What's the use case here?
+    #[deprecated(
+        since = "0.2.0",
+        note = "If you have use case for this, please file an issue on the repository."
+    )]
     pub fn max_value() -> Self {
         Self::positive(StdDuration::new(u64::max_value(), 999_999_999))
     }
@@ -153,7 +156,10 @@ impl Duration {
     /// # use time::Duration;
     /// assert_eq!(Duration::min_value().whole_nanoseconds(), -18_446_744_073_709_551_615_999_999_999);
     /// ```
-    // TODO Deprecate? What's the use case here?
+    #[deprecated(
+        since = "0.2.0",
+        note = "If you have use case for this, please file an issue on the repository."
+    )]
     pub fn min_value() -> Self {
         Self::negative(StdDuration::new(u64::max_value(), 999_999_999))
     }

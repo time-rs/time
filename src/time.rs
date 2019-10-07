@@ -14,13 +14,13 @@ const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Time {
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) hours: u8,
+    pub(crate) hour: u8,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) minutes: u8,
+    pub(crate) minute: u8,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) seconds: u8,
+    pub(crate) second: u8,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) nanoseconds: u32,
+    pub(crate) nanosecond: u32,
 }
 
 impl Time {
@@ -32,10 +32,10 @@ impl Time {
     /// ```
     pub const fn midnight() -> Self {
         Self {
-            hours: 0,
-            minutes: 0,
-            seconds: 0,
-            nanoseconds: 0,
+            hour: 0,
+            minute: 0,
+            second: 0,
+            nanosecond: 0,
         }
     }
 
@@ -44,10 +44,10 @@ impl Time {
     /// ```rust
     /// # use time::Time;
     /// let time = Time::from_hms(1, 2, 3);
-    /// assert_eq!(time.hours(), 1);
-    /// assert_eq!(time.minutes(), 2);
-    /// assert_eq!(time.seconds(), 3);
-    /// assert_eq!(time.nanoseconds(), 0);
+    /// assert_eq!(time.hour(), 1);
+    /// assert_eq!(time.minute(), 2);
+    /// assert_eq!(time.second(), 3);
+    /// assert_eq!(time.nanosecond(), 0);
     /// ```
     ///
     /// Panics if any component is not valid.
@@ -66,15 +66,15 @@ impl Time {
     /// # use time::Time;
     /// Time::from_hms(0, 0, 60); // 60 isn't a valid second.
     /// ```
-    pub fn from_hms(hours: u8, minutes: u8, seconds: u8) -> Self {
-        assert_value_in_range!(hours in 0 => exclusive 24);
-        assert_value_in_range!(minutes in 0 => exclusive 60);
-        assert_value_in_range!(seconds in 0 => exclusive 60);
+    pub fn from_hms(hour: u8, minute: u8, second: u8) -> Self {
+        assert_value_in_range!(hour in 0 => exclusive 24);
+        assert_value_in_range!(minute in 0 => exclusive 60);
+        assert_value_in_range!(second in 0 => exclusive 60);
         Self {
-            hours,
-            minutes,
-            seconds,
-            nanoseconds: 0,
+            hour,
+            minute,
+            second,
+            nanosecond: 0,
         }
     }
 
@@ -83,11 +83,11 @@ impl Time {
     /// ```rust
     /// # use time::Time;
     /// let time = Time::from_hms_milli(1, 2, 3, 4);
-    /// assert_eq!(time.hours(), 1);
-    /// assert_eq!(time.minutes(), 2);
-    /// assert_eq!(time.seconds(), 3);
-    /// assert_eq!(time.milliseconds(), 4);
-    /// assert_eq!(time.nanoseconds(), 4_000_000);
+    /// assert_eq!(time.hour(), 1);
+    /// assert_eq!(time.minute(), 2);
+    /// assert_eq!(time.second(), 3);
+    /// assert_eq!(time.millisecond(), 4);
+    /// assert_eq!(time.nanosecond(), 4_000_000);
     /// ```
     ///
     /// Panics if any component is not valid.
@@ -111,16 +111,16 @@ impl Time {
     /// # use time::Time;
     /// Time::from_hms_milli(0, 0, 0, 1_000); // 1_000 isn't a valid millisecond.
     /// ```
-    pub fn from_hms_milli(hours: u8, minutes: u8, seconds: u8, milliseconds: u16) -> Self {
-        assert_value_in_range!(hours in 0 => exclusive 24);
-        assert_value_in_range!(minutes in 0 => exclusive 60);
-        assert_value_in_range!(seconds in 0 => exclusive 60);
-        assert_value_in_range!(milliseconds in 0 => exclusive 1_000);
+    pub fn from_hms_milli(hour: u8, minute: u8, second: u8, millisecond: u16) -> Self {
+        assert_value_in_range!(hour in 0 => exclusive 24);
+        assert_value_in_range!(minute in 0 => exclusive 60);
+        assert_value_in_range!(second in 0 => exclusive 60);
+        assert_value_in_range!(millisecond in 0 => exclusive 1_000);
         Self {
-            hours,
-            minutes,
-            seconds,
-            nanoseconds: milliseconds as u32 * 1_000_000,
+            hour,
+            minute,
+            second,
+            nanosecond: millisecond as u32 * 1_000_000,
         }
     }
 
@@ -129,11 +129,11 @@ impl Time {
     /// ```rust
     /// # use time::Time;
     /// let time = Time::from_hms_micro(1, 2, 3, 4);
-    /// assert_eq!(time.hours(), 1);
-    /// assert_eq!(time.minutes(), 2);
-    /// assert_eq!(time.seconds(), 3);
-    /// assert_eq!(time.microseconds(), 4);
-    /// assert_eq!(time.nanoseconds(), 4_000);
+    /// assert_eq!(time.hour(), 1);
+    /// assert_eq!(time.minute(), 2);
+    /// assert_eq!(time.second(), 3);
+    /// assert_eq!(time.microsecond(), 4);
+    /// assert_eq!(time.nanosecond(), 4_000);
     /// ```
     ///
     /// Panics if any component is not valid.
@@ -157,16 +157,16 @@ impl Time {
     /// # use time::Time;
     /// Time::from_hms_micro(0, 0, 0, 1_000_000); // 1_000_000 isn't a valid microsecond.
     /// ```
-    pub fn from_hms_micro(hours: u8, minutes: u8, seconds: u8, microseconds: u32) -> Self {
-        assert_value_in_range!(hours in 0 => exclusive 24);
-        assert_value_in_range!(minutes in 0 => exclusive 60);
-        assert_value_in_range!(seconds in 0 => exclusive 60);
-        assert_value_in_range!(microseconds in 0 => exclusive 1_000_000);
+    pub fn from_hms_micro(hour: u8, minute: u8, second: u8, microsecond: u32) -> Self {
+        assert_value_in_range!(hour in 0 => exclusive 24);
+        assert_value_in_range!(minute in 0 => exclusive 60);
+        assert_value_in_range!(second in 0 => exclusive 60);
+        assert_value_in_range!(microsecond in 0 => exclusive 1_000_000);
         Self {
-            hours,
-            minutes,
-            seconds,
-            nanoseconds: microseconds * 1_000,
+            hour,
+            minute,
+            second,
+            nanosecond: microsecond * 1_000,
         }
     }
 
@@ -175,10 +175,10 @@ impl Time {
     /// ```rust
     /// # use time::Time;
     /// let time = Time::from_hms_nano(1, 2, 3, 4);
-    /// assert_eq!(time.hours(), 1);
-    /// assert_eq!(time.minutes(), 2);
-    /// assert_eq!(time.seconds(), 3);
-    /// assert_eq!(time.nanoseconds(), 4);
+    /// assert_eq!(time.hour(), 1);
+    /// assert_eq!(time.minute(), 2);
+    /// assert_eq!(time.second(), 3);
+    /// assert_eq!(time.nanosecond(), 4);
     /// ```
     ///
     /// Panics if any component is not valid.
@@ -202,123 +202,117 @@ impl Time {
     /// # use time::Time;
     /// Time::from_hms_nano(0, 0, 0, 1_000_000_000); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
-    pub fn from_hms_nano(hours: u8, minutes: u8, seconds: u8, nanoseconds: u32) -> Self {
-        assert_value_in_range!(hours in 0 => exclusive 24);
-        assert_value_in_range!(minutes in 0 => exclusive 60);
-        assert_value_in_range!(seconds in 0 => exclusive 60);
-        assert_value_in_range!(nanoseconds in 0 => exclusive 1_000_000_000);
+    pub fn from_hms_nano(hour: u8, minute: u8, second: u8, nanosecond: u32) -> Self {
+        assert_value_in_range!(hour in 0 => exclusive 24);
+        assert_value_in_range!(minute in 0 => exclusive 60);
+        assert_value_in_range!(second in 0 => exclusive 60);
+        assert_value_in_range!(nanosecond in 0 => exclusive 1_000_000_000);
         Self {
-            hours,
-            minutes,
-            seconds,
-            nanoseconds,
+            hour,
+            minute,
+            second,
+            nanosecond,
         }
     }
 
-    // TODO rename to `hour`?
     /// Returns the clock hour.
     ///
     /// The returned value will always be in the range `0..=23`.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms(0, 0, 0).hours(), 0);
-    /// assert_eq!(Time::from_hms(23, 59, 59).hours(), 23);
+    /// assert_eq!(Time::from_hms(0, 0, 0).hour(), 0);
+    /// assert_eq!(Time::from_hms(23, 59, 59).hour(), 23);
     /// ```
-    pub const fn hours(self) -> u8 {
-        self.hours
+    pub const fn hour(self) -> u8 {
+        self.hour
     }
 
-    // TODO rename to `minute`?
     /// Returns the minute within the hour.
     ///
     /// The returned value will always be in the range `0..=60`.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms(0, 0, 0).minutes(), 0);
-    /// assert_eq!(Time::from_hms(23, 59, 59).minutes(), 59);
+    /// assert_eq!(Time::from_hms(0, 0, 0).minute(), 0);
+    /// assert_eq!(Time::from_hms(23, 59, 59).minute(), 59);
     /// ```
-    pub const fn minutes(self) -> u8 {
-        self.minutes
+    pub const fn minute(self) -> u8 {
+        self.minute
     }
 
-    // TODO rename to `second`?
     /// Returns the second within the minute.
     ///
     /// The returned value will always be in the range `0..=60`.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms(0, 0, 0).seconds(), 0);
-    /// assert_eq!(Time::from_hms(23, 59, 59).seconds(), 59);
+    /// assert_eq!(Time::from_hms(0, 0, 0).second(), 0);
+    /// assert_eq!(Time::from_hms(23, 59, 59).second(), 59);
     /// ```
-    pub const fn seconds(self) -> u8 {
-        self.seconds
+    pub const fn second(self) -> u8 {
+        self.second
     }
 
-    // TODO rename to `millisecond`?
     /// Return the milliseconds within the second.
     ///
     /// The returned value will always be in the range `0..=1_000`.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms_milli(0, 0, 0, 0).milliseconds(), 0);
-    /// assert_eq!(Time::from_hms_milli(23, 59, 59, 999).milliseconds(), 999);
+    /// assert_eq!(Time::from_hms_milli(0, 0, 0, 0).millisecond(), 0);
+    /// assert_eq!(Time::from_hms_milli(23, 59, 59, 999).millisecond(), 999);
     /// ```
     #[allow(clippy::cast_possible_truncation)]
-    pub const fn milliseconds(self) -> u16 {
-        (self.nanoseconds / 1_000_000) as u16
+    pub const fn millisecond(self) -> u16 {
+        (self.nanosecond() / 1_000_000) as u16
     }
 
-    // TODO rename to `microsecond`?
     /// Return the microseconds within the second.
     ///
     /// The returned value will always be in the range `0..=1_000_000`.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms_micro(0, 0, 0, 0).microseconds(), 0);
-    /// assert_eq!(Time::from_hms_micro(23, 59, 59, 999_999).microseconds(), 999_999);
+    /// assert_eq!(Time::from_hms_micro(0, 0, 0, 0).microsecond(), 0);
+    /// assert_eq!(Time::from_hms_micro(23, 59, 59, 999_999).microsecond(), 999_999);
     /// ```
-    pub const fn microseconds(self) -> u32 {
-        self.nanoseconds / 1_000
+    pub const fn microsecond(self) -> u32 {
+        self.nanosecond() / 1_000
     }
 
-    // TODO rename to `nanosecond`?
     /// Return the nanoseconds within the second.
     ///
     /// The returned value will always be in the range `0..=1_000_000_000`.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms_nano(0, 0, 0, 0).nanoseconds(), 0);
-    /// assert_eq!(Time::from_hms_nano(23, 59, 59, 999_999_999).nanoseconds(), 999_999_999);
+    /// assert_eq!(Time::from_hms_nano(0, 0, 0, 0).nanosecond(), 0);
+    /// assert_eq!(Time::from_hms_nano(23, 59, 59, 999_999_999).nanosecond(), 999_999_999);
     /// ```
-    pub const fn nanoseconds(self) -> u32 {
-        self.nanoseconds
+    pub const fn nanosecond(self) -> u32 {
+        self.nanosecond
     }
 
     /// Return the number of nanoseconds since midnight.
     const fn nanoseconds_since_midnight(self) -> u64 {
-        self.hours as u64 * 60 * 60 * 1_000_000_000
-            + self.minutes as u64 * 60 * 1_000_000_000
-            + self.seconds as u64 * 1_000_000_000
-            + self.nanoseconds as u64
+        self.hour() as u64 * 60 * 60 * 1_000_000_000
+            + self.minute() as u64 * 60 * 1_000_000_000
+            + self.second() as u64 * 1_000_000_000
+            + self.nanosecond() as u64
     }
 
     /// Create a `Time` from the number of nanoseconds since midnight.
-    const fn from_nanoseconds_since_midnight(mut nanoseconds: u64) -> Self {
+    const fn from_nanoseconds_since_midnight(mut nanosecond: u64) -> Self {
         #![allow(clippy::cast_possible_truncation)]
 
-        nanoseconds %= 86_400 * 1_000_000_000;
+        nanosecond %= 86_400 * 1_000_000_000;
 
         Self {
-            hours: (nanoseconds / 1_000_000_000 / 60 / 60) as u8,
-            minutes: (nanoseconds / 1_000_000_000 / 60 % 60) as u8,
-            seconds: (nanoseconds / 1_000_000_000 % 60) as u8,
-            nanoseconds: (nanoseconds % 1_000_000_000) as u32,
+            hour: (nanosecond / 1_000_000_000 / 60 / 60) as u8,
+            minute: (nanosecond / 1_000_000_000 / 60 % 60) as u8,
+            second: (nanosecond / 1_000_000_000 % 60) as u8,
+            nanosecond: (nanosecond % 1_000_000_000) as u32,
         }
     }
 }
