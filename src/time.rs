@@ -14,16 +14,31 @@ const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Time {
     #[allow(clippy::missing_docs_in_private_items)]
-    hours: u8,
+    pub(crate) hours: u8,
     #[allow(clippy::missing_docs_in_private_items)]
-    minutes: u8,
+    pub(crate) minutes: u8,
     #[allow(clippy::missing_docs_in_private_items)]
-    seconds: u8,
+    pub(crate) seconds: u8,
     #[allow(clippy::missing_docs_in_private_items)]
-    nanoseconds: u32,
+    pub(crate) nanoseconds: u32,
 }
 
 impl Time {
+    /// Create a `Time` that is exactly midnight.
+    ///
+    /// ```rust
+    /// # use time::Time;
+    /// assert_eq!(Time::midnight(), Time::from_hms(0, 0, 0));
+    /// ```
+    pub const fn midnight() -> Self {
+        Self {
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+            nanoseconds: 0,
+        }
+    }
+
     /// Create a `Time` from the hour, minute, and second.
     ///
     /// ```rust
@@ -200,6 +215,7 @@ impl Time {
         }
     }
 
+    // TODO rename to `hour`?
     /// Returns the clock hour.
     ///
     /// The returned value will always be in the range `0..=23`.
@@ -213,6 +229,7 @@ impl Time {
         self.hours
     }
 
+    // TODO rename to `minute`?
     /// Returns the minute within the hour.
     ///
     /// The returned value will always be in the range `0..=60`.
@@ -226,6 +243,7 @@ impl Time {
         self.minutes
     }
 
+    // TODO rename to `second`?
     /// Returns the second within the minute.
     ///
     /// The returned value will always be in the range `0..=60`.
@@ -239,6 +257,7 @@ impl Time {
         self.seconds
     }
 
+    // TODO rename to `millisecond`?
     /// Return the milliseconds within the second.
     ///
     /// The returned value will always be in the range `0..=1_000`.
@@ -253,6 +272,7 @@ impl Time {
         (self.nanoseconds / 1_000_000) as u16
     }
 
+    // TODO rename to `microsecond`?
     /// Return the microseconds within the second.
     ///
     /// The returned value will always be in the range `0..=1_000_000`.
@@ -266,6 +286,7 @@ impl Time {
         self.nanoseconds / 1_000
     }
 
+    // TODO rename to `nanosecond`?
     /// Return the nanoseconds within the second.
     ///
     /// The returned value will always be in the range `0..=1_000_000_000`.

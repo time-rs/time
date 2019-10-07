@@ -1,5 +1,6 @@
-use crate::Duration;
 use crate::Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday};
+use crate::{DateTime, Duration, Time};
+use core::cmp::{Ord, Ordering, PartialOrd};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 
 // TODO There are a few instances where we could currently use `const fn`.
@@ -77,13 +78,12 @@ pub fn weeks_in_year(year: i32) -> u8 {
 
 /// ISO 8601 calendar date. All reasonable proleptic Gregorian dates are able to
 /// be stored.
-// TODO implement `PartialOrd`, `Ord`
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
     #[allow(clippy::missing_docs_in_private_items)]
-    year: i32,
+    pub(crate) year: i32,
     #[allow(clippy::missing_docs_in_private_items)]
-    ordinal: u16,
+    pub(crate) ordinal: u16,
 }
 
 impl Date {
@@ -153,12 +153,7 @@ impl Date {
     /// Date::from_iso_ywd(2019, 53, Monday); // 2019 doesn't have 53 weeks.
     /// ```
     pub fn from_iso_ywd(year: i32, week: u8, weekday: Weekday) -> Self {
-        assert!(
-            week <= weeks_in_year(year),
-            "There aren't {} weeks in {}",
-            week,
-            year
-        );
+        assert_value_in_range!(week in 1 => weeks_in_year(year), given year);
 
         let ordinal = week as u16 * 7 + weekday.iso_weekday_number() as u16
             - (Self::from_yo(year, 4).weekday().iso_weekday_number() as u16 + 3);
@@ -173,6 +168,19 @@ impl Date {
         } else {
             Self::from_yo(year, ordinal)
         }
+    }
+
+    /// Get the year of the date.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).year(), 2019);
+    /// assert_eq!(Date::from_ymd(2019, 12, 31).year(), 2019);
+    /// assert_eq!(Date::from_ymd(2020, 1, 1).year(), 2020);
+    /// ```
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn year(self) -> i32 {
+        self.year
     }
 
     /// Get the month of the date. If fetching both the month and day, use
@@ -213,6 +221,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).date(), (1, 1));
     /// assert_eq!(Date::from_ymd(2019, 12, 31).date(), (12, 31));
     /// ```
+    // TODO This needs a better name.
     pub fn date(self) -> (u8, u8) {
         let mut ordinal = self.ordinal;
 
@@ -250,6 +259,15 @@ impl Date {
     }
 
     /// Get the ISO 8601 year and week number.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).iso_year_week(), (2019, 1));
+    /// assert_eq!(Date::from_ymd(2019, 10, 4).iso_year_week(), (2019, 40));
+    /// assert_eq!(Date::from_ymd(2020, 1, 1).iso_year_week(), (2020, 1));
+    /// assert_eq!(Date::from_ymd(2020, 12, 31).iso_year_week(), (2020, 53));
+    /// assert_eq!(Date::from_ymd(2021, 1, 1).iso_year_week(), (2020, 53));
+    /// ```
     pub fn iso_year_week(self) -> (i32, u8) {
         let weekday = self.weekday();
         #[allow(clippy::cast_possible_truncation)]
@@ -447,6 +465,91 @@ impl Date {
     }
 }
 
+/// Methods to add a `Time` component, resulting in a `DateTime`.
+impl Date {
+    /// Create a `DateTime` using the existing date. The `Time` component will
+    /// be set to midnight.
+    ///
+    /// ```rust
+    /// # use time::{Date, DateTime, Time};
+    /// assert_eq!(Date::from_ymd(1970, 1, 1).midnight(), DateTime::unix_epoch());
+    /// ```
+    pub const fn midnight(self) -> DateTime {
+        DateTime::new(self, Time::midnight())
+    }
+
+    /// Create a `DateTime` using the existing date and the provided `Time`.
+    ///
+    /// ```rust
+    /// # use time::{Date, DateTime, Time};
+    /// assert_eq!(
+    ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms(0, 0, 0)),
+    ///     Date::from_ymd(1970, 1, 1).midnight(),
+    /// );
+    /// ```
+    pub const fn with_time(self, time: Time) -> DateTime {
+        DateTime::new(self, time)
+    }
+
+    /// Create a `DateTime` using the existing date and the provided time.
+    ///
+    /// ```rust
+    /// # use time::{Date, DateTime, Time};
+    /// assert_eq!(
+    ///     Date::from_ymd(1970, 1, 1).with_hms(0, 0, 0),
+    ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms(0, 0, 0)),
+    /// );
+    /// ```
+    pub fn with_hms(self, hour: u8, minute: u8, second: u8) -> DateTime {
+        DateTime::new(self, Time::from_hms(hour, minute, second))
+    }
+
+    /// Create a `DateTime` using the existing date and the provided time.
+    ///
+    /// ```rust
+    /// # use time::{Date, DateTime, Time};
+    /// assert_eq!(
+    ///     Date::from_ymd(1970, 1, 1).with_hms_milli(0, 0, 0, 0),
+    ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms_milli(0, 0, 0, 0)),
+    /// );
+    /// ```
+    pub fn with_hms_milli(self, hour: u8, minute: u8, second: u8, millisecond: u16) -> DateTime {
+        DateTime::new(
+            self,
+            Time::from_hms_milli(hour, minute, second, millisecond),
+        )
+    }
+
+    /// Create a `DateTime` using the existing date and the provided time.
+    ///
+    /// ```rust
+    /// # use time::{Date, DateTime, Time};
+    /// assert_eq!(
+    ///     Date::from_ymd(1970, 1, 1).with_hms_micro(0, 0, 0, 0),
+    ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms_micro(0, 0, 0, 0)),
+    /// );
+    /// ```
+    pub fn with_hms_micro(self, hour: u8, minute: u8, second: u8, microsecond: u32) -> DateTime {
+        DateTime::new(
+            self,
+            Time::from_hms_micro(hour, minute, second, microsecond),
+        )
+    }
+
+    /// Create a `DateTime` using the existing date and the provided time.
+    ///
+    /// ```rust
+    /// # use time::{Date, DateTime, Time};
+    /// assert_eq!(
+    ///     Date::from_ymd(1970, 1, 1).with_hms_nano(0, 0, 0, 0),
+    ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms_nano(0, 0, 0, 0)),
+    /// );
+    /// ```
+    pub fn with_hms_nano(self, hour: u8, minute: u8, second: u8, nanosecond: u32) -> DateTime {
+        DateTime::new(self, Time::from_hms_nano(hour, minute, second, nanosecond))
+    }
+}
+
 impl Add<Duration> for Date {
     type Output = Self;
 
@@ -517,6 +620,22 @@ impl Sub<Date> for Date {
     /// ```
     fn sub(self, other: Self) -> Self::Output {
         Duration::days(self.julian_day() - other.julian_day())
+    }
+}
+
+impl PartialOrd for Date {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Date {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match self.year.cmp(&other.year) {
+            Ordering::Less => Ordering::Less,
+            Ordering::Greater => Ordering::Greater,
+            Ordering::Equal => self.ordinal.cmp(&other.ordinal),
+        }
     }
 }
 

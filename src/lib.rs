@@ -88,6 +88,8 @@ macro_rules! assert_value_in_range {
 
 /// The `Date` struct and its associated `impl`s.
 mod date;
+/// The `DateTime` struct and its associated `impl`s.
+mod datetime;
 /// The `Duration` struct and its associated `impl`s.
 mod duration;
 /// The `Instant` struct and its associated `impl`s.
@@ -104,6 +106,7 @@ mod weekday;
 
 pub use self::time::Time;
 pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
+pub use datetime::DateTime;
 pub use duration::Duration;
 #[cfg(feature = "std")]
 pub use instant::Instant;
