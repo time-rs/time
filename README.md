@@ -11,7 +11,7 @@
 ### `#![no_std]`
 
 Currently, all structs except `Instant` are useable wiht `#![no_std]`. As
-support for the standard library is enabled be default, you muse use
+support for the standard library is enabled by default, you muse use
 `default_features = false` in your `Cargo.toml` to enable this.
 
 ```none

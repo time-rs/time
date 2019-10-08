@@ -172,6 +172,17 @@ impl Date {
         }
     }
 
+    /// Create a `Date` representing the current date.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert!(Date::today().year() >= 2019);
+    /// ```
+    #[cfg(feature = "std")]
+    pub fn today() -> Self {
+        DateTime::now().date()
+    }
+
     /// Get the year of the date.
     ///
     /// ```rust

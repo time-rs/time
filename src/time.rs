@@ -1,3 +1,5 @@
+#[cfg(feature = "std")]
+use crate::DateTime;
 use crate::Duration;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 
@@ -214,6 +216,17 @@ impl Time {
             second,
             nanosecond,
         }
+    }
+
+    /// Create a `Time` representing the current time.
+    ///
+    /// ```rust,no_run
+    /// # use time::Time;
+    /// println!("{:?}", Time::now());
+    /// ```
+    #[cfg(feature = "std")]
+    pub fn now() -> Self {
+        DateTime::now().time()
     }
 
     /// Returns the clock hour.
