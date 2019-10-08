@@ -2,6 +2,7 @@
 use crate::DateTime;
 use crate::Duration;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
+use core::time::Duration as StdDuration;
 
 /// The number of nanoseconds in one day.
 const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
@@ -353,6 +354,14 @@ impl Add<Duration> for Time {
     }
 }
 
+impl Add<StdDuration> for Time {
+    type Output = Self;
+
+    fn add(self, duration: StdDuration) -> Self::Output {
+        self + Duration::from(duration)
+    }
+}
+
 impl AddAssign<Duration> for Time {
     /// Add the sub-day time of the `Duration` to the existing `Time`. Wraps on
     /// overflow and underflow.
@@ -373,6 +382,12 @@ impl AddAssign<Duration> for Time {
     }
 }
 
+impl AddAssign<StdDuration> for Time {
+    fn add_assign(&mut self, duration: StdDuration) {
+        *self = *self + duration;
+    }
+}
+
 impl Sub<Duration> for Time {
     type Output = Self;
 
@@ -386,6 +401,14 @@ impl Sub<Duration> for Time {
     /// ```
     fn sub(self, duration: Duration) -> Self::Output {
         self + -duration
+    }
+}
+
+impl Sub<StdDuration> for Time {
+    type Output = Self;
+
+    fn sub(self, duration: StdDuration) -> Self::Output {
+        self - Duration::from(duration)
     }
 }
 
@@ -405,7 +428,13 @@ impl SubAssign<Duration> for Time {
     /// assert_eq!(time, Time::from_hms(0, 0, 1));
     /// ```
     fn sub_assign(&mut self, duration: Duration) {
-        *self = *self - duration
+        *self = *self - duration;
+    }
+}
+
+impl SubAssign<StdDuration> for Time {
+    fn sub_assign(&mut self, duration: StdDuration) {
+        *self = *self - duration;
     }
 }
 
