@@ -2,6 +2,7 @@ use crate::Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, 
 use crate::{DateTime, Duration, Time};
 use core::cmp::{Ord, Ordering, PartialOrd};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
+use core::time::Duration as StdDuration;
 
 // Some methods could be `const fn` due to the internal structure of `Date`, but
 // are explicitly not (and have linting disabled) as it could lead to
@@ -565,6 +566,22 @@ impl Add<Duration> for Date {
     }
 }
 
+impl Add<StdDuration> for Date {
+    type Output = Self;
+
+    /// Add the whole number of days of the `std::time::Duration` to the date.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// # use core::time::Duration;
+    /// assert_eq!(Date::from_ymd(2019, 1, 1) + Duration::from_secs(5 * 86_400), Date::from_ymd(2019, 1, 6));
+    /// assert_eq!(Date::from_ymd(2019, 12, 31) + Duration::from_secs(86_400), Date::from_ymd(2020, 1, 1));
+    /// ```
+    fn add(self, duration: StdDuration) -> Self::Output {
+        Self::from_julian_day(self.julian_day() + Duration::from(duration).whole_days())
+    }
+}
+
 impl AddAssign<Duration> for Date {
     /// Add the whole number of days of the `Duration` to the date.
     ///
@@ -575,6 +592,21 @@ impl AddAssign<Duration> for Date {
     /// assert_eq!(date, Date::from_ymd(2020, 1, 1));
     /// ```
     fn add_assign(&mut self, duration: Duration) {
+        *self = *self + duration;
+    }
+}
+
+impl AddAssign<StdDuration> for Date {
+    /// Add the whole number of days of the `std::time::Duration` to the date.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// # use core::time::Duration;
+    /// let mut date = Date::from_ymd(2019, 12, 31);
+    /// date += Duration::from_secs(86_400);
+    /// assert_eq!(date, Date::from_ymd(2020, 1, 1));
+    /// ```
+    fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
 }
@@ -594,6 +626,22 @@ impl Sub<Duration> for Date {
     }
 }
 
+impl Sub<StdDuration> for Date {
+    type Output = Self;
+
+    /// Subtract the whole number of days of the `std::time::Duration` from the date.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// # use core::time::Duration;
+    /// assert_eq!(Date::from_ymd(2019, 1, 6) - Duration::from_secs(5 * 86_400), Date::from_ymd(2019, 1, 1));
+    /// assert_eq!(Date::from_ymd(2020, 1, 1) - Duration::from_secs(86_400), Date::from_ymd(2019, 12, 31));
+    /// ```
+    fn sub(self, duration: StdDuration) -> Self::Output {
+        self + -Duration::from(duration)
+    }
+}
+
 impl SubAssign<Duration> for Date {
     /// Subtract the whole number of days of the `Duration` from the date.
     ///
@@ -604,6 +652,21 @@ impl SubAssign<Duration> for Date {
     /// assert_eq!(date, Date::from_ymd(2019, 12, 31));
     /// ```
     fn sub_assign(&mut self, duration: Duration) {
+        *self = *self - duration;
+    }
+}
+
+impl SubAssign<StdDuration> for Date {
+    /// Subtract the whole number of days of the `std::time::Duration` from the date.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// # use core::time::Duration;
+    /// let mut date = Date::from_ymd(2020, 1, 1);
+    /// date -= Duration::from_secs(86_400);
+    /// assert_eq!(date, Date::from_ymd(2019, 12, 31));
+    /// ```
+    fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }
 }

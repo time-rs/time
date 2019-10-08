@@ -770,7 +770,11 @@ impl Duration {
 impl From<StdDuration> for Duration {
     fn from(original: StdDuration) -> Self {
         Self {
-            sign: Positive,
+            sign: if original.as_nanos() == 0 {
+                Zero
+            } else {
+                Positive
+            },
             std: original,
         }
     }
@@ -805,8 +809,30 @@ impl Add for Duration {
     }
 }
 
+impl Add<StdDuration> for Duration {
+    type Output = Self;
+
+    fn add(self, std_duration: StdDuration) -> Self::Output {
+        self + Self::from(std_duration)
+    }
+}
+
+impl Add<Duration> for StdDuration {
+    type Output = Duration;
+
+    fn add(self, duration: Duration) -> Self::Output {
+        Duration::from(self) + duration
+    }
+}
+
 impl AddAssign for Duration {
     fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
+impl AddAssign<StdDuration> for Duration {
+    fn add_assign(&mut self, rhs: StdDuration) {
         *self = *self + rhs;
     }
 }
@@ -834,9 +860,43 @@ impl Sub for Duration {
     }
 }
 
+impl Sub<StdDuration> for Duration {
+    type Output = Self;
+
+    fn sub(self, rhs: StdDuration) -> Self::Output {
+        self + Self::from(rhs)
+    }
+}
+
+impl Sub<Duration> for StdDuration {
+    type Output = Duration;
+
+    fn sub(self, rhs: Duration) -> Self::Output {
+        Duration::from(self) + rhs
+    }
+}
+
 impl SubAssign for Duration {
     fn sub_assign(&mut self, rhs: Self) {
         *self = *self - rhs;
+    }
+}
+
+impl SubAssign<StdDuration> for Duration {
+    fn sub_assign(&mut self, rhs: StdDuration) {
+        *self = *self - rhs;
+    }
+}
+
+impl SubAssign<Duration> for StdDuration {
+    /// Panics on underflow.
+    fn sub_assign(&mut self, rhs: Duration) {
+        use core::convert::TryInto;
+
+        *self = (*self - rhs).try_into().expect(
+            "Cannot represent a resulting duration in std. \
+             Try `let x = x - rhs;`, which will change the type.",
+        );
     }
 }
 
@@ -992,15 +1052,55 @@ impl Div<Duration> for Duration {
     }
 }
 
+impl Div<StdDuration> for Duration {
+    type Output = f64;
+
+    fn div(self, rhs: StdDuration) -> Self::Output {
+        self.as_seconds_f64() / rhs.as_secs_f64()
+    }
+}
+
+impl Div<Duration> for StdDuration {
+    type Output = f64;
+
+    fn div(self, rhs: Duration) -> Self::Output {
+        self.as_secs_f64() / rhs.as_seconds_f64()
+    }
+}
+
 impl PartialEq for Duration {
     fn eq(&self, rhs: &Self) -> bool {
         (self.sign == rhs.sign && self.std == rhs.std)
     }
 }
 
+impl PartialEq<StdDuration> for Duration {
+    fn eq(&self, rhs: &StdDuration) -> bool {
+        *self == Self::from(*rhs)
+    }
+}
+
+impl PartialEq<Duration> for StdDuration {
+    fn eq(&self, rhs: &Duration) -> bool {
+        Duration::from(*self) == *rhs
+    }
+}
+
 impl PartialOrd for Duration {
     fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
         Some(self.cmp(rhs))
+    }
+}
+
+impl PartialOrd<StdDuration> for Duration {
+    fn partial_cmp(&self, rhs: &StdDuration) -> Option<Ordering> {
+        self.partial_cmp(&Self::from(*rhs))
+    }
+}
+
+impl PartialOrd<Duration> for StdDuration {
+    fn partial_cmp(&self, rhs: &Duration) -> Option<Ordering> {
+        Duration::from(*self).partial_cmp(rhs)
     }
 }
 

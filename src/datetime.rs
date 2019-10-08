@@ -5,8 +5,9 @@ use core::cmp::Ordering;
 #[cfg(feature = "std")]
 use core::convert::{From, TryFrom};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
+use core::time::Duration as StdDuration;
 #[cfg(feature = "std")]
-use std::time::{Duration as StdDuration, SystemTime};
+use std::time::SystemTime;
 
 /// Combined date and time.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -305,7 +306,37 @@ impl Add<Duration> for DateTime {
     }
 }
 
+#[cfg(feature = "std")]
+impl Add<Duration> for SystemTime {
+    type Output = Self;
+
+    fn add(self, duration: Duration) -> Self::Output {
+        (DateTime::from(self) + duration).into()
+    }
+}
+
+impl Add<StdDuration> for DateTime {
+    type Output = Self;
+
+    fn add(self, duration: StdDuration) -> Self::Output {
+        self + Duration::from(duration)
+    }
+}
+
 impl AddAssign<Duration> for DateTime {
+    fn add_assign(&mut self, duration: Duration) {
+        *self = *self + duration;
+    }
+}
+
+impl AddAssign<StdDuration> for DateTime {
+    fn add_assign(&mut self, duration: StdDuration) {
+        *self = *self + duration;
+    }
+}
+
+#[cfg(feature = "std")]
+impl AddAssign<Duration> for SystemTime {
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
@@ -319,7 +350,37 @@ impl Sub<Duration> for DateTime {
     }
 }
 
+impl Sub<StdDuration> for DateTime {
+    type Output = Self;
+
+    fn sub(self, duration: StdDuration) -> Self::Output {
+        self - Duration::from(duration)
+    }
+}
+
+#[cfg(feature = "std")]
+impl Sub<Duration> for SystemTime {
+    type Output = Self;
+
+    fn sub(self, duration: Duration) -> Self::Output {
+        (DateTime::from(self) - duration).into()
+    }
+}
+
 impl SubAssign<Duration> for DateTime {
+    fn sub_assign(&mut self, duration: Duration) {
+        *self = *self - duration;
+    }
+}
+
+impl SubAssign<StdDuration> for DateTime {
+    fn sub_assign(&mut self, duration: StdDuration) {
+        *self = *self - duration;
+    }
+}
+
+#[cfg(feature = "std")]
+impl SubAssign<Duration> for SystemTime {
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
@@ -333,9 +394,48 @@ impl Sub<DateTime> for DateTime {
     }
 }
 
+#[cfg(feature = "std")]
+impl Sub<SystemTime> for DateTime {
+    type Output = Duration;
+
+    fn sub(self, rhs: SystemTime) -> Self::Output {
+        self - Self::from(rhs)
+    }
+}
+
+#[cfg(feature = "std")]
+impl Sub<DateTime> for SystemTime {
+    type Output = Duration;
+
+    fn sub(self, rhs: DateTime) -> Self::Output {
+        DateTime::from(self) - rhs
+    }
+}
+
 impl PartialOrd for DateTime {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+#[cfg(feature = "std")]
+impl PartialEq<SystemTime> for DateTime {
+    fn eq(&self, rhs: &SystemTime) -> bool {
+        self == &Self::from(*rhs)
+    }
+}
+
+#[cfg(feature = "std")]
+impl PartialEq<DateTime> for SystemTime {
+    fn eq(&self, rhs: &DateTime) -> bool {
+        &DateTime::from(*self) == rhs
+    }
+}
+
+#[cfg(feature = "std")]
+impl PartialOrd<SystemTime> for DateTime {
+    fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
+        self.partial_cmp(&Self::from(*other))
     }
 }
 

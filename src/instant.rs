@@ -127,6 +127,22 @@ impl Sub for Instant {
     }
 }
 
+impl Sub<StdInstant> for Instant {
+    type Output = Duration;
+
+    fn sub(self, other: StdInstant) -> Self::Output {
+        self - Self::from(other)
+    }
+}
+
+impl Sub<Instant> for StdInstant {
+    type Output = Duration;
+
+    fn sub(self, other: Instant) -> Self::Output {
+        Instant::from(self) - other
+    }
+}
+
 impl Add<Duration> for Instant {
     type Output = Self;
 
@@ -136,8 +152,22 @@ impl Add<Duration> for Instant {
     }
 }
 
+impl Add<StdDuration> for Instant {
+    type Output = Self;
+
+    fn add(self, duration: StdDuration) -> Self::Output {
+        self + Duration::from(duration)
+    }
+}
+
 impl AddAssign<Duration> for Instant {
     fn add_assign(&mut self, duration: Duration) {
+        *self = *self + duration;
+    }
+}
+
+impl AddAssign<StdDuration> for Instant {
+    fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
 }
@@ -151,8 +181,22 @@ impl Sub<Duration> for Instant {
     }
 }
 
+impl Sub<StdDuration> for Instant {
+    type Output = Self;
+
+    fn sub(self, duration: StdDuration) -> Self::Output {
+        self - Duration::from(duration)
+    }
+}
+
 impl SubAssign<Duration> for Instant {
     fn sub_assign(&mut self, duration: Duration) {
+        *self = *self - duration;
+    }
+}
+
+impl SubAssign<StdDuration> for Instant {
+    fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }
 }
