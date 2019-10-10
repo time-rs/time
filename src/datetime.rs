@@ -301,8 +301,40 @@ impl DateTime {
 impl Add<Duration> for DateTime {
     type Output = Self;
 
+    /// Add the `Duration` to the `DateTime`.
+    ///
+    /// ```rust
+    /// # use time::{Date, Duration};
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1).midnight() + Duration::days(5),
+    ///     Date::from_ymd(2019, 1, 6).midnight(),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 12, 31).midnight() + Duration::day(),
+    ///     Date::from_ymd(2020, 1, 1).midnight(),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59) + Duration::seconds(2),
+    ///     Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1) + Duration::seconds(-2),
+    ///     Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59),
+    /// );
+    /// ```
     fn add(self, duration: Duration) -> Self::Output {
-        Self::new(self.date + duration, self.time + duration)
+        #[allow(clippy::cast_possible_truncation)]
+        let nanos = self.time.nanoseconds_since_midnight() as i64
+            + (duration.whole_nanoseconds() % 86_400_000_000_000) as i64;
+
+        let date_modifier = if nanos < 0 {
+            -Duration::day()
+        } else if nanos > 86_400_000_000_000 {
+            Duration::day()
+        } else {
+            Duration::zero()
+        };
+        Self::new(self.date + duration + date_modifier, self.time + duration)
     }
 }
 
@@ -310,6 +342,28 @@ impl Add<Duration> for DateTime {
 impl Add<Duration> for SystemTime {
     type Output = Self;
 
+    /// Add the `Duration` to the `SystemTime`.
+    ///
+    /// ```rust
+    /// # use time::{Date, Duration};
+    /// # use std::time::SystemTime;
+    /// assert_eq!(
+    ///     SystemTime::from(Date::from_ymd(2019, 1, 1).midnight()) + Duration::days(5),
+    ///     SystemTime::from(Date::from_ymd(2019, 1, 6).midnight()),
+    /// );
+    /// assert_eq!(
+    ///     SystemTime::from(Date::from_ymd(2019, 12, 31).midnight()) + Duration::day(),
+    ///     SystemTime::from(Date::from_ymd(2020, 1, 1).midnight()),
+    /// );
+    /// assert_eq!(
+    ///     SystemTime::from(Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59)) + Duration::seconds(2),
+    ///     SystemTime::from(Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1)),
+    /// );
+    /// assert_eq!(
+    ///     SystemTime::from(Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1)) + Duration::seconds(-2),
+    ///     SystemTime::from(Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59)),
+    /// );
+    /// ```
     fn add(self, duration: Duration) -> Self::Output {
         (DateTime::from(self) + duration).into()
     }
@@ -318,18 +372,73 @@ impl Add<Duration> for SystemTime {
 impl Add<StdDuration> for DateTime {
     type Output = Self;
 
+    /// Add the `std::time::Duration` to the `DateTime`.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// # use core::time::Duration;
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1).midnight() + Duration::from_secs(5 * 86_400),
+    ///     Date::from_ymd(2019, 1, 6).midnight(),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 12, 31).midnight() + Duration::from_secs(86_400),
+    ///     Date::from_ymd(2020, 1, 1).midnight(),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59) + Duration::from_secs(2),
+    ///     Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1),
+    /// );
+    /// ```
     fn add(self, duration: StdDuration) -> Self::Output {
         self + Duration::from(duration)
     }
 }
 
 impl AddAssign<Duration> for DateTime {
+    /// Add the `Duration` to the `DateTime`.
+    ///
+    /// ```rust
+    /// # use time::{Date, Duration};
+    /// let mut ny19 = Date::from_ymd(2019, 1, 1).midnight();
+    /// ny19 += Duration::days(5);
+    /// assert_eq!(ny19, Date::from_ymd(2019, 1, 6).midnight());
+    ///
+    /// let mut nye20 = Date::from_ymd(2019, 12, 31).midnight();
+    /// nye20 += Duration::day();
+    /// assert_eq!(nye20, Date::from_ymd(2020, 1, 1).midnight());
+    ///
+    /// let mut nye20t = Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59);
+    /// nye20t += Duration::seconds(2);
+    /// assert_eq!(nye20t, Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1));
+    ///
+    /// let mut ny20t = Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1);
+    /// ny20t += Duration::seconds(-2);
+    /// assert_eq!(ny20t, Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59));
+    /// ```
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
 }
 
 impl AddAssign<StdDuration> for DateTime {
+    /// Add the `std::time::Duration` to the `DateTime`.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// # use core::time::Duration;
+    /// let mut ny19 = Date::from_ymd(2019, 1, 1).midnight();
+    /// ny19 += Duration::from_secs(5 * 86_400);
+    /// assert_eq!(ny19, Date::from_ymd(2019, 1, 6).midnight());
+    ///
+    /// let mut nye20 = Date::from_ymd(2019, 12, 31).midnight();
+    /// nye20 += Duration::from_secs(86_400);
+    /// assert_eq!(nye20, Date::from_ymd(2020, 1, 1).midnight());
+    ///
+    /// let mut nye20t = Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59);
+    /// nye20t += Duration::from_secs(2);
+    /// assert_eq!(nye20t, Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1));
+    /// ```
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
@@ -337,6 +446,27 @@ impl AddAssign<StdDuration> for DateTime {
 
 #[cfg(feature = "std")]
 impl AddAssign<Duration> for SystemTime {
+    /// Add the `Duration` to the `SystemTime`.
+    ///
+    /// ```rust
+    /// # use time::{Date, Duration};
+    /// # use std::time::SystemTime;
+    /// let mut ny19 = SystemTime::from(Date::from_ymd(2019, 1, 1).midnight());
+    /// ny19 += Duration::days(5);
+    /// assert_eq!(ny19, Date::from_ymd(2019, 1, 6).midnight());
+    ///
+    /// let mut nye20 = SystemTime::from(Date::from_ymd(2019, 12, 31).midnight());
+    /// nye20 += Duration::day();
+    /// assert_eq!(nye20, Date::from_ymd(2020, 1, 1).midnight());
+    ///
+    /// let mut nye20t = SystemTime::from(Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59));
+    /// nye20t += Duration::seconds(2);
+    /// assert_eq!(nye20t, Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1));
+    ///
+    /// let mut ny20t = SystemTime::from(Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1));
+    /// ny20t += Duration::seconds(-2);
+    /// assert_eq!(ny20t, Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59));
+    /// ```
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
@@ -345,6 +475,27 @@ impl AddAssign<Duration> for SystemTime {
 impl Sub<Duration> for DateTime {
     type Output = Self;
 
+    /// Subtract the `Duration` from the `DateTime`.
+    ///
+    /// ```rust
+    /// # use time::{Date, Duration};
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 6).midnight() - Duration::days(5),
+    ///     Date::from_ymd(2019, 1, 1).midnight(),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2020, 1, 1).midnight() - Duration::day(),
+    ///     Date::from_ymd(2019, 12, 31).midnight(),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1) - Duration::seconds(2),
+    ///     Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59) - Duration::seconds(-2),
+    ///     Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1),
+    /// );
+    /// ```
     fn sub(self, duration: Duration) -> Self::Output {
         self + -duration
     }
@@ -353,6 +504,24 @@ impl Sub<Duration> for DateTime {
 impl Sub<StdDuration> for DateTime {
     type Output = Self;
 
+    /// Subtract the `std::time::Duration` from the `DateTime`.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// # use core::time::Duration;
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 6).midnight() - Duration::from_secs(5 * 86_400),
+    ///     Date::from_ymd(2019, 1, 1).midnight(),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2020, 1, 1).midnight() - Duration::from_secs(86_400),
+    ///     Date::from_ymd(2019, 12, 31).midnight(),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1) - Duration::from_secs(2),
+    ///     Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59),
+    /// );
+    /// ```
     fn sub(self, duration: StdDuration) -> Self::Output {
         self - Duration::from(duration)
     }
@@ -362,18 +531,77 @@ impl Sub<StdDuration> for DateTime {
 impl Sub<Duration> for SystemTime {
     type Output = Self;
 
+    /// Subtract the `Duration` from the `SystemTime`.
+    ///
+    /// ```rust
+    /// # use time::{Date, Duration};
+    /// # use std::time::SystemTime;
+    /// assert_eq!(
+    ///     SystemTime::from(Date::from_ymd(2019, 1, 6).midnight()) - Duration::days(5),
+    ///     SystemTime::from(Date::from_ymd(2019, 1, 1).midnight()),
+    /// );
+    /// assert_eq!(
+    ///     SystemTime::from(Date::from_ymd(2020, 1, 1).midnight()) - Duration::day(),
+    ///     SystemTime::from(Date::from_ymd(2019, 12, 31).midnight()),
+    /// );
+    /// assert_eq!(
+    ///     SystemTime::from(Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1)) - Duration::seconds(2),
+    ///     SystemTime::from(Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59)),
+    /// );
+    /// assert_eq!(
+    ///     SystemTime::from(Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59)) - Duration::seconds(-2),
+    ///     SystemTime::from(Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1)),
+    /// );
+    /// ```
     fn sub(self, duration: Duration) -> Self::Output {
         (DateTime::from(self) - duration).into()
     }
 }
 
 impl SubAssign<Duration> for DateTime {
+    /// Subtract the `Duration` from the `DateTime`.
+    ///
+    /// ```rust
+    /// # use time::{Date, Duration};
+    /// let mut ny19 = Date::from_ymd(2019, 1, 6).midnight();
+    /// ny19 -= Duration::days(5);
+    /// assert_eq!(ny19, Date::from_ymd(2019, 1, 1).midnight());
+    ///
+    /// let mut ny20 = Date::from_ymd(2020, 1, 1).midnight();
+    /// ny20 -= Duration::day();
+    /// assert_eq!(ny20, Date::from_ymd(2019, 12, 31).midnight());
+    ///
+    /// let mut ny20t = Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1);
+    /// ny20t -= Duration::seconds(2);
+    /// assert_eq!(ny20t, Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59));
+    ///
+    /// let mut nye20t = Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59);
+    /// nye20t -= Duration::seconds(-2);
+    /// assert_eq!(nye20t, Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1));
+    /// ```
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
 }
 
 impl SubAssign<StdDuration> for DateTime {
+    /// Subtract the `std::time::Duration` from the `DateTime`.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// # use core::time::Duration;
+    /// let mut ny19 = Date::from_ymd(2019, 1, 6).midnight();
+    /// ny19 -= Duration::from_secs(5 * 86_400);
+    /// assert_eq!(ny19, Date::from_ymd(2019, 1, 1).midnight());
+    ///
+    /// let mut ny20 = Date::from_ymd(2020, 1, 1).midnight();
+    /// ny20 -= Duration::from_secs(86_400);
+    /// assert_eq!(ny20, Date::from_ymd(2019, 12, 31).midnight());
+    ///
+    /// let mut ny20t = Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1);
+    /// ny20t -= Duration::from_secs(2);
+    /// assert_eq!(ny20t, Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59));
+    /// ```
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }
@@ -381,6 +609,27 @@ impl SubAssign<StdDuration> for DateTime {
 
 #[cfg(feature = "std")]
 impl SubAssign<Duration> for SystemTime {
+    /// Subtract the `Duration` from the `SystemTime`.
+    ///
+    /// ```rust
+    /// # use time::{Date, Duration};
+    /// # use std::time::SystemTime;
+    /// let mut ny19 = SystemTime::from(Date::from_ymd(2019, 1, 6).midnight());
+    /// ny19 -= Duration::days(5);
+    /// assert_eq!(ny19, Date::from_ymd(2019, 1, 1).midnight());
+    ///
+    /// let mut ny20 = SystemTime::from(Date::from_ymd(2020, 1, 1).midnight());
+    /// ny20 -= Duration::day();
+    /// assert_eq!(ny20, Date::from_ymd(2019, 12, 31).midnight());
+    ///
+    /// let mut ny20t = SystemTime::from(Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1));
+    /// ny20t -= Duration::seconds(2);
+    /// assert_eq!(ny20t, Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59));
+    ///
+    /// let mut nye20t = SystemTime::from(Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59));
+    /// nye20t -= Duration::seconds(-2);
+    /// assert_eq!(nye20t, Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1));
+    /// ```
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
@@ -389,6 +638,15 @@ impl SubAssign<Duration> for SystemTime {
 impl Sub<DateTime> for DateTime {
     type Output = Duration;
 
+    /// Find the `Duration` between two `DateTime`s.
+    ///
+    /// ```rust
+    /// # use time::{Date, Duration};
+    /// assert_eq!(Date::from_ymd(2019, 1, 2).midnight() - Date::from_ymd(2019, 1, 1).midnight(), Duration::day());
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight() - Date::from_ymd(2019, 1, 2).midnight(), -Duration::day());
+    /// assert_eq!(Date::from_ymd(2020, 1, 1).midnight() - Date::from_ymd(2019, 12, 31).midnight(), Duration::day());
+    /// assert_eq!(Date::from_ymd(2019, 12, 31).midnight() - Date::from_ymd(2020, 1, 1).midnight(), -Duration::day());
+    /// ```
     fn sub(self, rhs: Self) -> Self::Output {
         (self.date - rhs.date) + (self.time - rhs.time)
     }
@@ -398,6 +656,16 @@ impl Sub<DateTime> for DateTime {
 impl Sub<SystemTime> for DateTime {
     type Output = Duration;
 
+    /// Find the `Duration` between a `DateTime` and a `SystemTime.
+    ///
+    /// ```rust
+    /// # use time::{Date, Duration};
+    /// # use std::time::SystemTime;
+    /// assert_eq!(SystemTime::from(Date::from_ymd(2019, 1, 2).midnight()) - Date::from_ymd(2019, 1, 1).midnight(), Duration::day());
+    /// assert_eq!(SystemTime::from(Date::from_ymd(2019, 1, 1).midnight()) - Date::from_ymd(2019, 1, 2).midnight(), -Duration::day());
+    /// assert_eq!(SystemTime::from(Date::from_ymd(2020, 1, 1).midnight()) - Date::from_ymd(2019, 12, 31).midnight(), Duration::day());
+    /// assert_eq!(SystemTime::from(Date::from_ymd(2019, 12, 31).midnight()) - Date::from_ymd(2020, 1, 1).midnight(), -Duration::day());
+    /// ```
     fn sub(self, rhs: SystemTime) -> Self::Output {
         self - Self::from(rhs)
     }
@@ -407,12 +675,43 @@ impl Sub<SystemTime> for DateTime {
 impl Sub<DateTime> for SystemTime {
     type Output = Duration;
 
+    /// Find the `Duration` between a `SystemTime` and a `DateTime`.
+    ///
+    /// ```rust
+    /// # use time::{Date, Duration};
+    /// # use std::time::SystemTime;
+    /// assert_eq!(Date::from_ymd(2019, 1, 2).midnight() - SystemTime::from(Date::from_ymd(2019, 1, 1).midnight()), Duration::day());
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight() - SystemTime::from(Date::from_ymd(2019, 1, 2).midnight()), -Duration::day());
+    /// assert_eq!(Date::from_ymd(2020, 1, 1).midnight() - SystemTime::from(Date::from_ymd(2019, 12, 31).midnight()), Duration::day());
+    /// assert_eq!(Date::from_ymd(2019, 12, 31).midnight() - SystemTime::from(Date::from_ymd(2020, 1, 1).midnight()), -Duration::day());
+    /// ```
     fn sub(self, rhs: DateTime) -> Self::Output {
         DateTime::from(self) - rhs
     }
 }
 
 impl PartialOrd for DateTime {
+    /// Returns the ordering between `self` and `other`.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// # use core::cmp::Ordering;
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().partial_cmp(&Date::from_ymd(2019, 1, 1).midnight()), Some(Ordering::Equal));
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().partial_cmp(&Date::from_ymd(2020, 1, 1).midnight()), Some(Ordering::Less));
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().partial_cmp(&Date::from_ymd(2019, 2, 1).midnight()), Some(Ordering::Less));
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().partial_cmp(&Date::from_ymd(2019, 1, 2).midnight()), Some(Ordering::Less));
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().partial_cmp(&Date::from_ymd(2019, 1, 1).with_hms(1, 0, 0)), Some(Ordering::Less));
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().partial_cmp(&Date::from_ymd(2019, 1, 1).with_hms(0, 1, 0)), Some(Ordering::Less));
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().partial_cmp(&Date::from_ymd(2019, 1, 1).with_hms(0, 0, 1)), Some(Ordering::Less));
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().partial_cmp(&Date::from_ymd(2019, 1, 1).with_hms_nano(0, 0, 0, 1)), Some(Ordering::Less));
+    /// assert_eq!(Date::from_ymd(2020, 1, 1).midnight().partial_cmp(&Date::from_ymd(2019, 1, 1).midnight()), Some(Ordering::Greater));
+    /// assert_eq!(Date::from_ymd(2019, 2, 1).midnight().partial_cmp(&Date::from_ymd(2019, 1, 1).midnight()), Some(Ordering::Greater));
+    /// assert_eq!(Date::from_ymd(2019, 1, 2).midnight().partial_cmp(&Date::from_ymd(2019, 1, 1).midnight()), Some(Ordering::Greater));
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms(1, 0, 0).partial_cmp(&Date::from_ymd(2019, 1, 1).midnight()), Some(Ordering::Greater));
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms(0, 1, 0).partial_cmp(&Date::from_ymd(2019, 1, 1).midnight()), Some(Ordering::Greater));
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms(0, 0, 1).partial_cmp(&Date::from_ymd(2019, 1, 1).midnight()), Some(Ordering::Greater));
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms_nano(0, 0, 0, 1).partial_cmp(&Date::from_ymd(2019, 1, 1).midnight()), Some(Ordering::Greater));
+    /// ```
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -420,6 +719,15 @@ impl PartialOrd for DateTime {
 
 #[cfg(feature = "std")]
 impl PartialEq<SystemTime> for DateTime {
+    /// Check for equality between a `DateTime` and `SystemTime`.
+    ///
+    /// ```rust
+    /// # use time::DateTime;
+    /// # use std::time::SystemTime;
+    /// let now_datetime = DateTime::now();
+    /// let now_systemtime = SystemTime::from(now_datetime);
+    /// assert_eq!(now_datetime, now_systemtime);
+    /// ```
     fn eq(&self, rhs: &SystemTime) -> bool {
         self == &Self::from(*rhs)
     }
@@ -427,6 +735,15 @@ impl PartialEq<SystemTime> for DateTime {
 
 #[cfg(feature = "std")]
 impl PartialEq<DateTime> for SystemTime {
+    /// Check for equality between a `SystemTime` and `DateTime`.
+    ///
+    /// ```rust
+    /// # use time::DateTime;
+    /// # use std::time::SystemTime;
+    /// let now_datetime = DateTime::now();
+    /// let now_systemtime = SystemTime::from(now_datetime);
+    /// assert_eq!(now_datetime, now_systemtime);
+    /// ```
     fn eq(&self, rhs: &DateTime) -> bool {
         &DateTime::from(*self) == rhs
     }
@@ -434,12 +751,52 @@ impl PartialEq<DateTime> for SystemTime {
 
 #[cfg(feature = "std")]
 impl PartialOrd<SystemTime> for DateTime {
+    /// Returns the ordering between `self` and `other`.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight(), Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2020, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2019, 2, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2019, 1, 2).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2019, 1, 1).with_hms(1, 0, 0));
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2019, 1, 1).with_hms(0, 1, 0));
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2019, 1, 1).with_hms(0, 0, 1));
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2019, 1, 1).with_hms_nano(0, 0, 0, 1));
+    /// assert!(Date::from_ymd(2020, 1, 1).midnight() > Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 2, 1).midnight() > Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 2).midnight() > Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).with_hms(1, 0, 0) > Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).with_hms(0, 1, 0) > Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).with_hms(0, 0, 1) > Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).with_hms_nano(0, 0, 0, 1) > Date::from_ymd(2019, 1, 1).midnight());
+    /// ```
     fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
         self.partial_cmp(&Self::from(*other))
     }
 }
 
 impl Ord for DateTime {
+    /// Returns the ordering between `self` and `other`.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight(), Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2020, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2019, 2, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2019, 1, 2).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2019, 1, 1).with_hms(1, 0, 0));
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2019, 1, 1).with_hms(0, 1, 0));
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2019, 1, 1).with_hms(0, 0, 1));
+    /// assert!(Date::from_ymd(2019, 1, 1).midnight() < Date::from_ymd(2019, 1, 1).with_hms_nano(0, 0, 0, 1));
+    /// assert!(Date::from_ymd(2020, 1, 1).midnight() > Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 2, 1).midnight() > Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 2).midnight() > Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).with_hms(1, 0, 0) > Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).with_hms(0, 1, 0) > Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).with_hms(0, 0, 1) > Date::from_ymd(2019, 1, 1).midnight());
+    /// assert!(Date::from_ymd(2019, 1, 1).with_hms_nano(0, 0, 0, 1) > Date::from_ymd(2019, 1, 1).midnight());
+    /// ```
     fn cmp(&self, other: &Self) -> Ordering {
         match self.date.cmp(&other.date) {
             Ordering::Equal => match self.time.hour.cmp(&other.time.hour) {
@@ -489,7 +846,6 @@ impl From<DateTime> for SystemTime {
     fn from(datetime: DateTime) -> Self {
         let duration = datetime - DateTime::unix_epoch();
 
-        // TODO Rewrite once `SystemTime + time::Duration` is implemented.
         match duration.sign() {
             Sign::Positive => Self::UNIX_EPOCH + StdDuration::try_from(duration).unwrap(),
             Sign::Negative => Self::UNIX_EPOCH + StdDuration::try_from(-duration).unwrap(),

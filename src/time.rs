@@ -5,7 +5,7 @@ use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 
 /// The number of nanoseconds in one day.
-const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
+pub(crate) const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
 
 /// The clock time within a given date. Nanosecond precision.
 ///
@@ -310,7 +310,7 @@ impl Time {
     }
 
     /// Return the number of nanoseconds since midnight.
-    const fn nanoseconds_since_midnight(self) -> u64 {
+    pub(crate) const fn nanoseconds_since_midnight(self) -> u64 {
         self.hour() as u64 * 60 * 60 * 1_000_000_000
             + self.minute() as u64 * 60 * 1_000_000_000
             + self.second() as u64 * 1_000_000_000
@@ -318,7 +318,7 @@ impl Time {
     }
 
     /// Create a `Time` from the number of nanoseconds since midnight.
-    const fn from_nanoseconds_since_midnight(mut nanosecond: u64) -> Self {
+    pub(crate) const fn from_nanoseconds_since_midnight(mut nanosecond: u64) -> Self {
         #![allow(clippy::cast_possible_truncation)]
 
         nanosecond %= 86_400 * 1_000_000_000;
@@ -357,6 +357,15 @@ impl Add<Duration> for Time {
 impl Add<StdDuration> for Time {
     type Output = Self;
 
+    /// Add the sub-day time of the `std::time::Duration` to the `Time`. Wraps
+    /// on overflow and underflow.
+    ///
+    /// ```rust
+    /// # use time::Time;
+    /// # use core::time::Duration;
+    /// assert_eq!(Time::from_hms(12, 0, 0) + Duration::from_secs(2 * 3_600), Time::from_hms(14, 0, 0));
+    /// assert_eq!(Time::from_hms(23, 59, 59) + Duration::from_secs(2), Time::from_hms(0, 0, 1));
+    /// ```
     fn add(self, duration: StdDuration) -> Self::Output {
         self + Duration::from(duration)
     }
@@ -368,7 +377,6 @@ impl AddAssign<Duration> for Time {
     ///
     /// ```rust
     /// # use time::{Duration, Time};
-    ///
     /// let mut time = Time::from_hms(12, 0, 0);
     /// time += Duration::hours(2);
     /// assert_eq!(time, Time::from_hms(14, 0, 0));
@@ -383,6 +391,20 @@ impl AddAssign<Duration> for Time {
 }
 
 impl AddAssign<StdDuration> for Time {
+    /// Add the sub-day time of the `std::time::Duration` to the existing
+    /// `Time`. Wraps on overflow and underflow.
+    ///
+    /// ```rust
+    /// # use time::Time;
+    /// # use core::time::Duration;
+    /// let mut time = Time::from_hms(12, 0, 0);
+    /// time += Duration::from_secs(2 * 3_600);
+    /// assert_eq!(time, Time::from_hms(14, 0, 0));
+    ///
+    /// let mut time = Time::from_hms(23, 59, 59);
+    /// time += Duration::from_secs(2);
+    /// assert_eq!(time, Time::from_hms(0, 0, 1));
+    /// ```
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
@@ -407,18 +429,26 @@ impl Sub<Duration> for Time {
 impl Sub<StdDuration> for Time {
     type Output = Self;
 
+    /// Subtract the sub-day time of the `std::time::Duration` from the `Time`.
+    /// Wraps on overflow and underflow.
+    ///
+    /// ```rust
+    /// # use time::Time;
+    /// # use core::time::Duration;
+    /// assert_eq!(Time::from_hms(14, 0, 0) - Duration::from_secs(2 * 3_600), Time::from_hms(12, 0, 0));
+    /// assert_eq!(Time::from_hms(0, 0, 1) - Duration::from_secs(2), Time::from_hms(23, 59, 59));
+    /// ```
     fn sub(self, duration: StdDuration) -> Self::Output {
         self - Duration::from(duration)
     }
 }
 
 impl SubAssign<Duration> for Time {
-    /// Subtract the sub-day time of the `Duration` fromthe existing `Time`.
+    /// Subtract the sub-day time of the `Duration` from the existing `Time`.
     /// Wraps on overflow and underflow.
     ///
     /// ```rust
     /// # use time::{Duration, Time};
-    ///
     /// let mut time = Time::from_hms(14, 0, 0);
     /// time -= Duration::hours(2);
     /// assert_eq!(time, Time::from_hms(12, 0, 0));
@@ -433,6 +463,20 @@ impl SubAssign<Duration> for Time {
 }
 
 impl SubAssign<StdDuration> for Time {
+    /// Subtract the sub-day time of the `std::time::Duration` from the existing
+    /// `Time`. Wraps on overflow and underflow.
+    ///
+    /// ```rust
+    /// # use time::Time;
+    /// # use core::time::Duration;
+    /// let mut time = Time::from_hms(14, 0, 0);
+    /// time -= Duration::from_secs(2 * 3_600);
+    /// assert_eq!(time, Time::from_hms(12, 0, 0));
+    ///
+    /// let mut time = Time::from_hms(0, 0, 1);
+    /// time -= Duration::from_secs(2);
+    /// assert_eq!(time, Time::from_hms(23, 59, 59));
+    /// ```
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }
@@ -446,7 +490,6 @@ impl Sub<Time> for Time {
     ///
     /// ```rust
     /// use time::{Duration, Time};
-    ///
     /// assert_eq!(Time::from_hms(0, 0, 0) - Time::from_hms(0, 0, 0), Duration::zero());
     /// assert_eq!(Time::from_hms(1, 0, 0) - Time::from_hms(0, 0, 0), Duration::hour());
     /// assert_eq!(Time::from_hms(0, 0, 0) - Time::from_hms(1, 0, 0), Duration::hours(-1));

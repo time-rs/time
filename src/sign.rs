@@ -4,13 +4,11 @@ use Sign::{Negative, Positive, Unknown, Zero};
 
 /// Contains the sign of a value: positive, negative, zero, or unknown.
 ///
-/// `Unknown` is a valid value in some situations, but is not used in
-/// `Duration`.
-///
-/// For ease of use, `Sign` implements [`Mul`] and [`Div`] on all signed numeric
-/// types. Where the value is `Unknown`, the sign of the value is left
-/// unchanged. `Sign`s can also be multiplied and divided by another `Sign`,
-/// which follows the same rules as real numbers.
+/// For ease of use, `Sign` implements [`Mul`](core::ops::Mul) and
+/// [`Div`](core::ops::Div) on all signed numeric types. Where the value is
+/// `Unknown`, the sign of the value is left unchanged. `Sign`s can also be
+/// multiplied and divided by another `Sign`, which follows the same rules as
+/// real numbers.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Sign {
@@ -28,6 +26,12 @@ pub enum Sign {
 }
 
 impl Default for Sign {
+    /// `Sign` defaults to `Unknown`.
+    ///
+    /// ```rust
+    /// # use time::Sign;
+    /// assert_eq!(Sign::default(), Sign::Unknown);
+    /// ```
     fn default() -> Self {
         Unknown
     }
@@ -96,14 +100,41 @@ impl Mul<Sign> for Sign {
 
     /// Multiplying signs follows how signs interact with real numbers.
     ///
-    /// - If either side is `Sign::Unknown`, the result is `Sign::Unknown`.
     /// - If either side is `Sign::Zero`, the result is `Sign::Zero`.
+    /// - If either side is `Sign::Unknown`, the result is `Sign::Unknown`.
     /// - If the left and right are the same, the result is `Sign::Positive`.
     /// - Otherwise, the result is `Sign::Negative`.
+    ///
+    /// |          | Negative | Zero | Positive | Unknown |
+    /// |----------|----------|------|----------|---------|
+    /// | Negative | Positive | Zero | Negative | Unknown |
+    /// | Zero     | Zero     | Zero | Zero     | Zero    |
+    /// | Positive | Negative | Zero | Positive | Unknown |
+    /// | Unknown  | Unknown  | Zero | Unknown  | Unknown |
+    ///
+    /// ```rust
+    /// # use time::Sign::*;
+    /// assert_eq!(Unknown * Positive, Unknown);
+    /// assert_eq!(Unknown * Negative, Unknown);
+    /// assert_eq!(Unknown * Zero, Zero);
+    /// assert_eq!(Unknown * Unknown, Unknown);
+    /// assert_eq!(Positive * Unknown, Unknown);
+    /// assert_eq!(Negative * Unknown, Unknown);
+    /// assert_eq!(Zero * Unknown, Zero);
+    /// assert_eq!(Zero * Positive, Zero);
+    /// assert_eq!(Zero * Negative, Zero);
+    /// assert_eq!(Zero * Zero, Zero);
+    /// assert_eq!(Positive * Zero, Zero);
+    /// assert_eq!(Negative * Zero, Zero);
+    /// assert_eq!(Positive * Positive, Positive);
+    /// assert_eq!(Positive * Negative, Negative);
+    /// assert_eq!(Negative * Positive, Negative);
+    /// assert_eq!(Negative * Negative, Positive);
+    /// ```
     fn mul(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
-            (Unknown, _) | (_, Unknown) => Unknown,
             (Zero, _) | (_, Zero) => Zero,
+            (Unknown, _) | (_, Unknown) => Unknown,
             (Positive, Positive) | (Negative, Negative) => Positive,
             (Positive, Negative) | (Negative, Positive) => Negative,
         }
@@ -111,23 +142,99 @@ impl Mul<Sign> for Sign {
 }
 
 impl MulAssign<Sign> for Sign {
-    /// Negate the sign if `rhs == Sign::Negative`
+    /// Multiplying signs follows how signs interact with real numbers.
+    ///
+    /// ```rust
+    /// # use time::Sign::*;
+    /// let mut sign = Positive;
+    /// sign *= Positive;
+    /// assert_eq!(sign, Positive);
+    /// sign *= Negative;
+    /// assert_eq!(sign, Negative);
+    /// sign *= Positive;
+    /// assert_eq!(sign, Negative);
+    /// sign *= Negative;
+    /// assert_eq!(sign, Positive);
+    /// sign *= Unknown;
+    /// assert_eq!(sign, Unknown);
+    /// sign *= Positive;
+    /// assert_eq!(sign, Unknown);
+    /// sign *= Negative;
+    /// assert_eq!(sign, Unknown);
+    /// sign *= Zero;
+    /// assert_eq!(sign, Zero);
+    /// sign *= Positive;
+    /// assert_eq!(sign, Zero);
+    /// sign *= Negative;
+    /// assert_eq!(sign, Zero);
+    /// ```
     fn mul_assign(&mut self, rhs: Self) {
-        if rhs.is_negative() {
-            *self = *self * rhs;
-        }
+        *self = *self * rhs;
     }
 }
 
 impl Div<Sign> for Sign {
     type Output = Self;
 
+    /// Dividing signs follows how signs interact with real numbers.
+    ///
+    /// |          | Negative | Zero | Positive | Unknown |
+    /// |----------|----------|------|----------|---------|
+    /// | Negative | Positive | Zero | Negative | Unknown |
+    /// | Zero     | Zero     | Zero | Zero     | Zero    |
+    /// | Positive | Negative | Zero | Positive | Unknown |
+    /// | Unknown  | Unknown  | Zero | Unknown  | Unknown |
+    /// ```rust
+    /// # use time::Sign::*;
+    /// assert_eq!(Unknown / Positive, Unknown);
+    /// assert_eq!(Unknown / Negative, Unknown);
+    /// assert_eq!(Unknown / Zero, Zero);
+    /// assert_eq!(Unknown / Unknown, Unknown);
+    /// assert_eq!(Positive / Unknown, Unknown);
+    /// assert_eq!(Negative / Unknown, Unknown);
+    /// assert_eq!(Zero / Unknown, Zero);
+    /// assert_eq!(Zero / Positive, Zero);
+    /// assert_eq!(Zero / Negative, Zero);
+    /// assert_eq!(Zero / Zero, Zero);
+    /// assert_eq!(Positive / Zero, Zero);
+    /// assert_eq!(Negative / Zero, Zero);
+    /// assert_eq!(Positive / Positive, Positive);
+    /// assert_eq!(Positive / Negative, Negative);
+    /// assert_eq!(Negative / Positive, Negative);
+    /// assert_eq!(Negative / Negative, Positive);
+    /// ```
     fn div(self, rhs: Self) -> Self::Output {
         self * rhs
     }
 }
 
 impl DivAssign<Sign> for Sign {
+    /// Dividing signs follows how signs interact with real numbers.
+    ///
+    /// ```rust
+    /// # use time::Sign::*;
+    /// let mut sign = Positive;
+    /// sign /= Positive;
+    /// assert_eq!(sign, Positive);
+    /// sign /= Negative;
+    /// assert_eq!(sign, Negative);
+    /// sign /= Positive;
+    /// assert_eq!(sign, Negative);
+    /// sign /= Negative;
+    /// assert_eq!(sign, Positive);
+    /// sign /= Unknown;
+    /// assert_eq!(sign, Unknown);
+    /// sign /= Positive;
+    /// assert_eq!(sign, Unknown);
+    /// sign /= Negative;
+    /// assert_eq!(sign, Unknown);
+    /// sign /= Zero;
+    /// assert_eq!(sign, Zero);
+    /// sign /= Positive;
+    /// assert_eq!(sign, Zero);
+    /// sign /= Negative;
+    /// assert_eq!(sign, Zero);
+    /// ```
     fn div_assign(&mut self, rhs: Self) {
         *self *= rhs
     }

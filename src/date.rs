@@ -77,14 +77,21 @@ pub fn weeks_in_year(year: i32) -> u8 {
     }
 }
 
-/// Calendar date. All reasonable proleptic Gregorian dates are able to be
-/// stored.
+/// Calendar date.
+///
+/// Years between `-100_000` and `+100_000` inclusive are guaranteed to be
+/// representable. Any values outside this range may have incidental support
+/// that can change at any time without notice. If you need support outside this
+/// range, please file an issue with your use case.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
     #[allow(clippy::missing_docs_in_private_items)]
     pub(crate) year: i32,
-    #[allow(clippy::missing_docs_in_private_items)]
+    /// The day of the year.
+    ///
+    /// - 1 January => 1
+    /// - 31 December => 365/366
     pub(crate) ordinal: u16,
 }
 
@@ -685,7 +692,7 @@ impl SubAssign<StdDuration> for Date {
 impl Sub<Date> for Date {
     type Output = Duration;
 
-    /// Subtrace two `Date`s, returning the number of days between.
+    /// Subtract two `Date`s, returning the number of days between.
     ///
     /// ```rust
     /// # use time::{Date, Duration};
@@ -698,12 +705,36 @@ impl Sub<Date> for Date {
 }
 
 impl PartialOrd for Date {
+    /// Returns the ordering between `self` and `other`.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// # use core::cmp::Ordering;
+    /// let first = Date::from_ymd(2019, 1, 1);
+    /// let second = Date::from_ymd(2019, 1, 2);
+    ///
+    /// assert_eq!(first.partial_cmp(&first), Some(Ordering::Equal));
+    /// assert_eq!(first.partial_cmp(&second), Some(Ordering::Less));
+    /// assert_eq!(second.partial_cmp(&first), Some(Ordering::Greater));
+    /// ```
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
 impl Ord for Date {
+    /// Returns the ordering between `self` and `other`.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// # use core::cmp::Ordering;
+    /// let first = Date::from_ymd(2019, 1, 1);
+    /// let second = Date::from_ymd(2019, 1, 2);
+    ///
+    /// assert_eq!(first.cmp(&first), Ordering::Equal);
+    /// assert_eq!(first.cmp(&second), Ordering::Less);
+    /// assert_eq!(second.cmp(&first), Ordering::Greater);
+    /// ```
     fn cmp(&self, other: &Self) -> Ordering {
         match self.year.cmp(&other.year) {
             Ordering::Less => Ordering::Less,
@@ -742,5 +773,36 @@ mod test {
                 }
             );
         }
+    }
+
+    #[test]
+    fn test_days_in_year_month() {
+        // Common year
+        assert_eq!(days_in_year_month(2019, 1), 31);
+        assert_eq!(days_in_year_month(2019, 2), 28);
+        assert_eq!(days_in_year_month(2019, 3), 31);
+        assert_eq!(days_in_year_month(2019, 4), 30);
+        assert_eq!(days_in_year_month(2019, 5), 31);
+        assert_eq!(days_in_year_month(2019, 6), 30);
+        assert_eq!(days_in_year_month(2019, 7), 31);
+        assert_eq!(days_in_year_month(2019, 8), 31);
+        assert_eq!(days_in_year_month(2019, 9), 30);
+        assert_eq!(days_in_year_month(2019, 10), 31);
+        assert_eq!(days_in_year_month(2019, 11), 30);
+        assert_eq!(days_in_year_month(2019, 12), 31);
+
+        // Leap year
+        assert_eq!(days_in_year_month(2020, 1), 31);
+        assert_eq!(days_in_year_month(2020, 2), 29);
+        assert_eq!(days_in_year_month(2020, 3), 31);
+        assert_eq!(days_in_year_month(2020, 4), 30);
+        assert_eq!(days_in_year_month(2020, 5), 31);
+        assert_eq!(days_in_year_month(2020, 6), 30);
+        assert_eq!(days_in_year_month(2020, 7), 31);
+        assert_eq!(days_in_year_month(2020, 8), 31);
+        assert_eq!(days_in_year_month(2020, 9), 30);
+        assert_eq!(days_in_year_month(2020, 10), 31);
+        assert_eq!(days_in_year_month(2020, 11), 30);
+        assert_eq!(days_in_year_month(2020, 12), 31);
     }
 }
