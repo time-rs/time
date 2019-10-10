@@ -125,6 +125,8 @@ mod duration;
 /// The `Instant` struct and its associated `impl`s.
 #[cfg(feature = "std")]
 mod instant;
+/// A collection of traits extending built-in numerical types.
+mod numerical_traits;
 /// Ensure certain methods are present on all types.
 mod shim;
 /// The `Sign` struct and its associated `impl`s.
@@ -140,9 +142,23 @@ pub use datetime::DateTime;
 pub use duration::Duration;
 #[cfg(feature = "std")]
 pub use instant::Instant;
+pub use numerical_traits::NumericalDuration;
 pub(crate) use shim::NumberExt;
 pub use sign::Sign;
 pub use weekday::Weekday;
+
+/// A collection of traits (and possibly types, enums, etc.) that are useful to
+/// import. Unlike the standard library, this must be explicitly included.
+///
+/// ```rust
+/// use time::prelude::*;
+/// ```
+///
+/// The prelude may grow in minor releases. Any removals will only occur in
+/// major releases.
+pub mod prelude {
+    pub use crate::NumericalDuration;
+}
 
 // For some back-compatibility, we're also implementing some deprecated methods.
 
