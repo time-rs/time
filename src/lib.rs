@@ -133,8 +133,8 @@ mod shim;
 mod sign;
 /// The `Time` struct and its associated `impl`s.
 mod time;
-/// The `TimeZone` struct and its associated `impl`s.
-mod time_zone;
+/// The `UtcOffset` struct and its associated `impl`s.
+mod utc_offset;
 /// Days of the week.
 mod weekday;
 
@@ -148,7 +148,7 @@ pub use instant::Instant;
 pub use numerical_traits::NumericalDuration;
 pub(crate) use shim::NumberExt;
 pub use sign::Sign;
-pub use time_zone::TimeZone;
+pub use utc_offset::UtcOffset;
 pub use weekday::Weekday;
 
 /// A collection of traits (and possibly types, enums, etc.) that are useful to
