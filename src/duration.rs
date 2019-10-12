@@ -1,7 +1,7 @@
 #[cfg(feature = "std")]
 use crate::Instant;
-use crate::NumberExt;
 use crate::Sign::{self, Negative, Positive, Unknown, Zero};
+use crate::{NumberExt, OutOfRangeError};
 use core::cmp::Ordering::{self, Equal, Greater, Less};
 use core::convert::{From, TryFrom};
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
@@ -757,7 +757,7 @@ impl Duration {
         since = "0.2.0",
         note = "Use `Duration::from(value)` or `value.into()`"
     )]
-    pub fn from_std(std: StdDuration) -> Result<Self, crate::OutOfRangeError> {
+    pub fn from_std(std: StdDuration) -> Result<Self, OutOfRangeError> {
         Ok(std.into())
     }
 
@@ -766,9 +766,9 @@ impl Duration {
         since = "0.2.0",
         note = "Use `std::time::Duration::try_from(value)` or `value.try_into()`"
     )]
-    pub fn to_std(&self) -> Result<StdDuration, crate::OutOfRangeError> {
+    pub fn to_std(&self) -> Result<StdDuration, OutOfRangeError> {
         if self.sign.is_negative() {
-            Err(crate::OutOfRangeError(()))
+            Err(OutOfRangeError::new())
         } else {
             Ok(self.std)
         }
@@ -797,7 +797,7 @@ impl From<StdDuration> for Duration {
 }
 
 impl TryFrom<Duration> for StdDuration {
-    type Error = &'static str;
+    type Error = OutOfRangeError;
 
     /// Attempt to convert a `Duration` to a `std::time::Duration`. This will
     /// fail when the former is negative.
@@ -810,9 +810,9 @@ impl TryFrom<Duration> for StdDuration {
     /// assert_eq!(StdDuration::try_from(Duration::second()), Ok(StdDuration::from_secs(1)));
     /// assert!(StdDuration::try_from(Duration::seconds(-1)).is_err());
     /// ```
-    fn try_from(duration: Duration) -> Result<Self, Self::Error> {
+    fn try_from(duration: Duration) -> Result<Self, OutOfRangeError> {
         if duration.sign.is_negative() {
-            Err("duration is negative")
+            Err(OutOfRangeError::new())
         } else {
             Ok(duration.std)
         }

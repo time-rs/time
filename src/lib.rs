@@ -119,7 +119,7 @@ macro_rules! assert_value_in_range {
 /// The `Date` struct and its associated `impl`s.
 mod date;
 /// The `DateTime` struct and its associated `impl`s.
-mod datetime;
+mod date_time;
 /// The `Duration` struct and its associated `impl`s.
 mod duration;
 /// The `Instant` struct and its associated `impl`s.
@@ -139,8 +139,9 @@ mod time_zone;
 mod weekday;
 
 pub use self::time::Time;
+use core::fmt;
 pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
-pub use datetime::DateTime;
+pub use date_time::DateTime;
 pub use duration::Duration;
 #[cfg(feature = "std")]
 pub use instant::Instant;
@@ -153,7 +154,7 @@ pub use weekday::Weekday;
 /// A collection of traits (and possibly types, enums, etc.) that are useful to
 /// import. Unlike the standard library, this must be explicitly included.
 ///
-/// ```rust
+/// ```rust,no_run
 /// use time::prelude::*;
 /// ```
 ///
@@ -163,7 +164,42 @@ pub mod prelude {
     pub use crate::NumericalDuration;
 }
 
-// For some back-compatibility, we're also implementing some deprecated methods.
+/// An error type indicating that a conversion failed because the target type
+/// could not store the initial value.
+///
+/// ```rust
+/// # use time::{Duration, OutOfRangeError};
+/// # use core::time::Duration as StdDuration;
+/// # use core::{any::Any, convert::TryFrom};
+/// // "Construct" an `OutOfRangeError`.
+/// let error = StdDuration::try_from(Duration::seconds(-1)).unwrap_err();
+/// assert!(Any::is::<OutOfRangeError>(&error));
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct OutOfRangeError {
+    /// Include zero-sized field so users can't construct this explicitly. This
+    /// ensures forwards-compatibility, as anyone matching on this type has to
+    /// explicitly discard the fields.
+    unused: (),
+}
+
+impl OutOfRangeError {
+    /// Create an new `OutOfRangeError`.
+    pub(crate) const fn new() -> Self {
+        Self { unused: () }
+    }
+}
+
+impl fmt::Display for OutOfRangeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str("Source value is out of range for the target type")
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for OutOfRangeError {}
+
+// For some back-compatibility, we're also implementing some deprecated types.
 
 #[cfg(feature = "std")]
 #[allow(clippy::missing_docs_in_private_items)]
@@ -174,23 +210,3 @@ pub type PreciseTime = Instant;
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type SteadyTime = Instant;
-
-// Include zero-sized field so users can't construct this explicitly.
-#[allow(clippy::missing_docs_in_private_items, deprecated)]
-#[deprecated(
-    since = "0.2.0",
-    note = "This error is only produced by deprecated methods."
-)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct OutOfRangeError(());
-
-#[allow(deprecated)]
-impl core::fmt::Display for OutOfRangeError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str("Source duration value is out of range for the target type")
-    }
-}
-
-#[cfg(feature = "std")]
-#[allow(deprecated)]
-impl std::error::Error for OutOfRangeError {}
