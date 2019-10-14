@@ -150,7 +150,7 @@ pub use date_time::DateTime;
 pub use duration::Duration;
 #[cfg(feature = "std")]
 pub use instant::Instant;
-pub use numerical_traits::NumericalDuration;
+pub use numerical_traits::{NumericalDuration, NumericalStdDuration};
 pub use offset_date_time::OffsetDateTime;
 pub(crate) use shim::NumberExt;
 pub use sign::Sign;
@@ -167,7 +167,7 @@ pub use weekday::Weekday;
 /// The prelude may grow in minor releases. Any removals will only occur in
 /// major releases.
 pub mod prelude {
-    pub use crate::NumericalDuration;
+    pub use crate::{NumericalDuration, NumericalStdDuration};
 }
 
 /// An error type indicating that a conversion failed because the target type
