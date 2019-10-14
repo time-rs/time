@@ -84,11 +84,18 @@ impl OffsetDateTime {
     /// Get the `UtcOffset` of the `OffsetDateTime`.
     ///
     /// ```rust
-    /// # use time::{OffsetDateTime, UtcOffset};
-    /// assert_eq!(OffsetDateTime::now().offset(), UtcOffset::UTC);
+    /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     OffsetDateTime::now()
-    ///         .to_offset(UtcOffset::hours(1))
+    ///     Date::from_ymd(2019, 1, 1)
+    ///         .with_hms(0, 0, 0)
+    ///         .using_offset(UtcOffset::UTC)
+    ///         .offset(),
+    ///     UtcOffset::UTC,
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1)
+    ///         .with_hms(0, 0, 0)
+    ///         .using_offset(UtcOffset::hours(1))
     ///         .offset(),
     ///     UtcOffset::hours(1),
     /// );
