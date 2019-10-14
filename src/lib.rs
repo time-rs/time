@@ -87,9 +87,10 @@ macro_rules! assert_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
         if !($start..=$end).contains(&$value) {
             panic!(
-                concat!(stringify!($value), " must be in the range {}..={}"),
+                concat!(stringify!($value), " must be in the range {}..={} (was {})"),
                 $start,
                 $end,
+                $value,
             );
         }
     };
@@ -97,9 +98,10 @@ macro_rules! assert_value_in_range {
     ($value:ident in $start:expr => exclusive $end:expr) => {
         if !($start..$end).contains(&$value) {
             panic!(
-                concat!(stringify!($value), " must be in the range {}..{}"),
+                concat!(stringify!($value), " must be in the range {}..{} (was {})"),
                 $start,
                 $end,
+                $value,
             );
         }
     };
@@ -107,10 +109,11 @@ macro_rules! assert_value_in_range {
     ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
         if !($start..=$end).contains(&$value) {
             panic!(
-                concat!(stringify!($value), " must be in the range {}..={} given{}"),
+                concat!(stringify!($value), " must be in the range {}..={} given{} (was {})"),
                 $start,
                 $end,
-                &format_conditional!($($conditional),+)
+                &format_conditional!($($conditional),+),
+                $value,
             );
         };
     };
