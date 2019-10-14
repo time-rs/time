@@ -1,3 +1,5 @@
+use crate::Duration;
+
 /// An offset from UTC.
 ///
 /// Guaranteed to store values up to ±24 hours. Any values outside this range
@@ -9,7 +11,7 @@
 pub struct UtcOffset {
     /// The number of seconds offset from UTC. Positive is east, negative is
     /// west.
-    seconds: i32,
+    pub(crate) seconds: i32,
 }
 
 impl UtcOffset {
@@ -180,5 +182,10 @@ impl UtcOffset {
     #[allow(clippy::cast_possible_truncation)]
     pub const fn as_hours(self) -> i8 {
         (self.as_seconds() / 3_600) as i8
+    }
+
+    /// Convert a `UtcOffset` to ` Duration`. Useful for implementing operators.
+    pub(crate) fn as_duration(self) -> Duration {
+        Duration::seconds(self.seconds as i64)
     }
 }

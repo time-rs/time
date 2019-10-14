@@ -1,6 +1,6 @@
 #[cfg(feature = "std")]
 use crate::Sign;
-use crate::{Date, Duration, Time, Weekday};
+use crate::{Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
 use core::cmp::Ordering;
 #[cfg(feature = "std")]
 use core::convert::{From, TryFrom};
@@ -33,7 +33,7 @@ impl DateTime {
         Self { date, time }
     }
 
-    /// Create a new `DateTime` with the current date and time.
+    /// Create a new `DateTime` with the current date and time (UTC).
     ///
     /// ```rust
     /// # use time::DateTime;
@@ -234,7 +234,7 @@ impl DateTime {
 
     /// Returns the minute within the hour.
     ///
-    /// The returned value will always be in the range `0..=60`.
+    /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
     /// # use time::Date;
@@ -247,7 +247,7 @@ impl DateTime {
 
     /// Returns the second within the minute.
     ///
-    /// The returned value will always be in the range `0..=60`.
+    /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
     /// # use time::Date;
@@ -260,7 +260,7 @@ impl DateTime {
 
     /// Return the milliseconds within the second.
     ///
-    /// The returned value will always be in the range `0..=1_000`.
+    /// The returned value will always be in the range `0..1_000`.
     ///
     /// ```rust
     /// # use time::Date;
@@ -273,7 +273,7 @@ impl DateTime {
 
     /// Return the microseconds within the second.
     ///
-    /// The returned value will always be in the range `0..=1_000_000`.
+    /// The returned value will always be in the range `0..1_000_000`.
     ///
     /// ```rust
     /// # use time::Date;
@@ -286,7 +286,7 @@ impl DateTime {
 
     /// Return the nanoseconds within the second.
     ///
-    /// The returned value will always be in the range `0..=1_000_000_000`.
+    /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
     /// # use time::Date;
@@ -295,6 +295,26 @@ impl DateTime {
     /// ```
     pub const fn nanosecond(self) -> u32 {
         self.time().nanosecond()
+    }
+
+    /// Create an `OffsetDateTime` from the existing `DateTime` and provided
+    /// `UtcOffset`.
+    ///
+    /// ```rust
+    /// # use time::{Date, UtcOffset};
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1)
+    ///         .midnight()
+    ///         .using_offset(UtcOffset::UTC)
+    ///         .timestamp(),
+    ///     1_546_300_800,
+    /// );
+    /// ```
+    pub const fn using_offset(self, offset: UtcOffset) -> OffsetDateTime {
+        OffsetDateTime {
+            datetime: self,
+            offset,
+        }
     }
 }
 
@@ -321,6 +341,10 @@ impl Add<Duration> for DateTime {
     ///     Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1) + Duration::seconds(-2),
     ///     Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59),
     /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(1999, 12, 31).with_hms(23, 0, 0) + Duration::seconds(3_600),
+    ///     Date::from_ymd(2000, 1, 1).midnight(),
+    /// );
     /// ```
     fn add(self, duration: Duration) -> Self::Output {
         #[allow(clippy::cast_possible_truncation)]
@@ -329,7 +353,7 @@ impl Add<Duration> for DateTime {
 
         let date_modifier = if nanos < 0 {
             -Duration::day()
-        } else if nanos > 86_400_000_000_000 {
+        } else if nanos >= 86_400_000_000_000 {
             Duration::day()
         } else {
             Duration::zero()
@@ -494,6 +518,10 @@ impl Sub<Duration> for DateTime {
     /// assert_eq!(
     ///     Date::from_ymd(2019, 12, 31).with_hms(23, 59, 59) - Duration::seconds(-2),
     ///     Date::from_ymd(2020, 1, 1).with_hms(0, 0, 1),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(1999, 12, 31).with_hms(23, 0, 0) - Duration::seconds(-3_600),
+    ///     Date::from_ymd(2000, 1, 1).midnight(),
     /// );
     /// ```
     fn sub(self, duration: Duration) -> Self::Output {

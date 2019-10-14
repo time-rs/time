@@ -127,6 +127,8 @@ mod duration;
 mod instant;
 /// A collection of traits extending built-in numerical types.
 mod numerical_traits;
+/// The `OffsetDateTime` struct and its associated `impl`s.
+mod offset_date_time;
 /// Ensure certain methods are present on all types.
 mod shim;
 /// The `Sign` struct and its associated `impl`s.
@@ -146,6 +148,7 @@ pub use duration::Duration;
 #[cfg(feature = "std")]
 pub use instant::Instant;
 pub use numerical_traits::NumericalDuration;
+pub use offset_date_time::OffsetDateTime;
 pub(crate) use shim::NumberExt;
 pub use sign::Sign;
 pub use utc_offset::UtcOffset;

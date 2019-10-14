@@ -219,7 +219,7 @@ impl Time {
         }
     }
 
-    /// Create a `Time` representing the current time.
+    /// Create a `Time` representing the current time (UTC).
     ///
     /// ```rust,no_run
     /// # use time::Time;
