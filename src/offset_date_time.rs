@@ -1,4 +1,4 @@
-use crate::{Date, DateTime, Duration, Time, UtcOffset, Weekday};
+use crate::{Date, DateTime, DeferredFormat, Duration, Language, Time, UtcOffset, Weekday};
 use core::cmp::Ordering;
 use core::hash::{Hash, Hasher};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
@@ -526,6 +526,61 @@ impl OffsetDateTime {
     /// ```
     pub fn nanosecond(self) -> u32 {
         self.time().nanosecond()
+    }
+}
+
+/// Methods that allow formatting the `OffsetDateTime`.
+impl OffsetDateTime {
+    /// Format the `OffsetDateTime` using the provided string. As no language is
+    /// specified, English is used.
+    ///
+    /// ```rust
+    /// # use time::{Date, UtcOffset};
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 2)
+    ///         .midnight()
+    ///         .using_offset(UtcOffset::UTC)
+    ///         .format("%F %r %z"),
+    ///     "2019-01-02 12:00:00 am +0000",
+    /// );
+    /// ```
+    pub fn format(self, format: &str) -> String {
+        DeferredFormat {
+            date: Some(self.date()),
+            time: Some(self.time()),
+            offset: Some(self.offset()),
+            format: crate::format::parse_with_language(format, Language::en),
+        }
+        .to_string()
+    }
+
+    /// Format the `OffsetDateTime` using the provided string and language.
+    ///
+    /// ```rust
+    /// # use time::{Date, Language, UtcOffset};
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 2)
+    ///         .midnight()
+    ///         .using_offset(UtcOffset::hours(-2))
+    ///         .format_language("%c %z", Language::en),
+    ///     "Tue Jan  1 22:00:00 2019 -0200",
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 2)
+    ///         .midnight()
+    ///         .using_offset(UtcOffset::hours(2))
+    ///         .format_language("%c %z", Language::es),
+    ///     "Mi enero  2 02:00:00 2019 +0200",
+    /// );
+    /// ```
+    pub fn format_language(self, format: &str, language: Language) -> String {
+        DeferredFormat {
+            date: Some(self.date()),
+            time: Some(self.time()),
+            offset: Some(self.offset()),
+            format: crate::format::parse_with_language(format, language),
+        }
+        .to_string()
     }
 }
 

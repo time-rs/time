@@ -18,3 +18,4 @@ serialization = ["serde"]
 [dependencies]
 log = "0.4.8"
 serde = { version = "1.0.101", optional = true, default-features = false, features = ["derive", "alloc"] }
+paste = "0.1.6"

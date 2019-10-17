@@ -1,6 +1,6 @@
 #[cfg(feature = "std")]
 use crate::Sign;
-use crate::{Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
+use crate::{Date, DeferredFormat, Duration, Language, OffsetDateTime, Time, UtcOffset, Weekday};
 use core::cmp::Ordering;
 #[cfg(feature = "std")]
 use core::convert::{From, TryFrom};
@@ -315,6 +315,49 @@ impl DateTime {
             datetime: self,
             offset,
         }
+    }
+}
+
+/// Methods that allow formatting the `DateTime`.
+impl DateTime {
+    /// Format the `DateTime` using the provided string. As no language is
+    /// specified, English is used.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert_eq!(Date::from_ymd(2019, 1, 2).midnight().format("%F %r"), "2019-01-02 12:00:00 am");
+    /// ```
+    pub fn format(self, format: &str) -> String {
+        DeferredFormat {
+            date: Some(self.date()),
+            time: Some(self.time()),
+            offset: None,
+            format: crate::format::parse_with_language(format, Language::en),
+        }
+        .to_string()
+    }
+
+    /// Format the `DateTime` using the provided string and language.
+    ///
+    /// ```rust
+    /// # use time::{Date, Language};
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 2).midnight().format_language("%c", Language::en),
+    ///     "Wed Jan  2 00:00:00 2019",
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 2).midnight().format_language("%c", Language::es),
+    ///     "Mi enero  2 00:00:00 2019",
+    /// );
+    /// ```
+    pub fn format_language(self, format: &str, language: Language) -> String {
+        DeferredFormat {
+            date: Some(self.date()),
+            time: Some(self.time()),
+            offset: None,
+            format: crate::format::parse_with_language(format, language),
+        }
+        .to_string()
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::Duration;
+use crate::{DeferredFormat, Duration, Language};
 
 /// An offset from UTC.
 ///
@@ -187,5 +187,27 @@ impl UtcOffset {
     /// Convert a `UtcOffset` to ` Duration`. Useful for implementing operators.
     pub(crate) fn as_duration(self) -> Duration {
         Duration::seconds(self.seconds as i64)
+    }
+}
+
+/// Methods that allow formatting the `UtcOffset`.
+impl UtcOffset {
+    /// Format the `UtcOffset` using the provided string.
+    ///
+    /// ```rust
+    /// # use time::UtcOffset;
+    /// assert_eq!(UtcOffset::hours(2).format("%z"), "+0200");
+    /// assert_eq!(UtcOffset::hours(-2).format("%z"), "-0200");
+    /// assert_eq!(UtcOffset::hours(12).format("%z"), "+1200");
+    /// assert_eq!(UtcOffset::hours(-12).format("%z"), "-1200");
+    /// ```
+    pub fn format(self, format: &str) -> String {
+        DeferredFormat {
+            date: None,
+            time: None,
+            offset: Some(self),
+            format: crate::format::parse_with_language(format, Language::en),
+        }
+        .to_string()
     }
 }

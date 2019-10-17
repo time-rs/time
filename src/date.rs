@@ -1,5 +1,5 @@
 use crate::Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday};
-use crate::{DateTime, Duration, Time};
+use crate::{DateTime, DeferredFormat, Duration, Language, Time};
 use core::cmp::{Ord, Ordering, PartialOrd};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
@@ -566,6 +566,49 @@ impl Date {
     /// ```
     pub fn with_hms_nano(self, hour: u8, minute: u8, second: u8, nanosecond: u32) -> DateTime {
         DateTime::new(self, Time::from_hms_nano(hour, minute, second, nanosecond))
+    }
+}
+
+/// Methods that allow formatting the `Date`.
+impl Date {
+    /// Format the `Date` using the provided string. As no language is
+    /// specified, English is used.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert_eq!(Date::from_ymd(2019, 1, 2).format("%Y-%m-%d"), "2019-01-02");
+    /// ```
+    pub fn format(self, format: &str) -> String {
+        DeferredFormat {
+            date: Some(self),
+            time: None,
+            offset: None,
+            format: crate::format::parse_with_language(format, Language::en),
+        }
+        .to_string()
+    }
+
+    /// Format the `Date` using the provided string and language.
+    ///
+    /// ```rust
+    /// # use time::{Date, Language};
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 2).format_language("%B, %A", Language::en),
+    ///     "January, Wednesday",
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 2).format_language("%B, %A", Language::es),
+    ///     "enero, miércoles",
+    /// );
+    /// ```
+    pub fn format_language(self, format: &str, language: Language) -> String {
+        DeferredFormat {
+            date: Some(self),
+            time: None,
+            offset: None,
+            format: crate::format::parse_with_language(format, language),
+        }
+        .to_string()
     }
 }
 

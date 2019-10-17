@@ -1,6 +1,6 @@
 #[cfg(feature = "std")]
 use crate::DateTime;
-use crate::Duration;
+use crate::{DeferredFormat, Duration, Language};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 
@@ -245,7 +245,7 @@ impl Time {
 
     /// Returns the minute within the hour.
     ///
-    /// The returned value will always be in the range `0..=60`.
+    /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
     /// # use time::Time;
@@ -258,7 +258,7 @@ impl Time {
 
     /// Returns the second within the minute.
     ///
-    /// The returned value will always be in the range `0..=60`.
+    /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
     /// # use time::Time;
@@ -271,7 +271,7 @@ impl Time {
 
     /// Return the milliseconds within the second.
     ///
-    /// The returned value will always be in the range `0..=1_000`.
+    /// The returned value will always be in the range `0..1_000`.
     ///
     /// ```rust
     /// # use time::Time;
@@ -285,7 +285,7 @@ impl Time {
 
     /// Return the microseconds within the second.
     ///
-    /// The returned value will always be in the range `0..=1_000_000`.
+    /// The returned value will always be in the range `0..1_000_000`.
     ///
     /// ```rust
     /// # use time::Time;
@@ -298,7 +298,7 @@ impl Time {
 
     /// Return the nanoseconds within the second.
     ///
-    /// The returned value will always be in the range `0..=1_000_000_000`.
+    /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
     /// # use time::Time;
@@ -329,6 +329,25 @@ impl Time {
             second: (nanosecond / 1_000_000_000 % 60) as u8,
             nanosecond: (nanosecond % 1_000_000_000) as u32,
         }
+    }
+}
+
+/// Methods that allow formatting the `Time`.
+impl Time {
+    /// Format the `Time` using the provided string.
+    ///
+    /// ```rust
+    /// # use time::Time;
+    /// assert_eq!(Time::from_hms(0, 0, 0).format("%r"), "12:00:00 am");
+    /// ```
+    pub fn format(self, format: &str) -> String {
+        DeferredFormat {
+            date: None,
+            time: Some(self),
+            offset: None,
+            format: crate::format::parse_with_language(format, Language::en),
+        }
+        .to_string()
     }
 }
 
