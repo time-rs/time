@@ -215,6 +215,17 @@ pub mod prelude {
     pub use crate::{NumericalDuration, NumericalStdDuration};
 }
 
+/// A stable alternative to [`alloc::v1::prelude`](https://doc.rust-lang.org/stable/alloc/prelude/v1/index.html).
+/// Should be used anywhere `#![no_std]` is allowed.
+#[cfg(not(feature = "std"))]
+mod no_std_prelude {
+    #![allow(unused_imports)]
+    pub(crate) use alloc::borrow::ToOwned;
+    pub(crate) use alloc::boxed::Box;
+    pub(crate) use alloc::string::{String, ToString};
+    pub(crate) use alloc::vec::Vec;
+}
+
 /// An error type indicating that a conversion failed because the target type
 /// could not store the initial value.
 ///

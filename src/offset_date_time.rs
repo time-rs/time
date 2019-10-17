@@ -1,3 +1,5 @@
+#[cfg(not(feature = "std"))]
+use crate::no_std_prelude::*;
 use crate::{Date, DateTime, DeferredFormat, Duration, Language, Time, UtcOffset, Weekday};
 use core::cmp::Ordering;
 use core::hash::{Hash, Hasher};

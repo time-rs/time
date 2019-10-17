@@ -1,3 +1,5 @@
+#[cfg(not(feature = "std"))]
+use crate::no_std_prelude::*;
 use crate::Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday};
 use crate::{DateTime, DeferredFormat, Duration, Language, Time};
 use core::cmp::{Ord, Ordering, PartialOrd};

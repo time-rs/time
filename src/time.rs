@@ -1,3 +1,5 @@
+#[cfg(not(feature = "std"))]
+use crate::no_std_prelude::*;
 #[cfg(feature = "std")]
 use crate::DateTime;
 use crate::{DeferredFormat, Duration, Language};

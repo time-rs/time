@@ -5,8 +5,9 @@ mod format;
 mod offset;
 mod time;
 
+#[cfg(not(feature = "std"))]
+use crate::no_std_prelude::*;
 use crate::{Date, Time, UtcOffset};
-use alloc::{string::String, vec::Vec};
 use core::fmt::{self, Display, Formatter};
 pub(crate) use format::parse_with_language;
 

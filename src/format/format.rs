@@ -1,8 +1,9 @@
 //! Parse formats used in the `format` and `parse` methods.
 
 use crate::format::{FormatItem, Specifier};
+#[cfg(not(feature = "std"))]
+use crate::no_std_prelude::*;
 use crate::Language;
-use alloc::{string::String, vec::Vec};
 use core::mem;
 
 /// Size of the buffer to store

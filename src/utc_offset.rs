@@ -1,3 +1,5 @@
+#[cfg(not(feature = "std"))]
+use crate::no_std_prelude::*;
 use crate::{DeferredFormat, Duration, Language};
 
 /// An offset from UTC.
