@@ -2,8 +2,9 @@
 
 #![allow(non_snake_case)]
 
+use crate::format::{Language, Padding};
+use crate::Date;
 use crate::Weekday::{Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday};
-use crate::{format::Language, Date};
 use core::fmt::{self, Formatter};
 
 macro_rules! nonexhaustive_locale {
@@ -137,38 +138,38 @@ pub(crate) fn fmt_B(f: &mut Formatter<'_>, date: Date, locale: Language) -> fmt:
 }
 
 /// Year divided by 100 and truncated to integer (`00`-`99`)
-pub(crate) fn fmt_C(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
-    write!(f, "{:02}", date.year() / 100)
+pub(crate) fn fmt_C(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
+    pad!(Zero, 2, date.year() / 100)
 }
 
 /// Day of the month, zero-padded (`01`-`31`)
-pub(crate) fn fmt_d(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
-    write!(f, "{:02}", date.day())
+pub(crate) fn fmt_d(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
+    pad!(Zero, 2, date.day())
 }
 
 /// Day of the month, space-padded (` 1`-`31`)
-pub(crate) fn fmt_e(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
-    write!(f, "{:2}", date.day())
+pub(crate) fn fmt_e(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
+    pad!(Space, 2, date.day())
 }
 
 /// Week-based year, last two digits (`00`-`99`)
-pub(crate) fn fmt_g(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
-    write!(f, "{:02}", date.iso_year_week().0.rem_euclid(100))
+pub(crate) fn fmt_g(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
+    pad!(Zero, 2, date.iso_year_week().0.rem_euclid(100))
 }
 
 /// Week-based year
-pub(crate) fn fmt_G(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
-    write!(f, "{:02}", date.iso_year_week().0)
+pub(crate) fn fmt_G(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
+    pad!(Zero, 2, date.iso_year_week().0)
 }
 
 /// Day of the year, zero-padded to width 3 (`000`-`366`)
-pub(crate) fn fmt_j(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
-    write!(f, "{:03}", date.ordinal())
+pub(crate) fn fmt_j(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
+    pad!(Zero, 3, date.ordinal())
 }
 
 /// Month of the year, zero-padded (`01`-`12`)
-pub(crate) fn fmt_m(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
-    write!(f, "{:02}", date.month())
+pub(crate) fn fmt_m(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
+    pad!(Zero, 2, date.month())
 }
 
 /// ISO weekday (Monday = 1, Sunday = 7)
@@ -177,8 +178,8 @@ pub(crate) fn fmt_u(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
 }
 
 /// ISO week number, zero-padded (`00`-`53`)
-pub(crate) fn fmt_V(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
-    write!(f, "{:02}", date.week())
+pub(crate) fn fmt_V(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
+    pad!(Zero, 2, date.week())
 }
 
 /// Weekday number (Sunday = 0, Saturday = 6)
@@ -187,11 +188,11 @@ pub(crate) fn fmt_w(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
 }
 
 /// Last two digits of year (`00`-`99`)
-pub(crate) fn fmt_y(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
-    write!(f, "{:02}", date.year().rem_euclid(100))
+pub(crate) fn fmt_y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
+    pad!(Zero, 2, date.year().rem_euclid(100))
 }
 
 /// Full year
-pub(crate) fn fmt_Y(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
-    write!(f, "{:04}", date.year())
+pub(crate) fn fmt_Y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
+    pad!(Zero, 4, date.year())
 }

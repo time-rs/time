@@ -565,14 +565,14 @@ impl OffsetDateTime {
     ///         .midnight()
     ///         .using_offset(UtcOffset::hours(-2))
     ///         .format_language("%c %z", Language::en),
-    ///     "Tue Jan  1 22:00:00 2019 -0200",
+    ///     "Tue Jan 1 22:00:00 2019 -0200",
     /// );
     /// assert_eq!(
     ///     Date::from_ymd(2019, 1, 2)
     ///         .midnight()
     ///         .using_offset(UtcOffset::hours(2))
     ///         .format_language("%c %z", Language::es),
-    ///     "Mi enero  2 02:00:00 2019 +0200",
+    ///     "Mi enero 2 02:00:00 2019 +0200",
     /// );
     /// ```
     pub fn format_language(self, format: &str, language: Language) -> String {

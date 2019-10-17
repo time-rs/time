@@ -2,22 +2,26 @@
 
 #![allow(non_snake_case)]
 
-use crate::Time;
+use crate::{format::Padding, Time};
 use core::fmt::{self, Formatter};
 
 /// Hour in 24h format (`00`-`23`)
-pub(crate) fn fmt_H(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
-    write!(f, "{:02}", time.hour())
+pub(crate) fn fmt_H(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
+    match padding {
+        Padding::None => write!(f, "{}", time.hour()),
+        Padding::Space => write!(f, "{:2}", time.hour()),
+        Padding::Default | Padding::Zero => write!(f, "{:02}", time.hour()),
+    }
 }
 
 /// Hour in 12h format (`01`-`12`)
-pub(crate) fn fmt_I(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
-    write!(f, "{:02}", (time.hour() as i8 - 1).rem_euclid(12) + 1)
+pub(crate) fn fmt_I(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
+    pad!(Zero, 2, (time.hour() as i8 - 1).rem_euclid(12) + 1)
 }
 
 /// Minutes, zero-padded (`00`-`59`)
-pub(crate) fn fmt_M(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
-    write!(f, "{:02}", time.minute())
+pub(crate) fn fmt_M(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
+    pad!(Zero, 2, time.minute())
 }
 
 /// am/pm
@@ -39,6 +43,6 @@ pub(crate) fn fmt_P(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
 }
 
 /// Seconds, zero-padded (`00`-`59`)
-pub(crate) fn fmt_S(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
-    write!(f, "{:02}", time.second())
+pub(crate) fn fmt_S(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
+    pad!(Zero, 2, time.second())
 }

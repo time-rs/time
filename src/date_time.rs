@@ -345,11 +345,11 @@ impl DateTime {
     /// # use time::{Date, Language};
     /// assert_eq!(
     ///     Date::from_ymd(2019, 1, 2).midnight().format_language("%c", Language::en),
-    ///     "Wed Jan  2 00:00:00 2019",
+    ///     "Wed Jan 2 00:00:00 2019",
     /// );
     /// assert_eq!(
     ///     Date::from_ymd(2019, 1, 2).midnight().format_language("%c", Language::es),
-    ///     "Mi enero  2 00:00:00 2019",
+    ///     "Mi enero 2 00:00:00 2019",
     /// );
     /// ```
     pub fn format_language(self, format: &str, language: Language) -> String {

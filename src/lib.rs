@@ -71,6 +71,17 @@
 //! | `%Y`      | Year                                                                   | 2001                     |
 //! | `%%`      | Literal `%`                                                            | %                        |
 //! | `%z`      | ISO 8601 offset from UTC in timezone (+HHMM)                           | +0100                    |
+//!
+//! ## Modifiers
+//!
+//! All specifiers that are strictly numerical have modifiers for formatting.
+//! Adding a modifier to a non-supporting specifier is a no-op.
+//!
+//! | Modifier         | Behavior        | Example                       |
+//! |------------------|-----------------|-------------------------------|
+//! | `-` (dash)       | No padding      | `%-d` => `5` instead of `05`  |
+//! | `_` (underscore) | Pad with spaces | `%_d` => ` 5` instead of `05` |
+//! | `0`              | Pad with zeros  | `%0e` => `05` instead of ` 5` |
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(

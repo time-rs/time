@@ -1,5 +1,38 @@
 //! Formatting for `Date`, `Time`, `DateTime`, and `OffsetDateTime`.
 
+/// Pad a given value if requested.
+macro_rules! pad {
+    (None, $width:literal, $value:expr) => {
+        paste::expr! {
+            match [<padding>] {
+                Padding::None | Padding::Default => write!([<f>], "{}", $value),
+                Padding::Space => write!([<f>], concat!("{:", stringify!($width), "}"), $value),
+                Padding::Zero => write!([<f>], concat!("{:0", stringify!($width), "}"), $value),
+            }
+        }
+    };
+
+    (Space, $width:literal, $value:expr) => {
+        paste::expr! {
+            match [<padding>] {
+                Padding::None => write!([<f>], "{}", $value),
+                Padding::Space | Padding::Default => write!([<f>], concat!("{:", stringify!($width), "}"), $value),
+                Padding::Zero => write!([<f>], concat!("{:0", stringify!($width), "}"), $value),
+            }
+        }
+    };
+
+    (Zero, $width:literal, $value:expr) => {
+        paste::expr! {
+            match [<padding>] {
+                Padding::None => write!([<f>], "{}", $value),
+                Padding::Space => write!([<f>], concat!("{:", stringify!($width), "}"), $value),
+                Padding::Zero | Padding::Default => write!([<f>], concat!("{:0", stringify!($width), "}"), $value),
+            }
+        }
+    };
+}
+
 mod date;
 mod format;
 mod offset;
@@ -36,84 +69,61 @@ pub enum Language {
     __nonexhaustive,
 }
 
-/*
-TODO
 /// The type of padding to use when formatting.
-enum Padding {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(crate) enum Padding {
     /// No padding. Minimizes width.
     None,
     /// Pad to the requisite width using spaces.
     Space,
     /// Pad to the requisite width using zeros.
     Zero,
+    /// Use the default padding for the specifier.
+    Default,
 }
-*/
 
-/// Specifiers are similar to C's `strftime`, with some omissions.
-///
-/// Explicitly not implemented:
-/// - `%h` - Prefer `%b`.
-/// - `%n` - Prefer `\n`.
-/// - `%t` - Prefer `\t`.
-/// - `%x` - Date format can vary within locales.
-/// - `%X` - Time format can vary within locales.
-///
-/// Currently not implemented, but will be in the future (additional internal
-/// methods are needed):
-/// - `%U` - Sunday-based week number from start of year (can be zero).
-/// - `%W` - Monday-based week number from start of year (can be zero).
-#[allow(non_snake_case, non_camel_case_types)]
+/// Specifiers are similar to C's `strftime`, with some omissions and changes.
+#[allow(
+    non_snake_case,
+    non_camel_case_types,
+    clippy::missing_docs_in_private_items
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) enum Specifier {
     /// Abbreviated weekday name
-    a {
-        /// The language used for the formatting.
-        language: Language,
-    },
+    a { language: Language },
     /// Full weekday name
-    A {
-        /// The language used for the formatting.
-        language: Language,
-    },
+    A { language: Language },
     /// Abbreviated month name
-    b {
-        /// The language used for the formatting.
-        language: Language,
-    },
+    b { language: Language },
     /// Full month name
-    B {
-        /// The language used for the formatting.
-        language: Language,
-    },
+    B { language: Language },
     /// Date and time representation
-    c {
-        /// The language used for the formatting.
-        language: Language,
-    },
+    c { language: Language },
     /// Year divided by 100 and truncated to integer (`00`-`99`)
-    C,
+    C { padding: Padding },
     /// Day of the month, zero-padded (`01`-`31`)
-    d,
+    d { padding: Padding },
     /// Short MM/DD/YY date, equivalent to `%m/%d/%y`
     D,
     /// Day of the month, space-padded (` 1`-`31`)
-    e,
+    e { padding: Padding },
     /// Short YYYY-MM-DD date, equivalent to `%Y-%m-%d`
     F,
     /// Week-based year, last two digits (`00`-`99`)
-    g,
+    g { padding: Padding },
     /// Week-based year
-    G,
+    G { padding: Padding },
     /// Hour in 24h format (`00`-`23`)
-    H,
+    H { padding: Padding },
     /// Hour in 12h format (`01`-`12`)
-    I,
+    I { padding: Padding },
     /// Day of the year (`001`-`366`)
-    j,
+    j { padding: Padding },
     /// Month as a decimal number (`01`-`12`)
-    m,
+    m { padding: Padding },
     /// Minute (`00`-`59`)
-    M,
+    M { padding: Padding },
     /// `am` or `pm` designation
     p,
     /// `AM` or `PM` designation
@@ -123,23 +133,23 @@ pub(crate) enum Specifier {
     /// 24-hour HH:MM time, equivalent to `%H:%M`
     R,
     /// Second (`00`-`59`)
-    S,
+    S { padding: Padding },
     /// ISO 8601 time format (HH:MM:SS), equivalent to `%H:%M:%S`
     T,
     /// ISO 8601 weekday as number with Monday as 1 (`1`-`7`)
     u,
     /// Week number with the first Sunday as the first day of week one (`00`-`53`)
-    U,
+    U { padding: Padding },
     /// ISO 8601 week number (`01`-`53`)
-    V,
+    V { padding: Padding },
     /// Weekday as a decimal number with Sunday as 0 (`0`-`6`)
     w,
     /// Week number with the first Monday as the first day of week one (`00`-`53`)
-    W,
+    W { padding: Padding },
     /// Year, last two digits (`00`-`99`)
-    y,
+    y { padding: Padding },
     /// Year
-    Y,
+    Y { padding: Padding },
     /// UTC offset
     z,
 }
@@ -154,24 +164,10 @@ fn format_specifier(
     specifier: Specifier,
 ) -> fmt::Result {
     /// Push the provided specifier to the list of items. If an asterisk is
-    /// present, the language will be provided to the method.
+    /// present, the language will be provided to the method. If a pound symbol
+    /// is present, the padding will be provided.
     macro_rules! specifier {
-        ($type:ident, $specifier:ident) => {
-            paste::expr! {
-                $type::[<fmt_ $specifier>](
-                    f,
-                    $type.expect(concat!(
-                        "Specifier `%",
-                        stringify!($specifier),
-                        "` requires a ",
-                        stringify!($type),
-                        " to be present."
-                    ))
-                )?
-            }
-        };
-
-        ($type:ident, $specifier:ident *) => {
+        ($type:ident, $specifier:ident $(, $opt:ident)*) => {
             paste::expr! {
                 $type::[<fmt_ $specifier>](
                     f,
@@ -182,7 +178,7 @@ fn format_specifier(
                         stringify!($type),
                         " to be present."
                     )),
-                    language
+                    $($opt),*
                 )?
             }
         };
@@ -194,82 +190,88 @@ fn format_specifier(
         };
     }
 
+    // Identifiers to allow function-like macros.
+    #[allow(clippy::missing_docs_in_private_items)]
+    const DEFAULT_PADDING: Padding = Padding::Default;
+    #[allow(clippy::missing_docs_in_private_items)]
+    const NONE_PADDING: Padding = Padding::None;
+
     use Specifier::*;
     match specifier {
-        a { language } => specifier!(date, a*),
-        A { language } => specifier!(date, A*),
-        b { language } => specifier!(date, b*),
-        B { language } => specifier!(date, B*),
+        a { language } => specifier!(date, a, language),
+        A { language } => specifier!(date, A, language),
+        b { language } => specifier!(date, b, language),
+        B { language } => specifier!(date, B, language),
         c { language } => {
-            specifier!(date, a*);
+            specifier!(date, a, language);
             literal!(" ");
-            specifier!(date, b*);
+            specifier!(date, b, language);
             literal!(" ");
-            specifier!(date, e); // TODO trim on left
+            specifier!(date, e, NONE_PADDING);
             literal!(" ");
-            specifier!(time, H);
+            specifier!(time, H, DEFAULT_PADDING);
             literal!(":");
-            specifier!(time, M);
+            specifier!(time, M, DEFAULT_PADDING);
             literal!(":");
-            specifier!(time, S);
+            specifier!(time, S, DEFAULT_PADDING);
             literal!(" ");
-            specifier!(date, Y);
+            specifier!(date, Y, DEFAULT_PADDING);
         }
-        C => specifier!(date, C),
-        d => specifier!(date, d),
+        C { padding } => specifier!(date, C, padding),
+        d { padding } => specifier!(date, d, padding),
         D => {
-            specifier!(date, m);
+            specifier!(date, m, DEFAULT_PADDING);
             literal!("/");
-            specifier!(date, d);
+            specifier!(date, d, DEFAULT_PADDING);
             literal!("/");
-            specifier!(date, y);
+            specifier!(date, y, DEFAULT_PADDING);
         }
-        e => specifier!(date, e),
+        e { padding } => specifier!(date, e, padding),
         F => {
-            specifier!(date, Y);
+            specifier!(date, Y, DEFAULT_PADDING);
             literal!("-");
-            specifier!(date, m);
+            specifier!(date, m, DEFAULT_PADDING);
             literal!("-");
-            specifier!(date, d);
+            specifier!(date, d, DEFAULT_PADDING);
         }
-        g => specifier!(date, g),
-        G => specifier!(date, G),
-        H => specifier!(time, H),
-        I => specifier!(time, I),
-        j => specifier!(date, j),
-        m => specifier!(date, m),
-        M => specifier!(time, M),
+        g { padding } => specifier!(date, g, padding),
+        G { padding } => specifier!(date, G, padding),
+        H { padding } => specifier!(time, H, padding),
+        I { padding } => specifier!(time, I, padding),
+        j { padding } => specifier!(date, j, padding),
+        m { padding } => specifier!(date, m, padding),
+        M { padding } => specifier!(time, M, padding),
         p => specifier!(time, p),
         P => specifier!(time, P),
         r => {
-            specifier!(time, I);
+            specifier!(time, I, DEFAULT_PADDING);
             literal!(":");
-            specifier!(time, M);
+            specifier!(time, M, DEFAULT_PADDING);
             literal!(":");
-            specifier!(time, S);
+            specifier!(time, S, DEFAULT_PADDING);
             literal!(" ");
             specifier!(time, p);
         }
         R => {
-            specifier!(time, H);
+            specifier!(time, H, DEFAULT_PADDING);
             literal!(":");
-            specifier!(time, M);
+            specifier!(time, M, DEFAULT_PADDING);
         }
-        S => specifier!(time, S),
+        S { padding } => specifier!(time, S, padding),
         T => {
-            specifier!(time, H);
+            specifier!(time, H, DEFAULT_PADDING);
             literal!(":");
-            specifier!(time, M);
+            specifier!(time, M, DEFAULT_PADDING);
             literal!(":");
-            specifier!(time, S);
+            specifier!(time, S, DEFAULT_PADDING);
         }
         u => specifier!(date, u),
-        U => unimplemented!(), // Week number, first Sunday is first day of week one (TODO)
-        V => specifier!(date, V),
+        U { .. } => unimplemented!(), // Week number, first Sunday is first day of week one (TODO)
+        V { padding } => specifier!(date, V, padding),
         w => specifier!(date, w),
-        W => unimplemented!(), // Week number, first Monday is first day of week one (TODO)
-        y => specifier!(date, y),
-        Y => specifier!(date, Y),
+        W { .. } => unimplemented!(), // Week number, first Monday is first day of week one (TODO)
+        y { padding } => specifier!(date, y, padding),
+        Y { padding } => specifier!(date, Y, padding),
         z => specifier!(offset, z),
     }
 

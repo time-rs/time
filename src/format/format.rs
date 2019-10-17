@@ -1,6 +1,6 @@
 //! Parse formats used in the `format` and `parse` methods.
 
-use crate::format::{FormatItem, Specifier};
+use crate::format::{FormatItem, Padding, Specifier};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
 use crate::Language;
@@ -22,20 +22,15 @@ pub(crate) fn parse_with_language(s: &str, language: Language) -> Vec<FormatItem
     let mut items = vec![];
     let mut buf = String::with_capacity(BUFFER_SIZE);
 
-    let mut chars = s.chars();
+    let mut chars = s.chars().peekable();
 
     /// Push the provided specifier to the list of items. If an asterisk is
-    /// present, the language will be provided to the specifier.
+    /// present, the language will be provided to the specifier. If a pound
+    /// symbol is present, the padding will be provided.
     macro_rules! push_specifier {
-        ($specifier:ident) => {
+        ($specifier:ident $($opts:tt)?) => {
             paste::expr! {
-                items.push(FormatItem::Specifier(Specifier::[<$specifier>]))
-            }
-        };
-
-        ($specifier:ident *) => {
-            paste::expr! {
-                items.push(FormatItem::Specifier(Specifier::[<$specifier>] { language }))
+                items.push(FormatItem::Specifier(Specifier::[<$specifier>] $($opts)?))
             }
         };
     }
@@ -48,37 +43,55 @@ pub(crate) fn parse_with_language(s: &str, language: Language) -> Vec<FormatItem
                 items.push(FormatItem::Literal(buffer_contents));
             }
 
+            // Call `chars.next()` if a modifier is present, moving the iterator
+            // past the character.
+            let padding = match chars.peek() {
+                Some('-') => {
+                    let _ = chars.next();
+                    Padding::None
+                }
+                Some('_') => {
+                    let _ = chars.next();
+                    Padding::Space
+                }
+                Some('0') => {
+                    let _ = chars.next();
+                    Padding::Zero
+                }
+                _ => Padding::Default,
+            };
+
             match chars.next() {
-                Some('a') => push_specifier!(a*),
-                Some('A') => push_specifier!(A*),
-                Some('b') => push_specifier!(b*),
-                Some('B') => push_specifier!(B*),
-                Some('c') => push_specifier!(c*),
-                Some('C') => push_specifier!(C),
-                Some('d') => push_specifier!(d),
+                Some('a') => push_specifier!(a { language }),
+                Some('A') => push_specifier!(A { language }),
+                Some('b') => push_specifier!(b { language }),
+                Some('B') => push_specifier!(B { language }),
+                Some('c') => push_specifier!(c { language }),
+                Some('C') => push_specifier!(C { padding }),
+                Some('d') => push_specifier!(d { padding }),
                 Some('D') => push_specifier!(D),
-                Some('e') => push_specifier!(e),
+                Some('e') => push_specifier!(e { padding }),
                 Some('F') => push_specifier!(F),
-                Some('g') => push_specifier!(g),
-                Some('G') => push_specifier!(G),
-                Some('H') => push_specifier!(H),
-                Some('I') => push_specifier!(I),
-                Some('j') => push_specifier!(j),
-                Some('m') => push_specifier!(m),
-                Some('M') => push_specifier!(M),
+                Some('g') => push_specifier!(g { padding }),
+                Some('G') => push_specifier!(G { padding }),
+                Some('H') => push_specifier!(H { padding }),
+                Some('I') => push_specifier!(I { padding }),
+                Some('j') => push_specifier!(j { padding }),
+                Some('m') => push_specifier!(m { padding }),
+                Some('M') => push_specifier!(M { padding }),
                 Some('p') => push_specifier!(p),
                 Some('P') => push_specifier!(P),
                 Some('r') => push_specifier!(r),
                 Some('R') => push_specifier!(R),
-                Some('S') => push_specifier!(S),
+                Some('S') => push_specifier!(S { padding }),
                 Some('T') => push_specifier!(T),
                 Some('u') => push_specifier!(u),
-                Some('U') => push_specifier!(U),
-                Some('V') => push_specifier!(V),
+                Some('U') => push_specifier!(U { padding }),
+                Some('V') => push_specifier!(V { padding }),
                 Some('w') => push_specifier!(w),
-                Some('W') => push_specifier!(W),
-                Some('y') => push_specifier!(y),
-                Some('Y') => push_specifier!(Y),
+                Some('W') => push_specifier!(W { padding }),
+                Some('y') => push_specifier!(y { padding }),
+                Some('Y') => push_specifier!(Y { padding }),
                 Some('z') => push_specifier!(z),
                 Some(c) => panic!("Invalid specifier `{}`", c),
                 None => panic!(
