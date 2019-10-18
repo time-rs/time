@@ -194,5 +194,11 @@ pub(crate) fn fmt_y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 
 /// Full year
 pub(crate) fn fmt_Y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(Zero, 4, date.year())
+    let year = date.year();
+
+    if year >= 10_000 {
+        f.write_str("+")?;
+    }
+
+    pad!(Zero, 4, year)
 }
