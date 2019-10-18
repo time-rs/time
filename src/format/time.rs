@@ -7,11 +7,7 @@ use core::fmt::{self, Formatter};
 
 /// Hour in 24h format (`00`-`23`)
 pub(crate) fn fmt_H(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
-    match padding {
-        Padding::None => write!(f, "{}", time.hour()),
-        Padding::Space => write!(f, "{:2}", time.hour()),
-        Padding::Default | Padding::Zero => write!(f, "{:02}", time.hour()),
-    }
+    pad!(Zero, 2, time.hour())
 }
 
 /// Hour in 12h format (`01`-`12`)

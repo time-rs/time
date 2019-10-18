@@ -281,9 +281,9 @@ fn format_specifier(
 /// An enum that can store both literals and specifiers.
 #[allow(variant_size_differences, clippy::module_name_repetitions)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub(crate) enum FormatItem {
+pub(crate) enum FormatItem<'a> {
     /// A value that should be printed as-is.
-    Literal(String),
+    Literal(&'a str),
     /// A value that needs to be interpreted when formatting.
     Specifier(Specifier),
 }
@@ -294,7 +294,7 @@ pub(crate) enum FormatItem {
 #[allow(clippy::module_name_repetitions)]
 #[doc(hidden)]
 #[derive(Debug, Clone)]
-pub struct DeferredFormat {
+pub struct DeferredFormat<'a> {
     /// The `Date` to use for formatting.
     pub(crate) date: Option<Date>,
     /// The `Time` to use for formatting.
@@ -302,14 +302,14 @@ pub struct DeferredFormat {
     /// The `UtcOffset` to use for formatting.
     pub(crate) offset: Option<UtcOffset>,
     /// The list of items used to display the item.
-    pub(crate) format: Vec<FormatItem>,
+    pub(crate) format: Vec<FormatItem<'a>>,
 }
 
-impl Display for DeferredFormat {
+impl Display for DeferredFormat<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         for item in &self.format {
             match item {
-                FormatItem::Literal(value) => write!(f, "{}", value)?,
+                FormatItem::Literal(value) => f.write_str(value)?,
                 FormatItem::Specifier(specifier) => {
                     format_specifier(f, self.date, self.time, self.offset, *specifier)?
                 }
