@@ -69,8 +69,8 @@
 //! | `%W`      | Week number with the first Monday as the first day of week one (00-53) | 34                       |
 //! | `%y`      | Year, last two digits (00-99)                                          | 01                       |
 //! | `%Y`      | Year                                                                   | 2001                     |
-//! | `%%`      | Literal `%`                                                            | %                        |
 //! | `%z`      | ISO 8601 offset from UTC in timezone (+HHMM)                           | +0100                    |
+//! | `%%`      | Literal `%`                                                            | %                        |
 //!
 //! ## Modifiers
 //!

@@ -93,6 +93,7 @@ pub(crate) fn parse_with_language(s: &str, language: Language) -> Vec<FormatItem
                 Some('y') => push_specifier!(y { padding }),
                 Some('Y') => push_specifier!(Y { padding }),
                 Some('z') => push_specifier!(z),
+                Some('%') => buf.push('%'),
                 Some(c) => panic!("Invalid specifier `{}`", c),
                 None => panic!(
                     "Cannot end formatting with `%`. If you want a literal `%`, you must use `%%`."
@@ -101,6 +102,11 @@ pub(crate) fn parse_with_language(s: &str, language: Language) -> Vec<FormatItem
         } else {
             buf.push(c);
         }
+    }
+
+    if !buf.is_empty() {
+        let buffer_contents = empty_buf(&mut buf);
+        items.push(FormatItem::Literal(buffer_contents));
     }
 
     items
