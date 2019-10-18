@@ -4,65 +4,16 @@
 
 use crate::format::{Language, Padding};
 use crate::Date;
-use crate::Weekday::{Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday};
 use core::fmt::{self, Formatter};
 
-macro_rules! nonexhaustive_locale {
-    () => {
-        unreachable!(
-            "This is needed due to the explicit nonexhaustiveness of locales. \
-             Once rust-lang/rust#44109 is resolved and `#[non_exhaustive]` is \
-             stabilized, this will no longer be necessary."
-        )
-    };
-}
-
 /// Short day of the week
-pub(crate) fn fmt_a(f: &mut Formatter<'_>, date: Date, locale: Language) -> fmt::Result {
-    use Language::*;
-    match (locale, date.weekday()) {
-        (en, Monday) => f.write_str("Mon"),
-        (en, Tuesday) => f.write_str("Tue"),
-        (en, Wednesday) => f.write_str("Wed"),
-        (en, Thursday) => f.write_str("Thu"),
-        (en, Friday) => f.write_str("Fri"),
-        (en, Saturday) => f.write_str("Sat"),
-        (en, Sunday) => f.write_str("Sun"),
-
-        (es, Monday) => f.write_str("Lu"),
-        (es, Tuesday) => f.write_str("Ma"),
-        (es, Wednesday) => f.write_str("Mi"),
-        (es, Thursday) => f.write_str("Ju"),
-        (es, Friday) => f.write_str("Vi"),
-        (es, Saturday) => f.write_str("Sa"),
-        (es, Sunday) => f.write_str("Do"),
-
-        _ => nonexhaustive_locale!(),
-    }
+pub(crate) fn fmt_a(f: &mut Formatter<'_>, date: Date, language: Language) -> fmt::Result {
+    f.write_str(language.short_week_days()[date.weekday().number_days_from_monday() as usize])
 }
 
 /// Day of the week
-pub(crate) fn fmt_A(f: &mut Formatter<'_>, date: Date, locale: Language) -> fmt::Result {
-    use Language::*;
-    match (locale, date.weekday()) {
-        (en, Monday) => f.write_str("Monday"),
-        (en, Tuesday) => f.write_str("Tuesday"),
-        (en, Wednesday) => f.write_str("Wednesday"),
-        (en, Thursday) => f.write_str("Thursday"),
-        (en, Friday) => f.write_str("Friday"),
-        (en, Saturday) => f.write_str("Saturday"),
-        (en, Sunday) => f.write_str("Sunday"),
-
-        (es, Monday) => f.write_str("lunes"),
-        (es, Tuesday) => f.write_str("martes"),
-        (es, Wednesday) => f.write_str("miércoles"),
-        (es, Thursday) => f.write_str("jueves"),
-        (es, Friday) => f.write_str("viernes"),
-        (es, Saturday) => f.write_str("sábado"),
-        (es, Sunday) => f.write_str("domingo"),
-
-        _ => nonexhaustive_locale!(),
-    }
+pub(crate) fn fmt_A(f: &mut Formatter<'_>, date: Date, language: Language) -> fmt::Result {
+    f.write_str(language.week_days()[date.weekday().number_days_from_monday() as usize])
 }
 
 /// Short month name
@@ -70,71 +21,13 @@ pub(crate) fn fmt_A(f: &mut Formatter<'_>, date: Date, locale: Language) -> fmt:
 /// References on localization
 /// - [Yale](https://web.library.yale.edu/cataloging/months)
 /// - [Princeton](https://library.princeton.edu/departments/tsd/katmandu/reference/months.html)
-pub(crate) fn fmt_b(f: &mut Formatter<'_>, date: Date, locale: Language) -> fmt::Result {
-    use Language::*;
-    match (locale, date.month()) {
-        (en, 1) => f.write_str("Jan"),
-        (en, 2) => f.write_str("Feb"),
-        (en, 3) => f.write_str("Mar"),
-        (en, 4) => f.write_str("Apr"),
-        (en, 5) => f.write_str("May"),
-        (en, 6) => f.write_str("June"),
-        (en, 7) => f.write_str("July"),
-        (en, 8) => f.write_str("Aug"),
-        (en, 9) => f.write_str("Sept"),
-        (en, 10) => f.write_str("Oct"),
-        (en, 11) => f.write_str("Nov"),
-        (en, 12) => f.write_str("Dec"),
-
-        (es, 1) => f.write_str("enero"),
-        (es, 2) => f.write_str("feb"),
-        (es, 3) => f.write_str("marzo"),
-        (es, 4) => f.write_str("abr"),
-        (es, 5) => f.write_str("mayo"),
-        (es, 6) => f.write_str("jun"),
-        (es, 7) => f.write_str("jul"),
-        (es, 8) => f.write_str("agosto"),
-        (es, 9) => f.write_str("set"),
-        (es, 10) => f.write_str("oct"),
-        (es, 11) => f.write_str("nov"),
-        (es, 12) => f.write_str("dic"),
-
-        _ => unreachable!("There are only 12 months in a year."),
-    }
+pub(crate) fn fmt_b(f: &mut Formatter<'_>, date: Date, language: Language) -> fmt::Result {
+    f.write_str(language.short_month_names()[date.month() as usize - 1])
 }
 
 /// Month name
-pub(crate) fn fmt_B(f: &mut Formatter<'_>, date: Date, locale: Language) -> fmt::Result {
-    use Language::*;
-    match (locale, date.month()) {
-        (en, 1) => f.write_str("January"),
-        (en, 2) => f.write_str("February"),
-        (en, 3) => f.write_str("March"),
-        (en, 4) => f.write_str("April"),
-        (en, 5) => f.write_str("May"),
-        (en, 6) => f.write_str("June"),
-        (en, 7) => f.write_str("July"),
-        (en, 8) => f.write_str("August"),
-        (en, 9) => f.write_str("September"),
-        (en, 10) => f.write_str("October"),
-        (en, 11) => f.write_str("November"),
-        (en, 12) => f.write_str("December"),
-
-        (es, 1) => f.write_str("enero"),
-        (es, 2) => f.write_str("febrero"),
-        (es, 3) => f.write_str("marzo"),
-        (es, 4) => f.write_str("abril"),
-        (es, 5) => f.write_str("mayo"),
-        (es, 6) => f.write_str("junio"),
-        (es, 7) => f.write_str("julio"),
-        (es, 8) => f.write_str("agosto"),
-        (es, 9) => f.write_str("septiembre"),
-        (es, 10) => f.write_str("octubre"),
-        (es, 11) => f.write_str("noviembre"),
-        (es, 12) => f.write_str("diciembre"),
-
-        _ => unreachable!("There are only 12 months in a year."),
-    }
+pub(crate) fn fmt_B(f: &mut Formatter<'_>, date: Date, language: Language) -> fmt::Result {
+    f.write_str(language.month_names()[date.month() as usize - 1])
 }
 
 /// Year divided by 100 and truncated to integer (`00`-`99`)

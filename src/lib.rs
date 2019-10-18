@@ -203,7 +203,7 @@ use core::fmt;
 pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use date_time::DateTime;
 pub use duration::Duration;
-pub use format::{DeferredFormat, Language};
+pub use format::{language::Language, DeferredFormat};
 #[cfg(feature = "std")]
 pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration};

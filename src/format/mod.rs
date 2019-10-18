@@ -35,6 +35,7 @@ macro_rules! pad {
 
 mod date;
 mod format;
+pub(crate) mod language;
 mod offset;
 mod time;
 
@@ -43,31 +44,7 @@ use crate::no_std_prelude::*;
 use crate::{Date, Time, UtcOffset};
 use core::fmt::{self, Display, Formatter};
 pub(crate) use format::parse_with_language;
-
-/// Languages used in formatting. Follows [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes).
-///
-/// Additional languages may be added at any time. Contributions will be
-/// accepted by native and highly fluent speakers of any living language.
-///
-/// All languages must have the following:
-/// - Month names
-/// - Short month names
-/// - Weekday names
-/// - Short weekday names
-///
-// The list of supported languages is inherently non-exhaustive. Once
-// `#[non_exhaustive]` is stabilized, that will be used.
-#[allow(non_camel_case_types)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Language {
-    /// English
-    en,
-    /// Spanish
-    es,
-
-    #[doc(hidden)]
-    __nonexhaustive,
-}
+use language::Language;
 
 /// The type of padding to use when formatting.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -288,8 +265,8 @@ pub(crate) enum FormatItem<'a> {
     Specifier(Specifier),
 }
 
-// TODO Eliminate `DeferredFormat` entirely. None of the exposed formatting
-// methods are deferred.
+// TODO Look into whether `DeferredFormat` can be eliminated entirely without
+// unnecessary duplication between formatting and parsing code.
 /// A struct containing all the necessary information to display the inner type.
 #[allow(clippy::module_name_repetitions)]
 #[doc(hidden)]
