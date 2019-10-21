@@ -12,16 +12,16 @@
 
 ### `#![no_std]`
 
-Currently, all structs except `Instant` are useable wiht `#![no_std]`. As
+Currently, all structs except `Instant` can be used with `#![no_std]`. As
 support for the standard library is enabled by default, you muse use
 `default_features = false` in your `Cargo.toml` to enable this.
 
-```none
+```toml
 [dependencies]
 time = { version = "0.2", default-features = false }
 ```
 
-Of the structs that are useable, some methods may only be enabled due a reliance
+Of the structs that are usable, some methods may only be enabled due a reliance
 on `Instant`. These will be documented alongside the method.
 
 ### Serde
@@ -30,7 +30,7 @@ on `Instant`. These will be documented alongside the method.
 enable it, use the `serialization` feature. This is not enabled by default. It
 _is_ compatible with `#![no_std]`, so long as an allocator is present.
 
-```none
+```toml
 [dependencies]
 time = { version = "0.2", features = ["serialization"] }
 ```
