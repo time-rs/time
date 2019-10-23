@@ -7,7 +7,7 @@ use core::time::Duration as StdDuration;
 use std::time::Instant as StdInstant;
 
 /// A measurement of a monotonically nondecreasing clock. Opaque and useful only
-/// with [`Duration`](Duration).
+/// with [`Duration`].
 ///
 /// Instants are always guaranteed to be no less than any previously measured
 /// instant when created, and are often useful for tasks such as measuring
@@ -24,8 +24,8 @@ use std::time::Instant as StdInstant;
 /// allows measuring the duration between two instants (or comparing two
 /// instants).
 ///
-/// Allows for operations with signed [`Duration`](Duration)s, but is otherwise
-/// identical to [`std::time::Instant`](std::time::Instant).
+/// Allows for operations with signed [`Duration`]s, but is otherwise identical
+/// to [`std::time::Instant`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Instant {
     /// Inner representation, using `std::time::Instant`.
@@ -111,6 +111,7 @@ impl Instant {
 
 #[allow(clippy::missing_docs_in_private_items)]
 impl Instant {
+    #[cfg(feature = "deprecated")]
     #[deprecated(since = "0.2.0", note = "Use `rhs - lhs`")]
     pub fn to(&self, later: Self) -> Duration {
         later - *self

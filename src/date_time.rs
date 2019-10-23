@@ -128,7 +128,7 @@ impl DateTime {
     }
 
     /// Get the month of the date. If fetching both the month and day, use
-    /// [`DateTime::month_day`](DateTime::month_day) instead.
+    /// [`DateTime::month_day`] instead.
     ///
     /// The returned value will always be in the range `1..=12`.
     ///
@@ -142,7 +142,7 @@ impl DateTime {
     }
 
     /// Get the day of the date. If fetching both the month and day, use
-    /// [`DateTime::month_day`](DateTime::month_day) instead.
+    /// [`DateTime::month_day`] instead.
     ///
     /// The returned value will always be in the range `1..=31`.
     ///

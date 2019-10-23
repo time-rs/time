@@ -207,7 +207,7 @@ impl Date {
     }
 
     /// Get the month of the date. If fetching both the month and day, use
-    /// [`Date::date`](Date::date) instead.
+    /// [`Date::date`] instead.
     ///
     /// The returned value will always be in the range `1..=12`.
     ///
@@ -221,7 +221,7 @@ impl Date {
     }
 
     /// Get the day of the date. If fetching both the month and day, use
-    /// [`Date::date`](Date::date) instead.
+    /// [`Date::date`] instead.
     ///
     /// The returned value will always be in the range `1..=31`.
     ///

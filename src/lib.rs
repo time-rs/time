@@ -25,6 +25,11 @@
 //! default. It _is_ compatible with `#![no_std]`, so long as an allocator is
 //! present.
 //!
+//! ## Deprecated
+//!
+//! Using the `deprecated` feature allows using deprecated methods. Enabled by
+//! default.
+//!
 //! ```toml
 //! [dependencies]
 //! time = { version = "0.2", features = ["serialization"] }
@@ -281,12 +286,12 @@ impl std::error::Error for OutOfRangeError {}
 
 // For some back-compatibility, we're also implementing some deprecated types.
 
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", feature = "deprecated"))]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type PreciseTime = Instant;
 
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", feature = "deprecated"))]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type SteadyTime = Instant;

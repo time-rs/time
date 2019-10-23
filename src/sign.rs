@@ -4,11 +4,10 @@ use Sign::{Negative, Positive, Unknown, Zero};
 
 /// Contains the sign of a value: positive, negative, zero, or unknown.
 ///
-/// For ease of use, `Sign` implements [`Mul`](core::ops::Mul) and
-/// [`Div`](core::ops::Div) on all signed numeric types. Where the value is
-/// `Unknown`, the sign of the value is left unchanged. `Sign`s can also be
-/// multiplied and divided by another `Sign`, which follows the same rules as
-/// real numbers.
+/// For ease of use, `Sign` implements [`Mul`] and [`Div`] on all signed numeric
+/// types. Where the value is `Unknown`, the sign of the value is left
+/// unchanged. `Sign`s can also be multiplied and divided by another `Sign`,
+/// which follows the same rules as real numbers.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Sign {

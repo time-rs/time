@@ -12,7 +12,7 @@
 <br>
 [Documentation (latest release)](https://docs.rs/time)
 
-## Features
+## Feature gates
 
 ### `#![no_std]`
 
@@ -38,6 +38,11 @@ _is_ compatible with `#![no_std]`, so long as an allocator is present.
 [dependencies]
 time = { version = "0.2", features = ["serialization"] }
 ```
+
+### Deprecated
+
+Using the `deprecated` feature allows using deprecated methods. Enabled by
+default.
 
 ### License
 

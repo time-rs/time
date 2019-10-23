@@ -7,7 +7,7 @@ use core::hash::{Hash, Hasher};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 
-/// A [`DateTime`](DateTime) with a [`UtcOffset`](UtcOffset).
+/// A [`DateTime`] with a [`UtcOffset`].
 ///
 /// For equality, comparisons, and hashing, calculations are performed using the
 /// [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).

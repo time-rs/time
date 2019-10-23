@@ -6,6 +6,7 @@ use core::cmp::Ordering::{self, Equal, Greater, Less};
 use core::convert::{From, TryFrom};
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use core::time::Duration as StdDuration;
+#[cfg(feature = "deprecated")]
 use log::warn;
 
 /// A span of time with nanosecond precision.
@@ -659,7 +660,9 @@ impl Duration {
     }
 }
 
-/// Functions that have been renamed or had signatures changed since v0.1.
+/// Functions that have been renamed or had signatures changed since v0.1. As
+/// such, they are deprecated.
+#[cfg(feature = "deprecated")]
 #[allow(clippy::missing_docs_in_private_items)]
 impl Duration {
     #[deprecated(since = "0.2.0", note = "Use the `whole_weeks` function")]
@@ -687,11 +690,10 @@ impl Duration {
         self.whole_seconds()
     }
 
-    /// [`whole_milliseconds()`](Duration::whole_milliseconds) returns an
-    /// `i128`, rather than panicking on overflow. To avoid panicking, this
-    /// method currently limits the value to the range
-    /// `i64::min_value()..=i64::max_value()`. A warning will be printed at
-    /// runtime if this occurs.
+    /// [`whole_milliseconds()`] returns an `i128`, rather than panicking on
+    /// overflow. To avoid panicking, this method currently limits the value to
+    /// the range `i64::min_value()..=i64::max_value()`. A warning will be
+    /// printed at runtime if this occurs.
     #[allow(clippy::cast_possible_truncation)]
     #[deprecated(since = "0.2.0", note = "Use the `whole_milliseconds` function")]
     pub fn num_milliseconds(&self) -> i64 {
@@ -718,8 +720,8 @@ impl Duration {
         millis as i64
     }
 
-    /// [`whole_microseconds()`](Duration::whole_microseconds) returns an `i128`
-    /// rather than returning `None` on `i64` overflow.
+    /// [`whole_microseconds()`] returns an `i128` rather than returning `None`
+    /// on `i64` overflow.
     #[allow(clippy::cast_possible_truncation)]
     #[deprecated(since = "0.2.0", note = "Use the `whole_microseconds` function")]
     pub fn num_microseconds(&self) -> Option<i64> {
@@ -732,8 +734,8 @@ impl Duration {
         }
     }
 
-    /// [`whole_nanoseconds()`](Duration::whole_nanoseconds) returns an `i128`
-    /// rather than returning `None` on `i64` overflow.
+    /// [`whole_nanoseconds()`] returns an `i128` rather than returning `None`
+    /// on `i64` overflow.
     #[allow(clippy::cast_possible_truncation)]
     #[deprecated(since = "0.2.0", note = "Use the `whole_nanoseconds` function")]
     pub fn num_nanoseconds(&self) -> Option<i64> {
