@@ -76,34 +76,42 @@ macro_rules! impl_numerical_duration {
         $(
             #[allow(trivial_numeric_casts, clippy::use_self)]
             impl NumericalDuration for $type {
+                #[inline(always)]
                 fn nanoseconds(self) -> Duration {
                     Duration::nanoseconds(self as i64)
                 }
 
+                #[inline(always)]
                 fn microseconds(self) -> Duration {
                     Duration::microseconds(self as i64)
                 }
 
+                #[inline(always)]
                 fn milliseconds(self) -> Duration {
                     Duration::milliseconds(self as i64)
                 }
 
+                #[inline(always)]
                 fn seconds(self) -> Duration {
                     Duration::seconds(self as i64)
                 }
 
+                #[inline(always)]
                 fn minutes(self) -> Duration {
                     Duration::minutes(self as i64)
                 }
 
+                #[inline(always)]
                 fn hours(self) -> Duration {
                     Duration::hours(self as i64)
                 }
 
+                #[inline(always)]
                 fn days(self) -> Duration {
                     Duration::days(self as i64)
                 }
 
+                #[inline(always)]
                 fn weeks(self) -> Duration {
                     Duration::weeks(self as i64)
                 }
@@ -117,34 +125,42 @@ macro_rules! impl_numerical_duration_nonzero {
         $(
             #[allow(trivial_numeric_casts, clippy::use_self)]
             impl NumericalDuration for $type {
+                #[inline(always)]
                 fn nanoseconds(self) -> Duration {
                     Duration::nanoseconds(self.get() as i64)
                 }
 
+                #[inline(always)]
                 fn microseconds(self) -> Duration {
                     Duration::microseconds(self.get() as i64)
                 }
 
+                #[inline(always)]
                 fn milliseconds(self) -> Duration {
                     Duration::milliseconds(self.get() as i64)
                 }
 
+                #[inline(always)]
                 fn seconds(self) -> Duration {
                     Duration::seconds(self.get() as i64)
                 }
 
+                #[inline(always)]
                 fn minutes(self) -> Duration {
                     Duration::minutes(self.get() as i64)
                 }
 
+                #[inline(always)]
                 fn hours(self) -> Duration {
                     Duration::hours(self.get() as i64)
                 }
 
+                #[inline(always)]
                 fn days(self) -> Duration {
                     Duration::days(self.get() as i64)
                 }
 
+                #[inline(always)]
                 fn weeks(self) -> Duration {
                     Duration::weeks(self.get() as i64)
                 }
@@ -228,34 +244,42 @@ macro_rules! impl_numerical_std_duration {
         $(
             #[allow(trivial_numeric_casts, clippy::use_self)]
             impl NumericalStdDuration for $type {
+                #[inline(always)]
                 fn std_nanoseconds(self) -> StdDuration {
                     StdDuration::from_nanos(self as u64)
                 }
 
+                #[inline(always)]
                 fn std_microseconds(self) -> StdDuration {
                     StdDuration::from_micros(self as u64)
                 }
 
+                #[inline(always)]
                 fn std_milliseconds(self) -> StdDuration {
                     StdDuration::from_millis(self as u64)
                 }
 
+                #[inline(always)]
                 fn std_seconds(self) -> StdDuration {
                     StdDuration::from_secs(self as u64)
                 }
 
+                #[inline(always)]
                 fn std_minutes(self) -> StdDuration {
                     StdDuration::from_secs(self as u64 * 60)
                 }
 
+                #[inline(always)]
                 fn std_hours(self) -> StdDuration {
                     StdDuration::from_secs(self as u64 * 3_600)
                 }
 
+                #[inline(always)]
                 fn std_days(self) -> StdDuration {
                     StdDuration::from_secs(self as u64 * 86_400)
                 }
 
+                #[inline(always)]
                 fn std_weeks(self) -> StdDuration {
                     StdDuration::from_secs(self as u64 * 604_800)
                 }
@@ -269,34 +293,42 @@ macro_rules! impl_numerical_std_duration_nonzero {
         $(
             #[allow(trivial_numeric_casts, clippy::use_self)]
             impl NumericalStdDuration for $type {
+                #[inline(always)]
                 fn std_nanoseconds(self) -> StdDuration {
                     StdDuration::from_nanos(self.get() as u64)
                 }
 
+                #[inline(always)]
                 fn std_microseconds(self) -> StdDuration {
                     StdDuration::from_micros(self.get() as u64)
                 }
 
+                #[inline(always)]
                 fn std_milliseconds(self) -> StdDuration {
                     StdDuration::from_millis(self.get() as u64)
                 }
 
+                #[inline(always)]
                 fn std_seconds(self) -> StdDuration {
                     StdDuration::from_secs(self.get() as u64)
                 }
 
+                #[inline(always)]
                 fn std_minutes(self) -> StdDuration {
                     StdDuration::from_secs(self.get() as u64 * 60)
                 }
 
+                #[inline(always)]
                 fn std_hours(self) -> StdDuration {
                     StdDuration::from_secs(self.get() as u64 * 3_600)
                 }
 
+                #[inline(always)]
                 fn std_days(self) -> StdDuration {
                     StdDuration::from_secs(self.get() as u64 * 86_400)
                 }
 
+                #[inline(always)]
                 fn std_weeks(self) -> StdDuration {
                     StdDuration::from_secs(self.get() as u64 * 604_800)
                 }

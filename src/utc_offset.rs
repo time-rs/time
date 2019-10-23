@@ -34,6 +34,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::east_hours(1).as_hours(), 1);
     /// assert_eq!(UtcOffset::east_hours(2).as_minutes(), 120);
     /// ```
+    #[inline(always)]
     pub const fn east_hours(hours: u8) -> Self {
         Self::hours(hours as i8)
     }
@@ -46,6 +47,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::west_hours(1).as_hours(), -1);
     /// assert_eq!(UtcOffset::west_hours(2).as_minutes(), -120);
     /// ```
+    #[inline(always)]
     pub const fn west_hours(hours: u8) -> Self {
         Self::hours(-(hours as i8))
     }
@@ -60,6 +62,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::hours(2).as_minutes(), 120);
     /// assert_eq!(UtcOffset::hours(-2).as_minutes(), -120);
     /// ```
+    #[inline(always)]
     pub const fn hours(hours: i8) -> Self {
         Self::seconds(hours as i32 * 3_600)
     }
@@ -72,6 +75,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::east_minutes(60).as_hours(), 1);
     /// assert_eq!(UtcOffset::east_minutes(30).as_minutes(), 30);
     /// ```
+    #[inline(always)]
     pub const fn east_minutes(minutes: u16) -> Self {
         Self::minutes(minutes as i16)
     }
@@ -84,6 +88,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::west_minutes(60).as_hours(), -1);
     /// assert_eq!(UtcOffset::west_minutes(30).as_minutes(), -30);
     /// ```
+    #[inline(always)]
     pub const fn west_minutes(minutes: u16) -> Self {
         Self::minutes(-(minutes as i16))
     }
@@ -98,6 +103,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::minutes(30).as_minutes(), 30);
     /// assert_eq!(UtcOffset::minutes(-30).as_minutes(), -30);
     /// ```
+    #[inline(always)]
     pub const fn minutes(minutes: i16) -> Self {
         Self::seconds(minutes as i32 * 60)
     }
@@ -110,6 +116,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::east_seconds(3_600).as_hours(), 1);
     /// assert_eq!(UtcOffset::east_seconds(1_800).as_minutes(), 30);
     /// ```
+    #[inline(always)]
     pub const fn east_seconds(seconds: u32) -> Self {
         Self::seconds(seconds as i32)
     }
@@ -122,6 +129,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::west_seconds(3_600).as_hours(), -1);
     /// assert_eq!(UtcOffset::west_seconds(1_800).as_minutes(), -30);
     /// ```
+    #[inline(always)]
     pub const fn west_seconds(seconds: u32) -> Self {
         Self::seconds(-(seconds as i32))
     }
@@ -136,6 +144,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::seconds(1_800).as_minutes(), 30);
     /// assert_eq!(UtcOffset::seconds(-1_800).as_minutes(), -30);
     /// ```
+    #[inline(always)]
     pub const fn seconds(seconds: i32) -> Self {
         Self { seconds }
     }
@@ -151,6 +160,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::hours(24).as_seconds(), 86_400);
     /// assert_eq!(UtcOffset::hours(-24).as_seconds(), -86_400);
     /// ```
+    #[inline(always)]
     pub const fn as_seconds(self) -> i32 {
         self.seconds
     }
@@ -166,6 +176,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::hours(24).as_minutes(), 1_440);
     /// assert_eq!(UtcOffset::hours(-24).as_minutes(), -1_440);
     /// ```
+    #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
     pub const fn as_minutes(self) -> i16 {
         (self.as_seconds() / 60) as i16
@@ -182,12 +193,14 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::hours(24).as_hours(), 24);
     /// assert_eq!(UtcOffset::hours(-24).as_hours(), -24);
     /// ```
+    #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
     pub const fn as_hours(self) -> i8 {
         (self.as_seconds() / 3_600) as i8
     }
 
     /// Convert a `UtcOffset` to ` Duration`. Useful for implementing operators.
+    #[inline(always)]
     pub(crate) fn as_duration(self) -> Duration {
         Duration::seconds(self.seconds as i64)
     }
@@ -204,6 +217,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::hours(12).format("%z"), "+1200");
     /// assert_eq!(UtcOffset::hours(-12).format("%z"), "-1200");
     /// ```
+    #[inline(always)]
     pub fn format(self, format: &str) -> String {
         DeferredFormat {
             date: None,
@@ -223,11 +237,13 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::parse("+1200", "%z"), Ok(UtcOffset::hours(12)));
     /// assert_eq!(UtcOffset::parse("-1200", "%z"), Ok(UtcOffset::hours(-12)));
     /// ```
+    #[inline(always)]
     pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s, format, Language::en)?)
     }
 
     /// Given the items already parsed, attempt to create a `UtcOffset`.
+    #[inline(always)]
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
         items.offset.ok_or(ParseError::InsufficientInformation)
     }

@@ -58,6 +58,7 @@ pub enum ParseError {
 }
 
 impl Display for ParseError {
+    #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         use ParseError::*;
         match self {
@@ -137,6 +138,7 @@ pub(crate) struct ParsedItems {
 
 impl ParsedItems {
     /// Create a new `ParsedItems` with nothing known.
+    #[inline(always)]
     const fn new() -> Self {
         Self {
             week_based_year: None,
@@ -159,6 +161,7 @@ impl ParsedItems {
 }
 
 /// Attempt to consume the provided character.
+#[inline]
 pub(crate) fn try_consume_char(s: &mut &str, expected: char) -> ParseResult<()> {
     match s.char_indices().next() {
         Some((index, actual_char)) if actual_char == expected => {
@@ -171,6 +174,7 @@ pub(crate) fn try_consume_char(s: &mut &str, expected: char) -> ParseResult<()> 
 }
 
 /// Attempt to consume the provided string.
+#[inline]
 pub(crate) fn try_consume_str(s: &mut &str, expected: &str) -> ParseResult<()> {
     if s.starts_with(expected) {
         *s = &s[expected.len()..];
@@ -185,6 +189,7 @@ pub(crate) fn try_consume_str(s: &mut &str, expected: &str) -> ParseResult<()> {
 }
 
 /// Attempt to find one of the strings provided, returning the first value.
+#[inline]
 pub(crate) fn try_consume_first_match<T: Copy>(
     s: &mut &str,
     opts: impl IntoIterator<Item = (impl AsRef<str>, T)>,
@@ -200,6 +205,7 @@ pub(crate) fn try_consume_first_match<T: Copy>(
 
 /// Attempt to consume a number of digits. Consumes the maximum amount possible
 /// within the range provided.
+#[inline]
 pub(crate) fn try_consume_digits<T: FromStr>(s: &mut &str, num_digits: Range<usize>) -> Option<T> {
     // Determine how many digits the string starts with, up to the upper limit
     // of the range.
@@ -227,6 +233,7 @@ pub(crate) fn try_consume_digits<T: FromStr>(s: &mut &str, num_digits: Range<usi
 /// allowed range.
 // TODO Is there some way to allow both `Range` and `RangeInclusive`? It would
 // be better for readability in some places.
+#[inline(always)]
 pub(crate) fn try_consume_digits_in_range<T: FromStr + PartialOrd>(
     s: &mut &str,
     num_digits: Range<usize>,
@@ -236,6 +243,7 @@ pub(crate) fn try_consume_digits_in_range<T: FromStr + PartialOrd>(
 }
 
 /// Attempt to consume an exact number of digits.
+#[inline]
 pub(crate) fn try_consume_exact_digits<T: FromStr>(
     s: &mut &str,
     num_digits: usize,
@@ -270,6 +278,7 @@ pub(crate) fn try_consume_exact_digits<T: FromStr>(
 
 /// Attempt to consume an exact number of digits. Returns `None` if the value is
 /// not within the allowed range.
+#[inline]
 pub(crate) fn try_consume_exact_digits_in_range<T: FromStr + PartialOrd>(
     s: &mut &str,
     num_digits: usize,
@@ -282,6 +291,7 @@ pub(crate) fn try_consume_exact_digits_in_range<T: FromStr + PartialOrd>(
 /// Consume all leading padding up to the number of characters.
 ///
 /// Returns the number of characters trimmed.
+#[inline]
 pub(crate) fn consume_padding(s: &mut &str, padding: Padding, max_chars: usize) -> usize {
     let pad_char = match padding {
         Padding::Space => ' ',
@@ -304,6 +314,7 @@ pub(crate) fn consume_padding(s: &mut &str, padding: Padding, max_chars: usize) 
 
 /// Attempt to parse the string with the provided format and language, returning
 /// a struct containing all information found.
+#[inline]
 pub(crate) fn parse(s: &str, format: &str, language: Language) -> ParseResult<ParsedItems> {
     use super::{date, offset, time};
 

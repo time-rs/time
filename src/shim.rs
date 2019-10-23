@@ -10,6 +10,7 @@ pub(crate) trait NumberExt: Sized + PartialOrd {
     fn zero() -> Self;
 
     /// Obtain the sign of the number, if known.
+    #[inline(always)]
     fn sign(self) -> Sign {
         match self.partial_cmp(&Self::zero()) {
             Some(Less) => Negative,
@@ -24,8 +25,8 @@ macro_rules! unsigned {
     ($($type:ty),*) => {
         $(
             impl NumberExt for $type {
-                fn abs(self) -> Self { self }
-                fn zero() -> Self { 0 }
+                #[inline(always)] fn abs(self) -> Self { self }
+                #[inline(always)] fn zero() -> Self { 0 }
             }
         )*
     };
@@ -35,8 +36,8 @@ macro_rules! signed {
     ($($type:ty),*) => {
         $(
             impl NumberExt for $type {
-                fn abs(self) -> Self { self.abs() }
-                fn zero() -> Self { 0 }
+                #[inline(always)] fn abs(self) -> Self { self.abs() }
+                #[inline(always)] fn zero() -> Self { 0 }
             }
         )*
     };
@@ -46,10 +47,12 @@ macro_rules! float {
     ($($type:ty),*) => {
         $(
             impl NumberExt for $type {
+                #[inline(always)]
                 fn abs(self) -> Self {
                     if self < 0. { -self }
                     else { self }
                 }
+                #[inline(always)]
                 fn zero() -> Self { 0. }
             }
         )*

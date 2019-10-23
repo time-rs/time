@@ -6,6 +6,7 @@ use crate::no_std_prelude::*;
 use crate::Language;
 
 /// Parse the formatting string with the provided language.
+#[inline]
 pub(crate) fn parse_with_language<'a>(s: &'a str, language: Language) -> Vec<FormatItem<'a>> {
     let mut items = vec![];
     let mut literal_start = 0;

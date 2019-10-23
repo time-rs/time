@@ -18,17 +18,13 @@ const DAYS_IN_MONTH: [u16; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 const DAYS_IN_MONTH_LEAP: [u16; 12] = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 /// Get the number of days in the month of a given year.
+#[inline(always)]
+#[allow(clippy::cast_possible_truncation)]
 fn days_in_year_month(year: i32, month: u8) -> u8 {
     if is_leap_year(year) {
-        #[allow(clippy::cast_possible_truncation)]
-        {
-            DAYS_IN_MONTH_LEAP[(month - 1) as usize] as u8
-        }
+        DAYS_IN_MONTH_LEAP[(month - 1) as usize] as u8
     } else {
-        #[allow(clippy::cast_possible_truncation)]
-        {
-            DAYS_IN_MONTH[(month - 1) as usize] as u8
-        }
+        DAYS_IN_MONTH[(month - 1) as usize] as u8
     }
 }
 
@@ -43,6 +39,7 @@ fn days_in_year_month(year: i32, month: u8) -> u8 {
 /// assert!(!is_leap_year(2005));
 /// assert!(!is_leap_year(2100));
 /// ```
+#[inline(always)]
 pub const fn is_leap_year(year: i32) -> bool {
     (year % 4 == 0) & ((year % 100 != 0) | (year % 400 == 0))
 }
@@ -57,6 +54,7 @@ pub const fn is_leap_year(year: i32) -> bool {
 /// assert_eq!(days_in_year(2005), 365);
 /// assert_eq!(days_in_year(2100), 365);
 /// ```
+#[inline(always)]
 pub const fn days_in_year(year: i32) -> u16 {
     365 + is_leap_year(year) as u16
 }
@@ -70,6 +68,7 @@ pub const fn days_in_year(year: i32) -> u16 {
 /// assert_eq!(weeks_in_year(2019), 52);
 /// assert_eq!(weeks_in_year(2020), 53);
 /// ```
+#[inline(always)]
 pub fn weeks_in_year(year: i32) -> u8 {
     let weekday = Date::from_yo(year, 1).weekday();
 
@@ -113,6 +112,7 @@ impl Date {
     /// # use time::Date;
     /// Date::from_ymd(2019, 2, 29); // 2019 isn't a leap year.
     /// ```
+    #[inline]
     pub fn from_ymd(year: i32, month: u8, day: u8) -> Self {
         assert_value_in_range!(month in 1 => 12);
         assert_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
@@ -143,6 +143,7 @@ impl Date {
     /// # use time::Date;
     /// Date::from_yo(2019, 366); // 2019 isn't a leap year.
     /// ```
+    #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
     pub fn from_yo(year: i32, ordinal: u16) -> Self {
         assert_value_in_range!(ordinal in 1 => days_in_year(year), given year);
@@ -164,6 +165,7 @@ impl Date {
     /// # use time::{Date, Weekday::*};
     /// Date::from_iso_ywd(2019, 53, Monday); // 2019 doesn't have 53 weeks.
     /// ```
+    #[inline]
     pub fn from_iso_ywd(year: i32, week: u8, weekday: Weekday) -> Self {
         assert_value_in_range!(week in 1 => weeks_in_year(year), given year);
 
@@ -188,6 +190,7 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::today().year() >= 2019);
     /// ```
+    #[inline(always)]
     #[cfg(feature = "std")]
     pub fn today() -> Self {
         DateTime::now().date()
@@ -201,6 +204,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 12, 31).year(), 2019);
     /// assert_eq!(Date::from_ymd(2020, 1, 1).year(), 2020);
     /// ```
+    #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
     pub fn year(self) -> i32 {
         self.year
@@ -216,6 +220,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).month(), 1);
     /// assert_eq!(Date::from_ymd(2019, 12, 31).month(), 12);
     /// ```
+    #[inline(always)]
     pub fn month(self) -> u8 {
         self.month_day().0
     }
@@ -230,6 +235,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).day(), 1);
     /// assert_eq!(Date::from_ymd(2019, 12, 31).day(), 31);
     /// ```
+    #[inline(always)]
     pub fn day(self) -> u8 {
         self.month_day().1
     }
@@ -244,6 +250,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).month_day(), (1, 1));
     /// assert_eq!(Date::from_ymd(2019, 12, 31).month_day(), (12, 31));
     /// ```
+    #[inline]
     pub fn month_day(self) -> (u8, u8) {
         let mut ordinal = self.ordinal;
 
@@ -275,6 +282,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).ordinal(), 1);
     /// assert_eq!(Date::from_ymd(2019, 12, 31).ordinal(), 365);
     /// ```
+    #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
     pub fn ordinal(self) -> u16 {
         self.ordinal
@@ -290,6 +298,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2020, 12, 31).iso_year_week(), (2020, 53));
     /// assert_eq!(Date::from_ymd(2021, 1, 1).iso_year_week(), (2020, 53));
     /// ```
+    #[inline]
     pub fn iso_year_week(self) -> (i32, u8) {
         let weekday = self.weekday();
         #[allow(clippy::cast_possible_truncation)]
@@ -314,6 +323,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2020, 12, 31).week(), 53);
     /// assert_eq!(Date::from_ymd(2021, 1, 1).week(), 53);
     /// ```
+    #[inline(always)]
     pub fn week(self) -> u8 {
         self.iso_year_week().1
     }
@@ -324,6 +334,7 @@ impl Date {
     /// # use time::Date;
     /// assert_eq!(Date::from_ymd(2019, 1, 1).as_ymd(), (2019, 1, 1));
     /// ```
+    #[inline(always)]
     pub fn as_ymd(self) -> (i32, u8, u8) {
         let (month, day) = self.month_day();
         (self.year, month, day)
@@ -335,6 +346,7 @@ impl Date {
     /// # use time::Date;
     /// assert_eq!(Date::from_ymd(2019, 1, 1).as_yo(), (2019, 1));
     /// ```
+    #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
     pub fn as_yo(self) -> (i32, u16) {
         (self.year, self.ordinal)
@@ -360,6 +372,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 11, 1).weekday(), Friday);
     /// assert_eq!(Date::from_ymd(2019, 12, 1).weekday(), Sunday);
     /// ```
+    #[inline]
     pub fn weekday(self) -> Weekday {
         // Don't recalculate the value every time.
         let (mut month, day) = self.month_day();
@@ -395,6 +408,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 31).next_day(), Date::from_ymd(2019, 2, 1));
     /// assert_eq!(Date::from_ymd(2019, 12, 31).next_day(), Date::from_ymd(2020, 1, 1));
     /// ```
+    #[inline(always)]
     pub fn next_day(mut self) -> Self {
         self.ordinal += 1;
 
@@ -414,6 +428,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 2, 1).previous_day(), Date::from_ymd(2019, 1, 31));
     /// assert_eq!(Date::from_ymd(2020, 1, 1).previous_day(), Date::from_ymd(2019, 12, 31));
     /// ```
+    #[inline(always)]
     pub fn previous_day(mut self) -> Self {
         self.ordinal -= 1;
 
@@ -434,6 +449,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).julian_day(), 2_458_485);
     /// assert_eq!(Date::from_ymd(2019, 12, 31).julian_day(), 2_458_849);
     /// ```
+    #[inline]
     pub fn julian_day(self) -> i64 {
         let year = self.year as i64;
         let (month, day) = self.month_day();
@@ -459,6 +475,7 @@ impl Date {
     /// assert_eq!(Date::from_julian_day(2_458_485), Date::from_ymd(2019, 1, 1));
     /// assert_eq!(Date::from_julian_day(2_458_849), Date::from_ymd(2019, 12, 31));
     /// ```
+    #[inline]
     pub fn from_julian_day(julian_day: i64) -> Self {
         #![allow(clippy::missing_docs_in_private_items)]
         const Y: i64 = 4_716;
@@ -496,6 +513,7 @@ impl Date {
     /// # use time::{Date, DateTime, Time};
     /// assert_eq!(Date::from_ymd(1970, 1, 1).midnight(), DateTime::unix_epoch());
     /// ```
+    #[inline(always)]
     pub const fn midnight(self) -> DateTime {
         DateTime::new(self, Time::midnight())
     }
@@ -509,6 +527,7 @@ impl Date {
     ///     Date::from_ymd(1970, 1, 1).midnight(),
     /// );
     /// ```
+    #[inline(always)]
     pub const fn with_time(self, time: Time) -> DateTime {
         DateTime::new(self, time)
     }
@@ -522,6 +541,7 @@ impl Date {
     ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms(0, 0, 0)),
     /// );
     /// ```
+    #[inline(always)]
     pub fn with_hms(self, hour: u8, minute: u8, second: u8) -> DateTime {
         DateTime::new(self, Time::from_hms(hour, minute, second))
     }
@@ -535,6 +555,7 @@ impl Date {
     ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms_milli(0, 0, 0, 0)),
     /// );
     /// ```
+    #[inline(always)]
     pub fn with_hms_milli(self, hour: u8, minute: u8, second: u8, millisecond: u16) -> DateTime {
         DateTime::new(
             self,
@@ -551,6 +572,7 @@ impl Date {
     ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms_micro(0, 0, 0, 0)),
     /// );
     /// ```
+    #[inline(always)]
     pub fn with_hms_micro(self, hour: u8, minute: u8, second: u8, microsecond: u32) -> DateTime {
         DateTime::new(
             self,
@@ -567,6 +589,7 @@ impl Date {
     ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms_nano(0, 0, 0, 0)),
     /// );
     /// ```
+    #[inline(always)]
     pub fn with_hms_nano(self, hour: u8, minute: u8, second: u8, nanosecond: u32) -> DateTime {
         DateTime::new(self, Time::from_hms_nano(hour, minute, second, nanosecond))
     }
@@ -581,6 +604,7 @@ impl Date {
     /// # use time::Date;
     /// assert_eq!(Date::from_ymd(2019, 1, 2).format("%Y-%m-%d"), "2019-01-02");
     /// ```
+    #[inline(always)]
     pub fn format(self, format: &str) -> String {
         DeferredFormat {
             date: Some(self),
@@ -604,6 +628,7 @@ impl Date {
     ///     "enero, miércoles",
     /// );
     /// ```
+    #[inline(always)]
     pub fn format_language(self, format: &str, language: Language) -> String {
         DeferredFormat {
             date: Some(self),
@@ -622,6 +647,7 @@ impl Date {
     /// assert_eq!(Date::parse("2019-002", "%Y-%j"), Ok(Date::from_yo(2019, 2)));
     /// assert_eq!(Date::parse("2019-W01-3", "%G-W%V-%u"), Ok(Date::from_iso_ywd(2019, 1, Wednesday)));
     /// ```
+    #[inline(always)]
     pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
         Self::parse_language(s, format, Language::en)
     }
@@ -633,10 +659,12 @@ impl Date {
     /// assert_eq!(Date::parse_language("January 2 2019", "%B %-d %Y", en), Ok(Date::from_ymd(2019, 1, 2)));
     /// assert_eq!(Date::parse_language("2 de enero 2019", "%-d de %B %Y", es), Ok(Date::from_ymd(2019, 1, 2)));
     /// ```
+    #[inline(always)]
     pub fn parse_language(s: &str, format: &str, language: Language) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s, format, language)?)
     }
 
+    #[inline(always)]
     /// Given the items already parsed, attempt to create a `Date`.
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
         macro_rules! items {
@@ -666,6 +694,7 @@ impl Add<Duration> for Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 1) + Duration::days(5), Date::from_ymd(2019, 1, 6));
     /// assert_eq!(Date::from_ymd(2019, 12, 31) + Duration::day(), Date::from_ymd(2020, 1, 1));
     /// ```
+    #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
         Self::from_julian_day(self.julian_day() + duration.whole_days())
     }
@@ -682,6 +711,7 @@ impl Add<StdDuration> for Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 1) + Duration::from_secs(5 * 86_400), Date::from_ymd(2019, 1, 6));
     /// assert_eq!(Date::from_ymd(2019, 12, 31) + Duration::from_secs(86_400), Date::from_ymd(2020, 1, 1));
     /// ```
+    #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
         Self::from_julian_day(self.julian_day() + Duration::from(duration).whole_days())
     }
@@ -696,6 +726,7 @@ impl AddAssign<Duration> for Date {
     /// date += Duration::day();
     /// assert_eq!(date, Date::from_ymd(2020, 1, 1));
     /// ```
+    #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
@@ -711,6 +742,7 @@ impl AddAssign<StdDuration> for Date {
     /// date += Duration::from_secs(86_400);
     /// assert_eq!(date, Date::from_ymd(2020, 1, 1));
     /// ```
+    #[inline(always)]
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
@@ -726,6 +758,7 @@ impl Sub<Duration> for Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 6) - Duration::days(5), Date::from_ymd(2019, 1, 1));
     /// assert_eq!(Date::from_ymd(2020, 1, 1) - Duration::day(), Date::from_ymd(2019, 12, 31));
     /// ```
+    #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
         self + -duration
     }
@@ -742,6 +775,7 @@ impl Sub<StdDuration> for Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 6) - Duration::from_secs(5 * 86_400), Date::from_ymd(2019, 1, 1));
     /// assert_eq!(Date::from_ymd(2020, 1, 1) - Duration::from_secs(86_400), Date::from_ymd(2019, 12, 31));
     /// ```
+    #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
         self + -Duration::from(duration)
     }
@@ -756,6 +790,7 @@ impl SubAssign<Duration> for Date {
     /// date -= Duration::day();
     /// assert_eq!(date, Date::from_ymd(2019, 12, 31));
     /// ```
+    #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
@@ -771,6 +806,7 @@ impl SubAssign<StdDuration> for Date {
     /// date -= Duration::from_secs(86_400);
     /// assert_eq!(date, Date::from_ymd(2019, 12, 31));
     /// ```
+    #[inline(always)]
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }
@@ -786,6 +822,7 @@ impl Sub<Date> for Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 6) - Date::from_ymd(2019, 1, 1), Duration::days(5));
     /// assert_eq!(Date::from_ymd(2020, 1, 1) - Date::from_ymd(2019, 12, 31), Duration::day());
     /// ```
+    #[inline(always)]
     fn sub(self, other: Self) -> Self::Output {
         Duration::days(self.julian_day() - other.julian_day())
     }
@@ -804,6 +841,7 @@ impl PartialOrd for Date {
     /// assert_eq!(first.partial_cmp(&second), Some(Ordering::Less));
     /// assert_eq!(second.partial_cmp(&first), Some(Ordering::Greater));
     /// ```
+    #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -822,6 +860,7 @@ impl Ord for Date {
     /// assert_eq!(first.cmp(&second), Ordering::Less);
     /// assert_eq!(second.cmp(&first), Ordering::Greater);
     /// ```
+    #[inline(always)]
     fn cmp(&self, other: &Self) -> Ordering {
         match self.year.cmp(&other.year) {
             Ordering::Less => Ordering::Less,

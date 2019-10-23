@@ -26,11 +26,13 @@ const WEEKDAYS: [Weekday; 7] = [
 ];
 
 /// Short day of the week
+#[inline(always)]
 pub(crate) fn fmt_a(f: &mut Formatter<'_>, date: Date, language: Language) -> fmt::Result {
     f.write_str(language.short_week_days()[date.weekday().number_days_from_monday() as usize])
 }
 
 /// Short day of the week
+#[inline(always)]
 pub(crate) fn parse_a(
     items: &mut ParsedItems,
     s: &mut &str,
@@ -51,11 +53,13 @@ pub(crate) fn parse_a(
 }
 
 /// Day of the week
+#[inline(always)]
 pub(crate) fn fmt_A(f: &mut Formatter<'_>, date: Date, language: Language) -> fmt::Result {
     f.write_str(language.week_days()[date.weekday().number_days_from_monday() as usize])
 }
 
 /// Day of the week
+#[inline(always)]
 pub(crate) fn parse_A(
     items: &mut ParsedItems,
     s: &mut &str,
@@ -80,11 +84,13 @@ pub(crate) fn parse_A(
 /// References on localization
 /// - [Yale](https://web.library.yale.edu/cataloging/months)
 /// - [Princeton](https://library.princeton.edu/departments/tsd/katmandu/reference/months.html)
+#[inline(always)]
 pub(crate) fn fmt_b(f: &mut Formatter<'_>, date: Date, language: Language) -> fmt::Result {
     f.write_str(language.short_month_names()[date.month() as usize - 1])
 }
 
 /// Short month name
+#[inline(always)]
 pub(crate) fn parse_b(
     items: &mut ParsedItems,
     s: &mut &str,
@@ -98,11 +104,13 @@ pub(crate) fn parse_b(
 }
 
 /// Month name
+#[inline(always)]
 pub(crate) fn fmt_B(f: &mut Formatter<'_>, date: Date, language: Language) -> fmt::Result {
     f.write_str(language.month_names()[date.month() as usize - 1])
 }
 
 /// Month name
+#[inline(always)]
 pub(crate) fn parse_B(
     items: &mut ParsedItems,
     s: &mut &str,
@@ -116,11 +124,13 @@ pub(crate) fn parse_B(
 }
 
 /// Year divided by 100 and truncated to integer (`00`-`999`)
+#[inline(always)]
 pub(crate) fn fmt_C(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
     pad!(Zero, 2, date.year() / 100)
 }
 
 /// Year divided by 100 and truncated to integer (`00`-`999`)
+#[inline(always)]
 pub(crate) fn parse_C(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     let padding_length = consume_padding(s, padding.default_to(Padding::Zero), 1);
     items.year = (try_consume_digits::<i32>(s, (2 - padding_length)..(4 - padding_length))
@@ -133,11 +143,13 @@ pub(crate) fn parse_C(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 }
 
 /// Day of the month, zero-padded (`01`-`31`)
+#[inline(always)]
 pub(crate) fn fmt_d(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
     pad!(Zero, 2, date.day())
 }
 
 /// Day of the month, zero-padded (`01`-`31`)
+#[inline(always)]
 pub(crate) fn parse_d(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.day = try_consume_exact_digits::<u8>(s, 2, padding.default_to(Padding::Zero))
         .map(NonZeroU8::new)
@@ -147,21 +159,25 @@ pub(crate) fn parse_d(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 }
 
 /// Day of the month, space-padded (` 1`-`31`)
+#[inline(always)]
 pub(crate) fn fmt_e(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
     pad!(Space, 2, date.day())
 }
 
 /// Day of the month, space-padded (` 1`-`31`)
+#[inline(always)]
 pub(crate) fn parse_e(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     parse_d(items, s, padding.default_to(Padding::Space))
 }
 
 /// Week-based year, last two digits (`00`-`99`)
+#[inline(always)]
 pub(crate) fn fmt_g(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
     pad!(Zero, 2, date.iso_year_week().0.rem_euclid(100))
 }
 
 /// Week-based year, last two digits (`00`-`99`)
+#[inline(always)]
 pub(crate) fn parse_g(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.week_based_year = (items.week_based_year.unwrap_or(0) / 100 * 100
         + try_consume_exact_digits::<i32>(s, 2, padding.default_to(Padding::Zero))
@@ -172,11 +188,13 @@ pub(crate) fn parse_g(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 }
 
 /// Week-based year
+#[inline(always)]
 pub(crate) fn fmt_G(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
     pad!(Zero, 4, date.iso_year_week().0)
 }
 
 /// Week-based year
+#[inline(always)]
 pub(crate) fn parse_G(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     let sign = try_consume_first_match(
         s,
@@ -197,11 +215,13 @@ pub(crate) fn parse_G(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 }
 
 /// Day of the year, zero-padded to width 3 (`001`-`366`)
+#[inline(always)]
 pub(crate) fn fmt_j(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
     pad!(Zero, 3, date.ordinal())
 }
 
 /// Day of the year, zero-padded to width 3 (`001`-`366`)
+#[inline(always)]
 pub(crate) fn parse_j(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.ordinal_day =
         try_consume_exact_digits::<NonZeroU16>(s, 3, padding.default_to(Padding::Zero))
@@ -212,11 +232,13 @@ pub(crate) fn parse_j(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 }
 
 /// Month of the year, zero-padded (`01`-`12`)
+#[inline(always)]
 pub(crate) fn fmt_m(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
     pad!(Zero, 2, date.month())
 }
 
 /// Month of the year, zero-padded (`01`-`12`)
+#[inline(always)]
 pub(crate) fn parse_m(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.month = try_consume_exact_digits::<NonZeroU8>(s, 2, padding.default_to(Padding::Zero))
         .ok_or(ParseError::InvalidMonth)?
@@ -226,11 +248,13 @@ pub(crate) fn parse_m(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 }
 
 /// ISO weekday (Monday = 1, Sunday = 7)
+#[inline(always)]
 pub(crate) fn fmt_u(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
     write!(f, "{}", date.weekday().iso_weekday_number())
 }
 
 /// ISO weekday (Monday = 1, Sunday = 7)
+#[inline(always)]
 pub(crate) fn parse_u(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
     items.weekday = try_consume_first_match(
         s,
@@ -243,11 +267,13 @@ pub(crate) fn parse_u(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
 }
 
 /// ISO week number, zero-padded (`01`-`53`)
+#[inline(always)]
 pub(crate) fn fmt_V(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
     pad!(Zero, 2, date.week())
 }
 
 /// ISO week number, zero-padded (`01`-`53`)
+#[inline(always)]
 pub(crate) fn parse_V(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.iso_week =
         try_consume_exact_digits_in_range(s, 2, 1..54, padding.default_to(Padding::Zero))
@@ -258,11 +284,13 @@ pub(crate) fn parse_V(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 }
 
 /// Weekday number (Sunday = 0, Saturday = 6)
+#[inline(always)]
 pub(crate) fn fmt_w(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
     write!(f, "{}", date.weekday().number_days_from_sunday())
 }
 
 /// Weekday number (Sunday = 0, Saturday = 6)
+#[inline(always)]
 pub(crate) fn parse_w(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
     let mut weekdays = WEEKDAYS;
     weekdays.rotate_left(1);
@@ -280,11 +308,13 @@ pub(crate) fn parse_w(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
 }
 
 /// Last two digits of year (`00`-`99`)
+#[inline(always)]
 pub(crate) fn fmt_y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
     pad!(Zero, 2, date.year().rem_euclid(100))
 }
 
 /// Last two digits of year (`00`-`99`)
+#[inline(always)]
 pub(crate) fn parse_y(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.year = (items.year.unwrap_or(0) / 100 * 100
         + try_consume_exact_digits::<i32>(s, 2, padding.default_to(Padding::Zero))
@@ -295,6 +325,7 @@ pub(crate) fn parse_y(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 }
 
 /// Full year
+#[inline(always)]
 pub(crate) fn fmt_Y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
     let year = date.year();
 
@@ -306,6 +337,7 @@ pub(crate) fn fmt_Y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 }
 
 /// Full year
+#[inline(always)]
 pub(crate) fn parse_Y(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     let sign = try_consume_first_match(
         s,

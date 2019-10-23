@@ -39,6 +39,7 @@ impl Instant {
     /// # use time::Instant;
     /// println!("{:?}", Instant::now());
     /// ```
+    #[inline(always)]
     pub fn now() -> Self {
         Self {
             inner: StdInstant::now(),
@@ -57,6 +58,7 @@ impl Instant {
     /// thread::sleep(Duration::milliseconds(100).try_into().unwrap());
     /// assert!(instant.elapsed() >= Duration::milliseconds(100));
     /// ```
+    #[inline(always)]
     pub fn elapsed(self) -> Duration {
         Self::now() - self
     }
@@ -71,6 +73,7 @@ impl Instant {
     /// assert_eq!(now.checked_add(Duration::seconds(5)), Some(now + Duration::seconds(5)));
     /// assert_eq!(now.checked_add(Duration::seconds(-5)), Some(now + Duration::seconds(-5)));
     /// ```
+    #[inline]
     pub fn checked_add(self, duration: Duration) -> Option<Self> {
         match duration.sign() {
             Zero => Some(self),
@@ -104,6 +107,7 @@ impl Instant {
     /// assert_eq!(now.checked_sub(Duration::seconds(5)), Some(now - Duration::seconds(5)));
     /// assert_eq!(now.checked_sub(Duration::seconds(-5)), Some(now - Duration::seconds(-5)));
     /// ```
+    #[inline(always)]
     pub fn checked_sub(self, duration: Duration) -> Option<Self> {
         self.checked_add(-duration)
     }
@@ -111,6 +115,7 @@ impl Instant {
 
 #[allow(clippy::missing_docs_in_private_items)]
 impl Instant {
+    #[inline(always)]
     #[cfg(feature = "deprecated")]
     #[deprecated(since = "0.2.0", note = "Use `rhs - lhs`")]
     pub fn to(&self, later: Self) -> Duration {
@@ -127,6 +132,7 @@ impl From<StdInstant> for Instant {
     /// let now_std = std::time::Instant::from(now_time);
     /// assert_eq!(now_time, now_std.into());
     /// ```
+    #[inline(always)]
     fn from(instant: StdInstant) -> Self {
         Self { inner: instant }
     }
@@ -141,6 +147,7 @@ impl From<Instant> for StdInstant {
     /// let now_time = Instant::from(now_std);
     /// assert_eq!(now_time, now_std.into());
     /// ```
+    #[inline(always)]
     fn from(instant: Instant) -> Self {
         instant.inner
     }
@@ -159,6 +166,7 @@ impl Sub for Instant {
     /// thread::sleep(Duration::milliseconds(100).try_into().unwrap());
     /// assert!(Instant::now() - start >= Duration::milliseconds(100));
     /// ```
+    #[inline(always)]
     fn sub(self, other: Self) -> Self::Output {
         match self.inner.cmp(&other.inner) {
             Ordering::Equal => Duration::zero(),
@@ -181,6 +189,7 @@ impl Sub<StdInstant> for Instant {
     /// thread::sleep(Duration::milliseconds(100).try_into().unwrap());
     /// assert!(Instant::now() - start >= Duration::milliseconds(100));
     /// ```
+    #[inline(always)]
     fn sub(self, other: StdInstant) -> Self::Output {
         self - Self::from(other)
     }
@@ -199,6 +208,7 @@ impl Sub<Instant> for StdInstant {
     /// thread::sleep(Duration::milliseconds(100).try_into().unwrap());
     /// assert!(std::time::Instant::now() - start >= Duration::milliseconds(100));
     /// ```
+    #[inline(always)]
     fn sub(self, other: Instant) -> Self::Output {
         Instant::from(self) - other
     }
@@ -218,6 +228,7 @@ impl Add<Duration> for Instant {
     /// thread::sleep(Duration::milliseconds(100).try_into().unwrap());
     /// assert!(start + Duration::milliseconds(100) <= Instant::now());
     /// ```
+    #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
         self.checked_add(duration)
             .expect("overflow when adding duration to instant")
@@ -239,6 +250,7 @@ impl Add<StdDuration> for Instant {
     /// thread::sleep(Duration::from_millis(100));
     /// assert!(start + Duration::from_millis(100) <= Instant::now());
     /// ```
+    #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
         self + Duration::from(duration)
     }
@@ -257,6 +269,7 @@ impl AddAssign<Duration> for Instant {
     /// start += Duration::milliseconds(100);
     /// assert!(start <= Instant::now());
     /// ```
+    #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
@@ -276,6 +289,7 @@ impl AddAssign<StdDuration> for Instant {
     /// start += Duration::from_millis(100);
     /// assert!(start <= Instant::now());
     /// ```
+    #[inline(always)]
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
@@ -292,6 +306,7 @@ impl Sub<Duration> for Instant {
     /// let instant = Instant::now();
     /// assert!(instant - Duration::milliseconds(100) <= Instant::now());
     /// ```
+    #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
         self.checked_sub(duration)
             .expect("overflow when subtracting duration from instant")
@@ -310,6 +325,7 @@ impl Sub<StdDuration> for Instant {
     /// let instant = Instant::now();
     /// assert!(instant - Duration::from_millis(100) <= Instant::now());
     /// ```
+    #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
         self - Duration::from(duration)
     }
@@ -325,6 +341,7 @@ impl SubAssign<Duration> for Instant {
     /// instant -= Duration::milliseconds(100);
     /// assert!(instant <= Instant::now());
     /// ```
+    #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
@@ -343,6 +360,7 @@ impl SubAssign<StdDuration> for Instant {
     /// instant -= Duration::from_millis(100);
     /// assert!(instant <= Instant::now());
     /// ```
+    #[inline(always)]
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }

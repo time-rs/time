@@ -12,11 +12,13 @@ use core::fmt::{self, Formatter};
 use core::num::NonZeroU8;
 
 /// Hour in 24h format (`00`-`23`)
+#[inline(always)]
 pub(crate) fn fmt_H(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
     pad!(Zero, 2, time.hour())
 }
 
 /// Hour in 24h format (`00`-`23`)
+#[inline(always)]
 pub(crate) fn parse_H(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.hour_24 =
         try_consume_exact_digits_in_range(s, 2, 0..24, padding.default_to(Padding::Zero))
@@ -26,11 +28,13 @@ pub(crate) fn parse_H(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 }
 
 /// Hour in 12h format (`01`-`12`)
+#[inline(always)]
 pub(crate) fn fmt_I(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
     pad!(Zero, 2, (time.hour() as i8 - 1).rem_euclid(12) + 1)
 }
 
 /// Hour in 12h format (`01`-`12`)
+#[inline(always)]
 pub(crate) fn parse_I(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.hour_12 =
         try_consume_exact_digits_in_range(s, 2, 1..13, padding.default_to(Padding::Zero))
@@ -40,11 +44,13 @@ pub(crate) fn parse_I(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 }
 
 /// Minutes, zero-padded (`00`-`59`)
+#[inline(always)]
 pub(crate) fn fmt_M(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
     pad!(Zero, 2, time.minute())
 }
 
 /// Minutes, zero-added (`00`-`59`)
+#[inline(always)]
 pub(crate) fn parse_M(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.minute =
         try_consume_exact_digits_in_range(s, 2, 0..60, padding.default_to(Padding::Zero))
@@ -54,6 +60,7 @@ pub(crate) fn parse_M(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 }
 
 /// am/pm
+#[inline(always)]
 pub(crate) fn fmt_p(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
     if time.hour() < 12 {
         f.write_str("am")
@@ -63,6 +70,7 @@ pub(crate) fn fmt_p(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
 }
 
 /// am/pm
+#[inline(always)]
 pub(crate) fn parse_p(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
     items.am_pm = try_consume_first_match(s, [("am", AM), ("pm", PM)].iter().cloned())
         .ok_or(ParseError::InvalidAmPm)?
@@ -71,6 +79,7 @@ pub(crate) fn parse_p(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
 }
 
 /// AM/PM
+#[inline(always)]
 pub(crate) fn fmt_P(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
     if time.hour() < 12 {
         f.write_str("AM")
@@ -80,6 +89,7 @@ pub(crate) fn fmt_P(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
 }
 
 /// AM/PM
+#[inline(always)]
 pub(crate) fn parse_P(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
     items.am_pm = try_consume_first_match(s, [("AM", AM), ("PM", PM)].iter().cloned())
         .ok_or(ParseError::InvalidAmPm)?
@@ -88,11 +98,13 @@ pub(crate) fn parse_P(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
 }
 
 /// Seconds, zero-padded (`00`-`59`)
+#[inline(always)]
 pub(crate) fn fmt_S(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
     pad!(Zero, 2, time.second())
 }
 
 /// Seconds, zero-added (`00`-`59`)
+#[inline(always)]
 pub(crate) fn parse_S(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.second =
         try_consume_exact_digits_in_range(s, 2, 0..60, padding.default_to(Padding::Zero))

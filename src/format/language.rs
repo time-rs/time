@@ -34,6 +34,7 @@ macro_rules! nonexhaustive {
 #[allow(clippy::non_ascii_literal)]
 impl Language {
     /// Get the month names for the given language.
+    #[inline(always)]
     pub fn month_names(self) -> [&'static str; 12] {
         use Language::*;
         match self {
@@ -74,6 +75,7 @@ impl Language {
     /// References on localization:
     /// [[1]](https://web.library.yale.edu/cataloging/months)
     /// [[2]](https://library.princeton.edu/departments/tsd/katmandu/reference/months.html)
+    #[inline(always)]
     pub fn short_month_names(self) -> [&'static str; 12] {
         use Language::*;
         match self {
@@ -91,6 +93,7 @@ impl Language {
 
     /// Get the names of days of the week for the given language. Starts with
     /// Monday.
+    #[inline(always)]
     pub fn week_days(self) -> [&'static str; 7] {
         use Language::*;
         match self {
@@ -118,6 +121,7 @@ impl Language {
 
     /// Get the abbreviated names of days of the week for the given language.
     /// Starts with Monday.
+    #[inline(always)]
     pub fn short_week_days(self) -> [&'static str; 7] {
         use Language::*;
         match self {

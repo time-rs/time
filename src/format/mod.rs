@@ -64,6 +64,7 @@ pub(crate) enum Padding {
 
 impl Padding {
     /// Map the default value to a provided alternative.
+    #[inline(always)]
     pub(crate) fn default_to(self, value: Self) -> Self {
         match self {
             Self::Default => value,
@@ -146,6 +147,7 @@ pub(crate) enum Specifier {
 
 /// Given all the information necessary, write the provided specifier to the
 /// formatter.
+#[inline]
 fn format_specifier(
     f: &mut Formatter<'_>,
     date: Option<Date>,
@@ -295,6 +297,7 @@ pub struct DeferredFormat<'a> {
 }
 
 impl Display for DeferredFormat<'_> {
+    #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         for item in &self.format {
             match item {

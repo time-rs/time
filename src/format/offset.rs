@@ -8,6 +8,7 @@ use crate::{Sign, UtcOffset};
 use core::fmt::{self, Formatter};
 
 /// UTC offset
+#[inline(always)]
 pub(crate) fn fmt_z(f: &mut Formatter<'_>, offset: UtcOffset) -> fmt::Result {
     let offset = offset.as_duration();
 
@@ -20,6 +21,7 @@ pub(crate) fn fmt_z(f: &mut Formatter<'_>, offset: UtcOffset) -> fmt::Result {
 }
 
 /// UTC offset
+#[inline(always)]
 pub(crate) fn parse_z(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
     let sign = try_consume_first_match(
         s,

@@ -38,6 +38,7 @@ impl Weekday {
     /// assert_eq!(Friday.previous(), Thursday);
     /// assert_eq!(Saturday.previous(), Friday);
     /// ```
+    #[inline(always)]
     pub fn previous(self) -> Self {
         match self {
             Monday => Sunday,
@@ -64,6 +65,7 @@ impl Weekday {
     /// assert_eq!(Friday.next(), Saturday);
     /// assert_eq!(Saturday.next(), Sunday);
     /// ```
+    #[inline(always)]
     pub fn next(self) -> Self {
         match self {
             Monday => Tuesday,
@@ -90,6 +92,7 @@ impl Weekday {
     /// assert_eq!(Saturday.iso_weekday_number(), 6);
     /// assert_eq!(Sunday.iso_weekday_number(), 7);
     /// ```
+    #[inline(always)]
     pub const fn iso_weekday_number(self) -> u8 {
         self.number_from_monday()
     }
@@ -108,6 +111,7 @@ impl Weekday {
     /// assert_eq!(Saturday.number_from_monday(), 6);
     /// assert_eq!(Sunday.number_from_monday(), 7);
     /// ```
+    #[inline(always)]
     pub const fn number_from_monday(self) -> u8 {
         self.number_days_from_monday() + 1
     }
@@ -126,6 +130,7 @@ impl Weekday {
     /// assert_eq!(Friday.number_from_sunday(), 6);
     /// assert_eq!(Saturday.number_from_sunday(), 7);
     /// ```
+    #[inline(always)]
     pub const fn number_from_sunday(self) -> u8 {
         self.number_days_from_sunday() + 1
     }
@@ -144,6 +149,7 @@ impl Weekday {
     /// assert_eq!(Saturday.number_days_from_monday(), 5);
     /// assert_eq!(Sunday.number_days_from_monday(), 6);
     /// ```
+    #[inline(always)]
     pub const fn number_days_from_monday(self) -> u8 {
         self as u8
     }
@@ -162,6 +168,7 @@ impl Weekday {
     /// assert_eq!(Friday.number_days_from_sunday(), 5);
     /// assert_eq!(Saturday.number_days_from_sunday(), 6);
     /// ```
+    #[inline(always)]
     pub const fn number_days_from_sunday(self) -> u8 {
         (self as u8 + 1) % 7
     }

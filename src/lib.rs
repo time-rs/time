@@ -270,12 +270,14 @@ pub struct OutOfRangeError {
 
 impl OutOfRangeError {
     /// Create an new `OutOfRangeError`.
+    #[inline(always)]
     pub(crate) const fn new() -> Self {
         Self { unused: () }
     }
 }
 
 impl fmt::Display for OutOfRangeError {
+    #[inline(always)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str("Source value is out of range for the target type")
     }

@@ -31,6 +31,7 @@ impl Default for Sign {
     /// # use time::Sign;
     /// assert_eq!(Sign::default(), Sign::Unknown);
     /// ```
+    #[inline(always)]
     fn default() -> Self {
         Unknown
     }
@@ -43,6 +44,7 @@ macro_rules! sign_mul {
                 type Output = $type;
 
                 /// Negate the sign of the provided number if `self == Sign::Negative`.
+                #[inline(always)]
                 fn mul(self, rhs: $type) -> Self::Output {
                     match self {
                         Positive | Unknown => rhs,
@@ -56,6 +58,7 @@ macro_rules! sign_mul {
                 type Output = Self;
 
                 /// Negate the sign of the provided number if `rhs == Sign::Negative`.
+                #[inline(always)]
                 fn mul(self, rhs: Sign) -> Self::Output {
                     match rhs {
                         Positive | Unknown => self,
@@ -67,6 +70,7 @@ macro_rules! sign_mul {
 
             impl MulAssign<Sign> for $type {
                 /// Negate the sign of the provided number if `rhs == Sign::Negative`.
+                #[inline(always)]
                 fn mul_assign(&mut self, rhs: Sign) {
                     if rhs.is_negative() {
                         *self = -*self;
@@ -78,6 +82,7 @@ macro_rules! sign_mul {
                 type Output = Self;
 
                 /// Negate the sign of the provided number if `rhs == Sign::Negative`.
+                #[inline(always)]
                 fn div(self, rhs: Sign) -> Self::Output {
                     self * rhs
                 }
@@ -85,6 +90,7 @@ macro_rules! sign_mul {
 
             impl DivAssign<Sign> for $type {
                 /// Negate the sign of the provided number if `rhs == Sign::Negative`.
+                #[inline(always)]
                 fn div_assign(&mut self, rhs: Sign) {
                     *self *= rhs
                 }
@@ -130,6 +136,7 @@ impl Mul<Sign> for Sign {
     /// assert_eq!(Negative * Positive, Negative);
     /// assert_eq!(Negative * Negative, Positive);
     /// ```
+    #[inline]
     fn mul(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
             (Zero, _) | (_, Zero) => Zero,
@@ -167,6 +174,7 @@ impl MulAssign<Sign> for Sign {
     /// sign *= Negative;
     /// assert_eq!(sign, Zero);
     /// ```
+    #[inline(always)]
     fn mul_assign(&mut self, rhs: Self) {
         *self = *self * rhs;
     }
@@ -202,6 +210,7 @@ impl Div<Sign> for Sign {
     /// assert_eq!(Negative / Positive, Negative);
     /// assert_eq!(Negative / Negative, Positive);
     /// ```
+    #[inline(always)]
     fn div(self, rhs: Self) -> Self::Output {
         self * rhs
     }
@@ -234,6 +243,7 @@ impl DivAssign<Sign> for Sign {
     /// sign /= Negative;
     /// assert_eq!(sign, Zero);
     /// ```
+    #[inline(always)]
     fn div_assign(&mut self, rhs: Self) {
         *self *= rhs
     }
@@ -249,6 +259,7 @@ impl Sign {
     /// assert_eq!(Sign::Zero.negate(), Sign::Zero);
     /// assert_eq!(Sign::Unknown.negate(), Sign::Unknown);
     /// ```
+    #[inline(always)]
     pub fn negate(self) -> Self {
         match self {
             Positive => Negative,
@@ -267,6 +278,7 @@ impl Sign {
     /// assert!(!Sign::Zero.is_positive());
     /// assert!(!Sign::Unknown.is_positive());
     /// ```
+    #[inline(always)]
     pub const fn is_positive(self) -> bool {
         self as u8 == Positive as u8
     }
@@ -280,6 +292,7 @@ impl Sign {
     /// assert!(!Sign::Zero.is_negative());
     /// assert!(!Sign::Unknown.is_negative());
     /// ```
+    #[inline(always)]
     pub const fn is_negative(self) -> bool {
         self as u8 == Negative as u8
     }
@@ -293,6 +306,7 @@ impl Sign {
     /// assert!(Sign::Zero.is_zero());
     /// assert!(!Sign::Unknown.is_zero());
     /// ```
+    #[inline(always)]
     pub const fn is_zero(self) -> bool {
         self as u8 == Zero as u8
     }
@@ -306,6 +320,7 @@ impl Sign {
     /// assert!(!Sign::Zero.is_unknown());
     /// assert!(Sign::Unknown.is_unknown());
     /// ```
+    #[inline(always)]
     pub const fn is_unknown(self) -> bool {
         self as u8 == Unknown as u8
     }
