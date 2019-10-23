@@ -236,18 +236,36 @@ pub(crate) fn try_consume_digits_in_range<T: FromStr + PartialOrd>(
 }
 
 /// Attempt to consume an exact number of digits.
-pub(crate) fn try_consume_exact_digits<T: FromStr>(s: &mut &str, num_digits: usize) -> Option<T> {
-    // Ensure all the necessary characters are ASCII digits.
-    if !s.chars().take(num_digits).all(|c| c.is_ascii_digit()) {
-        return None;
-    }
+pub(crate) fn try_consume_exact_digits<T: FromStr>(
+    s: &mut &str,
+    num_digits: usize,
+    padding: Padding,
+) -> Option<T> {
+    let pad_size = match padding {
+        Padding::Space => consume_padding(s, padding, num_digits - 1),
+        _ => 0,
+    };
 
-    // Because we're only dealing with ASCII digits here, we know that the
-    // length is equal to the number of bytes, as ASCII values are always one
-    // byte in Unicode.
-    let digits = &s[..num_digits];
-    *s = &s[num_digits..];
-    digits.parse::<T>().ok()
+    if padding == Padding::None {
+        #[allow(clippy::range_plus_one)]
+        try_consume_digits(s, 1..(num_digits - pad_size + 1))
+    } else {
+        // Ensure all the necessary characters are ASCII digits.
+        if !s
+            .chars()
+            .take(num_digits - pad_size)
+            .all(|c| c.is_ascii_digit())
+        {
+            return None;
+        }
+
+        // Because we're only dealing with ASCII digits here, we know that the
+        // length is equal to the number of bytes, as ASCII values are always one
+        // byte in Unicode.
+        let digits = &s[..(num_digits - pad_size)];
+        *s = &s[num_digits..];
+        digits.parse::<T>().ok()
+    }
 }
 
 /// Attempt to consume an exact number of digits. Returns `None` if the value is
@@ -256,8 +274,9 @@ pub(crate) fn try_consume_exact_digits_in_range<T: FromStr + PartialOrd>(
     s: &mut &str,
     num_digits: usize,
     range: Range<T>,
+    padding: Padding,
 ) -> Option<T> {
-    try_consume_exact_digits(s, num_digits).filter(|value| range.contains(value))
+    try_consume_exact_digits(s, num_digits, padding).filter(|value| range.contains(value))
 }
 
 /// Consume all leading padding up to the number of characters.

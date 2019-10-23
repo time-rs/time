@@ -630,8 +630,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, Weekday::Wednesday, Language::{en, es}};
-    /// assert_eq!(Date::parse_language("January 02 2019", "%B %d %Y", en), Ok(Date::from_ymd(2019, 1, 2)));
-    /// assert_eq!(Date::parse_language("02 enero 2019", "%d %B %Y", es), Ok(Date::from_ymd(2019, 1, 2)));
+    /// assert_eq!(Date::parse_language("January 2 2019", "%B %-d %Y", en), Ok(Date::from_ymd(2019, 1, 2)));
+    /// assert_eq!(Date::parse_language("2 de enero 2019", "%-d de %B %Y", es), Ok(Date::from_ymd(2019, 1, 2)));
     /// ```
     pub fn parse_language(s: &str, format: &str, language: Language) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s, format, language)?)

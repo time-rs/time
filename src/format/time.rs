@@ -3,7 +3,7 @@
 #![allow(non_snake_case)]
 
 use super::parse::{
-    consume_padding, try_consume_exact_digits_in_range, try_consume_first_match,
+    try_consume_exact_digits_in_range, try_consume_first_match,
     AmPm::{AM, PM},
 };
 use super::{Padding, ParseError, ParseResult, ParsedItems};
@@ -16,16 +16,12 @@ pub(crate) fn fmt_H(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt:
     pad!(Zero, 2, time.hour())
 }
 
-// TODO Known bug - when no padding is used, the parsing will fail as nothing is
-// consumed. To work around this, it would probably be best to combine the
-// padding and digit consumption, allowing that function to consume the
-// appropriate number of digits.
 /// Hour in 24h format (`00`-`23`)
 pub(crate) fn parse_H(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    let padding_length = consume_padding(s, padding.default_to(Padding::Zero), 1);
-    items.hour_24 = try_consume_exact_digits_in_range(s, 2 - padding_length, 0..24)
-        .ok_or(ParseError::InvalidHour)?
-        .into();
+    items.hour_24 =
+        try_consume_exact_digits_in_range(s, 2, 0..24, padding.default_to(Padding::Zero))
+            .ok_or(ParseError::InvalidHour)?
+            .into();
     Ok(())
 }
 
@@ -36,10 +32,10 @@ pub(crate) fn fmt_I(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt:
 
 /// Hour in 12h format (`01`-`12`)
 pub(crate) fn parse_I(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    let padding_length = consume_padding(s, padding.default_to(Padding::Zero), 1);
-    items.hour_12 = try_consume_exact_digits_in_range(s, 2 - padding_length, 1..13)
-        .map(NonZeroU8::new)
-        .ok_or(ParseError::InvalidHour)?;
+    items.hour_12 =
+        try_consume_exact_digits_in_range(s, 2, 1..13, padding.default_to(Padding::Zero))
+            .map(NonZeroU8::new)
+            .ok_or(ParseError::InvalidHour)?;
     Ok(())
 }
 
@@ -50,10 +46,10 @@ pub(crate) fn fmt_M(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt:
 
 /// Minutes, zero-added (`00`-`59`)
 pub(crate) fn parse_M(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    let padding_length = consume_padding(s, padding.default_to(Padding::Zero), 1);
-    items.minute = try_consume_exact_digits_in_range(s, 2 - padding_length, 0..60)
-        .ok_or(ParseError::InvalidMinute)?
-        .into();
+    items.minute =
+        try_consume_exact_digits_in_range(s, 2, 0..60, padding.default_to(Padding::Zero))
+            .ok_or(ParseError::InvalidMinute)?
+            .into();
     Ok(())
 }
 
@@ -98,9 +94,9 @@ pub(crate) fn fmt_S(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt:
 
 /// Seconds, zero-added (`00`-`59`)
 pub(crate) fn parse_S(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    let padding_length = consume_padding(s, padding.default_to(Padding::Zero), 1);
-    items.second = try_consume_exact_digits_in_range(s, 2 - padding_length, 0..60)
-        .ok_or(ParseError::InvalidMinute)?
-        .into();
+    items.second =
+        try_consume_exact_digits_in_range(s, 2, 0..60, padding.default_to(Padding::Zero))
+            .ok_or(ParseError::InvalidMinute)?
+            .into();
     Ok(())
 }

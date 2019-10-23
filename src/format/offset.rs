@@ -3,7 +3,7 @@
 #![allow(non_snake_case)]
 
 use super::parse::{try_consume_exact_digits_in_range, try_consume_first_match};
-use super::{ParseError, ParseResult, ParsedItems};
+use super::{Padding, ParseError, ParseResult, ParsedItems};
 use crate::{Sign, UtcOffset};
 use core::fmt::{self, Formatter};
 
@@ -29,11 +29,11 @@ pub(crate) fn parse_z(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
     )
     .ok_or(ParseError::InvalidOffset)?;
 
-    let hours: i16 =
-        try_consume_exact_digits_in_range(s, 2, 0..24).ok_or(ParseError::InvalidOffset)?;
+    let hours: i16 = try_consume_exact_digits_in_range(s, 2, 0..24, Padding::Zero)
+        .ok_or(ParseError::InvalidOffset)?;
 
-    let minutes =
-        try_consume_exact_digits_in_range(s, 2, 0..60).ok_or(ParseError::InvalidOffset)?;
+    let minutes = try_consume_exact_digits_in_range(s, 2, 0..60, Padding::Zero)
+        .ok_or(ParseError::InvalidOffset)?;
 
     items.offset = UtcOffset::minutes(sign * hours * 60 + minutes).into();
     Ok(())

@@ -358,7 +358,7 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::parse("00:00:00", "%T"), Ok(Time::from_hms(0, 0, 0)));
+    /// assert_eq!(Time::parse("0:00:00", "%T"), Ok(Time::from_hms(0, 0, 0)));
     /// assert_eq!(Time::parse("23:59:59", "%T"), Ok(Time::from_hms(23, 59, 59)));
     /// assert_eq!(Time::parse("12:00:00 am", "%r"), Ok(Time::from_hms(0, 0, 0)));
     /// assert_eq!(Time::parse("12:00:00 pm", "%r"), Ok(Time::from_hms(12, 0, 0)));
