@@ -25,15 +25,15 @@
 //! default. It _is_ compatible with `#![no_std]`, so long as an allocator is
 //! present.
 //!
-//! ## Deprecated
-//!
-//! Using the `deprecated` feature allows using deprecated methods. Enabled by
-//! default.
-//!
 //! ```toml
 //! [dependencies]
 //! time = { version = "0.2", features = ["serialization"] }
 //! ```
+//!
+//! ## Deprecated
+//!
+//! Using the `deprecated` feature allows using deprecated methods. Enabled by
+//! default.
 //!
 //! # Formatting
 //!
