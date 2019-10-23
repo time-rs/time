@@ -1,3 +1,4 @@
+use crate::format::parse::{parse, ParseError, ParseResult, ParsedItems};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
 use crate::Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday};
@@ -611,6 +612,47 @@ impl Date {
             format: crate::format::parse_with_language(format, language),
         }
         .to_string()
+    }
+
+    /// Attempt to parse a `Date` using the provided string.
+    ///
+    /// ```rust
+    /// # use time::{Date, Weekday::Wednesday};
+    /// assert_eq!(Date::parse("2019-01-02", "%F"), Ok(Date::from_ymd(2019, 1, 2)));
+    /// assert_eq!(Date::parse("2019-002", "%Y-%j"), Ok(Date::from_yo(2019, 2)));
+    /// assert_eq!(Date::parse("2019-W01-3", "%G-W%V-%u"), Ok(Date::from_iso_ywd(2019, 1, Wednesday)));
+    /// ```
+    pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
+        Self::parse_language(s, format, Language::en)
+    }
+
+    /// Attempt to parse a `Date` using the provided string.
+    ///
+    /// ```rust
+    /// # use time::{Date, Weekday::Wednesday, Language::{en, es}};
+    /// assert_eq!(Date::parse_language("January 02 2019", "%B %d %Y", en), Ok(Date::from_ymd(2019, 1, 2)));
+    /// assert_eq!(Date::parse_language("02 enero 2019", "%d %B %Y", es), Ok(Date::from_ymd(2019, 1, 2)));
+    /// ```
+    pub fn parse_language(s: &str, format: &str, language: Language) -> ParseResult<Self> {
+        Self::try_from_parsed_items(parse(s, format, language)?)
+    }
+
+    /// Given the items already parsed, attempt to create a `Date`.
+    pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
+        macro_rules! items {
+            ($($item:ident),* $(,)?) => {
+                ParsedItems { $($item: Some($item)),*, .. }
+            };
+        }
+
+        match items {
+            items!(year, month, day) => Ok(Self::from_ymd(year, month.get(), day.get())),
+            items!(year, ordinal_day) => Ok(Self::from_yo(year, ordinal_day.get())),
+            items!(week_based_year, iso_week, weekday) => {
+                Ok(Self::from_iso_ywd(week_based_year, iso_week.get(), weekday))
+            }
+            _ => Err(ParseError::InsufficientInformation),
+        }
     }
 }
 

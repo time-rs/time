@@ -1,4 +1,4 @@
-//! Formatting for `Date`, `Time`, `DateTime`, and `OffsetDateTime`.
+//! Parsing and formatting various types.
 
 /// Pad a given value if requested.
 macro_rules! pad {
@@ -33,18 +33,21 @@ macro_rules! pad {
     };
 }
 
-mod date;
-mod format;
+pub(crate) mod date;
 pub(crate) mod language;
-mod offset;
-mod time;
+pub(crate) mod offset;
+pub(crate) mod parse;
+pub(crate) mod parse_items;
+pub(crate) mod time;
 
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
 use crate::{Date, Time, UtcOffset};
 use core::fmt::{self, Display, Formatter};
-pub(crate) use format::parse_with_language;
-use language::Language;
+pub use language::Language;
+pub use parse::ParseError;
+pub(crate) use parse::{parse, ParseResult, ParsedItems};
+pub(crate) use parse_items::parse_with_language;
 
 /// The type of padding to use when formatting.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -59,11 +62,21 @@ pub(crate) enum Padding {
     Default,
 }
 
+impl Padding {
+    /// Map the default value to a provided alternative.
+    pub(crate) fn default_to(self, value: Self) -> Self {
+        match self {
+            Self::Default => value,
+            _ => self,
+        }
+    }
+}
+
 /// Specifiers are similar to C's `strftime`, with some omissions and changes.
 #[allow(
     non_snake_case,
     non_camel_case_types,
-    clippy::missing_docs_in_private_items
+    clippy::missing_docs_in_private_items // Inner fields
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) enum Specifier {
@@ -184,20 +197,20 @@ fn format_specifier(
             literal!(" ");
             specifier!(date, b, language);
             literal!(" ");
-            specifier!(date, e, NONE_PADDING);
+            specifier!(date, d, NONE_PADDING);
             literal!(" ");
-            specifier!(time, H, DEFAULT_PADDING);
+            specifier!(time, H, NONE_PADDING);
             literal!(":");
             specifier!(time, M, DEFAULT_PADDING);
             literal!(":");
             specifier!(time, S, DEFAULT_PADDING);
             literal!(" ");
-            specifier!(date, Y, DEFAULT_PADDING);
+            specifier!(date, Y, NONE_PADDING);
         }
         C { padding } => specifier!(date, C, padding),
         d { padding } => specifier!(date, d, padding),
         D => {
-            specifier!(date, m, DEFAULT_PADDING);
+            specifier!(date, m, NONE_PADDING);
             literal!("/");
             specifier!(date, d, DEFAULT_PADDING);
             literal!("/");
@@ -205,7 +218,7 @@ fn format_specifier(
         }
         e { padding } => specifier!(date, e, padding),
         F => {
-            specifier!(date, Y, DEFAULT_PADDING);
+            specifier!(date, Y, NONE_PADDING);
             literal!("-");
             specifier!(date, m, DEFAULT_PADDING);
             literal!("-");
@@ -221,7 +234,7 @@ fn format_specifier(
         p => specifier!(time, p),
         P => specifier!(time, P),
         r => {
-            specifier!(time, I, DEFAULT_PADDING);
+            specifier!(time, I, NONE_PADDING);
             literal!(":");
             specifier!(time, M, DEFAULT_PADDING);
             literal!(":");
@@ -230,13 +243,13 @@ fn format_specifier(
             specifier!(time, p);
         }
         R => {
-            specifier!(time, H, DEFAULT_PADDING);
+            specifier!(time, H, NONE_PADDING);
             literal!(":");
             specifier!(time, M, DEFAULT_PADDING);
         }
         S { padding } => specifier!(time, S, padding),
         T => {
-            specifier!(time, H, DEFAULT_PADDING);
+            specifier!(time, H, NONE_PADDING);
             literal!(":");
             specifier!(time, M, DEFAULT_PADDING);
             literal!(":");
@@ -256,7 +269,7 @@ fn format_specifier(
 }
 
 /// An enum that can store both literals and specifiers.
-#[allow(variant_size_differences, clippy::module_name_repetitions)]
+#[allow(variant_size_differences)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) enum FormatItem<'a> {
     /// A value that should be printed as-is.
@@ -268,7 +281,6 @@ pub(crate) enum FormatItem<'a> {
 // TODO Look into whether `DeferredFormat` can be eliminated entirely without
 // unnecessary duplication between formatting and parsing code.
 /// A struct containing all the necessary information to display the inner type.
-#[allow(clippy::module_name_repetitions)]
 #[doc(hidden)]
 #[derive(Debug, Clone)]
 pub struct DeferredFormat<'a> {

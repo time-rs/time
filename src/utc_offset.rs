@@ -1,10 +1,11 @@
+use crate::format::{parse, ParseError, ParseResult, ParsedItems};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
 use crate::{DeferredFormat, Duration, Language};
 
 /// An offset from UTC.
 ///
-/// Guaranteed to store values up to ±24 hours. Any values outside this range
+/// Guaranteed to store values up to ±23:59:59. Any values outside this range
 /// may have incidental support that can change at any time without notice. If
 /// you need support outside this range, please file an issue with your use
 /// case.
@@ -192,7 +193,7 @@ impl UtcOffset {
     }
 }
 
-/// Methods that allow formatting the `UtcOffset`.
+/// Methods that allow parsing and formatting the `UtcOffset`.
 impl UtcOffset {
     /// Format the `UtcOffset` using the provided string.
     ///
@@ -211,5 +212,23 @@ impl UtcOffset {
             format: crate::format::parse_with_language(format, Language::en),
         }
         .to_string()
+    }
+
+    /// Attempt to parse the `UtcOffset` using the provided string.
+    ///
+    /// ```rust
+    /// # use time::UtcOffset;
+    /// assert_eq!(UtcOffset::parse("+0200", "%z"), Ok(UtcOffset::hours(2)));
+    /// assert_eq!(UtcOffset::parse("-0200", "%z"), Ok(UtcOffset::hours(-2)));
+    /// assert_eq!(UtcOffset::parse("+1200", "%z"), Ok(UtcOffset::hours(12)));
+    /// assert_eq!(UtcOffset::parse("-1200", "%z"), Ok(UtcOffset::hours(-12)));
+    /// ```
+    pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
+        Self::try_from_parsed_items(parse(s, format, Language::en)?)
+    }
+
+    /// Given the items already parsed, attempt to create a `UtcOffset`.
+    pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
+        items.offset.ok_or(ParseError::InsufficientInformation)
     }
 }

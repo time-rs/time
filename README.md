@@ -3,10 +3,14 @@
 ![build status](https://github.com/time-rs/time/workflows/Build/badge.svg)
 [![documentation status](https://github.com/time-rs/time/workflows/Documentation/badge.svg)](https://time-rs.github.io/time/time/index.html)
 <br>
-![downloads](https://img.shields.io/crates/d/time)
-![license](https://img.shields.io/badge/license-MIT%20or%20Apache--2-blue)
+[![Matrix](https://img.shields.io/badge/chat-Matrix/Riot-blue)](https://riot.im/app/#/room/!AAFrFkLHvtsXtMYRho:matrix.org)
+![license](https://img.shields.io/badge/license-MIT%20or%20Apache--2-brightgreen)
 ![version](https://img.shields.io/crates/v/time)
-![MSRV 1.38.0](https://img.shields.io/badge/MSRV-1.38.0-red)
+![rustc 1.38.0](https://img.shields.io/badge/rustc-1.38.0-blue)
+
+[Documentation (master)](https://time-rs.github.io/time/time/index.html)
+<br>
+[Documentation (latest release)](https://docs.rs/time)
 
 ## Features
 

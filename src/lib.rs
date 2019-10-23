@@ -6,16 +6,16 @@
 //!
 //! ## `#![no_std]`
 //!
-//! Currently, all structs except `Instant` are useable wiht `#![no_std]`. As
+//! Currently, all structs except `Instant` can be used with `#![no_std]`. As
 //! support for the standard library is enabled by default, you muse use
 //! `default_features = false` in your `Cargo.toml` to enable this.
 //!
-//! ```none
+//! ```toml
 //! [dependencies]
 //! time = { version = "0.2", default-features = false }
 //! ```
 //!
-//! Of the structs that are useable, some methods may only be enabled due a
+//! Of the structs that are usable, some methods may only be enabled due a
 //! reliance on `Instant`. These will be documented alongside the method.
 //!
 //! ## Serde
@@ -25,15 +25,15 @@
 //! default. It _is_ compatible with `#![no_std]`, so long as an allocator is
 //! present.
 //!
-//! ```none
+//! ```toml
 //! [dependencies]
 //! time = { version = "0.2", features = ["serialization"] }
 //! ```
 //!
 //! # Formatting
 //!
-//! Time's implementation of formatting is based on `strftime` in C, though it
-//! is explicitly no compatible. Specifiers may be missing, added, or have
+//! Time's formatting behavior is based on `strftime` in C, though it is
+//! explicitly _not_ compatible. Specifiers may be missing, added, or have
 //! different behavior than in C. As such, you should use the table below, which
 //! is an up-to-date reference on what each specifier does.
 //!
@@ -43,12 +43,12 @@
 //! | `%A`      | Full weekday name                                                      | Thursday                 |
 //! | `%b`      | Abbreviated month name                                                 | Aug                      |
 //! | `%B`      | Full month name                                                        | August                   |
-//! | `%c`      | Date and time representation                                           | Thu Aug 23 14:55:02 2001 |
+//! | `%c`      | Date and time representation, equivalent to `%a %b %-d %-H:%M:%S %-Y`  | Thu Aug 23 14:55:02 2001 |
 //! | `%C`      | Year divided by 100 and truncated to integer (00-99)                   | 20                       |
 //! | `%d`      | Day of the month, zero-padded (01-31)                                  | 23                       |
-//! | `%D`      | Short MM/DD/YY date, equivalent to %m/%d/%y                            | 08/23/01                 |
+//! | `%D`      | Short MM/DD/YY date, equivalent to `%-m/%d/%y`                         | 8/23/01                  |
 //! | `%e`      | Day of the month, space-padded ( 1-31)                                 | 23                       |
-//! | `%F`      | Short YYYY-MM-DD date, equivalent to %Y-%m-%d                          | 2001-08-23               |
+//! | `%F`      | Short YYYY-MM-DD date, equivalent to `%-Y-%m-%d`                       | 2001-08-23               |
 //! | `%g`      | Week-based year, last two digits (00-99)                               | 01                       |
 //! | `%G`      | Week-based year                                                        | 2001                     |
 //! | `%H`      | Hour in 24h format (00-23)                                             | 14                       |
@@ -58,10 +58,10 @@
 //! | `%M`      | Minute (00-59)                                                         | 55                       |
 //! | `%p`      | `am` or `pm` designation                                               | pm                       |
 //! | `%P`      | `AM` or `PM` designation                                               | PM                       |
-//! | `%r`      | 12-hour clock time                                                     | 02:55:02 pm              |
-//! | `%R`      | 24-hour HH:MM time, equivalent to %H:%M                                | 14:55                    |
+//! | `%r`      | 12-hour clock time, equivalent to `%-I:%M:%S %p`                       | 2:55:02 pm               |
+//! | `%R`      | 24-hour HH:MM time, equivalent to `%-H:%M`                             | 14:55                    |
 //! | `%S`      | Second (00-59)                                                         | 02                       |
-//! | `%T`      | ISO 8601 time format (HH:MM:SS), equivalent to %H:%M:%S                | 14:55:02                 |
+//! | `%T`      | ISO 8601 time format (HH:MM:SS), equivalent to `%-H:%M:%S`             | 14:55:02                 |
 //! | `%u`      | ISO 8601 weekday as number with Monday as 1 (1-7)                      | 4                        |
 //! | `%U`      | Week number with the first Sunday as the first day of week one (00-53) | 33                       |
 //! | `%V`      | ISO 8601 week number (01-53)                                           | 34                       |
@@ -113,12 +113,12 @@
 #![allow(
     clippy::suspicious_arithmetic_impl,
     clippy::inline_always,
-    // TODO Change to `warn` once rust-lang/rust-clippy#4605 is resolved.
+    // TODO Remove once rust-lang/rust-clippy#4605 is resolved.
     clippy::cast_sign_loss,
     clippy::cast_possible_wrap,
     clippy::cast_lossless,
-    clippy::non_ascii_literal,
-    clippy::module_inception
+    clippy::module_inception,
+    clippy::module_name_repetitions
 )]
 
 #[macro_use]
@@ -203,7 +203,9 @@ use core::fmt;
 pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use date_time::DateTime;
 pub use duration::Duration;
-pub use format::{language::Language, DeferredFormat};
+pub use format::DeferredFormat;
+pub use format::Language;
+pub use format::ParseError;
 #[cfg(feature = "std")]
 pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration};

@@ -27,10 +27,11 @@ pub enum Language {
 
 macro_rules! nonexhaustive {
     () => {
-        unreachable!("`__nonexhaustive` is hidden in the documentation for a reason! Don't use it.")
+        panic!("`__nonexhaustive` is hidden in the documentation for a reason! Don't use it.")
     };
 }
 
+#[allow(clippy::non_ascii_literal)]
 impl Language {
     /// Get the month names for the given language.
     pub fn month_names(self) -> [&'static str; 12] {

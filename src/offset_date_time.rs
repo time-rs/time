@@ -1,3 +1,4 @@
+use crate::format::parse::{parse, ParseResult, ParsedItems};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
 use crate::{Date, DateTime, DeferredFormat, Duration, Language, Time, UtcOffset, Weekday};
@@ -572,7 +573,7 @@ impl OffsetDateTime {
     ///         .midnight()
     ///         .using_offset(UtcOffset::hours(2))
     ///         .format_language("%c %z", Language::es),
-    ///     "Mi enero 2 02:00:00 2019 +0200",
+    ///     "Mi enero 2 2:00:00 2019 +0200",
     /// );
     /// ```
     pub fn format_language(self, format: &str, language: Language) -> String {
@@ -583,6 +584,53 @@ impl OffsetDateTime {
             format: crate::format::parse_with_language(format, language),
         }
         .to_string()
+    }
+
+    /// Attempt to parse an `OffsetDateTime` using the provided string. As no
+    /// language is specified, English is used.
+    ///
+    /// ```rust
+    /// # use time::{Date, DateTime, Weekday::Wednesday};
+    /// assert_eq!(
+    ///     DateTime::parse("2019-01-02 00:00:00", "%F %T"),
+    ///     Ok(Date::from_ymd(2019, 1, 2).midnight()),
+    /// );
+    /// assert_eq!(
+    ///     DateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
+    ///     Ok(Date::from_yo(2019, 2).with_hms(23, 59, 59))
+    /// );
+    /// assert_eq!(
+    ///     DateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
+    ///     Ok(Date::from_iso_ywd(2019, 1, Wednesday).with_hms(12, 0, 0)),
+    /// );
+    /// ```
+    pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
+        Self::parse_language(s, format, Language::en)
+    }
+
+    /// Attempt to parse an `OffsetDateTime` using the provided string and language.
+    ///
+    /// ```rust
+    /// # use time::{Date, DateTime, Language::{en, es}};
+    /// assert_eq!(
+    ///     DateTime::parse_language("January 02 2019 12:00:00 am", "%B %d %Y %r", en),
+    ///     Ok(Date::from_ymd(2019, 1, 2).midnight()),
+    /// );
+    /// assert_eq!(
+    ///     DateTime::parse_language("02 enero 2019 00:00:00", "%d %B %Y %T", es),
+    ///     Ok(Date::from_ymd(2019, 1, 2).midnight()),
+    /// );
+    /// ```
+    pub fn parse_language(s: &str, format: &str, language: Language) -> ParseResult<Self> {
+        Self::try_from_parsed_items(parse(s, format, language)?)
+    }
+
+    /// Given the items already parsed, attempt to create a `DateTime`.
+    pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
+        Ok(Self {
+            datetime: DateTime::try_from_parsed_items(items)?,
+            offset: UtcOffset::try_from_parsed_items(items)?,
+        })
     }
 }
 

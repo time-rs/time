@@ -1,8 +1,10 @@
+use crate::format::{parse, parse::AmPm, ParseError, ParseResult, ParsedItems};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
 #[cfg(feature = "std")]
 use crate::DateTime;
 use crate::{DeferredFormat, Duration, Language};
+use core::num::NonZeroU8;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 
@@ -350,6 +352,56 @@ impl Time {
             format: crate::format::parse_with_language(format, Language::en),
         }
         .to_string()
+    }
+
+    /// Attempt to parse a `Time` using the provided string.
+    ///
+    /// ```rust
+    /// # use time::Time;
+    /// assert_eq!(Time::parse("00:00:00", "%T"), Ok(Time::from_hms(0, 0, 0)));
+    /// assert_eq!(Time::parse("23:59:59", "%T"), Ok(Time::from_hms(23, 59, 59)));
+    /// assert_eq!(Time::parse("12:00:00 am", "%r"), Ok(Time::from_hms(0, 0, 0)));
+    /// assert_eq!(Time::parse("12:00:00 pm", "%r"), Ok(Time::from_hms(12, 0, 0)));
+    /// assert_eq!(Time::parse("11:59:59 pm", "%r"), Ok(Time::from_hms(23, 59, 59)));
+    /// ```
+    pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
+        Self::try_from_parsed_items(parse(s, format, Language::en)?)
+    }
+
+    /// Given the items already parsed, attempt to create a `Time`.
+    pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
+        macro_rules! items {
+            ($($item:ident),* $(,)?) => {
+                ParsedItems { $($item: Some($item)),*, .. }
+            };
+        }
+
+        /// Convert a 12-hour time to a 24-hour time.
+        fn hour_12_to_24(hour: NonZeroU8, am_pm: AmPm) -> u8 {
+            use AmPm::{AM, PM};
+            match (hour.get(), am_pm) {
+                (12, AM) => 0,
+                (12, PM) => 12,
+                (h, AM) => h,
+                (h, PM) => h + 12,
+            }
+        }
+
+        match items {
+            items!(hour_24, minute, second) => Ok(Self::from_hms(hour_24, minute, second)),
+            items!(hour_12, minute, second, am_pm) => Ok(Self::from_hms(
+                hour_12_to_24(hour_12, am_pm),
+                minute,
+                second,
+            )),
+            items!(hour_24, minute) => Ok(Self::from_hms(hour_24, minute, 0)),
+            items!(hour_12, minute, am_pm) => {
+                Ok(Self::from_hms(hour_12_to_24(hour_12, am_pm), minute, 0))
+            }
+            items!(hour_24) => Ok(Self::from_hms(hour_24, 0, 0)),
+            items!(hour_12, am_pm) => Ok(Self::from_hms(hour_12_to_24(hour_12, am_pm), 0, 0)),
+            _ => Err(ParseError::InsufficientInformation),
+        }
     }
 }
 
