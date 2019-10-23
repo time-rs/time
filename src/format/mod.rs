@@ -2,32 +2,30 @@
 
 /// Pad a given value if requested.
 macro_rules! pad {
-    (None, $width:literal, $value:expr) => {
-        paste::expr! {
-            match [<padding>] {
-                Padding::None | Padding::Default => write!([<f>], "{}", $value),
-                Padding::Space => write!([<f>], concat!("{:", stringify!($width), "}"), $value),
-                Padding::Zero => write!([<f>], concat!("{:0", stringify!($width), "}"), $value),
-            }
+    ($f:ident, $padding:ident (None), $width:literal, $value:expr) => {
+        match $padding {
+            Padding::None | Padding::Default => write!($f, "{}", $value),
+            Padding::Space => write!($f, concat!("{:", stringify!($width), "}"), $value),
+            Padding::Zero => write!($f, concat!("{:0", stringify!($width), "}"), $value),
         }
     };
 
-    (Space, $width:literal, $value:expr) => {
-        paste::expr! {
-            match [<padding>] {
-                Padding::None => write!([<f>], "{}", $value),
-                Padding::Space | Padding::Default => write!([<f>], concat!("{:", stringify!($width), "}"), $value),
-                Padding::Zero => write!([<f>], concat!("{:0", stringify!($width), "}"), $value),
+    ($f:ident, $padding:ident (Space), $width:literal, $value:expr) => {
+        match $padding {
+            Padding::None => write!($f, "{}", $value),
+            Padding::Space | Padding::Default => {
+                write!($f, concat!("{:", stringify!($width), "}"), $value)
             }
+            Padding::Zero => write!($f, concat!("{:0", stringify!($width), "}"), $value),
         }
     };
 
-    (Zero, $width:literal, $value:expr) => {
-        paste::expr! {
-            match [<padding>] {
-                Padding::None => write!([<f>], "{}", $value),
-                Padding::Space => write!([<f>], concat!("{:", stringify!($width), "}"), $value),
-                Padding::Zero | Padding::Default => write!([<f>], concat!("{:0", stringify!($width), "}"), $value),
+    ($f:ident, $padding:ident (Zero), $width:literal, $value:expr) => {
+        match $padding {
+            Padding::None => write!($f, "{}", $value),
+            Padding::Space => write!($f, concat!("{:", stringify!($width), "}"), $value),
+            Padding::Zero | Padding::Default => {
+                write!($f, concat!("{:0", stringify!($width), "}"), $value)
             }
         }
     };
@@ -158,21 +156,21 @@ fn format_specifier(
     /// Push the provided specifier to the list of items. If an asterisk is
     /// present, the language will be provided to the method. If a pound symbol
     /// is present, the padding will be provided.
+    // TODO (future) Some way to concatenate identifiers/paths without hacks
+    // would be super!
     macro_rules! specifier {
-        ($type:ident, $specifier:ident $(, $opt:ident)*) => {
-            paste::expr! {
-                $type::[<fmt_ $specifier>](
-                    f,
-                    $type.expect(concat!(
-                        "Specifier `%",
-                        stringify!($specifier),
-                        "` requires a ",
-                        stringify!($type),
-                        " to be present."
-                    )),
-                    $($opt),*
-                )?
-            }
+        ($type:ident :: $specifier_fn:ident ( $specifier:ident $(, $param:expr)? )) => {
+            $type::$specifier_fn(
+                f,
+                $type.expect(concat!(
+                    "Specifier `%",
+                    stringify!($specifier),
+                    "` requires a ",
+                    stringify!($type),
+                    " to be present."
+                )),
+                $($param)?
+            )?
         };
     }
 
@@ -182,89 +180,83 @@ fn format_specifier(
         };
     }
 
-    // Identifiers to allow function-like macros.
-    #[allow(clippy::missing_docs_in_private_items)]
-    const DEFAULT_PADDING: Padding = Padding::Default;
-    #[allow(clippy::missing_docs_in_private_items)]
-    const NONE_PADDING: Padding = Padding::None;
-
     use Specifier::*;
     match specifier {
-        a { language } => specifier!(date, a, language),
-        A { language } => specifier!(date, A, language),
-        b { language } => specifier!(date, b, language),
-        B { language } => specifier!(date, B, language),
+        a { language } => specifier!(date::fmt_a(a, language)),
+        A { language } => specifier!(date::fmt_A(A, language)),
+        b { language } => specifier!(date::fmt_b(b, language)),
+        B { language } => specifier!(date::fmt_B(B, language)),
         c { language } => {
-            specifier!(date, a, language);
+            specifier!(date::fmt_a(a, language));
             literal!(" ");
-            specifier!(date, b, language);
+            specifier!(date::fmt_b(b, language));
             literal!(" ");
-            specifier!(date, d, NONE_PADDING);
+            specifier!(date::fmt_d(d, Padding::None));
             literal!(" ");
-            specifier!(time, H, NONE_PADDING);
+            specifier!(time::fmt_H(H, Padding::None));
             literal!(":");
-            specifier!(time, M, DEFAULT_PADDING);
+            specifier!(time::fmt_M(M, Padding::Default));
             literal!(":");
-            specifier!(time, S, DEFAULT_PADDING);
+            specifier!(time::fmt_S(S, Padding::Default));
             literal!(" ");
-            specifier!(date, Y, NONE_PADDING);
+            specifier!(date::fmt_Y(Y, Padding::None));
         }
-        C { padding } => specifier!(date, C, padding),
-        d { padding } => specifier!(date, d, padding),
+        C { padding } => specifier!(date::fmt_C(C, padding)),
+        d { padding } => specifier!(date::fmt_d(d, padding)),
         D => {
-            specifier!(date, m, NONE_PADDING);
+            specifier!(date::fmt_m(m, Padding::None));
             literal!("/");
-            specifier!(date, d, DEFAULT_PADDING);
+            specifier!(date::fmt_d(d, Padding::Default));
             literal!("/");
-            specifier!(date, y, DEFAULT_PADDING);
+            specifier!(date::fmt_y(y, Padding::Default));
         }
-        e { padding } => specifier!(date, e, padding),
+        e { padding } => specifier!(date::fmt_e(e, padding)),
         F => {
-            specifier!(date, Y, NONE_PADDING);
+            specifier!(date::fmt_Y(Y, Padding::None));
             literal!("-");
-            specifier!(date, m, DEFAULT_PADDING);
+            specifier!(date::fmt_m(m, Padding::Default));
             literal!("-");
-            specifier!(date, d, DEFAULT_PADDING);
+            specifier!(date::fmt_d(d, Padding::Default));
         }
-        g { padding } => specifier!(date, g, padding),
-        G { padding } => specifier!(date, G, padding),
-        H { padding } => specifier!(time, H, padding),
-        I { padding } => specifier!(time, I, padding),
-        j { padding } => specifier!(date, j, padding),
-        m { padding } => specifier!(date, m, padding),
-        M { padding } => specifier!(time, M, padding),
-        p => specifier!(time, p),
-        P => specifier!(time, P),
+        g { padding } => specifier!(date::fmt_g(g, padding)),
+        G { padding } => specifier!(date::fmt_G(G, padding)),
+        H { padding } => specifier!(time::fmt_H(H, padding)),
+        I { padding } => specifier!(time::fmt_I(I, padding)),
+        j { padding } => specifier!(date::fmt_j(j, padding)),
+        m { padding } => specifier!(date::fmt_m(m, padding)),
+        M { padding } => specifier!(time::fmt_M(M, padding)),
+        p => specifier!(time::fmt_p(p)),
+        P => specifier!(time::fmt_P(P)),
         r => {
-            specifier!(time, I, NONE_PADDING);
+            specifier!(time::fmt_I(I, Padding::None));
             literal!(":");
-            specifier!(time, M, DEFAULT_PADDING);
+            specifier!(time::fmt_M(M, Padding::Default));
             literal!(":");
-            specifier!(time, S, DEFAULT_PADDING);
+            specifier!(time::fmt_S(S, Padding::Default));
             literal!(" ");
-            specifier!(time, p);
+            specifier!(time::fmt_p(p));
         }
         R => {
-            specifier!(time, H, NONE_PADDING);
+            specifier!(time::fmt_H(H, Padding::None));
             literal!(":");
-            specifier!(time, M, DEFAULT_PADDING);
+            specifier!(time::fmt_M(M, Padding::Default));
         }
-        S { padding } => specifier!(time, S, padding),
+        S { padding } => specifier!(time::fmt_S(S, padding)),
         T => {
-            specifier!(time, H, NONE_PADDING);
+            specifier!(time::fmt_H(H, Padding::None));
             literal!(":");
-            specifier!(time, M, DEFAULT_PADDING);
+            specifier!(time::fmt_M(M, Padding::Default));
             literal!(":");
-            specifier!(time, S, DEFAULT_PADDING);
+            specifier!(time::fmt_S(S, Padding::Default));
         }
-        u => specifier!(date, u),
+        u => specifier!(date::fmt_u(u)),
         U { .. } => unimplemented!(), // Week number, first Sunday is first day of week one (TODO)
-        V { padding } => specifier!(date, V, padding),
-        w => specifier!(date, w),
+        V { padding } => specifier!(date::fmt_V(V, padding)),
+        w => specifier!(date::fmt_w(w)),
         W { .. } => unimplemented!(), // Week number, first Monday is first day of week one (TODO)
-        y { padding } => specifier!(date, y, padding),
-        Y { padding } => specifier!(date, Y, padding),
-        z => specifier!(offset, z),
+        y { padding } => specifier!(date::fmt_y(y, padding)),
+        Y { padding } => specifier!(date::fmt_Y(Y, padding)),
+        z => specifier!(offset::fmt_z(z)),
     }
 
     Ok(())

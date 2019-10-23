@@ -126,7 +126,7 @@ pub(crate) fn parse_B(
 /// Year divided by 100 and truncated to integer (`00`-`999`)
 #[inline(always)]
 pub(crate) fn fmt_C(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(Zero, 2, date.year() / 100)
+    pad!(f, padding(Zero), 2, date.year() / 100)
 }
 
 /// Year divided by 100 and truncated to integer (`00`-`999`)
@@ -145,7 +145,7 @@ pub(crate) fn parse_C(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 /// Day of the month, zero-padded (`01`-`31`)
 #[inline(always)]
 pub(crate) fn fmt_d(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(Zero, 2, date.day())
+    pad!(f, padding(Zero), 2, date.day())
 }
 
 /// Day of the month, zero-padded (`01`-`31`)
@@ -161,7 +161,7 @@ pub(crate) fn parse_d(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 /// Day of the month, space-padded (` 1`-`31`)
 #[inline(always)]
 pub(crate) fn fmt_e(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(Space, 2, date.day())
+    pad!(f, padding(Space), 2, date.day())
 }
 
 /// Day of the month, space-padded (` 1`-`31`)
@@ -173,7 +173,7 @@ pub(crate) fn parse_e(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 /// Week-based year, last two digits (`00`-`99`)
 #[inline(always)]
 pub(crate) fn fmt_g(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(Zero, 2, date.iso_year_week().0.rem_euclid(100))
+    pad!(f, padding(Zero), 2, date.iso_year_week().0.rem_euclid(100))
 }
 
 /// Week-based year, last two digits (`00`-`99`)
@@ -190,7 +190,7 @@ pub(crate) fn parse_g(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 /// Week-based year
 #[inline(always)]
 pub(crate) fn fmt_G(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(Zero, 4, date.iso_year_week().0)
+    pad!(f, padding(Zero), 4, date.iso_year_week().0)
 }
 
 /// Week-based year
@@ -217,7 +217,7 @@ pub(crate) fn parse_G(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 /// Day of the year, zero-padded to width 3 (`001`-`366`)
 #[inline(always)]
 pub(crate) fn fmt_j(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(Zero, 3, date.ordinal())
+    pad!(f, padding(Zero), 3, date.ordinal())
 }
 
 /// Day of the year, zero-padded to width 3 (`001`-`366`)
@@ -234,7 +234,7 @@ pub(crate) fn parse_j(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 /// Month of the year, zero-padded (`01`-`12`)
 #[inline(always)]
 pub(crate) fn fmt_m(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(Zero, 2, date.month())
+    pad!(f, padding(Zero), 2, date.month())
 }
 
 /// Month of the year, zero-padded (`01`-`12`)
@@ -269,7 +269,7 @@ pub(crate) fn parse_u(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
 /// ISO week number, zero-padded (`01`-`53`)
 #[inline(always)]
 pub(crate) fn fmt_V(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(Zero, 2, date.week())
+    pad!(f, padding(Zero), 2, date.week())
 }
 
 /// ISO week number, zero-padded (`01`-`53`)
@@ -310,7 +310,7 @@ pub(crate) fn parse_w(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
 /// Last two digits of year (`00`-`99`)
 #[inline(always)]
 pub(crate) fn fmt_y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(Zero, 2, date.year().rem_euclid(100))
+    pad!(f, padding(Zero), 2, date.year().rem_euclid(100))
 }
 
 /// Last two digits of year (`00`-`99`)
@@ -333,7 +333,7 @@ pub(crate) fn fmt_Y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
         f.write_str("+")?;
     }
 
-    pad!(Zero, 4, year)
+    pad!(f, padding(Zero), 4, year)
 }
 
 /// Full year

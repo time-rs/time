@@ -14,7 +14,7 @@ use core::num::NonZeroU8;
 /// Hour in 24h format (`00`-`23`)
 #[inline(always)]
 pub(crate) fn fmt_H(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
-    pad!(Zero, 2, time.hour())
+    pad!(f, padding(Zero), 2, time.hour())
 }
 
 /// Hour in 24h format (`00`-`23`)
@@ -30,7 +30,12 @@ pub(crate) fn parse_H(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 /// Hour in 12h format (`01`-`12`)
 #[inline(always)]
 pub(crate) fn fmt_I(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
-    pad!(Zero, 2, (time.hour() as i8 - 1).rem_euclid(12) + 1)
+    pad!(
+        f,
+        padding(Zero),
+        2,
+        (time.hour() as i8 - 1).rem_euclid(12) + 1
+    )
 }
 
 /// Hour in 12h format (`01`-`12`)
@@ -46,7 +51,7 @@ pub(crate) fn parse_I(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 /// Minutes, zero-padded (`00`-`59`)
 #[inline(always)]
 pub(crate) fn fmt_M(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
-    pad!(Zero, 2, time.minute())
+    pad!(f, padding(Zero), 2, time.minute())
 }
 
 /// Minutes, zero-added (`00`-`59`)
@@ -100,7 +105,7 @@ pub(crate) fn parse_P(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
 /// Seconds, zero-padded (`00`-`59`)
 #[inline(always)]
 pub(crate) fn fmt_S(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {
-    pad!(Zero, 2, time.second())
+    pad!(f, padding(Zero), 2, time.second())
 }
 
 /// Seconds, zero-added (`00`-`59`)

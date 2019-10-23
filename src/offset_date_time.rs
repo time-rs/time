@@ -11,6 +11,7 @@ use core::time::Duration as StdDuration;
 ///
 /// For equality, comparisons, and hashing, calculations are performed using the
 /// [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, Eq)]
 pub struct OffsetDateTime {
     /// The `DateTime`, which is _always_ UTC.

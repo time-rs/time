@@ -12,17 +12,15 @@ pub(crate) fn parse_with_language<'a>(s: &'a str, language: Language) -> Vec<For
     let mut literal_start = 0;
     let mut chars = s.char_indices().peekable();
 
-    /// Push the provided specifier to the list of items.
-    macro_rules! push_specifier {
-        ($specifier:ident $($opts:tt)?) => {{
-            paste::expr! {
-                literal_start = i + 1;
-                items.push(FormatItem::Specifier(Specifier::[<$specifier>] $($opts)?))
-            }
-        }};
-    }
-
     while let Some((i, c)) = chars.next() {
+        /// Push the provided specifier to the list of items.
+        macro_rules! push_specifier {
+            ($i:ident, $specifier:expr) => {{
+                literal_start = $i + 1;
+                items.push(FormatItem::Specifier($specifier))
+            }};
+        }
+
         if c == '%' {
             // Avoid adding unnecessary empty strings.
             if literal_start != i {
@@ -48,37 +46,37 @@ pub(crate) fn parse_with_language<'a>(s: &'a str, language: Language) -> Vec<For
             };
 
             match chars.next() {
-                Some((i, 'a')) => push_specifier!(a { language }),
-                Some((i, 'A')) => push_specifier!(A { language }),
-                Some((i, 'b')) => push_specifier!(b { language }),
-                Some((i, 'B')) => push_specifier!(B { language }),
-                Some((i, 'c')) => push_specifier!(c { language }),
-                Some((i, 'C')) => push_specifier!(C { padding }),
-                Some((i, 'd')) => push_specifier!(d { padding }),
-                Some((i, 'D')) => push_specifier!(D),
-                Some((i, 'e')) => push_specifier!(e { padding }),
-                Some((i, 'F')) => push_specifier!(F),
-                Some((i, 'g')) => push_specifier!(g { padding }),
-                Some((i, 'G')) => push_specifier!(G { padding }),
-                Some((i, 'H')) => push_specifier!(H { padding }),
-                Some((i, 'I')) => push_specifier!(I { padding }),
-                Some((i, 'j')) => push_specifier!(j { padding }),
-                Some((i, 'm')) => push_specifier!(m { padding }),
-                Some((i, 'M')) => push_specifier!(M { padding }),
-                Some((i, 'p')) => push_specifier!(p),
-                Some((i, 'P')) => push_specifier!(P),
-                Some((i, 'r')) => push_specifier!(r),
-                Some((i, 'R')) => push_specifier!(R),
-                Some((i, 'S')) => push_specifier!(S { padding }),
-                Some((i, 'T')) => push_specifier!(T),
-                Some((i, 'u')) => push_specifier!(u),
-                Some((i, 'U')) => push_specifier!(U { padding }),
-                Some((i, 'V')) => push_specifier!(V { padding }),
-                Some((i, 'w')) => push_specifier!(w),
-                Some((i, 'W')) => push_specifier!(W { padding }),
-                Some((i, 'y')) => push_specifier!(y { padding }),
-                Some((i, 'Y')) => push_specifier!(Y { padding }),
-                Some((i, 'z')) => push_specifier!(z),
+                Some((i, 'a')) => push_specifier!(i, Specifier::a { language }),
+                Some((i, 'A')) => push_specifier!(i, Specifier::A { language }),
+                Some((i, 'b')) => push_specifier!(i, Specifier::b { language }),
+                Some((i, 'B')) => push_specifier!(i, Specifier::B { language }),
+                Some((i, 'c')) => push_specifier!(i, Specifier::c { language }),
+                Some((i, 'C')) => push_specifier!(i, Specifier::C { padding }),
+                Some((i, 'd')) => push_specifier!(i, Specifier::d { padding }),
+                Some((i, 'D')) => push_specifier!(i, Specifier::D),
+                Some((i, 'e')) => push_specifier!(i, Specifier::e { padding }),
+                Some((i, 'F')) => push_specifier!(i, Specifier::F),
+                Some((i, 'g')) => push_specifier!(i, Specifier::g { padding }),
+                Some((i, 'G')) => push_specifier!(i, Specifier::G { padding }),
+                Some((i, 'H')) => push_specifier!(i, Specifier::H { padding }),
+                Some((i, 'I')) => push_specifier!(i, Specifier::I { padding }),
+                Some((i, 'j')) => push_specifier!(i, Specifier::j { padding }),
+                Some((i, 'm')) => push_specifier!(i, Specifier::m { padding }),
+                Some((i, 'M')) => push_specifier!(i, Specifier::M { padding }),
+                Some((i, 'p')) => push_specifier!(i, Specifier::p),
+                Some((i, 'P')) => push_specifier!(i, Specifier::P),
+                Some((i, 'r')) => push_specifier!(i, Specifier::r),
+                Some((i, 'R')) => push_specifier!(i, Specifier::R),
+                Some((i, 'S')) => push_specifier!(i, Specifier::S { padding }),
+                Some((i, 'T')) => push_specifier!(i, Specifier::T),
+                Some((i, 'u')) => push_specifier!(i, Specifier::u),
+                Some((i, 'U')) => push_specifier!(i, Specifier::U { padding }),
+                Some((i, 'V')) => push_specifier!(i, Specifier::V { padding }),
+                Some((i, 'w')) => push_specifier!(i, Specifier::w),
+                Some((i, 'W')) => push_specifier!(i, Specifier::W { padding }),
+                Some((i, 'y')) => push_specifier!(i, Specifier::y { padding }),
+                Some((i, 'Y')) => push_specifier!(i, Specifier::Y { padding }),
+                Some((i, 'z')) => push_specifier!(i, Specifier::z),
                 Some((i, '%')) => literal_start = i,
                 Some((_, c)) => panic!("Invalid specifier `{}`", c),
                 None => panic!(

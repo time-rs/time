@@ -325,10 +325,8 @@ pub(crate) fn parse(s: &str, format: &str, language: Language) -> ParseResult<Pa
 
     /// Parse the provided specifier with the given parameters.
     macro_rules! parse {
-        ($module:ident, $specifier:ident $(, $params:expr)*) => {
-            paste::expr! {
-                $module::[<parse_ $specifier>](&mut items, &mut s $(, $params)*)?
-            }
+        ($module:ident :: $specifier_fn:ident $( ( $($params:expr),* ) )?) => {
+            $module::$specifier_fn(&mut items, &mut s, $( $($params),* )?)?
         };
     }
 
@@ -344,79 +342,79 @@ pub(crate) fn parse(s: &str, format: &str, language: Language) -> ParseResult<Pa
             FormatItem::Specifier(specifier) => {
                 use Specifier::*;
                 match specifier {
-                    a { language } => parse!(date, a, language),
-                    A { language } => parse!(date, A, language),
-                    b { language } => parse!(date, b, language),
-                    B { language } => parse!(date, B, language),
+                    a { language } => parse!(date::parse_a(language)),
+                    A { language } => parse!(date::parse_A(language)),
+                    b { language } => parse!(date::parse_b(language)),
+                    B { language } => parse!(date::parse_B(language)),
                     c { language } => {
-                        parse!(date, a, language);
+                        parse!(date::parse_a(language));
                         parse_char!(' ');
-                        parse!(date, b, language);
+                        parse!(date::parse_b(language));
                         parse_char!(' ');
-                        parse!(date, d, Padding::None);
+                        parse!(date::parse_d(Padding::None));
                         parse_char!(' ');
-                        parse!(time, H, Padding::None);
+                        parse!(time::parse_H(Padding::None));
                         parse_char!(':');
-                        parse!(time, M, Padding::Default);
+                        parse!(time::parse_M(Padding::Default));
                         parse_char!(':');
-                        parse!(time, S, Padding::Default);
+                        parse!(time::parse_S(Padding::Default));
                         parse_char!(' ');
-                        parse!(date, Y, Padding::None);
+                        parse!(date::parse_Y(Padding::None));
                     }
-                    C { padding } => parse!(date, C, padding),
-                    d { padding } => parse!(date, d, padding),
+                    C { padding } => parse!(date::parse_C(padding)),
+                    d { padding } => parse!(date::parse_d(padding)),
                     D => {
-                        parse!(date, m, Padding::Default);
+                        parse!(date::parse_m(Padding::Default));
                         parse_char!('/');
-                        parse!(date, d, Padding::Default);
+                        parse!(date::parse_d(Padding::Default));
                         parse_char!('/');
-                        parse!(date, y, Padding::Default);
+                        parse!(date::parse_y(Padding::Default));
                     }
-                    e { padding } => parse!(date, e, padding),
+                    e { padding } => parse!(date::parse_e(padding)),
                     F => {
-                        parse!(date, Y, Padding::None);
+                        parse!(date::parse_Y(Padding::None));
                         parse_char!('-');
-                        parse!(date, m, Padding::Default);
+                        parse!(date::parse_m(Padding::Default));
                         parse_char!('-');
-                        parse!(date, d, Padding::Default);
+                        parse!(date::parse_d(Padding::Default));
                     }
-                    g { padding } => parse!(date, g, padding),
-                    G { padding } => parse!(date, G, padding),
-                    H { padding } => parse!(time, H, padding),
-                    I { padding } => parse!(time, I, padding),
-                    j { padding } => parse!(date, j, padding),
-                    M { padding } => parse!(time, M, padding),
-                    m { padding } => parse!(date, m, padding),
-                    p => parse!(time, p),
-                    P => parse!(time, P),
+                    g { padding } => parse!(date::parse_g(padding)),
+                    G { padding } => parse!(date::parse_G(padding)),
+                    H { padding } => parse!(time::parse_H(padding)),
+                    I { padding } => parse!(time::parse_I(padding)),
+                    j { padding } => parse!(date::parse_j(padding)),
+                    M { padding } => parse!(time::parse_M(padding)),
+                    m { padding } => parse!(date::parse_m(padding)),
+                    p => parse!(time::parse_p),
+                    P => parse!(time::parse_P),
                     r => {
-                        parse!(time, I, Padding::None);
+                        parse!(time::parse_I(Padding::None));
                         parse_char!(':');
-                        parse!(time, M, Padding::Default);
+                        parse!(time::parse_M(Padding::Default));
                         parse_char!(':');
-                        parse!(time, S, Padding::Default);
+                        parse!(time::parse_S(Padding::Default));
                         parse_char!(' ');
-                        parse!(time, p);
+                        parse!(time::parse_p);
                     }
                     R => {
-                        parse!(time, H, Padding::None);
+                        parse!(time::parse_H(Padding::None));
                         parse_char!(':');
-                        parse!(time, M, Padding::Default);
+                        parse!(time::parse_M(Padding::Default));
                     }
-                    S { padding } => parse!(time, S, padding),
+                    S { padding } => parse!(time::parse_S(padding)),
                     T => {
-                        parse!(time, H, Padding::None);
+                        parse!(time::parse_H(Padding::None));
                         parse_char!(':');
-                        parse!(time, M, Padding::Default);
+                        parse!(time::parse_M(Padding::Default));
                         parse_char!(':');
-                        parse!(time, S, Padding::Default);
+                        parse!(time::parse_S(Padding::Default));
                     }
-                    u => parse!(date, u),
-                    V { padding } => parse!(date, V, padding),
-                    w => parse!(date, w),
-                    y { padding } => parse!(date, y, padding),
-                    z => parse!(offset, z),
-                    Y { padding } => parse!(date, Y, padding),
+                    u => parse!(date::parse_u),
+                    V { padding } => parse!(date::parse_V(padding)),
+                    w => parse!(date::parse_w),
+                    y { padding } => parse!(date::parse_y(padding)),
+                    z => parse!(offset::parse_z),
+                    Y { padding } => parse!(date::parse_Y(padding)),
                     _ => unimplemented!(),
                 }
             }
