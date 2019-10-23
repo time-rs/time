@@ -968,8 +968,18 @@ impl From<DateTime> for SystemTime {
         let duration = datetime - DateTime::unix_epoch();
 
         match duration.sign() {
-            Sign::Positive => Self::UNIX_EPOCH + StdDuration::try_from(duration).unwrap(),
-            Sign::Negative => Self::UNIX_EPOCH + StdDuration::try_from(-duration).unwrap(),
+            Sign::Positive => {
+                Self::UNIX_EPOCH
+                    + StdDuration::try_from(duration).unwrap_or_else(|_| unreachable!(
+                        "The value is guaranteed to be positive (and is convertable to StdDuration)."
+                    ))
+            }
+            Sign::Negative => {
+                Self::UNIX_EPOCH
+                    + StdDuration::try_from(-duration).unwrap_or_else(|_| unreachable!(
+                        "The value is guaranteed to be positive (and is convertable to StdDuration."
+                    ))
+            }
             Sign::Zero => Self::UNIX_EPOCH,
             Sign::Unknown => unreachable!("Durations always have a known sign"),
         }

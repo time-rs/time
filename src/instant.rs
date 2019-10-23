@@ -76,11 +76,19 @@ impl Instant {
             Zero => Some(self),
             Negative => self
                 .inner
-                .checked_sub(StdDuration::try_from(duration.abs()).unwrap())
+                .checked_sub(StdDuration::try_from(duration.abs()).unwrap_or_else(|_| {
+                    unreachable!(
+                        "The value is guaranteed to be positive (and is convertable to StdDuration)."
+                    )
+                }))
                 .map(From::from),
             Positive => self
                 .inner
-                .checked_add(StdDuration::try_from(duration.abs()).unwrap())
+                .checked_add(StdDuration::try_from(duration.abs()).unwrap_or_else(|_| {
+                    unreachable!(
+                        "The value is guaranteed to be positive (and is convertable to StdDuration)."
+                    )
+                }))
                 .map(From::from),
             Unknown => unreachable!("A `Duration` cannot have an unknown sign"),
         }

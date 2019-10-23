@@ -1,6 +1,6 @@
 //! Simple time handling.
 //!
-//! ![MSRV 1.38.0](https://img.shields.io/badge/MSRV-1.38.0-red)
+//! ![rustc 1.38.0](https://img.shields.io/badge/rustc-1.38.0-blue)
 //!
 //! # Feature gates
 //!
@@ -84,13 +84,13 @@
 //! | `0`              | Pad with zeros  | `%0e` => `05` instead of ` 5` |
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![forbid(unsafe_code)]
 #![deny(
     anonymous_parameters,
     rust_2018_idioms,
     trivial_casts,
     trivial_numeric_casts,
     unreachable_pub,
-    unsafe_code,
     const_err,
     illegal_floating_point_literal_pattern,
     late_bound_lifetime_arguments,
@@ -108,16 +108,21 @@
     variant_size_differences,
     clippy::pedantic,
     clippy::nursery,
-    clippy::missing_docs_in_private_items
+    clippy::missing_docs_in_private_items,
+    clippy::dbg_macro,
+    clippy::decimal_literal_representation,
+    clippy::get_unwrap,
+    clippy::option_unwrap_used,
+    clippy::print_stdout,
+    clippy::result_unwrap_used
 )]
 #![allow(
     clippy::suspicious_arithmetic_impl,
     clippy::inline_always,
-    // TODO Remove once rust-lang/rust-clippy#4605 is resolved.
+    // TODO Remove once rust-lang/rust-clippy#4605 is resolved in stable.
     clippy::cast_sign_loss,
     clippy::cast_possible_wrap,
     clippy::cast_lossless,
-    clippy::module_inception,
     clippy::module_name_repetitions
 )]
 
