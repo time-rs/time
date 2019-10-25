@@ -127,14 +127,10 @@ pub(crate) enum Specifier {
     T,
     /// ISO 8601 weekday as number with Monday as 1 (`1`-`7`)
     u,
-    /// Week number with the first Sunday as the first day of week one (`00`-`53`)
-    U { padding: Padding },
     /// ISO 8601 week number (`01`-`53`)
     V { padding: Padding },
     /// Weekday as a decimal number with Sunday as 0 (`0`-`6`)
     w,
-    /// Week number with the first Monday as the first day of week one (`00`-`53`)
-    W { padding: Padding },
     /// Year, last two digits (`00`-`99`)
     y { padding: Padding },
     /// Year
@@ -250,10 +246,8 @@ fn format_specifier(
             specifier!(time::fmt_S(S, Padding::Default));
         }
         u => specifier!(date::fmt_u(u)),
-        U { .. } => unimplemented!(), // Week number, first Sunday is first day of week one (TODO)
         V { padding } => specifier!(date::fmt_V(V, padding)),
         w => specifier!(date::fmt_w(w)),
-        W { .. } => unimplemented!(), // Week number, first Monday is first day of week one (TODO)
         y { padding } => specifier!(date::fmt_y(y, padding)),
         Y { padding } => specifier!(date::fmt_Y(Y, padding)),
         z => specifier!(offset::fmt_z(z)),

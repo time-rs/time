@@ -68,10 +68,8 @@
 //! | `%S`      | Second (00-59)                                                         | 02                       |
 //! | `%T`      | ISO 8601 time format (HH:MM:SS), equivalent to `%-H:%M:%S`             | 14:55:02                 |
 //! | `%u`      | ISO 8601 weekday as number with Monday as 1 (1-7)                      | 4                        |
-//! | `%U`      | Week number with the first Sunday as the first day of week one (00-53) | 33                       |
 //! | `%V`      | ISO 8601 week number (01-53)                                           | 34                       |
 //! | `%w`      | Weekday as a decimal number with Sunday as 0 (0-6)                     | 4                        |
-//! | `%W`      | Week number with the first Monday as the first day of week one (00-53) | 34                       |
 //! | `%y`      | Year, last two digits (00-99)                                          | 01                       |
 //! | `%Y`      | Year                                                                   | 2001                     |
 //! | `%z`      | ISO 8601 offset from UTC in timezone (+HHMM)                           | +0100                    |

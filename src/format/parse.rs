@@ -415,7 +415,6 @@ pub(crate) fn parse(s: &str, format: &str, language: Language) -> ParseResult<Pa
                     y { padding } => parse!(date::parse_y(padding)),
                     z => parse!(offset::parse_z),
                     Y { padding } => parse!(date::parse_Y(padding)),
-                    _ => unimplemented!(),
                 }
             }
         }
