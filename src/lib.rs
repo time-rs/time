@@ -184,6 +184,7 @@ macro_rules! assert_value_in_range {
 #[cfg(test)]
 macro_rules! assert_panics {
     ($e:expr $(, $message:literal)?) => {
+        #[cfg(feature = "std")]
         #[allow(box_pointers)]
         {
             if std::panic::catch_unwind(|| $e).is_ok() {
