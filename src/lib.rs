@@ -181,6 +181,23 @@ macro_rules! assert_value_in_range {
     };
 }
 
+#[cfg(test)]
+macro_rules! assert_panics {
+    ($e:expr $(, $message:literal)?) => {
+        #[allow(box_pointers)]
+        {
+            if std::panic::catch_unwind(|| $e).is_ok() {
+                panic!(concat!(
+                    "assertion failed: expected `",
+                    stringify!($e),
+                    "` to panic",
+                    $(concat!(" (", $message, ")"))?
+                ));
+            }
+        }
+    };
+}
+
 /// The `Date` struct and its associated `impl`s.
 mod date;
 /// The `DateTime` struct and its associated `impl`s.

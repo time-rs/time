@@ -605,6 +605,7 @@ impl Sub<Time> for Time {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::prelude::*;
 
     #[test]
     fn nanoseconds_since_midnight() {
@@ -617,6 +618,316 @@ mod test {
         assert_eq!(
             Time::from_nanoseconds_since_midnight(NANOS_PER_DAY - 1),
             time
+        );
+    }
+
+    #[test]
+    fn midnight() {
+        assert_eq!(Time::midnight(), Time::from_hms(0, 0, 0));
+    }
+
+    #[test]
+    fn from_hms() {
+        let time = Time::from_hms(1, 2, 3);
+        assert_eq!(time.hour(), 1);
+        assert_eq!(time.minute(), 2);
+        assert_eq!(time.second(), 3);
+        assert_eq!(time.nanosecond(), 0);
+
+        assert_panics!(Time::from_hms(24, 0, 0), "24 isn't a valid hour");
+        assert_panics!(Time::from_hms(0, 60, 0), "60 isn't a valid minute");
+        assert_panics!(Time::from_hms(0, 0, 60), "60 isn't a valid second");
+    }
+
+    #[test]
+    fn from_hms_milli() {
+        let time = Time::from_hms_milli(1, 2, 3, 4);
+        assert_eq!(time.hour(), 1);
+        assert_eq!(time.minute(), 2);
+        assert_eq!(time.second(), 3);
+        assert_eq!(time.millisecond(), 4);
+        assert_eq!(time.nanosecond(), 4_000_000);
+
+        assert_panics!(Time::from_hms_milli(24, 0, 0, 0), "24 isn't a valid hour");
+        assert_panics!(Time::from_hms_milli(0, 60, 0, 0), "60 isn't a valid minute");
+        assert_panics!(Time::from_hms_milli(0, 0, 60, 0), "60 isn't a valid second");
+        assert_panics!(
+            Time::from_hms_milli(0, 0, 0, 1_000),
+            "1_000 isn't a valid millisecond"
+        );
+    }
+
+    #[test]
+    fn from_hms_micro() {
+        let time = Time::from_hms_micro(1, 2, 3, 4);
+        assert_eq!(time.hour(), 1);
+        assert_eq!(time.minute(), 2);
+        assert_eq!(time.second(), 3);
+        assert_eq!(time.microsecond(), 4);
+        assert_eq!(time.nanosecond(), 4_000);
+
+        assert_panics!(Time::from_hms_micro(24, 0, 0, 0), "24 isn't a valid hour");
+        assert_panics!(Time::from_hms_micro(0, 60, 0, 0), "60 isn't a valid minute");
+        assert_panics!(Time::from_hms_micro(0, 0, 60, 0), "60 isn't a valid second");
+        assert_panics!(
+            Time::from_hms_micro(0, 0, 0, 1_000_000),
+            "1_000_000 isn't a valid microsecond"
+        );
+    }
+
+    #[test]
+    fn from_hms_nano() {
+        let time = Time::from_hms_nano(1, 2, 3, 4);
+        assert_eq!(time.hour(), 1);
+        assert_eq!(time.minute(), 2);
+        assert_eq!(time.second(), 3);
+        assert_eq!(time.nanosecond(), 4);
+
+        assert_panics!(Time::from_hms_nano(24, 0, 0, 0), "24 isn't a valid hour.");
+        assert_panics!(Time::from_hms_nano(0, 60, 0, 0), "60 isn't a valid minute.");
+        assert_panics!(Time::from_hms_nano(0, 0, 60, 0), "60 isn't a valid second.");
+        assert_panics!(
+            Time::from_hms_nano(0, 0, 0, 1_000_000_000),
+            "1_000_000_000 isn't a valid nanosecond."
+        );
+    }
+
+    #[test]
+    fn hour() {
+        for hour in 0..24 {
+            assert_eq!(Time::from_hms(hour, 0, 0).hour(), hour);
+            assert_eq!(Time::from_hms(hour, 59, 59).hour(), hour);
+        }
+    }
+
+    #[test]
+    fn minute() {
+        for minute in 0..60 {
+            assert_eq!(Time::from_hms(0, minute, 0).minute(), minute);
+            assert_eq!(Time::from_hms(23, minute, 59).minute(), minute);
+        }
+    }
+
+    #[test]
+    fn second() {
+        for second in 0..60 {
+            assert_eq!(Time::from_hms(0, 0, second).second(), second);
+            assert_eq!(Time::from_hms(23, 59, second).second(), second);
+        }
+    }
+
+    #[test]
+    fn millisecond() {
+        for milli in 0..1_000 {
+            assert_eq!(Time::from_hms_milli(0, 0, 0, milli).millisecond(), milli);
+            assert_eq!(Time::from_hms_milli(23, 59, 59, milli).millisecond(), milli);
+        }
+    }
+
+    #[test]
+    fn microsecond() {
+        for micro in (0..1_000_000).step_by(1_000) {
+            assert_eq!(Time::from_hms_micro(0, 0, 0, micro).microsecond(), micro);
+            assert_eq!(Time::from_hms_micro(23, 59, 59, micro).microsecond(), micro);
+        }
+    }
+
+    #[test]
+    fn nanosecond() {
+        for nano in (0..1_000_000_000).step_by(1_000_000) {
+            assert_eq!(Time::from_hms_nano(0, 0, 0, nano).nanosecond(), nano);
+            assert_eq!(Time::from_hms_nano(23, 59, 59, nano).nanosecond(), nano);
+        }
+    }
+
+    #[test]
+    fn format() {
+        assert_eq!(Time::from_hms(0, 0, 0).format("%T"), "0:00:00");
+        assert_eq!(Time::from_hms(0, 0, 0).format("%r"), "12:00:00 am");
+        assert_eq!(Time::from_hms(23, 59, 59).format("%T"), "23:59:59");
+        assert_eq!(Time::from_hms(23, 59, 59).format("%r"), "11:59:59 pm");
+    }
+
+    #[test]
+    fn parse() {
+        assert_eq!(Time::parse("0:00:00", "%T"), Ok(Time::from_hms(0, 0, 0)));
+        assert_eq!(
+            Time::parse("23:59:59", "%T"),
+            Ok(Time::from_hms(23, 59, 59))
+        );
+        assert_eq!(Time::parse("1:00:00 am", "%r"), Ok(Time::from_hms(1, 0, 0)));
+        assert_eq!(
+            Time::parse("12:00:00 am", "%r"),
+            Ok(Time::from_hms(0, 0, 0))
+        );
+        assert_eq!(
+            Time::parse("12:00:00 pm", "%r"),
+            Ok(Time::from_hms(12, 0, 0))
+        );
+        assert_eq!(
+            Time::parse("11:59:59 pm", "%r"),
+            Ok(Time::from_hms(23, 59, 59))
+        );
+    }
+
+    #[test]
+    fn parse_missing_seconds() {
+        // Missing seconds defaults to zero.
+        assert_eq!(Time::parse("0:00", "%-H:%M"), Ok(Time::from_hms(0, 0, 0)));
+        assert_eq!(Time::parse("23:59", "%H:%M"), Ok(Time::from_hms(23, 59, 0)));
+        assert_eq!(
+            Time::parse("12:00 am", "%I:%M %p"),
+            Ok(Time::from_hms(0, 0, 0))
+        );
+        assert_eq!(
+            Time::parse("12:00 pm", "%I:%M %p"),
+            Ok(Time::from_hms(12, 0, 0))
+        );
+    }
+
+    #[test]
+    fn parse_missing_minutes() {
+        // Missing minutes defaults to zero.
+        assert_eq!(Time::parse("0", "%-H"), Ok(Time::from_hms(0, 0, 0)));
+        assert_eq!(Time::parse("23", "%H"), Ok(Time::from_hms(23, 0, 0)));
+        assert_eq!(Time::parse("12am", "%I%p"), Ok(Time::from_hms(0, 0, 0)));
+        assert_eq!(Time::parse("12pm", "%I%p"), Ok(Time::from_hms(12, 0, 0)));
+    }
+
+    #[test]
+    fn add_duration() {
+        assert_eq!(Time::midnight() + 1.seconds(), Time::from_hms(0, 0, 1));
+        assert_eq!(Time::midnight() + 1.minutes(), Time::from_hms(0, 1, 0));
+        assert_eq!(Time::midnight() + 1.hours(), Time::from_hms(1, 0, 0));
+        assert_eq!(Time::midnight() + 1.days(), Time::midnight());
+    }
+
+    #[test]
+    fn add_assign_duration() {
+        let mut time = Time::midnight();
+
+        time += 1.seconds();
+        assert_eq!(time, Time::from_hms(0, 0, 1));
+
+        time += 1.minutes();
+        assert_eq!(time, Time::from_hms(0, 1, 1));
+
+        time += 1.hours();
+        assert_eq!(time, Time::from_hms(1, 1, 1));
+
+        time += 1.days();
+        assert_eq!(time, Time::from_hms(1, 1, 1));
+    }
+
+    #[test]
+    fn sub_duration() {
+        assert_eq!(
+            Time::from_hms(12, 0, 0) - 1.hours(),
+            Time::from_hms(11, 0, 0)
+        );
+
+        // Underflow
+        assert_eq!(Time::midnight() - 1.seconds(), Time::from_hms(23, 59, 59));
+        assert_eq!(Time::midnight() - 1.minutes(), Time::from_hms(23, 59, 0));
+        assert_eq!(Time::midnight() - 1.hours(), Time::from_hms(23, 0, 0));
+        assert_eq!(Time::midnight() - 1.days(), Time::midnight());
+    }
+
+    #[test]
+    fn sub_assign_duration() {
+        let mut time = Time::midnight();
+
+        time -= 1.seconds();
+        assert_eq!(time, Time::from_hms(23, 59, 59));
+
+        time -= 1.minutes();
+        assert_eq!(time, Time::from_hms(23, 58, 59));
+
+        time -= 1.hours();
+        assert_eq!(time, Time::from_hms(22, 58, 59));
+
+        time -= 1.days();
+        assert_eq!(time, Time::from_hms(22, 58, 59));
+    }
+
+    #[test]
+    fn add_std_duration() {
+        assert_eq!(
+            Time::midnight() + 1_u8.std_seconds(),
+            Time::from_hms(0, 0, 1)
+        );
+        assert_eq!(
+            Time::midnight() + 1_u8.std_minutes(),
+            Time::from_hms(0, 1, 0)
+        );
+        assert_eq!(Time::midnight() + 1_u8.std_hours(), Time::from_hms(1, 0, 0));
+        assert_eq!(Time::midnight() + 1_u8.std_days(), Time::midnight());
+    }
+
+    #[test]
+    fn add_assign_std_duration() {
+        let mut time = Time::midnight();
+
+        time += 1_u8.std_seconds();
+        assert_eq!(time, Time::from_hms(0, 0, 1));
+
+        time += 1_u8.std_minutes();
+        assert_eq!(time, Time::from_hms(0, 1, 1));
+
+        time += 1_u8.std_hours();
+        assert_eq!(time, Time::from_hms(1, 1, 1));
+
+        time += 1_u8.std_days();
+        assert_eq!(time, Time::from_hms(1, 1, 1));
+    }
+
+    #[test]
+    fn sub_std_duration() {
+        assert_eq!(
+            Time::from_hms(12, 0, 0) - 1_u8.std_hours(),
+            Time::from_hms(11, 0, 0)
+        );
+
+        // Underflow
+        assert_eq!(
+            Time::midnight() - 1_u8.std_seconds(),
+            Time::from_hms(23, 59, 59)
+        );
+        assert_eq!(
+            Time::midnight() - 1_u8.std_minutes(),
+            Time::from_hms(23, 59, 0)
+        );
+        assert_eq!(
+            Time::midnight() - 1_u8.std_hours(),
+            Time::from_hms(23, 0, 0)
+        );
+        assert_eq!(Time::midnight() - 1_u8.std_days(), Time::midnight());
+    }
+
+    #[test]
+    fn sub_assign_std_duration() {
+        let mut time = Time::midnight();
+
+        time -= 1_u8.std_seconds();
+        assert_eq!(time, Time::from_hms(23, 59, 59));
+
+        time -= 1_u8.std_minutes();
+        assert_eq!(time, Time::from_hms(23, 58, 59));
+
+        time -= 1_u8.std_hours();
+        assert_eq!(time, Time::from_hms(22, 58, 59));
+
+        time -= 1_u8.std_days();
+        assert_eq!(time, Time::from_hms(22, 58, 59));
+    }
+
+    #[test]
+    fn sub_time() {
+        assert_eq!(Time::midnight() - Time::midnight(), 0.seconds());
+        assert_eq!(Time::from_hms(1, 0, 0) - Time::midnight(), 1.hours());
+        assert_eq!(
+            Time::from_hms(1, 0, 0) - Time::from_hms(0, 0, 1),
+            59.minutes() + 59.seconds()
         );
     }
 }

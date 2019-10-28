@@ -116,26 +116,6 @@ impl Mul<Sign> for Sign {
     /// | Zero     | Zero     | Zero | Zero     | Zero    |
     /// | Positive | Negative | Zero | Positive | Unknown |
     /// | Unknown  | Unknown  | Zero | Unknown  | Unknown |
-    ///
-    /// ```rust
-    /// # use time::Sign::*;
-    /// assert_eq!(Unknown * Positive, Unknown);
-    /// assert_eq!(Unknown * Negative, Unknown);
-    /// assert_eq!(Unknown * Zero, Zero);
-    /// assert_eq!(Unknown * Unknown, Unknown);
-    /// assert_eq!(Positive * Unknown, Unknown);
-    /// assert_eq!(Negative * Unknown, Unknown);
-    /// assert_eq!(Zero * Unknown, Zero);
-    /// assert_eq!(Zero * Positive, Zero);
-    /// assert_eq!(Zero * Negative, Zero);
-    /// assert_eq!(Zero * Zero, Zero);
-    /// assert_eq!(Positive * Zero, Zero);
-    /// assert_eq!(Negative * Zero, Zero);
-    /// assert_eq!(Positive * Positive, Positive);
-    /// assert_eq!(Positive * Negative, Negative);
-    /// assert_eq!(Negative * Positive, Negative);
-    /// assert_eq!(Negative * Negative, Positive);
-    /// ```
     #[inline]
     fn mul(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
@@ -149,31 +129,6 @@ impl Mul<Sign> for Sign {
 
 impl MulAssign<Sign> for Sign {
     /// Multiplying signs follows how signs interact with real numbers.
-    ///
-    /// ```rust
-    /// # use time::Sign::*;
-    /// let mut sign = Positive;
-    /// sign *= Positive;
-    /// assert_eq!(sign, Positive);
-    /// sign *= Negative;
-    /// assert_eq!(sign, Negative);
-    /// sign *= Positive;
-    /// assert_eq!(sign, Negative);
-    /// sign *= Negative;
-    /// assert_eq!(sign, Positive);
-    /// sign *= Unknown;
-    /// assert_eq!(sign, Unknown);
-    /// sign *= Positive;
-    /// assert_eq!(sign, Unknown);
-    /// sign *= Negative;
-    /// assert_eq!(sign, Unknown);
-    /// sign *= Zero;
-    /// assert_eq!(sign, Zero);
-    /// sign *= Positive;
-    /// assert_eq!(sign, Zero);
-    /// sign *= Negative;
-    /// assert_eq!(sign, Zero);
-    /// ```
     #[inline(always)]
     fn mul_assign(&mut self, rhs: Self) {
         *self = *self * rhs;
@@ -191,25 +146,6 @@ impl Div<Sign> for Sign {
     /// | Zero     | Zero     | Zero | Zero     | Zero    |
     /// | Positive | Negative | Zero | Positive | Unknown |
     /// | Unknown  | Unknown  | Zero | Unknown  | Unknown |
-    /// ```rust
-    /// # use time::Sign::*;
-    /// assert_eq!(Unknown / Positive, Unknown);
-    /// assert_eq!(Unknown / Negative, Unknown);
-    /// assert_eq!(Unknown / Zero, Zero);
-    /// assert_eq!(Unknown / Unknown, Unknown);
-    /// assert_eq!(Positive / Unknown, Unknown);
-    /// assert_eq!(Negative / Unknown, Unknown);
-    /// assert_eq!(Zero / Unknown, Zero);
-    /// assert_eq!(Zero / Positive, Zero);
-    /// assert_eq!(Zero / Negative, Zero);
-    /// assert_eq!(Zero / Zero, Zero);
-    /// assert_eq!(Positive / Zero, Zero);
-    /// assert_eq!(Negative / Zero, Zero);
-    /// assert_eq!(Positive / Positive, Positive);
-    /// assert_eq!(Positive / Negative, Negative);
-    /// assert_eq!(Negative / Positive, Negative);
-    /// assert_eq!(Negative / Negative, Positive);
-    /// ```
     #[inline(always)]
     fn div(self, rhs: Self) -> Self::Output {
         self * rhs
@@ -218,31 +154,6 @@ impl Div<Sign> for Sign {
 
 impl DivAssign<Sign> for Sign {
     /// Dividing signs follows how signs interact with real numbers.
-    ///
-    /// ```rust
-    /// # use time::Sign::*;
-    /// let mut sign = Positive;
-    /// sign /= Positive;
-    /// assert_eq!(sign, Positive);
-    /// sign /= Negative;
-    /// assert_eq!(sign, Negative);
-    /// sign /= Positive;
-    /// assert_eq!(sign, Negative);
-    /// sign /= Negative;
-    /// assert_eq!(sign, Positive);
-    /// sign /= Unknown;
-    /// assert_eq!(sign, Unknown);
-    /// sign /= Positive;
-    /// assert_eq!(sign, Unknown);
-    /// sign /= Negative;
-    /// assert_eq!(sign, Unknown);
-    /// sign /= Zero;
-    /// assert_eq!(sign, Zero);
-    /// sign /= Positive;
-    /// assert_eq!(sign, Zero);
-    /// sign /= Negative;
-    /// assert_eq!(sign, Zero);
-    /// ```
     #[inline(always)]
     fn div_assign(&mut self, rhs: Self) {
         *self *= rhs
@@ -323,5 +234,165 @@ impl Sign {
     #[inline(always)]
     pub const fn is_unknown(self) -> bool {
         self as u8 == Unknown as u8
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    macro_rules! op_assign {
+        ($a:ident $op:tt $b:ident) => {{
+            let mut v = $a;
+            v $op $b;
+            v
+        }};
+    }
+
+    #[test]
+    fn default() {
+        assert_eq!(Sign::default(), Unknown);
+    }
+
+    #[test]
+    fn sign_mul_int() {
+        assert_eq!(Positive * 2, 2);
+        assert_eq!(Negative * 2, -2);
+        assert_eq!(Zero * 2, 0);
+        // Unknown leaves the sign as-is.
+        assert_eq!(Unknown * 2, 2);
+        assert_eq!(Unknown * -2, -2);
+    }
+
+    #[test]
+    #[allow(clippy::float_cmp)]
+    fn sign_mul_float() {
+        assert_eq!(Positive * 2., 2.);
+        assert_eq!(Negative * 2., -2.);
+        assert_eq!(Zero * 2., 0.);
+        // Unknown leaves the sign as-is.
+        assert_eq!(Unknown * 2., 2.);
+        assert_eq!(Unknown * -2., -2.);
+    }
+
+    #[test]
+    fn sign_mul_sign() {
+        assert_eq!(Unknown * Positive, Unknown);
+        assert_eq!(Unknown * Negative, Unknown);
+        assert_eq!(Unknown * Zero, Zero);
+        assert_eq!(Unknown * Unknown, Unknown);
+        assert_eq!(Positive * Unknown, Unknown);
+        assert_eq!(Negative * Unknown, Unknown);
+        assert_eq!(Zero * Unknown, Zero);
+        assert_eq!(Zero * Positive, Zero);
+        assert_eq!(Zero * Negative, Zero);
+        assert_eq!(Zero * Zero, Zero);
+        assert_eq!(Positive * Zero, Zero);
+        assert_eq!(Negative * Zero, Zero);
+        assert_eq!(Positive * Positive, Positive);
+        assert_eq!(Positive * Negative, Negative);
+        assert_eq!(Negative * Positive, Negative);
+        assert_eq!(Negative * Negative, Positive);
+    }
+
+    #[test]
+    fn sign_mul_assign_sign() {
+        assert_eq!(op_assign!(Unknown *= Positive), Unknown);
+        assert_eq!(op_assign!(Unknown *= Negative), Unknown);
+        assert_eq!(op_assign!(Unknown *= Zero), Zero);
+        assert_eq!(op_assign!(Unknown *= Unknown), Unknown);
+        assert_eq!(op_assign!(Positive *= Unknown), Unknown);
+        assert_eq!(op_assign!(Negative *= Unknown), Unknown);
+        assert_eq!(op_assign!(Zero *= Unknown), Zero);
+        assert_eq!(op_assign!(Zero *= Positive), Zero);
+        assert_eq!(op_assign!(Zero *= Negative), Zero);
+        assert_eq!(op_assign!(Zero *= Zero), Zero);
+        assert_eq!(op_assign!(Positive *= Zero), Zero);
+        assert_eq!(op_assign!(Negative *= Zero), Zero);
+        assert_eq!(op_assign!(Positive *= Positive), Positive);
+        assert_eq!(op_assign!(Positive *= Negative), Negative);
+        assert_eq!(op_assign!(Negative *= Positive), Negative);
+        assert_eq!(op_assign!(Negative *= Negative), Positive);
+    }
+
+    #[test]
+    #[allow(clippy::eq_op)]
+    fn sign_div_sign() {
+        assert_eq!(Unknown / Positive, Unknown);
+        assert_eq!(Unknown / Negative, Unknown);
+        assert_eq!(Unknown / Zero, Zero);
+        assert_eq!(Unknown / Unknown, Unknown);
+        assert_eq!(Positive / Unknown, Unknown);
+        assert_eq!(Negative / Unknown, Unknown);
+        assert_eq!(Zero / Unknown, Zero);
+        assert_eq!(Zero / Positive, Zero);
+        assert_eq!(Zero / Negative, Zero);
+        assert_eq!(Zero / Zero, Zero);
+        assert_eq!(Positive / Zero, Zero);
+        assert_eq!(Negative / Zero, Zero);
+        assert_eq!(Positive / Positive, Positive);
+        assert_eq!(Positive / Negative, Negative);
+        assert_eq!(Negative / Positive, Negative);
+        assert_eq!(Negative / Negative, Positive);
+    }
+
+    #[test]
+    fn sign_div_assign_sign() {
+        assert_eq!(op_assign!(Unknown /= Positive), Unknown);
+        assert_eq!(op_assign!(Unknown /= Negative), Unknown);
+        assert_eq!(op_assign!(Unknown /= Zero), Zero);
+        assert_eq!(op_assign!(Unknown /= Unknown), Unknown);
+        assert_eq!(op_assign!(Positive /= Unknown), Unknown);
+        assert_eq!(op_assign!(Negative /= Unknown), Unknown);
+        assert_eq!(op_assign!(Zero /= Unknown), Zero);
+        assert_eq!(op_assign!(Zero /= Positive), Zero);
+        assert_eq!(op_assign!(Zero /= Negative), Zero);
+        assert_eq!(op_assign!(Zero /= Zero), Zero);
+        assert_eq!(op_assign!(Positive /= Zero), Zero);
+        assert_eq!(op_assign!(Negative /= Zero), Zero);
+        assert_eq!(op_assign!(Positive /= Positive), Positive);
+        assert_eq!(op_assign!(Positive /= Negative), Negative);
+        assert_eq!(op_assign!(Negative /= Positive), Negative);
+        assert_eq!(op_assign!(Negative /= Negative), Positive);
+    }
+
+    #[test]
+    fn negate() {
+        assert_eq!(Positive.negate(), Negative);
+        assert_eq!(Negative.negate(), Positive);
+        assert_eq!(Zero.negate(), Zero);
+        assert_eq!(Unknown.negate(), Unknown);
+    }
+
+    #[test]
+    fn is_positive() {
+        assert!(Positive.is_positive());
+        assert!(!Negative.is_positive());
+        assert!(!Zero.is_positive());
+        assert!(!Unknown.is_positive());
+    }
+
+    #[test]
+    fn is_negative() {
+        assert!(!Positive.is_negative());
+        assert!(Negative.is_negative());
+        assert!(!Zero.is_negative());
+        assert!(!Unknown.is_negative());
+    }
+
+    #[test]
+    fn is_zero() {
+        assert!(!Positive.is_zero());
+        assert!(!Negative.is_zero());
+        assert!(Zero.is_zero());
+        assert!(!Unknown.is_zero());
+    }
+
+    #[test]
+    fn is_unknown() {
+        assert!(!Positive.is_unknown());
+        assert!(!Negative.is_unknown());
+        assert!(!Zero.is_unknown());
+        assert!(Unknown.is_unknown());
     }
 }

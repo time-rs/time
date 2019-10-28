@@ -14,9 +14,14 @@ pub(crate) fn fmt_z(f: &mut Formatter<'_>, offset: UtcOffset) -> fmt::Result {
 
     write!(
         f,
-        "{:+03}{:02}",
-        offset.whole_hours(),
-        offset.whole_minutes() - 60 * offset.whole_hours()
+        "{}{:02}{:02}",
+        match offset.sign() {
+            Sign::Positive | Sign::Zero => "+",
+            Sign::Negative => "-",
+            Sign::Unknown => unreachable!("Durations always have a known sign"),
+        },
+        offset.whole_hours().abs(),
+        (offset.whole_minutes() - 60 * offset.whole_hours()).abs()
     )
 }
 

@@ -57,8 +57,6 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::hours(1).as_hours(), 1);
-    /// assert_eq!(UtcOffset::hours(-1).as_hours(), -1);
     /// assert_eq!(UtcOffset::hours(2).as_minutes(), 120);
     /// assert_eq!(UtcOffset::hours(-2).as_minutes(), -120);
     /// ```
@@ -73,7 +71,6 @@ impl UtcOffset {
     /// ```rust
     /// # use time::UtcOffset;
     /// assert_eq!(UtcOffset::east_minutes(60).as_hours(), 1);
-    /// assert_eq!(UtcOffset::east_minutes(30).as_minutes(), 30);
     /// ```
     #[inline(always)]
     pub const fn east_minutes(minutes: u16) -> Self {
@@ -86,7 +83,6 @@ impl UtcOffset {
     /// ```rust
     /// # use time::UtcOffset;
     /// assert_eq!(UtcOffset::west_minutes(60).as_hours(), -1);
-    /// assert_eq!(UtcOffset::west_minutes(30).as_minutes(), -30);
     /// ```
     #[inline(always)]
     pub const fn west_minutes(minutes: u16) -> Self {
@@ -100,8 +96,6 @@ impl UtcOffset {
     /// # use time::UtcOffset;
     /// assert_eq!(UtcOffset::minutes(60).as_hours(), 1);
     /// assert_eq!(UtcOffset::minutes(-60).as_hours(), -1);
-    /// assert_eq!(UtcOffset::minutes(30).as_minutes(), 30);
-    /// assert_eq!(UtcOffset::minutes(-30).as_minutes(), -30);
     /// ```
     #[inline(always)]
     pub const fn minutes(minutes: i16) -> Self {
@@ -141,8 +135,6 @@ impl UtcOffset {
     /// # use time::UtcOffset;
     /// assert_eq!(UtcOffset::seconds(3_600).as_hours(), 1);
     /// assert_eq!(UtcOffset::seconds(-3_600).as_hours(), -1);
-    /// assert_eq!(UtcOffset::seconds(1_800).as_minutes(), 30);
-    /// assert_eq!(UtcOffset::seconds(-1_800).as_minutes(), -30);
     /// ```
     #[inline(always)]
     pub const fn seconds(seconds: i32) -> Self {
@@ -157,8 +149,6 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::UTC.as_seconds(), 0);
     /// assert_eq!(UtcOffset::hours(12).as_seconds(), 43_200);
     /// assert_eq!(UtcOffset::hours(-12).as_seconds(), -43_200);
-    /// assert_eq!(UtcOffset::hours(24).as_seconds(), 86_400);
-    /// assert_eq!(UtcOffset::hours(-24).as_seconds(), -86_400);
     /// ```
     #[inline(always)]
     pub const fn as_seconds(self) -> i32 {
@@ -173,8 +163,6 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::UTC.as_minutes(), 0);
     /// assert_eq!(UtcOffset::hours(12).as_minutes(), 720);
     /// assert_eq!(UtcOffset::hours(-12).as_minutes(), -720);
-    /// assert_eq!(UtcOffset::hours(24).as_minutes(), 1_440);
-    /// assert_eq!(UtcOffset::hours(-24).as_minutes(), -1_440);
     /// ```
     #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
@@ -190,8 +178,6 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::UTC.as_hours(), 0);
     /// assert_eq!(UtcOffset::hours(12).as_hours(), 12);
     /// assert_eq!(UtcOffset::hours(-12).as_hours(), -12);
-    /// assert_eq!(UtcOffset::hours(24).as_hours(), 24);
-    /// assert_eq!(UtcOffset::hours(-24).as_hours(), -24);
     /// ```
     #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
@@ -214,8 +200,6 @@ impl UtcOffset {
     /// # use time::UtcOffset;
     /// assert_eq!(UtcOffset::hours(2).format("%z"), "+0200");
     /// assert_eq!(UtcOffset::hours(-2).format("%z"), "-0200");
-    /// assert_eq!(UtcOffset::hours(12).format("%z"), "+1200");
-    /// assert_eq!(UtcOffset::hours(-12).format("%z"), "-1200");
     /// ```
     #[inline(always)]
     pub fn format(self, format: &str) -> String {
@@ -234,8 +218,6 @@ impl UtcOffset {
     /// # use time::UtcOffset;
     /// assert_eq!(UtcOffset::parse("+0200", "%z"), Ok(UtcOffset::hours(2)));
     /// assert_eq!(UtcOffset::parse("-0200", "%z"), Ok(UtcOffset::hours(-2)));
-    /// assert_eq!(UtcOffset::parse("+1200", "%z"), Ok(UtcOffset::hours(12)));
-    /// assert_eq!(UtcOffset::parse("-1200", "%z"), Ok(UtcOffset::hours(-12)));
     /// ```
     #[inline(always)]
     pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
@@ -246,5 +228,114 @@ impl UtcOffset {
     #[inline(always)]
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
         items.offset.ok_or(ParseError::InsufficientInformation)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn hours() {
+        assert_eq!(UtcOffset::hours(1).as_seconds(), 3_600);
+        assert_eq!(UtcOffset::hours(-1).as_seconds(), -3_600);
+        assert_eq!(UtcOffset::hours(23).as_seconds(), 82_800);
+        assert_eq!(UtcOffset::hours(-23).as_seconds(), -82_800);
+    }
+
+    #[test]
+    fn directional_hours() {
+        assert_eq!(UtcOffset::east_hours(1), UtcOffset::hours(1));
+        assert_eq!(UtcOffset::west_hours(1), UtcOffset::hours(-1));
+    }
+
+    #[test]
+    fn minutes() {
+        assert_eq!(UtcOffset::minutes(1).as_seconds(), 60);
+        assert_eq!(UtcOffset::minutes(-1).as_seconds(), -60);
+        assert_eq!(UtcOffset::minutes(1_439).as_seconds(), 86_340);
+        assert_eq!(UtcOffset::minutes(-1_439).as_seconds(), -86_340);
+    }
+
+    #[test]
+    fn directional_minutes() {
+        assert_eq!(UtcOffset::east_minutes(1), UtcOffset::minutes(1));
+        assert_eq!(UtcOffset::west_minutes(1), UtcOffset::minutes(-1));
+    }
+
+    #[test]
+    fn seconds() {
+        assert_eq!(UtcOffset::seconds(1).as_seconds(), 1);
+        assert_eq!(UtcOffset::seconds(-1).as_seconds(), -1);
+        assert_eq!(UtcOffset::seconds(86_399).as_seconds(), 86_399);
+        assert_eq!(UtcOffset::seconds(-86_399).as_seconds(), -86_399);
+    }
+
+    #[test]
+    fn directional_seconds() {
+        assert_eq!(UtcOffset::east_seconds(1), UtcOffset::seconds(1));
+        assert_eq!(UtcOffset::west_seconds(1), UtcOffset::seconds(-1));
+    }
+
+    #[test]
+    fn as_hours() {
+        assert_eq!(UtcOffset::hours(1).as_hours(), 1);
+        assert_eq!(UtcOffset::minutes(59).as_hours(), 0);
+    }
+
+    #[test]
+    fn as_minutes() {
+        assert_eq!(UtcOffset::hours(1).as_minutes(), 60);
+        assert_eq!(UtcOffset::minutes(1).as_minutes(), 1);
+        assert_eq!(UtcOffset::seconds(59).as_minutes(), 0);
+    }
+
+    #[test]
+    fn as_seconds() {
+        assert_eq!(UtcOffset::hours(1).as_seconds(), 3_600);
+        assert_eq!(UtcOffset::minutes(1).as_seconds(), 60);
+        assert_eq!(UtcOffset::seconds(1).as_seconds(), 1);
+    }
+
+    #[test]
+    fn as_duration() {
+        assert_eq!(UtcOffset::hours(1).as_duration(), Duration::hours(1));
+        assert_eq!(UtcOffset::hours(-1).as_duration(), Duration::hours(-1));
+    }
+
+    #[test]
+    fn utc_is_zero() {
+        assert_eq!(UtcOffset::UTC, UtcOffset::hours(0));
+    }
+
+    #[test]
+    fn format() {
+        assert_eq!(UtcOffset::hours(1).format("%z"), "+0100");
+        assert_eq!(UtcOffset::hours(-1).format("%z"), "-0100");
+        assert_eq!(UtcOffset::UTC.format("%z"), "+0000");
+        // An offset of exactly zero should always have a positive sign.
+        assert_ne!(UtcOffset::UTC.format("%z"), "-0000");
+
+        assert_eq!(UtcOffset::minutes(1).format("%z"), "+0001");
+        assert_eq!(UtcOffset::minutes(-1).format("%z"), "-0001");
+
+        // Seconds are not displayed, but the sign can still change.
+        assert_eq!(UtcOffset::seconds(1).format("%z"), "+0000");
+        assert_eq!(UtcOffset::seconds(-1).format("%z"), "-0000");
+    }
+
+    #[test]
+    fn parse() {
+        assert_eq!(UtcOffset::parse("+0100", "%z"), Ok(UtcOffset::hours(1)));
+        assert_eq!(UtcOffset::parse("-0100", "%z"), Ok(UtcOffset::hours(-1)));
+        assert_eq!(UtcOffset::parse("+0000", "%z"), Ok(UtcOffset::UTC));
+        assert_eq!(UtcOffset::parse("-0000", "%z"), Ok(UtcOffset::UTC));
+
+        assert_eq!(UtcOffset::minutes(1).format("%z"), "+0001");
+        assert_eq!(UtcOffset::minutes(-1).format("%z"), "-0001");
+
+        // Seconds are not displayed, but the sign can still change.
+        assert_eq!(UtcOffset::seconds(1).format("%z"), "+0000");
+        assert_eq!(UtcOffset::seconds(-1).format("%z"), "-0000");
     }
 }
