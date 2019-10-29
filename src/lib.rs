@@ -187,7 +187,7 @@ macro_rules! assert_panics {
         #[cfg(feature = "std")]
         #[allow(box_pointers)]
         {
-            if std::panic::catch_unwind(|| $e).is_ok() {
+            if std::panic::catch_unwind(move || $e).is_ok() {
                 panic!(concat!(
                     "assertion failed: expected `",
                     stringify!($e),
@@ -305,11 +305,13 @@ impl std::error::Error for OutOfRangeError {}
 // For some back-compatibility, we're also implementing some deprecated types.
 
 #[cfg(all(feature = "std", feature = "deprecated"))]
+#[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type PreciseTime = Instant;
 
 #[cfg(all(feature = "std", feature = "deprecated"))]
+#[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type SteadyTime = Instant;

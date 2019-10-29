@@ -852,32 +852,26 @@ mod test {
 
     #[test]
     fn add_std_duration() {
-        assert_eq!(
-            Time::midnight() + 1_u8.std_seconds(),
-            Time::from_hms(0, 0, 1)
-        );
-        assert_eq!(
-            Time::midnight() + 1_u8.std_minutes(),
-            Time::from_hms(0, 1, 0)
-        );
-        assert_eq!(Time::midnight() + 1_u8.std_hours(), Time::from_hms(1, 0, 0));
-        assert_eq!(Time::midnight() + 1_u8.std_days(), Time::midnight());
+        assert_eq!(Time::midnight() + 1.std_seconds(), Time::from_hms(0, 0, 1));
+        assert_eq!(Time::midnight() + 1.std_minutes(), Time::from_hms(0, 1, 0));
+        assert_eq!(Time::midnight() + 1.std_hours(), Time::from_hms(1, 0, 0));
+        assert_eq!(Time::midnight() + 1.std_days(), Time::midnight());
     }
 
     #[test]
     fn add_assign_std_duration() {
         let mut time = Time::midnight();
 
-        time += 1_u8.std_seconds();
+        time += 1.std_seconds();
         assert_eq!(time, Time::from_hms(0, 0, 1));
 
-        time += 1_u8.std_minutes();
+        time += 1.std_minutes();
         assert_eq!(time, Time::from_hms(0, 1, 1));
 
-        time += 1_u8.std_hours();
+        time += 1.std_hours();
         assert_eq!(time, Time::from_hms(1, 1, 1));
 
-        time += 1_u8.std_days();
+        time += 1.std_days();
         assert_eq!(time, Time::from_hms(1, 1, 1));
     }
 
@@ -890,34 +884,31 @@ mod test {
 
         // Underflow
         assert_eq!(
-            Time::midnight() - 1_u8.std_seconds(),
+            Time::midnight() - 1.std_seconds(),
             Time::from_hms(23, 59, 59)
         );
         assert_eq!(
-            Time::midnight() - 1_u8.std_minutes(),
+            Time::midnight() - 1.std_minutes(),
             Time::from_hms(23, 59, 0)
         );
-        assert_eq!(
-            Time::midnight() - 1_u8.std_hours(),
-            Time::from_hms(23, 0, 0)
-        );
-        assert_eq!(Time::midnight() - 1_u8.std_days(), Time::midnight());
+        assert_eq!(Time::midnight() - 1.std_hours(), Time::from_hms(23, 0, 0));
+        assert_eq!(Time::midnight() - 1.std_days(), Time::midnight());
     }
 
     #[test]
     fn sub_assign_std_duration() {
         let mut time = Time::midnight();
 
-        time -= 1_u8.std_seconds();
+        time -= 1.std_seconds();
         assert_eq!(time, Time::from_hms(23, 59, 59));
 
-        time -= 1_u8.std_minutes();
+        time -= 1.std_minutes();
         assert_eq!(time, Time::from_hms(23, 58, 59));
 
-        time -= 1_u8.std_hours();
+        time -= 1.std_hours();
         assert_eq!(time, Time::from_hms(22, 58, 59));
 
-        time -= 1_u8.std_days();
+        time -= 1.std_days();
         assert_eq!(time, Time::from_hms(22, 58, 59));
     }
 

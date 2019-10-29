@@ -255,15 +255,6 @@ impl Duration {
     /// assert_eq!(Duration::new(1, 0), Duration::seconds(1));
     /// assert_eq!(Duration::new(-1, 0), Duration::seconds(-1));
     /// assert_eq!(Duration::new(1, 2_000_000_000), Duration::seconds(3));
-    /// ```
-    ///
-    /// ```rust
-    /// # use time::{Duration, Sign};
-    /// assert_eq!(Duration::new(0, 0).sign(), Sign::Zero);
-    /// assert_eq!(Duration::new(0, 1_000_000_000).sign(), Sign::Positive);
-    /// assert_eq!(Duration::new(-1, 1_000_000_000).sign(), Sign::Zero);
-    /// assert_eq!(Duration::new(-2, 1_000_000_000).sign(), Sign::Negative);
-    /// ```
     #[inline(always)]
     pub fn new(seconds: i64, nanoseconds: u32) -> Self {
         Self {
@@ -442,10 +433,6 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::Duration;
-    /// assert_eq!(Duration::seconds(1).as_seconds_f64(), 1.0);
-    /// assert_eq!(Duration::seconds(-1).as_seconds_f64(), -1.0);
-    /// assert_eq!(Duration::minutes(1).as_seconds_f64(), 60.0);
-    /// assert_eq!(Duration::minutes(-1).as_seconds_f64(), -60.0);
     /// assert_eq!(Duration::milliseconds(1_500).as_seconds_f64(), 1.5);
     /// assert_eq!(Duration::milliseconds(-1_500).as_seconds_f64(), -1.5);
     /// ```
@@ -474,10 +461,6 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::Duration;
-    /// assert_eq!(Duration::seconds(1).as_seconds_f32(), 1.0);
-    /// assert_eq!(Duration::seconds(-1).as_seconds_f32(), -1.0);
-    /// assert_eq!(Duration::minutes(1).as_seconds_f32(), 60.0);
-    /// assert_eq!(Duration::minutes(-1).as_seconds_f32(), -60.0);
     /// assert_eq!(Duration::milliseconds(1_500).as_seconds_f32(), 1.5);
     /// assert_eq!(Duration::milliseconds(-1_500).as_seconds_f32(), -1.5);
     /// ```
@@ -536,6 +519,7 @@ impl Duration {
     /// ```rust
     /// # use time::Duration;
     /// assert_eq!(Duration::microseconds(1), Duration::seconds(1) / 1_000_000);
+    /// assert_eq!(Duration::microseconds(-1), Duration::seconds(-1) / 1_000_000);
     /// ```
     #[inline(always)]
     pub fn microseconds(microseconds: i64) -> Self {
@@ -578,6 +562,7 @@ impl Duration {
     /// ```rust
     /// # use time::Duration;
     /// assert_eq!(Duration::nanoseconds(1), Duration::seconds(1) / 1_000_000_000);
+    /// assert_eq!(Duration::nanoseconds(-1), Duration::seconds(-1) / 1_000_000_000);
     /// ```
     #[inline(always)]
     pub fn nanoseconds(nanoseconds: i64) -> Self {
@@ -710,6 +695,7 @@ impl Duration {
 /// Functions that have been renamed or had signatures changed since v0.1. As
 /// such, they are deprecated.
 #[cfg(feature = "deprecated")]
+#[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 impl Duration {
     #[inline(always)]
@@ -836,22 +822,10 @@ impl Duration {
 }
 
 impl From<StdDuration> for Duration {
-    /// Convert a `std::time::Duration` to a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// assert_eq!(Duration::from(StdDuration::from_secs(0)), Duration::zero());
-    /// assert_eq!(Duration::from(StdDuration::from_secs(1)), Duration::second());
-    /// ```
     #[inline(always)]
     fn from(original: StdDuration) -> Self {
         Self {
-            sign: if original.as_nanos() == 0 {
-                Zero
-            } else {
-                Positive
-            },
+            sign: original.as_nanos().sign(),
             std: original,
         }
     }
@@ -860,17 +834,6 @@ impl From<StdDuration> for Duration {
 impl TryFrom<Duration> for StdDuration {
     type Error = OutOfRangeError;
 
-    /// Attempt to convert a `Duration` to a `std::time::Duration`. This will
-    /// fail when the former is negative.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// # use core::convert::TryFrom;
-    /// assert_eq!(StdDuration::try_from(Duration::zero()), Ok(StdDuration::from_secs(0)));
-    /// assert_eq!(StdDuration::try_from(Duration::second()), Ok(StdDuration::from_secs(1)));
-    /// assert!(StdDuration::try_from(Duration::seconds(-1)).is_err());
-    /// ```
     #[inline(always)]
     fn try_from(duration: Duration) -> Result<Self, OutOfRangeError> {
         if duration.sign.is_negative() {
@@ -884,14 +847,6 @@ impl TryFrom<Duration> for StdDuration {
 impl Add for Duration {
     type Output = Self;
 
-    /// Add two `Duration`s.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::second() + Duration::second(), Duration::seconds(2));
-    /// assert_eq!(Duration::milliseconds(500) + Duration::milliseconds(500), Duration::second());
-    /// assert_eq!(Duration::second() + Duration::seconds(-1), Duration::zero());
-    /// ```
     #[inline]
     fn add(self, rhs: Self) -> Self::Output {
         let secs = self.whole_seconds() + rhs.whole_seconds();
@@ -908,15 +863,6 @@ impl Add for Duration {
 impl Add<StdDuration> for Duration {
     type Output = Self;
 
-    /// Add a `std::time::Duration` to a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// assert_eq!(Duration::second() + StdDuration::from_secs(1), Duration::seconds(2));
-    /// assert_eq!(Duration::milliseconds(500) + StdDuration::from_millis(500), Duration::second());
-    /// assert_eq!(Duration::seconds(-1) + StdDuration::from_secs(1), Duration::zero());
-    /// ```
     #[inline(always)]
     fn add(self, std_duration: StdDuration) -> Self::Output {
         self + Self::from(std_duration)
@@ -926,15 +872,6 @@ impl Add<StdDuration> for Duration {
 impl Add<Duration> for StdDuration {
     type Output = Duration;
 
-    /// Add a `Duration` to a `std::time::Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// assert_eq!(StdDuration::from_secs(1) + Duration::second(), Duration::seconds(2));
-    /// assert_eq!(StdDuration::from_millis(500) + Duration::milliseconds(500), Duration::second());
-    /// assert_eq!(StdDuration::from_secs(1) + Duration::seconds(-1), Duration::zero());
-    /// ```
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
         Duration::from(self) + duration
@@ -942,22 +879,6 @@ impl Add<Duration> for StdDuration {
 }
 
 impl AddAssign for Duration {
-    /// Add two `Duration`s.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// let mut duration = Duration::second();
-    /// duration += Duration::second();
-    /// assert_eq!(duration, Duration::seconds(2));
-    ///
-    /// let mut duration = Duration::milliseconds(500);
-    /// duration += Duration::milliseconds(500);
-    /// assert_eq!(duration, Duration::second());
-    ///
-    /// let mut duration = Duration::second();
-    /// duration += Duration::seconds(-1);
-    /// assert_eq!(duration, Duration::zero());
-    /// ```
     #[inline(always)]
     fn add_assign(&mut self, rhs: Self) {
         *self = *self + rhs;
@@ -965,23 +886,6 @@ impl AddAssign for Duration {
 }
 
 impl AddAssign<StdDuration> for Duration {
-    /// Add a `std::time::Duration` to a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// let mut duration = Duration::second();
-    /// duration += StdDuration::from_secs(1);
-    /// assert_eq!(duration, Duration::seconds(2));
-    ///
-    /// let mut duration = Duration::milliseconds(500);
-    /// duration += StdDuration::from_millis(500);
-    /// assert_eq!(duration, Duration::second());
-    ///
-    /// let mut duration = Duration::seconds(-1);
-    /// duration += StdDuration::from_secs(1);
-    /// assert_eq!(duration, Duration::zero());
-    /// ```
     #[inline(always)]
     fn add_assign(&mut self, rhs: StdDuration) {
         *self = *self + rhs;
@@ -991,14 +895,6 @@ impl AddAssign<StdDuration> for Duration {
 impl Neg for Duration {
     type Output = Self;
 
-    /// Negate the sign of the `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(-Duration::second(), Duration::seconds(-1));
-    /// assert_eq!(-Duration::seconds(-1), Duration::second());
-    /// assert_eq!(-Duration::zero(), Duration::zero());
-    /// ```
     #[inline(always)]
     fn neg(self) -> Self::Output {
         -1 * self
@@ -1008,14 +904,6 @@ impl Neg for Duration {
 impl Sub for Duration {
     type Output = Self;
 
-    /// Subtract two `Duration`s.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::second() - Duration::second(), Duration::zero());
-    /// assert_eq!(Duration::milliseconds(1_500) - Duration::milliseconds(500), Duration::second());
-    /// assert_eq!(Duration::second() - Duration::seconds(-1), Duration::seconds(2));
-    /// ```
     #[inline]
     fn sub(self, rhs: Self) -> Self::Output {
         let secs = self.whole_seconds() - rhs.whole_seconds();
@@ -1032,15 +920,6 @@ impl Sub for Duration {
 impl Sub<StdDuration> for Duration {
     type Output = Self;
 
-    /// Subtract a `std::time::Duration` from a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// assert_eq!(Duration::second() - StdDuration::from_secs(1), Duration::zero());
-    /// assert_eq!(Duration::milliseconds(1_500) - StdDuration::from_millis(500), Duration::second());
-    /// assert_eq!(Duration::seconds(-1) - StdDuration::from_secs(1), Duration::seconds(-2));
-    /// ```
     #[inline(always)]
     fn sub(self, rhs: StdDuration) -> Self::Output {
         self - Self::from(rhs)
@@ -1050,15 +929,6 @@ impl Sub<StdDuration> for Duration {
 impl Sub<Duration> for StdDuration {
     type Output = Duration;
 
-    /// Subtract a `Duration` from a `std::time::Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// assert_eq!(StdDuration::from_secs(1) - Duration::second(), Duration::zero());
-    /// assert_eq!(StdDuration::from_millis(1_500) - Duration::milliseconds(500), Duration::second());
-    /// assert_eq!(StdDuration::from_secs(1) - Duration::seconds(-1), Duration::seconds(2));
-    /// ```
     #[inline(always)]
     fn sub(self, rhs: Duration) -> Self::Output {
         Duration::from(self) - rhs
@@ -1066,22 +936,6 @@ impl Sub<Duration> for StdDuration {
 }
 
 impl SubAssign for Duration {
-    /// Subtract two `Duration`s.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// let mut duration = Duration::second();
-    /// duration -= Duration::second();
-    /// assert_eq!(duration, Duration::zero());
-    ///
-    /// let mut duration = Duration::milliseconds(1_500);
-    /// duration -= Duration::milliseconds(500);
-    /// assert_eq!(duration, Duration::second());
-    ///
-    /// let mut duration = Duration::second();
-    /// duration -= Duration::seconds(-1);
-    /// assert_eq!(duration, Duration::seconds(2));
-    /// ```
     #[inline(always)]
     fn sub_assign(&mut self, rhs: Self) {
         *self = *self - rhs;
@@ -1089,23 +943,6 @@ impl SubAssign for Duration {
 }
 
 impl SubAssign<StdDuration> for Duration {
-    /// Subtract a `std::time::Duration` from a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// let mut duration = Duration::second();
-    /// duration -= StdDuration::from_secs(1);
-    /// assert_eq!(duration, Duration::zero());
-    ///
-    /// let mut duration = Duration::milliseconds(1_500);
-    /// duration -= StdDuration::from_millis(500);
-    /// assert_eq!(duration, Duration::second());
-    ///
-    /// let mut duration = Duration::seconds(-1);
-    /// duration -= StdDuration::from_secs(1);
-    /// assert_eq!(duration, Duration::seconds(-2));
-    /// ```
     #[inline(always)]
     fn sub_assign(&mut self, rhs: StdDuration) {
         *self = *self - rhs;
@@ -1113,29 +950,6 @@ impl SubAssign<StdDuration> for Duration {
 }
 
 impl SubAssign<Duration> for StdDuration {
-    /// Subtract a `Duration` from a `std::time::Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// let mut duration = StdDuration::from_secs(1);
-    /// duration -= Duration::second();
-    /// assert_eq!(duration, Duration::zero());
-    ///
-    /// let mut duration = StdDuration::from_millis(1_500);
-    /// duration -= Duration::milliseconds(500);
-    /// assert_eq!(duration, Duration::second());
-    /// ```
-    ///
-    /// Panics on underflow.
-    ///
-    /// ```rust,should_panic
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// let mut duration = StdDuration::from_secs(1);
-    /// duration -= Duration::seconds(2); // panics
-    /// assert_eq!(duration, Duration::seconds(-1));
-    /// ```
     #[inline(always)]
     fn sub_assign(&mut self, rhs: Duration) {
         use core::convert::TryInto;
@@ -1214,15 +1028,6 @@ duration_mul_div![i8, i16, i32, u8, u16, u32];
 impl Mul<f32> for Duration {
     type Output = Self;
 
-    /// Multiply a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::second() * 1f32, Duration::second());
-    /// assert_eq!(Duration::second() * 2f32, Duration::seconds(2));
-    /// assert_eq!(Duration::second() * -1f32, Duration::seconds(-1));
-    /// assert_eq!(Duration::second() * 0f32, Duration::zero());
-    /// ```
     #[inline(always)]
     fn mul(self, rhs: f32) -> Self::Output {
         Self {
@@ -1233,20 +1038,6 @@ impl Mul<f32> for Duration {
 }
 
 impl MulAssign<f32> for Duration {
-    /// Multiply a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// let mut duration = Duration::second();
-    /// duration *= 1f32;
-    /// assert_eq!(duration, Duration::second());
-    /// duration *= 2f32;
-    /// assert_eq!(duration, Duration::seconds(2));
-    /// duration *= -0.5f32;
-    /// assert_eq!(duration, Duration::seconds(-1));
-    /// duration *= 0f32;
-    /// assert_eq!(duration, Duration::zero());
-    /// ```
     #[inline(always)]
     fn mul_assign(&mut self, rhs: f32) {
         *self = *self * rhs;
@@ -1256,15 +1047,6 @@ impl MulAssign<f32> for Duration {
 impl Mul<Duration> for f32 {
     type Output = Duration;
 
-    /// Multiply a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(1f32 * Duration::second(), Duration::second());
-    /// assert_eq!(2f32 * Duration::second(), Duration::seconds(2));
-    /// assert_eq!(-1f32 * Duration::second(), Duration::seconds(-1));
-    /// assert_eq!(0f32 * Duration::second(), Duration::zero());
-    /// ```
     #[inline(always)]
     fn mul(self, rhs: Duration) -> Self::Output {
         rhs * self
@@ -1274,15 +1056,6 @@ impl Mul<Duration> for f32 {
 impl Mul<f64> for Duration {
     type Output = Self;
 
-    /// Multiply a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::second() * 1f64, Duration::second());
-    /// assert_eq!(Duration::second() * 2f64, Duration::seconds(2));
-    /// assert_eq!(Duration::second() * -1f64, Duration::seconds(-1));
-    /// assert_eq!(Duration::second() * 0f64, Duration::zero());
-    /// ```
     #[inline(always)]
     fn mul(self, rhs: f64) -> Self::Output {
         Self {
@@ -1293,20 +1066,6 @@ impl Mul<f64> for Duration {
 }
 
 impl MulAssign<f64> for Duration {
-    /// Multiply a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// let mut duration = Duration::second();
-    /// duration *= 1f64;
-    /// assert_eq!(duration, Duration::second());
-    /// duration *= 2f64;
-    /// assert_eq!(duration, Duration::seconds(2));
-    /// duration *= -0.5f64;
-    /// assert_eq!(duration, Duration::seconds(-1));
-    /// duration *= 0f64;
-    /// assert_eq!(duration, Duration::zero());
-    /// ```
     #[inline(always)]
     fn mul_assign(&mut self, rhs: f64) {
         *self = *self * rhs;
@@ -1316,15 +1075,6 @@ impl MulAssign<f64> for Duration {
 impl Mul<Duration> for f64 {
     type Output = Duration;
 
-    /// Multiply a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(1f64 * Duration::second(), Duration::second());
-    /// assert_eq!(2f64 * Duration::second(), Duration::seconds(2));
-    /// assert_eq!(-1f64 * Duration::second(), Duration::seconds(-1));
-    /// assert_eq!(0f64 * Duration::second(), Duration::zero());
-    /// ```
     #[inline(always)]
     fn mul(self, rhs: Duration) -> Self::Output {
         rhs * self
@@ -1334,21 +1084,6 @@ impl Mul<Duration> for f64 {
 impl Div<f32> for Duration {
     type Output = Self;
 
-    /// Divide a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::second() / 1f32, Duration::second());
-    /// assert_eq!(Duration::second() / 2f32, Duration::milliseconds(500));
-    /// assert_eq!(Duration::second() / -1f32, Duration::seconds(-1));
-    /// ```
-    ///
-    /// Panics on division by zero.
-    ///
-    /// ```rust,should_panic
-    /// # use time::Duration;
-    /// Duration::second() / 0.; // panics
-    /// ```
     #[inline(always)]
     fn div(self, rhs: f32) -> Self::Output {
         Self {
@@ -1359,26 +1094,6 @@ impl Div<f32> for Duration {
 }
 
 impl DivAssign<f32> for Duration {
-    /// Divide a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// let mut duration = Duration::second();
-    /// duration /= 1f32;
-    /// assert_eq!(duration, Duration::second());
-    /// duration /= 2f32;
-    /// assert_eq!(duration, Duration::milliseconds(500));
-    /// duration /= -0.5f32;
-    /// assert_eq!(duration, Duration::seconds(-1));
-    /// ```
-    ///
-    /// Panics on division by zero.
-    ///
-    /// ```rust,should_panic
-    /// # use time::Duration;
-    /// let mut duration = Duration::second();
-    /// duration /= 0f32; // panics
-    /// ```
     #[inline(always)]
     fn div_assign(&mut self, rhs: f32) {
         *self = *self / rhs;
@@ -1388,21 +1103,6 @@ impl DivAssign<f32> for Duration {
 impl Div<f64> for Duration {
     type Output = Self;
 
-    /// Divide a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::second() / 1f64, Duration::second());
-    /// assert_eq!(Duration::second() / 2f64, Duration::milliseconds(500));
-    /// assert_eq!(Duration::second() / -1f64, Duration::seconds(-1));
-    /// ```
-    ///
-    /// Panics on division by zero.
-    ///
-    /// ```rust,should_panic
-    /// # use time::Duration;
-    /// Duration::second() / 0.; // panics
-    /// ```
     #[inline(always)]
     fn div(self, rhs: f64) -> Self::Output {
         Self {
@@ -1413,26 +1113,6 @@ impl Div<f64> for Duration {
 }
 
 impl DivAssign<f64> for Duration {
-    /// Divide a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// let mut duration = Duration::second();
-    /// duration /= 1f64;
-    /// assert_eq!(duration, Duration::second());
-    /// duration /= 2f64;
-    /// assert_eq!(duration, Duration::milliseconds(500));
-    /// duration /= -0.5f64;
-    /// assert_eq!(duration, Duration::seconds(-1));
-    /// ```
-    ///
-    /// Panics on division by zero.
-    ///
-    /// ```rust,should_panic
-    /// # use time::Duration;
-    /// let mut duration = Duration::second();
-    /// duration /= 0f64; // panics
-    /// ```
     #[inline(always)]
     fn div_assign(&mut self, rhs: f64) {
         *self = *self / rhs;
@@ -1442,16 +1122,6 @@ impl DivAssign<f64> for Duration {
 impl Div<Duration> for Duration {
     type Output = f64;
 
-    /// Divide two `Duration`s.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::second() / Duration::second(), 1.);
-    /// assert_eq!(Duration::minute() / Duration::second(), 60.);
-    /// assert_eq!(Duration::hour() / Duration::minute(), 60.);
-    /// assert_eq!(Duration::day() / Duration::hour(), 24.);
-    /// assert_eq!(Duration::week() / Duration::day(), 7.);
-    /// ```
     // TODO Replace with `self.div_duration_f64(rhs)` when it stabilizes.
     #[inline(always)]
     fn div(self, rhs: Self) -> Self::Output {
@@ -1462,17 +1132,6 @@ impl Div<Duration> for Duration {
 impl Div<StdDuration> for Duration {
     type Output = f64;
 
-    /// Divide a `Duration` and a `std::time::Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// assert_eq!(Duration::second() / StdDuration::from_secs(1), 1.);
-    /// assert_eq!(Duration::minute() / StdDuration::from_secs(1), 60.);
-    /// assert_eq!(Duration::hour() / StdDuration::from_secs(60), 60.);
-    /// assert_eq!(Duration::day() / StdDuration::from_secs(3_600), 24.);
-    /// assert_eq!(Duration::week() / StdDuration::from_secs(86_400), 7.);
-    /// ```
     #[inline(always)]
     fn div(self, rhs: StdDuration) -> Self::Output {
         self.as_seconds_f64() / rhs.as_secs_f64()
@@ -1482,16 +1141,6 @@ impl Div<StdDuration> for Duration {
 impl Div<Duration> for StdDuration {
     type Output = f64;
 
-    /// Divide a `std::time::Duration` and a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::second() / Duration::second(), 1.);
-    /// assert_eq!(Duration::minute() / Duration::second(), 60.);
-    /// assert_eq!(Duration::hour() / Duration::minute(), 60.);
-    /// assert_eq!(Duration::day() / Duration::hour(), 24.);
-    /// assert_eq!(Duration::week() / Duration::day(), 7.);
-    /// ```
     #[inline(always)]
     fn div(self, rhs: Duration) -> Self::Output {
         self.as_secs_f64() / rhs.as_seconds_f64()
@@ -1499,16 +1148,6 @@ impl Div<Duration> for StdDuration {
 }
 
 impl PartialEq for Duration {
-    /// Check for equality between two `Duration`s.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::second(), Duration::seconds(1));
-    /// assert_ne!(40 * Duration::second(), Duration::minute());
-    /// assert_eq!(20 * Duration::zero(), Duration::zero());
-    /// assert_eq!(-Duration::second(), Duration::seconds(-1));
-    /// assert_ne!(60 * Duration::second(), -Duration::minute());
-    /// ```
     #[inline(always)]
     fn eq(&self, rhs: &Self) -> bool {
         self.sign == rhs.sign && self.std == rhs.std
@@ -1516,17 +1155,6 @@ impl PartialEq for Duration {
 }
 
 impl PartialEq<StdDuration> for Duration {
-    /// Check for equality between a `Duration` and a `std::time::Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// assert_eq!(Duration::second(), StdDuration::from_secs(1));
-    /// assert_ne!(40 * Duration::second(), StdDuration::from_secs(60));
-    /// assert_eq!(20 * Duration::zero(), StdDuration::from_secs(0));
-    /// assert_ne!(-Duration::second(), StdDuration::from_secs(1));
-    /// assert_ne!(-60 * Duration::second(), StdDuration::from_secs(60));
-    /// ```
     #[inline(always)]
     fn eq(&self, rhs: &StdDuration) -> bool {
         *self == Self::from(*rhs)
@@ -1534,17 +1162,6 @@ impl PartialEq<StdDuration> for Duration {
 }
 
 impl PartialEq<Duration> for StdDuration {
-    /// Check for equality between a `std::time::Duration` and a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// assert_eq!(StdDuration::from_secs(1), Duration::seconds(1));
-    /// assert_ne!(40 * StdDuration::from_secs(1), Duration::minute());
-    /// assert_eq!(20 * StdDuration::from_secs(0), Duration::zero());
-    /// assert_ne!(StdDuration::from_secs(1), Duration::seconds(-1));
-    /// assert_ne!(60 * StdDuration::from_secs(1), -Duration::minute());
-    /// ```
     #[inline(always)]
     fn eq(&self, rhs: &Duration) -> bool {
         Duration::from(*self) == *rhs
@@ -1552,22 +1169,6 @@ impl PartialEq<Duration> for StdDuration {
 }
 
 impl PartialOrd for Duration {
-    /// Compare two `Duration`s.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// # use core::cmp::{Ordering, PartialOrd};
-    /// assert_eq!(Duration::zero().partial_cmp(&Duration::zero()), Some(Ordering::Equal));
-    /// assert_eq!(Duration::second().partial_cmp(&Duration::zero()), Some(Ordering::Greater));
-    /// assert_eq!(Duration::second().partial_cmp(&-Duration::second()), Some(Ordering::Greater));
-    /// assert_eq!((-Duration::second()).partial_cmp(&Duration::second()), Some(Ordering::Less));
-    /// assert_eq!(Duration::zero().partial_cmp(&-Duration::second()), Some(Ordering::Greater));
-    /// assert_eq!(Duration::zero().partial_cmp(&Duration::second()), Some(Ordering::Less));
-    /// assert_eq!((-Duration::second()).partial_cmp(&Duration::zero()), Some(Ordering::Less));
-    /// assert_eq!(Duration::minute().partial_cmp(&Duration::second()), Some(Ordering::Greater));
-    /// assert_eq!((-Duration::minute()).partial_cmp(&-Duration::second()), Some(Ordering::Less));
-    /// ```
     #[inline(always)]
     fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
         Some(self.cmp(rhs))
@@ -1575,19 +1176,6 @@ impl PartialOrd for Duration {
 }
 
 impl PartialOrd<StdDuration> for Duration {
-    /// Compare a `Duration` and a `std::time::Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// # use core::cmp::{Ordering, PartialOrd};
-    /// assert_eq!(Duration::zero().partial_cmp(&StdDuration::from_secs(0)), Some(Ordering::Equal));
-    /// assert_eq!(Duration::second().partial_cmp(&StdDuration::from_secs(0)), Some(Ordering::Greater));
-    /// assert_eq!((-Duration::second()).partial_cmp(&StdDuration::from_secs(1)), Some(Ordering::Less));
-    /// assert_eq!(Duration::zero().partial_cmp(&StdDuration::from_secs(1)), Some(Ordering::Less));
-    /// assert_eq!((-Duration::second()).partial_cmp(&StdDuration::from_secs(0)), Some(Ordering::Less));
-    /// assert_eq!(Duration::minute().partial_cmp(&StdDuration::from_secs(1)), Some(Ordering::Greater));
-    /// ```
     #[inline(always)]
     fn partial_cmp(&self, rhs: &StdDuration) -> Option<Ordering> {
         self.partial_cmp(&Self::from(*rhs))
@@ -1595,19 +1183,6 @@ impl PartialOrd<StdDuration> for Duration {
 }
 
 impl PartialOrd<Duration> for StdDuration {
-    /// Compare a `std::time::Duration` and a `Duration`.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// # use core::time::Duration as StdDuration;
-    /// # use core::cmp::{Ordering, PartialOrd};
-    /// assert_eq!(StdDuration::from_secs(0).partial_cmp(&Duration::zero()), Some(Ordering::Equal));
-    /// assert_eq!(StdDuration::from_secs(1).partial_cmp(&Duration::zero()), Some(Ordering::Greater));
-    /// assert_eq!(StdDuration::from_secs(1).partial_cmp(&-Duration::second()), Some(Ordering::Greater));
-    /// assert_eq!(StdDuration::from_secs(0).partial_cmp(&-Duration::second()), Some(Ordering::Greater));
-    /// assert_eq!(StdDuration::from_secs(0).partial_cmp(&Duration::second()), Some(Ordering::Less));
-    /// assert_eq!(StdDuration::from_secs(60).partial_cmp(&Duration::second()), Some(Ordering::Greater));
-    /// ```
     #[inline(always)]
     fn partial_cmp(&self, rhs: &Duration) -> Option<Ordering> {
         Duration::from(*self).partial_cmp(rhs)
@@ -1615,20 +1190,6 @@ impl PartialOrd<Duration> for StdDuration {
 }
 
 impl Ord for Duration {
-    /// Compare two `Duration`s.
-    ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::zero(), Duration::zero());
-    /// assert!(Duration::second() > Duration::zero());
-    /// assert!(Duration::second() > -Duration::second());
-    /// assert!(-Duration::second() < Duration::second());
-    /// assert!(Duration::zero() > -Duration::second());
-    /// assert!(Duration::zero() < Duration::second());
-    /// assert!(-Duration::second() < Duration::zero());
-    /// assert!(Duration::minute() > Duration::second());
-    /// assert!(-Duration::minute() < -Duration::second());
-    /// ```
     #[inline]
     fn cmp(&self, rhs: &Self) -> Ordering {
         match (self.sign, rhs.sign) {
@@ -1643,5 +1204,664 @@ impl Ord for Duration {
                 Less => Greater,
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::prelude::*;
+
+    #[test]
+    fn unit_values() {
+        assert_eq!(Duration::zero(), 0.seconds());
+        assert_eq!(Duration::nanosecond(), 1.nanoseconds());
+        assert_eq!(Duration::microsecond(), 1.microseconds());
+        assert_eq!(Duration::millisecond(), 1.milliseconds());
+        assert_eq!(Duration::second(), 1.seconds());
+        assert_eq!(Duration::minute(), 60.seconds());
+        assert_eq!(Duration::hour(), 3_600.seconds());
+        assert_eq!(Duration::day(), 86_400.seconds());
+        assert_eq!(Duration::week(), 604_800.seconds());
+    }
+
+    #[test]
+    fn is_zero() {
+        assert!(!(-1).nanoseconds().is_zero());
+        assert!(0.seconds().is_zero());
+        assert!(!1.nanoseconds().is_zero());
+    }
+
+    #[test]
+    fn is_negative() {
+        assert!((-1).seconds().is_negative());
+        assert!(!0.seconds().is_negative());
+        assert!(!1.seconds().is_negative());
+    }
+
+    #[test]
+    fn is_positive() {
+        assert!(!(-1).seconds().is_positive());
+        assert!(!0.seconds().is_positive());
+        assert!(1.seconds().is_positive());
+    }
+
+    #[test]
+    fn sign() {
+        assert_eq!(1.seconds().sign(), Positive);
+        assert_eq!((-1).seconds().sign(), Negative);
+        assert_eq!(0.seconds().sign(), Zero);
+    }
+
+    #[test]
+    fn abs() {
+        assert_eq!(1.seconds().abs(), Duration::seconds(1));
+        assert_eq!(0.seconds().abs(), Duration::zero());
+        assert_eq!((-1).seconds().abs(), Duration::seconds(1));
+    }
+
+    #[test]
+    fn new() {
+        assert_eq!(Duration::new(1, 0), 1.seconds());
+        assert_eq!(Duration::new(-1, 0), (-1).seconds());
+        assert_eq!(Duration::new(1, 2_000_000_000), 3.seconds());
+
+        assert_eq!(Duration::new(0, 0).sign(), Zero);
+        assert_eq!(Duration::new(0, 1_000_000_000).sign(), Positive);
+        assert_eq!(Duration::new(-1, 1_000_000_000).sign(), Zero);
+        assert_eq!(Duration::new(-2, 1_000_000_000).sign(), Negative);
+    }
+
+    #[test]
+    fn weeks() {
+        assert_eq!(Duration::weeks(1), Duration::seconds(604_800));
+        assert_eq!(Duration::weeks(2), Duration::seconds(2 * 604_800));
+        assert_eq!(Duration::weeks(-1), Duration::seconds(-604_800));
+        assert_eq!(Duration::weeks(-2), Duration::seconds(2 * -604_800));
+    }
+
+    #[test]
+    fn whole_weeks() {
+        assert_eq!(Duration::weeks(1).whole_weeks(), 1);
+        assert_eq!(Duration::weeks(-1).whole_weeks(), -1);
+        assert_eq!(Duration::days(6).whole_weeks(), 0);
+        assert_eq!(Duration::days(-6).whole_weeks(), 0);
+    }
+
+    #[test]
+    fn days() {
+        assert_eq!(Duration::days(1), Duration::seconds(86_400));
+        assert_eq!(Duration::days(2), Duration::seconds(2 * 86_400));
+        assert_eq!(Duration::days(-1), Duration::seconds(-86_400));
+        assert_eq!(Duration::days(-2), Duration::seconds(2 * -86_400));
+    }
+
+    #[test]
+    fn whole_days() {
+        assert_eq!(Duration::days(1).whole_days(), 1);
+        assert_eq!(Duration::days(-1).whole_days(), -1);
+        assert_eq!(Duration::hours(23).whole_days(), 0);
+        assert_eq!(Duration::hours(-23).whole_days(), 0);
+    }
+
+    #[test]
+    fn hours() {
+        assert_eq!(Duration::hours(1), Duration::seconds(3_600));
+        assert_eq!(Duration::hours(2), Duration::seconds(2 * 3_600));
+        assert_eq!(Duration::hours(-1), Duration::seconds(-3_600));
+        assert_eq!(Duration::hours(-2), Duration::seconds(2 * -3_600));
+    }
+
+    #[test]
+    fn whole_hours() {
+        assert_eq!(Duration::hours(1).whole_hours(), 1);
+        assert_eq!(Duration::hours(-1).whole_hours(), -1);
+        assert_eq!(Duration::minutes(59).whole_hours(), 0);
+        assert_eq!(Duration::minutes(-59).whole_hours(), 0);
+    }
+
+    #[test]
+    fn minutes() {
+        assert_eq!(Duration::minutes(1), Duration::seconds(60));
+        assert_eq!(Duration::minutes(2), Duration::seconds(2 * 60));
+        assert_eq!(Duration::minutes(-1), Duration::seconds(-60));
+        assert_eq!(Duration::minutes(-2), Duration::seconds(2 * -60));
+    }
+
+    #[test]
+    fn whole_minutes() {
+        assert_eq!(Duration::minutes(1).whole_minutes(), 1);
+        assert_eq!(Duration::minutes(-1).whole_minutes(), -1);
+        assert_eq!(Duration::seconds(59).whole_minutes(), 0);
+        assert_eq!(Duration::seconds(-59).whole_minutes(), 0);
+    }
+
+    #[test]
+    fn seconds() {
+        assert_eq!(Duration::seconds(1), Duration::milliseconds(1_000));
+        assert_eq!(Duration::seconds(2), Duration::milliseconds(2 * 1_000));
+        assert_eq!(Duration::seconds(-1), Duration::milliseconds(-1_000));
+        assert_eq!(Duration::seconds(-2), Duration::milliseconds(2 * -1_000));
+    }
+
+    #[test]
+    fn whole_seconds() {
+        assert_eq!(Duration::seconds(1).whole_seconds(), 1);
+        assert_eq!(Duration::seconds(-1).whole_seconds(), -1);
+        assert_eq!(Duration::minutes(1).whole_seconds(), 60);
+        assert_eq!(Duration::minutes(-1).whole_seconds(), -60);
+    }
+
+    #[test]
+    fn seconds_f64() {
+        assert_eq!(Duration::seconds_f64(0.5), Duration::milliseconds(500));
+        assert_eq!(Duration::seconds_f64(-0.5), Duration::milliseconds(-500));
+    }
+
+    #[test]
+    #[allow(clippy::float_cmp)]
+    fn as_seconds_f64() {
+        assert_eq!(Duration::seconds(1).as_seconds_f64(), 1.0);
+        assert_eq!(Duration::seconds(-1).as_seconds_f64(), -1.0);
+        assert_eq!(Duration::minutes(1).as_seconds_f64(), 60.0);
+        assert_eq!(Duration::minutes(-1).as_seconds_f64(), -60.0);
+        assert_eq!(Duration::milliseconds(1_500).as_seconds_f64(), 1.5);
+        assert_eq!(Duration::milliseconds(-1_500).as_seconds_f64(), -1.5);
+    }
+
+    #[test]
+    fn seconds_f32() {
+        assert_eq!(Duration::seconds_f32(0.5), Duration::milliseconds(500));
+        assert_eq!(Duration::seconds_f32(-0.5), Duration::milliseconds(-500));
+    }
+
+    #[test]
+    #[allow(clippy::float_cmp)]
+    fn as_seconds_f32() {
+        assert_eq!(Duration::seconds(1).as_seconds_f32(), 1.0);
+        assert_eq!(Duration::seconds(-1).as_seconds_f32(), -1.0);
+        assert_eq!(Duration::minutes(1).as_seconds_f32(), 60.0);
+        assert_eq!(Duration::minutes(-1).as_seconds_f32(), -60.0);
+        assert_eq!(Duration::milliseconds(1_500).as_seconds_f32(), 1.5);
+        assert_eq!(Duration::milliseconds(-1_500).as_seconds_f32(), -1.5);
+    }
+
+    #[test]
+    fn milliseconds() {
+        assert_eq!(Duration::milliseconds(1), Duration::seconds(1) / 1_000);
+        assert_eq!(Duration::milliseconds(-1), Duration::seconds(-1) / 1_000);
+    }
+
+    #[test]
+    fn whole_milliseconds() {
+        assert_eq!(Duration::seconds(1).whole_milliseconds(), 1_000);
+        assert_eq!(Duration::seconds(-1).whole_milliseconds(), -1_000);
+        assert_eq!(Duration::milliseconds(1).whole_milliseconds(), 1);
+        assert_eq!(Duration::milliseconds(-1).whole_milliseconds(), -1);
+    }
+
+    #[test]
+    fn subsec_milliseconds() {
+        assert_eq!(Duration::milliseconds(1_400).subsec_milliseconds(), 400);
+        assert_eq!(Duration::milliseconds(-1_400).subsec_milliseconds(), 400);
+    }
+
+    #[test]
+    fn microseconds() {
+        assert_eq!(Duration::microseconds(1), Duration::seconds(1) / 1_000_000);
+        assert_eq!(
+            Duration::microseconds(-1),
+            Duration::seconds(-1) / 1_000_000
+        );
+    }
+
+    #[test]
+    fn whole_microseconds() {
+        assert_eq!(Duration::milliseconds(1).whole_microseconds(), 1_000);
+        assert_eq!(Duration::milliseconds(-1).whole_microseconds(), -1_000);
+        assert_eq!(Duration::microseconds(1).whole_microseconds(), 1);
+        assert_eq!(Duration::microseconds(-1).whole_microseconds(), -1);
+    }
+
+    #[test]
+    fn subsec_microseconds() {
+        assert_eq!(Duration::microseconds(1_000_400).subsec_microseconds(), 400);
+        assert_eq!(
+            Duration::microseconds(-1_000_400).subsec_microseconds(),
+            400
+        );
+    }
+
+    #[test]
+    fn nanoseconds() {
+        assert_eq!(
+            Duration::nanoseconds(1),
+            Duration::seconds(1) / 1_000_000_000
+        );
+        assert_eq!(
+            Duration::nanoseconds(-1),
+            Duration::seconds(-1) / 1_000_000_000
+        );
+    }
+
+    #[test]
+    fn whole_nanoseconds() {
+        assert_eq!(Duration::microseconds(1).whole_nanoseconds(), 1_000);
+        assert_eq!(Duration::microseconds(-1).whole_nanoseconds(), -1_000);
+        assert_eq!(Duration::nanoseconds(1).whole_nanoseconds(), 1);
+        assert_eq!(Duration::nanoseconds(-1).whole_nanoseconds(), -1);
+    }
+
+    #[test]
+    fn subsec_nanoseconds() {
+        assert_eq!(
+            Duration::nanoseconds(1_000_000_400).subsec_nanoseconds(),
+            400
+        );
+        assert_eq!(
+            Duration::nanoseconds(-1_000_000_400).subsec_nanoseconds(),
+            400
+        );
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn checked_add() {
+        assert_eq!(5.seconds().checked_add(5.seconds()), Some(10.seconds()));
+        assert_eq!(Duration::max_value().checked_add(1.nanoseconds()), None);
+        assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn checked_sub() {
+        assert_eq!(5.seconds().checked_sub(5.seconds()), Some(0.seconds()));
+        assert_eq!(Duration::min_value().checked_sub(1.nanoseconds()), None);
+        assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn checked_mul() {
+        assert_eq!(5.seconds().checked_mul(2), Some(10.seconds()));
+        assert_eq!(5.seconds().checked_mul(-2), Some((-10).seconds()));
+        assert_eq!(5.seconds().checked_mul(0), Some(Duration::zero()));
+        assert_eq!(Duration::max_value().checked_mul(2), None);
+        assert_eq!(Duration::min_value().checked_mul(2), None);
+    }
+
+    #[test]
+    fn checked_div() {
+        assert_eq!(10.seconds().checked_div(2), Some(5.seconds()));
+        assert_eq!(10.seconds().checked_div(-2), Some((-5).seconds()));
+        assert_eq!(1.seconds().checked_div(0), None);
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn time_fn() {
+        let (time, value) = Duration::time_fn(|| {
+            std::thread::sleep(100.std_milliseconds());
+            0
+        });
+
+        assert!(time >= 100.milliseconds());
+        assert_eq!(value, 0);
+    }
+
+    #[test]
+    fn from_std_duration() {
+        assert_eq!(Duration::from(0.std_seconds()), 0.seconds());
+        assert_eq!(Duration::from(1.std_seconds()), 1.seconds());
+    }
+
+    #[test]
+    fn try_to_std_duration() {
+        assert_eq!(StdDuration::try_from(0.seconds()), Ok(0.std_seconds()));
+        assert_eq!(StdDuration::try_from(1.seconds()), Ok(1.std_seconds()));
+        assert!(StdDuration::try_from((-1).seconds()).is_err());
+    }
+
+    #[test]
+    fn add() {
+        assert_eq!(1.seconds() + 1.seconds(), 2.seconds());
+        assert_eq!(500.milliseconds() + 500.milliseconds(), 1.seconds());
+        assert_eq!(1.seconds() + (-1).seconds(), 0.seconds());
+    }
+
+    #[test]
+    fn add_std() {
+        assert_eq!(1.seconds() + 1.std_seconds(), 2.seconds());
+        assert_eq!(500.milliseconds() + 500.std_milliseconds(), 1.seconds());
+        assert_eq!((-1).seconds() + 1.std_seconds(), 0.seconds());
+    }
+
+    #[test]
+    fn std_add() {
+        assert_eq!(1.std_seconds() + 1.seconds(), 2.seconds());
+        assert_eq!(500.std_milliseconds() + 500.milliseconds(), 1.seconds());
+        assert_eq!(1.std_seconds() + (-1).seconds(), 0.seconds());
+    }
+
+    #[test]
+    fn add_assign() {
+        let mut duration = 1.seconds();
+        duration += 1.seconds();
+        assert_eq!(duration, 2.seconds());
+
+        let mut duration = 500.milliseconds();
+        duration += 500.milliseconds();
+        assert_eq!(duration, 1.seconds());
+
+        let mut duration = 1.seconds();
+        duration += (-1).seconds();
+        assert_eq!(duration, 0.seconds());
+    }
+
+    #[test]
+    fn add_assign_std() {
+        let mut duration = 1.seconds();
+        duration += 1.std_seconds();
+        assert_eq!(duration, 2.seconds());
+
+        let mut duration = 500.milliseconds();
+        duration += 500.std_milliseconds();
+        assert_eq!(duration, 1.seconds());
+
+        let mut duration = (-1).seconds();
+        duration += 1.std_seconds();
+        assert_eq!(duration, 0.seconds());
+    }
+
+    #[test]
+    fn neg() {
+        assert_eq!(-(1.seconds()), Duration::seconds(-1));
+        assert_eq!(-(-1).seconds(), Duration::second());
+        assert_eq!(-(0.seconds()), Duration::zero());
+    }
+
+    #[test]
+    fn sub() {
+        assert_eq!(1.seconds() - 1.seconds(), 0.seconds());
+        assert_eq!(1_500.milliseconds() - 500.milliseconds(), 1.seconds());
+        assert_eq!(1.seconds() - (-1).seconds(), 2.seconds());
+    }
+
+    #[test]
+    fn sub_std() {
+        assert_eq!(1.seconds() - 1.std_seconds(), 0.seconds());
+        assert_eq!(1_500.milliseconds() - 500.std_milliseconds(), 1.seconds());
+        assert_eq!((-1).seconds() - 1.std_seconds(), (-2).seconds());
+    }
+
+    #[test]
+    fn std_sub() {
+        assert_eq!(1.std_seconds() - 1.seconds(), 0.seconds());
+        assert_eq!(1_500.std_milliseconds() - 500.milliseconds(), 1.seconds());
+        assert_eq!(1.std_seconds() - (-1).seconds(), 2.seconds());
+    }
+
+    #[test]
+    fn sub_assign() {
+        let mut duration = 1.seconds();
+        duration -= 1.seconds();
+        assert_eq!(duration, 0.seconds());
+
+        let mut duration = 1_500.milliseconds();
+        duration -= 500.milliseconds();
+        assert_eq!(duration, 1.seconds());
+
+        let mut duration = 1.seconds();
+        duration -= (-1).seconds();
+        assert_eq!(duration, 2.seconds());
+    }
+
+    #[test]
+    fn sub_assign_std() {
+        let mut duration = 1.seconds();
+        duration -= 1.std_seconds();
+        assert_eq!(duration, 0.seconds());
+
+        let mut duration = 1_500.milliseconds();
+        duration -= 500.std_milliseconds();
+        assert_eq!(duration, 1.seconds());
+
+        let mut duration = (-1).seconds();
+        duration -= 1.std_seconds();
+        assert_eq!(duration, (-2).seconds());
+    }
+
+    #[test]
+    fn std_sub_assign() {
+        let mut duration = 1.std_seconds();
+        duration -= 1.seconds();
+        assert_eq!(duration, 0.seconds());
+
+        let mut duration = 1_500.std_milliseconds();
+        duration -= 500.milliseconds();
+        assert_eq!(duration, 1.seconds());
+
+        let mut duration = 1.std_seconds();
+        assert_panics!(duration -= 2.seconds());
+    }
+
+    #[test]
+    fn mul_int() {
+        assert_eq!(1.seconds() * 2, 2.seconds());
+        assert_eq!(1.seconds() * -2, (-2).seconds());
+    }
+
+    #[test]
+    fn mul_int_assign() {
+        let mut duration = 1.seconds();
+        duration *= 2;
+        assert_eq!(duration, 2.seconds());
+
+        let mut duration = 1.seconds();
+        duration *= -2;
+        assert_eq!(duration, (-2).seconds());
+    }
+
+    #[test]
+    fn int_mul() {
+        assert_eq!(2 * 1.seconds(), 2.seconds());
+        assert_eq!(-2 * 1.seconds(), (-2).seconds());
+    }
+
+    #[test]
+    fn div_int() {
+        assert_eq!(1.seconds() / 2, 500.milliseconds());
+        assert_eq!(1.seconds() / -2, (-500).milliseconds());
+    }
+
+    #[test]
+    fn div_int_assign() {
+        let mut duration = 1.seconds();
+        duration /= 2;
+        assert_eq!(duration, 500.milliseconds());
+
+        let mut duration = 1.seconds();
+        duration /= -2;
+        assert_eq!(duration, (-500).milliseconds());
+    }
+
+    #[test]
+    fn mul_float() {
+        assert_eq!(1.seconds() * 1.5_f32, 1_500.milliseconds());
+        assert_eq!(1.seconds() * 2.5_f32, 2_500.milliseconds());
+        assert_eq!(1.seconds() * -1.5_f32, (-1_500).milliseconds());
+        assert_eq!(1.seconds() * 0_f32, 0.seconds());
+
+        assert_eq!(1.seconds() * 1.5_f64, 1_500.milliseconds());
+        assert_eq!(1.seconds() * 2.5_f64, 2_500.milliseconds());
+        assert_eq!(1.seconds() * -1.5_f64, (-1_500).milliseconds());
+        assert_eq!(1.seconds() * 0_f64, 0.seconds());
+    }
+
+    #[test]
+    fn float_mul() {
+        assert_eq!(1.5_f32 * 1.seconds(), 1_500.milliseconds());
+        assert_eq!(2.5_f32 * 1.seconds(), 2_500.milliseconds());
+        assert_eq!(-1.5_f32 * 1.seconds(), (-1_500).milliseconds());
+        assert_eq!(0_f32 * 1.seconds(), 0.seconds());
+
+        assert_eq!(1.5_f64 * 1.seconds(), 1_500.milliseconds());
+        assert_eq!(2.5_f64 * 1.seconds(), 2_500.milliseconds());
+        assert_eq!(-1.5_f64 * 1.seconds(), (-1_500).milliseconds());
+        assert_eq!(0_f64 * 1.seconds(), 0.seconds());
+    }
+
+    #[test]
+    fn mul_float_assign() {
+        let mut duration = 1.seconds();
+        duration *= 1.5_f32;
+        assert_eq!(duration, 1_500.milliseconds());
+
+        let mut duration = 1.seconds();
+        duration *= 2.5_f32;
+        assert_eq!(duration, 2_500.milliseconds());
+
+        let mut duration = 1.seconds();
+        duration *= -1.5_f32;
+        assert_eq!(duration, (-1_500).milliseconds());
+
+        let mut duration = 1.seconds();
+        duration *= 0_f32;
+        assert_eq!(duration, 0.seconds());
+
+        let mut duration = 1.seconds();
+        duration *= 1.5_f64;
+        assert_eq!(duration, 1_500.milliseconds());
+
+        let mut duration = 1.seconds();
+        duration *= 2.5_f64;
+        assert_eq!(duration, 2_500.milliseconds());
+
+        let mut duration = 1.seconds();
+        duration *= -1.5_f64;
+        assert_eq!(duration, (-1_500).milliseconds());
+
+        let mut duration = 1.seconds();
+        duration *= 0_f64;
+        assert_eq!(duration, 0.seconds());
+    }
+
+    #[test]
+    fn div_float() {
+        assert_eq!(1.seconds() / 1_f32, 1.seconds());
+        assert_eq!(1.seconds() / 2_f32, 500.milliseconds());
+        assert_eq!(1.seconds() / -1_f32, (-1).seconds());
+        assert_panics!(1.seconds() / 0_f32);
+
+        assert_eq!(1.seconds() / 1_f64, 1.seconds());
+        assert_eq!(1.seconds() / 2_f64, 500.milliseconds());
+        assert_eq!(1.seconds() / -1_f64, (-1).seconds());
+        assert_panics!(1.seconds() / 0_f64);
+    }
+
+    #[test]
+    fn div_float_assign() {
+        let mut duration = 1.seconds();
+        duration /= 1_f32;
+        assert_eq!(duration, 1.seconds());
+
+        let mut duration = 1.seconds();
+        duration /= 2_f32;
+        assert_eq!(duration, 500.milliseconds());
+
+        let mut duration = 1.seconds();
+        duration /= -1_f32;
+        assert_eq!(duration, (-1).seconds());
+
+        let mut duration = 1.seconds();
+        assert_panics!(duration /= 0_f32);
+
+        let mut duration = 1.seconds();
+        duration /= 1_f64;
+        assert_eq!(duration, 1.seconds());
+
+        let mut duration = 1.seconds();
+        duration /= 2_f64;
+        assert_eq!(duration, 500.milliseconds());
+
+        let mut duration = 1.seconds();
+        duration /= -1_f64;
+        assert_eq!(duration, (-1).seconds());
+
+        let mut duration = 1.seconds();
+        assert_panics!(duration /= 0_f64);
+    }
+
+    #[test]
+    fn partial_eq() {
+        assert_eq!(1.seconds(), 1.seconds());
+        assert_eq!(0.seconds(), 0.seconds());
+        assert_eq!((-1).seconds(), (-1).seconds());
+        assert_ne!(1.minutes(), (-1).minutes());
+        assert_ne!(40.seconds(), 1.minutes());
+    }
+
+    #[test]
+    fn partial_eq_std() {
+        assert_eq!(1.seconds(), 1.std_seconds());
+        assert_eq!(0.seconds(), 0.std_seconds());
+        assert_ne!((-1).seconds(), 1.std_seconds());
+        assert_ne!((-1).minutes(), 1.std_minutes());
+        assert_ne!(40.seconds(), 1.std_minutes());
+    }
+
+    #[test]
+    fn std_partial_eq() {
+        assert_eq!(1.std_seconds(), 1.seconds());
+        assert_eq!(0.std_seconds(), 0.seconds());
+        assert_ne!(1.std_seconds(), (-1).seconds());
+        assert_ne!(1.std_minutes(), (-1).minutes());
+        assert_ne!(40.std_seconds(), 1.minutes());
+    }
+
+    #[test]
+    fn partial_ord() {
+        assert_eq!(0.seconds().partial_cmp(&0.seconds()), Some(Equal));
+        assert_eq!(1.seconds().partial_cmp(&0.seconds()), Some(Greater));
+        assert_eq!(1.seconds().partial_cmp(&(-1).seconds()), Some(Greater));
+        assert_eq!((-1).seconds().partial_cmp(&1.seconds()), Some(Less));
+        assert_eq!(0.seconds().partial_cmp(&(-1).seconds()), Some(Greater));
+        assert_eq!(0.seconds().partial_cmp(&1.seconds()), Some(Less));
+        assert_eq!((-1).seconds().partial_cmp(&0.seconds()), Some(Less));
+        assert_eq!(1.minutes().partial_cmp(&1.seconds()), Some(Greater));
+        assert_eq!((-1).minutes().partial_cmp(&(-1).seconds()), Some(Less));
+    }
+
+    #[test]
+    fn partial_ord_std() {
+        assert_eq!(0.seconds().partial_cmp(&0.std_seconds()), Some(Equal));
+        assert_eq!(1.seconds().partial_cmp(&0.std_seconds()), Some(Greater));
+        assert_eq!((-1).seconds().partial_cmp(&1.std_seconds()), Some(Less));
+        assert_eq!(0.seconds().partial_cmp(&1.std_seconds()), Some(Less));
+        assert_eq!((-1).seconds().partial_cmp(&0.std_seconds()), Some(Less));
+        assert_eq!(1.minutes().partial_cmp(&1.std_seconds()), Some(Greater));
+    }
+
+    #[test]
+    fn std_partial_ord() {
+        assert_eq!(0.std_seconds().partial_cmp(&0.seconds()), Some(Equal));
+        assert_eq!(1.std_seconds().partial_cmp(&0.seconds()), Some(Greater));
+        assert_eq!(1.std_seconds().partial_cmp(&(-1).seconds()), Some(Greater));
+        assert_eq!(0.std_seconds().partial_cmp(&(-1).seconds()), Some(Greater));
+        assert_eq!(0.std_seconds().partial_cmp(&1.seconds()), Some(Less));
+        assert_eq!(1.std_minutes().partial_cmp(&1.seconds()), Some(Greater));
+    }
+
+    #[test]
+    fn ord() {
+        assert_eq!(0.seconds(), 0.seconds());
+        assert!(1.seconds() > 0.seconds());
+        assert!(1.seconds() > (-1).seconds());
+        assert!((-1).seconds() < 1.seconds());
+        assert!(0.seconds() > (-1).seconds());
+        assert!(0.seconds() < 1.seconds());
+        assert!((-1).seconds() < 0.seconds());
+        assert!(1.minutes() > 1.seconds());
+        assert!((-1).minutes() < (-1).seconds());
     }
 }

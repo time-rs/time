@@ -117,6 +117,7 @@ impl Instant {
 impl Instant {
     #[inline(always)]
     #[cfg(feature = "deprecated")]
+    #[cfg_attr(tarpaulin, skip)]
     #[deprecated(since = "0.2.0", note = "Use `rhs - lhs`")]
     pub fn to(&self, later: Self) -> Duration {
         later - *self

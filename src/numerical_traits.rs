@@ -193,14 +193,14 @@ impl_numerical_duration_nonzero![
 /// ```rust
 /// # use time::NumericalStdDuration;
 /// # use core::time::Duration;
-/// assert_eq!(5u32.std_nanoseconds(), Duration::from_nanos(5));
-/// assert_eq!(5u32.std_microseconds(), Duration::from_micros(5));
-/// assert_eq!(5u32.std_milliseconds(), Duration::from_millis(5));
-/// assert_eq!(5u32.std_seconds(), Duration::from_secs(5));
-/// assert_eq!(5u32.std_minutes(), Duration::from_secs(5 * 60));
-/// assert_eq!(5u32.std_hours(), Duration::from_secs(5 * 3_600));
-/// assert_eq!(5u32.std_days(), Duration::from_secs(5 * 86_400));
-/// assert_eq!(5u32.std_weeks(), Duration::from_secs(5 * 604_800));
+/// assert_eq!(5.std_nanoseconds(), Duration::from_nanos(5));
+/// assert_eq!(5.std_microseconds(), Duration::from_micros(5));
+/// assert_eq!(5.std_milliseconds(), Duration::from_millis(5));
+/// assert_eq!(5.std_seconds(), Duration::from_secs(5));
+/// assert_eq!(5.std_minutes(), Duration::from_secs(5 * 60));
+/// assert_eq!(5.std_hours(), Duration::from_secs(5 * 3_600));
+/// assert_eq!(5.std_days(), Duration::from_secs(5 * 86_400));
+/// assert_eq!(5.std_weeks(), Duration::from_secs(5 * 604_800));
 /// ```
 ///
 /// Just like any other `std::time::Duration`, they can be added, subtracted,
@@ -208,8 +208,8 @@ impl_numerical_duration_nonzero![
 ///
 /// ```rust
 /// # use time::NumericalStdDuration;
-/// assert_eq!(2u32.std_seconds() + 500u32.std_milliseconds(), 2_500u32.std_milliseconds());
-/// assert_eq!(2u32.std_seconds() - 500u32.std_milliseconds(), 1_500u32.std_milliseconds());
+/// assert_eq!(2.std_seconds() + 500.std_milliseconds(), 2_500.std_milliseconds());
+/// assert_eq!(2.std_seconds() - 500.std_milliseconds(), 1_500.std_milliseconds());
 /// ```
 ///
 /// As floats can only be used to construct via anything other than
@@ -344,3 +344,56 @@ impl_numerical_std_duration_nonzero![
     core::num::NonZeroU32,
     core::num::NonZeroU64,
 ];
+
+/// Implement on `i32` because that's the default type for integers. This
+/// performs a runtime check and panics if the value is negative.
+#[allow(clippy::use_self)]
+impl NumericalStdDuration for i32 {
+    #[inline(always)]
+    fn std_nanoseconds(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_nanos(self as u64)
+    }
+
+    #[inline(always)]
+    fn std_microseconds(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_micros(self as u64)
+    }
+
+    #[inline(always)]
+    fn std_milliseconds(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_millis(self as u64)
+    }
+
+    #[inline(always)]
+    fn std_seconds(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_secs(self as u64)
+    }
+
+    #[inline(always)]
+    fn std_minutes(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_secs(self as u64 * 60)
+    }
+
+    #[inline(always)]
+    fn std_hours(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_secs(self as u64 * 3_600)
+    }
+
+    #[inline(always)]
+    fn std_days(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_secs(self as u64 * 86_400)
+    }
+
+    #[inline(always)]
+    fn std_weeks(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_secs(self as u64 * 604_800)
+    }
+}
