@@ -139,7 +139,7 @@ pub(crate) struct ParsedItems {
 impl ParsedItems {
     /// Create a new `ParsedItems` with nothing known.
     #[inline(always)]
-    const fn new() -> Self {
+    pub(crate) const fn new() -> Self {
         Self {
             week_based_year: None,
             year: None,
@@ -195,7 +195,8 @@ pub(crate) fn try_consume_first_match<T: Copy>(
     opts: impl IntoIterator<Item = (impl AsRef<str>, T)>,
 ) -> Option<T> {
     opts.into_iter().find_map(|(expected, value)| {
-        if try_consume_str(s, expected.as_ref()).is_ok() {
+        if s.starts_with(expected.as_ref()) {
+            *s = &s[expected.as_ref().len()..];
             Some(value)
         } else {
             None
@@ -410,8 +411,10 @@ pub(crate) fn parse(s: &str, format: &str, language: Language) -> ParseResult<Pa
                         parse!(time::parse_S(Padding::Default));
                     }
                     u => parse!(date::parse_u),
+                    U { padding } => parse!(date::parse_U(padding)),
                     V { padding } => parse!(date::parse_V(padding)),
                     w => parse!(date::parse_w),
+                    W { padding } => parse!(date::parse_W(padding)),
                     y { padding } => parse!(date::parse_y(padding)),
                     z => parse!(offset::parse_z),
                     Y { padding } => parse!(date::parse_Y(padding)),

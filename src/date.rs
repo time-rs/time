@@ -328,6 +328,40 @@ impl Date {
         self.iso_year_week().1
     }
 
+    /// Get the week number where week 1 begins on the first Sunday.
+    ///
+    /// The returned value will always be in the range `0..=53`.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).sunday_based_week(), 0);
+    /// assert_eq!(Date::from_ymd(2020, 1, 1).sunday_based_week(), 0);
+    /// assert_eq!(Date::from_ymd(2020, 12, 31).sunday_based_week(), 52);
+    /// assert_eq!(Date::from_ymd(2021, 1, 1).sunday_based_week(), 0);
+    /// ```
+    #[inline]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn sunday_based_week(self) -> u8 {
+        ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as u8
+    }
+
+    /// Get the week number where week 1 begins on the first Monday.
+    ///
+    /// The returned value will always be in the range `0..=53`.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).monday_based_week(), 0);
+    /// assert_eq!(Date::from_ymd(2020, 1, 1).monday_based_week(), 0);
+    /// assert_eq!(Date::from_ymd(2020, 12, 31).monday_based_week(), 52);
+    /// assert_eq!(Date::from_ymd(2021, 1, 1).monday_based_week(), 0);
+    /// ```
+    #[inline]
+    #[allow(clippy::cast_possible_truncation)]
+    pub fn monday_based_week(self) -> u8 {
+        ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as u8
+    }
+
     /// Get the year, month, and day of the date.
     ///
     /// ```rust
@@ -664,8 +698,8 @@ impl Date {
         Self::try_from_parsed_items(parse(s, format, language)?)
     }
 
-    #[inline(always)]
     /// Given the items already parsed, attempt to create a `Date`.
+    #[inline]
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
         macro_rules! items {
             ($($item:ident),* $(,)?) => {
@@ -678,6 +712,40 @@ impl Date {
             items!(year, ordinal_day) => Ok(Self::from_yo(year, ordinal_day.get())),
             items!(week_based_year, iso_week, weekday) => {
                 Ok(Self::from_iso_ywd(week_based_year, iso_week.get(), weekday))
+            }
+            items!(year, sunday_week, weekday) => {
+                let adjustment = match Self::from_yo(year, 1).weekday() {
+                    Monday => 7,
+                    Tuesday => 1,
+                    Wednesday => 2,
+                    Thursday => 3,
+                    Friday => 4,
+                    Saturday => 5,
+                    Sunday => 6,
+                };
+
+                Ok(Self::from_yo(
+                    year,
+                    (sunday_week as i16 * 7 + weekday.number_days_from_sunday() as i16 - adjustment
+                        + 1) as u16,
+                ))
+            }
+            items!(year, monday_week, weekday) => {
+                let adjustment = match Self::from_yo(year, 1).weekday() {
+                    Monday => 7,
+                    Tuesday => 1,
+                    Wednesday => 2,
+                    Thursday => 3,
+                    Friday => 4,
+                    Saturday => 5,
+                    Sunday => 6,
+                };
+
+                Ok(Self::from_yo(
+                    year,
+                    (monday_week as i16 * 7 + weekday.number_days_from_monday() as i16 - adjustment
+                        + 1) as u16,
+                ))
             }
             _ => Err(ParseError::InsufficientInformation),
         }
@@ -930,5 +998,828 @@ mod test {
         assert_eq!(days_in_year_month(2020, 10), 31);
         assert_eq!(days_in_year_month(2020, 11), 30);
         assert_eq!(days_in_year_month(2020, 12), 31);
+    }
+
+    // Test all dominical letters. For leap years, check the dates
+    // immediately preceding and after the leap day.
+
+    #[test]
+    #[allow(clippy::cognitive_complexity, clippy::zero_prefixed_literal)]
+    fn test_monday_based_week() {
+        macro_rules! assert_monday_week {
+            ($y:literal - $m:literal - $d:literal => $week:literal) => {
+                assert_eq!(Date::from_ymd($y, $m, $d).monday_based_week(), $week);
+            };
+        }
+
+        // A
+        assert_monday_week!(2023-01-01 => 0);
+        assert_monday_week!(2023-01-02 => 1);
+        assert_monday_week!(2023-01-03 => 1);
+        assert_monday_week!(2023-01-04 => 1);
+        assert_monday_week!(2023-01-05 => 1);
+        assert_monday_week!(2023-01-06 => 1);
+        assert_monday_week!(2023-01-07 => 1);
+
+        // B
+        assert_monday_week!(2022-01-01 => 0);
+        assert_monday_week!(2022-01-02 => 0);
+        assert_monday_week!(2022-01-03 => 1);
+        assert_monday_week!(2022-01-04 => 1);
+        assert_monday_week!(2022-01-05 => 1);
+        assert_monday_week!(2022-01-06 => 1);
+        assert_monday_week!(2022-01-07 => 1);
+
+        // C
+        assert_monday_week!(2021-01-01 => 0);
+        assert_monday_week!(2021-01-02 => 0);
+        assert_monday_week!(2021-01-03 => 0);
+        assert_monday_week!(2021-01-04 => 1);
+        assert_monday_week!(2021-01-05 => 1);
+        assert_monday_week!(2021-01-06 => 1);
+        assert_monday_week!(2021-01-07 => 1);
+
+        // D
+        assert_monday_week!(2026-01-01 => 0);
+        assert_monday_week!(2026-01-02 => 0);
+        assert_monday_week!(2026-01-03 => 0);
+        assert_monday_week!(2026-01-04 => 0);
+        assert_monday_week!(2026-01-05 => 1);
+        assert_monday_week!(2026-01-06 => 1);
+        assert_monday_week!(2026-01-07 => 1);
+
+        // E
+        assert_monday_week!(2025-01-01 => 0);
+        assert_monday_week!(2025-01-02 => 0);
+        assert_monday_week!(2025-01-03 => 0);
+        assert_monday_week!(2025-01-04 => 0);
+        assert_monday_week!(2025-01-05 => 0);
+        assert_monday_week!(2025-01-06 => 1);
+        assert_monday_week!(2025-01-07 => 1);
+
+        // F
+        assert_monday_week!(2019-01-01 => 0);
+        assert_monday_week!(2019-01-02 => 0);
+        assert_monday_week!(2019-01-03 => 0);
+        assert_monday_week!(2019-01-04 => 0);
+        assert_monday_week!(2019-01-05 => 0);
+        assert_monday_week!(2019-01-06 => 0);
+        assert_monday_week!(2019-01-07 => 1);
+
+        // G
+        assert_monday_week!(2018-01-01 => 1);
+        assert_monday_week!(2018-01-02 => 1);
+        assert_monday_week!(2018-01-03 => 1);
+        assert_monday_week!(2018-01-04 => 1);
+        assert_monday_week!(2018-01-05 => 1);
+        assert_monday_week!(2018-01-06 => 1);
+        assert_monday_week!(2018-01-07 => 1);
+
+        // AG
+        assert_monday_week!(2012-01-01 => 0);
+        assert_monday_week!(2012-01-02 => 1);
+        assert_monday_week!(2012-01-03 => 1);
+        assert_monday_week!(2012-01-04 => 1);
+        assert_monday_week!(2012-01-05 => 1);
+        assert_monday_week!(2012-01-06 => 1);
+        assert_monday_week!(2012-01-07 => 1);
+        assert_monday_week!(2012-02-28 => 9);
+        assert_monday_week!(2012-02-29 => 9);
+        assert_monday_week!(2012-03-01 => 9);
+        assert_monday_week!(2012-03-02 => 9);
+        assert_monday_week!(2012-03-03 => 9);
+        assert_monday_week!(2012-03-04 => 9);
+        assert_monday_week!(2012-03-05 => 10);
+        assert_monday_week!(2012-03-06 => 10);
+        assert_monday_week!(2012-03-07 => 10);
+
+        // BA
+        assert_monday_week!(2028-01-01 => 0);
+        assert_monday_week!(2028-01-02 => 0);
+        assert_monday_week!(2028-01-03 => 1);
+        assert_monday_week!(2028-01-04 => 1);
+        assert_monday_week!(2028-01-05 => 1);
+        assert_monday_week!(2028-01-06 => 1);
+        assert_monday_week!(2028-01-07 => 1);
+        assert_monday_week!(2028-02-28 => 9);
+        assert_monday_week!(2028-02-29 => 9);
+        assert_monday_week!(2028-03-01 => 9);
+        assert_monday_week!(2028-03-02 => 9);
+        assert_monday_week!(2028-03-03 => 9);
+        assert_monday_week!(2028-03-04 => 9);
+        assert_monday_week!(2028-03-05 => 9);
+        assert_monday_week!(2028-03-06 => 10);
+        assert_monday_week!(2028-03-07 => 10);
+
+        // CB
+        assert_monday_week!(2016-01-01 => 0);
+        assert_monday_week!(2016-01-02 => 0);
+        assert_monday_week!(2016-01-03 => 0);
+        assert_monday_week!(2016-01-04 => 1);
+        assert_monday_week!(2016-01-05 => 1);
+        assert_monday_week!(2016-01-06 => 1);
+        assert_monday_week!(2016-01-07 => 1);
+        assert_monday_week!(2016-02-28 => 8);
+        assert_monday_week!(2016-02-29 => 9);
+        assert_monday_week!(2016-03-01 => 9);
+        assert_monday_week!(2016-03-02 => 9);
+        assert_monday_week!(2016-03-03 => 9);
+        assert_monday_week!(2016-03-04 => 9);
+        assert_monday_week!(2016-03-05 => 9);
+        assert_monday_week!(2016-03-06 => 9);
+        assert_monday_week!(2016-03-07 => 10);
+
+        // DC
+        assert_monday_week!(2032-01-01 => 0);
+        assert_monday_week!(2032-01-02 => 0);
+        assert_monday_week!(2032-01-03 => 0);
+        assert_monday_week!(2032-01-04 => 0);
+        assert_monday_week!(2032-01-05 => 1);
+        assert_monday_week!(2032-01-06 => 1);
+        assert_monday_week!(2032-01-07 => 1);
+        assert_monday_week!(2032-02-28 => 8);
+        assert_monday_week!(2032-02-29 => 8);
+        assert_monday_week!(2032-03-01 => 9);
+        assert_monday_week!(2032-03-02 => 9);
+        assert_monday_week!(2032-03-03 => 9);
+        assert_monday_week!(2032-03-04 => 9);
+        assert_monday_week!(2032-03-05 => 9);
+        assert_monday_week!(2032-03-06 => 9);
+        assert_monday_week!(2032-03-07 => 9);
+
+        // ED
+        assert_monday_week!(2020-01-01 => 0);
+        assert_monday_week!(2020-01-02 => 0);
+        assert_monday_week!(2020-01-03 => 0);
+        assert_monday_week!(2020-01-04 => 0);
+        assert_monday_week!(2020-01-05 => 0);
+        assert_monday_week!(2020-01-06 => 1);
+        assert_monday_week!(2020-01-07 => 1);
+        assert_monday_week!(2020-02-28 => 8);
+        assert_monday_week!(2020-02-29 => 8);
+        assert_monday_week!(2020-03-01 => 8);
+        assert_monday_week!(2020-03-02 => 9);
+        assert_monday_week!(2020-03-03 => 9);
+        assert_monday_week!(2020-03-04 => 9);
+        assert_monday_week!(2020-03-05 => 9);
+        assert_monday_week!(2020-03-06 => 9);
+        assert_monday_week!(2020-03-07 => 9);
+
+        // FE
+        assert_monday_week!(2036-01-01 => 0);
+        assert_monday_week!(2036-01-02 => 0);
+        assert_monday_week!(2036-01-03 => 0);
+        assert_monday_week!(2036-01-04 => 0);
+        assert_monday_week!(2036-01-05 => 0);
+        assert_monday_week!(2036-01-06 => 0);
+        assert_monday_week!(2036-01-07 => 1);
+        assert_monday_week!(2036-02-28 => 8);
+        assert_monday_week!(2036-02-29 => 8);
+        assert_monday_week!(2036-03-01 => 8);
+        assert_monday_week!(2036-03-02 => 8);
+        assert_monday_week!(2036-03-03 => 9);
+        assert_monday_week!(2036-03-04 => 9);
+        assert_monday_week!(2036-03-05 => 9);
+        assert_monday_week!(2036-03-06 => 9);
+        assert_monday_week!(2036-03-07 => 9);
+
+        // GF
+        assert_monday_week!(2024-01-01 => 1);
+        assert_monday_week!(2024-01-02 => 1);
+        assert_monday_week!(2024-01-03 => 1);
+        assert_monday_week!(2024-01-04 => 1);
+        assert_monday_week!(2024-01-05 => 1);
+        assert_monday_week!(2024-01-06 => 1);
+        assert_monday_week!(2024-01-07 => 1);
+        assert_monday_week!(2024-02-28 => 9);
+        assert_monday_week!(2024-02-29 => 9);
+        assert_monday_week!(2024-03-01 => 9);
+        assert_monday_week!(2024-03-02 => 9);
+        assert_monday_week!(2024-03-03 => 9);
+        assert_monday_week!(2024-03-04 => 10);
+        assert_monday_week!(2024-03-05 => 10);
+        assert_monday_week!(2024-03-06 => 10);
+        assert_monday_week!(2024-03-07 => 10);
+    }
+
+    #[test]
+    #[allow(clippy::cognitive_complexity, clippy::zero_prefixed_literal)]
+    fn test_sunday_based_week() {
+        macro_rules! assert_sunday_week {
+            ($y:literal - $m:literal - $d:literal => $week:literal) => {
+                assert_eq!(Date::from_ymd($y, $m, $d).sunday_based_week(), $week);
+            };
+        }
+
+        // A
+        assert_sunday_week!(2023-01-01 => 1);
+        assert_sunday_week!(2023-01-02 => 1);
+        assert_sunday_week!(2023-01-03 => 1);
+        assert_sunday_week!(2023-01-04 => 1);
+        assert_sunday_week!(2023-01-05 => 1);
+        assert_sunday_week!(2023-01-06 => 1);
+        assert_sunday_week!(2023-01-07 => 1);
+
+        // B
+        assert_sunday_week!(2022-01-01 => 0);
+        assert_sunday_week!(2022-01-02 => 1);
+        assert_sunday_week!(2022-01-03 => 1);
+        assert_sunday_week!(2022-01-04 => 1);
+        assert_sunday_week!(2022-01-05 => 1);
+        assert_sunday_week!(2022-01-06 => 1);
+        assert_sunday_week!(2022-01-07 => 1);
+
+        // C
+        assert_sunday_week!(2021-01-01 => 0);
+        assert_sunday_week!(2021-01-02 => 0);
+        assert_sunday_week!(2021-01-03 => 1);
+        assert_sunday_week!(2021-01-04 => 1);
+        assert_sunday_week!(2021-01-05 => 1);
+        assert_sunday_week!(2021-01-06 => 1);
+        assert_sunday_week!(2021-01-07 => 1);
+
+        // D
+        assert_sunday_week!(2026-01-01 => 0);
+        assert_sunday_week!(2026-01-02 => 0);
+        assert_sunday_week!(2026-01-03 => 0);
+        assert_sunday_week!(2026-01-04 => 1);
+        assert_sunday_week!(2026-01-05 => 1);
+        assert_sunday_week!(2026-01-06 => 1);
+        assert_sunday_week!(2026-01-07 => 1);
+
+        // E
+        assert_sunday_week!(2025-01-01 => 0);
+        assert_sunday_week!(2025-01-02 => 0);
+        assert_sunday_week!(2025-01-03 => 0);
+        assert_sunday_week!(2025-01-04 => 0);
+        assert_sunday_week!(2025-01-05 => 1);
+        assert_sunday_week!(2025-01-06 => 1);
+        assert_sunday_week!(2025-01-07 => 1);
+
+        // F
+        assert_sunday_week!(2019-01-01 => 0);
+        assert_sunday_week!(2019-01-02 => 0);
+        assert_sunday_week!(2019-01-03 => 0);
+        assert_sunday_week!(2019-01-04 => 0);
+        assert_sunday_week!(2019-01-05 => 0);
+        assert_sunday_week!(2019-01-06 => 1);
+        assert_sunday_week!(2019-01-07 => 1);
+
+        // G
+        assert_sunday_week!(2018-01-01 => 0);
+        assert_sunday_week!(2018-01-02 => 0);
+        assert_sunday_week!(2018-01-03 => 0);
+        assert_sunday_week!(2018-01-04 => 0);
+        assert_sunday_week!(2018-01-05 => 0);
+        assert_sunday_week!(2018-01-06 => 0);
+        assert_sunday_week!(2018-01-07 => 1);
+
+        // AG
+        assert_sunday_week!(2012-01-01 => 1);
+        assert_sunday_week!(2012-01-02 => 1);
+        assert_sunday_week!(2012-01-03 => 1);
+        assert_sunday_week!(2012-01-04 => 1);
+        assert_sunday_week!(2012-01-05 => 1);
+        assert_sunday_week!(2012-01-06 => 1);
+        assert_sunday_week!(2012-01-07 => 1);
+        assert_sunday_week!(2012-02-28 => 9);
+        assert_sunday_week!(2012-02-29 => 9);
+        assert_sunday_week!(2012-03-01 => 9);
+        assert_sunday_week!(2012-03-02 => 9);
+        assert_sunday_week!(2012-03-03 => 9);
+        assert_sunday_week!(2012-03-04 => 10);
+        assert_sunday_week!(2012-03-05 => 10);
+        assert_sunday_week!(2012-03-06 => 10);
+        assert_sunday_week!(2012-03-07 => 10);
+
+        // BA
+        assert_sunday_week!(2028-01-01 => 0);
+        assert_sunday_week!(2028-01-02 => 1);
+        assert_sunday_week!(2028-01-03 => 1);
+        assert_sunday_week!(2028-01-04 => 1);
+        assert_sunday_week!(2028-01-05 => 1);
+        assert_sunday_week!(2028-01-06 => 1);
+        assert_sunday_week!(2028-01-07 => 1);
+        assert_sunday_week!(2028-02-28 => 9);
+        assert_sunday_week!(2028-02-29 => 9);
+        assert_sunday_week!(2028-03-01 => 9);
+        assert_sunday_week!(2028-03-02 => 9);
+        assert_sunday_week!(2028-03-03 => 9);
+        assert_sunday_week!(2028-03-04 => 9);
+        assert_sunday_week!(2028-03-05 => 10);
+        assert_sunday_week!(2028-03-06 => 10);
+        assert_sunday_week!(2028-03-07 => 10);
+
+        // CB
+        assert_sunday_week!(2016-01-01 => 0);
+        assert_sunday_week!(2016-01-02 => 0);
+        assert_sunday_week!(2016-01-03 => 1);
+        assert_sunday_week!(2016-01-04 => 1);
+        assert_sunday_week!(2016-01-05 => 1);
+        assert_sunday_week!(2016-01-06 => 1);
+        assert_sunday_week!(2016-01-07 => 1);
+        assert_sunday_week!(2016-02-28 => 9);
+        assert_sunday_week!(2016-02-29 => 9);
+        assert_sunday_week!(2016-03-01 => 9);
+        assert_sunday_week!(2016-03-02 => 9);
+        assert_sunday_week!(2016-03-03 => 9);
+        assert_sunday_week!(2016-03-04 => 9);
+        assert_sunday_week!(2016-03-05 => 9);
+        assert_sunday_week!(2016-03-06 => 10);
+        assert_sunday_week!(2016-03-07 => 10);
+
+        // DC
+        assert_sunday_week!(2032-01-01 => 0);
+        assert_sunday_week!(2032-01-02 => 0);
+        assert_sunday_week!(2032-01-03 => 0);
+        assert_sunday_week!(2032-01-04 => 1);
+        assert_sunday_week!(2032-01-05 => 1);
+        assert_sunday_week!(2032-01-06 => 1);
+        assert_sunday_week!(2032-01-07 => 1);
+        assert_sunday_week!(2032-02-28 => 8);
+        assert_sunday_week!(2032-02-29 => 9);
+        assert_sunday_week!(2032-03-01 => 9);
+        assert_sunday_week!(2032-03-02 => 9);
+        assert_sunday_week!(2032-03-03 => 9);
+        assert_sunday_week!(2032-03-04 => 9);
+        assert_sunday_week!(2032-03-05 => 9);
+        assert_sunday_week!(2032-03-06 => 9);
+        assert_sunday_week!(2032-03-07 => 10);
+
+        // ED
+        assert_sunday_week!(2020-01-01 => 0);
+        assert_sunday_week!(2020-01-02 => 0);
+        assert_sunday_week!(2020-01-03 => 0);
+        assert_sunday_week!(2020-01-04 => 0);
+        assert_sunday_week!(2020-01-05 => 1);
+        assert_sunday_week!(2020-01-06 => 1);
+        assert_sunday_week!(2020-01-07 => 1);
+        assert_sunday_week!(2020-02-28 => 8);
+        assert_sunday_week!(2020-02-29 => 8);
+        assert_sunday_week!(2020-03-01 => 9);
+        assert_sunday_week!(2020-03-02 => 9);
+        assert_sunday_week!(2020-03-03 => 9);
+        assert_sunday_week!(2020-03-04 => 9);
+        assert_sunday_week!(2020-03-05 => 9);
+        assert_sunday_week!(2020-03-06 => 9);
+        assert_sunday_week!(2020-03-07 => 9);
+
+        // FE
+        assert_sunday_week!(2036-01-01 => 0);
+        assert_sunday_week!(2036-01-02 => 0);
+        assert_sunday_week!(2036-01-03 => 0);
+        assert_sunday_week!(2036-01-04 => 0);
+        assert_sunday_week!(2036-01-05 => 0);
+        assert_sunday_week!(2036-01-06 => 1);
+        assert_sunday_week!(2036-01-07 => 1);
+        assert_sunday_week!(2036-02-28 => 8);
+        assert_sunday_week!(2036-02-29 => 8);
+        assert_sunday_week!(2036-03-01 => 8);
+        assert_sunday_week!(2036-03-02 => 9);
+        assert_sunday_week!(2036-03-03 => 9);
+        assert_sunday_week!(2036-03-04 => 9);
+        assert_sunday_week!(2036-03-05 => 9);
+        assert_sunday_week!(2036-03-06 => 9);
+        assert_sunday_week!(2036-03-07 => 9);
+
+        // GF
+        assert_sunday_week!(2024-01-01 => 0);
+        assert_sunday_week!(2024-01-02 => 0);
+        assert_sunday_week!(2024-01-03 => 0);
+        assert_sunday_week!(2024-01-04 => 0);
+        assert_sunday_week!(2024-01-05 => 0);
+        assert_sunday_week!(2024-01-06 => 0);
+        assert_sunday_week!(2024-01-07 => 1);
+        assert_sunday_week!(2024-02-28 => 8);
+        assert_sunday_week!(2024-02-29 => 8);
+        assert_sunday_week!(2024-03-01 => 8);
+        assert_sunday_week!(2024-03-02 => 8);
+        assert_sunday_week!(2024-03-03 => 9);
+        assert_sunday_week!(2024-03-04 => 9);
+        assert_sunday_week!(2024-03-05 => 9);
+        assert_sunday_week!(2024-03-06 => 9);
+        assert_sunday_week!(2024-03-07 => 9);
+    }
+
+    #[test]
+    #[allow(clippy::cognitive_complexity, clippy::zero_prefixed_literal)]
+    fn test_parse_monday_based_week() {
+        macro_rules! assert_dwy {
+            ($weekday:ident $week:literal $year:literal => $ordinal:literal) => {
+                assert_eq!(
+                    Date::parse(
+                        concat!(
+                            stringify!($weekday),
+                            " ",
+                            stringify!($week),
+                            " ",
+                            stringify!($year)
+                        ),
+                        "%a %W %Y"
+                    ),
+                    Ok(Date::from_yo($year, $ordinal))
+                );
+            };
+        }
+
+        // A
+        assert_dwy!(Sun 00 2023 => 001);
+        assert_dwy!(Mon 01 2023 => 002);
+        assert_dwy!(Tue 01 2023 => 003);
+        assert_dwy!(Wed 01 2023 => 004);
+        assert_dwy!(Thu 01 2023 => 005);
+        assert_dwy!(Fri 01 2023 => 006);
+        assert_dwy!(Sat 01 2023 => 007);
+
+        // B
+        assert_dwy!(Sat 00 2022 => 001);
+        assert_dwy!(Sun 00 2022 => 002);
+        assert_dwy!(Mon 01 2022 => 003);
+        assert_dwy!(Tue 01 2022 => 004);
+        assert_dwy!(Wed 01 2022 => 005);
+        assert_dwy!(Thu 01 2022 => 006);
+        assert_dwy!(Fri 01 2022 => 007);
+
+        // C
+        assert_dwy!(Fri 00 2021 => 001);
+        assert_dwy!(Sat 00 2021 => 002);
+        assert_dwy!(Sun 00 2021 => 003);
+        assert_dwy!(Mon 01 2021 => 004);
+        assert_dwy!(Tue 01 2021 => 005);
+        assert_dwy!(Wed 01 2021 => 006);
+        assert_dwy!(Thu 01 2021 => 007);
+
+        // D
+        assert_dwy!(Thu 00 2026 => 001);
+        assert_dwy!(Fri 00 2026 => 002);
+        assert_dwy!(Sat 00 2026 => 003);
+        assert_dwy!(Sun 00 2026 => 004);
+        assert_dwy!(Mon 01 2026 => 005);
+        assert_dwy!(Tue 01 2026 => 006);
+        assert_dwy!(Wed 01 2026 => 007);
+
+        // E
+        assert_dwy!(Wed 00 2025 => 001);
+        assert_dwy!(Thu 00 2025 => 002);
+        assert_dwy!(Fri 00 2025 => 003);
+        assert_dwy!(Sat 00 2025 => 004);
+        assert_dwy!(Sun 00 2025 => 005);
+        assert_dwy!(Mon 01 2025 => 006);
+        assert_dwy!(Tue 01 2025 => 007);
+
+        // F
+        assert_dwy!(Tue 00 2019 => 001);
+        assert_dwy!(Wed 00 2019 => 002);
+        assert_dwy!(Thu 00 2019 => 003);
+        assert_dwy!(Fri 00 2019 => 004);
+        assert_dwy!(Sat 00 2019 => 005);
+        assert_dwy!(Sun 00 2019 => 006);
+        assert_dwy!(Mon 01 2019 => 007);
+
+        // G
+        assert_dwy!(Mon 01 2018 => 001);
+        assert_dwy!(Tue 01 2018 => 002);
+        assert_dwy!(Wed 01 2018 => 003);
+        assert_dwy!(Thu 01 2018 => 004);
+        assert_dwy!(Fri 01 2018 => 005);
+        assert_dwy!(Sat 01 2018 => 006);
+        assert_dwy!(Sun 01 2018 => 007);
+
+        // AG
+        assert_dwy!(Sun 00 2012 => 001);
+        assert_dwy!(Mon 01 2012 => 002);
+        assert_dwy!(Tue 01 2012 => 003);
+        assert_dwy!(Wed 01 2012 => 004);
+        assert_dwy!(Thu 01 2012 => 005);
+        assert_dwy!(Fri 01 2012 => 006);
+        assert_dwy!(Sat 01 2012 => 007);
+        assert_dwy!(Tue 09 2012 => 059);
+        assert_dwy!(Wed 09 2012 => 060);
+        assert_dwy!(Thu 09 2012 => 061);
+        assert_dwy!(Fri 09 2012 => 062);
+        assert_dwy!(Sat 09 2012 => 063);
+        assert_dwy!(Sun 09 2012 => 064);
+        assert_dwy!(Mon 10 2012 => 065);
+        assert_dwy!(Tue 10 2012 => 066);
+        assert_dwy!(Wed 10 2012 => 067);
+
+        // BA
+        assert_dwy!(Sat 00 2028 => 001);
+        assert_dwy!(Sun 00 2028 => 002);
+        assert_dwy!(Mon 01 2028 => 003);
+        assert_dwy!(Tue 01 2028 => 004);
+        assert_dwy!(Wed 01 2028 => 005);
+        assert_dwy!(Thu 01 2028 => 006);
+        assert_dwy!(Fri 01 2028 => 007);
+        assert_dwy!(Mon 09 2028 => 059);
+        assert_dwy!(Tue 09 2028 => 060);
+        assert_dwy!(Wed 09 2028 => 061);
+        assert_dwy!(Thu 09 2028 => 062);
+        assert_dwy!(Fri 09 2028 => 063);
+        assert_dwy!(Sat 09 2028 => 064);
+        assert_dwy!(Sun 09 2028 => 065);
+        assert_dwy!(Mon 10 2028 => 066);
+        assert_dwy!(Tue 10 2028 => 067);
+
+        // CB
+        assert_dwy!(Fri 00 2016 => 001);
+        assert_dwy!(Sat 00 2016 => 002);
+        assert_dwy!(Sun 00 2016 => 003);
+        assert_dwy!(Mon 01 2016 => 004);
+        assert_dwy!(Tue 01 2016 => 005);
+        assert_dwy!(Wed 01 2016 => 006);
+        assert_dwy!(Thu 01 2016 => 007);
+        assert_dwy!(Sun 08 2016 => 059);
+        assert_dwy!(Mon 09 2016 => 060);
+        assert_dwy!(Tue 09 2016 => 061);
+        assert_dwy!(Wed 09 2016 => 062);
+        assert_dwy!(Thu 09 2016 => 063);
+        assert_dwy!(Fri 09 2016 => 064);
+        assert_dwy!(Sat 09 2016 => 065);
+        assert_dwy!(Sun 09 2016 => 066);
+        assert_dwy!(Mon 10 2016 => 067);
+
+        // DC
+        assert_dwy!(Thu 00 2032 => 001);
+        assert_dwy!(Fri 00 2032 => 002);
+        assert_dwy!(Sat 00 2032 => 003);
+        assert_dwy!(Sun 00 2032 => 004);
+        assert_dwy!(Mon 01 2032 => 005);
+        assert_dwy!(Tue 01 2032 => 006);
+        assert_dwy!(Wed 01 2032 => 007);
+        assert_dwy!(Sat 08 2032 => 059);
+        assert_dwy!(Sun 08 2032 => 060);
+        assert_dwy!(Mon 09 2032 => 061);
+        assert_dwy!(Tue 09 2032 => 062);
+        assert_dwy!(Wed 09 2032 => 063);
+        assert_dwy!(Thu 09 2032 => 064);
+        assert_dwy!(Fri 09 2032 => 065);
+        assert_dwy!(Sat 09 2032 => 066);
+        assert_dwy!(Sun 09 2032 => 067);
+
+        // ED
+        assert_dwy!(Wed 00 2020 => 001);
+        assert_dwy!(Thu 00 2020 => 002);
+        assert_dwy!(Fri 00 2020 => 003);
+        assert_dwy!(Sat 00 2020 => 004);
+        assert_dwy!(Sun 00 2020 => 005);
+        assert_dwy!(Mon 01 2020 => 006);
+        assert_dwy!(Tue 01 2020 => 007);
+        assert_dwy!(Fri 08 2020 => 059);
+        assert_dwy!(Sat 08 2020 => 060);
+        assert_dwy!(Sun 08 2020 => 061);
+        assert_dwy!(Mon 09 2020 => 062);
+        assert_dwy!(Tue 09 2020 => 063);
+        assert_dwy!(Wed 09 2020 => 064);
+        assert_dwy!(Thu 09 2020 => 065);
+        assert_dwy!(Fri 09 2020 => 066);
+        assert_dwy!(Sat 09 2020 => 067);
+
+        // FE
+        assert_dwy!(Tue 00 2036 => 001);
+        assert_dwy!(Wed 00 2036 => 002);
+        assert_dwy!(Thu 00 2036 => 003);
+        assert_dwy!(Fri 00 2036 => 004);
+        assert_dwy!(Sat 00 2036 => 005);
+        assert_dwy!(Sun 00 2036 => 006);
+        assert_dwy!(Mon 01 2036 => 007);
+        assert_dwy!(Thu 08 2036 => 059);
+        assert_dwy!(Fri 08 2036 => 060);
+        assert_dwy!(Sat 08 2036 => 061);
+        assert_dwy!(Sun 08 2036 => 062);
+        assert_dwy!(Mon 09 2036 => 063);
+        assert_dwy!(Tue 09 2036 => 064);
+        assert_dwy!(Wed 09 2036 => 065);
+        assert_dwy!(Thu 09 2036 => 066);
+        assert_dwy!(Fri 09 2036 => 067);
+
+        // GF
+        assert_dwy!(Mon 01 2024 => 001);
+        assert_dwy!(Tue 01 2024 => 002);
+        assert_dwy!(Wed 01 2024 => 003);
+        assert_dwy!(Thu 01 2024 => 004);
+        assert_dwy!(Fri 01 2024 => 005);
+        assert_dwy!(Sat 01 2024 => 006);
+        assert_dwy!(Sun 01 2024 => 007);
+        assert_dwy!(Wed 09 2024 => 059);
+        assert_dwy!(Thu 09 2024 => 060);
+        assert_dwy!(Fri 09 2024 => 061);
+        assert_dwy!(Sat 09 2024 => 062);
+        assert_dwy!(Sun 09 2024 => 063);
+        assert_dwy!(Mon 10 2024 => 064);
+        assert_dwy!(Tue 10 2024 => 065);
+        assert_dwy!(Wed 10 2024 => 066);
+        assert_dwy!(Thu 10 2024 => 067);
+    }
+
+    #[test]
+    #[allow(clippy::cognitive_complexity, clippy::zero_prefixed_literal)]
+    fn test_parse_sunday_based_week() {
+        macro_rules! assert_dwy {
+            ($weekday:ident $week:literal $year:literal => $ordinal:literal) => {
+                assert_eq!(
+                    Date::parse(
+                        concat!(
+                            stringify!($weekday),
+                            " ",
+                            stringify!($week),
+                            " ",
+                            stringify!($year)
+                        ),
+                        "%a %U %Y"
+                    ),
+                    Ok(Date::from_yo($year, $ordinal))
+                );
+            };
+        }
+
+        // A
+        assert_dwy!(Sun 01 2018 => 001);
+        assert_dwy!(Mon 01 2018 => 002);
+        assert_dwy!(Tue 01 2018 => 003);
+        assert_dwy!(Wed 01 2018 => 004);
+        assert_dwy!(Thu 01 2018 => 005);
+        assert_dwy!(Fri 01 2018 => 006);
+        assert_dwy!(Sat 01 2018 => 007);
+
+        // B
+        assert_dwy!(Sat 00 2023 => 001);
+        assert_dwy!(Sun 01 2023 => 002);
+        assert_dwy!(Mon 01 2023 => 003);
+        assert_dwy!(Tue 01 2023 => 004);
+        assert_dwy!(Wed 01 2023 => 005);
+        assert_dwy!(Thu 01 2023 => 006);
+        assert_dwy!(Fri 01 2023 => 007);
+
+        // C
+        assert_dwy!(Fri 00 2022 => 001);
+        assert_dwy!(Sat 00 2022 => 002);
+        assert_dwy!(Sun 01 2022 => 003);
+        assert_dwy!(Mon 01 2022 => 004);
+        assert_dwy!(Tue 01 2022 => 005);
+        assert_dwy!(Wed 01 2022 => 006);
+        assert_dwy!(Thu 01 2022 => 007);
+
+        // D
+        assert_dwy!(Thu 00 2021 => 001);
+        assert_dwy!(Fri 00 2021 => 002);
+        assert_dwy!(Sat 00 2021 => 003);
+        assert_dwy!(Sun 01 2021 => 004);
+        assert_dwy!(Mon 01 2021 => 005);
+        assert_dwy!(Tue 01 2021 => 006);
+        assert_dwy!(Wed 01 2021 => 007);
+
+        // E
+        assert_dwy!(Wed 00 2026 => 001);
+        assert_dwy!(Thu 00 2026 => 002);
+        assert_dwy!(Fri 00 2026 => 003);
+        assert_dwy!(Sat 00 2026 => 004);
+        assert_dwy!(Sun 01 2026 => 005);
+        assert_dwy!(Mon 01 2026 => 006);
+        assert_dwy!(Tue 01 2026 => 007);
+
+        // F
+        assert_dwy!(Tue 00 2025 => 001);
+        assert_dwy!(Wed 00 2025 => 002);
+        assert_dwy!(Thu 00 2025 => 003);
+        assert_dwy!(Fri 00 2025 => 004);
+        assert_dwy!(Sat 00 2025 => 005);
+        assert_dwy!(Sun 01 2025 => 006);
+        assert_dwy!(Mon 01 2025 => 007);
+
+        // G
+        assert_dwy!(Mon 00 2019 => 001);
+        assert_dwy!(Tue 00 2019 => 002);
+        assert_dwy!(Wed 00 2019 => 003);
+        assert_dwy!(Thu 00 2019 => 004);
+        assert_dwy!(Fri 00 2019 => 005);
+        assert_dwy!(Sat 00 2019 => 006);
+        assert_dwy!(Sun 01 2019 => 007);
+
+        // AG
+        assert_dwy!(Sun 01 2024 => 001);
+        assert_dwy!(Mon 01 2024 => 002);
+        assert_dwy!(Tue 01 2024 => 003);
+        assert_dwy!(Wed 01 2024 => 004);
+        assert_dwy!(Thu 01 2024 => 005);
+        assert_dwy!(Fri 01 2024 => 006);
+        assert_dwy!(Sat 01 2024 => 007);
+        assert_dwy!(Tue 09 2024 => 059);
+        assert_dwy!(Wed 09 2024 => 060);
+        assert_dwy!(Thu 09 2024 => 061);
+        assert_dwy!(Fri 09 2024 => 062);
+        assert_dwy!(Sat 09 2024 => 063);
+        assert_dwy!(Sun 10 2024 => 064);
+        assert_dwy!(Mon 10 2024 => 065);
+        assert_dwy!(Tue 10 2024 => 066);
+        assert_dwy!(Wed 10 2024 => 067);
+
+        // BA
+        assert_dwy!(Sat 00 2012 => 001);
+        assert_dwy!(Sun 01 2012 => 002);
+        assert_dwy!(Mon 01 2012 => 003);
+        assert_dwy!(Tue 01 2012 => 004);
+        assert_dwy!(Wed 01 2012 => 005);
+        assert_dwy!(Thu 01 2012 => 006);
+        assert_dwy!(Fri 01 2012 => 007);
+        assert_dwy!(Mon 09 2012 => 059);
+        assert_dwy!(Tue 09 2012 => 060);
+        assert_dwy!(Wed 09 2012 => 061);
+        assert_dwy!(Thu 09 2012 => 062);
+        assert_dwy!(Fri 09 2012 => 063);
+        assert_dwy!(Sat 09 2012 => 064);
+        assert_dwy!(Sun 10 2012 => 065);
+        assert_dwy!(Mon 10 2012 => 066);
+        assert_dwy!(Tue 10 2012 => 067);
+
+        // CB
+        assert_dwy!(Fri 00 2028 => 001);
+        assert_dwy!(Sat 00 2028 => 002);
+        assert_dwy!(Sun 01 2028 => 003);
+        assert_dwy!(Mon 01 2028 => 004);
+        assert_dwy!(Tue 01 2028 => 005);
+        assert_dwy!(Wed 01 2028 => 006);
+        assert_dwy!(Thu 01 2028 => 007);
+        assert_dwy!(Sun 09 2028 => 059);
+        assert_dwy!(Mon 09 2028 => 060);
+        assert_dwy!(Tue 09 2028 => 061);
+        assert_dwy!(Wed 09 2028 => 062);
+        assert_dwy!(Thu 09 2028 => 063);
+        assert_dwy!(Fri 09 2028 => 064);
+        assert_dwy!(Sat 09 2028 => 065);
+        assert_dwy!(Sun 10 2028 => 066);
+        assert_dwy!(Mon 10 2028 => 067);
+
+        // DC
+        assert_dwy!(Thu 00 2016 => 001);
+        assert_dwy!(Fri 00 2016 => 002);
+        assert_dwy!(Sat 00 2016 => 003);
+        assert_dwy!(Sun 01 2016 => 004);
+        assert_dwy!(Mon 01 2016 => 005);
+        assert_dwy!(Tue 01 2016 => 006);
+        assert_dwy!(Wed 01 2016 => 007);
+        assert_dwy!(Sat 08 2016 => 059);
+        assert_dwy!(Sun 09 2016 => 060);
+        assert_dwy!(Mon 09 2016 => 061);
+        assert_dwy!(Tue 09 2016 => 062);
+        assert_dwy!(Wed 09 2016 => 063);
+        assert_dwy!(Thu 09 2016 => 064);
+        assert_dwy!(Fri 09 2016 => 065);
+        assert_dwy!(Sat 09 2016 => 066);
+        assert_dwy!(Sun 10 2016 => 067);
+
+        // ED
+        assert_dwy!(Wed 00 2032 => 001);
+        assert_dwy!(Thu 00 2032 => 002);
+        assert_dwy!(Fri 00 2032 => 003);
+        assert_dwy!(Sat 00 2032 => 004);
+        assert_dwy!(Sun 01 2032 => 005);
+        assert_dwy!(Mon 01 2032 => 006);
+        assert_dwy!(Tue 01 2032 => 007);
+        assert_dwy!(Fri 08 2032 => 059);
+        assert_dwy!(Sat 08 2032 => 060);
+        assert_dwy!(Sun 09 2032 => 061);
+        assert_dwy!(Mon 09 2032 => 062);
+        assert_dwy!(Tue 09 2032 => 063);
+        assert_dwy!(Wed 09 2032 => 064);
+        assert_dwy!(Thu 09 2032 => 065);
+        assert_dwy!(Fri 09 2032 => 066);
+        assert_dwy!(Sat 09 2032 => 067);
+
+        // FE
+        assert_dwy!(Tue 00 2020 => 001);
+        assert_dwy!(Wed 00 2020 => 002);
+        assert_dwy!(Thu 00 2020 => 003);
+        assert_dwy!(Fri 00 2020 => 004);
+        assert_dwy!(Sat 00 2020 => 005);
+        assert_dwy!(Sun 01 2020 => 006);
+        assert_dwy!(Mon 01 2020 => 007);
+        assert_dwy!(Thu 08 2020 => 059);
+        assert_dwy!(Fri 08 2020 => 060);
+        assert_dwy!(Sat 08 2020 => 061);
+        assert_dwy!(Sun 09 2020 => 062);
+        assert_dwy!(Mon 09 2020 => 063);
+        assert_dwy!(Tue 09 2020 => 064);
+        assert_dwy!(Wed 09 2020 => 065);
+        assert_dwy!(Thu 09 2020 => 066);
+        assert_dwy!(Fri 09 2020 => 067);
+
+        // GF
+        assert_dwy!(Mon 00 2036 => 001);
+        assert_dwy!(Tue 00 2036 => 002);
+        assert_dwy!(Wed 00 2036 => 003);
+        assert_dwy!(Thu 00 2036 => 004);
+        assert_dwy!(Fri 00 2036 => 005);
+        assert_dwy!(Sat 00 2036 => 006);
+        assert_dwy!(Sun 01 2036 => 007);
+        assert_dwy!(Wed 08 2036 => 059);
+        assert_dwy!(Thu 08 2036 => 060);
+        assert_dwy!(Fri 08 2036 => 061);
+        assert_dwy!(Sat 08 2036 => 062);
+        assert_dwy!(Sun 09 2036 => 063);
+        assert_dwy!(Mon 09 2036 => 064);
+        assert_dwy!(Tue 09 2036 => 065);
+        assert_dwy!(Wed 09 2036 => 066);
+        assert_dwy!(Thu 09 2036 => 067);
     }
 }

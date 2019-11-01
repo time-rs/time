@@ -266,6 +266,23 @@ pub(crate) fn parse_u(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
     Ok(())
 }
 
+/// Sunday-based week number (`00`-`53`)
+#[inline(always)]
+pub(crate) fn fmt_U(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
+    pad!(f, padding(Zero), 2, date.sunday_based_week())
+}
+
+/// Sunday-based week number (`00`-`53`)
+#[inline(always)]
+pub(crate) fn parse_U(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
+    items.sunday_week =
+        try_consume_exact_digits_in_range(s, 2, 0..54, padding.default_to(Padding::Zero))
+            .ok_or(ParseError::InvalidWeek)?
+            .into();
+
+    Ok(())
+}
+
 /// ISO week number, zero-padded (`01`-`53`)
 #[inline(always)]
 pub(crate) fn fmt_V(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
@@ -303,6 +320,23 @@ pub(crate) fn parse_w(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
     )
     .ok_or(ParseError::InvalidDayOfWeek)?
     .into();
+
+    Ok(())
+}
+
+/// Monday-based week number (`00`-`53`)
+#[inline(always)]
+pub(crate) fn fmt_W(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
+    pad!(f, padding(Zero), 2, date.monday_based_week())
+}
+
+/// Monday-based week number (`00`-`53`)
+#[inline(always)]
+pub(crate) fn parse_W(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
+    items.monday_week =
+        try_consume_exact_digits_in_range(s, 2, 0..54, padding.default_to(Padding::Zero))
+            .ok_or(ParseError::InvalidWeek)?
+            .into();
 
     Ok(())
 }
