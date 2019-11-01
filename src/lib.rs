@@ -236,7 +236,7 @@ pub use format::Language;
 pub use format::ParseError;
 #[cfg(feature = "std")]
 pub use instant::Instant;
-pub use numerical_traits::{NumericalDuration, NumericalStdDuration};
+pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub use offset_date_time::OffsetDateTime;
 pub(crate) use shim::NumberExt;
 pub use sign::Sign;

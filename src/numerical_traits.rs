@@ -397,3 +397,221 @@ impl NumericalStdDuration for i32 {
         StdDuration::from_secs(self as u64 * 604_800)
     }
 }
+
+/// Create `std::time::Duration`s from primitive and core numeric types. Unless
+/// you are always expecting a `std::time::Duration`, you should prefer to use
+/// [`NumericalStdDuration`] for clarity.
+///
+/// Due to limitations in rustc, these methods are currently _not_ `const fn`.
+///
+/// # Examples
+///
+/// Basic construction of `std::time::Duration`s.
+///
+/// ```rust
+/// # use time::NumericalStdDurationShort;
+/// # use core::time::Duration;
+/// assert_eq!(5.nanoseconds(), Duration::from_nanos(5));
+/// assert_eq!(5.microseconds(), Duration::from_micros(5));
+/// assert_eq!(5.milliseconds(), Duration::from_millis(5));
+/// assert_eq!(5.seconds(), Duration::from_secs(5));
+/// assert_eq!(5.minutes(), Duration::from_secs(5 * 60));
+/// assert_eq!(5.hours(), Duration::from_secs(5 * 3_600));
+/// assert_eq!(5.days(), Duration::from_secs(5 * 86_400));
+/// assert_eq!(5.weeks(), Duration::from_secs(5 * 604_800));
+/// ```
+///
+/// Just like any other `std::time::Duration`, they can be added, subtracted,
+/// etc.
+///
+/// ```rust
+/// # use time::NumericalStdDurationShort;
+/// assert_eq!(2.seconds() + 500.milliseconds(), 2_500.milliseconds());
+/// assert_eq!(2.seconds() - 500.milliseconds(), 1_500.milliseconds());
+/// ```
+///
+/// As floats can only be used to construct via anything other than
+/// `Duration::from_secs_f32` and `Duration::from_secs_f64`, floats _do not_
+/// implement `NumericalStdDurationShort`.
+///
+/// ```rust,compile_fail
+/// # use time::NumericalStdDurationShort;
+/// 5.0.seconds();
+/// ```
+pub trait NumericalStdDurationShort {
+    /// Create a `std::time::Duration` from the number of nanoseconds.
+    fn nanoseconds(self) -> StdDuration;
+    /// Create a `std::time::Duration` from the number of microseconds.
+    fn microseconds(self) -> StdDuration;
+    /// Create a `std::time::Duration` from the number of milliseconds.
+    fn milliseconds(self) -> StdDuration;
+    /// Create a `std::time::Duration` from the number of seconds.
+    fn seconds(self) -> StdDuration;
+    /// Create a `std::time::Duration` from the number of minutes.
+    fn minutes(self) -> StdDuration;
+    /// Create a `std::time::Duration` from the number of hours.
+    fn hours(self) -> StdDuration;
+    /// Create a `std::time::Duration` from the number of days.
+    fn days(self) -> StdDuration;
+    /// Create a `std::time::Duration` from the number of weeks.
+    fn weeks(self) -> StdDuration;
+}
+
+macro_rules! impl_numerical_std_duration {
+    ($($type:ty),* $(,)?) => {
+        $(
+            #[allow(trivial_numeric_casts, clippy::use_self)]
+            impl NumericalStdDurationShort for $type {
+                #[inline(always)]
+                fn nanoseconds(self) -> StdDuration {
+                    StdDuration::from_nanos(self as u64)
+                }
+
+                #[inline(always)]
+                fn microseconds(self) -> StdDuration {
+                    StdDuration::from_micros(self as u64)
+                }
+
+                #[inline(always)]
+                fn milliseconds(self) -> StdDuration {
+                    StdDuration::from_millis(self as u64)
+                }
+
+                #[inline(always)]
+                fn seconds(self) -> StdDuration {
+                    StdDuration::from_secs(self as u64)
+                }
+
+                #[inline(always)]
+                fn minutes(self) -> StdDuration {
+                    StdDuration::from_secs(self as u64 * 60)
+                }
+
+                #[inline(always)]
+                fn hours(self) -> StdDuration {
+                    StdDuration::from_secs(self as u64 * 3_600)
+                }
+
+                #[inline(always)]
+                fn days(self) -> StdDuration {
+                    StdDuration::from_secs(self as u64 * 86_400)
+                }
+
+                #[inline(always)]
+                fn weeks(self) -> StdDuration {
+                    StdDuration::from_secs(self as u64 * 604_800)
+                }
+            }
+        )*
+    };
+}
+
+macro_rules! impl_numerical_std_duration_nonzero {
+    ($($type:ty),* $(,)?) => {
+        $(
+            #[allow(trivial_numeric_casts, clippy::use_self)]
+            impl NumericalStdDurationShort for $type {
+                #[inline(always)]
+                fn nanoseconds(self) -> StdDuration {
+                    StdDuration::from_nanos(self.get() as u64)
+                }
+
+                #[inline(always)]
+                fn microseconds(self) -> StdDuration {
+                    StdDuration::from_micros(self.get() as u64)
+                }
+
+                #[inline(always)]
+                fn milliseconds(self) -> StdDuration {
+                    StdDuration::from_millis(self.get() as u64)
+                }
+
+                #[inline(always)]
+                fn seconds(self) -> StdDuration {
+                    StdDuration::from_secs(self.get() as u64)
+                }
+
+                #[inline(always)]
+                fn minutes(self) -> StdDuration {
+                    StdDuration::from_secs(self.get() as u64 * 60)
+                }
+
+                #[inline(always)]
+                fn hours(self) -> StdDuration {
+                    StdDuration::from_secs(self.get() as u64 * 3_600)
+                }
+
+                #[inline(always)]
+                fn days(self) -> StdDuration {
+                    StdDuration::from_secs(self.get() as u64 * 86_400)
+                }
+
+                #[inline(always)]
+                fn weeks(self) -> StdDuration {
+                    StdDuration::from_secs(self.get() as u64 * 604_800)
+                }
+            }
+        )*
+    };
+}
+
+impl_numerical_std_duration![u8, u16, u32, u64];
+impl_numerical_std_duration_nonzero![
+    core::num::NonZeroU8,
+    core::num::NonZeroU16,
+    core::num::NonZeroU32,
+    core::num::NonZeroU64,
+];
+
+/// Implement on `i32` because that's the default type for integers. This
+/// performs a runtime check and panics if the value is negative.
+#[allow(clippy::use_self)]
+impl NumericalStdDurationShort for i32 {
+    #[inline(always)]
+    fn nanoseconds(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_nanos(self as u64)
+    }
+
+    #[inline(always)]
+    fn microseconds(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_micros(self as u64)
+    }
+
+    #[inline(always)]
+    fn milliseconds(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_millis(self as u64)
+    }
+
+    #[inline(always)]
+    fn seconds(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_secs(self as u64)
+    }
+
+    #[inline(always)]
+    fn minutes(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_secs(self as u64 * 60)
+    }
+
+    #[inline(always)]
+    fn hours(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_secs(self as u64 * 3_600)
+    }
+
+    #[inline(always)]
+    fn days(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_secs(self as u64 * 86_400)
+    }
+
+    #[inline(always)]
+    fn weeks(self) -> StdDuration {
+        assert!(self >= 0);
+        StdDuration::from_secs(self as u64 * 604_800)
+    }
+}
