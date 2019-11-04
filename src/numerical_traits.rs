@@ -24,6 +24,7 @@ use core::time::Duration as StdDuration;
 /// ```
 ///
 /// Signed integers work as well!
+///
 /// ```rust
 /// # use time::{Duration, NumericalDuration};
 /// assert_eq!(-5.nanoseconds(), Duration::nanoseconds(-5));
@@ -613,5 +614,94 @@ impl NumericalStdDurationShort for i32 {
     fn weeks(self) -> StdDuration {
         assert!(self >= 0);
         StdDuration::from_secs(self as u64 * 604_800)
+    }
+}
+
+#[cfg(test)]
+mod test_numerical_duration {
+    use super::{Duration, NumericalDuration};
+
+    #[test]
+    fn unsigned() {
+        assert_eq!(5.nanoseconds(), Duration::nanoseconds(5));
+        assert_eq!(5.microseconds(), Duration::microseconds(5));
+        assert_eq!(5.milliseconds(), Duration::milliseconds(5));
+        assert_eq!(5.seconds(), Duration::seconds(5));
+        assert_eq!(5.minutes(), Duration::minutes(5));
+        assert_eq!(5.hours(), Duration::hours(5));
+        assert_eq!(5.days(), Duration::days(5));
+        assert_eq!(5.weeks(), Duration::weeks(5));
+    }
+
+    #[test]
+    fn signed() {
+        assert_eq!((-5).nanoseconds(), Duration::nanoseconds(-5));
+        assert_eq!((-5).microseconds(), Duration::microseconds(-5));
+        assert_eq!((-5).milliseconds(), Duration::milliseconds(-5));
+        assert_eq!((-5).seconds(), Duration::seconds(-5));
+        assert_eq!((-5).minutes(), Duration::minutes(-5));
+        assert_eq!((-5).hours(), Duration::hours(-5));
+        assert_eq!((-5).days(), Duration::days(-5));
+        assert_eq!((-5).weeks(), Duration::weeks(-5));
+    }
+
+    #[test]
+    fn arithmetic() {
+        assert_eq!(2.seconds() + 500.milliseconds(), 2_500.milliseconds());
+        assert_eq!(2.seconds() - 500.milliseconds(), 1_500.milliseconds());
+    }
+}
+
+#[cfg(test)]
+mod test_numerical_std_duration {
+    use super::NumericalStdDuration;
+    use core::time::Duration;
+
+    #[test]
+    fn unsigned() {
+        assert_eq!(5.std_nanoseconds(), Duration::from_nanos(5));
+        assert_eq!(5.std_microseconds(), Duration::from_micros(5));
+        assert_eq!(5.std_milliseconds(), Duration::from_millis(5));
+        assert_eq!(5.std_seconds(), Duration::from_secs(5));
+        assert_eq!(5.std_minutes(), Duration::from_secs(5 * 60));
+        assert_eq!(5.std_hours(), Duration::from_secs(5 * 3_600));
+        assert_eq!(5.std_days(), Duration::from_secs(5 * 86_400));
+        assert_eq!(5.std_weeks(), Duration::from_secs(5 * 604_800));
+    }
+
+    #[test]
+    fn arithmetic() {
+        assert_eq!(
+            2.std_seconds() + 500.std_milliseconds(),
+            2_500.std_milliseconds()
+        );
+        assert_eq!(
+            2.std_seconds() - 500.std_milliseconds(),
+            1_500.std_milliseconds()
+        );
+    }
+}
+
+#[cfg(test)]
+mod test_numerical_std_duration_short {
+    use super::NumericalStdDurationShort;
+    use core::time::Duration;
+
+    #[test]
+    fn unsigned() {
+        assert_eq!(5.nanoseconds(), Duration::from_nanos(5));
+        assert_eq!(5.microseconds(), Duration::from_micros(5));
+        assert_eq!(5.milliseconds(), Duration::from_millis(5));
+        assert_eq!(5.seconds(), Duration::from_secs(5));
+        assert_eq!(5.minutes(), Duration::from_secs(5 * 60));
+        assert_eq!(5.hours(), Duration::from_secs(5 * 3_600));
+        assert_eq!(5.days(), Duration::from_secs(5 * 86_400));
+        assert_eq!(5.weeks(), Duration::from_secs(5 * 604_800));
+    }
+
+    #[test]
+    fn arithmetic() {
+        assert_eq!(2.seconds() + 500.milliseconds(), 2_500.milliseconds());
+        assert_eq!(2.seconds() - 500.milliseconds(), 1_500.milliseconds());
     }
 }

@@ -755,13 +755,6 @@ impl Date {
 impl Add<Duration> for Date {
     type Output = Self;
 
-    /// Add the whole number of days of the `Duration` to the date.
-    ///
-    /// ```rust
-    /// # use time::{Date, Duration};
-    /// assert_eq!(Date::from_ymd(2019, 1, 1) + Duration::days(5), Date::from_ymd(2019, 1, 6));
-    /// assert_eq!(Date::from_ymd(2019, 12, 31) + Duration::day(), Date::from_ymd(2020, 1, 1));
-    /// ```
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
         Self::from_julian_day(self.julian_day() + duration.whole_days())
@@ -771,14 +764,6 @@ impl Add<Duration> for Date {
 impl Add<StdDuration> for Date {
     type Output = Self;
 
-    /// Add the whole number of days of the `std::time::Duration` to the date.
-    ///
-    /// ```rust
-    /// # use time::Date;
-    /// # use core::time::Duration;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1) + Duration::from_secs(5 * 86_400), Date::from_ymd(2019, 1, 6));
-    /// assert_eq!(Date::from_ymd(2019, 12, 31) + Duration::from_secs(86_400), Date::from_ymd(2020, 1, 1));
-    /// ```
     #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
         Self::from_julian_day(self.julian_day() + Duration::from(duration).whole_days())
@@ -786,14 +771,6 @@ impl Add<StdDuration> for Date {
 }
 
 impl AddAssign<Duration> for Date {
-    /// Add the whole number of days of the `Duration` to the date.
-    ///
-    /// ```rust
-    /// # use time::{Date, Duration};
-    /// let mut date = Date::from_ymd(2019, 12, 31);
-    /// date += Duration::day();
-    /// assert_eq!(date, Date::from_ymd(2020, 1, 1));
-    /// ```
     #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
@@ -801,15 +778,6 @@ impl AddAssign<Duration> for Date {
 }
 
 impl AddAssign<StdDuration> for Date {
-    /// Add the whole number of days of the `std::time::Duration` to the date.
-    ///
-    /// ```rust
-    /// # use time::Date;
-    /// # use core::time::Duration;
-    /// let mut date = Date::from_ymd(2019, 12, 31);
-    /// date += Duration::from_secs(86_400);
-    /// assert_eq!(date, Date::from_ymd(2020, 1, 1));
-    /// ```
     #[inline(always)]
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
@@ -819,13 +787,6 @@ impl AddAssign<StdDuration> for Date {
 impl Sub<Duration> for Date {
     type Output = Self;
 
-    /// Subtract the whole number of days of the `Duration` from the date.
-    ///
-    /// ```rust
-    /// # use time::{Date, Duration};
-    /// assert_eq!(Date::from_ymd(2019, 1, 6) - Duration::days(5), Date::from_ymd(2019, 1, 1));
-    /// assert_eq!(Date::from_ymd(2020, 1, 1) - Duration::day(), Date::from_ymd(2019, 12, 31));
-    /// ```
     #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
         self + -duration
@@ -835,14 +796,6 @@ impl Sub<Duration> for Date {
 impl Sub<StdDuration> for Date {
     type Output = Self;
 
-    /// Subtract the whole number of days of the `std::time::Duration` from the date.
-    ///
-    /// ```rust
-    /// # use time::Date;
-    /// # use core::time::Duration;
-    /// assert_eq!(Date::from_ymd(2019, 1, 6) - Duration::from_secs(5 * 86_400), Date::from_ymd(2019, 1, 1));
-    /// assert_eq!(Date::from_ymd(2020, 1, 1) - Duration::from_secs(86_400), Date::from_ymd(2019, 12, 31));
-    /// ```
     #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
         self + -Duration::from(duration)
@@ -850,14 +803,6 @@ impl Sub<StdDuration> for Date {
 }
 
 impl SubAssign<Duration> for Date {
-    /// Subtract the whole number of days of the `Duration` from the date.
-    ///
-    /// ```rust
-    /// # use time::{Date, Duration};
-    /// let mut date = Date::from_ymd(2020, 1, 1);
-    /// date -= Duration::day();
-    /// assert_eq!(date, Date::from_ymd(2019, 12, 31));
-    /// ```
     #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
@@ -865,15 +810,6 @@ impl SubAssign<Duration> for Date {
 }
 
 impl SubAssign<StdDuration> for Date {
-    /// Subtract the whole number of days of the `std::time::Duration` from the date.
-    ///
-    /// ```rust
-    /// # use time::Date;
-    /// # use core::time::Duration;
-    /// let mut date = Date::from_ymd(2020, 1, 1);
-    /// date -= Duration::from_secs(86_400);
-    /// assert_eq!(date, Date::from_ymd(2019, 12, 31));
-    /// ```
     #[inline(always)]
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
@@ -883,13 +819,6 @@ impl SubAssign<StdDuration> for Date {
 impl Sub<Date> for Date {
     type Output = Duration;
 
-    /// Subtract two `Date`s, returning the number of days between.
-    ///
-    /// ```rust
-    /// # use time::{Date, Duration};
-    /// assert_eq!(Date::from_ymd(2019, 1, 6) - Date::from_ymd(2019, 1, 1), Duration::days(5));
-    /// assert_eq!(Date::from_ymd(2020, 1, 1) - Date::from_ymd(2019, 12, 31), Duration::day());
-    /// ```
     #[inline(always)]
     fn sub(self, other: Self) -> Self::Output {
         Duration::days(self.julian_day() - other.julian_day())
@@ -897,18 +826,6 @@ impl Sub<Date> for Date {
 }
 
 impl PartialOrd for Date {
-    /// Returns the ordering between `self` and `other`.
-    ///
-    /// ```rust
-    /// # use time::Date;
-    /// # use core::cmp::Ordering;
-    /// let first = Date::from_ymd(2019, 1, 1);
-    /// let second = Date::from_ymd(2019, 1, 2);
-    ///
-    /// assert_eq!(first.partial_cmp(&first), Some(Ordering::Equal));
-    /// assert_eq!(first.partial_cmp(&second), Some(Ordering::Less));
-    /// assert_eq!(second.partial_cmp(&first), Some(Ordering::Greater));
-    /// ```
     #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
@@ -916,18 +833,6 @@ impl PartialOrd for Date {
 }
 
 impl Ord for Date {
-    /// Returns the ordering between `self` and `other`.
-    ///
-    /// ```rust
-    /// # use time::Date;
-    /// # use core::cmp::Ordering;
-    /// let first = Date::from_ymd(2019, 1, 1);
-    /// let second = Date::from_ymd(2019, 1, 2);
-    ///
-    /// assert_eq!(first.cmp(&first), Ordering::Equal);
-    /// assert_eq!(first.cmp(&second), Ordering::Less);
-    /// assert_eq!(second.cmp(&first), Ordering::Greater);
-    /// ```
     #[inline(always)]
     fn cmp(&self, other: &Self) -> Ordering {
         match self.year.cmp(&other.year) {
@@ -939,8 +844,34 @@ impl Ord for Date {
 }
 
 #[cfg(test)]
+#[allow(clippy::non_ascii_literal)]
 mod test {
     use super::*;
+    use crate::prelude::*;
+
+    macro_rules! yo {
+        ($year:literal, $ordinal:literal) => {
+            Date::from_yo($year, $ordinal)
+        };
+    }
+
+    macro_rules! ymd {
+        ($year:literal, $month:literal, $day:literal) => {
+            Date::from_ymd($year, $month, $day)
+        };
+    }
+
+    macro_rules! ywd {
+        ($year:literal, $week:literal, $day:ident) => {
+            Date::from_iso_ywd($year, $week, $day)
+        };
+    }
+
+    macro_rules! julian {
+        ($julian:literal) => {
+            Date::from_julian_day($julian)
+        };
+    }
 
     #[test]
     fn weeks_in_year_exhaustive() {
@@ -959,7 +890,7 @@ mod test {
 
         for year in 0..400 {
             assert_eq!(
-                weeks_in_year(year),
+                super::weeks_in_year(year),
                 if years_with_53.contains(&year) {
                     53
                 } else {
@@ -1821,5 +1752,274 @@ mod test {
         assert_dwy!(Tue 09 2036 => 065);
         assert_dwy!(Wed 09 2036 => 066);
         assert_dwy!(Thu 09 2036 => 067);
+    }
+
+    #[test]
+    fn is_leap_year() {
+        use super::is_leap_year;
+        assert!(!is_leap_year(1900));
+        assert!(is_leap_year(2000));
+        assert!(is_leap_year(2004));
+        assert!(!is_leap_year(2005));
+        assert!(!is_leap_year(2100));
+    }
+
+    #[test]
+    fn days_in_year() {
+        use super::days_in_year;
+        assert_eq!(days_in_year(1900), 365);
+        assert_eq!(days_in_year(2000), 366);
+        assert_eq!(days_in_year(2004), 366);
+        assert_eq!(days_in_year(2005), 365);
+        assert_eq!(days_in_year(2100), 365);
+    }
+
+    #[test]
+    fn weeks_in_year() {
+        use super::weeks_in_year;
+        assert_eq!(weeks_in_year(2019), 52);
+        assert_eq!(weeks_in_year(2020), 53);
+    }
+
+    #[test]
+    fn year() {
+        assert_eq!(yo!(2019, 2).year(), 2019);
+        assert_eq!(yo!(2020, 2).year(), 2020);
+    }
+
+    #[test]
+    fn month() {
+        assert_eq!(yo!(2019, 2).month(), 1);
+        assert_eq!(yo!(2020, 2).month(), 1);
+        assert_eq!(yo!(2019, 60).month(), 3);
+        assert_eq!(yo!(2020, 60).month(), 2);
+    }
+
+    #[test]
+    fn day() {
+        assert_eq!(yo!(2019, 2).day(), 2);
+        assert_eq!(yo!(2020, 2).day(), 2);
+        assert_eq!(yo!(2019, 60).day(), 1);
+        assert_eq!(yo!(2020, 60).day(), 29);
+    }
+
+    #[test]
+    fn iso_year_week() {
+        assert_eq!(ymd!(2019, 1, 1).iso_year_week(), (2019, 1));
+        assert_eq!(ymd!(2019, 10, 4).iso_year_week(), (2019, 40));
+        assert_eq!(ymd!(2020, 1, 1).iso_year_week(), (2020, 1));
+        assert_eq!(ymd!(2020, 12, 31).iso_year_week(), (2020, 53));
+        assert_eq!(ymd!(2021, 1, 1).iso_year_week(), (2020, 53));
+    }
+
+    #[test]
+    fn week() {
+        assert_eq!(ymd!(2019, 1, 1).week(), 1);
+        assert_eq!(ymd!(2019, 10, 4).week(), 40);
+        assert_eq!(ymd!(2020, 1, 1).week(), 1);
+        assert_eq!(ymd!(2020, 12, 31).week(), 53);
+        assert_eq!(ymd!(2021, 1, 1).week(), 53);
+    }
+
+    #[test]
+    fn as_ymd() {
+        assert_eq!(ymd!(2019, 1, 2).as_ymd(), (2019, 1, 2));
+    }
+
+    #[test]
+    fn as_wo() {
+        assert_eq!(ymd!(2019, 1, 1).as_yo(), (2019, 1));
+    }
+
+    #[test]
+    fn next_day() {
+        assert_eq!(ymd!(2019, 1, 1).next_day(), ymd!(2019, 1, 2));
+        assert_eq!(ymd!(2019, 1, 31).next_day(), ymd!(2019, 2, 1));
+        assert_eq!(ymd!(2019, 12, 31).next_day(), ymd!(2020, 1, 1));
+    }
+
+    #[test]
+    fn previous_day() {
+        assert_eq!(ymd!(2019, 1, 2).previous_day(), ymd!(2019, 1, 1));
+        assert_eq!(ymd!(2019, 2, 1).previous_day(), ymd!(2019, 1, 31));
+        assert_eq!(ymd!(2020, 1, 1).previous_day(), ymd!(2019, 12, 31));
+    }
+
+    #[test]
+    fn julian_day() {
+        assert_eq!(ymd!(-4713, 11, 24).julian_day(), 0);
+        assert_eq!(ymd!(2000, 1, 1).julian_day(), 2_451_545);
+        assert_eq!(ymd!(2019, 1, 1).julian_day(), 2_458_485);
+        assert_eq!(ymd!(2019, 12, 31).julian_day(), 2_458_849);
+    }
+
+    #[test]
+    fn from_julian_day() {
+        assert_eq!(julian!(0), ymd!(-4713, 11, 24));
+        assert_eq!(julian!(2_451_545), ymd!(2000, 1, 1));
+        assert_eq!(julian!(2_458_485), ymd!(2019, 1, 1));
+        assert_eq!(julian!(2_458_849), ymd!(2019, 12, 31));
+    }
+
+    #[test]
+    fn midnight() {
+        assert_eq!(ymd!(1970, 1, 1).midnight(), DateTime::unix_epoch());
+    }
+
+    #[test]
+    fn with_time() {
+        assert_eq!(
+            ymd!(1970, 1, 1).with_time(Time::from_hms(0, 0, 0)),
+            ymd!(1970, 1, 1).with_hms(0, 0, 0),
+        );
+    }
+
+    #[test]
+    fn with_hms() {
+        assert_eq!(
+            ymd!(1970, 1, 1).with_hms(0, 0, 0),
+            ymd!(1970, 1, 1).with_time(Time::from_hms(0, 0, 0)),
+        );
+    }
+
+    #[test]
+    fn with_hms_milli() {
+        assert_eq!(
+            ymd!(1970, 1, 1).with_hms_milli(0, 0, 0, 0),
+            ymd!(1970, 1, 1).with_time(Time::from_hms_milli(0, 0, 0, 0)),
+        );
+    }
+
+    #[test]
+    fn with_hms_micro() {
+        assert_eq!(
+            ymd!(1970, 1, 1).with_hms_micro(0, 0, 0, 0),
+            ymd!(1970, 1, 1).with_time(Time::from_hms_micro(0, 0, 0, 0)),
+        );
+    }
+
+    #[test]
+    fn with_hms_nano() {
+        assert_eq!(
+            ymd!(1970, 1, 1).with_hms_nano(0, 0, 0, 0),
+            ymd!(1970, 1, 1).with_time(Time::from_hms_nano(0, 0, 0, 0)),
+        );
+    }
+
+    #[test]
+    fn format() {
+        assert_eq!(ymd!(2019, 1, 2).format("%Y-%m-%d"), "2019-01-02");
+    }
+
+    #[test]
+    fn format_language() {
+        assert_eq!(
+            ymd!(2019, 1, 2).format_language("%B, %A", Language::en),
+            "January, Wednesday",
+        );
+        assert_eq!(
+            ymd!(2019, 1, 2).format_language("%B, %A", Language::es),
+            "enero, miércoles",
+        );
+    }
+
+    #[test]
+    fn parse() {
+        assert_eq!(Date::parse("2019-01-02", "%F"), Ok(ymd!(2019, 1, 2)));
+        assert_eq!(Date::parse("2019-002", "%Y-%j"), Ok(yo!(2019, 2)));
+        assert_eq!(
+            Date::parse("2019-W01-3", "%G-W%V-%u"),
+            Ok(ywd!(2019, 1, Wednesday))
+        );
+    }
+
+    #[test]
+    fn parse_language() {
+        assert_eq!(
+            Date::parse_language("January 2 2019", "%B %-d %Y", Language::en),
+            Ok(ymd!(2019, 1, 2))
+        );
+        assert_eq!(
+            Date::parse_language("2 de enero 2019", "%-d de %B %Y", Language::es),
+            Ok(ymd!(2019, 1, 2))
+        );
+    }
+
+    #[test]
+    fn add() {
+        assert_eq!(ymd!(2019, 1, 1) + 5.days(), ymd!(2019, 1, 6));
+        assert_eq!(ymd!(2019, 12, 31) + 1.days(), ymd!(2020, 1, 1));
+    }
+
+    #[test]
+    fn add_std() {
+        assert_eq!(ymd!(2019, 1, 1) + 5.std_days(), ymd!(2019, 1, 6));
+        assert_eq!(ymd!(2019, 12, 31) + 1.std_days(), ymd!(2020, 1, 1));
+    }
+
+    #[test]
+    fn add_assign() {
+        let mut date = ymd!(2019, 12, 31);
+        date += 1.days();
+        assert_eq!(date, ymd!(2020, 1, 1));
+    }
+
+    #[test]
+    fn add_assign_std() {
+        let mut date = ymd!(2019, 12, 31);
+        date += 1.std_days();
+        assert_eq!(date, ymd!(2020, 1, 1));
+    }
+
+    #[test]
+    fn sub() {
+        assert_eq!(ymd!(2019, 1, 6) - 5.days(), ymd!(2019, 1, 1));
+        assert_eq!(ymd!(2020, 1, 1) - 1.days(), ymd!(2019, 12, 31));
+    }
+
+    #[test]
+    fn sub_std() {
+        assert_eq!(ymd!(2019, 1, 6) - 5.std_days(), ymd!(2019, 1, 1));
+        assert_eq!(ymd!(2020, 1, 1) - 1.std_days(), ymd!(2019, 12, 31));
+    }
+
+    #[test]
+    fn sub_assign() {
+        let mut date = ymd!(2020, 1, 1);
+        date -= 1.days();
+        assert_eq!(date, ymd!(2019, 12, 31));
+    }
+
+    #[test]
+    fn sub_assign_std() {
+        let mut date = ymd!(2020, 1, 1);
+        date -= 1.std_days();
+        assert_eq!(date, ymd!(2019, 12, 31));
+    }
+
+    #[test]
+    fn sub_self() {
+        assert_eq!(ymd!(2019, 1, 6) - ymd!(2019, 1, 1), 5.days());
+        assert_eq!(ymd!(2020, 1, 1) - ymd!(2019, 12, 31), 1.days());
+    }
+
+    #[test]
+    fn partial_ord() {
+        let first = ymd!(2019, 1, 1);
+        let second = ymd!(2019, 1, 2);
+
+        assert_eq!(first.partial_cmp(&first), Some(Ordering::Equal));
+        assert_eq!(first.partial_cmp(&second), Some(Ordering::Less));
+        assert_eq!(second.partial_cmp(&first), Some(Ordering::Greater));
+    }
+
+    #[test]
+    fn ord() {
+        let first = ymd!(2019, 1, 1);
+        let second = ymd!(2019, 1, 2);
+
+        assert_eq!(first.cmp(&first), Ordering::Equal);
+        assert_eq!(first.cmp(&second), Ordering::Less);
+        assert_eq!(second.cmp(&first), Ordering::Greater);
     }
 }
