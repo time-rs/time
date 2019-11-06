@@ -304,6 +304,26 @@ impl fmt::Display for OutOfRangeError {
 #[cfg(feature = "std")]
 impl std::error::Error for OutOfRangeError {}
 
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[cfg(not(feature = "std"))]
+    use crate::no_std_prelude::*;
+
+    #[test]
+    fn out_of_range_error() {
+        assert_eq!(OutOfRangeError::new(), OutOfRangeError::new());
+    }
+
+    #[test]
+    fn out_of_range_error_format() {
+        assert_eq!(
+            OutOfRangeError::new().to_string(),
+            "Source value is out of range for the target type",
+        );
+    }
+}
+
 // For some back-compatibility, we're also implementing some deprecated types.
 
 #[cfg(all(feature = "std", feature = "deprecated"))]
