@@ -42,7 +42,7 @@ pub(crate) fn fmt_I(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt:
 #[inline(always)]
 pub(crate) fn parse_I(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.hour_12 =
-        try_consume_exact_digits_in_range(s, 2, 1..13, padding.default_to(Padding::Zero))
+        try_consume_exact_digits_in_range(s, 2, 1..=12, padding.default_to(Padding::Zero))
             .map(NonZeroU8::new)
             .ok_or(ParseError::InvalidHour)?;
     Ok(())

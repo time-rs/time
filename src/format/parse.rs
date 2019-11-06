@@ -4,7 +4,7 @@ use super::{parse_with_language, FormatItem, Padding, Specifier};
 use crate::{Language, UtcOffset, Weekday};
 use core::fmt::{self, Display, Formatter};
 use core::num::{NonZeroU16, NonZeroU8};
-use core::ops::Range;
+use core::ops::{Bound, RangeBounds};
 use core::str::FromStr;
 #[cfg(feature = "std")]
 use std::error::Error;
@@ -207,17 +207,32 @@ pub(crate) fn try_consume_first_match<T: Copy>(
 /// Attempt to consume a number of digits. Consumes the maximum amount possible
 /// within the range provided.
 #[inline]
-pub(crate) fn try_consume_digits<T: FromStr>(s: &mut &str, num_digits: Range<usize>) -> Option<T> {
+pub(crate) fn try_consume_digits<T: FromStr, U: RangeBounds<usize>>(
+    s: &mut &str,
+    num_digits: U,
+) -> Option<T> {
+    // We know that the value is a `usize`, so we can do `+/- 1` as necessary.
+    let num_digits_start = match num_digits.start_bound() {
+        Bound::Unbounded => usize::min_value(),
+        Bound::Included(&v) => v,
+        Bound::Excluded(&v) => v + 1,
+    };
+    let num_digits_end = match num_digits.end_bound() {
+        Bound::Unbounded => usize::max_value(),
+        Bound::Included(&v) => v,
+        Bound::Excluded(&v) => v - 1,
+    };
+
     // Determine how many digits the string starts with, up to the upper limit
     // of the range.
     let len = s
         .chars()
-        .take(num_digits.end)
+        .take(num_digits_end)
         .take_while(char::is_ascii_digit)
         .count();
 
     // We don't have enough digits.
-    if len < num_digits.start {
+    if len < num_digits_start {
         return None;
     }
 
@@ -232,13 +247,11 @@ pub(crate) fn try_consume_digits<T: FromStr>(s: &mut &str, num_digits: Range<usi
 /// Attempt to consume a number of digits. Consumes the maximum amount possible
 /// within the range provided. Returns `None` if the value is not within the
 /// allowed range.
-// TODO Is there some way to allow both `Range` and `RangeInclusive`? It would
-// be better for readability in some places.
 #[inline(always)]
 pub(crate) fn try_consume_digits_in_range<T: FromStr + PartialOrd>(
     s: &mut &str,
-    num_digits: Range<usize>,
-    range: Range<T>,
+    num_digits: impl RangeBounds<usize>,
+    range: impl RangeBounds<T>,
 ) -> Option<T> {
     try_consume_digits(s, num_digits).filter(|value| range.contains(value))
 }
@@ -256,8 +269,7 @@ pub(crate) fn try_consume_exact_digits<T: FromStr>(
     };
 
     if padding == Padding::None {
-        #[allow(clippy::range_plus_one)]
-        try_consume_digits(s, 1..(num_digits - pad_size + 1))
+        try_consume_digits(s, 1..=(num_digits - pad_size))
     } else {
         // Ensure all the necessary characters are ASCII digits.
         if !s
@@ -283,7 +295,7 @@ pub(crate) fn try_consume_exact_digits<T: FromStr>(
 pub(crate) fn try_consume_exact_digits_in_range<T: FromStr + PartialOrd>(
     s: &mut &str,
     num_digits: usize,
-    range: Range<T>,
+    range: impl RangeBounds<T>,
     padding: Padding,
 ) -> Option<T> {
     try_consume_exact_digits(s, num_digits, padding).filter(|value| range.contains(value))
