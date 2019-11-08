@@ -130,6 +130,8 @@
     clippy::cast_lossless,
     clippy::module_name_repetitions
 )]
+#![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
+#![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 
 #[macro_use]
 extern crate alloc;
