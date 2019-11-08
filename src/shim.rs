@@ -1,5 +1,4 @@
-use crate::sign::Sign::{self, Negative, Positive, Unknown, Zero};
-use core::cmp::Ordering::{Equal, Greater, Less};
+use crate::Sign::{self, Negative, Positive, Zero};
 
 /// Provide common methods that do not exist on all number types.
 pub(crate) trait NumberExt: Sized + PartialOrd {
@@ -9,24 +8,32 @@ pub(crate) trait NumberExt: Sized + PartialOrd {
     /// Get the value zero.
     fn zero() -> Self;
 
-    /// Obtain the sign of the number, if known.
-    #[inline(always)]
-    fn sign(self) -> Sign {
-        match self.partial_cmp(&Self::zero()) {
-            Some(Less) => Negative,
-            Some(Equal) => Zero,
-            Some(Greater) => Positive,
-            None => Unknown,
-        }
-    }
+    /// Obtain the sign of the number.
+    fn sign(self) -> Sign;
 }
 
 macro_rules! unsigned {
     ($($type:ty),*) => {
         $(
             impl NumberExt for $type {
-                #[inline(always)] fn abs(self) -> Self { self }
-                #[inline(always)] fn zero() -> Self { 0 }
+                #[inline(always)]
+                fn abs(self) -> Self {
+                    self
+                }
+
+                #[inline(always)]
+                fn zero() -> Self {
+                    0
+                }
+
+                #[inline(always)]
+                fn sign(self) -> Sign {
+                    if self > 0 {
+                        Positive
+                    } else {
+                        Zero
+                    }
+                }
             }
         )*
     };
@@ -36,8 +43,26 @@ macro_rules! signed {
     ($($type:ty),*) => {
         $(
             impl NumberExt for $type {
-                #[inline(always)] fn abs(self) -> Self { self.abs() }
-                #[inline(always)] fn zero() -> Self { 0 }
+                #[inline(always)]
+                fn abs(self) -> Self {
+                    self.abs()
+                }
+
+                #[inline(always)]
+                fn zero() -> Self {
+                    0
+                }
+
+                #[inline(always)]
+                fn sign(self) -> Sign {
+                    if self > 0 {
+                        Positive
+                    } else if self < 0 {
+                        Negative
+                    } else {
+                        Zero
+                    }
+                }
             }
         )*
     };
@@ -49,11 +74,28 @@ macro_rules! float {
             impl NumberExt for $type {
                 #[inline(always)]
                 fn abs(self) -> Self {
-                    if self < 0. { -self }
-                    else { self }
+                    if self < 0. {
+                        -self
+                    } else {
+                        self
+                    }
                 }
+
                 #[inline(always)]
-                fn zero() -> Self { 0. }
+                fn zero() -> Self {
+                    0.
+                }
+
+                #[inline(always)]
+                fn sign(self) -> Sign {
+                    if self == 0. {
+                        Zero
+                    } else if self.is_sign_positive() {
+                        Positive
+                    } else { // self.is_sign_negative()
+                        Negative
+                    }
+                }
             }
         )*
     };

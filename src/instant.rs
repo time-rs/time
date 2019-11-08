@@ -1,5 +1,5 @@
 use crate::Duration;
-use crate::Sign::{Negative, Positive, Unknown, Zero};
+use crate::Sign::{Negative, Positive, Zero};
 use core::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use core::convert::TryFrom;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
@@ -93,7 +93,6 @@ impl Instant {
                     )
                 }))
                 .map(From::from),
-            Unknown => unreachable!("A `Duration` cannot have an unknown sign"),
         }
     }
 

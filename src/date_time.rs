@@ -699,7 +699,6 @@ impl From<DateTime> for SystemTime {
                     ))
             }
             Sign::Zero => Self::UNIX_EPOCH,
-            Sign::Unknown => unreachable!("Durations always have a known sign"),
         }
     }
 }

@@ -1,6 +1,6 @@
 #[cfg(feature = "std")]
 use crate::Instant;
-use crate::Sign::{self, Negative, Positive, Unknown, Zero};
+use crate::Sign::{self, Negative, Positive, Zero};
 use crate::{NumberExt, OutOfRangeError};
 use core::cmp::Ordering::{self, Equal, Greater, Less};
 use core::convert::{From, TryFrom};
@@ -22,8 +22,7 @@ use log::warn;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Debug, Default, Eq)]
 pub struct Duration {
-    /// Is the `Duration` positive, negative, or zero? `Sign::Unknown` is not a
-    /// valid value here.
+    /// Is the `Duration` positive, negative, or zero?
     sign: Sign,
 
     /// Inner, unsigned representation of the duration.
@@ -217,8 +216,6 @@ impl Duration {
 
     /// Retrieve the sign of the duration.
     ///
-    /// `Sign::Unknown` will never be returned from this method.
-    ///
     /// ```rust
     /// # use time::{Duration, Sign};
     /// assert_eq!(Duration::seconds(1).sign(), Sign::Positive);
@@ -243,7 +240,6 @@ impl Duration {
         match self.sign() {
             Zero => Self::zero(),
             Positive | Negative => Self::positive(self.std),
-            Unknown => unreachable!("A `Duration` cannot have an unknown sign"),
         }
     }
 
@@ -611,7 +607,6 @@ impl Duration {
     #[inline]
     pub fn checked_add(self, rhs: Self) -> Option<Self> {
         match (self.sign, rhs.sign) {
-            (Unknown, _) | (_, Unknown) => unreachable!("A `Duration` cannot have an unknown sign"),
             (_, Zero) => Some(self),
             (Zero, _) => Some(rhs),
             (Positive, Positive) => Some(Self::positive(self.std.checked_add(rhs.std)?)),
@@ -1193,7 +1188,6 @@ impl Ord for Duration {
     #[inline]
     fn cmp(&self, rhs: &Self) -> Ordering {
         match (self.sign, rhs.sign) {
-            (Unknown, _) | (_, Unknown) => unreachable!("A `Duration` cannot have an unknown sign"),
             (Zero, Zero) => Equal,
             (Positive, Negative) | (Positive, Zero) | (Zero, Negative) => Greater,
             (Negative, Positive) | (Zero, Positive) | (Negative, Zero) => Less,
