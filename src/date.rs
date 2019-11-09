@@ -935,7 +935,7 @@ mod test {
     // immediately preceding and after the leap day.
 
     #[test]
-    #[allow(clippy::cognitive_complexity, clippy::zero_prefixed_literal)]
+    #[allow(clippy::zero_prefixed_literal)]
     fn test_monday_based_week() {
         macro_rules! assert_monday_week {
             ($y:literal - $m:literal - $d:literal => $week:literal) => {
@@ -1134,7 +1134,7 @@ mod test {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity, clippy::zero_prefixed_literal)]
+    #[allow(clippy::zero_prefixed_literal)]
     fn test_sunday_based_week() {
         macro_rules! assert_sunday_week {
             ($y:literal - $m:literal - $d:literal => $week:literal) => {
@@ -1333,7 +1333,7 @@ mod test {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity, clippy::zero_prefixed_literal)]
+    #[allow(clippy::zero_prefixed_literal)]
     fn test_parse_monday_based_week() {
         macro_rules! assert_dwy {
             ($weekday:ident $week:literal $year:literal => $ordinal:literal) => {
@@ -1544,7 +1544,7 @@ mod test {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity, clippy::zero_prefixed_literal)]
+    #[allow(clippy::zero_prefixed_literal)]
     fn test_parse_sunday_based_week() {
         macro_rules! assert_dwy {
             ($weekday:ident $week:literal $year:literal => $ordinal:literal) => {

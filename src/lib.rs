@@ -130,6 +130,7 @@
     clippy::cast_lossless,
     clippy::module_name_repetitions
 )]
+#![cfg_attr(test, allow(clippy::cognitive_complexity, clippy::too_many_lines))]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 
@@ -233,7 +234,7 @@ use core::fmt;
 pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use date_time::DateTime;
 pub use duration::Duration;
-pub use format::DeferredFormat;
+pub(crate) use format::DeferredFormat;
 pub use format::Language;
 pub use format::ParseError;
 #[cfg(feature = "std")]

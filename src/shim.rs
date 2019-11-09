@@ -156,7 +156,6 @@ mod test {
     }
 
     #[test]
-    #[allow(clippy::cognitive_complexity)]
     fn sign() {
         assert_eq!(1_u8.sign(), Positive);
         assert_eq!(1_u16.sign(), Positive);

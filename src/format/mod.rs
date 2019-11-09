@@ -272,12 +272,9 @@ pub(crate) enum FormatItem<'a> {
     Specifier(Specifier),
 }
 
-// TODO Look into whether `DeferredFormat` can be eliminated entirely without
-// unnecessary duplication between formatting and parsing code.
 /// A struct containing all the necessary information to display the inner type.
-#[doc(hidden)]
-#[derive(Debug, Clone)]
-pub struct DeferredFormat<'a> {
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub(crate) struct DeferredFormat<'a> {
     /// The `Date` to use for formatting.
     pub(crate) date: Option<Date>,
     /// The `Time` to use for formatting.
