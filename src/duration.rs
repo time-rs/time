@@ -1,11 +1,15 @@
 #[cfg(feature = "std")]
 use crate::Instant;
-use crate::Sign::{self, Negative, Positive, Zero};
-use crate::{NumberExt, OutOfRangeError};
-use core::cmp::Ordering::{self, Equal, Greater, Less};
-use core::convert::{From, TryFrom};
-use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
-use core::time::Duration as StdDuration;
+use crate::{
+    NumberExt, OutOfRangeError,
+    Sign::{self, Negative, Positive, Zero},
+};
+use core::{
+    cmp::Ordering::{self, Equal, Greater, Less},
+    convert::{From, TryFrom},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+    time::Duration as StdDuration,
+};
 #[cfg(feature = "deprecated")]
 use log::warn;
 
@@ -149,7 +153,10 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::Duration;
-    /// assert_eq!(Duration::max_value().whole_nanoseconds(), 18_446_744_073_709_551_615_999_999_999);
+    /// assert_eq!(
+    ///     Duration::max_value().whole_nanoseconds(),
+    ///     18_446_744_073_709_551_615_999_999_999
+    /// );
     /// ```
     #[inline(always)]
     #[deprecated(
@@ -165,7 +172,10 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::Duration;
-    /// assert_eq!(Duration::min_value().whole_nanoseconds(), -18_446_744_073_709_551_615_999_999_999);
+    /// assert_eq!(
+    ///     Duration::min_value().whole_nanoseconds(),
+    ///     -18_446_744_073_709_551_615_999_999_999
+    /// );
     /// ```
     #[inline(always)]
     #[deprecated(
@@ -517,7 +527,10 @@ impl Duration {
     /// ```rust
     /// # use time::Duration;
     /// assert_eq!(Duration::microseconds(1), Duration::seconds(1) / 1_000_000);
-    /// assert_eq!(Duration::microseconds(-1), Duration::seconds(-1) / 1_000_000);
+    /// assert_eq!(
+    ///     Duration::microseconds(-1),
+    ///     Duration::seconds(-1) / 1_000_000
+    /// );
     /// ```
     #[inline(always)]
     pub fn microseconds(microseconds: i64) -> Self {
@@ -548,7 +561,10 @@ impl Duration {
     /// ```rust
     /// # use time::Duration;
     /// assert_eq!(Duration::microseconds(1_000_400).subsec_microseconds(), 400);
-    /// assert_eq!(Duration::microseconds(-1_000_400).subsec_microseconds(), 400);
+    /// assert_eq!(
+    ///     Duration::microseconds(-1_000_400).subsec_microseconds(),
+    ///     400
+    /// );
     /// ```
     #[inline(always)]
     pub const fn subsec_microseconds(&self) -> u32 {
@@ -559,8 +575,14 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::Duration;
-    /// assert_eq!(Duration::nanoseconds(1), Duration::seconds(1) / 1_000_000_000);
-    /// assert_eq!(Duration::nanoseconds(-1), Duration::seconds(-1) / 1_000_000_000);
+    /// assert_eq!(
+    ///     Duration::nanoseconds(1),
+    ///     Duration::seconds(1) / 1_000_000_000
+    /// );
+    /// assert_eq!(
+    ///     Duration::nanoseconds(-1),
+    ///     Duration::seconds(-1) / 1_000_000_000
+    /// );
     /// ```
     #[inline(always)]
     pub fn nanoseconds(nanoseconds: i64) -> Self {
@@ -590,8 +612,14 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::Duration;
-    /// assert_eq!(Duration::nanoseconds(1_000_000_400).subsec_nanoseconds(), 400);
-    /// assert_eq!(Duration::nanoseconds(-1_000_000_400).subsec_nanoseconds(), 400);
+    /// assert_eq!(
+    ///     Duration::nanoseconds(1_000_000_400).subsec_nanoseconds(),
+    ///     400
+    /// );
+    /// assert_eq!(
+    ///     Duration::nanoseconds(-1_000_000_400).subsec_nanoseconds(),
+    ///     400
+    /// );
     /// ```
     #[inline(always)]
     pub const fn subsec_nanoseconds(&self) -> u32 {
@@ -602,9 +630,18 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::Duration;
-    /// assert_eq!(Duration::seconds(5).checked_add(Duration::seconds(5)), Some(Duration::seconds(10)));
-    /// assert_eq!(Duration::max_value().checked_add(Duration::nanosecond()), None);
-    /// assert_eq!(Duration::seconds(-5).checked_add(Duration::seconds(5)), Some(Duration::zero()));
+    /// assert_eq!(
+    ///     Duration::seconds(5).checked_add(Duration::seconds(5)),
+    ///     Some(Duration::seconds(10))
+    /// );
+    /// assert_eq!(
+    ///     Duration::max_value().checked_add(Duration::nanosecond()),
+    ///     None
+    /// );
+    /// assert_eq!(
+    ///     Duration::seconds(-5).checked_add(Duration::seconds(5)),
+    ///     Some(Duration::zero())
+    /// );
     /// ```
     #[inline]
     pub fn checked_add(self, rhs: Self) -> Option<Self> {
@@ -632,9 +669,18 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::Duration;
-    /// assert_eq!(Duration::seconds(5).checked_sub(Duration::seconds(5)), Some(Duration::zero()));
-    /// assert_eq!(Duration::min_value().checked_sub(Duration::nanosecond()), None);
-    /// assert_eq!(Duration::seconds(5).checked_sub(Duration::seconds(10)), Some(Duration::seconds(-5)));
+    /// assert_eq!(
+    ///     Duration::seconds(5).checked_sub(Duration::seconds(5)),
+    ///     Some(Duration::zero())
+    /// );
+    /// assert_eq!(
+    ///     Duration::min_value().checked_sub(Duration::nanosecond()),
+    ///     None
+    /// );
+    /// assert_eq!(
+    ///     Duration::seconds(5).checked_sub(Duration::seconds(10)),
+    ///     Some(Duration::seconds(-5))
+    /// );
     /// ```
     #[inline(always)]
     pub fn checked_sub(self, rhs: Self) -> Option<Self> {
@@ -645,8 +691,14 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::Duration;
-    /// assert_eq!(Duration::seconds(5).checked_mul(2), Some(Duration::seconds(10)));
-    /// assert_eq!(Duration::seconds(5).checked_mul(-2), Some(Duration::seconds(-10)));
+    /// assert_eq!(
+    ///     Duration::seconds(5).checked_mul(2),
+    ///     Some(Duration::seconds(10))
+    /// );
+    /// assert_eq!(
+    ///     Duration::seconds(5).checked_mul(-2),
+    ///     Some(Duration::seconds(-10))
+    /// );
     /// assert_eq!(Duration::seconds(5).checked_mul(0), Some(Duration::zero()));
     /// assert_eq!(Duration::max_value().checked_mul(2), None);
     /// assert_eq!(Duration::min_value().checked_mul(2), None);
@@ -737,18 +789,16 @@ impl Duration {
 
         if millis > i64::max_value() as i128 {
             warn!(
-                "The number of milliseconds exceeds `i64::max_value()`. \
-                 Limiting to that value. Use the `whole_milliseconds` to \
-                 return an i128."
+                "The number of milliseconds exceeds `i64::max_value()`. Limiting to that value. \
+                 Use the `whole_milliseconds` to return an i128."
             );
             millis = i64::max_value() as i128;
         }
 
         if millis < i64::min_value() as i128 {
             warn!(
-                "The number of milliseconds exceeds `i64::min_value()`. \
-                 Limiting to that value. Use the `whole_milliseconds` to \
-                 return an i128."
+                "The number of milliseconds exceeds `i64::min_value()`. Limiting to that value. \
+                 Use the `whole_milliseconds` to return an i128."
             );
             millis = i64::min_value() as i128;
         }
@@ -952,8 +1002,8 @@ impl SubAssign<Duration> for StdDuration {
         use core::convert::TryInto;
 
         *self = (*self - rhs).try_into().expect(
-            "Cannot represent a resulting duration in std. \
-             Try `let x = x - rhs;`, which will change the type.",
+            "Cannot represent a resulting duration in std. Try `let x = x - rhs;`, which will \
+             change the type.",
         );
     }
 }

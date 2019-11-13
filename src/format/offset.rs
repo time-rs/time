@@ -2,8 +2,10 @@
 
 #![allow(non_snake_case)]
 
-use super::parse::{try_consume_exact_digits_in_range, try_consume_first_match};
-use super::{Padding, ParseError, ParseResult, ParsedItems};
+use super::{
+    parse::{try_consume_exact_digits_in_range, try_consume_first_match},
+    Padding, ParseError, ParseResult, ParsedItems,
+};
 use crate::{Sign, UtcOffset};
 use core::fmt::{self, Formatter};
 

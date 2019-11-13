@@ -1,11 +1,15 @@
-use crate::format::parse::{parse, ParseResult, ParsedItems};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
-use crate::{Date, DateTime, DeferredFormat, Duration, Language, Time, UtcOffset, Weekday};
-use core::cmp::Ordering;
-use core::hash::{Hash, Hasher};
-use core::ops::{Add, AddAssign, Sub, SubAssign};
-use core::time::Duration as StdDuration;
+use crate::{
+    format::parse::{parse, ParseResult, ParsedItems},
+    Date, DateTime, DeferredFormat, Duration, Language, Time, UtcOffset, Weekday,
+};
+use core::{
+    cmp::Ordering,
+    hash::{Hash, Hasher},
+    ops::{Add, AddAssign, Sub, SubAssign},
+    time::Duration as StdDuration,
+};
 
 /// A [`DateTime`] with a [`UtcOffset`].
 ///
@@ -1285,8 +1289,7 @@ mod test {
     #[test]
     #[cfg(feature = "std")]
     fn hash() {
-        use std::collections::hash_map::DefaultHasher;
-        use std::hash::Hash;
+        use std::{collections::hash_map::DefaultHasher, hash::Hash};
 
         assert_eq!(
             {

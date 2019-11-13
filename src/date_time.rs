@@ -1,14 +1,18 @@
-use crate::format::parse::{parse, ParseResult, ParsedItems};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
 #[cfg(feature = "std")]
 use crate::Sign;
-use crate::{Date, DeferredFormat, Duration, Language, OffsetDateTime, Time, UtcOffset, Weekday};
-use core::cmp::Ordering;
+use crate::{
+    format::parse::{parse, ParseResult, ParsedItems},
+    Date, DeferredFormat, Duration, Language, OffsetDateTime, Time, UtcOffset, Weekday,
+};
 #[cfg(feature = "std")]
 use core::convert::{From, TryFrom};
-use core::ops::{Add, AddAssign, Sub, SubAssign};
-use core::time::Duration as StdDuration;
+use core::{
+    cmp::Ordering,
+    ops::{Add, AddAssign, Sub, SubAssign},
+    time::Duration as StdDuration,
+};
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
@@ -55,7 +59,10 @@ impl DateTime {
     ///
     /// ```rust
     /// # use time::{Date, DateTime, Time};
-    /// assert_eq!(DateTime::unix_epoch(), Date::from_ymd(1970, 1, 1).midnight());
+    /// assert_eq!(
+    ///     DateTime::unix_epoch(),
+    ///     Date::from_ymd(1970, 1, 1).midnight()
+    /// );
     /// ```
     #[inline(always)]
     pub const fn unix_epoch() -> Self {
@@ -94,7 +101,10 @@ impl DateTime {
     /// ```rust
     /// # use time::{Date, DateTime};
     /// assert_eq!(DateTime::unix_epoch().timestamp(), 0);
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().timestamp(), 1_546_300_800);
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1).midnight().timestamp(),
+    ///     1_546_300_800
+    /// );
     /// ```
     #[inline(always)]
     pub fn timestamp(self) -> i64 {
@@ -105,7 +115,10 @@ impl DateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().date(), Date::from_ymd(2019, 1, 1));
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1).midnight().date(),
+    ///     Date::from_ymd(2019, 1, 1)
+    /// );
     /// ```
     #[inline(always)]
     pub const fn date(self) -> Date {
@@ -174,7 +187,10 @@ impl DateTime {
     /// ```rust
     /// # use time::Date;
     /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().month_day(), (1, 1));
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).midnight().month_day(), (12, 31));
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 12, 31).midnight().month_day(),
+    ///     (12, 31)
+    /// );
     /// ```
     #[inline(always)]
     pub fn month_day(self) -> (u8, u8) {
@@ -200,11 +216,26 @@ impl DateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().iso_year_week(), (2019, 1));
-    /// assert_eq!(Date::from_ymd(2019, 10, 4).midnight().iso_year_week(), (2019, 40));
-    /// assert_eq!(Date::from_ymd(2020, 1, 1).midnight().iso_year_week(), (2020, 1));
-    /// assert_eq!(Date::from_ymd(2020, 12, 31).midnight().iso_year_week(), (2020, 53));
-    /// assert_eq!(Date::from_ymd(2021, 1, 1).midnight().iso_year_week(), (2020, 53));
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1).midnight().iso_year_week(),
+    ///     (2019, 1)
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 10, 4).midnight().iso_year_week(),
+    ///     (2019, 40)
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2020, 1, 1).midnight().iso_year_week(),
+    ///     (2020, 1)
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2020, 12, 31).midnight().iso_year_week(),
+    ///     (2020, 53)
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2021, 1, 1).midnight().iso_year_week(),
+    ///     (2020, 53)
+    /// );
     /// ```
     #[inline]
     pub fn iso_year_week(self) -> (i32, u8) {
@@ -236,7 +267,10 @@ impl DateTime {
     /// # use time::Date;
     /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().sunday_based_week(), 0);
     /// assert_eq!(Date::from_ymd(2020, 1, 1).midnight().sunday_based_week(), 0);
-    /// assert_eq!(Date::from_ymd(2020, 12, 31).midnight().sunday_based_week(), 52);
+    /// assert_eq!(
+    ///     Date::from_ymd(2020, 12, 31).midnight().sunday_based_week(),
+    ///     52
+    /// );
     /// assert_eq!(Date::from_ymd(2021, 1, 1).midnight().sunday_based_week(), 0);
     /// ```
     #[inline(always)]
@@ -252,7 +286,10 @@ impl DateTime {
     /// # use time::Date;
     /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().monday_based_week(), 0);
     /// assert_eq!(Date::from_ymd(2020, 1, 1).midnight().monday_based_week(), 0);
-    /// assert_eq!(Date::from_ymd(2020, 12, 31).midnight().monday_based_week(), 52);
+    /// assert_eq!(
+    ///     Date::from_ymd(2020, 12, 31).midnight().monday_based_week(),
+    ///     52
+    /// );
     /// assert_eq!(Date::from_ymd(2021, 1, 1).midnight().monday_based_week(), 0);
     /// ```
     #[inline(always)]
@@ -333,8 +370,18 @@ impl DateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms_milli(0, 0, 0, 0).millisecond(), 0);
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms_milli(23, 59, 59, 999).millisecond(), 999);
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1)
+    ///         .with_hms_milli(0, 0, 0, 0)
+    ///         .millisecond(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1)
+    ///         .with_hms_milli(23, 59, 59, 999)
+    ///         .millisecond(),
+    ///     999
+    /// );
     /// ```
     #[inline(always)]
     pub const fn millisecond(self) -> u16 {
@@ -347,8 +394,18 @@ impl DateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms_micro(0, 0, 0, 0).microsecond(), 0);
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms_micro(23, 59, 59, 999_999).microsecond(), 999_999);
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1)
+    ///         .with_hms_micro(0, 0, 0, 0)
+    ///         .microsecond(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1)
+    ///         .with_hms_micro(23, 59, 59, 999_999)
+    ///         .microsecond(),
+    ///     999_999
+    /// );
     /// ```
     #[inline(always)]
     pub const fn microsecond(self) -> u32 {
@@ -361,8 +418,18 @@ impl DateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms_nano(0, 0, 0, 0).nanosecond(), 0);
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms_nano(23, 59, 59, 999_999_999).nanosecond(), 999_999_999);
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1)
+    ///         .with_hms_nano(0, 0, 0, 0)
+    ///         .nanosecond(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1)
+    ///         .with_hms_nano(23, 59, 59, 999_999_999)
+    ///         .nanosecond(),
+    ///     999_999_999
+    /// );
     /// ```
     #[inline(always)]
     pub const fn nanosecond(self) -> u32 {
@@ -398,7 +465,10 @@ impl DateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 2).midnight().format("%F %r"), "2019-01-02 12:00:00 am");
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 2).midnight().format("%F %r"),
+    ///     "2019-01-02 12:00:00 am"
+    /// );
     /// ```
     #[inline(always)]
     pub fn format(self, format: &str) -> String {
@@ -416,11 +486,15 @@ impl DateTime {
     /// ```rust
     /// # use time::{Date, Language};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 2).midnight().format_language("%c", Language::en),
+    ///     Date::from_ymd(2019, 1, 2)
+    ///         .midnight()
+    ///         .format_language("%c", Language::en),
     ///     "Wed Jan 2 0:00:00 2019",
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 2).midnight().format_language("%c", Language::es),
+    ///     Date::from_ymd(2019, 1, 2)
+    ///         .midnight()
+    ///         .format_language("%c", Language::es),
     ///     "Mi enero 2 0:00:00 2019",
     /// );
     /// ```
@@ -705,15 +779,21 @@ impl From<DateTime> for SystemTime {
         match duration.sign() {
             Sign::Positive => {
                 Self::UNIX_EPOCH
-                    + StdDuration::try_from(duration).unwrap_or_else(|_| unreachable!(
-                        "The value is guaranteed to be positive (and is convertible to StdDuration)."
-                    ))
+                    + StdDuration::try_from(duration).unwrap_or_else(|_| {
+                        unreachable!(
+                            "The value is guaranteed to be positive (and is convertible to \
+                             StdDuration)."
+                        )
+                    })
             }
             Sign::Negative => {
                 Self::UNIX_EPOCH
-                    + StdDuration::try_from(-duration).unwrap_or_else(|_| unreachable!(
-                        "The value is guaranteed to be positive (and is convertible to StdDuration)."
-                    ))
+                    + StdDuration::try_from(-duration).unwrap_or_else(|_| {
+                        unreachable!(
+                            "The value is guaranteed to be positive (and is convertible to \
+                             StdDuration)."
+                        )
+                    })
             }
             Sign::Zero => Self::UNIX_EPOCH,
         }

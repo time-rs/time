@@ -268,9 +268,8 @@ pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use date_time::DateTime;
 pub use duration::Duration;
 pub(crate) use format::DeferredFormat;
-// FIXME Why does combining the following two imports cause an error?
-pub use format::Language;
-pub use format::ParseError;
+#[allow(unreachable_pub)] // rust-lang/rust#64762
+pub use format::{Language, ParseError};
 #[cfg(feature = "std")]
 pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
@@ -299,10 +298,12 @@ pub mod prelude {
 #[cfg(not(feature = "std"))]
 mod no_std_prelude {
     #![allow(unused_imports)]
-    pub(crate) use alloc::borrow::ToOwned;
-    pub(crate) use alloc::boxed::Box;
-    pub(crate) use alloc::string::{String, ToString};
-    pub(crate) use alloc::vec::Vec;
+    pub(crate) use alloc::{
+        borrow::ToOwned,
+        boxed::Box,
+        string::{String, ToString},
+        vec::Vec,
+    };
 }
 
 /// An error type indicating that a conversion failed because the target type

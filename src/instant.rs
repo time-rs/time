@@ -1,9 +1,13 @@
-use crate::Duration;
-use crate::Sign::{Negative, Positive, Zero};
-use core::cmp::{Ord, Ordering, PartialEq, PartialOrd};
-use core::convert::TryFrom;
-use core::ops::{Add, AddAssign, Sub, SubAssign};
-use core::time::Duration as StdDuration;
+use crate::{
+    Duration,
+    Sign::{Negative, Positive, Zero},
+};
+use core::{
+    cmp::{Ord, Ordering, PartialEq, PartialOrd},
+    convert::TryFrom,
+    ops::{Add, AddAssign, Sub, SubAssign},
+    time::Duration as StdDuration,
+};
 use std::time::Instant as StdInstant;
 
 /// A measurement of a monotonically non-decreasing clock. Opaque and useful
@@ -70,8 +74,14 @@ impl Instant {
     /// ```rust
     /// # use time::{Duration, Instant};
     /// let now = Instant::now();
-    /// assert_eq!(now.checked_add(Duration::seconds(5)), Some(now + Duration::seconds(5)));
-    /// assert_eq!(now.checked_add(Duration::seconds(-5)), Some(now + Duration::seconds(-5)));
+    /// assert_eq!(
+    ///     now.checked_add(Duration::seconds(5)),
+    ///     Some(now + Duration::seconds(5))
+    /// );
+    /// assert_eq!(
+    ///     now.checked_add(Duration::seconds(-5)),
+    ///     Some(now + Duration::seconds(-5))
+    /// );
     /// ```
     #[inline]
     pub fn checked_add(self, duration: Duration) -> Option<Self> {
@@ -81,7 +91,8 @@ impl Instant {
                 .inner
                 .checked_sub(StdDuration::try_from(duration.abs()).unwrap_or_else(|_| {
                     unreachable!(
-                        "The value is guaranteed to be positive (and is convertible to StdDuration)."
+                        "The value is guaranteed to be positive (and is convertible to \
+                         StdDuration)."
                     )
                 }))
                 .map(From::from),
@@ -89,7 +100,8 @@ impl Instant {
                 .inner
                 .checked_add(StdDuration::try_from(duration.abs()).unwrap_or_else(|_| {
                     unreachable!(
-                        "The value is guaranteed to be positive (and is convertible to StdDuration)."
+                        "The value is guaranteed to be positive (and is convertible to \
+                         StdDuration)."
                     )
                 }))
                 .map(From::from),
@@ -103,8 +115,14 @@ impl Instant {
     /// ```rust
     /// # use time::{Duration, Instant};
     /// let now = Instant::now();
-    /// assert_eq!(now.checked_sub(Duration::seconds(5)), Some(now - Duration::seconds(5)));
-    /// assert_eq!(now.checked_sub(Duration::seconds(-5)), Some(now - Duration::seconds(-5)));
+    /// assert_eq!(
+    ///     now.checked_sub(Duration::seconds(5)),
+    ///     Some(now - Duration::seconds(5))
+    /// );
+    /// assert_eq!(
+    ///     now.checked_sub(Duration::seconds(-5)),
+    ///     Some(now - Duration::seconds(-5))
+    /// );
     /// ```
     #[inline(always)]
     pub fn checked_sub(self, duration: Duration) -> Option<Self> {

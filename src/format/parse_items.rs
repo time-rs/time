@@ -1,9 +1,11 @@
 //! Parse formats used in the `format` and `parse` methods.
 
-use crate::format::{FormatItem, Padding, Specifier};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
-use crate::Language;
+use crate::{
+    format::{FormatItem, Padding, Specifier},
+    Language,
+};
 
 /// Parse the formatting string with the provided language.
 #[inline]

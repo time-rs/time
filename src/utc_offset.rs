@@ -1,7 +1,9 @@
-use crate::format::{parse, ParseError, ParseResult, ParsedItems};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
-use crate::{DeferredFormat, Duration, Language};
+use crate::{
+    format::{parse, ParseError, ParseResult, ParsedItems},
+    DeferredFormat, Duration, Language,
+};
 
 /// An offset from UTC.
 ///

@@ -1,11 +1,15 @@
-use crate::format::parse::{parse, ParseError, ParseResult, ParsedItems};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
-use crate::Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday};
-use crate::{DateTime, DeferredFormat, Duration, Language, Time};
-use core::cmp::{Ord, Ordering, PartialOrd};
-use core::ops::{Add, AddAssign, Sub, SubAssign};
-use core::time::Duration as StdDuration;
+use crate::{
+    format::parse::{parse, ParseError, ParseResult, ParsedItems},
+    DateTime, DeferredFormat, Duration, Language, Time,
+    Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
+};
+use core::{
+    cmp::{Ord, Ordering, PartialOrd},
+    ops::{Add, AddAssign, Sub, SubAssign},
+    time::Duration as StdDuration,
+};
 
 // Some methods could be `const fn` due to the internal structure of `Date`, but
 // are explicitly not (and have linting disabled) as it could lead to
@@ -159,9 +163,18 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, Weekday::*};
-    /// assert_eq!(Date::from_iso_ywd(2019, 1, Monday), Date::from_ymd(2018, 12, 31));
-    /// assert_eq!(Date::from_iso_ywd(2019, 1, Tuesday), Date::from_ymd(2019, 1, 1));
-    /// assert_eq!(Date::from_iso_ywd(2020, 53, Friday), Date::from_ymd(2021, 1, 1));
+    /// assert_eq!(
+    ///     Date::from_iso_ywd(2019, 1, Monday),
+    ///     Date::from_ymd(2018, 12, 31)
+    /// );
+    /// assert_eq!(
+    ///     Date::from_iso_ywd(2019, 1, Tuesday),
+    ///     Date::from_ymd(2019, 1, 1)
+    /// );
+    /// assert_eq!(
+    ///     Date::from_iso_ywd(2020, 53, Friday),
+    ///     Date::from_ymd(2021, 1, 1)
+    /// );
     /// ```
     ///
     /// Panics if the week is not valid.
@@ -447,9 +460,18 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).next_day(), Date::from_ymd(2019, 1, 2));
-    /// assert_eq!(Date::from_ymd(2019, 1, 31).next_day(), Date::from_ymd(2019, 2, 1));
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).next_day(), Date::from_ymd(2020, 1, 1));
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1).next_day(),
+    ///     Date::from_ymd(2019, 1, 2)
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 31).next_day(),
+    ///     Date::from_ymd(2019, 2, 1)
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 12, 31).next_day(),
+    ///     Date::from_ymd(2020, 1, 1)
+    /// );
     /// ```
     #[inline(always)]
     pub fn next_day(mut self) -> Self {
@@ -467,9 +489,18 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 2).previous_day(), Date::from_ymd(2019, 1, 1));
-    /// assert_eq!(Date::from_ymd(2019, 2, 1).previous_day(), Date::from_ymd(2019, 1, 31));
-    /// assert_eq!(Date::from_ymd(2020, 1, 1).previous_day(), Date::from_ymd(2019, 12, 31));
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 2).previous_day(),
+    ///     Date::from_ymd(2019, 1, 1)
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 2, 1).previous_day(),
+    ///     Date::from_ymd(2019, 1, 31)
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2020, 1, 1).previous_day(),
+    ///     Date::from_ymd(2019, 12, 31)
+    /// );
     /// ```
     #[inline(always)]
     pub fn previous_day(mut self) -> Self {
@@ -516,7 +547,10 @@ impl Date {
     /// assert_eq!(Date::from_julian_day(0), Date::from_ymd(-4713, 11, 24));
     /// assert_eq!(Date::from_julian_day(2_451_545), Date::from_ymd(2000, 1, 1));
     /// assert_eq!(Date::from_julian_day(2_458_485), Date::from_ymd(2019, 1, 1));
-    /// assert_eq!(Date::from_julian_day(2_458_849), Date::from_ymd(2019, 12, 31));
+    /// assert_eq!(
+    ///     Date::from_julian_day(2_458_849),
+    ///     Date::from_ymd(2019, 12, 31)
+    /// );
     /// ```
     #[inline]
     pub fn from_julian_day(julian_day: i64) -> Self {
@@ -554,7 +588,10 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, DateTime, Time};
-    /// assert_eq!(Date::from_ymd(1970, 1, 1).midnight(), DateTime::unix_epoch());
+    /// assert_eq!(
+    ///     Date::from_ymd(1970, 1, 1).midnight(),
+    ///     DateTime::unix_epoch()
+    /// );
     /// ```
     #[inline(always)]
     pub const fn midnight(self) -> DateTime {
@@ -686,9 +723,15 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, Weekday::Wednesday};
-    /// assert_eq!(Date::parse("2019-01-02", "%F"), Ok(Date::from_ymd(2019, 1, 2)));
+    /// assert_eq!(
+    ///     Date::parse("2019-01-02", "%F"),
+    ///     Ok(Date::from_ymd(2019, 1, 2))
+    /// );
     /// assert_eq!(Date::parse("2019-002", "%Y-%j"), Ok(Date::from_yo(2019, 2)));
-    /// assert_eq!(Date::parse("2019-W01-3", "%G-W%V-%u"), Ok(Date::from_iso_ywd(2019, 1, Wednesday)));
+    /// assert_eq!(
+    ///     Date::parse("2019-W01-3", "%G-W%V-%u"),
+    ///     Ok(Date::from_iso_ywd(2019, 1, Wednesday))
+    /// );
     /// ```
     #[inline(always)]
     pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
@@ -699,8 +742,14 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, Weekday::Wednesday, Language::{en, es}};
-    /// assert_eq!(Date::parse_language("January 2 2019", "%B %-d %Y", en), Ok(Date::from_ymd(2019, 1, 2)));
-    /// assert_eq!(Date::parse_language("2 de enero 2019", "%-d de %B %Y", es), Ok(Date::from_ymd(2019, 1, 2)));
+    /// assert_eq!(
+    ///     Date::parse_language("January 2 2019", "%B %-d %Y", en),
+    ///     Ok(Date::from_ymd(2019, 1, 2))
+    /// );
+    /// assert_eq!(
+    ///     Date::parse_language("2 de enero 2019", "%-d de %B %Y", es),
+    ///     Ok(Date::from_ymd(2019, 1, 2))
+    /// );
     /// ```
     #[inline(always)]
     pub fn parse_language(s: &str, format: &str, language: Language) -> ParseResult<Self> {

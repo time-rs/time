@@ -2,10 +2,12 @@
 
 use super::{parse_with_language, FormatItem, Padding, Specifier};
 use crate::{Language, UtcOffset, Weekday};
-use core::fmt::{self, Display, Formatter};
-use core::num::{NonZeroU16, NonZeroU8};
-use core::ops::{Bound, RangeBounds};
-use core::str::FromStr;
+use core::{
+    fmt::{self, Display, Formatter},
+    num::{NonZeroU16, NonZeroU8},
+    ops::{Bound, RangeBounds},
+    str::FromStr,
+};
 #[cfg(feature = "std")]
 use std::error::Error;
 
@@ -311,9 +313,9 @@ pub(crate) fn consume_padding(s: &mut &str, padding: Padding, max_chars: usize) 
         Padding::Zero => '0',
         Padding::None => return 0,
         Padding::Default => unreachable!(
-            "Default padding depends on context. This value should replaced \
-             prior to calling `consume_padding`. If this is encountered, \
-             please file an issue on the time repository."
+            "Default padding depends on context. This value should replaced prior to calling \
+             `consume_padding`. If this is encountered, please file an issue on the time \
+             repository."
         ),
     };
 

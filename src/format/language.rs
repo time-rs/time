@@ -10,7 +10,6 @@
 /// - Short month names
 /// - Weekday names
 /// - Short weekday names
-///
 // The list of supported languages is inherently non-exhaustive. Once
 // `#[non_exhaustive]` is stabilized, that will be used.
 #[allow(non_camel_case_types)]

@@ -211,8 +211,14 @@ impl_numerical_duration_nonzero![
 ///
 /// ```rust
 /// # use time::NumericalStdDuration;
-/// assert_eq!(2.std_seconds() + 500.std_milliseconds(), 2_500.std_milliseconds());
-/// assert_eq!(2.std_seconds() - 500.std_milliseconds(), 1_500.std_milliseconds());
+/// assert_eq!(
+///     2.std_seconds() + 500.std_milliseconds(),
+///     2_500.std_milliseconds()
+/// );
+/// assert_eq!(
+///     2.std_seconds() - 500.std_milliseconds(),
+///     1_500.std_milliseconds()
+/// );
 /// ```
 ///
 /// As floats can only be used to construct via anything other than

@@ -2,7 +2,7 @@
 
 /// Pad a given value if requested.
 macro_rules! pad {
-    ($f:ident, $padding:ident (None), $width:literal, $value:expr) => {
+    ($f:ident, $padding:ident(None), $width:literal, $value:expr) => {
         match $padding {
             Padding::None | Padding::Default => write!($f, "{}", $value),
             Padding::Space => write!($f, concat!("{:", stringify!($width), "}"), $value),
@@ -10,7 +10,7 @@ macro_rules! pad {
         }
     };
 
-    ($f:ident, $padding:ident (Space), $width:literal, $value:expr) => {
+    ($f:ident, $padding:ident(Space), $width:literal, $value:expr) => {
         match $padding {
             Padding::None => write!($f, "{}", $value),
             Padding::Space | Padding::Default => {
@@ -20,7 +20,7 @@ macro_rules! pad {
         }
     };
 
-    ($f:ident, $padding:ident (Zero), $width:literal, $value:expr) => {
+    ($f:ident, $padding:ident(Zero), $width:literal, $value:expr) => {
         match $padding {
             Padding::None => write!($f, "{}", $value),
             Padding::Space => write!($f, concat!("{:", stringify!($width), "}"), $value),
@@ -42,7 +42,9 @@ pub(crate) mod time;
 use crate::no_std_prelude::*;
 use crate::{Date, Time, UtcOffset};
 use core::fmt::{self, Display, Formatter};
+#[allow(unreachable_pub)] // rust-lang/rust#64762
 pub use language::Language;
+#[allow(unreachable_pub)] // rust-lang/rust#64762
 pub use parse::ParseError;
 pub(crate) use parse::{parse, ParseResult, ParsedItems};
 pub(crate) use parse_items::parse_with_language;

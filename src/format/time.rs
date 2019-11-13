@@ -2,14 +2,20 @@
 
 #![allow(non_snake_case)]
 
-use crate::format::parse::{
-    try_consume_exact_digits_in_range, try_consume_first_match,
-    AmPm::{AM, PM},
+use crate::{
+    format::{
+        parse::{
+            try_consume_exact_digits_in_range, try_consume_first_match,
+            AmPm::{AM, PM},
+        },
+        Padding, ParseError, ParseResult, ParsedItems,
+    },
+    Time,
 };
-use crate::format::{Padding, ParseError, ParseResult, ParsedItems};
-use crate::Time;
-use core::fmt::{self, Formatter};
-use core::num::NonZeroU8;
+use core::{
+    fmt::{self, Formatter},
+    num::NonZeroU8,
+};
 
 /// Hour in 24h format (`00`-`23`)
 #[inline(always)]

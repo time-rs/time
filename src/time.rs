@@ -1,12 +1,16 @@
-use crate::format::{parse, parse::AmPm, ParseError, ParseResult, ParsedItems};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
 #[cfg(feature = "std")]
 use crate::DateTime;
-use crate::{DeferredFormat, Duration, Language};
-use core::num::NonZeroU8;
-use core::ops::{Add, AddAssign, Sub, SubAssign};
-use core::time::Duration as StdDuration;
+use crate::{
+    format::{parse, parse::AmPm, ParseError, ParseResult, ParsedItems},
+    DeferredFormat, Duration, Language,
+};
+use core::{
+    num::NonZeroU8,
+    ops::{Add, AddAssign, Sub, SubAssign},
+    time::Duration as StdDuration,
+};
 
 /// The number of nanoseconds in one day.
 pub(crate) const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
@@ -306,7 +310,10 @@ impl Time {
     /// ```rust
     /// # use time::Time;
     /// assert_eq!(Time::from_hms_micro(0, 0, 0, 0).microsecond(), 0);
-    /// assert_eq!(Time::from_hms_micro(23, 59, 59, 999_999).microsecond(), 999_999);
+    /// assert_eq!(
+    ///     Time::from_hms_micro(23, 59, 59, 999_999).microsecond(),
+    ///     999_999
+    /// );
     /// ```
     #[inline(always)]
     pub const fn microsecond(self) -> u32 {
@@ -320,7 +327,10 @@ impl Time {
     /// ```rust
     /// # use time::Time;
     /// assert_eq!(Time::from_hms_nano(0, 0, 0, 0).nanosecond(), 0);
-    /// assert_eq!(Time::from_hms_nano(23, 59, 59, 999_999_999).nanosecond(), 999_999_999);
+    /// assert_eq!(
+    ///     Time::from_hms_nano(23, 59, 59, 999_999_999).nanosecond(),
+    ///     999_999_999
+    /// );
     /// ```
     #[inline(always)]
     pub const fn nanosecond(self) -> u32 {
@@ -376,10 +386,22 @@ impl Time {
     /// ```rust
     /// # use time::Time;
     /// assert_eq!(Time::parse("0:00:00", "%T"), Ok(Time::from_hms(0, 0, 0)));
-    /// assert_eq!(Time::parse("23:59:59", "%T"), Ok(Time::from_hms(23, 59, 59)));
-    /// assert_eq!(Time::parse("12:00:00 am", "%r"), Ok(Time::from_hms(0, 0, 0)));
-    /// assert_eq!(Time::parse("12:00:00 pm", "%r"), Ok(Time::from_hms(12, 0, 0)));
-    /// assert_eq!(Time::parse("11:59:59 pm", "%r"), Ok(Time::from_hms(23, 59, 59)));
+    /// assert_eq!(
+    ///     Time::parse("23:59:59", "%T"),
+    ///     Ok(Time::from_hms(23, 59, 59))
+    /// );
+    /// assert_eq!(
+    ///     Time::parse("12:00:00 am", "%r"),
+    ///     Ok(Time::from_hms(0, 0, 0))
+    /// );
+    /// assert_eq!(
+    ///     Time::parse("12:00:00 pm", "%r"),
+    ///     Ok(Time::from_hms(12, 0, 0))
+    /// );
+    /// assert_eq!(
+    ///     Time::parse("11:59:59 pm", "%r"),
+    ///     Ok(Time::from_hms(23, 59, 59))
+    /// );
     /// ```
     #[inline(always)]
     pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
@@ -432,8 +454,14 @@ impl Add<Duration> for Time {
     ///
     /// ```rust
     /// # use time::{Duration, Time};
-    /// assert_eq!(Time::from_hms(12, 0, 0) + Duration::hours(2), Time::from_hms(14, 0, 0));
-    /// assert_eq!(Time::from_hms(0, 0, 1) + Duration::seconds(-2), Time::from_hms(23, 59, 59));
+    /// assert_eq!(
+    ///     Time::from_hms(12, 0, 0) + Duration::hours(2),
+    ///     Time::from_hms(14, 0, 0)
+    /// );
+    /// assert_eq!(
+    ///     Time::from_hms(0, 0, 1) + Duration::seconds(-2),
+    ///     Time::from_hms(23, 59, 59)
+    /// );
     /// ```
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
@@ -456,8 +484,14 @@ impl Add<StdDuration> for Time {
     /// ```rust
     /// # use time::Time;
     /// # use core::time::Duration;
-    /// assert_eq!(Time::from_hms(12, 0, 0) + Duration::from_secs(2 * 3_600), Time::from_hms(14, 0, 0));
-    /// assert_eq!(Time::from_hms(23, 59, 59) + Duration::from_secs(2), Time::from_hms(0, 0, 1));
+    /// assert_eq!(
+    ///     Time::from_hms(12, 0, 0) + Duration::from_secs(2 * 3_600),
+    ///     Time::from_hms(14, 0, 0)
+    /// );
+    /// assert_eq!(
+    ///     Time::from_hms(23, 59, 59) + Duration::from_secs(2),
+    ///     Time::from_hms(0, 0, 1)
+    /// );
     /// ```
     #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
@@ -514,8 +548,14 @@ impl Sub<Duration> for Time {
     ///
     /// ```rust
     /// # use time::{Duration, Time};
-    /// assert_eq!(Time::from_hms(14, 0, 0) - Duration::hours(2), Time::from_hms(12, 0, 0));
-    /// assert_eq!(Time::from_hms(23, 59, 59) - Duration::seconds(-2), Time::from_hms(0, 0, 1));
+    /// assert_eq!(
+    ///     Time::from_hms(14, 0, 0) - Duration::hours(2),
+    ///     Time::from_hms(12, 0, 0)
+    /// );
+    /// assert_eq!(
+    ///     Time::from_hms(23, 59, 59) - Duration::seconds(-2),
+    ///     Time::from_hms(0, 0, 1)
+    /// );
     /// ```
     #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
@@ -532,8 +572,14 @@ impl Sub<StdDuration> for Time {
     /// ```rust
     /// # use time::Time;
     /// # use core::time::Duration;
-    /// assert_eq!(Time::from_hms(14, 0, 0) - Duration::from_secs(2 * 3_600), Time::from_hms(12, 0, 0));
-    /// assert_eq!(Time::from_hms(0, 0, 1) - Duration::from_secs(2), Time::from_hms(23, 59, 59));
+    /// assert_eq!(
+    ///     Time::from_hms(14, 0, 0) - Duration::from_secs(2 * 3_600),
+    ///     Time::from_hms(12, 0, 0)
+    /// );
+    /// assert_eq!(
+    ///     Time::from_hms(0, 0, 1) - Duration::from_secs(2),
+    ///     Time::from_hms(23, 59, 59)
+    /// );
     /// ```
     #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
@@ -590,10 +636,22 @@ impl Sub<Time> for Time {
     ///
     /// ```rust
     /// use time::{Duration, Time};
-    /// assert_eq!(Time::from_hms(0, 0, 0) - Time::from_hms(0, 0, 0), Duration::zero());
-    /// assert_eq!(Time::from_hms(1, 0, 0) - Time::from_hms(0, 0, 0), Duration::hour());
-    /// assert_eq!(Time::from_hms(0, 0, 0) - Time::from_hms(1, 0, 0), Duration::hours(-1));
-    /// assert_eq!(Time::from_hms(0, 0, 0) - Time::from_hms(23, 0, 0), Duration::hours(-23));
+    /// assert_eq!(
+    ///     Time::from_hms(0, 0, 0) - Time::from_hms(0, 0, 0),
+    ///     Duration::zero()
+    /// );
+    /// assert_eq!(
+    ///     Time::from_hms(1, 0, 0) - Time::from_hms(0, 0, 0),
+    ///     Duration::hour()
+    /// );
+    /// assert_eq!(
+    ///     Time::from_hms(0, 0, 0) - Time::from_hms(1, 0, 0),
+    ///     Duration::hours(-1)
+    /// );
+    /// assert_eq!(
+    ///     Time::from_hms(0, 0, 0) - Time::from_hms(23, 0, 0),
+    ///     Duration::hours(-23)
+    /// );
     /// ```
     #[inline(always)]
     fn sub(self, rhs: Self) -> Self::Output {
