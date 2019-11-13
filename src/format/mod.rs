@@ -56,7 +56,7 @@ pub(crate) enum Padding {
     Space,
     /// Pad to the requisite width using zeros.
     Zero,
-    /// Use the default padding for the specifier.
+    /// Use the default padding for the specifier. Varies by specifier.
     Default,
 }
 

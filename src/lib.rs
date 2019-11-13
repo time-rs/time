@@ -2,9 +2,9 @@
 //!
 //! ![rustc 1.38.0](https://img.shields.io/badge/rustc-1.38.0-blue)
 //!
-//! # Feature gates
+//! # Feature flags in Cargo
 //!
-//! ## `#![no_std]`
+//! ## `std`
 //!
 //! Currently, all structs except `Instant` can be used with `#![no_std]`. As
 //! support for the standard library is enabled by default, you muse use
@@ -18,22 +18,40 @@
 //! Of the structs that are usable, some methods may only be enabled due a
 //! reliance on `Instant`. These will be documented alongside the method.
 //!
-//! ## Serde
+//! ## `serialization`
 //!
 //! [Serde](https://github.com/serde-rs/serde) support is behind a feature flag.
 //! To enable it, use the `serialization` feature. This is not enabled by
 //! default. It _is_ compatible with `#![no_std]`, so long as an allocator is
 //! present.
 //!
+//! With the standard library:
 //! ```toml
 //! [dependencies]
 //! time = { version = "0.2", features = ["serialization"] }
 //! ```
 //!
-//! ## Deprecated
+//! With `#![no_std]` support:
+//! ```toml
+//! [dependencies]
+//! time = { version = "0.2", default-features = false, features = ["serialization"] }
+//! ```
+//!
+//! ## `deprecated`
 //!
 //! Using the `deprecated` feature allows using deprecated methods. Enabled by
 //! default.
+//!
+//! Currently, the only benefit of disabling this feature is that the log crate
+//! is a dependency if it is enabled.
+//!
+//! With the standard library, the normal `time = 0.2` will work as expected.
+//!
+//! With `#![no_std]` support:
+//! ```toml
+//! [dependencies]
+//! time = { version = "0.2", default-features = false, features = ["deprecated"] }
+//! ```
 //!
 //! # Formatting
 //!
@@ -42,40 +60,40 @@
 //! different behavior than in C. As such, you should use the table below, which
 //! is an up-to-date reference on what each specifier does.
 //!
-//! | Specifier | Replaced by                                                            | Example                  |
-//! |-----------|------------------------------------------------------------------------|--------------------------|
-//! | `%a`      | Abbreviated weekday name                                               | Thu                      |
-//! | `%A`      | Full weekday name                                                      | Thursday                 |
-//! | `%b`      | Abbreviated month name                                                 | Aug                      |
-//! | `%B`      | Full month name                                                        | August                   |
-//! | `%c`      | Date and time representation, equivalent to `%a %b %-d %-H:%M:%S %-Y`  | Thu Aug 23 14:55:02 2001 |
-//! | `%C`      | Year divided by 100 and truncated to integer (00-99)                   | 20                       |
-//! | `%d`      | Day of the month, zero-padded (01-31)                                  | 23                       |
-//! | `%D`      | Short MM/DD/YY date, equivalent to `%-m/%d/%y`                         | 8/23/01                  |
-//! | `%e`      | Day of the month, space-padded ( 1-31)                                 | 23                       |
-//! | `%F`      | Short YYYY-MM-DD date, equivalent to `%-Y-%m-%d`                       | 2001-08-23               |
-//! | `%g`      | Week-based year, last two digits (00-99)                               | 01                       |
-//! | `%G`      | Week-based year                                                        | 2001                     |
-//! | `%H`      | Hour in 24h format (00-23)                                             | 14                       |
-//! | `%I`      | Hour in 12h format (01-12)                                             | 02                       |
-//! | `%j`      | Day of the year (001-366)                                              | 235                      |
-//! | `%m`      | Month as a decimal number (01-12)                                      | 08                       |
-//! | `%M`      | Minute (00-59)                                                         | 55                       |
-//! | `%p`      | `am` or `pm` designation                                               | pm                       |
-//! | `%P`      | `AM` or `PM` designation                                               | PM                       |
-//! | `%r`      | 12-hour clock time, equivalent to `%-I:%M:%S %p`                       | 2:55:02 pm               |
-//! | `%R`      | 24-hour HH:MM time, equivalent to `%-H:%M`                             | 14:55                    |
-//! | `%S`      | Second (00-59)                                                         | 02                       |
-//! | `%T`      | ISO 8601 time format (HH:MM:SS), equivalent to `%-H:%M:%S`             | 14:55:02                 |
-//! | `%u`      | ISO 8601 weekday as number with Monday as 1 (1-7)                      | 4                        |
-//! | `%U`      | Week number with the first Sunday as the first day of week one (00-53) | 33                       |
-//! | `%V`      | ISO 8601 week number (01-53)                                           | 34                       |
-//! | `%w`      | Weekday as a decimal number with Sunday as 0 (0-6)                     | 4                        |
-//! | `%W`      | Week number with the first Monday as the first day of week one (00-53) | 34                       |
-//! | `%y`      | Year, last two digits (00-99)                                          | 01                       |
-//! | `%Y`      | Year                                                                   | 2001                     |
-//! | `%z`      | ISO 8601 offset from UTC in timezone (+HHMM)                           | +0100                    |
-//! | `%%`      | Literal `%`                                                            | %                        |
+//! | Specifier | Replaced by                                                            | Example                    |
+//! |-----------|------------------------------------------------------------------------|----------------------------|
+//! | `%a`      | Abbreviated weekday name                                               | `Thu`                      |
+//! | `%A`      | Full weekday name                                                      | `Thursday`                 |
+//! | `%b`      | Abbreviated month name                                                 | `Aug`                      |
+//! | `%B`      | Full month name                                                        | `August`                   |
+//! | `%c`      | Date and time representation, equivalent to `%a %b %-d %-H:%M:%S %-Y`  | `Thu Aug 23 14:55:02 2001` |
+//! | `%C`      | Year divided by 100 and truncated to integer (`00`-`99`)               | `20`                       |
+//! | `%d`      | Day of the month, zero-padded (`01`-`31`)                              | `23`                       |
+//! | `%D`      | Short MM/DD/YY date, equivalent to `%-m/%d/%y`                         | `8/23/01`                  |
+//! | `%e`      | Day of the month, space-padded (` 1`-`31`)                             | `23`                       |
+//! | `%F`      | Short YYYY-MM-DD date, equivalent to `%-Y-%m-%d`                       | `2001-08-23`               |
+//! | `%g`      | Week-based year, last two digits (`00`-`99`)                           | `01`                       |
+//! | `%G`      | Week-based year                                                        | `2001`                     |
+//! | `%H`      | Hour in 24h format (`00`-`23`)                                         | `14`                       |
+//! | `%I`      | Hour in 12h format (`01`-`12`)                                         | `02`                       |
+//! | `%j`      | Day of the year (`001`-`366`)                                          | `235`                      |
+//! | `%m`      | Month as a decimal number (`01`-`12`)                                  | `08`                       |
+//! | `%M`      | Minute (`00`-`59`)                                                     | `55`                       |
+//! | `%p`      | `am` or `pm` designation                                               | `pm`                       |
+//! | `%P`      | `AM` or `PM` designation                                               | `PM`                       |
+//! | `%r`      | 12-hour clock time, equivalent to `%-I:%M:%S %p`                       | `2:55:02 pm`               |
+//! | `%R`      | 24-hour HH:MM time, equivalent to `%-H:%M`                             | `14:55`                    |
+//! | `%S`      | Second (`00`-`59`)                                                     | `02`                       |
+//! | `%T`      | ISO 8601 time format (HH:MM:SS), equivalent to `%-H:%M:%S`             | `14:55:02`                 |
+//! | `%u`      | ISO 8601 weekday as number with Monday as 1 (`1`-`7`)                  | `4`                        |
+//! | `%U`      | Week number with the first Sunday as the start of week one (`00`-`53`) | `33`                       |
+//! | `%V`      | ISO 8601 week number (`01`-`53`)                                       | `34`                       |
+//! | `%w`      | Weekday as a decimal number with Sunday as 0 (`0`-`6`)                 | `4`                        |
+//! | `%W`      | Week number with the first Monday as the start of week one (`00`-`53`) | `34`                       |
+//! | `%y`      | Year, last two digits (`00`-`99`)                                      | `01`                       |
+//! | `%Y`      | Full year, including `+` if ≥10,000                                    | `2001`                     |
+//! | `%z`      | ISO 8601 offset from UTC in timezone (+HHMM)                           | `+0100`                    |
+//! | `%%`      | Literal `%`                                                            | `%`                        |
 //!
 //! ## Modifiers
 //!
@@ -87,6 +105,21 @@
 //! | `-` (dash)       | No padding      | `%-d` => `5` instead of `05`  |
 //! | `_` (underscore) | Pad with spaces | `%_d` => ` 5` instead of `05` |
 //! | `0`              | Pad with zeros  | `%0e` => `05` instead of ` 5` |
+//!
+//! ## Localization
+//!
+//! Some specifiers currently have the ability to change the language the value
+//! is formatted and parsed in. Currently, these are specifiers that result in a
+//! textual representation of the value, in whole or in part:
+//!
+//! - `%a`
+//! - `%A`
+//! - `%b`
+//! - `%B`
+//! - `%c`
+//!
+//! The order of certain specifiers in "combination specifiers" (such as `%D`)
+//! is not affected, as the time crate only handles languages, not locale.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
@@ -235,6 +268,7 @@ pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use date_time::DateTime;
 pub use duration::Duration;
 pub(crate) use format::DeferredFormat;
+// FIXME Why does combining the following two imports cause an error?
 pub use format::Language;
 pub use format::ParseError;
 #[cfg(feature = "std")]
@@ -246,8 +280,8 @@ pub use sign::Sign;
 pub use utc_offset::UtcOffset;
 pub use weekday::Weekday;
 
-/// A collection of traits (and possibly types, enums, etc.) that are useful to
-/// import. Unlike the standard library, this must be explicitly included.
+/// A collection of traits that are widely useful. Unlike the standard library,
+/// this must be explicitly imported:
 ///
 /// ```rust,no_run
 /// use time::prelude::*;
@@ -256,11 +290,12 @@ pub use weekday::Weekday;
 /// The prelude may grow in minor releases. Any removals will only occur in
 /// major releases.
 pub mod prelude {
-    pub use crate::{NumericalDuration, NumericalStdDuration};
+    // Rename to `_` to avoid any potential name conflicts.
+    pub use crate::{NumericalDuration as _, NumericalStdDuration as _};
 }
 
 /// A stable alternative to [`alloc::v1::prelude`](https://doc.rust-lang.org/stable/alloc/prelude/v1/index.html).
-/// Should be used anywhere `#![no_std]` is allowed.
+/// Useful anywhere `#![no_std]` is allowed.
 #[cfg(not(feature = "std"))]
 mod no_std_prelude {
     #![allow(unused_imports)]
@@ -283,12 +318,13 @@ mod no_std_prelude {
 /// ```
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct OutOfRangeError {
-    /// Include zero-sized field so users can't construct this explicitly. This
-    /// ensures forwards-compatibility, as anyone matching on this type has to
-    /// explicitly discard the fields.
+    // TODO Replace this zero-sized field with `#[non_exhaustive]`
+    #[allow(clippy::missing_docs_in_private_items)]
     unused: (),
 }
 
+// TODO Remove this implementation when `#[non_exhaustive]` is added to the
+// struct.
 impl OutOfRangeError {
     /// Create an new `OutOfRangeError`.
     #[inline(always)]
@@ -328,6 +364,7 @@ mod test {
 }
 
 // For some back-compatibility, we're also implementing some deprecated types.
+// They will be removed completely in 0.3.
 
 #[cfg(all(feature = "std", feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]

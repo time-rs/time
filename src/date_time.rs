@@ -135,8 +135,8 @@ impl DateTime {
         self.date().year()
     }
 
-    /// Get the month of the date. If fetching both the month and day, use
-    /// [`DateTime::month_day`] instead.
+    /// Get the month of the date. If fetching both the month and day, it is
+    /// more efficient to use [`DateTime::month_day`].
     ///
     /// The returned value will always be in the range `1..=12`.
     ///
@@ -150,8 +150,8 @@ impl DateTime {
         self.date().month()
     }
 
-    /// Get the day of the date. If fetching both the month and day, use
-    /// [`DateTime::month_day`] instead.
+    /// Get the day of the date.  If fetching both the month and day, it is
+    /// more efficient to use [`DateTime::month_day`].
     ///
     /// The returned value will always be in the range `1..=31`.
     ///
@@ -165,7 +165,8 @@ impl DateTime {
         self.date().day()
     }
 
-    /// Get the month and day of the date.
+    /// Get the month and day of the date. This is more efficient than fetching
+    /// the components individually.
     ///
     /// The month component will always be in the range `1..=12`;
     /// the day component in `1..=31`.
@@ -180,9 +181,10 @@ impl DateTime {
         self.date().month_day()
     }
 
-    /// Get the day of the year of the date.
+    /// Get the day of the year.
     ///
-    /// The returned value will always be in the range `1..=366`.
+    /// The returned value will always be in the range `1..=366` (`1..=365` for
+    /// common years).
     ///
     /// ```rust
     /// # use time::Date;
@@ -194,7 +196,22 @@ impl DateTime {
         self.date().ordinal()
     }
 
-    /// Get the ISO week number of the date.
+    /// Get the ISO 8601 year and week number.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().iso_year_week(), (2019, 1));
+    /// assert_eq!(Date::from_ymd(2019, 10, 4).midnight().iso_year_week(), (2019, 40));
+    /// assert_eq!(Date::from_ymd(2020, 1, 1).midnight().iso_year_week(), (2020, 1));
+    /// assert_eq!(Date::from_ymd(2020, 12, 31).midnight().iso_year_week(), (2020, 53));
+    /// assert_eq!(Date::from_ymd(2021, 1, 1).midnight().iso_year_week(), (2020, 53));
+    /// ```
+    #[inline]
+    pub fn iso_year_week(self) -> (i32, u8) {
+        self.date().iso_year_week()
+    }
+
+    /// Get the ISO week number.
     ///
     /// The returned value will always be in the range `1..=53`.
     ///
@@ -243,7 +260,7 @@ impl DateTime {
         self.date().monday_based_week()
     }
 
-    /// Get the weekday of the date.
+    /// Get the weekday.
     ///
     /// This current uses [Zeller's congruence](https://en.wikipedia.org/wiki/Zeller%27s_congruence)
     /// internally.
@@ -268,9 +285,9 @@ impl DateTime {
         self.date().weekday()
     }
 
-    /// Returns the clock hour.
+    /// Get the clock hour.
     ///
-    /// The returned value will always be in the range `0..=23`.
+    /// The returned value will always be in the range `0..24`.
     ///
     /// ```rust
     /// # use time::Date;
@@ -282,7 +299,7 @@ impl DateTime {
         self.time().hour()
     }
 
-    /// Returns the minute within the hour.
+    /// Get the minute within the hour.
     ///
     /// The returned value will always be in the range `0..60`.
     ///
@@ -296,7 +313,7 @@ impl DateTime {
         self.time().minute()
     }
 
-    /// Returns the second within the minute.
+    /// Get the second within the minute.
     ///
     /// The returned value will always be in the range `0..60`.
     ///
@@ -310,7 +327,7 @@ impl DateTime {
         self.time().second()
     }
 
-    /// Return the milliseconds within the second.
+    /// Get the milliseconds within the second.
     ///
     /// The returned value will always be in the range `0..1_000`.
     ///
@@ -324,7 +341,7 @@ impl DateTime {
         self.time().millisecond()
     }
 
-    /// Return the microseconds within the second.
+    /// Get the microseconds within the second.
     ///
     /// The returned value will always be in the range `0..1_000_000`.
     ///
@@ -338,7 +355,7 @@ impl DateTime {
         self.time().microsecond()
     }
 
-    /// Return the nanoseconds within the second.
+    /// Get the nanoseconds within the second.
     ///
     /// The returned value will always be in the range `0..1_000_000_000`.
     ///
@@ -689,13 +706,13 @@ impl From<DateTime> for SystemTime {
             Sign::Positive => {
                 Self::UNIX_EPOCH
                     + StdDuration::try_from(duration).unwrap_or_else(|_| unreachable!(
-                        "The value is guaranteed to be positive (and is convertable to StdDuration)."
+                        "The value is guaranteed to be positive (and is convertible to StdDuration)."
                     ))
             }
             Sign::Negative => {
                 Self::UNIX_EPOCH
                     + StdDuration::try_from(-duration).unwrap_or_else(|_| unreachable!(
-                        "The value is guaranteed to be positive (and is convertable to StdDuration)."
+                        "The value is guaranteed to be positive (and is convertible to StdDuration)."
                     ))
             }
             Sign::Zero => Self::UNIX_EPOCH,

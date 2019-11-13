@@ -6,8 +6,8 @@ use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 use std::time::Instant as StdInstant;
 
-/// A measurement of a monotonically nondecreasing clock. Opaque and useful only
-/// with [`Duration`].
+/// A measurement of a monotonically non-decreasing clock. Opaque and useful
+/// only with [`Duration`].
 ///
 /// Instants are always guaranteed to be no less than any previously measured
 /// instant when created, and are often useful for tasks such as measuring
@@ -24,8 +24,8 @@ use std::time::Instant as StdInstant;
 /// allows measuring the duration between two instants (or comparing two
 /// instants).
 ///
-/// Allows for operations with signed [`Duration`]s, but is otherwise identical
-/// to [`std::time::Instant`].
+/// This implementation allows for operations with signed [`Duration`]s, but is
+/// otherwise identical to [`std::time::Instant`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Instant {
     /// Inner representation, using `std::time::Instant`.
@@ -81,7 +81,7 @@ impl Instant {
                 .inner
                 .checked_sub(StdDuration::try_from(duration.abs()).unwrap_or_else(|_| {
                     unreachable!(
-                        "The value is guaranteed to be positive (and is convertable to StdDuration)."
+                        "The value is guaranteed to be positive (and is convertible to StdDuration)."
                     )
                 }))
                 .map(From::from),
@@ -89,7 +89,7 @@ impl Instant {
                 .inner
                 .checked_add(StdDuration::try_from(duration.abs()).unwrap_or_else(|_| {
                     unreachable!(
-                        "The value is guaranteed to be positive (and is convertable to StdDuration)."
+                        "The value is guaranteed to be positive (and is convertible to StdDuration)."
                     )
                 }))
                 .map(From::from),

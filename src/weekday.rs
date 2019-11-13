@@ -62,7 +62,8 @@ impl Weekday {
         }
     }
 
-    /// Get the ISO 8601 weekday number.
+    /// Get the ISO 8601 weekday number. Equivalent to
+    /// [`Weekday::number_from_monday`].
     ///
     /// ```rust
     /// # use time::Weekday;

@@ -3,9 +3,10 @@ use core::time::Duration as StdDuration;
 
 /// Create `Duration`s from primitive and core numeric types.
 ///
-/// This trait can be imported (alongside others) with `use time::prelude::*`.
+/// This trait can be imported with `use time::prelude::*`.
 ///
 /// Due to limitations in rustc, these methods are currently _not_ `const fn`.
+/// See [this RFC](https://github.com/rust-lang/rfcs/pull/2632) for details.
 ///
 /// # Examples
 ///
@@ -27,14 +28,14 @@ use core::time::Duration as StdDuration;
 ///
 /// ```rust
 /// # use time::{Duration, NumericalDuration};
-/// assert_eq!(-5.nanoseconds(), Duration::nanoseconds(-5));
-/// assert_eq!(-5.microseconds(), Duration::microseconds(-5));
-/// assert_eq!(-5.milliseconds(), Duration::milliseconds(-5));
-/// assert_eq!(-5.seconds(), Duration::seconds(-5));
-/// assert_eq!(-5.minutes(), Duration::minutes(-5));
-/// assert_eq!(-5.hours(), Duration::hours(-5));
-/// assert_eq!(-5.days(), Duration::days(-5));
-/// assert_eq!(-5.weeks(), Duration::weeks(-5));
+/// assert_eq!((-5).nanoseconds(), Duration::nanoseconds(-5));
+/// assert_eq!((-5).microseconds(), Duration::microseconds(-5));
+/// assert_eq!((-5).milliseconds(), Duration::milliseconds(-5));
+/// assert_eq!((-5).seconds(), Duration::seconds(-5));
+/// assert_eq!((-5).minutes(), Duration::minutes(-5));
+/// assert_eq!((-5).hours(), Duration::hours(-5));
+/// assert_eq!((-5).days(), Duration::days(-5));
+/// assert_eq!((-5).weeks(), Duration::weeks(-5));
 /// ```
 ///
 /// Just like any other `Duration`, they can be added, subtracted, etc.
@@ -186,6 +187,7 @@ impl_numerical_duration_nonzero![
 /// This trait can be imported (alongside others) with `use time::prelude::*`.
 ///
 /// Due to limitations in rustc, these methods are currently _not_ `const fn`.
+/// See [this RFC](https://github.com/rust-lang/rfcs/pull/2632) for details.
 ///
 /// # Examples
 ///
@@ -404,6 +406,7 @@ impl NumericalStdDuration for i32 {
 /// [`NumericalStdDuration`] for clarity.
 ///
 /// Due to limitations in rustc, these methods are currently _not_ `const fn`.
+/// See [this RFC](https://github.com/rust-lang/rfcs/pull/2632) for details.
 ///
 /// # Examples
 ///

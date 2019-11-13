@@ -2,11 +2,11 @@
 
 #![allow(non_snake_case)]
 
-use super::parse::{
+use crate::format::parse::{
     try_consume_exact_digits_in_range, try_consume_first_match,
     AmPm::{AM, PM},
 };
-use super::{Padding, ParseError, ParseResult, ParsedItems};
+use crate::format::{Padding, ParseError, ParseResult, ParsedItems};
 use crate::Time;
 use core::fmt::{self, Formatter};
 use core::num::NonZeroU8;

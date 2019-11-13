@@ -81,7 +81,7 @@ pub(crate) fn parse_A(
 
 /// Short month name
 ///
-/// References on localization
+/// References on localization:
 /// - [Yale](https://web.library.yale.edu/cataloging/months)
 /// - [Princeton](https://library.princeton.edu/departments/tsd/katmandu/reference/months.html)
 #[inline(always)]
@@ -300,13 +300,13 @@ pub(crate) fn parse_V(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     Ok(())
 }
 
-/// Weekday number (Sunday = 0, Saturday = 6)
+/// Weekday number (Sunday = `0`, Saturday = `6`)
 #[inline(always)]
 pub(crate) fn fmt_w(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
     write!(f, "{}", date.weekday().number_days_from_sunday())
 }
 
-/// Weekday number (Sunday = 0, Saturday = 6)
+/// Weekday number (Sunday = `0`, Saturday = `6`)
 #[inline(always)]
 pub(crate) fn parse_w(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
     let mut weekdays = WEEKDAYS;

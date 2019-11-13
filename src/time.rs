@@ -234,15 +234,17 @@ impl Time {
     /// # use time::Time;
     /// println!("{:?}", Time::now());
     /// ```
+    ///
+    /// This method is not available with `#![no_std]`.
     #[inline(always)]
     #[cfg(feature = "std")]
     pub fn now() -> Self {
         DateTime::now().time()
     }
 
-    /// Returns the clock hour.
+    /// Get the clock hour.
     ///
-    /// The returned value will always be in the range `0..=23`.
+    /// The returned value will always be in the range `0..24`.
     ///
     /// ```rust
     /// # use time::Time;
@@ -254,7 +256,7 @@ impl Time {
         self.hour
     }
 
-    /// Returns the minute within the hour.
+    /// Get the minute within the hour.
     ///
     /// The returned value will always be in the range `0..60`.
     ///
@@ -268,7 +270,7 @@ impl Time {
         self.minute
     }
 
-    /// Returns the second within the minute.
+    /// Get the second within the minute.
     ///
     /// The returned value will always be in the range `0..60`.
     ///
@@ -282,7 +284,7 @@ impl Time {
         self.second
     }
 
-    /// Return the milliseconds within the second.
+    /// Get the milliseconds within the second.
     ///
     /// The returned value will always be in the range `0..1_000`.
     ///
@@ -297,7 +299,7 @@ impl Time {
         (self.nanosecond() / 1_000_000) as u16
     }
 
-    /// Return the microseconds within the second.
+    /// Get the microseconds within the second.
     ///
     /// The returned value will always be in the range `0..1_000_000`.
     ///
@@ -311,7 +313,7 @@ impl Time {
         self.nanosecond() / 1_000
     }
 
-    /// Return the nanoseconds within the second.
+    /// Get the nanoseconds within the second.
     ///
     /// The returned value will always be in the range `0..1_000_000_000`.
     ///
@@ -325,7 +327,7 @@ impl Time {
         self.nanosecond
     }
 
-    /// Return the number of nanoseconds since midnight.
+    /// Get the number of nanoseconds since midnight.
     #[inline(always)]
     pub(crate) const fn nanoseconds_since_midnight(self) -> u64 {
         self.hour() as u64 * 60 * 60 * 1_000_000_000
@@ -426,8 +428,7 @@ impl Time {
 impl Add<Duration> for Time {
     type Output = Self;
 
-    /// Add the sub-day time of the `Duration` to the `Time`. Wraps on overflow
-    /// and underflow.
+    /// Add the sub-day time of the `Duration` to the `Time`. Wraps on overflow.
     ///
     /// ```rust
     /// # use time::{Duration, Time};
@@ -450,7 +451,7 @@ impl Add<StdDuration> for Time {
     type Output = Self;
 
     /// Add the sub-day time of the `std::time::Duration` to the `Time`. Wraps
-    /// on overflow and underflow.
+    /// on overflow.
     ///
     /// ```rust
     /// # use time::Time;
@@ -466,7 +467,7 @@ impl Add<StdDuration> for Time {
 
 impl AddAssign<Duration> for Time {
     /// Add the sub-day time of the `Duration` to the existing `Time`. Wraps on
-    /// overflow and underflow.
+    /// overflow.
     ///
     /// ```rust
     /// # use time::{Duration, Time};
@@ -486,7 +487,7 @@ impl AddAssign<Duration> for Time {
 
 impl AddAssign<StdDuration> for Time {
     /// Add the sub-day time of the `std::time::Duration` to the existing
-    /// `Time`. Wraps on overflow and underflow.
+    /// `Time`. Wraps on overflow.
     ///
     /// ```rust
     /// # use time::Time;
@@ -509,7 +510,7 @@ impl Sub<Duration> for Time {
     type Output = Self;
 
     /// Subtract the sub-day time of the `Duration` from the `Time`. Wraps on
-    /// overflow and underflow.
+    /// overflow.
     ///
     /// ```rust
     /// # use time::{Duration, Time};
@@ -526,7 +527,7 @@ impl Sub<StdDuration> for Time {
     type Output = Self;
 
     /// Subtract the sub-day time of the `std::time::Duration` from the `Time`.
-    /// Wraps on overflow and underflow.
+    /// Wraps on overflow.
     ///
     /// ```rust
     /// # use time::Time;
@@ -542,7 +543,7 @@ impl Sub<StdDuration> for Time {
 
 impl SubAssign<Duration> for Time {
     /// Subtract the sub-day time of the `Duration` from the existing `Time`.
-    /// Wraps on overflow and underflow.
+    /// Wraps on overflow.
     ///
     /// ```rust
     /// # use time::{Duration, Time};
@@ -562,7 +563,7 @@ impl SubAssign<Duration> for Time {
 
 impl SubAssign<StdDuration> for Time {
     /// Subtract the sub-day time of the `std::time::Duration` from the existing
-    /// `Time`. Wraps on overflow and underflow.
+    /// `Time`. Wraps on overflow.
     ///
     /// ```rust
     /// # use time::Time;

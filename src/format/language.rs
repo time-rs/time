@@ -73,8 +73,8 @@ impl Language {
     /// Get the abbreviated month names for the given language.
     ///
     /// References on localization:
-    /// [[1]](https://web.library.yale.edu/cataloging/months)
-    /// [[2]](https://library.princeton.edu/departments/tsd/katmandu/reference/months.html)
+    /// [\[1\]](https://web.library.yale.edu/cataloging/months)
+    /// [\[2\]](https://library.princeton.edu/departments/tsd/katmandu/reference/months.html)
     #[inline(always)]
     pub fn short_month_names(self) -> [&'static str; 12] {
         use Language::*;

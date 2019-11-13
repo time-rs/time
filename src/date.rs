@@ -44,7 +44,9 @@ pub const fn is_leap_year(year: i32) -> bool {
     (year % 4 == 0) & ((year % 100 != 0) | (year % 400 == 0))
 }
 
-/// Get the number of calendar days in a given year, either 365 or 366.
+/// Get the number of calendar days in a given year.
+///
+/// The returned value will always be either 365 or 366.
 ///
 /// ```rust
 /// # use time::days_in_year;
@@ -84,7 +86,8 @@ pub fn weeks_in_year(year: i32) -> u8 {
 /// Years between `-100_000` and `+100_000` inclusive are guaranteed to be
 /// representable. Any values outside this range may have incidental support
 /// that can change at any time without notice. If you need support outside this
-/// range, please file an issue with your use case.
+/// range, please [file an issue](https://github.com/time-rs/time/issues/new)
+/// with your use case.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
@@ -117,6 +120,8 @@ impl Date {
         assert_value_in_range!(month in 1 => 12);
         assert_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
 
+        // The compiler is smart enough to optimize the `.iter().sum()` away, so
+        // it's not necessary to create a new array to replace this.
         let ordinal: u16 = if is_leap_year(year) {
             DAYS_IN_MONTH_LEAP[..month as usize - 1].iter().sum()
         } else {
@@ -190,6 +195,8 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::today().year() >= 2019);
     /// ```
+    ///
+    /// This method is not available with `#![no_std]`.
     #[inline(always)]
     #[cfg(feature = "std")]
     pub fn today() -> Self {
@@ -210,8 +217,8 @@ impl Date {
         self.year
     }
 
-    /// Get the month of the date. If fetching both the month and day, use
-    /// [`Date::date`] instead.
+    /// Get the month. If fetching both the month and day, it is more efficient
+    /// to use [`Date::month_day`].
     ///
     /// The returned value will always be in the range `1..=12`.
     ///
@@ -225,8 +232,8 @@ impl Date {
         self.month_day().0
     }
 
-    /// Get the day of the date. If fetching both the month and day, use
-    /// [`Date::date`] instead.
+    /// Get the day of the month. If fetching both the month and day, it is more
+    /// efficient to use [`Date::month_day`].
     ///
     /// The returned value will always be in the range `1..=31`.
     ///
@@ -240,7 +247,8 @@ impl Date {
         self.month_day().1
     }
 
-    /// Get the month and day of the date.
+    /// Get the month and day. This is more efficient than fetching the
+    /// components individually.
     ///
     /// The month component will always be in the range `1..=12`;
     /// the day component in `1..=31`.
@@ -273,9 +281,10 @@ impl Date {
         (month as u8 + 1, ordinal as u8)
     }
 
-    /// Get the day of the year of the date.
+    /// Get the day of the year.
     ///
-    /// The returned value will always be in the range `1..=366`.
+    /// The returned value will always be in the range `1..=366` (`1..=365` for
+    /// common years).
     ///
     /// ```rust
     /// # use time::Date;
@@ -311,7 +320,7 @@ impl Date {
         }
     }
 
-    /// Get the ISO week number of the date.
+    /// Get the ISO week number.
     ///
     /// The returned value will always be in the range `1..=53`.
     ///
@@ -362,7 +371,7 @@ impl Date {
         ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as u8
     }
 
-    /// Get the year, month, and day of the date.
+    /// Get the year, month, and day.
     ///
     /// ```rust
     /// # use time::Date;
@@ -374,7 +383,7 @@ impl Date {
         (self.year, month, day)
     }
 
-    /// Get the year and ordinal day number of the date.
+    /// Get the year and ordinal day number.
     ///
     /// ```rust
     /// # use time::Date;
@@ -386,7 +395,7 @@ impl Date {
         (self.year, self.ordinal)
     }
 
-    /// Get the weekday of the date.
+    /// Get the weekday.
     ///
     /// This current uses [Zeller's congruence](https://en.wikipedia.org/wiki/Zeller%27s_congruence)
     /// internally.
@@ -707,46 +716,39 @@ impl Date {
             };
         }
 
+        /// Get the value needed to adjust the ordinal day for Sunday and
+        /// Monday-based week numbering.
+        #[inline(always)]
+        fn adjustment(year: i32) -> i16 {
+            match Date::from_yo(year, 1).weekday() {
+                Monday => 7,
+                Tuesday => 1,
+                Wednesday => 2,
+                Thursday => 3,
+                Friday => 4,
+                Saturday => 5,
+                Sunday => 6,
+            }
+        }
+
         match items {
             items!(year, month, day) => Ok(Self::from_ymd(year, month.get(), day.get())),
             items!(year, ordinal_day) => Ok(Self::from_yo(year, ordinal_day.get())),
             items!(week_based_year, iso_week, weekday) => {
                 Ok(Self::from_iso_ywd(week_based_year, iso_week.get(), weekday))
             }
-            items!(year, sunday_week, weekday) => {
-                let adjustment = match Self::from_yo(year, 1).weekday() {
-                    Monday => 7,
-                    Tuesday => 1,
-                    Wednesday => 2,
-                    Thursday => 3,
-                    Friday => 4,
-                    Saturday => 5,
-                    Sunday => 6,
-                };
-
-                Ok(Self::from_yo(
-                    year,
-                    (sunday_week as i16 * 7 + weekday.number_days_from_sunday() as i16 - adjustment
-                        + 1) as u16,
-                ))
-            }
-            items!(year, monday_week, weekday) => {
-                let adjustment = match Self::from_yo(year, 1).weekday() {
-                    Monday => 7,
-                    Tuesday => 1,
-                    Wednesday => 2,
-                    Thursday => 3,
-                    Friday => 4,
-                    Saturday => 5,
-                    Sunday => 6,
-                };
-
-                Ok(Self::from_yo(
-                    year,
-                    (monday_week as i16 * 7 + weekday.number_days_from_monday() as i16 - adjustment
-                        + 1) as u16,
-                ))
-            }
+            items!(year, sunday_week, weekday) => Ok(Self::from_yo(
+                year,
+                (sunday_week as i16 * 7 + weekday.number_days_from_sunday() as i16
+                    - adjustment(year)
+                    + 1) as u16,
+            )),
+            items!(year, monday_week, weekday) => Ok(Self::from_yo(
+                year,
+                (monday_week as i16 * 7 + weekday.number_days_from_monday() as i16
+                    - adjustment(year)
+                    + 1) as u16,
+            )),
             _ => Err(ParseError::InsufficientInformation),
         }
     }

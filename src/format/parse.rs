@@ -312,7 +312,8 @@ pub(crate) fn consume_padding(s: &mut &str, padding: Padding, max_chars: usize) 
         Padding::None => return 0,
         Padding::Default => unreachable!(
             "Default padding depends on context. This value should replaced \
-             prior to calling `consume_padding`."
+             prior to calling `consume_padding`. If this is encountered, \
+             please file an issue on the time repository."
         ),
     };
 

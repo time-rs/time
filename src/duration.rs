@@ -214,7 +214,7 @@ impl Duration {
         self.sign.is_positive() & !self.is_zero()
     }
 
-    /// Retrieve the sign of the duration.
+    /// Get the sign of the duration.
     ///
     /// ```rust
     /// # use time::{Duration, Sign};
@@ -244,13 +244,15 @@ impl Duration {
     }
 
     /// Create a new `Duration` with the provided seconds and nanoseconds. If
-    /// nanoseconds is at least 10^9, it will wrap to the number of seconds.
+    /// nanoseconds is at least 10<sup>9</sup>, it will wrap to the number of
+    /// seconds.
     ///
     /// ```rust
     /// # use time::Duration;
     /// assert_eq!(Duration::new(1, 0), Duration::seconds(1));
     /// assert_eq!(Duration::new(-1, 0), Duration::seconds(-1));
     /// assert_eq!(Duration::new(1, 2_000_000_000), Duration::seconds(3));
+    /// ```
     #[inline(always)]
     pub fn new(seconds: i64, nanoseconds: u32) -> Self {
         Self {
@@ -278,7 +280,7 @@ impl Duration {
     }
 
     /// Create a new `Duration` with the given number of weeks. Equivalent to
-    /// `Duration::seconds(weeks * 604_800);
+    /// `Duration::seconds(weeks * 604_800)`.
     ///
     /// ```rust
     /// # use time::Duration;
@@ -304,7 +306,7 @@ impl Duration {
     }
 
     /// Create a new `Duration` with the given number of days. Equivalent to
-    /// `Duration::seconds(days * 86_400);
+    /// `Duration::seconds(days * 86_400)`.
     ///
     /// ```rust
     /// # use time::Duration;
@@ -330,7 +332,7 @@ impl Duration {
     }
 
     /// Create a new `Duration` with the given number of hours. Equivalent to
-    /// `Duration::seconds(hours * 3_600);
+    /// `Duration::seconds(hours * 3_600)`.
     ///
     /// ```rust
     /// # use time::Duration;
@@ -356,7 +358,7 @@ impl Duration {
     }
 
     /// Create a new `Duration` with the given number of minutes. Equivalent to
-    /// `Duration::seconds(minutes * 60);
+    /// `Duration::seconds(minutes * 60)`.
     ///
     /// ```rust
     /// # use time::Duration;
@@ -584,7 +586,7 @@ impl Duration {
 
     /// Get the number of nanoseconds past the number of whole seconds.
     ///
-    /// Always in the range `0..1_000_000_000`.
+    /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
     /// # use time::Duration;
@@ -673,12 +675,12 @@ impl Duration {
     }
 
     /// Runs a closure, returning the duration of time it took to run. The
-    /// return value of the closure is provided in the second half of the tuple.
+    /// return value of the closure is provided in the second part of the tuple.
     ///
     /// This method is not available with `#![no_std]`.
     #[inline(always)]
     #[cfg(feature = "std")]
-    pub fn time_fn<T: FnOnce() -> U, U>(f: T) -> (Self, U) {
+    pub fn time_fn<T>(f: impl FnOnce() -> T) -> (Self, T) {
         let start = Instant::now();
         let return_value = f();
         let end = Instant::now();
@@ -723,10 +725,10 @@ impl Duration {
         self.whole_seconds()
     }
 
-    /// [`whole_milliseconds()`] returns an `i128`, rather than panicking on
-    /// overflow. To avoid panicking, this method currently limits the value to
-    /// the range `i64::min_value()..=i64::max_value()`. A warning will be
-    /// printed at runtime if this occurs.
+    /// [`Duration::whole_milliseconds`] returns an `i128`, rather than
+    /// panicking on overflow. To avoid panicking, this method currently limits
+    /// the value to the range `i64::min_value()..=i64::max_value()`. A warning
+    /// will be printed at runtime if this occurs.
     #[inline]
     #[allow(clippy::cast_possible_truncation)]
     #[deprecated(since = "0.2.0", note = "Use the `whole_milliseconds` function")]
@@ -754,8 +756,8 @@ impl Duration {
         millis as i64
     }
 
-    /// [`whole_microseconds()`] returns an `i128` rather than returning `None`
-    /// on `i64` overflow.
+    /// [`Duration::whole_microseconds`] returns an `i128` rather than returning
+    /// `None` on `i64` overflow.
     #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
     #[deprecated(since = "0.2.0", note = "Use the `whole_microseconds` function")]
@@ -769,8 +771,8 @@ impl Duration {
         }
     }
 
-    /// [`whole_nanoseconds()`] returns an `i128` rather than returning `None`
-    /// on `i64` overflow.
+    /// [`Duration::whole_nanoseconds`] returns an `i128` rather than returning
+    /// `None` on `i64` overflow.
     #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
     #[deprecated(since = "0.2.0", note = "Use the `whole_nanoseconds` function")]

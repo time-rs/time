@@ -28,6 +28,8 @@ impl OffsetDateTime {
     /// assert!(OffsetDateTime::now().year() >= 2019);
     /// assert_eq!(OffsetDateTime::now().offset(), UtcOffset::UTC);
     /// ```
+    ///
+    /// This method is not available with `#![no_std]`.
     #[inline(always)]
     #[cfg(feature = "std")]
     pub fn now() -> Self {
@@ -89,7 +91,7 @@ impl OffsetDateTime {
         DateTime::from_unix_timestamp(timestamp).using_offset(UtcOffset::UTC)
     }
 
-    /// Get the `UtcOffset` of the `OffsetDateTime`.
+    /// Get the `UtcOffset`.
     ///
     /// ```rust
     /// # use time::{Date, UtcOffset};
@@ -113,8 +115,7 @@ impl OffsetDateTime {
         self.offset
     }
 
-    /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time)
-    /// representing the `OffsetDateTime`.
+    /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
     /// # use time::{DateTime, UtcOffset};
@@ -136,7 +137,7 @@ impl OffsetDateTime {
         self.datetime.timestamp() - self.offset.as_seconds() as i64
     }
 
-    /// Get the `Date` in the stored offset of the `OffsetDateTime`.
+    /// Get the `Date` in the stored offset.
     ///
     /// ```rust
     /// # use time::{Date, UtcOffset};
@@ -160,7 +161,7 @@ impl OffsetDateTime {
         (self.datetime + self.offset.as_duration()).date()
     }
 
-    /// Get the `Time` in the stored offset of the `OffsetDateTime`.
+    /// Get the `Time` in the stored offset.
     ///
     /// ```rust
     /// # use time::{Date, Time, UtcOffset};
@@ -217,7 +218,8 @@ impl OffsetDateTime {
     }
 
     /// Get the month of the date in the stored offset. If fetching both the
-    /// month and day, use [`OffsetDateTime::month_day`] instead.
+    /// month and day, it is more efficient to use
+    /// [`OffsetDateTime::month_day`].
     ///
     /// The returned value will always be in the range `1..=12`.
     ///
@@ -244,7 +246,7 @@ impl OffsetDateTime {
     }
 
     /// Get the day of the date in the stored offset. If fetching both the month
-    /// and day, use [`OffsetDateTime::month_day`] instead.
+    /// and day, it is more efficient to use [`OffsetDateTime::month_day`].
     ///
     /// The returned value will always be in the range `1..=31`.
     ///
@@ -323,6 +325,51 @@ impl OffsetDateTime {
         self.date().ordinal()
     }
 
+    /// Get the ISO 8601 year and week number in the stored offset.
+    ///
+    /// ```rust
+    /// # use time::{Date, UtcOffset};
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 1, 1)
+    ///         .midnight()
+    ///         .using_offset(UtcOffset::UTC)
+    ///         .iso_year_week(),
+    ///     (2019, 1),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2019, 10, 4)
+    ///         .midnight()
+    ///         .using_offset(UtcOffset::UTC)
+    ///         .iso_year_week(),
+    ///     (2019, 40),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2020, 1, 1)
+    ///         .midnight()
+    ///         .using_offset(UtcOffset::UTC)
+    ///         .iso_year_week(),
+    ///     (2020, 1),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2020, 12, 31)
+    ///         .midnight()
+    ///         .using_offset(UtcOffset::UTC)
+    ///         .iso_year_week(),
+    ///     (2020, 53),
+    /// );
+    /// assert_eq!(
+    ///     Date::from_ymd(2021, 1, 1)
+    ///         .midnight()
+    ///         .using_offset(UtcOffset::UTC)
+    ///         .iso_year_week(),
+    ///     (2020, 53),
+    /// );
+    /// ```
+    #[inline]
+    pub fn iso_year_week(self) -> (i32, u8) {
+        self.date().iso_year_week()
+    }
+
     /// Get the ISO week number of the date in the stored offset.
     ///
     /// The returned value will always be in the range `1..=53`.
@@ -397,9 +444,9 @@ impl OffsetDateTime {
         self.date().weekday()
     }
 
-    /// Returns the clock hour in the stored offset.
+    /// Get the clock hour in the stored offset.
     ///
-    /// The returned value will always be in the range `0..=23`.
+    /// The returned value will always be in the range `0..24`.
     ///
     /// ```rust
     /// # use time::{Date, UtcOffset};
@@ -423,7 +470,7 @@ impl OffsetDateTime {
         self.time().hour()
     }
 
-    /// Returns the minute within the hour in the stored offset.
+    /// Get the minute within the hour in the stored offset.
     ///
     /// The returned value will always be in the range `0..60`.
     ///
@@ -449,7 +496,7 @@ impl OffsetDateTime {
         self.time().minute()
     }
 
-    /// Returns the second within the minute in the stored offset.
+    /// Get the second within the minute in the stored offset.
     ///
     /// The returned value will always be in the range `0..60`.
     ///
@@ -475,7 +522,7 @@ impl OffsetDateTime {
         self.time().second()
     }
 
-    /// Return the milliseconds within the second in the stored offset.
+    /// Get the milliseconds within the second in the stored offset.
     ///
     /// The returned value will always be in the range `0..1_000`.
     ///
@@ -501,7 +548,7 @@ impl OffsetDateTime {
         self.time().millisecond()
     }
 
-    /// Return the microseconds within the second in the stored offset.
+    /// Get the microseconds within the second in the stored offset.
     ///
     /// The returned value will always be in the range `0..1_000_000`.
     ///
@@ -527,7 +574,7 @@ impl OffsetDateTime {
         self.time().microsecond()
     }
 
-    /// Return the nanoseconds within the second in the stored offset.
+    /// Get the nanoseconds within the second in the stored offset.
     ///
     /// The returned value will always be in the range `0..1_000_000_000`.
     ///

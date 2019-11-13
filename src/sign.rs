@@ -39,7 +39,6 @@ macro_rules! sign_mul {
             impl Mul<$type> for Sign {
                 type Output = $type;
 
-                /// Negate the sign of the provided number if `self == Sign::Negative`.
                 #[inline(always)]
                 fn mul(self, rhs: $type) -> Self::Output {
                     match self {
@@ -53,19 +52,13 @@ macro_rules! sign_mul {
             impl Mul<Sign> for $type {
                 type Output = Self;
 
-                /// Negate the sign of the provided number if `rhs == Sign::Negative`.
                 #[inline(always)]
                 fn mul(self, rhs: Sign) -> Self::Output {
-                    match rhs {
-                        Positive => self,
-                        Negative => -self,
-                        Zero => Self::zero(),
-                    }
+                    rhs * self
                 }
             }
 
             impl MulAssign<Sign> for $type {
-                /// Negate the sign of the provided number if `rhs == Sign::Negative`.
                 #[inline(always)]
                 fn mul_assign(&mut self, rhs: Sign) {
                     if rhs.is_negative() {
@@ -77,7 +70,6 @@ macro_rules! sign_mul {
             impl Div<Sign> for $type {
                 type Output = Self;
 
-                /// Negate the sign of the provided number if `rhs == Sign::Negative`.
                 #[inline(always)]
                 fn div(self, rhs: Sign) -> Self::Output {
                     self * rhs
@@ -85,7 +77,6 @@ macro_rules! sign_mul {
             }
 
             impl DivAssign<Sign> for $type {
-                /// Negate the sign of the provided number if `rhs == Sign::Negative`.
                 #[inline(always)]
                 fn div_assign(&mut self, rhs: Sign) {
                     *self *= rhs
@@ -99,17 +90,6 @@ sign_mul![i8, i16, i32, i64, i128, f32, f64];
 impl Mul<Sign> for Sign {
     type Output = Self;
 
-    /// Multiplying signs follows how signs interact with real numbers.
-    ///
-    /// - If either side is `Sign::Zero`, the result is `Sign::Zero`.
-    /// - If the left and right are the same, the result is `Sign::Positive`.
-    /// - Otherwise, the result is `Sign::Negative`.
-    ///
-    /// |          | Negative | Zero | Positive |
-    /// |----------|----------|------|----------|
-    /// | Negative | Positive | Zero | Negative |
-    /// | Zero     | Zero     | Zero | Zero     |
-    /// | Positive | Negative | Zero | Positive |
     #[inline]
     fn mul(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
@@ -121,7 +101,6 @@ impl Mul<Sign> for Sign {
 }
 
 impl MulAssign<Sign> for Sign {
-    /// Multiplying signs follows how signs interact with real numbers.
     #[inline(always)]
     fn mul_assign(&mut self, rhs: Self) {
         *self = *self * rhs;
@@ -131,13 +110,6 @@ impl MulAssign<Sign> for Sign {
 impl Div<Sign> for Sign {
     type Output = Self;
 
-    /// Dividing signs follows how signs interact with real numbers.
-    ///
-    /// |          | Negative | Zero | Positive |
-    /// |----------|----------|------|----------|
-    /// | Negative | Positive | Zero | Negative |
-    /// | Zero     | Zero     | Zero | Zero     |
-    /// | Positive | Negative | Zero | Positive |
     #[inline(always)]
     fn div(self, rhs: Self) -> Self::Output {
         self * rhs
@@ -145,7 +117,6 @@ impl Div<Sign> for Sign {
 }
 
 impl DivAssign<Sign> for Sign {
-    /// Dividing signs follows how signs interact with real numbers.
     #[inline(always)]
     fn div_assign(&mut self, rhs: Self) {
         *self *= rhs
