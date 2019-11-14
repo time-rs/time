@@ -27,10 +27,10 @@ use log::warn;
 #[derive(Clone, Copy, Debug, Default, Eq)]
 pub struct Duration {
     /// Is the `Duration` positive, negative, or zero?
-    sign: Sign,
+    pub(crate) sign: Sign,
 
     /// Inner, unsigned representation of the duration.
-    std: StdDuration,
+    pub(crate) std: StdDuration,
 }
 
 /// The number of seconds in one minute.
@@ -195,7 +195,7 @@ impl Duration {
     /// ```
     #[inline(always)]
     pub const fn is_zero(&self) -> bool {
-        (self.std.as_secs() == 0) & (self.std.subsec_nanos() == 0)
+        self.sign.is_zero()
     }
 
     /// Check if a duration is negative.
@@ -208,7 +208,7 @@ impl Duration {
     /// ```
     #[inline(always)]
     pub const fn is_negative(&self) -> bool {
-        self.sign.is_negative() & !self.is_zero()
+        self.sign.is_negative()
     }
 
     /// Check if a duration is positive.
@@ -221,7 +221,7 @@ impl Duration {
     /// ```
     #[inline(always)]
     pub const fn is_positive(&self) -> bool {
-        self.sign.is_positive() & !self.is_zero()
+        self.sign.is_positive()
     }
 
     /// Get the sign of the duration.
@@ -1687,8 +1687,11 @@ mod test {
         duration -= 500.milliseconds();
         assert_eq!(duration, 1.seconds());
 
-        let mut duration = 1.std_seconds();
-        assert_panics!(duration -= 2.seconds());
+        #[cfg(feature = "std")]
+        {
+            let mut duration = 1.std_seconds();
+            assert_panics!(duration -= 2.seconds());
+        }
     }
 
     #[test]
@@ -1797,11 +1800,13 @@ mod test {
         assert_eq!(1.seconds() / 1_f32, 1.seconds());
         assert_eq!(1.seconds() / 2_f32, 500.milliseconds());
         assert_eq!(1.seconds() / -1_f32, (-1).seconds());
+        #[cfg(feature = "std")]
         assert_panics!(1.seconds() / 0_f32);
 
         assert_eq!(1.seconds() / 1_f64, 1.seconds());
         assert_eq!(1.seconds() / 2_f64, 500.milliseconds());
         assert_eq!(1.seconds() / -1_f64, (-1).seconds());
+        #[cfg(feature = "std")]
         assert_panics!(1.seconds() / 0_f64);
     }
 
@@ -1819,8 +1824,11 @@ mod test {
         duration /= -1_f32;
         assert_eq!(duration, (-1).seconds());
 
-        let mut duration = 1.seconds();
-        assert_panics!(duration /= 0_f32);
+        #[cfg(feature = "std")]
+        {
+            let mut duration = 1.seconds();
+            assert_panics!(duration /= 0_f32);
+        }
 
         let mut duration = 1.seconds();
         duration /= 1_f64;
@@ -1834,8 +1842,11 @@ mod test {
         duration /= -1_f64;
         assert_eq!(duration, (-1).seconds());
 
-        let mut duration = 1.seconds();
-        assert_panics!(duration /= 0_f64);
+        #[cfg(feature = "std")]
+        {
+            let mut duration = 1.seconds();
+            assert_panics!(duration /= 0_f64);
+        }
     }
 
     #[test]

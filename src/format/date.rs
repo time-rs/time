@@ -251,13 +251,13 @@ pub(crate) fn parse_m(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     Ok(())
 }
 
-/// ISO weekday (Monday = 1, Sunday = 7)
+/// ISO weekday (Monday = `1`, Sunday = `7`)
 #[inline(always)]
 pub(crate) fn fmt_u(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
     write!(f, "{}", date.weekday().iso_weekday_number())
 }
 
-/// ISO weekday (Monday = 1, Sunday = 7)
+/// ISO weekday (Monday = `1`, Sunday = `7`)
 #[inline(always)]
 pub(crate) fn parse_u(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
     items.weekday = try_consume_first_match(

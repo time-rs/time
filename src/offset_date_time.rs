@@ -369,7 +369,7 @@ impl OffsetDateTime {
     ///     (2020, 53),
     /// );
     /// ```
-    #[inline]
+    #[inline(always)]
     pub fn iso_year_week(self) -> (i32, u8) {
         self.date().iso_year_week()
     }

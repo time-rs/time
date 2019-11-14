@@ -7,7 +7,7 @@ use crate::{
     Date, DeferredFormat, Duration, Language, OffsetDateTime, Time, UtcOffset, Weekday,
 };
 #[cfg(feature = "std")]
-use core::convert::{From, TryFrom};
+use core::convert::From;
 use core::{
     cmp::Ordering,
     ops::{Add, AddAssign, Sub, SubAssign},
@@ -551,6 +551,7 @@ impl DateTime {
     }
 
     /// Given the items already parsed, attempt to create a `DateTime`.
+    #[inline(always)]
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
         Ok(Self {
             date: Date::try_from_parsed_items(items)?,
@@ -575,6 +576,7 @@ impl Add<Duration> for DateTime {
         } else {
             Duration::zero()
         };
+
         Self::new(self.date + duration + date_modifier, self.time + duration)
     }
 }
@@ -773,28 +775,13 @@ impl From<SystemTime> for DateTime {
 #[cfg(feature = "std")]
 #[allow(clippy::fallible_impl_from)]
 impl From<DateTime> for SystemTime {
+    #[inline]
     fn from(datetime: DateTime) -> Self {
         let duration = datetime - DateTime::unix_epoch();
 
         match duration.sign() {
-            Sign::Positive => {
-                Self::UNIX_EPOCH
-                    + StdDuration::try_from(duration).unwrap_or_else(|_| {
-                        unreachable!(
-                            "The value is guaranteed to be positive (and is convertible to \
-                             StdDuration)."
-                        )
-                    })
-            }
-            Sign::Negative => {
-                Self::UNIX_EPOCH
-                    + StdDuration::try_from(-duration).unwrap_or_else(|_| {
-                        unreachable!(
-                            "The value is guaranteed to be positive (and is convertible to \
-                             StdDuration)."
-                        )
-                    })
-            }
+            Sign::Positive => Self::UNIX_EPOCH + duration.std,
+            Sign::Negative => Self::UNIX_EPOCH - duration.std,
             Sign::Zero => Self::UNIX_EPOCH,
         }
     }

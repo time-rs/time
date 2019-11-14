@@ -693,9 +693,12 @@ mod test {
         assert_eq!(time.second(), 3);
         assert_eq!(time.nanosecond(), 0);
 
-        assert_panics!(Time::from_hms(24, 0, 0), "24 isn't a valid hour");
-        assert_panics!(Time::from_hms(0, 60, 0), "60 isn't a valid minute");
-        assert_panics!(Time::from_hms(0, 0, 60), "60 isn't a valid second");
+        #[cfg(feature = "std")]
+        {
+            assert_panics!(Time::from_hms(24, 0, 0), "24 isn't a valid hour");
+            assert_panics!(Time::from_hms(0, 60, 0), "60 isn't a valid minute");
+            assert_panics!(Time::from_hms(0, 0, 60), "60 isn't a valid second");
+        }
     }
 
     #[test]
@@ -707,13 +710,16 @@ mod test {
         assert_eq!(time.millisecond(), 4);
         assert_eq!(time.nanosecond(), 4_000_000);
 
-        assert_panics!(Time::from_hms_milli(24, 0, 0, 0), "24 isn't a valid hour");
-        assert_panics!(Time::from_hms_milli(0, 60, 0, 0), "60 isn't a valid minute");
-        assert_panics!(Time::from_hms_milli(0, 0, 60, 0), "60 isn't a valid second");
-        assert_panics!(
-            Time::from_hms_milli(0, 0, 0, 1_000),
-            "1_000 isn't a valid millisecond"
-        );
+        #[cfg(feature = "std")]
+        {
+            assert_panics!(Time::from_hms_milli(24, 0, 0, 0), "24 isn't a valid hour");
+            assert_panics!(Time::from_hms_milli(0, 60, 0, 0), "60 isn't a valid minute");
+            assert_panics!(Time::from_hms_milli(0, 0, 60, 0), "60 isn't a valid second");
+            assert_panics!(
+                Time::from_hms_milli(0, 0, 0, 1_000),
+                "1_000 isn't a valid millisecond"
+            );
+        }
     }
 
     #[test]
@@ -725,13 +731,16 @@ mod test {
         assert_eq!(time.microsecond(), 4);
         assert_eq!(time.nanosecond(), 4_000);
 
-        assert_panics!(Time::from_hms_micro(24, 0, 0, 0), "24 isn't a valid hour");
-        assert_panics!(Time::from_hms_micro(0, 60, 0, 0), "60 isn't a valid minute");
-        assert_panics!(Time::from_hms_micro(0, 0, 60, 0), "60 isn't a valid second");
-        assert_panics!(
-            Time::from_hms_micro(0, 0, 0, 1_000_000),
-            "1_000_000 isn't a valid microsecond"
-        );
+        #[cfg(feature = "std")]
+        {
+            assert_panics!(Time::from_hms_micro(24, 0, 0, 0), "24 isn't a valid hour");
+            assert_panics!(Time::from_hms_micro(0, 60, 0, 0), "60 isn't a valid minute");
+            assert_panics!(Time::from_hms_micro(0, 0, 60, 0), "60 isn't a valid second");
+            assert_panics!(
+                Time::from_hms_micro(0, 0, 0, 1_000_000),
+                "1_000_000 isn't a valid microsecond"
+            );
+        }
     }
 
     #[test]
@@ -742,13 +751,16 @@ mod test {
         assert_eq!(time.second(), 3);
         assert_eq!(time.nanosecond(), 4);
 
-        assert_panics!(Time::from_hms_nano(24, 0, 0, 0), "24 isn't a valid hour.");
-        assert_panics!(Time::from_hms_nano(0, 60, 0, 0), "60 isn't a valid minute.");
-        assert_panics!(Time::from_hms_nano(0, 0, 60, 0), "60 isn't a valid second.");
-        assert_panics!(
-            Time::from_hms_nano(0, 0, 0, 1_000_000_000),
-            "1_000_000_000 isn't a valid nanosecond."
-        );
+        #[cfg(feature = "std")]
+        {
+            assert_panics!(Time::from_hms_nano(24, 0, 0, 0), "24 isn't a valid hour.");
+            assert_panics!(Time::from_hms_nano(0, 60, 0, 0), "60 isn't a valid minute.");
+            assert_panics!(Time::from_hms_nano(0, 0, 60, 0), "60 isn't a valid second.");
+            assert_panics!(
+                Time::from_hms_nano(0, 0, 0, 1_000_000_000),
+                "1_000_000_000 isn't a valid nanosecond."
+            );
+        }
     }
 
     #[test]

@@ -4,7 +4,6 @@ use crate::{
 };
 use core::{
     cmp::{Ord, Ordering, PartialEq, PartialOrd},
-    convert::TryFrom,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
@@ -30,6 +29,8 @@ use std::time::Instant as StdInstant;
 ///
 /// This implementation allows for operations with signed [`Duration`]s, but is
 /// otherwise identical to [`std::time::Instant`].
+///
+/// This struct is not available with `#![no_std]`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Instant {
     /// Inner representation, using `std::time::Instant`.
@@ -87,24 +88,8 @@ impl Instant {
     pub fn checked_add(self, duration: Duration) -> Option<Self> {
         match duration.sign() {
             Zero => Some(self),
-            Negative => self
-                .inner
-                .checked_sub(StdDuration::try_from(duration.abs()).unwrap_or_else(|_| {
-                    unreachable!(
-                        "The value is guaranteed to be positive (and is convertible to \
-                         StdDuration)."
-                    )
-                }))
-                .map(From::from),
-            Positive => self
-                .inner
-                .checked_add(StdDuration::try_from(duration.abs()).unwrap_or_else(|_| {
-                    unreachable!(
-                        "The value is guaranteed to be positive (and is convertible to \
-                         StdDuration)."
-                    )
-                }))
-                .map(From::from),
+            Negative => self.inner.checked_sub(duration.std).map(From::from),
+            Positive => self.inner.checked_add(duration.std).map(From::from),
         }
     }
 

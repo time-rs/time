@@ -128,7 +128,7 @@
     rust_2018_idioms,
     trivial_casts,
     trivial_numeric_casts,
-    unreachable_pub,
+    unreachable_pub, // some known bugs that are overridden
     const_err,
     illegal_floating_point_literal_pattern,
     late_bound_lifetime_arguments,
@@ -219,10 +219,9 @@ macro_rules! assert_value_in_range {
     };
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "std"))]
 macro_rules! assert_panics {
     ($e:expr $(, $message:literal)?) => {
-        #[cfg(feature = "std")]
         #[allow(box_pointers)]
         {
             if std::panic::catch_unwind(move || $e).is_ok() {

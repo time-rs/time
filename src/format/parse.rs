@@ -186,6 +186,8 @@ pub(crate) fn try_consume_str(s: &mut &str, expected: &str) -> ParseResult<()> {
         for c in expected.chars() {
             try_consume_char(s, c)?;
         }
+        // TODO Find a way to allow the compiler to prove the following is not
+        // necessary.
         unreachable!("The previous loop should always cause the function to return.");
     }
 }

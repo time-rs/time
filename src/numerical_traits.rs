@@ -6,7 +6,7 @@ use core::time::Duration as StdDuration;
 /// This trait can be imported with `use time::prelude::*`.
 ///
 /// Due to limitations in rustc, these methods are currently _not_ `const fn`.
-/// See [this RFC](https://github.com/rust-lang/rfcs/pull/2632) for details.
+/// See [RFC 2632](https://github.com/rust-lang/rfcs/pull/2632) for details.
 ///
 /// # Examples
 ///
@@ -46,7 +46,7 @@ use core::time::Duration as StdDuration;
 /// assert_eq!(2.seconds() - 500.milliseconds(), 1_500.milliseconds());
 /// ```
 ///
-/// As floats can only be used to construct via anything other than
+/// As floats can not be used to construct via anything other than
 /// `Duration::seconds_f32` and `Duration::seconds_f64`, floats _do not_
 /// implement `NumericalDuration`.
 ///
@@ -187,7 +187,7 @@ impl_numerical_duration_nonzero![
 /// This trait can be imported (alongside others) with `use time::prelude::*`.
 ///
 /// Due to limitations in rustc, these methods are currently _not_ `const fn`.
-/// See [this RFC](https://github.com/rust-lang/rfcs/pull/2632) for details.
+/// See [RFC 2632](https://github.com/rust-lang/rfcs/pull/2632) for details.
 ///
 /// # Examples
 ///
@@ -221,7 +221,7 @@ impl_numerical_duration_nonzero![
 /// );
 /// ```
 ///
-/// As floats can only be used to construct via anything other than
+/// As floats can not be used to construct via anything other than
 /// `Duration::from_secs_f32` and `Duration::from_secs_f64`, floats _do not_
 /// implement `NumericalStdDuration`.
 ///
@@ -440,7 +440,7 @@ impl NumericalStdDuration for i32 {
 /// assert_eq!(2.seconds() - 500.milliseconds(), 1_500.milliseconds());
 /// ```
 ///
-/// As floats can only be used to construct via anything other than
+/// As floats can not be used to construct via anything other than
 /// `Duration::from_secs_f32` and `Duration::from_secs_f64`, floats _do not_
 /// implement `NumericalStdDurationShort`.
 ///

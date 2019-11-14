@@ -1,5 +1,5 @@
 use crate::shim::NumberExt;
-use core::ops::{Div, DivAssign, Mul, MulAssign};
+use core::ops::{Div, DivAssign, Mul, MulAssign, Neg, Not};
 use Sign::{Negative, Positive, Zero};
 
 /// Contains the sign of a value: positive, negative, or zero.
@@ -21,7 +21,7 @@ pub enum Sign {
 }
 
 impl Default for Sign {
-    /// `Sign` defaults to `Unknown`.
+    /// `Sign` defaults to `Zero`.
     ///
     /// ```rust
     /// # use time::Sign;
@@ -120,6 +120,24 @@ impl DivAssign<Sign> for Sign {
     #[inline(always)]
     fn div_assign(&mut self, rhs: Self) {
         *self *= rhs
+    }
+}
+
+impl Neg for Sign {
+    type Output = Self;
+
+    #[inline(always)]
+    fn neg(self) -> Self::Output {
+        self.negate()
+    }
+}
+
+impl Not for Sign {
+    type Output = Self;
+
+    #[inline(always)]
+    fn not(self) -> Self::Output {
+        self.negate()
     }
 }
 
@@ -264,6 +282,20 @@ mod test {
         assert_eq!(op_assign!(Positive /= Negative), Negative);
         assert_eq!(op_assign!(Negative /= Positive), Negative);
         assert_eq!(op_assign!(Negative /= Negative), Positive);
+    }
+
+    #[test]
+    fn neg() {
+        assert_eq!(-Positive, Negative);
+        assert_eq!(-Negative, Positive);
+        assert_eq!(-Zero, Zero);
+    }
+
+    #[test]
+    fn not() {
+        assert_eq!(!Positive, Negative);
+        assert_eq!(!Negative, Positive);
+        assert_eq!(!Zero, Zero);
     }
 
     #[test]

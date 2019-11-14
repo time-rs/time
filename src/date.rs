@@ -15,21 +15,17 @@ use core::{
 // are explicitly not (and have linting disabled) as it could lead to
 // compatibility issues down the road if the internal structure is changed.
 
-/// The number of days in a month in a non-leap year.
-const DAYS_IN_MONTH: [u16; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-/// The number of days in a month in a leap year.
-const DAYS_IN_MONTH_LEAP: [u16; 12] = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+/// The number of days in a month in both common and leap years.
+const DAYS_IN_MONTH_COMMON_LEAP: [[u16; 12]; 2] = [
+    [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+    [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+];
 
 /// Get the number of days in the month of a given year.
 #[inline(always)]
 #[allow(clippy::cast_possible_truncation)]
-fn days_in_year_month(year: i32, month: u8) -> u8 {
-    if is_leap_year(year) {
-        DAYS_IN_MONTH_LEAP[(month - 1) as usize] as u8
-    } else {
-        DAYS_IN_MONTH[(month - 1) as usize] as u8
-    }
+const fn days_in_year_month(year: i32, month: u8) -> u8 {
+    DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1] as u8
 }
 
 /// Returns if the provided year is a leap year in the proleptic Gregorian
@@ -121,16 +117,17 @@ impl Date {
     /// ```
     #[inline]
     pub fn from_ymd(year: i32, month: u8, day: u8) -> Self {
+        /// Cumulative days through the end of a month in both common and leap
+        /// years.
+        const DAYS_CUMULATIVE_COMMON_LEAP: [[u16; 12]; 2] = [
+            [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
+            [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
+        ];
+
         assert_value_in_range!(month in 1 => 12);
         assert_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
 
-        // The compiler is smart enough to optimize the `.iter().sum()` away, so
-        // it's not necessary to create a new array to replace this.
-        let ordinal: u16 = if is_leap_year(year) {
-            DAYS_IN_MONTH_LEAP[..month as usize - 1].iter().sum()
-        } else {
-            DAYS_IN_MONTH[..month as usize - 1].iter().sum()
-        };
+        let ordinal = DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1];
 
         Self {
             year,
@@ -153,7 +150,6 @@ impl Date {
     /// Date::from_yo(2019, 366); // 2019 isn't a leap year.
     /// ```
     #[inline(always)]
-    #[allow(clippy::missing_const_for_fn)]
     pub fn from_yo(year: i32, ordinal: u16) -> Self {
         assert_value_in_range!(ordinal in 1 => days_in_year(year), given year);
         Self { year, ordinal }
@@ -274,13 +270,7 @@ impl Date {
     #[inline]
     pub fn month_day(self) -> (u8, u8) {
         let mut ordinal = self.ordinal;
-
-        let days = if is_leap_year(self.year) {
-            DAYS_IN_MONTH_LEAP
-        } else {
-            DAYS_IN_MONTH
-        };
-
+        let days = DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(self.year) as usize];
         let mut month = 0;
         let month = loop {
             if ordinal <= days[month] {
@@ -430,14 +420,12 @@ impl Date {
     /// ```
     #[inline]
     pub fn weekday(self) -> Weekday {
-        // Don't recalculate the value every time.
-        let (mut month, day) = self.month_day();
+        let (month, day) = self.month_day();
 
-        let adjusted_year = if month < 3 {
-            month += 12;
-            self.year - 1
+        let (month, adjusted_year) = if month < 3 {
+            (month + 12, self.year - 1)
         } else {
-            self.year
+            (month, self.year)
         };
 
         match (day as i32 + (13 * (month as i32 + 1)) / 5 + adjusted_year + adjusted_year / 4
@@ -452,6 +440,7 @@ impl Date {
             4 => Wednesday,
             5 => Thursday,
             6 => Friday,
+            // FIXME The compiler isn't able to optimize this away.
             _ => unreachable!("A value mod 7 is always in the range 0..7"),
         }
     }
