@@ -18,23 +18,22 @@
 //! Of the structs that are usable, some methods may only be enabled due a
 //! reliance on `Instant`. These will be documented alongside the method.
 //!
-//! ## `serialization`
+//! ## `serde`
 //!
 //! [Serde](https://github.com/serde-rs/serde) support is behind a feature flag.
-//! To enable it, use the `serialization` feature. This is not enabled by
-//! default. It _is_ compatible with `#![no_std]`, so long as an allocator is
-//! present.
+//! To enable it, use the `serde` feature. This is not enabled by default. It
+//! _is_ compatible with `#![no_std]`, so long as an allocator is present.
 //!
 //! With the standard library:
 //! ```toml
 //! [dependencies]
-//! time = { version = "0.2", features = ["serialization"] }
+//! time = { version = "0.2", features = ["serde"] }
 //! ```
 //!
 //! With `#![no_std]` support:
 //! ```toml
 //! [dependencies]
-//! time = { version = "0.2", default-features = false, features = ["serialization"] }
+//! time = { version = "0.2", default-features = false, features = ["serde"] }
 //! ```
 //!
 //! ## `deprecated`

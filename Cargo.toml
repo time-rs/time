@@ -13,7 +13,6 @@ license = "MIT OR Apache-2.0"
 [features]
 default = ["std", "deprecated"]
 deprecated = ["log"]
-serialization = ["serde"]
 std = []
 
 [dependencies]
