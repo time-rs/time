@@ -356,7 +356,7 @@ impl_numerical_std_duration_nonzero![
 
 /// Implement on `i32` because that's the default type for integers. This
 /// performs a runtime check and panics if the value is negative.
-#[allow(clippy::use_self)]
+#[allow(clippy::use_self, clippy::cast_sign_loss)]
 impl NumericalStdDuration for i32 {
     #[inline(always)]
     fn std_nanoseconds(self) -> StdDuration {
@@ -575,7 +575,7 @@ impl_numerical_std_duration_nonzero![
 
 /// Implement on `i32` because that's the default type for integers. This
 /// performs a runtime check and panics if the value is negative.
-#[allow(clippy::use_self)]
+#[allow(clippy::use_self, clippy::cast_sign_loss)]
 impl NumericalStdDurationShort for i32 {
     #[inline(always)]
     fn nanoseconds(self) -> StdDuration {

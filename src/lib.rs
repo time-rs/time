@@ -1,6 +1,6 @@
 //! Simple time handling.
 //!
-//! ![rustc 1.38.0](https://img.shields.io/badge/rustc-1.38.0-blue)
+//! ![rustc 1.40.0](https://img.shields.io/badge/rustc-1.40.0-blue)
 //!
 //! # Feature flags in Cargo
 //!
@@ -156,11 +156,10 @@
 #![allow(
     clippy::suspicious_arithmetic_impl,
     clippy::inline_always,
-    // TODO Remove once rust-lang/rust-clippy#4605 is resolved in stable.
-    clippy::cast_sign_loss,
     clippy::cast_possible_wrap,
     clippy::cast_lossless,
-    clippy::module_name_repetitions
+    clippy::module_name_repetitions,
+    clippy::must_use_candidate // rust-lang/rust-clippy#4779
 )]
 #![cfg_attr(test, allow(clippy::cognitive_complexity, clippy::too_many_lines))]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
@@ -315,22 +314,9 @@ mod no_std_prelude {
 /// let error = StdDuration::try_from(Duration::seconds(-1)).unwrap_err();
 /// assert!(Any::is::<OutOfRangeError>(&error));
 /// ```
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct OutOfRangeError {
-    // TODO Replace this zero-sized field with `#[non_exhaustive]`
-    #[allow(clippy::missing_docs_in_private_items)]
-    unused: (),
-}
-
-// TODO Remove this implementation when `#[non_exhaustive]` is added to the
-// struct.
-impl OutOfRangeError {
-    /// Create an new `OutOfRangeError`.
-    #[inline(always)]
-    pub(crate) const fn new() -> Self {
-        Self { unused: () }
-    }
-}
+pub struct OutOfRangeError;
 
 impl fmt::Display for OutOfRangeError {
     #[inline(always)]
@@ -349,14 +335,9 @@ mod test {
     use crate::no_std_prelude::*;
 
     #[test]
-    fn out_of_range_error() {
-        assert_eq!(OutOfRangeError::new(), OutOfRangeError::new());
-    }
-
-    #[test]
     fn out_of_range_error_format() {
         assert_eq!(
-            OutOfRangeError::new().to_string(),
+            OutOfRangeError.to_string(),
             "Source value is out of range for the target type",
         );
     }

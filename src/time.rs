@@ -465,7 +465,8 @@ impl Add<Duration> for Time {
     /// ```
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
-        #[allow(clippy::cast_possible_truncation)]
+        // TODO cast_sign_loss: rust-lang/rust-clippy#4818
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
         Self::from_nanoseconds_since_midnight(
             self.nanoseconds_since_midnight()
                 + duration

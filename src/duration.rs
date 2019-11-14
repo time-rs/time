@@ -861,7 +861,7 @@ impl Duration {
     )]
     pub fn to_std(&self) -> Result<StdDuration, OutOfRangeError> {
         if self.sign.is_negative() {
-            Err(OutOfRangeError::new())
+            Err(OutOfRangeError)
         } else {
             Ok(self.std)
         }
@@ -884,7 +884,7 @@ impl TryFrom<Duration> for StdDuration {
     #[inline(always)]
     fn try_from(duration: Duration) -> Result<Self, OutOfRangeError> {
         if duration.sign.is_negative() {
-            Err(OutOfRangeError::new())
+            Err(OutOfRangeError)
         } else {
             Ok(duration.std)
         }
@@ -956,10 +956,13 @@ impl Sub for Duration {
         let secs = self.whole_seconds() - rhs.whole_seconds();
         let nanos = self.subsec_nanoseconds() as i32 - rhs.subsec_nanoseconds() as i32;
 
-        if nanos < 0 {
-            Self::new(secs - 1, (nanos + 1_000_000_000) as u32)
-        } else {
-            Self::new(secs, nanos as u32)
+        #[allow(clippy::cast_sign_loss)]
+        {
+            if nanos < 0 {
+                Self::new(secs - 1, (nanos + 1_000_000_000) as u32)
+            } else {
+                Self::new(secs, nanos as u32)
+            }
         }
     }
 }

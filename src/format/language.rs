@@ -10,8 +10,7 @@
 /// - Short month names
 /// - Weekday names
 /// - Short weekday names
-// The list of supported languages is inherently non-exhaustive. Once
-// `#[non_exhaustive]` is stabilized, that will be used.
+#[non_exhaustive]
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Language {
@@ -19,15 +18,6 @@ pub enum Language {
     en,
     /// Spanish
     es,
-
-    #[doc(hidden)]
-    __nonexhaustive,
-}
-
-macro_rules! nonexhaustive {
-    () => {
-        panic!("`__nonexhaustive` is hidden in the documentation for a reason! Don't use it.")
-    };
 }
 
 #[allow(clippy::non_ascii_literal)]
@@ -65,7 +55,6 @@ impl Language {
                 "noviembre",
                 "diciembre",
             ],
-            __nonexhaustive => nonexhaustive!(),
         }
     }
 
@@ -86,7 +75,6 @@ impl Language {
                 "enero", "feb", "marzo", "abr", "mayo", "jun", "jul", "agosto", "set", "oct",
                 "nov", "dic",
             ],
-            __nonexhaustive => nonexhaustive!(),
         }
     }
 
@@ -114,7 +102,6 @@ impl Language {
                 "sábado",
                 "domingo",
             ],
-            __nonexhaustive => nonexhaustive!(),
         }
     }
 
@@ -126,7 +113,6 @@ impl Language {
         match self {
             en => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
             es => ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"],
-            __nonexhaustive => nonexhaustive!(),
         }
     }
 }

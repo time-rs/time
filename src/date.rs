@@ -117,8 +117,8 @@ impl Date {
     /// ```
     #[inline]
     pub fn from_ymd(year: i32, month: u8, day: u8) -> Self {
-        /// Cumulative days through the end of a month in both common and leap
-        /// years.
+        /// Cumulative days through the beginning of a month in both common and
+        /// leap years.
         const DAYS_CUMULATIVE_COMMON_LEAP: [[u16; 12]; 2] = [
             [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
             [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
@@ -352,7 +352,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2021, 1, 1).sunday_based_week(), 0);
     /// ```
     #[inline]
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     pub fn sunday_based_week(self) -> u8 {
         ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as u8
     }
@@ -369,7 +369,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2021, 1, 1).monday_based_week(), 0);
     /// ```
     #[inline]
-    #[allow(clippy::cast_possible_truncation)]
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     pub fn monday_based_week(self) -> u8 {
         ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as u8
     }
@@ -777,15 +777,21 @@ impl Date {
             }
             items!(year, sunday_week, weekday) => Ok(Self::from_yo(
                 year,
-                (sunday_week as i16 * 7 + weekday.number_days_from_sunday() as i16
-                    - adjustment(year)
-                    + 1) as u16,
+                #[allow(clippy::cast_sign_loss)]
+                {
+                    (sunday_week as i16 * 7 + weekday.number_days_from_sunday() as i16
+                        - adjustment(year)
+                        + 1) as u16
+                },
             )),
             items!(year, monday_week, weekday) => Ok(Self::from_yo(
                 year,
-                (monday_week as i16 * 7 + weekday.number_days_from_monday() as i16
-                    - adjustment(year)
-                    + 1) as u16,
+                #[allow(clippy::cast_sign_loss)]
+                {
+                    (monday_week as i16 * 7 + weekday.number_days_from_monday() as i16
+                        - adjustment(year)
+                        + 1) as u16
+                },
             )),
             _ => Err(ParseError::InsufficientInformation),
         }

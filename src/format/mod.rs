@@ -265,7 +265,7 @@ fn format_specifier(
 }
 
 /// An enum that can store both literals and specifiers.
-#[allow(variant_size_differences)]
+#[allow(variant_size_differences, single_use_lifetimes)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) enum FormatItem<'a> {
     /// A value that should be printed as-is.
@@ -275,6 +275,7 @@ pub(crate) enum FormatItem<'a> {
 }
 
 /// A struct containing all the necessary information to display the inner type.
+#[allow(single_use_lifetimes)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) struct DeferredFormat<'a> {
     /// The `Date` to use for formatting.
