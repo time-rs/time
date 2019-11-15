@@ -1,4 +1,3 @@
-use crate::shim::NumberExt;
 use core::ops::{Div, DivAssign, Mul, MulAssign, Neg, Not};
 use Sign::{Negative, Positive, Zero};
 
@@ -7,17 +6,18 @@ use Sign::{Negative, Positive, Zero};
 /// For ease of use, `Sign` implements [`Mul`] and [`Div`] on all signed numeric
 /// types. `Sign`s can also be multiplied and divided by another `Sign`, which
 /// follows the same rules as real numbers.
+#[repr(i8)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Sign {
     /// A positive value.
-    Positive,
+    Positive = 1,
 
     /// A negative value.
-    Negative,
+    Negative = -1,
 
     /// A value that is exactly zero.
-    Zero,
+    Zero = 0,
 }
 
 impl Default for Sign {
@@ -39,13 +39,10 @@ macro_rules! sign_mul {
             impl Mul<$type> for Sign {
                 type Output = $type;
 
+                #[allow(trivial_numeric_casts)]
                 #[inline(always)]
                 fn mul(self, rhs: $type) -> Self::Output {
-                    match self {
-                        Positive => rhs,
-                        Negative => -rhs,
-                        Zero => <$type>::zero(),
-                    }
+                    (self as i8) as $type * rhs
                 }
             }
 

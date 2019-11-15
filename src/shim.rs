@@ -5,9 +5,6 @@ pub(crate) trait NumberExt: Sized + PartialOrd {
     /// Get the absolute value of the number.
     fn abs(self) -> Self;
 
-    /// Get the value zero.
-    fn zero() -> Self;
-
     /// Obtain the sign of the number.
     fn sign(self) -> Sign;
 }
@@ -19,11 +16,6 @@ macro_rules! unsigned {
                 #[inline(always)]
                 fn abs(self) -> Self {
                     self
-                }
-
-                #[inline(always)]
-                fn zero() -> Self {
-                    0
                 }
 
                 #[inline(always)]
@@ -46,11 +38,6 @@ macro_rules! signed {
                 #[inline(always)]
                 fn abs(self) -> Self {
                     self.abs()
-                }
-
-                #[inline(always)]
-                fn zero() -> Self {
-                    0
                 }
 
                 #[inline(always)]
@@ -79,11 +66,6 @@ macro_rules! float {
                     } else {
                         self
                     }
-                }
-
-                #[inline(always)]
-                fn zero() -> Self {
-                    0.
                 }
 
                 #[inline(always)]
@@ -135,24 +117,6 @@ mod test {
 
         assert_eq!((-1_f32).abs(), 1.);
         assert_eq!((-1_f64).abs(), 1.);
-    }
-
-    #[test]
-    fn zero() {
-        assert_eq!(u8::zero(), 0);
-        assert_eq!(u16::zero(), 0);
-        assert_eq!(u32::zero(), 0);
-        assert_eq!(u64::zero(), 0);
-        assert_eq!(u128::zero(), 0);
-
-        assert_eq!(i8::zero(), 0);
-        assert_eq!(i16::zero(), 0);
-        assert_eq!(i32::zero(), 0);
-        assert_eq!(i64::zero(), 0);
-        assert_eq!(i128::zero(), 0);
-
-        assert_eq!(f32::zero(), 0.);
-        assert_eq!(f64::zero(), 0.);
     }
 
     #[test]
