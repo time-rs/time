@@ -16,6 +16,8 @@
 pub enum Language {
     /// English
     en,
+    /// French
+    fr,
     /// Spanish
     es,
 }
@@ -40,6 +42,20 @@ impl Language {
                 "October",
                 "November",
                 "December",
+            ],
+            fr => [
+                "Janvier",
+                "Février",
+                "Mars",
+                "Avril",
+                "Mai",
+                "Juin",
+                "Juillet",
+                "Août",
+                "Septembre",
+                "Octobre",
+                "Novembre",
+                "Décembre",
             ],
             es => [
                 "enero",
@@ -71,6 +87,10 @@ impl Language {
                 "Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov",
                 "Dec",
             ],
+            fr => [
+                "Janv", "Févr", "Mars", "Avr", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov",
+                "Déc",
+            ],
             es => [
                 "enero", "feb", "marzo", "abr", "mayo", "jun", "jul", "agosto", "set", "oct",
                 "nov", "dic",
@@ -93,6 +113,15 @@ impl Language {
                 "Saturday",
                 "Sunday",
             ],
+            fr => [
+                "Lundi",
+                "Mardi",
+                "Mercredi",
+                "Jeudi",
+                "Vendredi",
+                "Samedi",
+                "Dimanche",
+            ],
             es => [
                 "lunes",
                 "martes",
@@ -112,6 +141,7 @@ impl Language {
         use Language::*;
         match self {
             en => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            fr => ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
             es => ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"],
         }
     }
