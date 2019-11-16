@@ -114,13 +114,7 @@ impl Language {
                 "Sunday",
             ],
             fr => [
-                "Lundi",
-                "Mardi",
-                "Mercredi",
-                "Jeudi",
-                "Vendredi",
-                "Samedi",
-                "Dimanche",
+                "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche",
             ],
             es => [
                 "lunes",
