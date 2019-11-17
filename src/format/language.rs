@@ -18,6 +18,8 @@ pub enum Language {
     en,
     /// Spanish
     es,
+    /// French
+    fr,
 }
 
 #[allow(clippy::non_ascii_literal)]
@@ -55,6 +57,20 @@ impl Language {
                 "noviembre",
                 "diciembre",
             ],
+            fr => [
+                "janvier",
+                "février",
+                "mars",
+                "avril",
+                "mai",
+                "juin",
+                "juillet",
+                "août",
+                "septembre",
+                "octobre",
+                "novembre",
+                "décembre",
+            ],
         }
     }
 
@@ -74,6 +90,10 @@ impl Language {
             es => [
                 "enero", "feb", "marzo", "abr", "mayo", "jun", "jul", "agosto", "set", "oct",
                 "nov", "dic",
+            ],
+            fr => [
+                "janv", "févr", "mars", "avril", "mai", "juin", "juil", "août", "sept", "oct",
+                "nov", "déc",
             ],
         }
     }
@@ -102,6 +122,9 @@ impl Language {
                 "sábado",
                 "domingo",
             ],
+            fr => [
+                "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche",
+            ],
         }
     }
 
@@ -113,6 +136,7 @@ impl Language {
         match self {
             en => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
             es => ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"],
+            fr => ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"],
         }
     }
 }
