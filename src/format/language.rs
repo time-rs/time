@@ -16,10 +16,10 @@
 pub enum Language {
     /// English
     en,
-    /// French
-    fr,
     /// Spanish
     es,
+    /// French
+    fr,
 }
 
 #[allow(clippy::non_ascii_literal)]
@@ -43,20 +43,6 @@ impl Language {
                 "November",
                 "December",
             ],
-            fr => [
-                "Janvier",
-                "Février",
-                "Mars",
-                "Avril",
-                "Mai",
-                "Juin",
-                "Juillet",
-                "Août",
-                "Septembre",
-                "Octobre",
-                "Novembre",
-                "Décembre",
-            ],
             es => [
                 "enero",
                 "febrero",
@@ -70,6 +56,20 @@ impl Language {
                 "octubre",
                 "noviembre",
                 "diciembre",
+            ],
+            fr => [
+                "janvier",
+                "février",
+                "mars",
+                "avril",
+                "mai",
+                "juin",
+                "juillet",
+                "août",
+                "septembre",
+                "octobre",
+                "novembre",
+                "décembre",
             ],
         }
     }
@@ -87,13 +87,13 @@ impl Language {
                 "Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov",
                 "Dec",
             ],
-            fr => [
-                "Janv", "Févr", "Mars", "Avr", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov",
-                "Déc",
-            ],
             es => [
                 "enero", "feb", "marzo", "abr", "mayo", "jun", "jul", "agosto", "set", "oct",
                 "nov", "dic",
+            ],
+            fr => [
+                "janv.", "févr.", "mars", "avril", "mai", "juin", "juil.", "août", "sept.", "oct.",
+                "nov.", "déc.",
             ],
         }
     }
@@ -113,9 +113,6 @@ impl Language {
                 "Saturday",
                 "Sunday",
             ],
-            fr => [
-                "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche",
-            ],
             es => [
                 "lunes",
                 "martes",
@@ -124,6 +121,9 @@ impl Language {
                 "viernes",
                 "sábado",
                 "domingo",
+            ],
+            fr => [
+                "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche",
             ],
         }
     }
@@ -135,8 +135,8 @@ impl Language {
         use Language::*;
         match self {
             en => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-            fr => ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
             es => ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"],
+            fr => ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."],
         }
     }
 }
