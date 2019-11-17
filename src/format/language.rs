@@ -92,8 +92,8 @@ impl Language {
                 "nov", "dic",
             ],
             fr => [
-                "janv.", "févr.", "mars", "avril", "mai", "juin", "juil.", "août", "sept.", "oct.",
-                "nov.", "déc.",
+                "janv", "févr", "mars", "avril", "mai", "juin", "juil", "août", "sept", "oct",
+                "nov", "déc",
             ],
         }
     }
@@ -136,7 +136,7 @@ impl Language {
         match self {
             en => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
             es => ["Lu", "Ma", "Mi", "Ju", "Vi", "Sa", "Do"],
-            fr => ["lun.", "mar.", "mer.", "jeu.", "ven.", "sam.", "dim."],
+            fr => ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"],
         }
     }
 }
