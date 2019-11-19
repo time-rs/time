@@ -314,7 +314,7 @@ mod no_std_prelude {
 /// let error = StdDuration::try_from(Duration::seconds(-1)).unwrap_err();
 /// assert!(Any::is::<OutOfRangeError>(&error));
 /// ```
-#[non_exhaustive]
+#[cfg_attr(feature = "unstable", non_exhaustive)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct OutOfRangeError;
 

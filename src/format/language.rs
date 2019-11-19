@@ -10,7 +10,7 @@
 /// - Short month names
 /// - Weekday names
 /// - Short weekday names
-#[non_exhaustive]
+#[cfg_attr(feature = "unstable", non_exhaustive)]
 #[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Language {
