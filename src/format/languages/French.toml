@@ -1,0 +1,48 @@
+name = "French"
+iso_code = "fr"
+months = [
+    "janvier",
+    "février",
+    "mars",
+    "avril",
+    "mai",
+    "juin",
+    "juillet",
+    "août",
+    "septembre",
+    "octobre",
+    "novembre",
+    "décembre",
+]
+abbr_months = [
+    "janv.",
+    "févr.",
+    "mars",
+    "avril",
+    "mai",
+    "juin",
+    "juil.",
+    "août",
+    "sept.",
+    "oct.",
+    "nov.",
+    "déc.",
+]
+weekdays = [
+    "lundi",
+    "mardi",
+    "mercredi",
+    "jeudi",
+    "vendredi",
+    "samedi",
+    "dimanche",
+]
+abbr_weekdays = [
+    "lun.",
+    "mar.",
+    "mer.",
+    "jeu.",
+    "ven.",
+    "sam.",
+    "dim.",
+]

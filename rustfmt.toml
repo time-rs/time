@@ -12,3 +12,4 @@ merge_imports = true
 normalize_comments = true
 normalize_doc_attributes = true
 reorder_impl_items = true
+ignore = ["src/format/language.rs"]
