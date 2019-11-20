@@ -38,6 +38,8 @@ fn main() -> io::Result<()> {
     let mut out_file = File::create(OUTPUT_FILE)?;
 
     out_file.write(b"\
+#![allow(clippy::too_many_lines, clippy::match_same_arms)]
+
 //! The `Language` struct and its various methods.
 
 // Localizations are sourced from glibc.
