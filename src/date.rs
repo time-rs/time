@@ -890,7 +890,6 @@ impl Ord for Date {
 }
 
 #[cfg(test)]
-#[allow(clippy::non_ascii_literal)]
 mod test {
     use super::*;
     use crate::prelude::*;
@@ -1965,7 +1964,7 @@ mod test {
         );
         assert_eq!(
             ymd!(2019, 1, 2).format_language("%B, %A", Language::es),
-            "enero, miércoles",
+            "enero, mi\u{e9}rcoles",
         );
     }
 

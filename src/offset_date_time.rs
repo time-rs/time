@@ -647,7 +647,7 @@ impl OffsetDateTime {
     ///         .midnight()
     ///         .using_offset(UtcOffset::hours(2))
     ///         .format_language("%c %z", Language::es),
-    ///     "Mi enero 2 2:00:00 2019 +0200",
+    ///     "mié ene 2 2:00:00 2019 +0200",
     /// );
     /// ```
     #[inline(always)]
@@ -1224,7 +1224,7 @@ mod test {
                 .midnight()
                 .using_offset(UtcOffset::hours(2))
                 .format_language("%c %z", Language::es),
-            "Mi enero 2 2:00:00 2019 +0200",
+            "mi\u{e9} ene 2 2:00:00 2019 +0200",
         );
     }
 
