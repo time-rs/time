@@ -15,6 +15,7 @@ use std::error::Error;
 pub(crate) type ParseResult<T> = Result<T, ParseError>;
 
 /// An error ocurred while parsing.
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ParseError {
     /// The second present was not valid.
@@ -54,9 +55,6 @@ pub enum ParseError {
     UnexpectedEndOfString,
     /// There was not enough information provided to create the requested type.
     InsufficientInformation,
-    #[allow(non_camel_case_types)]
-    #[doc(hidden)]
-    __nonexhaustive,
 }
 
 impl Display for ParseError {
@@ -84,9 +82,6 @@ impl Display for ParseError {
             InsufficientInformation => {
                 f.write_str("insufficient information provided to create the requested type")
             }
-            __nonexhaustive => panic!(
-                "`__nonexhaustive` is hidden in the documentation for a reason! Don't use it."
-            ),
         }
     }
 }

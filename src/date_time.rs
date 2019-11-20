@@ -989,14 +989,14 @@ mod test {
     fn format_language() {
         assert_eq!(
             ymd!(2019, 1, 2)
-            .midnight()
-            .format_language("%c", Language::en),
+                .midnight()
+                .format_language("%c", Language::en),
             "Wed Jan 2 0:00:00 2019",
         );
         assert_eq!(
             ymd!(2019, 1, 2)
-            .midnight()
-            .format_language("%c", Language::es),
+                .midnight()
+                .format_language("%c", Language::es),
             "mi\u{e9} ene 2 0:00:00 2019",
         );
     }
