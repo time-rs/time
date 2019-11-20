@@ -1,0 +1,48 @@
+name = "Kinyarwanda"
+iso_code = "rw"
+months = [
+    "Mutarama",
+    "Gashyantare",
+    "Werurwe",
+    "Mata",
+    "Gicuransi",
+    "Kamena",
+    "Nyakanga",
+    "Kanama",
+    "Nzeli",
+    "Ukwakira",
+    "Ugushyingo",
+    "Ukuboza",
+]
+abbr_months = [
+    "Mut",
+    "Gas",
+    "Wer",
+    "Mat",
+    "Gic",
+    "Kam",
+    "Nya",
+    "Kan",
+    "Nze",
+    "Ukw",
+    "Ugu",
+    "Uku",
+]
+weekdays = [
+    "Kuwa mbere",
+    "Kuwa kabiri",
+    "Kuwa gatatu",
+    "Kuwa kane",
+    "Kuwa gatanu",
+    "Kuwa gatandatu",
+    "Ku cyumweru",
+]
+abbr_weekdays = [
+    "Mbe",
+    "Kab",
+    "Gtu",
+    "Kan",
+    "Gnu",
+    "Gnd",
+    "Mwe",
+]

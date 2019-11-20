@@ -1,0 +1,48 @@
+name = "Croatian"
+iso_code = "hr"
+months = [
+    "siječnja",
+    "veljače",
+    "ožujka",
+    "travnja",
+    "svibnja",
+    "lipnja",
+    "srpnja",
+    "kolovoza",
+    "rujna",
+    "listopada",
+    "studenoga",
+    "prosinca",
+]
+abbr_months = [
+    "sij",
+    "velj",
+    "ožu",
+    "tra",
+    "svi",
+    "lip",
+    "srp",
+    "kol",
+    "ruj",
+    "lis",
+    "stu",
+    "pro",
+]
+weekdays = [
+    "ponedjeljak",
+    "utorak",
+    "srijeda",
+    "četvrtak",
+    "petak",
+    "subota",
+    "nedjelja",
+]
+abbr_weekdays = [
+    "pon",
+    "uto",
+    "sri",
+    "čet",
+    "pet",
+    "sub",
+    "ned",
+]

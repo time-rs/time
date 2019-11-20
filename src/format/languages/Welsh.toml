@@ -1,0 +1,48 @@
+name = "Welsh"
+iso_code = "cy"
+months = [
+    "Ionawr",
+    "Chwefror",
+    "Mawrth",
+    "Ebrill",
+    "Mai",
+    "Mehefin",
+    "Gorffennaf",
+    "Awst",
+    "Medi",
+    "Hydref",
+    "Tachwedd",
+    "Rhagfyr",
+]
+abbr_months = [
+    "Ion",
+    "Chw",
+    "Maw",
+    "Ebr",
+    "Mai",
+    "Meh",
+    "Gor",
+    "Aws",
+    "Med",
+    "Hyd",
+    "Tach",
+    "Rha",
+]
+weekdays = [
+    "Llun",
+    "Mawrth",
+    "Mercher",
+    "Iau",
+    "Gwener",
+    "Sadwrn",
+    "Sul",
+]
+abbr_weekdays = [
+    "Llu",
+    "Maw",
+    "Mer",
+    "Iau",
+    "Gwe",
+    "Sad",
+    "Sul",
+]

@@ -1,0 +1,48 @@
+name = "Irish"
+iso_code = "ga"
+months = [
+    "Eanáir",
+    "Feabhra",
+    "Márta",
+    "Aibreán",
+    "Bealtaine",
+    "Meitheamh",
+    "Iúil",
+    "Lúnasa",
+    "Meán Fómhair",
+    "Deireadh Fómhair",
+    "Samhain",
+    "Nollaig",
+]
+abbr_months = [
+    "Ean",
+    "Feabh",
+    "Márta",
+    "Aib",
+    "Beal",
+    "Meith",
+    "Iúil",
+    "Lún",
+    "MFómh",
+    "DFómh",
+    "Samh",
+    "Noll",
+]
+weekdays = [
+    "Dé Luain",
+    "Dé Máirt",
+    "Dé Céadaoin",
+    "Déardaoin",
+    "Dé hAoine",
+    "Dé Sathairn",
+    "Dé Domhnaigh",
+]
+abbr_weekdays = [
+    "Luan",
+    "Máirt",
+    "Céad",
+    "Déar",
+    "Aoine",
+    "Sath",
+    "Domh",
+]

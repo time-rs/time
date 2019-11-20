@@ -1,0 +1,48 @@
+name = "Maltese"
+iso_code = "mt"
+months = [
+    "Jannar",
+    "Frar",
+    "Marzu",
+    "April",
+    "Mejju",
+    "Ġunju",
+    "Lulju",
+    "Awwissu",
+    "Settembru",
+    "Ottubru",
+    "Novembru",
+    "Diċembru",
+]
+abbr_months = [
+    "Jan",
+    "Fra",
+    "Mar",
+    "Apr",
+    "Mej",
+    "Ġun",
+    "Lul",
+    "Aww",
+    "Set",
+    "Ott",
+    "Nov",
+    "Diċ",
+]
+weekdays = [
+    "it-Tnejn",
+    "it-Tlieta",
+    "l-Erbgħa",
+    "il-Ħamis",
+    "il-Ġimgħa",
+    "is-Sibt",
+    "il-Ħadd",
+]
+abbr_weekdays = [
+    "Tne",
+    "Tli",
+    "Erb",
+    "Ħam",
+    "Ġim",
+    "Sib",
+    "Ħad",
+]

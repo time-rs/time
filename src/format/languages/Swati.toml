@@ -1,0 +1,48 @@
+name = "Swati"
+iso_code = "ss"
+months = [
+    "Bhimbidvwane",
+    "iNdlovane",
+    "iNdlovulenkhulu",
+    "Mabasa",
+    "Inkhwenkhweti",
+    "iNhlaba",
+    "Kholwane",
+    "iNgci",
+    "iNyoni",
+    "Impala",
+    "Lweti",
+    "iNgongoni",
+]
+abbr_months = [
+    "Bhi",
+    "Van",
+    "Vul",
+    "Mab",
+    "Khk",
+    "Nhl",
+    "Kho",
+    "Ngc",
+    "Nyo",
+    "Imp",
+    "Lwe",
+    "Ngo",
+]
+weekdays = [
+    "uMsombuluko",
+    "Lesibili",
+    "Lesitsatfu",
+    "Lesine",
+    "Lesihlanu",
+    "uMgcibelo",
+    "Lisontfo",
+]
+abbr_weekdays = [
+    "Mso",
+    "Bil",
+    "Tsa",
+    "Ne",
+    "Hla",
+    "Mgc",
+    "Son",
+]

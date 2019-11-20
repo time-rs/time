@@ -1,0 +1,48 @@
+name = "Icelandic"
+iso_code = "is"
+months = [
+    "janúar",
+    "febrúar",
+    "mars",
+    "apríl",
+    "maí",
+    "júní",
+    "júlí",
+    "ágúst",
+    "september",
+    "október",
+    "nóvember",
+    "desember",
+]
+abbr_months = [
+    "jan",
+    "feb",
+    "mar",
+    "apr",
+    "maí",
+    "jún",
+    "júl",
+    "ágú",
+    "sep",
+    "okt",
+    "nóv",
+    "des",
+]
+weekdays = [
+    "mánudagur",
+    "þriðjudagur",
+    "miðvikudagur",
+    "fimmtudagur",
+    "föstudagur",
+    "laugardagur",
+    "sunnudagur",
+]
+abbr_weekdays = [
+    "mán",
+    "þri",
+    "mið",
+    "fim",
+    "fös",
+    "lau",
+    "sun",
+]

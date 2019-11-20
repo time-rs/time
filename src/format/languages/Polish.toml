@@ -1,0 +1,48 @@
+name = "Polish"
+iso_code = "pl"
+months = [
+    "stycznia",
+    "lutego",
+    "marca",
+    "kwietnia",
+    "maja",
+    "czerwca",
+    "lipca",
+    "sierpnia",
+    "września",
+    "października",
+    "listopada",
+    "grudnia",
+]
+abbr_months = [
+    "sty",
+    "lut",
+    "mar",
+    "kwi",
+    "maj",
+    "cze",
+    "lip",
+    "sie",
+    "wrz",
+    "paź",
+    "lis",
+    "gru",
+]
+weekdays = [
+    "poniedziałek",
+    "wtorek",
+    "środa",
+    "czwartek",
+    "piątek",
+    "sobota",
+    "niedziela",
+]
+abbr_weekdays = [
+    "pon",
+    "wto",
+    "śro",
+    "czw",
+    "pią",
+    "sob",
+    "nie",
+]

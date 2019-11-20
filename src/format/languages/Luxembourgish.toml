@@ -1,0 +1,48 @@
+name = "Luxembourgish"
+iso_code = "lb"
+months = [
+    "Januar",
+    "Februar",
+    "Mäerz",
+    "Abrëll",
+    "Mee",
+    "Juni",
+    "Juli",
+    "August",
+    "September",
+    "Oktober",
+    "November",
+    "Dezember",
+]
+abbr_months = [
+    "Jan",
+    "Feb",
+    "Mäe",
+    "Abr",
+    "Mee",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Okt",
+    "Nov",
+    "Dez",
+]
+weekdays = [
+    "Méindeg",
+    "Dënschdeg",
+    "Mëttwoch",
+    "Donneschdeg",
+    "Freideg",
+    "Samschdeg",
+    "Sonndeg",
+]
+abbr_weekdays = [
+    "Mé",
+    "Dë",
+    "Më",
+    "Do",
+    "Fr",
+    "Sa",
+    "So",
+]

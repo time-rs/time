@@ -1,0 +1,48 @@
+name = "Turkmen"
+iso_code = "tk"
+months = [
+    "Ýanwar",
+    "Fewral",
+    "Mart",
+    "Aprel",
+    "Maý",
+    "Iýun",
+    "Iýul",
+    "Awgust",
+    "Sentýabr",
+    "Oktýabr",
+    "Noýabr",
+    "Dekabr",
+]
+abbr_months = [
+    "Ýan",
+    "Few",
+    "Mar",
+    "Apr",
+    "Maý",
+    "Iýn",
+    "Iýl",
+    "Awg",
+    "Sen",
+    "Okt",
+    "Noý",
+    "Dek",
+]
+weekdays = [
+    "Sişenbe",
+    "Çarşenbe",
+    "Penşenbe",
+    "Anna",
+    "Şenbe",
+    "Ýekşenbe",
+    "Duşenbe",
+]
+abbr_weekdays = [
+    "Siş",
+    "Çar",
+    "Pen",
+    "Ann",
+    "Şen",
+    "Ýek",
+    "Duş",
+]

@@ -1,0 +1,48 @@
+name = "Catalan"
+iso_code = "ca"
+months = [
+    "de gener",
+    "de febrer",
+    "de març",
+    "d’abril",
+    "de maig",
+    "de juny",
+    "de juliol",
+    "d’agost",
+    "de setembre",
+    "d’octubre",
+    "de novembre",
+    "de desembre",
+]
+abbr_months = [
+    "de gen.",
+    "de febr.",
+    "de març",
+    "d’abr.",
+    "de maig",
+    "de juny",
+    "de jul.",
+    "d’ag.",
+    "de set.",
+    "d’oct.",
+    "de nov.",
+    "de des.",
+]
+weekdays = [
+    "dilluns",
+    "dimarts",
+    "dimecres",
+    "dijous",
+    "divendres",
+    "dissabte",
+    "diumenge",
+]
+abbr_weekdays = [
+    "dl.",
+    "dt.",
+    "dc.",
+    "dj.",
+    "dv.",
+    "ds.",
+    "dg.",
+]
