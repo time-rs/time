@@ -343,8 +343,8 @@ mod test {
     }
 }
 
-// For some back-compatibility, we're also implementing some deprecated types.
-// They will be removed completely in 0.3.
+// For some back-compatibility, we're also implementing some deprecated types
+// and methods. They will be removed completely in 0.3.
 
 #[cfg(all(feature = "std", feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
@@ -357,3 +357,25 @@ pub type PreciseTime = Instant;
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type SteadyTime = Instant;
+
+#[cfg(all(feature = "std", feature = "deprecated"))]
+#[cfg_attr(tarpaulin, skip)]
+#[allow(clippy::missing_docs_in_private_items)]
+#[deprecated]
+#[inline]
+pub fn precise_time_ns() -> u64 {
+    use core::convert::TryInto;
+    (DateTime::now() - DateTime::unix_epoch())
+        .whole_nanoseconds()
+        .try_into()
+        .expect("You really shouldn't be using this in the year 2554...")
+}
+
+#[cfg(all(feature = "std", feature = "deprecated"))]
+#[cfg_attr(tarpaulin, skip)]
+#[allow(clippy::missing_docs_in_private_items)]
+#[deprecated]
+#[inline]
+pub fn precise_time_s() -> f64 {
+    (DateTime::now() - DateTime::unix_epoch()).as_seconds_f64()
+}
