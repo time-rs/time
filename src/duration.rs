@@ -311,7 +311,7 @@ impl Duration {
     /// assert_eq!(Duration::days(-6).whole_weeks(), 0);
     /// ```
     #[inline(always)]
-    pub fn whole_weeks(&self) -> i64 {
+    pub const fn whole_weeks(&self) -> i64 {
         self.whole_seconds() / SECONDS_PER_WEEK
     }
 
@@ -337,7 +337,7 @@ impl Duration {
     /// assert_eq!(Duration::hours(-23).whole_days(), 0);
     /// ```
     #[inline(always)]
-    pub fn whole_days(&self) -> i64 {
+    pub const fn whole_days(&self) -> i64 {
         self.whole_seconds() / SECONDS_PER_DAY
     }
 
@@ -363,7 +363,7 @@ impl Duration {
     /// assert_eq!(Duration::minutes(-59).whole_hours(), 0);
     /// ```
     #[inline(always)]
-    pub fn whole_hours(&self) -> i64 {
+    pub const fn whole_hours(&self) -> i64 {
         self.whole_seconds() / SECONDS_PER_HOUR
     }
 
@@ -389,7 +389,7 @@ impl Duration {
     /// assert_eq!(Duration::seconds(-59).whole_minutes(), 0);
     /// ```
     #[inline(always)]
-    pub fn whole_minutes(&self) -> i64 {
+    pub const fn whole_minutes(&self) -> i64 {
         self.whole_seconds() / SECONDS_PER_MINUTE
     }
 
@@ -417,8 +417,8 @@ impl Duration {
     /// assert_eq!(Duration::minutes(-1).whole_seconds(), -60);
     /// ```
     #[inline(always)]
-    pub fn whole_seconds(&self) -> i64 {
-        self.sign * self.std.as_secs() as i64
+    pub const fn whole_seconds(&self) -> i64 {
+        self.sign as i64 * self.std.as_secs() as i64
     }
 
     /// Creates a new `Duration` from the specified number of seconds
@@ -444,9 +444,10 @@ impl Duration {
     /// assert_eq!(Duration::milliseconds(1_500).as_seconds_f64(), 1.5);
     /// assert_eq!(Duration::milliseconds(-1_500).as_seconds_f64(), -1.5);
     /// ```
+    // TODO make const
     #[inline(always)]
     pub fn as_seconds_f64(&self) -> f64 {
-        self.sign * self.std.as_secs_f64()
+        self.sign as i8 as f64 * self.std.as_secs_f64()
     }
 
     /// Creates a new `Duration` from the specified number of seconds
@@ -472,9 +473,10 @@ impl Duration {
     /// assert_eq!(Duration::milliseconds(1_500).as_seconds_f32(), 1.5);
     /// assert_eq!(Duration::milliseconds(-1_500).as_seconds_f32(), -1.5);
     /// ```
+    // TODO make const
     #[inline(always)]
     pub fn as_seconds_f32(&self) -> f32 {
-        self.sign * self.std.as_secs_f32()
+        self.sign as i8 as f32 * self.std.as_secs_f32()
     }
 
     /// Create a new `Duration` with the given number of milliseconds.
@@ -502,8 +504,8 @@ impl Duration {
     /// assert_eq!(Duration::milliseconds(-1).whole_milliseconds(), -1);
     /// ```
     #[inline(always)]
-    pub fn whole_milliseconds(&self) -> i128 {
-        self.sign * self.std.as_millis() as i128
+    pub const fn whole_milliseconds(&self) -> i128 {
+        self.sign as i128 * self.std.as_millis() as i128
     }
 
     /// Get the number of milliseconds past the number of whole seconds.
@@ -550,8 +552,8 @@ impl Duration {
     /// assert_eq!(Duration::microseconds(-1).whole_microseconds(), -1);
     /// ```
     #[inline(always)]
-    pub fn whole_microseconds(&self) -> i128 {
-        self.sign * self.std.as_micros() as i128
+    pub const fn whole_microseconds(&self) -> i128 {
+        self.sign as i128 * self.std.as_micros() as i128
     }
 
     /// Get the number of microseconds past the number of whole seconds.
@@ -602,8 +604,8 @@ impl Duration {
     /// assert_eq!(Duration::nanoseconds(-1).whole_nanoseconds(), -1);
     /// ```
     #[inline(always)]
-    pub fn whole_nanoseconds(&self) -> i128 {
-        self.sign * self.std.as_nanos() as i128
+    pub const fn whole_nanoseconds(&self) -> i128 {
+        self.sign as i128 * self.std.as_nanos() as i128
     }
 
     /// Get the number of nanoseconds past the number of whole seconds.
@@ -745,7 +747,7 @@ impl Duration {
 /// such, they are deprecated.
 #[cfg(feature = "deprecated")]
 #[cfg_attr(tarpaulin, skip)]
-#[allow(clippy::missing_docs_in_private_items)]
+#[allow(clippy::missing_docs_in_private_items, clippy::missing_const_for_fn)]
 impl Duration {
     #[inline(always)]
     #[deprecated(since = "0.2.0", note = "Use the `whole_weeks` function")]
@@ -771,6 +773,7 @@ impl Duration {
         self.whole_minutes()
     }
 
+    #[allow(clippy::missing_const_for_fn)]
     #[inline(always)]
     #[deprecated(since = "0.2.0", note = "Use the `whole_seconds` function")]
     pub fn num_seconds(&self) -> i64 {

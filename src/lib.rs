@@ -361,7 +361,7 @@ pub type SteadyTime = Instant;
 #[cfg(all(feature = "std", feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
-#[deprecated]
+#[deprecated(since = "0.2.0", note = "Use `DateTime::now() - DateTime::unix_epoch()` to get a `Duration` since a known epoch.")]
 #[inline]
 pub fn precise_time_ns() -> u64 {
     use core::convert::TryInto;
@@ -374,7 +374,7 @@ pub fn precise_time_ns() -> u64 {
 #[cfg(all(feature = "std", feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
-#[deprecated]
+#[deprecated(since = "0.2.0", note = "Use `DateTime::now() - DateTime::unix_epoch()` to get a `Duration` since a known epoch.")]
 #[inline]
 pub fn precise_time_s() -> f64 {
     (DateTime::now() - DateTime::unix_epoch()).as_seconds_f64()
