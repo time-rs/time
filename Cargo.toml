@@ -12,11 +12,10 @@ license = "MIT OR Apache-2.0"
 
 [features]
 default = ["std", "deprecated"]
-deprecated = ["log"]
+deprecated = []
 std = []
 
 [dependencies]
-log = { version = "0.4", optional = true }
 serde = { version = "1", optional = true, default-features = false, features = ["derive", "alloc"] }
 
 [build-dependencies]

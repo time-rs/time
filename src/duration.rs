@@ -10,8 +10,6 @@ use core::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(feature = "deprecated")]
-use log::warn;
 
 /// A span of time with nanosecond precision.
 ///
@@ -786,24 +784,20 @@ impl Duration {
     /// will be printed at runtime if this occurs.
     #[inline]
     #[allow(clippy::cast_possible_truncation)]
-    #[deprecated(since = "0.2.0", note = "Use the `whole_milliseconds` function")]
+    #[deprecated(
+        since = "0.2.0",
+        note = "Use the `whole_milliseconds` function. The value is clamped between \
+                `i64::min_value()` and `i64::max_value()`."
+    )]
     pub fn num_milliseconds(&self) -> i64 {
-        let mut millis = self.whole_milliseconds();
+        let millis = self.whole_milliseconds();
 
         if millis > i64::max_value() as i128 {
-            warn!(
-                "The number of milliseconds exceeds `i64::max_value()`. Limiting to that value. \
-                 Use the `whole_milliseconds` to return an i128."
-            );
-            millis = i64::max_value() as i128;
+            return i64::max_value();
         }
 
         if millis < i64::min_value() as i128 {
-            warn!(
-                "The number of milliseconds exceeds `i64::min_value()`. Limiting to that value. \
-                 Use the `whole_milliseconds` to return an i128."
-            );
-            millis = i64::min_value() as i128;
+            return i64::min_value();
         }
 
         millis as i64
