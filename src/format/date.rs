@@ -162,18 +162,6 @@ pub(crate) fn parse_d(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     Ok(())
 }
 
-/// Day of the month, space-padded (` 1`-`31`)
-#[inline(always)]
-pub(crate) fn fmt_e(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(f, padding(Space), 2, date.day())
-}
-
-/// Day of the month, space-padded (` 1`-`31`)
-#[inline(always)]
-pub(crate) fn parse_e(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    parse_d(items, s, padding.default_to(Padding::Space))
-}
-
 /// Week-based year, last two digits (`00`-`99`)
 #[inline(always)]
 pub(crate) fn fmt_g(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {

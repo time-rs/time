@@ -69,7 +69,6 @@
 //! | `%C`      | Year divided by 100 and truncated to integer (`00`-`99`)               | `20`                       |
 //! | `%d`      | Day of the month, zero-padded (`01`-`31`)                              | `23`                       |
 //! | `%D`      | Short MM/DD/YY date, equivalent to `%-m/%d/%y`                         | `8/23/01`                  |
-//! | `%e`      | Day of the month, space-padded (` 1`-`31`)                             | `23`                       |
 //! | `%F`      | Short YYYY-MM-DD date, equivalent to `%-Y-%m-%d`                       | `2001-08-23`               |
 //! | `%g`      | Week-based year, last two digits (`00`-`99`)                           | `01`                       |
 //! | `%G`      | Week-based year                                                        | `2001`                     |

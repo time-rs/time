@@ -383,7 +383,6 @@ pub(crate) fn parse(s: &str, format: &str, language: Language) -> ParseResult<Pa
                         parse_char!('/');
                         parse!(date::parse_y(Padding::Default));
                     }
-                    e { padding } => parse!(date::parse_e(padding)),
                     F => {
                         parse!(date::parse_Y(Padding::None));
                         parse_char!('-');

@@ -56,7 +56,6 @@ pub(crate) fn parse_with_language<'a>(s: &'a str, language: Language) -> Vec<For
                 Some((i, 'C')) => push_specifier!(i, Specifier::C { padding }),
                 Some((i, 'd')) => push_specifier!(i, Specifier::d { padding }),
                 Some((i, 'D')) => push_specifier!(i, Specifier::D),
-                Some((i, 'e')) => push_specifier!(i, Specifier::e { padding }),
                 Some((i, 'F')) => push_specifier!(i, Specifier::F),
                 Some((i, 'g')) => push_specifier!(i, Specifier::g { padding }),
                 Some((i, 'G')) => push_specifier!(i, Specifier::G { padding }),

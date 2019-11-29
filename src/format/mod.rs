@@ -97,8 +97,6 @@ pub(crate) enum Specifier {
     d { padding: Padding },
     /// Short MM/DD/YY date, equivalent to `%m/%d/%y`
     D,
-    /// Day of the month, space-padded (` 1`-`31`)
-    e { padding: Padding },
     /// Short YYYY-MM-DD date, equivalent to `%Y-%m-%d`
     F,
     /// Week-based year, last two digits (`00`-`99`)
@@ -212,7 +210,6 @@ fn format_specifier(
             literal!("/");
             specifier!(date::fmt_y(y, Padding::Default));
         }
-        e { padding } => specifier!(date::fmt_e(e, padding)),
         F => {
             specifier!(date::fmt_Y(Y, Padding::None));
             literal!("-");
