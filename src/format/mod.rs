@@ -32,7 +32,6 @@ macro_rules! pad {
 }
 
 pub(crate) mod date;
-pub(crate) mod language;
 pub(crate) mod offset;
 pub(crate) mod parse;
 pub(crate) mod parse_items;
@@ -43,11 +42,10 @@ use crate::no_std_prelude::*;
 use crate::{Date, Time, UtcOffset};
 use core::fmt::{self, Display, Formatter};
 #[allow(unreachable_pub)] // rust-lang/rust#64762
-pub use language::Language;
 #[allow(unreachable_pub)] // rust-lang/rust#64762
 pub use parse::ParseError;
 pub(crate) use parse::{parse, ParseResult, ParsedItems};
-pub(crate) use parse_items::parse_with_language;
+pub(crate) use parse_items::parse_fmt_string;
 
 /// The type of padding to use when formatting.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -82,15 +80,15 @@ impl Padding {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) enum Specifier {
     /// Abbreviated weekday name
-    a { language: Language },
+    a,
     /// Full weekday name
-    A { language: Language },
+    A,
     /// Abbreviated month name
-    b { language: Language },
+    b,
     /// Full month name
-    B { language: Language },
+    B,
     /// Date and time representation
-    c { language: Language },
+    c,
     /// Year divided by 100 and truncated to integer (`00`-`99`)
     C { padding: Padding },
     /// Day of the month, zero-padded (`01`-`31`)
@@ -153,9 +151,7 @@ fn format_specifier(
     offset: Option<UtcOffset>,
     specifier: Specifier,
 ) -> fmt::Result {
-    /// Push the provided specifier to the list of items. If an asterisk is
-    /// present, the language will be provided to the method. If a pound symbol
-    /// is present, the padding will be provided.
+    /// Push the provided specifier to the list of items.
     // TODO (future) Some way to concatenate identifiers/paths without hacks
     // would be super!
     macro_rules! specifier {
@@ -182,14 +178,14 @@ fn format_specifier(
 
     use Specifier::*;
     match specifier {
-        a { language } => specifier!(date::fmt_a(a, language)),
-        A { language } => specifier!(date::fmt_A(A, language)),
-        b { language } => specifier!(date::fmt_b(b, language)),
-        B { language } => specifier!(date::fmt_B(B, language)),
-        c { language } => {
-            specifier!(date::fmt_a(a, language));
+        a => specifier!(date::fmt_a(a)),
+        A => specifier!(date::fmt_A(A)),
+        b => specifier!(date::fmt_b(b)),
+        B => specifier!(date::fmt_B(B)),
+        c => {
+            specifier!(date::fmt_a(a));
             literal!(" ");
-            specifier!(date::fmt_b(b, language));
+            specifier!(date::fmt_b(b));
             literal!(" ");
             specifier!(date::fmt_d(d, Padding::None));
             literal!(" ");

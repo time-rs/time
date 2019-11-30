@@ -1,15 +1,12 @@
 //! Parse formats used in the `format` and `parse` methods.
 
+use crate::format::{FormatItem, Padding, Specifier};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
-use crate::{
-    format::{FormatItem, Padding, Specifier},
-    Language,
-};
 
-/// Parse the formatting string with the provided language.
+/// Parse the formatting string.
 #[inline]
-pub(crate) fn parse_with_language<'a>(s: &'a str, language: Language) -> Vec<FormatItem<'a>> {
+pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
     let mut items = vec![];
     let mut literal_start = 0;
     let mut chars = s.char_indices().peekable();
@@ -48,11 +45,11 @@ pub(crate) fn parse_with_language<'a>(s: &'a str, language: Language) -> Vec<For
             };
 
             match chars.next() {
-                Some((i, 'a')) => push_specifier!(i, Specifier::a { language }),
-                Some((i, 'A')) => push_specifier!(i, Specifier::A { language }),
-                Some((i, 'b')) => push_specifier!(i, Specifier::b { language }),
-                Some((i, 'B')) => push_specifier!(i, Specifier::B { language }),
-                Some((i, 'c')) => push_specifier!(i, Specifier::c { language }),
+                Some((i, 'a')) => push_specifier!(i, Specifier::a),
+                Some((i, 'A')) => push_specifier!(i, Specifier::A),
+                Some((i, 'b')) => push_specifier!(i, Specifier::b),
+                Some((i, 'B')) => push_specifier!(i, Specifier::B),
+                Some((i, 'c')) => push_specifier!(i, Specifier::c),
                 Some((i, 'C')) => push_specifier!(i, Specifier::C { padding }),
                 Some((i, 'd')) => push_specifier!(i, Specifier::d { padding }),
                 Some((i, 'D')) => push_specifier!(i, Specifier::D),

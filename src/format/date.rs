@@ -11,7 +11,7 @@ use super::{
 };
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
-use crate::{Date, Language, Sign, Weekday};
+use crate::{Date, Sign, Weekday};
 use core::{
     fmt::{self, Formatter},
     num::{NonZeroU16, NonZeroU8},
@@ -29,78 +29,83 @@ const WEEKDAYS: [Weekday; 7] = [
     Weekday::Sunday,
 ];
 
+/// TODO
+const WEEKDAYS_FULL: [&str; 7] = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+];
+
+/// TODO
+const WEEKDAYS_ABBR: [&str; 7] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+/// TODO
+const MONTHS_FULL: [&str; 12] = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+];
+
+/// TODO
+const MONTHS_ABBR: [&str; 12] = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
 /// Short day of the week
 #[inline(always)]
-pub(crate) fn fmt_a(f: &mut Formatter<'_>, date: Date, language: Language) -> fmt::Result {
-    f.write_str(language.short_week_days()[date.weekday().number_days_from_monday() as usize])
+pub(crate) fn fmt_a(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
+    f.write_str(WEEKDAYS_ABBR[date.weekday().number_days_from_monday() as usize])
 }
 
 /// Short day of the week
 #[inline(always)]
-pub(crate) fn parse_a(
-    items: &mut ParsedItems,
-    s: &mut &str,
-    language: Language,
-) -> ParseResult<()> {
-    items.weekday = try_consume_first_match(
-        s,
-        language
-            .short_week_days()
-            .iter()
-            .cloned()
-            .zip(WEEKDAYS.iter().cloned()),
-    )
-    .ok_or(ParseError::InvalidDayOfWeek)?
-    .into();
+pub(crate) fn parse_a(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
+    items.weekday = try_consume_first_match(s, WEEKDAYS_ABBR.iter().zip(WEEKDAYS.iter().cloned()))
+        .ok_or(ParseError::InvalidDayOfWeek)?
+        .into();
 
     Ok(())
 }
 
 /// Day of the week
 #[inline(always)]
-pub(crate) fn fmt_A(f: &mut Formatter<'_>, date: Date, language: Language) -> fmt::Result {
-    f.write_str(language.week_days()[date.weekday().number_days_from_monday() as usize])
+pub(crate) fn fmt_A(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
+    f.write_str(WEEKDAYS_FULL[date.weekday().number_days_from_monday() as usize])
 }
 
 /// Day of the week
 #[inline(always)]
-pub(crate) fn parse_A(
-    items: &mut ParsedItems,
-    s: &mut &str,
-    language: Language,
-) -> ParseResult<()> {
-    items.weekday = try_consume_first_match(
-        s,
-        language
-            .week_days()
-            .iter()
-            .cloned()
-            .zip(WEEKDAYS.iter().cloned()),
-    )
-    .ok_or(ParseError::InvalidDayOfWeek)?
-    .into();
+pub(crate) fn parse_A(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
+    items.weekday = try_consume_first_match(s, WEEKDAYS_FULL.iter().zip(WEEKDAYS.iter().cloned()))
+        .ok_or(ParseError::InvalidDayOfWeek)?
+        .into();
 
     Ok(())
 }
 
 /// Short month name
-///
-/// References on localization:
-/// - [Yale](https://web.library.yale.edu/cataloging/months)
-/// - [Princeton](https://library.princeton.edu/departments/tsd/katmandu/reference/months.html)
 #[inline(always)]
-pub(crate) fn fmt_b(f: &mut Formatter<'_>, date: Date, language: Language) -> fmt::Result {
-    f.write_str(language.short_month_names()[date.month() as usize - 1])
+pub(crate) fn fmt_b(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
+    f.write_str(MONTHS_ABBR[date.month() as usize - 1])
 }
 
 /// Short month name
 #[inline(always)]
-pub(crate) fn parse_b(
-    items: &mut ParsedItems,
-    s: &mut &str,
-    language: Language,
-) -> ParseResult<()> {
-    items.month = try_consume_first_match(s, language.short_month_names().iter().cloned().zip(1..))
+pub(crate) fn parse_b(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
+    items.month = try_consume_first_match(s, MONTHS_ABBR.iter().cloned().zip(1..))
         .map(NonZeroU8::new)
         .ok_or(ParseError::InvalidMonth)?;
 
@@ -109,18 +114,14 @@ pub(crate) fn parse_b(
 
 /// Month name
 #[inline(always)]
-pub(crate) fn fmt_B(f: &mut Formatter<'_>, date: Date, language: Language) -> fmt::Result {
-    f.write_str(language.month_names()[date.month() as usize - 1])
+pub(crate) fn fmt_B(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
+    f.write_str(MONTHS_FULL[date.month() as usize - 1])
 }
 
 /// Month name
 #[inline(always)]
-pub(crate) fn parse_B(
-    items: &mut ParsedItems,
-    s: &mut &str,
-    language: Language,
-) -> ParseResult<()> {
-    items.month = try_consume_first_match(s, language.month_names().iter().cloned().zip(1..))
+pub(crate) fn parse_B(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
+    items.month = try_consume_first_match(s, MONTHS_FULL.iter().cloned().zip(1..))
         .map(NonZeroU8::new)
         .ok_or(ParseError::InvalidMonth)?;
 

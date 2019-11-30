@@ -4,7 +4,7 @@ use crate::no_std_prelude::*;
 use crate::Sign;
 use crate::{
     format::parse::{parse, ParseResult, ParsedItems},
-    Date, DeferredFormat, Duration, Language, OffsetDateTime, Time, UtcOffset, Weekday,
+    Date, DeferredFormat, Duration, OffsetDateTime, Time, UtcOffset, Weekday,
 };
 #[cfg(feature = "std")]
 use core::convert::From;
@@ -460,8 +460,7 @@ impl DateTime {
 
 /// Methods that allow formatting the `DateTime`.
 impl DateTime {
-    /// Format the `DateTime` using the provided string. As no language is
-    /// specified, English is used.
+    /// Format the `DateTime` using the provided string.
     ///
     /// ```rust
     /// # use time::Date;
@@ -476,41 +475,12 @@ impl DateTime {
             date: Some(self.date()),
             time: Some(self.time()),
             offset: None,
-            format: crate::format::parse_with_language(format, Language::en),
+            format: crate::format::parse_fmt_string(format),
         }
         .to_string()
     }
 
-    /// Format the `DateTime` using the provided string and language.
-    ///
-    /// ```rust
-    /// # use time::{Date, Language};
-    /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 2)
-    ///         .midnight()
-    ///         .format_language("%c", Language::en),
-    ///     "Wed Jan 2 0:00:00 2019",
-    /// );
-    /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 2)
-    ///         .midnight()
-    ///         .format_language("%c", Language::es),
-    ///     "mié ene 2 0:00:00 2019",
-    /// );
-    /// ```
-    #[inline(always)]
-    pub fn format_language(self, format: &str, language: Language) -> String {
-        DeferredFormat {
-            date: Some(self.date()),
-            time: Some(self.time()),
-            offset: None,
-            format: crate::format::parse_with_language(format, language),
-        }
-        .to_string()
-    }
-
-    /// Attempt to parse a `DateTime` using the provided string. As no language
-    /// is specified, English is used.
+    /// Attempt to parse a `DateTime` using the provided string.
     ///
     /// ```rust
     /// # use time::{Date, DateTime, Weekday::Wednesday};
@@ -529,25 +499,7 @@ impl DateTime {
     /// ```
     #[inline(always)]
     pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
-        Self::parse_language(s, format, Language::en)
-    }
-
-    /// Attempt to parse a `DateTime` using the provided string and language.
-    ///
-    /// ```rust
-    /// # use time::{Date, DateTime, Language::{en, es}};
-    /// assert_eq!(
-    ///     DateTime::parse_language("January 02 2019 12:00:00 am", "%B %d %Y %r", en),
-    ///     Ok(Date::from_ymd(2019, 1, 2).midnight()),
-    /// );
-    /// assert_eq!(
-    ///     DateTime::parse_language("02 enero 2019 00:00:00", "%d %B %Y %T", es),
-    ///     Ok(Date::from_ymd(2019, 1, 2).midnight()),
-    /// );
-    /// ```
-    #[inline(always)]
-    pub fn parse_language(s: &str, format: &str, language: Language) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s, format, language)?)
+        Self::try_from_parsed_items(parse(s, format)?)
     }
 
     /// Given the items already parsed, attempt to create a `DateTime`.
@@ -986,22 +938,6 @@ mod test {
     }
 
     #[test]
-    fn format_language() {
-        assert_eq!(
-            ymd!(2019, 1, 2)
-                .midnight()
-                .format_language("%c", Language::en),
-            "Wed Jan 2 0:00:00 2019",
-        );
-        assert_eq!(
-            ymd!(2019, 1, 2)
-                .midnight()
-                .format_language("%c", Language::es),
-            "mi\u{e9} ene 2 0:00:00 2019",
-        );
-    }
-
-    #[test]
     fn parse() {
         assert_eq!(
             DateTime::parse("2019-01-02 00:00:00", "%F %T"),
@@ -1014,18 +950,6 @@ mod test {
         assert_eq!(
             DateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
             Ok(Date::from_iso_ywd(2019, 1, Weekday::Wednesday).with_hms(12, 0, 0)),
-        );
-    }
-
-    #[test]
-    fn parse_language() {
-        assert_eq!(
-            DateTime::parse_language("January 02 2019 12:00:00 am", "%B %d %Y %r", Language::en),
-            Ok(ymd!(2019, 1, 2).midnight()),
-        );
-        assert_eq!(
-            DateTime::parse_language("02 enero 2019 00:00:00", "%d %B %Y %T", Language::es),
-            Ok(ymd!(2019, 1, 2).midnight()),
         );
     }
 

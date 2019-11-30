@@ -2,7 +2,7 @@
 use crate::no_std_prelude::*;
 use crate::{
     format::parse::{parse, ParseError, ParseResult, ParsedItems},
-    DateTime, DeferredFormat, Duration, Language, Time,
+    DateTime, DeferredFormat, Duration, Time,
     Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
 };
 use core::{
@@ -666,8 +666,7 @@ impl Date {
 
 /// Methods that allow formatting the `Date`.
 impl Date {
-    /// Format the `Date` using the provided string. As no language is
-    /// specified, English is used.
+    /// Format the `Date` using the provided string.
     ///
     /// ```rust
     /// # use time::Date;
@@ -679,31 +678,7 @@ impl Date {
             date: Some(self),
             time: None,
             offset: None,
-            format: crate::format::parse_with_language(format, Language::en),
-        }
-        .to_string()
-    }
-
-    /// Format the `Date` using the provided string and language.
-    ///
-    /// ```rust
-    /// # use time::{Date, Language};
-    /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 2).format_language("%B, %A", Language::en),
-    ///     "January, Wednesday",
-    /// );
-    /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 2).format_language("%B, %A", Language::es),
-    ///     "enero, miércoles",
-    /// );
-    /// ```
-    #[inline(always)]
-    pub fn format_language(self, format: &str, language: Language) -> String {
-        DeferredFormat {
-            date: Some(self),
-            time: None,
-            offset: None,
-            format: crate::format::parse_with_language(format, language),
+            format: crate::format::parse_fmt_string(format),
         }
         .to_string()
     }
@@ -724,25 +699,7 @@ impl Date {
     /// ```
     #[inline(always)]
     pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
-        Self::parse_language(s, format, Language::en)
-    }
-
-    /// Attempt to parse a `Date` using the provided string.
-    ///
-    /// ```rust
-    /// # use time::{Date, Weekday::Wednesday, Language::{en, es}};
-    /// assert_eq!(
-    ///     Date::parse_language("January 2 2019", "%B %-d %Y", en),
-    ///     Ok(Date::from_ymd(2019, 1, 2))
-    /// );
-    /// assert_eq!(
-    ///     Date::parse_language("2 de enero 2019", "%-d de %B %Y", es),
-    ///     Ok(Date::from_ymd(2019, 1, 2))
-    /// );
-    /// ```
-    #[inline(always)]
-    pub fn parse_language(s: &str, format: &str, language: Language) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s, format, language)?)
+        Self::try_from_parsed_items(parse(s, format)?)
     }
 
     /// Given the items already parsed, attempt to create a `Date`.
@@ -1957,36 +1914,12 @@ mod test {
     }
 
     #[test]
-    fn format_language() {
-        assert_eq!(
-            ymd!(2019, 1, 2).format_language("%B, %A", Language::en),
-            "January, Wednesday",
-        );
-        assert_eq!(
-            ymd!(2019, 1, 2).format_language("%B, %A", Language::es),
-            "enero, mi\u{e9}rcoles",
-        );
-    }
-
-    #[test]
     fn parse() {
         assert_eq!(Date::parse("2019-01-02", "%F"), Ok(ymd!(2019, 1, 2)));
         assert_eq!(Date::parse("2019-002", "%Y-%j"), Ok(yo!(2019, 2)));
         assert_eq!(
             Date::parse("2019-W01-3", "%G-W%V-%u"),
             Ok(ywd!(2019, 1, Wednesday))
-        );
-    }
-
-    #[test]
-    fn parse_language() {
-        assert_eq!(
-            Date::parse_language("January 2 2019", "%B %-d %Y", Language::en),
-            Ok(ymd!(2019, 1, 2))
-        );
-        assert_eq!(
-            Date::parse_language("2 de enero 2019", "%-d de %B %Y", Language::es),
-            Ok(ymd!(2019, 1, 2))
         );
     }
 

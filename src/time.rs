@@ -4,7 +4,7 @@ use crate::no_std_prelude::*;
 use crate::DateTime;
 use crate::{
     format::{parse, parse::AmPm, ParseError, ParseResult, ParsedItems},
-    DeferredFormat, Duration, Language,
+    DeferredFormat, Duration,
 };
 use core::{
     num::NonZeroU8,
@@ -376,7 +376,7 @@ impl Time {
             date: None,
             time: Some(self),
             offset: None,
-            format: crate::format::parse_with_language(format, Language::en),
+            format: crate::format::parse_fmt_string(format),
         }
         .to_string()
     }
@@ -405,7 +405,7 @@ impl Time {
     /// ```
     #[inline(always)]
     pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s, format, Language::en)?)
+        Self::try_from_parsed_items(parse(s, format)?)
     }
 
     /// Given the items already parsed, attempt to create a `Time`.

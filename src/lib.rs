@@ -103,21 +103,6 @@
 //! | `-` (dash)       | No padding      | `%-d` => `5` instead of `05`  |
 //! | `_` (underscore) | Pad with spaces | `%_d` => ` 5` instead of `05` |
 //! | `0`              | Pad with zeros  | `%0e` => `05` instead of ` 5` |
-//!
-//! ## Localization
-//!
-//! Some specifiers currently have the ability to change the language the value
-//! is formatted and parsed in. Currently, these are specifiers that result in a
-//! textual representation of the value, in whole or in part:
-//!
-//! - `%a`
-//! - `%A`
-//! - `%b`
-//! - `%B`
-//! - `%c`
-//!
-//! The order of certain specifiers in "combination specifiers" (such as `%D`)
-//! is not affected, as the time crate only handles languages, not locale.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
@@ -265,7 +250,7 @@ pub use date_time::DateTime;
 pub use duration::Duration;
 pub(crate) use format::DeferredFormat;
 #[allow(unreachable_pub)] // rust-lang/rust#64762
-pub use format::{Language, ParseError};
+pub use format::ParseError;
 #[cfg(feature = "std")]
 pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};

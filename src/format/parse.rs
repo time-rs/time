@@ -1,7 +1,7 @@
 //! Parsing for various types.
 
-use super::{parse_with_language, FormatItem, Padding, Specifier};
-use crate::{Language, UtcOffset, Weekday};
+use super::{parse_fmt_string, FormatItem, Padding, Specifier};
+use crate::{UtcOffset, Weekday};
 use core::{
     fmt::{self, Display, Formatter},
     num::{NonZeroU16, NonZeroU8},
@@ -325,10 +325,10 @@ pub(crate) fn consume_padding(s: &mut &str, padding: Padding, max_chars: usize) 
     pad_width
 }
 
-/// Attempt to parse the string with the provided format and language, returning
-/// a struct containing all information found.
+/// Attempt to parse the string with the provided format, returning a struct
+/// containing all information found.
 #[inline]
-pub(crate) fn parse(s: &str, format: &str, language: Language) -> ParseResult<ParsedItems> {
+pub(crate) fn parse(s: &str, format: &str) -> ParseResult<ParsedItems> {
     use super::{date, offset, time};
 
     // Make a copy of the provided string, letting us mutate as necessary.
@@ -349,20 +349,20 @@ pub(crate) fn parse(s: &str, format: &str, language: Language) -> ParseResult<Pa
         };
     }
 
-    for item in parse_with_language(format, language) {
+    for item in parse_fmt_string(format) {
         match item {
             FormatItem::Literal(expected) => try_consume_str(&mut s, expected)?,
             FormatItem::Specifier(specifier) => {
                 use Specifier::*;
                 match specifier {
-                    a { language } => parse!(date::parse_a(language)),
-                    A { language } => parse!(date::parse_A(language)),
-                    b { language } => parse!(date::parse_b(language)),
-                    B { language } => parse!(date::parse_B(language)),
-                    c { language } => {
-                        parse!(date::parse_a(language));
+                    a => parse!(date::parse_a),
+                    A => parse!(date::parse_A),
+                    b => parse!(date::parse_b),
+                    B => parse!(date::parse_B),
+                    c => {
+                        parse!(date::parse_a);
                         parse_char!(' ');
-                        parse!(date::parse_b(language));
+                        parse!(date::parse_b);
                         parse_char!(' ');
                         parse!(date::parse_d(Padding::None));
                         parse_char!(' ');

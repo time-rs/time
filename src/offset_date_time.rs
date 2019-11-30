@@ -2,7 +2,7 @@
 use crate::no_std_prelude::*;
 use crate::{
     format::parse::{parse, ParseResult, ParsedItems},
-    Date, DateTime, DeferredFormat, Duration, Language, Time, UtcOffset, Weekday,
+    Date, DateTime, DeferredFormat, Duration, Time, UtcOffset, Weekday,
 };
 use core::{
     cmp::Ordering,
@@ -607,8 +607,7 @@ impl OffsetDateTime {
 
 /// Methods that allow formatting the `OffsetDateTime`.
 impl OffsetDateTime {
-    /// Format the `OffsetDateTime` using the provided string. As no language is
-    /// specified, English is used.
+    /// Format the `OffsetDateTime` using the provided string.
     ///
     /// ```rust
     /// # use time::{Date, UtcOffset};
@@ -626,43 +625,12 @@ impl OffsetDateTime {
             date: Some(self.date()),
             time: Some(self.time()),
             offset: Some(self.offset()),
-            format: crate::format::parse_with_language(format, Language::en),
+            format: crate::format::parse_fmt_string(format),
         }
         .to_string()
     }
 
-    /// Format the `OffsetDateTime` using the provided string and language.
-    ///
-    /// ```rust
-    /// # use time::{Date, Language, UtcOffset};
-    /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 2)
-    ///         .midnight()
-    ///         .using_offset(UtcOffset::hours(-2))
-    ///         .format_language("%c %z", Language::en),
-    ///     "Tue Jan 1 22:00:00 2019 -0200",
-    /// );
-    /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 2)
-    ///         .midnight()
-    ///         .using_offset(UtcOffset::hours(2))
-    ///         .format_language("%c %z", Language::es),
-    ///     "mié ene 2 2:00:00 2019 +0200",
-    /// );
-    /// ```
-    #[inline(always)]
-    pub fn format_language(self, format: &str, language: Language) -> String {
-        DeferredFormat {
-            date: Some(self.date()),
-            time: Some(self.time()),
-            offset: Some(self.offset()),
-            format: crate::format::parse_with_language(format, language),
-        }
-        .to_string()
-    }
-
-    /// Attempt to parse an `OffsetDateTime` using the provided string. As no
-    /// language is specified, English is used.
+    /// Attempt to parse an `OffsetDateTime` using the provided string.
     ///
     /// ```rust
     /// # use time::{Date, DateTime, Weekday::Wednesday};
@@ -681,25 +649,7 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
-        Self::parse_language(s, format, Language::en)
-    }
-
-    /// Attempt to parse an `OffsetDateTime` using the provided string and language.
-    ///
-    /// ```rust
-    /// # use time::{Date, DateTime, Language::{en, es}};
-    /// assert_eq!(
-    ///     DateTime::parse_language("January 02 2019 12:00:00 am", "%B %d %Y %r", en),
-    ///     Ok(Date::from_ymd(2019, 1, 2).midnight()),
-    /// );
-    /// assert_eq!(
-    ///     DateTime::parse_language("02 enero 2019 00:00:00", "%d %B %Y %T", es),
-    ///     Ok(Date::from_ymd(2019, 1, 2).midnight()),
-    /// );
-    /// ```
-    #[inline(always)]
-    pub fn parse_language(s: &str, format: &str, language: Language) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s, format, language)?)
+        Self::try_from_parsed_items(parse(s, format)?)
     }
 
     /// Given the items already parsed, attempt to create a `DateTime`.
@@ -1211,24 +1161,6 @@ mod test {
     }
 
     #[test]
-    fn format_language() {
-        assert_eq!(
-            ymd!(2019, 1, 2)
-                .midnight()
-                .using_offset(UtcOffset::hours(-2))
-                .format_language("%c %z", Language::en),
-            "Tue Jan 1 22:00:00 2019 -0200",
-        );
-        assert_eq!(
-            ymd!(2019, 1, 2)
-                .midnight()
-                .using_offset(UtcOffset::hours(2))
-                .format_language("%c %z", Language::es),
-            "mi\u{e9} ene 2 2:00:00 2019 +0200",
-        );
-    }
-
-    #[test]
     fn parse() {
         use Weekday::*;
         assert_eq!(
@@ -1242,19 +1174,6 @@ mod test {
         assert_eq!(
             DateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
             Ok(Date::from_iso_ywd(2019, 1, Wednesday).with_hms(12, 0, 0)),
-        );
-    }
-
-    #[test]
-    fn parse_language() {
-        use Language::*;
-        assert_eq!(
-            DateTime::parse_language("January 02 2019 12:00:00 am", "%B %d %Y %r", en),
-            Ok(ymd!(2019, 1, 2).midnight()),
-        );
-        assert_eq!(
-            DateTime::parse_language("02 enero 2019 00:00:00", "%d %B %Y %T", es),
-            Ok(ymd!(2019, 1, 2).midnight()),
         );
     }
 
