@@ -7,6 +7,7 @@ use crate::{
     DeferredFormat, Duration,
 };
 use core::{
+    cmp::Ordering,
     num::NonZeroU8,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
@@ -20,8 +21,8 @@ pub(crate) const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
 /// All minutes are assumed to have exactly 60 seconds; no attempt is made to
 /// handle leap seconds (either positive or negative).
 ///
-/// As order is dependent on context (is noon before or after midnight?), this
-/// type does not implement `PartialOrd` or `Ord`.
+/// When comparing two `Time`s, they are assumed to be in the same calendar
+/// date.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Time {
@@ -662,6 +663,34 @@ impl Sub<Time> for Time {
     }
 }
 
+impl PartialOrd for Time {
+    #[inline(always)]
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.cmp(other).into()
+    }
+}
+
+impl Ord for Time {
+    #[inline]
+    fn cmp(&self, other: &Self) -> Ordering {
+        use Ordering::*;
+
+        match self.hour().cmp(&other.hour()) {
+            Less => Less,
+            Greater => Greater,
+            Equal => match self.minute().cmp(&other.minute()) {
+                Less => Less,
+                Greater => Greater,
+                Equal => match self.second().cmp(&other.second()) {
+                    Less => Less,
+                    Greater => Greater,
+                    Equal => self.nanosecond().cmp(&other.nanosecond()),
+                },
+            },
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -992,5 +1021,13 @@ mod test {
             Time::from_hms(1, 0, 0) - Time::from_hms(0, 0, 1),
             59.minutes() + 59.seconds()
         );
+    }
+
+    #[test]
+    fn ordering() {
+        assert!(Time::midnight() < Time::from_hms_nano(0, 0, 0, 1));
+        assert!(Time::midnight() < Time::from_hms(0, 0, 1));
+        assert!(Time::from_hms(12, 0, 0) > Time::from_hms(11, 0, 0));
+        assert_eq!(Time::midnight(), Time::midnight());
     }
 }
