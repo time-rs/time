@@ -18,7 +18,7 @@ jobs:
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly # needed until rust-lang/rust#43466 lands
+          toolchain: nightly # rust-lang/rust#43466, rust-lang/rust#43781
           override: true
 
       - name: Run `cargo doc --all-features`

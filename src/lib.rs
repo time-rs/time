@@ -16,7 +16,7 @@
 //! ```
 //!
 //! Of the structs that are usable, some methods may only be enabled due a
-//! reliance on `Instant`. These will be documented alongside the method.
+//! reliance on `Instant`. These will be indicated in the documentation.
 //!
 //! ## `serde`
 //!
@@ -104,6 +104,7 @@
 //! | `_` (underscore) | Pad with spaces | `%_d` => ` 5` instead of `05` |
 //! | `0`              | Pad with zeros  | `%0e` => `05` instead of ` 5` |
 
+#![cfg_attr(doc, feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
 #![deny(

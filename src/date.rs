@@ -204,10 +204,9 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::today().year() >= 2019);
     /// ```
-    ///
-    /// This method is not available with `#![no_std]`.
     #[inline(always)]
     #[cfg(feature = "std")]
+    #[cfg_attr(doc, doc(cfg(feature = "std")))]
     pub fn today() -> Self {
         DateTime::now().date()
     }

@@ -47,10 +47,9 @@ impl DateTime {
     /// # use time::DateTime;
     /// assert!(DateTime::now().year() >= 2019);
     /// ```
-    ///
-    /// This method is not available with `#![no_std]`.
     #[inline(always)]
     #[cfg(feature = "std")]
+    #[cfg_attr(doc, doc(cfg(feature = "std")))]
     pub fn now() -> Self {
         SystemTime::now().into()
     }

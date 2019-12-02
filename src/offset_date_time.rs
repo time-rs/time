@@ -32,10 +32,9 @@ impl OffsetDateTime {
     /// assert!(OffsetDateTime::now().year() >= 2019);
     /// assert_eq!(OffsetDateTime::now().offset(), UtcOffset::UTC);
     /// ```
-    ///
-    /// This method is not available with `#![no_std]`.
     #[inline(always)]
     #[cfg(feature = "std")]
+    #[cfg_attr(doc, doc(cfg(feature = "std")))]
     pub fn now() -> Self {
         DateTime::now().using_offset(UtcOffset::UTC)
     }

@@ -239,10 +239,9 @@ impl Time {
     /// # use time::Time;
     /// println!("{:?}", Time::now());
     /// ```
-    ///
-    /// This method is not available with `#![no_std]`.
     #[inline(always)]
     #[cfg(feature = "std")]
+    #[cfg_attr(doc, doc(cfg(feature = "std")))]
     pub fn now() -> Self {
         DateTime::now().time()
     }
