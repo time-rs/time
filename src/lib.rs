@@ -98,11 +98,14 @@
 //! All specifiers that are strictly numerical have modifiers for formatting.
 //! Adding a modifier to a non-supporting specifier is a no-op.
 //!
-//! | Modifier         | Behavior        | Example                       |
-//! |------------------|-----------------|-------------------------------|
-//! | `-` (dash)       | No padding      | `%-d` => `5` instead of `05`  |
-//! | `_` (underscore) | Pad with spaces | `%_d` => ` 5` instead of `05` |
-//! | `0`              | Pad with zeros  | `%0e` => `05` instead of ` 5` |
+//! <!-- rust-lang/rust#65613 -->
+//! <style>.docblock code { white-space: pre-wrap; }</style>
+//!
+//! | Modifier         | Behavior        | Example       |
+//! |------------------|-----------------|---------------|
+//! | `-` (dash)       | No padding      | `%-d` => `5`  |
+//! | `_` (underscore) | Pad with spaces | `%_d` => ` 5` |
+//! | `0`              | Pad with zeros  | `%0d` => `05` |
 
 #![cfg_attr(doc, feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -166,6 +169,7 @@ macro_rules! format_conditional {
     }}
 }
 
+/// Panic if the value is not in range.
 macro_rules! assert_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
         if !($start..=$end).contains(&$value) {
@@ -198,6 +202,27 @@ macro_rules! assert_value_in_range {
                 &format_conditional!($($conditional),+),
                 $value,
             );
+        };
+    };
+}
+
+/// Returns `None` if the value is not in range.
+macro_rules! ensure_value_in_range {
+    ($value:ident in $start:expr => $end:expr) => {
+        if !($start..=$end).contains(&$value) {
+            return None;
+        }
+    };
+
+    ($value:ident in $start:expr => exclusive $end:expr) => {
+        if !($start..$end).contains(&$value) {
+            return None;
+        }
+    };
+
+    ($value:ident in $start:expr => $end:expr,given $($conditional:ident),+ $(,)?) => {
+        if !($start..=$end).contains(&$value) {
+            return None;
         };
     };
 }

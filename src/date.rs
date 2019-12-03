@@ -135,6 +135,40 @@ impl Date {
         }
     }
 
+    /// Attempt to create a `Date` from the year, month, and day.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert!(Date::try_from_ymd(2019, 1, 1).is_some());
+    /// assert!(Date::try_from_ymd(2019, 12, 31).is_some());
+    /// ```
+    ///
+    /// Returns `None` if the date is not valid.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert!(Date::try_from_ymd(2019, 2, 29).is_none()); // 2019 isn't a leap year.
+    /// ```
+    #[inline]
+    pub fn try_from_ymd(year: i32, month: u8, day: u8) -> Option<Self> {
+        /// Cumulative days through the beginning of a month in both common and
+        /// leap years.
+        const DAYS_CUMULATIVE_COMMON_LEAP: [[u16; 12]; 2] = [
+            [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
+            [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
+        ];
+
+        ensure_value_in_range!(month in 1 => 12);
+        ensure_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
+
+        let ordinal = DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1];
+
+        Some(Self {
+            year,
+            ordinal: ordinal + day as u16,
+        })
+    }
+
     /// Create a `Date` from the year and ordinal day number.
     ///
     /// ```rust
@@ -153,6 +187,26 @@ impl Date {
     pub fn from_yo(year: i32, ordinal: u16) -> Self {
         assert_value_in_range!(ordinal in 1 => days_in_year(year), given year);
         Self { year, ordinal }
+    }
+
+    /// Attempt to create a `Date` from the year and ordinal day number.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert!(Date::try_from_yo(2019, 1).is_some());
+    /// assert!(Date::try_from_yo(2019, 365).is_some());
+    /// ```
+    ///
+    /// Returns `None` if the date is not valid.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert!(Date::try_from_yo(2019, 366).is_none()); // 2019 isn't a leap year.
+    /// ```
+    #[inline(always)]
+    pub fn try_from_yo(year: i32, ordinal: u16) -> Option<Self> {
+        ensure_value_in_range!(ordinal in 1 => days_in_year(year), given year);
+        Some(Self { year, ordinal })
     }
 
     /// Create a `Date` from the ISO year, week, and weekday.
@@ -195,6 +249,40 @@ impl Date {
             Self::from_yo(year + 1, ordinal - days_in_cur_year)
         } else {
             Self::from_yo(year, ordinal)
+        }
+    }
+
+    /// Attempt to create a `Date` from the ISO year, week, and weekday.
+    ///
+    /// ```rust
+    /// # use time::{Date, Weekday::*};
+    /// assert!(Date::try_from_iso_ywd(2019, 1, Monday).is_some());
+    /// assert!(Date::try_from_iso_ywd(2019, 1, Tuesday).is_some());
+    /// assert!(Date::try_from_iso_ywd(2020, 53, Friday).is_some());
+    /// ```
+    ///
+    /// Returns `None` if the week is not valid.
+    ///
+    /// ```rust
+    /// # use time::{Date, Weekday::*};
+    /// assert!(Date::try_from_iso_ywd(2019, 53, Monday).is_none()); // 2019 doesn't have 53 weeks.
+    /// ```
+    #[inline]
+    pub fn try_from_iso_ywd(year: i32, week: u8, weekday: Weekday) -> Option<Self> {
+        ensure_value_in_range!(week in 1 => weeks_in_year(year), given year);
+
+        let ordinal = week as u16 * 7 + weekday.iso_weekday_number() as u16
+            - (Self::from_yo(year, 4).weekday().iso_weekday_number() as u16 + 3);
+
+        if ordinal < 1 {
+            return Some(Self::from_yo(year - 1, ordinal + days_in_year(year - 1)));
+        }
+
+        let days_in_cur_year = days_in_year(year);
+        if ordinal > days_in_cur_year {
+            Some(Self::from_yo(year + 1, ordinal - days_in_cur_year))
+        } else {
+            Some(Self::from_yo(year, ordinal))
         }
     }
 
@@ -589,7 +677,7 @@ impl Date {
     /// Create a `DateTime` using the existing date and the provided `Time`.
     ///
     /// ```rust
-    /// # use time::{Date, DateTime, Time};
+    /// # use time::{Date, Time};
     /// assert_eq!(
     ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms(0, 0, 0)),
     ///     Date::from_ymd(1970, 1, 1).midnight(),
@@ -603,7 +691,7 @@ impl Date {
     /// Create a `DateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{Date, DateTime, Time};
+    /// # use time::{Date, Time};
     /// assert_eq!(
     ///     Date::from_ymd(1970, 1, 1).with_hms(0, 0, 0),
     ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms(0, 0, 0)),
@@ -614,10 +702,25 @@ impl Date {
         DateTime::new(self, Time::from_hms(hour, minute, second))
     }
 
+    /// Attempt to create a `DateTime` using the existing date and the provided time.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert!(Date::from_ymd(1970, 1, 1).try_with_hms(0, 0, 0).is_some());
+    /// assert!(Date::from_ymd(1970, 1, 1).try_with_hms(24, 0, 0).is_none());
+    /// ```
+    #[inline(always)]
+    pub fn try_with_hms(self, hour: u8, minute: u8, second: u8) -> Option<DateTime> {
+        Some(DateTime::new(
+            self,
+            Time::try_from_hms(hour, minute, second)?,
+        ))
+    }
+
     /// Create a `DateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{Date, DateTime, Time};
+    /// # use time::{Date, Time};
     /// assert_eq!(
     ///     Date::from_ymd(1970, 1, 1).with_hms_milli(0, 0, 0, 0),
     ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms_milli(0, 0, 0, 0)),
@@ -631,10 +734,35 @@ impl Date {
         )
     }
 
+    /// Attempt to create a `DateTime` using the existing date and the provided time.
+    ///
+    /// ```rust
+    /// # use time::{Date};
+    /// assert!(Date::from_ymd(1970, 1, 1)
+    ///     .try_with_hms_milli(0, 0, 0, 0)
+    ///     .is_some());
+    /// assert!(Date::from_ymd(1970, 1, 1)
+    ///     .try_with_hms_milli(24, 0, 0, 0)
+    ///     .is_none());
+    /// ```
+    #[inline(always)]
+    pub fn try_with_hms_milli(
+        self,
+        hour: u8,
+        minute: u8,
+        second: u8,
+        millisecond: u16,
+    ) -> Option<DateTime> {
+        Some(DateTime::new(
+            self,
+            Time::try_from_hms_milli(hour, minute, second, millisecond)?,
+        ))
+    }
+
     /// Create a `DateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{Date, DateTime, Time};
+    /// # use time::{Date, Time};
     /// assert_eq!(
     ///     Date::from_ymd(1970, 1, 1).with_hms_micro(0, 0, 0, 0),
     ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms_micro(0, 0, 0, 0)),
@@ -648,10 +776,35 @@ impl Date {
         )
     }
 
+    /// Attempt to create a `DateTime` using the existing date and the provided time.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert!(Date::from_ymd(1970, 1, 1)
+    ///     .try_with_hms_micro(0, 0, 0, 0)
+    ///     .is_some());
+    /// assert!(Date::from_ymd(1970, 1, 1)
+    ///     .try_with_hms_micro(24, 0, 0, 0)
+    ///     .is_none());
+    /// ```
+    #[inline(always)]
+    pub fn try_with_hms_micro(
+        self,
+        hour: u8,
+        minute: u8,
+        second: u8,
+        microsecond: u32,
+    ) -> Option<DateTime> {
+        Some(DateTime::new(
+            self,
+            Time::try_from_hms_micro(hour, minute, second, microsecond)?,
+        ))
+    }
+
     /// Create a `DateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{Date, DateTime, Time};
+    /// # use time::{Date, Time};
     /// assert_eq!(
     ///     Date::from_ymd(1970, 1, 1).with_hms_nano(0, 0, 0, 0),
     ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms_nano(0, 0, 0, 0)),
@@ -660,6 +813,31 @@ impl Date {
     #[inline(always)]
     pub fn with_hms_nano(self, hour: u8, minute: u8, second: u8, nanosecond: u32) -> DateTime {
         DateTime::new(self, Time::from_hms_nano(hour, minute, second, nanosecond))
+    }
+
+    /// Attempt to create a `DateTime` using the existing date and the provided time.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// assert!(Date::from_ymd(1970, 1, 1)
+    ///     .try_with_hms_nano(0, 0, 0, 0)
+    ///     .is_some());
+    /// assert!(Date::from_ymd(1970, 1, 1)
+    ///     .try_with_hms_nano(24, 0, 0, 0)
+    ///     .is_none());
+    /// ```
+    #[inline(always)]
+    pub fn try_with_hms_nano(
+        self,
+        hour: u8,
+        minute: u8,
+        second: u8,
+        nanosecond: u32,
+    ) -> Option<DateTime> {
+        Some(DateTime::new(
+            self,
+            Time::try_from_hms_nano(hour, minute, second, nanosecond)?,
+        ))
     }
 }
 
@@ -1884,11 +2062,29 @@ mod test {
     }
 
     #[test]
+    fn try_with_hms() {
+        assert_eq!(
+            ymd!(1970, 1, 1).try_with_hms(0, 0, 0),
+            Some(ymd!(1970, 1, 1).with_time(Time::from_hms(0, 0, 0))),
+        );
+        assert_eq!(ymd!(1970, 1, 1).try_with_hms(24, 0, 0), None);
+    }
+
+    #[test]
     fn with_hms_milli() {
         assert_eq!(
             ymd!(1970, 1, 1).with_hms_milli(0, 0, 0, 0),
             ymd!(1970, 1, 1).with_time(Time::from_hms_milli(0, 0, 0, 0)),
         );
+    }
+
+    #[test]
+    fn try_with_hms_milli() {
+        assert_eq!(
+            ymd!(1970, 1, 1).try_with_hms_milli(0, 0, 0, 0),
+            Some(ymd!(1970, 1, 1).with_time(Time::from_hms_milli(0, 0, 0, 0))),
+        );
+        assert_eq!(ymd!(1970, 1, 1).try_with_hms_milli(24, 0, 0, 0), None);
     }
 
     #[test]
@@ -1900,11 +2096,29 @@ mod test {
     }
 
     #[test]
+    fn try_with_hms_micro() {
+        assert_eq!(
+            ymd!(1970, 1, 1).try_with_hms_micro(0, 0, 0, 0),
+            Some(ymd!(1970, 1, 1).with_time(Time::from_hms_micro(0, 0, 0, 0))),
+        );
+        assert_eq!(ymd!(1970, 1, 1).try_with_hms_micro(24, 0, 0, 0), None);
+    }
+
+    #[test]
     fn with_hms_nano() {
         assert_eq!(
             ymd!(1970, 1, 1).with_hms_nano(0, 0, 0, 0),
             ymd!(1970, 1, 1).with_time(Time::from_hms_nano(0, 0, 0, 0)),
         );
+    }
+
+    #[test]
+    fn try_with_hms_nano() {
+        assert_eq!(
+            ymd!(1970, 1, 1).try_with_hms_nano(0, 0, 0, 0),
+            Some(ymd!(1970, 1, 1).with_time(Time::from_hms_nano(0, 0, 0, 0))),
+        );
+        assert_eq!(ymd!(1970, 1, 1).try_with_hms_nano(24, 0, 0, 0), None);
     }
 
     #[test]
