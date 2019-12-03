@@ -29,7 +29,7 @@ const WEEKDAYS: [Weekday; 7] = [
     Weekday::Sunday,
 ];
 
-/// TODO
+/// Full weekday names
 const WEEKDAYS_FULL: [&str; 7] = [
     "Monday",
     "Tuesday",
@@ -40,10 +40,10 @@ const WEEKDAYS_FULL: [&str; 7] = [
     "Sunday",
 ];
 
-/// TODO
+/// Abbreviated weekday names
 const WEEKDAYS_ABBR: [&str; 7] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-/// TODO
+/// Full month names
 const MONTHS_FULL: [&str; 12] = [
     "January",
     "February",
@@ -59,7 +59,7 @@ const MONTHS_FULL: [&str; 12] = [
     "December",
 ];
 
-/// TODO
+/// Abbreviated month names
 const MONTHS_ABBR: [&str; 12] = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];

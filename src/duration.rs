@@ -442,7 +442,6 @@ impl Duration {
     /// assert_eq!(Duration::milliseconds(1_500).as_seconds_f64(), 1.5);
     /// assert_eq!(Duration::milliseconds(-1_500).as_seconds_f64(), -1.5);
     /// ```
-    // TODO make const
     #[inline(always)]
     pub fn as_seconds_f64(&self) -> f64 {
         self.sign as i8 as f64 * self.std.as_secs_f64()
@@ -471,7 +470,6 @@ impl Duration {
     /// assert_eq!(Duration::milliseconds(1_500).as_seconds_f32(), 1.5);
     /// assert_eq!(Duration::milliseconds(-1_500).as_seconds_f32(), -1.5);
     /// ```
-    // TODO make const
     #[inline(always)]
     pub fn as_seconds_f32(&self) -> f32 {
         self.sign as i8 as f32 * self.std.as_secs_f32()

@@ -527,7 +527,8 @@ impl Date {
             4 => Wednesday,
             5 => Thursday,
             6 => Friday,
-            // FIXME The compiler isn't able to optimize this away.
+            // FIXME The compiler isn't able to optimize this away. Convert to
+            // `.rem_euclid(7)` once rust-lang/rust#66993 is resolved.
             _ => unreachable!("A value mod 7 is always in the range 0..7"),
         }
     }
