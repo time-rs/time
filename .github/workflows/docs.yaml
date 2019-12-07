@@ -28,9 +28,8 @@ jobs:
           args: --all-features
 
       - name: Build & publish documentation
-        uses: JamesIves/github-pages-deploy-action@releases/v3
-        with:
+        uses: JamesIves/github-pages-deploy-action@releases/v2
+        env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           BRANCH: gh-pages
           FOLDER: target/doc
-          CLEAN: true
