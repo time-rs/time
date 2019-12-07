@@ -188,7 +188,7 @@ impl Duration {
     /// assert!(!Duration::nanoseconds(1).is_zero());
     /// ```
     #[inline(always)]
-    pub const fn is_zero(&self) -> bool {
+    pub const fn is_zero(self) -> bool {
         self.sign.is_zero()
     }
 
@@ -201,7 +201,7 @@ impl Duration {
     /// assert!(!Duration::seconds(1).is_negative());
     /// ```
     #[inline(always)]
-    pub const fn is_negative(&self) -> bool {
+    pub const fn is_negative(self) -> bool {
         self.sign.is_negative()
     }
 
@@ -214,7 +214,7 @@ impl Duration {
     /// assert!(!Duration::seconds(-1).is_positive());
     /// ```
     #[inline(always)]
-    pub const fn is_positive(&self) -> bool {
+    pub const fn is_positive(self) -> bool {
         self.sign.is_positive()
     }
 
@@ -227,7 +227,7 @@ impl Duration {
     /// assert_eq!(Duration::zero().sign(), Sign::Zero);
     /// ```
     #[inline(always)]
-    pub const fn sign(&self) -> Sign {
+    pub const fn sign(self) -> Sign {
         self.sign
     }
 
@@ -305,7 +305,7 @@ impl Duration {
     /// assert_eq!(Duration::days(-6).whole_weeks(), 0);
     /// ```
     #[inline(always)]
-    pub const fn whole_weeks(&self) -> i64 {
+    pub const fn whole_weeks(self) -> i64 {
         self.whole_seconds() / SECONDS_PER_WEEK
     }
 
@@ -331,7 +331,7 @@ impl Duration {
     /// assert_eq!(Duration::hours(-23).whole_days(), 0);
     /// ```
     #[inline(always)]
-    pub const fn whole_days(&self) -> i64 {
+    pub const fn whole_days(self) -> i64 {
         self.whole_seconds() / SECONDS_PER_DAY
     }
 
@@ -357,7 +357,7 @@ impl Duration {
     /// assert_eq!(Duration::minutes(-59).whole_hours(), 0);
     /// ```
     #[inline(always)]
-    pub const fn whole_hours(&self) -> i64 {
+    pub const fn whole_hours(self) -> i64 {
         self.whole_seconds() / SECONDS_PER_HOUR
     }
 
@@ -383,7 +383,7 @@ impl Duration {
     /// assert_eq!(Duration::seconds(-59).whole_minutes(), 0);
     /// ```
     #[inline(always)]
-    pub const fn whole_minutes(&self) -> i64 {
+    pub const fn whole_minutes(self) -> i64 {
         self.whole_seconds() / SECONDS_PER_MINUTE
     }
 
@@ -411,7 +411,7 @@ impl Duration {
     /// assert_eq!(Duration::minutes(-1).whole_seconds(), -60);
     /// ```
     #[inline(always)]
-    pub const fn whole_seconds(&self) -> i64 {
+    pub const fn whole_seconds(self) -> i64 {
         self.sign as i64 * self.std.as_secs() as i64
     }
 
@@ -439,7 +439,7 @@ impl Duration {
     /// assert_eq!(Duration::milliseconds(-1_500).as_seconds_f64(), -1.5);
     /// ```
     #[inline(always)]
-    pub fn as_seconds_f64(&self) -> f64 {
+    pub fn as_seconds_f64(self) -> f64 {
         self.sign as i8 as f64 * self.std.as_secs_f64()
     }
 
@@ -467,7 +467,7 @@ impl Duration {
     /// assert_eq!(Duration::milliseconds(-1_500).as_seconds_f32(), -1.5);
     /// ```
     #[inline(always)]
-    pub fn as_seconds_f32(&self) -> f32 {
+    pub fn as_seconds_f32(self) -> f32 {
         self.sign as i8 as f32 * self.std.as_secs_f32()
     }
 
@@ -496,7 +496,7 @@ impl Duration {
     /// assert_eq!(Duration::milliseconds(-1).whole_milliseconds(), -1);
     /// ```
     #[inline(always)]
-    pub const fn whole_milliseconds(&self) -> i128 {
+    pub const fn whole_milliseconds(self) -> i128 {
         self.sign as i128 * self.std.as_millis() as i128
     }
 
@@ -512,7 +512,7 @@ impl Duration {
     // Allow the lint, as the value is guaranteed to be less than 1000.
     #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
-    pub const fn subsec_milliseconds(&self) -> u16 {
+    pub const fn subsec_milliseconds(self) -> u16 {
         self.std.subsec_millis() as u16
     }
 
@@ -544,7 +544,7 @@ impl Duration {
     /// assert_eq!(Duration::microseconds(-1).whole_microseconds(), -1);
     /// ```
     #[inline(always)]
-    pub const fn whole_microseconds(&self) -> i128 {
+    pub const fn whole_microseconds(self) -> i128 {
         self.sign as i128 * self.std.as_micros() as i128
     }
 
@@ -561,7 +561,7 @@ impl Duration {
     /// );
     /// ```
     #[inline(always)]
-    pub const fn subsec_microseconds(&self) -> u32 {
+    pub const fn subsec_microseconds(self) -> u32 {
         self.std.subsec_micros()
     }
 
@@ -596,7 +596,7 @@ impl Duration {
     /// assert_eq!(Duration::nanoseconds(-1).whole_nanoseconds(), -1);
     /// ```
     #[inline(always)]
-    pub const fn whole_nanoseconds(&self) -> i128 {
+    pub const fn whole_nanoseconds(self) -> i128 {
         self.sign as i128 * self.std.as_nanos() as i128
     }
 
@@ -616,7 +616,7 @@ impl Duration {
     /// );
     /// ```
     #[inline(always)]
-    pub const fn subsec_nanoseconds(&self) -> u32 {
+    pub const fn subsec_nanoseconds(self) -> u32 {
         self.std.subsec_nanos()
     }
 
