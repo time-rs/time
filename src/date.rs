@@ -947,7 +947,7 @@ impl Add<StdDuration> for Date {
 
     #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
-        Self::from_julian_day(self.julian_day() + Duration::from(duration).whole_days())
+        Self::from_julian_day(self.julian_day() + (duration.as_secs() / 86_400) as i64)
     }
 }
 
@@ -979,7 +979,7 @@ impl Sub<StdDuration> for Date {
 
     #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
-        self + -Duration::from(duration)
+        Self::from_julian_day(self.julian_day() - (duration.as_secs() / 86_400) as i64)
     }
 }
 

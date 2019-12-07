@@ -10,6 +10,7 @@ use crate::{
 use core::convert::From;
 use core::{
     cmp::Ordering,
+    convert::TryFrom,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
@@ -547,7 +548,17 @@ impl Add<StdDuration> for DateTime {
 
     #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
-        self + Duration::from(duration)
+        #[allow(clippy::cast_possible_truncation)]
+        let nanos = self.time.nanoseconds_since_midnight()
+            + (duration.as_nanos() % 86_400_000_000_000) as u64;
+
+        let date_modifier = if nanos >= 86_400_000_000_000 {
+            Duration::day()
+        } else {
+            Duration::zero()
+        };
+
+        Self::new(self.date + duration + date_modifier, self.time + duration)
     }
 }
 
@@ -587,7 +598,17 @@ impl Sub<StdDuration> for DateTime {
 
     #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
-        self - Duration::from(duration)
+        #[allow(clippy::cast_possible_truncation)]
+        let nanos = self.time.nanoseconds_since_midnight() as i64
+            - (duration.as_nanos() % 86_400_000_000_000) as i64;
+
+        let date_modifier = if nanos < 0 {
+            -Duration::day()
+        } else {
+            Duration::zero()
+        };
+
+        Self::new(self.date - duration + date_modifier, self.time - duration)
     }
 }
 
@@ -715,8 +736,10 @@ impl From<SystemTime> for DateTime {
     #[inline(always)]
     fn from(system_time: SystemTime) -> Self {
         let duration = match system_time.duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(duration) => Duration::from(duration),
-            Err(err) => -Duration::from(err.duration()),
+            Ok(duration) => Duration::try_from(duration)
+                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
+            Err(err) => -Duration::try_from(err.duration())
+                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
         };
 
         Self::unix_epoch() + duration

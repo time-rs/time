@@ -6,7 +6,7 @@ use crate::{
 };
 use core::{
     cmp::Ordering::{self, Equal, Greater, Less},
-    convert::{From, TryFrom},
+    convert::{TryFrom, TryInto},
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     time::Duration as StdDuration,
 };
@@ -28,6 +28,9 @@ pub struct Duration {
     pub(crate) sign: Sign,
 
     /// Inner, unsigned representation of the duration.
+    ///
+    /// The range of this value is intentionally restricted. The maximum value
+    /// is `Duration::seconds(i64::max_value())`.
     pub(crate) std: StdDuration,
 }
 
@@ -42,6 +45,19 @@ const SECONDS_PER_DAY: i64 = 24 * SECONDS_PER_HOUR;
 
 /// The number of seconds in one week.
 const SECONDS_PER_WEEK: i64 = 7 * SECONDS_PER_DAY;
+
+macro_rules! some_if_in_range {
+    ($value:expr) => {{
+        let value = $value;
+        if value > Self::max_value() {
+            None
+        } else if value < Self::min_value() {
+            None
+        } else {
+            Some(value)
+        }
+    }};
+}
 
 impl Duration {
     /// Equivalent to `Duration::seconds(0)`.
@@ -149,39 +165,19 @@ impl Duration {
     /// The maximum possible duration. Adding any positive duration to this will
     /// cause an overflow.
     ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(
-    ///     Duration::max_value().whole_nanoseconds(),
-    ///     18_446_744_073_709_551_615_999_999_999
-    /// );
-    /// ```
+    /// The value returned by this method may change at any time.
     #[inline(always)]
-    #[deprecated(
-        since = "0.2.0",
-        note = "If you have use case for this, please file an issue on the repository."
-    )]
     pub fn max_value() -> Self {
-        Self::positive(StdDuration::new(u64::max_value(), 999_999_999))
+        Self::positive(StdDuration::new(i64::max_value() as u64, 999_999_999))
     }
 
     /// The minimum possible duration. Adding any negative duration to this will
     /// cause an overflow.
     ///
-    /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(
-    ///     Duration::min_value().whole_nanoseconds(),
-    ///     -18_446_744_073_709_551_615_999_999_999
-    /// );
-    /// ```
+    /// The value returned by this method may change at any time.
     #[inline(always)]
-    #[deprecated(
-        since = "0.2.0",
-        note = "If you have use case for this, please file an issue on the repository."
-    )]
     pub fn min_value() -> Self {
-        Self::negative(StdDuration::new(u64::max_value(), 999_999_999))
+        Self::negative(StdDuration::new(i64::max_value() as u64, 999_999_999))
     }
 
     /// Check if a duration is exactly zero.
@@ -646,8 +642,12 @@ impl Duration {
         match (self.sign, rhs.sign) {
             (_, Zero) => Some(self),
             (Zero, _) => Some(rhs),
-            (Positive, Positive) => Some(Self::positive(self.std.checked_add(rhs.std)?)),
-            (Negative, Negative) => Some(Self::negative(self.std.checked_add(rhs.std)?)),
+            (Positive, Positive) => {
+                some_if_in_range!(Self::positive(self.std.checked_add(rhs.std)?))
+            }
+            (Negative, Negative) => {
+                some_if_in_range!(Self::negative(self.std.checked_add(rhs.std)?))
+            }
             (Positive, Negative) | (Negative, Positive) => {
                 let (min, max) = if self.std < rhs.std {
                     (self, rhs)
@@ -703,7 +703,7 @@ impl Duration {
     /// ```
     #[inline(always)]
     pub fn checked_mul(self, rhs: i32) -> Option<Self> {
-        Some(Self {
+        some_if_in_range!(Self {
             sign: self.sign * rhs.sign(),
             std: self.std.checked_mul(rhs.abs() as u32)?,
         })
@@ -841,10 +841,10 @@ impl Duration {
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.0",
-        note = "Use `Duration::from(value)` or `value.into()`"
+        note = "Use `Duration::try_from(value)` or `value.try_into()`"
     )]
     pub fn from_std(std: StdDuration) -> Result<Self, OutOfRangeError> {
-        Ok(std.into())
+        std.try_into()
     }
 
     #[inline(always)]
@@ -862,13 +862,16 @@ impl Duration {
     }
 }
 
-impl From<StdDuration> for Duration {
+impl TryFrom<StdDuration> for Duration {
+    type Error = OutOfRangeError;
+
     #[inline(always)]
-    fn from(original: StdDuration) -> Self {
-        Self {
+    fn try_from(original: StdDuration) -> Result<Self, OutOfRangeError> {
+        some_if_in_range!(Self {
             sign: original.as_nanos().sign(),
             std: original,
-        }
+        })
+        .ok_or(OutOfRangeError)
     }
 }
 
@@ -906,7 +909,13 @@ impl Add<StdDuration> for Duration {
 
     #[inline(always)]
     fn add(self, std_duration: StdDuration) -> Self::Output {
-        self + Self::from(std_duration)
+        // TODO There's likely some way to avoid the conversion and first
+        // overflow check.
+        some_if_in_range!(
+            self + Self::try_from(std_duration)
+                .expect("overflow converting `std::time::Duration` to `time::Duration`")
+        )
+        .expect("overflow adding `std::time::Duration` to `time::Duration`")
     }
 }
 
@@ -915,7 +924,9 @@ impl Add<Duration> for StdDuration {
 
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
-        Duration::from(self) + duration
+        (Duration::try_from(self)
+            .expect("overflow converting `std::time::Duration` to `time::Duration`")
+            + duration)
     }
 }
 
@@ -966,7 +977,8 @@ impl Sub<StdDuration> for Duration {
 
     #[inline(always)]
     fn sub(self, rhs: StdDuration) -> Self::Output {
-        self - Self::from(rhs)
+        self - Self::try_from(rhs)
+            .expect("overflow converting `std::time::Duration` to `time::Duration`")
     }
 }
 
@@ -975,7 +987,9 @@ impl Sub<Duration> for StdDuration {
 
     #[inline(always)]
     fn sub(self, rhs: Duration) -> Self::Output {
-        Duration::from(self) - rhs
+        Duration::try_from(self)
+            .expect("overflow converting `std::time::Duration` to `time::Duration`")
+            - rhs
     }
 }
 
@@ -996,8 +1010,6 @@ impl SubAssign<StdDuration> for Duration {
 impl SubAssign<Duration> for StdDuration {
     #[inline(always)]
     fn sub_assign(&mut self, rhs: Duration) {
-        use core::convert::TryInto;
-
         *self = (*self - rhs).try_into().expect(
             "Cannot represent a resulting duration in std. Try `let x = x - rhs;`, which will \
              change the type.",
@@ -1014,14 +1026,14 @@ macro_rules! duration_mul_div {
                 #[inline(always)]
                 #[allow(trivial_numeric_casts)]
                 fn mul(self, rhs: $type) -> Self::Output {
-                    Self {
+                    some_if_in_range!(Self {
                         sign: match rhs.cmp(&0) {
                             Equal => return Self::zero(),
                             Greater => self.sign,
                             Less => self.sign.negate(),
                         },
                         std: self.std * rhs.abs() as u32,
-                    }
+                    }).expect("overflow multiplying `Duration`")
                 }
             }
 
@@ -1074,10 +1086,11 @@ impl Mul<f32> for Duration {
 
     #[inline(always)]
     fn mul(self, rhs: f32) -> Self::Output {
-        Self {
+        some_if_in_range!(Self {
             sign: self.sign * rhs.sign(),
             std: self.std.mul_f32(rhs.abs()),
-        }
+        })
+        .expect("overflow multiplying `Duration`")
     }
 }
 
@@ -1102,10 +1115,11 @@ impl Mul<f64> for Duration {
 
     #[inline(always)]
     fn mul(self, rhs: f64) -> Self::Output {
-        Self {
+        some_if_in_range!(Self {
             sign: self.sign * rhs.sign(),
             std: self.std.mul_f64(rhs.abs()),
-        }
+        })
+        .expect("overflow multiplying `Duration`")
     }
 }
 
@@ -1130,10 +1144,11 @@ impl Div<f32> for Duration {
 
     #[inline(always)]
     fn div(self, rhs: f32) -> Self::Output {
-        Self {
+        some_if_in_range!(Self {
             sign: self.sign * rhs.sign(),
             std: self.std.div_f32(rhs.abs()),
-        }
+        })
+        .expect("overflow dividing `Duration`")
     }
 }
 
@@ -1149,10 +1164,11 @@ impl Div<f64> for Duration {
 
     #[inline(always)]
     fn div(self, rhs: f64) -> Self::Output {
-        Self {
+        some_if_in_range!(Self {
             sign: self.sign * rhs.sign(),
             std: self.std.div_f64(rhs.abs()),
-        }
+        })
+        .expect("overflow dividing `Duration`")
     }
 }
 
@@ -1201,14 +1217,14 @@ impl PartialEq for Duration {
 impl PartialEq<StdDuration> for Duration {
     #[inline(always)]
     fn eq(&self, rhs: &StdDuration) -> bool {
-        *self == Self::from(*rhs)
+        Ok(*self) == Self::try_from(*rhs)
     }
 }
 
 impl PartialEq<Duration> for StdDuration {
     #[inline(always)]
     fn eq(&self, rhs: &Duration) -> bool {
-        Duration::from(*self) == *rhs
+        rhs == self
     }
 }
 
@@ -1222,14 +1238,22 @@ impl PartialOrd for Duration {
 impl PartialOrd<StdDuration> for Duration {
     #[inline(always)]
     fn partial_cmp(&self, rhs: &StdDuration) -> Option<Ordering> {
-        self.partial_cmp(&Self::from(*rhs))
+        match self.sign() {
+            Negative => Some(Less),
+            Zero | Positive => self.std.partial_cmp(rhs),
+        }
     }
 }
 
 impl PartialOrd<Duration> for StdDuration {
     #[inline(always)]
     fn partial_cmp(&self, rhs: &Duration) -> Option<Ordering> {
-        Duration::from(*self).partial_cmp(rhs)
+        match rhs.partial_cmp(self) {
+            Some(Less) => Some(Greater),
+            Some(Equal) => Some(Equal),
+            Some(Greater) => Some(Less),
+            None => None,
+        }
     }
 }
 
@@ -1553,9 +1577,9 @@ mod test {
     }
 
     #[test]
-    fn from_std_duration() {
-        assert_eq!(Duration::from(0.std_seconds()), 0.seconds());
-        assert_eq!(Duration::from(1.std_seconds()), 1.seconds());
+    fn try_from_std_duration() {
+        assert_eq!(Duration::try_from(0.std_seconds()), Ok(0.seconds()));
+        assert_eq!(Duration::try_from(1.std_seconds()), Ok(1.seconds()));
     }
 
     #[test]

@@ -614,7 +614,7 @@ impl Add<StdDuration> for Time {
     /// ```
     #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
-        self + Duration::from(duration)
+        self + Duration::seconds((duration.as_secs() % 86_400) as i64)
     }
 }
 
@@ -702,7 +702,7 @@ impl Sub<StdDuration> for Time {
     /// ```
     #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
-        self - Duration::from(duration)
+        self - Duration::seconds((duration.as_secs() % 86_400) as i64)
     }
 }
 

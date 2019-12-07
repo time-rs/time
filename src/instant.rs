@@ -4,6 +4,7 @@ use crate::{
 };
 use core::{
     cmp::{Ord, Ordering, PartialEq, PartialOrd},
+    convert::TryInto,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
@@ -146,8 +147,12 @@ impl Sub for Instant {
     fn sub(self, other: Self) -> Self::Output {
         match self.inner.cmp(&other.inner) {
             Ordering::Equal => Duration::zero(),
-            Ordering::Greater => (self.inner - other.inner).into(),
-            Ordering::Less => (other.inner - self.inner).into(),
+            Ordering::Greater => (self.inner - other.inner)
+                .try_into()
+                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
+            Ordering::Less => (other.inner - self.inner)
+                .try_into()
+                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
         }
     }
 }
@@ -194,7 +199,9 @@ impl Add<StdDuration> for Instant {
 
     #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
-        self + Duration::from(duration)
+        Self {
+            inner: self.inner + duration,
+        }
     }
 }
 
@@ -243,7 +250,9 @@ impl Sub<StdDuration> for Instant {
 
     #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
-        self - Duration::from(duration)
+        Self {
+            inner: self.inner - duration,
+        }
     }
 }
 
