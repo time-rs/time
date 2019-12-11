@@ -183,7 +183,13 @@ pub(crate) fn parse_g(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 /// Week-based year
 #[inline(always)]
 pub(crate) fn fmt_G(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(f, padding(Zero), 4, date.iso_year_week().0)
+    let year = date.iso_year_week().0;
+
+    if year >= 10_000 {
+        f.write_str("+")?;
+    }
+
+    pad!(f, padding(Zero), 4, year)
 }
 
 /// Week-based year
