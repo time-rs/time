@@ -2,7 +2,7 @@
 use crate::no_std_prelude::*;
 use crate::{
     format::parse::{parse, ParseResult, ParsedItems},
-    Date, DateTime, DeferredFormat, Duration, Time, UtcOffset, Weekday,
+    Date, DeferredFormat, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday,
 };
 use core::{
     cmp::Ordering,
@@ -11,16 +11,16 @@ use core::{
     time::Duration as StdDuration,
 };
 
-/// A [`DateTime`] with a [`UtcOffset`].
+/// A [`PrimitiveDateTime`] with a [`UtcOffset`].
 ///
 /// For equality, comparisons, and hashing, calculations are performed using the
 /// [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, Eq)]
 pub struct OffsetDateTime {
-    /// The `DateTime`, which is _always_ UTC.
-    pub(crate) datetime: DateTime,
-    /// The `UtcOffset`, which will be added to the `DateTime` as necessary.
+    /// The `PrimitiveDateTime`, which is _always_ UTC.
+    pub(crate) datetime: PrimitiveDateTime,
+    /// The `UtcOffset`, which will be added to the `PrimitiveDateTime` as necessary.
     pub(crate) offset: UtcOffset,
 }
 
@@ -36,7 +36,7 @@ impl OffsetDateTime {
     #[cfg(feature = "std")]
     #[cfg_attr(doc, doc(cfg(feature = "std")))]
     pub fn now() -> Self {
-        DateTime::now().using_offset(UtcOffset::UTC)
+        PrimitiveDateTime::now().using_offset(UtcOffset::UTC)
     }
 
     /// Convert the `OffsetDateTime` from the current `UtcOffset` to the
@@ -71,7 +71,7 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub const fn unix_epoch() -> Self {
-        DateTime::unix_epoch().using_offset(UtcOffset::UTC)
+        PrimitiveDateTime::unix_epoch().using_offset(UtcOffset::UTC)
     }
 
     /// Create an `OffsetDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
@@ -91,7 +91,7 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub fn from_unix_timestamp(timestamp: i64) -> Self {
-        DateTime::from_unix_timestamp(timestamp).using_offset(UtcOffset::UTC)
+        PrimitiveDateTime::from_unix_timestamp(timestamp).using_offset(UtcOffset::UTC)
     }
 
     /// Get the `UtcOffset`.
@@ -121,15 +121,15 @@ impl OffsetDateTime {
     /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
-    /// # use time::{DateTime, UtcOffset};
+    /// # use time::{PrimitiveDateTime, UtcOffset};
     /// assert_eq!(
-    ///     DateTime::unix_epoch()
+    ///     PrimitiveDateTime::unix_epoch()
     ///         .using_offset(UtcOffset::UTC)
     ///         .timestamp(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     DateTime::unix_epoch()
+    ///     PrimitiveDateTime::unix_epoch()
     ///         .using_offset(UtcOffset::hours(-1))
     ///         .timestamp(),
     ///     3_600,
@@ -632,17 +632,17 @@ impl OffsetDateTime {
     /// Attempt to parse an `OffsetDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::{Date, DateTime, Weekday::Wednesday};
+    /// # use time::{Date, PrimitiveDateTime, Weekday::Wednesday};
     /// assert_eq!(
-    ///     DateTime::parse("2019-01-02 00:00:00", "%F %T"),
+    ///     PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
     ///     Ok(Date::from_ymd(2019, 1, 2).midnight()),
     /// );
     /// assert_eq!(
-    ///     DateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
+    ///     PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
     ///     Ok(Date::from_yo(2019, 2).with_hms(23, 59, 59))
     /// );
     /// assert_eq!(
-    ///     DateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
+    ///     PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
     ///     Ok(Date::from_iso_ywd(2019, 1, Wednesday).with_hms(12, 0, 0)),
     /// );
     /// ```
@@ -651,11 +651,11 @@ impl OffsetDateTime {
         Self::try_from_parsed_items(parse(s, format)?)
     }
 
-    /// Given the items already parsed, attempt to create a `DateTime`.
+    /// Given the items already parsed, attempt to create an `OffsetDateTime`.
     #[inline(always)]
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
         Ok(Self {
-            datetime: DateTime::try_from_parsed_items(items)?,
+            datetime: PrimitiveDateTime::try_from_parsed_items(items)?,
             offset: UtcOffset::try_from_parsed_items(items)?,
         })
     }
@@ -841,7 +841,7 @@ mod test {
     fn timestamp() {
         assert_eq!(OffsetDateTime::unix_epoch().timestamp(), 0);
         assert_eq!(
-            DateTime::unix_epoch()
+            PrimitiveDateTime::unix_epoch()
                 .using_offset(UtcOffset::hours(-1))
                 .timestamp(),
             3_600,
@@ -1163,15 +1163,15 @@ mod test {
     fn parse() {
         use Weekday::*;
         assert_eq!(
-            DateTime::parse("2019-01-02 00:00:00", "%F %T"),
+            PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
             Ok(ymd!(2019, 1, 2).midnight()),
         );
         assert_eq!(
-            DateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
+            PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
             Ok(Date::from_yo(2019, 2).with_hms(23, 59, 59))
         );
         assert_eq!(
-            DateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
+            PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
             Ok(Date::from_iso_ywd(2019, 1, Wednesday).with_hms(12, 0, 0)),
         );
     }

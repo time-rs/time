@@ -2,7 +2,7 @@
 use crate::no_std_prelude::*;
 use crate::{
     format::parse::{parse, ParseError, ParseResult, ParsedItems},
-    DateTime, DeferredFormat, Duration, Time,
+    DeferredFormat, Duration, PrimitiveDateTime, Time,
     Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
 };
 use core::{
@@ -296,7 +296,7 @@ impl Date {
     #[cfg(feature = "std")]
     #[cfg_attr(doc, doc(cfg(feature = "std")))]
     pub fn today() -> Self {
-        DateTime::now().date()
+        PrimitiveDateTime::now().date()
     }
 
     /// Get the year of the date.
@@ -658,24 +658,24 @@ impl Date {
     }
 }
 
-/// Methods to add a `Time` component, resulting in a `DateTime`.
+/// Methods to add a `Time` component, resulting in a `PrimitiveDateTime`.
 impl Date {
-    /// Create a `DateTime` using the existing date. The `Time` component will
+    /// Create a `PrimitiveDateTime` using the existing date. The `Time` component will
     /// be set to midnight.
     ///
     /// ```rust
-    /// # use time::{Date, DateTime, Time};
+    /// # use time::{Date, PrimitiveDateTime, Time};
     /// assert_eq!(
     ///     Date::from_ymd(1970, 1, 1).midnight(),
-    ///     DateTime::unix_epoch()
+    ///     PrimitiveDateTime::unix_epoch()
     /// );
     /// ```
     #[inline(always)]
-    pub const fn midnight(self) -> DateTime {
-        DateTime::new(self, Time::midnight())
+    pub const fn midnight(self) -> PrimitiveDateTime {
+        PrimitiveDateTime::new(self, Time::midnight())
     }
 
-    /// Create a `DateTime` using the existing date and the provided `Time`.
+    /// Create a `PrimitiveDateTime` using the existing date and the provided `Time`.
     ///
     /// ```rust
     /// # use time::{Date, Time};
@@ -685,11 +685,11 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    pub const fn with_time(self, time: Time) -> DateTime {
-        DateTime::new(self, time)
+    pub const fn with_time(self, time: Time) -> PrimitiveDateTime {
+        PrimitiveDateTime::new(self, time)
     }
 
-    /// Create a `DateTime` using the existing date and the provided time.
+    /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time::{Date, Time};
@@ -699,11 +699,11 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    pub fn with_hms(self, hour: u8, minute: u8, second: u8) -> DateTime {
-        DateTime::new(self, Time::from_hms(hour, minute, second))
+    pub fn with_hms(self, hour: u8, minute: u8, second: u8) -> PrimitiveDateTime {
+        PrimitiveDateTime::new(self, Time::from_hms(hour, minute, second))
     }
 
-    /// Attempt to create a `DateTime` using the existing date and the provided time.
+    /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time::Date;
@@ -711,14 +711,14 @@ impl Date {
     /// assert!(Date::from_ymd(1970, 1, 1).try_with_hms(24, 0, 0).is_none());
     /// ```
     #[inline(always)]
-    pub fn try_with_hms(self, hour: u8, minute: u8, second: u8) -> Option<DateTime> {
-        Some(DateTime::new(
+    pub fn try_with_hms(self, hour: u8, minute: u8, second: u8) -> Option<PrimitiveDateTime> {
+        Some(PrimitiveDateTime::new(
             self,
             Time::try_from_hms(hour, minute, second)?,
         ))
     }
 
-    /// Create a `DateTime` using the existing date and the provided time.
+    /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time::{Date, Time};
@@ -728,17 +728,23 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    pub fn with_hms_milli(self, hour: u8, minute: u8, second: u8, millisecond: u16) -> DateTime {
-        DateTime::new(
+    pub fn with_hms_milli(
+        self,
+        hour: u8,
+        minute: u8,
+        second: u8,
+        millisecond: u16,
+    ) -> PrimitiveDateTime {
+        PrimitiveDateTime::new(
             self,
             Time::from_hms_milli(hour, minute, second, millisecond),
         )
     }
 
-    /// Attempt to create a `DateTime` using the existing date and the provided time.
+    /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{Date};
+    /// # use time::Date;
     /// assert!(Date::from_ymd(1970, 1, 1)
     ///     .try_with_hms_milli(0, 0, 0, 0)
     ///     .is_some());
@@ -753,14 +759,14 @@ impl Date {
         minute: u8,
         second: u8,
         millisecond: u16,
-    ) -> Option<DateTime> {
-        Some(DateTime::new(
+    ) -> Option<PrimitiveDateTime> {
+        Some(PrimitiveDateTime::new(
             self,
             Time::try_from_hms_milli(hour, minute, second, millisecond)?,
         ))
     }
 
-    /// Create a `DateTime` using the existing date and the provided time.
+    /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time::{Date, Time};
@@ -770,14 +776,20 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    pub fn with_hms_micro(self, hour: u8, minute: u8, second: u8, microsecond: u32) -> DateTime {
-        DateTime::new(
+    pub fn with_hms_micro(
+        self,
+        hour: u8,
+        minute: u8,
+        second: u8,
+        microsecond: u32,
+    ) -> PrimitiveDateTime {
+        PrimitiveDateTime::new(
             self,
             Time::from_hms_micro(hour, minute, second, microsecond),
         )
     }
 
-    /// Attempt to create a `DateTime` using the existing date and the provided time.
+    /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time::Date;
@@ -795,14 +807,14 @@ impl Date {
         minute: u8,
         second: u8,
         microsecond: u32,
-    ) -> Option<DateTime> {
-        Some(DateTime::new(
+    ) -> Option<PrimitiveDateTime> {
+        Some(PrimitiveDateTime::new(
             self,
             Time::try_from_hms_micro(hour, minute, second, microsecond)?,
         ))
     }
 
-    /// Create a `DateTime` using the existing date and the provided time.
+    /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time::{Date, Time};
@@ -812,11 +824,17 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    pub fn with_hms_nano(self, hour: u8, minute: u8, second: u8, nanosecond: u32) -> DateTime {
-        DateTime::new(self, Time::from_hms_nano(hour, minute, second, nanosecond))
+    pub fn with_hms_nano(
+        self,
+        hour: u8,
+        minute: u8,
+        second: u8,
+        nanosecond: u32,
+    ) -> PrimitiveDateTime {
+        PrimitiveDateTime::new(self, Time::from_hms_nano(hour, minute, second, nanosecond))
     }
 
-    /// Attempt to create a `DateTime` using the existing date and the provided time.
+    /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time::Date;
@@ -834,8 +852,8 @@ impl Date {
         minute: u8,
         second: u8,
         nanosecond: u32,
-    ) -> Option<DateTime> {
-        Some(DateTime::new(
+    ) -> Option<PrimitiveDateTime> {
+        Some(PrimitiveDateTime::new(
             self,
             Time::try_from_hms_nano(hour, minute, second, nanosecond)?,
         ))
@@ -2043,7 +2061,7 @@ mod test {
 
     #[test]
     fn midnight() {
-        assert_eq!(ymd!(1970, 1, 1).midnight(), DateTime::unix_epoch());
+        assert_eq!(ymd!(1970, 1, 1).midnight(), PrimitiveDateTime::unix_epoch());
     }
 
     #[test]

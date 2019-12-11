@@ -1,7 +1,7 @@
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
 #[cfg(feature = "std")]
-use crate::DateTime;
+use crate::PrimitiveDateTime;
 use crate::{
     format::{parse, parse::AmPm, ParseError, ParseResult, ParsedItems},
     DeferredFormat, Duration,
@@ -361,7 +361,7 @@ impl Time {
     #[cfg(feature = "std")]
     #[cfg_attr(doc, doc(cfg(feature = "std")))]
     pub fn now() -> Self {
-        DateTime::now().time()
+        PrimitiveDateTime::now().time()
     }
 
     /// Get the clock hour.

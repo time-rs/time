@@ -20,20 +20,20 @@ use std::time::SystemTime;
 /// Combined date and time.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct DateTime {
+pub struct PrimitiveDateTime {
     #[allow(clippy::missing_docs_in_private_items)]
     pub(crate) date: Date,
     #[allow(clippy::missing_docs_in_private_items)]
     pub(crate) time: Time,
 }
 
-impl DateTime {
-    /// Create a new `DateTime` from the provided `Date` and `Time`.
+impl PrimitiveDateTime {
+    /// Create a new `PrimitiveDateTime` from the provided `Date` and `Time`.
     ///
     /// ```rust
-    /// # use time::{Date, DateTime, Time};
+    /// # use time::{Date, PrimitiveDateTime, Time};
     /// assert_eq!(
-    ///     DateTime::new(Date::from_ymd(2019, 1, 1), Time::midnight()),
+    ///     PrimitiveDateTime::new(Date::from_ymd(2019, 1, 1), Time::midnight()),
     ///     Date::from_ymd(2019, 1, 1).midnight(),
     /// );
     /// ```
@@ -42,11 +42,11 @@ impl DateTime {
         Self { date, time }
     }
 
-    /// Create a new `DateTime` with the current date and time (UTC).
+    /// Create a new `PrimitiveDateTime` with the current date and time (UTC).
     ///
     /// ```rust
-    /// # use time::DateTime;
-    /// assert!(DateTime::now().year() >= 2019);
+    /// # use time::PrimitiveDateTime;
+    /// assert!(PrimitiveDateTime::now().year() >= 2019);
     /// ```
     #[inline(always)]
     #[cfg(feature = "std")]
@@ -58,9 +58,9 @@ impl DateTime {
     /// Midnight, 1 January, 1970 (UTC).
     ///
     /// ```rust
-    /// # use time::{Date, DateTime, Time};
+    /// # use time::{Date, PrimitiveDateTime, Time};
     /// assert_eq!(
-    ///     DateTime::unix_epoch(),
+    ///     PrimitiveDateTime::unix_epoch(),
     ///     Date::from_ymd(1970, 1, 1).midnight()
     /// );
     /// ```
@@ -80,13 +80,16 @@ impl DateTime {
         }
     }
 
-    /// Create a `DateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
+    /// Create a `PrimitiveDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
-    /// # use time::{Date, DateTime};
-    /// assert_eq!(DateTime::from_unix_timestamp(0), DateTime::unix_epoch());
+    /// # use time::{Date, PrimitiveDateTime};
     /// assert_eq!(
-    ///     DateTime::from_unix_timestamp(1_546_300_800),
+    ///     PrimitiveDateTime::from_unix_timestamp(0),
+    ///     PrimitiveDateTime::unix_epoch()
+    /// );
+    /// assert_eq!(
+    ///     PrimitiveDateTime::from_unix_timestamp(1_546_300_800),
     ///     Date::from_ymd(2019, 1, 1).midnight(),
     /// );
     /// ```
@@ -96,11 +99,11 @@ impl DateTime {
     }
 
     /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time)
-    /// representing the `DateTime`.
+    /// representing the `PrimitiveDateTime`.
     ///
     /// ```rust
-    /// # use time::{Date, DateTime};
-    /// assert_eq!(DateTime::unix_epoch().timestamp(), 0);
+    /// # use time::{Date, PrimitiveDateTime};
+    /// assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
     /// assert_eq!(
     ///     Date::from_ymd(2019, 1, 1).midnight().timestamp(),
     ///     1_546_300_800
@@ -111,7 +114,7 @@ impl DateTime {
         (self - Self::unix_epoch()).whole_seconds()
     }
 
-    /// Get the `Date` component of the `DateTime`.
+    /// Get the `Date` component of the `PrimitiveDateTime`.
     ///
     /// ```rust
     /// # use time::Date;
@@ -125,7 +128,7 @@ impl DateTime {
         self.date
     }
 
-    /// Get the `Time` component of the `DateTime`.
+    /// Get the `Time` component of the `PrimitiveDateTime`.
     ///
     /// ```rust
     /// # use time::{Date, Time};
@@ -149,7 +152,7 @@ impl DateTime {
     }
 
     /// Get the month of the date. If fetching both the month and day, it is
-    /// more efficient to use [`DateTime::month_day`].
+    /// more efficient to use [`PrimitiveDateTime::month_day`].
     ///
     /// The returned value will always be in the range `1..=12`.
     ///
@@ -164,7 +167,7 @@ impl DateTime {
     }
 
     /// Get the day of the date.  If fetching both the month and day, it is
-    /// more efficient to use [`DateTime::month_day`].
+    /// more efficient to use [`PrimitiveDateTime::month_day`].
     ///
     /// The returned value will always be in the range `1..=31`.
     ///
@@ -436,7 +439,7 @@ impl DateTime {
         self.time().nanosecond()
     }
 
-    /// Create an `OffsetDateTime` from the existing `DateTime` and provided
+    /// Create an `OffsetDateTime` from the existing `PrimitiveDateTime` and provided
     /// `UtcOffset`.
     ///
     /// ```rust
@@ -458,9 +461,9 @@ impl DateTime {
     }
 }
 
-/// Methods that allow formatting the `DateTime`.
-impl DateTime {
-    /// Format the `DateTime` using the provided string.
+/// Methods that allow formatting the `PrimitiveDateTime`.
+impl PrimitiveDateTime {
+    /// Format the `PrimitiveDateTime` using the provided string.
     ///
     /// ```rust
     /// # use time::Date;
@@ -480,20 +483,20 @@ impl DateTime {
         .to_string()
     }
 
-    /// Attempt to parse a `DateTime` using the provided string.
+    /// Attempt to parse a `PrimitiveDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::{Date, DateTime, Weekday::Wednesday};
+    /// # use time::{Date, PrimitiveDateTime, Weekday::Wednesday};
     /// assert_eq!(
-    ///     DateTime::parse("2019-01-02 00:00:00", "%F %T"),
+    ///     PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
     ///     Ok(Date::from_ymd(2019, 1, 2).midnight()),
     /// );
     /// assert_eq!(
-    ///     DateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
+    ///     PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
     ///     Ok(Date::from_yo(2019, 2).with_hms(23, 59, 59))
     /// );
     /// assert_eq!(
-    ///     DateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
+    ///     PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
     ///     Ok(Date::from_iso_ywd(2019, 1, Wednesday).with_hms(12, 0, 0)),
     /// );
     /// ```
@@ -502,7 +505,7 @@ impl DateTime {
         Self::try_from_parsed_items(parse(s, format)?)
     }
 
-    /// Given the items already parsed, attempt to create a `DateTime`.
+    /// Given the items already parsed, attempt to create a `PrimitiveDateTime`.
     #[inline(always)]
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
         Ok(Self {
@@ -512,7 +515,7 @@ impl DateTime {
     }
 }
 
-impl Add<Duration> for DateTime {
+impl Add<Duration> for PrimitiveDateTime {
     type Output = Self;
 
     #[inline]
@@ -539,11 +542,11 @@ impl Add<Duration> for SystemTime {
 
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
-        (DateTime::from(self) + duration).into()
+        (PrimitiveDateTime::from(self) + duration).into()
     }
 }
 
-impl Add<StdDuration> for DateTime {
+impl Add<StdDuration> for PrimitiveDateTime {
     type Output = Self;
 
     #[inline(always)]
@@ -562,14 +565,14 @@ impl Add<StdDuration> for DateTime {
     }
 }
 
-impl AddAssign<Duration> for DateTime {
+impl AddAssign<Duration> for PrimitiveDateTime {
     #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
 }
 
-impl AddAssign<StdDuration> for DateTime {
+impl AddAssign<StdDuration> for PrimitiveDateTime {
     #[inline(always)]
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
@@ -584,7 +587,7 @@ impl AddAssign<Duration> for SystemTime {
     }
 }
 
-impl Sub<Duration> for DateTime {
+impl Sub<Duration> for PrimitiveDateTime {
     type Output = Self;
 
     #[inline(always)]
@@ -593,7 +596,7 @@ impl Sub<Duration> for DateTime {
     }
 }
 
-impl Sub<StdDuration> for DateTime {
+impl Sub<StdDuration> for PrimitiveDateTime {
     type Output = Self;
 
     #[inline(always)]
@@ -618,18 +621,18 @@ impl Sub<Duration> for SystemTime {
 
     #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
-        (DateTime::from(self) - duration).into()
+        (PrimitiveDateTime::from(self) - duration).into()
     }
 }
 
-impl SubAssign<Duration> for DateTime {
+impl SubAssign<Duration> for PrimitiveDateTime {
     #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
 }
 
-impl SubAssign<StdDuration> for DateTime {
+impl SubAssign<StdDuration> for PrimitiveDateTime {
     #[inline(always)]
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
@@ -644,7 +647,7 @@ impl SubAssign<Duration> for SystemTime {
     }
 }
 
-impl Sub<DateTime> for DateTime {
+impl Sub<PrimitiveDateTime> for PrimitiveDateTime {
     type Output = Duration;
 
     #[inline(always)]
@@ -654,7 +657,7 @@ impl Sub<DateTime> for DateTime {
 }
 
 #[cfg(feature = "std")]
-impl Sub<SystemTime> for DateTime {
+impl Sub<SystemTime> for PrimitiveDateTime {
     type Output = Duration;
 
     #[inline(always)]
@@ -664,16 +667,16 @@ impl Sub<SystemTime> for DateTime {
 }
 
 #[cfg(feature = "std")]
-impl Sub<DateTime> for SystemTime {
+impl Sub<PrimitiveDateTime> for SystemTime {
     type Output = Duration;
 
     #[inline(always)]
-    fn sub(self, rhs: DateTime) -> Self::Output {
-        DateTime::from(self) - rhs
+    fn sub(self, rhs: PrimitiveDateTime) -> Self::Output {
+        PrimitiveDateTime::from(self) - rhs
     }
 }
 
-impl PartialOrd for DateTime {
+impl PartialOrd for PrimitiveDateTime {
     #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
@@ -681,7 +684,7 @@ impl PartialOrd for DateTime {
 }
 
 #[cfg(feature = "std")]
-impl PartialEq<SystemTime> for DateTime {
+impl PartialEq<SystemTime> for PrimitiveDateTime {
     #[inline(always)]
     fn eq(&self, rhs: &SystemTime) -> bool {
         self == &Self::from(*rhs)
@@ -689,15 +692,15 @@ impl PartialEq<SystemTime> for DateTime {
 }
 
 #[cfg(feature = "std")]
-impl PartialEq<DateTime> for SystemTime {
+impl PartialEq<PrimitiveDateTime> for SystemTime {
     #[inline(always)]
-    fn eq(&self, rhs: &DateTime) -> bool {
-        &DateTime::from(*self) == rhs
+    fn eq(&self, rhs: &PrimitiveDateTime) -> bool {
+        &PrimitiveDateTime::from(*self) == rhs
     }
 }
 
 #[cfg(feature = "std")]
-impl PartialOrd<SystemTime> for DateTime {
+impl PartialOrd<SystemTime> for PrimitiveDateTime {
     #[inline(always)]
     fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
         self.partial_cmp(&Self::from(*other))
@@ -705,14 +708,14 @@ impl PartialOrd<SystemTime> for DateTime {
 }
 
 #[cfg(feature = "std")]
-impl PartialOrd<DateTime> for SystemTime {
+impl PartialOrd<PrimitiveDateTime> for SystemTime {
     #[inline(always)]
-    fn partial_cmp(&self, other: &DateTime) -> Option<Ordering> {
-        DateTime::from(*self).partial_cmp(other)
+    fn partial_cmp(&self, other: &PrimitiveDateTime) -> Option<Ordering> {
+        PrimitiveDateTime::from(*self).partial_cmp(other)
     }
 }
 
-impl Ord for DateTime {
+impl Ord for PrimitiveDateTime {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
         match self.date.cmp(&other.date) {
@@ -732,7 +735,7 @@ impl Ord for DateTime {
 }
 
 #[cfg(feature = "std")]
-impl From<SystemTime> for DateTime {
+impl From<SystemTime> for PrimitiveDateTime {
     #[inline(always)]
     fn from(system_time: SystemTime) -> Self {
         let duration = match system_time.duration_since(SystemTime::UNIX_EPOCH) {
@@ -748,10 +751,10 @@ impl From<SystemTime> for DateTime {
 
 #[cfg(feature = "std")]
 #[allow(clippy::fallible_impl_from)]
-impl From<DateTime> for SystemTime {
+impl From<PrimitiveDateTime> for SystemTime {
     #[inline]
-    fn from(datetime: DateTime) -> Self {
-        let duration = datetime - DateTime::unix_epoch();
+    fn from(datetime: PrimitiveDateTime) -> Self {
+        let duration = datetime - PrimitiveDateTime::unix_epoch();
 
         match duration.sign() {
             Sign::Positive => Self::UNIX_EPOCH + duration.std,
@@ -775,7 +778,7 @@ mod test {
     #[test]
     fn new() {
         assert_eq!(
-            DateTime::new(ymd!(2019, 1, 1), Time::midnight()),
+            PrimitiveDateTime::new(ymd!(2019, 1, 1), Time::midnight()),
             ymd!(2019, 1, 1).midnight(),
         );
     }
@@ -783,26 +786,29 @@ mod test {
     #[test]
     #[cfg(feature = "std")]
     fn now() {
-        assert!(DateTime::now().year() >= 2019);
+        assert!(PrimitiveDateTime::now().year() >= 2019);
     }
 
     #[test]
     fn unix_epoch() {
-        assert_eq!(DateTime::unix_epoch(), ymd!(1970, 1, 1).midnight());
+        assert_eq!(PrimitiveDateTime::unix_epoch(), ymd!(1970, 1, 1).midnight());
     }
 
     #[test]
     fn from_unix_timestamp() {
-        assert_eq!(DateTime::from_unix_timestamp(0), DateTime::unix_epoch());
         assert_eq!(
-            DateTime::from_unix_timestamp(1_546_300_800),
+            PrimitiveDateTime::from_unix_timestamp(0),
+            PrimitiveDateTime::unix_epoch()
+        );
+        assert_eq!(
+            PrimitiveDateTime::from_unix_timestamp(1_546_300_800),
             ymd!(2019, 1, 1).midnight(),
         );
     }
 
     #[test]
     fn timestamp() {
-        assert_eq!(DateTime::unix_epoch().timestamp(), 0);
+        assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
         assert_eq!(ymd!(2019, 1, 1).midnight().timestamp(), 1_546_300_800);
     }
 
@@ -962,15 +968,15 @@ mod test {
     #[test]
     fn parse() {
         assert_eq!(
-            DateTime::parse("2019-01-02 00:00:00", "%F %T"),
+            PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
             Ok(ymd!(2019, 1, 2).midnight()),
         );
         assert_eq!(
-            DateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
+            PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
             Ok(Date::from_yo(2019, 2).with_hms(23, 59, 59))
         );
         assert_eq!(
-            DateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
+            PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
             Ok(Date::from_iso_ywd(2019, 1, Weekday::Wednesday).with_hms(12, 0, 0)),
         );
     }
@@ -1365,7 +1371,7 @@ mod test {
     #[test]
     #[cfg(feature = "std")]
     fn eq_std() {
-        let now_datetime = DateTime::now();
+        let now_datetime = PrimitiveDateTime::now();
         let now_systemtime = SystemTime::from(now_datetime);
         assert_eq!(now_datetime, now_systemtime);
     }
@@ -1374,7 +1380,7 @@ mod test {
     #[cfg(feature = "std")]
     fn std_eq() {
         #[cfg(feature = "std")]
-        let now_datetime = DateTime::now();
+        let now_datetime = PrimitiveDateTime::now();
         let now_systemtime = SystemTime::from(now_datetime);
         assert_eq!(now_datetime, now_systemtime);
     }
@@ -1441,8 +1447,8 @@ mod test {
     #[cfg(feature = "std")]
     fn from_std() {
         assert_eq!(
-            DateTime::from(SystemTime::UNIX_EPOCH),
-            DateTime::unix_epoch()
+            PrimitiveDateTime::from(SystemTime::UNIX_EPOCH),
+            PrimitiveDateTime::unix_epoch()
         );
     }
 
@@ -1450,7 +1456,7 @@ mod test {
     #[cfg(feature = "std")]
     fn to_std() {
         assert_eq!(
-            SystemTime::from(DateTime::unix_epoch()),
+            SystemTime::from(PrimitiveDateTime::unix_epoch()),
             SystemTime::UNIX_EPOCH
         );
     }

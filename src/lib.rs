@@ -246,8 +246,6 @@ macro_rules! assert_panics {
 
 /// The `Date` struct and its associated `impl`s.
 mod date;
-/// The `DateTime` struct and its associated `impl`s.
-mod date_time;
 /// The `Duration` struct and its associated `impl`s.
 mod duration;
 mod format;
@@ -258,6 +256,8 @@ mod instant;
 mod numerical_traits;
 /// The `OffsetDateTime` struct and its associated `impl`s.
 mod offset_date_time;
+/// The `PrimitiveDateTime` struct and its associated `impl`s.
+mod primitive_date_time;
 /// Ensure certain methods are present on all types.
 mod shim;
 /// The `Sign` struct and its associated `impl`s.
@@ -272,7 +272,6 @@ mod weekday;
 pub use self::time::Time;
 use core::fmt;
 pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
-pub use date_time::DateTime;
 pub use duration::Duration;
 pub(crate) use format::DeferredFormat;
 #[allow(unreachable_pub)] // rust-lang/rust#64762
@@ -281,6 +280,7 @@ pub use format::ParseError;
 pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub use offset_date_time::OffsetDateTime;
+pub use primitive_date_time::PrimitiveDateTime;
 pub(crate) use shim::NumberExt;
 pub use sign::Sign;
 pub use utc_offset::UtcOffset;
@@ -373,13 +373,13 @@ pub type SteadyTime = Instant;
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
     since = "0.2.0",
-    note = "Use `DateTime::now() - DateTime::unix_epoch()` to get a `Duration` since a known \
-            epoch."
+    note = "Use `PrimitiveDateTime::now() - PrimitiveDateTime::unix_epoch()` to get a `Duration` \
+            since a known epoch."
 )]
 #[inline]
 pub fn precise_time_ns() -> u64 {
     use core::convert::TryInto;
-    (DateTime::now() - DateTime::unix_epoch())
+    (PrimitiveDateTime::now() - PrimitiveDateTime::unix_epoch())
         .whole_nanoseconds()
         .try_into()
         .expect("You really shouldn't be using this in the year 2554...")
@@ -390,10 +390,10 @@ pub fn precise_time_ns() -> u64 {
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
     since = "0.2.0",
-    note = "Use `DateTime::now() - DateTime::unix_epoch()` to get a `Duration` since a known \
-            epoch."
+    note = "Use `PrimitiveDateTime::now() - PrimitiveDateTime::unix_epoch()` to get a `Duration` \
+            since a known epoch."
 )]
 #[inline]
 pub fn precise_time_s() -> f64 {
-    (DateTime::now() - DateTime::unix_epoch()).as_seconds_f64()
+    (PrimitiveDateTime::now() - PrimitiveDateTime::unix_epoch()).as_seconds_f64()
 }
