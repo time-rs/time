@@ -4,7 +4,7 @@ use crate::no_std_prelude::*;
 use crate::PrimitiveDateTime;
 use crate::{
     format::{parse, parse::AmPm, ParseError, ParseResult, ParsedItems},
-    DeferredFormat, Duration,
+    ComponentRangeError, DeferredFormat, Duration,
 };
 use core::{
     cmp::Ordering,
@@ -97,23 +97,23 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms(1, 2, 3).is_some());
+    /// assert!(Time::try_from_hms(1, 2, 3).is_ok());
     /// ```
     ///
     /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms(24, 0, 0).is_none()); // 24 isn't a valid hour.
-    /// assert!(Time::try_from_hms(0, 60, 0).is_none()); // 60 isn't a valid minute.
-    /// assert!(Time::try_from_hms(0, 0, 60).is_none()); // 60 isn't a valid second.
+    /// assert!(Time::try_from_hms(24, 0, 0).is_err()); // 24 isn't a valid hour.
+    /// assert!(Time::try_from_hms(0, 60, 0).is_err()); // 60 isn't a valid minute.
+    /// assert!(Time::try_from_hms(0, 0, 60).is_err()); // 60 isn't a valid second.
     /// ```
     #[inline(always)]
-    pub fn try_from_hms(hour: u8, minute: u8, second: u8) -> Option<Self> {
+    pub fn try_from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(hour in 0 => exclusive 24);
         ensure_value_in_range!(minute in 0 => exclusive 60);
         ensure_value_in_range!(second in 0 => exclusive 60);
-        Some(Self {
+        Ok(Self {
             hour,
             minute,
             second,
@@ -172,25 +172,30 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_milli(1, 2, 3, 4).is_some());
+    /// assert!(Time::try_from_hms_milli(1, 2, 3, 4).is_ok());
     /// ```
     ///
     /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_milli(24, 0, 0, 0).is_none()); // 24 isn't a valid hour.
-    /// assert!(Time::try_from_hms_milli(0, 60, 0, 0).is_none()); // 60 isn't a valid minute.
-    /// assert!(Time::try_from_hms_milli(0, 0, 60, 0).is_none()); // 60 isn't a valid second.
-    /// assert!(Time::try_from_hms_milli(0, 0, 0, 1_000).is_none()); // 1_000 isn't a valid millisecond.
+    /// assert!(Time::try_from_hms_milli(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
+    /// assert!(Time::try_from_hms_milli(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
+    /// assert!(Time::try_from_hms_milli(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
+    /// assert!(Time::try_from_hms_milli(0, 0, 0, 1_000).is_err()); // 1_000 isn't a valid millisecond.
     /// ```
     #[inline(always)]
-    pub fn try_from_hms_milli(hour: u8, minute: u8, second: u8, millisecond: u16) -> Option<Self> {
+    pub fn try_from_hms_milli(
+        hour: u8,
+        minute: u8,
+        second: u8,
+        millisecond: u16,
+    ) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(hour in 0 => exclusive 24);
         ensure_value_in_range!(minute in 0 => exclusive 60);
         ensure_value_in_range!(second in 0 => exclusive 60);
         ensure_value_in_range!(millisecond in 0 => exclusive 1_000);
-        Some(Self {
+        Ok(Self {
             hour,
             minute,
             second,
@@ -249,25 +254,30 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_micro(1, 2, 3, 4).is_some());
+    /// assert!(Time::try_from_hms_micro(1, 2, 3, 4).is_ok());
     /// ```
     ///
     /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_micro(24, 0, 0, 0).is_none()); // 24 isn't a valid hour.
-    /// assert!(Time::try_from_hms_micro(0, 60, 0, 0).is_none()); // 60 isn't a valid minute.
-    /// assert!(Time::try_from_hms_micro(0, 0, 60, 0).is_none()); // 60 isn't a valid second.
-    /// assert!(Time::try_from_hms_micro(0, 0, 0, 1_000_000).is_none()); // 1_000_000 isn't a valid microsecond.
+    /// assert!(Time::try_from_hms_micro(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
+    /// assert!(Time::try_from_hms_micro(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
+    /// assert!(Time::try_from_hms_micro(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
+    /// assert!(Time::try_from_hms_micro(0, 0, 0, 1_000_000).is_err()); // 1_000_000 isn't a valid microsecond.
     /// ```
     #[inline(always)]
-    pub fn try_from_hms_micro(hour: u8, minute: u8, second: u8, microsecond: u32) -> Option<Self> {
+    pub fn try_from_hms_micro(
+        hour: u8,
+        minute: u8,
+        second: u8,
+        microsecond: u32,
+    ) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(hour in 0 => exclusive 24);
         ensure_value_in_range!(minute in 0 => exclusive 60);
         ensure_value_in_range!(second in 0 => exclusive 60);
         ensure_value_in_range!(microsecond in 0 => exclusive 1_000_000);
-        Some(Self {
+        Ok(Self {
             hour,
             minute,
             second,
@@ -325,25 +335,30 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_nano(1, 2, 3, 4).is_some());
+    /// assert!(Time::try_from_hms_nano(1, 2, 3, 4).is_ok());
     /// ```
     ///
     /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_nano(24, 0, 0, 0).is_none()); // 24 isn't a valid hour.
-    /// assert!(Time::try_from_hms_nano(0, 60, 0, 0).is_none()); // 60 isn't a valid minute.
-    /// assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_none()); // 60 isn't a valid second.
-    /// assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_none()); // 1_000_000_000 isn't a valid nanosecond.
+    /// assert!(Time::try_from_hms_nano(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
+    /// assert!(Time::try_from_hms_nano(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
+    /// assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
+    /// assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
     #[inline(always)]
-    pub fn try_from_hms_nano(hour: u8, minute: u8, second: u8, nanosecond: u32) -> Option<Self> {
+    pub fn try_from_hms_nano(
+        hour: u8,
+        minute: u8,
+        second: u8,
+        nanosecond: u32,
+    ) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(hour in 0 => exclusive 24);
         ensure_value_in_range!(minute in 0 => exclusive 60);
         ensure_value_in_range!(second in 0 => exclusive 60);
         ensure_value_in_range!(nanosecond in 0 => exclusive 1_000_000_000);
-        Some(Self {
+        Ok(Self {
             hour,
             minute,
             second,
@@ -809,7 +824,7 @@ impl Ord for Time {
 }
 
 #[cfg(test)]
-#[allow(clippy::option_unwrap_used)]
+#[allow(clippy::result_unwrap_used)]
 mod test {
     use super::*;
     use crate::prelude::*;
@@ -857,9 +872,9 @@ mod test {
         assert_eq!(time.second(), 3);
         assert_eq!(time.nanosecond(), 0);
 
-        assert!(Time::try_from_hms(24, 0, 0).is_none());
-        assert!(Time::try_from_hms(0, 60, 0).is_none());
-        assert!(Time::try_from_hms(0, 0, 60).is_none());
+        assert!(Time::try_from_hms(24, 0, 0).is_err());
+        assert!(Time::try_from_hms(0, 60, 0).is_err());
+        assert!(Time::try_from_hms(0, 0, 60).is_err());
     }
 
     #[test]
@@ -892,10 +907,10 @@ mod test {
         assert_eq!(time.millisecond(), 4);
         assert_eq!(time.nanosecond(), 4_000_000);
 
-        assert!(Time::try_from_hms_milli(24, 0, 0, 0).is_none());
-        assert!(Time::try_from_hms_milli(0, 60, 0, 0).is_none());
-        assert!(Time::try_from_hms_milli(0, 0, 60, 0).is_none());
-        assert!(Time::try_from_hms_milli(0, 0, 0, 1_000).is_none());
+        assert!(Time::try_from_hms_milli(24, 0, 0, 0).is_err());
+        assert!(Time::try_from_hms_milli(0, 60, 0, 0).is_err());
+        assert!(Time::try_from_hms_milli(0, 0, 60, 0).is_err());
+        assert!(Time::try_from_hms_milli(0, 0, 0, 1_000).is_err());
     }
 
     #[test]
@@ -928,10 +943,10 @@ mod test {
         assert_eq!(time.microsecond(), 4);
         assert_eq!(time.nanosecond(), 4_000);
 
-        assert!(Time::try_from_hms_micro(24, 0, 0, 0).is_none());
-        assert!(Time::try_from_hms_micro(0, 60, 0, 0).is_none());
-        assert!(Time::try_from_hms_micro(0, 0, 60, 0).is_none());
-        assert!(Time::try_from_hms_micro(0, 0, 0, 1_000_000).is_none());
+        assert!(Time::try_from_hms_micro(24, 0, 0, 0).is_err());
+        assert!(Time::try_from_hms_micro(0, 60, 0, 0).is_err());
+        assert!(Time::try_from_hms_micro(0, 0, 60, 0).is_err());
+        assert!(Time::try_from_hms_micro(0, 0, 0, 1_000_000).is_err());
     }
 
     #[test]
@@ -962,10 +977,10 @@ mod test {
         assert_eq!(time.second(), 3);
         assert_eq!(time.nanosecond(), 4);
 
-        assert!(Time::try_from_hms_nano(24, 0, 0, 0).is_none());
-        assert!(Time::try_from_hms_nano(0, 60, 0, 0).is_none());
-        assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_none());
-        assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_none());
+        assert!(Time::try_from_hms_nano(24, 0, 0, 0).is_err());
+        assert!(Time::try_from_hms_nano(0, 60, 0, 0).is_err());
+        assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_err());
+        assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_err());
     }
 
     #[test]

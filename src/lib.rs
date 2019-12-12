@@ -210,19 +210,19 @@ macro_rules! assert_value_in_range {
 macro_rules! ensure_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
         if !($start..=$end).contains(&$value) {
-            return None;
+            return Err(ComponentRangeError);
         }
     };
 
     ($value:ident in $start:expr => exclusive $end:expr) => {
         if !($start..$end).contains(&$value) {
-            return None;
+            return Err(ComponentRangeError);
         }
     };
 
     ($value:ident in $start:expr => $end:expr,given $($conditional:ident),+ $(,)?) => {
         if !($start..=$end).contains(&$value) {
-            return None;
+            return Err(ComponentRangeError);
         };
     };
 }
@@ -329,20 +329,22 @@ impl fmt::Display for ConversionRangeError {
 #[cfg(feature = "std")]
 impl std::error::Error for ConversionRangeError {}
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    #[cfg(not(feature = "std"))]
-    use crate::no_std_prelude::*;
+/// An error type indicating that a component provided to a method was out of
+/// range, causing a failure.
+#[allow(missing_copy_implementations)] // Non-copy fields may be added.
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ComponentRangeError;
 
-    #[test]
-    fn out_of_range_error_format() {
-        assert_eq!(
-            ComponentRangeError.to_string(),
-            "Source value is out of range for the target type",
-        );
+impl fmt::Display for ComponentRangeError {
+    #[inline(always)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str("A component's value is out of range")
     }
 }
+
+#[cfg(feature = "std")]
+impl std::error::Error for ComponentRangeError {}
 
 // For some back-compatibility, we're also implementing some deprecated types
 // and methods. They will be removed completely in 0.3.

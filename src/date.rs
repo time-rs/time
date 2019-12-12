@@ -2,7 +2,7 @@
 use crate::no_std_prelude::*;
 use crate::{
     format::parse::{parse, ParseError, ParseResult, ParsedItems},
-    DeferredFormat, Duration, PrimitiveDateTime, Time,
+    ComponentRangeError, DeferredFormat, Duration, PrimitiveDateTime, Time,
     Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
 };
 use core::{
@@ -139,18 +139,18 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::try_from_ymd(2019, 1, 1).is_some());
-    /// assert!(Date::try_from_ymd(2019, 12, 31).is_some());
+    /// assert!(Date::try_from_ymd(2019, 1, 1).is_ok());
+    /// assert!(Date::try_from_ymd(2019, 12, 31).is_ok());
     /// ```
     ///
     /// Returns `None` if the date is not valid.
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::try_from_ymd(2019, 2, 29).is_none()); // 2019 isn't a leap year.
+    /// assert!(Date::try_from_ymd(2019, 2, 29).is_err()); // 2019 isn't a leap year.
     /// ```
     #[inline]
-    pub fn try_from_ymd(year: i32, month: u8, day: u8) -> Option<Self> {
+    pub fn try_from_ymd(year: i32, month: u8, day: u8) -> Result<Self, ComponentRangeError> {
         /// Cumulative days through the beginning of a month in both common and
         /// leap years.
         const DAYS_CUMULATIVE_COMMON_LEAP: [[u16; 12]; 2] = [
@@ -163,7 +163,7 @@ impl Date {
 
         let ordinal = DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1];
 
-        Some(Self {
+        Ok(Self {
             year,
             ordinal: ordinal + day as u16,
         })
@@ -193,20 +193,20 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::try_from_yo(2019, 1).is_some());
-    /// assert!(Date::try_from_yo(2019, 365).is_some());
+    /// assert!(Date::try_from_yo(2019, 1).is_ok());
+    /// assert!(Date::try_from_yo(2019, 365).is_ok());
     /// ```
     ///
     /// Returns `None` if the date is not valid.
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::try_from_yo(2019, 366).is_none()); // 2019 isn't a leap year.
+    /// assert!(Date::try_from_yo(2019, 366).is_err()); // 2019 isn't a leap year.
     /// ```
     #[inline(always)]
-    pub fn try_from_yo(year: i32, ordinal: u16) -> Option<Self> {
+    pub fn try_from_yo(year: i32, ordinal: u16) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(ordinal in 1 => days_in_year(year), given year);
-        Some(Self { year, ordinal })
+        Ok(Self { year, ordinal })
     }
 
     /// Create a `Date` from the ISO year, week, and weekday.
@@ -256,33 +256,37 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, Weekday::*};
-    /// assert!(Date::try_from_iso_ywd(2019, 1, Monday).is_some());
-    /// assert!(Date::try_from_iso_ywd(2019, 1, Tuesday).is_some());
-    /// assert!(Date::try_from_iso_ywd(2020, 53, Friday).is_some());
+    /// assert!(Date::try_from_iso_ywd(2019, 1, Monday).is_ok());
+    /// assert!(Date::try_from_iso_ywd(2019, 1, Tuesday).is_ok());
+    /// assert!(Date::try_from_iso_ywd(2020, 53, Friday).is_ok());
     /// ```
     ///
     /// Returns `None` if the week is not valid.
     ///
     /// ```rust
     /// # use time::{Date, Weekday::*};
-    /// assert!(Date::try_from_iso_ywd(2019, 53, Monday).is_none()); // 2019 doesn't have 53 weeks.
+    /// assert!(Date::try_from_iso_ywd(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
     /// ```
     #[inline]
-    pub fn try_from_iso_ywd(year: i32, week: u8, weekday: Weekday) -> Option<Self> {
+    pub fn try_from_iso_ywd(
+        year: i32,
+        week: u8,
+        weekday: Weekday,
+    ) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(week in 1 => weeks_in_year(year), given year);
 
         let ordinal = week as u16 * 7 + weekday.iso_weekday_number() as u16
             - (Self::from_yo(year, 4).weekday().iso_weekday_number() as u16 + 3);
 
         if ordinal < 1 {
-            return Some(Self::from_yo(year - 1, ordinal + days_in_year(year - 1)));
+            return Ok(Self::from_yo(year - 1, ordinal + days_in_year(year - 1)));
         }
 
         let days_in_cur_year = days_in_year(year);
         if ordinal > days_in_cur_year {
-            Some(Self::from_yo(year + 1, ordinal - days_in_cur_year))
+            Ok(Self::from_yo(year + 1, ordinal - days_in_cur_year))
         } else {
-            Some(Self::from_yo(year, ordinal))
+            Ok(Self::from_yo(year, ordinal))
         }
     }
 
@@ -707,12 +711,17 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::from_ymd(1970, 1, 1).try_with_hms(0, 0, 0).is_some());
-    /// assert!(Date::from_ymd(1970, 1, 1).try_with_hms(24, 0, 0).is_none());
+    /// assert!(Date::from_ymd(1970, 1, 1).try_with_hms(0, 0, 0).is_ok());
+    /// assert!(Date::from_ymd(1970, 1, 1).try_with_hms(24, 0, 0).is_err());
     /// ```
     #[inline(always)]
-    pub fn try_with_hms(self, hour: u8, minute: u8, second: u8) -> Option<PrimitiveDateTime> {
-        Some(PrimitiveDateTime::new(
+    pub fn try_with_hms(
+        self,
+        hour: u8,
+        minute: u8,
+        second: u8,
+    ) -> Result<PrimitiveDateTime, ComponentRangeError> {
+        Ok(PrimitiveDateTime::new(
             self,
             Time::try_from_hms(hour, minute, second)?,
         ))
@@ -747,10 +756,10 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::from_ymd(1970, 1, 1)
     ///     .try_with_hms_milli(0, 0, 0, 0)
-    ///     .is_some());
+    ///     .is_ok());
     /// assert!(Date::from_ymd(1970, 1, 1)
     ///     .try_with_hms_milli(24, 0, 0, 0)
-    ///     .is_none());
+    ///     .is_err());
     /// ```
     #[inline(always)]
     pub fn try_with_hms_milli(
@@ -759,8 +768,8 @@ impl Date {
         minute: u8,
         second: u8,
         millisecond: u16,
-    ) -> Option<PrimitiveDateTime> {
-        Some(PrimitiveDateTime::new(
+    ) -> Result<PrimitiveDateTime, ComponentRangeError> {
+        Ok(PrimitiveDateTime::new(
             self,
             Time::try_from_hms_milli(hour, minute, second, millisecond)?,
         ))
@@ -795,10 +804,10 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::from_ymd(1970, 1, 1)
     ///     .try_with_hms_micro(0, 0, 0, 0)
-    ///     .is_some());
+    ///     .is_ok());
     /// assert!(Date::from_ymd(1970, 1, 1)
     ///     .try_with_hms_micro(24, 0, 0, 0)
-    ///     .is_none());
+    ///     .is_err());
     /// ```
     #[inline(always)]
     pub fn try_with_hms_micro(
@@ -807,8 +816,8 @@ impl Date {
         minute: u8,
         second: u8,
         microsecond: u32,
-    ) -> Option<PrimitiveDateTime> {
-        Some(PrimitiveDateTime::new(
+    ) -> Result<PrimitiveDateTime, ComponentRangeError> {
+        Ok(PrimitiveDateTime::new(
             self,
             Time::try_from_hms_micro(hour, minute, second, microsecond)?,
         ))
@@ -840,10 +849,10 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::from_ymd(1970, 1, 1)
     ///     .try_with_hms_nano(0, 0, 0, 0)
-    ///     .is_some());
+    ///     .is_ok());
     /// assert!(Date::from_ymd(1970, 1, 1)
     ///     .try_with_hms_nano(24, 0, 0, 0)
-    ///     .is_none());
+    ///     .is_err());
     /// ```
     #[inline(always)]
     pub fn try_with_hms_nano(
@@ -852,8 +861,8 @@ impl Date {
         minute: u8,
         second: u8,
         nanosecond: u32,
-    ) -> Option<PrimitiveDateTime> {
-        Some(PrimitiveDateTime::new(
+    ) -> Result<PrimitiveDateTime, ComponentRangeError> {
+        Ok(PrimitiveDateTime::new(
             self,
             Time::try_from_hms_nano(hour, minute, second, nanosecond)?,
         ))
@@ -2084,9 +2093,9 @@ mod test {
     fn try_with_hms() {
         assert_eq!(
             ymd!(1970, 1, 1).try_with_hms(0, 0, 0),
-            Some(ymd!(1970, 1, 1).with_time(Time::from_hms(0, 0, 0))),
+            Ok(ymd!(1970, 1, 1).with_time(Time::from_hms(0, 0, 0))),
         );
-        assert_eq!(ymd!(1970, 1, 1).try_with_hms(24, 0, 0), None);
+        assert!(ymd!(1970, 1, 1).try_with_hms(24, 0, 0).is_err());
     }
 
     #[test]
@@ -2101,9 +2110,9 @@ mod test {
     fn try_with_hms_milli() {
         assert_eq!(
             ymd!(1970, 1, 1).try_with_hms_milli(0, 0, 0, 0),
-            Some(ymd!(1970, 1, 1).with_time(Time::from_hms_milli(0, 0, 0, 0))),
+            Ok(ymd!(1970, 1, 1).with_time(Time::from_hms_milli(0, 0, 0, 0))),
         );
-        assert_eq!(ymd!(1970, 1, 1).try_with_hms_milli(24, 0, 0, 0), None);
+        assert!(ymd!(1970, 1, 1).try_with_hms_milli(24, 0, 0, 0).is_err());
     }
 
     #[test]
@@ -2118,9 +2127,9 @@ mod test {
     fn try_with_hms_micro() {
         assert_eq!(
             ymd!(1970, 1, 1).try_with_hms_micro(0, 0, 0, 0),
-            Some(ymd!(1970, 1, 1).with_time(Time::from_hms_micro(0, 0, 0, 0))),
+            Ok(ymd!(1970, 1, 1).with_time(Time::from_hms_micro(0, 0, 0, 0))),
         );
-        assert_eq!(ymd!(1970, 1, 1).try_with_hms_micro(24, 0, 0, 0), None);
+        assert!(ymd!(1970, 1, 1).try_with_hms_micro(24, 0, 0, 0).is_err());
     }
 
     #[test]
@@ -2135,9 +2144,9 @@ mod test {
     fn try_with_hms_nano() {
         assert_eq!(
             ymd!(1970, 1, 1).try_with_hms_nano(0, 0, 0, 0),
-            Some(ymd!(1970, 1, 1).with_time(Time::from_hms_nano(0, 0, 0, 0))),
+            Ok(ymd!(1970, 1, 1).with_time(Time::from_hms_nano(0, 0, 0, 0))),
         );
-        assert_eq!(ymd!(1970, 1, 1).try_with_hms_nano(24, 0, 0, 0), None);
+        assert!(ymd!(1970, 1, 1).try_with_hms_nano(24, 0, 0, 0).is_err());
     }
 
     #[test]

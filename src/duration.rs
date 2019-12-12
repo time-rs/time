@@ -1,7 +1,7 @@
 #[cfg(feature = "std")]
 use crate::Instant;
 use crate::{
-    NumberExt, ConversionRangeError,
+    ConversionRangeError, NumberExt,
     Sign::{self, Negative, Positive, Zero},
 };
 use core::{
