@@ -248,6 +248,8 @@ macro_rules! assert_panics {
 mod date;
 /// The `Duration` struct and its associated `impl`s.
 mod duration;
+/// Various error types returned by methods in the time crate.
+mod error;
 mod format;
 /// The `Instant` struct and its associated `impl`s.
 #[cfg(feature = "std")]
@@ -270,9 +272,9 @@ mod utc_offset;
 mod weekday;
 
 pub use self::time::Time;
-use core::fmt;
 pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use duration::Duration;
+pub use error::{ComponentRangeError, ConversionRangeError, Error};
 pub(crate) use format::DeferredFormat;
 #[allow(unreachable_pub)] // rust-lang/rust#64762
 pub use format::ParseError;
@@ -312,39 +314,6 @@ mod no_std_prelude {
         vec::Vec,
     };
 }
-
-/// An error type indicating that a conversion failed because the target type
-/// could not store the initial value.
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ConversionRangeError;
-
-impl fmt::Display for ConversionRangeError {
-    #[inline(always)]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str("Source value is out of range for the target type")
-    }
-}
-
-#[cfg(feature = "std")]
-impl std::error::Error for ConversionRangeError {}
-
-/// An error type indicating that a component provided to a method was out of
-/// range, causing a failure.
-#[allow(missing_copy_implementations)] // Non-copy fields may be added.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ComponentRangeError;
-
-impl fmt::Display for ComponentRangeError {
-    #[inline(always)]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> core::fmt::Result {
-        f.write_str("A component's value is out of range")
-    }
-}
-
-#[cfg(feature = "std")]
-impl std::error::Error for ComponentRangeError {}
 
 // For some back-compatibility, we're also implementing some deprecated types
 // and methods. They will be removed completely in 0.3.
