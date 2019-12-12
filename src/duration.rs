@@ -1,7 +1,7 @@
 #[cfg(feature = "std")]
 use crate::Instant;
 use crate::{
-    NumberExt, OutOfRangeError,
+    NumberExt, ConversionRangeError,
     Sign::{self, Negative, Positive, Zero},
 };
 use core::{
@@ -843,7 +843,7 @@ impl Duration {
         since = "0.2.0",
         note = "Use `Duration::try_from(value)` or `value.try_into()`"
     )]
-    pub fn from_std(std: StdDuration) -> Result<Self, OutOfRangeError> {
+    pub fn from_std(std: StdDuration) -> Result<Self, ConversionRangeError> {
         std.try_into()
     }
 
@@ -853,9 +853,9 @@ impl Duration {
         since = "0.2.0",
         note = "Use `std::time::Duration::try_from(value)` or `value.try_into()`"
     )]
-    pub fn to_std(&self) -> Result<StdDuration, OutOfRangeError> {
+    pub fn to_std(&self) -> Result<StdDuration, ConversionRangeError> {
         if self.sign.is_negative() {
-            Err(OutOfRangeError)
+            Err(ConversionRangeError)
         } else {
             Ok(self.std)
         }
@@ -863,25 +863,25 @@ impl Duration {
 }
 
 impl TryFrom<StdDuration> for Duration {
-    type Error = OutOfRangeError;
+    type Error = ConversionRangeError;
 
     #[inline(always)]
-    fn try_from(original: StdDuration) -> Result<Self, OutOfRangeError> {
+    fn try_from(original: StdDuration) -> Result<Self, ConversionRangeError> {
         some_if_in_range!(Self {
             sign: original.as_nanos().sign(),
             std: original,
         })
-        .ok_or(OutOfRangeError)
+        .ok_or(ConversionRangeError)
     }
 }
 
 impl TryFrom<Duration> for StdDuration {
-    type Error = OutOfRangeError;
+    type Error = ConversionRangeError;
 
     #[inline(always)]
-    fn try_from(duration: Duration) -> Result<Self, OutOfRangeError> {
+    fn try_from(duration: Duration) -> Result<Self, ConversionRangeError> {
         if duration.sign.is_negative() {
-            Err(OutOfRangeError)
+            Err(ConversionRangeError)
         } else {
             Ok(duration.std)
         }

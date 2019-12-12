@@ -315,20 +315,11 @@ mod no_std_prelude {
 
 /// An error type indicating that a conversion failed because the target type
 /// could not store the initial value.
-///
-/// ```rust
-/// # use time::{Duration, OutOfRangeError};
-/// # use core::time::Duration as StdDuration;
-/// # use core::{any::Any, convert::TryFrom};
-/// // "Construct" an `OutOfRangeError`.
-/// let error = StdDuration::try_from(Duration::seconds(-1)).unwrap_err();
-/// assert!(Any::is::<OutOfRangeError>(&error));
-/// ```
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct OutOfRangeError;
+pub struct ConversionRangeError;
 
-impl fmt::Display for OutOfRangeError {
+impl fmt::Display for ConversionRangeError {
     #[inline(always)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str("Source value is out of range for the target type")
@@ -336,7 +327,7 @@ impl fmt::Display for OutOfRangeError {
 }
 
 #[cfg(feature = "std")]
-impl std::error::Error for OutOfRangeError {}
+impl std::error::Error for ConversionRangeError {}
 
 #[cfg(test)]
 mod test {
@@ -347,7 +338,7 @@ mod test {
     #[test]
     fn out_of_range_error_format() {
         assert_eq!(
-            OutOfRangeError.to_string(),
+            ComponentRangeError.to_string(),
             "Source value is out of range for the target type",
         );
     }
