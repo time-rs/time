@@ -16,6 +16,13 @@ use core::{
 /// For equality, comparisons, and hashing, calculations are performed using the
 /// [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(
+        try_from = "crate::serde::PrimitiveDateTime",
+        into = "crate::serde::PrimitiveDateTime"
+    )
+)]
 #[derive(Debug, Clone, Copy, Eq)]
 pub struct OffsetDateTime {
     /// The `PrimitiveDateTime`, which is _always_ UTC.

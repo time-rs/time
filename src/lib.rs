@@ -260,6 +260,8 @@ mod numerical_traits;
 mod offset_date_time;
 /// The `PrimitiveDateTime` struct and its associated `impl`s.
 mod primitive_date_time;
+#[cfg(feature = "serde")]
+mod serde;
 /// Ensure certain methods are present on all types.
 mod shim;
 /// The `Sign` struct and its associated `impl`s.

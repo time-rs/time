@@ -8,6 +8,10 @@ use Sign::{Negative, Positive, Zero};
 /// follows the same rules as real numbers.
 #[repr(i8)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(try_from = "crate::serde::Sign", into = "crate::serde::Sign")
+)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Sign {
     /// A positive value.

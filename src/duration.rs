@@ -22,6 +22,10 @@ use core::{
 /// This implementation allows for negative durations, unlike
 /// [`core::time::Duration`].
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(from = "crate::serde::Duration", into = "crate::serde::Duration")
+)]
 #[derive(Clone, Copy, Debug, Default, Eq)]
 pub struct Duration {
     /// Is the `Duration` positive, negative, or zero?

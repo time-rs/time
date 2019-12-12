@@ -89,6 +89,10 @@ pub fn weeks_in_year(year: i32) -> u8 {
 /// range, please [file an issue](https://github.com/time-rs/time/issues/new)
 /// with your use case.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(try_from = "crate::serde::Date", into = "crate::serde::Date")
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
     #[allow(clippy::missing_docs_in_private_items)]
