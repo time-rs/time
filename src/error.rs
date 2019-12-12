@@ -1,3 +1,4 @@
+use crate::format::ParseError;
 use core::fmt;
 
 /// A unified error type for anything returned by a method in the time crate.
@@ -10,6 +11,7 @@ use core::fmt;
 pub enum Error {
     ConversionRange(ConversionRangeError),
     ComponentRange(ComponentRangeError),
+    Parse(ParseError),
 }
 
 impl fmt::Display for Error {
@@ -18,6 +20,7 @@ impl fmt::Display for Error {
         match self {
             Self::ConversionRange(e) => e.fmt(f),
             Self::ComponentRange(e) => e.fmt(f),
+            Self::Parse(e) => e.fmt(f),
         }
     }
 }
@@ -71,3 +74,10 @@ impl From<ComponentRangeError> for Error {
 
 #[cfg(feature = "std")]
 impl std::error::Error for ComponentRangeError {}
+
+impl From<ParseError> for Error {
+    #[inline(always)]
+    fn from(original: ParseError) -> Self {
+        Self::Parse(original)
+    }
+}
