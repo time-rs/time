@@ -52,6 +52,20 @@
 //! time = { version = "0.2", default-features = false, features = ["deprecated"] }
 //! ```
 //!
+//! ## `panicking-api`
+//!
+//! Non-panicking APIs are provided, and should generally be preferred. However,
+//! there are some situations where avoiding `.unwrap()` may be desired. To
+//! enable these APIs, you need to use the `panicking-api` feature in your
+//! `Cargo.toml`, which is not enabled by default.
+//!
+//! Library authors should avoid using this feature.
+//!
+//! ```toml
+//! [dependencies]
+//! time = { version = "0.2", features = ["panicking-api"] }
+//! ```
+//!
 //! # Formatting
 //!
 //! Time's formatting behavior is based on `strftime` in C, though it is
@@ -156,6 +170,8 @@
 #[macro_use]
 extern crate alloc;
 
+#[cfg(feature = "panicking-api")]
+#[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
 macro_rules! format_conditional {
     ($conditional:ident) => {
         format!(concat!(stringify!($conditional), "={}"), $conditional)
@@ -170,6 +186,8 @@ macro_rules! format_conditional {
 }
 
 /// Panic if the value is not in range.
+#[cfg(feature = "panicking-api")]
+#[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
 macro_rules! assert_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
         if !($start..=$end).contains(&$value) {

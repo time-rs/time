@@ -72,7 +72,9 @@ pub const fn days_in_year(year: i32) -> u16 {
 /// ```
 #[inline(always)]
 pub fn weeks_in_year(year: i32) -> u8 {
-    let weekday = Date::from_yo(year, 1).weekday();
+    let weekday = Date::try_from_yo(year, 1)
+        .expect("date is always valid")
+        .weekday();
 
     if (weekday == Thursday) || (weekday == Wednesday && is_leap_year(year)) {
         53
@@ -120,6 +122,8 @@ impl Date {
     /// Date::from_ymd(2019, 2, 29); // 2019 isn't a leap year.
     /// ```
     #[inline]
+    #[cfg(feature = "panicking-api")]
+    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_ymd(year: i32, month: u8, day: u8) -> Self {
         /// Cumulative days through the beginning of a month in both common and
         /// leap years.
@@ -188,6 +192,8 @@ impl Date {
     /// Date::from_yo(2019, 366); // 2019 isn't a leap year.
     /// ```
     #[inline(always)]
+    #[cfg(feature = "panicking-api")]
+    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_yo(year: i32, ordinal: u16) -> Self {
         assert_value_in_range!(ordinal in 1 => days_in_year(year), given year);
         Self { year, ordinal }
@@ -238,6 +244,8 @@ impl Date {
     /// Date::from_iso_ywd(2019, 53, Monday); // 2019 doesn't have 53 weeks.
     /// ```
     #[inline]
+    #[cfg(feature = "panicking-api")]
+    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_iso_ywd(year: i32, week: u8, weekday: Weekday) -> Self {
         assert_value_in_range!(week in 1 => weeks_in_year(year), given year);
 
@@ -280,17 +288,21 @@ impl Date {
         ensure_value_in_range!(week in 1 => weeks_in_year(year), given year);
 
         let ordinal = week as u16 * 7 + weekday.iso_weekday_number() as u16
-            - (Self::from_yo(year, 4).weekday().iso_weekday_number() as u16 + 3);
+            - (Self::try_from_yo(year, 4)
+                .expect("date is always valid")
+                .weekday()
+                .iso_weekday_number() as u16
+                + 3);
 
         if ordinal < 1 {
-            return Ok(Self::from_yo(year - 1, ordinal + days_in_year(year - 1)));
+            return Self::try_from_yo(year - 1, ordinal + days_in_year(year - 1));
         }
 
         let days_in_cur_year = days_in_year(year);
         if ordinal > days_in_cur_year {
-            Ok(Self::from_yo(year + 1, ordinal - days_in_cur_year))
+            Self::try_from_yo(year + 1, ordinal - days_in_cur_year)
         } else {
-            Ok(Self::from_yo(year, ordinal))
+            Self::try_from_yo(year, ordinal)
         }
     }
 
@@ -362,6 +374,7 @@ impl Date {
     /// assert_eq!(Date::from_ymd(2019, 1, 1).month_day(), (1, 1));
     /// assert_eq!(Date::from_ymd(2019, 12, 31).month_day(), (12, 31));
     /// ```
+    // TODO Refactor to prove to the compiler that this can't panic.
     #[inline]
     pub fn month_day(self) -> (u8, u8) {
         let mut ordinal = self.ordinal;
@@ -662,7 +675,7 @@ impl Date {
         let year = (e / P) - Y + (N + M - month) / N;
 
         #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-        Self::from_ymd(year as i32, month as u8, day as u8)
+        Self::try_from_ymd(year as i32, month as u8, day as u8).expect("date is always valid")
     }
 }
 
@@ -707,6 +720,8 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
+    #[cfg(feature = "panicking-api")]
+    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn with_hms(self, hour: u8, minute: u8, second: u8) -> PrimitiveDateTime {
         PrimitiveDateTime::new(self, Time::from_hms(hour, minute, second))
     }
@@ -741,6 +756,8 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
+    #[cfg(feature = "panicking-api")]
+    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn with_hms_milli(
         self,
         hour: u8,
@@ -789,6 +806,8 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
+    #[cfg(feature = "panicking-api")]
+    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn with_hms_micro(
         self,
         hour: u8,
@@ -837,6 +856,8 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
+    #[cfg(feature = "panicking-api")]
+    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn with_hms_nano(
         self,
         hour: u8,
@@ -924,7 +945,10 @@ impl Date {
         /// Monday-based week numbering.
         #[inline(always)]
         fn adjustment(year: i32) -> i16 {
-            match Date::from_yo(year, 1).weekday() {
+            match Date::try_from_yo(year, 1)
+                .expect("date is always valid")
+                .weekday()
+            {
                 Monday => 7,
                 Tuesday => 1,
                 Wednesday => 2,
@@ -936,12 +960,17 @@ impl Date {
         }
 
         match items {
-            items!(year, month, day) => Ok(Self::from_ymd(year, month.get(), day.get())),
-            items!(year, ordinal_day) => Ok(Self::from_yo(year, ordinal_day.get())),
+            items!(year, month, day) => Ok(Self::try_from_ymd(year, month.get(), day.get())
+                .expect("components are checked when parsing")),
+            items!(year, ordinal_day) => Ok(Self::try_from_yo(year, ordinal_day.get())
+                .expect("components are checked when parsing")),
             items!(week_based_year, iso_week, weekday) => {
-                Ok(Self::from_iso_ywd(week_based_year, iso_week.get(), weekday))
+                Ok(
+                    Self::try_from_iso_ywd(week_based_year, iso_week.get(), weekday)
+                        .expect("components are checked when parsing"),
+                )
             }
-            items!(year, sunday_week, weekday) => Ok(Self::from_yo(
+            items!(year, sunday_week, weekday) => Ok(Self::try_from_yo(
                 year,
                 #[allow(clippy::cast_sign_loss)]
                 {
@@ -949,8 +978,9 @@ impl Date {
                         - adjustment(year)
                         + 1) as u16
                 },
-            )),
-            items!(year, monday_week, weekday) => Ok(Self::from_yo(
+            )
+            .expect("components are checked when parsing")),
+            items!(year, monday_week, weekday) => Ok(Self::try_from_yo(
                 year,
                 #[allow(clippy::cast_sign_loss)]
                 {
@@ -958,7 +988,8 @@ impl Date {
                         - adjustment(year)
                         + 1) as u16
                 },
-            )),
+            )
+            .expect("components are checked when parsing")),
             _ => Err(ParseError::InsufficientInformation),
         }
     }

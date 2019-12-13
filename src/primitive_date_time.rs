@@ -743,6 +743,8 @@ impl Ord for PrimitiveDateTime {
 
 #[cfg(feature = "std")]
 impl From<SystemTime> for PrimitiveDateTime {
+    // There is definitely some way to have this conversion be infallible, but
+    // it won't be an issue for over 500 years.
     #[inline(always)]
     fn from(system_time: SystemTime) -> Self {
         let duration = match system_time.duration_since(SystemTime::UNIX_EPOCH) {

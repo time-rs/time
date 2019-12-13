@@ -85,6 +85,8 @@ impl Time {
     /// Time::from_hms(0, 0, 60); // 60 isn't a valid second.
     /// ```
     #[inline(always)]
+    #[cfg(feature = "panicking-api")]
+    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_hms(hour: u8, minute: u8, second: u8) -> Self {
         assert_value_in_range!(hour in 0 => exclusive 24);
         assert_value_in_range!(minute in 0 => exclusive 60);
@@ -159,6 +161,8 @@ impl Time {
     /// Time::from_hms_milli(0, 0, 0, 1_000); // 1_000 isn't a valid millisecond.
     /// ```
     #[inline(always)]
+    #[cfg(feature = "panicking-api")]
+    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_hms_milli(hour: u8, minute: u8, second: u8, millisecond: u16) -> Self {
         assert_value_in_range!(hour in 0 => exclusive 24);
         assert_value_in_range!(minute in 0 => exclusive 60);
@@ -241,6 +245,8 @@ impl Time {
     /// Time::from_hms_micro(0, 0, 0, 1_000_000); // 1_000_000 isn't a valid microsecond.
     /// ```
     #[inline(always)]
+    #[cfg(feature = "panicking-api")]
+    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_hms_micro(hour: u8, minute: u8, second: u8, microsecond: u32) -> Self {
         assert_value_in_range!(hour in 0 => exclusive 24);
         assert_value_in_range!(minute in 0 => exclusive 60);
@@ -322,6 +328,8 @@ impl Time {
     /// Time::from_hms_nano(0, 0, 0, 1_000_000_000); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
     #[inline(always)]
+    #[cfg(feature = "panicking-api")]
+    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_hms_nano(hour: u8, minute: u8, second: u8, nanosecond: u32) -> Self {
         assert_value_in_range!(hour in 0 => exclusive 24);
         assert_value_in_range!(minute in 0 => exclusive 60);
@@ -567,18 +575,25 @@ impl Time {
         }
 
         match items {
-            items!(hour_24, minute, second) => Ok(Self::from_hms(hour_24, minute, second)),
-            items!(hour_12, minute, second, am_pm) => Ok(Self::from_hms(
-                hour_12_to_24(hour_12, am_pm),
-                minute,
-                second,
-            )),
-            items!(hour_24, minute) => Ok(Self::from_hms(hour_24, minute, 0)),
-            items!(hour_12, minute, am_pm) => {
-                Ok(Self::from_hms(hour_12_to_24(hour_12, am_pm), minute, 0))
+            items!(hour_24, minute, second) => Ok(Self::try_from_hms(hour_24, minute, second)
+                .expect("components are checked when parsing")),
+            items!(hour_12, minute, second, am_pm) => {
+                Ok(
+                    Self::try_from_hms(hour_12_to_24(hour_12, am_pm), minute, second)
+                        .expect("components are checked when parsing"),
+                )
             }
-            items!(hour_24) => Ok(Self::from_hms(hour_24, 0, 0)),
-            items!(hour_12, am_pm) => Ok(Self::from_hms(hour_12_to_24(hour_12, am_pm), 0, 0)),
+            items!(hour_24, minute) => Ok(Self::try_from_hms(hour_24, minute, 0)
+                .expect("components are checked when parsing")),
+            items!(hour_12, minute, am_pm) => {
+                Ok(Self::try_from_hms(hour_12_to_24(hour_12, am_pm), minute, 0)
+                    .expect("components are checked when parsing"))
+            }
+            items!(hour_24) => {
+                Ok(Self::try_from_hms(hour_24, 0, 0).expect("components are checked when parsing"))
+            }
+            items!(hour_12, am_pm) => Ok(Self::try_from_hms(hour_12_to_24(hour_12, am_pm), 0, 0)
+                .expect("components are checked when parsing")),
             _ => Err(ParseError::InsufficientInformation),
         }
     }
