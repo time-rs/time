@@ -272,6 +272,7 @@ mod format;
 /// The `Instant` struct and its associated `impl`s.
 #[cfg(feature = "std")]
 mod instant;
+pub mod internals;
 /// A collection of traits extending built-in numerical types.
 mod numerical_traits;
 /// The `OffsetDateTime` struct and its associated `impl`s.

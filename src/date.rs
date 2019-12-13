@@ -2,7 +2,7 @@
 use crate::no_std_prelude::*;
 use crate::{
     format::parse::{parse, ParseError, ParseResult, ParsedItems},
-    ComponentRangeError, DeferredFormat, Duration, PrimitiveDateTime, Time,
+    internals, ComponentRangeError, DeferredFormat, Duration, PrimitiveDateTime, Time,
     Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
 };
 use core::{
@@ -72,9 +72,7 @@ pub const fn days_in_year(year: i32) -> u16 {
 /// ```
 #[inline(always)]
 pub fn weeks_in_year(year: i32) -> u8 {
-    let weekday = Date::try_from_yo(year, 1)
-        .expect("date is always valid")
-        .weekday();
+    let weekday = internals::Date::from_yo(year, 1).weekday();
 
     if (weekday == Thursday) || (weekday == Wednesday && is_leap_year(year)) {
         53
@@ -125,22 +123,10 @@ impl Date {
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_ymd(year: i32, month: u8, day: u8) -> Self {
-        /// Cumulative days through the beginning of a month in both common and
-        /// leap years.
-        const DAYS_CUMULATIVE_COMMON_LEAP: [[u16; 12]; 2] = [
-            [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
-            [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
-        ];
-
         assert_value_in_range!(month in 1 => 12);
         assert_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
 
-        let ordinal = DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1];
-
-        Self {
-            year,
-            ordinal: ordinal + day as u16,
-        }
+        internals::Date::from_ymd(year, month, day)
     }
 
     /// Attempt to create a `Date` from the year, month, and day.
@@ -159,22 +145,10 @@ impl Date {
     /// ```
     #[inline]
     pub fn try_from_ymd(year: i32, month: u8, day: u8) -> Result<Self, ComponentRangeError> {
-        /// Cumulative days through the beginning of a month in both common and
-        /// leap years.
-        const DAYS_CUMULATIVE_COMMON_LEAP: [[u16; 12]; 2] = [
-            [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
-            [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
-        ];
-
         ensure_value_in_range!(month in 1 => 12);
         ensure_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
 
-        let ordinal = DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1];
-
-        Ok(Self {
-            year,
-            ordinal: ordinal + day as u16,
-        })
+        Ok(internals::Date::from_ymd(year, month, day))
     }
 
     /// Create a `Date` from the year and ordinal day number.
@@ -248,20 +222,7 @@ impl Date {
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_iso_ywd(year: i32, week: u8, weekday: Weekday) -> Self {
         assert_value_in_range!(week in 1 => weeks_in_year(year), given year);
-
-        let ordinal = week as u16 * 7 + weekday.iso_weekday_number() as u16
-            - (Self::from_yo(year, 4).weekday().iso_weekday_number() as u16 + 3);
-
-        if ordinal < 1 {
-            return Self::from_yo(year - 1, ordinal + days_in_year(year - 1));
-        }
-
-        let days_in_cur_year = days_in_year(year);
-        if ordinal > days_in_cur_year {
-            Self::from_yo(year + 1, ordinal - days_in_cur_year)
-        } else {
-            Self::from_yo(year, ordinal)
-        }
+        internals::Date::from_iso_ywd(year, week, weekday)
     }
 
     /// Attempt to create a `Date` from the ISO year, week, and weekday.
@@ -286,24 +247,7 @@ impl Date {
         weekday: Weekday,
     ) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(week in 1 => weeks_in_year(year), given year);
-
-        let ordinal = week as u16 * 7 + weekday.iso_weekday_number() as u16
-            - (Self::try_from_yo(year, 4)
-                .expect("date is always valid")
-                .weekday()
-                .iso_weekday_number() as u16
-                + 3);
-
-        if ordinal < 1 {
-            return Self::try_from_yo(year - 1, ordinal + days_in_year(year - 1));
-        }
-
-        let days_in_cur_year = days_in_year(year);
-        if ordinal > days_in_cur_year {
-            Self::try_from_yo(year + 1, ordinal - days_in_cur_year)
-        } else {
-            Self::try_from_yo(year, ordinal)
-        }
+        Ok(internals::Date::from_iso_ywd(year, week, weekday))
     }
 
     /// Create a `Date` representing the current date.
@@ -674,8 +618,9 @@ impl Date {
         let month = (h / S + M).rem_euclid(N) + 1;
         let year = (e / P) - Y + (N + M - month) / N;
 
+        // TODO Seek out a formal proof that this always results in a valid value.
         #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-        Self::try_from_ymd(year as i32, month as u8, day as u8).expect("date is always valid")
+        internals::Date::from_ymd(year as i32, month as u8, day as u8)
     }
 }
 
@@ -945,10 +890,7 @@ impl Date {
         /// Monday-based week numbering.
         #[inline(always)]
         fn adjustment(year: i32) -> i16 {
-            match Date::try_from_yo(year, 1)
-                .expect("date is always valid")
-                .weekday()
-            {
+            match internals::Date::from_yo(year, 1).weekday() {
                 Monday => 7,
                 Tuesday => 1,
                 Wednesday => 2,
@@ -959,18 +901,16 @@ impl Date {
             }
         }
 
+        // Verification for all components is done at parse time.
         match items {
-            items!(year, month, day) => Ok(Self::try_from_ymd(year, month.get(), day.get())
-                .expect("components are checked when parsing")),
-            items!(year, ordinal_day) => Ok(Self::try_from_yo(year, ordinal_day.get())
-                .expect("components are checked when parsing")),
-            items!(week_based_year, iso_week, weekday) => {
-                Ok(
-                    Self::try_from_iso_ywd(week_based_year, iso_week.get(), weekday)
-                        .expect("components are checked when parsing"),
-                )
-            }
-            items!(year, sunday_week, weekday) => Ok(Self::try_from_yo(
+            items!(year, month, day) => Ok(internals::Date::from_ymd(year, month.get(), day.get())),
+            items!(year, ordinal_day) => Ok(internals::Date::from_yo(year, ordinal_day.get())),
+            items!(week_based_year, iso_week, weekday) => Ok(internals::Date::from_iso_ywd(
+                week_based_year,
+                iso_week.get(),
+                weekday,
+            )),
+            items!(year, sunday_week, weekday) => Ok(internals::Date::from_yo(
                 year,
                 #[allow(clippy::cast_sign_loss)]
                 {
@@ -978,9 +918,8 @@ impl Date {
                         - adjustment(year)
                         + 1) as u16
                 },
-            )
-            .expect("components are checked when parsing")),
-            items!(year, monday_week, weekday) => Ok(Self::try_from_yo(
+            )),
+            items!(year, monday_week, weekday) => Ok(internals::Date::from_yo(
                 year,
                 #[allow(clippy::cast_sign_loss)]
                 {
@@ -988,8 +927,7 @@ impl Date {
                         - adjustment(year)
                         + 1) as u16
                 },
-            )
-            .expect("components are checked when parsing")),
+            )),
             _ => Err(ParseError::InsufficientInformation),
         }
     }
