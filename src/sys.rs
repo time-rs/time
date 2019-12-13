@@ -347,7 +347,7 @@ mod inner {
     }
 }
 
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "redox")))]
 mod inner {
     use libc::{self, time_t};
     use std::mem;
