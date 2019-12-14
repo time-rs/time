@@ -52,7 +52,8 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, OffsetDateTime, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2000, 1, 1)
+    ///     Date::try_from_ymd(2000, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .to_offset(UtcOffset::hours(-1))
@@ -71,7 +72,8 @@ impl OffsetDateTime {
     /// # use time::{Date, OffsetDateTime, UtcOffset};
     /// assert_eq!(
     ///     OffsetDateTime::unix_epoch(),
-    ///     Date::from_ymd(1970, 1, 1)
+    ///     Date::try_from_ymd(1970, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC),
     /// );
@@ -91,7 +93,8 @@ impl OffsetDateTime {
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp(1_546_300_800),
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC),
     /// );
@@ -106,15 +109,19 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms(0, 0, 0)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(0, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::UTC)
     ///         .offset(),
     ///     UtcOffset::UTC,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms(0, 0, 0)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(0, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::hours(1))
     ///         .offset(),
     ///     UtcOffset::hours(1),
@@ -152,18 +159,20 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .date(),
-    ///     Date::from_ymd(2019, 1, 1),
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap(),
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::hours(-1))
     ///         .date(),
-    ///     Date::from_ymd(2018, 12, 31),
+    ///     Date::try_from_ymd(2018, 12, 31).unwrap(),
     /// );
     /// ```
     #[inline(always)]
@@ -176,18 +185,20 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, Time, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .time(),
-    ///     Time::from_hms(0, 0, 0),
+    ///     Time::try_from_hms(0, 0, 0).unwrap(),
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::hours(-1))
     ///         .time(),
-    ///     Time::from_hms(23, 0, 0),
+    ///     Time::try_from_hms(23, 0, 0).unwrap(),
     /// );
     /// ```
     #[inline(always)]
@@ -200,22 +211,26 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .year(),
     ///     2019,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 12, 31)
-    ///         .with_hms(23, 0, 0)
+    ///     Date::try_from_ymd(2019, 12, 31)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::UTC)
     ///         .to_offset(UtcOffset::hours(1))
     ///         .year(),
     ///     2020,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2020, 1, 1)
+    ///     Date::try_from_ymd(2020, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .year(),
@@ -236,15 +251,18 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .month(),
     ///     1,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 12, 31)
-    ///         .with_hms(23, 0, 0)
+    ///     Date::try_from_ymd(2019, 12, 31)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::hours(1))
     ///         .month(),
     ///     1,
@@ -263,15 +281,18 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .day(),
     ///     1,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 12, 31)
-    ///         .with_hms(23, 0, 0)
+    ///     Date::try_from_ymd(2019, 12, 31)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::hours(1))
     ///         .day(),
     ///     1,
@@ -290,15 +311,18 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .month_day(),
     ///     (1, 1),
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 12, 31)
-    ///         .with_hms(23, 0, 0)
+    ///     Date::try_from_ymd(2019, 12, 31)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::hours(1))
     ///         .month_day(),
     ///     (1, 1),
@@ -316,15 +340,18 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .ordinal(),
     ///     1,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 12, 31)
-    ///         .with_hms(23, 0, 0)
+    ///     Date::try_from_ymd(2019, 12, 31)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::hours(1))
     ///         .ordinal(),
     ///     1,
@@ -340,35 +367,40 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .iso_year_week(),
     ///     (2019, 1),
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 10, 4)
+    ///     Date::try_from_ymd(2019, 10, 4)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .iso_year_week(),
     ///     (2019, 40),
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2020, 1, 1)
+    ///     Date::try_from_ymd(2020, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .iso_year_week(),
     ///     (2020, 1),
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2020, 12, 31)
+    ///     Date::try_from_ymd(2020, 12, 31)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .iso_year_week(),
     ///     (2020, 53),
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2021, 1, 1)
+    ///     Date::try_from_ymd(2021, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .iso_year_week(),
@@ -387,28 +419,32 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .week(),
     ///     1,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2020, 1, 1)
+    ///     Date::try_from_ymd(2020, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .week(),
     ///     1,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2020, 12, 31)
+    ///     Date::try_from_ymd(2020, 12, 31)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .week(),
     ///     53,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2021, 1, 1)
+    ///     Date::try_from_ymd(2021, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .week(),
@@ -428,21 +464,24 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset, Weekday::*};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .weekday(),
     ///     Tuesday,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 2, 1)
+    ///     Date::try_from_ymd(2019, 2, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .weekday(),
     ///     Friday,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 3, 1)
+    ///     Date::try_from_ymd(2019, 3, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .weekday(),
@@ -461,15 +500,19 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms(0, 0, 0)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(0, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::UTC)
     ///         .hour(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms(23, 59, 59)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 59, 59)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::hours(-2))
     ///         .hour(),
     ///     21,
@@ -487,15 +530,19 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms(0, 0, 0)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(0, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::UTC)
     ///         .minute(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms(23, 59, 59)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 59, 59)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::minutes(30))
     ///         .minute(),
     ///     29,
@@ -513,15 +560,19 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms(0, 0, 0)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(0, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::UTC)
     ///         .second(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms(23, 59, 59)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 59, 59)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::seconds(30))
     ///         .second(),
     ///     29,
@@ -539,15 +590,19 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms_milli(0, 0, 0, 0)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms_milli(0, 0, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::UTC)
     ///         .millisecond(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms_milli(23, 59, 59, 999)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms_milli(23, 59, 59, 999)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::UTC)
     ///         .millisecond(),
     ///     999,
@@ -565,15 +620,19 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms_micro(0, 0, 0, 0)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms_micro(0, 0, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::UTC)
     ///         .microsecond(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms_micro(23, 59, 59, 999_999)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms_micro(23, 59, 59, 999_999)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::UTC)
     ///         .microsecond(),
     ///     999_999,
@@ -591,15 +650,19 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms_nano(0, 0, 0, 0)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms_nano(0, 0, 0, 0)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::UTC)
     ///         .nanosecond(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms_nano(23, 59, 59, 999_999_999)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms_nano(23, 59, 59, 999_999_999)
+    ///         .unwrap()
     ///         .using_offset(UtcOffset::UTC)
     ///         .nanosecond(),
     ///     999_999_999,
@@ -618,7 +681,8 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 2)
+    ///     Date::try_from_ymd(2019, 1, 2)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .format("%F %r %z"),
@@ -642,15 +706,21 @@ impl OffsetDateTime {
     /// # use time::{Date, PrimitiveDateTime, Weekday::Wednesday};
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
-    ///     Ok(Date::from_ymd(2019, 1, 2).midnight()),
+    ///     Ok(Date::try_from_ymd(2019, 1, 2).unwrap().midnight()),
     /// );
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
-    ///     Ok(Date::from_yo(2019, 2).with_hms(23, 59, 59))
+    ///     Ok(Date::try_from_yo(2019, 2)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 59, 59)
+    ///         .unwrap())
     /// );
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
-    ///     Ok(Date::from_iso_ywd(2019, 1, Wednesday).with_hms(12, 0, 0)),
+    ///     Ok(Date::try_from_iso_ywd(2019, 1, Wednesday)
+    ///         .unwrap()
+    ///         .try_with_hms(12, 0, 0)
+    ///         .unwrap()),
     /// );
     /// ```
     #[inline(always)]
@@ -770,20 +840,20 @@ impl Sub<OffsetDateTime> for OffsetDateTime {
 }
 
 #[cfg(test)]
-#[allow(clippy::zero_prefixed_literal)]
+#[allow(clippy::zero_prefixed_literal, clippy::result_unwrap_used)]
 mod test {
     use super::*;
     use crate::prelude::*;
 
     macro_rules! ymd {
         ($year:literal, $month:literal, $date:literal) => {
-            Date::from_ymd($year, $month, $date)
+            Date::try_from_ymd($year, $month, $date).unwrap()
         };
     }
 
     macro_rules! time {
         ($hour:literal : $minute:literal : $second:literal) => {
-            Time::from_hms($hour, $minute, $second)
+            Time::try_from_hms($hour, $minute, $second).unwrap()
         };
     }
 
@@ -830,14 +900,16 @@ mod test {
     fn offset() {
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms(0, 0, 0)
+                .try_with_hms(0, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 .offset(),
             UtcOffset::UTC,
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms(0, 0, 0)
+                .try_with_hms(0, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::hours(1))
                 .offset(),
             UtcOffset::hours(1),
@@ -902,7 +974,8 @@ mod test {
         );
         assert_eq!(
             ymd!(2019, 12, 31)
-                .with_hms(23, 0, 0)
+                .try_with_hms(23, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 .to_offset(UtcOffset::hours(1))
                 .year(),
@@ -928,7 +1001,8 @@ mod test {
         );
         assert_eq!(
             ymd!(2019, 12, 31)
-                .with_hms(23, 0, 0)
+                .try_with_hms(23, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::hours(1))
                 .month(),
             1,
@@ -946,7 +1020,8 @@ mod test {
         );
         assert_eq!(
             ymd!(2019, 12, 31)
-                .with_hms(23, 0, 0)
+                .try_with_hms(23, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::hours(1))
                 .day(),
             1,
@@ -964,7 +1039,8 @@ mod test {
         );
         assert_eq!(
             ymd!(2019, 12, 31)
-                .with_hms(23, 0, 0)
+                .try_with_hms(23, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::hours(1))
                 .month_day(),
             (1, 1),
@@ -982,7 +1058,8 @@ mod test {
         );
         assert_eq!(
             ymd!(2019, 12, 31)
-                .with_hms(23, 0, 0)
+                .try_with_hms(23, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::hours(1))
                 .ordinal(),
             1,
@@ -1051,14 +1128,16 @@ mod test {
     fn hour() {
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms(0, 0, 0)
+                .try_with_hms(0, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 .hour(),
             0,
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms(23, 59, 59)
+                .try_with_hms(23, 59, 59)
+                .unwrap()
                 .using_offset(UtcOffset::hours(-2))
                 .hour(),
             21,
@@ -1069,14 +1148,16 @@ mod test {
     fn minute() {
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms(0, 0, 0)
+                .try_with_hms(0, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 .minute(),
             0,
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms(23, 59, 59)
+                .try_with_hms(23, 59, 59)
+                .unwrap()
                 .using_offset(UtcOffset::minutes(30))
                 .minute(),
             29,
@@ -1087,14 +1168,16 @@ mod test {
     fn second() {
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms(0, 0, 0)
+                .try_with_hms(0, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 .second(),
             0,
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms(23, 59, 59)
+                .try_with_hms(23, 59, 59)
+                .unwrap()
                 .using_offset(UtcOffset::seconds(30))
                 .second(),
             29,
@@ -1105,14 +1188,16 @@ mod test {
     fn millisecond() {
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms_milli(0, 0, 0, 0)
+                .try_with_hms_milli(0, 0, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 .millisecond(),
             0,
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms_milli(23, 59, 59, 999)
+                .try_with_hms_milli(23, 59, 59, 999)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 .millisecond(),
             999,
@@ -1123,14 +1208,16 @@ mod test {
     fn microsecond() {
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms_micro(0, 0, 0, 0)
+                .try_with_hms_micro(0, 0, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 .microsecond(),
             0,
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms_micro(23, 59, 59, 999_999)
+                .try_with_hms_micro(23, 59, 59, 999_999)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 .microsecond(),
             999_999,
@@ -1141,14 +1228,16 @@ mod test {
     fn nanosecond() {
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms_nano(0, 0, 0, 0)
+                .try_with_hms_nano(0, 0, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 .nanosecond(),
             0,
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms_nano(23, 59, 59, 999_999_999)
+                .try_with_hms_nano(23, 59, 59, 999_999_999)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 .nanosecond(),
             999_999_999,
@@ -1175,11 +1264,17 @@ mod test {
         );
         assert_eq!(
             PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
-            Ok(Date::from_yo(2019, 2).with_hms(23, 59, 59))
+            Ok(Date::try_from_yo(2019, 2)
+                .unwrap()
+                .try_with_hms(23, 59, 59)
+                .unwrap())
         );
         assert_eq!(
             PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
-            Ok(Date::from_iso_ywd(2019, 1, Wednesday).with_hms(12, 0, 0)),
+            Ok(Date::try_from_iso_ywd(2019, 1, Wednesday)
+                .unwrap()
+                .try_with_hms(12, 0, 0)
+                .unwrap()),
         );
     }
 
@@ -1187,7 +1282,8 @@ mod test {
     fn partial_eq() {
         assert_eq!(
             ymd!(1999, 12, 31)
-                .with_hms(23, 0, 0)
+                .try_with_hms(23, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::hours(-1)),
             ymd!(2000, 1, 1).midnight().using_offset(UtcOffset::UTC),
         );
@@ -1197,7 +1293,8 @@ mod test {
     fn partial_ord() {
         let t1 = ymd!(2019, 1, 1).midnight().using_offset(UtcOffset::UTC);
         let t2 = ymd!(2018, 12, 31)
-            .with_hms(23, 0, 0)
+            .try_with_hms(23, 0, 0)
+            .unwrap()
             .using_offset(UtcOffset::hours(-1));
         assert_eq!(t1.partial_cmp(&t2), Some(Ordering::Equal));
     }
@@ -1206,7 +1303,8 @@ mod test {
     fn ord() {
         let t1 = ymd!(2019, 1, 1).midnight().using_offset(UtcOffset::UTC);
         let t2 = ymd!(2018, 12, 31)
-            .with_hms(23, 0, 0)
+            .try_with_hms(23, 0, 0)
+            .unwrap()
             .using_offset(UtcOffset::hours(-1));
         assert_eq!(t1, t2);
     }
@@ -1228,7 +1326,8 @@ mod test {
             {
                 let mut hasher = DefaultHasher::new();
                 ymd!(2018, 12, 31)
-                    .with_hms(23, 0, 0)
+                    .try_with_hms(23, 0, 0)
+                    .unwrap()
                     .using_offset(UtcOffset::hours(-1))
                     .hash(&mut hasher);
                 hasher.finish()
@@ -1248,25 +1347,30 @@ mod test {
         );
         assert_eq!(
             ymd!(2019, 12, 31)
-                .with_hms(23, 59, 59)
+                .try_with_hms(23, 59, 59)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 + 2.seconds(),
             ymd!(2020, 1, 1)
-                .with_hms(0, 0, 1)
+                .try_with_hms(0, 0, 1)
+                .unwrap()
                 .using_offset(UtcOffset::UTC),
         );
         assert_eq!(
             ymd!(2020, 1, 1)
-                .with_hms(0, 0, 1)
+                .try_with_hms(0, 0, 1)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 + (-2).seconds(),
             ymd!(2019, 12, 31)
-                .with_hms(23, 59, 59)
+                .try_with_hms(23, 59, 59)
+                .unwrap()
                 .using_offset(UtcOffset::UTC),
         );
         assert_eq!(
             ymd!(1999, 12, 31)
-                .with_hms(23, 0, 0)
+                .try_with_hms(23, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 + 1.hours(),
             ymd!(2000, 1, 1).midnight().using_offset(UtcOffset::UTC),
@@ -1285,11 +1389,13 @@ mod test {
         );
         assert_eq!(
             ymd!(2019, 12, 31)
-                .with_hms(23, 59, 59)
+                .try_with_hms(23, 59, 59)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 + 2.std_seconds(),
             ymd!(2020, 1, 1)
-                .with_hms(0, 0, 1)
+                .try_with_hms(0, 0, 1)
+                .unwrap()
                 .using_offset(UtcOffset::UTC),
         );
     }
@@ -1311,24 +1417,28 @@ mod test {
         );
 
         let mut nye20t = ymd!(2019, 12, 31)
-            .with_hms(23, 59, 59)
+            .try_with_hms(23, 59, 59)
+            .unwrap()
             .using_offset(UtcOffset::UTC);
         nye20t += 2.seconds();
         assert_eq!(
             nye20t,
             ymd!(2020, 1, 1)
-                .with_hms(0, 0, 1)
+                .try_with_hms(0, 0, 1)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
         );
 
         let mut ny20t = ymd!(2020, 1, 1)
-            .with_hms(0, 0, 1)
+            .try_with_hms(0, 0, 1)
+            .unwrap()
             .using_offset(UtcOffset::UTC);
         ny20t += (-2).seconds();
         assert_eq!(
             ny20t,
             ymd!(2019, 12, 31)
-                .with_hms(23, 59, 59)
+                .try_with_hms(23, 59, 59)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
         );
     }
@@ -1350,13 +1460,15 @@ mod test {
         );
 
         let mut nye20t = ymd!(2019, 12, 31)
-            .with_hms(23, 59, 59)
+            .try_with_hms(23, 59, 59)
+            .unwrap()
             .using_offset(UtcOffset::UTC);
         nye20t += 2.std_seconds();
         assert_eq!(
             nye20t,
             ymd!(2020, 1, 1)
-                .with_hms(0, 0, 1)
+                .try_with_hms(0, 0, 1)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
         );
     }
@@ -1373,25 +1485,30 @@ mod test {
         );
         assert_eq!(
             ymd!(2020, 1, 1)
-                .with_hms(0, 0, 1)
+                .try_with_hms(0, 0, 1)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 - 2.seconds(),
             ymd!(2019, 12, 31)
-                .with_hms(23, 59, 59)
+                .try_with_hms(23, 59, 59)
+                .unwrap()
                 .using_offset(UtcOffset::UTC),
         );
         assert_eq!(
             ymd!(2019, 12, 31)
-                .with_hms(23, 59, 59)
+                .try_with_hms(23, 59, 59)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 - (-2).seconds(),
             ymd!(2020, 1, 1)
-                .with_hms(0, 0, 1)
+                .try_with_hms(0, 0, 1)
+                .unwrap()
                 .using_offset(UtcOffset::UTC),
         );
         assert_eq!(
             ymd!(1999, 12, 31)
-                .with_hms(23, 0, 0)
+                .try_with_hms(23, 0, 0)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 - (-1).hours(),
             ymd!(2000, 1, 1).midnight().using_offset(UtcOffset::UTC),
@@ -1410,11 +1527,13 @@ mod test {
         );
         assert_eq!(
             ymd!(2020, 1, 1)
-                .with_hms(0, 0, 1)
+                .try_with_hms(0, 0, 1)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
                 - 2.std_seconds(),
             ymd!(2019, 12, 31)
-                .with_hms(23, 59, 59)
+                .try_with_hms(23, 59, 59)
+                .unwrap()
                 .using_offset(UtcOffset::UTC),
         );
     }
@@ -1436,24 +1555,28 @@ mod test {
         );
 
         let mut ny20t = ymd!(2020, 1, 1)
-            .with_hms(0, 0, 1)
+            .try_with_hms(0, 0, 1)
+            .unwrap()
             .using_offset(UtcOffset::UTC);
         ny20t -= 2.seconds();
         assert_eq!(
             ny20t,
             ymd!(2019, 12, 31)
-                .with_hms(23, 59, 59)
+                .try_with_hms(23, 59, 59)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
         );
 
         let mut nye20t = ymd!(2019, 12, 31)
-            .with_hms(23, 59, 59)
+            .try_with_hms(23, 59, 59)
+            .unwrap()
             .using_offset(UtcOffset::UTC);
         nye20t -= (-2).seconds();
         assert_eq!(
             nye20t,
             ymd!(2020, 1, 1)
-                .with_hms(0, 0, 1)
+                .try_with_hms(0, 0, 1)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
         );
     }
@@ -1475,13 +1598,15 @@ mod test {
         );
 
         let mut ny20t = ymd!(2020, 1, 1)
-            .with_hms(0, 0, 1)
+            .try_with_hms(0, 0, 1)
+            .unwrap()
             .using_offset(UtcOffset::UTC);
         ny20t -= 2.std_seconds();
         assert_eq!(
             ny20t,
             ymd!(2019, 12, 31)
-                .with_hms(23, 59, 59)
+                .try_with_hms(23, 59, 59)
+                .unwrap()
                 .using_offset(UtcOffset::UTC)
         );
     }

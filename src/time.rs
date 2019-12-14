@@ -45,7 +45,7 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::midnight(), Time::from_hms(0, 0, 0));
+    /// assert_eq!(Time::midnight(), Time::try_from_hms(0, 0, 0).unwrap());
     /// ```
     #[inline(always)]
     pub const fn midnight() -> Self {
@@ -397,8 +397,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms(0, 0, 0).hour(), 0);
-    /// assert_eq!(Time::from_hms(23, 59, 59).hour(), 23);
+    /// assert_eq!(Time::try_from_hms(0, 0, 0).unwrap().hour(), 0);
+    /// assert_eq!(Time::try_from_hms(23, 59, 59).unwrap().hour(), 23);
     /// ```
     #[inline(always)]
     pub const fn hour(self) -> u8 {
@@ -411,8 +411,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms(0, 0, 0).minute(), 0);
-    /// assert_eq!(Time::from_hms(23, 59, 59).minute(), 59);
+    /// assert_eq!(Time::try_from_hms(0, 0, 0).unwrap().minute(), 0);
+    /// assert_eq!(Time::try_from_hms(23, 59, 59).unwrap().minute(), 59);
     /// ```
     #[inline(always)]
     pub const fn minute(self) -> u8 {
@@ -425,8 +425,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms(0, 0, 0).second(), 0);
-    /// assert_eq!(Time::from_hms(23, 59, 59).second(), 59);
+    /// assert_eq!(Time::try_from_hms(0, 0, 0).unwrap().second(), 0);
+    /// assert_eq!(Time::try_from_hms(23, 59, 59).unwrap().second(), 59);
     /// ```
     #[inline(always)]
     pub const fn second(self) -> u8 {
@@ -439,8 +439,16 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms_milli(0, 0, 0, 0).millisecond(), 0);
-    /// assert_eq!(Time::from_hms_milli(23, 59, 59, 999).millisecond(), 999);
+    /// assert_eq!(
+    ///     Time::try_from_hms_milli(0, 0, 0, 0).unwrap().millisecond(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Time::try_from_hms_milli(23, 59, 59, 999)
+    ///         .unwrap()
+    ///         .millisecond(),
+    ///     999
+    /// );
     /// ```
     #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
@@ -454,9 +462,14 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms_micro(0, 0, 0, 0).microsecond(), 0);
     /// assert_eq!(
-    ///     Time::from_hms_micro(23, 59, 59, 999_999).microsecond(),
+    ///     Time::try_from_hms_micro(0, 0, 0, 0).unwrap().microsecond(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Time::try_from_hms_micro(23, 59, 59, 999_999)
+    ///         .unwrap()
+    ///         .microsecond(),
     ///     999_999
     /// );
     /// ```
@@ -471,9 +484,11 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms_nano(0, 0, 0, 0).nanosecond(), 0);
+    /// assert_eq!(Time::try_from_hms_nano(0, 0, 0, 0).unwrap().nanosecond(), 0);
     /// assert_eq!(
-    ///     Time::from_hms_nano(23, 59, 59, 999_999_999).nanosecond(),
+    ///     Time::try_from_hms_nano(23, 59, 59, 999_999_999)
+    ///         .unwrap()
+    ///         .nanosecond(),
     ///     999_999_999
     /// );
     /// ```
@@ -513,7 +528,10 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::from_hms(0, 0, 0).format("%r"), "12:00:00 am");
+    /// assert_eq!(
+    ///     Time::try_from_hms(0, 0, 0).unwrap().format("%r"),
+    ///     "12:00:00 am"
+    /// );
     /// ```
     #[inline(always)]
     pub fn format(self, format: &str) -> String {
@@ -530,22 +548,25 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert_eq!(Time::parse("0:00:00", "%T"), Ok(Time::from_hms(0, 0, 0)));
+    /// assert_eq!(
+    ///     Time::parse("0:00:00", "%T"),
+    ///     Ok(Time::try_from_hms(0, 0, 0).unwrap())
+    /// );
     /// assert_eq!(
     ///     Time::parse("23:59:59", "%T"),
-    ///     Ok(Time::from_hms(23, 59, 59))
+    ///     Ok(Time::try_from_hms(23, 59, 59).unwrap())
     /// );
     /// assert_eq!(
     ///     Time::parse("12:00:00 am", "%r"),
-    ///     Ok(Time::from_hms(0, 0, 0))
+    ///     Ok(Time::try_from_hms(0, 0, 0).unwrap())
     /// );
     /// assert_eq!(
     ///     Time::parse("12:00:00 pm", "%r"),
-    ///     Ok(Time::from_hms(12, 0, 0))
+    ///     Ok(Time::try_from_hms(12, 0, 0).unwrap())
     /// );
     /// assert_eq!(
     ///     Time::parse("11:59:59 pm", "%r"),
-    ///     Ok(Time::from_hms(23, 59, 59))
+    ///     Ok(Time::try_from_hms(23, 59, 59).unwrap())
     /// );
     /// ```
     #[inline(always)]
@@ -607,12 +628,12 @@ impl Add<Duration> for Time {
     /// ```rust
     /// # use time::{Duration, Time};
     /// assert_eq!(
-    ///     Time::from_hms(12, 0, 0) + Duration::hours(2),
-    ///     Time::from_hms(14, 0, 0)
+    ///     Time::try_from_hms(12, 0, 0).unwrap() + Duration::hours(2),
+    ///     Time::try_from_hms(14, 0, 0).unwrap()
     /// );
     /// assert_eq!(
-    ///     Time::from_hms(0, 0, 1) + Duration::seconds(-2),
-    ///     Time::from_hms(23, 59, 59)
+    ///     Time::try_from_hms(0, 0, 1).unwrap() + Duration::seconds(-2),
+    ///     Time::try_from_hms(23, 59, 59).unwrap()
     /// );
     /// ```
     #[inline(always)]
@@ -638,12 +659,12 @@ impl Add<StdDuration> for Time {
     /// # use time::Time;
     /// # use core::time::Duration;
     /// assert_eq!(
-    ///     Time::from_hms(12, 0, 0) + Duration::from_secs(2 * 3_600),
-    ///     Time::from_hms(14, 0, 0)
+    ///     Time::try_from_hms(12, 0, 0).unwrap() + Duration::from_secs(2 * 3_600),
+    ///     Time::try_from_hms(14, 0, 0).unwrap()
     /// );
     /// assert_eq!(
-    ///     Time::from_hms(23, 59, 59) + Duration::from_secs(2),
-    ///     Time::from_hms(0, 0, 1)
+    ///     Time::try_from_hms(23, 59, 59).unwrap() + Duration::from_secs(2),
+    ///     Time::try_from_hms(0, 0, 1).unwrap()
     /// );
     /// ```
     #[inline(always)]
@@ -658,13 +679,13 @@ impl AddAssign<Duration> for Time {
     ///
     /// ```rust
     /// # use time::{Duration, Time};
-    /// let mut time = Time::from_hms(12, 0, 0);
+    /// let mut time = Time::try_from_hms(12, 0, 0).unwrap();
     /// time += Duration::hours(2);
-    /// assert_eq!(time, Time::from_hms(14, 0, 0));
+    /// assert_eq!(time, Time::try_from_hms(14, 0, 0).unwrap());
     ///
-    /// let mut time = Time::from_hms(0, 0, 1);
+    /// let mut time = Time::try_from_hms(0, 0, 1).unwrap();
     /// time += Duration::seconds(-2);
-    /// assert_eq!(time, Time::from_hms(23, 59, 59));
+    /// assert_eq!(time, Time::try_from_hms(23, 59, 59).unwrap());
     /// ```
     #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
@@ -679,13 +700,13 @@ impl AddAssign<StdDuration> for Time {
     /// ```rust
     /// # use time::Time;
     /// # use core::time::Duration;
-    /// let mut time = Time::from_hms(12, 0, 0);
+    /// let mut time = Time::try_from_hms(12, 0, 0).unwrap();
     /// time += Duration::from_secs(2 * 3_600);
-    /// assert_eq!(time, Time::from_hms(14, 0, 0));
+    /// assert_eq!(time, Time::try_from_hms(14, 0, 0).unwrap());
     ///
-    /// let mut time = Time::from_hms(23, 59, 59);
+    /// let mut time = Time::try_from_hms(23, 59, 59).unwrap();
     /// time += Duration::from_secs(2);
-    /// assert_eq!(time, Time::from_hms(0, 0, 1));
+    /// assert_eq!(time, Time::try_from_hms(0, 0, 1).unwrap());
     /// ```
     #[inline(always)]
     fn add_assign(&mut self, duration: StdDuration) {
@@ -702,12 +723,12 @@ impl Sub<Duration> for Time {
     /// ```rust
     /// # use time::{Duration, Time};
     /// assert_eq!(
-    ///     Time::from_hms(14, 0, 0) - Duration::hours(2),
-    ///     Time::from_hms(12, 0, 0)
+    ///     Time::try_from_hms(14, 0, 0).unwrap() - Duration::hours(2),
+    ///     Time::try_from_hms(12, 0, 0).unwrap()
     /// );
     /// assert_eq!(
-    ///     Time::from_hms(23, 59, 59) - Duration::seconds(-2),
-    ///     Time::from_hms(0, 0, 1)
+    ///     Time::try_from_hms(23, 59, 59).unwrap() - Duration::seconds(-2),
+    ///     Time::try_from_hms(0, 0, 1).unwrap()
     /// );
     /// ```
     #[inline(always)]
@@ -726,12 +747,12 @@ impl Sub<StdDuration> for Time {
     /// # use time::Time;
     /// # use core::time::Duration;
     /// assert_eq!(
-    ///     Time::from_hms(14, 0, 0) - Duration::from_secs(2 * 3_600),
-    ///     Time::from_hms(12, 0, 0)
+    ///     Time::try_from_hms(14, 0, 0).unwrap() - Duration::from_secs(2 * 3_600),
+    ///     Time::try_from_hms(12, 0, 0).unwrap()
     /// );
     /// assert_eq!(
-    ///     Time::from_hms(0, 0, 1) - Duration::from_secs(2),
-    ///     Time::from_hms(23, 59, 59)
+    ///     Time::try_from_hms(0, 0, 1).unwrap() - Duration::from_secs(2),
+    ///     Time::try_from_hms(23, 59, 59).unwrap()
     /// );
     /// ```
     #[inline(always)]
@@ -746,13 +767,13 @@ impl SubAssign<Duration> for Time {
     ///
     /// ```rust
     /// # use time::{Duration, Time};
-    /// let mut time = Time::from_hms(14, 0, 0);
+    /// let mut time = Time::try_from_hms(14, 0, 0).unwrap();
     /// time -= Duration::hours(2);
-    /// assert_eq!(time, Time::from_hms(12, 0, 0));
+    /// assert_eq!(time, Time::try_from_hms(12, 0, 0).unwrap());
     ///
-    /// let mut time = Time::from_hms(23, 59, 59);
+    /// let mut time = Time::try_from_hms(23, 59, 59).unwrap();
     /// time -= Duration::seconds(-2);
-    /// assert_eq!(time, Time::from_hms(0, 0, 1));
+    /// assert_eq!(time, Time::try_from_hms(0, 0, 1).unwrap());
     /// ```
     #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
@@ -767,13 +788,13 @@ impl SubAssign<StdDuration> for Time {
     /// ```rust
     /// # use time::Time;
     /// # use core::time::Duration;
-    /// let mut time = Time::from_hms(14, 0, 0);
+    /// let mut time = Time::try_from_hms(14, 0, 0).unwrap();
     /// time -= Duration::from_secs(2 * 3_600);
-    /// assert_eq!(time, Time::from_hms(12, 0, 0));
+    /// assert_eq!(time, Time::try_from_hms(12, 0, 0).unwrap());
     ///
-    /// let mut time = Time::from_hms(0, 0, 1);
+    /// let mut time = Time::try_from_hms(0, 0, 1).unwrap();
     /// time -= Duration::from_secs(2);
-    /// assert_eq!(time, Time::from_hms(23, 59, 59));
+    /// assert_eq!(time, Time::try_from_hms(23, 59, 59).unwrap());
     /// ```
     #[inline(always)]
     fn sub_assign(&mut self, duration: StdDuration) {
@@ -790,19 +811,19 @@ impl Sub<Time> for Time {
     /// ```rust
     /// use time::{Duration, Time};
     /// assert_eq!(
-    ///     Time::from_hms(0, 0, 0) - Time::from_hms(0, 0, 0),
+    ///     Time::try_from_hms(0, 0, 0).unwrap() - Time::try_from_hms(0, 0, 0).unwrap(),
     ///     Duration::zero()
     /// );
     /// assert_eq!(
-    ///     Time::from_hms(1, 0, 0) - Time::from_hms(0, 0, 0),
+    ///     Time::try_from_hms(1, 0, 0).unwrap() - Time::try_from_hms(0, 0, 0).unwrap(),
     ///     Duration::hour()
     /// );
     /// assert_eq!(
-    ///     Time::from_hms(0, 0, 0) - Time::from_hms(1, 0, 0),
+    ///     Time::try_from_hms(0, 0, 0).unwrap() - Time::try_from_hms(1, 0, 0).unwrap(),
     ///     Duration::hours(-1)
     /// );
     /// assert_eq!(
-    ///     Time::from_hms(0, 0, 0) - Time::from_hms(23, 0, 0),
+    ///     Time::try_from_hms(0, 0, 0).unwrap() - Time::try_from_hms(23, 0, 0).unwrap(),
     ///     Duration::hours(-23)
     /// );
     /// ```
@@ -850,11 +871,11 @@ mod test {
 
     #[test]
     fn nanoseconds_since_midnight() {
-        let time = Time::from_hms(0, 0, 0);
+        let time = Time::try_from_hms(0, 0, 0).unwrap();
         assert_eq!(time.nanoseconds_since_midnight(), 0);
         assert_eq!(Time::from_nanoseconds_since_midnight(0), time);
 
-        let time = Time::from_hms_nano(23, 59, 59, 999_999_999);
+        let time = Time::try_from_hms_nano(23, 59, 59, 999_999_999).unwrap();
         assert_eq!(time.nanoseconds_since_midnight(), NANOS_PER_DAY - 1);
         assert_eq!(
             Time::from_nanoseconds_since_midnight(NANOS_PER_DAY - 1),
@@ -864,10 +885,11 @@ mod test {
 
     #[test]
     fn midnight() {
-        assert_eq!(Time::midnight(), Time::from_hms(0, 0, 0));
+        assert_eq!(Time::midnight(), Time::try_from_hms(0, 0, 0).unwrap());
     }
 
     #[test]
+    #[cfg(feature = "panicking-api")]
     fn from_hms() {
         let time = Time::from_hms(1, 2, 3);
         assert_eq!(time.hour(), 1);
@@ -897,6 +919,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "panicking-api")]
     fn from_hms_milli() {
         let time = Time::from_hms_milli(1, 2, 3, 4);
         assert_eq!(time.hour(), 1);
@@ -933,6 +956,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "panicking-api")]
     fn from_hms_micro() {
         let time = Time::from_hms_micro(1, 2, 3, 4);
         assert_eq!(time.hour(), 1);
@@ -969,6 +993,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "panicking-api")]
     fn from_hms_nano() {
         let time = Time::from_hms_nano(1, 2, 3, 4);
         assert_eq!(time.hour(), 1);
@@ -1005,110 +1030,180 @@ mod test {
     #[test]
     fn hour() {
         for hour in 0..24 {
-            assert_eq!(Time::from_hms(hour, 0, 0).hour(), hour);
-            assert_eq!(Time::from_hms(hour, 59, 59).hour(), hour);
+            assert_eq!(Time::try_from_hms(hour, 0, 0).unwrap().hour(), hour);
+            assert_eq!(Time::try_from_hms(hour, 59, 59).unwrap().hour(), hour);
         }
     }
 
     #[test]
     fn minute() {
         for minute in 0..60 {
-            assert_eq!(Time::from_hms(0, minute, 0).minute(), minute);
-            assert_eq!(Time::from_hms(23, minute, 59).minute(), minute);
+            assert_eq!(Time::try_from_hms(0, minute, 0).unwrap().minute(), minute);
+            assert_eq!(Time::try_from_hms(23, minute, 59).unwrap().minute(), minute);
         }
     }
 
     #[test]
     fn second() {
         for second in 0..60 {
-            assert_eq!(Time::from_hms(0, 0, second).second(), second);
-            assert_eq!(Time::from_hms(23, 59, second).second(), second);
+            assert_eq!(Time::try_from_hms(0, 0, second).unwrap().second(), second);
+            assert_eq!(Time::try_from_hms(23, 59, second).unwrap().second(), second);
         }
     }
 
     #[test]
     fn millisecond() {
         for milli in 0..1_000 {
-            assert_eq!(Time::from_hms_milli(0, 0, 0, milli).millisecond(), milli);
-            assert_eq!(Time::from_hms_milli(23, 59, 59, milli).millisecond(), milli);
+            assert_eq!(
+                Time::try_from_hms_milli(0, 0, 0, milli)
+                    .unwrap()
+                    .millisecond(),
+                milli
+            );
+            assert_eq!(
+                Time::try_from_hms_milli(23, 59, 59, milli)
+                    .unwrap()
+                    .millisecond(),
+                milli
+            );
         }
     }
 
     #[test]
     fn microsecond() {
         for micro in (0..1_000_000).step_by(1_000) {
-            assert_eq!(Time::from_hms_micro(0, 0, 0, micro).microsecond(), micro);
-            assert_eq!(Time::from_hms_micro(23, 59, 59, micro).microsecond(), micro);
+            assert_eq!(
+                Time::try_from_hms_micro(0, 0, 0, micro)
+                    .unwrap()
+                    .microsecond(),
+                micro
+            );
+            assert_eq!(
+                Time::try_from_hms_micro(23, 59, 59, micro)
+                    .unwrap()
+                    .microsecond(),
+                micro
+            );
         }
     }
 
     #[test]
     fn nanosecond() {
         for nano in (0..1_000_000_000).step_by(1_000_000) {
-            assert_eq!(Time::from_hms_nano(0, 0, 0, nano).nanosecond(), nano);
-            assert_eq!(Time::from_hms_nano(23, 59, 59, nano).nanosecond(), nano);
+            assert_eq!(
+                Time::try_from_hms_nano(0, 0, 0, nano).unwrap().nanosecond(),
+                nano
+            );
+            assert_eq!(
+                Time::try_from_hms_nano(23, 59, 59, nano)
+                    .unwrap()
+                    .nanosecond(),
+                nano
+            );
         }
     }
 
     #[test]
     fn format() {
-        assert_eq!(Time::from_hms(0, 0, 0).format("%T"), "0:00:00");
-        assert_eq!(Time::from_hms(0, 0, 0).format("%r"), "12:00:00 am");
-        assert_eq!(Time::from_hms(23, 59, 59).format("%T"), "23:59:59");
-        assert_eq!(Time::from_hms(23, 59, 59).format("%r"), "11:59:59 pm");
+        assert_eq!(Time::try_from_hms(0, 0, 0).unwrap().format("%T"), "0:00:00");
+        assert_eq!(
+            Time::try_from_hms(0, 0, 0).unwrap().format("%r"),
+            "12:00:00 am"
+        );
+        assert_eq!(
+            Time::try_from_hms(23, 59, 59).unwrap().format("%T"),
+            "23:59:59"
+        );
+        assert_eq!(
+            Time::try_from_hms(23, 59, 59).unwrap().format("%r"),
+            "11:59:59 pm"
+        );
     }
 
     #[test]
     fn parse() {
-        assert_eq!(Time::parse("0:00:00", "%T"), Ok(Time::from_hms(0, 0, 0)));
+        assert_eq!(
+            Time::parse("0:00:00", "%T"),
+            Ok(Time::try_from_hms(0, 0, 0).unwrap())
+        );
         assert_eq!(
             Time::parse("23:59:59", "%T"),
-            Ok(Time::from_hms(23, 59, 59))
+            Ok(Time::try_from_hms(23, 59, 59).unwrap())
         );
-        assert_eq!(Time::parse("1:00:00 am", "%r"), Ok(Time::from_hms(1, 0, 0)));
+        assert_eq!(
+            Time::parse("1:00:00 am", "%r"),
+            Ok(Time::try_from_hms(1, 0, 0).unwrap())
+        );
         assert_eq!(
             Time::parse("12:00:00 am", "%r"),
-            Ok(Time::from_hms(0, 0, 0))
+            Ok(Time::try_from_hms(0, 0, 0).unwrap())
         );
         assert_eq!(
             Time::parse("12:00:00 pm", "%r"),
-            Ok(Time::from_hms(12, 0, 0))
+            Ok(Time::try_from_hms(12, 0, 0).unwrap())
         );
         assert_eq!(
             Time::parse("11:59:59 pm", "%r"),
-            Ok(Time::from_hms(23, 59, 59))
+            Ok(Time::try_from_hms(23, 59, 59).unwrap())
         );
     }
 
     #[test]
     fn parse_missing_seconds() {
         // Missing seconds defaults to zero.
-        assert_eq!(Time::parse("0:00", "%-H:%M"), Ok(Time::from_hms(0, 0, 0)));
-        assert_eq!(Time::parse("23:59", "%H:%M"), Ok(Time::from_hms(23, 59, 0)));
+        assert_eq!(
+            Time::parse("0:00", "%-H:%M"),
+            Ok(Time::try_from_hms(0, 0, 0).unwrap())
+        );
+        assert_eq!(
+            Time::parse("23:59", "%H:%M"),
+            Ok(Time::try_from_hms(23, 59, 0).unwrap())
+        );
         assert_eq!(
             Time::parse("12:00 am", "%I:%M %p"),
-            Ok(Time::from_hms(0, 0, 0))
+            Ok(Time::try_from_hms(0, 0, 0).unwrap())
         );
         assert_eq!(
             Time::parse("12:00 pm", "%I:%M %p"),
-            Ok(Time::from_hms(12, 0, 0))
+            Ok(Time::try_from_hms(12, 0, 0).unwrap())
         );
     }
 
     #[test]
     fn parse_missing_minutes() {
         // Missing minutes defaults to zero.
-        assert_eq!(Time::parse("0", "%-H"), Ok(Time::from_hms(0, 0, 0)));
-        assert_eq!(Time::parse("23", "%H"), Ok(Time::from_hms(23, 0, 0)));
-        assert_eq!(Time::parse("12am", "%I%p"), Ok(Time::from_hms(0, 0, 0)));
-        assert_eq!(Time::parse("12pm", "%I%p"), Ok(Time::from_hms(12, 0, 0)));
+        assert_eq!(
+            Time::parse("0", "%-H"),
+            Ok(Time::try_from_hms(0, 0, 0).unwrap())
+        );
+        assert_eq!(
+            Time::parse("23", "%H"),
+            Ok(Time::try_from_hms(23, 0, 0).unwrap())
+        );
+        assert_eq!(
+            Time::parse("12am", "%I%p"),
+            Ok(Time::try_from_hms(0, 0, 0).unwrap())
+        );
+        assert_eq!(
+            Time::parse("12pm", "%I%p"),
+            Ok(Time::try_from_hms(12, 0, 0).unwrap())
+        );
     }
 
     #[test]
     fn add_duration() {
-        assert_eq!(Time::midnight() + 1.seconds(), Time::from_hms(0, 0, 1));
-        assert_eq!(Time::midnight() + 1.minutes(), Time::from_hms(0, 1, 0));
-        assert_eq!(Time::midnight() + 1.hours(), Time::from_hms(1, 0, 0));
+        assert_eq!(
+            Time::midnight() + 1.seconds(),
+            Time::try_from_hms(0, 0, 1).unwrap()
+        );
+        assert_eq!(
+            Time::midnight() + 1.minutes(),
+            Time::try_from_hms(0, 1, 0).unwrap()
+        );
+        assert_eq!(
+            Time::midnight() + 1.hours(),
+            Time::try_from_hms(1, 0, 0).unwrap()
+        );
         assert_eq!(Time::midnight() + 1.days(), Time::midnight());
     }
 
@@ -1117,29 +1212,38 @@ mod test {
         let mut time = Time::midnight();
 
         time += 1.seconds();
-        assert_eq!(time, Time::from_hms(0, 0, 1));
+        assert_eq!(time, Time::try_from_hms(0, 0, 1).unwrap());
 
         time += 1.minutes();
-        assert_eq!(time, Time::from_hms(0, 1, 1));
+        assert_eq!(time, Time::try_from_hms(0, 1, 1).unwrap());
 
         time += 1.hours();
-        assert_eq!(time, Time::from_hms(1, 1, 1));
+        assert_eq!(time, Time::try_from_hms(1, 1, 1).unwrap());
 
         time += 1.days();
-        assert_eq!(time, Time::from_hms(1, 1, 1));
+        assert_eq!(time, Time::try_from_hms(1, 1, 1).unwrap());
     }
 
     #[test]
     fn sub_duration() {
         assert_eq!(
-            Time::from_hms(12, 0, 0) - 1.hours(),
-            Time::from_hms(11, 0, 0)
+            Time::try_from_hms(12, 0, 0).unwrap() - 1.hours(),
+            Time::try_from_hms(11, 0, 0).unwrap()
         );
 
         // Underflow
-        assert_eq!(Time::midnight() - 1.seconds(), Time::from_hms(23, 59, 59));
-        assert_eq!(Time::midnight() - 1.minutes(), Time::from_hms(23, 59, 0));
-        assert_eq!(Time::midnight() - 1.hours(), Time::from_hms(23, 0, 0));
+        assert_eq!(
+            Time::midnight() - 1.seconds(),
+            Time::try_from_hms(23, 59, 59).unwrap()
+        );
+        assert_eq!(
+            Time::midnight() - 1.minutes(),
+            Time::try_from_hms(23, 59, 0).unwrap()
+        );
+        assert_eq!(
+            Time::midnight() - 1.hours(),
+            Time::try_from_hms(23, 0, 0).unwrap()
+        );
         assert_eq!(Time::midnight() - 1.days(), Time::midnight());
     }
 
@@ -1148,23 +1252,32 @@ mod test {
         let mut time = Time::midnight();
 
         time -= 1.seconds();
-        assert_eq!(time, Time::from_hms(23, 59, 59));
+        assert_eq!(time, Time::try_from_hms(23, 59, 59).unwrap());
 
         time -= 1.minutes();
-        assert_eq!(time, Time::from_hms(23, 58, 59));
+        assert_eq!(time, Time::try_from_hms(23, 58, 59).unwrap());
 
         time -= 1.hours();
-        assert_eq!(time, Time::from_hms(22, 58, 59));
+        assert_eq!(time, Time::try_from_hms(22, 58, 59).unwrap());
 
         time -= 1.days();
-        assert_eq!(time, Time::from_hms(22, 58, 59));
+        assert_eq!(time, Time::try_from_hms(22, 58, 59).unwrap());
     }
 
     #[test]
     fn add_std_duration() {
-        assert_eq!(Time::midnight() + 1.std_seconds(), Time::from_hms(0, 0, 1));
-        assert_eq!(Time::midnight() + 1.std_minutes(), Time::from_hms(0, 1, 0));
-        assert_eq!(Time::midnight() + 1.std_hours(), Time::from_hms(1, 0, 0));
+        assert_eq!(
+            Time::midnight() + 1.std_seconds(),
+            Time::try_from_hms(0, 0, 1).unwrap()
+        );
+        assert_eq!(
+            Time::midnight() + 1.std_minutes(),
+            Time::try_from_hms(0, 1, 0).unwrap()
+        );
+        assert_eq!(
+            Time::midnight() + 1.std_hours(),
+            Time::try_from_hms(1, 0, 0).unwrap()
+        );
         assert_eq!(Time::midnight() + 1.std_days(), Time::midnight());
     }
 
@@ -1173,35 +1286,38 @@ mod test {
         let mut time = Time::midnight();
 
         time += 1.std_seconds();
-        assert_eq!(time, Time::from_hms(0, 0, 1));
+        assert_eq!(time, Time::try_from_hms(0, 0, 1).unwrap());
 
         time += 1.std_minutes();
-        assert_eq!(time, Time::from_hms(0, 1, 1));
+        assert_eq!(time, Time::try_from_hms(0, 1, 1).unwrap());
 
         time += 1.std_hours();
-        assert_eq!(time, Time::from_hms(1, 1, 1));
+        assert_eq!(time, Time::try_from_hms(1, 1, 1).unwrap());
 
         time += 1.std_days();
-        assert_eq!(time, Time::from_hms(1, 1, 1));
+        assert_eq!(time, Time::try_from_hms(1, 1, 1).unwrap());
     }
 
     #[test]
     fn sub_std_duration() {
         assert_eq!(
-            Time::from_hms(12, 0, 0) - 1_u8.std_hours(),
-            Time::from_hms(11, 0, 0)
+            Time::try_from_hms(12, 0, 0).unwrap() - 1_u8.std_hours(),
+            Time::try_from_hms(11, 0, 0).unwrap()
         );
 
         // Underflow
         assert_eq!(
             Time::midnight() - 1.std_seconds(),
-            Time::from_hms(23, 59, 59)
+            Time::try_from_hms(23, 59, 59).unwrap()
         );
         assert_eq!(
             Time::midnight() - 1.std_minutes(),
-            Time::from_hms(23, 59, 0)
+            Time::try_from_hms(23, 59, 0).unwrap()
         );
-        assert_eq!(Time::midnight() - 1.std_hours(), Time::from_hms(23, 0, 0));
+        assert_eq!(
+            Time::midnight() - 1.std_hours(),
+            Time::try_from_hms(23, 0, 0).unwrap()
+        );
         assert_eq!(Time::midnight() - 1.std_days(), Time::midnight());
     }
 
@@ -1210,33 +1326,36 @@ mod test {
         let mut time = Time::midnight();
 
         time -= 1.std_seconds();
-        assert_eq!(time, Time::from_hms(23, 59, 59));
+        assert_eq!(time, Time::try_from_hms(23, 59, 59).unwrap());
 
         time -= 1.std_minutes();
-        assert_eq!(time, Time::from_hms(23, 58, 59));
+        assert_eq!(time, Time::try_from_hms(23, 58, 59).unwrap());
 
         time -= 1.std_hours();
-        assert_eq!(time, Time::from_hms(22, 58, 59));
+        assert_eq!(time, Time::try_from_hms(22, 58, 59).unwrap());
 
         time -= 1.std_days();
-        assert_eq!(time, Time::from_hms(22, 58, 59));
+        assert_eq!(time, Time::try_from_hms(22, 58, 59).unwrap());
     }
 
     #[test]
     fn sub_time() {
         assert_eq!(Time::midnight() - Time::midnight(), 0.seconds());
-        assert_eq!(Time::from_hms(1, 0, 0) - Time::midnight(), 1.hours());
         assert_eq!(
-            Time::from_hms(1, 0, 0) - Time::from_hms(0, 0, 1),
+            Time::try_from_hms(1, 0, 0).unwrap() - Time::midnight(),
+            1.hours()
+        );
+        assert_eq!(
+            Time::try_from_hms(1, 0, 0).unwrap() - Time::try_from_hms(0, 0, 1).unwrap(),
             59.minutes() + 59.seconds()
         );
     }
 
     #[test]
     fn ordering() {
-        assert!(Time::midnight() < Time::from_hms_nano(0, 0, 0, 1));
-        assert!(Time::midnight() < Time::from_hms(0, 0, 1));
-        assert!(Time::from_hms(12, 0, 0) > Time::from_hms(11, 0, 0));
+        assert!(Time::midnight() < Time::try_from_hms_nano(0, 0, 0, 1).unwrap());
+        assert!(Time::midnight() < Time::try_from_hms(0, 0, 1).unwrap());
+        assert!(Time::try_from_hms(12, 0, 0).unwrap() > Time::try_from_hms(11, 0, 0).unwrap());
         assert_eq!(Time::midnight(), Time::midnight());
     }
 }

@@ -7,10 +7,9 @@ use crate::{
     Date, DeferredFormat, Duration, OffsetDateTime, Time, UtcOffset, Weekday,
 };
 #[cfg(feature = "std")]
-use core::convert::From;
+use core::convert::{From, TryFrom};
 use core::{
     cmp::Ordering,
-    convert::TryFrom,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
@@ -40,8 +39,8 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::{Date, PrimitiveDateTime, Time};
     /// assert_eq!(
-    ///     PrimitiveDateTime::new(Date::from_ymd(2019, 1, 1), Time::midnight()),
-    ///     Date::from_ymd(2019, 1, 1).midnight(),
+    ///     PrimitiveDateTime::new(Date::try_from_ymd(2019, 1, 1).unwrap(), Time::midnight()),
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight(),
     /// );
     /// ```
     #[inline(always)]
@@ -68,7 +67,7 @@ impl PrimitiveDateTime {
     /// # use time::{Date, PrimitiveDateTime, Time};
     /// assert_eq!(
     ///     PrimitiveDateTime::unix_epoch(),
-    ///     Date::from_ymd(1970, 1, 1).midnight()
+    ///     Date::try_from_ymd(1970, 1, 1).unwrap().midnight()
     /// );
     /// ```
     #[inline(always)]
@@ -97,7 +96,7 @@ impl PrimitiveDateTime {
     /// );
     /// assert_eq!(
     ///     PrimitiveDateTime::from_unix_timestamp(1_546_300_800),
-    ///     Date::from_ymd(2019, 1, 1).midnight(),
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight(),
     /// );
     /// ```
     #[inline(always)]
@@ -112,7 +111,10 @@ impl PrimitiveDateTime {
     /// # use time::{Date, PrimitiveDateTime};
     /// assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1).midnight().timestamp(),
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .timestamp(),
     ///     1_546_300_800
     /// );
     /// ```
@@ -126,8 +128,8 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::Date;
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1).midnight().date(),
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight().date(),
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap()
     /// );
     /// ```
     #[inline(always)]
@@ -139,7 +141,7 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::{Date, Time};
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().time(), Time::midnight());
+    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().midnight().time(), Time::midnight());
     #[inline(always)]
     pub const fn time(self) -> Time {
         self.time
@@ -149,9 +151,18 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().year(), 2019);
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).midnight().year(), 2019);
-    /// assert_eq!(Date::from_ymd(2020, 1, 1).midnight().year(), 2020);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight().year(),
+    ///     2019
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 12, 31).unwrap().midnight().year(),
+    ///     2019
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2020, 1, 1).unwrap().midnight().year(),
+    ///     2020
+    /// );
     /// ```
     #[inline(always)]
     pub fn year(self) -> i32 {
@@ -165,8 +176,14 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().month(), 1);
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).midnight().month(), 12);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight().month(),
+    ///     1
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 12, 31).unwrap().midnight().month(),
+    ///     12
+    /// );
     /// ```
     #[inline(always)]
     pub fn month(self) -> u8 {
@@ -180,8 +197,11 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().day(), 1);
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).midnight().day(), 31);
+    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().midnight().day(), 1);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 12, 31).unwrap().midnight().day(),
+    ///     31
+    /// );
     /// ```
     #[inline(always)]
     pub fn day(self) -> u8 {
@@ -196,9 +216,18 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().month_day(), (1, 1));
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 12, 31).midnight().month_day(),
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .month_day(),
+    ///     (1, 1)
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 12, 31)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .month_day(),
     ///     (12, 31)
     /// );
     /// ```
@@ -214,8 +243,17 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().ordinal(), 1);
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).midnight().ordinal(), 365);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight().ordinal(),
+    ///     1
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 12, 31)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .ordinal(),
+    ///     365
+    /// );
     /// ```
     #[inline(always)]
     pub fn ordinal(self) -> u16 {
@@ -227,23 +265,38 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::Date;
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1).midnight().iso_year_week(),
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .iso_year_week(),
     ///     (2019, 1)
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 10, 4).midnight().iso_year_week(),
+    ///     Date::try_from_ymd(2019, 10, 4)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .iso_year_week(),
     ///     (2019, 40)
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2020, 1, 1).midnight().iso_year_week(),
+    ///     Date::try_from_ymd(2020, 1, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .iso_year_week(),
     ///     (2020, 1)
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2020, 12, 31).midnight().iso_year_week(),
+    ///     Date::try_from_ymd(2020, 12, 31)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .iso_year_week(),
     ///     (2020, 53)
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2021, 1, 1).midnight().iso_year_week(),
+    ///     Date::try_from_ymd(2021, 1, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .iso_year_week(),
     ///     (2020, 53)
     /// );
     /// ```
@@ -258,11 +311,20 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().week(), 1);
-    /// assert_eq!(Date::from_ymd(2019, 10, 4).midnight().week(), 40);
-    /// assert_eq!(Date::from_ymd(2020, 1, 1).midnight().week(), 1);
-    /// assert_eq!(Date::from_ymd(2020, 12, 31).midnight().week(), 53);
-    /// assert_eq!(Date::from_ymd(2021, 1, 1).midnight().week(), 53);
+    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().midnight().week(), 1);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 10, 4).unwrap().midnight().week(),
+    ///     40
+    /// );
+    /// assert_eq!(Date::try_from_ymd(2020, 1, 1).unwrap().midnight().week(), 1);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2020, 12, 31).unwrap().midnight().week(),
+    ///     53
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2021, 1, 1).unwrap().midnight().week(),
+    ///     53
+    /// );
     /// ```
     #[inline(always)]
     pub fn week(self) -> u8 {
@@ -275,13 +337,34 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().sunday_based_week(), 0);
-    /// assert_eq!(Date::from_ymd(2020, 1, 1).midnight().sunday_based_week(), 0);
     /// assert_eq!(
-    ///     Date::from_ymd(2020, 12, 31).midnight().sunday_based_week(),
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .sunday_based_week(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2020, 1, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .sunday_based_week(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2020, 12, 31)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .sunday_based_week(),
     ///     52
     /// );
-    /// assert_eq!(Date::from_ymd(2021, 1, 1).midnight().sunday_based_week(), 0);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2021, 1, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .sunday_based_week(),
+    ///     0
+    /// );
     /// ```
     #[inline(always)]
     pub fn sunday_based_week(self) -> u8 {
@@ -294,13 +377,34 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().monday_based_week(), 0);
-    /// assert_eq!(Date::from_ymd(2020, 1, 1).midnight().monday_based_week(), 0);
     /// assert_eq!(
-    ///     Date::from_ymd(2020, 12, 31).midnight().monday_based_week(),
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .monday_based_week(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2020, 1, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .monday_based_week(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2020, 12, 31)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .monday_based_week(),
     ///     52
     /// );
-    /// assert_eq!(Date::from_ymd(2021, 1, 1).midnight().monday_based_week(), 0);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2021, 1, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .monday_based_week(),
+    ///     0
+    /// );
     /// ```
     #[inline(always)]
     pub fn monday_based_week(self) -> u8 {
@@ -314,18 +418,63 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::{Date, Weekday::*};
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).midnight().weekday(), Tuesday);
-    /// assert_eq!(Date::from_ymd(2019, 2, 1).midnight().weekday(), Friday);
-    /// assert_eq!(Date::from_ymd(2019, 3, 1).midnight().weekday(), Friday);
-    /// assert_eq!(Date::from_ymd(2019, 4, 1).midnight().weekday(), Monday);
-    /// assert_eq!(Date::from_ymd(2019, 5, 1).midnight().weekday(), Wednesday);
-    /// assert_eq!(Date::from_ymd(2019, 6, 1).midnight().weekday(), Saturday);
-    /// assert_eq!(Date::from_ymd(2019, 7, 1).midnight().weekday(), Monday);
-    /// assert_eq!(Date::from_ymd(2019, 8, 1).midnight().weekday(), Thursday);
-    /// assert_eq!(Date::from_ymd(2019, 9, 1).midnight().weekday(), Sunday);
-    /// assert_eq!(Date::from_ymd(2019, 10, 1).midnight().weekday(), Tuesday);
-    /// assert_eq!(Date::from_ymd(2019, 11, 1).midnight().weekday(), Friday);
-    /// assert_eq!(Date::from_ymd(2019, 12, 1).midnight().weekday(), Sunday);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight().weekday(),
+    ///     Tuesday
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 2, 1).unwrap().midnight().weekday(),
+    ///     Friday
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 3, 1).unwrap().midnight().weekday(),
+    ///     Friday
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 4, 1).unwrap().midnight().weekday(),
+    ///     Monday
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 5, 1).unwrap().midnight().weekday(),
+    ///     Wednesday
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 6, 1).unwrap().midnight().weekday(),
+    ///     Saturday
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 7, 1).unwrap().midnight().weekday(),
+    ///     Monday
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 8, 1).unwrap().midnight().weekday(),
+    ///     Thursday
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 9, 1).unwrap().midnight().weekday(),
+    ///     Sunday
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 10, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .weekday(),
+    ///     Tuesday
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 11, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .weekday(),
+    ///     Friday
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 12, 1)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .weekday(),
+    ///     Sunday
+    /// );
     /// ```
     #[inline(always)]
     pub fn weekday(self) -> Weekday {
@@ -338,8 +487,22 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms(0, 0, 0).hour(), 0);
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms(23, 59, 59).hour(), 23);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(0, 0, 0)
+    ///         .unwrap()
+    ///         .hour(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 59, 59)
+    ///         .unwrap()
+    ///         .hour(),
+    ///     23
+    /// );
     /// ```
     #[inline(always)]
     pub const fn hour(self) -> u8 {
@@ -352,8 +515,22 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms(0, 0, 0).minute(), 0);
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms(23, 59, 59).minute(), 59);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(0, 0, 0)
+    ///         .unwrap()
+    ///         .minute(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 59, 59)
+    ///         .unwrap()
+    ///         .minute(),
+    ///     59
+    /// );
     /// ```
     #[inline(always)]
     pub const fn minute(self) -> u8 {
@@ -366,8 +543,22 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms(0, 0, 0).second(), 0);
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).with_hms(23, 59, 59).second(), 59);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(0, 0, 0)
+    ///         .unwrap()
+    ///         .second(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 59, 59)
+    ///         .unwrap()
+    ///         .second(),
+    ///     59
+    /// );
     /// ```
     #[inline(always)]
     pub const fn second(self) -> u8 {
@@ -381,14 +572,18 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::Date;
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms_milli(0, 0, 0, 0)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms_milli(0, 0, 0, 0)
+    ///         .unwrap()
     ///         .millisecond(),
     ///     0
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms_milli(23, 59, 59, 999)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms_milli(23, 59, 59, 999)
+    ///         .unwrap()
     ///         .millisecond(),
     ///     999
     /// );
@@ -405,14 +600,18 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::Date;
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms_micro(0, 0, 0, 0)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms_micro(0, 0, 0, 0)
+    ///         .unwrap()
     ///         .microsecond(),
     ///     0
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms_micro(23, 59, 59, 999_999)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms_micro(23, 59, 59, 999_999)
+    ///         .unwrap()
     ///         .microsecond(),
     ///     999_999
     /// );
@@ -429,14 +628,18 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::Date;
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms_nano(0, 0, 0, 0)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms_nano(0, 0, 0, 0)
+    ///         .unwrap()
     ///         .nanosecond(),
     ///     0
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
-    ///         .with_hms_nano(23, 59, 59, 999_999_999)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
+    ///         .try_with_hms_nano(23, 59, 59, 999_999_999)
+    ///         .unwrap()
     ///         .nanosecond(),
     ///     999_999_999
     /// );
@@ -452,7 +655,8 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::{Date, UtcOffset};
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 1)
+    ///         .unwrap()
     ///         .midnight()
     ///         .using_offset(UtcOffset::UTC)
     ///         .timestamp(),
@@ -475,7 +679,10 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::Date;
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 2).midnight().format("%F %r"),
+    ///     Date::try_from_ymd(2019, 1, 2)
+    ///         .unwrap()
+    ///         .midnight()
+    ///         .format("%F %r"),
     ///     "2019-01-02 12:00:00 am"
     /// );
     /// ```
@@ -496,15 +703,21 @@ impl PrimitiveDateTime {
     /// # use time::{Date, PrimitiveDateTime, Weekday::Wednesday};
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
-    ///     Ok(Date::from_ymd(2019, 1, 2).midnight()),
+    ///     Ok(Date::try_from_ymd(2019, 1, 2).unwrap().midnight()),
     /// );
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
-    ///     Ok(Date::from_yo(2019, 2).with_hms(23, 59, 59))
+    ///     Ok(Date::try_from_yo(2019, 2)
+    ///         .unwrap()
+    ///         .try_with_hms(23, 59, 59)
+    ///         .unwrap())
     /// );
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
-    ///     Ok(Date::from_iso_ywd(2019, 1, Wednesday).with_hms(12, 0, 0)),
+    ///     Ok(Date::try_from_iso_ywd(2019, 1, Wednesday)
+    ///         .unwrap()
+    ///         .try_with_hms(12, 0, 0)
+    ///         .unwrap()),
     /// );
     /// ```
     #[inline(always)]
@@ -774,13 +987,14 @@ impl From<PrimitiveDateTime> for SystemTime {
 }
 
 #[cfg(test)]
+#[allow(clippy::result_unwrap_used)]
 mod test {
     use super::*;
     use crate::prelude::*;
 
     macro_rules! ymd {
         ($year:literal, $month:literal, $day:literal) => {
-            Date::from_ymd($year, $month, $day)
+            Date::try_from_ymd($year, $month, $day).unwrap()
         };
     }
 
@@ -906,28 +1120,44 @@ mod test {
 
     #[test]
     fn hour() {
-        assert_eq!(ymd!(2019, 1, 1).with_hms(0, 0, 0).hour(), 0);
-        assert_eq!(ymd!(2019, 1, 1).with_hms(23, 59, 59).hour(), 23);
+        assert_eq!(ymd!(2019, 1, 1).try_with_hms(0, 0, 0).unwrap().hour(), 0);
+        assert_eq!(
+            ymd!(2019, 1, 1).try_with_hms(23, 59, 59).unwrap().hour(),
+            23
+        );
     }
 
     #[test]
     fn minute() {
-        assert_eq!(ymd!(2019, 1, 1).with_hms(0, 0, 0).minute(), 0);
-        assert_eq!(ymd!(2019, 1, 1).with_hms(23, 59, 59).minute(), 59);
+        assert_eq!(ymd!(2019, 1, 1).try_with_hms(0, 0, 0).unwrap().minute(), 0);
+        assert_eq!(
+            ymd!(2019, 1, 1).try_with_hms(23, 59, 59).unwrap().minute(),
+            59
+        );
     }
 
     #[test]
     fn second() {
-        assert_eq!(ymd!(2019, 1, 1).with_hms(0, 0, 0).second(), 0);
-        assert_eq!(ymd!(2019, 1, 1).with_hms(23, 59, 59).second(), 59);
+        assert_eq!(ymd!(2019, 1, 1).try_with_hms(0, 0, 0).unwrap().second(), 0);
+        assert_eq!(
+            ymd!(2019, 1, 1).try_with_hms(23, 59, 59).unwrap().second(),
+            59
+        );
     }
 
     #[test]
     fn millisecond() {
-        assert_eq!(ymd!(2019, 1, 1).with_hms_milli(0, 0, 0, 0).millisecond(), 0);
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms_milli(23, 59, 59, 999)
+                .try_with_hms_milli(0, 0, 0, 0)
+                .unwrap()
+                .millisecond(),
+            0
+        );
+        assert_eq!(
+            ymd!(2019, 1, 1)
+                .try_with_hms_milli(23, 59, 59, 999)
+                .unwrap()
                 .millisecond(),
             999
         );
@@ -935,10 +1165,17 @@ mod test {
 
     #[test]
     fn microsecond() {
-        assert_eq!(ymd!(2019, 1, 1).with_hms_micro(0, 0, 0, 0).microsecond(), 0);
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms_micro(23, 59, 59, 999_999)
+                .try_with_hms_micro(0, 0, 0, 0)
+                .unwrap()
+                .microsecond(),
+            0
+        );
+        assert_eq!(
+            ymd!(2019, 1, 1)
+                .try_with_hms_micro(23, 59, 59, 999_999)
+                .unwrap()
                 .microsecond(),
             999_999
         );
@@ -946,10 +1183,17 @@ mod test {
 
     #[test]
     fn nanosecond() {
-        assert_eq!(ymd!(2019, 1, 1).with_hms_nano(0, 0, 0, 0).nanosecond(), 0);
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms_nano(23, 59, 59, 999_999_999)
+                .try_with_hms_nano(0, 0, 0, 0)
+                .unwrap()
+                .nanosecond(),
+            0
+        );
+        assert_eq!(
+            ymd!(2019, 1, 1)
+                .try_with_hms_nano(23, 59, 59, 999_999_999)
+                .unwrap()
                 .nanosecond(),
             999_999_999
         );
@@ -982,11 +1226,17 @@ mod test {
         );
         assert_eq!(
             PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
-            Ok(Date::from_yo(2019, 2).with_hms(23, 59, 59))
+            Ok(Date::try_from_yo(2019, 2)
+                .unwrap()
+                .try_with_hms(23, 59, 59)
+                .unwrap())
         );
         assert_eq!(
             PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
-            Ok(Date::from_iso_ywd(2019, 1, Weekday::Wednesday).with_hms(12, 0, 0)),
+            Ok(Date::try_from_iso_ywd(2019, 1, Weekday::Wednesday)
+                .unwrap()
+                .try_with_hms(12, 0, 0)
+                .unwrap()),
         );
     }
 
@@ -1001,15 +1251,15 @@ mod test {
             ymd!(2020, 1, 1).midnight(),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).with_hms(23, 59, 59) + 2.seconds(),
-            ymd!(2020, 1, 1).with_hms(0, 0, 1),
+            ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap() + 2.seconds(),
+            ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap(),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).with_hms(0, 0, 1) + (-2).seconds(),
-            ymd!(2019, 12, 31).with_hms(23, 59, 59),
+            ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap() + (-2).seconds(),
+            ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap(),
         );
         assert_eq!(
-            ymd!(1999, 12, 31).with_hms(23, 0, 0) + 1.hours(),
+            ymd!(1999, 12, 31).try_with_hms(23, 0, 0).unwrap() + 1.hours(),
             ymd!(2000, 1, 1).midnight(),
         );
     }
@@ -1026,12 +1276,12 @@ mod test {
             SystemTime::from(ymd!(2020, 1, 1).midnight()),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2019, 12, 31).with_hms(23, 59, 59)) + 2.seconds(),
-            SystemTime::from(ymd!(2020, 1, 1).with_hms(0, 0, 1)),
+            SystemTime::from(ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap()) + 2.seconds(),
+            SystemTime::from(ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap()),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2020, 1, 1).with_hms(0, 0, 1)) + (-2).seconds(),
-            SystemTime::from(ymd!(2019, 12, 31).with_hms(23, 59, 59)),
+            SystemTime::from(ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap()) + (-2).seconds(),
+            SystemTime::from(ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap()),
         );
     }
 
@@ -1046,8 +1296,8 @@ mod test {
             ymd!(2020, 1, 1).midnight(),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).with_hms(23, 59, 59) + 2.std_seconds(),
-            ymd!(2020, 1, 1).with_hms(0, 0, 1),
+            ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap() + 2.std_seconds(),
+            ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap(),
         );
     }
 
@@ -1061,13 +1311,13 @@ mod test {
         nye20 += 1.days();
         assert_eq!(nye20, ymd!(2020, 1, 1).midnight());
 
-        let mut nye20t = ymd!(2019, 12, 31).with_hms(23, 59, 59);
+        let mut nye20t = ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap();
         nye20t += 2.seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).with_hms(0, 0, 1));
+        assert_eq!(nye20t, ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
 
-        let mut ny20t = ymd!(2020, 1, 1).with_hms(0, 0, 1);
+        let mut ny20t = ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap();
         ny20t += (-2).seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).with_hms(23, 59, 59));
+        assert_eq!(ny20t, ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
     }
 
     #[test]
@@ -1080,9 +1330,9 @@ mod test {
         nye20 += 1.std_days();
         assert_eq!(nye20, ymd!(2020, 1, 1).midnight());
 
-        let mut nye20t = ymd!(2019, 12, 31).with_hms(23, 59, 59);
+        let mut nye20t = ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap();
         nye20t += 2.std_seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).with_hms(0, 0, 1));
+        assert_eq!(nye20t, ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
     }
 
     #[test]
@@ -1096,13 +1346,13 @@ mod test {
         nye20 += 1.days();
         assert_eq!(nye20, ymd!(2020, 1, 1).midnight());
 
-        let mut nye20t = SystemTime::from(ymd!(2019, 12, 31).with_hms(23, 59, 59));
+        let mut nye20t = SystemTime::from(ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
         nye20t += 2.seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).with_hms(0, 0, 1));
+        assert_eq!(nye20t, ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
 
-        let mut ny20t = SystemTime::from(ymd!(2020, 1, 1).with_hms(0, 0, 1));
+        let mut ny20t = SystemTime::from(ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
         ny20t += (-2).seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).with_hms(23, 59, 59));
+        assert_eq!(ny20t, ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
     }
 
     #[test]
@@ -1116,15 +1366,15 @@ mod test {
             ymd!(2019, 12, 31).midnight(),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).with_hms(0, 0, 1) - 2.seconds(),
-            ymd!(2019, 12, 31).with_hms(23, 59, 59),
+            ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap() - 2.seconds(),
+            ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap(),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).with_hms(23, 59, 59) - (-2).seconds(),
-            ymd!(2020, 1, 1).with_hms(0, 0, 1),
+            ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap() - (-2).seconds(),
+            ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap(),
         );
         assert_eq!(
-            ymd!(1999, 12, 31).with_hms(23, 0, 0) - (-1).hours(),
+            ymd!(1999, 12, 31).try_with_hms(23, 0, 0).unwrap() - (-1).hours(),
             ymd!(2000, 1, 1).midnight(),
         );
     }
@@ -1140,8 +1390,8 @@ mod test {
             ymd!(2019, 12, 31).midnight(),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).with_hms(0, 0, 1) - 2.std_seconds(),
-            ymd!(2019, 12, 31).with_hms(23, 59, 59),
+            ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap() - 2.std_seconds(),
+            ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap(),
         );
     }
 
@@ -1157,12 +1407,12 @@ mod test {
             SystemTime::from(ymd!(2019, 12, 31).midnight()),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2020, 1, 1).with_hms(0, 0, 1)) - 2.seconds(),
-            SystemTime::from(ymd!(2019, 12, 31).with_hms(23, 59, 59)),
+            SystemTime::from(ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap()) - 2.seconds(),
+            SystemTime::from(ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap()),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2019, 12, 31).with_hms(23, 59, 59)) - (-2).seconds(),
-            SystemTime::from(ymd!(2020, 1, 1).with_hms(0, 0, 1)),
+            SystemTime::from(ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap()) - (-2).seconds(),
+            SystemTime::from(ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap()),
         );
     }
 
@@ -1176,13 +1426,13 @@ mod test {
         ny20 -= 1.days();
         assert_eq!(ny20, ymd!(2019, 12, 31).midnight());
 
-        let mut ny20t = ymd!(2020, 1, 1).with_hms(0, 0, 1);
+        let mut ny20t = ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap();
         ny20t -= 2.seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).with_hms(23, 59, 59));
+        assert_eq!(ny20t, ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
 
-        let mut nye20t = ymd!(2019, 12, 31).with_hms(23, 59, 59);
+        let mut nye20t = ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap();
         nye20t -= (-2).seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).with_hms(0, 0, 1));
+        assert_eq!(nye20t, ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
     }
 
     #[test]
@@ -1195,9 +1445,9 @@ mod test {
         ny20 -= 1.std_days();
         assert_eq!(ny20, ymd!(2019, 12, 31).midnight());
 
-        let mut ny20t = ymd!(2020, 1, 1).with_hms(0, 0, 1);
+        let mut ny20t = ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap();
         ny20t -= 2.std_seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).with_hms(23, 59, 59));
+        assert_eq!(ny20t, ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
     }
 
     #[test]
@@ -1211,13 +1461,13 @@ mod test {
         ny20 -= 1.days();
         assert_eq!(ny20, ymd!(2019, 12, 31).midnight());
 
-        let mut ny20t = SystemTime::from(ymd!(2020, 1, 1).with_hms(0, 0, 1));
+        let mut ny20t = SystemTime::from(ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
         ny20t -= 2.seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).with_hms(23, 59, 59));
+        assert_eq!(ny20t, ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
 
-        let mut nye20t = SystemTime::from(ymd!(2019, 12, 31).with_hms(23, 59, 59));
+        let mut nye20t = SystemTime::from(ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
         nye20t -= (-2).seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).with_hms(0, 0, 1));
+        assert_eq!(nye20t, ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
     }
 
     #[test]
@@ -1312,25 +1562,25 @@ mod test {
         assert_eq!(
             ymd!(2019, 1, 1)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).with_hms(1, 0, 0)),
+                .partial_cmp(&ymd!(2019, 1, 1).try_with_hms(1, 0, 0).unwrap()),
             Some(Less)
         );
         assert_eq!(
             ymd!(2019, 1, 1)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).with_hms(0, 1, 0)),
+                .partial_cmp(&ymd!(2019, 1, 1).try_with_hms(0, 1, 0).unwrap()),
             Some(Less)
         );
         assert_eq!(
             ymd!(2019, 1, 1)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).with_hms(0, 0, 1)),
+                .partial_cmp(&ymd!(2019, 1, 1).try_with_hms(0, 0, 1).unwrap()),
             Some(Less)
         );
         assert_eq!(
             ymd!(2019, 1, 1)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).with_hms_nano(0, 0, 0, 1)),
+                .partial_cmp(&ymd!(2019, 1, 1).try_with_hms_nano(0, 0, 0, 1).unwrap()),
             Some(Less)
         );
         assert_eq!(
@@ -1353,25 +1603,29 @@ mod test {
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms(1, 0, 0)
+                .try_with_hms(1, 0, 0)
+                .unwrap()
                 .partial_cmp(&ymd!(2019, 1, 1).midnight()),
             Some(Greater)
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms(0, 1, 0)
+                .try_with_hms(0, 1, 0)
+                .unwrap()
                 .partial_cmp(&ymd!(2019, 1, 1).midnight()),
             Some(Greater)
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms(0, 0, 1)
+                .try_with_hms(0, 0, 1)
+                .unwrap()
                 .partial_cmp(&ymd!(2019, 1, 1).midnight()),
             Some(Greater)
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .with_hms_nano(0, 0, 0, 1)
+                .try_with_hms_nano(0, 0, 0, 1)
+                .unwrap()
                 .partial_cmp(&ymd!(2019, 1, 1).midnight()),
             Some(Greater)
         );
@@ -1404,21 +1658,39 @@ mod test {
         assert!(ymd!(2019, 1, 1).midnight() < SystemTime::from(ymd!(2020, 1, 1).midnight()));
         assert!(ymd!(2019, 1, 1).midnight() < SystemTime::from(ymd!(2019, 2, 1).midnight()));
         assert!(ymd!(2019, 1, 1).midnight() < SystemTime::from(ymd!(2019, 1, 2).midnight()));
-        assert!(ymd!(2019, 1, 1).midnight() < SystemTime::from(ymd!(2019, 1, 1).with_hms(1, 0, 0)));
-        assert!(ymd!(2019, 1, 1).midnight() < SystemTime::from(ymd!(2019, 1, 1).with_hms(0, 1, 0)));
-        assert!(ymd!(2019, 1, 1).midnight() < SystemTime::from(ymd!(2019, 1, 1).with_hms(0, 0, 1)));
         assert!(
             ymd!(2019, 1, 1).midnight()
-                < SystemTime::from(ymd!(2019, 1, 1).with_hms_milli(0, 0, 0, 1))
+                < SystemTime::from(ymd!(2019, 1, 1).try_with_hms(1, 0, 0).unwrap())
+        );
+        assert!(
+            ymd!(2019, 1, 1).midnight()
+                < SystemTime::from(ymd!(2019, 1, 1).try_with_hms(0, 1, 0).unwrap())
+        );
+        assert!(
+            ymd!(2019, 1, 1).midnight()
+                < SystemTime::from(ymd!(2019, 1, 1).try_with_hms(0, 0, 1).unwrap())
+        );
+        assert!(
+            ymd!(2019, 1, 1).midnight()
+                < SystemTime::from(ymd!(2019, 1, 1).try_with_hms_milli(0, 0, 0, 1).unwrap())
         );
         assert!(ymd!(2020, 1, 1).midnight() > SystemTime::from(ymd!(2019, 1, 1).midnight()));
         assert!(ymd!(2019, 2, 1).midnight() > SystemTime::from(ymd!(2019, 1, 1).midnight()));
         assert!(ymd!(2019, 1, 2).midnight() > SystemTime::from(ymd!(2019, 1, 1).midnight()));
-        assert!(ymd!(2019, 1, 1).with_hms(1, 0, 0) > SystemTime::from(ymd!(2019, 1, 1).midnight()));
-        assert!(ymd!(2019, 1, 1).with_hms(0, 1, 0) > SystemTime::from(ymd!(2019, 1, 1).midnight()));
-        assert!(ymd!(2019, 1, 1).with_hms(0, 0, 1) > SystemTime::from(ymd!(2019, 1, 1).midnight()));
         assert!(
-            ymd!(2019, 1, 1).with_hms_nano(0, 0, 0, 1)
+            ymd!(2019, 1, 1).try_with_hms(1, 0, 0).unwrap()
+                > SystemTime::from(ymd!(2019, 1, 1).midnight())
+        );
+        assert!(
+            ymd!(2019, 1, 1).try_with_hms(0, 1, 0).unwrap()
+                > SystemTime::from(ymd!(2019, 1, 1).midnight())
+        );
+        assert!(
+            ymd!(2019, 1, 1).try_with_hms(0, 0, 1).unwrap()
+                > SystemTime::from(ymd!(2019, 1, 1).midnight())
+        );
+        assert!(
+            ymd!(2019, 1, 1).try_with_hms_nano(0, 0, 0, 1).unwrap()
                 > SystemTime::from(ymd!(2019, 1, 1).midnight())
         );
     }
@@ -1433,21 +1705,39 @@ mod test {
         assert!(SystemTime::from(ymd!(2019, 1, 1).midnight()) < ymd!(2020, 1, 1).midnight());
         assert!(SystemTime::from(ymd!(2019, 1, 1).midnight()) < ymd!(2019, 2, 1).midnight());
         assert!(SystemTime::from(ymd!(2019, 1, 1).midnight()) < ymd!(2019, 1, 2).midnight());
-        assert!(SystemTime::from(ymd!(2019, 1, 1).midnight()) < ymd!(2019, 1, 1).with_hms(1, 0, 0));
-        assert!(SystemTime::from(ymd!(2019, 1, 1).midnight()) < ymd!(2019, 1, 1).with_hms(0, 1, 0));
-        assert!(SystemTime::from(ymd!(2019, 1, 1).midnight()) < ymd!(2019, 1, 1).with_hms(0, 0, 1));
         assert!(
             SystemTime::from(ymd!(2019, 1, 1).midnight())
-                < ymd!(2019, 1, 1).with_hms_nano(0, 0, 0, 1)
+                < ymd!(2019, 1, 1).try_with_hms(1, 0, 0).unwrap()
+        );
+        assert!(
+            SystemTime::from(ymd!(2019, 1, 1).midnight())
+                < ymd!(2019, 1, 1).try_with_hms(0, 1, 0).unwrap()
+        );
+        assert!(
+            SystemTime::from(ymd!(2019, 1, 1).midnight())
+                < ymd!(2019, 1, 1).try_with_hms(0, 0, 1).unwrap()
+        );
+        assert!(
+            SystemTime::from(ymd!(2019, 1, 1).midnight())
+                < ymd!(2019, 1, 1).try_with_hms_nano(0, 0, 0, 1).unwrap()
         );
         assert!(SystemTime::from(ymd!(2020, 1, 1).midnight()) > ymd!(2019, 1, 1).midnight());
         assert!(SystemTime::from(ymd!(2019, 2, 1).midnight()) > ymd!(2019, 1, 1).midnight());
         assert!(SystemTime::from(ymd!(2019, 1, 2).midnight()) > ymd!(2019, 1, 1).midnight());
-        assert!(SystemTime::from(ymd!(2019, 1, 1).with_hms(1, 0, 0)) > ymd!(2019, 1, 1).midnight());
-        assert!(SystemTime::from(ymd!(2019, 1, 1).with_hms(0, 1, 0)) > ymd!(2019, 1, 1).midnight());
-        assert!(SystemTime::from(ymd!(2019, 1, 1).with_hms(0, 0, 1)) > ymd!(2019, 1, 1).midnight());
         assert!(
-            SystemTime::from(ymd!(2019, 1, 1).with_hms_milli(0, 0, 0, 1))
+            SystemTime::from(ymd!(2019, 1, 1).try_with_hms(1, 0, 0).unwrap())
+                > ymd!(2019, 1, 1).midnight()
+        );
+        assert!(
+            SystemTime::from(ymd!(2019, 1, 1).try_with_hms(0, 1, 0).unwrap())
+                > ymd!(2019, 1, 1).midnight()
+        );
+        assert!(
+            SystemTime::from(ymd!(2019, 1, 1).try_with_hms(0, 0, 1).unwrap())
+                > ymd!(2019, 1, 1).midnight()
+        );
+        assert!(
+            SystemTime::from(ymd!(2019, 1, 1).try_with_hms_milli(0, 0, 0, 1).unwrap())
                 > ymd!(2019, 1, 1).midnight()
         );
     }

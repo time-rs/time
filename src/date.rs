@@ -267,9 +267,9 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).year(), 2019);
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).year(), 2019);
-    /// assert_eq!(Date::from_ymd(2020, 1, 1).year(), 2020);
+    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().year(), 2019);
+    /// assert_eq!(Date::try_from_ymd(2019, 12, 31).unwrap().year(), 2019);
+    /// assert_eq!(Date::try_from_ymd(2020, 1, 1).unwrap().year(), 2020);
     /// ```
     #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
@@ -284,8 +284,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).month(), 1);
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).month(), 12);
+    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().month(), 1);
+    /// assert_eq!(Date::try_from_ymd(2019, 12, 31).unwrap().month(), 12);
     /// ```
     #[inline(always)]
     pub fn month(self) -> u8 {
@@ -299,8 +299,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).day(), 1);
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).day(), 31);
+    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().day(), 1);
+    /// assert_eq!(Date::try_from_ymd(2019, 12, 31).unwrap().day(), 31);
     /// ```
     #[inline(always)]
     pub fn day(self) -> u8 {
@@ -315,8 +315,11 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).month_day(), (1, 1));
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).month_day(), (12, 31));
+    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().month_day(), (1, 1));
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 12, 31).unwrap().month_day(),
+    ///     (12, 31)
+    /// );
     /// ```
     // TODO Refactor to prove to the compiler that this can't panic.
     #[inline]
@@ -343,8 +346,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).ordinal(), 1);
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).ordinal(), 365);
+    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().ordinal(), 1);
+    /// assert_eq!(Date::try_from_ymd(2019, 12, 31).unwrap().ordinal(), 365);
     /// ```
     #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
@@ -356,11 +359,26 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).iso_year_week(), (2019, 1));
-    /// assert_eq!(Date::from_ymd(2019, 10, 4).iso_year_week(), (2019, 40));
-    /// assert_eq!(Date::from_ymd(2020, 1, 1).iso_year_week(), (2020, 1));
-    /// assert_eq!(Date::from_ymd(2020, 12, 31).iso_year_week(), (2020, 53));
-    /// assert_eq!(Date::from_ymd(2021, 1, 1).iso_year_week(), (2020, 53));
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().iso_year_week(),
+    ///     (2019, 1)
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 10, 4).unwrap().iso_year_week(),
+    ///     (2019, 40)
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2020, 1, 1).unwrap().iso_year_week(),
+    ///     (2020, 1)
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2020, 12, 31).unwrap().iso_year_week(),
+    ///     (2020, 53)
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2021, 1, 1).unwrap().iso_year_week(),
+    ///     (2020, 53)
+    /// );
     /// ```
     #[inline]
     pub fn iso_year_week(self) -> (i32, u8) {
@@ -381,11 +399,11 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).week(), 1);
-    /// assert_eq!(Date::from_ymd(2019, 10, 4).week(), 40);
-    /// assert_eq!(Date::from_ymd(2020, 1, 1).week(), 1);
-    /// assert_eq!(Date::from_ymd(2020, 12, 31).week(), 53);
-    /// assert_eq!(Date::from_ymd(2021, 1, 1).week(), 53);
+    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().week(), 1);
+    /// assert_eq!(Date::try_from_ymd(2019, 10, 4).unwrap().week(), 40);
+    /// assert_eq!(Date::try_from_ymd(2020, 1, 1).unwrap().week(), 1);
+    /// assert_eq!(Date::try_from_ymd(2020, 12, 31).unwrap().week(), 53);
+    /// assert_eq!(Date::try_from_ymd(2021, 1, 1).unwrap().week(), 53);
     /// ```
     #[inline(always)]
     pub fn week(self) -> u8 {
@@ -398,10 +416,24 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).sunday_based_week(), 0);
-    /// assert_eq!(Date::from_ymd(2020, 1, 1).sunday_based_week(), 0);
-    /// assert_eq!(Date::from_ymd(2020, 12, 31).sunday_based_week(), 52);
-    /// assert_eq!(Date::from_ymd(2021, 1, 1).sunday_based_week(), 0);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().sunday_based_week(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2020, 1, 1).unwrap().sunday_based_week(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2020, 12, 31)
+    ///         .unwrap()
+    ///         .sunday_based_week(),
+    ///     52
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2021, 1, 1).unwrap().sunday_based_week(),
+    ///     0
+    /// );
     /// ```
     #[inline]
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
@@ -415,10 +447,24 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).monday_based_week(), 0);
-    /// assert_eq!(Date::from_ymd(2020, 1, 1).monday_based_week(), 0);
-    /// assert_eq!(Date::from_ymd(2020, 12, 31).monday_based_week(), 52);
-    /// assert_eq!(Date::from_ymd(2021, 1, 1).monday_based_week(), 0);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().monday_based_week(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2020, 1, 1).unwrap().monday_based_week(),
+    ///     0
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2020, 12, 31)
+    ///         .unwrap()
+    ///         .monday_based_week(),
+    ///     52
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2021, 1, 1).unwrap().monday_based_week(),
+    ///     0
+    /// );
     /// ```
     #[inline]
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
@@ -430,7 +476,10 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).as_ymd(), (2019, 1, 1));
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().as_ymd(),
+    ///     (2019, 1, 1)
+    /// );
     /// ```
     #[inline(always)]
     pub fn as_ymd(self) -> (i32, u8, u8) {
@@ -442,7 +491,7 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).as_yo(), (2019, 1));
+    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().as_yo(), (2019, 1));
     /// ```
     #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
@@ -457,18 +506,18 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, Weekday::*};
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).weekday(), Tuesday);
-    /// assert_eq!(Date::from_ymd(2019, 2, 1).weekday(), Friday);
-    /// assert_eq!(Date::from_ymd(2019, 3, 1).weekday(), Friday);
-    /// assert_eq!(Date::from_ymd(2019, 4, 1).weekday(), Monday);
-    /// assert_eq!(Date::from_ymd(2019, 5, 1).weekday(), Wednesday);
-    /// assert_eq!(Date::from_ymd(2019, 6, 1).weekday(), Saturday);
-    /// assert_eq!(Date::from_ymd(2019, 7, 1).weekday(), Monday);
-    /// assert_eq!(Date::from_ymd(2019, 8, 1).weekday(), Thursday);
-    /// assert_eq!(Date::from_ymd(2019, 9, 1).weekday(), Sunday);
-    /// assert_eq!(Date::from_ymd(2019, 10, 1).weekday(), Tuesday);
-    /// assert_eq!(Date::from_ymd(2019, 11, 1).weekday(), Friday);
-    /// assert_eq!(Date::from_ymd(2019, 12, 1).weekday(), Sunday);
+    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().weekday(), Tuesday);
+    /// assert_eq!(Date::try_from_ymd(2019, 2, 1).unwrap().weekday(), Friday);
+    /// assert_eq!(Date::try_from_ymd(2019, 3, 1).unwrap().weekday(), Friday);
+    /// assert_eq!(Date::try_from_ymd(2019, 4, 1).unwrap().weekday(), Monday);
+    /// assert_eq!(Date::try_from_ymd(2019, 5, 1).unwrap().weekday(), Wednesday);
+    /// assert_eq!(Date::try_from_ymd(2019, 6, 1).unwrap().weekday(), Saturday);
+    /// assert_eq!(Date::try_from_ymd(2019, 7, 1).unwrap().weekday(), Monday);
+    /// assert_eq!(Date::try_from_ymd(2019, 8, 1).unwrap().weekday(), Thursday);
+    /// assert_eq!(Date::try_from_ymd(2019, 9, 1).unwrap().weekday(), Sunday);
+    /// assert_eq!(Date::try_from_ymd(2019, 10, 1).unwrap().weekday(), Tuesday);
+    /// assert_eq!(Date::try_from_ymd(2019, 11, 1).unwrap().weekday(), Friday);
+    /// assert_eq!(Date::try_from_ymd(2019, 12, 1).unwrap().weekday(), Sunday);
     /// ```
     #[inline]
     pub fn weekday(self) -> Weekday {
@@ -503,16 +552,16 @@ impl Date {
     /// ```rust
     /// # use time::Date;
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 1).next_day(),
-    ///     Date::from_ymd(2019, 1, 2)
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().next_day(),
+    ///     Date::try_from_ymd(2019, 1, 2).unwrap()
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 31).next_day(),
-    ///     Date::from_ymd(2019, 2, 1)
+    ///     Date::try_from_ymd(2019, 1, 31).unwrap().next_day(),
+    ///     Date::try_from_ymd(2019, 2, 1).unwrap()
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 12, 31).next_day(),
-    ///     Date::from_ymd(2020, 1, 1)
+    ///     Date::try_from_ymd(2019, 12, 31).unwrap().next_day(),
+    ///     Date::try_from_ymd(2020, 1, 1).unwrap()
     /// );
     /// ```
     #[inline(always)]
@@ -532,16 +581,16 @@ impl Date {
     /// ```rust
     /// # use time::Date;
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 1, 2).previous_day(),
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     Date::try_from_ymd(2019, 1, 2).unwrap().previous_day(),
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap()
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2019, 2, 1).previous_day(),
-    ///     Date::from_ymd(2019, 1, 31)
+    ///     Date::try_from_ymd(2019, 2, 1).unwrap().previous_day(),
+    ///     Date::try_from_ymd(2019, 1, 31).unwrap()
     /// );
     /// assert_eq!(
-    ///     Date::from_ymd(2020, 1, 1).previous_day(),
-    ///     Date::from_ymd(2019, 12, 31)
+    ///     Date::try_from_ymd(2020, 1, 1).unwrap().previous_day(),
+    ///     Date::try_from_ymd(2019, 12, 31).unwrap()
     /// );
     /// ```
     #[inline(always)]
@@ -560,10 +609,19 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(-4713, 11, 24).julian_day(), 0);
-    /// assert_eq!(Date::from_ymd(2000, 1, 1).julian_day(), 2_451_545);
-    /// assert_eq!(Date::from_ymd(2019, 1, 1).julian_day(), 2_458_485);
-    /// assert_eq!(Date::from_ymd(2019, 12, 31).julian_day(), 2_458_849);
+    /// assert_eq!(Date::try_from_ymd(-4713, 11, 24).unwrap().julian_day(), 0);
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2000, 1, 1).unwrap().julian_day(),
+    ///     2_451_545
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap().julian_day(),
+    ///     2_458_485
+    /// );
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 12, 31).unwrap().julian_day(),
+    ///     2_458_849
+    /// );
     /// ```
     #[inline]
     pub fn julian_day(self) -> i64 {
@@ -586,12 +644,21 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_julian_day(0), Date::from_ymd(-4713, 11, 24));
-    /// assert_eq!(Date::from_julian_day(2_451_545), Date::from_ymd(2000, 1, 1));
-    /// assert_eq!(Date::from_julian_day(2_458_485), Date::from_ymd(2019, 1, 1));
+    /// assert_eq!(
+    ///     Date::from_julian_day(0),
+    ///     Date::try_from_ymd(-4713, 11, 24).unwrap()
+    /// );
+    /// assert_eq!(
+    ///     Date::from_julian_day(2_451_545),
+    ///     Date::try_from_ymd(2000, 1, 1).unwrap()
+    /// );
+    /// assert_eq!(
+    ///     Date::from_julian_day(2_458_485),
+    ///     Date::try_from_ymd(2019, 1, 1).unwrap()
+    /// );
     /// assert_eq!(
     ///     Date::from_julian_day(2_458_849),
-    ///     Date::from_ymd(2019, 12, 31)
+    ///     Date::try_from_ymd(2019, 12, 31).unwrap()
     /// );
     /// ```
     #[inline]
@@ -632,7 +699,7 @@ impl Date {
     /// ```rust
     /// # use time::{Date, PrimitiveDateTime, Time};
     /// assert_eq!(
-    ///     Date::from_ymd(1970, 1, 1).midnight(),
+    ///     Date::try_from_ymd(1970, 1, 1).unwrap().midnight(),
     ///     PrimitiveDateTime::unix_epoch()
     /// );
     /// ```
@@ -646,8 +713,10 @@ impl Date {
     /// ```rust
     /// # use time::{Date, Time};
     /// assert_eq!(
-    ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms(0, 0, 0)),
-    ///     Date::from_ymd(1970, 1, 1).midnight(),
+    ///     Date::try_from_ymd(1970, 1, 1)
+    ///         .unwrap()
+    ///         .with_time(Time::try_from_hms(0, 0, 0).unwrap()),
+    ///     Date::try_from_ymd(1970, 1, 1).unwrap().midnight(),
     /// );
     /// ```
     #[inline(always)]
@@ -675,8 +744,14 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::from_ymd(1970, 1, 1).try_with_hms(0, 0, 0).is_ok());
-    /// assert!(Date::from_ymd(1970, 1, 1).try_with_hms(24, 0, 0).is_err());
+    /// assert!(Date::try_from_ymd(1970, 1, 1)
+    ///     .unwrap()
+    ///     .try_with_hms(0, 0, 0)
+    ///     .is_ok());
+    /// assert!(Date::try_from_ymd(1970, 1, 1)
+    ///     .unwrap()
+    ///     .try_with_hms(24, 0, 0)
+    ///     .is_err());
     /// ```
     #[inline(always)]
     pub fn try_with_hms(
@@ -720,10 +795,12 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::from_ymd(1970, 1, 1)
+    /// assert!(Date::try_from_ymd(1970, 1, 1)
+    ///     .unwrap()
     ///     .try_with_hms_milli(0, 0, 0, 0)
     ///     .is_ok());
-    /// assert!(Date::from_ymd(1970, 1, 1)
+    /// assert!(Date::try_from_ymd(1970, 1, 1)
+    ///     .unwrap()
     ///     .try_with_hms_milli(24, 0, 0, 0)
     ///     .is_err());
     /// ```
@@ -770,10 +847,12 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::from_ymd(1970, 1, 1)
+    /// assert!(Date::try_from_ymd(1970, 1, 1)
+    ///     .unwrap()
     ///     .try_with_hms_micro(0, 0, 0, 0)
     ///     .is_ok());
-    /// assert!(Date::from_ymd(1970, 1, 1)
+    /// assert!(Date::try_from_ymd(1970, 1, 1)
+    ///     .unwrap()
     ///     .try_with_hms_micro(24, 0, 0, 0)
     ///     .is_err());
     /// ```
@@ -817,10 +896,12 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::from_ymd(1970, 1, 1)
+    /// assert!(Date::try_from_ymd(1970, 1, 1)
+    ///     .unwrap()
     ///     .try_with_hms_nano(0, 0, 0, 0)
     ///     .is_ok());
-    /// assert!(Date::from_ymd(1970, 1, 1)
+    /// assert!(Date::try_from_ymd(1970, 1, 1)
+    ///     .unwrap()
     ///     .try_with_hms_nano(24, 0, 0, 0)
     ///     .is_err());
     /// ```
@@ -845,7 +926,10 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 2).format("%Y-%m-%d"), "2019-01-02");
+    /// assert_eq!(
+    ///     Date::try_from_ymd(2019, 1, 2).unwrap().format("%Y-%m-%d"),
+    ///     "2019-01-02"
+    /// );
     /// ```
     #[inline(always)]
     pub fn format(self, format: &str) -> String {
@@ -864,12 +948,15 @@ impl Date {
     /// # use time::{Date, Weekday::Wednesday};
     /// assert_eq!(
     ///     Date::parse("2019-01-02", "%F"),
-    ///     Ok(Date::from_ymd(2019, 1, 2))
+    ///     Ok(Date::try_from_ymd(2019, 1, 2).unwrap())
     /// );
-    /// assert_eq!(Date::parse("2019-002", "%Y-%j"), Ok(Date::from_yo(2019, 2)));
+    /// assert_eq!(
+    ///     Date::parse("2019-002", "%Y-%j"),
+    ///     Ok(Date::try_from_yo(2019, 2).unwrap())
+    /// );
     /// assert_eq!(
     ///     Date::parse("2019-W01-3", "%G-W%V-%u"),
-    ///     Ok(Date::from_iso_ywd(2019, 1, Wednesday))
+    ///     Ok(Date::try_from_iso_ywd(2019, 1, Wednesday).unwrap())
     /// );
     /// ```
     #[inline(always)]
@@ -1025,25 +1112,26 @@ impl Ord for Date {
 }
 
 #[cfg(test)]
+#[allow(clippy::result_unwrap_used)]
 mod test {
     use super::*;
     use crate::prelude::*;
 
     macro_rules! yo {
         ($year:literal, $ordinal:literal) => {
-            Date::from_yo($year, $ordinal)
+            Date::try_from_yo($year, $ordinal).unwrap()
         };
     }
 
     macro_rules! ymd {
         ($year:literal, $month:literal, $day:literal) => {
-            Date::from_ymd($year, $month, $day)
+            Date::try_from_ymd($year, $month, $day).unwrap()
         };
     }
 
     macro_rules! ywd {
         ($year:literal, $week:literal, $day:ident) => {
-            Date::from_iso_ywd($year, $week, $day)
+            Date::try_from_iso_ywd($year, $week, $day).unwrap()
         };
     }
 
@@ -1119,7 +1207,10 @@ mod test {
     fn test_monday_based_week() {
         macro_rules! assert_monday_week {
             ($y:literal - $m:literal - $d:literal => $week:literal) => {
-                assert_eq!(Date::from_ymd($y, $m, $d).monday_based_week(), $week);
+                assert_eq!(
+                    Date::try_from_ymd($y, $m, $d).unwrap().monday_based_week(),
+                    $week
+                );
             };
         }
 
@@ -1318,7 +1409,10 @@ mod test {
     fn test_sunday_based_week() {
         macro_rules! assert_sunday_week {
             ($y:literal - $m:literal - $d:literal => $week:literal) => {
-                assert_eq!(Date::from_ymd($y, $m, $d).sunday_based_week(), $week);
+                assert_eq!(
+                    Date::try_from_ymd($y, $m, $d).unwrap().sunday_based_week(),
+                    $week
+                );
             };
         }
 
@@ -1528,7 +1622,7 @@ mod test {
                         ),
                         "%a %W %Y"
                     ),
-                    Ok(Date::from_yo($year, $ordinal))
+                    Ok(Date::try_from_yo($year, $ordinal).unwrap())
                 );
             };
         }
@@ -1739,7 +1833,7 @@ mod test {
                         ),
                         "%a %U %Y"
                     ),
-                    Ok(Date::from_yo($year, $ordinal))
+                    Ok(Date::try_from_yo($year, $ordinal).unwrap())
                 );
             };
         }
@@ -2049,12 +2143,13 @@ mod test {
     #[test]
     fn with_time() {
         assert_eq!(
-            ymd!(1970, 1, 1).with_time(Time::from_hms(0, 0, 0)),
-            ymd!(1970, 1, 1).with_hms(0, 0, 0),
+            ymd!(1970, 1, 1).with_time(Time::try_from_hms(0, 0, 0).unwrap()),
+            ymd!(1970, 1, 1).try_with_hms(0, 0, 0).unwrap(),
         );
     }
 
     #[test]
+    #[cfg(feature = "panicking-api")]
     fn with_hms() {
         assert_eq!(
             ymd!(1970, 1, 1).with_hms(0, 0, 0),
@@ -2066,12 +2161,13 @@ mod test {
     fn try_with_hms() {
         assert_eq!(
             ymd!(1970, 1, 1).try_with_hms(0, 0, 0),
-            Ok(ymd!(1970, 1, 1).with_time(Time::from_hms(0, 0, 0))),
+            Ok(ymd!(1970, 1, 1).with_time(Time::try_from_hms(0, 0, 0).unwrap())),
         );
         assert!(ymd!(1970, 1, 1).try_with_hms(24, 0, 0).is_err());
     }
 
     #[test]
+    #[cfg(feature = "panicking-api")]
     fn with_hms_milli() {
         assert_eq!(
             ymd!(1970, 1, 1).with_hms_milli(0, 0, 0, 0),
@@ -2083,12 +2179,13 @@ mod test {
     fn try_with_hms_milli() {
         assert_eq!(
             ymd!(1970, 1, 1).try_with_hms_milli(0, 0, 0, 0),
-            Ok(ymd!(1970, 1, 1).with_time(Time::from_hms_milli(0, 0, 0, 0))),
+            Ok(ymd!(1970, 1, 1).with_time(Time::try_from_hms_milli(0, 0, 0, 0).unwrap())),
         );
         assert!(ymd!(1970, 1, 1).try_with_hms_milli(24, 0, 0, 0).is_err());
     }
 
     #[test]
+    #[cfg(feature = "panicking-api")]
     fn with_hms_micro() {
         assert_eq!(
             ymd!(1970, 1, 1).with_hms_micro(0, 0, 0, 0),
@@ -2100,12 +2197,13 @@ mod test {
     fn try_with_hms_micro() {
         assert_eq!(
             ymd!(1970, 1, 1).try_with_hms_micro(0, 0, 0, 0),
-            Ok(ymd!(1970, 1, 1).with_time(Time::from_hms_micro(0, 0, 0, 0))),
+            Ok(ymd!(1970, 1, 1).with_time(Time::try_from_hms_micro(0, 0, 0, 0).unwrap())),
         );
         assert!(ymd!(1970, 1, 1).try_with_hms_micro(24, 0, 0, 0).is_err());
     }
 
     #[test]
+    #[cfg(feature = "panicking-api")]
     fn with_hms_nano() {
         assert_eq!(
             ymd!(1970, 1, 1).with_hms_nano(0, 0, 0, 0),
@@ -2117,7 +2215,7 @@ mod test {
     fn try_with_hms_nano() {
         assert_eq!(
             ymd!(1970, 1, 1).try_with_hms_nano(0, 0, 0, 0),
-            Ok(ymd!(1970, 1, 1).with_time(Time::from_hms_nano(0, 0, 0, 0))),
+            Ok(ymd!(1970, 1, 1).with_time(Time::try_from_hms_nano(0, 0, 0, 0).unwrap())),
         );
         assert!(ymd!(1970, 1, 1).try_with_hms_nano(24, 0, 0, 0).is_err());
     }
