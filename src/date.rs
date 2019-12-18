@@ -72,7 +72,7 @@ pub const fn days_in_year(year: i32) -> u16 {
 /// ```
 #[inline(always)]
 pub fn weeks_in_year(year: i32) -> u8 {
-    let weekday = internals::Date::from_yo(year, 1).weekday();
+    let weekday = internals::Date::from_yo_unchecked(year, 1).weekday();
 
     if (weekday == Thursday) || (weekday == Wednesday && is_leap_year(year)) {
         53
@@ -126,7 +126,7 @@ impl Date {
         assert_value_in_range!(month in 1 => 12);
         assert_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
 
-        internals::Date::from_ymd(year, month, day)
+        internals::Date::from_ymd_unchecked(year, month, day)
     }
 
     /// Attempt to create a `Date` from the year, month, and day.
@@ -148,7 +148,7 @@ impl Date {
         ensure_value_in_range!(month in 1 => 12);
         ensure_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
 
-        Ok(internals::Date::from_ymd(year, month, day))
+        Ok(internals::Date::from_ymd_unchecked(year, month, day))
     }
 
     /// Create a `Date` from the year and ordinal day number.
@@ -222,7 +222,7 @@ impl Date {
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_iso_ywd(year: i32, week: u8, weekday: Weekday) -> Self {
         assert_value_in_range!(week in 1 => weeks_in_year(year), given year);
-        internals::Date::from_iso_ywd(year, week, weekday)
+        internals::Date::from_iso_ywd_unchecked(year, week, weekday)
     }
 
     /// Attempt to create a `Date` from the ISO year, week, and weekday.
@@ -247,7 +247,7 @@ impl Date {
         weekday: Weekday,
     ) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(week in 1 => weeks_in_year(year), given year);
-        Ok(internals::Date::from_iso_ywd(year, week, weekday))
+        Ok(internals::Date::from_iso_ywd_unchecked(year, week, weekday))
     }
 
     /// Create a `Date` representing the current date.
@@ -687,7 +687,7 @@ impl Date {
 
         // TODO Seek out a formal proof that this always results in a valid value.
         #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-        internals::Date::from_ymd(year as i32, month as u8, day as u8)
+        internals::Date::from_ymd_unchecked(year as i32, month as u8, day as u8)
     }
 }
 
@@ -977,7 +977,7 @@ impl Date {
         /// Monday-based week numbering.
         #[inline(always)]
         fn adjustment(year: i32) -> i16 {
-            match internals::Date::from_yo(year, 1).weekday() {
+            match internals::Date::from_yo_unchecked(year, 1).weekday() {
                 Monday => 7,
                 Tuesday => 1,
                 Wednesday => 2,
@@ -990,14 +990,14 @@ impl Date {
 
         // Verification for all components is done at parse time.
         match items {
-            items!(year, month, day) => Ok(internals::Date::from_ymd(year, month.get(), day.get())),
-            items!(year, ordinal_day) => Ok(internals::Date::from_yo(year, ordinal_day.get())),
-            items!(week_based_year, iso_week, weekday) => Ok(internals::Date::from_iso_ywd(
+            items!(year, month, day) => Ok(internals::Date::from_ymd_unchecked(year, month.get(), day.get())),
+            items!(year, ordinal_day) => Ok(internals::Date::from_yo_unchecked(year, ordinal_day.get())),
+            items!(week_based_year, iso_week, weekday) => Ok(internals::Date::from_iso_ywd_unchecked(
                 week_based_year,
                 iso_week.get(),
                 weekday,
             )),
-            items!(year, sunday_week, weekday) => Ok(internals::Date::from_yo(
+            items!(year, sunday_week, weekday) => Ok(internals::Date::from_yo_unchecked(
                 year,
                 #[allow(clippy::cast_sign_loss)]
                 {
@@ -1006,7 +1006,7 @@ impl Date {
                         + 1) as u16
                 },
             )),
-            items!(year, monday_week, weekday) => Ok(internals::Date::from_yo(
+            items!(year, monday_week, weekday) => Ok(internals::Date::from_yo_unchecked(
                 year,
                 #[allow(clippy::cast_sign_loss)]
                 {
