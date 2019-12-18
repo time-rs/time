@@ -88,9 +88,9 @@ impl Time {
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_hms(hour: u8, minute: u8, second: u8) -> Self {
-        assert_value_in_range!(hour in 0 => exclusive 24);
-        assert_value_in_range!(minute in 0 => exclusive 60);
-        assert_value_in_range!(second in 0 => exclusive 60);
+        assert_value_in_range!(hour in 0 => 23);
+        assert_value_in_range!(minute in 0 => 59);
+        assert_value_in_range!(second in 0 => 59);
         Self {
             hour,
             minute,
@@ -116,9 +116,9 @@ impl Time {
     /// ```
     #[inline(always)]
     pub fn try_from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, ComponentRangeError> {
-        ensure_value_in_range!(hour in 0 => exclusive 24);
-        ensure_value_in_range!(minute in 0 => exclusive 60);
-        ensure_value_in_range!(second in 0 => exclusive 60);
+        ensure_value_in_range!(hour in 0 => 23);
+        ensure_value_in_range!(minute in 0 => 59);
+        ensure_value_in_range!(second in 0 => 59);
         Ok(Self {
             hour,
             minute,
@@ -164,10 +164,10 @@ impl Time {
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_hms_milli(hour: u8, minute: u8, second: u8, millisecond: u16) -> Self {
-        assert_value_in_range!(hour in 0 => exclusive 24);
-        assert_value_in_range!(minute in 0 => exclusive 60);
-        assert_value_in_range!(second in 0 => exclusive 60);
-        assert_value_in_range!(millisecond in 0 => exclusive 1_000);
+        assert_value_in_range!(hour in 0 => 23);
+        assert_value_in_range!(minute in 0 => 59);
+        assert_value_in_range!(second in 0 => 59);
+        assert_value_in_range!(millisecond in 0 => 999);
         Self {
             hour,
             minute,
@@ -199,10 +199,10 @@ impl Time {
         second: u8,
         millisecond: u16,
     ) -> Result<Self, ComponentRangeError> {
-        ensure_value_in_range!(hour in 0 => exclusive 24);
-        ensure_value_in_range!(minute in 0 => exclusive 60);
-        ensure_value_in_range!(second in 0 => exclusive 60);
-        ensure_value_in_range!(millisecond in 0 => exclusive 1_000);
+        ensure_value_in_range!(hour in 0 => 23);
+        ensure_value_in_range!(minute in 0 => 59);
+        ensure_value_in_range!(second in 0 => 59);
+        ensure_value_in_range!(millisecond in 0 => 999);
         Ok(Self {
             hour,
             minute,
@@ -248,10 +248,10 @@ impl Time {
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_hms_micro(hour: u8, minute: u8, second: u8, microsecond: u32) -> Self {
-        assert_value_in_range!(hour in 0 => exclusive 24);
-        assert_value_in_range!(minute in 0 => exclusive 60);
-        assert_value_in_range!(second in 0 => exclusive 60);
-        assert_value_in_range!(microsecond in 0 => exclusive 1_000_000);
+        assert_value_in_range!(hour in 0 => 23);
+        assert_value_in_range!(minute in 0 => 59);
+        assert_value_in_range!(second in 0 => 59);
+        assert_value_in_range!(microsecond in 0 => 999_999);
         Self {
             hour,
             minute,
@@ -283,10 +283,10 @@ impl Time {
         second: u8,
         microsecond: u32,
     ) -> Result<Self, ComponentRangeError> {
-        ensure_value_in_range!(hour in 0 => exclusive 24);
-        ensure_value_in_range!(minute in 0 => exclusive 60);
-        ensure_value_in_range!(second in 0 => exclusive 60);
-        ensure_value_in_range!(microsecond in 0 => exclusive 1_000_000);
+        ensure_value_in_range!(hour in 0 => 23);
+        ensure_value_in_range!(minute in 0 => 59);
+        ensure_value_in_range!(second in 0 => 59);
+        ensure_value_in_range!(microsecond in 0 => 999_999);
         Ok(Self {
             hour,
             minute,
@@ -331,10 +331,10 @@ impl Time {
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
     pub fn from_hms_nano(hour: u8, minute: u8, second: u8, nanosecond: u32) -> Self {
-        assert_value_in_range!(hour in 0 => exclusive 24);
-        assert_value_in_range!(minute in 0 => exclusive 60);
-        assert_value_in_range!(second in 0 => exclusive 60);
-        assert_value_in_range!(nanosecond in 0 => exclusive 1_000_000_000);
+        assert_value_in_range!(hour in 0 => 23);
+        assert_value_in_range!(minute in 0 => 59);
+        assert_value_in_range!(second in 0 => 59);
+        assert_value_in_range!(nanosecond in 0 => 999_999_999);
         Self {
             hour,
             minute,
@@ -366,10 +366,10 @@ impl Time {
         second: u8,
         nanosecond: u32,
     ) -> Result<Self, ComponentRangeError> {
-        ensure_value_in_range!(hour in 0 => exclusive 24);
-        ensure_value_in_range!(minute in 0 => exclusive 60);
-        ensure_value_in_range!(second in 0 => exclusive 60);
-        ensure_value_in_range!(nanosecond in 0 => exclusive 1_000_000_000);
+        ensure_value_in_range!(hour in 0 => 23);
+        ensure_value_in_range!(minute in 0 => 59);
+        ensure_value_in_range!(second in 0 => 59);
+        ensure_value_in_range!(nanosecond in 0 => 999_999_999);
         Ok(Self {
             hour,
             minute,

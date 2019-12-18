@@ -139,7 +139,6 @@
 )]
 #![warn(
     unused_extern_crates,
-    box_pointers,
     missing_copy_implementations,
     missing_debug_implementations,
     single_use_lifetimes,
@@ -200,17 +199,6 @@ macro_rules! assert_value_in_range {
         }
     };
 
-    ($value:ident in $start:expr => exclusive $end:expr) => {
-        if !($start..$end).contains(&$value) {
-            panic!(
-                concat!(stringify!($value), " must be in the range {}..{} (was {})"),
-                $start,
-                $end,
-                $value,
-            );
-        }
-    };
-
     ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
         if !($start..=$end).contains(&$value) {
             panic!(
@@ -224,23 +212,30 @@ macro_rules! assert_value_in_range {
     };
 }
 
+// TODO Some of the formatting can likely be performed at compile-time.
 /// Returns `None` if the value is not in range.
 macro_rules! ensure_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
         if !($start..=$end).contains(&$value) {
-            return Err(ComponentRangeError);
+            return Err(ComponentRangeError {
+                name: stringify!($value),
+                minimum: i64::from($start),
+                maximum: i64::from($end),
+                value: i64::from($value),
+                given: Vec::new(),
+            });
         }
     };
 
-    ($value:ident in $start:expr => exclusive $end:expr) => {
-        if !($start..$end).contains(&$value) {
-            return Err(ComponentRangeError);
-        }
-    };
-
-    ($value:ident in $start:expr => $end:expr,given $($conditional:ident),+ $(,)?) => {
+    ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
         if !($start..=$end).contains(&$value) {
-            return Err(ComponentRangeError);
+            return Err(ComponentRangeError {
+                name: stringify!($value),
+                minimum: i64::from($start),
+                maximum: i64::from($end),
+                value: i64::from($value),
+                given: vec![$((stringify!($conditional), i64::from($conditional))),+],
+            });
         };
     };
 }

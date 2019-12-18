@@ -990,13 +990,17 @@ impl Date {
 
         // Verification for all components is done at parse time.
         match items {
-            items!(year, month, day) => Ok(internals::Date::from_ymd_unchecked(year, month.get(), day.get())),
-            items!(year, ordinal_day) => Ok(internals::Date::from_yo_unchecked(year, ordinal_day.get())),
-            items!(week_based_year, iso_week, weekday) => Ok(internals::Date::from_iso_ywd_unchecked(
-                week_based_year,
-                iso_week.get(),
-                weekday,
+            items!(year, month, day) => Ok(internals::Date::from_ymd_unchecked(
+                year,
+                month.get(),
+                day.get(),
             )),
+            items!(year, ordinal_day) => {
+                Ok(internals::Date::from_yo_unchecked(year, ordinal_day.get()))
+            }
+            items!(week_based_year, iso_week, weekday) => Ok(
+                internals::Date::from_iso_ywd_unchecked(week_based_year, iso_week.get(), weekday),
+            ),
             items!(year, sunday_week, weekday) => Ok(internals::Date::from_yo_unchecked(
                 year,
                 #[allow(clippy::cast_sign_loss)]

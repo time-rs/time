@@ -64,7 +64,10 @@ impl Date {
     #[inline]
     pub(crate) fn from_iso_ywd_unchecked(year: i32, week: u8, weekday: Weekday) -> crate::Date {
         let ordinal = week as u16 * 7 + weekday.iso_weekday_number() as u16
-            - (Self::from_yo_unchecked(year, 4).weekday().iso_weekday_number() as u16 + 3);
+            - (Self::from_yo_unchecked(year, 4)
+                .weekday()
+                .iso_weekday_number() as u16
+                + 3);
 
         if ordinal < 1 {
             return Self::from_yo_unchecked(year - 1, ordinal + days_in_year(year - 1));
