@@ -5,10 +5,11 @@ authors = ["Jacob Pratt <the.z.cuber@gmail.com>"]
 edition = "2018"
 exclude = [".github", ".editorconfig", "rustfmt.toml"]
 repository = "https://github.com/time-rs/time"
-keywords = []
+keywords = ["date", "time", "calendar", "duration"]
 categories = ["date-and-time"]
 license = "MIT OR Apache-2.0"
 # TODO Add GitHub Actions badge once rust-lang/crates.io#1838 is merged.
+description = "Date and time library. Fully interoperable with the standard library. Mostly compatible with #![no_std]."
 
 [features]
 default = ["std", "deprecated"]
