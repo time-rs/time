@@ -41,9 +41,6 @@
 //! Using the `deprecated` feature allows using deprecated methods. Enabled by
 //! default.
 //!
-//! Currently, the only benefit of disabling this feature is that the log crate
-//! is a dependency if it is enabled.
-//!
 //! With the standard library, the normal `time = 0.2` will work as expected.
 //!
 //! With `#![no_std]` support:
