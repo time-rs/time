@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: [beta] # switch to [stable, 1.40.0] on 2019-12-19
+        rust: [1.40.0, stable]
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
@@ -46,7 +46,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: [beta] # switch to [stable, 1.40.0] on 2019-12-19
+        rust: [1.40.0, stable]
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
@@ -111,7 +111,7 @@ jobs:
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: beta # switch to stable on 2019-12-19
+          toolchain: stable
           override: true
 
       - name: Install clippy
