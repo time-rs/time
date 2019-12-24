@@ -273,8 +273,6 @@ mod offset_date_time;
 mod primitive_date_time;
 #[cfg(feature = "serde")]
 mod serde;
-/// Ensure certain methods are present on all types.
-mod shim;
 /// The `Sign` struct and its associated `impl`s.
 mod sign;
 /// The `Time` struct and its associated `impl`s.
@@ -296,7 +294,6 @@ pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
-pub(crate) use shim::NumberExt;
 pub use sign::Sign;
 pub use utc_offset::UtcOffset;
 pub use weekday::Weekday;

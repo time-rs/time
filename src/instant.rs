@@ -86,10 +86,10 @@ impl Instant {
     /// ```
     #[inline]
     pub fn checked_add(self, duration: Duration) -> Option<Self> {
-        match duration.sign() {
-            Zero => Some(self),
-            Negative => self.inner.checked_sub(duration.std).map(From::from),
-            Positive => self.inner.checked_add(duration.std).map(From::from),
+        match duration.sign_abs_std() {
+            (Zero, _) => Some(self),
+            (Negative, duration) => self.inner.checked_sub(duration).map(From::from),
+            (Positive, duration) => self.inner.checked_add(duration).map(From::from),
         }
     }
 

@@ -762,7 +762,11 @@ impl Add<Duration> for SystemTime {
 
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
-        (PrimitiveDateTime::from(self) + duration).into()
+        match duration.sign_abs_std() {
+            (Sign::Zero, _) => self,
+            (Sign::Positive, duration) => self + duration,
+            (Sign::Negative, duration) => self - duration,
+        }
     }
 }
 
@@ -978,10 +982,10 @@ impl From<PrimitiveDateTime> for SystemTime {
     fn from(datetime: PrimitiveDateTime) -> Self {
         let duration = datetime - PrimitiveDateTime::unix_epoch();
 
-        match duration.sign() {
-            Sign::Positive => Self::UNIX_EPOCH + duration.std,
-            Sign::Negative => Self::UNIX_EPOCH - duration.std,
-            Sign::Zero => Self::UNIX_EPOCH,
+        match duration.sign_abs_std() {
+            (Sign::Positive, duration) => Self::UNIX_EPOCH + duration,
+            (Sign::Negative, duration) => Self::UNIX_EPOCH - duration,
+            (Sign::Zero, _) => Self::UNIX_EPOCH,
         }
     }
 }

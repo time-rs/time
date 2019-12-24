@@ -1,6 +1,6 @@
 [package]
 name = "time"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["Jacob Pratt <the.z.cuber@gmail.com>"]
 edition = "2018"
 exclude = [".github", ".editorconfig", "rustfmt.toml"]

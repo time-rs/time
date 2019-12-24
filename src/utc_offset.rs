@@ -193,7 +193,7 @@ impl UtcOffset {
 
     /// Convert a `UtcOffset` to ` Duration`. Useful for implementing operators.
     #[inline(always)]
-    pub(crate) fn as_duration(self) -> Duration {
+    pub(crate) const fn as_duration(self) -> Duration {
         Duration::seconds(self.seconds as i64)
     }
 }

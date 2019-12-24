@@ -1,6 +1,6 @@
 // (seconds, nanoseconds)
 #[derive(serde::Serialize, serde::Deserialize)]
-pub(crate) struct Duration(i64, u32);
+pub(crate) struct Duration(i64, i32);
 
 impl From<crate::Duration> for Duration {
     #[inline]
