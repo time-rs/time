@@ -321,22 +321,48 @@ impl Date {
     ///     (12, 31)
     /// );
     /// ```
-    // TODO Refactor to prove to the compiler that this can't panic.
+    // For whatever reason, rustc has difficulty optimizing this function. It's
+    // significantly faster to write the statements out by hand.
     #[inline]
     pub fn month_day(self) -> (u8, u8) {
-        let mut ordinal = self.ordinal;
-        let days = DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(self.year) as usize];
-        let mut month = 0;
-        let month = loop {
-            if ordinal <= days[month] {
-                break month;
-            }
-            ordinal -= days[month];
-            month += 1;
-        };
+        ///
+        #[allow(clippy::items_after_statements)]
+        const CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP: [[u16; 11]; 2] = [
+            [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
+            [31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
+        ];
+
+        let days = CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(self.year) as usize];
+        let ordinal = self.ordinal;
 
         #[allow(clippy::cast_possible_truncation)]
-        (month as u8 + 1, ordinal as u8)
+        {
+            if ordinal > days[10] {
+                (12, (ordinal - days[10]) as u8)
+            } else if ordinal > days[9] {
+                (11, (ordinal - days[9]) as u8)
+            } else if ordinal > days[8] {
+                (10, (ordinal - days[8]) as u8)
+            } else if ordinal > days[7] {
+                (9, (ordinal - days[7]) as u8)
+            } else if ordinal > days[6] {
+                (8, (ordinal - days[6]) as u8)
+            } else if ordinal > days[5] {
+                (7, (ordinal - days[5]) as u8)
+            } else if ordinal > days[4] {
+                (6, (ordinal - days[4]) as u8)
+            } else if ordinal > days[3] {
+                (5, (ordinal - days[3]) as u8)
+            } else if ordinal > days[2] {
+                (4, (ordinal - days[2]) as u8)
+            } else if ordinal > days[1] {
+                (3, (ordinal - days[1]) as u8)
+            } else if ordinal > days[0] {
+                (2, (ordinal - days[0]) as u8)
+            } else {
+                (1, ordinal as u8)
+            }
+        }
     }
 
     /// Get the day of the year.
