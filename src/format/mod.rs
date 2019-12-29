@@ -45,7 +45,14 @@ use core::fmt::{self, Display, Formatter};
 #[allow(unreachable_pub)] // rust-lang/rust#64762
 pub use parse::ParseError;
 pub(crate) use parse::{parse, ParseResult, ParsedItems};
-pub(crate) use parse_items::parse_fmt_string;
+pub(crate) use parse_items::{parse_fmt_string, try_parse_fmt_string};
+
+/// Checks if a user-provided formatting string is valid. If it isn't, a
+/// description of the error is returned.
+#[inline(always)]
+pub fn validate_format_string(s: &str) -> Result<(), String> {
+    try_parse_fmt_string(s).map(|_| ())
+}
 
 /// The type of padding to use when formatting.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

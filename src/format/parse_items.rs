@@ -4,9 +4,18 @@ use crate::format::{FormatItem, Padding, Specifier};
 #[cfg(not(feature = "std"))]
 use crate::no_std_prelude::*;
 
-/// Parse the formatting string.
-#[inline]
+/// Parse the formatting string. Panics if not valid.
+#[inline(always)]
 pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
+    match try_parse_fmt_string(s) {
+        Ok(items) => items,
+        Err(err) => panic!("{}", err),
+    }
+}
+
+/// Attempt to parse the formatting string.
+#[inline]
+pub(crate) fn try_parse_fmt_string<'a>(s: &'a str) -> Result<Vec<FormatItem<'a>>, String> {
     let mut items = vec![];
     let mut literal_start = 0;
     let mut chars = s.char_indices().peekable();
@@ -76,10 +85,13 @@ pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
                 Some((i, 'Y')) => push_specifier!(i, Specifier::Y { padding }),
                 Some((i, 'z')) => push_specifier!(i, Specifier::z),
                 Some((i, '%')) => literal_start = i,
-                Some((_, c)) => panic!("Invalid specifier `{}`", c),
-                None => panic!(
-                    "Cannot end formatting with `%`. If you want a literal `%`, you must use `%%`."
-                ),
+                Some((_, c)) => return Err(format!("Invalid specifier `{}`", c)),
+                None => {
+                    return Err(String::from(
+                        "Cannot end formatting with `%`. If you want a literal `%`, you must use \
+                         `%%`.",
+                    ))
+                }
             }
         }
     }
@@ -88,5 +100,5 @@ pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
         items.push(FormatItem::Literal(&s[literal_start..]));
     }
 
-    items
+    Ok(items)
 }

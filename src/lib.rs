@@ -287,8 +287,7 @@ pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use duration::Duration;
 pub use error::{ComponentRangeError, ConversionRangeError, Error};
 pub(crate) use format::DeferredFormat;
-#[allow(unreachable_pub)] // rust-lang/rust#64762
-pub use format::ParseError;
+pub use format::{validate_format_string, ParseError};
 #[cfg(feature = "std")]
 pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
