@@ -244,6 +244,7 @@ impl Duration {
 
     /// Convert the existing `Duration` to a `std::time::Duration` and its sign.
     #[inline(always)]
+    #[cfg(feature = "std")]
     pub(crate) fn sign_abs_std(self) -> (Sign, StdDuration) {
         (
             self.sign(),
