@@ -283,7 +283,7 @@ pub(crate) fn try_consume_exact_digits<T: FromStr>(
         // length is equal to the number of bytes, as ASCII values are always one
         // byte in Unicode.
         let digits = &s[..(num_digits - pad_size)];
-        *s = &s[num_digits..];
+        *s = &s[(num_digits - pad_size)..];
         digits.parse::<T>().ok()
     }
 }
