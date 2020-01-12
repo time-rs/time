@@ -3,7 +3,6 @@ name = "time"
 version = "0.2.2"
 authors = ["Jacob Pratt <the.z.cuber@gmail.com>"]
 edition = "2018"
-exclude = [".github", ".editorconfig", "rustfmt.toml"]
 repository = "https://github.com/time-rs/time"
 keywords = ["date", "time", "calendar", "duration"]
 categories = ["date-and-time"]
@@ -20,6 +19,13 @@ panicking-api = []
 
 [dependencies]
 serde = { version = "1", optional = true, default-features = false, features = ["derive", "alloc"] }
+time-macros = { version = "0.1", path = "time-macros" }
 
 [package.metadata.docs.rs]
 all-features = true
+
+[workspace]
+members = [
+    "time-macros",
+    "time-macros-impl",
+]
