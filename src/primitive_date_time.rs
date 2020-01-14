@@ -486,20 +486,18 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..24`.
     ///
     /// ```rust
-    /// # use time::Date;
+    /// # use time::{Date, time};
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
-    ///         .try_with_hms(0, 0, 0)
-    ///         .unwrap()
+    ///         .midnight()
     ///         .hour(),
     ///     0
     /// );
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
-    ///         .try_with_hms(23, 59, 59)
-    ///         .unwrap()
+    ///         .with_time(time!(23:59:59))
     ///         .hour(),
     ///     23
     /// );
@@ -514,20 +512,18 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time::Date;
+    /// # use time::{Date, time};
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
-    ///         .try_with_hms(0, 0, 0)
-    ///         .unwrap()
+    ///         .midnight()
     ///         .minute(),
     ///     0
     /// );
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
-    ///         .try_with_hms(23, 59, 59)
-    ///         .unwrap()
+    ///         .with_time(time!(23:59:59))
     ///         .minute(),
     ///     59
     /// );
@@ -542,20 +538,18 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time::Date;
+    /// # use time::{Date, time};
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
-    ///         .try_with_hms(0, 0, 0)
-    ///         .unwrap()
+    ///         .midnight()
     ///         .second(),
     ///     0
     /// );
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
-    ///         .try_with_hms(23, 59, 59)
-    ///         .unwrap()
+    ///         .with_time(time!(23:59:59))
     ///         .second(),
     ///     59
     /// );
@@ -570,20 +564,18 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..1_000`.
     ///
     /// ```rust
-    /// # use time::Date;
+    /// # use time::{Date, time};
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
-    ///         .try_with_hms_milli(0, 0, 0, 0)
-    ///         .unwrap()
+    ///         .midnight()
     ///         .millisecond(),
     ///     0
     /// );
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
-    ///         .try_with_hms_milli(23, 59, 59, 999)
-    ///         .unwrap()
+    ///         .with_time(time!(23:59:59.999))
     ///         .millisecond(),
     ///     999
     /// );
@@ -598,20 +590,18 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..1_000_000`.
     ///
     /// ```rust
-    /// # use time::Date;
+    /// # use time::{Date, time};
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
-    ///         .try_with_hms_micro(0, 0, 0, 0)
-    ///         .unwrap()
+    ///         .midnight()
     ///         .microsecond(),
     ///     0
     /// );
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
-    ///         .try_with_hms_micro(23, 59, 59, 999_999)
-    ///         .unwrap()
+    ///         .with_time(time!(23:59:59.999_999))
     ///         .microsecond(),
     ///     999_999
     /// );
@@ -626,20 +616,18 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
-    /// # use time::Date;
+    /// # use time::{Date, time};
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
-    ///         .try_with_hms_nano(0, 0, 0, 0)
-    ///         .unwrap()
+    ///         .midnight()
     ///         .nanosecond(),
     ///     0
     /// );
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
-    ///         .try_with_hms_nano(23, 59, 59, 999_999_999)
-    ///         .unwrap()
+    ///         .with_time(time!(23:59:59.999_999_999))
     ///         .nanosecond(),
     ///     999_999_999
     /// );
@@ -653,12 +641,12 @@ impl PrimitiveDateTime {
     /// `UtcOffset`.
     ///
     /// ```rust
-    /// # use time::{Date, UtcOffset};
+    /// # use time::{Date, offset};
     /// assert_eq!(
     ///     Date::try_from_ymd(2019, 1, 1)
     ///         .unwrap()
     ///         .midnight()
-    ///         .using_offset(UtcOffset::UTC)
+    ///         .using_offset(offset!(UTC))
     ///         .timestamp(),
     ///     1_546_300_800,
     /// );
@@ -700,7 +688,7 @@ impl PrimitiveDateTime {
     /// Attempt to parse a `PrimitiveDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::{Date, PrimitiveDateTime, Weekday::Wednesday};
+    /// # use time::{Date, PrimitiveDateTime, Weekday::Wednesday, time};
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
     ///     Ok(Date::try_from_ymd(2019, 1, 2).unwrap().midnight()),
@@ -709,15 +697,13 @@ impl PrimitiveDateTime {
     ///     PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
     ///     Ok(Date::try_from_yo(2019, 2)
     ///         .unwrap()
-    ///         .try_with_hms(23, 59, 59)
-    ///         .unwrap())
+    ///         .with_time(time!(23:59:59)))
     /// );
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
     ///     Ok(Date::try_from_iso_ywd(2019, 1, Wednesday)
     ///         .unwrap()
-    ///         .try_with_hms(12, 0, 0)
-    ///         .unwrap()),
+    ///         .with_time(time!(12:00))),
     /// );
     /// ```
     #[inline(always)]
@@ -994,7 +980,7 @@ impl From<PrimitiveDateTime> for SystemTime {
 #[allow(clippy::result_unwrap_used)]
 mod test {
     use super::*;
-    use crate::prelude::*;
+    use crate::{offset, prelude::*, time};
 
     macro_rules! ymd {
         ($year:literal, $month:literal, $day:literal) => {
@@ -1005,7 +991,7 @@ mod test {
     #[test]
     fn new() {
         assert_eq!(
-            PrimitiveDateTime::new(ymd!(2019, 1, 1), Time::midnight()),
+            PrimitiveDateTime::new(ymd!(2019, 1, 1), time!(0:00)),
             ymd!(2019, 1, 1).midnight(),
         );
     }
@@ -1046,7 +1032,7 @@ mod test {
 
     #[test]
     fn time() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().time(), Time::midnight());
+        assert_eq!(ymd!(2019, 1, 1).midnight().time(), time!(0:00));
     }
 
     #[test]
@@ -1124,44 +1110,28 @@ mod test {
 
     #[test]
     fn hour() {
-        assert_eq!(ymd!(2019, 1, 1).try_with_hms(0, 0, 0).unwrap().hour(), 0);
-        assert_eq!(
-            ymd!(2019, 1, 1).try_with_hms(23, 59, 59).unwrap().hour(),
-            23
-        );
+        assert_eq!(ymd!(2019, 1, 1).with_time(time!(0:00)).hour(), 0);
+        assert_eq!(ymd!(2019, 1, 1).with_time(time!(23:59:59)).hour(), 23);
     }
 
     #[test]
     fn minute() {
-        assert_eq!(ymd!(2019, 1, 1).try_with_hms(0, 0, 0).unwrap().minute(), 0);
-        assert_eq!(
-            ymd!(2019, 1, 1).try_with_hms(23, 59, 59).unwrap().minute(),
-            59
-        );
+        assert_eq!(ymd!(2019, 1, 1).with_time(time!(0:00)).minute(), 0);
+        assert_eq!(ymd!(2019, 1, 1).with_time(time!(23:59:59)).minute(), 59);
     }
 
     #[test]
     fn second() {
-        assert_eq!(ymd!(2019, 1, 1).try_with_hms(0, 0, 0).unwrap().second(), 0);
-        assert_eq!(
-            ymd!(2019, 1, 1).try_with_hms(23, 59, 59).unwrap().second(),
-            59
-        );
+        assert_eq!(ymd!(2019, 1, 1).with_time(time!(0:00)).second(), 0);
+        assert_eq!(ymd!(2019, 1, 1).with_time(time!(23:59:59)).second(), 59);
     }
 
     #[test]
     fn millisecond() {
+        assert_eq!(ymd!(2019, 1, 1).midnight().millisecond(), 0);
         assert_eq!(
             ymd!(2019, 1, 1)
-                .try_with_hms_milli(0, 0, 0, 0)
-                .unwrap()
-                .millisecond(),
-            0
-        );
-        assert_eq!(
-            ymd!(2019, 1, 1)
-                .try_with_hms_milli(23, 59, 59, 999)
-                .unwrap()
+                .with_time(time!(23:59:59.999))
                 .millisecond(),
             999
         );
@@ -1169,17 +1139,10 @@ mod test {
 
     #[test]
     fn microsecond() {
+        assert_eq!(ymd!(2019, 1, 1).midnight().microsecond(), 0);
         assert_eq!(
             ymd!(2019, 1, 1)
-                .try_with_hms_micro(0, 0, 0, 0)
-                .unwrap()
-                .microsecond(),
-            0
-        );
-        assert_eq!(
-            ymd!(2019, 1, 1)
-                .try_with_hms_micro(23, 59, 59, 999_999)
-                .unwrap()
+                .with_time(time!(23:59:59.999_999))
                 .microsecond(),
             999_999
         );
@@ -1187,17 +1150,10 @@ mod test {
 
     #[test]
     fn nanosecond() {
+        assert_eq!(ymd!(2019, 1, 1).midnight().nanosecond(), 0);
         assert_eq!(
             ymd!(2019, 1, 1)
-                .try_with_hms_nano(0, 0, 0, 0)
-                .unwrap()
-                .nanosecond(),
-            0
-        );
-        assert_eq!(
-            ymd!(2019, 1, 1)
-                .try_with_hms_nano(23, 59, 59, 999_999_999)
-                .unwrap()
+                .with_time(time!(23:59:59.999_999_999))
                 .nanosecond(),
             999_999_999
         );
@@ -1208,7 +1164,7 @@ mod test {
         assert_eq!(
             ymd!(2019, 1, 1)
                 .midnight()
-                .using_offset(UtcOffset::UTC)
+                .using_offset(offset!(UTC))
                 .timestamp(),
             1_546_300_800,
         );
@@ -1232,15 +1188,13 @@ mod test {
             PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
             Ok(Date::try_from_yo(2019, 2)
                 .unwrap()
-                .try_with_hms(23, 59, 59)
-                .unwrap())
+                .with_time(time!(23:59:59)))
         );
         assert_eq!(
             PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
             Ok(Date::try_from_iso_ywd(2019, 1, Weekday::Wednesday)
                 .unwrap()
-                .try_with_hms(12, 0, 0)
-                .unwrap()),
+                .with_time(time!(12:00))),
         );
     }
 
@@ -1255,15 +1209,15 @@ mod test {
             ymd!(2020, 1, 1).midnight(),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap() + 2.seconds(),
-            ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap(),
+            ymd!(2019, 12, 31).with_time(time!(23:59:59)) + 2.seconds(),
+            ymd!(2020, 1, 1).with_time(time!(0:00:01)),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap() + (-2).seconds(),
-            ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap(),
+            ymd!(2020, 1, 1).with_time(time!(0:00:01)) + (-2).seconds(),
+            ymd!(2019, 12, 31).with_time(time!(23:59:59)),
         );
         assert_eq!(
-            ymd!(1999, 12, 31).try_with_hms(23, 0, 0).unwrap() + 1.hours(),
+            ymd!(1999, 12, 31).with_time(time!(23:00)) + 1.hours(),
             ymd!(2000, 1, 1).midnight(),
         );
     }
@@ -1280,12 +1234,12 @@ mod test {
             SystemTime::from(ymd!(2020, 1, 1).midnight()),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap()) + 2.seconds(),
-            SystemTime::from(ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap()),
+            SystemTime::from(ymd!(2019, 12, 31).with_time(time!(23:59:59))) + 2.seconds(),
+            SystemTime::from(ymd!(2020, 1, 1).with_time(time!(0:00:01))),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap()) + (-2).seconds(),
-            SystemTime::from(ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap()),
+            SystemTime::from(ymd!(2020, 1, 1).with_time(time!(0:00:01))) + (-2).seconds(),
+            SystemTime::from(ymd!(2019, 12, 31).with_time(time!(23:59:59))),
         );
     }
 
@@ -1300,8 +1254,8 @@ mod test {
             ymd!(2020, 1, 1).midnight(),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap() + 2.std_seconds(),
-            ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap(),
+            ymd!(2019, 12, 31).with_time(time!(23:59:59)) + 2.std_seconds(),
+            ymd!(2020, 1, 1).with_time(time!(0:00:01)),
         );
     }
 
@@ -1315,13 +1269,13 @@ mod test {
         nye20 += 1.days();
         assert_eq!(nye20, ymd!(2020, 1, 1).midnight());
 
-        let mut nye20t = ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap();
+        let mut nye20t = ymd!(2019, 12, 31).with_time(time!(23:59:59));
         nye20t += 2.seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
+        assert_eq!(nye20t, ymd!(2020, 1, 1).with_time(time!(0:00:01)));
 
-        let mut ny20t = ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap();
+        let mut ny20t = ymd!(2020, 1, 1).with_time(time!(0:00:01));
         ny20t += (-2).seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
+        assert_eq!(ny20t, ymd!(2019, 12, 31).with_time(time!(23:59:59)));
     }
 
     #[test]
@@ -1334,9 +1288,9 @@ mod test {
         nye20 += 1.std_days();
         assert_eq!(nye20, ymd!(2020, 1, 1).midnight());
 
-        let mut nye20t = ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap();
+        let mut nye20t = ymd!(2019, 12, 31).with_time(time!(23:59:59));
         nye20t += 2.std_seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
+        assert_eq!(nye20t, ymd!(2020, 1, 1).with_time(time!(0:00:01)));
     }
 
     #[test]
@@ -1350,13 +1304,13 @@ mod test {
         nye20 += 1.days();
         assert_eq!(nye20, ymd!(2020, 1, 1).midnight());
 
-        let mut nye20t = SystemTime::from(ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
+        let mut nye20t = SystemTime::from(ymd!(2019, 12, 31).with_time(time!(23:59:59)));
         nye20t += 2.seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
+        assert_eq!(nye20t, ymd!(2020, 1, 1).with_time(time!(0:00:01)));
 
-        let mut ny20t = SystemTime::from(ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
+        let mut ny20t = SystemTime::from(ymd!(2020, 1, 1).with_time(time!(0:00:01)));
         ny20t += (-2).seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
+        assert_eq!(ny20t, ymd!(2019, 12, 31).with_time(time!(23:59:59)));
     }
 
     #[test]
@@ -1370,15 +1324,15 @@ mod test {
             ymd!(2019, 12, 31).midnight(),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap() - 2.seconds(),
-            ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap(),
+            ymd!(2020, 1, 1).with_time(time!(0:00:01)) - 2.seconds(),
+            ymd!(2019, 12, 31).with_time(time!(23:59:59)),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap() - (-2).seconds(),
-            ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap(),
+            ymd!(2019, 12, 31).with_time(time!(23:59:59)) - (-2).seconds(),
+            ymd!(2020, 1, 1).with_time(time!(0:00:01)),
         );
         assert_eq!(
-            ymd!(1999, 12, 31).try_with_hms(23, 0, 0).unwrap() - (-1).hours(),
+            ymd!(1999, 12, 31).with_time(time!(23:00)) - (-1).hours(),
             ymd!(2000, 1, 1).midnight(),
         );
     }
@@ -1394,8 +1348,8 @@ mod test {
             ymd!(2019, 12, 31).midnight(),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap() - 2.std_seconds(),
-            ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap(),
+            ymd!(2020, 1, 1).with_time(time!(0:00:01)) - 2.std_seconds(),
+            ymd!(2019, 12, 31).with_time(time!(23:59:59)),
         );
     }
 
@@ -1411,12 +1365,12 @@ mod test {
             SystemTime::from(ymd!(2019, 12, 31).midnight()),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap()) - 2.seconds(),
-            SystemTime::from(ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap()),
+            SystemTime::from(ymd!(2020, 1, 1).with_time(time!(0:00:01))) - 2.seconds(),
+            SystemTime::from(ymd!(2019, 12, 31).with_time(time!(23:59:59))),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap()) - (-2).seconds(),
-            SystemTime::from(ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap()),
+            SystemTime::from(ymd!(2019, 12, 31).with_time(time!(23:59:59))) - (-2).seconds(),
+            SystemTime::from(ymd!(2020, 1, 1).with_time(time!(0:00:01))),
         );
     }
 
@@ -1430,13 +1384,13 @@ mod test {
         ny20 -= 1.days();
         assert_eq!(ny20, ymd!(2019, 12, 31).midnight());
 
-        let mut ny20t = ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap();
+        let mut ny20t = ymd!(2020, 1, 1).with_time(time!(0:00:01));
         ny20t -= 2.seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
+        assert_eq!(ny20t, ymd!(2019, 12, 31).with_time(time!(23:59:59)));
 
-        let mut nye20t = ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap();
+        let mut nye20t = ymd!(2019, 12, 31).with_time(time!(23:59:59));
         nye20t -= (-2).seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
+        assert_eq!(nye20t, ymd!(2020, 1, 1).with_time(time!(0:00:01)));
     }
 
     #[test]
@@ -1449,9 +1403,9 @@ mod test {
         ny20 -= 1.std_days();
         assert_eq!(ny20, ymd!(2019, 12, 31).midnight());
 
-        let mut ny20t = ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap();
+        let mut ny20t = ymd!(2020, 1, 1).with_time(time!(0:00:01));
         ny20t -= 2.std_seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
+        assert_eq!(ny20t, ymd!(2019, 12, 31).with_time(time!(23:59:59)));
     }
 
     #[test]
@@ -1465,13 +1419,13 @@ mod test {
         ny20 -= 1.days();
         assert_eq!(ny20, ymd!(2019, 12, 31).midnight());
 
-        let mut ny20t = SystemTime::from(ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
+        let mut ny20t = SystemTime::from(ymd!(2020, 1, 1).with_time(time!(0:00:01)));
         ny20t -= 2.seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
+        assert_eq!(ny20t, ymd!(2019, 12, 31).with_time(time!(23:59:59)));
 
-        let mut nye20t = SystemTime::from(ymd!(2019, 12, 31).try_with_hms(23, 59, 59).unwrap());
+        let mut nye20t = SystemTime::from(ymd!(2019, 12, 31).with_time(time!(23:59:59)));
         nye20t -= (-2).seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).try_with_hms(0, 0, 1).unwrap());
+        assert_eq!(nye20t, ymd!(2020, 1, 1).with_time(time!(0:00:01)));
     }
 
     #[test]
@@ -1566,25 +1520,25 @@ mod test {
         assert_eq!(
             ymd!(2019, 1, 1)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).try_with_hms(1, 0, 0).unwrap()),
+                .partial_cmp(&ymd!(2019, 1, 1).with_time(time!(1:00))),
             Some(Less)
         );
         assert_eq!(
             ymd!(2019, 1, 1)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).try_with_hms(0, 1, 0).unwrap()),
+                .partial_cmp(&ymd!(2019, 1, 1).with_time(time!(0:01))),
             Some(Less)
         );
         assert_eq!(
             ymd!(2019, 1, 1)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).try_with_hms(0, 0, 1).unwrap()),
+                .partial_cmp(&ymd!(2019, 1, 1).with_time(time!(0:00:01))),
             Some(Less)
         );
         assert_eq!(
             ymd!(2019, 1, 1)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).try_with_hms_nano(0, 0, 0, 1).unwrap()),
+                .partial_cmp(&ymd!(2019, 1, 1).with_time(time!(0:00:00.000_000_001))),
             Some(Less)
         );
         assert_eq!(
@@ -1607,29 +1561,25 @@ mod test {
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .try_with_hms(1, 0, 0)
-                .unwrap()
+                .with_time(time!(1:00))
                 .partial_cmp(&ymd!(2019, 1, 1).midnight()),
             Some(Greater)
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .try_with_hms(0, 1, 0)
-                .unwrap()
+                .with_time(time!(0:01))
                 .partial_cmp(&ymd!(2019, 1, 1).midnight()),
             Some(Greater)
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .try_with_hms(0, 0, 1)
-                .unwrap()
+                .with_time(time!(0:00:01))
                 .partial_cmp(&ymd!(2019, 1, 1).midnight()),
             Some(Greater)
         );
         assert_eq!(
             ymd!(2019, 1, 1)
-                .try_with_hms_nano(0, 0, 0, 1)
-                .unwrap()
+                .with_time(time!(0:00:00.000_000_001))
                 .partial_cmp(&ymd!(2019, 1, 1).midnight()),
             Some(Greater)
         );
@@ -1664,37 +1614,37 @@ mod test {
         assert!(ymd!(2019, 1, 1).midnight() < SystemTime::from(ymd!(2019, 1, 2).midnight()));
         assert!(
             ymd!(2019, 1, 1).midnight()
-                < SystemTime::from(ymd!(2019, 1, 1).try_with_hms(1, 0, 0).unwrap())
+                < SystemTime::from(ymd!(2019, 1, 1).with_time(time!(1:00:00)))
         );
         assert!(
             ymd!(2019, 1, 1).midnight()
-                < SystemTime::from(ymd!(2019, 1, 1).try_with_hms(0, 1, 0).unwrap())
+                < SystemTime::from(ymd!(2019, 1, 1).with_time(time!(0:01:00)))
         );
         assert!(
             ymd!(2019, 1, 1).midnight()
-                < SystemTime::from(ymd!(2019, 1, 1).try_with_hms(0, 0, 1).unwrap())
+                < SystemTime::from(ymd!(2019, 1, 1).with_time(time!(0:00:01)))
         );
         assert!(
             ymd!(2019, 1, 1).midnight()
-                < SystemTime::from(ymd!(2019, 1, 1).try_with_hms_milli(0, 0, 0, 1).unwrap())
+                < SystemTime::from(ymd!(2019, 1, 1).with_time(time!(0:00:00.001)))
         );
         assert!(ymd!(2020, 1, 1).midnight() > SystemTime::from(ymd!(2019, 1, 1).midnight()));
         assert!(ymd!(2019, 2, 1).midnight() > SystemTime::from(ymd!(2019, 1, 1).midnight()));
         assert!(ymd!(2019, 1, 2).midnight() > SystemTime::from(ymd!(2019, 1, 1).midnight()));
         assert!(
-            ymd!(2019, 1, 1).try_with_hms(1, 0, 0).unwrap()
+            ymd!(2019, 1, 1).with_time(time!(1:00:00))
                 > SystemTime::from(ymd!(2019, 1, 1).midnight())
         );
         assert!(
-            ymd!(2019, 1, 1).try_with_hms(0, 1, 0).unwrap()
+            ymd!(2019, 1, 1).with_time(time!(0:01:00))
                 > SystemTime::from(ymd!(2019, 1, 1).midnight())
         );
         assert!(
-            ymd!(2019, 1, 1).try_with_hms(0, 0, 1).unwrap()
+            ymd!(2019, 1, 1).with_time(time!(0:00:01))
                 > SystemTime::from(ymd!(2019, 1, 1).midnight())
         );
         assert!(
-            ymd!(2019, 1, 1).try_with_hms_nano(0, 0, 0, 1).unwrap()
+            ymd!(2019, 1, 1).with_time(time!(0:00:00.000_000_001))
                 > SystemTime::from(ymd!(2019, 1, 1).midnight())
         );
     }
@@ -1711,37 +1661,37 @@ mod test {
         assert!(SystemTime::from(ymd!(2019, 1, 1).midnight()) < ymd!(2019, 1, 2).midnight());
         assert!(
             SystemTime::from(ymd!(2019, 1, 1).midnight())
-                < ymd!(2019, 1, 1).try_with_hms(1, 0, 0).unwrap()
+                < ymd!(2019, 1, 1).with_time(time!(1:00:00))
         );
         assert!(
             SystemTime::from(ymd!(2019, 1, 1).midnight())
-                < ymd!(2019, 1, 1).try_with_hms(0, 1, 0).unwrap()
+                < ymd!(2019, 1, 1).with_time(time!(0:01:00))
         );
         assert!(
             SystemTime::from(ymd!(2019, 1, 1).midnight())
-                < ymd!(2019, 1, 1).try_with_hms(0, 0, 1).unwrap()
+                < ymd!(2019, 1, 1).with_time(time!(0:00:01))
         );
         assert!(
             SystemTime::from(ymd!(2019, 1, 1).midnight())
-                < ymd!(2019, 1, 1).try_with_hms_nano(0, 0, 0, 1).unwrap()
+                < ymd!(2019, 1, 1).with_time(time!(0:00:00.000_000_001))
         );
         assert!(SystemTime::from(ymd!(2020, 1, 1).midnight()) > ymd!(2019, 1, 1).midnight());
         assert!(SystemTime::from(ymd!(2019, 2, 1).midnight()) > ymd!(2019, 1, 1).midnight());
         assert!(SystemTime::from(ymd!(2019, 1, 2).midnight()) > ymd!(2019, 1, 1).midnight());
         assert!(
-            SystemTime::from(ymd!(2019, 1, 1).try_with_hms(1, 0, 0).unwrap())
+            SystemTime::from(ymd!(2019, 1, 1).with_time(time!(1:00:00)))
                 > ymd!(2019, 1, 1).midnight()
         );
         assert!(
-            SystemTime::from(ymd!(2019, 1, 1).try_with_hms(0, 1, 0).unwrap())
+            SystemTime::from(ymd!(2019, 1, 1).with_time(time!(0:01:00)))
                 > ymd!(2019, 1, 1).midnight()
         );
         assert!(
-            SystemTime::from(ymd!(2019, 1, 1).try_with_hms(0, 0, 1).unwrap())
+            SystemTime::from(ymd!(2019, 1, 1).with_time(time!(0:00:01)))
                 > ymd!(2019, 1, 1).midnight()
         );
         assert!(
-            SystemTime::from(ymd!(2019, 1, 1).try_with_hms_milli(0, 0, 0, 1).unwrap())
+            SystemTime::from(ymd!(2019, 1, 1).with_time(time!(0:00:00.001)))
                 > ymd!(2019, 1, 1).midnight()
         );
     }

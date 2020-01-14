@@ -11,3 +11,10 @@ license = "MIT OR Apache-2.0"
 description = "Procedural macros for the time crate."
 
 [dependencies]
+proc-macro2 = "1"
+syn = "1"
+quote = "1"
+proc-macro-hack = "0.5"
+
+[lib]
+proc-macro = true

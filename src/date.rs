@@ -737,11 +737,11 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided `Time`.
     ///
     /// ```rust
-    /// # use time::{Date, Time};
+    /// # use time::{Date, time};
     /// assert_eq!(
     ///     Date::try_from_ymd(1970, 1, 1)
     ///         .unwrap()
-    ///         .with_time(Time::try_from_hms(0, 0, 0).unwrap()),
+    ///         .with_time(time!(0:00)),
     ///     Date::try_from_ymd(1970, 1, 1).unwrap().midnight(),
     /// );
     /// ```
@@ -753,15 +753,21 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{Date, Time};
+    /// # use time::{Date, time};
     /// assert_eq!(
     ///     Date::from_ymd(1970, 1, 1).with_hms(0, 0, 0),
-    ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms(0, 0, 0)),
+    ///     Date::from_ymd(1970, 1, 1).with_time(time!(0:00)),
     /// );
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[allow(deprecated)]
+    #[deprecated(
+        since = "0.2.3",
+        note = "For times knowable at compile-time, use the `time!` macro and `Date::with_time`. \
+                For situations where a value isn't known, use `Date::try_with_hms`."
+    )]
     pub fn with_hms(self, hour: u8, minute: u8, second: u8) -> PrimitiveDateTime {
         PrimitiveDateTime::new(self, Time::from_hms(hour, minute, second))
     }
@@ -795,15 +801,21 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{Date, Time};
+    /// # use time::{Date, Time, time};
     /// assert_eq!(
     ///     Date::from_ymd(1970, 1, 1).with_hms_milli(0, 0, 0, 0),
-    ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms_milli(0, 0, 0, 0)),
+    ///     Date::from_ymd(1970, 1, 1).with_time(time!(0:00)),
     /// );
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[allow(deprecated)]
+    #[deprecated(
+        since = "0.2.3",
+        note = "For times knowable at compile-time, use the `time!` macro and `Date::with_time`. \
+                For situations where a value isn't known, use `Date::try_with_hms_milli`."
+    )]
     pub fn with_hms_milli(
         self,
         hour: u8,
@@ -847,15 +859,21 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{Date, Time};
+    /// # use time::{Date, Time, time};
     /// assert_eq!(
     ///     Date::from_ymd(1970, 1, 1).with_hms_micro(0, 0, 0, 0),
-    ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms_micro(0, 0, 0, 0)),
+    ///     Date::from_ymd(1970, 1, 1).with_time(time!(0:00)),
     /// );
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[allow(deprecated)]
+    #[deprecated(
+        since = "0.2.3",
+        note = "For times knowable at compile-time, use the `time!` macro and `Date::with_time`. \
+                For situations where a value isn't known, use `Date::try_with_hms_micro`."
+    )]
     pub fn with_hms_micro(
         self,
         hour: u8,
@@ -899,15 +917,21 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{Date, Time};
+    /// # use time::{Date, time};
     /// assert_eq!(
     ///     Date::from_ymd(1970, 1, 1).with_hms_nano(0, 0, 0, 0),
-    ///     Date::from_ymd(1970, 1, 1).with_time(Time::from_hms_nano(0, 0, 0, 0)),
+    ///     Date::from_ymd(1970, 1, 1).with_time(time!(0:00)),
     /// );
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[allow(deprecated)]
+    #[deprecated(
+        since = "0.2.3",
+        note = "For times knowable at compile-time, use the `time!` macro and `Date::with_time`. \
+                For situations where a value isn't known, use `Date::try_with_hms_nano`."
+    )]
     pub fn with_hms_nano(
         self,
         hour: u8,
@@ -1145,7 +1169,8 @@ impl Ord for Date {
 #[allow(clippy::result_unwrap_used)]
 mod test {
     use super::*;
-    use crate::prelude::*;
+    use crate::{prelude::*, time};
+    use alloc::collections::btree_set::BTreeSet;
 
     macro_rules! yo {
         ($year:literal, $ordinal:literal) => {
@@ -1173,8 +1198,7 @@ mod test {
 
     #[test]
     fn weeks_in_year_exhaustive() {
-        extern crate alloc;
-        let mut years_with_53 = alloc::collections::btree_set::BTreeSet::new();
+        let mut years_with_53 = BTreeSet::new();
         for year in [
             4, 9, 15, 20, 26, 32, 37, 43, 48, 54, 60, 65, 71, 76, 82, 88, 93, 99, 105, 111, 116,
             122, 128, 133, 139, 144, 150, 156, 161, 167, 172, 178, 184, 189, 195, 201, 207, 212,
@@ -1237,10 +1261,7 @@ mod test {
     fn test_monday_based_week() {
         macro_rules! assert_monday_week {
             ($y:literal - $m:literal - $d:literal => $week:literal) => {
-                assert_eq!(
-                    Date::try_from_ymd($y, $m, $d).unwrap().monday_based_week(),
-                    $week
-                );
+                assert_eq!(ymd!($y, $m, $d).monday_based_week(), $week);
             };
         }
 
@@ -1439,10 +1460,7 @@ mod test {
     fn test_sunday_based_week() {
         macro_rules! assert_sunday_week {
             ($y:literal - $m:literal - $d:literal => $week:literal) => {
-                assert_eq!(
-                    Date::try_from_ymd($y, $m, $d).unwrap().sunday_based_week(),
-                    $week
-                );
+                assert_eq!(ymd!($y, $m, $d).sunday_based_week(), $week);
             };
         }
 
@@ -1652,7 +1670,7 @@ mod test {
                         ),
                         "%a %W %Y"
                     ),
-                    Ok(Date::try_from_yo($year, $ordinal).unwrap())
+                    Ok(yo!($year, $ordinal))
                 );
             };
         }
@@ -1863,7 +1881,7 @@ mod test {
                         ),
                         "%a %U %Y"
                     ),
-                    Ok(Date::try_from_yo($year, $ordinal).unwrap())
+                    Ok(yo!($year, $ordinal))
                 );
             };
         }
@@ -2173,17 +2191,18 @@ mod test {
     #[test]
     fn with_time() {
         assert_eq!(
-            ymd!(1970, 1, 1).with_time(Time::try_from_hms(0, 0, 0).unwrap()),
-            ymd!(1970, 1, 1).try_with_hms(0, 0, 0).unwrap(),
+            ymd!(1970, 1, 1).with_time(time!(0:00)),
+            ymd!(1970, 1, 1).midnight(),
         );
     }
 
     #[test]
     #[cfg(feature = "panicking-api")]
+    #[allow(deprecated)]
     fn with_hms() {
         assert_eq!(
             ymd!(1970, 1, 1).with_hms(0, 0, 0),
-            ymd!(1970, 1, 1).with_time(Time::from_hms(0, 0, 0)),
+            ymd!(1970, 1, 1).midnight(),
         );
     }
 
@@ -2191,17 +2210,18 @@ mod test {
     fn try_with_hms() {
         assert_eq!(
             ymd!(1970, 1, 1).try_with_hms(0, 0, 0),
-            Ok(ymd!(1970, 1, 1).with_time(Time::try_from_hms(0, 0, 0).unwrap())),
+            Ok(ymd!(1970, 1, 1).midnight()),
         );
         assert!(ymd!(1970, 1, 1).try_with_hms(24, 0, 0).is_err());
     }
 
     #[test]
     #[cfg(feature = "panicking-api")]
+    #[allow(deprecated)]
     fn with_hms_milli() {
         assert_eq!(
             ymd!(1970, 1, 1).with_hms_milli(0, 0, 0, 0),
-            ymd!(1970, 1, 1).with_time(Time::from_hms_milli(0, 0, 0, 0)),
+            ymd!(1970, 1, 1).midnight(),
         );
     }
 
@@ -2209,17 +2229,18 @@ mod test {
     fn try_with_hms_milli() {
         assert_eq!(
             ymd!(1970, 1, 1).try_with_hms_milli(0, 0, 0, 0),
-            Ok(ymd!(1970, 1, 1).with_time(Time::try_from_hms_milli(0, 0, 0, 0).unwrap())),
+            Ok(ymd!(1970, 1, 1).midnight()),
         );
         assert!(ymd!(1970, 1, 1).try_with_hms_milli(24, 0, 0, 0).is_err());
     }
 
     #[test]
     #[cfg(feature = "panicking-api")]
+    #[allow(deprecated)]
     fn with_hms_micro() {
         assert_eq!(
             ymd!(1970, 1, 1).with_hms_micro(0, 0, 0, 0),
-            ymd!(1970, 1, 1).with_time(Time::from_hms_micro(0, 0, 0, 0)),
+            ymd!(1970, 1, 1).midnight(),
         );
     }
 
@@ -2227,17 +2248,18 @@ mod test {
     fn try_with_hms_micro() {
         assert_eq!(
             ymd!(1970, 1, 1).try_with_hms_micro(0, 0, 0, 0),
-            Ok(ymd!(1970, 1, 1).with_time(Time::try_from_hms_micro(0, 0, 0, 0).unwrap())),
+            Ok(ymd!(1970, 1, 1).midnight()),
         );
         assert!(ymd!(1970, 1, 1).try_with_hms_micro(24, 0, 0, 0).is_err());
     }
 
     #[test]
     #[cfg(feature = "panicking-api")]
+    #[allow(deprecated)]
     fn with_hms_nano() {
         assert_eq!(
             ymd!(1970, 1, 1).with_hms_nano(0, 0, 0, 0),
-            ymd!(1970, 1, 1).with_time(Time::from_hms_nano(0, 0, 0, 0)),
+            ymd!(1970, 1, 1).midnight(),
         );
     }
 
@@ -2245,7 +2267,7 @@ mod test {
     fn try_with_hms_nano() {
         assert_eq!(
             ymd!(1970, 1, 1).try_with_hms_nano(0, 0, 0, 0),
-            Ok(ymd!(1970, 1, 1).with_time(Time::try_from_hms_nano(0, 0, 0, 0).unwrap())),
+            Ok(ymd!(1970, 1, 1).midnight()),
         );
         assert!(ymd!(1970, 1, 1).try_with_hms_nano(24, 0, 0, 0).is_err());
     }

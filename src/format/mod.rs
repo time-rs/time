@@ -42,7 +42,6 @@ use crate::no_std_prelude::*;
 use crate::{Date, Time, UtcOffset};
 use core::fmt::{self, Display, Formatter};
 #[allow(unreachable_pub)] // rust-lang/rust#64762
-#[allow(unreachable_pub)] // rust-lang/rust#64762
 pub use parse::ParseError;
 pub(crate) use parse::{parse, ParseResult, ParsedItems};
 pub(crate) use parse_items::{parse_fmt_string, try_parse_fmt_string};

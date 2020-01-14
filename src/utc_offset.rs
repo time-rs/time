@@ -27,8 +27,8 @@ impl UtcOffset {
     /// A `UtcOffset` that is UTC.
     ///
     /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::UTC, UtcOffset::seconds(0));
+    /// # use time::{UtcOffset, offset};
+    /// assert_eq!(UtcOffset::UTC, offset!(UTC));
     /// ```
     pub const UTC: Self = Self::seconds(0);
 
@@ -240,6 +240,7 @@ impl UtcOffset {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::offset;
 
     #[test]
     fn hours() {
@@ -251,8 +252,8 @@ mod test {
 
     #[test]
     fn directional_hours() {
-        assert_eq!(UtcOffset::east_hours(1), UtcOffset::hours(1));
-        assert_eq!(UtcOffset::west_hours(1), UtcOffset::hours(-1));
+        assert_eq!(UtcOffset::east_hours(1), offset!(+1));
+        assert_eq!(UtcOffset::west_hours(1), offset!(-1));
     }
 
     #[test]
@@ -265,8 +266,8 @@ mod test {
 
     #[test]
     fn directional_minutes() {
-        assert_eq!(UtcOffset::east_minutes(1), UtcOffset::minutes(1));
-        assert_eq!(UtcOffset::west_minutes(1), UtcOffset::minutes(-1));
+        assert_eq!(UtcOffset::east_minutes(1), offset!(+0:01));
+        assert_eq!(UtcOffset::west_minutes(1), offset!(-0:01));
     }
 
     #[test]
@@ -279,69 +280,73 @@ mod test {
 
     #[test]
     fn directional_seconds() {
-        assert_eq!(UtcOffset::east_seconds(1), UtcOffset::seconds(1));
-        assert_eq!(UtcOffset::west_seconds(1), UtcOffset::seconds(-1));
+        assert_eq!(UtcOffset::east_seconds(1), offset!(+0:00:01));
+        assert_eq!(UtcOffset::west_seconds(1), offset!(-0:00:01));
     }
 
     #[test]
     fn as_hours() {
-        assert_eq!(UtcOffset::hours(1).as_hours(), 1);
-        assert_eq!(UtcOffset::minutes(59).as_hours(), 0);
+        assert_eq!(offset!(+1).as_hours(), 1);
+        assert_eq!(offset!(+0:59).as_hours(), 0);
+        assert_eq!(offset!(-1).as_hours(), -1);
+        assert_eq!(offset!(-0:59).as_hours(), -0);
     }
 
     #[test]
     fn as_minutes() {
-        assert_eq!(UtcOffset::hours(1).as_minutes(), 60);
-        assert_eq!(UtcOffset::minutes(1).as_minutes(), 1);
-        assert_eq!(UtcOffset::seconds(59).as_minutes(), 0);
+        assert_eq!(offset!(+1).as_minutes(), 60);
+        assert_eq!(offset!(+0:01).as_minutes(), 1);
+        assert_eq!(offset!(+0:00:59).as_minutes(), 0);
+        assert_eq!(offset!(-1).as_minutes(), -60);
+        assert_eq!(offset!(-0:01).as_minutes(), -1);
+        assert_eq!(offset!(-0:00:59).as_minutes(), 0);
     }
 
     #[test]
     fn as_seconds() {
-        assert_eq!(UtcOffset::hours(1).as_seconds(), 3_600);
-        assert_eq!(UtcOffset::minutes(1).as_seconds(), 60);
-        assert_eq!(UtcOffset::seconds(1).as_seconds(), 1);
+        assert_eq!(offset!(+1).as_seconds(), 3_600);
+        assert_eq!(offset!(+0:01).as_seconds(), 60);
+        assert_eq!(offset!(+0:00:01).as_seconds(), 1);
+        assert_eq!(offset!(-1).as_seconds(), -3_600);
+        assert_eq!(offset!(-0:01).as_seconds(), -60);
+        assert_eq!(offset!(-0:00:01).as_seconds(), -1);
     }
 
     #[test]
     fn as_duration() {
-        assert_eq!(UtcOffset::hours(1).as_duration(), Duration::hours(1));
-        assert_eq!(UtcOffset::hours(-1).as_duration(), Duration::hours(-1));
+        assert_eq!(offset!(+1).as_duration(), Duration::hours(1));
+        assert_eq!(offset!(-1).as_duration(), Duration::hours(-1));
     }
 
     #[test]
     fn utc_is_zero() {
-        assert_eq!(UtcOffset::UTC, UtcOffset::hours(0));
+        assert_eq!(UtcOffset::UTC, offset!(+0));
     }
 
     #[test]
     fn format() {
-        assert_eq!(UtcOffset::hours(1).format("%z"), "+0100");
-        assert_eq!(UtcOffset::hours(-1).format("%z"), "-0100");
-        assert_eq!(UtcOffset::UTC.format("%z"), "+0000");
+        assert_eq!(offset!(+1).format("%z"), "+0100");
+        assert_eq!(offset!(-1).format("%z"), "-0100");
+        assert_eq!(offset!(+0).format("%z"), "+0000");
         // An offset of exactly zero should always have a positive sign.
-        assert_ne!(UtcOffset::UTC.format("%z"), "-0000");
+        assert_ne!(offset!(-0).format("%z"), "-0000");
 
-        assert_eq!(UtcOffset::minutes(1).format("%z"), "+0001");
-        assert_eq!(UtcOffset::minutes(-1).format("%z"), "-0001");
+        assert_eq!(offset!(+0:01).format("%z"), "+0001");
+        assert_eq!(offset!(-0:01).format("%z"), "-0001");
 
         // Seconds are not displayed, but the sign can still change.
-        assert_eq!(UtcOffset::seconds(1).format("%z"), "+0000");
-        assert_eq!(UtcOffset::seconds(-1).format("%z"), "-0000");
+        assert_eq!(offset!(+0:00:01).format("%z"), "+0000");
+        assert_eq!(offset!(-0:00:01).format("%z"), "-0000");
     }
 
     #[test]
     fn parse() {
-        assert_eq!(UtcOffset::parse("+0100", "%z"), Ok(UtcOffset::hours(1)));
-        assert_eq!(UtcOffset::parse("-0100", "%z"), Ok(UtcOffset::hours(-1)));
-        assert_eq!(UtcOffset::parse("+0000", "%z"), Ok(UtcOffset::UTC));
-        assert_eq!(UtcOffset::parse("-0000", "%z"), Ok(UtcOffset::UTC));
+        assert_eq!(UtcOffset::parse("+0100", "%z"), Ok(offset!(+1)));
+        assert_eq!(UtcOffset::parse("-0100", "%z"), Ok(offset!(-1)));
+        assert_eq!(UtcOffset::parse("+0000", "%z"), Ok(offset!(+0)));
+        assert_eq!(UtcOffset::parse("-0000", "%z"), Ok(offset!(+0)));
 
-        assert_eq!(UtcOffset::minutes(1).format("%z"), "+0001");
-        assert_eq!(UtcOffset::minutes(-1).format("%z"), "-0001");
-
-        // Seconds are not displayed, but the sign can still change.
-        assert_eq!(UtcOffset::seconds(1).format("%z"), "+0000");
-        assert_eq!(UtcOffset::seconds(-1).format("%z"), "-0000");
+        assert_eq!(UtcOffset::parse("+0001", "%z"), Ok(offset!(+0:01)));
+        assert_eq!(UtcOffset::parse("-0001", "%z"), Ok(offset!(-0:01)));
     }
 }

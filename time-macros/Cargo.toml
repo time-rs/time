@@ -12,3 +12,4 @@ description = "Procedural macros for the time crate."
 
 [dependencies]
 time-macros-impl = { version = "0.1", path = "../time-macros-impl" }
+proc-macro-hack = "0.5"

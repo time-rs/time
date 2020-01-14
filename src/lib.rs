@@ -38,8 +38,8 @@
 //!
 //! ## `deprecated`
 //!
-//! Using the `deprecated` feature allows using deprecated methods. Enabled by
-//! default.
+//! Using the `deprecated` feature allows using deprecated v0.1 methods. Enabled
+//! by default.
 //!
 //! With the standard library, the normal `time = 0.2` will work as expected.
 //!
@@ -163,6 +163,11 @@
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 
+// This is necessary to allow our proc macros to work.
+// See rust-lang/rust#54647 for details.
+// Unfortunately, this also means we can't have a `time` mod.
+extern crate self as time;
+
 #[macro_use]
 extern crate alloc;
 
@@ -276,13 +281,12 @@ mod serde;
 /// The `Sign` struct and its associated `impl`s.
 mod sign;
 /// The `Time` struct and its associated `impl`s.
-mod time;
+mod time_mod;
 /// The `UtcOffset` struct and its associated `impl`s.
 mod utc_offset;
 /// Days of the week.
 mod weekday;
 
-pub use self::time::Time;
 pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use duration::Duration;
 pub use error::{ComponentRangeError, ConversionRangeError, Error};
@@ -294,6 +298,80 @@ pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStd
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
 pub use sign::Sign;
+/// Construct a [`UtcOffset`] with a statically known value.
+///
+/// The resulting expression can be used in `const` or `static` declarations.
+///
+/// A sign and the hour must be provided; minutes and seconds default to zero.
+/// `UTC` (both uppercase and lowercase) is also allowed.
+///
+/// ```rust
+/// # use time::{offset, UtcOffset};
+/// assert_eq!(offset!(UTC), UtcOffset::hours(0));
+/// assert_eq!(offset!(utc), UtcOffset::hours(0));
+/// assert_eq!(offset!(+0), UtcOffset::hours(0));
+/// assert_eq!(offset!(+1), UtcOffset::hours(1));
+/// assert_eq!(offset!(-1), UtcOffset::hours(-1));
+/// assert_eq!(offset!(+1:30), UtcOffset::minutes(90));
+/// assert_eq!(offset!(-1:30), UtcOffset::minutes(-90));
+/// assert_eq!(offset!(+1:30:59), UtcOffset::seconds(5459));
+/// assert_eq!(offset!(-1:30:59), UtcOffset::seconds(-5459));
+/// assert_eq!(offset!(+23:59:59), UtcOffset::seconds(86_399));
+/// assert_eq!(offset!(-23:59:59), UtcOffset::seconds(-86_399));
+/// ```
+pub use time_macros::offset;
+/// Construct a [`Time`] with a statically known value.
+///
+/// The resulting expression can be used in `const` or `static` declarations.
+///
+/// Hours and minutes must be provided, while seconds defaults to zero. AM/PM is
+/// allowed (either uppercase or lowercase). Any number of subsecond digits may
+/// be provided (though any past nine will be discarded).
+///
+/// All components are validated at compile-time. An error will be raised if any
+/// value is invalid.
+///
+/// ```rust
+/// # use time::{Time, time};
+/// assert_eq!(
+///     time!(0:00),
+///     Time::try_from_hms(0, 0, 0).unwrap(),
+/// );
+/// assert_eq!(
+///     time!(1:02:03),
+///     Time::try_from_hms(1, 2, 3).unwrap(),
+/// );
+/// assert_eq!(
+///     time!(1:02:03.004_005_006),
+///     Time::try_from_hms_nano(1, 2, 3, 4_005_006).unwrap(),
+/// );
+/// assert_eq!(
+///     time!(12:00 am),
+///     Time::try_from_hms(0, 0, 0).unwrap(),
+/// );
+/// assert_eq!(
+///     time!(1:02:03 am),
+///     Time::try_from_hms(1, 2, 3).unwrap(),
+/// );
+/// assert_eq!(
+///     time!(1:02:03.004_005_006 am),
+///     Time::try_from_hms_nano(1, 2, 3, 4_005_006).unwrap(),
+/// );
+/// assert_eq!(
+///     time!(12:00 pm),
+///     Time::try_from_hms(12, 0, 0).unwrap(),
+/// );
+/// assert_eq!(
+///     time!(1:02:03 pm),
+///     Time::try_from_hms(13, 2, 3).unwrap(),
+/// );
+/// assert_eq!(
+///     time!(1:02:03.004_005_006 pm),
+///     Time::try_from_hms_nano(13, 2, 3, 4_005_006).unwrap(),
+/// );
+/// ```
+pub use time_macros::time;
+pub use time_mod::Time;
 pub use utc_offset::UtcOffset;
 pub use weekday::Weekday;
 
