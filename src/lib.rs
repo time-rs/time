@@ -396,6 +396,9 @@ pub use time_mod::Time;
 pub use utc_offset::UtcOffset;
 pub use weekday::Weekday;
 
+/// An alias for `Result` with a generic error from the time crate.
+pub type Result<T> = core::result::Result<T, Error>;
+
 /// A collection of traits that are widely useful. Unlike the standard library,
 /// this must be explicitly imported:
 ///
@@ -456,7 +459,7 @@ mod private {
 /// #[derive(Debug)]
 /// struct Foo(Time);
 ///
-/// fn main() -> Result<(), time::Error> {
+/// fn main() -> time::Result<()> {
 ///     // We don't need to tell the compiler what type we need!
 ///     let foo = Foo(time::parse("14:55:02", "%T")?);
 ///     println!("{:?}", foo);
