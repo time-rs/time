@@ -108,9 +108,9 @@ impl Date {
     /// Create a `Date` from the year, month, and day.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(Date::from_ymd(2019, 1, 1), Date::from_yo(2019, 1));
-    /// assert_eq!(Date::from_ymd(2019, 12, 31), Date::from_yo(2019, 365));
+    /// # use time::{Date, date};
+    /// assert_eq!(Date::from_ymd(2019, 1, 1), date!(2019-001));
+    /// assert_eq!(Date::from_ymd(2019, 12, 31), date!(2019-365));
     /// ```
     ///
     /// Panics if the date is not valid.
@@ -122,6 +122,11 @@ impl Date {
     #[inline]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[deprecated(
+        since = "0.2.3",
+        note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
+                value isn't known, use `Date::try_from_ymd`."
+    )]
     pub fn from_ymd(year: i32, month: u8, day: u8) -> Self {
         assert_value_in_range!(month in 1 => 12);
         assert_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
@@ -154,9 +159,9 @@ impl Date {
     /// Create a `Date` from the year and ordinal day number.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(Date::from_yo(2019, 1), Date::from_ymd(2019, 1, 1));
-    /// assert_eq!(Date::from_yo(2019, 365), Date::from_ymd(2019, 12, 31));
+    /// # use time::{Date, date};
+    /// assert_eq!(Date::from_yo(2019, 1), date!(2019-01-01));
+    /// assert_eq!(Date::from_yo(2019, 365), date!(2019-12-31));
     /// ```
     ///
     /// Panics if the date is not valid.
@@ -168,6 +173,11 @@ impl Date {
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[deprecated(
+        since = "0.2.3",
+        note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
+                value isn't known, use `Date::try_from_yo`."
+    )]
     pub fn from_yo(year: i32, ordinal: u16) -> Self {
         assert_value_in_range!(ordinal in 1 => days_in_year(year), given year);
         Self { year, ordinal }
@@ -196,18 +206,18 @@ impl Date {
     /// Create a `Date` from the ISO year, week, and weekday.
     ///
     /// ```rust
-    /// # use time::{Date, Weekday::*};
+    /// # use time::{Date, Weekday::*, date};
     /// assert_eq!(
     ///     Date::from_iso_ywd(2019, 1, Monday),
-    ///     Date::from_ymd(2018, 12, 31)
+    ///     date!(2018-12-31)
     /// );
     /// assert_eq!(
     ///     Date::from_iso_ywd(2019, 1, Tuesday),
-    ///     Date::from_ymd(2019, 1, 1)
+    ///     date!(2019-01-01)
     /// );
     /// assert_eq!(
     ///     Date::from_iso_ywd(2020, 53, Friday),
-    ///     Date::from_ymd(2021, 1, 1)
+    ///     date!(2021-01-01)
     /// );
     /// ```
     ///
@@ -220,6 +230,11 @@ impl Date {
     #[inline]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[deprecated(
+        since = "0.2.3",
+        note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
+                value isn't known, use `Date::try_from_iso_ywd`."
+    )]
     pub fn from_iso_ywd(year: i32, week: u8, weekday: Weekday) -> Self {
         assert_value_in_range!(week in 1 => weeks_in_year(year), given year);
         internals::Date::from_iso_ywd_unchecked(year, week, weekday)
@@ -266,10 +281,10 @@ impl Date {
     /// Get the year of the date.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().year(), 2019);
-    /// assert_eq!(Date::try_from_ymd(2019, 12, 31).unwrap().year(), 2019);
-    /// assert_eq!(Date::try_from_ymd(2020, 1, 1).unwrap().year(), 2020);
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).year(), 2019);
+    /// assert_eq!(date!(2019-12-31).year(), 2019);
+    /// assert_eq!(date!(2020-01-01).year(), 2020);
     /// ```
     #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
@@ -283,9 +298,9 @@ impl Date {
     /// The returned value will always be in the range `1..=12`.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().month(), 1);
-    /// assert_eq!(Date::try_from_ymd(2019, 12, 31).unwrap().month(), 12);
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).month(), 1);
+    /// assert_eq!(date!(2019-12-31).month(), 12);
     /// ```
     #[inline(always)]
     pub fn month(self) -> u8 {
@@ -298,9 +313,9 @@ impl Date {
     /// The returned value will always be in the range `1..=31`.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().day(), 1);
-    /// assert_eq!(Date::try_from_ymd(2019, 12, 31).unwrap().day(), 31);
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).day(), 1);
+    /// assert_eq!(date!(2019-12-31).day(), 31);
     /// ```
     #[inline(always)]
     pub fn day(self) -> u8 {
@@ -314,12 +329,9 @@ impl Date {
     /// the day component in `1..=31`.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().month_day(), (1, 1));
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31).unwrap().month_day(),
-    ///     (12, 31)
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).month_day(), (1, 1));
+    /// assert_eq!(date!(2019-12-31).month_day(), (12, 31));
     /// ```
     // For whatever reason, rustc has difficulty optimizing this function. It's
     // significantly faster to write the statements out by hand.
@@ -371,9 +383,9 @@ impl Date {
     /// common years).
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().ordinal(), 1);
-    /// assert_eq!(Date::try_from_ymd(2019, 12, 31).unwrap().ordinal(), 365);
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).ordinal(), 1);
+    /// assert_eq!(date!(2019-12-31).ordinal(), 365);
     /// ```
     #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
@@ -384,27 +396,12 @@ impl Date {
     /// Get the ISO 8601 year and week number.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().iso_year_week(),
-    ///     (2019, 1)
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 10, 4).unwrap().iso_year_week(),
-    ///     (2019, 40)
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 1, 1).unwrap().iso_year_week(),
-    ///     (2020, 1)
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 12, 31).unwrap().iso_year_week(),
-    ///     (2020, 53)
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2021, 1, 1).unwrap().iso_year_week(),
-    ///     (2020, 53)
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).iso_year_week(), (2019, 1));
+    /// assert_eq!(date!(2019-10-04).iso_year_week(), (2019, 40));
+    /// assert_eq!(date!(2020-01-01).iso_year_week(), (2020, 1));
+    /// assert_eq!(date!(2020-12-31).iso_year_week(), (2020, 53));
+    /// assert_eq!(date!(2021-01-01).iso_year_week(), (2020, 53));
     /// ```
     #[inline]
     pub fn iso_year_week(self) -> (i32, u8) {
@@ -424,12 +421,12 @@ impl Date {
     /// The returned value will always be in the range `1..=53`.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().week(), 1);
-    /// assert_eq!(Date::try_from_ymd(2019, 10, 4).unwrap().week(), 40);
-    /// assert_eq!(Date::try_from_ymd(2020, 1, 1).unwrap().week(), 1);
-    /// assert_eq!(Date::try_from_ymd(2020, 12, 31).unwrap().week(), 53);
-    /// assert_eq!(Date::try_from_ymd(2021, 1, 1).unwrap().week(), 53);
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).week(), 1);
+    /// assert_eq!(date!(2019-10-04).week(), 40);
+    /// assert_eq!(date!(2020-01-01).week(), 1);
+    /// assert_eq!(date!(2020-12-31).week(), 53);
+    /// assert_eq!(date!(2021-01-01).week(), 53);
     /// ```
     #[inline(always)]
     pub fn week(self) -> u8 {
@@ -441,25 +438,11 @@ impl Date {
     /// The returned value will always be in the range `0..=53`.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().sunday_based_week(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 1, 1).unwrap().sunday_based_week(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 12, 31)
-    ///         .unwrap()
-    ///         .sunday_based_week(),
-    ///     52
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2021, 1, 1).unwrap().sunday_based_week(),
-    ///     0
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).sunday_based_week(), 0);
+    /// assert_eq!(date!(2020-01-01).sunday_based_week(), 0);
+    /// assert_eq!(date!(2020-12-31).sunday_based_week(), 52);
+    /// assert_eq!(date!(2021-01-01).sunday_based_week(), 0);
     /// ```
     #[inline]
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
@@ -472,25 +455,11 @@ impl Date {
     /// The returned value will always be in the range `0..=53`.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().monday_based_week(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 1, 1).unwrap().monday_based_week(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 12, 31)
-    ///         .unwrap()
-    ///         .monday_based_week(),
-    ///     52
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2021, 1, 1).unwrap().monday_based_week(),
-    ///     0
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).monday_based_week(), 0);
+    /// assert_eq!(date!(2020-01-01).monday_based_week(), 0);
+    /// assert_eq!(date!(2020-12-31).monday_based_week(), 52);
+    /// assert_eq!(date!(2021-01-01).monday_based_week(), 0);
     /// ```
     #[inline]
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
@@ -501,11 +470,8 @@ impl Date {
     /// Get the year, month, and day.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().as_ymd(),
-    ///     (2019, 1, 1)
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).as_ymd(), (2019, 1, 1));
     /// ```
     #[inline(always)]
     pub fn as_ymd(self) -> (i32, u8, u8) {
@@ -516,8 +482,8 @@ impl Date {
     /// Get the year and ordinal day number.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().as_yo(), (2019, 1));
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).as_yo(), (2019, 1));
     /// ```
     #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
@@ -531,19 +497,19 @@ impl Date {
     /// internally.
     ///
     /// ```rust
-    /// # use time::{Date, Weekday::*};
-    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().weekday(), Tuesday);
-    /// assert_eq!(Date::try_from_ymd(2019, 2, 1).unwrap().weekday(), Friday);
-    /// assert_eq!(Date::try_from_ymd(2019, 3, 1).unwrap().weekday(), Friday);
-    /// assert_eq!(Date::try_from_ymd(2019, 4, 1).unwrap().weekday(), Monday);
-    /// assert_eq!(Date::try_from_ymd(2019, 5, 1).unwrap().weekday(), Wednesday);
-    /// assert_eq!(Date::try_from_ymd(2019, 6, 1).unwrap().weekday(), Saturday);
-    /// assert_eq!(Date::try_from_ymd(2019, 7, 1).unwrap().weekday(), Monday);
-    /// assert_eq!(Date::try_from_ymd(2019, 8, 1).unwrap().weekday(), Thursday);
-    /// assert_eq!(Date::try_from_ymd(2019, 9, 1).unwrap().weekday(), Sunday);
-    /// assert_eq!(Date::try_from_ymd(2019, 10, 1).unwrap().weekday(), Tuesday);
-    /// assert_eq!(Date::try_from_ymd(2019, 11, 1).unwrap().weekday(), Friday);
-    /// assert_eq!(Date::try_from_ymd(2019, 12, 1).unwrap().weekday(), Sunday);
+    /// # use time::{date, Weekday::*};
+    /// assert_eq!(date!(2019-01-01).weekday(), Tuesday);
+    /// assert_eq!(date!(2019-02-01).weekday(), Friday);
+    /// assert_eq!(date!(2019-03-01).weekday(), Friday);
+    /// assert_eq!(date!(2019-04-01).weekday(), Monday);
+    /// assert_eq!(date!(2019-05-01).weekday(), Wednesday);
+    /// assert_eq!(date!(2019-06-01).weekday(), Saturday);
+    /// assert_eq!(date!(2019-07-01).weekday(), Monday);
+    /// assert_eq!(date!(2019-08-01).weekday(), Thursday);
+    /// assert_eq!(date!(2019-09-01).weekday(), Sunday);
+    /// assert_eq!(date!(2019-10-01).weekday(), Tuesday);
+    /// assert_eq!(date!(2019-11-01).weekday(), Friday);
+    /// assert_eq!(date!(2019-12-01).weekday(), Sunday);
     /// ```
     #[inline]
     pub fn weekday(self) -> Weekday {
@@ -558,7 +524,7 @@ impl Date {
         match (day as i32 + (13 * (month as i32 + 1)) / 5 + adjusted_year + adjusted_year / 4
             - adjusted_year / 100
             + adjusted_year / 400)
-            % 7
+            .rem_euclid(7)
         {
             0 => Saturday,
             1 => Sunday,
@@ -567,8 +533,8 @@ impl Date {
             4 => Wednesday,
             5 => Thursday,
             6 => Friday,
-            // FIXME The compiler isn't able to optimize this away. Convert to
-            // `.rem_euclid(7)` once rust-lang/rust#66993 is resolved.
+            // FIXME The compiler isn't able to optimize this away. See
+            // rust-lang/rust#66993.
             _ => unreachable!("A value mod 7 is always in the range 0..7"),
         }
     }
@@ -576,19 +542,10 @@ impl Date {
     /// Get the next calendar date.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().next_day(),
-    ///     Date::try_from_ymd(2019, 1, 2).unwrap()
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 31).unwrap().next_day(),
-    ///     Date::try_from_ymd(2019, 2, 1).unwrap()
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31).unwrap().next_day(),
-    ///     Date::try_from_ymd(2020, 1, 1).unwrap()
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).next_day(), date!(2019-01-02));
+    /// assert_eq!(date!(2019-01-31).next_day(), date!(2019-02-01));
+    /// assert_eq!(date!(2019-12-31).next_day(), date!(2020-01-01));
     /// ```
     #[inline(always)]
     pub fn next_day(mut self) -> Self {
@@ -605,19 +562,10 @@ impl Date {
     /// Get the previous calendar date.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 2).unwrap().previous_day(),
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap()
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 2, 1).unwrap().previous_day(),
-    ///     Date::try_from_ymd(2019, 1, 31).unwrap()
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 1, 1).unwrap().previous_day(),
-    ///     Date::try_from_ymd(2019, 12, 31).unwrap()
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-02).previous_day(), date!(2019-01-01));
+    /// assert_eq!(date!(2019-02-01).previous_day(), date!(2019-01-31));
+    /// assert_eq!(date!(2020-01-01).previous_day(), date!(2019-12-31));
     /// ```
     #[inline(always)]
     pub fn previous_day(mut self) -> Self {
@@ -634,20 +582,11 @@ impl Date {
     /// Get the Julian day for the date.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(Date::try_from_ymd(-4713, 11, 24).unwrap().julian_day(), 0);
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2000, 1, 1).unwrap().julian_day(),
-    ///     2_451_545
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().julian_day(),
-    ///     2_458_485
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31).unwrap().julian_day(),
-    ///     2_458_849
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(-4713-11-24).julian_day(), 0);
+    /// assert_eq!(date!(2000-01-01).julian_day(), 2_451_545);
+    /// assert_eq!(date!(2019-01-01).julian_day(), 2_458_485);
+    /// assert_eq!(date!(2019-12-31).julian_day(), 2_458_849);
     /// ```
     #[inline]
     pub fn julian_day(self) -> i64 {
@@ -669,23 +608,14 @@ impl Date {
     /// courtesy of the United States Naval Observatory.
     ///
     /// ```rust
-    /// # use time::Date;
+    /// # use time::{Date, date};
     /// assert_eq!(
     ///     Date::from_julian_day(0),
-    ///     Date::try_from_ymd(-4713, 11, 24).unwrap()
+    ///     date!(-4713-11-24)
     /// );
-    /// assert_eq!(
-    ///     Date::from_julian_day(2_451_545),
-    ///     Date::try_from_ymd(2000, 1, 1).unwrap()
-    /// );
-    /// assert_eq!(
-    ///     Date::from_julian_day(2_458_485),
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap()
-    /// );
-    /// assert_eq!(
-    ///     Date::from_julian_day(2_458_849),
-    ///     Date::try_from_ymd(2019, 12, 31).unwrap()
-    /// );
+    /// assert_eq!(Date::from_julian_day(2_451_545), date!(2000-01-01));
+    /// assert_eq!(Date::from_julian_day(2_458_485), date!(2019-01-01));
+    /// assert_eq!(Date::from_julian_day(2_458_849), date!(2019-12-31));
     /// ```
     #[inline]
     pub fn from_julian_day(julian_day: i64) -> Self {
@@ -723,9 +653,9 @@ impl Date {
     /// be set to midnight.
     ///
     /// ```rust
-    /// # use time::{Date, PrimitiveDateTime, Time};
+    /// # use time::{date, PrimitiveDateTime, Time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(1970, 1, 1).unwrap().midnight(),
+    ///     date!(1970-01-01).midnight(),
     ///     PrimitiveDateTime::unix_epoch()
     /// );
     /// ```
@@ -737,12 +667,10 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided `Time`.
     ///
     /// ```rust
-    /// # use time::{Date, time};
+    /// # use time::{date, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(1970, 1, 1)
-    ///         .unwrap()
-    ///         .with_time(time!(0:00)),
-    ///     Date::try_from_ymd(1970, 1, 1).unwrap().midnight(),
+    ///     date!(1970-01-01).with_time(time!(0:00)),
+    ///     date!(1970-01-01).midnight(),
     /// );
     /// ```
     #[inline(always)]
@@ -753,10 +681,10 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{Date, time};
+    /// # use time::{date, time};
     /// assert_eq!(
-    ///     Date::from_ymd(1970, 1, 1).with_hms(0, 0, 0),
-    ///     Date::from_ymd(1970, 1, 1).with_time(time!(0:00)),
+    ///     date!(1970-01-01).with_hms(0, 0, 0),
+    ///     date!(1970-01-01).with_time(time!(0:00)),
     /// );
     /// ```
     #[inline(always)]
@@ -772,18 +700,13 @@ impl Date {
         PrimitiveDateTime::new(self, Time::from_hms(hour, minute, second))
     }
 
-    /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
+    /// Attempt to create a `PrimitiveDateTime` using the existing date and the
+    /// provided time.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert!(Date::try_from_ymd(1970, 1, 1)
-    ///     .unwrap()
-    ///     .try_with_hms(0, 0, 0)
-    ///     .is_ok());
-    /// assert!(Date::try_from_ymd(1970, 1, 1)
-    ///     .unwrap()
-    ///     .try_with_hms(24, 0, 0)
-    ///     .is_err());
+    /// # use time::date;
+    /// assert!(date!(1970-01-01).try_with_hms(0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).try_with_hms(24, 0, 0).is_err());
     /// ```
     #[inline(always)]
     pub fn try_with_hms(
@@ -798,13 +721,14 @@ impl Date {
         ))
     }
 
-    /// Create a `PrimitiveDateTime` using the existing date and the provided time.
+    /// Create a `PrimitiveDateTime` using the existing date and the provided
+    /// time.
     ///
     /// ```rust
-    /// # use time::{Date, Time, time};
+    /// # use time::{date, Time, time};
     /// assert_eq!(
-    ///     Date::from_ymd(1970, 1, 1).with_hms_milli(0, 0, 0, 0),
-    ///     Date::from_ymd(1970, 1, 1).with_time(time!(0:00)),
+    ///     date!(1970-01-01).with_hms_milli(0, 0, 0, 0),
+    ///     date!(1970-01-01).with_time(time!(0:00)),
     /// );
     /// ```
     #[inline(always)]
@@ -832,15 +756,9 @@ impl Date {
     /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert!(Date::try_from_ymd(1970, 1, 1)
-    ///     .unwrap()
-    ///     .try_with_hms_milli(0, 0, 0, 0)
-    ///     .is_ok());
-    /// assert!(Date::try_from_ymd(1970, 1, 1)
-    ///     .unwrap()
-    ///     .try_with_hms_milli(24, 0, 0, 0)
-    ///     .is_err());
+    /// # use time::date;
+    /// assert!(date!(1970-01-01).try_with_hms_milli(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).try_with_hms_milli(24, 0, 0, 0).is_err());
     /// ```
     #[inline(always)]
     pub fn try_with_hms_milli(
@@ -859,10 +777,10 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{Date, Time, time};
+    /// # use time::{date, Time, time};
     /// assert_eq!(
-    ///     Date::from_ymd(1970, 1, 1).with_hms_micro(0, 0, 0, 0),
-    ///     Date::from_ymd(1970, 1, 1).with_time(time!(0:00)),
+    ///     date!(1970-01-01).with_hms_micro(0, 0, 0, 0),
+    ///     date!(1970-01-01).with_time(time!(0:00)),
     /// );
     /// ```
     #[inline(always)]
@@ -887,16 +805,15 @@ impl Date {
         )
     }
 
-    /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
+    /// Attempt to create a `PrimitiveDateTime` using the existing date and the
+    /// provided time.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert!(Date::try_from_ymd(1970, 1, 1)
-    ///     .unwrap()
+    /// # use time::date;
+    /// assert!(date!(1970-01-01)
     ///     .try_with_hms_micro(0, 0, 0, 0)
     ///     .is_ok());
-    /// assert!(Date::try_from_ymd(1970, 1, 1)
-    ///     .unwrap()
+    /// assert!(date!(1970-01-01)
     ///     .try_with_hms_micro(24, 0, 0, 0)
     ///     .is_err());
     /// ```
@@ -917,10 +834,10 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{Date, time};
+    /// # use time::{date, time};
     /// assert_eq!(
-    ///     Date::from_ymd(1970, 1, 1).with_hms_nano(0, 0, 0, 0),
-    ///     Date::from_ymd(1970, 1, 1).with_time(time!(0:00)),
+    ///     date!(1970-01-01).with_hms_nano(0, 0, 0, 0),
+    ///     date!(1970-01-01).with_time(time!(0:00)),
     /// );
     /// ```
     #[inline(always)]
@@ -945,15 +862,9 @@ impl Date {
     /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert!(Date::try_from_ymd(1970, 1, 1)
-    ///     .unwrap()
-    ///     .try_with_hms_nano(0, 0, 0, 0)
-    ///     .is_ok());
-    /// assert!(Date::try_from_ymd(1970, 1, 1)
-    ///     .unwrap()
-    ///     .try_with_hms_nano(24, 0, 0, 0)
-    ///     .is_err());
+    /// # use time::date;
+    /// assert!(date!(1970-01-01).try_with_hms_nano(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).try_with_hms_nano(24, 0, 0, 0).is_err());
     /// ```
     #[inline(always)]
     pub fn try_with_hms_nano(
@@ -975,11 +886,8 @@ impl Date {
     /// Format the `Date` using the provided string.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 2).unwrap().format("%Y-%m-%d"),
-    ///     "2019-01-02"
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-02).format("%Y-%m-%d"), "2019-01-02");
     /// ```
     #[inline(always)]
     pub fn format(self, format: &str) -> String {
@@ -995,10 +903,10 @@ impl Date {
     /// Attempt to parse a `Date` using the provided string.
     ///
     /// ```rust
-    /// # use time::{Date, Weekday::Wednesday};
+    /// # use time::{Date, date};
     /// assert_eq!(
     ///     Date::parse("2019-01-02", "%F"),
-    ///     Ok(Date::try_from_ymd(2019, 1, 2).unwrap())
+    ///     Ok(date!(2019-01-02))
     /// );
     /// assert_eq!(
     ///     Date::parse("2019-002", "%Y-%j"),
@@ -1006,7 +914,7 @@ impl Date {
     /// );
     /// assert_eq!(
     ///     Date::parse("2019-W01-3", "%G-W%V-%u"),
-    ///     Ok(Date::try_from_iso_ywd(2019, 1, Wednesday).unwrap())
+    ///     Ok(date!(2019-W01-3))
     /// );
     /// ```
     #[inline(always)]
@@ -1167,28 +1075,11 @@ impl Ord for Date {
 
 #[cfg(test)]
 #[allow(clippy::result_unwrap_used)]
+#[rustfmt::skip::macros(date)]
 mod test {
     use super::*;
-    use crate::{prelude::*, time};
+    use crate::{date, prelude::*, time};
     use alloc::collections::btree_set::BTreeSet;
-
-    macro_rules! yo {
-        ($year:literal, $ordinal:literal) => {
-            Date::try_from_yo($year, $ordinal).unwrap()
-        };
-    }
-
-    macro_rules! ymd {
-        ($year:literal, $month:literal, $day:literal) => {
-            Date::try_from_ymd($year, $month, $day).unwrap()
-        };
-    }
-
-    macro_rules! ywd {
-        ($year:literal, $week:literal, $day:ident) => {
-            Date::try_from_iso_ywd($year, $week, $day).unwrap()
-        };
-    }
 
     macro_rules! julian {
         ($julian:literal) => {
@@ -1259,399 +1150,387 @@ mod test {
     #[test]
     #[allow(clippy::zero_prefixed_literal)]
     fn test_monday_based_week() {
-        macro_rules! assert_monday_week {
-            ($y:literal - $m:literal - $d:literal => $week:literal) => {
-                assert_eq!(ymd!($y, $m, $d).monday_based_week(), $week);
-            };
-        }
-
         // A
-        assert_monday_week!(2023-01-01 => 0);
-        assert_monday_week!(2023-01-02 => 1);
-        assert_monday_week!(2023-01-03 => 1);
-        assert_monday_week!(2023-01-04 => 1);
-        assert_monday_week!(2023-01-05 => 1);
-        assert_monday_week!(2023-01-06 => 1);
-        assert_monday_week!(2023-01-07 => 1);
+        assert_eq!(date!(2023-01-01).monday_based_week(), 0);
+        assert_eq!(date!(2023-01-02).monday_based_week(), 1);
+        assert_eq!(date!(2023-01-03).monday_based_week(), 1);
+        assert_eq!(date!(2023-01-04).monday_based_week(), 1);
+        assert_eq!(date!(2023-01-05).monday_based_week(), 1);
+        assert_eq!(date!(2023-01-06).monday_based_week(), 1);
+        assert_eq!(date!(2023-01-07).monday_based_week(), 1);
 
         // B
-        assert_monday_week!(2022-01-01 => 0);
-        assert_monday_week!(2022-01-02 => 0);
-        assert_monday_week!(2022-01-03 => 1);
-        assert_monday_week!(2022-01-04 => 1);
-        assert_monday_week!(2022-01-05 => 1);
-        assert_monday_week!(2022-01-06 => 1);
-        assert_monday_week!(2022-01-07 => 1);
+        assert_eq!(date!(2022-01-01).monday_based_week(), 0);
+        assert_eq!(date!(2022-01-02).monday_based_week(), 0);
+        assert_eq!(date!(2022-01-03).monday_based_week(), 1);
+        assert_eq!(date!(2022-01-04).monday_based_week(), 1);
+        assert_eq!(date!(2022-01-05).monday_based_week(), 1);
+        assert_eq!(date!(2022-01-06).monday_based_week(), 1);
+        assert_eq!(date!(2022-01-07).monday_based_week(), 1);
 
         // C
-        assert_monday_week!(2021-01-01 => 0);
-        assert_monday_week!(2021-01-02 => 0);
-        assert_monday_week!(2021-01-03 => 0);
-        assert_monday_week!(2021-01-04 => 1);
-        assert_monday_week!(2021-01-05 => 1);
-        assert_monday_week!(2021-01-06 => 1);
-        assert_monday_week!(2021-01-07 => 1);
+        assert_eq!(date!(2021-01-01).monday_based_week(), 0);
+        assert_eq!(date!(2021-01-02).monday_based_week(), 0);
+        assert_eq!(date!(2021-01-03).monday_based_week(), 0);
+        assert_eq!(date!(2021-01-04).monday_based_week(), 1);
+        assert_eq!(date!(2021-01-05).monday_based_week(), 1);
+        assert_eq!(date!(2021-01-06).monday_based_week(), 1);
+        assert_eq!(date!(2021-01-07).monday_based_week(), 1);
 
         // D
-        assert_monday_week!(2026-01-01 => 0);
-        assert_monday_week!(2026-01-02 => 0);
-        assert_monday_week!(2026-01-03 => 0);
-        assert_monday_week!(2026-01-04 => 0);
-        assert_monday_week!(2026-01-05 => 1);
-        assert_monday_week!(2026-01-06 => 1);
-        assert_monday_week!(2026-01-07 => 1);
+        assert_eq!(date!(2026-01-01).monday_based_week(), 0);
+        assert_eq!(date!(2026-01-02).monday_based_week(), 0);
+        assert_eq!(date!(2026-01-03).monday_based_week(), 0);
+        assert_eq!(date!(2026-01-04).monday_based_week(), 0);
+        assert_eq!(date!(2026-01-05).monday_based_week(), 1);
+        assert_eq!(date!(2026-01-06).monday_based_week(), 1);
+        assert_eq!(date!(2026-01-07).monday_based_week(), 1);
 
         // E
-        assert_monday_week!(2025-01-01 => 0);
-        assert_monday_week!(2025-01-02 => 0);
-        assert_monday_week!(2025-01-03 => 0);
-        assert_monday_week!(2025-01-04 => 0);
-        assert_monday_week!(2025-01-05 => 0);
-        assert_monday_week!(2025-01-06 => 1);
-        assert_monday_week!(2025-01-07 => 1);
+        assert_eq!(date!(2025-01-01).monday_based_week(), 0);
+        assert_eq!(date!(2025-01-02).monday_based_week(), 0);
+        assert_eq!(date!(2025-01-03).monday_based_week(), 0);
+        assert_eq!(date!(2025-01-04).monday_based_week(), 0);
+        assert_eq!(date!(2025-01-05).monday_based_week(), 0);
+        assert_eq!(date!(2025-01-06).monday_based_week(), 1);
+        assert_eq!(date!(2025-01-07).monday_based_week(), 1);
 
         // F
-        assert_monday_week!(2019-01-01 => 0);
-        assert_monday_week!(2019-01-02 => 0);
-        assert_monday_week!(2019-01-03 => 0);
-        assert_monday_week!(2019-01-04 => 0);
-        assert_monday_week!(2019-01-05 => 0);
-        assert_monday_week!(2019-01-06 => 0);
-        assert_monday_week!(2019-01-07 => 1);
+        assert_eq!(date!(2019-01-01).monday_based_week(), 0);
+        assert_eq!(date!(2019-01-02).monday_based_week(), 0);
+        assert_eq!(date!(2019-01-03).monday_based_week(), 0);
+        assert_eq!(date!(2019-01-04).monday_based_week(), 0);
+        assert_eq!(date!(2019-01-05).monday_based_week(), 0);
+        assert_eq!(date!(2019-01-06).monday_based_week(), 0);
+        assert_eq!(date!(2019-01-07).monday_based_week(), 1);
 
         // G
-        assert_monday_week!(2018-01-01 => 1);
-        assert_monday_week!(2018-01-02 => 1);
-        assert_monday_week!(2018-01-03 => 1);
-        assert_monday_week!(2018-01-04 => 1);
-        assert_monday_week!(2018-01-05 => 1);
-        assert_monday_week!(2018-01-06 => 1);
-        assert_monday_week!(2018-01-07 => 1);
+        assert_eq!(date!(2018-01-01).monday_based_week(), 1);
+        assert_eq!(date!(2018-01-02).monday_based_week(), 1);
+        assert_eq!(date!(2018-01-03).monday_based_week(), 1);
+        assert_eq!(date!(2018-01-04).monday_based_week(), 1);
+        assert_eq!(date!(2018-01-05).monday_based_week(), 1);
+        assert_eq!(date!(2018-01-06).monday_based_week(), 1);
+        assert_eq!(date!(2018-01-07).monday_based_week(), 1);
 
         // AG
-        assert_monday_week!(2012-01-01 => 0);
-        assert_monday_week!(2012-01-02 => 1);
-        assert_monday_week!(2012-01-03 => 1);
-        assert_monday_week!(2012-01-04 => 1);
-        assert_monday_week!(2012-01-05 => 1);
-        assert_monday_week!(2012-01-06 => 1);
-        assert_monday_week!(2012-01-07 => 1);
-        assert_monday_week!(2012-02-28 => 9);
-        assert_monday_week!(2012-02-29 => 9);
-        assert_monday_week!(2012-03-01 => 9);
-        assert_monday_week!(2012-03-02 => 9);
-        assert_monday_week!(2012-03-03 => 9);
-        assert_monday_week!(2012-03-04 => 9);
-        assert_monday_week!(2012-03-05 => 10);
-        assert_monday_week!(2012-03-06 => 10);
-        assert_monday_week!(2012-03-07 => 10);
+        assert_eq!(date!(2012-01-01).monday_based_week(), 0);
+        assert_eq!(date!(2012-01-02).monday_based_week(), 1);
+        assert_eq!(date!(2012-01-03).monday_based_week(), 1);
+        assert_eq!(date!(2012-01-04).monday_based_week(), 1);
+        assert_eq!(date!(2012-01-05).monday_based_week(), 1);
+        assert_eq!(date!(2012-01-06).monday_based_week(), 1);
+        assert_eq!(date!(2012-01-07).monday_based_week(), 1);
+        assert_eq!(date!(2012-02-28).monday_based_week(), 9);
+        assert_eq!(date!(2012-02-29).monday_based_week(), 9);
+        assert_eq!(date!(2012-03-01).monday_based_week(), 9);
+        assert_eq!(date!(2012-03-02).monday_based_week(), 9);
+        assert_eq!(date!(2012-03-03).monday_based_week(), 9);
+        assert_eq!(date!(2012-03-04).monday_based_week(), 9);
+        assert_eq!(date!(2012-03-05).monday_based_week(), 10);
+        assert_eq!(date!(2012-03-06).monday_based_week(), 10);
+        assert_eq!(date!(2012-03-07).monday_based_week(), 10);
 
         // BA
-        assert_monday_week!(2028-01-01 => 0);
-        assert_monday_week!(2028-01-02 => 0);
-        assert_monday_week!(2028-01-03 => 1);
-        assert_monday_week!(2028-01-04 => 1);
-        assert_monday_week!(2028-01-05 => 1);
-        assert_monday_week!(2028-01-06 => 1);
-        assert_monday_week!(2028-01-07 => 1);
-        assert_monday_week!(2028-02-28 => 9);
-        assert_monday_week!(2028-02-29 => 9);
-        assert_monday_week!(2028-03-01 => 9);
-        assert_monday_week!(2028-03-02 => 9);
-        assert_monday_week!(2028-03-03 => 9);
-        assert_monday_week!(2028-03-04 => 9);
-        assert_monday_week!(2028-03-05 => 9);
-        assert_monday_week!(2028-03-06 => 10);
-        assert_monday_week!(2028-03-07 => 10);
+        assert_eq!(date!(2028-01-01).monday_based_week(), 0);
+        assert_eq!(date!(2028-01-02).monday_based_week(), 0);
+        assert_eq!(date!(2028-01-03).monday_based_week(), 1);
+        assert_eq!(date!(2028-01-04).monday_based_week(), 1);
+        assert_eq!(date!(2028-01-05).monday_based_week(), 1);
+        assert_eq!(date!(2028-01-06).monday_based_week(), 1);
+        assert_eq!(date!(2028-01-07).monday_based_week(), 1);
+        assert_eq!(date!(2028-02-28).monday_based_week(), 9);
+        assert_eq!(date!(2028-02-29).monday_based_week(), 9);
+        assert_eq!(date!(2028-03-01).monday_based_week(), 9);
+        assert_eq!(date!(2028-03-02).monday_based_week(), 9);
+        assert_eq!(date!(2028-03-03).monday_based_week(), 9);
+        assert_eq!(date!(2028-03-04).monday_based_week(), 9);
+        assert_eq!(date!(2028-03-05).monday_based_week(), 9);
+        assert_eq!(date!(2028-03-06).monday_based_week(), 10);
+        assert_eq!(date!(2028-03-07).monday_based_week(), 10);
 
         // CB
-        assert_monday_week!(2016-01-01 => 0);
-        assert_monday_week!(2016-01-02 => 0);
-        assert_monday_week!(2016-01-03 => 0);
-        assert_monday_week!(2016-01-04 => 1);
-        assert_monday_week!(2016-01-05 => 1);
-        assert_monday_week!(2016-01-06 => 1);
-        assert_monday_week!(2016-01-07 => 1);
-        assert_monday_week!(2016-02-28 => 8);
-        assert_monday_week!(2016-02-29 => 9);
-        assert_monday_week!(2016-03-01 => 9);
-        assert_monday_week!(2016-03-02 => 9);
-        assert_monday_week!(2016-03-03 => 9);
-        assert_monday_week!(2016-03-04 => 9);
-        assert_monday_week!(2016-03-05 => 9);
-        assert_monday_week!(2016-03-06 => 9);
-        assert_monday_week!(2016-03-07 => 10);
+        assert_eq!(date!(2016-01-01).monday_based_week(), 0);
+        assert_eq!(date!(2016-01-02).monday_based_week(), 0);
+        assert_eq!(date!(2016-01-03).monday_based_week(), 0);
+        assert_eq!(date!(2016-01-04).monday_based_week(), 1);
+        assert_eq!(date!(2016-01-05).monday_based_week(), 1);
+        assert_eq!(date!(2016-01-06).monday_based_week(), 1);
+        assert_eq!(date!(2016-01-07).monday_based_week(), 1);
+        assert_eq!(date!(2016-02-28).monday_based_week(), 8);
+        assert_eq!(date!(2016-02-29).monday_based_week(), 9);
+        assert_eq!(date!(2016-03-01).monday_based_week(), 9);
+        assert_eq!(date!(2016-03-02).monday_based_week(), 9);
+        assert_eq!(date!(2016-03-03).monday_based_week(), 9);
+        assert_eq!(date!(2016-03-04).monday_based_week(), 9);
+        assert_eq!(date!(2016-03-05).monday_based_week(), 9);
+        assert_eq!(date!(2016-03-06).monday_based_week(), 9);
+        assert_eq!(date!(2016-03-07).monday_based_week(), 10);
 
         // DC
-        assert_monday_week!(2032-01-01 => 0);
-        assert_monday_week!(2032-01-02 => 0);
-        assert_monday_week!(2032-01-03 => 0);
-        assert_monday_week!(2032-01-04 => 0);
-        assert_monday_week!(2032-01-05 => 1);
-        assert_monday_week!(2032-01-06 => 1);
-        assert_monday_week!(2032-01-07 => 1);
-        assert_monday_week!(2032-02-28 => 8);
-        assert_monday_week!(2032-02-29 => 8);
-        assert_monday_week!(2032-03-01 => 9);
-        assert_monday_week!(2032-03-02 => 9);
-        assert_monday_week!(2032-03-03 => 9);
-        assert_monday_week!(2032-03-04 => 9);
-        assert_monday_week!(2032-03-05 => 9);
-        assert_monday_week!(2032-03-06 => 9);
-        assert_monday_week!(2032-03-07 => 9);
+        assert_eq!(date!(2032-01-01).monday_based_week(), 0);
+        assert_eq!(date!(2032-01-02).monday_based_week(), 0);
+        assert_eq!(date!(2032-01-03).monday_based_week(), 0);
+        assert_eq!(date!(2032-01-04).monday_based_week(), 0);
+        assert_eq!(date!(2032-01-05).monday_based_week(), 1);
+        assert_eq!(date!(2032-01-06).monday_based_week(), 1);
+        assert_eq!(date!(2032-01-07).monday_based_week(), 1);
+        assert_eq!(date!(2032-02-28).monday_based_week(), 8);
+        assert_eq!(date!(2032-02-29).monday_based_week(), 8);
+        assert_eq!(date!(2032-03-01).monday_based_week(), 9);
+        assert_eq!(date!(2032-03-02).monday_based_week(), 9);
+        assert_eq!(date!(2032-03-03).monday_based_week(), 9);
+        assert_eq!(date!(2032-03-04).monday_based_week(), 9);
+        assert_eq!(date!(2032-03-05).monday_based_week(), 9);
+        assert_eq!(date!(2032-03-06).monday_based_week(), 9);
+        assert_eq!(date!(2032-03-07).monday_based_week(), 9);
 
         // ED
-        assert_monday_week!(2020-01-01 => 0);
-        assert_monday_week!(2020-01-02 => 0);
-        assert_monday_week!(2020-01-03 => 0);
-        assert_monday_week!(2020-01-04 => 0);
-        assert_monday_week!(2020-01-05 => 0);
-        assert_monday_week!(2020-01-06 => 1);
-        assert_monday_week!(2020-01-07 => 1);
-        assert_monday_week!(2020-02-28 => 8);
-        assert_monday_week!(2020-02-29 => 8);
-        assert_monday_week!(2020-03-01 => 8);
-        assert_monday_week!(2020-03-02 => 9);
-        assert_monday_week!(2020-03-03 => 9);
-        assert_monday_week!(2020-03-04 => 9);
-        assert_monday_week!(2020-03-05 => 9);
-        assert_monday_week!(2020-03-06 => 9);
-        assert_monday_week!(2020-03-07 => 9);
+        assert_eq!(date!(2020-01-01).monday_based_week(), 0);
+        assert_eq!(date!(2020-01-02).monday_based_week(), 0);
+        assert_eq!(date!(2020-01-03).monday_based_week(), 0);
+        assert_eq!(date!(2020-01-04).monday_based_week(), 0);
+        assert_eq!(date!(2020-01-05).monday_based_week(), 0);
+        assert_eq!(date!(2020-01-06).monday_based_week(), 1);
+        assert_eq!(date!(2020-01-07).monday_based_week(), 1);
+        assert_eq!(date!(2020-02-28).monday_based_week(), 8);
+        assert_eq!(date!(2020-02-29).monday_based_week(), 8);
+        assert_eq!(date!(2020-03-01).monday_based_week(), 8);
+        assert_eq!(date!(2020-03-02).monday_based_week(), 9);
+        assert_eq!(date!(2020-03-03).monday_based_week(), 9);
+        assert_eq!(date!(2020-03-04).monday_based_week(), 9);
+        assert_eq!(date!(2020-03-05).monday_based_week(), 9);
+        assert_eq!(date!(2020-03-06).monday_based_week(), 9);
+        assert_eq!(date!(2020-03-07).monday_based_week(), 9);
 
         // FE
-        assert_monday_week!(2036-01-01 => 0);
-        assert_monday_week!(2036-01-02 => 0);
-        assert_monday_week!(2036-01-03 => 0);
-        assert_monday_week!(2036-01-04 => 0);
-        assert_monday_week!(2036-01-05 => 0);
-        assert_monday_week!(2036-01-06 => 0);
-        assert_monday_week!(2036-01-07 => 1);
-        assert_monday_week!(2036-02-28 => 8);
-        assert_monday_week!(2036-02-29 => 8);
-        assert_monday_week!(2036-03-01 => 8);
-        assert_monday_week!(2036-03-02 => 8);
-        assert_monday_week!(2036-03-03 => 9);
-        assert_monday_week!(2036-03-04 => 9);
-        assert_monday_week!(2036-03-05 => 9);
-        assert_monday_week!(2036-03-06 => 9);
-        assert_monday_week!(2036-03-07 => 9);
+        assert_eq!(date!(2036-01-01).monday_based_week(), 0);
+        assert_eq!(date!(2036-01-02).monday_based_week(), 0);
+        assert_eq!(date!(2036-01-03).monday_based_week(), 0);
+        assert_eq!(date!(2036-01-04).monday_based_week(), 0);
+        assert_eq!(date!(2036-01-05).monday_based_week(), 0);
+        assert_eq!(date!(2036-01-06).monday_based_week(), 0);
+        assert_eq!(date!(2036-01-07).monday_based_week(), 1);
+        assert_eq!(date!(2036-02-28).monday_based_week(), 8);
+        assert_eq!(date!(2036-02-29).monday_based_week(), 8);
+        assert_eq!(date!(2036-03-01).monday_based_week(), 8);
+        assert_eq!(date!(2036-03-02).monday_based_week(), 8);
+        assert_eq!(date!(2036-03-03).monday_based_week(), 9);
+        assert_eq!(date!(2036-03-04).monday_based_week(), 9);
+        assert_eq!(date!(2036-03-05).monday_based_week(), 9);
+        assert_eq!(date!(2036-03-06).monday_based_week(), 9);
+        assert_eq!(date!(2036-03-07).monday_based_week(), 9);
 
         // GF
-        assert_monday_week!(2024-01-01 => 1);
-        assert_monday_week!(2024-01-02 => 1);
-        assert_monday_week!(2024-01-03 => 1);
-        assert_monday_week!(2024-01-04 => 1);
-        assert_monday_week!(2024-01-05 => 1);
-        assert_monday_week!(2024-01-06 => 1);
-        assert_monday_week!(2024-01-07 => 1);
-        assert_monday_week!(2024-02-28 => 9);
-        assert_monday_week!(2024-02-29 => 9);
-        assert_monday_week!(2024-03-01 => 9);
-        assert_monday_week!(2024-03-02 => 9);
-        assert_monday_week!(2024-03-03 => 9);
-        assert_monday_week!(2024-03-04 => 10);
-        assert_monday_week!(2024-03-05 => 10);
-        assert_monday_week!(2024-03-06 => 10);
-        assert_monday_week!(2024-03-07 => 10);
+        assert_eq!(date!(2024-01-01).monday_based_week(), 1);
+        assert_eq!(date!(2024-01-02).monday_based_week(), 1);
+        assert_eq!(date!(2024-01-03).monday_based_week(), 1);
+        assert_eq!(date!(2024-01-04).monday_based_week(), 1);
+        assert_eq!(date!(2024-01-05).monday_based_week(), 1);
+        assert_eq!(date!(2024-01-06).monday_based_week(), 1);
+        assert_eq!(date!(2024-01-07).monday_based_week(), 1);
+        assert_eq!(date!(2024-02-28).monday_based_week(), 9);
+        assert_eq!(date!(2024-02-29).monday_based_week(), 9);
+        assert_eq!(date!(2024-03-01).monday_based_week(), 9);
+        assert_eq!(date!(2024-03-02).monday_based_week(), 9);
+        assert_eq!(date!(2024-03-03).monday_based_week(), 9);
+        assert_eq!(date!(2024-03-04).monday_based_week(), 10);
+        assert_eq!(date!(2024-03-05).monday_based_week(), 10);
+        assert_eq!(date!(2024-03-06).monday_based_week(), 10);
+        assert_eq!(date!(2024-03-07).monday_based_week(), 10);
     }
 
     #[test]
     #[allow(clippy::zero_prefixed_literal)]
     fn test_sunday_based_week() {
-        macro_rules! assert_sunday_week {
-            ($y:literal - $m:literal - $d:literal => $week:literal) => {
-                assert_eq!(ymd!($y, $m, $d).sunday_based_week(), $week);
-            };
-        }
-
         // A
-        assert_sunday_week!(2023-01-01 => 1);
-        assert_sunday_week!(2023-01-02 => 1);
-        assert_sunday_week!(2023-01-03 => 1);
-        assert_sunday_week!(2023-01-04 => 1);
-        assert_sunday_week!(2023-01-05 => 1);
-        assert_sunday_week!(2023-01-06 => 1);
-        assert_sunday_week!(2023-01-07 => 1);
+        assert_eq!(date!(2023-01-01).sunday_based_week(), 1);
+        assert_eq!(date!(2023-01-02).sunday_based_week(), 1);
+        assert_eq!(date!(2023-01-03).sunday_based_week(), 1);
+        assert_eq!(date!(2023-01-04).sunday_based_week(), 1);
+        assert_eq!(date!(2023-01-05).sunday_based_week(), 1);
+        assert_eq!(date!(2023-01-06).sunday_based_week(), 1);
+        assert_eq!(date!(2023-01-07).sunday_based_week(), 1);
 
         // B
-        assert_sunday_week!(2022-01-01 => 0);
-        assert_sunday_week!(2022-01-02 => 1);
-        assert_sunday_week!(2022-01-03 => 1);
-        assert_sunday_week!(2022-01-04 => 1);
-        assert_sunday_week!(2022-01-05 => 1);
-        assert_sunday_week!(2022-01-06 => 1);
-        assert_sunday_week!(2022-01-07 => 1);
+        assert_eq!(date!(2022-01-01).sunday_based_week(), 0);
+        assert_eq!(date!(2022-01-02).sunday_based_week(), 1);
+        assert_eq!(date!(2022-01-03).sunday_based_week(), 1);
+        assert_eq!(date!(2022-01-04).sunday_based_week(), 1);
+        assert_eq!(date!(2022-01-05).sunday_based_week(), 1);
+        assert_eq!(date!(2022-01-06).sunday_based_week(), 1);
+        assert_eq!(date!(2022-01-07).sunday_based_week(), 1);
 
         // C
-        assert_sunday_week!(2021-01-01 => 0);
-        assert_sunday_week!(2021-01-02 => 0);
-        assert_sunday_week!(2021-01-03 => 1);
-        assert_sunday_week!(2021-01-04 => 1);
-        assert_sunday_week!(2021-01-05 => 1);
-        assert_sunday_week!(2021-01-06 => 1);
-        assert_sunday_week!(2021-01-07 => 1);
+        assert_eq!(date!(2021-01-01).sunday_based_week(), 0);
+        assert_eq!(date!(2021-01-02).sunday_based_week(), 0);
+        assert_eq!(date!(2021-01-03).sunday_based_week(), 1);
+        assert_eq!(date!(2021-01-04).sunday_based_week(), 1);
+        assert_eq!(date!(2021-01-05).sunday_based_week(), 1);
+        assert_eq!(date!(2021-01-06).sunday_based_week(), 1);
+        assert_eq!(date!(2021-01-07).sunday_based_week(), 1);
 
         // D
-        assert_sunday_week!(2026-01-01 => 0);
-        assert_sunday_week!(2026-01-02 => 0);
-        assert_sunday_week!(2026-01-03 => 0);
-        assert_sunday_week!(2026-01-04 => 1);
-        assert_sunday_week!(2026-01-05 => 1);
-        assert_sunday_week!(2026-01-06 => 1);
-        assert_sunday_week!(2026-01-07 => 1);
+        assert_eq!(date!(2026-01-01).sunday_based_week(), 0);
+        assert_eq!(date!(2026-01-02).sunday_based_week(), 0);
+        assert_eq!(date!(2026-01-03).sunday_based_week(), 0);
+        assert_eq!(date!(2026-01-04).sunday_based_week(), 1);
+        assert_eq!(date!(2026-01-05).sunday_based_week(), 1);
+        assert_eq!(date!(2026-01-06).sunday_based_week(), 1);
+        assert_eq!(date!(2026-01-07).sunday_based_week(), 1);
 
         // E
-        assert_sunday_week!(2025-01-01 => 0);
-        assert_sunday_week!(2025-01-02 => 0);
-        assert_sunday_week!(2025-01-03 => 0);
-        assert_sunday_week!(2025-01-04 => 0);
-        assert_sunday_week!(2025-01-05 => 1);
-        assert_sunday_week!(2025-01-06 => 1);
-        assert_sunday_week!(2025-01-07 => 1);
+        assert_eq!(date!(2025-01-01).sunday_based_week(), 0);
+        assert_eq!(date!(2025-01-02).sunday_based_week(), 0);
+        assert_eq!(date!(2025-01-03).sunday_based_week(), 0);
+        assert_eq!(date!(2025-01-04).sunday_based_week(), 0);
+        assert_eq!(date!(2025-01-05).sunday_based_week(), 1);
+        assert_eq!(date!(2025-01-06).sunday_based_week(), 1);
+        assert_eq!(date!(2025-01-07).sunday_based_week(), 1);
 
         // F
-        assert_sunday_week!(2019-01-01 => 0);
-        assert_sunday_week!(2019-01-02 => 0);
-        assert_sunday_week!(2019-01-03 => 0);
-        assert_sunday_week!(2019-01-04 => 0);
-        assert_sunday_week!(2019-01-05 => 0);
-        assert_sunday_week!(2019-01-06 => 1);
-        assert_sunday_week!(2019-01-07 => 1);
+        assert_eq!(date!(2019-01-01).sunday_based_week(), 0);
+        assert_eq!(date!(2019-01-02).sunday_based_week(), 0);
+        assert_eq!(date!(2019-01-03).sunday_based_week(), 0);
+        assert_eq!(date!(2019-01-04).sunday_based_week(), 0);
+        assert_eq!(date!(2019-01-05).sunday_based_week(), 0);
+        assert_eq!(date!(2019-01-06).sunday_based_week(), 1);
+        assert_eq!(date!(2019-01-07).sunday_based_week(), 1);
 
         // G
-        assert_sunday_week!(2018-01-01 => 0);
-        assert_sunday_week!(2018-01-02 => 0);
-        assert_sunday_week!(2018-01-03 => 0);
-        assert_sunday_week!(2018-01-04 => 0);
-        assert_sunday_week!(2018-01-05 => 0);
-        assert_sunday_week!(2018-01-06 => 0);
-        assert_sunday_week!(2018-01-07 => 1);
+        assert_eq!(date!(2018-01-01).sunday_based_week(), 0);
+        assert_eq!(date!(2018-01-02).sunday_based_week(), 0);
+        assert_eq!(date!(2018-01-03).sunday_based_week(), 0);
+        assert_eq!(date!(2018-01-04).sunday_based_week(), 0);
+        assert_eq!(date!(2018-01-05).sunday_based_week(), 0);
+        assert_eq!(date!(2018-01-06).sunday_based_week(), 0);
+        assert_eq!(date!(2018-01-07).sunday_based_week(), 1);
 
         // AG
-        assert_sunday_week!(2012-01-01 => 1);
-        assert_sunday_week!(2012-01-02 => 1);
-        assert_sunday_week!(2012-01-03 => 1);
-        assert_sunday_week!(2012-01-04 => 1);
-        assert_sunday_week!(2012-01-05 => 1);
-        assert_sunday_week!(2012-01-06 => 1);
-        assert_sunday_week!(2012-01-07 => 1);
-        assert_sunday_week!(2012-02-28 => 9);
-        assert_sunday_week!(2012-02-29 => 9);
-        assert_sunday_week!(2012-03-01 => 9);
-        assert_sunday_week!(2012-03-02 => 9);
-        assert_sunday_week!(2012-03-03 => 9);
-        assert_sunday_week!(2012-03-04 => 10);
-        assert_sunday_week!(2012-03-05 => 10);
-        assert_sunday_week!(2012-03-06 => 10);
-        assert_sunday_week!(2012-03-07 => 10);
+        assert_eq!(date!(2012-01-01).sunday_based_week(), 1);
+        assert_eq!(date!(2012-01-02).sunday_based_week(), 1);
+        assert_eq!(date!(2012-01-03).sunday_based_week(), 1);
+        assert_eq!(date!(2012-01-04).sunday_based_week(), 1);
+        assert_eq!(date!(2012-01-05).sunday_based_week(), 1);
+        assert_eq!(date!(2012-01-06).sunday_based_week(), 1);
+        assert_eq!(date!(2012-01-07).sunday_based_week(), 1);
+        assert_eq!(date!(2012-02-28).sunday_based_week(), 9);
+        assert_eq!(date!(2012-02-29).sunday_based_week(), 9);
+        assert_eq!(date!(2012-03-01).sunday_based_week(), 9);
+        assert_eq!(date!(2012-03-02).sunday_based_week(), 9);
+        assert_eq!(date!(2012-03-03).sunday_based_week(), 9);
+        assert_eq!(date!(2012-03-04).sunday_based_week(), 10);
+        assert_eq!(date!(2012-03-05).sunday_based_week(), 10);
+        assert_eq!(date!(2012-03-06).sunday_based_week(), 10);
+        assert_eq!(date!(2012-03-07).sunday_based_week(), 10);
 
         // BA
-        assert_sunday_week!(2028-01-01 => 0);
-        assert_sunday_week!(2028-01-02 => 1);
-        assert_sunday_week!(2028-01-03 => 1);
-        assert_sunday_week!(2028-01-04 => 1);
-        assert_sunday_week!(2028-01-05 => 1);
-        assert_sunday_week!(2028-01-06 => 1);
-        assert_sunday_week!(2028-01-07 => 1);
-        assert_sunday_week!(2028-02-28 => 9);
-        assert_sunday_week!(2028-02-29 => 9);
-        assert_sunday_week!(2028-03-01 => 9);
-        assert_sunday_week!(2028-03-02 => 9);
-        assert_sunday_week!(2028-03-03 => 9);
-        assert_sunday_week!(2028-03-04 => 9);
-        assert_sunday_week!(2028-03-05 => 10);
-        assert_sunday_week!(2028-03-06 => 10);
-        assert_sunday_week!(2028-03-07 => 10);
+        assert_eq!(date!(2028-01-01).sunday_based_week(), 0);
+        assert_eq!(date!(2028-01-02).sunday_based_week(), 1);
+        assert_eq!(date!(2028-01-03).sunday_based_week(), 1);
+        assert_eq!(date!(2028-01-04).sunday_based_week(), 1);
+        assert_eq!(date!(2028-01-05).sunday_based_week(), 1);
+        assert_eq!(date!(2028-01-06).sunday_based_week(), 1);
+        assert_eq!(date!(2028-01-07).sunday_based_week(), 1);
+        assert_eq!(date!(2028-02-28).sunday_based_week(), 9);
+        assert_eq!(date!(2028-02-29).sunday_based_week(), 9);
+        assert_eq!(date!(2028-03-01).sunday_based_week(), 9);
+        assert_eq!(date!(2028-03-02).sunday_based_week(), 9);
+        assert_eq!(date!(2028-03-03).sunday_based_week(), 9);
+        assert_eq!(date!(2028-03-04).sunday_based_week(), 9);
+        assert_eq!(date!(2028-03-05).sunday_based_week(), 10);
+        assert_eq!(date!(2028-03-06).sunday_based_week(), 10);
+        assert_eq!(date!(2028-03-07).sunday_based_week(), 10);
 
         // CB
-        assert_sunday_week!(2016-01-01 => 0);
-        assert_sunday_week!(2016-01-02 => 0);
-        assert_sunday_week!(2016-01-03 => 1);
-        assert_sunday_week!(2016-01-04 => 1);
-        assert_sunday_week!(2016-01-05 => 1);
-        assert_sunday_week!(2016-01-06 => 1);
-        assert_sunday_week!(2016-01-07 => 1);
-        assert_sunday_week!(2016-02-28 => 9);
-        assert_sunday_week!(2016-02-29 => 9);
-        assert_sunday_week!(2016-03-01 => 9);
-        assert_sunday_week!(2016-03-02 => 9);
-        assert_sunday_week!(2016-03-03 => 9);
-        assert_sunday_week!(2016-03-04 => 9);
-        assert_sunday_week!(2016-03-05 => 9);
-        assert_sunday_week!(2016-03-06 => 10);
-        assert_sunday_week!(2016-03-07 => 10);
+        assert_eq!(date!(2016-01-01).sunday_based_week(), 0);
+        assert_eq!(date!(2016-01-02).sunday_based_week(), 0);
+        assert_eq!(date!(2016-01-03).sunday_based_week(), 1);
+        assert_eq!(date!(2016-01-04).sunday_based_week(), 1);
+        assert_eq!(date!(2016-01-05).sunday_based_week(), 1);
+        assert_eq!(date!(2016-01-06).sunday_based_week(), 1);
+        assert_eq!(date!(2016-01-07).sunday_based_week(), 1);
+        assert_eq!(date!(2016-02-28).sunday_based_week(), 9);
+        assert_eq!(date!(2016-02-29).sunday_based_week(), 9);
+        assert_eq!(date!(2016-03-01).sunday_based_week(), 9);
+        assert_eq!(date!(2016-03-02).sunday_based_week(), 9);
+        assert_eq!(date!(2016-03-03).sunday_based_week(), 9);
+        assert_eq!(date!(2016-03-04).sunday_based_week(), 9);
+        assert_eq!(date!(2016-03-05).sunday_based_week(), 9);
+        assert_eq!(date!(2016-03-06).sunday_based_week(), 10);
+        assert_eq!(date!(2016-03-07).sunday_based_week(), 10);
 
         // DC
-        assert_sunday_week!(2032-01-01 => 0);
-        assert_sunday_week!(2032-01-02 => 0);
-        assert_sunday_week!(2032-01-03 => 0);
-        assert_sunday_week!(2032-01-04 => 1);
-        assert_sunday_week!(2032-01-05 => 1);
-        assert_sunday_week!(2032-01-06 => 1);
-        assert_sunday_week!(2032-01-07 => 1);
-        assert_sunday_week!(2032-02-28 => 8);
-        assert_sunday_week!(2032-02-29 => 9);
-        assert_sunday_week!(2032-03-01 => 9);
-        assert_sunday_week!(2032-03-02 => 9);
-        assert_sunday_week!(2032-03-03 => 9);
-        assert_sunday_week!(2032-03-04 => 9);
-        assert_sunday_week!(2032-03-05 => 9);
-        assert_sunday_week!(2032-03-06 => 9);
-        assert_sunday_week!(2032-03-07 => 10);
+        assert_eq!(date!(2032-01-01).sunday_based_week(), 0);
+        assert_eq!(date!(2032-01-02).sunday_based_week(), 0);
+        assert_eq!(date!(2032-01-03).sunday_based_week(), 0);
+        assert_eq!(date!(2032-01-04).sunday_based_week(), 1);
+        assert_eq!(date!(2032-01-05).sunday_based_week(), 1);
+        assert_eq!(date!(2032-01-06).sunday_based_week(), 1);
+        assert_eq!(date!(2032-01-07).sunday_based_week(), 1);
+        assert_eq!(date!(2032-02-28).sunday_based_week(), 8);
+        assert_eq!(date!(2032-02-29).sunday_based_week(), 9);
+        assert_eq!(date!(2032-03-01).sunday_based_week(), 9);
+        assert_eq!(date!(2032-03-02).sunday_based_week(), 9);
+        assert_eq!(date!(2032-03-03).sunday_based_week(), 9);
+        assert_eq!(date!(2032-03-04).sunday_based_week(), 9);
+        assert_eq!(date!(2032-03-05).sunday_based_week(), 9);
+        assert_eq!(date!(2032-03-06).sunday_based_week(), 9);
+        assert_eq!(date!(2032-03-07).sunday_based_week(), 10);
 
         // ED
-        assert_sunday_week!(2020-01-01 => 0);
-        assert_sunday_week!(2020-01-02 => 0);
-        assert_sunday_week!(2020-01-03 => 0);
-        assert_sunday_week!(2020-01-04 => 0);
-        assert_sunday_week!(2020-01-05 => 1);
-        assert_sunday_week!(2020-01-06 => 1);
-        assert_sunday_week!(2020-01-07 => 1);
-        assert_sunday_week!(2020-02-28 => 8);
-        assert_sunday_week!(2020-02-29 => 8);
-        assert_sunday_week!(2020-03-01 => 9);
-        assert_sunday_week!(2020-03-02 => 9);
-        assert_sunday_week!(2020-03-03 => 9);
-        assert_sunday_week!(2020-03-04 => 9);
-        assert_sunday_week!(2020-03-05 => 9);
-        assert_sunday_week!(2020-03-06 => 9);
-        assert_sunday_week!(2020-03-07 => 9);
+        assert_eq!(date!(2020-01-01).sunday_based_week(), 0);
+        assert_eq!(date!(2020-01-02).sunday_based_week(), 0);
+        assert_eq!(date!(2020-01-03).sunday_based_week(), 0);
+        assert_eq!(date!(2020-01-04).sunday_based_week(), 0);
+        assert_eq!(date!(2020-01-05).sunday_based_week(), 1);
+        assert_eq!(date!(2020-01-06).sunday_based_week(), 1);
+        assert_eq!(date!(2020-01-07).sunday_based_week(), 1);
+        assert_eq!(date!(2020-02-28).sunday_based_week(), 8);
+        assert_eq!(date!(2020-02-29).sunday_based_week(), 8);
+        assert_eq!(date!(2020-03-01).sunday_based_week(), 9);
+        assert_eq!(date!(2020-03-02).sunday_based_week(), 9);
+        assert_eq!(date!(2020-03-03).sunday_based_week(), 9);
+        assert_eq!(date!(2020-03-04).sunday_based_week(), 9);
+        assert_eq!(date!(2020-03-05).sunday_based_week(), 9);
+        assert_eq!(date!(2020-03-06).sunday_based_week(), 9);
+        assert_eq!(date!(2020-03-07).sunday_based_week(), 9);
 
         // FE
-        assert_sunday_week!(2036-01-01 => 0);
-        assert_sunday_week!(2036-01-02 => 0);
-        assert_sunday_week!(2036-01-03 => 0);
-        assert_sunday_week!(2036-01-04 => 0);
-        assert_sunday_week!(2036-01-05 => 0);
-        assert_sunday_week!(2036-01-06 => 1);
-        assert_sunday_week!(2036-01-07 => 1);
-        assert_sunday_week!(2036-02-28 => 8);
-        assert_sunday_week!(2036-02-29 => 8);
-        assert_sunday_week!(2036-03-01 => 8);
-        assert_sunday_week!(2036-03-02 => 9);
-        assert_sunday_week!(2036-03-03 => 9);
-        assert_sunday_week!(2036-03-04 => 9);
-        assert_sunday_week!(2036-03-05 => 9);
-        assert_sunday_week!(2036-03-06 => 9);
-        assert_sunday_week!(2036-03-07 => 9);
+        assert_eq!(date!(2036-01-01).sunday_based_week(), 0);
+        assert_eq!(date!(2036-01-02).sunday_based_week(), 0);
+        assert_eq!(date!(2036-01-03).sunday_based_week(), 0);
+        assert_eq!(date!(2036-01-04).sunday_based_week(), 0);
+        assert_eq!(date!(2036-01-05).sunday_based_week(), 0);
+        assert_eq!(date!(2036-01-06).sunday_based_week(), 1);
+        assert_eq!(date!(2036-01-07).sunday_based_week(), 1);
+        assert_eq!(date!(2036-02-28).sunday_based_week(), 8);
+        assert_eq!(date!(2036-02-29).sunday_based_week(), 8);
+        assert_eq!(date!(2036-03-01).sunday_based_week(), 8);
+        assert_eq!(date!(2036-03-02).sunday_based_week(), 9);
+        assert_eq!(date!(2036-03-03).sunday_based_week(), 9);
+        assert_eq!(date!(2036-03-04).sunday_based_week(), 9);
+        assert_eq!(date!(2036-03-05).sunday_based_week(), 9);
+        assert_eq!(date!(2036-03-06).sunday_based_week(), 9);
+        assert_eq!(date!(2036-03-07).sunday_based_week(), 9);
 
         // GF
-        assert_sunday_week!(2024-01-01 => 0);
-        assert_sunday_week!(2024-01-02 => 0);
-        assert_sunday_week!(2024-01-03 => 0);
-        assert_sunday_week!(2024-01-04 => 0);
-        assert_sunday_week!(2024-01-05 => 0);
-        assert_sunday_week!(2024-01-06 => 0);
-        assert_sunday_week!(2024-01-07 => 1);
-        assert_sunday_week!(2024-02-28 => 8);
-        assert_sunday_week!(2024-02-29 => 8);
-        assert_sunday_week!(2024-03-01 => 8);
-        assert_sunday_week!(2024-03-02 => 8);
-        assert_sunday_week!(2024-03-03 => 9);
-        assert_sunday_week!(2024-03-04 => 9);
-        assert_sunday_week!(2024-03-05 => 9);
-        assert_sunday_week!(2024-03-06 => 9);
-        assert_sunday_week!(2024-03-07 => 9);
+        assert_eq!(date!(2024-01-01).sunday_based_week(), 0);
+        assert_eq!(date!(2024-01-02).sunday_based_week(), 0);
+        assert_eq!(date!(2024-01-03).sunday_based_week(), 0);
+        assert_eq!(date!(2024-01-04).sunday_based_week(), 0);
+        assert_eq!(date!(2024-01-05).sunday_based_week(), 0);
+        assert_eq!(date!(2024-01-06).sunday_based_week(), 0);
+        assert_eq!(date!(2024-01-07).sunday_based_week(), 1);
+        assert_eq!(date!(2024-02-28).sunday_based_week(), 8);
+        assert_eq!(date!(2024-02-29).sunday_based_week(), 8);
+        assert_eq!(date!(2024-03-01).sunday_based_week(), 8);
+        assert_eq!(date!(2024-03-02).sunday_based_week(), 8);
+        assert_eq!(date!(2024-03-03).sunday_based_week(), 9);
+        assert_eq!(date!(2024-03-04).sunday_based_week(), 9);
+        assert_eq!(date!(2024-03-05).sunday_based_week(), 9);
+        assert_eq!(date!(2024-03-06).sunday_based_week(), 9);
+        assert_eq!(date!(2024-03-07).sunday_based_week(), 9);
     }
 
     #[test]
@@ -1670,7 +1549,7 @@ mod test {
                         ),
                         "%a %W %Y"
                     ),
-                    Ok(yo!($year, $ordinal))
+                    Ok(date!($year - $ordinal))
                 );
             };
         }
@@ -1881,7 +1760,7 @@ mod test {
                         ),
                         "%a %U %Y"
                     ),
-                    Ok(yo!($year, $ordinal))
+                    Ok(date!($year - $ordinal))
                 );
             };
         }
@@ -2105,94 +1984,97 @@ mod test {
 
     #[test]
     fn year() {
-        assert_eq!(yo!(2019, 2).year(), 2019);
-        assert_eq!(yo!(2020, 2).year(), 2020);
+        assert_eq!(date!(2019-002).year(), 2019);
+        assert_eq!(date!(2020-002).year(), 2020);
     }
 
     #[test]
     fn month() {
-        assert_eq!(yo!(2019, 2).month(), 1);
-        assert_eq!(yo!(2020, 2).month(), 1);
-        assert_eq!(yo!(2019, 60).month(), 3);
-        assert_eq!(yo!(2020, 60).month(), 2);
+        assert_eq!(date!(2019-002).month(), 1);
+        assert_eq!(date!(2020-002).month(), 1);
+        assert_eq!(date!(2019-060).month(), 3);
+        assert_eq!(date!(2020-060).month(), 2);
     }
 
     #[test]
     fn day() {
-        assert_eq!(yo!(2019, 2).day(), 2);
-        assert_eq!(yo!(2020, 2).day(), 2);
-        assert_eq!(yo!(2019, 60).day(), 1);
-        assert_eq!(yo!(2020, 60).day(), 29);
+        assert_eq!(date!(2019-002).day(), 2);
+        assert_eq!(date!(2020-002).day(), 2);
+        assert_eq!(date!(2019-060).day(), 1);
+        assert_eq!(date!(2020-060).day(), 29);
     }
 
     #[test]
     fn iso_year_week() {
-        assert_eq!(ymd!(2019, 1, 1).iso_year_week(), (2019, 1));
-        assert_eq!(ymd!(2019, 10, 4).iso_year_week(), (2019, 40));
-        assert_eq!(ymd!(2020, 1, 1).iso_year_week(), (2020, 1));
-        assert_eq!(ymd!(2020, 12, 31).iso_year_week(), (2020, 53));
-        assert_eq!(ymd!(2021, 1, 1).iso_year_week(), (2020, 53));
+        assert_eq!(date!(2019-01-01).iso_year_week(), (2019, 1));
+        assert_eq!(date!(2019-10-04).iso_year_week(), (2019, 40));
+        assert_eq!(date!(2020-01-01).iso_year_week(), (2020, 1));
+        assert_eq!(date!(2020-12-31).iso_year_week(), (2020, 53));
+        assert_eq!(date!(2021-01-01).iso_year_week(), (2020, 53));
     }
 
     #[test]
     fn week() {
-        assert_eq!(ymd!(2019, 1, 1).week(), 1);
-        assert_eq!(ymd!(2019, 10, 4).week(), 40);
-        assert_eq!(ymd!(2020, 1, 1).week(), 1);
-        assert_eq!(ymd!(2020, 12, 31).week(), 53);
-        assert_eq!(ymd!(2021, 1, 1).week(), 53);
+        assert_eq!(date!(2019-01-01).week(), 1);
+        assert_eq!(date!(2019-10-04).week(), 40);
+        assert_eq!(date!(2020-01-01).week(), 1);
+        assert_eq!(date!(2020-12-31).week(), 53);
+        assert_eq!(date!(2021-01-01).week(), 53);
     }
 
     #[test]
     fn as_ymd() {
-        assert_eq!(ymd!(2019, 1, 2).as_ymd(), (2019, 1, 2));
+        assert_eq!(date!(2019-01-02).as_ymd(), (2019, 1, 2));
     }
 
     #[test]
     fn as_wo() {
-        assert_eq!(ymd!(2019, 1, 1).as_yo(), (2019, 1));
+        assert_eq!(date!(2019-01-01).as_yo(), (2019, 1));
     }
 
     #[test]
     fn next_day() {
-        assert_eq!(ymd!(2019, 1, 1).next_day(), ymd!(2019, 1, 2));
-        assert_eq!(ymd!(2019, 1, 31).next_day(), ymd!(2019, 2, 1));
-        assert_eq!(ymd!(2019, 12, 31).next_day(), ymd!(2020, 1, 1));
+        assert_eq!(date!(2019-01-01).next_day(), date!(2019-01-02));
+        assert_eq!(date!(2019-01-31).next_day(), date!(2019-02-01));
+        assert_eq!(date!(2019-12-31).next_day(), date!(2020-01-01));
     }
 
     #[test]
     fn previous_day() {
-        assert_eq!(ymd!(2019, 1, 2).previous_day(), ymd!(2019, 1, 1));
-        assert_eq!(ymd!(2019, 2, 1).previous_day(), ymd!(2019, 1, 31));
-        assert_eq!(ymd!(2020, 1, 1).previous_day(), ymd!(2019, 12, 31));
+        assert_eq!(date!(2019-01-02).previous_day(), date!(2019-01-01));
+        assert_eq!(date!(2019-02-01).previous_day(), date!(2019-01-31));
+        assert_eq!(date!(2020-01-01).previous_day(), date!(2019-12-31));
     }
 
     #[test]
     fn julian_day() {
-        assert_eq!(ymd!(-4713, 11, 24).julian_day(), 0);
-        assert_eq!(ymd!(2000, 1, 1).julian_day(), 2_451_545);
-        assert_eq!(ymd!(2019, 1, 1).julian_day(), 2_458_485);
-        assert_eq!(ymd!(2019, 12, 31).julian_day(), 2_458_849);
+        assert_eq!(date!(-4713-11-24).julian_day(), 0);
+        assert_eq!(date!(2000-01-01).julian_day(), 2_451_545);
+        assert_eq!(date!(2019-01-01).julian_day(), 2_458_485);
+        assert_eq!(date!(2019-12-31).julian_day(), 2_458_849);
     }
 
     #[test]
     fn from_julian_day() {
-        assert_eq!(julian!(0), ymd!(-4713, 11, 24));
-        assert_eq!(julian!(2_451_545), ymd!(2000, 1, 1));
-        assert_eq!(julian!(2_458_485), ymd!(2019, 1, 1));
-        assert_eq!(julian!(2_458_849), ymd!(2019, 12, 31));
+        assert_eq!(julian!(0), date!(-4713-11-24));
+        assert_eq!(julian!(2_451_545), date!(2000-01-01));
+        assert_eq!(julian!(2_458_485), date!(2019-01-01));
+        assert_eq!(julian!(2_458_849), date!(2019-12-31));
     }
 
     #[test]
     fn midnight() {
-        assert_eq!(ymd!(1970, 1, 1).midnight(), PrimitiveDateTime::unix_epoch());
+        assert_eq!(
+            date!(1970-01-01).midnight(),
+            PrimitiveDateTime::unix_epoch()
+        );
     }
 
     #[test]
     fn with_time() {
         assert_eq!(
-            ymd!(1970, 1, 1).with_time(time!(0:00)),
-            ymd!(1970, 1, 1).midnight(),
+            date!(1970-01-01).with_time(time!(0:00)),
+            date!(1970-01-01).midnight(),
         );
     }
 
@@ -2201,18 +2083,18 @@ mod test {
     #[allow(deprecated)]
     fn with_hms() {
         assert_eq!(
-            ymd!(1970, 1, 1).with_hms(0, 0, 0),
-            ymd!(1970, 1, 1).midnight(),
+            date!(1970-01-01).with_hms(0, 0, 0),
+            date!(1970-01-01).midnight(),
         );
     }
 
     #[test]
     fn try_with_hms() {
         assert_eq!(
-            ymd!(1970, 1, 1).try_with_hms(0, 0, 0),
-            Ok(ymd!(1970, 1, 1).midnight()),
+            date!(1970-01-01).try_with_hms(0, 0, 0),
+            Ok(date!(1970-01-01).midnight()),
         );
-        assert!(ymd!(1970, 1, 1).try_with_hms(24, 0, 0).is_err());
+        assert!(date!(1970-01-01).try_with_hms(24, 0, 0).is_err());
     }
 
     #[test]
@@ -2220,18 +2102,18 @@ mod test {
     #[allow(deprecated)]
     fn with_hms_milli() {
         assert_eq!(
-            ymd!(1970, 1, 1).with_hms_milli(0, 0, 0, 0),
-            ymd!(1970, 1, 1).midnight(),
+            date!(1970-01-01).with_hms_milli(0, 0, 0, 0),
+            date!(1970-01-01).midnight(),
         );
     }
 
     #[test]
     fn try_with_hms_milli() {
         assert_eq!(
-            ymd!(1970, 1, 1).try_with_hms_milli(0, 0, 0, 0),
-            Ok(ymd!(1970, 1, 1).midnight()),
+            date!(1970-01-01).try_with_hms_milli(0, 0, 0, 0),
+            Ok(date!(1970-01-01).midnight()),
         );
-        assert!(ymd!(1970, 1, 1).try_with_hms_milli(24, 0, 0, 0).is_err());
+        assert!(date!(1970-01-01).try_with_hms_milli(24, 0, 0, 0).is_err());
     }
 
     #[test]
@@ -2239,18 +2121,18 @@ mod test {
     #[allow(deprecated)]
     fn with_hms_micro() {
         assert_eq!(
-            ymd!(1970, 1, 1).with_hms_micro(0, 0, 0, 0),
-            ymd!(1970, 1, 1).midnight(),
+            date!(1970-01-01).with_hms_micro(0, 0, 0, 0),
+            date!(1970-01-01).midnight(),
         );
     }
 
     #[test]
     fn try_with_hms_micro() {
         assert_eq!(
-            ymd!(1970, 1, 1).try_with_hms_micro(0, 0, 0, 0),
-            Ok(ymd!(1970, 1, 1).midnight()),
+            date!(1970-01-01).try_with_hms_micro(0, 0, 0, 0),
+            Ok(date!(1970-01-01).midnight()),
         );
-        assert!(ymd!(1970, 1, 1).try_with_hms_micro(24, 0, 0, 0).is_err());
+        assert!(date!(1970-01-01).try_with_hms_micro(24, 0, 0, 0).is_err());
     }
 
     #[test]
@@ -2258,97 +2140,97 @@ mod test {
     #[allow(deprecated)]
     fn with_hms_nano() {
         assert_eq!(
-            ymd!(1970, 1, 1).with_hms_nano(0, 0, 0, 0),
-            ymd!(1970, 1, 1).midnight(),
+            date!(1970-01-01).with_hms_nano(0, 0, 0, 0),
+            date!(1970-01-01).midnight(),
         );
     }
 
     #[test]
     fn try_with_hms_nano() {
         assert_eq!(
-            ymd!(1970, 1, 1).try_with_hms_nano(0, 0, 0, 0),
-            Ok(ymd!(1970, 1, 1).midnight()),
+            date!(1970-01-01).try_with_hms_nano(0, 0, 0, 0),
+            Ok(date!(1970-01-01).midnight()),
         );
-        assert!(ymd!(1970, 1, 1).try_with_hms_nano(24, 0, 0, 0).is_err());
+        assert!(date!(1970-01-01).try_with_hms_nano(24, 0, 0, 0).is_err());
     }
 
     #[test]
     fn format() {
-        assert_eq!(ymd!(2019, 1, 2).format("%Y-%m-%d"), "2019-01-02");
+        assert_eq!(date!(2019-01-02).format("%Y-%m-%d"), "2019-01-02");
     }
 
     #[test]
     fn parse() {
-        assert_eq!(Date::parse("2019-01-02", "%F"), Ok(ymd!(2019, 1, 2)));
-        assert_eq!(Date::parse("2019-002", "%Y-%j"), Ok(yo!(2019, 2)));
+        assert_eq!(Date::parse("2019-01-02", "%F"), Ok(date!(2019-01-02)));
+        assert_eq!(Date::parse("2019-002", "%Y-%j"), Ok(date!(2019-002)));
         assert_eq!(
             Date::parse("2019-W01-3", "%G-W%V-%u"),
-            Ok(ywd!(2019, 1, Wednesday))
+            Ok(date!(2019-W01-3))
         );
     }
 
     #[test]
     fn add() {
-        assert_eq!(ymd!(2019, 1, 1) + 5.days(), ymd!(2019, 1, 6));
-        assert_eq!(ymd!(2019, 12, 31) + 1.days(), ymd!(2020, 1, 1));
+        assert_eq!(date!(2019-01-01) + 5.days(), date!(2019-01-06));
+        assert_eq!(date!(2019-12-31) + 1.days(), date!(2020-01-01));
     }
 
     #[test]
     fn add_std() {
-        assert_eq!(ymd!(2019, 1, 1) + 5.std_days(), ymd!(2019, 1, 6));
-        assert_eq!(ymd!(2019, 12, 31) + 1.std_days(), ymd!(2020, 1, 1));
+        assert_eq!(date!(2019-01-01) + 5.std_days(), date!(2019-01-06));
+        assert_eq!(date!(2019-12-31) + 1.std_days(), date!(2020-01-01));
     }
 
     #[test]
     fn add_assign() {
-        let mut date = ymd!(2019, 12, 31);
+        let mut date = date!(2019-12-31);
         date += 1.days();
-        assert_eq!(date, ymd!(2020, 1, 1));
+        assert_eq!(date, date!(2020-01-01));
     }
 
     #[test]
     fn add_assign_std() {
-        let mut date = ymd!(2019, 12, 31);
+        let mut date = date!(2019-12-31);
         date += 1.std_days();
-        assert_eq!(date, ymd!(2020, 1, 1));
+        assert_eq!(date, date!(2020-01-01));
     }
 
     #[test]
     fn sub() {
-        assert_eq!(ymd!(2019, 1, 6) - 5.days(), ymd!(2019, 1, 1));
-        assert_eq!(ymd!(2020, 1, 1) - 1.days(), ymd!(2019, 12, 31));
+        assert_eq!(date!(2019-01-06) - 5.days(), date!(2019-01-01));
+        assert_eq!(date!(2020-01-01) - 1.days(), date!(2019-12-31));
     }
 
     #[test]
     fn sub_std() {
-        assert_eq!(ymd!(2019, 1, 6) - 5.std_days(), ymd!(2019, 1, 1));
-        assert_eq!(ymd!(2020, 1, 1) - 1.std_days(), ymd!(2019, 12, 31));
+        assert_eq!(date!(2019-01-06) - 5.std_days(), date!(2019-01-01));
+        assert_eq!(date!(2020-01-01) - 1.std_days(), date!(2019-12-31));
     }
 
     #[test]
     fn sub_assign() {
-        let mut date = ymd!(2020, 1, 1);
+        let mut date = date!(2020-01-01);
         date -= 1.days();
-        assert_eq!(date, ymd!(2019, 12, 31));
+        assert_eq!(date, date!(2019-12-31));
     }
 
     #[test]
     fn sub_assign_std() {
-        let mut date = ymd!(2020, 1, 1);
+        let mut date = date!(2020-01-01);
         date -= 1.std_days();
-        assert_eq!(date, ymd!(2019, 12, 31));
+        assert_eq!(date, date!(2019-12-31));
     }
 
     #[test]
     fn sub_self() {
-        assert_eq!(ymd!(2019, 1, 6) - ymd!(2019, 1, 1), 5.days());
-        assert_eq!(ymd!(2020, 1, 1) - ymd!(2019, 12, 31), 1.days());
+        assert_eq!(date!(2019-01-06) - date!(2019-01-01), 5.days());
+        assert_eq!(date!(2020-01-01) - date!(2019-12-31), 1.days());
     }
 
     #[test]
     fn partial_ord() {
-        let first = ymd!(2019, 1, 1);
-        let second = ymd!(2019, 1, 2);
+        let first = date!(2019-01-01);
+        let second = date!(2019-01-02);
 
         assert_eq!(first.partial_cmp(&first), Some(Ordering::Equal));
         assert_eq!(first.partial_cmp(&second), Some(Ordering::Less));
@@ -2357,8 +2239,8 @@ mod test {
 
     #[test]
     fn ord() {
-        let first = ymd!(2019, 1, 1);
-        let second = ymd!(2019, 1, 2);
+        let first = date!(2019-01-01);
+        let second = date!(2019-01-02);
 
         assert_eq!(first.cmp(&first), Ordering::Equal);
         assert_eq!(first.cmp(&second), Ordering::Less);

@@ -50,10 +50,9 @@ impl OffsetDateTime {
     /// provided `UtcOffset`.
     ///
     /// ```rust
-    /// # use time::{Date, OffsetDateTime, UtcOffset, offset};
+    /// # use time::{date, OffsetDateTime, UtcOffset, offset};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2000, 1, 1)
-    ///         .unwrap()
+    ///     date!(2000-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .to_offset(offset!(-1))
@@ -69,11 +68,10 @@ impl OffsetDateTime {
     /// Midnight, 1 January, 1970 (UTC).
     ///
     /// ```rust
-    /// # use time::{Date, OffsetDateTime, offset};
+    /// # use time::{date, OffsetDateTime, offset};
     /// assert_eq!(
     ///     OffsetDateTime::unix_epoch(),
-    ///     Date::try_from_ymd(1970, 1, 1)
-    ///         .unwrap()
+    ///     date!(1970-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC)),
     /// );
@@ -86,15 +84,14 @@ impl OffsetDateTime {
     /// Create an `OffsetDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
-    /// # use time::{Date, OffsetDateTime, offset};
+    /// # use time::{date, OffsetDateTime, offset};
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp(0),
     ///     OffsetDateTime::unix_epoch(),
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp(1_546_300_800),
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-1)
     ///         .midnight()
     ///         .using_offset(offset!(UTC)),
     /// );
@@ -107,18 +104,16 @@ impl OffsetDateTime {
     /// Get the `UtcOffset`.
     ///
     /// ```rust
-    /// # use time::{Date, offset};
+    /// # use time::{date, offset};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .offset(),
     ///     offset!(UTC),
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(+1))
     ///         .offset(),
@@ -155,22 +150,20 @@ impl OffsetDateTime {
     /// Get the `Date` in the stored offset.
     ///
     /// ```rust
-    /// # use time::{Date, offset};
+    /// # use time::{date, offset, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .date(),
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap(),
+    ///     date!(2019-01-01),
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(-1))
     ///         .date(),
-    ///     Date::try_from_ymd(2018, 12, 31).unwrap(),
+    ///     date!(2018-12-31),
     /// );
     /// ```
     #[inline(always)]
@@ -181,18 +174,16 @@ impl OffsetDateTime {
     /// Get the `Time` in the stored offset.
     ///
     /// ```rust
-    /// # use time::{Date, Time, offset, time};
+    /// # use time::{date, Time, offset, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .time(),
     ///     time!(0:00)
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(-1))
     ///         .time(),
@@ -207,28 +198,24 @@ impl OffsetDateTime {
     /// Get the year of the date in the stored offset.
     ///
     /// ```rust
-    /// # use time::{Date, offset};
+    /// # use time::{date, offset, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .year(),
     ///     2019,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31)
-    ///         .unwrap()
-    ///         .try_with_hms(23, 0, 0)
-    ///         .unwrap()
+    ///     date!(2019-12-31)
+    ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(UTC))
     ///         .to_offset(offset!(+1))
     ///         .year(),
     ///     2020,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 1, 1)
-    ///         .unwrap()
+    ///     date!(2020-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .year(),
@@ -247,18 +234,16 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `1..=12`.
     ///
     /// ```rust
-    /// # use time::{Date, offset, time};
+    /// # use time::{date, offset, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .month(),
     ///     1,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31)
-    ///         .unwrap()
+    ///     date!(2019-12-31)
     ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(+1))
     ///         .month(),
@@ -276,18 +261,16 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `1..=31`.
     ///
     /// ```rust
-    /// # use time::{Date, offset, time};
+    /// # use time::{date, offset, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .day(),
     ///     1,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31)
-    ///         .unwrap()
+    ///     date!(2019-12-31)
     ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(+1))
     ///         .day(),
@@ -305,18 +288,16 @@ impl OffsetDateTime {
     /// the day component in `1..=31`.
     ///
     /// ```rust
-    /// # use time::{Date, offset, time};
+    /// # use time::{date, offset, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .month_day(),
     ///     (1, 1),
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31)
-    ///         .unwrap()
+    ///     date!(2019-12-31)
     ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(+1))
     ///         .month_day(),
@@ -333,18 +314,16 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `1..=366`.
     ///
     /// ```rust
-    /// # use time::{Date, offset, time};
+    /// # use time::{date, offset, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .ordinal(),
     ///     1,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31)
-    ///         .unwrap()
+    ///     date!(2019-12-31)
     ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(+1))
     ///         .ordinal(),
@@ -359,42 +338,37 @@ impl OffsetDateTime {
     /// Get the ISO 8601 year and week number in the stored offset.
     ///
     /// ```rust
-    /// # use time::{Date, offset};
+    /// # use time::{date, offset};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .iso_year_week(),
     ///     (2019, 1),
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 10, 4)
-    ///         .unwrap()
+    ///     date!(2019-10-04)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .iso_year_week(),
     ///     (2019, 40),
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 1, 1)
-    ///         .unwrap()
+    ///     date!(2020-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .iso_year_week(),
     ///     (2020, 1),
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 12, 31)
-    ///         .unwrap()
+    ///     date!(2020-12-31)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .iso_year_week(),
     ///     (2020, 53),
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2021, 1, 1)
-    ///         .unwrap()
+    ///     date!(2021-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .iso_year_week(),
@@ -411,34 +385,30 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `1..=53`.
     ///
     /// ```rust
-    /// # use time::{Date, offset};
+    /// # use time::{date, offset};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .week(),
     ///     1,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 1, 1)
-    ///         .unwrap()
+    ///     date!(2020-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .week(),
     ///     1,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 12, 31)
-    ///         .unwrap()
+    ///     date!(2020-12-31)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .week(),
     ///     53,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2021, 1, 1)
-    ///         .unwrap()
+    ///     date!(2021-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .week(),
@@ -456,26 +426,23 @@ impl OffsetDateTime {
     /// internally.
     ///
     /// ```rust
-    /// # use time::{Date, offset, Weekday::*};
+    /// # use time::{date, offset, Weekday::*};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .weekday(),
     ///     Tuesday,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 2, 1)
-    ///         .unwrap()
+    ///     date!(2019-02-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .weekday(),
     ///     Friday,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 3, 1)
-    ///         .unwrap()
+    ///     date!(2019-03-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .weekday(),
@@ -492,18 +459,16 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..24`.
     ///
     /// ```rust
-    /// # use time::{Date, time, offset};
+    /// # use time::{date, time, offset};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .hour(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .with_time(time!(23:59:59))
     ///         .using_offset(offset!(-2))
     ///         .hour(),
@@ -520,18 +485,16 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time::{Date, offset, time};
+    /// # use time::{date, offset, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .minute(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .with_time(time!(23:59:59))
     ///         .using_offset(offset!(+0:30))
     ///         .minute(),
@@ -548,18 +511,16 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time::{Date, offset, time};
+    /// # use time::{date, offset, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .second(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .with_time(time!(23:59:59))
     ///         .using_offset(offset!(+0:00:30))
     ///         .second(),
@@ -576,18 +537,16 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..1_000`.
     ///
     /// ```rust
-    /// # use time::{Date, offset, time};
+    /// # use time::{date, offset, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .millisecond(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .with_time(time!(23:59:59.999))
     ///         .using_offset(offset!(UTC))
     ///         .millisecond(),
@@ -604,18 +563,16 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..1_000_000`.
     ///
     /// ```rust
-    /// # use time::{Date, offset, time};
+    /// # use time::{date, offset, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .microsecond(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .with_time(time!(23:59:59.999_999))
     ///         .using_offset(offset!(UTC))
     ///         .microsecond(),
@@ -632,18 +589,16 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
-    /// # use time::{Date, offset, time};
+    /// # use time::{date, offset, time};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .nanosecond(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
+    ///     date!(2019-01-01)
     ///         .with_time(time!(23:59:59.999_999_999))
     ///         .using_offset(offset!(UTC))
     ///         .nanosecond(),
@@ -661,10 +616,9 @@ impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::{Date, offset};
+    /// # use time::{date, offset};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 2)
-    ///         .unwrap()
+    ///     date!(2019-01-02)
     ///         .midnight()
     ///         .using_offset(offset!(UTC))
     ///         .format("%F %r %z"),
@@ -685,25 +639,18 @@ impl OffsetDateTime {
     /// Attempt to parse an `OffsetDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::{Date, OffsetDateTime, Weekday::Wednesday, time, offset};
+    /// # use time::{date, OffsetDateTime, Weekday::Wednesday, time, offset};
     /// assert_eq!(
     ///     OffsetDateTime::parse("2019-01-02 00:00:00 +0000", "%F %T %z"),
-    ///     Ok(Date::try_from_ymd(2019, 1, 2).unwrap().midnight().using_offset(offset!(UTC))),
+    ///     Ok(date!(2019-01-02).midnight().using_offset(offset!(UTC))),
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::parse("2019-002 23:59:59 +0000", "%Y-%j %T %z"),
-    ///     Ok(Date::try_from_yo(2019, 2)
-    ///         .unwrap()
-    ///         .with_time(time!(23:59:59))
-    ///         .using_offset(offset!(UTC))
-    ///     )
+    ///     Ok(date!(2019-002).with_time(time!(23:59:59)).using_offset(offset!(UTC))),
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::parse("2019-W01-3 12:00:00 pm +0000", "%G-W%V-%u %r %z"),
-    ///     Ok(Date::try_from_iso_ywd(2019, 1, Wednesday)
-    ///         .unwrap()
-    ///         .with_time(time!(12:00))
-    ///         .using_offset(offset!(UTC)))
+    ///     Ok(date!(2019-W01-3).with_time(time!(12:00)).using_offset(offset!(UTC))),
     /// );
     /// ```
     #[inline(always)]
@@ -823,16 +770,11 @@ impl Sub<OffsetDateTime> for OffsetDateTime {
 }
 
 #[cfg(test)]
+#[rustfmt::skip::macros(date)]
 #[allow(clippy::zero_prefixed_literal, clippy::result_unwrap_used)]
 mod test {
     use super::*;
-    use crate::{prelude::*, time};
-
-    macro_rules! ymd {
-        ($year:literal, $month:literal, $date:literal) => {
-            Date::try_from_ymd($year, $month, $date).unwrap()
-        };
-    }
+    use crate::{date, prelude::*, time};
 
     #[test]
     #[cfg(feature = "std")]
@@ -844,7 +786,7 @@ mod test {
     #[test]
     fn to_offset() {
         assert_eq!(
-            ymd!(2000, 1, 1)
+            date!(2000-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .to_offset(offset!(-1))
@@ -857,7 +799,7 @@ mod test {
     fn unix_epoch() {
         assert_eq!(
             OffsetDateTime::unix_epoch(),
-            ymd!(1970, 1, 1).midnight().using_offset(offset!(UTC)),
+            date!(1970-1-1).midnight().using_offset(offset!(UTC)),
         );
     }
 
@@ -869,21 +811,21 @@ mod test {
         );
         assert_eq!(
             OffsetDateTime::from_unix_timestamp(1_546_300_800),
-            ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC)),
+            date!(2019-01-01).midnight().using_offset(offset!(UTC)),
         );
     }
 
     #[test]
     fn offset() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .offset(),
             offset!(UTC),
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-1-1)
                 .midnight()
                 .using_offset(offset!(+1))
                 .offset(),
@@ -905,29 +847,35 @@ mod test {
     #[test]
     fn date() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .date(),
-            ymd!(2019, 1, 1),
+            date!(2019-01-01),
         );
         assert_eq!(
-            ymd!(2019, 1, 1).midnight().using_offset(offset!(-1)).date(),
-            ymd!(2018, 12, 31),
+            date!(2019-01-01)
+                .midnight()
+                .using_offset(offset!(-1))
+                .date(),
+            date!(2018-12-31),
         );
     }
 
     #[test]
     fn time() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .time(),
             time!(0:00),
         );
         assert_eq!(
-            ymd!(2019, 1, 1).midnight().using_offset(offset!(-1)).time(),
+            date!(2019-01-01)
+                .midnight()
+                .using_offset(offset!(-1))
+                .time(),
             time!(23:00),
         );
     }
@@ -935,14 +883,14 @@ mod test {
     #[test]
     fn year() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .year(),
             2019,
         );
         assert_eq!(
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:00))
                 .using_offset(offset!(UTC))
                 .to_offset(offset!(+1))
@@ -950,7 +898,7 @@ mod test {
             2020,
         );
         assert_eq!(
-            ymd!(2020, 1, 1)
+            date!(2020-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .year(),
@@ -961,14 +909,14 @@ mod test {
     #[test]
     fn month() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .month(),
             1,
         );
         assert_eq!(
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:00))
                 .using_offset(offset!(+1))
                 .month(),
@@ -979,11 +927,14 @@ mod test {
     #[test]
     fn day() {
         assert_eq!(
-            ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC)).day(),
+            date!(2019-01-01)
+                .midnight()
+                .using_offset(offset!(UTC))
+                .day(),
             1,
         );
         assert_eq!(
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:00))
                 .using_offset(offset!(+1))
                 .day(),
@@ -994,14 +945,14 @@ mod test {
     #[test]
     fn month_day() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .month_day(),
             (1, 1),
         );
         assert_eq!(
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:00))
                 .using_offset(offset!(+1))
                 .month_day(),
@@ -1012,14 +963,14 @@ mod test {
     #[test]
     fn ordinal() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .ordinal(),
             1,
         );
         assert_eq!(
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:00))
                 .using_offset(offset!(+1))
                 .ordinal(),
@@ -1030,28 +981,28 @@ mod test {
     #[test]
     fn week() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .week(),
             1,
         );
         assert_eq!(
-            ymd!(2020, 1, 1)
+            date!(2020-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .week(),
             1,
         );
         assert_eq!(
-            ymd!(2020, 12, 31)
+            date!(2020-12-31)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .week(),
             53,
         );
         assert_eq!(
-            ymd!(2021, 1, 1)
+            date!(2021-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .week(),
@@ -1063,21 +1014,21 @@ mod test {
     fn weekday() {
         use Weekday::*;
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .weekday(),
             Tuesday,
         );
         assert_eq!(
-            ymd!(2019, 2, 1)
+            date!(2019-02-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .weekday(),
             Friday,
         );
         assert_eq!(
-            ymd!(2019, 3, 1)
+            date!(2019-03-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .weekday(),
@@ -1088,14 +1039,14 @@ mod test {
     #[test]
     fn hour() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .hour(),
             0,
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(23:59:59))
                 .using_offset(UtcOffset::hours(-2))
                 .hour(),
@@ -1106,14 +1057,14 @@ mod test {
     #[test]
     fn minute() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .minute(),
             0,
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(+0:30))
                 .minute(),
@@ -1124,14 +1075,14 @@ mod test {
     #[test]
     fn second() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .second(),
             0,
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(+0:00:30))
                 .second(),
@@ -1142,14 +1093,14 @@ mod test {
     #[test]
     fn millisecond() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .millisecond(),
             0,
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(23:59:59.999))
                 .using_offset(offset!(UTC))
                 .millisecond(),
@@ -1160,14 +1111,14 @@ mod test {
     #[test]
     fn microsecond() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .microsecond(),
             0,
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(23:59:59.999_999))
                 .using_offset(offset!(UTC))
                 .microsecond(),
@@ -1178,14 +1129,14 @@ mod test {
     #[test]
     fn nanosecond() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .nanosecond(),
             0,
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(23:59:59.999_999_999))
                 .using_offset(offset!(UTC))
                 .nanosecond(),
@@ -1196,7 +1147,7 @@ mod test {
     #[test]
     fn format() {
         assert_eq!(
-            ymd!(2019, 1, 2)
+            date!(2019-01-02)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .format("%F %r %z"),
@@ -1206,22 +1157,19 @@ mod test {
 
     #[test]
     fn parse() {
-        use Weekday::*;
         assert_eq!(
             OffsetDateTime::parse("2019-01-02 00:00:00 +0000", "%F %T %z"),
-            Ok(ymd!(2019, 1, 2).midnight().using_offset(offset!(UTC))),
+            Ok(date!(2019-01-02).midnight().using_offset(offset!(UTC))),
         );
         assert_eq!(
             OffsetDateTime::parse("2019-002 23:59:59 +0000", "%Y-%j %T %z"),
-            Ok(Date::try_from_yo(2019, 2)
-                .unwrap()
+            Ok(date!(2019-002)
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(UTC)))
         );
         assert_eq!(
             OffsetDateTime::parse("2019-W01-3 12:00:00 pm +0000", "%G-W%V-%u %r %z"),
-            Ok(Date::try_from_iso_ywd(2019, 1, Wednesday)
-                .unwrap()
+            Ok(date!(2019-W01-3)
                 .with_time(time!(12:00))
                 .using_offset(offset!(UTC))),
         );
@@ -1230,17 +1178,17 @@ mod test {
     #[test]
     fn partial_eq() {
         assert_eq!(
-            ymd!(1999, 12, 31)
+            date!(1999-12-31)
                 .with_time(time!(23:00))
                 .using_offset(offset!(-1)),
-            ymd!(2000, 1, 1).midnight().using_offset(offset!(UTC)),
+            date!(2000-01-01).midnight().using_offset(offset!(UTC)),
         );
     }
 
     #[test]
     fn partial_ord() {
-        let t1 = ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC));
-        let t2 = ymd!(2018, 12, 31)
+        let t1 = date!(2019-01-01).midnight().using_offset(offset!(UTC));
+        let t2 = date!(2018-12-31)
             .with_time(time!(23:00))
             .using_offset(offset!(-1));
         assert_eq!(t1.partial_cmp(&t2), Some(Ordering::Equal));
@@ -1248,8 +1196,8 @@ mod test {
 
     #[test]
     fn ord() {
-        let t1 = ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC));
-        let t2 = ymd!(2018, 12, 31)
+        let t1 = date!(2019-01-01).midnight().using_offset(offset!(UTC));
+        let t2 = date!(2018-12-31)
             .with_time(time!(23:00))
             .using_offset(offset!(-1));
         assert_eq!(t1, t2);
@@ -1263,7 +1211,7 @@ mod test {
         assert_eq!(
             {
                 let mut hasher = DefaultHasher::new();
-                ymd!(2019, 1, 1)
+                date!(2019-01-01)
                     .midnight()
                     .using_offset(offset!(UTC))
                     .hash(&mut hasher);
@@ -1271,7 +1219,7 @@ mod test {
             },
             {
                 let mut hasher = DefaultHasher::new();
-                ymd!(2018, 12, 31)
+                date!(2018-12-31)
                     .with_time(time!(23:00))
                     .using_offset(offset!(-1))
                     .hash(&mut hasher);
@@ -1283,56 +1231,56 @@ mod test {
     #[test]
     fn add_duration() {
         assert_eq!(
-            ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC)) + 5.days(),
-            ymd!(2019, 1, 6).midnight().using_offset(offset!(UTC)),
+            date!(2019-01-01).midnight().using_offset(offset!(UTC)) + 5.days(),
+            date!(2019-01-06).midnight().using_offset(offset!(UTC)),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).midnight().using_offset(offset!(UTC)) + 1.days(),
-            ymd!(2020, 1, 1).midnight().using_offset(offset!(UTC)),
+            date!(2019-12-31).midnight().using_offset(offset!(UTC)) + 1.days(),
+            date!(2020-01-01).midnight().using_offset(offset!(UTC)),
         );
         assert_eq!(
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(UTC))
                 + 2.seconds(),
-            ymd!(2020, 1, 1)
+            date!(2020-01-01)
                 .with_time(time!(0:00:01))
                 .using_offset(offset!(UTC)),
         );
         assert_eq!(
-            ymd!(2020, 1, 1)
+            date!(2020-01-01)
                 .with_time(time!(0:00:01))
                 .using_offset(offset!(UTC))
                 + (-2).seconds(),
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(UTC)),
         );
         assert_eq!(
-            ymd!(1999, 12, 31)
+            date!(1999-12-31)
                 .with_time(time!(23:00))
                 .using_offset(offset!(UTC))
                 + 1.hours(),
-            ymd!(2000, 1, 1).midnight().using_offset(offset!(UTC)),
+            date!(2000-01-01).midnight().using_offset(offset!(UTC)),
         );
     }
 
     #[test]
     fn add_std_duration() {
         assert_eq!(
-            ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC)) + 5.std_days(),
-            ymd!(2019, 1, 6).midnight().using_offset(offset!(UTC)),
+            date!(2019-01-01).midnight().using_offset(offset!(UTC)) + 5.std_days(),
+            date!(2019-01-06).midnight().using_offset(offset!(UTC)),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).midnight().using_offset(offset!(UTC)) + 1.std_days(),
-            ymd!(2020, 1, 1).midnight().using_offset(offset!(UTC)),
+            date!(2019-12-31).midnight().using_offset(offset!(UTC)) + 1.std_days(),
+            date!(2020-01-01).midnight().using_offset(offset!(UTC)),
         );
         assert_eq!(
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(UTC))
                 + 2.std_seconds(),
-            ymd!(2020, 1, 1)
+            date!(2020-01-01)
                 .with_time(time!(0:00:01))
                 .using_offset(offset!(UTC)),
         );
@@ -1340,35 +1288,38 @@ mod test {
 
     #[test]
     fn add_assign_duration() {
-        let mut ny19 = ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC));
+        let mut ny19 = date!(2019-01-01).midnight().using_offset(offset!(UTC));
         ny19 += 5.days();
-        assert_eq!(ny19, ymd!(2019, 1, 6).midnight().using_offset(offset!(UTC)));
+        assert_eq!(
+            ny19,
+            date!(2019-01-06).midnight().using_offset(offset!(UTC))
+        );
 
-        let mut nye20 = ymd!(2019, 12, 31).midnight().using_offset(offset!(UTC));
+        let mut nye20 = date!(2019-12-31).midnight().using_offset(offset!(UTC));
         nye20 += 1.days();
         assert_eq!(
             nye20,
-            ymd!(2020, 1, 1).midnight().using_offset(offset!(UTC))
+            date!(2020-01-01).midnight().using_offset(offset!(UTC))
         );
 
-        let mut nye20t = ymd!(2019, 12, 31)
+        let mut nye20t = date!(2019-12-31)
             .with_time(time!(23:59:59))
             .using_offset(offset!(UTC));
         nye20t += 2.seconds();
         assert_eq!(
             nye20t,
-            ymd!(2020, 1, 1)
+            date!(2020-01-01)
                 .with_time(time!(0:00:01))
                 .using_offset(offset!(UTC))
         );
 
-        let mut ny20t = ymd!(2020, 1, 1)
+        let mut ny20t = date!(2020-01-01)
             .with_time(time!(0:00:01))
             .using_offset(offset!(UTC));
         ny20t += (-2).seconds();
         assert_eq!(
             ny20t,
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(UTC))
         );
@@ -1376,24 +1327,27 @@ mod test {
 
     #[test]
     fn add_assign_std_duration() {
-        let mut ny19 = ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC));
+        let mut ny19 = date!(2019-01-01).midnight().using_offset(offset!(UTC));
         ny19 += 5.std_days();
-        assert_eq!(ny19, ymd!(2019, 1, 6).midnight().using_offset(offset!(UTC)));
+        assert_eq!(
+            ny19,
+            date!(2019-01-06).midnight().using_offset(offset!(UTC))
+        );
 
-        let mut nye20 = ymd!(2019, 12, 31).midnight().using_offset(offset!(UTC));
+        let mut nye20 = date!(2019-12-31).midnight().using_offset(offset!(UTC));
         nye20 += 1.std_days();
         assert_eq!(
             nye20,
-            ymd!(2020, 1, 1).midnight().using_offset(offset!(UTC))
+            date!(2020-01-01).midnight().using_offset(offset!(UTC))
         );
 
-        let mut nye20t = ymd!(2019, 12, 31)
+        let mut nye20t = date!(2019-12-31)
             .with_time(time!(23:59:59))
             .using_offset(offset!(UTC));
         nye20t += 2.std_seconds();
         assert_eq!(
             nye20t,
-            ymd!(2020, 1, 1)
+            date!(2020-01-01)
                 .with_time(time!(0:00:01))
                 .using_offset(offset!(UTC))
         );
@@ -1402,56 +1356,56 @@ mod test {
     #[test]
     fn sub_duration() {
         assert_eq!(
-            ymd!(2019, 1, 6).midnight().using_offset(offset!(UTC)) - 5.days(),
-            ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC)),
+            date!(2019-01-06).midnight().using_offset(offset!(UTC)) - 5.days(),
+            date!(2019-01-01).midnight().using_offset(offset!(UTC)),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).midnight().using_offset(offset!(UTC)) - 1.days(),
-            ymd!(2019, 12, 31).midnight().using_offset(offset!(UTC)),
+            date!(2020-01-01).midnight().using_offset(offset!(UTC)) - 1.days(),
+            date!(2019-12-31).midnight().using_offset(offset!(UTC)),
         );
         assert_eq!(
-            ymd!(2020, 1, 1)
+            date!(2020-01-01)
                 .with_time(time!(0:00:01))
                 .using_offset(offset!(UTC))
                 - 2.seconds(),
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(UTC)),
         );
         assert_eq!(
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(UTC))
                 - (-2).seconds(),
-            ymd!(2020, 1, 1)
+            date!(2020-01-01)
                 .with_time(time!(0:00:01))
                 .using_offset(offset!(UTC)),
         );
         assert_eq!(
-            ymd!(1999, 12, 31)
+            date!(1999-12-31)
                 .with_time(time!(23:00))
                 .using_offset(offset!(UTC))
                 - (-1).hours(),
-            ymd!(2000, 1, 1).midnight().using_offset(offset!(UTC)),
+            date!(2000-01-01).midnight().using_offset(offset!(UTC)),
         );
     }
 
     #[test]
     fn sub_std_duration() {
         assert_eq!(
-            ymd!(2019, 1, 6).midnight().using_offset(offset!(UTC)) - 5.std_days(),
-            ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC)),
+            date!(2019-01-06).midnight().using_offset(offset!(UTC)) - 5.std_days(),
+            date!(2019-01-01).midnight().using_offset(offset!(UTC)),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).midnight().using_offset(offset!(UTC)) - 1.std_days(),
-            ymd!(2019, 12, 31).midnight().using_offset(offset!(UTC)),
+            date!(2020-01-01).midnight().using_offset(offset!(UTC)) - 1.std_days(),
+            date!(2019-12-31).midnight().using_offset(offset!(UTC)),
         );
         assert_eq!(
-            ymd!(2020, 1, 1)
+            date!(2020-01-01)
                 .with_time(time!(0:00:01))
                 .using_offset(offset!(UTC))
                 - 2.std_seconds(),
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(UTC)),
         );
@@ -1459,35 +1413,38 @@ mod test {
 
     #[test]
     fn sub_assign_duration() {
-        let mut ny19 = ymd!(2019, 1, 6).midnight().using_offset(offset!(UTC));
+        let mut ny19 = date!(2019-01-06).midnight().using_offset(offset!(UTC));
         ny19 -= 5.days();
-        assert_eq!(ny19, ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC)));
+        assert_eq!(
+            ny19,
+            date!(2019-01-01).midnight().using_offset(offset!(UTC))
+        );
 
-        let mut ny20 = ymd!(2020, 1, 1).midnight().using_offset(offset!(UTC));
+        let mut ny20 = date!(2020-01-01).midnight().using_offset(offset!(UTC));
         ny20 -= 1.days();
         assert_eq!(
             ny20,
-            ymd!(2019, 12, 31).midnight().using_offset(offset!(UTC))
+            date!(2019-12-31).midnight().using_offset(offset!(UTC))
         );
 
-        let mut ny20t = ymd!(2020, 1, 1)
+        let mut ny20t = date!(2020-01-01)
             .with_time(time!(0:00:01))
             .using_offset(offset!(UTC));
         ny20t -= 2.seconds();
         assert_eq!(
             ny20t,
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(UTC))
         );
 
-        let mut nye20t = ymd!(2019, 12, 31)
+        let mut nye20t = date!(2019-12-31)
             .with_time(time!(23:59:59))
             .using_offset(offset!(UTC));
         nye20t -= (-2).seconds();
         assert_eq!(
             nye20t,
-            ymd!(2020, 1, 1)
+            date!(2020-01-01)
                 .with_time(time!(0:00:01))
                 .using_offset(offset!(UTC))
         );
@@ -1495,24 +1452,27 @@ mod test {
 
     #[test]
     fn sub_assign_std_duration() {
-        let mut ny19 = ymd!(2019, 1, 6).midnight().using_offset(offset!(UTC));
+        let mut ny19 = date!(2019-01-06).midnight().using_offset(offset!(UTC));
         ny19 -= 5.std_days();
-        assert_eq!(ny19, ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC)));
+        assert_eq!(
+            ny19,
+            date!(2019-01-01).midnight().using_offset(offset!(UTC))
+        );
 
-        let mut ny20 = ymd!(2020, 1, 1).midnight().using_offset(offset!(UTC));
+        let mut ny20 = date!(2020-01-01).midnight().using_offset(offset!(UTC));
         ny20 -= 1.std_days();
         assert_eq!(
             ny20,
-            ymd!(2019, 12, 31).midnight().using_offset(offset!(UTC))
+            date!(2019-12-31).midnight().using_offset(offset!(UTC))
         );
 
-        let mut ny20t = ymd!(2020, 1, 1)
+        let mut ny20t = date!(2020-01-01)
             .with_time(time!(0:00:01))
             .using_offset(offset!(UTC));
         ny20t -= 2.std_seconds();
         assert_eq!(
             ny20t,
-            ymd!(2019, 12, 31)
+            date!(2019-12-31)
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(UTC))
         );
@@ -1521,23 +1481,23 @@ mod test {
     #[test]
     fn sub_self() {
         assert_eq!(
-            ymd!(2019, 1, 2).midnight().using_offset(offset!(UTC))
-                - ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC)),
+            date!(2019-01-02).midnight().using_offset(offset!(UTC))
+                - date!(2019-01-01).midnight().using_offset(offset!(UTC)),
             1.days(),
         );
         assert_eq!(
-            ymd!(2019, 1, 1).midnight().using_offset(offset!(UTC))
-                - ymd!(2019, 1, 2).midnight().using_offset(offset!(UTC)),
+            date!(2019-01-01).midnight().using_offset(offset!(UTC))
+                - date!(2019-01-02).midnight().using_offset(offset!(UTC)),
             (-1).days(),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).midnight().using_offset(offset!(UTC))
-                - ymd!(2019, 12, 31).midnight().using_offset(offset!(UTC)),
+            date!(2020-01-01).midnight().using_offset(offset!(UTC))
+                - date!(2019-12-31).midnight().using_offset(offset!(UTC)),
             1.days(),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).midnight().using_offset(offset!(UTC))
-                - ymd!(2020, 1, 1).midnight().using_offset(offset!(UTC)),
+            date!(2019-12-31).midnight().using_offset(offset!(UTC))
+                - date!(2020-01-01).midnight().using_offset(offset!(UTC)),
             (-1).days(),
         );
     }

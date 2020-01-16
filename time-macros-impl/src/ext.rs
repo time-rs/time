@@ -9,7 +9,7 @@ use syn::{LitInt, Result};
 pub(crate) trait LitIntExtension {
     fn create<T: Display>(value: T) -> Self;
     fn with_span(self, span: Span) -> Self;
-    fn ensure_in_range(&self, range: impl RangeBounds<usize> + Debug) -> Result<()>;
+    fn ensure_in_range(&self, range: impl RangeBounds<isize> + Debug) -> Result<()>;
     fn value<T: FromStr + Display>(&self) -> Result<T>
     where
         T::Err: Display;
@@ -25,7 +25,7 @@ impl LitIntExtension for LitInt {
         self
     }
 
-    fn ensure_in_range(&self, range: impl RangeBounds<usize> + Debug) -> Result<()> {
+    fn ensure_in_range(&self, range: impl RangeBounds<isize> + Debug) -> Result<()> {
         if range.contains(&self.value()?) {
             Ok(())
         } else {

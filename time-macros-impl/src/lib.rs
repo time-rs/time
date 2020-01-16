@@ -61,10 +61,13 @@ mod kw {
     custom_keyword!(UTC);
 }
 
+mod date;
 mod ext;
 mod offset;
 mod time;
+mod time_crate;
 
+use date::Date;
 use offset::Offset;
 use proc_macro_hack::proc_macro_hack;
 use quote::ToTokens;
@@ -85,4 +88,5 @@ macro_rules! impl_macros {
 impl_macros! {
     time: Time,
     offset: Offset,
+    date: Date,
 }

@@ -4,7 +4,7 @@ use crate::no_std_prelude::*;
 use crate::Sign;
 use crate::{
     format::parse::{parse, ParseResult, ParsedItems},
-    Date, DeferredFormat, Duration, OffsetDateTime, Time, UtcOffset, Weekday,
+    time, Date, DeferredFormat, Duration, OffsetDateTime, Time, UtcOffset, Weekday,
 };
 #[cfg(feature = "std")]
 use core::convert::{From, TryFrom};
@@ -37,10 +37,10 @@ impl PrimitiveDateTime {
     /// Create a new `PrimitiveDateTime` from the provided `Date` and `Time`.
     ///
     /// ```rust
-    /// # use time::{Date, PrimitiveDateTime, Time};
+    /// # use time::{PrimitiveDateTime, time, date};
     /// assert_eq!(
-    ///     PrimitiveDateTime::new(Date::try_from_ymd(2019, 1, 1).unwrap(), Time::midnight()),
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight(),
+    ///     PrimitiveDateTime::new(date!(2019-01-01), time!(0:00)),
+    ///     date!(2019-01-01).midnight(),
     /// );
     /// ```
     #[inline(always)]
@@ -64,39 +64,35 @@ impl PrimitiveDateTime {
     /// Midnight, 1 January, 1970 (UTC).
     ///
     /// ```rust
-    /// # use time::{Date, PrimitiveDateTime, Time};
+    /// # use time::{PrimitiveDateTime, date};
     /// assert_eq!(
     ///     PrimitiveDateTime::unix_epoch(),
-    ///     Date::try_from_ymd(1970, 1, 1).unwrap().midnight()
+    ///     date!(1970-01-01).midnight()
     /// );
     /// ```
     #[inline(always)]
     pub const fn unix_epoch() -> Self {
         Self {
+            // TODO Use `date!(1970-001)` when rustfmt can handle it.
             date: Date {
                 year: 1970,
                 ordinal: 1,
             },
-            time: Time {
-                hour: 0,
-                minute: 0,
-                second: 0,
-                nanosecond: 0,
-            },
+            time: time!(0:00),
         }
     }
 
     /// Create a `PrimitiveDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
-    /// # use time::{Date, PrimitiveDateTime};
+    /// # use time::{date, PrimitiveDateTime};
     /// assert_eq!(
     ///     PrimitiveDateTime::from_unix_timestamp(0),
     ///     PrimitiveDateTime::unix_epoch()
     /// );
     /// assert_eq!(
     ///     PrimitiveDateTime::from_unix_timestamp(1_546_300_800),
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight(),
+    ///     date!(2019-01-01).midnight(),
     /// );
     /// ```
     #[inline(always)]
@@ -108,15 +104,9 @@ impl PrimitiveDateTime {
     /// representing the `PrimitiveDateTime`.
     ///
     /// ```rust
-    /// # use time::{Date, PrimitiveDateTime};
+    /// # use time::{date, PrimitiveDateTime};
     /// assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .timestamp(),
-    ///     1_546_300_800
-    /// );
+    /// assert_eq!(date!(2019-01-01).midnight().timestamp(), 1_546_300_800);
     /// ```
     #[inline(always)]
     pub fn timestamp(self) -> i64 {
@@ -126,10 +116,10 @@ impl PrimitiveDateTime {
     /// Get the `Date` component of the `PrimitiveDateTime`.
     ///
     /// ```rust
-    /// # use time::Date;
+    /// # use time::date;
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight().date(),
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap()
+    ///     date!(2019-01-01).midnight().date(),
+    ///     date!(2019-01-01)
     /// );
     /// ```
     #[inline(always)]
@@ -140,8 +130,8 @@ impl PrimitiveDateTime {
     /// Get the `Time` component of the `PrimitiveDateTime`.
     ///
     /// ```rust
-    /// # use time::{Date, Time};
-    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().midnight().time(), Time::midnight());
+    /// # use time::{date, time};
+    /// assert_eq!(date!(2019-01-01).midnight().time(), time!(0:00));
     #[inline(always)]
     pub const fn time(self) -> Time {
         self.time
@@ -150,19 +140,10 @@ impl PrimitiveDateTime {
     /// Get the year of the date.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight().year(),
-    ///     2019
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31).unwrap().midnight().year(),
-    ///     2019
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 1, 1).unwrap().midnight().year(),
-    ///     2020
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).midnight().year(), 2019);
+    /// assert_eq!(date!(2019-12-31).midnight().year(), 2019);
+    /// assert_eq!(date!(2020-01-01).midnight().year(), 2020);
     /// ```
     #[inline(always)]
     pub fn year(self) -> i32 {
@@ -175,15 +156,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `1..=12`.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight().month(),
-    ///     1
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31).unwrap().midnight().month(),
-    ///     12
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).midnight().month(), 1);
+    /// assert_eq!(date!(2019-12-31).midnight().month(), 12);
     /// ```
     #[inline(always)]
     pub fn month(self) -> u8 {
@@ -196,12 +171,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `1..=31`.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().midnight().day(), 1);
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31).unwrap().midnight().day(),
-    ///     31
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-1-1).midnight().day(), 1);
+    /// assert_eq!(date!(2019-12-31).midnight().day(), 31);
     /// ```
     #[inline(always)]
     pub fn day(self) -> u8 {
@@ -215,21 +187,9 @@ impl PrimitiveDateTime {
     /// the day component in `1..=31`.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .month_day(),
-    ///     (1, 1)
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .month_day(),
-    ///     (12, 31)
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).midnight().month_day(), (1, 1));
+    /// assert_eq!(date!(2019-12-31).midnight().month_day(), (12, 31));
     /// ```
     #[inline(always)]
     pub fn month_day(self) -> (u8, u8) {
@@ -242,18 +202,9 @@ impl PrimitiveDateTime {
     /// common years).
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight().ordinal(),
-    ///     1
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 31)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .ordinal(),
-    ///     365
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).midnight().ordinal(), 1);
+    /// assert_eq!(date!(2019-12-31).midnight().ordinal(), 365);
     /// ```
     #[inline(always)]
     pub fn ordinal(self) -> u16 {
@@ -263,42 +214,12 @@ impl PrimitiveDateTime {
     /// Get the ISO 8601 year and week number.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .iso_year_week(),
-    ///     (2019, 1)
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 10, 4)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .iso_year_week(),
-    ///     (2019, 40)
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .iso_year_week(),
-    ///     (2020, 1)
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 12, 31)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .iso_year_week(),
-    ///     (2020, 53)
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2021, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .iso_year_week(),
-    ///     (2020, 53)
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).midnight().iso_year_week(), (2019, 1));
+    /// assert_eq!(date!(2019-10-04).midnight().iso_year_week(), (2019, 40));
+    /// assert_eq!(date!(2020-01-01).midnight().iso_year_week(), (2020, 1));
+    /// assert_eq!(date!(2020-12-31).midnight().iso_year_week(), (2020, 53));
+    /// assert_eq!(date!(2021-01-01).midnight().iso_year_week(), (2020, 53));
     /// ```
     #[inline]
     pub fn iso_year_week(self) -> (i32, u8) {
@@ -310,21 +231,12 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `1..=53`.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(Date::try_from_ymd(2019, 1, 1).unwrap().midnight().week(), 1);
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 10, 4).unwrap().midnight().week(),
-    ///     40
-    /// );
-    /// assert_eq!(Date::try_from_ymd(2020, 1, 1).unwrap().midnight().week(), 1);
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 12, 31).unwrap().midnight().week(),
-    ///     53
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2021, 1, 1).unwrap().midnight().week(),
-    ///     53
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).midnight().week(), 1);
+    /// assert_eq!(date!(2019-10-04).midnight().week(), 40);
+    /// assert_eq!(date!(2020-01-01).midnight().week(), 1);
+    /// assert_eq!(date!(2020-12-31).midnight().week(), 53);
+    /// assert_eq!(date!(2021-01-01).midnight().week(), 53);
     /// ```
     #[inline(always)]
     pub fn week(self) -> u8 {
@@ -336,35 +248,11 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..=53`.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .sunday_based_week(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .sunday_based_week(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 12, 31)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .sunday_based_week(),
-    ///     52
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2021, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .sunday_based_week(),
-    ///     0
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).midnight().sunday_based_week(), 0);
+    /// assert_eq!(date!(2020-01-01).midnight().sunday_based_week(), 0);
+    /// assert_eq!(date!(2020-12-31).midnight().sunday_based_week(), 52);
+    /// assert_eq!(date!(2021-01-01).midnight().sunday_based_week(), 0);
     /// ```
     #[inline(always)]
     pub fn sunday_based_week(self) -> u8 {
@@ -376,35 +264,11 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..=53`.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .monday_based_week(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .monday_based_week(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2020, 12, 31)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .monday_based_week(),
-    ///     52
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2021, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .monday_based_week(),
-    ///     0
-    /// );
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-01).midnight().monday_based_week(), 0);
+    /// assert_eq!(date!(2020-01-01).midnight().monday_based_week(), 0);
+    /// assert_eq!(date!(2020-12-31).midnight().monday_based_week(), 52);
+    /// assert_eq!(date!(2021-01-01).midnight().monday_based_week(), 0);
     /// ```
     #[inline(always)]
     pub fn monday_based_week(self) -> u8 {
@@ -417,64 +281,19 @@ impl PrimitiveDateTime {
     /// internally.
     ///
     /// ```rust
-    /// # use time::{Date, Weekday::*};
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1).unwrap().midnight().weekday(),
-    ///     Tuesday
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 2, 1).unwrap().midnight().weekday(),
-    ///     Friday
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 3, 1).unwrap().midnight().weekday(),
-    ///     Friday
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 4, 1).unwrap().midnight().weekday(),
-    ///     Monday
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 5, 1).unwrap().midnight().weekday(),
-    ///     Wednesday
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 6, 1).unwrap().midnight().weekday(),
-    ///     Saturday
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 7, 1).unwrap().midnight().weekday(),
-    ///     Monday
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 8, 1).unwrap().midnight().weekday(),
-    ///     Thursday
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 9, 1).unwrap().midnight().weekday(),
-    ///     Sunday
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 10, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .weekday(),
-    ///     Tuesday
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 11, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .weekday(),
-    ///     Friday
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 12, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .weekday(),
-    ///     Sunday
-    /// );
+    /// # use time::{date, Weekday::*};
+    /// assert_eq!(date!(2019-01-01).midnight().weekday(), Tuesday);
+    /// assert_eq!(date!(2019-02-01).midnight().weekday(), Friday);
+    /// assert_eq!(date!(2019-03-01).midnight().weekday(), Friday);
+    /// assert_eq!(date!(2019-04-01).midnight().weekday(), Monday);
+    /// assert_eq!(date!(2019-05-01).midnight().weekday(), Wednesday);
+    /// assert_eq!(date!(2019-06-01).midnight().weekday(), Saturday);
+    /// assert_eq!(date!(2019-07-01).midnight().weekday(), Monday);
+    /// assert_eq!(date!(2019-08-01).midnight().weekday(), Thursday);
+    /// assert_eq!(date!(2019-09-01).midnight().weekday(), Sunday);
+    /// assert_eq!(date!(2019-10-01).midnight().weekday(), Tuesday);
+    /// assert_eq!(date!(2019-11-01).midnight().weekday(), Friday);
+    /// assert_eq!(date!(2019-12-01).midnight().weekday(), Sunday);
     /// ```
     #[inline(always)]
     pub fn weekday(self) -> Weekday {
@@ -486,21 +305,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..24`.
     ///
     /// ```rust
-    /// # use time::{Date, time};
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .hour(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .with_time(time!(23:59:59))
-    ///         .hour(),
-    ///     23
-    /// );
+    /// # use time::{date, time};
+    /// assert_eq!(date!(2019-01-01).midnight().hour(), 0);
+    /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).hour(), 23);
     /// ```
     #[inline(always)]
     pub const fn hour(self) -> u8 {
@@ -512,21 +319,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time::{Date, time};
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .minute(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .with_time(time!(23:59:59))
-    ///         .minute(),
-    ///     59
-    /// );
+    /// # use time::{date, time};
+    /// assert_eq!(date!(2019-01-01).midnight().minute(), 0);
+    /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).minute(), 59);
     /// ```
     #[inline(always)]
     pub const fn minute(self) -> u8 {
@@ -538,21 +333,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time::{Date, time};
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .second(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .with_time(time!(23:59:59))
-    ///         .second(),
-    ///     59
-    /// );
+    /// # use time::{date, time};
+    /// assert_eq!(date!(2019-01-01).midnight().second(), 0);
+    /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).second(), 59);
     /// ```
     #[inline(always)]
     pub const fn second(self) -> u8 {
@@ -564,21 +347,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..1_000`.
     ///
     /// ```rust
-    /// # use time::{Date, time};
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .millisecond(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .with_time(time!(23:59:59.999))
-    ///         .millisecond(),
-    ///     999
-    /// );
+    /// # use time::{date, time};
+    /// assert_eq!(date!(2019-01-01).midnight().millisecond(), 0);
+    /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59.999)).millisecond(), 999);
     /// ```
     #[inline(always)]
     pub const fn millisecond(self) -> u16 {
@@ -590,21 +361,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..1_000_000`.
     ///
     /// ```rust
-    /// # use time::{Date, time};
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .microsecond(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .with_time(time!(23:59:59.999_999))
-    ///         .microsecond(),
-    ///     999_999
-    /// );
+    /// # use time::{date, time};
+    /// assert_eq!(date!(2019-01-01).midnight().microsecond(), 0);
+    /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59.999_999)).microsecond(), 999_999);
     /// ```
     #[inline(always)]
     pub const fn microsecond(self) -> u32 {
@@ -616,20 +375,11 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
-    /// # use time::{Date, time};
+    /// # use time::{date, time};
+    /// assert_eq!(date!(2019-01-01).midnight().nanosecond(), 0);
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .nanosecond(),
-    ///     0
-    /// );
-    /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .with_time(time!(23:59:59.999_999_999))
-    ///         .nanosecond(),
-    ///     999_999_999
+    ///     date!(2019-01-01).with_time(time!(23:59:59.999_999_999)).nanosecond(),
+    ///     999_999_999,
     /// );
     /// ```
     #[inline(always)]
@@ -641,13 +391,9 @@ impl PrimitiveDateTime {
     /// `UtcOffset`.
     ///
     /// ```rust
-    /// # use time::{Date, offset};
+    /// # use time::{date, offset};
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 1)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .using_offset(offset!(UTC))
-    ///         .timestamp(),
+    ///     date!(2019-01-01).midnight().using_offset(offset!(UTC)).timestamp(),
     ///     1_546_300_800,
     /// );
     /// ```
@@ -665,12 +411,9 @@ impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::Date;
+    /// # use time::date;
     /// assert_eq!(
-    ///     Date::try_from_ymd(2019, 1, 2)
-    ///         .unwrap()
-    ///         .midnight()
-    ///         .format("%F %r"),
+    ///     date!(2019-01-02).midnight().format("%F %r"),
     ///     "2019-01-02 12:00:00 am"
     /// );
     /// ```
@@ -688,22 +431,18 @@ impl PrimitiveDateTime {
     /// Attempt to parse a `PrimitiveDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::{Date, PrimitiveDateTime, Weekday::Wednesday, time};
+    /// # use time::{date, PrimitiveDateTime, Weekday::Wednesday, time};
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
-    ///     Ok(Date::try_from_ymd(2019, 1, 2).unwrap().midnight()),
+    ///     Ok(date!(2019-01-02).midnight()),
     /// );
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
-    ///     Ok(Date::try_from_yo(2019, 2)
-    ///         .unwrap()
-    ///         .with_time(time!(23:59:59)))
+    ///     Ok(date!(2019-002).with_time(time!(23:59:59)))
     /// );
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
-    ///     Ok(Date::try_from_iso_ywd(2019, 1, Wednesday)
-    ///         .unwrap()
-    ///         .with_time(time!(12:00))),
+    ///     Ok(date!(2019-W01-3).with_time(time!(12:00))),
     /// );
     /// ```
     #[inline(always)]
@@ -978,21 +717,16 @@ impl From<PrimitiveDateTime> for SystemTime {
 
 #[cfg(test)]
 #[allow(clippy::result_unwrap_used)]
+#[rustfmt::skip::macros(date)]
 mod test {
     use super::*;
-    use crate::{offset, prelude::*, time};
-
-    macro_rules! ymd {
-        ($year:literal, $month:literal, $day:literal) => {
-            Date::try_from_ymd($year, $month, $day).unwrap()
-        };
-    }
+    use crate::{date, offset, prelude::*, time};
 
     #[test]
     fn new() {
         assert_eq!(
-            PrimitiveDateTime::new(ymd!(2019, 1, 1), time!(0:00)),
-            ymd!(2019, 1, 1).midnight(),
+            PrimitiveDateTime::new(date!(2019-01-01), time!(0:00)),
+            date!(2019-01-01).midnight(),
         );
     }
 
@@ -1004,7 +738,10 @@ mod test {
 
     #[test]
     fn unix_epoch() {
-        assert_eq!(PrimitiveDateTime::unix_epoch(), ymd!(1970, 1, 1).midnight());
+        assert_eq!(
+            PrimitiveDateTime::unix_epoch(),
+            date!(1970-01-01).midnight()
+        );
     }
 
     #[test]
@@ -1015,122 +752,122 @@ mod test {
         );
         assert_eq!(
             PrimitiveDateTime::from_unix_timestamp(1_546_300_800),
-            ymd!(2019, 1, 1).midnight(),
+            date!(2019-01-01).midnight(),
         );
     }
 
     #[test]
     fn timestamp() {
         assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
-        assert_eq!(ymd!(2019, 1, 1).midnight().timestamp(), 1_546_300_800);
+        assert_eq!(date!(2019-01-01).midnight().timestamp(), 1_546_300_800);
     }
 
     #[test]
     fn date() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().date(), ymd!(2019, 1, 1));
+        assert_eq!(date!(2019-01-01).midnight().date(), date!(2019-01-01));
     }
 
     #[test]
     fn time() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().time(), time!(0:00));
+        assert_eq!(date!(2019-01-01).midnight().time(), time!(0:00));
     }
 
     #[test]
     fn year() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().year(), 2019);
-        assert_eq!(ymd!(2019, 12, 31).midnight().year(), 2019);
-        assert_eq!(ymd!(2020, 1, 1).midnight().year(), 2020);
+        assert_eq!(date!(2019-01-01).midnight().year(), 2019);
+        assert_eq!(date!(2019-12-31).midnight().year(), 2019);
+        assert_eq!(date!(2020-01-01).midnight().year(), 2020);
     }
 
     #[test]
     fn month() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().month(), 1);
-        assert_eq!(ymd!(2019, 12, 31).midnight().month(), 12);
+        assert_eq!(date!(2019-01-01).midnight().month(), 1);
+        assert_eq!(date!(2019-12-31).midnight().month(), 12);
     }
 
     #[test]
     fn day() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().day(), 1);
-        assert_eq!(ymd!(2019, 12, 31).midnight().day(), 31);
+        assert_eq!(date!(2019-01-01).midnight().day(), 1);
+        assert_eq!(date!(2019-12-31).midnight().day(), 31);
     }
 
     #[test]
     fn month_day() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().month_day(), (1, 1));
-        assert_eq!(ymd!(2019, 12, 31).midnight().month_day(), (12, 31));
+        assert_eq!(date!(2019-01-01).midnight().month_day(), (1, 1));
+        assert_eq!(date!(2019-12-31).midnight().month_day(), (12, 31));
     }
 
     #[test]
     fn ordinal() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().ordinal(), 1);
-        assert_eq!(ymd!(2019, 12, 31).midnight().ordinal(), 365);
+        assert_eq!(date!(2019-01-01).midnight().ordinal(), 1);
+        assert_eq!(date!(2019-12-31).midnight().ordinal(), 365);
     }
 
     #[test]
     fn week() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().week(), 1);
-        assert_eq!(ymd!(2019, 10, 4).midnight().week(), 40);
-        assert_eq!(ymd!(2020, 1, 1).midnight().week(), 1);
-        assert_eq!(ymd!(2020, 12, 31).midnight().week(), 53);
-        assert_eq!(ymd!(2021, 1, 1).midnight().week(), 53);
+        assert_eq!(date!(2019-01-01).midnight().week(), 1);
+        assert_eq!(date!(2019-10-04).midnight().week(), 40);
+        assert_eq!(date!(2020-01-01).midnight().week(), 1);
+        assert_eq!(date!(2020-12-31).midnight().week(), 53);
+        assert_eq!(date!(2021-01-01).midnight().week(), 53);
     }
 
     #[test]
     fn sunday_based_week() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().sunday_based_week(), 0);
-        assert_eq!(ymd!(2020, 1, 1).midnight().sunday_based_week(), 0);
-        assert_eq!(ymd!(2020, 12, 31).midnight().sunday_based_week(), 52);
-        assert_eq!(ymd!(2021, 1, 1).midnight().sunday_based_week(), 0);
+        assert_eq!(date!(2019-01-01).midnight().sunday_based_week(), 0);
+        assert_eq!(date!(2020-01-01).midnight().sunday_based_week(), 0);
+        assert_eq!(date!(2020-12-31).midnight().sunday_based_week(), 52);
+        assert_eq!(date!(2021-01-01).midnight().sunday_based_week(), 0);
     }
 
     #[test]
     fn monday_based_week() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().monday_based_week(), 0);
-        assert_eq!(ymd!(2020, 1, 1).midnight().monday_based_week(), 0);
-        assert_eq!(ymd!(2020, 12, 31).midnight().monday_based_week(), 52);
-        assert_eq!(ymd!(2021, 1, 1).midnight().monday_based_week(), 0);
+        assert_eq!(date!(2019-01-01).midnight().monday_based_week(), 0);
+        assert_eq!(date!(2020-01-01).midnight().monday_based_week(), 0);
+        assert_eq!(date!(2020-12-31).midnight().monday_based_week(), 52);
+        assert_eq!(date!(2021-01-01).midnight().monday_based_week(), 0);
     }
 
     #[test]
     fn weekday() {
         use Weekday::*;
-        assert_eq!(ymd!(2019, 1, 1).midnight().weekday(), Tuesday);
-        assert_eq!(ymd!(2019, 2, 1).midnight().weekday(), Friday);
-        assert_eq!(ymd!(2019, 3, 1).midnight().weekday(), Friday);
-        assert_eq!(ymd!(2019, 4, 1).midnight().weekday(), Monday);
-        assert_eq!(ymd!(2019, 5, 1).midnight().weekday(), Wednesday);
-        assert_eq!(ymd!(2019, 6, 1).midnight().weekday(), Saturday);
-        assert_eq!(ymd!(2019, 7, 1).midnight().weekday(), Monday);
-        assert_eq!(ymd!(2019, 8, 1).midnight().weekday(), Thursday);
-        assert_eq!(ymd!(2019, 9, 1).midnight().weekday(), Sunday);
-        assert_eq!(ymd!(2019, 10, 1).midnight().weekday(), Tuesday);
-        assert_eq!(ymd!(2019, 11, 1).midnight().weekday(), Friday);
-        assert_eq!(ymd!(2019, 12, 1).midnight().weekday(), Sunday);
+        assert_eq!(date!(2019-01-01).midnight().weekday(), Tuesday);
+        assert_eq!(date!(2019-02-01).midnight().weekday(), Friday);
+        assert_eq!(date!(2019-03-01).midnight().weekday(), Friday);
+        assert_eq!(date!(2019-04-01).midnight().weekday(), Monday);
+        assert_eq!(date!(2019-05-01).midnight().weekday(), Wednesday);
+        assert_eq!(date!(2019-06-01).midnight().weekday(), Saturday);
+        assert_eq!(date!(2019-07-01).midnight().weekday(), Monday);
+        assert_eq!(date!(2019-08-01).midnight().weekday(), Thursday);
+        assert_eq!(date!(2019-09-01).midnight().weekday(), Sunday);
+        assert_eq!(date!(2019-10-01).midnight().weekday(), Tuesday);
+        assert_eq!(date!(2019-11-01).midnight().weekday(), Friday);
+        assert_eq!(date!(2019-12-01).midnight().weekday(), Sunday);
     }
 
     #[test]
     fn hour() {
-        assert_eq!(ymd!(2019, 1, 1).with_time(time!(0:00)).hour(), 0);
-        assert_eq!(ymd!(2019, 1, 1).with_time(time!(23:59:59)).hour(), 23);
+        assert_eq!(date!(2019-01-01).with_time(time!(0:00)).hour(), 0);
+        assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).hour(), 23);
     }
 
     #[test]
     fn minute() {
-        assert_eq!(ymd!(2019, 1, 1).with_time(time!(0:00)).minute(), 0);
-        assert_eq!(ymd!(2019, 1, 1).with_time(time!(23:59:59)).minute(), 59);
+        assert_eq!(date!(2019-01-01).with_time(time!(0:00)).minute(), 0);
+        assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).minute(), 59);
     }
 
     #[test]
     fn second() {
-        assert_eq!(ymd!(2019, 1, 1).with_time(time!(0:00)).second(), 0);
-        assert_eq!(ymd!(2019, 1, 1).with_time(time!(23:59:59)).second(), 59);
+        assert_eq!(date!(2019-01-01).with_time(time!(0:00)).second(), 0);
+        assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).second(), 59);
     }
 
     #[test]
     fn millisecond() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().millisecond(), 0);
+        assert_eq!(date!(2019-01-01).midnight().millisecond(), 0);
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(23:59:59.999))
                 .millisecond(),
             999
@@ -1139,9 +876,9 @@ mod test {
 
     #[test]
     fn microsecond() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().microsecond(), 0);
+        assert_eq!(date!(2019-01-01).midnight().microsecond(), 0);
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(23:59:59.999_999))
                 .microsecond(),
             999_999
@@ -1150,9 +887,9 @@ mod test {
 
     #[test]
     fn nanosecond() {
-        assert_eq!(ymd!(2019, 1, 1).midnight().nanosecond(), 0);
+        assert_eq!(date!(2019-01-01).midnight().nanosecond(), 0);
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(23:59:59.999_999_999))
                 .nanosecond(),
             999_999_999
@@ -1162,7 +899,7 @@ mod test {
     #[test]
     fn using_offset() {
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(UTC))
                 .timestamp(),
@@ -1173,7 +910,7 @@ mod test {
     #[test]
     fn format() {
         assert_eq!(
-            ymd!(2019, 1, 2).midnight().format("%F %r"),
+            date!(2019-01-02).midnight().format("%F %r"),
             "2019-01-02 12:00:00 am"
         );
     }
@@ -1182,43 +919,39 @@ mod test {
     fn parse() {
         assert_eq!(
             PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
-            Ok(ymd!(2019, 1, 2).midnight()),
+            Ok(date!(2019-01-02).midnight()),
         );
         assert_eq!(
             PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
-            Ok(Date::try_from_yo(2019, 2)
-                .unwrap()
-                .with_time(time!(23:59:59)))
+            Ok(date!(2019-002).with_time(time!(23:59:59)))
         );
         assert_eq!(
             PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
-            Ok(Date::try_from_iso_ywd(2019, 1, Weekday::Wednesday)
-                .unwrap()
-                .with_time(time!(12:00))),
+            Ok(date!(2019-W01-3).with_time(time!(12:00))),
         );
     }
 
     #[test]
     fn add_duration() {
         assert_eq!(
-            ymd!(2019, 1, 1).midnight() + 5.days(),
-            ymd!(2019, 1, 6).midnight(),
+            date!(2019-01-01).midnight() + 5.days(),
+            date!(2019-01-06).midnight(),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).midnight() + 1.days(),
-            ymd!(2020, 1, 1).midnight(),
+            date!(2019-12-31).midnight() + 1.days(),
+            date!(2020-01-01).midnight(),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).with_time(time!(23:59:59)) + 2.seconds(),
-            ymd!(2020, 1, 1).with_time(time!(0:00:01)),
+            date!(2019-12-31).with_time(time!(23:59:59)) + 2.seconds(),
+            date!(2020-01-01).with_time(time!(0:00:01)),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).with_time(time!(0:00:01)) + (-2).seconds(),
-            ymd!(2019, 12, 31).with_time(time!(23:59:59)),
+            date!(2020-01-01).with_time(time!(0:00:01)) + (-2).seconds(),
+            date!(2019-12-31).with_time(time!(23:59:59)),
         );
         assert_eq!(
-            ymd!(1999, 12, 31).with_time(time!(23:00)) + 1.hours(),
-            ymd!(2000, 1, 1).midnight(),
+            date!(1999-12-31).with_time(time!(23:00)) + 1.hours(),
+            date!(2000-01-01).midnight(),
         );
     }
 
@@ -1226,130 +959,130 @@ mod test {
     #[cfg(feature = "std")]
     fn std_add_duration() {
         assert_eq!(
-            SystemTime::from(ymd!(2019, 1, 1).midnight()) + 5.days(),
-            SystemTime::from(ymd!(2019, 1, 6).midnight()),
+            SystemTime::from(date!(2019-01-01).midnight()) + 5.days(),
+            SystemTime::from(date!(2019-01-06).midnight()),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2019, 12, 31).midnight()) + 1.days(),
-            SystemTime::from(ymd!(2020, 1, 1).midnight()),
+            SystemTime::from(date!(2019-12-31).midnight()) + 1.days(),
+            SystemTime::from(date!(2020-01-01).midnight()),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2019, 12, 31).with_time(time!(23:59:59))) + 2.seconds(),
-            SystemTime::from(ymd!(2020, 1, 1).with_time(time!(0:00:01))),
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))) + 2.seconds(),
+            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2020, 1, 1).with_time(time!(0:00:01))) + (-2).seconds(),
-            SystemTime::from(ymd!(2019, 12, 31).with_time(time!(23:59:59))),
+            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))) + (-2).seconds(),
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))),
         );
     }
 
     #[test]
     fn add_std_duration() {
         assert_eq!(
-            ymd!(2019, 1, 1).midnight() + 5.std_days(),
-            ymd!(2019, 1, 6).midnight(),
+            date!(2019-01-01).midnight() + 5.std_days(),
+            date!(2019-01-06).midnight(),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).midnight() + 1.std_days(),
-            ymd!(2020, 1, 1).midnight(),
+            date!(2019-12-31).midnight() + 1.std_days(),
+            date!(2020-01-01).midnight(),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).with_time(time!(23:59:59)) + 2.std_seconds(),
-            ymd!(2020, 1, 1).with_time(time!(0:00:01)),
+            date!(2019-12-31).with_time(time!(23:59:59)) + 2.std_seconds(),
+            date!(2020-01-01).with_time(time!(0:00:01)),
         );
     }
 
     #[test]
     fn add_assign_duration() {
-        let mut ny19 = ymd!(2019, 1, 1).midnight();
+        let mut ny19 = date!(2019-01-01).midnight();
         ny19 += 5.days();
-        assert_eq!(ny19, ymd!(2019, 1, 6).midnight());
+        assert_eq!(ny19, date!(2019-01-06).midnight());
 
-        let mut nye20 = ymd!(2019, 12, 31).midnight();
+        let mut nye20 = date!(2019-12-31).midnight();
         nye20 += 1.days();
-        assert_eq!(nye20, ymd!(2020, 1, 1).midnight());
+        assert_eq!(nye20, date!(2020-01-01).midnight());
 
-        let mut nye20t = ymd!(2019, 12, 31).with_time(time!(23:59:59));
+        let mut nye20t = date!(2019-12-31).with_time(time!(23:59:59));
         nye20t += 2.seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).with_time(time!(0:00:01)));
+        assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
 
-        let mut ny20t = ymd!(2020, 1, 1).with_time(time!(0:00:01));
+        let mut ny20t = date!(2020-01-01).with_time(time!(0:00:01));
         ny20t += (-2).seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).with_time(time!(23:59:59)));
+        assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
     }
 
     #[test]
     fn add_assign_std_duration() {
-        let mut ny19 = ymd!(2019, 1, 1).midnight();
+        let mut ny19 = date!(2019-01-01).midnight();
         ny19 += 5.std_days();
-        assert_eq!(ny19, ymd!(2019, 1, 6).midnight());
+        assert_eq!(ny19, date!(2019-01-06).midnight());
 
-        let mut nye20 = ymd!(2019, 12, 31).midnight();
+        let mut nye20 = date!(2019-12-31).midnight();
         nye20 += 1.std_days();
-        assert_eq!(nye20, ymd!(2020, 1, 1).midnight());
+        assert_eq!(nye20, date!(2020-01-01).midnight());
 
-        let mut nye20t = ymd!(2019, 12, 31).with_time(time!(23:59:59));
+        let mut nye20t = date!(2019-12-31).with_time(time!(23:59:59));
         nye20t += 2.std_seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).with_time(time!(0:00:01)));
+        assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
     }
 
     #[test]
     #[cfg(feature = "std")]
     fn std_add_assign_duration() {
-        let mut ny19 = SystemTime::from(ymd!(2019, 1, 1).midnight());
+        let mut ny19 = SystemTime::from(date!(2019-01-01).midnight());
         ny19 += 5.days();
-        assert_eq!(ny19, ymd!(2019, 1, 6).midnight());
+        assert_eq!(ny19, date!(2019-01-06).midnight());
 
-        let mut nye20 = SystemTime::from(ymd!(2019, 12, 31).midnight());
+        let mut nye20 = SystemTime::from(date!(2019-12-31).midnight());
         nye20 += 1.days();
-        assert_eq!(nye20, ymd!(2020, 1, 1).midnight());
+        assert_eq!(nye20, date!(2020-01-01).midnight());
 
-        let mut nye20t = SystemTime::from(ymd!(2019, 12, 31).with_time(time!(23:59:59)));
+        let mut nye20t = SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)));
         nye20t += 2.seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).with_time(time!(0:00:01)));
+        assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
 
-        let mut ny20t = SystemTime::from(ymd!(2020, 1, 1).with_time(time!(0:00:01)));
+        let mut ny20t = SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)));
         ny20t += (-2).seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).with_time(time!(23:59:59)));
+        assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
     }
 
     #[test]
     fn sub_duration() {
         assert_eq!(
-            ymd!(2019, 1, 6).midnight() - 5.days(),
-            ymd!(2019, 1, 1).midnight(),
+            date!(2019-01-06).midnight() - 5.days(),
+            date!(2019-01-01).midnight(),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).midnight() - 1.days(),
-            ymd!(2019, 12, 31).midnight(),
+            date!(2020-01-01).midnight() - 1.days(),
+            date!(2019-12-31).midnight(),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).with_time(time!(0:00:01)) - 2.seconds(),
-            ymd!(2019, 12, 31).with_time(time!(23:59:59)),
+            date!(2020-01-01).with_time(time!(0:00:01)) - 2.seconds(),
+            date!(2019-12-31).with_time(time!(23:59:59)),
         );
         assert_eq!(
-            ymd!(2019, 12, 31).with_time(time!(23:59:59)) - (-2).seconds(),
-            ymd!(2020, 1, 1).with_time(time!(0:00:01)),
+            date!(2019-12-31).with_time(time!(23:59:59)) - (-2).seconds(),
+            date!(2020-01-01).with_time(time!(0:00:01)),
         );
         assert_eq!(
-            ymd!(1999, 12, 31).with_time(time!(23:00)) - (-1).hours(),
-            ymd!(2000, 1, 1).midnight(),
+            date!(1999-12-31).with_time(time!(23:00)) - (-1).hours(),
+            date!(2000-01-01).midnight(),
         );
     }
 
     #[test]
     fn sub_std_duration() {
         assert_eq!(
-            ymd!(2019, 1, 6).midnight() - 5.std_days(),
-            ymd!(2019, 1, 1).midnight(),
+            date!(2019-01-06).midnight() - 5.std_days(),
+            date!(2019-01-01).midnight(),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).midnight() - 1.std_days(),
-            ymd!(2019, 12, 31).midnight(),
+            date!(2020-01-01).midnight() - 1.std_days(),
+            date!(2019-12-31).midnight(),
         );
         assert_eq!(
-            ymd!(2020, 1, 1).with_time(time!(0:00:01)) - 2.std_seconds(),
-            ymd!(2019, 12, 31).with_time(time!(23:59:59)),
+            date!(2020-01-01).with_time(time!(0:00:01)) - 2.std_seconds(),
+            date!(2019-12-31).with_time(time!(23:59:59)),
         );
     }
 
@@ -1357,93 +1090,93 @@ mod test {
     #[cfg(feature = "std")]
     fn std_sub_duration() {
         assert_eq!(
-            SystemTime::from(ymd!(2019, 1, 6).midnight()) - 5.days(),
-            SystemTime::from(ymd!(2019, 1, 1).midnight()),
+            SystemTime::from(date!(2019-01-06).midnight()) - 5.days(),
+            SystemTime::from(date!(2019-01-01).midnight()),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2020, 1, 1).midnight()) - 1.days(),
-            SystemTime::from(ymd!(2019, 12, 31).midnight()),
+            SystemTime::from(date!(2020-01-01).midnight()) - 1.days(),
+            SystemTime::from(date!(2019-12-31).midnight()),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2020, 1, 1).with_time(time!(0:00:01))) - 2.seconds(),
-            SystemTime::from(ymd!(2019, 12, 31).with_time(time!(23:59:59))),
+            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))) - 2.seconds(),
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))),
         );
         assert_eq!(
-            SystemTime::from(ymd!(2019, 12, 31).with_time(time!(23:59:59))) - (-2).seconds(),
-            SystemTime::from(ymd!(2020, 1, 1).with_time(time!(0:00:01))),
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))) - (-2).seconds(),
+            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))),
         );
     }
 
     #[test]
     fn sub_assign_duration() {
-        let mut ny19 = ymd!(2019, 1, 6).midnight();
+        let mut ny19 = date!(2019-01-06).midnight();
         ny19 -= 5.days();
-        assert_eq!(ny19, ymd!(2019, 1, 1).midnight());
+        assert_eq!(ny19, date!(2019-01-01).midnight());
 
-        let mut ny20 = ymd!(2020, 1, 1).midnight();
+        let mut ny20 = date!(2020-01-01).midnight();
         ny20 -= 1.days();
-        assert_eq!(ny20, ymd!(2019, 12, 31).midnight());
+        assert_eq!(ny20, date!(2019-12-31).midnight());
 
-        let mut ny20t = ymd!(2020, 1, 1).with_time(time!(0:00:01));
+        let mut ny20t = date!(2020-01-01).with_time(time!(0:00:01));
         ny20t -= 2.seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).with_time(time!(23:59:59)));
+        assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
 
-        let mut nye20t = ymd!(2019, 12, 31).with_time(time!(23:59:59));
+        let mut nye20t = date!(2019-12-31).with_time(time!(23:59:59));
         nye20t -= (-2).seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).with_time(time!(0:00:01)));
+        assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
     }
 
     #[test]
     fn sub_assign_std_duration() {
-        let mut ny19 = ymd!(2019, 1, 6).midnight();
+        let mut ny19 = date!(2019-01-06).midnight();
         ny19 -= 5.std_days();
-        assert_eq!(ny19, ymd!(2019, 1, 1).midnight());
+        assert_eq!(ny19, date!(2019-01-01).midnight());
 
-        let mut ny20 = ymd!(2020, 1, 1).midnight();
+        let mut ny20 = date!(2020-01-01).midnight();
         ny20 -= 1.std_days();
-        assert_eq!(ny20, ymd!(2019, 12, 31).midnight());
+        assert_eq!(ny20, date!(2019-12-31).midnight());
 
-        let mut ny20t = ymd!(2020, 1, 1).with_time(time!(0:00:01));
+        let mut ny20t = date!(2020-01-01).with_time(time!(0:00:01));
         ny20t -= 2.std_seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).with_time(time!(23:59:59)));
+        assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
     }
 
     #[test]
     #[cfg(feature = "std")]
     fn std_sub_assign_duration() {
-        let mut ny19 = SystemTime::from(ymd!(2019, 1, 6).midnight());
+        let mut ny19 = SystemTime::from(date!(2019-01-06).midnight());
         ny19 -= 5.days();
-        assert_eq!(ny19, ymd!(2019, 1, 1).midnight());
+        assert_eq!(ny19, date!(2019-01-01).midnight());
 
-        let mut ny20 = SystemTime::from(ymd!(2020, 1, 1).midnight());
+        let mut ny20 = SystemTime::from(date!(2020-01-01).midnight());
         ny20 -= 1.days();
-        assert_eq!(ny20, ymd!(2019, 12, 31).midnight());
+        assert_eq!(ny20, date!(2019-12-31).midnight());
 
-        let mut ny20t = SystemTime::from(ymd!(2020, 1, 1).with_time(time!(0:00:01)));
+        let mut ny20t = SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)));
         ny20t -= 2.seconds();
-        assert_eq!(ny20t, ymd!(2019, 12, 31).with_time(time!(23:59:59)));
+        assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
 
-        let mut nye20t = SystemTime::from(ymd!(2019, 12, 31).with_time(time!(23:59:59)));
+        let mut nye20t = SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)));
         nye20t -= (-2).seconds();
-        assert_eq!(nye20t, ymd!(2020, 1, 1).with_time(time!(0:00:01)));
+        assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
     }
 
     #[test]
     fn sub_datetime() {
         assert_eq!(
-            ymd!(2019, 1, 2).midnight() - ymd!(2019, 1, 1).midnight(),
+            date!(2019-01-02).midnight() - date!(2019-01-01).midnight(),
             1.days()
         );
         assert_eq!(
-            ymd!(2019, 1, 1).midnight() - ymd!(2019, 1, 2).midnight(),
+            date!(2019-01-01).midnight() - date!(2019-01-02).midnight(),
             (-1).days()
         );
         assert_eq!(
-            ymd!(2020, 1, 1).midnight() - ymd!(2019, 12, 31).midnight(),
+            date!(2020-01-01).midnight() - date!(2019-12-31).midnight(),
             1.days()
         );
         assert_eq!(
-            ymd!(2019, 12, 31).midnight() - ymd!(2020, 1, 1).midnight(),
+            date!(2019-12-31).midnight() - date!(2020-01-01).midnight(),
             (-1).days()
         );
     }
@@ -1452,19 +1185,19 @@ mod test {
     #[cfg(feature = "std")]
     fn std_sub_datetime() {
         assert_eq!(
-            SystemTime::from(ymd!(2019, 1, 2).midnight()) - ymd!(2019, 1, 1).midnight(),
+            SystemTime::from(date!(2019-01-02).midnight()) - date!(2019-01-01).midnight(),
             1.days()
         );
         assert_eq!(
-            SystemTime::from(ymd!(2019, 1, 1).midnight()) - ymd!(2019, 1, 2).midnight(),
+            SystemTime::from(date!(2019-01-01).midnight()) - date!(2019-01-02).midnight(),
             (-1).days()
         );
         assert_eq!(
-            SystemTime::from(ymd!(2020, 1, 1).midnight()) - ymd!(2019, 12, 31).midnight(),
+            SystemTime::from(date!(2020-01-01).midnight()) - date!(2019-12-31).midnight(),
             1.days()
         );
         assert_eq!(
-            SystemTime::from(ymd!(2019, 12, 31).midnight()) - ymd!(2020, 1, 1).midnight(),
+            SystemTime::from(date!(2019-12-31).midnight()) - date!(2020-01-01).midnight(),
             (-1).days()
         );
     }
@@ -1473,19 +1206,19 @@ mod test {
     #[cfg(feature = "std")]
     fn sub_std() {
         assert_eq!(
-            ymd!(2019, 1, 2).midnight() - SystemTime::from(ymd!(2019, 1, 1).midnight()),
+            date!(2019-01-02).midnight() - SystemTime::from(date!(2019-01-01).midnight()),
             1.days()
         );
         assert_eq!(
-            ymd!(2019, 1, 1).midnight() - SystemTime::from(ymd!(2019, 1, 2).midnight()),
+            date!(2019-01-01).midnight() - SystemTime::from(date!(2019-01-02).midnight()),
             (-1).days()
         );
         assert_eq!(
-            ymd!(2020, 1, 1).midnight() - SystemTime::from(ymd!(2019, 12, 31).midnight()),
+            date!(2020-01-01).midnight() - SystemTime::from(date!(2019-12-31).midnight()),
             1.days()
         );
         assert_eq!(
-            ymd!(2019, 12, 31).midnight() - SystemTime::from(ymd!(2020, 1, 1).midnight()),
+            date!(2019-12-31).midnight() - SystemTime::from(date!(2020-01-01).midnight()),
             (-1).days()
         );
     }
@@ -1494,93 +1227,93 @@ mod test {
     fn ord() {
         use Ordering::*;
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).midnight()),
+                .partial_cmp(&date!(2019-01-01).midnight()),
             Some(Equal)
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
-                .partial_cmp(&ymd!(2020, 1, 1).midnight()),
+                .partial_cmp(&date!(2020-01-01).midnight()),
             Some(Less)
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 2, 1).midnight()),
+                .partial_cmp(&date!(2019-02-01).midnight()),
             Some(Less)
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 2).midnight()),
+                .partial_cmp(&date!(2019-01-02).midnight()),
             Some(Less)
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).with_time(time!(1:00))),
+                .partial_cmp(&date!(2019-01-01).with_time(time!(1:00))),
             Some(Less)
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).with_time(time!(0:01))),
+                .partial_cmp(&date!(2019-01-01).with_time(time!(0:01))),
             Some(Less)
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).with_time(time!(0:00:01))),
+                .partial_cmp(&date!(2019-01-01).with_time(time!(0:00:01))),
             Some(Less)
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).with_time(time!(0:00:00.000_000_001))),
+                .partial_cmp(&date!(2019-01-01).with_time(time!(0:00:00.000_000_001))),
             Some(Less)
         );
         assert_eq!(
-            ymd!(2020, 1, 1)
+            date!(2020-01-01)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).midnight()),
+                .partial_cmp(&date!(2019-01-01).midnight()),
             Some(Greater)
         );
         assert_eq!(
-            ymd!(2019, 2, 1)
+            date!(2019-02-01)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).midnight()),
+                .partial_cmp(&date!(2019-01-01).midnight()),
             Some(Greater)
         );
         assert_eq!(
-            ymd!(2019, 1, 2)
+            date!(2019-01-02)
                 .midnight()
-                .partial_cmp(&ymd!(2019, 1, 1).midnight()),
+                .partial_cmp(&date!(2019-01-01).midnight()),
             Some(Greater)
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(1:00))
-                .partial_cmp(&ymd!(2019, 1, 1).midnight()),
+                .partial_cmp(&date!(2019-01-01).midnight()),
             Some(Greater)
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(0:01))
-                .partial_cmp(&ymd!(2019, 1, 1).midnight()),
+                .partial_cmp(&date!(2019-01-01).midnight()),
             Some(Greater)
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(0:00:01))
-                .partial_cmp(&ymd!(2019, 1, 1).midnight()),
+                .partial_cmp(&date!(2019-01-01).midnight()),
             Some(Greater)
         );
         assert_eq!(
-            ymd!(2019, 1, 1)
+            date!(2019-01-01)
                 .with_time(time!(0:00:00.000_000_001))
-                .partial_cmp(&ymd!(2019, 1, 1).midnight()),
+                .partial_cmp(&date!(2019-01-01).midnight()),
             Some(Greater)
         );
     }
@@ -1606,46 +1339,46 @@ mod test {
     #[cfg(feature = "std")]
     fn ord_std() {
         assert_eq!(
-            ymd!(2019, 1, 1).midnight(),
-            SystemTime::from(ymd!(2019, 1, 1).midnight())
+            date!(2019-01-01).midnight(),
+            SystemTime::from(date!(2019-01-01).midnight())
         );
-        assert!(ymd!(2019, 1, 1).midnight() < SystemTime::from(ymd!(2020, 1, 1).midnight()));
-        assert!(ymd!(2019, 1, 1).midnight() < SystemTime::from(ymd!(2019, 2, 1).midnight()));
-        assert!(ymd!(2019, 1, 1).midnight() < SystemTime::from(ymd!(2019, 1, 2).midnight()));
+        assert!(date!(2019-01-01).midnight() < SystemTime::from(date!(2020-01-01).midnight()));
+        assert!(date!(2019-01-01).midnight() < SystemTime::from(date!(2019-02-01).midnight()));
+        assert!(date!(2019-01-01).midnight() < SystemTime::from(date!(2019-01-02).midnight()));
         assert!(
-            ymd!(2019, 1, 1).midnight()
-                < SystemTime::from(ymd!(2019, 1, 1).with_time(time!(1:00:00)))
-        );
-        assert!(
-            ymd!(2019, 1, 1).midnight()
-                < SystemTime::from(ymd!(2019, 1, 1).with_time(time!(0:01:00)))
+            date!(2019-01-01).midnight()
+                < SystemTime::from(date!(2019-01-01).with_time(time!(1:00:00)))
         );
         assert!(
-            ymd!(2019, 1, 1).midnight()
-                < SystemTime::from(ymd!(2019, 1, 1).with_time(time!(0:00:01)))
+            date!(2019-01-01).midnight()
+                < SystemTime::from(date!(2019-01-01).with_time(time!(0:01:00)))
         );
         assert!(
-            ymd!(2019, 1, 1).midnight()
-                < SystemTime::from(ymd!(2019, 1, 1).with_time(time!(0:00:00.001)))
-        );
-        assert!(ymd!(2020, 1, 1).midnight() > SystemTime::from(ymd!(2019, 1, 1).midnight()));
-        assert!(ymd!(2019, 2, 1).midnight() > SystemTime::from(ymd!(2019, 1, 1).midnight()));
-        assert!(ymd!(2019, 1, 2).midnight() > SystemTime::from(ymd!(2019, 1, 1).midnight()));
-        assert!(
-            ymd!(2019, 1, 1).with_time(time!(1:00:00))
-                > SystemTime::from(ymd!(2019, 1, 1).midnight())
+            date!(2019-01-01).midnight()
+                < SystemTime::from(date!(2019-01-01).with_time(time!(0:00:01)))
         );
         assert!(
-            ymd!(2019, 1, 1).with_time(time!(0:01:00))
-                > SystemTime::from(ymd!(2019, 1, 1).midnight())
+            date!(2019-01-01).midnight()
+                < SystemTime::from(date!(2019-01-01).with_time(time!(0:00:00.001)))
+        );
+        assert!(date!(2020-01-01).midnight() > SystemTime::from(date!(2019-01-01).midnight()));
+        assert!(date!(2019-02-01).midnight() > SystemTime::from(date!(2019-01-01).midnight()));
+        assert!(date!(2019-01-02).midnight() > SystemTime::from(date!(2019-01-01).midnight()));
+        assert!(
+            date!(2019-01-01).with_time(time!(1:00:00))
+                > SystemTime::from(date!(2019-01-01).midnight())
         );
         assert!(
-            ymd!(2019, 1, 1).with_time(time!(0:00:01))
-                > SystemTime::from(ymd!(2019, 1, 1).midnight())
+            date!(2019-01-01).with_time(time!(0:01:00))
+                > SystemTime::from(date!(2019-01-01).midnight())
         );
         assert!(
-            ymd!(2019, 1, 1).with_time(time!(0:00:00.000_000_001))
-                > SystemTime::from(ymd!(2019, 1, 1).midnight())
+            date!(2019-01-01).with_time(time!(0:00:01))
+                > SystemTime::from(date!(2019-01-01).midnight())
+        );
+        assert!(
+            date!(2019-01-01).with_time(time!(0:00:00.000_000_001))
+                > SystemTime::from(date!(2019-01-01).midnight())
         );
     }
 
@@ -1653,46 +1386,46 @@ mod test {
     #[cfg(feature = "std")]
     fn std_ord() {
         assert_eq!(
-            SystemTime::from(ymd!(2019, 1, 1).midnight()),
-            ymd!(2019, 1, 1).midnight()
+            SystemTime::from(date!(2019-01-01).midnight()),
+            date!(2019-01-01).midnight()
         );
-        assert!(SystemTime::from(ymd!(2019, 1, 1).midnight()) < ymd!(2020, 1, 1).midnight());
-        assert!(SystemTime::from(ymd!(2019, 1, 1).midnight()) < ymd!(2019, 2, 1).midnight());
-        assert!(SystemTime::from(ymd!(2019, 1, 1).midnight()) < ymd!(2019, 1, 2).midnight());
+        assert!(SystemTime::from(date!(2019-01-01).midnight()) < date!(2020-01-01).midnight());
+        assert!(SystemTime::from(date!(2019-01-01).midnight()) < date!(2019-02-01).midnight());
+        assert!(SystemTime::from(date!(2019-01-01).midnight()) < date!(2019-01-02).midnight());
         assert!(
-            SystemTime::from(ymd!(2019, 1, 1).midnight())
-                < ymd!(2019, 1, 1).with_time(time!(1:00:00))
-        );
-        assert!(
-            SystemTime::from(ymd!(2019, 1, 1).midnight())
-                < ymd!(2019, 1, 1).with_time(time!(0:01:00))
+            SystemTime::from(date!(2019-01-01).midnight())
+                < date!(2019-01-01).with_time(time!(1:00:00))
         );
         assert!(
-            SystemTime::from(ymd!(2019, 1, 1).midnight())
-                < ymd!(2019, 1, 1).with_time(time!(0:00:01))
+            SystemTime::from(date!(2019-01-01).midnight())
+                < date!(2019-01-01).with_time(time!(0:01:00))
         );
         assert!(
-            SystemTime::from(ymd!(2019, 1, 1).midnight())
-                < ymd!(2019, 1, 1).with_time(time!(0:00:00.000_000_001))
-        );
-        assert!(SystemTime::from(ymd!(2020, 1, 1).midnight()) > ymd!(2019, 1, 1).midnight());
-        assert!(SystemTime::from(ymd!(2019, 2, 1).midnight()) > ymd!(2019, 1, 1).midnight());
-        assert!(SystemTime::from(ymd!(2019, 1, 2).midnight()) > ymd!(2019, 1, 1).midnight());
-        assert!(
-            SystemTime::from(ymd!(2019, 1, 1).with_time(time!(1:00:00)))
-                > ymd!(2019, 1, 1).midnight()
+            SystemTime::from(date!(2019-01-01).midnight())
+                < date!(2019-01-01).with_time(time!(0:00:01))
         );
         assert!(
-            SystemTime::from(ymd!(2019, 1, 1).with_time(time!(0:01:00)))
-                > ymd!(2019, 1, 1).midnight()
+            SystemTime::from(date!(2019-01-01).midnight())
+                < date!(2019-01-01).with_time(time!(0:00:00.000_000_001))
+        );
+        assert!(SystemTime::from(date!(2020-01-01).midnight()) > date!(2019-01-01).midnight());
+        assert!(SystemTime::from(date!(2019-02-01).midnight()) > date!(2019-01-01).midnight());
+        assert!(SystemTime::from(date!(2019-01-02).midnight()) > date!(2019-01-01).midnight());
+        assert!(
+            SystemTime::from(date!(2019-01-01).with_time(time!(1:00:00)))
+                > date!(2019-01-01).midnight()
         );
         assert!(
-            SystemTime::from(ymd!(2019, 1, 1).with_time(time!(0:00:01)))
-                > ymd!(2019, 1, 1).midnight()
+            SystemTime::from(date!(2019-01-01).with_time(time!(0:01:00)))
+                > date!(2019-01-01).midnight()
         );
         assert!(
-            SystemTime::from(ymd!(2019, 1, 1).with_time(time!(0:00:00.001)))
-                > ymd!(2019, 1, 1).midnight()
+            SystemTime::from(date!(2019-01-01).with_time(time!(0:00:01)))
+                > date!(2019-01-01).midnight()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-01).with_time(time!(0:00:00.001)))
+                > date!(2019-01-01).midnight()
         );
     }
 

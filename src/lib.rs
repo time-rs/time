@@ -298,6 +298,26 @@ pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStd
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
 pub use sign::Sign;
+/// Construct a [`Date`] with a statically known value.
+///
+/// The resulting expression can be used in `const` or `static` declarations.
+///
+/// Three formats are supported: year-week-weekday, year-ordinal, and
+/// year-month-day.
+///
+/// ```rust
+/// # use time::{Date, date, Weekday::*};
+/// assert_eq!(
+///     date!(2020-W01-3),
+///     Date::try_from_iso_ywd(2020, 1, Wednesday).unwrap()
+/// );
+/// assert_eq!(date!(2020-001), Date::try_from_yo(2020, 1).unwrap());
+/// assert_eq!(
+///     date!(2020-01-01),
+///     Date::try_from_ymd(2020, 1, 1).unwrap()
+/// );
+/// ```
+pub use time_macros::date;
 /// Construct a [`UtcOffset`] with a statically known value.
 ///
 /// The resulting expression can be used in `const` or `static` declarations.
