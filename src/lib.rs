@@ -291,6 +291,7 @@ pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use duration::Duration;
 pub use error::{ComponentRangeError, ConversionRangeError, Error};
 pub(crate) use format::DeferredFormat;
+use format::ParseResult;
 pub use format::{validate_format_string, ParseError};
 #[cfg(feature = "std")]
 pub use instant::Instant;
@@ -420,6 +421,51 @@ mod no_std_prelude {
         string::{String, ToString},
         vec::Vec,
     };
+}
+
+mod private {
+    use super::*;
+
+    macro_rules! parsable {
+        ($($type:ty),* $(,)?) => {
+            $(
+                impl Parsable for $type {
+                    fn parse(s: &str, format: &str) -> ParseResult<Self> {
+                        Self::parse(s, format)
+                    }
+                }
+            )*
+        };
+    }
+
+    pub trait Parsable: Sized {
+        fn parse(s: &str, format: &str) -> ParseResult<Self>;
+    }
+
+    parsable![Time, Date, UtcOffset, PrimitiveDateTime, OffsetDateTime];
+}
+
+/// Parse any parsable type from the time crate.
+///
+/// This is identical to calling `T::parse(s, format)`, but allows the use of
+/// type inference where possible.
+///
+/// ```rust,no_run
+/// use time::Time;
+///
+/// #[derive(Debug)]
+/// struct Foo(Time);
+///
+/// fn main() -> Result<(), time::Error> {
+///     // We don't need to tell the compiler what type we need!
+///     let foo = Foo(time::parse("14:55:02", "%T")?);
+///     println!("{:?}", foo);
+///     Ok(())
+/// }
+/// ```
+#[inline(always)]
+pub fn parse<T: private::Parsable>(s: &str, format: &str) -> ParseResult<T> {
+    private::Parsable::parse(s, format)
 }
 
 // For some back-compatibility, we're also implementing some deprecated types
