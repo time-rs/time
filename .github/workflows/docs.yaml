@@ -21,11 +21,11 @@ jobs:
           toolchain: nightly # rust-lang/rust#43466, rust-lang/rust#43781
           override: true
 
-      - name: Run `cargo doc --features serde,deprecated`
+      - name: Run `cargo doc --features serde,deprecated,panicking-api`
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --features serde,deprecated
+          args: --features serde,deprecated,panicking-api
 
       - name: Build & publish documentation
         uses: JamesIves/github-pages-deploy-action@releases/v2
