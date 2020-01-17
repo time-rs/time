@@ -9,9 +9,9 @@ use super::{
     },
     Padding, ParseError, ParseResult, ParsedItems,
 };
-#[cfg(not(feature = "std"))]
-use crate::no_std_prelude::*;
-use crate::{Date, Sign, Weekday};
+#[cfg(feature = "alloc")]
+use crate::alloc_prelude::*;
+use crate::{shim::*, Date, Sign, Weekday};
 use core::{
     fmt::{self, Formatter},
     num::{NonZeroU16, NonZeroU8},
@@ -141,7 +141,7 @@ pub(crate) fn parse_C(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     items.year = (try_consume_digits::<i32, _>(s, (2 - padding_length)..=(3 - padding_length))
         .ok_or(ParseError::InvalidYear)?
         * 100
-        + items.year.unwrap_or(0).rem_euclid(100))
+        + items.year.unwrap_or(0).rem_euclid_shim(100))
     .into();
 
     Ok(())
@@ -166,7 +166,12 @@ pub(crate) fn parse_d(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 /// Week-based year, last two digits (`00`-`99`)
 #[inline(always)]
 pub(crate) fn fmt_g(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(f, padding(Zero), 2, date.iso_year_week().0.rem_euclid(100))
+    pad!(
+        f,
+        padding(Zero),
+        2,
+        date.iso_year_week().0.rem_euclid_shim(100)
+    )
 }
 
 /// Week-based year, last two digits (`00`-`99`)
@@ -222,10 +227,10 @@ pub(crate) fn fmt_j(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 /// Day of the year, zero-padded to width 3 (`001`-`366`)
 #[inline(always)]
 pub(crate) fn parse_j(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    items.ordinal_day =
-        try_consume_exact_digits::<NonZeroU16>(s, 3, padding.default_to(Padding::Zero))
-            .ok_or(ParseError::InvalidDayOfYear)?
-            .into();
+    items.ordinal_day = NonZeroU16::new(
+        try_consume_exact_digits_in_range(s, 3, 1..=366, padding.default_to(Padding::Zero))
+            .ok_or(ParseError::InvalidDayOfYear)?,
+    );
 
     Ok(())
 }
@@ -239,9 +244,10 @@ pub(crate) fn fmt_m(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 /// Month of the year, zero-padded (`01`-`12`)
 #[inline(always)]
 pub(crate) fn parse_m(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    items.month = try_consume_exact_digits::<NonZeroU8>(s, 2, padding.default_to(Padding::Zero))
-        .ok_or(ParseError::InvalidMonth)?
-        .into();
+    items.month = NonZeroU8::new(
+        try_consume_exact_digits_in_range(s, 2, 1..=12, padding.default_to(Padding::Zero))
+            .ok_or(ParseError::InvalidMonth)?,
+    );
 
     Ok(())
 }
@@ -343,7 +349,7 @@ pub(crate) fn parse_W(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 /// Last two digits of year (`00`-`99`)
 #[inline(always)]
 pub(crate) fn fmt_y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(f, padding(Zero), 2, date.year().rem_euclid(100))
+    pad!(f, padding(Zero), 2, date.year().rem_euclid_shim(100))
 }
 
 /// Last two digits of year (`00`-`99`)

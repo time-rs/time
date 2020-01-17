@@ -1,5 +1,5 @@
-#[cfg(not(feature = "std"))]
-use crate::no_std_prelude::*;
+#[cfg(feature = "alloc")]
+use crate::alloc_prelude::*;
 use crate::{
     format::parse::{parse, ParseResult, ParsedItems},
     offset, Date, DeferredFormat, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday,
@@ -40,8 +40,8 @@ impl OffsetDateTime {
     /// assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
     /// ```
     #[inline(always)]
-    #[cfg(feature = "std")]
-    #[cfg_attr(doc, doc(cfg(feature = "std")))]
+    #[cfg(not(feature = "alloc"))]
+    #[cfg_attr(doc, doc(cfg(not(feature = "alloc"))))]
     pub fn now() -> Self {
         PrimitiveDateTime::now().using_offset(offset!(UTC))
     }
@@ -777,7 +777,7 @@ mod test {
     use crate::{date, prelude::*, time};
 
     #[test]
-    #[cfg(feature = "std")]
+    #[cfg(not(feature = "alloc"))]
     fn now() {
         assert!(OffsetDateTime::now().year() >= 2019);
         assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
@@ -1204,7 +1204,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "std")]
+    #[cfg(not(feature = "alloc"))]
     fn hash() {
         use std::{collections::hash_map::DefaultHasher, hash::Hash};
 

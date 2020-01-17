@@ -1,4 +1,5 @@
 use super::Weekday::{self, *};
+use crate::shim::*;
 
 fn is_leap_year(year: i32) -> bool {
     (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0))
@@ -89,7 +90,7 @@ impl Date {
         match (day as i32 + (13 * (month as i32 + 1)) / 5 + adjusted_year + adjusted_year / 4
             - adjusted_year / 100
             + adjusted_year / 400)
-            .rem_euclid(7)
+            .rem_euclid_shim(7)
         {
             0 => Saturday,
             1 => Sunday,

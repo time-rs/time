@@ -1,22 +1,31 @@
 //! Parsing for various types.
 
 use super::{parse_fmt_string, FormatItem, Padding, Specifier};
-use crate::{UtcOffset, Weekday};
+use crate::{shim::*, ComponentRangeError, UtcOffset, Weekday};
 use core::{
     fmt::{self, Display, Formatter},
     num::{NonZeroU16, NonZeroU8},
     ops::{Bound, RangeBounds},
     str::FromStr,
 };
-#[cfg(feature = "std")]
+#[cfg(not(feature = "alloc"))]
 use std::error::Error;
+
+#[cfg(feature = "alloc")]
+use alloc::boxed::Box;
+#[cfg(not(feature = "alloc"))]
+use std::boxed::Box;
 
 /// Helper type to avoid repeating the error type.
 pub(crate) type ParseResult<T> = Result<T, ParseError>;
 
 /// An error ocurred while parsing.
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[rustversion::attr(since(1.40), non_exhaustive)]
+#[rustversion::attr(
+    before(1.40),
+    doc("This enum is non-exhaustive. Additional variants may be added at any time.")
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ParseError {
     /// The second present was not valid.
     InvalidSecond,
@@ -55,6 +64,15 @@ pub enum ParseError {
     UnexpectedEndOfString,
     /// There was not enough information provided to create the requested type.
     InsufficientInformation,
+    /// A component was out of range.
+    ComponentOutOfRange(Box<ComponentRangeError>),
+}
+
+impl From<ComponentRangeError> for ParseError {
+    #[inline(always)]
+    fn from(error: ComponentRangeError) -> Self {
+        ParseError::ComponentOutOfRange(Box::new(error))
+    }
 }
 
 impl Display for ParseError {
@@ -82,11 +100,12 @@ impl Display for ParseError {
             InsufficientInformation => {
                 f.write_str("insufficient information provided to create the requested type")
             }
+            ComponentOutOfRange(e) => write!(f, "{}", e),
         }
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(not(feature = "alloc"))]
 impl Error for ParseError {}
 
 /// A value representing a time that is either "AM" or "PM".
@@ -252,7 +271,7 @@ pub(crate) fn try_consume_digits_in_range<T: FromStr + PartialOrd>(
     num_digits: impl RangeBounds<usize>,
     range: impl RangeBounds<T>,
 ) -> Option<T> {
-    try_consume_digits(s, num_digits).filter(|value| range.contains(value))
+    try_consume_digits(s, num_digits).filter(|value| range_contains(&range, value))
 }
 
 /// Attempt to consume an exact number of digits.
@@ -291,13 +310,13 @@ pub(crate) fn try_consume_exact_digits<T: FromStr>(
 /// Attempt to consume an exact number of digits. Returns `None` if the value is
 /// not within the allowed range.
 #[inline]
-pub(crate) fn try_consume_exact_digits_in_range<T: FromStr + PartialOrd>(
+pub(crate) fn try_consume_exact_digits_in_range<T: FromStr + PartialOrd, U: RangeBounds<T>>(
     s: &mut &str,
     num_digits: usize,
-    range: impl RangeBounds<T>,
+    range: U,
     padding: Padding,
 ) -> Option<T> {
-    try_consume_exact_digits(s, num_digits, padding).filter(|value| range.contains(value))
+    try_consume_exact_digits(s, num_digits, padding).filter(|value| range_contains(&range, value))
 }
 
 /// Consume all leading padding up to the number of characters.

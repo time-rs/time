@@ -37,8 +37,8 @@ pub(crate) mod parse;
 pub(crate) mod parse_items;
 pub(crate) mod time;
 
-#[cfg(not(feature = "std"))]
-use crate::no_std_prelude::*;
+#[cfg(feature = "alloc")]
+use crate::alloc_prelude::*;
 use crate::{Date, Time, UtcOffset};
 use core::fmt::{self, Display, Formatter};
 #[allow(unreachable_pub)] // rust-lang/rust#64762
@@ -71,7 +71,7 @@ impl Padding {
     #[inline(always)]
     pub(crate) fn default_to(self, value: Self) -> Self {
         match self {
-            Self::Default => value,
+            Padding::Default => value,
             _ => self,
         }
     }

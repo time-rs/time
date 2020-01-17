@@ -32,7 +32,8 @@
     clippy::cast_possible_wrap,
     clippy::cast_lossless,
     clippy::module_name_repetitions,
-    clippy::must_use_candidate
+    clippy::must_use_candidate,
+    clippy::use_self, // Some things aren't allowed in older compilers.
 )]
 
 extern crate proc_macro;
@@ -64,6 +65,7 @@ mod kw {
 mod date;
 mod ext;
 mod offset;
+mod shim;
 mod time;
 mod time_crate;
 

@@ -1,4 +1,6 @@
-#[cfg(feature = "std")]
+#[allow(unused_imports)]
+use crate::shim::*;
+#[cfg(not(feature = "alloc"))]
 use crate::Instant;
 use crate::{
     ConversionRangeError,
@@ -235,7 +237,8 @@ impl Duration {
     /// assert_eq!(Duration::seconds(-1).abs(), Duration::seconds(1));
     /// ```
     #[inline(always)]
-    pub const fn abs(self) -> Self {
+    #[rustversion::attr(since(1.39), const)]
+    pub fn abs(self) -> Self {
         Self {
             seconds: self.seconds.abs(),
             nanoseconds: self.nanoseconds.abs(),
@@ -244,7 +247,7 @@ impl Duration {
 
     /// Convert the existing `Duration` to a `std::time::Duration` and its sign.
     #[inline(always)]
-    #[cfg(feature = "std")]
+    #[cfg(not(feature = "alloc"))]
     pub(crate) fn sign_abs_std(self) -> (Sign, StdDuration) {
         (
             self.sign(),
@@ -746,8 +749,8 @@ impl Duration {
     /// Runs a closure, returning the duration of time it took to run. The
     /// return value of the closure is provided in the second part of the tuple.
     #[inline(always)]
-    #[cfg(feature = "std")]
-    #[cfg_attr(doc, doc(cfg(feature = "std")))]
+    #[cfg(not(feature = "alloc"))]
+    #[cfg_attr(doc, doc(cfg(not(feature = "alloc"))))]
     pub fn time_fn<T>(f: impl FnOnce() -> T) -> (Self, T) {
         let start = Instant::now();
         let return_value = f();
@@ -849,7 +852,7 @@ impl Duration {
     }
 
     #[inline(always)]
-    #[cfg(feature = "std")]
+    #[cfg(not(feature = "alloc"))]
     #[deprecated(since = "0.2.0", note = "Use the `time_fn` function")]
     pub fn span<F: FnOnce()>(f: F) -> Self {
         Self::time_fn(f).0
@@ -885,11 +888,11 @@ impl TryFrom<StdDuration> for Duration {
             original
                 .as_secs()
                 .try_into()
-                .map_err(|_| ConversionRangeError)?,
+                .map_err(|_| ConversionRangeError::new())?,
             original
                 .subsec_nanos()
                 .try_into()
-                .map_err(|_| ConversionRangeError)?,
+                .map_err(|_| ConversionRangeError::new())?,
         ))
     }
 }
@@ -903,11 +906,11 @@ impl TryFrom<Duration> for StdDuration {
             duration
                 .seconds
                 .try_into()
-                .map_err(|_| ConversionRangeError)?,
+                .map_err(|_| ConversionRangeError::new())?,
             duration
                 .nanoseconds
                 .try_into()
-                .map_err(|_| ConversionRangeError)?,
+                .map_err(|_| ConversionRangeError::new())?,
         ))
     }
 }
@@ -1556,7 +1559,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "std")]
+    #[cfg(not(feature = "alloc"))]
     fn time_fn() {
         let (time, value) = Duration::time_fn(|| {
             std::thread::sleep(100.std_milliseconds());
@@ -1699,7 +1702,7 @@ mod test {
         duration -= 500.milliseconds();
         assert_eq!(duration, 1.seconds());
 
-        #[cfg(feature = "std")]
+        #[cfg(not(feature = "alloc"))]
         {
             let mut duration = 1.std_seconds();
             assert_panics!(duration -= 2.seconds());

@@ -11,18 +11,19 @@ license = "MIT OR Apache-2.0"
 # TODO Add GitHub Actions badge once rust-lang/crates.io#1838 is merged.
 description = "Date and time library. Fully interoperable with the standard library. Mostly compatible with #![no_std]."
 
+[package.metadata.docs.rs]
+all-features = true
+
 [features]
-default = ["std", "deprecated"]
+default = ["deprecated"]
 deprecated = []
-std = []
+alloc = ["serde/alloc"]
 panicking-api = []
 
 [dependencies]
-serde = { version = "1", optional = true, default-features = false, features = ["derive", "alloc"] }
+serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 time-macros = { version = "0.1", path = "time-macros" }
-
-[package.metadata.docs.rs]
-all-features = true
+rustversion = "1"
 
 [workspace]
 members = [

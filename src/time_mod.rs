@@ -1,9 +1,10 @@
-#[cfg(not(feature = "std"))]
-use crate::no_std_prelude::*;
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
+use crate::alloc_prelude::*;
+#[cfg(not(feature = "alloc"))]
 use crate::PrimitiveDateTime;
 use crate::{
     format::{parse, parse::AmPm, ParseError, ParseResult, ParsedItems},
+    shim::*,
     ComponentRangeError, DeferredFormat, Duration,
 };
 use core::{
@@ -401,8 +402,8 @@ impl Time {
     /// println!("{:?}", Time::now());
     /// ```
     #[inline(always)]
-    #[cfg(feature = "std")]
-    #[cfg_attr(doc, doc(cfg(feature = "std")))]
+    #[cfg(not(feature = "alloc"))]
+    #[cfg_attr(doc, doc(cfg(not(feature = "alloc"))))]
     pub fn now() -> Self {
         PrimitiveDateTime::now().time()
     }
@@ -588,25 +589,21 @@ impl Time {
         }
 
         match items {
-            items!(hour_24, minute, second) => Ok(Self::try_from_hms(hour_24, minute, second)
-                .expect("components are checked when parsing")),
+            items!(hour_24, minute, second) => {
+                Self::try_from_hms(hour_24, minute, second).map_err(Into::into)
+            }
             items!(hour_12, minute, second, am_pm) => {
-                Ok(
-                    Self::try_from_hms(hour_12_to_24(hour_12, am_pm), minute, second)
-                        .expect("components are checked when parsing"),
-                )
+                Self::try_from_hms(hour_12_to_24(hour_12, am_pm), minute, second)
+                    .map_err(Into::into)
             }
-            items!(hour_24, minute) => Ok(Self::try_from_hms(hour_24, minute, 0)
-                .expect("components are checked when parsing")),
+            items!(hour_24, minute) => Self::try_from_hms(hour_24, minute, 0).map_err(Into::into),
             items!(hour_12, minute, am_pm) => {
-                Ok(Self::try_from_hms(hour_12_to_24(hour_12, am_pm), minute, 0)
-                    .expect("components are checked when parsing"))
+                Self::try_from_hms(hour_12_to_24(hour_12, am_pm), minute, 0).map_err(Into::into)
             }
-            items!(hour_24) => {
-                Ok(Self::try_from_hms(hour_24, 0, 0).expect("components are checked when parsing"))
+            items!(hour_24) => Self::try_from_hms(hour_24, 0, 0).map_err(Into::into),
+            items!(hour_12, am_pm) => {
+                Self::try_from_hms(hour_12_to_24(hour_12, am_pm), 0, 0).map_err(Into::into)
             }
-            items!(hour_12, am_pm) => Ok(Self::try_from_hms(hour_12_to_24(hour_12, am_pm), 0, 0)
-                .expect("components are checked when parsing")),
             _ => Err(ParseError::InsufficientInformation),
         }
     }
@@ -636,7 +633,7 @@ impl Add<Duration> for Time {
             self.nanoseconds_since_midnight()
                 + duration
                     .whole_nanoseconds()
-                    .rem_euclid(NANOS_PER_DAY as i128) as u64,
+                    .rem_euclid_shim(NANOS_PER_DAY as i128) as u64,
         )
     }
 }
@@ -890,7 +887,7 @@ mod test {
         assert_eq!(time.second(), 3);
         assert_eq!(time.nanosecond(), 0);
 
-        #[cfg(feature = "std")]
+        #[cfg(not(feature = "alloc"))]
         {
             assert_panics!(Time::from_hms(24, 0, 0), "24 isn't a valid hour");
             assert_panics!(Time::from_hms(0, 60, 0), "60 isn't a valid minute");
@@ -922,7 +919,7 @@ mod test {
         assert_eq!(time.millisecond(), 4);
         assert_eq!(time.nanosecond(), 4_000_000);
 
-        #[cfg(feature = "std")]
+        #[cfg(not(feature = "alloc"))]
         {
             assert_panics!(Time::from_hms_milli(24, 0, 0, 0), "24 isn't a valid hour");
             assert_panics!(Time::from_hms_milli(0, 60, 0, 0), "60 isn't a valid minute");
@@ -960,7 +957,7 @@ mod test {
         assert_eq!(time.microsecond(), 4);
         assert_eq!(time.nanosecond(), 4_000);
 
-        #[cfg(feature = "std")]
+        #[cfg(not(feature = "alloc"))]
         {
             assert_panics!(Time::from_hms_micro(24, 0, 0, 0), "24 isn't a valid hour");
             assert_panics!(Time::from_hms_micro(0, 60, 0, 0), "60 isn't a valid minute");
@@ -997,7 +994,7 @@ mod test {
         assert_eq!(time.second(), 3);
         assert_eq!(time.nanosecond(), 4);
 
-        #[cfg(feature = "std")]
+        #[cfg(not(feature = "alloc"))]
         {
             assert_panics!(Time::from_hms_nano(24, 0, 0, 0), "24 isn't a valid hour.");
             assert_panics!(Time::from_hms_nano(0, 60, 0, 0), "60 isn't a valid minute.");

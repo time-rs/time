@@ -17,16 +17,16 @@ impl Parse for AmPm {
         use crate::kw::{am, pm, AM, PM};
         if input.peek(am) {
             input.parse::<am>()?;
-            Ok(Self::Am)
+            Ok(AmPm::Am)
         } else if input.peek(AM) {
             input.parse::<AM>()?;
-            Ok(Self::Am)
+            Ok(AmPm::Am)
         } else if input.peek(pm) {
             input.parse::<pm>()?;
-            Ok(Self::Pm)
+            Ok(AmPm::Pm)
         } else if input.peek(PM) {
             input.parse::<PM>()?;
-            Ok(Self::Pm)
+            Ok(AmPm::Pm)
         } else {
             error!("expected am or pm")
         }

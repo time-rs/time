@@ -1,7 +1,9 @@
+#[cfg(feature = "alloc")]
+use crate::alloc_prelude::*;
 use crate::format::ParseError;
-#[cfg(not(feature = "std"))]
-use crate::no_std_prelude::*;
 use core::fmt;
+#[cfg(not(feature = "alloc"))]
+use std::boxed::Box;
 
 /// A unified error type for anything returned by a method in the time crate.
 ///
@@ -10,7 +12,11 @@ use core::fmt;
 // Boxing the `ComponentRangeError` reduces the size of `Error` from 72 bytes to
 // 16.
 #[allow(clippy::missing_docs_in_private_items)] // variants only
-#[non_exhaustive]
+#[rustversion::attr(since(1.40), non_exhaustive)]
+#[rustversion::attr(
+    before(1.40),
+    doc("This enum is non-exhaustive. Additional variants may be added at any time.")
+)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     ConversionRange(ConversionRangeError),
@@ -22,21 +28,36 @@ impl fmt::Display for Error {
     #[inline(always)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::ConversionRange(e) => e.fmt(f),
-            Self::ComponentRange(e) => e.fmt(f),
-            Self::Parse(e) => e.fmt(f),
+            Error::ConversionRange(e) => e.fmt(f),
+            Error::ComponentRange(e) => e.fmt(f),
+            Error::Parse(e) => e.fmt(f),
         }
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(not(feature = "alloc"))]
 impl std::error::Error for Error {}
 
 /// An error type indicating that a conversion failed because the target type
 /// could not store the initial value.
-#[non_exhaustive]
+#[allow(clippy::missing_docs_in_private_items)]
+#[rustversion::attr(since(1.40), non_exhaustive)]
+#[rustversion::attr(
+    before(1.40),
+    doc("This struct is non-exhaustive. Additional variants may be added at any time.")
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ConversionRangeError;
+pub struct ConversionRangeError {
+    #[allow(clippy::missing_docs_in_private_items)]
+    nonexhaustive: (),
+}
+
+impl ConversionRangeError {
+    #[allow(clippy::missing_docs_in_private_items)]
+    pub(crate) const fn new() -> Self {
+        Self { nonexhaustive: () }
+    }
+}
 
 impl fmt::Display for ConversionRangeError {
     #[inline(always)]
@@ -45,13 +66,13 @@ impl fmt::Display for ConversionRangeError {
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(not(feature = "alloc"))]
 impl std::error::Error for ConversionRangeError {}
 
 impl From<ConversionRangeError> for Error {
     #[inline(always)]
     fn from(original: ConversionRangeError) -> Self {
-        Self::ConversionRange(original)
+        Error::ConversionRange(original)
     }
 }
 
@@ -59,9 +80,12 @@ impl From<ConversionRangeError> for Error {
 /// range, causing a failure.
 // i64 is the narrowest type fitting all use cases. This eliminates the need
 // for a type parameter.
-#[allow(missing_copy_implementations)] // Non-copy fields may be added.
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[rustversion::attr(since(1.40), non_exhaustive)]
+#[rustversion::attr(
+    before(1.40),
+    doc("This struct is non-exhaustive. Additional fields may be added at any time.")
+)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ComponentRangeError {
     /// Name of the component.
     pub(crate) name: &'static str,
@@ -99,16 +123,16 @@ impl fmt::Display for ComponentRangeError {
 impl From<ComponentRangeError> for Error {
     #[inline(always)]
     fn from(original: ComponentRangeError) -> Self {
-        Self::ComponentRange(Box::new(original))
+        Error::ComponentRange(Box::new(original))
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(not(feature = "alloc"))]
 impl std::error::Error for ComponentRangeError {}
 
 impl From<ParseError> for Error {
     #[inline(always)]
     fn from(original: ParseError) -> Self {
-        Self::Parse(original)
+        Error::Parse(original)
     }
 }

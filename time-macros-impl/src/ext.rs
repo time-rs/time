@@ -1,3 +1,4 @@
+use crate::shim::*;
 use proc_macro2::Span;
 use std::{
     fmt::{Debug, Display},
@@ -26,7 +27,7 @@ impl LitIntExtension for LitInt {
     }
 
     fn ensure_in_range(&self, range: impl RangeBounds<isize> + Debug) -> Result<()> {
-        if range.contains(&self.value()?) {
+        if range_contains(&range, &self.value()?) {
             Ok(())
         } else {
             error!(self.span(), "value must be in range {:?}", range)

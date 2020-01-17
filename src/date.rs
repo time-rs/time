@@ -1,8 +1,10 @@
-#[cfg(not(feature = "std"))]
-use crate::no_std_prelude::*;
+#[cfg(feature = "alloc")]
+use crate::alloc_prelude::*;
 use crate::{
     format::parse::{parse, ParseError, ParseResult, ParsedItems},
-    internals, ComponentRangeError, DeferredFormat, Duration, PrimitiveDateTime, Time,
+    internals,
+    shim::*,
+    ComponentRangeError, DeferredFormat, Duration, PrimitiveDateTime, Time,
     Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
 };
 use core::{
@@ -272,8 +274,8 @@ impl Date {
     /// assert!(Date::today().year() >= 2019);
     /// ```
     #[inline(always)]
-    #[cfg(feature = "std")]
-    #[cfg_attr(doc, doc(cfg(feature = "std")))]
+    #[cfg(not(feature = "alloc"))]
+    #[cfg_attr(doc, doc(cfg(not(feature = "alloc"))))]
     pub fn today() -> Self {
         PrimitiveDateTime::now().date()
     }
@@ -524,7 +526,7 @@ impl Date {
         match (day as i32 + (13 * (month as i32 + 1)) / 5 + adjusted_year + adjusted_year / 4
             - adjusted_year / 100
             + adjusted_year / 400)
-            .rem_euclid(7)
+            .rem_euclid_shim(7)
         {
             0 => Saturday,
             1 => Sunday,
@@ -635,15 +637,20 @@ impl Date {
 
         let f = julian_day + J + (((4 * julian_day + B) / 146_097) * 3) / 4 + C;
         let e = R * f + V;
-        let g = e.rem_euclid(P) / R;
+        let g = e.rem_euclid_shim(P) / R;
         let h = U * g + W;
-        let day = h.rem_euclid(S) / U + 1;
-        let month = (h / S + M).rem_euclid(N) + 1;
+        let day = h.rem_euclid_shim(S) / U + 1;
+        let month = (h / S + M).rem_euclid_shim(N) + 1;
         let year = (e / P) - Y + (N + M - month) / N;
 
         // TODO Seek out a formal proof that this always results in a valid value.
         #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-        internals::Date::from_ymd_unchecked(year as i32, month as u8, day as u8)
+        Date::try_from_ymd(year as i32, month as u8, day as u8).unwrap_or_else(|e| {
+            unreachable!(
+                "Internal error. Please file an issue on the time repository.\n\n{}",
+                e
+            );
+        })
     }
 }
 
@@ -946,20 +953,17 @@ impl Date {
             }
         }
 
-        // Verification for all components is done at parse time.
         match items {
-            items!(year, month, day) => Ok(internals::Date::from_ymd_unchecked(
-                year,
-                month.get(),
-                day.get(),
-            )),
-            items!(year, ordinal_day) => {
-                Ok(internals::Date::from_yo_unchecked(year, ordinal_day.get()))
+            items!(year, month, day) => {
+                Date::try_from_ymd(year, month.get(), day.get()).map_err(Into::into)
             }
-            items!(week_based_year, iso_week, weekday) => Ok(
-                internals::Date::from_iso_ywd_unchecked(week_based_year, iso_week.get(), weekday),
-            ),
-            items!(year, sunday_week, weekday) => Ok(internals::Date::from_yo_unchecked(
+            items!(year, ordinal_day) => {
+                Date::try_from_yo(year, ordinal_day.get()).map_err(Into::into)
+            }
+            items!(week_based_year, iso_week, weekday) => {
+                Date::try_from_iso_ywd(week_based_year, iso_week.get(), weekday).map_err(Into::into)
+            }
+            items!(year, sunday_week, weekday) => Date::try_from_yo(
                 year,
                 #[allow(clippy::cast_sign_loss)]
                 {
@@ -967,8 +971,9 @@ impl Date {
                         - adjustment(year)
                         + 1) as u16
                 },
-            )),
-            items!(year, monday_week, weekday) => Ok(internals::Date::from_yo_unchecked(
+            )
+            .map_err(Into::into),
+            items!(year, monday_week, weekday) => Date::try_from_yo(
                 year,
                 #[allow(clippy::cast_sign_loss)]
                 {
@@ -976,7 +981,8 @@ impl Date {
                         - adjustment(year)
                         + 1) as u16
                 },
-            )),
+            )
+            .map_err(Into::into),
             _ => Err(ParseError::InsufficientInformation),
         }
     }
@@ -1079,7 +1085,6 @@ impl Ord for Date {
 mod test {
     use super::*;
     use crate::{date, prelude::*, time};
-    use alloc::collections::btree_set::BTreeSet;
 
     macro_rules! julian {
         ($julian:literal) => {
@@ -1089,17 +1094,12 @@ mod test {
 
     #[test]
     fn weeks_in_year_exhaustive() {
-        let mut years_with_53 = BTreeSet::new();
-        for year in [
+        let years_with_53 = &[
             4, 9, 15, 20, 26, 32, 37, 43, 48, 54, 60, 65, 71, 76, 82, 88, 93, 99, 105, 111, 116,
             122, 128, 133, 139, 144, 150, 156, 161, 167, 172, 178, 184, 189, 195, 201, 207, 212,
             218, 224, 229, 235, 240, 246, 252, 257, 263, 268, 274, 280, 285, 291, 296, 303, 308,
             314, 320, 325, 331, 336, 342, 348, 353, 359, 364, 370, 376, 381, 387, 392, 398,
-        ]
-        .iter()
-        {
-            years_with_53.insert(year);
-        }
+        ];
 
         for year in 0..400 {
             assert_eq!(
@@ -1536,423 +1536,399 @@ mod test {
     #[test]
     #[allow(clippy::zero_prefixed_literal)]
     fn test_parse_monday_based_week() {
-        macro_rules! assert_dwy {
-            ($weekday:ident $week:literal $year:literal => $ordinal:literal) => {
-                assert_eq!(
-                    Date::parse(
-                        concat!(
-                            stringify!($weekday),
-                            " ",
-                            stringify!($week),
-                            " ",
-                            stringify!($year)
-                        ),
-                        "%a %W %Y"
-                    ),
-                    Ok(date!($year - $ordinal))
-                );
+        macro_rules! parse {
+            ($s:literal) => {
+                Date::parse($s, "%a %W %Y").unwrap()
             };
         }
 
         // A
-        assert_dwy!(Sun 00 2023 => 001);
-        assert_dwy!(Mon 01 2023 => 002);
-        assert_dwy!(Tue 01 2023 => 003);
-        assert_dwy!(Wed 01 2023 => 004);
-        assert_dwy!(Thu 01 2023 => 005);
-        assert_dwy!(Fri 01 2023 => 006);
-        assert_dwy!(Sat 01 2023 => 007);
+        assert_eq!(parse!("Sun 00 2023"), date!(2023-001));
+        assert_eq!(parse!("Mon 01 2023"), date!(2023-002));
+        assert_eq!(parse!("Tue 01 2023"), date!(2023-003));
+        assert_eq!(parse!("Wed 01 2023"), date!(2023-004));
+        assert_eq!(parse!("Thu 01 2023"), date!(2023-005));
+        assert_eq!(parse!("Fri 01 2023"), date!(2023-006));
+        assert_eq!(parse!("Sat 01 2023"), date!(2023-007));
 
         // B
-        assert_dwy!(Sat 00 2022 => 001);
-        assert_dwy!(Sun 00 2022 => 002);
-        assert_dwy!(Mon 01 2022 => 003);
-        assert_dwy!(Tue 01 2022 => 004);
-        assert_dwy!(Wed 01 2022 => 005);
-        assert_dwy!(Thu 01 2022 => 006);
-        assert_dwy!(Fri 01 2022 => 007);
+        assert_eq!(parse!("Sat 00 2022"), date!(2022-001));
+        assert_eq!(parse!("Sun 00 2022"), date!(2022-002));
+        assert_eq!(parse!("Mon 01 2022"), date!(2022-003));
+        assert_eq!(parse!("Tue 01 2022"), date!(2022-004));
+        assert_eq!(parse!("Wed 01 2022"), date!(2022-005));
+        assert_eq!(parse!("Thu 01 2022"), date!(2022-006));
+        assert_eq!(parse!("Fri 01 2022"), date!(2022-007));
 
         // C
-        assert_dwy!(Fri 00 2021 => 001);
-        assert_dwy!(Sat 00 2021 => 002);
-        assert_dwy!(Sun 00 2021 => 003);
-        assert_dwy!(Mon 01 2021 => 004);
-        assert_dwy!(Tue 01 2021 => 005);
-        assert_dwy!(Wed 01 2021 => 006);
-        assert_dwy!(Thu 01 2021 => 007);
+        assert_eq!(parse!("Fri 00 2021"), date!(2021-001));
+        assert_eq!(parse!("Sat 00 2021"), date!(2021-002));
+        assert_eq!(parse!("Sun 00 2021"), date!(2021-003));
+        assert_eq!(parse!("Mon 01 2021"), date!(2021-004));
+        assert_eq!(parse!("Tue 01 2021"), date!(2021-005));
+        assert_eq!(parse!("Wed 01 2021"), date!(2021-006));
+        assert_eq!(parse!("Thu 01 2021"), date!(2021-007));
 
         // D
-        assert_dwy!(Thu 00 2026 => 001);
-        assert_dwy!(Fri 00 2026 => 002);
-        assert_dwy!(Sat 00 2026 => 003);
-        assert_dwy!(Sun 00 2026 => 004);
-        assert_dwy!(Mon 01 2026 => 005);
-        assert_dwy!(Tue 01 2026 => 006);
-        assert_dwy!(Wed 01 2026 => 007);
+        assert_eq!(parse!("Thu 00 2026"), date!(2026-001));
+        assert_eq!(parse!("Fri 00 2026"), date!(2026-002));
+        assert_eq!(parse!("Sat 00 2026"), date!(2026-003));
+        assert_eq!(parse!("Sun 00 2026"), date!(2026-004));
+        assert_eq!(parse!("Mon 01 2026"), date!(2026-005));
+        assert_eq!(parse!("Tue 01 2026"), date!(2026-006));
+        assert_eq!(parse!("Wed 01 2026"), date!(2026-007));
 
         // E
-        assert_dwy!(Wed 00 2025 => 001);
-        assert_dwy!(Thu 00 2025 => 002);
-        assert_dwy!(Fri 00 2025 => 003);
-        assert_dwy!(Sat 00 2025 => 004);
-        assert_dwy!(Sun 00 2025 => 005);
-        assert_dwy!(Mon 01 2025 => 006);
-        assert_dwy!(Tue 01 2025 => 007);
+        assert_eq!(parse!("Wed 00 2025"), date!(2025-001));
+        assert_eq!(parse!("Thu 00 2025"), date!(2025-002));
+        assert_eq!(parse!("Fri 00 2025"), date!(2025-003));
+        assert_eq!(parse!("Sat 00 2025"), date!(2025-004));
+        assert_eq!(parse!("Sun 00 2025"), date!(2025-005));
+        assert_eq!(parse!("Mon 01 2025"), date!(2025-006));
+        assert_eq!(parse!("Tue 01 2025"), date!(2025-007));
 
         // F
-        assert_dwy!(Tue 00 2019 => 001);
-        assert_dwy!(Wed 00 2019 => 002);
-        assert_dwy!(Thu 00 2019 => 003);
-        assert_dwy!(Fri 00 2019 => 004);
-        assert_dwy!(Sat 00 2019 => 005);
-        assert_dwy!(Sun 00 2019 => 006);
-        assert_dwy!(Mon 01 2019 => 007);
+        assert_eq!(parse!("Tue 00 2019"), date!(2019-001));
+        assert_eq!(parse!("Wed 00 2019"), date!(2019-002));
+        assert_eq!(parse!("Thu 00 2019"), date!(2019-003));
+        assert_eq!(parse!("Fri 00 2019"), date!(2019-004));
+        assert_eq!(parse!("Sat 00 2019"), date!(2019-005));
+        assert_eq!(parse!("Sun 00 2019"), date!(2019-006));
+        assert_eq!(parse!("Mon 01 2019"), date!(2019-007));
 
         // G
-        assert_dwy!(Mon 01 2018 => 001);
-        assert_dwy!(Tue 01 2018 => 002);
-        assert_dwy!(Wed 01 2018 => 003);
-        assert_dwy!(Thu 01 2018 => 004);
-        assert_dwy!(Fri 01 2018 => 005);
-        assert_dwy!(Sat 01 2018 => 006);
-        assert_dwy!(Sun 01 2018 => 007);
+        assert_eq!(parse!("Mon 01 2018"), date!(2018-001));
+        assert_eq!(parse!("Tue 01 2018"), date!(2018-002));
+        assert_eq!(parse!("Wed 01 2018"), date!(2018-003));
+        assert_eq!(parse!("Thu 01 2018"), date!(2018-004));
+        assert_eq!(parse!("Fri 01 2018"), date!(2018-005));
+        assert_eq!(parse!("Sat 01 2018"), date!(2018-006));
+        assert_eq!(parse!("Sun 01 2018"), date!(2018-007));
 
         // AG
-        assert_dwy!(Sun 00 2012 => 001);
-        assert_dwy!(Mon 01 2012 => 002);
-        assert_dwy!(Tue 01 2012 => 003);
-        assert_dwy!(Wed 01 2012 => 004);
-        assert_dwy!(Thu 01 2012 => 005);
-        assert_dwy!(Fri 01 2012 => 006);
-        assert_dwy!(Sat 01 2012 => 007);
-        assert_dwy!(Tue 09 2012 => 059);
-        assert_dwy!(Wed 09 2012 => 060);
-        assert_dwy!(Thu 09 2012 => 061);
-        assert_dwy!(Fri 09 2012 => 062);
-        assert_dwy!(Sat 09 2012 => 063);
-        assert_dwy!(Sun 09 2012 => 064);
-        assert_dwy!(Mon 10 2012 => 065);
-        assert_dwy!(Tue 10 2012 => 066);
-        assert_dwy!(Wed 10 2012 => 067);
+        assert_eq!(parse!("Sun 00 2012"), date!(2012-001));
+        assert_eq!(parse!("Mon 01 2012"), date!(2012-002));
+        assert_eq!(parse!("Tue 01 2012"), date!(2012-003));
+        assert_eq!(parse!("Wed 01 2012"), date!(2012-004));
+        assert_eq!(parse!("Thu 01 2012"), date!(2012-005));
+        assert_eq!(parse!("Fri 01 2012"), date!(2012-006));
+        assert_eq!(parse!("Sat 01 2012"), date!(2012-007));
+        assert_eq!(parse!("Tue 09 2012"), date!(2012-059));
+        assert_eq!(parse!("Wed 09 2012"), date!(2012-060));
+        assert_eq!(parse!("Thu 09 2012"), date!(2012-061));
+        assert_eq!(parse!("Fri 09 2012"), date!(2012-062));
+        assert_eq!(parse!("Sat 09 2012"), date!(2012-063));
+        assert_eq!(parse!("Sun 09 2012"), date!(2012-064));
+        assert_eq!(parse!("Mon 10 2012"), date!(2012-065));
+        assert_eq!(parse!("Tue 10 2012"), date!(2012-066));
+        assert_eq!(parse!("Wed 10 2012"), date!(2012-067));
 
         // BA
-        assert_dwy!(Sat 00 2028 => 001);
-        assert_dwy!(Sun 00 2028 => 002);
-        assert_dwy!(Mon 01 2028 => 003);
-        assert_dwy!(Tue 01 2028 => 004);
-        assert_dwy!(Wed 01 2028 => 005);
-        assert_dwy!(Thu 01 2028 => 006);
-        assert_dwy!(Fri 01 2028 => 007);
-        assert_dwy!(Mon 09 2028 => 059);
-        assert_dwy!(Tue 09 2028 => 060);
-        assert_dwy!(Wed 09 2028 => 061);
-        assert_dwy!(Thu 09 2028 => 062);
-        assert_dwy!(Fri 09 2028 => 063);
-        assert_dwy!(Sat 09 2028 => 064);
-        assert_dwy!(Sun 09 2028 => 065);
-        assert_dwy!(Mon 10 2028 => 066);
-        assert_dwy!(Tue 10 2028 => 067);
+        assert_eq!(parse!("Sat 00 2028"), date!(2028-001));
+        assert_eq!(parse!("Sun 00 2028"), date!(2028-002));
+        assert_eq!(parse!("Mon 01 2028"), date!(2028-003));
+        assert_eq!(parse!("Tue 01 2028"), date!(2028-004));
+        assert_eq!(parse!("Wed 01 2028"), date!(2028-005));
+        assert_eq!(parse!("Thu 01 2028"), date!(2028-006));
+        assert_eq!(parse!("Fri 01 2028"), date!(2028-007));
+        assert_eq!(parse!("Mon 09 2028"), date!(2028-059));
+        assert_eq!(parse!("Tue 09 2028"), date!(2028-060));
+        assert_eq!(parse!("Wed 09 2028"), date!(2028-061));
+        assert_eq!(parse!("Thu 09 2028"), date!(2028-062));
+        assert_eq!(parse!("Fri 09 2028"), date!(2028-063));
+        assert_eq!(parse!("Sat 09 2028"), date!(2028-064));
+        assert_eq!(parse!("Sun 09 2028"), date!(2028-065));
+        assert_eq!(parse!("Mon 10 2028"), date!(2028-066));
+        assert_eq!(parse!("Tue 10 2028"), date!(2028-067));
 
         // CB
-        assert_dwy!(Fri 00 2016 => 001);
-        assert_dwy!(Sat 00 2016 => 002);
-        assert_dwy!(Sun 00 2016 => 003);
-        assert_dwy!(Mon 01 2016 => 004);
-        assert_dwy!(Tue 01 2016 => 005);
-        assert_dwy!(Wed 01 2016 => 006);
-        assert_dwy!(Thu 01 2016 => 007);
-        assert_dwy!(Sun 08 2016 => 059);
-        assert_dwy!(Mon 09 2016 => 060);
-        assert_dwy!(Tue 09 2016 => 061);
-        assert_dwy!(Wed 09 2016 => 062);
-        assert_dwy!(Thu 09 2016 => 063);
-        assert_dwy!(Fri 09 2016 => 064);
-        assert_dwy!(Sat 09 2016 => 065);
-        assert_dwy!(Sun 09 2016 => 066);
-        assert_dwy!(Mon 10 2016 => 067);
+        assert_eq!(parse!("Fri 00 2016"), date!(2016-001));
+        assert_eq!(parse!("Sat 00 2016"), date!(2016-002));
+        assert_eq!(parse!("Sun 00 2016"), date!(2016-003));
+        assert_eq!(parse!("Mon 01 2016"), date!(2016-004));
+        assert_eq!(parse!("Tue 01 2016"), date!(2016-005));
+        assert_eq!(parse!("Wed 01 2016"), date!(2016-006));
+        assert_eq!(parse!("Thu 01 2016"), date!(2016-007));
+        assert_eq!(parse!("Sun 08 2016"), date!(2016-059));
+        assert_eq!(parse!("Mon 09 2016"), date!(2016-060));
+        assert_eq!(parse!("Tue 09 2016"), date!(2016-061));
+        assert_eq!(parse!("Wed 09 2016"), date!(2016-062));
+        assert_eq!(parse!("Thu 09 2016"), date!(2016-063));
+        assert_eq!(parse!("Fri 09 2016"), date!(2016-064));
+        assert_eq!(parse!("Sat 09 2016"), date!(2016-065));
+        assert_eq!(parse!("Sun 09 2016"), date!(2016-066));
+        assert_eq!(parse!("Mon 10 2016"), date!(2016-067));
 
         // DC
-        assert_dwy!(Thu 00 2032 => 001);
-        assert_dwy!(Fri 00 2032 => 002);
-        assert_dwy!(Sat 00 2032 => 003);
-        assert_dwy!(Sun 00 2032 => 004);
-        assert_dwy!(Mon 01 2032 => 005);
-        assert_dwy!(Tue 01 2032 => 006);
-        assert_dwy!(Wed 01 2032 => 007);
-        assert_dwy!(Sat 08 2032 => 059);
-        assert_dwy!(Sun 08 2032 => 060);
-        assert_dwy!(Mon 09 2032 => 061);
-        assert_dwy!(Tue 09 2032 => 062);
-        assert_dwy!(Wed 09 2032 => 063);
-        assert_dwy!(Thu 09 2032 => 064);
-        assert_dwy!(Fri 09 2032 => 065);
-        assert_dwy!(Sat 09 2032 => 066);
-        assert_dwy!(Sun 09 2032 => 067);
+        assert_eq!(parse!("Thu 00 2032"), date!(2032-001));
+        assert_eq!(parse!("Fri 00 2032"), date!(2032-002));
+        assert_eq!(parse!("Sat 00 2032"), date!(2032-003));
+        assert_eq!(parse!("Sun 00 2032"), date!(2032-004));
+        assert_eq!(parse!("Mon 01 2032"), date!(2032-005));
+        assert_eq!(parse!("Tue 01 2032"), date!(2032-006));
+        assert_eq!(parse!("Wed 01 2032"), date!(2032-007));
+        assert_eq!(parse!("Sat 08 2032"), date!(2032-059));
+        assert_eq!(parse!("Sun 08 2032"), date!(2032-060));
+        assert_eq!(parse!("Mon 09 2032"), date!(2032-061));
+        assert_eq!(parse!("Tue 09 2032"), date!(2032-062));
+        assert_eq!(parse!("Wed 09 2032"), date!(2032-063));
+        assert_eq!(parse!("Thu 09 2032"), date!(2032-064));
+        assert_eq!(parse!("Fri 09 2032"), date!(2032-065));
+        assert_eq!(parse!("Sat 09 2032"), date!(2032-066));
+        assert_eq!(parse!("Sun 09 2032"), date!(2032-067));
 
         // ED
-        assert_dwy!(Wed 00 2020 => 001);
-        assert_dwy!(Thu 00 2020 => 002);
-        assert_dwy!(Fri 00 2020 => 003);
-        assert_dwy!(Sat 00 2020 => 004);
-        assert_dwy!(Sun 00 2020 => 005);
-        assert_dwy!(Mon 01 2020 => 006);
-        assert_dwy!(Tue 01 2020 => 007);
-        assert_dwy!(Fri 08 2020 => 059);
-        assert_dwy!(Sat 08 2020 => 060);
-        assert_dwy!(Sun 08 2020 => 061);
-        assert_dwy!(Mon 09 2020 => 062);
-        assert_dwy!(Tue 09 2020 => 063);
-        assert_dwy!(Wed 09 2020 => 064);
-        assert_dwy!(Thu 09 2020 => 065);
-        assert_dwy!(Fri 09 2020 => 066);
-        assert_dwy!(Sat 09 2020 => 067);
+        assert_eq!(parse!("Wed 00 2020"), date!(2020-001));
+        assert_eq!(parse!("Thu 00 2020"), date!(2020-002));
+        assert_eq!(parse!("Fri 00 2020"), date!(2020-003));
+        assert_eq!(parse!("Sat 00 2020"), date!(2020-004));
+        assert_eq!(parse!("Sun 00 2020"), date!(2020-005));
+        assert_eq!(parse!("Mon 01 2020"), date!(2020-006));
+        assert_eq!(parse!("Tue 01 2020"), date!(2020-007));
+        assert_eq!(parse!("Fri 08 2020"), date!(2020-059));
+        assert_eq!(parse!("Sat 08 2020"), date!(2020-060));
+        assert_eq!(parse!("Sun 08 2020"), date!(2020-061));
+        assert_eq!(parse!("Mon 09 2020"), date!(2020-062));
+        assert_eq!(parse!("Tue 09 2020"), date!(2020-063));
+        assert_eq!(parse!("Wed 09 2020"), date!(2020-064));
+        assert_eq!(parse!("Thu 09 2020"), date!(2020-065));
+        assert_eq!(parse!("Fri 09 2020"), date!(2020-066));
+        assert_eq!(parse!("Sat 09 2020"), date!(2020-067));
 
         // FE
-        assert_dwy!(Tue 00 2036 => 001);
-        assert_dwy!(Wed 00 2036 => 002);
-        assert_dwy!(Thu 00 2036 => 003);
-        assert_dwy!(Fri 00 2036 => 004);
-        assert_dwy!(Sat 00 2036 => 005);
-        assert_dwy!(Sun 00 2036 => 006);
-        assert_dwy!(Mon 01 2036 => 007);
-        assert_dwy!(Thu 08 2036 => 059);
-        assert_dwy!(Fri 08 2036 => 060);
-        assert_dwy!(Sat 08 2036 => 061);
-        assert_dwy!(Sun 08 2036 => 062);
-        assert_dwy!(Mon 09 2036 => 063);
-        assert_dwy!(Tue 09 2036 => 064);
-        assert_dwy!(Wed 09 2036 => 065);
-        assert_dwy!(Thu 09 2036 => 066);
-        assert_dwy!(Fri 09 2036 => 067);
+        assert_eq!(parse!("Tue 00 2036"), date!(2036-001));
+        assert_eq!(parse!("Wed 00 2036"), date!(2036-002));
+        assert_eq!(parse!("Thu 00 2036"), date!(2036-003));
+        assert_eq!(parse!("Fri 00 2036"), date!(2036-004));
+        assert_eq!(parse!("Sat 00 2036"), date!(2036-005));
+        assert_eq!(parse!("Sun 00 2036"), date!(2036-006));
+        assert_eq!(parse!("Mon 01 2036"), date!(2036-007));
+        assert_eq!(parse!("Thu 08 2036"), date!(2036-059));
+        assert_eq!(parse!("Fri 08 2036"), date!(2036-060));
+        assert_eq!(parse!("Sat 08 2036"), date!(2036-061));
+        assert_eq!(parse!("Sun 08 2036"), date!(2036-062));
+        assert_eq!(parse!("Mon 09 2036"), date!(2036-063));
+        assert_eq!(parse!("Tue 09 2036"), date!(2036-064));
+        assert_eq!(parse!("Wed 09 2036"), date!(2036-065));
+        assert_eq!(parse!("Thu 09 2036"), date!(2036-066));
+        assert_eq!(parse!("Fri 09 2036"), date!(2036-067));
 
         // GF
-        assert_dwy!(Mon 01 2024 => 001);
-        assert_dwy!(Tue 01 2024 => 002);
-        assert_dwy!(Wed 01 2024 => 003);
-        assert_dwy!(Thu 01 2024 => 004);
-        assert_dwy!(Fri 01 2024 => 005);
-        assert_dwy!(Sat 01 2024 => 006);
-        assert_dwy!(Sun 01 2024 => 007);
-        assert_dwy!(Wed 09 2024 => 059);
-        assert_dwy!(Thu 09 2024 => 060);
-        assert_dwy!(Fri 09 2024 => 061);
-        assert_dwy!(Sat 09 2024 => 062);
-        assert_dwy!(Sun 09 2024 => 063);
-        assert_dwy!(Mon 10 2024 => 064);
-        assert_dwy!(Tue 10 2024 => 065);
-        assert_dwy!(Wed 10 2024 => 066);
-        assert_dwy!(Thu 10 2024 => 067);
+        assert_eq!(parse!("Mon 01 2024"), date!(2024-001));
+        assert_eq!(parse!("Tue 01 2024"), date!(2024-002));
+        assert_eq!(parse!("Wed 01 2024"), date!(2024-003));
+        assert_eq!(parse!("Thu 01 2024"), date!(2024-004));
+        assert_eq!(parse!("Fri 01 2024"), date!(2024-005));
+        assert_eq!(parse!("Sat 01 2024"), date!(2024-006));
+        assert_eq!(parse!("Sun 01 2024"), date!(2024-007));
+        assert_eq!(parse!("Wed 09 2024"), date!(2024-059));
+        assert_eq!(parse!("Thu 09 2024"), date!(2024-060));
+        assert_eq!(parse!("Fri 09 2024"), date!(2024-061));
+        assert_eq!(parse!("Sat 09 2024"), date!(2024-062));
+        assert_eq!(parse!("Sun 09 2024"), date!(2024-063));
+        assert_eq!(parse!("Mon 10 2024"), date!(2024-064));
+        assert_eq!(parse!("Tue 10 2024"), date!(2024-065));
+        assert_eq!(parse!("Wed 10 2024"), date!(2024-066));
+        assert_eq!(parse!("Thu 10 2024"), date!(2024-067));
     }
 
     #[test]
     #[allow(clippy::zero_prefixed_literal)]
     fn test_parse_sunday_based_week() {
-        macro_rules! assert_dwy {
-            ($weekday:ident $week:literal $year:literal => $ordinal:literal) => {
-                assert_eq!(
-                    Date::parse(
-                        concat!(
-                            stringify!($weekday),
-                            " ",
-                            stringify!($week),
-                            " ",
-                            stringify!($year)
-                        ),
-                        "%a %U %Y"
-                    ),
-                    Ok(date!($year - $ordinal))
-                );
+        macro_rules! parse {
+            ($s:literal) => {
+                Date::parse($s, "%a %U %Y").unwrap()
             };
         }
 
         // A
-        assert_dwy!(Sun 01 2018 => 001);
-        assert_dwy!(Mon 01 2018 => 002);
-        assert_dwy!(Tue 01 2018 => 003);
-        assert_dwy!(Wed 01 2018 => 004);
-        assert_dwy!(Thu 01 2018 => 005);
-        assert_dwy!(Fri 01 2018 => 006);
-        assert_dwy!(Sat 01 2018 => 007);
+        assert_eq!(parse!("Sun 01 2018"), date!(2018-001));
+        assert_eq!(parse!("Mon 01 2018"), date!(2018-002));
+        assert_eq!(parse!("Tue 01 2018"), date!(2018-003));
+        assert_eq!(parse!("Wed 01 2018"), date!(2018-004));
+        assert_eq!(parse!("Thu 01 2018"), date!(2018-005));
+        assert_eq!(parse!("Fri 01 2018"), date!(2018-006));
+        assert_eq!(parse!("Sat 01 2018"), date!(2018-007));
 
         // B
-        assert_dwy!(Sat 00 2023 => 001);
-        assert_dwy!(Sun 01 2023 => 002);
-        assert_dwy!(Mon 01 2023 => 003);
-        assert_dwy!(Tue 01 2023 => 004);
-        assert_dwy!(Wed 01 2023 => 005);
-        assert_dwy!(Thu 01 2023 => 006);
-        assert_dwy!(Fri 01 2023 => 007);
+        assert_eq!(parse!("Sat 00 2023"), date!(2023-001));
+        assert_eq!(parse!("Sun 01 2023"), date!(2023-002));
+        assert_eq!(parse!("Mon 01 2023"), date!(2023-003));
+        assert_eq!(parse!("Tue 01 2023"), date!(2023-004));
+        assert_eq!(parse!("Wed 01 2023"), date!(2023-005));
+        assert_eq!(parse!("Thu 01 2023"), date!(2023-006));
+        assert_eq!(parse!("Fri 01 2023"), date!(2023-007));
 
         // C
-        assert_dwy!(Fri 00 2022 => 001);
-        assert_dwy!(Sat 00 2022 => 002);
-        assert_dwy!(Sun 01 2022 => 003);
-        assert_dwy!(Mon 01 2022 => 004);
-        assert_dwy!(Tue 01 2022 => 005);
-        assert_dwy!(Wed 01 2022 => 006);
-        assert_dwy!(Thu 01 2022 => 007);
+        assert_eq!(parse!("Fri 00 2022"), date!(2022-001));
+        assert_eq!(parse!("Sat 00 2022"), date!(2022-002));
+        assert_eq!(parse!("Sun 01 2022"), date!(2022-003));
+        assert_eq!(parse!("Mon 01 2022"), date!(2022-004));
+        assert_eq!(parse!("Tue 01 2022"), date!(2022-005));
+        assert_eq!(parse!("Wed 01 2022"), date!(2022-006));
+        assert_eq!(parse!("Thu 01 2022"), date!(2022-007));
 
         // D
-        assert_dwy!(Thu 00 2021 => 001);
-        assert_dwy!(Fri 00 2021 => 002);
-        assert_dwy!(Sat 00 2021 => 003);
-        assert_dwy!(Sun 01 2021 => 004);
-        assert_dwy!(Mon 01 2021 => 005);
-        assert_dwy!(Tue 01 2021 => 006);
-        assert_dwy!(Wed 01 2021 => 007);
+        assert_eq!(parse!("Thu 00 2021"), date!(2021-001));
+        assert_eq!(parse!("Fri 00 2021"), date!(2021-002));
+        assert_eq!(parse!("Sat 00 2021"), date!(2021-003));
+        assert_eq!(parse!("Sun 01 2021"), date!(2021-004));
+        assert_eq!(parse!("Mon 01 2021"), date!(2021-005));
+        assert_eq!(parse!("Tue 01 2021"), date!(2021-006));
+        assert_eq!(parse!("Wed 01 2021"), date!(2021-007));
 
         // E
-        assert_dwy!(Wed 00 2026 => 001);
-        assert_dwy!(Thu 00 2026 => 002);
-        assert_dwy!(Fri 00 2026 => 003);
-        assert_dwy!(Sat 00 2026 => 004);
-        assert_dwy!(Sun 01 2026 => 005);
-        assert_dwy!(Mon 01 2026 => 006);
-        assert_dwy!(Tue 01 2026 => 007);
+        assert_eq!(parse!("Wed 00 2026"), date!(2026-001));
+        assert_eq!(parse!("Thu 00 2026"), date!(2026-002));
+        assert_eq!(parse!("Fri 00 2026"), date!(2026-003));
+        assert_eq!(parse!("Sat 00 2026"), date!(2026-004));
+        assert_eq!(parse!("Sun 01 2026"), date!(2026-005));
+        assert_eq!(parse!("Mon 01 2026"), date!(2026-006));
+        assert_eq!(parse!("Tue 01 2026"), date!(2026-007));
 
         // F
-        assert_dwy!(Tue 00 2025 => 001);
-        assert_dwy!(Wed 00 2025 => 002);
-        assert_dwy!(Thu 00 2025 => 003);
-        assert_dwy!(Fri 00 2025 => 004);
-        assert_dwy!(Sat 00 2025 => 005);
-        assert_dwy!(Sun 01 2025 => 006);
-        assert_dwy!(Mon 01 2025 => 007);
+        assert_eq!(parse!("Tue 00 2025"), date!(2025-001));
+        assert_eq!(parse!("Wed 00 2025"), date!(2025-002));
+        assert_eq!(parse!("Thu 00 2025"), date!(2025-003));
+        assert_eq!(parse!("Fri 00 2025"), date!(2025-004));
+        assert_eq!(parse!("Sat 00 2025"), date!(2025-005));
+        assert_eq!(parse!("Sun 01 2025"), date!(2025-006));
+        assert_eq!(parse!("Mon 01 2025"), date!(2025-007));
 
         // G
-        assert_dwy!(Mon 00 2019 => 001);
-        assert_dwy!(Tue 00 2019 => 002);
-        assert_dwy!(Wed 00 2019 => 003);
-        assert_dwy!(Thu 00 2019 => 004);
-        assert_dwy!(Fri 00 2019 => 005);
-        assert_dwy!(Sat 00 2019 => 006);
-        assert_dwy!(Sun 01 2019 => 007);
+        assert_eq!(parse!("Mon 00 2019"), date!(2019-001));
+        assert_eq!(parse!("Tue 00 2019"), date!(2019-002));
+        assert_eq!(parse!("Wed 00 2019"), date!(2019-003));
+        assert_eq!(parse!("Thu 00 2019"), date!(2019-004));
+        assert_eq!(parse!("Fri 00 2019"), date!(2019-005));
+        assert_eq!(parse!("Sat 00 2019"), date!(2019-006));
+        assert_eq!(parse!("Sun 01 2019"), date!(2019-007));
 
         // AG
-        assert_dwy!(Sun 01 2024 => 001);
-        assert_dwy!(Mon 01 2024 => 002);
-        assert_dwy!(Tue 01 2024 => 003);
-        assert_dwy!(Wed 01 2024 => 004);
-        assert_dwy!(Thu 01 2024 => 005);
-        assert_dwy!(Fri 01 2024 => 006);
-        assert_dwy!(Sat 01 2024 => 007);
-        assert_dwy!(Tue 09 2024 => 059);
-        assert_dwy!(Wed 09 2024 => 060);
-        assert_dwy!(Thu 09 2024 => 061);
-        assert_dwy!(Fri 09 2024 => 062);
-        assert_dwy!(Sat 09 2024 => 063);
-        assert_dwy!(Sun 10 2024 => 064);
-        assert_dwy!(Mon 10 2024 => 065);
-        assert_dwy!(Tue 10 2024 => 066);
-        assert_dwy!(Wed 10 2024 => 067);
+        assert_eq!(parse!("Sun 01 2024"), date!(2024-001));
+        assert_eq!(parse!("Mon 01 2024"), date!(2024-002));
+        assert_eq!(parse!("Tue 01 2024"), date!(2024-003));
+        assert_eq!(parse!("Wed 01 2024"), date!(2024-004));
+        assert_eq!(parse!("Thu 01 2024"), date!(2024-005));
+        assert_eq!(parse!("Fri 01 2024"), date!(2024-006));
+        assert_eq!(parse!("Sat 01 2024"), date!(2024-007));
+        assert_eq!(parse!("Tue 09 2024"), date!(2024-059));
+        assert_eq!(parse!("Wed 09 2024"), date!(2024-060));
+        assert_eq!(parse!("Thu 09 2024"), date!(2024-061));
+        assert_eq!(parse!("Fri 09 2024"), date!(2024-062));
+        assert_eq!(parse!("Sat 09 2024"), date!(2024-063));
+        assert_eq!(parse!("Sun 10 2024"), date!(2024-064));
+        assert_eq!(parse!("Mon 10 2024"), date!(2024-065));
+        assert_eq!(parse!("Tue 10 2024"), date!(2024-066));
+        assert_eq!(parse!("Wed 10 2024"), date!(2024-067));
 
         // BA
-        assert_dwy!(Sat 00 2012 => 001);
-        assert_dwy!(Sun 01 2012 => 002);
-        assert_dwy!(Mon 01 2012 => 003);
-        assert_dwy!(Tue 01 2012 => 004);
-        assert_dwy!(Wed 01 2012 => 005);
-        assert_dwy!(Thu 01 2012 => 006);
-        assert_dwy!(Fri 01 2012 => 007);
-        assert_dwy!(Mon 09 2012 => 059);
-        assert_dwy!(Tue 09 2012 => 060);
-        assert_dwy!(Wed 09 2012 => 061);
-        assert_dwy!(Thu 09 2012 => 062);
-        assert_dwy!(Fri 09 2012 => 063);
-        assert_dwy!(Sat 09 2012 => 064);
-        assert_dwy!(Sun 10 2012 => 065);
-        assert_dwy!(Mon 10 2012 => 066);
-        assert_dwy!(Tue 10 2012 => 067);
+        assert_eq!(parse!("Sat 00 2012"), date!(2012-001));
+        assert_eq!(parse!("Sun 01 2012"), date!(2012-002));
+        assert_eq!(parse!("Mon 01 2012"), date!(2012-003));
+        assert_eq!(parse!("Tue 01 2012"), date!(2012-004));
+        assert_eq!(parse!("Wed 01 2012"), date!(2012-005));
+        assert_eq!(parse!("Thu 01 2012"), date!(2012-006));
+        assert_eq!(parse!("Fri 01 2012"), date!(2012-007));
+        assert_eq!(parse!("Mon 09 2012"), date!(2012-059));
+        assert_eq!(parse!("Tue 09 2012"), date!(2012-060));
+        assert_eq!(parse!("Wed 09 2012"), date!(2012-061));
+        assert_eq!(parse!("Thu 09 2012"), date!(2012-062));
+        assert_eq!(parse!("Fri 09 2012"), date!(2012-063));
+        assert_eq!(parse!("Sat 09 2012"), date!(2012-064));
+        assert_eq!(parse!("Sun 10 2012"), date!(2012-065));
+        assert_eq!(parse!("Mon 10 2012"), date!(2012-066));
+        assert_eq!(parse!("Tue 10 2012"), date!(2012-067));
 
         // CB
-        assert_dwy!(Fri 00 2028 => 001);
-        assert_dwy!(Sat 00 2028 => 002);
-        assert_dwy!(Sun 01 2028 => 003);
-        assert_dwy!(Mon 01 2028 => 004);
-        assert_dwy!(Tue 01 2028 => 005);
-        assert_dwy!(Wed 01 2028 => 006);
-        assert_dwy!(Thu 01 2028 => 007);
-        assert_dwy!(Sun 09 2028 => 059);
-        assert_dwy!(Mon 09 2028 => 060);
-        assert_dwy!(Tue 09 2028 => 061);
-        assert_dwy!(Wed 09 2028 => 062);
-        assert_dwy!(Thu 09 2028 => 063);
-        assert_dwy!(Fri 09 2028 => 064);
-        assert_dwy!(Sat 09 2028 => 065);
-        assert_dwy!(Sun 10 2028 => 066);
-        assert_dwy!(Mon 10 2028 => 067);
+        assert_eq!(parse!("Fri 00 2028"), date!(2028-001));
+        assert_eq!(parse!("Sat 00 2028"), date!(2028-002));
+        assert_eq!(parse!("Sun 01 2028"), date!(2028-003));
+        assert_eq!(parse!("Mon 01 2028"), date!(2028-004));
+        assert_eq!(parse!("Tue 01 2028"), date!(2028-005));
+        assert_eq!(parse!("Wed 01 2028"), date!(2028-006));
+        assert_eq!(parse!("Thu 01 2028"), date!(2028-007));
+        assert_eq!(parse!("Sun 09 2028"), date!(2028-059));
+        assert_eq!(parse!("Mon 09 2028"), date!(2028-060));
+        assert_eq!(parse!("Tue 09 2028"), date!(2028-061));
+        assert_eq!(parse!("Wed 09 2028"), date!(2028-062));
+        assert_eq!(parse!("Thu 09 2028"), date!(2028-063));
+        assert_eq!(parse!("Fri 09 2028"), date!(2028-064));
+        assert_eq!(parse!("Sat 09 2028"), date!(2028-065));
+        assert_eq!(parse!("Sun 10 2028"), date!(2028-066));
+        assert_eq!(parse!("Mon 10 2028"), date!(2028-067));
 
         // DC
-        assert_dwy!(Thu 00 2016 => 001);
-        assert_dwy!(Fri 00 2016 => 002);
-        assert_dwy!(Sat 00 2016 => 003);
-        assert_dwy!(Sun 01 2016 => 004);
-        assert_dwy!(Mon 01 2016 => 005);
-        assert_dwy!(Tue 01 2016 => 006);
-        assert_dwy!(Wed 01 2016 => 007);
-        assert_dwy!(Sat 08 2016 => 059);
-        assert_dwy!(Sun 09 2016 => 060);
-        assert_dwy!(Mon 09 2016 => 061);
-        assert_dwy!(Tue 09 2016 => 062);
-        assert_dwy!(Wed 09 2016 => 063);
-        assert_dwy!(Thu 09 2016 => 064);
-        assert_dwy!(Fri 09 2016 => 065);
-        assert_dwy!(Sat 09 2016 => 066);
-        assert_dwy!(Sun 10 2016 => 067);
+        assert_eq!(parse!("Thu 00 2016"), date!(2016-001));
+        assert_eq!(parse!("Fri 00 2016"), date!(2016-002));
+        assert_eq!(parse!("Sat 00 2016"), date!(2016-003));
+        assert_eq!(parse!("Sun 01 2016"), date!(2016-004));
+        assert_eq!(parse!("Mon 01 2016"), date!(2016-005));
+        assert_eq!(parse!("Tue 01 2016"), date!(2016-006));
+        assert_eq!(parse!("Wed 01 2016"), date!(2016-007));
+        assert_eq!(parse!("Sat 08 2016"), date!(2016-059));
+        assert_eq!(parse!("Sun 09 2016"), date!(2016-060));
+        assert_eq!(parse!("Mon 09 2016"), date!(2016-061));
+        assert_eq!(parse!("Tue 09 2016"), date!(2016-062));
+        assert_eq!(parse!("Wed 09 2016"), date!(2016-063));
+        assert_eq!(parse!("Thu 09 2016"), date!(2016-064));
+        assert_eq!(parse!("Fri 09 2016"), date!(2016-065));
+        assert_eq!(parse!("Sat 09 2016"), date!(2016-066));
+        assert_eq!(parse!("Sun 10 2016"), date!(2016-067));
 
         // ED
-        assert_dwy!(Wed 00 2032 => 001);
-        assert_dwy!(Thu 00 2032 => 002);
-        assert_dwy!(Fri 00 2032 => 003);
-        assert_dwy!(Sat 00 2032 => 004);
-        assert_dwy!(Sun 01 2032 => 005);
-        assert_dwy!(Mon 01 2032 => 006);
-        assert_dwy!(Tue 01 2032 => 007);
-        assert_dwy!(Fri 08 2032 => 059);
-        assert_dwy!(Sat 08 2032 => 060);
-        assert_dwy!(Sun 09 2032 => 061);
-        assert_dwy!(Mon 09 2032 => 062);
-        assert_dwy!(Tue 09 2032 => 063);
-        assert_dwy!(Wed 09 2032 => 064);
-        assert_dwy!(Thu 09 2032 => 065);
-        assert_dwy!(Fri 09 2032 => 066);
-        assert_dwy!(Sat 09 2032 => 067);
+        assert_eq!(parse!("Wed 00 2032"), date!(2032-001));
+        assert_eq!(parse!("Thu 00 2032"), date!(2032-002));
+        assert_eq!(parse!("Fri 00 2032"), date!(2032-003));
+        assert_eq!(parse!("Sat 00 2032"), date!(2032-004));
+        assert_eq!(parse!("Sun 01 2032"), date!(2032-005));
+        assert_eq!(parse!("Mon 01 2032"), date!(2032-006));
+        assert_eq!(parse!("Tue 01 2032"), date!(2032-007));
+        assert_eq!(parse!("Fri 08 2032"), date!(2032-059));
+        assert_eq!(parse!("Sat 08 2032"), date!(2032-060));
+        assert_eq!(parse!("Sun 09 2032"), date!(2032-061));
+        assert_eq!(parse!("Mon 09 2032"), date!(2032-062));
+        assert_eq!(parse!("Tue 09 2032"), date!(2032-063));
+        assert_eq!(parse!("Wed 09 2032"), date!(2032-064));
+        assert_eq!(parse!("Thu 09 2032"), date!(2032-065));
+        assert_eq!(parse!("Fri 09 2032"), date!(2032-066));
+        assert_eq!(parse!("Sat 09 2032"), date!(2032-067));
 
         // FE
-        assert_dwy!(Tue 00 2020 => 001);
-        assert_dwy!(Wed 00 2020 => 002);
-        assert_dwy!(Thu 00 2020 => 003);
-        assert_dwy!(Fri 00 2020 => 004);
-        assert_dwy!(Sat 00 2020 => 005);
-        assert_dwy!(Sun 01 2020 => 006);
-        assert_dwy!(Mon 01 2020 => 007);
-        assert_dwy!(Thu 08 2020 => 059);
-        assert_dwy!(Fri 08 2020 => 060);
-        assert_dwy!(Sat 08 2020 => 061);
-        assert_dwy!(Sun 09 2020 => 062);
-        assert_dwy!(Mon 09 2020 => 063);
-        assert_dwy!(Tue 09 2020 => 064);
-        assert_dwy!(Wed 09 2020 => 065);
-        assert_dwy!(Thu 09 2020 => 066);
-        assert_dwy!(Fri 09 2020 => 067);
+        assert_eq!(parse!("Tue 00 2020"), date!(2020-001));
+        assert_eq!(parse!("Wed 00 2020"), date!(2020-002));
+        assert_eq!(parse!("Thu 00 2020"), date!(2020-003));
+        assert_eq!(parse!("Fri 00 2020"), date!(2020-004));
+        assert_eq!(parse!("Sat 00 2020"), date!(2020-005));
+        assert_eq!(parse!("Sun 01 2020"), date!(2020-006));
+        assert_eq!(parse!("Mon 01 2020"), date!(2020-007));
+        assert_eq!(parse!("Thu 08 2020"), date!(2020-059));
+        assert_eq!(parse!("Fri 08 2020"), date!(2020-060));
+        assert_eq!(parse!("Sat 08 2020"), date!(2020-061));
+        assert_eq!(parse!("Sun 09 2020"), date!(2020-062));
+        assert_eq!(parse!("Mon 09 2020"), date!(2020-063));
+        assert_eq!(parse!("Tue 09 2020"), date!(2020-064));
+        assert_eq!(parse!("Wed 09 2020"), date!(2020-065));
+        assert_eq!(parse!("Thu 09 2020"), date!(2020-066));
+        assert_eq!(parse!("Fri 09 2020"), date!(2020-067));
 
         // GF
-        assert_dwy!(Mon 00 2036 => 001);
-        assert_dwy!(Tue 00 2036 => 002);
-        assert_dwy!(Wed 00 2036 => 003);
-        assert_dwy!(Thu 00 2036 => 004);
-        assert_dwy!(Fri 00 2036 => 005);
-        assert_dwy!(Sat 00 2036 => 006);
-        assert_dwy!(Sun 01 2036 => 007);
-        assert_dwy!(Wed 08 2036 => 059);
-        assert_dwy!(Thu 08 2036 => 060);
-        assert_dwy!(Fri 08 2036 => 061);
-        assert_dwy!(Sat 08 2036 => 062);
-        assert_dwy!(Sun 09 2036 => 063);
-        assert_dwy!(Mon 09 2036 => 064);
-        assert_dwy!(Tue 09 2036 => 065);
-        assert_dwy!(Wed 09 2036 => 066);
-        assert_dwy!(Thu 09 2036 => 067);
+        assert_eq!(parse!("Mon 00 2036"), date!(2036-001));
+        assert_eq!(parse!("Tue 00 2036"), date!(2036-002));
+        assert_eq!(parse!("Wed 00 2036"), date!(2036-003));
+        assert_eq!(parse!("Thu 00 2036"), date!(2036-004));
+        assert_eq!(parse!("Fri 00 2036"), date!(2036-005));
+        assert_eq!(parse!("Sat 00 2036"), date!(2036-006));
+        assert_eq!(parse!("Sun 01 2036"), date!(2036-007));
+        assert_eq!(parse!("Wed 08 2036"), date!(2036-059));
+        assert_eq!(parse!("Thu 08 2036"), date!(2036-060));
+        assert_eq!(parse!("Fri 08 2036"), date!(2036-061));
+        assert_eq!(parse!("Sat 08 2036"), date!(2036-062));
+        assert_eq!(parse!("Sun 09 2036"), date!(2036-063));
+        assert_eq!(parse!("Mon 09 2036"), date!(2036-064));
+        assert_eq!(parse!("Tue 09 2036"), date!(2036-065));
+        assert_eq!(parse!("Wed 09 2036"), date!(2036-066));
+        assert_eq!(parse!("Thu 09 2036"), date!(2036-067));
     }
 
     #[test]
@@ -2028,7 +2004,7 @@ mod test {
     }
 
     #[test]
-    fn as_wo() {
+    fn as_yo() {
         assert_eq!(date!(2019-01-01).as_yo(), (2019, 1));
     }
 

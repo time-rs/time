@@ -23,9 +23,9 @@ impl TryFrom<Sign> for crate::Sign {
     #[inline]
     fn try_from(original: Sign) -> Result<Self, Self::Error> {
         match original {
-            Sign(1) => Ok(Self::Positive),
-            Sign(-1) => Ok(Self::Negative),
-            Sign(0) => Ok(Self::Zero),
+            Sign(1) => Ok(crate::Sign::Positive),
+            Sign(-1) => Ok(crate::Sign::Negative),
+            Sign(0) => Ok(crate::Sign::Zero),
             _ => Err("invalid value"),
         }
     }

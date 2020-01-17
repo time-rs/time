@@ -10,6 +10,7 @@ use crate::{
         },
         Padding, ParseError, ParseResult, ParsedItems,
     },
+    shim::*,
     Time,
 };
 use core::{
@@ -40,7 +41,7 @@ pub(crate) fn fmt_I(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt:
         f,
         padding(Zero),
         2,
-        (time.hour() as i8 - 1).rem_euclid(12) + 1
+        (time.hour() as i8 - 1).rem_euclid_shim(12) + 1
     )
 }
 

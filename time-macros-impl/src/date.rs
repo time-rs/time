@@ -36,9 +36,11 @@ impl Parse for Date {
         let (year, ordinal) = if input.peek(Ident) {
             let week = {
                 let week = input.parse::<Ident>()?;
-                match week.to_string() {
-                    s if s.starts_with("W") => LitInt::new(&s[1..], week.span()),
-                    _ => return error!(week.span(), "expected week value to start with `W`"),
+                let week_str = week.to_string();
+                if week_str.starts_with("W") {
+                    LitInt::new(&week_str[1..], week.span())
+                } else {
+                    return error!(week.span(), "expected week value to start with `W`");
                 }
             };
             input.parse::<Token![-]>()?;
@@ -69,7 +71,7 @@ impl Parse for Date {
 
         // TODO Replace use `LitInt` extension methods when dtolnay/syn#748 is
         // resolved.
-        if !(-100_000..=100_000).contains(&year) {
+        if year < -100_000 || year > 100_000 {
             return error!(year_span, "value must be in the range -100_000..=100_000");
         }
 

@@ -1,18 +1,20 @@
 //! Simple time handling.
 //!
-//! ![rustc 1.40.0](https://img.shields.io/badge/rustc-1.40.0-blue)
+//! ![rustc 1.34.0](https://img.shields.io/badge/rustc-1.34.0-blue)
 //!
 //! # Feature flags in Cargo
 //!
-//! ## `std`
+//! ## `alloc`
 //!
 //! Currently, all structs except `Instant` can be used with `#![no_std]`. As
 //! support for the standard library is enabled by default, you muse use
-//! `default_features = false` in your `Cargo.toml` to enable this.
+//! the `alloc` feature to enable `#![no_std]` support. As time relies on an
+//! allocator for some functionality, a global allocator must be present. This
+//! inherently requires a greater minimum supported Rust version of 1.36.0.
 //!
 //! ```toml
 //! [dependencies]
-//! time = { version = "0.2", default-features = false }
+//! time = { version = "0.2", features = ["alloc"] }
 //! ```
 //!
 //! Of the structs that are usable, some methods may only be enabled due a
@@ -24,16 +26,9 @@
 //! To enable it, use the `serde` feature. This is not enabled by default. It
 //! _is_ compatible with `#![no_std]`, so long as an allocator is present.
 //!
-//! With the standard library:
 //! ```toml
 //! [dependencies]
-//! time = { version = "0.2", features = ["serde"] }
-//! ```
-//!
-//! With `#![no_std]` support:
-//! ```toml
-//! [dependencies]
-//! time = { version = "0.2", default-features = false, features = ["serde"] }
+//! time = { version = "0.2", features = ["alloc", "serde"] }
 //! ```
 //!
 //! ## `deprecated`
@@ -41,12 +36,11 @@
 //! Using the `deprecated` feature allows using deprecated v0.1 methods. Enabled
 //! by default.
 //!
-//! With the standard library, the normal `time = 0.2` will work as expected.
+//! To _disable_ this feature:
 //!
-//! With `#![no_std]` support:
 //! ```toml
 //! [dependencies]
-//! time = { version = "0.2", default-features = false, features = ["deprecated"] }
+//! time = { version = "0.2", default-features = false }
 //! ```
 //!
 //! ## `panicking-api`
@@ -57,6 +51,9 @@
 //! `Cargo.toml`, which is not enabled by default.
 //!
 //! Library authors should avoid using this feature.
+//!
+//! This feature will be removed in a future release, as there are provided
+//! macros to perform the equivalent calculations at compile-time.
 //!
 //! ```toml
 //! [dependencies]
@@ -119,7 +116,7 @@
 //! | `0`              | Pad with zeros  | `%0d` => `05` |
 
 #![cfg_attr(doc, feature(doc_cfg))]
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(feature = "alloc", no_std)]
 #![forbid(unsafe_code)]
 #![deny(
     anonymous_parameters,
@@ -157,7 +154,7 @@
     clippy::cast_possible_wrap,
     clippy::cast_lossless,
     clippy::module_name_repetitions,
-    clippy::must_use_candidate // rust-lang/rust-clippy#4779
+    clippy::must_use_candidate
 )]
 #![cfg_attr(test, allow(clippy::cognitive_complexity, clippy::too_many_lines))]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
@@ -168,6 +165,17 @@
 // Unfortunately, this also means we can't have a `time` mod.
 extern crate self as time;
 
+#[rustversion::before(1.34.0)]
+compile_error!("The time crate has a minimum supported rust version of 1.34.0.");
+
+#[cfg(feature = "alloc")]
+#[rustversion::before(1.36.0)]
+compile_error!(
+    "Using the time crate without the standard library enabled requires a global allocator. This \
+     was stabilized in Rust 1.36.0. You can either upgrade or enable the standard library."
+);
+
+#[cfg(feature = "alloc")]
 #[macro_use]
 extern crate alloc;
 
@@ -191,26 +199,32 @@ macro_rules! format_conditional {
 #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
 macro_rules! assert_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
-        if !($start..=$end).contains(&$value) {
-            panic!(
-                concat!(stringify!($value), " must be in the range {}..={} (was {})"),
-                $start,
-                $end,
-                $value,
-            );
+        #[allow(unused_comparisons)]
+        {
+            if $value < $start || $value > $end {
+                panic!(
+                    concat!(stringify!($value), " must be in the range {}..={} (was {})"),
+                    $start,
+                    $end,
+                    $value,
+                );
+            }
         }
     };
 
     ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
-        if !($start..=$end).contains(&$value) {
-            panic!(
-                concat!(stringify!($value), " must be in the range {}..={} given{} (was {})"),
-                $start,
-                $end,
-                &format_conditional!($($conditional),+),
-                $value,
-            );
-        };
+        #[allow(unused_comparisons)]
+        {
+            if $value < $start || $value > $end {
+                panic!(
+                    concat!(stringify!($value), " must be in the range {}..={} given{} (was {})"),
+                    $start,
+                    $end,
+                    &format_conditional!($($conditional),+),
+                    $value,
+                );
+            };
+        }
     };
 }
 
@@ -218,31 +232,37 @@ macro_rules! assert_value_in_range {
 /// Returns `None` if the value is not in range.
 macro_rules! ensure_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
-        if !($start..=$end).contains(&$value) {
-            return Err(ComponentRangeError {
-                name: stringify!($value),
-                minimum: i64::from($start),
-                maximum: i64::from($end),
-                value: i64::from($value),
-                given: Vec::new(),
-            });
+        #[allow(unused_comparisons)]
+        {
+            if $value < $start || $value > $end {
+                return Err(ComponentRangeError {
+                    name: stringify!($value),
+                    minimum: i64::from($start),
+                    maximum: i64::from($end),
+                    value: i64::from($value),
+                    given: Vec::new(),
+                });
+            }
         }
     };
 
     ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
-        if !($start..=$end).contains(&$value) {
-            return Err(ComponentRangeError {
-                name: stringify!($value),
-                minimum: i64::from($start),
-                maximum: i64::from($end),
-                value: i64::from($value),
-                given: vec![$((stringify!($conditional), i64::from($conditional))),+],
-            });
-        };
+        #[allow(unused_comparisons)]
+        {
+            if $value < $start || $value > $end {
+                return Err(ComponentRangeError {
+                    name: stringify!($value),
+                    minimum: i64::from($start),
+                    maximum: i64::from($end),
+                    value: i64::from($value),
+                    given: vec![$((stringify!($conditional), i64::from($conditional))),+],
+                });
+            };
+        }
     };
 }
 
-#[cfg(all(test, feature = "std"))]
+#[cfg(all(test, not(feature = "alloc")))]
 macro_rules! assert_panics {
     ($e:expr $(, $message:literal)?) => {
         #[allow(box_pointers)]
@@ -267,7 +287,7 @@ mod duration;
 mod error;
 mod format;
 /// The `Instant` struct and its associated `impl`s.
-#[cfg(feature = "std")]
+#[cfg(not(feature = "alloc"))]
 mod instant;
 pub mod internals;
 /// A collection of traits extending built-in numerical types.
@@ -277,7 +297,10 @@ mod offset_date_time;
 /// The `PrimitiveDateTime` struct and its associated `impl`s.
 mod primitive_date_time;
 #[cfg(feature = "serde")]
+#[allow(missing_copy_implementations, missing_debug_implementations)]
 mod serde;
+/// Shims to provide functionality on older versions of rustc.
+mod shim;
 /// The `Sign` struct and its associated `impl`s.
 mod sign;
 /// The `Time` struct and its associated `impl`s.
@@ -293,7 +316,7 @@ pub use error::{ComponentRangeError, ConversionRangeError, Error};
 pub(crate) use format::DeferredFormat;
 use format::ParseResult;
 pub use format::{validate_format_string, ParseError};
-#[cfg(feature = "std")]
+#[cfg(not(feature = "alloc"))]
 pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub use offset_date_time::OffsetDateTime;
@@ -415,8 +438,8 @@ pub mod prelude {
 
 /// A stable alternative to [`alloc::v1::prelude`](https://doc.rust-lang.org/stable/alloc/prelude/v1/index.html).
 /// Useful anywhere `#![no_std]` is allowed.
-#[cfg(not(feature = "std"))]
-mod no_std_prelude {
+#[cfg(feature = "alloc")]
+mod alloc_prelude {
     #![allow(unused_imports)]
     pub(crate) use alloc::{
         borrow::ToOwned,
@@ -426,6 +449,7 @@ mod no_std_prelude {
     };
 }
 
+#[allow(clippy::missing_docs_in_private_items)]
 mod private {
     use super::*;
 
@@ -474,19 +498,19 @@ pub fn parse<T: private::Parsable>(s: &str, format: &str) -> ParseResult<T> {
 // For some back-compatibility, we're also implementing some deprecated types
 // and methods. They will be removed completely in 0.3.
 
-#[cfg(all(feature = "std", feature = "deprecated"))]
+#[cfg(all(not(feature = "alloc"), feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type PreciseTime = Instant;
 
-#[cfg(all(feature = "std", feature = "deprecated"))]
+#[cfg(all(not(feature = "alloc"), feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type SteadyTime = Instant;
 
-#[cfg(all(feature = "std", feature = "deprecated"))]
+#[cfg(all(not(feature = "alloc"), feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
@@ -503,7 +527,7 @@ pub fn precise_time_ns() -> u64 {
         .expect("You really shouldn't be using this in the year 2554...")
 }
 
-#[cfg(all(feature = "std", feature = "deprecated"))]
+#[cfg(all(not(feature = "alloc"), feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
