@@ -187,7 +187,10 @@ macro_rules! format_conditional {
     };
 
     ($first_conditional:ident, $($conditional:ident),*) => {{
+        #[cfg(feature = "alloc")]
         let mut s = alloc::string::String::new();
+        #[cfg(not(feature = "alloc"))]
+        let mut s = String::new();
         s.push_str(&format_conditional!($first_conditional));
         $(s.push_str(&format!(concat!(", ", stringify!($conditional), "={}"), $conditional));)*
         s
