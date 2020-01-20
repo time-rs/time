@@ -1,19 +1,19 @@
-#[cfg(feature = "alloc")]
+#[cfg(not(feature = "std"))]
 use crate::alloc_prelude::*;
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 use crate::Sign;
 use crate::{
     format::parse::{parse, ParseResult, ParsedItems},
     time, Date, DeferredFormat, Duration, OffsetDateTime, Time, UtcOffset, Weekday,
 };
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 use core::convert::{From, TryFrom};
 use core::{
     cmp::Ordering,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 use std::time::SystemTime;
 
 /// Combined date and time.
@@ -55,8 +55,8 @@ impl PrimitiveDateTime {
     /// assert!(PrimitiveDateTime::now().year() >= 2019);
     /// ```
     #[inline(always)]
-    #[cfg(not(feature = "alloc"))]
-    #[cfg_attr(doc, doc(cfg(not(feature = "alloc"))))]
+    #[cfg(feature = "std")]
+    #[cfg_attr(doc, doc(cfg(feature = "std")))]
     pub fn now() -> Self {
         SystemTime::now().into()
     }
@@ -481,7 +481,7 @@ impl Add<Duration> for PrimitiveDateTime {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl Add<Duration> for SystemTime {
     type Output = Self;
 
@@ -528,7 +528,7 @@ impl AddAssign<StdDuration> for PrimitiveDateTime {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl AddAssign<Duration> for SystemTime {
     #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
@@ -564,7 +564,7 @@ impl Sub<StdDuration> for PrimitiveDateTime {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl Sub<Duration> for SystemTime {
     type Output = Self;
 
@@ -588,7 +588,7 @@ impl SubAssign<StdDuration> for PrimitiveDateTime {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl SubAssign<Duration> for SystemTime {
     #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
@@ -605,7 +605,7 @@ impl Sub<PrimitiveDateTime> for PrimitiveDateTime {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl Sub<SystemTime> for PrimitiveDateTime {
     type Output = Duration;
 
@@ -615,7 +615,7 @@ impl Sub<SystemTime> for PrimitiveDateTime {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl Sub<PrimitiveDateTime> for SystemTime {
     type Output = Duration;
 
@@ -632,7 +632,7 @@ impl PartialOrd for PrimitiveDateTime {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl PartialEq<SystemTime> for PrimitiveDateTime {
     #[inline(always)]
     fn eq(&self, rhs: &SystemTime) -> bool {
@@ -640,7 +640,7 @@ impl PartialEq<SystemTime> for PrimitiveDateTime {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl PartialEq<PrimitiveDateTime> for SystemTime {
     #[inline(always)]
     fn eq(&self, rhs: &PrimitiveDateTime) -> bool {
@@ -648,7 +648,7 @@ impl PartialEq<PrimitiveDateTime> for SystemTime {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl PartialOrd<SystemTime> for PrimitiveDateTime {
     #[inline(always)]
     fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
@@ -656,7 +656,7 @@ impl PartialOrd<SystemTime> for PrimitiveDateTime {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl PartialOrd<PrimitiveDateTime> for SystemTime {
     #[inline(always)]
     fn partial_cmp(&self, other: &PrimitiveDateTime) -> Option<Ordering> {
@@ -683,7 +683,7 @@ impl Ord for PrimitiveDateTime {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl From<SystemTime> for PrimitiveDateTime {
     // There is definitely some way to have this conversion be infallible, but
     // it won't be an issue for over 500 years.
@@ -700,7 +700,7 @@ impl From<SystemTime> for PrimitiveDateTime {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 #[allow(clippy::fallible_impl_from)]
 impl From<PrimitiveDateTime> for SystemTime {
     #[inline]
@@ -731,7 +731,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn now() {
         assert!(PrimitiveDateTime::now().year() >= 2019);
     }
@@ -956,7 +956,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn std_add_duration() {
         assert_eq!(
             SystemTime::from(date!(2019-01-01).midnight()) + 5.days(),
@@ -1027,7 +1027,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn std_add_assign_duration() {
         let mut ny19 = SystemTime::from(date!(2019-01-01).midnight());
         ny19 += 5.days();
@@ -1087,7 +1087,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn std_sub_duration() {
         assert_eq!(
             SystemTime::from(date!(2019-01-06).midnight()) - 5.days(),
@@ -1142,7 +1142,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn std_sub_assign_duration() {
         let mut ny19 = SystemTime::from(date!(2019-01-06).midnight());
         ny19 -= 5.days();
@@ -1182,7 +1182,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn std_sub_datetime() {
         assert_eq!(
             SystemTime::from(date!(2019-01-02).midnight()) - date!(2019-01-01).midnight(),
@@ -1203,7 +1203,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn sub_std() {
         assert_eq!(
             date!(2019-01-02).midnight() - SystemTime::from(date!(2019-01-01).midnight()),
@@ -1319,7 +1319,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn eq_std() {
         let now_datetime = PrimitiveDateTime::now();
         let now_systemtime = SystemTime::from(now_datetime);
@@ -1327,16 +1327,16 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn std_eq() {
-        #[cfg(not(feature = "alloc"))]
+        #[cfg(feature = "std")]
         let now_datetime = PrimitiveDateTime::now();
         let now_systemtime = SystemTime::from(now_datetime);
         assert_eq!(now_datetime, now_systemtime);
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn ord_std() {
         assert_eq!(
             date!(2019-01-01).midnight(),
@@ -1383,7 +1383,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn std_ord() {
         assert_eq!(
             SystemTime::from(date!(2019-01-01).midnight()),
@@ -1430,7 +1430,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn from_std() {
         assert_eq!(
             PrimitiveDateTime::from(SystemTime::UNIX_EPOCH),
@@ -1439,7 +1439,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn to_std() {
         assert_eq!(
             SystemTime::from(PrimitiveDateTime::unix_epoch()),

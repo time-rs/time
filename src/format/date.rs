@@ -9,7 +9,7 @@ use super::{
     },
     Padding, ParseError, ParseResult, ParsedItems,
 };
-#[cfg(feature = "alloc")]
+#[cfg(not(feature = "std"))]
 use crate::alloc_prelude::*;
 use crate::{shim::*, Date, Sign, Weekday};
 use core::{

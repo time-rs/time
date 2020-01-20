@@ -1,4 +1,4 @@
-#[cfg(feature = "alloc")]
+#[cfg(not(feature = "std"))]
 use crate::alloc_prelude::*;
 use crate::{
     format::{parse, ParseError, ParseResult, ParsedItems},

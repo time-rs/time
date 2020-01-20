@@ -1,4 +1,4 @@
-#[cfg(feature = "alloc")]
+#[cfg(not(feature = "std"))]
 use crate::alloc_prelude::*;
 use crate::{
     format::parse::{parse, ParseError, ParseResult, ParsedItems},
@@ -274,8 +274,8 @@ impl Date {
     /// assert!(Date::today().year() >= 2019);
     /// ```
     #[inline(always)]
-    #[cfg(not(feature = "alloc"))]
-    #[cfg_attr(doc, doc(cfg(not(feature = "alloc"))))]
+    #[cfg(feature = "std")]
+    #[cfg_attr(doc, doc(cfg(feature = "std")))]
     pub fn today() -> Self {
         PrimitiveDateTime::now().date()
     }

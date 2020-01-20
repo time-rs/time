@@ -23,26 +23,28 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
-      # deprecated
-      - name: Run `cargo check --features alloc`
+      # ensure `#![no_std]` support
+      - name: Run `cargo check --no-default-features`
         uses: actions-rs/cargo@v1
         with:
           command: check
           args: --no-default-features
         if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
 
-      # std, serde, deprecated
-      - name: Run `cargo check --features serde`
+      # `#![no_std]` and serde
+      - name: Run `cargo check --no-default-features --features serde`
         uses: actions-rs/cargo@v1
         with:
           command: check
           args: --no-default-features --features serde
+        if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
 
-      # std, deprecated
-      - name: Run `cargo check`
+      # everything
+      - name: Run `cargo check --all-features`
         uses: actions-rs/cargo@v1
         with:
           command: check
+          args: --all-features
 
   test:
     name: Test suite
@@ -64,17 +66,20 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
-      - name: Run `cargo test --features alloc`
+      # `#![no_std]` support
+      - name: Run `cargo test --no-default-features`
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features alloc
+          args: --no-default-features
         if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
 
-      - name: Run `cargo test`
+      # everything
+      - name: Run `cargo test --all-features`
         uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --all-features
 
   fmt:
     name: Formatting

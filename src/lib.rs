@@ -4,17 +4,15 @@
 //!
 //! # Feature flags in Cargo
 //!
-//! ## `alloc`
+//! ## `std`
 //!
 //! Currently, all structs except `Instant` can be used with `#![no_std]`. As
-//! support for the standard library is enabled by default, you muse use
-//! the `alloc` feature to enable `#![no_std]` support. As time relies on an
-//! allocator for some functionality, a global allocator must be present. This
-//! inherently requires a greater minimum supported Rust version of 1.36.0.
+//! support for the standard library is enabled by default, you must use
+//! `default_features = false` in your `Cargo.toml` to enable this.
 //!
 //! ```toml
 //! [dependencies]
-//! time = { version = "0.2", features = ["alloc"] }
+//! time = { version = "0.2", default-features = false }
 //! ```
 //!
 //! Of the structs that are usable, some methods may only be enabled due a
@@ -26,9 +24,16 @@
 //! To enable it, use the `serde` feature. This is not enabled by default. It
 //! _is_ compatible with `#![no_std]`, so long as an allocator is present.
 //!
+//! With the standard library:
 //! ```toml
 //! [dependencies]
-//! time = { version = "0.2", features = ["alloc", "serde"] }
+//! time = { version = "0.2", features = ["serde"] }
+//! ```
+//!
+//! With `#![no_std]` support:
+//! ```toml
+//! [dependencies]
+//! time = { version = "0.2", default-features = false, features = ["serde"] }
 //! ```
 //!
 //! ## `deprecated`
@@ -36,11 +41,12 @@
 //! Using the `deprecated` feature allows using deprecated v0.1 methods. Enabled
 //! by default.
 //!
-//! To _disable_ this feature:
+//! With the standard library, the normal `time = 0.2` will work as expected.
 //!
+//! With `#![no_std]` support:
 //! ```toml
 //! [dependencies]
-//! time = { version = "0.2", default-features = false }
+//! time = { version = "0.2", default-features = false, features = ["deprecated"] }
 //! ```
 //!
 //! ## `panicking-api`
@@ -116,7 +122,7 @@
 //! | `0`              | Pad with zeros  | `%0d` => `05` |
 
 #![cfg_attr(doc, feature(doc_cfg))]
-#![cfg_attr(feature = "alloc", no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
 #![deny(
     anonymous_parameters,
@@ -168,14 +174,14 @@ extern crate self as time;
 #[rustversion::before(1.34.0)]
 compile_error!("The time crate has a minimum supported rust version of 1.34.0.");
 
-#[cfg(feature = "alloc")]
+#[cfg(not(feature = "std"))]
 #[rustversion::before(1.36.0)]
 compile_error!(
     "Using the time crate without the standard library enabled requires a global allocator. This \
      was stabilized in Rust 1.36.0. You can either upgrade or enable the standard library."
 );
 
-#[cfg(feature = "alloc")]
+#[cfg(not(feature = "std"))]
 #[macro_use]
 extern crate alloc;
 
@@ -187,9 +193,9 @@ macro_rules! format_conditional {
     };
 
     ($first_conditional:ident, $($conditional:ident),*) => {{
-        #[cfg(feature = "alloc")]
+        #[cfg(not(feature = "std"))]
         let mut s = alloc::string::String::new();
-        #[cfg(not(feature = "alloc"))]
+        #[cfg(feature = "std")]
         let mut s = String::new();
         s.push_str(&format_conditional!($first_conditional));
         $(s.push_str(&format!(concat!(", ", stringify!($conditional), "={}"), $conditional));)*
@@ -265,7 +271,7 @@ macro_rules! ensure_value_in_range {
     };
 }
 
-#[cfg(all(test, not(feature = "alloc")))]
+#[cfg(all(test, feature = "std"))]
 macro_rules! assert_panics {
     ($e:expr $(, $message:literal)?) => {
         #[allow(box_pointers)]
@@ -290,7 +296,7 @@ mod duration;
 mod error;
 mod format;
 /// The `Instant` struct and its associated `impl`s.
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 mod instant;
 pub mod internals;
 /// A collection of traits extending built-in numerical types.
@@ -319,7 +325,7 @@ pub use error::{ComponentRangeError, ConversionRangeError, Error};
 pub(crate) use format::DeferredFormat;
 use format::ParseResult;
 pub use format::{validate_format_string, ParseError};
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub use offset_date_time::OffsetDateTime;
@@ -441,7 +447,7 @@ pub mod prelude {
 
 /// A stable alternative to [`alloc::v1::prelude`](https://doc.rust-lang.org/stable/alloc/prelude/v1/index.html).
 /// Useful anywhere `#![no_std]` is allowed.
-#[cfg(feature = "alloc")]
+#[cfg(not(feature = "std"))]
 mod alloc_prelude {
     #![allow(unused_imports)]
     pub(crate) use alloc::{
@@ -501,19 +507,19 @@ pub fn parse<T: private::Parsable>(s: &str, format: &str) -> ParseResult<T> {
 // For some back-compatibility, we're also implementing some deprecated types
 // and methods. They will be removed completely in 0.3.
 
-#[cfg(all(not(feature = "alloc"), feature = "deprecated"))]
+#[cfg(all(feature = "std", feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type PreciseTime = Instant;
 
-#[cfg(all(not(feature = "alloc"), feature = "deprecated"))]
+#[cfg(all(feature = "std", feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type SteadyTime = Instant;
 
-#[cfg(all(not(feature = "alloc"), feature = "deprecated"))]
+#[cfg(all(feature = "std", feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
@@ -530,7 +536,7 @@ pub fn precise_time_ns() -> u64 {
         .expect("You really shouldn't be using this in the year 2554...")
 }
 
-#[cfg(all(not(feature = "alloc"), feature = "deprecated"))]
+#[cfg(all(feature = "std", feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(

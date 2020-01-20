@@ -37,7 +37,7 @@ pub(crate) mod parse;
 pub(crate) mod parse_items;
 pub(crate) mod time;
 
-#[cfg(feature = "alloc")]
+#[cfg(not(feature = "std"))]
 use crate::alloc_prelude::*;
 use crate::{Date, Time, UtcOffset};
 use core::fmt::{self, Display, Formatter};

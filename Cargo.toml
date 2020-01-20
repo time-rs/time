@@ -1,6 +1,6 @@
 [package]
 name = "time"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["Jacob Pratt <the.z.cuber@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/time-rs/time"
@@ -12,21 +12,18 @@ license = "MIT OR Apache-2.0"
 description = "Date and time library. Fully interoperable with the standard library. Mostly compatible with #![no_std]."
 
 [package.metadata.docs.rs]
-features = ["deprecated", "panicking-api", "serde"]
+all-features = true
 
 [features]
-default = ["deprecated"]
+default = ["deprecated", "std"]
 deprecated = []
-alloc = ["serde/alloc"]
 panicking-api = []
+std = []
 
 [dependencies]
+rustversion = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 time-macros = { version = "0.1", path = "time-macros" }
-rustversion = "1"
 
 [workspace]
-members = [
-    "time-macros",
-    "time-macros-impl",
-]
+members = ["time-macros", "time-macros-impl"]

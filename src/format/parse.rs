@@ -1,6 +1,8 @@
 //! Parsing for various types.
 
 use super::{parse_fmt_string, FormatItem, Padding, Specifier};
+#[cfg(not(feature = "std"))]
+use crate::alloc_prelude::*;
 use crate::{shim::*, ComponentRangeError, UtcOffset, Weekday};
 use core::{
     fmt::{self, Display, Formatter},
@@ -8,13 +10,6 @@ use core::{
     ops::{Bound, RangeBounds},
     str::FromStr,
 };
-#[cfg(not(feature = "alloc"))]
-use std::error::Error;
-
-#[cfg(feature = "alloc")]
-use alloc::boxed::Box;
-#[cfg(not(feature = "alloc"))]
-use std::boxed::Box;
 
 /// Helper type to avoid repeating the error type.
 pub(crate) type ParseResult<T> = Result<T, ParseError>;
@@ -105,8 +100,8 @@ impl Display for ParseError {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
-impl Error for ParseError {}
+#[cfg(feature = "std")]
+impl std::error::Error for ParseError {}
 
 /// A value representing a time that is either "AM" or "PM".
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

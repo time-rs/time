@@ -1,9 +1,7 @@
-#[cfg(feature = "alloc")]
+#[cfg(not(feature = "std"))]
 use crate::alloc_prelude::*;
 use crate::format::ParseError;
 use core::fmt;
-#[cfg(not(feature = "alloc"))]
-use std::boxed::Box;
 
 /// A unified error type for anything returned by a method in the time crate.
 ///
@@ -35,7 +33,7 @@ impl fmt::Display for Error {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl std::error::Error for Error {}
 
 /// An error type indicating that a conversion failed because the target type
@@ -66,7 +64,7 @@ impl fmt::Display for ConversionRangeError {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl std::error::Error for ConversionRangeError {}
 
 impl From<ConversionRangeError> for Error {
@@ -127,7 +125,7 @@ impl From<ComponentRangeError> for Error {
     }
 }
 
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 impl std::error::Error for ComponentRangeError {}
 
 impl From<ParseError> for Error {

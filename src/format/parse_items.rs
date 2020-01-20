@@ -1,6 +1,6 @@
 //! Parse formats used in the `format` and `parse` methods.
 
-#[cfg(feature = "alloc")]
+#[cfg(not(feature = "std"))]
 use crate::alloc_prelude::*;
 use crate::format::{FormatItem, Padding, Specifier};
 

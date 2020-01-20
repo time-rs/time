@@ -1,6 +1,6 @@
-#[cfg(feature = "alloc")]
+#[cfg(not(feature = "std"))]
 use crate::alloc_prelude::*;
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 use crate::PrimitiveDateTime;
 use crate::{
     format::{parse, parse::AmPm, ParseError, ParseResult, ParsedItems},
@@ -402,8 +402,8 @@ impl Time {
     /// println!("{:?}", Time::now());
     /// ```
     #[inline(always)]
-    #[cfg(not(feature = "alloc"))]
-    #[cfg_attr(doc, doc(cfg(not(feature = "alloc"))))]
+    #[cfg(feature = "std")]
+    #[cfg_attr(doc, doc(cfg(feature = "std")))]
     pub fn now() -> Self {
         PrimitiveDateTime::now().time()
     }
@@ -887,7 +887,7 @@ mod test {
         assert_eq!(time.second(), 3);
         assert_eq!(time.nanosecond(), 0);
 
-        #[cfg(not(feature = "alloc"))]
+        #[cfg(feature = "std")]
         {
             assert_panics!(Time::from_hms(24, 0, 0), "24 isn't a valid hour");
             assert_panics!(Time::from_hms(0, 60, 0), "60 isn't a valid minute");
@@ -919,7 +919,7 @@ mod test {
         assert_eq!(time.millisecond(), 4);
         assert_eq!(time.nanosecond(), 4_000_000);
 
-        #[cfg(not(feature = "alloc"))]
+        #[cfg(feature = "std")]
         {
             assert_panics!(Time::from_hms_milli(24, 0, 0, 0), "24 isn't a valid hour");
             assert_panics!(Time::from_hms_milli(0, 60, 0, 0), "60 isn't a valid minute");
@@ -957,7 +957,7 @@ mod test {
         assert_eq!(time.microsecond(), 4);
         assert_eq!(time.nanosecond(), 4_000);
 
-        #[cfg(not(feature = "alloc"))]
+        #[cfg(feature = "std")]
         {
             assert_panics!(Time::from_hms_micro(24, 0, 0, 0), "24 isn't a valid hour");
             assert_panics!(Time::from_hms_micro(0, 60, 0, 0), "60 isn't a valid minute");
@@ -994,7 +994,7 @@ mod test {
         assert_eq!(time.second(), 3);
         assert_eq!(time.nanosecond(), 4);
 
-        #[cfg(not(feature = "alloc"))]
+        #[cfg(feature = "std")]
         {
             assert_panics!(Time::from_hms_nano(24, 0, 0, 0), "24 isn't a valid hour.");
             assert_panics!(Time::from_hms_nano(0, 60, 0, 0), "60 isn't a valid minute.");

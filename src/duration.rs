@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use crate::shim::*;
-#[cfg(not(feature = "alloc"))]
+#[cfg(feature = "std")]
 use crate::Instant;
 use crate::{
     ConversionRangeError,
@@ -247,7 +247,7 @@ impl Duration {
 
     /// Convert the existing `Duration` to a `std::time::Duration` and its sign.
     #[inline(always)]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     pub(crate) fn sign_abs_std(self) -> (Sign, StdDuration) {
         (
             self.sign(),
@@ -749,8 +749,8 @@ impl Duration {
     /// Runs a closure, returning the duration of time it took to run. The
     /// return value of the closure is provided in the second part of the tuple.
     #[inline(always)]
-    #[cfg(not(feature = "alloc"))]
-    #[cfg_attr(doc, doc(cfg(not(feature = "alloc"))))]
+    #[cfg(feature = "std")]
+    #[cfg_attr(doc, doc(cfg(feature = "std")))]
     pub fn time_fn<T>(f: impl FnOnce() -> T) -> (Self, T) {
         let start = Instant::now();
         let return_value = f();
@@ -852,7 +852,7 @@ impl Duration {
     }
 
     #[inline(always)]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     #[deprecated(since = "0.2.0", note = "Use the `time_fn` function")]
     pub fn span<F: FnOnce()>(f: F) -> Self {
         Self::time_fn(f).0
@@ -1559,7 +1559,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(not(feature = "alloc"))]
+    #[cfg(feature = "std")]
     fn time_fn() {
         let (time, value) = Duration::time_fn(|| {
             std::thread::sleep(100.std_milliseconds());
@@ -1702,7 +1702,7 @@ mod test {
         duration -= 500.milliseconds();
         assert_eq!(duration, 1.seconds());
 
-        #[cfg(not(feature = "alloc"))]
+        #[cfg(feature = "std")]
         {
             let mut duration = 1.std_seconds();
             assert_panics!(duration -= 2.seconds());
