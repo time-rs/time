@@ -3,10 +3,9 @@ time
 
 Utilities for working with time-related functions in Rust
 
-[![Build Status](https://travis-ci.org/rust-lang-deprecated/time.svg?branch=master)](https://travis-ci.org/rust-lang-deprecated/time)
-[![Build status](https://ci.appveyor.com/api/projects/status/55m7rbaj9a5v3ad7?svg=true)](https://ci.appveyor.com/project/alexcrichton/time)
-
-[Documentation](https://doc.rust-lang.org/time)
+![build status](https://github.com/time-rs/time/workflows/Build/badge.svg?branch=v0.1)
+[Documentation](https://docs.rs/time/0.1)
+![rustc 1.21.0](https://img.shields.io/badge/rustc-1.21.0-blue)
 
 ## Notes
 
