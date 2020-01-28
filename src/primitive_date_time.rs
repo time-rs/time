@@ -387,8 +387,8 @@ impl PrimitiveDateTime {
         self.time().nanosecond()
     }
 
-    /// Create an `OffsetDateTime` from the existing `PrimitiveDateTime` and provided
-    /// `UtcOffset`.
+    /// Assuming that the existing `PrimitiveDateTime` represents a moment in
+    /// the provided `UtcOffset`, return an `OffsetDateTime`.
     ///
     /// ```rust
     /// # use time::{date, offset};
@@ -398,9 +398,10 @@ impl PrimitiveDateTime {
     /// );
     /// ```
     #[inline(always)]
-    pub const fn using_offset(self, offset: UtcOffset) -> OffsetDateTime {
+    pub fn using_offset(self, offset: UtcOffset) -> OffsetDateTime {
         OffsetDateTime {
-            datetime: self,
+            // Subtract the offset to get the time at UTC.
+            utc_datetime: self - offset.as_duration(),
             offset,
         }
     }
@@ -668,17 +669,9 @@ impl Ord for PrimitiveDateTime {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
         match self.date.cmp(&other.date) {
-            Ordering::Equal => match self.time.hour.cmp(&other.time.hour) {
-                Ordering::Equal => match self.time.minute.cmp(&other.time.minute) {
-                    Ordering::Equal => match self.time.second.cmp(&other.time.second) {
-                        Ordering::Equal => self.time.nanosecond.cmp(&other.time.nanosecond),
-                        other => other,
-                    },
-                    other => other,
-                },
-                other => other,
-            },
-            other => other,
+            Ordering::Less => Ordering::Less,
+            Ordering::Equal => self.time.cmp(&other.time),
+            Ordering::Greater => Ordering::Greater,
         }
     }
 }

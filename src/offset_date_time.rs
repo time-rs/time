@@ -13,8 +13,11 @@ use core::{
 
 /// A [`PrimitiveDateTime`] with a [`UtcOffset`].
 ///
-/// For equality, comparisons, and hashing, calculations are performed using the
-/// [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
+/// All comparisons are performed using the UTC time.
+// Internally, an `OffsetDateTime` is a thin wrapper around a
+// [`PrimitiveDateTime`] coupled with a [`UtcOffset`]. This offset is added to
+// the date, time, or datetime as necessary for presentation or returning from a
+// function.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -26,7 +29,7 @@ use core::{
 #[derive(Debug, Clone, Copy, Eq)]
 pub struct OffsetDateTime {
     /// The `PrimitiveDateTime`, which is _always_ UTC.
-    pub(crate) datetime: PrimitiveDateTime,
+    pub(crate) utc_datetime: PrimitiveDateTime,
     /// The `UtcOffset`, which will be added to the `PrimitiveDateTime` as necessary.
     pub(crate) offset: UtcOffset,
 }
@@ -62,7 +65,10 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub const fn to_offset(self, offset: UtcOffset) -> Self {
-        self.datetime.using_offset(offset)
+        Self {
+            utc_datetime: self.utc_datetime,
+            offset,
+        }
     }
 
     /// Midnight, 1 January, 1970 (UTC).
@@ -78,7 +84,10 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub const fn unix_epoch() -> Self {
-        PrimitiveDateTime::unix_epoch().using_offset(offset!(UTC))
+        Self {
+            utc_datetime: PrimitiveDateTime::unix_epoch(),
+            offset: offset!(UTC),
+        }
     }
 
     /// Create an `OffsetDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
@@ -91,7 +100,7 @@ impl OffsetDateTime {
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp(1_546_300_800),
-    ///     date!(2019-01-1)
+    ///     date!(2019-01-01)
     ///         .midnight()
     ///         .using_offset(offset!(UTC)),
     /// );
@@ -144,7 +153,7 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub fn timestamp(self) -> i64 {
-        self.datetime.timestamp() - self.offset.as_seconds() as i64
+        self.utc_datetime.timestamp()
     }
 
     /// Get the `Date` in the stored offset.
@@ -160,15 +169,15 @@ impl OffsetDateTime {
     /// );
     /// assert_eq!(
     ///     date!(2019-01-01)
-    ///         .midnight()
+    ///         .with_time(time!(23:00:00))
     ///         .using_offset(offset!(-1))
     ///         .date(),
-    ///     date!(2018-12-31),
+    ///     date!(2019-01-01),
     /// );
     /// ```
     #[inline(always)]
     pub fn date(self) -> Date {
-        (self.datetime + self.offset.as_duration()).date()
+        (self.utc_datetime + self.offset.as_duration()).date()
     }
 
     /// Get the `Time` in the stored offset.
@@ -187,12 +196,12 @@ impl OffsetDateTime {
     ///         .midnight()
     ///         .using_offset(offset!(-1))
     ///         .time(),
-    ///     time!(23:00)
+    ///     time!(0:00)
     /// );
     /// ```
     #[inline(always)]
     pub fn time(self) -> Time {
-        (self.datetime + self.offset.as_duration()).time()
+        (self.utc_datetime + self.offset.as_duration()).time()
     }
 
     /// Get the year of the date in the stored offset.
@@ -247,7 +256,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(+1))
     ///         .month(),
-    ///     1,
+    ///     12,
     /// );
     /// ```
     #[inline(always)]
@@ -274,7 +283,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(+1))
     ///         .day(),
-    ///     1,
+    ///     31,
     /// );
     /// ```
     #[inline(always)]
@@ -301,7 +310,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(+1))
     ///         .month_day(),
-    ///     (1, 1),
+    ///     (12, 31),
     /// );
     /// ```
     #[inline(always)]
@@ -327,7 +336,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(+1))
     ///         .ordinal(),
-    ///     1,
+    ///     365,
     /// );
     /// ```
     #[inline(always)]
@@ -472,7 +481,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:59:59))
     ///         .using_offset(offset!(-2))
     ///         .hour(),
-    ///     21,
+    ///     23,
     /// );
     /// ```
     #[inline(always)]
@@ -498,7 +507,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:59:59))
     ///         .using_offset(offset!(+0:30))
     ///         .minute(),
-    ///     29,
+    ///     59,
     /// );
     /// ```
     #[inline(always)]
@@ -524,7 +533,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:59:59))
     ///         .using_offset(offset!(+0:00:30))
     ///         .second(),
-    ///     29,
+    ///     59,
     /// );
     /// ```
     #[inline(always)]
@@ -661,9 +670,11 @@ impl OffsetDateTime {
     /// Given the items already parsed, attempt to create an `OffsetDateTime`.
     #[inline(always)]
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
+        let offset = UtcOffset::try_from_parsed_items(items)?;
+
         Ok(Self {
-            datetime: PrimitiveDateTime::try_from_parsed_items(items)?,
-            offset: UtcOffset::try_from_parsed_items(items)?,
+            utc_datetime: PrimitiveDateTime::try_from_parsed_items(items)? - offset.as_duration(),
+            offset,
         })
     }
 }
@@ -671,7 +682,7 @@ impl OffsetDateTime {
 impl PartialEq for OffsetDateTime {
     #[inline(always)]
     fn eq(&self, rhs: &Self) -> bool {
-        self.timestamp() == rhs.timestamp()
+        self.utc_datetime.eq(&rhs.utc_datetime)
     }
 }
 
@@ -685,14 +696,17 @@ impl PartialOrd for OffsetDateTime {
 impl Ord for OffsetDateTime {
     #[inline(always)]
     fn cmp(&self, rhs: &Self) -> Ordering {
-        self.timestamp().cmp(&rhs.timestamp())
+        self.utc_datetime.cmp(&(rhs.utc_datetime))
     }
 }
 
 impl Hash for OffsetDateTime {
     #[inline(always)]
     fn hash<H: Hasher>(&self, hasher: &mut H) {
-        hasher.write_i64(self.timestamp());
+        // We need to distinguish this from a `PrimitiveDateTime`, which would
+        // otherwise conflict.
+        hasher.write(b"OffsetDateTime");
+        self.utc_datetime.hash(hasher);
     }
 }
 
@@ -701,7 +715,7 @@ impl Add<Duration> for OffsetDateTime {
 
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
-        (self.datetime + duration).using_offset(self.offset)
+        (self.utc_datetime + duration).using_offset(self.offset)
     }
 }
 
@@ -710,7 +724,7 @@ impl Add<StdDuration> for OffsetDateTime {
 
     #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
-        (self.datetime + duration).using_offset(self.offset)
+        (self.utc_datetime + duration).using_offset(self.offset)
     }
 }
 
@@ -733,7 +747,7 @@ impl Sub<Duration> for OffsetDateTime {
 
     #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
-        (self.datetime - duration).using_offset(self.offset)
+        (self.utc_datetime - duration).using_offset(self.offset)
     }
 }
 
@@ -742,7 +756,7 @@ impl Sub<StdDuration> for OffsetDateTime {
 
     #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
-        (self.datetime - duration).using_offset(self.offset)
+        (self.utc_datetime - duration).using_offset(self.offset)
     }
 }
 
@@ -765,13 +779,14 @@ impl Sub<OffsetDateTime> for OffsetDateTime {
 
     #[inline(always)]
     fn sub(self, rhs: Self) -> Self::Output {
-        Duration::seconds(self.timestamp() - rhs.timestamp())
+        self.utc_datetime - rhs.utc_datetime
     }
 }
 
+// TODO A number of tests need to be updated once `assume_offset` is
+// implemented.
 #[cfg(test)]
 #[rustfmt::skip::macros(date)]
-#[allow(clippy::zero_prefixed_literal, clippy::result_unwrap_used)]
 mod test {
     use super::*;
     use crate::{date, prelude::*, time};
@@ -825,7 +840,7 @@ mod test {
             offset!(UTC),
         );
         assert_eq!(
-            date!(2019-1-1)
+            date!(2019-01-01)
                 .midnight()
                 .using_offset(offset!(+1))
                 .offset(),
@@ -840,7 +855,7 @@ mod test {
             PrimitiveDateTime::unix_epoch()
                 .using_offset(offset!(-1))
                 .timestamp(),
-            3_600,
+            3600,
         );
     }
 
@@ -855,10 +870,10 @@ mod test {
         );
         assert_eq!(
             date!(2019-01-01)
-                .midnight()
+                .with_time(time!(23:00:00))
                 .using_offset(offset!(-1))
                 .date(),
-            date!(2018-12-31),
+            date!(2019-01-01),
         );
     }
 
@@ -874,7 +889,8 @@ mod test {
         assert_eq!(
             date!(2019-01-01)
                 .midnight()
-                .using_offset(offset!(-1))
+                .using_offset(offset!(UTC))
+                .to_offset(offset!(-1))
                 .time(),
             time!(23:00),
         );
@@ -920,7 +936,7 @@ mod test {
                 .with_time(time!(23:00))
                 .using_offset(offset!(+1))
                 .month(),
-            1,
+            12,
         );
     }
 
@@ -938,7 +954,7 @@ mod test {
                 .with_time(time!(23:00))
                 .using_offset(offset!(+1))
                 .day(),
-            1,
+            31,
         );
     }
 
@@ -956,7 +972,7 @@ mod test {
                 .with_time(time!(23:00))
                 .using_offset(offset!(+1))
                 .month_day(),
-            (1, 1),
+            (12, 31),
         );
     }
 
@@ -974,7 +990,7 @@ mod test {
                 .with_time(time!(23:00))
                 .using_offset(offset!(+1))
                 .ordinal(),
-            1,
+            365,
         );
     }
 
@@ -1050,7 +1066,7 @@ mod test {
                 .with_time(time!(23:59:59))
                 .using_offset(UtcOffset::hours(-2))
                 .hour(),
-            21,
+            23,
         );
     }
 
@@ -1068,7 +1084,7 @@ mod test {
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(+0:30))
                 .minute(),
-            29,
+            59,
         );
     }
 
@@ -1086,7 +1102,7 @@ mod test {
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(+0:00:30))
                 .second(),
-            29,
+            59,
         );
     }
 
@@ -1201,6 +1217,12 @@ mod test {
             .with_time(time!(23:00))
             .using_offset(offset!(-1));
         assert_eq!(t1, t2);
+
+        let t1 = date!(2019-01-01).midnight().using_offset(offset!(UTC));
+        let t2 = date!(2019-01-01)
+            .with_time(time!(0:00:00.000_000_001))
+            .using_offset(offset!(UTC));
+        assert!(t2 > t1);
     }
 
     #[test]
@@ -1222,6 +1244,24 @@ mod test {
                 date!(2018-12-31)
                     .with_time(time!(23:00))
                     .using_offset(offset!(-1))
+                    .hash(&mut hasher);
+                hasher.finish()
+            }
+        );
+
+        // Ensure that a `PrimitiveDateTime` and `OffsetDateTime` don't collide,
+        // even if the UTC time is the same.
+        assert_ne!(
+            {
+                let mut hasher = DefaultHasher::new();
+                date!(2019-01-01).midnight().hash(&mut hasher);
+                hasher.finish()
+            },
+            {
+                let mut hasher = DefaultHasher::new();
+                date!(2019-01-01)
+                    .midnight()
+                    .using_offset(offset!(UTC))
                     .hash(&mut hasher);
                 hasher.finish()
             }
