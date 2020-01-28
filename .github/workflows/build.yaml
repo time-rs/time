@@ -23,14 +23,6 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
-      # downgrade dependencies for compatibility
-      - name: Downgrade dependencies
-        uses: actions-rs/cargo@v1
-        with:
-          command: update
-          args: -p cfg-if --precise 0.1.9
-        if: matrix.rust == '1.21.0'
-
       # default features
       - name: Run `cargo check`
         uses: actions-rs/cargo@v1
@@ -64,7 +56,13 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
-      # downgrade dependencies for compatibility
+      # Generate Cargo.lock before attempting to downgrade
+      - name: Generate lock file
+        uses: actions-rs/cargo@v1
+        with:
+          command: generate-lockfile
+
+      # downgrade dev-dependencies for compatibility
       - name: Downgrade dependencies
         uses: actions-rs/cargo@v1
         with:
