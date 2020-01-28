@@ -1,11 +1,8 @@
 #[allow(unused_imports)]
 use crate::shim::*;
+use crate::ConversionRangeError;
 #[cfg(feature = "std")]
 use crate::Instant;
-use crate::{
-    ConversionRangeError,
-    Sign::{self, Negative, Positive, Zero},
-};
 use core::{
     cmp::Ordering::{self, Equal, Greater, Less},
     convert::{TryFrom, TryInto},
@@ -213,8 +210,16 @@ impl Duration {
     /// assert_eq!(Duration::seconds(-1).sign(), Sign::Negative);
     /// assert_eq!(Duration::zero().sign(), Sign::Zero);
     /// ```
+    #[deprecated(
+        since = "0.2.7",
+        note = "To obtain the sign of a `Duration`, you should use the `is_positive`, \
+                `is_negative`, and `is_zero` methods."
+    )]
+    #[allow(deprecated)]
     #[inline(always)]
-    pub fn sign(self) -> Sign {
+    pub fn sign(self) -> crate::Sign {
+        use crate::Sign::*;
+
         if self.nanoseconds > 0 {
             Positive
         } else if self.nanoseconds < 0 {
@@ -246,13 +251,12 @@ impl Duration {
     }
 
     /// Convert the existing `Duration` to a `std::time::Duration` and its sign.
+    // This doesn't actually require the standard library, but is currently only
+    // used when it's enabled.
     #[inline(always)]
     #[cfg(feature = "std")]
-    pub(crate) fn sign_abs_std(self) -> (Sign, StdDuration) {
-        (
-            self.sign(),
-            StdDuration::new(self.seconds.abs() as u64, self.nanoseconds.abs() as u32),
-        )
+    pub(crate) fn abs_std(self) -> StdDuration {
+        StdDuration::new(self.seconds.abs() as u64, self.nanoseconds.abs() as u32)
     }
 
     /// Create a new `Duration` with the provided seconds and nanoseconds. If
@@ -1307,8 +1311,10 @@ mod test {
         assert!(1.seconds().is_positive());
     }
 
+    #[allow(deprecated)]
     #[test]
     fn sign() {
+        use crate::Sign::*;
         assert_eq!(1.seconds().sign(), Positive);
         assert_eq!((-1).seconds().sign(), Negative);
         assert_eq!(0.seconds().sign(), Zero);
@@ -1327,10 +1333,10 @@ mod test {
         assert_eq!(Duration::new(-1, 0), (-1).seconds());
         assert_eq!(Duration::new(1, 2_000_000_000), 3.seconds());
 
-        assert_eq!(Duration::new(0, 0).sign(), Zero);
-        assert_eq!(Duration::new(0, 1_000_000_000).sign(), Positive);
-        assert_eq!(Duration::new(-1, 1_000_000_000).sign(), Zero);
-        assert_eq!(Duration::new(-2, 1_000_000_000).sign(), Negative);
+        assert!(Duration::new(0, 0).is_zero());
+        assert!(Duration::new(0, 1_000_000_000).is_positive());
+        assert!(Duration::new(-1, 1_000_000_000).is_zero());
+        assert!(Duration::new(-2, 1_000_000_000).is_negative());
     }
 
     #[test]

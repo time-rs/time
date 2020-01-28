@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use core::ops::{Div, DivAssign, Mul, MulAssign, Neg, Not};
 use Sign::{Negative, Positive, Zero};
 
@@ -11,6 +13,11 @@ use Sign::{Negative, Positive, Zero};
 #[cfg_attr(
     feature = "serde",
     serde(try_from = "crate::serde::Sign", into = "crate::serde::Sign")
+)]
+#[deprecated(
+    since = "0.2.7",
+    note = "The only use for this (obtaining the sign of a `Duration`) can be replaced with \
+            `Duration::is_{positive|negative|zero}`"
 )]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Sign {

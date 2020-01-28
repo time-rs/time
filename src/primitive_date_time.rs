@@ -1,7 +1,5 @@
 #[cfg(not(feature = "std"))]
 use crate::alloc_prelude::*;
-#[cfg(feature = "std")]
-use crate::Sign;
 use crate::{
     format::parse::{parse, ParseResult, ParsedItems},
     time, Date, DeferredFormat, Duration, OffsetDateTime, Time, UtcOffset, Weekday,
@@ -484,10 +482,13 @@ impl Add<Duration> for SystemTime {
 
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
-        match duration.sign_abs_std() {
-            (Sign::Zero, _) => self,
-            (Sign::Positive, duration) => self + duration,
-            (Sign::Negative, duration) => self - duration,
+        if duration.is_zero() {
+            self
+        } else if duration.is_positive() {
+            self + duration.abs_std()
+        } else {
+            // duration.is_negative()
+            self - duration.abs_std()
         }
     }
 }
@@ -696,10 +697,13 @@ impl From<PrimitiveDateTime> for SystemTime {
     fn from(datetime: PrimitiveDateTime) -> Self {
         let duration = datetime - PrimitiveDateTime::unix_epoch();
 
-        match duration.sign_abs_std() {
-            (Sign::Positive, duration) => Self::UNIX_EPOCH + duration,
-            (Sign::Negative, duration) => Self::UNIX_EPOCH - duration,
-            (Sign::Zero, _) => Self::UNIX_EPOCH,
+        if duration.is_zero() {
+            Self::UNIX_EPOCH
+        } else if duration.is_positive() {
+            Self::UNIX_EPOCH + duration.abs_std()
+        } else {
+            // duration.is_negative()
+            Self::UNIX_EPOCH - duration.abs_std()
         }
     }
 }

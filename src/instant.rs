@@ -1,7 +1,4 @@
-use crate::{
-    Duration,
-    Sign::{Negative, Positive, Zero},
-};
+use crate::Duration;
 use core::{
     cmp::{Ord, Ordering, PartialEq, PartialOrd},
     convert::TryInto,
@@ -86,10 +83,13 @@ impl Instant {
     /// ```
     #[inline]
     pub fn checked_add(self, duration: Duration) -> Option<Self> {
-        match duration.sign_abs_std() {
-            (Zero, _) => Some(self),
-            (Negative, duration) => self.inner.checked_sub(duration).map(From::from),
-            (Positive, duration) => self.inner.checked_add(duration).map(From::from),
+        if duration.is_zero() {
+            Some(self)
+        } else if duration.is_positive() {
+            self.inner.checked_add(duration.abs_std()).map(From::from)
+        } else {
+            // duration.is_negative()
+            self.inner.checked_sub(duration.abs_std()).map(From::from)
         }
     }
 

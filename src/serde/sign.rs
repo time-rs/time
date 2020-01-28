@@ -3,6 +3,10 @@ use core::convert::TryFrom;
 // positive => 1
 // negative => -1
 // zero => 0
+#[deprecated(
+    since = "0.2.7",
+    note = "The only use for this struct has been replaced. See the main struct for details."
+)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub(crate) struct Sign(i8);
 

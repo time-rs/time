@@ -330,6 +330,7 @@ pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
+#[allow(deprecated)]
 pub use sign::Sign;
 /// Construct a [`Date`] with a statically known value.
 ///

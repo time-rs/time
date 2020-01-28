@@ -11,7 +11,7 @@ use super::{
 };
 #[cfg(not(feature = "std"))]
 use crate::alloc_prelude::*;
-use crate::{shim::*, Date, Sign, Weekday};
+use crate::{shim::*, Date, Weekday};
 use core::{
     fmt::{self, Formatter},
     num::{NonZeroU16, NonZeroU8},
@@ -200,13 +200,7 @@ pub(crate) fn fmt_G(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 /// Week-based year
 #[inline(always)]
 pub(crate) fn parse_G(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    let sign = try_consume_first_match(
-        s,
-        [("+", Sign::Positive), ("-", Sign::Negative)]
-            .iter()
-            .cloned(),
-    )
-    .unwrap_or(Sign::Positive);
+    let sign = try_consume_first_match(s, [("+", 1), ("-", -1)].iter().cloned()).unwrap_or(1);
 
     consume_padding(s, padding.default_to(Padding::Zero), 4);
 
@@ -378,13 +372,7 @@ pub(crate) fn fmt_Y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 /// Full year
 #[inline(always)]
 pub(crate) fn parse_Y(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    let sign = try_consume_first_match(
-        s,
-        [("+", Sign::Positive), ("-", Sign::Negative)]
-            .iter()
-            .cloned(),
-    )
-    .unwrap_or(Sign::Positive);
+    let sign = try_consume_first_match(s, [("+", 1), ("-", -1)].iter().cloned()).unwrap_or(1);
 
     consume_padding(s, padding.default_to(Padding::Zero), 4);
 

@@ -6,7 +6,7 @@ use super::{
     parse::{try_consume_exact_digits_in_range, try_consume_first_match},
     Padding, ParseError, ParseResult, ParsedItems,
 };
-use crate::{Sign, UtcOffset};
+use crate::UtcOffset;
 use core::fmt::{self, Formatter};
 
 /// UTC offset
@@ -17,10 +17,7 @@ pub(crate) fn fmt_z(f: &mut Formatter<'_>, offset: UtcOffset) -> fmt::Result {
     write!(
         f,
         "{}{:02}{:02}",
-        match offset.sign() {
-            Sign::Positive | Sign::Zero => "+",
-            Sign::Negative => "-",
-        },
+        if offset.is_negative() { '-' } else { '+' },
         offset.whole_hours().abs(),
         (offset.whole_minutes() - 60 * offset.whole_hours()).abs()
     )
@@ -29,13 +26,8 @@ pub(crate) fn fmt_z(f: &mut Formatter<'_>, offset: UtcOffset) -> fmt::Result {
 /// UTC offset
 #[inline(always)]
 pub(crate) fn parse_z(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
-    let sign = try_consume_first_match(
-        s,
-        [("+", Sign::Positive), ("-", Sign::Negative)]
-            .iter()
-            .cloned(),
-    )
-    .ok_or(ParseError::InvalidOffset)?;
+    let sign = try_consume_first_match(s, [("+", 1), ("-", -1)].iter().cloned())
+        .ok_or(ParseError::InvalidOffset)?;
 
     let hours: i16 = try_consume_exact_digits_in_range(s, 2, 0..24, Padding::Zero)
         .ok_or(ParseError::InvalidOffset)?;
