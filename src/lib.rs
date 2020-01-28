@@ -657,6 +657,7 @@ mod tests {
     #[allow(deprecated)] // `Once::new` is const starting in Rust 1.32
     use std::sync::ONCE_INIT;
     use std::sync::{Once, Mutex, MutexGuard, LockResult};
+    use std::i32;
     use std::mem;
 
     struct TzReset {
@@ -699,8 +700,8 @@ mod tests {
 
     #[test]
     fn test_get_time() {
-        static SOME_RECENT_DATE: i64 = 1325376000i64; // 2012-01-01T00:00:00Z
-        static SOME_FUTURE_DATE: i64 = 1577836800i64; // 2020-01-01T00:00:00Z
+        static SOME_RECENT_DATE: i64 = 1577836800i64; // 2020-01-01T00:00:00Z
+        static SOME_FUTURE_DATE: i64 = i32::MAX as i64; // Y2038
 
         let tv1 = get_time();
         debug!("tv1={} sec + {} nsec", tv1.sec, tv1.nsec);
