@@ -654,7 +654,9 @@ mod tests {
     use super::ParseError::{InvalidTime, InvalidYear, MissingFormatConverter,
                             InvalidFormatSpecifier};
 
-    use std::sync::{Once, ONCE_INIT, Mutex, MutexGuard, LockResult};
+    #[allow(deprecated)] // `Once::new` is const starting in Rust 1.32
+    use std::sync::ONCE_INIT;
+    use std::sync::{Once, Mutex, MutexGuard, LockResult};
     use std::mem;
 
     struct TzReset {
@@ -666,6 +668,7 @@ mod tests {
         // Lock manages current timezone because some tests require LA some
         // London
         static mut LOCK: *mut Mutex<()> = 0 as *mut _;
+        #[allow(deprecated)] // `Once::new` is const starting in Rust 1.32
         static INIT: Once = ONCE_INIT;
 
         unsafe {
