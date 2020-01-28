@@ -1000,26 +1000,20 @@ mod inner {
             ) -> BOOL;
         }
 
-        #[repr(C)]
-        struct TKP {
-            tkp: TOKEN_PRIVILEGES,
-            laa: LUID_AND_ATTRIBUTES,
-        }
-
         INIT.call_once(|| unsafe {
             let mut hToken = 0 as *mut _;
             call!(OpenProcessToken(GetCurrentProcess(),
                                    TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
                                    &mut hToken));
 
-            let mut tkp = mem::zeroed::<TKP>();
-            assert_eq!(tkp.tkp.Privileges.len(), 0);
+            let mut tkp = mem::zeroed::<TOKEN_PRIVILEGES>();
+            assert_eq!(tkp.Privileges.len(), 1);
             let c = ::std::ffi::CString::new("SeTimeZonePrivilege").unwrap();
             call!(LookupPrivilegeValueA(0 as *const _, c.as_ptr(),
-                                        &mut tkp.laa.Luid));
-            tkp.tkp.PrivilegeCount = 1;
-            tkp.laa.Attributes = SE_PRIVILEGE_ENABLED;
-            call!(AdjustTokenPrivileges(hToken, FALSE, &mut tkp.tkp, 0,
+                                        &mut tkp.Privileges[0].Luid));
+            tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+            tkp.PrivilegeCount = 1;
+            call!(AdjustTokenPrivileges(hToken, FALSE, &mut tkp, 0,
                                         0 as *mut _, 0 as *mut _));
         });
     }
