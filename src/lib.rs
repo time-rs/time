@@ -33,6 +33,8 @@
 #![doc(html_logo_url = "https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png",
        html_favicon_url = "https://www.rust-lang.org/favicon.ico",
        html_root_url = "https://doc.rust-lang.org/time/")]
+#![allow(unknown_lints)]
+#![allow(ellipsis_inclusive_range_patterns)] // `..=` requires Rust 1.26
 #![allow(trivial_numeric_casts)]
 #![cfg_attr(test, deny(warnings))]
 
