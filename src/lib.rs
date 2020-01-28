@@ -553,6 +553,7 @@ pub enum ParseError {
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        #[allow(deprecated)]
         match *self {
             InvalidFormatSpecifier(ch) => {
                 write!(f, "{}: %{}", self.description(), ch)

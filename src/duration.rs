@@ -407,6 +407,7 @@ impl fmt::Display for Duration {
 pub struct OutOfRangeError(());
 
 impl fmt::Display for OutOfRangeError {
+    #[allow(deprecated)]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.description())
     }
