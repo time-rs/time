@@ -471,11 +471,14 @@ mod inner {
 
     #[cfg(any(target_os = "macos", target_os = "ios"))]
     mod mac {
+        #[allow(deprecated)]
         use libc::{self, timeval, mach_timebase_info};
+        #[allow(deprecated)]
         use std::sync::{Once, ONCE_INIT};
         use std::ops::{Add, Sub};
         use Duration;
 
+        #[allow(deprecated)]
         fn info() -> &'static mach_timebase_info {
             static mut INFO: mach_timebase_info = mach_timebase_info {
                 numer: 0,
@@ -498,6 +501,7 @@ mod inner {
             (tv.tv_sec as i64, tv.tv_usec * 1000)
         }
 
+        #[allow(deprecated)]
         #[inline]
         pub fn get_precise_ns() -> u64 {
             unsafe {
@@ -692,6 +696,7 @@ mod inner {
 mod inner {
     use std::io;
     use std::mem;
+    #[allow(deprecated)]
     use std::sync::{Once, ONCE_INIT};
     use std::ops::{Add, Sub};
     use {Tm, Duration};
@@ -705,6 +710,7 @@ mod inner {
 
     fn frequency() -> i64 {
         static mut FREQUENCY: i64 = 0;
+        #[allow(deprecated)]
         static ONCE: Once = ONCE_INIT;
 
         unsafe {
@@ -980,10 +986,10 @@ mod inner {
     // https://msdn.microsoft.com/en-us/library/windows/desktop/ms724944%28v=vs.85%29.aspx
     #[cfg(test)]
     fn acquire_privileges() {
-        use std::sync::{ONCE_INIT, Once};
         use winapi::um::processthreadsapi::*;
         use winapi::um::winbase::LookupPrivilegeValueA;
         const SE_PRIVILEGE_ENABLED: DWORD = 2;
+        #[allow(deprecated)]
         static INIT: Once = ONCE_INIT;
 
         // TODO: FIXME
@@ -994,26 +1000,20 @@ mod inner {
             ) -> BOOL;
         }
 
-        #[repr(C)]
-        struct TKP {
-            tkp: TOKEN_PRIVILEGES,
-            laa: LUID_AND_ATTRIBUTES,
-        }
-
         INIT.call_once(|| unsafe {
             let mut hToken = 0 as *mut _;
             call!(OpenProcessToken(GetCurrentProcess(),
                                    TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
                                    &mut hToken));
 
-            let mut tkp = mem::zeroed::<TKP>();
-            assert_eq!(tkp.tkp.Privileges.len(), 0);
+            let mut tkp = mem::zeroed::<TOKEN_PRIVILEGES>();
+            assert_eq!(tkp.Privileges.len(), 1);
             let c = ::std::ffi::CString::new("SeTimeZonePrivilege").unwrap();
             call!(LookupPrivilegeValueA(0 as *const _, c.as_ptr(),
-                                        &mut tkp.laa.Luid));
-            tkp.tkp.PrivilegeCount = 1;
-            tkp.laa.Attributes = SE_PRIVILEGE_ENABLED;
-            call!(AdjustTokenPrivileges(hToken, FALSE, &mut tkp.tkp, 0,
+                                        &mut tkp.Privileges[0].Luid));
+            tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+            tkp.PrivilegeCount = 1;
+            call!(AdjustTokenPrivileges(hToken, FALSE, &mut tkp, 0,
                                         0 as *mut _, 0 as *mut _));
         });
     }

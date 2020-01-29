@@ -1,0 +1,84 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  check:
+    name: Type checking
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        rust: [1.21.0, stable]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+
+      # default features
+      - name: Run `cargo check`
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+
+      # everything
+      - name: Run `cargo check --all-features`
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all-features
+
+  test:
+    name: Test suite
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        rust: [1.21.0, stable]
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+
+      # Generate Cargo.lock before attempting to downgrade
+      - name: Generate lock file
+        uses: actions-rs/cargo@v1
+        with:
+          command: generate-lockfile
+
+      # downgrade dev-dependencies for compatibility
+      - name: Downgrade dependencies
+        uses: actions-rs/cargo@v1
+        with:
+          command: update
+          args: -p cfg-if --precise 0.1.9
+        if: matrix.rust == '1.21.0'
+
+      # default features
+      - name: Run `cargo test`
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+
+      # everything
+      - name: Run `cargo test --all-features`
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
