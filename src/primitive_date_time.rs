@@ -388,7 +388,7 @@ impl PrimitiveDateTime {
     }
 
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in
-    /// the provided `UtcOffset`, return an `OffsetDateTime`.
+    /// the UTC, return an `OffsetDateTime` with the provided `UtcOffset`.
     ///
     /// ```rust
     /// # use time::{date, offset};
@@ -398,10 +398,9 @@ impl PrimitiveDateTime {
     /// );
     /// ```
     #[inline(always)]
-    pub fn using_offset(self, offset: UtcOffset) -> OffsetDateTime {
+    pub const fn using_offset(self, offset: UtcOffset) -> OffsetDateTime {
         OffsetDateTime {
-            // Subtract the offset to get the time at UTC.
-            utc_datetime: self - offset.as_duration(),
+            utc_datetime: self,
             offset,
         }
     }

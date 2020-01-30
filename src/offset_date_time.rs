@@ -53,7 +53,7 @@ impl OffsetDateTime {
     /// provided `UtcOffset`.
     ///
     /// ```rust
-    /// # use time::{date, OffsetDateTime, UtcOffset, offset};
+    /// # use time::{date, OffsetDateTime, UtcOffset, offset, time};
     /// assert_eq!(
     ///     date!(2000-01-01)
     ///         .midnight()
@@ -62,13 +62,22 @@ impl OffsetDateTime {
     ///         .year(),
     ///     1999,
     /// );
+    ///
+    /// // Let's see what time Sydney's new year's celebration is in New York
+    /// // and Los Angeles.
+    ///
+    /// // Construct midnight on new year's in Sydney. This is equivalent to
+    /// // 13:00 UTC.
+    /// let sydney = date!(1999-12-31).with_time(time!(13:00)).using_offset(offset!(+11));
+    /// let new_york = sydney.to_offset(offset!(-5));
+    /// let los_angeles = sydney.to_offset(offset!(-8));
+    /// assert_eq!(sydney.hour(), 0);
+    /// assert_eq!(new_york.hour(), 8);
+    /// assert_eq!(los_angeles.hour(), 5);
     /// ```
     #[inline(always)]
     pub const fn to_offset(self, offset: UtcOffset) -> Self {
-        Self {
-            utc_datetime: self.utc_datetime,
-            offset,
-        }
+        self.utc_datetime.using_offset(offset)
     }
 
     /// Midnight, 1 January, 1970 (UTC).
@@ -84,10 +93,7 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub const fn unix_epoch() -> Self {
-        Self {
-            utc_datetime: PrimitiveDateTime::unix_epoch(),
-            offset: offset!(UTC),
-        }
+        PrimitiveDateTime::unix_epoch().using_offset(offset!(UTC))
     }
 
     /// Create an `OffsetDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
@@ -148,7 +154,7 @@ impl OffsetDateTime {
     ///     PrimitiveDateTime::unix_epoch()
     ///         .using_offset(offset!(-1))
     ///         .timestamp(),
-    ///     3_600,
+    ///     0,
     /// );
     /// ```
     #[inline(always)]
@@ -169,10 +175,10 @@ impl OffsetDateTime {
     /// );
     /// assert_eq!(
     ///     date!(2019-01-01)
-    ///         .with_time(time!(23:00:00))
+    ///         .midnight()
     ///         .using_offset(offset!(-1))
     ///         .date(),
-    ///     date!(2019-01-01),
+    ///     date!(2018-12-31),
     /// );
     /// ```
     #[inline(always)]
@@ -196,7 +202,7 @@ impl OffsetDateTime {
     ///         .midnight()
     ///         .using_offset(offset!(-1))
     ///         .time(),
-    ///     time!(0:00)
+    ///     time!(23:00)
     /// );
     /// ```
     #[inline(always)]
@@ -256,7 +262,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(+1))
     ///         .month(),
-    ///     12,
+    ///     1,
     /// );
     /// ```
     #[inline(always)]
@@ -283,7 +289,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(+1))
     ///         .day(),
-    ///     31,
+    ///     1,
     /// );
     /// ```
     #[inline(always)]
@@ -310,7 +316,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(+1))
     ///         .month_day(),
-    ///     (12, 31),
+    ///     (1, 1),
     /// );
     /// ```
     #[inline(always)]
@@ -336,7 +342,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:00))
     ///         .using_offset(offset!(+1))
     ///         .ordinal(),
-    ///     365,
+    ///     1,
     /// );
     /// ```
     #[inline(always)]
@@ -481,7 +487,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:59:59))
     ///         .using_offset(offset!(-2))
     ///         .hour(),
-    ///     23,
+    ///     21,
     /// );
     /// ```
     #[inline(always)]
@@ -507,7 +513,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:59:59))
     ///         .using_offset(offset!(+0:30))
     ///         .minute(),
-    ///     59,
+    ///     29,
     /// );
     /// ```
     #[inline(always)]
@@ -533,7 +539,7 @@ impl OffsetDateTime {
     ///         .with_time(time!(23:59:59))
     ///         .using_offset(offset!(+0:00:30))
     ///         .second(),
-    ///     59,
+    ///     29,
     /// );
     /// ```
     #[inline(always)]
@@ -672,10 +678,10 @@ impl OffsetDateTime {
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
         let offset = UtcOffset::try_from_parsed_items(items)?;
 
-        Ok(Self {
-            utc_datetime: PrimitiveDateTime::try_from_parsed_items(items)? - offset.as_duration(),
-            offset,
-        })
+        Ok(
+            (PrimitiveDateTime::try_from_parsed_items(items)? - offset.as_duration())
+                .using_offset(offset),
+        )
     }
 }
 
@@ -696,7 +702,7 @@ impl PartialOrd for OffsetDateTime {
 impl Ord for OffsetDateTime {
     #[inline(always)]
     fn cmp(&self, rhs: &Self) -> Ordering {
-        self.utc_datetime.cmp(&(rhs.utc_datetime))
+        self.utc_datetime.cmp(&rhs.utc_datetime)
     }
 }
 
@@ -783,8 +789,6 @@ impl Sub<OffsetDateTime> for OffsetDateTime {
     }
 }
 
-// TODO A number of tests need to be updated once `assume_offset` is
-// implemented.
 #[cfg(test)]
 #[rustfmt::skip::macros(date)]
 mod test {
@@ -808,6 +812,18 @@ mod test {
                 .year(),
             1999,
         );
+
+        let sydney = date!(1999-12-31)
+            .with_time(time!(13:00))
+            .using_offset(offset!(+11));
+        let new_york = sydney.to_offset(offset!(-5));
+        let los_angeles = sydney.to_offset(offset!(-8));
+        assert_eq!(sydney.hour(), 0);
+        assert_eq!(sydney.day(), 1);
+        assert_eq!(new_york.hour(), 8);
+        assert_eq!(new_york.day(), 31);
+        assert_eq!(los_angeles.hour(), 5);
+        assert_eq!(los_angeles.day(), 31);
     }
 
     #[test]
@@ -855,7 +871,7 @@ mod test {
             PrimitiveDateTime::unix_epoch()
                 .using_offset(offset!(-1))
                 .timestamp(),
-            3600,
+            0,
         );
     }
 
@@ -870,10 +886,10 @@ mod test {
         );
         assert_eq!(
             date!(2019-01-01)
-                .with_time(time!(23:00:00))
+                .midnight()
                 .using_offset(offset!(-1))
                 .date(),
-            date!(2019-01-01),
+            date!(2018-12-31),
         );
     }
 
@@ -889,8 +905,7 @@ mod test {
         assert_eq!(
             date!(2019-01-01)
                 .midnight()
-                .using_offset(offset!(UTC))
-                .to_offset(offset!(-1))
+                .using_offset(offset!(-1))
                 .time(),
             time!(23:00),
         );
@@ -936,7 +951,7 @@ mod test {
                 .with_time(time!(23:00))
                 .using_offset(offset!(+1))
                 .month(),
-            12,
+            1,
         );
     }
 
@@ -954,7 +969,7 @@ mod test {
                 .with_time(time!(23:00))
                 .using_offset(offset!(+1))
                 .day(),
-            31,
+            1,
         );
     }
 
@@ -972,7 +987,7 @@ mod test {
                 .with_time(time!(23:00))
                 .using_offset(offset!(+1))
                 .month_day(),
-            (12, 31),
+            (1, 1),
         );
     }
 
@@ -990,7 +1005,7 @@ mod test {
                 .with_time(time!(23:00))
                 .using_offset(offset!(+1))
                 .ordinal(),
-            365,
+            1,
         );
     }
 
@@ -1066,7 +1081,7 @@ mod test {
                 .with_time(time!(23:59:59))
                 .using_offset(UtcOffset::hours(-2))
                 .hour(),
-            23,
+            21,
         );
     }
 
@@ -1084,7 +1099,7 @@ mod test {
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(+0:30))
                 .minute(),
-            59,
+            29,
         );
     }
 
@@ -1102,7 +1117,7 @@ mod test {
                 .with_time(time!(23:59:59))
                 .using_offset(offset!(+0:00:30))
                 .second(),
-            59,
+            29,
         );
     }
 
@@ -1194,9 +1209,7 @@ mod test {
     #[test]
     fn partial_eq() {
         assert_eq!(
-            date!(1999-12-31)
-                .with_time(time!(23:00))
-                .using_offset(offset!(-1)),
+            date!(2000-01-01).midnight().using_offset(offset!(-1)),
             date!(2000-01-01).midnight().using_offset(offset!(UTC)),
         );
     }
@@ -1204,18 +1217,14 @@ mod test {
     #[test]
     fn partial_ord() {
         let t1 = date!(2019-01-01).midnight().using_offset(offset!(UTC));
-        let t2 = date!(2018-12-31)
-            .with_time(time!(23:00))
-            .using_offset(offset!(-1));
+        let t2 = date!(2019-01-01).midnight().using_offset(offset!(-1));
         assert_eq!(t1.partial_cmp(&t2), Some(Ordering::Equal));
     }
 
     #[test]
     fn ord() {
         let t1 = date!(2019-01-01).midnight().using_offset(offset!(UTC));
-        let t2 = date!(2018-12-31)
-            .with_time(time!(23:00))
-            .using_offset(offset!(-1));
+        let t2 = date!(2019-01-01).midnight().using_offset(offset!(-1));
         assert_eq!(t1, t2);
 
         let t1 = date!(2019-01-01).midnight().using_offset(offset!(UTC));
@@ -1241,8 +1250,8 @@ mod test {
             },
             {
                 let mut hasher = DefaultHasher::new();
-                date!(2018-12-31)
-                    .with_time(time!(23:00))
+                date!(2019-01-01)
+                    .midnight()
                     .using_offset(offset!(-1))
                     .hash(&mut hasher);
                 hasher.finish()
