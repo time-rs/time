@@ -642,13 +642,11 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub fn format(self, format: &str) -> String {
-        DeferredFormat {
-            date: Some(self.date()),
-            time: Some(self.time()),
-            offset: Some(self.offset()),
-            format: crate::format::parse_fmt_string(format),
-        }
-        .to_string()
+        DeferredFormat::new(format)
+            .with_date(self.date())
+            .with_time(self.time())
+            .with_offset(self.offset())
+            .to_string()
     }
 
     /// Attempt to parse an `OffsetDateTime` using the provided string.

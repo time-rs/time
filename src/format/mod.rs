@@ -278,13 +278,45 @@ pub(crate) enum FormatItem<'a> {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) struct DeferredFormat<'a> {
     /// The `Date` to use for formatting.
-    pub(crate) date: Option<Date>,
+    date: Option<Date>,
     /// The `Time` to use for formatting.
-    pub(crate) time: Option<Time>,
+    time: Option<Time>,
     /// The `UtcOffset` to use for formatting.
-    pub(crate) offset: Option<UtcOffset>,
+    offset: Option<UtcOffset>,
     /// The list of items used to display the item.
-    pub(crate) format: Vec<FormatItem<'a>>,
+    format: Vec<FormatItem<'a>>,
+}
+
+impl<'a> DeferredFormat<'a> {
+    pub(crate) fn new(format: &'a str) -> Self {
+        Self {
+            date: None,
+            time: None,
+            offset: None,
+            format: parse_fmt_string(format),
+        }
+    }
+
+    pub(crate) fn with_date(self, date: Date) -> Self {
+        Self {
+            date: Some(date),
+            ..self
+        }
+    }
+
+    pub(crate) fn with_time(self, time: Time) -> Self {
+        Self {
+            time: Some(time),
+            ..self
+        }
+    }
+
+    pub(crate) fn with_offset(self, offset: UtcOffset) -> Self {
+        Self {
+            offset: Some(offset),
+            ..self
+        }
+    }
 }
 
 impl Display for DeferredFormat<'_> {

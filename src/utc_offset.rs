@@ -209,13 +209,7 @@ impl UtcOffset {
     /// ```
     #[inline(always)]
     pub fn format(self, format: &str) -> String {
-        DeferredFormat {
-            date: None,
-            time: None,
-            offset: Some(self),
-            format: crate::format::parse_fmt_string(format),
-        }
-        .to_string()
+        DeferredFormat::new(format).with_offset(self).to_string()
     }
 
     /// Attempt to parse the `UtcOffset` using the provided string.

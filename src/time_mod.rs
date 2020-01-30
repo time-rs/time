@@ -528,13 +528,7 @@ impl Time {
     /// ```
     #[inline(always)]
     pub fn format(self, format: &str) -> String {
-        DeferredFormat {
-            date: None,
-            time: Some(self),
-            offset: None,
-            format: crate::format::parse_fmt_string(format),
-        }
-        .to_string()
+        DeferredFormat::new(format).with_time(self).to_string()
     }
 
     /// Attempt to parse a `Time` using the provided string.

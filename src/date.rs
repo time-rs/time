@@ -898,13 +898,7 @@ impl Date {
     /// ```
     #[inline(always)]
     pub fn format(self, format: &str) -> String {
-        DeferredFormat {
-            date: Some(self),
-            time: None,
-            offset: None,
-            format: crate::format::parse_fmt_string(format),
-        }
-        .to_string()
+        DeferredFormat::new(format).with_date(self).to_string()
     }
 
     /// Attempt to parse a `Date` using the provided string.

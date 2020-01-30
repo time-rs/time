@@ -419,13 +419,10 @@ impl PrimitiveDateTime {
     /// ```
     #[inline(always)]
     pub fn format(self, format: &str) -> String {
-        DeferredFormat {
-            date: Some(self.date()),
-            time: Some(self.time()),
-            offset: None,
-            format: crate::format::parse_fmt_string(format),
-        }
-        .to_string()
+        DeferredFormat::new(format)
+            .with_date(self.date())
+            .with_time(self.time())
+            .to_string()
     }
 
     /// Attempt to parse a `PrimitiveDateTime` using the provided string.
