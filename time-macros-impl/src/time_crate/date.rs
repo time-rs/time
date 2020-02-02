@@ -1,4 +1,4 @@
-use super::Weekday::{self, *};
+use super::Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday};
 use crate::shim::*;
 
 fn is_leap_year(year: i32) -> bool {
@@ -15,6 +15,7 @@ const DAYS_IN_MONTH_COMMON_LEAP: [[u16; 12]; 2] = [
     [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
 ];
 
+#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn days_in_year_month(year: i32, month: u8) -> u8 {
     DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1] as u8
 }
@@ -35,7 +36,7 @@ pub(crate) struct Date {
 }
 
 impl Date {
-    pub(crate) fn as_yo(&self) -> (i32, u16) {
+    pub(crate) const fn as_yo(&self) -> (i32, u16) {
         (self.year, self.ordinal)
     }
 
@@ -138,7 +139,7 @@ impl Date {
         }
     }
 
-    pub(crate) fn from_yo_unchecked(year: i32, ordinal: u16) -> Date {
+    pub(crate) const fn from_yo_unchecked(year: i32, ordinal: u16) -> Date {
         Date { year, ordinal }
     }
 }

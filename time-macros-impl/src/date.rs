@@ -37,7 +37,7 @@ impl Parse for Date {
             let week = {
                 let week = input.parse::<Ident>()?;
                 let week_str = week.to_string();
-                if week_str.starts_with("W") {
+                if week_str.starts_with('W') {
                     LitInt::new(&week_str[1..], week.span())
                 } else {
                     return error!(week.span(), "expected week value to start with `W`");

@@ -76,7 +76,7 @@ pub trait NumericalDuration {
 macro_rules! impl_numerical_duration {
     ($($type:ty),* $(,)?) => {
         $(
-            #[allow(trivial_numeric_casts, clippy::use_self)]
+            #[allow(trivial_numeric_casts)]
             impl NumericalDuration for $type {
                 #[inline(always)]
                 fn nanoseconds(self) -> Duration {
@@ -125,7 +125,7 @@ macro_rules! impl_numerical_duration {
 macro_rules! impl_numerical_duration_nonzero {
     ($($type:ty),* $(,)?) => {
         $(
-            #[allow(trivial_numeric_casts, clippy::use_self)]
+            #[allow(trivial_numeric_casts)]
             impl NumericalDuration for $type {
                 #[inline(always)]
                 fn nanoseconds(self) -> Duration {
@@ -251,7 +251,7 @@ pub trait NumericalStdDuration {
 macro_rules! impl_numerical_std_duration {
     ($($type:ty),* $(,)?) => {
         $(
-            #[allow(trivial_numeric_casts, clippy::use_self)]
+            #[allow(trivial_numeric_casts)]
             impl NumericalStdDuration for $type {
                 #[inline(always)]
                 fn std_nanoseconds(self) -> StdDuration {
@@ -300,7 +300,7 @@ macro_rules! impl_numerical_std_duration {
 macro_rules! impl_numerical_std_duration_nonzero {
     ($($type:ty),* $(,)?) => {
         $(
-            #[allow(trivial_numeric_casts, clippy::use_self)]
+            #[allow(trivial_numeric_casts)]
             impl NumericalStdDuration for $type {
                 #[inline(always)]
                 fn std_nanoseconds(self) -> StdDuration {
@@ -356,7 +356,7 @@ impl_numerical_std_duration_nonzero![
 
 /// Implement on `i32` because that's the default type for integers. This
 /// performs a runtime check and panics if the value is negative.
-#[allow(clippy::use_self, clippy::cast_sign_loss)]
+#[allow(clippy::cast_sign_loss)]
 impl NumericalStdDuration for i32 {
     #[inline(always)]
     fn std_nanoseconds(self) -> StdDuration {
@@ -470,7 +470,7 @@ pub trait NumericalStdDurationShort {
 macro_rules! impl_numerical_std_duration {
     ($($type:ty),* $(,)?) => {
         $(
-            #[allow(trivial_numeric_casts, clippy::use_self)]
+            #[allow(trivial_numeric_casts)]
             impl NumericalStdDurationShort for $type {
                 #[inline(always)]
                 fn nanoseconds(self) -> StdDuration {
@@ -519,7 +519,7 @@ macro_rules! impl_numerical_std_duration {
 macro_rules! impl_numerical_std_duration_nonzero {
     ($($type:ty),* $(,)?) => {
         $(
-            #[allow(trivial_numeric_casts, clippy::use_self)]
+            #[allow(trivial_numeric_casts)]
             impl NumericalStdDurationShort for $type {
                 #[inline(always)]
                 fn nanoseconds(self) -> StdDuration {
@@ -575,7 +575,7 @@ impl_numerical_std_duration_nonzero![
 
 /// Implement on `i32` because that's the default type for integers. This
 /// performs a runtime check and panics if the value is negative.
-#[allow(clippy::use_self, clippy::cast_sign_loss)]
+#[allow(clippy::cast_sign_loss)]
 impl NumericalStdDurationShort for i32 {
     #[inline(always)]
     fn nanoseconds(self) -> StdDuration {

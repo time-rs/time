@@ -160,7 +160,9 @@
     clippy::cast_possible_wrap,
     clippy::cast_lossless,
     clippy::module_name_repetitions,
-    clippy::must_use_candidate
+    clippy::must_use_candidate,
+    clippy::missing_errors_doc,
+    clippy::use_self, // Not supported in some situations in older compilers.
 )]
 #![cfg_attr(test, allow(clippy::cognitive_complexity, clippy::too_many_lines))]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]

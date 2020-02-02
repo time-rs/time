@@ -18,7 +18,7 @@ pub(crate) enum Weekday {
 }
 
 impl Weekday {
-    pub(crate) fn iso_weekday_number(self) -> u8 {
+    pub(crate) const fn iso_weekday_number(self) -> u8 {
         self as u8 + 1
     }
 }

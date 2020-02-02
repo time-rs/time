@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use core::convert::TryFrom;
 
 // positive => 1

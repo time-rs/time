@@ -288,6 +288,7 @@ pub(crate) struct DeferredFormat<'a> {
 }
 
 impl<'a> DeferredFormat<'a> {
+    /// Create a new `DeferredFormat` with the provided formatting string.
     pub(crate) fn new(format: &'a str) -> Self {
         Self {
             date: None,
@@ -297,6 +298,7 @@ impl<'a> DeferredFormat<'a> {
         }
     }
 
+    /// Provide the `Date` component.
     pub(crate) fn with_date(self, date: Date) -> Self {
         Self {
             date: Some(date),
@@ -304,6 +306,7 @@ impl<'a> DeferredFormat<'a> {
         }
     }
 
+    /// Provide the `Time` component.
     pub(crate) fn with_time(self, time: Time) -> Self {
         Self {
             time: Some(time),
@@ -311,6 +314,7 @@ impl<'a> DeferredFormat<'a> {
         }
     }
 
+    /// Provide the `UtCOffset` component.
     pub(crate) fn with_offset(self, offset: UtcOffset) -> Self {
         Self {
             offset: Some(offset),

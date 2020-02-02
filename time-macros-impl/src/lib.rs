@@ -33,7 +33,7 @@
     clippy::cast_lossless,
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::use_self, // Some things aren't allowed in older compilers.
+    clippy::use_self, // Not supported in some situations in older compilers.
 )]
 
 extern crate proc_macro;
