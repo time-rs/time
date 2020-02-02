@@ -83,7 +83,7 @@ impl Time {
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
@@ -164,7 +164,7 @@ impl Time {
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
@@ -253,7 +253,7 @@ impl Time {
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
@@ -341,7 +341,7 @@ impl Time {
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
@@ -403,7 +403,7 @@ impl Time {
     /// ```
     #[inline(always)]
     #[cfg(feature = "std")]
-    #[cfg_attr(doc, doc(cfg(feature = "std")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
     pub fn now() -> Self {
         PrimitiveDateTime::now().time()
     }

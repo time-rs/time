@@ -754,7 +754,7 @@ impl Duration {
     /// return value of the closure is provided in the second part of the tuple.
     #[inline(always)]
     #[cfg(feature = "std")]
-    #[cfg_attr(doc, doc(cfg(feature = "std")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
     pub fn time_fn<T>(f: impl FnOnce() -> T) -> (Self, T) {
         let start = Instant::now();
         let return_value = f();

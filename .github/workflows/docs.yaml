@@ -21,13 +21,13 @@ jobs:
           toolchain: nightly # rust-lang/rust#43466, rust-lang/rust#43781
           override: true
 
-      - name: Run `cargo doc --features serde,deprecated,panicking-api`
+      - name: Run `cargo doc --all-features`
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --features serde,deprecated,panicking-api
+          args: --all-features
 
-      - name: Build & publish documentation
+      - name: Publish documentation
         uses: JamesIves/github-pages-deploy-action@releases/v2
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}

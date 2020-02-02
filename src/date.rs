@@ -123,7 +123,7 @@ impl Date {
     /// ```
     #[inline]
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
@@ -174,7 +174,7 @@ impl Date {
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
@@ -231,7 +231,7 @@ impl Date {
     /// ```
     #[inline]
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
@@ -275,7 +275,7 @@ impl Date {
     /// ```
     #[inline(always)]
     #[cfg(feature = "std")]
-    #[cfg_attr(doc, doc(cfg(feature = "std")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
     pub fn today() -> Self {
         PrimitiveDateTime::now().date()
     }
@@ -696,7 +696,7 @@ impl Date {
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.3",
@@ -740,7 +740,7 @@ impl Date {
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.3",
@@ -792,7 +792,7 @@ impl Date {
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.3",
@@ -849,7 +849,7 @@ impl Date {
     /// ```
     #[inline(always)]
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.3",

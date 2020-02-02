@@ -20,6 +20,11 @@ deprecated = []
 panicking-api = []
 std = []
 
+# Internal usage. This is used when building for docs.rs and time-rs.github.io.
+# This feature should never be used by external users. It will likely be
+# removed in the first release after the `doc_cfg` feature gets stabilized.
+__doc = []
+
 [dependencies]
 rustversion = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }

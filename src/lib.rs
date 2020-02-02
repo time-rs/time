@@ -121,7 +121,7 @@
 //! | `_` (underscore) | Pad with spaces | `%_d` => ` 5` |
 //! | `0`              | Pad with zeros  | `%0d` => `05` |
 
-#![cfg_attr(doc, feature(doc_cfg))]
+#![cfg_attr(feature = "__doc", feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
 #![deny(
@@ -171,6 +171,10 @@
 // Unfortunately, this also means we can't have a `time` mod.
 extern crate self as time;
 
+#[cfg(feature = "__doc")]
+#[rustversion::not(nightly)]
+compile_error!("The `__doc` feature requires a nightly compiler, and is for internal usage only.");
+
 #[rustversion::before(1.34.0)]
 compile_error!("The time crate has a minimum supported rust version of 1.34.0.");
 
@@ -186,7 +190,7 @@ compile_error!(
 extern crate alloc;
 
 #[cfg(feature = "panicking-api")]
-#[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+#[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
 macro_rules! format_conditional {
     ($conditional:ident) => {
         format!(concat!(stringify!($conditional), "={}"), $conditional)
@@ -205,7 +209,7 @@ macro_rules! format_conditional {
 
 /// Panic if the value is not in range.
 #[cfg(feature = "panicking-api")]
-#[cfg_attr(doc, doc(cfg(feature = "panicking-api")))]
+#[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
 macro_rules! assert_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
         #[allow(unused_comparisons)]

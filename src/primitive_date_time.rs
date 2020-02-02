@@ -54,7 +54,7 @@ impl PrimitiveDateTime {
     /// ```
     #[inline(always)]
     #[cfg(feature = "std")]
-    #[cfg_attr(doc, doc(cfg(feature = "std")))]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
     pub fn now() -> Self {
         SystemTime::now().into()
     }
