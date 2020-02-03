@@ -2,7 +2,7 @@
 use crate::alloc_prelude::*;
 use crate::{
     format::parse::{parse, ParseResult, ParsedItems},
-    time, Date, DeferredFormat, Duration, OffsetDateTime, Time, UtcOffset, Weekday,
+    offset, time, Date, DeferredFormat, Duration, OffsetDateTime, Time, UtcOffset, Weekday,
 };
 #[cfg(feature = "std")]
 use core::convert::{From, TryFrom};
@@ -395,12 +395,67 @@ impl PrimitiveDateTime {
     ///     date!(2019-01-01).midnight().using_offset(offset!(UTC)).timestamp(),
     ///     1_546_300_800,
     /// );
+    /// assert_eq!(
+    ///     date!(2019-01-01).midnight().using_offset(offset!(-1)).timestamp(),
+    ///     1_546_300_800,
+    /// );
     /// ```
+    ///
+    /// This function is the same as calling `.assume_utc().to_offset(offset)`.
+    #[deprecated(
+        since = "0.2.7",
+        note = "Due to behavior not clear by its name alone, it is preferred to use \
+                `.assume_utc().to_offset(offset)`. This has the same behavior and can be used in \
+                `const` contexts."
+    )]
     #[inline(always)]
     pub const fn using_offset(self, offset: UtcOffset) -> OffsetDateTime {
         OffsetDateTime {
             utc_datetime: self,
             offset,
+        }
+    }
+
+    /// Assuming that the existing `PrimitiveDateTime` represents a moment in
+    /// the provided `UtcOffset`, return an `OffsetDateTime`.
+    ///
+    /// ```rust
+    /// # use time::{date, offset};
+    /// assert_eq!(
+    ///     date!(2019-01-01).midnight().using_offset(offset!(UTC)).timestamp(),
+    ///     1_546_300_800,
+    /// );
+    /// assert_eq!(
+    ///     date!(2019-01-01).midnight().assume_offset(offset!(-1)).timestamp(),
+    ///     1_546_304_400,
+    /// );
+    /// ```
+    #[inline(always)]
+    pub fn assume_offset(self, offset: UtcOffset) -> OffsetDateTime {
+        OffsetDateTime {
+            utc_datetime: self - offset.as_duration(),
+            offset,
+        }
+    }
+
+    /// Assuming that the existing `PrimitiveDateTime` represents a moment in
+    /// the UTC, return an `OffsetDateTime`.
+    ///
+    /// ```rust
+    /// # use time::date;
+    /// assert_eq!(
+    ///     date!(2019-01-01).midnight().assume_utc().timestamp(),
+    ///     1_546_300_800,
+    /// );
+    /// ```
+    ///
+    /// This function is the same as calling `.assume_offset(offset!(UTC))`,
+    /// except it is usable in `const` contexts.
+    #[inline(always)]
+    pub const fn assume_utc(self) -> OffsetDateTime {
+        OffsetDateTime {
+            utc_datetime: self,
+            offset: offset!(UTC),
         }
     }
 }
@@ -897,6 +952,7 @@ mod test {
         );
     }
 
+    #[allow(deprecated)]
     #[test]
     fn using_offset() {
         assert_eq!(
@@ -904,6 +960,32 @@ mod test {
                 .midnight()
                 .using_offset(offset!(UTC))
                 .timestamp(),
+            1_546_300_800,
+        );
+    }
+
+    #[test]
+    fn assume_offset() {
+        assert_eq!(
+            date!(2019-01-01)
+                .midnight()
+                .assume_offset(offset!(UTC))
+                .timestamp(),
+            1_546_300_800,
+        );
+        assert_eq!(
+            date!(2019-01-01)
+                .midnight()
+                .assume_offset(offset!(-1))
+                .timestamp(),
+            1_546_304_400,
+        );
+    }
+
+    #[test]
+    fn assume_utc() {
+        assert_eq!(
+            date!(2019-01-01).midnight().assume_utc().timestamp(),
             1_546_300_800,
         );
     }
