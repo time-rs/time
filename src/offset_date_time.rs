@@ -6,6 +6,7 @@ use crate::{
 };
 use core::{
     cmp::Ordering,
+    fmt::{self, Display},
     hash::{Hash, Hasher},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
@@ -680,6 +681,13 @@ impl OffsetDateTime {
             (PrimitiveDateTime::try_from_parsed_items(items)? - offset.as_duration())
                 .using_offset(offset),
         )
+    }
+}
+
+impl Display for OffsetDateTime {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {} {}", self.date(), self.time(), self.offset())
     }
 }
 

@@ -4,6 +4,7 @@ use crate::{
     format::{parse, ParseError, ParseResult, ParsedItems},
     DeferredFormat, Duration,
 };
+use core::fmt::{self, Display};
 
 /// An offset from UTC.
 ///
@@ -231,6 +232,28 @@ impl UtcOffset {
     }
 }
 
+impl Display for UtcOffset {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let sign = if self.seconds < 0 { '-' } else { '+' };
+        let hours = self.as_hours().abs();
+        let minutes = self.as_minutes().abs() - hours as i16 * 60;
+        let seconds = self.as_seconds().abs() - hours as i32 * 3_600 - minutes as i32 * 60;
+
+        write!(f, "{}{}", sign, hours)?;
+
+        if minutes != 0 || seconds != 0 {
+            write!(f, ":{:02}", minutes)?;
+        }
+
+        if seconds != 0 {
+            write!(f, ":{:02}", seconds)?;
+        }
+
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -342,5 +365,18 @@ mod test {
 
         assert_eq!(UtcOffset::parse("+0001", "%z"), Ok(offset!(+0:01)));
         assert_eq!(UtcOffset::parse("-0001", "%z"), Ok(offset!(-0:01)));
+    }
+
+    #[test]
+    fn display() {
+        assert_eq!(offset!(UTC).to_string(), "+0");
+        assert_eq!(offset!(+0:00:01).to_string(), "+0:00:01");
+        assert_eq!(offset!(-0:00:01).to_string(), "-0:00:01");
+        assert_eq!(offset!(+1).to_string(), "+1");
+        assert_eq!(offset!(-1).to_string(), "-1");
+        assert_eq!(offset!(+23:59).to_string(), "+23:59");
+        assert_eq!(offset!(-23:59).to_string(), "-23:59");
+        assert_eq!(offset!(+23:59:59).to_string(), "+23:59:59");
+        assert_eq!(offset!(-23:59:59).to_string(), "-23:59:59");
     }
 }

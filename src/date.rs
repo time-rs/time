@@ -9,6 +9,7 @@ use crate::{
 };
 use core::{
     cmp::{Ord, Ordering, PartialOrd},
+    fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
@@ -979,6 +980,21 @@ impl Date {
             .map_err(Into::into),
             _ => Err(ParseError::InsufficientInformation),
         }
+    }
+}
+
+impl Display for Date {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use crate::format::{date, Padding};
+
+        date::fmt_Y(f, *self, Padding::Zero)?;
+        f.write_str("-")?;
+        date::fmt_m(f, *self, Padding::Zero)?;
+        f.write_str("-")?;
+        date::fmt_d(f, *self, Padding::Zero)?;
+
+        Ok(())
     }
 }
 
@@ -2137,6 +2153,14 @@ mod test {
             Date::parse("2019-W01-3", "%G-W%V-%u"),
             Ok(date!(2019-W01-3))
         );
+    }
+
+    #[test]
+    fn display() {
+        assert_eq!(date!(2019-01-01).to_string(), "2019-01-01");
+        assert_eq!(date!(2019-12-31).to_string(), "2019-12-31");
+        assert_eq!(date!(-4713-11-24).to_string(), "-4713-11-24");
+        assert_eq!(date!(10_000-01-01).to_string(), "+10000-01-01");
     }
 
     #[test]

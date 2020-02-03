@@ -8,6 +8,7 @@ use crate::{
 use core::convert::{From, TryFrom};
 use core::{
     cmp::Ordering,
+    fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
@@ -452,6 +453,13 @@ impl PrimitiveDateTime {
             date: Date::try_from_parsed_items(items)?,
             time: Time::try_from_parsed_items(items)?,
         })
+    }
+}
+
+impl Display for PrimitiveDateTime {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {}", self.date(), self.time())
     }
 }
 

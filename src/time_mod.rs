@@ -9,6 +9,7 @@ use crate::{
 };
 use core::{
     cmp::Ordering,
+    fmt::{self, Display},
     num::NonZeroU8,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
@@ -603,6 +604,36 @@ impl Time {
     }
 }
 
+impl Display for Time {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use crate::format::{time, Padding};
+
+        time::fmt_H(f, *self, Padding::None)?;
+        f.write_str(":")?;
+        time::fmt_M(f, *self, Padding::Zero)?;
+
+        if self.second != 0 || self.nanosecond != 0 {
+            f.write_str(":")?;
+            time::fmt_S(f, *self, Padding::Zero)?;
+        }
+
+        if self.nanosecond != 0 {
+            f.write_str(".")?;
+
+            if self.nanosecond % 1_000_000 == 0 {
+                write!(f, "{:03}", self.nanosecond / 1_000_000)?;
+            } else if self.nanosecond % 1_000 == 0 {
+                write!(f, "{:06}", self.nanosecond / 1_000)?;
+            } else {
+                write!(f, "{:09}", self.nanosecond)?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
 impl Add<Duration> for Time {
     type Output = Self;
 
@@ -1124,6 +1155,17 @@ mod test {
         assert_eq!(Time::parse("23", "%H"), Ok(time!(23:00)));
         assert_eq!(Time::parse("12am", "%I%p"), Ok(time!(12:00 am)));
         assert_eq!(Time::parse("12pm", "%I%p"), Ok(time!(12:00 pm)));
+    }
+
+    #[test]
+    fn display() {
+        assert_eq!(time!(0:00).to_string(), "0:00");
+        assert_eq!(time!(23:59).to_string(), "23:59");
+        assert_eq!(time!(23:59:59).to_string(), "23:59:59");
+        assert_eq!(time!(0:00:01).to_string(), "0:00:01");
+        assert_eq!(time!(0:00:00.001).to_string(), "0:00:00.001");
+        assert_eq!(time!(0:00:00.000_001).to_string(), "0:00:00.000001");
+        assert_eq!(time!(0:00:00.000_000_001).to_string(), "0:00:00.000000001");
     }
 
     #[test]

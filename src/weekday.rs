@@ -1,3 +1,5 @@
+use core::fmt::{self, Display};
+
 /// Days of the week.
 ///
 /// As order is dependent on context (Sunday could be either
@@ -123,9 +125,26 @@ impl Weekday {
     }
 }
 
+impl Display for Weekday {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Monday => "Monday",
+            Tuesday => "Tuesday",
+            Wednesday => "Wednesday",
+            Thursday => "Thursday",
+            Friday => "Friday",
+            Saturday => "Saturday",
+            Sunday => "Sunday",
+        })
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
+    #[cfg(not(feature = "std"))]
+    use crate::alloc_prelude::*;
 
     #[test]
     fn previous() {
@@ -202,5 +221,16 @@ mod test {
         assert_eq!(Thursday.number_days_from_sunday(), 4);
         assert_eq!(Friday.number_days_from_sunday(), 5);
         assert_eq!(Saturday.number_days_from_sunday(), 6);
+    }
+
+    #[test]
+    fn display() {
+        assert_eq!(Monday.to_string(), "Monday");
+        assert_eq!(Tuesday.to_string(), "Tuesday");
+        assert_eq!(Wednesday.to_string(), "Wednesday");
+        assert_eq!(Thursday.to_string(), "Thursday");
+        assert_eq!(Friday.to_string(), "Friday");
+        assert_eq!(Saturday.to_string(), "Saturday");
+        assert_eq!(Sunday.to_string(), "Sunday");
     }
 }
