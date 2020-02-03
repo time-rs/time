@@ -772,7 +772,6 @@ impl From<PrimitiveDateTime> for SystemTime {
 }
 
 #[cfg(test)]
-#[allow(clippy::result_unwrap_used)]
 #[rustfmt::skip::macros(date)]
 mod test {
     use super::*;

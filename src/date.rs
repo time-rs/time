@@ -912,7 +912,7 @@ impl Date {
     /// );
     /// assert_eq!(
     ///     Date::parse("2019-002", "%Y-%j"),
-    ///     Ok(Date::try_from_yo(2019, 2).unwrap())
+    ///     Ok(date!(2019-002))
     /// );
     /// assert_eq!(
     ///     Date::parse("2019-W01-3", "%G-W%V-%u"),
@@ -1090,7 +1090,6 @@ impl Ord for Date {
 }
 
 #[cfg(test)]
-#[allow(clippy::result_unwrap_used)]
 #[rustfmt::skip::macros(date)]
 mod test {
     use super::*;
@@ -1545,10 +1544,10 @@ mod test {
 
     #[test]
     #[allow(clippy::zero_prefixed_literal)]
-    fn test_parse_monday_based_week() {
+    fn test_parse_monday_based_week() -> crate::Result<()> {
         macro_rules! parse {
             ($s:literal) => {
-                Date::parse($s, "%a %W %Y").unwrap()
+                Date::parse($s, "%a %W %Y")?
             };
         }
 
@@ -1740,14 +1739,16 @@ mod test {
         assert_eq!(parse!("Tue 10 2024"), date!(2024-065));
         assert_eq!(parse!("Wed 10 2024"), date!(2024-066));
         assert_eq!(parse!("Thu 10 2024"), date!(2024-067));
+
+        Ok(())
     }
 
     #[test]
     #[allow(clippy::zero_prefixed_literal)]
-    fn test_parse_sunday_based_week() {
+    fn test_parse_sunday_based_week() -> crate::Result<()> {
         macro_rules! parse {
             ($s:literal) => {
-                Date::parse($s, "%a %U %Y").unwrap()
+                Date::parse($s, "%a %U %Y")?
             };
         }
 
@@ -1939,6 +1940,8 @@ mod test {
         assert_eq!(parse!("Tue 09 2036"), date!(2036-065));
         assert_eq!(parse!("Wed 09 2036"), date!(2036-066));
         assert_eq!(parse!("Thu 09 2036"), date!(2036-067));
+
+        Ok(())
     }
 
     #[test]

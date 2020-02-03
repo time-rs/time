@@ -56,9 +56,12 @@ impl Instant {
     /// # use core::convert::TryInto;
     /// # use time::{Duration, Instant};
     /// # use std::thread;
+    /// # fn main() -> time::Result<()> {
     /// let instant = Instant::now();
-    /// thread::sleep(Duration::milliseconds(100).try_into().unwrap());
+    /// thread::sleep(Duration::milliseconds(100).try_into()?);
     /// assert!(instant.elapsed() >= Duration::milliseconds(100));
+    /// # Ok(())
+    /// # }
     /// ```
     #[inline(always)]
     pub fn elapsed(self) -> Duration {

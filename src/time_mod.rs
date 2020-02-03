@@ -878,7 +878,6 @@ impl Ord for Time {
 }
 
 #[cfg(test)]
-#[allow(clippy::result_unwrap_used)]
 mod test {
     use super::*;
     use crate::prelude::*;
@@ -921,8 +920,8 @@ mod test {
     }
 
     #[test]
-    fn try_from_hms() {
-        let time = Time::try_from_hms(1, 2, 3).unwrap();
+    fn try_from_hms() -> crate::Result<()> {
+        let time = Time::try_from_hms(1, 2, 3)?;
         assert_eq!(time.hour(), 1);
         assert_eq!(time.minute(), 2);
         assert_eq!(time.second(), 3);
@@ -931,6 +930,8 @@ mod test {
         assert!(Time::try_from_hms(24, 0, 0).is_err());
         assert!(Time::try_from_hms(0, 60, 0).is_err());
         assert!(Time::try_from_hms(0, 0, 60).is_err());
+
+        Ok(())
     }
 
     #[test]
@@ -957,8 +958,8 @@ mod test {
     }
 
     #[test]
-    fn try_from_hms_milli() {
-        let time = Time::try_from_hms_milli(1, 2, 3, 4).unwrap();
+    fn try_from_hms_milli() -> crate::Result<()> {
+        let time = Time::try_from_hms_milli(1, 2, 3, 4)?;
         assert_eq!(time.hour(), 1);
         assert_eq!(time.minute(), 2);
         assert_eq!(time.second(), 3);
@@ -969,6 +970,8 @@ mod test {
         assert!(Time::try_from_hms_milli(0, 60, 0, 0).is_err());
         assert!(Time::try_from_hms_milli(0, 0, 60, 0).is_err());
         assert!(Time::try_from_hms_milli(0, 0, 0, 1_000).is_err());
+
+        Ok(())
     }
 
     #[test]
@@ -995,8 +998,8 @@ mod test {
     }
 
     #[test]
-    fn try_from_hms_micro() {
-        let time = Time::try_from_hms_micro(1, 2, 3, 4).unwrap();
+    fn try_from_hms_micro() -> crate::Result<()> {
+        let time = Time::try_from_hms_micro(1, 2, 3, 4)?;
         assert_eq!(time.hour(), 1);
         assert_eq!(time.minute(), 2);
         assert_eq!(time.second(), 3);
@@ -1007,6 +1010,8 @@ mod test {
         assert!(Time::try_from_hms_micro(0, 60, 0, 0).is_err());
         assert!(Time::try_from_hms_micro(0, 0, 60, 0).is_err());
         assert!(Time::try_from_hms_micro(0, 0, 0, 1_000_000).is_err());
+
+        Ok(())
     }
 
     #[test]
@@ -1032,8 +1037,8 @@ mod test {
     }
 
     #[test]
-    fn try_from_hms_nano() {
-        let time = Time::try_from_hms_nano(1, 2, 3, 4).unwrap();
+    fn try_from_hms_nano() -> crate::Result<()> {
+        let time = Time::try_from_hms_nano(1, 2, 3, 4)?;
         assert_eq!(time.hour(), 1);
         assert_eq!(time.minute(), 2);
         assert_eq!(time.second(), 3);
@@ -1043,82 +1048,83 @@ mod test {
         assert!(Time::try_from_hms_nano(0, 60, 0, 0).is_err());
         assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_err());
         assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_err());
+
+        Ok(())
     }
 
     #[test]
-    fn hour() {
+    fn hour() -> crate::Result<()> {
         for hour in 0..24 {
-            assert_eq!(Time::try_from_hms(hour, 0, 0).unwrap().hour(), hour);
-            assert_eq!(Time::try_from_hms(hour, 59, 59).unwrap().hour(), hour);
+            assert_eq!(Time::try_from_hms(hour, 0, 0)?.hour(), hour);
+            assert_eq!(Time::try_from_hms(hour, 59, 59)?.hour(), hour);
         }
+
+        Ok(())
     }
 
     #[test]
-    fn minute() {
+    fn minute() -> crate::Result<()> {
         for minute in 0..60 {
-            assert_eq!(Time::try_from_hms(0, minute, 0).unwrap().minute(), minute);
-            assert_eq!(Time::try_from_hms(23, minute, 59).unwrap().minute(), minute);
+            assert_eq!(Time::try_from_hms(0, minute, 0)?.minute(), minute);
+            assert_eq!(Time::try_from_hms(23, minute, 59)?.minute(), minute);
         }
+
+        Ok(())
     }
 
     #[test]
-    fn second() {
+    fn second() -> crate::Result<()> {
         for second in 0..60 {
-            assert_eq!(Time::try_from_hms(0, 0, second).unwrap().second(), second);
-            assert_eq!(Time::try_from_hms(23, 59, second).unwrap().second(), second);
+            assert_eq!(Time::try_from_hms(0, 0, second)?.second(), second);
+            assert_eq!(Time::try_from_hms(23, 59, second)?.second(), second);
         }
+
+        Ok(())
     }
 
     #[test]
-    fn millisecond() {
+    fn millisecond() -> crate::Result<()> {
         for milli in 0..1_000 {
             assert_eq!(
-                Time::try_from_hms_milli(0, 0, 0, milli)
-                    .unwrap()
-                    .millisecond(),
+                Time::try_from_hms_milli(0, 0, 0, milli)?.millisecond(),
                 milli
             );
             assert_eq!(
-                Time::try_from_hms_milli(23, 59, 59, milli)
-                    .unwrap()
-                    .millisecond(),
+                Time::try_from_hms_milli(23, 59, 59, milli)?.millisecond(),
                 milli
             );
         }
+
+        Ok(())
     }
 
     #[test]
-    fn microsecond() {
+    fn microsecond() -> time::Result<()> {
         for micro in (0..1_000_000).step_by(1_000) {
             assert_eq!(
-                Time::try_from_hms_micro(0, 0, 0, micro)
-                    .unwrap()
-                    .microsecond(),
+                Time::try_from_hms_micro(0, 0, 0, micro)?.microsecond(),
                 micro
             );
             assert_eq!(
-                Time::try_from_hms_micro(23, 59, 59, micro)
-                    .unwrap()
-                    .microsecond(),
+                Time::try_from_hms_micro(23, 59, 59, micro)?.microsecond(),
                 micro
             );
         }
+
+        Ok(())
     }
 
     #[test]
-    fn nanosecond() {
+    fn nanosecond() -> crate::Result<()> {
         for nano in (0..1_000_000_000).step_by(1_000_000) {
+            assert_eq!(Time::try_from_hms_nano(0, 0, 0, nano)?.nanosecond(), nano);
             assert_eq!(
-                Time::try_from_hms_nano(0, 0, 0, nano).unwrap().nanosecond(),
-                nano
-            );
-            assert_eq!(
-                Time::try_from_hms_nano(23, 59, 59, nano)
-                    .unwrap()
-                    .nanosecond(),
+                Time::try_from_hms_nano(23, 59, 59, nano)?.nanosecond(),
                 nano
             );
         }
+
+        Ok(())
     }
 
     #[test]

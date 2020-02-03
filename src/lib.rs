@@ -167,6 +167,9 @@
 #![cfg_attr(test, allow(clippy::cognitive_complexity, clippy::too_many_lines))]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
+// Because we have a macro named `time`, this can cause conflicts. MSRV
+// guarantees that edition 2018 is available.
+#![doc(test(no_crate_inject))]
 
 // This is necessary to allow our proc macros to work.
 // See rust-lang/rust#54647 for details.
@@ -347,15 +350,12 @@ pub use sign::Sign;
 ///
 /// ```rust
 /// # use time::{Date, date, Weekday::*};
-/// assert_eq!(
-///     date!(2020-W01-3),
-///     Date::try_from_iso_ywd(2020, 1, Wednesday).unwrap()
-/// );
-/// assert_eq!(date!(2020-001), Date::try_from_yo(2020, 1).unwrap());
-/// assert_eq!(
-///     date!(2020-01-01),
-///     Date::try_from_ymd(2020, 1, 1).unwrap()
-/// );
+/// # fn main() -> time::Result<()> {
+/// assert_eq!(date!(2020-W01-3), Date::try_from_iso_ywd(2020, 1, Wednesday)?);
+/// assert_eq!(date!(2020-001), Date::try_from_yo(2020, 1)?);
+/// assert_eq!(date!(2020-01-01), Date::try_from_ymd(2020, 1, 1)?);
+/// # Ok(())
+/// # }
 /// ```
 pub use time_macros::date;
 /// Construct a [`UtcOffset`] with a statically known value.
@@ -393,42 +393,18 @@ pub use time_macros::offset;
 ///
 /// ```rust
 /// # use time::{Time, time};
-/// assert_eq!(
-///     time!(0:00),
-///     Time::try_from_hms(0, 0, 0).unwrap(),
-/// );
-/// assert_eq!(
-///     time!(1:02:03),
-///     Time::try_from_hms(1, 2, 3).unwrap(),
-/// );
-/// assert_eq!(
-///     time!(1:02:03.004_005_006),
-///     Time::try_from_hms_nano(1, 2, 3, 4_005_006).unwrap(),
-/// );
-/// assert_eq!(
-///     time!(12:00 am),
-///     Time::try_from_hms(0, 0, 0).unwrap(),
-/// );
-/// assert_eq!(
-///     time!(1:02:03 am),
-///     Time::try_from_hms(1, 2, 3).unwrap(),
-/// );
-/// assert_eq!(
-///     time!(1:02:03.004_005_006 am),
-///     Time::try_from_hms_nano(1, 2, 3, 4_005_006).unwrap(),
-/// );
-/// assert_eq!(
-///     time!(12:00 pm),
-///     Time::try_from_hms(12, 0, 0).unwrap(),
-/// );
-/// assert_eq!(
-///     time!(1:02:03 pm),
-///     Time::try_from_hms(13, 2, 3).unwrap(),
-/// );
-/// assert_eq!(
-///     time!(1:02:03.004_005_006 pm),
-///     Time::try_from_hms_nano(13, 2, 3, 4_005_006).unwrap(),
-/// );
+/// # fn main() -> time::Result<()> {
+/// assert_eq!(time!(0:00), Time::try_from_hms(0, 0, 0)?);
+/// assert_eq!(time!(1:02:03), Time::try_from_hms(1, 2, 3)?);
+/// assert_eq!(time!(1:02:03.004_005_006), Time::try_from_hms_nano(1, 2, 3, 4_005_006)?);
+/// assert_eq!(time!(12:00 am), Time::try_from_hms(0, 0, 0)?);
+/// assert_eq!(time!(1:02:03 am), Time::try_from_hms(1, 2, 3)?);
+/// assert_eq!(time!(1:02:03.004_005_006 am), Time::try_from_hms_nano(1, 2, 3, 4_005_006)?);
+/// assert_eq!(time!(12:00 pm), Time::try_from_hms(12, 0, 0)?);
+/// assert_eq!(time!(1:02:03 pm), Time::try_from_hms(13, 2, 3)?);
+/// assert_eq!(time!(1:02:03.004_005_006 pm), Time::try_from_hms_nano(13, 2, 3, 4_005_006)?);
+/// # Ok(())
+/// # }
 /// ```
 pub use time_macros::time;
 pub use time_mod::Time;
