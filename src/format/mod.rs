@@ -78,72 +78,45 @@ impl Padding {
 }
 
 /// Specifiers are similar to C's `strftime`, with some omissions and changes.
+///
+/// See the table in `lib.rs` for a description of each specifier (and
+/// equivalences for combination specifiers).
 #[allow(
     non_snake_case,
     non_camel_case_types,
-    clippy::missing_docs_in_private_items // Inner fields
+    clippy::missing_docs_in_private_items
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) enum Specifier {
-    /// Abbreviated weekday name
     a,
-    /// Full weekday name
     A,
-    /// Abbreviated month name
     b,
-    /// Full month name
     B,
-    /// Date and time representation
     c,
-    /// Year divided by 100 and truncated to integer (`00`-`99`)
     C { padding: Padding },
-    /// Day of the month, zero-padded (`01`-`31`)
     d { padding: Padding },
-    /// Short MM/DD/YY date, equivalent to `%m/%d/%y`
     D,
-    /// Short YYYY-MM-DD date, equivalent to `%Y-%m-%d`
     F,
-    /// Week-based year, last two digits (`00`-`99`)
     g { padding: Padding },
-    /// Week-based year
     G { padding: Padding },
-    /// Hour in 24h format (`00`-`23`)
     H { padding: Padding },
-    /// Hour in 12h format (`01`-`12`)
     I { padding: Padding },
-    /// Day of the year (`001`-`366`)
     j { padding: Padding },
-    /// Month as a decimal number (`01`-`12`)
     m { padding: Padding },
-    /// Minute (`00`-`59`)
     M { padding: Padding },
-    /// `am` or `pm` designation
     p,
-    /// `AM` or `PM` designation
     P,
-    /// 12-hour clock time
     r,
-    /// 24-hour HH:MM time, equivalent to `%H:%M`
     R,
-    /// Second (`00`-`59`)
     S { padding: Padding },
-    /// ISO 8601 time format (HH:MM:SS), equivalent to `%H:%M:%S`
     T,
-    /// ISO 8601 weekday as number with Monday as 1 (`1`-`7`)
     u,
-    /// Week number with the first Sunday as the first day of week one (`00`-`53`)
     U { padding: Padding },
-    /// ISO 8601 week number (`01`-`53`)
     V { padding: Padding },
-    /// Weekday as a decimal number with Sunday as 0 (`0`-`6`)
     w,
-    /// Week number with the first Monday as the first day of week one (`00`-`53`)
     W { padding: Padding },
-    /// Year, last two digits (`00`-`99`)
     y { padding: Padding },
-    /// Year
     Y { padding: Padding },
-    /// UTC offset
     z,
 }
 

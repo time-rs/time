@@ -96,7 +96,7 @@
 //! | `%r`      | 12-hour clock time, equivalent to `%-I:%M:%S %p`                       | `2:55:02 pm`               |
 //! | `%R`      | 24-hour HH:MM time, equivalent to `%-H:%M`                             | `14:55`                    |
 //! | `%S`      | Second (`00`-`59`)                                                     | `02`                       |
-//! | `%T`      | ISO 8601 time format (HH:MM:SS), equivalent to `%-H:%M:%S`             | `14:55:02`                 |
+//! | `%T`      | 24-hour clock time with seconds, equivalent to `%-H:%M:%S`             | `14:55:02`                 |
 //! | `%u`      | ISO 8601 weekday as number with Monday as 1 (`1`-`7`)                  | `4`                        |
 //! | `%U`      | Week number with the first Sunday as the start of week one (`00`-`53`) | `33`                       |
 //! | `%V`      | ISO 8601 week number (`01`-`53`)                                       | `34`                       |
