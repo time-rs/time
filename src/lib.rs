@@ -507,16 +507,19 @@ pub type SteadyTime = Instant;
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
     since = "0.2.0",
-    note = "Use `PrimitiveDateTime::now() - PrimitiveDateTime::unix_epoch()` to get a `Duration` \
-            since a known epoch."
+    note = "Use `OffsetDateTime::now() - OffsetDateTime::unix_epoch()` to get a `Duration` since \
+            a known epoch."
 )]
 #[inline]
 pub fn precise_time_ns() -> u64 {
     use core::convert::TryInto;
-    (PrimitiveDateTime::now() - PrimitiveDateTime::unix_epoch())
-        .whole_nanoseconds()
+    use std::time::SystemTime;
+
+    (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))
+        .expect("System clock was before 1970.")
+        .as_nanos()
         .try_into()
-        .expect("You really shouldn't be using this in the year 2554...")
+        .expect("This function will be removed long before this is an issue.")
 }
 
 #[cfg(all(feature = "std", feature = "deprecated"))]
@@ -524,10 +527,15 @@ pub fn precise_time_ns() -> u64 {
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
     since = "0.2.0",
-    note = "Use `PrimitiveDateTime::now() - PrimitiveDateTime::unix_epoch()` to get a `Duration` \
-            since a known epoch."
+    note = "Use `OffsetDateTime::now() - OffsetDateTime::unix_epoch()` to get a `Duration` since \
+            a known epoch."
 )]
 #[inline]
 pub fn precise_time_s() -> f64 {
-    (PrimitiveDateTime::now() - PrimitiveDateTime::unix_epoch()).as_seconds_f64()
+    use std::time::SystemTime;
+    use shim::DurationShim;
+
+    (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))
+        .expect("System clock was before 1970.")
+        .as_secs_f64()
 }

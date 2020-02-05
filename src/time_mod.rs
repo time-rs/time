@@ -405,6 +405,11 @@ impl Time {
     #[inline(always)]
     #[cfg(feature = "std")]
     #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
+    #[deprecated(
+        since = "0.2.7",
+        note = "This method returns a value that assumes an offset of UTC."
+    )]
+    #[allow(deprecated)]
     pub fn now() -> Self {
         PrimitiveDateTime::now().time()
     }

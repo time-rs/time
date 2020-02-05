@@ -277,6 +277,11 @@ impl Date {
     #[inline(always)]
     #[cfg(feature = "std")]
     #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
+    #[deprecated(
+        since = "0.2.7",
+        note = "This method returns a value that assumes an offset of UTC."
+    )]
+    #[allow(deprecated)]
     pub fn today() -> Self {
         PrimitiveDateTime::now().date()
     }
@@ -2055,7 +2060,7 @@ mod test {
     fn midnight() {
         assert_eq!(
             date!(1970-01-01).midnight(),
-            PrimitiveDateTime::unix_epoch()
+            date!(1970-01-01).with_time(time!(0:00)),
         );
     }
 

@@ -56,6 +56,10 @@ impl PrimitiveDateTime {
     #[inline(always)]
     #[cfg(feature = "std")]
     #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
+    #[deprecated(
+        since = "0.2.7",
+        note = "This method returns a value that assumes an offset of UTC."
+    )]
     pub fn now() -> Self {
         SystemTime::now().into()
     }
@@ -70,6 +74,7 @@ impl PrimitiveDateTime {
     /// );
     /// ```
     #[inline(always)]
+    #[deprecated(since = "0.2.7", note = "This method assumes an offset of UTC.")]
     pub const fn unix_epoch() -> Self {
         Self {
             // TODO Use `date!(1970-001)` when rustfmt can handle it.
@@ -95,6 +100,11 @@ impl PrimitiveDateTime {
     /// );
     /// ```
     #[inline(always)]
+    #[deprecated(
+        since = "0.2.7",
+        note = "This method returns a value that assumes an offset of UTC."
+    )]
+    #[allow(deprecated)]
     pub fn from_unix_timestamp(timestamp: i64) -> Self {
         Self::unix_epoch() + Duration::seconds(timestamp)
     }
@@ -108,6 +118,8 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-01-01).midnight().timestamp(), 1_546_300_800);
     /// ```
     #[inline(always)]
+    #[allow(deprecated)]
+    #[deprecated(since = "0.2.7", note = "This method assumes an offset of UTC.")]
     pub fn timestamp(self) -> i64 {
         (self - Self::unix_epoch()).whole_seconds()
     }
@@ -539,6 +551,7 @@ impl Add<Duration> for PrimitiveDateTime {
     }
 }
 
+// TODO Move this and similar to the file for `Duration`.
 #[cfg(feature = "std")]
 impl Add<Duration> for SystemTime {
     type Output = Self;
@@ -625,6 +638,7 @@ impl Sub<StdDuration> for PrimitiveDateTime {
     }
 }
 
+// TODO Move this and similar to the file for `Duration`.
 #[cfg(feature = "std")]
 impl Sub<Duration> for SystemTime {
     type Output = Self;
@@ -666,6 +680,7 @@ impl Sub<PrimitiveDateTime> for PrimitiveDateTime {
     }
 }
 
+/// Deprecated since v0.2.7, as it assumes an offset of UTC.
 #[cfg(feature = "std")]
 impl Sub<SystemTime> for PrimitiveDateTime {
     type Output = Duration;
@@ -676,6 +691,7 @@ impl Sub<SystemTime> for PrimitiveDateTime {
     }
 }
 
+/// Deprecated since v0.2.7, as it assumes an offset of UTC.
 #[cfg(feature = "std")]
 impl Sub<PrimitiveDateTime> for SystemTime {
     type Output = Duration;
@@ -693,6 +709,7 @@ impl PartialOrd for PrimitiveDateTime {
     }
 }
 
+/// Deprecated since v0.2.7, as it assumes an offset of UTC.
 #[cfg(feature = "std")]
 impl PartialEq<SystemTime> for PrimitiveDateTime {
     #[inline(always)]
@@ -701,6 +718,7 @@ impl PartialEq<SystemTime> for PrimitiveDateTime {
     }
 }
 
+/// Deprecated since v0.2.7, as it assumes an offset of UTC.
 #[cfg(feature = "std")]
 impl PartialEq<PrimitiveDateTime> for SystemTime {
     #[inline(always)]
@@ -709,6 +727,7 @@ impl PartialEq<PrimitiveDateTime> for SystemTime {
     }
 }
 
+/// Deprecated since v0.2.7, as it assumes an offset of UTC.
 #[cfg(feature = "std")]
 impl PartialOrd<SystemTime> for PrimitiveDateTime {
     #[inline(always)]
@@ -717,6 +736,7 @@ impl PartialOrd<SystemTime> for PrimitiveDateTime {
     }
 }
 
+/// Deprecated since v0.2.7, as it assumes an offset of UTC.
 #[cfg(feature = "std")]
 impl PartialOrd<PrimitiveDateTime> for SystemTime {
     #[inline(always)]
@@ -736,7 +756,9 @@ impl Ord for PrimitiveDateTime {
     }
 }
 
+/// Deprecated since v0.2.7, as it returns a value that assumes an offset of UTC.
 #[cfg(feature = "std")]
+#[allow(deprecated)]
 impl From<SystemTime> for PrimitiveDateTime {
     // There is definitely some way to have this conversion be infallible, but
     // it won't be an issue for over 500 years.
@@ -753,8 +775,9 @@ impl From<SystemTime> for PrimitiveDateTime {
     }
 }
 
+/// Deprecated since v0.2.7, as it assumes an offset of UTC.
 #[cfg(feature = "std")]
-#[allow(clippy::fallible_impl_from)]
+#[allow(clippy::fallible_impl_from, deprecated)]
 impl From<PrimitiveDateTime> for SystemTime {
     #[inline]
     fn from(datetime: PrimitiveDateTime) -> Self {
@@ -787,11 +810,13 @@ mod test {
 
     #[test]
     #[cfg(feature = "std")]
+    #[allow(deprecated)]
     fn now() {
         assert!(PrimitiveDateTime::now().year() >= 2019);
     }
 
     #[test]
+    #[allow(deprecated)]
     fn unix_epoch() {
         assert_eq!(
             PrimitiveDateTime::unix_epoch(),
@@ -800,6 +825,7 @@ mod test {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn from_unix_timestamp() {
         assert_eq!(
             PrimitiveDateTime::from_unix_timestamp(0),
@@ -812,6 +838,7 @@ mod test {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn timestamp() {
         assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
         assert_eq!(date!(2019-01-01).midnight().timestamp(), 1_546_300_800);
@@ -1402,6 +1429,7 @@ mod test {
 
     #[test]
     #[cfg(feature = "std")]
+    #[allow(deprecated)]
     fn eq_std() {
         let now_datetime = PrimitiveDateTime::now();
         let now_systemtime = SystemTime::from(now_datetime);
@@ -1410,6 +1438,7 @@ mod test {
 
     #[test]
     #[cfg(feature = "std")]
+    #[allow(deprecated)]
     fn std_eq() {
         #[cfg(feature = "std")]
         let now_datetime = PrimitiveDateTime::now();
@@ -1513,6 +1542,7 @@ mod test {
 
     #[test]
     #[cfg(feature = "std")]
+    #[allow(deprecated)]
     fn from_std() {
         assert_eq!(
             PrimitiveDateTime::from(SystemTime::UNIX_EPOCH),
@@ -1522,6 +1552,7 @@ mod test {
 
     #[test]
     #[cfg(feature = "std")]
+    #[allow(deprecated)]
     fn to_std() {
         assert_eq!(
             SystemTime::from(PrimitiveDateTime::unix_epoch()),

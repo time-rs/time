@@ -43,6 +43,7 @@ impl OffsetDateTime {
     /// assert!(OffsetDateTime::now().year() >= 2019);
     /// assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
     /// ```
+    // TODO Use `SystemTime::now().into()` once implemented.
     #[inline(always)]
     #[cfg(feature = "std")]
     #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
@@ -97,7 +98,12 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub const fn unix_epoch() -> Self {
-        PrimitiveDateTime::unix_epoch().assume_utc()
+        Date {
+            year: 1970,
+            ordinal: 1,
+        }
+        .midnight()
+        .assume_utc()
     }
 
     /// Create an `OffsetDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
@@ -117,7 +123,7 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub fn from_unix_timestamp(timestamp: i64) -> Self {
-        PrimitiveDateTime::from_unix_timestamp(timestamp).assume_utc()
+        OffsetDateTime::unix_epoch() + Duration::seconds(timestamp)
     }
 
     /// Get the `UtcOffset`.
@@ -163,7 +169,7 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub fn timestamp(self) -> i64 {
-        self.utc_datetime.timestamp()
+        (self - Self::unix_epoch()).whole_seconds()
     }
 
     /// Get the `Date` in the stored offset.
@@ -888,14 +894,14 @@ mod test {
     fn timestamp() {
         assert_eq!(OffsetDateTime::unix_epoch().timestamp(), 0);
         assert_eq!(
-            PrimitiveDateTime::unix_epoch()
-                .assume_utc()
+            OffsetDateTime::unix_epoch()
                 .to_offset(offset!(+1))
                 .timestamp(),
             0,
         );
         assert_eq!(
-            PrimitiveDateTime::unix_epoch()
+            date!(1970-01-01)
+                .midnight()
                 .assume_offset(offset!(-1))
                 .timestamp(),
             3_600,
