@@ -551,24 +551,6 @@ impl Add<Duration> for PrimitiveDateTime {
     }
 }
 
-// TODO Move this and similar to the file for `Duration`.
-#[cfg(feature = "std")]
-impl Add<Duration> for SystemTime {
-    type Output = Self;
-
-    #[inline(always)]
-    fn add(self, duration: Duration) -> Self::Output {
-        if duration.is_zero() {
-            self
-        } else if duration.is_positive() {
-            self + duration.abs_std()
-        } else {
-            // duration.is_negative()
-            self - duration.abs_std()
-        }
-    }
-}
-
 impl Add<StdDuration> for PrimitiveDateTime {
     type Output = Self;
 
@@ -602,14 +584,6 @@ impl AddAssign<StdDuration> for PrimitiveDateTime {
     }
 }
 
-#[cfg(feature = "std")]
-impl AddAssign<Duration> for SystemTime {
-    #[inline(always)]
-    fn add_assign(&mut self, duration: Duration) {
-        *self = *self + duration;
-    }
-}
-
 impl Sub<Duration> for PrimitiveDateTime {
     type Output = Self;
 
@@ -638,17 +612,6 @@ impl Sub<StdDuration> for PrimitiveDateTime {
     }
 }
 
-// TODO Move this and similar to the file for `Duration`.
-#[cfg(feature = "std")]
-impl Sub<Duration> for SystemTime {
-    type Output = Self;
-
-    #[inline(always)]
-    fn sub(self, duration: Duration) -> Self::Output {
-        (PrimitiveDateTime::from(self) - duration).into()
-    }
-}
-
 impl SubAssign<Duration> for PrimitiveDateTime {
     #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
@@ -659,14 +622,6 @@ impl SubAssign<Duration> for PrimitiveDateTime {
 impl SubAssign<StdDuration> for PrimitiveDateTime {
     #[inline(always)]
     fn sub_assign(&mut self, duration: StdDuration) {
-        *self = *self - duration;
-    }
-}
-
-#[cfg(feature = "std")]
-impl SubAssign<Duration> for SystemTime {
-    #[inline(always)]
-    fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
 }
@@ -1065,27 +1020,6 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "std")]
-    fn std_add_duration() {
-        assert_eq!(
-            SystemTime::from(date!(2019-01-01).midnight()) + 5.days(),
-            SystemTime::from(date!(2019-01-06).midnight()),
-        );
-        assert_eq!(
-            SystemTime::from(date!(2019-12-31).midnight()) + 1.days(),
-            SystemTime::from(date!(2020-01-01).midnight()),
-        );
-        assert_eq!(
-            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))) + 2.seconds(),
-            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))),
-        );
-        assert_eq!(
-            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))) + (-2).seconds(),
-            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))),
-        );
-    }
-
-    #[test]
     fn add_std_duration() {
         assert_eq!(
             date!(2019-01-01).midnight() + 5.std_days(),
@@ -1136,26 +1070,6 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "std")]
-    fn std_add_assign_duration() {
-        let mut ny19 = SystemTime::from(date!(2019-01-01).midnight());
-        ny19 += 5.days();
-        assert_eq!(ny19, date!(2019-01-06).midnight());
-
-        let mut nye20 = SystemTime::from(date!(2019-12-31).midnight());
-        nye20 += 1.days();
-        assert_eq!(nye20, date!(2020-01-01).midnight());
-
-        let mut nye20t = SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)));
-        nye20t += 2.seconds();
-        assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
-
-        let mut ny20t = SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)));
-        ny20t += (-2).seconds();
-        assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
-    }
-
-    #[test]
     fn sub_duration() {
         assert_eq!(
             date!(2019-01-06).midnight() - 5.days(),
@@ -1196,27 +1110,6 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "std")]
-    fn std_sub_duration() {
-        assert_eq!(
-            SystemTime::from(date!(2019-01-06).midnight()) - 5.days(),
-            SystemTime::from(date!(2019-01-01).midnight()),
-        );
-        assert_eq!(
-            SystemTime::from(date!(2020-01-01).midnight()) - 1.days(),
-            SystemTime::from(date!(2019-12-31).midnight()),
-        );
-        assert_eq!(
-            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))) - 2.seconds(),
-            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))),
-        );
-        assert_eq!(
-            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))) - (-2).seconds(),
-            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))),
-        );
-    }
-
-    #[test]
     fn sub_assign_duration() {
         let mut ny19 = date!(2019-01-06).midnight();
         ny19 -= 5.days();
@@ -1248,26 +1141,6 @@ mod test {
         let mut ny20t = date!(2020-01-01).with_time(time!(0:00:01));
         ny20t -= 2.std_seconds();
         assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
-    }
-
-    #[test]
-    #[cfg(feature = "std")]
-    fn std_sub_assign_duration() {
-        let mut ny19 = SystemTime::from(date!(2019-01-06).midnight());
-        ny19 -= 5.days();
-        assert_eq!(ny19, date!(2019-01-01).midnight());
-
-        let mut ny20 = SystemTime::from(date!(2020-01-01).midnight());
-        ny20 -= 1.days();
-        assert_eq!(ny20, date!(2019-12-31).midnight());
-
-        let mut ny20t = SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)));
-        ny20t -= 2.seconds();
-        assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
-
-        let mut nye20t = SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)));
-        nye20t -= (-2).seconds();
-        assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
     }
 
     #[test]

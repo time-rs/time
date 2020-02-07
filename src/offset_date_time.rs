@@ -4,6 +4,8 @@ use crate::{
     format::parse::{parse, ParseResult, ParsedItems},
     Date, DeferredFormat, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday,
 };
+#[cfg(feature = "std")]
+use core::convert::{From, TryFrom};
 use core::{
     cmp::Ordering,
     fmt::{self, Display},
@@ -11,6 +13,8 @@ use core::{
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
+#[cfg(feature = "std")]
+use std::time::SystemTime;
 
 /// A [`PrimitiveDateTime`] with a [`UtcOffset`].
 ///
@@ -36,19 +40,21 @@ pub struct OffsetDateTime {
 }
 
 impl OffsetDateTime {
-    /// Create a new `OffsetDateTime` with the current date and time (UTC).
+    /// Create a new `OffsetDateTime` with the current date and time.
+    ///
+    /// This currently returns an offset of UTC, though this behavior will
+    /// change once a way to obtain the local offset is implemented.
     ///
     /// ```rust
     /// # use time::{OffsetDateTime, offset};
     /// assert!(OffsetDateTime::now().year() >= 2019);
     /// assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
     /// ```
-    // TODO Use `SystemTime::now().into()` once implemented.
     #[inline(always)]
     #[cfg(feature = "std")]
     #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
     pub fn now() -> Self {
-        PrimitiveDateTime::now().assume_utc()
+        SystemTime::now().into()
     }
 
     /// Convert the `OffsetDateTime` from the current `UtcOffset` to the
@@ -812,6 +818,135 @@ impl Sub<OffsetDateTime> for OffsetDateTime {
     }
 }
 
+#[cfg(feature = "std")]
+impl Add<Duration> for SystemTime {
+    type Output = Self;
+
+    #[inline(always)]
+    fn add(self, duration: Duration) -> Self::Output {
+        if duration.is_zero() {
+            self
+        } else if duration.is_positive() {
+            self + duration.abs_std()
+        } else {
+            // duration.is_negative()
+            self - duration.abs_std()
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl AddAssign<Duration> for SystemTime {
+    #[inline(always)]
+    fn add_assign(&mut self, duration: Duration) {
+        *self = *self + duration;
+    }
+}
+
+#[cfg(feature = "std")]
+impl Sub<Duration> for SystemTime {
+    type Output = Self;
+
+    #[inline(always)]
+    fn sub(self, duration: Duration) -> Self::Output {
+        (PrimitiveDateTime::from(self) - duration).into()
+    }
+}
+
+#[cfg(feature = "std")]
+impl SubAssign<Duration> for SystemTime {
+    #[inline(always)]
+    fn sub_assign(&mut self, duration: Duration) {
+        *self = *self - duration;
+    }
+}
+
+#[cfg(feature = "std")]
+impl Sub<SystemTime> for OffsetDateTime {
+    type Output = Duration;
+
+    #[inline(always)]
+    fn sub(self, rhs: SystemTime) -> Self::Output {
+        self - Self::from(rhs)
+    }
+}
+
+#[cfg(feature = "std")]
+impl Sub<OffsetDateTime> for SystemTime {
+    type Output = Duration;
+
+    #[inline(always)]
+    fn sub(self, rhs: OffsetDateTime) -> Self::Output {
+        OffsetDateTime::from(self) - rhs
+    }
+}
+
+#[cfg(feature = "std")]
+impl PartialEq<SystemTime> for OffsetDateTime {
+    #[inline(always)]
+    fn eq(&self, rhs: &SystemTime) -> bool {
+        self == &Self::from(*rhs)
+    }
+}
+
+#[cfg(feature = "std")]
+impl PartialEq<OffsetDateTime> for SystemTime {
+    #[inline(always)]
+    fn eq(&self, rhs: &OffsetDateTime) -> bool {
+        &OffsetDateTime::from(*self) == rhs
+    }
+}
+
+#[cfg(feature = "std")]
+impl PartialOrd<SystemTime> for OffsetDateTime {
+    #[inline(always)]
+    fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
+        self.partial_cmp(&Self::from(*other))
+    }
+}
+
+#[cfg(feature = "std")]
+impl PartialOrd<OffsetDateTime> for SystemTime {
+    #[inline(always)]
+    fn partial_cmp(&self, other: &OffsetDateTime) -> Option<Ordering> {
+        OffsetDateTime::from(*self).partial_cmp(other)
+    }
+}
+
+#[cfg(feature = "std")]
+impl From<SystemTime> for OffsetDateTime {
+    // There is definitely some way to have this conversion be infallible, but
+    // it won't be an issue for over 500 years.
+    #[inline(always)]
+    fn from(system_time: SystemTime) -> Self {
+        let duration = match system_time.duration_since(SystemTime::UNIX_EPOCH) {
+            Ok(duration) => Duration::try_from(duration)
+                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
+            Err(err) => -Duration::try_from(err.duration())
+                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
+        };
+
+        Self::unix_epoch() + duration
+    }
+}
+
+#[cfg(feature = "std")]
+impl From<OffsetDateTime> for SystemTime {
+    #[inline]
+    fn from(datetime: OffsetDateTime) -> Self {
+        let duration = datetime - OffsetDateTime::unix_epoch();
+
+        if duration.is_zero() {
+            Self::UNIX_EPOCH
+        } else if duration.is_positive() {
+            Self::UNIX_EPOCH + duration.abs_std()
+        } else {
+            // duration.is_negative()
+            Self::UNIX_EPOCH - duration.abs_std()
+        }
+    }
+}
+
 #[cfg(test)]
 #[rustfmt::skip::macros(date)]
 mod test {
@@ -1372,6 +1507,88 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "std")]
+    fn std_add_duration() {
+        assert_eq!(
+            SystemTime::from(date!(2019-01-01).midnight()) + 5.days(),
+            SystemTime::from(date!(2019-01-06).midnight()),
+        );
+        assert_eq!(
+            SystemTime::from(date!(2019-12-31).midnight()) + 1.days(),
+            SystemTime::from(date!(2020-01-01).midnight()),
+        );
+        assert_eq!(
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))) + 2.seconds(),
+            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))),
+        );
+        assert_eq!(
+            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))) + (-2).seconds(),
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))),
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn std_add_assign_duration() {
+        let mut ny19 = SystemTime::from(date!(2019-01-01).midnight());
+        ny19 += 5.days();
+        assert_eq!(ny19, date!(2019-01-06).midnight());
+
+        let mut nye20 = SystemTime::from(date!(2019-12-31).midnight());
+        nye20 += 1.days();
+        assert_eq!(nye20, date!(2020-01-01).midnight());
+
+        let mut nye20t = SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)));
+        nye20t += 2.seconds();
+        assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
+
+        let mut ny20t = SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)));
+        ny20t += (-2).seconds();
+        assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn std_sub_duration() {
+        assert_eq!(
+            SystemTime::from(date!(2019-01-06).midnight()) - 5.days(),
+            SystemTime::from(date!(2019-01-01).midnight()),
+        );
+        assert_eq!(
+            SystemTime::from(date!(2020-01-01).midnight()) - 1.days(),
+            SystemTime::from(date!(2019-12-31).midnight()),
+        );
+        assert_eq!(
+            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))) - 2.seconds(),
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))),
+        );
+        assert_eq!(
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))) - (-2).seconds(),
+            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))),
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn std_sub_assign_duration() {
+        let mut ny19 = SystemTime::from(date!(2019-01-06).midnight());
+        ny19 -= 5.days();
+        assert_eq!(ny19, date!(2019-01-01).midnight());
+
+        let mut ny20 = SystemTime::from(date!(2020-01-01).midnight());
+        ny20 -= 1.days();
+        assert_eq!(ny20, date!(2019-12-31).midnight());
+
+        let mut ny20t = SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)));
+        ny20t -= 2.seconds();
+        assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
+
+        let mut nye20t = SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)));
+        nye20t -= (-2).seconds();
+        assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
+    }
+
+    #[test]
     fn sub_self() {
         assert_eq!(
             date!(2019-01-02).midnight().assume_utc() - date!(2019-01-01).midnight().assume_utc(),
@@ -1388,6 +1605,226 @@ mod test {
         assert_eq!(
             date!(2019-12-31).midnight().assume_utc() - date!(2020-01-01).midnight().assume_utc(),
             (-1).days(),
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn std_sub() {
+        assert_eq!(
+            SystemTime::from(date!(2019-01-02).midnight())
+                - date!(2019-01-01).midnight().assume_utc(),
+            1.days()
+        );
+        assert_eq!(
+            SystemTime::from(date!(2019-01-01).midnight())
+                - date!(2019-01-02).midnight().assume_utc(),
+            (-1).days()
+        );
+        assert_eq!(
+            SystemTime::from(date!(2020-01-01).midnight())
+                - date!(2019-12-31).midnight().assume_utc(),
+            1.days()
+        );
+        assert_eq!(
+            SystemTime::from(date!(2019-12-31).midnight())
+                - date!(2020-01-01).midnight().assume_utc(),
+            (-1).days()
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn sub_std() {
+        assert_eq!(
+            date!(2019-01-02).midnight().assume_utc()
+                - SystemTime::from(date!(2019-01-01).midnight()),
+            1.days()
+        );
+        assert_eq!(
+            date!(2019-01-01).midnight().assume_utc()
+                - SystemTime::from(date!(2019-01-02).midnight()),
+            (-1).days()
+        );
+        assert_eq!(
+            date!(2020-01-01).midnight().assume_utc()
+                - SystemTime::from(date!(2019-12-31).midnight()),
+            1.days()
+        );
+        assert_eq!(
+            date!(2019-12-31).midnight().assume_utc()
+                - SystemTime::from(date!(2020-01-01).midnight()),
+            (-1).days()
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    #[allow(deprecated)]
+    fn eq_std() {
+        let now_datetime = OffsetDateTime::now();
+        let now_systemtime = SystemTime::from(now_datetime);
+        assert_eq!(now_datetime, now_systemtime);
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    #[allow(deprecated)]
+    fn std_eq() {
+        let now_datetime = OffsetDateTime::now();
+        let now_systemtime = SystemTime::from(now_datetime);
+        assert_eq!(now_datetime, now_systemtime);
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn ord_std() {
+        assert_eq!(
+            date!(2019-01-01).midnight().assume_utc(),
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+        );
+        assert!(
+            date!(2019-01-01).midnight().assume_utc()
+                < SystemTime::from(date!(2020-01-01).midnight().assume_utc())
+        );
+        assert!(
+            date!(2019-01-01).midnight().assume_utc()
+                < SystemTime::from(date!(2019-02-01).midnight().assume_utc())
+        );
+        assert!(
+            date!(2019-01-01).midnight().assume_utc()
+                < SystemTime::from(date!(2019-01-02).midnight().assume_utc())
+        );
+        assert!(
+            date!(2019-01-01).midnight().assume_utc()
+                < SystemTime::from(date!(2019-01-01).with_time(time!(1:00:00)).assume_utc())
+        );
+        assert!(
+            date!(2019-01-01).midnight().assume_utc()
+                < SystemTime::from(date!(2019-01-01).with_time(time!(0:01:00)).assume_utc())
+        );
+        assert!(
+            date!(2019-01-01).midnight().assume_utc()
+                < SystemTime::from(date!(2019-01-01).with_time(time!(0:00:01)).assume_utc())
+        );
+        assert!(
+            date!(2019-01-01).midnight().assume_utc()
+                < SystemTime::from(date!(2019-01-01).with_time(time!(0:00:00.001)).assume_utc())
+        );
+        assert!(
+            date!(2020-01-01).midnight().assume_utc()
+                > SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+        );
+        assert!(
+            date!(2019-02-01).midnight().assume_utc()
+                > SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+        );
+        assert!(
+            date!(2019-01-02).midnight().assume_utc()
+                > SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+        );
+        assert!(
+            date!(2019-01-01).with_time(time!(1:00:00)).assume_utc()
+                > SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+        );
+        assert!(
+            date!(2019-01-01).with_time(time!(0:01:00)).assume_utc()
+                > SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+        );
+        assert!(
+            date!(2019-01-01).with_time(time!(0:00:01)).assume_utc()
+                > SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+        );
+        assert!(
+            date!(2019-01-01)
+                .with_time(time!(0:00:00.000_000_001))
+                .assume_utc()
+                > SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn std_ord() {
+        assert_eq!(
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc()),
+            date!(2019-01-01).midnight().assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+                < date!(2020-01-01).midnight().assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+                < date!(2019-02-01).midnight().assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+                < date!(2019-01-02).midnight().assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+                < date!(2019-01-01).with_time(time!(1:00:00)).assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+                < date!(2019-01-01).with_time(time!(0:01:00)).assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+                < date!(2019-01-01).with_time(time!(0:00:01)).assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc())
+                < date!(2019-01-01)
+                    .with_time(time!(0:00:00.000_000_001))
+                    .assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2020-01-01).midnight().assume_utc())
+                > date!(2019-01-01).midnight().assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-02-01).midnight().assume_utc())
+                > date!(2019-01-01).midnight().assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-02).midnight().assume_utc())
+                > date!(2019-01-01).midnight().assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-01).with_time(time!(1:00:00)).assume_utc())
+                > date!(2019-01-01).midnight().assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-01).with_time(time!(0:01:00)).assume_utc())
+                > date!(2019-01-01).midnight().assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-01).with_time(time!(0:00:01)).assume_utc())
+                > date!(2019-01-01).midnight().assume_utc()
+        );
+        assert!(
+            SystemTime::from(date!(2019-01-01).with_time(time!(0:00:00.001)).assume_utc())
+                > date!(2019-01-01).midnight().assume_utc()
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn from_std() {
+        assert_eq!(
+            OffsetDateTime::from(SystemTime::UNIX_EPOCH),
+            OffsetDateTime::unix_epoch()
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn to_std() {
+        assert_eq!(
+            SystemTime::from(OffsetDateTime::unix_epoch()),
+            SystemTime::UNIX_EPOCH
         );
     }
 }
