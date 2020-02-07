@@ -131,8 +131,6 @@ fn format_specifier(
     specifier: Specifier,
 ) -> fmt::Result {
     /// Push the provided specifier to the list of items.
-    // TODO (future) Some way to concatenate identifiers/paths without hacks
-    // would be super!
     macro_rules! specifier {
         ($type:ident :: $specifier_fn:ident ( $specifier:ident $(, $param:expr)? )) => {
             $type::$specifier_fn(

@@ -77,7 +77,8 @@ impl PrimitiveDateTime {
     #[deprecated(since = "0.2.7", note = "This method assumes an offset of UTC.")]
     pub const fn unix_epoch() -> Self {
         Self {
-            // TODO Use `date!(1970-001)` when rustfmt can handle it.
+            // TODO(upstream) Use `date!(1970-001)` when rustfmt can handle it.
+            // Currently, not even `#[rustfmt::skip::macros(date)]` works.
             date: Date {
                 year: 1970,
                 ordinal: 1,

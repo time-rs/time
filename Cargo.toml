@@ -8,7 +8,7 @@ keywords = ["date", "time", "calendar", "duration"]
 categories = ["date-and-time"]
 readme = "README.md"
 license = "MIT OR Apache-2.0"
-# TODO Add GitHub Actions badge once rust-lang/crates.io#1838 is merged.
+# TODO(upstream) Add GitHub Actions badge once rust-lang/crates.io#1838 is merged.
 description = "Date and time library. Fully interoperable with the standard library. Mostly compatible with #![no_std]."
 
 [package.metadata.docs.rs]

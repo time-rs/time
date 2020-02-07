@@ -1187,7 +1187,6 @@ impl DivAssign<f64> for Duration {
 impl Div<Duration> for Duration {
     type Output = f64;
 
-    // TODO Replace with `self.div_duration_f64(rhs)` when it stabilizes.
     #[inline(always)]
     fn div(self, rhs: Self) -> Self::Output {
         self.as_seconds_f64() / rhs.as_seconds_f64()

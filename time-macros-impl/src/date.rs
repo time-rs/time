@@ -69,8 +69,10 @@ impl Parse for Date {
             (year, ordinal.value()?)
         };
 
-        // TODO Replace use `LitInt` extension methods when dtolnay/syn#748 is
-        // resolved.
+        // TODO(upstream) Swap out the following when dtolnay/syn#748 is
+        // published on crates.io. Be sure to update Cargo.toml for the minimum
+        // version.
+        // LitInt::create(year).using_span(year_span).ensure_in_range(-100_000..=100_000)?;
         if year < -100_000 || year > 100_000 {
             return error!(year_span, "value must be in the range -100_000..=100_000");
         }
