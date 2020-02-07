@@ -1,5 +1,5 @@
 //! This module and its contents are not subject to stability guarantees and
-//! should not be be relied upon.
+//! should not be relied upon.
 //!
 //! These methods either exist to reduce duplication in code elsewhere or are
 //! public only for usage in macros. The reasoning for a method's existence is
