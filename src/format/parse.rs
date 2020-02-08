@@ -14,7 +14,7 @@ use core::{
 /// Helper type to avoid repeating the error type.
 pub(crate) type ParseResult<T> = Result<T, ParseError>;
 
-/// An error ocurred while parsing.
+/// An error occurred while parsing.
 #[rustversion::attr(since(1.40), non_exhaustive)]
 #[rustversion::attr(
     before(1.40),
