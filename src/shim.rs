@@ -70,12 +70,12 @@ impl_euclid_shim_unsigned![u8, u16, u32, u64, u128, usize];
 
 pub(crate) trait DurationShim {
     /// Get the number of seconds in a `Duration` as a 64 bit float.
-    fn as_secs_f64(&self) -> f64;
+    fn as_secs_f64_shim(&self) -> f64;
 }
 impl DurationShim for Duration {
     #[inline]
     #[allow(clippy::cast_precision_loss)]
-    fn as_secs_f64(&self) -> f64 {
+    fn as_secs_f64_shim(&self) -> f64 {
         (self.as_secs() as f64) + (self.as_nanos() as f64) / (1_000_000_000.)
     }
 }

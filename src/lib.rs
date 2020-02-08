@@ -537,5 +537,5 @@ pub fn precise_time_s() -> f64 {
 
     (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))
         .expect("System clock was before 1970.")
-        .as_secs_f64()
+        .as_secs_f64_shim()
 }

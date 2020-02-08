@@ -1198,7 +1198,7 @@ impl Div<StdDuration> for Duration {
 
     #[inline(always)]
     fn div(self, rhs: StdDuration) -> Self::Output {
-        self.as_seconds_f64() / rhs.as_secs_f64()
+        self.as_seconds_f64() / rhs.as_secs_f64_shim()
     }
 }
 
@@ -1207,7 +1207,7 @@ impl Div<Duration> for StdDuration {
 
     #[inline(always)]
     fn div(self, rhs: Duration) -> Self::Output {
-        self.as_secs_f64() / rhs.as_seconds_f64()
+        self.as_secs_f64_shim() / rhs.as_seconds_f64()
     }
 }
 
