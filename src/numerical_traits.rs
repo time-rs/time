@@ -46,14 +46,9 @@ use core::time::Duration as StdDuration;
 /// assert_eq!(2.seconds() - 500.milliseconds(), 1_500.milliseconds());
 /// ```
 ///
-/// As floats can not be used to construct via anything other than
-/// `Duration::seconds_f32` and `Duration::seconds_f64`, floats _do not_
-/// implement `NumericalDuration`.
-///
-/// ```rust,compile_fail
-/// # use time::NumericalDuration;
-/// 5.0.seconds();
-/// ```
+/// When called on floating point values, any remainder of the floating point
+/// value will be truncated. Keep in mind that floating point numbers are
+/// inherently imprecise and have limited capacity.
 pub trait NumericalDuration {
     /// Create a `Duration` from the number of nanoseconds.
     fn nanoseconds(self) -> Duration;
@@ -171,6 +166,54 @@ macro_rules! impl_numerical_duration_nonzero {
     };
 }
 
+macro_rules! impl_numerical_duration_float {
+    ($($type:ty),* $(,)?) => {
+        $(
+            impl NumericalDuration for $type {
+                #[inline(always)]
+                fn nanoseconds(self) -> Duration {
+                    Duration::nanoseconds(self as i64)
+                }
+
+                #[inline]
+                fn microseconds(self) -> Duration {
+                    Duration::nanoseconds((self * 1_000.) as i64)
+                }
+
+                #[inline]
+                fn milliseconds(self) -> Duration {
+                    Duration::nanoseconds((self * 1_000_000.) as i64)
+                }
+
+                #[inline]
+                fn seconds(self) -> Duration {
+                    Duration::nanoseconds((self * 1_000_000_000.) as i64)
+                }
+
+                #[inline]
+                fn minutes(self) -> Duration {
+                    Duration::nanoseconds((self * 60_000_000_000.) as i64)
+                }
+
+                #[inline]
+                fn hours(self) -> Duration {
+                    Duration::nanoseconds((self * 3_600_000_000_000.) as i64)
+                }
+
+                #[inline]
+                fn days(self) -> Duration {
+                    Duration::nanoseconds((self * 86_400_000_000_000.) as i64)
+                }
+
+                #[inline]
+                fn weeks(self) -> Duration {
+                    Duration::nanoseconds((self * 604_800_000_000_000.) as i64)
+                }
+            }
+        )*
+    };
+}
+
 impl_numerical_duration![u8, u16, u32, i8, i16, i32, i64];
 impl_numerical_duration_nonzero![
     core::num::NonZeroU8,
@@ -181,6 +224,7 @@ impl_numerical_duration_nonzero![
     core::num::NonZeroI32,
     core::num::NonZeroI64,
 ];
+impl_numerical_duration_float![f32, f64];
 
 /// Create `std::time::Duration`s from primitive and core numeric types.
 ///
@@ -221,14 +265,9 @@ impl_numerical_duration_nonzero![
 /// );
 /// ```
 ///
-/// As floats can not be used to construct via anything other than
-/// `Duration::from_secs_f32` and `Duration::from_secs_f64`, floats _do not_
-/// implement `NumericalStdDuration`.
-///
-/// ```rust,compile_fail
-/// # use time::NumericalStdDuration;
-/// 5.0.std_seconds();
-/// ```
+/// When called on floating point values, any remainder of the floating point
+/// value will be truncated. Keep in mind that floating point numbers are
+/// inherently imprecise and have limited capacity.
 pub trait NumericalStdDuration {
     /// Create a `std::time::Duration` from the number of nanoseconds.
     fn std_nanoseconds(self) -> StdDuration;
@@ -407,6 +446,58 @@ impl NumericalStdDuration for i32 {
     }
 }
 
+/// Implement on `f64` because that's the default type for floats. This performs
+/// a runtime check and panics if the value is negative.
+impl NumericalStdDuration for f64 {
+    #[inline(always)]
+    fn std_nanoseconds(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos(self as u64)
+    }
+
+    #[inline]
+    fn std_microseconds(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 1_000.) as u64)
+    }
+
+    #[inline]
+    fn std_milliseconds(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 1_000_000.) as u64)
+    }
+
+    #[inline]
+    fn std_seconds(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 1_000_000_000.) as u64)
+    }
+
+    #[inline]
+    fn std_minutes(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 60_000_000_000.) as u64)
+    }
+
+    #[inline]
+    fn std_hours(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 3_600_000_000_000.) as u64)
+    }
+
+    #[inline]
+    fn std_days(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 86_400_000_000_000.) as u64)
+    }
+
+    #[inline]
+    fn std_weeks(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 604_800_000_000_000.) as u64)
+    }
+}
+
 /// Create `std::time::Duration`s from primitive and core numeric types. Unless
 /// you are always expecting a `std::time::Duration`, you should prefer to use
 /// [`NumericalStdDuration`] for clarity.
@@ -440,14 +531,9 @@ impl NumericalStdDuration for i32 {
 /// assert_eq!(2.seconds() - 500.milliseconds(), 1_500.milliseconds());
 /// ```
 ///
-/// As floats can not be used to construct via anything other than
-/// `Duration::from_secs_f32` and `Duration::from_secs_f64`, floats _do not_
-/// implement `NumericalStdDurationShort`.
-///
-/// ```rust,compile_fail
-/// # use time::NumericalStdDurationShort;
-/// 5.0.seconds();
-/// ```
+/// When called on floating point values, any remainder of the floating point
+/// value will be truncated. Keep in mind that floating point numbers are
+/// inherently imprecise and have limited capacity.
 pub trait NumericalStdDurationShort {
     /// Create a `std::time::Duration` from the number of nanoseconds.
     fn nanoseconds(self) -> StdDuration;
@@ -626,6 +712,58 @@ impl NumericalStdDurationShort for i32 {
     }
 }
 
+/// Implement on `f64` because that's the default type for floats. This performs
+/// a runtime check and panics if the value is negative.
+impl NumericalStdDurationShort for f64 {
+    #[inline(always)]
+    fn nanoseconds(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos(self as u64)
+    }
+
+    #[inline]
+    fn microseconds(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 1_000.) as u64)
+    }
+
+    #[inline]
+    fn milliseconds(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 1_000_000.) as u64)
+    }
+
+    #[inline]
+    fn seconds(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 1_000_000_000.) as u64)
+    }
+
+    #[inline]
+    fn minutes(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 60_000_000_000.) as u64)
+    }
+
+    #[inline]
+    fn hours(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 3_600_000_000_000.) as u64)
+    }
+
+    #[inline]
+    fn days(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 86_400_000_000_000.) as u64)
+    }
+
+    #[inline]
+    fn weeks(self) -> StdDuration {
+        assert!(self >= 0.);
+        StdDuration::from_nanos((self * 604_800_000_000_000.) as u64)
+    }
+}
+
 #[cfg(test)]
 mod test_numerical_duration {
     use super::{Duration, NumericalDuration};
@@ -655,6 +793,30 @@ mod test_numerical_duration {
     }
 
     #[test]
+    fn float() {
+        // Ensure values truncate rather than round.
+        assert_eq!(1.9.nanoseconds(), Duration::nanoseconds(1));
+
+        assert_eq!(1.0.nanoseconds(), Duration::nanoseconds(1));
+        assert_eq!(1.0.microseconds(), Duration::microseconds(1));
+        assert_eq!(1.0.milliseconds(), Duration::milliseconds(1));
+        assert_eq!(1.0.seconds(), Duration::seconds(1));
+        assert_eq!(1.0.minutes(), Duration::minutes(1));
+        assert_eq!(1.0.hours(), Duration::hours(1));
+        assert_eq!(1.0.days(), Duration::days(1));
+        assert_eq!(1.0.weeks(), Duration::weeks(1));
+
+        assert_eq!(1.5.nanoseconds(), Duration::nanoseconds(1));
+        assert_eq!(1.5.microseconds(), Duration::nanoseconds(1_500));
+        assert_eq!(1.5.milliseconds(), Duration::microseconds(1_500));
+        assert_eq!(1.5.seconds(), Duration::milliseconds(1_500));
+        assert_eq!(1.5.minutes(), Duration::seconds(90));
+        assert_eq!(1.5.hours(), Duration::minutes(90));
+        assert_eq!(1.5.days(), Duration::hours(36));
+        assert_eq!(1.5.weeks(), Duration::hours(252));
+    }
+
+    #[test]
     fn arithmetic() {
         assert_eq!(2.seconds() + 500.milliseconds(), 2_500.milliseconds());
         assert_eq!(2.seconds() - 500.milliseconds(), 1_500.milliseconds());
@@ -676,6 +838,30 @@ mod test_numerical_std_duration {
         assert_eq!(5.std_hours(), Duration::from_secs(5 * 3_600));
         assert_eq!(5.std_days(), Duration::from_secs(5 * 86_400));
         assert_eq!(5.std_weeks(), Duration::from_secs(5 * 604_800));
+    }
+
+    #[test]
+    fn float() {
+        // Ensure values truncate rather than round.
+        assert_eq!(1.9.std_nanoseconds(), Duration::from_nanos(1));
+
+        assert_eq!(1.0.std_nanoseconds(), Duration::from_nanos(1));
+        assert_eq!(1.0.std_microseconds(), Duration::from_micros(1));
+        assert_eq!(1.0.std_milliseconds(), Duration::from_millis(1));
+        assert_eq!(1.0.std_seconds(), Duration::from_secs(1));
+        assert_eq!(1.0.std_minutes(), Duration::from_secs(60));
+        assert_eq!(1.0.std_hours(), Duration::from_secs(3_600));
+        assert_eq!(1.0.std_days(), Duration::from_secs(86_400));
+        assert_eq!(1.0.std_weeks(), Duration::from_secs(604_800));
+
+        assert_eq!(1.5.std_nanoseconds(), Duration::from_nanos(1));
+        assert_eq!(1.5.std_microseconds(), Duration::from_nanos(1_500));
+        assert_eq!(1.5.std_milliseconds(), Duration::from_micros(1_500));
+        assert_eq!(1.5.std_seconds(), Duration::from_millis(1_500));
+        assert_eq!(1.5.std_minutes(), Duration::from_secs(90));
+        assert_eq!(1.5.std_hours(), Duration::from_secs(90 * 60));
+        assert_eq!(1.5.std_days(), Duration::from_secs(36 * 3_600));
+        assert_eq!(1.5.std_weeks(), Duration::from_secs(252 * 3_600));
     }
 
     #[test]
@@ -706,6 +892,30 @@ mod test_numerical_std_duration_short {
         assert_eq!(5.hours(), Duration::from_secs(5 * 3_600));
         assert_eq!(5.days(), Duration::from_secs(5 * 86_400));
         assert_eq!(5.weeks(), Duration::from_secs(5 * 604_800));
+    }
+
+    #[test]
+    fn float() {
+        // Ensure values truncate rather than round.
+        assert_eq!(1.9.nanoseconds(), Duration::from_nanos(1));
+
+        assert_eq!(1.0.nanoseconds(), Duration::from_nanos(1));
+        assert_eq!(1.0.microseconds(), Duration::from_micros(1));
+        assert_eq!(1.0.milliseconds(), Duration::from_millis(1));
+        assert_eq!(1.0.seconds(), Duration::from_secs(1));
+        assert_eq!(1.0.minutes(), Duration::from_secs(60));
+        assert_eq!(1.0.hours(), Duration::from_secs(3_600));
+        assert_eq!(1.0.days(), Duration::from_secs(86_400));
+        assert_eq!(1.0.weeks(), Duration::from_secs(604_800));
+
+        assert_eq!(1.5.nanoseconds(), Duration::from_nanos(1));
+        assert_eq!(1.5.microseconds(), Duration::from_nanos(1_500));
+        assert_eq!(1.5.milliseconds(), Duration::from_micros(1_500));
+        assert_eq!(1.5.seconds(), Duration::from_millis(1_500));
+        assert_eq!(1.5.minutes(), Duration::from_secs(90));
+        assert_eq!(1.5.hours(), Duration::from_secs(90 * 60));
+        assert_eq!(1.5.days(), Duration::from_secs(36 * 3_600));
+        assert_eq!(1.5.weeks(), Duration::from_secs(252 * 3_600));
     }
 
     #[test]

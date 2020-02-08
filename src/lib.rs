@@ -532,8 +532,8 @@ pub fn precise_time_ns() -> u64 {
 )]
 #[inline]
 pub fn precise_time_s() -> f64 {
-    use std::time::SystemTime;
     use shim::DurationShim;
+    use std::time::SystemTime;
 
     (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))
         .expect("System clock was before 1970.")
