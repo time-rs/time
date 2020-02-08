@@ -25,7 +25,7 @@ use core::{
     feature = "serde",
     serde(from = "crate::serde::Duration", into = "crate::serde::Duration")
 )]
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Duration {
     /// Number of whole seconds.
     pub(crate) seconds: i64,
