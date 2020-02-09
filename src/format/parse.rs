@@ -293,6 +293,11 @@ pub(crate) fn try_consume_exact_digits<T: FromStr>(
             return None;
         }
 
+        // Ensure the string is long enough to perform the slicing.
+        if (num_digits - pad_size) > s.len() {
+            return None;
+        }
+
         // Because we're only dealing with ASCII digits here, we know that the
         // length is equal to the number of bytes, as ASCII values are always one
         // byte in Unicode.

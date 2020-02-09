@@ -55,6 +55,10 @@ Versioning].
   - `impl From<SystemTime> for PrimitiveDateTime`
   - `impl From<PrimitiveDateTime> for SystemTime`
 
+### Fixed
+
+- Avoid panics when parsing an empty string (#215).
+
 ## Pre-0.2.7
 
 Prior to v0.2.7, changes were listed in GitHub releases.
