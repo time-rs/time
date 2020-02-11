@@ -209,8 +209,10 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::hours(-2).format("%z"), "-0200");
     /// ```
     #[inline(always)]
-    pub fn format(self, format: &str) -> String {
-        DeferredFormat::new(format).with_offset(self).to_string()
+    pub fn format(self, format: impl AsRef<str>) -> String {
+        DeferredFormat::new(format.as_ref())
+            .with_offset(self)
+            .to_string()
     }
 
     /// Attempt to parse the `UtcOffset` using the provided string.
@@ -221,8 +223,8 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::parse("-0200", "%z"), Ok(UtcOffset::hours(-2)));
     /// ```
     #[inline(always)]
-    pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s, format)?)
+    pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
+        Self::try_from_parsed_items(parse(s.as_ref(), format.as_ref())?)
     }
 
     /// Given the items already parsed, attempt to create a `UtcOffset`.

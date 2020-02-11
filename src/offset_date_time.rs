@@ -657,8 +657,8 @@ impl OffsetDateTime {
     /// );
     /// ```
     #[inline(always)]
-    pub fn format(self, format: &str) -> String {
-        DeferredFormat::new(format)
+    pub fn format(self, format: impl AsRef<str>) -> String {
+        DeferredFormat::new(format.as_ref())
             .with_date(self.date())
             .with_time(self.time())
             .with_offset(self.offset())
@@ -683,8 +683,8 @@ impl OffsetDateTime {
     /// );
     /// ```
     #[inline(always)]
-    pub fn parse(s: &str, format: &str) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s, format)?)
+    pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
+        Self::try_from_parsed_items(parse(s.as_ref(), format.as_ref())?)
     }
 
     /// Given the items already parsed, attempt to create an `OffsetDateTime`.

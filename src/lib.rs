@@ -449,7 +449,7 @@ mod private {
         ($($type:ty),* $(,)?) => {
             $(
                 impl Parsable for $type {
-                    fn parse(s: &str, format: &str) -> ParseResult<Self> {
+                    fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
                         Self::parse(s, format)
                     }
                 }
@@ -458,7 +458,7 @@ mod private {
     }
 
     pub trait Parsable: Sized {
-        fn parse(s: &str, format: &str) -> ParseResult<Self>;
+        fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self>;
     }
 
     parsable![Time, Date, UtcOffset, PrimitiveDateTime, OffsetDateTime];
@@ -483,7 +483,7 @@ mod private {
 /// }
 /// ```
 #[inline(always)]
-pub fn parse<T: private::Parsable>(s: &str, format: &str) -> ParseResult<T> {
+pub fn parse<T: private::Parsable>(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<T> {
     private::Parsable::parse(s, format)
 }
 

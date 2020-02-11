@@ -31,6 +31,11 @@ Versioning].
   `NumericalStdDuration` and `NumericalStdDurationShort` have been implemented
   for `f64` only.
 
+### Changed
+
+- All formatting and parsing methods now accept `impl AsRef<str>` as parameters,
+  rather than just `&str`. `time::validate_format_string` does this as well.
+
 ### Deprecated
 
 - `Sign` has been deprecated in its entirety, along with `Duration::sign`.
