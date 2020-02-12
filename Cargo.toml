@@ -18,7 +18,7 @@ all-features = true
 default = ["deprecated", "std"]
 deprecated = []
 panicking-api = []
-std = []
+std = ["libc", "winapi"]
 
 # Internal usage. This is used when building for docs.rs and time-rs.github.io.
 # This feature should never be used by external users. It will likely be
@@ -32,3 +32,9 @@ time-macros = { version = "0.1", path = "time-macros" }
 
 [workspace]
 members = ["time-macros", "time-macros-impl"]
+
+[target.'cfg(unix)'.dependencies]
+libc = { version = "0.2", optional = true }
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
