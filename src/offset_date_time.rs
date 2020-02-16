@@ -849,7 +849,7 @@ impl Sub<Duration> for SystemTime {
 
     #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
-        (PrimitiveDateTime::from(self) - duration).into()
+        (OffsetDateTime::from(self) - duration).into()
     }
 }
 
@@ -1510,82 +1510,100 @@ mod test {
     #[cfg(feature = "std")]
     fn std_add_duration() {
         assert_eq!(
-            SystemTime::from(date!(2019-01-01).midnight()) + 5.days(),
-            SystemTime::from(date!(2019-01-06).midnight()),
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc()) + 5.days(),
+            SystemTime::from(date!(2019-01-06).midnight().assume_utc()),
         );
         assert_eq!(
-            SystemTime::from(date!(2019-12-31).midnight()) + 1.days(),
-            SystemTime::from(date!(2020-01-01).midnight()),
+            SystemTime::from(date!(2019-12-31).midnight().assume_utc()) + 1.days(),
+            SystemTime::from(date!(2020-01-01).midnight().assume_utc()),
         );
         assert_eq!(
-            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))) + 2.seconds(),
-            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))),
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)).assume_utc())
+                + 2.seconds(),
+            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)).assume_utc()),
         );
         assert_eq!(
-            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))) + (-2).seconds(),
-            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))),
+            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)).assume_utc())
+                + (-2).seconds(),
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)).assume_utc()),
         );
     }
 
     #[test]
     #[cfg(feature = "std")]
     fn std_add_assign_duration() {
-        let mut ny19 = SystemTime::from(date!(2019-01-01).midnight());
+        let mut ny19 = SystemTime::from(date!(2019-01-01).midnight().assume_utc());
         ny19 += 5.days();
-        assert_eq!(ny19, date!(2019-01-06).midnight());
+        assert_eq!(ny19, date!(2019-01-06).midnight().assume_utc());
 
-        let mut nye20 = SystemTime::from(date!(2019-12-31).midnight());
+        let mut nye20 = SystemTime::from(date!(2019-12-31).midnight().assume_utc());
         nye20 += 1.days();
-        assert_eq!(nye20, date!(2020-01-01).midnight());
+        assert_eq!(nye20, date!(2020-01-01).midnight().assume_utc());
 
-        let mut nye20t = SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)));
+        let mut nye20t =
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)).assume_utc());
         nye20t += 2.seconds();
-        assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
+        assert_eq!(
+            nye20t,
+            date!(2020-01-01).with_time(time!(0:00:01)).assume_utc()
+        );
 
-        let mut ny20t = SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)));
+        let mut ny20t = SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)).assume_utc());
         ny20t += (-2).seconds();
-        assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
+        assert_eq!(
+            ny20t,
+            date!(2019-12-31).with_time(time!(23:59:59)).assume_utc()
+        );
     }
 
     #[test]
     #[cfg(feature = "std")]
     fn std_sub_duration() {
         assert_eq!(
-            SystemTime::from(date!(2019-01-06).midnight()) - 5.days(),
-            SystemTime::from(date!(2019-01-01).midnight()),
+            SystemTime::from(date!(2019-01-06).midnight().assume_utc()) - 5.days(),
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc()),
         );
         assert_eq!(
-            SystemTime::from(date!(2020-01-01).midnight()) - 1.days(),
-            SystemTime::from(date!(2019-12-31).midnight()),
+            SystemTime::from(date!(2020-01-01).midnight().assume_utc()) - 1.days(),
+            SystemTime::from(date!(2019-12-31).midnight().assume_utc()),
         );
         assert_eq!(
-            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))) - 2.seconds(),
-            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))),
+            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)).assume_utc())
+                - 2.seconds(),
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)).assume_utc()),
         );
         assert_eq!(
-            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59))) - (-2).seconds(),
-            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01))),
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)).assume_utc())
+                - (-2).seconds(),
+            SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)).assume_utc()),
         );
     }
 
     #[test]
     #[cfg(feature = "std")]
     fn std_sub_assign_duration() {
-        let mut ny19 = SystemTime::from(date!(2019-01-06).midnight());
+        let mut ny19 = SystemTime::from(date!(2019-01-06).midnight().assume_utc());
         ny19 -= 5.days();
-        assert_eq!(ny19, date!(2019-01-01).midnight());
+        assert_eq!(ny19, date!(2019-01-01).midnight().assume_utc());
 
-        let mut ny20 = SystemTime::from(date!(2020-01-01).midnight());
+        let mut ny20 = SystemTime::from(date!(2020-01-01).midnight().assume_utc());
         ny20 -= 1.days();
-        assert_eq!(ny20, date!(2019-12-31).midnight());
+        assert_eq!(ny20, date!(2019-12-31).midnight().assume_utc());
 
-        let mut ny20t = SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)));
+        let mut ny20t = SystemTime::from(date!(2020-01-01).with_time(time!(0:00:01)).assume_utc());
         ny20t -= 2.seconds();
-        assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
+        assert_eq!(
+            ny20t,
+            date!(2019-12-31).with_time(time!(23:59:59)).assume_utc()
+        );
 
-        let mut nye20t = SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)));
+        let mut nye20t =
+            SystemTime::from(date!(2019-12-31).with_time(time!(23:59:59)).assume_utc());
         nye20t -= (-2).seconds();
-        assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
+        assert_eq!(
+            nye20t,
+            date!(2020-01-01).with_time(time!(0:00:01)).assume_utc()
+        );
     }
 
     #[test]
@@ -1612,22 +1630,22 @@ mod test {
     #[cfg(feature = "std")]
     fn std_sub() {
         assert_eq!(
-            SystemTime::from(date!(2019-01-02).midnight())
+            SystemTime::from(date!(2019-01-02).midnight().assume_utc())
                 - date!(2019-01-01).midnight().assume_utc(),
             1.days()
         );
         assert_eq!(
-            SystemTime::from(date!(2019-01-01).midnight())
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc())
                 - date!(2019-01-02).midnight().assume_utc(),
             (-1).days()
         );
         assert_eq!(
-            SystemTime::from(date!(2020-01-01).midnight())
+            SystemTime::from(date!(2020-01-01).midnight().assume_utc())
                 - date!(2019-12-31).midnight().assume_utc(),
             1.days()
         );
         assert_eq!(
-            SystemTime::from(date!(2019-12-31).midnight())
+            SystemTime::from(date!(2019-12-31).midnight().assume_utc())
                 - date!(2020-01-01).midnight().assume_utc(),
             (-1).days()
         );
@@ -1638,22 +1656,22 @@ mod test {
     fn sub_std() {
         assert_eq!(
             date!(2019-01-02).midnight().assume_utc()
-                - SystemTime::from(date!(2019-01-01).midnight()),
+                - SystemTime::from(date!(2019-01-01).midnight().assume_utc()),
             1.days()
         );
         assert_eq!(
             date!(2019-01-01).midnight().assume_utc()
-                - SystemTime::from(date!(2019-01-02).midnight()),
+                - SystemTime::from(date!(2019-01-02).midnight().assume_utc()),
             (-1).days()
         );
         assert_eq!(
             date!(2020-01-01).midnight().assume_utc()
-                - SystemTime::from(date!(2019-12-31).midnight()),
+                - SystemTime::from(date!(2019-12-31).midnight().assume_utc()),
             1.days()
         );
         assert_eq!(
             date!(2019-12-31).midnight().assume_utc()
-                - SystemTime::from(date!(2020-01-01).midnight()),
+                - SystemTime::from(date!(2020-01-01).midnight().assume_utc()),
             (-1).days()
         );
     }
