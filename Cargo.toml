@@ -26,6 +26,7 @@ std = []
 __doc = []
 
 [dependencies]
+rand = { version = "0.7", optional = true, default-features = false }
 rustversion = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 time-macros = { version = "0.1", path = "time-macros" }

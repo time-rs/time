@@ -24,6 +24,8 @@ Versioning].
   - `impl PartialOrd<OffsetDateTime> for SystemTime`
   - `impl From<SystemTime> for OffsetDateTime`
   - `impl From<OffsetDateTime> for SystemTime`
+- All structs now `impl Duration<T> for Standard`, allowing usage with the
+  `rand` crate. This is gated behind the `rand` feature flag.
 
 - Documentation can now be built on stable. Some annotations will be missing if
   you do this.

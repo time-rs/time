@@ -31,20 +31,20 @@ jobs:
           args: --no-default-features
         if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
 
-      # `#![no_std]` and serde
-      - name: Run `cargo check --no-default-features --features serde`
+      # `#![no_std]` with serde, rand
+      - name: Run `cargo check --no-default-features --features serde,rand`
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --no-default-features --features serde
+          args: --no-default-features --features serde,rand
         if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
 
       # everything
-      - name: Run `cargo check --features serde,deprecated,panicking-api`
+      - name: Run `cargo check --features serde,deprecated,panicking-api,rand`
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --features serde,deprecated,panicking-api
+          args: --features serde,deprecated,panicking-api,rand
 
   test:
     name: Test suite
@@ -75,11 +75,11 @@ jobs:
         if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
 
       # everything
-      - name: Run `cargo test --features serde,deprecated,panicking-api`
+      - name: Run `cargo test --features serde,deprecated,panicking-api,rand`
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features serde,deprecated,panicking-api
+          args: --features serde,deprecated,panicking-api,rand
 
   fmt:
     name: Formatting
@@ -125,8 +125,8 @@ jobs:
       - name: Install clippy
         run: rustup component add clippy
 
-      - name: Run `cargo clippy --features serde,deprecated`
+      - name: Run `cargo clippy --features serde,deprecated,rand`
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --features serde,deprecated
+          args: --features serde,deprecated,rand

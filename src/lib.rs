@@ -36,6 +36,24 @@
 //! time = { version = "0.2", default-features = false, features = ["serde"] }
 //! ```
 //!
+//! ## `rand`
+//!
+//! [Rand](https://github.com/rust-random/rand) support is behind a feature
+//! flag. To enable it, use the `rand` feature. This is not enabled by default.
+//! Usage is compatible with `#![no_std]`.
+//!
+//! With the standard library:
+//! ```toml
+//! [dependencies]
+//! time = { version = "0.2", features = ["rand"] }
+//! ```
+//!
+//! With `#![no_std]` support:
+//! ```toml
+//! [dependencies]
+//! time = { version = "0.2", default-features = false, features = ["rand"] }
+//! ```
+//!
 //! ## `deprecated`
 //!
 //! Using the `deprecated` feature allows using deprecated v0.1 methods. Enabled
@@ -314,6 +332,8 @@ mod numerical_traits;
 mod offset_date_time;
 /// The `PrimitiveDateTime` struct and its associated `impl`s.
 mod primitive_date_time;
+#[cfg(feature = "rand")]
+mod rand;
 #[cfg(feature = "serde")]
 #[allow(missing_copy_implementations, missing_debug_implementations)]
 mod serde;

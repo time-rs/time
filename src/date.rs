@@ -85,9 +85,9 @@ pub fn weeks_in_year(year: i32) -> u8 {
 }
 
 /// The minimum valid year.
-const MIN_YEAR: i32 = -100_000;
+pub(crate) const MIN_YEAR: i32 = -100_000;
 /// The maximum valid year.
-const MAX_YEAR: i32 = 100_000;
+pub(crate) const MAX_YEAR: i32 = 100_000;
 
 /// Calendar date.
 ///
