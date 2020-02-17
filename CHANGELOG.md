@@ -35,6 +35,8 @@ Versioning].
 
 - All formatting and parsing methods now accept `impl AsRef<str>` as parameters,
   rather than just `&str`. `time::validate_format_string` does this as well.
+- The requirement of a `Date` being between the years -100,000 and +100,000
+  (inclusive) is now strictly enforced.
 
 ### Deprecated
 

@@ -84,6 +84,11 @@ pub fn weeks_in_year(year: i32) -> u8 {
     }
 }
 
+/// The minimum valid year.
+const MIN_YEAR: i32 = -100_000;
+/// The maximum valid year.
+const MAX_YEAR: i32 = 100_000;
+
 /// Calendar date.
 ///
 /// Years between `-100_000` and `+100_000` inclusive are guaranteed to be
@@ -131,6 +136,7 @@ impl Date {
                 value isn't known, use `Date::try_from_ymd`."
     )]
     pub fn from_ymd(year: i32, month: u8, day: u8) -> Self {
+        assert_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         assert_value_in_range!(month in 1 => 12);
         assert_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
 
@@ -153,6 +159,7 @@ impl Date {
     /// ```
     #[inline]
     pub fn try_from_ymd(year: i32, month: u8, day: u8) -> Result<Self, ComponentRangeError> {
+        ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(month in 1 => 12);
         ensure_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
 
@@ -182,6 +189,7 @@ impl Date {
                 value isn't known, use `Date::try_from_yo`."
     )]
     pub fn from_yo(year: i32, ordinal: u16) -> Self {
+        assert_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         assert_value_in_range!(ordinal in 1 => days_in_year(year), given year);
         Self { year, ordinal }
     }
@@ -202,6 +210,7 @@ impl Date {
     /// ```
     #[inline(always)]
     pub fn try_from_yo(year: i32, ordinal: u16) -> Result<Self, ComponentRangeError> {
+        ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(ordinal in 1 => days_in_year(year), given year);
         Ok(Self { year, ordinal })
     }
@@ -239,6 +248,7 @@ impl Date {
                 value isn't known, use `Date::try_from_iso_ywd`."
     )]
     pub fn from_iso_ywd(year: i32, week: u8, weekday: Weekday) -> Self {
+        assert_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         assert_value_in_range!(week in 1 => weeks_in_year(year), given year);
         internals::Date::from_iso_ywd_unchecked(year, week, weekday)
     }
@@ -264,6 +274,7 @@ impl Date {
         week: u8,
         weekday: Weekday,
     ) -> Result<Self, ComponentRangeError> {
+        ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(week in 1 => weeks_in_year(year), given year);
         Ok(internals::Date::from_iso_ywd_unchecked(year, week, weekday))
     }
@@ -345,7 +356,8 @@ impl Date {
     // significantly faster to write the statements out by hand.
     #[inline]
     pub fn month_day(self) -> (u8, u8) {
-        ///
+        /// The number of days up to and including the given month. Common years
+        /// are first, followed by leap years.
         #[allow(clippy::items_after_statements)]
         const CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP: [[u16; 11]; 2] = [
             [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
@@ -564,6 +576,10 @@ impl Date {
             self.ordinal = 1;
         }
 
+        if self.year > MAX_YEAR {
+            panic!("overflow when fetching next day");
+        }
+
         self
     }
 
@@ -582,6 +598,10 @@ impl Date {
         if self.ordinal == 0 {
             self.year -= 1;
             self.ordinal = days_in_year(self.year);
+        }
+
+        if self.year < MIN_YEAR {
+            panic!("overflow when fetching previous day");
         }
 
         self
@@ -625,6 +645,7 @@ impl Date {
     /// assert_eq!(Date::from_julian_day(2_458_485), date!(2019-01-01));
     /// assert_eq!(Date::from_julian_day(2_458_849), date!(2019-12-31));
     /// ```
+    // TODO Return a `Result<Self, ComponentRangeError>` in 0.3
     #[inline]
     pub fn from_julian_day(julian_day: i64) -> Self {
         #![allow(clippy::missing_docs_in_private_items)]
@@ -649,14 +670,11 @@ impl Date {
         let month = (h / S + M).rem_euclid_shim(N) + 1;
         let year = (e / P) - Y + (N + M - month) / N;
 
-        // TODO Seek out a formal proof that this always results in a valid value.
         #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-        Date::try_from_ymd(year as i32, month as u8, day as u8).unwrap_or_else(|e| {
-            unreachable!(
-                "Internal error. Please file an issue on the time repository.\n\n{}",
-                e
-            );
-        })
+        match Date::try_from_ymd(year as i32, month as u8, day as u8) {
+            Ok(date) => date,
+            Err(err) => panic!("{}", err),
+        }
     }
 }
 
