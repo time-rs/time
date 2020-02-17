@@ -328,7 +328,7 @@ mod utc_offset;
 /// Days of the week.
 mod weekday;
 
-pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
+pub use date::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year, Date};
 pub use duration::Duration;
 pub use error::{ComponentRangeError, ConversionRangeError, Error};
 pub(crate) use format::DeferredFormat;

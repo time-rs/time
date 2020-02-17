@@ -27,7 +27,7 @@ const DAYS_IN_MONTH_COMMON_LEAP: [[u16; 12]; 2] = [
 /// Get the number of days in the month of a given year.
 #[inline(always)]
 #[allow(clippy::cast_possible_truncation)]
-const fn days_in_year_month(year: i32, month: u8) -> u8 {
+pub const fn days_in_year_month(year: i32, month: u8) -> u8 {
     DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1] as u8
 }
 
