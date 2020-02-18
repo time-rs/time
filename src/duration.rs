@@ -655,14 +655,19 @@ impl Duration {
     pub fn checked_add(self, rhs: Self) -> Option<Self> {
         let mut seconds = self.seconds.checked_add(rhs.seconds)?;
         let mut nanoseconds = self.nanoseconds + rhs.nanoseconds;
-        if nanoseconds >= 1_000_000_000 {
+
+        if nanoseconds >= 1_000_000_000 || seconds < 0 && nanoseconds > 0 {
             nanoseconds -= 1_000_000_000;
             seconds = seconds.checked_add(1)?;
-        }
-        if nanoseconds <= -1_000_000_000 {
+        } else if nanoseconds <= -1_000_000_000 || seconds > 0 && nanoseconds < 0 {
             nanoseconds += 1_000_000_000;
             seconds = seconds.checked_sub(1)?;
         }
+
+        // Ensure that the signs match _unless_ one of them is zero.
+        debug_assert_ne!(seconds.signum() * nanoseconds.signum() as i64, -1);
+        debug_assert!(range_contains(&(-999_999_999..1_000_000_000), &nanoseconds));
+
         Some(Self {
             seconds,
             nanoseconds,
@@ -924,20 +929,8 @@ impl Add for Duration {
 
     #[inline]
     fn add(self, rhs: Self) -> Self::Output {
-        let seconds = self.whole_seconds() + rhs.whole_seconds();
-        let nanoseconds = self.subsec_nanoseconds() + rhs.subsec_nanoseconds();
-
-        if nanoseconds >= 1_000_000_000 {
-            Self {
-                seconds: seconds + 1,
-                nanoseconds: nanoseconds - 1_000_000_000,
-            }
-        } else {
-            Self {
-                seconds,
-                nanoseconds,
-            }
-        }
+        self.checked_add(rhs)
+            .expect("overflow when adding durations")
     }
 }
 
@@ -955,10 +948,8 @@ impl Add<Duration> for StdDuration {
     type Output = Duration;
 
     #[inline(always)]
-    fn add(self, duration: Duration) -> Self::Output {
-        (Duration::try_from(self)
-            .expect("overflow converting `std::time::Duration` to `time::Duration`")
-            + duration)
+    fn add(self, rhs: Duration) -> Self::Output {
+        rhs + self
     }
 }
 
@@ -990,20 +981,8 @@ impl Sub for Duration {
 
     #[inline]
     fn sub(self, rhs: Self) -> Self::Output {
-        let seconds = self.whole_seconds() - rhs.whole_seconds();
-        let nanoseconds = self.subsec_nanoseconds() - rhs.subsec_nanoseconds();
-
-        if nanoseconds < 0 {
-            Self {
-                seconds: seconds - 1,
-                nanoseconds: nanoseconds + 1_000_000_000,
-            }
-        } else {
-            Self {
-                seconds,
-                nanoseconds,
-            }
-        }
+        self.checked_sub(rhs)
+            .expect("overflow when subtracting durations")
     }
 }
 
@@ -1061,7 +1040,11 @@ macro_rules! duration_mul_div_int {
                 #[inline(always)]
                 #[allow(trivial_numeric_casts)]
                 fn mul(self, rhs: $type) -> Self::Output {
-                    Self::nanoseconds_i128(self.whole_nanoseconds().checked_mul(rhs as i128).expect("overflow multiplying `Duration`"))
+                    Self::nanoseconds_i128(
+                        self.whole_nanoseconds()
+                            .checked_mul(rhs as i128)
+                            .expect("overflow when multiplying duration")
+                    )
                 }
             }
 
@@ -1924,5 +1907,16 @@ mod test {
         assert!((-1).seconds() < 0.seconds());
         assert!(1.minutes() > 1.seconds());
         assert!((-1).minutes() < (-1).seconds());
+    }
+
+    #[test]
+    fn arithmetic_regression() {
+        let added = 1.6.seconds() + 1.6.seconds();
+        assert_eq!(added.whole_seconds(), 3);
+        assert_eq!(added.subsec_milliseconds(), 200);
+
+        let subtracted = 1.6.seconds() - (-1.6).seconds();
+        assert_eq!(subtracted.whole_seconds(), 3);
+        assert_eq!(subtracted.subsec_milliseconds(), 200);
     }
 }

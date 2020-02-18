@@ -63,6 +63,7 @@ impl Distribution<OffsetDateTime> for Standard {
 
 impl Distribution<Duration> for Standard {
     #[inline]
+    #[allow(clippy::cast_possible_truncation)]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Duration {
         let seconds = Standard.sample(rng);
         Duration {

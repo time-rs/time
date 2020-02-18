@@ -39,6 +39,8 @@ Versioning].
   rather than just `&str`. `time::validate_format_string` does this as well.
 - The requirement of a `Date` being between the years -100,000 and +100,000
   (inclusive) is now strictly enforced.
+- Overflow checks for `Duration` are now enabled by default. This behavior is
+  the identical to what the standard library does.
 
 ### Deprecated
 
@@ -67,6 +69,9 @@ Versioning].
 ### Fixed
 
 - Avoid panics when parsing an empty string (#215).
+- The nanoseconds component of a `Duration` is now always in range. Previously,
+  it was possible (via addition and/or subtraction) to obtain a value that was
+  not internally consistent.
 
 ## Pre-0.2.7
 
