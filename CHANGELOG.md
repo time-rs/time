@@ -41,6 +41,7 @@ Versioning].
   (inclusive) is now strictly enforced.
 - Overflow checks for `Duration` are now enabled by default. This behavior is
   the identical to what the standard library does.
+- The `time`, `date`, and `offset` macros have been added to the prelude.
 
 ### Deprecated
 

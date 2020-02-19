@@ -434,8 +434,9 @@ pub use weekday::Weekday;
 /// An alias for `Result` with a generic error from the time crate.
 pub type Result<T> = core::result::Result<T, Error>;
 
-/// A collection of traits that are widely useful. Unlike the standard library,
-/// this must be explicitly imported:
+/// A collection of imports that are widely useful.
+///
+/// Unlike the standard library, this must be explicitly imported:
 ///
 /// ```rust,no_run
 /// use time::prelude::*;
@@ -444,8 +445,16 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// The prelude may grow in minor releases. Any removals will only occur in
 /// major releases.
 pub mod prelude {
-    // Rename to `_` to avoid any potential name conflicts.
+    // Rename traits to `_` to avoid any potential name conflicts.
     pub use crate::{NumericalDuration as _, NumericalStdDuration as _};
+    // We need to re-export from the macros crate again (and not just do
+    // `crate::foo`) because of the way name resolution works in Rust. It's not
+    // currently possible to import _only_ the macro, so doing `use crate::time`
+    // also pulls in the `time` _crate_ (due to `extern crate self as time`).
+    //
+    // As a side note, doing `use crate::time` causes a stack overflow in
+    // rustc <= 1.37.0.
+    pub use time_macros::{date, offset, time};
 }
 
 /// A stable alternative to [`alloc::v1::prelude`](https://doc.rust-lang.org/stable/alloc/prelude/v1/index.html).

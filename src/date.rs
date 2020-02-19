@@ -1118,7 +1118,7 @@ impl Ord for Date {
 #[rustfmt::skip::macros(date)]
 mod test {
     use super::*;
-    use crate::{date, prelude::*, time};
+    use crate::prelude::*;
 
     macro_rules! julian {
         ($julian:literal) => {
