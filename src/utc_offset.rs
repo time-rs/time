@@ -226,7 +226,7 @@ impl UtcOffset {
     #[inline(always)]
     #[cfg(feature = "std")]
     pub fn current_local_offset() -> Self {
-        OffsetDateTime::now().offset()
+        OffsetDateTime::now_local().offset()
     }
 }
 

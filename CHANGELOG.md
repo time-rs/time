@@ -32,12 +32,11 @@ Versioning].
   for `f64` only.
 - `UtcOffset::local_offset_at(OffsetDateTime)`, which will obtain the system's
   local offset at the provided moment in time.
-  - `OffsetDateTime::now()` and `impl From<SystemTime> for OffsetDateTime` both
-    return a value with the local offset.
-  - `OffsetDateTime::now_utc()` is equivalent to calling
-    `OffsetDateTime::now().to_offset(offset!(UTC))`.
+  - `OffsetDateTime::now_local()` is equivalent to calling
+    `OffsetDateTime::now().to_offset(UtcOffset::local_offset_at(OffsetDateTime::now()))`
+    (but more efficient).
   - `UtcOffset::current_local_offset()` will return the equivalent of
-    `OffsetDateTime::now().offset()`.
+    `OffsetDateTime::now_local().offset()`.
 
 ### Changed
 

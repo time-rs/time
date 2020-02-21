@@ -40,12 +40,12 @@ pub struct OffsetDateTime {
 }
 
 impl OffsetDateTime {
-    /// Create a new `OffsetDateTime` with the current date and time in the
-    /// local offset.
+    /// Create a new `OffsetDateTime` with the current date and time in UTC.
     ///
     /// ```rust
     /// # use time::{OffsetDateTime, offset};
     /// assert!(OffsetDateTime::now().year() >= 2019);
+    /// assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
     /// ```
     #[inline(always)]
     #[cfg(feature = "std")]
@@ -54,21 +54,19 @@ impl OffsetDateTime {
         SystemTime::now().into()
     }
 
-    /// Create a new `OffsetDateTime` with the current date and time in UTC.
+    /// Create a new `OffsetDateTime` with the current date and time in the
+    /// local offset.
     ///
     /// ```rust
     /// # use time::{OffsetDateTime, offset};
-    /// assert!(OffsetDateTime::now_utc().year() >= 2019);
-    /// assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
+    /// assert!(OffsetDateTime::now_local().year() >= 2019);
     /// ```
     #[inline(always)]
     #[cfg(feature = "std")]
     #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
-    pub fn now_utc() -> Self {
-        match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(duration) => Self::unix_epoch() + duration,
-            Err(err) => Self::unix_epoch() - err.duration(),
-        }
+    pub fn now_local() -> Self {
+        let t = Self::now();
+        t.to_offset(UtcOffset::local_offset_at(t))
     }
 
     /// Convert the `OffsetDateTime` from the current `UtcOffset` to the
@@ -940,8 +938,7 @@ impl From<SystemTime> for OffsetDateTime {
                 .expect("overflow converting `std::time::Duration` to `time::Duration`"),
         };
 
-        let t = Self::unix_epoch() + duration;
-        t.to_offset(UtcOffset::local_offset_at(t))
+        Self::unix_epoch() + duration
     }
 }
 
@@ -972,17 +969,17 @@ mod test {
     #[cfg(feature = "std")]
     fn now() {
         assert!(OffsetDateTime::now().year() >= 2019);
-        assert_eq!(
-            OffsetDateTime::now().offset(),
-            UtcOffset::current_local_offset()
-        );
+        assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
     }
 
     #[test]
     #[cfg(feature = "std")]
-    fn now_utc() {
-        assert!(OffsetDateTime::now_utc().year() >= 2019);
-        assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
+    fn now_local() {
+        assert!(OffsetDateTime::now().year() >= 2019);
+        assert_eq!(
+            OffsetDateTime::now_local().offset(),
+            UtcOffset::current_local_offset()
+        );
     }
 
     #[test]
