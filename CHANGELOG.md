@@ -75,6 +75,7 @@ Versioning].
   not internally consistent.
 - `Time::parse` erroneously returned an `InvalidMinute` error when it was
   actually the second that was invalid.
+- `Date::parse("0000-01-01", "%Y-%m-%d")` incorrectly returned an `Err` (#221).
 
 ## Pre-0.2.7
 

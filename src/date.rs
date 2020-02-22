@@ -2183,6 +2183,12 @@ mod test {
         );
     }
 
+    // See #221.
+    #[test]
+    fn parse_regression() {
+        assert_eq!(Date::parse("0000-01-01", "%Y-%m-%d"), Ok(date!(0000-01-01)));
+    }
+
     #[test]
     fn display() {
         assert_eq!(date!(2019-01-01).to_string(), "2019-01-01");
