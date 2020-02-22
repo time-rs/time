@@ -120,7 +120,7 @@ pub(crate) fn fmt_S(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt:
 pub(crate) fn parse_S(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.second =
         try_consume_exact_digits_in_range(s, 2, 0..60, padding.default_to(Padding::Zero))
-            .ok_or(ParseError::InvalidMinute)?
+            .ok_or(ParseError::InvalidSecond)?
             .into();
     Ok(())
 }

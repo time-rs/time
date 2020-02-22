@@ -73,6 +73,8 @@ Versioning].
 - The nanoseconds component of a `Duration` is now always in range. Previously,
   it was possible (via addition and/or subtraction) to obtain a value that was
   not internally consistent.
+- `Time::parse` erroneously returned an `InvalidMinute` error when it was
+  actually the second that was invalid.
 
 ## Pre-0.2.7
 
