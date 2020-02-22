@@ -9,6 +9,10 @@ Versioning].
 
 ## Unreleased
 
+Nothing so far.
+
+## 0.2.7 [2020-02-22]
+
 ### Added
 
 - `Display` has been implemented for `Date`, `OffsetDateTime`,
