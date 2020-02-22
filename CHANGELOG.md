@@ -32,6 +32,13 @@ Versioning].
 - `NumericalDuration` has been implemented for `f32` and `f64`.
   `NumericalStdDuration` and `NumericalStdDurationShort` have been implemented
   for `f64` only.
+- `UtcOffset::local_offset_at(OffsetDateTime)`, which will obtain the system's
+  local offset at the provided moment in time.
+  - `OffsetDateTime::now_local()` is equivalent to calling
+    `OffsetDateTime::now().to_offset(UtcOffset::local_offset_at(OffsetDateTime::now()))`
+    (but more efficient).
+  - `UtcOffset::current_local_offset()` will return the equivalent of
+    `OffsetDateTime::now_local().offset()`.
 
 ### Changed
 

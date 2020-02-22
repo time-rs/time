@@ -141,8 +141,8 @@
 
 #![cfg_attr(feature = "__doc", feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
-#![forbid(unsafe_code)]
 #![deny(
+    unsafe_code, // Used when interacting with system APIs
     anonymous_parameters,
     rust_2018_idioms,
     trivial_casts,

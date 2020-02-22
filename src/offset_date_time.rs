@@ -40,10 +40,7 @@ pub struct OffsetDateTime {
 }
 
 impl OffsetDateTime {
-    /// Create a new `OffsetDateTime` with the current date and time.
-    ///
-    /// This currently returns an offset of UTC, though this behavior will
-    /// change once a way to obtain the local offset is implemented.
+    /// Create a new `OffsetDateTime` with the current date and time in UTC.
     ///
     /// ```rust
     /// # use time::{OffsetDateTime, offset};
@@ -55,6 +52,21 @@ impl OffsetDateTime {
     #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
     pub fn now() -> Self {
         SystemTime::now().into()
+    }
+
+    /// Create a new `OffsetDateTime` with the current date and time in the
+    /// local offset.
+    ///
+    /// ```rust
+    /// # use time::{OffsetDateTime, offset};
+    /// assert!(OffsetDateTime::now_local().year() >= 2019);
+    /// ```
+    #[inline(always)]
+    #[cfg(feature = "std")]
+    #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
+    pub fn now_local() -> Self {
+        let t = Self::now();
+        t.to_offset(UtcOffset::local_offset_at(t))
     }
 
     /// Convert the `OffsetDateTime` from the current `UtcOffset` to the
@@ -958,6 +970,16 @@ mod test {
     fn now() {
         assert!(OffsetDateTime::now().year() >= 2019);
         assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn now_local() {
+        assert!(OffsetDateTime::now().year() >= 2019);
+        assert_eq!(
+            OffsetDateTime::now_local().offset(),
+            UtcOffset::current_local_offset()
+        );
     }
 
     #[test]
