@@ -7,8 +7,7 @@ use crate::{
     DeferredFormat, Duration,
 };
 use core::fmt::{self, Display};
-
-#[cfg(cargoweb)]
+#[cfg(cargo_web)]
 use stdweb::js;
 
 /// An offset from UTC.
@@ -293,15 +292,14 @@ impl Display for UtcOffset {
 /// Attempt to obtain the system's UTC offset. If the offset cannot be
 /// determined, `None` is returned.
 #[cfg(feature = "std")]
-#[allow(clippy::too_many_lines)] //
+#[allow(clippy::too_many_lines)]
 fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
-    #[cfg(not(cargoweb))]
-    use core::{convert::TryInto, mem};
-
     cfg_if::cfg_if! {
-    if #[cfg(target_family = "unix")] {
-            /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on
-        /// any error.
+        if #[cfg(target_family = "unix")] {
+            use core::{convert::TryInto, mem};
+
+            /// Convert the given Unix timestamp to a `libc::tm`. Returns `None`
+            /// on any error.
             fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
                 extern "C" {
                     fn tzset();
@@ -313,8 +311,8 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                 #[allow(unsafe_code)]
                     let mut tm = unsafe { mem::zeroed() };
 
-                // Update timezone information from system. `localtime_r` does not
-                // do this for us.
+                // Update timezone information from system. `localtime_r` does
+                // not do this for us.
                 //
                 // Safety: tzset is thread-safe.
                 #[allow(unsafe_code)]
@@ -372,6 +370,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                         .map(UtcOffset::seconds)
                 }
         } else if #[cfg(target_family = "windows")] {
+            use core::{convert::TryInto, mem};
             use crate::offset;
             use winapi::{
                 shared::minwindef::FILETIME,
@@ -381,8 +380,8 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                 },
             };
 
-            /// Convert a `SYSTEMTIME` to a `FILETIME`. Returns `None` if any error
-        /// occurred.
+            /// Convert a `SYSTEMTIME` to a `FILETIME`. Returns `None` if any
+            /// error occurred.
             fn systemtime_to_filetime(systime: &SYSTEMTIME) -> Option<FILETIME> {
                 // Safety: We only read `ft` if it is properly initialized.
                 #[allow(unsafe_code, deprecated)]
@@ -400,7 +399,8 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                     }
             }
 
-            /// Convert a `FILETIME` to an `i64`, representing a number of seconds.
+            /// Convert a `FILETIME` to an `i64`, representing a number of
+            /// seconds.
             fn filetime_to_secs(filetime: &FILETIME) -> i64 {
                 /// FILETIME represents 100-nanosecond intervals
                 const FT_TO_SECS: i64 = 10_000_000;
@@ -444,25 +444,26 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                 }
             };
 
-            // Convert SYSTEMTIMEs to FILETIMEs so we can perform arithmetic on them.
+            // Convert SYSTEMTIMEs to FILETIMEs so we can perform arithmetic on
+            // them.
             let ft_system = systemtime_to_filetime(&systime_utc)?;
             let ft_local = systemtime_to_filetime(&systime_local)?;
 
             let diff_secs = filetime_to_secs(&ft_local) - filetime_to_secs(&ft_system);
 
             diff_secs.try_into().ok().map(UtcOffset::seconds)
-        } else if #[cfg(cargoweb)] {
-            let timestamp_utc: i64 = datetime.timestamp();
-            let t1 = (timestamp_utc & 0xFFFFFFFF) as i32;
-            let t2 = (timestamp_utc >> 32) as i32;
+        } else if #[cfg(cargo_web)] {
+            use stdweb::unstable::TryInto;
+
+            let timestamp_utc = datetime.timestamp();
+            let low_bits = (timestamp_utc & 0xFF_FF_FF_FF) as i32;
+            let high_bits = (timestamp_utc >> 32) as i32;
+
             let timezone_offset = js! {
-                return new Date(@{t2} << 32 + @{t1}).getTimezoneOffset() * -60;
+                return new Date(@{high_bits} << 32 + @{low_bits}).getTimezoneOffset() * -60;
             };
-            if let Ok(seconds) = stdweb::unstable::TryInto::try_into(timezone_offset) {
-                Some(UtcOffset::seconds(seconds))
-            } else {
-                None
-            }
+
+            timezone_offset.try_into().ok().map(UtcOffset::seconds)
         } else {
             None
         }
