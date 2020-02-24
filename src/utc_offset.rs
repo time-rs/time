@@ -339,7 +339,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         // `tm_gmtoff` extension
         #[cfg(not(target_os = "solaris"))]
         {
-            tm.tm_gmtoff.try_into().ok().map(UtcOffset::seconds)
+            return tm.tm_gmtoff.try_into().ok().map(UtcOffset::seconds);
         }
 
         // No `tm_gmtoff` extension
@@ -366,10 +366,10 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                     .assume_utc()
                     .timestamp();
 
-            (local_timestamp - datetime.timestamp())
+            return (local_timestamp - datetime.timestamp())
                 .try_into()
                 .ok()
-                .map(UtcOffset::seconds)
+                .map(UtcOffset::seconds);
         }
     }
 
@@ -452,7 +452,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
         let diff_secs = filetime_to_secs(&ft_local) - filetime_to_secs(&ft_system);
 
-        diff_secs.try_into().ok().map(UtcOffset::seconds)
+        return diff_secs.try_into().ok().map(UtcOffset::seconds);
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -466,11 +466,14 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             return d.getTimezoneOffset() * -60;
         };
         if let Ok(seconds) = stdweb::unstable::TryInto::try_into(timezone_offset) {
-            Some(UtcOffset::seconds(seconds))
+            return Some(UtcOffset::seconds(seconds));
         } else {
-            None
+            return None;
         }
     }
+
+    #[allow(unreachable_code)]
+    None
 }
 
 #[cfg(test)]
