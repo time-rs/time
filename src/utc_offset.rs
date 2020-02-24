@@ -404,7 +404,8 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             fn filetime_to_secs(filetime: &FILETIME) -> i64 {
                 /// FILETIME represents 100-nanosecond intervals
                 const FT_TO_SECS: i64 = 10_000_000;
-                ((filetime.dwHighDateTime as i64) << 32 | filetime.dwLowDateTime as i64) / FT_TO_SECS
+                ((filetime.dwHighDateTime as i64) << 32 | filetime.dwLowDateTime as i64) /
+                    FT_TO_SECS
             }
 
             /// Convert an `OffsetDateTime` to a `SYSTEMTIME`.
