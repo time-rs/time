@@ -10,6 +10,7 @@ readme = "README.md"
 license = "MIT OR Apache-2.0"
 # TODO(upstream) Add GitHub Actions badge once rust-lang/crates.io#1838 is merged.
 description = "Date and time library. Fully interoperable with the standard library. Mostly compatible with #![no_std]."
+build = "build.rs"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -18,7 +19,7 @@ all-features = true
 default = ["deprecated", "std"]
 deprecated = []
 panicking-api = []
-std = ["libc", "winapi"]
+std = ["libc", "winapi", "stdweb"]
 
 # Internal usage. This is used when building for docs.rs and time-rs.github.io.
 # This feature should never be used by external users. It will likely be
@@ -26,6 +27,7 @@ std = ["libc", "winapi"]
 __doc = []
 
 [dependencies]
+cfg-if = "0.1"
 rand = { version = "0.7", optional = true, default-features = false }
 rustversion = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
@@ -39,3 +41,6 @@ libc = { version = "0.2", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+stdweb = { version = "0.4", default-features = false, optional = true }
