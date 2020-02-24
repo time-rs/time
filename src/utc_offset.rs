@@ -8,6 +8,9 @@ use crate::{
 };
 use core::fmt::{self, Display};
 
+#[cfg(target_arch = "wasm32")]
+use stdweb::js;
+
 /// An offset from UTC.
 ///
 /// Guaranteed to store values up to ±23:59:59. Any values outside this range
@@ -292,6 +295,7 @@ impl Display for UtcOffset {
 #[cfg(feature = "std")]
 #[allow(clippy::too_many_lines)] //
 fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
+    #[cfg(not(target_arch = "wasm32"))]
     use core::{convert::TryInto, mem};
 
     #[cfg(target_family = "unix")]
@@ -449,6 +453,23 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         let diff_secs = filetime_to_secs(&ft_local) - filetime_to_secs(&ft_system);
 
         diff_secs.try_into().ok().map(UtcOffset::seconds)
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        let timestamp_utc: i64 = datetime.timestamp();
+        let t1 = (timestamp_utc & 0xFFFFFFFF) as i32;
+        let t2 = (timestamp_utc >> 32) as i32;
+        let timezone_offset = js! {
+            var ts_utc = @{t2} << 32 + @{t1};
+            var d = new Date(ts_utc);
+            return d.getTimezoneOffset() * -60;
+        };
+        if let Ok(seconds) = stdweb::unstable::TryInto::try_into(timezone_offset) {
+            Some(UtcOffset::seconds(seconds))
+        } else {
+            None
+        }
     }
 }
 
