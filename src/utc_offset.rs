@@ -460,7 +460,9 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             let high_bits = (timestamp_utc >> 32) as i32;
 
             let timezone_offset = js! {
-                return new Date(((@{high_bits} << 32) + @{low_bits}) * 1000).getTimezoneOffset() * -60;
+                return
+                    new Date(((@{high_bits} << 32) + @{low_bits}) * 1000)
+                        .getTimezoneOffset() * -60;
             };
 
             timezone_offset.try_into().ok().map(UtcOffset::seconds)
