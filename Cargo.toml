@@ -42,5 +42,5 @@ libc = { version = "0.2", optional = true }
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
+[target.'cfg(cargo_web)'.dependencies]
 stdweb = { version = "0.4", default-features = false, optional = true }
