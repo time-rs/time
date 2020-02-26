@@ -1,6 +1,4 @@
-#[cfg(not(feature = "std"))]
-use crate::alloc_prelude::*;
-use crate::format::ParseError;
+use crate::internal_prelude::*;
 use core::fmt;
 
 /// A unified error type for anything returned by a method in the time crate.

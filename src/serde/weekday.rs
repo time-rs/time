@@ -1,3 +1,4 @@
+use crate::internal_prelude::*;
 use core::convert::TryFrom;
 
 // 1-indexed day from Monday
@@ -17,13 +18,13 @@ impl TryFrom<Weekday> for crate::Weekday {
     #[inline]
     fn try_from(original: Weekday) -> Result<Self, Self::Error> {
         match original {
-            Weekday(1) => Ok(crate::Weekday::Monday),
-            Weekday(2) => Ok(crate::Weekday::Tuesday),
-            Weekday(3) => Ok(crate::Weekday::Wednesday),
-            Weekday(4) => Ok(crate::Weekday::Thursday),
-            Weekday(5) => Ok(crate::Weekday::Friday),
-            Weekday(6) => Ok(crate::Weekday::Saturday),
-            Weekday(7) => Ok(crate::Weekday::Sunday),
+            Weekday(1) => Ok(Monday),
+            Weekday(2) => Ok(Tuesday),
+            Weekday(3) => Ok(Wednesday),
+            Weekday(4) => Ok(Thursday),
+            Weekday(5) => Ok(Friday),
+            Weekday(6) => Ok(Saturday),
+            Weekday(7) => Ok(Sunday),
             _ => Err("invalid value"),
         }
     }

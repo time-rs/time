@@ -1,4 +1,5 @@
 use core::fmt::{self, Display};
+use crate::internal_prelude::*;
 
 /// Days of the week.
 ///
@@ -27,7 +28,6 @@ pub enum Weekday {
     #[allow(clippy::missing_docs_in_private_items)]
     Sunday,
 }
-use Weekday::{Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday};
 
 impl Weekday {
     /// Get the previous weekday.
@@ -143,8 +143,6 @@ impl Display for Weekday {
 #[cfg(test)]
 mod test {
     use super::*;
-    #[cfg(not(feature = "std"))]
-    use crate::alloc_prelude::*;
 
     #[test]
     fn previous() {

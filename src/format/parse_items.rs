@@ -1,8 +1,8 @@
 //! Parse formats used in the `format` and `parse` methods.
 
-#[cfg(not(feature = "std"))]
-use crate::alloc_prelude::*;
 use crate::format::{FormatItem, Padding, Specifier};
+#[cfg(not(feature = "std"))]
+use crate::internal_prelude::*;
 
 /// Parse the formatting string. Panics if not valid.
 #[inline(always)]

@@ -37,9 +37,7 @@ pub(crate) mod parse;
 pub(crate) mod parse_items;
 pub(crate) mod time;
 
-#[cfg(not(feature = "std"))]
-use crate::alloc_prelude::*;
-use crate::{Date, Time, UtcOffset};
+use crate::internal_prelude::*;
 use core::fmt::{self, Display, Formatter};
 #[allow(unreachable_pub)] // rust-lang/rust#64762
 pub use parse::ParseError;

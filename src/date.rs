@@ -1,11 +1,7 @@
-#[cfg(not(feature = "std"))]
-use crate::alloc_prelude::*;
 use crate::{
-    format::parse::{parse, ParseError, ParseResult, ParsedItems},
+    format::parse::{parse, ParsedItems},
+    internal_prelude::*,
     internals,
-    shim::*,
-    ComponentRangeError, DeferredFormat, Duration, PrimitiveDateTime, Time,
-    Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
 };
 use core::{
     cmp::{Ord, Ordering, PartialOrd},
@@ -1118,7 +1114,6 @@ impl Ord for Date {
 #[rustfmt::skip::macros(date)]
 mod test {
     use super::*;
-    use crate::prelude::*;
 
     macro_rules! julian {
         ($julian:literal) => {

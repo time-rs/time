@@ -1,9 +1,7 @@
 //! Parsing for various types.
 
 use super::{parse_fmt_string, FormatItem, Padding, Specifier};
-#[cfg(not(feature = "std"))]
-use crate::alloc_prelude::*;
-use crate::{shim::*, ComponentRangeError, UtcOffset, Weekday};
+use crate::internal_prelude::*;
 use core::{
     fmt::{self, Display, Formatter},
     num::{NonZeroU16, NonZeroU8},

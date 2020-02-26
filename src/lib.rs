@@ -208,10 +208,6 @@ compile_error!(
      was stabilized in Rust 1.36.0. You can either upgrade or enable the standard library."
 );
 
-#[cfg(not(feature = "std"))]
-#[macro_use]
-extern crate alloc;
-
 #[cfg(feature = "panicking-api")]
 #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
 macro_rules! format_conditional {
@@ -457,17 +453,32 @@ pub mod prelude {
     pub use time_macros::{date, offset, time};
 }
 
-/// A stable alternative to [`alloc::v1::prelude`](https://doc.rust-lang.org/stable/alloc/prelude/v1/index.html).
-/// Useful anywhere `#![no_std]` is allowed.
-#[cfg(not(feature = "std"))]
-mod alloc_prelude {
+mod internal_prelude {
     #![allow(unused_imports)]
+
+    #[cfg(not(feature = "std"))]
+    extern crate alloc;
+
+    #[cfg(not(feature = "std"))]
     pub(crate) use alloc::{
         borrow::ToOwned,
         boxed::Box,
+        format,
         string::{String, ToString},
+        vec,
         vec::Vec,
     };
+    #[cfg(feature = "std")]
+    pub(crate) use crate::Instant;
+    pub(crate) use crate::{
+        format::{ParseError, ParseResult},
+        shim::*,
+        ComponentRangeError, ConversionRangeError, Date, DeferredFormat, Duration, OffsetDateTime,
+        PrimitiveDateTime, Time, UtcOffset, Weekday,
+        Weekday::*,
+    };
+    pub(crate) use time_macros::{date, offset, time};
+    pub(crate) use crate::{NumericalDuration, NumericalStdDuration};
 }
 
 #[allow(clippy::missing_docs_in_private_items)]

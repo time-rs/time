@@ -24,6 +24,7 @@ impl TryFrom<PrimitiveDateTime> for crate::PrimitiveDateTime {
     }
 }
 
+// TODO(0.3) Store the offset as well.
 impl From<crate::OffsetDateTime> for PrimitiveDateTime {
     #[inline]
     fn from(original: crate::OffsetDateTime) -> Self {

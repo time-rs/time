@@ -1,8 +1,6 @@
-#[cfg(not(feature = "std"))]
-use crate::alloc_prelude::*;
 use crate::{
-    format::parse::{parse, ParseResult, ParsedItems},
-    Date, DeferredFormat, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday,
+    format::parse::{parse, ParsedItems},
+    internal_prelude::*,
 };
 #[cfg(feature = "std")]
 use core::convert::{From, TryFrom};
@@ -963,7 +961,6 @@ impl From<OffsetDateTime> for SystemTime {
 #[rustfmt::skip::macros(date)]
 mod test {
     use super::*;
-    use crate::prelude::*;
 
     #[test]
     #[cfg(feature = "std")]
