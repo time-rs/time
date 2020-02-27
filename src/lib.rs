@@ -467,8 +467,8 @@ mod internal_prelude {
         shim::*,
         ComponentRangeError, ConversionRangeError, Date, DeferredFormat, Duration,
         NumericalDuration, NumericalStdDuration, OffsetDateTime, PrimitiveDateTime, Time,
-        UtcOffset, Weekday,
-        Weekday::*,
+        UtcOffset,
+        Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
     };
     #[cfg(not(feature = "std"))]
     pub(crate) use alloc::{

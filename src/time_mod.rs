@@ -847,7 +847,6 @@ impl Ord for Time {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::prelude::*;
 
     #[test]
     fn nanoseconds_since_midnight() {
