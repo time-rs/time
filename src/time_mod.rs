@@ -642,15 +642,9 @@ impl Add<Duration> for Time {
     /// Add the sub-day time of the `Duration` to the `Time`. Wraps on overflow.
     ///
     /// ```rust
-    /// # use time::{Duration, time};
-    /// assert_eq!(
-    ///     time!(12:00) + Duration::hours(2),
-    ///     time!(14:00)
-    /// );
-    /// assert_eq!(
-    ///     time!(0:00:01) + Duration::seconds(-2),
-    ///     time!(23:59:59)
-    /// );
+    /// # use time::prelude::*;
+    /// assert_eq!(time!(12:00) + 2.hours(), time!(14:00));
+    /// assert_eq!(time!(0:00:01) + (-2).seconds(), time!(23:59:59));
     /// ```
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
@@ -671,16 +665,9 @@ impl Add<StdDuration> for Time {
     /// on overflow.
     ///
     /// ```rust
-    /// # use time::time;
-    /// # use core::time::Duration;
-    /// assert_eq!(
-    ///     time!(12:00) + Duration::from_secs(2 * 3_600),
-    ///     time!(14:00)
-    /// );
-    /// assert_eq!(
-    ///     time!(23:59:59) + Duration::from_secs(2),
-    ///     time!(0:00:01)
-    /// );
+    /// # use time::prelude::*;
+    /// assert_eq!(time!(12:00) + 2.std_hours(), time!(14:00));
+    /// assert_eq!(time!(23:59:59) + 2.std_seconds(), time!(0:00:01));
     /// ```
     #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
@@ -693,13 +680,13 @@ impl AddAssign<Duration> for Time {
     /// overflow.
     ///
     /// ```rust
-    /// # use time::{Duration, time};
+    /// # use time::prelude::*;
     /// let mut time = time!(12:00);
-    /// time += Duration::hours(2);
+    /// time += 2.hours();
     /// assert_eq!(time, time!(14:00));
     ///
     /// let mut time = time!(0:00:01);
-    /// time += Duration::seconds(-2);
+    /// time += (-2).seconds();
     /// assert_eq!(time, time!(23:59:59));
     /// ```
     #[inline(always)]
@@ -713,14 +700,13 @@ impl AddAssign<StdDuration> for Time {
     /// `Time`. Wraps on overflow.
     ///
     /// ```rust
-    /// # use time::time;
-    /// # use core::time::Duration;
+    /// # use time::prelude::*;
     /// let mut time = time!(12:00);
-    /// time += Duration::from_secs(2 * 3_600);
+    /// time += 2.std_hours();
     /// assert_eq!(time, time!(14:00));
     ///
     /// let mut time = time!(23:59:59);
-    /// time += Duration::from_secs(2);
+    /// time += 2.std_seconds();
     /// assert_eq!(time, time!(0:00:01));
     /// ```
     #[inline(always)]
@@ -736,13 +722,13 @@ impl Sub<Duration> for Time {
     /// overflow.
     ///
     /// ```rust
-    /// # use time::{Duration, time};
+    /// # use time::prelude::*;
     /// assert_eq!(
-    ///     time!(14:00) - Duration::hours(2),
+    ///     time!(14:00) - 2.hours(),
     ///     time!(12:00)
     /// );
     /// assert_eq!(
-    ///     time!(23:59:59) - Duration::seconds(-2),
+    ///     time!(23:59:59) - (-2).seconds(),
     ///     time!(0:00:01)
     /// );
     /// ```
@@ -759,16 +745,9 @@ impl Sub<StdDuration> for Time {
     /// Wraps on overflow.
     ///
     /// ```rust
-    /// # use time::time;
-    /// # use core::time::Duration;
-    /// assert_eq!(
-    ///     time!(14:00) - Duration::from_secs(2 * 3_600),
-    ///     time!(12:00)
-    /// );
-    /// assert_eq!(
-    ///     time!(0:00:01) - Duration::from_secs(2),
-    ///     time!(23:59:59)
-    /// );
+    /// # use time::prelude::*;
+    /// assert_eq!(time!(14:00) - 2.std_hours(), time!(12:00));
+    /// assert_eq!(time!(0:00:01) - 2.std_seconds(), time!(23:59:59));
     /// ```
     #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
@@ -781,13 +760,13 @@ impl SubAssign<Duration> for Time {
     /// Wraps on overflow.
     ///
     /// ```rust
-    /// # use time::{Duration, time};
+    /// # use time::prelude::*;
     /// let mut time = time!(14:00);
-    /// time -= Duration::hours(2);
+    /// time -= 2.hours();
     /// assert_eq!(time, time!(12:00));
     ///
     /// let mut time = time!(23:59:59);
-    /// time -= Duration::seconds(-2);
+    /// time -= (-2).seconds();
     /// assert_eq!(time, time!(0:00:01));
     /// ```
     #[inline(always)]
@@ -801,14 +780,13 @@ impl SubAssign<StdDuration> for Time {
     /// `Time`. Wraps on overflow.
     ///
     /// ```rust
-    /// # use time::time;
-    /// # use core::time::Duration;
+    /// # use time::prelude::*;
     /// let mut time = time!(14:00);
-    /// time -= Duration::from_secs(2 * 3_600);
+    /// time -= 2.std_hours();
     /// assert_eq!(time, time!(12:00));
     ///
     /// let mut time = time!(0:00:01);
-    /// time -= Duration::from_secs(2);
+    /// time -= 2.std_seconds();
     /// assert_eq!(time, time!(23:59:59));
     /// ```
     #[inline(always)]
@@ -824,23 +802,11 @@ impl Sub<Time> for Time {
     /// both `Time`s are in the same calendar day.
     ///
     /// ```rust
-    /// use time::{Duration, time};
-    /// assert_eq!(
-    ///     time!(0:00) - time!(0:00),
-    ///     Duration::zero()
-    /// );
-    /// assert_eq!(
-    ///     time!(1:00) - time!(0:00),
-    ///     Duration::hour()
-    /// );
-    /// assert_eq!(
-    ///     time!(0:00) - time!(1:00),
-    ///     Duration::hours(-1)
-    /// );
-    /// assert_eq!(
-    ///     time!(0:00) - time!(23:00),
-    ///     Duration::hours(-23)
-    /// );
+    /// # use time::prelude::*;
+    /// assert_eq!(time!(0:00) - time!(0:00), 0.seconds());
+    /// assert_eq!(time!(1:00) - time!(0:00), 1.hours());
+    /// assert_eq!(time!(0:00) - time!(1:00), (-1).hours());
+    /// assert_eq!(time!(0:00) - time!(23:00), (-23).hours());
     /// ```
     #[inline(always)]
     fn sub(self, rhs: Self) -> Self::Output {

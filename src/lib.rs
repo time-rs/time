@@ -453,12 +453,23 @@ pub mod prelude {
     pub use time_macros::{date, offset, time};
 }
 
+/// Items generally useful in any file in the time crate.
 mod internal_prelude {
     #![allow(unused_imports)]
 
     #[cfg(not(feature = "std"))]
     extern crate alloc;
 
+    #[cfg(feature = "std")]
+    pub(crate) use crate::Instant;
+    pub(crate) use crate::{
+        format::{ParseError, ParseResult},
+        shim::*,
+        ComponentRangeError, ConversionRangeError, Date, DeferredFormat, Duration,
+        NumericalDuration, NumericalStdDuration, OffsetDateTime, PrimitiveDateTime, Time,
+        UtcOffset, Weekday,
+        Weekday::*,
+    };
     #[cfg(not(feature = "std"))]
     pub(crate) use alloc::{
         borrow::ToOwned,
@@ -468,17 +479,7 @@ mod internal_prelude {
         vec,
         vec::Vec,
     };
-    #[cfg(feature = "std")]
-    pub(crate) use crate::Instant;
-    pub(crate) use crate::{
-        format::{ParseError, ParseResult},
-        shim::*,
-        ComponentRangeError, ConversionRangeError, Date, DeferredFormat, Duration, OffsetDateTime,
-        PrimitiveDateTime, Time, UtcOffset, Weekday,
-        Weekday::*,
-    };
     pub(crate) use time_macros::{date, offset, time};
-    pub(crate) use crate::{NumericalDuration, NumericalStdDuration};
 }
 
 #[allow(clippy::missing_docs_in_private_items)]

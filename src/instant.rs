@@ -53,15 +53,11 @@ impl Instant {
     /// created.
     ///
     /// ```rust
-    /// # use core::convert::TryInto;
-    /// # use time::{Duration, Instant};
+    /// # use time::{Instant, prelude::*};
     /// # use std::thread;
-    /// # fn main() -> time::Result<()> {
     /// let instant = Instant::now();
-    /// thread::sleep(Duration::milliseconds(100).try_into()?);
-    /// assert!(instant.elapsed() >= Duration::milliseconds(100));
-    /// # Ok(())
-    /// # }
+    /// thread::sleep(100.std_milliseconds());
+    /// assert!(instant.elapsed() >= 100.milliseconds());
     /// ```
     #[inline(always)]
     pub fn elapsed(self) -> Duration {
@@ -73,15 +69,15 @@ impl Instant {
     /// underlying data structure), `None` otherwise.
     ///
     /// ```rust
-    /// # use time::{Duration, Instant};
+    /// # use time::{Instant, prelude::*};
     /// let now = Instant::now();
     /// assert_eq!(
-    ///     now.checked_add(Duration::seconds(5)),
-    ///     Some(now + Duration::seconds(5))
+    ///     now.checked_add(5.seconds()),
+    ///     Some(now + 5.seconds())
     /// );
     /// assert_eq!(
-    ///     now.checked_add(Duration::seconds(-5)),
-    ///     Some(now + Duration::seconds(-5))
+    ///     now.checked_add((-5).seconds()),
+    ///     Some(now + (-5).seconds())
     /// );
     /// ```
     #[inline]
@@ -101,15 +97,15 @@ impl Instant {
     /// underlying data structure), `None` otherwise.
     ///
     /// ```rust
-    /// # use time::{Duration, Instant};
+    /// # use time::{Instant, prelude::*};
     /// let now = Instant::now();
     /// assert_eq!(
-    ///     now.checked_sub(Duration::seconds(5)),
-    ///     Some(now - Duration::seconds(5))
+    ///     now.checked_sub(5.seconds()),
+    ///     Some(now - 5.seconds())
     /// );
     /// assert_eq!(
-    ///     now.checked_sub(Duration::seconds(-5)),
-    ///     Some(now - Duration::seconds(-5))
+    ///     now.checked_sub((-5).seconds()),
+    ///     Some(now - (-5).seconds())
     /// );
     /// ```
     #[inline(always)]

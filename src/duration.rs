@@ -43,99 +43,99 @@ const SECONDS_PER_DAY: i64 = 24 * SECONDS_PER_HOUR;
 const SECONDS_PER_WEEK: i64 = 7 * SECONDS_PER_DAY;
 
 impl Duration {
-    /// Equivalent to `Duration::seconds(0)`.
+    /// Equivalent to `0.seconds()`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::zero(), Duration::seconds(0));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::zero(), 0.seconds());
     /// ```
     #[inline(always)]
     pub const fn zero() -> Self {
         Self::seconds(0)
     }
 
-    /// Equivalent to `Duration::nanoseconds(1)`.
+    /// Equivalent to `1.nanoseconds()`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::nanosecond(), Duration::nanoseconds(1));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::nanosecond(), 1.nanoseconds());
     /// ```
     #[inline(always)]
     pub const fn nanosecond() -> Self {
         Self::nanoseconds(1)
     }
 
-    /// Equivalent to `Duration::microseconds(1)`.
+    /// Equivalent to `1.microseconds()`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::microsecond(), Duration::microseconds(1));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::microsecond(), 1.microseconds());
     /// ```
     #[inline(always)]
     pub const fn microsecond() -> Self {
         Self::microseconds(1)
     }
 
-    /// Equivalent to `Duration::milliseconds(1)`.
+    /// Equivalent to `1.milliseconds()`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::millisecond(), Duration::milliseconds(1));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::millisecond(), 1.milliseconds());
     /// ```
     #[inline(always)]
     pub const fn millisecond() -> Self {
         Self::milliseconds(1)
     }
 
-    /// Equivalent to `Duration::seconds(1)`.
+    /// Equivalent to `1.seconds()`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::second(), Duration::seconds(1));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::second(), 1.seconds());
     /// ```
     #[inline(always)]
     pub const fn second() -> Self {
         Self::seconds(1)
     }
 
-    /// Equivalent to `Duration::minutes(1)`.
+    /// Equivalent to `1.minutes()`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::minute(), Duration::minutes(1));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::minute(), 1.minutes());
     /// ```
     #[inline(always)]
     pub const fn minute() -> Self {
         Self::minutes(1)
     }
 
-    /// Equivalent to `Duration::hours(1)`.
+    /// Equivalent to `1.hours()`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::hour(), Duration::hours(1));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::hour(), 1.hours());
     /// ```
     #[inline(always)]
     pub const fn hour() -> Self {
         Self::hours(1)
     }
 
-    /// Equivalent to `Duration::days(1)`.
+    /// Equivalent to `1.days()`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::day(), Duration::days(1));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::day(), 1.days());
     /// ```
     #[inline(always)]
     pub const fn day() -> Self {
         Self::days(1)
     }
 
-    /// Equivalent to `Duration::weeks(1)`.
+    /// Equivalent to `1.weeks()`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::week(), Duration::weeks(1));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::week(), 1.weeks());
     /// ```
     #[inline(always)]
     pub const fn week() -> Self {
@@ -163,9 +163,9 @@ impl Duration {
     /// Check if a duration is exactly zero.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert!(Duration::seconds(0).is_zero());
-    /// assert!(!Duration::nanoseconds(1).is_zero());
+    /// # use time::prelude::*;
+    /// assert!(0.seconds().is_zero());
+    /// assert!(!1.nanoseconds().is_zero());
     /// ```
     #[inline(always)]
     pub const fn is_zero(self) -> bool {
@@ -175,10 +175,10 @@ impl Duration {
     /// Check if a duration is negative.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert!(Duration::seconds(-1).is_negative());
-    /// assert!(!Duration::seconds(0).is_negative());
-    /// assert!(!Duration::seconds(1).is_negative());
+    /// # use time::prelude::*;
+    /// assert!((-1).seconds().is_negative());
+    /// assert!(!0.seconds().is_negative());
+    /// assert!(!1.seconds().is_negative());
     /// ```
     #[inline(always)]
     pub const fn is_negative(self) -> bool {
@@ -188,10 +188,10 @@ impl Duration {
     /// Check if a duration is positive.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert!(Duration::seconds(1).is_positive());
-    /// assert!(!Duration::seconds(0).is_positive());
-    /// assert!(!Duration::seconds(-1).is_positive());
+    /// # use time::{prelude::*};
+    /// assert!(1.seconds().is_positive());
+    /// assert!(!0.seconds().is_positive());
+    /// assert!(!(-1).seconds().is_positive());
     /// ```
     #[inline(always)]
     pub const fn is_positive(self) -> bool {
@@ -201,10 +201,10 @@ impl Duration {
     /// Get the sign of the duration.
     ///
     /// ```rust
-    /// # use time::{Duration, Sign};
-    /// assert_eq!(Duration::seconds(1).sign(), Sign::Positive);
-    /// assert_eq!(Duration::seconds(-1).sign(), Sign::Negative);
-    /// assert_eq!(Duration::zero().sign(), Sign::Zero);
+    /// # use time::{Sign, prelude::*};
+    /// assert_eq!(1.seconds().sign(), Sign::Positive);
+    /// assert_eq!((-1).seconds().sign(), Sign::Negative);
+    /// assert_eq!(0.seconds().sign(), Sign::Zero);
     /// ```
     #[deprecated(
         since = "0.2.7",
@@ -232,10 +232,10 @@ impl Duration {
     /// Get the absolute value of the duration.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::seconds(1).abs(), Duration::seconds(1));
-    /// assert_eq!(Duration::zero().abs(), Duration::zero());
-    /// assert_eq!(Duration::seconds(-1).abs(), Duration::seconds(1));
+    /// # use time::prelude::*;
+    /// assert_eq!(1.seconds().abs(), 1.seconds());
+    /// assert_eq!(0.seconds().abs(), 0.seconds());
+    /// assert_eq!((-1).seconds().abs(), 1.seconds());
     /// ```
     #[inline(always)]
     #[rustversion::attr(since(1.39), const)]
@@ -260,10 +260,10 @@ impl Duration {
     /// seconds.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::new(1, 0), Duration::seconds(1));
-    /// assert_eq!(Duration::new(-1, 0), Duration::seconds(-1));
-    /// assert_eq!(Duration::new(1, 2_000_000_000), Duration::seconds(3));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::new(1, 0), 1.seconds());
+    /// assert_eq!(Duration::new(-1, 0), (-1).seconds());
+    /// assert_eq!(Duration::new(1, 2_000_000_000), 3.seconds());
     /// ```
     #[inline(always)]
     pub const fn new(seconds: i64, nanoseconds: i32) -> Self {
@@ -277,8 +277,8 @@ impl Duration {
     /// `Duration::seconds(weeks * 604_800)`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::weeks(1), Duration::seconds(604_800));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::weeks(1), 604_800.seconds());
     /// ```
     #[inline(always)]
     pub const fn weeks(weeks: i64) -> Self {
@@ -288,11 +288,11 @@ impl Duration {
     /// Get the number of whole weeks in the duration.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::weeks(1).whole_weeks(), 1);
-    /// assert_eq!(Duration::weeks(-1).whole_weeks(), -1);
-    /// assert_eq!(Duration::days(6).whole_weeks(), 0);
-    /// assert_eq!(Duration::days(-6).whole_weeks(), 0);
+    /// # use time::prelude::*;
+    /// assert_eq!(1.weeks().whole_weeks(), 1);
+    /// assert_eq!((-1).weeks().whole_weeks(), -1);
+    /// assert_eq!(6.days().whole_weeks(), 0);
+    /// assert_eq!((-6).days().whole_weeks(), 0);
     /// ```
     #[inline(always)]
     pub const fn whole_weeks(self) -> i64 {
@@ -303,8 +303,8 @@ impl Duration {
     /// `Duration::seconds(days * 86_400)`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::days(1), Duration::seconds(86_400));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::days(1), 86_400.seconds());
     /// ```
     #[inline(always)]
     pub const fn days(days: i64) -> Self {
@@ -314,11 +314,11 @@ impl Duration {
     /// Get the number of whole days in the duration.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::days(1).whole_days(), 1);
-    /// assert_eq!(Duration::days(-1).whole_days(), -1);
-    /// assert_eq!(Duration::hours(23).whole_days(), 0);
-    /// assert_eq!(Duration::hours(-23).whole_days(), 0);
+    /// # use time::prelude::*;
+    /// assert_eq!(1.days().whole_days(), 1);
+    /// assert_eq!((-1).days().whole_days(), -1);
+    /// assert_eq!(23.hours().whole_days(), 0);
+    /// assert_eq!((-23).hours().whole_days(), 0);
     /// ```
     #[inline(always)]
     pub const fn whole_days(self) -> i64 {
@@ -329,8 +329,8 @@ impl Duration {
     /// `Duration::seconds(hours * 3_600)`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::hours(1), Duration::seconds(3_600));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::hours(1), 3_600.seconds());
     /// ```
     #[inline(always)]
     pub const fn hours(hours: i64) -> Self {
@@ -340,11 +340,11 @@ impl Duration {
     /// Get the number of whole hours in the duration.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::hours(1).whole_hours(), 1);
-    /// assert_eq!(Duration::hours(-1).whole_hours(), -1);
-    /// assert_eq!(Duration::minutes(59).whole_hours(), 0);
-    /// assert_eq!(Duration::minutes(-59).whole_hours(), 0);
+    /// # use time::prelude::*;
+    /// assert_eq!(1.hours().whole_hours(), 1);
+    /// assert_eq!((-1).hours().whole_hours(), -1);
+    /// assert_eq!(59.minutes().whole_hours(), 0);
+    /// assert_eq!((-59).minutes().whole_hours(), 0);
     /// ```
     #[inline(always)]
     pub const fn whole_hours(self) -> i64 {
@@ -355,8 +355,8 @@ impl Duration {
     /// `Duration::seconds(minutes * 60)`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::minutes(1), Duration::seconds(60));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::minutes(1), 60.seconds());
     /// ```
     #[inline(always)]
     pub const fn minutes(minutes: i64) -> Self {
@@ -366,11 +366,11 @@ impl Duration {
     /// Get the number of whole minutes in the duration.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::minutes(1).whole_minutes(), 1);
-    /// assert_eq!(Duration::minutes(-1).whole_minutes(), -1);
-    /// assert_eq!(Duration::seconds(59).whole_minutes(), 0);
-    /// assert_eq!(Duration::seconds(-59).whole_minutes(), 0);
+    /// # use time::prelude::*;
+    /// assert_eq!(1.minutes().whole_minutes(), 1);
+    /// assert_eq!((-1).minutes().whole_minutes(), -1);
+    /// assert_eq!(59.seconds().whole_minutes(), 0);
+    /// assert_eq!((-59).seconds().whole_minutes(), 0);
     /// ```
     #[inline(always)]
     pub const fn whole_minutes(self) -> i64 {
@@ -380,8 +380,8 @@ impl Duration {
     /// Create a new `Duration` with the given number of seconds.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::seconds(1), Duration::milliseconds(1_000));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::seconds(1), 1_000.milliseconds());
     /// ```
     #[inline(always)]
     pub const fn seconds(seconds: i64) -> Self {
@@ -394,11 +394,11 @@ impl Duration {
     /// Get the number of whole seconds in the duration.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::seconds(1).whole_seconds(), 1);
-    /// assert_eq!(Duration::seconds(-1).whole_seconds(), -1);
-    /// assert_eq!(Duration::minutes(1).whole_seconds(), 60);
-    /// assert_eq!(Duration::minutes(-1).whole_seconds(), -60);
+    /// # use time::prelude::*;
+    /// assert_eq!(1.seconds().whole_seconds(), 1);
+    /// assert_eq!((-1).seconds().whole_seconds(), -1);
+    /// assert_eq!(1.minutes().whole_seconds(), 60);
+    /// assert_eq!((-1).minutes().whole_seconds(), -60);
     /// ```
     #[inline(always)]
     pub const fn whole_seconds(self) -> i64 {
@@ -409,9 +409,9 @@ impl Duration {
     /// represented as `f64`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::seconds_f64(0.5), Duration::milliseconds(500));
-    /// assert_eq!(Duration::seconds_f64(-0.5), Duration::milliseconds(-500));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::seconds_f64(0.5), 0.5.seconds());
+    /// assert_eq!(Duration::seconds_f64(-0.5), -0.5.seconds());
     /// ```
     #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
@@ -425,9 +425,9 @@ impl Duration {
     /// Get the number of fractional seconds in the duration.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::milliseconds(1_500).as_seconds_f64(), 1.5);
-    /// assert_eq!(Duration::milliseconds(-1_500).as_seconds_f64(), -1.5);
+    /// # use time::prelude::*;
+    /// assert_eq!(1.5.seconds().as_seconds_f64(), 1.5);
+    /// assert_eq!((-1.5).seconds().as_seconds_f64(), -1.5);
     /// ```
     #[inline(always)]
     #[allow(clippy::cast_precision_loss)]
@@ -439,9 +439,9 @@ impl Duration {
     /// represented as `f32`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::seconds_f32(0.5), Duration::milliseconds(500));
-    /// assert_eq!(Duration::seconds_f32(-0.5), Duration::milliseconds(-500));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::seconds_f32(0.5), 0.5.seconds());
+    /// assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
     /// ```
     #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
@@ -455,9 +455,9 @@ impl Duration {
     /// Get the number of fractional seconds in the duration.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::milliseconds(1_500).as_seconds_f32(), 1.5);
-    /// assert_eq!(Duration::milliseconds(-1_500).as_seconds_f32(), -1.5);
+    /// # use time::prelude::*;
+    /// assert_eq!(1.5.seconds().as_seconds_f32(), 1.5);
+    /// assert_eq!((-1.5).seconds().as_seconds_f32(), -1.5);
     /// ```
     #[inline(always)]
     #[allow(clippy::cast_precision_loss)]
@@ -468,9 +468,9 @@ impl Duration {
     /// Create a new `Duration` with the given number of milliseconds.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::milliseconds(1), Duration::seconds(1) / 1_000);
-    /// assert_eq!(Duration::milliseconds(-1), Duration::seconds(-1) / 1_000);
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::milliseconds(1), 1_000.microseconds());
+    /// assert_eq!(Duration::milliseconds(-1), (-1_000).microseconds());
     /// ```
     #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
@@ -484,11 +484,11 @@ impl Duration {
     /// Get the number of whole milliseconds in the duration.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::seconds(1).whole_milliseconds(), 1_000);
-    /// assert_eq!(Duration::seconds(-1).whole_milliseconds(), -1_000);
-    /// assert_eq!(Duration::milliseconds(1).whole_milliseconds(), 1);
-    /// assert_eq!(Duration::milliseconds(-1).whole_milliseconds(), -1);
+    /// # use time::prelude::*;
+    /// assert_eq!(1.seconds().whole_milliseconds(), 1_000);
+    /// assert_eq!((-1).seconds().whole_milliseconds(), -1_000);
+    /// assert_eq!(1.milliseconds().whole_milliseconds(), 1);
+    /// assert_eq!((-1).milliseconds().whole_milliseconds(), -1);
     /// ```
     #[inline(always)]
     pub const fn whole_milliseconds(self) -> i128 {
@@ -497,12 +497,12 @@ impl Duration {
 
     /// Get the number of milliseconds past the number of whole seconds.
     ///
-    /// Always in the range `0..1_000`.
+    /// Always in the range `-1_000..1_000`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::milliseconds(1_400).subsec_milliseconds(), 400);
-    /// assert_eq!(Duration::milliseconds(-1_400).subsec_milliseconds(), -400);
+    /// # use time::prelude::*;
+    /// assert_eq!(1.4.seconds().subsec_milliseconds(), 400);
+    /// assert_eq!((-1.4).seconds().subsec_milliseconds(), -400);
     /// ```
     // Allow the lint, as the value is guaranteed to be less than 1000.
     #[inline(always)]
@@ -514,12 +514,9 @@ impl Duration {
     /// Create a new `Duration` with the given number of microseconds.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::microseconds(1), Duration::seconds(1) / 1_000_000);
-    /// assert_eq!(
-    ///     Duration::microseconds(-1),
-    ///     Duration::seconds(-1) / 1_000_000
-    /// );
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::microseconds(1), 1_000.nanoseconds());
+    /// assert_eq!(Duration::microseconds(-1), (-1_000).nanoseconds());
     /// ```
     #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
@@ -533,11 +530,11 @@ impl Duration {
     /// Get the number of whole microseconds in the duration.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::milliseconds(1).whole_microseconds(), 1_000);
-    /// assert_eq!(Duration::milliseconds(-1).whole_microseconds(), -1_000);
-    /// assert_eq!(Duration::microseconds(1).whole_microseconds(), 1);
-    /// assert_eq!(Duration::microseconds(-1).whole_microseconds(), -1);
+    /// # use time::prelude::*;
+    /// assert_eq!(1.milliseconds().whole_microseconds(), 1_000);
+    /// assert_eq!((-1).milliseconds().whole_microseconds(), -1_000);
+    /// assert_eq!(1.microseconds().whole_microseconds(), 1);
+    /// assert_eq!((-1).microseconds().whole_microseconds(), -1);
     /// ```
     #[inline(always)]
     pub const fn whole_microseconds(self) -> i128 {
@@ -546,15 +543,12 @@ impl Duration {
 
     /// Get the number of microseconds past the number of whole seconds.
     ///
-    /// Always in the range `0..1_000_000`.
+    /// Always in the range `-1_000_000..1_000_000`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::microseconds(1_000_400).subsec_microseconds(), 400);
-    /// assert_eq!(
-    ///     Duration::microseconds(-1_000_400).subsec_microseconds(),
-    ///     -400
-    /// );
+    /// # use time::prelude::*;
+    /// assert_eq!(1.0004.seconds().subsec_microseconds(), 400);
+    /// assert_eq!((-1.0004).seconds().subsec_microseconds(), -400);
     /// ```
     #[inline(always)]
     pub const fn subsec_microseconds(self) -> i32 {
@@ -564,15 +558,9 @@ impl Duration {
     /// Create a new `Duration` with the given number of nanoseconds.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(
-    ///     Duration::nanoseconds(1),
-    ///     Duration::seconds(1) / 1_000_000_000
-    /// );
-    /// assert_eq!(
-    ///     Duration::nanoseconds(-1),
-    ///     Duration::seconds(-1) / 1_000_000_000
-    /// );
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::nanoseconds(1), 1.microseconds() / 1_000);
+    /// assert_eq!(Duration::nanoseconds(-1), (-1).microseconds() / 1_000);
     /// ```
     #[inline(always)]
     #[allow(clippy::cast_possible_truncation)]
@@ -599,11 +587,11 @@ impl Duration {
     /// Get the number of nanoseconds in the duration.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::microseconds(1).whole_nanoseconds(), 1_000);
-    /// assert_eq!(Duration::microseconds(-1).whole_nanoseconds(), -1_000);
-    /// assert_eq!(Duration::nanoseconds(1).whole_nanoseconds(), 1);
-    /// assert_eq!(Duration::nanoseconds(-1).whole_nanoseconds(), -1);
+    /// # use time::prelude::*;
+    /// assert_eq!(1.microseconds().whole_nanoseconds(), 1_000);
+    /// assert_eq!((-1).microseconds().whole_nanoseconds(), -1_000);
+    /// assert_eq!(1.nanoseconds().whole_nanoseconds(), 1);
+    /// assert_eq!((-1).nanoseconds().whole_nanoseconds(), -1);
     /// ```
     #[inline(always)]
     pub const fn whole_nanoseconds(self) -> i128 {
@@ -612,18 +600,13 @@ impl Duration {
 
     /// Get the number of nanoseconds past the number of whole seconds.
     ///
-    /// The returned value will always be in the range `0..1_000_000_000`.
+    /// The returned value will always be in the range
+    /// `-1_000_000_000..1_000_000_000`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(
-    ///     Duration::nanoseconds(1_000_000_400).subsec_nanoseconds(),
-    ///     400
-    /// );
-    /// assert_eq!(
-    ///     Duration::nanoseconds(-1_000_000_400).subsec_nanoseconds(),
-    ///     -400
-    /// );
+    /// # use time::prelude::*;
+    /// assert_eq!(1.000_000_400.seconds().subsec_nanoseconds(), 400);
+    /// assert_eq!((-1.000_000_400).seconds().subsec_nanoseconds(), -400);
     /// ```
     #[inline(always)]
     pub const fn subsec_nanoseconds(self) -> i32 {
@@ -633,19 +616,10 @@ impl Duration {
     /// Computes `self + rhs`, returning `None` if an overflow occurred.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(
-    ///     Duration::seconds(5).checked_add(Duration::seconds(5)),
-    ///     Some(Duration::seconds(10))
-    /// );
-    /// assert_eq!(
-    ///     Duration::max_value().checked_add(Duration::nanosecond()),
-    ///     None
-    /// );
-    /// assert_eq!(
-    ///     Duration::seconds(-5).checked_add(Duration::seconds(5)),
-    ///     Some(Duration::zero())
-    /// );
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(5.seconds().checked_add(5.seconds()), Some(10.seconds()));
+    /// assert_eq!(Duration::max_value().checked_add(1.nanoseconds()), None);
+    /// assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
     /// ```
     #[inline]
     pub fn checked_add(self, rhs: Self) -> Option<Self> {
@@ -673,19 +647,10 @@ impl Duration {
     /// Computes `self - rhs`, returning `None` if an overflow occurred.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(
-    ///     Duration::seconds(5).checked_sub(Duration::seconds(5)),
-    ///     Some(Duration::zero())
-    /// );
-    /// assert_eq!(
-    ///     Duration::min_value().checked_sub(Duration::nanosecond()),
-    ///     None
-    /// );
-    /// assert_eq!(
-    ///     Duration::seconds(5).checked_sub(Duration::seconds(10)),
-    ///     Some(Duration::seconds(-5))
-    /// );
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(5.seconds().checked_sub(5.seconds()), Some(Duration::zero()));
+    /// assert_eq!(Duration::min_value().checked_sub(1.nanoseconds()), None);
+    /// assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
     /// ```
     #[inline(always)]
     pub fn checked_sub(self, rhs: Self) -> Option<Self> {
@@ -695,16 +660,10 @@ impl Duration {
     /// Computes `self * rhs`, returning `None` if an overflow occurred.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(
-    ///     Duration::seconds(5).checked_mul(2),
-    ///     Some(Duration::seconds(10))
-    /// );
-    /// assert_eq!(
-    ///     Duration::seconds(5).checked_mul(-2),
-    ///     Some(Duration::seconds(-10))
-    /// );
-    /// assert_eq!(Duration::seconds(5).checked_mul(0), Some(Duration::zero()));
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(5.seconds().checked_mul(2), Some(10.seconds()));
+    /// assert_eq!(5.seconds().checked_mul(-2), Some((-10).seconds()));
+    /// assert_eq!(5.seconds().checked_mul(0), Some(0.seconds()));
     /// assert_eq!(Duration::max_value().checked_mul(2), None);
     /// assert_eq!(Duration::min_value().checked_mul(2), None);
     /// ```
@@ -729,10 +688,10 @@ impl Duration {
     /// Computes `self / rhs`, returning `None` if `rhs == 0`.
     ///
     /// ```rust
-    /// # use time::Duration;
-    /// assert_eq!(Duration::seconds(10).checked_div(2), Some(Duration::seconds(5)));
-    /// assert_eq!(Duration::seconds(10).checked_div(-2), Some(Duration::seconds(-5)));
-    /// assert_eq!(Duration::seconds(1).checked_div(0), None);
+    /// # use time::prelude::*;
+    /// assert_eq!(10.seconds().checked_div(2), Some(5.seconds()));
+    /// assert_eq!(10.seconds().checked_div(-2), Some((-5).seconds()));
+    /// assert_eq!(1.seconds().checked_div(0), None);
     #[inline(always)]
     pub fn checked_div(self, rhs: i32) -> Option<Self> {
         if rhs == 0 {
@@ -1300,9 +1259,9 @@ mod test {
 
     #[test]
     fn abs() {
-        assert_eq!(1.seconds().abs(), Duration::seconds(1));
-        assert_eq!(0.seconds().abs(), Duration::zero());
-        assert_eq!((-1).seconds().abs(), Duration::seconds(1));
+        assert_eq!(1.seconds().abs(), 1.seconds());
+        assert_eq!(0.seconds().abs(), 0.seconds());
+        assert_eq!((-1).seconds().abs(), 1.seconds());
     }
 
     #[test]
@@ -1319,10 +1278,10 @@ mod test {
 
     #[test]
     fn weeks() {
-        assert_eq!(Duration::weeks(1), Duration::seconds(604_800));
-        assert_eq!(Duration::weeks(2), Duration::seconds(2 * 604_800));
-        assert_eq!(Duration::weeks(-1), Duration::seconds(-604_800));
-        assert_eq!(Duration::weeks(-2), Duration::seconds(2 * -604_800));
+        assert_eq!(Duration::weeks(1), 604_800.seconds());
+        assert_eq!(Duration::weeks(2), (2 * 604_800).seconds());
+        assert_eq!(Duration::weeks(-1), (-604_800).seconds());
+        assert_eq!(Duration::weeks(-2), (2 * -604_800).seconds());
     }
 
     #[test]
@@ -1335,10 +1294,10 @@ mod test {
 
     #[test]
     fn days() {
-        assert_eq!(Duration::days(1), Duration::seconds(86_400));
-        assert_eq!(Duration::days(2), Duration::seconds(2 * 86_400));
-        assert_eq!(Duration::days(-1), Duration::seconds(-86_400));
-        assert_eq!(Duration::days(-2), Duration::seconds(2 * -86_400));
+        assert_eq!(Duration::days(1), 86_400.seconds());
+        assert_eq!(Duration::days(2), (2 * 86_400).seconds());
+        assert_eq!(Duration::days(-1), (-86_400).seconds());
+        assert_eq!(Duration::days(-2), (2 * -86_400).seconds());
     }
 
     #[test]
@@ -1351,10 +1310,10 @@ mod test {
 
     #[test]
     fn hours() {
-        assert_eq!(Duration::hours(1), Duration::seconds(3_600));
-        assert_eq!(Duration::hours(2), Duration::seconds(2 * 3_600));
-        assert_eq!(Duration::hours(-1), Duration::seconds(-3_600));
-        assert_eq!(Duration::hours(-2), Duration::seconds(2 * -3_600));
+        assert_eq!(Duration::hours(1), 3_600.seconds());
+        assert_eq!(Duration::hours(2), (2 * 3_600).seconds());
+        assert_eq!(Duration::hours(-1), (-3_600).seconds());
+        assert_eq!(Duration::hours(-2), (2 * -3_600).seconds());
     }
 
     #[test]
@@ -1367,146 +1326,128 @@ mod test {
 
     #[test]
     fn minutes() {
-        assert_eq!(Duration::minutes(1), Duration::seconds(60));
-        assert_eq!(Duration::minutes(2), Duration::seconds(2 * 60));
-        assert_eq!(Duration::minutes(-1), Duration::seconds(-60));
-        assert_eq!(Duration::minutes(-2), Duration::seconds(2 * -60));
+        assert_eq!(Duration::minutes(1), 60.seconds());
+        assert_eq!(Duration::minutes(2), (2 * 60).seconds());
+        assert_eq!(Duration::minutes(-1), (-60).seconds());
+        assert_eq!(Duration::minutes(-2), (2 * -60).seconds());
     }
 
     #[test]
     fn whole_minutes() {
-        assert_eq!(Duration::minutes(1).whole_minutes(), 1);
-        assert_eq!(Duration::minutes(-1).whole_minutes(), -1);
-        assert_eq!(Duration::seconds(59).whole_minutes(), 0);
-        assert_eq!(Duration::seconds(-59).whole_minutes(), 0);
+        assert_eq!(1.minutes().whole_minutes(), 1);
+        assert_eq!((-1).minutes().whole_minutes(), -1);
+        assert_eq!(59.seconds().whole_minutes(), 0);
+        assert_eq!((-59).seconds().whole_minutes(), 0);
     }
 
     #[test]
     fn seconds() {
-        assert_eq!(Duration::seconds(1), Duration::milliseconds(1_000));
-        assert_eq!(Duration::seconds(2), Duration::milliseconds(2 * 1_000));
-        assert_eq!(Duration::seconds(-1), Duration::milliseconds(-1_000));
-        assert_eq!(Duration::seconds(-2), Duration::milliseconds(2 * -1_000));
+        assert_eq!(Duration::seconds(1), 1_000.milliseconds());
+        assert_eq!(Duration::seconds(2), (2 * 1_000).milliseconds());
+        assert_eq!(Duration::seconds(-1), (-1_000).milliseconds());
+        assert_eq!(Duration::seconds(-2), (2 * -1_000).milliseconds());
     }
 
     #[test]
     fn whole_seconds() {
-        assert_eq!(Duration::seconds(1).whole_seconds(), 1);
-        assert_eq!(Duration::seconds(-1).whole_seconds(), -1);
-        assert_eq!(Duration::minutes(1).whole_seconds(), 60);
-        assert_eq!(Duration::minutes(-1).whole_seconds(), -60);
+        assert_eq!(1.seconds().whole_seconds(), 1);
+        assert_eq!((-1).seconds().whole_seconds(), -1);
+        assert_eq!(1.minutes().whole_seconds(), 60);
+        assert_eq!((-1).minutes().whole_seconds(), -60);
     }
 
     #[test]
     fn seconds_f64() {
-        assert_eq!(Duration::seconds_f64(0.5), Duration::milliseconds(500));
-        assert_eq!(Duration::seconds_f64(-0.5), Duration::milliseconds(-500));
+        assert_eq!(Duration::seconds_f64(0.5), 0.5.seconds());
+        assert_eq!(Duration::seconds_f64(-0.5), (-0.5).seconds());
     }
 
     #[test]
     #[allow(clippy::float_cmp)]
     fn as_seconds_f64() {
-        assert_eq!(Duration::seconds(1).as_seconds_f64(), 1.0);
-        assert_eq!(Duration::seconds(-1).as_seconds_f64(), -1.0);
-        assert_eq!(Duration::minutes(1).as_seconds_f64(), 60.0);
-        assert_eq!(Duration::minutes(-1).as_seconds_f64(), -60.0);
-        assert_eq!(Duration::milliseconds(1_500).as_seconds_f64(), 1.5);
-        assert_eq!(Duration::milliseconds(-1_500).as_seconds_f64(), -1.5);
+        assert_eq!(1.seconds().as_seconds_f64(), 1.0);
+        assert_eq!((-1).seconds().as_seconds_f64(), -1.0);
+        assert_eq!(1.minutes().as_seconds_f64(), 60.0);
+        assert_eq!((-1).minutes().as_seconds_f64(), -60.0);
+        assert_eq!(1.5.seconds().as_seconds_f64(), 1.5);
+        assert_eq!((-1.5).seconds().as_seconds_f64(), -1.5);
     }
 
     #[test]
     fn seconds_f32() {
-        assert_eq!(Duration::seconds_f32(0.5), Duration::milliseconds(500));
-        assert_eq!(Duration::seconds_f32(-0.5), Duration::milliseconds(-500));
+        assert_eq!(Duration::seconds_f32(0.5), 0.5.seconds());
+        assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
     }
 
     #[test]
     #[allow(clippy::float_cmp)]
     fn as_seconds_f32() {
-        assert_eq!(Duration::seconds(1).as_seconds_f32(), 1.0);
-        assert_eq!(Duration::seconds(-1).as_seconds_f32(), -1.0);
-        assert_eq!(Duration::minutes(1).as_seconds_f32(), 60.0);
-        assert_eq!(Duration::minutes(-1).as_seconds_f32(), -60.0);
-        assert_eq!(Duration::milliseconds(1_500).as_seconds_f32(), 1.5);
-        assert_eq!(Duration::milliseconds(-1_500).as_seconds_f32(), -1.5);
+        assert_eq!(1.seconds().as_seconds_f32(), 1.0);
+        assert_eq!((-1).seconds().as_seconds_f32(), -1.0);
+        assert_eq!(1.minutes().as_seconds_f32(), 60.0);
+        assert_eq!((-1).minutes().as_seconds_f32(), -60.0);
+        assert_eq!(1.5.seconds().as_seconds_f32(), 1.5);
+        assert_eq!((-1.5).seconds().as_seconds_f32(), -1.5);
     }
 
     #[test]
     fn milliseconds() {
-        assert_eq!(Duration::milliseconds(1), Duration::seconds(1) / 1_000);
-        assert_eq!(Duration::milliseconds(-1), Duration::seconds(-1) / 1_000);
+        assert_eq!(Duration::milliseconds(1), 1_000.microseconds());
+        assert_eq!(Duration::milliseconds(-1), (-1000).microseconds());
     }
 
     #[test]
     fn whole_milliseconds() {
-        assert_eq!(Duration::seconds(1).whole_milliseconds(), 1_000);
-        assert_eq!(Duration::seconds(-1).whole_milliseconds(), -1_000);
-        assert_eq!(Duration::milliseconds(1).whole_milliseconds(), 1);
-        assert_eq!(Duration::milliseconds(-1).whole_milliseconds(), -1);
+        assert_eq!(1.seconds().whole_milliseconds(), 1_000);
+        assert_eq!((-1).seconds().whole_milliseconds(), -1_000);
+        assert_eq!(1.milliseconds().whole_milliseconds(), 1);
+        assert_eq!((-1).milliseconds().whole_milliseconds(), -1);
     }
 
     #[test]
     fn subsec_milliseconds() {
-        assert_eq!(Duration::milliseconds(1_400).subsec_milliseconds(), 400);
-        assert_eq!(Duration::milliseconds(-1_400).subsec_milliseconds(), -400);
+        assert_eq!(1.4.seconds().subsec_milliseconds(), 400);
+        assert_eq!((-1.4).seconds().subsec_milliseconds(), -400);
     }
 
     #[test]
     fn microseconds() {
-        assert_eq!(Duration::microseconds(1), Duration::seconds(1) / 1_000_000);
-        assert_eq!(
-            Duration::microseconds(-1),
-            Duration::seconds(-1) / 1_000_000
-        );
+        assert_eq!(Duration::microseconds(1), 1_000.nanoseconds());
+        assert_eq!(Duration::microseconds(-1), (-1_000).nanoseconds());
     }
 
     #[test]
     fn whole_microseconds() {
-        assert_eq!(Duration::milliseconds(1).whole_microseconds(), 1_000);
-        assert_eq!(Duration::milliseconds(-1).whole_microseconds(), -1_000);
-        assert_eq!(Duration::microseconds(1).whole_microseconds(), 1);
-        assert_eq!(Duration::microseconds(-1).whole_microseconds(), -1);
+        assert_eq!(1.milliseconds().whole_microseconds(), 1_000);
+        assert_eq!((-1).milliseconds().whole_microseconds(), -1_000);
+        assert_eq!(1.microseconds().whole_microseconds(), 1);
+        assert_eq!((-1).microseconds().whole_microseconds(), -1);
     }
 
     #[test]
     fn subsec_microseconds() {
-        assert_eq!(Duration::microseconds(1_000_400).subsec_microseconds(), 400);
-        assert_eq!(
-            Duration::microseconds(-1_000_400).subsec_microseconds(),
-            -400
-        );
+        assert_eq!(1.0004.seconds().subsec_microseconds(), 400);
+        assert_eq!((-1.0004).seconds().subsec_microseconds(), -400);
     }
 
     #[test]
     fn nanoseconds() {
-        assert_eq!(
-            Duration::nanoseconds(1),
-            Duration::seconds(1) / 1_000_000_000
-        );
-        assert_eq!(
-            Duration::nanoseconds(-1),
-            Duration::seconds(-1) / 1_000_000_000
-        );
+        assert_eq!(Duration::nanoseconds(1), 1.microseconds() / 1_000);
+        assert_eq!(Duration::nanoseconds(-1), (-1).microseconds() / 1_000);
     }
 
     #[test]
     fn whole_nanoseconds() {
-        assert_eq!(Duration::microseconds(1).whole_nanoseconds(), 1_000);
-        assert_eq!(Duration::microseconds(-1).whole_nanoseconds(), -1_000);
-        assert_eq!(Duration::nanoseconds(1).whole_nanoseconds(), 1);
-        assert_eq!(Duration::nanoseconds(-1).whole_nanoseconds(), -1);
+        assert_eq!(1.microseconds().whole_nanoseconds(), 1_000);
+        assert_eq!((-1).microseconds().whole_nanoseconds(), -1_000);
+        assert_eq!(1.nanoseconds().whole_nanoseconds(), 1);
+        assert_eq!((-1).nanoseconds().whole_nanoseconds(), -1);
     }
 
     #[test]
     fn subsec_nanoseconds() {
-        assert_eq!(
-            Duration::nanoseconds(1_000_000_400).subsec_nanoseconds(),
-            400
-        );
-        assert_eq!(
-            Duration::nanoseconds(-1_000_000_400).subsec_nanoseconds(),
-            -400
-        );
+        assert_eq!(1.0000004.seconds().subsec_nanoseconds(), 400);
+        assert_eq!((-1.0000004).seconds().subsec_nanoseconds(), -400);
     }
 
     #[test]
@@ -1620,9 +1561,9 @@ mod test {
 
     #[test]
     fn neg() {
-        assert_eq!(-(1.seconds()), Duration::seconds(-1));
-        assert_eq!(-(-1).seconds(), Duration::second());
-        assert_eq!(-(0.seconds()), Duration::zero());
+        assert_eq!(-(1.seconds()), (-1).seconds());
+        assert_eq!(-(-1).seconds(), 1.seconds());
+        assert_eq!(-(0.seconds()), 0.seconds());
     }
 
     #[test]

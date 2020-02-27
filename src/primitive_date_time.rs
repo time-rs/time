@@ -105,7 +105,7 @@ impl PrimitiveDateTime {
     )]
     #[allow(deprecated)]
     pub fn from_unix_timestamp(timestamp: i64) -> Self {
-        Self::unix_epoch() + Duration::seconds(timestamp)
+        Self::unix_epoch() + timestamp.seconds()
     }
 
     /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time)
@@ -539,11 +539,11 @@ impl Add<Duration> for PrimitiveDateTime {
             + (duration.whole_nanoseconds() % 86_400_000_000_000) as i64;
 
         let date_modifier = if nanos < 0 {
-            -Duration::day()
+            (-1).days()
         } else if nanos >= 86_400_000_000_000 {
-            Duration::day()
+            1.days()
         } else {
-            Duration::zero()
+            0.days()
         };
 
         Self::new(self.date + duration + date_modifier, self.time + duration)
@@ -560,9 +560,9 @@ impl Add<StdDuration> for PrimitiveDateTime {
             + (duration.as_nanos() % 86_400_000_000_000) as u64;
 
         let date_modifier = if nanos >= 86_400_000_000_000 {
-            Duration::day()
+            1.days()
         } else {
-            Duration::zero()
+            0.days()
         };
 
         Self::new(self.date + duration + date_modifier, self.time + duration)
@@ -601,11 +601,7 @@ impl Sub<StdDuration> for PrimitiveDateTime {
         let nanos = self.time.nanoseconds_since_midnight() as i64
             - (duration.as_nanos() % 86_400_000_000_000) as i64;
 
-        let date_modifier = if nanos < 0 {
-            -Duration::day()
-        } else {
-            Duration::zero()
-        };
+        let date_modifier = if nanos < 0 { (-1).days() } else { 0.days() };
 
         Self::new(self.date - duration + date_modifier, self.time - duration)
     }

@@ -545,8 +545,8 @@ mod test {
 
     #[test]
     fn as_duration() {
-        assert_eq!(offset!(+1).as_duration(), Duration::hours(1));
-        assert_eq!(offset!(-1).as_duration(), Duration::hours(-1));
+        assert_eq!(offset!(+1).as_duration(), 1.hours());
+        assert_eq!(offset!(-1).as_duration(), (-1).hours());
     }
 
     #[test]

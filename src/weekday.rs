@@ -1,5 +1,5 @@
-use core::fmt::{self, Display};
 use crate::internal_prelude::*;
+use core::fmt::{self, Display};
 
 /// Days of the week.
 ///
