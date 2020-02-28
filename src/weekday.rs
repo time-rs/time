@@ -6,9 +6,9 @@ use core::fmt::{self, Display};
 /// As order is dependent on context (Sunday could be either
 /// two days after or five days before Friday), this type does not implement
 /// `PartialOrd` or `Ord`.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
-    feature = "serde",
+    serde,
     serde(try_from = "crate::serde::Weekday", into = "crate::serde::Weekday")
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

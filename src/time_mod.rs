@@ -21,11 +21,8 @@ pub(crate) const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
 ///
 /// When comparing two `Time`s, they are assumed to be in the same calendar
 /// date.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(from = "crate::serde::Time", into = "crate::serde::Time")
-)]
+#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(serde, serde(from = "crate::serde::Time", into = "crate::serde::Time"))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Time {
     #[allow(clippy::missing_docs_in_private_items)]
@@ -78,8 +75,8 @@ impl Time {
     /// Time::from_hms(0, 0, 60); // 60 isn't a valid second.
     /// ```
     #[inline(always)]
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+    #[cfg(panicking_api)]
+    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
@@ -159,8 +156,8 @@ impl Time {
     /// Time::from_hms_milli(0, 0, 0, 1_000); // 1_000 isn't a valid millisecond.
     /// ```
     #[inline(always)]
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+    #[cfg(panicking_api)]
+    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
@@ -248,8 +245,8 @@ impl Time {
     /// Time::from_hms_micro(0, 0, 0, 1_000_000); // 1_000_000 isn't a valid microsecond.
     /// ```
     #[inline(always)]
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+    #[cfg(panicking_api)]
+    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
@@ -336,8 +333,8 @@ impl Time {
     /// Time::from_hms_nano(0, 0, 0, 1_000_000_000); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
     #[inline(always)]
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+    #[cfg(panicking_api)]
+    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
@@ -398,8 +395,8 @@ impl Time {
     /// println!("{:?}", Time::now());
     /// ```
     #[inline(always)]
-    #[cfg(feature = "std")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
+    #[cfg(std)]
+    #[cfg_attr(docs, doc(cfg(feature = "std")))]
     #[deprecated(
         since = "0.2.7",
         note = "This method returns a value that assumes an offset of UTC."
@@ -868,7 +865,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "panicking-api")]
+    #[cfg(panicking_api)]
     #[allow(deprecated)]
     fn from_hms() {
         let time = Time::from_hms(1, 2, 3);
@@ -877,7 +874,7 @@ mod test {
         assert_eq!(time.second(), 3);
         assert_eq!(time.nanosecond(), 0);
 
-        #[cfg(feature = "std")]
+        #[cfg(std)]
         {
             assert_panics!(Time::from_hms(24, 0, 0), "24 isn't a valid hour");
             assert_panics!(Time::from_hms(0, 60, 0), "60 isn't a valid minute");
@@ -901,7 +898,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "panicking-api")]
+    #[cfg(panicking_api)]
     #[allow(deprecated)]
     fn from_hms_milli() {
         let time = Time::from_hms_milli(1, 2, 3, 4);
@@ -911,7 +908,7 @@ mod test {
         assert_eq!(time.millisecond(), 4);
         assert_eq!(time.nanosecond(), 4_000_000);
 
-        #[cfg(feature = "std")]
+        #[cfg(std)]
         {
             assert_panics!(Time::from_hms_milli(24, 0, 0, 0), "24 isn't a valid hour");
             assert_panics!(Time::from_hms_milli(0, 60, 0, 0), "60 isn't a valid minute");
@@ -941,7 +938,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "panicking-api")]
+    #[cfg(panicking_api)]
     #[allow(deprecated)]
     fn from_hms_micro() {
         let time = Time::from_hms_micro(1, 2, 3, 4);
@@ -951,7 +948,7 @@ mod test {
         assert_eq!(time.microsecond(), 4);
         assert_eq!(time.nanosecond(), 4_000);
 
-        #[cfg(feature = "std")]
+        #[cfg(std)]
         {
             assert_panics!(Time::from_hms_micro(24, 0, 0, 0), "24 isn't a valid hour");
             assert_panics!(Time::from_hms_micro(0, 60, 0, 0), "60 isn't a valid minute");
@@ -981,7 +978,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "panicking-api")]
+    #[cfg(panicking_api)]
     #[allow(deprecated)]
     fn from_hms_nano() {
         let time = Time::from_hms_nano(1, 2, 3, 4);
@@ -990,7 +987,7 @@ mod test {
         assert_eq!(time.second(), 3);
         assert_eq!(time.nanosecond(), 4);
 
-        #[cfg(feature = "std")]
+        #[cfg(std)]
         {
             assert_panics!(Time::from_hms_nano(24, 0, 0, 0), "24 isn't a valid hour.");
             assert_panics!(Time::from_hms_nano(0, 60, 0, 0), "60 isn't a valid minute.");

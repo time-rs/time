@@ -9,9 +9,9 @@ use Sign::{Negative, Positive, Zero};
 /// types. `Sign`s can also be multiplied and divided by another `Sign`, which
 /// follows the same rules as real numbers.
 #[repr(i8)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
-    feature = "serde",
+    serde,
     serde(try_from = "crate::serde::Sign", into = "crate::serde::Sign")
 )]
 #[deprecated(

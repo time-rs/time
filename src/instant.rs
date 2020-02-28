@@ -27,7 +27,7 @@ use std::time::Instant as StdInstant;
 ///
 /// This implementation allows for operations with signed [`Duration`]s, but is
 /// otherwise identical to [`std::time::Instant`].
-#[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
+#[cfg_attr(docs, doc(cfg(feature = "std")))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Instant {
     /// Inner representation, using `std::time::Instant`.
@@ -117,7 +117,7 @@ impl Instant {
 #[allow(clippy::missing_docs_in_private_items)]
 impl Instant {
     #[inline(always)]
-    #[cfg(feature = "deprecated")]
+    #[cfg(v01_deprecated)]
     #[cfg_attr(tarpaulin, skip)]
     #[deprecated(since = "0.2.0", note = "Use `rhs - lhs`")]
     pub fn to(&self, later: Self) -> Duration {

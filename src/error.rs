@@ -31,7 +31,7 @@ impl fmt::Display for Error {
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(std)]
 impl std::error::Error for Error {
     #[inline(always)]
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
@@ -71,7 +71,7 @@ impl fmt::Display for ConversionRangeError {
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(std)]
 impl std::error::Error for ConversionRangeError {}
 
 impl From<ConversionRangeError> for Error {
@@ -132,7 +132,7 @@ impl From<ComponentRangeError> for Error {
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(std)]
 impl std::error::Error for ComponentRangeError {}
 
 impl From<ParseError> for Error {

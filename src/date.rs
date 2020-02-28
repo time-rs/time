@@ -92,9 +92,9 @@ pub(crate) const MAX_YEAR: i32 = 100_000;
 /// that can change at any time without notice. If you need support outside this
 /// range, please [file an issue](https://github.com/time-rs/time/issues/new)
 /// with your use case.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
-    feature = "serde",
+    serde,
     serde(try_from = "crate::serde::Date", into = "crate::serde::Date")
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -124,8 +124,8 @@ impl Date {
     /// Date::from_ymd(2019, 2, 29); // 2019 isn't a leap year.
     /// ```
     #[inline]
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+    #[cfg(panicking_api)]
+    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
@@ -177,8 +177,8 @@ impl Date {
     /// Date::from_yo(2019, 366); // 2019 isn't a leap year.
     /// ```
     #[inline(always)]
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+    #[cfg(panicking_api)]
+    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
@@ -236,8 +236,8 @@ impl Date {
     /// Date::from_iso_ywd(2019, 53, Monday); // 2019 doesn't have 53 weeks.
     /// ```
     #[inline]
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+    #[cfg(panicking_api)]
+    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
@@ -282,8 +282,8 @@ impl Date {
     /// assert!(Date::today().year() >= 2019);
     /// ```
     #[inline(always)]
-    #[cfg(feature = "std")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
+    #[cfg(std)]
+    #[cfg_attr(docs, doc(cfg(feature = "std")))]
     #[deprecated(
         since = "0.2.7",
         note = "This method returns a value that assumes an offset of UTC."
@@ -715,8 +715,8 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+    #[cfg(panicking_api)]
+    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.3",
@@ -759,8 +759,8 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+    #[cfg(panicking_api)]
+    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.3",
@@ -811,8 +811,8 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+    #[cfg(panicking_api)]
+    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.3",
@@ -868,8 +868,8 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+    #[cfg(panicking_api)]
+    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.3",
@@ -2088,7 +2088,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "panicking-api")]
+    #[cfg(panicking_api)]
     #[allow(deprecated)]
     fn with_hms() {
         assert_eq!(
@@ -2107,7 +2107,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "panicking-api")]
+    #[cfg(panicking_api)]
     #[allow(deprecated)]
     fn with_hms_milli() {
         assert_eq!(
@@ -2126,7 +2126,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "panicking-api")]
+    #[cfg(panicking_api)]
     #[allow(deprecated)]
     fn with_hms_micro() {
         assert_eq!(
@@ -2145,7 +2145,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "panicking-api")]
+    #[cfg(panicking_api)]
     #[allow(deprecated)]
     fn with_hms_nano() {
         assert_eq!(

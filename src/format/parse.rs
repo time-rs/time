@@ -98,7 +98,7 @@ impl Display for ParseError {
     }
 }
 
-#[cfg(feature = "std")]
+#[cfg(std)]
 impl std::error::Error for ParseError {}
 
 /// A value representing a time that is either "AM" or "PM".

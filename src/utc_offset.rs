@@ -12,9 +12,9 @@ use stdweb::js;
 /// may have incidental support that can change at any time without notice. If
 /// you need support outside this range, please file an issue with your use
 /// case.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
-    feature = "serde",
+    serde,
     serde(from = "crate::serde::UtcOffset", into = "crate::serde::UtcOffset")
 )]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -208,7 +208,7 @@ impl UtcOffset {
     /// println!("{}", local_offset.format("%z"));
     /// ```
     #[inline(always)]
-    #[cfg(feature = "std")]
+    #[cfg(std)]
     pub fn local_offset_at(datetime: OffsetDateTime) -> Self {
         try_local_offset_at(datetime).unwrap_or(Self::UTC)
     }
@@ -222,7 +222,7 @@ impl UtcOffset {
     /// println!("{}", local_offset.format("%z"));
     /// ```
     #[inline(always)]
-    #[cfg(feature = "std")]
+    #[cfg(std)]
     pub fn current_local_offset() -> Self {
         OffsetDateTime::now_local().offset()
     }
@@ -287,7 +287,7 @@ impl Display for UtcOffset {
 
 /// Attempt to obtain the system's UTC offset. If the offset cannot be
 /// determined, `None` is returned.
-#[cfg(feature = "std")]
+#[cfg(std)]
 #[allow(clippy::too_many_lines)]
 fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     cfg_if::cfg_if! {

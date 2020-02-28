@@ -16,9 +16,9 @@ use core::{
 ///
 /// This implementation allows for negative durations, unlike
 /// [`core::time::Duration`].
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
-    feature = "serde",
+    serde,
     serde(from = "crate::serde::Duration", into = "crate::serde::Duration")
 )]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -250,7 +250,7 @@ impl Duration {
     // This doesn't actually require the standard library, but is currently only
     // used when it's enabled.
     #[inline(always)]
-    #[cfg(feature = "std")]
+    #[cfg(std)]
     pub(crate) fn abs_std(self) -> StdDuration {
         StdDuration::new(self.seconds.abs() as u64, self.nanoseconds.abs() as u32)
     }
@@ -713,8 +713,8 @@ impl Duration {
     /// Runs a closure, returning the duration of time it took to run. The
     /// return value of the closure is provided in the second part of the tuple.
     #[inline(always)]
-    #[cfg(feature = "std")]
-    #[cfg_attr(feature = "__doc", doc(cfg(feature = "std")))]
+    #[cfg(std)]
+    #[cfg_attr(docs, doc(cfg(feature = "std")))]
     pub fn time_fn<T>(f: impl FnOnce() -> T) -> (Self, T) {
         let start = Instant::now();
         let return_value = f();
@@ -726,7 +726,7 @@ impl Duration {
 
 /// Functions that have been renamed or had signatures changed since v0.1. As
 /// such, they are deprecated.
-#[cfg(feature = "deprecated")]
+#[cfg(v01_deprecated)]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items, clippy::missing_const_for_fn)]
 impl Duration {
@@ -816,7 +816,7 @@ impl Duration {
     }
 
     #[inline(always)]
-    #[cfg(feature = "std")]
+    #[cfg(std)]
     #[deprecated(since = "0.2.0", note = "Use the `time_fn` function")]
     pub fn span<F: FnOnce()>(f: F) -> Self {
         Self::time_fn(f).0
@@ -1483,7 +1483,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(feature = "std")]
+    #[cfg(std)]
     fn time_fn() {
         let (time, value) = Duration::time_fn(|| {
             std::thread::sleep(100.std_milliseconds());
@@ -1626,7 +1626,7 @@ mod test {
         duration -= 500.milliseconds();
         assert_eq!(duration, 1.seconds());
 
-        #[cfg(feature = "std")]
+        #[cfg(std)]
         {
             let mut duration = 1.std_seconds();
             assert_panics!(duration -= 2.seconds());

@@ -139,8 +139,8 @@
 //! | `_` (underscore) | Pad with spaces | `%_d` => ` 5` |
 //! | `0`              | Pad with zeros  | `%0d` => `05` |
 
-#![cfg_attr(feature = "__doc", feature(doc_cfg))]
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(docs, feature(doc_cfg))]
+#![cfg_attr(no_std, no_std)]
 #![deny(
     unsafe_code, // Used when interacting with system APIs
     anonymous_parameters,
@@ -194,31 +194,31 @@
 // Unfortunately, this also means we can't have a `time` mod.
 extern crate self as time;
 
-#[cfg(feature = "__doc")]
+#[cfg(docs)]
 #[rustversion::not(nightly)]
 compile_error!("The `__doc` feature requires a nightly compiler, and is for internal usage only.");
 
 #[rustversion::before(1.34.0)]
 compile_error!("The time crate has a minimum supported rust version of 1.34.0.");
 
-#[cfg(not(feature = "std"))]
+#[cfg(no_std)]
 #[rustversion::before(1.36.0)]
 compile_error!(
     "Using the time crate without the standard library enabled requires a global allocator. This \
      was stabilized in Rust 1.36.0. You can either upgrade or enable the standard library."
 );
 
-#[cfg(feature = "panicking-api")]
-#[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+#[cfg(panicking_api)]
+#[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
 macro_rules! format_conditional {
     ($conditional:ident) => {
         format!(concat!(stringify!($conditional), "={}"), $conditional)
     };
 
     ($first_conditional:ident, $($conditional:ident),*) => {{
-        #[cfg(not(feature = "std"))]
+        #[cfg(no_std)]
         let mut s = alloc::string::String::new();
-        #[cfg(feature = "std")]
+        #[cfg(std)]
         let mut s = String::new();
         s.push_str(&format_conditional!($first_conditional));
         $(s.push_str(&format!(concat!(", ", stringify!($conditional), "={}"), $conditional));)*
@@ -227,8 +227,8 @@ macro_rules! format_conditional {
 }
 
 /// Panic if the value is not in range.
-#[cfg(feature = "panicking-api")]
-#[cfg_attr(feature = "__doc", doc(cfg(feature = "panicking-api")))]
+#[cfg(panicking_api)]
+#[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
 macro_rules! assert_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
         #[allow(unused_comparisons)]
@@ -294,7 +294,7 @@ macro_rules! ensure_value_in_range {
     };
 }
 
-#[cfg(all(test, feature = "std"))]
+#[cfg(all(test, std))]
 macro_rules! assert_panics {
     ($e:expr $(, $message:literal)?) => {
         #[allow(box_pointers)]
@@ -319,7 +319,7 @@ mod duration;
 mod error;
 mod format;
 /// The `Instant` struct and its associated `impl`s.
-#[cfg(feature = "std")]
+#[cfg(std)]
 mod instant;
 pub mod internals;
 /// A collection of traits extending built-in numerical types.
@@ -328,9 +328,9 @@ mod numerical_traits;
 mod offset_date_time;
 /// The `PrimitiveDateTime` struct and its associated `impl`s.
 mod primitive_date_time;
-#[cfg(feature = "rand")]
+#[cfg(rand)]
 mod rand;
-#[cfg(feature = "serde")]
+#[cfg(serde)]
 #[allow(missing_copy_implementations, missing_debug_implementations)]
 mod serde;
 /// Shims to provide functionality on older versions of rustc.
@@ -350,7 +350,7 @@ pub use error::{ComponentRangeError, ConversionRangeError, Error};
 pub(crate) use format::DeferredFormat;
 use format::ParseResult;
 pub use format::{validate_format_string, ParseError};
-#[cfg(feature = "std")]
+#[cfg(std)]
 pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub use offset_date_time::OffsetDateTime;
@@ -457,10 +457,10 @@ pub mod prelude {
 mod internal_prelude {
     #![allow(unused_imports)]
 
-    #[cfg(not(feature = "std"))]
+    #[cfg(no_std)]
     extern crate alloc;
 
-    #[cfg(feature = "std")]
+    #[cfg(std)]
     pub(crate) use crate::Instant;
     pub(crate) use crate::{
         format::{ParseError, ParseResult},
@@ -470,7 +470,7 @@ mod internal_prelude {
         UtcOffset,
         Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
     };
-    #[cfg(not(feature = "std"))]
+    #[cfg(no_std)]
     pub(crate) use alloc::{
         borrow::ToOwned,
         boxed::Box,
@@ -531,19 +531,19 @@ pub fn parse<T: private::Parsable>(s: impl AsRef<str>, format: impl AsRef<str>) 
 // For some back-compatibility, we're also implementing some deprecated types
 // and methods. They will be removed completely in 0.3.
 
-#[cfg(all(feature = "std", feature = "deprecated"))]
+#[cfg(all(std, v01_deprecated))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type PreciseTime = Instant;
 
-#[cfg(all(feature = "std", feature = "deprecated"))]
+#[cfg(all(std, v01_deprecated))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type SteadyTime = Instant;
 
-#[cfg(all(feature = "std", feature = "deprecated"))]
+#[cfg(all(std, v01_deprecated))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
@@ -563,7 +563,7 @@ pub fn precise_time_ns() -> u64 {
         .expect("This function will be removed long before this is an issue.")
 }
 
-#[cfg(all(feature = "std", feature = "deprecated"))]
+#[cfg(all(std, v01_deprecated))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
