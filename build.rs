@@ -30,7 +30,7 @@ fn non_exhaustive() {}
 
 fn main() {
     cargo_web();
-    features(&vec![
+    features(&[
         ("STD", "std"),
         ("DEPRECATED", "v01_deprecated_api"),
         ("PANICKING_API", "panicking_api"),
