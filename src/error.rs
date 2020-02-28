@@ -32,7 +32,16 @@ impl fmt::Display for Error {
 }
 
 #[cfg(feature = "std")]
-impl std::error::Error for Error {}
+impl std::error::Error for Error {
+    #[inline(always)]
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Error::ConversionRange(err) => Some(err),
+            Error::ComponentRange(box_err) => Some(box_err.as_ref()),
+            Error::Parse(err) => Some(err),
+        }
+    }
+}
 
 /// An error type indicating that a conversion failed because the target type
 /// could not store the initial value.

@@ -9,7 +9,11 @@ Versioning].
 
 ## Unreleased
 
-Nothing so far.
+### Added
+
+- `cargo_web` support has been added for getting a local offset. A general
+  catch-all defaulting to UTC has also been added.
+- `Error::source` has been implemened for the wrapper `time::Error`.
 
 ## 0.2.7 [2020-02-22]
 
