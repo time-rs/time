@@ -8,16 +8,15 @@ use core::fmt;
 // Boxing the `ComponentRangeError` reduces the size of `Error` from 72 bytes to
 // 16.
 #[allow(clippy::missing_docs_in_private_items)] // variants only
-#[rustversion::attr(since(1.40), non_exhaustive)]
-#[rustversion::attr(
-    before(1.40),
-    doc("This enum is non-exhaustive. Additional variants may be added at any time.")
-)]
+#[cfg_attr(supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     ConversionRange(ConversionRangeError),
     ComponentRange(Box<ComponentRangeError>),
     Parse(ParseError),
+    #[cfg(not(supports_non_exhaustive))]
+    #[doc(hidden)]
+    __NonExhaustive,
 }
 
 impl fmt::Display for Error {
@@ -27,6 +26,8 @@ impl fmt::Display for Error {
             Error::ConversionRange(e) => e.fmt(f),
             Error::ComponentRange(e) => e.fmt(f),
             Error::Parse(e) => e.fmt(f),
+            #[cfg(not(supports_non_exhaustive))]
+            Error::__NonExhaustive => unreachable!(),
         }
     }
 }
@@ -39,6 +40,8 @@ impl std::error::Error for Error {
             Error::ConversionRange(err) => Some(err),
             Error::ComponentRange(box_err) => Some(box_err.as_ref()),
             Error::Parse(err) => Some(err),
+            #[cfg(not(supports_non_exhaustive))]
+            Error::__NonExhaustive => unreachable!(),
         }
     }
 }
@@ -46,11 +49,6 @@ impl std::error::Error for Error {
 /// An error type indicating that a conversion failed because the target type
 /// could not store the initial value.
 #[allow(clippy::missing_docs_in_private_items)]
-#[rustversion::attr(since(1.40), non_exhaustive)]
-#[rustversion::attr(
-    before(1.40),
-    doc("This struct is non-exhaustive. Additional variants may be added at any time.")
-)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ConversionRangeError {
     #[allow(clippy::missing_docs_in_private_items)]
@@ -85,11 +83,6 @@ impl From<ConversionRangeError> for Error {
 /// range, causing a failure.
 // i64 is the narrowest type fitting all use cases. This eliminates the need
 // for a type parameter.
-#[rustversion::attr(since(1.40), non_exhaustive)]
-#[rustversion::attr(
-    before(1.40),
-    doc("This struct is non-exhaustive. Additional fields may be added at any time.")
-)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ComponentRangeError {
     /// Name of the component.

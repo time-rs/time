@@ -20,6 +20,14 @@ fn no_std() {
     }
 }
 
+#[rustversion::since(1.40.0)]
+fn non_exhaustive() {
+    println!("cargo:rustc-cfg=supports_non_exhaustive");
+}
+
+#[rustversion::before(1.40.0)]
+fn non_exhaustive() {}
+
 fn main() {
     cargo_web();
     features(&vec![
@@ -31,4 +39,5 @@ fn main() {
         ("__DOC", "docs"),
     ]);
     no_std();
+    non_exhaustive();
 }

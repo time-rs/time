@@ -13,7 +13,11 @@ Versioning].
 
 - `cargo_web` support has been added for getting a local offset. A general
   catch-all defaulting to UTC has also been added.
-- `Error::source` has been implemened for the wrapper `time::Error`.
+- `Error::source` has been implemened for the wrapper `time::Error`.#
+
+### Changed
+
+- `#[non_exhaustive]` is simulated on compilers prior to 1.40.0.
 
 ## 0.2.7 [2020-02-22]
 

@@ -13,11 +13,7 @@ use core::{
 pub(crate) type ParseResult<T> = Result<T, ParseError>;
 
 /// An error occurred while parsing.
-#[rustversion::attr(since(1.40), non_exhaustive)]
-#[rustversion::attr(
-    before(1.40),
-    doc("This enum is non-exhaustive. Additional variants may be added at any time.")
-)]
+#[cfg_attr(supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ParseError {
     /// The second present was not valid.
@@ -59,6 +55,9 @@ pub enum ParseError {
     InsufficientInformation,
     /// A component was out of range.
     ComponentOutOfRange(Box<ComponentRangeError>),
+    #[cfg(not(supports_non_exhaustive))]
+    #[doc(hidden)]
+    __NonExhaustive,
 }
 
 impl From<ComponentRangeError> for ParseError {
@@ -94,6 +93,8 @@ impl Display for ParseError {
                 f.write_str("insufficient information provided to create the requested type")
             }
             ComponentOutOfRange(e) => write!(f, "{}", e),
+            #[cfg(not(supports_non_exhaustive))]
+            __NonExhaustive => unreachable!(),
         }
     }
 }

@@ -44,3 +44,6 @@ winapi = { version = "0.3", features = ["minwinbase", "minwindef", "timezoneapi"
 
 [target.'cfg(cargo_web)'.dependencies]
 stdweb = { version = "0.4", default-features = false, optional = true }
+
+[build-dependencies]
+rustversion = "1"
