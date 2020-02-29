@@ -14,6 +14,7 @@ pub enum Error {
     ConversionRange(ConversionRangeError),
     ComponentRange(Box<ComponentRangeError>),
     Parse(ParseError),
+    IndeterminateOffset(IndeterminateOffsetError),
     #[cfg(not(supports_non_exhaustive))]
     #[doc(hidden)]
     __NonExhaustive,
@@ -26,6 +27,7 @@ impl fmt::Display for Error {
             Error::ConversionRange(e) => e.fmt(f),
             Error::ComponentRange(e) => e.fmt(f),
             Error::Parse(e) => e.fmt(f),
+            Error::IndeterminateOffset(e) => e.fmt(f),
             #[cfg(not(supports_non_exhaustive))]
             Error::__NonExhaustive => unreachable!(),
         }
@@ -40,6 +42,7 @@ impl std::error::Error for Error {
             Error::ConversionRange(err) => Some(err),
             Error::ComponentRange(box_err) => Some(box_err.as_ref()),
             Error::Parse(err) => Some(err),
+            Error::IndeterminateOffset(err) => Some(err),
             #[cfg(not(supports_non_exhaustive))]
             Error::__NonExhaustive => unreachable!(),
         }
@@ -48,17 +51,18 @@ impl std::error::Error for Error {
 
 /// An error type indicating that a conversion failed because the target type
 /// could not store the initial value.
-#[allow(clippy::missing_docs_in_private_items)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ConversionRangeError {
     #[allow(clippy::missing_docs_in_private_items)]
-    nonexhaustive: (),
+    __non_exhaustive: (),
 }
 
 impl ConversionRangeError {
     #[allow(clippy::missing_docs_in_private_items)]
     pub(crate) const fn new() -> Self {
-        Self { nonexhaustive: () }
+        Self {
+            __non_exhaustive: (),
+        }
     }
 }
 
@@ -132,5 +136,38 @@ impl From<ParseError> for Error {
     #[inline(always)]
     fn from(original: ParseError) -> Self {
         Error::Parse(original)
+    }
+}
+
+/// The system's UTC offset could not be determined at the given datetime.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct IndeterminateOffsetError {
+    #[allow(clippy::missing_docs_in_private_items)]
+    __non_exhaustive: (),
+}
+
+impl IndeterminateOffsetError {
+    #[allow(clippy::missing_docs_in_private_items, dead_code)]
+    pub(crate) const fn new() -> Self {
+        Self {
+            __non_exhaustive: (),
+        }
+    }
+}
+
+impl fmt::Display for IndeterminateOffsetError {
+    #[inline(always)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("The system's UTC offset could not be determined")
+    }
+}
+
+#[cfg(std)]
+impl std::error::Error for IndeterminateOffsetError {}
+
+impl From<IndeterminateOffsetError> for Error {
+    #[inline(always)]
+    fn from(original: IndeterminateOffsetError) -> Self {
+        Error::IndeterminateOffset(original)
     }
 }

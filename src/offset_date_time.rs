@@ -67,6 +67,22 @@ impl OffsetDateTime {
         t.to_offset(UtcOffset::local_offset_at(t))
     }
 
+    /// Attempt to create a new `OffsetDateTime` with the current date and time
+    /// in the local offset. If the offset cannot be determined, an error is
+    /// returned.
+    ///
+    /// ```rust,no_run
+    /// # use time::{OffsetDateTime, offset};
+    /// assert!(OffsetDateTime::try_now_local().is_ok());
+    /// ```
+    #[inline]
+    #[cfg(std)]
+    #[cfg_attr(docs, doc(cfg(feature = "std")))]
+    pub fn try_now_local() -> Result<Self, IndeterminateOffsetError> {
+        let t = Self::now();
+        Ok(t.to_offset(UtcOffset::try_local_offset_at(t)?))
+    }
+
     /// Convert the `OffsetDateTime` from the current `UtcOffset` to the
     /// provided `UtcOffset`.
     ///

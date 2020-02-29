@@ -213,6 +213,21 @@ impl UtcOffset {
         try_local_offset_at(datetime).unwrap_or(Self::UTC)
     }
 
+    /// Attempt to obtain the system's UTC offset at a known moment in time. If
+    /// the offset cannot be determined, an error is returned.
+    ///
+    /// ```rust,no_run
+    /// # use time::{UtcOffset, OffsetDateTime};
+    /// let unix_epoch = OffsetDateTime::unix_epoch();
+    /// let local_offset = UtcOffset::try_local_offset_at(unix_epoch);
+    /// assert!(local_offset.is_ok());
+    /// ```
+    #[inline(always)]
+    #[cfg(std)]
+    pub fn try_local_offset_at(datetime: OffsetDateTime) -> Result<Self, IndeterminateOffsetError> {
+        try_local_offset_at(datetime).ok_or_else(IndeterminateOffsetError::new)
+    }
+
     /// Obtain the system's current UTC offset. If the offset cannot be
     /// determined, UTC is returned.
     ///
@@ -224,7 +239,23 @@ impl UtcOffset {
     #[inline(always)]
     #[cfg(std)]
     pub fn current_local_offset() -> Self {
-        OffsetDateTime::now_local().offset()
+        let now = OffsetDateTime::now();
+        try_local_offset_at(now).unwrap_or(Self::UTC)
+    }
+
+    /// Attempt to obtain the system's current UTC offset. If the offset cannot
+    /// be determined, an error is returned.
+    ///
+    /// ```rust,no_run
+    /// # use time::UtcOffset;
+    /// let local_offset = UtcOffset::try_current_local_offset();
+    /// assert!(local_offset.is_ok());
+    /// ```
+    #[inline(always)]
+    #[cfg(std)]
+    pub fn try_current_local_offset() -> Result<Self, IndeterminateOffsetError> {
+        let now = OffsetDateTime::now();
+        try_local_offset_at(now).ok_or_else(IndeterminateOffsetError::new)
     }
 }
 

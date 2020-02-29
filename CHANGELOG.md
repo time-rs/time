@@ -13,7 +13,11 @@ Versioning].
 
 - `cargo_web` support has been added for getting a local offset. A general
   catch-all defaulting to UTC has also been added.
-- `Error::source` has been implemened for the wrapper `time::Error`.#
+- `Error::source` has been implemented for the wrapper `time::Error`.
+- `UtcOffset::try_local_offset`, `UtcOffset::try_current_local_offset`,
+  `OffsetDateTime::try_now_local()` provide fallible alternatives when the
+  default of UTC is not desired. To facilitate this change,
+  `IndeterminateOffsetError` has been added.
 
 ### Changed
 
