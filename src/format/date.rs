@@ -364,11 +364,13 @@ pub(crate) fn fmt_Y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 /// Full year
 #[inline(always)]
 pub(crate) fn parse_Y(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    let sign = try_consume_first_match(s, [("+", 1), ("-", -1)].iter().cloned()).unwrap_or(1);
+    let (sign, max_digits) =
+        try_consume_first_match(s, [("+", (1, 6)), ("-", (-1, 6))].iter().cloned())
+            .unwrap_or((1, 4));
 
     consume_padding(s, padding.default_to(Padding::Zero), 3);
 
-    items.year = try_consume_digits_in_range(s, 1..=6, -100_000..=100_000)
+    items.year = try_consume_digits_in_range(s, 1..=max_digits, -100_000..=100_000)
         .map(|v: i32| sign * v)
         .ok_or(ParseError::InvalidYear)?
         .into();
