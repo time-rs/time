@@ -365,10 +365,8 @@ pub(crate) fn fmt_Y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 #[inline(always)]
 pub(crate) fn parse_Y(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     let (sign, digits) =
-        try_consume_first_match(s, [("+", (1, 6)), ("-", (-1, 6))]
-        .iter()
-        .cloned())
-        .unwrap_or((1, 4));
+        try_consume_first_match(s, [("+", (1, 6)), ("-", (-1, 6))].iter().cloned())
+            .unwrap_or((1, 4));
 
     consume_padding(s, padding.default_to(Padding::Zero), 3);
 
