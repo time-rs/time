@@ -323,7 +323,8 @@ impl Display for UtcOffset {
 fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     cfg_if::cfg_if! {
         if #[cfg(target_family = "unix")] {
-            use core::{convert::TryInto, mem};
+            use core::convert::TryInto;
+            use maybe_uninit::MaybeUninit;
 
             /// Convert the given Unix timestamp to a `libc::tm`. Returns `None`
             /// on any error.
@@ -335,27 +336,31 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                 let timestamp = timestamp.try_into().ok()?;
 
                 // Safety: Plain old data.
-                #[allow(unsafe_code)]
-                    let mut tm = unsafe { mem::zeroed() };
+                let mut tm = MaybeUninit::zeroed();
 
                 // Update timezone information from system. `localtime_r` does
                 // not do this for us.
                 //
                 // Safety: tzset is thread-safe.
                 #[allow(unsafe_code)]
-                    unsafe {
+                unsafe {
                     tzset();
                 }
 
                 // Safety: We are calling a system API, which mutates the `tm`
                 // variable. If a null pointer is returned, an error occurred.
                 #[allow(unsafe_code)]
-                    let tm_ptr = unsafe { libc::localtime_r(&timestamp, &mut tm) };
+                let tm_ptr = unsafe { libc::localtime_r(&timestamp, tm.as_mut_ptr()) };
 
                 if tm_ptr.is_null() {
                     None
                 } else {
-                    Some(tm)
+                    // Safety: The value was initialized, as we no longer have a
+                    // null pointer.
+                    #[allow(unsafe_code)]
+                    {
+                        Some(unsafe { tm.assume_init() })
+                    }
                 }
             }
 
@@ -363,41 +368,42 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
             // `tm_gmtoff` extension
             #[cfg(not(target_os = "solaris"))]
-                {
-                    tm.tm_gmtoff.try_into().ok().map(UtcOffset::seconds)
-                }
+            {
+                tm.tm_gmtoff.try_into().ok().map(UtcOffset::seconds)
+            }
 
             // No `tm_gmtoff` extension
             #[cfg(target_os = "solaris")]
-                {
-                    use crate::Date;
-                    use core::convert::TryFrom;
+            {
+                use crate::Date;
+                use core::convert::TryFrom;
 
-                    let mut tm = tm;
-                    if tm.tm_sec == 60 {
-                        // Leap seconds are not currently supported.
-                        tm.tm_sec = 59;
-                    }
-
-                    let local_timestamp =
-                        Date::try_from_yo(1900 + tm.tm_year, u16::try_from(tm.tm_yday).ok()? + 1)
-                            .ok()?
-                            .try_with_hms(
-                                tm.tm_hour.try_into().ok()?,
-                                tm.tm_min.try_into().ok()?,
-                                tm.tm_sec.try_into().ok()?,
-                            )
-                            .ok()?
-                            .assume_utc()
-                            .timestamp();
-
-                    (local_timestamp - datetime.timestamp())
-                        .try_into()
-                        .ok()
-                        .map(UtcOffset::seconds)
+                let mut tm = tm;
+                if tm.tm_sec == 60 {
+                    // Leap seconds are not currently supported.
+                    tm.tm_sec = 59;
                 }
+
+                let local_timestamp =
+                    Date::try_from_yo(1900 + tm.tm_year, u16::try_from(tm.tm_yday).ok()? + 1)
+                        .ok()?
+                        .try_with_hms(
+                            tm.tm_hour.try_into().ok()?,
+                            tm.tm_min.try_into().ok()?,
+                            tm.tm_sec.try_into().ok()?,
+                        )
+                        .ok()?
+                        .assume_utc()
+                        .timestamp();
+
+                (local_timestamp - datetime.timestamp())
+                    .try_into()
+                    .ok()
+                    .map(UtcOffset::seconds)
+            }
         } else if #[cfg(target_family = "windows")] {
-            use core::{convert::TryInto, mem};
+            use core::convert::TryInto;
+            use maybe_uninit::MaybeUninit;
             use crate::offset;
             use winapi::{
                 shared::minwindef::FILETIME,
@@ -410,20 +416,19 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             /// Convert a `SYSTEMTIME` to a `FILETIME`. Returns `None` if any
             /// error occurred.
             fn systemtime_to_filetime(systime: &SYSTEMTIME) -> Option<FILETIME> {
-                // Safety: We only read `ft` if it is properly initialized.
-                #[allow(unsafe_code, deprecated)]
-                    let mut ft = unsafe { mem::uninitialized() };
+                let mut ft = MaybeUninit::uninit();
 
-                // Safety: `SystemTimeToFileTime` is thread-safe.
+                // Safety: `SystemTimeToFileTime` is thread-safe. We are only
+                // assuming initialization if the call succeeded.
                 #[allow(unsafe_code)]
-                    {
-                        if 0 == unsafe { SystemTimeToFileTime(systime, &mut ft) } {
-                            // failed
-                            None
-                        } else {
-                            Some(ft)
-                        }
+                {
+                    if 0 == unsafe { SystemTimeToFileTime(systime, ft.as_mut_ptr()) } {
+                        // failed
+                        None
+                    } else {
+                        Some(unsafe { ft.assume_init() })
                     }
+                }
             }
 
             /// Convert a `FILETIME` to an `i64`, representing a number of
@@ -456,18 +461,18 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             // Safety: `local_time` is only read if it is properly initialized, and
             // `SystemTimeToTzSpecificLocalTime` is thread-safe.
             #[allow(unsafe_code)]
-                let systime_local = unsafe {
-                #[allow(deprecated)]
-                    let mut local_time = mem::uninitialized();
+            let systime_local = unsafe {
+                let mut local_time = MaybeUninit::uninit();
+
                 if 0 == SystemTimeToTzSpecificLocalTime(
                     core::ptr::null(), // use system's current timezone
                     &systime_utc,
-                    &mut local_time,
+                    local_time.as_mut_ptr(),
                 ) {
                     // call failed
                     return None;
                 } else {
-                    local_time
+                    local_time.assume_init()
                 }
             };
 
