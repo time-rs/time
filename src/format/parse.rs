@@ -100,7 +100,14 @@ impl Display for ParseError {
 }
 
 #[cfg(std)]
-impl std::error::Error for ParseError {}
+impl std::error::Error for ParseError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            ParseError::ComponentOutOfRange(e) => Some(e.as_ref()),
+            _ => None,
+        }
+    }
+}
 
 /// A value representing a time that is either "AM" or "PM".
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
