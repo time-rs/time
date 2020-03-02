@@ -36,6 +36,8 @@
     clippy::use_self, // Not supported in some situations in older compilers.
 )]
 
+// This is required on rustc < 1.42.0.
+#[allow(unused_extern_crates)]
 extern crate proc_macro;
 
 macro_rules! error {

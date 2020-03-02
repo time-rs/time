@@ -335,7 +335,6 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
                 let timestamp = timestamp.try_into().ok()?;
 
-                // Safety: Plain old data.
                 let mut tm = MaybeUninit::zeroed();
 
                 // Update timezone information from system. `localtime_r` does
