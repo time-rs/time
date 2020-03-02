@@ -2177,6 +2177,9 @@ mod test {
             Ok(date!(2019-W01-3))
         );
         assert_eq!(Date::parse("20200201", "%Y%m%d"), Ok(date!(2020-02-01)));
+        assert_eq!(Date::parse("-1234-01-02", "%F"), Ok(date!(-1234-01-02)));
+        assert_eq!(Date::parse("-12345-01-02", "%F"), Ok(date!(-12345-01-02)));
+        assert!(Date::parse("-123456-01-02", "%F").is_err());
     }
 
     // See #221.

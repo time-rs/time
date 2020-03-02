@@ -370,7 +370,7 @@ pub(crate) fn parse_Y(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 
     consume_padding(s, padding.default_to(Padding::Zero), 3);
 
-    items.year = try_consume_digits_in_range(s, 1..=max_digits, -100_000..=100_000)
+    items.year = try_consume_digits_in_range(s, 1..=max_digits, 0..=100_000)
         .map(|v: i32| sign * v)
         .ok_or(ParseError::InvalidYear)?
         .into();
