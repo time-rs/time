@@ -19,7 +19,7 @@ all-features = true
 default = ["deprecated", "std"]
 deprecated = []
 panicking-api = []
-std = ["libc", "winapi", "stdweb", "maybe-uninit"]
+std = ["libc", "winapi", "stdweb", "standback/std"]
 
 # Internal usage. This is used when building for docs.rs and time-rs.github.io.
 # This feature should never be used by external users. It will likely be
@@ -31,8 +31,8 @@ cfg-if = "0.1"
 rand = { version = "0.7", optional = true, default-features = false }
 rustversion = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
+standback = { version = "0.2", default-features = false }
 time-macros = { version = "0.1", path = "time-macros" }
-maybe-uninit = { version = "2", optional = true }
 
 [workspace]
 members = ["time-macros", "time-macros-impl"]

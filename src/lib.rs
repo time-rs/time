@@ -173,6 +173,7 @@
     clippy::result_unwrap_used
 )]
 #![allow(
+    unstable_name_collisions,
     clippy::suspicious_arithmetic_impl,
     clippy::inline_always,
     clippy::cast_possible_wrap,
@@ -333,8 +334,6 @@ mod rand;
 #[cfg(serde)]
 #[allow(missing_copy_implementations, missing_debug_implementations)]
 mod serde;
-/// Shims to provide functionality on older versions of rustc.
-mod shim;
 /// The `Sign` struct and its associated `impl`s.
 mod sign;
 /// The `Time` struct and its associated `impl`s.
@@ -464,7 +463,6 @@ mod internal_prelude {
     pub(crate) use crate::Instant;
     pub(crate) use crate::{
         format::{ParseError, ParseResult},
-        shim::*,
         ComponentRangeError, ConversionRangeError, Date, DeferredFormat, Duration,
         IndeterminateOffsetError, NumericalDuration, NumericalStdDuration, OffsetDateTime,
         PrimitiveDateTime, Time, UtcOffset,
@@ -480,6 +478,7 @@ mod internal_prelude {
         vec::Vec,
     };
     pub(crate) use time_macros::{date, offset, time};
+    pub(crate) use standback::prelude::*;
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
@@ -573,10 +572,9 @@ pub fn precise_time_ns() -> u64 {
 )]
 #[inline]
 pub fn precise_time_s() -> f64 {
-    use shim::DurationShim;
     use std::time::SystemTime;
 
     (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))
         .expect("System clock was before 1970.")
-        .as_secs_f64_shim()
+        .as_secs_f64()
 }

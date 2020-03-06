@@ -1,4 +1,5 @@
 use crate::internal_prelude::*;
+use standback::prelude::*;
 use core::{
     cmp::Ordering::{self, Equal, Greater, Less},
     convert::{TryFrom, TryInto},
@@ -636,7 +637,7 @@ impl Duration {
 
         // Ensure that the signs match _unless_ one of them is zero.
         debug_assert_ne!(seconds.signum() * nanoseconds.signum() as i64, -1);
-        debug_assert!(range_contains(&(-999_999_999..1_000_000_000), &nanoseconds));
+        debug_assert!((-999_999_999..1_000_000_000).contains(&nanoseconds));
 
         Some(Self {
             seconds,
@@ -1136,7 +1137,7 @@ impl Div<StdDuration> for Duration {
 
     #[inline(always)]
     fn div(self, rhs: StdDuration) -> Self::Output {
-        self.as_seconds_f64() / rhs.as_secs_f64_shim()
+        self.as_seconds_f64() / rhs.as_secs_f64()
     }
 }
 
@@ -1145,7 +1146,7 @@ impl Div<Duration> for StdDuration {
 
     #[inline(always)]
     fn div(self, rhs: Duration) -> Self::Output {
-        self.as_secs_f64_shim() / rhs.as_seconds_f64()
+        self.as_secs_f64() / rhs.as_seconds_f64()
     }
 }
 

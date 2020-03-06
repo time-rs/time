@@ -272,7 +272,7 @@ pub(crate) fn try_consume_digits_in_range<T: FromStr + PartialOrd>(
     num_digits: impl RangeBounds<usize>,
     range: impl RangeBounds<T>,
 ) -> Option<T> {
-    try_consume_digits(s, num_digits).filter(|value| range_contains(&range, value))
+    try_consume_digits(s, num_digits).filter(|value| range.contains(value))
 }
 
 /// Attempt to consume an exact number of digits.
@@ -322,7 +322,7 @@ pub(crate) fn try_consume_exact_digits_in_range<T: FromStr + PartialOrd, U: Rang
     range: U,
     padding: Padding,
 ) -> Option<T> {
-    try_consume_exact_digits(s, num_digits, padding).filter(|value| range_contains(&range, value))
+    try_consume_exact_digits(s, num_digits, padding).filter(|value| range.contains(value))
 }
 
 /// Consume all leading padding up to the number of characters.

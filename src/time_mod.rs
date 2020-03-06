@@ -650,7 +650,7 @@ impl Add<Duration> for Time {
             self.nanoseconds_since_midnight()
                 + duration
                     .whole_nanoseconds()
-                    .rem_euclid_shim(NANOS_PER_DAY as i128) as u64,
+                    .rem_euclid(NANOS_PER_DAY as i128) as u64,
         )
     }
 }

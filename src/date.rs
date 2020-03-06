@@ -540,7 +540,7 @@ impl Date {
         match (day as i32 + (13 * (month as i32 + 1)) / 5 + adjusted_year + adjusted_year / 4
             - adjusted_year / 100
             + adjusted_year / 400)
-            .rem_euclid_shim(7)
+            .rem_euclid(7)
         {
             0 => Saturday,
             1 => Sunday,
@@ -660,10 +660,10 @@ impl Date {
 
         let f = julian_day + J + (((4 * julian_day + B) / 146_097) * 3) / 4 + C;
         let e = R * f + V;
-        let g = e.rem_euclid_shim(P) / R;
+        let g = e.rem_euclid(P) / R;
         let h = U * g + W;
-        let day = h.rem_euclid_shim(S) / U + 1;
-        let month = (h / S + M).rem_euclid_shim(N) + 1;
+        let day = h.rem_euclid(S) / U + 1;
+        let month = (h / S + M).rem_euclid(N) + 1;
         let year = (e / P) - Y + (N + M - month) / N;
 
         #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
