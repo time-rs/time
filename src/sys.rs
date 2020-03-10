@@ -875,9 +875,15 @@ mod inner {
         unsafe {
             let mut ft: FILETIME = mem::zeroed();
 
+            // Based on work from: https://github.com/rust-lang/rust/issues/67266
             //
-            // Hack taken from https://github.com/rust-lang/rust/issues/67266
+            // Code adapted from Rust itself:
             //
+            //     https://github.com/rust-lang/rust/blob/master/src/libstd/sys/windows/compat.rs
+            //
+            // We need one of the available functions in Windows that lets us
+            // get the current time. We only want to load the symbol once, because
+            // loading symbols is costly, and we also want to be thread-safe.
 
             use std::sync::atomic::{AtomicUsize, Ordering};
             use winapi::um::libloaderapi;
@@ -889,11 +895,11 @@ mod inner {
             #[cfg(feature = "has_const_fn")]
             static PTR: AtomicUsize = AtomicUsize::new(0);
 
-            // FIXME: not even sure if this atomic ordering stuff is needed.
-            // code adapted from https://github.com/rust-lang/rust/blob/master/src/libstd/sys/windows/compat.rs
-
             let addr = match PTR.load(Ordering::SeqCst) {
                 0 => {
+                    // Check if GetSystemTimePreciseAsFileTime is exported from Windows' kernel32,
+                    // and take its address if so. Otherwise, fallback to the older
+                    // GetSystemTimeAsFileTime function.
                     let module = b"kernel32\0".as_ptr() as *const i8;
                     let symbol = b"GetSystemTimePreciseAsFileTime\0".as_ptr() as *const i8;
                     let addr = {
@@ -906,9 +912,10 @@ mod inner {
                     PTR.store(addr, Ordering::SeqCst);
                     addr
                 }
-                addr => addr,
+                addr => addr, // We already looked up the symbol - just return the address
             };
 
+            // Call the function at `addr`:
             type PFNGSTAFT = unsafe extern "system" fn(LPFILETIME);
             mem::transmute::<usize, PFNGSTAFT>(addr)(&mut ft as LPFILETIME);
 
