@@ -1,11 +1,11 @@
 use crate::internal_prelude::*;
-use standback::prelude::*;
 use core::{
     cmp::Ordering::{self, Equal, Greater, Less},
     convert::{TryFrom, TryInto},
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     time::Duration as StdDuration,
 };
+use standback::prelude::*;
 
 /// A span of time with nanosecond precision.
 ///

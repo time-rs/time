@@ -5,7 +5,7 @@
 use crate::{
     format::{
         parse::{
-            try_consume_exact_digits_in_range, try_consume_first_match,
+            try_consume_exact_digits, try_consume_exact_digits_in_range, try_consume_first_match,
             AmPm::{AM, PM},
         },
         Padding, ParsedItems,
@@ -67,6 +67,20 @@ pub(crate) fn parse_M(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
         try_consume_exact_digits_in_range(s, 2, 0..60, padding.default_to(Padding::Zero))
             .ok_or(ParseError::InvalidMinute)?
             .into();
+    Ok(())
+}
+
+/// Subsecond nanoseconds. Always 9 digits
+pub(crate) fn fmt_N(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
+    write!(f, "{:09}", time.nanosecond)
+}
+
+/// Subsecond nanoseconds. Always 9 digits
+#[inline(always)]
+pub(crate) fn parse_N(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
+    items.nanosecond = try_consume_exact_digits::<u32>(s, 9, Padding::None)
+        .ok_or(ParseError::InvalidNanosecond)?
+        .into();
     Ok(())
 }
 

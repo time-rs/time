@@ -70,6 +70,7 @@ pub(crate) fn try_parse_fmt_string<'a>(s: &'a str) -> Result<Vec<FormatItem<'a>>
                 Some((i, 'j')) => push_specifier!(i, Specifier::j { padding }),
                 Some((i, 'm')) => push_specifier!(i, Specifier::m { padding }),
                 Some((i, 'M')) => push_specifier!(i, Specifier::M { padding }),
+                Some((i, 'N')) => push_specifier!(i, Specifier::N),
                 Some((i, 'p')) => push_specifier!(i, Specifier::p),
                 Some((i, 'P')) => push_specifier!(i, Specifier::P),
                 Some((i, 'r')) => push_specifier!(i, Specifier::r),

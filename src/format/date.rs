@@ -158,12 +158,7 @@ pub(crate) fn parse_d(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 /// Week-based year, last two digits (`00`-`99`)
 #[inline(always)]
 pub(crate) fn fmt_g(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt::Result {
-    pad!(
-        f,
-        padding(Zero),
-        2,
-        date.iso_year_week().0.rem_euclid(100)
-    )
+    pad!(f, padding(Zero), 2, date.iso_year_week().0.rem_euclid(100))
 }
 
 /// Week-based year, last two digits (`00`-`99`)

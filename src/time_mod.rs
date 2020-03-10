@@ -583,6 +583,13 @@ impl Time {
         }
 
         match items {
+            items!(hour_24, minute, second, nanosecond) => {
+                Self::try_from_hms_nano(hour_24, minute, second, nanosecond).map_err(Into::into)
+            }
+            items!(hour_12, minute, second, nanosecond, am_pm) => {
+                Self::try_from_hms_nano(hour_12_to_24(hour_12, am_pm), minute, second, nanosecond)
+                    .map_err(Into::into)
+            }
             items!(hour_24, minute, second) => {
                 Self::try_from_hms(hour_24, minute, second).map_err(Into::into)
             }
@@ -1106,6 +1113,22 @@ mod test {
         assert_eq!(Time::parse("12:00:00 am", "%r"), Ok(time!(12:00 am)));
         assert_eq!(Time::parse("12:00:00 pm", "%r"), Ok(time!(12:00 pm)));
         assert_eq!(Time::parse("11:59:59 pm", "%r"), Ok(time!(11:59:59 pm)));
+        assert_eq!(
+            Time::parse("0:00:00.000000000", "%T.%N"),
+            Ok(time!(0:00:00.000_000_000))
+        );
+        assert_eq!(
+            Time::parse("23:59:59.999999999", "%T.%N"),
+            Ok(time!(23:59:59.999_999_999))
+        );
+        assert_eq!(
+            Time::parse("12:00:00.000000000 pm", "%-I:%M:%S.%N %p"),
+            Ok(time!(12:00:00.000_000_000 pm))
+        );
+        assert_eq!(
+            Time::parse("11:59:59.999999999 pm", "%-I:%M:%S.%N %p"),
+            Ok(time!(11:59:59.999_999_999 pm))
+        );
     }
 
     #[test]

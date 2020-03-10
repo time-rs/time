@@ -16,6 +16,8 @@ pub(crate) type ParseResult<T> = Result<T, ParseError>;
 #[cfg_attr(supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ParseError {
+    /// The nanosecond present was not valid.
+    InvalidNanosecond,
     /// The second present was not valid.
     InvalidSecond,
     /// The minute present was not valid.
@@ -72,6 +74,7 @@ impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         use ParseError::*;
         match self {
+            InvalidNanosecond => f.write_str("invalid nanosecond"),
             InvalidSecond => f.write_str("invalid second"),
             InvalidMinute => f.write_str("invalid minute"),
             InvalidHour => f.write_str("invalid hour"),
@@ -147,6 +150,8 @@ pub(crate) struct ParsedItems {
     pub(crate) minute: Option<u8>,
     /// Second within the minute.
     pub(crate) second: Option<u8>,
+    /// Nanosecond within the second.
+    pub(crate) nanosecond: Option<u32>,
     /// The UTC offset of the datetime.
     pub(crate) offset: Option<UtcOffset>,
     /// Whether the hour indicated is AM or PM.
@@ -171,6 +176,7 @@ impl ParsedItems {
             hour_24: None,
             minute: None,
             second: None,
+            nanosecond: None,
             offset: None,
             am_pm: None,
         }
@@ -422,6 +428,7 @@ pub(crate) fn parse(s: &str, format: &str) -> ParseResult<ParsedItems> {
                     j { padding } => parse!(date::parse_j(padding)),
                     M { padding } => parse!(time::parse_M(padding)),
                     m { padding } => parse!(date::parse_m(padding)),
+                    N => parse!(time::parse_N),
                     p => parse!(time::parse_p),
                     P => parse!(time::parse_P),
                     r => {

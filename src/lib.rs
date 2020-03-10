@@ -109,6 +109,7 @@
 //! | `%j`      | Day of the year (`001`-`366`)                                          | `235`                      |
 //! | `%m`      | Month as a decimal number (`01`-`12`)                                  | `08`                       |
 //! | `%M`      | Minute (`00`-`59`)                                                     | `55`                       |
+//! | `%N`      | Subsecond nanoseconds. Always 9 digits                                 | `012345678`                |
 //! | `%p`      | `am` or `pm` designation                                               | `pm`                       |
 //! | `%P`      | `AM` or `PM` designation                                               | `PM`                       |
 //! | `%r`      | 12-hour clock time, equivalent to `%-I:%M:%S %p`                       | `2:55:02 pm`               |
@@ -477,8 +478,8 @@ mod internal_prelude {
         vec,
         vec::Vec,
     };
-    pub(crate) use time_macros::{date, offset, time};
     pub(crate) use standback::prelude::*;
+    pub(crate) use time_macros::{date, offset, time};
 }
 
 #[allow(clippy::missing_docs_in_private_items)]

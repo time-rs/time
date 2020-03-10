@@ -102,6 +102,7 @@ pub(crate) enum Specifier {
     j { padding: Padding },
     m { padding: Padding },
     M { padding: Padding },
+    N,
     p,
     P,
     r,
@@ -195,6 +196,7 @@ fn format_specifier(
         j { padding } => specifier!(date::fmt_j(j, padding)),
         m { padding } => specifier!(date::fmt_m(m, padding)),
         M { padding } => specifier!(time::fmt_M(M, padding)),
+        N => specifier!(time::fmt_N(N)),
         p => specifier!(time::fmt_p(p)),
         P => specifier!(time::fmt_P(P)),
         r => {
