@@ -873,8 +873,39 @@ mod inner {
 
     pub fn get_time() -> (i64, i32) {
         unsafe {
-            let mut ft = mem::zeroed();
-            GetSystemTimeAsFileTime(&mut ft);
+            let mut ft: FILETIME = mem::zeroed();
+
+            //
+            // Hack taken from https://github.com/rust-lang/rust/issues/67266
+            //
+
+            use std::sync::atomic::{AtomicUsize, Ordering};
+            use winapi::um::libloaderapi;
+            static PTR: AtomicUsize = AtomicUsize::new(0);
+
+            // FIXME: not even sure if this atomic ordering stuff is needed.
+            // code adapted from https://github.com/rust-lang/rust/blob/master/src/libstd/sys/windows/compat.rs
+
+            let addr = match PTR.load(Ordering::SeqCst) {
+                0 => {
+                    let module = b"kernel32\0".as_ptr() as *const i8;
+                    let symbol = b"GetSystemTimePreciseAsFileTime\0".as_ptr() as *const i8;
+                    let addr = {
+                        let handle = libloaderapi::GetModuleHandleA(module);
+                        match libloaderapi::GetProcAddress(handle, symbol) as usize {
+                            0 => GetSystemTimeAsFileTime as usize, // fallback function
+                            addr => addr,
+                        }
+                    };
+                    PTR.store(addr, Ordering::SeqCst);
+                    addr
+                }
+                addr => addr,
+            };
+
+            type PFNGSTAFT = unsafe extern "system" fn(LPFILETIME);
+            mem::transmute::<usize, PFNGSTAFT>(addr)(&mut ft as LPFILETIME);
+
             (file_time_to_unix_seconds(&ft), file_time_to_nsec(&ft))
         }
     }
