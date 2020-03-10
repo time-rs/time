@@ -10,6 +10,7 @@ documentation = "https://doc.rust-lang.org/time"
 description = """
 Utilities for working with time-related functions in Rust.
 """
+build = "build.rs"
 
 [dependencies]
 libc = "0.2.1"
@@ -20,6 +21,9 @@ redox_syscall = "0.1"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.0", features = ["std", "minwinbase", "minwindef", "ntdef", "profileapi", "sysinfoapi", "timezoneapi"] }
+
+[build-dependencies]
+rustc_version = "0.2"
 
 [dev-dependencies]
 log = "0.4"

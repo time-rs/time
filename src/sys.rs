@@ -881,6 +881,12 @@ mod inner {
 
             use std::sync::atomic::{AtomicUsize, Ordering};
             use winapi::um::libloaderapi;
+
+            #[cfg(not(feature = "has_const_fn"))]
+            use std::sync::atomic::{ATOMIC_USIZE_INIT};
+            #[cfg(not(feature = "has_const_fn"))]
+            static PTR: AtomicUsize = ATOMIC_USIZE_INIT;
+            #[cfg(feature = "has_const_fn")]
             static PTR: AtomicUsize = AtomicUsize::new(0);
 
             // FIXME: not even sure if this atomic ordering stuff is needed.
