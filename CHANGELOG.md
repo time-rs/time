@@ -9,6 +9,10 @@ Versioning].
 
 ## Unreleased
 
+None.
+
+## 0.2.8 [2020-03-12]
+
 ### Added
 
 - `cargo_web` support has been added for getting a local offset. A general
@@ -18,6 +22,7 @@ Versioning].
   `OffsetDateTime::try_now_local()` provide fallible alternatives when the
   default of UTC is not desired. To facilitate this change,
   `IndeterminateOffsetError` has been added.
+- Support for parsing and formatting subsecond nanoseconds.
 
 ### Changed
 
