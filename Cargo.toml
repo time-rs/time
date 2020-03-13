@@ -27,7 +27,7 @@ std = ["libc", "winapi", "stdweb", "standback/std"]
 __doc = []
 
 [dependencies]
-cfg-if = "0.1"
+cfg-if = "0.1.10"
 rand = { version = "0.7", optional = true, default-features = false }
 rustversion = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
