@@ -11,6 +11,13 @@ Versioning].
 
 None.
 
+## 0.2.9 [2020-03-13]
+
+### Fixed
+
+`cfg-if` now has a mandatory minimum of 0.1.10, rather than just 0.1. This is
+because compilation fails when using 0.1.9.
+
 ## 0.2.8 [2020-03-12]
 
 ### Added
