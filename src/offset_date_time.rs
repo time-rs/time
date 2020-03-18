@@ -1,6 +1,7 @@
 use crate::{
     format::parse::{parse, ParsedItems},
     internal_prelude::*,
+    Format,
 };
 #[cfg(std)]
 use core::convert::{From, TryFrom};
@@ -683,8 +684,8 @@ impl OffsetDateTime {
     /// );
     /// ```
     #[inline(always)]
-    pub fn format(self, format: impl AsRef<str>) -> String {
-        DeferredFormat::new(format.as_ref())
+    pub fn format(self, format: impl Into<Format>) -> String {
+        DeferredFormat::new(format)
             .with_date(self.date())
             .with_time(self.time())
             .with_offset(self.offset())

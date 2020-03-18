@@ -71,6 +71,7 @@ pub(crate) fn parse_M(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 }
 
 /// Subsecond nanoseconds. Always 9 digits
+#[inline(always)]
 pub(crate) fn fmt_N(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
     write!(f, "{:09}", time.nanosecond)
 }

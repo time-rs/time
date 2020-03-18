@@ -349,7 +349,7 @@ pub use duration::Duration;
 pub use error::{ComponentRangeError, ConversionRangeError, Error, IndeterminateOffsetError};
 pub(crate) use format::DeferredFormat;
 use format::ParseResult;
-pub use format::{validate_format_string, ParseError};
+pub use format::{validate_format_string, Format, ParseError};
 #[cfg(std)]
 pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};

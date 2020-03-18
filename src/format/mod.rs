@@ -32,13 +32,19 @@ macro_rules! pad {
 }
 
 pub(crate) mod date;
+pub(crate) mod deferred_format;
+#[allow(clippy::module_inception)]
+pub(crate) mod format;
 pub(crate) mod offset;
 pub(crate) mod parse;
 pub(crate) mod parse_items;
 pub(crate) mod time;
 
 use crate::internal_prelude::*;
-use core::fmt::{self, Display, Formatter};
+use core::fmt::{self, Formatter};
+pub(crate) use deferred_format::DeferredFormat;
+#[allow(unreachable_pub)] // rust-lang/rust#64762
+pub use format::Format;
 #[allow(unreachable_pub)] // rust-lang/rust#64762
 pub use parse::ParseError;
 pub(crate) use parse::{parse, ParseResult, ParsedItems};
@@ -242,70 +248,4 @@ pub(crate) enum FormatItem<'a> {
     Literal(&'a str),
     /// A value that needs to be interpreted when formatting.
     Specifier(Specifier),
-}
-
-/// A struct containing all the necessary information to display the inner type.
-#[allow(single_use_lifetimes)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub(crate) struct DeferredFormat<'a> {
-    /// The `Date` to use for formatting.
-    date: Option<Date>,
-    /// The `Time` to use for formatting.
-    time: Option<Time>,
-    /// The `UtcOffset` to use for formatting.
-    offset: Option<UtcOffset>,
-    /// The list of items used to display the item.
-    format: Vec<FormatItem<'a>>,
-}
-
-impl<'a> DeferredFormat<'a> {
-    /// Create a new `DeferredFormat` with the provided formatting string.
-    pub(crate) fn new(format: &'a str) -> Self {
-        Self {
-            date: None,
-            time: None,
-            offset: None,
-            format: parse_fmt_string(format),
-        }
-    }
-
-    /// Provide the `Date` component.
-    pub(crate) fn with_date(self, date: Date) -> Self {
-        Self {
-            date: Some(date),
-            ..self
-        }
-    }
-
-    /// Provide the `Time` component.
-    pub(crate) fn with_time(self, time: Time) -> Self {
-        Self {
-            time: Some(time),
-            ..self
-        }
-    }
-
-    /// Provide the `UtCOffset` component.
-    pub(crate) fn with_offset(self, offset: UtcOffset) -> Self {
-        Self {
-            offset: Some(offset),
-            ..self
-        }
-    }
-}
-
-impl Display for DeferredFormat<'_> {
-    #[inline(always)]
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        for item in &self.format {
-            match item {
-                FormatItem::Literal(value) => f.write_str(value)?,
-                FormatItem::Specifier(specifier) => {
-                    format_specifier(f, self.date, self.time, self.offset, *specifier)?
-                }
-            }
-        }
-
-        Ok(())
-    }
 }
