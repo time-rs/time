@@ -942,7 +942,7 @@ impl Date {
     /// ```
     #[inline(always)]
     pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s.as_ref(), format.as_ref())?)
+        Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
     }
 
     /// Given the items already parsed, attempt to create a `Date`.

@@ -2,7 +2,7 @@
 //! format and the final output.
 
 use crate::{
-    format::{date, format_specifier, parse_fmt_string, time, Format, FormatItem, Padding},
+    format::{format_specifier, parse_fmt_string, well_known, Format, FormatItem},
     internal_prelude::*,
 };
 use core::fmt::{self, Display, Formatter};
@@ -47,11 +47,29 @@ impl DeferredFormat {
         self
     }
 
-    /// Provide the `UtCOffset` component.
+    /// Provide the `UtcOffset` component.
     #[inline]
     pub(crate) fn with_offset(&mut self, offset: UtcOffset) -> &mut Self {
         self.offset = Some(offset);
         self
+    }
+
+    /// Obtain the `Date` component.
+    #[inline(always)]
+    pub(crate) const fn date(&self) -> Option<Date> {
+        self.date
+    }
+
+    /// Obtain the `Time` component.
+    #[inline(always)]
+    pub(crate) const fn time(&self) -> Option<Time> {
+        self.time
+    }
+
+    /// Obtain the `UtcOffset` component.
+    #[inline(always)]
+    pub(crate) const fn offset(&self) -> Option<UtcOffset> {
+        self.offset
     }
 }
 
@@ -71,43 +89,9 @@ impl Display for DeferredFormat {
 
                 Ok(())
             }
-            Format::Rfc3339 => rfc3339(self, f),
+            Format::Rfc3339 => well_known::rfc3339::fmt(self, f),
             #[cfg(not(supports_non_exhaustive))]
             Format::__NonExhaustive => unreachable!(),
         }
     }
-}
-
-/// Format `df` according to the RFC3339 specification.
-#[inline]
-fn rfc3339(df: &DeferredFormat, f: &mut Formatter<'_>) -> fmt::Result {
-    // If we're using RFC3339, all three components must be present.
-    // This will be enforced with typestate when Rust gains sufficient
-    // capabilities (namely proper sealed traits and/or function overloading).
-    #[allow(clippy::option_unwrap_used)]
-    let date = df.date.unwrap();
-    #[allow(clippy::option_unwrap_used)]
-    let time = df.time.unwrap();
-    #[allow(clippy::option_unwrap_used)]
-    let offset = df.offset.unwrap();
-
-    date::fmt_Y(f, date, Padding::Zero)?;
-    f.write_str("-")?;
-    date::fmt_m(f, date, Padding::Zero)?;
-    f.write_str("-")?;
-    date::fmt_d(f, date, Padding::Zero)?;
-    f.write_str("T")?;
-    time::fmt_H(f, time, Padding::Zero)?;
-    f.write_str(":")?;
-    time::fmt_M(f, time, Padding::Zero)?;
-    f.write_str(":")?;
-    time::fmt_S(f, time, Padding::Zero)?;
-    write!(
-        f,
-        "{:+03}:{:02}",
-        offset.as_hours(),
-        offset.as_minutes().rem_euclid(60)
-    )?;
-
-    Ok(())
 }

@@ -39,6 +39,7 @@ pub(crate) mod offset;
 pub(crate) mod parse;
 pub(crate) mod parse_items;
 pub(crate) mod time;
+pub(crate) mod well_known;
 
 use crate::internal_prelude::*;
 use core::fmt::{self, Formatter};

@@ -9,7 +9,9 @@ Versioning].
 
 ## Unreleased
 
-None.
+### Added
+
+- Support for formatting and parsing `OffsetDateTime`s as RFC3339.
 
 ## 0.2.9 [2020-03-13]
 

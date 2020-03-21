@@ -1,7 +1,10 @@
 //! Parsing for various types.
 
-use super::{parse_fmt_string, FormatItem, Padding, Specifier};
-use crate::internal_prelude::*;
+use crate::{
+    format::{parse_fmt_string, well_known, FormatItem, Padding, Specifier},
+    internal_prelude::*,
+    Format,
+};
 use core::{
     fmt::{self, Display, Formatter},
     num::{NonZeroU16, NonZeroU8},
@@ -196,6 +199,19 @@ pub(crate) fn try_consume_char(s: &mut &str, expected: char) -> ParseResult<()> 
     }
 }
 
+/// Attempt to consume the provided character, ignoring case.
+#[inline]
+pub(crate) fn try_consume_char_case_insensitive(s: &mut &str, expected: char) -> ParseResult<()> {
+    match s.char_indices().next() {
+        Some((index, actual_char)) if actual_char.eq_ignore_ascii_case(&expected) => {
+            *s = &s[(index + actual_char.len_utf8())..];
+            Ok(())
+        }
+        Some((_, actual)) => Err(ParseError::UnexpectedCharacter { expected, actual }),
+        None => Err(ParseError::UnexpectedEndOfString),
+    }
+}
+
 /// Attempt to consume the provided string.
 #[inline]
 pub(crate) fn try_consume_str(s: &mut &str, expected: &str) -> ParseResult<()> {
@@ -359,7 +375,8 @@ pub(crate) fn consume_padding(s: &mut &str, padding: Padding, max_chars: usize) 
 /// Attempt to parse the string with the provided format, returning a struct
 /// containing all information found.
 #[inline]
-pub(crate) fn parse(s: &str, format: &str) -> ParseResult<ParsedItems> {
+#[allow(clippy::too_many_lines)]
+pub(crate) fn parse(s: &str, format: &Format) -> ParseResult<ParsedItems> {
     use super::{date, offset, time};
 
     // Make a copy of the provided string, letting us mutate as necessary.
@@ -380,90 +397,97 @@ pub(crate) fn parse(s: &str, format: &str) -> ParseResult<ParsedItems> {
         };
     }
 
-    for item in parse_fmt_string(format) {
-        match item {
-            FormatItem::Literal(expected) => try_consume_str(&mut s, expected)?,
-            FormatItem::Specifier(specifier) => {
-                use Specifier::*;
-                match specifier {
-                    a => parse!(date::parse_a),
-                    A => parse!(date::parse_A),
-                    b => parse!(date::parse_b),
-                    B => parse!(date::parse_B),
-                    c => {
-                        parse!(date::parse_a);
-                        parse_char!(' ');
-                        parse!(date::parse_b);
-                        parse_char!(' ');
-                        parse!(date::parse_d(Padding::None));
-                        parse_char!(' ');
-                        parse!(time::parse_H(Padding::None));
-                        parse_char!(':');
-                        parse!(time::parse_M(Padding::Default));
-                        parse_char!(':');
-                        parse!(time::parse_S(Padding::Default));
-                        parse_char!(' ');
-                        parse!(date::parse_Y(Padding::None));
+    match &format {
+        Format::Rfc3339 => well_known::rfc3339::parse(&mut items, &mut s)?,
+        Format::Custom(format) => {
+            for item in parse_fmt_string(format) {
+                match item {
+                    FormatItem::Literal(expected) => try_consume_str(&mut s, expected)?,
+                    FormatItem::Specifier(specifier) => {
+                        use Specifier::*;
+                        match specifier {
+                            a => parse!(date::parse_a),
+                            A => parse!(date::parse_A),
+                            b => parse!(date::parse_b),
+                            B => parse!(date::parse_B),
+                            c => {
+                                parse!(date::parse_a);
+                                parse_char!(' ');
+                                parse!(date::parse_b);
+                                parse_char!(' ');
+                                parse!(date::parse_d(Padding::None));
+                                parse_char!(' ');
+                                parse!(time::parse_H(Padding::None));
+                                parse_char!(':');
+                                parse!(time::parse_M(Padding::Default));
+                                parse_char!(':');
+                                parse!(time::parse_S(Padding::Default));
+                                parse_char!(' ');
+                                parse!(date::parse_Y(Padding::None));
+                            }
+                            C { padding } => parse!(date::parse_C(padding)),
+                            d { padding } => parse!(date::parse_d(padding)),
+                            D => {
+                                parse!(date::parse_m(Padding::Default));
+                                parse_char!('/');
+                                parse!(date::parse_d(Padding::Default));
+                                parse_char!('/');
+                                parse!(date::parse_y(Padding::Default));
+                            }
+                            F => {
+                                parse!(date::parse_Y(Padding::None));
+                                parse_char!('-');
+                                parse!(date::parse_m(Padding::Default));
+                                parse_char!('-');
+                                parse!(date::parse_d(Padding::Default));
+                            }
+                            g { padding } => parse!(date::parse_g(padding)),
+                            G { padding } => parse!(date::parse_G(padding)),
+                            H { padding } => parse!(time::parse_H(padding)),
+                            I { padding } => parse!(time::parse_I(padding)),
+                            j { padding } => parse!(date::parse_j(padding)),
+                            M { padding } => parse!(time::parse_M(padding)),
+                            m { padding } => parse!(date::parse_m(padding)),
+                            N => parse!(time::parse_N),
+                            p => parse!(time::parse_p),
+                            P => parse!(time::parse_P),
+                            r => {
+                                parse!(time::parse_I(Padding::None));
+                                parse_char!(':');
+                                parse!(time::parse_M(Padding::Default));
+                                parse_char!(':');
+                                parse!(time::parse_S(Padding::Default));
+                                parse_char!(' ');
+                                parse!(time::parse_p);
+                            }
+                            R => {
+                                parse!(time::parse_H(Padding::None));
+                                parse_char!(':');
+                                parse!(time::parse_M(Padding::Default));
+                            }
+                            S { padding } => parse!(time::parse_S(padding)),
+                            T => {
+                                parse!(time::parse_H(Padding::None));
+                                parse_char!(':');
+                                parse!(time::parse_M(Padding::Default));
+                                parse_char!(':');
+                                parse!(time::parse_S(Padding::Default));
+                            }
+                            u => parse!(date::parse_u),
+                            U { padding } => parse!(date::parse_U(padding)),
+                            V { padding } => parse!(date::parse_V(padding)),
+                            w => parse!(date::parse_w),
+                            W { padding } => parse!(date::parse_W(padding)),
+                            y { padding } => parse!(date::parse_y(padding)),
+                            z => parse!(offset::parse_z),
+                            Y { padding } => parse!(date::parse_Y(padding)),
+                        }
                     }
-                    C { padding } => parse!(date::parse_C(padding)),
-                    d { padding } => parse!(date::parse_d(padding)),
-                    D => {
-                        parse!(date::parse_m(Padding::Default));
-                        parse_char!('/');
-                        parse!(date::parse_d(Padding::Default));
-                        parse_char!('/');
-                        parse!(date::parse_y(Padding::Default));
-                    }
-                    F => {
-                        parse!(date::parse_Y(Padding::None));
-                        parse_char!('-');
-                        parse!(date::parse_m(Padding::Default));
-                        parse_char!('-');
-                        parse!(date::parse_d(Padding::Default));
-                    }
-                    g { padding } => parse!(date::parse_g(padding)),
-                    G { padding } => parse!(date::parse_G(padding)),
-                    H { padding } => parse!(time::parse_H(padding)),
-                    I { padding } => parse!(time::parse_I(padding)),
-                    j { padding } => parse!(date::parse_j(padding)),
-                    M { padding } => parse!(time::parse_M(padding)),
-                    m { padding } => parse!(date::parse_m(padding)),
-                    N => parse!(time::parse_N),
-                    p => parse!(time::parse_p),
-                    P => parse!(time::parse_P),
-                    r => {
-                        parse!(time::parse_I(Padding::None));
-                        parse_char!(':');
-                        parse!(time::parse_M(Padding::Default));
-                        parse_char!(':');
-                        parse!(time::parse_S(Padding::Default));
-                        parse_char!(' ');
-                        parse!(time::parse_p);
-                    }
-                    R => {
-                        parse!(time::parse_H(Padding::None));
-                        parse_char!(':');
-                        parse!(time::parse_M(Padding::Default));
-                    }
-                    S { padding } => parse!(time::parse_S(padding)),
-                    T => {
-                        parse!(time::parse_H(Padding::None));
-                        parse_char!(':');
-                        parse!(time::parse_M(Padding::Default));
-                        parse_char!(':');
-                        parse!(time::parse_S(Padding::Default));
-                    }
-                    u => parse!(date::parse_u),
-                    U { padding } => parse!(date::parse_U(padding)),
-                    V { padding } => parse!(date::parse_V(padding)),
-                    w => parse!(date::parse_w),
-                    W { padding } => parse!(date::parse_W(padding)),
-                    y { padding } => parse!(date::parse_y(padding)),
-                    z => parse!(offset::parse_z),
-                    Y { padding } => parse!(date::parse_Y(padding)),
                 }
             }
         }
+        #[cfg(not(supports_non_exhaustive))]
+        Format::__NonExhaustive => unreachable!(),
     }
 
     Ok(items)
