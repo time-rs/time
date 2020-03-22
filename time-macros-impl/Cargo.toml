@@ -12,7 +12,7 @@ description = "Procedural macros for the time crate."
 
 [dependencies]
 proc-macro2 = "1"
-syn = "1"
+syn = { version = "1", default-features = false, features = ["proc-macro"] }
 quote = "1"
 proc-macro-hack = "0.5"
 
