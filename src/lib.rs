@@ -348,11 +348,9 @@ pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use duration::Duration;
 pub use error::{ComponentRangeError, ConversionRangeError, Error, IndeterminateOffsetError};
 pub(crate) use format::DeferredFormat;
-use format::ParseResult;
 pub use format::{validate_format_string, Format, ParseError};
 #[cfg(std)]
 pub use instant::Instant;
-#[cfg(v01_deprecated_api)]
 use internal_prelude::*;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub use offset_date_time::OffsetDateTime;
