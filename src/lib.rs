@@ -352,6 +352,8 @@ use format::ParseResult;
 pub use format::{validate_format_string, Format, ParseError};
 #[cfg(std)]
 pub use instant::Instant;
+#[cfg(v01_deprecated_api)]
+use internal_prelude::*;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
@@ -531,19 +533,19 @@ pub fn parse<T: private::Parsable>(s: impl AsRef<str>, format: impl AsRef<str>) 
 // For some back-compatibility, we're also implementing some deprecated types
 // and methods. They will be removed completely in 0.3.
 
-#[cfg(all(std, v01_deprecated))]
+#[cfg(all(std, v01_deprecated_api))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type PreciseTime = Instant;
 
-#[cfg(all(std, v01_deprecated))]
+#[cfg(all(std, v01_deprecated_api))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type SteadyTime = Instant;
 
-#[cfg(all(std, v01_deprecated))]
+#[cfg(all(std, v01_deprecated_api))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
@@ -563,7 +565,7 @@ pub fn precise_time_ns() -> u64 {
         .expect("This function will be removed long before this is an issue.")
 }
 
-#[cfg(all(std, v01_deprecated))]
+#[cfg(all(std, v01_deprecated_api))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(

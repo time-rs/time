@@ -726,7 +726,7 @@ impl Duration {
 
 /// Functions that have been renamed or had signatures changed since v0.1. As
 /// such, they are deprecated.
-#[cfg(v01_deprecated)]
+#[cfg(v01_deprecated_api)]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items, clippy::missing_const_for_fn)]
 impl Duration {

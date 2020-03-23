@@ -13,6 +13,11 @@ Versioning].
 
 - Support for formatting and parsing `OffsetDateTime`s as RFC3339.
 
+### Fixed
+
+- Deprecated APIs from time v0.1 are public again. They were previously hidden
+  by accident in 0.2.9.
+
 ## 0.2.9 [2020-03-13]
 
 ### Fixed
