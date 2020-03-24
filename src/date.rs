@@ -918,9 +918,20 @@ impl Date {
     /// ```
     #[inline(always)]
     pub fn format(self, format: impl AsRef<str>) -> String {
+        self.lazy_format(format).to_string()
+    }
+
+    /// Format the `Date` using the provided string.
+    ///
+    /// ```rust
+    /// # use time::date;
+    /// assert_eq!(date!(2019-01-02).lazy_format("%Y-%m-%d").to_string(), "2019-01-02");
+    /// ```
+    #[inline(always)]
+    pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
         DeferredFormat::new(format.as_ref())
             .with_date(self)
-            .to_string()
+            .to_owned()
     }
 
     /// Attempt to parse a `Date` using the provided string.

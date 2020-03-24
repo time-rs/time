@@ -685,11 +685,29 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub fn format(self, format: impl Into<Format>) -> String {
+        self.lazy_format(format).to_string()
+    }
+
+    /// Format the `OffsetDateTime` using the provided string.
+    ///
+    /// ```rust
+    /// # use time::{date, offset};
+    /// assert_eq!(
+    ///     date!(2019-01-02)
+    ///         .midnight()
+    ///         .using_offset(offset!(UTC))
+    ///         .lazy_format("%F %r %z")
+    ///         .to_string(),
+    ///     "2019-01-02 12:00:00 am +0000",
+    /// );
+    /// ```
+    #[inline(always)]
+    pub fn lazy_format(self, format: impl Into<Format>) -> impl Display {
         DeferredFormat::new(format)
             .with_date(self.date())
             .with_time(self.time())
             .with_offset(self.offset())
-            .to_string()
+            .to_owned()
     }
 
     /// Attempt to parse an `OffsetDateTime` using the provided string.

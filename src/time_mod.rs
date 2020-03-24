@@ -526,9 +526,20 @@ impl Time {
     /// ```
     #[inline(always)]
     pub fn format(self, format: impl AsRef<str>) -> String {
+        self.lazy_format(format).to_string()
+    }
+
+    /// Format the `Time` using the provided string.
+    ///
+    /// ```rust
+    /// # use time::time;
+    /// assert_eq!(time!(0:00).lazy_format("%r").to_string(), "12:00:00 am");
+    /// ```
+    #[inline(always)]
+    pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
         DeferredFormat::new(format.as_ref())
             .with_time(self)
-            .to_string()
+            .to_owned()
     }
 
     /// Attempt to parse a `Time` using the provided string.
