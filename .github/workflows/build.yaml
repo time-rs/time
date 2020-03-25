@@ -23,14 +23,6 @@ jobs:
           path: ./target
           key: ${{ matrix.os }}-typecheck-target-${{ matrix.rust }}
 
-      - name: Cache toolchain
-        uses: actions/cache@v1
-        env:
-          cache-name: toolchain
-        with:
-          path: /usr/share/rust
-          key: ${{ matrix.os }}-toolchain-${{ matrix.rust }}
-
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -81,14 +73,6 @@ jobs:
           path: ./target
           key: ${{ matrix.os }}-test-target-${{ matrix.rust }}
 
-      - name: Cache toolchain
-        uses: actions/cache@v1
-        env:
-          cache-name: toolchain
-        with:
-          path: /usr/share/rust
-          key: ${{ matrix.os }}-toolchain-${{ matrix.rust }}
-
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -119,19 +103,12 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Cache toolchain
-        uses: actions/cache@v1
-        env:
-          cache-name: toolchain
-        with:
-          path: /usr/share/rust
-          key: ubuntu-latest-toolchain-nightly
-
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly # various unstable options are used
+          # pinned to avoid missing component
+          toolchain: nightly-2020-03-19
           override: true
 
       - name: Install rustfmt
@@ -159,14 +136,6 @@ jobs:
           path: ./target
           key: ubuntu-latest-clippy-target-stable
 
-      - name: Cache toolchain
-        uses: actions/cache@v1
-        env:
-          cache-name: toolchain
-        with:
-          path: /usr/share/rust
-          key: ubuntu-latest-toolchain-stable
-
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -174,8 +143,48 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Run `cargo clippy --features serde,deprecated,rand`
+      - name: Run `cargo clippy --features serde,deprecated,rand,panicking-api`
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --features serde,deprecated,rand
+          args: --features serde,deprecated,rand,panicking-api
+
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-latest
+    # ensure docs only get pushed if everything else is successful
+    needs: [check, test, fmt, clippy]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cache target
+        uses: actions/cache@v1
+        env:
+          cache-name: target
+        with:
+          path: ./target
+          key: ubuntu-latest-docs-target-nightly-2020-03-19
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          # pinned to avoid missing component
+          toolchain: nightly-2020-03-19
+          override: true
+
+      - name: Run `cargo doc --all-features`
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --all-features
+
+      - name: Publish documentation
+        uses: JamesIves/github-pages-deploy-action@releases/v2
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: target/doc
+        if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
