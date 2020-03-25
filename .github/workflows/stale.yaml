@@ -1,0 +1,19 @@
+name: "Close stale PRs"
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-pr-message: "This pull request has not had any activity recently. It will be closed without further activity."
+
+          days-before-stale: 14
+          days-before-close: 3
+
+          stale-pr-label: "stale"
+          exempt-pr-label: "keep-open"
