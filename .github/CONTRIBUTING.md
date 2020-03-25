@@ -20,11 +20,11 @@ Commits will almost certainly be squashed when merged, so don't stress about hav
 
 ## Continuous Integration
 
-Time uses [GitHub Actions] for continuous integration. Types are checked and the full test suite is run on Windows, Mac, and Linux on both the minimum supported Rust version (currently 1.40.0) and the most recent stable. Formatting is verified, as are clippy lints.
+Time uses [GitHub Actions] for continuous integration. Types are checked and the full test suite is run on Windows, Mac, and Linux on both the minimum supported Rust version and the most recent stable. Formatting is verified on nightly, and clippy lints are verified on stable.
 
 ## Formatting
 
-Time uses rustfmt for formatting, and uses a number of nightly features. As such, you will need to run `cargo +nightly fmt` before committing. Formatting is important, so not doing this may cause CI to fail!
+Time uses rustfmt for formatting, and uses a number of nightly features. As such, you will need to run `cargo fmt` before committing. Formatting is important, so not doing this may cause CI to fail! CI currently uses a pinned version of `nightly-2020-03-19`.
 
 ## Linting
 
@@ -34,7 +34,7 @@ If you are overriding a lint with `#[allow()]`, it is recommended to document wh
 
 ## Unsafe code
 
-Unsafe is forbidden. Period. If you submit a pull request that alters the `#![forbid(unsafe_code)]` declaration, it will be closed without review.
+The only acceptable use of unsafe code is for FFI. Any other usage will be rejected.
 
 [issue tracker]: https://github.com/time-rs/time/issues/new
 [GitHub Actions]: https://github.com/features/actions
