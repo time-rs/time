@@ -2,31 +2,11 @@
 
 /// Pad a given value if requested.
 macro_rules! pad {
-    ($f:ident, $padding:ident(None), $width:literal, $value:expr) => {
-        match $padding {
-            Padding::None | Padding::Default => write!($f, "{}", $value),
-            Padding::Space => write!($f, concat!("{:", stringify!($width), "}"), $value),
-            Padding::Zero => write!($f, concat!("{:0", stringify!($width), "}"), $value),
-        }
-    };
-
-    ($f:ident, $padding:ident(Space), $width:literal, $value:expr) => {
-        match $padding {
-            Padding::None => write!($f, "{}", $value),
-            Padding::Space | Padding::Default => {
-                write!($f, concat!("{:", stringify!($width), "}"), $value)
-            }
-            Padding::Zero => write!($f, concat!("{:0", stringify!($width), "}"), $value),
-        }
-    };
-
-    ($f:ident, $padding:ident(Zero), $width:literal, $value:expr) => {
+    ($f:ident, $padding:ident, $width:literal, $value:expr) => {
         match $padding {
             Padding::None => write!($f, "{}", $value),
             Padding::Space => write!($f, concat!("{:", stringify!($width), "}"), $value),
-            Padding::Zero | Padding::Default => {
-                write!($f, concat!("{:0", stringify!($width), "}"), $value)
-            }
+            Padding::Zero => write!($f, concat!("{:0", stringify!($width), "}"), $value),
         }
     };
 }
@@ -67,19 +47,6 @@ pub(crate) enum Padding {
     Space,
     /// Pad to the requisite width using zeros.
     Zero,
-    /// Use the default padding for the specifier. Varies by specifier.
-    Default,
-}
-
-impl Padding {
-    /// Map the default value to a provided alternative.
-    #[inline(always)]
-    pub(crate) fn default_to(self, value: Self) -> Self {
-        match self {
-            Padding::Default => value,
-            _ => self,
-        }
-    }
 }
 
 /// Specifiers are similar to C's `strftime`, with some omissions and changes.
@@ -174,9 +141,9 @@ fn format_specifier(
             literal!(" ");
             specifier!(time::fmt_H(H, Padding::None));
             literal!(":");
-            specifier!(time::fmt_M(M, Padding::Default));
+            specifier!(time::fmt_M(M, Padding::Zero));
             literal!(":");
-            specifier!(time::fmt_S(S, Padding::Default));
+            specifier!(time::fmt_S(S, Padding::Zero));
             literal!(" ");
             specifier!(date::fmt_Y(Y, Padding::None));
         }
@@ -185,16 +152,16 @@ fn format_specifier(
         D => {
             specifier!(date::fmt_m(m, Padding::None));
             literal!("/");
-            specifier!(date::fmt_d(d, Padding::Default));
+            specifier!(date::fmt_d(d, Padding::Zero));
             literal!("/");
-            specifier!(date::fmt_y(y, Padding::Default));
+            specifier!(date::fmt_y(y, Padding::Zero));
         }
         F => {
             specifier!(date::fmt_Y(Y, Padding::None));
             literal!("-");
-            specifier!(date::fmt_m(m, Padding::Default));
+            specifier!(date::fmt_m(m, Padding::Zero));
             literal!("-");
-            specifier!(date::fmt_d(d, Padding::Default));
+            specifier!(date::fmt_d(d, Padding::Zero));
         }
         g { padding } => specifier!(date::fmt_g(g, padding)),
         G { padding } => specifier!(date::fmt_G(G, padding)),
@@ -209,24 +176,24 @@ fn format_specifier(
         r => {
             specifier!(time::fmt_I(I, Padding::None));
             literal!(":");
-            specifier!(time::fmt_M(M, Padding::Default));
+            specifier!(time::fmt_M(M, Padding::Zero));
             literal!(":");
-            specifier!(time::fmt_S(S, Padding::Default));
+            specifier!(time::fmt_S(S, Padding::Zero));
             literal!(" ");
             specifier!(time::fmt_p(p));
         }
         R => {
             specifier!(time::fmt_H(H, Padding::None));
             literal!(":");
-            specifier!(time::fmt_M(M, Padding::Default));
+            specifier!(time::fmt_M(M, Padding::Zero));
         }
         S { padding } => specifier!(time::fmt_S(S, padding)),
         T => {
             specifier!(time::fmt_H(H, Padding::None));
             literal!(":");
-            specifier!(time::fmt_M(M, Padding::Default));
+            specifier!(time::fmt_M(M, Padding::Zero));
             literal!(":");
-            specifier!(time::fmt_S(S, Padding::Default));
+            specifier!(time::fmt_S(S, Padding::Zero));
         }
         u => specifier!(date::fmt_u(u)),
         U { padding } => specifier!(date::fmt_U(U, padding)),

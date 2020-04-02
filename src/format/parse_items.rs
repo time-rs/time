@@ -36,21 +36,21 @@ pub(crate) fn try_parse_fmt_string<'a>(s: &'a str) -> Result<Vec<FormatItem<'a>>
             }
 
             // Call `chars.next()` if a modifier is present, moving the iterator
-            // past the character.
+            // past the character. `None` is equivalent to the default value.
             let padding = match chars.peek().map(|v| v.1) {
                 Some('-') => {
                     let _ = chars.next();
-                    Padding::None
+                    Some(Padding::None)
                 }
                 Some('_') => {
                     let _ = chars.next();
-                    Padding::Space
+                    Some(Padding::Space)
                 }
                 Some('0') => {
                     let _ = chars.next();
-                    Padding::Zero
+                    Some(Padding::Zero)
                 }
-                _ => Padding::Default,
+                _ => None,
             };
 
             match chars.next() {
@@ -59,31 +59,106 @@ pub(crate) fn try_parse_fmt_string<'a>(s: &'a str) -> Result<Vec<FormatItem<'a>>
                 Some((i, 'b')) => push_specifier!(i, Specifier::b),
                 Some((i, 'B')) => push_specifier!(i, Specifier::B),
                 Some((i, 'c')) => push_specifier!(i, Specifier::c),
-                Some((i, 'C')) => push_specifier!(i, Specifier::C { padding }),
-                Some((i, 'd')) => push_specifier!(i, Specifier::d { padding }),
+                Some((i, 'C')) => push_specifier!(
+                    i,
+                    Specifier::C {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
+                Some((i, 'd')) => push_specifier!(
+                    i,
+                    Specifier::d {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
                 Some((i, 'D')) => push_specifier!(i, Specifier::D),
                 Some((i, 'F')) => push_specifier!(i, Specifier::F),
-                Some((i, 'g')) => push_specifier!(i, Specifier::g { padding }),
-                Some((i, 'G')) => push_specifier!(i, Specifier::G { padding }),
-                Some((i, 'H')) => push_specifier!(i, Specifier::H { padding }),
-                Some((i, 'I')) => push_specifier!(i, Specifier::I { padding }),
-                Some((i, 'j')) => push_specifier!(i, Specifier::j { padding }),
-                Some((i, 'm')) => push_specifier!(i, Specifier::m { padding }),
-                Some((i, 'M')) => push_specifier!(i, Specifier::M { padding }),
+                Some((i, 'g')) => push_specifier!(
+                    i,
+                    Specifier::g {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
+                Some((i, 'G')) => push_specifier!(
+                    i,
+                    Specifier::G {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
+                Some((i, 'H')) => push_specifier!(
+                    i,
+                    Specifier::H {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
+                Some((i, 'I')) => push_specifier!(
+                    i,
+                    Specifier::I {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
+                Some((i, 'j')) => push_specifier!(
+                    i,
+                    Specifier::j {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
+                Some((i, 'm')) => push_specifier!(
+                    i,
+                    Specifier::m {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
+                Some((i, 'M')) => push_specifier!(
+                    i,
+                    Specifier::M {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
                 Some((i, 'N')) => push_specifier!(i, Specifier::N),
                 Some((i, 'p')) => push_specifier!(i, Specifier::p),
                 Some((i, 'P')) => push_specifier!(i, Specifier::P),
                 Some((i, 'r')) => push_specifier!(i, Specifier::r),
                 Some((i, 'R')) => push_specifier!(i, Specifier::R),
-                Some((i, 'S')) => push_specifier!(i, Specifier::S { padding }),
+                Some((i, 'S')) => push_specifier!(
+                    i,
+                    Specifier::S {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
                 Some((i, 'T')) => push_specifier!(i, Specifier::T),
                 Some((i, 'u')) => push_specifier!(i, Specifier::u),
-                Some((i, 'U')) => push_specifier!(i, Specifier::U { padding }),
-                Some((i, 'V')) => push_specifier!(i, Specifier::V { padding }),
+                Some((i, 'U')) => push_specifier!(
+                    i,
+                    Specifier::U {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
+                Some((i, 'V')) => push_specifier!(
+                    i,
+                    Specifier::V {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
                 Some((i, 'w')) => push_specifier!(i, Specifier::w),
-                Some((i, 'W')) => push_specifier!(i, Specifier::W { padding }),
-                Some((i, 'y')) => push_specifier!(i, Specifier::y { padding }),
-                Some((i, 'Y')) => push_specifier!(i, Specifier::Y { padding }),
+                Some((i, 'W')) => push_specifier!(
+                    i,
+                    Specifier::W {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
+                Some((i, 'y')) => push_specifier!(
+                    i,
+                    Specifier::y {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
+                Some((i, 'Y')) => push_specifier!(
+                    i,
+                    Specifier::Y {
+                        padding: padding.unwrap_or(Padding::Zero)
+                    }
+                ),
                 Some((i, 'z')) => push_specifier!(i, Specifier::z),
                 Some((i, '%')) => literal_start = i,
                 Some((_, c)) => return Err(format!("Invalid specifier `{}`", c)),

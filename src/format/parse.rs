@@ -356,11 +356,6 @@ pub(crate) fn consume_padding(s: &mut &str, padding: Padding, max_chars: usize) 
         Padding::Space => ' ',
         Padding::Zero => '0',
         Padding::None => return 0,
-        Padding::Default => unreachable!(
-            "Default padding depends on context. This value should replaced prior to calling \
-             `consume_padding`. If this is encountered, please file an issue on the time \
-             repository."
-        ),
     };
 
     let pad_width = s
@@ -419,27 +414,27 @@ pub(crate) fn parse(s: &str, format: &Format) -> ParseResult<ParsedItems> {
                                 parse_char!(' ');
                                 parse!(time::parse_H(Padding::None));
                                 parse_char!(':');
-                                parse!(time::parse_M(Padding::Default));
+                                parse!(time::parse_M(Padding::Zero));
                                 parse_char!(':');
-                                parse!(time::parse_S(Padding::Default));
+                                parse!(time::parse_S(Padding::Zero));
                                 parse_char!(' ');
                                 parse!(date::parse_Y(Padding::None));
                             }
                             C { padding } => parse!(date::parse_C(padding)),
                             d { padding } => parse!(date::parse_d(padding)),
                             D => {
-                                parse!(date::parse_m(Padding::Default));
+                                parse!(date::parse_m(Padding::Zero));
                                 parse_char!('/');
-                                parse!(date::parse_d(Padding::Default));
+                                parse!(date::parse_d(Padding::Zero));
                                 parse_char!('/');
-                                parse!(date::parse_y(Padding::Default));
+                                parse!(date::parse_y(Padding::Zero));
                             }
                             F => {
                                 parse!(date::parse_Y(Padding::None));
                                 parse_char!('-');
-                                parse!(date::parse_m(Padding::Default));
+                                parse!(date::parse_m(Padding::Zero));
                                 parse_char!('-');
-                                parse!(date::parse_d(Padding::Default));
+                                parse!(date::parse_d(Padding::Zero));
                             }
                             g { padding } => parse!(date::parse_g(padding)),
                             G { padding } => parse!(date::parse_G(padding)),
@@ -454,24 +449,24 @@ pub(crate) fn parse(s: &str, format: &Format) -> ParseResult<ParsedItems> {
                             r => {
                                 parse!(time::parse_I(Padding::None));
                                 parse_char!(':');
-                                parse!(time::parse_M(Padding::Default));
+                                parse!(time::parse_M(Padding::Zero));
                                 parse_char!(':');
-                                parse!(time::parse_S(Padding::Default));
+                                parse!(time::parse_S(Padding::Zero));
                                 parse_char!(' ');
                                 parse!(time::parse_p);
                             }
                             R => {
                                 parse!(time::parse_H(Padding::None));
                                 parse_char!(':');
-                                parse!(time::parse_M(Padding::Default));
+                                parse!(time::parse_M(Padding::Zero));
                             }
                             S { padding } => parse!(time::parse_S(padding)),
                             T => {
                                 parse!(time::parse_H(Padding::None));
                                 parse_char!(':');
-                                parse!(time::parse_M(Padding::Default));
+                                parse!(time::parse_M(Padding::Zero));
                                 parse_char!(':');
-                                parse!(time::parse_S(Padding::Default));
+                                parse!(time::parse_S(Padding::Zero));
                             }
                             u => parse!(date::parse_u),
                             U { padding } => parse!(date::parse_U(padding)),
