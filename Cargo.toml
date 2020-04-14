@@ -12,7 +12,7 @@ Utilities for working with time-related functions in Rust.
 """
 
 [dependencies]
-libc = "0.2.55"
+libc = "0.2.69"
 rustc-serialize = { version = "0.3", optional = true }
 
 [target.'cfg(windows)'.dependencies]
