@@ -107,12 +107,9 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          # pinned to avoid missing component
-          toolchain: nightly-2020-03-19
+          toolchain: nightly
           override: true
-
-      - name: Install rustfmt
-        run: rustup component add rustfmt
+          components: rustfmt
 
       - name: Run `cargo fmt -- --check`
         uses: actions-rs/cargo@v1

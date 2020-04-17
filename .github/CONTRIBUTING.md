@@ -24,7 +24,7 @@ Time uses [GitHub Actions] for continuous integration. Types are checked and the
 
 ## Formatting
 
-Time uses rustfmt for formatting, and uses a number of nightly features. As such, you will need to run `cargo fmt` before committing. Formatting is important, so not doing this may cause CI to fail! CI currently uses a pinned version of `nightly-2020-03-19`.
+Time uses rustfmt for formatting, and uses a number of nightly features. As such, you will need to run `cargo fmt` before committing. Formatting is important, so not doing this may cause CI to fail!
 
 ## Linting
 
