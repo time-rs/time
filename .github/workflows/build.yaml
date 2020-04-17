@@ -158,6 +158,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        with:
+            persist-credentials: false
 
       - name: Cache target
         uses: actions/cache@v1
@@ -182,8 +184,8 @@ jobs:
           args: --all-features
 
       - name: Publish documentation
-        uses: JamesIves/github-pages-deploy-action@releases/v2
-        env:
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           BRANCH: gh-pages
           FOLDER: target/doc
