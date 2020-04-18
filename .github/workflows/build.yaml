@@ -8,9 +8,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: [1.34.0, 1.36.0, stable, nightly]
+        rust: [1.34.0, 1.36.0, stable]
         os: [ubuntu-latest, windows-latest, macOS-latest]
-        target: [thumbv7em-none-eabihf]
 
     steps:
       - name: Checkout sources
@@ -29,23 +28,22 @@ jobs:
         with:
           profile: minimal
           toolchain: ${{ matrix.rust }}
-          target: ${{ matrix.target }}
           override: true
 
-      # ensure `#![no_std]` support on embedded target
+      # ensure `#![no_std]` support
       - name: Run `cargo check --no-default-features`
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --no-default-features --target ${{ matrix.target }}
+          args: --no-default-features
         if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
 
-      # `#![no_std]` with serde, rand on embedded target
+      # `#![no_std]` with serde, rand
       - name: Run `cargo check --no-default-features --features serde,rand`
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --no-default-features  --target ${{ matrix.target }} --features serde,rand
+          args: --no-default-features --features serde,rand
         if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
 
       # everything
@@ -55,12 +53,55 @@ jobs:
           command: check
           args: --features serde,deprecated,panicking-api,rand
 
+  check-embedded:
+    name: Type checking (embedded)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [1.34.0, 1.36.0, stable]
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Cache target
+        uses: actions/cache@v1
+        env:
+          cache-name: target
+        with:
+          path: ./target
+          key: ubuntu-latest-typecheck-target-${{ matrix.rust }}-thumbv7em-none-eabihf
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          target: thumbv7em-none-eabihf
+          override: true
+
+      # ensure `#![no_std]` support
+      - name: Run `cargo check --no-default-features`
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --no-default-features --target thumbv7em-none-eabihf
+        if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
+
+      # `#![no_std]` with serde, rand
+      - name: Run `cargo check --no-default-features --features serde,rand`
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --no-default-features --features serde,rand --target thumbv7em-none-eabihf
+        if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
+
   test:
     name: Test suite
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: [1.34.0, 1.36.0, stable, nightly] # 1.36 is when alloc was stabilized
+        rust: [1.34.0, 1.36.0, stable] # 1.36 is when alloc was stabilized
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
