@@ -7,12 +7,13 @@ Utilities for working with time-related functions in Rust
 [![Documentation](https://docs.rs/time/badge.svg?version=0.1)](https://docs.rs/time/~0.1)
 ![rustc 1.21.0](https://img.shields.io/badge/rustc-1.21.0-blue)
 
-## Notes
+## time v0.1.x is Deprecated
 
-Version 0.1 of this library is no longer actively maintained.
-A 0.2 version will be released in the future, which will contain a number of breaking changes.
+The 0.1.x series of this library is deprecated and in maintenance mode.  No new
+features will be added.  Active development now occurs in the 0.2.x series.
 
-If you need additional functionality that this crate does not provide, check out the [`chrono`](https://github.com/chronotope/chrono) crate.
+If you need additional functionality that this crate does not provide, check
+out the [`chrono`](https://github.com/chronotope/chrono) crate.
 
 ## Usage
 
