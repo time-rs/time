@@ -141,7 +141,7 @@
 //! | `0`              | Pad with zeros  | `%0d` => `05` |
 
 #![cfg_attr(docs, feature(doc_cfg))]
-#![cfg_attr(no_std, no_std)]
+#![cfg_attr(not(std), no_std)]
 #![deny(
     unsafe_code, // Used when interacting with system APIs
     anonymous_parameters,
@@ -203,7 +203,7 @@ compile_error!("The `__doc` feature requires a nightly compiler, and is for inte
 #[rustversion::before(1.34.0)]
 compile_error!("The time crate has a minimum supported rust version of 1.34.0.");
 
-#[cfg(no_std)]
+#[cfg(not(std))]
 #[rustversion::before(1.36.0)]
 compile_error!(
     "Using the time crate without the standard library enabled requires a global allocator. This \
@@ -218,7 +218,7 @@ macro_rules! format_conditional {
     };
 
     ($first_conditional:ident, $($conditional:ident),*) => {{
-        #[cfg(no_std)]
+        #[cfg(not(std))]
         let mut s = alloc::string::String::new();
         #[cfg(std)]
         let mut s = String::new();
@@ -457,7 +457,7 @@ pub mod prelude {
 mod internal_prelude {
     #![allow(unused_imports)]
 
-    #[cfg(no_std)]
+    #[cfg(not(std))]
     extern crate alloc;
 
     #[cfg(std)]
@@ -469,7 +469,7 @@ mod internal_prelude {
         PrimitiveDateTime, Time, UtcOffset,
         Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
     };
-    #[cfg(no_std)]
+    #[cfg(not(std))]
     pub(crate) use alloc::{
         borrow::ToOwned,
         boxed::Box,
