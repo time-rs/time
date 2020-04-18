@@ -1,15 +1,15 @@
 [package]
-
 name = "time"
 version = "0.1.42"
 authors = ["The Rust Project Developers"]
 license = "MIT/Apache-2.0"
-homepage = "https://github.com/rust-lang/time"
-repository = "https://github.com/rust-lang/time"
-documentation = "https://doc.rust-lang.org/time"
+homepage = "https://github.com/time-rs/time"
+repository = "https://github.com/time-rs/time"
+documentation = "https://docs.rs/time/~0.1"
 description = """
 Utilities for working with time-related functions in Rust.
 """
+readme = "README.md"
 
 [dependencies]
 libc = "0.2.69"
