@@ -172,14 +172,16 @@ mod inner {
     }
 
     pub fn get_precise_ns() -> u64 {
-        // This unwrap is safe because current time is well ahead of UNIX_EPOCH, unless system clock is adjusted backward.
+        // This unwrap is safe because current time is well ahead of UNIX_EPOCH, unless system
+        // clock is adjusted backward.
         let std_duration = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
         std_duration.as_secs() * NANOS_PER_SEC + std_duration.subsec_nanos() as u64
     }
 
     impl SteadyTime {
         pub fn now() -> SteadyTime {
-            // This unwrap is safe because current time is well ahead of UNIX_EPOCH, unless system clock is adjusted backward.
+            // This unwrap is safe because current time is well ahead of UNIX_EPOCH, unless system
+            // clock is adjusted backward.
             let std_duration = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap();
             // This unwrap is safe because duration is well within the limits of i64.
             let duration = Duration::from_std(std_duration).unwrap();
@@ -317,7 +319,12 @@ mod inner {
     pub fn utc_tm_to_time(rust_tm: &Tm) -> i64 {
         #[cfg(all(target_os = "android", target_pointer_width = "32"))]
         use libc::timegm64 as timegm;
-        #[cfg(not(any(all(target_os = "android", target_pointer_width = "32"), target_os = "nacl", target_os = "solaris", target_os = "illumos")))]
+        #[cfg(not(any(
+            all(target_os = "android", target_pointer_width = "32"),
+            target_os = "nacl",
+            target_os = "solaris",
+            target_os = "illumos"
+        )))]
         use libc::timegm;
 
         let mut tm = unsafe { mem::zeroed() };
