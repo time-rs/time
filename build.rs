@@ -14,12 +14,6 @@ fn features(features: &[(&str, &str)]) {
     }
 }
 
-fn no_std() {
-    if env::var("CARGO_FEATURE_STD").is_err() {
-        println!("cargo:rustc-cfg=no_std");
-    }
-}
-
 #[rustversion::since(1.40.0)]
 fn non_exhaustive() {
     println!("cargo:rustc-cfg=supports_non_exhaustive");
@@ -38,6 +32,5 @@ fn main() {
         ("SERDE", "serde"),
         ("__DOC", "docs"),
     ]);
-    no_std();
     non_exhaustive();
 }
