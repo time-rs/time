@@ -32,7 +32,7 @@ cfg-if = "0.1.10"
 rand = { version = "0.7", optional = true, default-features = false }
 rustversion = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
-standback = { version = "0.2", default-features = false }
+standback = { version = "0.2.3", default-features = false }
 time-macros = { version = "0.1", path = "time-macros" }
 
 [workspace]
