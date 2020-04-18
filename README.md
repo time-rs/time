@@ -3,8 +3,8 @@ time
 
 Utilities for working with time-related functions in Rust
 
-![build status](https://github.com/time-rs/time/workflows/Build/badge.svg?branch=v0.1)
-[Documentation](https://docs.rs/time/0.1)
+[![build status](https://github.com/time-rs/time/workflows/Build/badge.svg?branch=v0.1)](https://github.com/time-rs/time/actions?query=branch%3Av0.1)
+[![Documentation](https://docs.rs/time/badge.svg?version=0.1)](https://docs.rs/time/~0.1)
 ![rustc 1.21.0](https://img.shields.io/badge/rustc-1.21.0-blue)
 
 ## Notes
