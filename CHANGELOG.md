@@ -9,11 +9,16 @@ Versioning].
 
 ## Unreleased
 
+Nothing yet.
+
+## 0.2.10 [2020-04-19]
+
 ### Added
 
 - Support for formatting and parsing `OffsetDateTime`s as RFC3339.
 - Lazy formatting. To avoid exposing implementation details, we're just
   returning `impl Display`, rather than a concrete type.
+- Add support for Illumos.
 
 ### Fixed
 

@@ -15,6 +15,7 @@ pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
 
 /// Attempt to parse the formatting string.
 #[inline]
+#[allow(clippy::too_many_lines)]
 pub(crate) fn try_parse_fmt_string<'a>(s: &'a str) -> Result<Vec<FormatItem<'a>>, String> {
     let mut items = vec![];
     let mut literal_start = 0;
