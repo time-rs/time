@@ -378,13 +378,13 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             let tm = timestamp_to_tm(datetime.timestamp())?;
 
             // `tm_gmtoff` extension
-            #[cfg(not(target_os = "solaris"))]
+            #[cfg(not(any(target_os = "solaris", target_os = "illumos")))]
             {
                 tm.tm_gmtoff.try_into().ok().map(UtcOffset::seconds)
             }
 
             // No `tm_gmtoff` extension
-            #[cfg(target_os = "solaris")]
+            #[cfg(any(target_os = "solaris", target_os = "illumos"))]
             {
                 use crate::Date;
                 use core::convert::TryFrom;
