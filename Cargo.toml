@@ -48,3 +48,6 @@ stdweb = { version = "0.4", default-features = false, optional = true }
 
 [build-dependencies]
 version_check = "0.9"
+
+[dev-dependencies]
+time-macros = { path = "time-macros" }

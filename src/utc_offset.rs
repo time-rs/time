@@ -453,7 +453,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
             /// Convert an `OffsetDateTime` to a `SYSTEMTIME`.
             fn offset_to_systemtime(datetime: OffsetDateTime) -> SYSTEMTIME {
-                let (month, day_of_month) = datetime.to_offset(offset!(UTC)).month_day();
+                let (month, day_of_month) = datetime.to_offset(UtcOffset::UTC).month_day();
                 SYSTEMTIME {
                     wYear: datetime.year() as u16,
                     wMonth: month as u16,
@@ -467,7 +467,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             }
 
             // This function falls back to UTC if any system call fails.
-            let systime_utc = offset_to_systemtime(datetime.to_offset(offset!(UTC)));
+            let systime_utc = offset_to_systemtime(datetime.to_offset(UtcOffset::UTC));
 
             // Safety: `local_time` is only read if it is properly initialized, and
             // `SystemTimeToTzSpecificLocalTime` is thread-safe.
@@ -518,7 +518,6 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::offset;
 
     #[test]
     fn hours() {

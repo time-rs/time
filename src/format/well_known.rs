@@ -85,7 +85,7 @@ pub(crate) mod rfc3339 {
         }
 
         if try_consume_char_case_insensitive(s, 'Z').is_ok() {
-            items.offset = Some(offset!(UTC));
+            items.offset = Some(UtcOffset::UTC);
         } else {
             let offset_sign =
                 match try_consume_first_match(s, [("+", 1), ("-", -1)].iter().cloned()) {

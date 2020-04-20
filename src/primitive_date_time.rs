@@ -75,13 +75,11 @@ impl PrimitiveDateTime {
     #[deprecated(since = "0.2.7", note = "This method assumes an offset of UTC.")]
     pub const fn unix_epoch() -> Self {
         Self {
-            // TODO(upstream) Use `date!(1970-001)` when rustfmt can handle it.
-            // Currently, not even `#[rustfmt::skip::macros(date)]` works.
             date: Date {
                 year: 1970,
                 ordinal: 1,
             },
-            time: time!(0:00),
+            time: Time::midnight(),
         }
     }
 
@@ -466,7 +464,7 @@ impl PrimitiveDateTime {
     pub const fn assume_utc(self) -> OffsetDateTime {
         OffsetDateTime {
             utc_datetime: self,
-            offset: offset!(UTC),
+            offset: UtcOffset::UTC,
         }
     }
 }
@@ -764,11 +762,12 @@ mod test {
     use super::*;
 
     #[test]
-    fn new() {
+    fn new() -> crate::Result<()> {
         assert_eq!(
             PrimitiveDateTime::new(date!(2019-01-01), time!(0:00)),
             date!(2019-01-01).midnight(),
         );
+        Ok(())
     }
 
     #[test]
@@ -780,16 +779,17 @@ mod test {
 
     #[test]
     #[allow(deprecated)]
-    fn unix_epoch() {
+    fn unix_epoch() -> crate::Result<()> {
         assert_eq!(
             PrimitiveDateTime::unix_epoch(),
             date!(1970-01-01).midnight()
         );
+        Ok(())
     }
 
     #[test]
     #[allow(deprecated)]
-    fn from_unix_timestamp() {
+    fn from_unix_timestamp() -> crate::Result<()> {
         assert_eq!(
             PrimitiveDateTime::from_unix_timestamp(0),
             PrimitiveDateTime::unix_epoch()
@@ -798,83 +798,95 @@ mod test {
             PrimitiveDateTime::from_unix_timestamp(1_546_300_800),
             date!(2019-01-01).midnight(),
         );
+        Ok(())
     }
 
     #[test]
     #[allow(deprecated)]
-    fn timestamp() {
+    fn timestamp() -> crate::Result<()> {
         assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
         assert_eq!(date!(2019-01-01).midnight().timestamp(), 1_546_300_800);
+        Ok(())
     }
 
     #[test]
-    fn date() {
+    fn date() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().date(), date!(2019-01-01));
+        Ok(())
     }
 
     #[test]
-    fn time() {
+    fn time() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().time(), time!(0:00));
+        Ok(())
     }
 
     #[test]
-    fn year() {
+    fn year() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().year(), 2019);
         assert_eq!(date!(2019-12-31).midnight().year(), 2019);
         assert_eq!(date!(2020-01-01).midnight().year(), 2020);
+        Ok(())
     }
 
     #[test]
-    fn month() {
+    fn month() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().month(), 1);
         assert_eq!(date!(2019-12-31).midnight().month(), 12);
+        Ok(())
     }
 
     #[test]
-    fn day() {
+    fn day() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().day(), 1);
         assert_eq!(date!(2019-12-31).midnight().day(), 31);
+        Ok(())
     }
 
     #[test]
-    fn month_day() {
+    fn month_day() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().month_day(), (1, 1));
         assert_eq!(date!(2019-12-31).midnight().month_day(), (12, 31));
+        Ok(())
     }
 
     #[test]
-    fn ordinal() {
+    fn ordinal() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().ordinal(), 1);
         assert_eq!(date!(2019-12-31).midnight().ordinal(), 365);
+        Ok(())
     }
 
     #[test]
-    fn week() {
+    fn week() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().week(), 1);
         assert_eq!(date!(2019-10-04).midnight().week(), 40);
         assert_eq!(date!(2020-01-01).midnight().week(), 1);
         assert_eq!(date!(2020-12-31).midnight().week(), 53);
         assert_eq!(date!(2021-01-01).midnight().week(), 53);
+        Ok(())
     }
 
     #[test]
-    fn sunday_based_week() {
+    fn sunday_based_week() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().sunday_based_week(), 0);
         assert_eq!(date!(2020-01-01).midnight().sunday_based_week(), 0);
         assert_eq!(date!(2020-12-31).midnight().sunday_based_week(), 52);
         assert_eq!(date!(2021-01-01).midnight().sunday_based_week(), 0);
+        Ok(())
     }
 
     #[test]
-    fn monday_based_week() {
+    fn monday_based_week() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().monday_based_week(), 0);
         assert_eq!(date!(2020-01-01).midnight().monday_based_week(), 0);
         assert_eq!(date!(2020-12-31).midnight().monday_based_week(), 52);
         assert_eq!(date!(2021-01-01).midnight().monday_based_week(), 0);
+        Ok(())
     }
 
     #[test]
-    fn weekday() {
+    fn weekday() -> crate::Result<()> {
         use Weekday::*;
         assert_eq!(date!(2019-01-01).midnight().weekday(), Tuesday);
         assert_eq!(date!(2019-02-01).midnight().weekday(), Friday);
@@ -888,62 +900,69 @@ mod test {
         assert_eq!(date!(2019-10-01).midnight().weekday(), Tuesday);
         assert_eq!(date!(2019-11-01).midnight().weekday(), Friday);
         assert_eq!(date!(2019-12-01).midnight().weekday(), Sunday);
+        Ok(())
     }
 
     #[test]
-    fn hour() {
+    fn hour() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).with_time(time!(0:00)).hour(), 0);
         assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).hour(), 23);
+        Ok(())
     }
 
     #[test]
-    fn minute() {
+    fn minute() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).with_time(time!(0:00)).minute(), 0);
         assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).minute(), 59);
+        Ok(())
     }
 
     #[test]
-    fn second() {
+    fn second() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).with_time(time!(0:00)).second(), 0);
         assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).second(), 59);
+        Ok(())
     }
 
     #[test]
-    fn millisecond() {
+    fn millisecond() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().millisecond(), 0);
         assert_eq!(
             date!(2019-01-01)
-                .with_time(time!(23:59:59.999))
+                .with_time(time!(23:59:59:999_000_000))
                 .millisecond(),
             999
         );
+        Ok(())
     }
 
     #[test]
-    fn microsecond() {
+    fn microsecond() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().microsecond(), 0);
         assert_eq!(
             date!(2019-01-01)
-                .with_time(time!(23:59:59.999_999))
+                .with_time(time!(23:59:59:999_999_000))
                 .microsecond(),
             999_999
         );
+        Ok(())
     }
 
     #[test]
-    fn nanosecond() {
+    fn nanosecond() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().nanosecond(), 0);
         assert_eq!(
             date!(2019-01-01)
-                .with_time(time!(23:59:59.999_999_999))
+                .with_time(time!(23:59:59:999_999_999))
                 .nanosecond(),
             999_999_999
         );
+        Ok(())
     }
 
     #[allow(deprecated)]
     #[test]
-    fn using_offset() {
+    fn using_offset() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-01)
                 .midnight()
@@ -951,10 +970,11 @@ mod test {
                 .timestamp(),
             1_546_300_800,
         );
+        Ok(())
     }
 
     #[test]
-    fn assume_offset() {
+    fn assume_offset() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-01)
                 .midnight()
@@ -969,26 +989,29 @@ mod test {
                 .timestamp(),
             1_546_304_400,
         );
+        Ok(())
     }
 
     #[test]
-    fn assume_utc() {
+    fn assume_utc() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-01).midnight().assume_utc().timestamp(),
             1_546_300_800,
         );
+        Ok(())
     }
 
     #[test]
-    fn format() {
+    fn format() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-02).midnight().format("%F %r"),
             "2019-01-02 12:00:00 am"
         );
+        Ok(())
     }
 
     #[test]
-    fn parse() {
+    fn parse() -> crate::Result<()> {
         assert_eq!(
             PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
             Ok(date!(2019-01-02).midnight()),
@@ -999,12 +1022,13 @@ mod test {
         );
         assert_eq!(
             PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
-            Ok(date!(2019-W01-3).with_time(time!(12:00))),
+            Ok(date!(2019-002).with_time(time!(12:00))),
         );
+        Ok(())
     }
 
     #[test]
-    fn add_duration() {
+    fn add_duration() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-01).midnight() + 5.days(),
             date!(2019-01-06).midnight(),
@@ -1025,10 +1049,11 @@ mod test {
             date!(1999-12-31).with_time(time!(23:00)) + 1.hours(),
             date!(2000-01-01).midnight(),
         );
+        Ok(())
     }
 
     #[test]
-    fn add_std_duration() {
+    fn add_std_duration() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-01).midnight() + 5.std_days(),
             date!(2019-01-06).midnight(),
@@ -1041,10 +1066,11 @@ mod test {
             date!(2019-12-31).with_time(time!(23:59:59)) + 2.std_seconds(),
             date!(2020-01-01).with_time(time!(0:00:01)),
         );
+        Ok(())
     }
 
     #[test]
-    fn add_assign_duration() {
+    fn add_assign_duration() -> crate::Result<()> {
         let mut ny19 = date!(2019-01-01).midnight();
         ny19 += 5.days();
         assert_eq!(ny19, date!(2019-01-06).midnight());
@@ -1060,10 +1086,11 @@ mod test {
         let mut ny20t = date!(2020-01-01).with_time(time!(0:00:01));
         ny20t += (-2).seconds();
         assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
+        Ok(())
     }
 
     #[test]
-    fn add_assign_std_duration() {
+    fn add_assign_std_duration() -> crate::Result<()> {
         let mut ny19 = date!(2019-01-01).midnight();
         ny19 += 5.std_days();
         assert_eq!(ny19, date!(2019-01-06).midnight());
@@ -1075,10 +1102,11 @@ mod test {
         let mut nye20t = date!(2019-12-31).with_time(time!(23:59:59));
         nye20t += 2.std_seconds();
         assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
+        Ok(())
     }
 
     #[test]
-    fn sub_duration() {
+    fn sub_duration() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-06).midnight() - 5.days(),
             date!(2019-01-01).midnight(),
@@ -1099,10 +1127,11 @@ mod test {
             date!(1999-12-31).with_time(time!(23:00)) - (-1).hours(),
             date!(2000-01-01).midnight(),
         );
+        Ok(())
     }
 
     #[test]
-    fn sub_std_duration() {
+    fn sub_std_duration() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-06).midnight() - 5.std_days(),
             date!(2019-01-01).midnight(),
@@ -1115,10 +1144,11 @@ mod test {
             date!(2020-01-01).with_time(time!(0:00:01)) - 2.std_seconds(),
             date!(2019-12-31).with_time(time!(23:59:59)),
         );
+        Ok(())
     }
 
     #[test]
-    fn sub_assign_duration() {
+    fn sub_assign_duration() -> crate::Result<()> {
         let mut ny19 = date!(2019-01-06).midnight();
         ny19 -= 5.days();
         assert_eq!(ny19, date!(2019-01-01).midnight());
@@ -1134,10 +1164,11 @@ mod test {
         let mut nye20t = date!(2019-12-31).with_time(time!(23:59:59));
         nye20t -= (-2).seconds();
         assert_eq!(nye20t, date!(2020-01-01).with_time(time!(0:00:01)));
+        Ok(())
     }
 
     #[test]
-    fn sub_assign_std_duration() {
+    fn sub_assign_std_duration() -> crate::Result<()> {
         let mut ny19 = date!(2019-01-06).midnight();
         ny19 -= 5.std_days();
         assert_eq!(ny19, date!(2019-01-01).midnight());
@@ -1149,10 +1180,11 @@ mod test {
         let mut ny20t = date!(2020-01-01).with_time(time!(0:00:01));
         ny20t -= 2.std_seconds();
         assert_eq!(ny20t, date!(2019-12-31).with_time(time!(23:59:59)));
+        Ok(())
     }
 
     #[test]
-    fn sub_datetime() {
+    fn sub_datetime() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-02).midnight() - date!(2019-01-01).midnight(),
             1.days()
@@ -1169,11 +1201,12 @@ mod test {
             date!(2019-12-31).midnight() - date!(2020-01-01).midnight(),
             (-1).days()
         );
+        Ok(())
     }
 
     #[test]
     #[cfg(std)]
-    fn std_sub_datetime() {
+    fn std_sub_datetime() -> crate::Result<()> {
         assert_eq!(
             SystemTime::from(date!(2019-01-02).midnight()) - date!(2019-01-01).midnight(),
             1.days()
@@ -1190,11 +1223,12 @@ mod test {
             SystemTime::from(date!(2019-12-31).midnight()) - date!(2020-01-01).midnight(),
             (-1).days()
         );
+        Ok(())
     }
 
     #[test]
     #[cfg(std)]
-    fn sub_std() {
+    fn sub_std() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-02).midnight() - SystemTime::from(date!(2019-01-01).midnight()),
             1.days()
@@ -1211,10 +1245,11 @@ mod test {
             date!(2019-12-31).midnight() - SystemTime::from(date!(2020-01-01).midnight()),
             (-1).days()
         );
+        Ok(())
     }
 
     #[test]
-    fn ord() {
+    fn ord() -> crate::Result<()> {
         use Ordering::*;
         assert_eq!(
             date!(2019-01-01)
@@ -1261,7 +1296,7 @@ mod test {
         assert_eq!(
             date!(2019-01-01)
                 .midnight()
-                .partial_cmp(&date!(2019-01-01).with_time(time!(0:00:00.000_000_001))),
+                .partial_cmp(&date!(2019-01-01).with_time(time!(0:00:00:000_000_001))),
             Some(Less)
         );
         assert_eq!(
@@ -1302,10 +1337,11 @@ mod test {
         );
         assert_eq!(
             date!(2019-01-01)
-                .with_time(time!(0:00:00.000_000_001))
+                .with_time(time!(0:00:00:000_000_001))
                 .partial_cmp(&date!(2019-01-01).midnight()),
             Some(Greater)
         );
+        Ok(())
     }
 
     #[test]
@@ -1328,7 +1364,7 @@ mod test {
 
     #[test]
     #[cfg(std)]
-    fn ord_std() {
+    fn ord_std() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-01).midnight(),
             SystemTime::from(date!(2019-01-01).midnight())
@@ -1350,7 +1386,7 @@ mod test {
         );
         assert!(
             date!(2019-01-01).midnight()
-                < SystemTime::from(date!(2019-01-01).with_time(time!(0:00:00.001)))
+                < SystemTime::from(date!(2019-01-01).with_time(time!(0:00:00:001_000_000)))
         );
         assert!(date!(2020-01-01).midnight() > SystemTime::from(date!(2019-01-01).midnight()));
         assert!(date!(2019-02-01).midnight() > SystemTime::from(date!(2019-01-01).midnight()));
@@ -1368,14 +1404,15 @@ mod test {
                 > SystemTime::from(date!(2019-01-01).midnight())
         );
         assert!(
-            date!(2019-01-01).with_time(time!(0:00:00.000_000_001))
+            date!(2019-01-01).with_time(time!(0:00:00:000_000_001))
                 > SystemTime::from(date!(2019-01-01).midnight())
         );
+        Ok(())
     }
 
     #[test]
     #[cfg(std)]
-    fn std_ord() {
+    fn std_ord() -> crate::Result<()> {
         assert_eq!(
             SystemTime::from(date!(2019-01-01).midnight()),
             date!(2019-01-01).midnight()
@@ -1397,7 +1434,7 @@ mod test {
         );
         assert!(
             SystemTime::from(date!(2019-01-01).midnight())
-                < date!(2019-01-01).with_time(time!(0:00:00.000_000_001))
+                < date!(2019-01-01).with_time(time!(0:00:00:000_000_001))
         );
         assert!(SystemTime::from(date!(2020-01-01).midnight()) > date!(2019-01-01).midnight());
         assert!(SystemTime::from(date!(2019-02-01).midnight()) > date!(2019-01-01).midnight());
@@ -1415,9 +1452,10 @@ mod test {
                 > date!(2019-01-01).midnight()
         );
         assert!(
-            SystemTime::from(date!(2019-01-01).with_time(time!(0:00:00.001)))
+            SystemTime::from(date!(2019-01-01).with_time(time!(0:00:00:001_000_000)))
                 > date!(2019-01-01).midnight()
         );
+        Ok(())
     }
 
     #[test]

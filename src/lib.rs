@@ -191,11 +191,6 @@
 // guarantees that edition 2018 is available.
 #![doc(test(no_crate_inject))]
 
-// This is necessary to allow our proc macros to work.
-// See rust-lang/rust#54647 for details.
-// Unfortunately, this also means we can't have a `time` mod.
-extern crate self as time;
-
 #[cfg(panicking_api)]
 #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
 macro_rules! format_conditional {
@@ -296,6 +291,55 @@ macro_rules! assert_panics {
                 ));
             }
         }
+    };
+}
+
+/// A macro to generate `Time`s at runtime, usable for tests.
+#[cfg(test)]
+macro_rules! time {
+    ($hour:literal : $minute:literal) => {
+        crate::Time::try_from_hms($hour, $minute, 0)?
+    };
+    ($hour:literal : $minute:literal : $second:literal) => {
+        crate::Time::try_from_hms($hour, $minute, $second)?
+    };
+    ($hour:literal : $minute:literal : $second:literal : $nanosecond:literal) => {
+        crate::Time::try_from_hms_nano($hour, $minute, $second, $nanosecond)?
+    };
+}
+
+/// A macro to generate `UtcOffset`s with *no data verification*, usable for
+/// tests.
+#[cfg(test)]
+macro_rules! offset {
+    (UTC) => {
+        crate::UtcOffset::UTC
+    };
+    ($(+)? $hour:literal) => {
+        crate::UtcOffset::hours($hour)
+    };
+    (+ $hour:literal : $minute:literal) => {
+        crate::UtcOffset::minutes($hour * 60 + $minute)
+    };
+    (+ $hour:literal : $minute:literal : $second:literal) => {
+        crate::UtcOffset::seconds($hour * 3_600 + $minute * 60 + $second)
+    };
+    (- $hour:literal : $minute:literal) => {
+        crate::UtcOffset::minutes($hour * -60 - $minute)
+    };
+    (- $hour:literal : $minute:literal : $second:literal) => {
+        crate::UtcOffset::seconds($hour * -3_600 - $minute * 60 - $second)
+    };
+}
+
+/// A macro to generate `Date`s at runtime, usable for tests.
+#[cfg(test)]
+macro_rules! date {
+    ($(+)? $year:literal - $ordinal:literal) => {
+        crate::Date::try_from_yo($year, $ordinal)?
+    };
+    ($(+)? $year:literal - $month:literal - $day:literal) => {
+        crate::Date::try_from_ymd($year, $month, $day)?
     };
 }
 
@@ -465,7 +509,6 @@ mod internal_prelude {
         vec::Vec,
     };
     pub(crate) use standback::prelude::*;
-    pub(crate) use time_macros::{date, offset, time};
 }
 
 #[allow(clippy::missing_docs_in_private_items)]

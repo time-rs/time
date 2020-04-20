@@ -9,7 +9,6 @@ use core::{
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-use time_macros::time;
 
 /// The number of nanoseconds in one day.
 pub(crate) const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
@@ -44,7 +43,12 @@ impl Time {
     /// ```
     #[inline(always)]
     pub const fn midnight() -> Self {
-        time!(0:00)
+        Time {
+            hour: 0,
+            minute: 0,
+            second: 0,
+            nanosecond: 0,
+        }
     }
 
     /// Create a `Time` from the hour, minute, and second.
@@ -658,6 +662,7 @@ impl Add<Duration> for Time {
     ///
     /// ```rust
     /// # use time::prelude::*;
+    /// # use time_macros::time;
     /// assert_eq!(time!(12:00) + 2.hours(), time!(14:00));
     /// assert_eq!(time!(0:00:01) + (-2).seconds(), time!(23:59:59));
     /// ```
@@ -681,6 +686,7 @@ impl Add<StdDuration> for Time {
     ///
     /// ```rust
     /// # use time::prelude::*;
+    /// # use time_macros::time;
     /// assert_eq!(time!(12:00) + 2.std_hours(), time!(14:00));
     /// assert_eq!(time!(23:59:59) + 2.std_seconds(), time!(0:00:01));
     /// ```
@@ -696,6 +702,7 @@ impl AddAssign<Duration> for Time {
     ///
     /// ```rust
     /// # use time::prelude::*;
+    /// # use time_macros::time;
     /// let mut time = time!(12:00);
     /// time += 2.hours();
     /// assert_eq!(time, time!(14:00));
@@ -716,6 +723,7 @@ impl AddAssign<StdDuration> for Time {
     ///
     /// ```rust
     /// # use time::prelude::*;
+    /// # use time_macros::time;
     /// let mut time = time!(12:00);
     /// time += 2.std_hours();
     /// assert_eq!(time, time!(14:00));
@@ -738,6 +746,7 @@ impl Sub<Duration> for Time {
     ///
     /// ```rust
     /// # use time::prelude::*;
+    /// # use time_macros::time;
     /// assert_eq!(
     ///     time!(14:00) - 2.hours(),
     ///     time!(12:00)
@@ -761,6 +770,7 @@ impl Sub<StdDuration> for Time {
     ///
     /// ```rust
     /// # use time::prelude::*;
+    /// # use time_macros::time;
     /// assert_eq!(time!(14:00) - 2.std_hours(), time!(12:00));
     /// assert_eq!(time!(0:00:01) - 2.std_seconds(), time!(23:59:59));
     /// ```
@@ -776,6 +786,7 @@ impl SubAssign<Duration> for Time {
     ///
     /// ```rust
     /// # use time::prelude::*;
+    /// # use time_macros::time;
     /// let mut time = time!(14:00);
     /// time -= 2.hours();
     /// assert_eq!(time, time!(12:00));
@@ -796,6 +807,7 @@ impl SubAssign<StdDuration> for Time {
     ///
     /// ```rust
     /// # use time::prelude::*;
+    /// # use time_macros::time;
     /// let mut time = time!(14:00);
     /// time -= 2.std_hours();
     /// assert_eq!(time, time!(12:00));
@@ -818,6 +830,7 @@ impl Sub<Time> for Time {
     ///
     /// ```rust
     /// # use time::prelude::*;
+    /// # use time_macros::time;
     /// assert_eq!(time!(0:00) - time!(0:00), 0.seconds());
     /// assert_eq!(time!(1:00) - time!(0:00), 1.hours());
     /// assert_eq!(time!(0:00) - time!(1:00), (-1).hours());
@@ -864,22 +877,24 @@ mod test {
     use super::*;
 
     #[test]
-    fn nanoseconds_since_midnight() {
+    fn nanoseconds_since_midnight() -> crate::Result<()> {
         let time = time!(0:00);
         assert_eq!(time.nanoseconds_since_midnight(), 0);
         assert_eq!(Time::from_nanoseconds_since_midnight(0), time);
 
-        let time = time!(23:59:59.999_999_999);
+        let time = time!(23:59:59:999_999_999);
         assert_eq!(time.nanoseconds_since_midnight(), NANOS_PER_DAY - 1);
         assert_eq!(
             Time::from_nanoseconds_since_midnight(NANOS_PER_DAY - 1),
             time
         );
+        Ok(())
     }
 
     #[test]
-    fn midnight() {
+    fn midnight() -> crate::Result<()> {
         assert_eq!(Time::midnight(), time!(0:00));
+        Ok(())
     }
 
     #[test]
@@ -911,7 +926,6 @@ mod test {
         assert!(Time::try_from_hms(24, 0, 0).is_err());
         assert!(Time::try_from_hms(0, 60, 0).is_err());
         assert!(Time::try_from_hms(0, 0, 60).is_err());
-
         Ok(())
     }
 
@@ -951,7 +965,6 @@ mod test {
         assert!(Time::try_from_hms_milli(0, 60, 0, 0).is_err());
         assert!(Time::try_from_hms_milli(0, 0, 60, 0).is_err());
         assert!(Time::try_from_hms_milli(0, 0, 0, 1_000).is_err());
-
         Ok(())
     }
 
@@ -991,7 +1004,6 @@ mod test {
         assert!(Time::try_from_hms_micro(0, 60, 0, 0).is_err());
         assert!(Time::try_from_hms_micro(0, 0, 60, 0).is_err());
         assert!(Time::try_from_hms_micro(0, 0, 0, 1_000_000).is_err());
-
         Ok(())
     }
 
@@ -1029,7 +1041,6 @@ mod test {
         assert!(Time::try_from_hms_nano(0, 60, 0, 0).is_err());
         assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_err());
         assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_err());
-
         Ok(())
     }
 
@@ -1039,7 +1050,6 @@ mod test {
             assert_eq!(Time::try_from_hms(hour, 0, 0)?.hour(), hour);
             assert_eq!(Time::try_from_hms(hour, 59, 59)?.hour(), hour);
         }
-
         Ok(())
     }
 
@@ -1049,7 +1059,6 @@ mod test {
             assert_eq!(Time::try_from_hms(0, minute, 0)?.minute(), minute);
             assert_eq!(Time::try_from_hms(23, minute, 59)?.minute(), minute);
         }
-
         Ok(())
     }
 
@@ -1059,7 +1068,6 @@ mod test {
             assert_eq!(Time::try_from_hms(0, 0, second)?.second(), second);
             assert_eq!(Time::try_from_hms(23, 59, second)?.second(), second);
         }
-
         Ok(())
     }
 
@@ -1075,12 +1083,11 @@ mod test {
                 milli
             );
         }
-
         Ok(())
     }
 
     #[test]
-    fn microsecond() -> time::Result<()> {
+    fn microsecond() -> crate::Result<()> {
         for micro in (0..1_000_000).step_by(1_000) {
             assert_eq!(
                 Time::try_from_hms_micro(0, 0, 0, micro)?.microsecond(),
@@ -1091,7 +1098,6 @@ mod test {
                 micro
             );
         }
-
         Ok(())
     }
 
@@ -1104,83 +1110,88 @@ mod test {
                 nano
             );
         }
-
         Ok(())
     }
 
     #[test]
-    fn format() {
+    fn format() -> crate::Result<()> {
         assert_eq!(time!(0:00).format("%T"), "0:00:00");
-        assert_eq!(time!(12:00 am).format("%r"), "12:00:00 am");
+        assert_eq!(time!(0:00).format("%r"), "12:00:00 am");
         assert_eq!(time!(23:59:59).format("%T"), "23:59:59");
-        assert_eq!(time!(11:59:59 pm).format("%r"), "11:59:59 pm");
+        assert_eq!(time!(23:59:59).format("%r"), "11:59:59 pm");
+        Ok(())
     }
 
     #[test]
-    fn parse() {
+    fn parse() -> crate::Result<()> {
         assert_eq!(Time::parse("0:00:00", "%T"), Ok(time!(0:00)));
         assert_eq!(Time::parse("23:59:59", "%T"), Ok(time!(23:59:59)));
         assert_eq!(Time::parse("1:00:00 am", "%r"), Ok(time!(1:00)));
-        assert_eq!(Time::parse("12:00:00 am", "%r"), Ok(time!(12:00 am)));
-        assert_eq!(Time::parse("12:00:00 pm", "%r"), Ok(time!(12:00 pm)));
-        assert_eq!(Time::parse("11:59:59 pm", "%r"), Ok(time!(11:59:59 pm)));
+        assert_eq!(Time::parse("12:00:00 am", "%r"), Ok(time!(0:00)));
+        assert_eq!(Time::parse("12:00:00 pm", "%r"), Ok(time!(12:00)));
+        assert_eq!(Time::parse("11:59:59 pm", "%r"), Ok(time!(23:59:59)));
         assert_eq!(
             Time::parse("0:00:00.000000000", "%T.%N"),
-            Ok(time!(0:00:00.000_000_000))
+            Ok(time!(0:00:00:000_000_000))
         );
         assert_eq!(
             Time::parse("23:59:59.999999999", "%T.%N"),
-            Ok(time!(23:59:59.999_999_999))
+            Ok(time!(23:59:59:999_999_999))
         );
         assert_eq!(
             Time::parse("12:00:00.000000000 pm", "%-I:%M:%S.%N %p"),
-            Ok(time!(12:00:00.000_000_000 pm))
+            Ok(time!(12:00:00:000_000_000))
         );
         assert_eq!(
             Time::parse("11:59:59.999999999 pm", "%-I:%M:%S.%N %p"),
-            Ok(time!(11:59:59.999_999_999 pm))
+            Ok(time!(23:59:59:999_999_999))
         );
+        Ok(())
     }
 
     #[test]
-    fn parse_missing_seconds() {
+    fn parse_missing_seconds() -> crate::Result<()> {
         // Missing seconds defaults to zero.
         assert_eq!(Time::parse("0:00", "%-H:%M"), Ok(time!(0:00)));
         assert_eq!(Time::parse("23:59", "%H:%M"), Ok(time!(23:59)));
-        assert_eq!(Time::parse("12:00 am", "%I:%M %p"), Ok(time!(12:00 am)));
-        assert_eq!(Time::parse("12:00 pm", "%I:%M %p"), Ok(time!(12:00 pm)));
+        assert_eq!(Time::parse("12:00 am", "%I:%M %p"), Ok(time!(0:00)));
+        assert_eq!(Time::parse("12:00 pm", "%I:%M %p"), Ok(time!(12:00)));
+        Ok(())
     }
 
     #[test]
-    fn parse_missing_minutes() {
+    fn parse_missing_minutes() -> crate::Result<()> {
         // Missing minutes defaults to zero.
         assert_eq!(Time::parse("0", "%-H"), Ok(time!(0:00)));
         assert_eq!(Time::parse("23", "%H"), Ok(time!(23:00)));
-        assert_eq!(Time::parse("12am", "%I%p"), Ok(time!(12:00 am)));
-        assert_eq!(Time::parse("12pm", "%I%p"), Ok(time!(12:00 pm)));
+        assert_eq!(Time::parse("12am", "%I%p"), Ok(time!(0:00)));
+        assert_eq!(Time::parse("12pm", "%I%p"), Ok(time!(12:00)));
+        Ok(())
     }
 
     #[test]
-    fn display() {
+    fn display() -> crate::Result<()> {
         assert_eq!(time!(0:00).to_string(), "0:00");
         assert_eq!(time!(23:59).to_string(), "23:59");
         assert_eq!(time!(23:59:59).to_string(), "23:59:59");
         assert_eq!(time!(0:00:01).to_string(), "0:00:01");
-        assert_eq!(time!(0:00:00.001).to_string(), "0:00:00.001");
-        assert_eq!(time!(0:00:00.000_001).to_string(), "0:00:00.000001");
-        assert_eq!(time!(0:00:00.000_000_001).to_string(), "0:00:00.000000001");
+        assert_eq!(time!(0:00:00:001_000_000).to_string(), "0:00:00.001");
+        assert_eq!(time!(0:00:00:000_001_000).to_string(), "0:00:00.000001");
+        assert_eq!(time!(0:00:00:000_000_001).to_string(), "0:00:00.000000001");
+        Ok(())
     }
 
     #[test]
-    fn add_duration() {
+    fn add_duration() -> crate::Result<()> {
         assert_eq!(time!(0:00) + 1.seconds(), time!(0:00:01));
         assert_eq!(time!(0:00) + 1.minutes(), time!(0:01));
         assert_eq!(time!(0:00) + 1.hours(), time!(1:00));
         assert_eq!(time!(0:00) + 1.days(), time!(0:00));
+        Ok(())
     }
 
     #[test]
-    fn add_assign_duration() {
+    fn add_assign_duration() -> crate::Result<()> {
         let mut time = time!(0:00);
 
         time += 1.seconds();
@@ -1194,10 +1205,11 @@ mod test {
 
         time += 1.days();
         assert_eq!(time, time!(1:01:01));
+        Ok(())
     }
 
     #[test]
-    fn sub_duration() {
+    fn sub_duration() -> crate::Result<()> {
         assert_eq!(time!(12:00) - 1.hours(), time!(11:00));
 
         // Underflow
@@ -1205,10 +1217,11 @@ mod test {
         assert_eq!(time!(0:00) - 1.minutes(), time!(23:59));
         assert_eq!(time!(0:00) - 1.hours(), time!(23:00));
         assert_eq!(time!(0:00) - 1.days(), time!(0:00));
+        Ok(())
     }
 
     #[test]
-    fn sub_assign_duration() {
+    fn sub_assign_duration() -> crate::Result<()> {
         let mut time = time!(0:00);
 
         time -= 1.seconds();
@@ -1222,18 +1235,20 @@ mod test {
 
         time -= 1.days();
         assert_eq!(time, time!(22:58:59));
+        Ok(())
     }
 
     #[test]
-    fn add_std_duration() {
+    fn add_std_duration() -> crate::Result<()> {
         assert_eq!(time!(0:00) + 1.std_seconds(), time!(0:00:01));
         assert_eq!(time!(0:00) + 1.std_minutes(), time!(0:01));
         assert_eq!(time!(0:00) + 1.std_hours(), time!(1:00));
         assert_eq!(time!(0:00) + 1.std_days(), time!(0:00));
+        Ok(())
     }
 
     #[test]
-    fn add_assign_std_duration() {
+    fn add_assign_std_duration() -> crate::Result<()> {
         let mut time = time!(0:00);
 
         time += 1.std_seconds();
@@ -1247,10 +1262,11 @@ mod test {
 
         time += 1.std_days();
         assert_eq!(time, time!(1:01:01));
+        Ok(())
     }
 
     #[test]
-    fn sub_std_duration() {
+    fn sub_std_duration() -> crate::Result<()> {
         assert_eq!(time!(12:00) - 1.std_hours(), time!(11:00));
 
         // Underflow
@@ -1258,10 +1274,11 @@ mod test {
         assert_eq!(time!(0:00) - 1.std_minutes(), time!(23:59));
         assert_eq!(time!(0:00) - 1.std_hours(), time!(23:00));
         assert_eq!(time!(0:00) - 1.std_days(), time!(0:00));
+        Ok(())
     }
 
     #[test]
-    fn sub_assign_std_duration() {
+    fn sub_assign_std_duration() -> crate::Result<()> {
         let mut time = time!(0:00);
 
         time -= 1.std_seconds();
@@ -1275,20 +1292,23 @@ mod test {
 
         time -= 1.std_days();
         assert_eq!(time, time!(22:58:59));
+        Ok(())
     }
 
     #[test]
-    fn sub_time() {
+    fn sub_time() -> crate::Result<()> {
         assert_eq!(time!(0:00) - time!(0:00), 0.seconds());
         assert_eq!(time!(1:00) - time!(0:00), 1.hours());
         assert_eq!(time!(1:00) - time!(0:00:01), 59.minutes() + 59.seconds());
+        Ok(())
     }
 
     #[test]
-    fn ordering() {
-        assert!(time!(0:00) < time!(0:00:00.000_000_001));
+    fn ordering() -> crate::Result<()> {
+        assert!(time!(0:00) < time!(0:00:00:000_000_001));
         assert!(time!(0:00) < time!(0:00:01));
         assert!(time!(12:00) > time!(11:00));
         assert_eq!(time!(0:00), time!(0:00));
+        Ok(())
     }
 }
