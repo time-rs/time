@@ -5,7 +5,7 @@
 [![Matrix](https://img.shields.io/badge/chat-Matrix/Riot-blue)](https://riot.im/app/#/room/!AAFrFkLHvtsXtMYRho:matrix.org)
 ![license](https://img.shields.io/badge/license-MIT%20or%20Apache--2-brightgreen)
 ![version](https://img.shields.io/crates/v/time)
-![rustc 1.34.0](https://img.shields.io/badge/rustc-1.34.0-blue)
+![rustc 1.32.0](https://img.shields.io/badge/rustc-1.32.0-blue)
 
 [Documentation (master)](https://time-rs.github.io/time/time/index.html)
 <br>

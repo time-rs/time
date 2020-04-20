@@ -506,13 +506,11 @@ impl Time {
 
     /// Create a `Time` from the number of nanoseconds since midnight.
     #[inline(always)]
-    pub(crate) const fn from_nanoseconds_since_midnight(mut nanosecond: u64) -> Self {
+    pub(crate) const fn from_nanoseconds_since_midnight(nanosecond: u64) -> Self {
         #![allow(clippy::cast_possible_truncation)]
 
-        nanosecond %= 86_400 * 1_000_000_000;
-
         Self {
-            hour: (nanosecond / 1_000_000_000 / 60 / 60) as u8,
+            hour: (nanosecond / 1_000_000_000 / 60 / 60 % 24) as u8,
             minute: (nanosecond / 1_000_000_000 / 60 % 60) as u8,
             second: (nanosecond / 1_000_000_000 % 60) as u8,
             nanosecond: (nanosecond % 1_000_000_000) as u32,

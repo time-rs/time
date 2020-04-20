@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: [1.34.0, 1.36.0, stable]
+        rust: [1.32.0, 1.36.0, stable]
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
@@ -36,7 +36,7 @@ jobs:
         with:
           command: check
           args: --no-default-features
-        if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
+        if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
 
       # `#![no_std]` with serde, rand
       - name: Run `cargo check --no-default-features --features serde,rand`
@@ -44,7 +44,7 @@ jobs:
         with:
           command: check
           args: --no-default-features --features serde,rand
-        if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
+        if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
 
       # everything
       - name: Run `cargo check --features serde,deprecated,panicking-api,rand`
@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rust: [1.34.0, 1.36.0, stable]
+        rust: [1.36.0, stable]
 
     steps:
       - name: Checkout sources
@@ -86,7 +86,6 @@ jobs:
         with:
           command: check
           args: --no-default-features --target thumbv7em-none-eabihf
-        if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
 
       # `#![no_std]` with serde, rand
       - name: Run `cargo check --no-default-features --features serde,rand`
@@ -94,14 +93,13 @@ jobs:
         with:
           command: check
           args: --no-default-features --features serde,rand --target thumbv7em-none-eabihf
-        if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
 
   test:
     name: Test suite
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: [1.34.0, 1.36.0, stable] # 1.36 is when alloc was stabilized
+        rust: [1.32.0, 1.36.0, stable] # 1.36 is when alloc was stabilized
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
@@ -129,7 +127,7 @@ jobs:
         with:
           command: test
           args: --no-default-features
-        if: matrix.rust != '1.34.0' # alloc is unstable in 1.34
+        if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
 
       # everything
       - name: Run `cargo test --features serde,deprecated,panicking-api,rand`

@@ -1,10 +1,10 @@
 use crate::Duration;
 use core::{
     cmp::{Ord, Ordering, PartialEq, PartialOrd},
-    convert::TryInto,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
+use standback::convert::TryInto;
 use std::time::Instant as StdInstant;
 
 /// A measurement of a monotonically non-decreasing clock. Opaque and useful
@@ -80,7 +80,10 @@ impl Instant {
     ///     Some(now + (-5).seconds())
     /// );
     /// ```
+    ///
+    /// This function is only present when using rustc >= 1.34.0.
     #[inline]
+    #[cfg(instant_checked_ops)]
     pub fn checked_add(self, duration: Duration) -> Option<Self> {
         if duration.is_zero() {
             Some(self)
@@ -108,7 +111,10 @@ impl Instant {
     ///     Some(now - (-5).seconds())
     /// );
     /// ```
+    ///
+    /// This function is only present when using rustc >= 1.34.0.
     #[inline(always)]
+    #[cfg(instant_checked_ops)]
     pub fn checked_sub(self, duration: Duration) -> Option<Self> {
         self.checked_add(-duration)
     }
@@ -179,8 +185,13 @@ impl Add<Duration> for Instant {
 
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
-        self.checked_add(duration)
-            .expect("overflow when adding duration to instant")
+        if duration.is_positive() {
+            (self.inner + duration.abs_std()).into()
+        } else if duration.is_negative() {
+            (self.inner - duration.abs_std()).into()
+        } else {
+            self
+        }
     }
 }
 
@@ -230,8 +241,7 @@ impl Sub<Duration> for Instant {
 
     #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
-        self.checked_sub(duration)
-            .expect("overflow when subtracting duration from instant")
+        self + -duration
     }
 }
 
@@ -318,6 +328,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(instant_checked_ops)]
     fn checked_add() {
         let now = Instant::now();
         assert_eq!(now.checked_add(5.seconds()), Some(now + 5.seconds()));
@@ -325,6 +336,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(instant_checked_ops)]
     fn checked_sub() {
         let now = Instant::now();
         assert_eq!(now.checked_sub(5.seconds()), Some(now - 5.seconds()));

@@ -52,11 +52,10 @@ impl Date {
             [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
         ];
 
-        let ordinal = DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1];
-
         crate::Date {
             year,
-            ordinal: ordinal + day as u16,
+            ordinal: DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
+                + day as u16,
         }
     }
 

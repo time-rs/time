@@ -4,7 +4,7 @@ use crate::{
     Format,
 };
 #[cfg(std)]
-use core::convert::{From, TryFrom};
+use core::convert::From;
 use core::{
     cmp::Ordering,
     fmt::{self, Display},
@@ -12,6 +12,8 @@ use core::{
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
+#[cfg(std)]
+use standback::convert::TryFrom;
 #[cfg(std)]
 use std::time::SystemTime;
 

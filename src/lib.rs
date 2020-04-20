@@ -1,6 +1,6 @@
 //! Simple time handling.
 //!
-//! ![rustc 1.34.0](https://img.shields.io/badge/rustc-1.34.0-blue)
+//! ![rustc 1.32.0](https://img.shields.io/badge/rustc-1.32.0-blue)
 //!
 //! # Feature flags in Cargo
 //!
@@ -471,7 +471,10 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// The prelude may grow in minor releases. Any removals will only occur in
 /// major releases.
 pub mod prelude {
-    // Rename traits to `_` to avoid any potential name conflicts.
+    // Rename traits to `_` if possible to avoid any potential name conflicts.
+    #[cfg(not(use_trait_as_underscore))]
+    pub use crate::{NumericalDuration, NumericalStdDuration};
+    #[cfg(use_trait_as_underscore)]
     pub use crate::{NumericalDuration as _, NumericalStdDuration as _};
     // We need to re-export from the macros crate again (and not just do
     // `crate::foo`) because of the way name resolution works in Rust. It's not
@@ -582,7 +585,7 @@ pub type SteadyTime = Instant;
 )]
 #[inline]
 pub fn precise_time_ns() -> u64 {
-    use core::convert::TryInto;
+    use standback::convert::TryInto;
     use std::time::SystemTime;
 
     (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))
