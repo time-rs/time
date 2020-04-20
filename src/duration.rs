@@ -237,8 +237,29 @@ impl Duration {
     /// assert_eq!(0.seconds().abs(), 0.seconds());
     /// assert_eq!((-1).seconds().abs(), 1.seconds());
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.39.0.
     #[inline(always)]
-    #[rustversion::attr(since(1.39), const)]
+    #[cfg(const_num_abs)]
+    pub const fn abs(self) -> Self {
+        Self {
+            seconds: self.seconds.abs(),
+            nanoseconds: self.nanoseconds.abs(),
+        }
+    }
+
+    /// Get the absolute value of the duration.
+    ///
+    /// ```rust
+    /// # use time::prelude::*;
+    /// assert_eq!(1.seconds().abs(), 1.seconds());
+    /// assert_eq!(0.seconds().abs(), 0.seconds());
+    /// assert_eq!((-1).seconds().abs(), 1.seconds());
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.39.0.
+    #[inline(always)]
+    #[cfg(not(const_num_abs))]
     pub fn abs(self) -> Self {
         Self {
             seconds: self.seconds.abs(),

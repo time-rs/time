@@ -196,20 +196,6 @@
 // Unfortunately, this also means we can't have a `time` mod.
 extern crate self as time;
 
-#[cfg(docs)]
-#[rustversion::not(nightly)]
-compile_error!("The `__doc` feature requires a nightly compiler, and is for internal usage only.");
-
-#[rustversion::before(1.34.0)]
-compile_error!("The time crate has a minimum supported rust version of 1.34.0.");
-
-#[cfg(not(std))]
-#[rustversion::before(1.36.0)]
-compile_error!(
-    "Using the time crate without the standard library enabled requires a global allocator. This \
-     was stabilized in Rust 1.36.0. You can either upgrade or enable the standard library."
-);
-
 #[cfg(panicking_api)]
 #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
 macro_rules! format_conditional {

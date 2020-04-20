@@ -30,7 +30,6 @@ __doc = []
 [dependencies]
 cfg-if = "0.1.10"
 rand = { version = "0.7", optional = true, default-features = false }
-rustversion = "1"
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 standback = { version = "0.2.3", default-features = false }
 time-macros = { version = "0.1", path = "time-macros" }
@@ -48,4 +47,4 @@ winapi = { version = "0.3", features = ["minwinbase", "minwindef", "timezoneapi"
 stdweb = { version = "0.4", default-features = false, optional = true }
 
 [build-dependencies]
-rustversion = "1"
+version_check = "0.9"
