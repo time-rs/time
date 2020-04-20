@@ -1,6 +1,6 @@
 [package]
 name = "time-macros-impl"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Jacob Pratt <the.z.cuber@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/time-rs/time"
@@ -16,6 +16,7 @@ proc-macro2 = "1"
 syn = { version = "1", default-features = false, features = ["proc-macro", "parsing", "printing", "derive"] }
 quote = "1"
 proc-macro-hack = "0.5"
+standback = { version = "0.2", default-features = false }
 
 [lib]
 proc-macro = true

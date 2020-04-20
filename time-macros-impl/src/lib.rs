@@ -67,7 +67,6 @@ mod kw {
 mod date;
 mod ext;
 mod offset;
-mod shim;
 mod time;
 mod time_crate;
 
