@@ -1,10 +1,9 @@
-use crate::Duration;
+use crate::{internal_prelude::*, Duration};
 use core::{
     cmp::{Ord, Ordering, PartialEq, PartialOrd},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-use standback::convert::TryInto;
 use std::time::Instant as StdInstant;
 
 /// A measurement of a monotonically non-decreasing clock. Opaque and useful

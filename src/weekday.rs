@@ -1,7 +1,5 @@
 use crate::internal_prelude::*;
 use core::fmt::{self, Display};
-#[cfg(serde)]
-use standback::convert::TryInto;
 
 /// Days of the week.
 ///

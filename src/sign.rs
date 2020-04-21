@@ -1,8 +1,7 @@
 #![allow(deprecated)]
 
+use crate::internal_prelude::*;
 use core::ops::{Div, DivAssign, Mul, MulAssign, Neg, Not};
-#[cfg(serde)]
-use standback::convert::TryInto;
 use Sign::{Negative, Positive, Zero};
 
 /// Contains the sign of a value: positive, negative, or zero.

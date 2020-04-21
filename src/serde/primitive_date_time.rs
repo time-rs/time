@@ -1,4 +1,4 @@
-use standback::convert::{TryFrom, TryInto};
+use crate::internal_prelude::*;
 
 // Date followed by Time
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -25,9 +25,9 @@ impl TryFrom<PrimitiveDateTime> for crate::PrimitiveDateTime {
 }
 
 // TODO(0.3) Store the offset as well.
-impl From<crate::OffsetDateTime> for PrimitiveDateTime {
+impl From<OffsetDateTime> for PrimitiveDateTime {
     #[inline]
-    fn from(original: crate::OffsetDateTime) -> Self {
+    fn from(original: OffsetDateTime) -> Self {
         // Simplify handling by always using UTC.
         let original = original.to_offset(crate::UtcOffset::UTC);
         let date: crate::serde::Date = original.date().into();
@@ -36,7 +36,7 @@ impl From<crate::OffsetDateTime> for PrimitiveDateTime {
     }
 }
 
-impl TryFrom<PrimitiveDateTime> for crate::OffsetDateTime {
+impl TryFrom<PrimitiveDateTime> for OffsetDateTime {
     type Error = &'static str;
 
     #[inline]

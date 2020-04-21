@@ -9,8 +9,6 @@ use core::{
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(serde)]
-use standback::convert::TryInto;
 
 // Some methods could be `const fn` due to the internal structure of `Date`, but
 // are explicitly not (and have linting disabled) as it could lead to

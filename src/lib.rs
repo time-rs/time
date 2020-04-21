@@ -511,7 +511,10 @@ mod internal_prelude {
         vec,
         vec::Vec,
     };
-    pub(crate) use standback::prelude::*;
+    pub(crate) use standback::{
+        convert::{TryFrom, TryInto},
+        prelude::*,
+    };
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
@@ -585,7 +588,6 @@ pub type SteadyTime = Instant;
 )]
 #[inline]
 pub fn precise_time_ns() -> u64 {
-    use standback::convert::TryInto;
     use std::time::SystemTime;
 
     (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))

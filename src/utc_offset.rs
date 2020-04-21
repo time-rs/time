@@ -335,7 +335,7 @@ impl Display for UtcOffset {
 fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     cfg_if::cfg_if! {
         if #[cfg(target_family = "unix")] {
-            use standback::{convert::TryInto, mem::MaybeUninit};
+            use standback::mem::MaybeUninit;
 
             /// Convert the given Unix timestamp to a `libc::tm`. Returns `None`
             /// on any error.
@@ -386,7 +386,6 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             #[cfg(any(target_os = "solaris", target_os = "illumos"))]
             {
                 use crate::Date;
-                use core::convert::TryFrom;
 
                 let mut tm = tm;
                 if tm.tm_sec == 60 {
@@ -412,7 +411,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                     .map(UtcOffset::seconds)
             }
         } else if #[cfg(target_family = "windows")] {
-            use standback::{convert::TryInto, mem::MaybeUninit};
+            use standback::mem::MaybeUninit;
             use winapi::{
                 shared::minwindef::FILETIME,
                 um::{
