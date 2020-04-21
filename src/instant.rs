@@ -478,22 +478,22 @@ mod test {
     #[test]
     fn ord_std() {
         let now_time = Instant::now();
-        let now_std = StdInstant::from(now_time) + 1.nanoseconds();
+        let now_std = StdInstant::from(now_time) + 1.seconds();
         assert!(now_time < now_std);
 
         let now_time = Instant::now();
-        let now_std = StdInstant::from(now_time) - 1.nanoseconds();
+        let now_std = StdInstant::from(now_time) - 1.seconds();
         assert!(now_time > now_std);
     }
 
     #[test]
     fn std_ord() {
         let now_time = Instant::now();
-        let now_std = StdInstant::from(now_time) + 1.nanoseconds();
+        let now_std = StdInstant::from(now_time) + 1.seconds();
         assert!(now_std > now_time);
 
         let now_time = Instant::now();
-        let now_std = StdInstant::from(now_time) - 1.nanoseconds();
+        let now_std = StdInstant::from(now_time) - 1.seconds();
         assert!(now_std < now_time);
     }
 }
