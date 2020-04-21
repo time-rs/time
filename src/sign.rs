@@ -1,6 +1,8 @@
 #![allow(deprecated)]
 
 use core::ops::{Div, DivAssign, Mul, MulAssign, Neg, Not};
+#[cfg(serde)]
+use standback::convert::TryInto;
 use Sign::{Negative, Positive, Zero};
 
 /// Contains the sign of a value: positive, negative, or zero.
@@ -9,11 +11,8 @@ use Sign::{Negative, Positive, Zero};
 /// types. `Sign`s can also be multiplied and divided by another `Sign`, which
 /// follows the same rules as real numbers.
 #[repr(i8)]
-#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    serde,
-    serde(try_from = "crate::serde::Sign", into = "crate::serde::Sign")
-)]
+#[cfg_attr(serde, derive(serde::Serialize))]
+#[cfg_attr(serde, serde(into = "crate::serde::Sign"))]
 #[deprecated(
     since = "0.2.7",
     note = "The only use for this (obtaining the sign of a `Duration`) can be replaced with \
@@ -31,6 +30,18 @@ pub enum Sign {
     Zero = 0,
 }
 
+#[cfg(serde)]
+impl<'a> serde::Deserialize<'a> for Sign {
+    #[inline(always)]
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'a>,
+    {
+        crate::serde::Sign::deserialize(deserializer)?
+            .try_into()
+            .map_err(serde::de::Error::custom)
+    }
+}
 impl Default for Sign {
     /// `Sign` defaults to `Zero`.
     ///

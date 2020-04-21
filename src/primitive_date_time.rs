@@ -12,18 +12,14 @@ use core::{
 };
 #[cfg(std)]
 use standback::convert::TryFrom;
+#[cfg(serde)]
+use standback::convert::TryInto;
 #[cfg(std)]
 use std::time::SystemTime;
 
 /// Combined date and time.
-#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    serde,
-    serde(
-        try_from = "crate::serde::PrimitiveDateTime",
-        into = "crate::serde::PrimitiveDateTime"
-    )
-)]
+#[cfg_attr(serde, derive(serde::Serialize))]
+#[cfg_attr(serde, serde(into = "crate::serde::PrimitiveDateTime"))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PrimitiveDateTime {
     #[allow(clippy::missing_docs_in_private_items)]
@@ -32,6 +28,18 @@ pub struct PrimitiveDateTime {
     pub(crate) time: Time,
 }
 
+#[cfg(serde)]
+impl<'a> serde::Deserialize<'a> for PrimitiveDateTime {
+    #[inline(always)]
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'a>,
+    {
+        crate::serde::PrimitiveDateTime::deserialize(deserializer)?
+            .try_into()
+            .map_err(serde::de::Error::custom)
+    }
+}
 impl PrimitiveDateTime {
     /// Create a new `PrimitiveDateTime` from the provided `Date` and `Time`.
     ///

@@ -9,6 +9,8 @@ use core::{
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
+#[cfg(serde)]
+use standback::convert::TryInto;
 
 // Some methods could be `const fn` due to the internal structure of `Date`, but
 // are explicitly not (and have linting disabled) as it could lead to
@@ -92,11 +94,8 @@ pub(crate) const MAX_YEAR: i32 = 100_000;
 /// that can change at any time without notice. If you need support outside this
 /// range, please [file an issue](https://github.com/time-rs/time/issues/new)
 /// with your use case.
-#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    serde,
-    serde(try_from = "crate::serde::Date", into = "crate::serde::Date")
-)]
+#[cfg_attr(serde, derive(serde::Serialize))]
+#[cfg_attr(serde, serde(into = "crate::serde::Date"))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
     #[allow(clippy::missing_docs_in_private_items)]
@@ -106,6 +105,19 @@ pub struct Date {
     /// - 1 January => 1
     /// - 31 December => 365/366
     pub(crate) ordinal: u16,
+}
+
+#[cfg(serde)]
+impl<'a> serde::Deserialize<'a> for Date {
+    #[inline(always)]
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'a>,
+    {
+        crate::serde::Date::deserialize(deserializer)?
+            .try_into()
+            .map_err(serde::de::Error::custom)
+    }
 }
 
 impl Date {

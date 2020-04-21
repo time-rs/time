@@ -14,6 +14,8 @@ use core::{
 };
 #[cfg(std)]
 use standback::convert::TryFrom;
+#[cfg(serde)]
+use standback::convert::TryInto;
 #[cfg(std)]
 use std::time::SystemTime;
 
@@ -24,20 +26,27 @@ use std::time::SystemTime;
 // [`PrimitiveDateTime`] coupled with a [`UtcOffset`]. This offset is added to
 // the date, time, or datetime as necessary for presentation or returning from a
 // function.
-#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    serde,
-    serde(
-        try_from = "crate::serde::PrimitiveDateTime",
-        into = "crate::serde::PrimitiveDateTime"
-    )
-)]
+#[cfg_attr(serde, derive(serde::Serialize))]
+#[cfg_attr(serde, serde(into = "crate::serde::PrimitiveDateTime"))]
 #[derive(Debug, Clone, Copy, Eq)]
 pub struct OffsetDateTime {
     /// The `PrimitiveDateTime`, which is _always_ UTC.
     pub(crate) utc_datetime: PrimitiveDateTime,
     /// The `UtcOffset`, which will be added to the `PrimitiveDateTime` as necessary.
     pub(crate) offset: UtcOffset,
+}
+
+#[cfg(serde)]
+impl<'a> serde::Deserialize<'a> for OffsetDateTime {
+    #[inline(always)]
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'a>,
+    {
+        crate::serde::PrimitiveDateTime::deserialize(deserializer)?
+            .try_into()
+            .map_err(serde::de::Error::custom)
+    }
 }
 
 impl OffsetDateTime {

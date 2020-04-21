@@ -1,16 +1,15 @@
 use crate::internal_prelude::*;
 use core::fmt::{self, Display};
+#[cfg(serde)]
+use standback::convert::TryInto;
 
 /// Days of the week.
 ///
 /// As order is dependent on context (Sunday could be either
 /// two days after or five days before Friday), this type does not implement
 /// `PartialOrd` or `Ord`.
-#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    serde,
-    serde(try_from = "crate::serde::Weekday", into = "crate::serde::Weekday")
-)]
+#[cfg_attr(serde, derive(serde::Serialize))]
+#[cfg_attr(serde, serde(into = "crate::serde::Weekday"))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Weekday {
     #[allow(clippy::missing_docs_in_private_items)]
@@ -27,6 +26,19 @@ pub enum Weekday {
     Saturday,
     #[allow(clippy::missing_docs_in_private_items)]
     Sunday,
+}
+
+#[cfg(serde)]
+impl<'a> serde::Deserialize<'a> for Weekday {
+    #[inline(always)]
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'a>,
+    {
+        crate::serde::Weekday::deserialize(deserializer)?
+            .try_into()
+            .map_err(serde::de::Error::custom)
+    }
 }
 
 impl Weekday {
