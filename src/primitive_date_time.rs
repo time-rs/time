@@ -552,7 +552,6 @@ impl Add<Duration> for PrimitiveDateTime {
 
     #[inline]
     fn add(self, duration: Duration) -> Self::Output {
-        #[allow(clippy::cast_possible_truncation)]
         let nanos = self.time.nanoseconds_since_midnight() as i64
             + (duration.whole_nanoseconds() % 86_400_000_000_000) as i64;
 
@@ -573,7 +572,6 @@ impl Add<StdDuration> for PrimitiveDateTime {
 
     #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
-        #[allow(clippy::cast_possible_truncation)]
         let nanos = self.time.nanoseconds_since_midnight()
             + (duration.as_nanos() % 86_400_000_000_000) as u64;
 
@@ -615,7 +613,6 @@ impl Sub<StdDuration> for PrimitiveDateTime {
 
     #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
-        #[allow(clippy::cast_possible_truncation)]
         let nanos = self.time.nanoseconds_since_midnight() as i64
             - (duration.as_nanos() % 86_400_000_000_000) as i64;
 
@@ -745,7 +742,7 @@ impl From<SystemTime> for PrimitiveDateTime {
 
 /// Deprecated since v0.2.7, as it assumes an offset of UTC.
 #[cfg(std)]
-#[allow(clippy::fallible_impl_from, deprecated)]
+#[allow(deprecated)]
 impl From<PrimitiveDateTime> for SystemTime {
     #[inline]
     fn from(datetime: PrimitiveDateTime) -> Self {

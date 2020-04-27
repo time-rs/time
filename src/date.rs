@@ -22,7 +22,6 @@ const DAYS_IN_MONTH_COMMON_LEAP: [[u16; 12]; 2] = [
 
 /// Get the number of days in the month of a given year.
 #[inline(always)]
-#[allow(clippy::cast_possible_truncation)]
 const fn days_in_year_month(year: i32, month: u8) -> u8 {
     DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1] as u8
 }
@@ -373,33 +372,30 @@ impl Date {
         let days = CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(self.year) as usize];
         let ordinal = self.ordinal;
 
-        #[allow(clippy::cast_possible_truncation)]
-        {
-            if ordinal > days[10] {
-                (12, (ordinal - days[10]) as u8)
-            } else if ordinal > days[9] {
-                (11, (ordinal - days[9]) as u8)
-            } else if ordinal > days[8] {
-                (10, (ordinal - days[8]) as u8)
-            } else if ordinal > days[7] {
-                (9, (ordinal - days[7]) as u8)
-            } else if ordinal > days[6] {
-                (8, (ordinal - days[6]) as u8)
-            } else if ordinal > days[5] {
-                (7, (ordinal - days[5]) as u8)
-            } else if ordinal > days[4] {
-                (6, (ordinal - days[4]) as u8)
-            } else if ordinal > days[3] {
-                (5, (ordinal - days[3]) as u8)
-            } else if ordinal > days[2] {
-                (4, (ordinal - days[2]) as u8)
-            } else if ordinal > days[1] {
-                (3, (ordinal - days[1]) as u8)
-            } else if ordinal > days[0] {
-                (2, (ordinal - days[0]) as u8)
-            } else {
-                (1, ordinal as u8)
-            }
+        if ordinal > days[10] {
+            (12, (ordinal - days[10]) as u8)
+        } else if ordinal > days[9] {
+            (11, (ordinal - days[9]) as u8)
+        } else if ordinal > days[8] {
+            (10, (ordinal - days[8]) as u8)
+        } else if ordinal > days[7] {
+            (9, (ordinal - days[7]) as u8)
+        } else if ordinal > days[6] {
+            (8, (ordinal - days[6]) as u8)
+        } else if ordinal > days[5] {
+            (7, (ordinal - days[5]) as u8)
+        } else if ordinal > days[4] {
+            (6, (ordinal - days[4]) as u8)
+        } else if ordinal > days[3] {
+            (5, (ordinal - days[3]) as u8)
+        } else if ordinal > days[2] {
+            (4, (ordinal - days[2]) as u8)
+        } else if ordinal > days[1] {
+            (3, (ordinal - days[1]) as u8)
+        } else if ordinal > days[0] {
+            (2, (ordinal - days[0]) as u8)
+        } else {
+            (1, ordinal as u8)
         }
     }
 
@@ -432,7 +428,6 @@ impl Date {
     #[inline]
     pub fn iso_year_week(self) -> (i32, u8) {
         let weekday = self.weekday();
-        #[allow(clippy::cast_possible_truncation)]
         let week = ((self.ordinal + 10 - weekday.iso_weekday_number() as u16) / 7) as u8;
 
         match week {
@@ -471,7 +466,6 @@ impl Date {
     /// assert_eq!(date!(2021-01-01).sunday_based_week(), 0);
     /// ```
     #[inline]
-    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     pub fn sunday_based_week(self) -> u8 {
         ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as u8
     }
@@ -488,7 +482,6 @@ impl Date {
     /// assert_eq!(date!(2021-01-01).monday_based_week(), 0);
     /// ```
     #[inline]
-    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     pub fn monday_based_week(self) -> u8 {
         ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as u8
     }
@@ -676,7 +669,6 @@ impl Date {
         let month = (h / S + M).rem_euclid(N) + 1;
         let year = (e / P) - Y + (N + M - month) / N;
 
-        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
         match Date::try_from_ymd(year as i32, month as u8, day as u8) {
             Ok(date) => date,
             Err(err) => panic!("{}", err),
@@ -1002,22 +994,16 @@ impl Date {
             }
             items!(year, sunday_week, weekday) => Date::try_from_yo(
                 year,
-                #[allow(clippy::cast_sign_loss)]
-                {
-                    (sunday_week as i16 * 7 + weekday.number_days_from_sunday() as i16
-                        - adjustment(year)
-                        + 1) as u16
-                },
+                (sunday_week as i16 * 7 + weekday.number_days_from_sunday() as i16
+                    - adjustment(year)
+                    + 1) as u16,
             )
             .map_err(Into::into),
             items!(year, monday_week, weekday) => Date::try_from_yo(
                 year,
-                #[allow(clippy::cast_sign_loss)]
-                {
-                    (monday_week as i16 * 7 + weekday.number_days_from_monday() as i16
-                        - adjustment(year)
-                        + 1) as u16
-                },
+                (monday_week as i16 * 7 + weekday.number_days_from_monday() as i16
+                    - adjustment(year)
+                    + 1) as u16,
             )
             .map_err(Into::into),
             _ => Err(ParseError::InsufficientInformation),
@@ -1198,7 +1184,6 @@ mod test {
     // immediately preceding and after the leap day.
 
     #[test]
-    #[allow(clippy::zero_prefixed_literal)]
     fn test_monday_based_week() -> crate::Result<()> {
         // A
         assert_eq!(date!(2023-01-01).monday_based_week(), 0);
@@ -1392,7 +1377,6 @@ mod test {
     }
 
     #[test]
-    #[allow(clippy::zero_prefixed_literal)]
     fn test_sunday_based_week() -> crate::Result<()> {
         // A
         assert_eq!(date!(2023-01-01).sunday_based_week(), 1);
@@ -1586,7 +1570,6 @@ mod test {
     }
 
     #[test]
-    #[allow(clippy::zero_prefixed_literal)]
     fn test_parse_monday_based_week() -> crate::Result<()> {
         macro_rules! parse {
             ($s:literal) => {
@@ -1787,7 +1770,6 @@ mod test {
     }
 
     #[test]
-    #[allow(clippy::zero_prefixed_literal)]
     fn test_parse_sunday_based_week() -> crate::Result<()> {
         macro_rules! parse {
             ($s:literal) => {

@@ -1,39 +1,52 @@
-#![forbid(unsafe_code)]
 #![deny(
     anonymous_parameters,
-    rust_2018_idioms,
-    trivial_casts,
-    trivial_numeric_casts,
-    unreachable_pub,
+    clippy::all,
     const_err,
     illegal_floating_point_literal_pattern,
     late_bound_lifetime_arguments,
     path_statements,
     patterns_in_fns_without_body,
-    clippy::all
+    rust_2018_idioms,
+    trivial_casts,
+    trivial_numeric_casts,
+    unreachable_pub,
+    unsafe_code,
+    unused_extern_crates
 )]
 #![warn(
-    unused_extern_crates,
+    clippy::dbg_macro,
+    clippy::decimal_literal_representation,
+    clippy::get_unwrap,
+    clippy::nursery,
+    clippy::option_unwrap_used,
+    clippy::pedantic,
+    clippy::print_stdout,
+    clippy::result_unwrap_used,
+    clippy::todo,
+    clippy::unimplemented,
+    clippy::use_debug,
     missing_copy_implementations,
     missing_debug_implementations,
     single_use_lifetimes,
     unused_qualifications,
-    variant_size_differences,
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::decimal_literal_representation,
-    clippy::get_unwrap,
-    clippy::option_unwrap_used,
-    clippy::print_stdout,
-    clippy::result_unwrap_used
+    variant_size_differences
 )]
 #![allow(
-    clippy::inline_always,
-    clippy::cast_possible_wrap,
     clippy::cast_lossless,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    clippy::enum_glob_use,
+    clippy::inline_always,
+    clippy::missing_errors_doc,
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::use_self, // Not supported in some situations in older compilers.
+    clippy::suspicious_arithmetic_impl,
+    clippy::use_self,
+    clippy::wildcard_imports,
+    clippy::zero_prefixed_literal,
+    unstable_name_collisions
 )]
 
 // This is required on rustc < 1.42.0.
@@ -81,6 +94,7 @@ macro_rules! impl_macros {
     ($($name:ident : $type:ty),* $(,)?) => {
         $(
             #[proc_macro_hack]
+            #[allow(clippy::unimplemented)]
             pub fn $name(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
                 parse_macro_input!(input as $type).to_token_stream().into()
             }

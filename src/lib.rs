@@ -143,46 +143,55 @@
 #![cfg_attr(docs, feature(doc_cfg))]
 #![cfg_attr(not(std), no_std)]
 #![deny(
-    unsafe_code, // Used when interacting with system APIs
     anonymous_parameters,
-    rust_2018_idioms,
-    trivial_casts,
-    trivial_numeric_casts,
-    unreachable_pub, // some known bugs that are overridden
+    clippy::all,
     const_err,
     illegal_floating_point_literal_pattern,
     late_bound_lifetime_arguments,
     path_statements,
     patterns_in_fns_without_body,
-    clippy::all
+    rust_2018_idioms,
+    trivial_casts,
+    trivial_numeric_casts,
+    unreachable_pub,
+    unsafe_code,
+    unused_extern_crates
 )]
 #![warn(
-    unused_extern_crates,
+    clippy::dbg_macro,
+    clippy::decimal_literal_representation,
+    clippy::get_unwrap,
+    clippy::missing_docs_in_private_items,
+    clippy::nursery,
+    clippy::option_unwrap_used,
+    clippy::pedantic,
+    clippy::print_stdout,
+    clippy::result_unwrap_used,
+    clippy::todo,
+    clippy::unimplemented,
+    clippy::use_debug,
     missing_copy_implementations,
     missing_debug_implementations,
     single_use_lifetimes,
     unused_qualifications,
-    variant_size_differences,
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::missing_docs_in_private_items,
-    clippy::dbg_macro,
-    clippy::decimal_literal_representation,
-    clippy::get_unwrap,
-    clippy::option_unwrap_used,
-    clippy::print_stdout,
-    clippy::result_unwrap_used
+    variant_size_differences
 )]
 #![allow(
-    unstable_name_collisions,
-    clippy::suspicious_arithmetic_impl,
-    clippy::inline_always,
-    clippy::cast_possible_wrap,
     clippy::cast_lossless,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    clippy::enum_glob_use,
+    clippy::inline_always,
+    clippy::missing_errors_doc,
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
-    clippy::missing_errors_doc,
-    clippy::use_self, // Not supported in some situations in older compilers.
+    clippy::suspicious_arithmetic_impl,
+    clippy::use_self,
+    clippy::wildcard_imports,
+    clippy::zero_prefixed_literal,
+    unstable_name_collisions
 )]
 #![cfg_attr(test, allow(clippy::cognitive_complexity, clippy::too_many_lines))]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]

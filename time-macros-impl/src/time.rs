@@ -71,7 +71,6 @@ impl Parse for Time {
                         .collect();
 
                     // Scale the value based on how many digits were provided.
-                    #[allow(clippy::cast_possible_truncation)]
                     let value = LitInt::new(&digits, float.span()).base10_parse::<usize>()?
                         * 10_usize.pow(10 - digits.len() as u32);
 

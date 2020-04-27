@@ -78,7 +78,7 @@ pub(crate) mod rfc3339 {
             let nanos_raw: String = s.chars().take(num_digits_used).collect();
             // At most 9 decimal digits will always fit in a u32.
             // `num_digits_used` is at most 9, which can safely be cast.
-            #[allow(clippy::result_unwrap_used, clippy::cast_possible_truncation)]
+            #[allow(clippy::result_unwrap_used)]
             let nanos = nanos_raw.parse::<u32>().unwrap() * 10_u32.pow(9 - num_digits_used as u32);
             items.nanosecond = Some(nanos);
             *s = &s[num_digits..];

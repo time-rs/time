@@ -172,7 +172,6 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::hours(-12).as_minutes(), -720);
     /// ```
     #[inline(always)]
-    #[allow(clippy::cast_possible_truncation)]
     pub const fn as_minutes(self) -> i16 {
         (self.as_seconds() / 60) as i16
     }
@@ -187,7 +186,6 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::hours(-12).as_hours(), -12);
     /// ```
     #[inline(always)]
-    #[allow(clippy::cast_possible_truncation)]
     pub const fn as_hours(self) -> i8 {
         (self.as_seconds() / 3_600) as i8
     }

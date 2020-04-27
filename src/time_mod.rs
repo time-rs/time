@@ -462,7 +462,6 @@ impl Time {
     /// assert_eq!(time!(23:59:59.999).millisecond(), 999);
     /// ```
     #[inline(always)]
-    #[allow(clippy::cast_possible_truncation)]
     pub const fn millisecond(self) -> u16 {
         (self.nanosecond() / 1_000_000) as u16
     }
@@ -507,8 +506,6 @@ impl Time {
     /// Create a `Time` from the number of nanoseconds since midnight.
     #[inline(always)]
     pub(crate) const fn from_nanoseconds_since_midnight(nanosecond: u64) -> Self {
-        #![allow(clippy::cast_possible_truncation)]
-
         Self {
             hour: (nanosecond / 1_000_000_000 / 60 / 60 % 24) as u8,
             minute: (nanosecond / 1_000_000_000 / 60 % 60) as u8,
@@ -666,7 +663,6 @@ impl Add<Duration> for Time {
     /// ```
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
-        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
         Self::from_nanoseconds_since_midnight(
             self.nanoseconds_since_midnight()
                 + duration

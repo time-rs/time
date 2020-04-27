@@ -8,7 +8,6 @@ use crate::{
 use core::fmt::{self, Display, Formatter};
 
 /// A struct containing all the necessary information to display the inner type.
-#[allow(single_use_lifetimes)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) struct DeferredFormat {
     /// The `Date` to use for formatting.

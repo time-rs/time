@@ -434,7 +434,6 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f64(-0.5), -0.5.seconds());
     /// ```
     #[inline(always)]
-    #[allow(clippy::cast_possible_truncation)]
     pub fn seconds_f64(seconds: f64) -> Self {
         Self {
             seconds: seconds as i64,
@@ -450,7 +449,6 @@ impl Duration {
     /// assert_eq!((-1.5).seconds().as_seconds_f64(), -1.5);
     /// ```
     #[inline(always)]
-    #[allow(clippy::cast_precision_loss)]
     pub fn as_seconds_f64(self) -> f64 {
         self.seconds as f64 + self.nanoseconds as f64 / 1_000_000_000.
     }
@@ -464,7 +462,6 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
     /// ```
     #[inline(always)]
-    #[allow(clippy::cast_possible_truncation)]
     pub fn seconds_f32(seconds: f32) -> Self {
         Self {
             seconds: seconds as i64,
@@ -480,7 +477,6 @@ impl Duration {
     /// assert_eq!((-1.5).seconds().as_seconds_f32(), -1.5);
     /// ```
     #[inline(always)]
-    #[allow(clippy::cast_precision_loss)]
     pub fn as_seconds_f32(self) -> f32 {
         self.seconds as f32 + self.nanoseconds as f32 / 1_000_000_000.
     }
@@ -493,7 +489,6 @@ impl Duration {
     /// assert_eq!(Duration::milliseconds(-1), (-1_000).microseconds());
     /// ```
     #[inline(always)]
-    #[allow(clippy::cast_possible_truncation)]
     pub const fn milliseconds(milliseconds: i64) -> Self {
         Self {
             seconds: milliseconds / 1_000,
@@ -526,7 +521,6 @@ impl Duration {
     /// ```
     // Allow the lint, as the value is guaranteed to be less than 1000.
     #[inline(always)]
-    #[allow(clippy::cast_possible_truncation)]
     pub const fn subsec_milliseconds(self) -> i16 {
         (self.nanoseconds / 1_000_000) as i16
     }
@@ -539,7 +533,6 @@ impl Duration {
     /// assert_eq!(Duration::microseconds(-1), (-1_000).nanoseconds());
     /// ```
     #[inline(always)]
-    #[allow(clippy::cast_possible_truncation)]
     pub const fn microseconds(microseconds: i64) -> Self {
         Self {
             seconds: microseconds / 1_000_000,
@@ -583,7 +576,6 @@ impl Duration {
     /// assert_eq!(Duration::nanoseconds(-1), (-1).microseconds() / 1_000);
     /// ```
     #[inline(always)]
-    #[allow(clippy::cast_possible_truncation)]
     pub const fn nanoseconds(nanoseconds: i64) -> Self {
         Self {
             seconds: nanoseconds / 1_000_000_000,
@@ -596,7 +588,6 @@ impl Duration {
     /// As the input range cannot be fully mapped to the output, this should
     /// only be used where it's known to result in a valid value.
     #[inline(always)]
-    #[allow(clippy::cast_possible_truncation)]
     pub(crate) const fn nanoseconds_i128(nanoseconds: i128) -> Self {
         Self {
             seconds: (nanoseconds / 1_000_000_000) as i64,
@@ -692,7 +683,6 @@ impl Duration {
         // Multiply nanoseconds as i64, because it cannot overflow that way.
         let total_nanos = self.nanoseconds as i64 * rhs as i64;
         let extra_secs = total_nanos / 1_000_000_000;
-        #[allow(clippy::cast_possible_truncation)]
         let nanoseconds = (total_nanos % 1_000_000_000) as i32;
         let seconds = self
             .seconds
@@ -721,7 +711,6 @@ impl Duration {
         let seconds = self.seconds / (rhs as i64);
         let carry = self.seconds - seconds * (rhs as i64);
         let extra_nanos = carry * 1_000_000_000 / (rhs as i64);
-        #[allow(clippy::cast_possible_truncation)]
         let nanoseconds = self.nanoseconds / rhs + (extra_nanos as i32);
 
         Some(Self {
@@ -785,7 +774,6 @@ impl Duration {
     /// panicking on overflow. To avoid panicking, this method currently limits
     /// the value to the range `i64::min_value()..=i64::max_value()`.
     #[inline]
-    #[allow(clippy::cast_possible_truncation)]
     #[deprecated(
         since = "0.2.0",
         note = "Use the `whole_milliseconds` function. The value is clamped between \
@@ -808,7 +796,6 @@ impl Duration {
     /// [`Duration::whole_microseconds`] returns an `i128` rather than returning
     /// `None` on `i64` overflow.
     #[inline(always)]
-    #[allow(clippy::cast_possible_truncation)]
     #[deprecated(since = "0.2.0", note = "Use the `whole_microseconds` function")]
     pub fn num_microseconds(&self) -> Option<i64> {
         let micros = self.whole_microseconds();
@@ -823,7 +810,6 @@ impl Duration {
     /// [`Duration::whole_nanoseconds`] returns an `i128` rather than returning
     /// `None` on `i64` overflow.
     #[inline(always)]
-    #[allow(clippy::cast_possible_truncation)]
     #[deprecated(since = "0.2.0", note = "Use the `whole_nanoseconds` function")]
     pub fn num_nanoseconds(&self) -> Option<i64> {
         let nanos = self.whole_nanoseconds();
@@ -853,7 +839,7 @@ impl Duration {
     }
 
     #[inline(always)]
-    #[allow(deprecated, clippy::cast_sign_loss)]
+    #[allow(deprecated)]
     #[deprecated(
         since = "0.2.0",
         note = "Use `std::time::Duration::try_from(value)` or `value.try_into()`"
@@ -1013,7 +999,6 @@ macro_rules! duration_mul_div_int {
                 type Output = Self;
 
                 #[inline(always)]
-                #[allow(trivial_numeric_casts)]
                 fn mul(self, rhs: $type) -> Self::Output {
                     Self::nanoseconds_i128(
                         self.whole_nanoseconds()
@@ -1043,7 +1028,6 @@ macro_rules! duration_mul_div_int {
                 type Output = Self;
 
                 #[inline(always)]
-                #[allow(trivial_numeric_casts)]
                 fn div(self, rhs: $type) -> Self::Output {
                     Self::nanoseconds_i128(self.whole_nanoseconds() / rhs as i128)
                 }
@@ -1465,8 +1449,8 @@ mod test {
 
     #[test]
     fn subsec_nanoseconds() {
-        assert_eq!(1.0000004.seconds().subsec_nanoseconds(), 400);
-        assert_eq!((-1.0000004).seconds().subsec_nanoseconds(), -400);
+        assert_eq!(1.000_000_4.seconds().subsec_nanoseconds(), 400);
+        assert_eq!((-1.000_000_4).seconds().subsec_nanoseconds(), -400);
     }
 
     #[test]
