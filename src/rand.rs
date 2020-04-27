@@ -2,8 +2,8 @@
 
 use crate::{
     date::{MAX_YEAR, MIN_YEAR},
-    days_in_year,
     internal_prelude::*,
+    internals,
 };
 use rand::{
     distributions::{Distribution, Standard},
@@ -25,11 +25,12 @@ impl Distribution<Time> for Standard {
 impl Distribution<Date> for Standard {
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Date {
-        let year = rng.gen_range(MIN_YEAR, MAX_YEAR + 1);
-        Date {
-            year,
-            ordinal: rng.gen_range(1, days_in_year(year) + 1),
-        }
+        /// The minimum date allowed to be represented.
+        const MIN_DATE: Date = internals::Date::from_ymd_unchecked(MIN_YEAR, 1, 1);
+        /// The maximum date allowed to be represented.
+        const MAX_DATE: Date = internals::Date::from_ymd_unchecked(MAX_YEAR, 12, 31);
+
+        Date::from_julian_day(rng.gen_range(MIN_DATE.julian_day(), MAX_DATE.julian_day() + 1))
     }
 }
 

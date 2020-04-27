@@ -9,7 +9,25 @@ Versioning].
 
 ## Unreleased
 
-Nothing yet.
+### Added
+
+- `OffsetDateTime::now_utc`
+
+### Deprecated
+
+- `OffsetDateTime::now` due to the offset not being clear from the method name
+  alone.
+
+### Fixed
+
+`Date`s are now uniformly random when using the `rand` crate. Previously, both
+the year and day within the year were uniform, but this meant that any given day
+in a leap year was slightly less likely to be chosen than a day in a non-leap
+year.
+
+### Changed
+
+- MSRV is lowered to 1.32.0.
 
 ## 0.2.10 [2020-04-19]
 

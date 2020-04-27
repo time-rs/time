@@ -237,7 +237,7 @@ impl UtcOffset {
     #[inline(always)]
     #[cfg(std)]
     pub fn current_local_offset() -> Self {
-        let now = OffsetDateTime::now();
+        let now = OffsetDateTime::now_utc();
         try_local_offset_at(now).unwrap_or(Self::UTC)
     }
 
@@ -252,7 +252,7 @@ impl UtcOffset {
     #[inline(always)]
     #[cfg(std)]
     pub fn try_current_local_offset() -> Result<Self, IndeterminateOffsetError> {
-        let now = OffsetDateTime::now();
+        let now = OffsetDateTime::now_utc();
         try_local_offset_at(now).ok_or_else(IndeterminateOffsetError::new)
     }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "time"
-version = "0.2.10"
+version = "0.2.11"
 authors = ["Jacob Pratt <the.z.cuber@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/time-rs/time"

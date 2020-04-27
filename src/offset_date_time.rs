@@ -54,9 +54,28 @@ impl OffsetDateTime {
     /// assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
     /// ```
     #[inline(always)]
+    #[deprecated(
+        since = "0.2.11",
+        note = "This function returns a value with an offset of UTC, which is not apparent from \
+                its name alone. You should use `OffsetDateTime::now_utc()` instead."
+    )]
     #[cfg(std)]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     pub fn now() -> Self {
+        SystemTime::now().into()
+    }
+
+    /// Create a new `OffsetDateTime` with the current date and time in UTC.
+    ///
+    /// ```rust
+    /// # use time::{OffsetDateTime, offset};
+    /// assert!(OffsetDateTime::now_utc().year() >= 2019);
+    /// assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
+    /// ```
+    #[inline(always)]
+    #[cfg(std)]
+    #[cfg_attr(docs, doc(cfg(feature = "std")))]
+    pub fn now_utc() -> Self {
         SystemTime::now().into()
     }
 
@@ -71,7 +90,7 @@ impl OffsetDateTime {
     #[cfg(std)]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     pub fn now_local() -> Self {
-        let t = Self::now();
+        let t = Self::now_utc();
         t.to_offset(UtcOffset::local_offset_at(t))
     }
 
@@ -87,7 +106,7 @@ impl OffsetDateTime {
     #[cfg(std)]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     pub fn try_now_local() -> Result<Self, IndeterminateOffsetError> {
-        let t = Self::now();
+        let t = Self::now_utc();
         Ok(t.to_offset(UtcOffset::try_local_offset_at(t)?))
     }
 
@@ -1016,15 +1035,15 @@ mod test {
 
     #[test]
     #[cfg(std)]
-    fn now() {
-        assert!(OffsetDateTime::now().year() >= 2019);
-        assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
+    fn now_utc() {
+        assert!(OffsetDateTime::now_utc().year() >= 2019);
+        assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
     }
 
     #[test]
     #[cfg(std)]
     fn now_local() {
-        assert!(OffsetDateTime::now().year() >= 2019);
+        assert!(OffsetDateTime::now_local().year() >= 2019);
         assert_eq!(
             OffsetDateTime::now_local().offset(),
             UtcOffset::current_local_offset()
