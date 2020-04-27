@@ -99,7 +99,7 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2000-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .to_offset(offset!(-1))
     ///         .year(),
     ///     1999,
@@ -110,7 +110,7 @@ impl OffsetDateTime {
     ///
     /// // Construct midnight on new year's in Sydney. This is equivalent to
     /// // 13:00 UTC.
-    /// let sydney = date!(1999-12-31).with_time(time!(13:00)).using_offset(offset!(+11));
+    /// let sydney = date!(2000-01-01).midnight().assume_offset(offset!(+11));
     /// let new_york = sydney.to_offset(offset!(-5));
     /// let los_angeles = sydney.to_offset(offset!(-8));
     /// assert_eq!(sydney.hour(), 0);
@@ -133,7 +133,7 @@ impl OffsetDateTime {
     ///     OffsetDateTime::unix_epoch(),
     ///     date!(1970-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC)),
+    ///         .assume_utc(),
     /// );
     /// ```
     #[inline(always)]
@@ -158,7 +158,7 @@ impl OffsetDateTime {
     ///     OffsetDateTime::from_unix_timestamp(1_546_300_800),
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC)),
+    ///         .assume_utc(),
     /// );
     /// ```
     #[inline(always)]
@@ -173,14 +173,14 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .offset(),
     ///     offset!(UTC),
     /// );
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(+1))
+    ///         .assume_offset(offset!(+1))
     ///         .offset(),
     ///     offset!(+1),
     /// );
@@ -196,13 +196,14 @@ impl OffsetDateTime {
     /// # use time::{PrimitiveDateTime, offset};
     /// assert_eq!(
     ///     PrimitiveDateTime::unix_epoch()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .timestamp(),
     ///     0,
     /// );
     /// assert_eq!(
     ///     PrimitiveDateTime::unix_epoch()
-    ///         .using_offset(offset!(-1))
+    ///         .assume_utc()
+    ///         .to_offset(offset!(-1))
     ///         .timestamp(),
     ///     0,
     /// );
@@ -219,14 +220,15 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .date(),
     ///     date!(2019-01-01),
     /// );
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(-1))
+    ///         .assume_utc()
+    ///         .to_offset(offset!(-1))
     ///         .date(),
     ///     date!(2018-12-31),
     /// );
@@ -243,14 +245,15 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .time(),
     ///     time!(0:00)
     /// );
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(-1))
+    ///         .assume_utc()
+    ///         .to_offset(offset!(-1))
     ///         .time(),
     ///     time!(23:00)
     /// );
@@ -267,14 +270,14 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .year(),
     ///     2019,
     /// );
     /// assert_eq!(
     ///     date!(2019-12-31)
     ///         .with_time(time!(23:00))
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .to_offset(offset!(+1))
     ///         .year(),
     ///     2020,
@@ -282,7 +285,7 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2020-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .year(),
     ///     2020,
     /// );
@@ -303,14 +306,15 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .month(),
     ///     1,
     /// );
     /// assert_eq!(
     ///     date!(2019-12-31)
     ///         .with_time(time!(23:00))
-    ///         .using_offset(offset!(+1))
+    ///         .assume_utc()
+    ///         .to_offset(offset!(+1))
     ///         .month(),
     ///     1,
     /// );
@@ -330,14 +334,15 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .day(),
     ///     1,
     /// );
     /// assert_eq!(
     ///     date!(2019-12-31)
     ///         .with_time(time!(23:00))
-    ///         .using_offset(offset!(+1))
+    ///         .assume_utc()
+    ///         .to_offset(offset!(+1))
     ///         .day(),
     ///     1,
     /// );
@@ -357,14 +362,15 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .month_day(),
     ///     (1, 1),
     /// );
     /// assert_eq!(
     ///     date!(2019-12-31)
     ///         .with_time(time!(23:00))
-    ///         .using_offset(offset!(+1))
+    ///         .assume_utc()
+    ///         .to_offset(offset!(+1))
     ///         .month_day(),
     ///     (1, 1),
     /// );
@@ -383,14 +389,15 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .ordinal(),
     ///     1,
     /// );
     /// assert_eq!(
     ///     date!(2019-12-31)
     ///         .with_time(time!(23:00))
-    ///         .using_offset(offset!(+1))
+    ///         .assume_utc()
+    ///         .to_offset(offset!(+1))
     ///         .ordinal(),
     ///     1,
     /// );
@@ -407,35 +414,35 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .iso_year_week(),
     ///     (2019, 1),
     /// );
     /// assert_eq!(
     ///     date!(2019-10-04)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .iso_year_week(),
     ///     (2019, 40),
     /// );
     /// assert_eq!(
     ///     date!(2020-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .iso_year_week(),
     ///     (2020, 1),
     /// );
     /// assert_eq!(
     ///     date!(2020-12-31)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .iso_year_week(),
     ///     (2020, 53),
     /// );
     /// assert_eq!(
     ///     date!(2021-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .iso_year_week(),
     ///     (2020, 53),
     /// );
@@ -454,28 +461,28 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .week(),
     ///     1,
     /// );
     /// assert_eq!(
     ///     date!(2020-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .week(),
     ///     1,
     /// );
     /// assert_eq!(
     ///     date!(2020-12-31)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .week(),
     ///     53,
     /// );
     /// assert_eq!(
     ///     date!(2021-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .week(),
     ///     53,
     /// );
@@ -495,21 +502,21 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .weekday(),
     ///     Tuesday,
     /// );
     /// assert_eq!(
     ///     date!(2019-02-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .weekday(),
     ///     Friday,
     /// );
     /// assert_eq!(
     ///     date!(2019-03-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .weekday(),
     ///     Friday,
     /// );
@@ -528,14 +535,15 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .hour(),
     ///     0,
     /// );
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .with_time(time!(23:59:59))
-    ///         .using_offset(offset!(-2))
+    ///         .assume_utc()
+    ///         .to_offset(offset!(-2))
     ///         .hour(),
     ///     21,
     /// );
@@ -554,14 +562,15 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .minute(),
     ///     0,
     /// );
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .with_time(time!(23:59:59))
-    ///         .using_offset(offset!(+0:30))
+    ///         .assume_utc()
+    ///         .to_offset(offset!(+0:30))
     ///         .minute(),
     ///     29,
     /// );
@@ -580,14 +589,15 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .second(),
     ///     0,
     /// );
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .with_time(time!(23:59:59))
-    ///         .using_offset(offset!(+0:00:30))
+    ///         .assume_utc()
+    ///         .to_offset(offset!(+0:00:30))
     ///         .second(),
     ///     29,
     /// );
@@ -606,14 +616,14 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .millisecond(),
     ///     0,
     /// );
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .with_time(time!(23:59:59.999))
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .millisecond(),
     ///     999,
     /// );
@@ -632,14 +642,14 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .microsecond(),
     ///     0,
     /// );
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .with_time(time!(23:59:59.999_999))
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .microsecond(),
     ///     999_999,
     /// );
@@ -658,14 +668,14 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .nanosecond(),
     ///     0,
     /// );
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .with_time(time!(23:59:59.999_999_999))
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .nanosecond(),
     ///     999_999_999,
     /// );
@@ -685,7 +695,7 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-02)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .format("%F %r %z"),
     ///     "2019-01-02 12:00:00 am +0000",
     /// );
@@ -702,7 +712,7 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     date!(2019-01-02)
     ///         .midnight()
-    ///         .using_offset(offset!(UTC))
+    ///         .assume_utc()
     ///         .lazy_format("%F %r %z")
     ///         .to_string(),
     ///     "2019-01-02 12:00:00 am +0000",
@@ -723,15 +733,15 @@ impl OffsetDateTime {
     /// # use time::{date, OffsetDateTime, Weekday::Wednesday, time, offset};
     /// assert_eq!(
     ///     OffsetDateTime::parse("2019-01-02 00:00:00 +0000", "%F %T %z"),
-    ///     Ok(date!(2019-01-02).midnight().using_offset(offset!(UTC))),
+    ///     Ok(date!(2019-01-02).midnight().assume_utc()),
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::parse("2019-002 23:59:59 +0000", "%Y-%j %T %z"),
-    ///     Ok(date!(2019-002).with_time(time!(23:59:59)).using_offset(offset!(UTC))),
+    ///     Ok(date!(2019-002).with_time(time!(23:59:59)).assume_utc()),
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::parse("2019-W01-3 12:00:00 pm +0000", "%G-W%V-%u %r %z"),
-    ///     Ok(date!(2019-W01-3).with_time(time!(12:00)).using_offset(offset!(UTC))),
+    ///     Ok(date!(2019-W01-3).with_time(time!(12:00)).assume_utc()),
     /// );
     /// ```
     #[inline(always)]

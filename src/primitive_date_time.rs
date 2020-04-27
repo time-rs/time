@@ -437,7 +437,7 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::{date, offset};
     /// assert_eq!(
-    ///     date!(2019-01-01).midnight().using_offset(offset!(UTC)).timestamp(),
+    ///     date!(2019-01-01).midnight().assume_offset(offset!(UTC)).timestamp(),
     ///     1_546_300_800,
     /// );
     /// assert_eq!(
