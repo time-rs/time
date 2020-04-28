@@ -3,54 +3,6 @@ name: Build
 on: [push, pull_request]
 
 jobs:
-  check:
-    name: Type checking
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        rust: [1.36.0, stable]
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Cache target
-        uses: actions/cache@v1
-        env:
-          cache-name: target
-        with:
-          path: ./target
-          key: ${{ matrix.os }}-typecheck-target-${{ matrix.rust }}
-
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ matrix.rust }}
-          override: true
-
-      # ensure `#![no_std]` support
-      - name: Run `cargo check --no-default-features`
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --no-default-features
-
-      # `#![no_std]` with serde, rand, macros
-      - name: Run `cargo check --no-default-features --features serde,rand,macros`
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --no-default-features --features serde,rand,macros
-
-      # everything
-      - name: Run `cargo check --features serde,rand`
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --features serde,rand
-
   check-embedded:
     name: Type checking (embedded)
     runs-on: ubuntu-latest
@@ -244,7 +196,7 @@ jobs:
     name: Documentation
     runs-on: ubuntu-latest
     # ensure docs only get pushed if everything else is successful
-    needs: [check, check-embedded, check-web, test, fmt, clippy]
+    needs: [check-embedded, check-web, test, fmt, clippy]
 
     steps:
       - name: Checkout
