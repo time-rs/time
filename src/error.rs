@@ -11,10 +11,10 @@ use core::fmt;
 #[cfg_attr(supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
-    ConversionRange(ConversionRangeError),
+    ConversionRange,
     ComponentRange(Box<ComponentRangeError>),
     Parse(ParseError),
-    IndeterminateOffset(IndeterminateOffsetError),
+    IndeterminateOffset,
     #[cfg(not(supports_non_exhaustive))]
     #[doc(hidden)]
     __NonExhaustive,
@@ -24,10 +24,9 @@ impl fmt::Display for Error {
     #[inline(always)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::ConversionRange(e) => e.fmt(f),
+            e @ Error::ConversionRange | e @ Error::IndeterminateOffset => e.fmt(f),
             Error::ComponentRange(e) => e.fmt(f),
             Error::Parse(e) => e.fmt(f),
-            Error::IndeterminateOffset(e) => e.fmt(f),
             #[cfg(not(supports_non_exhaustive))]
             Error::__NonExhaustive => unreachable!(),
         }
@@ -39,10 +38,9 @@ impl std::error::Error for Error {
     #[inline(always)]
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Error::ConversionRange(err) => Some(err),
+            err @ Error::ConversionRange | err @ Error::IndeterminateOffset => Some(err),
             Error::ComponentRange(box_err) => Some(box_err.as_ref()),
             Error::Parse(err) => Some(err),
-            Error::IndeterminateOffset(err) => Some(err),
             #[cfg(not(supports_non_exhaustive))]
             Error::__NonExhaustive => unreachable!(),
         }
@@ -51,20 +49,8 @@ impl std::error::Error for Error {
 
 /// An error type indicating that a conversion failed because the target type
 /// could not store the initial value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ConversionRangeError {
-    #[allow(clippy::missing_docs_in_private_items)]
-    __non_exhaustive: (),
-}
-
-impl ConversionRangeError {
-    #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) const fn new() -> Self {
-        Self {
-            __non_exhaustive: (),
-        }
-    }
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct ConversionRangeError;
 
 impl fmt::Display for ConversionRangeError {
     #[inline(always)]
@@ -78,8 +64,8 @@ impl std::error::Error for ConversionRangeError {}
 
 impl From<ConversionRangeError> for Error {
     #[inline(always)]
-    fn from(original: ConversionRangeError) -> Self {
-        Error::ConversionRange(original)
+    fn from(_: ConversionRangeError) -> Self {
+        Error::ConversionRange
     }
 }
 
@@ -140,20 +126,8 @@ impl From<ParseError> for Error {
 }
 
 /// The system's UTC offset could not be determined at the given datetime.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct IndeterminateOffsetError {
-    #[allow(clippy::missing_docs_in_private_items)]
-    __non_exhaustive: (),
-}
-
-impl IndeterminateOffsetError {
-    #[allow(clippy::missing_docs_in_private_items, dead_code)]
-    pub(crate) const fn new() -> Self {
-        Self {
-            __non_exhaustive: (),
-        }
-    }
-}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct IndeterminateOffsetError;
 
 impl fmt::Display for IndeterminateOffsetError {
     #[inline(always)]
@@ -167,7 +141,7 @@ impl std::error::Error for IndeterminateOffsetError {}
 
 impl From<IndeterminateOffsetError> for Error {
     #[inline(always)]
-    fn from(original: IndeterminateOffsetError) -> Self {
-        Error::IndeterminateOffset(original)
+    fn from(_: IndeterminateOffsetError) -> Self {
+        Error::IndeterminateOffset
     }
 }

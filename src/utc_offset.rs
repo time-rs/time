@@ -222,7 +222,7 @@ impl UtcOffset {
     #[inline(always)]
     #[cfg(std)]
     pub fn try_local_offset_at(datetime: OffsetDateTime) -> Result<Self, IndeterminateOffsetError> {
-        try_local_offset_at(datetime).ok_or_else(IndeterminateOffsetError::new)
+        try_local_offset_at(datetime).ok_or_else(|| IndeterminateOffsetError)
     }
 
     /// Obtain the system's current UTC offset. If the offset cannot be
@@ -252,7 +252,7 @@ impl UtcOffset {
     #[cfg(std)]
     pub fn try_current_local_offset() -> Result<Self, IndeterminateOffsetError> {
         let now = OffsetDateTime::now_utc();
-        try_local_offset_at(now).ok_or_else(IndeterminateOffsetError::new)
+        try_local_offset_at(now).ok_or_else(|| IndeterminateOffsetError)
     }
 }
 
