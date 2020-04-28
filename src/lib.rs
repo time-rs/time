@@ -326,6 +326,7 @@ pub use primitive_date_time::PrimitiveDateTime;
 /// # Ok(())
 /// # }
 /// ```
+#[cfg(macros)]
 pub use time_macros::date;
 /// Construct a [`UtcOffset`] with a statically known value.
 ///
@@ -348,6 +349,7 @@ pub use time_macros::date;
 /// assert_eq!(offset!(+23:59:59), UtcOffset::seconds(86_399));
 /// assert_eq!(offset!(-23:59:59), UtcOffset::seconds(-86_399));
 /// ```
+#[cfg(macros)]
 pub use time_macros::offset;
 /// Construct a [`Time`] with a statically known value.
 ///
@@ -375,6 +377,7 @@ pub use time_macros::offset;
 /// # Ok(())
 /// # }
 /// ```
+#[cfg(macros)]
 pub use time_macros::time;
 pub use time_mod::Time;
 pub use utc_offset::UtcOffset;
@@ -406,6 +409,7 @@ pub mod prelude {
     //
     // As a side note, doing `use crate::time` causes a stack overflow in
     // rustc <= 1.37.0.
+    #[cfg(macros)]
     pub use time_macros::{date, offset, time};
 }
 

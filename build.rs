@@ -30,6 +30,7 @@ fn main() {
         "std" => std,
         "rand" => rand,
         "serde" => serde,
+        "macros" => macros,
         "__doc" => docs,
     };
 

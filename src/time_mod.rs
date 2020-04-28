@@ -38,7 +38,8 @@ impl Time {
     /// Create a `Time` that is exactly midnight.
     ///
     /// ```rust
-    /// # use time::{Time, time};
+    /// # use time::Time;
+    /// # use time_macros::time;
     /// assert_eq!(Time::midnight(), time!(0:00));
     /// ```
     #[inline(always)]
@@ -189,7 +190,7 @@ impl Time {
     /// The returned value will always be in the range `0..24`.
     ///
     /// ```rust
-    /// # use time::time;
+    /// # use time_macros::time;
     /// assert_eq!(time!(0:00:00).hour(), 0);
     /// assert_eq!(time!(23:59:59).hour(), 23);
     /// ```
@@ -203,7 +204,7 @@ impl Time {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time::time;
+    /// # use time_macros::time;
     /// assert_eq!(time!(0:00:00).minute(), 0);
     /// assert_eq!(time!(23:59:59).minute(), 59);
     /// ```
@@ -217,7 +218,7 @@ impl Time {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time::time;
+    /// # use time_macros::time;
     /// assert_eq!(time!(0:00:00).second(), 0);
     /// assert_eq!(time!(23:59:59).second(), 59);
     /// ```
@@ -231,7 +232,7 @@ impl Time {
     /// The returned value will always be in the range `0..1_000`.
     ///
     /// ```rust
-    /// # use time::time;
+    /// # use time_macros::time;
     /// assert_eq!(time!(0:00).millisecond(), 0);
     /// assert_eq!(time!(23:59:59.999).millisecond(), 999);
     /// ```
@@ -245,7 +246,7 @@ impl Time {
     /// The returned value will always be in the range `0..1_000_000`.
     ///
     /// ```rust
-    /// # use time::time;
+    /// # use time_macros::time;
     /// assert_eq!(time!(0:00).microsecond(), 0);
     /// assert_eq!(time!(23:59:59.999_999).microsecond(), 999_999);
     /// ```
@@ -259,7 +260,7 @@ impl Time {
     /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
-    /// # use time::time;
+    /// # use time_macros::time;
     /// assert_eq!(time!(0:00).nanosecond(), 0);
     /// assert_eq!(time!(23:59:59.999_999_999).nanosecond(), 999_999_999);
     /// ```
@@ -294,7 +295,7 @@ impl Time {
     /// Format the `Time` using the provided string.
     ///
     /// ```rust
-    /// # use time::time;
+    /// # use time_macros::time;
     /// assert_eq!(time!(0:00).format("%r"), "12:00:00 am");
     /// ```
     #[inline(always)]
@@ -305,7 +306,7 @@ impl Time {
     /// Format the `Time` using the provided string.
     ///
     /// ```rust
-    /// # use time::time;
+    /// # use time_macros::time;
     /// assert_eq!(time!(0:00).lazy_format("%r").to_string(), "12:00:00 am");
     /// ```
     #[inline(always)]
@@ -318,7 +319,8 @@ impl Time {
     /// Attempt to parse a `Time` using the provided string.
     ///
     /// ```rust
-    /// # use time::{Time, time};
+    /// # use time::Time;
+    /// # use time_macros::time;
     /// assert_eq!(
     ///     Time::parse("0:00:00", "%T"),
     ///     Ok(time!(0:00))

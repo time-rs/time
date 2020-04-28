@@ -17,7 +17,8 @@ all-features = true
 targets = ["x86_64-unknown-linux-gnu"]
 
 [features]
-default = ["std"]
+default = ["std", "macros"]
+macros = ["time-macros"]
 std = ["libc", "winapi", "stdweb", "standback/std"]
 
 # Internal usage. This is used when building for docs.rs and time-rs.github.io.
@@ -30,7 +31,13 @@ cfg-if = "0.1.10"
 rand = { version = "0.7", optional = true, default-features = false }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 standback = { version = "0.2.5", default-features = false }
+time-macros = { version = "0.1", path = "time-macros", optional = true }
+
+[dev-dependencies]
 time-macros = { version = "0.1", path = "time-macros" }
+
+[build-dependencies]
+version_check = "0.9"
 
 [workspace]
 members = ["time-macros", "time-macros-impl"]
@@ -43,9 +50,3 @@ winapi = { version = "0.3", features = ["minwinbase", "minwindef", "timezoneapi"
 
 [target.'cfg(cargo_web)'.dependencies]
 stdweb = { version = "0.4", default-features = false, optional = true }
-
-[build-dependencies]
-version_check = "0.9"
-
-[dev-dependencies]
-time-macros = { path = "time-macros" }
