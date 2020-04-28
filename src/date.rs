@@ -695,7 +695,7 @@ impl Date {
     /// assert_eq!(date!(2019-01-02).format("%Y-%m-%d"), "2019-01-02");
     /// ```
     #[inline(always)]
-    pub fn format(self, format: impl AsRef<str>) -> String {
+    pub fn format<'a>(self, format: impl Into<Cow<'a, str>>) -> String {
         self.lazy_format(format).to_string()
     }
 
@@ -706,10 +706,8 @@ impl Date {
     /// assert_eq!(date!(2019-01-02).lazy_format("%Y-%m-%d").to_string(), "2019-01-02");
     /// ```
     #[inline(always)]
-    pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
-        DeferredFormat::new(format.as_ref())
-            .with_date(self)
-            .to_owned()
+    pub fn lazy_format<'a>(self, format: impl Into<Cow<'a, str>>) -> impl Display + 'a {
+        DeferredFormat::new(format).with_date(self).to_owned()
     }
 
     /// Attempt to parse a `Date` using the provided string.
@@ -731,8 +729,11 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
+    pub fn parse<'a>(
+        s: impl Into<Cow<'a, str>>,
+        format: impl Into<Cow<'a, str>>,
+    ) -> ParseResult<Self> {
+        Self::try_from_parsed_items(parse(&s.into(), format)?)
     }
 
     /// Given the items already parsed, attempt to create a `Date`.

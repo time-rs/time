@@ -9,7 +9,7 @@ use core::fmt::{self, Display, Formatter};
 
 /// A struct containing all the necessary information to display the inner type.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub(crate) struct DeferredFormat {
+pub(crate) struct DeferredFormat<'a> {
     /// The `Date` to use for formatting.
     date: Option<Date>,
     /// The `Time` to use for formatting.
@@ -17,13 +17,13 @@ pub(crate) struct DeferredFormat {
     /// The `UtcOffset` to use for formatting.
     offset: Option<UtcOffset>,
     /// The list of items used to display the item.
-    format: Format,
+    format: Format<'a>,
 }
 
-impl DeferredFormat {
+impl<'a> DeferredFormat<'a> {
     /// Create a new `DeferredFormat` with the provided formatting string.
     #[inline]
-    pub(crate) fn new(format: impl Into<Format>) -> Self {
+    pub(crate) fn new(format: impl Into<Format<'a>>) -> Self {
         Self {
             date: None,
             time: None,
@@ -72,7 +72,7 @@ impl DeferredFormat {
     }
 }
 
-impl Display for DeferredFormat {
+impl Display for DeferredFormat<'_> {
     #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match &self.format {

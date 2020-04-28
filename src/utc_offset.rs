@@ -262,7 +262,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::hours(-2).format("%z"), "-0200");
     /// ```
     #[inline(always)]
-    pub fn format(self, format: impl AsRef<str>) -> String {
+    pub fn format<'a>(self, format: impl Into<Cow<'a, str>>) -> String {
         self.lazy_format(format).to_string()
     }
 
@@ -274,10 +274,8 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::hours(-2).lazy_format("%z").to_string(), "-0200");
     /// ```
     #[inline(always)]
-    pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
-        DeferredFormat::new(format.as_ref())
-            .with_offset(self)
-            .to_owned()
+    pub fn lazy_format<'a>(self, format: impl Into<Cow<'a, str>>) -> impl Display + 'a {
+        DeferredFormat::new(format).with_offset(self).to_owned()
     }
 
     /// Attempt to parse the `UtcOffset` using the provided string.
@@ -288,8 +286,11 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::parse("-0200", "%z"), Ok(UtcOffset::hours(-2)));
     /// ```
     #[inline(always)]
-    pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
+    pub fn parse<'a>(
+        s: impl Into<Cow<'a, str>>,
+        format: impl Into<Cow<'a, str>>,
+    ) -> ParseResult<Self> {
+        Self::try_from_parsed_items(parse(&s.into(), format)?)
     }
 
     /// Given the items already parsed, attempt to create a `UtcOffset`.

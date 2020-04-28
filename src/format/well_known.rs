@@ -19,7 +19,7 @@ pub(crate) mod rfc3339 {
 
     /// Format `df` according to the RFC3339 specification.
     #[inline]
-    pub(crate) fn fmt(df: &DeferredFormat, f: &mut Formatter<'_>) -> fmt::Result {
+    pub(crate) fn fmt(df: &DeferredFormat<'_>, f: &mut Formatter<'_>) -> fmt::Result {
         // If we're using RFC3339, all three components must be present.
         // This will be enforced with typestate when Rust gains sufficient
         // capabilities (namely proper sealed traits and/or function overloading).

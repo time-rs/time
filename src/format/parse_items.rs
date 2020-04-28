@@ -17,7 +17,9 @@ pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
 /// Attempt to parse the formatting string.
 #[inline]
 #[allow(clippy::too_many_lines)]
-pub(crate) fn try_parse_fmt_string<'a>(s: &'a str) -> Result<Vec<FormatItem<'a>>, String> {
+pub(crate) fn try_parse_fmt_string<'a>(
+    s: &'a str,
+) -> Result<Vec<FormatItem<'a>>, Cow<'static, str>> {
     let mut items = vec![];
     let mut literal_start = 0;
     let mut chars = s.char_indices().peekable();
@@ -163,12 +165,13 @@ pub(crate) fn try_parse_fmt_string<'a>(s: &'a str) -> Result<Vec<FormatItem<'a>>
                 ),
                 Some((i, 'z')) => push_specifier!(i, Specifier::z),
                 Some((i, '%')) => literal_start = i,
-                Some((_, c)) => return Err(format!("Invalid specifier `{}`", c)),
+                Some((_, c)) => return Err(format!("Invalid specifier `{}`", c).into()),
                 None => {
-                    return Err(String::from(
+                    return Err(
                         "Cannot end formatting with `%`. If you want a literal `%`, you must use \
-                         `%%`.",
-                    ))
+                         `%%`."
+                            .into(),
+                    )
                 }
             }
         }

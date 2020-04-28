@@ -34,8 +34,8 @@ pub(crate) use parse_items::{parse_fmt_string, try_parse_fmt_string};
 /// Checks if a user-provided formatting string is valid. If it isn't, a
 /// description of the error is returned.
 #[inline(always)]
-pub fn validate_format_string(s: impl AsRef<str>) -> Result<(), String> {
-    try_parse_fmt_string(s.as_ref()).map(|_| ())
+pub fn validate_format_string<'a>(s: impl Into<Cow<'a, str>>) -> Result<(), Cow<'static, str>> {
+    try_parse_fmt_string(&s.into()).map(|_| ())
 }
 
 /// The type of padding to use when formatting.
@@ -209,7 +209,7 @@ fn format_specifier(
 }
 
 /// An enum that can store both literals and specifiers.
-#[allow(variant_size_differences, single_use_lifetimes)]
+#[allow(variant_size_differences)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) enum FormatItem<'a> {
     /// A value that should be printed as-is.

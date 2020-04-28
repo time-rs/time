@@ -371,7 +371,7 @@ pub(crate) fn consume_padding(s: &mut &str, padding: Padding, max_chars: usize) 
 /// containing all information found.
 #[inline]
 #[allow(clippy::too_many_lines)]
-pub(crate) fn parse(s: &str, format: &Format) -> ParseResult<ParsedItems> {
+pub(crate) fn parse<'a>(s: &str, format: impl Into<Format<'a>>) -> ParseResult<ParsedItems> {
     use super::{date, offset, time};
 
     // Make a copy of the provided string, letting us mutate as necessary.
@@ -392,10 +392,10 @@ pub(crate) fn parse(s: &str, format: &Format) -> ParseResult<ParsedItems> {
         };
     }
 
-    match &format {
+    match format.into() {
         Format::Rfc3339 => well_known::rfc3339::parse(&mut items, &mut s)?,
         Format::Custom(format) => {
-            for item in parse_fmt_string(format) {
+            for item in parse_fmt_string(&format) {
                 match item {
                     FormatItem::Literal(expected) => try_consume_str(&mut s, expected)?,
                     FormatItem::Specifier(specifier) => {

@@ -299,7 +299,7 @@ impl Time {
     /// assert_eq!(time!(0:00).format("%r"), "12:00:00 am");
     /// ```
     #[inline(always)]
-    pub fn format(self, format: impl AsRef<str>) -> String {
+    pub fn format<'a>(self, format: impl Into<Cow<'a, str>>) -> String {
         self.lazy_format(format).to_string()
     }
 
@@ -310,10 +310,8 @@ impl Time {
     /// assert_eq!(time!(0:00).lazy_format("%r").to_string(), "12:00:00 am");
     /// ```
     #[inline(always)]
-    pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
-        DeferredFormat::new(format.as_ref())
-            .with_time(self)
-            .to_owned()
+    pub fn lazy_format<'a>(self, format: impl Into<Cow<'a, str>>) -> impl Display + 'a {
+        DeferredFormat::new(format).with_time(self).to_owned()
     }
 
     /// Attempt to parse a `Time` using the provided string.
@@ -343,8 +341,11 @@ impl Time {
     /// );
     /// ```
     #[inline(always)]
-    pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
+    pub fn parse<'a>(
+        s: impl Into<Cow<'a, str>>,
+        format: impl Into<Cow<'a, str>>,
+    ) -> ParseResult<Self> {
+        Self::try_from_parsed_items(parse(&s.into(), format)?)
     }
 
     /// Given the items already parsed, attempt to create a `Time`.

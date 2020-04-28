@@ -7,21 +7,20 @@ use crate::internal_prelude::*;
 #[allow(clippy::missing_docs_in_private_items)] // variants
 #[cfg_attr(supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Format {
+pub enum Format<'a> {
     Rfc3339,
-    Custom(String),
+    Custom(Cow<'a, str>),
     #[cfg(not(supports_non_exhaustive))]
     #[doc(hidden)]
     __NonExhaustive,
 }
 
-// TODO We're only using `AsRef` for back-compatibility. In 0.3, switch this to
-// `Into<Cow<'a, str>>`, which is both broader and avoids unnecessary clones.
-// This will require the addition of a lifetime to the `Format` struct.
-
-impl<T: AsRef<str>> From<T> for Format {
+impl<'a, T> From<T> for Format<'a>
+where
+    T: Into<Cow<'a, str>>,
+{
     #[inline]
     fn from(s: T) -> Self {
-        Format::Custom(s.as_ref().to_owned())
+        Format::Custom(s.into())
     }
 }

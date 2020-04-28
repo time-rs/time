@@ -689,7 +689,7 @@ impl OffsetDateTime {
     /// );
     /// ```
     #[inline(always)]
-    pub fn format(self, format: impl Into<Format>) -> String {
+    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
         self.lazy_format(format).to_string()
     }
 
@@ -707,7 +707,7 @@ impl OffsetDateTime {
     /// );
     /// ```
     #[inline(always)]
-    pub fn lazy_format(self, format: impl Into<Format>) -> impl Display {
+    pub fn lazy_format<'a>(self, format: impl Into<Format<'a>>) -> impl Display + 'a {
         DeferredFormat::new(format)
             .with_date(self.date())
             .with_time(self.time())
@@ -734,8 +734,11 @@ impl OffsetDateTime {
     /// );
     /// ```
     #[inline(always)]
-    pub fn parse(s: impl AsRef<str>, format: impl Into<Format>) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
+    pub fn parse<'a>(
+        s: impl Into<Cow<'a, str>>,
+        format: impl Into<Format<'a>>,
+    ) -> ParseResult<Self> {
+        Self::try_from_parsed_items(parse(&s.into(), format)?)
     }
 
     /// Given the items already parsed, attempt to create an `OffsetDateTime`.
