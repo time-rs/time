@@ -11,10 +11,6 @@ use core::fmt::{self, Display};
 /// you need support outside this range, please file an issue with your use
 /// case.
 #[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    serde,
-    serde(from = "crate::serde::UtcOffset", into = "crate::serde::UtcOffset")
-)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct UtcOffset {
     /// The number of seconds offset from UTC. Positive is east, negative is

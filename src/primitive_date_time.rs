@@ -10,8 +10,7 @@ use core::{
 };
 
 /// Combined date and time.
-#[cfg_attr(serde, derive(serde::Serialize))]
-#[cfg_attr(serde, serde(into = "crate::serde::PrimitiveDateTime"))]
+#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PrimitiveDateTime {
     #[allow(clippy::missing_docs_in_private_items)]
@@ -20,18 +19,6 @@ pub struct PrimitiveDateTime {
     pub(crate) time: Time,
 }
 
-#[cfg(serde)]
-impl<'a> serde::Deserialize<'a> for PrimitiveDateTime {
-    #[inline(always)]
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'a>,
-    {
-        crate::serde::PrimitiveDateTime::deserialize(deserializer)?
-            .try_into()
-            .map_err(serde::de::Error::custom)
-    }
-}
 impl PrimitiveDateTime {
     /// Create a new `PrimitiveDateTime` from the provided `Date` and `Time`.
     ///

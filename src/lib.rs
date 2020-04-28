@@ -36,6 +36,11 @@
 //! time = { version = "0.2", default-features = false, features = ["serde"] }
 //! ```
 //!
+//! **Please note that data _is not verified_ when deserializing. If invalid
+//! data is provided, the resulting struct will not be in a valid state. It is,
+//! however, guaranteed that a round-trip serialize-deserialize will result in a
+//! valid state.
+//!
 //! ## `rand`
 //!
 //! [Rand](https://github.com/rust-random/rand) support is behind a feature
@@ -432,10 +437,8 @@ mod internal_prelude {
         vec,
         vec::Vec,
     };
-    pub(crate) use standback::{
-        convert::{TryFrom, TryInto},
-        prelude::*,
-    };
+    pub(crate) use core::convert::{TryFrom, TryInto};
+    pub(crate) use standback::prelude::*;
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
