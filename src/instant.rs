@@ -304,7 +304,6 @@ impl PartialOrd<Instant> for StdInstant {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::prelude::*;
     use std::thread;
 
     #[test]
