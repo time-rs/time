@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: [1.32.0, 1.36.0, stable]
+        rust: [1.36.0, stable]
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
@@ -36,22 +36,20 @@ jobs:
         with:
           command: check
           args: --no-default-features
-        if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
 
-      # `#![no_std]` with serde, rand
-      - name: Run `cargo check --no-default-features --features serde,rand`
+      # `#![no_std]` with serde, rand, macros
+      - name: Run `cargo check --no-default-features --features serde,rand,macros`
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --no-default-features --features serde,rand
-        if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
+          args: --no-default-features --features serde,rand,macros
 
       # everything
-      - name: Run `cargo check --features serde,deprecated,panicking-api,rand`
+      - name: Run `cargo check --features serde,rand`
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --features serde,deprecated,panicking-api,rand
+          args: --features serde,rand
 
   check-embedded:
     name: Type checking (embedded)
@@ -88,11 +86,11 @@ jobs:
           args: --no-default-features --target thumbv7em-none-eabihf
 
       # `#![no_std]` with serde, rand
-      - name: Run `cargo check --no-default-features --features serde,rand`
+      - name: Run `cargo check --no-default-features --features serde,rand,macros`
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --no-default-features --features serde,rand --target thumbv7em-none-eabihf
+          args: --no-default-features --features serde,rand,macros --target thumbv7em-none-eabihf
 
   check-web:
     name: Type checking (web)
@@ -155,7 +153,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: [1.32.0, 1.36.0, stable] # 1.36 is when alloc was stabilized
+        rust: [1.36.0, stable]
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
@@ -183,14 +181,13 @@ jobs:
         with:
           command: test
           args: --no-default-features
-        if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
 
       # everything
-      - name: Run `cargo test --features serde,deprecated,panicking-api,rand`
+      - name: Run `cargo test --features serde,rand`
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features serde,deprecated,panicking-api,rand
+          args: --features serde,rand
 
   fmt:
     name: Formatting
@@ -237,11 +234,11 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Run `cargo clippy --features serde,deprecated,rand,panicking-api`
+      - name: Run `cargo clippy --features serde,rand`
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --features serde,deprecated,rand,panicking-api
+          args: --features serde,rand
 
   documentation:
     name: Documentation

@@ -1,6 +1,6 @@
 //! Simple time handling.
 //!
-//! ![rustc 1.32.0](https://img.shields.io/badge/rustc-1.32.0-blue)
+//! ![rustc 1.36.0](https://img.shields.io/badge/rustc-1.36.0-blue)
 //!
 //! # Feature flags in Cargo
 //!
@@ -169,6 +169,8 @@
 // Because we have a macro named `time`, this can cause conflicts. MSRV
 // guarantees that edition 2018 is available.
 #![doc(test(no_crate_inject))]
+
+extern crate alloc;
 
 // TODO Some of the formatting can likely be performed at compile-time.
 /// Returns `None` if the value is not in range.
@@ -397,10 +399,6 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// The prelude may grow in minor releases. Any removals will only occur in
 /// major releases.
 pub mod prelude {
-    // Rename traits to `_` if possible to avoid any potential name conflicts.
-    #[cfg(not(use_trait_as_underscore))]
-    pub use crate::{NumericalDuration, NumericalStdDuration};
-    #[cfg(use_trait_as_underscore)]
     pub use crate::{NumericalDuration as _, NumericalStdDuration as _};
     // We need to re-export from the macros crate again (and not just do
     // `crate::foo`) because of the way name resolution works in Rust. It's not
@@ -417,9 +415,6 @@ pub mod prelude {
 mod internal_prelude {
     #![allow(unused_imports)]
 
-    #[cfg(not(std))]
-    extern crate alloc;
-
     #[cfg(std)]
     pub(crate) use crate::Instant;
     pub(crate) use crate::{
@@ -429,7 +424,6 @@ mod internal_prelude {
         PrimitiveDateTime, Time, UtcOffset,
         Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
     };
-    #[cfg(not(std))]
     pub(crate) use alloc::{
         borrow::ToOwned,
         boxed::Box,

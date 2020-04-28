@@ -79,10 +79,7 @@ impl Instant {
     ///     Some(now + (-5).seconds())
     /// );
     /// ```
-    ///
-    /// This function is only present when using rustc >= 1.34.0.
     #[inline]
-    #[cfg(instant_checked_ops)]
     pub fn checked_add(self, duration: Duration) -> Option<Self> {
         if duration.is_zero() {
             Some(self)
@@ -110,10 +107,7 @@ impl Instant {
     ///     Some(now - (-5).seconds())
     /// );
     /// ```
-    ///
-    /// This function is only present when using rustc >= 1.34.0.
     #[inline(always)]
-    #[cfg(instant_checked_ops)]
     pub fn checked_sub(self, duration: Duration) -> Option<Self> {
         self.checked_add(-duration)
     }
@@ -314,7 +308,6 @@ mod test {
     }
 
     #[test]
-    #[cfg(instant_checked_ops)]
     fn checked_add() {
         let now = Instant::now();
         assert_eq!(now.checked_add(5.seconds()), Some(now + 5.seconds()));
@@ -322,7 +315,6 @@ mod test {
     }
 
     #[test]
-    #[cfg(instant_checked_ops)]
     fn checked_sub() {
         let now = Instant::now();
         assert_eq!(now.checked_sub(5.seconds()), Some(now - 5.seconds()));

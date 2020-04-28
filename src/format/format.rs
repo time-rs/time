@@ -1,6 +1,5 @@
 //! The `Format` struct and its implementations.
 
-#[cfg(not(std))]
 use crate::internal_prelude::*;
 
 /// Various well-known formats, along with the possibility for a custom format
