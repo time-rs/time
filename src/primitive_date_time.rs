@@ -2,16 +2,12 @@ use crate::{
     format::parse::{parse, ParsedItems},
     internal_prelude::*,
 };
-#[cfg(std)]
-use core::convert::From;
 use core::{
     cmp::Ordering,
     fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(std)]
-use std::time::SystemTime;
 
 /// Combined date and time.
 #[cfg_attr(serde, derive(serde::Serialize))]
@@ -49,82 +45,6 @@ impl PrimitiveDateTime {
     #[inline(always)]
     pub const fn new(date: Date, time: Time) -> Self {
         Self { date, time }
-    }
-
-    /// Create a new `PrimitiveDateTime` with the current date and time (UTC).
-    ///
-    /// ```rust
-    /// # use time::PrimitiveDateTime;
-    /// assert!(PrimitiveDateTime::now().year() >= 2019);
-    /// ```
-    #[inline(always)]
-    #[cfg(std)]
-    #[cfg_attr(docs, doc(cfg(feature = "std")))]
-    #[deprecated(
-        since = "0.2.7",
-        note = "This method returns a value that assumes an offset of UTC."
-    )]
-    pub fn now() -> Self {
-        SystemTime::now().into()
-    }
-
-    /// Midnight, 1 January, 1970 (UTC).
-    ///
-    /// ```rust
-    /// # use time::{PrimitiveDateTime, date};
-    /// assert_eq!(
-    ///     PrimitiveDateTime::unix_epoch(),
-    ///     date!(1970-01-01).midnight()
-    /// );
-    /// ```
-    #[inline(always)]
-    #[deprecated(since = "0.2.7", note = "This method assumes an offset of UTC.")]
-    pub const fn unix_epoch() -> Self {
-        Self {
-            date: Date {
-                year: 1970,
-                ordinal: 1,
-            },
-            time: Time::midnight(),
-        }
-    }
-
-    /// Create a `PrimitiveDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
-    ///
-    /// ```rust
-    /// # use time::{date, PrimitiveDateTime};
-    /// assert_eq!(
-    ///     PrimitiveDateTime::from_unix_timestamp(0),
-    ///     PrimitiveDateTime::unix_epoch()
-    /// );
-    /// assert_eq!(
-    ///     PrimitiveDateTime::from_unix_timestamp(1_546_300_800),
-    ///     date!(2019-01-01).midnight(),
-    /// );
-    /// ```
-    #[inline(always)]
-    #[deprecated(
-        since = "0.2.7",
-        note = "This method returns a value that assumes an offset of UTC."
-    )]
-    #[allow(deprecated)]
-    pub fn from_unix_timestamp(timestamp: i64) -> Self {
-        Self::unix_epoch() + timestamp.seconds()
-    }
-
-    /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time)
-    /// representing the `PrimitiveDateTime`.
-    ///
-    /// ```rust
-    /// # use time::{date, PrimitiveDateTime};
-    /// assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
-    /// assert_eq!(date!(2019-01-01).midnight().timestamp(), 1_546_300_800);
-    /// ```
-    #[inline(always)]
-    #[allow(deprecated)]
-    #[deprecated(since = "0.2.7", note = "This method assumes an offset of UTC.")]
-    pub fn timestamp(self) -> i64 {
-        (self - Self::unix_epoch()).whole_seconds()
     }
 
     /// Get the `Date` component of the `PrimitiveDateTime`.
@@ -402,36 +322,6 @@ impl PrimitiveDateTime {
     }
 
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in
-    /// the UTC, return an `OffsetDateTime` with the provided `UtcOffset`.
-    ///
-    /// ```rust
-    /// # use time::{date, offset};
-    /// assert_eq!(
-    ///     date!(2019-01-01).midnight().using_offset(offset!(UTC)).timestamp(),
-    ///     1_546_300_800,
-    /// );
-    /// assert_eq!(
-    ///     date!(2019-01-01).midnight().using_offset(offset!(-1)).timestamp(),
-    ///     1_546_300_800,
-    /// );
-    /// ```
-    ///
-    /// This function is the same as calling `.assume_utc().to_offset(offset)`.
-    #[deprecated(
-        since = "0.2.7",
-        note = "Due to behavior not clear by its name alone, it is preferred to use \
-                `.assume_utc().to_offset(offset)`. This has the same behavior and can be used in \
-                `const` contexts."
-    )]
-    #[inline(always)]
-    pub const fn using_offset(self, offset: UtcOffset) -> OffsetDateTime {
-        OffsetDateTime {
-            utc_datetime: self,
-            offset,
-        }
-    }
-
-    /// Assuming that the existing `PrimitiveDateTime` represents a moment in
     /// the provided `UtcOffset`, return an `OffsetDateTime`.
     ///
     /// ```rust
@@ -645,68 +535,10 @@ impl Sub<PrimitiveDateTime> for PrimitiveDateTime {
     }
 }
 
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
-impl Sub<SystemTime> for PrimitiveDateTime {
-    type Output = Duration;
-
-    #[inline(always)]
-    fn sub(self, rhs: SystemTime) -> Self::Output {
-        self - Self::from(rhs)
-    }
-}
-
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
-impl Sub<PrimitiveDateTime> for SystemTime {
-    type Output = Duration;
-
-    #[inline(always)]
-    fn sub(self, rhs: PrimitiveDateTime) -> Self::Output {
-        PrimitiveDateTime::from(self) - rhs
-    }
-}
-
 impl PartialOrd for PrimitiveDateTime {
     #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
-    }
-}
-
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
-impl PartialEq<SystemTime> for PrimitiveDateTime {
-    #[inline(always)]
-    fn eq(&self, rhs: &SystemTime) -> bool {
-        self == &Self::from(*rhs)
-    }
-}
-
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
-impl PartialEq<PrimitiveDateTime> for SystemTime {
-    #[inline(always)]
-    fn eq(&self, rhs: &PrimitiveDateTime) -> bool {
-        &PrimitiveDateTime::from(*self) == rhs
-    }
-}
-
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
-impl PartialOrd<SystemTime> for PrimitiveDateTime {
-    #[inline(always)]
-    fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
-        self.partial_cmp(&Self::from(*other))
-    }
-}
-
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
-impl PartialOrd<PrimitiveDateTime> for SystemTime {
-    #[inline(always)]
-    fn partial_cmp(&self, other: &PrimitiveDateTime) -> Option<Ordering> {
-        PrimitiveDateTime::from(*self).partial_cmp(other)
     }
 }
 
@@ -717,44 +549,6 @@ impl Ord for PrimitiveDateTime {
             Ordering::Less => Ordering::Less,
             Ordering::Equal => self.time.cmp(&other.time),
             Ordering::Greater => Ordering::Greater,
-        }
-    }
-}
-
-/// Deprecated since v0.2.7, as it returns a value that assumes an offset of UTC.
-#[cfg(std)]
-#[allow(deprecated)]
-impl From<SystemTime> for PrimitiveDateTime {
-    // There is definitely some way to have this conversion be infallible, but
-    // it won't be an issue for over 500 years.
-    #[inline(always)]
-    fn from(system_time: SystemTime) -> Self {
-        let duration = match system_time.duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(duration) => Duration::try_from(duration)
-                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
-            Err(err) => -Duration::try_from(err.duration())
-                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
-        };
-
-        Self::unix_epoch() + duration
-    }
-}
-
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
-#[allow(deprecated)]
-impl From<PrimitiveDateTime> for SystemTime {
-    #[inline]
-    fn from(datetime: PrimitiveDateTime) -> Self {
-        let duration = datetime - PrimitiveDateTime::unix_epoch();
-
-        if duration.is_zero() {
-            Self::UNIX_EPOCH
-        } else if duration.is_positive() {
-            Self::UNIX_EPOCH + duration.abs_std()
-        } else {
-            // duration.is_negative()
-            Self::UNIX_EPOCH - duration.abs_std()
         }
     }
 }
@@ -770,45 +564,6 @@ mod test {
             PrimitiveDateTime::new(date!(2019-01-01), time!(0:00)),
             date!(2019-01-01).midnight(),
         );
-        Ok(())
-    }
-
-    #[test]
-    #[cfg(std)]
-    #[allow(deprecated)]
-    fn now() {
-        assert!(PrimitiveDateTime::now().year() >= 2019);
-    }
-
-    #[test]
-    #[allow(deprecated)]
-    fn unix_epoch() -> crate::Result<()> {
-        assert_eq!(
-            PrimitiveDateTime::unix_epoch(),
-            date!(1970-01-01).midnight()
-        );
-        Ok(())
-    }
-
-    #[test]
-    #[allow(deprecated)]
-    fn from_unix_timestamp() -> crate::Result<()> {
-        assert_eq!(
-            PrimitiveDateTime::from_unix_timestamp(0),
-            PrimitiveDateTime::unix_epoch()
-        );
-        assert_eq!(
-            PrimitiveDateTime::from_unix_timestamp(1_546_300_800),
-            date!(2019-01-01).midnight(),
-        );
-        Ok(())
-    }
-
-    #[test]
-    #[allow(deprecated)]
-    fn timestamp() -> crate::Result<()> {
-        assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
-        assert_eq!(date!(2019-01-01).midnight().timestamp(), 1_546_300_800);
         Ok(())
     }
 
@@ -959,19 +714,6 @@ mod test {
                 .with_time(time!(23:59:59:999_999_999))
                 .nanosecond(),
             999_999_999
-        );
-        Ok(())
-    }
-
-    #[allow(deprecated)]
-    #[test]
-    fn using_offset() -> crate::Result<()> {
-        assert_eq!(
-            date!(2019-01-01)
-                .midnight()
-                .using_offset(offset!(UTC))
-                .timestamp(),
-            1_546_300_800,
         );
         Ok(())
     }
@@ -1208,50 +950,6 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
-    fn std_sub_datetime() -> crate::Result<()> {
-        assert_eq!(
-            SystemTime::from(date!(2019-01-02).midnight()) - date!(2019-01-01).midnight(),
-            1.days()
-        );
-        assert_eq!(
-            SystemTime::from(date!(2019-01-01).midnight()) - date!(2019-01-02).midnight(),
-            (-1).days()
-        );
-        assert_eq!(
-            SystemTime::from(date!(2020-01-01).midnight()) - date!(2019-12-31).midnight(),
-            1.days()
-        );
-        assert_eq!(
-            SystemTime::from(date!(2019-12-31).midnight()) - date!(2020-01-01).midnight(),
-            (-1).days()
-        );
-        Ok(())
-    }
-
-    #[test]
-    #[cfg(std)]
-    fn sub_std() -> crate::Result<()> {
-        assert_eq!(
-            date!(2019-01-02).midnight() - SystemTime::from(date!(2019-01-01).midnight()),
-            1.days()
-        );
-        assert_eq!(
-            date!(2019-01-01).midnight() - SystemTime::from(date!(2019-01-02).midnight()),
-            (-1).days()
-        );
-        assert_eq!(
-            date!(2020-01-01).midnight() - SystemTime::from(date!(2019-12-31).midnight()),
-            1.days()
-        );
-        assert_eq!(
-            date!(2019-12-31).midnight() - SystemTime::from(date!(2020-01-01).midnight()),
-            (-1).days()
-        );
-        Ok(())
-    }
-
-    #[test]
     fn ord() -> crate::Result<()> {
         use Ordering::*;
         assert_eq!(
@@ -1345,139 +1043,5 @@ mod test {
             Some(Greater)
         );
         Ok(())
-    }
-
-    #[test]
-    #[cfg(std)]
-    #[allow(deprecated)]
-    fn eq_std() {
-        let now_datetime = PrimitiveDateTime::now();
-        let now_systemtime = SystemTime::from(now_datetime);
-        assert_eq!(now_datetime, now_systemtime);
-    }
-
-    #[test]
-    #[cfg(std)]
-    #[allow(deprecated)]
-    fn std_eq() {
-        let now_datetime = PrimitiveDateTime::now();
-        let now_systemtime = SystemTime::from(now_datetime);
-        assert_eq!(now_datetime, now_systemtime);
-    }
-
-    #[test]
-    #[cfg(std)]
-    fn ord_std() -> crate::Result<()> {
-        assert_eq!(
-            date!(2019-01-01).midnight(),
-            SystemTime::from(date!(2019-01-01).midnight())
-        );
-        assert!(date!(2019-01-01).midnight() < SystemTime::from(date!(2020-01-01).midnight()));
-        assert!(date!(2019-01-01).midnight() < SystemTime::from(date!(2019-02-01).midnight()));
-        assert!(date!(2019-01-01).midnight() < SystemTime::from(date!(2019-01-02).midnight()));
-        assert!(
-            date!(2019-01-01).midnight()
-                < SystemTime::from(date!(2019-01-01).with_time(time!(1:00:00)))
-        );
-        assert!(
-            date!(2019-01-01).midnight()
-                < SystemTime::from(date!(2019-01-01).with_time(time!(0:01:00)))
-        );
-        assert!(
-            date!(2019-01-01).midnight()
-                < SystemTime::from(date!(2019-01-01).with_time(time!(0:00:01)))
-        );
-        assert!(
-            date!(2019-01-01).midnight()
-                < SystemTime::from(date!(2019-01-01).with_time(time!(0:00:00:001_000_000)))
-        );
-        assert!(date!(2020-01-01).midnight() > SystemTime::from(date!(2019-01-01).midnight()));
-        assert!(date!(2019-02-01).midnight() > SystemTime::from(date!(2019-01-01).midnight()));
-        assert!(date!(2019-01-02).midnight() > SystemTime::from(date!(2019-01-01).midnight()));
-        assert!(
-            date!(2019-01-01).with_time(time!(1:00:00))
-                > SystemTime::from(date!(2019-01-01).midnight())
-        );
-        assert!(
-            date!(2019-01-01).with_time(time!(0:01:00))
-                > SystemTime::from(date!(2019-01-01).midnight())
-        );
-        assert!(
-            date!(2019-01-01).with_time(time!(0:00:01))
-                > SystemTime::from(date!(2019-01-01).midnight())
-        );
-        assert!(
-            date!(2019-01-01).with_time(time!(0:00:00:000_000_001))
-                > SystemTime::from(date!(2019-01-01).midnight())
-        );
-        Ok(())
-    }
-
-    #[test]
-    #[cfg(std)]
-    fn std_ord() -> crate::Result<()> {
-        assert_eq!(
-            SystemTime::from(date!(2019-01-01).midnight()),
-            date!(2019-01-01).midnight()
-        );
-        assert!(SystemTime::from(date!(2019-01-01).midnight()) < date!(2020-01-01).midnight());
-        assert!(SystemTime::from(date!(2019-01-01).midnight()) < date!(2019-02-01).midnight());
-        assert!(SystemTime::from(date!(2019-01-01).midnight()) < date!(2019-01-02).midnight());
-        assert!(
-            SystemTime::from(date!(2019-01-01).midnight())
-                < date!(2019-01-01).with_time(time!(1:00:00))
-        );
-        assert!(
-            SystemTime::from(date!(2019-01-01).midnight())
-                < date!(2019-01-01).with_time(time!(0:01:00))
-        );
-        assert!(
-            SystemTime::from(date!(2019-01-01).midnight())
-                < date!(2019-01-01).with_time(time!(0:00:01))
-        );
-        assert!(
-            SystemTime::from(date!(2019-01-01).midnight())
-                < date!(2019-01-01).with_time(time!(0:00:00:000_000_001))
-        );
-        assert!(SystemTime::from(date!(2020-01-01).midnight()) > date!(2019-01-01).midnight());
-        assert!(SystemTime::from(date!(2019-02-01).midnight()) > date!(2019-01-01).midnight());
-        assert!(SystemTime::from(date!(2019-01-02).midnight()) > date!(2019-01-01).midnight());
-        assert!(
-            SystemTime::from(date!(2019-01-01).with_time(time!(1:00:00)))
-                > date!(2019-01-01).midnight()
-        );
-        assert!(
-            SystemTime::from(date!(2019-01-01).with_time(time!(0:01:00)))
-                > date!(2019-01-01).midnight()
-        );
-        assert!(
-            SystemTime::from(date!(2019-01-01).with_time(time!(0:00:01)))
-                > date!(2019-01-01).midnight()
-        );
-        assert!(
-            SystemTime::from(date!(2019-01-01).with_time(time!(0:00:00:001_000_000)))
-                > date!(2019-01-01).midnight()
-        );
-        Ok(())
-    }
-
-    #[test]
-    #[cfg(std)]
-    #[allow(deprecated)]
-    fn from_std() {
-        assert_eq!(
-            PrimitiveDateTime::from(SystemTime::UNIX_EPOCH),
-            PrimitiveDateTime::unix_epoch()
-        );
-    }
-
-    #[test]
-    #[cfg(std)]
-    #[allow(deprecated)]
-    fn to_std() {
-        assert_eq!(
-            SystemTime::from(PrimitiveDateTime::unix_epoch()),
-            SystemTime::UNIX_EPOCH
-        );
     }
 }

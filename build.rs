@@ -28,8 +28,6 @@ fn main() {
     // renaming.
     cfg_aliases! {
         "std" => std,
-        "deprecated" => v01_deprecated_api,
-        "panicking-api" => panicking_api,
         "rand" => rand,
         "serde" => serde,
         "__doc" => docs,

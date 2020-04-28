@@ -197,37 +197,6 @@ impl Duration {
         (self.seconds > 0) | (self.nanoseconds > 0)
     }
 
-    /// Get the sign of the duration.
-    ///
-    /// ```rust
-    /// # use time::{Sign, prelude::*};
-    /// assert_eq!(1.seconds().sign(), Sign::Positive);
-    /// assert_eq!((-1).seconds().sign(), Sign::Negative);
-    /// assert_eq!(0.seconds().sign(), Sign::Zero);
-    /// ```
-    #[deprecated(
-        since = "0.2.7",
-        note = "To obtain the sign of a `Duration`, you should use the `is_positive`, \
-                `is_negative`, and `is_zero` methods."
-    )]
-    #[allow(deprecated)]
-    #[inline(always)]
-    pub fn sign(self) -> crate::Sign {
-        use crate::Sign::*;
-
-        if self.nanoseconds > 0 {
-            Positive
-        } else if self.nanoseconds < 0 {
-            Negative
-        } else if self.seconds > 0 {
-            Positive
-        } else if self.seconds < 0 {
-            Negative
-        } else {
-            Zero
-        }
-    }
-
     /// Get the absolute value of the duration.
     ///
     /// ```rust
@@ -733,122 +702,6 @@ impl Duration {
     }
 }
 
-/// Functions that have been renamed or had signatures changed since v0.1. As
-/// such, they are deprecated.
-#[cfg(v01_deprecated_api)]
-#[cfg_attr(tarpaulin, skip)]
-#[allow(clippy::missing_docs_in_private_items, clippy::missing_const_for_fn)]
-impl Duration {
-    #[inline(always)]
-    #[deprecated(since = "0.2.0", note = "Use the `whole_weeks` function")]
-    pub fn num_weeks(&self) -> i64 {
-        self.whole_weeks()
-    }
-
-    #[inline(always)]
-    #[deprecated(since = "0.2.0", note = "Use the `whole_days` function")]
-    pub fn num_days(&self) -> i64 {
-        self.whole_days()
-    }
-
-    #[inline(always)]
-    #[deprecated(since = "0.2.0", note = "Use the `whole_hours` function")]
-    pub fn num_hours(&self) -> i64 {
-        self.whole_hours()
-    }
-
-    #[inline(always)]
-    #[deprecated(since = "0.2.0", note = "Use the `whole_minutes` function")]
-    pub fn num_minutes(&self) -> i64 {
-        self.whole_minutes()
-    }
-
-    #[allow(clippy::missing_const_for_fn)]
-    #[inline(always)]
-    #[deprecated(since = "0.2.0", note = "Use the `whole_seconds` function")]
-    pub fn num_seconds(&self) -> i64 {
-        self.whole_seconds()
-    }
-
-    /// [`Duration::whole_milliseconds`] returns an `i128`, rather than
-    /// panicking on overflow. To avoid panicking, this method currently limits
-    /// the value to the range `i64::min_value()..=i64::max_value()`.
-    #[inline]
-    #[deprecated(
-        since = "0.2.0",
-        note = "Use the `whole_milliseconds` function. The value is clamped between \
-                `i64::min_value()` and `i64::max_value()`."
-    )]
-    pub fn num_milliseconds(&self) -> i64 {
-        let millis = self.whole_milliseconds();
-
-        if millis > i64::max_value() as i128 {
-            return i64::max_value();
-        }
-
-        if millis < i64::min_value() as i128 {
-            return i64::min_value();
-        }
-
-        millis as i64
-    }
-
-    /// [`Duration::whole_microseconds`] returns an `i128` rather than returning
-    /// `None` on `i64` overflow.
-    #[inline(always)]
-    #[deprecated(since = "0.2.0", note = "Use the `whole_microseconds` function")]
-    pub fn num_microseconds(&self) -> Option<i64> {
-        let micros = self.whole_microseconds();
-
-        if micros.abs() > i64::max_value() as i128 {
-            None
-        } else {
-            Some(micros as i64)
-        }
-    }
-
-    /// [`Duration::whole_nanoseconds`] returns an `i128` rather than returning
-    /// `None` on `i64` overflow.
-    #[inline(always)]
-    #[deprecated(since = "0.2.0", note = "Use the `whole_nanoseconds` function")]
-    pub fn num_nanoseconds(&self) -> Option<i64> {
-        let nanos = self.whole_nanoseconds();
-
-        if nanos.abs() > i64::max_value() as i128 {
-            None
-        } else {
-            Some(nanos as i64)
-        }
-    }
-
-    #[inline(always)]
-    #[cfg(std)]
-    #[deprecated(since = "0.2.0", note = "Use the `time_fn` function")]
-    pub fn span<F: FnOnce()>(f: F) -> Self {
-        Self::time_fn(f).0
-    }
-
-    #[inline(always)]
-    #[allow(deprecated)]
-    #[deprecated(
-        since = "0.2.0",
-        note = "Use `Duration::try_from(value)` or `value.try_into()`"
-    )]
-    pub fn from_std(std: StdDuration) -> Result<Self, ConversionRangeError> {
-        std.try_into()
-    }
-
-    #[inline(always)]
-    #[allow(deprecated)]
-    #[deprecated(
-        since = "0.2.0",
-        note = "Use `std::time::Duration::try_from(value)` or `value.try_into()`"
-    )]
-    pub fn to_std(&self) -> Result<StdDuration, ConversionRangeError> {
-        (*self).try_into()
-    }
-}
-
 impl TryFrom<StdDuration> for Duration {
     type Error = ConversionRangeError;
 
@@ -1251,15 +1104,6 @@ mod test {
         assert!(1.seconds().is_positive());
     }
 
-    #[allow(deprecated)]
-    #[test]
-    fn sign() {
-        use crate::Sign::*;
-        assert_eq!(1.seconds().sign(), Positive);
-        assert_eq!((-1).seconds().sign(), Negative);
-        assert_eq!(0.seconds().sign(), Zero);
-    }
-
     #[test]
     fn abs() {
         assert_eq!(1.seconds().abs(), 1.seconds());
@@ -1454,7 +1298,6 @@ mod test {
     }
 
     #[test]
-    #[allow(deprecated)]
     fn checked_add() {
         assert_eq!(5.seconds().checked_add(5.seconds()), Some(10.seconds()));
         assert_eq!(Duration::max_value().checked_add(1.nanoseconds()), None);
@@ -1462,7 +1305,6 @@ mod test {
     }
 
     #[test]
-    #[allow(deprecated)]
     fn checked_sub() {
         assert_eq!(5.seconds().checked_sub(5.seconds()), Some(0.seconds()));
         assert_eq!(Duration::min_value().checked_sub(1.nanoseconds()), None);
@@ -1470,7 +1312,6 @@ mod test {
     }
 
     #[test]
-    #[allow(deprecated)]
     fn checked_mul() {
         assert_eq!(5.seconds().checked_mul(2), Some(10.seconds()));
         assert_eq!(5.seconds().checked_mul(-2), Some((-10).seconds()));

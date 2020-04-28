@@ -118,36 +118,6 @@ impl<'a> serde::Deserialize<'a> for Date {
 }
 
 impl Date {
-    /// Create a `Date` from the year, month, and day.
-    ///
-    /// ```rust
-    /// # use time::{Date, date};
-    /// assert_eq!(Date::from_ymd(2019, 1, 1), date!(2019-001));
-    /// assert_eq!(Date::from_ymd(2019, 12, 31), date!(2019-365));
-    /// ```
-    ///
-    /// Panics if the date is not valid.
-    ///
-    /// ```rust,should_panic
-    /// # use time::Date;
-    /// Date::from_ymd(2019, 2, 29); // 2019 isn't a leap year.
-    /// ```
-    #[inline]
-    #[cfg(panicking_api)]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
-    #[deprecated(
-        since = "0.2.3",
-        note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
-                value isn't known, use `Date::try_from_ymd`."
-    )]
-    pub fn from_ymd(year: i32, month: u8, day: u8) -> Self {
-        assert_value_in_range!(year in MIN_YEAR => MAX_YEAR);
-        assert_value_in_range!(month in 1 => 12);
-        assert_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
-
-        internals::Date::from_ymd_unchecked(year, month, day)
-    }
-
     /// Attempt to create a `Date` from the year, month, and day.
     ///
     /// ```rust
@@ -171,34 +141,6 @@ impl Date {
         Ok(internals::Date::from_ymd_unchecked(year, month, day))
     }
 
-    /// Create a `Date` from the year and ordinal day number.
-    ///
-    /// ```rust
-    /// # use time::{Date, date};
-    /// assert_eq!(Date::from_yo(2019, 1), date!(2019-01-01));
-    /// assert_eq!(Date::from_yo(2019, 365), date!(2019-12-31));
-    /// ```
-    ///
-    /// Panics if the date is not valid.
-    ///
-    /// ```rust,should_panic
-    /// # use time::Date;
-    /// Date::from_yo(2019, 366); // 2019 isn't a leap year.
-    /// ```
-    #[inline(always)]
-    #[cfg(panicking_api)]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
-    #[deprecated(
-        since = "0.2.3",
-        note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
-                value isn't known, use `Date::try_from_yo`."
-    )]
-    pub fn from_yo(year: i32, ordinal: u16) -> Self {
-        assert_value_in_range!(year in MIN_YEAR => MAX_YEAR);
-        assert_value_in_range!(ordinal in 1 => days_in_year(year), given year);
-        Self { year, ordinal }
-    }
-
     /// Attempt to create a `Date` from the year and ordinal day number.
     ///
     /// ```rust
@@ -218,44 +160,6 @@ impl Date {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(ordinal in 1 => days_in_year(year), given year);
         Ok(Self { year, ordinal })
-    }
-
-    /// Create a `Date` from the ISO year, week, and weekday.
-    ///
-    /// ```rust
-    /// # use time::{Date, Weekday::*, date};
-    /// assert_eq!(
-    ///     Date::from_iso_ywd(2019, 1, Monday),
-    ///     date!(2018-12-31)
-    /// );
-    /// assert_eq!(
-    ///     Date::from_iso_ywd(2019, 1, Tuesday),
-    ///     date!(2019-01-01)
-    /// );
-    /// assert_eq!(
-    ///     Date::from_iso_ywd(2020, 53, Friday),
-    ///     date!(2021-01-01)
-    /// );
-    /// ```
-    ///
-    /// Panics if the week is not valid.
-    ///
-    /// ```rust,should_panic
-    /// # use time::{Date, Weekday::*};
-    /// Date::from_iso_ywd(2019, 53, Monday); // 2019 doesn't have 53 weeks.
-    /// ```
-    #[inline]
-    #[cfg(panicking_api)]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
-    #[deprecated(
-        since = "0.2.3",
-        note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
-                value isn't known, use `Date::try_from_iso_ywd`."
-    )]
-    pub fn from_iso_ywd(year: i32, week: u8, weekday: Weekday) -> Self {
-        assert_value_in_range!(year in MIN_YEAR => MAX_YEAR);
-        assert_value_in_range!(week in 1 => weeks_in_year(year), given year);
-        internals::Date::from_iso_ywd_unchecked(year, week, weekday)
     }
 
     /// Attempt to create a `Date` from the ISO year, week, and weekday.
@@ -282,24 +186,6 @@ impl Date {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(week in 1 => weeks_in_year(year), given year);
         Ok(internals::Date::from_iso_ywd_unchecked(year, week, weekday))
-    }
-
-    /// Create a `Date` representing the current date.
-    ///
-    /// ```rust
-    /// # use time::Date;
-    /// assert!(Date::today().year() >= 2019);
-    /// ```
-    #[inline(always)]
-    #[cfg(std)]
-    #[cfg_attr(docs, doc(cfg(feature = "std")))]
-    #[deprecated(
-        since = "0.2.7",
-        note = "This method returns a value that assumes an offset of UTC."
-    )]
-    #[allow(deprecated)]
-    pub fn today() -> Self {
-        PrimitiveDateTime::now().date()
     }
 
     /// Get the year of the date.
@@ -707,28 +593,6 @@ impl Date {
         PrimitiveDateTime::new(self, time)
     }
 
-    /// Create a `PrimitiveDateTime` using the existing date and the provided time.
-    ///
-    /// ```rust
-    /// # use time::{date, time};
-    /// assert_eq!(
-    ///     date!(1970-01-01).with_hms(0, 0, 0),
-    ///     date!(1970-01-01).with_time(time!(0:00)),
-    /// );
-    /// ```
-    #[inline(always)]
-    #[cfg(panicking_api)]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
-    #[allow(deprecated)]
-    #[deprecated(
-        since = "0.2.3",
-        note = "For times knowable at compile-time, use the `time!` macro and `Date::with_time`. \
-                For situations where a value isn't known, use `Date::try_with_hms`."
-    )]
-    pub fn with_hms(self, hour: u8, minute: u8, second: u8) -> PrimitiveDateTime {
-        PrimitiveDateTime::new(self, Time::from_hms(hour, minute, second))
-    }
-
     /// Attempt to create a `PrimitiveDateTime` using the existing date and the
     /// provided time.
     ///
@@ -750,38 +614,6 @@ impl Date {
         ))
     }
 
-    /// Create a `PrimitiveDateTime` using the existing date and the provided
-    /// time.
-    ///
-    /// ```rust
-    /// # use time::{date, Time, time};
-    /// assert_eq!(
-    ///     date!(1970-01-01).with_hms_milli(0, 0, 0, 0),
-    ///     date!(1970-01-01).with_time(time!(0:00)),
-    /// );
-    /// ```
-    #[inline(always)]
-    #[cfg(panicking_api)]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
-    #[allow(deprecated)]
-    #[deprecated(
-        since = "0.2.3",
-        note = "For times knowable at compile-time, use the `time!` macro and `Date::with_time`. \
-                For situations where a value isn't known, use `Date::try_with_hms_milli`."
-    )]
-    pub fn with_hms_milli(
-        self,
-        hour: u8,
-        minute: u8,
-        second: u8,
-        millisecond: u16,
-    ) -> PrimitiveDateTime {
-        PrimitiveDateTime::new(
-            self,
-            Time::from_hms_milli(hour, minute, second, millisecond),
-        )
-    }
-
     /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
@@ -801,37 +633,6 @@ impl Date {
             self,
             Time::try_from_hms_milli(hour, minute, second, millisecond)?,
         ))
-    }
-
-    /// Create a `PrimitiveDateTime` using the existing date and the provided time.
-    ///
-    /// ```rust
-    /// # use time::{date, Time, time};
-    /// assert_eq!(
-    ///     date!(1970-01-01).with_hms_micro(0, 0, 0, 0),
-    ///     date!(1970-01-01).with_time(time!(0:00)),
-    /// );
-    /// ```
-    #[inline(always)]
-    #[cfg(panicking_api)]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
-    #[allow(deprecated)]
-    #[deprecated(
-        since = "0.2.3",
-        note = "For times knowable at compile-time, use the `time!` macro and `Date::with_time`. \
-                For situations where a value isn't known, use `Date::try_with_hms_micro`."
-    )]
-    pub fn with_hms_micro(
-        self,
-        hour: u8,
-        minute: u8,
-        second: u8,
-        microsecond: u32,
-    ) -> PrimitiveDateTime {
-        PrimitiveDateTime::new(
-            self,
-            Time::from_hms_micro(hour, minute, second, microsecond),
-        )
     }
 
     /// Attempt to create a `PrimitiveDateTime` using the existing date and the
@@ -858,34 +659,6 @@ impl Date {
             self,
             Time::try_from_hms_micro(hour, minute, second, microsecond)?,
         ))
-    }
-
-    /// Create a `PrimitiveDateTime` using the existing date and the provided time.
-    ///
-    /// ```rust
-    /// # use time::{date, time};
-    /// assert_eq!(
-    ///     date!(1970-01-01).with_hms_nano(0, 0, 0, 0),
-    ///     date!(1970-01-01).with_time(time!(0:00)),
-    /// );
-    /// ```
-    #[inline(always)]
-    #[cfg(panicking_api)]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
-    #[allow(deprecated)]
-    #[deprecated(
-        since = "0.2.3",
-        note = "For times knowable at compile-time, use the `time!` macro and `Date::with_time`. \
-                For situations where a value isn't known, use `Date::try_with_hms_nano`."
-    )]
-    pub fn with_hms_nano(
-        self,
-        hour: u8,
-        minute: u8,
-        second: u8,
-        nanosecond: u32,
-    ) -> PrimitiveDateTime {
-        PrimitiveDateTime::new(self, Time::from_hms_nano(hour, minute, second, nanosecond))
     }
 
     /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
@@ -2109,34 +1882,12 @@ mod test {
     }
 
     #[test]
-    #[cfg(panicking_api)]
-    #[allow(deprecated)]
-    fn with_hms() -> crate::Result<()> {
-        assert_eq!(
-            date!(1970-01-01).with_hms(0, 0, 0),
-            date!(1970-01-01).midnight(),
-        );
-        Ok(())
-    }
-
-    #[test]
     fn try_with_hms() -> crate::Result<()> {
         assert_eq!(
             date!(1970-01-01).try_with_hms(0, 0, 0),
             Ok(date!(1970-01-01).midnight()),
         );
         assert!(date!(1970-01-01).try_with_hms(24, 0, 0).is_err());
-        Ok(())
-    }
-
-    #[test]
-    #[cfg(panicking_api)]
-    #[allow(deprecated)]
-    fn with_hms_milli() -> crate::Result<()> {
-        assert_eq!(
-            date!(1970-01-01).with_hms_milli(0, 0, 0, 0),
-            date!(1970-01-01).midnight(),
-        );
         Ok(())
     }
 
@@ -2151,34 +1902,12 @@ mod test {
     }
 
     #[test]
-    #[cfg(panicking_api)]
-    #[allow(deprecated)]
-    fn with_hms_micro() -> crate::Result<()> {
-        assert_eq!(
-            date!(1970-01-01).with_hms_micro(0, 0, 0, 0),
-            date!(1970-01-01).midnight(),
-        );
-        Ok(())
-    }
-
-    #[test]
     fn try_with_hms_micro() -> crate::Result<()> {
         assert_eq!(
             date!(1970-01-01).try_with_hms_micro(0, 0, 0, 0),
             Ok(date!(1970-01-01).midnight()),
         );
         assert!(date!(1970-01-01).try_with_hms_micro(24, 0, 0, 0).is_err());
-        Ok(())
-    }
-
-    #[test]
-    #[cfg(panicking_api)]
-    #[allow(deprecated)]
-    fn with_hms_nano() -> crate::Result<()> {
-        assert_eq!(
-            date!(1970-01-01).with_hms_nano(0, 0, 0, 0),
-            date!(1970-01-01).midnight(),
-        );
         Ok(())
     }
 

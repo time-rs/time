@@ -50,25 +50,6 @@ impl OffsetDateTime {
     ///
     /// ```rust
     /// # use time::{OffsetDateTime, offset};
-    /// assert!(OffsetDateTime::now().year() >= 2019);
-    /// assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
-    /// ```
-    #[inline(always)]
-    #[deprecated(
-        since = "0.2.11",
-        note = "This function returns a value with an offset of UTC, which is not apparent from \
-                its name alone. You should use `OffsetDateTime::now_utc()` instead."
-    )]
-    #[cfg(std)]
-    #[cfg_attr(docs, doc(cfg(feature = "std")))]
-    pub fn now() -> Self {
-        SystemTime::now().into()
-    }
-
-    /// Create a new `OffsetDateTime` with the current date and time in UTC.
-    ///
-    /// ```rust
-    /// # use time::{OffsetDateTime, offset};
     /// assert!(OffsetDateTime::now_utc().year() >= 2019);
     /// assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
     /// ```
@@ -1809,18 +1790,16 @@ mod test {
 
     #[test]
     #[cfg(std)]
-    #[allow(deprecated)]
     fn eq_std() {
-        let now_datetime = OffsetDateTime::now();
+        let now_datetime = OffsetDateTime::now_utc();
         let now_systemtime = SystemTime::from(now_datetime);
         assert_eq!(now_datetime, now_systemtime);
     }
 
     #[test]
     #[cfg(std)]
-    #[allow(deprecated)]
     fn std_eq() {
-        let now_datetime = OffsetDateTime::now();
+        let now_datetime = OffsetDateTime::now_utc();
         let now_systemtime = SystemTime::from(now_datetime);
         assert_eq!(now_datetime, now_systemtime);
     }

@@ -54,36 +54,6 @@
 //! time = { version = "0.2", default-features = false, features = ["rand"] }
 //! ```
 //!
-//! ## `deprecated`
-//!
-//! Using the `deprecated` feature allows using deprecated v0.1 methods. Enabled
-//! by default.
-//!
-//! With the standard library, the normal `time = 0.2` will work as expected.
-//!
-//! With `#![no_std]` support:
-//! ```toml
-//! [dependencies]
-//! time = { version = "0.2", default-features = false, features = ["deprecated"] }
-//! ```
-//!
-//! ## `panicking-api`
-//!
-//! Non-panicking APIs are provided, and should generally be preferred. However,
-//! there are some situations where avoiding `.unwrap()` may be desired. To
-//! enable these APIs, you need to use the `panicking-api` feature in your
-//! `Cargo.toml`, which is not enabled by default.
-//!
-//! Library authors should avoid using this feature.
-//!
-//! This feature will be removed in a future release, as there are provided
-//! macros to perform the equivalent calculations at compile-time.
-//!
-//! ```toml
-//! [dependencies]
-//! time = { version = "0.2", features = ["panicking-api"] }
-//! ```
-//!
 //! # Formatting
 //!
 //! Time's formatting behavior is based on `strftime` in C, though it is
@@ -199,58 +169,6 @@
 // Because we have a macro named `time`, this can cause conflicts. MSRV
 // guarantees that edition 2018 is available.
 #![doc(test(no_crate_inject))]
-
-#[cfg(panicking_api)]
-#[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
-macro_rules! format_conditional {
-    ($conditional:ident) => {
-        format!(concat!(stringify!($conditional), "={}"), $conditional)
-    };
-
-    ($first_conditional:ident, $($conditional:ident),*) => {{
-        #[cfg(not(std))]
-        let mut s = alloc::string::String::new();
-        #[cfg(std)]
-        let mut s = String::new();
-        s.push_str(&format_conditional!($first_conditional));
-        $(s.push_str(&format!(concat!(", ", stringify!($conditional), "={}"), $conditional));)*
-        s
-    }}
-}
-
-/// Panic if the value is not in range.
-#[cfg(panicking_api)]
-#[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
-macro_rules! assert_value_in_range {
-    ($value:ident in $start:expr => $end:expr) => {
-        #[allow(unused_comparisons)]
-        {
-            if $value < $start || $value > $end {
-                panic!(
-                    concat!(stringify!($value), " must be in the range {}..={} (was {})"),
-                    $start,
-                    $end,
-                    $value,
-                );
-            }
-        }
-    };
-
-    ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
-        #[allow(unused_comparisons)]
-        {
-            if $value < $start || $value > $end {
-                panic!(
-                    concat!(stringify!($value), " must be in the range {}..={} given{} (was {})"),
-                    $start,
-                    $end,
-                    &format_conditional!($($conditional),+),
-                    $value,
-                );
-            };
-        }
-    };
-}
 
 // TODO Some of the formatting can likely be performed at compile-time.
 /// Returns `None` if the value is not in range.
@@ -374,8 +292,6 @@ mod rand;
 #[cfg(serde)]
 #[allow(missing_copy_implementations, missing_debug_implementations)]
 mod serde;
-/// The `Sign` struct and its associated `impl`s.
-mod sign;
 /// The `Time` struct and its associated `impl`s.
 mod time_mod;
 /// The `UtcOffset` struct and its associated `impl`s.
@@ -394,8 +310,6 @@ use internal_prelude::*;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
-#[allow(deprecated)]
-pub use sign::Sign;
 /// Construct a [`Date`] with a statically known value.
 ///
 /// The resulting expression can be used in `const` or `static` declarations.
@@ -570,55 +484,4 @@ mod private {
 #[inline(always)]
 pub fn parse<T: private::Parsable>(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<T> {
     private::Parsable::parse(s, format)
-}
-
-// For some back-compatibility, we're also implementing some deprecated types
-// and methods. They will be removed completely in 0.3.
-
-#[cfg(all(std, v01_deprecated_api))]
-#[cfg_attr(tarpaulin, skip)]
-#[allow(clippy::missing_docs_in_private_items)]
-#[deprecated(since = "0.2.0", note = "Use `Instant`")]
-pub type PreciseTime = Instant;
-
-#[cfg(all(std, v01_deprecated_api))]
-#[cfg_attr(tarpaulin, skip)]
-#[allow(clippy::missing_docs_in_private_items)]
-#[deprecated(since = "0.2.0", note = "Use `Instant`")]
-pub type SteadyTime = Instant;
-
-#[cfg(all(std, v01_deprecated_api))]
-#[cfg_attr(tarpaulin, skip)]
-#[allow(clippy::missing_docs_in_private_items)]
-#[deprecated(
-    since = "0.2.0",
-    note = "Use `OffsetDateTime::now() - OffsetDateTime::unix_epoch()` to get a `Duration` since \
-            a known epoch."
-)]
-#[inline]
-pub fn precise_time_ns() -> u64 {
-    use std::time::SystemTime;
-
-    (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))
-        .expect("System clock was before 1970.")
-        .as_nanos()
-        .try_into()
-        .expect("This function will be removed long before this is an issue.")
-}
-
-#[cfg(all(std, v01_deprecated_api))]
-#[cfg_attr(tarpaulin, skip)]
-#[allow(clippy::missing_docs_in_private_items)]
-#[deprecated(
-    since = "0.2.0",
-    note = "Use `OffsetDateTime::now() - OffsetDateTime::unix_epoch()` to get a `Duration` since \
-            a known epoch."
-)]
-#[inline]
-pub fn precise_time_s() -> f64 {
-    use std::time::SystemTime;
-
-    (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))
-        .expect("System clock was before 1970.")
-        .as_secs_f64()
 }
