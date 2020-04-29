@@ -307,7 +307,9 @@ mod weekday;
 
 pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use duration::Duration;
-pub use error::{ComponentRangeError, ConversionRangeError, Error, IndeterminateOffsetError};
+pub use error::{
+    ComponentRangeError, ConversionRangeError, Error, FormatError, IndeterminateOffsetError,
+};
 pub(crate) use format::DeferredFormat;
 pub use format::{validate_format_string, Format, ParseError};
 #[cfg(std)]
@@ -423,7 +425,7 @@ mod internal_prelude {
     pub(crate) use crate::Instant;
     pub(crate) use crate::{
         format::{ParseError, ParseResult},
-        ComponentRangeError, ConversionRangeError, Date, DeferredFormat, Duration,
+        ComponentRangeError, ConversionRangeError, Date, DeferredFormat, Duration, FormatError,
         IndeterminateOffsetError, NumericalDuration, NumericalStdDuration, OffsetDateTime,
         PrimitiveDateTime, Time, UtcOffset,
         Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},

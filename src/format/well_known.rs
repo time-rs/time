@@ -11,7 +11,7 @@ use crate::{
     },
     internal_prelude::*,
 };
-use core::fmt::{self, Formatter};
+use core::fmt::Formatter;
 
 /// The format as specified by RFC3339.
 pub(crate) mod rfc3339 {
@@ -19,16 +19,11 @@ pub(crate) mod rfc3339 {
 
     /// Format `df` according to the RFC3339 specification.
     #[inline]
-    pub(crate) fn fmt(df: &DeferredFormat<'_>, f: &mut Formatter<'_>) -> fmt::Result {
-        // If we're using RFC3339, all three components must be present.
-        // This will be enforced with typestate when Rust gains sufficient
-        // capabilities (namely proper sealed traits and/or function overloading).
-        #[allow(clippy::option_unwrap_used)]
-        let date = df.date().unwrap();
-        #[allow(clippy::option_unwrap_used)]
-        let time = df.time().unwrap();
-        #[allow(clippy::option_unwrap_used)]
-        let offset = df.offset().unwrap();
+    pub(crate) fn fmt(df: &DeferredFormat<'_>, f: &mut Formatter<'_>) -> Result<(), FormatError> {
+        let (date, time, offset) = match (df.date(), df.time(), df.offset()) {
+            (Some(date), Some(time), Some(offset)) => (date, time, offset),
+            _ => return Err(FormatError::InsufficientTypeInformation),
+        };
 
         date::fmt_Y(f, date, Padding::Zero)?;
         f.write_str("-")?;

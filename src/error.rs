@@ -14,6 +14,7 @@ pub enum Error {
     ConversionRange,
     ComponentRange(Box<ComponentRangeError>),
     Parse(ParseError),
+    Format(FormatError),
     IndeterminateOffset,
     #[cfg(not(supports_non_exhaustive))]
     #[doc(hidden)]
@@ -27,6 +28,7 @@ impl fmt::Display for Error {
             e @ Error::ConversionRange | e @ Error::IndeterminateOffset => e.fmt(f),
             Error::ComponentRange(e) => e.fmt(f),
             Error::Parse(e) => e.fmt(f),
+            Error::Format(e) => e.fmt(f),
             #[cfg(not(supports_non_exhaustive))]
             Error::__NonExhaustive => unreachable!(),
         }
@@ -41,6 +43,7 @@ impl std::error::Error for Error {
             err @ Error::ConversionRange | err @ Error::IndeterminateOffset => Some(err),
             Error::ComponentRange(box_err) => Some(box_err.as_ref()),
             Error::Parse(err) => Some(err),
+            Error::Format(err) => Some(err),
             #[cfg(not(supports_non_exhaustive))]
             Error::__NonExhaustive => unreachable!(),
         }
@@ -143,5 +146,58 @@ impl From<IndeterminateOffsetError> for Error {
     #[inline(always)]
     fn from(_: IndeterminateOffsetError) -> Self {
         Error::IndeterminateOffset
+    }
+}
+
+/// An error occurred while formatting.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(supports_non_exhaustive, non_exhaustive)]
+pub enum FormatError {
+    /// The format provided requires more information than the type provides.
+    InsufficientTypeInformation,
+    /// An error occurred while formatting into the provided stream.
+    StdFmtError,
+    #[cfg(not(supports_non_exhaustive))]
+    #[doc(hidden)]
+    __NonExhaustive,
+}
+
+impl fmt::Display for FormatError {
+    #[inline(always)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use FormatError::*;
+        match self {
+            InsufficientTypeInformation => {
+                f.write_str("The format provided requires more information than the type provides.")
+            }
+            StdFmtError => fmt::Error.fmt(f),
+            #[cfg(not(supports_non_exhaustive))]
+            __NonExhaustive => unreachable!(),
+        }
+    }
+}
+
+#[cfg(std)]
+impl std::error::Error for FormatError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            FormatError::StdFmtError => Some(&fmt::Error),
+            _ => None,
+        }
+    }
+}
+
+// This is strictly necessary to be able to use `?` with various formatters.
+impl From<fmt::Error> for FormatError {
+    #[inline(always)]
+    fn from(_: fmt::Error) -> Self {
+        FormatError::StdFmtError
+    }
+}
+
+impl From<FormatError> for Error {
+    #[inline(always)]
+    fn from(error: FormatError) -> Self {
+        Error::Format(error)
     }
 }
