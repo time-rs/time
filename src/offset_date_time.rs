@@ -83,8 +83,7 @@ impl OffsetDateTime {
     /// provided `UtcOffset`.
     ///
     /// ```rust
-    /// # use time::{OffsetDateTime, UtcOffset};
-    /// # use time_macros::{date, offset, time};
+    /// # use time_macros::{date, offset};
     /// assert_eq!(
     ///     date!(2000-01-01)
     ///         .midnight()
@@ -118,7 +117,7 @@ impl OffsetDateTime {
     ///
     /// ```rust
     /// # use time::OffsetDateTime;
-    /// # use time_macros::{date, offset};
+    /// # use time_macros::date;
     /// assert_eq!(
     ///     OffsetDateTime::unix_epoch(),
     ///     date!(1970-01-01)
@@ -202,7 +201,7 @@ impl OffsetDateTime {
     /// Get the `Date` in the stored offset.
     ///
     /// ```rust
-    /// # use time_macros::{date, offset, time};
+    /// # use time_macros::{date, offset};
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -227,7 +226,6 @@ impl OffsetDateTime {
     /// Get the `Time` in the stored offset.
     ///
     /// ```rust
-    /// # use time::Time;
     /// # use time_macros::{date, offset, time};
     /// assert_eq!(
     ///     date!(2019-01-01)
@@ -397,7 +395,7 @@ impl OffsetDateTime {
     /// Get the ISO 8601 year and week number in the stored offset.
     ///
     /// ```rust
-    /// # use time_macros::{date, offset};
+    /// # use time_macros::date;
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -444,7 +442,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `1..=53`.
     ///
     /// ```rust
-    /// # use time_macros::{date, offset};
+    /// # use time_macros::date;
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -486,7 +484,7 @@ impl OffsetDateTime {
     ///
     /// ```rust
     /// # use time::Weekday::*;
-    /// # use time_macros::{date, offset};
+    /// # use time_macros::date;
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -600,7 +598,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..1_000`.
     ///
     /// ```rust
-    /// # use time_macros::{date, offset, time};
+    /// # use time_macros::{date, time};
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -626,7 +624,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..1_000_000`.
     ///
     /// ```rust
-    /// # use time_macros::{date, offset, time};
+    /// # use time_macros::{date, time};
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -652,7 +650,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
-    /// # use time_macros::{date, offset, time};
+    /// # use time_macros::{date, time};
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -696,7 +694,7 @@ impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time_macros::{date, offset};
+    /// # use time_macros::date;
     /// assert_eq!(
     ///     date!(2019-01-02)
     ///         .midnight()
@@ -718,8 +716,8 @@ impl OffsetDateTime {
     /// Attempt to parse an `OffsetDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::{OffsetDateTime, Weekday::Wednesday};
-    /// # use time_macros::{date, offset, time};
+    /// # use time::OffsetDateTime;
+    /// # use time_macros::{date, time};
     /// assert_eq!(
     ///     OffsetDateTime::parse("2019-01-02 00:00:00 +0000", "%F %T %z"),
     ///     Ok(date!(2019-01-02).midnight().assume_utc()),

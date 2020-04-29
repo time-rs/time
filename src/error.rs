@@ -179,6 +179,7 @@ impl fmt::Display for FormatError {
 
 #[cfg(std)]
 impl std::error::Error for FormatError {
+    #[inline(always)]
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             FormatError::StdFmtError => Some(&fmt::Error),

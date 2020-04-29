@@ -390,7 +390,7 @@ impl PrimitiveDateTime {
     /// Attempt to parse a `PrimitiveDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::{PrimitiveDateTime, Weekday::Wednesday};
+    /// # use time::PrimitiveDateTime;
     /// # use time_macros::{date, time};
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),

@@ -170,9 +170,7 @@
 #![cfg_attr(test, allow(clippy::cognitive_complexity, clippy::too_many_lines))]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
-// Because we have a macro named `time`, this can cause conflicts. MSRV
-// guarantees that edition 2018 is available.
-#![doc(test(no_crate_inject))]
+#![doc(test(attr(deny(warnings))))]
 
 extern crate alloc;
 
@@ -399,6 +397,7 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// Unlike the standard library, this must be explicitly imported:
 ///
 /// ```rust,no_run
+/// # #[allow(unused_imports)]
 /// use time::prelude::*;
 /// ```
 ///
