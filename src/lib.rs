@@ -181,36 +181,29 @@
 
 extern crate alloc;
 
-// TODO Some of the formatting can likely be performed at compile-time.
-/// Returns `None` if the value is not in range.
+/// Returns `Err(ComponentRangeError)` if the value is not in range.
 macro_rules! ensure_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
-        #[allow(unused_comparisons)]
-        {
-            if $value < $start || $value > $end {
-                return Err(ComponentRangeError {
-                    name: stringify!($value),
-                    minimum: i64::from($start),
-                    maximum: i64::from($end),
-                    value: i64::from($value),
-                    given: Vec::new(),
-                });
-            }
+        if !($start..=$end).contains(&$value) {
+            return Err(ComponentRangeError {
+                name: stringify!($value),
+                minimum: i64::from($start),
+                maximum: i64::from($end),
+                value: i64::from($value),
+                given: Vec::new(),
+            });
         }
     };
 
     ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
-        #[allow(unused_comparisons)]
-        {
-            if $value < $start || $value > $end {
-                return Err(ComponentRangeError {
-                    name: stringify!($value),
-                    minimum: i64::from($start),
-                    maximum: i64::from($end),
-                    value: i64::from($value),
-                    given: vec![$((stringify!($conditional), i64::from($conditional))),+],
-                });
-            };
+        if !($start..=$end).contains(&$value) {
+            return Err(ComponentRangeError {
+                name: stringify!($value),
+                minimum: i64::from($start),
+                maximum: i64::from($end),
+                value: i64::from($value),
+                given: vec![$((stringify!($conditional), i64::from($conditional))),+],
+            });
         }
     };
 }

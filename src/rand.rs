@@ -30,7 +30,13 @@ impl Distribution<Date> for Standard {
         /// The maximum date allowed to be represented.
         const MAX_DATE: Date = internals::Date::from_ymd_unchecked(MAX_YEAR, 12, 31);
 
-        Date::from_julian_day(rng.gen_range(MIN_DATE.julian_day(), MAX_DATE.julian_day() + 1))
+        match Date::from_julian_day(rng.gen_range(MIN_DATE.julian_day(), MAX_DATE.julian_day() + 1))
+        {
+            Ok(value) => value,
+            Err(_) => unreachable!(
+                "The Julian date is constructed using the minimum and maximum allowable values."
+            ),
+        }
     }
 }
 

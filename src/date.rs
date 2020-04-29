@@ -525,16 +525,16 @@ impl Date {
     /// # use time::Date;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     Date::from_julian_day(0),
+    ///     Date::from_julian_day(0)?,
     ///     date!(-4713-11-24)
     /// );
-    /// assert_eq!(Date::from_julian_day(2_451_545), date!(2000-01-01));
-    /// assert_eq!(Date::from_julian_day(2_458_485), date!(2019-01-01));
-    /// assert_eq!(Date::from_julian_day(2_458_849), date!(2019-12-31));
+    /// assert_eq!(Date::from_julian_day(2_451_545)?, date!(2000-01-01));
+    /// assert_eq!(Date::from_julian_day(2_458_485)?, date!(2019-01-01));
+    /// assert_eq!(Date::from_julian_day(2_458_849)?, date!(2019-12-31));
+    /// # Ok::<_, time::Error>(())
     /// ```
-    // TODO Return a `Result<Self, ComponentRangeError>` in 0.3
     #[inline]
-    pub fn from_julian_day(julian_day: i64) -> Self {
+    pub fn from_julian_day(julian_day: i64) -> Result<Self, ComponentRangeError> {
         #![allow(clippy::missing_docs_in_private_items)]
         const Y: i64 = 4_716;
         const J: i64 = 1_401;
@@ -557,10 +557,7 @@ impl Date {
         let month = (h / S + M).rem_euclid(N) + 1;
         let year = (e / P) - Y + (N + M - month) / N;
 
-        match Date::try_from_ymd(year as i32, month as u8, day as u8) {
-            Ok(date) => date,
-            Err(err) => panic!("{}", err),
-        }
+        Date::try_from_ymd(year as i32, month as u8, day as u8)
     }
 }
 
@@ -809,7 +806,7 @@ impl Add<Duration> for Date {
 
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
-        Self::from_julian_day(self.julian_day() + duration.whole_days())
+        Self::from_julian_day(self.julian_day() + duration.whole_days()).expect("TODO saturate")
     }
 }
 
@@ -819,6 +816,7 @@ impl Add<StdDuration> for Date {
     #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
         Self::from_julian_day(self.julian_day() + (duration.as_secs() / 86_400) as i64)
+            .expect("TODO saturate")
     }
 }
 
@@ -851,6 +849,7 @@ impl Sub<StdDuration> for Date {
     #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
         Self::from_julian_day(self.julian_day() - (duration.as_secs() / 86_400) as i64)
+            .expect("TODO saturate")
     }
 }
 
@@ -902,7 +901,7 @@ mod test {
 
     macro_rules! julian {
         ($julian:literal) => {
-            Date::from_julian_day($julian)
+            Date::from_julian_day($julian)?
         };
     }
 
