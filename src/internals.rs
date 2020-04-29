@@ -85,3 +85,13 @@ impl Date {
         }
     }
 }
+
+pub struct UtcOffset;
+
+impl UtcOffset {
+    // macros
+    #[inline(always)]
+    pub const fn seconds(seconds: i32) -> crate::UtcOffset {
+        crate::UtcOffset { seconds }
+    }
+}

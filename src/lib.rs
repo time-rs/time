@@ -167,7 +167,14 @@
     clippy::zero_prefixed_literal,
     unstable_name_collisions
 )]
-#![cfg_attr(test, allow(clippy::cognitive_complexity, clippy::too_many_lines))]
+#![cfg_attr(
+    test,
+    allow(
+        clippy::cognitive_complexity,
+        clippy::too_many_lines,
+        clippy::neg_multiply
+    )
+)]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(test(attr(deny(warnings))))]
@@ -247,19 +254,19 @@ macro_rules! offset {
         crate::UtcOffset::UTC
     };
     ($(+)? $hour:literal) => {
-        crate::UtcOffset::hours($hour)
+        crate::internals::UtcOffset::seconds($hour * 3_600)
     };
     (+ $hour:literal : $minute:literal) => {
-        crate::UtcOffset::minutes($hour * 60 + $minute)
+        crate::internals::UtcOffset::seconds($hour * 3_600 + $minute * 60)
     };
     (+ $hour:literal : $minute:literal : $second:literal) => {
-        crate::UtcOffset::seconds($hour * 3_600 + $minute * 60 + $second)
+        crate::internals::UtcOffset::seconds($hour * 3_600 + $minute * 60 + $second)
     };
     (- $hour:literal : $minute:literal) => {
-        crate::UtcOffset::minutes($hour * -60 - $minute)
+        crate::internals::UtcOffset::seconds($hour * -3_600 - $minute * 60)
     };
     (- $hour:literal : $minute:literal : $second:literal) => {
-        crate::UtcOffset::seconds($hour * -3_600 - $minute * 60 - $second)
+        crate::internals::UtcOffset::seconds($hour * -3_600 - $minute * 60 - $second)
     };
 }
 
@@ -343,17 +350,18 @@ pub use time_macros::date;
 ///
 /// ```rust
 /// # use time::{offset, UtcOffset};
-/// assert_eq!(offset!(UTC), UtcOffset::hours(0));
-/// assert_eq!(offset!(utc), UtcOffset::hours(0));
-/// assert_eq!(offset!(+0), UtcOffset::hours(0));
-/// assert_eq!(offset!(+1), UtcOffset::hours(1));
-/// assert_eq!(offset!(-1), UtcOffset::hours(-1));
-/// assert_eq!(offset!(+1:30), UtcOffset::minutes(90));
-/// assert_eq!(offset!(-1:30), UtcOffset::minutes(-90));
-/// assert_eq!(offset!(+1:30:59), UtcOffset::seconds(5459));
-/// assert_eq!(offset!(-1:30:59), UtcOffset::seconds(-5459));
-/// assert_eq!(offset!(+23:59:59), UtcOffset::seconds(86_399));
-/// assert_eq!(offset!(-23:59:59), UtcOffset::seconds(-86_399));
+/// assert_eq!(offset!(UTC), UtcOffset::hours(0)?);
+/// assert_eq!(offset!(utc), UtcOffset::hours(0)?);
+/// assert_eq!(offset!(+0), UtcOffset::hours(0)?);
+/// assert_eq!(offset!(+1), UtcOffset::hours(1)?);
+/// assert_eq!(offset!(-1), UtcOffset::hours(-1)?);
+/// assert_eq!(offset!(+1:30), UtcOffset::minutes(90)?);
+/// assert_eq!(offset!(-1:30), UtcOffset::minutes(-90)?);
+/// assert_eq!(offset!(+1:30:59), UtcOffset::seconds(5459)?);
+/// assert_eq!(offset!(-1:30:59), UtcOffset::seconds(-5459)?);
+/// assert_eq!(offset!(+23:59:59), UtcOffset::seconds(86_399)?);
+/// assert_eq!(offset!(-23:59:59), UtcOffset::seconds(-86_399)?);
+/// # Ok::<_, time::Error>(())
 /// ```
 #[cfg(macros)]
 pub use time_macros::offset;

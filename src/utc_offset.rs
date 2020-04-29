@@ -4,6 +4,9 @@ use crate::{
 };
 use core::fmt::{self, Display};
 
+/// `Result` alias, assuming a `ComponentRangeError` if none is specified.
+type Result<T, E = ComponentRangeError> = core::result::Result<T, E>;
+
 /// An offset from UTC.
 ///
 /// Guaranteed to store values up to ±23:59:59. Any values outside this range
@@ -26,19 +29,23 @@ impl UtcOffset {
     /// # use time_macros::offset;
     /// assert_eq!(UtcOffset::UTC, offset!(UTC));
     /// ```
-    pub const UTC: Self = Self::seconds(0);
+    pub const UTC: Self = Self { seconds: 0 };
 
     /// Create a `UtcOffset` representing an easterly offset by the number of
     /// hours provided.
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::east_hours(1).as_hours(), 1);
-    /// assert_eq!(UtcOffset::east_hours(2).as_minutes(), 120);
+    /// assert_eq!(UtcOffset::east_hours(1)?.as_hours(), 1);
+    /// assert_eq!(UtcOffset::east_hours(2)?.as_minutes(), 120);
+    /// # Ok::<_, time::Error>(())
     /// ```
     #[inline(always)]
-    pub const fn east_hours(hours: u8) -> Self {
-        Self::hours(hours as i8)
+    pub fn east_hours(hours: u8) -> Result<Self> {
+        ensure_value_in_range!(hours in 0 => 23);
+        Ok(Self {
+            seconds: hours as i32 * 3_600,
+        })
     }
 
     /// Create a `UtcOffset` representing a westerly offset by the number of
@@ -46,12 +53,16 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::west_hours(1).as_hours(), -1);
-    /// assert_eq!(UtcOffset::west_hours(2).as_minutes(), -120);
+    /// assert_eq!(UtcOffset::west_hours(1)?.as_hours(), -1);
+    /// assert_eq!(UtcOffset::west_hours(2)?.as_minutes(), -120);
+    /// # Ok::<_, time::Error>(())
     /// ```
     #[inline(always)]
-    pub const fn west_hours(hours: u8) -> Self {
-        Self::hours(-(hours as i8))
+    pub fn west_hours(hours: u8) -> Result<Self> {
+        ensure_value_in_range!(hours in 0 => 23);
+        Ok(Self {
+            seconds: hours as i32 * -3_600,
+        })
     }
 
     /// Create a `UtcOffset` representing an offset by the number of hours
@@ -59,12 +70,16 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::hours(2).as_minutes(), 120);
-    /// assert_eq!(UtcOffset::hours(-2).as_minutes(), -120);
+    /// assert_eq!(UtcOffset::hours(2)?.as_minutes(), 120);
+    /// assert_eq!(UtcOffset::hours(-2)?.as_minutes(), -120);
+    /// # Ok::<_, time::Error>(())
     /// ```
     #[inline(always)]
-    pub const fn hours(hours: i8) -> Self {
-        Self::seconds(hours as i32 * 3_600)
+    pub fn hours(hours: i8) -> Result<Self> {
+        ensure_value_in_range!(hours in -23 => 23);
+        Ok(Self {
+            seconds: hours as i32 * 3_600,
+        })
     }
 
     /// Create a `UtcOffset` representing an easterly offset by the number of
@@ -72,11 +87,15 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::east_minutes(60).as_hours(), 1);
+    /// assert_eq!(UtcOffset::east_minutes(60)?.as_hours(), 1);
+    /// # Ok::<_, time::Error>(())
     /// ```
     #[inline(always)]
-    pub const fn east_minutes(minutes: u16) -> Self {
-        Self::minutes(minutes as i16)
+    pub fn east_minutes(minutes: u16) -> Result<Self> {
+        ensure_value_in_range!(minutes in 0 => 1_439);
+        Ok(Self {
+            seconds: minutes as i32 * 60,
+        })
     }
 
     /// Create a `UtcOffset` representing a westerly offset by the number of
@@ -84,11 +103,15 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::west_minutes(60).as_hours(), -1);
+    /// assert_eq!(UtcOffset::west_minutes(60)?.as_hours(), -1);
+    /// # Ok::<_, time::Error>(())
     /// ```
     #[inline(always)]
-    pub const fn west_minutes(minutes: u16) -> Self {
-        Self::minutes(-(minutes as i16))
+    pub fn west_minutes(minutes: u16) -> Result<Self> {
+        ensure_value_in_range!(minutes in 0 => 1_439);
+        Ok(Self {
+            seconds: minutes as i32 * -60,
+        })
     }
 
     /// Create a `UtcOffset` representing a offset by the number of minutes
@@ -96,12 +119,16 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::minutes(60).as_hours(), 1);
-    /// assert_eq!(UtcOffset::minutes(-60).as_hours(), -1);
+    /// assert_eq!(UtcOffset::minutes(60)?.as_hours(), 1);
+    /// assert_eq!(UtcOffset::minutes(-60)?.as_hours(), -1);
+    /// # Ok::<_, time::Error>(())
     /// ```
     #[inline(always)]
-    pub const fn minutes(minutes: i16) -> Self {
-        Self::seconds(minutes as i32 * 60)
+    pub fn minutes(minutes: i16) -> Result<Self> {
+        ensure_value_in_range!(minutes in -1_439 => 1_439);
+        Ok(Self {
+            seconds: minutes as i32 * 60,
+        })
     }
 
     /// Create a `UtcOffset` representing an easterly offset by the number of
@@ -109,12 +136,16 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::east_seconds(3_600).as_hours(), 1);
-    /// assert_eq!(UtcOffset::east_seconds(1_800).as_minutes(), 30);
+    /// assert_eq!(UtcOffset::east_seconds(3_600)?.as_hours(), 1);
+    /// assert_eq!(UtcOffset::east_seconds(1_800)?.as_minutes(), 30);
+    /// # Ok::<_, time::Error>(())
     /// ```
     #[inline(always)]
-    pub const fn east_seconds(seconds: u32) -> Self {
-        Self::seconds(seconds as i32)
+    pub fn east_seconds(seconds: u32) -> Result<Self> {
+        ensure_value_in_range!(seconds in 0 => 86_399);
+        Ok(Self {
+            seconds: seconds as i32,
+        })
     }
 
     /// Create a `UtcOffset` representing a westerly offset by the number of
@@ -122,12 +153,16 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::west_seconds(3_600).as_hours(), -1);
-    /// assert_eq!(UtcOffset::west_seconds(1_800).as_minutes(), -30);
+    /// assert_eq!(UtcOffset::west_seconds(3_600)?.as_hours(), -1);
+    /// assert_eq!(UtcOffset::west_seconds(1_800)?.as_minutes(), -30);
+    /// # Ok::<_, time::Error>(())
     /// ```
     #[inline(always)]
-    pub const fn west_seconds(seconds: u32) -> Self {
-        Self::seconds(-(seconds as i32))
+    pub fn west_seconds(seconds: u32) -> Result<Self> {
+        ensure_value_in_range!(seconds in 0 => 86_399);
+        Ok(Self {
+            seconds: -(seconds as i32),
+        })
     }
 
     /// Create a `UtcOffset` representing an offset by the number of seconds
@@ -135,22 +170,24 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::seconds(3_600).as_hours(), 1);
-    /// assert_eq!(UtcOffset::seconds(-3_600).as_hours(), -1);
+    /// assert_eq!(UtcOffset::seconds(3_600)?.as_hours(), 1);
+    /// assert_eq!(UtcOffset::seconds(-3_600)?.as_hours(), -1);
+    /// # Ok::<_, time::Error>(())
     /// ```
     #[inline(always)]
-    pub const fn seconds(seconds: i32) -> Self {
-        Self { seconds }
+    pub fn seconds(seconds: i32) -> Result<Self> {
+        ensure_value_in_range!(seconds in -86_399 => 86_399);
+        Ok(Self { seconds })
     }
 
     /// Get the number of seconds from UTC the value is. Positive is east,
     /// negative is west.
     ///
     /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::UTC.as_seconds(), 0);
-    /// assert_eq!(UtcOffset::hours(12).as_seconds(), 43_200);
-    /// assert_eq!(UtcOffset::hours(-12).as_seconds(), -43_200);
+    /// # use time_macros::offset;
+    /// assert_eq!(offset!(UTC).as_seconds(), 0);
+    /// assert_eq!(offset!(+12).as_seconds(), 43_200);
+    /// assert_eq!(offset!(-12).as_seconds(), -43_200);
     /// ```
     #[inline(always)]
     pub const fn as_seconds(self) -> i32 {
@@ -161,10 +198,10 @@ impl UtcOffset {
     /// negative is west.
     ///
     /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::UTC.as_minutes(), 0);
-    /// assert_eq!(UtcOffset::hours(12).as_minutes(), 720);
-    /// assert_eq!(UtcOffset::hours(-12).as_minutes(), -720);
+    /// # use time_macros::offset;
+    /// assert_eq!(offset!(UTC).as_minutes(), 0);
+    /// assert_eq!(offset!(+12).as_minutes(), 720);
+    /// assert_eq!(offset!(-12).as_minutes(), -720);
     /// ```
     #[inline(always)]
     pub const fn as_minutes(self) -> i16 {
@@ -175,10 +212,10 @@ impl UtcOffset {
     /// negative is west.
     ///
     /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::UTC.as_hours(), 0);
-    /// assert_eq!(UtcOffset::hours(12).as_hours(), 12);
-    /// assert_eq!(UtcOffset::hours(-12).as_hours(), -12);
+    /// # use time_macros::offset;
+    /// assert_eq!(offset!(UTC).as_hours(), 0);
+    /// assert_eq!(offset!(+12).as_hours(), 12);
+    /// assert_eq!(offset!(-12).as_hours(), -12);
     /// ```
     #[inline(always)]
     pub const fn as_hours(self) -> i8 {
@@ -257,9 +294,9 @@ impl UtcOffset {
     /// Format the `UtcOffset` using the provided string.
     ///
     /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::hours(2).format("%z"), "+0200");
-    /// assert_eq!(UtcOffset::hours(-2).format("%z"), "-0200");
+    /// # use time_macros::offset;
+    /// assert_eq!(offset!(+2).format("%z"), "+0200");
+    /// assert_eq!(offset!(-2).format("%z"), "-0200");
     /// ```
     #[inline(always)]
     pub fn format<'a>(self, format: impl Into<Cow<'a, str>>) -> String {
@@ -269,9 +306,9 @@ impl UtcOffset {
     /// Format the `UtcOffset` using the provided string.
     ///
     /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::hours(2).lazy_format("%z").to_string(), "+0200");
-    /// assert_eq!(UtcOffset::hours(-2).lazy_format("%z").to_string(), "-0200");
+    /// # use time_macros::offset;
+    /// assert_eq!(offset!(+2).lazy_format("%z").to_string(), "+0200");
+    /// assert_eq!(offset!(-2).lazy_format("%z").to_string(), "-0200");
     /// ```
     #[inline(always)]
     pub fn lazy_format<'a>(self, format: impl Into<Cow<'a, str>>) -> impl Display + 'a {
@@ -282,8 +319,9 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::parse("+0200", "%z"), Ok(UtcOffset::hours(2)));
-    /// assert_eq!(UtcOffset::parse("-0200", "%z"), Ok(UtcOffset::hours(-2)));
+    /// # use time_macros::offset;
+    /// assert_eq!(UtcOffset::parse("+0200", "%z"), Ok(offset!(+2)));
+    /// assert_eq!(UtcOffset::parse("-0200", "%z"), Ok(offset!(-2)));
     /// ```
     #[inline(always)]
     pub fn parse<'a>(
@@ -373,7 +411,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             // `tm_gmtoff` extension
             #[cfg(not(any(target_os = "solaris", target_os = "illumos")))]
             {
-                tm.tm_gmtoff.try_into().ok().map(UtcOffset::seconds)
+                tm.tm_gmtoff.try_into().ok().map(UtcOffset::seconds).map(Result::ok).flatten()
             }
 
             // No `tm_gmtoff` extension
@@ -403,6 +441,8 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                     .try_into()
                     .ok()
                     .map(UtcOffset::seconds)
+                    .map(Result::ok)
+                    .flatten()
             }
         } else if #[cfg(target_family = "windows")] {
             use core::mem::MaybeUninit;
@@ -484,7 +524,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
             let diff_secs = filetime_to_secs(&ft_local) - filetime_to_secs(&ft_system);
 
-            diff_secs.try_into().ok().map(UtcOffset::seconds)
+            diff_secs.try_into().ok().map(UtcOffset::seconds).map(Result::ok).flatten()
         } else if #[cfg(cargo_web)] {
             use stdweb::js;
 
@@ -511,44 +551,56 @@ mod test {
 
     #[test]
     fn hours() {
-        assert_eq!(UtcOffset::hours(1).as_seconds(), 3_600);
-        assert_eq!(UtcOffset::hours(-1).as_seconds(), -3_600);
-        assert_eq!(UtcOffset::hours(23).as_seconds(), 82_800);
-        assert_eq!(UtcOffset::hours(-23).as_seconds(), -82_800);
+        assert_eq!(UtcOffset::hours(1), Ok(offset!(+1)));
+        assert_eq!(UtcOffset::hours(-1), Ok(offset!(-1)));
+        assert_eq!(UtcOffset::hours(23), Ok(offset!(+23)));
+        assert_eq!(UtcOffset::hours(-23), Ok(offset!(-23)));
+        assert!(UtcOffset::hours(24).is_err());
+        assert!(UtcOffset::hours(-24).is_err());
     }
 
     #[test]
     fn directional_hours() {
-        assert_eq!(UtcOffset::east_hours(1), offset!(+1));
-        assert_eq!(UtcOffset::west_hours(1), offset!(-1));
+        assert_eq!(UtcOffset::east_hours(1), Ok(offset!(+1)));
+        assert_eq!(UtcOffset::west_hours(1), Ok(offset!(-1)));
+        assert!(UtcOffset::east_hours(24).is_err());
+        assert!(UtcOffset::west_hours(24).is_err());
     }
 
     #[test]
     fn minutes() {
-        assert_eq!(UtcOffset::minutes(1).as_seconds(), 60);
-        assert_eq!(UtcOffset::minutes(-1).as_seconds(), -60);
-        assert_eq!(UtcOffset::minutes(1_439).as_seconds(), 86_340);
-        assert_eq!(UtcOffset::minutes(-1_439).as_seconds(), -86_340);
+        assert_eq!(UtcOffset::minutes(1), Ok(offset!(+0:01)));
+        assert_eq!(UtcOffset::minutes(-1), Ok(offset!(-0:01)));
+        assert_eq!(UtcOffset::minutes(1_439), Ok(offset!(+23:59)));
+        assert_eq!(UtcOffset::minutes(-1_439), Ok(offset!(-23:59)));
+        assert!(UtcOffset::minutes(1_440).is_err());
+        assert!(UtcOffset::minutes(-1_440).is_err());
     }
 
     #[test]
     fn directional_minutes() {
-        assert_eq!(UtcOffset::east_minutes(1), offset!(+0:01));
-        assert_eq!(UtcOffset::west_minutes(1), offset!(-0:01));
+        assert_eq!(UtcOffset::east_minutes(1), Ok(offset!(+0:01)));
+        assert_eq!(UtcOffset::west_minutes(1), Ok(offset!(-0:01)));
+        assert!(UtcOffset::east_minutes(1_440).is_err());
+        assert!(UtcOffset::west_minutes(1_440).is_err());
     }
 
     #[test]
     fn seconds() {
-        assert_eq!(UtcOffset::seconds(1).as_seconds(), 1);
-        assert_eq!(UtcOffset::seconds(-1).as_seconds(), -1);
-        assert_eq!(UtcOffset::seconds(86_399).as_seconds(), 86_399);
-        assert_eq!(UtcOffset::seconds(-86_399).as_seconds(), -86_399);
+        assert_eq!(UtcOffset::seconds(1), Ok(offset!(+0:00:01)));
+        assert_eq!(UtcOffset::seconds(-1), Ok(offset!(-0:00:01)));
+        assert_eq!(UtcOffset::seconds(86_399), Ok(offset!(+23:59:59)));
+        assert_eq!(UtcOffset::seconds(-86_399), Ok(offset!(-23:59:59)));
+        assert!(UtcOffset::seconds(86_400).is_err());
+        assert!(UtcOffset::seconds(-86_400).is_err());
     }
 
     #[test]
     fn directional_seconds() {
-        assert_eq!(UtcOffset::east_seconds(1), offset!(+0:00:01));
-        assert_eq!(UtcOffset::west_seconds(1), offset!(-0:00:01));
+        assert_eq!(UtcOffset::east_seconds(1), Ok(offset!(+0:00:01)));
+        assert_eq!(UtcOffset::west_seconds(1), Ok(offset!(-0:00:01)));
+        assert!(UtcOffset::east_seconds(86_400).is_err());
+        assert!(UtcOffset::west_seconds(86_400).is_err());
     }
 
     #[test]

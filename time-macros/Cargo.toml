@@ -1,6 +1,6 @@
 [package]
 name = "time-macros"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Jacob Pratt <the.z.cuber@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/time-rs/time"
@@ -11,5 +11,5 @@ license = "MIT OR Apache-2.0"
 description = "Procedural macros for the time crate."
 
 [dependencies]
-time-macros-impl = { version = "0.1", path = "../time-macros-impl" }
+time-macros-impl = { version = "0.2", path = "../time-macros-impl" }
 proc-macro-hack = "0.5"

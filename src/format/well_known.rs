@@ -100,9 +100,10 @@ pub(crate) mod rfc3339 {
             try_consume_char(s, ':')?;
             let offset_minute = try_consume_exact_digits_in_range(s, 2, 0..=59, Padding::Zero)
                 .ok_or(ParseError::InvalidOffset)?;
-            items.offset = Some(UtcOffset::seconds(
-                offset_sign * (offset_hour * 60 + offset_minute),
-            ));
+            items.offset = Some(
+                UtcOffset::seconds(offset_sign * (offset_hour * 60 + offset_minute))
+                    .map_err(|_| ParseError::InvalidOffset)?,
+            );
         }
 
         Ok(())

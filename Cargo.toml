@@ -1,6 +1,6 @@
 [package]
 name = "time"
-version = "0.2.15"
+version = "0.3.0"
 authors = ["Jacob Pratt <the.z.cuber@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/time-rs/time"
@@ -31,10 +31,10 @@ cfg-if = "0.1.10"
 rand = { version = "0.7", optional = true, default-features = false }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 standback = { version = "0.2.5", default-features = false }
-time-macros = { version = "0.1", path = "time-macros", optional = true }
+time-macros = { version = "0.2", path = "time-macros", optional = true }
 
 [dev-dependencies]
-time-macros = { version = "0.1", path = "time-macros" }
+time-macros = { version = "0.2", path = "time-macros" }
 
 [build-dependencies]
 version_check = "0.9"
