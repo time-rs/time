@@ -54,6 +54,7 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time_macros::{date, time};
     /// assert_eq!(date!(2019-01-01).midnight().time(), time!(0:00));
+    /// ```
     #[inline(always)]
     pub const fn time(self) -> Time {
         self.time

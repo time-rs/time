@@ -208,23 +208,6 @@ macro_rules! ensure_value_in_range {
     };
 }
 
-#[cfg(all(test, std))]
-macro_rules! assert_panics {
-    ($e:expr $(, $message:literal)?) => {
-        #[allow(box_pointers)]
-        {
-            if std::panic::catch_unwind(move || $e).is_ok() {
-                panic!(concat!(
-                    "assertion failed: expected `",
-                    stringify!($e),
-                    "` to panic",
-                    $(concat!(" (", $message, ")"))?
-                ));
-            }
-        }
-    };
-}
-
 /// A macro to generate `Time`s at runtime, usable for tests.
 #[cfg(test)]
 macro_rules! time {
@@ -325,12 +308,10 @@ pub use primitive_date_time::PrimitiveDateTime;
 ///
 /// ```rust
 /// # use time::{Date, date, Weekday::*};
-/// # fn main() -> time::Result<()> {
 /// assert_eq!(date!(2020-W01-3), Date::try_from_iso_ywd(2020, 1, Wednesday)?);
 /// assert_eq!(date!(2020-001), Date::try_from_yo(2020, 1)?);
 /// assert_eq!(date!(2020-01-01), Date::try_from_ymd(2020, 1, 1)?);
-/// # Ok(())
-/// # }
+/// # Ok::<_, time::Error>(())
 /// ```
 #[cfg(macros)]
 pub use time_macros::date;
@@ -371,7 +352,6 @@ pub use time_macros::offset;
 ///
 /// ```rust
 /// # use time::{Time, time};
-/// # fn main() -> time::Result<()> {
 /// assert_eq!(time!(0:00), Time::try_from_hms(0, 0, 0)?);
 /// assert_eq!(time!(1:02:03), Time::try_from_hms(1, 2, 3)?);
 /// assert_eq!(time!(1:02:03.004_005_006), Time::try_from_hms_nano(1, 2, 3, 4_005_006)?);
@@ -381,8 +361,7 @@ pub use time_macros::offset;
 /// assert_eq!(time!(12:00 pm), Time::try_from_hms(12, 0, 0)?);
 /// assert_eq!(time!(1:02:03 pm), Time::try_from_hms(13, 2, 3)?);
 /// assert_eq!(time!(1:02:03.004_005_006 pm), Time::try_from_hms_nano(13, 2, 3, 4_005_006)?);
-/// # Ok(())
-/// # }
+/// # Ok::<_, time::Error>(())
 /// ```
 #[cfg(macros)]
 pub use time_macros::time;

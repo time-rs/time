@@ -1466,12 +1466,13 @@ mod test {
         let mut duration = 1_500.std_milliseconds();
         duration -= 500.milliseconds();
         assert_eq!(duration, 1.seconds());
+    }
 
-        #[cfg(std)]
-        {
-            let mut duration = 1.std_seconds();
-            assert_panics!(duration -= 2.seconds());
-        }
+    #[test]
+    #[should_panic]
+    fn std_sub_assign_panic() {
+        let mut duration = 1.std_seconds();
+        duration -= 2.seconds();
     }
 
     #[test]
