@@ -154,8 +154,7 @@ impl Sub for Instant {
             Ordering::Greater => (self.inner - other.inner)
                 .try_into()
                 .expect("overflow converting `std::time::Duration` to `time::Duration`"),
-            Ordering::Less => (other.inner - self.inner)
-                .try_into()
+            Ordering::Less => -Duration::try_from(other.inner - self.inner)
                 .expect("overflow converting `std::time::Duration` to `time::Duration`"),
         }
     }
@@ -495,5 +494,20 @@ mod test {
         let now_time = Instant::now();
         let now_std = StdInstant::from(now_time) - 1.seconds();
         assert!(now_std < now_time);
+    }
+
+    #[test]
+    fn sub_regression() {
+        let now = Instant::now();
+        let future = now + Duration::seconds(5);
+        let past = now - Duration::seconds(5);
+
+        assert_eq!(future - now, Duration::seconds(5));
+        assert_eq!(now - past, Duration::seconds(5));
+        assert_eq!(future - past, Duration::seconds(10));
+
+        assert_eq!(now - future, Duration::seconds(-5));
+        assert_eq!(past - now, Duration::seconds(-5));
+        assert_eq!(past - future, Duration::seconds(-10));
     }
 }

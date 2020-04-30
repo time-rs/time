@@ -7,7 +7,14 @@ Versioning].
 
 ---
 
-## Unreleased
+## 0.2.12 [2020-04-30]
+
+### Fixed
+
+Subtracting `Instant`s can correctly result in a negative duration, rather than
+resulting in the absolute value of it.
+
+## 0.2.11 [2020-04-27]
 
 ### Added
 
