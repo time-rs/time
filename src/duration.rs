@@ -143,7 +143,10 @@ impl Duration {
     /// The value returned by this method may change at any time.
     #[inline(always)]
     pub const fn max_value() -> Self {
-        Self::new(i64::max_value(), 999_999_999)
+        Self {
+            seconds: i64::max_value(),
+            nanoseconds: 999_999_999,
+        }
     }
 
     /// The minimum possible duration. Adding any negative duration to this will
@@ -152,7 +155,10 @@ impl Duration {
     /// The value returned by this method may change at any time.
     #[inline(always)]
     pub const fn min_value() -> Self {
-        Self::new(i64::min_value(), -999_999_999)
+        Self {
+            seconds: i64::min_value(),
+            nanoseconds: -999_999_999,
+        }
     }
 
     /// Check if a duration is exactly zero.
@@ -251,10 +257,14 @@ impl Duration {
     /// assert_eq!(Duration::new(1, 2_000_000_000), 3.seconds());
     /// ```
     #[inline(always)]
-    pub const fn new(seconds: i64, nanoseconds: i32) -> Self {
-        Self {
-            seconds: seconds + nanoseconds as i64 / 1_000_000_000,
-            nanoseconds: nanoseconds % 1_000_000_000,
+    pub fn new(seconds: i64, nanoseconds: i32) -> Self {
+        match seconds.checked_add(nanoseconds as i64 / 1_000_000_000) {
+            Some(seconds) => Self {
+                seconds,
+                nanoseconds: nanoseconds % 1_000_000_000,
+            },
+            None if seconds > 0 => Self::max_value(),
+            None => Self::min_value(),
         }
     }
 
@@ -540,6 +550,7 @@ impl Duration {
     /// assert_eq!(Duration::nanoseconds(1), 1.microseconds() / 1_000);
     /// assert_eq!(Duration::nanoseconds(-1), (-1).microseconds() / 1_000);
     /// ```
+    // TODO Should this accept an `i128`, given the new saturating behavior?
     #[inline(always)]
     pub const fn nanoseconds(nanoseconds: i64) -> Self {
         Self {
@@ -549,14 +560,17 @@ impl Duration {
     }
 
     /// Create a new `Duration` with the given number of nanoseconds.
-    ///
-    /// As the input range cannot be fully mapped to the output, this should
-    /// only be used where it's known to result in a valid value.
-    #[inline(always)]
-    pub(crate) const fn nanoseconds_i128(nanoseconds: i128) -> Self {
-        Self {
-            seconds: (nanoseconds / 1_000_000_000) as i64,
-            nanoseconds: (nanoseconds % 1_000_000_000) as i32,
+    #[inline]
+    pub(crate) fn nanoseconds_i128(nanoseconds: i128) -> Self {
+        if nanoseconds > Duration::max_value().whole_nanoseconds() {
+            Duration::max_value()
+        } else if nanoseconds < Duration::min_value().whole_nanoseconds() {
+            Duration::min_value()
+        } else {
+            Self {
+                seconds: (nanoseconds / 1_000_000_000) as i64,
+                nanoseconds: (nanoseconds % 1_000_000_000) as i32,
+            }
         }
     }
 
@@ -597,6 +611,7 @@ impl Duration {
     /// assert_eq!(Duration::max_value().checked_add(1.nanoseconds()), None);
     /// assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
     /// ```
+    // TODO Should this be removed due to the new saturating behavior?
     #[inline]
     pub fn checked_add(self, rhs: Self) -> Option<Self> {
         let mut seconds = self.seconds.checked_add(rhs.seconds)?;
@@ -628,6 +643,7 @@ impl Duration {
     /// assert_eq!(Duration::min_value().checked_sub(1.nanoseconds()), None);
     /// assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
     /// ```
+    // TODO Should this be removed due to the new saturating behavior?
     #[inline(always)]
     pub fn checked_sub(self, rhs: Self) -> Option<Self> {
         self.checked_add(-rhs)
@@ -643,6 +659,7 @@ impl Duration {
     /// assert_eq!(Duration::max_value().checked_mul(2), None);
     /// assert_eq!(Duration::min_value().checked_mul(2), None);
     /// ```
+    // TODO Should this be removed due to the new saturating behavior?
     #[inline(always)]
     pub fn checked_mul(self, rhs: i32) -> Option<Self> {
         // Multiply nanoseconds as i64, because it cannot overflow that way.
@@ -667,6 +684,8 @@ impl Duration {
     /// assert_eq!(10.seconds().checked_div(2), Some(5.seconds()));
     /// assert_eq!(10.seconds().checked_div(-2), Some((-5).seconds()));
     /// assert_eq!(1.seconds().checked_div(0), None);
+    /// ```
+    // TODO Should this be removed due to the new saturating behavior?
     #[inline(always)]
     pub fn checked_div(self, rhs: i32) -> Option<Self> {
         if rhs == 0 {
@@ -739,8 +758,10 @@ impl Add for Duration {
 
     #[inline]
     fn add(self, rhs: Self) -> Self::Output {
-        self.checked_add(rhs)
-            .expect("overflow when adding durations")
+        Duration::nanoseconds_i128(
+            self.whole_nanoseconds()
+                .saturating_add(rhs.whole_nanoseconds()),
+        )
     }
 }
 
@@ -749,8 +770,10 @@ impl Add<StdDuration> for Duration {
 
     #[inline(always)]
     fn add(self, std_duration: StdDuration) -> Self::Output {
-        self + Self::try_from(std_duration)
-            .expect("overflow converting `std::time::Duration` to `time::Duration`")
+        Duration::nanoseconds_i128(
+            self.whole_nanoseconds()
+                .saturating_add(std_duration.as_nanos() as i128),
+        )
     }
 }
 
@@ -791,8 +814,10 @@ impl Sub for Duration {
 
     #[inline]
     fn sub(self, rhs: Self) -> Self::Output {
-        self.checked_sub(rhs)
-            .expect("overflow when subtracting durations")
+        Duration::nanoseconds_i128(
+            self.whole_nanoseconds()
+                .saturating_sub(rhs.whole_nanoseconds()),
+        )
     }
 }
 
@@ -801,8 +826,10 @@ impl Sub<StdDuration> for Duration {
 
     #[inline(always)]
     fn sub(self, rhs: StdDuration) -> Self::Output {
-        self - Self::try_from(rhs)
-            .expect("overflow converting `std::time::Duration` to `time::Duration`")
+        Duration::nanoseconds_i128(
+            self.whole_nanoseconds()
+                .saturating_sub(rhs.as_nanos() as i128),
+        )
     }
 }
 
@@ -811,9 +838,9 @@ impl Sub<Duration> for StdDuration {
 
     #[inline(always)]
     fn sub(self, rhs: Duration) -> Self::Output {
-        Duration::try_from(self)
-            .expect("overflow converting `std::time::Duration` to `time::Duration`")
-            - rhs
+        Duration::nanoseconds_i128(
+            (self.as_nanos() as i128).saturating_sub(rhs.whole_nanoseconds()),
+        )
     }
 }
 
@@ -834,9 +861,12 @@ impl SubAssign<StdDuration> for Duration {
 impl SubAssign<Duration> for StdDuration {
     #[inline(always)]
     fn sub_assign(&mut self, rhs: Duration) {
+        // Don't saturate here, as `std::time::Duration` doesn't allow for
+        // negative values. The lowest is zero seconds, which is likely not
+        // what's desired.
         *self = (*self - rhs).try_into().expect(
-            "Cannot represent a resulting duration in std. Try `let x = x - rhs;`, which will \
-             change the type.",
+            "Cannot represent a resulting duration in core::time::Duration. Try `let x = x - \
+             rhs;`, which will change the type.",
         );
     }
 }
@@ -849,11 +879,7 @@ macro_rules! duration_mul_div_int {
 
                 #[inline(always)]
                 fn mul(self, rhs: $type) -> Self::Output {
-                    Self::nanoseconds_i128(
-                        self.whole_nanoseconds()
-                            .checked_mul(rhs as i128)
-                            .expect("overflow when multiplying duration")
-                    )
+                    Self::nanoseconds_i128(self.whole_nanoseconds().saturating_mul(rhs as i128))
                 }
             }
 
@@ -1696,5 +1722,25 @@ mod test {
         let subtracted = 1.6.seconds() - (-1.6).seconds();
         assert_eq!(subtracted.whole_seconds(), 3);
         assert_eq!(subtracted.subsec_milliseconds(), 200);
+    }
+
+    #[test]
+    fn saturating() {
+        assert_eq!(
+            StdDuration::new(u64::max_value(), 999_999_999) - Duration::min_value(),
+            Duration::max_value()
+        );
+        assert_eq!(
+            StdDuration::new(u64::max_value(), 999_999_999) + Duration::max_value(),
+            Duration::max_value()
+        );
+        assert_eq!(
+            Duration::max_value() + StdDuration::new(u64::max_value(), 999_999_999),
+            Duration::max_value()
+        );
+        assert_eq!(
+            Duration::min_value() - StdDuration::new(u64::max_value(), 999_999_999),
+            Duration::min_value()
+        );
     }
 }

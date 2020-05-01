@@ -131,14 +131,15 @@ impl Sub for Instant {
     type Output = Duration;
 
     #[inline(always)]
+    #[allow(clippy::or_fun_call)] // function calls are effectively constants
     fn sub(self, other: Self) -> Self::Output {
         match self.inner.cmp(&other.inner) {
             Ordering::Equal => Duration::zero(),
-            Ordering::Greater => (self.inner - other.inner)
-                .try_into()
-                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
-            Ordering::Less => -Duration::try_from(other.inner - self.inner)
-                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
+            Ordering::Greater => {
+                Duration::try_from(self.inner - other.inner).unwrap_or(Duration::max_value())
+            }
+            Ordering::Less => Duration::try_from(other.inner - self.inner)
+                .map_or(Duration::min_value(), core::ops::Neg::neg),
         }
     }
 }
