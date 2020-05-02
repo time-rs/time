@@ -7,6 +7,12 @@ Versioning].
 
 ---
 
+## 0.2.13 [2020-05-01]
+
+### Fixed
+
+Panicking APIs are re-exposed.
+
 ## 0.2.12 [2020-04-30]
 
 ### Fixed

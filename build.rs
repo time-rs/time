@@ -29,7 +29,7 @@ fn main() {
     cfg_aliases! {
         "std" => std,
         "deprecated" => v01_deprecated_api,
-        "panicking_api" => panicking_api,
+        "panicking-api" => panicking_api,
         "rand" => rand,
         "serde" => serde,
         "__doc" => docs,
