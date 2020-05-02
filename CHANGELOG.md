@@ -7,6 +7,13 @@ Versioning].
 
 ---
 
+## 0.2.14 [2020-05-02]
+
+### Fixed
+
+Adding/subtracting a `core::time::Duration` now correctly takes subsecond
+values into account. This also affects `PrimitiveDateTime` and `OffsetDateTime`.
+
 ## 0.2.13 [2020-05-01]
 
 ### Fixed

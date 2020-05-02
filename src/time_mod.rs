@@ -686,7 +686,8 @@ impl Add<StdDuration> for Time {
     /// ```
     #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
-        self + Duration::seconds((duration.as_secs() % 86_400) as i64)
+        self + Duration::try_from(duration)
+            .expect("overflow converting `core::time::Duration` to `time::Duration`")
     }
 }
 
@@ -770,7 +771,8 @@ impl Sub<StdDuration> for Time {
     /// ```
     #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
-        self - Duration::seconds((duration.as_secs() % 86_400) as i64)
+        self - Duration::try_from(duration)
+            .expect("overflow converting `core::time::Duration` to `time::Duration`")
     }
 }
 
@@ -1234,6 +1236,10 @@ mod test {
 
     #[test]
     fn add_std_duration() -> crate::Result<()> {
+        assert_eq!(
+            time!(0:00) + 1.std_milliseconds(),
+            time!(0:00:00:001_000_000)
+        );
         assert_eq!(time!(0:00) + 1.std_seconds(), time!(0:00:01));
         assert_eq!(time!(0:00) + 1.std_minutes(), time!(0:01));
         assert_eq!(time!(0:00) + 1.std_hours(), time!(1:00));
@@ -1264,6 +1270,10 @@ mod test {
         assert_eq!(time!(12:00) - 1.std_hours(), time!(11:00));
 
         // Underflow
+        assert_eq!(
+            time!(0:00) - 1.std_milliseconds(),
+            time!(23:59:59:999_000_000)
+        );
         assert_eq!(time!(0:00) - 1.std_seconds(), time!(23:59:59));
         assert_eq!(time!(0:00) - 1.std_minutes(), time!(23:59));
         assert_eq!(time!(0:00) - 1.std_hours(), time!(23:00));
