@@ -299,7 +299,7 @@ impl UtcOffset {
     /// assert_eq!(offset!(-2).format("%z"), "-0200");
     /// ```
     #[inline(always)]
-    pub fn format<'a>(self, format: impl Into<Cow<'a, str>>) -> String {
+    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
         self.lazy_format(format).to_string()
     }
 
@@ -311,7 +311,7 @@ impl UtcOffset {
     /// assert_eq!(offset!(-2).lazy_format("%z").to_string(), "-0200");
     /// ```
     #[inline(always)]
-    pub fn lazy_format<'a>(self, format: impl Into<Cow<'a, str>>) -> impl Display + 'a {
+    pub fn lazy_format<'a>(self, format: impl Into<Format<'a>>) -> impl Display + 'a {
         DeferredFormat::new(format).with_offset(self).to_owned()
     }
 
@@ -326,7 +326,7 @@ impl UtcOffset {
     #[inline(always)]
     pub fn parse<'a>(
         s: impl Into<Cow<'a, str>>,
-        format: impl Into<Cow<'a, str>>,
+        format: impl Into<Format<'a>>,
     ) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(&s.into(), format)?)
     }

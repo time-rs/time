@@ -3,7 +3,6 @@
 use crate::{
     format::{parse_fmt_string, well_known, FormatItem, Padding, Specifier},
     internal_prelude::*,
-    Format,
 };
 use core::{
     fmt::{self, Display, Formatter},

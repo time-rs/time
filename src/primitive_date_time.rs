@@ -367,7 +367,7 @@ impl PrimitiveDateTime {
     /// );
     /// ```
     #[inline(always)]
-    pub fn format<'a>(self, format: impl Into<Cow<'a, str>>) -> String {
+    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
         self.lazy_format(format).to_string()
     }
 
@@ -381,7 +381,7 @@ impl PrimitiveDateTime {
     /// );
     /// ```
     #[inline(always)]
-    pub fn lazy_format<'a>(self, format: impl Into<Cow<'a, str>>) -> impl Display + 'a {
+    pub fn lazy_format<'a>(self, format: impl Into<Format<'a>>) -> impl Display + 'a {
         DeferredFormat::new(format)
             .with_date(self.date())
             .with_time(self.time())
@@ -409,7 +409,7 @@ impl PrimitiveDateTime {
     #[inline(always)]
     pub fn parse<'a>(
         s: impl Into<Cow<'a, str>>,
-        format: impl Into<Cow<'a, str>>,
+        format: impl Into<Format<'a>>,
     ) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(&s.into(), format)?)
     }

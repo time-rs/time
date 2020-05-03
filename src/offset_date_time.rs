@@ -1,7 +1,6 @@
 use crate::{
     format::parse::{parse, ParsedItems},
     internal_prelude::*,
-    Format,
 };
 #[cfg(std)]
 use core::convert::From;

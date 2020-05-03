@@ -384,16 +384,9 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// The prelude may grow in minor releases. Any removals will only occur in
 /// major releases.
 pub mod prelude {
-    pub use crate::{NumericalDuration as _, NumericalStdDuration as _};
-    // We need to re-export from the macros crate again (and not just do
-    // `crate::foo`) because of the way name resolution works in Rust. It's not
-    // currently possible to import _only_ the macro, so doing `use crate::time`
-    // also pulls in the `time` _crate_ (due to `extern crate self as time`).
-    //
-    // As a side note, doing `use crate::time` causes a stack overflow in
-    // rustc <= 1.37.0.
     #[cfg(macros)]
-    pub use time_macros::{date, offset, time};
+    pub use crate::{date, offset, time};
+    pub use crate::{NumericalDuration as _, NumericalStdDuration as _};
 }
 
 /// Items generally useful in any file in the time crate.
@@ -404,9 +397,9 @@ mod internal_prelude {
     pub(crate) use crate::Instant;
     pub(crate) use crate::{
         format::{ParseError, ParseResult},
-        ComponentRangeError, ConversionRangeError, Date, DeferredFormat, Duration, FormatError,
-        IndeterminateOffsetError, NumericalDuration, NumericalStdDuration, OffsetDateTime,
-        PrimitiveDateTime, Time, UtcOffset,
+        ComponentRangeError, ConversionRangeError, Date, DeferredFormat, Duration, Format,
+        FormatError, IndeterminateOffsetError, NumericalDuration, NumericalStdDuration,
+        OffsetDateTime, PrimitiveDateTime, Time, UtcOffset,
         Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
     };
     pub(crate) use alloc::{
@@ -430,7 +423,7 @@ mod private {
             impl Parsable for $type {
                 fn parse<'a>(
                     s: impl Into<Cow<'a, str>>,
-                    format: impl Into<Cow<'a, str>>,
+                    format: impl Into<Format<'a>>,
                 ) -> ParseResult<Self> {
                     Self::parse(s, format)
                 }
@@ -441,7 +434,7 @@ mod private {
     pub trait Parsable: Sized {
         fn parse<'a>(
             s: impl Into<Cow<'a, str>>,
-            format: impl Into<Cow<'a, str>>,
+            format: impl Into<Format<'a>>,
         ) -> ParseResult<Self>;
     }
 
