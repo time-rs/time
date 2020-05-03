@@ -1,9 +1,8 @@
 //! Implementation of `Distribution` for various structs.
 
 use crate::{
-    date::{MAX_YEAR, MIN_YEAR},
+    date::{MAX_DATE, MIN_DATE},
     internal_prelude::*,
-    internals,
 };
 use rand::{
     distributions::{Distribution, Standard},
@@ -25,18 +24,7 @@ impl Distribution<Time> for Standard {
 impl Distribution<Date> for Standard {
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Date {
-        /// The minimum date allowed to be represented.
-        const MIN_DATE: Date = internals::Date::from_ymd_unchecked(MIN_YEAR, 1, 1);
-        /// The maximum date allowed to be represented.
-        const MAX_DATE: Date = internals::Date::from_ymd_unchecked(MAX_YEAR, 12, 31);
-
-        match Date::from_julian_day(rng.gen_range(MIN_DATE.julian_day(), MAX_DATE.julian_day() + 1))
-        {
-            Ok(value) => value,
-            Err(_) => unreachable!(
-                "The Julian date is constructed using the minimum and maximum allowable values."
-            ),
-        }
+        Date::from_julian_day(rng.gen_range(MIN_DATE.julian_day(), MAX_DATE.julian_day() + 1))
     }
 }
 

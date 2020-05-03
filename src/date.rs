@@ -83,6 +83,16 @@ pub fn weeks_in_year(year: i32) -> u8 {
 pub(crate) const MIN_YEAR: i32 = -100_000;
 /// The maximum valid year.
 pub(crate) const MAX_YEAR: i32 = 100_000;
+/// The maximum valid date.
+pub(crate) const MIN_DATE: Date = Date {
+    year: MIN_YEAR,
+    ordinal: 1,
+};
+/// The maximum valid date.
+pub(crate) const MAX_DATE: Date = Date {
+    year: MAX_YEAR,
+    ordinal: 365 + ((MAX_YEAR % 4 == 0) & ((MAX_YEAR % 100 != 0) | (MAX_YEAR % 400 == 0))) as u16,
+};
 
 /// Calendar date.
 ///
@@ -91,8 +101,8 @@ pub(crate) const MAX_YEAR: i32 = 100_000;
 /// that can change at any time without notice. If you need support outside this
 /// range, please [file an issue](https://github.com/time-rs/time/issues/new)
 /// with your use case.
-#[cfg_attr(serde, derive(serde::Serialize))]
-#[cfg_attr(serde, serde(into = "crate::serde::Date"))]
+#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(serde, serde(into = "crate::serde::Date", from = "crate::serde::Date"))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
     #[allow(clippy::missing_docs_in_private_items)]
@@ -102,19 +112,6 @@ pub struct Date {
     /// - 1 January => 1
     /// - 31 December => 365/366
     pub(crate) ordinal: u16,
-}
-
-#[cfg(serde)]
-impl<'a> serde::Deserialize<'a> for Date {
-    #[inline(always)]
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'a>,
-    {
-        crate::serde::Date::deserialize(deserializer)?
-            .try_into()
-            .map_err(serde::de::Error::custom)
-    }
 }
 
 impl Date {
@@ -249,7 +246,6 @@ impl Date {
     pub fn month_day(self) -> (u8, u8) {
         /// The number of days up to and including the given month. Common years
         /// are first, followed by leap years.
-        #[allow(clippy::items_after_statements)]
         const CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP: [[u16; 11]; 2] = [
             [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
             [31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
@@ -462,11 +458,11 @@ impl Date {
             self.ordinal = 1;
         }
 
-        if self.year > MAX_YEAR {
-            panic!("overflow when fetching next day");
+        if self > MAX_DATE {
+            MAX_DATE
+        } else {
+            self
         }
-
-        self
     }
 
     /// Get the previous calendar date.
@@ -486,11 +482,11 @@ impl Date {
             self.ordinal = days_in_year(self.year);
         }
 
-        if self.year < MIN_YEAR {
-            panic!("overflow when fetching previous day");
+        if self < MIN_DATE {
+            MIN_DATE
+        } else {
+            self
         }
-
-        self
     }
 
     /// Get the Julian day for the date.
@@ -525,16 +521,16 @@ impl Date {
     /// # use time::Date;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     Date::from_julian_day(0)?,
+    ///     Date::from_julian_day(0),
     ///     date!(-4713-11-24)
     /// );
-    /// assert_eq!(Date::from_julian_day(2_451_545)?, date!(2000-01-01));
-    /// assert_eq!(Date::from_julian_day(2_458_485)?, date!(2019-01-01));
-    /// assert_eq!(Date::from_julian_day(2_458_849)?, date!(2019-12-31));
+    /// assert_eq!(Date::from_julian_day(2_451_545), date!(2000-01-01));
+    /// assert_eq!(Date::from_julian_day(2_458_485), date!(2019-01-01));
+    /// assert_eq!(Date::from_julian_day(2_458_849), date!(2019-12-31));
     /// # Ok::<_, time::Error>(())
     /// ```
     #[inline]
-    pub fn from_julian_day(julian_day: i64) -> Result<Self, ComponentRangeError> {
+    pub fn from_julian_day(julian_day: i64) -> Self {
         #![allow(clippy::missing_docs_in_private_items)]
         const Y: i64 = 4_716;
         const J: i64 = 1_401;
@@ -549,6 +545,12 @@ impl Date {
         const B: i64 = 274_277;
         const C: i64 = -38;
 
+        if julian_day > MAX_DATE.julian_day() {
+            return MAX_DATE;
+        } else if julian_day < MIN_DATE.julian_day() {
+            return MIN_DATE;
+        }
+
         let f = julian_day + J + (((4 * julian_day + B) / 146_097) * 3) / 4 + C;
         let e = R * f + V;
         let g = e.rem_euclid(P) / R;
@@ -557,7 +559,13 @@ impl Date {
         let month = (h / S + M).rem_euclid(N) + 1;
         let year = (e / P) - Y + (N + M - month) / N;
 
-        Date::try_from_ymd(year as i32, month as u8, day as u8)
+        match Date::try_from_ymd(year as i32, month as u8, day as u8) {
+            Ok(date) => date,
+            Err(_) => unreachable!(
+                "Internal error resulting in an invalid state. Please file an issue on the \
+                 time-rs/time repository, including your input."
+            ),
+        }
     }
 }
 
@@ -806,7 +814,7 @@ impl Add<Duration> for Date {
 
     #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
-        Self::from_julian_day(self.julian_day() + duration.whole_days()).expect("TODO saturate")
+        Self::from_julian_day(self.julian_day() + duration.whole_days())
     }
 }
 
@@ -816,7 +824,6 @@ impl Add<StdDuration> for Date {
     #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
         Self::from_julian_day(self.julian_day() + (duration.as_secs() / 86_400) as i64)
-            .expect("TODO saturate")
     }
 }
 
@@ -849,7 +856,6 @@ impl Sub<StdDuration> for Date {
     #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
         Self::from_julian_day(self.julian_day() - (duration.as_secs() / 86_400) as i64)
-            .expect("TODO saturate")
     }
 }
 
@@ -898,12 +904,6 @@ impl Ord for Date {
 #[rustfmt::skip::macros(date)]
 mod test {
     use super::*;
-
-    macro_rules! julian {
-        ($julian:literal) => {
-            Date::from_julian_day($julian)?
-        };
-    }
 
     #[test]
     fn weeks_in_year_exhaustive() {
@@ -1860,10 +1860,10 @@ mod test {
 
     #[test]
     fn from_julian_day() -> crate::Result<()> {
-        assert_eq!(julian!(0), date!(-4713-11-24));
-        assert_eq!(julian!(2_451_545), date!(2000-01-01));
-        assert_eq!(julian!(2_458_485), date!(2019-01-01));
-        assert_eq!(julian!(2_458_849), date!(2019-12-31));
+        assert_eq!(Date::from_julian_day(0), date!(-4713-11-24));
+        assert_eq!(Date::from_julian_day(2_451_545), date!(2000-01-01));
+        assert_eq!(Date::from_julian_day(2_458_485), date!(2019-01-01));
+        assert_eq!(Date::from_julian_day(2_458_849), date!(2019-12-31));
         Ok(())
     }
 
@@ -2045,6 +2045,15 @@ mod test {
         assert_eq!(first.cmp(&first), Ordering::Equal);
         assert_eq!(first.cmp(&second), Ordering::Less);
         assert_eq!(second.cmp(&first), Ordering::Greater);
+        Ok(())
+    }
+
+    #[test]
+    fn saturating() -> crate::Result<()> {
+        assert_eq!(MAX_DATE + 1.days(), MAX_DATE);
+        assert_eq!(MIN_DATE - 1.days(), MIN_DATE);
+        assert_eq!(Date::from_julian_day(i64::max_value()), MAX_DATE);
+        assert_eq!(Date::from_julian_day(i64::min_value()), MIN_DATE);
         Ok(())
     }
 }
