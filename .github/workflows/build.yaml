@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rust: [1.32.0, 1.36.0, stable] # 1.36 is when alloc was stabilized
+        rust: [1.36.0, stable]
 
     steps:
       - name: Checkout sources
@@ -83,22 +83,20 @@ jobs:
         with:
           command: web
           args: check --no-default-features
-        if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
 
-      # `#![no_std]` with serde, rand
-      - name: Run `cargo web check --no-default-features --features serde,rand`
+      # `#![no_std]` with serde, rand, macros
+      - name: Run `cargo web check --no-default-features --features serde,rand,macros`
         uses: actions-rs/cargo@v1
         with:
           command: web
-          args: check --no-default-features --features serde,rand
-        if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
+          args: check --no-default-features --features serde,rand,macros
 
       # everything
-      - name: Run `cargo check --features serde,deprecated,panicking-api,rand`
+      - name: Run `cargo check --features serde,rand,macros,local-offset`
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --features serde,deprecated,panicking-api,rand
+          args: --features serde,rand,macros,local-offset
 
   test:
     name: Test suite
