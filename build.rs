@@ -30,6 +30,7 @@ fn main() {
         "rand" => rand,
         "serde" => serde,
         "macros" => macros,
+        "local-offset" => local_offset,
         "__doc" => docs,
     };
 

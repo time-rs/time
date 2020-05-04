@@ -37,7 +37,7 @@ jobs:
           command: check
           args: --no-default-features --target thumbv7em-none-eabihf
 
-      # `#![no_std]` with serde, rand
+      # `#![no_std]` with serde, rand, macros
       - name: Run `cargo check --no-default-features --features serde,rand,macros`
         uses: actions-rs/cargo@v1
         with:
@@ -135,11 +135,11 @@ jobs:
           args: --no-default-features
 
       # everything
-      - name: Run `cargo test --features serde,rand`
+      - name: Run `cargo test --features serde,rand,macros,local-offset`
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features serde,rand
+          args: --features serde,rand,macros,local-offset
 
   fmt:
     name: Formatting
@@ -186,11 +186,11 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Run `cargo clippy --features serde,rand`
+      - name: Run `cargo clippy --features serde,rand,macros,local-offset`
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --features serde,rand
+          args: --features serde,rand,macros,local-offset
 
   documentation:
     name: Documentation

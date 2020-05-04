@@ -16,9 +16,10 @@ all-features = true
 targets = ["x86_64-unknown-linux-gnu"]
 
 [features]
-default = ["std", "macros"]
+default = ["std"]
 macros = ["time-macros"]
-std = ["libc", "winapi", "stdweb", "standback/std"]
+local-offset = ["std", "libc", "winapi", "stdweb", "cfg-if"]
+std = ["standback/std"]
 
 # Internal usage. This is used when building for docs.rs and time-rs.github.io.
 # This feature should never be used by external users. It will likely be
@@ -26,7 +27,7 @@ std = ["libc", "winapi", "stdweb", "standback/std"]
 __doc = []
 
 [dependencies]
-cfg-if = "0.1.10"
+cfg-if = { version = "0.1.10", optional = true }
 rand = { version = "0.7", optional = true, default-features = false }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 standback = { version = "0.2.5", default-features = false }

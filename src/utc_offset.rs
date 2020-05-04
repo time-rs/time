@@ -238,7 +238,8 @@ impl UtcOffset {
     /// println!("{}", local_offset.format("%z"));
     /// ```
     #[inline(always)]
-    #[cfg(std)]
+    #[cfg(local_offset)]
+    #[cfg_attr(docs, doc(cfg(feature = "local-offset")))]
     pub fn local_offset_at(datetime: OffsetDateTime) -> Self {
         try_local_offset_at(datetime).unwrap_or(Self::UTC)
     }
@@ -253,7 +254,8 @@ impl UtcOffset {
     /// assert!(local_offset.is_ok());
     /// ```
     #[inline(always)]
-    #[cfg(std)]
+    #[cfg(local_offset)]
+    #[cfg_attr(docs, doc(cfg(feature = "local-offset")))]
     pub fn try_local_offset_at(datetime: OffsetDateTime) -> Result<Self, IndeterminateOffsetError> {
         try_local_offset_at(datetime).ok_or_else(|| IndeterminateOffsetError)
     }
@@ -267,7 +269,8 @@ impl UtcOffset {
     /// println!("{}", local_offset.format("%z"));
     /// ```
     #[inline(always)]
-    #[cfg(std)]
+    #[cfg(local_offset)]
+    #[cfg_attr(docs, doc(cfg(feature = "local-offset")))]
     pub fn current_local_offset() -> Self {
         let now = OffsetDateTime::now_utc();
         try_local_offset_at(now).unwrap_or(Self::UTC)
@@ -282,7 +285,8 @@ impl UtcOffset {
     /// assert!(local_offset.is_ok());
     /// ```
     #[inline(always)]
-    #[cfg(std)]
+    #[cfg(local_offset)]
+    #[cfg_attr(docs, doc(cfg(feature = "local-offset")))]
     pub fn try_current_local_offset() -> Result<Self, IndeterminateOffsetError> {
         let now = OffsetDateTime::now_utc();
         try_local_offset_at(now).ok_or_else(|| IndeterminateOffsetError)
@@ -362,7 +366,8 @@ impl Display for UtcOffset {
 
 /// Attempt to obtain the system's UTC offset. If the offset cannot be
 /// determined, `None` is returned.
-#[cfg(std)]
+#[cfg(local_offset)]
+#[cfg_attr(docs, doc(cfg(feature = "local-offset")))]
 #[allow(clippy::too_many_lines)]
 fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     cfg_if::cfg_if! {
