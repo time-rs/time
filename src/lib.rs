@@ -276,9 +276,6 @@ mod offset_date_time;
 mod primitive_date_time;
 #[cfg(rand)]
 mod rand;
-#[cfg(serde)]
-#[allow(missing_copy_implementations, missing_debug_implementations)]
-mod serde;
 /// The `Time` struct and its associated `impl`s.
 mod time_mod;
 /// The `UtcOffset` struct and its associated `impl`s.

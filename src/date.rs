@@ -96,7 +96,7 @@ pub(crate) const MAX_DATE: Date = crate::internals::Date::from_yo_unchecked(
 /// Years between `-999_999` and `+999_999` inclusive are guaranteed to be
 /// representable and provide valid behavior.
 #[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(serde, serde(into = "crate::serde::Date", from = "crate::serde::Date"))]
+#[cfg_attr(serde, serde(into = "SerdeDate", from = "SerdeDate"))]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
     /// Bitpacked field containing both the year and ordinal.
@@ -107,11 +107,38 @@ pub struct Date {
 }
 
 impl fmt::Debug for Date {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         f.debug_struct("Date")
             .field("year", &self.year())
             .field("ordinal", &self.ordinal())
             .finish()
+    }
+}
+
+#[cfg(serde)]
+#[derive(serde::Serialize, serde::Deserialize)]
+struct SerdeDate {
+    year: i32,
+    ordinal: u16,
+}
+
+#[cfg(serde)]
+impl From<Date> for SerdeDate {
+    #[inline]
+    fn from(original: Date) -> Self {
+        Self {
+            year: original.year(),
+            ordinal: original.ordinal(),
+        }
+    }
+}
+
+#[cfg(serde)]
+impl From<SerdeDate> for Date {
+    #[inline]
+    fn from(original: SerdeDate) -> Self {
+        internals::Date::from_yo_unchecked(original.year, original.ordinal)
     }
 }
 
