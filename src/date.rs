@@ -116,10 +116,14 @@ impl fmt::Debug for Date {
     }
 }
 
+/// The representation of `Date` serde should use.
 #[cfg(serde)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[allow(missing_copy_implementations)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct SerdeDate {
+    #[allow(clippy::missing_docs_in_private_items)]
     year: i32,
+    #[allow(clippy::missing_docs_in_private_items)]
     ordinal: u16,
 }
 
