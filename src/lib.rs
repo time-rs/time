@@ -212,13 +212,13 @@ macro_rules! ensure_value_in_range {
 #[cfg(test)]
 macro_rules! time {
     ($hour:literal : $minute:literal) => {
-        crate::Time::try_from_hms($hour, $minute, 0)?
+        crate::Time::from_hms($hour, $minute, 0)?
     };
     ($hour:literal : $minute:literal : $second:literal) => {
-        crate::Time::try_from_hms($hour, $minute, $second)?
+        crate::Time::from_hms($hour, $minute, $second)?
     };
     ($hour:literal : $minute:literal : $second:literal : $nanosecond:literal) => {
-        crate::Time::try_from_hms_nano($hour, $minute, $second, $nanosecond)?
+        crate::Time::from_hms_nano($hour, $minute, $second, $nanosecond)?
     };
 }
 
@@ -250,10 +250,10 @@ macro_rules! offset {
 #[cfg(test)]
 macro_rules! date {
     ($(+)? $year:literal - $ordinal:literal) => {
-        crate::Date::try_from_yo($year, $ordinal)?
+        crate::Date::from_yo($year, $ordinal)?
     };
     ($(+)? $year:literal - $month:literal - $day:literal) => {
-        crate::Date::try_from_ymd($year, $month, $day)?
+        crate::Date::from_ymd($year, $month, $day)?
     };
 }
 
@@ -308,9 +308,9 @@ pub use primitive_date_time::PrimitiveDateTime;
 ///
 /// ```rust
 /// # use time::{Date, date, Weekday::*};
-/// assert_eq!(date!(2020-W01-3), Date::try_from_iso_ywd(2020, 1, Wednesday)?);
-/// assert_eq!(date!(2020-001), Date::try_from_yo(2020, 1)?);
-/// assert_eq!(date!(2020-01-01), Date::try_from_ymd(2020, 1, 1)?);
+/// assert_eq!(date!(2020-W01-3), Date::from_iso_ywd(2020, 1, Wednesday)?);
+/// assert_eq!(date!(2020-001), Date::from_yo(2020, 1)?);
+/// assert_eq!(date!(2020-01-01), Date::from_ymd(2020, 1, 1)?);
 /// # Ok::<_, time::Error>(())
 /// ```
 #[cfg(macros)]
@@ -352,15 +352,15 @@ pub use time_macros::offset;
 ///
 /// ```rust
 /// # use time::{Time, time};
-/// assert_eq!(time!(0:00), Time::try_from_hms(0, 0, 0)?);
-/// assert_eq!(time!(1:02:03), Time::try_from_hms(1, 2, 3)?);
-/// assert_eq!(time!(1:02:03.004_005_006), Time::try_from_hms_nano(1, 2, 3, 4_005_006)?);
-/// assert_eq!(time!(12:00 am), Time::try_from_hms(0, 0, 0)?);
-/// assert_eq!(time!(1:02:03 am), Time::try_from_hms(1, 2, 3)?);
-/// assert_eq!(time!(1:02:03.004_005_006 am), Time::try_from_hms_nano(1, 2, 3, 4_005_006)?);
-/// assert_eq!(time!(12:00 pm), Time::try_from_hms(12, 0, 0)?);
-/// assert_eq!(time!(1:02:03 pm), Time::try_from_hms(13, 2, 3)?);
-/// assert_eq!(time!(1:02:03.004_005_006 pm), Time::try_from_hms_nano(13, 2, 3, 4_005_006)?);
+/// assert_eq!(time!(0:00), Time::from_hms(0, 0, 0)?);
+/// assert_eq!(time!(1:02:03), Time::from_hms(1, 2, 3)?);
+/// assert_eq!(time!(1:02:03.004_005_006), Time::from_hms_nano(1, 2, 3, 4_005_006)?);
+/// assert_eq!(time!(12:00 am), Time::from_hms(0, 0, 0)?);
+/// assert_eq!(time!(1:02:03 am), Time::from_hms(1, 2, 3)?);
+/// assert_eq!(time!(1:02:03.004_005_006 am), Time::from_hms_nano(1, 2, 3, 4_005_006)?);
+/// assert_eq!(time!(12:00 pm), Time::from_hms(12, 0, 0)?);
+/// assert_eq!(time!(1:02:03 pm), Time::from_hms(13, 2, 3)?);
+/// assert_eq!(time!(1:02:03.004_005_006 pm), Time::from_hms_nano(13, 2, 3, 4_005_006)?);
 /// # Ok::<_, time::Error>(())
 /// ```
 #[cfg(macros)]

@@ -56,19 +56,19 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms(1, 2, 3).is_ok());
+    /// assert!(Time::from_hms(1, 2, 3).is_ok());
     /// ```
     ///
     /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms(24, 0, 0).is_err()); // 24 isn't a valid hour.
-    /// assert!(Time::try_from_hms(0, 60, 0).is_err()); // 60 isn't a valid minute.
-    /// assert!(Time::try_from_hms(0, 0, 60).is_err()); // 60 isn't a valid second.
+    /// assert!(Time::from_hms(24, 0, 0).is_err()); // 24 isn't a valid hour.
+    /// assert!(Time::from_hms(0, 60, 0).is_err()); // 60 isn't a valid minute.
+    /// assert!(Time::from_hms(0, 0, 60).is_err()); // 60 isn't a valid second.
     /// ```
     #[inline(always)]
-    pub fn try_from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, ComponentRangeError> {
+    pub fn from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(hour in 0 => 23);
         ensure_value_in_range!(minute in 0 => 59);
         ensure_value_in_range!(second in 0 => 59);
@@ -84,20 +84,20 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_milli(1, 2, 3, 4).is_ok());
+    /// assert!(Time::from_hms_milli(1, 2, 3, 4).is_ok());
     /// ```
     ///
     /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_milli(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
-    /// assert!(Time::try_from_hms_milli(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
-    /// assert!(Time::try_from_hms_milli(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
-    /// assert!(Time::try_from_hms_milli(0, 0, 0, 1_000).is_err()); // 1_000 isn't a valid millisecond.
+    /// assert!(Time::from_hms_milli(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
+    /// assert!(Time::from_hms_milli(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
+    /// assert!(Time::from_hms_milli(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
+    /// assert!(Time::from_hms_milli(0, 0, 0, 1_000).is_err()); // 1_000 isn't a valid millisecond.
     /// ```
     #[inline(always)]
-    pub fn try_from_hms_milli(
+    pub fn from_hms_milli(
         hour: u8,
         minute: u8,
         second: u8,
@@ -119,20 +119,20 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_micro(1, 2, 3, 4).is_ok());
+    /// assert!(Time::from_hms_micro(1, 2, 3, 4).is_ok());
     /// ```
     ///
     /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_micro(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
-    /// assert!(Time::try_from_hms_micro(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
-    /// assert!(Time::try_from_hms_micro(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
-    /// assert!(Time::try_from_hms_micro(0, 0, 0, 1_000_000).is_err()); // 1_000_000 isn't a valid microsecond.
+    /// assert!(Time::from_hms_micro(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
+    /// assert!(Time::from_hms_micro(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
+    /// assert!(Time::from_hms_micro(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
+    /// assert!(Time::from_hms_micro(0, 0, 0, 1_000_000).is_err()); // 1_000_000 isn't a valid microsecond.
     /// ```
     #[inline(always)]
-    pub fn try_from_hms_micro(
+    pub fn from_hms_micro(
         hour: u8,
         minute: u8,
         second: u8,
@@ -154,20 +154,20 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_nano(1, 2, 3, 4).is_ok());
+    /// assert!(Time::from_hms_nano(1, 2, 3, 4).is_ok());
     /// ```
     ///
     /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_nano(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
-    /// assert!(Time::try_from_hms_nano(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
-    /// assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
-    /// assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond.
+    /// assert!(Time::from_hms_nano(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
+    /// assert!(Time::from_hms_nano(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
+    /// assert!(Time::from_hms_nano(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
+    /// assert!(Time::from_hms_nano(0, 0, 0, 1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
     #[inline(always)]
-    pub fn try_from_hms_nano(
+    pub fn from_hms_nano(
         hour: u8,
         minute: u8,
         second: u8,
@@ -371,26 +371,25 @@ impl Time {
 
         match items {
             items!(hour_24, minute, second, nanosecond) => {
-                Self::try_from_hms_nano(hour_24, minute, second, nanosecond).map_err(Into::into)
+                Self::from_hms_nano(hour_24, minute, second, nanosecond).map_err(Into::into)
             }
             items!(hour_12, minute, second, nanosecond, am_pm) => {
-                Self::try_from_hms_nano(hour_12_to_24(hour_12, am_pm), minute, second, nanosecond)
+                Self::from_hms_nano(hour_12_to_24(hour_12, am_pm), minute, second, nanosecond)
                     .map_err(Into::into)
             }
             items!(hour_24, minute, second) => {
-                Self::try_from_hms(hour_24, minute, second).map_err(Into::into)
+                Self::from_hms(hour_24, minute, second).map_err(Into::into)
             }
             items!(hour_12, minute, second, am_pm) => {
-                Self::try_from_hms(hour_12_to_24(hour_12, am_pm), minute, second)
-                    .map_err(Into::into)
+                Self::from_hms(hour_12_to_24(hour_12, am_pm), minute, second).map_err(Into::into)
             }
-            items!(hour_24, minute) => Self::try_from_hms(hour_24, minute, 0).map_err(Into::into),
+            items!(hour_24, minute) => Self::from_hms(hour_24, minute, 0).map_err(Into::into),
             items!(hour_12, minute, am_pm) => {
-                Self::try_from_hms(hour_12_to_24(hour_12, am_pm), minute, 0).map_err(Into::into)
+                Self::from_hms(hour_12_to_24(hour_12, am_pm), minute, 0).map_err(Into::into)
             }
-            items!(hour_24) => Self::try_from_hms(hour_24, 0, 0).map_err(Into::into),
+            items!(hour_24) => Self::from_hms(hour_24, 0, 0).map_err(Into::into),
             items!(hour_12, am_pm) => {
-                Self::try_from_hms(hour_12_to_24(hour_12, am_pm), 0, 0).map_err(Into::into)
+                Self::from_hms(hour_12_to_24(hour_12, am_pm), 0, 0).map_err(Into::into)
             }
             _ => Err(ParseError::InsufficientInformation),
         }
@@ -671,71 +670,71 @@ mod test {
     }
 
     #[test]
-    fn try_from_hms() -> crate::Result<()> {
-        let time = Time::try_from_hms(1, 2, 3)?;
+    fn from_hms() -> crate::Result<()> {
+        let time = Time::from_hms(1, 2, 3)?;
         assert_eq!(time.hour(), 1);
         assert_eq!(time.minute(), 2);
         assert_eq!(time.second(), 3);
         assert_eq!(time.nanosecond(), 0);
 
-        assert!(Time::try_from_hms(24, 0, 0).is_err());
-        assert!(Time::try_from_hms(0, 60, 0).is_err());
-        assert!(Time::try_from_hms(0, 0, 60).is_err());
+        assert!(Time::from_hms(24, 0, 0).is_err());
+        assert!(Time::from_hms(0, 60, 0).is_err());
+        assert!(Time::from_hms(0, 0, 60).is_err());
         Ok(())
     }
 
     #[test]
-    fn try_from_hms_milli() -> crate::Result<()> {
-        let time = Time::try_from_hms_milli(1, 2, 3, 4)?;
+    fn from_hms_milli() -> crate::Result<()> {
+        let time = Time::from_hms_milli(1, 2, 3, 4)?;
         assert_eq!(time.hour(), 1);
         assert_eq!(time.minute(), 2);
         assert_eq!(time.second(), 3);
         assert_eq!(time.millisecond(), 4);
         assert_eq!(time.nanosecond(), 4_000_000);
 
-        assert!(Time::try_from_hms_milli(24, 0, 0, 0).is_err());
-        assert!(Time::try_from_hms_milli(0, 60, 0, 0).is_err());
-        assert!(Time::try_from_hms_milli(0, 0, 60, 0).is_err());
-        assert!(Time::try_from_hms_milli(0, 0, 0, 1_000).is_err());
+        assert!(Time::from_hms_milli(24, 0, 0, 0).is_err());
+        assert!(Time::from_hms_milli(0, 60, 0, 0).is_err());
+        assert!(Time::from_hms_milli(0, 0, 60, 0).is_err());
+        assert!(Time::from_hms_milli(0, 0, 0, 1_000).is_err());
         Ok(())
     }
 
     #[test]
-    fn try_from_hms_micro() -> crate::Result<()> {
-        let time = Time::try_from_hms_micro(1, 2, 3, 4)?;
+    fn from_hms_micro() -> crate::Result<()> {
+        let time = Time::from_hms_micro(1, 2, 3, 4)?;
         assert_eq!(time.hour(), 1);
         assert_eq!(time.minute(), 2);
         assert_eq!(time.second(), 3);
         assert_eq!(time.microsecond(), 4);
         assert_eq!(time.nanosecond(), 4_000);
 
-        assert!(Time::try_from_hms_micro(24, 0, 0, 0).is_err());
-        assert!(Time::try_from_hms_micro(0, 60, 0, 0).is_err());
-        assert!(Time::try_from_hms_micro(0, 0, 60, 0).is_err());
-        assert!(Time::try_from_hms_micro(0, 0, 0, 1_000_000).is_err());
+        assert!(Time::from_hms_micro(24, 0, 0, 0).is_err());
+        assert!(Time::from_hms_micro(0, 60, 0, 0).is_err());
+        assert!(Time::from_hms_micro(0, 0, 60, 0).is_err());
+        assert!(Time::from_hms_micro(0, 0, 0, 1_000_000).is_err());
         Ok(())
     }
 
     #[test]
-    fn try_from_hms_nano() -> crate::Result<()> {
-        let time = Time::try_from_hms_nano(1, 2, 3, 4)?;
+    fn from_hms_nano() -> crate::Result<()> {
+        let time = Time::from_hms_nano(1, 2, 3, 4)?;
         assert_eq!(time.hour(), 1);
         assert_eq!(time.minute(), 2);
         assert_eq!(time.second(), 3);
         assert_eq!(time.nanosecond(), 4);
 
-        assert!(Time::try_from_hms_nano(24, 0, 0, 0).is_err());
-        assert!(Time::try_from_hms_nano(0, 60, 0, 0).is_err());
-        assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_err());
-        assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_err());
+        assert!(Time::from_hms_nano(24, 0, 0, 0).is_err());
+        assert!(Time::from_hms_nano(0, 60, 0, 0).is_err());
+        assert!(Time::from_hms_nano(0, 0, 60, 0).is_err());
+        assert!(Time::from_hms_nano(0, 0, 0, 1_000_000_000).is_err());
         Ok(())
     }
 
     #[test]
     fn hour() -> crate::Result<()> {
         for hour in 0..24 {
-            assert_eq!(Time::try_from_hms(hour, 0, 0)?.hour(), hour);
-            assert_eq!(Time::try_from_hms(hour, 59, 59)?.hour(), hour);
+            assert_eq!(Time::from_hms(hour, 0, 0)?.hour(), hour);
+            assert_eq!(Time::from_hms(hour, 59, 59)?.hour(), hour);
         }
         Ok(())
     }
@@ -743,8 +742,8 @@ mod test {
     #[test]
     fn minute() -> crate::Result<()> {
         for minute in 0..60 {
-            assert_eq!(Time::try_from_hms(0, minute, 0)?.minute(), minute);
-            assert_eq!(Time::try_from_hms(23, minute, 59)?.minute(), minute);
+            assert_eq!(Time::from_hms(0, minute, 0)?.minute(), minute);
+            assert_eq!(Time::from_hms(23, minute, 59)?.minute(), minute);
         }
         Ok(())
     }
@@ -752,8 +751,8 @@ mod test {
     #[test]
     fn second() -> crate::Result<()> {
         for second in 0..60 {
-            assert_eq!(Time::try_from_hms(0, 0, second)?.second(), second);
-            assert_eq!(Time::try_from_hms(23, 59, second)?.second(), second);
+            assert_eq!(Time::from_hms(0, 0, second)?.second(), second);
+            assert_eq!(Time::from_hms(23, 59, second)?.second(), second);
         }
         Ok(())
     }
@@ -761,12 +760,9 @@ mod test {
     #[test]
     fn millisecond() -> crate::Result<()> {
         for milli in 0..1_000 {
+            assert_eq!(Time::from_hms_milli(0, 0, 0, milli)?.millisecond(), milli);
             assert_eq!(
-                Time::try_from_hms_milli(0, 0, 0, milli)?.millisecond(),
-                milli
-            );
-            assert_eq!(
-                Time::try_from_hms_milli(23, 59, 59, milli)?.millisecond(),
+                Time::from_hms_milli(23, 59, 59, milli)?.millisecond(),
                 milli
             );
         }
@@ -776,12 +772,9 @@ mod test {
     #[test]
     fn microsecond() -> crate::Result<()> {
         for micro in (0..1_000_000).step_by(1_000) {
+            assert_eq!(Time::from_hms_micro(0, 0, 0, micro)?.microsecond(), micro);
             assert_eq!(
-                Time::try_from_hms_micro(0, 0, 0, micro)?.microsecond(),
-                micro
-            );
-            assert_eq!(
-                Time::try_from_hms_micro(23, 59, 59, micro)?.microsecond(),
+                Time::from_hms_micro(23, 59, 59, micro)?.microsecond(),
                 micro
             );
         }
@@ -791,11 +784,8 @@ mod test {
     #[test]
     fn nanosecond() -> crate::Result<()> {
         for nano in (0..1_000_000_000).step_by(1_000_000) {
-            assert_eq!(Time::try_from_hms_nano(0, 0, 0, nano)?.nanosecond(), nano);
-            assert_eq!(
-                Time::try_from_hms_nano(23, 59, 59, nano)?.nanosecond(),
-                nano
-            );
+            assert_eq!(Time::from_hms_nano(0, 0, 0, nano)?.nanosecond(), nano);
+            assert_eq!(Time::from_hms_nano(23, 59, 59, nano)?.nanosecond(), nano);
         }
         Ok(())
     }
