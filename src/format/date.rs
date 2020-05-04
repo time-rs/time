@@ -190,7 +190,7 @@ pub(crate) fn parse_G(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 
     consume_padding(s, padding, 4);
 
-    items.week_based_year = try_consume_digits_in_range(s, 1..=6, -100_000..=100_000)
+    items.week_based_year = try_consume_digits_in_range(s, 1..=6, 0..=999_999)
         .map(|v: i32| sign * v)
         .ok_or(ParseError::InvalidYear)?
         .into();
@@ -359,7 +359,7 @@ pub(crate) fn parse_Y(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
 
     consume_padding(s, padding, 3);
 
-    items.year = try_consume_digits_in_range(s, 1..=max_digits, 0..=100_000)
+    items.year = try_consume_digits_in_range(s, 1..=max_digits, 0..=999_999)
         .map(|v: i32| sign * v)
         .ok_or(ParseError::InvalidYear)?
         .into();

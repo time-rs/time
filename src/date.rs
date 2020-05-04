@@ -80,9 +80,9 @@ pub fn weeks_in_year(year: i32) -> u8 {
 }
 
 /// The minimum valid year.
-pub(crate) const MIN_YEAR: i32 = -100_000;
+pub(crate) const MIN_YEAR: i32 = -999_999;
 /// The maximum valid year.
-pub(crate) const MAX_YEAR: i32 = 100_000;
+pub(crate) const MAX_YEAR: i32 = 999_999;
 /// The maximum valid date.
 pub(crate) const MIN_DATE: Date = crate::internals::Date::from_yo_unchecked(MIN_YEAR, 1);
 /// The maximum valid date.
@@ -93,11 +93,8 @@ pub(crate) const MAX_DATE: Date = crate::internals::Date::from_yo_unchecked(
 
 /// Calendar date.
 ///
-/// Years between `-100_000` and `+100_000` inclusive are guaranteed to be
-/// representable. Any values outside this range may have incidental support
-/// that can change at any time without notice. If you need support outside this
-/// range, please [file an issue](https://github.com/time-rs/time/issues/new)
-/// with your use case.
+/// Years between `-999_999` and `+999_999` inclusive are guaranteed to be
+/// representable and provide valid behavior.
 #[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(serde, serde(into = "crate::serde::Date", from = "crate::serde::Date"))]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
@@ -1779,12 +1776,14 @@ mod test {
         Ok(())
     }
 
-    // #[test]
-    // fn year() -> crate::Result<()> {
-    //     assert_eq!(date!(2019-002).year(), 2019);
-    //     assert_eq!(date!(2020-002).year(), 2020);
-    //     Ok(())
-    // }
+    #[test]
+    fn year() -> crate::Result<()> {
+        assert_eq!(date!(2019-002).year(), 2019);
+        assert_eq!(date!(2020-002).year(), 2020);
+        assert_eq!(date!(-999_999-001).year(), -999_999);
+        assert_eq!(date!(+999_999-365).year(), 999_999);
+        Ok(())
+    }
 
     #[test]
     fn month() -> crate::Result<()> {
@@ -1942,7 +1941,11 @@ mod test {
         assert_eq!(Date::parse("20200201", "%Y%m%d"), Ok(date!(2020-02-01)));
         assert_eq!(Date::parse("-1234-01-02", "%F"), Ok(date!(-1234-01-02)));
         assert_eq!(Date::parse("-12345-01-02", "%F"), Ok(date!(-12345-01-02)));
-        assert!(Date::parse("-123456-01-02", "%F").is_err());
+        assert_eq!(
+            Date::parse("-123456-01-02", "%F"),
+            Ok(date!(-123_456-01-02))
+        );
+        assert!(Date::parse("-1234567-01-02", "%F").is_err());
         Ok(())
     }
 
@@ -2057,15 +2060,6 @@ mod test {
         assert_eq!(MIN_DATE - 1.days(), MIN_DATE);
         assert_eq!(Date::from_julian_day(i64::max_value()), MAX_DATE);
         assert_eq!(Date::from_julian_day(i64::min_value()), MIN_DATE);
-        Ok(())
-    }
-
-    #[test]
-    fn year() -> crate::Result<()> {
-        for year in -100_000..=100_000 {
-            let date = Date::from_yo(year, 1)?;
-            assert_eq!(date.year(), year);
-        }
         Ok(())
     }
 }

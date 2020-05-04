@@ -71,7 +71,7 @@ impl Parse for Date {
 
         LitInt::create(year)
             .with_span(year_span)
-            .ensure_in_range(-100_000..=100_000)?;
+            .ensure_in_range(-999_999..=999_999)?;
 
         Ok(Self { year, ordinal })
     }
