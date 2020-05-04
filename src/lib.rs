@@ -186,7 +186,7 @@ macro_rules! ensure_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
         if !($start..=$end).contains(&$value) {
             return Err(ComponentRangeError {
-                name: stringify!($value),
+                component_name: stringify!($value),
                 minimum: i64::from($start),
                 maximum: i64::from($end),
                 value: i64::from($value),
@@ -198,7 +198,7 @@ macro_rules! ensure_value_in_range {
     ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
         if !($start..=$end).contains(&$value) {
             return Err(ComponentRangeError {
-                name: stringify!($value),
+                component_name: stringify!($value),
                 minimum: i64::from($start),
                 maximum: i64::from($end),
                 value: i64::from($value),

@@ -79,13 +79,13 @@ impl From<ConversionRangeError> for Error {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ComponentRangeError {
     /// Name of the component.
-    pub(crate) name: &'static str,
+    pub component_name: &'static str,
     /// Minimum allowed value, inclusive.
-    pub(crate) minimum: i64,
+    pub minimum: i64,
     /// Maximum allowed value, inclusive.
-    pub(crate) maximum: i64,
+    pub maximum: i64,
     /// Value that was provided.
-    pub(crate) value: i64,
+    pub value: i64,
     /// The minimum and/or maximum is only valid with the following values.
     pub(crate) given: Vec<(&'static str, i64)>,
 }
@@ -96,7 +96,7 @@ impl fmt::Display for ComponentRangeError {
         write!(
             f,
             "{} must be in the range {}..={}",
-            self.name, self.minimum, self.maximum
+            self.component_name, self.minimum, self.maximum
         )?;
 
         let mut iter = self.given.iter();
