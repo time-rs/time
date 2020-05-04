@@ -39,7 +39,9 @@ impl Date {
     // macros
     #[inline(always)]
     pub const fn from_yo_unchecked(year: i32, ordinal: u16) -> crate::Date {
-        crate::Date { year, ordinal }
+        crate::Date {
+            value: (year << 9) | ordinal as i32,
+        }
     }
 
     // reduce duplication
@@ -57,11 +59,11 @@ impl Date {
             (year % 4 == 0) & ((year % 100 != 0) | (year % 400 == 0))
         }
 
-        crate::Date {
+        Date::from_yo_unchecked(
             year,
-            ordinal: DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
+            DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
                 + day as u16,
-        }
+        )
     }
 
     // reduce duplication

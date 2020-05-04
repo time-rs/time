@@ -16,8 +16,8 @@ impl From<crate::Date> for Date {
     #[inline]
     fn from(original: crate::Date) -> Self {
         Self {
-            year: original.year,
-            ordinal: original.ordinal,
+            year: original.year(),
+            ordinal: original.ordinal(),
         }
     }
 }

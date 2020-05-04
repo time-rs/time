@@ -81,7 +81,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2020-01-01).midnight().year(), 2020);
     /// ```
     #[inline(always)]
-    pub fn year(self) -> i32 {
+    pub const fn year(self) -> i32 {
         self.date().year()
     }
 
@@ -142,7 +142,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-12-31).midnight().ordinal(), 365);
     /// ```
     #[inline(always)]
-    pub fn ordinal(self) -> u16 {
+    pub const fn ordinal(self) -> u16 {
         self.date().ordinal()
     }
 
