@@ -7,6 +7,13 @@ Versioning].
 
 ---
 
+## 0.2.15 [2020-05-04]
+
+### Fixed
+
+`cargo-web` support works, and is now explicitly checked in CI. A previous
+change was made that made a method call ambiguous.
+
 ## 0.2.14 [2020-05-02]
 
 ### Fixed
