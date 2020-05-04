@@ -1,4 +1,5 @@
 use crate::{
+    date::{MAX_DATE, MIN_DATE},
     format::parse::{parse, ParsedItems},
     internal_prelude::*,
 };
@@ -7,6 +8,17 @@ use core::{
     fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
+};
+
+/// The minimum valid `PrimitiveDateTime`.
+pub(crate) const MIN_DATE_TIME: PrimitiveDateTime = PrimitiveDateTime {
+    date: MIN_DATE,
+    time: Time::midnight(),
+};
+/// The maximum valid `PrimitiveDateTime`.
+pub(crate) const MAX_DATE_TIME: PrimitiveDateTime = PrimitiveDateTime {
+    date: MAX_DATE,
+    time: crate::internals::Time::from_hms_nanos_unchecked(23, 59, 59, 999_999_999),
 };
 
 /// Combined date and time.
@@ -439,15 +451,23 @@ impl Add<Duration> for PrimitiveDateTime {
         let nanos = self.time.nanoseconds_since_midnight() as i64
             + (duration.whole_nanoseconds() % 86_400_000_000_000) as i64;
 
-        let date_modifier = if nanos < 0 {
-            (-1).days()
-        } else if nanos >= 86_400_000_000_000 {
-            1.days()
-        } else {
-            0.days()
-        };
+        let julian_day = self.date.julian_day()
+            + duration.whole_days()
+            + if nanos < 0 {
+                -1
+            } else if nanos >= 86_400_000_000_000 {
+                1
+            } else {
+                0
+            };
 
-        Self::new(self.date + duration + date_modifier, self.time + duration)
+        if julian_day > MAX_DATE.julian_day() {
+            MAX_DATE_TIME
+        } else if julian_day < MIN_DATE.julian_day() {
+            MIN_DATE_TIME
+        } else {
+            Self::new(Date::from_julian_day(julian_day), self.time + duration)
+        }
     }
 }
 
@@ -459,13 +479,17 @@ impl Add<StdDuration> for PrimitiveDateTime {
         let nanos = self.time.nanoseconds_since_midnight()
             + (duration.as_nanos() % 86_400_000_000_000) as u64;
 
-        let date_modifier = if nanos >= 86_400_000_000_000 {
-            1.days()
-        } else {
-            0.days()
-        };
+        let julian_day = self.date.julian_day()
+            + (duration.as_secs() / 86_400) as i64
+            + if nanos >= 86_400_000_000_000 { 1 } else { 0 };
 
-        Self::new(self.date + duration + date_modifier, self.time + duration)
+        if julian_day > MAX_DATE.julian_day() {
+            MAX_DATE_TIME
+        } else if julian_day < MIN_DATE.julian_day() {
+            MIN_DATE_TIME
+        } else {
+            Self::new(Date::from_julian_day(julian_day), self.time + duration)
+        }
     }
 }
 
@@ -500,9 +524,16 @@ impl Sub<StdDuration> for PrimitiveDateTime {
         let nanos = self.time.nanoseconds_since_midnight() as i64
             - (duration.as_nanos() % 86_400_000_000_000) as i64;
 
-        let date_modifier = if nanos < 0 { (-1).days() } else { 0.days() };
+        let julian_day = self.date.julian_day() - (duration.as_secs() / 86_400) as i64
+            + if nanos < 0 { -1 } else { 0 };
 
-        Self::new(self.date - duration + date_modifier, self.time - duration)
+        if julian_day > MAX_DATE.julian_day() {
+            MAX_DATE_TIME
+        } else if julian_day < MIN_DATE.julian_day() {
+            MIN_DATE_TIME
+        } else {
+            Self::new(Date::from_julian_day(julian_day), self.time - duration)
+        }
     }
 }
 
@@ -1037,5 +1068,18 @@ mod test {
             Some(Greater)
         );
         Ok(())
+    }
+
+    #[test]
+    fn saturating() {
+        assert_eq!(MAX_DATE_TIME + 1.days(), MAX_DATE_TIME);
+        assert_eq!(MAX_DATE_TIME + 1.nanoseconds(), MAX_DATE_TIME);
+        assert_eq!(MIN_DATE_TIME - 1.days(), MIN_DATE_TIME);
+        assert_eq!(MIN_DATE_TIME - 1.nanoseconds(), MIN_DATE_TIME);
+
+        assert_eq!(MAX_DATE_TIME + 1.std_days(), MAX_DATE_TIME);
+        assert_eq!(MAX_DATE_TIME + 1.std_nanoseconds(), MAX_DATE_TIME);
+        assert_eq!(MIN_DATE_TIME - 1.std_days(), MIN_DATE_TIME);
+        assert_eq!(MIN_DATE_TIME - 1.std_nanoseconds(), MIN_DATE_TIME);
     }
 }

@@ -1953,4 +1953,20 @@ mod test {
             SystemTime::UNIX_EPOCH
         );
     }
+
+    #[test]
+    fn saturating() {
+        let max = crate::primitive_date_time::MAX_DATE_TIME.assume_utc();
+        let min = crate::primitive_date_time::MIN_DATE_TIME.assume_utc();
+
+        assert_eq!(max + 1.days(), max);
+        assert_eq!(max + 1.nanoseconds(), max);
+        assert_eq!(min - 1.days(), min);
+        assert_eq!(min - 1.nanoseconds(), min);
+
+        assert_eq!(max + 1.std_days(), max);
+        assert_eq!(max + 1.std_nanoseconds(), max);
+        assert_eq!(min - 1.std_days(), min);
+        assert_eq!(min - 1.std_nanoseconds(), min);
+    }
 }
