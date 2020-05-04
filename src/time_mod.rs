@@ -35,22 +35,20 @@ pub struct Time {
 }
 
 impl Time {
-    /// Create a `Time` that is exactly midnight.
+    /// A `Time` that is exactly midnight.
     ///
     /// ```rust
     /// # use time::Time;
     /// # use time_macros::time;
-    /// assert_eq!(Time::midnight(), time!(0:00));
+    /// assert_eq!(Time::midnight, time!(0:00));
     /// ```
-    #[inline(always)]
-    pub const fn midnight() -> Self {
-        Time {
-            hour: 0,
-            minute: 0,
-            second: 0,
-            nanosecond: 0,
-        }
-    }
+    #[allow(non_upper_case_globals)]
+    pub const midnight: Self = Time {
+        hour: 0,
+        minute: 0,
+        second: 0,
+        nanosecond: 0,
+    };
 
     /// Attempt to create a `Time` from the hour, minute, and second.
     ///
@@ -665,7 +663,7 @@ mod test {
 
     #[test]
     fn midnight() -> crate::Result<()> {
-        assert_eq!(Time::midnight(), time!(0:00));
+        assert_eq!(Time::midnight, time!(0:00));
         Ok(())
     }
 

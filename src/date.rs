@@ -579,12 +579,12 @@ impl Date {
     /// # use time_macros::date;
     /// assert_eq!(
     ///     date!(1970-01-01).midnight().time(),
-    ///     Time::midnight()
+    ///     Time::midnight
     /// );
     /// ```
     #[inline(always)]
     pub const fn midnight(self) -> PrimitiveDateTime {
-        PrimitiveDateTime::new(self, Time::midnight())
+        PrimitiveDateTime::new(self, Time::midnight)
     }
 
     /// Create a `PrimitiveDateTime` using the existing date and the provided `Time`.

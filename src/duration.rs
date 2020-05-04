@@ -38,128 +38,96 @@ const SECONDS_PER_DAY: i64 = 24 * SECONDS_PER_HOUR;
 const SECONDS_PER_WEEK: i64 = 7 * SECONDS_PER_DAY;
 
 impl Duration {
-    /// Equivalent to `0.seconds()`.
-    ///
-    /// ```rust
-    /// # use time::{Duration, prelude::*};
-    /// assert_eq!(Duration::zero(), 0.seconds());
-    /// ```
-    #[inline(always)]
-    pub const fn zero() -> Self {
-        Self::seconds(0)
-    }
-
-    /// Equivalent to `1.nanoseconds()`.
-    ///
-    /// ```rust
-    /// # use time::{Duration, prelude::*};
-    /// assert_eq!(Duration::nanosecond(), 1.nanoseconds());
-    /// ```
-    #[inline(always)]
-    pub const fn nanosecond() -> Self {
-        Self::nanoseconds(1)
-    }
-
-    /// Equivalent to `1.microseconds()`.
-    ///
-    /// ```rust
-    /// # use time::{Duration, prelude::*};
-    /// assert_eq!(Duration::microsecond(), 1.microseconds());
-    /// ```
-    #[inline(always)]
-    pub const fn microsecond() -> Self {
-        Self::microseconds(1)
-    }
-
-    /// Equivalent to `1.milliseconds()`.
-    ///
-    /// ```rust
-    /// # use time::{Duration, prelude::*};
-    /// assert_eq!(Duration::millisecond(), 1.milliseconds());
-    /// ```
-    #[inline(always)]
-    pub const fn millisecond() -> Self {
-        Self::milliseconds(1)
-    }
-
-    /// Equivalent to `1.seconds()`.
-    ///
-    /// ```rust
-    /// # use time::{Duration, prelude::*};
-    /// assert_eq!(Duration::second(), 1.seconds());
-    /// ```
-    #[inline(always)]
-    pub const fn second() -> Self {
-        Self::seconds(1)
-    }
-
-    /// Equivalent to `1.minutes()`.
-    ///
-    /// ```rust
-    /// # use time::{Duration, prelude::*};
-    /// assert_eq!(Duration::minute(), 1.minutes());
-    /// ```
-    #[inline(always)]
-    pub const fn minute() -> Self {
-        Self::minutes(1)
-    }
-
-    /// Equivalent to `1.hours()`.
-    ///
-    /// ```rust
-    /// # use time::{Duration, prelude::*};
-    /// assert_eq!(Duration::hour(), 1.hours());
-    /// ```
-    #[inline(always)]
-    pub const fn hour() -> Self {
-        Self::hours(1)
-    }
-
     /// Equivalent to `1.days()`.
     ///
     /// ```rust
     /// # use time::{Duration, prelude::*};
-    /// assert_eq!(Duration::day(), 1.days());
+    /// assert_eq!(Duration::day, 1.days());
     /// ```
-    #[inline(always)]
-    pub const fn day() -> Self {
-        Self::days(1)
-    }
-
-    /// Equivalent to `1.weeks()`.
+    #[allow(non_upper_case_globals)]
+    pub const day: Self = Self::days(1);
+    /// Equivalent to `1.hours()`.
     ///
     /// ```rust
     /// # use time::{Duration, prelude::*};
-    /// assert_eq!(Duration::week(), 1.weeks());
+    /// assert_eq!(Duration::hour, 1.hours());
     /// ```
-    #[inline(always)]
-    pub const fn week() -> Self {
-        Self::weeks(1)
-    }
-
+    #[allow(non_upper_case_globals)]
+    pub const hour: Self = Self::hours(1);
     /// The maximum possible duration. Adding any positive duration to this will
     /// cause an overflow.
     ///
     /// The value returned by this method may change at any time.
-    #[inline(always)]
-    pub const fn max_value() -> Self {
-        Self {
-            seconds: i64::max_value(),
-            nanoseconds: 999_999_999,
-        }
-    }
-
+    #[allow(non_upper_case_globals)]
+    pub const max_value: Self = Self {
+        seconds: i64::max_value(),
+        nanoseconds: 999_999_999,
+    };
+    /// Equivalent to `1.microseconds()`.
+    ///
+    /// ```rust
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::microsecond, 1.microseconds());
+    /// ```
+    #[allow(non_upper_case_globals)]
+    pub const microsecond: Self = Self::microseconds(1);
+    /// Equivalent to `1.milliseconds()`.
+    ///
+    /// ```rust
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::millisecond, 1.milliseconds());
+    /// ```
+    #[allow(non_upper_case_globals)]
+    pub const millisecond: Self = Self::milliseconds(1);
     /// The minimum possible duration. Adding any negative duration to this will
     /// cause an overflow.
     ///
     /// The value returned by this method may change at any time.
-    #[inline(always)]
-    pub const fn min_value() -> Self {
-        Self {
-            seconds: i64::min_value(),
-            nanoseconds: -999_999_999,
-        }
-    }
+    #[allow(non_upper_case_globals)]
+    pub const min_value: Self = Self {
+        seconds: i64::min_value(),
+        nanoseconds: -999_999_999,
+    };
+    /// Equivalent to `1.minutes()`.
+    ///
+    /// ```rust
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::minute, 1.minutes());
+    /// ```
+    #[allow(non_upper_case_globals)]
+    pub const minute: Self = Self::minutes(1);
+    /// Equivalent to `1.nanoseconds()`.
+    ///
+    /// ```rust
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::nanosecond, 1.nanoseconds());
+    /// ```
+    #[allow(non_upper_case_globals)]
+    pub const nanosecond: Self = Self::nanoseconds(1);
+    /// Equivalent to `1.seconds()`.
+    ///
+    /// ```rust
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::second, 1.seconds());
+    /// ```
+    #[allow(non_upper_case_globals)]
+    pub const second: Self = Self::seconds(1);
+    /// Equivalent to `1.weeks()`.
+    ///
+    /// ```rust
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::week, 1.weeks());
+    /// ```
+    #[allow(non_upper_case_globals)]
+    pub const week: Self = Self::weeks(1);
+    /// Equivalent to `0.seconds()`.
+    ///
+    /// ```rust
+    /// # use time::{Duration, prelude::*};
+    /// assert_eq!(Duration::zero, 0.seconds());
+    /// ```
+    #[allow(non_upper_case_globals)]
+    pub const zero: Self = Self::seconds(0);
 
     /// Check if a duration is exactly zero.
     ///
@@ -263,8 +231,8 @@ impl Duration {
                 seconds,
                 nanoseconds: nanoseconds % 1_000_000_000,
             },
-            None if seconds > 0 => Self::max_value(),
-            None => Self::min_value(),
+            None if seconds > 0 => Self::max_value,
+            None => Self::min_value,
         }
     }
 
@@ -562,10 +530,10 @@ impl Duration {
     /// Create a new `Duration` with the given number of nanoseconds.
     #[inline]
     pub(crate) fn nanoseconds_i128(nanoseconds: i128) -> Self {
-        if nanoseconds > Duration::max_value().whole_nanoseconds() {
-            Duration::max_value()
-        } else if nanoseconds < Duration::min_value().whole_nanoseconds() {
-            Duration::min_value()
+        if nanoseconds > Duration::max_value.whole_nanoseconds() {
+            Duration::max_value
+        } else if nanoseconds < Duration::min_value.whole_nanoseconds() {
+            Duration::min_value
         } else {
             Self {
                 seconds: (nanoseconds / 1_000_000_000) as i64,
@@ -608,7 +576,7 @@ impl Duration {
     /// ```rust
     /// # use time::{Duration, prelude::*};
     /// assert_eq!(5.seconds().checked_add(5.seconds()), Some(10.seconds()));
-    /// assert_eq!(Duration::max_value().checked_add(1.nanoseconds()), None);
+    /// assert_eq!(Duration::max_value.checked_add(1.nanoseconds()), None);
     /// assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
     /// ```
     // TODO Should this be removed due to the new saturating behavior?
@@ -639,8 +607,8 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::{Duration, prelude::*};
-    /// assert_eq!(5.seconds().checked_sub(5.seconds()), Some(Duration::zero()));
-    /// assert_eq!(Duration::min_value().checked_sub(1.nanoseconds()), None);
+    /// assert_eq!(5.seconds().checked_sub(5.seconds()), Some(Duration::zero));
+    /// assert_eq!(Duration::min_value.checked_sub(1.nanoseconds()), None);
     /// assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
     /// ```
     // TODO Should this be removed due to the new saturating behavior?
@@ -656,8 +624,8 @@ impl Duration {
     /// assert_eq!(5.seconds().checked_mul(2), Some(10.seconds()));
     /// assert_eq!(5.seconds().checked_mul(-2), Some((-10).seconds()));
     /// assert_eq!(5.seconds().checked_mul(0), Some(0.seconds()));
-    /// assert_eq!(Duration::max_value().checked_mul(2), None);
-    /// assert_eq!(Duration::min_value().checked_mul(2), None);
+    /// assert_eq!(Duration::max_value.checked_mul(2), None);
+    /// assert_eq!(Duration::min_value.checked_mul(2), None);
     /// ```
     // TODO Should this be removed due to the new saturating behavior?
     #[inline(always)]
@@ -1094,15 +1062,15 @@ mod test {
 
     #[test]
     fn unit_values() {
-        assert_eq!(Duration::zero(), 0.seconds());
-        assert_eq!(Duration::nanosecond(), 1.nanoseconds());
-        assert_eq!(Duration::microsecond(), 1.microseconds());
-        assert_eq!(Duration::millisecond(), 1.milliseconds());
-        assert_eq!(Duration::second(), 1.seconds());
-        assert_eq!(Duration::minute(), 60.seconds());
-        assert_eq!(Duration::hour(), 3_600.seconds());
-        assert_eq!(Duration::day(), 86_400.seconds());
-        assert_eq!(Duration::week(), 604_800.seconds());
+        assert_eq!(Duration::zero, 0.seconds());
+        assert_eq!(Duration::nanosecond, 1.nanoseconds());
+        assert_eq!(Duration::microsecond, 1.microseconds());
+        assert_eq!(Duration::millisecond, 1.milliseconds());
+        assert_eq!(Duration::second, 1.seconds());
+        assert_eq!(Duration::minute, 60.seconds());
+        assert_eq!(Duration::hour, 3_600.seconds());
+        assert_eq!(Duration::day, 86_400.seconds());
+        assert_eq!(Duration::week, 604_800.seconds());
     }
 
     #[test]
@@ -1322,14 +1290,14 @@ mod test {
     #[test]
     fn checked_add() {
         assert_eq!(5.seconds().checked_add(5.seconds()), Some(10.seconds()));
-        assert_eq!(Duration::max_value().checked_add(1.nanoseconds()), None);
+        assert_eq!(Duration::max_value.checked_add(1.nanoseconds()), None);
         assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
     }
 
     #[test]
     fn checked_sub() {
         assert_eq!(5.seconds().checked_sub(5.seconds()), Some(0.seconds()));
-        assert_eq!(Duration::min_value().checked_sub(1.nanoseconds()), None);
+        assert_eq!(Duration::min_value.checked_sub(1.nanoseconds()), None);
         assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
     }
 
@@ -1337,9 +1305,9 @@ mod test {
     fn checked_mul() {
         assert_eq!(5.seconds().checked_mul(2), Some(10.seconds()));
         assert_eq!(5.seconds().checked_mul(-2), Some((-10).seconds()));
-        assert_eq!(5.seconds().checked_mul(0), Some(Duration::zero()));
-        assert_eq!(Duration::max_value().checked_mul(2), None);
-        assert_eq!(Duration::min_value().checked_mul(2), None);
+        assert_eq!(5.seconds().checked_mul(0), Some(Duration::zero));
+        assert_eq!(Duration::max_value.checked_mul(2), None);
+        assert_eq!(Duration::min_value.checked_mul(2), None);
     }
 
     #[test]
@@ -1727,20 +1695,20 @@ mod test {
     #[test]
     fn saturating() {
         assert_eq!(
-            StdDuration::new(u64::max_value(), 999_999_999) - Duration::min_value(),
-            Duration::max_value()
+            StdDuration::new(u64::max_value(), 999_999_999) - Duration::min_value,
+            Duration::max_value
         );
         assert_eq!(
-            StdDuration::new(u64::max_value(), 999_999_999) + Duration::max_value(),
-            Duration::max_value()
+            StdDuration::new(u64::max_value(), 999_999_999) + Duration::max_value,
+            Duration::max_value
         );
         assert_eq!(
-            Duration::max_value() + StdDuration::new(u64::max_value(), 999_999_999),
-            Duration::max_value()
+            Duration::max_value + StdDuration::new(u64::max_value(), 999_999_999),
+            Duration::max_value
         );
         assert_eq!(
-            Duration::min_value() - StdDuration::new(u64::max_value(), 999_999_999),
-            Duration::min_value()
+            Duration::min_value - StdDuration::new(u64::max_value(), 999_999_999),
+            Duration::min_value
         );
     }
 }

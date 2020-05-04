@@ -13,7 +13,7 @@ use core::{
 /// The minimum valid `PrimitiveDateTime`.
 pub(crate) const MIN_DATE_TIME: PrimitiveDateTime = PrimitiveDateTime {
     date: MIN_DATE,
-    time: Time::midnight(),
+    time: Time::midnight,
 };
 /// The maximum valid `PrimitiveDateTime`.
 pub(crate) const MAX_DATE_TIME: PrimitiveDateTime = PrimitiveDateTime {
