@@ -14,13 +14,29 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-index-
+
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-registry-
+
       - name: Cache target
         uses: actions/cache@v1
         env:
           cache-name: target
         with:
           path: ./target
-          key: ubuntu-latest-typecheck-target-${{ matrix.rust }}-thumbv7em-none-eabihf
+          key: ${{ runner.os }}-typecheck-target-${{ matrix.rust }}-thumbv7em-none-eabihf
 
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
@@ -61,13 +77,29 @@ jobs:
           crate: cargo-web
           use-tool-cache: true
 
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-index-
+
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-registry-
+
       - name: Cache target
         uses: actions/cache@v1
         env:
           cache-name: target
         with:
           path: ./target
-          key: ubuntu-latest-typecheck-target-${{ matrix.rust }}-web
+          key: ${{ runner.os }}-typecheck-target-${{ matrix.rust }}-web
 
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
@@ -110,13 +142,29 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-index-
+
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-registry-
+
       - name: Cache target
         uses: actions/cache@v1
         env:
           cache-name: target
         with:
           path: ./target
-          key: ${{ matrix.os }}-test-target-${{ matrix.rust }}
+          key: ${{ runner.os }}-test-target-${{ matrix.rust }}
 
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
@@ -169,13 +217,29 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-index-
+
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-registry-
+
       - name: Cache target
         uses: actions/cache@v1
         env:
           cache-name: clippy
         with:
           path: ./target
-          key: ubuntu-latest-clippy-target-stable
+          key: ${{ runner.os }}-clippy-target-stable
 
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
@@ -202,13 +266,29 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-index-
+
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            cargo-registry-
+
       - name: Cache target
         uses: actions/cache@v1
         env:
           cache-name: target
         with:
           path: ./target
-          key: ubuntu-latest-docs-target-nightly
+          key: ${{ runner.os }}-docs-target-nightly
 
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
