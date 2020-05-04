@@ -3,8 +3,6 @@ use crate::{
     internal_prelude::*,
 };
 use core::fmt::{self, Display};
-#[cfg(cargo_web)]
-use stdweb::js;
 
 /// An offset from UTC.
 ///
@@ -490,7 +488,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
             diff_secs.try_into().ok().map(UtcOffset::seconds)
         } else if #[cfg(cargo_web)] {
-            use stdweb::unstable::TryInto;
+            use stdweb::js;
 
             let timestamp_utc = datetime.timestamp();
             let low_bits = (timestamp_utc & 0xFF_FF_FF_FF) as i32;
@@ -502,7 +500,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                         .getTimezoneOffset() * -60;
             };
 
-            timezone_offset.try_into().ok().map(UtcOffset::seconds)
+            stdweb::unstable::TryInto::try_into(timezone_offset).ok().map(UtcOffset::seconds)
         } else {
             None
         }
