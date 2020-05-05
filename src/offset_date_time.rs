@@ -126,9 +126,7 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub const fn unix_epoch() -> Self {
-        crate::internals::Date::from_yo_unchecked(1970, 1)
-            .midnight()
-            .assume_utc()
+        Date::from_yo_unchecked(1970, 1).midnight().assume_utc()
     }
 
     /// Create an `OffsetDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).

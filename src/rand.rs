@@ -12,12 +12,12 @@ use rand::{
 impl Distribution<Time> for Standard {
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Time {
-        Time {
-            hour: rng.gen_range(0, 24),
-            minute: rng.gen_range(0, 60),
-            second: rng.gen_range(0, 60),
-            nanosecond: rng.gen_range(0, 1_000_000_000),
-        }
+        Time::from_hms_nanos_unchecked(
+            rng.gen_range(0, 24),
+            rng.gen_range(0, 60),
+            rng.gen_range(0, 60),
+            rng.gen_range(0, 1_000_000_000),
+        )
     }
 }
 
@@ -31,9 +31,7 @@ impl Distribution<Date> for Standard {
 impl Distribution<UtcOffset> for Standard {
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> UtcOffset {
-        UtcOffset {
-            seconds: rng.gen_range(-86_399, 86_400),
-        }
+        UtcOffset::seconds_unchecked(rng.gen_range(-86_399, 86_400))
     }
 }
 

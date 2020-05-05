@@ -18,7 +18,7 @@ type Result<T, E = ComponentRangeError> = core::result::Result<T, E>;
 pub struct UtcOffset {
     /// The number of seconds offset from UTC. Positive is east, negative is
     /// west.
-    pub(crate) seconds: i32,
+    seconds: i32,
 }
 
 impl UtcOffset {
@@ -180,6 +180,19 @@ impl UtcOffset {
         Ok(Self { seconds })
     }
 
+    /// Construct a `UtcOffset` _without_ checking the validity of the resulting
+    /// value.
+    ///
+    /// This function is not subject to stability guarantees and should not be
+    /// relied upon. It is only public for use with macros.
+    ///
+    /// Failure to ensure that parameters are in range will likely result in
+    /// invalid behavior.
+    #[inline(always)]
+    pub const fn seconds_unchecked(seconds: i32) -> UtcOffset {
+        UtcOffset { seconds }
+    }
+
     /// Get the number of seconds from UTC the value is. Positive is east,
     /// negative is west.
     ///
@@ -257,7 +270,7 @@ impl UtcOffset {
     #[cfg(local_offset)]
     #[cfg_attr(docs, doc(cfg(feature = "local-offset")))]
     pub fn try_local_offset_at(datetime: OffsetDateTime) -> Result<Self, IndeterminateOffsetError> {
-        try_local_offset_at(datetime).ok_or_else(|| IndeterminateOffsetError)
+        try_local_offset_at(datetime).ok_or(IndeterminateOffsetError)
     }
 
     /// Obtain the system's current UTC offset. If the offset cannot be
@@ -289,7 +302,7 @@ impl UtcOffset {
     #[cfg_attr(docs, doc(cfg(feature = "local-offset")))]
     pub fn try_current_local_offset() -> Result<Self, IndeterminateOffsetError> {
         let now = OffsetDateTime::now_utc();
-        try_local_offset_at(now).ok_or_else(|| IndeterminateOffsetError)
+        try_local_offset_at(now).ok_or(IndeterminateOffsetError)
     }
 }
 

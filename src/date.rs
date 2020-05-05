@@ -1,7 +1,6 @@
 use crate::{
     format::parse::{parse, ParsedItems},
     internal_prelude::*,
-    internals,
 };
 use core::{
     cmp::{Ord, Ordering, PartialOrd},
@@ -70,7 +69,7 @@ pub fn days_in_year(year: i32) -> u16 {
 /// ```
 #[inline(always)]
 pub fn weeks_in_year(year: i32) -> u8 {
-    let weekday = internals::Date::from_yo_unchecked(year, 1).weekday();
+    let weekday = Date::from_yo_unchecked(year, 1).weekday();
 
     if (weekday == Thursday) || (weekday == Wednesday && is_leap_year(year)) {
         53
@@ -84,9 +83,9 @@ pub(crate) const MIN_YEAR: i32 = -999_999;
 /// The maximum valid year.
 pub(crate) const MAX_YEAR: i32 = 999_999;
 /// The maximum valid date.
-pub(crate) const MIN_DATE: Date = crate::internals::Date::from_yo_unchecked(MIN_YEAR, 1);
+pub(crate) const MIN_DATE: Date = Date::from_yo_unchecked(MIN_YEAR, 1);
 /// The maximum valid date.
-pub(crate) const MAX_DATE: Date = crate::internals::Date::from_yo_unchecked(
+pub(crate) const MAX_DATE: Date = Date::from_yo_unchecked(
     MAX_YEAR,
     365 + ((MAX_YEAR % 4 == 0) & ((MAX_YEAR % 100 != 0) | (MAX_YEAR % 400 == 0))) as u16,
 );
@@ -103,7 +102,7 @@ pub struct Date {
     // |     xx     | xxxxxxxxxxxxxxxxxxxxx | xxxxxxxxx |
     // |   2 bits   |        21 bits        |  9 bits   |
     // | unassigned |         year          |  ordinal  |
-    pub(crate) value: i32,
+    value: i32,
 }
 
 impl fmt::Debug for Date {
@@ -142,7 +141,7 @@ impl From<Date> for SerdeDate {
 impl From<SerdeDate> for Date {
     #[inline]
     fn from(original: SerdeDate) -> Self {
-        internals::Date::from_yo_unchecked(original.year, original.ordinal)
+        Date::from_yo_unchecked(original.year, original.ordinal)
     }
 }
 
@@ -167,7 +166,16 @@ impl Date {
         ensure_value_in_range!(month in 1 => 12);
         ensure_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
 
-        Ok(internals::Date::from_ymd_unchecked(year, month, day))
+        let days_cumulative_common_leap = [
+            [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
+            [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
+        ];
+
+        Ok(Date::from_yo_unchecked(
+            year,
+            days_cumulative_common_leap[is_leap_year(year) as usize][month as usize - 1]
+                + day as u16,
+        ))
     }
 
     /// Attempt to create a `Date` from the year and ordinal day number.
@@ -188,7 +196,23 @@ impl Date {
     pub fn from_yo(year: i32, ordinal: u16) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(ordinal in 1 => days_in_year(year), given year);
-        Ok(internals::Date::from_yo_unchecked(year, ordinal))
+        Ok(Date::from_yo_unchecked(year, ordinal))
+    }
+
+    /// Construct a `Date` _without_ checking the validity of the resulting
+    /// value.
+    ///
+    /// This function is not subject to stability guarantees and should not be
+    /// relied upon. It is only public for use with macros.
+    ///
+    /// Failure to ensure that parameters are in range will likely result in
+    /// invalid behavior.
+    #[doc(hidden)]
+    #[inline(always)]
+    pub const fn from_yo_unchecked(year: i32, ordinal: u16) -> Date {
+        Date {
+            value: (year << 9) | ordinal as i32,
+        }
     }
 
     /// Attempt to create a `Date` from the ISO year, week, and weekday.
@@ -214,7 +238,26 @@ impl Date {
     ) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(week in 1 => weeks_in_year(year), given year);
-        Ok(internals::Date::from_iso_ywd_unchecked(year, week, weekday))
+
+        let ordinal = week as u16 * 7 + weekday.iso_weekday_number() as u16
+            - (Date::from_yo_unchecked(year, 4)
+                .weekday()
+                .iso_weekday_number() as u16
+                + 3);
+
+        if ordinal < 1 {
+            return Ok(Date::from_yo_unchecked(
+                year - 1,
+                ordinal + days_in_year(year - 1),
+            ));
+        }
+
+        let days_in_cur_year = days_in_year(year);
+        Ok(if ordinal > days_in_cur_year {
+            Date::from_yo_unchecked(year + 1, ordinal - days_in_cur_year)
+        } else {
+            Date::from_yo_unchecked(year, ordinal)
+        })
     }
 
     /// Get the year of the date.
@@ -492,7 +535,7 @@ impl Date {
         if self > MAX_DATE {
             MAX_DATE
         } else {
-            internals::Date::from_yo_unchecked(year, ordinal)
+            Date::from_yo_unchecked(year, ordinal)
         }
     }
 
@@ -518,7 +561,7 @@ impl Date {
         if self < MIN_DATE {
             MIN_DATE
         } else {
-            internals::Date::from_yo_unchecked(year, ordinal)
+            Date::from_yo_unchecked(year, ordinal)
         }
     }
 
@@ -787,7 +830,7 @@ impl Date {
         /// Monday-based week numbering.
         #[inline(always)]
         fn adjustment(year: i32) -> i16 {
-            match internals::Date::from_yo_unchecked(year, 1).weekday() {
+            match Date::from_yo_unchecked(year, 1).weekday() {
                 Monday => 7,
                 Tuesday => 1,
                 Wednesday => 2,

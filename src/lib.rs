@@ -230,19 +230,19 @@ macro_rules! offset {
         crate::UtcOffset::UTC
     };
     ($(+)? $hour:literal) => {
-        crate::internals::UtcOffset::seconds($hour * 3_600)
+        crate::UtcOffset::seconds_unchecked($hour * 3_600)
     };
     (+ $hour:literal : $minute:literal) => {
-        crate::internals::UtcOffset::seconds($hour * 3_600 + $minute * 60)
+        crate::UtcOffset::seconds_unchecked($hour * 3_600 + $minute * 60)
     };
     (+ $hour:literal : $minute:literal : $second:literal) => {
-        crate::internals::UtcOffset::seconds($hour * 3_600 + $minute * 60 + $second)
+        crate::UtcOffset::seconds_unchecked($hour * 3_600 + $minute * 60 + $second)
     };
     (- $hour:literal : $minute:literal) => {
-        crate::internals::UtcOffset::seconds($hour * -3_600 - $minute * 60)
+        crate::UtcOffset::seconds_unchecked($hour * -3_600 - $minute * 60)
     };
     (- $hour:literal : $minute:literal : $second:literal) => {
-        crate::internals::UtcOffset::seconds($hour * -3_600 - $minute * 60 - $second)
+        crate::UtcOffset::seconds_unchecked($hour * -3_600 - $minute * 60 - $second)
     };
 }
 
@@ -267,7 +267,6 @@ mod format;
 /// The `Instant` struct and its associated `impl`s.
 #[cfg(std)]
 mod instant;
-pub mod internals;
 /// A collection of traits extending built-in numerical types.
 mod numerical_traits;
 /// The `OffsetDateTime` struct and its associated `impl`s.

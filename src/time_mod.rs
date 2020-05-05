@@ -24,13 +24,13 @@ pub(crate) const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Time {
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) hour: u8,
+    hour: u8,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) minute: u8,
+    minute: u8,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) second: u8,
+    second: u8,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) nanosecond: u32,
+    nanosecond: u32,
 }
 
 impl Time {
@@ -180,6 +180,30 @@ impl Time {
             second,
             nanosecond,
         })
+    }
+
+    /// Construct a `Time` _without_ checking the validity of the resulting
+    /// value.
+    ///
+    /// This function is not subject to stability guarantees and should not be
+    /// relied upon. It is only public for use with macros.
+    ///
+    /// Failure to ensure that parameters are in range will likely result in
+    /// invalid behavior.
+    #[doc(hidden)]
+    #[inline(always)]
+    pub const fn from_hms_nanos_unchecked(
+        hour: u8,
+        minute: u8,
+        second: u8,
+        nanosecond: u32,
+    ) -> Time {
+        Time {
+            hour,
+            minute,
+            second,
+            nanosecond,
+        }
     }
 
     /// Get the clock hour.

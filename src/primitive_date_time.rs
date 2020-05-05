@@ -18,7 +18,7 @@ pub(crate) const MIN_DATE_TIME: PrimitiveDateTime = PrimitiveDateTime {
 /// The maximum valid `PrimitiveDateTime`.
 pub(crate) const MAX_DATE_TIME: PrimitiveDateTime = PrimitiveDateTime {
     date: MAX_DATE,
-    time: crate::internals::Time::from_hms_nanos_unchecked(23, 59, 59, 999_999_999),
+    time: Time::from_hms_nanos_unchecked(23, 59, 59, 999_999_999),
 };
 
 /// Combined date and time.
