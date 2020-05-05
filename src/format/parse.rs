@@ -284,18 +284,6 @@ pub(crate) fn try_consume_digits<T: FromStr, U: RangeBounds<usize>>(
     digits.parse::<T>().ok()
 }
 
-/// Attempt to consume a number of digits. Consumes the maximum amount possible
-/// within the range provided. Returns `None` if the value is not within the
-/// allowed range.
-#[inline(always)]
-pub(crate) fn try_consume_digits_in_range<T: FromStr + PartialOrd>(
-    s: &mut &str,
-    num_digits: impl RangeBounds<usize>,
-    range: impl RangeBounds<T>,
-) -> Option<T> {
-    try_consume_digits(s, num_digits).filter(|value| range.contains(value))
-}
-
 /// Attempt to consume an exact number of digits.
 #[inline]
 pub(crate) fn try_consume_exact_digits<T: FromStr>(
@@ -332,18 +320,6 @@ pub(crate) fn try_consume_exact_digits<T: FromStr>(
         *s = &s[(num_digits - pad_size)..];
         digits.parse::<T>().ok()
     }
-}
-
-/// Attempt to consume an exact number of digits. Returns `None` if the value is
-/// not within the allowed range.
-#[inline]
-pub(crate) fn try_consume_exact_digits_in_range<T: FromStr + PartialOrd, U: RangeBounds<T>>(
-    s: &mut &str,
-    num_digits: usize,
-    range: U,
-    padding: Padding,
-) -> Option<T> {
-    try_consume_exact_digits(s, num_digits, padding).filter(|value| range.contains(value))
 }
 
 /// Consume all leading padding up to the number of characters.

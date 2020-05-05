@@ -616,7 +616,7 @@ impl Sub<Time> for Time {
 impl PartialOrd for Time {
     #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.cmp(other).into()
+        Some(self.cmp(other))
     }
 }
 

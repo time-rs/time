@@ -5,7 +5,7 @@ use crate::{
         date,
         parse::{
             try_consume_char, try_consume_char_case_insensitive, try_consume_exact_digits,
-            try_consume_exact_digits_in_range, try_consume_first_match,
+            try_consume_first_match,
         },
         time, Padding, ParseResult, ParsedItems,
     },
@@ -49,9 +49,8 @@ pub(crate) mod rfc3339 {
     /// Parse `s` as specified by RFC3339.
     #[inline]
     pub(crate) fn parse(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
-        items.year = try_consume_exact_digits::<i32>(s, 4, Padding::None)
-            .ok_or(ParseError::InvalidYear)?
-            .into();
+        items.year =
+            Some(try_consume_exact_digits(s, 4, Padding::None).ok_or(ParseError::InvalidYear)?);
         try_consume_char(s, '-')?;
         date::parse_m(items, s, Padding::Zero)?;
         try_consume_char(s, '-')?;
@@ -95,11 +94,11 @@ pub(crate) mod rfc3339 {
                         })
                     }
                 };
-            let offset_hour = try_consume_exact_digits_in_range(s, 2, 0..=23, Padding::Zero)
-                .ok_or(ParseError::InvalidOffset)?;
+            let offset_hour: i32 =
+                try_consume_exact_digits(s, 2, Padding::Zero).ok_or(ParseError::InvalidOffset)?;
             try_consume_char(s, ':')?;
-            let offset_minute = try_consume_exact_digits_in_range(s, 2, 0..=59, Padding::Zero)
-                .ok_or(ParseError::InvalidOffset)?;
+            let offset_minute: i32 =
+                try_consume_exact_digits(s, 2, Padding::Zero).ok_or(ParseError::InvalidOffset)?;
             items.offset = Some(
                 UtcOffset::seconds(offset_sign * (offset_hour * 60 + offset_minute))
                     .map_err(|_| ParseError::InvalidOffset)?,

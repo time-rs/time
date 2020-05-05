@@ -5,7 +5,7 @@
 use crate::{
     format::{
         parse::{
-            try_consume_exact_digits, try_consume_exact_digits_in_range, try_consume_first_match,
+            try_consume_exact_digits, try_consume_first_match,
             AmPm::{AM, PM},
         },
         Padding, ParsedItems,
@@ -26,9 +26,7 @@ pub(crate) fn fmt_H(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt:
 /// Hour in 24h format (`00`-`23`)
 #[inline(always)]
 pub(crate) fn parse_H(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    items.hour_24 = try_consume_exact_digits_in_range(s, 2, 0..24, padding)
-        .ok_or(ParseError::InvalidHour)?
-        .into();
+    items.hour_24 = Some(try_consume_exact_digits(s, 2, padding).ok_or(ParseError::InvalidHour)?);
     Ok(())
 }
 
@@ -41,9 +39,11 @@ pub(crate) fn fmt_I(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt:
 /// Hour in 12h format (`01`-`12`)
 #[inline(always)]
 pub(crate) fn parse_I(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    items.hour_12 = try_consume_exact_digits_in_range(s, 2, 1..=12, padding)
-        .map(NonZeroU8::new)
-        .ok_or(ParseError::InvalidHour)?;
+    items.hour_12 = Some(
+        try_consume_exact_digits(s, 2, padding)
+            .and_then(NonZeroU8::new)
+            .ok_or(ParseError::InvalidHour)?,
+    );
     Ok(())
 }
 
@@ -56,9 +56,7 @@ pub(crate) fn fmt_M(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt:
 /// Minutes, zero-added (`00`-`59`)
 #[inline(always)]
 pub(crate) fn parse_M(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    items.minute = try_consume_exact_digits_in_range(s, 2, 0..60, padding)
-        .ok_or(ParseError::InvalidMinute)?
-        .into();
+    items.minute = Some(try_consume_exact_digits(s, 2, padding).ok_or(ParseError::InvalidMinute)?);
     Ok(())
 }
 
@@ -71,9 +69,8 @@ pub(crate) fn fmt_N(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
 /// Subsecond nanoseconds. Always 9 digits
 #[inline(always)]
 pub(crate) fn parse_N(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
-    items.nanosecond = try_consume_exact_digits::<u32>(s, 9, Padding::None)
-        .ok_or(ParseError::InvalidNanosecond)?
-        .into();
+    items.nanosecond =
+        Some(try_consume_exact_digits(s, 9, Padding::None).ok_or(ParseError::InvalidNanosecond)?);
     Ok(())
 }
 
@@ -90,9 +87,10 @@ pub(crate) fn fmt_p(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
 /// am/pm
 #[inline(always)]
 pub(crate) fn parse_p(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
-    items.am_pm = try_consume_first_match(s, [("am", AM), ("pm", PM)].iter().cloned())
-        .ok_or(ParseError::InvalidAmPm)?
-        .into();
+    items.am_pm = Some(
+        try_consume_first_match(s, [("am", AM), ("pm", PM)].iter().cloned())
+            .ok_or(ParseError::InvalidAmPm)?,
+    );
     Ok(())
 }
 
@@ -109,9 +107,10 @@ pub(crate) fn fmt_P(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
 /// AM/PM
 #[inline(always)]
 pub(crate) fn parse_P(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
-    items.am_pm = try_consume_first_match(s, [("AM", AM), ("PM", PM)].iter().cloned())
-        .ok_or(ParseError::InvalidAmPm)?
-        .into();
+    items.am_pm = Some(
+        try_consume_first_match(s, [("AM", AM), ("PM", PM)].iter().cloned())
+            .ok_or(ParseError::InvalidAmPm)?,
+    );
     Ok(())
 }
 
@@ -124,8 +123,6 @@ pub(crate) fn fmt_S(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt:
 /// Seconds, zero-added (`00`-`59`)
 #[inline(always)]
 pub(crate) fn parse_S(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    items.second = try_consume_exact_digits_in_range(s, 2, 0..60, padding)
-        .ok_or(ParseError::InvalidSecond)?
-        .into();
+    items.second = Some(try_consume_exact_digits(s, 2, padding).ok_or(ParseError::InvalidSecond)?);
     Ok(())
 }
