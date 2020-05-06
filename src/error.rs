@@ -12,7 +12,10 @@ use core::fmt;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     ConversionRange,
+    #[cfg(not(no_alloc))]
     ComponentRange(Box<ComponentRangeError>),
+    #[cfg(no_alloc)]
+    ComponentRange(ComponentRangeError),
     Parse(ParseError),
     Format(FormatError),
     IndeterminateOffset,
@@ -120,8 +123,14 @@ impl fmt::Display for ComponentRangeError {
 
 impl From<ComponentRangeError> for Error {
     #[inline(always)]
+    #[cfg(not(no_alloc))]
     fn from(original: ComponentRangeError) -> Self {
         Error::ComponentRange(Box::new(original))
+    }
+    #[inline(always)]
+    #[cfg(no_alloc)]
+    fn from(original: ComponentRangeError) -> Self {
+        Error::ComponentRange(original)
     }
 }
 

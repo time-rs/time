@@ -425,7 +425,7 @@ mod internal_prelude {
     #[cfg(not(no_alloc))]
     pub(crate) use alloc::{
         // borrow::{Cow, ToOwned},
-        // boxed::Box,
+        boxed::Box,
         // format,
         // string::{String, ToString},
         vec,
@@ -441,7 +441,7 @@ mod internal_prelude {
     //todo(heapless): split String import into no_alloc/alloc import blocks above
     pub(crate) use alloc::{
         borrow::{Cow, ToOwned},
-        boxed::Box,
+        // boxed::Box,
         format,
         string::{String, ToString},
     };
