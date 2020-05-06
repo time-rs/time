@@ -31,6 +31,7 @@ fn main() {
         "serde" => serde,
         "macros" => macros,
         "local-offset" => local_offset,
+        "no-alloc" => no_alloc,
         "__doc" => docs,
     };
 

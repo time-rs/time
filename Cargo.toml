@@ -20,6 +20,7 @@ default = ["std"]
 macros = ["time-macros"]
 local-offset = ["std", "libc", "winapi", "stdweb", "cfg-if"]
 std = ["standback/std"]
+no-alloc = ["heapless"]
 
 # Internal usage. This is used when building for docs.rs and time-rs.github.io.
 # This feature should never be used by external users. It will likely be
@@ -32,6 +33,7 @@ rand = { version = "0.7", optional = true, default-features = false }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 standback = { version = "0.2.5", default-features = false }
 time-macros = { version = "0.2", path = "time-macros", optional = true }
+heapless = { version = "0.5", optional = true }
 
 [dev-dependencies]
 time-macros = { version = "0.2", path = "time-macros" }
