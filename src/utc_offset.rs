@@ -556,7 +556,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                         .getTimezoneOffset() * -60;
             };
 
-            stdweb::unstable::TryInto::try_into(timezone_offset).ok().map(UtcOffset::seconds)
+            stdweb::unstable::TryInto::try_into(timezone_offset).ok().map(UtcOffset::seconds_unchecked)
         } else {
             None
         }

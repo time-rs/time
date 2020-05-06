@@ -26,9 +26,9 @@ pub(crate) const MAX_DATE_TIME: PrimitiveDateTime = PrimitiveDateTime {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PrimitiveDateTime {
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) date: Date,
+    date: Date,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) time: Time,
+    time: Time,
 }
 
 impl PrimitiveDateTime {
@@ -339,10 +339,7 @@ impl PrimitiveDateTime {
     /// ```
     #[inline(always)]
     pub fn assume_offset(self, offset: UtcOffset) -> OffsetDateTime {
-        OffsetDateTime {
-            utc_datetime: self - offset.as_duration(),
-            offset,
-        }
+        OffsetDateTime::new_assuming_offset(self, offset)
     }
 
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in
@@ -360,10 +357,7 @@ impl PrimitiveDateTime {
     /// except it is usable in `const` contexts.
     #[inline(always)]
     pub const fn assume_utc(self) -> OffsetDateTime {
-        OffsetDateTime {
-            utc_datetime: self,
-            offset: UtcOffset::UTC,
-        }
+        OffsetDateTime::new_assuming_utc(self)
     }
 }
 
