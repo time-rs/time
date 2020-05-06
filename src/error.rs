@@ -72,6 +72,13 @@ impl From<ConversionRangeError> for Error {
     }
 }
 
+#[cfg(not(no_alloc))]
+pub(crate) type RangeErrorGivenVec = Vec<(&'static str, i64)>;
+
+// todo(heapless): figure out max heapless range error given vec size
+#[cfg(no_alloc)]
+pub(crate) type RangeErrorGivenVec = Vec<(&'static str, i64), heapless::consts::U5>;
+
 /// An error type indicating that a component provided to a method was out of
 /// range, causing a failure.
 // i64 is the narrowest type fitting all use cases. This eliminates the need
@@ -87,7 +94,7 @@ pub struct ComponentRangeError {
     /// Value that was provided.
     pub value: i64,
     /// The minimum and/or maximum is only valid with the following values.
-    pub(crate) given: Vec<(&'static str, i64)>,
+    pub(crate) given: RangeErrorGivenVec,
 }
 
 impl fmt::Display for ComponentRangeError {

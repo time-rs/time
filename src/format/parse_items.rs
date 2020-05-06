@@ -7,20 +7,26 @@ use crate::{
 
 /// Parse the formatting string. Panics if not valid.
 #[inline(always)]
-pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
+pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> FormatVec<'a> {
     match try_parse_fmt_string(s) {
         Ok(items) => items,
         Err(err) => panic!("{}", err),
     }
 }
+#[cfg(not(no_alloc))]
+pub(crate) type FormatVec<'a> = Vec<FormatItem<'a>>;
+
+// todo(heapless):  determine max heapless format vector size
+#[cfg(no_alloc)]
+pub(crate) type FormatVec<'a> = Vec<FormatItem<'a>, heapless::consts::U64>;
 
 /// Attempt to parse the formatting string.
 #[inline]
 #[allow(clippy::too_many_lines)]
 pub(crate) fn try_parse_fmt_string<'a>(
     s: &'a str,
-) -> Result<Vec<FormatItem<'a>>, Cow<'static, str>> {
-    let mut items = vec![];
+) -> Result<FormatVec<'a>, Cow<'static, str>> {
+    let mut items = FormatVec::new();
     let mut literal_start = 0;
     let mut chars = s.char_indices().peekable();
 
@@ -29,14 +35,22 @@ pub(crate) fn try_parse_fmt_string<'a>(
         macro_rules! push_specifier {
             ($i:ident, $specifier:expr) => {{
                 literal_start = $i + 1;
-                items.push(FormatItem::Specifier($specifier))
+                #[cfg(not(no_alloc))]
+                items.push(FormatItem::Specifier($specifier));
+                // todo(heapless): how do we want to handle capacity overflow?
+                #[cfg(no_alloc)]
+                let _ = items.push(FormatItem::Specifier($specifier));
             }};
         }
 
         if c == '%' {
             // Avoid adding unnecessary empty strings.
             if literal_start != i {
+                #[cfg(not(no_alloc))]
                 items.push(FormatItem::Literal(&s[literal_start..i]));
+                //todo(heapless): figure out how to handle vector overflow
+                #[cfg(no_alloc)]
+                let _ = items.push(FormatItem::Literal(&s[literal_start..i]));
             }
 
             // Call `chars.next()` if a modifier is present, moving the iterator
@@ -178,7 +192,11 @@ pub(crate) fn try_parse_fmt_string<'a>(
     }
 
     if literal_start < s.len() {
+        #[cfg(not(no_alloc))]
         items.push(FormatItem::Literal(&s[literal_start..]));
+        // todo(heapless): how to handle format vector overflow
+        #[cfg(no_alloc)]
+        let _ = items.push(FormatItem::Literal(&s[literal_start..]));
     }
 
     Ok(items)

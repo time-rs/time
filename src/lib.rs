@@ -179,6 +179,8 @@
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(test(attr(deny(warnings))))]
 
+//todo(heapless): enable alloc only if not no_alloc
+//#[cfg(not(no_alloc))]
 extern crate alloc;
 
 /// Returns `Err(ComponentRangeError)` if the value is not in range.
@@ -196,14 +198,36 @@ macro_rules! ensure_value_in_range {
     };
 
     ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
-        if !($start..=$end).contains(&$value) {
-            return Err(ComponentRangeError {
-                component_name: stringify!($value),
-                minimum: i64::from($start),
-                maximum: i64::from($end),
-                value: i64::from($value),
-                given: vec![$((stringify!($conditional), i64::from($conditional))),+],
-            });
+        #[cfg(not(no_alloc))]
+        {
+            if !($start..=$end).contains(&$value) {
+                return Err(ComponentRangeError {
+                    component_name: stringify!($value),
+                    minimum: i64::from($start),
+                    maximum: i64::from($end),
+                    value: i64::from($value),
+                    given: vec![$((stringify!($conditional), i64::from($conditional))),+],
+                });
+            }
+        }
+
+        #[cfg(no_alloc)]
+        {
+            if !($start..=$end).contains(&$value) {
+                let mut v: $crate::error::RangeErrorGivenVec = Vec::new();
+
+                for i in &[$((stringify!($conditional), i64::from($conditional))),+] {
+                    let _ = v.push(i.clone());
+                }
+
+                return Err(ComponentRangeError {
+                    component_name: stringify!($value),
+                    minimum: i64::from($start),
+                    maximum: i64::from($end),
+                    value: i64::from($value),
+                    given: v,
+                });
+            }
         }
     };
 }
@@ -398,14 +422,30 @@ mod internal_prelude {
         OffsetDateTime, PrimitiveDateTime, Time, UtcOffset,
         Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
     };
+    #[cfg(not(no_alloc))]
+    pub(crate) use alloc::{
+        // borrow::{Cow, ToOwned},
+        // boxed::Box,
+        // format,
+        // string::{String, ToString},
+        vec,
+        vec::Vec,
+    };
+
+    #[cfg(no_alloc)]
+    pub(crate) use heapless::{
+        //String,
+        Vec,
+    };
+
+    //todo(heapless): split String import into no_alloc/alloc import blocks above
     pub(crate) use alloc::{
         borrow::{Cow, ToOwned},
         boxed::Box,
         format,
         string::{String, ToString},
-        vec,
-        vec::Vec,
     };
+
     pub(crate) use core::convert::{TryFrom, TryInto};
     pub(crate) use standback::prelude::*;
 }
