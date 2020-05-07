@@ -39,13 +39,16 @@ mod weekday;
 ///     datetime: OffsetDateTime,
 /// }
 ///
+/// # fn test() -> Result<(), serde_json::Error> {
 /// let s = S {
 ///     datetime: date!(1970-01-01).with_time(time!(1:00)).assume_utc(),
 /// };
 /// let v = json!({ "datetime": 3600 });
 /// assert_eq!(s.datetime, serde_json::from_value::<S>(v.clone())?.datetime);
 /// assert_eq!(v, serde_json::to_value(&s)?);
-/// # Ok::<(), serde_json::Error>(())
+/// # Ok(())
+/// # }
+/// # test().unwrap();
 /// ```
 pub mod timestamp;
 

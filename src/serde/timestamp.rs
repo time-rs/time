@@ -71,6 +71,7 @@ where
 ///     datetime: Option<OffsetDateTime>,
 /// }
 ///
+/// # fn test() -> Result<(), serde_json::Error> {
 /// let s = S {
 ///     datetime: Some(date!(1970-01-01).with_time(time!(1:00)).assume_utc()),
 /// };
@@ -82,7 +83,9 @@ where
 /// let v = json!({ "datetime": null });
 /// assert_eq!(s.datetime, serde_json::from_value::<S>(v.clone())?.datetime);
 /// assert_eq!(v, serde_json::to_value(&s)?);
-/// # Ok::<(), serde_json::Error>(())
+/// # Ok(())
+/// # }
+/// # test().unwrap();
 /// ```
 pub mod option {
     use super::*;
