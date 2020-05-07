@@ -1,9 +1,9 @@
 use crate::OffsetDateTime;
+use core::fmt;
 use serde::{
     de::{self, Visitor},
     Deserializer, Serializer,
 };
-use std::fmt;
 
 /// Fullfills the requirements for [serde's deserialize_with-annotation](https://serde.rs/field-attrs.html#deserialize_with).
 ///
