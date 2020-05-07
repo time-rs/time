@@ -373,7 +373,7 @@ mod primitive_date_time;
 mod rand;
 #[cfg(serde)]
 #[allow(missing_copy_implementations, missing_debug_implementations)]
-mod serde;
+pub mod serde;
 /// The `Sign` struct and its associated `impl`s.
 mod sign;
 /// The `Time` struct and its associated `impl`s.
