@@ -135,12 +135,12 @@ pub mod option {
     /// Fullfills the requirements for [serde's serialize_with-annotation](https://serde.rs/field-attrs.html#serialize_with).
     ///
     /// Prefer using the parent module instead for brevity.
-    pub fn serialize<S>(opt: &Option<OffsetDateTime>, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(option: &Option<OffsetDateTime>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        match *opt {
-            Some(ref value) => super::serialize(value, serializer),
+        match *option {
+            Some(ref datetime) => serializer.serialize_some(&datetime.timestamp()),
             None => serializer.serialize_none(),
         }
     }
