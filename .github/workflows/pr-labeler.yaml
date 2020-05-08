@@ -1,0 +1,21 @@
+name: v0.1 PR labeler
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  labeler:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Labeler
+        uses: actions/github-script@0.9.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.issues.addLabels({
+              labels: ['v0.1'],
+              issue_number: context.issue.number,
+              ...context.repo,
+            })
