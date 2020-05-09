@@ -50,6 +50,9 @@ mod weekday;
 /// # }
 /// # test().unwrap();
 /// ```
+///
+/// [`OffsetDateTime`]: crate::OffsetDateTime
+/// [`UtcOffset`]: crate::UtcOffset
 pub mod timestamp;
 
 pub(crate) use self::time::Time;

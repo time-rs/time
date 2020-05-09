@@ -50,7 +50,7 @@ where
     serializer.serialize_i64(datetime.timestamp())
 }
 
-/// De/serialize [`Option<OffsetDateTime>`] from/to [Unix timestamps](https://en.wikipedia.org/wiki/Unix_time).
+/// De/serialize [`Option`]`<`[`OffsetDateTime`]`>` from/to [Unix timestamps](https://en.wikipedia.org/wiki/Unix_time).
 ///
 /// Use this module in combination with [serde's with-annotation](https://serde.rs/field-attrs.html#with).
 ///
@@ -87,6 +87,9 @@ where
 /// # }
 /// # test().unwrap();
 /// ```
+///
+/// [`OffsetDateTime`]: crate::OffsetDateTime
+/// [`UtcOffset`]: crate::UtcOffset
 pub mod option {
     use super::*;
 
