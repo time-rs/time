@@ -8,8 +8,9 @@
 //! # Examples
 //!
 //! ```
-//! # #[cfg(feature = "serde_json")] {
+//! # #[cfg(feature = "_serde_json")] {
 //! # use serde::{Deserialize, Serialize};
+//! # use _serde_json as serde_json;
 //! # use serde_json::json;
 //! use time::serde::timestamp;
 //! # use time::{date, time, OffsetDateTime};
@@ -98,8 +99,9 @@ where
 /// # Examples
 ///
 /// ```
-/// # #[cfg(feature = "serde_json")] {
+/// # #[cfg(feature = "_serde_json")] {
 /// # use serde::{Deserialize, Serialize};
+/// # use _serde_json as serde_json;
 /// # use serde_json::json;
 /// use time::serde::timestamp;
 /// # use time::{date, time, OffsetDateTime};
