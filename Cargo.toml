@@ -25,12 +25,13 @@ std = ["libc", "winapi", "stdweb", "standback/std"]
 # Internal usage. This is used when building for docs.rs and time-rs.github.io.
 # This feature should never be used by external users. It will likely be
 # removed in the first release after the `doc_cfg` feature gets stabilized.
-__doc = []
+__doc = ["serde_json"]
 
 [dependencies]
 cfg-if = "0.1.10"
 rand = { version = "0.7", optional = true, default-features = false }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
+serde_json = { version = "1", optional = true }
 standback = { version = "0.2.5", default-features = false }
 time-macros = { version = "0.1", path = "time-macros" }
 
@@ -50,5 +51,4 @@ stdweb = { version = "0.4", default-features = false, optional = true }
 version_check = "0.9"
 
 [dev-dependencies]
-serde_json = "1"
 time-macros = { path = "time-macros" }

@@ -8,6 +8,7 @@
 //! # Examples
 //!
 //! ```
+//! # #[cfg(feature = "serde_json")] {
 //! # use serde::{Deserialize, Serialize};
 //! # use serde_json::json;
 //! use time::serde::timestamp;
@@ -29,6 +30,7 @@
 //! # Ok(())
 //! # }
 //! # test().unwrap();
+//! # }
 //! ```
 //!
 //! [`OffsetDateTime`]: crate::OffsetDateTime
@@ -96,6 +98,7 @@ where
 /// # Examples
 ///
 /// ```
+/// # #[cfg(feature = "serde_json")] {
 /// # use serde::{Deserialize, Serialize};
 /// # use serde_json::json;
 /// use time::serde::timestamp;
@@ -122,6 +125,7 @@ where
 /// # Ok(())
 /// # }
 /// # test().unwrap();
+/// # }
 /// ```
 ///
 /// [`OffsetDateTime`]: crate::OffsetDateTime
