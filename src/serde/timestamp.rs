@@ -15,6 +15,7 @@
 //! use time::serde::timestamp;
 //! # use time::{date, time, OffsetDateTime};
 //!
+//! # #[derive(Debug, PartialEq)]
 //! #[derive(Deserialize, Serialize)]
 //! struct S {
 //!     #[serde(with = "timestamp")]
@@ -26,8 +27,8 @@
 //!     datetime: date!(2019-01-01).midnight().assume_utc(),
 //! };
 //! let v = json!({ "datetime": 1_546_300_800 });
-//! assert_eq!(s.datetime, serde_json::from_value::<S>(v.clone())?.datetime);
 //! assert_eq!(v, serde_json::to_value(&s)?);
+//! assert_eq!(s, serde_json::from_value(v)?);
 //! # Ok(())
 //! # }
 //! # test().unwrap();
@@ -86,6 +87,7 @@ where
 /// use time::serde::timestamp;
 /// # use time::{date, time, OffsetDateTime};
 ///
+/// # #[derive(Debug, PartialEq)]
 /// #[derive(Deserialize, Serialize)]
 /// struct S {
 ///     #[serde(default, with = "timestamp::option")]
@@ -97,16 +99,16 @@ where
 ///     datetime: Some(date!(2019-01-01).midnight().assume_utc()),
 /// };
 /// let v_some = json!({ "datetime": 1_546_300_800 });
-/// assert_eq!(s_some.datetime, serde_json::from_value::<S>(v_some.clone())?.datetime);
 /// assert_eq!(v_some, serde_json::to_value(&s_some)?);
+/// assert_eq!(s_some, serde_json::from_value(v_some)?);
 ///
 /// let s_none = S { datetime: None };
 /// let v_null = json!({ "datetime": null });
-/// assert_eq!(s_none.datetime, serde_json::from_value::<S>(v_null.clone())?.datetime);
 /// assert_eq!(v_null, serde_json::to_value(&s_none)?);
+/// assert_eq!(s_none, serde_json::from_value(v_null)?);
 ///
 /// let v_missing = json!({});
-/// assert_eq!(s_none.datetime, serde_json::from_value::<S>(v_missing.clone())?.datetime);
+/// assert_eq!(s_none, serde_json::from_value(v_missing)?);
 /// # Ok(())
 /// # }
 /// # test().unwrap();
