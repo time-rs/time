@@ -47,11 +47,11 @@ jobs:
         if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
 
       # everything
-      - name: Run `cargo check --features serde,_serde_json,deprecated,panicking-api,rand`
+      - name: Run `cargo check --features serde,deprecated,panicking-api,rand`
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --features serde,_serde_json,deprecated,panicking-api,rand
+          args: --features serde,deprecated,panicking-api,rand
 
   check-embedded:
     name: Type checking (embedded)
@@ -144,11 +144,11 @@ jobs:
         if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
 
       # everything
-      - name: Run `cargo check --features serde,_serde_json,deprecated,panicking-api,rand`
+      - name: Run `cargo check --features serde,deprecated,panicking-api,rand`
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --features serde,_serde_json,deprecated,panicking-api,rand
+          args: --features serde,deprecated,panicking-api,rand
 
   test:
     name: Test suite
@@ -186,11 +186,11 @@ jobs:
         if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
 
       # everything
-      - name: Run `cargo test --features serde,_serde_json,deprecated,panicking-api,rand`
+      - name: Run `cargo test --features serde,deprecated,panicking-api,rand`
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features serde,_serde_json,deprecated,panicking-api,rand
+          args: --features serde,deprecated,panicking-api,rand
 
   fmt:
     name: Formatting
@@ -237,11 +237,11 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Run `cargo clippy --features serde,_serde_json,deprecated,rand,panicking-api`
+      - name: Run `cargo clippy --features serde,deprecated,rand,panicking-api`
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --features serde,_serde_json,deprecated,rand,panicking-api
+          args: --features serde,deprecated,rand,panicking-api
 
   documentation:
     name: Documentation

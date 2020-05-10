@@ -7,7 +7,7 @@
 //!
 //! # Examples
 //!
-//! ```
+//! ```ignore
 //! # #[cfg(feature = "_serde_json")] {
 //! # use serde::{Deserialize, Serialize};
 //! # use _serde_json as serde_json;
@@ -82,7 +82,7 @@ where
 ///
 /// # Examples
 ///
-/// ```
+/// ```ignore
 /// # #[cfg(feature = "_serde_json")] {
 /// # use serde::{Deserialize, Serialize};
 /// # use _serde_json as serde_json;
