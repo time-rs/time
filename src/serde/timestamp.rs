@@ -44,6 +44,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// Fullfills the requirements for [serde's serialize_with-annotation](https://serde.rs/field-attrs.html#serialize_with).
 ///
 /// Prefer using the parent module instead for brevity.
+#[allow(single_use_lifetimes)]
 pub fn serialize<S>(datetime: &OffsetDateTime, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
