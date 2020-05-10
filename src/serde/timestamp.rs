@@ -59,10 +59,7 @@ pub fn serialize<S: Serializer>(
 ///
 /// Prefer using the parent module instead for brevity.
 #[allow(single_use_lifetimes)]
-pub fn deserialize<'de, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
-where
-    D: Deserializer<'de>,
-{
+pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
     #[derive(Deserialize)]
     #[serde(transparent)]
     struct Wrapper(i64);
@@ -140,10 +137,9 @@ pub mod option {
     ///
     /// Prefer using the parent module instead for brevity.
     #[allow(single_use_lifetimes)]
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<OffsetDateTime>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    pub fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Option<OffsetDateTime>, D::Error> {
         #[derive(Deserialize)]
         #[serde(transparent)]
         struct Wrapper(#[serde(with = "super")] OffsetDateTime);
