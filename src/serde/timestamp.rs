@@ -35,7 +35,6 @@
 //! # }
 //! ```
 //!
-//! [`OffsetDateTime`]: crate::OffsetDateTime
 //! [`UtcOffset`]: crate::UtcOffset
 
 use crate::OffsetDateTime;
@@ -118,7 +117,6 @@ where
 /// # }
 /// ```
 ///
-/// [`OffsetDateTime`]: crate::OffsetDateTime
 /// [`UtcOffset`]: crate::UtcOffset
 pub mod option {
     use super::*;
