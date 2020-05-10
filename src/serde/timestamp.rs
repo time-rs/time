@@ -44,10 +44,10 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 ///
 /// Prefer using the parent module instead for brevity.
 #[allow(single_use_lifetimes)]
-pub fn serialize<S>(datetime: &OffsetDateTime, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
+pub fn serialize<S: Serializer>(
+    datetime: &OffsetDateTime,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
     #[derive(Serialize)]
     #[serde(transparent)]
     struct Wrapper<'a>(&'a i64);
@@ -125,10 +125,10 @@ pub mod option {
     ///
     /// Prefer using the parent module instead for brevity.
     #[allow(single_use_lifetimes)]
-    pub fn serialize<S>(option: &Option<OffsetDateTime>, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
+    pub fn serialize<S: Serializer>(
+        option: &Option<OffsetDateTime>,
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
         #[derive(Serialize)]
         #[serde(transparent)]
         struct Wrapper<'a>(#[serde(with = "super")] &'a OffsetDateTime);
