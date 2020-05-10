@@ -50,6 +50,7 @@ where
     S: Serializer,
 {
     #[derive(Serialize)]
+    #[serde(transparent)]
     struct Wrapper<'a>(&'a i64);
 
     Wrapper(&datetime.timestamp()).serialize(serializer)
@@ -64,6 +65,7 @@ where
     D: Deserializer<'de>,
 {
     #[derive(Deserialize)]
+    #[serde(transparent)]
     struct Wrapper(i64);
 
     Wrapper::deserialize(deserializer)
@@ -130,6 +132,7 @@ pub mod option {
         S: Serializer,
     {
         #[derive(Serialize)]
+        #[serde(transparent)]
         struct Wrapper<'a>(#[serde(with = "super")] &'a OffsetDateTime);
 
         option.as_ref().map(Wrapper).serialize(serializer)
@@ -144,6 +147,7 @@ pub mod option {
         D: Deserializer<'de>,
     {
         #[derive(Deserialize)]
+        #[serde(transparent)]
         struct Wrapper(#[serde(with = "super")] OffsetDateTime);
 
         Option::deserialize(deserializer).map(|opt| opt.map(|Wrapper(datetime)| datetime))
