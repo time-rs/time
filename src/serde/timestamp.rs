@@ -44,6 +44,16 @@ use serde::{
     Deserializer, Serializer,
 };
 
+/// Fullfills the requirements for [serde's serialize_with-annotation](https://serde.rs/field-attrs.html#serialize_with).
+///
+/// Prefer using the parent module instead for brevity.
+pub fn serialize<S>(datetime: &OffsetDateTime, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_i64(datetime.timestamp())
+}
+
 /// Fullfills the requirements for [serde's deserialize_with-annotation](https://serde.rs/field-attrs.html#deserialize_with).
 ///
 /// Prefer using the parent module instead for brevity.
@@ -77,16 +87,6 @@ where
     }
 
     deserializer.deserialize_i64(OffsetDateTimeVisitor)
-}
-
-/// Fullfills the requirements for [serde's serialize_with-annotation](https://serde.rs/field-attrs.html#serialize_with).
-///
-/// Prefer using the parent module instead for brevity.
-pub fn serialize<S>(datetime: &OffsetDateTime, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    serializer.serialize_i64(datetime.timestamp())
 }
 
 /// De/serialize [`Option`]`<`[`OffsetDateTime`]`>` from/to [Unix timestamps](https://en.wikipedia.org/wiki/Unix_time).
@@ -135,6 +135,19 @@ where
 pub mod option {
     use super::*;
 
+    /// Fullfills the requirements for [serde's serialize_with-annotation](https://serde.rs/field-attrs.html#serialize_with).
+    ///
+    /// Prefer using the parent module instead for brevity.
+    pub fn serialize<S>(option: &Option<OffsetDateTime>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match *option {
+            Some(ref datetime) => serializer.serialize_some(&datetime.timestamp()),
+            None => serializer.serialize_none(),
+        }
+    }
+
     /// Fullfills the requirements for [serde's deserialize_with-annotation](https://serde.rs/field-attrs.html#deserialize_with).
     ///
     /// Prefer using the parent module instead for brevity.
@@ -175,18 +188,5 @@ pub mod option {
         }
 
         deserializer.deserialize_option(OffsetDateTimeOptionVisitor)
-    }
-
-    /// Fullfills the requirements for [serde's serialize_with-annotation](https://serde.rs/field-attrs.html#serialize_with).
-    ///
-    /// Prefer using the parent module instead for brevity.
-    pub fn serialize<S>(option: &Option<OffsetDateTime>, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        match *option {
-            Some(ref datetime) => serializer.serialize_some(&datetime.timestamp()),
-            None => serializer.serialize_none(),
-        }
     }
 }
