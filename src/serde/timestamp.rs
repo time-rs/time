@@ -38,11 +38,7 @@
 //! [`UtcOffset`]: crate::UtcOffset
 
 use crate::OffsetDateTime;
-use core::fmt;
-use serde::{
-    de::{self, Visitor},
-    Deserializer, Serializer,
-};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// Fullfills the requirements for [serde's serialize_with-annotation](https://serde.rs/field-attrs.html#serialize_with).
 ///
@@ -51,42 +47,26 @@ pub fn serialize<S>(datetime: &OffsetDateTime, serializer: S) -> Result<S::Ok, S
 where
     S: Serializer,
 {
-    serializer.serialize_i64(datetime.timestamp())
+    #[derive(Serialize)]
+    struct Wrapper<'a>(&'a i64);
+
+    Wrapper(&datetime.timestamp()).serialize(serializer)
 }
 
 /// Fullfills the requirements for [serde's deserialize_with-annotation](https://serde.rs/field-attrs.html#deserialize_with).
 ///
 /// Prefer using the parent module instead for brevity.
 #[allow(single_use_lifetimes)]
-pub fn deserialize<'de, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
+pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<OffsetDateTime, D::Error>
 where
     D: Deserializer<'de>,
 {
-    /// A Visitor that deserializes a OffsetDateTime from a Unix timestamp
-    struct OffsetDateTimeVisitor;
-    impl Visitor<'_> for OffsetDateTimeVisitor {
-        type Value = OffsetDateTime;
+    #[derive(Deserialize)]
+    struct Wrapper(i64);
 
-        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-            formatter.write_str("a Unix timestamp")
-        }
-
-        fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            Ok(Self::Value::from_unix_timestamp(value))
-        }
-
-        fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            Ok(Self::Value::from_unix_timestamp(value as i64))
-        }
-    }
-
-    deserializer.deserialize_i64(OffsetDateTimeVisitor)
+    Wrapper::deserialize(deserializer)
+        .map(|Wrapper(timestamp)| timestamp)
+        .map(OffsetDateTime::from_unix_timestamp)
 }
 
 /// De/serialize [`Option`]`<`[`OffsetDateTime`]`>` from/to [Unix timestamps](https://en.wikipedia.org/wiki/Unix_time).
@@ -138,14 +118,15 @@ pub mod option {
     /// Fullfills the requirements for [serde's serialize_with-annotation](https://serde.rs/field-attrs.html#serialize_with).
     ///
     /// Prefer using the parent module instead for brevity.
+    #[allow(single_use_lifetimes)]
     pub fn serialize<S>(option: &Option<OffsetDateTime>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        match *option {
-            Some(ref datetime) => serializer.serialize_some(&datetime.timestamp()),
-            None => serializer.serialize_none(),
-        }
+        #[derive(Serialize)]
+        struct Wrapper<'a>(#[serde(with = "super")] &'a OffsetDateTime);
+
+        option.as_ref().map(Wrapper).serialize(serializer)
     }
 
     /// Fullfills the requirements for [serde's deserialize_with-annotation](https://serde.rs/field-attrs.html#deserialize_with).
@@ -156,37 +137,9 @@ pub mod option {
     where
         D: Deserializer<'de>,
     {
-        /// A Visitor that deserializes an optional OffsetDateTime from a Unix timestamp
-        struct OffsetDateTimeOptionVisitor;
-        impl<'de> Visitor<'de> for OffsetDateTimeOptionVisitor {
-            type Value = Option<OffsetDateTime>;
+        #[derive(Deserialize)]
+        struct Wrapper(#[serde(with = "super")] OffsetDateTime);
 
-            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-                formatter.write_str("an optional Unix timestamp")
-            }
-
-            fn visit_unit<E>(self) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(None)
-            }
-
-            fn visit_none<E>(self) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                Ok(None)
-            }
-
-            fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
-            where
-                D: Deserializer<'de>,
-            {
-                super::deserialize(deserializer).map(Some)
-            }
-        }
-
-        deserializer.deserialize_option(OffsetDateTimeOptionVisitor)
+        Option::deserialize(deserializer).map(|opt| opt.map(|Wrapper(datetime)| datetime))
     }
 }
