@@ -59,7 +59,7 @@ where
 ///
 /// Prefer using the parent module instead for brevity.
 #[allow(single_use_lifetimes)]
-pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<OffsetDateTime, D::Error>
+pub fn deserialize<'de, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
 where
     D: Deserializer<'de>,
 {
