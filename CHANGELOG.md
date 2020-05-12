@@ -7,6 +7,14 @@ Versioning].
 
 ---
 
+## 0.2.16 [2020-05-12]
+
+### Added
+
+`OffsetDateTime`s can now be represented as Unix timestamps with serde. To do
+this, you can use the `time::serde::timestamp` and
+`time::serde::timestamp::option` modules.
+
 ## 0.2.15 [2020-05-04]
 
 ### Fixed
