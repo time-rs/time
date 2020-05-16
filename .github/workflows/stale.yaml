@@ -12,8 +12,8 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           stale-pr-message: "This pull request has not had any activity recently. It will be closed without further activity."
 
-          days-before-stale: 21
+          days-before-stale: 14
           days-before-close: 7
 
-          stale-pr-label: "stale"
-          exempt-pr-labels: "keep-open"
+          stale-pr-label: "C-stale"
+          exempt-pr-labels: "C-keep-open"
