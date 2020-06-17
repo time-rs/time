@@ -43,6 +43,7 @@
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
     clippy::suspicious_arithmetic_impl,
+    clippy::redundant_pub_crate,
     clippy::use_self,
     clippy::wildcard_imports,
     clippy::zero_prefixed_literal,
