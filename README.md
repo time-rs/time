@@ -1,13 +1,13 @@
 # time
 
-![build status](https://github.com/time-rs/time/workflows/Build/badge.svg)
+![build status](https://github.com/time-rs/time/workflows/Build/badge.svg?branch=main)
 <br>
 [![Matrix](https://img.shields.io/badge/chat-Matrix/Riot-blue)](https://riot.im/app/#/room/!AAFrFkLHvtsXtMYRho:matrix.org)
 ![license](https://img.shields.io/badge/license-MIT%20or%20Apache--2-brightgreen)
 ![version](https://img.shields.io/crates/v/time)
 ![rustc 1.32.0](https://img.shields.io/badge/rustc-1.32.0-blue)
 
-[Documentation (master)](https://time-rs.github.io/time/time/index.html)
+[Documentation (main branch)](https://time-rs.github.io/time/time/index.html)
 <br>
 [Documentation (latest release)](https://docs.rs/time)
 
@@ -15,8 +15,8 @@
 
 This project is licensed under either of
 
-- [Apache License, Version 2.0](https://github.com/time-rs/time/blob/master/LICENSE-Apache)
-- [MIT license](https://github.com/time-rs/time/blob/master/LICENSE-MIT)
+- [Apache License, Version 2.0](https://github.com/time-rs/time/blob/main/LICENSE-Apache)
+- [MIT license](https://github.com/time-rs/time/blob/main/LICENSE-MIT)
 
 at your option.
 
