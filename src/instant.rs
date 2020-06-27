@@ -123,7 +123,7 @@ impl Instant {
 impl Instant {
     #[inline(always)]
     #[cfg(v01_deprecated_api)]
-    #[cfg_attr(tarpaulin, skip)]
+    #[cfg(not(tarpaulin_include))]
     #[deprecated(since = "0.2.0", note = "Use `rhs - lhs`")]
     pub fn to(&self, later: Self) -> Duration {
         later - *self
