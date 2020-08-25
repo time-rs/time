@@ -337,6 +337,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             /// on any error.
             fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
                 extern "C" {
+                    #[cfg_attr(target_os = "netbsd", link_name = "__tzset50")]
                     fn tzset();
                 }
 
