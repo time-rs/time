@@ -36,12 +36,11 @@ jobs:
           command: check
           args: --all-features
 
-  test:
-    name: Test suite
+  test-stable:
+    name: Test suite (rust stable)
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: [1.21.0, stable]
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
@@ -53,7 +52,39 @@ jobs:
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.rust }}
+          toolchain: stable
+          override: true
+
+      # default features
+      - name: Run `cargo test`
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+
+      # everything
+      - name: Run `cargo test --all-features`
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
+
+  test-old:
+    name: Test suite (rust 1.21.0)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: 1.21.0
           override: true
 
       # Generate Cargo.lock before attempting to downgrade
@@ -63,12 +94,16 @@ jobs:
           command: generate-lockfile
 
       # downgrade dev-dependencies for compatibility
-      - name: Downgrade dependencies
+      - name: Downgrade cfg-if dependency
         uses: actions-rs/cargo@v1
         with:
           command: update
           args: -p cfg-if --precise 0.1.9
-        if: matrix.rust == '1.21.0'
+      - name: Downgrade log dependency
+        uses: actions-rs/cargo@v1
+        with:
+          command: update
+          args: -p log --precise 0.4.8
 
       # default features
       - name: Run `cargo test`
