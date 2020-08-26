@@ -341,6 +341,9 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                     fn tzset();
                 }
 
+                // The exact type of `timestamp` beforehand can vary, so this
+                // conversion is necessary.
+                #[allow(clippy::useless_conversion)]
                 let timestamp = timestamp.try_into().ok()?;
 
                 let mut tm = MaybeUninit::uninit();
