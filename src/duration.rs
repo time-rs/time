@@ -15,9 +15,9 @@ use core::{
 ///
 /// This implementation allows for negative durations, unlike
 /// [`core::time::Duration`].
-#[cfg_attr(serde, derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
-    serde,
+    feature = "serde",
     serde(from = "crate::serde::Duration", into = "crate::serde::Duration")
 )]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -239,7 +239,7 @@ impl Duration {
     ///
     /// This function is `const fn` when using rustc >= 1.39.0.
     #[inline(always)]
-    #[cfg(const_num_abs)]
+    #[cfg(__time_02_const_num_abs)]
     pub const fn abs(self) -> Self {
         Self {
             seconds: self.seconds.abs(),
@@ -258,7 +258,7 @@ impl Duration {
     ///
     /// This function is `const fn` when using rustc >= 1.39.0.
     #[inline(always)]
-    #[cfg(not(const_num_abs))]
+    #[cfg(not(__time_02_const_num_abs))]
     pub fn abs(self) -> Self {
         Self {
             seconds: self.seconds.abs(),
@@ -270,7 +270,7 @@ impl Duration {
     // This doesn't actually require the standard library, but is currently only
     // used when it's enabled.
     #[inline(always)]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     pub(crate) fn abs_std(self) -> StdDuration {
         StdDuration::new(self.seconds.abs() as u64, self.nanoseconds.abs() as u32)
     }
@@ -722,7 +722,7 @@ impl Duration {
     /// Runs a closure, returning the duration of time it took to run. The
     /// return value of the closure is provided in the second part of the tuple.
     #[inline(always)]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     pub fn time_fn<T>(f: impl FnOnce() -> T) -> (Self, T) {
         let start = Instant::now();
@@ -735,7 +735,7 @@ impl Duration {
 
 /// Functions that have been renamed or had signatures changed since v0.1. As
 /// such, they are deprecated.
-#[cfg(v01_deprecated_api)]
+#[cfg(feature = "deprecated")]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items, clippy::missing_const_for_fn)]
 impl Duration {
@@ -822,7 +822,7 @@ impl Duration {
     }
 
     #[inline(always)]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[deprecated(since = "0.2.0", note = "Use the `time_fn` function")]
     pub fn span<F: FnOnce()>(f: F) -> Self {
         Self::time_fn(f).0
@@ -1487,7 +1487,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn time_fn() {
         let (time, value) = Duration::time_fn(|| {
             std::thread::sleep(100.std_milliseconds());
@@ -1630,7 +1630,7 @@ mod test {
         duration -= 500.milliseconds();
         assert_eq!(duration, 1.seconds());
 
-        #[cfg(std)]
+        #[cfg(feature = "std")]
         {
             let mut duration = 1.std_seconds();
             assert_panics!(duration -= 2.seconds());

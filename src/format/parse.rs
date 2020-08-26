@@ -16,7 +16,7 @@ use core::{
 pub(crate) type ParseResult<T> = Result<T, ParseError>;
 
 /// An error occurred while parsing.
-#[cfg_attr(supports_non_exhaustive, non_exhaustive)]
+#[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ParseError {
     /// The nanosecond present was not valid.
@@ -60,7 +60,7 @@ pub enum ParseError {
     InsufficientInformation,
     /// A component was out of range.
     ComponentOutOfRange(Box<ComponentRangeError>),
-    #[cfg(not(supports_non_exhaustive))]
+    #[cfg(not(__time_02_supports_non_exhaustive))]
     #[doc(hidden)]
     __NonExhaustive,
 }
@@ -99,13 +99,13 @@ impl Display for ParseError {
                 f.write_str("insufficient information provided to create the requested type")
             }
             ComponentOutOfRange(e) => write!(f, "{}", e),
-            #[cfg(not(supports_non_exhaustive))]
+            #[cfg(not(__time_02_supports_non_exhaustive))]
             __NonExhaustive => unreachable!(),
         }
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl std::error::Error for ParseError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
@@ -481,7 +481,7 @@ pub(crate) fn parse(s: &str, format: &Format) -> ParseResult<ParsedItems> {
                 }
             }
         }
-        #[cfg(not(supports_non_exhaustive))]
+        #[cfg(not(__time_02_supports_non_exhaustive))]
         Format::__NonExhaustive => unreachable!(),
     }
 

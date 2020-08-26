@@ -220,7 +220,7 @@ impl_numerical_duration_nonzero![
     core::num::NonZeroU16,
     core::num::NonZeroU32,
 ];
-#[cfg(nonzero_signed)]
+#[cfg(__time_02_nonzero_signed)]
 impl_numerical_duration_nonzero![
     core::num::NonZeroI8,
     core::num::NonZeroI16,

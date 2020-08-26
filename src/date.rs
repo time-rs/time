@@ -91,8 +91,8 @@ pub(crate) const MAX_YEAR: i32 = 100_000;
 /// that can change at any time without notice. If you need support outside this
 /// range, please [file an issue](https://github.com/time-rs/time/issues/new)
 /// with your use case.
-#[cfg_attr(serde, derive(serde::Serialize))]
-#[cfg_attr(serde, serde(into = "crate::serde::Date"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(into = "crate::serde::Date"))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
     #[allow(clippy::missing_docs_in_private_items)]
@@ -104,7 +104,7 @@ pub struct Date {
     pub(crate) ordinal: u16,
 }
 
-#[cfg(serde)]
+#[cfg(feature = "serde")]
 impl<'a> serde::Deserialize<'a> for Date {
     #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -133,7 +133,7 @@ impl Date {
     /// Date::from_ymd(2019, 2, 29); // 2019 isn't a leap year.
     /// ```
     #[inline]
-    #[cfg(panicking_api)]
+    #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
@@ -186,7 +186,7 @@ impl Date {
     /// Date::from_yo(2019, 366); // 2019 isn't a leap year.
     /// ```
     #[inline(always)]
-    #[cfg(panicking_api)]
+    #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
@@ -245,7 +245,7 @@ impl Date {
     /// Date::from_iso_ywd(2019, 53, Monday); // 2019 doesn't have 53 weeks.
     /// ```
     #[inline]
-    #[cfg(panicking_api)]
+    #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
@@ -291,7 +291,7 @@ impl Date {
     /// assert!(Date::today().year() >= 2019);
     /// ```
     #[inline(always)]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     #[deprecated(
         since = "0.2.7",
@@ -717,7 +717,7 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    #[cfg(panicking_api)]
+    #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
@@ -761,7 +761,7 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    #[cfg(panicking_api)]
+    #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
@@ -813,7 +813,7 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    #[cfg(panicking_api)]
+    #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
@@ -870,7 +870,7 @@ impl Date {
     /// );
     /// ```
     #[inline(always)]
-    #[cfg(panicking_api)]
+    #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
@@ -2109,7 +2109,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(panicking_api)]
+    #[cfg(feature = "panicking-api")]
     #[allow(deprecated)]
     fn with_hms() -> crate::Result<()> {
         assert_eq!(
@@ -2130,7 +2130,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(panicking_api)]
+    #[cfg(feature = "panicking-api")]
     #[allow(deprecated)]
     fn with_hms_milli() -> crate::Result<()> {
         assert_eq!(
@@ -2151,7 +2151,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(panicking_api)]
+    #[cfg(feature = "panicking-api")]
     #[allow(deprecated)]
     fn with_hms_micro() -> crate::Result<()> {
         assert_eq!(
@@ -2172,7 +2172,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(panicking_api)]
+    #[cfg(feature = "panicking-api")]
     #[allow(deprecated)]
     fn with_hms_nano() -> crate::Result<()> {
         assert_eq!(

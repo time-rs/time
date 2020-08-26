@@ -3,7 +3,7 @@ use crate::{
     internal_prelude::*,
     Format,
 };
-#[cfg(std)]
+#[cfg(feature = "std")]
 use core::convert::From;
 use core::{
     cmp::Ordering,
@@ -12,7 +12,7 @@ use core::{
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(std)]
+#[cfg(feature = "std")]
 use std::time::SystemTime;
 
 /// A [`PrimitiveDateTime`] with a [`UtcOffset`].
@@ -22,8 +22,8 @@ use std::time::SystemTime;
 // [`PrimitiveDateTime`] coupled with a [`UtcOffset`]. This offset is added to
 // the date, time, or datetime as necessary for presentation or returning from a
 // function.
-#[cfg_attr(serde, derive(serde::Serialize))]
-#[cfg_attr(serde, serde(into = "crate::serde::PrimitiveDateTime"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(into = "crate::serde::PrimitiveDateTime"))]
 #[derive(Debug, Clone, Copy, Eq)]
 pub struct OffsetDateTime {
     /// The `PrimitiveDateTime`, which is _always_ UTC.
@@ -32,7 +32,7 @@ pub struct OffsetDateTime {
     pub(crate) offset: UtcOffset,
 }
 
-#[cfg(serde)]
+#[cfg(feature = "serde")]
 impl<'a> serde::Deserialize<'a> for OffsetDateTime {
     #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -59,7 +59,7 @@ impl OffsetDateTime {
         note = "This function returns a value with an offset of UTC, which is not apparent from \
                 its name alone. You should use `OffsetDateTime::now_utc()` instead."
     )]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     pub fn now() -> Self {
         SystemTime::now().into()
@@ -73,7 +73,7 @@ impl OffsetDateTime {
     /// assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
     /// ```
     #[inline(always)]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     pub fn now_utc() -> Self {
         SystemTime::now().into()
@@ -87,7 +87,7 @@ impl OffsetDateTime {
     /// assert!(OffsetDateTime::now_local().year() >= 2019);
     /// ```
     #[inline(always)]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     pub fn now_local() -> Self {
         let t = Self::now_utc();
@@ -103,7 +103,7 @@ impl OffsetDateTime {
     /// assert!(OffsetDateTime::try_now_local().is_ok());
     /// ```
     #[inline]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     pub fn try_now_local() -> Result<Self, IndeterminateOffsetError> {
         let t = Self::now_utc();
@@ -899,7 +899,7 @@ impl Sub<OffsetDateTime> for OffsetDateTime {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl Add<Duration> for SystemTime {
     type Output = Self;
 
@@ -916,7 +916,7 @@ impl Add<Duration> for SystemTime {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl AddAssign<Duration> for SystemTime {
     #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
@@ -924,7 +924,7 @@ impl AddAssign<Duration> for SystemTime {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl Sub<Duration> for SystemTime {
     type Output = Self;
 
@@ -934,7 +934,7 @@ impl Sub<Duration> for SystemTime {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl SubAssign<Duration> for SystemTime {
     #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
@@ -942,7 +942,7 @@ impl SubAssign<Duration> for SystemTime {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl Sub<SystemTime> for OffsetDateTime {
     type Output = Duration;
 
@@ -952,7 +952,7 @@ impl Sub<SystemTime> for OffsetDateTime {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl Sub<OffsetDateTime> for SystemTime {
     type Output = Duration;
 
@@ -962,7 +962,7 @@ impl Sub<OffsetDateTime> for SystemTime {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl PartialEq<SystemTime> for OffsetDateTime {
     #[inline(always)]
     fn eq(&self, rhs: &SystemTime) -> bool {
@@ -970,7 +970,7 @@ impl PartialEq<SystemTime> for OffsetDateTime {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl PartialEq<OffsetDateTime> for SystemTime {
     #[inline(always)]
     fn eq(&self, rhs: &OffsetDateTime) -> bool {
@@ -978,7 +978,7 @@ impl PartialEq<OffsetDateTime> for SystemTime {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl PartialOrd<SystemTime> for OffsetDateTime {
     #[inline(always)]
     fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
@@ -986,7 +986,7 @@ impl PartialOrd<SystemTime> for OffsetDateTime {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl PartialOrd<OffsetDateTime> for SystemTime {
     #[inline(always)]
     fn partial_cmp(&self, other: &OffsetDateTime) -> Option<Ordering> {
@@ -994,7 +994,7 @@ impl PartialOrd<OffsetDateTime> for SystemTime {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl From<SystemTime> for OffsetDateTime {
     // There is definitely some way to have this conversion be infallible, but
     // it won't be an issue for over 500 years.
@@ -1011,7 +1011,7 @@ impl From<SystemTime> for OffsetDateTime {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl From<OffsetDateTime> for SystemTime {
     #[inline]
     fn from(datetime: OffsetDateTime) -> Self {
@@ -1034,14 +1034,14 @@ mod test {
     use super::*;
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn now_utc() {
         assert!(OffsetDateTime::now_utc().year() >= 2019);
         assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn now_local() {
         assert!(OffsetDateTime::now_local().year() >= 2019);
         assert_eq!(
@@ -1418,7 +1418,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn hash() -> crate::Result<()> {
         use std::{collections::hash_map::DefaultHasher, hash::Hash};
 
@@ -1631,7 +1631,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn std_add_duration() -> crate::Result<()> {
         assert_eq!(
             SystemTime::from(date!(2019-01-01).midnight().assume_utc()) + 5.days(),
@@ -1655,7 +1655,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn std_add_assign_duration() -> crate::Result<()> {
         let mut ny19 = SystemTime::from(date!(2019-01-01).midnight().assume_utc());
         ny19 += 5.days();
@@ -1683,7 +1683,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn std_sub_duration() -> crate::Result<()> {
         assert_eq!(
             SystemTime::from(date!(2019-01-06).midnight().assume_utc()) - 5.days(),
@@ -1707,7 +1707,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn std_sub_assign_duration() -> crate::Result<()> {
         let mut ny19 = SystemTime::from(date!(2019-01-06).midnight().assume_utc());
         ny19 -= 5.days();
@@ -1756,7 +1756,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn std_sub() -> crate::Result<()> {
         assert_eq!(
             SystemTime::from(date!(2019-01-02).midnight().assume_utc())
@@ -1782,7 +1782,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn sub_std() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-02).midnight().assume_utc()
@@ -1808,7 +1808,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[allow(deprecated)]
     fn eq_std() {
         let now_datetime = OffsetDateTime::now();
@@ -1817,7 +1817,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[allow(deprecated)]
     fn std_eq() {
         let now_datetime = OffsetDateTime::now();
@@ -1826,7 +1826,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn ord_std() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-01).midnight().assume_utc(),
@@ -1898,7 +1898,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn std_ord() -> crate::Result<()> {
         assert_eq!(
             SystemTime::from(date!(2019-01-01).midnight().assume_utc()),
@@ -1969,7 +1969,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn from_std() {
         assert_eq!(
             OffsetDateTime::from(SystemTime::UNIX_EPOCH),
@@ -1978,7 +1978,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn to_std() {
         assert_eq!(
             SystemTime::from(OffsetDateTime::unix_epoch()),

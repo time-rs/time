@@ -2,7 +2,7 @@ use crate::{
     format::parse::{parse, ParsedItems},
     internal_prelude::*,
 };
-#[cfg(std)]
+#[cfg(feature = "std")]
 use core::convert::From;
 use core::{
     cmp::Ordering,
@@ -10,12 +10,12 @@ use core::{
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(std)]
+#[cfg(feature = "std")]
 use std::time::SystemTime;
 
 /// Combined date and time.
-#[cfg_attr(serde, derive(serde::Serialize))]
-#[cfg_attr(serde, serde(into = "crate::serde::PrimitiveDateTime"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(into = "crate::serde::PrimitiveDateTime"))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PrimitiveDateTime {
     #[allow(clippy::missing_docs_in_private_items)]
@@ -24,7 +24,7 @@ pub struct PrimitiveDateTime {
     pub(crate) time: Time,
 }
 
-#[cfg(serde)]
+#[cfg(feature = "serde")]
 impl<'a> serde::Deserialize<'a> for PrimitiveDateTime {
     #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -58,7 +58,7 @@ impl PrimitiveDateTime {
     /// assert!(PrimitiveDateTime::now().year() >= 2019);
     /// ```
     #[inline(always)]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     #[deprecated(
         since = "0.2.7",
@@ -646,7 +646,7 @@ impl Sub<PrimitiveDateTime> for PrimitiveDateTime {
 }
 
 /// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl Sub<SystemTime> for PrimitiveDateTime {
     type Output = Duration;
 
@@ -657,7 +657,7 @@ impl Sub<SystemTime> for PrimitiveDateTime {
 }
 
 /// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl Sub<PrimitiveDateTime> for SystemTime {
     type Output = Duration;
 
@@ -675,7 +675,7 @@ impl PartialOrd for PrimitiveDateTime {
 }
 
 /// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl PartialEq<SystemTime> for PrimitiveDateTime {
     #[inline(always)]
     fn eq(&self, rhs: &SystemTime) -> bool {
@@ -684,7 +684,7 @@ impl PartialEq<SystemTime> for PrimitiveDateTime {
 }
 
 /// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl PartialEq<PrimitiveDateTime> for SystemTime {
     #[inline(always)]
     fn eq(&self, rhs: &PrimitiveDateTime) -> bool {
@@ -693,7 +693,7 @@ impl PartialEq<PrimitiveDateTime> for SystemTime {
 }
 
 /// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl PartialOrd<SystemTime> for PrimitiveDateTime {
     #[inline(always)]
     fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
@@ -702,7 +702,7 @@ impl PartialOrd<SystemTime> for PrimitiveDateTime {
 }
 
 /// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl PartialOrd<PrimitiveDateTime> for SystemTime {
     #[inline(always)]
     fn partial_cmp(&self, other: &PrimitiveDateTime) -> Option<Ordering> {
@@ -722,7 +722,7 @@ impl Ord for PrimitiveDateTime {
 }
 
 /// Deprecated since v0.2.7, as it returns a value that assumes an offset of UTC.
-#[cfg(std)]
+#[cfg(feature = "std")]
 #[allow(deprecated)]
 impl From<SystemTime> for PrimitiveDateTime {
     // There is definitely some way to have this conversion be infallible, but
@@ -741,7 +741,7 @@ impl From<SystemTime> for PrimitiveDateTime {
 }
 
 /// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(std)]
+#[cfg(feature = "std")]
 #[allow(deprecated)]
 impl From<PrimitiveDateTime> for SystemTime {
     #[inline]
@@ -774,7 +774,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[allow(deprecated)]
     fn now() {
         assert!(PrimitiveDateTime::now().year() >= 2019);
@@ -1208,7 +1208,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn std_sub_datetime() -> crate::Result<()> {
         assert_eq!(
             SystemTime::from(date!(2019-01-02).midnight()) - date!(2019-01-01).midnight(),
@@ -1230,7 +1230,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn sub_std() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-02).midnight() - SystemTime::from(date!(2019-01-01).midnight()),
@@ -1348,7 +1348,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[allow(deprecated)]
     fn eq_std() {
         let now_datetime = PrimitiveDateTime::now();
@@ -1357,7 +1357,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[allow(deprecated)]
     fn std_eq() {
         let now_datetime = PrimitiveDateTime::now();
@@ -1366,7 +1366,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn ord_std() -> crate::Result<()> {
         assert_eq!(
             date!(2019-01-01).midnight(),
@@ -1414,7 +1414,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     fn std_ord() -> crate::Result<()> {
         assert_eq!(
             SystemTime::from(date!(2019-01-01).midnight()),
@@ -1462,7 +1462,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[allow(deprecated)]
     fn from_std() {
         assert_eq!(
@@ -1472,7 +1472,7 @@ mod test {
     }
 
     #[test]
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     #[allow(deprecated)]
     fn to_std() {
         assert_eq!(

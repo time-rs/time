@@ -11,8 +11,8 @@ use Sign::{Negative, Positive, Zero};
 /// types. `Sign`s can also be multiplied and divided by another `Sign`, which
 /// follows the same rules as real numbers.
 #[repr(i8)]
-#[cfg_attr(serde, derive(serde::Serialize))]
-#[cfg_attr(serde, serde(into = "crate::serde::Sign"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(into = "crate::serde::Sign"))]
 #[deprecated(
     since = "0.2.7",
     note = "The only use for this (obtaining the sign of a `Duration`) can be replaced with \
@@ -30,7 +30,7 @@ pub enum Sign {
     Zero = 0,
 }
 
-#[cfg(serde)]
+#[cfg(feature = "serde")]
 impl<'a> serde::Deserialize<'a> for Sign {
     #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

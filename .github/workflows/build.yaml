@@ -193,6 +193,9 @@ jobs:
         with:
           command: doc
           args: --all-features
+        env:
+          RUSTFLAGS: --cfg __time_02_docs
+          RUSTDOCFLAGS: --cfg __time_02_docs
 
       - name: Publish documentation
         uses: JamesIves/github-pages-deploy-action@releases/v3

@@ -8,14 +8,14 @@ use core::fmt;
 // Boxing the `ComponentRangeError` reduces the size of `Error` from 72 bytes to
 // 16.
 #[allow(clippy::missing_docs_in_private_items)] // variants only
-#[cfg_attr(supports_non_exhaustive, non_exhaustive)]
+#[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     ConversionRange(ConversionRangeError),
     ComponentRange(Box<ComponentRangeError>),
     Parse(ParseError),
     IndeterminateOffset(IndeterminateOffsetError),
-    #[cfg(not(supports_non_exhaustive))]
+    #[cfg(not(__time_02_supports_non_exhaustive))]
     #[doc(hidden)]
     __NonExhaustive,
 }
@@ -28,13 +28,13 @@ impl fmt::Display for Error {
             Error::ComponentRange(e) => e.fmt(f),
             Error::Parse(e) => e.fmt(f),
             Error::IndeterminateOffset(e) => e.fmt(f),
-            #[cfg(not(supports_non_exhaustive))]
+            #[cfg(not(__time_02_supports_non_exhaustive))]
             Error::__NonExhaustive => unreachable!(),
         }
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl std::error::Error for Error {
     #[inline(always)]
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
@@ -43,7 +43,7 @@ impl std::error::Error for Error {
             Error::ComponentRange(box_err) => Some(box_err.as_ref()),
             Error::Parse(err) => Some(err),
             Error::IndeterminateOffset(err) => Some(err),
-            #[cfg(not(supports_non_exhaustive))]
+            #[cfg(not(__time_02_supports_non_exhaustive))]
             Error::__NonExhaustive => unreachable!(),
         }
     }
@@ -73,7 +73,7 @@ impl fmt::Display for ConversionRangeError {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl std::error::Error for ConversionRangeError {}
 
 impl From<ConversionRangeError> for Error {
@@ -129,7 +129,7 @@ impl From<ComponentRangeError> for Error {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl std::error::Error for ComponentRangeError {}
 
 impl From<ParseError> for Error {
@@ -162,7 +162,7 @@ impl fmt::Display for IndeterminateOffsetError {
     }
 }
 
-#[cfg(std)]
+#[cfg(feature = "std")]
 impl std::error::Error for IndeterminateOffsetError {}
 
 impl From<IndeterminateOffsetError> for Error {

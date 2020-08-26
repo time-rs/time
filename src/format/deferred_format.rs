@@ -89,7 +89,7 @@ impl Display for DeferredFormat {
                 Ok(())
             }
             Format::Rfc3339 => well_known::rfc3339::fmt(self, f),
-            #[cfg(not(supports_non_exhaustive))]
+            #[cfg(not(__time_02_supports_non_exhaustive))]
             Format::__NonExhaustive => unreachable!(),
         }
     }

@@ -15,17 +15,14 @@ build = "build.rs"
 [package.metadata.docs.rs]
 all-features = true
 targets = ["x86_64-unknown-linux-gnu"]
+rustc-args = ["--cfg",  "__time_02_docs"]
+rustdoc-args = ["--cfg", "__time_02_docs"]
 
 [features]
 default = ["deprecated", "std"]
 deprecated = []
 panicking-api = []
 std = ["libc", "winapi", "stdweb", "standback/std"]
-
-# Internal usage. This is used when building for docs.rs and time-rs.github.io.
-# This feature should never be used by external users. It will likely be
-# removed in the first release after the `doc_cfg` feature gets stabilized.
-__doc = []
 
 [dependencies]
 cfg-if = "0.1.10"
@@ -43,7 +40,7 @@ libc = { version = "0.2", optional = true }
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
 
-[target.'cfg(cargo_web)'.dependencies]
+[target.'cfg(target_arch = "wasm32")'.dependencies]
 stdweb = { version = "0.4", default-features = false, optional = true }
 
 [build-dependencies]

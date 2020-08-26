@@ -141,7 +141,7 @@
 //! | `0`              | Pad with zeros  | `%0d` => `05` |
 
 #![cfg_attr(docs, feature(doc_cfg))]
-#![cfg_attr(not(std), no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 #![deny(
     anonymous_parameters,
     clippy::all,
@@ -201,7 +201,7 @@
 // guarantees that edition 2018 is available.
 #![doc(test(no_crate_inject))]
 
-#[cfg(panicking_api)]
+#[cfg(feature = "panicking-api")]
 #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
 macro_rules! format_conditional {
     ($conditional:ident) => {
@@ -209,9 +209,9 @@ macro_rules! format_conditional {
     };
 
     ($first_conditional:ident, $($conditional:ident),*) => {{
-        #[cfg(not(std))]
+        #[cfg(not(feature = "std"))]
         let mut s = alloc::string::String::new();
-        #[cfg(std)]
+        #[cfg(feature = "std")]
         let mut s = String::new();
         s.push_str(&format_conditional!($first_conditional));
         $(s.push_str(&format!(concat!(", ", stringify!($conditional), "={}"), $conditional));)*
@@ -220,7 +220,7 @@ macro_rules! format_conditional {
 }
 
 /// Panic if the value is not in range.
-#[cfg(panicking_api)]
+#[cfg(feature = "panicking-api")]
 #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
 macro_rules! assert_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {
@@ -287,7 +287,7 @@ macro_rules! ensure_value_in_range {
     };
 }
 
-#[cfg(all(test, std))]
+#[cfg(all(test, feature = "std"))]
 macro_rules! assert_panics {
     ($e:expr $(, $message:literal)?) => {
         #[allow(box_pointers)]
@@ -361,7 +361,7 @@ mod duration;
 mod error;
 mod format;
 /// The `Instant` struct and its associated `impl`s.
-#[cfg(std)]
+#[cfg(feature = "std")]
 mod instant;
 pub mod internals;
 /// A collection of traits extending built-in numerical types.
@@ -370,9 +370,9 @@ mod numerical_traits;
 mod offset_date_time;
 /// The `PrimitiveDateTime` struct and its associated `impl`s.
 mod primitive_date_time;
-#[cfg(rand)]
+#[cfg(feature = "rand")]
 mod rand;
-#[cfg(serde)]
+#[cfg(feature = "serde")]
 #[allow(missing_copy_implementations, missing_debug_implementations)]
 pub mod serde;
 /// The `Sign` struct and its associated `impl`s.
@@ -389,7 +389,7 @@ pub use duration::Duration;
 pub use error::{ComponentRangeError, ConversionRangeError, Error, IndeterminateOffsetError};
 pub(crate) use format::DeferredFormat;
 pub use format::{validate_format_string, Format, ParseError};
-#[cfg(std)]
+#[cfg(feature = "std")]
 pub use instant::Instant;
 use internal_prelude::*;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
@@ -482,9 +482,9 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// major releases.
 pub mod prelude {
     // Rename traits to `_` if possible to avoid any potential name conflicts.
-    #[cfg(not(use_trait_as_underscore))]
+    #[cfg(not(__time_02_use_trait_as_underscore))]
     pub use crate::{NumericalDuration, NumericalStdDuration};
-    #[cfg(use_trait_as_underscore)]
+    #[cfg(__time_02_use_trait_as_underscore)]
     pub use crate::{NumericalDuration as _, NumericalStdDuration as _};
     // We need to re-export from the macros crate again (and not just do
     // `crate::foo`) because of the way name resolution works in Rust. It's not
@@ -500,10 +500,10 @@ pub mod prelude {
 mod internal_prelude {
     #![allow(unused_imports)]
 
-    #[cfg(not(std))]
+    #[cfg(not(feature = "std"))]
     extern crate alloc;
 
-    #[cfg(std)]
+    #[cfg(feature = "std")]
     pub(crate) use crate::Instant;
     pub(crate) use crate::{
         format::{ParseError, ParseResult},
@@ -512,7 +512,7 @@ mod internal_prelude {
         PrimitiveDateTime, Time, UtcOffset,
         Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
     };
-    #[cfg(not(std))]
+    #[cfg(not(feature = "std"))]
     pub(crate) use alloc::{
         borrow::ToOwned,
         boxed::Box,
@@ -576,19 +576,19 @@ pub fn parse<T: private::Parsable>(s: impl AsRef<str>, format: impl AsRef<str>) 
 // For some back-compatibility, we're also implementing some deprecated types
 // and methods. They will be removed completely in 0.3.
 
-#[cfg(all(std, v01_deprecated_api))]
+#[cfg(all(feature = "std", feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type PreciseTime = Instant;
 
-#[cfg(all(std, v01_deprecated_api))]
+#[cfg(all(feature = "std", feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type SteadyTime = Instant;
 
-#[cfg(all(std, v01_deprecated_api))]
+#[cfg(all(feature = "std", feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
@@ -607,7 +607,7 @@ pub fn precise_time_ns() -> u64 {
         .expect("This function will be removed long before this is an issue.")
 }
 
-#[cfg(all(std, v01_deprecated_api))]
+#[cfg(all(feature = "std", feature = "deprecated"))]
 #[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
