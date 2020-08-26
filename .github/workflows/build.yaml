@@ -14,14 +14,6 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Cache target
-        uses: actions/cache@v1
-        env:
-          cache-name: target
-        with:
-          path: ./target
-          key: ubuntu-latest-typecheck-target-${{ matrix.rust }}-thumbv7em-none-eabihf
-
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -60,14 +52,6 @@ jobs:
         with:
           crate: cargo-web
           use-tool-cache: true
-
-      - name: Cache target
-        uses: actions/cache@v1
-        env:
-          cache-name: target
-        with:
-          path: ./target
-          key: ubuntu-latest-typecheck-target-${{ matrix.rust }}-web
 
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
@@ -111,14 +95,6 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
-
-      - name: Cache target
-        uses: actions/cache@v1
-        env:
-          cache-name: target
-        with:
-          path: ./target
-          key: ${{ matrix.os }}-test-target-${{ matrix.rust }}
 
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
@@ -180,14 +156,6 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Cache target
-        uses: actions/cache@v1
-        env:
-          cache-name: clippy
-        with:
-          path: ./target
-          key: ubuntu-latest-clippy-target-stable
-
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -212,14 +180,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           persist-credentials: false
-
-      - name: Cache target
-        uses: actions/cache@v1
-        env:
-          cache-name: target
-        with:
-          path: ./target
-          key: ubuntu-latest-docs-target-nightly
 
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
