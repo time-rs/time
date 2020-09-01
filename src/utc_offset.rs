@@ -329,187 +329,192 @@ impl Display for UtcOffset {
 #[cfg(feature = "std")]
 #[allow(clippy::too_many_lines)]
 fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
-    cfg_if::cfg_if! {
-        if #[cfg(target_family = "unix")] {
-            use standback::mem::MaybeUninit;
+    #[cfg(target_family = "unix")]
+    {
+        use standback::mem::MaybeUninit;
 
-            /// Convert the given Unix timestamp to a `libc::tm`. Returns `None`
-            /// on any error.
-            fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
-                extern "C" {
-                    #[cfg_attr(target_os = "netbsd", link_name = "__tzset50")]
-                    fn tzset();
-                }
-
-                // The exact type of `timestamp` beforehand can vary, so this
-                // conversion is necessary.
-                #[allow(clippy::useless_conversion)]
-                let timestamp = timestamp.try_into().ok()?;
-
-                let mut tm = MaybeUninit::uninit();
-
-                // Update timezone information from system. `localtime_r` does
-                // not do this for us.
-                //
-                // Safety: tzset is thread-safe.
-                #[allow(unsafe_code)]
-                unsafe {
-                    tzset();
-                }
-
-                // Safety: We are calling a system API, which mutates the `tm`
-                // variable. If a null pointer is returned, an error occurred.
-                #[allow(unsafe_code)]
-                let tm_ptr = unsafe { libc::localtime_r(&timestamp, tm.as_mut_ptr()) };
-
-                if tm_ptr.is_null() {
-                    None
-                } else {
-                    // Safety: The value was initialized, as we no longer have a
-                    // null pointer.
-                    #[allow(unsafe_code)]
-                    {
-                        Some(unsafe { tm.assume_init() })
-                    }
-                }
+        /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on
+        /// any error.
+        fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
+            extern "C" {
+                #[cfg_attr(target_os = "netbsd", link_name = "__tzset50")]
+                fn tzset();
             }
 
-            let tm = timestamp_to_tm(datetime.timestamp())?;
+            // The exact type of `timestamp` beforehand can vary, so this
+            // conversion is necessary.
+            #[allow(clippy::useless_conversion)]
+            let timestamp = timestamp.try_into().ok()?;
 
-            // `tm_gmtoff` extension
-            #[cfg(not(any(target_os = "solaris", target_os = "illumos")))]
-            {
-                tm.tm_gmtoff.try_into().ok().map(UtcOffset::seconds)
+            let mut tm = MaybeUninit::uninit();
+
+            // Update timezone information from system. `localtime_r` does not
+            // do this for us.
+            //
+            // Safety: tzset is thread-safe.
+            #[allow(unsafe_code)]
+            unsafe {
+                tzset();
             }
 
-            // No `tm_gmtoff` extension
-            #[cfg(any(target_os = "solaris", target_os = "illumos"))]
-            {
-                use crate::Date;
+            // Safety: We are calling a system API, which mutates the `tm`
+            // variable. If a null pointer is returned, an error occurred.
+            #[allow(unsafe_code)]
+            let tm_ptr = unsafe { libc::localtime_r(&timestamp, tm.as_mut_ptr()) };
 
-                let mut tm = tm;
-                if tm.tm_sec == 60 {
-                    // Leap seconds are not currently supported.
-                    tm.tm_sec = 59;
-                }
-
-                let local_timestamp =
-                    Date::try_from_yo(1900 + tm.tm_year, u16::try_from(tm.tm_yday).ok()? + 1)
-                        .ok()?
-                        .try_with_hms(
-                            tm.tm_hour.try_into().ok()?,
-                            tm.tm_min.try_into().ok()?,
-                            tm.tm_sec.try_into().ok()?,
-                        )
-                        .ok()?
-                        .assume_utc()
-                        .timestamp();
-
-                (local_timestamp - datetime.timestamp())
-                    .try_into()
-                    .ok()
-                    .map(UtcOffset::seconds)
-            }
-        } else if #[cfg(target_family = "windows")] {
-            use standback::mem::MaybeUninit;
-            use winapi::{
-                shared::minwindef::FILETIME,
-                um::{
-                    minwinbase::SYSTEMTIME,
-                    timezoneapi::{SystemTimeToFileTime, SystemTimeToTzSpecificLocalTime},
-                },
-            };
-
-            /// Convert a `SYSTEMTIME` to a `FILETIME`. Returns `None` if any
-            /// error occurred.
-            fn systemtime_to_filetime(systime: &SYSTEMTIME) -> Option<FILETIME> {
-                let mut ft = MaybeUninit::uninit();
-
-                // Safety: `SystemTimeToFileTime` is thread-safe. We are only
-                // assuming initialization if the call succeeded.
+            if tm_ptr.is_null() {
+                None
+            } else {
+                // Safety: The value was initialized, as we no longer have a
+                // null pointer.
                 #[allow(unsafe_code)]
                 {
-                    if 0 == unsafe { SystemTimeToFileTime(systime, ft.as_mut_ptr()) } {
-                        // failed
-                        None
-                    } else {
-                        Some(unsafe { ft.assume_init() })
-                    }
+                    Some(unsafe { tm.assume_init() })
                 }
             }
-
-            /// Convert a `FILETIME` to an `i64`, representing a number of
-            /// seconds.
-            fn filetime_to_secs(filetime: &FILETIME) -> i64 {
-                /// FILETIME represents 100-nanosecond intervals
-                const FT_TO_SECS: i64 = 10_000_000;
-                ((filetime.dwHighDateTime as i64) << 32 | filetime.dwLowDateTime as i64) /
-                    FT_TO_SECS
-            }
-
-            /// Convert an `OffsetDateTime` to a `SYSTEMTIME`.
-            fn offset_to_systemtime(datetime: OffsetDateTime) -> SYSTEMTIME {
-                let (month, day_of_month) = datetime.to_offset(UtcOffset::UTC).month_day();
-                SYSTEMTIME {
-                    wYear: datetime.year() as u16,
-                    wMonth: month as u16,
-                    wDay: day_of_month as u16,
-                    wDayOfWeek: 0, // ignored
-                    wHour: datetime.hour() as u16,
-                    wMinute: datetime.minute() as u16,
-                    wSecond: datetime.second() as u16,
-                    wMilliseconds: datetime.millisecond(),
-                }
-            }
-
-            // This function falls back to UTC if any system call fails.
-            let systime_utc = offset_to_systemtime(datetime.to_offset(UtcOffset::UTC));
-
-            // Safety: `local_time` is only read if it is properly initialized, and
-            // `SystemTimeToTzSpecificLocalTime` is thread-safe.
-            #[allow(unsafe_code)]
-            let systime_local = unsafe {
-                let mut local_time = MaybeUninit::uninit();
-
-                if 0 == SystemTimeToTzSpecificLocalTime(
-                    core::ptr::null(), // use system's current timezone
-                    &systime_utc,
-                    local_time.as_mut_ptr(),
-                ) {
-                    // call failed
-                    return None;
-                } else {
-                    local_time.assume_init()
-                }
-            };
-
-            // Convert SYSTEMTIMEs to FILETIMEs so we can perform arithmetic on
-            // them.
-            let ft_system = systemtime_to_filetime(&systime_utc)?;
-            let ft_local = systemtime_to_filetime(&systime_local)?;
-
-            let diff_secs = filetime_to_secs(&ft_local) - filetime_to_secs(&ft_system);
-
-            diff_secs.try_into().ok().map(UtcOffset::seconds)
-        } else if #[cfg(__time_02_cargo_web)] {
-            use stdweb::js;
-
-            let timestamp_utc = datetime.timestamp();
-            let low_bits = (timestamp_utc & 0xFF_FF_FF_FF) as i32;
-            let high_bits = (timestamp_utc >> 32) as i32;
-
-            let timezone_offset = js! {
-                return
-                    new Date(((@{high_bits} << 32) + @{low_bits}) * 1000)
-                        .getTimezoneOffset() * -60;
-            };
-
-            stdweb::unstable::TryInto::try_into(timezone_offset).ok().map(UtcOffset::seconds)
-        } else {
-            // Silence the unused variable warning when appropriate.
-            let _ = datetime;
-            None
         }
+
+        let tm = timestamp_to_tm(datetime.timestamp())?;
+
+        // `tm_gmtoff` extension
+        #[cfg(not(any(target_os = "solaris", target_os = "illumos")))]
+        {
+            tm.tm_gmtoff.try_into().ok().map(UtcOffset::seconds)
+        }
+
+        // No `tm_gmtoff` extension
+        #[cfg(any(target_os = "solaris", target_os = "illumos"))]
+        {
+            use crate::Date;
+
+            let mut tm = tm;
+            if tm.tm_sec == 60 {
+                // Leap seconds are not currently supported.
+                tm.tm_sec = 59;
+            }
+
+            let local_timestamp =
+                Date::try_from_yo(1900 + tm.tm_year, u16::try_from(tm.tm_yday).ok()? + 1)
+                    .ok()?
+                    .try_with_hms(
+                        tm.tm_hour.try_into().ok()?,
+                        tm.tm_min.try_into().ok()?,
+                        tm.tm_sec.try_into().ok()?,
+                    )
+                    .ok()?
+                    .assume_utc()
+                    .timestamp();
+
+            (local_timestamp - datetime.timestamp())
+                .try_into()
+                .ok()
+                .map(UtcOffset::seconds)
+        }
+    }
+    #[cfg(target_family = "windows")]
+    {
+        use standback::mem::MaybeUninit;
+        use winapi::{
+            shared::minwindef::FILETIME,
+            um::{
+                minwinbase::SYSTEMTIME,
+                timezoneapi::{SystemTimeToFileTime, SystemTimeToTzSpecificLocalTime},
+            },
+        };
+
+        /// Convert a `SYSTEMTIME` to a `FILETIME`. Returns `None` if any error
+        /// occurred.
+        fn systemtime_to_filetime(systime: &SYSTEMTIME) -> Option<FILETIME> {
+            let mut ft = MaybeUninit::uninit();
+
+            // Safety: `SystemTimeToFileTime` is thread-safe. We are only
+            // assuming initialization if the call succeeded.
+            #[allow(unsafe_code)]
+            {
+                if 0 == unsafe { SystemTimeToFileTime(systime, ft.as_mut_ptr()) } {
+                    // failed
+                    None
+                } else {
+                    Some(unsafe { ft.assume_init() })
+                }
+            }
+        }
+
+        /// Convert a `FILETIME` to an `i64`, representing a number of seconds.
+        fn filetime_to_secs(filetime: &FILETIME) -> i64 {
+            /// FILETIME represents 100-nanosecond intervals
+            const FT_TO_SECS: i64 = 10_000_000;
+            ((filetime.dwHighDateTime as i64) << 32 | filetime.dwLowDateTime as i64) / FT_TO_SECS
+        }
+
+        /// Convert an `OffsetDateTime` to a `SYSTEMTIME`.
+        fn offset_to_systemtime(datetime: OffsetDateTime) -> SYSTEMTIME {
+            let (month, day_of_month) = datetime.to_offset(UtcOffset::UTC).month_day();
+            SYSTEMTIME {
+                wYear: datetime.year() as u16,
+                wMonth: month as u16,
+                wDay: day_of_month as u16,
+                wDayOfWeek: 0, // ignored
+                wHour: datetime.hour() as u16,
+                wMinute: datetime.minute() as u16,
+                wSecond: datetime.second() as u16,
+                wMilliseconds: datetime.millisecond(),
+            }
+        }
+
+        // This function falls back to UTC if any system call fails.
+        let systime_utc = offset_to_systemtime(datetime.to_offset(UtcOffset::UTC));
+
+        // Safety: `local_time` is only read if it is properly initialized, and
+        // `SystemTimeToTzSpecificLocalTime` is thread-safe.
+        #[allow(unsafe_code)]
+        let systime_local = unsafe {
+            let mut local_time = MaybeUninit::uninit();
+
+            if 0 == SystemTimeToTzSpecificLocalTime(
+                core::ptr::null(), // use system's current timezone
+                &systime_utc,
+                local_time.as_mut_ptr(),
+            ) {
+                // call failed
+                return None;
+            } else {
+                local_time.assume_init()
+            }
+        };
+
+        // Convert SYSTEMTIMEs to FILETIMEs so we can perform arithmetic on
+        // them.
+        let ft_system = systemtime_to_filetime(&systime_utc)?;
+        let ft_local = systemtime_to_filetime(&systime_local)?;
+
+        let diff_secs = filetime_to_secs(&ft_local) - filetime_to_secs(&ft_system);
+
+        diff_secs.try_into().ok().map(UtcOffset::seconds)
+    }
+    #[cfg(__time_02_cargo_web)]
+    {
+        use stdweb::js;
+
+        let timestamp_utc = datetime.timestamp();
+        let low_bits = (timestamp_utc & 0xFF_FF_FF_FF) as i32;
+        let high_bits = (timestamp_utc >> 32) as i32;
+
+        let timezone_offset = js! {
+            return
+                new Date(((@{high_bits} << 32) + @{low_bits}) * 1000)
+                    .getTimezoneOffset() * -60;
+        };
+
+        stdweb::unstable::TryInto::try_into(timezone_offset)
+            .ok()
+            .map(UtcOffset::seconds)
+    }
+    #[cfg(not(any(target_family = "unix", target_family = "windows", __time_02_cargo_web)))]
+    {
+        // Silence the unused variable warning when appropriate.
+        let _ = datetime;
+        None
     }
 }
 

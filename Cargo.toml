@@ -25,7 +25,6 @@ panicking-api = []
 std = ["libc", "winapi", "stdweb", "standback/std"]
 
 [dependencies]
-cfg-if = "0.1.10"
 const_fn = "0.4.2"
 rand = { version = "0.7", optional = true, default-features = false }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
