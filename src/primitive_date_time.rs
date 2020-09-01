@@ -1,6 +1,7 @@
 use crate::{
     format::parse::{parse, ParsedItems},
     internal_prelude::*,
+    internals,
 };
 use const_fn::const_fn;
 #[cfg(feature = "std")]
@@ -82,10 +83,7 @@ impl PrimitiveDateTime {
     #[deprecated(since = "0.2.7", note = "This method assumes an offset of UTC.")]
     pub const fn unix_epoch() -> Self {
         Self {
-            date: Date {
-                year: 1970,
-                ordinal: 1,
-            },
+            date: internals::Date::from_yo_unchecked(1970, 1),
             time: Time::midnight(),
         }
     }
@@ -720,7 +718,9 @@ impl PartialOrd<PrimitiveDateTime> for SystemTime {
 impl Ord for PrimitiveDateTime {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
-        self.date.cmp(&other.date).then_with(|| self.time.cmp(&other.time))
+        self.date
+            .cmp(&other.date)
+            .then_with(|| self.time.cmp(&other.time))
     }
 }
 

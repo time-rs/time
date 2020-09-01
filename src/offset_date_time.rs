@@ -1,7 +1,7 @@
 use crate::{
     format::parse::{parse, ParsedItems},
     internal_prelude::*,
-    Format,
+    internals, Format,
 };
 #[cfg(feature = "std")]
 use core::convert::From;
@@ -180,12 +180,9 @@ impl OffsetDateTime {
     /// ```
     #[inline(always)]
     pub const fn unix_epoch() -> Self {
-        Date {
-            year: 1970,
-            ordinal: 1,
-        }
-        .midnight()
-        .assume_utc()
+        internals::Date::from_yo_unchecked(1970, 1)
+            .midnight()
+            .assume_utc()
     }
 
     /// Create an `OffsetDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).

@@ -94,15 +94,22 @@ pub(crate) const MAX_YEAR: i32 = 100_000;
 /// with your use case.
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(into = "crate::serde::Date"))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
-    #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) year: i32,
-    /// The day of the year.
-    ///
-    /// - 1 January => 1
-    /// - 31 December => 365/366
-    pub(crate) ordinal: u16,
+    /// Bitpacked field containing both the year and ordinal.
+    // |     xx     | xxxxxxxxxxxxxxxxxxxxx | xxxxxxxxx |
+    // |   2 bits   |        21 bits        |  9 bits   |
+    // | unassigned |         year          |  ordinal  |
+    pub(crate) value: i32,
+}
+
+impl fmt::Debug for Date {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        f.debug_struct("Date")
+            .field("year", &self.year())
+            .field("ordinal", &self.ordinal())
+            .finish()
+    }
 }
 
 #[cfg(feature = "serde")]
@@ -197,7 +204,7 @@ impl Date {
     pub fn from_yo(year: i32, ordinal: u16) -> Self {
         assert_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         assert_value_in_range!(ordinal in 1 => days_in_year(year), given year);
-        Self { year, ordinal }
+        internals::Date::from_yo_unchecked(year, ordinal)
     }
 
     /// Attempt to create a `Date` from the year and ordinal day number.
@@ -218,7 +225,7 @@ impl Date {
     pub fn try_from_yo(year: i32, ordinal: u16) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(ordinal in 1 => days_in_year(year), given year);
-        Ok(Self { year, ordinal })
+        Ok(internals::Date::from_yo_unchecked(year, ordinal))
     }
 
     /// Create a `Date` from the ISO year, week, and weekday.
@@ -317,7 +324,7 @@ impl Date {
     #[allow(clippy::missing_const_for_fn)]
     #[const_fn("1.46")]
     pub const fn year(self) -> i32 {
-        self.year
+        self.value >> 9
     }
 
     /// Get the month. If fetching both the month and day, it is more efficient
@@ -382,8 +389,8 @@ impl Date {
             [31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
         ];
 
-        let days = CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(self.year) as usize];
-        let ordinal = self.ordinal;
+        let days = CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(self.year()) as usize];
+        let ordinal = self.ordinal();
 
         if ordinal > days[10] {
             (12, (ordinal - days[10]) as u8)
@@ -428,7 +435,7 @@ impl Date {
     #[allow(clippy::missing_const_for_fn)]
     #[const_fn("1.46")]
     pub const fn ordinal(self) -> u16 {
-        self.ordinal
+        (self.value & 0x1FF) as u16
     }
 
     /// Get the ISO 8601 year and week number.
@@ -443,13 +450,15 @@ impl Date {
     /// ```
     #[inline]
     pub fn iso_year_week(self) -> (i32, u8) {
+        let (year, ordinal) = self.as_yo();
+
         let weekday = self.weekday();
-        let week = ((self.ordinal + 10 - weekday.iso_weekday_number() as u16) / 7) as u8;
+        let week = ((ordinal + 10 - weekday.iso_weekday_number() as u16) / 7) as u8;
 
         match week {
-            0 => (self.year - 1, weeks_in_year(self.year - 1)),
-            53 if weeks_in_year(self.year) == 52 => (self.year + 1, 1),
-            _ => (self.year, week),
+            0 => (year - 1, weeks_in_year(year - 1)),
+            53 if weeks_in_year(year) == 52 => (year + 1, 1),
+            _ => (year, week),
         }
     }
 
@@ -514,7 +523,7 @@ impl Date {
     #[const_fn("1.46")]
     pub const fn as_ymd(self) -> (i32, u8, u8) {
         let (month, day) = self.month_day();
-        (self.year, month, day)
+        (self.year(), month, day)
     }
 
     /// Get the year and ordinal day number.
@@ -529,7 +538,7 @@ impl Date {
     #[allow(clippy::missing_const_for_fn)]
     #[const_fn("1.46")]
     pub const fn as_yo(self) -> (i32, u16) {
-        (self.year, self.ordinal)
+        (self.year(), self.ordinal())
     }
 
     /// Get the weekday.
@@ -554,12 +563,12 @@ impl Date {
     /// ```
     #[inline]
     pub fn weekday(self) -> Weekday {
-        let (month, day) = self.month_day();
+        let (year, month, day) = self.as_ymd();
 
         let (month, adjusted_year) = if month < 3 {
-            (month + 12, self.year - 1)
+            (month + 12, year - 1)
         } else {
-            (month, self.year)
+            (month, year)
         };
 
         match (day as i32 + (13 * (month as i32 + 1)) / 5 + adjusted_year + adjusted_year / 4
@@ -589,19 +598,21 @@ impl Date {
     /// assert_eq!(date!(2019-12-31).next_day(), date!(2020-01-01));
     /// ```
     #[inline(always)]
-    pub fn next_day(mut self) -> Self {
-        self.ordinal += 1;
+    pub fn next_day(self) -> Self {
+        let (mut year, mut ordinal) = self.as_yo();
 
-        if self.ordinal > days_in_year(self.year) {
-            self.year += 1;
-            self.ordinal = 1;
+        ordinal += 1;
+
+        if ordinal > days_in_year(year) {
+            year += 1;
+            ordinal = 1;
         }
 
-        if self.year > MAX_YEAR {
+        if year > MAX_YEAR {
             panic!("overflow when fetching next day");
         }
 
-        self
+        internals::Date::from_yo_unchecked(year, ordinal)
     }
 
     /// Get the previous calendar date.
@@ -613,19 +624,21 @@ impl Date {
     /// assert_eq!(date!(2020-01-01).previous_day(), date!(2019-12-31));
     /// ```
     #[inline(always)]
-    pub fn previous_day(mut self) -> Self {
-        self.ordinal -= 1;
+    pub fn previous_day(self) -> Self {
+        let (mut year, mut ordinal) = self.as_yo();
 
-        if self.ordinal == 0 {
-            self.year -= 1;
-            self.ordinal = days_in_year(self.year);
+        ordinal -= 1;
+
+        if ordinal == 0 {
+            year -= 1;
+            ordinal = days_in_year(year);
         }
 
-        if self.year < MIN_YEAR {
+        if year < MIN_YEAR {
             panic!("overflow when fetching previous day");
         }
 
-        self
+        internals::Date::from_yo_unchecked(year, ordinal)
     }
 
     /// Get the Julian day for the date.
@@ -642,10 +655,11 @@ impl Date {
     #[inline]
     #[const_fn("1.46")]
     pub const fn julian_day(self) -> i64 {
-        let year = self.year as i64;
-        let (month, day) = self.month_day();
+        let (year, month, day) = self.as_ymd();
+        let year = year as i64;
         let month = month as i64;
         let day = day as i64;
+
         (1_461 * (year + 4_800 + (month - 14) / 12)) / 4
             + (367 * (month - 2 - 12 * ((month - 14) / 12))) / 12
             - (3 * ((year + 4_900 + (month - 14) / 12) / 100)) / 4
@@ -1134,9 +1148,9 @@ impl PartialOrd for Date {
 impl Ord for Date {
     #[inline(always)]
     fn cmp(&self, other: &Self) -> Ordering {
-        self.year
-            .cmp(&other.year)
-            .then_with(|| self.ordinal.cmp(&other.ordinal))
+        self.year()
+            .cmp(&other.year())
+            .then_with(|| self.ordinal().cmp(&other.ordinal()))
     }
 }
 
