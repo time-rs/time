@@ -854,21 +854,11 @@ impl PartialOrd for Time {
 impl Ord for Time {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
-        use Ordering::*;
-
-        match self.hour().cmp(&other.hour()) {
-            Less => Less,
-            Greater => Greater,
-            Equal => match self.minute().cmp(&other.minute()) {
-                Less => Less,
-                Greater => Greater,
-                Equal => match self.second().cmp(&other.second()) {
-                    Less => Less,
-                    Greater => Greater,
-                    Equal => self.nanosecond().cmp(&other.nanosecond()),
-                },
-            },
-        }
+        self.hour
+            .cmp(&other.hour)
+            .then_with(|| self.minute.cmp(&other.minute))
+            .then_with(|| self.second.cmp(&other.second))
+            .then_with(|| self.nanosecond.cmp(&other.nanosecond))
     }
 }
 

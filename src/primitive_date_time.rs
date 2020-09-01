@@ -720,11 +720,7 @@ impl PartialOrd<PrimitiveDateTime> for SystemTime {
 impl Ord for PrimitiveDateTime {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
-        match self.date.cmp(&other.date) {
-            Ordering::Less => Ordering::Less,
-            Ordering::Equal => self.time.cmp(&other.time),
-            Ordering::Greater => Ordering::Greater,
-        }
+        self.date.cmp(&other.date).then_with(|| self.time.cmp(&other.time))
     }
 }
 

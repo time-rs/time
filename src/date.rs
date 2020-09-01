@@ -1134,11 +1134,9 @@ impl PartialOrd for Date {
 impl Ord for Date {
     #[inline(always)]
     fn cmp(&self, other: &Self) -> Ordering {
-        match self.year.cmp(&other.year) {
-            Ordering::Less => Ordering::Less,
-            Ordering::Greater => Ordering::Greater,
-            Ordering::Equal => self.ordinal.cmp(&other.ordinal),
-        }
+        self.year
+            .cmp(&other.year)
+            .then_with(|| self.ordinal.cmp(&other.ordinal))
     }
 }
 

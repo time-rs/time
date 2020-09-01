@@ -1,7 +1,7 @@
 use crate::internal_prelude::*;
 use const_fn::const_fn;
 use core::{
-    cmp::Ordering::{self, Equal, Greater, Less},
+    cmp::Ordering,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     time::Duration as StdDuration,
 };
@@ -1165,38 +1165,30 @@ impl PartialOrd<StdDuration> for Duration {
     #[inline(always)]
     fn partial_cmp(&self, rhs: &StdDuration) -> Option<Ordering> {
         if rhs.as_secs() > i64::max_value() as u64 {
-            return Some(Greater);
+            return Some(Ordering::Greater);
         }
 
-        match self.seconds.partial_cmp(&(rhs.as_secs() as i64)) {
-            Some(Less) => Some(Less),
-            Some(Equal) => self.nanoseconds.partial_cmp(&(rhs.subsec_nanos() as i32)),
-            Some(Greater) => Some(Greater),
-            None => None,
-        }
+        Some(
+            self.seconds
+                .cmp(&(rhs.as_secs() as i64))
+                .then_with(|| self.nanoseconds.cmp(&(rhs.subsec_nanos() as i32))),
+        )
     }
 }
 
 impl PartialOrd<Duration> for StdDuration {
     #[inline(always)]
     fn partial_cmp(&self, rhs: &Duration) -> Option<Ordering> {
-        match rhs.partial_cmp(self) {
-            Some(Less) => Some(Greater),
-            Some(Equal) => Some(Equal),
-            Some(Greater) => Some(Less),
-            None => None,
-        }
+        rhs.partial_cmp(self).map(Ordering::reverse)
     }
 }
 
 impl Ord for Duration {
     #[inline]
     fn cmp(&self, rhs: &Self) -> Ordering {
-        match self.seconds.cmp(&rhs.seconds) {
-            Less => Less,
-            Equal => self.nanoseconds.cmp(&rhs.nanoseconds),
-            Greater => Greater,
-        }
+        self.seconds
+            .cmp(&rhs.seconds)
+            .then_with(|| self.nanoseconds.cmp(&rhs.nanoseconds))
     }
 }
 
@@ -1792,6 +1784,7 @@ mod test {
 
     #[test]
     fn partial_ord() {
+        use Ordering::*;
         assert_eq!(0.seconds().partial_cmp(&0.seconds()), Some(Equal));
         assert_eq!(1.seconds().partial_cmp(&0.seconds()), Some(Greater));
         assert_eq!(1.seconds().partial_cmp(&(-1).seconds()), Some(Greater));
@@ -1805,6 +1798,7 @@ mod test {
 
     #[test]
     fn partial_ord_std() {
+        use Ordering::*;
         assert_eq!(0.seconds().partial_cmp(&0.std_seconds()), Some(Equal));
         assert_eq!(1.seconds().partial_cmp(&0.std_seconds()), Some(Greater));
         assert_eq!((-1).seconds().partial_cmp(&1.std_seconds()), Some(Less));
@@ -1815,6 +1809,7 @@ mod test {
 
     #[test]
     fn std_partial_ord() {
+        use Ordering::*;
         assert_eq!(0.std_seconds().partial_cmp(&0.seconds()), Some(Equal));
         assert_eq!(1.std_seconds().partial_cmp(&0.seconds()), Some(Greater));
         assert_eq!(1.std_seconds().partial_cmp(&(-1).seconds()), Some(Greater));
