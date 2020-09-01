@@ -46,20 +46,14 @@ impl Distribution<UtcOffset> for Standard {
 impl Distribution<PrimitiveDateTime> for Standard {
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> PrimitiveDateTime {
-        PrimitiveDateTime {
-            date: Standard.sample(rng),
-            time: Standard.sample(rng),
-        }
+        PrimitiveDateTime::new(Standard.sample(rng), Standard.sample(rng))
     }
 }
 
 impl Distribution<OffsetDateTime> for Standard {
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> OffsetDateTime {
-        OffsetDateTime {
-            utc_datetime: Standard.sample(rng),
-            offset: Standard.sample(rng),
-        }
+        OffsetDateTime::new_assuming_offset(Standard.sample(rng), Standard.sample(rng))
     }
 }
 
@@ -67,10 +61,10 @@ impl Distribution<Duration> for Standard {
     #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Duration {
         let seconds = Standard.sample(rng);
-        Duration {
+        Duration::new(
             seconds,
-            nanoseconds: seconds.signum() as i32 * rng.gen_range(0, 1_000_000_000),
-        }
+            seconds.signum() as i32 * rng.gen_range(0, 1_000_000_000),
+        )
     }
 }
 

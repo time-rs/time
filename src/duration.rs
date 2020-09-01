@@ -24,10 +24,10 @@ use core::{
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Duration {
     /// Number of whole seconds.
-    pub(crate) seconds: i64,
+    seconds: i64,
     /// Number of nanoseconds within the second. The sign always matches the
     /// `seconds` field.
-    pub(crate) nanoseconds: i32, // always -10^9 < nanoseconds < 10^9
+    nanoseconds: i32, // always -10^9 < nanoseconds < 10^9
 }
 
 /// The number of seconds in one minute.

@@ -441,10 +441,7 @@ impl PrimitiveDateTime {
     )]
     #[inline(always)]
     pub const fn using_offset(self, offset: UtcOffset) -> OffsetDateTime {
-        OffsetDateTime {
-            utc_datetime: self,
-            offset,
-        }
+        self.assume_utc().to_offset(offset)
     }
 
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in
@@ -463,10 +460,7 @@ impl PrimitiveDateTime {
     /// ```
     #[inline(always)]
     pub fn assume_offset(self, offset: UtcOffset) -> OffsetDateTime {
-        OffsetDateTime {
-            utc_datetime: self - offset.as_duration(),
-            offset,
-        }
+        OffsetDateTime::new_assuming_offset(self, offset)
     }
 
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in
@@ -484,10 +478,7 @@ impl PrimitiveDateTime {
     /// except it is usable in `const` contexts.
     #[inline(always)]
     pub const fn assume_utc(self) -> OffsetDateTime {
-        OffsetDateTime {
-            utc_datetime: self,
-            offset: UtcOffset::UTC,
-        }
+        OffsetDateTime::new_assuming_utc(self)
     }
 }
 
