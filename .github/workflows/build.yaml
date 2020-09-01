@@ -1,10 +1,92 @@
 name: Build
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 0 * * 6" # midnight on Saturdays
 
 jobs:
-  check-embedded:
-    name: Type checking (embedded)
+  check-other-targets:
+    name: Type checking
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [1.32.0, 1.36.0, stable]
+        target:
+          - { triple: x86_64-unknown-netbsd, std: true }
+          # Illumos target does not exist until Rust 1.47.
+          # - { triple: x86_64-unknown-illumos, std: true }
+          - { triple: wasm32-wasi, std: true }
+          - { triple: thumbv7em-none-eabihf, std: false }
+        exclude:
+          - # alloc was not stable in 1.32
+            rust: 1.32.0
+            target: { triple: thumbv7em-none-eabihf, std: false }
+          - # WASI target did not exist at the time
+            rust: 1.32.0
+            target: { triple: wasm32-wasi, std: true }
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Cache installed binaries
+        uses: actions/cache@v2
+        id: cache-binaries
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-hack
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          target: ${{ matrix.target.triple }}
+          override: true
+
+      - name: Install cargo-hack
+        # uses: actions-rs/install@v0.1
+        # with:
+        #   crate: cargo-hack
+        #   version: ^0.3
+        #   use-tool-cache: true
+        run: cargo +stable install cargo-hack
+        if: steps.cache-binaries.outputs.cache-hit != 'true'
+
+      - name: Cache cargo output
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ matrix.target.triple }}-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Check feature powerset
+        uses: actions-rs/cargo@v1
+        with:
+          command: hack
+          args: check --no-dev-deps --feature-powerset --optional-deps --skip default,libc,winapi,stdweb,std --target ${{ matrix.target.triple }}
+        if: matrix.target.std == false
+
+      - name: Check feature powerset
+        uses: actions-rs/cargo@v1
+        with:
+          command: hack
+          args: check --no-dev-deps --feature-powerset --optional-deps --skip default,libc,winapi,stdweb,std --features std --target ${{ matrix.target.triple }}
+        if: matrix.rust == '1.32.0' && matrix.target.std == true
+
+      - name: Check feature powerset
+        uses: actions-rs/cargo@v1
+        with:
+          command: hack
+          args: check --no-dev-deps --feature-powerset --optional-deps --skip default,libc,winapi,stdweb --target ${{ matrix.target.triple }}
+        if: matrix.rust != '1.32.0' && matrix.target.std == true
+
+  check-web:
+    name: Type checking (web)
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -14,44 +96,12 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+      - name: Cache installed binaries
+        uses: actions/cache@v2
+        id: cache-binaries
         with:
-          profile: minimal
-          toolchain: ${{ matrix.rust }}
-          target: thumbv7em-none-eabihf
-          override: true
-
-      # ensure `#![no_std]` support
-      - name: Run `cargo check --no-default-features`
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --no-default-features --target thumbv7em-none-eabihf
-
-      # `#![no_std]` with serde, rand
-      - name: Run `cargo check --no-default-features --features serde,rand`
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --no-default-features --features serde,rand --target thumbv7em-none-eabihf
-
-  check-web:
-    name: Type checking (web)
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust: [1.32.0, 1.36.0, stable] # 1.36 is when alloc was stabilized
-
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install cargo-web
-        uses: actions-rs/install@v0.1
-        with:
-          crate: cargo-web
-          use-tool-cache: true
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-web
 
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
@@ -61,31 +111,46 @@ jobs:
           target: wasm32-unknown-unknown
           override: true
 
-      # ensure `#![no_std]` support
-      - name: Run `cargo web check --no-default-features`
+      - name: Install cargo-web
+        # uses: actions-rs/install@v0.1
+        # with:
+        #   crate: cargo-web
+        #   version: ^0.6
+        #   use-tool-cache: true
+        run: cargo +stable install cargo-web
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Cache cargo output
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ matrix.rust }}-wasm32-unknown-unknown-${{ hashFiles('**/Cargo.lock') }}
+
+      # cargo-web is unable to handle the command generated by cargo-hack.
+
+      - name: "Check #![no_std] compatibility"
         uses: actions-rs/cargo@v1
         with:
           command: web
           args: check --no-default-features
-        if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
 
-      # `#![no_std]` with serde, rand
-      - name: Run `cargo web check --no-default-features --features serde,rand`
+      - name: "Check #![no_std] compatibility with serde, rand"
         uses: actions-rs/cargo@v1
         with:
           command: web
           args: check --no-default-features --features serde,rand
-        if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
 
-      # everything
-      - name: Run `cargo check --features serde,deprecated,panicking-api,rand`
+      - name: Check all-features
         uses: actions-rs/cargo@v1
         with:
-          command: check
-          args: --features serde,deprecated,panicking-api,rand
+          command: web
+          args: check --all-features
 
   test:
-    name: Test suite
+    name: Test
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -96,6 +161,13 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v2
 
+      - name: Cache installed binaries
+        uses: actions/cache@v2
+        id: cache-binaries
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-hack
+
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -103,28 +175,51 @@ jobs:
           toolchain: ${{ matrix.rust }}
           override: true
 
-      # `#![no_std]` support
-      - name: Run `cargo test --no-default-features`
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --no-default-features
-        if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
+      - name: Install cargo-hack
+        # uses: actions-rs/install@v0.1
+        # with:
+        #   crate: cargo-hack
+        #   version: ^0.3
+        #   use-tool-cache: true
+        run: cargo +stable install cargo-hack
+        if: steps.cache-binaries.outputs.cache-hit != 'true'
 
-      # `#![no_std]` with serde, rand
-      - name: Run `cargo test --no-default-features --features serde,rand`
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --no-default-features --features serde,rand
-        if: matrix.rust != '1.32.0' # alloc is unstable in 1.32
+      # This is a workaround for a known bug in GitHub Actions. See
+      # actions/cache#403 and rust-lang/cargo#8603 for details.
+      - name: Install GNU tar
+        run: |
+          brew install gnu-tar
+          echo "::add-path::/usr/local/opt/gnu-tar/libexec/gnubin"
+        if: matrix.os == 'macOS-latest'
 
-      # everything
-      - name: Run `cargo test --features serde,deprecated,panicking-api,rand`
+      - name: Cache cargo output
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ matrix.os }}-${{ hashFiles('**/Cargo.lock') }}2
+
+      - name: Test feature powerset (--lib)
+        uses: actions-rs/cargo@v1
+        with:
+          command: hack
+          args: test --feature-powerset --optional-deps --skip default,libc,winapi,stdweb,std --features std --lib
+        if: matrix.rust == '1.32.0'
+
+      - name: Test feature powerset (--lib)
+        uses: actions-rs/cargo@v1
+        with:
+          command: hack
+          args: test --feature-powerset --optional-deps --skip default,libc,winapi,stdweb --lib
+        if: matrix.rust != '1.32.0'
+
+      - name: Test documentation
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features serde,deprecated,panicking-api,rand
+          args: --all-features --doc
 
   fmt:
     name: Formatting
@@ -163,17 +258,31 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Run `cargo clippy --features serde,deprecated,rand,panicking-api`
+      - name: Cache cargo output
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ubuntu-latest-cargo-stable-ubuntu-latest-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run clippy
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --features serde,deprecated,rand,panicking-api
+          args: --all-features
 
   documentation:
     name: Documentation
     runs-on: ubuntu-latest
     # ensure docs only get pushed if everything else is successful
-    needs: [check-embedded, check-web, test, fmt, clippy]
+    needs:
+      - check-other-targets
+      - check-web
+      - test
+      - fmt
+      - clippy
 
     steps:
       - name: Checkout
@@ -188,7 +297,7 @@ jobs:
           toolchain: nightly
           override: true
 
-      - name: Run `cargo doc --all-features`
+      - name: Build documentation
         uses: actions-rs/cargo@v1
         with:
           command: doc
