@@ -2,6 +2,7 @@ use crate::{
     format::parse::{parse, ParsedItems},
     internal_prelude::*,
 };
+use const_fn::const_fn;
 #[cfg(feature = "std")]
 use core::convert::From;
 use core::{
@@ -159,8 +160,11 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-12-31).midnight().year(), 2019);
     /// assert_eq!(date!(2020-01-01).midnight().year(), 2020);
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
-    pub fn year(self) -> i32 {
+    #[const_fn("1.46")]
+    pub const fn year(self) -> i32 {
         self.date().year()
     }
 
@@ -174,8 +178,11 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-01-01).midnight().month(), 1);
     /// assert_eq!(date!(2019-12-31).midnight().month(), 12);
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
-    pub fn month(self) -> u8 {
+    #[const_fn("1.46")]
+    pub const fn month(self) -> u8 {
         self.date().month()
     }
 
@@ -189,8 +196,11 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-1-1).midnight().day(), 1);
     /// assert_eq!(date!(2019-12-31).midnight().day(), 31);
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
-    pub fn day(self) -> u8 {
+    #[const_fn("1.46")]
+    pub const fn day(self) -> u8 {
         self.date().day()
     }
 
@@ -205,8 +215,11 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-01-01).midnight().month_day(), (1, 1));
     /// assert_eq!(date!(2019-12-31).midnight().month_day(), (12, 31));
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
-    pub fn month_day(self) -> (u8, u8) {
+    #[const_fn("1.46")]
+    pub const fn month_day(self) -> (u8, u8) {
         self.date().month_day()
     }
 
@@ -220,8 +233,11 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-01-01).midnight().ordinal(), 1);
     /// assert_eq!(date!(2019-12-31).midnight().ordinal(), 365);
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
-    pub fn ordinal(self) -> u16 {
+    #[const_fn("1.46")]
+    pub const fn ordinal(self) -> u16 {
         self.date().ordinal()
     }
 

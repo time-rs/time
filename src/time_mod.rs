@@ -585,6 +585,7 @@ impl Time {
 
         /// Convert a 12-hour time to a 24-hour time.
         #[inline(always)]
+        #[allow(clippy::missing_const_for_fn)] // internal fn in non-const outer fn
         fn hour_12_to_24(hour: NonZeroU8, am_pm: AmPm) -> u8 {
             use AmPm::{AM, PM};
             match (hour.get(), am_pm) {

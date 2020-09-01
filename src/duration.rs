@@ -1,4 +1,5 @@
 use crate::internal_prelude::*;
+use const_fn::const_fn;
 use core::{
     cmp::Ordering::{self, Equal, Greater, Less},
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
@@ -210,7 +211,7 @@ impl Duration {
         note = "To obtain the sign of a `Duration`, you should use the `is_positive`, \
                 `is_negative`, and `is_zero` methods."
     )]
-    #[allow(deprecated)]
+    #[allow(deprecated, clippy::missing_const_for_fn)]
     #[inline(always)]
     pub fn sign(self) -> crate::Sign {
         use crate::Sign::*;
@@ -237,29 +238,10 @@ impl Duration {
     /// assert_eq!((-1).seconds().abs(), 1.seconds());
     /// ```
     ///
-    /// This function is `const fn` when using rustc >= 1.39.0.
+    /// This function is `const fn` when using rustc >= 1.39.
     #[inline(always)]
-    #[cfg(__time_02_const_num_abs)]
+    #[const_fn("1.39")]
     pub const fn abs(self) -> Self {
-        Self {
-            seconds: self.seconds.abs(),
-            nanoseconds: self.nanoseconds.abs(),
-        }
-    }
-
-    /// Get the absolute value of the duration.
-    ///
-    /// ```rust
-    /// # use time::prelude::*;
-    /// assert_eq!(1.seconds().abs(), 1.seconds());
-    /// assert_eq!(0.seconds().abs(), 0.seconds());
-    /// assert_eq!((-1).seconds().abs(), 1.seconds());
-    /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.39.0.
-    #[inline(always)]
-    #[cfg(not(__time_02_const_num_abs))]
-    pub fn abs(self) -> Self {
         Self {
             seconds: self.seconds.abs(),
             nanoseconds: self.nanoseconds.abs(),
@@ -270,6 +252,7 @@ impl Duration {
     // This doesn't actually require the standard library, but is currently only
     // used when it's enabled.
     #[inline(always)]
+    #[allow(clippy::missing_const_for_fn)] // false positive
     #[cfg(feature = "std")]
     pub(crate) fn abs_std(self) -> StdDuration {
         StdDuration::new(self.seconds.abs() as u64, self.nanoseconds.abs() as u32)
@@ -702,8 +685,12 @@ impl Duration {
     /// assert_eq!(10.seconds().checked_div(2), Some(5.seconds()));
     /// assert_eq!(10.seconds().checked_div(-2), Some((-5).seconds()));
     /// assert_eq!(1.seconds().checked_div(0), None);
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
-    pub fn checked_div(self, rhs: i32) -> Option<Self> {
+    #[const_fn("1.46")]
+    pub const fn checked_div(self, rhs: i32) -> Option<Self> {
         if rhs == 0 {
             return None;
         }

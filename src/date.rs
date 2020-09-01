@@ -3,6 +3,7 @@ use crate::{
     internal_prelude::*,
     internals,
 };
+use const_fn::const_fn;
 use core::{
     cmp::{Ord, Ordering, PartialOrd},
     fmt::{self, Display},
@@ -310,9 +311,12 @@ impl Date {
     /// assert_eq!(date!(2019-12-31).year(), 2019);
     /// assert_eq!(date!(2020-01-01).year(), 2020);
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
-    pub fn year(self) -> i32 {
+    #[const_fn("1.46")]
+    pub const fn year(self) -> i32 {
         self.year
     }
 
@@ -326,8 +330,11 @@ impl Date {
     /// assert_eq!(date!(2019-01-01).month(), 1);
     /// assert_eq!(date!(2019-12-31).month(), 12);
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
-    pub fn month(self) -> u8 {
+    #[const_fn("1.46")]
+    pub const fn month(self) -> u8 {
         self.month_day().0
     }
 
@@ -341,8 +348,11 @@ impl Date {
     /// assert_eq!(date!(2019-01-01).day(), 1);
     /// assert_eq!(date!(2019-12-31).day(), 31);
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
-    pub fn day(self) -> u8 {
+    #[const_fn("1.46")]
+    pub const fn day(self) -> u8 {
         self.month_day().1
     }
 
@@ -357,10 +367,13 @@ impl Date {
     /// assert_eq!(date!(2019-01-01).month_day(), (1, 1));
     /// assert_eq!(date!(2019-12-31).month_day(), (12, 31));
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     // For whatever reason, rustc has difficulty optimizing this function. It's
     // significantly faster to write the statements out by hand.
     #[inline]
-    pub fn month_day(self) -> (u8, u8) {
+    #[const_fn("1.46")]
+    pub const fn month_day(self) -> (u8, u8) {
         /// The number of days up to and including the given month. Common years
         /// are first, followed by leap years.
         #[allow(clippy::items_after_statements)]
@@ -409,9 +422,12 @@ impl Date {
     /// assert_eq!(date!(2019-01-01).ordinal(), 1);
     /// assert_eq!(date!(2019-12-31).ordinal(), 365);
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
-    pub fn ordinal(self) -> u16 {
+    #[const_fn("1.46")]
+    pub const fn ordinal(self) -> u16 {
         self.ordinal
     }
 
@@ -492,8 +508,11 @@ impl Date {
     /// # use time::date;
     /// assert_eq!(date!(2019-01-01).as_ymd(), (2019, 1, 1));
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
-    pub fn as_ymd(self) -> (i32, u8, u8) {
+    #[const_fn("1.46")]
+    pub const fn as_ymd(self) -> (i32, u8, u8) {
         let (month, day) = self.month_day();
         (self.year, month, day)
     }
@@ -504,9 +523,12 @@ impl Date {
     /// # use time::date;
     /// assert_eq!(date!(2019-01-01).as_yo(), (2019, 1));
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
-    pub fn as_yo(self) -> (i32, u16) {
+    #[const_fn("1.46")]
+    pub const fn as_yo(self) -> (i32, u16) {
         (self.year, self.ordinal)
     }
 
@@ -615,8 +637,11 @@ impl Date {
     /// assert_eq!(date!(2019-01-01).julian_day(), 2_458_485);
     /// assert_eq!(date!(2019-12-31).julian_day(), 2_458_849);
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline]
-    pub fn julian_day(self) -> i64 {
+    #[const_fn("1.46")]
+    pub const fn julian_day(self) -> i64 {
         let year = self.year as i64;
         let (month, day) = self.month_day();
         let month = month as i64;

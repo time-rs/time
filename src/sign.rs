@@ -1,4 +1,4 @@
-#![allow(deprecated)]
+#![allow(deprecated, clippy::missing_const_for_fn)]
 
 #[allow(unused_imports)]
 use crate::internal_prelude::*;

@@ -57,11 +57,6 @@ fn main() {
         cfg_emit!(__time_02_supports_non_exhaustive);
     }
 
-    // `(-5).abs()` is `const`-capable beginning in 1.39.0.
-    if rustc::is_min_version("1.39.0").unwrap_or(false) {
-        cfg_emit!(__time_02_const_num_abs);
-    }
-
     // `Instant::checked_add` and `Instant::checked_sub` were added in 1.34.0.
     // `NonZeroI*` was stabilized in 1.34.0.
     if rustc::is_min_version("1.34.0").unwrap_or(false) {

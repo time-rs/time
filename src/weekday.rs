@@ -1,4 +1,5 @@
 use crate::internal_prelude::*;
+use const_fn::const_fn;
 use core::fmt::{self, Display};
 
 /// Days of the week.
@@ -46,8 +47,11 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Tuesday.previous(), Weekday::Monday);
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
-    pub fn previous(self) -> Self {
+    #[const_fn("1.46")]
+    pub const fn previous(self) -> Self {
         match self {
             Monday => Sunday,
             Tuesday => Monday,
@@ -65,8 +69,11 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.next(), Weekday::Tuesday);
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[inline(always)]
-    pub fn next(self) -> Self {
+    #[const_fn("1.46")]
+    pub const fn next(self) -> Self {
         match self {
             Monday => Tuesday,
             Tuesday => Wednesday,
