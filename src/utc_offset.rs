@@ -506,6 +506,8 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
             stdweb::unstable::TryInto::try_into(timezone_offset).ok().map(UtcOffset::seconds)
         } else {
+            // Silence the unused variable warning when appropriate.
+            let _ = datetime;
             None
         }
     }

@@ -194,12 +194,22 @@
     clippy::zero_prefixed_literal,
     unstable_name_collisions
 )]
-#![cfg_attr(test, allow(clippy::cognitive_complexity, clippy::too_many_lines))]
+#![cfg_attr(
+    test,
+    allow(
+        clippy::cognitive_complexity,
+        clippy::similar_names,
+        clippy::too_many_lines,
+    )
+)]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 // Because we have a macro named `time`, this can cause conflicts. MSRV
 // guarantees that edition 2018 is available.
 #![doc(test(no_crate_inject))]
+
+#[cfg(not(feature = "std"))]
+extern crate alloc;
 
 #[cfg(feature = "panicking-api")]
 #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
@@ -499,9 +509,6 @@ pub mod prelude {
 /// Items generally useful in any file in the time crate.
 mod internal_prelude {
     #![allow(unused_imports)]
-
-    #[cfg(not(feature = "std"))]
-    extern crate alloc;
 
     #[cfg(feature = "std")]
     pub(crate) use crate::Instant;
