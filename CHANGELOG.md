@@ -7,6 +7,45 @@ Versioning].
 
 ---
 
+## 0.2.17 [2020-09-01]
+
+### Changed
+
+The following functions are `const fn` on rustc ≥ 1.46:
+
+- `Date::year`
+- `Date::month`
+- `Date::day`
+- `Date::month_day`
+- `Date::ordinal`
+- `Date::as_ymd`
+- `Date::as_yo`
+- `Date::julian_day`
+- `Duration::checked_div`
+- `PrimitiveDateTime::year`
+- `PrimitiveDateTime::month`
+- `PrimitiveDateTime::day`
+- `PrimitiveDateTime::month_day`
+- `PrimitiveDateTime::ordinal`
+- `Weekday::previous`
+- `Weekday::next`
+
+### Improvements
+
+- `size_of::<Date>()` has been reduced from 8 to 4. As a consequence,
+  `size_of::<PrimitiveDatetime>()` went from 16 to 12 and
+  `size_of::<OffsetDateTime>()` from 20 to 16. This change also results in a
+  performance improvement of approximately 30% on the `Date::year` and
+  `Date::ordinal` methods.
+- `cfg-if` has been removed as a dependency.
+
+### Fixed
+
+- `cfg` flags passed to rustc will no longer collide with other crates (at least
+  unless they're doing something very stupid).
+- The crate will successfully compile with any combination of feature flags.
+  Previously, some combinations would fail.
+
 ## 0.2.16 [2020-05-12]
 
 ### Added
