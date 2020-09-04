@@ -1,6 +1,3 @@
 /target
 **/*.rs.bk
 Cargo.lock
-
-# auto-generated
-src/format/language.rs
