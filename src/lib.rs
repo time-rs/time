@@ -583,19 +583,16 @@ pub fn parse<T: private::Parsable>(s: impl AsRef<str>, format: impl AsRef<str>) 
 // and methods. They will be removed completely in 0.3.
 
 #[cfg(all(feature = "std", feature = "deprecated"))]
-#[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type PreciseTime = Instant;
 
 #[cfg(all(feature = "std", feature = "deprecated"))]
-#[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(since = "0.2.0", note = "Use `Instant`")]
 pub type SteadyTime = Instant;
 
 #[cfg(all(feature = "std", feature = "deprecated"))]
-#[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
     since = "0.2.0",
@@ -613,7 +610,6 @@ pub fn precise_time_ns() -> u64 {
 }
 
 #[cfg(all(feature = "std", feature = "deprecated"))]
-#[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items)]
 #[deprecated(
     since = "0.2.0",

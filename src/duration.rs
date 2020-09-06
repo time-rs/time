@@ -676,7 +676,6 @@ impl Duration {
 /// Functions that have been renamed or had signatures changed since v0.1. As
 /// such, they are deprecated.
 #[cfg(feature = "deprecated")]
-#[cfg_attr(tarpaulin, skip)]
 #[allow(clippy::missing_docs_in_private_items, clippy::missing_const_for_fn)]
 impl Duration {
     #[deprecated(since = "0.2.0", note = "Use the `whole_weeks` function")]
