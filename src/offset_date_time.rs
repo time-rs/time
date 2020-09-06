@@ -69,6 +69,7 @@ impl OffsetDateTime {
     /// Create a new `OffsetDateTime` with the current date and time in UTC.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::{OffsetDateTime, offset};
     /// assert!(OffsetDateTime::now().year() >= 2019);
     /// assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
@@ -101,7 +102,7 @@ impl OffsetDateTime {
     /// local offset.
     ///
     /// ```rust
-    /// # use time::{OffsetDateTime, offset};
+    /// # use time::OffsetDateTime;
     /// assert!(OffsetDateTime::now_local().year() >= 2019);
     /// ```
     #[cfg(feature = "std")]
@@ -116,7 +117,7 @@ impl OffsetDateTime {
     /// returned.
     ///
     /// ```rust,no_run
-    /// # use time::{OffsetDateTime, offset};
+    /// # use time::OffsetDateTime;
     /// assert!(OffsetDateTime::try_now_local().is_ok());
     /// ```
     #[cfg(feature = "std")]
@@ -130,7 +131,7 @@ impl OffsetDateTime {
     /// provided `UtcOffset`.
     ///
     /// ```rust
-    /// # use time::{date, OffsetDateTime, UtcOffset, offset, time};
+    /// # use time::{date, offset};
     /// assert_eq!(
     ///     date!(2000-01-01)
     ///         .midnight()
@@ -162,7 +163,7 @@ impl OffsetDateTime {
     /// Midnight, 1 January, 1970 (UTC).
     ///
     /// ```rust
-    /// # use time::{date, OffsetDateTime, offset};
+    /// # use time::{date, OffsetDateTime};
     /// assert_eq!(
     ///     OffsetDateTime::unix_epoch(),
     ///     date!(1970-01-01)
@@ -179,7 +180,7 @@ impl OffsetDateTime {
     /// Create an `OffsetDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
-    /// # use time::{date, OffsetDateTime, offset};
+    /// # use time::{date, OffsetDateTime};
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp(0),
     ///     OffsetDateTime::unix_epoch(),
@@ -221,15 +222,17 @@ impl OffsetDateTime {
     /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
-    /// # use time::{PrimitiveDateTime, offset};
+    /// # use time::{date, offset};
     /// assert_eq!(
-    ///     PrimitiveDateTime::unix_epoch()
+    ///     date!(1970-01-01)
+    ///         .midnight()
     ///         .assume_utc()
     ///         .timestamp(),
     ///     0,
     /// );
     /// assert_eq!(
-    ///     PrimitiveDateTime::unix_epoch()
+    ///     date!(1970-01-01)
+    ///         .midnight()
     ///         .assume_utc()
     ///         .to_offset(offset!(-1))
     ///         .timestamp(),
@@ -243,7 +246,7 @@ impl OffsetDateTime {
     /// Get the `Date` in the stored offset.
     ///
     /// ```rust
-    /// # use time::{date, offset, time};
+    /// # use time::{date, offset};
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -267,7 +270,7 @@ impl OffsetDateTime {
     /// Get the `Time` in the stored offset.
     ///
     /// ```rust
-    /// # use time::{date, Time, offset, time};
+    /// # use time::{date, offset, time};
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -430,7 +433,7 @@ impl OffsetDateTime {
     /// Get the ISO 8601 year and week number in the stored offset.
     ///
     /// ```rust
-    /// # use time::{date, offset};
+    /// # use time::date;
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -476,7 +479,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `1..=53`.
     ///
     /// ```rust
-    /// # use time::{date, offset};
+    /// # use time::date;
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -516,7 +519,7 @@ impl OffsetDateTime {
     /// internally.
     ///
     /// ```rust
-    /// # use time::{date, offset, Weekday::*};
+    /// # use time::{date, Weekday::*};
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -626,7 +629,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..1_000`.
     ///
     /// ```rust
-    /// # use time::{date, offset, time};
+    /// # use time::{date, time};
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -651,7 +654,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..1_000_000`.
     ///
     /// ```rust
-    /// # use time::{date, offset, time};
+    /// # use time::{date, time};
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -676,7 +679,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
-    /// # use time::{date, offset, time};
+    /// # use time::{date, time};
     /// assert_eq!(
     ///     date!(2019-01-01)
     ///         .midnight()
@@ -702,7 +705,7 @@ impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::{date, offset};
+    /// # use time::{date};
     /// assert_eq!(
     ///     date!(2019-01-02)
     ///         .midnight()
@@ -718,7 +721,7 @@ impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::{date, offset};
+    /// # use time::date;
     /// assert_eq!(
     ///     date!(2019-01-02)
     ///         .midnight()
@@ -739,7 +742,7 @@ impl OffsetDateTime {
     /// Attempt to parse an `OffsetDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::{date, OffsetDateTime, Weekday::Wednesday, time, offset};
+    /// # use time::{date, OffsetDateTime, time};
     /// assert_eq!(
     ///     OffsetDateTime::parse("2019-01-02 00:00:00 +0000", "%F %T %z"),
     ///     Ok(date!(2019-01-02).midnight().assume_utc()),

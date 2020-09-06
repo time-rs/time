@@ -124,6 +124,7 @@ impl Date {
     /// Create a `Date` from the year, month, and day.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::{Date, date};
     /// assert_eq!(Date::from_ymd(2019, 1, 1), date!(2019-001));
     /// assert_eq!(Date::from_ymd(2019, 12, 31), date!(2019-365));
@@ -132,6 +133,7 @@ impl Date {
     /// Panics if the date is not valid.
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Date;
     /// Date::from_ymd(2019, 2, 29); // 2019 isn't a leap year.
     /// ```
@@ -175,6 +177,7 @@ impl Date {
     /// Create a `Date` from the year and ordinal day number.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::{Date, date};
     /// assert_eq!(Date::from_yo(2019, 1), date!(2019-01-01));
     /// assert_eq!(Date::from_yo(2019, 365), date!(2019-12-31));
@@ -183,6 +186,7 @@ impl Date {
     /// Panics if the date is not valid.
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Date;
     /// Date::from_yo(2019, 366); // 2019 isn't a leap year.
     /// ```
@@ -222,6 +226,7 @@ impl Date {
     /// Create a `Date` from the ISO year, week, and weekday.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::{Date, Weekday::*, date};
     /// assert_eq!(
     ///     Date::from_iso_ywd(2019, 1, Monday),
@@ -240,6 +245,7 @@ impl Date {
     /// Panics if the week is not valid.
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::{Date, Weekday::*};
     /// Date::from_iso_ywd(2019, 53, Monday); // 2019 doesn't have 53 weeks.
     /// ```
@@ -284,6 +290,7 @@ impl Date {
     /// Create a `Date` representing the current date.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::Date;
     /// assert!(Date::today().year() >= 2019);
     /// ```
@@ -693,10 +700,10 @@ impl Date {
     /// be set to midnight.
     ///
     /// ```rust
-    /// # use time::{date, PrimitiveDateTime, Time};
+    /// # use time::{date, time};
     /// assert_eq!(
     ///     date!(1970-01-01).midnight(),
-    ///     PrimitiveDateTime::unix_epoch()
+    ///     date!(1970-01-01).with_time(time!(0:00))
     /// );
     /// ```
     pub const fn midnight(self) -> PrimitiveDateTime {
@@ -719,6 +726,7 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::{date, time};
     /// assert_eq!(
     ///     date!(1970-01-01).with_hms(0, 0, 0),
@@ -761,7 +769,8 @@ impl Date {
     /// time.
     ///
     /// ```rust
-    /// # use time::{date, Time, time};
+    /// # #![allow(deprecated)]
+    /// # use time::{date, time};
     /// assert_eq!(
     ///     date!(1970-01-01).with_hms_milli(0, 0, 0, 0),
     ///     date!(1970-01-01).with_time(time!(0:00)),
@@ -811,7 +820,8 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::{date, Time, time};
+    /// # #![allow(deprecated)]
+    /// # use time::{date, time};
     /// assert_eq!(
     ///     date!(1970-01-01).with_hms_micro(0, 0, 0, 0),
     ///     date!(1970-01-01).with_time(time!(0:00)),
@@ -866,6 +876,7 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::{date, time};
     /// assert_eq!(
     ///     date!(1970-01-01).with_hms_nano(0, 0, 0, 0),

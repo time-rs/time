@@ -187,6 +187,7 @@ impl Duration {
     /// Get the sign of the duration.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::{Sign, prelude::*};
     /// assert_eq!(1.seconds().sign(), Sign::Positive);
     /// assert_eq!((-1).seconds().sign(), Sign::Negative);

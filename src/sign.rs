@@ -45,6 +45,7 @@ impl Default for Sign {
     /// `Sign` defaults to `Zero`.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::Sign;
     /// assert_eq!(Sign::default(), Sign::Zero);
     /// ```
@@ -151,6 +152,7 @@ impl Sign {
     /// Return the opposite of the current sign.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::Sign;
     /// assert_eq!(Sign::Positive.negate(), Sign::Negative);
     /// assert_eq!(Sign::Negative.negate(), Sign::Positive);
@@ -167,6 +169,7 @@ impl Sign {
     /// Is the sign positive?
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::Sign;
     /// assert!(Sign::Positive.is_positive());
     /// assert!(!Sign::Negative.is_positive());
@@ -179,6 +182,7 @@ impl Sign {
     /// Is the sign negative?
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::Sign;
     /// assert!(!Sign::Positive.is_negative());
     /// assert!(Sign::Negative.is_negative());
@@ -191,6 +195,7 @@ impl Sign {
     /// Is the value exactly zero?
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::Sign;
     /// assert!(!Sign::Positive.is_zero());
     /// assert!(!Sign::Negative.is_zero());

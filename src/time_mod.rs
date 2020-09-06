@@ -56,6 +56,7 @@ impl Time {
     /// Create a `Time` from the hour, minute, and second.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// let time = Time::from_hms(1, 2, 3);
     /// assert_eq!(time.hour(), 1);
@@ -67,16 +68,19 @@ impl Time {
     /// Panics if any component is not valid.
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms(24, 0, 0); // 24 isn't a valid hour.
     /// ```
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms(0, 60, 0); // 60 isn't a valid minute.
     /// ```
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms(0, 0, 60); // 60 isn't a valid second.
     /// ```
@@ -129,6 +133,7 @@ impl Time {
     /// Create a `Time` from the hour, minute, second, and millisecond.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// let time = Time::from_hms_milli(1, 2, 3, 4);
     /// assert_eq!(time.hour(), 1);
@@ -141,21 +146,25 @@ impl Time {
     /// Panics if any component is not valid.
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms_milli(24, 0, 0, 0); // 24 isn't a valid hour.
     /// ```
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms_milli(0, 60, 0, 0); // 60 isn't a valid minute.
     /// ```
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms_milli(0, 0, 60, 0); // 60 isn't a valid second.
     /// ```
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms_milli(0, 0, 0, 1_000); // 1_000 isn't a valid millisecond.
     /// ```
@@ -216,6 +225,7 @@ impl Time {
     /// Create a `Time` from the hour, minute, second, and microsecond.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// let time = Time::from_hms_micro(1, 2, 3, 4);
     /// assert_eq!(time.hour(), 1);
@@ -228,21 +238,25 @@ impl Time {
     /// Panics if any component is not valid.
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms_micro(24, 0, 0, 0); // 24 isn't a valid hour.
     /// ```
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms_micro(0, 60, 0, 0); // 60 isn't a valid minute.
     /// ```
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms_micro(0, 0, 60, 0); // 60 isn't a valid second.
     /// ```
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms_micro(0, 0, 0, 1_000_000); // 1_000_000 isn't a valid microsecond.
     /// ```
@@ -303,6 +317,7 @@ impl Time {
     /// Create a `Time` from the hour, minute, second, and nanosecond.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// let time = Time::from_hms_nano(1, 2, 3, 4);
     /// assert_eq!(time.hour(), 1);
@@ -314,21 +329,25 @@ impl Time {
     /// Panics if any component is not valid.
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms_nano(24, 0, 0, 0); // 24 isn't a valid hour.
     /// ```
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms_nano(0, 60, 0, 0); // 60 isn't a valid minute.
     /// ```
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms_nano(0, 0, 60, 0); // 60 isn't a valid second.
     /// ```
     ///
     /// ```rust,should_panic
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// Time::from_hms_nano(0, 0, 0, 1_000_000_000); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
@@ -389,6 +408,7 @@ impl Time {
     /// Create a `Time` representing the current time (UTC).
     ///
     /// ```rust,no_run
+    /// # #![allow(deprecated)]
     /// # use time::Time;
     /// println!("{:?}", Time::now());
     /// ```

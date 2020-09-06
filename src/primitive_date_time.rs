@@ -54,6 +54,7 @@ impl PrimitiveDateTime {
     /// Create a new `PrimitiveDateTime` with the current date and time (UTC).
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::PrimitiveDateTime;
     /// assert!(PrimitiveDateTime::now().year() >= 2019);
     /// ```
@@ -70,6 +71,7 @@ impl PrimitiveDateTime {
     /// Midnight, 1 January, 1970 (UTC).
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::{PrimitiveDateTime, date};
     /// assert_eq!(
     ///     PrimitiveDateTime::unix_epoch(),
@@ -87,6 +89,7 @@ impl PrimitiveDateTime {
     /// Create a `PrimitiveDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::{date, PrimitiveDateTime};
     /// assert_eq!(
     ///     PrimitiveDateTime::from_unix_timestamp(0),
@@ -110,6 +113,7 @@ impl PrimitiveDateTime {
     /// representing the `PrimitiveDateTime`.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::{date, PrimitiveDateTime};
     /// assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
     /// assert_eq!(date!(2019-01-01).midnight().timestamp(), 1_546_300_800);
@@ -395,6 +399,7 @@ impl PrimitiveDateTime {
     /// the UTC, return an `OffsetDateTime` with the provided `UtcOffset`.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::{date, offset};
     /// assert_eq!(
     ///     date!(2019-01-01).midnight().using_offset(offset!(UTC)).timestamp(),
@@ -487,7 +492,7 @@ impl PrimitiveDateTime {
     /// Attempt to parse a `PrimitiveDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time::{date, PrimitiveDateTime, Weekday::Wednesday, time};
+    /// # use time::{date, PrimitiveDateTime, time};
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
     ///     Ok(date!(2019-01-02).midnight()),
