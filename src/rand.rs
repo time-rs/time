@@ -11,7 +11,6 @@ use rand::{
 };
 
 impl Distribution<Time> for Standard {
-    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Time {
         Time {
             hour: rng.gen_range(0, 24),
@@ -23,7 +22,6 @@ impl Distribution<Time> for Standard {
 }
 
 impl Distribution<Date> for Standard {
-    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Date {
         /// The minimum date allowed to be represented.
         const MIN_DATE: Date = internals::Date::from_ymd_unchecked(MIN_YEAR, 1, 1);
@@ -35,7 +33,6 @@ impl Distribution<Date> for Standard {
 }
 
 impl Distribution<UtcOffset> for Standard {
-    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> UtcOffset {
         UtcOffset {
             seconds: rng.gen_range(-86_399, 86_400),
@@ -44,21 +41,18 @@ impl Distribution<UtcOffset> for Standard {
 }
 
 impl Distribution<PrimitiveDateTime> for Standard {
-    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> PrimitiveDateTime {
         PrimitiveDateTime::new(Standard.sample(rng), Standard.sample(rng))
     }
 }
 
 impl Distribution<OffsetDateTime> for Standard {
-    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> OffsetDateTime {
         OffsetDateTime::new_assuming_offset(Standard.sample(rng), Standard.sample(rng))
     }
 }
 
 impl Distribution<Duration> for Standard {
-    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Duration {
         let seconds = Standard.sample(rng);
         Duration::new(
@@ -69,7 +63,6 @@ impl Distribution<Duration> for Standard {
 }
 
 impl Distribution<Weekday> for Standard {
-    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Weekday {
         use Weekday::*;
 

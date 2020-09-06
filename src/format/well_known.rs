@@ -18,7 +18,6 @@ pub(crate) mod rfc3339 {
     use super::*;
 
     /// Format `df` according to the RFC3339 specification.
-    #[inline]
     pub(crate) fn fmt(df: &DeferredFormat, f: &mut Formatter<'_>) -> fmt::Result {
         // If we're using RFC3339, all three components must be present.
         // This will be enforced with typestate when Rust gains sufficient
@@ -52,7 +51,6 @@ pub(crate) mod rfc3339 {
     }
 
     /// Parse `s` as specified by RFC3339.
-    #[inline]
     pub(crate) fn parse(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
         items.year = try_consume_exact_digits::<i32>(s, 4, Padding::None)
             .ok_or(ParseError::InvalidYear)?

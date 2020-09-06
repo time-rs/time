@@ -32,7 +32,6 @@ pub enum Sign {
 
 #[cfg(feature = "serde")]
 impl<'a> serde::Deserialize<'a> for Sign {
-    #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'a>,
@@ -49,7 +48,6 @@ impl Default for Sign {
     /// # use time::Sign;
     /// assert_eq!(Sign::default(), Sign::Zero);
     /// ```
-    #[inline(always)]
     fn default() -> Self {
         Zero
     }
@@ -62,7 +60,6 @@ macro_rules! sign_mul {
                 type Output = $type;
 
                 #[allow(trivial_numeric_casts)]
-                #[inline(always)]
                 fn mul(self, rhs: $type) -> Self::Output {
                     (self as i8) as $type * rhs
                 }
@@ -71,14 +68,12 @@ macro_rules! sign_mul {
             impl Mul<Sign> for $type {
                 type Output = Self;
 
-                #[inline(always)]
                 fn mul(self, rhs: Sign) -> Self::Output {
                     rhs * self
                 }
             }
 
             impl MulAssign<Sign> for $type {
-                #[inline(always)]
                 fn mul_assign(&mut self, rhs: Sign) {
                     if rhs.is_negative() {
                         *self = -*self;
@@ -89,14 +84,12 @@ macro_rules! sign_mul {
             impl Div<Sign> for $type {
                 type Output = Self;
 
-                #[inline(always)]
                 fn div(self, rhs: Sign) -> Self::Output {
                     self * rhs
                 }
             }
 
             impl DivAssign<Sign> for $type {
-                #[inline(always)]
                 fn div_assign(&mut self, rhs: Sign) {
                     *self *= rhs
                 }
@@ -109,7 +102,6 @@ sign_mul![i8, i16, i32, i64, i128, f32, f64];
 impl Mul<Sign> for Sign {
     type Output = Self;
 
-    #[inline]
     fn mul(self, rhs: Self) -> Self::Output {
         match (self, rhs) {
             (Zero, _) | (_, Zero) => Zero,
@@ -120,7 +112,6 @@ impl Mul<Sign> for Sign {
 }
 
 impl MulAssign<Sign> for Sign {
-    #[inline(always)]
     fn mul_assign(&mut self, rhs: Self) {
         *self = *self * rhs;
     }
@@ -129,14 +120,12 @@ impl MulAssign<Sign> for Sign {
 impl Div<Sign> for Sign {
     type Output = Self;
 
-    #[inline(always)]
     fn div(self, rhs: Self) -> Self::Output {
         self * rhs
     }
 }
 
 impl DivAssign<Sign> for Sign {
-    #[inline(always)]
     fn div_assign(&mut self, rhs: Self) {
         *self *= rhs
     }
@@ -145,7 +134,6 @@ impl DivAssign<Sign> for Sign {
 impl Neg for Sign {
     type Output = Self;
 
-    #[inline(always)]
     fn neg(self) -> Self::Output {
         self.negate()
     }
@@ -154,7 +142,6 @@ impl Neg for Sign {
 impl Not for Sign {
     type Output = Self;
 
-    #[inline(always)]
     fn not(self) -> Self::Output {
         self.negate()
     }
@@ -169,7 +156,6 @@ impl Sign {
     /// assert_eq!(Sign::Negative.negate(), Sign::Positive);
     /// assert_eq!(Sign::Zero.negate(), Sign::Zero);
     /// ```
-    #[inline(always)]
     pub fn negate(self) -> Self {
         match self {
             Positive => Negative,
@@ -186,7 +172,6 @@ impl Sign {
     /// assert!(!Sign::Negative.is_positive());
     /// assert!(!Sign::Zero.is_positive());
     /// ```
-    #[inline(always)]
     pub const fn is_positive(self) -> bool {
         self as u8 == Positive as u8
     }
@@ -199,7 +184,6 @@ impl Sign {
     /// assert!(Sign::Negative.is_negative());
     /// assert!(!Sign::Zero.is_negative());
     /// ```
-    #[inline(always)]
     pub const fn is_negative(self) -> bool {
         self as u8 == Negative as u8
     }
@@ -212,7 +196,6 @@ impl Sign {
     /// assert!(!Sign::Negative.is_zero());
     /// assert!(Sign::Zero.is_zero());
     /// ```
-    #[inline(always)]
     pub const fn is_zero(self) -> bool {
         self as u8 == Zero as u8
     }

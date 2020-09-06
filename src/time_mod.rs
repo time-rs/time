@@ -44,7 +44,6 @@ impl Time {
     /// # use time::{Time, time};
     /// assert_eq!(Time::midnight(), time!(0:00));
     /// ```
-    #[inline(always)]
     pub const fn midnight() -> Self {
         Time {
             hour: 0,
@@ -81,7 +80,6 @@ impl Time {
     /// # use time::Time;
     /// Time::from_hms(0, 0, 60); // 60 isn't a valid second.
     /// ```
-    #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
@@ -116,7 +114,6 @@ impl Time {
     /// assert!(Time::try_from_hms(0, 60, 0).is_err()); // 60 isn't a valid minute.
     /// assert!(Time::try_from_hms(0, 0, 60).is_err()); // 60 isn't a valid second.
     /// ```
-    #[inline(always)]
     pub fn try_from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(hour in 0 => 23);
         ensure_value_in_range!(minute in 0 => 59);
@@ -162,7 +159,6 @@ impl Time {
     /// # use time::Time;
     /// Time::from_hms_milli(0, 0, 0, 1_000); // 1_000 isn't a valid millisecond.
     /// ```
-    #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
@@ -199,7 +195,6 @@ impl Time {
     /// assert!(Time::try_from_hms_milli(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
     /// assert!(Time::try_from_hms_milli(0, 0, 0, 1_000).is_err()); // 1_000 isn't a valid millisecond.
     /// ```
-    #[inline(always)]
     pub fn try_from_hms_milli(
         hour: u8,
         minute: u8,
@@ -251,7 +246,6 @@ impl Time {
     /// # use time::Time;
     /// Time::from_hms_micro(0, 0, 0, 1_000_000); // 1_000_000 isn't a valid microsecond.
     /// ```
-    #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
@@ -288,7 +282,6 @@ impl Time {
     /// assert!(Time::try_from_hms_micro(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
     /// assert!(Time::try_from_hms_micro(0, 0, 0, 1_000_000).is_err()); // 1_000_000 isn't a valid microsecond.
     /// ```
-    #[inline(always)]
     pub fn try_from_hms_micro(
         hour: u8,
         minute: u8,
@@ -339,7 +332,6 @@ impl Time {
     /// # use time::Time;
     /// Time::from_hms_nano(0, 0, 0, 1_000_000_000); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
-    #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
@@ -376,7 +368,6 @@ impl Time {
     /// assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
     /// assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
-    #[inline(always)]
     pub fn try_from_hms_nano(
         hour: u8,
         minute: u8,
@@ -401,7 +392,6 @@ impl Time {
     /// # use time::Time;
     /// println!("{:?}", Time::now());
     /// ```
-    #[inline(always)]
     #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     #[deprecated(
@@ -422,7 +412,6 @@ impl Time {
     /// assert_eq!(time!(0:00:00).hour(), 0);
     /// assert_eq!(time!(23:59:59).hour(), 23);
     /// ```
-    #[inline(always)]
     pub const fn hour(self) -> u8 {
         self.hour
     }
@@ -436,7 +425,6 @@ impl Time {
     /// assert_eq!(time!(0:00:00).minute(), 0);
     /// assert_eq!(time!(23:59:59).minute(), 59);
     /// ```
-    #[inline(always)]
     pub const fn minute(self) -> u8 {
         self.minute
     }
@@ -450,7 +438,6 @@ impl Time {
     /// assert_eq!(time!(0:00:00).second(), 0);
     /// assert_eq!(time!(23:59:59).second(), 59);
     /// ```
-    #[inline(always)]
     pub const fn second(self) -> u8 {
         self.second
     }
@@ -464,7 +451,6 @@ impl Time {
     /// assert_eq!(time!(0:00).millisecond(), 0);
     /// assert_eq!(time!(23:59:59.999).millisecond(), 999);
     /// ```
-    #[inline(always)]
     pub const fn millisecond(self) -> u16 {
         (self.nanosecond() / 1_000_000) as u16
     }
@@ -478,7 +464,6 @@ impl Time {
     /// assert_eq!(time!(0:00).microsecond(), 0);
     /// assert_eq!(time!(23:59:59.999_999).microsecond(), 999_999);
     /// ```
-    #[inline(always)]
     pub const fn microsecond(self) -> u32 {
         self.nanosecond() / 1_000
     }
@@ -492,13 +477,11 @@ impl Time {
     /// assert_eq!(time!(0:00).nanosecond(), 0);
     /// assert_eq!(time!(23:59:59.999_999_999).nanosecond(), 999_999_999);
     /// ```
-    #[inline(always)]
     pub const fn nanosecond(self) -> u32 {
         self.nanosecond
     }
 
     /// Get the number of nanoseconds since midnight.
-    #[inline(always)]
     pub(crate) const fn nanoseconds_since_midnight(self) -> u64 {
         self.hour() as u64 * 60 * 60 * 1_000_000_000
             + self.minute() as u64 * 60 * 1_000_000_000
@@ -507,7 +490,6 @@ impl Time {
     }
 
     /// Create a `Time` from the number of nanoseconds since midnight.
-    #[inline(always)]
     pub(crate) const fn from_nanoseconds_since_midnight(nanosecond: u64) -> Self {
         Self {
             hour: (nanosecond / 1_000_000_000 / 60 / 60 % 24) as u8,
@@ -526,7 +508,6 @@ impl Time {
     /// # use time::time;
     /// assert_eq!(time!(0:00).format("%r"), "12:00:00 am");
     /// ```
-    #[inline(always)]
     pub fn format(self, format: impl AsRef<str>) -> String {
         self.lazy_format(format).to_string()
     }
@@ -537,7 +518,6 @@ impl Time {
     /// # use time::time;
     /// assert_eq!(time!(0:00).lazy_format("%r").to_string(), "12:00:00 am");
     /// ```
-    #[inline(always)]
     pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
         DeferredFormat::new(format.as_ref())
             .with_time(self)
@@ -569,13 +549,11 @@ impl Time {
     ///     Ok(time!(23:59:59))
     /// );
     /// ```
-    #[inline(always)]
     pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
     }
 
     /// Given the items already parsed, attempt to create a `Time`.
-    #[inline]
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
         macro_rules! items {
             ($($item:ident),* $(,)?) => {
@@ -584,7 +562,6 @@ impl Time {
         }
 
         /// Convert a 12-hour time to a 24-hour time.
-        #[inline(always)]
         #[allow(clippy::missing_const_for_fn)] // internal fn in non-const outer fn
         fn hour_12_to_24(hour: NonZeroU8, am_pm: AmPm) -> u8 {
             use AmPm::{AM, PM};
@@ -625,7 +602,6 @@ impl Time {
 }
 
 impl Display for Time {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use crate::format::{time, Padding};
 
@@ -665,7 +641,6 @@ impl Add<Duration> for Time {
     /// assert_eq!(time!(12:00) + 2.hours(), time!(14:00));
     /// assert_eq!(time!(0:00:01) + (-2).seconds(), time!(23:59:59));
     /// ```
-    #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
         Self::from_nanoseconds_since_midnight(
             self.nanoseconds_since_midnight()
@@ -688,7 +663,6 @@ impl Add<StdDuration> for Time {
     /// assert_eq!(time!(12:00) + 2.std_hours(), time!(14:00));
     /// assert_eq!(time!(23:59:59) + 2.std_seconds(), time!(0:00:01));
     /// ```
-    #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
         self + Duration::try_from(duration)
             .expect("overflow converting `core::time::Duration` to `time::Duration`")
@@ -710,7 +684,6 @@ impl AddAssign<Duration> for Time {
     /// time += (-2).seconds();
     /// assert_eq!(time, time!(23:59:59));
     /// ```
-    #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
@@ -731,7 +704,6 @@ impl AddAssign<StdDuration> for Time {
     /// time += 2.std_seconds();
     /// assert_eq!(time, time!(0:00:01));
     /// ```
-    #[inline(always)]
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
@@ -755,7 +727,6 @@ impl Sub<Duration> for Time {
     ///     time!(0:00:01)
     /// );
     /// ```
-    #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
         self + -duration
     }
@@ -773,7 +744,6 @@ impl Sub<StdDuration> for Time {
     /// assert_eq!(time!(14:00) - 2.std_hours(), time!(12:00));
     /// assert_eq!(time!(0:00:01) - 2.std_seconds(), time!(23:59:59));
     /// ```
-    #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
         self - Duration::try_from(duration)
             .expect("overflow converting `core::time::Duration` to `time::Duration`")
@@ -795,7 +765,6 @@ impl SubAssign<Duration> for Time {
     /// time -= (-2).seconds();
     /// assert_eq!(time, time!(0:00:01));
     /// ```
-    #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
@@ -816,7 +785,6 @@ impl SubAssign<StdDuration> for Time {
     /// time -= 2.std_seconds();
     /// assert_eq!(time, time!(23:59:59));
     /// ```
-    #[inline(always)]
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }
@@ -836,7 +804,6 @@ impl Sub<Time> for Time {
     /// assert_eq!(time!(0:00) - time!(1:00), (-1).hours());
     /// assert_eq!(time!(0:00) - time!(23:00), (-23).hours());
     /// ```
-    #[inline(always)]
     fn sub(self, rhs: Self) -> Self::Output {
         Duration::nanoseconds(
             self.nanoseconds_since_midnight() as i64 - rhs.nanoseconds_since_midnight() as i64,
@@ -845,14 +812,12 @@ impl Sub<Time> for Time {
 }
 
 impl PartialOrd for Time {
-    #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.cmp(other).into()
     }
 }
 
 impl Ord for Time {
-    #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
         self.hour
             .cmp(&other.hour)

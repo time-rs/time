@@ -21,7 +21,6 @@ pub enum Format {
 // This will require the addition of a lifetime to the `Format` struct.
 
 impl<T: AsRef<str>> From<T> for Format {
-    #[inline]
     fn from(s: T) -> Self {
         Format::Custom(s.as_ref().to_owned())
     }

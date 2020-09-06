@@ -575,7 +575,6 @@ mod private {
 ///     Ok(())
 /// }
 /// ```
-#[inline(always)]
 pub fn parse<T: private::Parsable>(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<T> {
     private::Parsable::parse(s, format)
 }
@@ -603,7 +602,6 @@ pub type SteadyTime = Instant;
     note = "Use `OffsetDateTime::now() - OffsetDateTime::unix_epoch()` to get a `Duration` since \
             a known epoch."
 )]
-#[inline]
 pub fn precise_time_ns() -> u64 {
     use std::time::SystemTime;
 
@@ -622,7 +620,6 @@ pub fn precise_time_ns() -> u64 {
     note = "Use `OffsetDateTime::now() - OffsetDateTime::unix_epoch()` to get a `Duration` since \
             a known epoch."
 )]
-#[inline]
 pub fn precise_time_s() -> f64 {
     use std::time::SystemTime;
 

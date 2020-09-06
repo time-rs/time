@@ -29,7 +29,6 @@ pub enum Weekday {
 
 #[cfg(feature = "serde")]
 impl<'a> serde::Deserialize<'a> for Weekday {
-    #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'a>,
@@ -49,7 +48,6 @@ impl Weekday {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[const_fn("1.46")]
     pub const fn previous(self) -> Self {
         match self {
@@ -71,7 +69,6 @@ impl Weekday {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[const_fn("1.46")]
     pub const fn next(self) -> Self {
         match self {
@@ -92,7 +89,6 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.iso_weekday_number(), 1);
     /// ```
-    #[inline(always)]
     pub const fn iso_weekday_number(self) -> u8 {
         self.number_from_monday()
     }
@@ -103,7 +99,6 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.number_from_monday(), 1);
     /// ```
-    #[inline(always)]
     pub const fn number_from_monday(self) -> u8 {
         self.number_days_from_monday() + 1
     }
@@ -114,7 +109,6 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.number_from_sunday(), 2);
     /// ```
-    #[inline(always)]
     pub const fn number_from_sunday(self) -> u8 {
         self.number_days_from_sunday() + 1
     }
@@ -125,7 +119,6 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.number_days_from_monday(), 0);
     /// ```
-    #[inline(always)]
     pub const fn number_days_from_monday(self) -> u8 {
         self as u8
     }
@@ -136,14 +129,12 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.number_days_from_sunday(), 1);
     /// ```
-    #[inline(always)]
     pub const fn number_days_from_sunday(self) -> u8 {
         (self as u8 + 1) % 7
     }
 }
 
 impl Display for Weekday {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
             Monday => "Monday",

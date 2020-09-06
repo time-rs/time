@@ -5,7 +5,6 @@ use crate::format::{FormatItem, Padding, Specifier};
 use crate::internal_prelude::*;
 
 /// Parse the formatting string. Panics if not valid.
-#[inline(always)]
 pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
     match try_parse_fmt_string(s) {
         Ok(items) => items,
@@ -14,7 +13,6 @@ pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
 }
 
 /// Attempt to parse the formatting string.
-#[inline]
 #[allow(clippy::too_many_lines)]
 pub(crate) fn try_parse_fmt_string<'a>(s: &'a str) -> Result<Vec<FormatItem<'a>>, String> {
     let mut items = vec![];

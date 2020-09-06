@@ -22,7 +22,6 @@ pub(crate) struct DeferredFormat {
 
 impl DeferredFormat {
     /// Create a new `DeferredFormat` with the provided formatting string.
-    #[inline]
     pub(crate) fn new(format: impl Into<Format>) -> Self {
         Self {
             date: None,
@@ -33,47 +32,40 @@ impl DeferredFormat {
     }
 
     /// Provide the `Date` component.
-    #[inline]
     pub(crate) fn with_date(&mut self, date: Date) -> &mut Self {
         self.date = Some(date);
         self
     }
 
     /// Provide the `Time` component.
-    #[inline]
     pub(crate) fn with_time(&mut self, time: Time) -> &mut Self {
         self.time = Some(time);
         self
     }
 
     /// Provide the `UtcOffset` component.
-    #[inline]
     pub(crate) fn with_offset(&mut self, offset: UtcOffset) -> &mut Self {
         self.offset = Some(offset);
         self
     }
 
     /// Obtain the `Date` component.
-    #[inline(always)]
     pub(crate) const fn date(&self) -> Option<Date> {
         self.date
     }
 
     /// Obtain the `Time` component.
-    #[inline(always)]
     pub(crate) const fn time(&self) -> Option<Time> {
         self.time
     }
 
     /// Obtain the `UtcOffset` component.
-    #[inline(always)]
     pub(crate) const fn offset(&self) -> Option<UtcOffset> {
         self.offset
     }
 }
 
 impl Display for DeferredFormat {
-    #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match &self.format {
             Format::Custom(s) => {

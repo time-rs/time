@@ -17,7 +17,6 @@ pub struct Time;
 
 impl Time {
     /// Create a `Time` from its components.
-    #[inline(always)]
     pub const fn from_hms_nanos_unchecked(
         hour: u8,
         minute: u8,
@@ -37,7 +36,6 @@ pub struct Date;
 
 impl Date {
     // macros
-    #[inline(always)]
     pub const fn from_yo_unchecked(year: i32, ordinal: u16) -> crate::Date {
         crate::Date {
             value: (year << 9) | ordinal as i32,
@@ -45,7 +43,6 @@ impl Date {
     }
 
     // reduce duplication
-    #[inline]
     pub(crate) const fn from_ymd_unchecked(year: i32, month: u8, day: u8) -> crate::Date {
         /// Cumulative days through the beginning of a month in both common and
         /// leap years.
@@ -62,7 +59,6 @@ impl Date {
     }
 
     // reduce duplication
-    #[inline]
     pub(crate) fn from_iso_ywd_unchecked(year: i32, week: u8, weekday: Weekday) -> crate::Date {
         let ordinal = week as u16 * 7 + weekday.iso_weekday_number() as u16
             - (Self::from_yo_unchecked(year, 4)

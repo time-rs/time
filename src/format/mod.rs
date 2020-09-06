@@ -33,7 +33,6 @@ pub(crate) use parse_items::{parse_fmt_string, try_parse_fmt_string};
 
 /// Checks if a user-provided formatting string is valid. If it isn't, a
 /// description of the error is returned.
-#[inline(always)]
 pub fn validate_format_string(s: impl AsRef<str>) -> Result<(), String> {
     try_parse_fmt_string(s.as_ref()).map(|_| ())
 }
@@ -95,7 +94,6 @@ pub(crate) enum Specifier {
 
 /// Given all the information necessary, write the provided specifier to the
 /// formatter.
-#[inline]
 fn format_specifier(
     f: &mut Formatter<'_>,
     date: Option<Date>,

@@ -22,7 +22,6 @@ const DAYS_IN_MONTH_COMMON_LEAP: [[u16; 12]; 2] = [
 ];
 
 /// Get the number of days in the month of a given year.
-#[inline(always)]
 const fn days_in_year_month(year: i32, month: u8) -> u8 {
     DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1] as u8
 }
@@ -38,7 +37,6 @@ const fn days_in_year_month(year: i32, month: u8) -> u8 {
 /// assert!(!is_leap_year(2005));
 /// assert!(!is_leap_year(2100));
 /// ```
-#[inline(always)]
 pub const fn is_leap_year(year: i32) -> bool {
     (year % 4 == 0) & ((year % 100 != 0) | (year % 400 == 0))
 }
@@ -55,7 +53,6 @@ pub const fn is_leap_year(year: i32) -> bool {
 /// assert_eq!(days_in_year(2005), 365);
 /// assert_eq!(days_in_year(2100), 365);
 /// ```
-#[inline(always)]
 pub const fn days_in_year(year: i32) -> u16 {
     365 + is_leap_year(year) as u16
 }
@@ -69,7 +66,6 @@ pub const fn days_in_year(year: i32) -> u16 {
 /// assert_eq!(weeks_in_year(2019), 52);
 /// assert_eq!(weeks_in_year(2020), 53);
 /// ```
-#[inline(always)]
 pub fn weeks_in_year(year: i32) -> u8 {
     let weekday = internals::Date::from_yo_unchecked(year, 1).weekday();
 
@@ -114,7 +110,6 @@ impl fmt::Debug for Date {
 
 #[cfg(feature = "serde")]
 impl<'a> serde::Deserialize<'a> for Date {
-    #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'a>,
@@ -140,7 +135,6 @@ impl Date {
     /// # use time::Date;
     /// Date::from_ymd(2019, 2, 29); // 2019 isn't a leap year.
     /// ```
-    #[inline]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
@@ -170,7 +164,6 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::try_from_ymd(2019, 2, 29).is_err()); // 2019 isn't a leap year.
     /// ```
-    #[inline]
     pub fn try_from_ymd(year: i32, month: u8, day: u8) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(month in 1 => 12);
@@ -193,7 +186,6 @@ impl Date {
     /// # use time::Date;
     /// Date::from_yo(2019, 366); // 2019 isn't a leap year.
     /// ```
-    #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
@@ -221,7 +213,6 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::try_from_yo(2019, 366).is_err()); // 2019 isn't a leap year.
     /// ```
-    #[inline(always)]
     pub fn try_from_yo(year: i32, ordinal: u16) -> Result<Self, ComponentRangeError> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(ordinal in 1 => days_in_year(year), given year);
@@ -252,7 +243,6 @@ impl Date {
     /// # use time::{Date, Weekday::*};
     /// Date::from_iso_ywd(2019, 53, Monday); // 2019 doesn't have 53 weeks.
     /// ```
-    #[inline]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
@@ -281,7 +271,6 @@ impl Date {
     /// # use time::{Date, Weekday::*};
     /// assert!(Date::try_from_iso_ywd(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
     /// ```
-    #[inline]
     pub fn try_from_iso_ywd(
         year: i32,
         week: u8,
@@ -298,7 +287,6 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::today().year() >= 2019);
     /// ```
-    #[inline(always)]
     #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     #[deprecated(
@@ -320,7 +308,6 @@ impl Date {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
     #[const_fn("1.46")]
     pub const fn year(self) -> i32 {
@@ -339,7 +326,6 @@ impl Date {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[const_fn("1.46")]
     pub const fn month(self) -> u8 {
         self.month_day().0
@@ -357,7 +343,6 @@ impl Date {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[const_fn("1.46")]
     pub const fn day(self) -> u8 {
         self.month_day().1
@@ -378,7 +363,6 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     // For whatever reason, rustc has difficulty optimizing this function. It's
     // significantly faster to write the statements out by hand.
-    #[inline]
     #[const_fn("1.46")]
     pub const fn month_day(self) -> (u8, u8) {
         /// The number of days up to and including the given month. Common years
@@ -431,7 +415,6 @@ impl Date {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
     #[const_fn("1.46")]
     pub const fn ordinal(self) -> u16 {
@@ -448,7 +431,6 @@ impl Date {
     /// assert_eq!(date!(2020-12-31).iso_year_week(), (2020, 53));
     /// assert_eq!(date!(2021-01-01).iso_year_week(), (2020, 53));
     /// ```
-    #[inline]
     pub fn iso_year_week(self) -> (i32, u8) {
         let (year, ordinal) = self.as_yo();
 
@@ -474,7 +456,6 @@ impl Date {
     /// assert_eq!(date!(2020-12-31).week(), 53);
     /// assert_eq!(date!(2021-01-01).week(), 53);
     /// ```
-    #[inline(always)]
     pub fn week(self) -> u8 {
         self.iso_year_week().1
     }
@@ -490,7 +471,6 @@ impl Date {
     /// assert_eq!(date!(2020-12-31).sunday_based_week(), 52);
     /// assert_eq!(date!(2021-01-01).sunday_based_week(), 0);
     /// ```
-    #[inline]
     pub fn sunday_based_week(self) -> u8 {
         ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as u8
     }
@@ -506,7 +486,6 @@ impl Date {
     /// assert_eq!(date!(2020-12-31).monday_based_week(), 52);
     /// assert_eq!(date!(2021-01-01).monday_based_week(), 0);
     /// ```
-    #[inline]
     pub fn monday_based_week(self) -> u8 {
         ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as u8
     }
@@ -519,7 +498,6 @@ impl Date {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[const_fn("1.46")]
     pub const fn as_ymd(self) -> (i32, u8, u8) {
         let (month, day) = self.month_day();
@@ -534,7 +512,6 @@ impl Date {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[allow(clippy::missing_const_for_fn)]
     #[const_fn("1.46")]
     pub const fn as_yo(self) -> (i32, u16) {
@@ -561,7 +538,6 @@ impl Date {
     /// assert_eq!(date!(2019-11-01).weekday(), Friday);
     /// assert_eq!(date!(2019-12-01).weekday(), Sunday);
     /// ```
-    #[inline]
     pub fn weekday(self) -> Weekday {
         let (year, month, day) = self.as_ymd();
 
@@ -597,7 +573,6 @@ impl Date {
     /// assert_eq!(date!(2019-01-31).next_day(), date!(2019-02-01));
     /// assert_eq!(date!(2019-12-31).next_day(), date!(2020-01-01));
     /// ```
-    #[inline(always)]
     pub fn next_day(self) -> Self {
         let (mut year, mut ordinal) = self.as_yo();
 
@@ -623,7 +598,6 @@ impl Date {
     /// assert_eq!(date!(2019-02-01).previous_day(), date!(2019-01-31));
     /// assert_eq!(date!(2020-01-01).previous_day(), date!(2019-12-31));
     /// ```
-    #[inline(always)]
     pub fn previous_day(self) -> Self {
         let (mut year, mut ordinal) = self.as_yo();
 
@@ -652,7 +626,6 @@ impl Date {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline]
     #[const_fn("1.46")]
     pub const fn julian_day(self) -> i64 {
         let (year, month, day) = self.as_ymd();
@@ -684,7 +657,6 @@ impl Date {
     /// assert_eq!(Date::from_julian_day(2_458_849), date!(2019-12-31));
     /// ```
     // TODO Return a `Result<Self, ComponentRangeError>` in 0.3
-    #[inline]
     pub fn from_julian_day(julian_day: i64) -> Self {
         #![allow(clippy::missing_docs_in_private_items)]
         const Y: i64 = 4_716;
@@ -727,7 +699,6 @@ impl Date {
     ///     PrimitiveDateTime::unix_epoch()
     /// );
     /// ```
-    #[inline(always)]
     pub const fn midnight(self) -> PrimitiveDateTime {
         PrimitiveDateTime::new(self, Time::midnight())
     }
@@ -741,7 +712,6 @@ impl Date {
     ///     date!(1970-01-01).midnight(),
     /// );
     /// ```
-    #[inline(always)]
     pub const fn with_time(self, time: Time) -> PrimitiveDateTime {
         PrimitiveDateTime::new(self, time)
     }
@@ -755,7 +725,6 @@ impl Date {
     ///     date!(1970-01-01).with_time(time!(0:00)),
     /// );
     /// ```
-    #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
@@ -776,7 +745,6 @@ impl Date {
     /// assert!(date!(1970-01-01).try_with_hms(0, 0, 0).is_ok());
     /// assert!(date!(1970-01-01).try_with_hms(24, 0, 0).is_err());
     /// ```
-    #[inline(always)]
     pub fn try_with_hms(
         self,
         hour: u8,
@@ -799,7 +767,6 @@ impl Date {
     ///     date!(1970-01-01).with_time(time!(0:00)),
     /// );
     /// ```
-    #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
@@ -828,7 +795,6 @@ impl Date {
     /// assert!(date!(1970-01-01).try_with_hms_milli(0, 0, 0, 0).is_ok());
     /// assert!(date!(1970-01-01).try_with_hms_milli(24, 0, 0, 0).is_err());
     /// ```
-    #[inline(always)]
     pub fn try_with_hms_milli(
         self,
         hour: u8,
@@ -851,7 +817,6 @@ impl Date {
     ///     date!(1970-01-01).with_time(time!(0:00)),
     /// );
     /// ```
-    #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
@@ -885,7 +850,6 @@ impl Date {
     ///     .try_with_hms_micro(24, 0, 0, 0)
     ///     .is_err());
     /// ```
-    #[inline(always)]
     pub fn try_with_hms_micro(
         self,
         hour: u8,
@@ -908,7 +872,6 @@ impl Date {
     ///     date!(1970-01-01).with_time(time!(0:00)),
     /// );
     /// ```
-    #[inline(always)]
     #[cfg(feature = "panicking-api")]
     #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
@@ -934,7 +897,6 @@ impl Date {
     /// assert!(date!(1970-01-01).try_with_hms_nano(0, 0, 0, 0).is_ok());
     /// assert!(date!(1970-01-01).try_with_hms_nano(24, 0, 0, 0).is_err());
     /// ```
-    #[inline(always)]
     pub fn try_with_hms_nano(
         self,
         hour: u8,
@@ -957,7 +919,6 @@ impl Date {
     /// # use time::date;
     /// assert_eq!(date!(2019-01-02).format("%Y-%m-%d"), "2019-01-02");
     /// ```
-    #[inline(always)]
     pub fn format(self, format: impl AsRef<str>) -> String {
         self.lazy_format(format).to_string()
     }
@@ -968,7 +929,6 @@ impl Date {
     /// # use time::date;
     /// assert_eq!(date!(2019-01-02).lazy_format("%Y-%m-%d").to_string(), "2019-01-02");
     /// ```
-    #[inline(always)]
     pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
         DeferredFormat::new(format.as_ref())
             .with_date(self)
@@ -992,13 +952,11 @@ impl Date {
     ///     Ok(date!(2019-W01-3))
     /// );
     /// ```
-    #[inline(always)]
     pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
     }
 
     /// Given the items already parsed, attempt to create a `Date`.
-    #[inline]
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
         macro_rules! items {
             ($($item:ident),* $(,)?) => {
@@ -1008,7 +966,6 @@ impl Date {
 
         /// Get the value needed to adjust the ordinal day for Sunday and
         /// Monday-based week numbering.
-        #[inline(always)]
         fn adjustment(year: i32) -> i16 {
             match internals::Date::from_yo_unchecked(year, 1).weekday() {
                 Monday => 7,
@@ -1051,7 +1008,6 @@ impl Date {
 }
 
 impl Display for Date {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use crate::format::{date, Padding};
 
@@ -1068,7 +1024,6 @@ impl Display for Date {
 impl Add<Duration> for Date {
     type Output = Self;
 
-    #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
         Self::from_julian_day(self.julian_day() + duration.whole_days())
     }
@@ -1077,21 +1032,18 @@ impl Add<Duration> for Date {
 impl Add<StdDuration> for Date {
     type Output = Self;
 
-    #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
         Self::from_julian_day(self.julian_day() + (duration.as_secs() / 86_400) as i64)
     }
 }
 
 impl AddAssign<Duration> for Date {
-    #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
 }
 
 impl AddAssign<StdDuration> for Date {
-    #[inline(always)]
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
@@ -1100,7 +1052,6 @@ impl AddAssign<StdDuration> for Date {
 impl Sub<Duration> for Date {
     type Output = Self;
 
-    #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
         self + -duration
     }
@@ -1109,21 +1060,18 @@ impl Sub<Duration> for Date {
 impl Sub<StdDuration> for Date {
     type Output = Self;
 
-    #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
         Self::from_julian_day(self.julian_day() - (duration.as_secs() / 86_400) as i64)
     }
 }
 
 impl SubAssign<Duration> for Date {
-    #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
 }
 
 impl SubAssign<StdDuration> for Date {
-    #[inline(always)]
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }
@@ -1132,21 +1080,18 @@ impl SubAssign<StdDuration> for Date {
 impl Sub<Date> for Date {
     type Output = Duration;
 
-    #[inline(always)]
     fn sub(self, other: Self) -> Self::Output {
         Duration::days(self.julian_day() - other.julian_day())
     }
 }
 
 impl PartialOrd for Date {
-    #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
 impl Ord for Date {
-    #[inline(always)]
     fn cmp(&self, other: &Self) -> Ordering {
         self.year()
             .cmp(&other.year())

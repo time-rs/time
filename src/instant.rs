@@ -40,7 +40,6 @@ impl Instant {
     /// # use time::Instant;
     /// println!("{:?}", Instant::now());
     /// ```
-    #[inline(always)]
     pub fn now() -> Self {
         Self {
             inner: StdInstant::now(),
@@ -58,7 +57,6 @@ impl Instant {
     /// thread::sleep(100.std_milliseconds());
     /// assert!(instant.elapsed() >= 100.milliseconds());
     /// ```
-    #[inline(always)]
     pub fn elapsed(self) -> Duration {
         Self::now() - self
     }
@@ -81,7 +79,6 @@ impl Instant {
     /// ```
     ///
     /// This function is only present when using rustc >= 1.34.0.
-    #[inline]
     #[cfg(__time_02_instant_checked_ops)]
     pub fn checked_add(self, duration: Duration) -> Option<Self> {
         if duration.is_zero() {
@@ -112,7 +109,6 @@ impl Instant {
     /// ```
     ///
     /// This function is only present when using rustc >= 1.34.0.
-    #[inline(always)]
     #[cfg(__time_02_instant_checked_ops)]
     pub fn checked_sub(self, duration: Duration) -> Option<Self> {
         self.checked_add(-duration)
@@ -121,7 +117,6 @@ impl Instant {
 
 #[allow(clippy::missing_docs_in_private_items)]
 impl Instant {
-    #[inline(always)]
     #[cfg(feature = "deprecated")]
     #[cfg_attr(tarpaulin, skip)]
     #[deprecated(since = "0.2.0", note = "Use `rhs - lhs`")]
@@ -131,14 +126,12 @@ impl Instant {
 }
 
 impl From<StdInstant> for Instant {
-    #[inline(always)]
     fn from(instant: StdInstant) -> Self {
         Self { inner: instant }
     }
 }
 
 impl From<Instant> for StdInstant {
-    #[inline(always)]
     fn from(instant: Instant) -> Self {
         instant.inner
     }
@@ -147,7 +140,6 @@ impl From<Instant> for StdInstant {
 impl Sub for Instant {
     type Output = Duration;
 
-    #[inline(always)]
     fn sub(self, other: Self) -> Self::Output {
         match self.inner.cmp(&other.inner) {
             Ordering::Equal => Duration::zero(),
@@ -163,7 +155,6 @@ impl Sub for Instant {
 impl Sub<StdInstant> for Instant {
     type Output = Duration;
 
-    #[inline(always)]
     fn sub(self, other: StdInstant) -> Self::Output {
         self - Self::from(other)
     }
@@ -172,7 +163,6 @@ impl Sub<StdInstant> for Instant {
 impl Sub<Instant> for StdInstant {
     type Output = Duration;
 
-    #[inline(always)]
     fn sub(self, other: Instant) -> Self::Output {
         Instant::from(self) - other
     }
@@ -181,7 +171,6 @@ impl Sub<Instant> for StdInstant {
 impl Add<Duration> for Instant {
     type Output = Self;
 
-    #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
         if duration.is_positive() {
             (self.inner + duration.abs_std()).into()
@@ -196,7 +185,6 @@ impl Add<Duration> for Instant {
 impl Add<Duration> for StdInstant {
     type Output = Self;
 
-    #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
         (Instant::from(self) + duration).into()
     }
@@ -205,7 +193,6 @@ impl Add<Duration> for StdInstant {
 impl Add<StdDuration> for Instant {
     type Output = Self;
 
-    #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
         Self {
             inner: self.inner + duration,
@@ -214,21 +201,18 @@ impl Add<StdDuration> for Instant {
 }
 
 impl AddAssign<Duration> for Instant {
-    #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
 }
 
 impl AddAssign<Duration> for StdInstant {
-    #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
 }
 
 impl AddAssign<StdDuration> for Instant {
-    #[inline(always)]
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
@@ -237,7 +221,6 @@ impl AddAssign<StdDuration> for Instant {
 impl Sub<Duration> for Instant {
     type Output = Self;
 
-    #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
         self + -duration
     }
@@ -246,7 +229,6 @@ impl Sub<Duration> for Instant {
 impl Sub<Duration> for StdInstant {
     type Output = Self;
 
-    #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
         (Instant::from(self) - duration).into()
     }
@@ -255,7 +237,6 @@ impl Sub<Duration> for StdInstant {
 impl Sub<StdDuration> for Instant {
     type Output = Self;
 
-    #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
         Self {
             inner: self.inner - duration,
@@ -264,49 +245,42 @@ impl Sub<StdDuration> for Instant {
 }
 
 impl SubAssign<Duration> for Instant {
-    #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
 }
 
 impl SubAssign<Duration> for StdInstant {
-    #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
 }
 
 impl SubAssign<StdDuration> for Instant {
-    #[inline(always)]
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }
 }
 
 impl PartialEq<StdInstant> for Instant {
-    #[inline(always)]
     fn eq(&self, rhs: &StdInstant) -> bool {
         self.inner.eq(rhs)
     }
 }
 
 impl PartialEq<Instant> for StdInstant {
-    #[inline(always)]
     fn eq(&self, rhs: &Instant) -> bool {
         self.eq(&rhs.inner)
     }
 }
 
 impl PartialOrd<StdInstant> for Instant {
-    #[inline(always)]
     fn partial_cmp(&self, rhs: &StdInstant) -> Option<Ordering> {
         self.inner.partial_cmp(rhs)
     }
 }
 
 impl PartialOrd<Instant> for StdInstant {
-    #[inline(always)]
     fn partial_cmp(&self, rhs: &Instant) -> Option<Ordering> {
         self.partial_cmp(&rhs.inner)
     }

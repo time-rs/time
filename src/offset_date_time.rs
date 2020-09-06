@@ -34,7 +34,6 @@ pub struct OffsetDateTime {
 
 #[cfg(feature = "serde")]
 impl<'a> serde::Deserialize<'a> for OffsetDateTime {
-    #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'a>,
@@ -50,7 +49,6 @@ impl OffsetDateTime {
     /// `UtcOffset`. The `PrimitiveDateTime` is assumed to be in the provided
     /// offset.
     // TODO Should this be made public?
-    #[inline(always)]
     pub(crate) fn new_assuming_offset(utc_datetime: PrimitiveDateTime, offset: UtcOffset) -> Self {
         Self {
             utc_datetime: utc_datetime - offset.as_duration(),
@@ -61,7 +59,6 @@ impl OffsetDateTime {
     /// Create a new `OffsetDateTime` from the provided `PrimitiveDateTime` and
     /// `UtcOffset`. The `PrimitiveDateTime` is assumed to be in UTC.
     // TODO Should this be made public?
-    #[inline(always)]
     pub(crate) const fn new_assuming_utc(utc_datetime: PrimitiveDateTime) -> Self {
         Self {
             utc_datetime,
@@ -76,7 +73,6 @@ impl OffsetDateTime {
     /// assert!(OffsetDateTime::now().year() >= 2019);
     /// assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
     /// ```
-    #[inline(always)]
     #[deprecated(
         since = "0.2.11",
         note = "This function returns a value with an offset of UTC, which is not apparent from \
@@ -95,7 +91,6 @@ impl OffsetDateTime {
     /// assert!(OffsetDateTime::now_utc().year() >= 2019);
     /// assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
     /// ```
-    #[inline(always)]
     #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     pub fn now_utc() -> Self {
@@ -109,7 +104,6 @@ impl OffsetDateTime {
     /// # use time::{OffsetDateTime, offset};
     /// assert!(OffsetDateTime::now_local().year() >= 2019);
     /// ```
-    #[inline(always)]
     #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     pub fn now_local() -> Self {
@@ -125,7 +119,6 @@ impl OffsetDateTime {
     /// # use time::{OffsetDateTime, offset};
     /// assert!(OffsetDateTime::try_now_local().is_ok());
     /// ```
-    #[inline]
     #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     pub fn try_now_local() -> Result<Self, IndeterminateOffsetError> {
@@ -159,7 +152,6 @@ impl OffsetDateTime {
     /// assert_eq!(new_york.hour(), 8);
     /// assert_eq!(los_angeles.hour(), 5);
     /// ```
-    #[inline(always)]
     pub const fn to_offset(self, offset: UtcOffset) -> Self {
         Self {
             utc_datetime: self.utc_datetime,
@@ -178,7 +170,6 @@ impl OffsetDateTime {
     ///         .assume_utc(),
     /// );
     /// ```
-    #[inline(always)]
     pub const fn unix_epoch() -> Self {
         internals::Date::from_yo_unchecked(1970, 1)
             .midnight()
@@ -200,7 +191,6 @@ impl OffsetDateTime {
     ///         .assume_utc(),
     /// );
     /// ```
-    #[inline(always)]
     pub fn from_unix_timestamp(timestamp: i64) -> Self {
         OffsetDateTime::unix_epoch() + Duration::seconds(timestamp)
     }
@@ -224,7 +214,6 @@ impl OffsetDateTime {
     ///     offset!(+1),
     /// );
     /// ```
-    #[inline(always)]
     pub const fn offset(self) -> UtcOffset {
         self.offset
     }
@@ -247,7 +236,6 @@ impl OffsetDateTime {
     ///     0,
     /// );
     /// ```
-    #[inline(always)]
     pub fn timestamp(self) -> i64 {
         (self - Self::unix_epoch()).whole_seconds()
     }
@@ -272,7 +260,6 @@ impl OffsetDateTime {
     ///     date!(2018-12-31),
     /// );
     /// ```
-    #[inline(always)]
     pub fn date(self) -> Date {
         (self.utc_datetime + self.offset.as_duration()).date()
     }
@@ -297,7 +284,6 @@ impl OffsetDateTime {
     ///     time!(23:00)
     /// );
     /// ```
-    #[inline(always)]
     pub fn time(self) -> Time {
         (self.utc_datetime + self.offset.as_duration()).time()
     }
@@ -329,7 +315,6 @@ impl OffsetDateTime {
     ///     2020,
     /// );
     /// ```
-    #[inline(always)]
     pub fn year(self) -> i32 {
         self.date().year()
     }
@@ -358,7 +343,6 @@ impl OffsetDateTime {
     ///     1,
     /// );
     /// ```
-    #[inline(always)]
     pub fn month(self) -> u8 {
         self.date().month()
     }
@@ -386,7 +370,6 @@ impl OffsetDateTime {
     ///     1,
     /// );
     /// ```
-    #[inline(always)]
     pub fn day(self) -> u8 {
         self.date().day()
     }
@@ -414,7 +397,6 @@ impl OffsetDateTime {
     ///     (1, 1),
     /// );
     /// ```
-    #[inline(always)]
     pub fn month_day(self) -> (u8, u8) {
         self.date().month_day()
     }
@@ -441,7 +423,6 @@ impl OffsetDateTime {
     ///     1,
     /// );
     /// ```
-    #[inline(always)]
     pub fn ordinal(self) -> u16 {
         self.date().ordinal()
     }
@@ -486,7 +467,6 @@ impl OffsetDateTime {
     ///     (2020, 53),
     /// );
     /// ```
-    #[inline(always)]
     pub fn iso_year_week(self) -> (i32, u8) {
         self.date().iso_year_week()
     }
@@ -526,7 +506,6 @@ impl OffsetDateTime {
     ///     53,
     /// );
     /// ```
-    #[inline(always)]
     pub fn week(self) -> u8 {
         self.date().week()
     }
@@ -560,7 +539,6 @@ impl OffsetDateTime {
     ///     Friday,
     /// );
     /// ```
-    #[inline(always)]
     pub fn weekday(self) -> Weekday {
         self.date().weekday()
     }
@@ -587,7 +565,6 @@ impl OffsetDateTime {
     ///     21,
     /// );
     /// ```
-    #[inline(always)]
     pub fn hour(self) -> u8 {
         self.time().hour()
     }
@@ -614,7 +591,6 @@ impl OffsetDateTime {
     ///     29,
     /// );
     /// ```
-    #[inline(always)]
     pub fn minute(self) -> u8 {
         self.time().minute()
     }
@@ -641,7 +617,6 @@ impl OffsetDateTime {
     ///     29,
     /// );
     /// ```
-    #[inline(always)]
     pub fn second(self) -> u8 {
         self.time().second()
     }
@@ -667,7 +642,6 @@ impl OffsetDateTime {
     ///     999,
     /// );
     /// ```
-    #[inline(always)]
     pub fn millisecond(self) -> u16 {
         self.time().millisecond()
     }
@@ -693,7 +667,6 @@ impl OffsetDateTime {
     ///     999_999,
     /// );
     /// ```
-    #[inline(always)]
     pub fn microsecond(self) -> u32 {
         self.time().microsecond()
     }
@@ -719,7 +692,6 @@ impl OffsetDateTime {
     ///     999_999_999,
     /// );
     /// ```
-    #[inline(always)]
     pub fn nanosecond(self) -> u32 {
         self.time().nanosecond()
     }
@@ -739,7 +711,6 @@ impl OffsetDateTime {
     ///     "2019-01-02 12:00:00 am +0000",
     /// );
     /// ```
-    #[inline(always)]
     pub fn format(self, format: impl Into<Format>) -> String {
         self.lazy_format(format).to_string()
     }
@@ -757,7 +728,6 @@ impl OffsetDateTime {
     ///     "2019-01-02 12:00:00 am +0000",
     /// );
     /// ```
-    #[inline(always)]
     pub fn lazy_format(self, format: impl Into<Format>) -> impl Display {
         DeferredFormat::new(format)
             .with_date(self.date())
@@ -783,13 +753,11 @@ impl OffsetDateTime {
     ///     Ok(date!(2019-W01-3).with_time(time!(12:00)).assume_utc()),
     /// );
     /// ```
-    #[inline(always)]
     pub fn parse(s: impl AsRef<str>, format: impl Into<Format>) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
     }
 
     /// Given the items already parsed, attempt to create an `OffsetDateTime`.
-    #[inline(always)]
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
         let offset = UtcOffset::try_from_parsed_items(items)?;
         Ok(PrimitiveDateTime::try_from_parsed_items(items)?.assume_offset(offset))
@@ -797,35 +765,30 @@ impl OffsetDateTime {
 }
 
 impl Display for OffsetDateTime {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}", self.date(), self.time(), self.offset())
     }
 }
 
 impl PartialEq for OffsetDateTime {
-    #[inline(always)]
     fn eq(&self, rhs: &Self) -> bool {
         self.utc_datetime.eq(&rhs.utc_datetime)
     }
 }
 
 impl PartialOrd for OffsetDateTime {
-    #[inline(always)]
     fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
         Some(self.cmp(rhs))
     }
 }
 
 impl Ord for OffsetDateTime {
-    #[inline(always)]
     fn cmp(&self, rhs: &Self) -> Ordering {
         self.utc_datetime.cmp(&rhs.utc_datetime)
     }
 }
 
 impl Hash for OffsetDateTime {
-    #[inline(always)]
     fn hash<H: Hasher>(&self, hasher: &mut H) {
         // We need to distinguish this from a `PrimitiveDateTime`, which would
         // otherwise conflict.
@@ -837,7 +800,6 @@ impl Hash for OffsetDateTime {
 impl Add<Duration> for OffsetDateTime {
     type Output = Self;
 
-    #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
         Self {
             utc_datetime: self.utc_datetime + duration,
@@ -849,7 +811,6 @@ impl Add<Duration> for OffsetDateTime {
 impl Add<StdDuration> for OffsetDateTime {
     type Output = Self;
 
-    #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
         Self {
             utc_datetime: self.utc_datetime + duration,
@@ -859,14 +820,12 @@ impl Add<StdDuration> for OffsetDateTime {
 }
 
 impl AddAssign<Duration> for OffsetDateTime {
-    #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
 }
 
 impl AddAssign<StdDuration> for OffsetDateTime {
-    #[inline(always)]
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
@@ -875,7 +834,6 @@ impl AddAssign<StdDuration> for OffsetDateTime {
 impl Sub<Duration> for OffsetDateTime {
     type Output = Self;
 
-    #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
         Self {
             utc_datetime: self.utc_datetime - duration,
@@ -887,7 +845,6 @@ impl Sub<Duration> for OffsetDateTime {
 impl Sub<StdDuration> for OffsetDateTime {
     type Output = Self;
 
-    #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
         Self {
             utc_datetime: self.utc_datetime - duration,
@@ -897,14 +854,12 @@ impl Sub<StdDuration> for OffsetDateTime {
 }
 
 impl SubAssign<Duration> for OffsetDateTime {
-    #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
 }
 
 impl SubAssign<StdDuration> for OffsetDateTime {
-    #[inline(always)]
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }
@@ -913,7 +868,6 @@ impl SubAssign<StdDuration> for OffsetDateTime {
 impl Sub<OffsetDateTime> for OffsetDateTime {
     type Output = Duration;
 
-    #[inline(always)]
     fn sub(self, rhs: Self) -> Self::Output {
         self.utc_datetime - rhs.utc_datetime
     }
@@ -923,7 +877,6 @@ impl Sub<OffsetDateTime> for OffsetDateTime {
 impl Add<Duration> for SystemTime {
     type Output = Self;
 
-    #[inline(always)]
     fn add(self, duration: Duration) -> Self::Output {
         if duration.is_zero() {
             self
@@ -938,7 +891,6 @@ impl Add<Duration> for SystemTime {
 
 #[cfg(feature = "std")]
 impl AddAssign<Duration> for SystemTime {
-    #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
@@ -948,7 +900,6 @@ impl AddAssign<Duration> for SystemTime {
 impl Sub<Duration> for SystemTime {
     type Output = Self;
 
-    #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
         (OffsetDateTime::from(self) - duration).into()
     }
@@ -956,7 +907,6 @@ impl Sub<Duration> for SystemTime {
 
 #[cfg(feature = "std")]
 impl SubAssign<Duration> for SystemTime {
-    #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
@@ -966,7 +916,6 @@ impl SubAssign<Duration> for SystemTime {
 impl Sub<SystemTime> for OffsetDateTime {
     type Output = Duration;
 
-    #[inline(always)]
     fn sub(self, rhs: SystemTime) -> Self::Output {
         self - Self::from(rhs)
     }
@@ -976,7 +925,6 @@ impl Sub<SystemTime> for OffsetDateTime {
 impl Sub<OffsetDateTime> for SystemTime {
     type Output = Duration;
 
-    #[inline(always)]
     fn sub(self, rhs: OffsetDateTime) -> Self::Output {
         OffsetDateTime::from(self) - rhs
     }
@@ -984,7 +932,6 @@ impl Sub<OffsetDateTime> for SystemTime {
 
 #[cfg(feature = "std")]
 impl PartialEq<SystemTime> for OffsetDateTime {
-    #[inline(always)]
     fn eq(&self, rhs: &SystemTime) -> bool {
         self == &Self::from(*rhs)
     }
@@ -992,7 +939,6 @@ impl PartialEq<SystemTime> for OffsetDateTime {
 
 #[cfg(feature = "std")]
 impl PartialEq<OffsetDateTime> for SystemTime {
-    #[inline(always)]
     fn eq(&self, rhs: &OffsetDateTime) -> bool {
         &OffsetDateTime::from(*self) == rhs
     }
@@ -1000,7 +946,6 @@ impl PartialEq<OffsetDateTime> for SystemTime {
 
 #[cfg(feature = "std")]
 impl PartialOrd<SystemTime> for OffsetDateTime {
-    #[inline(always)]
     fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
         self.partial_cmp(&Self::from(*other))
     }
@@ -1008,7 +953,6 @@ impl PartialOrd<SystemTime> for OffsetDateTime {
 
 #[cfg(feature = "std")]
 impl PartialOrd<OffsetDateTime> for SystemTime {
-    #[inline(always)]
     fn partial_cmp(&self, other: &OffsetDateTime) -> Option<Ordering> {
         OffsetDateTime::from(*self).partial_cmp(other)
     }
@@ -1018,7 +962,6 @@ impl PartialOrd<OffsetDateTime> for SystemTime {
 impl From<SystemTime> for OffsetDateTime {
     // There is definitely some way to have this conversion be infallible, but
     // it won't be an issue for over 500 years.
-    #[inline(always)]
     fn from(system_time: SystemTime) -> Self {
         let duration = match system_time.duration_since(SystemTime::UNIX_EPOCH) {
             Ok(duration) => Duration::try_from(duration)
@@ -1033,7 +976,6 @@ impl From<SystemTime> for OffsetDateTime {
 
 #[cfg(feature = "std")]
 impl From<OffsetDateTime> for SystemTime {
-    #[inline]
     fn from(datetime: OffsetDateTime) -> Self {
         let duration = datetime - OffsetDateTime::unix_epoch();
 

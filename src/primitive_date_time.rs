@@ -28,7 +28,6 @@ pub struct PrimitiveDateTime {
 
 #[cfg(feature = "serde")]
 impl<'a> serde::Deserialize<'a> for PrimitiveDateTime {
-    #[inline(always)]
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'a>,
@@ -48,7 +47,6 @@ impl PrimitiveDateTime {
     ///     date!(2019-01-01).midnight(),
     /// );
     /// ```
-    #[inline(always)]
     pub const fn new(date: Date, time: Time) -> Self {
         Self { date, time }
     }
@@ -59,7 +57,6 @@ impl PrimitiveDateTime {
     /// # use time::PrimitiveDateTime;
     /// assert!(PrimitiveDateTime::now().year() >= 2019);
     /// ```
-    #[inline(always)]
     #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
     #[deprecated(
@@ -79,7 +76,6 @@ impl PrimitiveDateTime {
     ///     date!(1970-01-01).midnight()
     /// );
     /// ```
-    #[inline(always)]
     #[deprecated(since = "0.2.7", note = "This method assumes an offset of UTC.")]
     pub const fn unix_epoch() -> Self {
         Self {
@@ -101,7 +97,6 @@ impl PrimitiveDateTime {
     ///     date!(2019-01-01).midnight(),
     /// );
     /// ```
-    #[inline(always)]
     #[deprecated(
         since = "0.2.7",
         note = "This method returns a value that assumes an offset of UTC."
@@ -119,7 +114,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
     /// assert_eq!(date!(2019-01-01).midnight().timestamp(), 1_546_300_800);
     /// ```
-    #[inline(always)]
     #[allow(deprecated)]
     #[deprecated(since = "0.2.7", note = "This method assumes an offset of UTC.")]
     pub fn timestamp(self) -> i64 {
@@ -135,7 +129,6 @@ impl PrimitiveDateTime {
     ///     date!(2019-01-01)
     /// );
     /// ```
-    #[inline(always)]
     pub const fn date(self) -> Date {
         self.date
     }
@@ -145,7 +138,6 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::{date, time};
     /// assert_eq!(date!(2019-01-01).midnight().time(), time!(0:00));
-    #[inline(always)]
     pub const fn time(self) -> Time {
         self.time
     }
@@ -160,7 +152,6 @@ impl PrimitiveDateTime {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[const_fn("1.46")]
     pub const fn year(self) -> i32 {
         self.date().year()
@@ -178,7 +169,6 @@ impl PrimitiveDateTime {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[const_fn("1.46")]
     pub const fn month(self) -> u8 {
         self.date().month()
@@ -196,7 +186,6 @@ impl PrimitiveDateTime {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[const_fn("1.46")]
     pub const fn day(self) -> u8 {
         self.date().day()
@@ -215,7 +204,6 @@ impl PrimitiveDateTime {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[const_fn("1.46")]
     pub const fn month_day(self) -> (u8, u8) {
         self.date().month_day()
@@ -233,7 +221,6 @@ impl PrimitiveDateTime {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[inline(always)]
     #[const_fn("1.46")]
     pub const fn ordinal(self) -> u16 {
         self.date().ordinal()
@@ -249,7 +236,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2020-12-31).midnight().iso_year_week(), (2020, 53));
     /// assert_eq!(date!(2021-01-01).midnight().iso_year_week(), (2020, 53));
     /// ```
-    #[inline]
     pub fn iso_year_week(self) -> (i32, u8) {
         self.date().iso_year_week()
     }
@@ -266,7 +252,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2020-12-31).midnight().week(), 53);
     /// assert_eq!(date!(2021-01-01).midnight().week(), 53);
     /// ```
-    #[inline(always)]
     pub fn week(self) -> u8 {
         self.date().week()
     }
@@ -282,7 +267,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2020-12-31).midnight().sunday_based_week(), 52);
     /// assert_eq!(date!(2021-01-01).midnight().sunday_based_week(), 0);
     /// ```
-    #[inline(always)]
     pub fn sunday_based_week(self) -> u8 {
         self.date().sunday_based_week()
     }
@@ -298,7 +282,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2020-12-31).midnight().monday_based_week(), 52);
     /// assert_eq!(date!(2021-01-01).midnight().monday_based_week(), 0);
     /// ```
-    #[inline(always)]
     pub fn monday_based_week(self) -> u8 {
         self.date().monday_based_week()
     }
@@ -323,7 +306,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-11-01).midnight().weekday(), Friday);
     /// assert_eq!(date!(2019-12-01).midnight().weekday(), Sunday);
     /// ```
-    #[inline(always)]
     pub fn weekday(self) -> Weekday {
         self.date().weekday()
     }
@@ -337,7 +319,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-01-01).midnight().hour(), 0);
     /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).hour(), 23);
     /// ```
-    #[inline(always)]
     pub const fn hour(self) -> u8 {
         self.time().hour()
     }
@@ -351,7 +332,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-01-01).midnight().minute(), 0);
     /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).minute(), 59);
     /// ```
-    #[inline(always)]
     pub const fn minute(self) -> u8 {
         self.time().minute()
     }
@@ -365,7 +345,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-01-01).midnight().second(), 0);
     /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).second(), 59);
     /// ```
-    #[inline(always)]
     pub const fn second(self) -> u8 {
         self.time().second()
     }
@@ -379,7 +358,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-01-01).midnight().millisecond(), 0);
     /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59.999)).millisecond(), 999);
     /// ```
-    #[inline(always)]
     pub const fn millisecond(self) -> u16 {
         self.time().millisecond()
     }
@@ -393,7 +371,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2019-01-01).midnight().microsecond(), 0);
     /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59.999_999)).microsecond(), 999_999);
     /// ```
-    #[inline(always)]
     pub const fn microsecond(self) -> u32 {
         self.time().microsecond()
     }
@@ -410,7 +387,6 @@ impl PrimitiveDateTime {
     ///     999_999_999,
     /// );
     /// ```
-    #[inline(always)]
     pub const fn nanosecond(self) -> u32 {
         self.time().nanosecond()
     }
@@ -437,7 +413,6 @@ impl PrimitiveDateTime {
                 `.assume_utc().to_offset(offset)`. This has the same behavior and can be used in \
                 `const` contexts."
     )]
-    #[inline(always)]
     pub const fn using_offset(self, offset: UtcOffset) -> OffsetDateTime {
         self.assume_utc().to_offset(offset)
     }
@@ -456,7 +431,6 @@ impl PrimitiveDateTime {
     ///     1_546_304_400,
     /// );
     /// ```
-    #[inline(always)]
     pub fn assume_offset(self, offset: UtcOffset) -> OffsetDateTime {
         OffsetDateTime::new_assuming_offset(self, offset)
     }
@@ -474,7 +448,6 @@ impl PrimitiveDateTime {
     ///
     /// This function is the same as calling `.assume_offset(offset!(UTC))`,
     /// except it is usable in `const` contexts.
-    #[inline(always)]
     pub const fn assume_utc(self) -> OffsetDateTime {
         OffsetDateTime::new_assuming_utc(self)
     }
@@ -491,7 +464,6 @@ impl PrimitiveDateTime {
     ///     "2019-01-02 12:00:00 am"
     /// );
     /// ```
-    #[inline(always)]
     pub fn format(self, format: impl AsRef<str>) -> String {
         self.lazy_format(format).to_string()
     }
@@ -505,7 +477,6 @@ impl PrimitiveDateTime {
     ///     "2019-01-02 12:00:00 am"
     /// );
     /// ```
-    #[inline(always)]
     pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
         DeferredFormat::new(format.as_ref())
             .with_date(self.date())
@@ -530,13 +501,11 @@ impl PrimitiveDateTime {
     ///     Ok(date!(2019-W01-3).with_time(time!(12:00))),
     /// );
     /// ```
-    #[inline(always)]
     pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
     }
 
     /// Given the items already parsed, attempt to create a `PrimitiveDateTime`.
-    #[inline(always)]
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
         Ok(Self {
             date: Date::try_from_parsed_items(items)?,
@@ -546,7 +515,6 @@ impl PrimitiveDateTime {
 }
 
 impl Display for PrimitiveDateTime {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {}", self.date(), self.time())
     }
@@ -555,7 +523,6 @@ impl Display for PrimitiveDateTime {
 impl Add<Duration> for PrimitiveDateTime {
     type Output = Self;
 
-    #[inline]
     fn add(self, duration: Duration) -> Self::Output {
         let nanos = self.time.nanoseconds_since_midnight() as i64
             + (duration.whole_nanoseconds() % 86_400_000_000_000) as i64;
@@ -575,7 +542,6 @@ impl Add<Duration> for PrimitiveDateTime {
 impl Add<StdDuration> for PrimitiveDateTime {
     type Output = Self;
 
-    #[inline(always)]
     fn add(self, duration: StdDuration) -> Self::Output {
         let nanos = self.time.nanoseconds_since_midnight()
             + (duration.as_nanos() % 86_400_000_000_000) as u64;
@@ -591,14 +557,12 @@ impl Add<StdDuration> for PrimitiveDateTime {
 }
 
 impl AddAssign<Duration> for PrimitiveDateTime {
-    #[inline(always)]
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
 }
 
 impl AddAssign<StdDuration> for PrimitiveDateTime {
-    #[inline(always)]
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
@@ -607,7 +571,6 @@ impl AddAssign<StdDuration> for PrimitiveDateTime {
 impl Sub<Duration> for PrimitiveDateTime {
     type Output = Self;
 
-    #[inline(always)]
     fn sub(self, duration: Duration) -> Self::Output {
         self + -duration
     }
@@ -616,7 +579,6 @@ impl Sub<Duration> for PrimitiveDateTime {
 impl Sub<StdDuration> for PrimitiveDateTime {
     type Output = Self;
 
-    #[inline(always)]
     fn sub(self, duration: StdDuration) -> Self::Output {
         let nanos = self.time.nanoseconds_since_midnight() as i64
             - (duration.as_nanos() % 86_400_000_000_000) as i64;
@@ -628,14 +590,12 @@ impl Sub<StdDuration> for PrimitiveDateTime {
 }
 
 impl SubAssign<Duration> for PrimitiveDateTime {
-    #[inline(always)]
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
 }
 
 impl SubAssign<StdDuration> for PrimitiveDateTime {
-    #[inline(always)]
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }
@@ -644,7 +604,6 @@ impl SubAssign<StdDuration> for PrimitiveDateTime {
 impl Sub<PrimitiveDateTime> for PrimitiveDateTime {
     type Output = Duration;
 
-    #[inline(always)]
     fn sub(self, rhs: Self) -> Self::Output {
         (self.date - rhs.date) + (self.time - rhs.time)
     }
@@ -655,7 +614,6 @@ impl Sub<PrimitiveDateTime> for PrimitiveDateTime {
 impl Sub<SystemTime> for PrimitiveDateTime {
     type Output = Duration;
 
-    #[inline(always)]
     fn sub(self, rhs: SystemTime) -> Self::Output {
         self - Self::from(rhs)
     }
@@ -666,14 +624,12 @@ impl Sub<SystemTime> for PrimitiveDateTime {
 impl Sub<PrimitiveDateTime> for SystemTime {
     type Output = Duration;
 
-    #[inline(always)]
     fn sub(self, rhs: PrimitiveDateTime) -> Self::Output {
         PrimitiveDateTime::from(self) - rhs
     }
 }
 
 impl PartialOrd for PrimitiveDateTime {
-    #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -682,7 +638,6 @@ impl PartialOrd for PrimitiveDateTime {
 /// Deprecated since v0.2.7, as it assumes an offset of UTC.
 #[cfg(feature = "std")]
 impl PartialEq<SystemTime> for PrimitiveDateTime {
-    #[inline(always)]
     fn eq(&self, rhs: &SystemTime) -> bool {
         self == &Self::from(*rhs)
     }
@@ -691,7 +646,6 @@ impl PartialEq<SystemTime> for PrimitiveDateTime {
 /// Deprecated since v0.2.7, as it assumes an offset of UTC.
 #[cfg(feature = "std")]
 impl PartialEq<PrimitiveDateTime> for SystemTime {
-    #[inline(always)]
     fn eq(&self, rhs: &PrimitiveDateTime) -> bool {
         &PrimitiveDateTime::from(*self) == rhs
     }
@@ -700,7 +654,6 @@ impl PartialEq<PrimitiveDateTime> for SystemTime {
 /// Deprecated since v0.2.7, as it assumes an offset of UTC.
 #[cfg(feature = "std")]
 impl PartialOrd<SystemTime> for PrimitiveDateTime {
-    #[inline(always)]
     fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
         self.partial_cmp(&Self::from(*other))
     }
@@ -709,14 +662,12 @@ impl PartialOrd<SystemTime> for PrimitiveDateTime {
 /// Deprecated since v0.2.7, as it assumes an offset of UTC.
 #[cfg(feature = "std")]
 impl PartialOrd<PrimitiveDateTime> for SystemTime {
-    #[inline(always)]
     fn partial_cmp(&self, other: &PrimitiveDateTime) -> Option<Ordering> {
         PrimitiveDateTime::from(*self).partial_cmp(other)
     }
 }
 
 impl Ord for PrimitiveDateTime {
-    #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
         self.date
             .cmp(&other.date)
@@ -730,7 +681,6 @@ impl Ord for PrimitiveDateTime {
 impl From<SystemTime> for PrimitiveDateTime {
     // There is definitely some way to have this conversion be infallible, but
     // it won't be an issue for over 500 years.
-    #[inline(always)]
     fn from(system_time: SystemTime) -> Self {
         let duration = match system_time.duration_since(SystemTime::UNIX_EPOCH) {
             Ok(duration) => Duration::try_from(duration)
@@ -747,7 +697,6 @@ impl From<SystemTime> for PrimitiveDateTime {
 #[cfg(feature = "std")]
 #[allow(deprecated)]
 impl From<PrimitiveDateTime> for SystemTime {
-    #[inline]
     fn from(datetime: PrimitiveDateTime) -> Self {
         let duration = datetime - PrimitiveDateTime::unix_epoch();
 

@@ -21,7 +21,6 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
-    #[inline(always)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::ConversionRange(e) => e.fmt(f),
@@ -36,7 +35,6 @@ impl fmt::Display for Error {
 
 #[cfg(feature = "std")]
 impl std::error::Error for Error {
-    #[inline(always)]
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Error::ConversionRange(err) => Some(err),
@@ -67,7 +65,6 @@ impl ConversionRangeError {
 }
 
 impl fmt::Display for ConversionRangeError {
-    #[inline(always)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("Source value is out of range for the target type")
     }
@@ -77,7 +74,6 @@ impl fmt::Display for ConversionRangeError {
 impl std::error::Error for ConversionRangeError {}
 
 impl From<ConversionRangeError> for Error {
-    #[inline(always)]
     fn from(original: ConversionRangeError) -> Self {
         Error::ConversionRange(original)
     }
@@ -102,7 +98,6 @@ pub struct ComponentRangeError {
 }
 
 impl fmt::Display for ComponentRangeError {
-    #[inline(always)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -123,7 +118,6 @@ impl fmt::Display for ComponentRangeError {
 }
 
 impl From<ComponentRangeError> for Error {
-    #[inline(always)]
     fn from(original: ComponentRangeError) -> Self {
         Error::ComponentRange(Box::new(original))
     }
@@ -133,7 +127,6 @@ impl From<ComponentRangeError> for Error {
 impl std::error::Error for ComponentRangeError {}
 
 impl From<ParseError> for Error {
-    #[inline(always)]
     fn from(original: ParseError) -> Self {
         Error::Parse(original)
     }
@@ -156,7 +149,6 @@ impl IndeterminateOffsetError {
 }
 
 impl fmt::Display for IndeterminateOffsetError {
-    #[inline(always)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("The system's UTC offset could not be determined")
     }
@@ -166,7 +158,6 @@ impl fmt::Display for IndeterminateOffsetError {
 impl std::error::Error for IndeterminateOffsetError {}
 
 impl From<IndeterminateOffsetError> for Error {
-    #[inline(always)]
     fn from(original: IndeterminateOffsetError) -> Self {
         Error::IndeterminateOffset(original)
     }

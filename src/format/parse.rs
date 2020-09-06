@@ -66,14 +66,12 @@ pub enum ParseError {
 }
 
 impl From<ComponentRangeError> for ParseError {
-    #[inline(always)]
     fn from(error: ComponentRangeError) -> Self {
         ParseError::ComponentOutOfRange(Box::new(error))
     }
 }
 
 impl Display for ParseError {
-    #[inline(always)]
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         use ParseError::*;
         match self {
@@ -163,7 +161,6 @@ pub(crate) struct ParsedItems {
 
 impl ParsedItems {
     /// Create a new `ParsedItems` with nothing known.
-    #[inline(always)]
     pub(crate) const fn new() -> Self {
         Self {
             week_based_year: None,
@@ -187,7 +184,6 @@ impl ParsedItems {
 }
 
 /// Attempt to consume the provided character.
-#[inline]
 pub(crate) fn try_consume_char(s: &mut &str, expected: char) -> ParseResult<()> {
     match s.char_indices().next() {
         Some((index, actual_char)) if actual_char == expected => {
@@ -200,7 +196,6 @@ pub(crate) fn try_consume_char(s: &mut &str, expected: char) -> ParseResult<()> 
 }
 
 /// Attempt to consume the provided character, ignoring case.
-#[inline]
 pub(crate) fn try_consume_char_case_insensitive(s: &mut &str, expected: char) -> ParseResult<()> {
     match s.char_indices().next() {
         Some((index, actual_char)) if actual_char.eq_ignore_ascii_case(&expected) => {
@@ -213,7 +208,6 @@ pub(crate) fn try_consume_char_case_insensitive(s: &mut &str, expected: char) ->
 }
 
 /// Attempt to consume the provided string.
-#[inline]
 pub(crate) fn try_consume_str(s: &mut &str, expected: &str) -> ParseResult<()> {
     if s.starts_with(expected) {
         *s = &s[expected.len()..];
@@ -230,7 +224,6 @@ pub(crate) fn try_consume_str(s: &mut &str, expected: &str) -> ParseResult<()> {
 }
 
 /// Attempt to find one of the strings provided, returning the first value.
-#[inline]
 pub(crate) fn try_consume_first_match<T: Copy>(
     s: &mut &str,
     opts: impl IntoIterator<Item = (impl AsRef<str>, T)>,
@@ -247,7 +240,6 @@ pub(crate) fn try_consume_first_match<T: Copy>(
 
 /// Attempt to consume a number of digits. Consumes the maximum amount possible
 /// within the range provided.
-#[inline]
 pub(crate) fn try_consume_digits<T: FromStr, U: RangeBounds<usize>>(
     s: &mut &str,
     num_digits: U,
@@ -288,7 +280,6 @@ pub(crate) fn try_consume_digits<T: FromStr, U: RangeBounds<usize>>(
 /// Attempt to consume a number of digits. Consumes the maximum amount possible
 /// within the range provided. Returns `None` if the value is not within the
 /// allowed range.
-#[inline(always)]
 pub(crate) fn try_consume_digits_in_range<T: FromStr + PartialOrd>(
     s: &mut &str,
     num_digits: impl RangeBounds<usize>,
@@ -298,7 +289,6 @@ pub(crate) fn try_consume_digits_in_range<T: FromStr + PartialOrd>(
 }
 
 /// Attempt to consume an exact number of digits.
-#[inline]
 pub(crate) fn try_consume_exact_digits<T: FromStr>(
     s: &mut &str,
     num_digits: usize,
@@ -337,7 +327,6 @@ pub(crate) fn try_consume_exact_digits<T: FromStr>(
 
 /// Attempt to consume an exact number of digits. Returns `None` if the value is
 /// not within the allowed range.
-#[inline]
 pub(crate) fn try_consume_exact_digits_in_range<T: FromStr + PartialOrd, U: RangeBounds<T>>(
     s: &mut &str,
     num_digits: usize,
@@ -350,7 +339,6 @@ pub(crate) fn try_consume_exact_digits_in_range<T: FromStr + PartialOrd, U: Rang
 /// Consume all leading padding up to the number of characters.
 ///
 /// Returns the number of characters trimmed.
-#[inline]
 pub(crate) fn consume_padding(s: &mut &str, padding: Padding, max_chars: usize) -> usize {
     let pad_char = match padding {
         Padding::Space => ' ',
@@ -369,7 +357,6 @@ pub(crate) fn consume_padding(s: &mut &str, padding: Padding, max_chars: usize) 
 
 /// Attempt to parse the string with the provided format, returning a struct
 /// containing all information found.
-#[inline]
 #[allow(clippy::too_many_lines)]
 pub(crate) fn parse(s: &str, format: &Format) -> ParseResult<ParsedItems> {
     use super::{date, offset, time};
