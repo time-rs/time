@@ -860,7 +860,7 @@ impl Ord for Time {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{NumericalDuration, NumericalStdDuration};
+    use crate::ext::{NumericalDuration, NumericalStdDuration};
 
     #[test]
     fn nanoseconds_since_midnight() -> crate::Result<()> {

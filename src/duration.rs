@@ -1104,7 +1104,7 @@ impl Ord for Duration {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{NumericalDuration, NumericalStdDuration};
+    use crate::ext::{NumericalDuration, NumericalStdDuration};
 
     #[test]
     fn unit_values() {

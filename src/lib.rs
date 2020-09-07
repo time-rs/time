@@ -375,13 +375,13 @@ mod date;
 mod duration;
 /// Various error types returned by methods in the time crate.
 pub mod error;
+/// Extension traits.
+pub mod ext;
 mod format;
 /// The `Instant` struct and its associated `impl`s.
 #[cfg(feature = "std")]
 mod instant;
 pub mod internals;
-/// A collection of traits extending built-in numerical types.
-mod numerical_traits;
 /// The `OffsetDateTime` struct and its associated `impl`s.
 mod offset_date_time;
 /// The `PrimitiveDateTime` struct and its associated `impl`s.
@@ -407,12 +407,12 @@ pub use error::{
     ComponentRange as ComponentRangeError, ConversionRange as ConversionRangeError, Error,
     IndeterminateOffset as IndeterminateOffsetError, Parse as ParseError,
 };
+pub use ext::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub(crate) use format::DeferredFormat;
 pub use format::Format;
 use format::ParseResult;
 #[cfg(feature = "std")]
 pub use instant::Instant;
-pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
 #[allow(deprecated)]
@@ -507,9 +507,9 @@ pub type Result<T> = core::result::Result<T, Error>;
 pub mod prelude {
     // Rename traits to `_` if possible to avoid any potential name conflicts.
     #[cfg(not(__time_02_use_trait_as_underscore))]
-    pub use crate::{NumericalDuration, NumericalStdDuration};
+    pub use crate::ext::{NumericalDuration, NumericalStdDuration};
     #[cfg(__time_02_use_trait_as_underscore)]
-    pub use crate::{NumericalDuration as _, NumericalStdDuration as _};
+    pub use crate::ext::{NumericalDuration as _, NumericalStdDuration as _};
     // We need to re-export from the macros crate again (and not just do
     // `crate::foo`) because of the way name resolution works in Rust. It's not
     // currently possible to import _only_ the macro, so doing `use crate::time`

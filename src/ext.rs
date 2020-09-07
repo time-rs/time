@@ -15,7 +15,7 @@ use core::time::Duration as StdDuration;
 /// Basic construction of `Duration`s.
 ///
 /// ```rust
-/// # use time::{Duration, NumericalDuration};
+/// # use time::{Duration, ext::NumericalDuration};
 /// assert_eq!(5.nanoseconds(), Duration::nanoseconds(5));
 /// assert_eq!(5.microseconds(), Duration::microseconds(5));
 /// assert_eq!(5.milliseconds(), Duration::milliseconds(5));
@@ -29,7 +29,7 @@ use core::time::Duration as StdDuration;
 /// Signed integers work as well!
 ///
 /// ```rust
-/// # use time::{Duration, NumericalDuration};
+/// # use time::{Duration, ext::NumericalDuration};
 /// assert_eq!((-5).nanoseconds(), Duration::nanoseconds(-5));
 /// assert_eq!((-5).microseconds(), Duration::microseconds(-5));
 /// assert_eq!((-5).milliseconds(), Duration::milliseconds(-5));
@@ -43,7 +43,7 @@ use core::time::Duration as StdDuration;
 /// Just like any other `Duration`, they can be added, subtracted, etc.
 ///
 /// ```rust
-/// # use time::NumericalDuration;
+/// # use time::ext::NumericalDuration;
 /// assert_eq!(2.seconds() + 500.milliseconds(), 2_500.milliseconds());
 /// assert_eq!(2.seconds() - 500.milliseconds(), 1_500.milliseconds());
 /// ```
@@ -217,7 +217,7 @@ impl_numerical_duration_float![f32, f64];
 /// Basic construction of `std::time::Duration`s.
 ///
 /// ```rust
-/// # use time::NumericalStdDuration;
+/// # use time::ext::NumericalStdDuration;
 /// # use core::time::Duration;
 /// assert_eq!(5.std_nanoseconds(), Duration::from_nanos(5));
 /// assert_eq!(5.std_microseconds(), Duration::from_micros(5));
@@ -233,7 +233,7 @@ impl_numerical_duration_float![f32, f64];
 /// etc.
 ///
 /// ```rust
-/// # use time::NumericalStdDuration;
+/// # use time::ext::NumericalStdDuration;
 /// assert_eq!(
 ///     2.std_seconds() + 500.std_milliseconds(),
 ///     2_500.std_milliseconds()
@@ -454,7 +454,7 @@ impl NumericalStdDuration for f64 {
 /// Basic construction of `std::time::Duration`s.
 ///
 /// ```rust
-/// # use time::NumericalStdDurationShort;
+/// # use time::ext::NumericalStdDurationShort;
 /// # use core::time::Duration;
 /// assert_eq!(5.nanoseconds(), Duration::from_nanos(5));
 /// assert_eq!(5.microseconds(), Duration::from_micros(5));
@@ -470,7 +470,7 @@ impl NumericalStdDuration for f64 {
 /// etc.
 ///
 /// ```rust
-/// # use time::NumericalStdDurationShort;
+/// # use time::ext::NumericalStdDurationShort;
 /// assert_eq!(2.seconds() + 500.milliseconds(), 2_500.milliseconds());
 /// assert_eq!(2.seconds() - 500.milliseconds(), 1_500.milliseconds());
 /// ```

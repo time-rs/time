@@ -1008,7 +1008,7 @@ impl From<OffsetDateTime> for SystemTime {
 #[rustfmt::skip::macros(date)]
 mod test {
     use super::*;
-    use crate::{NumericalDuration, NumericalStdDuration};
+    use crate::ext::{NumericalDuration, NumericalStdDuration};
 
     #[test]
     #[cfg(feature = "std")]
