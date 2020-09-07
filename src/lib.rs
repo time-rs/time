@@ -397,15 +397,16 @@ mod sign;
 mod time_mod;
 /// The `UtcOffset` struct and its associated `impl`s.
 mod utc_offset;
+pub mod util;
 /// Days of the week.
 mod weekday;
 
-pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
+pub use date::Date;
 pub use duration::Duration;
 pub use error::{ComponentRangeError, ConversionRangeError, Error, IndeterminateOffsetError};
 pub(crate) use format::DeferredFormat;
 use format::ParseResult;
-pub use format::{validate_format_string, Format, ParseError};
+pub use format::{Format, ParseError};
 #[cfg(feature = "std")]
 pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
@@ -483,6 +484,7 @@ pub use time_macros::offset;
 pub use time_macros::time;
 pub use time_mod::Time;
 pub use utc_offset::UtcOffset;
+pub use util::{days_in_year, is_leap_year, validate_format_string, weeks_in_year};
 pub use weekday::Weekday;
 
 /// An alias for `Result` with a generic error from the time crate.

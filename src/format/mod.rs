@@ -22,8 +22,6 @@ pub(crate) mod time;
 pub(crate) mod well_known;
 
 use crate::{Date, Time, UtcOffset};
-#[cfg(not(feature = "std"))]
-use alloc::string::String;
 use core::fmt::{self, Formatter};
 pub(crate) use deferred_format::DeferredFormat;
 #[allow(unreachable_pub)] // rust-lang/rust#64762
@@ -32,12 +30,6 @@ pub use format::Format;
 pub use parse::ParseError;
 pub(crate) use parse::{parse, ParseResult, ParsedItems};
 pub(crate) use parse_items::{parse_fmt_string, try_parse_fmt_string};
-
-/// Checks if a user-provided formatting string is valid. If it isn't, a
-/// description of the error is returned.
-pub fn validate_format_string(s: impl AsRef<str>) -> Result<(), String> {
-    try_parse_fmt_string(s.as_ref()).map(|_| ())
-}
 
 /// The type of padding to use when formatting.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
