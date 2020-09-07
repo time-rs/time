@@ -234,74 +234,73 @@ macro_rules! format_conditional {
 #[cfg(feature = "panicking-api")]
 #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
 macro_rules! assert_value_in_range {
-    ($value:ident in $start:expr => $end:expr) => {
-        #[allow(unused_comparisons)]
-        {
-            if $value < $start || $value > $end {
-                panic!(
-                    concat!(stringify!($value), " must be in the range {}..={} (was {})"),
-                    $start,
-                    $end,
-                    $value,
-                );
-            }
-        }
-    };
+    ($value:ident in $start:expr => $end:expr) => {{
+        #[allow(unused_imports)]
+        use standback::prelude::*;
 
-    ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
-        #[allow(unused_comparisons)]
-        {
-            if $value < $start || $value > $end {
-                panic!(
-                    concat!(stringify!($value), " must be in the range {}..={} given{} (was {})"),
-                    $start,
-                    $end,
-                    &format_conditional!($($conditional),+),
-                    $value,
-                );
-            };
+        if !($start..=$end).contains(&$value) {
+            panic!(
+                concat!(stringify!($value), " must be in the range {}..={} (was {})"),
+                $start,
+                $end,
+                $value,
+            );
         }
-    };
+    }};
+
+    ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {{
+        #[allow(unused_imports)]
+        use standback::prelude::*;
+
+        if !($start..=$end).contains(&$value) {
+            panic!(
+                concat!(stringify!($value), " must be in the range {}..={} given{} (was {})"),
+                $start,
+                $end,
+                &format_conditional!($($conditional),+),
+                $value,
+            );
+        }
+    }};
 }
 
-// TODO Some of the formatting can likely be performed at compile-time.
-/// Returns `None` if the value is not in range.
+/// Returns `Err(ComponentRangeError)` if the value is not in range.
 macro_rules! ensure_value_in_range {
-    ($value:ident in $start:expr => $end:expr) => {
-        #[allow(unused_comparisons)]
-        {
-            if $value < $start || $value > $end {
-                #[cfg(not(feature = "std"))]
-                use alloc::vec::Vec;
+    ($value:ident in $start:expr => $end:expr) => {{
+        #[allow(unused_imports)]
+        use standback::prelude::*;
 
-                return Err(ComponentRangeError {
-                    name: stringify!($value),
-                    minimum: i64::from($start),
-                    maximum: i64::from($end),
-                    value: i64::from($value),
-                    given: Vec::new(),
-                });
-            }
+        if !($start..=$end).contains(&$value) {
+            #[cfg(not(feature = "std"))]
+            use alloc::vec::Vec;
+
+            return Err(ComponentRangeError {
+                name: stringify!($value),
+                minimum: i64::from($start),
+                maximum: i64::from($end),
+                value: i64::from($value),
+                given: Vec::new(),
+            });
         }
-    };
+    }};
 
-    ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {
-        #[allow(unused_comparisons)]
-        {
-            if $value < $start || $value > $end {
-                #[cfg(not(feature = "std"))]
-                use alloc::vec;
+    ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {{
+        #[allow(unused_imports)]
+        use standback::prelude::*;
 
-                return Err(ComponentRangeError {
-                    name: stringify!($value),
-                    minimum: i64::from($start),
-                    maximum: i64::from($end),
-                    value: i64::from($value),
-                    given: vec![$((stringify!($conditional), i64::from($conditional))),+],
-                });
-            };
+        if !($start..=$end).contains(&$value) {
+            #[cfg(not(feature = "std"))]
+            use alloc::vec;
+
+            return Err(ComponentRangeError {
+                name: stringify!($value),
+                minimum: i64::from($start),
+                maximum: i64::from($end),
+                value: i64::from($value),
+                given: vec![$((stringify!($conditional), i64::from($conditional))),+],
+            });
         }
-    };
+    }};
 }
 
 #[cfg(all(test, feature = "std"))]
