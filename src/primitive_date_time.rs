@@ -1,7 +1,12 @@
 use crate::{
     format::parse::{parse, ParsedItems},
-    internal_prelude::*,
-    internals,
+    internals, Date, DeferredFormat, Duration, OffsetDateTime, ParseResult, Time, UtcOffset,
+    Weekday,
+};
+#[cfg(not(feature = "std"))]
+use alloc::{
+    borrow::ToOwned,
+    string::{String, ToString},
 };
 use const_fn::const_fn;
 #[cfg(feature = "std")]
@@ -12,6 +17,12 @@ use core::{
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
+#[cfg(feature = "std")]
+use standback::convert::TryFrom;
+#[cfg(feature = "serde")]
+use standback::convert::TryInto;
+#[allow(unused_imports)]
+use standback::prelude::*;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
@@ -106,7 +117,7 @@ impl PrimitiveDateTime {
     )]
     #[allow(deprecated)]
     pub fn from_unix_timestamp(timestamp: i64) -> Self {
-        Self::unix_epoch() + timestamp.seconds()
+        Self::unix_epoch() + Duration::seconds(timestamp)
     }
 
     /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time)
@@ -533,11 +544,11 @@ impl Add<Duration> for PrimitiveDateTime {
             + (duration.whole_nanoseconds() % 86_400_000_000_000) as i64;
 
         let date_modifier = if nanos < 0 {
-            (-1).days()
+            Duration::days(-1)
         } else if nanos >= 86_400_000_000_000 {
-            1.days()
+            Duration::day()
         } else {
-            0.days()
+            Duration::zero()
         };
 
         Self::new(self.date + duration + date_modifier, self.time + duration)
@@ -552,9 +563,9 @@ impl Add<StdDuration> for PrimitiveDateTime {
             + (duration.as_nanos() % 86_400_000_000_000) as u64;
 
         let date_modifier = if nanos >= 86_400_000_000_000 {
-            1.days()
+            Duration::day()
         } else {
-            0.days()
+            Duration::zero()
         };
 
         Self::new(self.date + duration + date_modifier, self.time + duration)
@@ -588,7 +599,11 @@ impl Sub<StdDuration> for PrimitiveDateTime {
         let nanos = self.time.nanoseconds_since_midnight() as i64
             - (duration.as_nanos() % 86_400_000_000_000) as i64;
 
-        let date_modifier = if nanos < 0 { (-1).days() } else { 0.days() };
+        let date_modifier = if nanos < 0 {
+            Duration::days(-1)
+        } else {
+            Duration::zero()
+        };
 
         Self::new(self.date - duration + date_modifier, self.time - duration)
     }
@@ -720,6 +735,7 @@ impl From<PrimitiveDateTime> for SystemTime {
 #[rustfmt::skip::macros(date)]
 mod test {
     use super::*;
+    use crate::{NumericalDuration, NumericalStdDuration};
 
     #[test]
     fn new() -> crate::Result<()> {

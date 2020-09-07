@@ -1,7 +1,7 @@
 //! The `Format` struct and its implementations.
 
 #[cfg(not(feature = "std"))]
-use crate::internal_prelude::*;
+use alloc::{borrow::ToOwned, string::String};
 
 /// Various well-known formats, along with the possibility for a custom format
 /// (provided either at compile-time or runtime).

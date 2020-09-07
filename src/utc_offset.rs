@@ -1,6 +1,13 @@
 use crate::{
     format::{parse, ParsedItems},
-    internal_prelude::*,
+    DeferredFormat, Duration, ParseError, ParseResult,
+};
+#[cfg(feature = "std")]
+use crate::{IndeterminateOffsetError, OffsetDateTime};
+#[cfg(not(feature = "std"))]
+use alloc::{
+    borrow::ToOwned,
+    string::{String, ToString},
 };
 use core::fmt::{self, Display};
 
@@ -309,7 +316,7 @@ impl Display for UtcOffset {
 fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     #[cfg(target_family = "unix")]
     {
-        use standback::mem::MaybeUninit;
+        use standback::{convert::TryInto, mem::MaybeUninit};
 
         /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on
         /// any error.
@@ -391,7 +398,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     }
     #[cfg(target_family = "windows")]
     {
-        use standback::mem::MaybeUninit;
+        use standback::{convert::TryInto, mem::MaybeUninit};
         use winapi::{
             shared::minwindef::FILETIME,
             um::{
@@ -472,7 +479,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     }
     #[cfg(__time_02_cargo_web)]
     {
-        use stdweb::js;
+        use stdweb::{js, unstable::TryInto};
 
         let timestamp_utc = datetime.timestamp();
         let low_bits = (timestamp_utc & 0xFF_FF_FF_FF) as i32;
@@ -484,9 +491,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                     .getTimezoneOffset() * -60;
         };
 
-        stdweb::unstable::TryInto::try_into(timezone_offset)
-            .ok()
-            .map(UtcOffset::seconds)
+        timezone_offset.try_into().ok().map(UtcOffset::seconds)
     }
     #[cfg(not(any(target_family = "unix", target_family = "windows", __time_02_cargo_web)))]
     {
@@ -499,6 +504,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::NumericalDuration;
 
     #[test]
     fn hours() {

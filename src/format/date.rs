@@ -6,18 +6,28 @@ use super::{
     parse::{
         consume_padding, try_consume_digits, try_consume_exact_digits, try_consume_first_match,
     },
-    Padding, ParsedItems,
+    Padding, ParseResult, ParsedItems,
 };
-use crate::internal_prelude::*;
+use crate::{Date, ParseError, Weekday};
+#[cfg(not(feature = "std"))]
+use alloc::string::ToString;
 use core::{
     fmt::{self, Formatter},
     num::{NonZeroU16, NonZeroU8},
 };
+#[allow(unused_imports)]
+use standback::prelude::*;
 
 /// Array of weekdays that corresponds to the localized values. This can be
 /// zipped via an iterator to perform parsing easily.
 const WEEKDAYS: [Weekday; 7] = [
-    Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday,
+    Weekday::Monday,
+    Weekday::Tuesday,
+    Weekday::Wednesday,
+    Weekday::Thursday,
+    Weekday::Friday,
+    Weekday::Saturday,
+    Weekday::Sunday,
 ];
 
 /// Full weekday names

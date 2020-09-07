@@ -212,14 +212,17 @@ extern crate alloc;
 #[cfg(feature = "panicking-api")]
 #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
 macro_rules! format_conditional {
-    ($conditional:ident) => {
+    ($conditional:ident) => {{
+        #[cfg(not(feature = "std"))]
+        use alloc::format;
+
         format!(concat!(stringify!($conditional), "={}"), $conditional)
-    };
+    }};
 
     ($first_conditional:ident, $($conditional:ident),*) => {{
         #[cfg(not(feature = "std"))]
-        let mut s = alloc::string::String::new();
-        #[cfg(feature = "std")]
+        use alloc::{format, string::String};
+
         let mut s = String::new();
         s.push_str(&format_conditional!($first_conditional));
         $(s.push_str(&format!(concat!(", ", stringify!($conditional), "={}"), $conditional));)*
@@ -268,6 +271,9 @@ macro_rules! ensure_value_in_range {
         #[allow(unused_comparisons)]
         {
             if $value < $start || $value > $end {
+                #[cfg(not(feature = "std"))]
+                use alloc::vec::Vec;
+
                 return Err(ComponentRangeError {
                     name: stringify!($value),
                     minimum: i64::from($start),
@@ -283,6 +289,9 @@ macro_rules! ensure_value_in_range {
         #[allow(unused_comparisons)]
         {
             if $value < $start || $value > $end {
+                #[cfg(not(feature = "std"))]
+                use alloc::vec;
+
                 return Err(ComponentRangeError {
                     name: stringify!($value),
                     minimum: i64::from($start),
@@ -396,15 +405,17 @@ pub use date::{days_in_year, is_leap_year, weeks_in_year, Date};
 pub use duration::Duration;
 pub use error::{ComponentRangeError, ConversionRangeError, Error, IndeterminateOffsetError};
 pub(crate) use format::DeferredFormat;
+use format::ParseResult;
 pub use format::{validate_format_string, Format, ParseError};
 #[cfg(feature = "std")]
 pub use instant::Instant;
-use internal_prelude::*;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
 #[allow(deprecated)]
 pub use sign::Sign;
+#[allow(unused_imports)]
+use standback::prelude::*;
 /// Construct a [`Date`] with a statically known value.
 ///
 /// The resulting expression can be used in `const` or `static` declarations.
@@ -505,34 +516,6 @@ pub mod prelude {
     pub use time_macros::{date, offset, time};
 }
 
-/// Items generally useful in any file in the time crate.
-mod internal_prelude {
-    #![allow(unused_imports)]
-
-    #[cfg(feature = "std")]
-    pub(crate) use crate::Instant;
-    pub(crate) use crate::{
-        format::{ParseError, ParseResult},
-        ComponentRangeError, ConversionRangeError, Date, DeferredFormat, Duration,
-        IndeterminateOffsetError, NumericalDuration, NumericalStdDuration, OffsetDateTime,
-        PrimitiveDateTime, Time, UtcOffset,
-        Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday},
-    };
-    #[cfg(not(feature = "std"))]
-    pub(crate) use alloc::{
-        borrow::ToOwned,
-        boxed::Box,
-        format,
-        string::{String, ToString},
-        vec,
-        vec::Vec,
-    };
-    pub(crate) use standback::{
-        convert::{TryFrom, TryInto},
-        prelude::*,
-    };
-}
-
 #[allow(clippy::missing_docs_in_private_items)]
 mod private {
     use super::*;
@@ -599,6 +582,7 @@ pub type SteadyTime = Instant;
             a known epoch."
 )]
 pub fn precise_time_ns() -> u64 {
+    use standback::convert::TryInto;
     use std::time::SystemTime;
 
     (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))

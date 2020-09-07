@@ -2,7 +2,7 @@
 
 use crate::format::{FormatItem, Padding, Specifier};
 #[cfg(not(feature = "std"))]
-use crate::internal_prelude::*;
+use alloc::{format, string::String, vec::Vec};
 
 /// Parse the formatting string. Panics if not valid.
 pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
@@ -15,7 +15,7 @@ pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
 /// Attempt to parse the formatting string.
 #[allow(clippy::too_many_lines)]
 pub(crate) fn try_parse_fmt_string<'a>(s: &'a str) -> Result<Vec<FormatItem<'a>>, String> {
-    let mut items = vec![];
+    let mut items = Vec::new();
     let mut literal_start = 0;
     let mut chars = s.char_indices().peekable();
 

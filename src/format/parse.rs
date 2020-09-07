@@ -2,9 +2,10 @@
 
 use crate::{
     format::{parse_fmt_string, well_known, FormatItem, Padding, Specifier},
-    internal_prelude::*,
-    Format,
+    ComponentRangeError, Format, UtcOffset, Weekday,
 };
+#[cfg(not(feature = "std"))]
+use alloc::boxed::Box;
 use core::{
     fmt::{self, Display, Formatter},
     num::{NonZeroU16, NonZeroU8},

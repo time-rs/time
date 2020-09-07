@@ -7,15 +7,20 @@ use crate::{
             try_consume_char, try_consume_char_case_insensitive, try_consume_exact_digits,
             try_consume_first_match,
         },
-        time, Padding, ParseResult, ParsedItems,
+        time, Padding, ParsedItems,
     },
-    internal_prelude::*,
+    DeferredFormat, ParseResult,
 };
+#[cfg(not(feature = "std"))]
+use alloc::string::String;
 use core::fmt::{self, Formatter};
+#[allow(unused_imports)]
+use standback::prelude::*;
 
 /// The format as specified by RFC3339.
 pub(crate) mod rfc3339 {
     use super::*;
+    use crate::{ParseError, UtcOffset};
 
     /// Format `df` according to the RFC3339 specification.
     pub(crate) fn fmt(df: &DeferredFormat, f: &mut Formatter<'_>) -> fmt::Result {

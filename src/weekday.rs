@@ -1,6 +1,8 @@
-use crate::internal_prelude::*;
 use const_fn::const_fn;
 use core::fmt::{self, Display};
+#[cfg(feature = "serde")]
+use standback::convert::TryInto;
+use Weekday::*;
 
 /// Days of the week.
 ///
@@ -231,6 +233,9 @@ mod test {
 
     #[test]
     fn display() {
+        #[cfg(not(feature = "std"))]
+        use alloc::string::ToString;
+
         assert_eq!(Monday.to_string(), "Monday");
         assert_eq!(Tuesday.to_string(), "Tuesday");
         assert_eq!(Wednesday.to_string(), "Wednesday");

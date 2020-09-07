@@ -6,7 +6,7 @@ use super::{
     parse::{try_consume_exact_digits, try_consume_first_match},
     Padding, ParsedItems,
 };
-use crate::internal_prelude::*;
+use crate::{ParseError, ParseResult, UtcOffset};
 use core::fmt::{self, Formatter};
 
 /// UTC offset
