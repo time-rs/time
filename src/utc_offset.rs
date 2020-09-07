@@ -1,9 +1,10 @@
-use crate::{
-    format::{parse, ParsedItems},
-    DeferredFormat, Duration, ParseError, ParseResult,
-};
 #[cfg(feature = "std")]
-use crate::{IndeterminateOffsetError, OffsetDateTime};
+use crate::OffsetDateTime;
+use crate::{
+    error,
+    format::{parse, ParsedItems},
+    DeferredFormat, Duration, ParseResult,
+};
 #[cfg(not(feature = "std"))]
 use alloc::{
     borrow::ToOwned,
@@ -212,8 +213,10 @@ impl UtcOffset {
     /// assert!(local_offset.is_ok());
     /// ```
     #[cfg(feature = "std")]
-    pub fn try_local_offset_at(datetime: OffsetDateTime) -> Result<Self, IndeterminateOffsetError> {
-        try_local_offset_at(datetime).ok_or_else(IndeterminateOffsetError::new)
+    pub fn try_local_offset_at(
+        datetime: OffsetDateTime,
+    ) -> Result<Self, error::IndeterminateOffset> {
+        try_local_offset_at(datetime).ok_or_else(error::IndeterminateOffset::new)
     }
 
     /// Obtain the system's current UTC offset. If the offset cannot be
@@ -239,9 +242,9 @@ impl UtcOffset {
     /// assert!(local_offset.is_ok());
     /// ```
     #[cfg(feature = "std")]
-    pub fn try_current_local_offset() -> Result<Self, IndeterminateOffsetError> {
+    pub fn try_current_local_offset() -> Result<Self, error::IndeterminateOffset> {
         let now = OffsetDateTime::now_utc();
-        try_local_offset_at(now).ok_or_else(IndeterminateOffsetError::new)
+        try_local_offset_at(now).ok_or_else(error::IndeterminateOffset::new)
     }
 }
 
@@ -284,7 +287,7 @@ impl UtcOffset {
 
     /// Given the items already parsed, attempt to create a `UtcOffset`.
     pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
-        items.offset.ok_or(ParseError::InsufficientInformation)
+        items.offset.ok_or(error::Parse::InsufficientInformation)
     }
 }
 

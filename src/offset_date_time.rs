@@ -1,5 +1,5 @@
 #[cfg(feature = "std")]
-use crate::IndeterminateOffsetError;
+use crate::error;
 use crate::{
     format::parse::{parse, ParsedItems},
     internals, Date, DeferredFormat, Duration, Format, ParseResult, PrimitiveDateTime, Time,
@@ -133,7 +133,7 @@ impl OffsetDateTime {
     /// ```
     #[cfg(feature = "std")]
     #[cfg_attr(docs, doc(cfg(feature = "std")))]
-    pub fn try_now_local() -> Result<Self, IndeterminateOffsetError> {
+    pub fn try_now_local() -> Result<Self, error::IndeterminateOffset> {
         let t = Self::now_utc();
         Ok(t.to_offset(UtcOffset::try_local_offset_at(t)?))
     }

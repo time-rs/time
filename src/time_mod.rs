@@ -2,7 +2,7 @@
 use crate::PrimitiveDateTime;
 use crate::{
     format::{parse, parse::AmPm, ParsedItems},
-    ComponentRangeError, DeferredFormat, Duration, ParseError, ParseResult,
+    DeferredFormat, Duration, ParseResult, error
 };
 #[cfg(not(feature = "std"))]
 use alloc::{
@@ -128,7 +128,7 @@ impl Time {
     /// assert!(Time::try_from_hms(0, 60, 0).is_err()); // 60 isn't a valid minute.
     /// assert!(Time::try_from_hms(0, 0, 60).is_err()); // 60 isn't a valid second.
     /// ```
-    pub fn try_from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, ComponentRangeError> {
+    pub fn try_from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(hour in 0 => 23);
         ensure_value_in_range!(minute in 0 => 59);
         ensure_value_in_range!(second in 0 => 59);
@@ -219,7 +219,7 @@ impl Time {
         minute: u8,
         second: u8,
         millisecond: u16,
-    ) -> Result<Self, ComponentRangeError> {
+    ) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(hour in 0 => 23);
         ensure_value_in_range!(minute in 0 => 59);
         ensure_value_in_range!(second in 0 => 59);
@@ -311,7 +311,7 @@ impl Time {
         minute: u8,
         second: u8,
         microsecond: u32,
-    ) -> Result<Self, ComponentRangeError> {
+    ) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(hour in 0 => 23);
         ensure_value_in_range!(minute in 0 => 59);
         ensure_value_in_range!(second in 0 => 59);
@@ -402,7 +402,7 @@ impl Time {
         minute: u8,
         second: u8,
         nanosecond: u32,
-    ) -> Result<Self, ComponentRangeError> {
+    ) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(hour in 0 => 23);
         ensure_value_in_range!(minute in 0 => 59);
         ensure_value_in_range!(second in 0 => 59);
@@ -626,7 +626,7 @@ impl Time {
             items!(hour_12, am_pm) => {
                 Self::try_from_hms(hour_12_to_24(hour_12, am_pm), 0, 0).map_err(Into::into)
             }
-            _ => Err(ParseError::InsufficientInformation),
+            _ => Err(error::Parse::InsufficientInformation),
         }
     }
 }

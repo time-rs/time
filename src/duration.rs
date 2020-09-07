@@ -1,4 +1,4 @@
-use crate::ConversionRangeError;
+use crate::error;
 #[cfg(feature = "std")]
 use crate::Instant;
 use const_fn::const_fn;
@@ -769,7 +769,7 @@ impl Duration {
         since = "0.2.0",
         note = "Use `Duration::try_from(value)` or `value.try_into()`"
     )]
-    pub fn from_std(std: StdDuration) -> Result<Self, ConversionRangeError> {
+    pub fn from_std(std: StdDuration) -> Result<Self, error::ConversionRange> {
         std.try_into()
     }
 
@@ -778,41 +778,41 @@ impl Duration {
         since = "0.2.0",
         note = "Use `std::time::Duration::try_from(value)` or `value.try_into()`"
     )]
-    pub fn to_std(&self) -> Result<StdDuration, ConversionRangeError> {
+    pub fn to_std(&self) -> Result<StdDuration, error::ConversionRange> {
         (*self).try_into()
     }
 }
 
 impl TryFrom<StdDuration> for Duration {
-    type Error = ConversionRangeError;
+    type Error = error::ConversionRange;
 
-    fn try_from(original: StdDuration) -> Result<Self, ConversionRangeError> {
+    fn try_from(original: StdDuration) -> Result<Self, error::ConversionRange> {
         Ok(Self::new(
             original
                 .as_secs()
                 .try_into()
-                .map_err(|_| ConversionRangeError::new())?,
+                .map_err(|_| error::ConversionRange::new())?,
             original
                 .subsec_nanos()
                 .try_into()
-                .map_err(|_| ConversionRangeError::new())?,
+                .map_err(|_| error::ConversionRange::new())?,
         ))
     }
 }
 
 impl TryFrom<Duration> for StdDuration {
-    type Error = ConversionRangeError;
+    type Error = error::ConversionRange;
 
-    fn try_from(duration: Duration) -> Result<Self, ConversionRangeError> {
+    fn try_from(duration: Duration) -> Result<Self, error::ConversionRange> {
         Ok(Self::new(
             duration
                 .seconds
                 .try_into()
-                .map_err(|_| ConversionRangeError::new())?,
+                .map_err(|_| error::ConversionRange::new())?,
             duration
                 .nanoseconds
                 .try_into()
-                .map_err(|_| ConversionRangeError::new())?,
+                .map_err(|_| error::ConversionRange::new())?,
         ))
     }
 }

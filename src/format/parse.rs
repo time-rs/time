@@ -1,8 +1,9 @@
 //! Parsing for various types.
 
 use crate::{
+    error,
     format::{parse_fmt_string, well_known, FormatItem, Padding, Specifier},
-    ComponentRangeError, Format, UtcOffset, Weekday,
+    Format, UtcOffset, Weekday,
 };
 #[cfg(not(feature = "std"))]
 use alloc::boxed::Box;
@@ -14,12 +15,12 @@ use core::{
 };
 
 /// Helper type to avoid repeating the error type.
-pub(crate) type ParseResult<T> = Result<T, ParseError>;
+pub(crate) type ParseResult<T> = Result<T, Error>;
 
 /// An error occurred while parsing.
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum ParseError {
+pub enum Error {
     /// The nanosecond present was not valid.
     InvalidNanosecond,
     /// The second present was not valid.
@@ -60,21 +61,21 @@ pub enum ParseError {
     /// There was not enough information provided to create the requested type.
     InsufficientInformation,
     /// A component was out of range.
-    ComponentOutOfRange(Box<ComponentRangeError>),
+    ComponentOutOfRange(Box<error::ComponentRange>),
     #[cfg(not(__time_02_supports_non_exhaustive))]
     #[doc(hidden)]
     __NonExhaustive,
 }
 
-impl From<ComponentRangeError> for ParseError {
-    fn from(error: ComponentRangeError) -> Self {
-        ParseError::ComponentOutOfRange(Box::new(error))
+impl From<error::ComponentRange> for Error {
+    fn from(error: error::ComponentRange) -> Self {
+        Error::ComponentOutOfRange(Box::new(error))
     }
 }
 
-impl Display for ParseError {
+impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        use ParseError::*;
+        use Error::*;
         match self {
             InvalidNanosecond => f.write_str("invalid nanosecond"),
             InvalidSecond => f.write_str("invalid second"),
@@ -105,10 +106,10 @@ impl Display for ParseError {
 }
 
 #[cfg(feature = "std")]
-impl std::error::Error for ParseError {
+impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            ParseError::ComponentOutOfRange(e) => Some(e.as_ref()),
+            Error::ComponentOutOfRange(e) => Some(e.as_ref()),
             _ => None,
         }
     }
@@ -191,8 +192,8 @@ pub(crate) fn try_consume_char(s: &mut &str, expected: char) -> ParseResult<()> 
             *s = &s[(index + actual_char.len_utf8())..];
             Ok(())
         }
-        Some((_, actual)) => Err(ParseError::UnexpectedCharacter { expected, actual }),
-        None => Err(ParseError::UnexpectedEndOfString),
+        Some((_, actual)) => Err(Error::UnexpectedCharacter { expected, actual }),
+        None => Err(Error::UnexpectedEndOfString),
     }
 }
 
@@ -203,8 +204,8 @@ pub(crate) fn try_consume_char_case_insensitive(s: &mut &str, expected: char) ->
             *s = &s[(index + actual_char.len_utf8())..];
             Ok(())
         }
-        Some((_, actual)) => Err(ParseError::UnexpectedCharacter { expected, actual }),
-        None => Err(ParseError::UnexpectedEndOfString),
+        Some((_, actual)) => Err(Error::UnexpectedCharacter { expected, actual }),
+        None => Err(Error::UnexpectedEndOfString),
     }
 }
 

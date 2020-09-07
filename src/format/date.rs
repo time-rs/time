@@ -2,13 +2,16 @@
 
 #![allow(non_snake_case)]
 
-use super::{
-    parse::{
-        consume_padding, try_consume_digits, try_consume_exact_digits, try_consume_first_match,
+use crate::{
+    error,
+    format::{
+        parse::{
+            consume_padding, try_consume_digits, try_consume_exact_digits, try_consume_first_match,
+        },
+        Padding, ParseResult, ParsedItems,
     },
-    Padding, ParseResult, ParsedItems,
+    Date, Weekday,
 };
-use crate::{Date, ParseError, Weekday};
 #[cfg(not(feature = "std"))]
 use alloc::string::ToString;
 use core::{
@@ -74,7 +77,7 @@ pub(crate) fn fmt_a(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
 pub(crate) fn parse_a(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
     items.weekday = Some(
         try_consume_first_match(s, WEEKDAYS_ABBR.iter().zip(WEEKDAYS.iter().cloned()))
-            .ok_or(ParseError::InvalidDayOfWeek)?,
+            .ok_or(error::Parse::InvalidDayOfWeek)?,
     );
 
     Ok(())
@@ -89,7 +92,7 @@ pub(crate) fn fmt_A(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
 pub(crate) fn parse_A(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
     items.weekday = Some(
         try_consume_first_match(s, WEEKDAYS_FULL.iter().zip(WEEKDAYS.iter().cloned()))
-            .ok_or(ParseError::InvalidDayOfWeek)?,
+            .ok_or(error::Parse::InvalidDayOfWeek)?,
     );
 
     Ok(())
@@ -105,7 +108,7 @@ pub(crate) fn parse_b(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
     items.month = Some(
         try_consume_first_match(s, MONTHS_ABBR.iter().cloned().zip(1..))
             .and_then(NonZeroU8::new)
-            .ok_or(ParseError::InvalidMonth)?,
+            .ok_or(error::Parse::InvalidMonth)?,
     );
 
     Ok(())
@@ -121,7 +124,7 @@ pub(crate) fn parse_B(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
     items.month = Some(
         try_consume_first_match(s, MONTHS_FULL.iter().cloned().zip(1..))
             .and_then(NonZeroU8::new)
-            .ok_or(ParseError::InvalidMonth)?,
+            .ok_or(error::Parse::InvalidMonth)?,
     );
 
     Ok(())
@@ -137,7 +140,7 @@ pub(crate) fn parse_C(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     let padding_length = consume_padding(s, padding, 1);
     items.year = Some(
         try_consume_digits::<i32, _>(s, (2 - padding_length)..=(3 - padding_length))
-            .ok_or(ParseError::InvalidYear)?
+            .ok_or(error::Parse::InvalidYear)?
             * 100
             + items.year.unwrap_or(0).rem_euclid(100),
     );
@@ -155,7 +158,7 @@ pub(crate) fn parse_d(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     items.day = Some(
         try_consume_exact_digits(s, 2, padding)
             .and_then(NonZeroU8::new)
-            .ok_or(ParseError::InvalidDayOfMonth)?,
+            .ok_or(error::Parse::InvalidDayOfMonth)?,
     );
 
     Ok(())
@@ -170,7 +173,7 @@ pub(crate) fn fmt_g(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 pub(crate) fn parse_g(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.week_based_year = Some(
         items.week_based_year.unwrap_or(0) / 100 * 100
-            + try_consume_exact_digits::<i32>(s, 2, padding).ok_or(ParseError::InvalidYear)?,
+            + try_consume_exact_digits::<i32>(s, 2, padding).ok_or(error::Parse::InvalidYear)?,
     );
 
     Ok(())
@@ -196,7 +199,7 @@ pub(crate) fn parse_G(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     items.week_based_year = Some(
         try_consume_digits(s, 1..=6)
             .map(|v: i32| sign * v)
-            .ok_or(ParseError::InvalidYear)?,
+            .ok_or(error::Parse::InvalidYear)?,
     );
 
     Ok(())
@@ -212,7 +215,7 @@ pub(crate) fn parse_j(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     items.ordinal_day = Some(
         try_consume_exact_digits(s, 3, padding)
             .and_then(NonZeroU16::new)
-            .ok_or(ParseError::InvalidDayOfYear)?,
+            .ok_or(error::Parse::InvalidDayOfYear)?,
     );
 
     Ok(())
@@ -228,7 +231,7 @@ pub(crate) fn parse_m(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     items.month = Some(
         try_consume_exact_digits(s, 2, padding)
             .and_then(NonZeroU8::new)
-            .ok_or(ParseError::InvalidMonth)?,
+            .ok_or(error::Parse::InvalidMonth)?,
     );
 
     Ok(())
@@ -246,7 +249,7 @@ pub(crate) fn parse_u(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
             s,
             (1..).map(|d| d.to_string()).zip(WEEKDAYS.iter().cloned()),
         )
-        .ok_or(ParseError::InvalidDayOfWeek)?,
+        .ok_or(error::Parse::InvalidDayOfWeek)?,
     );
 
     Ok(())
@@ -260,7 +263,7 @@ pub(crate) fn fmt_U(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 /// Sunday-based week number (`00`-`53`)
 pub(crate) fn parse_U(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.sunday_week =
-        Some(try_consume_exact_digits(s, 2, padding).ok_or(ParseError::InvalidWeek)?);
+        Some(try_consume_exact_digits(s, 2, padding).ok_or(error::Parse::InvalidWeek)?);
 
     Ok(())
 }
@@ -275,7 +278,7 @@ pub(crate) fn parse_V(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     items.iso_week = Some(
         try_consume_exact_digits(s, 2, padding)
             .and_then(NonZeroU8::new)
-            .ok_or(ParseError::InvalidWeek)?,
+            .ok_or(error::Parse::InvalidWeek)?,
     );
 
     Ok(())
@@ -298,7 +301,7 @@ pub(crate) fn parse_w(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
                 .map(|d: u8| d.to_string())
                 .zip(weekdays.iter().cloned()),
         )
-        .ok_or(ParseError::InvalidDayOfWeek)?,
+        .ok_or(error::Parse::InvalidDayOfWeek)?,
     );
 
     Ok(())
@@ -312,7 +315,7 @@ pub(crate) fn fmt_W(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 /// Monday-based week number (`00`-`53`)
 pub(crate) fn parse_W(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.monday_week =
-        Some(try_consume_exact_digits(s, 2, padding).ok_or(ParseError::InvalidWeek)?);
+        Some(try_consume_exact_digits(s, 2, padding).ok_or(error::Parse::InvalidWeek)?);
 
     Ok(())
 }
@@ -326,7 +329,7 @@ pub(crate) fn fmt_y(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 pub(crate) fn parse_y(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     items.year = Some(
         items.year.unwrap_or(0) / 100 * 100
-            + try_consume_exact_digits::<i32>(s, 2, padding).ok_or(ParseError::InvalidYear)?,
+            + try_consume_exact_digits::<i32>(s, 2, padding).ok_or(error::Parse::InvalidYear)?,
     );
 
     Ok(())
@@ -354,7 +357,7 @@ pub(crate) fn parse_Y(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     items.year = Some(
         try_consume_digits(s, 1..=max_digits)
             .map(|v: i32| sign * v)
-            .ok_or(ParseError::InvalidYear)?,
+            .ok_or(error::Parse::InvalidYear)?,
     );
 
     Ok(())

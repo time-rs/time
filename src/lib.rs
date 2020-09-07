@@ -264,7 +264,7 @@ macro_rules! assert_value_in_range {
     }};
 }
 
-/// Returns `Err(ComponentRangeError)` if the value is not in range.
+/// Returns `Err(error::ComponentRange)` if the value is not in range.
 macro_rules! ensure_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {{
         #[allow(unused_imports)]
@@ -274,7 +274,7 @@ macro_rules! ensure_value_in_range {
             #[cfg(not(feature = "std"))]
             use alloc::vec::Vec;
 
-            return Err(ComponentRangeError {
+            return Err(crate::error::ComponentRange {
                 name: stringify!($value),
                 minimum: i64::from($start),
                 maximum: i64::from($end),
@@ -292,7 +292,7 @@ macro_rules! ensure_value_in_range {
             #[cfg(not(feature = "std"))]
             use alloc::vec;
 
-            return Err(ComponentRangeError {
+            return Err(crate::error::ComponentRange {
                 name: stringify!($value),
                 minimum: i64::from($start),
                 maximum: i64::from($end),
@@ -374,7 +374,7 @@ mod date;
 /// The `Duration` struct and its associated `impl`s.
 mod duration;
 /// Various error types returned by methods in the time crate.
-mod error;
+pub mod error;
 mod format;
 /// The `Instant` struct and its associated `impl`s.
 #[cfg(feature = "std")]
@@ -403,10 +403,13 @@ mod weekday;
 
 pub use date::Date;
 pub use duration::Duration;
-pub use error::{ComponentRangeError, ConversionRangeError, Error, IndeterminateOffsetError};
+pub use error::{
+    ComponentRange as ComponentRangeError, ConversionRange as ConversionRangeError, Error,
+    IndeterminateOffset as IndeterminateOffsetError, Parse as ParseError,
+};
 pub(crate) use format::DeferredFormat;
+pub use format::Format;
 use format::ParseResult;
-pub use format::{Format, ParseError};
 #[cfg(feature = "std")]
 pub use instant::Instant;
 pub use numerical_traits::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};

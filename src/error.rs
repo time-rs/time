@@ -1,4 +1,4 @@
-use crate::ParseError;
+pub use crate::format::parse::Error as Parse;
 #[cfg(not(feature = "std"))]
 use alloc::{boxed::Box, vec::Vec};
 use core::fmt;
@@ -7,16 +7,15 @@ use core::fmt;
 ///
 /// This can be used when you either don't know or don't care about the exact
 /// error returned. `Result<_, time::Error>` will work in these situations.
-// Boxing the `ComponentRangeError` reduces the size of `Error` from 72 bytes to
-// 16.
+// Boxing the `ComponentRange` reduces the size of `Error` from 72 bytes to 16.
 #[allow(clippy::missing_docs_in_private_items)] // variants only
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
-    ConversionRange(ConversionRangeError),
-    ComponentRange(Box<ComponentRangeError>),
-    Parse(ParseError),
-    IndeterminateOffset(IndeterminateOffsetError),
+    ConversionRange(ConversionRange),
+    ComponentRange(Box<ComponentRange>),
+    Parse(Parse),
+    IndeterminateOffset(IndeterminateOffset),
     #[cfg(not(__time_02_supports_non_exhaustive))]
     #[doc(hidden)]
     __NonExhaustive,
@@ -52,12 +51,12 @@ impl std::error::Error for Error {
 /// An error type indicating that a conversion failed because the target type
 /// could not store the initial value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ConversionRangeError {
+pub struct ConversionRange {
     #[allow(clippy::missing_docs_in_private_items)]
     __non_exhaustive: (),
 }
 
-impl ConversionRangeError {
+impl ConversionRange {
     #[allow(clippy::missing_docs_in_private_items)]
     pub(crate) const fn new() -> Self {
         Self {
@@ -66,17 +65,17 @@ impl ConversionRangeError {
     }
 }
 
-impl fmt::Display for ConversionRangeError {
+impl fmt::Display for ConversionRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("Source value is out of range for the target type")
     }
 }
 
 #[cfg(feature = "std")]
-impl std::error::Error for ConversionRangeError {}
+impl std::error::Error for ConversionRange {}
 
-impl From<ConversionRangeError> for Error {
-    fn from(original: ConversionRangeError) -> Self {
+impl From<ConversionRange> for Error {
+    fn from(original: ConversionRange) -> Self {
         Error::ConversionRange(original)
     }
 }
@@ -86,7 +85,7 @@ impl From<ConversionRangeError> for Error {
 // i64 is the narrowest type fitting all use cases. This eliminates the need
 // for a type parameter.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ComponentRangeError {
+pub struct ComponentRange {
     /// Name of the component.
     pub(crate) name: &'static str,
     /// Minimum allowed value, inclusive.
@@ -99,7 +98,7 @@ pub struct ComponentRangeError {
     pub(crate) given: Vec<(&'static str, i64)>,
 }
 
-impl fmt::Display for ComponentRangeError {
+impl fmt::Display for ComponentRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -119,29 +118,29 @@ impl fmt::Display for ComponentRangeError {
     }
 }
 
-impl From<ComponentRangeError> for Error {
-    fn from(original: ComponentRangeError) -> Self {
+impl From<ComponentRange> for Error {
+    fn from(original: ComponentRange) -> Self {
         Error::ComponentRange(Box::new(original))
     }
 }
 
 #[cfg(feature = "std")]
-impl std::error::Error for ComponentRangeError {}
+impl std::error::Error for ComponentRange {}
 
-impl From<ParseError> for Error {
-    fn from(original: ParseError) -> Self {
+impl From<Parse> for Error {
+    fn from(original: Parse) -> Self {
         Error::Parse(original)
     }
 }
 
 /// The system's UTC offset could not be determined at the given datetime.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct IndeterminateOffsetError {
+pub struct IndeterminateOffset {
     #[allow(clippy::missing_docs_in_private_items)]
     __non_exhaustive: (),
 }
 
-impl IndeterminateOffsetError {
+impl IndeterminateOffset {
     #[allow(clippy::missing_docs_in_private_items, dead_code)]
     pub(crate) const fn new() -> Self {
         Self {
@@ -150,17 +149,17 @@ impl IndeterminateOffsetError {
     }
 }
 
-impl fmt::Display for IndeterminateOffsetError {
+impl fmt::Display for IndeterminateOffset {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("The system's UTC offset could not be determined")
     }
 }
 
 #[cfg(feature = "std")]
-impl std::error::Error for IndeterminateOffsetError {}
+impl std::error::Error for IndeterminateOffset {}
 
-impl From<IndeterminateOffsetError> for Error {
-    fn from(original: IndeterminateOffsetError) -> Self {
+impl From<IndeterminateOffset> for Error {
+    fn from(original: IndeterminateOffset) -> Self {
         Error::IndeterminateOffset(original)
     }
 }

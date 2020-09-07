@@ -1,9 +1,9 @@
 use crate::{
+    error,
     format::parse::{parse, ParsedItems},
     internals,
     util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year},
-    ComponentRangeError, DeferredFormat, Duration, ParseError, ParseResult, PrimitiveDateTime,
-    Time, Weekday,
+    DeferredFormat, Duration, ParseResult, PrimitiveDateTime, Time, Weekday,
 };
 #[cfg(not(feature = "std"))]
 use alloc::{
@@ -112,7 +112,7 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::try_from_ymd(2019, 2, 29).is_err()); // 2019 isn't a leap year.
     /// ```
-    pub fn try_from_ymd(year: i32, month: u8, day: u8) -> Result<Self, ComponentRangeError> {
+    pub fn try_from_ymd(year: i32, month: u8, day: u8) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(month in 1 => 12);
         ensure_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
@@ -163,7 +163,7 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::try_from_yo(2019, 366).is_err()); // 2019 isn't a leap year.
     /// ```
-    pub fn try_from_yo(year: i32, ordinal: u16) -> Result<Self, ComponentRangeError> {
+    pub fn try_from_yo(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(ordinal in 1 => days_in_year(year), given year);
         Ok(internals::Date::from_yo_unchecked(year, ordinal))
@@ -227,7 +227,7 @@ impl Date {
         year: i32,
         week: u8,
         weekday: Weekday,
-    ) -> Result<Self, ComponentRangeError> {
+    ) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(week in 1 => weeks_in_year(year), given year);
         Ok(internals::Date::from_iso_ywd_unchecked(year, week, weekday))
@@ -609,7 +609,7 @@ impl Date {
     /// assert_eq!(Date::from_julian_day(2_458_485), date!(2019-01-01));
     /// assert_eq!(Date::from_julian_day(2_458_849), date!(2019-12-31));
     /// ```
-    // TODO Return a `Result<Self, ComponentRangeError>` in 0.3
+    // TODO Return a `Result<Self, error::ComponentRange>` in 0.3
     pub fn from_julian_day(julian_day: i64) -> Self {
         #![allow(clippy::missing_docs_in_private_items)]
         const Y: i64 = 4_716;
@@ -704,7 +704,7 @@ impl Date {
         hour: u8,
         minute: u8,
         second: u8,
-    ) -> Result<PrimitiveDateTime, ComponentRangeError> {
+    ) -> Result<PrimitiveDateTime, error::ComponentRange> {
         Ok(PrimitiveDateTime::new(
             self,
             Time::try_from_hms(hour, minute, second)?,
@@ -756,7 +756,7 @@ impl Date {
         minute: u8,
         second: u8,
         millisecond: u16,
-    ) -> Result<PrimitiveDateTime, ComponentRangeError> {
+    ) -> Result<PrimitiveDateTime, error::ComponentRange> {
         Ok(PrimitiveDateTime::new(
             self,
             Time::try_from_hms_milli(hour, minute, second, millisecond)?,
@@ -812,7 +812,7 @@ impl Date {
         minute: u8,
         second: u8,
         microsecond: u32,
-    ) -> Result<PrimitiveDateTime, ComponentRangeError> {
+    ) -> Result<PrimitiveDateTime, error::ComponentRange> {
         Ok(PrimitiveDateTime::new(
             self,
             Time::try_from_hms_micro(hour, minute, second, microsecond)?,
@@ -860,7 +860,7 @@ impl Date {
         minute: u8,
         second: u8,
         nanosecond: u32,
-    ) -> Result<PrimitiveDateTime, ComponentRangeError> {
+    ) -> Result<PrimitiveDateTime, error::ComponentRange> {
         Ok(PrimitiveDateTime::new(
             self,
             Time::try_from_hms_nano(hour, minute, second, nanosecond)?,
@@ -959,7 +959,7 @@ impl Date {
                     + 1) as u16,
             )
             .map_err(Into::into),
-            _ => Err(ParseError::InsufficientInformation),
+            _ => Err(error::Parse::InsufficientInformation),
         }
     }
 }
