@@ -267,37 +267,27 @@ macro_rules! assert_value_in_range {
 /// Returns `Err(error::ComponentRange)` if the value is not in range.
 macro_rules! ensure_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {{
-        #[allow(unused_imports)]
-        use standback::prelude::*;
-
-        if !($start..=$end).contains(&$value) {
-            #[cfg(not(feature = "std"))]
-            use alloc::vec::Vec;
-
+        #![allow(trivial_numeric_casts, unused_comparisons)]
+        if $value < $start || $value > $end {
             return Err(crate::error::ComponentRange {
                 name: stringify!($value),
-                minimum: i64::from($start),
-                maximum: i64::from($end),
-                value: i64::from($value),
-                given: Vec::new(),
+                minimum: $start as i64,
+                maximum: $end as i64,
+                value: $value as i64,
+                conditional_range: false,
             });
         }
     }};
 
-    ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {{
-        #[allow(unused_imports)]
-        use standback::prelude::*;
-
-        if !($start..=$end).contains(&$value) {
-            #[cfg(not(feature = "std"))]
-            use alloc::vec;
-
+    ($value:ident conditionally in $start:expr => $end:expr) => {{
+        #![allow(trivial_numeric_casts, unused_comparisons)]
+        if $value < $start || $value > $end {
             return Err(crate::error::ComponentRange {
                 name: stringify!($value),
-                minimum: i64::from($start),
-                maximum: i64::from($end),
-                value: i64::from($value),
-                given: vec![$((stringify!($conditional), i64::from($conditional))),+],
+                minimum: $start as i64,
+                maximum: $end as i64,
+                value: $value as i64,
+                conditional_range: true,
             });
         }
     }};

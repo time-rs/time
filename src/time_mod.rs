@@ -1,14 +1,16 @@
 #[cfg(feature = "std")]
 use crate::PrimitiveDateTime;
 use crate::{
+    error,
     format::{parse, parse::AmPm, ParsedItems},
-    DeferredFormat, Duration, ParseResult, error
+    DeferredFormat, Duration, ParseResult,
 };
 #[cfg(not(feature = "std"))]
 use alloc::{
     borrow::ToOwned,
     string::{String, ToString},
 };
+use const_fn::const_fn;
 use core::{
     cmp::Ordering,
     fmt::{self, Display},
@@ -128,7 +130,14 @@ impl Time {
     /// assert!(Time::try_from_hms(0, 60, 0).is_err()); // 60 isn't a valid minute.
     /// assert!(Time::try_from_hms(0, 0, 60).is_err()); // 60 isn't a valid second.
     /// ```
-    pub fn try_from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, error::ComponentRange> {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn try_from_hms(
+        hour: u8,
+        minute: u8,
+        second: u8,
+    ) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(hour in 0 => 23);
         ensure_value_in_range!(minute in 0 => 59);
         ensure_value_in_range!(second in 0 => 59);
@@ -214,7 +223,10 @@ impl Time {
     /// assert!(Time::try_from_hms_milli(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
     /// assert!(Time::try_from_hms_milli(0, 0, 0, 1_000).is_err()); // 1_000 isn't a valid millisecond.
     /// ```
-    pub fn try_from_hms_milli(
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn try_from_hms_milli(
         hour: u8,
         minute: u8,
         second: u8,
@@ -306,7 +318,10 @@ impl Time {
     /// assert!(Time::try_from_hms_micro(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
     /// assert!(Time::try_from_hms_micro(0, 0, 0, 1_000_000).is_err()); // 1_000_000 isn't a valid microsecond.
     /// ```
-    pub fn try_from_hms_micro(
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn try_from_hms_micro(
         hour: u8,
         minute: u8,
         second: u8,
@@ -397,7 +412,10 @@ impl Time {
     /// assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
     /// assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
-    pub fn try_from_hms_nano(
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn try_from_hms_nano(
         hour: u8,
         minute: u8,
         second: u8,

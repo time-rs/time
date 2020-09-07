@@ -112,10 +112,17 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::try_from_ymd(2019, 2, 29).is_err()); // 2019 isn't a leap year.
     /// ```
-    pub fn try_from_ymd(year: i32, month: u8, day: u8) -> Result<Self, error::ComponentRange> {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn try_from_ymd(
+        year: i32,
+        month: u8,
+        day: u8,
+    ) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(month in 1 => 12);
-        ensure_value_in_range!(day in 1 => days_in_year_month(year, month), given year, month);
+        ensure_value_in_range!(day conditionally in 1 => days_in_year_month(year, month));
 
         Ok(internals::Date::from_ymd_unchecked(year, month, day))
     }
@@ -163,9 +170,12 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::try_from_yo(2019, 366).is_err()); // 2019 isn't a leap year.
     /// ```
-    pub fn try_from_yo(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn try_from_yo(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
-        ensure_value_in_range!(ordinal in 1 => days_in_year(year), given year);
+        ensure_value_in_range!(ordinal conditionally in 1 => days_in_year(year));
         Ok(internals::Date::from_yo_unchecked(year, ordinal))
     }
 
@@ -229,7 +239,7 @@ impl Date {
         weekday: Weekday,
     ) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
-        ensure_value_in_range!(week in 1 => weeks_in_year(year), given year);
+        ensure_value_in_range!(week conditionally in 1 => weeks_in_year(year));
         Ok(internals::Date::from_iso_ywd_unchecked(year, week, weekday))
     }
 

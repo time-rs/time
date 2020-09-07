@@ -84,7 +84,7 @@ impl From<ConversionRange> for Error {
 /// range, causing a failure.
 // i64 is the narrowest type fitting all use cases. This eliminates the need
 // for a type parameter.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ComponentRange {
     /// Name of the component.
     pub(crate) name: &'static str,
@@ -94,8 +94,9 @@ pub struct ComponentRange {
     pub(crate) maximum: i64,
     /// Value that was provided.
     pub(crate) value: i64,
-    /// The minimum and/or maximum is only valid with the following values.
-    pub(crate) given: Vec<(&'static str, i64)>,
+    /// The minimum and/or maximum value is conditional on the value of other
+    /// parameters.
+    pub(crate) conditional_range: bool,
 }
 
 impl fmt::Display for ComponentRange {
@@ -106,15 +107,11 @@ impl fmt::Display for ComponentRange {
             self.name, self.minimum, self.maximum
         )?;
 
-        let mut iter = self.given.iter();
-        if let Some((name, value)) = iter.next() {
-            write!(f, " given {}={}", name, value)?;
-            for (name, value) in iter {
-                write!(f, ", {}={}", name, value)?;
-            }
+        if self.conditional_range {
+            write!(f, ", given values of other parameters")?;
         }
 
-        write!(f, " (was {})", self.value)
+        Ok(())
     }
 }
 
