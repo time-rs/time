@@ -21,8 +21,8 @@ pub(crate) mod parse_items;
 pub(crate) mod time;
 pub(crate) mod well_known;
 
-use crate::{Date, Time, UtcOffset};
-use core::fmt::{self, Formatter};
+use crate::{error, Date, Time, UtcOffset};
+use core::fmt::Formatter;
 pub(crate) use deferred_format::DeferredFormat;
 #[allow(unreachable_pub)] // rust-lang/rust#64762
 pub use format::Format;
@@ -92,19 +92,16 @@ fn format_specifier(
     time: Option<Time>,
     offset: Option<UtcOffset>,
     specifier: Specifier,
-) -> fmt::Result {
+) -> Result<(), error::Format> {
     /// Push the provided specifier to the list of items.
     macro_rules! specifier {
         ($type:ident :: $specifier_fn:ident ( $specifier:ident $(, $param:expr)? )) => {
             $type::$specifier_fn(
                 f,
-                $type.expect(concat!(
-                    "Specifier `%",
-                    stringify!($specifier),
-                    "` requires a ",
-                    stringify!($type),
-                    " to be present."
-                )),
+                match $type {
+                    Some(v) => v,
+                    None => return Err(error::Format::InsufficientTypeInformation),
+                },
                 $($param)?
             )?
         };

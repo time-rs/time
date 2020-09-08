@@ -73,14 +73,15 @@ impl Display for DeferredFormat {
                     match item {
                         FormatItem::Literal(value) => f.write_str(value)?,
                         FormatItem::Specifier(specifier) => {
-                            format_specifier(f, self.date, self.time, self.offset, specifier)?
+                            format_specifier(f, self.date, self.time, self.offset, specifier)
+                                .map_err(|_| fmt::Error)?
                         }
                     }
                 }
 
                 Ok(())
             }
-            Format::Rfc3339 => well_known::rfc3339::fmt(self, f),
+            Format::Rfc3339 => well_known::rfc3339::fmt(self, f).map_err(|_| fmt::Error),
             #[cfg(not(__time_02_supports_non_exhaustive))]
             Format::__NonExhaustive => unreachable!(),
         }
