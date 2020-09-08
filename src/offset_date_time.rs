@@ -1351,6 +1351,13 @@ mod test {
                 .with_time(time!(3:04:05))
                 .assume_offset(offset!(+6)))
         );
+        assert_eq!(
+            OffsetDateTime::parse("2020-09-08T08:44:31+02:30", Format::Rfc3339),
+            Ok(date!(2020-09-08)
+                .with_time(time!(08:44:31))
+                .assume_offset(offset!(+02:30)))
+        );
+
         Ok(())
     }
 

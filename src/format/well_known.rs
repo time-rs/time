@@ -103,12 +103,12 @@ pub(crate) mod rfc3339 {
                         })
                     }
                 };
-            let offset_hour: i32 =
+            let offset_hour: i16 =
                 try_consume_exact_digits(s, 2, Padding::Zero).ok_or(error::Parse::InvalidOffset)?;
             try_consume_char(s, ':')?;
-            let offset_minute: i32 =
+            let offset_minute: i16 =
                 try_consume_exact_digits(s, 2, Padding::Zero).ok_or(error::Parse::InvalidOffset)?;
-            items.offset = Some(UtcOffset::seconds(
+            items.offset = Some(UtcOffset::minutes(
                 offset_sign * (offset_hour * 60 + offset_minute),
             ));
         }
