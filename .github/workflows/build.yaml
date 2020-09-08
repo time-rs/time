@@ -312,4 +312,5 @@ jobs:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           BRANCH: gh-pages
           FOLDER: target/doc
+          SINGLE_COMMIT: true
         if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
