@@ -1,6 +1,6 @@
 pub use crate::format::parse::Error as Parse;
 #[cfg(not(feature = "std"))]
-use alloc::{boxed::Box, vec::Vec};
+use alloc::boxed::Box;
 use core::fmt;
 
 /// A unified error type for anything returned by a method in the time crate.
