@@ -7,6 +7,31 @@ Versioning].
 
 ---
 
+## 0.2.18 [2020-09-08]
+
+### Changed
+
+- The following functions are `const fn` on rustc ≥ 1.46:
+  - `Date::try_from_ymd`
+  - `Date::try_from_yo`
+  - `Time::try_from_hms`
+  - `Time::try_from_hms_milli`
+  - `Time::try_from_hms_micro`
+  - `Time::try_from_hms_nano`
+- An `error` module has been created where all existing error types are
+  contained. The `Error` suffix has been dropped from these types.
+- An `ext` module has been created where extension traits are contained.
+- A `util` module has been created where utility functions are contained.
+- `error::ComponentRange` now implements `Copy`.
+
+For back-compatibility, all items that were moved to newly-contained modules
+have been re-exported from their previous locations (and in the case of the
+`error` module, with their previous name).
+
+### Fixes
+
+Parsing `format::Rfc3339` now correctly handles the UTC offset (#274).
+
 ## 0.2.17 [2020-09-01]
 
 ### Changed
