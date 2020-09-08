@@ -409,7 +409,7 @@ pub use primitive_date_time::PrimitiveDateTime;
 pub use sign::Sign;
 #[allow(unused_imports)]
 use standback::prelude::*;
-/// Construct a [`Date`] with a statically known value.
+/// Construct a [`Date`](crate::Date) with a statically known value.
 ///
 /// The resulting expression can be used in `const` or `static` declarations.
 ///
@@ -426,7 +426,7 @@ use standback::prelude::*;
 /// # }
 /// ```
 pub use time_macros::date;
-/// Construct a [`UtcOffset`] with a statically known value.
+/// Construct a [`UtcOffset`](crate::UtcOffset) with a statically known value.
 ///
 /// The resulting expression can be used in `const` or `static` declarations.
 ///
@@ -448,7 +448,7 @@ pub use time_macros::date;
 /// assert_eq!(offset!(-23:59:59), UtcOffset::seconds(-86_399));
 /// ```
 pub use time_macros::offset;
-/// Construct a [`Time`] with a statically known value.
+/// Construct a [`Time`](crate::Time) with a statically known value.
 ///
 /// The resulting expression can be used in `const` or `static` declarations.
 ///
