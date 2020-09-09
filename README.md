@@ -1,8 +1,6 @@
 # time
 
 ![build status](https://github.com/time-rs/time/workflows/Build/badge.svg?branch=main)
-<br>
-[![Matrix](https://img.shields.io/badge/chat-Matrix-blue)](https://matrix.to/#/!AAFrFkLHvtsXtMYRho:matrix.org)
 ![license](https://img.shields.io/badge/license-MIT%20or%20Apache--2-brightgreen)
 ![version](https://img.shields.io/crates/v/time)
 ![rustc 1.32.0](https://img.shields.io/badge/rustc-1.32.0-blue)
