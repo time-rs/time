@@ -7,6 +7,13 @@ Versioning].
 
 ---
 
+## Unreleased
+
+### Fixed
+
+- The build script now declares a dependency on the `COMPILING_UNDER_CARGO_WEB`
+  environment variable.
+
 ## 0.2.18 [2020-09-08]
 
 ### Changed

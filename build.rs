@@ -17,6 +17,8 @@ macro_rules! warning {
 }
 
 fn main() {
+    println!("cargo:rerun-if-env-changed=COMPILING_UNDER_CARGO_WEB");
+
     // Are we compiling with `cargo web`?
     if env::var("COMPILING_UNDER_CARGO_WEB") == Ok("1".into()) {
         cfg_emit!(__time_02_cargo_web);
