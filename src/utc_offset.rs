@@ -192,7 +192,7 @@ impl UtcOffset {
     /// Obtain the system's UTC offset at a known moment in time. If the offset
     /// cannot be determined, UTC is returned.
     ///
-    /// ```rust,no_run
+    /// ```rust
     /// # use time::{UtcOffset, OffsetDateTime};
     /// let unix_epoch = OffsetDateTime::unix_epoch();
     /// let local_offset = UtcOffset::local_offset_at(unix_epoch);
@@ -206,7 +206,7 @@ impl UtcOffset {
     /// Attempt to obtain the system's UTC offset at a known moment in time. If
     /// the offset cannot be determined, an error is returned.
     ///
-    /// ```rust,no_run
+    /// ```rust
     /// # use time::{UtcOffset, OffsetDateTime};
     /// let unix_epoch = OffsetDateTime::unix_epoch();
     /// let local_offset = UtcOffset::try_local_offset_at(unix_epoch);
@@ -222,7 +222,7 @@ impl UtcOffset {
     /// Obtain the system's current UTC offset. If the offset cannot be
     /// determined, UTC is returned.
     ///
-    /// ```rust,no_run
+    /// ```rust
     /// # use time::UtcOffset;
     /// let local_offset = UtcOffset::current_local_offset();
     /// println!("{}", local_offset.format("%z"));
@@ -236,7 +236,7 @@ impl UtcOffset {
     /// Attempt to obtain the system's current UTC offset. If the offset cannot
     /// be determined, an error is returned.
     ///
-    /// ```rust,no_run
+    /// ```rust
     /// # use time::UtcOffset;
     /// let local_offset = UtcOffset::try_current_local_offset();
     /// assert!(local_offset.is_ok());
@@ -628,5 +628,17 @@ mod test {
         assert_eq!(offset!(-23:59).to_string(), "-23:59");
         assert_eq!(offset!(+23:59:59).to_string(), "+23:59:59");
         assert_eq!(offset!(-23:59:59).to_string(), "-23:59:59");
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn try_local_offset_at() {
+        assert!(UtcOffset::try_local_offset_at(OffsetDateTime::unix_epoch()).is_ok());
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn try_current_local_offset() {
+        assert!(UtcOffset::try_current_local_offset().is_ok());
     }
 }

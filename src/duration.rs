@@ -1076,7 +1076,7 @@ impl PartialOrd for Duration {
 impl PartialOrd<StdDuration> for Duration {
     fn partial_cmp(&self, rhs: &StdDuration) -> Option<Ordering> {
         if rhs.as_secs() > i64::max_value() as u64 {
-            return Some(Ordering::Greater);
+            return Some(Ordering::Less);
         }
 
         Some(
@@ -1146,6 +1146,8 @@ mod test {
         use crate::Sign::*;
         assert_eq!(1.seconds().sign(), Positive);
         assert_eq!((-1).seconds().sign(), Negative);
+        assert_eq!(1.nanoseconds().sign(), Positive);
+        assert_eq!((-1).nanoseconds().sign(), Negative);
         assert_eq!(0.seconds().sign(), Zero);
     }
 
@@ -1185,6 +1187,16 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "deprecated")]
+    #[allow(deprecated)]
+    fn num_weeks() {
+        assert_eq!(Duration::weeks(1).num_weeks(), 1);
+        assert_eq!(Duration::weeks(-1).num_weeks(), -1);
+        assert_eq!(Duration::days(6).num_weeks(), 0);
+        assert_eq!(Duration::days(-6).num_weeks(), 0);
+    }
+
+    #[test]
     fn days() {
         assert_eq!(Duration::days(1), 86_400.seconds());
         assert_eq!(Duration::days(2), (2 * 86_400).seconds());
@@ -1198,6 +1210,16 @@ mod test {
         assert_eq!(Duration::days(-1).whole_days(), -1);
         assert_eq!(Duration::hours(23).whole_days(), 0);
         assert_eq!(Duration::hours(-23).whole_days(), 0);
+    }
+
+    #[test]
+    #[cfg(feature = "deprecated")]
+    #[allow(deprecated)]
+    fn num_days() {
+        assert_eq!(Duration::days(1).num_days(), 1);
+        assert_eq!(Duration::days(-1).num_days(), -1);
+        assert_eq!(Duration::hours(23).num_days(), 0);
+        assert_eq!(Duration::hours(-23).num_days(), 0);
     }
 
     #[test]
@@ -1217,6 +1239,16 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "deprecated")]
+    #[allow(deprecated)]
+    fn num_hours() {
+        assert_eq!(Duration::hours(1).num_hours(), 1);
+        assert_eq!(Duration::hours(-1).num_hours(), -1);
+        assert_eq!(Duration::minutes(59).num_hours(), 0);
+        assert_eq!(Duration::minutes(-59).num_hours(), 0);
+    }
+
+    #[test]
     fn minutes() {
         assert_eq!(Duration::minutes(1), 60.seconds());
         assert_eq!(Duration::minutes(2), (2 * 60).seconds());
@@ -1233,6 +1265,16 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "deprecated")]
+    #[allow(deprecated)]
+    fn num_minutes() {
+        assert_eq!(1.minutes().num_minutes(), 1);
+        assert_eq!((-1).minutes().num_minutes(), -1);
+        assert_eq!(59.seconds().num_minutes(), 0);
+        assert_eq!((-59).seconds().num_minutes(), 0);
+    }
+
+    #[test]
     fn seconds() {
         assert_eq!(Duration::seconds(1), 1_000.milliseconds());
         assert_eq!(Duration::seconds(2), (2 * 1_000).milliseconds());
@@ -1246,6 +1288,16 @@ mod test {
         assert_eq!((-1).seconds().whole_seconds(), -1);
         assert_eq!(1.minutes().whole_seconds(), 60);
         assert_eq!((-1).minutes().whole_seconds(), -60);
+    }
+
+    #[test]
+    #[cfg(feature = "deprecated")]
+    #[allow(deprecated)]
+    fn num_seconds() {
+        assert_eq!(1.seconds().num_seconds(), 1);
+        assert_eq!((-1).seconds().num_seconds(), -1);
+        assert_eq!(1.minutes().num_seconds(), 60);
+        assert_eq!((-1).minutes().num_seconds(), -60);
     }
 
     #[test]
@@ -1297,6 +1349,18 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "deprecated")]
+    #[allow(deprecated)]
+    fn num_milliseconds() {
+        assert_eq!(1.seconds().num_milliseconds(), 1_000);
+        assert_eq!((-1).seconds().num_milliseconds(), -1_000);
+        assert_eq!(1.milliseconds().num_milliseconds(), 1);
+        assert_eq!((-1).milliseconds().num_milliseconds(), -1);
+        assert_eq!(Duration::max_value().num_milliseconds(), i64::MAX);
+        assert_eq!(Duration::min_value().num_milliseconds(), i64::MIN);
+    }
+
+    #[test]
     fn subsec_milliseconds() {
         assert_eq!(1.4.seconds().subsec_milliseconds(), 400);
         assert_eq!((-1.4).seconds().subsec_milliseconds(), -400);
@@ -1317,6 +1381,18 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "deprecated")]
+    #[allow(deprecated)]
+    fn num_microseconds() {
+        assert_eq!(1.milliseconds().num_microseconds(), Some(1_000));
+        assert_eq!((-1).milliseconds().num_microseconds(), Some(-1_000));
+        assert_eq!(1.microseconds().num_microseconds(), Some(1));
+        assert_eq!((-1).microseconds().num_microseconds(), Some(-1));
+        assert_eq!(Duration::max_value().num_microseconds(), None);
+        assert_eq!(Duration::min_value().num_microseconds(), None);
+    }
+
+    #[test]
     fn subsec_microseconds() {
         assert_eq!(1.0004.seconds().subsec_microseconds(), 400);
         assert_eq!((-1.0004).seconds().subsec_microseconds(), -400);
@@ -1334,6 +1410,18 @@ mod test {
         assert_eq!((-1).microseconds().whole_nanoseconds(), -1_000);
         assert_eq!(1.nanoseconds().whole_nanoseconds(), 1);
         assert_eq!((-1).nanoseconds().whole_nanoseconds(), -1);
+    }
+
+    #[test]
+    #[cfg(feature = "deprecated")]
+    #[allow(deprecated)]
+    fn num_nanoseconds() {
+        assert_eq!(1.microseconds().num_nanoseconds(), Some(1_000));
+        assert_eq!((-1).microseconds().num_nanoseconds(), Some(-1_000));
+        assert_eq!(1.nanoseconds().num_nanoseconds(), Some(1));
+        assert_eq!((-1).nanoseconds().num_nanoseconds(), Some(-1));
+        assert_eq!(Duration::max_value().num_nanoseconds(), None);
+        assert_eq!(Duration::min_value().num_nanoseconds(), None);
     }
 
     #[test]
@@ -1388,9 +1476,27 @@ mod test {
     }
 
     #[test]
+    #[cfg(all(feature = "std", feature = "deprecated"))]
+    #[allow(deprecated)]
+    fn span() {
+        let time = Duration::span(|| {
+            std::thread::sleep(100.std_milliseconds());
+        });
+        assert!(time >= 100.milliseconds());
+    }
+
+    #[test]
     fn try_from_std_duration() {
         assert_eq!(Duration::try_from(0.std_seconds()), Ok(0.seconds()));
         assert_eq!(Duration::try_from(1.std_seconds()), Ok(1.seconds()));
+    }
+
+    #[test]
+    #[cfg(feature = "deprecated")]
+    #[allow(deprecated)]
+    fn from_std() {
+        assert_eq!(Duration::from_std(0.std_seconds()), Ok(0.seconds()));
+        assert_eq!(Duration::from_std(1.std_seconds()), Ok(1.seconds()));
     }
 
     #[test]
@@ -1398,6 +1504,15 @@ mod test {
         assert_eq!(StdDuration::try_from(0.seconds()), Ok(0.std_seconds()));
         assert_eq!(StdDuration::try_from(1.seconds()), Ok(1.std_seconds()));
         assert!(StdDuration::try_from((-1).seconds()).is_err());
+    }
+
+    #[test]
+    #[cfg(feature = "deprecated")]
+    #[allow(deprecated)]
+    fn to_std() {
+        assert_eq!(0.seconds().to_std(), Ok(0.std_seconds()));
+        assert_eq!(1.seconds().to_std(), Ok(1.std_seconds()));
+        assert!((-1).seconds().to_std().is_err());
     }
 
     #[test]
@@ -1567,6 +1682,14 @@ mod test {
     }
 
     #[test]
+    #[allow(clippy::float_cmp)]
+    fn div() {
+        assert_eq!(1.seconds() / 0.5.seconds(), 2.);
+        assert_eq!(1.std_seconds() / 0.5.seconds(), 2.);
+        assert_eq!(1.seconds() / 0.5.std_seconds(), 2.);
+    }
+
+    #[test]
     fn mul_float() {
         assert_eq!(1.seconds() * 1.5_f32, 1_500.milliseconds());
         assert_eq!(1.seconds() * 2.5_f32, 2_500.milliseconds());
@@ -1715,6 +1838,7 @@ mod test {
         assert_eq!(0.seconds().partial_cmp(&1.std_seconds()), Some(Less));
         assert_eq!((-1).seconds().partial_cmp(&0.std_seconds()), Some(Less));
         assert_eq!(1.minutes().partial_cmp(&1.std_seconds()), Some(Greater));
+        assert_eq!(0.seconds().partial_cmp(&u64::MAX.std_seconds()), Some(Less));
     }
 
     #[test]

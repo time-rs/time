@@ -538,7 +538,7 @@ mod private {
 /// This is identical to calling `T::parse(s, format)`, but allows the use of
 /// type inference where possible.
 ///
-/// ```rust,no_run
+/// ```rust
 /// use time::Time;
 ///
 /// #[derive(Debug)]
@@ -599,4 +599,21 @@ pub fn precise_time_s() -> f64 {
     (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))
         .expect("System clock was before 1970.")
         .as_secs_f64()
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    #[cfg(all(feature = "std", feature = "deprecated"))]
+    #[allow(deprecated)]
+    fn precise_time_s() {
+        let _: f64 = super::precise_time_s();
+    }
+
+    #[test]
+    #[cfg(all(feature = "std", feature = "deprecated"))]
+    #[allow(deprecated)]
+    fn precise_time_ns() {
+        let _: u64 = super::precise_time_ns();
+    }
 }

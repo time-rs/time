@@ -1950,6 +1950,52 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "std")]
+    #[allow(deprecated)]
+    fn today() {
+        let _ = Date::today();
+    }
+
+    #[test]
+    #[cfg(feature = "panicking-api")]
+    #[allow(deprecated)]
+    fn from_ymd() -> crate::Result<()> {
+        assert_eq!(Date::from_ymd(2019, 1, 1), date!(2019-001));
+        assert_eq!(Date::from_ymd(2019, 12, 31), date!(2019-365));
+        Ok(())
+    }
+
+    #[test]
+    #[cfg(feature = "panicking-api")]
+    #[allow(deprecated)]
+    fn from_yo() -> crate::Result<()> {
+        assert_eq!(Date::from_yo(2019, 1), date!(2019-01-01));
+        assert_eq!(Date::from_yo(2019, 365), date!(2019-12-31));
+        Ok(())
+    }
+
+    #[test]
+    #[cfg(feature = "panicking-api")]
+    #[allow(deprecated)]
+    fn from_iso_ywd() -> crate::Result<()> {
+        use Weekday::*;
+        assert_eq!(Date::from_iso_ywd(2019, 1, Monday), date!(2018-12-31));
+        assert_eq!(Date::from_iso_ywd(2019, 1, Tuesday), date!(2019-01-01));
+        assert_eq!(Date::from_iso_ywd(2020, 53, Friday), date!(2021-01-01));
+        Ok(())
+    }
+
+    #[test]
+    fn try_from_iso_ywd() -> crate::Result<()> {
+        use Weekday::*;
+        assert!(Date::try_from_iso_ywd(2019, 1, Monday).is_ok());
+        assert!(Date::try_from_iso_ywd(2019, 1, Tuesday).is_ok());
+        assert!(Date::try_from_iso_ywd(2020, 53, Friday).is_ok());
+        assert!(Date::try_from_iso_ywd(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
+        Ok(())
+    }
+
+    #[test]
     fn year() -> crate::Result<()> {
         assert_eq!(date!(2019-002).year(), 2019);
         assert_eq!(date!(2020-002).year(), 2020);
@@ -2038,6 +2084,12 @@ mod test {
         assert_eq!(julian!(2_458_485), date!(2019-01-01));
         assert_eq!(julian!(2_458_849), date!(2019-12-31));
         Ok(())
+    }
+
+    #[test]
+    #[should_panic]
+    fn from_julian_day_large() {
+        Date::from_julian_day(i64::MAX);
     }
 
     #[test]
@@ -2144,19 +2196,67 @@ mod test {
 
     #[test]
     fn format() -> crate::Result<()> {
-        assert_eq!(date!(2019-01-02).format("%Y-%m-%d"), "2019-01-02");
+        // Check all specifiers for date objects.
+        let date = date!(2019-01-02);
+        assert_eq!(date.format("%a"), "Wed");
+        assert_eq!(date.format("%A"), "Wednesday");
+        assert_eq!(date.format("%b"), "Jan");
+        assert_eq!(date.format("%B"), "January");
+        assert_eq!(date.format("%C"), "20");
+        assert_eq!(date.format("%d"), "02");
+        assert_eq!(date.format("%D"), "1/02/19");
+        assert_eq!(date.format("%F"), "2019-01-02");
+        assert_eq!(date.format("%g"), "19");
+        assert_eq!(date.format("%G"), "2019");
+        assert_eq!(date.format("%j"), "002");
+        assert_eq!(date.format("%m"), "01");
+        assert_eq!(date.format("%u"), "3");
+        assert_eq!(date.format("%U"), "00");
+        assert_eq!(date.format("%V"), "01");
+        assert_eq!(date.format("%w"), "3");
+        assert_eq!(date.format("%W"), "00");
+        assert_eq!(date.format("%y"), "19");
+        assert_eq!(date.format("%Y"), "2019");
+
+        // Ensure the sign is emitted correctly for all year specifiers.
+        let date = date!(10_000-01-03);
+        assert_eq!(date.format("%G"), "+10000");
+        assert_eq!(date.format("%Y"), "+10000");
+
         Ok(())
     }
 
     #[test]
     fn parse() -> crate::Result<()> {
-        assert_eq!(Date::parse("2019-01-02", "%F"), Ok(date!(2019-01-02)));
-        assert_eq!(Date::parse("2019-002", "%Y-%j"), Ok(date!(2019-002)));
-        assert_eq!(Date::parse("2019-W01-3", "%G-W%V-%u"), Ok(date!(2019-002)));
-        assert_eq!(Date::parse("20200201", "%Y%m%d"), Ok(date!(2020-02-01)));
-        assert_eq!(Date::parse("-1234-01-02", "%F"), Ok(date!(-1234-01-02)));
-        assert_eq!(Date::parse("-12345-01-02", "%F"), Ok(date!(-12345-01-02)));
-        assert!(Date::parse("-123456-01-02", "%F").is_err());
+        // Check all specifiers for date objects. To ensure that the date parses
+        // successfully otherwise, additional data is provided.
+        let date = date!(2019-01-02);
+        assert_eq!(Date::parse("2019-01-02 Wed", "%F %a"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 Wednesday", "%F %A"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 Jan", "%F %b"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 January", "%F %B"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 20", "%F %C"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 02", "%F %d"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 1/02/19", "%F %D"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02", "%F"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 19", "%F %g"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 2019", "%F %G"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 002", "%F %j"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 01", "%F %m"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 3", "%F %u"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 00", "%F %U"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 01", "%F %V"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 3", "%F %w"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 00", "%F %W"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 19", "%F %y"), Ok(date));
+        assert_eq!(Date::parse("2019-01-02 2019", "%F %Y"), Ok(date));
+
+        // Additional coverage
+        assert_eq!(
+            Date::parse("", ""),
+            Err(error::Parse::InsufficientInformation)
+        );
+
         Ok(())
     }
 
@@ -2263,5 +2363,23 @@ mod test {
         assert_eq!(first.cmp(&second), Ordering::Less);
         assert_eq!(second.cmp(&first), Ordering::Greater);
         Ok(())
+    }
+
+    #[test]
+    #[should_panic]
+    fn next_day_panics() {
+        internals::Date::from_ymd_unchecked(MAX_YEAR, 12, 31).next_day();
+    }
+
+    #[test]
+    #[should_panic]
+    fn previous_day_panics() {
+        internals::Date::from_ymd_unchecked(MIN_YEAR, 1, 1).previous_day();
+    }
+
+    #[test]
+    #[should_panic]
+    fn julian_day_panics() {
+        Date::from_julian_day(i64::MAX);
     }
 }

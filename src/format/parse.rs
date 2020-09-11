@@ -390,7 +390,7 @@ pub(crate) fn parse(s: &str, format: &Format) -> ParseResult<ParsedItems> {
                             C { padding } => parse!(date::parse_C(padding)),
                             d { padding } => parse!(date::parse_d(padding)),
                             D => {
-                                parse!(date::parse_m(Padding::Zero));
+                                parse!(date::parse_m(Padding::None));
                                 parse_char!('/');
                                 parse!(date::parse_d(Padding::Zero));
                                 parse_char!('/');

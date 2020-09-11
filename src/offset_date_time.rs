@@ -127,7 +127,7 @@ impl OffsetDateTime {
     /// in the local offset. If the offset cannot be determined, an error is
     /// returned.
     ///
-    /// ```rust,no_run
+    /// ```rust
     /// # use time::OffsetDateTime;
     /// assert!(OffsetDateTime::try_now_local().is_ok());
     /// ```
@@ -1008,7 +1008,10 @@ impl From<OffsetDateTime> for SystemTime {
 #[rustfmt::skip::macros(date)]
 mod test {
     use super::*;
-    use crate::ext::{NumericalDuration, NumericalStdDuration};
+    use crate::{
+        error,
+        ext::{NumericalDuration, NumericalStdDuration},
+    };
 
     #[test]
     #[cfg(feature = "std")]
@@ -1025,6 +1028,12 @@ mod test {
             OffsetDateTime::now_local().offset(),
             UtcOffset::current_local_offset()
         );
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn try_now_local() {
+        assert!(OffsetDateTime::try_now_local().is_ok());
     }
 
     #[test]
@@ -1224,6 +1233,31 @@ mod test {
     }
 
     #[test]
+    fn iso_year_week() -> crate::Result<()> {
+        assert_eq!(
+            date!(2019-01-01).midnight().assume_utc().iso_year_week(),
+            (2019, 1)
+        );
+        assert_eq!(
+            date!(2019-10-04).midnight().assume_utc().iso_year_week(),
+            (2019, 40)
+        );
+        assert_eq!(
+            date!(2020-01-01).midnight().assume_utc().iso_year_week(),
+            (2020, 1)
+        );
+        assert_eq!(
+            date!(2020-12-31).midnight().assume_utc().iso_year_week(),
+            (2020, 53)
+        );
+        assert_eq!(
+            date!(2021-01-01).midnight().assume_utc().iso_year_week(),
+            (2020, 53)
+        );
+        Ok(())
+    }
+
+    #[test]
     fn week() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().assume_utc().week(), 1);
         assert_eq!(date!(2020-01-01).midnight().assume_utc().week(), 1);
@@ -1328,6 +1362,13 @@ mod test {
             date!(2019-01-02).midnight().assume_utc().format("%F %r %z"),
             "2019-01-02 12:00:00 am +0000",
         );
+        assert_eq!(
+            date!(2019-01-02)
+                .with_time(time!(3:04:05:678_901_234))
+                .assume_offset(offset!(+6:07))
+                .format(Format::Rfc3339),
+            "2019-01-02T03:04:05+06:07"
+        );
         Ok(())
     }
 
@@ -1356,6 +1397,33 @@ mod test {
             Ok(date!(2020-09-08)
                 .with_time(time!(08:44:31))
                 .assume_offset(offset!(+02:30)))
+        );
+        assert_eq!(
+            OffsetDateTime::parse("2019-01-02T03:04:05.678901234+05:06", Format::Rfc3339),
+            Ok(date!(2019-01-02)
+                .with_time(time!(3:04:05:678_901_234))
+                .assume_offset(offset!(+5:06)))
+        );
+        assert_eq!(
+            OffsetDateTime::parse("2019-01-02T03:04:05.678901234Z", Format::Rfc3339),
+            Ok(date!(2019-01-02)
+                .with_time(time!(3:04:05:678_901_234))
+                .assume_utc())
+        );
+        assert_eq!(
+            OffsetDateTime::parse("2019-01-02T03:04:05/", Format::Rfc3339),
+            Err(error::Parse::UnexpectedCharacter {
+                actual: '/',
+                expected: '+'
+            })
+        );
+        assert_eq!(
+            OffsetDateTime::parse("2019-01-02T03:04:05", Format::Rfc3339),
+            Err(error::Parse::UnexpectedEndOfString)
+        );
+        assert_eq!(
+            OffsetDateTime::parse("2019-01-02T03:04:05.", Format::Rfc3339),
+            Err(error::Parse::InvalidNanosecond)
         );
 
         Ok(())
@@ -1617,6 +1685,10 @@ mod test {
     #[test]
     #[cfg(feature = "std")]
     fn std_add_duration() -> crate::Result<()> {
+        assert_eq!(
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc()) + 0.seconds(),
+            SystemTime::from(date!(2019-01-01).midnight().assume_utc()),
+        );
         assert_eq!(
             SystemTime::from(date!(2019-01-01).midnight().assume_utc()) + 5.days(),
             SystemTime::from(date!(2019-01-06).midnight().assume_utc()),
@@ -1959,6 +2031,14 @@ mod test {
             OffsetDateTime::from(SystemTime::UNIX_EPOCH),
             OffsetDateTime::unix_epoch()
         );
+        assert_eq!(
+            OffsetDateTime::from(SystemTime::UNIX_EPOCH - 1.std_days()),
+            OffsetDateTime::unix_epoch() - 1.days()
+        );
+        assert_eq!(
+            OffsetDateTime::from(SystemTime::UNIX_EPOCH + 1.std_days()),
+            OffsetDateTime::unix_epoch() + 1.days()
+        );
     }
 
     #[test]
@@ -1968,5 +2048,23 @@ mod test {
             SystemTime::from(OffsetDateTime::unix_epoch()),
             SystemTime::UNIX_EPOCH
         );
+        assert_eq!(
+            SystemTime::from(OffsetDateTime::unix_epoch() + 1.days()),
+            SystemTime::UNIX_EPOCH + 1.std_days()
+        );
+        assert_eq!(
+            SystemTime::from(OffsetDateTime::unix_epoch() - 1.days()),
+            SystemTime::UNIX_EPOCH - 1.std_days()
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn display() -> crate::Result<()> {
+        assert_eq!(
+            date!(1970-01-01).midnight().assume_utc().to_string(),
+            String::from("1970-01-01 0:00 +0")
+        );
+        Ok(())
     }
 }

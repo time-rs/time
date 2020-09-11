@@ -75,10 +75,9 @@ macro_rules! sign_mul {
             }
 
             impl MulAssign<Sign> for $type {
+                #[allow(trivial_numeric_casts)]
                 fn mul_assign(&mut self, rhs: Sign) {
-                    if rhs.is_negative() {
-                        *self = -*self;
-                    }
+                    *self *= rhs as i8 as $type;
                 }
             }
 
@@ -228,6 +227,35 @@ mod test {
         assert_eq!(Positive * 2, 2);
         assert_eq!(Negative * 2, -2);
         assert_eq!(Zero * 2, 0);
+    }
+
+    #[test]
+    fn int_div_sign() {
+        assert_eq!(2 / Positive, 2);
+        assert_eq!(2 / Negative, -2);
+        assert_eq!(2 / Zero, 0);
+    }
+
+    #[test]
+    fn int_mul_assign_sign() {
+        let mut v = 2;
+        v *= Positive;
+        assert_eq!(v, 2);
+        v *= Negative;
+        assert_eq!(v, -2);
+        v *= Zero;
+        assert_eq!(v, 0);
+    }
+
+    #[test]
+    fn int_div_assign_sign() {
+        let mut v = 2;
+        v /= Positive;
+        assert_eq!(v, 2);
+        v /= Negative;
+        assert_eq!(v, -2);
+        v /= Zero;
+        assert_eq!(v, 0);
     }
 
     #[test]

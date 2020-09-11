@@ -13,6 +13,12 @@ Versioning].
 
 - The build script now declares a dependency on the `COMPILING_UNDER_CARGO_WEB`
   environment variable.
+- Parsing the `%D` specifier no longer requires padding on the month.
+  Previously, `Err(InvalidMonth)` was incorrectly returned.
+- A `std::time::Duration` that is larger than `time::Duration::max_value()` now
+  correctly returns `Ordering::Greater` when compared.
+- Multiplying and assigning an integer by `Sign::Zero` now sets the integer to
+  be zero. This previously left the integer unmodified.
 
 ## 0.2.18 [2020-09-08]
 

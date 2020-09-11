@@ -37,7 +37,7 @@ pub struct Instant {
 impl Instant {
     /// Returns an `Instant` corresponding to "now".
     ///
-    /// ```rust,no_run
+    /// ```rust
     /// # use time::Instant;
     /// println!("{:?}", Instant::now());
     /// ```
@@ -304,6 +304,7 @@ mod test {
     #[cfg(__time_02_instant_checked_ops)]
     fn checked_add() {
         let now = Instant::now();
+        assert_eq!(now.checked_add(0.seconds()), Some(now));
         assert_eq!(now.checked_add(5.seconds()), Some(now + 5.seconds()));
         assert_eq!(now.checked_add((-5).seconds()), Some(now + (-5).seconds()));
     }
@@ -312,6 +313,7 @@ mod test {
     #[cfg(__time_02_instant_checked_ops)]
     fn checked_sub() {
         let now = Instant::now();
+        assert_eq!(now.checked_sub(0.seconds()), Some(now));
         assert_eq!(now.checked_sub(5.seconds()), Some(now - 5.seconds()));
         assert_eq!(now.checked_sub((-5).seconds()), Some(now - (-5).seconds()));
     }
@@ -338,6 +340,15 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "deprecated")]
+    #[allow(deprecated)]
+    fn to() {
+        let start = Instant::now();
+        thread::sleep(100.std_milliseconds());
+        assert!(start.to(Instant::now()) >= 100.milliseconds());
+    }
+
+    #[test]
     fn sub_std() {
         let start = StdInstant::now();
         thread::sleep(100.std_milliseconds());
@@ -354,6 +365,7 @@ mod test {
     #[test]
     fn add_duration() {
         let start = Instant::now();
+        assert!(start + 0.seconds() <= Instant::now());
         thread::sleep(100.std_milliseconds());
         assert!(start + 100.milliseconds() <= Instant::now());
     }

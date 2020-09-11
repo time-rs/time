@@ -834,6 +834,16 @@ mod test {
     }
 
     #[test]
+    fn iso_year_week() -> crate::Result<()> {
+        assert_eq!(date!(2019-01-01).midnight().iso_year_week(), (2019, 1));
+        assert_eq!(date!(2019-10-04).midnight().iso_year_week(), (2019, 40));
+        assert_eq!(date!(2020-01-01).midnight().iso_year_week(), (2020, 1));
+        assert_eq!(date!(2020-12-31).midnight().iso_year_week(), (2020, 53));
+        assert_eq!(date!(2021-01-01).midnight().iso_year_week(), (2020, 53));
+        Ok(())
+    }
+
+    #[test]
     fn week() -> crate::Result<()> {
         assert_eq!(date!(2019-01-01).midnight().week(), 1);
         assert_eq!(date!(2019-10-04).midnight().week(), 40);
@@ -980,8 +990,8 @@ mod test {
     #[test]
     fn format() -> crate::Result<()> {
         assert_eq!(
-            date!(2019-01-02).midnight().format("%F %r"),
-            "2019-01-02 12:00:00 am"
+            date!(2019-01-02).with_time(time!(3:04:05)).format("%c"),
+            "Wed Jan 2 3:04:05 2019"
         );
         Ok(())
     }
@@ -989,8 +999,8 @@ mod test {
     #[test]
     fn parse() -> crate::Result<()> {
         assert_eq!(
-            PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
-            Ok(date!(2019-01-02).midnight()),
+            PrimitiveDateTime::parse("Wed Jan 2 3:04:05 2019", "%c"),
+            Ok(date!(2019-01-02).with_time(time!(3:04:05))),
         );
         assert_eq!(
             PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
@@ -1442,6 +1452,10 @@ mod test {
             PrimitiveDateTime::from(SystemTime::UNIX_EPOCH),
             PrimitiveDateTime::unix_epoch()
         );
+        assert_eq!(
+            PrimitiveDateTime::from(SystemTime::UNIX_EPOCH - 5.std_seconds()),
+            PrimitiveDateTime::unix_epoch() - 5.seconds()
+        );
     }
 
     #[test]
@@ -1452,5 +1466,23 @@ mod test {
             SystemTime::from(PrimitiveDateTime::unix_epoch()),
             SystemTime::UNIX_EPOCH
         );
+        assert_eq!(
+            SystemTime::from(PrimitiveDateTime::unix_epoch() - 5.seconds()),
+            SystemTime::UNIX_EPOCH - 5.std_seconds()
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn display() -> crate::Result<()> {
+        assert_eq!(
+            date!(1970-01-01).midnight().to_string(),
+            String::from("1970-01-01 0:00")
+        );
+        assert_eq!(
+            date!(1970-01-01).with_time(time!(0:00:01)).to_string(),
+            String::from("1970-01-01 0:00:01")
+        );
+        Ok(())
     }
 }
