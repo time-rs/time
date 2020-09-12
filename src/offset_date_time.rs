@@ -203,6 +203,18 @@ impl OffsetDateTime {
     ///         .assume_utc(),
     /// );
     /// ```
+    ///
+    /// If you have a timestamp-nanosecond pair, you can use something along the
+    /// lines of the following:
+    ///
+    /// ```rust
+    /// # use time::{Duration, OffsetDateTime, ext::NumericalDuration};
+    /// let (timestamp, nanos) = (1, 500_000_000);
+    /// assert_eq!(
+    ///     OffsetDateTime::from_unix_timestamp(timestamp) + Duration::nanoseconds(nanos),
+    ///     OffsetDateTime::unix_epoch() + 1.5.seconds()
+    /// );
+    /// ```
     pub fn from_unix_timestamp(timestamp: i64) -> Self {
         OffsetDateTime::unix_epoch() + Duration::seconds(timestamp)
     }
