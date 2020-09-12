@@ -7,7 +7,7 @@ Versioning].
 
 ---
 
-## Unreleased
+## 0.2.19 [2020-09-12]
 
 ### Fixed
 
