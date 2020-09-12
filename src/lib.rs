@@ -293,23 +293,6 @@ macro_rules! ensure_value_in_range {
     }};
 }
 
-#[cfg(all(test, feature = "std"))]
-macro_rules! assert_panics {
-    ($e:expr $(, $message:literal)?) => {
-        #[allow(box_pointers)]
-        {
-            if std::panic::catch_unwind(move || $e).is_ok() {
-                panic!(concat!(
-                    "assertion failed: expected `",
-                    stringify!($e),
-                    "` to panic",
-                    $(concat!(" (", $message, ")"))?
-                ));
-            }
-        }
-    };
-}
-
 /// A macro to generate `Time`s at runtime, usable for tests.
 #[cfg(test)]
 macro_rules! time {
@@ -345,17 +328,6 @@ macro_rules! offset {
     };
     (- $hour:literal : $minute:literal : $second:literal) => {
         crate::UtcOffset::seconds($hour * -3_600 - $minute * 60 - $second)
-    };
-}
-
-/// A macro to generate `Date`s at runtime, usable for tests.
-#[cfg(test)]
-macro_rules! date {
-    ($(+)? $year:literal - $ordinal:literal) => {
-        crate::Date::try_from_yo($year, $ordinal)?
-    };
-    ($(+)? $year:literal - $month:literal - $day:literal) => {
-        crate::Date::try_from_ymd($year, $month, $day)?
     };
 }
 
@@ -599,21 +571,4 @@ pub fn precise_time_s() -> f64 {
     (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))
         .expect("System clock was before 1970.")
         .as_secs_f64()
-}
-
-#[cfg(test)]
-mod test {
-    #[test]
-    #[cfg(all(feature = "std", feature = "deprecated"))]
-    #[allow(deprecated)]
-    fn precise_time_s() {
-        let _: f64 = super::precise_time_s();
-    }
-
-    #[test]
-    #[cfg(all(feature = "std", feature = "deprecated"))]
-    #[allow(deprecated)]
-    fn precise_time_ns() {
-        let _: u64 = super::precise_time_ns();
-    }
 }

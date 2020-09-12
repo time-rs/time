@@ -77,21 +77,3 @@ impl Distribution<Weekday> for Standard {
         }
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn time() {
-        let mut rng = rand::rngs::mock::StepRng::new(0, 1);
-
-        let _ = rng.gen::<Time>();
-        let _ = rng.gen::<Date>();
-        let _ = rng.gen::<UtcOffset>();
-        let _ = rng.gen::<PrimitiveDateTime>();
-        let _ = rng.gen::<OffsetDateTime>();
-        let _ = rng.gen::<Duration>();
-        let _ = rng.gen::<Weekday>();
-    }
-}

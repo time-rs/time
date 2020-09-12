@@ -10,6 +10,7 @@ readme = "README.md"
 license = "MIT OR Apache-2.0"
 description = "Date and time library. Fully interoperable with the standard library. Mostly compatible with #![no_std]."
 build = "build.rs"
+include = ["src/**/*", "LICENSE-*", "README.md", "CHANGELOG.md", "build.rs"]
 
 [package.metadata.docs.rs]
 all-features = true
@@ -46,4 +47,6 @@ stdweb = { version = "0.4", default-features = false, optional = true }
 version_check = "0.9"
 
 [dev-dependencies]
+rand = "0.7"
+standback = "0.2"
 time-macros = { path = "time-macros" }

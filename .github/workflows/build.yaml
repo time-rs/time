@@ -201,18 +201,18 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ matrix.os }}-${{ hashFiles('**/Cargo.toml') }}2
 
-      - name: Test feature powerset (--lib)
+      - name: Test feature powerset (--tests)
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: test --feature-powerset --optional-deps --skip default,libc,winapi,stdweb,std --features std --lib
+          args: test --feature-powerset --optional-deps --skip default,libc,winapi,stdweb,std --features std --tests
         if: matrix.rust == '1.32.0'
 
-      - name: Test feature powerset (--lib)
+      - name: Test feature powerset (--tests)
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: test --feature-powerset --optional-deps --skip default,libc,winapi,stdweb --lib
+          args: test --feature-powerset --optional-deps --skip default,libc,winapi,stdweb --tests
         if: matrix.rust != '1.32.0'
 
       - name: Test documentation

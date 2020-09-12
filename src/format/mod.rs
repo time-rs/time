@@ -204,16 +204,3 @@ pub(crate) enum FormatItem<'a> {
     /// A value that needs to be interpreted when formatting.
     Specifier(Specifier),
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn format_edge_cases() {
-        let time = Time::midnight();
-        assert_eq!(time.format("%H foo"), "00 foo"); // Trailing literal
-        assert_eq!(time.format("%H%%"), "00%"); // Literal `%`
-        assert!(crate::validate_format_string("%").is_err()); // Standalone `%`
-    }
-}
