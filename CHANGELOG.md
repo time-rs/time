@@ -7,6 +7,18 @@ Versioning].
 
 ---
 
+## Unreleased
+
+### Added
+
+- `OffsetDateTime::timestamp_nanos`
+- `OffsetDateTime::from_unix_timestamp_nanos`
+
+### Improvements
+
+- Document how to construct an `OffsetDateTime` from a timestamp-nanosecond
+  pair
+
 ## 0.2.19 [2020-09-12]
 
 ### Fixed

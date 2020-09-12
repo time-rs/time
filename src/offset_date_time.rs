@@ -219,6 +219,32 @@ impl OffsetDateTime {
         OffsetDateTime::unix_epoch() + Duration::seconds(timestamp)
     }
 
+    /// Construct an `OffsetDateTime` from the provided Unix timestamp (in
+    /// nanoseconds).
+    ///
+    /// ```rust
+    /// # use time::{date, OffsetDateTime};
+    /// assert_eq!(
+    ///     OffsetDateTime::from_unix_timestamp_nanos(0),
+    ///     OffsetDateTime::unix_epoch(),
+    /// );
+    /// assert_eq!(
+    ///     OffsetDateTime::from_unix_timestamp_nanos(1_546_300_800_000_000_000),
+    ///     date!(2019-01-01)
+    ///         .midnight()
+    ///         .assume_utc(),
+    /// );
+    /// ```
+    ///
+    /// Note that the range of timestamps possible here is far larger than the
+    /// valid range of dates storable in this crate. It is the _user's
+    /// responsibility_ to ensure the timestamp provided as a parameter is
+    /// valid. No behavior is guaranteed if this parameter would not result in a
+    /// valid value.
+    pub fn from_unix_timestamp_nanos(timestamp: i128) -> Self {
+        OffsetDateTime::unix_epoch() + Duration::nanoseconds_i128(timestamp)
+    }
+
     /// Get the `UtcOffset`.
     ///
     /// ```rust
@@ -264,6 +290,30 @@ impl OffsetDateTime {
     /// ```
     pub fn timestamp(self) -> i64 {
         (self - Self::unix_epoch()).whole_seconds()
+    }
+
+    /// Get the Unix timestamp in nanoseconds.
+    ///
+    /// ```rust
+    /// use time::{date, offset, time};
+    /// assert_eq!(
+    ///     date!(1970-01-01)
+    ///         .midnight()
+    ///         .assume_utc()
+    ///         .timestamp_nanos(),
+    ///     0,
+    /// );
+    /// assert_eq!(
+    ///     date!(1970-01-01)
+    ///         .with_time(time!(1:00))
+    ///         .assume_utc()
+    ///         .to_offset(offset!(-1))
+    ///         .timestamp_nanos(),
+    ///     3_600_000_000_000,
+    /// );
+    /// ```
+    pub fn timestamp_nanos(self) -> i128 {
+        (self - Self::unix_epoch()).whole_nanoseconds()
     }
 
     /// Get the `Date` in the stored offset.
