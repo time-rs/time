@@ -6,8 +6,8 @@ use time::{prelude::*, Duration, Instant};
 #[test]
 fn elapsed() {
     let instant = Instant::now();
-    thread::sleep(100.std_milliseconds());
-    assert!(instant.elapsed() >= 100.milliseconds());
+    thread::sleep(1.std_milliseconds());
+    assert!(instant.elapsed() >= 1.milliseconds());
 }
 
 #[test]
@@ -45,8 +45,8 @@ fn to_std() {
 #[test]
 fn sub() {
     let start = Instant::now();
-    thread::sleep(100.std_milliseconds());
-    assert!(Instant::now() - start >= 100.milliseconds());
+    thread::sleep(1.std_milliseconds());
+    assert!(Instant::now() - start >= 1.milliseconds());
 }
 
 #[test]
@@ -54,67 +54,67 @@ fn sub() {
 #[allow(deprecated)]
 fn to() {
     let start = Instant::now();
-    thread::sleep(100.std_milliseconds());
-    assert!(start.to(Instant::now()) >= 100.milliseconds());
+    thread::sleep(1.std_milliseconds());
+    assert!(start.to(Instant::now()) >= 1.milliseconds());
 }
 
 #[test]
 fn sub_std() {
     let start = StdInstant::now();
-    thread::sleep(100.std_milliseconds());
-    assert!(Instant::now() - start >= 100.milliseconds());
+    thread::sleep(1.std_milliseconds());
+    assert!(Instant::now() - start >= 1.milliseconds());
 }
 
 #[test]
 fn std_sub() {
     let start = Instant::now();
-    thread::sleep(100.std_milliseconds());
-    assert!(StdInstant::now() - start >= 100.milliseconds());
+    thread::sleep(1.std_milliseconds());
+    assert!(StdInstant::now() - start >= 1.milliseconds());
 }
 
 #[test]
 fn add_duration() {
     let start = Instant::now();
     assert!(start + 0.seconds() <= Instant::now());
-    thread::sleep(100.std_milliseconds());
-    assert!(start + 100.milliseconds() <= Instant::now());
+    thread::sleep(1.std_milliseconds());
+    assert!(start + 1.milliseconds() <= Instant::now());
 }
 
 #[test]
 fn std_add_duration() {
     let start = StdInstant::now();
-    thread::sleep(100.std_milliseconds());
-    assert!(start + 100.milliseconds() <= StdInstant::now());
+    thread::sleep(1.std_milliseconds());
+    assert!(start + 1.milliseconds() <= StdInstant::now());
 }
 
 #[test]
 fn add_std_duration() {
     let start = Instant::now();
-    thread::sleep(100.std_milliseconds());
-    assert!(start + 100.std_milliseconds() <= Instant::now());
+    thread::sleep(1.std_milliseconds());
+    assert!(start + 1.std_milliseconds() <= Instant::now());
 }
 
 #[test]
 fn add_assign_duration() {
     let mut start = Instant::now();
-    thread::sleep(100.std_milliseconds());
-    start += 100.milliseconds();
+    thread::sleep(1.std_milliseconds());
+    start += 1.milliseconds();
     assert!(start <= Instant::now());
 }
 
 #[test]
 fn std_add_assign_duration() {
     let mut start = StdInstant::now();
-    thread::sleep(100.std_milliseconds());
-    start += 100.milliseconds();
+    thread::sleep(1.std_milliseconds());
+    start += 1.milliseconds();
     assert!(start <= StdInstant::now());
 }
 
 #[test]
 fn add_assign_std_duration() {
     let mut start = Instant::now();
-    thread::sleep(100.std_milliseconds());
-    start += 100.std_milliseconds();
+    thread::sleep(1.std_milliseconds());
+    start += 1.std_milliseconds();
     assert!(start <= Instant::now());
 }
 

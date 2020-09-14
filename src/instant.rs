@@ -55,8 +55,8 @@ impl Instant {
     /// # use time::{Instant, prelude::*};
     /// # use std::thread;
     /// let instant = Instant::now();
-    /// thread::sleep(100.std_milliseconds());
-    /// assert!(instant.elapsed() >= 100.milliseconds());
+    /// thread::sleep(1.std_milliseconds());
+    /// assert!(instant.elapsed() >= 1.milliseconds());
     /// ```
     pub fn elapsed(self) -> Duration {
         Self::now() - self

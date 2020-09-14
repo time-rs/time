@@ -381,11 +381,11 @@ fn checked_div() {
 #[cfg(feature = "std")]
 fn time_fn() {
     let (time, value) = Duration::time_fn(|| {
-        std::thread::sleep(100.std_milliseconds());
+        std::thread::sleep(1.std_milliseconds());
         0
     });
 
-    assert!(time >= 100.milliseconds());
+    assert!(time >= 1.milliseconds());
     assert_eq!(value, 0);
 }
 
@@ -394,9 +394,9 @@ fn time_fn() {
 #[allow(deprecated)]
 fn span() {
     let time = Duration::span(|| {
-        std::thread::sleep(100.std_milliseconds());
+        std::thread::sleep(1.std_milliseconds());
     });
-    assert!(time >= 100.milliseconds());
+    assert!(time >= 1.milliseconds());
 }
 
 #[test]
