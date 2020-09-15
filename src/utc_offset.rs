@@ -374,6 +374,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         #[cfg(any(target_os = "solaris", target_os = "illumos"))]
         {
             use crate::Date;
+	          use std::convert::TryFrom;
 
             let mut tm = tm;
             if tm.tm_sec == 60 {
