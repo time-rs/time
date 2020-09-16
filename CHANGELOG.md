@@ -7,12 +7,20 @@ Versioning].
 
 ---
 
-## Unreleased
+## 0.2.20 [2019-09-16]
 
 ### Added
 
 - `OffsetDateTime::timestamp_nanos`
 - `OffsetDateTime::from_unix_timestamp_nanos`
+
+### Fixed
+
+A bug with far-reaching consequences has been fixed. See #276 for complete
+details, but the gist is that the constructing a `Date` from a valid Julian day
+may result in an invalid value or even panic. As a consequence of implementation
+details, this affects nearly all arithmetic with `Date`s (and as a result also
+`PrimitiveDateTime`s and `OffsetDateTime`s).
 
 ### Improvements
 

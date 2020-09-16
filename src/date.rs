@@ -27,6 +27,19 @@ pub(crate) const MIN_YEAR: i32 = -100_000;
 /// The maximum valid year.
 pub(crate) const MAX_YEAR: i32 = 100_000;
 
+/// Floored division for integers. This differs from the default behavior, which
+/// is truncation.
+#[const_fn("1.46")]
+pub(crate) const fn div_floor(a: i64, b: i64) -> i64 {
+    let (quotient, remainder) = (a / b, a % b);
+
+    if (remainder > 0 && b < 0) || (remainder < 0 && b > 0) {
+        quotient - 1
+    } else {
+        quotient
+    }
+}
+
 /// Calendar date.
 ///
 /// Years between `-100_000` and `+100_000` inclusive are guaranteed to be
@@ -580,6 +593,10 @@ impl Date {
 
     /// Get the Julian day for the date.
     ///
+    /// The algorithm to perform this conversion is derived from one provided by
+    /// Peter Baum; it is freely available
+    /// [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
+    ///
     /// ```rust
     /// # use time::date;
     /// assert_eq!(date!(-4713-11-24).julian_day(), 0);
@@ -591,23 +608,27 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn julian_day(self) -> i64 {
-        let (year, month, day) = self.as_ymd();
+        let (mut year, mut month, day) = self.as_ymd();
+
+        if month < 3 {
+            year -= 1;
+            month += 12;
+        }
+
         let year = year as i64;
         let month = month as i64;
         let day = day as i64;
 
-        (1_461 * (year + 4_800 + (month - 14) / 12)) / 4
-            + (367 * (month - 2 - 12 * ((month - 14) / 12))) / 12
-            - (3 * ((year + 4_900 + (month - 14) / 12) / 100)) / 4
-            + day
-            - 32_075
+        day + (153 * month - 457) / 5 + 365 * year + div_floor(year, 4) - div_floor(year, 100)
+            + div_floor(year, 400)
+            + 1_721_119
     }
 
     /// Create a `Date` from the Julian day.
     ///
-    /// The algorithm to perform this conversion comes from E.G. Richards; it is
-    /// available in [section 15.11.3](https://aa.usno.navy.mil/publications/docs/c15_usb_online.pdf),
-    /// courtesy of the United States Naval Observatory.
+    /// The algorithm to perform this conversion is derived from one provided by
+    /// Peter Baum; it is freely available
+    /// [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
     ///
     /// ```rust
     /// # use time::{Date, date};
@@ -621,27 +642,20 @@ impl Date {
     /// ```
     // TODO Return a `Result<Self, error::ComponentRange>` in 0.3
     pub fn from_julian_day(julian_day: i64) -> Self {
-        #![allow(clippy::missing_docs_in_private_items)]
-        const Y: i64 = 4_716;
-        const J: i64 = 1_401;
-        const M: i64 = 2;
-        const N: i64 = 12;
-        const R: i64 = 4;
-        const P: i64 = 1_461;
-        const V: i64 = 3;
-        const U: i64 = 5;
-        const S: i64 = 153;
-        const W: i64 = 2;
-        const B: i64 = 274_277;
-        const C: i64 = -38;
+        #![allow(clippy::many_single_char_names)]
+        let z = julian_day - 1_721_119;
+        let h = 100 * z - 25;
+        let a = div_floor(h, 3_652_425);
+        let b = a - div_floor(a, 4);
+        let mut year = div_floor(100 * b + h, 36_525);
+        let c = b + z - 365 * year - div_floor(year, 4);
+        let mut month = (5 * c + 456) / 153;
+        let day = c - (153 * month - 457) / 5;
 
-        let f = julian_day + J + (((4 * julian_day + B) / 146_097) * 3) / 4 + C;
-        let e = R * f + V;
-        let g = e.rem_euclid(P) / R;
-        let h = U * g + W;
-        let day = h.rem_euclid(S) / U + 1;
-        let month = (h / S + M).rem_euclid(N) + 1;
-        let year = (e / P) - Y + (N + M - month) / N;
+        if month > 12 {
+            year += 1;
+            month -= 12;
+        }
 
         match Date::try_from_ymd(year as i32, month as u8, day as u8) {
             Ok(date) => date,
