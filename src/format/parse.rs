@@ -10,7 +10,6 @@ use alloc::boxed::Box;
 use core::{
     fmt::{self, Display, Formatter},
     num::{NonZeroU16, NonZeroU8},
-    ops::{Bound, RangeBounds},
     str::FromStr,
 };
 
@@ -242,32 +241,21 @@ pub(crate) fn try_consume_first_match<T: Copy>(
 
 /// Attempt to consume a number of digits. Consumes the maximum amount possible
 /// within the range provided.
-pub(crate) fn try_consume_digits<T: FromStr, U: RangeBounds<usize>>(
+pub(crate) fn try_consume_digits<T: FromStr>(
     s: &mut &str,
-    num_digits: U,
+    min_digits: usize,
+    max_digits: usize,
 ) -> Option<T> {
-    // We know that the value is a `usize`, so we can do `+/- 1` as necessary.
-    let num_digits_start = match num_digits.start_bound() {
-        Bound::Unbounded => usize::min_value(),
-        Bound::Included(&v) => v,
-        Bound::Excluded(&v) => v + 1,
-    };
-    let num_digits_end = match num_digits.end_bound() {
-        Bound::Unbounded => usize::max_value(),
-        Bound::Included(&v) => v,
-        Bound::Excluded(&v) => v - 1,
-    };
-
     // Determine how many digits the string starts with, up to the upper limit
     // of the range.
     let len = s
         .chars()
-        .take(num_digits_end)
+        .take(max_digits)
         .take_while(char::is_ascii_digit)
         .count();
 
     // We don't have enough digits.
-    if len < num_digits_start {
+    if len < min_digits {
         return None;
     }
 
@@ -291,7 +279,7 @@ pub(crate) fn try_consume_exact_digits<T: FromStr>(
     };
 
     if padding == Padding::None {
-        try_consume_digits(s, 1..=(num_digits - pad_size))
+        try_consume_digits(s, 1, num_digits - pad_size)
     } else {
         // Ensure all the necessary characters are ASCII digits.
         if !s

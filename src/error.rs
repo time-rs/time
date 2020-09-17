@@ -211,3 +211,22 @@ impl From<Format> for Error {
         Error::Format(error)
     }
 }
+
+#[cfg(all(test, feature = "std"))]
+mod test {
+    use super::*;
+    use std::error::Error as ParseError;
+
+    #[test]
+    fn indeterminate_offset() {
+        let error = IndeterminateOffset::new();
+        assert_eq!(
+            error.to_string(),
+            Error::IndeterminateOffset(error).to_string()
+        );
+        assert!(match Error::from(error).source() {
+            Some(error) => error.is::<IndeterminateOffset>(),
+            None => false,
+        });
+    }
+}

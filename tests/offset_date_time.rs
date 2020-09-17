@@ -1,7 +1,9 @@
 use std::cmp::Ordering;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
-use time::{error, prelude::*, Format, OffsetDateTime, UtcOffset, Weekday};
+#[cfg(feature = "std")]
+use time::UtcOffset;
+use time::{error, prelude::*, Format, OffsetDateTime, Weekday};
 
 #[test]
 #[cfg(feature = "std")]

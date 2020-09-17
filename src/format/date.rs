@@ -139,7 +139,7 @@ pub(crate) fn fmt_C(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 pub(crate) fn parse_C(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
     let padding_length = consume_padding(s, padding, 1);
     items.year = Some(
-        try_consume_digits::<i32, _>(s, (2 - padding_length)..=(3 - padding_length))
+        try_consume_digits::<i32>(s, 2 - padding_length, 3 - padding_length)
             .ok_or(error::Parse::InvalidYear)?
             * 100
             + items.year.unwrap_or(0).rem_euclid(100),
@@ -197,7 +197,7 @@ pub(crate) fn parse_G(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     consume_padding(s, padding, 4);
 
     items.week_based_year = Some(
-        try_consume_digits(s, 1..=6)
+        try_consume_digits(s, 1, 6)
             .map(|v: i32| sign * v)
             .ok_or(error::Parse::InvalidYear)?,
     );
@@ -355,7 +355,7 @@ pub(crate) fn parse_Y(items: &mut ParsedItems, s: &mut &str, padding: Padding) -
     consume_padding(s, padding, 3);
 
     items.year = Some(
-        try_consume_digits(s, 1..=max_digits)
+        try_consume_digits(s, 1, max_digits)
             .map(|v: i32| sign * v)
             .ok_or(error::Parse::InvalidYear)?,
     );

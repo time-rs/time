@@ -10,6 +10,14 @@ macro_rules! julian {
 }
 
 #[test]
+fn debug() {
+    assert_eq!(
+        format!("{:?}", date!(2020 - 02 - 03)),
+        "Date { year: 2020, ordinal: 34 }"
+    );
+}
+
+#[test]
 fn weeks_in_year_exhaustive() {
     let years_with_53 = [
         4, 9, 15, 20, 26, 32, 37, 43, 48, 54, 60, 65, 71, 76, 82, 88, 93, 99, 105, 111, 116, 122,
