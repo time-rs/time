@@ -275,6 +275,8 @@ macro_rules! ensure_value_in_range {
                 maximum: $end as i64,
                 value: $value as i64,
                 conditional_range: false,
+                #[cfg(not(__time_02_supports_non_exhaustive))]
+                __non_exhaustive: (),
             });
         }
     }};
@@ -288,6 +290,8 @@ macro_rules! ensure_value_in_range {
                 maximum: $end as i64,
                 value: $value as i64,
                 conditional_range: true,
+                #[cfg(not(__time_02_supports_non_exhaustive))]
+                __non_exhaustive: (),
             });
         }
     }};

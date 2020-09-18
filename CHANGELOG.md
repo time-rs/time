@@ -7,6 +7,14 @@ Versioning].
 
 ---
 
+## Unreleased
+
+### Changed
+
+Implementation details of some error types have been exposed. This means that
+data about a component being out of range can be directly obtained, while an
+invalid offset or conversion error is guaranteed to be a zero-sized type.
+
 ## 0.2.20 [2019-09-16]
 
 ### Added

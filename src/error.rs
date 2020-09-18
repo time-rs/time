@@ -8,6 +8,7 @@ use core::fmt;
 /// This can be used when you either don't know or don't care about the exact
 /// error returned. `Result<_, time::Error>` will work in these situations.
 // Boxing the `ComponentRange` reduces the size of `Error` from 72 bytes to 16.
+// TODO(0.3) Zero-sized structs can be eliminated in favor of a simple variant.
 #[allow(clippy::missing_docs_in_private_items)] // variants only
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -54,19 +55,7 @@ impl std::error::Error for Error {
 /// An error type indicating that a conversion failed because the target type
 /// could not store the initial value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct ConversionRange {
-    #[allow(clippy::missing_docs_in_private_items)]
-    __non_exhaustive: (),
-}
-
-impl ConversionRange {
-    #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) const fn new() -> Self {
-        Self {
-            __non_exhaustive: (),
-        }
-    }
-}
+pub struct ConversionRange;
 
 impl fmt::Display for ConversionRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -87,19 +76,23 @@ impl From<ConversionRange> for Error {
 /// range, causing a failure.
 // i64 is the narrowest type fitting all use cases. This eliminates the need
 // for a type parameter.
+#[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ComponentRange {
     /// Name of the component.
-    pub(crate) name: &'static str,
+    pub name: &'static str,
     /// Minimum allowed value, inclusive.
-    pub(crate) minimum: i64,
+    pub minimum: i64,
     /// Maximum allowed value, inclusive.
-    pub(crate) maximum: i64,
+    pub maximum: i64,
     /// Value that was provided.
-    pub(crate) value: i64,
+    pub value: i64,
     /// The minimum and/or maximum value is conditional on the value of other
     /// parameters.
-    pub(crate) conditional_range: bool,
+    pub conditional_range: bool,
+    #[cfg(not(__time_02_supports_non_exhaustive))]
+    #[doc(hidden)]
+    pub(crate) __non_exhaustive: (),
 }
 
 impl fmt::Display for ComponentRange {
@@ -135,19 +128,7 @@ impl From<Parse> for Error {
 
 /// The system's UTC offset could not be determined at the given datetime.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct IndeterminateOffset {
-    #[allow(clippy::missing_docs_in_private_items)]
-    __non_exhaustive: (),
-}
-
-impl IndeterminateOffset {
-    #[allow(clippy::missing_docs_in_private_items, dead_code)]
-    pub(crate) const fn new() -> Self {
-        Self {
-            __non_exhaustive: (),
-        }
-    }
-}
+pub struct IndeterminateOffset;
 
 impl fmt::Display for IndeterminateOffset {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -219,12 +200,11 @@ mod test {
 
     #[test]
     fn indeterminate_offset() {
-        let error = IndeterminateOffset::new();
         assert_eq!(
-            error.to_string(),
-            Error::IndeterminateOffset(error).to_string()
+            IndeterminateOffset.to_string(),
+            Error::IndeterminateOffset(IndeterminateOffset).to_string()
         );
-        assert!(match Error::from(error).source() {
+        assert!(match Error::from(IndeterminateOffset).source() {
             Some(error) => error.is::<IndeterminateOffset>(),
             None => false,
         });
