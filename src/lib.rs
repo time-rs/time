@@ -1,88 +1,43 @@
-//! Simple time handling.
+//! [![GitHub time-rs/time](https://img.shields.io/badge/GitHub-time--rs%2Ftime-9b88bb?logo=github&style=for-the-badge)](https://github.com/time-rs/time)
+//! ![license MIT or Apache-2.0](https://img.shields.io/badge/license-MIT%20or%20Apache--2.0-779a6b?style=for-the-badge)
+//! [![minimum rustc 1.32.0](https://img.shields.io/badge/minimum%20rustc-1.32.0-c18170?logo=rust&style=for-the-badge)](https://www.whatrustisit.com)
 //!
-//! ![rustc 1.32.0](https://img.shields.io/badge/rustc-1.32.0-blue)
+//! # Feature flags
 //!
-//! # Feature flags in Cargo
+//! This crate exposes a number of features. These can be enabled or disabled as
+//! shown [in Cargo's documentation](https://doc.rust-lang.org/cargo/reference/features.html).
+//! Features are _disabled_ by default unless otherwise noted.
 //!
-//! ## `std`
+//! Reliance on a given feature is always indicated alongside the item
+//! definition.
 //!
-//! Currently, all structs except `Instant` can be used with `#![no_std]`. As
-//! support for the standard library is enabled by default, you must use
-//! `default_features = false` in your `Cargo.toml` to enable this.
+//! - `std` (_enabled by default_)
 //!
-//! ```toml
-//! [dependencies]
-//! time = { version = "0.2", default-features = false }
-//! ```
+//!   This enables a number of features that depend on the standard library.
+//!   [`Instant`] is the primary item that requires this feature, though some
+//!   others methods may rely on [`Instant`] internally.
 //!
-//! Of the structs that are usable, some methods may only be enabled due a
-//! reliance on `Instant`. These will be indicated in the documentation.
+//!   This crate currently requires a global allocator be present even if this
+//!   feature is disabled.
 //!
-//! ## `serde`
+//! - `serde`
 //!
-//! [Serde](https://github.com/serde-rs/serde) support is behind a feature flag.
-//! To enable it, use the `serde` feature. This is not enabled by default. It
-//! _is_ compatible with `#![no_std]`, so long as an allocator is present.
+//!   Enables [serde](https://docs.rs/serde) support for all types.
 //!
-//! With the standard library:
-//! ```toml
-//! [dependencies]
-//! time = { version = "0.2", features = ["serde"] }
-//! ```
+//! - `rand`
 //!
-//! With `#![no_std]` support:
-//! ```toml
-//! [dependencies]
-//! time = { version = "0.2", default-features = false, features = ["serde"] }
-//! ```
+//!   Enables [rand](https://docs.rs/rand) support for all types.
 //!
-//! ## `rand`
+//! - `deprecated` (_enabled by default_)
 //!
-//! [Rand](https://github.com/rust-random/rand) support is behind a feature
-//! flag. To enable it, use the `rand` feature. This is not enabled by default.
-//! Usage is compatible with `#![no_std]`.
+//!   Allows using certain deprecated functions from time 0.1.
 //!
-//! With the standard library:
-//! ```toml
-//! [dependencies]
-//! time = { version = "0.2", features = ["rand"] }
-//! ```
+//! - `panicking-api`
 //!
-//! With `#![no_std]` support:
-//! ```toml
-//! [dependencies]
-//! time = { version = "0.2", default-features = false, features = ["rand"] }
-//! ```
-//!
-//! ## `deprecated`
-//!
-//! Using the `deprecated` feature allows using deprecated v0.1 methods. Enabled
-//! by default.
-//!
-//! With the standard library, the normal `time = 0.2` will work as expected.
-//!
-//! With `#![no_std]` support:
-//! ```toml
-//! [dependencies]
-//! time = { version = "0.2", default-features = false, features = ["deprecated"] }
-//! ```
-//!
-//! ## `panicking-api`
-//!
-//! Non-panicking APIs are provided, and should generally be preferred. However,
-//! there are some situations where avoiding `.unwrap()` may be desired. To
-//! enable these APIs, you need to use the `panicking-api` feature in your
-//! `Cargo.toml`, which is not enabled by default.
-//!
-//! Library authors should avoid using this feature.
-//!
-//! This feature will be removed in a future release, as there are provided
-//! macros to perform the equivalent calculations at compile-time.
-//!
-//! ```toml
-//! [dependencies]
-//! time = { version = "0.2", features = ["panicking-api"] }
-//! ```
+//!   Non-panicking APIs are provided, and should generally be preferred.
+//!   However, there are some situations where avoiding `.unwrap()` may be
+//!   desired. Generally speaking, macros should be used in these situations.
+//!   Library authors should avoid using this feature.
 //!
 //! # Formatting
 //!
@@ -90,6 +45,16 @@
 //! explicitly _not_ compatible. Specifiers may be missing, added, or have
 //! different behavior than in C. As such, you should use the table below, which
 //! is an up-to-date reference on what each specifier does.
+//!
+//! <style>
+//! summary, details:not([open]) { cursor: pointer; }
+//! summary { display: list-item; }
+//! summary::marker { content: '▶ '; }
+//! details[open] summary::marker { content: '▼ '; }
+//! </style>
+//!
+//! <details>
+//! <summary>Specifiers</summary>
 //!
 //! | Specifier | Replaced by                                                            | Example                    |
 //! |-----------|------------------------------------------------------------------------|----------------------------|
@@ -125,6 +90,8 @@
 //! | `%Y`      | Full year, including `+` if ≥10,000                                    | `2001`                     |
 //! | `%z`      | ISO 8601 offset from UTC in timezone (+HHMM)                           | `+0100`                    |
 //! | `%%`      | Literal `%`                                                            | `%`                        |
+//!
+//! </details>
 //!
 //! ## Modifiers
 //!
