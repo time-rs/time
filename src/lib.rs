@@ -264,44 +264,6 @@ macro_rules! ensure_value_in_range {
     }};
 }
 
-/// A macro to generate `Time`s at runtime, usable for tests.
-#[cfg(test)]
-macro_rules! time {
-    ($hour:literal : $minute:literal) => {
-        crate::Time::try_from_hms($hour, $minute, 0)?
-    };
-    ($hour:literal : $minute:literal : $second:literal) => {
-        crate::Time::try_from_hms($hour, $minute, $second)?
-    };
-    ($hour:literal : $minute:literal : $second:literal : $nanosecond:literal) => {
-        crate::Time::try_from_hms_nano($hour, $minute, $second, $nanosecond)?
-    };
-}
-
-/// A macro to generate `UtcOffset`s with *no data verification*, usable for
-/// tests.
-#[cfg(test)]
-macro_rules! offset {
-    (UTC) => {
-        crate::UtcOffset::UTC
-    };
-    ($(+)? $hour:literal) => {
-        crate::UtcOffset::hours($hour)
-    };
-    (+ $hour:literal : $minute:literal) => {
-        crate::UtcOffset::minutes($hour * 60 + $minute)
-    };
-    (+ $hour:literal : $minute:literal : $second:literal) => {
-        crate::UtcOffset::seconds($hour * 3_600 + $minute * 60 + $second)
-    };
-    (- $hour:literal : $minute:literal) => {
-        crate::UtcOffset::minutes($hour * -60 - $minute)
-    };
-    (- $hour:literal : $minute:literal : $second:literal) => {
-        crate::UtcOffset::seconds($hour * -3_600 - $minute * 60 - $second)
-    };
-}
-
 /// The `Date` struct and its associated `impl`s.
 mod date;
 /// The `Duration` struct and its associated `impl`s.

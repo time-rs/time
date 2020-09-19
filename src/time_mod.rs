@@ -881,11 +881,11 @@ mod test {
 
     #[test]
     fn nanoseconds_since_midnight() -> crate::Result<()> {
-        let time = time!(0:00);
+        let time = Time::midnight();
         assert_eq!(time.nanoseconds_since_midnight(), 0);
         assert_eq!(Time::from_nanoseconds_since_midnight(0), time);
 
-        let time = time!(23:59:59:999_999_999);
+        let time = Time::try_from_hms_nano(23, 59, 59, 999_999_999)?;
         assert_eq!(time.nanoseconds_since_midnight(), NANOS_PER_DAY - 1);
         assert_eq!(
             Time::from_nanoseconds_since_midnight(NANOS_PER_DAY - 1),

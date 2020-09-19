@@ -506,11 +506,12 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::ext::NumericalDuration;
 
     #[test]
     fn as_duration() {
-        assert_eq!(offset!(+1).as_duration(), 1.hours());
-        assert_eq!(offset!(-1).as_duration(), (-1).hours());
+        assert_eq!(UtcOffset::hours(1).as_duration(), 1.hours());
+        assert_eq!(UtcOffset::hours(-1).as_duration(), (-1).hours());
     }
 }
