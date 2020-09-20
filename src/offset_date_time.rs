@@ -80,25 +80,6 @@ impl OffsetDateTime {
     /// Create a new `OffsetDateTime` with the current date and time in UTC.
     ///
     /// ```rust
-    /// # #![allow(deprecated)]
-    /// # use time::{OffsetDateTime, offset};
-    /// assert!(OffsetDateTime::now().year() >= 2019);
-    /// assert_eq!(OffsetDateTime::now().offset(), offset!(UTC));
-    /// ```
-    #[deprecated(
-        since = "0.2.11",
-        note = "This function returns a value with an offset of UTC, which is not apparent from \
-                its name alone. You should use `OffsetDateTime::now_utc()` instead."
-    )]
-    #[cfg(feature = "std")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
-    pub fn now() -> Self {
-        SystemTime::now().into()
-    }
-
-    /// Create a new `OffsetDateTime` with the current date and time in UTC.
-    ///
-    /// ```rust
     /// # use time::{OffsetDateTime, offset};
     /// assert!(OffsetDateTime::now_utc().year() >= 2019);
     /// assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));

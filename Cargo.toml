@@ -19,9 +19,7 @@ rustc-args = ["--cfg",  "__time_02_docs"]
 rustdoc-args = ["--cfg", "__time_02_docs"]
 
 [features]
-default = ["deprecated", "std"]
-deprecated = []
-panicking-api = []
+default = ["std"]
 std = ["libc", "winapi", "stdweb", "standback/std"]
 
 [dependencies]

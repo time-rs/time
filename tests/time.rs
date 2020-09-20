@@ -1,40 +1,8 @@
 use time::{error, prelude::*, Result, Time};
 
-#[cfg(feature = "panicking-api")]
-macro_rules! assert_panics {
-    ($e:expr $(, $message:literal)?) => {
-        #[allow(box_pointers)]
-        {
-            if std::panic::catch_unwind(move || $e).is_ok() {
-                panic!(concat!(
-                    "assertion failed: expected `",
-                    stringify!($e),
-                    "` to panic",
-                    $(concat!(" (", $message, ")"))?
-                ));
-            }
-        }
-    };
-}
-
 #[test]
 fn midnight() {
     assert_eq!(Time::midnight(), time!(0:00));
-}
-
-#[test]
-#[cfg(feature = "panicking-api")]
-#[allow(deprecated)]
-fn from_hms() {
-    let time = Time::from_hms(1, 2, 3);
-    assert_eq!(time.hour(), 1);
-    assert_eq!(time.minute(), 2);
-    assert_eq!(time.second(), 3);
-    assert_eq!(time.nanosecond(), 0);
-
-    assert_panics!(Time::from_hms(24, 0, 0), "24 isn't a valid hour");
-    assert_panics!(Time::from_hms(0, 60, 0), "60 isn't a valid minute");
-    assert_panics!(Time::from_hms(0, 0, 60), "60 isn't a valid second");
 }
 
 #[test]
@@ -49,26 +17,6 @@ fn try_from_hms() -> Result<()> {
     assert!(Time::try_from_hms(0, 60, 0).is_err());
     assert!(Time::try_from_hms(0, 0, 60).is_err());
     Ok(())
-}
-
-#[test]
-#[cfg(feature = "panicking-api")]
-#[allow(deprecated)]
-fn from_hms_milli() {
-    let time = Time::from_hms_milli(1, 2, 3, 4);
-    assert_eq!(time.hour(), 1);
-    assert_eq!(time.minute(), 2);
-    assert_eq!(time.second(), 3);
-    assert_eq!(time.millisecond(), 4);
-    assert_eq!(time.nanosecond(), 4_000_000);
-
-    assert_panics!(Time::from_hms_milli(24, 0, 0, 0), "24 isn't a valid hour");
-    assert_panics!(Time::from_hms_milli(0, 60, 0, 0), "60 isn't a valid minute");
-    assert_panics!(Time::from_hms_milli(0, 0, 60, 0), "60 isn't a valid second");
-    assert_panics!(
-        Time::from_hms_milli(0, 0, 0, 1_000),
-        "1_000 isn't a valid millisecond"
-    );
 }
 
 #[test]
@@ -88,26 +36,6 @@ fn try_from_hms_milli() -> Result<()> {
 }
 
 #[test]
-#[cfg(feature = "panicking-api")]
-#[allow(deprecated)]
-fn from_hms_micro() {
-    let time = Time::from_hms_micro(1, 2, 3, 4);
-    assert_eq!(time.hour(), 1);
-    assert_eq!(time.minute(), 2);
-    assert_eq!(time.second(), 3);
-    assert_eq!(time.microsecond(), 4);
-    assert_eq!(time.nanosecond(), 4_000);
-
-    assert_panics!(Time::from_hms_micro(24, 0, 0, 0), "24 isn't a valid hour");
-    assert_panics!(Time::from_hms_micro(0, 60, 0, 0), "60 isn't a valid minute");
-    assert_panics!(Time::from_hms_micro(0, 0, 60, 0), "60 isn't a valid second");
-    assert_panics!(
-        Time::from_hms_micro(0, 0, 0, 1_000_000),
-        "1_000_000 isn't a valid microsecond"
-    );
-}
-
-#[test]
 fn try_from_hms_micro() -> Result<()> {
     let time = Time::try_from_hms_micro(1, 2, 3, 4)?;
     assert_eq!(time.hour(), 1);
@@ -124,25 +52,6 @@ fn try_from_hms_micro() -> Result<()> {
 }
 
 #[test]
-#[cfg(feature = "panicking-api")]
-#[allow(deprecated)]
-fn from_hms_nano() {
-    let time = Time::from_hms_nano(1, 2, 3, 4);
-    assert_eq!(time.hour(), 1);
-    assert_eq!(time.minute(), 2);
-    assert_eq!(time.second(), 3);
-    assert_eq!(time.nanosecond(), 4);
-
-    assert_panics!(Time::from_hms_nano(24, 0, 0, 0), "24 isn't a valid hour.");
-    assert_panics!(Time::from_hms_nano(0, 60, 0, 0), "60 isn't a valid minute.");
-    assert_panics!(Time::from_hms_nano(0, 0, 60, 0), "60 isn't a valid second.");
-    assert_panics!(
-        Time::from_hms_nano(0, 0, 0, 1_000_000_000),
-        "1_000_000_000 isn't a valid nanosecond."
-    );
-}
-
-#[test]
 fn try_from_hms_nano() -> Result<()> {
     let time = Time::try_from_hms_nano(1, 2, 3, 4)?;
     assert_eq!(time.hour(), 1);
@@ -155,13 +64,6 @@ fn try_from_hms_nano() -> Result<()> {
     assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_err());
     assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_err());
     Ok(())
-}
-
-#[test]
-#[cfg(feature = "std")]
-#[allow(deprecated)]
-fn now() {
-    let _ = Time::now();
 }
 
 #[test]

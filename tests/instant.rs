@@ -50,15 +50,6 @@ fn sub() {
 }
 
 #[test]
-#[cfg(feature = "deprecated")]
-#[allow(deprecated)]
-fn to() {
-    let start = Instant::now();
-    thread::sleep(1.std_milliseconds());
-    assert!(start.to(Instant::now()) >= 1.milliseconds());
-}
-
-#[test]
 fn sub_std() {
     let start = StdInstant::now();
     thread::sleep(1.std_milliseconds());

@@ -2,9 +2,8 @@
 
 #[allow(unused_imports)]
 use standback::prelude::*;
-#[allow(deprecated)]
 use time::{
-    prelude::*, Date, Duration, OffsetDateTime, PrimitiveDateTime, Sign, Time, UtcOffset, Weekday,
+    prelude::*, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
 };
 
 #[test]
@@ -90,18 +89,6 @@ fn duration() -> serde_json::Result<()> {
 
     assert_eq!(serde_json::to_string(&original)?, serialized);
     assert_eq!(serde_json::from_str::<[Duration; 2]>(serialized)?, original);
-
-    Ok(())
-}
-
-#[test]
-#[allow(deprecated)]
-fn sign() -> serde_json::Result<()> {
-    let original = [Sign::Positive, Sign::Zero, Sign::Negative];
-    let serialized = "[1,0,-1]";
-
-    assert_eq!(serde_json::to_string(&original)?, serialized);
-    assert_eq!(serde_json::from_str::<[Sign; 3]>(serialized)?, original);
 
     Ok(())
 }

@@ -945,18 +945,16 @@ fn sub_std() {
 
 #[test]
 #[cfg(feature = "std")]
-#[allow(deprecated)]
 fn eq_std() {
-    let now_datetime = OffsetDateTime::now();
+    let now_datetime = OffsetDateTime::now_utc();
     let now_systemtime = SystemTime::from(now_datetime);
     assert_eq!(now_datetime, now_systemtime);
 }
 
 #[test]
 #[cfg(feature = "std")]
-#[allow(deprecated)]
 fn std_eq() {
-    let now_datetime = OffsetDateTime::now();
+    let now_datetime = OffsetDateTime::now_utc();
     let now_systemtime = SystemTime::from(now_datetime);
     assert_eq!(now_datetime, now_systemtime);
 }

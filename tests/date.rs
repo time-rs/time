@@ -829,39 +829,6 @@ fn test_parse_sunday_based_week() -> Result<()> {
 }
 
 #[test]
-#[cfg(feature = "std")]
-#[allow(deprecated)]
-fn today() {
-    let _ = Date::today();
-}
-
-#[test]
-#[cfg(feature = "panicking-api")]
-#[allow(deprecated)]
-fn from_ymd() {
-    assert_eq!(Date::from_ymd(2019, 1, 1), date!(2019 - 001));
-    assert_eq!(Date::from_ymd(2019, 12, 31), date!(2019 - 365));
-}
-
-#[test]
-#[cfg(feature = "panicking-api")]
-#[allow(deprecated)]
-fn from_yo() {
-    assert_eq!(Date::from_yo(2019, 1), date!(2019 - 01 - 01));
-    assert_eq!(Date::from_yo(2019, 365), date!(2019 - 12 - 31));
-}
-
-#[test]
-#[cfg(feature = "panicking-api")]
-#[allow(deprecated)]
-fn from_iso_ywd() {
-    use Weekday::*;
-    assert_eq!(Date::from_iso_ywd(2019, 1, Monday), date!(2018 - 12 - 31));
-    assert_eq!(Date::from_iso_ywd(2019, 1, Tuesday), date!(2019 - 01 - 01));
-    assert_eq!(Date::from_iso_ywd(2020, 53, Friday), date!(2021 - 01 - 01));
-}
-
-#[test]
 fn try_from_iso_ywd() {
     use Weekday::*;
     assert!(Date::try_from_iso_ywd(2019, 1, Monday).is_ok());
@@ -975,32 +942,12 @@ fn with_time() {
 }
 
 #[test]
-#[cfg(feature = "panicking-api")]
-#[allow(deprecated)]
-fn with_hms() {
-    assert_eq!(
-        date!(1970 - 01 - 01).with_hms(0, 0, 0),
-        date!(1970 - 01 - 01).midnight(),
-    );
-}
-
-#[test]
 fn try_with_hms() {
     assert_eq!(
         date!(1970 - 01 - 01).try_with_hms(0, 0, 0),
         Ok(date!(1970 - 01 - 01).midnight()),
     );
     assert!(date!(1970 - 01 - 01).try_with_hms(24, 0, 0).is_err());
-}
-
-#[test]
-#[cfg(feature = "panicking-api")]
-#[allow(deprecated)]
-fn with_hms_milli() {
-    assert_eq!(
-        date!(1970 - 01 - 01).with_hms_milli(0, 0, 0, 0),
-        date!(1970 - 01 - 01).midnight(),
-    );
 }
 
 #[test]
@@ -1015,16 +962,6 @@ fn try_with_hms_milli() {
 }
 
 #[test]
-#[cfg(feature = "panicking-api")]
-#[allow(deprecated)]
-fn with_hms_micro() {
-    assert_eq!(
-        date!(1970 - 01 - 01).with_hms_micro(0, 0, 0, 0),
-        date!(1970 - 01 - 01).midnight(),
-    );
-}
-
-#[test]
 fn try_with_hms_micro() {
     assert_eq!(
         date!(1970 - 01 - 01).try_with_hms_micro(0, 0, 0, 0),
@@ -1033,16 +970,6 @@ fn try_with_hms_micro() {
     assert!(date!(1970 - 01 - 01)
         .try_with_hms_micro(24, 0, 0, 0)
         .is_err());
-}
-
-#[test]
-#[cfg(feature = "panicking-api")]
-#[allow(deprecated)]
-fn with_hms_nano() {
-    assert_eq!(
-        date!(1970 - 01 - 01).with_hms_nano(0, 0, 0, 0),
-        date!(1970 - 01 - 01).midnight(),
-    );
 }
 
 #[test]

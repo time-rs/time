@@ -1,5 +1,3 @@
-#[cfg(feature = "std")]
-use crate::PrimitiveDateTime;
 use crate::{
     error,
     format::{parse, parse::AmPm, ParsedItems},
@@ -65,56 +63,6 @@ impl Time {
         }
     }
 
-    /// Create a `Time` from the hour, minute, and second.
-    ///
-    /// ```rust
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// let time = Time::from_hms(1, 2, 3);
-    /// assert_eq!(time.hour(), 1);
-    /// assert_eq!(time.minute(), 2);
-    /// assert_eq!(time.second(), 3);
-    /// assert_eq!(time.nanosecond(), 0);
-    /// ```
-    ///
-    /// Panics if any component is not valid.
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms(24, 0, 0); // 24 isn't a valid hour.
-    /// ```
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms(0, 60, 0); // 60 isn't a valid minute.
-    /// ```
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms(0, 0, 60); // 60 isn't a valid second.
-    /// ```
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
-    #[deprecated(
-        since = "0.2.3",
-        note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
-                value isn't known, use `Time::try_from_hms`."
-    )]
-    pub fn from_hms(hour: u8, minute: u8, second: u8) -> Self {
-        assert_value_in_range!(hour in 0 => 23);
-        assert_value_in_range!(minute in 0 => 59);
-        assert_value_in_range!(second in 0 => 59);
-        Self {
-            hour,
-            minute,
-            second,
-            nanosecond: 0,
-        }
-    }
-
     /// Attempt to create a `Time` from the hour, minute, and second.
     ///
     /// ```rust
@@ -147,64 +95,6 @@ impl Time {
             second,
             nanosecond: 0,
         })
-    }
-
-    /// Create a `Time` from the hour, minute, second, and millisecond.
-    ///
-    /// ```rust
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// let time = Time::from_hms_milli(1, 2, 3, 4);
-    /// assert_eq!(time.hour(), 1);
-    /// assert_eq!(time.minute(), 2);
-    /// assert_eq!(time.second(), 3);
-    /// assert_eq!(time.millisecond(), 4);
-    /// assert_eq!(time.nanosecond(), 4_000_000);
-    /// ```
-    ///
-    /// Panics if any component is not valid.
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms_milli(24, 0, 0, 0); // 24 isn't a valid hour.
-    /// ```
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms_milli(0, 60, 0, 0); // 60 isn't a valid minute.
-    /// ```
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms_milli(0, 0, 60, 0); // 60 isn't a valid second.
-    /// ```
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms_milli(0, 0, 0, 1_000); // 1_000 isn't a valid millisecond.
-    /// ```
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
-    #[deprecated(
-        since = "0.2.3",
-        note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
-                value isn't known, use `Time::try_from_hms_milli`."
-    )]
-    pub fn from_hms_milli(hour: u8, minute: u8, second: u8, millisecond: u16) -> Self {
-        assert_value_in_range!(hour in 0 => 23);
-        assert_value_in_range!(minute in 0 => 59);
-        assert_value_in_range!(second in 0 => 59);
-        assert_value_in_range!(millisecond in 0 => 999);
-        Self {
-            hour,
-            minute,
-            second,
-            nanosecond: millisecond as u32 * 1_000_000,
-        }
     }
 
     /// Attempt to create a `Time` from the hour, minute, second, and millisecond.
@@ -244,64 +134,6 @@ impl Time {
         })
     }
 
-    /// Create a `Time` from the hour, minute, second, and microsecond.
-    ///
-    /// ```rust
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// let time = Time::from_hms_micro(1, 2, 3, 4);
-    /// assert_eq!(time.hour(), 1);
-    /// assert_eq!(time.minute(), 2);
-    /// assert_eq!(time.second(), 3);
-    /// assert_eq!(time.microsecond(), 4);
-    /// assert_eq!(time.nanosecond(), 4_000);
-    /// ```
-    ///
-    /// Panics if any component is not valid.
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms_micro(24, 0, 0, 0); // 24 isn't a valid hour.
-    /// ```
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms_micro(0, 60, 0, 0); // 60 isn't a valid minute.
-    /// ```
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms_micro(0, 0, 60, 0); // 60 isn't a valid second.
-    /// ```
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms_micro(0, 0, 0, 1_000_000); // 1_000_000 isn't a valid microsecond.
-    /// ```
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
-    #[deprecated(
-        since = "0.2.3",
-        note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
-                value isn't known, use `Time::try_from_hms_micro`."
-    )]
-    pub fn from_hms_micro(hour: u8, minute: u8, second: u8, microsecond: u32) -> Self {
-        assert_value_in_range!(hour in 0 => 23);
-        assert_value_in_range!(minute in 0 => 59);
-        assert_value_in_range!(second in 0 => 59);
-        assert_value_in_range!(microsecond in 0 => 999_999);
-        Self {
-            hour,
-            minute,
-            second,
-            nanosecond: microsecond * 1_000,
-        }
-    }
-
     /// Attempt to create a `Time` from the hour, minute, second, and microsecond.
     ///
     /// ```rust
@@ -339,63 +171,6 @@ impl Time {
         })
     }
 
-    /// Create a `Time` from the hour, minute, second, and nanosecond.
-    ///
-    /// ```rust
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// let time = Time::from_hms_nano(1, 2, 3, 4);
-    /// assert_eq!(time.hour(), 1);
-    /// assert_eq!(time.minute(), 2);
-    /// assert_eq!(time.second(), 3);
-    /// assert_eq!(time.nanosecond(), 4);
-    /// ```
-    ///
-    /// Panics if any component is not valid.
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms_nano(24, 0, 0, 0); // 24 isn't a valid hour.
-    /// ```
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms_nano(0, 60, 0, 0); // 60 isn't a valid minute.
-    /// ```
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms_nano(0, 0, 60, 0); // 60 isn't a valid second.
-    /// ```
-    ///
-    /// ```rust,should_panic
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// Time::from_hms_nano(0, 0, 0, 1_000_000_000); // 1_000_000_000 isn't a valid nanosecond.
-    /// ```
-    #[cfg(feature = "panicking-api")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
-    #[deprecated(
-        since = "0.2.3",
-        note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
-                value isn't known, use `Time::try_from_hms_nano`."
-    )]
-    pub fn from_hms_nano(hour: u8, minute: u8, second: u8, nanosecond: u32) -> Self {
-        assert_value_in_range!(hour in 0 => 23);
-        assert_value_in_range!(minute in 0 => 59);
-        assert_value_in_range!(second in 0 => 59);
-        assert_value_in_range!(nanosecond in 0 => 999_999_999);
-        Self {
-            hour,
-            minute,
-            second,
-            nanosecond,
-        }
-    }
-
     /// Attempt to create a `Time` from the hour, minute, second, and nanosecond.
     ///
     /// ```rust
@@ -431,24 +206,6 @@ impl Time {
             second,
             nanosecond,
         })
-    }
-
-    /// Create a `Time` representing the current time (UTC).
-    ///
-    /// ```rust
-    /// # #![allow(deprecated)]
-    /// # use time::Time;
-    /// println!("{:?}", Time::now());
-    /// ```
-    #[cfg(feature = "std")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
-    #[deprecated(
-        since = "0.2.7",
-        note = "This method returns a value that assumes an offset of UTC."
-    )]
-    #[allow(deprecated)]
-    pub fn now() -> Self {
-        PrimitiveDateTime::now().time()
     }
 
     /// Get the clock hour.

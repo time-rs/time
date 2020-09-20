@@ -116,15 +116,6 @@ impl Instant {
     }
 }
 
-#[allow(clippy::missing_docs_in_private_items)]
-impl Instant {
-    #[cfg(feature = "deprecated")]
-    #[deprecated(since = "0.2.0", note = "Use `rhs - lhs`")]
-    pub fn to(&self, later: Self) -> Duration {
-        later - *self
-    }
-}
-
 impl From<StdInstant> for Instant {
     fn from(instant: StdInstant) -> Self {
         Self { inner: instant }
