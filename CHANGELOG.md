@@ -7,7 +7,7 @@ Versioning].
 
 ---
 
-## Unreleased
+## 0.2.21 [2020-09-20]
 
 ### Changed
 
@@ -30,7 +30,7 @@ Versioning].
   - `PrimitiveDateTime::monday_based_week`
   - `util::weeks_in_year`
 
-## 0.2.20 [2019-09-16]
+## 0.2.20 [2020-09-16]
 
 ### Added
 
