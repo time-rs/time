@@ -11,7 +11,10 @@
 #![doc(hidden)]
 #![allow(missing_debug_implementations, missing_copy_implementations)]
 
-use crate::{days_in_year, is_leap_year, Weekday};
+use crate::{
+    util::{days_in_year, is_leap_year},
+    Weekday,
+};
 use const_fn::const_fn;
 
 pub struct Time;
