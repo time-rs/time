@@ -97,7 +97,7 @@ impl Time {
     /// Time::from_hms(0, 0, 60); // 60 isn't a valid second.
     /// ```
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
@@ -188,7 +188,7 @@ impl Time {
     /// Time::from_hms_milli(0, 0, 0, 1_000); // 1_000 isn't a valid millisecond.
     /// ```
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
@@ -283,7 +283,7 @@ impl Time {
     /// Time::from_hms_micro(0, 0, 0, 1_000_000); // 1_000_000 isn't a valid microsecond.
     /// ```
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
@@ -377,7 +377,7 @@ impl Time {
     /// Time::from_hms_nano(0, 0, 0, 1_000_000_000); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For times knowable at compile-time, use the `time!` macro. For situations where a \
@@ -441,7 +441,7 @@ impl Time {
     /// println!("{:?}", Time::now());
     /// ```
     #[cfg(feature = "std")]
-    #[cfg_attr(docs, doc(cfg(feature = "std")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
     #[deprecated(
         since = "0.2.7",
         note = "This method returns a value that assumes an offset of UTC."

@@ -91,7 +91,7 @@ impl OffsetDateTime {
                 its name alone. You should use `OffsetDateTime::now_utc()` instead."
     )]
     #[cfg(feature = "std")]
-    #[cfg_attr(docs, doc(cfg(feature = "std")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
     pub fn now() -> Self {
         SystemTime::now().into()
     }
@@ -104,7 +104,7 @@ impl OffsetDateTime {
     /// assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
     /// ```
     #[cfg(feature = "std")]
-    #[cfg_attr(docs, doc(cfg(feature = "std")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
     pub fn now_utc() -> Self {
         SystemTime::now().into()
     }
@@ -117,7 +117,7 @@ impl OffsetDateTime {
     /// assert!(OffsetDateTime::now_local().year() >= 2019);
     /// ```
     #[cfg(feature = "std")]
-    #[cfg_attr(docs, doc(cfg(feature = "std")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
     pub fn now_local() -> Self {
         let t = Self::now_utc();
         t.to_offset(UtcOffset::local_offset_at(t))
@@ -132,7 +132,7 @@ impl OffsetDateTime {
     /// assert!(OffsetDateTime::try_now_local().is_ok());
     /// ```
     #[cfg(feature = "std")]
-    #[cfg_attr(docs, doc(cfg(feature = "std")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
     pub fn try_now_local() -> Result<Self, error::IndeterminateOffset> {
         let t = Self::now_utc();
         Ok(t.to_offset(UtcOffset::try_local_offset_at(t)?))

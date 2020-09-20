@@ -107,7 +107,7 @@
 //! | `_` (underscore) | Pad with spaces | `%_d` => ` 5` |
 //! | `0`              | Pad with zeros  | `%0d` => `05` |
 
-#![cfg_attr(docs, feature(doc_cfg))]
+#![cfg_attr(__time_02_docs, feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(
     anonymous_parameters,
@@ -177,7 +177,7 @@
 extern crate alloc;
 
 #[cfg(feature = "panicking-api")]
-#[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
 macro_rules! format_conditional {
     ($conditional:ident) => {{
         #[cfg(not(feature = "std"))]
@@ -199,7 +199,7 @@ macro_rules! format_conditional {
 
 /// Panic if the value is not in range.
 #[cfg(feature = "panicking-api")]
-#[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
 macro_rules! assert_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {{
         #[allow(unused_imports)]

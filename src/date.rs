@@ -97,7 +97,7 @@ impl Date {
     /// Date::from_ymd(2019, 2, 29); // 2019 isn't a leap year.
     /// ```
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
@@ -157,7 +157,7 @@ impl Date {
     /// Date::from_yo(2019, 366); // 2019 isn't a leap year.
     /// ```
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
@@ -219,7 +219,7 @@ impl Date {
     /// Date::from_iso_ywd(2019, 53, Monday); // 2019 doesn't have 53 weeks.
     /// ```
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
     #[deprecated(
         since = "0.2.3",
         note = "For dates knowable at compile-time, use the `date!` macro. For situations where a \
@@ -267,7 +267,7 @@ impl Date {
     /// assert!(Date::today().year() >= 2019);
     /// ```
     #[cfg(feature = "std")]
-    #[cfg_attr(docs, doc(cfg(feature = "std")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
     #[deprecated(
         since = "0.2.7",
         note = "This method returns a value that assumes an offset of UTC."
@@ -753,7 +753,7 @@ impl Date {
     /// );
     /// ```
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.3",
@@ -799,7 +799,7 @@ impl Date {
     /// );
     /// ```
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.3",
@@ -853,7 +853,7 @@ impl Date {
     /// );
     /// ```
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.3",
@@ -912,7 +912,7 @@ impl Date {
     /// );
     /// ```
     #[cfg(feature = "panicking-api")]
-    #[cfg_attr(docs, doc(cfg(feature = "panicking-api")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
     #[allow(deprecated)]
     #[deprecated(
         since = "0.2.3",

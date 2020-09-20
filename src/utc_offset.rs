@@ -199,6 +199,7 @@ impl UtcOffset {
     /// println!("{}", local_offset.format("%z"));
     /// ```
     #[cfg(feature = "std")]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
     pub fn local_offset_at(datetime: OffsetDateTime) -> Self {
         try_local_offset_at(datetime).unwrap_or(Self::UTC)
     }
@@ -213,6 +214,7 @@ impl UtcOffset {
     /// assert!(local_offset.is_ok());
     /// ```
     #[cfg(feature = "std")]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
     pub fn try_local_offset_at(
         datetime: OffsetDateTime,
     ) -> Result<Self, error::IndeterminateOffset> {
@@ -228,6 +230,7 @@ impl UtcOffset {
     /// println!("{}", local_offset.format("%z"));
     /// ```
     #[cfg(feature = "std")]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
     pub fn current_local_offset() -> Self {
         let now = OffsetDateTime::now_utc();
         try_local_offset_at(now).unwrap_or(Self::UTC)
@@ -242,6 +245,7 @@ impl UtcOffset {
     /// assert!(local_offset.is_ok());
     /// ```
     #[cfg(feature = "std")]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
     pub fn try_current_local_offset() -> Result<Self, error::IndeterminateOffset> {
         let now = OffsetDateTime::now_utc();
         try_local_offset_at(now).ok_or(error::IndeterminateOffset)

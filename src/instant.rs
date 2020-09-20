@@ -27,7 +27,7 @@ use std::time::Instant as StdInstant;
 ///
 /// This implementation allows for operations with signed [`Duration`]s, but is
 /// otherwise identical to [`std::time::Instant`].
-#[cfg_attr(docs, doc(cfg(feature = "std")))]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Instant {
     /// Inner representation, using `std::time::Instant`.

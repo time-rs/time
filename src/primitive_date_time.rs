@@ -70,7 +70,7 @@ impl PrimitiveDateTime {
     /// assert!(PrimitiveDateTime::now().year() >= 2019);
     /// ```
     #[cfg(feature = "std")]
-    #[cfg_attr(docs, doc(cfg(feature = "std")))]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
     #[deprecated(
         since = "0.2.7",
         note = "This method returns a value that assumes an offset of UTC."
