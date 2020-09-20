@@ -246,7 +246,10 @@ impl Date {
     /// # use time::{Date, Weekday::*};
     /// assert!(Date::try_from_iso_ywd(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
     /// ```
-    pub fn try_from_iso_ywd(
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn try_from_iso_ywd(
         year: i32,
         week: u8,
         weekday: Weekday,
@@ -407,16 +410,19 @@ impl Date {
     /// assert_eq!(date!(2020-12-31).iso_year_week(), (2020, 53));
     /// assert_eq!(date!(2021-01-01).iso_year_week(), (2020, 53));
     /// ```
-    pub fn iso_year_week(self) -> (i32, u8) {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn iso_year_week(self) -> (i32, u8) {
         let (year, ordinal) = self.as_yo();
 
-        let weekday = self.weekday();
-        let week = ((ordinal + 10 - weekday.iso_weekday_number() as u16) / 7) as u8;
-
-        match week {
+        match ((ordinal + 10 - self.iso_weekday_number() as u16) / 7) as u8 {
             0 => (year - 1, weeks_in_year(year - 1)),
             53 if weeks_in_year(year) == 52 => (year + 1, 1),
-            _ => (year, week),
+            _ => (
+                year,
+                ((ordinal + 10 - self.iso_weekday_number() as u16) / 7) as u8,
+            ),
         }
     }
 
@@ -432,7 +438,10 @@ impl Date {
     /// assert_eq!(date!(2020-12-31).week(), 53);
     /// assert_eq!(date!(2021-01-01).week(), 53);
     /// ```
-    pub fn week(self) -> u8 {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn week(self) -> u8 {
         self.iso_year_week().1
     }
 
@@ -447,8 +456,11 @@ impl Date {
     /// assert_eq!(date!(2020-12-31).sunday_based_week(), 52);
     /// assert_eq!(date!(2021-01-01).sunday_based_week(), 0);
     /// ```
-    pub fn sunday_based_week(self) -> u8 {
-        ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as u8
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn sunday_based_week(self) -> u8 {
+        ((self.ordinal() as i16 - self.number_days_from_sunday() as i16 + 6) / 7) as u8
     }
 
     /// Get the week number where week 1 begins on the first Monday.
@@ -462,8 +474,11 @@ impl Date {
     /// assert_eq!(date!(2020-12-31).monday_based_week(), 52);
     /// assert_eq!(date!(2021-01-01).monday_based_week(), 0);
     /// ```
-    pub fn monday_based_week(self) -> u8 {
-        ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as u8
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn monday_based_week(self) -> u8 {
+        ((self.ordinal() as i16 - self.number_days_from_monday() as i16 + 6) / 7) as u8
     }
 
     /// Get the year, month, and day.
@@ -494,6 +509,52 @@ impl Date {
         (self.year(), self.ordinal())
     }
 
+    /// Get the ISO weekday number.
+    ///
+    /// This is equivalent to calling `.weekday().iso_weekday_number()`, but is
+    /// usable in `const` contexts.
+    #[const_fn("1.46")]
+    pub(crate) const fn iso_weekday_number(self) -> u8 {
+        self.number_days_from_monday() + 1
+    }
+
+    /// Get the number of days from Sunday.
+    ///
+    /// This is equivalent to calling `.weekday().number_days_from_sunday()`,
+    /// but is usable in `const` contexts.
+    #[const_fn("1.46")]
+    pub(crate) const fn number_days_from_sunday(self) -> u8 {
+        self.iso_weekday_number() % 7
+    }
+
+    /// Get the number of days from Monday.
+    ///
+    /// This is equivalent to calling `.weekday().number_days_from_monday()`,
+    /// but is usable in `const` contexts.
+    #[const_fn("1.46")]
+    pub(crate) const fn number_days_from_monday(self) -> u8 {
+        let (year, month, day) = self.as_ymd();
+
+        let (month, adjusted_year) = if month < 3 {
+            (month + 12, year - 1)
+        } else {
+            (month, year)
+        };
+
+        let raw_weekday =
+            (day as i32 + (13 * (month as i32 + 1)) / 5 + adjusted_year + adjusted_year / 4
+                - adjusted_year / 100
+                + adjusted_year / 400)
+                % 7
+                - 2;
+
+        if raw_weekday < 0 {
+            (raw_weekday + 7) as u8
+        } else {
+            raw_weekday as u8
+        }
+    }
+
     /// Get the weekday.
     ///
     /// This current uses [Zeller's congruence](https://en.wikipedia.org/wiki/Zeller%27s_congruence)
@@ -515,26 +576,14 @@ impl Date {
     /// assert_eq!(date!(2019-12-01).weekday(), Sunday);
     /// ```
     pub fn weekday(self) -> Weekday {
-        let (year, month, day) = self.as_ymd();
-
-        let (month, adjusted_year) = if month < 3 {
-            (month + 12, year - 1)
-        } else {
-            (month, year)
-        };
-
-        match (day as i32 + (13 * (month as i32 + 1)) / 5 + adjusted_year + adjusted_year / 4
-            - adjusted_year / 100
-            + adjusted_year / 400)
-            .rem_euclid(7)
-        {
-            0 => Weekday::Saturday,
-            1 => Weekday::Sunday,
-            2 => Weekday::Monday,
-            3 => Weekday::Tuesday,
-            4 => Weekday::Wednesday,
-            5 => Weekday::Thursday,
-            6 => Weekday::Friday,
+        match self.number_days_from_monday() {
+            0 => Weekday::Monday,
+            1 => Weekday::Tuesday,
+            2 => Weekday::Wednesday,
+            3 => Weekday::Thursday,
+            4 => Weekday::Friday,
+            5 => Weekday::Saturday,
+            6 => Weekday::Sunday,
             // FIXME The compiler isn't able to optimize this away. See
             // rust-lang/rust#66993.
             _ => unreachable!("A value mod 7 is always in the range 0..7"),
@@ -723,7 +772,10 @@ impl Date {
     /// assert!(date!(1970-01-01).try_with_hms(0, 0, 0).is_ok());
     /// assert!(date!(1970-01-01).try_with_hms(24, 0, 0).is_err());
     /// ```
-    pub fn try_with_hms(
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn try_with_hms(
         self,
         hour: u8,
         minute: u8,
@@ -731,7 +783,7 @@ impl Date {
     ) -> Result<PrimitiveDateTime, error::ComponentRange> {
         Ok(PrimitiveDateTime::new(
             self,
-            Time::try_from_hms(hour, minute, second)?,
+            const_try!(Time::try_from_hms(hour, minute, second)),
         ))
     }
 
@@ -774,7 +826,10 @@ impl Date {
     /// assert!(date!(1970-01-01).try_with_hms_milli(0, 0, 0, 0).is_ok());
     /// assert!(date!(1970-01-01).try_with_hms_milli(24, 0, 0, 0).is_err());
     /// ```
-    pub fn try_with_hms_milli(
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn try_with_hms_milli(
         self,
         hour: u8,
         minute: u8,
@@ -783,7 +838,7 @@ impl Date {
     ) -> Result<PrimitiveDateTime, error::ComponentRange> {
         Ok(PrimitiveDateTime::new(
             self,
-            Time::try_from_hms_milli(hour, minute, second, millisecond)?,
+            const_try!(Time::try_from_hms_milli(hour, minute, second, millisecond)),
         ))
     }
 
@@ -830,7 +885,10 @@ impl Date {
     ///     .try_with_hms_micro(24, 0, 0, 0)
     ///     .is_err());
     /// ```
-    pub fn try_with_hms_micro(
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn try_with_hms_micro(
         self,
         hour: u8,
         minute: u8,
@@ -839,7 +897,7 @@ impl Date {
     ) -> Result<PrimitiveDateTime, error::ComponentRange> {
         Ok(PrimitiveDateTime::new(
             self,
-            Time::try_from_hms_micro(hour, minute, second, microsecond)?,
+            const_try!(Time::try_from_hms_micro(hour, minute, second, microsecond)),
         ))
     }
 
@@ -878,7 +936,10 @@ impl Date {
     /// assert!(date!(1970-01-01).try_with_hms_nano(0, 0, 0, 0).is_ok());
     /// assert!(date!(1970-01-01).try_with_hms_nano(24, 0, 0, 0).is_err());
     /// ```
-    pub fn try_with_hms_nano(
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn try_with_hms_nano(
         self,
         hour: u8,
         minute: u8,
@@ -887,7 +948,7 @@ impl Date {
     ) -> Result<PrimitiveDateTime, error::ComponentRange> {
         Ok(PrimitiveDateTime::new(
             self,
-            Time::try_from_hms_nano(hour, minute, second, nanosecond)?,
+            const_try!(Time::try_from_hms_nano(hour, minute, second, nanosecond)),
         ))
     }
 }

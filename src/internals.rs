@@ -12,6 +12,7 @@
 #![allow(missing_debug_implementations, missing_copy_implementations)]
 
 use crate::{days_in_year, is_leap_year, Weekday};
+use const_fn::const_fn;
 
 pub struct Time;
 
@@ -59,15 +60,17 @@ impl Date {
     }
 
     // reduce duplication
-    pub(crate) fn from_iso_ywd_unchecked(year: i32, week: u8, weekday: Weekday) -> crate::Date {
-        let ordinal = week as u16 * 7 + weekday.iso_weekday_number() as u16
-            - (Self::from_yo_unchecked(year, 4)
-                .weekday()
-                .iso_weekday_number() as u16
-                + 3);
+    #[const_fn("1.46")]
+    pub(crate) const fn from_iso_ywd_unchecked(
+        year: i32,
+        week: u8,
+        weekday: Weekday,
+    ) -> crate::Date {
+        let (ordinal, overflow) = (week as u16 * 7 + weekday.iso_weekday_number() as u16)
+            .overflowing_sub(jan_weekday(year, 4) as u16 + 4);
 
-        if ordinal < 1 {
-            return Self::from_yo_unchecked(year - 1, ordinal + days_in_year(year - 1));
+        if overflow || ordinal == 0 {
+            return Self::from_yo_unchecked(year - 1, ordinal.wrapping_add(days_in_year(year - 1)));
         }
 
         let days_in_cur_year = days_in_year(year);
@@ -76,5 +79,17 @@ impl Date {
         } else {
             Self::from_yo_unchecked(year, ordinal)
         }
+    }
+}
+
+/// Obtain the ISO weekday number of a day in January.
+#[const_fn("1.46")]
+pub(crate) const fn jan_weekday(year: i32, ordinal: i32) -> u8 {
+    let adj_year = year - 1;
+    let rem = (ordinal + adj_year + adj_year / 4 - adj_year / 100 + adj_year / 400 + 6) % 7;
+    if rem < 0 {
+        (rem + 7) as u8
+    } else {
+        rem as u8
     }
 }

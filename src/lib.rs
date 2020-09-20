@@ -264,6 +264,19 @@ macro_rules! ensure_value_in_range {
     }};
 }
 
+/// Try to unwrap an expression, returning if not possible.
+///
+/// This is similar to the `?` operator, but does not perform `.into()`. Because
+/// of this, it is usable in `const` contexts.
+macro_rules! const_try {
+    ($e:expr) => {
+        match $e {
+            Ok(value) => value,
+            Err(error) => return Err(error),
+        }
+    };
+}
+
 /// The `Date` struct and its associated `impl`s.
 mod date;
 /// The `Duration` struct and its associated `impl`s.

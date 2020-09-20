@@ -11,9 +11,24 @@ Versioning].
 
 ### Changed
 
-Implementation details of some error types have been exposed. This means that
-data about a component being out of range can be directly obtained, while an
-invalid offset or conversion error is guaranteed to be a zero-sized type.
+- Implementation details of some error types have been exposed. This means that
+  data about a component being out of range can be directly obtained, while an
+  invalid offset or conversion error is guaranteed to be a zero-sized type.
+- The following functions are `const fn` on rustc ≥ 1.46:
+  - `Date::try_from_iso_ywd`
+  - `Date::iso_year_week`
+  - `Date::week`
+  - `Date::sunday_based_week`
+  - `Date::monday_based_week`
+  - `Date::try_with_hms`
+  - `Date::try_with_hms_milli`
+  - `Date::try_with_hms_micro`
+  - `Date::try_with_hms_nano`
+  - `PrimitiveDateTime::iso_year_week`
+  - `PrimitiveDateTime::week`
+  - `PrimitiveDateTime::sunday_based_week`
+  - `PrimitiveDateTime::monday_based_week`
+  - `util::weeks_in_year`
 
 ## 0.2.20 [2019-09-16]
 

@@ -251,7 +251,10 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2020-12-31).midnight().iso_year_week(), (2020, 53));
     /// assert_eq!(date!(2021-01-01).midnight().iso_year_week(), (2020, 53));
     /// ```
-    pub fn iso_year_week(self) -> (i32, u8) {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn iso_year_week(self) -> (i32, u8) {
         self.date().iso_year_week()
     }
 
@@ -267,7 +270,10 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2020-12-31).midnight().week(), 53);
     /// assert_eq!(date!(2021-01-01).midnight().week(), 53);
     /// ```
-    pub fn week(self) -> u8 {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn week(self) -> u8 {
         self.date().week()
     }
 
@@ -282,7 +288,10 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2020-12-31).midnight().sunday_based_week(), 52);
     /// assert_eq!(date!(2021-01-01).midnight().sunday_based_week(), 0);
     /// ```
-    pub fn sunday_based_week(self) -> u8 {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn sunday_based_week(self) -> u8 {
         self.date().sunday_based_week()
     }
 
@@ -297,7 +306,10 @@ impl PrimitiveDateTime {
     /// assert_eq!(date!(2020-12-31).midnight().monday_based_week(), 52);
     /// assert_eq!(date!(2021-01-01).midnight().monday_based_week(), 0);
     /// ```
-    pub fn monday_based_week(self) -> u8 {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn monday_based_week(self) -> u8 {
         self.date().monday_based_week()
     }
 
