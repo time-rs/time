@@ -28,17 +28,6 @@
 //!
 //!   Enables [rand](https://docs.rs/rand) support for all types.
 //!
-//! - `deprecated` (_enabled by default_)
-//!
-//!   Allows using certain deprecated functions from time 0.1.
-//!
-//! - `panicking-api`
-//!
-//!   Non-panicking APIs are provided, and should generally be preferred.
-//!   However, there are some situations where avoiding `.unwrap()` may be
-//!   desired. Generally speaking, macros should be used in these situations.
-//!   Library authors should avoid using this feature.
-//!
 //! # Formatting
 //!
 //! Time's formatting behavior is based on `strftime` in C, though it is
@@ -176,61 +165,6 @@
 #[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "panicking-api")]
-#[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
-macro_rules! format_conditional {
-    ($conditional:ident) => {{
-        #[cfg(not(feature = "std"))]
-        use alloc::format;
-
-        format!(concat!(stringify!($conditional), "={}"), $conditional)
-    }};
-
-    ($first_conditional:ident, $($conditional:ident),*) => {{
-        #[cfg(not(feature = "std"))]
-        use alloc::{format, string::String};
-
-        let mut s = String::new();
-        s.push_str(&format_conditional!($first_conditional));
-        $(s.push_str(&format!(concat!(", ", stringify!($conditional), "={}"), $conditional));)*
-        s
-    }}
-}
-
-/// Panic if the value is not in range.
-#[cfg(feature = "panicking-api")]
-#[cfg_attr(__time_02_docs, doc(cfg(feature = "panicking-api")))]
-macro_rules! assert_value_in_range {
-    ($value:ident in $start:expr => $end:expr) => {{
-        #[allow(unused_imports)]
-        use standback::prelude::*;
-
-        if !($start..=$end).contains(&$value) {
-            panic!(
-                concat!(stringify!($value), " must be in the range {}..={} (was {})"),
-                $start,
-                $end,
-                $value,
-            );
-        }
-    }};
-
-    ($value:ident in $start:expr => $end:expr, given $($conditional:ident),+ $(,)?) => {{
-        #[allow(unused_imports)]
-        use standback::prelude::*;
-
-        if !($start..=$end).contains(&$value) {
-            panic!(
-                concat!(stringify!($value), " must be in the range {}..={} given{} (was {})"),
-                $start,
-                $end,
-                &format_conditional!($($conditional),+),
-                $value,
-            );
-        }
-    }};
-}
-
 /// Returns `Err(error::ComponentRange)` if the value is not in range.
 macro_rules! ensure_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {{
@@ -299,8 +233,6 @@ mod rand;
 #[cfg(feature = "serde")]
 #[allow(missing_copy_implementations, missing_debug_implementations)]
 pub mod serde;
-/// The `Sign` struct and its associated `impl`s.
-mod sign;
 /// The `Time` struct and its associated `impl`s.
 mod time_mod;
 /// The `UtcOffset` struct and its associated `impl`s.
@@ -323,8 +255,6 @@ use format::ParseResult;
 pub use instant::Instant;
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
-#[allow(deprecated)]
-pub use sign::Sign;
 #[allow(unused_imports)]
 use standback::prelude::*;
 /// Construct a [`Date`](crate::Date) with a statically known value.
@@ -471,50 +401,4 @@ mod private {
 /// ```
 pub fn parse<T: private::Parsable>(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<T> {
     private::Parsable::parse(s, format)
-}
-
-// For some back-compatibility, we're also implementing some deprecated types
-// and methods. They will be removed completely in 0.3.
-
-#[cfg(all(feature = "std", feature = "deprecated"))]
-#[allow(clippy::missing_docs_in_private_items)]
-#[deprecated(since = "0.2.0", note = "Use `Instant`")]
-pub type PreciseTime = Instant;
-
-#[cfg(all(feature = "std", feature = "deprecated"))]
-#[allow(clippy::missing_docs_in_private_items)]
-#[deprecated(since = "0.2.0", note = "Use `Instant`")]
-pub type SteadyTime = Instant;
-
-#[cfg(all(feature = "std", feature = "deprecated"))]
-#[allow(clippy::missing_docs_in_private_items)]
-#[deprecated(
-    since = "0.2.0",
-    note = "Use `OffsetDateTime::now() - OffsetDateTime::unix_epoch()` to get a `Duration` since \
-            a known epoch."
-)]
-pub fn precise_time_ns() -> u64 {
-    use standback::convert::TryInto;
-    use std::time::SystemTime;
-
-    (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))
-        .expect("System clock was before 1970.")
-        .as_nanos()
-        .try_into()
-        .expect("This function will be removed long before this is an issue.")
-}
-
-#[cfg(all(feature = "std", feature = "deprecated"))]
-#[allow(clippy::missing_docs_in_private_items)]
-#[deprecated(
-    since = "0.2.0",
-    note = "Use `OffsetDateTime::now() - OffsetDateTime::unix_epoch()` to get a `Duration` since \
-            a known epoch."
-)]
-pub fn precise_time_s() -> f64 {
-    use std::time::SystemTime;
-
-    (SystemTime::now().duration_since(SystemTime::UNIX_EPOCH))
-        .expect("System clock was before 1970.")
-        .as_secs_f64()
 }

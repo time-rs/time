@@ -1,6 +1,4 @@
 use std::cmp::Ordering;
-#[cfg(feature = "std")]
-use std::time::SystemTime;
 use time::{prelude::*, PrimitiveDateTime, Weekday};
 
 #[test]
@@ -9,42 +7,6 @@ fn new() {
         PrimitiveDateTime::new(date!(2019 - 01 - 01), time!(0:00)),
         date!(2019 - 01 - 01).midnight(),
     );
-}
-
-#[test]
-#[cfg(feature = "std")]
-#[allow(deprecated)]
-fn now() {
-    assert!(PrimitiveDateTime::now().year() >= 2019);
-}
-
-#[test]
-#[allow(deprecated)]
-fn unix_epoch() {
-    assert_eq!(
-        PrimitiveDateTime::unix_epoch(),
-        date!(1970 - 01 - 01).midnight()
-    );
-}
-
-#[test]
-#[allow(deprecated)]
-fn from_unix_timestamp() {
-    assert_eq!(
-        PrimitiveDateTime::from_unix_timestamp(0),
-        PrimitiveDateTime::unix_epoch()
-    );
-    assert_eq!(
-        PrimitiveDateTime::from_unix_timestamp(1_546_300_800),
-        date!(2019 - 01 - 01).midnight(),
-    );
-}
-
-#[test]
-#[allow(deprecated)]
-fn timestamp() {
-    assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
-    assert_eq!(date!(2019 - 01 - 01).midnight().timestamp(), 1_546_300_800);
 }
 
 #[test]
@@ -196,18 +158,6 @@ fn nanosecond() {
             .with_time(time!(23:59:59.999_999_999))
             .nanosecond(),
         999_999_999
-    );
-}
-
-#[allow(deprecated)]
-#[test]
-fn using_offset() {
-    assert_eq!(
-        date!(2019 - 01 - 01)
-            .midnight()
-            .using_offset(offset!(UTC))
-            .timestamp(),
-        1_546_300_800,
     );
 }
 
@@ -430,48 +380,6 @@ fn sub_datetime() {
 }
 
 #[test]
-#[cfg(feature = "std")]
-fn std_sub_datetime() {
-    assert_eq!(
-        SystemTime::from(date!(2019 - 01 - 02).midnight()) - date!(2019 - 01 - 01).midnight(),
-        1.days()
-    );
-    assert_eq!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight()) - date!(2019 - 01 - 02).midnight(),
-        (-1).days()
-    );
-    assert_eq!(
-        SystemTime::from(date!(2020 - 01 - 01).midnight()) - date!(2019 - 12 - 31).midnight(),
-        1.days()
-    );
-    assert_eq!(
-        SystemTime::from(date!(2019 - 12 - 31).midnight()) - date!(2020 - 01 - 01).midnight(),
-        (-1).days()
-    );
-}
-
-#[test]
-#[cfg(feature = "std")]
-fn sub_std() {
-    assert_eq!(
-        date!(2019 - 01 - 02).midnight() - SystemTime::from(date!(2019 - 01 - 01).midnight()),
-        1.days()
-    );
-    assert_eq!(
-        date!(2019 - 01 - 01).midnight() - SystemTime::from(date!(2019 - 01 - 02).midnight()),
-        (-1).days()
-    );
-    assert_eq!(
-        date!(2020 - 01 - 01).midnight() - SystemTime::from(date!(2019 - 12 - 31).midnight()),
-        1.days()
-    );
-    assert_eq!(
-        date!(2019 - 12 - 31).midnight() - SystemTime::from(date!(2020 - 01 - 01).midnight()),
-        (-1).days()
-    );
-}
-
-#[test]
 fn ord() {
     use Ordering::*;
     assert_eq!(
@@ -563,146 +471,6 @@ fn ord() {
             .with_time(time!(0:00:00.000_000_001))
             .partial_cmp(&date!(2019 - 01 - 01).midnight()),
         Some(Greater)
-    );
-}
-
-#[test]
-#[cfg(feature = "std")]
-#[allow(deprecated)]
-fn eq_std() {
-    let now_datetime = PrimitiveDateTime::now();
-    let now_systemtime = SystemTime::from(now_datetime);
-    assert_eq!(now_datetime, now_systemtime);
-}
-
-#[test]
-#[cfg(feature = "std")]
-#[allow(deprecated)]
-fn std_eq() {
-    let now_datetime = PrimitiveDateTime::now();
-    let now_systemtime = SystemTime::from(now_datetime);
-    assert_eq!(now_datetime, now_systemtime);
-}
-
-#[test]
-#[cfg(feature = "std")]
-fn ord_std() {
-    assert_eq!(
-        date!(2019 - 01 - 01).midnight(),
-        SystemTime::from(date!(2019 - 01 - 01).midnight())
-    );
-    assert!(date!(2019 - 01 - 01).midnight() < SystemTime::from(date!(2020 - 01 - 01).midnight()));
-    assert!(date!(2019 - 01 - 01).midnight() < SystemTime::from(date!(2019 - 02 - 01).midnight()));
-    assert!(date!(2019 - 01 - 01).midnight() < SystemTime::from(date!(2019 - 01 - 02).midnight()));
-    assert!(
-        date!(2019 - 01 - 01).midnight()
-            < SystemTime::from(date!(2019 - 01 - 01).with_time(time!(1:00:00)))
-    );
-    assert!(
-        date!(2019 - 01 - 01).midnight()
-            < SystemTime::from(date!(2019 - 01 - 01).with_time(time!(0:01:00)))
-    );
-    assert!(
-        date!(2019 - 01 - 01).midnight()
-            < SystemTime::from(date!(2019 - 01 - 01).with_time(time!(0:00:01)))
-    );
-    assert!(
-        date!(2019 - 01 - 01).midnight()
-            < SystemTime::from(date!(2019 - 01 - 01).with_time(time!(0:00:00.001)))
-    );
-    assert!(date!(2020 - 01 - 01).midnight() > SystemTime::from(date!(2019 - 01 - 01).midnight()));
-    assert!(date!(2019 - 02 - 01).midnight() > SystemTime::from(date!(2019 - 01 - 01).midnight()));
-    assert!(date!(2019 - 01 - 02).midnight() > SystemTime::from(date!(2019 - 01 - 01).midnight()));
-    assert!(
-        date!(2019 - 01 - 01).with_time(time!(1:00:00))
-            > SystemTime::from(date!(2019 - 01 - 01).midnight())
-    );
-    assert!(
-        date!(2019 - 01 - 01).with_time(time!(0:01:00))
-            > SystemTime::from(date!(2019 - 01 - 01).midnight())
-    );
-    assert!(
-        date!(2019 - 01 - 01).with_time(time!(0:00:01))
-            > SystemTime::from(date!(2019 - 01 - 01).midnight())
-    );
-    assert!(
-        date!(2019 - 01 - 01).with_time(time!(0:00:00.000_000_001))
-            > SystemTime::from(date!(2019 - 01 - 01).midnight())
-    );
-}
-
-#[test]
-#[cfg(feature = "std")]
-fn std_ord() {
-    assert_eq!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight()),
-        date!(2019 - 01 - 01).midnight()
-    );
-    assert!(SystemTime::from(date!(2019 - 01 - 01).midnight()) < date!(2020 - 01 - 01).midnight());
-    assert!(SystemTime::from(date!(2019 - 01 - 01).midnight()) < date!(2019 - 02 - 01).midnight());
-    assert!(SystemTime::from(date!(2019 - 01 - 01).midnight()) < date!(2019 - 01 - 02).midnight());
-    assert!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight())
-            < date!(2019 - 01 - 01).with_time(time!(1:00:00))
-    );
-    assert!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight())
-            < date!(2019 - 01 - 01).with_time(time!(0:01:00))
-    );
-    assert!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight())
-            < date!(2019 - 01 - 01).with_time(time!(0:00:01))
-    );
-    assert!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight())
-            < date!(2019 - 01 - 01).with_time(time!(0:00:00.000_000_001))
-    );
-    assert!(SystemTime::from(date!(2020 - 01 - 01).midnight()) > date!(2019 - 01 - 01).midnight());
-    assert!(SystemTime::from(date!(2019 - 02 - 01).midnight()) > date!(2019 - 01 - 01).midnight());
-    assert!(SystemTime::from(date!(2019 - 01 - 02).midnight()) > date!(2019 - 01 - 01).midnight());
-    assert!(
-        SystemTime::from(date!(2019 - 01 - 01).with_time(time!(1:00:00)))
-            > date!(2019 - 01 - 01).midnight()
-    );
-    assert!(
-        SystemTime::from(date!(2019 - 01 - 01).with_time(time!(0:01:00)))
-            > date!(2019 - 01 - 01).midnight()
-    );
-    assert!(
-        SystemTime::from(date!(2019 - 01 - 01).with_time(time!(0:00:01)))
-            > date!(2019 - 01 - 01).midnight()
-    );
-    assert!(
-        SystemTime::from(date!(2019 - 01 - 01).with_time(time!(0:00:00.001)))
-            > date!(2019 - 01 - 01).midnight()
-    );
-}
-
-#[test]
-#[cfg(feature = "std")]
-#[allow(deprecated)]
-fn from_std() {
-    assert_eq!(
-        PrimitiveDateTime::from(SystemTime::UNIX_EPOCH),
-        PrimitiveDateTime::unix_epoch()
-    );
-    assert_eq!(
-        PrimitiveDateTime::from(SystemTime::UNIX_EPOCH - 5.std_seconds()),
-        PrimitiveDateTime::unix_epoch() - 5.seconds()
-    );
-}
-
-#[test]
-#[cfg(feature = "std")]
-#[allow(deprecated)]
-fn to_std() {
-    assert_eq!(
-        SystemTime::from(PrimitiveDateTime::unix_epoch()),
-        SystemTime::UNIX_EPOCH
-    );
-    assert_eq!(
-        SystemTime::from(PrimitiveDateTime::unix_epoch() - 5.seconds()),
-        SystemTime::UNIX_EPOCH - 5.std_seconds()
     );
 }
 

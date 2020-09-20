@@ -1,7 +1,6 @@
 use crate::{
     format::parse::{parse, ParsedItems},
-    internals, Date, DeferredFormat, Duration, OffsetDateTime, ParseResult, Time, UtcOffset,
-    Weekday,
+    Date, DeferredFormat, Duration, OffsetDateTime, ParseResult, Time, UtcOffset, Weekday,
 };
 #[cfg(not(feature = "std"))]
 use alloc::{
@@ -9,22 +8,16 @@ use alloc::{
     string::{String, ToString},
 };
 use const_fn::const_fn;
-#[cfg(feature = "std")]
-use core::convert::From;
 use core::{
     cmp::Ordering,
     fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(feature = "std")]
-use standback::convert::TryFrom;
 #[cfg(feature = "serde")]
 use standback::convert::TryInto;
 #[allow(unused_imports)]
 use standback::prelude::*;
-#[cfg(feature = "std")]
-use std::time::SystemTime;
 
 /// Combined date and time.
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
@@ -60,79 +53,6 @@ impl PrimitiveDateTime {
     /// ```
     pub const fn new(date: Date, time: Time) -> Self {
         Self { date, time }
-    }
-
-    /// Create a new `PrimitiveDateTime` with the current date and time (UTC).
-    ///
-    /// ```rust
-    /// # #![allow(deprecated)]
-    /// # use time::PrimitiveDateTime;
-    /// assert!(PrimitiveDateTime::now().year() >= 2019);
-    /// ```
-    #[cfg(feature = "std")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
-    #[deprecated(
-        since = "0.2.7",
-        note = "This method returns a value that assumes an offset of UTC."
-    )]
-    pub fn now() -> Self {
-        SystemTime::now().into()
-    }
-
-    /// Midnight, 1 January, 1970 (UTC).
-    ///
-    /// ```rust
-    /// # #![allow(deprecated)]
-    /// # use time::{PrimitiveDateTime, date};
-    /// assert_eq!(
-    ///     PrimitiveDateTime::unix_epoch(),
-    ///     date!(1970-01-01).midnight()
-    /// );
-    /// ```
-    #[deprecated(since = "0.2.7", note = "This method assumes an offset of UTC.")]
-    pub const fn unix_epoch() -> Self {
-        Self {
-            date: internals::Date::from_yo_unchecked(1970, 1),
-            time: Time::midnight(),
-        }
-    }
-
-    /// Create a `PrimitiveDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
-    ///
-    /// ```rust
-    /// # #![allow(deprecated)]
-    /// # use time::{date, PrimitiveDateTime};
-    /// assert_eq!(
-    ///     PrimitiveDateTime::from_unix_timestamp(0),
-    ///     PrimitiveDateTime::unix_epoch()
-    /// );
-    /// assert_eq!(
-    ///     PrimitiveDateTime::from_unix_timestamp(1_546_300_800),
-    ///     date!(2019-01-01).midnight(),
-    /// );
-    /// ```
-    #[deprecated(
-        since = "0.2.7",
-        note = "This method returns a value that assumes an offset of UTC."
-    )]
-    #[allow(deprecated)]
-    pub fn from_unix_timestamp(timestamp: i64) -> Self {
-        Self::unix_epoch() + Duration::seconds(timestamp)
-    }
-
-    /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time)
-    /// representing the `PrimitiveDateTime`.
-    ///
-    /// ```rust
-    /// # #![allow(deprecated)]
-    /// # use time::{date, PrimitiveDateTime};
-    /// assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
-    /// assert_eq!(date!(2019-01-01).midnight().timestamp(), 1_546_300_800);
-    /// ```
-    #[allow(deprecated)]
-    #[deprecated(since = "0.2.7", note = "This method assumes an offset of UTC.")]
-    pub fn timestamp(self) -> i64 {
-        (self - Self::unix_epoch()).whole_seconds()
     }
 
     /// Get the `Date` component of the `PrimitiveDateTime`.
@@ -419,33 +339,6 @@ impl PrimitiveDateTime {
     }
 
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in
-    /// the UTC, return an `OffsetDateTime` with the provided `UtcOffset`.
-    ///
-    /// ```rust
-    /// # #![allow(deprecated)]
-    /// # use time::{date, offset};
-    /// assert_eq!(
-    ///     date!(2019-01-01).midnight().using_offset(offset!(UTC)).timestamp(),
-    ///     1_546_300_800,
-    /// );
-    /// assert_eq!(
-    ///     date!(2019-01-01).midnight().using_offset(offset!(-1)).timestamp(),
-    ///     1_546_300_800,
-    /// );
-    /// ```
-    ///
-    /// This function is the same as calling `.assume_utc().to_offset(offset)`.
-    #[deprecated(
-        since = "0.2.7",
-        note = "Due to behavior not clear by its name alone, it is preferred to use \
-                `.assume_utc().to_offset(offset)`. This has the same behavior and can be used in \
-                `const` contexts."
-    )]
-    pub const fn using_offset(self, offset: UtcOffset) -> OffsetDateTime {
-        self.assume_utc().to_offset(offset)
-    }
-
-    /// Assuming that the existing `PrimitiveDateTime` represents a moment in
     /// the provided `UtcOffset`, return an `OffsetDateTime`.
     ///
     /// ```rust
@@ -641,61 +534,9 @@ impl Sub<PrimitiveDateTime> for PrimitiveDateTime {
     }
 }
 
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(feature = "std")]
-impl Sub<SystemTime> for PrimitiveDateTime {
-    type Output = Duration;
-
-    fn sub(self, rhs: SystemTime) -> Self::Output {
-        self - Self::from(rhs)
-    }
-}
-
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(feature = "std")]
-impl Sub<PrimitiveDateTime> for SystemTime {
-    type Output = Duration;
-
-    fn sub(self, rhs: PrimitiveDateTime) -> Self::Output {
-        PrimitiveDateTime::from(self) - rhs
-    }
-}
-
 impl PartialOrd for PrimitiveDateTime {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
-    }
-}
-
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(feature = "std")]
-impl PartialEq<SystemTime> for PrimitiveDateTime {
-    fn eq(&self, rhs: &SystemTime) -> bool {
-        self == &Self::from(*rhs)
-    }
-}
-
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(feature = "std")]
-impl PartialEq<PrimitiveDateTime> for SystemTime {
-    fn eq(&self, rhs: &PrimitiveDateTime) -> bool {
-        &PrimitiveDateTime::from(*self) == rhs
-    }
-}
-
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(feature = "std")]
-impl PartialOrd<SystemTime> for PrimitiveDateTime {
-    fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
-        self.partial_cmp(&Self::from(*other))
-    }
-}
-
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(feature = "std")]
-impl PartialOrd<PrimitiveDateTime> for SystemTime {
-    fn partial_cmp(&self, other: &PrimitiveDateTime) -> Option<Ordering> {
-        PrimitiveDateTime::from(*self).partial_cmp(other)
     }
 }
 
@@ -704,41 +545,5 @@ impl Ord for PrimitiveDateTime {
         self.date
             .cmp(&other.date)
             .then_with(|| self.time.cmp(&other.time))
-    }
-}
-
-/// Deprecated since v0.2.7, as it returns a value that assumes an offset of UTC.
-#[cfg(feature = "std")]
-#[allow(deprecated)]
-impl From<SystemTime> for PrimitiveDateTime {
-    // There is definitely some way to have this conversion be infallible, but
-    // it won't be an issue for over 500 years.
-    fn from(system_time: SystemTime) -> Self {
-        let duration = match system_time.duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(duration) => Duration::try_from(duration)
-                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
-            Err(err) => -Duration::try_from(err.duration())
-                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
-        };
-
-        Self::unix_epoch() + duration
-    }
-}
-
-/// Deprecated since v0.2.7, as it assumes an offset of UTC.
-#[cfg(feature = "std")]
-#[allow(deprecated)]
-impl From<PrimitiveDateTime> for SystemTime {
-    fn from(datetime: PrimitiveDateTime) -> Self {
-        let duration = datetime - PrimitiveDateTime::unix_epoch();
-
-        if duration.is_zero() {
-            Self::UNIX_EPOCH
-        } else if duration.is_positive() {
-            Self::UNIX_EPOCH + duration.abs_std()
-        } else {
-            // duration.is_negative()
-            Self::UNIX_EPOCH - duration.abs_std()
-        }
     }
 }

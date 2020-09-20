@@ -15,7 +15,6 @@
 mod date;
 mod duration;
 mod primitive_date_time;
-mod sign;
 mod time;
 pub mod timestamp;
 mod utc_offset;
@@ -25,7 +24,5 @@ pub(crate) use self::time::Time;
 pub(crate) use date::Date;
 pub(crate) use duration::Duration;
 pub(crate) use primitive_date_time::PrimitiveDateTime;
-#[allow(deprecated)]
-pub(crate) use sign::Sign;
 pub(crate) use utc_offset::UtcOffset;
 pub(crate) use weekday::Weekday;
