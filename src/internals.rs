@@ -47,6 +47,7 @@ impl Date {
     }
 
     // reduce duplication
+    #[const_fn("1.46")]
     pub(crate) const fn from_ymd_unchecked(year: i32, month: u8, day: u8) -> crate::Date {
         /// Cumulative days through the beginning of a month in both common and
         /// leap years.
