@@ -2,9 +2,8 @@
 
 #[allow(unused_imports)]
 use standback::prelude::*;
-use time::{
-    prelude::*, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
-};
+use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use time_macros::{date, offset, time};
 
 #[test]
 fn time() -> serde_json::Result<()> {

@@ -1,4 +1,9 @@
-use time::{error, prelude::*, Result, Time};
+use time::{
+    error,
+    ext::{NumericalDuration, NumericalStdDuration},
+    Result, Time,
+};
+use time_macros::time;
 
 #[test]
 fn midnight() {

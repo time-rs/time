@@ -1,7 +1,12 @@
 #[allow(unused_imports)]
 use standback::prelude::*;
 use std::{cmp::Ordering, collections::HashSet};
-use time::{error, prelude::*, util, Date, Result, Weekday};
+use time::{
+    error,
+    ext::{NumericalDuration, NumericalStdDuration},
+    util, Date, Result, Weekday,
+};
+use time_macros::{date, time};
 
 macro_rules! julian {
     ($julian:literal) => {

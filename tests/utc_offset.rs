@@ -1,6 +1,7 @@
 #[cfg(feature = "std")]
 use time::OffsetDateTime;
-use time::{prelude::*, UtcOffset};
+use time::UtcOffset;
+use time_macros::offset;
 
 #[test]
 fn hours() {

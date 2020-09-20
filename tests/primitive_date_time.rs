@@ -1,5 +1,9 @@
 use std::cmp::Ordering;
-use time::{prelude::*, PrimitiveDateTime, Weekday};
+use time::{
+    ext::{NumericalDuration, NumericalStdDuration},
+    PrimitiveDateTime, Weekday,
+};
+use time_macros::{date, offset, time};
 
 #[test]
 fn new() {

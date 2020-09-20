@@ -2,7 +2,10 @@ use standback::convert::TryFrom;
 #[allow(unused_imports)]
 use standback::prelude::*;
 use std::{cmp::Ordering, time::Duration as StdDuration};
-use time::{prelude::*, Duration};
+use time::{
+    ext::{NumericalDuration, NumericalStdDuration},
+    Duration,
+};
 
 macro_rules! assert_panics {
     ($e:expr $(, $message:literal)?) => {
