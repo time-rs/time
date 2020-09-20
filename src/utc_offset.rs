@@ -366,7 +366,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             }
         }
 
-        let tm = timestamp_to_tm(datetime.timestamp())?;
+        let tm = timestamp_to_tm(datetime.unix_timestamp())?;
 
         // `tm_gmtoff` extension
         #[cfg(not(any(target_os = "solaris", target_os = "illumos")))]
@@ -396,9 +396,9 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
                     )
                     .ok()?
                     .assume_utc()
-                    .timestamp();
+                    .unix_timestamp();
 
-            (local_timestamp - datetime.timestamp())
+            (local_timestamp - datetime.unix_timestamp())
                 .try_into()
                 .ok()
                 .map(UtcOffset::seconds)
@@ -489,7 +489,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     {
         use stdweb::{js, unstable::TryInto};
 
-        let timestamp_utc = datetime.timestamp();
+        let timestamp_utc = datetime.unix_timestamp();
         let low_bits = (timestamp_utc & 0xFF_FF_FF_FF) as i32;
         let high_bits = (timestamp_utc >> 32) as i32;
 

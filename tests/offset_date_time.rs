@@ -106,30 +106,30 @@ fn offset() {
 }
 
 #[test]
-fn timestamp() {
-    assert_eq!(OffsetDateTime::unix_epoch().timestamp(), 0);
+fn unix_timestamp() {
+    assert_eq!(OffsetDateTime::unix_epoch().unix_timestamp(), 0);
     assert_eq!(
         OffsetDateTime::unix_epoch()
             .to_offset(offset!(+1))
-            .timestamp(),
+            .unix_timestamp(),
         0,
     );
     assert_eq!(
         date!(1970 - 01 - 01)
             .midnight()
             .assume_offset(offset!(-1))
-            .timestamp(),
+            .unix_timestamp(),
         3_600,
     );
 }
 
 #[test]
-fn timestamp_nanos() {
+fn unix_timestamp_nanos() {
     assert_eq!(
         date!(1970 - 01 - 01)
             .midnight()
             .assume_utc()
-            .timestamp_nanos(),
+            .unix_timestamp_nanos(),
         0,
     );
     assert_eq!(
@@ -137,7 +137,7 @@ fn timestamp_nanos() {
             .with_time(time!(1:00))
             .assume_utc()
             .to_offset(offset!(-1))
-            .timestamp_nanos(),
+            .unix_timestamp_nanos(),
         3_600_000_000_000,
     );
 }

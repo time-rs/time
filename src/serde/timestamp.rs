@@ -35,7 +35,7 @@ pub fn serialize<S: Serializer>(
     datetime: &OffsetDateTime,
     serializer: S,
 ) -> Result<S::Ok, S::Error> {
-    Wrapper(datetime.timestamp()).serialize(serializer)
+    Wrapper(datetime.unix_timestamp()).serialize(serializer)
 }
 
 #[allow(single_use_lifetimes)]
