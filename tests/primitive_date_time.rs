@@ -167,14 +167,14 @@ fn assume_offset() {
         date!(2019 - 01 - 01)
             .midnight()
             .assume_offset(offset!(UTC))
-            .timestamp(),
+            .unix_timestamp(),
         1_546_300_800,
     );
     assert_eq!(
         date!(2019 - 01 - 01)
             .midnight()
             .assume_offset(offset!(-1))
-            .timestamp(),
+            .unix_timestamp(),
         1_546_304_400,
     );
 }
@@ -182,7 +182,10 @@ fn assume_offset() {
 #[test]
 fn assume_utc() {
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc().timestamp(),
+        date!(2019 - 01 - 01)
+            .midnight()
+            .assume_utc()
+            .unix_timestamp(),
         1_546_300_800,
     );
 }

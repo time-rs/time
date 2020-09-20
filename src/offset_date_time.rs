@@ -257,7 +257,7 @@ impl OffsetDateTime {
     ///     date!(1970-01-01)
     ///         .midnight()
     ///         .assume_utc()
-    ///         .timestamp(),
+    ///         .unix_timestamp(),
     ///     0,
     /// );
     /// assert_eq!(
@@ -265,11 +265,11 @@ impl OffsetDateTime {
     ///         .midnight()
     ///         .assume_utc()
     ///         .to_offset(offset!(-1))
-    ///         .timestamp(),
+    ///         .unix_timestamp(),
     ///     0,
     /// );
     /// ```
-    pub fn timestamp(self) -> i64 {
+    pub fn unix_timestamp(self) -> i64 {
         (self - Self::unix_epoch()).whole_seconds()
     }
 
@@ -281,7 +281,7 @@ impl OffsetDateTime {
     ///     date!(1970-01-01)
     ///         .midnight()
     ///         .assume_utc()
-    ///         .timestamp_nanos(),
+    ///         .unix_timestamp_nanos(),
     ///     0,
     /// );
     /// assert_eq!(
@@ -289,11 +289,11 @@ impl OffsetDateTime {
     ///         .with_time(time!(1:00))
     ///         .assume_utc()
     ///         .to_offset(offset!(-1))
-    ///         .timestamp_nanos(),
+    ///         .unix_timestamp_nanos(),
     ///     3_600_000_000_000,
     /// );
     /// ```
-    pub fn timestamp_nanos(self) -> i128 {
+    pub fn unix_timestamp_nanos(self) -> i128 {
         (self - Self::unix_epoch()).whole_nanoseconds()
     }
 
