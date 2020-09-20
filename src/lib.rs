@@ -260,7 +260,8 @@ use standback::prelude::*;
 /// year-month-day.
 ///
 /// ```rust
-/// # use time::{Date, date, Weekday::*};
+/// # use time::{Date, Weekday::*};
+/// # use time_macros::date;
 /// # fn main() -> time::Result<()> {
 /// assert_eq!(date!(2020-W01-3), Date::try_from_iso_ywd(2020, 1, Wednesday)?);
 /// assert_eq!(date!(2020-001), Date::try_from_yo(2020, 1)?);
@@ -268,6 +269,7 @@ use standback::prelude::*;
 /// # Ok(())
 /// # }
 /// ```
+#[cfg(feature = "macros")]
 pub use time_macros::date;
 /// Construct a [`UtcOffset`](crate::UtcOffset) with a statically known value.
 ///
@@ -277,7 +279,8 @@ pub use time_macros::date;
 /// `UTC` (both uppercase and lowercase) is also allowed.
 ///
 /// ```rust
-/// # use time::{offset, UtcOffset};
+/// # use time::UtcOffset;
+/// # use time_macros::offset;
 /// assert_eq!(offset!(UTC), UtcOffset::hours(0));
 /// assert_eq!(offset!(utc), UtcOffset::hours(0));
 /// assert_eq!(offset!(+0), UtcOffset::hours(0));
@@ -290,6 +293,7 @@ pub use time_macros::date;
 /// assert_eq!(offset!(+23:59:59), UtcOffset::seconds(86_399));
 /// assert_eq!(offset!(-23:59:59), UtcOffset::seconds(-86_399));
 /// ```
+#[cfg(feature = "macros")]
 pub use time_macros::offset;
 /// Construct a [`Time`](crate::Time) with a statically known value.
 ///
@@ -303,7 +307,8 @@ pub use time_macros::offset;
 /// value is invalid.
 ///
 /// ```rust
-/// # use time::{Time, time};
+/// # use time::Time;
+/// # use time_macros::time;
 /// # fn main() -> time::Result<()> {
 /// assert_eq!(time!(0:00), Time::try_from_hms(0, 0, 0)?);
 /// assert_eq!(time!(1:02:03), Time::try_from_hms(1, 2, 3)?);
@@ -317,6 +322,7 @@ pub use time_macros::offset;
 /// # Ok(())
 /// # }
 /// ```
+#[cfg(feature = "macros")]
 pub use time_macros::time;
 pub use time_mod::Time;
 pub use utc_offset::UtcOffset;
@@ -349,6 +355,7 @@ pub mod prelude {
     //
     // As a side note, doing `use crate::time` causes a stack overflow in
     // rustc <= 1.37.0.
+    #[cfg(feature = "macros")]
     pub use time_macros::{date, offset, time};
 }
 

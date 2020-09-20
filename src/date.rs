@@ -163,7 +163,7 @@ impl Date {
     /// Get the year of the date.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).year(), 2019);
     /// assert_eq!(date!(2019-12-31).year(), 2019);
     /// assert_eq!(date!(2020-01-01).year(), 2020);
@@ -182,7 +182,7 @@ impl Date {
     /// The returned value will always be in the range `1..=12`.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).month(), 1);
     /// assert_eq!(date!(2019-12-31).month(), 12);
     /// ```
@@ -199,7 +199,7 @@ impl Date {
     /// The returned value will always be in the range `1..=31`.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).day(), 1);
     /// assert_eq!(date!(2019-12-31).day(), 31);
     /// ```
@@ -217,7 +217,7 @@ impl Date {
     /// the day component in `1..=31`.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).month_day(), (1, 1));
     /// assert_eq!(date!(2019-12-31).month_day(), (12, 31));
     /// ```
@@ -271,7 +271,7 @@ impl Date {
     /// common years).
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).ordinal(), 1);
     /// assert_eq!(date!(2019-12-31).ordinal(), 365);
     /// ```
@@ -286,7 +286,7 @@ impl Date {
     /// Get the ISO 8601 year and week number.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).iso_year_week(), (2019, 1));
     /// assert_eq!(date!(2019-10-04).iso_year_week(), (2019, 40));
     /// assert_eq!(date!(2020-01-01).iso_year_week(), (2020, 1));
@@ -314,7 +314,7 @@ impl Date {
     /// The returned value will always be in the range `1..=53`.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).week(), 1);
     /// assert_eq!(date!(2019-10-04).week(), 40);
     /// assert_eq!(date!(2020-01-01).week(), 1);
@@ -333,7 +333,7 @@ impl Date {
     /// The returned value will always be in the range `0..=53`.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).sunday_based_week(), 0);
     /// assert_eq!(date!(2020-01-01).sunday_based_week(), 0);
     /// assert_eq!(date!(2020-12-31).sunday_based_week(), 52);
@@ -351,7 +351,7 @@ impl Date {
     /// The returned value will always be in the range `0..=53`.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).monday_based_week(), 0);
     /// assert_eq!(date!(2020-01-01).monday_based_week(), 0);
     /// assert_eq!(date!(2020-12-31).monday_based_week(), 52);
@@ -367,7 +367,7 @@ impl Date {
     /// Get the year, month, and day.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).as_ymd(), (2019, 1, 1));
     /// ```
     ///
@@ -381,7 +381,7 @@ impl Date {
     /// Get the year and ordinal day number.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).as_yo(), (2019, 1));
     /// ```
     ///
@@ -444,7 +444,8 @@ impl Date {
     /// internally.
     ///
     /// ```rust
-    /// # use time::{date, Weekday::*};
+    /// # use time::Weekday::*;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).weekday(), Tuesday);
     /// assert_eq!(date!(2019-02-01).weekday(), Friday);
     /// assert_eq!(date!(2019-03-01).weekday(), Friday);
@@ -476,7 +477,7 @@ impl Date {
     /// Get the next calendar date.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-01).next_day(), date!(2019-01-02));
     /// assert_eq!(date!(2019-01-31).next_day(), date!(2019-02-01));
     /// assert_eq!(date!(2019-12-31).next_day(), date!(2020-01-01));
@@ -501,7 +502,7 @@ impl Date {
     /// Get the previous calendar date.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-02).previous_day(), date!(2019-01-01));
     /// assert_eq!(date!(2019-02-01).previous_day(), date!(2019-01-31));
     /// assert_eq!(date!(2020-01-01).previous_day(), date!(2019-12-31));
@@ -530,7 +531,7 @@ impl Date {
     /// [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(-4713-11-24).julian_day(), 0);
     /// assert_eq!(date!(2000-01-01).julian_day(), 2_451_545);
     /// assert_eq!(date!(2019-01-01).julian_day(), 2_458_485);
@@ -563,7 +564,8 @@ impl Date {
     /// [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
     ///
     /// ```rust
-    /// # use time::{Date, date};
+    /// # use time::Date;
+    /// # use time_macros::date;
     /// assert_eq!(
     ///     Date::from_julian_day(0),
     ///     date!(-4713-11-24)
@@ -602,7 +604,7 @@ impl Date {
     /// be set to midnight.
     ///
     /// ```rust
-    /// # use time::{date, time};
+    /// # use time_macros::{date, time};
     /// assert_eq!(
     ///     date!(1970-01-01).midnight(),
     ///     date!(1970-01-01).with_time(time!(0:00))
@@ -615,7 +617,7 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided `Time`.
     ///
     /// ```rust
-    /// # use time::{date, time};
+    /// # use time_macros::{date, time};
     /// assert_eq!(
     ///     date!(1970-01-01).with_time(time!(0:00)),
     ///     date!(1970-01-01).midnight(),
@@ -629,7 +631,7 @@ impl Date {
     /// provided time.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert!(date!(1970-01-01).try_with_hms(0, 0, 0).is_ok());
     /// assert!(date!(1970-01-01).try_with_hms(24, 0, 0).is_err());
     /// ```
@@ -651,7 +653,7 @@ impl Date {
     /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert!(date!(1970-01-01).try_with_hms_milli(0, 0, 0, 0).is_ok());
     /// assert!(date!(1970-01-01).try_with_hms_milli(24, 0, 0, 0).is_err());
     /// ```
@@ -675,7 +677,7 @@ impl Date {
     /// provided time.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert!(date!(1970-01-01)
     ///     .try_with_hms_micro(0, 0, 0, 0)
     ///     .is_ok());
@@ -702,7 +704,7 @@ impl Date {
     /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert!(date!(1970-01-01).try_with_hms_nano(0, 0, 0, 0).is_ok());
     /// assert!(date!(1970-01-01).try_with_hms_nano(24, 0, 0, 0).is_err());
     /// ```
@@ -728,7 +730,7 @@ impl Date {
     /// Format the `Date` using the provided string.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-02).format("%Y-%m-%d"), "2019-01-02");
     /// ```
     pub fn format(self, format: impl AsRef<str>) -> String {
@@ -738,7 +740,7 @@ impl Date {
     /// Format the `Date` using the provided string.
     ///
     /// ```rust
-    /// # use time::date;
+    /// # use time_macros::date;
     /// assert_eq!(date!(2019-01-02).lazy_format("%Y-%m-%d").to_string(), "2019-01-02");
     /// ```
     pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
@@ -750,7 +752,8 @@ impl Date {
     /// Attempt to parse a `Date` using the provided string.
     ///
     /// ```rust
-    /// # use time::{Date, date};
+    /// # use time::Date;
+    /// # use time_macros::date;
     /// assert_eq!(
     ///     Date::parse("2019-01-02", "%F"),
     ///     Ok(date!(2019-01-02))
@@ -912,7 +915,6 @@ impl Ord for Date {
 }
 
 #[cfg(test)]
-#[rustfmt::skip::macros(date)]
 mod test {
     use super::*;
 

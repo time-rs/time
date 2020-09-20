@@ -3,7 +3,12 @@ use std::cmp::Ordering;
 use std::time::SystemTime;
 #[cfg(feature = "std")]
 use time::UtcOffset;
-use time::{error, prelude::*, Format, OffsetDateTime, Weekday};
+use time::{
+    error,
+    ext::{NumericalDuration, NumericalStdDuration},
+    Format, OffsetDateTime, Weekday,
+};
+use time_macros::{date, offset, time};
 
 #[test]
 #[cfg(feature = "std")]

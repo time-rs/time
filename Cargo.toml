@@ -20,6 +20,7 @@ rustdoc-args = ["--cfg", "__time_02_docs"]
 
 [features]
 default = ["std"]
+macros = ["time-macros"]
 std = ["libc", "winapi", "stdweb", "standback/std"]
 
 [dependencies]
@@ -27,7 +28,7 @@ const_fn = "0.4.2"
 rand = { version = "0.7", optional = true, default-features = false }
 serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
 standback = { version = "0.2.5", default-features = false }
-time-macros = { version = "0.1", path = "time-macros" }
+time-macros = { version = "0.1", path = "time-macros", optional = true }
 
 [workspace]
 members = ["time-macros", "time-macros-impl"]
