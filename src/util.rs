@@ -18,6 +18,7 @@ const DAYS_IN_MONTH_COMMON_LEAP: [[u16; 12]; 2] = [
 ];
 
 /// Get the number of days in the month of a given year.
+#[const_fn("1.46")]
 pub(crate) const fn days_in_year_month(year: i32, month: u8) -> u8 {
     DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1] as u8
 }
@@ -33,8 +34,11 @@ pub(crate) const fn days_in_year_month(year: i32, month: u8) -> u8 {
 /// assert!(!is_leap_year(2005));
 /// assert!(!is_leap_year(2100));
 /// ```
+///
+/// This function is `const fn` when using rustc >= 1.46.
+#[const_fn("1.46")]
 pub const fn is_leap_year(year: i32) -> bool {
-    (year % 4 == 0) & ((year % 100 != 0) | (year % 400 == 0))
+    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
 }
 
 /// Get the number of calendar days in a given year.
@@ -49,8 +53,15 @@ pub const fn is_leap_year(year: i32) -> bool {
 /// assert_eq!(days_in_year(2005), 365);
 /// assert_eq!(days_in_year(2100), 365);
 /// ```
+///
+/// This function is `const fn` when using rustc >= 1.46.
+#[const_fn("1.46")]
 pub const fn days_in_year(year: i32) -> u16 {
-    365 + is_leap_year(year) as u16
+    if is_leap_year(year) {
+        366
+    } else {
+        365
+    }
 }
 
 /// Get the number of weeks in the ISO year.

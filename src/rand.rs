@@ -22,12 +22,10 @@ impl Distribution<Time> for Standard {
 
 impl Distribution<Date> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Date {
-        /// The minimum date allowed to be represented.
-        const MIN_DATE: Date = internals::Date::from_ymd_unchecked(MIN_YEAR, 1, 1);
-        /// The maximum date allowed to be represented.
-        const MAX_DATE: Date = internals::Date::from_ymd_unchecked(MAX_YEAR, 12, 31);
+        let min_date = internals::Date::from_ymd_unchecked(MIN_YEAR, 1, 1);
+        let max_date = internals::Date::from_ymd_unchecked(MAX_YEAR, 12, 31);
 
-        Date::from_julian_day(rng.gen_range(MIN_DATE.julian_day(), MAX_DATE.julian_day() + 1))
+        Date::from_julian_day(rng.gen_range(min_date.julian_day(), max_date.julian_day() + 1))
     }
 }
 
