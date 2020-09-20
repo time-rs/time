@@ -243,14 +243,9 @@ mod weekday;
 
 pub use date::Date;
 pub use duration::Duration;
-pub use error::{
-    ComponentRange as ComponentRangeError, ConversionRange as ConversionRangeError, Error,
-    IndeterminateOffset as IndeterminateOffsetError, Parse as ParseError,
-};
-pub use ext::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort};
-pub(crate) use format::DeferredFormat;
+pub use error::Error;
 pub use format::Format;
-use format::ParseResult;
+use format::{DeferredFormat, ParseResult};
 #[cfg(feature = "std")]
 pub use instant::Instant;
 pub use offset_date_time::OffsetDateTime;
@@ -325,7 +320,6 @@ pub use time_macros::offset;
 pub use time_macros::time;
 pub use time_mod::Time;
 pub use utc_offset::UtcOffset;
-pub use util::{days_in_year, is_leap_year, validate_format_string, weeks_in_year};
 pub use weekday::Weekday;
 
 /// An alias for `Result` with a generic error from the time crate.
