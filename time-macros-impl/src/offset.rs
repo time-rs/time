@@ -75,6 +75,6 @@ impl Parse for Offset {
 impl ToTokens for Offset {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let Self { offset } = self;
-        tokens.extend(quote! { ::time::UtcOffset::seconds(#offset) });
+        tokens.extend(quote! { ::time::UtcOffset::seconds_unchecked(#offset) });
     }
 }

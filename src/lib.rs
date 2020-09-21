@@ -280,17 +280,18 @@ pub use time_macros::date;
 /// ```rust
 /// # use time::UtcOffset;
 /// # use time_macros::offset;
-/// assert_eq!(offset!(UTC), UtcOffset::hours(0));
-/// assert_eq!(offset!(utc), UtcOffset::hours(0));
-/// assert_eq!(offset!(+0), UtcOffset::hours(0));
-/// assert_eq!(offset!(+1), UtcOffset::hours(1));
-/// assert_eq!(offset!(-1), UtcOffset::hours(-1));
-/// assert_eq!(offset!(+1:30), UtcOffset::minutes(90));
-/// assert_eq!(offset!(-1:30), UtcOffset::minutes(-90));
-/// assert_eq!(offset!(+1:30:59), UtcOffset::seconds(5459));
-/// assert_eq!(offset!(-1:30:59), UtcOffset::seconds(-5459));
-/// assert_eq!(offset!(+23:59:59), UtcOffset::seconds(86_399));
-/// assert_eq!(offset!(-23:59:59), UtcOffset::seconds(-86_399));
+/// assert_eq!(offset!(UTC), UtcOffset::hours(0)?);
+/// assert_eq!(offset!(utc), UtcOffset::hours(0)?);
+/// assert_eq!(offset!(+0), UtcOffset::hours(0)?);
+/// assert_eq!(offset!(+1), UtcOffset::hours(1)?);
+/// assert_eq!(offset!(-1), UtcOffset::hours(-1)?);
+/// assert_eq!(offset!(+1:30), UtcOffset::minutes(90)?);
+/// assert_eq!(offset!(-1:30), UtcOffset::minutes(-90)?);
+/// assert_eq!(offset!(+1:30:59), UtcOffset::seconds(5459)?);
+/// assert_eq!(offset!(-1:30:59), UtcOffset::seconds(-5459)?);
+/// assert_eq!(offset!(+23:59:59), UtcOffset::seconds(86_399)?);
+/// assert_eq!(offset!(-23:59:59), UtcOffset::seconds(-86_399)?);
+/// # Ok::<_, time::Error>(())
 /// ```
 #[cfg(feature = "macros")]
 pub use time_macros::offset;

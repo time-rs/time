@@ -1,3 +1,5 @@
+use standback::convert::TryFrom;
+
 // seconds offset from UTC, positive is east
 #[derive(serde::Serialize, serde::Deserialize)]
 pub(crate) struct UtcOffset(i32);
@@ -8,8 +10,10 @@ impl From<crate::UtcOffset> for UtcOffset {
     }
 }
 
-impl From<UtcOffset> for crate::UtcOffset {
-    fn from(original: UtcOffset) -> Self {
-        Self::seconds(original.0)
+impl TryFrom<UtcOffset> for crate::UtcOffset {
+    type Error = &'static str;
+
+    fn try_from(original: UtcOffset) -> Result<Self, Self::Error> {
+        Self::seconds(original.0).map_err(|_| "invalid value")
     }
 }
