@@ -2,10 +2,7 @@ use crate::{
     format::parse::{parse, ParsedItems},
     Date, DeferredFormat, Duration, OffsetDateTime, ParseResult, Time, UtcOffset, Weekday,
 };
-use alloc::{
-    borrow::ToOwned,
-    string::{String, ToString},
-};
+use alloc::string::{String, ToString};
 use const_fn::const_fn;
 #[cfg(feature = "serde")]
 use core::convert::TryInto;
@@ -385,23 +382,10 @@ impl PrimitiveDateTime {
     /// );
     /// ```
     pub fn format(self, format: impl AsRef<str>) -> String {
-        self.lazy_format(format).to_string()
-    }
-
-    /// Format the `PrimitiveDateTime` using the provided string.
-    ///
-    /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(
-    ///     date!(2019-01-02).midnight().lazy_format("%F %r").to_string(),
-    ///     "2019-01-02 12:00:00 am"
-    /// );
-    /// ```
-    pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
         DeferredFormat::new(format.as_ref())
             .with_date(self.date())
             .with_time(self.time())
-            .to_owned()
+            .to_string()
     }
 
     /// Attempt to parse a `PrimitiveDateTime` using the provided string.

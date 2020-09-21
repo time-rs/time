@@ -3,10 +3,7 @@ use crate::{
     format::{parse, parse::AmPm, ParsedItems},
     DeferredFormat, Duration, ParseResult,
 };
-use alloc::{
-    borrow::ToOwned,
-    string::{String, ToString},
-};
+use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::{
     cmp::Ordering,
@@ -326,19 +323,9 @@ impl Time {
     /// assert_eq!(time!(0:00).format("%r"), "12:00:00 am");
     /// ```
     pub fn format(self, format: impl AsRef<str>) -> String {
-        self.lazy_format(format).to_string()
-    }
-
-    /// Format the `Time` using the provided string.
-    ///
-    /// ```rust
-    /// # use time_macros::time;
-    /// assert_eq!(time!(0:00).lazy_format("%r").to_string(), "12:00:00 am");
-    /// ```
-    pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
         DeferredFormat::new(format.as_ref())
             .with_time(self)
-            .to_owned()
+            .to_string()
     }
 
     /// Attempt to parse a `Time` using the provided string.
