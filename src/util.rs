@@ -1,6 +1,6 @@
 //! Utility functions.
 
-use crate::{format::try_parse_fmt_string, internals};
+use crate::{format::try_parse_fmt_string, Date};
 #[cfg(not(feature = "std"))]
 use alloc::string::String;
 use const_fn::const_fn;
@@ -77,7 +77,7 @@ pub const fn days_in_year(year: i32) -> u16 {
 /// This function is `const fn` when using rustc >= 1.46.
 #[const_fn("1.46")]
 pub const fn weeks_in_year(year: i32) -> u8 {
-    let weekday = internals::Date::from_yo_unchecked(year, 1).iso_weekday_number();
+    let weekday = Date::from_yo_unchecked(year, 1).iso_weekday_number();
 
     if weekday == 4 || weekday == 3 && is_leap_year(year) {
         53

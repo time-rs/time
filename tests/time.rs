@@ -6,6 +6,14 @@ use time::{
 use time_macros::time;
 
 #[test]
+fn from_hms_nanos_unchecked() {
+    assert_eq!(
+        Ok(Time::from_hms_nanos_unchecked(0, 1, 2, 3)),
+        Time::try_from_hms_nano(0, 1, 2, 3)
+    );
+}
+
+#[test]
 fn midnight() {
     assert_eq!(Time::midnight(), time!(0:00));
 }

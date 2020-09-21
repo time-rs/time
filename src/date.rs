@@ -1,7 +1,6 @@
 use crate::{
     error,
     format::parse::{parse, ParsedItems},
-    internals,
     util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year},
     DeferredFormat, Duration, ParseResult, PrimitiveDateTime, Time, Weekday,
 };
@@ -80,6 +79,15 @@ impl<'a> serde::Deserialize<'a> for Date {
 }
 
 impl Date {
+    /// Construct a `Date` from the year and ordinal values, the validity of
+    /// which must be guaranteed by the caller.
+    #[doc(hidden)]
+    pub const fn from_yo_unchecked(year: i32, ordinal: u16) -> Self {
+        Self {
+            value: (year << 9) | ordinal as i32,
+        }
+    }
+
     /// Attempt to create a `Date` from the year, month, and day.
     ///
     /// ```rust
@@ -102,11 +110,22 @@ impl Date {
         month: u8,
         day: u8,
     ) -> Result<Self, error::ComponentRange> {
+        /// Cumulative days through the beginning of a month in both common and
+        /// leap years.
+        const DAYS_CUMULATIVE_COMMON_LEAP: [[u16; 12]; 2] = [
+            [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
+            [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
+        ];
+
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(month in 1 => 12);
         ensure_value_in_range!(day conditionally in 1 => days_in_year_month(year, month));
 
-        Ok(internals::Date::from_ymd_unchecked(year, month, day))
+        Ok(Self::from_yo_unchecked(
+            year,
+            DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
+                + day as u16,
+        ))
     }
 
     /// Attempt to create a `Date` from the year and ordinal day number.
@@ -129,7 +148,7 @@ impl Date {
     pub const fn try_from_yo(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(ordinal conditionally in 1 => days_in_year(year));
-        Ok(internals::Date::from_yo_unchecked(year, ordinal))
+        Ok(Self::from_yo_unchecked(year, ordinal))
     }
 
     /// Attempt to create a `Date` from the ISO year, week, and weekday.
@@ -157,7 +176,34 @@ impl Date {
     ) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(week conditionally in 1 => weeks_in_year(year));
-        Ok(internals::Date::from_iso_ywd_unchecked(year, week, weekday))
+
+        let (ordinal, overflow) = (week as u16 * 7 + weekday.iso_weekday_number() as u16)
+            .overflowing_sub({
+                let adj_year = year - 1;
+                let rem = (adj_year + adj_year / 4 - adj_year / 100 + adj_year / 400 + 3) % 7;
+                if rem < 0 {
+                    (rem + 11) as u16
+                } else {
+                    (rem + 4) as u16
+                }
+            });
+
+        if overflow || ordinal == 0 {
+            return Ok(Self::from_yo_unchecked(
+                year - 1,
+                ordinal.wrapping_add(days_in_year(year - 1)),
+            ));
+        }
+
+        let days_in_cur_year = days_in_year(year);
+        if ordinal > days_in_cur_year {
+            Ok(Self::from_yo_unchecked(
+                year + 1,
+                ordinal - days_in_cur_year,
+            ))
+        } else {
+            Ok(Self::from_yo_unchecked(year, ordinal))
+        }
     }
 
     /// Get the year of the date.
@@ -496,7 +542,7 @@ impl Date {
             panic!("overflow when fetching next day");
         }
 
-        internals::Date::from_yo_unchecked(year, ordinal)
+        Self::from_yo_unchecked(year, ordinal)
     }
 
     /// Get the previous calendar date.
@@ -521,7 +567,7 @@ impl Date {
             panic!("overflow when fetching previous day");
         }
 
-        internals::Date::from_yo_unchecked(year, ordinal)
+        Self::from_yo_unchecked(year, ordinal)
     }
 
     /// Get the Julian day for the date.
@@ -782,7 +828,7 @@ impl Date {
         /// Get the value needed to adjust the ordinal day for Sunday and
         /// Monday-based week numbering.
         fn adjustment(year: i32) -> i16 {
-            match internals::Date::from_yo_unchecked(year, 1).weekday() {
+            match Date::from_yo_unchecked(year, 1).weekday() {
                 Weekday::Monday => 7,
                 Weekday::Tuesday => 1,
                 Weekday::Wednesday => 2,

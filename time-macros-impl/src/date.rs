@@ -82,7 +82,7 @@ impl ToTokens for Date {
         let Self { year, ordinal } = self;
 
         tokens.extend(quote! {
-            ::time::internals::Date::from_yo_unchecked(#year, #ordinal)
+            ::time::Date::from_yo_unchecked(#year, #ordinal)
         })
     }
 }

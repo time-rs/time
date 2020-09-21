@@ -126,7 +126,7 @@ impl ToTokens for Time {
         } = self;
 
         tokens.extend(quote! {
-            ::time::internals::Time::from_hms_nanos_unchecked(#hour, #minute, #second, #nanosecond)
+            ::time::Time::from_hms_nanos_unchecked(#hour, #minute, #second, #nanosecond)
         });
     }
 }
