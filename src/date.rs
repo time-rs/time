@@ -4,10 +4,7 @@ use crate::{
     util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year},
     DeferredFormat, Duration, ParseResult, PrimitiveDateTime, Time, Weekday,
 };
-use alloc::{
-    borrow::ToOwned,
-    string::{String, ToString},
-};
+use alloc::string::{String, ToString};
 use const_fn::const_fn;
 #[cfg(feature = "serde")]
 use core::convert::TryInto;
@@ -773,19 +770,9 @@ impl Date {
     /// assert_eq!(date!(2019-01-02).format("%Y-%m-%d"), "2019-01-02");
     /// ```
     pub fn format(self, format: impl AsRef<str>) -> String {
-        self.lazy_format(format).to_string()
-    }
-
-    /// Format the `Date` using the provided string.
-    ///
-    /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-02).lazy_format("%Y-%m-%d").to_string(), "2019-01-02");
-    /// ```
-    pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
         DeferredFormat::new(format.as_ref())
             .with_date(self)
-            .to_owned()
+            .to_string()
     }
 
     /// Attempt to parse a `Date` using the provided string.

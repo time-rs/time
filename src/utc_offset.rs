@@ -5,10 +5,7 @@ use crate::{
     format::{parse, ParsedItems},
     DeferredFormat, Duration, ParseResult,
 };
-use alloc::{
-    borrow::ToOwned,
-    string::{String, ToString},
-};
+use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::fmt::{self, Display};
 
@@ -319,21 +316,9 @@ impl UtcOffset {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn format(self, format: impl AsRef<str>) -> String {
-        self.lazy_format(format).to_string()
-    }
-
-    /// Format the `UtcOffset` using the provided string.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::hours(2)?.lazy_format("%z").to_string(), "+0200");
-    /// assert_eq!(UtcOffset::hours(-2)?.lazy_format("%z").to_string(), "-0200");
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
         DeferredFormat::new(format.as_ref())
             .with_offset(self)
-            .to_owned()
+            .to_string()
     }
 
     /// Attempt to parse the `UtcOffset` using the provided string.
