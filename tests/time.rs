@@ -9,7 +9,7 @@ use time_macros::time;
 fn from_hms_nanos_unchecked() {
     assert_eq!(
         Ok(Time::from_hms_nanos_unchecked(0, 1, 2, 3)),
-        Time::try_from_hms_nano(0, 1, 2, 3)
+        Time::from_hms_nano(0, 1, 2, 3)
     );
 }
 
@@ -19,71 +19,71 @@ fn midnight() {
 }
 
 #[test]
-fn try_from_hms() -> Result<()> {
-    let time = Time::try_from_hms(1, 2, 3)?;
+fn from_hms() -> Result<()> {
+    let time = Time::from_hms(1, 2, 3)?;
     assert_eq!(time.hour(), 1);
     assert_eq!(time.minute(), 2);
     assert_eq!(time.second(), 3);
     assert_eq!(time.nanosecond(), 0);
 
-    assert!(Time::try_from_hms(24, 0, 0).is_err());
-    assert!(Time::try_from_hms(0, 60, 0).is_err());
-    assert!(Time::try_from_hms(0, 0, 60).is_err());
+    assert!(Time::from_hms(24, 0, 0).is_err());
+    assert!(Time::from_hms(0, 60, 0).is_err());
+    assert!(Time::from_hms(0, 0, 60).is_err());
     Ok(())
 }
 
 #[test]
-fn try_from_hms_milli() -> Result<()> {
-    let time = Time::try_from_hms_milli(1, 2, 3, 4)?;
+fn from_hms_milli() -> Result<()> {
+    let time = Time::from_hms_milli(1, 2, 3, 4)?;
     assert_eq!(time.hour(), 1);
     assert_eq!(time.minute(), 2);
     assert_eq!(time.second(), 3);
     assert_eq!(time.millisecond(), 4);
     assert_eq!(time.nanosecond(), 4_000_000);
 
-    assert!(Time::try_from_hms_milli(24, 0, 0, 0).is_err());
-    assert!(Time::try_from_hms_milli(0, 60, 0, 0).is_err());
-    assert!(Time::try_from_hms_milli(0, 0, 60, 0).is_err());
-    assert!(Time::try_from_hms_milli(0, 0, 0, 1_000).is_err());
+    assert!(Time::from_hms_milli(24, 0, 0, 0).is_err());
+    assert!(Time::from_hms_milli(0, 60, 0, 0).is_err());
+    assert!(Time::from_hms_milli(0, 0, 60, 0).is_err());
+    assert!(Time::from_hms_milli(0, 0, 0, 1_000).is_err());
     Ok(())
 }
 
 #[test]
-fn try_from_hms_micro() -> Result<()> {
-    let time = Time::try_from_hms_micro(1, 2, 3, 4)?;
+fn from_hms_micro() -> Result<()> {
+    let time = Time::from_hms_micro(1, 2, 3, 4)?;
     assert_eq!(time.hour(), 1);
     assert_eq!(time.minute(), 2);
     assert_eq!(time.second(), 3);
     assert_eq!(time.microsecond(), 4);
     assert_eq!(time.nanosecond(), 4_000);
 
-    assert!(Time::try_from_hms_micro(24, 0, 0, 0).is_err());
-    assert!(Time::try_from_hms_micro(0, 60, 0, 0).is_err());
-    assert!(Time::try_from_hms_micro(0, 0, 60, 0).is_err());
-    assert!(Time::try_from_hms_micro(0, 0, 0, 1_000_000).is_err());
+    assert!(Time::from_hms_micro(24, 0, 0, 0).is_err());
+    assert!(Time::from_hms_micro(0, 60, 0, 0).is_err());
+    assert!(Time::from_hms_micro(0, 0, 60, 0).is_err());
+    assert!(Time::from_hms_micro(0, 0, 0, 1_000_000).is_err());
     Ok(())
 }
 
 #[test]
-fn try_from_hms_nano() -> Result<()> {
-    let time = Time::try_from_hms_nano(1, 2, 3, 4)?;
+fn from_hms_nano() -> Result<()> {
+    let time = Time::from_hms_nano(1, 2, 3, 4)?;
     assert_eq!(time.hour(), 1);
     assert_eq!(time.minute(), 2);
     assert_eq!(time.second(), 3);
     assert_eq!(time.nanosecond(), 4);
 
-    assert!(Time::try_from_hms_nano(24, 0, 0, 0).is_err());
-    assert!(Time::try_from_hms_nano(0, 60, 0, 0).is_err());
-    assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_err());
-    assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_err());
+    assert!(Time::from_hms_nano(24, 0, 0, 0).is_err());
+    assert!(Time::from_hms_nano(0, 60, 0, 0).is_err());
+    assert!(Time::from_hms_nano(0, 0, 60, 0).is_err());
+    assert!(Time::from_hms_nano(0, 0, 0, 1_000_000_000).is_err());
     Ok(())
 }
 
 #[test]
 fn hour() -> Result<()> {
     for hour in 0..24 {
-        assert_eq!(Time::try_from_hms(hour, 0, 0)?.hour(), hour);
-        assert_eq!(Time::try_from_hms(hour, 59, 59)?.hour(), hour);
+        assert_eq!(Time::from_hms(hour, 0, 0)?.hour(), hour);
+        assert_eq!(Time::from_hms(hour, 59, 59)?.hour(), hour);
     }
     Ok(())
 }
@@ -91,8 +91,8 @@ fn hour() -> Result<()> {
 #[test]
 fn minute() -> Result<()> {
     for minute in 0..60 {
-        assert_eq!(Time::try_from_hms(0, minute, 0)?.minute(), minute);
-        assert_eq!(Time::try_from_hms(23, minute, 59)?.minute(), minute);
+        assert_eq!(Time::from_hms(0, minute, 0)?.minute(), minute);
+        assert_eq!(Time::from_hms(23, minute, 59)?.minute(), minute);
     }
     Ok(())
 }
@@ -100,8 +100,8 @@ fn minute() -> Result<()> {
 #[test]
 fn second() -> Result<()> {
     for second in 0..60 {
-        assert_eq!(Time::try_from_hms(0, 0, second)?.second(), second);
-        assert_eq!(Time::try_from_hms(23, 59, second)?.second(), second);
+        assert_eq!(Time::from_hms(0, 0, second)?.second(), second);
+        assert_eq!(Time::from_hms(23, 59, second)?.second(), second);
     }
     Ok(())
 }
@@ -109,12 +109,9 @@ fn second() -> Result<()> {
 #[test]
 fn millisecond() -> Result<()> {
     for milli in 0..1_000 {
+        assert_eq!(Time::from_hms_milli(0, 0, 0, milli)?.millisecond(), milli);
         assert_eq!(
-            Time::try_from_hms_milli(0, 0, 0, milli)?.millisecond(),
-            milli
-        );
-        assert_eq!(
-            Time::try_from_hms_milli(23, 59, 59, milli)?.millisecond(),
+            Time::from_hms_milli(23, 59, 59, milli)?.millisecond(),
             milli
         );
     }
@@ -124,12 +121,9 @@ fn millisecond() -> Result<()> {
 #[test]
 fn microsecond() -> Result<()> {
     for micro in (0..1_000_000).step_by(1_000) {
+        assert_eq!(Time::from_hms_micro(0, 0, 0, micro)?.microsecond(), micro);
         assert_eq!(
-            Time::try_from_hms_micro(0, 0, 0, micro)?.microsecond(),
-            micro
-        );
-        assert_eq!(
-            Time::try_from_hms_micro(23, 59, 59, micro)?.microsecond(),
+            Time::from_hms_micro(23, 59, 59, micro)?.microsecond(),
             micro
         );
     }
@@ -139,11 +133,8 @@ fn microsecond() -> Result<()> {
 #[test]
 fn nanosecond() -> Result<()> {
     for nano in (0..1_000_000_000).step_by(1_000_000) {
-        assert_eq!(Time::try_from_hms_nano(0, 0, 0, nano)?.nanosecond(), nano);
-        assert_eq!(
-            Time::try_from_hms_nano(23, 59, 59, nano)?.nanosecond(),
-            nano
-        );
+        assert_eq!(Time::from_hms_nano(0, 0, 0, nano)?.nanosecond(), nano);
+        assert_eq!(Time::from_hms_nano(23, 59, 59, nano)?.nanosecond(), nano);
     }
     Ok(())
 }

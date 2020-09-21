@@ -14,6 +14,6 @@ impl TryFrom<Date> for crate::Date {
     type Error = &'static str;
 
     fn try_from(original: Date) -> Result<Self, Self::Error> {
-        Self::try_from_yo(original.0, original.1).map_err(|_| "invalid value")
+        Self::from_yo(original.0, original.1).map_err(|_| "invalid value")
     }
 }

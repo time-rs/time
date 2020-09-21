@@ -92,24 +92,20 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::try_from_ymd(2019, 1, 1).is_ok());
-    /// assert!(Date::try_from_ymd(2019, 12, 31).is_ok());
+    /// assert!(Date::from_ymd(2019, 1, 1).is_ok());
+    /// assert!(Date::from_ymd(2019, 12, 31).is_ok());
     /// ```
     ///
     /// Returns `None` if the date is not valid.
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::try_from_ymd(2019, 2, 29).is_err()); // 2019 isn't a leap year.
+    /// assert!(Date::from_ymd(2019, 2, 29).is_err()); // 2019 isn't a leap year.
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn try_from_ymd(
-        year: i32,
-        month: u8,
-        day: u8,
-    ) -> Result<Self, error::ComponentRange> {
+    pub const fn from_ymd(year: i32, month: u8, day: u8) -> Result<Self, error::ComponentRange> {
         /// Cumulative days through the beginning of a month in both common and
         /// leap years.
         const DAYS_CUMULATIVE_COMMON_LEAP: [[u16; 12]; 2] = [
@@ -132,20 +128,20 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::try_from_yo(2019, 1).is_ok());
-    /// assert!(Date::try_from_yo(2019, 365).is_ok());
+    /// assert!(Date::from_yo(2019, 1).is_ok());
+    /// assert!(Date::from_yo(2019, 365).is_ok());
     /// ```
     ///
     /// Returns `None` if the date is not valid.
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::try_from_yo(2019, 366).is_err()); // 2019 isn't a leap year.
+    /// assert!(Date::from_yo(2019, 366).is_err()); // 2019 isn't a leap year.
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn try_from_yo(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
+    pub const fn from_yo(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(ordinal conditionally in 1 => days_in_year(year));
         Ok(Self::from_yo_unchecked(year, ordinal))
@@ -155,21 +151,21 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, Weekday::*};
-    /// assert!(Date::try_from_iso_ywd(2019, 1, Monday).is_ok());
-    /// assert!(Date::try_from_iso_ywd(2019, 1, Tuesday).is_ok());
-    /// assert!(Date::try_from_iso_ywd(2020, 53, Friday).is_ok());
+    /// assert!(Date::from_iso_ywd(2019, 1, Monday).is_ok());
+    /// assert!(Date::from_iso_ywd(2019, 1, Tuesday).is_ok());
+    /// assert!(Date::from_iso_ywd(2020, 53, Friday).is_ok());
     /// ```
     ///
     /// Returns `None` if the week is not valid.
     ///
     /// ```rust
     /// # use time::{Date, Weekday::*};
-    /// assert!(Date::try_from_iso_ywd(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
+    /// assert!(Date::from_iso_ywd(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn try_from_iso_ywd(
+    pub const fn from_iso_ywd(
         year: i32,
         week: u8,
         weekday: Weekday,
@@ -637,7 +633,7 @@ impl Date {
             month -= 12;
         }
 
-        match Date::try_from_ymd(year as i32, month as u8, day as u8) {
+        match Date::from_ymd(year as i32, month as u8, day as u8) {
             Ok(date) => date,
             Err(err) => panic!("{}", err),
         }
@@ -678,13 +674,13 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970-01-01).try_with_hms(0, 0, 0).is_ok());
-    /// assert!(date!(1970-01-01).try_with_hms(24, 0, 0).is_err());
+    /// assert!(date!(1970-01-01).with_hms(0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).with_hms(24, 0, 0).is_err());
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn try_with_hms(
+    pub const fn with_hms(
         self,
         hour: u8,
         minute: u8,
@@ -692,7 +688,7 @@ impl Date {
     ) -> Result<PrimitiveDateTime, error::ComponentRange> {
         Ok(PrimitiveDateTime::new(
             self,
-            const_try!(Time::try_from_hms(hour, minute, second)),
+            const_try!(Time::from_hms(hour, minute, second)),
         ))
     }
 
@@ -700,13 +696,13 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970-01-01).try_with_hms_milli(0, 0, 0, 0).is_ok());
-    /// assert!(date!(1970-01-01).try_with_hms_milli(24, 0, 0, 0).is_err());
+    /// assert!(date!(1970-01-01).with_hms_milli(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).with_hms_milli(24, 0, 0, 0).is_err());
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn try_with_hms_milli(
+    pub const fn with_hms_milli(
         self,
         hour: u8,
         minute: u8,
@@ -715,7 +711,7 @@ impl Date {
     ) -> Result<PrimitiveDateTime, error::ComponentRange> {
         Ok(PrimitiveDateTime::new(
             self,
-            const_try!(Time::try_from_hms_milli(hour, minute, second, millisecond)),
+            const_try!(Time::from_hms_milli(hour, minute, second, millisecond)),
         ))
     }
 
@@ -725,16 +721,16 @@ impl Date {
     /// ```rust
     /// # use time_macros::date;
     /// assert!(date!(1970-01-01)
-    ///     .try_with_hms_micro(0, 0, 0, 0)
+    ///     .with_hms_micro(0, 0, 0, 0)
     ///     .is_ok());
     /// assert!(date!(1970-01-01)
-    ///     .try_with_hms_micro(24, 0, 0, 0)
+    ///     .with_hms_micro(24, 0, 0, 0)
     ///     .is_err());
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn try_with_hms_micro(
+    pub const fn with_hms_micro(
         self,
         hour: u8,
         minute: u8,
@@ -743,7 +739,7 @@ impl Date {
     ) -> Result<PrimitiveDateTime, error::ComponentRange> {
         Ok(PrimitiveDateTime::new(
             self,
-            const_try!(Time::try_from_hms_micro(hour, minute, second, microsecond)),
+            const_try!(Time::from_hms_micro(hour, minute, second, microsecond)),
         ))
     }
 
@@ -751,13 +747,13 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970-01-01).try_with_hms_nano(0, 0, 0, 0).is_ok());
-    /// assert!(date!(1970-01-01).try_with_hms_nano(24, 0, 0, 0).is_err());
+    /// assert!(date!(1970-01-01).with_hms_nano(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).with_hms_nano(24, 0, 0, 0).is_err());
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn try_with_hms_nano(
+    pub const fn with_hms_nano(
         self,
         hour: u8,
         minute: u8,
@@ -766,7 +762,7 @@ impl Date {
     ) -> Result<PrimitiveDateTime, error::ComponentRange> {
         Ok(PrimitiveDateTime::new(
             self,
-            const_try!(Time::try_from_hms_nano(hour, minute, second, nanosecond)),
+            const_try!(Time::from_hms_nano(hour, minute, second, nanosecond)),
         ))
     }
 }
@@ -841,22 +837,20 @@ impl Date {
 
         match items {
             items!(year, month, day) => {
-                Date::try_from_ymd(year, month.get(), day.get()).map_err(Into::into)
+                Date::from_ymd(year, month.get(), day.get()).map_err(Into::into)
             }
-            items!(year, ordinal_day) => {
-                Date::try_from_yo(year, ordinal_day.get()).map_err(Into::into)
-            }
+            items!(year, ordinal_day) => Date::from_yo(year, ordinal_day.get()).map_err(Into::into),
             items!(week_based_year, iso_week, weekday) => {
-                Date::try_from_iso_ywd(week_based_year, iso_week.get(), weekday).map_err(Into::into)
+                Date::from_iso_ywd(week_based_year, iso_week.get(), weekday).map_err(Into::into)
             }
-            items!(year, sunday_week, weekday) => Date::try_from_yo(
+            items!(year, sunday_week, weekday) => Date::from_yo(
                 year,
                 (sunday_week as i16 * 7 + weekday.number_days_from_sunday() as i16
                     - adjustment(year)
                     + 1) as u16,
             )
             .map_err(Into::into),
-            items!(year, monday_week, weekday) => Date::try_from_yo(
+            items!(year, monday_week, weekday) => Date::from_yo(
                 year,
                 (monday_week as i16 * 7 + weekday.number_days_from_monday() as i16
                     - adjustment(year)

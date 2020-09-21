@@ -1,7 +1,7 @@
 use time::error;
 
 fn component_range() -> error::ComponentRange {
-    time::Date::try_from_yo(0, 367).unwrap_err()
+    time::Date::from_yo(0, 367).unwrap_err()
 }
 
 // The exact message doesn't matter; just make sure it doesn't panic.
