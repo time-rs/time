@@ -5,13 +5,14 @@ use crate::{
     Date, DeferredFormat, Duration, Format, ParseResult, PrimitiveDateTime, Time, UtcOffset,
     Weekday,
 };
-#[cfg(not(feature = "std"))]
 use alloc::{
     borrow::ToOwned,
     string::{String, ToString},
 };
+#[cfg(feature = "serde")]
+use core::convert::TryInto;
 #[cfg(feature = "std")]
-use core::convert::From;
+use core::convert::{From, TryFrom};
 use core::{
     cmp::Ordering,
     fmt::{self, Display},
@@ -19,10 +20,6 @@ use core::{
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(feature = "std")]
-use standback::convert::TryFrom;
-#[cfg(feature = "serde")]
-use standback::convert::TryInto;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 

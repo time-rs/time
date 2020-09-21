@@ -12,23 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rust: [1.32.0, 1.36.0, stable]
+        rust: [1.36.0, stable]
         target:
           - { triple: x86_64-unknown-netbsd, std: true }
           - { triple: x86_64-sun-solaris, std: true }
           - { triple: wasm32-wasi, std: true }
           - { triple: thumbv7em-none-eabihf, std: false }
         exclude:
-          - # alloc was not stable in 1.32
-            rust: 1.32.0
-            target: { triple: thumbv7em-none-eabihf, std: false }
-          - # WASI target did not exist at the time
-            rust: 1.32.0
-            target: { triple: wasm32-wasi, std: true }
           - # Solaris target did not exist in previous rust
-            rust: 1.32.0
-            target: { triple: x86_64-sun-solaris, std: true }
-          - rust: 1.36.0
+            rust: 1.36.0
             target: { triple: x86_64-sun-solaris, std: true }
 
     steps:
@@ -79,15 +71,8 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: check --no-dev-deps --feature-powerset --optional-deps --skip default,libc,winapi,stdweb,std --features std --target ${{ matrix.target.triple }}
-        if: matrix.rust == '1.32.0' && matrix.target.std == true
-
-      - name: Check feature powerset
-        uses: actions-rs/cargo@v1
-        with:
-          command: hack
           args: check --no-dev-deps --feature-powerset --optional-deps --skip default,libc,winapi,stdweb --target ${{ matrix.target.triple }}
-        if: matrix.rust != '1.32.0' && matrix.target.std == true
+        if: matrix.target.std == true
 
   check-web:
     name: Type checking (web)
@@ -158,7 +143,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: [1.32.0, 1.36.0, stable] # 1.36 is when alloc was stabilized
+        rust: [1.36.0, stable]
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
@@ -209,15 +194,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: test --feature-powerset --optional-deps --skip default,libc,winapi,stdweb,std --features std --tests
-        if: matrix.rust == '1.32.0'
-
-      - name: Test feature powerset (--tests)
-        uses: actions-rs/cargo@v1
-        with:
-          command: hack
           args: test --feature-powerset --optional-deps --skip default,libc,winapi,stdweb --tests
-        if: matrix.rust != '1.32.0'
 
       - name: Test documentation
         uses: actions-rs/cargo@v1

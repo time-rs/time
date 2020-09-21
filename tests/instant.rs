@@ -14,7 +14,6 @@ fn elapsed() {
 }
 
 #[test]
-#[cfg(__time_02_instant_checked_ops)]
 fn checked_add() {
     let now = Instant::now();
     assert_eq!(now.checked_add(0.seconds()), Some(now));
@@ -23,7 +22,6 @@ fn checked_add() {
 }
 
 #[test]
-#[cfg(__time_02_instant_checked_ops)]
 fn checked_sub() {
     let now = Instant::now();
     assert_eq!(now.checked_sub(0.seconds()), Some(now));

@@ -5,7 +5,6 @@ use crate::{
     format::{parse_fmt_string, well_known, FormatItem, Padding, Specifier},
     Format, UtcOffset, Weekday,
 };
-#[cfg(not(feature = "std"))]
 use alloc::boxed::Box;
 use core::{
     fmt::{self, Display, Formatter},

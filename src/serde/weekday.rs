@@ -1,5 +1,5 @@
 use crate::Weekday::*;
-use standback::convert::TryFrom;
+use core::convert::TryFrom;
 
 // 1-indexed day from Monday
 #[derive(serde::Serialize, serde::Deserialize)]

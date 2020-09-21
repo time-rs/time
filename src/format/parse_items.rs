@@ -1,7 +1,6 @@
 //! Parse formats used in the `format` and `parse` methods.
 
 use crate::format::{FormatItem, Padding, Specifier};
-#[cfg(not(feature = "std"))]
 use alloc::{format, string::String, vec::Vec};
 
 /// Parse the formatting string. Panics if not valid.

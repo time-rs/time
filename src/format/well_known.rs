@@ -11,11 +11,10 @@ use crate::{
     },
     DeferredFormat, ParseResult,
 };
-#[cfg(not(feature = "std"))]
 use alloc::string::String;
 use core::fmt::Formatter;
 #[allow(unused_imports)]
-use standback::prelude::*;
+use standback::prelude::*; // rem_euclid (1.38)
 
 /// The format as specified by RFC3339.
 pub(crate) mod rfc3339 {

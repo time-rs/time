@@ -1,6 +1,6 @@
 use super::Weekday::{self, Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday};
 #[allow(unused_imports)]
-use standback::prelude::*;
+use standback::prelude::*; // rem_euclid (1.38)
 
 fn is_leap_year(year: i32) -> bool {
     (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0))

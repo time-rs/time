@@ -5,7 +5,6 @@ use crate::{
     format::{parse, ParsedItems},
     DeferredFormat, Duration, ParseResult,
 };
-#[cfg(not(feature = "std"))]
 use alloc::{
     borrow::ToOwned,
     string::{String, ToString},
@@ -383,7 +382,7 @@ impl Display for UtcOffset {
 fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     #[cfg(target_family = "unix")]
     {
-        use standback::{convert::TryInto, mem::MaybeUninit};
+        use core::{convert::TryInto, mem::MaybeUninit};
 
         /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on
         /// any error.
@@ -438,7 +437,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         #[cfg(any(target_os = "solaris", target_os = "illumos"))]
         {
             use crate::Date;
-            use standback::convert::TryFrom;
+            use core::convert::TryFrom;
 
             let mut tm = tm;
             if tm.tm_sec == 60 {
@@ -468,7 +467,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     }
     #[cfg(target_family = "windows")]
     {
-        use standback::{convert::TryInto, mem::MaybeUninit};
+        use core::{convert::TryInto, mem::MaybeUninit};
         use winapi::{
             shared::minwindef::FILETIME,
             um::{

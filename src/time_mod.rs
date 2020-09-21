@@ -3,7 +3,6 @@ use crate::{
     format::{parse, parse::AmPm, ParsedItems},
     DeferredFormat, Duration, ParseResult,
 };
-#[cfg(not(feature = "std"))]
 use alloc::{
     borrow::ToOwned,
     string::{String, ToString},
@@ -11,14 +10,14 @@ use alloc::{
 use const_fn::const_fn;
 use core::{
     cmp::Ordering,
+    convert::TryFrom,
     fmt::{self, Display},
     num::NonZeroU8,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-use standback::convert::TryFrom;
 #[allow(unused_imports)]
-use standback::prelude::*;
+use standback::prelude::*; // rem_euclid (1.38)
 
 /// The number of nanoseconds in one day.
 pub(crate) const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;

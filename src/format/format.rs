@@ -1,6 +1,5 @@
 //! The `Format` struct and its implementations.
 
-#[cfg(not(feature = "std"))]
 use alloc::{borrow::ToOwned, string::String};
 
 /// Various well-known formats, along with the possibility for a custom format

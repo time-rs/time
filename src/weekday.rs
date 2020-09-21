@@ -1,7 +1,7 @@
 use const_fn::const_fn;
-use core::fmt::{self, Display};
 #[cfg(feature = "serde")]
-use standback::convert::TryInto;
+use core::convert::TryInto;
+use core::fmt::{self, Display};
 use Weekday::*;
 
 /// Days of the week.

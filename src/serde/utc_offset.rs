@@ -1,4 +1,4 @@
-use standback::convert::TryFrom;
+use core::convert::TryFrom;
 
 // seconds offset from UTC, positive is east
 #[derive(serde::Serialize, serde::Deserialize)]

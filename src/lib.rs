@@ -1,6 +1,6 @@
 //! [![GitHub time-rs/time](https://img.shields.io/badge/GitHub-time--rs%2Ftime-9b88bb?logo=github&style=for-the-badge)](https://github.com/time-rs/time)
 //! ![license MIT or Apache-2.0](https://img.shields.io/badge/license-MIT%20or%20Apache--2.0-779a6b?style=for-the-badge)
-//! [![minimum rustc 1.32.0](https://img.shields.io/badge/minimum%20rustc-1.32.0-c18170?logo=rust&style=for-the-badge)](https://www.whatrustisit.com)
+//! [![minimum rustc 1.36.0](https://img.shields.io/badge/minimum%20rustc-1.36.0-c18170?logo=rust&style=for-the-badge)](https://www.whatrustisit.com)
 //!
 //! # Feature flags
 //!
@@ -162,7 +162,6 @@
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(test(attr(deny(warnings))))]
 
-#[cfg(not(feature = "std"))]
 extern crate alloc;
 
 /// Returns `Err(error::ComponentRange)` if the value is not in range.
@@ -249,8 +248,6 @@ use format::{DeferredFormat, ParseResult};
 pub use instant::Instant;
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
-#[allow(unused_imports)]
-use standback::prelude::*;
 /// Construct a [`Date`](crate::Date) with a statically known value.
 ///
 /// The resulting expression can be used in `const` or `static` declarations.
@@ -344,9 +341,6 @@ pub type Result<T> = core::result::Result<T, Error>;
 /// major releases.
 pub mod prelude {
     // Rename traits to `_` if possible to avoid any potential name conflicts.
-    #[cfg(not(__time_02_use_trait_as_underscore))]
-    pub use crate::ext::{NumericalDuration, NumericalStdDuration};
-    #[cfg(__time_02_use_trait_as_underscore)]
     pub use crate::ext::{NumericalDuration as _, NumericalStdDuration as _};
     // We need to re-export from the macros crate again (and not just do
     // `crate::foo`) because of the way name resolution works in Rust. It's not

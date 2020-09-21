@@ -18,7 +18,7 @@ use core::{
     num::NonZeroU8,
 };
 #[allow(unused_imports)]
-use standback::prelude::*;
+use standback::prelude::*; // rem_euclid (1.38)
 
 /// Hour in 24h format (`00`-`23`)
 pub(crate) fn fmt_H(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt::Result {

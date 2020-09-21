@@ -1,7 +1,5 @@
 #![cfg(feature = "serde")]
 
-#[allow(unused_imports)]
-use standback::prelude::*;
 use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 use time_macros::{date, offset, time};
 

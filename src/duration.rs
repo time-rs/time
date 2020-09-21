@@ -4,12 +4,12 @@ use crate::Instant;
 use const_fn::const_fn;
 use core::{
     cmp::Ordering,
+    convert::{TryFrom, TryInto},
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-use standback::convert::{TryFrom, TryInto};
 #[allow(unused_imports)]
-use standback::prelude::*;
+use standback::prelude::*; // duration_float (1.38)
 
 /// A span of time with nanosecond precision.
 ///
@@ -140,18 +140,20 @@ impl Duration {
 
     /// The maximum possible duration. Adding any positive duration to this will
     /// cause an overflow.
-    ///
-    /// The value returned by this method may change at any time.
     pub const fn max_value() -> Self {
-        Self::new(i64::max_value(), 999_999_999)
+        Self {
+            seconds: i64::max_value(),
+            nanoseconds: 999_999_999,
+        }
     }
 
     /// The minimum possible duration. Adding any negative duration to this will
     /// cause an overflow.
-    ///
-    /// The value returned by this method may change at any time.
     pub const fn min_value() -> Self {
-        Self::new(i64::min_value(), -999_999_999)
+        Self {
+            seconds: i64::min_value(),
+            nanoseconds: -999_999_999,
+        }
     }
 
     /// Check if a duration is exactly zero.
@@ -226,72 +228,26 @@ impl Duration {
     /// assert_eq!(Duration::new(-1, 0), (-1).seconds());
     /// assert_eq!(Duration::new(1, 2_000_000_000), 3.seconds());
     /// ```
-    // FIXME This code is stupidly complex for the sole reason of maintaining
-    // back-compatibility with Rust 1.32.0. The equivalent code is commented out
-    // immediately below this function implementation. Thankfully, the compiler
-    // is able to do quite well at deduplicating the operations.
-    pub const fn new(seconds: i64, nanoseconds: i32) -> Self {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn new(mut seconds: i64, mut nanoseconds: i32) -> Self {
+        seconds += nanoseconds as i64 / 1_000_000_000;
+        nanoseconds %= 1_000_000_000;
+
+        if seconds > 0 && nanoseconds < 0 {
+            seconds -= 1;
+            nanoseconds += 1_000_000_000;
+        } else if seconds < 0 && nanoseconds > 0 {
+            seconds += 1;
+            nanoseconds -= 1_000_000_000;
+        }
+
         Self {
-            seconds: (seconds + nanoseconds as i64 / 1_000_000_000)
-                + (((((seconds + nanoseconds as i64 / 1_000_000_000) > 0) as i8
-                    - ((seconds + nanoseconds as i64 / 1_000_000_000) < 0) as i8)
-                    == -1)
-                    & ((((nanoseconds % 1_000_000_000) > 0) as i8
-                        - ((nanoseconds % 1_000_000_000) < 0) as i8)
-                        == 1)) as i64
-                - (((((seconds + nanoseconds as i64 / 1_000_000_000) > 0) as i8
-                    - ((seconds + nanoseconds as i64 / 1_000_000_000) < 0) as i8)
-                    == 1)
-                    & ((((nanoseconds % 1_000_000_000) > 0) as i8
-                        - ((nanoseconds % 1_000_000_000) < 0) as i8)
-                        == -1)) as i64,
-            nanoseconds: (nanoseconds % 1_000_000_000)
-                + 1_000_000_000
-                    * ((((((seconds + nanoseconds as i64 / 1_000_000_000) > 0) as i8
-                        - ((seconds + nanoseconds as i64 / 1_000_000_000) < 0) as i8)
-                        == 1)
-                        & ((((nanoseconds % 1_000_000_000) > 0) as i8
-                            - ((nanoseconds % 1_000_000_000) < 0) as i8)
-                            == -1)) as i32
-                        - (((((seconds + nanoseconds as i64 / 1_000_000_000) > 0) as i8
-                            - ((seconds + nanoseconds as i64 / 1_000_000_000) < 0) as i8)
-                            == -1)
-                            & ((((nanoseconds % 1_000_000_000) > 0) as i8
-                                - ((nanoseconds % 1_000_000_000) < 0) as i8)
-                                == 1)) as i32),
+            seconds,
+            nanoseconds,
         }
     }
-
-    // pub const fn new(mut seconds: i64, mut nanoseconds: i32) -> Self {
-    //     seconds += nanoseconds as i64 / 1_000_000_000;
-    //     nanoseconds %= 1_000_000_000;
-    //
-    //     // Alternatively, we can use `(nano)seconds.signum()` once it is
-    //     // stabilized within `const fn`. The behavior is identical.
-    //     let seconds_sign = match seconds {
-    //         n if n > 0 => 1,
-    //         0 => 0,
-    //         _ => -1,
-    //     };
-    //     let nanoseconds_sign = match nanoseconds {
-    //         n if n > 0 => 1,
-    //         0 => 0,
-    //         _ => -1,
-    //     };
-    //
-    //     if seconds_sign == 1 && nanoseconds_sign == -1 {
-    //         seconds -= 1;
-    //         nanoseconds += 1_000_000_000;
-    //     } else if seconds_sign == -1 && nanoseconds_sign == 1 {
-    //         seconds += 1;
-    //         nanoseconds -= 1_000_000_000;
-    //     }
-    //
-    //     Self {
-    //         seconds,
-    //         nanoseconds,
-    //     }
-    // }
 
     /// Create a new `Duration` with the given number of weeks. Equivalent to
     /// `Duration::seconds(weeks * 604_800)`.
