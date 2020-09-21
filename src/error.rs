@@ -8,15 +8,14 @@ use core::fmt;
 /// This can be used when you either don't know or don't care about the exact
 /// error returned. `Result<_, time::Error>` will work in these situations.
 // Boxing the `ComponentRange` reduces the size of `Error` from 72 bytes to 16.
-// TODO(0.3) Zero-sized structs can be eliminated in favor of a simple variant.
 #[allow(clippy::missing_docs_in_private_items)] // variants only
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
-    ConversionRange(ConversionRange),
+    ConversionRange,
     ComponentRange(Box<ComponentRange>),
     Parse(Parse),
-    IndeterminateOffset(IndeterminateOffset),
+    IndeterminateOffset,
     Format(Format),
     #[cfg(not(__time_02_supports_non_exhaustive))]
     #[doc(hidden)]
@@ -26,10 +25,10 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::ConversionRange(e) => e.fmt(f),
+            Error::ConversionRange => ConversionRange.fmt(f),
             Error::ComponentRange(e) => e.fmt(f),
             Error::Parse(e) => e.fmt(f),
-            Error::IndeterminateOffset(e) => e.fmt(f),
+            Error::IndeterminateOffset => IndeterminateOffset.fmt(f),
             Error::Format(e) => e.fmt(f),
             #[cfg(not(__time_02_supports_non_exhaustive))]
             Error::__NonExhaustive => unreachable!(),
@@ -41,10 +40,10 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Error::ConversionRange(err) => Some(err),
+            Error::ConversionRange => Some(&ConversionRange),
             Error::ComponentRange(box_err) => Some(box_err.as_ref()),
             Error::Parse(err) => Some(err),
-            Error::IndeterminateOffset(err) => Some(err),
+            Error::IndeterminateOffset => Some(&IndeterminateOffset),
             Error::Format(err) => Some(err),
             #[cfg(not(__time_02_supports_non_exhaustive))]
             Error::__NonExhaustive => unreachable!(),
@@ -67,8 +66,8 @@ impl fmt::Display for ConversionRange {
 impl std::error::Error for ConversionRange {}
 
 impl From<ConversionRange> for Error {
-    fn from(original: ConversionRange) -> Self {
-        Error::ConversionRange(original)
+    fn from(_: ConversionRange) -> Self {
+        Error::ConversionRange
     }
 }
 
@@ -140,8 +139,8 @@ impl fmt::Display for IndeterminateOffset {
 impl std::error::Error for IndeterminateOffset {}
 
 impl From<IndeterminateOffset> for Error {
-    fn from(original: IndeterminateOffset) -> Self {
-        Error::IndeterminateOffset(original)
+    fn from(_: IndeterminateOffset) -> Self {
+        Error::IndeterminateOffset
     }
 }
 
@@ -202,7 +201,7 @@ mod test {
     fn indeterminate_offset() {
         assert_eq!(
             IndeterminateOffset.to_string(),
-            Error::IndeterminateOffset(IndeterminateOffset).to_string()
+            Error::IndeterminateOffset.to_string()
         );
         assert!(match Error::from(IndeterminateOffset).source() {
             Some(error) => error.is::<IndeterminateOffset>(),
