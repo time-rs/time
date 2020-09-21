@@ -1,48 +1,51 @@
 #[cfg(feature = "std")]
 use time::OffsetDateTime;
-use time::UtcOffset;
+use time::{Result, UtcOffset};
 use time_macros::offset;
 
 #[test]
-fn hours() {
-    assert_eq!(UtcOffset::hours(1).as_seconds(), 3_600);
-    assert_eq!(UtcOffset::hours(-1).as_seconds(), -3_600);
-    assert_eq!(UtcOffset::hours(23).as_seconds(), 82_800);
-    assert_eq!(UtcOffset::hours(-23).as_seconds(), -82_800);
+fn hours() -> Result<()> {
+    assert_eq!(UtcOffset::hours(1)?.as_seconds(), 3_600);
+    assert_eq!(UtcOffset::hours(-1)?.as_seconds(), -3_600);
+    assert_eq!(UtcOffset::hours(23)?.as_seconds(), 82_800);
+    assert_eq!(UtcOffset::hours(-23)?.as_seconds(), -82_800);
+    Ok(())
 }
 
 #[test]
 fn directional_hours() {
-    assert_eq!(UtcOffset::east_hours(1), offset!(+1));
-    assert_eq!(UtcOffset::west_hours(1), offset!(-1));
+    assert_eq!(UtcOffset::east_hours(1), Ok(offset!(+1)));
+    assert_eq!(UtcOffset::west_hours(1), Ok(offset!(-1)));
 }
 
 #[test]
-fn minutes() {
-    assert_eq!(UtcOffset::minutes(1).as_seconds(), 60);
-    assert_eq!(UtcOffset::minutes(-1).as_seconds(), -60);
-    assert_eq!(UtcOffset::minutes(1_439).as_seconds(), 86_340);
-    assert_eq!(UtcOffset::minutes(-1_439).as_seconds(), -86_340);
+fn minutes() -> Result<()> {
+    assert_eq!(UtcOffset::minutes(1)?.as_seconds(), 60);
+    assert_eq!(UtcOffset::minutes(-1)?.as_seconds(), -60);
+    assert_eq!(UtcOffset::minutes(1_439)?.as_seconds(), 86_340);
+    assert_eq!(UtcOffset::minutes(-1_439)?.as_seconds(), -86_340);
+    Ok(())
 }
 
 #[test]
 fn directional_minutes() {
-    assert_eq!(UtcOffset::east_minutes(1), offset!(+0:01));
-    assert_eq!(UtcOffset::west_minutes(1), offset!(-0:01));
+    assert_eq!(UtcOffset::east_minutes(1), Ok(offset!(+0:01)));
+    assert_eq!(UtcOffset::west_minutes(1), Ok(offset!(-0:01)));
 }
 
 #[test]
-fn seconds() {
-    assert_eq!(UtcOffset::seconds(1).as_seconds(), 1);
-    assert_eq!(UtcOffset::seconds(-1).as_seconds(), -1);
-    assert_eq!(UtcOffset::seconds(86_399).as_seconds(), 86_399);
-    assert_eq!(UtcOffset::seconds(-86_399).as_seconds(), -86_399);
+fn seconds() -> Result<()> {
+    assert_eq!(UtcOffset::seconds(1)?.as_seconds(), 1);
+    assert_eq!(UtcOffset::seconds(-1)?.as_seconds(), -1);
+    assert_eq!(UtcOffset::seconds(86_399)?.as_seconds(), 86_399);
+    assert_eq!(UtcOffset::seconds(-86_399)?.as_seconds(), -86_399);
+    Ok(())
 }
 
 #[test]
 fn directional_seconds() {
-    assert_eq!(UtcOffset::east_seconds(1), offset!(+0:00:01));
-    assert_eq!(UtcOffset::west_seconds(1), offset!(-0:00:01));
+    assert_eq!(UtcOffset::east_seconds(1), Ok(offset!(+0:00:01)));
+    assert_eq!(UtcOffset::west_seconds(1), Ok(offset!(-0:00:01)));
 }
 
 #[test]

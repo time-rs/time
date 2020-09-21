@@ -36,6 +36,9 @@ pub(crate) fn parse_z(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> 
     let minutes: i16 =
         try_consume_exact_digits(s, 2, Padding::Zero).ok_or(error::Parse::InvalidOffset)?;
 
-    items.offset = UtcOffset::minutes(sign * (hours * 60 + minutes)).into();
+    items.offset = Some(
+        UtcOffset::minutes(sign * (hours * 60 + minutes))
+            .map_err(|_| error::Parse::InvalidOffset)?,
+    );
     Ok(())
 }
