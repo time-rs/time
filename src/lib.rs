@@ -262,9 +262,9 @@ use standback::prelude::*;
 /// # use time::{Date, Weekday::*};
 /// # use time_macros::date;
 /// # fn main() -> time::Result<()> {
-/// assert_eq!(date!(2020-W01-3), Date::try_from_iso_ywd(2020, 1, Wednesday)?);
-/// assert_eq!(date!(2020-001), Date::try_from_yo(2020, 1)?);
-/// assert_eq!(date!(2020-01-01), Date::try_from_ymd(2020, 1, 1)?);
+/// assert_eq!(date!(2020-W01-3), Date::from_iso_ywd(2020, 1, Wednesday)?);
+/// assert_eq!(date!(2020-001), Date::from_yo(2020, 1)?);
+/// assert_eq!(date!(2020-01-01), Date::from_ymd(2020, 1, 1)?);
 /// # Ok(())
 /// # }
 /// ```
@@ -309,15 +309,15 @@ pub use time_macros::offset;
 /// # use time::Time;
 /// # use time_macros::time;
 /// # fn main() -> time::Result<()> {
-/// assert_eq!(time!(0:00), Time::try_from_hms(0, 0, 0)?);
-/// assert_eq!(time!(1:02:03), Time::try_from_hms(1, 2, 3)?);
-/// assert_eq!(time!(1:02:03.004_005_006), Time::try_from_hms_nano(1, 2, 3, 4_005_006)?);
-/// assert_eq!(time!(12:00 am), Time::try_from_hms(0, 0, 0)?);
-/// assert_eq!(time!(1:02:03 am), Time::try_from_hms(1, 2, 3)?);
-/// assert_eq!(time!(1:02:03.004_005_006 am), Time::try_from_hms_nano(1, 2, 3, 4_005_006)?);
-/// assert_eq!(time!(12:00 pm), Time::try_from_hms(12, 0, 0)?);
-/// assert_eq!(time!(1:02:03 pm), Time::try_from_hms(13, 2, 3)?);
-/// assert_eq!(time!(1:02:03.004_005_006 pm), Time::try_from_hms_nano(13, 2, 3, 4_005_006)?);
+/// assert_eq!(time!(0:00), Time::from_hms(0, 0, 0)?);
+/// assert_eq!(time!(1:02:03), Time::from_hms(1, 2, 3)?);
+/// assert_eq!(time!(1:02:03.004_005_006), Time::from_hms_nano(1, 2, 3, 4_005_006)?);
+/// assert_eq!(time!(12:00 am), Time::from_hms(0, 0, 0)?);
+/// assert_eq!(time!(1:02:03 am), Time::from_hms(1, 2, 3)?);
+/// assert_eq!(time!(1:02:03.004_005_006 am), Time::from_hms_nano(1, 2, 3, 4_005_006)?);
+/// assert_eq!(time!(12:00 pm), Time::from_hms(12, 0, 0)?);
+/// assert_eq!(time!(1:02:03 pm), Time::from_hms(13, 2, 3)?);
+/// assert_eq!(time!(1:02:03.004_005_006 pm), Time::from_hms_nano(13, 2, 3, 4_005_006)?);
 /// # Ok(())
 /// # }
 /// ```

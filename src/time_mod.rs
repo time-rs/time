@@ -84,25 +84,21 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms(1, 2, 3).is_ok());
+    /// assert!(Time::from_hms(1, 2, 3).is_ok());
     /// ```
     ///
     /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms(24, 0, 0).is_err()); // 24 isn't a valid hour.
-    /// assert!(Time::try_from_hms(0, 60, 0).is_err()); // 60 isn't a valid minute.
-    /// assert!(Time::try_from_hms(0, 0, 60).is_err()); // 60 isn't a valid second.
+    /// assert!(Time::from_hms(24, 0, 0).is_err()); // 24 isn't a valid hour.
+    /// assert!(Time::from_hms(0, 60, 0).is_err()); // 60 isn't a valid minute.
+    /// assert!(Time::from_hms(0, 0, 60).is_err()); // 60 isn't a valid second.
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn try_from_hms(
-        hour: u8,
-        minute: u8,
-        second: u8,
-    ) -> Result<Self, error::ComponentRange> {
+    pub const fn from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(hour in 0 => 23);
         ensure_value_in_range!(minute in 0 => 59);
         ensure_value_in_range!(second in 0 => 59);
@@ -118,22 +114,22 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_milli(1, 2, 3, 4).is_ok());
+    /// assert!(Time::from_hms_milli(1, 2, 3, 4).is_ok());
     /// ```
     ///
     /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_milli(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
-    /// assert!(Time::try_from_hms_milli(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
-    /// assert!(Time::try_from_hms_milli(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
-    /// assert!(Time::try_from_hms_milli(0, 0, 0, 1_000).is_err()); // 1_000 isn't a valid millisecond.
+    /// assert!(Time::from_hms_milli(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
+    /// assert!(Time::from_hms_milli(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
+    /// assert!(Time::from_hms_milli(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
+    /// assert!(Time::from_hms_milli(0, 0, 0, 1_000).is_err()); // 1_000 isn't a valid millisecond.
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn try_from_hms_milli(
+    pub const fn from_hms_milli(
         hour: u8,
         minute: u8,
         second: u8,
@@ -155,22 +151,22 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_micro(1, 2, 3, 4).is_ok());
+    /// assert!(Time::from_hms_micro(1, 2, 3, 4).is_ok());
     /// ```
     ///
     /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_micro(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
-    /// assert!(Time::try_from_hms_micro(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
-    /// assert!(Time::try_from_hms_micro(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
-    /// assert!(Time::try_from_hms_micro(0, 0, 0, 1_000_000).is_err()); // 1_000_000 isn't a valid microsecond.
+    /// assert!(Time::from_hms_micro(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
+    /// assert!(Time::from_hms_micro(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
+    /// assert!(Time::from_hms_micro(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
+    /// assert!(Time::from_hms_micro(0, 0, 0, 1_000_000).is_err()); // 1_000_000 isn't a valid microsecond.
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn try_from_hms_micro(
+    pub const fn from_hms_micro(
         hour: u8,
         minute: u8,
         second: u8,
@@ -192,22 +188,22 @@ impl Time {
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_nano(1, 2, 3, 4).is_ok());
+    /// assert!(Time::from_hms_nano(1, 2, 3, 4).is_ok());
     /// ```
     ///
     /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
-    /// assert!(Time::try_from_hms_nano(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
-    /// assert!(Time::try_from_hms_nano(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
-    /// assert!(Time::try_from_hms_nano(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
-    /// assert!(Time::try_from_hms_nano(0, 0, 0, 1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond.
+    /// assert!(Time::from_hms_nano(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
+    /// assert!(Time::from_hms_nano(0, 60, 0, 0).is_err()); // 60 isn't a valid minute.
+    /// assert!(Time::from_hms_nano(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
+    /// assert!(Time::from_hms_nano(0, 0, 0, 1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn try_from_hms_nano(
+    pub const fn from_hms_nano(
         hour: u8,
         minute: u8,
         second: u8,
@@ -398,26 +394,25 @@ impl Time {
 
         match items {
             items!(hour_24, minute, second, nanosecond) => {
-                Self::try_from_hms_nano(hour_24, minute, second, nanosecond).map_err(Into::into)
+                Self::from_hms_nano(hour_24, minute, second, nanosecond).map_err(Into::into)
             }
             items!(hour_12, minute, second, nanosecond, am_pm) => {
-                Self::try_from_hms_nano(hour_12_to_24(hour_12, am_pm), minute, second, nanosecond)
+                Self::from_hms_nano(hour_12_to_24(hour_12, am_pm), minute, second, nanosecond)
                     .map_err(Into::into)
             }
             items!(hour_24, minute, second) => {
-                Self::try_from_hms(hour_24, minute, second).map_err(Into::into)
+                Self::from_hms(hour_24, minute, second).map_err(Into::into)
             }
             items!(hour_12, minute, second, am_pm) => {
-                Self::try_from_hms(hour_12_to_24(hour_12, am_pm), minute, second)
-                    .map_err(Into::into)
+                Self::from_hms(hour_12_to_24(hour_12, am_pm), minute, second).map_err(Into::into)
             }
-            items!(hour_24, minute) => Self::try_from_hms(hour_24, minute, 0).map_err(Into::into),
+            items!(hour_24, minute) => Self::from_hms(hour_24, minute, 0).map_err(Into::into),
             items!(hour_12, minute, am_pm) => {
-                Self::try_from_hms(hour_12_to_24(hour_12, am_pm), minute, 0).map_err(Into::into)
+                Self::from_hms(hour_12_to_24(hour_12, am_pm), minute, 0).map_err(Into::into)
             }
-            items!(hour_24) => Self::try_from_hms(hour_24, 0, 0).map_err(Into::into),
+            items!(hour_24) => Self::from_hms(hour_24, 0, 0).map_err(Into::into),
             items!(hour_12, am_pm) => {
-                Self::try_from_hms(hour_12_to_24(hour_12, am_pm), 0, 0).map_err(Into::into)
+                Self::from_hms(hour_12_to_24(hour_12, am_pm), 0, 0).map_err(Into::into)
             }
             _ => Err(error::Parse::InsufficientInformation),
         }
@@ -660,7 +655,7 @@ mod test {
         assert_eq!(time.nanoseconds_since_midnight(), 0);
         assert_eq!(Time::from_nanoseconds_since_midnight(0), time);
 
-        let time = Time::try_from_hms_nano(23, 59, 59, 999_999_999)?;
+        let time = Time::from_hms_nano(23, 59, 59, 999_999_999)?;
         assert_eq!(time.nanoseconds_since_midnight(), NANOS_PER_DAY - 1);
         assert_eq!(
             Time::from_nanoseconds_since_midnight(NANOS_PER_DAY - 1),

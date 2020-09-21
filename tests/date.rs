@@ -834,12 +834,12 @@ fn test_parse_sunday_based_week() -> Result<()> {
 }
 
 #[test]
-fn try_from_iso_ywd() {
+fn from_iso_ywd() {
     use Weekday::*;
-    assert!(Date::try_from_iso_ywd(2019, 1, Monday).is_ok());
-    assert!(Date::try_from_iso_ywd(2019, 1, Tuesday).is_ok());
-    assert!(Date::try_from_iso_ywd(2020, 53, Friday).is_ok());
-    assert!(Date::try_from_iso_ywd(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
+    assert!(Date::from_iso_ywd(2019, 1, Monday).is_ok());
+    assert!(Date::from_iso_ywd(2019, 1, Tuesday).is_ok());
+    assert!(Date::from_iso_ywd(2020, 53, Friday).is_ok());
+    assert!(Date::from_iso_ywd(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
 }
 
 #[test]
@@ -947,45 +947,39 @@ fn with_time() {
 }
 
 #[test]
-fn try_with_hms() {
+fn with_hms() {
     assert_eq!(
-        date!(1970 - 01 - 01).try_with_hms(0, 0, 0),
+        date!(1970 - 01 - 01).with_hms(0, 0, 0),
         Ok(date!(1970 - 01 - 01).midnight()),
     );
-    assert!(date!(1970 - 01 - 01).try_with_hms(24, 0, 0).is_err());
+    assert!(date!(1970 - 01 - 01).with_hms(24, 0, 0).is_err());
 }
 
 #[test]
-fn try_with_hms_milli() {
+fn with_hms_milli() {
     assert_eq!(
-        date!(1970 - 01 - 01).try_with_hms_milli(0, 0, 0, 0),
+        date!(1970 - 01 - 01).with_hms_milli(0, 0, 0, 0),
         Ok(date!(1970 - 01 - 01).midnight()),
     );
-    assert!(date!(1970 - 01 - 01)
-        .try_with_hms_milli(24, 0, 0, 0)
-        .is_err());
+    assert!(date!(1970 - 01 - 01).with_hms_milli(24, 0, 0, 0).is_err());
 }
 
 #[test]
-fn try_with_hms_micro() {
+fn with_hms_micro() {
     assert_eq!(
-        date!(1970 - 01 - 01).try_with_hms_micro(0, 0, 0, 0),
+        date!(1970 - 01 - 01).with_hms_micro(0, 0, 0, 0),
         Ok(date!(1970 - 01 - 01).midnight()),
     );
-    assert!(date!(1970 - 01 - 01)
-        .try_with_hms_micro(24, 0, 0, 0)
-        .is_err());
+    assert!(date!(1970 - 01 - 01).with_hms_micro(24, 0, 0, 0).is_err());
 }
 
 #[test]
-fn try_with_hms_nano() {
+fn with_hms_nano() {
     assert_eq!(
-        date!(1970 - 01 - 01).try_with_hms_nano(0, 0, 0, 0),
+        date!(1970 - 01 - 01).with_hms_nano(0, 0, 0, 0),
         Ok(date!(1970 - 01 - 01).midnight()),
     );
-    assert!(date!(1970 - 01 - 01)
-        .try_with_hms_nano(24, 0, 0, 0)
-        .is_err());
+    assert!(date!(1970 - 01 - 01).with_hms_nano(24, 0, 0, 0).is_err());
 }
 
 #[test]

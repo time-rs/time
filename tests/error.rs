@@ -1,7 +1,7 @@
 use time::{error, Date, Error};
 
 fn component_range() -> error::ComponentRange {
-    Date::try_from_yo(0, 367).unwrap_err()
+    Date::from_yo(0, 367).unwrap_err()
 }
 
 fn parse() -> error::Parse {
