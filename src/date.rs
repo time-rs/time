@@ -4,22 +4,19 @@ use crate::{
     util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year},
     DeferredFormat, Duration, ParseResult, PrimitiveDateTime, Time, Weekday,
 };
-#[cfg(not(feature = "std"))]
 use alloc::{
     borrow::ToOwned,
     string::{String, ToString},
 };
 use const_fn::const_fn;
+#[cfg(feature = "serde")]
+use core::convert::TryInto;
 use core::{
     cmp::{Ord, Ordering, PartialOrd},
     fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(feature = "serde")]
-use standback::convert::TryInto;
-#[allow(unused_imports)]
-use standback::prelude::*;
 
 /// The minimum valid year.
 pub(crate) const MIN_YEAR: i32 = -100_000;

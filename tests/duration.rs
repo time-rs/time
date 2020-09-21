@@ -1,6 +1,6 @@
-use standback::convert::TryFrom;
+use core::convert::TryFrom;
 #[allow(unused_imports)]
-use standback::prelude::*;
+use standback::prelude::*; // u64::MAX (1.43)
 use std::{cmp::Ordering, time::Duration as StdDuration};
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},

@@ -1,10 +1,10 @@
 use crate::Duration;
 use core::{
     cmp::{Ord, Ordering, PartialEq, PartialOrd},
+    convert::{TryFrom, TryInto},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-use standback::convert::{TryFrom, TryInto};
 use std::time::Instant as StdInstant;
 
 /// A measurement of a monotonically non-decreasing clock. Opaque and useful
@@ -78,9 +78,6 @@ impl Instant {
     ///     Some(now + (-5).seconds())
     /// );
     /// ```
-    ///
-    /// This function is only present when using rustc >= 1.34.0.
-    #[cfg(__time_02_instant_checked_ops)]
     pub fn checked_add(self, duration: Duration) -> Option<Self> {
         if duration.is_zero() {
             Some(self)
@@ -108,9 +105,6 @@ impl Instant {
     ///     Some(now - (-5).seconds())
     /// );
     /// ```
-    ///
-    /// This function is only present when using rustc >= 1.34.0.
-    #[cfg(__time_02_instant_checked_ops)]
     pub fn checked_sub(self, duration: Duration) -> Option<Self> {
         self.checked_add(-duration)
     }

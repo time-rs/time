@@ -1,5 +1,4 @@
 pub use crate::format::parse::Error as Parse;
-#[cfg(not(feature = "std"))]
 use alloc::boxed::Box;
 use core::fmt;
 

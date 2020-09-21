@@ -6,7 +6,7 @@ use time::{
     ext::{NumericalDuration, NumericalStdDuration},
     util, Date, Result, Weekday,
 };
-use time_macros::{date, time};
+use time_macros::{date, time}; // i64::MAX (1.43)
 
 macro_rules! julian {
     ($julian:literal) => {

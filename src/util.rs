@@ -1,7 +1,6 @@
 //! Utility functions.
 
 use crate::{format::try_parse_fmt_string, Date};
-#[cfg(not(feature = "std"))]
 use alloc::string::String;
 use const_fn::const_fn;
 

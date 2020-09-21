@@ -2,22 +2,19 @@ use crate::{
     format::parse::{parse, ParsedItems},
     Date, DeferredFormat, Duration, OffsetDateTime, ParseResult, Time, UtcOffset, Weekday,
 };
-#[cfg(not(feature = "std"))]
 use alloc::{
     borrow::ToOwned,
     string::{String, ToString},
 };
 use const_fn::const_fn;
+#[cfg(feature = "serde")]
+use core::convert::TryInto;
 use core::{
     cmp::Ordering,
     fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(feature = "serde")]
-use standback::convert::TryInto;
-#[allow(unused_imports)]
-use standback::prelude::*;
 
 /// Combined date and time.
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
