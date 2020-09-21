@@ -1,10 +1,4 @@
-use standback::convert::TryFrom;
-use std::time::Duration as StdDuration;
-use time::{error, Date, Duration, Error};
-
-fn conversion_range() -> error::ConversionRange {
-    StdDuration::try_from(Duration::seconds(-1)).unwrap_err()
-}
+use time::{error, Date, Error};
 
 fn component_range() -> error::ComponentRange {
     Date::try_from_yo(0, 367).unwrap_err()
@@ -25,8 +19,8 @@ fn format_std() -> error::Format {
 #[test]
 fn display() {
     assert_eq!(
-        conversion_range().to_string(),
-        Error::ConversionRange(conversion_range()).to_string()
+        error::ConversionRange.to_string(),
+        Error::ConversionRange.to_string()
     );
     assert_eq!(
         component_range().to_string(),
@@ -48,7 +42,7 @@ fn display() {
 fn source() {
     use std::error::Error as StdError;
 
-    assert!(Error::from(conversion_range())
+    assert!(Error::from(error::ConversionRange)
         .source()
         .unwrap()
         .is::<error::ConversionRange>());
