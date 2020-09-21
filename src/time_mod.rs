@@ -48,6 +48,22 @@ pub struct Time {
 }
 
 impl Time {
+    /// Create a `Time` from its components.
+    #[doc(hidden)]
+    pub const fn from_hms_nanos_unchecked(
+        hour: u8,
+        minute: u8,
+        second: u8,
+        nanosecond: u32,
+    ) -> Self {
+        Self {
+            hour,
+            minute,
+            second,
+            nanosecond,
+        }
+    }
+
     /// Create a `Time` that is exactly midnight.
     ///
     /// ```rust

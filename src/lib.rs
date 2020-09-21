@@ -223,7 +223,6 @@ mod format;
 /// The `Instant` struct and its associated `impl`s.
 #[cfg(feature = "std")]
 mod instant;
-pub mod internals;
 /// The `OffsetDateTime` struct and its associated `impl`s.
 mod offset_date_time;
 /// The `PrimitiveDateTime` struct and its associated `impl`s.
