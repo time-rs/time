@@ -932,7 +932,7 @@ fn from_julian_day_large() {
 
 #[test]
 fn midnight() {
-    assert_eq!(date!("1970-01-01").midnight(), datetime!("1970-01-01 0:00"),);
+    assert_eq!(date!("1970-01-01").midnight(), datetime!("1970-01-01 0:00"));
 }
 
 #[test]

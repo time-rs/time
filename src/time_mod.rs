@@ -333,26 +333,11 @@ impl Time {
     /// ```rust
     /// # use time::Time;
     /// # use time_macros::time;
-    /// assert_eq!(
-    ///     Time::parse("0:00:00", "%T"),
-    ///     Ok(time!("0:00"))
-    /// );
-    /// assert_eq!(
-    ///     Time::parse("23:59:59", "%T"),
-    ///     Ok(time!("23:59:59"))
-    /// );
-    /// assert_eq!(
-    ///     Time::parse("12:00:00 am", "%r"),
-    ///     Ok(time!("0:00"))
-    /// );
-    /// assert_eq!(
-    ///     Time::parse("12:00:00 pm", "%r"),
-    ///     Ok(time!("12:00"))
-    /// );
-    /// assert_eq!(
-    ///     Time::parse("11:59:59 pm", "%r"),
-    ///     Ok(time!("23:59:59"))
-    /// );
+    /// assert_eq!(Time::parse("0:00:00", "%T"), Ok(time!("0:00")));
+    /// assert_eq!(Time::parse("23:59:59", "%T"), Ok(time!("23:59:59")));
+    /// assert_eq!(Time::parse("12:00:00 am", "%r"), Ok(time!("0:00")));
+    /// assert_eq!(Time::parse("12:00:00 pm", "%r"), Ok(time!("12:00")));
+    /// assert_eq!(Time::parse("11:59:59 pm", "%r"), Ok(time!("23:59:59")));
     /// ```
     pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
@@ -522,14 +507,8 @@ impl Sub<Duration> for Time {
     /// ```rust
     /// # use time::prelude::*;
     /// # use time_macros::time;
-    /// assert_eq!(
-    ///     time!("14:00") - 2.hours(),
-    ///     time!("12:00")
-    /// );
-    /// assert_eq!(
-    ///     time!("23:59:59") - (-2).seconds(),
-    ///     time!("0:00:01")
-    /// );
+    /// assert_eq!(time!("14:00") - 2.hours(), time!("12:00"));
+    /// assert_eq!(time!("23:59:59") - (-2).seconds(), time!("0:00:01"));
     /// ```
     fn sub(self, duration: Duration) -> Self::Output {
         self + -duration

@@ -55,10 +55,7 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time_macros::{date, datetime};
-    /// assert_eq!(
-    ///     datetime!("2019-01-01 0:00").date(),
-    ///     date!("2019-01-01")
-    /// );
+    /// assert_eq!(datetime!("2019-01-01 0:00").date(), date!("2019-01-01"));
     /// ```
     pub const fn date(self) -> Date {
         self.date
@@ -313,7 +310,10 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(datetime!("2019-01-01 0:00").microsecond(), 0);
-    /// assert_eq!(datetime!("2019-01-01 23:59:59.999_999").microsecond(), 999_999);
+    /// assert_eq!(
+    ///     datetime!("2019-01-01 23:59:59.999_999").microsecond(),
+    ///     999_999
+    /// );
     /// ```
     pub const fn microsecond(self) -> u32 {
         self.time().microsecond()
@@ -341,11 +341,15 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time_macros::{datetime, offset};
     /// assert_eq!(
-    ///     datetime!("2019-01-01 0:00").assume_offset(offset!("UTC")).unix_timestamp(),
+    ///     datetime!("2019-01-01 0:00")
+    ///         .assume_offset(offset!("UTC"))
+    ///         .unix_timestamp(),
     ///     1_546_300_800,
     /// );
     /// assert_eq!(
-    ///     datetime!("2019-01-01 0:00").assume_offset(offset!("-1")).unix_timestamp(),
+    ///     datetime!("2019-01-01 0:00")
+    ///         .assume_offset(offset!("-1"))
+    ///         .unix_timestamp(),
     ///     1_546_304_400,
     /// );
     /// ```

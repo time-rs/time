@@ -602,10 +602,7 @@ impl Date {
     /// ```rust
     /// # use time::Date;
     /// # use time_macros::date;
-    /// assert_eq!(
-    ///     Date::from_julian_day(0),
-    ///     date!("-4713-11-24")
-    /// );
+    /// assert_eq!(Date::from_julian_day(0), date!("-4713-11-24"));
     /// assert_eq!(Date::from_julian_day(2_451_545), date!("2000-01-01"));
     /// assert_eq!(Date::from_julian_day(2_458_485), date!("2019-01-01"));
     /// assert_eq!(Date::from_julian_day(2_458_849), date!("2019-12-31"));
@@ -641,10 +638,7 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::{date, datetime};
-    /// assert_eq!(
-    ///     date!("1970-01-01").midnight(),
-    ///     datetime!("1970-01-01 0:00")
-    /// );
+    /// assert_eq!(date!("1970-01-01").midnight(), datetime!("1970-01-01 0:00"));
     /// ```
     pub const fn midnight(self) -> PrimitiveDateTime {
         PrimitiveDateTime::new(self, Time::midnight())
@@ -714,12 +708,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!("1970-01-01")
-    ///     .with_hms_micro(0, 0, 0, 0)
-    ///     .is_ok());
-    /// assert!(date!("1970-01-01")
-    ///     .with_hms_micro(24, 0, 0, 0)
-    ///     .is_err());
+    /// assert!(date!("1970-01-01").with_hms_micro(0, 0, 0, 0).is_ok());
+    /// assert!(date!("1970-01-01").with_hms_micro(24, 0, 0, 0).is_err());
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -780,14 +770,8 @@ impl Date {
     /// ```rust
     /// # use time::Date;
     /// # use time_macros::date;
-    /// assert_eq!(
-    ///     Date::parse("2019-01-02", "%F"),
-    ///     Ok(date!("2019-01-02"))
-    /// );
-    /// assert_eq!(
-    ///     Date::parse("2019-002", "%Y-%j"),
-    ///     Ok(date!("2019-002"))
-    /// );
+    /// assert_eq!(Date::parse("2019-01-02", "%F"), Ok(date!("2019-01-02")));
+    /// assert_eq!(Date::parse("2019-002", "%Y-%j"), Ok(date!("2019-002")));
     /// assert_eq!(
     ///     Date::parse("2019-W01-3", "%G-W%V-%u"),
     ///     Ok(date!("2019-W01-3"))

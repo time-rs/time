@@ -13,6 +13,7 @@ pub(crate) enum Error {
 
 #[allow(clippy::use_self)]
 impl fmt::Display for Error {
+    #[allow(clippy::use_self)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::MissingComponent { name } => write!(f, "missing component: {}", name),

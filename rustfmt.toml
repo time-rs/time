@@ -5,8 +5,7 @@ use_try_shorthand = true
 # Unstable features below
 unstable_features = true
 error_on_line_overflow = true
-# Disabled due to formatting of macros.
-# format_code_in_doc_comments = true
+format_code_in_doc_comments = true
 format_macro_matchers = true
 format_strings = true
 merge_imports = true

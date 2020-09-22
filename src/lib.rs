@@ -323,13 +323,22 @@ pub use time_macros::offset;
 /// # use time_macros::time;
 /// assert_eq!(time!("0:00"), Time::from_hms(0, 0, 0)?);
 /// assert_eq!(time!("1:02:03"), Time::from_hms(1, 2, 3)?);
-/// assert_eq!(time!("1:02:03.004_005_006"), Time::from_hms_nano(1, 2, 3, 4_005_006)?);
+/// assert_eq!(
+///     time!("1:02:03.004_005_006"),
+///     Time::from_hms_nano(1, 2, 3, 4_005_006)?
+/// );
 /// assert_eq!(time!("12:00 am"), Time::from_hms(0, 0, 0)?);
 /// assert_eq!(time!("1:02:03 am"), Time::from_hms(1, 2, 3)?);
-/// assert_eq!(time!("1:02:03.004_005_006 am"), Time::from_hms_nano(1, 2, 3, 4_005_006)?);
+/// assert_eq!(
+///     time!("1:02:03.004_005_006 am"),
+///     Time::from_hms_nano(1, 2, 3, 4_005_006)?
+/// );
 /// assert_eq!(time!("12:00 pm"), Time::from_hms(12, 0, 0)?);
 /// assert_eq!(time!("1:02:03 pm"), Time::from_hms(13, 2, 3)?);
-/// assert_eq!(time!("1:02:03.004_005_006 pm"), Time::from_hms_nano(13, 2, 3, 4_005_006)?);
+/// assert_eq!(
+///     time!("1:02:03.004_005_006 pm"),
+///     Time::from_hms_nano(13, 2, 3, 4_005_006)?
+/// );
 /// # Ok::<_, time::Error>(())
 /// ```
 #[cfg(feature = "macros")]
