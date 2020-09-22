@@ -200,9 +200,9 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).year(), 2019);
-    /// assert_eq!(date!(2019-12-31).year(), 2019);
-    /// assert_eq!(date!(2020-01-01).year(), 2020);
+    /// assert_eq!(date!("2019-01-01").year(), 2019);
+    /// assert_eq!(date!("2019-12-31").year(), 2019);
+    /// assert_eq!(date!("2020-01-01").year(), 2020);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -219,8 +219,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).month(), 1);
-    /// assert_eq!(date!(2019-12-31).month(), 12);
+    /// assert_eq!(date!("2019-01-01").month(), 1);
+    /// assert_eq!(date!("2019-12-31").month(), 12);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -236,8 +236,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).day(), 1);
-    /// assert_eq!(date!(2019-12-31).day(), 31);
+    /// assert_eq!(date!("2019-01-01").day(), 1);
+    /// assert_eq!(date!("2019-12-31").day(), 31);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -254,8 +254,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).month_day(), (1, 1));
-    /// assert_eq!(date!(2019-12-31).month_day(), (12, 31));
+    /// assert_eq!(date!("2019-01-01").month_day(), (1, 1));
+    /// assert_eq!(date!("2019-12-31").month_day(), (12, 31));
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -308,8 +308,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).ordinal(), 1);
-    /// assert_eq!(date!(2019-12-31).ordinal(), 365);
+    /// assert_eq!(date!("2019-01-01").ordinal(), 1);
+    /// assert_eq!(date!("2019-12-31").ordinal(), 365);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -323,11 +323,11 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).iso_year_week(), (2019, 1));
-    /// assert_eq!(date!(2019-10-04).iso_year_week(), (2019, 40));
-    /// assert_eq!(date!(2020-01-01).iso_year_week(), (2020, 1));
-    /// assert_eq!(date!(2020-12-31).iso_year_week(), (2020, 53));
-    /// assert_eq!(date!(2021-01-01).iso_year_week(), (2020, 53));
+    /// assert_eq!(date!("2019-01-01").iso_year_week(), (2019, 1));
+    /// assert_eq!(date!("2019-10-04").iso_year_week(), (2019, 40));
+    /// assert_eq!(date!("2020-01-01").iso_year_week(), (2020, 1));
+    /// assert_eq!(date!("2020-12-31").iso_year_week(), (2020, 53));
+    /// assert_eq!(date!("2021-01-01").iso_year_week(), (2020, 53));
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -351,11 +351,11 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).week(), 1);
-    /// assert_eq!(date!(2019-10-04).week(), 40);
-    /// assert_eq!(date!(2020-01-01).week(), 1);
-    /// assert_eq!(date!(2020-12-31).week(), 53);
-    /// assert_eq!(date!(2021-01-01).week(), 53);
+    /// assert_eq!(date!("2019-01-01").week(), 1);
+    /// assert_eq!(date!("2019-10-04").week(), 40);
+    /// assert_eq!(date!("2020-01-01").week(), 1);
+    /// assert_eq!(date!("2020-12-31").week(), 53);
+    /// assert_eq!(date!("2021-01-01").week(), 53);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -370,10 +370,10 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).sunday_based_week(), 0);
-    /// assert_eq!(date!(2020-01-01).sunday_based_week(), 0);
-    /// assert_eq!(date!(2020-12-31).sunday_based_week(), 52);
-    /// assert_eq!(date!(2021-01-01).sunday_based_week(), 0);
+    /// assert_eq!(date!("2019-01-01").sunday_based_week(), 0);
+    /// assert_eq!(date!("2020-01-01").sunday_based_week(), 0);
+    /// assert_eq!(date!("2020-12-31").sunday_based_week(), 52);
+    /// assert_eq!(date!("2021-01-01").sunday_based_week(), 0);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -388,10 +388,10 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).monday_based_week(), 0);
-    /// assert_eq!(date!(2020-01-01).monday_based_week(), 0);
-    /// assert_eq!(date!(2020-12-31).monday_based_week(), 52);
-    /// assert_eq!(date!(2021-01-01).monday_based_week(), 0);
+    /// assert_eq!(date!("2019-01-01").monday_based_week(), 0);
+    /// assert_eq!(date!("2020-01-01").monday_based_week(), 0);
+    /// assert_eq!(date!("2020-12-31").monday_based_week(), 52);
+    /// assert_eq!(date!("2021-01-01").monday_based_week(), 0);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -404,7 +404,7 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).as_ymd(), (2019, 1, 1));
+    /// assert_eq!(date!("2019-01-01").as_ymd(), (2019, 1, 1));
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -418,7 +418,7 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).as_yo(), (2019, 1));
+    /// assert_eq!(date!("2019-01-01").as_yo(), (2019, 1));
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -482,18 +482,18 @@ impl Date {
     /// ```rust
     /// # use time::Weekday::*;
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).weekday(), Tuesday);
-    /// assert_eq!(date!(2019-02-01).weekday(), Friday);
-    /// assert_eq!(date!(2019-03-01).weekday(), Friday);
-    /// assert_eq!(date!(2019-04-01).weekday(), Monday);
-    /// assert_eq!(date!(2019-05-01).weekday(), Wednesday);
-    /// assert_eq!(date!(2019-06-01).weekday(), Saturday);
-    /// assert_eq!(date!(2019-07-01).weekday(), Monday);
-    /// assert_eq!(date!(2019-08-01).weekday(), Thursday);
-    /// assert_eq!(date!(2019-09-01).weekday(), Sunday);
-    /// assert_eq!(date!(2019-10-01).weekday(), Tuesday);
-    /// assert_eq!(date!(2019-11-01).weekday(), Friday);
-    /// assert_eq!(date!(2019-12-01).weekday(), Sunday);
+    /// assert_eq!(date!("2019-01-01").weekday(), Tuesday);
+    /// assert_eq!(date!("2019-02-01").weekday(), Friday);
+    /// assert_eq!(date!("2019-03-01").weekday(), Friday);
+    /// assert_eq!(date!("2019-04-01").weekday(), Monday);
+    /// assert_eq!(date!("2019-05-01").weekday(), Wednesday);
+    /// assert_eq!(date!("2019-06-01").weekday(), Saturday);
+    /// assert_eq!(date!("2019-07-01").weekday(), Monday);
+    /// assert_eq!(date!("2019-08-01").weekday(), Thursday);
+    /// assert_eq!(date!("2019-09-01").weekday(), Sunday);
+    /// assert_eq!(date!("2019-10-01").weekday(), Tuesday);
+    /// assert_eq!(date!("2019-11-01").weekday(), Friday);
+    /// assert_eq!(date!("2019-12-01").weekday(), Sunday);
     /// ```
     pub fn weekday(self) -> Weekday {
         match self.number_days_from_monday() {
@@ -514,9 +514,9 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).next_day(), date!(2019-01-02));
-    /// assert_eq!(date!(2019-01-31).next_day(), date!(2019-02-01));
-    /// assert_eq!(date!(2019-12-31).next_day(), date!(2020-01-01));
+    /// assert_eq!(date!("2019-01-01").next_day(), date!("2019-01-02"));
+    /// assert_eq!(date!("2019-01-31").next_day(), date!("2019-02-01"));
+    /// assert_eq!(date!("2019-12-31").next_day(), date!("2020-01-01"));
     /// ```
     pub fn next_day(self) -> Self {
         let (mut year, mut ordinal) = self.as_yo();
@@ -539,9 +539,9 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-02).previous_day(), date!(2019-01-01));
-    /// assert_eq!(date!(2019-02-01).previous_day(), date!(2019-01-31));
-    /// assert_eq!(date!(2020-01-01).previous_day(), date!(2019-12-31));
+    /// assert_eq!(date!("2019-01-02").previous_day(), date!("2019-01-01"));
+    /// assert_eq!(date!("2019-02-01").previous_day(), date!("2019-01-31"));
+    /// assert_eq!(date!("2020-01-01").previous_day(), date!("2019-12-31"));
     /// ```
     pub fn previous_day(self) -> Self {
         let (mut year, mut ordinal) = self.as_yo();
@@ -568,10 +568,10 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(-4713-11-24).julian_day(), 0);
-    /// assert_eq!(date!(2000-01-01).julian_day(), 2_451_545);
-    /// assert_eq!(date!(2019-01-01).julian_day(), 2_458_485);
-    /// assert_eq!(date!(2019-12-31).julian_day(), 2_458_849);
+    /// assert_eq!(date!("-4713-11-24").julian_day(), 0);
+    /// assert_eq!(date!("2000-01-01").julian_day(), 2_451_545);
+    /// assert_eq!(date!("2019-01-01").julian_day(), 2_458_485);
+    /// assert_eq!(date!("2019-12-31").julian_day(), 2_458_849);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -604,11 +604,11 @@ impl Date {
     /// # use time_macros::date;
     /// assert_eq!(
     ///     Date::from_julian_day(0),
-    ///     date!(-4713-11-24)
+    ///     date!("-4713-11-24")
     /// );
-    /// assert_eq!(Date::from_julian_day(2_451_545), date!(2000-01-01));
-    /// assert_eq!(Date::from_julian_day(2_458_485), date!(2019-01-01));
-    /// assert_eq!(Date::from_julian_day(2_458_849), date!(2019-12-31));
+    /// assert_eq!(Date::from_julian_day(2_451_545), date!("2000-01-01"));
+    /// assert_eq!(Date::from_julian_day(2_458_485), date!("2019-01-01"));
+    /// assert_eq!(Date::from_julian_day(2_458_849), date!("2019-12-31"));
     /// ```
     // TODO Return a `Result<Self, error::ComponentRange>` in 0.3
     pub fn from_julian_day(julian_day: i64) -> Self {
@@ -640,10 +640,10 @@ impl Date {
     /// be set to midnight.
     ///
     /// ```rust
-    /// # use time_macros::{date, time};
+    /// # use time_macros::{date, datetime};
     /// assert_eq!(
-    ///     date!(1970-01-01).midnight(),
-    ///     date!(1970-01-01).with_time(time!(0:00))
+    ///     date!("1970-01-01").midnight(),
+    ///     datetime!("1970-01-01 0:00")
     /// );
     /// ```
     pub const fn midnight(self) -> PrimitiveDateTime {
@@ -653,10 +653,10 @@ impl Date {
     /// Create a `PrimitiveDateTime` using the existing date and the provided `Time`.
     ///
     /// ```rust
-    /// # use time_macros::{date, time};
+    /// # use time_macros::{date, datetime, time};
     /// assert_eq!(
-    ///     date!(1970-01-01).with_time(time!(0:00)),
-    ///     date!(1970-01-01).midnight(),
+    ///     date!("1970-01-01").with_time(time!("0:00")),
+    ///     datetime!("1970-01-01 0:00"),
     /// );
     /// ```
     pub const fn with_time(self, time: Time) -> PrimitiveDateTime {
@@ -668,8 +668,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970-01-01).with_hms(0, 0, 0).is_ok());
-    /// assert!(date!(1970-01-01).with_hms(24, 0, 0).is_err());
+    /// assert!(date!("1970-01-01").with_hms(0, 0, 0).is_ok());
+    /// assert!(date!("1970-01-01").with_hms(24, 0, 0).is_err());
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -690,8 +690,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970-01-01).with_hms_milli(0, 0, 0, 0).is_ok());
-    /// assert!(date!(1970-01-01).with_hms_milli(24, 0, 0, 0).is_err());
+    /// assert!(date!("1970-01-01").with_hms_milli(0, 0, 0, 0).is_ok());
+    /// assert!(date!("1970-01-01").with_hms_milli(24, 0, 0, 0).is_err());
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -714,10 +714,10 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970-01-01)
+    /// assert!(date!("1970-01-01")
     ///     .with_hms_micro(0, 0, 0, 0)
     ///     .is_ok());
-    /// assert!(date!(1970-01-01)
+    /// assert!(date!("1970-01-01")
     ///     .with_hms_micro(24, 0, 0, 0)
     ///     .is_err());
     /// ```
@@ -741,8 +741,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970-01-01).with_hms_nano(0, 0, 0, 0).is_ok());
-    /// assert!(date!(1970-01-01).with_hms_nano(24, 0, 0, 0).is_err());
+    /// assert!(date!("1970-01-01").with_hms_nano(0, 0, 0, 0).is_ok());
+    /// assert!(date!("1970-01-01").with_hms_nano(24, 0, 0, 0).is_err());
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -767,7 +767,7 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-02).format("%Y-%m-%d"), "2019-01-02");
+    /// assert_eq!(date!("2019-01-02").format("%Y-%m-%d"), "2019-01-02");
     /// ```
     pub fn format(self, format: impl AsRef<str>) -> String {
         DeferredFormat::new(format.as_ref())
@@ -782,15 +782,15 @@ impl Date {
     /// # use time_macros::date;
     /// assert_eq!(
     ///     Date::parse("2019-01-02", "%F"),
-    ///     Ok(date!(2019-01-02))
+    ///     Ok(date!("2019-01-02"))
     /// );
     /// assert_eq!(
     ///     Date::parse("2019-002", "%Y-%j"),
-    ///     Ok(date!(2019-002))
+    ///     Ok(date!("2019-002"))
     /// );
     /// assert_eq!(
     ///     Date::parse("2019-W01-3", "%G-W%V-%u"),
-    ///     Ok(date!(2019-W01-3))
+    ///     Ok(date!("2019-W01-3"))
     /// );
     /// ```
     pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {

@@ -65,7 +65,7 @@ impl Time {
     /// ```rust
     /// # use time::Time;
     /// # use time_macros::time;
-    /// assert_eq!(Time::midnight(), time!(0:00));
+    /// assert_eq!(Time::midnight(), time!("0:00"));
     /// ```
     pub const fn midnight() -> Self {
         Time {
@@ -223,8 +223,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time_macros::time;
-    /// assert_eq!(time!(0:00:00).hour(), 0);
-    /// assert_eq!(time!(23:59:59).hour(), 23);
+    /// assert_eq!(time!("0:00:00").hour(), 0);
+    /// assert_eq!(time!("23:59:59").hour(), 23);
     /// ```
     pub const fn hour(self) -> u8 {
         self.hour
@@ -236,8 +236,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time_macros::time;
-    /// assert_eq!(time!(0:00:00).minute(), 0);
-    /// assert_eq!(time!(23:59:59).minute(), 59);
+    /// assert_eq!(time!("0:00:00").minute(), 0);
+    /// assert_eq!(time!("23:59:59").minute(), 59);
     /// ```
     pub const fn minute(self) -> u8 {
         self.minute
@@ -249,8 +249,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time_macros::time;
-    /// assert_eq!(time!(0:00:00).second(), 0);
-    /// assert_eq!(time!(23:59:59).second(), 59);
+    /// assert_eq!(time!("0:00:00").second(), 0);
+    /// assert_eq!(time!("23:59:59").second(), 59);
     /// ```
     pub const fn second(self) -> u8 {
         self.second
@@ -262,8 +262,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time_macros::time;
-    /// assert_eq!(time!(0:00).millisecond(), 0);
-    /// assert_eq!(time!(23:59:59.999).millisecond(), 999);
+    /// assert_eq!(time!("0:00").millisecond(), 0);
+    /// assert_eq!(time!("23:59:59.999").millisecond(), 999);
     /// ```
     pub const fn millisecond(self) -> u16 {
         (self.nanosecond() / 1_000_000) as u16
@@ -275,8 +275,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time_macros::time;
-    /// assert_eq!(time!(0:00).microsecond(), 0);
-    /// assert_eq!(time!(23:59:59.999_999).microsecond(), 999_999);
+    /// assert_eq!(time!("0:00").microsecond(), 0);
+    /// assert_eq!(time!("23:59:59.999_999").microsecond(), 999_999);
     /// ```
     pub const fn microsecond(self) -> u32 {
         self.nanosecond() / 1_000
@@ -288,8 +288,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time_macros::time;
-    /// assert_eq!(time!(0:00).nanosecond(), 0);
-    /// assert_eq!(time!(23:59:59.999_999_999).nanosecond(), 999_999_999);
+    /// assert_eq!(time!("0:00").nanosecond(), 0);
+    /// assert_eq!(time!("23:59:59.999_999_999").nanosecond(), 999_999_999);
     /// ```
     pub const fn nanosecond(self) -> u32 {
         self.nanosecond
@@ -320,7 +320,7 @@ impl Time {
     ///
     /// ```rust
     /// # use time_macros::time;
-    /// assert_eq!(time!(0:00).format("%r"), "12:00:00 am");
+    /// assert_eq!(time!("0:00").format("%r"), "12:00:00 am");
     /// ```
     pub fn format(self, format: impl AsRef<str>) -> String {
         DeferredFormat::new(format.as_ref())
@@ -335,23 +335,23 @@ impl Time {
     /// # use time_macros::time;
     /// assert_eq!(
     ///     Time::parse("0:00:00", "%T"),
-    ///     Ok(time!(0:00))
+    ///     Ok(time!("0:00"))
     /// );
     /// assert_eq!(
     ///     Time::parse("23:59:59", "%T"),
-    ///     Ok(time!(23:59:59))
+    ///     Ok(time!("23:59:59"))
     /// );
     /// assert_eq!(
     ///     Time::parse("12:00:00 am", "%r"),
-    ///     Ok(time!(0:00))
+    ///     Ok(time!("0:00"))
     /// );
     /// assert_eq!(
     ///     Time::parse("12:00:00 pm", "%r"),
-    ///     Ok(time!(12:00))
+    ///     Ok(time!("12:00"))
     /// );
     /// assert_eq!(
     ///     Time::parse("11:59:59 pm", "%r"),
-    ///     Ok(time!(23:59:59))
+    ///     Ok(time!("23:59:59"))
     /// );
     /// ```
     pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
@@ -442,8 +442,8 @@ impl Add<Duration> for Time {
     /// ```rust
     /// # use time::prelude::*;
     /// # use time_macros::time;
-    /// assert_eq!(time!(12:00) + 2.hours(), time!(14:00));
-    /// assert_eq!(time!(0:00:01) + (-2).seconds(), time!(23:59:59));
+    /// assert_eq!(time!("12:00") + 2.hours(), time!("14:00"));
+    /// assert_eq!(time!("0:00:01") + (-2).seconds(), time!("23:59:59"));
     /// ```
     fn add(self, duration: Duration) -> Self::Output {
         Self::from_nanoseconds_since_midnight(
@@ -464,8 +464,8 @@ impl Add<StdDuration> for Time {
     /// ```rust
     /// # use time::prelude::*;
     /// # use time_macros::time;
-    /// assert_eq!(time!(12:00) + 2.std_hours(), time!(14:00));
-    /// assert_eq!(time!(23:59:59) + 2.std_seconds(), time!(0:00:01));
+    /// assert_eq!(time!("12:00") + 2.std_hours(), time!("14:00"));
+    /// assert_eq!(time!("23:59:59") + 2.std_seconds(), time!("0:00:01"));
     /// ```
     fn add(self, duration: StdDuration) -> Self::Output {
         self + Duration::try_from(duration)
@@ -480,13 +480,13 @@ impl AddAssign<Duration> for Time {
     /// ```rust
     /// # use time::prelude::*;
     /// # use time_macros::time;
-    /// let mut time = time!(12:00);
+    /// let mut time = time!("12:00");
     /// time += 2.hours();
-    /// assert_eq!(time, time!(14:00));
+    /// assert_eq!(time, time!("14:00"));
     ///
-    /// let mut time = time!(0:00:01);
+    /// let mut time = time!("0:00:01");
     /// time += (-2).seconds();
-    /// assert_eq!(time, time!(23:59:59));
+    /// assert_eq!(time, time!("23:59:59"));
     /// ```
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
@@ -500,13 +500,13 @@ impl AddAssign<StdDuration> for Time {
     /// ```rust
     /// # use time::prelude::*;
     /// # use time_macros::time;
-    /// let mut time = time!(12:00);
+    /// let mut time = time!("12:00");
     /// time += 2.std_hours();
-    /// assert_eq!(time, time!(14:00));
+    /// assert_eq!(time, time!("14:00"));
     ///
-    /// let mut time = time!(23:59:59);
+    /// let mut time = time!("23:59:59");
     /// time += 2.std_seconds();
-    /// assert_eq!(time, time!(0:00:01));
+    /// assert_eq!(time, time!("0:00:01"));
     /// ```
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
@@ -523,12 +523,12 @@ impl Sub<Duration> for Time {
     /// # use time::prelude::*;
     /// # use time_macros::time;
     /// assert_eq!(
-    ///     time!(14:00) - 2.hours(),
-    ///     time!(12:00)
+    ///     time!("14:00") - 2.hours(),
+    ///     time!("12:00")
     /// );
     /// assert_eq!(
-    ///     time!(23:59:59) - (-2).seconds(),
-    ///     time!(0:00:01)
+    ///     time!("23:59:59") - (-2).seconds(),
+    ///     time!("0:00:01")
     /// );
     /// ```
     fn sub(self, duration: Duration) -> Self::Output {
@@ -545,8 +545,8 @@ impl Sub<StdDuration> for Time {
     /// ```rust
     /// # use time::prelude::*;
     /// # use time_macros::time;
-    /// assert_eq!(time!(14:00) - 2.std_hours(), time!(12:00));
-    /// assert_eq!(time!(0:00:01) - 2.std_seconds(), time!(23:59:59));
+    /// assert_eq!(time!("14:00") - 2.std_hours(), time!("12:00"));
+    /// assert_eq!(time!("0:00:01") - 2.std_seconds(), time!("23:59:59"));
     /// ```
     fn sub(self, duration: StdDuration) -> Self::Output {
         self - Duration::try_from(duration)
@@ -561,13 +561,13 @@ impl SubAssign<Duration> for Time {
     /// ```rust
     /// # use time::prelude::*;
     /// # use time_macros::time;
-    /// let mut time = time!(14:00);
+    /// let mut time = time!("14:00");
     /// time -= 2.hours();
-    /// assert_eq!(time, time!(12:00));
+    /// assert_eq!(time, time!("12:00"));
     ///
-    /// let mut time = time!(23:59:59);
+    /// let mut time = time!("23:59:59");
     /// time -= (-2).seconds();
-    /// assert_eq!(time, time!(0:00:01));
+    /// assert_eq!(time, time!("0:00:01"));
     /// ```
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
@@ -581,13 +581,13 @@ impl SubAssign<StdDuration> for Time {
     /// ```rust
     /// # use time::prelude::*;
     /// # use time_macros::time;
-    /// let mut time = time!(14:00);
+    /// let mut time = time!("14:00");
     /// time -= 2.std_hours();
-    /// assert_eq!(time, time!(12:00));
+    /// assert_eq!(time, time!("12:00"));
     ///
-    /// let mut time = time!(0:00:01);
+    /// let mut time = time!("0:00:01");
     /// time -= 2.std_seconds();
-    /// assert_eq!(time, time!(23:59:59));
+    /// assert_eq!(time, time!("23:59:59"));
     /// ```
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
@@ -603,10 +603,10 @@ impl Sub<Time> for Time {
     /// ```rust
     /// # use time::prelude::*;
     /// # use time_macros::time;
-    /// assert_eq!(time!(0:00) - time!(0:00), 0.seconds());
-    /// assert_eq!(time!(1:00) - time!(0:00), 1.hours());
-    /// assert_eq!(time!(0:00) - time!(1:00), (-1).hours());
-    /// assert_eq!(time!(0:00) - time!(23:00), (-23).hours());
+    /// assert_eq!(time!("0:00") - time!("0:00"), 0.seconds());
+    /// assert_eq!(time!("1:00") - time!("0:00"), 1.hours());
+    /// assert_eq!(time!("0:00") - time!("1:00"), (-1).hours());
+    /// assert_eq!(time!("0:00") - time!("23:00"), (-23).hours());
     /// ```
     fn sub(self, rhs: Self) -> Self::Output {
         Duration::nanoseconds(

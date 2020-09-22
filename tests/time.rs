@@ -15,7 +15,7 @@ fn from_hms_nanos_unchecked() {
 
 #[test]
 fn midnight() {
-    assert_eq!(Time::midnight(), time!(0:00));
+    assert_eq!(Time::midnight(), time!("0:00"));
 }
 
 #[test]
@@ -142,7 +142,7 @@ fn nanosecond() -> Result<()> {
 #[test]
 fn format() {
     // Check all specifiers for time objects.
-    let time = time!(0:01:02.345_678_901);
+    let time = time!("0:01:02.345_678_901");
     assert_eq!(time.format("%H"), "00");
     assert_eq!(time.format("%I"), "12");
     assert_eq!(time.format("%M"), "01");
@@ -155,7 +155,7 @@ fn format() {
     assert_eq!(time.format("%T"), "0:01:02");
 
     // Ensure all variants of AM/PM are covered.
-    let time = time!(12:01:02);
+    let time = time!("12:01:02");
     assert_eq!(time.format("%p"), "pm");
     assert_eq!(time.format("%P"), "PM");
 }
@@ -168,7 +168,7 @@ fn invalid_format_specifier() {
 
 #[test]
 fn parse() {
-    let time = time!(0:01:02.345_678_901);
+    let time = time!("0:01:02.345_678_901");
     assert_eq!(Time::parse("0:01:02.345678901 00", "%T.%N %H"), Ok(time));
     assert_eq!(Time::parse("0:01:02.345678901 12", "%T.%N %I"), Ok(time));
     assert_eq!(Time::parse("0:01:02.345678901 01", "%T.%N %M"), Ok(time));
@@ -191,17 +191,17 @@ fn parse() {
 
     // Times that aren't 12 AM or 12 PM.
     // For additional coverage, use various modifiers on the hour.
-    assert_eq!(Time::parse("1:00 am", "%-I:%M %p"), Ok(time!(1:00)));
-    assert_eq!(Time::parse("1:00 pm", "%-I:%M %p"), Ok(time!(13:00)));
-    assert_eq!(Time::parse(" 1:00 am", "%_I:%M %p"), Ok(time!(1:00)));
-    assert_eq!(Time::parse(" 1:00 pm", "%_I:%M %p"), Ok(time!(13:00)));
-    assert_eq!(Time::parse("01:00 am", "%0I:%M %p"), Ok(time!(1:00)));
-    assert_eq!(Time::parse("01:00 pm", "%0I:%M %p"), Ok(time!(13:00)));
+    assert_eq!(Time::parse("1:00 am", "%-I:%M %p"), Ok(time!("1:00")));
+    assert_eq!(Time::parse("1:00 pm", "%-I:%M %p"), Ok(time!("13:00")));
+    assert_eq!(Time::parse(" 1:00 am", "%_I:%M %p"), Ok(time!("1:00")));
+    assert_eq!(Time::parse(" 1:00 pm", "%_I:%M %p"), Ok(time!("13:00")));
+    assert_eq!(Time::parse("01:00 am", "%0I:%M %p"), Ok(time!("1:00")));
+    assert_eq!(Time::parse("01:00 pm", "%0I:%M %p"), Ok(time!("13:00")));
 
     // Additional coverage
     assert_eq!(
         Time::parse("1:02:03.456789012 pm", "%-I:%M:%S.%N %p"),
-        Ok(time!(13:02:03.456_789_012))
+        Ok(time!("13:02:03.456_789_012"))
     );
     assert_eq!(
         Time::parse("", ""),
@@ -212,151 +212,157 @@ fn parse() {
 #[test]
 fn parse_missing_seconds() {
     // Missing seconds defaults to zero.
-    assert_eq!(Time::parse("0:00", "%-H:%M"), Ok(time!(0:00)));
-    assert_eq!(Time::parse("23:59", "%H:%M"), Ok(time!(23:59)));
-    assert_eq!(Time::parse("12:00 am", "%I:%M %p"), Ok(time!(0:00)));
-    assert_eq!(Time::parse("12:00 pm", "%I:%M %p"), Ok(time!(12:00)));
+    assert_eq!(Time::parse("0:00", "%-H:%M"), Ok(time!("0:00")));
+    assert_eq!(Time::parse("23:59", "%H:%M"), Ok(time!("23:59")));
+    assert_eq!(Time::parse("12:00 am", "%I:%M %p"), Ok(time!("0:00")));
+    assert_eq!(Time::parse("12:00 pm", "%I:%M %p"), Ok(time!("12:00")));
 }
 
 #[test]
 fn parse_missing_minutes() {
     // Missing minutes defaults to zero.
-    assert_eq!(Time::parse("0", "%-H"), Ok(time!(0:00)));
-    assert_eq!(Time::parse("23", "%H"), Ok(time!(23:00)));
-    assert_eq!(Time::parse("12am", "%I%p"), Ok(time!(0:00)));
-    assert_eq!(Time::parse("12pm", "%I%p"), Ok(time!(12:00)));
+    assert_eq!(Time::parse("0", "%-H"), Ok(time!("0:00")));
+    assert_eq!(Time::parse("23", "%H"), Ok(time!("23:00")));
+    assert_eq!(Time::parse("12am", "%I%p"), Ok(time!("0:00")));
+    assert_eq!(Time::parse("12pm", "%I%p"), Ok(time!("12:00")));
 }
 
 #[test]
 fn display() {
-    assert_eq!(time!(0:00).to_string(), "0:00");
-    assert_eq!(time!(23:59).to_string(), "23:59");
-    assert_eq!(time!(23:59:59).to_string(), "23:59:59");
-    assert_eq!(time!(0:00:01).to_string(), "0:00:01");
-    assert_eq!(time!(0:00:00.001).to_string(), "0:00:00.001");
-    assert_eq!(time!(0:00:00.000_001).to_string(), "0:00:00.000001");
-    assert_eq!(time!(0:00:00.000_000_001).to_string(), "0:00:00.000000001");
+    assert_eq!(time!("0:00").to_string(), "0:00");
+    assert_eq!(time!("23:59").to_string(), "23:59");
+    assert_eq!(time!("23:59:59").to_string(), "23:59:59");
+    assert_eq!(time!("0:00:01").to_string(), "0:00:01");
+    assert_eq!(time!("0:00:00.001").to_string(), "0:00:00.001");
+    assert_eq!(time!("0:00:00.000_001").to_string(), "0:00:00.000001");
+    assert_eq!(
+        time!("0:00:00.000_000_001").to_string(),
+        "0:00:00.000000001"
+    );
 }
 
 #[test]
 fn add_duration() {
-    assert_eq!(time!(0:00) + 1.seconds(), time!(0:00:01));
-    assert_eq!(time!(0:00) + 1.minutes(), time!(0:01));
-    assert_eq!(time!(0:00) + 1.hours(), time!(1:00));
-    assert_eq!(time!(0:00) + 1.days(), time!(0:00));
+    assert_eq!(time!("0:00") + 1.seconds(), time!("0:00:01"));
+    assert_eq!(time!("0:00") + 1.minutes(), time!("0:01"));
+    assert_eq!(time!("0:00") + 1.hours(), time!("1:00"));
+    assert_eq!(time!("0:00") + 1.days(), time!("0:00"));
 }
 
 #[test]
 fn add_assign_duration() {
-    let mut time = time!(0:00);
+    let mut time = time!("0:00");
 
     time += 1.seconds();
-    assert_eq!(time, time!(0:00:01));
+    assert_eq!(time, time!("0:00:01"));
 
     time += 1.minutes();
-    assert_eq!(time, time!(0:01:01));
+    assert_eq!(time, time!("0:01:01"));
 
     time += 1.hours();
-    assert_eq!(time, time!(1:01:01));
+    assert_eq!(time, time!("1:01:01"));
 
     time += 1.days();
-    assert_eq!(time, time!(1:01:01));
+    assert_eq!(time, time!("1:01:01"));
 }
 
 #[test]
 fn sub_duration() {
-    assert_eq!(time!(12:00) - 1.hours(), time!(11:00));
+    assert_eq!(time!("12:00") - 1.hours(), time!("11:00"));
 
     // Underflow
-    assert_eq!(time!(0:00) - 1.seconds(), time!(23:59:59));
-    assert_eq!(time!(0:00) - 1.minutes(), time!(23:59));
-    assert_eq!(time!(0:00) - 1.hours(), time!(23:00));
-    assert_eq!(time!(0:00) - 1.days(), time!(0:00));
+    assert_eq!(time!("0:00") - 1.seconds(), time!("23:59:59"));
+    assert_eq!(time!("0:00") - 1.minutes(), time!("23:59"));
+    assert_eq!(time!("0:00") - 1.hours(), time!("23:00"));
+    assert_eq!(time!("0:00") - 1.days(), time!("0:00"));
 }
 
 #[test]
 fn sub_assign_duration() {
-    let mut time = time!(0:00);
+    let mut time = time!("0:00");
 
     time -= 1.seconds();
-    assert_eq!(time, time!(23:59:59));
+    assert_eq!(time, time!("23:59:59"));
 
     time -= 1.minutes();
-    assert_eq!(time, time!(23:58:59));
+    assert_eq!(time, time!("23:58:59"));
 
     time -= 1.hours();
-    assert_eq!(time, time!(22:58:59));
+    assert_eq!(time, time!("22:58:59"));
 
     time -= 1.days();
-    assert_eq!(time, time!(22:58:59));
+    assert_eq!(time, time!("22:58:59"));
 }
 
 #[test]
 fn add_std_duration() {
-    assert_eq!(time!(0:00) + 1.std_milliseconds(), time!(0:00:00.001));
-    assert_eq!(time!(0:00) + 1.std_seconds(), time!(0:00:01));
-    assert_eq!(time!(0:00) + 1.std_minutes(), time!(0:01));
-    assert_eq!(time!(0:00) + 1.std_hours(), time!(1:00));
-    assert_eq!(time!(0:00) + 1.std_days(), time!(0:00));
+    assert_eq!(time!("0:00") + 1.std_milliseconds(), time!("0:00:00.001"));
+    assert_eq!(time!("0:00") + 1.std_seconds(), time!("0:00:01"));
+    assert_eq!(time!("0:00") + 1.std_minutes(), time!("0:01"));
+    assert_eq!(time!("0:00") + 1.std_hours(), time!("1:00"));
+    assert_eq!(time!("0:00") + 1.std_days(), time!("0:00"));
 }
 
 #[test]
 fn add_assign_std_duration() {
-    let mut time = time!(0:00);
+    let mut time = time!("0:00");
 
     time += 1.std_seconds();
-    assert_eq!(time, time!(0:00:01));
+    assert_eq!(time, time!("0:00:01"));
 
     time += 1.std_minutes();
-    assert_eq!(time, time!(0:01:01));
+    assert_eq!(time, time!("0:01:01"));
 
     time += 1.std_hours();
-    assert_eq!(time, time!(1:01:01));
+    assert_eq!(time, time!("1:01:01"));
 
     time += 1.std_days();
-    assert_eq!(time, time!(1:01:01));
+    assert_eq!(time, time!("1:01:01"));
 }
 
 #[test]
 fn sub_std_duration() {
-    assert_eq!(time!(12:00) - 1.std_hours(), time!(11:00));
+    assert_eq!(time!("12:00") - 1.std_hours(), time!("11:00"));
 
     // Underflow
-    assert_eq!(time!(0:00) - 1.std_milliseconds(), time!(23:59:59.999));
-    assert_eq!(time!(0:00) - 1.std_seconds(), time!(23:59:59));
-    assert_eq!(time!(0:00) - 1.std_minutes(), time!(23:59));
-    assert_eq!(time!(0:00) - 1.std_hours(), time!(23:00));
-    assert_eq!(time!(0:00) - 1.std_days(), time!(0:00));
+    assert_eq!(time!("0:00") - 1.std_milliseconds(), time!("23:59:59.999"));
+    assert_eq!(time!("0:00") - 1.std_seconds(), time!("23:59:59"));
+    assert_eq!(time!("0:00") - 1.std_minutes(), time!("23:59"));
+    assert_eq!(time!("0:00") - 1.std_hours(), time!("23:00"));
+    assert_eq!(time!("0:00") - 1.std_days(), time!("0:00"));
 }
 
 #[test]
 fn sub_assign_std_duration() {
-    let mut time = time!(0:00);
+    let mut time = time!("0:00");
 
     time -= 1.std_seconds();
-    assert_eq!(time, time!(23:59:59));
+    assert_eq!(time, time!("23:59:59"));
 
     time -= 1.std_minutes();
-    assert_eq!(time, time!(23:58:59));
+    assert_eq!(time, time!("23:58:59"));
 
     time -= 1.std_hours();
-    assert_eq!(time, time!(22:58:59));
+    assert_eq!(time, time!("22:58:59"));
 
     time -= 1.std_days();
-    assert_eq!(time, time!(22:58:59));
+    assert_eq!(time, time!("22:58:59"));
 }
 
 #[test]
 fn sub_time() {
-    assert_eq!(time!(0:00) - time!(0:00), 0.seconds());
-    assert_eq!(time!(1:00) - time!(0:00), 1.hours());
-    assert_eq!(time!(1:00) - time!(0:00:01), 59.minutes() + 59.seconds());
+    assert_eq!(time!("0:00") - time!("0:00"), 0.seconds());
+    assert_eq!(time!("1:00") - time!("0:00"), 1.hours());
+    assert_eq!(
+        time!("1:00") - time!("0:00:01"),
+        59.minutes() + 59.seconds()
+    );
 }
 
 #[test]
 fn ordering() {
-    assert!(time!(0:00) < time!(0:00:00.000_000_001));
-    assert!(time!(0:00) < time!(0:00:01));
-    assert!(time!(12:00) > time!(11:00));
-    assert_eq!(time!(0:00), time!(0:00));
+    assert!(time!("0:00") < time!("0:00:00.000_000_001"));
+    assert!(time!("0:00") < time!("0:00:01"));
+    assert!(time!("12:00") > time!("11:00"));
+    assert_eq!(time!("0:00"), time!("0:00"));
 }

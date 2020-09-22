@@ -33,7 +33,7 @@ impl UtcOffset {
     /// ```rust
     /// # use time::UtcOffset;
     /// # use time_macros::offset;
-    /// assert_eq!(UtcOffset::UTC, offset!(UTC));
+    /// assert_eq!(UtcOffset::UTC, offset!("UTC"));
     /// ```
     pub const UTC: Self = Self::seconds_unchecked(0);
 

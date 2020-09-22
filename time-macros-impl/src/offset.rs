@@ -1,80 +1,83 @@
 use crate::{
-    ext::LitIntExtension,
-    kw::{utc, UTC},
+    helpers::{consume_char, consume_digits, consume_str},
+    Error, ToTokens,
 };
-use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
-use syn::{
-    parse::{Parse, ParseStream},
-    LitInt, Result, Token,
-};
-
-#[repr(i8)]
-enum Direction {
-    East = 1,
-    West = -1,
-}
+use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
+use std::{iter::Peekable, str::Chars};
 
 pub(crate) struct Offset {
-    pub(crate) offset: i32,
+    seconds: i32,
 }
 
-impl Parse for Offset {
-    fn parse(input: ParseStream<'_>) -> Result<Self> {
-        if input.peek(utc) {
-            input.parse::<utc>()?;
-            return Ok(Self { offset: 0 });
-        }
-        if input.peek(UTC) {
-            input.parse::<UTC>()?;
-            return Ok(Self { offset: 0 });
+impl Offset {
+    pub(crate) fn parse(chars: &mut Peekable<Chars<'_>>) -> Result<Self, Error> {
+        if consume_str("utc", chars).is_ok() || consume_str("UTC", chars).is_ok() {
+            return Ok(Self { seconds: 0 });
         }
 
-        let direction = if input.peek(Token![+]) {
-            input.parse::<Token![+]>()?;
-            Direction::East
-        } else if input.peek(Token![-]) {
-            input.parse::<Token![-]>()?;
-            Direction::West
-        } else {
-            return error!("offset must have an explicit sign");
+        let sign = match chars.next() {
+            Some('+') => 1,
+            Some('-') => -1,
+            Some(char) => return Err(Error::UnexpectedCharacter(char)),
+            None => return Err(Error::MissingComponent { name: "sign" }),
         };
 
-        let hour = input.parse::<LitInt>()?;
+        let hour = consume_digits::<i32>("hour", chars)?;
+        let mut minute = 0;
+        let mut second = 0;
 
-        // Minutes are optional, defaulting to zero.
-        let minute = if input.peek(Token![:]) {
-            input.parse::<Token![:]>()?;
-            input.parse::<LitInt>()?
+        if consume_char(':', chars).is_ok() {
+            minute = consume_digits::<i32>("minute", chars)?;
+
+            if consume_char(':', chars).is_ok() {
+                second = consume_digits::<i32>("second", chars)?;
+            }
+        }
+
+        if hour >= 24 {
+            Err(Error::InvalidComponent {
+                name: "hour",
+                value: hour.to_string(),
+            })
+        } else if minute >= 60 {
+            Err(Error::InvalidComponent {
+                name: "minute",
+                value: minute.to_string(),
+            })
+        } else if second >= 60 {
+            Err(Error::InvalidComponent {
+                name: "second",
+                value: second.to_string(),
+            })
         } else {
-            LitInt::create(0)
-        };
-
-        // Seconds are optional, defaulting to zero.
-        let second = if input.peek(Token![:]) {
-            input.parse::<Token![:]>()?;
-            input.parse::<LitInt>()?
-        } else {
-            LitInt::create(0)
-        };
-
-        // Ensure none of the components are out of range.
-        hour.ensure_in_range(0..24)?;
-        minute.ensure_in_range(0..60)?;
-        second.ensure_in_range(0..60)?;
-
-        let offset = direction as i32
-            * (hour.value::<i32>()? * 3_600
-                + minute.value::<i32>()? * 60
-                + second.value::<i32>()?);
-
-        Ok(Self { offset })
+            Ok(Self {
+                seconds: sign * (hour * 3_600 + minute * 60 + second),
+            })
+        }
     }
 }
 
 impl ToTokens for Offset {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self { offset } = self;
-        tokens.extend(quote! { ::time::UtcOffset::seconds_unchecked(#offset) });
+        tokens.extend(
+            [
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new("time", Span::call_site())),
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new("UtcOffset", Span::call_site())),
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new("seconds_unchecked", Span::call_site())),
+                TokenTree::Group(Group::new(
+                    Delimiter::Parenthesis,
+                    TokenStream::from(TokenTree::Literal(Literal::i32_unsuffixed(self.seconds))),
+                )),
+            ]
+            .iter()
+            .cloned()
+            .collect::<TokenStream>(),
+        )
     }
 }

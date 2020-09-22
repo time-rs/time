@@ -4,21 +4,24 @@
 //!
 //! When deserializing, the offset is assumed to be UTC.
 //!
-//! ```rust,ignore
-//! use serde_json::json;
-//!
-//! #[derive(Serialize, Deserialize)]
+//! ```rust
+//! # use time::OffsetDateTime;
+//! # use time_macros::datetime;
+//! # use serde_json::json;
+//! # use serde::{Serialize, Deserialize};
+//! #[derive(Debug, PartialEq, Serialize, Deserialize)]
 //! struct S {
 //!     #[serde(with = "time::serde::timestamp")]
 //!     datetime: OffsetDateTime,
 //! }
 //!
 //! let s = S {
-//!     datetime: date!(2019-01-01).midnight().assume_utc(),
+//!     datetime: datetime!("2019-01-01 0:00").assume_utc(),
 //! };
 //! let v = json!({ "datetime": 1_546_300_800 });
 //! assert_eq!(v, serde_json::to_value(&s)?);
 //! assert_eq!(s, serde_json::from_value(v)?);
+//! # Ok::<_, serde_json::Error>(())
 //! ```
 //!
 //! [Unix timestamp]: https://en.wikipedia.org/wiki/Unix_time
@@ -52,17 +55,19 @@ pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDat
 ///
 /// When deserializing, the offset is assumed to be UTC.
 ///
-/// ```rust,ignore
-/// use serde_json::json;
-///
-/// #[derive(Serialize, Deserialize)]
+/// ```rust
+/// # use time::OffsetDateTime;
+/// # use time_macros::datetime;
+/// # use serde_json::json;
+/// # use serde::{Serialize, Deserialize};
+/// #[derive(Debug, PartialEq, Serialize, Deserialize)]
 /// struct S {
 ///     #[serde(with = "time::serde::timestamp::option")]
 ///     datetime: Option<OffsetDateTime>,
 /// }
 ///
 /// let s = S {
-///     datetime: Some(date!(2019-01-01).midnight().assume_utc()),
+///     datetime: Some(datetime!("2019-01-01 0:00").assume_utc()),
 /// };
 /// let v = json!({ "datetime": 1_546_300_800 });
 /// assert_eq!(v, serde_json::to_value(&s)?);
@@ -72,6 +77,7 @@ pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDat
 /// let v = json!({ "datetime": null });
 /// assert_eq!(v, serde_json::to_value(&s)?);
 /// assert_eq!(s, serde_json::from_value(v)?);
+/// # Ok::<_, serde_json::Error>(())
 /// ```
 ///
 /// [Unix timestamp]: https://en.wikipedia.org/wiki/Unix_time

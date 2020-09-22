@@ -8,13 +8,13 @@ use time::{
     ext::{NumericalDuration, NumericalStdDuration},
     Format, OffsetDateTime, Weekday,
 };
-use time_macros::{date, offset, time};
+use time_macros::{date, datetime, offset, time};
 
 #[test]
 #[cfg(feature = "std")]
 fn now_utc() {
     assert!(OffsetDateTime::now_utc().year() >= 2019);
-    assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
+    assert_eq!(OffsetDateTime::now_utc().offset(), offset!("UTC"));
 }
 
 #[test]
@@ -36,17 +36,16 @@ fn try_now_local() {
 #[test]
 fn to_offset() {
     assert_eq!(
-        date!(2000 - 01 - 01)
-            .midnight()
+        datetime!("2000-01-01 0:00")
             .assume_utc()
-            .to_offset(offset!(-1))
+            .to_offset(offset!("-1"))
             .year(),
         1999,
     );
 
-    let sydney = date!(2000 - 01 - 01).midnight().assume_offset(offset!(+11));
-    let new_york = sydney.to_offset(offset!(-5));
-    let los_angeles = sydney.to_offset(offset!(-8));
+    let sydney = datetime!("2000-01-01 0:00").assume_offset(offset!("+11"));
+    let new_york = sydney.to_offset(offset!("-5"));
+    let los_angeles = sydney.to_offset(offset!("-8"));
     assert_eq!(sydney.hour(), 0);
     assert_eq!(sydney.day(), 1);
     assert_eq!(new_york.hour(), 8);
@@ -59,7 +58,7 @@ fn to_offset() {
 fn unix_epoch() {
     assert_eq!(
         OffsetDateTime::unix_epoch(),
-        date!(1970 - 01 - 01).midnight().assume_utc(),
+        datetime!("1970-01-01 0:00").assume_utc(),
     );
 }
 
@@ -71,7 +70,7 @@ fn from_unix_timestamp() {
     );
     assert_eq!(
         OffsetDateTime::from_unix_timestamp(1_546_300_800),
-        date!(2019 - 01 - 01).midnight().assume_utc(),
+        datetime!("2019-01-01 0:00").assume_utc(),
     );
 }
 
@@ -83,30 +82,28 @@ fn from_unix_timestamp_nanos() {
     );
     assert_eq!(
         OffsetDateTime::from_unix_timestamp_nanos(1_546_300_800_000_000_000),
-        date!(2019 - 01 - 01).midnight().assume_utc(),
+        datetime!("2019-01-01 0:00").assume_utc(),
     );
 }
 
 #[test]
 fn offset() {
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc().offset(),
-        offset!(UTC),
+        datetime!("2019-01-01 0:00").assume_utc().offset(),
+        offset!("UTC"),
     );
     assert_eq!(
-        date!(2019 - 01 - 01)
-            .midnight()
-            .assume_offset(offset!(+1))
+        datetime!("2019-01-01 0:00")
+            .assume_offset(offset!("+1"))
             .offset(),
-        offset!(+1),
+        offset!("+1"),
     );
     assert_eq!(
-        date!(2019 - 01 - 01)
-            .midnight()
+        datetime!("2019-01-01 0:00")
             .assume_utc()
-            .to_offset(offset!(+1))
+            .to_offset(offset!("+1"))
             .offset(),
-        offset!(+1),
+        offset!("+1"),
     );
 }
 
@@ -115,14 +112,13 @@ fn unix_timestamp() {
     assert_eq!(OffsetDateTime::unix_epoch().unix_timestamp(), 0);
     assert_eq!(
         OffsetDateTime::unix_epoch()
-            .to_offset(offset!(+1))
+            .to_offset(offset!("+1"))
             .unix_timestamp(),
         0,
     );
     assert_eq!(
-        date!(1970 - 01 - 01)
-            .midnight()
-            .assume_offset(offset!(-1))
+        datetime!("1970-01-01 0:00")
+            .assume_offset(offset!("-1"))
             .unix_timestamp(),
         3_600,
     );
@@ -131,17 +127,15 @@ fn unix_timestamp() {
 #[test]
 fn unix_timestamp_nanos() {
     assert_eq!(
-        date!(1970 - 01 - 01)
-            .midnight()
+        datetime!("1970-01-01 0:00")
             .assume_utc()
             .unix_timestamp_nanos(),
         0,
     );
     assert_eq!(
-        date!(1970 - 01 - 01)
-            .with_time(time!(1:00))
+        datetime!("1970-01-01 1:00")
             .assume_utc()
-            .to_offset(offset!(-1))
+            .to_offset(offset!("-1"))
             .unix_timestamp_nanos(),
         3_600_000_000_000,
     );
@@ -150,57 +144,53 @@ fn unix_timestamp_nanos() {
 #[test]
 fn date() {
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc().date(),
-        date!(2019 - 01 - 01),
+        datetime!("2019-01-01 0:00").assume_utc().date(),
+        date!("2019-01-01"),
     );
     assert_eq!(
-        date!(2019 - 01 - 01)
-            .midnight()
+        datetime!("2019-01-01 0:00")
             .assume_utc()
-            .to_offset(offset!(-1))
+            .to_offset(offset!("-1"))
             .date(),
-        date!(2018 - 12 - 31),
+        date!("2018-12-31"),
     );
 }
 
 #[test]
 fn time() {
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc().time(),
-        time!(0:00),
+        datetime!("2019-01-01 0:00").assume_utc().time(),
+        time!("0:00"),
     );
     assert_eq!(
-        date!(2019 - 01 - 01)
-            .midnight()
+        datetime!("2019-01-01 0:00")
             .assume_utc()
-            .to_offset(offset!(-1))
+            .to_offset(offset!("-1"))
             .time(),
-        time!(23:00),
+        time!("23:00"),
     );
 }
 
 #[test]
 fn year() {
-    assert_eq!(date!(2019 - 01 - 01).midnight().assume_utc().year(), 2019);
+    assert_eq!(datetime!("2019-01-01 0:00").assume_utc().year(), 2019);
     assert_eq!(
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:00))
+        datetime!("2019-12-31 23:00")
             .assume_utc()
-            .to_offset(offset!(+1))
+            .to_offset(offset!("+1"))
             .year(),
         2020,
     );
-    assert_eq!(date!(2020 - 01 - 01).midnight().assume_utc().year(), 2020);
+    assert_eq!(datetime!("2020-01-01 0:00").assume_utc().year(), 2020);
 }
 
 #[test]
 fn month() {
-    assert_eq!(date!(2019 - 01 - 01).midnight().assume_utc().month(), 1);
+    assert_eq!(datetime!("2019-01-01 0:00").assume_utc().month(), 1);
     assert_eq!(
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:00))
+        datetime!("2019-12-31 23:00")
             .assume_utc()
-            .to_offset(offset!(+1))
+            .to_offset(offset!("+1"))
             .month(),
         1,
     );
@@ -208,12 +198,11 @@ fn month() {
 
 #[test]
 fn day() {
-    assert_eq!(date!(2019 - 01 - 01).midnight().assume_utc().day(), 1);
+    assert_eq!(datetime!("2019-01-01 0:00").assume_utc().day(), 1);
     assert_eq!(
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:00))
+        datetime!("2019-12-31 23:00")
             .assume_utc()
-            .to_offset(offset!(+1))
+            .to_offset(offset!("+1"))
             .day(),
         1,
     );
@@ -222,14 +211,13 @@ fn day() {
 #[test]
 fn month_day() {
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc().month_day(),
+        datetime!("2019-01-01 0:00").assume_utc().month_day(),
         (1, 1),
     );
     assert_eq!(
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:00))
+        datetime!("2019-12-31 23:00")
             .assume_utc()
-            .to_offset(offset!(+1))
+            .to_offset(offset!("+1"))
             .month_day(),
         (1, 1),
     );
@@ -237,12 +225,11 @@ fn month_day() {
 
 #[test]
 fn ordinal() {
-    assert_eq!(date!(2019 - 01 - 01).midnight().assume_utc().ordinal(), 1);
+    assert_eq!(datetime!("2019-01-01 0:00").assume_utc().ordinal(), 1);
     assert_eq!(
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:00))
+        datetime!("2019-12-31 23:00")
             .assume_utc()
-            .to_offset(offset!(+1))
+            .to_offset(offset!("+1"))
             .ordinal(),
         1,
     );
@@ -251,75 +238,50 @@ fn ordinal() {
 #[test]
 fn iso_year_week() {
     assert_eq!(
-        date!(2019 - 01 - 01)
-            .midnight()
-            .assume_utc()
-            .iso_year_week(),
+        datetime!("2019-01-01 0:00").assume_utc().iso_year_week(),
         (2019, 1)
     );
     assert_eq!(
-        date!(2019 - 10 - 04)
-            .midnight()
-            .assume_utc()
-            .iso_year_week(),
+        datetime!("2019-10-04 0:00").assume_utc().iso_year_week(),
         (2019, 40)
     );
     assert_eq!(
-        date!(2020 - 01 - 01)
-            .midnight()
-            .assume_utc()
-            .iso_year_week(),
+        datetime!("2020-01-01 0:00").assume_utc().iso_year_week(),
         (2020, 1)
     );
     assert_eq!(
-        date!(2020 - 12 - 31)
-            .midnight()
-            .assume_utc()
-            .iso_year_week(),
+        datetime!("2020-12-31 0:00").assume_utc().iso_year_week(),
         (2020, 53)
     );
     assert_eq!(
-        date!(2021 - 01 - 01)
-            .midnight()
-            .assume_utc()
-            .iso_year_week(),
+        datetime!("2021-01-01 0:00").assume_utc().iso_year_week(),
         (2020, 53)
     );
 }
 
 #[test]
 fn week() {
-    assert_eq!(date!(2019 - 01 - 01).midnight().assume_utc().week(), 1);
-    assert_eq!(date!(2020 - 01 - 01).midnight().assume_utc().week(), 1);
-    assert_eq!(date!(2020 - 12 - 31).midnight().assume_utc().week(), 53);
-    assert_eq!(date!(2021 - 01 - 01).midnight().assume_utc().week(), 53);
+    assert_eq!(datetime!("2019-01-01 0:00").assume_utc().week(), 1);
+    assert_eq!(datetime!("2020-01-01 0:00").assume_utc().week(), 1);
+    assert_eq!(datetime!("2020-12-31 0:00").assume_utc().week(), 53);
+    assert_eq!(datetime!("2021-01-01 0:00").assume_utc().week(), 53);
 }
 
 #[test]
 fn weekday() {
     use Weekday::*;
-    assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc().weekday(),
-        Tuesday
-    );
-    assert_eq!(
-        date!(2019 - 02 - 01).midnight().assume_utc().weekday(),
-        Friday
-    );
-    assert_eq!(
-        date!(2019 - 03 - 01).midnight().assume_utc().weekday(),
-        Friday
-    );
+    assert_eq!(datetime!("2019-01-01 0:00").assume_utc().weekday(), Tuesday);
+    assert_eq!(datetime!("2019-02-01 0:00").assume_utc().weekday(), Friday);
+    assert_eq!(datetime!("2019-03-01 0:00").assume_utc().weekday(), Friday);
 }
 
 #[test]
 fn hour() {
-    assert_eq!(date!(2019 - 01 - 01).midnight().assume_utc().hour(), 0);
+    assert_eq!(datetime!("2019-01-01 0:00").assume_utc().hour(), 0);
     assert_eq!(
-        date!(2019 - 01 - 01)
-            .with_time(time!(23:59:59))
+        datetime!("2019-01-01 23:59:59")
             .assume_utc()
-            .to_offset(offset!(-2))
+            .to_offset(offset!("-2"))
             .hour(),
         21,
     );
@@ -327,12 +289,11 @@ fn hour() {
 
 #[test]
 fn minute() {
-    assert_eq!(date!(2019 - 01 - 01).midnight().assume_utc().minute(), 0);
+    assert_eq!(datetime!("2019-01-01 0:00").assume_utc().minute(), 0);
     assert_eq!(
-        date!(2019 - 01 - 01)
-            .with_time(time!(23:59:59))
+        datetime!("2019-01-01 23:59:59")
             .assume_utc()
-            .to_offset(offset!(+0:30))
+            .to_offset(offset!("+0:30"))
             .minute(),
         29,
     );
@@ -340,12 +301,11 @@ fn minute() {
 
 #[test]
 fn second() {
-    assert_eq!(date!(2019 - 01 - 01).midnight().assume_utc().second(), 0);
+    assert_eq!(datetime!("2019-01-01 0:00").assume_utc().second(), 0);
     assert_eq!(
-        date!(2019 - 01 - 01)
-            .with_time(time!(23:59:59))
+        datetime!("2019-01-01 23:59:59")
             .assume_utc()
-            .to_offset(offset!(+0:00:30))
+            .to_offset(offset!("+0:00:30"))
             .second(),
         29,
     );
@@ -353,13 +313,9 @@ fn second() {
 
 #[test]
 fn millisecond() {
+    assert_eq!(datetime!("2019-01-01 0:00").assume_utc().millisecond(), 0);
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc().millisecond(),
-        0
-    );
-    assert_eq!(
-        date!(2019 - 01 - 01)
-            .with_time(time!(23:59:59.999))
+        datetime!("2019-01-01 23:59:59.999")
             .assume_utc()
             .millisecond(),
         999,
@@ -368,13 +324,9 @@ fn millisecond() {
 
 #[test]
 fn microsecond() {
+    assert_eq!(datetime!("2019-01-01 0:00").assume_utc().microsecond(), 0);
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc().microsecond(),
-        0
-    );
-    assert_eq!(
-        date!(2019 - 01 - 01)
-            .with_time(time!(23:59:59.999_999))
+        datetime!("2019-01-01 23:59:59.999_999")
             .assume_utc()
             .microsecond(),
         999_999,
@@ -383,13 +335,9 @@ fn microsecond() {
 
 #[test]
 fn nanosecond() {
+    assert_eq!(datetime!("2019-01-01 0:00").assume_utc().nanosecond(), 0);
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc().nanosecond(),
-        0
-    );
-    assert_eq!(
-        date!(2019 - 01 - 01)
-            .with_time(time!(23:59:59.999_999_999))
+        datetime!("2019-01-01 23:59:59.999_999_999")
             .assume_utc()
             .nanosecond(),
         999_999_999,
@@ -399,16 +347,12 @@ fn nanosecond() {
 #[test]
 fn format() {
     assert_eq!(
-        date!(2019 - 01 - 02)
-            .midnight()
-            .assume_utc()
-            .format("%F %r %z"),
+        datetime!("2019-01-02 0:00").assume_utc().format("%F %r %z"),
         "2019-01-02 12:00:00 am +0000",
     );
     assert_eq!(
-        date!(2019 - 01 - 02)
-            .with_time(time!(3:04:05.678_901_234))
-            .assume_offset(offset!(+6:07))
+        datetime!("2019-01-02 3:04:05.678_901_234")
+            .assume_offset(offset!("+6:07"))
             .format(Format::Rfc3339),
         "2019-01-02T03:04:05+06:07"
     );
@@ -418,39 +362,31 @@ fn format() {
 fn parse() {
     assert_eq!(
         OffsetDateTime::parse("2019-01-02 00:00:00 +0000", "%F %T %z"),
-        Ok(date!(2019 - 01 - 02).midnight().assume_utc()),
+        Ok(datetime!("2019-01-02 0:00").assume_utc()),
     );
     assert_eq!(
         OffsetDateTime::parse("2019-002 23:59:59 +0000", "%Y-%j %T %z"),
-        Ok(date!(2019 - 002).with_time(time!(23:59:59)).assume_utc())
+        Ok(datetime!("2019-002 23:59:59").assume_utc())
     );
     assert_eq!(
         OffsetDateTime::parse("2019-W01-3 12:00:00 pm +0000", "%G-W%V-%u %r %z"),
-        Ok(date!(2019 - 002).with_time(time!(12:00)).assume_utc())
+        Ok(datetime!("2019-002 12:00").assume_utc())
     );
     assert_eq!(
         OffsetDateTime::parse("2019-01-02 03:04:05 +0600", "%F %T %z"),
-        Ok(date!(2019 - 01 - 02)
-            .with_time(time!(3:04:05))
-            .assume_offset(offset!(+6)))
+        Ok(datetime!("2019-01-02 3:04:05").assume_offset(offset!("+6")))
     );
     assert_eq!(
         OffsetDateTime::parse("2020-09-08T08:44:31+02:30", Format::Rfc3339),
-        Ok(date!(2020 - 09 - 08)
-            .with_time(time!(08:44:31))
-            .assume_offset(offset!(+02:30)))
+        Ok(datetime!("2020-09-08 08:44:31").assume_offset(offset!("+02:30")))
     );
     assert_eq!(
         OffsetDateTime::parse("2019-01-02T03:04:05.678901234+05:06", Format::Rfc3339),
-        Ok(date!(2019 - 01 - 02)
-            .with_time(time!(3:04:05.678_901_234))
-            .assume_offset(offset!(+5:06)))
+        Ok(datetime!("2019-01-02 3:04:05.678_901_234").assume_offset(offset!("+5:06")))
     );
     assert_eq!(
         OffsetDateTime::parse("2019-01-02T03:04:05.678901234Z", Format::Rfc3339),
-        Ok(date!(2019 - 01 - 02)
-            .with_time(time!(3:04:05.678_901_234))
-            .assume_utc())
+        Ok(datetime!("2019-01-02 3:04:05.678_901_234").assume_utc())
     );
     assert_eq!(
         OffsetDateTime::parse("2019-01-02T03:04:05/", Format::Rfc3339),
@@ -472,37 +408,32 @@ fn parse() {
 #[test]
 fn partial_eq() {
     assert_eq!(
-        date!(2000 - 01 - 01)
-            .midnight()
+        datetime!("2000-01-01 0:00")
             .assume_utc()
-            .to_offset(offset!(-1)),
-        date!(2000 - 01 - 01).midnight().assume_utc(),
+            .to_offset(offset!("-1")),
+        datetime!("2000-01-01 0:00").assume_utc(),
     );
 }
 
 #[test]
 fn partial_ord() {
-    let t1 = date!(2019 - 01 - 01).midnight().assume_utc();
-    let t2 = date!(2019 - 01 - 01)
-        .midnight()
+    let t1 = datetime!("2019-01-01 0:00").assume_utc();
+    let t2 = datetime!("2019-01-01 0:00")
         .assume_utc()
-        .to_offset(offset!(-1));
+        .to_offset(offset!("-1"));
     assert_eq!(t1.partial_cmp(&t2), Some(Ordering::Equal));
 }
 
 #[test]
 fn ord() {
-    let t1 = date!(2019 - 01 - 01).midnight().assume_utc();
-    let t2 = date!(2019 - 01 - 01)
-        .midnight()
+    let t1 = datetime!("2019-01-01 0:00").assume_utc();
+    let t2 = datetime!("2019-01-01 0:00")
         .assume_utc()
-        .to_offset(offset!(-1));
+        .to_offset(offset!("-1"));
     assert_eq!(t1, t2);
 
-    let t1 = date!(2019 - 01 - 01).midnight().assume_utc();
-    let t2 = date!(2019 - 01 - 01)
-        .with_time(time!(0:00:00.000_000_001))
-        .assume_utc();
+    let t1 = datetime!("2019-01-01 0:00").assume_utc();
+    let t2 = datetime!("2019-01-01 0:00:00.000_000_001").assume_utc();
     assert!(t2 > t1);
 }
 
@@ -517,18 +448,14 @@ fn hash() {
     assert_eq!(
         {
             let mut hasher = DefaultHasher::new();
-            date!(2019 - 01 - 01)
-                .midnight()
-                .assume_utc()
-                .hash(&mut hasher);
+            datetime!("2019-01-01 0:00").assume_utc().hash(&mut hasher);
             hasher.finish()
         },
         {
             let mut hasher = DefaultHasher::new();
-            date!(2019 - 01 - 01)
-                .midnight()
+            datetime!("2019-01-01 0:00")
                 .assume_utc()
-                .to_offset(offset!(-1))
+                .to_offset(offset!("-1"))
                 .hash(&mut hasher);
             hasher.finish()
         }
@@ -539,15 +466,12 @@ fn hash() {
     assert_ne!(
         {
             let mut hasher = DefaultHasher::new();
-            date!(2019 - 01 - 01).midnight().hash(&mut hasher);
+            datetime!("2019-01-01 0:00").hash(&mut hasher);
             hasher.finish()
         },
         {
             let mut hasher = DefaultHasher::new();
-            date!(2019 - 01 - 01)
-                .midnight()
-                .assume_utc()
-                .hash(&mut hasher);
+            datetime!("2019-01-01 0:00").assume_utc().hash(&mut hasher);
             hasher.finish()
         }
     );
@@ -556,344 +480,253 @@ fn hash() {
 #[test]
 fn add_duration() {
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc() + 5.days(),
-        date!(2019 - 01 - 06).midnight().assume_utc(),
+        datetime!("2019-01-01 0:00").assume_utc() + 5.days(),
+        datetime!("2019-01-06 0:00").assume_utc(),
     );
     assert_eq!(
-        date!(2019 - 12 - 31).midnight().assume_utc() + 1.days(),
-        date!(2020 - 01 - 01).midnight().assume_utc(),
+        datetime!("2019-12-31 0:00").assume_utc() + 1.days(),
+        datetime!("2020-01-01 0:00").assume_utc(),
     );
     assert_eq!(
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc()
-            + 2.seconds(),
-        date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc(),
+        datetime!("2019-12-31 23:59:59").assume_utc() + 2.seconds(),
+        datetime!("2020-01-01 0:00:01").assume_utc(),
     );
     assert_eq!(
-        date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc() + (-2).seconds(),
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc(),
+        datetime!("2020-01-01 0:00:01").assume_utc() + (-2).seconds(),
+        datetime!("2019-12-31 23:59:59").assume_utc(),
     );
     assert_eq!(
-        date!(1999 - 12 - 31).with_time(time!(23:00)).assume_utc() + 1.hours(),
-        date!(2000 - 01 - 01).midnight().assume_utc(),
+        datetime!("1999-12-31 23:00").assume_utc() + 1.hours(),
+        datetime!("2000-01-01 0:00").assume_utc(),
     );
 }
 
 #[test]
 fn add_std_duration() {
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc() + 5.std_days(),
-        date!(2019 - 01 - 06).midnight().assume_utc(),
+        datetime!("2019-01-01 0:00").assume_utc() + 5.std_days(),
+        datetime!("2019-01-06 0:00").assume_utc(),
     );
     assert_eq!(
-        date!(2019 - 12 - 31).midnight().assume_utc() + 1.std_days(),
-        date!(2020 - 01 - 01).midnight().assume_utc(),
+        datetime!("2019-12-31 0:00").assume_utc() + 1.std_days(),
+        datetime!("2020-01-01 0:00").assume_utc(),
     );
     assert_eq!(
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc()
-            + 2.std_seconds(),
-        date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc(),
+        datetime!("2019-12-31 23:59:59").assume_utc() + 2.std_seconds(),
+        datetime!("2020-01-01 0:00:01").assume_utc(),
     );
 }
 
 #[test]
 fn add_assign_duration() {
-    let mut ny19 = date!(2019 - 01 - 01).midnight().assume_utc();
+    let mut ny19 = datetime!("2019-01-01 0:00").assume_utc();
     ny19 += 5.days();
-    assert_eq!(ny19, date!(2019 - 01 - 06).midnight().assume_utc());
+    assert_eq!(ny19, datetime!("2019-01-06 0:00").assume_utc());
 
-    let mut nye20 = date!(2019 - 12 - 31).midnight().assume_utc();
+    let mut nye20 = datetime!("2019-12-31 0:00").assume_utc();
     nye20 += 1.days();
-    assert_eq!(nye20, date!(2020 - 01 - 01).midnight().assume_utc());
+    assert_eq!(nye20, datetime!("2020-01-01 0:00").assume_utc());
 
-    let mut nye20t = date!(2019 - 12 - 31)
-        .with_time(time!(23:59:59))
-        .assume_utc();
+    let mut nye20t = datetime!("2019-12-31 23:59:59").assume_utc();
     nye20t += 2.seconds();
-    assert_eq!(
-        nye20t,
-        date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc()
-    );
+    assert_eq!(nye20t, datetime!("2020-01-01 0:00:01").assume_utc());
 
-    let mut ny20t = date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc();
+    let mut ny20t = datetime!("2020-01-01 0:00:01").assume_utc();
     ny20t += (-2).seconds();
-    assert_eq!(
-        ny20t,
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc()
-    );
+    assert_eq!(ny20t, datetime!("2019-12-31 23:59:59").assume_utc());
 }
 
 #[test]
 fn add_assign_std_duration() {
-    let mut ny19 = date!(2019 - 01 - 01).midnight().assume_utc();
+    let mut ny19 = datetime!("2019-01-01 0:00").assume_utc();
     ny19 += 5.std_days();
-    assert_eq!(ny19, date!(2019 - 01 - 06).midnight().assume_utc());
+    assert_eq!(ny19, datetime!("2019-01-06 0:00").assume_utc());
 
-    let mut nye20 = date!(2019 - 12 - 31).midnight().assume_utc();
+    let mut nye20 = datetime!("2019-12-31 0:00").assume_utc();
     nye20 += 1.std_days();
-    assert_eq!(nye20, date!(2020 - 01 - 01).midnight().assume_utc());
+    assert_eq!(nye20, datetime!("2020-01-01 0:00").assume_utc());
 
-    let mut nye20t = date!(2019 - 12 - 31)
-        .with_time(time!(23:59:59))
-        .assume_utc();
+    let mut nye20t = datetime!("2019-12-31 23:59:59").assume_utc();
     nye20t += 2.std_seconds();
-    assert_eq!(
-        nye20t,
-        date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc()
-    );
+    assert_eq!(nye20t, datetime!("2020-01-01 0:00:01").assume_utc());
 }
 
 #[test]
 fn sub_duration() {
     assert_eq!(
-        date!(2019 - 01 - 06).midnight().assume_utc() - 5.days(),
-        date!(2019 - 01 - 01).midnight().assume_utc(),
+        datetime!("2019-01-06 0:00").assume_utc() - 5.days(),
+        datetime!("2019-01-01 0:00").assume_utc(),
     );
     assert_eq!(
-        date!(2020 - 01 - 01).midnight().assume_utc() - 1.days(),
-        date!(2019 - 12 - 31).midnight().assume_utc(),
+        datetime!("2020-01-01 0:00").assume_utc() - 1.days(),
+        datetime!("2019-12-31 0:00").assume_utc(),
     );
     assert_eq!(
-        date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc() - 2.seconds(),
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc(),
+        datetime!("2020-01-01 0:00:01").assume_utc() - 2.seconds(),
+        datetime!("2019-12-31 23:59:59").assume_utc(),
     );
     assert_eq!(
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc()
-            - (-2).seconds(),
-        date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc(),
+        datetime!("2019-12-31 23:59:59").assume_utc() - (-2).seconds(),
+        datetime!("2020-01-01 0:00:01").assume_utc(),
     );
     assert_eq!(
-        date!(1999 - 12 - 31).with_time(time!(23:00)).assume_utc() - (-1).hours(),
-        date!(2000 - 01 - 01).midnight().assume_utc(),
+        datetime!("1999-12-31 23:00").assume_utc() - (-1).hours(),
+        datetime!("2000-01-01 0:00").assume_utc(),
     );
 }
 
 #[test]
 fn sub_std_duration() {
     assert_eq!(
-        date!(2019 - 01 - 06).midnight().assume_utc() - 5.std_days(),
-        date!(2019 - 01 - 01).midnight().assume_utc(),
+        datetime!("2019-01-06 0:00").assume_utc() - 5.std_days(),
+        datetime!("2019-01-01 0:00").assume_utc(),
     );
     assert_eq!(
-        date!(2020 - 01 - 01).midnight().assume_utc() - 1.std_days(),
-        date!(2019 - 12 - 31).midnight().assume_utc(),
+        datetime!("2020-01-01 0:00").assume_utc() - 1.std_days(),
+        datetime!("2019-12-31 0:00").assume_utc(),
     );
     assert_eq!(
-        date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc() - 2.std_seconds(),
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc(),
+        datetime!("2020-01-01 0:00:01").assume_utc() - 2.std_seconds(),
+        datetime!("2019-12-31 23:59:59").assume_utc(),
     );
 }
 
 #[test]
 fn sub_assign_duration() {
-    let mut ny19 = date!(2019 - 01 - 06).midnight().assume_utc();
+    let mut ny19 = datetime!("2019-01-06 0:00").assume_utc();
     ny19 -= 5.days();
-    assert_eq!(ny19, date!(2019 - 01 - 01).midnight().assume_utc());
+    assert_eq!(ny19, datetime!("2019-01-01 0:00").assume_utc());
 
-    let mut ny20 = date!(2020 - 01 - 01).midnight().assume_utc();
+    let mut ny20 = datetime!("2020-01-01 0:00").assume_utc();
     ny20 -= 1.days();
-    assert_eq!(ny20, date!(2019 - 12 - 31).midnight().assume_utc());
+    assert_eq!(ny20, datetime!("2019-12-31 0:00").assume_utc());
 
-    let mut ny20t = date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc();
+    let mut ny20t = datetime!("2020-01-01 0:00:01").assume_utc();
     ny20t -= 2.seconds();
-    assert_eq!(
-        ny20t,
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc()
-    );
+    assert_eq!(ny20t, datetime!("2019-12-31 23:59:59").assume_utc());
 
-    let mut nye20t = date!(2019 - 12 - 31)
-        .with_time(time!(23:59:59))
-        .assume_utc();
+    let mut nye20t = datetime!("2019-12-31 23:59:59").assume_utc();
     nye20t -= (-2).seconds();
-    assert_eq!(
-        nye20t,
-        date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc()
-    );
+    assert_eq!(nye20t, datetime!("2020-01-01 0:00:01").assume_utc());
 }
 
 #[test]
 fn sub_assign_std_duration() {
-    let mut ny19 = date!(2019 - 01 - 06).midnight().assume_utc();
+    let mut ny19 = datetime!("2019-01-06 0:00").assume_utc();
     ny19 -= 5.std_days();
-    assert_eq!(ny19, date!(2019 - 01 - 01).midnight().assume_utc());
+    assert_eq!(ny19, datetime!("2019-01-01 0:00").assume_utc());
 
-    let mut ny20 = date!(2020 - 01 - 01).midnight().assume_utc();
+    let mut ny20 = datetime!("2020-01-01 0:00").assume_utc();
     ny20 -= 1.std_days();
-    assert_eq!(ny20, date!(2019 - 12 - 31).midnight().assume_utc());
+    assert_eq!(ny20, datetime!("2019-12-31 0:00").assume_utc());
 
-    let mut ny20t = date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc();
+    let mut ny20t = datetime!("2020-01-01 0:00:01").assume_utc();
     ny20t -= 2.std_seconds();
-    assert_eq!(
-        ny20t,
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc()
-    );
+    assert_eq!(ny20t, datetime!("2019-12-31 23:59:59").assume_utc());
 }
 
 #[test]
 #[cfg(feature = "std")]
 fn std_add_duration() {
     assert_eq!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc()) + 0.seconds(),
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc()),
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc()) + 0.seconds(),
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc()),
     );
     assert_eq!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc()) + 5.days(),
-        SystemTime::from(date!(2019 - 01 - 06).midnight().assume_utc()),
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc()) + 5.days(),
+        SystemTime::from(datetime!("2019-01-06 0:00").assume_utc()),
     );
     assert_eq!(
-        SystemTime::from(date!(2019 - 12 - 31).midnight().assume_utc()) + 1.days(),
-        SystemTime::from(date!(2020 - 01 - 01).midnight().assume_utc()),
+        SystemTime::from(datetime!("2019-12-31 0:00").assume_utc()) + 1.days(),
+        SystemTime::from(datetime!("2020-01-01 0:00").assume_utc()),
     );
     assert_eq!(
-        SystemTime::from(
-            date!(2019 - 12 - 31)
-                .with_time(time!(23:59:59))
-                .assume_utc()
-        ) + 2.seconds(),
-        SystemTime::from(date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc()),
+        SystemTime::from(datetime!("2019-12-31 23:59:59").assume_utc()) + 2.seconds(),
+        SystemTime::from(datetime!("2020-01-01 0:00:01").assume_utc()),
     );
     assert_eq!(
-        SystemTime::from(date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc())
-            + (-2).seconds(),
-        SystemTime::from(
-            date!(2019 - 12 - 31)
-                .with_time(time!(23:59:59))
-                .assume_utc()
-        ),
+        SystemTime::from(datetime!("2020-01-01 0:00:01").assume_utc()) + (-2).seconds(),
+        SystemTime::from(datetime!("2019-12-31 23:59:59").assume_utc()),
     );
 }
 
 #[test]
 #[cfg(feature = "std")]
 fn std_add_assign_duration() {
-    let mut ny19 = SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc());
+    let mut ny19 = SystemTime::from(datetime!("2019-01-01 0:00").assume_utc());
     ny19 += 5.days();
-    assert_eq!(ny19, date!(2019 - 01 - 06).midnight().assume_utc());
+    assert_eq!(ny19, datetime!("2019-01-06 0:00").assume_utc());
 
-    let mut nye20 = SystemTime::from(date!(2019 - 12 - 31).midnight().assume_utc());
+    let mut nye20 = SystemTime::from(datetime!("2019-12-31 0:00").assume_utc());
     nye20 += 1.days();
-    assert_eq!(nye20, date!(2020 - 01 - 01).midnight().assume_utc());
+    assert_eq!(nye20, datetime!("2020-01-01 0:00").assume_utc());
 
-    let mut nye20t = SystemTime::from(
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc(),
-    );
+    let mut nye20t = SystemTime::from(datetime!("2019-12-31 23:59:59").assume_utc());
     nye20t += 2.seconds();
-    assert_eq!(
-        nye20t,
-        date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc()
-    );
+    assert_eq!(nye20t, datetime!("2020-01-01 0:00:01").assume_utc());
 
-    let mut ny20t = SystemTime::from(date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc());
+    let mut ny20t = SystemTime::from(datetime!("2020-01-01 0:00:01").assume_utc());
     ny20t += (-2).seconds();
-    assert_eq!(
-        ny20t,
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc()
-    );
+    assert_eq!(ny20t, datetime!("2019-12-31 23:59:59").assume_utc());
 }
 
 #[test]
 #[cfg(feature = "std")]
 fn std_sub_duration() {
     assert_eq!(
-        SystemTime::from(date!(2019 - 01 - 06).midnight().assume_utc()) - 5.days(),
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc()),
+        SystemTime::from(datetime!("2019-01-06 0:00").assume_utc()) - 5.days(),
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc()),
     );
     assert_eq!(
-        SystemTime::from(date!(2020 - 01 - 01).midnight().assume_utc()) - 1.days(),
-        SystemTime::from(date!(2019 - 12 - 31).midnight().assume_utc()),
+        SystemTime::from(datetime!("2020-01-01 0:00").assume_utc()) - 1.days(),
+        SystemTime::from(datetime!("2019-12-31 0:00").assume_utc()),
     );
     assert_eq!(
-        SystemTime::from(date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc())
-            - 2.seconds(),
-        SystemTime::from(
-            date!(2019 - 12 - 31)
-                .with_time(time!(23:59:59))
-                .assume_utc()
-        ),
+        SystemTime::from(datetime!("2020-01-01 0:00:01").assume_utc()) - 2.seconds(),
+        SystemTime::from(datetime!("2019-12-31 23:59:59").assume_utc()),
     );
     assert_eq!(
-        SystemTime::from(
-            date!(2019 - 12 - 31)
-                .with_time(time!(23:59:59))
-                .assume_utc()
-        ) - (-2).seconds(),
-        SystemTime::from(date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc()),
+        SystemTime::from(datetime!("2019-12-31 23:59:59").assume_utc()) - (-2).seconds(),
+        SystemTime::from(datetime!("2020-01-01 0:00:01").assume_utc()),
     );
 }
 
 #[test]
 #[cfg(feature = "std")]
 fn std_sub_assign_duration() {
-    let mut ny19 = SystemTime::from(date!(2019 - 01 - 06).midnight().assume_utc());
+    let mut ny19 = SystemTime::from(datetime!("2019-01-06 0:00").assume_utc());
     ny19 -= 5.days();
-    assert_eq!(ny19, date!(2019 - 01 - 01).midnight().assume_utc());
+    assert_eq!(ny19, datetime!("2019-01-01 0:00").assume_utc());
 
-    let mut ny20 = SystemTime::from(date!(2020 - 01 - 01).midnight().assume_utc());
+    let mut ny20 = SystemTime::from(datetime!("2020-01-01 0:00").assume_utc());
     ny20 -= 1.days();
-    assert_eq!(ny20, date!(2019 - 12 - 31).midnight().assume_utc());
+    assert_eq!(ny20, datetime!("2019-12-31 0:00").assume_utc());
 
-    let mut ny20t = SystemTime::from(date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc());
+    let mut ny20t = SystemTime::from(datetime!("2020-01-01 0:00:01").assume_utc());
     ny20t -= 2.seconds();
-    assert_eq!(
-        ny20t,
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc()
-    );
+    assert_eq!(ny20t, datetime!("2019-12-31 23:59:59").assume_utc());
 
-    let mut nye20t = SystemTime::from(
-        date!(2019 - 12 - 31)
-            .with_time(time!(23:59:59))
-            .assume_utc(),
-    );
+    let mut nye20t = SystemTime::from(datetime!("2019-12-31 23:59:59").assume_utc());
     nye20t -= (-2).seconds();
-    assert_eq!(
-        nye20t,
-        date!(2020 - 01 - 01).with_time(time!(0:00:01)).assume_utc()
-    );
+    assert_eq!(nye20t, datetime!("2020-01-01 0:00:01").assume_utc());
 }
 
 #[test]
 fn sub_self() {
     assert_eq!(
-        date!(2019 - 01 - 02).midnight().assume_utc()
-            - date!(2019 - 01 - 01).midnight().assume_utc(),
+        datetime!("2019-01-02 0:00").assume_utc() - datetime!("2019-01-01 0:00").assume_utc(),
         1.days(),
     );
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc()
-            - date!(2019 - 01 - 02).midnight().assume_utc(),
+        datetime!("2019-01-01 0:00").assume_utc() - datetime!("2019-01-02 0:00").assume_utc(),
         (-1).days(),
     );
     assert_eq!(
-        date!(2020 - 01 - 01).midnight().assume_utc()
-            - date!(2019 - 12 - 31).midnight().assume_utc(),
+        datetime!("2020-01-01 0:00").assume_utc() - datetime!("2019-12-31 0:00").assume_utc(),
         1.days(),
     );
     assert_eq!(
-        date!(2019 - 12 - 31).midnight().assume_utc()
-            - date!(2020 - 01 - 01).midnight().assume_utc(),
+        datetime!("2019-12-31 0:00").assume_utc() - datetime!("2020-01-01 0:00").assume_utc(),
         (-1).days(),
     );
 }
@@ -902,23 +735,23 @@ fn sub_self() {
 #[cfg(feature = "std")]
 fn std_sub() {
     assert_eq!(
-        SystemTime::from(date!(2019 - 01 - 02).midnight().assume_utc())
-            - date!(2019 - 01 - 01).midnight().assume_utc(),
+        SystemTime::from(datetime!("2019-01-02 0:00").assume_utc())
+            - datetime!("2019-01-01 0:00").assume_utc(),
         1.days()
     );
     assert_eq!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
-            - date!(2019 - 01 - 02).midnight().assume_utc(),
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
+            - datetime!("2019-01-02 0:00").assume_utc(),
         (-1).days()
     );
     assert_eq!(
-        SystemTime::from(date!(2020 - 01 - 01).midnight().assume_utc())
-            - date!(2019 - 12 - 31).midnight().assume_utc(),
+        SystemTime::from(datetime!("2020-01-01 0:00").assume_utc())
+            - datetime!("2019-12-31 0:00").assume_utc(),
         1.days()
     );
     assert_eq!(
-        SystemTime::from(date!(2019 - 12 - 31).midnight().assume_utc())
-            - date!(2020 - 01 - 01).midnight().assume_utc(),
+        SystemTime::from(datetime!("2019-12-31 0:00").assume_utc())
+            - datetime!("2020-01-01 0:00").assume_utc(),
         (-1).days()
     );
 }
@@ -927,23 +760,23 @@ fn std_sub() {
 #[cfg(feature = "std")]
 fn sub_std() {
     assert_eq!(
-        date!(2019 - 01 - 02).midnight().assume_utc()
-            - SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc()),
+        datetime!("2019-01-02 0:00").assume_utc()
+            - SystemTime::from(datetime!("2019-01-01 0:00").assume_utc()),
         1.days()
     );
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc()
-            - SystemTime::from(date!(2019 - 01 - 02).midnight().assume_utc()),
+        datetime!("2019-01-01 0:00").assume_utc()
+            - SystemTime::from(datetime!("2019-01-02 0:00").assume_utc()),
         (-1).days()
     );
     assert_eq!(
-        date!(2020 - 01 - 01).midnight().assume_utc()
-            - SystemTime::from(date!(2019 - 12 - 31).midnight().assume_utc()),
+        datetime!("2020-01-01 0:00").assume_utc()
+            - SystemTime::from(datetime!("2019-12-31 0:00").assume_utc()),
         1.days()
     );
     assert_eq!(
-        date!(2019 - 12 - 31).midnight().assume_utc()
-            - SystemTime::from(date!(2020 - 01 - 01).midnight().assume_utc()),
+        datetime!("2019-12-31 0:00").assume_utc()
+            - SystemTime::from(datetime!("2020-01-01 0:00").assume_utc()),
         (-1).days()
     );
 }
@@ -968,70 +801,64 @@ fn std_eq() {
 #[cfg(feature = "std")]
 fn ord_std() {
     assert_eq!(
-        date!(2019 - 01 - 01).midnight().assume_utc(),
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
+        datetime!("2019-01-01 0:00").assume_utc(),
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
     );
     assert!(
-        date!(2019 - 01 - 01).midnight().assume_utc()
-            < SystemTime::from(date!(2020 - 01 - 01).midnight().assume_utc())
+        datetime!("2019-01-01 0:00").assume_utc()
+            < SystemTime::from(datetime!("2020-01-01 0:00").assume_utc())
     );
     assert!(
-        date!(2019 - 01 - 01).midnight().assume_utc()
-            < SystemTime::from(date!(2019 - 02 - 01).midnight().assume_utc())
+        datetime!("2019-01-01 0:00").assume_utc()
+            < SystemTime::from(datetime!("2019-02-01 0:00").assume_utc())
     );
     assert!(
-        date!(2019 - 01 - 01).midnight().assume_utc()
-            < SystemTime::from(date!(2019 - 01 - 02).midnight().assume_utc())
+        datetime!("2019-01-01 0:00").assume_utc()
+            < SystemTime::from(datetime!("2019-01-02 0:00").assume_utc())
     );
     assert!(
-        date!(2019 - 01 - 01).midnight().assume_utc()
-            < SystemTime::from(date!(2019 - 01 - 01).with_time(time!(1:00:00)).assume_utc())
+        datetime!("2019-01-01 0:00").assume_utc()
+            < SystemTime::from(datetime!("2019-01-01 1:00:00").assume_utc())
     );
     assert!(
-        date!(2019 - 01 - 01).midnight().assume_utc()
-            < SystemTime::from(date!(2019 - 01 - 01).with_time(time!(0:01:00)).assume_utc())
+        datetime!("2019-01-01 0:00").assume_utc()
+            < SystemTime::from(datetime!("2019-01-01 0:01:00").assume_utc())
     );
     assert!(
-        date!(2019 - 01 - 01).midnight().assume_utc()
-            < SystemTime::from(date!(2019 - 01 - 01).with_time(time!(0:00:01)).assume_utc())
+        datetime!("2019-01-01 0:00").assume_utc()
+            < SystemTime::from(datetime!("2019-01-01 0:00:01").assume_utc())
     );
     assert!(
-        date!(2019 - 01 - 01).midnight().assume_utc()
-            < SystemTime::from(
-                date!(2019 - 01 - 01)
-                    .with_time(time!(0:00:00.001))
-                    .assume_utc()
-            )
+        datetime!("2019-01-01 0:00").assume_utc()
+            < SystemTime::from(datetime!("2019-01-01 0:00:00.001").assume_utc())
     );
     assert!(
-        date!(2020 - 01 - 01).midnight().assume_utc()
-            > SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
+        datetime!("2020-01-01 0:00").assume_utc()
+            > SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
     );
     assert!(
-        date!(2019 - 02 - 01).midnight().assume_utc()
-            > SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
+        datetime!("2019-02-01 0:00").assume_utc()
+            > SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
     );
     assert!(
-        date!(2019 - 01 - 02).midnight().assume_utc()
-            > SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
+        datetime!("2019-01-02 0:00").assume_utc()
+            > SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
     );
     assert!(
-        date!(2019 - 01 - 01).with_time(time!(1:00:00)).assume_utc()
-            > SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
+        datetime!("2019-01-01 1:00:00").assume_utc()
+            > SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
     );
     assert!(
-        date!(2019 - 01 - 01).with_time(time!(0:01:00)).assume_utc()
-            > SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
+        datetime!("2019-01-01 0:01:00").assume_utc()
+            > SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
     );
     assert!(
-        date!(2019 - 01 - 01).with_time(time!(0:00:01)).assume_utc()
-            > SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
+        datetime!("2019-01-01 0:00:01").assume_utc()
+            > SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
     );
     assert!(
-        date!(2019 - 01 - 01)
-            .with_time(time!(0:00:00.000_000_001))
-            .assume_utc()
-            > SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
+        datetime!("2019-01-01 0:00:00.000_000_001").assume_utc()
+            > SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
     );
 }
 
@@ -1039,69 +866,64 @@ fn ord_std() {
 #[cfg(feature = "std")]
 fn std_ord() {
     assert_eq!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc()),
-        date!(2019 - 01 - 01).midnight().assume_utc()
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc()),
+        datetime!("2019-01-01 0:00").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
-            < date!(2020 - 01 - 01).midnight().assume_utc()
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
+            < datetime!("2020-01-01 0:00").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
-            < date!(2019 - 02 - 01).midnight().assume_utc()
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
+            < datetime!("2019-02-01 0:00").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
-            < date!(2019 - 01 - 02).midnight().assume_utc()
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
+            < datetime!("2019-01-02 0:00").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
-            < date!(2019 - 01 - 01).with_time(time!(1:00:00)).assume_utc()
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
+            < datetime!("2019-01-01 1:00:00").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
-            < date!(2019 - 01 - 01).with_time(time!(0:01:00)).assume_utc()
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
+            < datetime!("2019-01-01 0:01:00").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
-            < date!(2019 - 01 - 01).with_time(time!(0:00:01)).assume_utc()
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
+            < datetime!("2019-01-01 0:00:01").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2019 - 01 - 01).midnight().assume_utc())
-            < date!(2019 - 01 - 01)
-                .with_time(time!(0:00:00.000_000_001))
-                .assume_utc()
+        SystemTime::from(datetime!("2019-01-01 0:00").assume_utc())
+            < datetime!("2019-01-01 0:00:00.000_000_001").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2020 - 01 - 01).midnight().assume_utc())
-            > date!(2019 - 01 - 01).midnight().assume_utc()
+        SystemTime::from(datetime!("2020-01-01 0:00").assume_utc())
+            > datetime!("2019-01-01 0:00").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2019 - 02 - 01).midnight().assume_utc())
-            > date!(2019 - 01 - 01).midnight().assume_utc()
+        SystemTime::from(datetime!("2019-02-01 0:00").assume_utc())
+            > datetime!("2019-01-01 0:00").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2019 - 01 - 02).midnight().assume_utc())
-            > date!(2019 - 01 - 01).midnight().assume_utc()
+        SystemTime::from(datetime!("2019-01-02 0:00").assume_utc())
+            > datetime!("2019-01-01 0:00").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2019 - 01 - 01).with_time(time!(1:00:00)).assume_utc())
-            > date!(2019 - 01 - 01).midnight().assume_utc()
+        SystemTime::from(datetime!("2019-01-01 1:00:00").assume_utc())
+            > datetime!("2019-01-01 0:00").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2019 - 01 - 01).with_time(time!(0:01:00)).assume_utc())
-            > date!(2019 - 01 - 01).midnight().assume_utc()
+        SystemTime::from(datetime!("2019-01-01 0:01:00").assume_utc())
+            > datetime!("2019-01-01 0:00").assume_utc()
     );
     assert!(
-        SystemTime::from(date!(2019 - 01 - 01).with_time(time!(0:00:01)).assume_utc())
-            > date!(2019 - 01 - 01).midnight().assume_utc()
+        SystemTime::from(datetime!("2019-01-01 0:00:01").assume_utc())
+            > datetime!("2019-01-01 0:00").assume_utc()
     );
     assert!(
-        SystemTime::from(
-            date!(2019 - 01 - 01)
-                .with_time(time!(0:00:00.001))
-                .assume_utc()
-        ) > date!(2019 - 01 - 01).midnight().assume_utc()
+        SystemTime::from(datetime!("2019-01-01 0:00:00.001").assume_utc())
+            > datetime!("2019-01-01 0:00").assume_utc()
     );
 }
 
@@ -1143,7 +965,7 @@ fn to_std() {
 #[cfg(feature = "std")]
 fn display() {
     assert_eq!(
-        date!(1970 - 01 - 01).midnight().assume_utc().to_string(),
+        datetime!("1970-01-01 0:00").assume_utc().to_string(),
         String::from("1970-01-01 0:00 +0")
     );
 }
