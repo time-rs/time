@@ -69,14 +69,8 @@ impl Instant {
     /// ```rust
     /// # use time::{Instant, prelude::*};
     /// let now = Instant::now();
-    /// assert_eq!(
-    ///     now.checked_add(5.seconds()),
-    ///     Some(now + 5.seconds())
-    /// );
-    /// assert_eq!(
-    ///     now.checked_add((-5).seconds()),
-    ///     Some(now + (-5).seconds())
-    /// );
+    /// assert_eq!(now.checked_add(5.seconds()), Some(now + 5.seconds()));
+    /// assert_eq!(now.checked_add((-5).seconds()), Some(now + (-5).seconds()));
     /// ```
     pub fn checked_add(self, duration: Duration) -> Option<Self> {
         if duration.is_zero() {
@@ -96,14 +90,8 @@ impl Instant {
     /// ```rust
     /// # use time::{Instant, prelude::*};
     /// let now = Instant::now();
-    /// assert_eq!(
-    ///     now.checked_sub(5.seconds()),
-    ///     Some(now - 5.seconds())
-    /// );
-    /// assert_eq!(
-    ///     now.checked_sub((-5).seconds()),
-    ///     Some(now - (-5).seconds())
-    /// );
+    /// assert_eq!(now.checked_sub(5.seconds()), Some(now - 5.seconds()));
+    /// assert_eq!(now.checked_sub((-5).seconds()), Some(now - (-5).seconds()));
     /// ```
     pub fn checked_sub(self, duration: Duration) -> Option<Self> {
         self.checked_add(-duration)
