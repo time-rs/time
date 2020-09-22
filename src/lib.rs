@@ -20,6 +20,11 @@
 //!   This crate currently requires a global allocator be present even if this
 //!   feature is disabled.
 //!
+//! - `macros`
+//!
+//!   Enables macros that provide compile-time verification of values and
+//!   intuitive syntax.
+//!
 //! - `serde`
 //!
 //!   Enables [serde](https://docs.rs/serde) support for all types.
@@ -258,15 +263,24 @@ pub use primitive_date_time::PrimitiveDateTime;
 /// ```rust
 /// # use time::{Date, Weekday::*};
 /// # use time_macros::date;
-/// # fn main() -> time::Result<()> {
-/// assert_eq!(date!(2020-W01-3), Date::from_iso_ywd(2020, 1, Wednesday)?);
-/// assert_eq!(date!(2020-001), Date::from_yo(2020, 1)?);
-/// assert_eq!(date!(2020-01-01), Date::from_ymd(2020, 1, 1)?);
-/// # Ok(())
-/// # }
+/// assert_eq!(date!("2020-W01-3"), Date::from_iso_ywd(2020, 1, Wednesday)?);
+/// assert_eq!(date!("2020-001"), Date::from_yo(2020, 1)?);
+/// assert_eq!(date!("2020-01-01"), Date::from_ymd(2020, 1, 1)?);
+/// # Ok::<_, time::Error>(())
 /// ```
 #[cfg(feature = "macros")]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
 pub use time_macros::date;
+/// Construct a [`PrimitiveDateTime`](crate::PrimitiveDateTime) with a
+/// statically known value.
+///
+/// The resulting expression can be used in `const` or `static` declarations.
+///
+/// The syntax accepted by this macro is the same as `date!` immediately
+/// followed by `time!`.
+#[cfg(feature = "macros")]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
+pub use time_macros::datetime;
 /// Construct a [`UtcOffset`](crate::UtcOffset) with a statically known value.
 ///
 /// The resulting expression can be used in `const` or `static` declarations.
@@ -277,20 +291,21 @@ pub use time_macros::date;
 /// ```rust
 /// # use time::UtcOffset;
 /// # use time_macros::offset;
-/// assert_eq!(offset!(UTC), UtcOffset::hours(0)?);
-/// assert_eq!(offset!(utc), UtcOffset::hours(0)?);
-/// assert_eq!(offset!(+0), UtcOffset::hours(0)?);
-/// assert_eq!(offset!(+1), UtcOffset::hours(1)?);
-/// assert_eq!(offset!(-1), UtcOffset::hours(-1)?);
-/// assert_eq!(offset!(+1:30), UtcOffset::minutes(90)?);
-/// assert_eq!(offset!(-1:30), UtcOffset::minutes(-90)?);
-/// assert_eq!(offset!(+1:30:59), UtcOffset::seconds(5459)?);
-/// assert_eq!(offset!(-1:30:59), UtcOffset::seconds(-5459)?);
-/// assert_eq!(offset!(+23:59:59), UtcOffset::seconds(86_399)?);
-/// assert_eq!(offset!(-23:59:59), UtcOffset::seconds(-86_399)?);
+/// assert_eq!(offset!("UTC"), UtcOffset::hours(0)?);
+/// assert_eq!(offset!("utc"), UtcOffset::hours(0)?);
+/// assert_eq!(offset!("+0"), UtcOffset::hours(0)?);
+/// assert_eq!(offset!("+1"), UtcOffset::hours(1)?);
+/// assert_eq!(offset!("-1"), UtcOffset::hours(-1)?);
+/// assert_eq!(offset!("+1:30"), UtcOffset::minutes(90)?);
+/// assert_eq!(offset!("-1:30"), UtcOffset::minutes(-90)?);
+/// assert_eq!(offset!("+1:30:59"), UtcOffset::seconds(5459)?);
+/// assert_eq!(offset!("-1:30:59"), UtcOffset::seconds(-5459)?);
+/// assert_eq!(offset!("+23:59:59"), UtcOffset::seconds(86_399)?);
+/// assert_eq!(offset!("-23:59:59"), UtcOffset::seconds(-86_399)?);
 /// # Ok::<_, time::Error>(())
 /// ```
 #[cfg(feature = "macros")]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
 pub use time_macros::offset;
 /// Construct a [`Time`](crate::Time) with a statically known value.
 ///
@@ -306,20 +321,19 @@ pub use time_macros::offset;
 /// ```rust
 /// # use time::Time;
 /// # use time_macros::time;
-/// # fn main() -> time::Result<()> {
-/// assert_eq!(time!(0:00), Time::from_hms(0, 0, 0)?);
-/// assert_eq!(time!(1:02:03), Time::from_hms(1, 2, 3)?);
-/// assert_eq!(time!(1:02:03.004_005_006), Time::from_hms_nano(1, 2, 3, 4_005_006)?);
-/// assert_eq!(time!(12:00 am), Time::from_hms(0, 0, 0)?);
-/// assert_eq!(time!(1:02:03 am), Time::from_hms(1, 2, 3)?);
-/// assert_eq!(time!(1:02:03.004_005_006 am), Time::from_hms_nano(1, 2, 3, 4_005_006)?);
-/// assert_eq!(time!(12:00 pm), Time::from_hms(12, 0, 0)?);
-/// assert_eq!(time!(1:02:03 pm), Time::from_hms(13, 2, 3)?);
-/// assert_eq!(time!(1:02:03.004_005_006 pm), Time::from_hms_nano(13, 2, 3, 4_005_006)?);
-/// # Ok(())
-/// # }
+/// assert_eq!(time!("0:00"), Time::from_hms(0, 0, 0)?);
+/// assert_eq!(time!("1:02:03"), Time::from_hms(1, 2, 3)?);
+/// assert_eq!(time!("1:02:03.004_005_006"), Time::from_hms_nano(1, 2, 3, 4_005_006)?);
+/// assert_eq!(time!("12:00 am"), Time::from_hms(0, 0, 0)?);
+/// assert_eq!(time!("1:02:03 am"), Time::from_hms(1, 2, 3)?);
+/// assert_eq!(time!("1:02:03.004_005_006 am"), Time::from_hms_nano(1, 2, 3, 4_005_006)?);
+/// assert_eq!(time!("12:00 pm"), Time::from_hms(12, 0, 0)?);
+/// assert_eq!(time!("1:02:03 pm"), Time::from_hms(13, 2, 3)?);
+/// assert_eq!(time!("1:02:03.004_005_006 pm"), Time::from_hms_nano(13, 2, 3, 4_005_006)?);
+/// # Ok::<_, time::Error>(())
 /// ```
 #[cfg(feature = "macros")]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
 pub use time_macros::time;
 pub use time_mod::Time;
 pub use utc_offset::UtcOffset;
@@ -350,7 +364,8 @@ pub mod prelude {
     // As a side note, doing `use crate::time` causes a stack overflow in
     // rustc <= 1.37.0.
     #[cfg(feature = "macros")]
-    pub use time_macros::{date, offset, time};
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
+    pub use time_macros::{date, datetime, offset, time};
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
@@ -382,17 +397,14 @@ mod private {
 /// type inference where possible.
 ///
 /// ```rust
-/// use time::Time;
-///
+/// # use time::Time;
 /// #[derive(Debug)]
 /// struct Foo(Time);
 ///
-/// fn main() -> time::Result<()> {
-///     // We don't need to tell the compiler what type we need!
-///     let foo = Foo(time::parse("14:55:02", "%T")?);
-///     println!("{:?}", foo);
-///     Ok(())
-/// }
+/// // We don't need to tell the compiler what type we need!
+/// let foo = Foo(time::parse("14:55:02", "%T")?);
+/// println!("{:?}", foo);
+/// # Ok::<_, time::Error>(())
 /// ```
 pub fn parse<T: private::Parsable>(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<T> {
     private::Parsable::parse(s, format)

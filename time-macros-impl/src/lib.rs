@@ -24,87 +24,72 @@
     clippy::unimplemented,
     clippy::unwrap_used,
     clippy::use_debug,
-    missing_copy_implementations,
-    missing_debug_implementations,
     single_use_lifetimes,
     unused_qualifications,
     variant_size_differences
 )]
 #![allow(
-    clippy::cast_lossless,
     clippy::cast_possible_truncation,
-    clippy::cast_possible_wrap,
-    clippy::cast_precision_loss,
-    clippy::cast_sign_loss,
-    clippy::enum_glob_use,
-    clippy::inline_always,
-    clippy::missing_const_for_fn,
-    clippy::missing_errors_doc,
-    clippy::module_name_repetitions,
-    clippy::must_use_candidate,
     clippy::redundant_pub_crate,
-    clippy::suspicious_arithmetic_impl,
-    clippy::use_self,
-    clippy::wildcard_imports,
-    clippy::zero_prefixed_literal,
-    unstable_name_collisions
+    clippy::missing_const_for_fn
 )]
 
-// This is required on rustc < 1.42.0.
 #[allow(unused_extern_crates)]
 extern crate proc_macro;
 
-macro_rules! error {
-    ($message:literal) => {
-        error!(::proc_macro2::Span::call_site(), $message)
-    };
-
-    ($span:expr, $message:literal) => {
-        Err(::syn::Error::new($span, $message))
-    };
-
-    ($span:expr, $($args:expr),+) => {
-        Err(::syn::Error::new($span, format!($($args),+)))
-    };
-}
-
-mod kw {
-    use syn::custom_keyword;
-    custom_keyword!(am);
-    custom_keyword!(pm);
-    custom_keyword!(AM);
-    custom_keyword!(PM);
-    custom_keyword!(utc);
-    custom_keyword!(UTC);
-}
-
 mod date;
-mod ext;
+mod datetime;
+mod error;
+mod helpers;
 mod offset;
+mod peeking_take_while;
 mod time;
-mod time_crate;
 
 use date::Date;
+use datetime::DateTime;
+use error::Error;
 use offset::Offset;
+use proc_macro::TokenStream;
 use proc_macro_hack::proc_macro_hack;
-use quote::ToTokens;
-use syn::parse_macro_input;
 use time::Time;
 
+trait ToTokens {
+    fn to_tokens(&self, tokens: &mut TokenStream);
+
+    fn to_token_stream(&self) -> TokenStream {
+        let mut tokens = TokenStream::new();
+        self.to_tokens(&mut tokens);
+        tokens
+    }
+}
+
 macro_rules! impl_macros {
-    ($($name:ident : $type:ty),* $(,)?) => {
-        $(
-            #[proc_macro_hack]
-            #[allow(clippy::unimplemented)]
-            pub fn $name(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-                parse_macro_input!(input as $type).to_token_stream().into()
+    ($($name:ident : $type:ty)*) => {$(
+        #[allow(clippy::unimplemented)] // macro-generated
+        #[proc_macro_hack]
+        pub fn $name(input: TokenStream) -> TokenStream {
+            let string = match helpers::get_string_literal(input) {
+                Ok(string) => string,
+                Err(err) => return err.to_compile_error(),
+            };
+            let chars = &mut string.chars().peekable();
+
+            let value = match <$type>::parse(chars) {
+                Ok(value) => value,
+                Err(err) => return err.to_compile_error(),
+            };
+
+            match chars.peek() {
+                Some(&char) => Error::UnexpectedCharacter(char).to_compile_error(),
+                None => value.to_token_stream(),
             }
-        )*
-    };
+        }
+    )*};
 }
 
 impl_macros! {
-    time: Time,
-    offset: Offset,
-    date: Date,
+    date: Date
+    datetime: DateTime
+    offset: Offset
+    time: Time
 }

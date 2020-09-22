@@ -11,10 +11,6 @@ license = "MIT OR Apache-2.0"
 description = "Procedural macros for the time crate."
 
 [dependencies]
-proc-macro2 = "1"
-# I'm not entirely sure why `derive` is necessary here, but it fails without it.
-syn = { version = "1.0.15", default-features = false, features = ["proc-macro", "parsing", "printing", "derive"] }
-quote = "1"
 proc-macro-hack = "0.5"
 standback = { version = "0.2", default-features = false }
 

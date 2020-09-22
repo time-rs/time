@@ -35,15 +35,16 @@ impl<'a> serde::Deserialize<'a> for PrimitiveDateTime {
             .map_err(serde::de::Error::custom)
     }
 }
+
 impl PrimitiveDateTime {
     /// Create a new `PrimitiveDateTime` from the provided `Date` and `Time`.
     ///
     /// ```rust
     /// # use time::PrimitiveDateTime;
-    /// # use time_macros::{date, time};
+    /// # use time_macros::{date, datetime, time};
     /// assert_eq!(
-    ///     PrimitiveDateTime::new(date!(2019-01-01), time!(0:00)),
-    ///     date!(2019-01-01).midnight(),
+    ///     PrimitiveDateTime::new(date!("2019-01-01"), time!("0:00")),
+    ///     datetime!("2019-01-01 0:00"),
     /// );
     /// ```
     pub const fn new(date: Date, time: Time) -> Self {
@@ -53,10 +54,10 @@ impl PrimitiveDateTime {
     /// Get the `Date` component of the `PrimitiveDateTime`.
     ///
     /// ```rust
-    /// # use time_macros::date;
+    /// # use time_macros::{date, datetime};
     /// assert_eq!(
-    ///     date!(2019-01-01).midnight().date(),
-    ///     date!(2019-01-01)
+    ///     datetime!("2019-01-01 0:00").date(),
+    ///     date!("2019-01-01")
     /// );
     /// ```
     pub const fn date(self) -> Date {
@@ -66,8 +67,8 @@ impl PrimitiveDateTime {
     /// Get the `Time` component of the `PrimitiveDateTime`.
     ///
     /// ```rust
-    /// # use time_macros::{date, time};
-    /// assert_eq!(date!(2019-01-01).midnight().time(), time!(0:00));
+    /// # use time_macros::{datetime, time};
+    /// assert_eq!(datetime!("2019-01-01 0:00").time(), time!("0:00"));
     pub const fn time(self) -> Time {
         self.time
     }
@@ -75,10 +76,10 @@ impl PrimitiveDateTime {
     /// Get the year of the date.
     ///
     /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).midnight().year(), 2019);
-    /// assert_eq!(date!(2019-12-31).midnight().year(), 2019);
-    /// assert_eq!(date!(2020-01-01).midnight().year(), 2020);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").year(), 2019);
+    /// assert_eq!(datetime!("2019-12-31 0:00").year(), 2019);
+    /// assert_eq!(datetime!("2020-01-01 0:00").year(), 2020);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -93,9 +94,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `1..=12`.
     ///
     /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).midnight().month(), 1);
-    /// assert_eq!(date!(2019-12-31).midnight().month(), 12);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").month(), 1);
+    /// assert_eq!(datetime!("2019-12-31 0:00").month(), 12);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -110,9 +111,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `1..=31`.
     ///
     /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2019-1-1).midnight().day(), 1);
-    /// assert_eq!(date!(2019-12-31).midnight().day(), 31);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").day(), 1);
+    /// assert_eq!(datetime!("2019-12-31 0:00").day(), 31);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -128,9 +129,9 @@ impl PrimitiveDateTime {
     /// the day component in `1..=31`.
     ///
     /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).midnight().month_day(), (1, 1));
-    /// assert_eq!(date!(2019-12-31).midnight().month_day(), (12, 31));
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").month_day(), (1, 1));
+    /// assert_eq!(datetime!("2019-12-31 0:00").month_day(), (12, 31));
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -145,9 +146,9 @@ impl PrimitiveDateTime {
     /// common years).
     ///
     /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).midnight().ordinal(), 1);
-    /// assert_eq!(date!(2019-12-31).midnight().ordinal(), 365);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").ordinal(), 1);
+    /// assert_eq!(datetime!("2019-12-31 0:00").ordinal(), 365);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -159,12 +160,12 @@ impl PrimitiveDateTime {
     /// Get the ISO 8601 year and week number.
     ///
     /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).midnight().iso_year_week(), (2019, 1));
-    /// assert_eq!(date!(2019-10-04).midnight().iso_year_week(), (2019, 40));
-    /// assert_eq!(date!(2020-01-01).midnight().iso_year_week(), (2020, 1));
-    /// assert_eq!(date!(2020-12-31).midnight().iso_year_week(), (2020, 53));
-    /// assert_eq!(date!(2021-01-01).midnight().iso_year_week(), (2020, 53));
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").iso_year_week(), (2019, 1));
+    /// assert_eq!(datetime!("2019-10-04 0:00").iso_year_week(), (2019, 40));
+    /// assert_eq!(datetime!("2020-01-01 0:00").iso_year_week(), (2020, 1));
+    /// assert_eq!(datetime!("2020-12-31 0:00").iso_year_week(), (2020, 53));
+    /// assert_eq!(datetime!("2021-01-01 0:00").iso_year_week(), (2020, 53));
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -178,12 +179,12 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `1..=53`.
     ///
     /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).midnight().week(), 1);
-    /// assert_eq!(date!(2019-10-04).midnight().week(), 40);
-    /// assert_eq!(date!(2020-01-01).midnight().week(), 1);
-    /// assert_eq!(date!(2020-12-31).midnight().week(), 53);
-    /// assert_eq!(date!(2021-01-01).midnight().week(), 53);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").week(), 1);
+    /// assert_eq!(datetime!("2019-10-04 0:00").week(), 40);
+    /// assert_eq!(datetime!("2020-01-01 0:00").week(), 1);
+    /// assert_eq!(datetime!("2020-12-31 0:00").week(), 53);
+    /// assert_eq!(datetime!("2021-01-01 0:00").week(), 53);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -197,11 +198,11 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..=53`.
     ///
     /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).midnight().sunday_based_week(), 0);
-    /// assert_eq!(date!(2020-01-01).midnight().sunday_based_week(), 0);
-    /// assert_eq!(date!(2020-12-31).midnight().sunday_based_week(), 52);
-    /// assert_eq!(date!(2021-01-01).midnight().sunday_based_week(), 0);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").sunday_based_week(), 0);
+    /// assert_eq!(datetime!("2020-01-01 0:00").sunday_based_week(), 0);
+    /// assert_eq!(datetime!("2020-12-31 0:00").sunday_based_week(), 52);
+    /// assert_eq!(datetime!("2021-01-01 0:00").sunday_based_week(), 0);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -215,11 +216,11 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..=53`.
     ///
     /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).midnight().monday_based_week(), 0);
-    /// assert_eq!(date!(2020-01-01).midnight().monday_based_week(), 0);
-    /// assert_eq!(date!(2020-12-31).midnight().monday_based_week(), 52);
-    /// assert_eq!(date!(2021-01-01).midnight().monday_based_week(), 0);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").monday_based_week(), 0);
+    /// assert_eq!(datetime!("2020-01-01 0:00").monday_based_week(), 0);
+    /// assert_eq!(datetime!("2020-12-31 0:00").monday_based_week(), 52);
+    /// assert_eq!(datetime!("2021-01-01 0:00").monday_based_week(), 0);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
@@ -235,19 +236,19 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::Weekday::*;
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2019-01-01).midnight().weekday(), Tuesday);
-    /// assert_eq!(date!(2019-02-01).midnight().weekday(), Friday);
-    /// assert_eq!(date!(2019-03-01).midnight().weekday(), Friday);
-    /// assert_eq!(date!(2019-04-01).midnight().weekday(), Monday);
-    /// assert_eq!(date!(2019-05-01).midnight().weekday(), Wednesday);
-    /// assert_eq!(date!(2019-06-01).midnight().weekday(), Saturday);
-    /// assert_eq!(date!(2019-07-01).midnight().weekday(), Monday);
-    /// assert_eq!(date!(2019-08-01).midnight().weekday(), Thursday);
-    /// assert_eq!(date!(2019-09-01).midnight().weekday(), Sunday);
-    /// assert_eq!(date!(2019-10-01).midnight().weekday(), Tuesday);
-    /// assert_eq!(date!(2019-11-01).midnight().weekday(), Friday);
-    /// assert_eq!(date!(2019-12-01).midnight().weekday(), Sunday);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").weekday(), Tuesday);
+    /// assert_eq!(datetime!("2019-02-01 0:00").weekday(), Friday);
+    /// assert_eq!(datetime!("2019-03-01 0:00").weekday(), Friday);
+    /// assert_eq!(datetime!("2019-04-01 0:00").weekday(), Monday);
+    /// assert_eq!(datetime!("2019-05-01 0:00").weekday(), Wednesday);
+    /// assert_eq!(datetime!("2019-06-01 0:00").weekday(), Saturday);
+    /// assert_eq!(datetime!("2019-07-01 0:00").weekday(), Monday);
+    /// assert_eq!(datetime!("2019-08-01 0:00").weekday(), Thursday);
+    /// assert_eq!(datetime!("2019-09-01 0:00").weekday(), Sunday);
+    /// assert_eq!(datetime!("2019-10-01 0:00").weekday(), Tuesday);
+    /// assert_eq!(datetime!("2019-11-01 0:00").weekday(), Friday);
+    /// assert_eq!(datetime!("2019-12-01 0:00").weekday(), Sunday);
     /// ```
     pub fn weekday(self) -> Weekday {
         self.date().weekday()
@@ -258,9 +259,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..24`.
     ///
     /// ```rust
-    /// # use time_macros::{date, time};
-    /// assert_eq!(date!(2019-01-01).midnight().hour(), 0);
-    /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).hour(), 23);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").hour(), 0);
+    /// assert_eq!(datetime!("2019-01-01 23:59:59").hour(), 23);
     /// ```
     pub const fn hour(self) -> u8 {
         self.time().hour()
@@ -271,9 +272,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time_macros::{date, time};
-    /// assert_eq!(date!(2019-01-01).midnight().minute(), 0);
-    /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).minute(), 59);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").minute(), 0);
+    /// assert_eq!(datetime!("2019-01-01 23:59:59").minute(), 59);
     /// ```
     pub const fn minute(self) -> u8 {
         self.time().minute()
@@ -284,9 +285,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time_macros::{date, time};
-    /// assert_eq!(date!(2019-01-01).midnight().second(), 0);
-    /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59)).second(), 59);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").second(), 0);
+    /// assert_eq!(datetime!("2019-01-01 23:59:59").second(), 59);
     /// ```
     pub const fn second(self) -> u8 {
         self.time().second()
@@ -297,9 +298,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..1_000`.
     ///
     /// ```rust
-    /// # use time_macros::{date, time};
-    /// assert_eq!(date!(2019-01-01).midnight().millisecond(), 0);
-    /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59.999)).millisecond(), 999);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").millisecond(), 0);
+    /// assert_eq!(datetime!("2019-01-01 23:59:59.999").millisecond(), 999);
     /// ```
     pub const fn millisecond(self) -> u16 {
         self.time().millisecond()
@@ -310,9 +311,9 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..1_000_000`.
     ///
     /// ```rust
-    /// # use time_macros::{date, time};
-    /// assert_eq!(date!(2019-01-01).midnight().microsecond(), 0);
-    /// assert_eq!(date!(2019-01-01).with_time(time!(23:59:59.999_999)).microsecond(), 999_999);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").microsecond(), 0);
+    /// assert_eq!(datetime!("2019-01-01 23:59:59.999_999").microsecond(), 999_999);
     /// ```
     pub const fn microsecond(self) -> u32 {
         self.time().microsecond()
@@ -323,10 +324,10 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
-    /// # use time_macros::{date, time};
-    /// assert_eq!(date!(2019-01-01).midnight().nanosecond(), 0);
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00").nanosecond(), 0);
     /// assert_eq!(
-    ///     date!(2019-01-01).with_time(time!(23:59:59.999_999_999)).nanosecond(),
+    ///     datetime!("2019-01-01 23:59:59.999_999_999").nanosecond(),
     ///     999_999_999,
     /// );
     /// ```
@@ -338,13 +339,13 @@ impl PrimitiveDateTime {
     /// the provided `UtcOffset`, return an `OffsetDateTime`.
     ///
     /// ```rust
-    /// # use time_macros::{date, offset};
+    /// # use time_macros::{datetime, offset};
     /// assert_eq!(
-    ///     date!(2019-01-01).midnight().assume_offset(offset!(UTC)).unix_timestamp(),
+    ///     datetime!("2019-01-01 0:00").assume_offset(offset!("UTC")).unix_timestamp(),
     ///     1_546_300_800,
     /// );
     /// assert_eq!(
-    ///     date!(2019-01-01).midnight().assume_offset(offset!(-1)).unix_timestamp(),
+    ///     datetime!("2019-01-01 0:00").assume_offset(offset!("-1")).unix_timestamp(),
     ///     1_546_304_400,
     /// );
     /// ```
@@ -356,14 +357,14 @@ impl PrimitiveDateTime {
     /// the UTC, return an `OffsetDateTime`.
     ///
     /// ```rust
-    /// # use time_macros::date;
+    /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     date!(2019-01-01).midnight().assume_utc().unix_timestamp(),
+    ///     datetime!("2019-01-01 0:00").assume_utc().unix_timestamp(),
     ///     1_546_300_800,
     /// );
     /// ```
     ///
-    /// This function is the same as calling `.assume_offset(offset!(UTC))`,
+    /// This function is the same as calling `.assume_offset(offset!("UTC"))`,
     /// except it is usable in `const` contexts.
     pub const fn assume_utc(self) -> OffsetDateTime {
         OffsetDateTime::new_assuming_utc(self)
@@ -375,9 +376,9 @@ impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided string.
     ///
     /// ```rust
-    /// # use time_macros::date;
+    /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     date!(2019-01-02).midnight().format("%F %r"),
+    ///     datetime!("2019-01-02 0:00").format("%F %r"),
     ///     "2019-01-02 12:00:00 am"
     /// );
     /// ```
@@ -392,18 +393,18 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::PrimitiveDateTime;
-    /// # use time_macros::{date, time};
+    /// # use time_macros::datetime;
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
-    ///     Ok(date!(2019-01-02).midnight()),
+    ///     Ok(datetime!("2019-01-02 00:00:00")),
     /// );
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
-    ///     Ok(date!(2019-002).with_time(time!(23:59:59)))
+    ///     Ok(datetime!("2019-002 23:59:59"))
     /// );
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
-    ///     Ok(date!(2019-W01-3).with_time(time!(12:00))),
+    ///     Ok(datetime!("2019-W01-3 12:00:00 pm")),
     /// );
     /// ```
     pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
