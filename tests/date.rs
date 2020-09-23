@@ -908,7 +908,7 @@ fn previous_day() {
 
 #[test]
 fn julian_day() {
-    assert_eq!(date!("-100_000-01-01").julian_day(), -34_803_190);
+    assert_eq!(date!("-999_999-01-01").julian_day(), -363521074);
     assert_eq!(date!("-4713-11-24").julian_day(), 0);
     assert_eq!(date!("2000-01-01").julian_day(), 2_451_545);
     assert_eq!(date!("2019-01-01").julian_day(), 2_458_485);
@@ -917,7 +917,7 @@ fn julian_day() {
 
 #[test]
 fn from_julian_day() {
-    assert_eq!(julian!(-34_803_190), date!("-100_000-01-01"));
+    assert_eq!(julian!(-363_521_074), date!("-999_999-01-01"));
     assert_eq!(julian!(0), date!("-4713-11-24"));
     assert_eq!(julian!(2_451_545), date!("2000-01-01"));
     assert_eq!(julian!(2_458_485), date!("2019-01-01"));
@@ -1004,7 +1004,7 @@ fn format() {
     assert_eq!(date.format("%Y"), "2019");
 
     // Ensure the sign is emitted correctly for all year specifiers.
-    let date = date!("10_000-01-03");
+    let date = date!("+10_000-01-03");
     assert_eq!(date.format("%G"), "+10000");
     assert_eq!(date.format("%Y"), "+10000");
 }
@@ -1055,7 +1055,7 @@ fn display() {
     assert_eq!(date!("2019-01-01").to_string(), "2019-01-01");
     assert_eq!(date!("2019-12-31").to_string(), "2019-12-31");
     assert_eq!(date!("-4713-11-24").to_string(), "-4713-11-24");
-    assert_eq!(date!("10_000-01-01").to_string(), "+10000-01-01");
+    assert_eq!(date!("+10_000-01-01").to_string(), "+10000-01-01");
 }
 
 #[test]
@@ -1139,13 +1139,13 @@ fn ord() {
 #[test]
 #[should_panic]
 fn next_day_panics() {
-    date!("+100_000-12-31").next_day();
+    date!("+999_999-12-31").next_day();
 }
 
 #[test]
 #[should_panic]
 fn previous_day_panics() {
-    date!("-100_000-01-01").previous_day();
+    date!("-999_999-01-01").previous_day();
 }
 
 #[test]
