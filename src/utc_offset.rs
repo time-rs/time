@@ -3,7 +3,7 @@ use crate::OffsetDateTime;
 use crate::{
     error,
     format::{parse, ParsedItems},
-    DeferredFormat, Duration, ParseResult,
+    DeferredFormat, Duration, Format, ParseResult,
 };
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
@@ -315,8 +315,8 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::hours(-2)?.format("%z"), "-0200");
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn format(self, format: impl AsRef<str>) -> String {
-        DeferredFormat::new(format.as_ref())
+    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
+        DeferredFormat::new(format.into())
             .with_offset(self)
             .to_string()
     }
@@ -329,7 +329,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::parse("-0200", "%z"), Ok(UtcOffset::hours(-2)?));
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
+    pub fn parse<'a>(s: impl AsRef<str>, format: impl Into<Format<'a>>) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
     }
 

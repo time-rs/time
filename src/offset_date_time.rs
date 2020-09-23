@@ -600,8 +600,8 @@ impl OffsetDateTime {
     ///     "2019-01-02 12:00:00 am +0000",
     /// );
     /// ```
-    pub fn format(self, format: impl Into<Format>) -> String {
-        DeferredFormat::new(format)
+    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
+        DeferredFormat::new(format.into())
             .with_date(self.date())
             .with_time(self.time())
             .with_offset(self.offset())
@@ -626,7 +626,7 @@ impl OffsetDateTime {
     ///     Ok(datetime!("2019-W01-3 12:00").assume_utc()),
     /// );
     /// ```
-    pub fn parse(s: impl AsRef<str>, format: impl Into<Format>) -> ParseResult<Self> {
+    pub fn parse<'a>(s: impl AsRef<str>, format: impl Into<Format<'a>>) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
     }
 

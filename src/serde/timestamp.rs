@@ -41,7 +41,6 @@ pub fn serialize<S: Serializer>(
     Wrapper(datetime.unix_timestamp()).serialize(serializer)
 }
 
-#[allow(single_use_lifetimes)]
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
     Wrapper::deserialize(deserializer)
         .map(|Wrapper(timestamp)| timestamp)
@@ -96,7 +95,6 @@ pub mod option {
         option.map(Wrapper).serialize(serializer)
     }
 
-    #[allow(single_use_lifetimes)]
     pub fn deserialize<'a, D: Deserializer<'a>>(
         deserializer: D,
     ) -> Result<Option<OffsetDateTime>, D::Error> {

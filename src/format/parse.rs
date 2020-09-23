@@ -325,7 +325,7 @@ pub(crate) fn consume_padding(s: &mut &str, padding: Padding, max_chars: usize) 
 /// Attempt to parse the string with the provided format, returning a struct
 /// containing all information found.
 #[allow(clippy::too_many_lines)]
-pub(crate) fn parse(s: &str, format: &Format) -> ParseResult<ParsedItems> {
+pub(crate) fn parse(s: &str, format: &Format<'_>) -> ParseResult<ParsedItems> {
     use super::{date, offset, time};
 
     // Make a copy of the provided string, letting us mutate as necessary.

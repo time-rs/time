@@ -196,7 +196,7 @@ fn format_specifier(
 }
 
 /// An enum that can store both literals and specifiers.
-#[allow(variant_size_differences, single_use_lifetimes)]
+#[allow(variant_size_differences)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) enum FormatItem<'a> {
     /// A value that should be printed as-is.

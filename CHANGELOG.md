@@ -52,6 +52,8 @@ Versioning].
 - Some variants of `Error` no longer contain an inner item. This is because the
   item is already guaranteed to be a zero-sized struct.
 - `UtcOffset` constructors now check their input and return a `Result`.
+- Formatting strings must be provided as `&str`. As it is trivial to take a
+  reference to a `String`, this shouldn't be an issue.
 
 ### Removed
 

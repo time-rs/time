@@ -132,7 +132,6 @@
     clippy::use_debug,
     missing_copy_implementations,
     missing_debug_implementations,
-    single_use_lifetimes,
     unused_qualifications,
     variant_size_differences
 )]
@@ -382,19 +381,20 @@ mod private {
     use super::*;
 
     macro_rules! parsable {
-        ($($type:ty),* $(,)?) => {
-            $(
-                impl Parsable for $type {
-                    fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
-                        Self::parse(s, format)
-                    }
+        ($($type:ty),* $(,)?) => {$(
+            impl Parsable for $type {
+                fn parse<'a>(
+                    s: impl AsRef<str>,
+                    format: impl Into<Format<'a>>
+                ) -> ParseResult<Self> {
+                    Self::parse(s, format)
                 }
-            )*
-        };
+            }
+        )*};
     }
 
     pub trait Parsable: Sized {
-        fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self>;
+        fn parse<'a>(s: impl AsRef<str>, format: impl Into<Format<'a>>) -> ParseResult<Self>;
     }
 
     parsable![Time, Date, UtcOffset, PrimitiveDateTime, OffsetDateTime];
@@ -415,6 +415,9 @@ mod private {
 /// println!("{:?}", foo);
 /// # Ok::<_, time::Error>(())
 /// ```
-pub fn parse<T: private::Parsable>(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<T> {
+pub fn parse<'a, T: private::Parsable>(
+    s: impl AsRef<str>,
+    format: impl Into<Format<'a>>,
+) -> ParseResult<T> {
     private::Parsable::parse(s, format)
 }
