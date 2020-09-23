@@ -2,7 +2,17 @@ name: Build
 
 on:
   push:
+    branches: ["**"]
+    tags-ignore: ["**"]
+    paths-ignore:
+      - "**.md"
+      - LICENSE-Apache
+      - LICENSE-MIT
   pull_request:
+    paths-ignore:
+      - "**.md"
+      - LICENSE-Apache
+      - LICENSE-MIT
   schedule:
     - cron: "0 0 * * 6" # midnight on Saturdays
 
@@ -43,11 +53,6 @@ jobs:
           override: true
 
       - name: Install cargo-hack
-        # uses: actions-rs/install@v0.1
-        # with:
-        #   crate: cargo-hack
-        #   version: ^0.3
-        #   use-tool-cache: true
         run: cargo +stable install cargo-hack
         if: steps.cache-binaries.outputs.cache-hit != 'true'
 
@@ -101,11 +106,6 @@ jobs:
           override: true
 
       - name: Install cargo-web
-        # uses: actions-rs/install@v0.1
-        # with:
-        #   crate: cargo-web
-        #   version: ^0.6
-        #   use-tool-cache: true
         run: cargo +stable install cargo-web
         if: steps.cache.outputs.cache-hit != 'true'
 
@@ -165,11 +165,6 @@ jobs:
           override: true
 
       - name: Install cargo-hack
-        # uses: actions-rs/install@v0.1
-        # with:
-        #   crate: cargo-hack
-        #   version: ^0.3
-        #   use-tool-cache: true
         run: cargo +stable install cargo-hack
         if: steps.cache-binaries.outputs.cache-hit != 'true'
 
@@ -190,17 +185,22 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ matrix.os }}-${{ hashFiles('**/Cargo.toml') }}2
 
-      - name: Test feature powerset (--tests)
+      # For speed reasons, it's worth it to just check the feature powerset and
+      # test with everything enabled. As features are additive, the tests ensure
+      # that everything works, while the checking ensures any combination would
+      # compile without issue.
+
+      - name: Check feature powerset
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: test --feature-powerset --optional-deps --skip default,libc,winapi,stdweb --tests
+          args: check --feature-powerset --optional-deps --skip default,libc,winapi,stdweb
 
-      - name: Test documentation
+      - name: Test (--all-features)
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features --doc
+          args: --all-features
 
   fmt:
     name: Formatting
@@ -264,6 +264,7 @@ jobs:
       - test
       - fmt
       - clippy
+    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
 
     steps:
       - name: Checkout
@@ -282,7 +283,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --all-features
+          args: --no-deps --all-features
         env:
           RUSTFLAGS: --cfg __time_02_docs
           RUSTDOCFLAGS: --cfg __time_02_docs
@@ -294,4 +295,3 @@ jobs:
           BRANCH: gh-pages
           FOLDER: target/doc
           SINGLE_COMMIT: true
-        if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
