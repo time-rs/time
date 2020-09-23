@@ -54,6 +54,7 @@ Versioning].
 - `UtcOffset` constructors now check their input and return a `Result`.
 - Formatting strings must be provided as `&str`. As it is trivial to take a
   reference to a `String`, this shouldn't be an issue.
+- The range of valid years has been increased to ±999,999.
 
 ### Removed
 
