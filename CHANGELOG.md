@@ -7,6 +7,123 @@ Versioning].
 
 ---
 
+## 0.3.0 [_unreleased_]
+
+### Added
+
+- `datetime!` macro
+
+### Changed
+
+- The minimum supported Rust version is now 1.36.0.
+- Macros are placed behind the `macro` feature flag.
+- All macros now accept strings, rather than unquoted tokens. The syntax
+  accepted is otherwise the same as before.
+- Renamed
+  - `OffsetDatetime::timestamp` → `OffsetDateTime::unix_timestamp`
+  - `OffsetDatetime::timestamp_nanos` → `OffsetDateTime::unix_timestamp_nanos`
+  - `Date::try_from_ymd` → `Date::from_ymd`
+  - `Date::try_from_yo` → `Date::from_yo`
+  - `Date::try_from_iso_ywd` → `Date::from_iso_ywd`
+  - `Date::try_with_hms` → `Date::with_hms`
+  - `Date::try_with_hms_milli` → `Date::with_hms_milli`
+  - `Date::try_with_hms_micro` → `Date::with_hms_micro`
+  - `Date::try_with_hms_nano` → `Date::with_hms_nano`
+  - `Time::try_from_hms` → `Time::from_hms`
+  - `Time::try_from_hms_milli` → `Time::from_hms_milli`
+  - `Time::try_from_hms_micro` → `Time::from_hms_micro`
+  - `Time::try_from_hms_nano` → `Time::from_hms_nano`
+- No longer `const fn` on older compilers
+  - `util::is_leap_year`
+  - `util::days_in_year`
+  - `Duration::new`
+  - `Duration::is_positive`
+  - `Duration::is_negative`
+  - `Duration::is_zero`
+  - `UtcOffset::east_hours`
+  - `UtcOffset::west_hours`
+  - `UtcOffset::hours`
+  - `UtcOffset::east_minutes`
+  - `UtcOffset::west_minutes`
+  - `UtcOffset::minutes`
+  - `UtcOffset::east_seconds`
+  - `UtcOffset::west_seconds`
+  - `UtcOffset::seconds`
+- Some variants of `Error` no longer contain an inner item. This is because the
+  item is already guaranteed to be a zero-sized struct.
+- `UtcOffset` constructors now check their input and return a `Result`.
+
+### Removed
+
+- v0.1 APIs, previously behind an enabled-by-default feature flag
+  - `PreciseTime`
+  - `SteadyTime`
+  - `precise_time_ns`
+  - `precise_time_s`
+  - `Instant::to`
+  - `Duration::num_weeks`
+  - `Duration::num_days`
+  - `Duration::num_hours`
+  - `Duration::num_minutes`
+  - `Duration::num_seconds`
+  - `Duration::num_milliseconds`
+  - `Duration::num_microseconds`
+  - `Duration::num_nanoseconds`
+  - `Duration::span`
+  - `Duration::from_std`
+  - `Duration::to_std`
+- Panicking APIs, previously behind a non-default feature flag
+  - `Date::from_ymd`
+  - `Date::from_yo`
+  - `Date::from_iso_ywd`
+  - `Date::with_hms`
+  - `Date::with_hms_milli`
+  - `Date::with_hms_micro`
+  - `Date::with_hms_nano`
+  - `Time::from_hms`
+  - `Time::from_hms_milli`
+  - `Time::from_hms_micro`
+  - `Time::from_hms_nano`
+- APIs that assumed an offset of UTC, previously enabled unconditionally
+  - `Date::today`
+  - `Time::now`
+  - `PrimitiveDateTime::now`
+  - `PrimitiveDateTime::unix_epoch`
+  - `PrimitiveDateTime::from_unix_timestamp`
+  - `PrimitiveDateTime::timestamp`
+  - `OffsetDateTime::now`
+  - `impl Sub<SystemTime> for PrimitiveDateTime`
+  - `impl Sub<PrimitiveDateTime> for SystemTime`
+  - `impl PartialEq<SystemTime> for PrimitiveDateTime`
+  - `impl PartialEq<PrimitiveDateTime> for SystemTime`
+  - `impl PartialOrd<SystemTime> for PrimitiveDateTime`
+  - `impl PartialOrd<PrimitiveDateTime> for SystemTime`
+  - `impl From<SystemTime> for PrimitiveDateTime`
+  - `impl From<PrimitiveDateTime> for SystemTime`
+- Other APIs deprecated during the course of 0.2, previously enabled unconditionally
+  - `Duration::sign`
+  - `PrimitiveDateTime::using_offset`
+  - `Sign`
+- Re-exports of APIs moved during the course of 0.2
+  - `days_in_year`
+  - `is_leap_year`
+  - `validate_format_string`
+  - `weeks_in_year`
+  - `ComponentRangeError`
+  - `ConversionRangeError`
+  - `IndeterminateOffsetError`
+  - `ParseError`
+  - `NumericalDuration`
+  - `NumericalStdDuration`
+  - `NumericalStdDurationShort`
+- Lazy formatting, which was unidiomatic as a failure would have returned
+  `fmt::Error`, indicating an error unrelated to the time crate.
+  - `Time::lazy_format`
+  - `Date::lazy_format`
+  - `UtcOffset::lazy_format`
+  - `PrimitiveDateTime::lazy_format`
+  - `OffsetDateTime::lazy_format`
+
 ## 0.2.22 [2020-09-25]
 
 ### Fixed
