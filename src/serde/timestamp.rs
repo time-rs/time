@@ -16,7 +16,7 @@
 //! }
 //!
 //! let s = S {
-//!     datetime: datetime!("2019-01-01 0:00").assume_utc(),
+//!     datetime: datetime!("2019-01-01 0:00 UTC"),
 //! };
 //! let v = json!({ "datetime": 1_546_300_800 });
 //! assert_eq!(v, serde_json::to_value(&s)?);
@@ -66,7 +66,7 @@ pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDat
 /// }
 ///
 /// let s = S {
-///     datetime: Some(datetime!("2019-01-01 0:00").assume_utc()),
+///     datetime: Some(datetime!("2019-01-01 0:00 UTC")),
 /// };
 /// let v = json!({ "datetime": 1_546_300_800 });
 /// assert_eq!(v, serde_json::to_value(&s)?);

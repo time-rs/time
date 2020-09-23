@@ -45,12 +45,8 @@ fn primitive_date_time() -> serde_json::Result<()> {
 #[test]
 fn offset_date_time() -> serde_json::Result<()> {
     let original = [
-        datetime!("-999_999-001 0:00")
-            .assume_utc()
-            .to_offset(offset!("-23:59:59")),
-        datetime!("+999_999-365 23:59:59.999_999_999")
-            .assume_utc()
-            .to_offset(offset!("+23:59:59")),
+        datetime!("-999_999-001 0:00 UTC").to_offset(offset!("-23:59:59")),
+        datetime!("+999_999-365 23:59:59.999_999_999 UTC").to_offset(offset!("+23:59:59")),
     ];
     let serialized = "[[-999999,1,0,0],[999999,365,86399,999999999]]";
 

@@ -270,13 +270,15 @@ pub use primitive_date_time::PrimitiveDateTime;
 #[cfg(feature = "macros")]
 #[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
 pub use time_macros::date;
-/// Construct a [`PrimitiveDateTime`](crate::PrimitiveDateTime) with a
-/// statically known value.
+/// Construct a [`PrimitiveDateTime`](crate::PrimitiveDateTime) or
+/// [`OffsetDateTime`](crate::OffsetDateTime) with a statically known value.
 ///
 /// The resulting expression can be used in `const` or `static` declarations.
 ///
 /// The syntax accepted by this macro is the same as `date!` immediately
-/// followed by `time!`.
+/// followed by `time!`. An offset of UTC can also be provided after the time,
+/// which will result in the construction of an `OffsetDateTime` instead of a
+/// `PrimitiveDateTime`.
 #[cfg(feature = "macros")]
 #[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
 pub use time_macros::datetime;
