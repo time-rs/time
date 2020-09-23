@@ -22,7 +22,7 @@ pub(crate) mod rfc3339 {
     use crate::{error, UtcOffset};
 
     /// Format `df` according to the RFC3339 specification.
-    pub(crate) fn fmt(df: &DeferredFormat, f: &mut Formatter<'_>) -> Result<(), error::Format> {
+    pub(crate) fn fmt(df: &DeferredFormat<'_>, f: &mut Formatter<'_>) -> Result<(), error::Format> {
         let (date, time, offset) = match (df.date(), df.time(), df.offset()) {
             (Some(date), Some(time), Some(offset)) => (date, time, offset),
             _ => return Err(error::Format::InsufficientTypeInformation),

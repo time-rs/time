@@ -1,6 +1,6 @@
 use crate::{
     format::parse::{parse, ParsedItems},
-    Date, DeferredFormat, Duration, OffsetDateTime, ParseResult, Time, UtcOffset, Weekday,
+    Date, DeferredFormat, Duration, Format, OffsetDateTime, ParseResult, Time, UtcOffset, Weekday,
 };
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
@@ -386,8 +386,8 @@ impl PrimitiveDateTime {
     ///     "2019-01-02 12:00:00 am"
     /// );
     /// ```
-    pub fn format(self, format: impl AsRef<str>) -> String {
-        DeferredFormat::new(format.as_ref())
+    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
+        DeferredFormat::new(format.into())
             .with_date(self.date())
             .with_time(self.time())
             .to_string()
@@ -411,7 +411,7 @@ impl PrimitiveDateTime {
     ///     Ok(datetime!("2019-W01-3 12:00:00 pm")),
     /// );
     /// ```
-    pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
+    pub fn parse<'a>(s: impl AsRef<str>, format: impl Into<Format<'a>>) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
     }
 

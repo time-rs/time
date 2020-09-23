@@ -1,7 +1,7 @@
 use crate::{
     error,
     format::{parse, parse::AmPm, ParsedItems},
-    DeferredFormat, Duration, ParseResult,
+    DeferredFormat, Duration, Format, ParseResult,
 };
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
@@ -322,8 +322,8 @@ impl Time {
     /// # use time_macros::time;
     /// assert_eq!(time!("0:00").format("%r"), "12:00:00 am");
     /// ```
-    pub fn format(self, format: impl AsRef<str>) -> String {
-        DeferredFormat::new(format.as_ref())
+    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
+        DeferredFormat::new(format.into())
             .with_time(self)
             .to_string()
     }
@@ -339,7 +339,7 @@ impl Time {
     /// assert_eq!(Time::parse("12:00:00 pm", "%r"), Ok(time!("12:00")));
     /// assert_eq!(Time::parse("11:59:59 pm", "%r"), Ok(time!("23:59:59")));
     /// ```
-    pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
+    pub fn parse<'a>(s: impl AsRef<str>, format: impl Into<Format<'a>>) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
     }
 

@@ -2,7 +2,7 @@ use crate::{
     error,
     format::parse::{parse, ParsedItems},
     util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year},
-    DeferredFormat, Duration, ParseResult, PrimitiveDateTime, Time, Weekday,
+    DeferredFormat, Duration, Format, ParseResult, PrimitiveDateTime, Time, Weekday,
 };
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
@@ -759,8 +759,8 @@ impl Date {
     /// # use time_macros::date;
     /// assert_eq!(date!("2019-01-02").format("%Y-%m-%d"), "2019-01-02");
     /// ```
-    pub fn format(self, format: impl AsRef<str>) -> String {
-        DeferredFormat::new(format.as_ref())
+    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
+        DeferredFormat::new(format.into())
             .with_date(self)
             .to_string()
     }
@@ -777,7 +777,7 @@ impl Date {
     ///     Ok(date!("2019-W01-3"))
     /// );
     /// ```
-    pub fn parse(s: impl AsRef<str>, format: impl AsRef<str>) -> ParseResult<Self> {
+    pub fn parse<'a>(s: impl AsRef<str>, format: impl Into<Format<'a>>) -> ParseResult<Self> {
         Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
     }
 
