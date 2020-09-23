@@ -29,9 +29,9 @@ impl Date {
                 value: year.to_string(),
             });
         }
-        if !explicit_sign && year.abs() >= 100_000 {
+        if !explicit_sign && year.abs() >= 10_000 {
             return Err(Error::Custom(
-                "years with six digits must have an explicit sign".into(),
+                "years with more than four digits must have an explicit sign".into(),
             ));
         }
 

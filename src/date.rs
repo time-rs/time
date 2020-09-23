@@ -16,9 +16,9 @@ use core::{
 };
 
 /// The minimum valid year.
-pub(crate) const MIN_YEAR: i32 = -100_000;
+pub(crate) const MIN_YEAR: i32 = -999_999;
 /// The maximum valid year.
-pub(crate) const MAX_YEAR: i32 = 100_000;
+pub(crate) const MAX_YEAR: i32 = 999_999;
 
 /// Floored division for integers. This differs from the default behavior, which
 /// is truncation.
@@ -35,7 +35,7 @@ pub(crate) const fn div_floor(a: i64, b: i64) -> i64 {
 
 /// Calendar date.
 ///
-/// Years between `-100_000` and `+100_000` inclusive are guaranteed to be
+/// Years between `-999_999` and `+999_999` inclusive are guaranteed to be
 /// representable. Any values outside this range may have incidental support
 /// that can change at any time without notice. If you need support outside this
 /// range, please [file an issue](https://github.com/time-rs/time/issues/new)
