@@ -9,7 +9,7 @@ use time::{
 use time_macros::{date, datetime, time};
 
 macro_rules! julian {
-    ($julian:literal) => {
+    ($julian:expr) => {
         Date::from_julian_day($julian)
     };
 }
@@ -917,17 +917,12 @@ fn julian_day() {
 
 #[test]
 fn from_julian_day() {
-    assert_eq!(julian!(-363_521_074), date!("-999_999-01-01"));
-    assert_eq!(julian!(0), date!("-4713-11-24"));
-    assert_eq!(julian!(2_451_545), date!("2000-01-01"));
-    assert_eq!(julian!(2_458_485), date!("2019-01-01"));
-    assert_eq!(julian!(2_458_849), date!("2019-12-31"));
-}
-
-#[test]
-#[should_panic]
-fn from_julian_day_large() {
-    Date::from_julian_day(i64::MAX);
+    assert_eq!(julian!(-363_521_074), Ok(date!("-999_999-01-01")));
+    assert_eq!(julian!(0), Ok(date!("-4713-11-24")));
+    assert_eq!(julian!(2_451_545), Ok(date!("2000-01-01")));
+    assert_eq!(julian!(2_458_485), Ok(date!("2019-01-01")));
+    assert_eq!(julian!(2_458_849), Ok(date!("2019-12-31")));
+    assert!(julian!(i64::MAX).is_err());
 }
 
 #[test]
@@ -1146,10 +1141,4 @@ fn next_day_panics() {
 #[should_panic]
 fn previous_day_panics() {
     date!("-999_999-01-01").previous_day();
-}
-
-#[test]
-#[should_panic]
-fn julian_day_panics() {
-    Date::from_julian_day(i64::MAX);
 }
