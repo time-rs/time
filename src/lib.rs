@@ -25,6 +25,11 @@
 //!   Enables macros that provide compile-time verification of values and
 //!   intuitive syntax.
 //!
+//! - `local-offset` (_implicitly enables `std`_)
+//!
+//!   This feature enables a number of methods that allow obtaining the system's
+//!   UTC offset.
+//!
 //! - `serde`
 //!
 //!   Enables [serde](https://docs.rs/serde) support for all types.

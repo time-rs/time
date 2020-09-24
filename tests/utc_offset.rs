@@ -123,12 +123,12 @@ fn display() {
 
 #[test]
 #[cfg(feature = "std")]
-fn try_local_offset_at() {
-    assert!(UtcOffset::try_local_offset_at(OffsetDateTime::unix_epoch()).is_ok());
+fn local_offset_at() {
+    assert!(UtcOffset::local_offset_at(OffsetDateTime::unix_epoch()).is_ok());
 }
 
 #[test]
 #[cfg(feature = "std")]
-fn try_current_local_offset() {
-    assert!(UtcOffset::try_current_local_offset().is_ok());
+fn current_local_offset() {
+    assert!(UtcOffset::current_local_offset().is_ok());
 }

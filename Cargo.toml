@@ -21,7 +21,8 @@ rustdoc-args = ["--cfg", "__time_02_docs"]
 [features]
 default = ["std"]
 macros = ["time-macros"]
-std = ["libc", "winapi", "stdweb", "standback/std"]
+local-offset = ["std", "libc", "winapi", "stdweb"]
+std = ["standback/std"]
 
 [dependencies]
 const_fn = "0.4.2"

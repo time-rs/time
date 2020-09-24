@@ -1,4 +1,4 @@
-#[cfg(feature = "std")]
+#[cfg(feature = "local-offset")]
 use crate::error;
 use crate::{
     format::parse::{parse, ParsedItems},
@@ -85,33 +85,19 @@ impl OffsetDateTime {
         SystemTime::now().into()
     }
 
-    /// Create a new `OffsetDateTime` with the current date and time in the
-    /// local offset.
-    ///
-    /// ```rust
-    /// # use time::OffsetDateTime;
-    /// assert!(OffsetDateTime::now_local().year() >= 2019);
-    /// ```
-    #[cfg(feature = "std")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
-    pub fn now_local() -> Self {
-        let t = Self::now_utc();
-        t.to_offset(UtcOffset::local_offset_at(t))
-    }
-
     /// Attempt to create a new `OffsetDateTime` with the current date and time
     /// in the local offset. If the offset cannot be determined, an error is
     /// returned.
     ///
     /// ```rust
     /// # use time::OffsetDateTime;
-    /// assert!(OffsetDateTime::try_now_local().is_ok());
+    /// assert!(OffsetDateTime::now_local().is_ok());
     /// ```
-    #[cfg(feature = "std")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
-    pub fn try_now_local() -> Result<Self, error::IndeterminateOffset> {
+    #[cfg(feature = "local-offset")]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "local-offset")))]
+    pub fn now_local() -> Result<Self, error::IndeterminateOffset> {
         let t = Self::now_utc();
-        Ok(t.to_offset(UtcOffset::try_local_offset_at(t)?))
+        Ok(t.to_offset(UtcOffset::local_offset_at(t)?))
     }
 
     /// Convert the `OffsetDateTime` from the current `UtcOffset` to the
