@@ -8,12 +8,6 @@ use time::{
 };
 use time_macros::{date, datetime, time};
 
-macro_rules! julian {
-    ($julian:expr) => {
-        Date::from_julian_day($julian)
-    };
-}
-
 #[test]
 fn debug() {
     assert_eq!(
@@ -917,12 +911,15 @@ fn julian_day() {
 
 #[test]
 fn from_julian_day() {
-    assert_eq!(julian!(-363_521_074), Ok(date!("-999_999-01-01")));
-    assert_eq!(julian!(0), Ok(date!("-4713-11-24")));
-    assert_eq!(julian!(2_451_545), Ok(date!("2000-01-01")));
-    assert_eq!(julian!(2_458_485), Ok(date!("2019-01-01")));
-    assert_eq!(julian!(2_458_849), Ok(date!("2019-12-31")));
-    assert!(julian!(i64::MAX).is_err());
+    assert_eq!(
+        Date::from_julian_day(-363_521_074),
+        Ok(date!("-999_999-01-01"))
+    );
+    assert_eq!(Date::from_julian_day(0), Ok(date!("-4713-11-24")));
+    assert_eq!(Date::from_julian_day(2_451_545), Ok(date!("2000-01-01")));
+    assert_eq!(Date::from_julian_day(2_458_485), Ok(date!("2019-01-01")));
+    assert_eq!(Date::from_julian_day(2_458_849), Ok(date!("2019-12-31")));
+    assert!(Date::from_julian_day(i64::MAX).is_err());
 }
 
 #[test]

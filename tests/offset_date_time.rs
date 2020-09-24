@@ -1,8 +1,6 @@
 use std::cmp::Ordering;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
-#[cfg(feature = "local-offset")]
-use time::UtcOffset;
 use time::{
     error,
     ext::{NumericalDuration, NumericalStdDuration},
