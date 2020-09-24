@@ -7,22 +7,6 @@ use time::{
     Duration,
 };
 
-macro_rules! assert_panics {
-    ($e:expr $(, $message:literal)?) => {
-        #[allow(box_pointers)]
-        {
-            if std::panic::catch_unwind(move || $e).is_ok() {
-                panic!(concat!(
-                    "assertion failed: expected `",
-                    stringify!($e),
-                    "` to panic",
-                    $(concat!(" (", $message, ")"))?
-                ));
-            }
-        }
-    };
-}
-
 #[test]
 fn unit_values() {
     assert_eq!(Duration::zero(), 0.seconds());
@@ -437,9 +421,13 @@ fn std_sub_assign() {
     let mut duration = 1_500.std_milliseconds();
     duration -= 500.milliseconds();
     assert_eq!(duration, 1.seconds());
+}
 
+#[test]
+#[should_panic]
+fn std_sub_assign_overflow() {
     let mut duration = 1.std_seconds();
-    assert_panics!(duration -= 2.seconds());
+    duration -= 2.seconds();
 }
 
 #[test]
