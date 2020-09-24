@@ -33,6 +33,8 @@ Versioning].
   - `Time::try_from_hms_milli` → `Time::from_hms_milli`
   - `Time::try_from_hms_micro` → `Time::from_hms_micro`
   - `Time::try_from_hms_nano` → `Time::from_hms_nano`
+  - `UtcOffset::try_local_offset_at` → `UtcOffset::local_offset_at`
+  - `OffsetDateTime::try_now_local` → `OffsetDateTime::now_local`
 - No longer `const fn` on older compilers
   - `util::is_leap_year`
   - `util::days_in_year`
@@ -52,9 +54,13 @@ Versioning].
 - Some variants of `Error` no longer contain an inner item. This is because the
   item is already guaranteed to be a zero-sized struct.
 - `UtcOffset` constructors now check their input and return a `Result`.
+- `Date::from_julian_day` now returns a `Result`.
 - Formatting strings must be provided as `&str`. As it is trivial to take a
   reference to a `String`, this shouldn't be an issue.
 - The range of valid years has been increased to ±999,999.
+- The following are now gated under the `local-offset` feature:
+  - `UtcOffset::local_offset_at`
+  - `OffsetDateTime::now_local`
 
 ### Removed
 
@@ -103,6 +109,8 @@ Versioning].
   - `impl PartialOrd<PrimitiveDateTime> for SystemTime`
   - `impl From<SystemTime> for PrimitiveDateTime`
   - `impl From<PrimitiveDateTime> for SystemTime`
+  - `UtcOffset::local_offset_at` — assumed UTC if unable to determine local offset
+  - `OffsetDateTime::now_local` — assumed UTC if unable to determine local offset
 - Other APIs deprecated during the course of 0.2, previously enabled unconditionally
   - `Duration::sign`
   - `PrimitiveDateTime::using_offset`

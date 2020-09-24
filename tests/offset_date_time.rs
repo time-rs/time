@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
-#[cfg(feature = "std")]
+#[cfg(feature = "local-offset")]
 use time::UtcOffset;
 use time::{
     error,
@@ -18,19 +18,9 @@ fn now_utc() {
 }
 
 #[test]
-#[cfg(feature = "std")]
+#[cfg(feature = "local-offset")]
 fn now_local() {
-    assert!(OffsetDateTime::now_local().year() >= 2019);
-    assert_eq!(
-        OffsetDateTime::now_local().offset(),
-        UtcOffset::current_local_offset()
-    );
-}
-
-#[test]
-#[cfg(feature = "std")]
-fn try_now_local() {
-    assert!(OffsetDateTime::try_now_local().is_ok());
+    assert!(OffsetDateTime::now_local().is_ok());
 }
 
 #[test]

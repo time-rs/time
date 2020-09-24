@@ -69,7 +69,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: check --no-dev-deps --feature-powerset --optional-deps --skip default,libc,winapi,stdweb,std --target ${{ matrix.target.triple }}
+          args: check --no-dev-deps --feature-powerset --optional-deps --skip default,libc,winapi,stdweb,std,local-offset --target ${{ matrix.target.triple }}
         if: matrix.target.std == false
 
       - name: Check feature powerset

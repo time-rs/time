@@ -1,4 +1,4 @@
-#[cfg(feature = "std")]
+#[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
 use crate::{
     error,
@@ -242,51 +242,19 @@ impl UtcOffset {
         Duration::seconds(self.seconds as i64)
     }
 
-    /// Obtain the system's UTC offset at a known moment in time. If the offset
-    /// cannot be determined, UTC is returned.
-    ///
-    /// ```rust
-    /// # use time::{UtcOffset, OffsetDateTime};
-    /// let unix_epoch = OffsetDateTime::unix_epoch();
-    /// let local_offset = UtcOffset::local_offset_at(unix_epoch);
-    /// println!("{}", local_offset.format("%z"));
-    /// ```
-    #[cfg(feature = "std")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
-    pub fn local_offset_at(datetime: OffsetDateTime) -> Self {
-        try_local_offset_at(datetime).unwrap_or(Self::UTC)
-    }
-
     /// Attempt to obtain the system's UTC offset at a known moment in time. If
     /// the offset cannot be determined, an error is returned.
     ///
     /// ```rust
     /// # use time::{UtcOffset, OffsetDateTime};
     /// let unix_epoch = OffsetDateTime::unix_epoch();
-    /// let local_offset = UtcOffset::try_local_offset_at(unix_epoch);
+    /// let local_offset = UtcOffset::local_offset_at(unix_epoch);
     /// assert!(local_offset.is_ok());
     /// ```
-    #[cfg(feature = "std")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
-    pub fn try_local_offset_at(
-        datetime: OffsetDateTime,
-    ) -> Result<Self, error::IndeterminateOffset> {
-        try_local_offset_at(datetime).ok_or(error::IndeterminateOffset)
-    }
-
-    /// Obtain the system's current UTC offset. If the offset cannot be
-    /// determined, UTC is returned.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// let local_offset = UtcOffset::current_local_offset();
-    /// println!("{}", local_offset.format("%z"));
-    /// ```
-    #[cfg(feature = "std")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
-    pub fn current_local_offset() -> Self {
-        let now = OffsetDateTime::now_utc();
-        try_local_offset_at(now).unwrap_or(Self::UTC)
+    #[cfg(feature = "local-offset")]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "local-offset")))]
+    pub fn local_offset_at(datetime: OffsetDateTime) -> Result<Self, error::IndeterminateOffset> {
+        local_offset_at(datetime).ok_or(error::IndeterminateOffset)
     }
 
     /// Attempt to obtain the system's current UTC offset. If the offset cannot
@@ -294,14 +262,14 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// let local_offset = UtcOffset::try_current_local_offset();
+    /// let local_offset = UtcOffset::current_local_offset();
     /// assert!(local_offset.is_ok());
     /// ```
-    #[cfg(feature = "std")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
-    pub fn try_current_local_offset() -> Result<Self, error::IndeterminateOffset> {
+    #[cfg(feature = "local-offset")]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "local-offset")))]
+    pub fn current_local_offset() -> Result<Self, error::IndeterminateOffset> {
         let now = OffsetDateTime::now_utc();
-        try_local_offset_at(now).ok_or(error::IndeterminateOffset)
+        local_offset_at(now).ok_or(error::IndeterminateOffset)
     }
 }
 
@@ -362,9 +330,9 @@ impl Display for UtcOffset {
 
 /// Attempt to obtain the system's UTC offset. If the offset cannot be
 /// determined, `None` is returned.
-#[cfg(feature = "std")]
+#[cfg(feature = "local-offset")]
 #[allow(clippy::too_many_lines)]
-fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
+fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     #[cfg(target_family = "unix")]
     {
         use core::{convert::TryInto, mem::MaybeUninit};
