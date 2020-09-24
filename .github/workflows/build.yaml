@@ -15,8 +15,7 @@ jobs:
         rust: [1.32.0, 1.36.0, stable]
         target:
           - { triple: x86_64-unknown-netbsd, std: true }
-          # Illumos target does not exist until Rust 1.47.
-          # - { triple: x86_64-unknown-illumos, std: true }
+          - { triple: x86_64-sun-solaris, std: true }
           - { triple: wasm32-wasi, std: true }
           - { triple: thumbv7em-none-eabihf, std: false }
         exclude:
@@ -26,6 +25,11 @@ jobs:
           - # WASI target did not exist at the time
             rust: 1.32.0
             target: { triple: wasm32-wasi, std: true }
+          - # Solaris target did not exist in previous rust
+            rust: 1.32.0
+            target: { triple: x86_64-sun-solaris, std: true }
+          - rust: 1.36.0
+            target: { triple: x86_64-sun-solaris, std: true }
 
     steps:
       - name: Checkout sources
