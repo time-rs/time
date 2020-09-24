@@ -602,14 +602,21 @@ impl Date {
     /// ```rust
     /// # use time::Date;
     /// # use time_macros::date;
-    /// assert_eq!(Date::from_julian_day(0), date!("-4713-11-24"));
-    /// assert_eq!(Date::from_julian_day(2_451_545), date!("2000-01-01"));
-    /// assert_eq!(Date::from_julian_day(2_458_485), date!("2019-01-01"));
-    /// assert_eq!(Date::from_julian_day(2_458_849), date!("2019-12-31"));
+    /// assert_eq!(Date::from_julian_day(0), Ok(date!("-4713-11-24")));
+    /// assert_eq!(Date::from_julian_day(2_451_545), Ok(date!("2000-01-01")));
+    /// assert_eq!(Date::from_julian_day(2_458_485), Ok(date!("2019-01-01")));
+    /// assert_eq!(Date::from_julian_day(2_458_849), Ok(date!("2019-12-31")));
     /// ```
-    // TODO Return a `Result<Self, error::ComponentRange>` in 0.3
-    pub fn from_julian_day(julian_day: i64) -> Self {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn from_julian_day(julian_day: i64) -> Result<Self, error::ComponentRange> {
         #![allow(clippy::many_single_char_names)]
+
+        let min_julian_day = Date::from_yo_unchecked(MIN_YEAR, 1).julian_day();
+        let max_julian_day = Date::from_yo_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).julian_day();
+        ensure_value_in_range!(julian_day in min_julian_day => max_julian_day);
+
         let z = julian_day - 1_721_119;
         let h = 100 * z - 25;
         let a = div_floor(h, 3_652_425);
@@ -624,10 +631,7 @@ impl Date {
             month -= 12;
         }
 
-        match Date::from_ymd(year as i32, month as u8, day as u8) {
-            Ok(date) => date,
-            Err(err) => panic!("{}", err),
-        }
+        Date::from_ymd(year as i32, month as u8, day as u8)
     }
 }
 
@@ -849,6 +853,7 @@ impl Add<Duration> for Date {
 
     fn add(self, duration: Duration) -> Self::Output {
         Self::from_julian_day(self.julian_day() + duration.whole_days())
+            .expect("overflow adding duration to date")
     }
 }
 
@@ -857,6 +862,7 @@ impl Add<StdDuration> for Date {
 
     fn add(self, duration: StdDuration) -> Self::Output {
         Self::from_julian_day(self.julian_day() + (duration.as_secs() / 86_400) as i64)
+            .expect("overflow adding duration to date")
     }
 }
 
@@ -885,6 +891,7 @@ impl Sub<StdDuration> for Date {
 
     fn sub(self, duration: StdDuration) -> Self::Output {
         Self::from_julian_day(self.julian_day() - (duration.as_secs() / 86_400) as i64)
+            .expect("overflow subtracting duration from date")
     }
 }
 
