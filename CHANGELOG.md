@@ -7,6 +7,16 @@ Versioning].
 
 ---
 
+## 0.2.22 [2020-09-25]
+
+### Fixed
+
+- Solaris & Illumos now successfully build.
+- `Duration::new` could previously result in an inconsistent internal state.
+  This led to some odd situations where a `Duration` could be both positive and
+  negative. This has been fixed such that the internal state maintains its
+  invariants.
+
 ## 0.2.21 [2020-09-20]
 
 ### Changed

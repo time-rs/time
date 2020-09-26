@@ -78,10 +78,24 @@ fn new() {
     assert_eq!(Duration::new(-1, 0), (-1).seconds());
     assert_eq!(Duration::new(1, 2_000_000_000), 3.seconds());
 
-    assert!(Duration::new(0, 0).is_zero());
-    assert!(Duration::new(0, 1_000_000_000).is_positive());
-    assert!(Duration::new(-1, 1_000_000_000).is_zero());
-    assert!(Duration::new(-2, 1_000_000_000).is_negative());
+    assert_eq!(Duration::new(0, 0), 0.seconds());
+    assert_eq!(Duration::new(0, 1_000_000_000), 1.seconds());
+    assert_eq!(Duration::new(-1, 1_000_000_000), 0.seconds());
+    assert_eq!(Duration::new(-2, 1_000_000_000), (-1).seconds());
+
+    assert_eq!(Duration::new(1, -1), 999_999_999.nanoseconds());
+    assert_eq!(Duration::new(-1, 1), (-999_999_999).nanoseconds());
+    assert_eq!(Duration::new(1, 1), 1_000_000_001.nanoseconds());
+    assert_eq!(Duration::new(-1, -1), (-1_000_000_001).nanoseconds());
+    assert_eq!(Duration::new(0, 1), 1.nanoseconds());
+    assert_eq!(Duration::new(0, -1), (-1).nanoseconds());
+
+    assert_eq!(Duration::new(-1, 1_400_000_000), 400.milliseconds());
+    assert_eq!(Duration::new(-2, 1_400_000_000), (-600).milliseconds());
+    assert_eq!(Duration::new(-3, 1_400_000_000), (-1_600).milliseconds());
+    assert_eq!(Duration::new(1, -1_400_000_000), (-400).milliseconds());
+    assert_eq!(Duration::new(2, -1_400_000_000), 600.milliseconds());
+    assert_eq!(Duration::new(3, -1_400_000_000), 1_600.milliseconds());
 }
 
 #[test]
