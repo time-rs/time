@@ -23,7 +23,7 @@ impl TryFrom<Weekday> for crate::Weekday {
             Weekday(5) => Ok(Friday),
             Weekday(6) => Ok(Saturday),
             Weekday(7) => Ok(Sunday),
-            _ => Err("invalid value"),
+            _ => Err("invalid weekday"),
         }
     }
 }

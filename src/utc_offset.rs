@@ -18,7 +18,7 @@ use core::fmt::{self, Display};
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serde",
-    serde(try_from = "crate::serde::UtcOffset", into = "crate::serde::UtcOffset")
+    serde(into = "crate::serde::UtcOffset", try_from = "crate::serde::UtcOffset")
 )]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct UtcOffset {

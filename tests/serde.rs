@@ -6,7 +6,7 @@ use time_macros::{date, datetime, offset, time};
 #[test]
 fn time() -> serde_json::Result<()> {
     let original = [Time::midnight(), time!("23:59:59.999_999_999")];
-    let serialized = "[[0,0],[86399,999999999]]";
+    let serialized = "[[0,0,0,0],[23,59,59,999999999]]";
 
     assert_eq!(serde_json::to_string(&original)?, serialized);
     assert_eq!(serde_json::from_str::<[Time; 2]>(serialized)?, original);
@@ -31,7 +31,7 @@ fn primitive_date_time() -> serde_json::Result<()> {
         datetime!("-999_999-001 0:00"),
         datetime!("+999_999-365 23:59:59.999_999_999"),
     ];
-    let serialized = "[[-999999,1,0,0],[999999,365,86399,999999999]]";
+    let serialized = "[[-999999,1,0,0,0,0],[999999,365,23,59,59,999999999]]";
 
     assert_eq!(serde_json::to_string(&original)?, serialized);
     assert_eq!(
@@ -45,10 +45,10 @@ fn primitive_date_time() -> serde_json::Result<()> {
 #[test]
 fn offset_date_time() -> serde_json::Result<()> {
     let original = [
-        datetime!("-999_999-001 0:00 UTC").to_offset(offset!("-23:59:59")),
-        datetime!("+999_999-365 23:59:59.999_999_999 UTC").to_offset(offset!("+23:59:59")),
+        datetime!("-999_999-001 0:00 UTC").to_offset(offset!("+23:59:59")),
+        datetime!("+999_999-365 23:59:59.999_999_999 UTC").to_offset(offset!("-23:59:59")),
     ];
-    let serialized = "[[-999999,1,0,0],[999999,365,86399,999999999]]";
+    let serialized = "[[-999999,1,23,59,59,0,86399],[999999,365,0,0,0,999999999,-86399]]";
 
     assert_eq!(serde_json::to_string(&original)?, serialized);
     assert_eq!(
