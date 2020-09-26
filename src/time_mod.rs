@@ -29,7 +29,7 @@ pub(crate) const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serde",
-    serde(from = "crate::serde::Time", into = "crate::serde::Time")
+    serde(into = "crate::serde::Time", try_from = "crate::serde::Time")
 )]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Time {

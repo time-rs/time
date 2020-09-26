@@ -1,19 +1,19 @@
 use core::convert::TryFrom;
 
-// (year, ordinal)
+// year, ordinal
 #[derive(serde::Serialize, serde::Deserialize)]
 pub(crate) struct Date(pub(crate) i32, pub(crate) u16);
 
 impl From<crate::Date> for Date {
-    fn from(original: crate::Date) -> Self {
-        Self(original.year(), original.ordinal())
+    fn from(date: crate::Date) -> Self {
+        Self(date.year(), date.ordinal())
     }
 }
 
 impl TryFrom<Date> for crate::Date {
     type Error = &'static str;
 
-    fn try_from(original: Date) -> Result<Self, Self::Error> {
-        Self::from_yo(original.0, original.1).map_err(|_| "invalid value")
+    fn try_from(Date(year, ordinal): Date) -> Result<Self, Self::Error> {
+        Self::from_yo(year, ordinal).map_err(|_| "invalid date")
     }
 }

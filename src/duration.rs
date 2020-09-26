@@ -24,7 +24,7 @@ use standback::prelude::*; // duration_float (1.38)
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serde",
-    serde(from = "crate::serde::Duration", into = "crate::serde::Duration")
+    serde(into = "crate::serde::Duration", from = "crate::serde::Duration")
 )]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub struct Duration {

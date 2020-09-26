@@ -4,8 +4,6 @@ use crate::{
 };
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
-#[cfg(feature = "serde")]
-use core::convert::TryInto;
 use core::{
     cmp::Ordering,
     fmt::{self, Display},
@@ -14,26 +12,20 @@ use core::{
 };
 
 /// Combined date and time.
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(into = "crate::serde::PrimitiveDateTime"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(
+        into = "crate::serde::PrimitiveDateTime",
+        try_from = "crate::serde::PrimitiveDateTime"
+    )
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct PrimitiveDateTime {
     #[allow(clippy::missing_docs_in_private_items)]
     pub(crate) date: Date,
     #[allow(clippy::missing_docs_in_private_items)]
     pub(crate) time: Time,
-}
-
-#[cfg(feature = "serde")]
-impl<'a> serde::Deserialize<'a> for PrimitiveDateTime {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'a>,
-    {
-        crate::serde::PrimitiveDateTime::deserialize(deserializer)?
-            .try_into()
-            .map_err(serde::de::Error::custom)
-    }
 }
 
 impl PrimitiveDateTime {

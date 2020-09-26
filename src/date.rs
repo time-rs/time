@@ -6,8 +6,6 @@ use crate::{
 };
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
-#[cfg(feature = "serde")]
-use core::convert::TryInto;
 use core::{
     cmp::{Ord, Ordering, PartialOrd},
     fmt::{self, Display},
@@ -40,8 +38,11 @@ pub(crate) const fn div_floor(a: i64, b: i64) -> i64 {
 /// that can change at any time without notice. If you need support outside this
 /// range, please [file an issue](https://github.com/time-rs/time/issues/new)
 /// with your use case.
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(into = "crate::serde::Date"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(into = "crate::serde::Date", try_from = "crate::serde::Date")
+)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Date {
     /// Bitpacked field containing both the year and ordinal.
@@ -57,18 +58,6 @@ impl fmt::Debug for Date {
             .field("year", &self.year())
             .field("ordinal", &self.ordinal())
             .finish()
-    }
-}
-
-#[cfg(feature = "serde")]
-impl<'a> serde::Deserialize<'a> for Date {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'a>,
-    {
-        crate::serde::Date::deserialize(deserializer)?
-            .try_into()
-            .map_err(serde::de::Error::custom)
     }
 }
 
