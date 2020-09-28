@@ -125,6 +125,12 @@ impl Instant {
     }
 }
 
+impl Default for Instant {
+  fn default() -> Instant {
+    Instant::now()
+  }
+}
+
 impl From<StdInstant> for Instant {
     fn from(instant: StdInstant) -> Self {
         Self { inner: instant }
