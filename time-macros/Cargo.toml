@@ -1,6 +1,6 @@
 [package]
 name = "time-macros"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Jacob Pratt <the.z.cuber@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/time-rs/time"
