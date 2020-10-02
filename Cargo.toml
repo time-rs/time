@@ -41,7 +41,7 @@ libc = { version = "0.2", optional = true }
 winapi = { version = "0.3", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
-instant = { version = "0.1.7", features = [ "now", "wasm-bindgen" ] }
+instant = { version = "0.1.7", features = [ "wasm-bindgen" ], default-features = false }
 wasm-bindgen = { version = "0.2.68", optional = true }
 js-sys = "0.3.45"
 
