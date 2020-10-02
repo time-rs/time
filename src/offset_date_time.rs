@@ -112,8 +112,7 @@ impl OffsetDateTime {
         }
         #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
         {
-            Self::unix_epoch()
-                + ::instant::Duration::from_millis(js_sys::Date::new_0().get_time() as u64)
+            Self::unix_epoch() + Duration::milliseconds(js_sys::Date::new_0().get_time() as i64)
         }
     }
 

@@ -309,8 +309,6 @@ pub mod util;
 /// Days of the week.
 mod weekday;
 
-#[cfg(feature = "std")]
-pub use crate::instant::Instant;
 pub use date::Date;
 pub use duration::Duration;
 pub use error::{
@@ -321,6 +319,7 @@ pub use ext::{NumericalDuration, NumericalStdDuration, NumericalStdDurationShort
 pub(crate) use format::DeferredFormat;
 pub use format::Format;
 use format::ParseResult;
+pub use instant::Instant;
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
 #[allow(deprecated)]
