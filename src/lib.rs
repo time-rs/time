@@ -320,7 +320,7 @@ pub(crate) use format::DeferredFormat;
 pub use format::Format;
 use format::ParseResult;
 #[cfg(feature = "std")]
-pub use instant::Instant;
+pub use crate::instant::Instant;
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
 #[allow(deprecated)]

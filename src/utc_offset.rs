@@ -485,23 +485,20 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
         diff_secs.try_into().ok().map(UtcOffset::seconds)
     }
-    #[cfg(__time_02_cargo_web)]
+    #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
     {
-        use stdweb::{js, unstable::TryInto};
-
-        let timestamp_utc = datetime.timestamp();
-        let low_bits = (timestamp_utc & 0xFF_FF_FF_FF) as i32;
-        let high_bits = (timestamp_utc >> 32) as i32;
-
-        let timezone_offset = js! {
-            return
-                new Date(((@{high_bits} << 32) + @{low_bits}) * 1000)
-                    .getTimezoneOffset() * -60;
-        };
-
-        timezone_offset.try_into().ok().map(UtcOffset::seconds)
+        use standback::convert::TryInto;
+        let timestamp = (datetime.timestamp() as f64) * 1000.0;
+        (-js_sys::Date::new(&timestamp.into()).get_timezone_offset() as i64)
+            .try_into()
+            .ok()
+            .map(UtcOffset::minutes)
     }
-    #[cfg(not(any(target_family = "unix", target_family = "windows", __time_02_cargo_web)))]
+    #[cfg(not(any(
+        target_family = "unix",
+        target_family = "windows",
+        all(target_arch = "wasm32", target_os = "unknown")
+    )))]
     {
         // Silence the unused variable warning when appropriate.
         let _ = datetime;

@@ -106,7 +106,15 @@ impl OffsetDateTime {
     #[cfg(feature = "std")]
     #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
     pub fn now_utc() -> Self {
-        SystemTime::now().into()
+        #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+        {
+            SystemTime::now().into()
+        }
+        #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+        {
+            Self::unix_epoch()
+                + ::instant::Duration::from_millis(js_sys::Date::new_0().get_time() as u64)
+        }
     }
 
     /// Create a new `OffsetDateTime` with the current date and time in the

@@ -22,7 +22,7 @@ rustdoc-args = ["--cfg", "__time_02_docs"]
 default = ["deprecated", "std"]
 deprecated = []
 panicking-api = []
-std = ["libc", "winapi", "stdweb", "standback/std"]
+std = ["libc", "winapi", "wasm-bindgen", "standback/std"]
 
 [dependencies]
 const_fn = "0.4.2"
@@ -41,7 +41,9 @@ libc = { version = "0.2", optional = true }
 winapi = { version = "0.3", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-stdweb = { version = "0.4", default-features = false, optional = true }
+instant = { version = "0.1.7", features = [ "now", "wasm-bindgen" ] }
+wasm-bindgen = { version = "0.2.68", optional = true }
+js-sys = "0.3.45"
 
 [build-dependencies]
 version_check = "0.9"
