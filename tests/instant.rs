@@ -30,14 +30,14 @@ fn checked_sub() {
 }
 
 #[test]
-fn from_std() {
+fn std_from() {
     let now_time = Instant::now();
     let now_std = StdInstant::from(now_time);
     assert_eq!(now_time, now_std);
 }
 
 #[test]
-fn to_std() {
+fn from_std() {
     let now_std = StdInstant::now();
     let now_time = Instant::from(now_std);
     assert_eq!(now_time, now_std);
