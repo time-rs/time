@@ -1,0 +1,14 @@
+[package]
+name = "time-benchmarks"
+publish = false
+version = "0.0.0"
+authors = ["Jacob Pratt <the.z.cuber@gmail.com>", "Emil Lundberg <emil@emlun.se>"]
+edition = "2018"
+readme = "../README.md"
+license = "MIT OR Apache-2.0"
+description = "Benchmarks for the time crate."
+
+[dev-dependencies]
+criterion = "0.3"
+bench-util = { path = "./bench-util" }
+time = { path = "..", features = ["local-offset", "macros"] }
