@@ -14,5 +14,9 @@ bench-util = { path = "./bench-util" }
 time = { path = "..", features = ["local-offset", "macros"] }
 
 [[bench]]
+name = "date"
+harness = false
+
+[[bench]]
 name = "duration"
 harness = false
