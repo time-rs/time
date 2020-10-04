@@ -20,3 +20,7 @@ harness = false
 [[bench]]
 name = "duration"
 harness = false
+
+[[bench]]
+name = "instant"
+harness = false
