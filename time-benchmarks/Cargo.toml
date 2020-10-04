@@ -12,3 +12,7 @@ description = "Benchmarks for the time crate."
 criterion = "0.3"
 bench-util = { path = "./bench-util" }
 time = { path = "..", features = ["local-offset", "macros"] }
+
+[[bench]]
+name = "duration"
+harness = false
