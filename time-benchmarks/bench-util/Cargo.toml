@@ -1,0 +1,11 @@
+[package]
+name = "bench-util"
+publish = false
+version = "0.0.0"
+authors = ["Emil Lundberg <emil@emlun.se>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+description = "Shared utilities for the time-benchmarks crate."
+
+[dependencies]
+criterion = "0.3"
