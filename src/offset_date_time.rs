@@ -546,6 +546,88 @@ impl OffsetDateTime {
     }
 }
 
+/// Methods that replace part of the `OffsetDateTime`.
+impl OffsetDateTime {
+    /// Replace the time, which is assumed to be in the stored offset. The date
+    /// and offset components are unchanged.
+    ///
+    /// ```rust
+    /// # use time_macros::{datetime, time};
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 5:00 UTC").replace_time(time!("12:00")),
+    ///     datetime!("2020-01-01 12:00 UTC")
+    /// );
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 12:00 -5").replace_time(time!("7:00")),
+    ///     datetime!("2020-01-01 7:00 -5")
+    /// );
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 0:00 +1").replace_time(time!("12:00")),
+    ///     datetime!("2020-01-01 12:00 +1")
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
+    pub fn replace_time(self, time: Time) -> Self {
+        (self.utc_datetime + self.offset.as_duration())
+            .replace_time(time)
+            .assume_offset(self.offset)
+    }
+
+    /// Replace the date, which is assumed to be in the stored offset. The time
+    /// and offset components are unchanged.
+    ///
+    /// ```rust
+    /// # use time_macros::{datetime, date};
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 12:00 UTC").replace_date(date!("2020-01-30")),
+    ///     datetime!("2020-01-30 12:00 UTC")
+    /// );
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 0:00 +1").replace_date(date!("2020-01-30")),
+    ///     datetime!("2020-01-30 0:00 +1")
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
+    pub fn replace_date(self, date: Date) -> Self {
+        (self.utc_datetime + self.offset.as_duration())
+            .replace_date(date)
+            .assume_offset(self.offset)
+    }
+
+    /// Replace the date and time, which are assumed to be in the stored offset.
+    /// The offset component remains unchanged.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 12:00 UTC").replace_date_time(datetime!("2020-01-30 16:00")),
+    ///     datetime!("2020-01-30 16:00 UTC")
+    /// );
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 12:00 +1").replace_date_time(datetime!("2020-01-30 0:00")),
+    ///     datetime!("2020-01-30 0:00 +1")
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
+    pub fn replace_date_time(self, date_time: PrimitiveDateTime) -> Self {
+        date_time.assume_offset(self.offset)
+    }
+
+    /// Replace the offset. The date and time components remain unchanged.
+    ///
+    /// ```rust
+    /// # use time_macros::{datetime, offset};
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 0:00 UTC").replace_offset(offset!("-5")),
+    ///     datetime!("2020-01-01 0:00 -5")
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
+    pub fn replace_offset(self, offset: UtcOffset) -> Self {
+        self.utc_datetime.assume_offset(offset)
+    }
+}
+
 /// Methods that allow formatting the `OffsetDateTime`.
 impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided string.
