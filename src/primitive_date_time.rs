@@ -371,6 +371,37 @@ impl PrimitiveDateTime {
     }
 }
 
+/// Methods that replace part of the `PrimitiveDateTime`.
+impl PrimitiveDateTime {
+    /// Replace the time, preserving the date.
+    ///
+    /// ```rust
+    /// # use time_macros::{datetime, time};
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 17:00").replace_time(time!("5:00")),
+    ///     datetime!("2020-01-01 5:00")
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    pub const fn replace_time(self, time: Time) -> Self {
+        self.date.with_time(time)
+    }
+
+    /// Replace the date, preserving the time.
+    ///
+    /// ```rust
+    /// # use time_macros::{datetime, date};
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 12:00").replace_date(date!("2020-01-30")),
+    ///     datetime!("2020-01-30 12:00")
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    pub const fn replace_date(self, date: Date) -> Self {
+        date.with_time(self.time)
+    }
+}
+
 /// Methods that allow formatting the `PrimitiveDateTime`.
 impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided string.

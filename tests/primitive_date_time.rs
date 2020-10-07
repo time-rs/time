@@ -172,6 +172,22 @@ fn assume_utc() {
 }
 
 #[test]
+fn replace_time() {
+    assert_eq!(
+        datetime!("2020-01-01 12:00").replace_time(time!("5:00")),
+        datetime!("2020-01-01 5:00")
+    );
+}
+
+#[test]
+fn replace_date() {
+    assert_eq!(
+        datetime!("2020-01-01 12:00").replace_date(date!("2020-01-30")),
+        datetime!("2020-01-30 12:00")
+    );
+}
+
+#[test]
 fn format() {
     assert_eq!(
         datetime!("2019-01-02 3:04:05").format("%c"),
