@@ -269,6 +269,54 @@ fn nanosecond() {
 }
 
 #[test]
+fn replace_time() {
+    assert_eq!(
+        datetime!("2020-01-01 5:00 UTC").replace_time(time!("12:00")),
+        datetime!("2020-01-01 12:00 UTC")
+    );
+    assert_eq!(
+        datetime!("2020-01-01 12:00 -5").replace_time(time!("7:00")),
+        datetime!("2020-01-01 7:00 -5")
+    );
+    assert_eq!(
+        datetime!("2020-01-01 0:00 +1").replace_time(time!("12:00")),
+        datetime!("2020-01-01 12:00 +1")
+    );
+}
+
+#[test]
+fn replace_date() {
+    assert_eq!(
+        datetime!("2020-01-01 12:00 UTC").replace_date(date!("2020-01-30")),
+        datetime!("2020-01-30 12:00 UTC")
+    );
+    assert_eq!(
+        datetime!("2020-01-01 0:00 +1").replace_date(date!("2020-01-30")),
+        datetime!("2020-01-30 0:00 +1")
+    );
+}
+
+#[test]
+fn replace_date_time() {
+    assert_eq!(
+        datetime!("2020-01-01 12:00 UTC").replace_date_time(datetime!("2020-01-30 16:00")),
+        datetime!("2020-01-30 16:00 UTC")
+    );
+    assert_eq!(
+        datetime!("2020-01-01 12:00 +1").replace_date_time(datetime!("2020-01-30 0:00")),
+        datetime!("2020-01-30 0:00 +1")
+    );
+}
+
+#[test]
+fn replace_offset() {
+    assert_eq!(
+        datetime!("2020-01-01 0:00 UTC").replace_offset(offset!("-5")),
+        datetime!("2020-01-01 0:00 -5")
+    );
+}
+
+#[test]
 fn format() {
     assert_eq!(
         datetime!("2019-01-02 0:00 UTC").format("%F %r %z"),
