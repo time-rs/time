@@ -183,11 +183,19 @@ jobs:
             --group-features serde,rand,quickcheck
             --exclude-features default,libc,winapi,time-macros,quickcheck-dep
 
-      - name: Test (--all-features)
+      - name: Test (--all --all-features)
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features
+          args: --all --all-features
+        if: matrix.rust == '1.36.0' # `--workspace` was not implemented until Rust 1.39.
+
+      - name: Test (--workspace --all-features)
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --workspace --all-features
+        if: matrix.rust != '1.36.0'
 
   fmt:
     name: Formatting
