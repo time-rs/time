@@ -13,12 +13,14 @@ pub(crate) fn get_string_literal(tokens: TokenStream) -> Result<String, Error> {
     match tokens.next() {
         Some(TokenTree::Literal(literal)) => {
             let s = literal.to_string();
-            if !s.starts_with('"') || !s.ends_with('"') {
-                Err(Error::ExpectedString)
-            } else if let Some(tree) = tokens.next() {
-                Err(Error::UnexpectedToken { tree })
+            if s.starts_with('"') && s.ends_with('"') {
+                tokens
+                    .next()
+                    .map_or(Ok(s[1..s.len() - 1].to_owned()), |tree| {
+                        Err(Error::UnexpectedToken { tree })
+                    })
             } else {
-                Ok(s[1..(s.len() - 1)].to_owned())
+                Err(Error::ExpectedString)
             }
         }
         _ => Err(Error::ExpectedString),
