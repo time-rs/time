@@ -46,3 +46,7 @@ harness = false
 [[bench]]
 name = "time"
 harness = false
+
+[[bench]]
+name = "utc_offset"
+harness = false
