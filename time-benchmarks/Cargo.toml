@@ -11,7 +11,8 @@ description = "Benchmarks for the time crate."
 [dev-dependencies]
 criterion = "0.3"
 bench-util = { path = "./bench-util" }
-time = { path = "..", features = ["local-offset", "macros"] }
+rand = { version = "0.7", default-features = false }
+time = { path = "..", features = ["local-offset", "macros", "rand"] }
 
 [[bench]]
 name = "date"
@@ -31,4 +32,8 @@ harness = false
 
 [[bench]]
 name = "primitive_date_time"
+harness = false
+
+[[bench]]
+name = "rand"
 harness = false
