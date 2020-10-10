@@ -24,3 +24,7 @@ harness = false
 [[bench]]
 name = "instant"
 harness = false
+
+[[bench]]
+name = "offset_date_time"
+harness = false
