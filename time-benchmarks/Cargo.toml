@@ -28,6 +28,18 @@ name = "error"
 harness = false
 
 [[bench]]
+name = "ext"
+harness = false
+
+[[bench]]
+name = "ext_std"
+harness = false
+
+[[bench]]
+name = "ext_std_short"
+harness = false
+
+[[bench]]
 name = "instant"
 harness = false
 
