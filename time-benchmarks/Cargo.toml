@@ -12,7 +12,8 @@ description = "Benchmarks for the time crate."
 criterion = "0.3"
 bench-util = { path = "./bench-util" }
 rand = { version = "0.7", default-features = false }
-time = { path = "..", features = ["local-offset", "macros", "rand"] }
+serde_json = "1"
+time = { path = "..", features = ["local-offset", "macros", "rand", "serde"] }
 
 [[bench]]
 name = "date"
@@ -36,4 +37,8 @@ harness = false
 
 [[bench]]
 name = "rand"
+harness = false
+
+[[bench]]
+name = "serde"
 harness = false
