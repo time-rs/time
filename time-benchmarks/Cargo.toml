@@ -54,3 +54,7 @@ harness = false
 [[bench]]
 name = "util"
 harness = false
+
+[[bench]]
+name = "weekday"
+harness = false
