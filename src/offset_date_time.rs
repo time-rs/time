@@ -1,20 +1,26 @@
 use crate::{
     error,
-    format::parse::{parse, ParsedItems},
-    Date, DeferredFormat, Duration, Format, ParseResult, PrimitiveDateTime, Time, UtcOffset,
+    Date, Duration, PrimitiveDateTime, Time, UtcOffset,
     Weekday,
 };
+#[cfg(feature = "alloc")]
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
+#[cfg(feature = "alloc")]
+use crate::{
+    format::parse::{parse, ParsedItems},
+    DeferredFormat, Format, ParseResult,
+};
 #[cfg(feature = "std")]
 use core::convert::{From, TryFrom};
 use core::{
     cmp::Ordering,
-    fmt::{self, Display},
     hash::{Hash, Hasher},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
+#[cfg(feature = "alloc")]
+use core::fmt::{self, Display};
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
@@ -673,6 +679,7 @@ impl OffsetDateTime {
 }
 
 /// Methods that allow formatting the `OffsetDateTime`.
+#[cfg(feature = "alloc")]
 impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided string.
     ///
@@ -720,6 +727,7 @@ impl OffsetDateTime {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl Display for OffsetDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}", self.date(), self.time(), self.offset())

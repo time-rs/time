@@ -1,11 +1,15 @@
 #[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
 use crate::{
-    error,
-    format::{parse, ParsedItems},
-    DeferredFormat, Duration, Format, ParseResult,
+    error, Duration, 
 };
+#[cfg(feature = "alloc")]
 use alloc::string::{String, ToString};
+#[cfg(feature = "alloc")]
+use crate::{
+    format::{parse, ParsedItems},
+    DeferredFormat, Format, ParseResult,
+};
 use const_fn::const_fn;
 use core::fmt::{self, Display};
 
@@ -274,6 +278,7 @@ impl UtcOffset {
 }
 
 /// Methods that allow parsing and formatting the `UtcOffset`.
+#[cfg(feature = "alloc")]
 impl UtcOffset {
     /// Format the `UtcOffset` using the provided string.
     ///

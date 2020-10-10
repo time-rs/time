@@ -11,6 +11,7 @@ use crate::{
     },
     DeferredFormat, ParseResult,
 };
+#[cfg(feature = "alloc")]
 use alloc::string::String;
 use core::fmt::Formatter;
 #[allow(unused_imports)]
@@ -50,6 +51,7 @@ pub(crate) mod rfc3339 {
     }
 
     /// Parse `s` as specified by RFC3339.
+    #[cfg(feature = "alloc")]
     pub(crate) fn parse(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
         items.year = try_consume_exact_digits::<i32>(s, 4, Padding::None)
             .ok_or(error::Parse::InvalidYear)?

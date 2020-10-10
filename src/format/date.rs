@@ -12,6 +12,7 @@ use crate::{
     },
     Date, Weekday,
 };
+#[cfg(feature = "alloc")]
 use alloc::string::ToString;
 use core::{
     fmt::{self, Formatter},
@@ -232,6 +233,7 @@ pub(crate) fn fmt_u(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
 }
 
 /// ISO weekday (Monday = `1`, Sunday = `7`)
+#[cfg(feature = "alloc")]
 pub(crate) fn parse_u(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
     items.weekday = Some(
         try_consume_first_match(
@@ -276,6 +278,7 @@ pub(crate) fn fmt_w(f: &mut Formatter<'_>, date: Date) -> fmt::Result {
 }
 
 /// Weekday number (Sunday = `0`, Saturday = `6`)
+#[cfg(feature = "alloc")]
 pub(crate) fn parse_w(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
     let mut weekdays = WEEKDAYS;
     weekdays.rotate_left(1);

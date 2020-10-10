@@ -1,15 +1,25 @@
 use crate::{
     error,
-    format::parse::{parse, ParsedItems},
     util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year},
-    DeferredFormat, Duration, Format, ParseResult, PrimitiveDateTime, Time, Weekday,
+    Duration, PrimitiveDateTime, Time, Weekday,
 };
+#[cfg(feature = "alloc")]
+use crate::{
+    format::parse::{parse, ParsedItems},
+    DeferredFormat, Format, ParseResult,
+};
+#[cfg(feature = "alloc")]
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::{
-    fmt::{self, Display},
+    fmt,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
+};
+#[cfg(feature = "alloc")]
+use core::{
+    cmp::{Ord, PartialOrd},
+    fmt::Display,
 };
 
 /// The minimum valid year.
@@ -718,6 +728,7 @@ impl Date {
 }
 
 /// Methods that allow formatting the `Date`.
+#[cfg(feature = "alloc")]
 impl Date {
     /// Format the `Date` using the provided string.
     ///
@@ -797,6 +808,7 @@ impl Date {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl Display for Date {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use crate::format::{date, Padding};

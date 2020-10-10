@@ -1,16 +1,21 @@
 use crate::{
-    format::parse::{parse, ParsedItems},
-    util, Date, DeferredFormat, Duration, Format, OffsetDateTime, ParseResult, Time, UtcOffset,
-    Weekday,
+    Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday,
 };
+#[cfg(feature = "alloc")]
 use alloc::string::{String, ToString};
+#[cfg(feature = "alloc")]
+use crate::{
+    format::parse::{parse, ParsedItems},
+    DeferredFormat, Format, ParseResult,
+};
 use const_fn::const_fn;
 use core::{
     cmp::Ordering,
-    fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
+#[cfg(feature = "alloc")]
+use core::fmt::{self, Display};
 
 /// Combined date and time.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -465,6 +470,7 @@ impl PrimitiveDateTime {
 }
 
 /// Methods that allow formatting the `PrimitiveDateTime`.
+#[cfg(feature = "alloc")]
 impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided string.
     ///
@@ -513,6 +519,7 @@ impl PrimitiveDateTime {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl Display for PrimitiveDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {}", self.date(), self.time())
