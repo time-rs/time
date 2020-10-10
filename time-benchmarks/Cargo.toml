@@ -50,3 +50,7 @@ harness = false
 [[bench]]
 name = "utc_offset"
 harness = false
+
+[[bench]]
+name = "util"
+harness = false
