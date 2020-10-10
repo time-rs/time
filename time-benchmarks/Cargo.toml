@@ -42,3 +42,7 @@ harness = false
 [[bench]]
 name = "serde"
 harness = false
+
+[[bench]]
+name = "time"
+harness = false
