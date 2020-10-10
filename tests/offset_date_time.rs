@@ -713,7 +713,7 @@ fn eq_std() {
 fn std_eq() {
     let now_datetime = OffsetDateTime::now_utc();
     let now_systemtime = SystemTime::from(now_datetime);
-    assert_eq!(now_datetime, now_systemtime);
+    assert_eq!(now_systemtime, now_datetime);
 }
 
 #[test]
