@@ -24,6 +24,10 @@ name = "duration"
 harness = false
 
 [[bench]]
+name = "error"
+harness = false
+
+[[bench]]
 name = "instant"
 harness = false
 
