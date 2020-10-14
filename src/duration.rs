@@ -573,21 +573,20 @@ impl Duration {
     /// assert_eq!(Duration::max_value().checked_add(1.nanoseconds()), None);
     /// assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
     /// ```
-    pub fn checked_add(self, rhs: Self) -> Option<Self> {
-        let mut seconds = self.seconds.checked_add(rhs.seconds)?;
+    ///
+    /// This function is `const fn` when using rustc >= 1.47.
+    #[const_fn("1.47")]
+    pub const fn checked_add(self, rhs: Self) -> Option<Self> {
+        let mut seconds = const_try_opt!(self.seconds.checked_add(rhs.seconds));
         let mut nanoseconds = self.nanoseconds + rhs.nanoseconds;
 
         if nanoseconds >= 1_000_000_000 || seconds < 0 && nanoseconds > 0 {
             nanoseconds -= 1_000_000_000;
-            seconds = seconds.checked_add(1)?;
+            seconds = const_try_opt!(seconds.checked_add(1));
         } else if nanoseconds <= -1_000_000_000 || seconds > 0 && nanoseconds < 0 {
             nanoseconds += 1_000_000_000;
-            seconds = seconds.checked_sub(1)?;
+            seconds = const_try_opt!(seconds.checked_sub(1));
         }
-
-        // Ensure that the signs match _unless_ one of them is zero.
-        debug_assert_ne!(seconds.signum() * nanoseconds.signum() as i64, -1);
-        debug_assert!((-999_999_999..1_000_000_000).contains(&nanoseconds));
 
         Some(Self {
             seconds,
@@ -603,8 +602,14 @@ impl Duration {
     /// assert_eq!(Duration::min_value().checked_sub(1.nanoseconds()), None);
     /// assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
     /// ```
-    pub fn checked_sub(self, rhs: Self) -> Option<Self> {
-        self.checked_add(-rhs)
+    ///
+    /// This function is `const fn` when using rustc >= 1.47.
+    #[const_fn("1.47")]
+    pub const fn checked_sub(self, rhs: Self) -> Option<Self> {
+        self.checked_add(Self {
+            seconds: -rhs.seconds,
+            nanoseconds: -rhs.nanoseconds,
+        })
     }
 
     /// Computes `self * rhs`, returning `None` if an overflow occurred.
@@ -617,15 +622,17 @@ impl Duration {
     /// assert_eq!(Duration::max_value().checked_mul(2), None);
     /// assert_eq!(Duration::min_value().checked_mul(2), None);
     /// ```
-    pub fn checked_mul(self, rhs: i32) -> Option<Self> {
+    ///
+    /// This function is `const fn` when using rustc >= 1.47.
+    #[const_fn("1.47")]
+    pub const fn checked_mul(self, rhs: i32) -> Option<Self> {
         // Multiply nanoseconds as i64, because it cannot overflow that way.
         let total_nanos = self.nanoseconds as i64 * rhs as i64;
         let extra_secs = total_nanos / 1_000_000_000;
         let nanoseconds = (total_nanos % 1_000_000_000) as i32;
-        let seconds = self
-            .seconds
-            .checked_mul(rhs as i64)?
-            .checked_add(extra_secs)?;
+        let seconds = const_try_opt!(
+            const_try_opt!(self.seconds.checked_mul(rhs as i64)).checked_add(extra_secs)
+        );
 
         Some(Self {
             seconds,

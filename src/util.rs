@@ -76,7 +76,9 @@ pub const fn days_in_year(year: i32) -> u16 {
 /// This function is `const fn` when using rustc >= 1.46.
 #[const_fn("1.46")]
 pub const fn weeks_in_year(year: i32) -> u8 {
-    let weekday = Date::from_yo_unchecked(year, 1).iso_weekday_number();
+    let weekday = Date::from_yo_unchecked(year, 1)
+        .weekday()
+        .iso_weekday_number();
 
     if weekday == 4 || weekday == 3 && is_leap_year(year) {
         53

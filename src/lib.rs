@@ -219,6 +219,18 @@ macro_rules! const_try {
     };
 }
 
+/// Try to unwrap an expression, returning if not possible.
+///
+/// This is similar to the `?` operator, but is usable in `const` contexts.
+macro_rules! const_try_opt {
+    ($e:expr) => {
+        match $e {
+            Some(value) => value,
+            None => return None,
+        }
+    };
+}
+
 /// The `Date` struct and its associated `impl`s.
 mod date;
 /// The `Duration` struct and its associated `impl`s.
