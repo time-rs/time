@@ -239,7 +239,10 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-11-01 0:00").weekday(), Friday);
     /// assert_eq!(datetime!("2019-12-01 0:00").weekday(), Sunday);
     /// ```
-    pub fn weekday(self) -> Weekday {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn weekday(self) -> Weekday {
         self.date().weekday()
     }
 

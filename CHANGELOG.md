@@ -35,6 +35,12 @@ Versioning].
   - `Time::try_from_hms_nano` → `Time::from_hms_nano`
   - `UtcOffset::try_local_offset_at` → `UtcOffset::local_offset_at`
   - `OffsetDateTime::try_now_local` → `OffsetDateTime::now_local`
+- Now `const fn` (on at least newer compilers)
+  - `Date::weekday`
+  - `PrimitiveDateTime::weekday`
+  - `Duration::checked_add`
+  - `Duration::checked_sub`
+  - `Duration::checked_mul`
 - No longer `const fn` on older compilers
   - `util::is_leap_year`
   - `util::days_in_year`

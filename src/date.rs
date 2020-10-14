@@ -324,12 +324,12 @@ impl Date {
     pub const fn iso_year_week(self) -> (i32, u8) {
         let (year, ordinal) = self.as_yo();
 
-        match ((ordinal + 10 - self.iso_weekday_number() as u16) / 7) as u8 {
+        match ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as u8 {
             0 => (year - 1, weeks_in_year(year - 1)),
             53 if weeks_in_year(year) == 52 => (year + 1, 1),
             _ => (
                 year,
-                ((ordinal + 10 - self.iso_weekday_number() as u16) / 7) as u8,
+                ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as u8,
             ),
         }
     }
@@ -368,7 +368,7 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn sunday_based_week(self) -> u8 {
-        ((self.ordinal() as i16 - self.number_days_from_sunday() as i16 + 6) / 7) as u8
+        ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as u8
     }
 
     /// Get the week number where week 1 begins on the first Monday.
@@ -386,7 +386,7 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn monday_based_week(self) -> u8 {
-        ((self.ordinal() as i16 - self.number_days_from_monday() as i16 + 6) / 7) as u8
+        ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as u8
     }
 
     /// Get the year, month, and day.
@@ -417,52 +417,6 @@ impl Date {
         (self.year(), self.ordinal())
     }
 
-    /// Get the ISO weekday number.
-    ///
-    /// This is equivalent to calling `.weekday().iso_weekday_number()`, but is
-    /// usable in `const` contexts.
-    #[const_fn("1.46")]
-    pub(crate) const fn iso_weekday_number(self) -> u8 {
-        self.number_days_from_monday() + 1
-    }
-
-    /// Get the number of days from Sunday.
-    ///
-    /// This is equivalent to calling `.weekday().number_days_from_sunday()`,
-    /// but is usable in `const` contexts.
-    #[const_fn("1.46")]
-    pub(crate) const fn number_days_from_sunday(self) -> u8 {
-        self.iso_weekday_number() % 7
-    }
-
-    /// Get the number of days from Monday.
-    ///
-    /// This is equivalent to calling `.weekday().number_days_from_monday()`,
-    /// but is usable in `const` contexts.
-    #[const_fn("1.46")]
-    pub(crate) const fn number_days_from_monday(self) -> u8 {
-        let (year, month, day) = self.as_ymd();
-
-        let (month, adjusted_year) = if month < 3 {
-            (month + 12, year - 1)
-        } else {
-            (month, year)
-        };
-
-        let raw_weekday =
-            (day as i32 + (13 * (month as i32 + 1)) / 5 + adjusted_year + adjusted_year / 4
-                - adjusted_year / 100
-                + adjusted_year / 400)
-                % 7
-                - 2;
-
-        if raw_weekday < 0 {
-            (raw_weekday + 7) as u8
-        } else {
-            raw_weekday as u8
-        }
-    }
-
     /// Get the weekday.
     ///
     /// This current uses [Zeller's congruence](https://en.wikipedia.org/wiki/Zeller%27s_congruence)
@@ -484,18 +438,37 @@ impl Date {
     /// assert_eq!(date!("2019-11-01").weekday(), Friday);
     /// assert_eq!(date!("2019-12-01").weekday(), Sunday);
     /// ```
-    pub fn weekday(self) -> Weekday {
-        match self.number_days_from_monday() {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn weekday(self) -> Weekday {
+        let (year, month, day) = self.as_ymd();
+
+        let (month, adjusted_year) = if month < 3 {
+            (month + 12, year - 1)
+        } else {
+            (month, year)
+        };
+
+        let raw_weekday =
+            (day as i32 + (13 * (month as i32 + 1)) / 5 + adjusted_year + adjusted_year / 4
+                - adjusted_year / 100
+                + adjusted_year / 400)
+                % 7
+                - 2;
+
+        match raw_weekday {
             0 => Weekday::Monday,
-            1 => Weekday::Tuesday,
-            2 => Weekday::Wednesday,
-            3 => Weekday::Thursday,
-            4 => Weekday::Friday,
-            5 => Weekday::Saturday,
-            6 => Weekday::Sunday,
-            // FIXME The compiler isn't able to optimize this away. See
-            // rust-lang/rust#66993.
-            _ => unreachable!("A value mod 7 is always in the range 0..7"),
+            -6 | 1 => Weekday::Tuesday,
+            -5 | 2 => Weekday::Wednesday,
+            -4 | 3 => Weekday::Thursday,
+            -3 | 4 => Weekday::Friday,
+            -2 | 5 => Weekday::Saturday,
+            // When performing `x % 7`, `x` is always in the range -6..=6. As
+            // the other values have all been matched above, this is equivalent
+            // to `-1 | 6`. The advantage of this is that it is usable in a
+            // const context.
+            _ => Weekday::Sunday,
         }
     }
 
@@ -784,6 +757,7 @@ impl Date {
 
         /// Get the value needed to adjust the ordinal day for Sunday and
         /// Monday-based week numbering.
+        #[allow(clippy::missing_const_for_fn)] // inside non-const outer fn
         fn adjustment(year: i32) -> i16 {
             match Date::from_yo_unchecked(year, 1).weekday() {
                 Weekday::Monday => 7,
