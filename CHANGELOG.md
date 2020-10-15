@@ -41,6 +41,8 @@ Versioning].
   - `Duration::checked_add`
   - `Duration::checked_sub`
   - `Duration::checked_mul`
+  - `OffsetDateTime::from_unix_timestamp`
+  - `OffsetDateTime::from_unix_timestamp_nanos`
 - No longer `const fn` on older compilers
   - `util::is_leap_year`
   - `util::days_in_year`
@@ -59,8 +61,19 @@ Versioning].
   - `UtcOffset::seconds`
 - Some variants of `Error` no longer contain an inner item. This is because the
   item is already guaranteed to be a zero-sized struct.
-- `UtcOffset` constructors now check their input and return a `Result`.
-- `Date::from_julian_day` now returns a `Result`.
+- The following functions now return a `Result`:
+  - `UtcOffset::east_hours`
+  - `UtcOffset::west_hours`
+  - `UtcOffset::hours`
+  - `UtcOffset::east_minutes`
+  - `UtcOffset::west_minutes`
+  - `UtcOffset::minutes`
+  - `UtcOffset::east_seconds`
+  - `UtcOffset::west_seconds`
+  - `UtcOffset::seconds`
+  - `Date::from_julian_day`
+  - `OffsetDateTime::from_unix_timestamp`
+  - `OffsetDateTime::from_unix_timestamp_nanos`
 - Formatting strings must be provided as `&str`. As it is trivial to take a
   reference to a `String`, this shouldn't be an issue.
 - The range of valid years has been increased to ±999,999.

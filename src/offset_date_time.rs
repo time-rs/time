@@ -1,11 +1,11 @@
-#[cfg(feature = "local-offset")]
-use crate::error;
 use crate::{
+    error,
     format::parse::{parse, ParsedItems},
     Date, DeferredFormat, Duration, Format, ParseResult, PrimitiveDateTime, Time, UtcOffset,
     Weekday,
 };
 use alloc::string::{String, ToString};
+use const_fn::const_fn;
 #[cfg(feature = "std")]
 use core::convert::{From, TryFrom};
 use core::{
@@ -144,11 +144,11 @@ impl OffsetDateTime {
     /// # use time_macros::datetime;
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp(0),
-    ///     OffsetDateTime::unix_epoch(),
+    ///     Ok(OffsetDateTime::unix_epoch()),
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp(1_546_300_800),
-    ///     datetime!("2019-01-01 0:00 UTC"),
+    ///     Ok(datetime!("2019-01-01 0:00 UTC")),
     /// );
     /// ```
     ///
@@ -159,12 +159,35 @@ impl OffsetDateTime {
     /// # use time::{Duration, OffsetDateTime, ext::NumericalDuration};
     /// let (timestamp, nanos) = (1, 500_000_000);
     /// assert_eq!(
-    ///     OffsetDateTime::from_unix_timestamp(timestamp) + Duration::nanoseconds(nanos),
+    ///     OffsetDateTime::from_unix_timestamp(timestamp)? + Duration::nanoseconds(nanos),
     ///     OffsetDateTime::unix_epoch() + 1.5.seconds()
     /// );
+    /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn from_unix_timestamp(timestamp: i64) -> Self {
-        OffsetDateTime::unix_epoch() + Duration::seconds(timestamp)
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn from_unix_timestamp(timestamp: i64) -> Result<Self, error::ComponentRange> {
+        let unix_epoch_julian_date = Date::from_yo_unchecked(1970, 1).julian_day();
+
+        let whole_days = timestamp / 86_400;
+        let date = const_try!(Date::from_julian_day(unix_epoch_julian_date + whole_days));
+
+        let hour = match (timestamp % 86_400 / 3_600) % 24 {
+            value if value < 0 => value + 24,
+            value => value,
+        };
+        let minute = match (timestamp % 3_600 / 60) % 60 {
+            value if value < 0 => value + 60,
+            value => value,
+        };
+        let second = match timestamp % 60 {
+            value if value < 0 => value + 60,
+            value => value,
+        };
+        let time = Time::from_hms_nanos_unchecked(hour as u8, minute as u8, second as u8, 0);
+
+        Ok(PrimitiveDateTime::new(date, time).assume_utc())
     }
 
     /// Construct an `OffsetDateTime` from the provided Unix timestamp (in
@@ -175,21 +198,46 @@ impl OffsetDateTime {
     /// # use time_macros::datetime;
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp_nanos(0),
-    ///     OffsetDateTime::unix_epoch(),
+    ///     Ok(OffsetDateTime::unix_epoch()),
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp_nanos(1_546_300_800_000_000_000),
-    ///     datetime!("2019-01-01 0:00 UTC"),
+    ///     Ok(datetime!("2019-01-01 0:00 UTC")),
     /// );
     /// ```
     ///
-    /// Note that the range of timestamps possible here is far larger than the
-    /// valid range of dates storable in this crate. It is the _user's
-    /// responsibility_ to ensure the timestamp provided as a parameter is
-    /// valid. No behavior is guaranteed if this parameter would not result in a
-    /// valid value.
-    pub fn from_unix_timestamp_nanos(timestamp: i128) -> Self {
-        OffsetDateTime::unix_epoch() + Duration::nanoseconds_i128(timestamp)
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange> {
+        let unix_epoch_julian_date = Date::from_yo_unchecked(1970, 1).julian_day();
+
+        // Performing the division early lets us use an i64 instead of an i128.
+        // This leads to significant performance gains.
+        let timestamp_seconds = (timestamp / 1_000_000_000) as i64;
+
+        let whole_days = timestamp_seconds / 86_400;
+        let date = const_try!(Date::from_julian_day(unix_epoch_julian_date + whole_days));
+
+        let hour = match (timestamp_seconds % 86_400 / 3_600) % 24 {
+            value if value < 0 => value + 24,
+            value => value,
+        };
+        let minute = match (timestamp_seconds % 3_600 / 60_000) % 60 {
+            value if value < 0 => value + 60,
+            value => value,
+        };
+        let second = match timestamp_seconds % 60 {
+            value if value < 0 => value + 60,
+            value => value,
+        };
+        let nanos = match timestamp % 1_000_000_000 {
+            value if value < 0 => value + 1_000_000_000,
+            value => value,
+        };
+        let time =
+            Time::from_hms_nanos_unchecked(hour as u8, minute as u8, second as u8, nanos as u32);
+
+        Ok(PrimitiveDateTime::new(date, time).assume_utc())
     }
 
     /// Get the `UtcOffset`.

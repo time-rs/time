@@ -44,7 +44,10 @@ pub fn serialize<S: Serializer>(
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
     Wrapper::deserialize(deserializer)
         .map(|Wrapper(timestamp)| timestamp)
-        .map(OffsetDateTime::from_unix_timestamp)
+        .and_then(|timestamp| {
+            OffsetDateTime::from_unix_timestamp(timestamp)
+                .map_err(<D::Error as serde::de::Error>::custom)
+        })
 }
 
 /// Treat an `Option<OffsetDateTime>` as a [Unix timestamp] for the purposes of
