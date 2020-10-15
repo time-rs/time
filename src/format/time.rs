@@ -13,10 +13,7 @@ use crate::{
     },
     Time,
 };
-use core::{
-    fmt::{self, Formatter},
-    num::NonZeroU8,
-};
+use core::fmt::{self, Formatter};
 #[allow(unused_imports)]
 use standback::prelude::*; // rem_euclid (1.38)
 
@@ -38,11 +35,7 @@ pub(crate) fn fmt_I(f: &mut Formatter<'_>, time: Time, padding: Padding) -> fmt:
 
 /// Hour in 12h format (`01`-`12`)
 pub(crate) fn parse_I(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    items.hour_12 = Some(
-        try_consume_exact_digits(s, 2, padding)
-            .and_then(NonZeroU8::new)
-            .ok_or(error::Parse::InvalidHour)?,
-    );
+    items.hour_12 = Some(try_consume_exact_digits(s, 2, padding).ok_or(error::Parse::InvalidHour)?);
     Ok(())
 }
 
