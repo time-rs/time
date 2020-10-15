@@ -15,7 +15,7 @@ use crate::{
 use alloc::string::ToString;
 use core::{
     fmt::{self, Formatter},
-    num::{NonZeroU16, NonZeroU8},
+    num::NonZeroU8,
 };
 #[allow(unused_imports)]
 use standback::prelude::*; // rem_euclid (1.38)
@@ -154,11 +154,8 @@ pub(crate) fn fmt_d(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 
 /// Day of the month, zero-padded (`01`-`31`)
 pub(crate) fn parse_d(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    items.day = Some(
-        try_consume_exact_digits(s, 2, padding)
-            .and_then(NonZeroU8::new)
-            .ok_or(error::Parse::InvalidDayOfMonth)?,
-    );
+    items.day =
+        Some(try_consume_exact_digits(s, 2, padding).ok_or(error::Parse::InvalidDayOfMonth)?);
 
     Ok(())
 }
@@ -211,11 +208,8 @@ pub(crate) fn fmt_j(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 
 /// Day of the year, zero-padded to width 3 (`001`-`366`)
 pub(crate) fn parse_j(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    items.ordinal_day = Some(
-        try_consume_exact_digits(s, 3, padding)
-            .and_then(NonZeroU16::new)
-            .ok_or(error::Parse::InvalidDayOfYear)?,
-    );
+    items.ordinal_day =
+        Some(try_consume_exact_digits(s, 3, padding).ok_or(error::Parse::InvalidDayOfYear)?);
 
     Ok(())
 }
@@ -227,11 +221,7 @@ pub(crate) fn fmt_m(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 
 /// Month of the year, zero-padded (`01`-`12`)
 pub(crate) fn parse_m(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    items.month = Some(
-        try_consume_exact_digits(s, 2, padding)
-            .and_then(NonZeroU8::new)
-            .ok_or(error::Parse::InvalidMonth)?,
-    );
+    items.month = Some(try_consume_exact_digits(s, 2, padding).ok_or(error::Parse::InvalidMonth)?);
 
     Ok(())
 }
@@ -274,11 +264,8 @@ pub(crate) fn fmt_V(f: &mut Formatter<'_>, date: Date, padding: Padding) -> fmt:
 
 /// ISO week number, zero-padded (`01`-`53`)
 pub(crate) fn parse_V(items: &mut ParsedItems, s: &mut &str, padding: Padding) -> ParseResult<()> {
-    items.iso_week = Some(
-        try_consume_exact_digits(s, 2, padding)
-            .and_then(NonZeroU8::new)
-            .ok_or(error::Parse::InvalidWeek)?,
-    );
+    items.iso_week =
+        Some(try_consume_exact_digits(s, 2, padding).ok_or(error::Parse::InvalidWeek)?);
 
     Ok(())
 }
