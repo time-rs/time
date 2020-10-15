@@ -53,11 +53,11 @@ fn unix_epoch() {
 fn from_unix_timestamp() {
     assert_eq!(
         OffsetDateTime::from_unix_timestamp(0),
-        OffsetDateTime::unix_epoch(),
+        Ok(OffsetDateTime::unix_epoch()),
     );
     assert_eq!(
         OffsetDateTime::from_unix_timestamp(1_546_300_800),
-        datetime!("2019-01-01 0:00 UTC"),
+        Ok(datetime!("2019-01-01 0:00 UTC")),
     );
 }
 
@@ -65,11 +65,11 @@ fn from_unix_timestamp() {
 fn from_unix_timestamp_nanos() {
     assert_eq!(
         OffsetDateTime::from_unix_timestamp_nanos(0),
-        OffsetDateTime::unix_epoch(),
+        Ok(OffsetDateTime::unix_epoch()),
     );
     assert_eq!(
         OffsetDateTime::from_unix_timestamp_nanos(1_546_300_800_000_000_000),
-        datetime!("2019-01-01 0:00 UTC"),
+        Ok(datetime!("2019-01-01 0:00 UTC")),
     );
 }
 

@@ -1,4 +1,4 @@
-#[cfg(feature = "std")]
+#[cfg(feature = "local-offset")]
 use time::OffsetDateTime;
 use time::{Result, UtcOffset};
 use time_macros::offset;
@@ -122,13 +122,13 @@ fn display() {
 }
 
 #[test]
-#[cfg(feature = "std")]
+#[cfg(feature = "local-offset")]
 fn local_offset_at() {
     assert!(UtcOffset::local_offset_at(OffsetDateTime::unix_epoch()).is_ok());
 }
 
 #[test]
-#[cfg(feature = "std")]
+#[cfg(feature = "local-offset")]
 fn current_local_offset() {
     assert!(UtcOffset::current_local_offset().is_ok());
 }
