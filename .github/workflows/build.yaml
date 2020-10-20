@@ -138,6 +138,38 @@ jobs:
           command: web
           args: check --all-features
 
+  check-benchmarks:
+    name: Type-check benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Change directories
+        run: cd time-benchmarks
+
+      - name: Cache cargo output
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ubuntu-latest-cargo-stable-benchmarks-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: Type-check benchmarks
+        uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --benches
+
   test:
     name: Test
     runs-on: ${{ matrix.os }}
@@ -261,6 +293,7 @@ jobs:
     needs:
       - check-other-targets
       - check-web
+      - check-benchmarks
       - test
       - fmt
       - clippy
