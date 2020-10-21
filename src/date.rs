@@ -539,20 +539,12 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn julian_day(self) -> i64 {
-        let (mut year, mut month, day) = self.as_ymd();
+        let year = self.year() as i64 - 1;
+        let ordinal = self.ordinal() as i64;
 
-        if month < 3 {
-            year -= 1;
-            month += 12;
-        }
-
-        let year = year as i64;
-        let month = month as i64;
-        let day = day as i64;
-
-        day + (153 * month - 457) / 5 + 365 * year + div_floor(year, 4) - div_floor(year, 100)
+        ordinal + 365 * year + div_floor(year, 4) - div_floor(year, 100)
             + div_floor(year, 400)
-            + 1_721_119
+            + 1_721_425
     }
 
     /// Create a `Date` from the Julian day.
@@ -573,27 +565,38 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn from_julian_day(julian_day: i64) -> Result<Self, error::ComponentRange> {
-        #![allow(clippy::many_single_char_names)]
-
         let min_julian_day = Date::from_yo_unchecked(MIN_YEAR, 1).julian_day();
         let max_julian_day = Date::from_yo_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).julian_day();
         ensure_value_in_range!(julian_day in min_julian_day => max_julian_day);
 
         let z = julian_day - 1_721_119;
-        let h = 100 * z - 25;
-        let a = div_floor(h, 3_652_425);
-        let b = a - div_floor(a, 4);
-        let mut year = div_floor(100 * b + h, 36_525);
-        let c = b + z - 365 * year - div_floor(year, 4);
-        let mut month = (5 * c + 456) / 153;
-        let day = c - (153 * month - 457) / 5;
+        let g = 100 * z - 25;
+        let a = g / 3_652_425;
+        let b = a - a / 4;
+        let mut year = div_floor(100 * b + g, 36525) as i32;
+        let mut ordinal = (b + z - div_floor(36525 * year as i64, 100)) as u16;
 
-        if month > 12 {
-            year += 1;
-            month -= 12;
+        if year % 4 != 0 {
+            ordinal += 59;
+            if ordinal > 365 {
+                ordinal -= 365;
+                year += 1;
+            }
+        } else if year % 100 != 0 || year % 400 == 0 {
+            ordinal += 60;
+            if ordinal > 366 {
+                ordinal -= 366;
+                year += 1;
+            }
+        } else {
+            ordinal += 59;
+            if ordinal > 365 {
+                ordinal -= 365;
+                year += 1;
+            }
         }
 
-        Date::from_ymd(year as i32, month as u8, day as u8)
+        Ok(Date::from_yo_unchecked(year, ordinal))
     }
 }
 
