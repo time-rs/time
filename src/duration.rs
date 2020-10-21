@@ -26,7 +26,7 @@ use standback::prelude::*; // duration_float (1.38)
     feature = "serde",
     serde(into = "crate::serde::Duration", from = "crate::serde::Duration")
 )]
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Duration {
     /// Number of whole seconds.
     seconds: i64,
@@ -756,7 +756,10 @@ impl Neg for Duration {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        -1 * self
+        Self {
+            seconds: -self.seconds,
+            nanoseconds: -self.nanoseconds,
+        }
     }
 }
 
@@ -964,12 +967,6 @@ impl PartialEq<Duration> for StdDuration {
     }
 }
 
-impl PartialOrd for Duration {
-    fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
-        Some(self.cmp(rhs))
-    }
-}
-
 impl PartialOrd<StdDuration> for Duration {
     fn partial_cmp(&self, rhs: &StdDuration) -> Option<Ordering> {
         if rhs.as_secs() > i64::max_value() as u64 {
@@ -987,13 +984,5 @@ impl PartialOrd<StdDuration> for Duration {
 impl PartialOrd<Duration> for StdDuration {
     fn partial_cmp(&self, rhs: &Duration) -> Option<Ordering> {
         rhs.partial_cmp(self).map(Ordering::reverse)
-    }
-}
-
-impl Ord for Duration {
-    fn cmp(&self, rhs: &Self) -> Ordering {
-        self.seconds
-            .cmp(&rhs.seconds)
-            .then_with(|| self.nanoseconds.cmp(&rhs.nanoseconds))
     }
 }

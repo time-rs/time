@@ -7,7 +7,6 @@ use crate::{
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::{
-    cmp::{Ord, Ordering, PartialOrd},
     fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
@@ -43,7 +42,7 @@ pub(crate) const fn div_floor(a: i64, b: i64) -> i64 {
     feature = "serde",
     serde(into = "crate::serde::Date", try_from = "crate::serde::Date")
 )]
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Date {
     /// Bitpacked field containing both the year and ordinal.
     // |     xx     | xxxxxxxxxxxxxxxxxxxxx | xxxxxxxxx |
@@ -878,20 +877,6 @@ impl Sub<Date> for Date {
 
     fn sub(self, other: Self) -> Self::Output {
         Duration::days(self.julian_day() - other.julian_day())
-    }
-}
-
-impl PartialOrd for Date {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Date {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.year()
-            .cmp(&other.year())
-            .then_with(|| self.ordinal().cmp(&other.ordinal()))
     }
 }
 

@@ -652,6 +652,8 @@ fn ord() {
     assert!((-1).seconds() < 0.seconds());
     assert!(1.minutes() > 1.seconds());
     assert!((-1).minutes() < (-1).seconds());
+    assert!(100.nanoseconds() < 200.nanoseconds());
+    assert!((-100).nanoseconds() > (-200).nanoseconds());
 }
 
 #[test]

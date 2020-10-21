@@ -429,18 +429,8 @@ impl Add<Duration> for PrimitiveDateTime {
     type Output = Self;
 
     fn add(self, duration: Duration) -> Self::Output {
-        let nanos = self.time.nanoseconds_since_midnight() as i64
-            + (duration.whole_nanoseconds() % 86_400_000_000_000) as i64;
-
-        let date_modifier = if nanos < 0 {
-            Duration::days(-1)
-        } else if nanos >= 86_400_000_000_000 {
-            Duration::day()
-        } else {
-            Duration::zero()
-        };
-
-        Self::new(self.date + duration + date_modifier, self.time + duration)
+        let (date_modifier, time) = self.time.adjusting_add(duration);
+        Self::new(self.date + duration + date_modifier, time)
     }
 }
 
