@@ -6,7 +6,6 @@ use crate::{
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::{
-    cmp::Ordering,
     convert::TryFrom,
     fmt::{self, Display},
     num::NonZeroU8,
@@ -15,9 +14,6 @@ use core::{
 };
 #[allow(unused_imports)]
 use standback::prelude::*; // rem_euclid (1.38)
-
-/// The number of nanoseconds in one day.
-pub(crate) const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
 
 /// The clock time within a given date. Nanosecond precision.
 ///
@@ -31,7 +27,7 @@ pub(crate) const NANOS_PER_DAY: u64 = 24 * 60 * 60 * 1_000_000_000;
     feature = "serde",
     serde(into = "crate::serde::Time", try_from = "crate::serde::Time")
 )]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Time {
     #[allow(clippy::missing_docs_in_private_items)]
     pub(crate) hour: u8,
@@ -303,14 +299,63 @@ impl Time {
             + self.nanosecond() as u64
     }
 
-    /// Create a `Time` from the number of nanoseconds since midnight.
-    pub(crate) const fn from_nanoseconds_since_midnight(nanosecond: u64) -> Self {
-        Self {
-            hour: (nanosecond / 1_000_000_000 / 60 / 60 % 24) as u8,
-            minute: (nanosecond / 1_000_000_000 / 60 % 60) as u8,
-            second: (nanosecond / 1_000_000_000 % 60) as u8,
-            nanosecond: (nanosecond % 1_000_000_000) as u32,
+    /// Add the sub-day time of the `Duration` to the `Time`. Wraps on overflow,
+    /// returning the necessary adjustment to the date value as the first
+    /// element of the tuple.
+    pub(crate) fn adjusting_add(self, duration: Duration) -> (Duration, Time) {
+        let mut nanoseconds = self.nanosecond as i32 + duration.subsec_nanoseconds();
+        let mut seconds = self.second as i8 + (duration.whole_seconds() % 60) as i8;
+        let mut minutes = self.minute as i8 + (duration.whole_minutes() % 60) as i8;
+        let mut hours = self.hour as i8 + (duration.whole_hours() % 24) as i8;
+        let mut date_adjustment = Duration::zero();
+
+        // Provide a fast path for values that are already valid. The optimizer
+        // is able to eliminate duplicated comparisons, so the added cost of
+        // this is extremely little.
+        if !(0..1_000_000_000).contains(&nanoseconds)
+            || !(0..60).contains(&seconds)
+            || !(0..60).contains(&minutes)
+            || !(0..24).contains(&hours)
+        {
+            if nanoseconds >= 1_000_000_000 {
+                nanoseconds -= 1_000_000_000;
+                seconds += 1;
+            } else if nanoseconds < 0 {
+                nanoseconds += 1_000_000_000;
+                seconds -= 1;
+            }
+            if seconds >= 60 {
+                seconds -= 60;
+                minutes += 1;
+            } else if seconds < 0 {
+                seconds += 60;
+                minutes -= 1;
+            }
+            if minutes >= 60 {
+                minutes -= 60;
+                hours += 1;
+            } else if minutes < 0 {
+                minutes += 60;
+                hours -= 1;
+            }
+            if hours >= 24 {
+                hours -= 24;
+                date_adjustment = Duration::day()
+            } else if hours < 0 {
+                hours += 24;
+                date_adjustment = -Duration::day()
+            }
         }
+
+        (
+            date_adjustment,
+            Self::from_hms_nanos_unchecked(
+                hours as u8,
+                minutes as u8,
+                seconds as u8,
+                nanoseconds as u32,
+            ),
+        )
     }
 }
 
@@ -431,12 +476,7 @@ impl Add<Duration> for Time {
     /// assert_eq!(time!("0:00:01") + (-2).seconds(), time!("23:59:59"));
     /// ```
     fn add(self, duration: Duration) -> Self::Output {
-        Self::from_nanoseconds_since_midnight(
-            self.nanoseconds_since_midnight()
-                + duration
-                    .whole_nanoseconds()
-                    .rem_euclid(NANOS_PER_DAY as i128) as u64,
-        )
+        self.adjusting_add(duration).1
     }
 }
 
@@ -591,41 +631,5 @@ impl Sub<Time> for Time {
         Duration::nanoseconds(
             self.nanoseconds_since_midnight() as i64 - rhs.nanoseconds_since_midnight() as i64,
         )
-    }
-}
-
-impl PartialOrd for Time {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.cmp(other).into()
-    }
-}
-
-impl Ord for Time {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.hour
-            .cmp(&other.hour)
-            .then_with(|| self.minute.cmp(&other.minute))
-            .then_with(|| self.second.cmp(&other.second))
-            .then_with(|| self.nanosecond.cmp(&other.nanosecond))
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn nanoseconds_since_midnight() -> crate::Result<()> {
-        let time = Time::midnight();
-        assert_eq!(time.nanoseconds_since_midnight(), 0);
-        assert_eq!(Time::from_nanoseconds_since_midnight(0), time);
-
-        let time = Time::from_hms_nano(23, 59, 59, 999_999_999)?;
-        assert_eq!(time.nanoseconds_since_midnight(), NANOS_PER_DAY - 1);
-        assert_eq!(
-            Time::from_nanoseconds_since_midnight(NANOS_PER_DAY - 1),
-            time
-        );
-        Ok(())
     }
 }
