@@ -29,10 +29,7 @@ use std::time::Instant as StdInstant;
 /// otherwise identical to [`std::time::Instant`].
 #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Instant {
-    /// Inner representation, using `std::time::Instant`.
-    inner: StdInstant,
-}
+pub struct Instant(pub StdInstant);
 
 impl Instant {
     /// Returns an `Instant` corresponding to "now".
@@ -42,9 +39,7 @@ impl Instant {
     /// println!("{:?}", Instant::now());
     /// ```
     pub fn now() -> Self {
-        Self {
-            inner: StdInstant::now(),
-        }
+        Self(StdInstant::now())
     }
 
     /// Returns the amount of time elapsed since this instant was created. The
@@ -76,10 +71,10 @@ impl Instant {
         if duration.is_zero() {
             Some(self)
         } else if duration.is_positive() {
-            self.inner.checked_add(duration.abs_std()).map(From::from)
+            self.0.checked_add(duration.abs_std()).map(Self)
         } else {
             // duration.is_negative()
-            self.inner.checked_sub(duration.abs_std()).map(From::from)
+            self.0.checked_sub(duration.abs_std()).map(Self)
         }
     }
 
@@ -100,13 +95,13 @@ impl Instant {
 
 impl From<StdInstant> for Instant {
     fn from(instant: StdInstant) -> Self {
-        Self { inner: instant }
+        Self(instant)
     }
 }
 
 impl From<Instant> for StdInstant {
     fn from(instant: Instant) -> Self {
-        instant.inner
+        instant.0
     }
 }
 
@@ -114,12 +109,12 @@ impl Sub for Instant {
     type Output = Duration;
 
     fn sub(self, other: Self) -> Self::Output {
-        match self.inner.cmp(&other.inner) {
+        match self.0.cmp(&other.0) {
             Ordering::Equal => Duration::zero(),
-            Ordering::Greater => (self.inner - other.inner)
+            Ordering::Greater => (self.0 - other.0)
                 .try_into()
                 .expect("overflow converting `std::time::Duration` to `time::Duration`"),
-            Ordering::Less => -Duration::try_from(other.inner - self.inner)
+            Ordering::Less => -Duration::try_from(other.0 - self.0)
                 .expect("overflow converting `std::time::Duration` to `time::Duration`"),
         }
     }
@@ -129,7 +124,7 @@ impl Sub<StdInstant> for Instant {
     type Output = Duration;
 
     fn sub(self, other: StdInstant) -> Self::Output {
-        self - Self::from(other)
+        self - Self(other)
     }
 }
 
@@ -137,7 +132,7 @@ impl Sub<Instant> for StdInstant {
     type Output = Duration;
 
     fn sub(self, other: Instant) -> Self::Output {
-        Instant::from(self) - other
+        Instant(self) - other
     }
 }
 
@@ -146,9 +141,9 @@ impl Add<Duration> for Instant {
 
     fn add(self, duration: Duration) -> Self::Output {
         if duration.is_positive() {
-            (self.inner + duration.abs_std()).into()
+            Self(self.0 + duration.abs_std())
         } else if duration.is_negative() {
-            (self.inner - duration.abs_std()).into()
+            Self(self.0 - duration.abs_std())
         } else {
             self
         }
@@ -159,7 +154,7 @@ impl Add<Duration> for StdInstant {
     type Output = Self;
 
     fn add(self, duration: Duration) -> Self::Output {
-        (Instant::from(self) + duration).into()
+        (Instant(self) + duration).0
     }
 }
 
@@ -167,9 +162,7 @@ impl Add<StdDuration> for Instant {
     type Output = Self;
 
     fn add(self, duration: StdDuration) -> Self::Output {
-        Self {
-            inner: self.inner + duration,
-        }
+        Self(self.0 + duration)
     }
 }
 
@@ -203,7 +196,7 @@ impl Sub<Duration> for StdInstant {
     type Output = Self;
 
     fn sub(self, duration: Duration) -> Self::Output {
-        (Instant::from(self) - duration).into()
+        (Instant(self) - duration).0
     }
 }
 
@@ -211,9 +204,7 @@ impl Sub<StdDuration> for Instant {
     type Output = Self;
 
     fn sub(self, duration: StdDuration) -> Self::Output {
-        Self {
-            inner: self.inner - duration,
-        }
+        Self(self.0 - duration)
     }
 }
 
@@ -237,24 +228,24 @@ impl SubAssign<StdDuration> for Instant {
 
 impl PartialEq<StdInstant> for Instant {
     fn eq(&self, rhs: &StdInstant) -> bool {
-        self.inner.eq(rhs)
+        self.0.eq(rhs)
     }
 }
 
 impl PartialEq<Instant> for StdInstant {
     fn eq(&self, rhs: &Instant) -> bool {
-        self.eq(&rhs.inner)
+        self.eq(&rhs.0)
     }
 }
 
 impl PartialOrd<StdInstant> for Instant {
     fn partial_cmp(&self, rhs: &StdInstant) -> Option<Ordering> {
-        self.inner.partial_cmp(rhs)
+        self.0.partial_cmp(rhs)
     }
 }
 
 impl PartialOrd<Instant> for StdInstant {
     fn partial_cmp(&self, rhs: &Instant) -> Option<Ordering> {
-        self.partial_cmp(&rhs.inner)
+        self.partial_cmp(&rhs.0)
     }
 }
