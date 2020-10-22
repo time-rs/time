@@ -29,10 +29,10 @@ use standback::prelude::*; // duration_float (1.38)
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Duration {
     /// Number of whole seconds.
-    seconds: i64,
+    pub(crate) seconds: i64,
     /// Number of nanoseconds within the second. The sign always matches the
     /// `seconds` field.
-    nanoseconds: i32, // always -10^9 < nanoseconds < 10^9
+    pub(crate) nanoseconds: i32, // always -10^9 < nanoseconds < 10^9
 }
 
 /// The number of seconds in one minute.
