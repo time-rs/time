@@ -56,10 +56,10 @@ impl Distribution<OffsetDateTime> for Standard {
 impl Distribution<Duration> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Duration {
         let seconds = Standard.sample(rng);
-        Duration::new(
+        Duration {
             seconds,
-            seconds.signum() as i32 * rng.gen_range(0, 1_000_000_000),
-        )
+            nanoseconds: seconds.signum() as i32 * rng.gen_range(0, 1_000_000_000),
+        }
     }
 }
 
@@ -74,8 +74,7 @@ impl Distribution<Weekday> for Standard {
             3 => Thursday,
             4 => Friday,
             5 => Saturday,
-            6 => Sunday,
-            _ => unreachable!("values are 0 to 6 inclusive"),
+            _ => Sunday,
         }
     }
 }
