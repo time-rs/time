@@ -80,6 +80,8 @@ Versioning].
 - The following are now gated under the `local-offset` feature:
   - `UtcOffset::local_offset_at`
   - `OffsetDateTime::now_local`
+- `Instant` is now guaranteed to be represented as a tuple struct containing a
+  `std::time::Instant`.
 
 ### Removed
 
