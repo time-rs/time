@@ -42,7 +42,7 @@ jobs:
         id: cache-binaries
         with:
           path: ~/.cargo/bin
-          key: ${{ runner.os }}-cargo-hack
+          key: ${{ runner.os }}-cargo-hack-0.4.1
 
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
@@ -53,7 +53,7 @@ jobs:
           override: true
 
       - name: Install cargo-hack
-        run: cargo +stable install cargo-hack
+        run: cargo +stable install cargo-hack --version ^0.4.1
         if: steps.cache-binaries.outputs.cache-hit != 'true'
 
       - name: Cache cargo output
@@ -69,14 +69,29 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: check --no-dev-deps --feature-powerset --optional-deps --skip default,libc,winapi,stdweb,std,local-offset --target ${{ matrix.target.triple }}
+          args: |
+            check
+            --no-dev-deps
+            --feature-powerset
+            --optional-deps
+            --group-features serde,rand
+            --exclude-features default,libc,winapi,stdweb,std,local-offset,time-macros
+            --exclude-all-features
+            --target ${{ matrix.target.triple }}
         if: matrix.target.std == false
 
       - name: Check feature powerset
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: check --no-dev-deps --feature-powerset --optional-deps --skip default,libc,winapi,stdweb --target ${{ matrix.target.triple }}
+          args: |
+            check
+            --no-dev-deps
+            --feature-powerset
+            --optional-deps
+            --group-features serde,rand
+            --exclude-features default,libc,winapi,stdweb,time-macros
+            --target ${{ matrix.target.triple }}
         if: matrix.target.std == true
 
   check-web:
@@ -187,7 +202,7 @@ jobs:
         id: cache-binaries
         with:
           path: ~/.cargo/bin
-          key: ${{ runner.os }}-cargo-hack
+          key: ${{ runner.os }}-cargo-hack-0.4.1
 
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
@@ -197,7 +212,7 @@ jobs:
           override: true
 
       - name: Install cargo-hack
-        run: cargo +stable install cargo-hack
+        run: cargo +stable install cargo-hack --version ^0.4.1
         if: steps.cache-binaries.outputs.cache-hit != 'true'
 
       # This is a workaround for a known bug in GitHub Actions. See
@@ -220,13 +235,19 @@ jobs:
       # For speed reasons, it's worth it to just check the feature powerset and
       # test with everything enabled. As features are additive, the tests ensure
       # that everything works, while the checking ensures any combination would
-      # compile without issue.
+      # compile without issue. Where I am confident features do not interact in
+      # any way, the features are grouped to reduce the size of the powerset.
 
       - name: Check feature powerset
         uses: actions-rs/cargo@v1
         with:
           command: hack
-          args: check --feature-powerset --optional-deps --skip default,libc,winapi,stdweb
+          args: |
+            check
+            --feature-powerset
+            --optional-deps
+            --group-features serde,rand
+            --exclude-features default,libc,winapi,stdweb,time-macros
 
       - name: Test (--all-features)
         uses: actions-rs/cargo@v1
