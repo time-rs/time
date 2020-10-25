@@ -40,7 +40,7 @@
 use crate::{
     date::{MAX_YEAR, MIN_YEAR},
     util::days_in_year,
-    Date, Duration,
+    Date, Duration, Time,
 };
 use core::{cmp, convert::TryInto};
 use quickcheck_dep::{Arbitrary, Gen};
@@ -131,5 +131,48 @@ impl Arbitrary for Duration {
         });
 
         Box::new(shrunk_seconds.chain(shrunk_nanoseconds))
+    }
+}
+
+impl Arbitrary for Time {
+    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+        let hour = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp(1, 24));
+        let minute = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp(1, 60));
+        let second = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp(1, 60));
+        let nanosecond = g.gen_range(
+            0,
+            g.size()
+                .try_into()
+                .unwrap_or(u32::MAX)
+                .clamp(1, 1_000_000_000),
+        );
+        Self::from_hms_nanos_unchecked(hour, minute, second, nanosecond)
+    }
+
+    fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
+        let hour = self.hour;
+        let minute = self.minute;
+        let second = self.second;
+        let nanosecond = self.nanosecond;
+
+        let shrunk_hour = hour
+            .shrink()
+            .map(move |hour| Self::from_hms_nanos_unchecked(hour, minute, second, nanosecond));
+        let shrunk_minute = minute
+            .shrink()
+            .map(move |minute| Self::from_hms_nanos_unchecked(hour, minute, second, nanosecond));
+        let shrunk_second = second
+            .shrink()
+            .map(move |second| Self::from_hms_nanos_unchecked(hour, minute, second, nanosecond));
+        let shrunk_nanos = nanosecond.shrink().map(move |nanosecond| {
+            Self::from_hms_nanos_unchecked(hour, minute, second, nanosecond)
+        });
+
+        Box::new(
+            shrunk_hour
+                .chain(shrunk_minute)
+                .chain(shrunk_second)
+                .chain(shrunk_nanos),
+        )
     }
 }
