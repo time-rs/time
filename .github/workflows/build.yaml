@@ -75,7 +75,7 @@ jobs:
             --feature-powerset
             --optional-deps
             --group-features serde,rand
-            --exclude-features default,libc,winapi,std,local-offset,time-macros
+            --exclude-features default,libc,winapi,std,local-offset,time-macros,quickcheck,quickcheck-dep
             --exclude-all-features
             --target ${{ matrix.target.triple }}
         if: matrix.target.std == false
@@ -89,8 +89,8 @@ jobs:
             --no-dev-deps
             --feature-powerset
             --optional-deps
-            --group-features serde,rand
-            --exclude-features default,libc,winapi,time-macros
+            --group-features serde,rand,quickcheck
+            --exclude-features default,libc,winapi,time-macros,quickcheck-dep
             --target ${{ matrix.target.triple }}
         if: matrix.target.std == true
 
@@ -187,8 +187,8 @@ jobs:
             check
             --feature-powerset
             --optional-deps
-            --group-features serde,rand
-            --exclude-features default,libc,winapi,time-macros
+            --group-features serde,rand,quickcheck
+            --exclude-features default,libc,winapi,time-macros,quickcheck-dep
 
       - name: Test (--all-features)
         uses: actions-rs/cargo@v1
