@@ -40,9 +40,9 @@
 use crate::{
     date::{MAX_YEAR, MIN_YEAR},
     util::days_in_year,
-    Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset,
+    Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
 };
-use core::{cmp, convert::TryInto};
+use core::{cmp, convert::TryInto, iter};
 use quickcheck_dep::{Arbitrary, Gen};
 use rand::Rng;
 #[allow(unused_imports)]
@@ -228,5 +228,27 @@ impl Arbitrary for OffsetDateTime {
             .map(move |offset| datetime.assume_offset(offset));
 
         Box::new(shrunk_datetime.chain(shrunk_offset))
+    }
+}
+
+impl Arbitrary for Weekday {
+    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+        use Weekday::*;
+        match g.gen_range(0, g.size().clamp(1, 7)) {
+            0 => Monday,
+            1 => Tuesday,
+            2 => Wednesday,
+            3 => Thursday,
+            4 => Friday,
+            5 => Saturday,
+            _ => Sunday,
+        }
+    }
+
+    fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
+        match self {
+            Weekday::Monday => Box::new(iter::empty()),
+            _ => Box::new(iter::once(self.previous())),
+        }
     }
 }
