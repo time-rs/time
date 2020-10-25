@@ -3,7 +3,7 @@
 use quickcheck_dep::{quickcheck, Arbitrary, QuickCheck, StdGen, TestResult};
 use rand::{rngs::StdRng, SeedableRng};
 use std::convert::TryFrom;
-use time::{Date, Duration, Time, UtcOffset};
+use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
 /// Returns a statically seeded generator to ensure tests are deterministic
 fn make_generator(size: usize) -> StdGen<StdRng> {
@@ -231,4 +231,63 @@ fn arbitrary_utc_offset_respects_generator_size() {
     test_generator_size!(UtcOffset, as_seconds().abs(), 1);
     test_generator_size!(UtcOffset, as_seconds().abs(), 1_000);
     test_generator_size!(UtcOffset, as_seconds().abs(), 100_000);
+}
+
+quickcheck! {
+    fn offset_date_time_supports_arbitrary(a: OffsetDateTime) -> bool {
+        PrimitiveDateTime::new(a.date(), a.time()).assume_offset(a.offset()) == a
+    }
+}
+test_shrink!(
+    OffsetDateTime,
+    offset_date_time_can_shrink_offset,
+    offset().as_seconds().abs()
+);
+test_shrink!(
+    OffsetDateTime,
+    offset_date_time_can_shrink_year,
+    year().abs()
+);
+test_shrink!(
+    OffsetDateTime,
+    offset_date_time_can_shrink_ordinal,
+    ordinal(),
+    min = 1
+);
+test_shrink!(OffsetDateTime, offset_date_time_can_shrink_hour, hour());
+test_shrink!(OffsetDateTime, offset_date_time_can_shrink_minute, minute());
+test_shrink!(OffsetDateTime, offset_date_time_can_shrink_second, second());
+test_shrink!(
+    OffsetDateTime,
+    offset_date_time_can_shrink_nanosecond,
+    nanosecond()
+);
+
+#[test]
+fn arbitrary_offset_date_time_respects_generator_size() {
+    test_generator_size!(OffsetDateTime, year().abs(), 0);
+    test_generator_size!(OffsetDateTime, year().abs(), 1);
+    test_generator_size!(OffsetDateTime, year().abs(), 100);
+    test_generator_size!(OffsetDateTime, year().abs(), 10_000);
+    test_generator_size!(OffsetDateTime, year().abs(), 100_000);
+
+    test_generator_size!(OffsetDateTime, ordinal() min=1, 0);
+    test_generator_size!(OffsetDateTime, ordinal() min=1, 1);
+    test_generator_size!(OffsetDateTime, ordinal() min=1, 10);
+    test_generator_size!(OffsetDateTime, ordinal() min=1, 100);
+    test_generator_size!(OffsetDateTime, ordinal() min=1, 366);
+
+    test_generator_size!(OffsetDateTime, second(), minute(), hour(), 0);
+    test_generator_size!(OffsetDateTime, second(), minute(), hour(), 1);
+    test_generator_size!(OffsetDateTime, second(), minute(), hour(), 10);
+    test_generator_size!(OffsetDateTime, second(), minute(), 100);
+    test_generator_size!(OffsetDateTime, nanosecond(), 1);
+    test_generator_size!(OffsetDateTime, nanosecond(), 1000);
+    test_generator_size!(OffsetDateTime, nanosecond(), 1_000_000);
+    test_generator_size!(OffsetDateTime, nanosecond(), 1_000_000_000);
+
+    test_generator_size!(OffsetDateTime, offset().as_seconds().abs(), 0);
+    test_generator_size!(OffsetDateTime, offset().as_seconds().abs(), 1);
+    test_generator_size!(OffsetDateTime, offset().as_seconds().abs(), 1000);
+    test_generator_size!(OffsetDateTime, offset().as_seconds().abs(), 100_000);
 }
