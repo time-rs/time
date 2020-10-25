@@ -3,7 +3,7 @@
 use quickcheck_dep::{quickcheck, Arbitrary, QuickCheck, StdGen, TestResult};
 use rand::{rngs::StdRng, SeedableRng};
 use std::convert::TryFrom;
-use time::{Date, Duration, Time};
+use time::{Date, Duration, Time, UtcOffset};
 
 /// Returns a statically seeded generator to ensure tests are deterministic
 fn make_generator(size: usize) -> StdGen<StdRng> {
@@ -211,4 +211,24 @@ fn arbitrary_primitive_date_time_respects_generator_size() {
     test_generator_size!(PrimitiveDateTime, nanosecond(), 1000);
     test_generator_size!(PrimitiveDateTime, nanosecond(), 1_000_000);
     test_generator_size!(PrimitiveDateTime, nanosecond(), 1_000_000_000);
+}
+
+quickcheck! {
+    fn utc_offset_supports_arbitrary(o: UtcOffset) -> bool {
+        let o2 = if o.as_seconds() < 0 {
+            UtcOffset::west_seconds(u32::try_from(o.as_seconds().abs()).unwrap())
+        } else {
+            UtcOffset::east_seconds(u32::try_from(o.as_seconds()).unwrap())
+        };
+        o2 == Ok(o)
+    }
+}
+test_shrink!(UtcOffset, utc_offset_can_shrink, as_seconds().abs());
+
+#[test]
+fn arbitrary_utc_offset_respects_generator_size() {
+    test_generator_size!(UtcOffset, as_seconds().abs(), 0);
+    test_generator_size!(UtcOffset, as_seconds().abs(), 1);
+    test_generator_size!(UtcOffset, as_seconds().abs(), 1_000);
+    test_generator_size!(UtcOffset, as_seconds().abs(), 100_000);
 }

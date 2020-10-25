@@ -40,7 +40,7 @@
 use crate::{
     date::{MAX_YEAR, MIN_YEAR},
     util::days_in_year,
-    Date, Duration, PrimitiveDateTime, Time,
+    Date, Duration, PrimitiveDateTime, Time, UtcOffset,
 };
 use core::{cmp, convert::TryInto};
 use quickcheck_dep::{Arbitrary, Gen};
@@ -190,5 +190,21 @@ impl Arbitrary for PrimitiveDateTime {
         let shrunk_time = time.shrink().map(move |time| Self::new(date, time));
 
         Box::new(shrunk_date.chain(shrunk_time))
+    }
+}
+
+impl Arbitrary for UtcOffset {
+    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+        let size = g
+            .size()
+            .try_into()
+            .unwrap_or(i32::MAX)
+            .clamp(1, 60 * 60 * 24);
+        let offset = g.gen_range(-cmp::max(0, size - 1), size);
+        Self::seconds_unchecked(offset)
+    }
+
+    fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
+        Box::new(self.as_seconds().shrink().map(Self::seconds_unchecked))
     }
 }
