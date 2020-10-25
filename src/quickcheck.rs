@@ -40,13 +40,34 @@
 use crate::{
     date::{MAX_YEAR, MIN_YEAR},
     util::days_in_year,
-    Date,
+    Date, Duration,
 };
 use core::{cmp, convert::TryInto};
 use quickcheck_dep::{Arbitrary, Gen};
 use rand::Rng;
 #[allow(unused_imports)]
 use standback::prelude::*; // assoc_int_consts (1.43)
+
+/// Shim for the unstable clamp method.
+///
+/// Once stabilized, this will be added to standback, and should be imported
+/// from there.
+///
+/// See rust-lang/rust#44095 and rust-lang/rust#77872 for details.
+trait Clamp {
+    /// Constrain `self` between `min` and `max` (inclusive).
+    ///
+    /// If `self` is less than `min`, returns `min`.
+    /// If `self` is greater than `max`, returns `max`.
+    /// Otherwise, returns `self`.
+    fn clamp(self, min: Self, max: Self) -> Self;
+}
+
+impl<T: Ord> Clamp for T {
+    fn clamp(self, min: Self, max: Self) -> Self {
+        core::cmp::max(min, core::cmp::min(self, max))
+    }
+}
 
 impl Arbitrary for Date {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
@@ -77,5 +98,38 @@ impl Arbitrary for Date {
             .flat_map(move |ordinal| Self::from_yo(year, ordinal));
 
         Box::new(shrunk_year.chain(shrunk_ordinal))
+    }
+}
+
+impl Arbitrary for Duration {
+    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+        let seconds = i64::arbitrary(g);
+        let nanoseconds: i32 = g.gen_range(
+            0,
+            g.size()
+                .try_into()
+                .unwrap_or(i32::MAX)
+                .clamp(1, 1_000_000_000),
+        );
+        Self {
+            seconds,
+            nanoseconds: nanoseconds * (seconds.signum() as i32),
+        }
+    }
+
+    fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
+        let seconds = self.seconds;
+        let nanoseconds = self.nanoseconds;
+
+        let shrunk_seconds = seconds.shrink().map(move |seconds| Self {
+            seconds,
+            nanoseconds,
+        });
+        let shrunk_nanoseconds = nanoseconds.shrink().map(move |nanoseconds| Self {
+            seconds,
+            nanoseconds,
+        });
+
+        Box::new(shrunk_seconds.chain(shrunk_nanoseconds))
     }
 }
