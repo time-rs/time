@@ -3,7 +3,7 @@
 use quickcheck_dep::{quickcheck, Arbitrary, QuickCheck, StdGen, TestResult};
 use rand::{rngs::StdRng, SeedableRng};
 use std::convert::TryFrom;
-use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
+use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// Returns a statically seeded generator to ensure tests are deterministic
 fn make_generator(size: usize) -> StdGen<StdRng> {
@@ -290,4 +290,29 @@ fn arbitrary_offset_date_time_respects_generator_size() {
     test_generator_size!(OffsetDateTime, offset().as_seconds().abs(), 1);
     test_generator_size!(OffsetDateTime, offset().as_seconds().abs(), 1000);
     test_generator_size!(OffsetDateTime, offset().as_seconds().abs(), 100_000);
+}
+
+quickcheck! {
+    fn weekday_supports_arbitrary(w: Weekday) -> bool {
+        w.iso_weekday_number() >= 1 && w.iso_weekday_number() <= 7
+    }
+
+    fn weekday_can_shrink(w: Weekday) -> bool {
+        match w {
+            Weekday::Monday => w.shrink().next() == None,
+            _ => w.shrink().next() == Some(w.previous())
+        }
+    }
+}
+
+#[test]
+fn arbitrary_weekday_respects_generator_size() {
+    test_generator_size!(Weekday, iso_weekday_number() min=1, 0);
+    test_generator_size!(Weekday, iso_weekday_number() min=1, 1);
+    test_generator_size!(Weekday, iso_weekday_number() min=1, 2);
+    test_generator_size!(Weekday, iso_weekday_number() min=1, 3);
+    test_generator_size!(Weekday, iso_weekday_number() min=1, 4);
+    test_generator_size!(Weekday, iso_weekday_number() min=1, 5);
+    test_generator_size!(Weekday, iso_weekday_number() min=1, 6);
+    test_generator_size!(Weekday, iso_weekday_number() min=1, 7);
 }
