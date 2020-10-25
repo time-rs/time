@@ -40,7 +40,7 @@
 use crate::{
     date::{MAX_YEAR, MIN_YEAR},
     util::days_in_year,
-    Date, Duration, Time,
+    Date, Duration, PrimitiveDateTime, Time,
 };
 use core::{cmp, convert::TryInto};
 use quickcheck_dep::{Arbitrary, Gen};
@@ -174,5 +174,21 @@ impl Arbitrary for Time {
                 .chain(shrunk_second)
                 .chain(shrunk_nanos),
         )
+    }
+}
+
+impl Arbitrary for PrimitiveDateTime {
+    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+        Self::new(Date::arbitrary(g), Time::arbitrary(g))
+    }
+
+    fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
+        let date = self.date;
+        let time = self.time;
+
+        let shrunk_date = date.shrink().map(move |date| Self::new(date, time));
+        let shrunk_time = time.shrink().map(move |time| Self::new(date, time));
+
+        Box::new(shrunk_date.chain(shrunk_time))
     }
 }

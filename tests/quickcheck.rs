@@ -151,3 +151,64 @@ fn arbitrary_time_respects_generator_size() {
     test_generator_size!(Time, nanosecond(), 1_000_000);
     test_generator_size!(Time, nanosecond(), 1_000_000_000);
 }
+
+quickcheck! {
+    fn primitive_date_time_supports_arbitrary(a: PrimitiveDateTime) -> bool {
+        PrimitiveDateTime::new(a.date(), a.time()) == a
+    }
+}
+test_shrink!(
+    PrimitiveDateTime,
+    primitive_date_time_can_shrink_year,
+    year().abs()
+);
+test_shrink!(
+    PrimitiveDateTime,
+    primitive_date_time_can_shrink_ordinal,
+    ordinal(),
+    min = 1
+);
+test_shrink!(
+    PrimitiveDateTime,
+    primitive_date_time_can_shrink_hour,
+    hour()
+);
+test_shrink!(
+    PrimitiveDateTime,
+    primitive_date_time_can_shrink_minute,
+    minute()
+);
+test_shrink!(
+    PrimitiveDateTime,
+    primitive_date_time_can_shrink_second,
+    second()
+);
+test_shrink!(
+    PrimitiveDateTime,
+    primitive_date_time_can_shrink_nanosecond,
+    nanosecond()
+);
+
+#[test]
+fn arbitrary_primitive_date_time_respects_generator_size() {
+    test_generator_size!(PrimitiveDateTime, year().abs(), 0);
+    test_generator_size!(PrimitiveDateTime, year().abs(), 1);
+    test_generator_size!(PrimitiveDateTime, year().abs(), 100);
+    test_generator_size!(PrimitiveDateTime, year().abs(), 10_000);
+    test_generator_size!(PrimitiveDateTime, year().abs(), 100_000);
+
+    test_generator_size!(PrimitiveDateTime, ordinal() min=1, 0);
+    test_generator_size!(PrimitiveDateTime, ordinal() min=1, 1);
+    test_generator_size!(PrimitiveDateTime, ordinal() min=1, 10);
+    test_generator_size!(PrimitiveDateTime, ordinal() min=1, 100);
+    test_generator_size!(PrimitiveDateTime, ordinal() min=1, 366);
+
+    test_generator_size!(PrimitiveDateTime, second(), minute(), hour(), 0);
+    test_generator_size!(PrimitiveDateTime, second(), minute(), hour(), 1);
+    test_generator_size!(PrimitiveDateTime, second(), minute(), hour(), 10);
+    test_generator_size!(PrimitiveDateTime, second(), minute(), 100);
+    test_generator_size!(PrimitiveDateTime, nanosecond(), 1);
+    test_generator_size!(PrimitiveDateTime, nanosecond(), 1000);
+    test_generator_size!(PrimitiveDateTime, nanosecond(), 1_000_000);
+    test_generator_size!(PrimitiveDateTime, nanosecond(), 1_000_000_000);
+}
