@@ -3,7 +3,7 @@
 use quickcheck_dep::{quickcheck, Arbitrary, QuickCheck, StdGen, TestResult};
 use rand::{rngs::StdRng, SeedableRng};
 use std::convert::TryFrom;
-use time::{Date, Duration};
+use time::{Date, Duration, Time};
 
 /// Returns a statically seeded generator to ensure tests are deterministic
 fn make_generator(size: usize) -> StdGen<StdRng> {
@@ -129,4 +129,25 @@ fn arbitrary_duration_respects_generator_size() {
     test_generator_size!(Duration, subsec_nanoseconds().abs(), 1000);
     test_generator_size!(Duration, subsec_nanoseconds().abs(), 1_000_000);
     test_generator_size!(Duration, subsec_nanoseconds().abs(), 1_000_000_000);
+}
+
+quickcheck! {
+    fn time_supports_arbitrary(t: Time) -> bool {
+        Time::from_hms_nano(t.hour(), t.minute(), t.second(), t.nanosecond()) == Ok(t)
+    }
+}
+test_shrink!(Time, time_can_shrink_hour, hour());
+test_shrink!(Time, time_can_shrink_minute, minute());
+test_shrink!(Time, time_can_shrink_second, second());
+test_shrink!(Time, time_can_shrink_nanosecond, nanosecond());
+
+#[test]
+fn arbitrary_time_respects_generator_size() {
+    test_generator_size!(Time, nanosecond(), second(), minute(), hour(), 0);
+    test_generator_size!(Time, nanosecond(), second(), minute(), hour(), 1);
+    test_generator_size!(Time, nanosecond(), second(), minute(), hour(), 10);
+    test_generator_size!(Time, nanosecond(), second(), minute(), 100);
+    test_generator_size!(Time, nanosecond(), 1000);
+    test_generator_size!(Time, nanosecond(), 1_000_000);
+    test_generator_size!(Time, nanosecond(), 1_000_000_000);
 }
