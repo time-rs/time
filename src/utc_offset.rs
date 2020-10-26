@@ -499,23 +499,7 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
         UtcOffset::seconds(diff_secs.try_into().ok()?).ok()
     }
-    #[cfg(__time_02_cargo_web)]
-    {
-        use stdweb::{js, unstable::TryInto};
-
-        let timestamp_utc = datetime.unix_timestamp();
-        let low_bits = (timestamp_utc & 0xFF_FF_FF_FF) as i32;
-        let high_bits = (timestamp_utc >> 32) as i32;
-
-        let timezone_offset = js! {
-            return
-                new Date(((@{high_bits} << 32) + @{low_bits}) * 1000)
-                    .getTimezoneOffset() * -60;
-        };
-
-        UtcOffset::seconds(timezone_offset.try_into().ok()?).ok()
-    }
-    #[cfg(not(any(target_family = "unix", target_family = "windows", __time_02_cargo_web)))]
+    #[cfg(not(any(target_family = "unix", target_family = "windows")))]
     {
         // Silence the unused variable warning when appropriate.
         let _ = datetime;
