@@ -1,7 +1,7 @@
-name: "Close stale PRs"
+name: "Scheduled tasks"
 on:
   schedule:
-    - cron: "0 0 * * 0" # midnight on Sundays
+    - cron: "0 0 * * 1,3,5" # midnight on Monday, Wednesday, Friday
 
 jobs:
   stale:
@@ -17,3 +17,14 @@ jobs:
 
           stale-pr-label: "C-stale"
           exempt-pr-labels: "C-keep-open"
+
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Audit dependencies
+        uses: actions-rs/audit-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
