@@ -1,16 +1,8 @@
-use std::env;
 use version_check as rustc;
 
 const MSRV: &str = "1.36.0";
 
 fn main() {
-    println!("cargo:rerun-if-env-changed=COMPILING_UNDER_CARGO_WEB");
-
-    // Are we compiling with `cargo web`?
-    if env::var("COMPILING_UNDER_CARGO_WEB") == Ok("1".into()) {
-        println!("cargo:rustc-cfg=__time_02_cargo_web");
-    }
-
     // Warn if the version is below MSRV.
     if !rustc::is_min_version(MSRV).unwrap_or(false) {
         println!(
