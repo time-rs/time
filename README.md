@@ -8,6 +8,12 @@
 
 Documentation: [main branch](https://time-rs.github.io/time/time/index.html) | [latest release](https://docs.rs/time)
 
+## Minimum Rust version policy
+
+The time crate is guaranteed to compile with any release of rustc from the past
+six months. Prior versions may be supported; the minimum tested version is
+indicated above.
+
 ## License
 
 This project is licensed under either of
