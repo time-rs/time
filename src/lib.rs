@@ -259,6 +259,96 @@ mod utc_offset;
 pub mod util;
 /// Days of the week.
 mod weekday;
+/// Macros to construct statically known values.
+#[cfg(feature = "macros")]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
+pub mod macros {
+    /// Construct a [`Date`](crate::Date) with a statically known value.
+    ///
+    /// The resulting expression can be used in `const` or `static` declarations.
+    ///
+    /// Three formats are supported: year-week-weekday, year-ordinal, and
+    /// year-month-day.
+    ///
+    /// ```rust
+    /// # use time::{Date, Weekday::*};
+    /// # use time_macros::date;
+    /// assert_eq!(date!("2020-W01-3"), Date::from_iso_ywd(2020, 1, Wednesday)?);
+    /// assert_eq!(date!("2020-001"), Date::from_yo(2020, 1)?);
+    /// assert_eq!(date!("2020-01-01"), Date::from_ymd(2020, 1, 1)?);
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    pub use time_macros::date;
+    /// Construct a [`PrimitiveDateTime`](crate::PrimitiveDateTime) or
+    /// [`OffsetDateTime`](crate::OffsetDateTime) with a statically known value.
+    ///
+    /// The resulting expression can be used in `const` or `static` declarations.
+    ///
+    /// The syntax accepted by this macro is the same as `date!` immediately
+    /// followed by `time!`. An offset of UTC can also be provided after the time,
+    /// which will result in the construction of an `OffsetDateTime` instead of a
+    /// `PrimitiveDateTime`.
+    pub use time_macros::datetime;
+    /// Construct a [`UtcOffset`](crate::UtcOffset) with a statically known value.
+    ///
+    /// The resulting expression can be used in `const` or `static` declarations.
+    ///
+    /// A sign and the hour must be provided; minutes and seconds default to zero.
+    /// `UTC` (both uppercase and lowercase) is also allowed.
+    ///
+    /// ```rust
+    /// # use time::UtcOffset;
+    /// # use time_macros::offset;
+    /// assert_eq!(offset!("UTC"), UtcOffset::hours(0)?);
+    /// assert_eq!(offset!("utc"), UtcOffset::hours(0)?);
+    /// assert_eq!(offset!("+0"), UtcOffset::hours(0)?);
+    /// assert_eq!(offset!("+1"), UtcOffset::hours(1)?);
+    /// assert_eq!(offset!("-1"), UtcOffset::hours(-1)?);
+    /// assert_eq!(offset!("+1:30"), UtcOffset::minutes(90)?);
+    /// assert_eq!(offset!("-1:30"), UtcOffset::minutes(-90)?);
+    /// assert_eq!(offset!("+1:30:59"), UtcOffset::seconds(5459)?);
+    /// assert_eq!(offset!("-1:30:59"), UtcOffset::seconds(-5459)?);
+    /// assert_eq!(offset!("+23:59:59"), UtcOffset::seconds(86_399)?);
+    /// assert_eq!(offset!("-23:59:59"), UtcOffset::seconds(-86_399)?);
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    pub use time_macros::offset;
+    /// Construct a [`Time`](crate::Time) with a statically known value.
+    ///
+    /// The resulting expression can be used in `const` or `static` declarations.
+    ///
+    /// Hours and minutes must be provided, while seconds defaults to zero. AM/PM is
+    /// allowed (either uppercase or lowercase). Any number of subsecond digits may
+    /// be provided (though any past nine will be discarded).
+    ///
+    /// All components are validated at compile-time. An error will be raised if any
+    /// value is invalid.
+    ///
+    /// ```rust
+    /// # use time::Time;
+    /// # use time_macros::time;
+    /// assert_eq!(time!("0:00"), Time::from_hms(0, 0, 0)?);
+    /// assert_eq!(time!("1:02:03"), Time::from_hms(1, 2, 3)?);
+    /// assert_eq!(
+    ///     time!("1:02:03.004_005_006"),
+    ///     Time::from_hms_nano(1, 2, 3, 4_005_006)?
+    /// );
+    /// assert_eq!(time!("12:00 am"), Time::from_hms(0, 0, 0)?);
+    /// assert_eq!(time!("1:02:03 am"), Time::from_hms(1, 2, 3)?);
+    /// assert_eq!(
+    ///     time!("1:02:03.004_005_006 am"),
+    ///     Time::from_hms_nano(1, 2, 3, 4_005_006)?
+    /// );
+    /// assert_eq!(time!("12:00 pm"), Time::from_hms(12, 0, 0)?);
+    /// assert_eq!(time!("1:02:03 pm"), Time::from_hms(13, 2, 3)?);
+    /// assert_eq!(
+    ///     time!("1:02:03.004_005_006 pm"),
+    ///     Time::from_hms_nano(13, 2, 3, 4_005_006)?
+    /// );
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    pub use time_macros::time;
+}
 
 pub use date::Date;
 pub use duration::Duration;
@@ -269,99 +359,6 @@ use format::{DeferredFormat, ParseResult};
 pub use instant::Instant;
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
-/// Construct a [`Date`](crate::Date) with a statically known value.
-///
-/// The resulting expression can be used in `const` or `static` declarations.
-///
-/// Three formats are supported: year-week-weekday, year-ordinal, and
-/// year-month-day.
-///
-/// ```rust
-/// # use time::{Date, Weekday::*};
-/// # use time_macros::date;
-/// assert_eq!(date!("2020-W01-3"), Date::from_iso_ywd(2020, 1, Wednesday)?);
-/// assert_eq!(date!("2020-001"), Date::from_yo(2020, 1)?);
-/// assert_eq!(date!("2020-01-01"), Date::from_ymd(2020, 1, 1)?);
-/// # Ok::<_, time::Error>(())
-/// ```
-#[cfg(feature = "macros")]
-#[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
-pub use time_macros::date;
-/// Construct a [`PrimitiveDateTime`](crate::PrimitiveDateTime) or
-/// [`OffsetDateTime`](crate::OffsetDateTime) with a statically known value.
-///
-/// The resulting expression can be used in `const` or `static` declarations.
-///
-/// The syntax accepted by this macro is the same as `date!` immediately
-/// followed by `time!`. An offset of UTC can also be provided after the time,
-/// which will result in the construction of an `OffsetDateTime` instead of a
-/// `PrimitiveDateTime`.
-#[cfg(feature = "macros")]
-#[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
-pub use time_macros::datetime;
-/// Construct a [`UtcOffset`](crate::UtcOffset) with a statically known value.
-///
-/// The resulting expression can be used in `const` or `static` declarations.
-///
-/// A sign and the hour must be provided; minutes and seconds default to zero.
-/// `UTC` (both uppercase and lowercase) is also allowed.
-///
-/// ```rust
-/// # use time::UtcOffset;
-/// # use time_macros::offset;
-/// assert_eq!(offset!("UTC"), UtcOffset::hours(0)?);
-/// assert_eq!(offset!("utc"), UtcOffset::hours(0)?);
-/// assert_eq!(offset!("+0"), UtcOffset::hours(0)?);
-/// assert_eq!(offset!("+1"), UtcOffset::hours(1)?);
-/// assert_eq!(offset!("-1"), UtcOffset::hours(-1)?);
-/// assert_eq!(offset!("+1:30"), UtcOffset::minutes(90)?);
-/// assert_eq!(offset!("-1:30"), UtcOffset::minutes(-90)?);
-/// assert_eq!(offset!("+1:30:59"), UtcOffset::seconds(5459)?);
-/// assert_eq!(offset!("-1:30:59"), UtcOffset::seconds(-5459)?);
-/// assert_eq!(offset!("+23:59:59"), UtcOffset::seconds(86_399)?);
-/// assert_eq!(offset!("-23:59:59"), UtcOffset::seconds(-86_399)?);
-/// # Ok::<_, time::Error>(())
-/// ```
-#[cfg(feature = "macros")]
-#[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
-pub use time_macros::offset;
-/// Construct a [`Time`](crate::Time) with a statically known value.
-///
-/// The resulting expression can be used in `const` or `static` declarations.
-///
-/// Hours and minutes must be provided, while seconds defaults to zero. AM/PM is
-/// allowed (either uppercase or lowercase). Any number of subsecond digits may
-/// be provided (though any past nine will be discarded).
-///
-/// All components are validated at compile-time. An error will be raised if any
-/// value is invalid.
-///
-/// ```rust
-/// # use time::Time;
-/// # use time_macros::time;
-/// assert_eq!(time!("0:00"), Time::from_hms(0, 0, 0)?);
-/// assert_eq!(time!("1:02:03"), Time::from_hms(1, 2, 3)?);
-/// assert_eq!(
-///     time!("1:02:03.004_005_006"),
-///     Time::from_hms_nano(1, 2, 3, 4_005_006)?
-/// );
-/// assert_eq!(time!("12:00 am"), Time::from_hms(0, 0, 0)?);
-/// assert_eq!(time!("1:02:03 am"), Time::from_hms(1, 2, 3)?);
-/// assert_eq!(
-///     time!("1:02:03.004_005_006 am"),
-///     Time::from_hms_nano(1, 2, 3, 4_005_006)?
-/// );
-/// assert_eq!(time!("12:00 pm"), Time::from_hms(12, 0, 0)?);
-/// assert_eq!(time!("1:02:03 pm"), Time::from_hms(13, 2, 3)?);
-/// assert_eq!(
-///     time!("1:02:03.004_005_006 pm"),
-///     Time::from_hms_nano(13, 2, 3, 4_005_006)?
-/// );
-/// # Ok::<_, time::Error>(())
-/// ```
-#[cfg(feature = "macros")]
-#[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
-pub use time_macros::time;
 pub use time_mod::Time;
 pub use utc_offset::UtcOffset;
 pub use weekday::Weekday;
@@ -383,16 +380,9 @@ pub type Result<T> = core::result::Result<T, Error>;
 pub mod prelude {
     // Rename traits to `_` if possible to avoid any potential name conflicts.
     pub use crate::ext::{NumericalDuration as _, NumericalStdDuration as _};
-    // We need to re-export from the macros crate again (and not just do
-    // `crate::foo`) because of the way name resolution works in Rust. It's not
-    // currently possible to import _only_ the macro, so doing `use crate::time`
-    // also pulls in the `time` _crate_ (due to `extern crate self as time`).
-    //
-    // As a side note, doing `use crate::time` causes a stack overflow in
-    // rustc <= 1.37.0.
     #[cfg(feature = "macros")]
     #[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
-    pub use time_macros::{date, datetime, offset, time};
+    pub use crate::macros::{date, datetime, offset, time};
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
