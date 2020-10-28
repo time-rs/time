@@ -35,18 +35,6 @@ pub struct Duration {
     pub(crate) nanoseconds: i32, // always -10^9 < nanoseconds < 10^9
 }
 
-/// The number of seconds in one minute.
-const SECONDS_PER_MINUTE: i64 = 60;
-
-/// The number of seconds in one hour.
-const SECONDS_PER_HOUR: i64 = 60 * SECONDS_PER_MINUTE;
-
-/// The number of seconds in one day.
-const SECONDS_PER_DAY: i64 = 24 * SECONDS_PER_HOUR;
-
-/// The number of seconds in one week.
-const SECONDS_PER_WEEK: i64 = 7 * SECONDS_PER_DAY;
-
 impl Duration {
     /// Equivalent to `0.seconds()`.
     ///
@@ -266,7 +254,7 @@ impl Duration {
     /// assert_eq!(Duration::weeks(1), 604_800.seconds());
     /// ```
     pub const fn weeks(weeks: i64) -> Self {
-        Self::seconds(weeks * SECONDS_PER_WEEK)
+        Self::seconds(weeks * 604_800)
     }
 
     /// Get the number of whole weeks in the duration.
@@ -279,7 +267,7 @@ impl Duration {
     /// assert_eq!((-6).days().whole_weeks(), 0);
     /// ```
     pub const fn whole_weeks(self) -> i64 {
-        self.whole_seconds() / SECONDS_PER_WEEK
+        self.whole_seconds() / 604_800
     }
 
     /// Create a new `Duration` with the given number of days. Equivalent to
@@ -290,7 +278,7 @@ impl Duration {
     /// assert_eq!(Duration::days(1), 86_400.seconds());
     /// ```
     pub const fn days(days: i64) -> Self {
-        Self::seconds(days * SECONDS_PER_DAY)
+        Self::seconds(days * 86_400)
     }
 
     /// Get the number of whole days in the duration.
@@ -303,7 +291,7 @@ impl Duration {
     /// assert_eq!((-23).hours().whole_days(), 0);
     /// ```
     pub const fn whole_days(self) -> i64 {
-        self.whole_seconds() / SECONDS_PER_DAY
+        self.whole_seconds() / 86_400
     }
 
     /// Create a new `Duration` with the given number of hours. Equivalent to
@@ -314,7 +302,7 @@ impl Duration {
     /// assert_eq!(Duration::hours(1), 3_600.seconds());
     /// ```
     pub const fn hours(hours: i64) -> Self {
-        Self::seconds(hours * SECONDS_PER_HOUR)
+        Self::seconds(hours * 3_600)
     }
 
     /// Get the number of whole hours in the duration.
@@ -327,7 +315,7 @@ impl Duration {
     /// assert_eq!((-59).minutes().whole_hours(), 0);
     /// ```
     pub const fn whole_hours(self) -> i64 {
-        self.whole_seconds() / SECONDS_PER_HOUR
+        self.whole_seconds() / 3_600
     }
 
     /// Create a new `Duration` with the given number of minutes. Equivalent to
@@ -338,7 +326,7 @@ impl Duration {
     /// assert_eq!(Duration::minutes(1), 60.seconds());
     /// ```
     pub const fn minutes(minutes: i64) -> Self {
-        Self::seconds(minutes * SECONDS_PER_MINUTE)
+        Self::seconds(minutes * 60)
     }
 
     /// Get the number of whole minutes in the duration.
@@ -351,7 +339,7 @@ impl Duration {
     /// assert_eq!((-59).seconds().whole_minutes(), 0);
     /// ```
     pub const fn whole_minutes(self) -> i64 {
-        self.whole_seconds() / SECONDS_PER_MINUTE
+        self.whole_seconds() / 60
     }
 
     /// Create a new `Duration` with the given number of seconds.
