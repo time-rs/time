@@ -54,11 +54,18 @@ use proc_macro_hack::proc_macro_hack;
 use time::Time;
 
 trait ToTokens {
-    fn to_tokens(&self, tokens: &mut TokenStream);
-
-    fn to_token_stream(&self) -> TokenStream {
+    fn to_internal_tokens(&self, tokens: &mut TokenStream);
+    fn to_external_tokens(&self, tokens: &mut TokenStream) {
+        self.to_internal_tokens(tokens);
+    }
+    fn to_internal_token_stream(&self) -> TokenStream {
         let mut tokens = TokenStream::new();
-        self.to_tokens(&mut tokens);
+        self.to_internal_tokens(&mut tokens);
+        tokens
+    }
+    fn to_external_token_stream(&self) -> TokenStream {
+        let mut tokens = TokenStream::new();
+        self.to_external_tokens(&mut tokens);
         tokens
     }
 }
@@ -81,7 +88,7 @@ macro_rules! impl_macros {
 
             match chars.peek() {
                 Some(&char) => Error::UnexpectedCharacter(char).to_compile_error(),
-                None => value.to_token_stream(),
+                None => value.to_external_token_stream(),
             }
         }
     )*};

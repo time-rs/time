@@ -1,7 +1,7 @@
 use crate::{
     helpers::{
-        consume_char, consume_digits, days_in_year, days_in_year_month, weeks_in_year, ymd_to_yo,
-        ywd_to_yo,
+        self, consume_char, consume_digits, days_in_year, days_in_year_month, weeks_in_year,
+        ymd_to_yo, ywd_to_yo,
     },
     Error, ToTokens,
 };
@@ -104,7 +104,7 @@ impl Date {
 }
 
 impl ToTokens for Date {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
+    fn to_internal_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(
             [
                 TokenTree::Punct(Punct::new(':', Spacing::Joint)),
@@ -132,5 +132,22 @@ impl ToTokens for Date {
             .cloned()
             .collect::<TokenStream>(),
         )
+    }
+
+    fn to_external_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(helpers::const_block(
+            self.to_internal_token_stream(),
+            [
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new("time", Span::call_site())),
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new("Date", Span::call_site())),
+            ]
+            .iter()
+            .cloned()
+            .collect(),
+        ));
     }
 }

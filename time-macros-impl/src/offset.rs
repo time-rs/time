@@ -1,5 +1,5 @@
 use crate::{
-    helpers::{consume_char, consume_digits, consume_str},
+    helpers::{self, consume_char, consume_digits, consume_str},
     Error, ToTokens,
 };
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
@@ -62,7 +62,7 @@ impl Offset {
 }
 
 impl ToTokens for Offset {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
+    fn to_internal_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(
             [
                 TokenTree::Punct(Punct::new(':', Spacing::Joint)),
@@ -83,5 +83,22 @@ impl ToTokens for Offset {
             .cloned()
             .collect::<TokenStream>(),
         );
+    }
+
+    fn to_external_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(helpers::const_block(
+            self.to_internal_token_stream(),
+            [
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new("time", Span::call_site())),
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new("UtcOffset", Span::call_site())),
+            ]
+            .iter()
+            .cloned()
+            .collect(),
+        ));
     }
 }
