@@ -1,4 +1,8 @@
-use crate::{error::Error, helpers::consume_char, Date, Offset, Time, ToTokens};
+use crate::{
+    error::Error,
+    helpers::{self, consume_char},
+    Date, Offset, Time, ToTokens,
+};
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::{iter::Peekable, str::Chars};
 
@@ -46,7 +50,7 @@ impl DateTime {
 }
 
 impl ToTokens for DateTime {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
+    fn to_internal_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(
             [
                 TokenTree::Punct(Punct::new(':', Spacing::Joint)),
@@ -61,9 +65,9 @@ impl ToTokens for DateTime {
                 TokenTree::Group(Group::new(
                     Delimiter::Parenthesis,
                     [
-                        self.date.to_token_stream(),
+                        self.date.to_internal_token_stream(),
                         TokenTree::Punct(Punct::new(',', Spacing::Alone)).into(),
-                        self.time.to_token_stream(),
+                        self.time.to_internal_token_stream(),
                     ]
                     .iter()
                     .cloned()
@@ -94,5 +98,28 @@ impl ToTokens for DateTime {
                 .collect::<TokenStream>(),
             );
         }
+    }
+
+    fn to_external_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(helpers::const_block(
+            self.to_internal_token_stream(),
+            [
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new("time", Span::call_site())),
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new(
+                    match self.offset {
+                        Some(_) => "OffsetDateTime",
+                        None => "PrimitiveDateTime",
+                    },
+                    Span::call_site(),
+                )),
+            ]
+            .iter()
+            .cloned()
+            .collect(),
+        ));
     }
 }

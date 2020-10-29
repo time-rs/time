@@ -1,11 +1,32 @@
 use crate::{peeking_take_while::PeekableExt, Error};
-use proc_macro::{TokenStream, TokenTree};
+use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 #[allow(unused_imports)]
 use standback::prelude::*; // rem_euclid (1.38)
 use std::{
     iter::Peekable,
     str::{Chars, FromStr},
 };
+
+/// Simulate a const block, ensuring that the value will be computed at
+/// compile-time.
+pub(crate) fn const_block(value: TokenStream, type_: TokenStream) -> TokenStream {
+    TokenStream::from(TokenTree::Group(Group::new(
+        Delimiter::Brace,
+        [
+            TokenStream::from(TokenTree::Ident(Ident::new("const", Span::call_site()))),
+            TokenStream::from(TokenTree::Ident(Ident::new("VALUE", Span::call_site()))),
+            TokenStream::from(TokenTree::Punct(Punct::new(':', Spacing::Alone))),
+            type_,
+            TokenStream::from(TokenTree::Punct(Punct::new('=', Spacing::Alone))),
+            value,
+            TokenStream::from(TokenTree::Punct(Punct::new(';', Spacing::Alone))),
+            TokenStream::from(TokenTree::Ident(Ident::new("VALUE", Span::call_site()))),
+        ]
+        .iter()
+        .cloned()
+        .collect(),
+    )))
+}
 
 pub(crate) fn get_string_literal(tokens: TokenStream) -> Result<String, Error> {
     let mut tokens = tokens.into_iter();
