@@ -19,14 +19,11 @@ setup_benchmark! {
     }
 
     fn to_offset(ben: &mut Bencher) {
-        let utc = datetime!("2000-01-01 0:00 UTC");
-        let offset = offset!("-1");
-        let sydney = datetime!("2000-01-01 0:00").assume_offset(offset!("+11"));
+        let sydney = datetime!("2000-01-01 0:00 +11");
         let new_york_offset = offset!("-5");
         let los_angeles_offset = offset!("-8");
 
         ben.iter(|| (
-            utc.to_offset(offset),
             sydney.to_offset(new_york_offset),
             sydney.to_offset(los_angeles_offset),
         ));
@@ -52,7 +49,7 @@ setup_benchmark! {
 
     fn offset(ben: &mut Bencher) {
         let a = datetime!("2019-01-01 0:00 UTC");
-        let b = datetime!("2019-01-01 0:00").assume_offset(offset!("+1"));
+        let b = datetime!("2019-01-01 0:00 +1");
         let c = datetime!("2019-01-01 0:00 UTC").to_offset(offset!("+1"));
 
         ben.iter(|| (
@@ -65,7 +62,7 @@ setup_benchmark! {
     fn unix_timestamp(ben: &mut Bencher) {
         let a = OffsetDateTime::unix_epoch();
         let b = OffsetDateTime::unix_epoch().to_offset(offset!("+1"));
-        let c = datetime!("1970-01-01 0:00").assume_offset(offset!("-1"));
+        let c = datetime!("1970-01-01 0:00 -1");
         ben.iter(|| (
             a.unix_timestamp(),
             b.unix_timestamp(),
@@ -215,7 +212,7 @@ setup_benchmark! {
 
     fn format(ben: &mut Bencher) {
         let a = datetime!("2019-01-02 0:00 UTC");
-        let b = datetime!("2019-01-02 3:04:05.678_901_234").assume_offset(offset!("+6:07"));
+        let b = datetime!("2019-01-02 3:04:05.678_901_234 +6:07");
         ben.iter(|| (
             a.format("%F %r %z"),
             b.format(Format::Rfc3339),

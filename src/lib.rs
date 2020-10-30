@@ -279,15 +279,21 @@ pub mod macros {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub use time_macros::date;
-    /// Construct a [`PrimitiveDateTime`](crate::PrimitiveDateTime) or
-    /// [`OffsetDateTime`](crate::OffsetDateTime) with a statically known value.
+    /// Construct a [`PrimitiveDateTime`] or [`OffsetDateTime`] with a
+    /// statically known value.
     ///
     /// The resulting expression can be used in `const` or `static` declarations.
     ///
-    /// The syntax accepted by this macro is the same as `date!` immediately
-    /// followed by `time!`. An offset of UTC can also be provided after the time,
-    /// which will result in the construction of an `OffsetDateTime` instead of a
-    /// `PrimitiveDateTime`.
+    /// The syntax accepted by this macro is the same as [`date!`] and
+    /// [`time!`], with an optional [`offset!`], all space-separated. If an
+    /// [`offset!`] is provided, the resulting value will be an
+    /// [`OffsetDateTime`]; otherwise it will be a [`PrimitiveDateTime`].
+    ///
+    /// [`date!`]: crate::macros::date
+    /// [`time!`]: crate::macros::time
+    /// [`offset!`]: crate::macros::offset
+    /// [`OffsetDateTime`]: crate::OffsetDateTime
+    /// [`PrimitiveDateTime`]: crate::PrimitiveDateTime
     pub use time_macros::datetime;
     /// Construct a [`UtcOffset`](crate::UtcOffset) with a statically known value.
     ///

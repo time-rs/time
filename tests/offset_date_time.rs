@@ -30,7 +30,7 @@ fn to_offset() {
         1999,
     );
 
-    let sydney = datetime!("2000-01-01 0:00").assume_offset(offset!("+11"));
+    let sydney = datetime!("2000-01-01 0:00 +11");
     let new_york = sydney.to_offset(offset!("-5"));
     let los_angeles = sydney.to_offset(offset!("-8"));
     assert_eq!(sydney.hour(), 0);
@@ -76,12 +76,7 @@ fn from_unix_timestamp_nanos() {
 #[test]
 fn offset() {
     assert_eq!(datetime!("2019-01-01 0:00 UTC").offset(), offset!("UTC"));
-    assert_eq!(
-        datetime!("2019-01-01 0:00")
-            .assume_offset(offset!("+1"))
-            .offset(),
-        offset!("+1"),
-    );
+    assert_eq!(datetime!("2019-01-01 0:00 +1").offset(), offset!("+1"));
     assert_eq!(
         datetime!("2019-01-01 0:00 UTC")
             .to_offset(offset!("+1"))
@@ -99,12 +94,7 @@ fn unix_timestamp() {
             .unix_timestamp(),
         0,
     );
-    assert_eq!(
-        datetime!("1970-01-01 0:00")
-            .assume_offset(offset!("-1"))
-            .unix_timestamp(),
-        3_600,
-    );
+    assert_eq!(datetime!("1970-01-01 0:00 -1").unix_timestamp(), 3_600);
 }
 
 #[test]
@@ -285,9 +275,7 @@ fn format() {
         "2019-01-02 12:00:00 am +0000",
     );
     assert_eq!(
-        datetime!("2019-01-02 3:04:05.678_901_234")
-            .assume_offset(offset!("+6:07"))
-            .format(Format::Rfc3339),
+        datetime!("2019-01-02 3:04:05.678_901_234 +6:07").format(Format::Rfc3339),
         "2019-01-02T03:04:05+06:07"
     );
 }
@@ -308,15 +296,15 @@ fn parse() {
     );
     assert_eq!(
         OffsetDateTime::parse("2019-01-02 03:04:05 +0600", "%F %T %z"),
-        Ok(datetime!("2019-01-02 3:04:05").assume_offset(offset!("+6")))
+        Ok(datetime!("2019-01-02 3:04:05 +6"))
     );
     assert_eq!(
         OffsetDateTime::parse("2020-09-08T08:44:31+02:30", Format::Rfc3339),
-        Ok(datetime!("2020-09-08 08:44:31").assume_offset(offset!("+02:30")))
+        Ok(datetime!("2020-09-08 08:44:31 +2:30"))
     );
     assert_eq!(
         OffsetDateTime::parse("2019-01-02T03:04:05.678901234+05:06", Format::Rfc3339),
-        Ok(datetime!("2019-01-02 3:04:05.678_901_234").assume_offset(offset!("+5:06")))
+        Ok(datetime!("2019-01-02 3:04:05.678_901_234 +5:06"))
     );
     assert_eq!(
         OffsetDateTime::parse("2019-01-02T03:04:05.678901234Z", Format::Rfc3339),

@@ -11,11 +11,12 @@ enum Period {
     _24,
 }
 
+#[derive(Clone, Copy)]
 pub(crate) struct Time {
-    hour: u8,
-    minute: u8,
-    second: u8,
-    nanosecond: u32,
+    pub(crate) hour: u8,
+    pub(crate) minute: u8,
+    pub(crate) second: u8,
+    pub(crate) nanosecond: u32,
 }
 
 impl Time {
