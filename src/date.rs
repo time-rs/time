@@ -453,21 +453,16 @@ impl Date {
             (day as i32 + (13 * (month as i32 + 1)) / 5 + adjusted_year + adjusted_year / 4
                 - adjusted_year / 100
                 + adjusted_year / 400)
-                % 7
-                - 2;
+                % 7;
 
         match raw_weekday {
-            0 => Weekday::Monday,
-            -6 | 1 => Weekday::Tuesday,
-            -5 | 2 => Weekday::Wednesday,
-            -4 | 3 => Weekday::Thursday,
-            -3 | 4 => Weekday::Friday,
-            -2 | 5 => Weekday::Saturday,
-            // When performing `x % 7`, `x` is always in the range -6..=6. As
-            // the other values have all been matched above, this is equivalent
-            // to `-1 | 6`. The advantage of this is that it is usable in a
-            // const context.
-            _ => Weekday::Sunday,
+            -6 | 1 => Weekday::Sunday,
+            -5 | 2 => Weekday::Monday,
+            -4 | 3 => Weekday::Tuesday,
+            -3 | 4 => Weekday::Wednesday,
+            -2 | 5 => Weekday::Thursday,
+            -1 | 6 => Weekday::Friday,
+            _ => Weekday::Saturday,
         }
     }
 
