@@ -8,9 +8,10 @@ use crate::{
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::{iter::Peekable, str::Chars};
 
+#[derive(Clone, Copy)]
 pub(crate) struct Date {
-    year: i32,
-    ordinal: u16,
+    pub(crate) year: i32,
+    pub(crate) ordinal: u16,
 }
 
 impl Date {

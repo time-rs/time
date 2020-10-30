@@ -107,9 +107,8 @@ impl OffsetDateTime {
     /// // Let's see what time Sydney's new year's celebration is in New York
     /// // and Los Angeles.
     ///
-    /// // Construct midnight on new year's in Sydney. This is equivalent to
-    /// // 13:00 UTC.
-    /// let sydney = datetime!("2000-01-01 0:00").assume_offset(offset!("+11"));
+    /// // Construct midnight on new year's in Sydney.
+    /// let sydney = datetime!("2000-01-01 0:00 +11");
     /// let new_york = sydney.to_offset(offset!("-5"));
     /// let los_angeles = sydney.to_offset(offset!("-8"));
     /// assert_eq!(sydney.hour(), 0);
@@ -245,12 +244,7 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time_macros::{datetime, offset};
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").offset(), offset!("UTC"));
-    /// assert_eq!(
-    ///     datetime!("2019-01-01 0:00")
-    ///         .assume_offset(offset!("+1"))
-    ///         .offset(),
-    ///     offset!("+1"),
-    /// );
+    /// assert_eq!(datetime!("2019-01-01 0:00 +1").offset(), offset!("+1"));
     /// ```
     pub const fn offset(self) -> UtcOffset {
         self.offset
@@ -259,14 +253,9 @@ impl OffsetDateTime {
     /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
-    /// # use time_macros::{datetime, offset};
+    /// # use time_macros::datetime;
     /// assert_eq!(datetime!("1970-01-01 0:00 UTC").unix_timestamp(), 0);
-    /// assert_eq!(
-    ///     datetime!("1970-01-01 0:00 UTC")
-    ///         .to_offset(offset!("-1"))
-    ///         .unix_timestamp(),
-    ///     0,
-    /// );
+    /// assert_eq!(datetime!("1970-01-01 0:00 -1").unix_timestamp(), 3_600);
     /// ```
     pub fn unix_timestamp(self) -> i64 {
         (self - Self::unix_epoch()).whole_seconds()
@@ -275,12 +264,10 @@ impl OffsetDateTime {
     /// Get the Unix timestamp in nanoseconds.
     ///
     /// ```rust
-    /// use time_macros::{datetime, offset};
+    /// use time_macros::datetime;
     /// assert_eq!(datetime!("1970-01-01 0:00 UTC").unix_timestamp_nanos(), 0);
     /// assert_eq!(
-    ///     datetime!("1970-01-01 1:00 UTC")
-    ///         .to_offset(offset!("-1"))
-    ///         .unix_timestamp_nanos(),
+    ///     datetime!("1970-01-01 0:00 -1").unix_timestamp_nanos(),
     ///     3_600_000_000_000,
     /// );
     /// ```

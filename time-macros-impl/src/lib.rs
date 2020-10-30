@@ -30,8 +30,10 @@
 )]
 #![allow(
     clippy::cast_possible_truncation,
-    clippy::redundant_pub_crate,
-    clippy::missing_const_for_fn
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
+    clippy::missing_const_for_fn,
+    clippy::redundant_pub_crate
 )]
 
 #[allow(unused_extern_crates)]

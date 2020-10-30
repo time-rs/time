@@ -1,11 +1,12 @@
 use crate::{
     error::Error,
-    helpers::{self, consume_char},
+    helpers::{self, consume_char, days_in_year},
     Date, Offset, Time, ToTokens,
 };
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::{iter::Peekable, str::Chars};
 
+#[derive(Clone, Copy)]
 pub(crate) struct DateTime {
     date: Date,
     time: Time,
@@ -28,15 +29,7 @@ impl DateTime {
 
         let offset = if chars.peek() == Some(&' ') {
             consume_char(' ', chars)?;
-
-            let offset = Offset::parse(chars)?;
-            if offset.is_utc() {
-                Some(offset)
-            } else {
-                return Err(Error::Custom(
-                    "offsets other than UTC are not currently supported".into(),
-                ));
-            }
+            Some(Offset::parse(chars)?)
         } else {
             None
         };
@@ -47,10 +40,65 @@ impl DateTime {
 
         Ok(Self { date, time, offset })
     }
+
+    fn utc_date_time(&self) -> (Date, Time) {
+        let offset = match self.offset {
+            Some(offset) => offset,
+            None => return (self.date, self.time),
+        };
+
+        let mut second = self.time.second as i8 - (offset.seconds % 60) as i8;
+        let mut minute = self.time.minute as i8 - (offset.seconds / 60 % 60) as i8;
+        let mut hour = self.time.hour as i8 - (offset.seconds / 3_600) as i8;
+
+        let mut ordinal = self.date.ordinal;
+        let mut year = self.date.year;
+
+        if second >= 60 {
+            second -= 60;
+            minute += 1;
+        } else if second < 0 {
+            second += 60;
+            minute -= 1;
+        }
+        if minute >= 60 {
+            minute -= 60;
+            hour += 1;
+        } else if minute < 0 {
+            minute += 60;
+            hour -= 1;
+        }
+        if hour >= 24 {
+            hour -= 24;
+            ordinal += 1;
+        } else if hour < 0 {
+            hour += 24;
+            ordinal -= 1;
+        }
+        if ordinal > days_in_year(year) {
+            year += 1;
+            ordinal = 1;
+        } else if ordinal == 0 {
+            year -= 1;
+            ordinal = days_in_year(year);
+        }
+
+        (
+            Date { year, ordinal },
+            Time {
+                hour: hour as u8,
+                minute: minute as u8,
+                second: second as u8,
+                nanosecond: self.time.nanosecond,
+            },
+        )
+    }
 }
 
 impl ToTokens for DateTime {
     fn to_internal_tokens(&self, tokens: &mut TokenStream) {
+        let (utc_date, utc_time) = self.utc_date_time();
+
         tokens.extend(
             [
                 TokenTree::Punct(Punct::new(':', Spacing::Joint)),
@@ -65,9 +113,9 @@ impl ToTokens for DateTime {
                 TokenTree::Group(Group::new(
                     Delimiter::Parenthesis,
                     [
-                        self.date.to_internal_token_stream(),
+                        utc_date.to_internal_token_stream(),
                         TokenTree::Punct(Punct::new(',', Spacing::Alone)).into(),
-                        self.time.to_internal_token_stream(),
+                        utc_time.to_internal_token_stream(),
                     ]
                     .iter()
                     .cloned()
@@ -79,19 +127,18 @@ impl ToTokens for DateTime {
             .collect::<TokenStream>(),
         );
 
-        if let Some(ref offset) = self.offset {
-            if !offset.is_utc() {
-                // Offsets other than UTC are not currently supported. An error
-                // should have been thrown during parsing, but it can't hurt to
-                // have this here to be sure.
-                return;
-            }
-
+        if let Some(offset) = self.offset {
             tokens.extend(
                 [
                     TokenTree::Punct(Punct::new('.', Spacing::Alone)),
                     TokenTree::Ident(Ident::new("assume_utc", Span::call_site())),
                     TokenTree::Group(Group::new(Delimiter::Parenthesis, TokenStream::new())),
+                    TokenTree::Punct(Punct::new('.', Spacing::Alone)),
+                    TokenTree::Ident(Ident::new("to_offset", Span::call_site())),
+                    TokenTree::Group(Group::new(
+                        Delimiter::Parenthesis,
+                        offset.to_internal_token_stream(),
+                    )),
                 ]
                 .iter()
                 .cloned()

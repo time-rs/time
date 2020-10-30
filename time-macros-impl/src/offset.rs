@@ -5,15 +5,12 @@ use crate::{
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::{iter::Peekable, str::Chars};
 
+#[derive(Clone, Copy)]
 pub(crate) struct Offset {
-    seconds: i32,
+    pub(crate) seconds: i32,
 }
 
 impl Offset {
-    pub(crate) fn is_utc(&self) -> bool {
-        self.seconds == 0
-    }
-
     pub(crate) fn parse(chars: &mut Peekable<Chars<'_>>) -> Result<Self, Error> {
         if consume_str("utc", chars).is_ok() || consume_str("UTC", chars).is_ok() {
             return Ok(Self { seconds: 0 });
