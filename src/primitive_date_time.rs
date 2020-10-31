@@ -29,7 +29,8 @@ pub struct PrimitiveDateTime {
 }
 
 impl PrimitiveDateTime {
-    /// Create a new `PrimitiveDateTime` from the provided `Date` and `Time`.
+    /// Create a new `PrimitiveDateTime` from the provided [`Date`] and
+    /// [`Time`].
     ///
     /// ```rust
     /// # use time::PrimitiveDateTime;
@@ -43,7 +44,7 @@ impl PrimitiveDateTime {
         Self { date, time }
     }
 
-    /// Get the `Date` component of the `PrimitiveDateTime`.
+    /// Get the [`Date`] component of the `PrimitiveDateTime`.
     ///
     /// ```rust
     /// # use time_macros::{date, datetime};
@@ -53,7 +54,7 @@ impl PrimitiveDateTime {
         self.date
     }
 
-    /// Get the `Time` component of the `PrimitiveDateTime`.
+    /// Get the [`Time`] component of the `PrimitiveDateTime`.
     ///
     /// ```rust
     /// # use time_macros::{datetime, time};
@@ -331,7 +332,7 @@ impl PrimitiveDateTime {
     }
 
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in
-    /// the provided `UtcOffset`, return an `OffsetDateTime`.
+    /// the provided [`UtcOffset`], return an [`OffsetDateTime`].
     ///
     /// ```rust
     /// # use time_macros::{datetime, offset};
@@ -353,7 +354,7 @@ impl PrimitiveDateTime {
     }
 
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in
-    /// the UTC, return an `OffsetDateTime`.
+    /// the UTC, return an [`OffsetDateTime`].
     ///
     /// ```rust
     /// # use time_macros::datetime;

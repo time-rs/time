@@ -1,4 +1,4 @@
-//! Formatting helpers for a `UtcOffset`.
+//! Formatting helpers for a [`UtcOffset`].
 
 #![allow(non_snake_case)]
 

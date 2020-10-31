@@ -231,30 +231,30 @@ macro_rules! const_try_opt {
     };
 }
 
-/// The `Date` struct and its associated `impl`s.
+/// The [`Date`] struct and its associated `impl`s.
 mod date;
-/// The `Duration` struct and its associated `impl`s.
+/// The [`Duration`] struct and its associated `impl`s.
 mod duration;
 /// Various error types returned by methods in the time crate.
 pub mod error;
 /// Extension traits.
 pub mod ext;
 mod format;
-/// The `Instant` struct and its associated `impl`s.
+/// The [`Instant`] struct and its associated `impl`s.
 #[cfg(feature = "std")]
 mod instant;
-/// The `OffsetDateTime` struct and its associated `impl`s.
+/// The [`OffsetDateTime`] struct and its associated `impl`s.
 mod offset_date_time;
-/// The `PrimitiveDateTime` struct and its associated `impl`s.
+/// The [`PrimitiveDateTime`] struct and its associated `impl`s.
 mod primitive_date_time;
 #[cfg(feature = "rand")]
 mod rand;
 #[cfg(feature = "serde")]
 #[allow(missing_copy_implementations, missing_debug_implementations)]
 pub mod serde;
-/// The `Time` struct and its associated `impl`s.
+/// The [`Time`] struct and its associated `impl`s.
 mod time_mod;
-/// The `UtcOffset` struct and its associated `impl`s.
+/// The [`UtcOffset`] struct and its associated `impl`s.
 mod utc_offset;
 pub mod util;
 /// Days of the week.
@@ -369,7 +369,8 @@ pub use time_mod::Time;
 pub use utc_offset::UtcOffset;
 pub use weekday::Weekday;
 
-/// An alias for `Result` with a generic error from the time crate.
+/// An alias for [`std::result::Result`] with a generic error from the time
+/// crate.
 pub type Result<T> = core::result::Result<T, Error>;
 
 /// A collection of imports that are widely useful.

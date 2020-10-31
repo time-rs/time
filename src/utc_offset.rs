@@ -454,7 +454,7 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             ((filetime.dwHighDateTime as i64) << 32 | filetime.dwLowDateTime as i64) / FT_TO_SECS
         }
 
-        /// Convert an `OffsetDateTime` to a `SYSTEMTIME`.
+        /// Convert an [`OffsetDateTime`] to a `SYSTEMTIME`.
         fn offset_to_systemtime(datetime: OffsetDateTime) -> SYSTEMTIME {
             let (month, day_of_month) = datetime.to_offset(UtcOffset::UTC).month_day();
             SYSTEMTIME {

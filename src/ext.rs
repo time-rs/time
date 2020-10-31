@@ -3,7 +3,7 @@
 use crate::Duration;
 use core::time::Duration as StdDuration;
 
-/// Create `Duration`s from primitive and core numeric types.
+/// Create [`Duration`]s from primitive and core numeric types.
 ///
 /// This trait can be imported with `use time::prelude::*`.
 ///
@@ -12,7 +12,7 @@ use core::time::Duration as StdDuration;
 ///
 /// # Examples
 ///
-/// Basic construction of `Duration`s.
+/// Basic construction of [`Duration`]s.
 ///
 /// ```rust
 /// # use time::{Duration, ext::NumericalDuration};
@@ -40,7 +40,7 @@ use core::time::Duration as StdDuration;
 /// assert_eq!((-5).weeks(), Duration::weeks(-5));
 /// ```
 ///
-/// Just like any other `Duration`, they can be added, subtracted, etc.
+/// Just like any other [`Duration`], they can be added, subtracted, etc.
 ///
 /// ```rust
 /// # use time::ext::NumericalDuration;
@@ -52,21 +52,21 @@ use core::time::Duration as StdDuration;
 /// value will be truncated. Keep in mind that floating point numbers are
 /// inherently imprecise and have limited capacity.
 pub trait NumericalDuration {
-    /// Create a `Duration` from the number of nanoseconds.
+    /// Create a [`Duration`] from the number of nanoseconds.
     fn nanoseconds(self) -> Duration;
-    /// Create a `Duration` from the number of microseconds.
+    /// Create a [`Duration`] from the number of microseconds.
     fn microseconds(self) -> Duration;
-    /// Create a `Duration` from the number of milliseconds.
+    /// Create a [`Duration`] from the number of milliseconds.
     fn milliseconds(self) -> Duration;
-    /// Create a `Duration` from the number of seconds.
+    /// Create a [`Duration`] from the number of seconds.
     fn seconds(self) -> Duration;
-    /// Create a `Duration` from the number of minutes.
+    /// Create a [`Duration`] from the number of minutes.
     fn minutes(self) -> Duration;
-    /// Create a `Duration` from the number of hours.
+    /// Create a [`Duration`] from the number of hours.
     fn hours(self) -> Duration;
-    /// Create a `Duration` from the number of days.
+    /// Create a [`Duration`] from the number of days.
     fn days(self) -> Duration;
-    /// Create a `Duration` from the number of weeks.
+    /// Create a [`Duration`] from the number of weeks.
     fn weeks(self) -> Duration;
 }
 
@@ -205,7 +205,7 @@ impl_numerical_duration_nonzero![
 ];
 impl_numerical_duration_float![f32, f64];
 
-/// Create `std::time::Duration`s from primitive and core numeric types.
+/// Create [`std::time::Duration`]s from primitive and core numeric types.
 ///
 /// This trait can be imported (alongside others) with `use time::prelude::*`.
 ///
@@ -214,7 +214,7 @@ impl_numerical_duration_float![f32, f64];
 ///
 /// # Examples
 ///
-/// Basic construction of `std::time::Duration`s.
+/// Basic construction of [`std::time::Duration`]s.
 ///
 /// ```rust
 /// # use time::ext::NumericalStdDuration;
@@ -229,7 +229,7 @@ impl_numerical_duration_float![f32, f64];
 /// assert_eq!(5.std_weeks(), Duration::from_secs(5 * 604_800));
 /// ```
 ///
-/// Just like any other `std::time::Duration`, they can be added, subtracted,
+/// Just like any other [`std::time::Duration`], they can be added, subtracted,
 /// etc.
 ///
 /// ```rust
@@ -248,21 +248,21 @@ impl_numerical_duration_float![f32, f64];
 /// value will be truncated. Keep in mind that floating point numbers are
 /// inherently imprecise and have limited capacity.
 pub trait NumericalStdDuration {
-    /// Create a `std::time::Duration` from the number of nanoseconds.
+    /// Create a [`std::time::Duration`] from the number of nanoseconds.
     fn std_nanoseconds(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of microseconds.
+    /// Create a [`std::time::Duration`] from the number of microseconds.
     fn std_microseconds(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of milliseconds.
+    /// Create a [`std::time::Duration`] from the number of milliseconds.
     fn std_milliseconds(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of seconds.
+    /// Create a [`std::time::Duration`] from the number of seconds.
     fn std_seconds(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of minutes.
+    /// Create a [`std::time::Duration`] from the number of minutes.
     fn std_minutes(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of hours.
+    /// Create a [`std::time::Duration`] from the number of hours.
     fn std_hours(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of days.
+    /// Create a [`std::time::Duration`] from the number of days.
     fn std_days(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of weeks.
+    /// Create a [`std::time::Duration`] from the number of weeks.
     fn std_weeks(self) -> StdDuration;
 }
 
@@ -442,16 +442,16 @@ impl NumericalStdDuration for f64 {
     }
 }
 
-/// Create `std::time::Duration`s from primitive and core numeric types. Unless
-/// you are always expecting a `std::time::Duration`, you should prefer to use
-/// [`NumericalStdDuration`] for clarity.
+/// Create [`std::time::Duration`]s from primitive and core numeric types.
+/// Unless you are always expecting a [`std::time::Duration`], you should prefer
+/// to use [`NumericalStdDuration`] for clarity.
 ///
 /// Due to limitations in rustc, these methods are currently _not_ `const fn`.
 /// See [this RFC](https://github.com/rust-lang/rfcs/pull/2632) for details.
 ///
 /// # Examples
 ///
-/// Basic construction of `std::time::Duration`s.
+/// Basic construction of [`std::time::Duration`]s.
 ///
 /// ```rust
 /// # use time::ext::NumericalStdDurationShort;
@@ -466,7 +466,7 @@ impl NumericalStdDuration for f64 {
 /// assert_eq!(5.weeks(), Duration::from_secs(5 * 604_800));
 /// ```
 ///
-/// Just like any other `std::time::Duration`, they can be added, subtracted,
+/// Just like any other [`std::time::Duration`], they can be added, subtracted,
 /// etc.
 ///
 /// ```rust
@@ -479,21 +479,21 @@ impl NumericalStdDuration for f64 {
 /// value will be truncated. Keep in mind that floating point numbers are
 /// inherently imprecise and have limited capacity.
 pub trait NumericalStdDurationShort {
-    /// Create a `std::time::Duration` from the number of nanoseconds.
+    /// Create a [`std::time::Duration`] from the number of nanoseconds.
     fn nanoseconds(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of microseconds.
+    /// Create a [`std::time::Duration`] from the number of microseconds.
     fn microseconds(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of milliseconds.
+    /// Create a [`std::time::Duration`] from the number of milliseconds.
     fn milliseconds(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of seconds.
+    /// Create a [`std::time::Duration`] from the number of seconds.
     fn seconds(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of minutes.
+    /// Create a [`std::time::Duration`] from the number of minutes.
     fn minutes(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of hours.
+    /// Create a [`std::time::Duration`] from the number of hours.
     fn hours(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of days.
+    /// Create a [`std::time::Duration`] from the number of days.
     fn days(self) -> StdDuration;
-    /// Create a `std::time::Duration` from the number of weeks.
+    /// Create a [`std::time::Duration`] from the number of weeks.
     fn weeks(self) -> StdDuration;
 }
 

@@ -1,4 +1,4 @@
-//! Implementation of `Distribution` for various structs.
+//! Implementation of [`Distribution`] for various structs.
 
 use crate::{
     date::{MAX_YEAR, MIN_YEAR},
