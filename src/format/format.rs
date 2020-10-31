@@ -1,4 +1,4 @@
-//! The `Format` struct and its implementations.
+//! The [`Format`] struct and its implementations.
 
 /// Various well-known formats, along with the possibility for a custom format
 /// (provided either at compile-time or runtime).

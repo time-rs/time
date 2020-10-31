@@ -1,5 +1,5 @@
-//! The `DeferredFormat` struct, acting as an intermediary between a request to
-//! format and the final output.
+//! The [`DeferredFormat`] struct, acting as an intermediary between a request
+//! to format and the final output.
 
 use crate::{
     format::{format_specifier, parse_fmt_string, well_known, Format, FormatItem},
@@ -10,11 +10,11 @@ use core::fmt::{self, Display, Formatter};
 /// A struct containing all the necessary information to display the inner type.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(crate) struct DeferredFormat<'a> {
-    /// The `Date` to use for formatting.
+    /// The [`Date`] to use for formatting.
     date: Option<Date>,
-    /// The `Time` to use for formatting.
+    /// The [`Time`] to use for formatting.
     time: Option<Time>,
-    /// The `UtcOffset` to use for formatting.
+    /// The [`UtcOffset`] to use for formatting.
     offset: Option<UtcOffset>,
     /// The list of items used to display the item.
     format: Format<'a>,
@@ -31,35 +31,35 @@ impl<'a> DeferredFormat<'a> {
         }
     }
 
-    /// Provide the `Date` component.
+    /// Provide the [`Date`] component.
     pub(crate) fn with_date(&mut self, date: Date) -> &mut Self {
         self.date = Some(date);
         self
     }
 
-    /// Provide the `Time` component.
+    /// Provide the [`Time`] component.
     pub(crate) fn with_time(&mut self, time: Time) -> &mut Self {
         self.time = Some(time);
         self
     }
 
-    /// Provide the `UtcOffset` component.
+    /// Provide the [`UtcOffset`] component.
     pub(crate) fn with_offset(&mut self, offset: UtcOffset) -> &mut Self {
         self.offset = Some(offset);
         self
     }
 
-    /// Obtain the `Date` component.
+    /// Obtain the [`Date`] component.
     pub(crate) const fn date(&self) -> Option<Date> {
         self.date
     }
 
-    /// Obtain the `Time` component.
+    /// Obtain the [`Time`] component.
     pub(crate) const fn time(&self) -> Option<Time> {
         self.time
     }
 
-    /// Obtain the `UtcOffset` component.
+    /// Obtain the [`UtcOffset`] component.
     pub(crate) const fn offset(&self) -> Option<UtcOffset> {
         self.offset
     }
