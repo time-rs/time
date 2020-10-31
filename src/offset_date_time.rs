@@ -35,15 +35,15 @@ use std::time::SystemTime;
 )]
 #[derive(Debug, Clone, Copy, Eq)]
 pub struct OffsetDateTime {
-    /// The `PrimitiveDateTime`, which is _always_ UTC.
+    /// The [`PrimitiveDateTime`], which is _always_ UTC.
     utc_datetime: PrimitiveDateTime,
-    /// The `UtcOffset`, which will be added to the `PrimitiveDateTime` as necessary.
+    /// The [`UtcOffset`], which will be added to the [`PrimitiveDateTime`] as necessary.
     offset: UtcOffset,
 }
 
 impl OffsetDateTime {
-    /// Create a new `OffsetDateTime` from the provided `PrimitiveDateTime` and
-    /// `UtcOffset`. The `PrimitiveDateTime` is assumed to be in the provided
+    /// Create a new `OffsetDateTime` from the provided [`PrimitiveDateTime`] and
+    /// [`UtcOffset`]. The [`PrimitiveDateTime`] is assumed to be in the provided
     /// offset.
     // TODO Should this be made public?
     pub(crate) fn new_assuming_offset(utc_datetime: PrimitiveDateTime, offset: UtcOffset) -> Self {
@@ -53,8 +53,8 @@ impl OffsetDateTime {
         }
     }
 
-    /// Create a new `OffsetDateTime` from the provided `PrimitiveDateTime` and
-    /// `UtcOffset`. The `PrimitiveDateTime` is assumed to be in UTC.
+    /// Create a new `OffsetDateTime` from the provided [`PrimitiveDateTime`] and
+    /// [`UtcOffset`]. The [`PrimitiveDateTime`] is assumed to be in UTC.
     // TODO Should this be made public?
     pub(crate) const fn new_assuming_utc(utc_datetime: PrimitiveDateTime) -> Self {
         Self {
@@ -92,8 +92,8 @@ impl OffsetDateTime {
         Ok(t.to_offset(UtcOffset::local_offset_at(t)?))
     }
 
-    /// Convert the `OffsetDateTime` from the current `UtcOffset` to the
-    /// provided `UtcOffset`.
+    /// Convert the `OffsetDateTime` from the current [`UtcOffset`] to the
+    /// provided [`UtcOffset`].
     ///
     /// ```rust
     /// # use time_macros::{datetime, offset};
@@ -239,7 +239,7 @@ impl OffsetDateTime {
         Ok(PrimitiveDateTime::new(date, time).assume_utc())
     }
 
-    /// Get the `UtcOffset`.
+    /// Get the [`UtcOffset`].
     ///
     /// ```rust
     /// # use time_macros::{datetime, offset};
@@ -275,7 +275,7 @@ impl OffsetDateTime {
         (self - Self::unix_epoch()).whole_nanoseconds()
     }
 
-    /// Get the `Date` in the stored offset.
+    /// Get the [`Date`] in the stored offset.
     ///
     /// ```rust
     /// # use time_macros::{date, datetime, offset};
@@ -291,7 +291,7 @@ impl OffsetDateTime {
         (self.utc_datetime + self.offset.as_duration()).date()
     }
 
-    /// Get the `Time` in the stored offset.
+    /// Get the [`Time`] in the stored offset.
     ///
     /// ```rust
     /// # use time_macros::{datetime, offset, time};

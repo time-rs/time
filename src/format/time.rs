@@ -1,4 +1,4 @@
-//! Formatting helpers for a `Time`.
+//! Formatting helpers for a [`Time`].
 
 #![allow(non_snake_case)]
 

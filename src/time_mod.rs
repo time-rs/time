@@ -299,7 +299,7 @@ impl Time {
             + self.nanosecond() as u64
     }
 
-    /// Add the sub-day time of the `Duration` to the `Time`. Wraps on overflow,
+    /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow,
     /// returning the necessary adjustment to the date value as the first
     /// element of the tuple.
     pub(crate) fn adjusting_add(self, duration: Duration) -> (Duration, Time) {
@@ -467,7 +467,7 @@ impl Display for Time {
 impl Add<Duration> for Time {
     type Output = Self;
 
-    /// Add the sub-day time of the `Duration` to the `Time`. Wraps on overflow.
+    /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow.
     ///
     /// ```rust
     /// # use time::prelude::*;
@@ -483,7 +483,7 @@ impl Add<Duration> for Time {
 impl Add<StdDuration> for Time {
     type Output = Self;
 
-    /// Add the sub-day time of the `std::time::Duration` to the `Time`. Wraps
+    /// Add the sub-day time of the [`std::time::Duration`] to the `Time`. Wraps
     /// on overflow.
     ///
     /// ```rust
@@ -499,7 +499,7 @@ impl Add<StdDuration> for Time {
 }
 
 impl AddAssign<Duration> for Time {
-    /// Add the sub-day time of the `Duration` to the existing `Time`. Wraps on
+    /// Add the sub-day time of the [`Duration`] to the existing `Time`. Wraps on
     /// overflow.
     ///
     /// ```rust
@@ -519,7 +519,7 @@ impl AddAssign<Duration> for Time {
 }
 
 impl AddAssign<StdDuration> for Time {
-    /// Add the sub-day time of the `std::time::Duration` to the existing
+    /// Add the sub-day time of the [`std::time::Duration`] to the existing
     /// `Time`. Wraps on overflow.
     ///
     /// ```rust
@@ -541,7 +541,7 @@ impl AddAssign<StdDuration> for Time {
 impl Sub<Duration> for Time {
     type Output = Self;
 
-    /// Subtract the sub-day time of the `Duration` from the `Time`. Wraps on
+    /// Subtract the sub-day time of the [`Duration`] from the `Time`. Wraps on
     /// overflow.
     ///
     /// ```rust
@@ -558,7 +558,7 @@ impl Sub<Duration> for Time {
 impl Sub<StdDuration> for Time {
     type Output = Self;
 
-    /// Subtract the sub-day time of the `std::time::Duration` from the `Time`.
+    /// Subtract the sub-day time of the [`std::time::Duration`] from the `Time`.
     /// Wraps on overflow.
     ///
     /// ```rust
@@ -574,7 +574,7 @@ impl Sub<StdDuration> for Time {
 }
 
 impl SubAssign<Duration> for Time {
-    /// Subtract the sub-day time of the `Duration` from the existing `Time`.
+    /// Subtract the sub-day time of the [`Duration`] from the existing `Time`.
     /// Wraps on overflow.
     ///
     /// ```rust
@@ -594,7 +594,7 @@ impl SubAssign<Duration> for Time {
 }
 
 impl SubAssign<StdDuration> for Time {
-    /// Subtract the sub-day time of the `std::time::Duration` from the existing
+    /// Subtract the sub-day time of the [`std::time::Duration`] from the existing
     /// `Time`. Wraps on overflow.
     ///
     /// ```rust
@@ -616,7 +616,7 @@ impl SubAssign<StdDuration> for Time {
 impl Sub<Time> for Time {
     type Output = Duration;
 
-    /// Subtract two `Time`s, returning the `Duration` between. This assumes
+    /// Subtract two `Time`s, returning the [`Duration`] between. This assumes
     /// both `Time`s are in the same calendar day.
     ///
     /// ```rust

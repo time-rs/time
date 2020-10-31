@@ -594,9 +594,9 @@ impl Date {
     }
 }
 
-/// Methods to add a `Time` component, resulting in a `PrimitiveDateTime`.
+/// Methods to add a [`Time`] component, resulting in a [`PrimitiveDateTime`].
 impl Date {
-    /// Create a `PrimitiveDateTime` using the existing date. The `Time` component will
+    /// Create a [`PrimitiveDateTime`] using the existing date. The [`Time`] component will
     /// be set to midnight.
     ///
     /// ```rust
@@ -607,7 +607,7 @@ impl Date {
         PrimitiveDateTime::new(self, Time::midnight())
     }
 
-    /// Create a `PrimitiveDateTime` using the existing date and the provided `Time`.
+    /// Create a [`PrimitiveDateTime`] using the existing date and the provided [`Time`].
     ///
     /// ```rust
     /// # use time_macros::{date, datetime, time};
@@ -620,7 +620,7 @@ impl Date {
         PrimitiveDateTime::new(self, time)
     }
 
-    /// Attempt to create a `PrimitiveDateTime` using the existing date and the
+    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and the
     /// provided time.
     ///
     /// ```rust
@@ -643,7 +643,7 @@ impl Date {
         ))
     }
 
-    /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
+    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time_macros::date;
@@ -666,7 +666,7 @@ impl Date {
         ))
     }
 
-    /// Attempt to create a `PrimitiveDateTime` using the existing date and the
+    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and the
     /// provided time.
     ///
     /// ```rust
@@ -690,7 +690,7 @@ impl Date {
         ))
     }
 
-    /// Attempt to create a `PrimitiveDateTime` using the existing date and the provided time.
+    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time_macros::date;

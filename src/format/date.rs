@@ -1,4 +1,4 @@
-//! Formatting helpers for a `Date`.
+//! Formatting helpers for a [`Date`].
 
 #![allow(non_snake_case)]
 
