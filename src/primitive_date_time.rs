@@ -29,7 +29,8 @@ pub struct PrimitiveDateTime {
 }
 
 impl PrimitiveDateTime {
-    /// Create a new `PrimitiveDateTime` from the provided [`Date`] and [`Time`].
+    /// Create a new `PrimitiveDateTime` from the provided [`Date`] and
+    /// [`Time`].
     ///
     /// ```rust
     /// # use time::PrimitiveDateTime;

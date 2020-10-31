@@ -1,5 +1,5 @@
-//! The [`DeferredFormat`] struct, acting as an intermediary between a request to
-//! format and the final output.
+//! The [`DeferredFormat`] struct, acting as an intermediary between a request
+//! to format and the final output.
 
 use crate::{
     format::{format_specifier, parse_fmt_string, well_known, Format, FormatItem},

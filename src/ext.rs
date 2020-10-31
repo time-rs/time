@@ -442,9 +442,9 @@ impl NumericalStdDuration for f64 {
     }
 }
 
-/// Create [`std::time::Duration`]s from primitive and core numeric types. Unless
-/// you are always expecting a [`std::time::Duration`], you should prefer to use
-/// [`NumericalStdDuration`] for clarity.
+/// Create [`std::time::Duration`]s from primitive and core numeric types.
+/// Unless you are always expecting a [`std::time::Duration`], you should prefer
+/// to use [`NumericalStdDuration`] for clarity.
 ///
 /// Due to limitations in rustc, these methods are currently _not_ `const fn`.
 /// See [this RFC](https://github.com/rust-lang/rfcs/pull/2632) for details.

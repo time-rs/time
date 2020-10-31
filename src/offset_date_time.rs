@@ -37,14 +37,15 @@ use std::time::SystemTime;
 pub struct OffsetDateTime {
     /// The [`PrimitiveDateTime`], which is _always_ UTC.
     utc_datetime: PrimitiveDateTime,
-    /// The [`UtcOffset`], which will be added to the [`PrimitiveDateTime`] as necessary.
+    /// The [`UtcOffset`], which will be added to the [`PrimitiveDateTime`] as
+    /// necessary.
     offset: UtcOffset,
 }
 
 impl OffsetDateTime {
-    /// Create a new `OffsetDateTime` from the provided [`PrimitiveDateTime`] and
-    /// [`UtcOffset`]. The [`PrimitiveDateTime`] is assumed to be in the provided
-    /// offset.
+    /// Create a new `OffsetDateTime` from the provided [`PrimitiveDateTime`]
+    /// and [`UtcOffset`]. The [`PrimitiveDateTime`] is assumed to be in the
+    /// provided offset.
     // TODO Should this be made public?
     pub(crate) fn new_assuming_offset(utc_datetime: PrimitiveDateTime, offset: UtcOffset) -> Self {
         Self {
@@ -53,8 +54,8 @@ impl OffsetDateTime {
         }
     }
 
-    /// Create a new `OffsetDateTime` from the provided [`PrimitiveDateTime`] and
-    /// [`UtcOffset`]. The [`PrimitiveDateTime`] is assumed to be in UTC.
+    /// Create a new `OffsetDateTime` from the provided [`PrimitiveDateTime`]
+    /// and [`UtcOffset`]. The [`PrimitiveDateTime`] is assumed to be in UTC.
     // TODO Should this be made public?
     pub(crate) const fn new_assuming_utc(utc_datetime: PrimitiveDateTime) -> Self {
         Self {
