@@ -16,7 +16,7 @@ use core::{
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(feature = "alloc")]
+#[cfg(feature = "std")]
 use core::{
     cmp::{Ord, PartialOrd},
     fmt::Display,
