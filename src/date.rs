@@ -17,10 +17,9 @@ use core::{
     time::Duration as StdDuration,
 };
 #[cfg(feature = "std")]
-use core::{
-    cmp::{Ord, PartialOrd},
-    fmt::Display,
-};
+use core::cmp::{Ord, PartialOrd};
+#[cfg(feature = "alloc")]
+use core::fmt::Display;
 
 /// The minimum valid year.
 pub(crate) const MIN_YEAR: i32 = -999_999;
