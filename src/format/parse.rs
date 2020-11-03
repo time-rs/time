@@ -18,7 +18,7 @@ pub(crate) type ParseResult<T> = Result<T, Error>;
 
 /// An error occurred while parsing.
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
 pub enum Error {
     /// The nanosecond present was not valid.
     InvalidNanosecond,
