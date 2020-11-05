@@ -11,7 +11,14 @@ Versioning].
 
 ### Added
 
-- `datetime!` macro
+- `datetime!` macro, which allows the construction of a statically verified
+  `PrimitiveDateTime` or `OffsetDateTime`.
+- `PrimitiveDateTime::replace_time`
+- `PrimitiveDateTime::replace_date`
+- `OffsetDateTime::replace_time`
+- `OffsetDateTime::replace_date`
+- `OffsetDateTime::replace_date_time`
+- `OffsetDateTime::replace_offset`
 
 ### Changed
 
@@ -35,14 +42,33 @@ Versioning].
   - `Time::try_from_hms_nano` → `Time::from_hms_nano`
   - `UtcOffset::try_local_offset_at` → `UtcOffset::local_offset_at`
   - `OffsetDateTime::try_now_local` → `OffsetDateTime::now_local`
+  - Macros have been moved to the `macros` module, but are otherwise named the
+    same.
 - Now `const fn` (on at least newer compilers)
   - `Date::weekday`
+  - `PrimitiveDateTime::assume_offset`
   - `PrimitiveDateTime::weekday`
   - `Duration::checked_add`
   - `Duration::checked_sub`
   - `Duration::checked_mul`
   - `OffsetDateTime::from_unix_timestamp`
   - `OffsetDateTime::from_unix_timestamp_nanos`
+  - `OffsetDateTime::date`
+  - `OffsetDateTime::time`
+  - `OffsetDateTime::year`
+  - `OffsetDateTime::month`
+  - `OffsetDateTime::day`
+  - `OffsetDateTime::month_day`
+  - `OffsetDateTime::ordinal`
+  - `OffsetDateTime::iso_year_week`
+  - `OffsetDateTime::week`
+  - `OffsetDateTime::weekday`
+  - `OffsetDateTime::hour`
+  - `OffsetDateTime::minute`
+  - `OffsetDateTime::second`
+  - `OffsetDateTime::millisecond`
+  - `OffsetDateTime::microsecond`
+  - `OffsetDateTime::nanosecond`
 - No longer `const fn` on older compilers
   - `util::is_leap_year`
   - `util::days_in_year`
@@ -82,6 +108,8 @@ Versioning].
   - `OffsetDateTime::now_local`
 - `Instant` is now guaranteed to be represented as a tuple struct containing a
   `std::time::Instant`.
+- Macros now simulate `const` blocks, guaranteeing that the value is statically
+  generated.
 
 ### Removed
 
@@ -155,6 +183,7 @@ Versioning].
   - `UtcOffset::lazy_format`
   - `PrimitiveDateTime::lazy_format`
   - `OffsetDateTime::lazy_format`
+- Support for stdweb has been removed, as the crate is unmaintained.
 
 ## 0.2.22 [2020-09-25]
 
