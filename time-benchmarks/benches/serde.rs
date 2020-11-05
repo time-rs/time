@@ -1,7 +1,7 @@
 use bench_util::setup_benchmark;
 use time::{
-    date, datetime, offset, time, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time,
-    UtcOffset, Weekday,
+    macros::{date, datetime, offset, time},
+    Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
 };
 
 setup_benchmark! {

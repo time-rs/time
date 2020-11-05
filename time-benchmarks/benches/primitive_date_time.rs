@@ -1,9 +1,9 @@
 use bench_util::setup_benchmark;
 use criterion::BatchSize;
 use time::{
-    date, datetime,
     ext::{NumericalDuration, NumericalStdDuration},
-    offset, time, PrimitiveDateTime,
+    macros::{date, datetime, offset, time},
+    PrimitiveDateTime,
 };
 
 setup_benchmark! {

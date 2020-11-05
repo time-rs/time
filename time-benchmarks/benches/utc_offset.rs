@@ -1,5 +1,5 @@
 use bench_util::setup_benchmark;
-use time::{offset, OffsetDateTime, UtcOffset};
+use time::{macros::offset, OffsetDateTime, UtcOffset};
 
 setup_benchmark! {
     "UtcOffset",

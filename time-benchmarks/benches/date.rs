@@ -1,9 +1,9 @@
 use bench_util::setup_benchmark;
 use criterion::{black_box, BatchSize};
 use time::{
-    date,
     ext::{NumericalDuration, NumericalStdDuration},
-    time, util, Date, Weekday,
+    macros::{date, time},
+    util, Date, Weekday,
 };
 
 setup_benchmark! {

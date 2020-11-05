@@ -2,7 +2,8 @@ use bench_util::setup_benchmark;
 use criterion::BatchSize;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
-    time, Time,
+    macros::time,
+    Time,
 };
 
 setup_benchmark! {

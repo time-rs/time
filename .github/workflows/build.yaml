@@ -124,7 +124,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: check
-          args: --benches
+          args: --benches --all-features
 
   test:
     name: Test
