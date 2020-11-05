@@ -2,9 +2,9 @@ use bench_util::setup_benchmark;
 use criterion::BatchSize;
 use std::time::SystemTime;
 use time::{
-    datetime,
     ext::{NumericalDuration, NumericalStdDuration},
-    offset, Format, OffsetDateTime,
+    macros::{datetime, offset},
+    Format, OffsetDateTime,
 };
 
 setup_benchmark! {
