@@ -9,7 +9,7 @@ use core::fmt;
 // Boxing the `ComponentRange` reduces the size of `Error` from 72 bytes to 16.
 #[allow(clippy::missing_docs_in_private_items)] // variants only
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub enum Error {
     ConversionRange,
     ComponentRange(ComponentRange),
