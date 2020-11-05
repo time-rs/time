@@ -49,7 +49,8 @@ impl Distribution<PrimitiveDateTime> for Standard {
 
 impl Distribution<OffsetDateTime> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> OffsetDateTime {
-        OffsetDateTime::new_assuming_offset(Standard.sample(rng), Standard.sample(rng))
+        let date_time: PrimitiveDateTime = Standard.sample(rng);
+        date_time.assume_offset(Standard.sample(rng))
     }
 }
 

@@ -44,23 +44,11 @@ pub struct OffsetDateTime {
 
 impl OffsetDateTime {
     /// Create a new `OffsetDateTime` from the provided [`PrimitiveDateTime`]
-    /// and [`UtcOffset`]. The [`PrimitiveDateTime`] is assumed to be in the
-    /// provided offset.
-    // TODO Should this be made public?
-    pub(crate) fn new_assuming_offset(utc_datetime: PrimitiveDateTime, offset: UtcOffset) -> Self {
-        Self {
-            utc_datetime: utc_datetime - offset.as_duration(),
-            offset,
-        }
-    }
-
-    /// Create a new `OffsetDateTime` from the provided [`PrimitiveDateTime`]
     /// and [`UtcOffset`]. The [`PrimitiveDateTime`] is assumed to be in UTC.
-    // TODO Should this be made public?
-    pub(crate) const fn new_assuming_utc(utc_datetime: PrimitiveDateTime) -> Self {
+    pub(crate) const fn new(utc_datetime: PrimitiveDateTime, offset: UtcOffset) -> Self {
         Self {
             utc_datetime,
-            offset: UtcOffset::UTC,
+            offset,
         }
     }
 
@@ -288,8 +276,11 @@ impl OffsetDateTime {
     ///     date!("2018-12-31"),
     /// );
     /// ```
-    pub fn date(self) -> Date {
-        (self.utc_datetime + self.offset.as_duration()).date()
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn date(self) -> Date {
+        self.utc_datetime.utc_to_offset(self.offset()).date()
     }
 
     /// Get the [`Time`] in the stored offset.
@@ -304,8 +295,11 @@ impl OffsetDateTime {
     ///     time!("23:00")
     /// );
     /// ```
-    pub fn time(self) -> Time {
-        (self.utc_datetime + self.offset.as_duration()).time()
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn time(self) -> Time {
+        self.utc_datetime.utc_to_offset(self.offset()).time()
     }
 
     /// Get the year of the date in the stored offset.
@@ -321,7 +315,10 @@ impl OffsetDateTime {
     /// );
     /// assert_eq!(datetime!("2020-01-01 0:00 UTC").year(), 2020);
     /// ```
-    pub fn year(self) -> i32 {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn year(self) -> i32 {
         self.date().year()
     }
 
@@ -341,7 +338,10 @@ impl OffsetDateTime {
     ///     1,
     /// );
     /// ```
-    pub fn month(self) -> u8 {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn month(self) -> u8 {
         self.date().month()
     }
 
@@ -360,7 +360,10 @@ impl OffsetDateTime {
     ///     1,
     /// );
     /// ```
-    pub fn day(self) -> u8 {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn day(self) -> u8 {
         self.date().day()
     }
 
@@ -379,7 +382,10 @@ impl OffsetDateTime {
     ///     (1, 1),
     /// );
     /// ```
-    pub fn month_day(self) -> (u8, u8) {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn month_day(self) -> (u8, u8) {
         self.date().month_day()
     }
 
@@ -397,7 +403,10 @@ impl OffsetDateTime {
     ///     1,
     /// );
     /// ```
-    pub fn ordinal(self) -> u16 {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn ordinal(self) -> u16 {
         self.date().ordinal()
     }
 
@@ -411,7 +420,10 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("2020-12-31 0:00 UTC").iso_year_week(), (2020, 53));
     /// assert_eq!(datetime!("2021-01-01 0:00 UTC").iso_year_week(), (2020, 53));
     /// ```
-    pub fn iso_year_week(self) -> (i32, u8) {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn iso_year_week(self) -> (i32, u8) {
         self.date().iso_year_week()
     }
 
@@ -426,7 +438,10 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("2020-12-31 0:00 UTC").week(), 53);
     /// assert_eq!(datetime!("2021-01-01 0:00 UTC").week(), 53);
     /// ```
-    pub fn week(self) -> u8 {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn week(self) -> u8 {
         self.date().week()
     }
 
@@ -442,7 +457,10 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("2019-02-01 0:00 UTC").weekday(), Friday);
     /// assert_eq!(datetime!("2019-03-01 0:00 UTC").weekday(), Friday);
     /// ```
-    pub fn weekday(self) -> Weekday {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn weekday(self) -> Weekday {
         self.date().weekday()
     }
 
@@ -460,7 +478,10 @@ impl OffsetDateTime {
     ///     21,
     /// );
     /// ```
-    pub fn hour(self) -> u8 {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn hour(self) -> u8 {
         self.time().hour()
     }
 
@@ -478,7 +499,10 @@ impl OffsetDateTime {
     ///     29,
     /// );
     /// ```
-    pub fn minute(self) -> u8 {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn minute(self) -> u8 {
         self.time().minute()
     }
 
@@ -496,9 +520,15 @@ impl OffsetDateTime {
     ///     29,
     /// );
     /// ```
-    pub fn second(self) -> u8 {
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn second(self) -> u8 {
         self.time().second()
     }
+
+    // Because a `UtcOffset` is limited in resolution to one second, any
+    // subsecond value will not change when adjusting for the offset.
 
     /// Get the milliseconds within the second in the stored offset.
     ///
@@ -509,8 +539,8 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").millisecond(), 0);
     /// assert_eq!(datetime!("2019-01-01 23:59:59.999 UTC").millisecond(), 999);
     /// ```
-    pub fn millisecond(self) -> u16 {
-        self.time().millisecond()
+    pub const fn millisecond(self) -> u16 {
+        self.utc_datetime.time().millisecond()
     }
 
     /// Get the microseconds within the second in the stored offset.
@@ -525,8 +555,8 @@ impl OffsetDateTime {
     ///     999_999,
     /// );
     /// ```
-    pub fn microsecond(self) -> u32 {
-        self.time().microsecond()
+    pub const fn microsecond(self) -> u32 {
+        self.utc_datetime.time().microsecond()
     }
 
     /// Get the nanoseconds within the second in the stored offset.
@@ -541,8 +571,8 @@ impl OffsetDateTime {
     ///     999_999_999,
     /// );
     /// ```
-    pub fn nanosecond(self) -> u32 {
-        self.time().nanosecond()
+    pub const fn nanosecond(self) -> u32 {
+        self.utc_datetime.time().nanosecond()
     }
 }
 
@@ -566,9 +596,13 @@ impl OffsetDateTime {
     ///     datetime!("2020-01-01 12:00 +1")
     /// );
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
-    pub fn replace_time(self, time: Time) -> Self {
-        (self.utc_datetime + self.offset.as_duration())
+    #[const_fn("1.46")]
+    pub const fn replace_time(self, time: Time) -> Self {
+        self.utc_datetime
+            .utc_to_offset(self.offset)
             .replace_time(time)
             .assume_offset(self.offset)
     }
@@ -587,9 +621,13 @@ impl OffsetDateTime {
     ///     datetime!("2020-01-30 0:00 +1")
     /// );
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
-    pub fn replace_date(self, date: Date) -> Self {
-        (self.utc_datetime + self.offset.as_duration())
+    #[const_fn("1.46")]
+    pub const fn replace_date(self, date: Date) -> Self {
+        self.utc_datetime
+            .utc_to_offset(self.offset)
             .replace_date(date)
             .assume_offset(self.offset)
     }
@@ -608,8 +646,11 @@ impl OffsetDateTime {
     ///     datetime!("2020-01-30 0:00 +1")
     /// );
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
-    pub fn replace_date_time(self, date_time: PrimitiveDateTime) -> Self {
+    #[const_fn("1.46")]
+    pub const fn replace_date_time(self, date_time: PrimitiveDateTime) -> Self {
         date_time.assume_offset(self.offset)
     }
 
@@ -622,8 +663,11 @@ impl OffsetDateTime {
     ///     datetime!("2020-01-01 0:00 -5")
     /// );
     /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
-    pub fn replace_offset(self, offset: UtcOffset) -> Self {
+    #[const_fn("1.46")]
+    pub const fn replace_offset(self, offset: UtcOffset) -> Self {
         self.utc_datetime.assume_offset(offset)
     }
 }

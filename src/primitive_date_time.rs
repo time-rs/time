@@ -1,6 +1,7 @@
 use crate::{
     format::parse::{parse, ParsedItems},
-    Date, DeferredFormat, Duration, Format, OffsetDateTime, ParseResult, Time, UtcOffset, Weekday,
+    util, Date, DeferredFormat, Duration, Format, OffsetDateTime, ParseResult, Time, UtcOffset,
+    Weekday,
 };
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
@@ -349,8 +350,11 @@ impl PrimitiveDateTime {
     ///     1_546_304_400,
     /// );
     /// ```
-    pub fn assume_offset(self, offset: UtcOffset) -> OffsetDateTime {
-        OffsetDateTime::new_assuming_offset(self, offset)
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn assume_offset(self, offset: UtcOffset) -> OffsetDateTime {
+        OffsetDateTime::new(self.offset_to_utc(offset), offset)
     }
 
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in
@@ -363,11 +367,8 @@ impl PrimitiveDateTime {
     ///     1_546_300_800,
     /// );
     /// ```
-    ///
-    /// This function is the same as calling `.assume_offset(offset!("UTC"))`,
-    /// except it is usable in `const` contexts.
     pub const fn assume_utc(self) -> OffsetDateTime {
-        OffsetDateTime::new_assuming_utc(self)
+        OffsetDateTime::new(self, UtcOffset::UTC)
     }
 }
 
@@ -399,6 +400,67 @@ impl PrimitiveDateTime {
     #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_date(self, date: Date) -> Self {
         date.with_time(self.time)
+    }
+}
+
+/// Helper methods to adjust a [`PrimitiveDateTime`] to a given [`UtcOffset`].
+impl PrimitiveDateTime {
+    /// Assuming that the current [`PrimitiveDateTime`] is a value in the
+    /// provided [`UtcOffset`], obtain the equivalent value in the UTC.
+    #[const_fn("1.46")]
+    pub(crate) const fn offset_to_utc(self, offset: UtcOffset) -> Self {
+        let mut second = self.time.second() as i8 - (offset.as_seconds() % 60) as i8;
+        let mut minute = self.time.minute() as i8 - (offset.as_seconds() / 60 % 60) as i8;
+        let mut hour = self.time.hour() as i8 - (offset.as_seconds() / 3_600) as i8;
+
+        let mut ordinal = self.date.ordinal();
+        let mut year = self.date.year();
+
+        if second >= 60 {
+            second -= 60;
+            minute += 1;
+        } else if second < 0 {
+            second += 60;
+            minute -= 1;
+        }
+        if minute >= 60 {
+            minute -= 60;
+            hour += 1;
+        } else if minute < 0 {
+            minute += 60;
+            hour -= 1;
+        }
+        if hour >= 24 {
+            hour -= 24;
+            ordinal += 1;
+        } else if hour < 0 {
+            hour += 24;
+            ordinal -= 1;
+        }
+        if ordinal > util::days_in_year(year) {
+            year += 1;
+            ordinal = 1;
+        } else if ordinal == 0 {
+            year -= 1;
+            ordinal = util::days_in_year(year);
+        }
+
+        let date = Date::from_yo_unchecked(year, ordinal);
+        let time = Time::from_hms_nanos_unchecked(
+            hour as u8,
+            minute as u8,
+            second as u8,
+            self.time.nanosecond(),
+        );
+
+        date.with_time(time)
+    }
+
+    /// Assuming that the current [`PrimitiveDateTime`] is a value in UTC,
+    /// obtain the equivalent value in the provided [`UtcOffset`].
+    #[const_fn("1.46")]
+    pub(crate) const fn utc_to_offset(self, offset: UtcOffset) -> Self {
+        self.offset_to_utc(UtcOffset::seconds_unchecked(-offset.as_seconds()))
     }
 }
 
