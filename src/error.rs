@@ -6,10 +6,10 @@ use core::fmt;
 ///
 /// This can be used when you either don't know or don't care about the exact
 /// error returned. `Result<_, time::Error>` will work in these situations.
-// Boxing the `ComponentRange` reduces the size of `Error` from 72 bytes to 16.
+#[allow(missing_copy_implementations, variant_size_differences)]
 #[allow(clippy::missing_docs_in_private_items)] // variants only
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     ConversionRange,
     ComponentRange(ComponentRange),

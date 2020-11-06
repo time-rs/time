@@ -11,13 +11,13 @@ use crate::{
 #[cfg(feature = "alloc")]
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
+#[cfg(feature = "alloc")]
+use core::fmt::Display;
 use core::{
     fmt,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(feature = "alloc")]
-use core::fmt::Display;
 
 /// The minimum valid year.
 pub(crate) const MIN_YEAR: i32 = -999_999;

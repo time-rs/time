@@ -1,12 +1,12 @@
 //! The [`DeferredFormat`] struct, acting as an intermediary between a request
 //! to format and the final output.
 
+#[cfg(feature = "alloc")]
+use crate::format::parse_fmt_string;
 use crate::{
     format::{format_specifier, well_known, Format, FormatItem},
     Date, Time, UtcOffset,
 };
-#[cfg(feature = "alloc")]
-use crate::format::parse_fmt_string;
 use core::fmt::{self, Display, Formatter};
 
 /// A struct containing all the necessary information to display the inner type.

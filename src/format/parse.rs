@@ -1,12 +1,12 @@
 //! Parsing for various types.
 
+#[cfg(feature = "alloc")]
+use crate::format::parse_fmt_string;
 use crate::{
     error,
     format::{well_known, FormatItem, Padding, Specifier},
     Format, UtcOffset, Weekday,
-};    
-#[cfg(feature = "alloc")]
-use crate::format::parse_fmt_string;
+};
 use core::{
     fmt::{self, Display, Formatter},
     num::{NonZeroU16, NonZeroU8},
@@ -17,8 +17,9 @@ use core::{
 pub(crate) type ParseResult<T> = Result<T, Error>;
 
 /// An error occurred while parsing.
+#[allow(variant_size_differences)]
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Error {
     /// The nanosecond present was not valid.
     InvalidNanosecond,

@@ -1,13 +1,13 @@
+use crate::error;
 #[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
-use crate::error;
-#[cfg(feature = "alloc")]
-use alloc::string::{String, ToString};
 #[cfg(feature = "alloc")]
 use crate::{
     format::{parse, ParsedItems},
-    DeferredFormat, Format, ParseResult, Duration,
+    DeferredFormat, Duration, Format, ParseResult,
 };
+#[cfg(feature = "alloc")]
+use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::fmt::{self, Display};
 

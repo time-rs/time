@@ -1,21 +1,19 @@
-use crate::{
-    util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday,
-};
-#[cfg(feature = "alloc")]
-use alloc::string::{String, ToString};
 #[cfg(feature = "alloc")]
 use crate::{
     format::parse::{parse, ParsedItems},
     DeferredFormat, Format, ParseResult,
 };
+use crate::{util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
+#[cfg(feature = "alloc")]
+use alloc::string::{String, ToString};
 use const_fn::const_fn;
+#[cfg(feature = "alloc")]
+use core::fmt::{self, Display};
 use core::{
     cmp::Ordering,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(feature = "alloc")]
-use core::fmt::{self, Display};
 
 /// Combined date and time.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]

@@ -1,9 +1,9 @@
 //! Utility functions.
 
-#[cfg(feature = "alloc")]
-use crate::{format::try_parse_fmt_string, Date};
 #[cfg(not(feature = "alloc"))]
 use crate::Date;
+#[cfg(feature = "alloc")]
+use crate::{format::try_parse_fmt_string, Date};
 #[cfg(feature = "alloc")]
 use alloc::string::String;
 use const_fn::const_fn;

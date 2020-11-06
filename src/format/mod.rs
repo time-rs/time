@@ -26,9 +26,9 @@ use core::fmt::Formatter;
 pub(crate) use deferred_format::DeferredFormat;
 #[allow(unreachable_pub)] // rust-lang/rust#64762
 pub use format::Format;
-pub(crate) use parse::{ParseResult, ParsedItems};
 #[cfg(feature = "alloc")]
 pub(crate) use parse::parse;
+pub(crate) use parse::{ParseResult, ParsedItems};
 #[cfg(feature = "alloc")]
 pub(crate) use parse_items::{parse_fmt_string, try_parse_fmt_string};
 

@@ -1,13 +1,11 @@
-use crate::{
-    error, Duration,
-};
-#[cfg(feature = "alloc")]
-use alloc::string::{String, ToString};
+use crate::{error, Duration};
 #[cfg(feature = "alloc")]
 use crate::{
     format::{parse, parse::AmPm, ParsedItems},
     DeferredFormat, Format, ParseResult,
 };
+#[cfg(feature = "alloc")]
+use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::{
     convert::TryFrom,

@@ -1,26 +1,22 @@
-use crate::{
-    error,
-    Date, Duration, PrimitiveDateTime, Time, UtcOffset,
-    Weekday,
-};
-#[cfg(feature = "alloc")]
-use alloc::string::{String, ToString};
-use const_fn::const_fn;
+use crate::{error, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
 #[cfg(feature = "alloc")]
 use crate::{
     format::parse::{parse, ParsedItems},
     DeferredFormat, Format, ParseResult,
 };
+#[cfg(feature = "alloc")]
+use alloc::string::{String, ToString};
+use const_fn::const_fn;
 #[cfg(feature = "std")]
 use core::convert::{From, TryFrom};
+#[cfg(feature = "alloc")]
+use core::fmt::{self, Display};
 use core::{
     cmp::Ordering,
     hash::{Hash, Hasher},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[cfg(feature = "alloc")]
-use core::fmt::{self, Display};
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
