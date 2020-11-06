@@ -40,6 +40,10 @@
 //!
 //!   Enables [rand](https://docs.rs/rand) support for all types.
 //!
+//! - `quickcheck` (_implicitly enables `rand`_)
+//!
+//!   Enables [quickcheck](https://docs.rs/quickcheck) support for all types except [`Instant`].
+//!
 //! # Formatting
 //!
 //! Time's formatting behavior is based on `strftime` in C, though it is
@@ -251,6 +255,8 @@ mod instant;
 mod offset_date_time;
 /// The [`PrimitiveDateTime`] struct and its associated `impl`s.
 mod primitive_date_time;
+#[cfg(feature = "quickcheck")]
+mod quickcheck;
 #[cfg(feature = "rand")]
 mod rand;
 #[cfg(feature = "serde")]
