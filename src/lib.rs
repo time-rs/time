@@ -11,14 +11,16 @@
 //! Reliance on a given feature is always indicated alongside the item
 //! definition.
 //!
-//! - `std` (_enabled by default_)
+//! - `std` (_enabled by default, implicitly enables `alloc`_)
 //!
 //!   This enables a number of features that depend on the standard library.
 //!   [`Instant`] is the primary item that requires this feature, though some
 //!   others methods may rely on [`Instant`] internally.
 //!
-//!   This crate currently requires a global allocator be present even if this
-//!   feature is disabled.
+//! - `alloc` (_enabled by default via `std`_)
+//!
+//!   Enables a number of features that require the ability to dynamically
+//!   allocate memory.
 //!
 //! - `macros`
 //!
