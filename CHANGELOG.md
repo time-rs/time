@@ -19,6 +19,7 @@ Versioning].
 - `OffsetDateTime::replace_date`
 - `OffsetDateTime::replace_date_time`
 - `OffsetDateTime::replace_offset`
+- `#![no_alloc]` support
 
 ### Changed
 

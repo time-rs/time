@@ -1,10 +1,12 @@
+use crate::error;
 #[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
+#[cfg(feature = "alloc")]
 use crate::{
-    error,
     format::{parse, ParsedItems},
     DeferredFormat, Duration, Format, ParseResult,
 };
+#[cfg(feature = "alloc")]
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::fmt::{self, Display};
@@ -238,6 +240,7 @@ impl UtcOffset {
     }
 
     /// Convert a `UtcOffset` to ` Duration`. Useful for implementing operators.
+    #[cfg(feature = "alloc")]
     pub(crate) const fn as_duration(self) -> Duration {
         Duration::seconds(self.seconds as i64)
     }
@@ -274,6 +277,7 @@ impl UtcOffset {
 }
 
 /// Methods that allow parsing and formatting the `UtcOffset`.
+#[cfg(feature = "alloc")]
 impl UtcOffset {
     /// Format the `UtcOffset` using the provided string.
     ///

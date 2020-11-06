@@ -11,14 +11,16 @@
 //! Reliance on a given feature is always indicated alongside the item
 //! definition.
 //!
-//! - `std` (_enabled by default_)
+//! - `std` (_enabled by default, implicitly enables `alloc`_)
 //!
 //!   This enables a number of features that depend on the standard library.
 //!   [`Instant`] is the primary item that requires this feature, though some
 //!   others methods may rely on [`Instant`] internally.
 //!
-//!   This crate currently requires a global allocator be present even if this
-//!   feature is disabled.
+//! - `alloc` (_enabled by default via `std`_)
+//!
+//!   Enables a number of features that require the ability to dynamically
+//!   allocate memory.
 //!
 //! - `macros`
 //!
@@ -175,6 +177,7 @@
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(test(attr(deny(warnings))))]
 
+#[cfg(feature = "alloc")]
 extern crate alloc;
 
 /// Returns `Err(error::ComponentRange)` if the value is not in range.
@@ -243,6 +246,7 @@ mod duration;
 pub mod error;
 /// Extension traits.
 pub mod ext;
+#[cfg(feature = "alloc")]
 mod format;
 /// The [`Instant`] struct and its associated `impl`s.
 #[cfg(feature = "std")]
@@ -365,7 +369,9 @@ pub mod macros {
 pub use date::Date;
 pub use duration::Duration;
 pub use error::Error;
+#[cfg(feature = "alloc")]
 pub use format::Format;
+#[cfg(feature = "alloc")]
 use format::{DeferredFormat, ParseResult};
 #[cfg(feature = "std")]
 pub use instant::Instant;
@@ -398,6 +404,7 @@ pub mod prelude {
     pub use crate::macros::{date, datetime, offset, time};
 }
 
+#[cfg(feature = "alloc")]
 #[allow(clippy::missing_docs_in_private_items)]
 mod private {
     use super::*;
@@ -437,6 +444,7 @@ mod private {
 /// println!("{:?}", foo);
 /// # Ok::<_, time::Error>(())
 /// ```
+#[cfg(feature = "alloc")]
 pub fn parse<'a, T: private::Parsable>(
     s: impl AsRef<str>,
     format: impl Into<Format<'a>>,

@@ -1,18 +1,19 @@
+#[cfg(feature = "alloc")]
 pub use crate::format::parse::Error as Parse;
-use alloc::boxed::Box;
 use core::fmt;
 
 /// A unified error type for anything returned by a method in the time crate.
 ///
 /// This can be used when you either don't know or don't care about the exact
 /// error returned. `Result<_, time::Error>` will work in these situations.
-// Boxing the `ComponentRange` reduces the size of `Error` from 72 bytes to 16.
+#[allow(missing_copy_implementations, variant_size_differences)]
 #[allow(clippy::missing_docs_in_private_items)] // variants only
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     ConversionRange,
-    ComponentRange(Box<ComponentRange>),
+    ComponentRange(ComponentRange),
+    #[cfg(feature = "alloc")]
     Parse(Parse),
     IndeterminateOffset,
     Format(Format),
@@ -26,6 +27,7 @@ impl fmt::Display for Error {
         match self {
             Error::ConversionRange => ConversionRange.fmt(f),
             Error::ComponentRange(e) => e.fmt(f),
+            #[cfg(feature = "alloc")]
             Error::Parse(e) => e.fmt(f),
             Error::IndeterminateOffset => IndeterminateOffset.fmt(f),
             Error::Format(e) => e.fmt(f),
@@ -40,7 +42,7 @@ impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Error::ConversionRange => Some(&ConversionRange),
-            Error::ComponentRange(box_err) => Some(box_err.as_ref()),
+            Error::ComponentRange(err) => Some(err),
             Error::Parse(err) => Some(err),
             Error::IndeterminateOffset => Some(&IndeterminateOffset),
             Error::Format(err) => Some(err),
@@ -111,13 +113,14 @@ impl fmt::Display for ComponentRange {
 
 impl From<ComponentRange> for Error {
     fn from(original: ComponentRange) -> Self {
-        Error::ComponentRange(Box::new(original))
+        Error::ComponentRange(original)
     }
 }
 
 #[cfg(feature = "std")]
 impl std::error::Error for ComponentRange {}
 
+#[cfg(feature = "alloc")]
 impl From<Parse> for Error {
     fn from(original: Parse) -> Self {
         Error::Parse(original)

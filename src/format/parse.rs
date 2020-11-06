@@ -1,11 +1,12 @@
 //! Parsing for various types.
 
+#[cfg(feature = "alloc")]
+use crate::format::parse_fmt_string;
 use crate::{
     error,
-    format::{parse_fmt_string, well_known, FormatItem, Padding, Specifier},
+    format::{well_known, FormatItem, Padding, Specifier},
     Format, UtcOffset, Weekday,
 };
-use alloc::boxed::Box;
 use core::{
     fmt::{self, Display, Formatter},
     num::{NonZeroU16, NonZeroU8},
@@ -16,8 +17,9 @@ use core::{
 pub(crate) type ParseResult<T> = Result<T, Error>;
 
 /// An error occurred while parsing.
+#[allow(variant_size_differences)]
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Error {
     /// The nanosecond present was not valid.
     InvalidNanosecond,
@@ -59,7 +61,7 @@ pub enum Error {
     /// There was not enough information provided to create the requested type.
     InsufficientInformation,
     /// A component was out of range.
-    ComponentOutOfRange(Box<error::ComponentRange>),
+    ComponentOutOfRange(error::ComponentRange),
     #[cfg(not(__time_02_supports_non_exhaustive))]
     #[doc(hidden)]
     __NonExhaustive,
@@ -67,7 +69,7 @@ pub enum Error {
 
 impl From<error::ComponentRange> for Error {
     fn from(error: error::ComponentRange) -> Self {
-        Error::ComponentOutOfRange(Box::new(error))
+        Error::ComponentOutOfRange(error)
     }
 }
 
@@ -107,7 +109,7 @@ impl Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Error::ComponentOutOfRange(e) => Some(e.as_ref()),
+            Error::ComponentOutOfRange(e) => Some(e),
             _ => None,
         }
     }
@@ -324,6 +326,7 @@ pub(crate) fn consume_padding(s: &mut &str, padding: Padding, max_chars: usize) 
 
 /// Attempt to parse the string with the provided format, returning a struct
 /// containing all information found.
+#[cfg(feature = "alloc")]
 #[allow(clippy::too_many_lines)]
 pub(crate) fn parse(s: &str, format: &Format<'_>) -> ParseResult<ParsedItems> {
     use super::{date, offset, time};

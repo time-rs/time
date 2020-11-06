@@ -1,8 +1,10 @@
 //! The [`DeferredFormat`] struct, acting as an intermediary between a request
 //! to format and the final output.
 
+#[cfg(feature = "alloc")]
+use crate::format::parse_fmt_string;
 use crate::{
-    format::{format_specifier, parse_fmt_string, well_known, Format, FormatItem},
+    format::{format_specifier, well_known, Format, FormatItem},
     Date, Time, UtcOffset,
 };
 use core::fmt::{self, Display, Formatter};
@@ -65,6 +67,7 @@ impl<'a> DeferredFormat<'a> {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl Display for DeferredFormat<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match &self.format {

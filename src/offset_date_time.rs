@@ -1,16 +1,18 @@
+use crate::{error, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
+#[cfg(feature = "alloc")]
 use crate::{
-    error,
     format::parse::{parse, ParsedItems},
-    Date, DeferredFormat, Duration, Format, ParseResult, PrimitiveDateTime, Time, UtcOffset,
-    Weekday,
+    DeferredFormat, Format, ParseResult,
 };
+#[cfg(feature = "alloc")]
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
 #[cfg(feature = "std")]
 use core::convert::{From, TryFrom};
+#[cfg(feature = "alloc")]
+use core::fmt::{self, Display};
 use core::{
     cmp::Ordering,
-    fmt::{self, Display},
     hash::{Hash, Hasher},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
@@ -673,6 +675,7 @@ impl OffsetDateTime {
 }
 
 /// Methods that allow formatting the `OffsetDateTime`.
+#[cfg(feature = "alloc")]
 impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided string.
     ///
@@ -720,6 +723,7 @@ impl OffsetDateTime {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl Display for OffsetDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}", self.date(), self.time(), self.offset())

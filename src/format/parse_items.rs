@@ -1,9 +1,11 @@
 //! Parse formats used in the `format` and `parse` methods.
 
 use crate::format::{FormatItem, Padding, Specifier};
+#[cfg(feature = "alloc")]
 use alloc::{format, string::String, vec::Vec};
 
 /// Parse the formatting string. Panics if not valid.
+#[cfg(feature = "alloc")]
 pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
     match try_parse_fmt_string(s) {
         Ok(items) => items,
@@ -12,6 +14,7 @@ pub(crate) fn parse_fmt_string<'a>(s: &'a str) -> Vec<FormatItem<'a>> {
 }
 
 /// Attempt to parse the formatting string.
+#[cfg(feature = "alloc")]
 #[allow(clippy::too_many_lines)]
 pub(crate) fn try_parse_fmt_string<'a>(s: &'a str) -> Result<Vec<FormatItem<'a>>, String> {
     let mut items = Vec::new();

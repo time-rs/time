@@ -23,7 +23,8 @@ default = ["std"]
 macros = ["time-macros"]
 local-offset = ["std", "libc", "winapi"]
 quickcheck = ["quickcheck-dep", "rand", "std"]
-std = ["standback/std"]
+std = ["standback/std", "alloc"]
+alloc = []
 
 [dependencies]
 const_fn = "0.4.2"

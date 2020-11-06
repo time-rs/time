@@ -1,16 +1,21 @@
+use crate::{error, Duration};
+#[cfg(feature = "alloc")]
 use crate::{
-    error,
     format::{parse, parse::AmPm, ParsedItems},
-    DeferredFormat, Duration, Format, ParseResult,
+    DeferredFormat, Format, ParseResult,
 };
+#[cfg(feature = "alloc")]
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::{
     convert::TryFrom,
-    fmt::{self, Display},
-    num::NonZeroU8,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
+};
+#[cfg(feature = "alloc")]
+use core::{
+    fmt::{self, Display},
+    num::NonZeroU8,
 };
 #[allow(unused_imports)]
 use standback::prelude::*; // rem_euclid (1.38)
@@ -360,6 +365,7 @@ impl Time {
 }
 
 /// Methods that allow formatting the `Time`.
+#[cfg(feature = "alloc")]
 impl Time {
     /// Format the `Time` using the provided string.
     ///
@@ -435,6 +441,7 @@ impl Time {
     }
 }
 
+#[cfg(feature = "alloc")]
 impl Display for Time {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use crate::format::{time, Padding};

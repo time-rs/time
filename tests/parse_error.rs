@@ -28,7 +28,7 @@ fn display() {
     .to_string();
     let _ = error::Parse::UnexpectedEndOfString.to_string();
     let _ = error::Parse::InsufficientInformation.to_string();
-    let _ = error::Parse::ComponentOutOfRange(Box::new(component_range())).to_string();
+    let _ = error::Parse::ComponentOutOfRange(component_range()).to_string();
 }
 
 #[test]
