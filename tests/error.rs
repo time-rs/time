@@ -1,22 +1,28 @@
+#[cfg(feature = "alloc")]
 use time::{error, Date, Error};
 
+#[cfg(feature = "alloc")]
 fn component_range() -> error::ComponentRange {
     Date::from_yo(0, 367).unwrap_err()
 }
 
+#[cfg(feature = "alloc")]
 fn parse() -> error::Parse {
     Date::parse("", " ").unwrap_err()
 }
 
+#[cfg(feature = "alloc")]
 fn format_insufficient() -> error::Format {
     error::Format::InsufficientTypeInformation
 }
 
+#[cfg(feature = "alloc")]
 fn format_std() -> error::Format {
     std::fmt::Error.into()
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn display() {
     assert_eq!(
         error::ConversionRange.to_string(),

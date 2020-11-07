@@ -513,7 +513,7 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "alloc"))]
 mod test {
     use super::*;
     use crate::ext::NumericalDuration;

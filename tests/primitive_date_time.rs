@@ -188,6 +188,7 @@ fn replace_date() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn format() {
     assert_eq!(
         datetime!("2019-01-02 3:04:05").format("%c"),
@@ -196,6 +197,7 @@ fn format() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn parse() {
     assert_eq!(
         PrimitiveDateTime::parse("Wed Jan 2 3:04:05 2019", "%c"),

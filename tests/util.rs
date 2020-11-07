@@ -25,6 +25,7 @@ fn weeks_in_year() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn validate_format_string() {
     assert!(util::validate_format_string("%H foo").is_ok());
     assert!(util::validate_format_string("%H%%").is_ok());

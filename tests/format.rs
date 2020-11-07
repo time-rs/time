@@ -1,3 +1,5 @@
+#![cfg(feature = "alloc")]
+
 use time::{util, Format, Time};
 
 #[test]

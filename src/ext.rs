@@ -5,8 +5,6 @@ use core::time::Duration as StdDuration;
 
 /// Create [`Duration`]s from primitive and core numeric types.
 ///
-/// This trait can be imported with `use time::prelude::*`.
-///
 /// Due to limitations in rustc, these methods are currently _not_ `const fn`.
 /// See [RFC 2632](https://github.com/rust-lang/rfcs/pull/2632) for details.
 ///
@@ -206,8 +204,6 @@ impl_numerical_duration_nonzero![
 impl_numerical_duration_float![f32, f64];
 
 /// Create [`std::time::Duration`]s from primitive and core numeric types.
-///
-/// This trait can be imported (alongside others) with `use time::prelude::*`.
 ///
 /// Due to limitations in rustc, these methods are currently _not_ `const fn`.
 /// See [RFC 2632](https://github.com/rust-lang/rfcs/pull/2632) for details.

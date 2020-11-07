@@ -385,25 +385,6 @@ pub use weekday::Weekday;
 /// crate.
 pub type Result<T> = core::result::Result<T, Error>;
 
-/// A collection of imports that are widely useful.
-///
-/// Unlike the standard library, this must be explicitly imported:
-///
-/// ```rust,no_run
-/// # #[allow(unused_imports)]
-/// use time::prelude::*;
-/// ```
-///
-/// The prelude may grow in minor releases. Any removals will only occur in
-/// major releases.
-pub mod prelude {
-    // Rename traits to `_` if possible to avoid any potential name conflicts.
-    pub use crate::ext::{NumericalDuration as _, NumericalStdDuration as _};
-    #[cfg(feature = "macros")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
-    pub use crate::macros::{date, datetime, offset, time};
-}
-
 #[cfg(feature = "alloc")]
 #[allow(clippy::missing_docs_in_private_items)]
 mod private {

@@ -1,10 +1,11 @@
 #[allow(unused_imports)]
 use standback::prelude::*; // i64::MAX (1.43)
 use std::{cmp::Ordering, collections::HashSet};
+#[cfg(feature = "alloc")]
+use time::{error, Result};
 use time::{
-    error,
     ext::{NumericalDuration, NumericalStdDuration},
-    util, Date, Result, Weekday,
+    util, Date, Weekday,
 };
 use time_macros::{date, datetime, time};
 
@@ -44,6 +45,7 @@ fn weeks_in_year_exhaustive() {
 // immediately preceding and after the leap day.
 
 #[test]
+#[cfg(feature = "alloc")]
 fn test_monday_based_week() {
     // A
     assert_eq!(date!("2023-01-01").monday_based_week(), 0);
@@ -236,6 +238,7 @@ fn test_monday_based_week() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn test_sunday_based_week() {
     // A
     assert_eq!(date!("2023-01-01").sunday_based_week(), 1);
@@ -428,6 +431,7 @@ fn test_sunday_based_week() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn test_parse_monday_based_week() -> Result<()> {
     macro_rules! parse {
         ($s:literal) => {
@@ -628,6 +632,7 @@ fn test_parse_monday_based_week() -> Result<()> {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn test_parse_sunday_based_week() -> Result<()> {
     macro_rules! parse {
         ($s:literal) => {
@@ -972,6 +977,7 @@ fn with_hms_nano() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn format() {
     // Check all specifiers for date objects.
     let date = date!("2019-01-02");
@@ -1002,6 +1008,7 @@ fn format() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn parse() {
     // Check all specifiers for date objects. To ensure that the date parses
     // successfully otherwise, additional data is provided.
@@ -1035,6 +1042,7 @@ fn parse() {
 
 // See #221.
 #[test]
+#[cfg(feature = "alloc")]
 fn parse_regression() {
     assert_eq!(
         Date::parse("0000-01-01", "%Y-%m-%d"),
@@ -1043,6 +1051,7 @@ fn parse_regression() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn display() {
     assert_eq!(date!("2019-01-01").to_string(), "2019-01-01");
     assert_eq!(date!("2019-12-31").to_string(), "2019-12-31");

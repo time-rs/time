@@ -1,10 +1,11 @@
 use std::cmp::Ordering;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
+#[cfg(feature = "alloc")]
+use time::{error, Format};
 use time::{
-    error,
     ext::{NumericalDuration, NumericalStdDuration},
-    Format, OffsetDateTime, Weekday,
+    OffsetDateTime, Weekday,
 };
 use time_macros::{date, datetime, offset, time};
 
@@ -317,6 +318,7 @@ fn replace_offset() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn format() {
     assert_eq!(
         datetime!("2019-01-02 0:00 UTC").format("%F %r %z"),
@@ -329,6 +331,7 @@ fn format() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn parse() {
     assert_eq!(
         OffsetDateTime::parse("2019-01-02 00:00:00 +0000", "%F %T %z"),
@@ -869,7 +872,7 @@ fn to_std() {
 }
 
 #[test]
-#[cfg(feature = "std")]
+#[cfg(feature = "alloc")]
 fn display() {
     assert_eq!(
         datetime!("1970-01-01 0:00 UTC").to_string(),

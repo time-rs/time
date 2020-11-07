@@ -82,6 +82,7 @@ fn utc_is_zero() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn format() {
     assert_eq!(offset!("+1").format("%z"), "+0100");
     assert_eq!(offset!("-1").format("%z"), "-0100");
@@ -98,6 +99,7 @@ fn format() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn parse() {
     assert_eq!(UtcOffset::parse("+0100", "%z"), Ok(offset!("+1")));
     assert_eq!(UtcOffset::parse("-0100", "%z"), Ok(offset!("-1")));
@@ -109,6 +111,7 @@ fn parse() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn display() {
     assert_eq!(offset!("UTC").to_string(), "+0");
     assert_eq!(offset!("+0:00:01").to_string(), "+0:00:01");

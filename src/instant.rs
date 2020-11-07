@@ -47,7 +47,7 @@ impl Instant {
     /// created.
     ///
     /// ```rust
-    /// # use time::{Instant, prelude::*};
+    /// # use time::{Instant, ext::{NumericalStdDuration, NumericalDuration}};
     /// # use std::thread;
     /// let instant = Instant::now();
     /// thread::sleep(1.std_milliseconds());
@@ -62,7 +62,7 @@ impl Instant {
     /// underlying data structure), `None` otherwise.
     ///
     /// ```rust
-    /// # use time::{Instant, prelude::*};
+    /// # use time::{Instant, ext::NumericalDuration};
     /// let now = Instant::now();
     /// assert_eq!(now.checked_add(5.seconds()), Some(now + 5.seconds()));
     /// assert_eq!(now.checked_add((-5).seconds()), Some(now + (-5).seconds()));
@@ -83,7 +83,7 @@ impl Instant {
     /// underlying data structure), `None` otherwise.
     ///
     /// ```rust
-    /// # use time::{Instant, prelude::*};
+    /// # use time::{Instant, ext::NumericalDuration};
     /// let now = Instant::now();
     /// assert_eq!(now.checked_sub(5.seconds()), Some(now - 5.seconds()));
     /// assert_eq!(now.checked_sub((-5).seconds()), Some(now - (-5).seconds()));

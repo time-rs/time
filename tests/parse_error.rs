@@ -1,11 +1,14 @@
+#[cfg(feature = "alloc")]
 use time::error;
 
+#[cfg(feature = "alloc")]
 fn component_range() -> error::ComponentRange {
     time::Date::from_yo(0, 367).unwrap_err()
 }
 
 // The exact message doesn't matter; just make sure it doesn't panic.
 #[test]
+#[cfg(feature = "alloc")]
 fn display() {
     let _ = error::Parse::InvalidNanosecond.to_string();
     let _ = error::Parse::InvalidSecond.to_string();

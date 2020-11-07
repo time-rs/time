@@ -1,5 +1,6 @@
+#[cfg(feature = "alloc")]
+use time::error;
 use time::{
-    error,
     ext::{NumericalDuration, NumericalStdDuration},
     Result, Time,
 };
@@ -140,6 +141,7 @@ fn nanosecond() -> Result<()> {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn format() {
     // Check all specifiers for time objects.
     let time = time!("0:01:02.345_678_901");
@@ -162,11 +164,13 @@ fn format() {
 
 #[test]
 #[should_panic]
+#[cfg(feature = "alloc")]
 fn invalid_format_specifier() {
     Time::midnight().format("%$"); // `$` isn't a valid specifier
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn parse() {
     let time = time!("0:01:02.345_678_901");
     assert_eq!(Time::parse("0:01:02.345678901 00", "%T.%N %H"), Ok(time));
@@ -210,6 +214,7 @@ fn parse() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn parse_missing_seconds() {
     // Missing seconds defaults to zero.
     assert_eq!(Time::parse("0:00", "%-H:%M"), Ok(time!("0:00")));
@@ -219,6 +224,7 @@ fn parse_missing_seconds() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn parse_missing_minutes() {
     // Missing minutes defaults to zero.
     assert_eq!(Time::parse("0", "%-H"), Ok(time!("0:00")));
@@ -228,6 +234,7 @@ fn parse_missing_minutes() {
 }
 
 #[test]
+#[cfg(feature = "alloc")]
 fn display() {
     assert_eq!(time!("0:00").to_string(), "0:00");
     assert_eq!(time!("23:59").to_string(), "23:59");
