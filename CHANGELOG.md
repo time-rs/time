@@ -70,6 +70,8 @@ Versioning].
   - `OffsetDateTime::millisecond`
   - `OffsetDateTime::microsecond`
   - `OffsetDateTime::nanosecond`
+  - `OffsetDateTime::unix_timestamp`
+  - `OffsetDateTime::unix_timestamp_nanos`
 - No longer `const fn` on older compilers
   - `util::is_leap_year`
   - `util::days_in_year`
@@ -185,6 +187,7 @@ Versioning].
   - `PrimitiveDateTime::lazy_format`
   - `OffsetDateTime::lazy_format`
 - Support for stdweb has been removed, as the crate is unmaintained.
+- The `prelude` module has been removed in its entirety.
 
 ## 0.2.22 [2020-09-25]
 

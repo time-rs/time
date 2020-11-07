@@ -248,8 +248,17 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("1970-01-01 0:00 UTC").unix_timestamp(), 0);
     /// assert_eq!(datetime!("1970-01-01 0:00 -1").unix_timestamp(), 3_600);
     /// ```
-    pub fn unix_timestamp(self) -> i64 {
-        (self - Self::unix_epoch()).whole_seconds()
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn unix_timestamp(self) -> i64 {
+        let days = (self.utc_datetime.date().julian_day()
+            - Date::from_yo_unchecked(1970, 1).julian_day())
+            * 86_400;
+        let hours = self.utc_datetime.time().hour() as i64 * 3_600;
+        let minutes = self.utc_datetime.time().minute() as i64 * 60;
+        let seconds = self.utc_datetime.time().second() as i64;
+        days + hours + minutes + seconds
     }
 
     /// Get the Unix timestamp in nanoseconds.
@@ -262,8 +271,12 @@ impl OffsetDateTime {
     ///     3_600_000_000_000,
     /// );
     /// ```
-    pub fn unix_timestamp_nanos(self) -> i128 {
-        (self - Self::unix_epoch()).whole_nanoseconds()
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn unix_timestamp_nanos(self) -> i128 {
+        self.unix_timestamp() as i128 * 1_000_000_000
+            + self.utc_datetime.time().nanosecond() as i128
     }
 
     /// Get the [`Date`] in the stored offset.
