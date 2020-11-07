@@ -14,6 +14,7 @@ pub enum Error {
     ConversionRange,
     ComponentRange(ComponentRange),
     #[cfg(feature = "alloc")]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
     Parse(Parse),
     IndeterminateOffset,
     Format(Format),

@@ -445,6 +445,7 @@ mod private {
 /// # Ok::<_, time::Error>(())
 /// ```
 #[cfg(feature = "alloc")]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
 pub fn parse<'a, T: private::Parsable>(
     s: impl AsRef<str>,
     format: impl Into<Format<'a>>,

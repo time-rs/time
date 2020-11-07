@@ -18,6 +18,7 @@ pub(crate) type ParseResult<T> = Result<T, Error>;
 
 /// An error occurred while parsing.
 #[allow(variant_size_differences)]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Error {

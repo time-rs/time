@@ -726,6 +726,7 @@ impl Date {
 
 /// Methods that allow formatting the `Date`.
 #[cfg(feature = "alloc")]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
 impl Date {
     /// Format the `Date` using the provided string.
     ///

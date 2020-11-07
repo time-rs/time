@@ -676,6 +676,7 @@ impl OffsetDateTime {
 
 /// Methods that allow formatting the `OffsetDateTime`.
 #[cfg(feature = "alloc")]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
 impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided string.
     ///

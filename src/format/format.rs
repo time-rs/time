@@ -3,6 +3,7 @@
 /// Various well-known formats, along with the possibility for a custom format
 /// (provided either at compile-time or runtime).
 #[allow(clippy::missing_docs_in_private_items)] // variants
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Format<'a> {

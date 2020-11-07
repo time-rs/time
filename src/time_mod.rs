@@ -366,6 +366,7 @@ impl Time {
 
 /// Methods that allow formatting the `Time`.
 #[cfg(feature = "alloc")]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
 impl Time {
     /// Format the `Time` using the provided string.
     ///

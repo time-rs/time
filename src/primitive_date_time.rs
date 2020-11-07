@@ -469,6 +469,7 @@ impl PrimitiveDateTime {
 
 /// Methods that allow formatting the `PrimitiveDateTime`.
 #[cfg(feature = "alloc")]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
 impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided string.
     ///

@@ -1,4 +1,5 @@
-//! Implementations of the [`quickcheck::Arbitrary`] trait.
+//! Implementations of the [`quickcheck::Arbitrary`](quickcheck_dep::Arbitrary)
+//! trait.
 //!
 //! This enables users to write tests such as this, and have test values
 //! provided automatically:

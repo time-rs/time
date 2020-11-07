@@ -241,6 +241,7 @@ impl UtcOffset {
 
     /// Convert a `UtcOffset` to ` Duration`. Useful for implementing operators.
     #[cfg(feature = "alloc")]
+    #[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
     pub(crate) const fn as_duration(self) -> Duration {
         Duration::seconds(self.seconds as i64)
     }
@@ -278,6 +279,7 @@ impl UtcOffset {
 
 /// Methods that allow parsing and formatting the `UtcOffset`.
 #[cfg(feature = "alloc")]
+#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
 impl UtcOffset {
     /// Format the `UtcOffset` using the provided string.
     ///
