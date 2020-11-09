@@ -188,32 +188,6 @@ fn replace_date() {
 }
 
 #[test]
-#[cfg(feature = "alloc")]
-fn format() {
-    assert_eq!(
-        datetime!("2019-01-02 3:04:05").format("%c"),
-        "Wed Jan 2 3:04:05 2019"
-    );
-}
-
-#[test]
-#[cfg(feature = "alloc")]
-fn parse() {
-    assert_eq!(
-        PrimitiveDateTime::parse("Wed Jan 2 3:04:05 2019", "%c"),
-        Ok(datetime!("2019-01-02 3:04:05")),
-    );
-    assert_eq!(
-        PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
-        Ok(datetime!("2019-002 23:59:59"))
-    );
-    assert_eq!(
-        PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
-        Ok(datetime!("2019-002 12:00")),
-    );
-}
-
-#[test]
 fn add_duration() {
     assert_eq!(
         datetime!("2019-01-01 0:00") + 5.days(),
@@ -449,12 +423,13 @@ fn ord() {
 #[test]
 #[cfg(feature = "std")]
 fn display() {
-    assert_eq!(
-        datetime!("1970-01-01 0:00").to_string(),
-        String::from("1970-01-01 0:00")
-    );
-    assert_eq!(
-        datetime!("1970-01-01 0:00:01").to_string(),
-        String::from("1970-01-01 0:00:01")
-    );
+    // TODO
+    // assert_eq!(
+    //     datetime!("1970-01-01 0:00").to_string(),
+    //     String::from("1970-01-01 0:00")
+    // );
+    // assert_eq!(
+    //     datetime!("1970-01-01 0:00:01").to_string(),
+    //     String::from("1970-01-01 0:00:01")
+    // );
 }

@@ -1,13 +1,6 @@
 use crate::error;
 #[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
-#[cfg(feature = "alloc")]
-use crate::{
-    format::{parse, ParsedItems},
-    DeferredFormat, Duration, Format, ParseResult,
-};
-#[cfg(feature = "alloc")]
-use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::fmt::{self, Display};
 
@@ -239,13 +232,6 @@ impl UtcOffset {
         (self.as_seconds() / 3_600) as i8
     }
 
-    /// Convert a `UtcOffset` to ` Duration`. Useful for implementing operators.
-    #[cfg(feature = "alloc")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub(crate) const fn as_duration(self) -> Duration {
-        Duration::seconds(self.seconds as i64)
-    }
-
     /// Attempt to obtain the system's UTC offset at a known moment in time. If
     /// the offset cannot be determined, an error is returned.
     ///
@@ -281,60 +267,9 @@ impl UtcOffset {
     }
 }
 
-/// Methods that allow parsing and formatting the `UtcOffset`.
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl UtcOffset {
-    /// Format the `UtcOffset` using the provided string.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::hours(2)?.format("%z"), "+0200");
-    /// assert_eq!(UtcOffset::hours(-2)?.format("%z"), "-0200");
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
-        DeferredFormat::new(format.into())
-            .with_offset(self)
-            .to_string()
-    }
-
-    /// Attempt to parse the `UtcOffset` using the provided string.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::parse("+0200", "%z"), Ok(UtcOffset::hours(2)?));
-    /// assert_eq!(UtcOffset::parse("-0200", "%z"), Ok(UtcOffset::hours(-2)?));
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    pub fn parse<'a>(s: impl AsRef<str>, format: impl Into<Format<'a>>) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
-    }
-
-    /// Given the items already parsed, attempt to create a `UtcOffset`.
-    pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
-        items.offset.ok_or(error::Parse::InsufficientInformation)
-    }
-}
-
 impl Display for UtcOffset {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let sign = if self.seconds < 0 { '-' } else { '+' };
-        let hours = self.as_hours().abs();
-        let minutes = self.as_minutes().abs() - hours as i16 * 60;
-        let seconds = self.as_seconds().abs() - hours as i32 * 3_600 - minutes as i32 * 60;
-
-        write!(f, "{}{}", sign, hours)?;
-
-        if minutes != 0 || seconds != 0 {
-            write!(f, ":{:02}", minutes)?;
-        }
-
-        if seconds != 0 {
-            write!(f, ":{:02}", seconds)?;
-        }
-
-        Ok(())
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        todo!()
     }
 }
 
@@ -519,18 +454,5 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         // Silence the unused variable warning when appropriate.
         let _ = datetime;
         None
-    }
-}
-
-#[cfg(all(test, feature = "alloc"))]
-mod test {
-    use super::*;
-    use crate::ext::NumericalDuration;
-
-    #[test]
-    fn as_duration() -> crate::Result<()> {
-        assert_eq!(UtcOffset::hours(1)?.as_duration(), 1.hours());
-        assert_eq!(UtcOffset::hours(-1)?.as_duration(), (-1).hours());
-        Ok(())
     }
 }

@@ -1,8 +1,6 @@
 use std::cmp::Ordering;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
-#[cfg(feature = "alloc")]
-use time::{error, Format};
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
     OffsetDateTime, Weekday,
@@ -314,67 +312,6 @@ fn replace_offset() {
     assert_eq!(
         datetime!("2020-01-01 0:00 UTC").replace_offset(offset!("-5")),
         datetime!("2020-01-01 0:00 -5")
-    );
-}
-
-#[test]
-#[cfg(feature = "alloc")]
-fn format() {
-    assert_eq!(
-        datetime!("2019-01-02 0:00 UTC").format("%F %r %z"),
-        "2019-01-02 12:00:00 am +0000",
-    );
-    assert_eq!(
-        datetime!("2019-01-02 3:04:05.678_901_234 +6:07").format(Format::Rfc3339),
-        "2019-01-02T03:04:05+06:07"
-    );
-}
-
-#[test]
-#[cfg(feature = "alloc")]
-fn parse() {
-    assert_eq!(
-        OffsetDateTime::parse("2019-01-02 00:00:00 +0000", "%F %T %z"),
-        Ok(datetime!("2019-01-02 0:00 UTC")),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2019-002 23:59:59 +0000", "%Y-%j %T %z"),
-        Ok(datetime!("2019-002 23:59:59 UTC"))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2019-W01-3 12:00:00 pm +0000", "%G-W%V-%u %r %z"),
-        Ok(datetime!("2019-002 12:00 UTC"))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2019-01-02 03:04:05 +0600", "%F %T %z"),
-        Ok(datetime!("2019-01-02 3:04:05 +6"))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2020-09-08T08:44:31+02:30", Format::Rfc3339),
-        Ok(datetime!("2020-09-08 08:44:31 +2:30"))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2019-01-02T03:04:05.678901234+05:06", Format::Rfc3339),
-        Ok(datetime!("2019-01-02 3:04:05.678_901_234 +5:06"))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2019-01-02T03:04:05.678901234Z", Format::Rfc3339),
-        Ok(datetime!("2019-01-02 3:04:05.678_901_234 UTC"))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2019-01-02T03:04:05/", Format::Rfc3339),
-        Err(error::Parse::UnexpectedCharacter {
-            actual: '/',
-            expected: '+'
-        })
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2019-01-02T03:04:05", Format::Rfc3339),
-        Err(error::Parse::UnexpectedEndOfString)
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2019-01-02T03:04:05.", Format::Rfc3339),
-        Err(error::Parse::InvalidNanosecond)
     );
 }
 
@@ -874,8 +811,9 @@ fn to_std() {
 #[test]
 #[cfg(feature = "alloc")]
 fn display() {
-    assert_eq!(
-        datetime!("1970-01-01 0:00 UTC").to_string(),
-        String::from("1970-01-01 0:00 +0")
-    );
+    // TODO
+    // assert_eq!(
+    //     datetime!("1970-01-01 0:00 UTC").to_string(),
+    //     String::from("1970-01-01 0:00 +0")
+    // );
 }

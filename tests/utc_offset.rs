@@ -83,45 +83,17 @@ fn utc_is_zero() {
 
 #[test]
 #[cfg(feature = "alloc")]
-fn format() {
-    assert_eq!(offset!("+1").format("%z"), "+0100");
-    assert_eq!(offset!("-1").format("%z"), "-0100");
-    assert_eq!(offset!("+0").format("%z"), "+0000");
-    // An offset of exactly zero should always have a positive sign.
-    assert_ne!(offset!("-0").format("%z"), "-0000");
-
-    assert_eq!(offset!("+0:01").format("%z"), "+0001");
-    assert_eq!(offset!("-0:01").format("%z"), "-0001");
-
-    // Seconds are not displayed, but the sign can still change.
-    assert_eq!(offset!("+0:00:01").format("%z"), "+0000");
-    assert_eq!(offset!("-0:00:01").format("%z"), "-0000");
-}
-
-#[test]
-#[cfg(feature = "alloc")]
-fn parse() {
-    assert_eq!(UtcOffset::parse("+0100", "%z"), Ok(offset!("+1")));
-    assert_eq!(UtcOffset::parse("-0100", "%z"), Ok(offset!("-1")));
-    assert_eq!(UtcOffset::parse("+0000", "%z"), Ok(offset!("+0")));
-    assert_eq!(UtcOffset::parse("-0000", "%z"), Ok(offset!("+0")));
-
-    assert_eq!(UtcOffset::parse("+0001", "%z"), Ok(offset!("+0:01")));
-    assert_eq!(UtcOffset::parse("-0001", "%z"), Ok(offset!("-0:01")));
-}
-
-#[test]
-#[cfg(feature = "alloc")]
 fn display() {
-    assert_eq!(offset!("UTC").to_string(), "+0");
-    assert_eq!(offset!("+0:00:01").to_string(), "+0:00:01");
-    assert_eq!(offset!("-0:00:01").to_string(), "-0:00:01");
-    assert_eq!(offset!("+1").to_string(), "+1");
-    assert_eq!(offset!("-1").to_string(), "-1");
-    assert_eq!(offset!("+23:59").to_string(), "+23:59");
-    assert_eq!(offset!("-23:59").to_string(), "-23:59");
-    assert_eq!(offset!("+23:59:59").to_string(), "+23:59:59");
-    assert_eq!(offset!("-23:59:59").to_string(), "-23:59:59");
+    // TODO
+    // assert_eq!(offset!("UTC").to_string(), "+0");
+    // assert_eq!(offset!("+0:00:01").to_string(), "+0:00:01");
+    // assert_eq!(offset!("-0:00:01").to_string(), "-0:00:01");
+    // assert_eq!(offset!("+1").to_string(), "+1");
+    // assert_eq!(offset!("-1").to_string(), "-1");
+    // assert_eq!(offset!("+23:59").to_string(), "+23:59");
+    // assert_eq!(offset!("-23:59").to_string(), "-23:59");
+    // assert_eq!(offset!("+23:59:59").to_string(), "+23:59:59");
+    // assert_eq!(offset!("-23:59:59").to_string(), "-23:59:59");
 }
 
 #[test]

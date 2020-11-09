@@ -1,11 +1,4 @@
 use crate::{error, util, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
-#[cfg(feature = "alloc")]
-use crate::{
-    format::parse::{parse, ParsedItems},
-    DeferredFormat, Format, ParseResult,
-};
-#[cfg(feature = "alloc")]
-use alloc::string::{String, ToString};
 use const_fn::const_fn;
 #[cfg(feature = "std")]
 use core::convert::From;
@@ -849,56 +842,6 @@ impl OffsetDateTime {
     #[const_fn("1.46")]
     pub const fn replace_offset(self, offset: UtcOffset) -> Self {
         self.utc_datetime.assume_offset(offset)
-    }
-}
-
-/// Methods that allow formatting the `OffsetDateTime`.
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl OffsetDateTime {
-    /// Format the `OffsetDateTime` using the provided string.
-    ///
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!("2019-01-02 0:00 UTC").format("%F %r %z"),
-    ///     "2019-01-02 12:00:00 am +0000",
-    /// );
-    /// ```
-    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
-        DeferredFormat::new(format.into())
-            .with_date(self.date())
-            .with_time(self.time())
-            .with_offset(self.offset())
-            .to_string()
-    }
-
-    /// Attempt to parse an `OffsetDateTime` using the provided string.
-    ///
-    /// ```rust
-    /// # use time::OffsetDateTime;
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     OffsetDateTime::parse("2019-01-02 00:00:00 +0000", "%F %T %z"),
-    ///     Ok(datetime!("2019-01-02 0:00 UTC")),
-    /// );
-    /// assert_eq!(
-    ///     OffsetDateTime::parse("2019-002 23:59:59 +0000", "%Y-%j %T %z"),
-    ///     Ok(datetime!("2019-002 23:59:59 UTC")),
-    /// );
-    /// assert_eq!(
-    ///     OffsetDateTime::parse("2019-W01-3 12:00:00 pm +0000", "%G-W%V-%u %r %z"),
-    ///     Ok(datetime!("2019-W01-3 12:00 UTC")),
-    /// );
-    /// ```
-    pub fn parse<'a>(s: impl AsRef<str>, format: impl Into<Format<'a>>) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
-    }
-
-    /// Given the items already parsed, attempt to create an `OffsetDateTime`.
-    pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
-        let offset = UtcOffset::try_from_parsed_items(items)?;
-        Ok(PrimitiveDateTime::try_from_parsed_items(items)?.assume_offset(offset))
     }
 }
 

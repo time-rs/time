@@ -4,7 +4,7 @@ use std::time::SystemTime;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
     macros::{datetime, offset},
-    Format, OffsetDateTime,
+    OffsetDateTime,
 };
 
 setup_benchmark! {
@@ -207,30 +207,6 @@ setup_benchmark! {
         ben.iter(|| (
             a.nanosecond(),
             b.nanosecond(),
-        ));
-    }
-
-    fn format(ben: &mut Bencher) {
-        let a = datetime!("2019-01-02 0:00 UTC");
-        let b = datetime!("2019-01-02 3:04:05.678_901_234 +6:07");
-        ben.iter(|| (
-            a.format("%F %r %z"),
-            b.format(Format::Rfc3339),
-        ));
-    }
-
-    fn parse(ben: &mut Bencher) {
-        ben.iter(|| (
-            OffsetDateTime::parse("2019-01-02 00:00:00 +0000", "%F %T %z"),
-            OffsetDateTime::parse("2019-002 23:59:59 +0000", "%Y-%j %T %z"),
-            OffsetDateTime::parse("2019-W01-3 12:00:00 pm +0000", "%G-W%V-%u %r %z"),
-            OffsetDateTime::parse("2019-01-02 03:04:05 +0600", "%F %T %z"),
-            OffsetDateTime::parse("2020-09-08T08:44:31+02:30", Format::Rfc3339),
-            OffsetDateTime::parse("2019-01-02T03:04:05.678901234+05:06", Format::Rfc3339),
-            OffsetDateTime::parse("2019-01-02T03:04:05.678901234Z", Format::Rfc3339),
-            OffsetDateTime::parse("2019-01-02T03:04:05/", Format::Rfc3339),
-            OffsetDateTime::parse("2019-01-02T03:04:05", Format::Rfc3339),
-            OffsetDateTime::parse("2019-01-02T03:04:05.", Format::Rfc3339),
         ));
     }
 
@@ -639,8 +615,9 @@ setup_benchmark! {
         ));
     }
 
-    fn display(ben: &mut Bencher) {
-        let a = datetime!("1970-01-01 0:00 UTC");
-        ben.iter(|| a.to_string());
-    }
+    // TODO
+    // fn display(ben: &mut Bencher) {
+    //     let a = datetime!("1970-01-01 0:00 UTC");
+    //     ben.iter(|| a.to_string());
+    // }
 }

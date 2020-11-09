@@ -48,10 +48,6 @@ name = "offset_date_time"
 harness = false
 
 [[bench]]
-name = "parse_error"
-harness = false
-
-[[bench]]
 name = "primitive_date_time"
 harness = false
 

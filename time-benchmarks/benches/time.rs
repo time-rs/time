@@ -130,85 +130,26 @@ setup_benchmark! {
         ));
     }
 
-    fn format(ben: &mut Bencher) {
-        let time = time!("0:01:02.345_678_901");
-        let time_12h = time!("12:01:02");
-        ben.iter(|| (
-            time.format("%H"),
-            time.format("%I"),
-            time.format("%M"),
-            time.format("%N"),
-            time.format("%p"),
-            time.format("%P"),
-            time.format("%r"),
-            time.format("%R"),
-            time.format("%S"),
-            time.format("%T"),
-            time_12h.format("%p"),
-            time_12h.format("%P"),
-        ));
-    }
-
-    fn parse(ben: &mut Bencher) {
-        ben.iter(|| (
-            Time::parse("0:01:02.345678901 00", "%T.%N %H"),
-            Time::parse("0:01:02.345678901 12", "%T.%N %I"),
-            Time::parse("0:01:02.345678901 01", "%T.%N %M"),
-            Time::parse("0:01:02.345678901 345678901", "%T.%N %N"),
-            Time::parse("0:01:02.345678901 am", "%T.%N %p"),
-            Time::parse("0:01:02.345678901 AM", "%T.%N %P"),
-            Time::parse("0:01:02.345678901 12:01:02 am", "%T.%N %r"),
-            Time::parse("0:01:02.345678901 0:01", "%T.%N %R"),
-            Time::parse("0:01:02.345678901 02", "%T.%N %S"),
-            Time::parse("0:01:02.345678901 0:01:02", "%T.%N %T"),
-            Time::parse("1:00 am", "%-I:%M %p"),
-            Time::parse("1:00 pm", "%-I:%M %p"),
-            Time::parse(" 1:00 am", "%_I:%M %p"),
-            Time::parse(" 1:00 pm", "%_I:%M %p"),
-            Time::parse("01:00 am", "%0I:%M %p"),
-            Time::parse("01:00 pm", "%0I:%M %p"),
-            Time::parse("1:02:03.456789012 pm", "%-I:%M:%S.%N %p"),
-            Time::parse("", ""),
-        ));
-    }
-
-    fn parse_missing_seconds(ben: &mut Bencher) {
-        ben.iter(|| (
-            Time::parse("0:00", "%-H:%M"),
-            Time::parse("23:59", "%H:%M"),
-            Time::parse("12:00 am", "%I:%M %p"),
-            Time::parse("12:00 pm", "%I:%M %p"),
-        ));
-    }
-
-    fn parse_missing_minutes(ben: &mut Bencher) {
-        ben.iter(|| (
-            Time::parse("0", "%-H"),
-            Time::parse("23", "%H"),
-            Time::parse("12am", "%I%p"),
-            Time::parse("12pm", "%I%p"),
-        ));
-    }
-
-    fn display(ben: &mut Bencher) {
-        let a = time!("0:00");
-        let b = time!("23:59");
-        let c = time!("23:59:59");
-        let d = time!("0:00:01");
-        let e = time!("0:00:00.001");
-        let f = time!("0:00:00.000_001");
-        let g = time!("0:00:00.000_000_001");
-
-        ben.iter(|| (
-            a.to_string(),
-            b.to_string(),
-            c.to_string(),
-            d.to_string(),
-            e.to_string(),
-            f.to_string(),
-            g.to_string(),
-        ));
-    }
+    // OTDO
+    //fn display(ben: &mut Bencher) {
+    //    let a = time!("0:00");
+    //    let b = time!("23:59");
+    //    let c = time!("23:59:59");
+    //    let d = time!("0:00:01");
+    //    let e = time!("0:00:00.001");
+    //    let f = time!("0:00:00.000_001");
+    //    let g = time!("0:00:00.000_000_001");
+    //
+    //    ben.iter(|| (
+    //        a.to_string(),
+    //        b.to_string(),
+    //        c.to_string(),
+    //        d.to_string(),
+    //        e.to_string(),
+    //        f.to_string(),
+    //        g.to_string(),
+    //    ));
+    //}
 
     fn add_duration(ben: &mut Bencher) {
         let t = time!("0:00");

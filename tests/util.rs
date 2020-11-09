@@ -45,11 +45,3 @@ fn weeks_in_year() {
         assert_eq!(util::weeks_in_year(year), num_weeks);
     }
 }
-
-#[test]
-#[cfg(feature = "alloc")]
-fn validate_format_string() {
-    assert!(util::validate_format_string("%H foo").is_ok());
-    assert!(util::validate_format_string("%H%%").is_ok());
-    assert!(util::validate_format_string("%").is_err());
-}

@@ -164,6 +164,7 @@
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(test(attr(deny(warnings))))]
 
+#[allow(unused_extern_crates)] // TODO remove this lint
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
@@ -229,9 +230,6 @@ mod duration;
 pub mod error;
 /// Extension traits.
 pub mod ext;
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-mod format;
 /// The [`Instant`] struct and its associated `impl`s.
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
@@ -358,10 +356,6 @@ pub use crate::time::Time;
 pub use date::Date;
 pub use duration::Duration;
 pub use error::Error;
-#[cfg(feature = "alloc")]
-pub use format::Format;
-#[cfg(feature = "alloc")]
-use format::{DeferredFormat, ParseResult};
 #[cfg(feature = "std")]
 pub use instant::Instant;
 pub use offset_date_time::OffsetDateTime;
@@ -372,53 +366,3 @@ pub use weekday::Weekday;
 /// An alias for [`std::result::Result`] with a generic error from the time
 /// crate.
 pub type Result<T> = core::result::Result<T, Error>;
-
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-#[allow(clippy::missing_docs_in_private_items)]
-mod private {
-    use super::*;
-
-    macro_rules! parsable {
-        ($($type:ty),* $(,)?) => {$(
-            impl Parsable for $type {
-                fn parse<'a>(
-                    s: impl AsRef<str>,
-                    format: impl Into<Format<'a>>
-                ) -> ParseResult<Self> {
-                    Self::parse(s, format)
-                }
-            }
-        )*};
-    }
-
-    pub trait Parsable: Sized {
-        fn parse<'a>(s: impl AsRef<str>, format: impl Into<Format<'a>>) -> ParseResult<Self>;
-    }
-
-    parsable![Time, Date, UtcOffset, PrimitiveDateTime, OffsetDateTime];
-}
-
-/// Parse any parsable type from the time crate.
-///
-/// This is identical to calling `T::parse(s, format)`, but allows the use of
-/// type inference where possible.
-///
-/// ```rust
-/// # use time::Time;
-/// #[derive(Debug)]
-/// struct Foo(Time);
-///
-/// // We don't need to tell the compiler what type we need!
-/// let foo = Foo(time::parse("14:55:02", "%T")?);
-/// println!("{:?}", foo);
-/// # Ok::<_, time::Error>(())
-/// ```
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-pub fn parse<'a, T: private::Parsable>(
-    s: impl AsRef<str>,
-    format: impl Into<Format<'a>>,
-) -> ParseResult<T> {
-    private::Parsable::parse(s, format)
-}

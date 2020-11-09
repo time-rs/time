@@ -1,21 +1,10 @@
 use crate::{error, Duration};
-#[cfg(feature = "alloc")]
-use crate::{
-    format::{parse, parse::AmPm, ParsedItems},
-    DeferredFormat, Format, ParseResult,
-};
-#[cfg(feature = "alloc")]
-use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::{
     convert::TryFrom,
+    fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
-};
-#[cfg(feature = "alloc")]
-use core::{
-    fmt::{self, Display},
-    num::NonZeroU8,
 };
 
 /// The clock time within a given date. Nanosecond precision.
@@ -354,112 +343,9 @@ impl Time {
     }
 }
 
-/// Methods that allow formatting the `Time`.
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl Time {
-    /// Format the `Time` using the provided string.
-    ///
-    /// ```rust
-    /// # use time_macros::time;
-    /// assert_eq!(time!("0:00").format("%r"), "12:00:00 am");
-    /// ```
-    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
-        DeferredFormat::new(format.into())
-            .with_time(self)
-            .to_string()
-    }
-
-    /// Attempt to parse a `Time` using the provided string.
-    ///
-    /// ```rust
-    /// # use time::Time;
-    /// # use time_macros::time;
-    /// assert_eq!(Time::parse("0:00:00", "%T"), Ok(time!("0:00")));
-    /// assert_eq!(Time::parse("23:59:59", "%T"), Ok(time!("23:59:59")));
-    /// assert_eq!(Time::parse("12:00:00 am", "%r"), Ok(time!("0:00")));
-    /// assert_eq!(Time::parse("12:00:00 pm", "%r"), Ok(time!("12:00")));
-    /// assert_eq!(Time::parse("11:59:59 pm", "%r"), Ok(time!("23:59:59")));
-    /// ```
-    pub fn parse<'a>(s: impl AsRef<str>, format: impl Into<Format<'a>>) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
-    }
-
-    /// Given the items already parsed, attempt to create a `Time`.
-    pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
-        macro_rules! items {
-            ($($item:ident),* $(,)?) => {
-                ParsedItems { $($item: Some($item)),*, .. }
-            };
-        }
-
-        /// Convert a 12-hour time to a 24-hour time.
-        #[allow(clippy::missing_const_for_fn)] // internal fn in non-const outer fn
-        fn hour_12_to_24(hour: NonZeroU8, am_pm: AmPm) -> u8 {
-            use AmPm::{AM, PM};
-            match (hour.get(), am_pm) {
-                (12, AM) => 0,
-                (12, PM) => 12,
-                (h, AM) => h,
-                (h, PM) => h + 12,
-            }
-        }
-
-        match items {
-            items!(hour_24, minute, second, nanosecond) => {
-                Self::from_hms_nano(hour_24, minute, second, nanosecond).map_err(Into::into)
-            }
-            items!(hour_12, minute, second, nanosecond, am_pm) => {
-                Self::from_hms_nano(hour_12_to_24(hour_12, am_pm), minute, second, nanosecond)
-                    .map_err(Into::into)
-            }
-            items!(hour_24, minute, second) => {
-                Self::from_hms(hour_24, minute, second).map_err(Into::into)
-            }
-            items!(hour_12, minute, second, am_pm) => {
-                Self::from_hms(hour_12_to_24(hour_12, am_pm), minute, second).map_err(Into::into)
-            }
-            items!(hour_24, minute) => Self::from_hms(hour_24, minute, 0).map_err(Into::into),
-            items!(hour_12, minute, am_pm) => {
-                Self::from_hms(hour_12_to_24(hour_12, am_pm), minute, 0).map_err(Into::into)
-            }
-            items!(hour_24) => Self::from_hms(hour_24, 0, 0).map_err(Into::into),
-            items!(hour_12, am_pm) => {
-                Self::from_hms(hour_12_to_24(hour_12, am_pm), 0, 0).map_err(Into::into)
-            }
-            _ => Err(error::Parse::InsufficientInformation),
-        }
-    }
-}
-
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl Display for Time {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use crate::format::{time, Padding};
-
-        time::fmt_H(f, *self, Padding::None)?;
-        f.write_str(":")?;
-        time::fmt_M(f, *self, Padding::Zero)?;
-
-        if self.second != 0 || self.nanosecond != 0 {
-            f.write_str(":")?;
-            time::fmt_S(f, *self, Padding::Zero)?;
-        }
-
-        if self.nanosecond != 0 {
-            f.write_str(".")?;
-
-            if self.nanosecond % 1_000_000 == 0 {
-                write!(f, "{:03}", self.nanosecond / 1_000_000)?;
-            } else if self.nanosecond % 1_000 == 0 {
-                write!(f, "{:06}", self.nanosecond / 1_000)?;
-            } else {
-                write!(f, "{:09}", self.nanosecond)?;
-            }
-        }
-
-        Ok(())
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        todo!()
     }
 }
 

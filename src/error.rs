@@ -1,5 +1,3 @@
-#[cfg(feature = "alloc")]
-pub use crate::format::parse::Error as Parse;
 use core::fmt;
 
 /// A unified error type for anything returned by a method in the time crate.
@@ -13,9 +11,6 @@ use core::fmt;
 pub enum Error {
     ConversionRange,
     ComponentRange(ComponentRange),
-    #[cfg(feature = "alloc")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    Parse(Parse),
     IndeterminateOffset,
     Format(Format),
 }
@@ -23,12 +18,10 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::ConversionRange => ConversionRange.fmt(f),
-            Self::ComponentRange(e) => e.fmt(f),
-            #[cfg(feature = "alloc")]
-            Self::Parse(e) => e.fmt(f),
-            Self::IndeterminateOffset => IndeterminateOffset.fmt(f),
-            Self::Format(e) => e.fmt(f),
+            Error::ConversionRange => ConversionRange.fmt(f),
+            Error::ComponentRange(e) => e.fmt(f),
+            Error::IndeterminateOffset => IndeterminateOffset.fmt(f),
+            Error::Format(e) => e.fmt(f),
         }
     }
 }
@@ -37,11 +30,10 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Self::ConversionRange => Some(&ConversionRange),
-            Self::ComponentRange(err) => Some(err),
-            Self::Parse(err) => Some(err),
-            Self::IndeterminateOffset => Some(&IndeterminateOffset),
-            Self::Format(err) => Some(err),
+            Error::ConversionRange => Some(&ConversionRange),
+            Error::ComponentRange(err) => Some(err),
+            Error::IndeterminateOffset => Some(&IndeterminateOffset),
+            Error::Format(err) => Some(err),
         }
     }
 }
@@ -112,14 +104,6 @@ impl From<ComponentRange> for Error {
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for ComponentRange {}
-
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl From<Parse> for Error {
-    fn from(original: Parse) -> Self {
-        Self::Parse(original)
-    }
-}
 
 /// The system's UTC offset could not be determined at the given datetime.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

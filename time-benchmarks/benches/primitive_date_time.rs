@@ -220,19 +220,6 @@ setup_benchmark! {
         ben.iter(|| a.assume_utc());
     }
 
-    fn format(ben: &mut Bencher) {
-        let a = datetime!("2019-01-02 3:04:05");
-        ben.iter(|| a.format("%c"));
-    }
-
-    fn parse(ben: &mut Bencher) {
-        ben.iter(|| (
-            PrimitiveDateTime::parse("Wed Jan 2 3:04:05 2019", "%c"),
-            PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
-            PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
-        ));
-    }
-
     fn add_duration(ben: &mut Bencher) {
         let a = datetime!("2019-01-01 0:00");
         let dta = 5.days();
@@ -421,8 +408,9 @@ setup_benchmark! {
         ));
     }
 
-    fn display(ben: &mut Bencher) {
-        let a = datetime!("1970-01-01 0:00");
-        ben.iter(|| a.to_string());
-    }
+    // TODO
+    // fn display(ben: &mut Bencher) {
+    //     let a = datetime!("1970-01-01 0:00");
+    //     ben.iter(|| a.to_string());
+    // }
 }

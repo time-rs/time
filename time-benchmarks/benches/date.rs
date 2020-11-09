@@ -32,14 +32,6 @@ setup_benchmark! {
         ben.iter(|| d.sunday_based_week());
     }
 
-    fn parse_monday_based_week(ben: &mut Bencher) {
-        ben.iter(|| Date::parse("Sun 00 2023", "%a %W %Y"));
-    }
-
-    fn parse_sunday_based_week(ben: &mut Bencher) {
-        ben.iter(|| Date::parse("Sun 01 2018", "%a %U %Y"));
-    }
-
     fn from_iso_ywd(ben: &mut Bencher) {
         use Weekday::*;
         ben.iter(|| (
@@ -165,61 +157,11 @@ setup_benchmark! {
         ben.iter(|| d.with_hms_nano(0, 0, 0, 0));
     }
 
-    fn format(ben: &mut Bencher) {
-        // Check all specifiers for date objects.
-        let date = date!("2019-01-02");
-        ben.iter(|| (
-            date.format("%a"),
-            date.format("%A"),
-            date.format("%b"),
-            date.format("%B"),
-            date.format("%C"),
-            date.format("%d"),
-            date.format("%D"),
-            date.format("%F"),
-            date.format("%g"),
-            date.format("%G"),
-            date.format("%j"),
-            date.format("%m"),
-            date.format("%u"),
-            date.format("%U"),
-            date.format("%V"),
-            date.format("%w"),
-            date.format("%W"),
-            date.format("%y"),
-            date.format("%Y"),
-        ));
-    }
-
-    fn parse(ben: &mut Bencher) {
-        ben.iter(|| (
-            Date::parse("2019-01-02 Wed", "%F %a"),
-            Date::parse("2019-01-02 Wednesday", "%F %A"),
-            Date::parse("2019-01-02 Jan", "%F %b"),
-            Date::parse("2019-01-02 January", "%F %B"),
-            Date::parse("2019-01-02 20", "%F %C"),
-            Date::parse("2019-01-02 02", "%F %d"),
-            Date::parse("2019-01-02 1/02/19", "%F %D"),
-            Date::parse("2019-01-02", "%F"),
-            Date::parse("2019-01-02 19", "%F %g"),
-            Date::parse("2019-01-02 2019", "%F %G"),
-            Date::parse("2019-01-02 002", "%F %j"),
-            Date::parse("2019-01-02 01", "%F %m"),
-            Date::parse("2019-01-02 3", "%F %u"),
-            Date::parse("2019-01-02 00", "%F %U"),
-            Date::parse("2019-01-02 01", "%F %V"),
-            Date::parse("2019-01-02 3", "%F %w"),
-            Date::parse("2019-01-02 00", "%F %W"),
-            Date::parse("2019-01-02 19", "%F %y"),
-            Date::parse("2019-01-02 2019", "%F %Y"),
-            Date::parse("", ""),
-        ));
-    }
-
-    fn display(ben: &mut Bencher) {
-        let d = date!("2019-01-01");
-        ben.iter(|| d.to_string());
-    }
+    // TODO
+    // fn display(ben: &mut Bencher) {
+    //     let d = date!("2019-01-01");
+    //     ben.iter(|| d.to_string());
+    // }
 
     fn add(ben: &mut Bencher) {
         let d = date!("2019-01-01");

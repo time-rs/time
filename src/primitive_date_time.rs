@@ -1,11 +1,4 @@
-#[cfg(feature = "alloc")]
-use crate::{
-    format::parse::{parse, ParsedItems},
-    DeferredFormat, Format, ParseResult,
-};
 use crate::{util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
-#[cfg(feature = "alloc")]
-use alloc::string::{String, ToString};
 use const_fn::const_fn;
 #[cfg(feature = "alloc")]
 use core::fmt::{self, Display};
@@ -458,57 +451,6 @@ impl PrimitiveDateTime {
     #[const_fn("1.46")]
     pub(crate) const fn utc_to_offset(self, offset: UtcOffset) -> Self {
         self.offset_to_utc(UtcOffset::seconds_unchecked(-offset.as_seconds()))
-    }
-}
-
-/// Methods that allow formatting the `PrimitiveDateTime`.
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl PrimitiveDateTime {
-    /// Format the `PrimitiveDateTime` using the provided string.
-    ///
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!("2019-01-02 0:00").format("%F %r"),
-    ///     "2019-01-02 12:00:00 am"
-    /// );
-    /// ```
-    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
-        DeferredFormat::new(format.into())
-            .with_date(self.date())
-            .with_time(self.time())
-            .to_string()
-    }
-
-    /// Attempt to parse a `PrimitiveDateTime` using the provided string.
-    ///
-    /// ```rust
-    /// # use time::PrimitiveDateTime;
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     PrimitiveDateTime::parse("2019-01-02 00:00:00", "%F %T"),
-    ///     Ok(datetime!("2019-01-02 00:00:00")),
-    /// );
-    /// assert_eq!(
-    ///     PrimitiveDateTime::parse("2019-002 23:59:59", "%Y-%j %T"),
-    ///     Ok(datetime!("2019-002 23:59:59"))
-    /// );
-    /// assert_eq!(
-    ///     PrimitiveDateTime::parse("2019-W01-3 12:00:00 pm", "%G-W%V-%u %r"),
-    ///     Ok(datetime!("2019-W01-3 12:00:00 pm")),
-    /// );
-    /// ```
-    pub fn parse<'a>(s: impl AsRef<str>, format: impl Into<Format<'a>>) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
-    }
-
-    /// Given the items already parsed, attempt to create a `PrimitiveDateTime`.
-    pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
-        Ok(Self {
-            date: Date::try_from_parsed_items(items)?,
-            time: Time::try_from_parsed_items(items)?,
-        })
     }
 }
 

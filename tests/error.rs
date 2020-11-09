@@ -7,11 +7,6 @@ fn component_range() -> error::ComponentRange {
 }
 
 #[cfg(feature = "alloc")]
-fn parse() -> error::Parse {
-    Date::parse("", " ").unwrap_err()
-}
-
-#[cfg(feature = "alloc")]
 fn format_insufficient() -> error::Format {
     error::Format::InsufficientTypeInformation
 }
@@ -30,9 +25,8 @@ fn display() {
     );
     assert_eq!(
         component_range().to_string(),
-        Error::ComponentRange(component_range().into()).to_string()
+        Error::ComponentRange(component_range()).to_string()
     );
-    assert_eq!(parse().to_string(), Error::Parse(parse()).to_string());
     assert_eq!(
         format_insufficient().to_string(),
         Error::Format(format_insufficient()).to_string()
@@ -56,7 +50,6 @@ fn source() {
         .source()
         .unwrap()
         .is::<error::ComponentRange>());
-    assert!(Error::from(parse()).source().unwrap().is::<error::Parse>());
     assert!(Error::from(format_insufficient())
         .source()
         .unwrap()

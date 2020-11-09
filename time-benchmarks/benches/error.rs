@@ -5,10 +5,6 @@ fn component_range() -> error::ComponentRange {
     Date::from_yo(0, 367).unwrap_err()
 }
 
-fn parse() -> error::Parse {
-    Date::parse("", " ").unwrap_err()
-}
-
 fn format_insufficient() -> error::Format {
     error::Format::InsufficientTypeInformation
 }
@@ -24,9 +20,7 @@ setup_benchmark! {
         let a = error::ConversionRange;
         let b = Error::ConversionRange;
         let c = component_range();
-        let d = Error::ComponentRange(component_range().into());
-        let e = parse();
-        let f = Error::Parse(parse());
+        let d = Error::ComponentRange(component_range());
         let g = format_insufficient();
         let h = Error::Format(format_insufficient());
         let i = format_std();
@@ -37,8 +31,6 @@ setup_benchmark! {
             b.to_string(),
             c.to_string(),
             d.to_string(),
-            e.to_string(),
-            f.to_string(),
             g.to_string(),
             h.to_string(),
             i.to_string(),
@@ -51,7 +43,6 @@ setup_benchmark! {
 
         let a = Error::from(error::ConversionRange);
         let b = Error::from(component_range());
-        let c = Error::from(parse());
         let d = Error::from(format_insufficient());
         let e = format_insufficient();
         let f = format_std();
@@ -59,7 +50,6 @@ setup_benchmark! {
         ben.iter(|| (
             a.source(),
             b.source(),
-            c.source(),
             d.source(),
             e.source(),
             f.source(),

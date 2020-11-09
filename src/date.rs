@@ -3,18 +3,9 @@ use crate::{
     util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year},
     Duration, PrimitiveDateTime, Time, Weekday,
 };
-#[cfg(feature = "alloc")]
-use crate::{
-    format::parse::{parse, ParsedItems},
-    DeferredFormat, Format, ParseResult,
-};
-#[cfg(feature = "alloc")]
-use alloc::string::{String, ToString};
 use const_fn::const_fn;
-#[cfg(feature = "alloc")]
-use core::fmt::Display;
 use core::{
-    fmt,
+    fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
@@ -688,101 +679,9 @@ impl Date {
     }
 }
 
-/// Methods that allow formatting the `Date`.
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl Date {
-    /// Format the `Date` using the provided string.
-    ///
-    /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!("2019-01-02").format("%Y-%m-%d"), "2019-01-02");
-    /// ```
-    pub fn format<'a>(self, format: impl Into<Format<'a>>) -> String {
-        DeferredFormat::new(format.into())
-            .with_date(self)
-            .to_string()
-    }
-
-    /// Attempt to parse a `Date` using the provided string.
-    ///
-    /// ```rust
-    /// # use time::Date;
-    /// # use time_macros::date;
-    /// assert_eq!(Date::parse("2019-01-02", "%F"), Ok(date!("2019-01-02")));
-    /// assert_eq!(Date::parse("2019-002", "%Y-%j"), Ok(date!("2019-002")));
-    /// assert_eq!(
-    ///     Date::parse("2019-W01-3", "%G-W%V-%u"),
-    ///     Ok(date!("2019-W01-3"))
-    /// );
-    /// ```
-    pub fn parse<'a>(s: impl AsRef<str>, format: impl Into<Format<'a>>) -> ParseResult<Self> {
-        Self::try_from_parsed_items(parse(s.as_ref(), &format.into())?)
-    }
-
-    /// Given the items already parsed, attempt to create a `Date`.
-    pub(crate) fn try_from_parsed_items(items: ParsedItems) -> ParseResult<Self> {
-        macro_rules! items {
-            ($($item:ident),* $(,)?) => {
-                ParsedItems { $($item: Some($item)),*, .. }
-            };
-        }
-
-        /// Get the value needed to adjust the ordinal day for Sunday and
-        /// Monday-based week numbering.
-        #[allow(clippy::missing_const_for_fn)] // inside non-const outer fn
-        fn adjustment(year: i32) -> i16 {
-            match Date::from_yo_unchecked(year, 1).weekday() {
-                Weekday::Monday => 7,
-                Weekday::Tuesday => 1,
-                Weekday::Wednesday => 2,
-                Weekday::Thursday => 3,
-                Weekday::Friday => 4,
-                Weekday::Saturday => 5,
-                Weekday::Sunday => 6,
-            }
-        }
-
-        match items {
-            items!(year, month, day) => {
-                Self::from_ymd(year, month.get(), day.get()).map_err(Into::into)
-            }
-            items!(year, ordinal_day) => Self::from_yo(year, ordinal_day.get()).map_err(Into::into),
-            items!(week_based_year, iso_week, weekday) => {
-                Self::from_iso_ywd(week_based_year, iso_week.get(), weekday).map_err(Into::into)
-            }
-            items!(year, sunday_week, weekday) => Self::from_yo(
-                year,
-                (sunday_week as i16 * 7 + weekday.number_days_from_sunday() as i16
-                    - adjustment(year)
-                    + 1) as u16,
-            )
-            .map_err(Into::into),
-            items!(year, monday_week, weekday) => Self::from_yo(
-                year,
-                (monday_week as i16 * 7 + weekday.number_days_from_monday() as i16
-                    - adjustment(year)
-                    + 1) as u16,
-            )
-            .map_err(Into::into),
-            _ => Err(error::Parse::InsufficientInformation),
-        }
-    }
-}
-
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl Display for Date {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use crate::format::{date, Padding};
-
-        date::fmt_Y(f, *self, Padding::Zero)?;
-        f.write_str("-")?;
-        date::fmt_m(f, *self, Padding::Zero)?;
-        f.write_str("-")?;
-        date::fmt_d(f, *self, Padding::Zero)?;
-
-        Ok(())
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        todo!()
     }
 }
 

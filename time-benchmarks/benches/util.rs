@@ -32,12 +32,4 @@ setup_benchmark! {
             }
         });
     }
-
-    fn validate_format_string(ben: &mut Bencher) {
-        ben.iter(|| (
-            util::validate_format_string("%H foo"),
-            util::validate_format_string("%H%%"),
-            util::validate_format_string("%"),
-        ));
-    }
 }
