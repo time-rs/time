@@ -1,6 +1,6 @@
 //! Description of how types should be formatted and parsed.
 
-pub mod error;
+pub(crate) mod error;
 pub mod modifier;
 #[cfg(feature = "alloc")]
 pub(crate) mod parse;
@@ -116,7 +116,7 @@ pub enum Component {
 
 /// A complete description of how to format and parse a type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Description<'a> {
+pub enum FormatDescription<'a> {
     /// A string that is formatted as-is.
     Literal(&'a str),
     /// A minimal representation of a single non-literal item.

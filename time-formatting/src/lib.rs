@@ -46,7 +46,17 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-pub mod format_description;
+mod as_components;
+mod format;
+mod format_description;
 
+pub use as_components::AsComponents;
+pub use format::Format;
 #[cfg(feature = "alloc")]
 pub use format_description::parse::parse_format_description;
+pub use format_description::{modifier, Component, FormatDescription};
+
+/// Errors that can be returned.
+pub mod error {
+    pub use crate::{format::FormatError, format_description::error::InvalidFormatDescription};
+}

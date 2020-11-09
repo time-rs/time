@@ -1,7 +1,7 @@
 //! Parse a format description into a standardized representation.
 
 use crate::format_description::{
-    error::InvalidFormatDescription, helper, modifier, Component, Description,
+    error::InvalidFormatDescription, helper, modifier, Component, FormatDescription,
 };
 use alloc::vec::Vec;
 
@@ -10,7 +10,7 @@ use alloc::vec::Vec;
 #[derive(Debug)]
 struct ParsedItem<'a> {
     /// The item that was parsed.
-    item: Description<'a>,
+    item: FormatDescription<'a>,
     /// What is left of the input string after the item was parsed.
     remaining: &'a str,
 }
@@ -116,7 +116,7 @@ fn parse_literal<'a>(s: &'a str, index: &mut usize) -> ParsedItem<'a> {
     let loc = s.find('[').unwrap_or_else(|| s.len());
     *index += loc;
     ParsedItem {
-        item: Description::Literal(&s[..loc]),
+        item: FormatDescription::Literal(&s[..loc]),
         remaining: &s[loc..],
     }
 }
@@ -130,7 +130,7 @@ fn parse_item<'a>(
     if s.starts_with("[[") {
         *index += 2;
         return Ok(ParsedItem {
-            item: Description::Literal(&s[..1]),
+            item: FormatDescription::Literal(&s[..1]),
             remaining: &s[2..],
         });
     }
@@ -139,7 +139,7 @@ fn parse_item<'a>(
         if let Some(bracket_index) = s.find(']') {
             *index += 1;
             Ok(ParsedItem {
-                item: Description::Component(parse_component(&s[1..bracket_index], index)?),
+                item: FormatDescription::Component(parse_component(&s[1..bracket_index], index)?),
                 remaining: &s[bracket_index + 1..],
             })
         } else {
@@ -154,7 +154,7 @@ fn parse_item<'a>(
 #[cfg_attr(__time_formatting_01_docs, doc(cfg(feature = "alloc")))]
 pub fn parse_format_description(
     mut s: &str,
-) -> Result<Vec<Description<'_>>, InvalidFormatDescription<'_>> {
+) -> Result<Vec<FormatDescription<'_>>, InvalidFormatDescription<'_>> {
     let mut compound = Vec::new();
     let mut loc = 0;
 
