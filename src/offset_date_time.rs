@@ -113,11 +113,17 @@ impl OffsetDateTime {
     /// local offset.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::OffsetDateTime;
     /// assert!(OffsetDateTime::now_local().year() >= 2019);
     /// ```
     #[cfg(feature = "std")]
     #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
+    #[deprecated(
+        since = "0.2.23",
+        note = "UTC is returned if the local offset cannot be determined"
+    )]
+    #[allow(deprecated)]
     pub fn now_local() -> Self {
         let t = Self::now_utc();
         t.to_offset(UtcOffset::local_offset_at(t))
@@ -129,7 +135,10 @@ impl OffsetDateTime {
     ///
     /// ```rust
     /// # use time::OffsetDateTime;
-    /// assert!(OffsetDateTime::try_now_local().is_ok());
+    /// let now = OffsetDateTime::try_now_local();
+    /// # if false {
+    /// assert!(now.is_ok());
+    /// # }
     /// ```
     #[cfg(feature = "std")]
     #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
@@ -276,6 +285,31 @@ impl OffsetDateTime {
     ///     date!(1970-01-01)
     ///         .midnight()
     ///         .assume_utc()
+    ///         .unix_timestamp(),
+    ///     0,
+    /// );
+    /// assert_eq!(
+    ///     date!(1970-01-01)
+    ///         .midnight()
+    ///         .assume_utc()
+    ///         .to_offset(offset!(-1))
+    ///         .unix_timestamp(),
+    ///     0,
+    /// );
+    /// ```
+    pub fn unix_timestamp(self) -> i64 {
+        (self - Self::unix_epoch()).whole_seconds()
+    }
+
+    /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
+    ///
+    /// ```rust
+    /// # #![allow(deprecated)]
+    /// # use time::{date, offset};
+    /// assert_eq!(
+    ///     date!(1970-01-01)
+    ///         .midnight()
+    ///         .assume_utc()
     ///         .timestamp(),
     ///     0,
     /// );
@@ -288,8 +322,12 @@ impl OffsetDateTime {
     ///     0,
     /// );
     /// ```
+    #[deprecated(
+        since = "0.2.23",
+        note = "Use `OffsetDateTime::unix_timestamp` instead"
+    )]
     pub fn timestamp(self) -> i64 {
-        (self - Self::unix_epoch()).whole_seconds()
+        self.unix_timestamp()
     }
 
     /// Get the Unix timestamp in nanoseconds.
@@ -300,7 +338,7 @@ impl OffsetDateTime {
     ///     date!(1970-01-01)
     ///         .midnight()
     ///         .assume_utc()
-    ///         .timestamp_nanos(),
+    ///         .unix_timestamp_nanos(),
     ///     0,
     /// );
     /// assert_eq!(
@@ -308,12 +346,41 @@ impl OffsetDateTime {
     ///         .with_time(time!(1:00))
     ///         .assume_utc()
     ///         .to_offset(offset!(-1))
-    ///         .timestamp_nanos(),
+    ///         .unix_timestamp_nanos(),
     ///     3_600_000_000_000,
     /// );
     /// ```
-    pub fn timestamp_nanos(self) -> i128 {
+    pub fn unix_timestamp_nanos(self) -> i128 {
         (self - Self::unix_epoch()).whole_nanoseconds()
+    }
+
+    /// Get the Unix timestamp in nanoseconds.
+    ///
+    /// ```rust
+    /// # #![allow(deprecated)]
+    /// use time::{date, offset, time};
+    /// assert_eq!(
+    ///     date!(1970-01-01)
+    ///         .midnight()
+    ///         .assume_utc()
+    ///         .unix_timestamp_nanos(),
+    ///     0,
+    /// );
+    /// assert_eq!(
+    ///     date!(1970-01-01)
+    ///         .with_time(time!(1:00))
+    ///         .assume_utc()
+    ///         .to_offset(offset!(-1))
+    ///         .unix_timestamp_nanos(),
+    ///     3_600_000_000_000,
+    /// );
+    /// ```
+    #[deprecated(
+        since = "0.2.23",
+        note = "Use `OffsetDateTime::unix_timestamp_nanos` instead"
+    )]
+    pub fn timestamp_nanos(self) -> i128 {
+        self.unix_timestamp_nanos()
     }
 
     /// Get the `Date` in the stored offset.

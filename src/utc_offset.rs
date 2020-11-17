@@ -193,6 +193,7 @@ impl UtcOffset {
     /// cannot be determined, UTC is returned.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::{UtcOffset, OffsetDateTime};
     /// let unix_epoch = OffsetDateTime::unix_epoch();
     /// let local_offset = UtcOffset::local_offset_at(unix_epoch);
@@ -200,6 +201,10 @@ impl UtcOffset {
     /// ```
     #[cfg(feature = "std")]
     #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
+    #[deprecated(
+        since = "0.2.23",
+        note = "UTC is returned if the local offset cannot be determined"
+    )]
     pub fn local_offset_at(datetime: OffsetDateTime) -> Self {
         try_local_offset_at(datetime).unwrap_or(Self::UTC)
     }
@@ -211,7 +216,9 @@ impl UtcOffset {
     /// # use time::{UtcOffset, OffsetDateTime};
     /// let unix_epoch = OffsetDateTime::unix_epoch();
     /// let local_offset = UtcOffset::try_local_offset_at(unix_epoch);
+    /// # if false {
     /// assert!(local_offset.is_ok());
+    /// # }
     /// ```
     #[cfg(feature = "std")]
     #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
@@ -225,12 +232,17 @@ impl UtcOffset {
     /// determined, UTC is returned.
     ///
     /// ```rust
+    /// # #![allow(deprecated)]
     /// # use time::UtcOffset;
     /// let local_offset = UtcOffset::current_local_offset();
     /// println!("{}", local_offset.format("%z"));
     /// ```
     #[cfg(feature = "std")]
     #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
+    #[deprecated(
+        since = "0.2.23",
+        note = "UTC is returned if the local offset cannot be determined"
+    )]
     pub fn current_local_offset() -> Self {
         let now = OffsetDateTime::now_utc();
         try_local_offset_at(now).unwrap_or(Self::UTC)
@@ -242,7 +254,9 @@ impl UtcOffset {
     /// ```rust
     /// # use time::UtcOffset;
     /// let local_offset = UtcOffset::try_current_local_offset();
+    /// # if false {
     /// assert!(local_offset.is_ok());
+    /// # }
     /// ```
     #[cfg(feature = "std")]
     #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
@@ -319,90 +333,93 @@ impl Display for UtcOffset {
 /// Attempt to obtain the system's UTC offset. If the offset cannot be
 /// determined, `None` is returned.
 #[cfg(feature = "std")]
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_lines, clippy::missing_const_for_fn)]
 fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     #[cfg(target_family = "unix")]
     {
-        use standback::{convert::TryInto, mem::MaybeUninit};
-
-        /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on
-        /// any error.
-        fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
-            extern "C" {
-                #[cfg_attr(target_os = "netbsd", link_name = "__tzset50")]
-                fn tzset();
-            }
-
-            // The exact type of `timestamp` beforehand can vary, so this
-            // conversion is necessary.
-            #[allow(clippy::useless_conversion)]
-            let timestamp = timestamp.try_into().ok()?;
-
-            let mut tm = MaybeUninit::uninit();
-
-            // Update timezone information from system. `localtime_r` does not
-            // do this for us.
-            //
-            // Safety: tzset is thread-safe.
-            #[allow(unsafe_code)]
-            unsafe {
-                tzset();
-            }
-
-            // Safety: We are calling a system API, which mutates the `tm`
-            // variable. If a null pointer is returned, an error occurred.
-            #[allow(unsafe_code)]
-            let tm_ptr = unsafe { libc::localtime_r(&timestamp, tm.as_mut_ptr()) };
-
-            if tm_ptr.is_null() {
-                None
-            } else {
-                // Safety: The value was initialized, as we no longer have a
-                // null pointer.
-                #[allow(unsafe_code)]
-                {
-                    Some(unsafe { tm.assume_init() })
-                }
-            }
-        }
-
-        let tm = timestamp_to_tm(datetime.timestamp())?;
-
-        // `tm_gmtoff` extension
-        #[cfg(not(any(target_os = "solaris", target_os = "illumos")))]
-        {
-            tm.tm_gmtoff.try_into().ok().map(UtcOffset::seconds)
-        }
-
-        // No `tm_gmtoff` extension
-        #[cfg(any(target_os = "solaris", target_os = "illumos"))]
-        {
-            use crate::Date;
-            use standback::convert::TryFrom;
-
-            let mut tm = tm;
-            if tm.tm_sec == 60 {
-                // Leap seconds are not currently supported.
-                tm.tm_sec = 59;
-            }
-
-            let local_timestamp =
-                Date::try_from_yo(1900 + tm.tm_year, u16::try_from(tm.tm_yday).ok()? + 1)
-                    .ok()?
-                    .try_with_hms(
-                        tm.tm_hour.try_into().ok()?,
-                        tm.tm_min.try_into().ok()?,
-                        tm.tm_sec.try_into().ok()?,
-                    )
-                    .ok()?
-                    .assume_utc()
-                    .timestamp();
-
-            (local_timestamp - datetime.timestamp())
-                .try_into()
-                .ok()
-                .map(UtcOffset::seconds)
-        }
+        // See #293 for details.
+        let _ = datetime;
+        None
+        // use standback::{convert::TryInto, mem::MaybeUninit};
+        //
+        // /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on
+        // /// any error.
+        // fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
+        //     extern "C" {
+        //         #[cfg_attr(target_os = "netbsd", link_name = "__tzset50")]
+        //         fn tzset();
+        //     }
+        //
+        //     // The exact type of `timestamp` beforehand can vary, so this
+        //     // conversion is necessary.
+        //     #[allow(clippy::useless_conversion)]
+        //     let timestamp = timestamp.try_into().ok()?;
+        //
+        //     let mut tm = MaybeUninit::uninit();
+        //
+        //     // Update timezone information from system. `localtime_r` does not
+        //     // do this for us.
+        //     //
+        //     // Safety: tzset is thread-safe.
+        //     #[allow(unsafe_code)]
+        //     unsafe {
+        //         tzset();
+        //     }
+        //
+        //     // Safety: We are calling a system API, which mutates the `tm`
+        //     // variable. If a null pointer is returned, an error occurred.
+        //     #[allow(unsafe_code)]
+        //     let tm_ptr = unsafe { libc::localtime_r(&timestamp, tm.as_mut_ptr()) };
+        //
+        //     if tm_ptr.is_null() {
+        //         None
+        //     } else {
+        //         // Safety: The value was initialized, as we no longer have a
+        //         // null pointer.
+        //         #[allow(unsafe_code)]
+        //         {
+        //             Some(unsafe { tm.assume_init() })
+        //         }
+        //     }
+        // }
+        //
+        // let tm = timestamp_to_tm(datetime.unix_timestamp())?;
+        //
+        // // `tm_gmtoff` extension
+        // #[cfg(not(any(target_os = "solaris", target_os = "illumos")))]
+        // {
+        //     tm.tm_gmtoff.try_into().ok().map(UtcOffset::seconds)
+        // }
+        //
+        // // No `tm_gmtoff` extension
+        // #[cfg(any(target_os = "solaris", target_os = "illumos"))]
+        // {
+        //     use crate::Date;
+        //     use standback::convert::TryFrom;
+        //
+        //     let mut tm = tm;
+        //     if tm.tm_sec == 60 {
+        //         // Leap seconds are not currently supported.
+        //         tm.tm_sec = 59;
+        //     }
+        //
+        //     let local_timestamp =
+        //         Date::try_from_yo(1900 + tm.tm_year, u16::try_from(tm.tm_yday).ok()? + 1)
+        //             .ok()?
+        //             .try_with_hms(
+        //                 tm.tm_hour.try_into().ok()?,
+        //                 tm.tm_min.try_into().ok()?,
+        //                 tm.tm_sec.try_into().ok()?,
+        //             )
+        //             .ok()?
+        //             .assume_utc()
+        //             .unix_timestamp();
+        //
+        //     (local_timestamp - datetime.unix_timestamp())
+        //         .try_into()
+        //         .ok()
+        //         .map(UtcOffset::seconds)
+        // }
     }
     #[cfg(target_family = "windows")]
     {
@@ -489,7 +506,7 @@ fn try_local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     {
         use stdweb::{js, unstable::TryInto};
 
-        let timestamp_utc = datetime.timestamp();
+        let timestamp_utc = datetime.unix_timestamp();
         let low_bits = (timestamp_utc & 0xFF_FF_FF_FF) as i32;
         let high_bits = (timestamp_utc >> 32) as i32;
 

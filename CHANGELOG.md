@@ -7,6 +7,25 @@ Versioning].
 
 ---
 
+## 0.2.23 [2020-11-17]
+
+## Compatibility notes
+
+Due to #293, any method that requires knowledge of the local offset will now
+_fail_ on Linux. For `try_` methods, this means returning an error. For others,
+it means assuming UTC.
+
+### Deprecated
+
+- `UtcOffset::timestamp` (moved to `UtcOffset::unix_timestamp`)
+- `UtcOffset::timestamp_nanos` (moved to `UtcOffset::unix_timestamp_nanos`)
+- `date` (moved to `macros::date`)
+- `time` (moved to `macros::time`)
+- `offset` (moved to `macros::offset`)
+- `OffsetDateTime::now_local` (assumes UTC if unable to be determined)
+- `UtcOffset::local_offset_at` (assumes UTC if unable to be determined)
+- `UtcOffset::current_local_offset` (assumes UTC if unable to be determined)
+
 ## 0.2.22 [2020-09-25]
 
 ### Fixed

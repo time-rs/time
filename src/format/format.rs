@@ -9,6 +9,7 @@ use alloc::{borrow::ToOwned, string::String};
 #[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Format {
+    #[cfg_attr(__time_02_docs, doc(alias = "ISO8601"))]
     Rfc3339,
     Custom(String),
     #[cfg(not(__time_02_supports_non_exhaustive))]

@@ -13,6 +13,7 @@ fn now_utc() {
 }
 
 #[test]
+#[allow(deprecated)]
 #[cfg(feature = "std")]
 fn now_local() {
     assert!(OffsetDateTime::now_local().year() >= 2019);
@@ -23,7 +24,7 @@ fn now_local() {
 }
 
 #[test]
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", not(target_family = "unix")))]
 fn try_now_local() {
     assert!(OffsetDateTime::try_now_local().is_ok());
 }
@@ -106,6 +107,7 @@ fn offset() {
 }
 
 #[test]
+#[allow(deprecated)]
 fn timestamp() {
     assert_eq!(OffsetDateTime::unix_epoch().timestamp(), 0);
     assert_eq!(
@@ -124,6 +126,7 @@ fn timestamp() {
 }
 
 #[test]
+#[allow(deprecated)]
 fn timestamp_nanos() {
     assert_eq!(
         date!(1970 - 01 - 01)

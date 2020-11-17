@@ -1,4 +1,4 @@
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", not(target_family = "unix")))]
 use time::OffsetDateTime;
 use time::{prelude::*, UtcOffset};
 
@@ -118,13 +118,14 @@ fn display() {
 }
 
 #[test]
-#[cfg(feature = "std")]
+#[allow(deprecated)]
+#[cfg(all(feature = "std", not(target_family = "unix")))]
 fn try_local_offset_at() {
     assert!(UtcOffset::try_local_offset_at(OffsetDateTime::unix_epoch()).is_ok());
 }
 
 #[test]
-#[cfg(feature = "std")]
+#[cfg(all(feature = "std", not(target_family = "unix")))]
 fn try_current_local_offset() {
     assert!(UtcOffset::try_current_local_offset().is_ok());
 }
