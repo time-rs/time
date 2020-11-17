@@ -6,16 +6,6 @@ fn component_range() -> error::ComponentRange {
     Date::from_yo(0, 367).unwrap_err()
 }
 
-#[cfg(feature = "alloc")]
-fn format_insufficient() -> error::Format {
-    error::Format::InsufficientTypeInformation
-}
-
-#[cfg(feature = "alloc")]
-fn format_std() -> error::Format {
-    std::fmt::Error.into()
-}
-
 #[test]
 #[cfg(feature = "alloc")]
 fn display() {
@@ -26,14 +16,6 @@ fn display() {
     assert_eq!(
         component_range().to_string(),
         Error::ComponentRange(component_range()).to_string()
-    );
-    assert_eq!(
-        format_insufficient().to_string(),
-        Error::Format(format_insufficient()).to_string()
-    );
-    assert_eq!(
-        format_std().to_string(),
-        Error::Format(format_std()).to_string()
     );
 }
 
@@ -50,14 +32,4 @@ fn source() {
         .source()
         .unwrap()
         .is::<error::ComponentRange>());
-    assert!(Error::from(format_insufficient())
-        .source()
-        .unwrap()
-        .is::<error::Format>());
-    assert!(Error::from(format_insufficient())
-        .source()
-        .unwrap()
-        .is::<error::Format>());
-    assert!(format_insufficient().source().is_none());
-    assert!(format_std().source().unwrap().is::<std::fmt::Error>());
 }

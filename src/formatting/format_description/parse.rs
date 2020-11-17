@@ -1,9 +1,9 @@
 //! Parse a format description into a standardized representation.
 
-use crate::format_description::{
+use crate::formatting::format_description::{
     error::InvalidFormatDescription, helper, modifier, Component, FormatDescription,
 };
-use alloc::vec::Vec;
+use alloc::{borrow::ToOwned, vec::Vec};
 
 /// The item parsed and remaining chunk of the format description after one
 /// iteration.
@@ -20,7 +20,7 @@ struct ParsedItem<'a> {
 fn parse_component<'a>(
     mut s: &'a str,
     index: &mut usize,
-) -> Result<Component, InvalidFormatDescription<'a>> {
+) -> Result<Component, InvalidFormatDescription> {
     // Trim any whitespace between the opening bracket and the component name.
     s = helper::consume_whitespace(s, index);
 
@@ -46,7 +46,7 @@ fn parse_component<'a>(
         | "ordinal" | "period" | "second" | "subsecond" | "weekday" | "week_number" | "year" => {}
         name => {
             return Err(InvalidFormatDescription::InvalidComponentName {
-                name,
+                name: name.to_owned(),
                 index: component_index,
             })
         }
@@ -126,7 +126,7 @@ fn parse_literal<'a>(s: &'a str, index: &mut usize) -> ParsedItem<'a> {
 fn parse_item<'a>(
     s: &'a str,
     index: &mut usize,
-) -> Result<ParsedItem<'a>, InvalidFormatDescription<'a>> {
+) -> Result<ParsedItem<'a>, InvalidFormatDescription> {
     if s.starts_with("[[") {
         *index += 2;
         return Ok(ParsedItem {
@@ -151,10 +151,11 @@ fn parse_item<'a>(
 }
 
 /// Parse a sequence of items from the format description.
-#[cfg_attr(__time_formatting_01_docs, doc(cfg(feature = "alloc")))]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+#[allow(clippy::module_name_repetitions)]
 pub fn parse_format_description(
     mut s: &str,
-) -> Result<Vec<FormatDescription<'_>>, InvalidFormatDescription<'_>> {
+) -> Result<Vec<FormatDescription<'_>>, InvalidFormatDescription> {
     let mut compound = Vec::new();
     let mut loc = 0;
 

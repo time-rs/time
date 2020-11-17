@@ -1,7 +1,9 @@
 //! Various modifiers for components.
 
 #[cfg(feature = "alloc")]
-use crate::format_description::{error::InvalidFormatDescription, helper};
+use crate::formatting::format_description::{error::InvalidFormatDescription, helper};
+#[cfg(feature = "alloc")]
+use alloc::borrow::ToOwned;
 
 /// Type of padding to ensure a minimum width.
 #[non_exhaustive]
@@ -135,11 +137,11 @@ impl ParsedModifiers {
     /// Parse the modifiers of a given component.
     #[cfg(feature = "alloc")]
     #[allow(clippy::too_many_lines)]
-    pub(crate) fn parse<'a>(
+    pub(crate) fn parse(
         component_name: &str,
-        mut s: &'a str,
+        mut s: &str,
         index: &mut usize,
-    ) -> Result<Self, InvalidFormatDescription<'a>> {
+    ) -> Result<Self, InvalidFormatDescription> {
         let mut modifiers = Self::default();
 
         while !s.is_empty() {
@@ -259,7 +261,7 @@ impl ParsedModifiers {
                 ("year", "base:iso_week") => modifiers.year_is_iso_week_based = Some(true),
                 _ => {
                     return Err(InvalidFormatDescription::InvalidModifier {
-                        value: modifier,
+                        value: modifier.to_owned(),
                         index: *index,
                     })
                 }

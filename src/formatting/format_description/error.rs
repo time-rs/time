@@ -1,10 +1,15 @@
 //! Errors that can be returned when parsing a format description.
 
+#[cfg(feature = "alloc")]
+use alloc::string::String;
+#[cfg(feature = "alloc")]
 use core::fmt;
 
 /// The format description provided was not valid.
+#[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum InvalidFormatDescription<'a> {
+pub enum InvalidFormatDescription {
     /// There was a bracket pair that was opened but not closed.
     UnclosedOpeningBracket {
         /// The zero-based index of the opening bracket.
@@ -13,14 +18,14 @@ pub enum InvalidFormatDescription<'a> {
     /// A component name is not valid.
     InvalidComponentName {
         /// The name of the invalid component name.
-        name: &'a str,
+        name: String,
         /// The zero-based index the component name starts at.
         index: usize,
     },
     /// A modifier is not valid.
     InvalidModifier {
         /// The value of the invalid modifier.
-        value: &'a str,
+        value: String,
         /// The zero-based index the modifier starts at.
         index: usize,
     },
@@ -31,7 +36,9 @@ pub enum InvalidFormatDescription<'a> {
     },
 }
 
-impl fmt::Display for InvalidFormatDescription<'_> {
+#[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+impl fmt::Display for InvalidFormatDescription {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use InvalidFormatDescription::*;
         match self {
@@ -54,4 +61,5 @@ impl fmt::Display for InvalidFormatDescription<'_> {
 }
 
 #[cfg(feature = "std")]
-impl std::error::Error for InvalidFormatDescription<'_> {}
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
+impl std::error::Error for InvalidFormatDescription {}

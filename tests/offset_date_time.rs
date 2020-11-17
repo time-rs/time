@@ -1,6 +1,8 @@
 use std::cmp::Ordering;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
+#[cfg(feature = "alloc")]
+use time::formatting::parse_format_description;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
     OffsetDateTime, Weekday,
@@ -810,10 +812,25 @@ fn to_std() {
 
 #[test]
 #[cfg(feature = "alloc")]
+fn format() -> time::Result<()> {
+    // Various components are tested thoroughly in their relevant files. As
+    // such, this test only exists to ensure that nothing breaks unexpectedly.
+    assert_eq!(
+        datetime!("1970-01-01 0:00 UTC").format(&parse_format_description(
+            "[year]-[month repr:numerical]-[day] [hour]:[minute]:[second].[subsecond] \
+             [offset_hour sign:mandatory]:[offset_minute]:[offset_second]"
+        )?)?,
+        "1970-01-01 00:00:00.0 +00:00:00"
+    );
+
+    Ok(())
+}
+
+#[test]
+#[cfg(feature = "alloc")]
 fn display() {
-    // TODO
-    // assert_eq!(
-    //     datetime!("1970-01-01 0:00 UTC").to_string(),
-    //     String::from("1970-01-01 0:00 +0")
-    // );
+    assert_eq!(
+        datetime!("1970-01-01 0:00 UTC").to_string(),
+        "1970-01-01 0:00:00.0 +00:00:00"
+    );
 }

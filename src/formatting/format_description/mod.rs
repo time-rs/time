@@ -4,6 +4,8 @@ pub(crate) mod error;
 pub mod modifier;
 #[cfg(feature = "alloc")]
 pub(crate) mod parse;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 /// Helper methods.
 #[cfg(feature = "alloc")]
@@ -127,4 +129,24 @@ pub enum FormatDescription<'a> {
     /// Note that this is a reference to a slice, such that either a [`Vec`] or
     /// statically known list can be provided.
     Compound(&'a [Self]),
+}
+
+impl From<Component> for FormatDescription<'_> {
+    fn from(component: Component) -> Self {
+        FormatDescription::Component(component)
+    }
+}
+
+impl<'a> From<&'a [FormatDescription<'_>]> for FormatDescription<'a> {
+    fn from(x: &'a [FormatDescription<'_>]) -> Self {
+        FormatDescription::Compound(x)
+    }
+}
+
+#[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+impl<'a> From<&'a Vec<FormatDescription<'_>>> for FormatDescription<'a> {
+    fn from(x: &'a Vec<FormatDescription<'_>>) -> Self {
+        FormatDescription::Compound(x)
+    }
 }

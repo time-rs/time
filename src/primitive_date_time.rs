@@ -1,9 +1,10 @@
 use crate::{util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
-use const_fn::const_fn;
 #[cfg(feature = "alloc")]
-use core::fmt::{self, Display};
+use alloc::string::String;
+use const_fn::const_fn;
 use core::{
     cmp::Ordering,
+    fmt,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
@@ -454,9 +455,53 @@ impl PrimitiveDateTime {
     }
 }
 
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl Display for PrimitiveDateTime {
+impl PrimitiveDateTime {
+    /// Format the `PrimitiveDateTime` using the provided format description.
+    /// The formatted value will be output to the provided writer. The format
+    /// description will typically be parsed by using
+    /// [`parse_format_description`](crate::formatting::parse_format_description).
+    pub fn format_into<'a>(
+        self,
+        output: &mut dyn core::fmt::Write,
+        description: impl Into<crate::formatting::FormatDescription<'a>>,
+    ) -> Result<(), crate::formatting::error::Error> {
+        crate::formatting::format::format_into(
+            output,
+            description.into(),
+            Some(self.date()),
+            Some(self.time()),
+            None,
+        )
+    }
+
+    /// Format the `PrimitiveDateTime` using the provided format description.
+    /// The format description will typically be parsed by using
+    /// [`parse_format_description`](crate::formatting::parse_format_description).
+    ///
+    /// ```rust
+    /// # use time::formatting::parse_format_description;
+    /// # use time_macros::datetime;
+    /// let format =
+    ///     parse_format_description("[year]-[month repr:numerical]-[day] [hour]:[minute]:[second]")?;
+    /// assert_eq!(
+    ///     datetime!("2020-01-02 03:04:05").format(&format)?,
+    ///     "2020-01-02 03:04:05"
+    /// );
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    #[cfg(feature = "alloc")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+    pub fn format<'a>(
+        self,
+        description: impl Into<crate::formatting::FormatDescription<'a>>,
+    ) -> Result<String, crate::formatting::error::Error> {
+        let mut s = String::new();
+        self.format_into(&mut s, description)?;
+        Ok(s)
+    }
+}
+
+impl fmt::Display for PrimitiveDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {}", self.date(), self.time())
     }

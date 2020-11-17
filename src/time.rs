@@ -1,4 +1,6 @@
 use crate::{error, Duration};
+#[cfg(feature = "alloc")]
+use alloc::string::String;
 use const_fn::const_fn;
 use core::{
     convert::TryFrom,
@@ -343,9 +345,73 @@ impl Time {
     }
 }
 
+impl Time {
+    /// Format the `Time` using the provided format description. The formatted
+    /// value will be output to the provided writer. The format description will
+    /// typically be parsed by using
+    /// [`parse_format_description`](crate::formatting::parse_format_description).
+    pub fn format_into<'a>(
+        self,
+        output: &mut dyn core::fmt::Write,
+        description: impl Into<crate::formatting::FormatDescription<'a>>,
+    ) -> Result<(), crate::formatting::error::Error> {
+        crate::formatting::format::format_into(output, description.into(), None, Some(self), None)
+    }
+
+    /// Format the `Time` using the provided format description. The format
+    /// description will typically be parsed by using
+    /// [`parse_format_description`](crate::formatting::parse_format_description).
+    ///
+    /// ```rust
+    /// # use time::formatting::parse_format_description;
+    /// # use time_macros::time;
+    /// let format = parse_format_description("[hour]:[minute]:[second]")?;
+    /// assert_eq!(time!("12:00").format(&format)?, "12:00:00");
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    #[cfg(feature = "alloc")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+    pub fn format<'a>(
+        self,
+        description: impl Into<crate::formatting::FormatDescription<'a>>,
+    ) -> Result<String, crate::formatting::error::Error> {
+        let mut s = String::new();
+        self.format_into(&mut s, description)?;
+        Ok(s)
+    }
+}
+
 impl Display for Time {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        todo!()
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use crate::formatting::{format, modifier, Component, FormatDescription};
+
+        match self.format_into(
+            f,
+            FormatDescription::Compound(&[
+                FormatDescription::Component(Component::Hour {
+                    padding: modifier::Padding::None,
+                    is_12_hour_clock: false,
+                }),
+                FormatDescription::Literal(":"),
+                FormatDescription::Component(Component::Minute {
+                    padding: modifier::Padding::Zero,
+                }),
+                FormatDescription::Literal(":"),
+                FormatDescription::Component(Component::Second {
+                    padding: modifier::Padding::Zero,
+                }),
+                FormatDescription::Literal("."),
+                FormatDescription::Component(Component::Subsecond {
+                    digits: modifier::SubsecondDigits::OneOrMore,
+                }),
+            ]),
+        ) {
+            Ok(()) => Ok(()),
+            Err(format::Error::StdFmt) => Err(core::fmt::Error),
+            Err(format::Error::InsufficientTypeInformation { .. }) => {
+                unreachable!("All components used only require a `Time`")
+            }
+        }
     }
 }
 

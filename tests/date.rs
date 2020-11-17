@@ -1,5 +1,7 @@
 use core::i64;
 use std::{cmp::Ordering, collections::HashSet};
+#[cfg(feature = "alloc")]
+use time::formatting::parse_format_description;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
     util, Date, Weekday,
@@ -590,12 +592,54 @@ fn with_hms_nano() {
 
 #[test]
 #[cfg(feature = "alloc")]
+fn format() -> time::Result<()> {
+    let input_output = [
+        ("[day]", "31"),
+        ("[month]", "December"),
+        ("[month repr:short]", "Dec"),
+        ("[month repr:numerical]", "12"),
+        ("[ordinal]", "365"),
+        ("[weekday]", "Tuesday"),
+        ("[weekday repr:short]", "Tue"),
+        ("[weekday repr:sunday]", "3"),
+        ("[weekday repr:sunday one_indexed:false]", "2"),
+        ("[weekday repr:monday]", "2"),
+        ("[weekday repr:monday one_indexed:false]", "1"),
+        ("[week_number]", "01"),
+        ("[week_number padding:none]", "1"),
+        ("[week_number padding:space]", " 1"),
+        ("[week_number repr:sunday]", "52"),
+        ("[week_number repr:monday]", "52"),
+        ("[year]", "2019"),
+        ("[year base:iso_week]", "2020"),
+        ("[year sign:mandatory]", "+2019"),
+        ("[year base:iso_week sign:mandatory]", "+2020"),
+        ("[year repr:century]", "20"),
+        ("[year repr:century sign:mandatory]", "+20"),
+        ("[year repr:last_two]", "19"),
+        ("[year base:iso_week repr:last_two]", "20"),
+    ];
+
+    for &(format_description, output) in &input_output {
+        assert_eq!(
+            date!("2019-12-31").format(&parse_format_description(format_description)?)?,
+            output
+        );
+    }
+
+    Ok(())
+}
+
+#[test]
+#[cfg(feature = "alloc")]
 fn display() {
-    // TODO
-    // assert_eq!(date!("2019-01-01").to_string(), "2019-01-01");
-    // assert_eq!(date!("2019-12-31").to_string(), "2019-12-31");
-    // assert_eq!(date!("-4713-11-24").to_string(), "-4713-11-24");
-    // assert_eq!(date!("+10_000-01-01").to_string(), "+10000-01-01");
+    assert_eq!(date!("2019-01-01").to_string(), "2019-01-01");
+    assert_eq!(date!("2019-12-31").to_string(), "2019-12-31");
+    assert_eq!(date!("-4713-11-24").to_string(), "-4713-11-24");
+    assert_eq!(date!("+10_000-01-01").to_string(), "+10000-01-01");
+    assert_eq!(date!("+100_000-01-01").to_string(), "+100000-01-01");
+    assert_eq!(date!("-10_000-01-01").to_string(), "-10000-01-01");
+    assert_eq!(date!("-100_000-01-01").to_string(), "-100000-01-01");
 }
 
 #[test]

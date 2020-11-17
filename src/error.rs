@@ -1,3 +1,6 @@
+#[cfg(feature = "alloc")]
+use crate::formatting::error::InvalidFormatDescription;
+use crate::formatting::format;
 use core::fmt;
 
 /// A unified error type for anything returned by a method in the time crate.
@@ -12,7 +15,10 @@ pub enum Error {
     ConversionRange,
     ComponentRange(ComponentRange),
     IndeterminateOffset,
-    Format(Format),
+    Format(format::Error),
+    #[cfg(feature = "alloc")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+    InvalidFormatDescription(InvalidFormatDescription),
 }
 
 impl fmt::Display for Error {
@@ -22,11 +28,14 @@ impl fmt::Display for Error {
             Error::ComponentRange(e) => e.fmt(f),
             Error::IndeterminateOffset => IndeterminateOffset.fmt(f),
             Error::Format(e) => e.fmt(f),
+            #[cfg(feature = "alloc")]
+            Error::InvalidFormatDescription(e) => e.fmt(f),
         }
     }
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
@@ -34,6 +43,7 @@ impl std::error::Error for Error {
             Error::ComponentRange(err) => Some(err),
             Error::IndeterminateOffset => Some(&IndeterminateOffset),
             Error::Format(err) => Some(err),
+            Error::InvalidFormatDescription(err) => Some(err),
         }
     }
 }
@@ -125,48 +135,17 @@ impl From<IndeterminateOffset> for Error {
     }
 }
 
-/// An error occurred while formatting.
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub enum Format {
-    /// The format provided requires more information than the type provides.
-    InsufficientTypeInformation,
-    /// An error occurred while formatting into the provided stream.
-    StdFmtError,
-}
-
-impl fmt::Display for Format {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InsufficientTypeInformation => {
-                f.write_str("The format provided requires more information than the type provides.")
-            }
-            Self::StdFmtError => fmt::Error.fmt(f),
-        }
+#[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+impl From<InvalidFormatDescription> for Error {
+    fn from(original: InvalidFormatDescription) -> Self {
+        Error::InvalidFormatDescription(original)
     }
 }
 
-#[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
-impl std::error::Error for Format {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::StdFmtError => Some(&fmt::Error),
-            _ => None,
-        }
-    }
-}
-
-// This is necessary to be able to use `?` with various formatters.
-impl From<fmt::Error> for Format {
-    fn from(_: fmt::Error) -> Self {
-        Self::StdFmtError
-    }
-}
-
-impl From<Format> for Error {
-    fn from(error: Format) -> Self {
-        Self::Format(error)
+impl From<format::Error> for Error {
+    fn from(original: format::Error) -> Self {
+        Error::Format(original)
     }
 }
 

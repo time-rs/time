@@ -5,14 +5,6 @@ fn component_range() -> error::ComponentRange {
     Date::from_yo(0, 367).unwrap_err()
 }
 
-fn format_insufficient() -> error::Format {
-    error::Format::InsufficientTypeInformation
-}
-
-fn format_std() -> error::Format {
-    std::fmt::Error.into()
-}
-
 setup_benchmark! {
     "Error",
 
@@ -20,21 +12,11 @@ setup_benchmark! {
         let a = error::ConversionRange;
         let b = Error::ConversionRange;
         let c = component_range();
-        let d = Error::ComponentRange(component_range());
-        let g = format_insufficient();
-        let h = Error::Format(format_insufficient());
-        let i = format_std();
-        let j = Error::Format(format_std());
 
         ben.iter(|| (
             a.to_string(),
             b.to_string(),
             c.to_string(),
-            d.to_string(),
-            g.to_string(),
-            h.to_string(),
-            i.to_string(),
-            j.to_string(),
         ));
     }
 
@@ -43,16 +25,10 @@ setup_benchmark! {
 
         let a = Error::from(error::ConversionRange);
         let b = Error::from(component_range());
-        let d = Error::from(format_insufficient());
-        let e = format_insufficient();
-        let f = format_std();
 
         ben.iter(|| (
             a.source(),
             b.source(),
-            d.source(),
-            e.source(),
-            f.source(),
         ));
     }
 }

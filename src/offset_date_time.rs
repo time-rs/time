@@ -1,11 +1,12 @@
 use crate::{error, util, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
+#[cfg(feature = "alloc")]
+use alloc::string::String;
 use const_fn::const_fn;
 #[cfg(feature = "std")]
 use core::convert::From;
-#[cfg(feature = "alloc")]
-use core::fmt::{self, Display};
 use core::{
     cmp::Ordering,
+    fmt,
     hash::{Hash, Hasher},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
@@ -845,9 +846,55 @@ impl OffsetDateTime {
     }
 }
 
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
-impl Display for OffsetDateTime {
+impl OffsetDateTime {
+    /// Format the `OffsetDateTime` using the provided format description. The
+    /// formatted value will be output to the provided writer. The format
+    /// description will typically be parsed by using
+    /// [`parse_format_description`](crate::formatting::parse_format_description).
+    pub fn format_into<'a>(
+        self,
+        output: &mut dyn core::fmt::Write,
+        description: impl Into<crate::formatting::FormatDescription<'a>>,
+    ) -> Result<(), crate::formatting::error::Error> {
+        crate::formatting::format::format_into(
+            output,
+            description.into(),
+            Some(self.date()),
+            Some(self.time()),
+            Some(self.offset()),
+        )
+    }
+
+    /// Format the `OffsetDateTime` using the provided format description. The
+    /// format description will typically be parsed by using
+    /// [`parse_format_description`](crate::formatting::parse_format_description).
+    ///
+    /// ```rust
+    /// # use time::formatting::parse_format_description;
+    /// # use time_macros::datetime;
+    /// let format = parse_format_description(
+    ///     "[year]-[month repr:numerical]-[day] [hour]:[minute]:[second] [offset_hour \
+    ///          sign:mandatory]:[offset_minute]:[offset_second]",
+    /// )?;
+    /// assert_eq!(
+    ///     datetime!("2020-01-02 03:04:05 +06:07:08").format(&format)?,
+    ///     "2020-01-02 03:04:05 +06:07:08"
+    /// );
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    #[cfg(feature = "alloc")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+    pub fn format<'a>(
+        self,
+        description: impl Into<crate::formatting::FormatDescription<'a>>,
+    ) -> Result<String, crate::formatting::error::Error> {
+        let mut s = String::new();
+        self.format_into(&mut s, description)?;
+        Ok(s)
+    }
+}
+
+impl fmt::Display for OffsetDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}", self.date(), self.time(), self.offset())
     }

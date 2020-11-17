@@ -164,7 +164,6 @@
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(test(attr(deny(warnings))))]
 
-#[allow(unused_extern_crates)] // TODO remove this lint
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
@@ -230,6 +229,8 @@ mod duration;
 pub mod error;
 /// Extension traits.
 pub mod ext;
+// TODO visibility checks
+pub mod formatting;
 /// The [`Instant`] struct and its associated `impl`s.
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]

@@ -33,7 +33,7 @@ serde = { version = "1.0.117", optional = true, default-features = false, featur
 time-macros = { version = "=0.2.0-dev", path = "time-macros", optional = true }
 
 [workspace]
-members = ["time-benchmarks", "time-macros", "time-macros-impl", "time-formatting"]
+members = ["time-benchmarks", "time-macros", "time-macros-impl"]
 
 [target.'cfg(unix)'.dependencies]
 libc = { version = "0.2.80", optional = true }
