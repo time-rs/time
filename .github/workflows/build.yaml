@@ -274,15 +274,20 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --no-deps --all-features
+          args: --all-features
         env:
           RUSTFLAGS: --cfg __time_02_docs
           RUSTDOCFLAGS: --cfg __time_02_docs
+
+      - name: Create top-level redirect
+        run: |
+          echo "<meta http-equiv='refresh' content='0; url=https://time-rs.github.io/time'>" >> ./target/doc/index.html
 
       - name: Publish documentation
         uses: JamesIves/github-pages-deploy-action@releases/v3
         with:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BRANCH: gh-pages
+          BRANCH: main
           FOLDER: target/doc
           SINGLE_COMMIT: true
+          REPOSITORY_NAME: time-rs/time-rs.github.io

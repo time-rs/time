@@ -6,7 +6,7 @@
 [![version](https://img.shields.io/crates/v/time?color=97935d&logo=rust&style=for-the-badge)](https://crates.io/crates/time)
 [![build status](https://img.shields.io/endpoint?url=https://runkit.io/jhpratt/time-rs-status-badge/branches/master)](https://github.com/time-rs/time/actions)
 
-Documentation: [main branch](https://time-rs.github.io/time/time/index.html) | [latest release](https://docs.rs/time)
+Documentation: [main branch](https://time-rs.github.io/time/index.html) | [latest release](https://docs.rs/time)
 
 ## Minimum Rust version policy
 
