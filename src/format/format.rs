@@ -4,14 +4,11 @@
 /// (provided either at compile-time or runtime).
 #[allow(clippy::missing_docs_in_private_items)] // variants
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-#[cfg_attr(__time_03_supports_non_exhaustive, non_exhaustive)]
+#[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Format<'a> {
     Rfc3339,
     Custom(&'a str),
-    #[cfg(not(__time_03_supports_non_exhaustive))]
-    #[doc(hidden)]
-    __NonExhaustive,
 }
 
 impl<'a> From<&'a str> for Format<'a> {

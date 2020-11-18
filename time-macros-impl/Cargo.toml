@@ -12,7 +12,6 @@ description = "Procedural macros for the time crate."
 
 [dependencies]
 proc-macro-hack = "0.5.19"
-standback = { version = "0.2.13", default-features = false }
 
 [lib]
 proc-macro = true

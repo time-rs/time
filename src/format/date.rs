@@ -18,8 +18,6 @@ use core::{
     fmt::{self, Formatter},
     num::NonZeroU8,
 };
-#[allow(unused_imports)]
-use standback::prelude::*; // rem_euclid (1.38)
 
 /// Array of weekdays that corresponds to the localized values. This can be
 /// zipped via an iterator to perform parsing easily.

@@ -8,8 +8,6 @@ use core::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
     time::Duration as StdDuration,
 };
-#[allow(unused_imports)]
-use standback::prelude::*; // duration_float (1.38)
 
 /// A span of time with nanosecond precision.
 ///
@@ -196,9 +194,6 @@ impl Duration {
     /// assert_eq!(0.seconds().abs(), 0.seconds());
     /// assert_eq!((-1).seconds().abs(), 1.seconds());
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.39.
-    #[const_fn("1.39")]
     pub const fn abs(self) -> Self {
         Self {
             seconds: self.seconds.abs(),

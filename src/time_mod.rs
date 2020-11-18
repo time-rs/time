@@ -17,8 +17,6 @@ use core::{
     fmt::{self, Display},
     num::NonZeroU8,
 };
-#[allow(unused_imports)]
-use standback::prelude::*; // rem_euclid (1.38)
 
 /// The clock time within a given date. Nanosecond precision.
 ///

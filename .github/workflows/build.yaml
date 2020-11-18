@@ -22,16 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rust: [1.36.0, stable]
+        rust: [1.40.0, stable]
         target:
           - { triple: x86_64-unknown-netbsd, std: true }
           - { triple: x86_64-sun-solaris, std: true }
           - { triple: wasm32-wasi, std: true }
           - { triple: thumbv7em-none-eabihf, std: false }
-        exclude:
-          - # Solaris target did not exist in previous rust
-            rust: 1.36.0
-            target: { triple: x86_64-sun-solaris, std: true }
 
     steps:
       - name: Checkout sources
@@ -125,7 +121,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        rust: [1.36.0, stable]
+        rust: [1.40.0, stable]
         os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:

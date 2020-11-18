@@ -1,7 +1,5 @@
 use crate::{peeking_take_while::PeekableExt, Error};
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
-#[allow(unused_imports)]
-use standback::prelude::*; // rem_euclid (1.38)
 use std::{
     iter::Peekable,
     str::{Chars, FromStr},

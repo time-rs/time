@@ -43,11 +43,9 @@ use crate::{
     util::days_in_year,
     Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
 };
-use core::{cmp, convert::TryInto, iter};
+use core::{cmp, convert::TryInto, i32, iter, u16, u32, u8};
 use quickcheck_dep::{Arbitrary, Gen};
 use rand::Rng;
-#[allow(unused_imports)]
-use standback::prelude::*; // assoc_int_consts (1.43)
 
 /// Shim for the unstable clamp method.
 ///

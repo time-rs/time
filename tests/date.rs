@@ -1,5 +1,4 @@
-#[allow(unused_imports)]
-use standback::prelude::*; // i64::MAX (1.43)
+use core::i64;
 use std::{cmp::Ordering, collections::HashSet};
 #[cfg(feature = "alloc")]
 use time::{error, Result};

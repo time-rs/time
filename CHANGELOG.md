@@ -23,7 +23,7 @@ Versioning].
 
 ### Changed
 
-- The minimum supported Rust version is now 1.36.0.
+- The minimum supported Rust version is now 1.40.0.
 - Macros are placed behind the `macro` feature flag.
 - All macros now accept strings, rather than unquoted tokens. The syntax
   accepted is otherwise the same as before.
