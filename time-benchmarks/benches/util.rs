@@ -1,4 +1,5 @@
 use bench_util::setup_benchmark;
+use criterion::black_box;
 use time::util;
 
 setup_benchmark! {
@@ -25,10 +26,11 @@ setup_benchmark! {
     }
 
     fn weeks_in_year(ben: &mut Bencher) {
-        ben.iter(|| (
-            util::weeks_in_year(2019),
-            util::weeks_in_year(2020),
-        ));
+        ben.iter(|| {
+            for year in 0..400 {
+                black_box(util::weeks_in_year(year));
+            }
+        });
     }
 
     fn validate_format_string(ben: &mut Bencher) {

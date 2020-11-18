@@ -2,7 +2,6 @@
 
 #[cfg(feature = "alloc")]
 use crate::format::try_parse_fmt_string;
-use crate::Date;
 #[cfg(feature = "alloc")]
 use alloc::string::String;
 use const_fn::const_fn;
@@ -81,13 +80,17 @@ pub const fn days_in_year(year: i32) -> u16 {
 /// This function is `const fn` when using rustc >= 1.46.
 #[const_fn("1.46")]
 pub const fn weeks_in_year(year: i32) -> u8 {
-    let weekday = Date::from_yo_unchecked(year, 1)
-        .weekday()
-        .iso_weekday_number();
+    let mut within_period = year % 400;
+    if within_period < 0 {
+        within_period += 400;
+    }
 
-    if weekday == 4 || weekday == 3 && is_leap_year(year) {
-        53
-    } else {
-        52
+    match within_period {
+        4 | 9 | 15 | 20 | 26 | 32 | 37 | 43 | 48 | 54 | 60 | 65 | 71 | 76 | 82 | 88 | 93 | 99
+        | 105 | 111 | 116 | 122 | 128 | 133 | 139 | 144 | 150 | 156 | 161 | 167 | 172 | 178
+        | 184 | 189 | 195 | 201 | 207 | 212 | 218 | 224 | 229 | 235 | 240 | 246 | 252 | 257
+        | 263 | 268 | 274 | 280 | 285 | 291 | 296 | 303 | 308 | 314 | 320 | 325 | 331 | 336
+        | 342 | 348 | 353 | 359 | 364 | 370 | 376 | 381 | 387 | 392 | 398 => 53,
+        _ => 52,
     }
 }
