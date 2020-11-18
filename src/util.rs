@@ -15,7 +15,7 @@ pub fn validate_format_string(s: impl AsRef<str>) -> Result<(), String> {
 }
 
 /// The number of days in a month in both common and leap years.
-const DAYS_IN_MONTH_COMMON_LEAP: [[u16; 12]; 2] = [
+const DAYS_IN_MONTH_COMMON_LEAP: [[u8; 12]; 2] = [
     [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
     [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
 ];
@@ -23,7 +23,7 @@ const DAYS_IN_MONTH_COMMON_LEAP: [[u16; 12]; 2] = [
 /// Get the number of days in the month of a given year.
 #[const_fn("1.46")]
 pub(crate) const fn days_in_year_month(year: i32, month: u8) -> u8 {
-    DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1] as u8
+    DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
 }
 
 /// Returns if the provided year is a leap year in the proleptic Gregorian

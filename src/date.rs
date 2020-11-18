@@ -566,8 +566,8 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn from_julian_day(julian_day: i64) -> Result<Self, error::ComponentRange> {
-        let min_julian_day = Date::from_yo_unchecked(MIN_YEAR, 1).julian_day();
-        let max_julian_day = Date::from_yo_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).julian_day();
+        let min_julian_day = Self::from_yo_unchecked(MIN_YEAR, 1).julian_day();
+        let max_julian_day = Self::from_yo_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).julian_day();
         ensure_value_in_range!(julian_day in min_julian_day => max_julian_day);
 
         let z = julian_day - 1_721_119;
@@ -597,7 +597,7 @@ impl Date {
             }
         }
 
-        Ok(Date::from_yo_unchecked(year, ordinal))
+        Ok(Self::from_yo_unchecked(year, ordinal))
     }
 }
 
@@ -781,20 +781,20 @@ impl Date {
 
         match items {
             items!(year, month, day) => {
-                Date::from_ymd(year, month.get(), day.get()).map_err(Into::into)
+                Self::from_ymd(year, month.get(), day.get()).map_err(Into::into)
             }
-            items!(year, ordinal_day) => Date::from_yo(year, ordinal_day.get()).map_err(Into::into),
+            items!(year, ordinal_day) => Self::from_yo(year, ordinal_day.get()).map_err(Into::into),
             items!(week_based_year, iso_week, weekday) => {
-                Date::from_iso_ywd(week_based_year, iso_week.get(), weekday).map_err(Into::into)
+                Self::from_iso_ywd(week_based_year, iso_week.get(), weekday).map_err(Into::into)
             }
-            items!(year, sunday_week, weekday) => Date::from_yo(
+            items!(year, sunday_week, weekday) => Self::from_yo(
                 year,
                 (sunday_week as i16 * 7 + weekday.number_days_from_sunday() as i16
                     - adjustment(year)
                     + 1) as u16,
             )
             .map_err(Into::into),
-            items!(year, monday_week, weekday) => Date::from_yo(
+            items!(year, monday_week, weekday) => Self::from_yo(
                 year,
                 (monday_week as i16 * 7 + weekday.number_days_from_monday() as i16
                     - adjustment(year)

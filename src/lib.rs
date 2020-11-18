@@ -153,25 +153,11 @@
     clippy::cast_precision_loss,
     clippy::cast_sign_loss,
     clippy::enum_glob_use,
-    clippy::inline_always,
     clippy::missing_errors_doc,
-    clippy::module_name_repetitions,
     clippy::must_use_candidate,
     clippy::redundant_pub_crate,
-    clippy::suspicious_arithmetic_impl,
-    clippy::suspicious_op_assign_impl,
     clippy::use_self,
-    clippy::wildcard_imports,
-    clippy::zero_prefixed_literal,
-    unstable_name_collisions
-)]
-#![cfg_attr(
-    test,
-    allow(
-        clippy::cognitive_complexity,
-        clippy::similar_names,
-        clippy::too_many_lines,
-    )
+    clippy::wildcard_imports
 )]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]

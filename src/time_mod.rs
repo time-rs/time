@@ -67,7 +67,7 @@ impl Time {
     /// assert_eq!(Time::midnight(), time!("0:00"));
     /// ```
     pub const fn midnight() -> Self {
-        Time {
+        Self {
             hour: 0,
             minute: 0,
             second: 0,
@@ -305,7 +305,7 @@ impl Time {
     /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on
     /// overflow, returning the necessary adjustment to the date value as the
     /// first element of the tuple.
-    pub(crate) fn adjusting_add(self, duration: Duration) -> (Duration, Time) {
+    pub(crate) fn adjusting_add(self, duration: Duration) -> (Duration, Self) {
         let mut nanoseconds = self.nanosecond as i32 + duration.subsec_nanoseconds();
         let mut seconds = self.second as i8 + (duration.whole_seconds() % 60) as i8;
         let mut minutes = self.minute as i8 + (duration.whole_minutes() % 60) as i8;

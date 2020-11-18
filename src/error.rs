@@ -23,12 +23,12 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::ConversionRange => ConversionRange.fmt(f),
-            Error::ComponentRange(e) => e.fmt(f),
+            Self::ConversionRange => ConversionRange.fmt(f),
+            Self::ComponentRange(e) => e.fmt(f),
             #[cfg(feature = "alloc")]
-            Error::Parse(e) => e.fmt(f),
-            Error::IndeterminateOffset => IndeterminateOffset.fmt(f),
-            Error::Format(e) => e.fmt(f),
+            Self::Parse(e) => e.fmt(f),
+            Self::IndeterminateOffset => IndeterminateOffset.fmt(f),
+            Self::Format(e) => e.fmt(f),
         }
     }
 }
@@ -37,11 +37,11 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Error::ConversionRange => Some(&ConversionRange),
-            Error::ComponentRange(err) => Some(err),
-            Error::Parse(err) => Some(err),
-            Error::IndeterminateOffset => Some(&IndeterminateOffset),
-            Error::Format(err) => Some(err),
+            Self::ConversionRange => Some(&ConversionRange),
+            Self::ComponentRange(err) => Some(err),
+            Self::Parse(err) => Some(err),
+            Self::IndeterminateOffset => Some(&IndeterminateOffset),
+            Self::Format(err) => Some(err),
         }
     }
 }
@@ -62,7 +62,7 @@ impl std::error::Error for ConversionRange {}
 
 impl From<ConversionRange> for Error {
     fn from(_: ConversionRange) -> Self {
-        Error::ConversionRange
+        Self::ConversionRange
     }
 }
 
@@ -104,7 +104,7 @@ impl fmt::Display for ComponentRange {
 
 impl From<ComponentRange> for Error {
     fn from(original: ComponentRange) -> Self {
-        Error::ComponentRange(original)
+        Self::ComponentRange(original)
     }
 }
 
@@ -114,7 +114,7 @@ impl std::error::Error for ComponentRange {}
 #[cfg(feature = "alloc")]
 impl From<Parse> for Error {
     fn from(original: Parse) -> Self {
-        Error::Parse(original)
+        Self::Parse(original)
     }
 }
 
@@ -133,7 +133,7 @@ impl std::error::Error for IndeterminateOffset {}
 
 impl From<IndeterminateOffset> for Error {
     fn from(_: IndeterminateOffset) -> Self {
-        Error::IndeterminateOffset
+        Self::IndeterminateOffset
     }
 }
 
@@ -150,10 +150,10 @@ pub enum Format {
 impl fmt::Display for Format {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Format::InsufficientTypeInformation => {
+            Self::InsufficientTypeInformation => {
                 f.write_str("The format provided requires more information than the type provides.")
             }
-            Format::StdFmtError => fmt::Error.fmt(f),
+            Self::StdFmtError => fmt::Error.fmt(f),
         }
     }
 }
@@ -162,7 +162,7 @@ impl fmt::Display for Format {
 impl std::error::Error for Format {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Format::StdFmtError => Some(&fmt::Error),
+            Self::StdFmtError => Some(&fmt::Error),
             _ => None,
         }
     }
@@ -171,13 +171,13 @@ impl std::error::Error for Format {
 // This is necessary to be able to use `?` with various formatters.
 impl From<fmt::Error> for Format {
     fn from(_: fmt::Error) -> Self {
-        Format::StdFmtError
+        Self::StdFmtError
     }
 }
 
 impl From<Format> for Error {
     fn from(error: Format) -> Self {
-        Error::Format(error)
+        Self::Format(error)
     }
 }
 

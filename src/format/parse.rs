@@ -67,7 +67,7 @@ pub enum Error {
 
 impl From<error::ComponentRange> for Error {
     fn from(error: error::ComponentRange) -> Self {
-        Error::ComponentOutOfRange(error)
+        Self::ComponentOutOfRange(error)
     }
 }
 
@@ -105,7 +105,7 @@ impl Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Error::ComponentOutOfRange(e) => Some(e),
+            Self::ComponentOutOfRange(e) => Some(e),
             _ => None,
         }
     }
