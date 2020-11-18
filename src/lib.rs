@@ -112,7 +112,7 @@
 //! | `_` (underscore) | Pad with spaces | `%_d` => ` 5` |
 //! | `0`              | Pad with zeros  | `%0d` => `05` |
 
-#![cfg_attr(__time_02_docs, feature(doc_cfg))]
+#![cfg_attr(__time_03_docs, feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(
     anonymous_parameters,
@@ -191,7 +191,7 @@ macro_rules! ensure_value_in_range {
                 maximum: $end as i64,
                 value: $value as i64,
                 conditional_range: false,
-                #[cfg(not(__time_02_supports_non_exhaustive))]
+                #[cfg(not(__time_03_supports_non_exhaustive))]
                 __non_exhaustive: (),
             });
         }
@@ -206,7 +206,7 @@ macro_rules! ensure_value_in_range {
                 maximum: $end as i64,
                 value: $value as i64,
                 conditional_range: true,
-                #[cfg(not(__time_02_supports_non_exhaustive))]
+                #[cfg(not(__time_03_supports_non_exhaustive))]
                 __non_exhaustive: (),
             });
         }
@@ -271,7 +271,7 @@ pub mod util;
 mod weekday;
 /// Macros to construct statically known values.
 #[cfg(feature = "macros")]
-#[cfg_attr(__time_02_docs, doc(cfg(feature = "macros")))]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "macros")))]
 pub mod macros {
     /// Construct a [`Date`](crate::Date) with a statically known value.
     ///
@@ -426,7 +426,7 @@ mod private {
 /// # Ok::<_, time::Error>(())
 /// ```
 #[cfg(feature = "alloc")]
-#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 pub fn parse<'a, T: private::Parsable>(
     s: impl AsRef<str>,
     format: impl Into<Format<'a>>,

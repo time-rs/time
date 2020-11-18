@@ -18,8 +18,8 @@ pub(crate) type ParseResult<T> = Result<T, Error>;
 
 /// An error occurred while parsing.
 #[allow(variant_size_differences)]
-#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
-#[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+#[cfg_attr(__time_03_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Error {
     /// The nanosecond present was not valid.
@@ -63,7 +63,7 @@ pub enum Error {
     InsufficientInformation,
     /// A component was out of range.
     ComponentOutOfRange(error::ComponentRange),
-    #[cfg(not(__time_02_supports_non_exhaustive))]
+    #[cfg(not(__time_03_supports_non_exhaustive))]
     #[doc(hidden)]
     __NonExhaustive,
 }
@@ -100,7 +100,7 @@ impl Display for Error {
                 f.write_str("insufficient information provided to create the requested type")
             }
             ComponentOutOfRange(e) => write!(f, "{}", e),
-            #[cfg(not(__time_02_supports_non_exhaustive))]
+            #[cfg(not(__time_03_supports_non_exhaustive))]
             __NonExhaustive => unreachable!(),
         }
     }
@@ -439,7 +439,7 @@ pub(crate) fn parse(s: &str, format: &Format<'_>) -> ParseResult<ParsedItems> {
                 }
             }
         }
-        #[cfg(not(__time_02_supports_non_exhaustive))]
+        #[cfg(not(__time_03_supports_non_exhaustive))]
         Format::__NonExhaustive => unreachable!(),
     }
 

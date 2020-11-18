@@ -9,10 +9,10 @@ license = "MIT OR Apache-2.0"
 description = "Benchmarks for the time crate."
 
 [dev-dependencies]
-criterion = "0.3"
+criterion = "0.3.3"
 bench-util = { path = "./bench-util" }
-rand = { version = "0.7", default-features = false }
-serde_json = "1"
+rand = { version = "0.7.3", default-features = false }
+serde_json = "1.0.59"
 time = { path = "..", features = ["local-offset", "macros", "rand", "serde"] }
 
 [[bench]]

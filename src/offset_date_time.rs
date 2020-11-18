@@ -63,7 +63,7 @@ impl OffsetDateTime {
     /// assert_eq!(OffsetDateTime::now_utc().offset(), offset!("UTC"));
     /// ```
     #[cfg(feature = "std")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "std")))]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
     pub fn now_utc() -> Self {
         SystemTime::now().into()
     }
@@ -77,7 +77,7 @@ impl OffsetDateTime {
     /// assert!(OffsetDateTime::now_local().is_ok());
     /// ```
     #[cfg(feature = "local-offset")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "local-offset")))]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
     pub fn now_local() -> Result<Self, error::IndeterminateOffset> {
         let t = Self::now_utc();
         Ok(t.to_offset(UtcOffset::local_offset_at(t)?))
@@ -689,7 +689,7 @@ impl OffsetDateTime {
 
 /// Methods that allow formatting the `OffsetDateTime`.
 #[cfg(feature = "alloc")]
-#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided string.
     ///

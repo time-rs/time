@@ -9,7 +9,7 @@ use const_fn::const_fn;
 /// Checks if a user-provided formatting string is valid. If it isn't, a
 /// description of the error is returned.
 #[cfg(feature = "alloc")]
-#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 pub fn validate_format_string(s: impl AsRef<str>) -> Result<(), String> {
     try_parse_fmt_string(s.as_ref()).map(|_| ())
 }

@@ -241,7 +241,7 @@ impl UtcOffset {
 
     /// Convert a `UtcOffset` to ` Duration`. Useful for implementing operators.
     #[cfg(feature = "alloc")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub(crate) const fn as_duration(self) -> Duration {
         Duration::seconds(self.seconds as i64)
     }
@@ -256,7 +256,7 @@ impl UtcOffset {
     /// assert!(local_offset.is_ok());
     /// ```
     #[cfg(feature = "local-offset")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "local-offset")))]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
     pub fn local_offset_at(datetime: OffsetDateTime) -> Result<Self, error::IndeterminateOffset> {
         local_offset_at(datetime).ok_or(error::IndeterminateOffset)
     }
@@ -270,7 +270,7 @@ impl UtcOffset {
     /// assert!(local_offset.is_ok());
     /// ```
     #[cfg(feature = "local-offset")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "local-offset")))]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
     pub fn current_local_offset() -> Result<Self, error::IndeterminateOffset> {
         let now = OffsetDateTime::now_utc();
         local_offset_at(now).ok_or(error::IndeterminateOffset)
@@ -279,7 +279,7 @@ impl UtcOffset {
 
 /// Methods that allow parsing and formatting the `UtcOffset`.
 #[cfg(feature = "alloc")]
-#[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl UtcOffset {
     /// Format the `UtcOffset` using the provided string.
     ///

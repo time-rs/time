@@ -1,6 +1,6 @@
 [package]
 name = "time-macros"
-version = "0.1.1"
+version = "0.2.0-dev"
 authors = ["Jacob Pratt <the.z.cuber@gmail.com>", "Time contributors"]
 edition = "2018"
 repository = "https://github.com/time-rs/time"
@@ -14,5 +14,5 @@ description = "Procedural macros for the time crate."
 path = "lib.rs"
 
 [dependencies]
-time-macros-impl = { version = "0.1", path = "../time-macros-impl" }
-proc-macro-hack = "0.5"
+time-macros-impl = { version = "=0.2.0-dev", path = "../time-macros-impl" }
+proc-macro-hack = "0.5.19"

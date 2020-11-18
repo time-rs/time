@@ -8,17 +8,17 @@ use core::fmt;
 /// error returned. `Result<_, time::Error>` will work in these situations.
 #[allow(missing_copy_implementations, variant_size_differences)]
 #[allow(clippy::missing_docs_in_private_items)] // variants only
-#[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
+#[cfg_attr(__time_03_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Error {
     ConversionRange,
     ComponentRange(ComponentRange),
     #[cfg(feature = "alloc")]
-    #[cfg_attr(__time_02_docs, doc(cfg(feature = "alloc")))]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     Parse(Parse),
     IndeterminateOffset,
     Format(Format),
-    #[cfg(not(__time_02_supports_non_exhaustive))]
+    #[cfg(not(__time_03_supports_non_exhaustive))]
     #[doc(hidden)]
     __NonExhaustive,
 }
@@ -32,7 +32,7 @@ impl fmt::Display for Error {
             Error::Parse(e) => e.fmt(f),
             Error::IndeterminateOffset => IndeterminateOffset.fmt(f),
             Error::Format(e) => e.fmt(f),
-            #[cfg(not(__time_02_supports_non_exhaustive))]
+            #[cfg(not(__time_03_supports_non_exhaustive))]
             Error::__NonExhaustive => unreachable!(),
         }
     }
@@ -47,7 +47,7 @@ impl std::error::Error for Error {
             Error::Parse(err) => Some(err),
             Error::IndeterminateOffset => Some(&IndeterminateOffset),
             Error::Format(err) => Some(err),
-            #[cfg(not(__time_02_supports_non_exhaustive))]
+            #[cfg(not(__time_03_supports_non_exhaustive))]
             Error::__NonExhaustive => unreachable!(),
         }
     }
@@ -77,7 +77,7 @@ impl From<ConversionRange> for Error {
 /// range, causing a failure.
 // i64 is the narrowest type fitting all use cases. This eliminates the need
 // for a type parameter.
-#[cfg_attr(__time_02_supports_non_exhaustive, non_exhaustive)]
+#[cfg_attr(__time_03_supports_non_exhaustive, non_exhaustive)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ComponentRange {
     /// Name of the component.
@@ -91,7 +91,7 @@ pub struct ComponentRange {
     /// The minimum and/or maximum value is conditional on the value of other
     /// parameters.
     pub conditional_range: bool,
-    #[cfg(not(__time_02_supports_non_exhaustive))]
+    #[cfg(not(__time_03_supports_non_exhaustive))]
     #[doc(hidden)]
     pub(crate) __non_exhaustive: (),
 }
@@ -154,7 +154,7 @@ pub enum Format {
     InsufficientTypeInformation,
     /// An error occurred while formatting into the provided stream.
     StdFmtError,
-    #[cfg(not(__time_02_supports_non_exhaustive))]
+    #[cfg(not(__time_03_supports_non_exhaustive))]
     #[doc(hidden)]
     __NonExhaustive,
 }
@@ -166,7 +166,7 @@ impl fmt::Display for Format {
                 f.write_str("The format provided requires more information than the type provides.")
             }
             Format::StdFmtError => fmt::Error.fmt(f),
-            #[cfg(not(__time_02_supports_non_exhaustive))]
+            #[cfg(not(__time_03_supports_non_exhaustive))]
             Format::__NonExhaustive => unreachable!(),
         }
     }

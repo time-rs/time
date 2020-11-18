@@ -276,8 +276,7 @@ jobs:
           command: doc
           args: --all-features
         env:
-          RUSTFLAGS: --cfg __time_02_docs
-          RUSTDOCFLAGS: --cfg __time_02_docs
+          RUSTDOCFLAGS: --cfg __time_03_docs
 
       - name: Create top-level redirect
         run: |

@@ -1,6 +1,6 @@
 [package]
 name = "time"
-version = "0.2.22"
+version = "0.3.0-dev"
 authors = ["Jacob Pratt <the.z.cuber@gmail.com>", "Time contributors"]
 edition = "2018"
 repository = "https://github.com/time-rs/time"
@@ -15,8 +15,8 @@ include = ["src/**/*", "LICENSE-*", "README.md", "CHANGELOG.md", "build.rs"]
 [package.metadata.docs.rs]
 all-features = true
 targets = ["x86_64-unknown-linux-gnu"]
-rustc-args = ["--cfg",  "__time_02_docs"]
-rustdoc-args = ["--cfg", "__time_02_docs"]
+rustc-args = ["--cfg",  "__time_03_docs"]
+rustdoc-args = ["--cfg", "__time_03_docs"]
 
 [features]
 default = ["std"]
@@ -27,27 +27,27 @@ std = ["standback/std", "alloc"]
 alloc = []
 
 [dependencies]
-const_fn = "0.4.2"
-quickcheck-dep = { package = "quickcheck", version = "0.9", optional = true }
-rand = { version = "0.7", optional = true, default-features = false }
-serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
-standback = { version = "0.2.5", default-features = false }
-time-macros = { version = "0.1", path = "time-macros", optional = true }
+const_fn = "0.4.3"
+quickcheck-dep = { package = "quickcheck", version = "0.9.2", optional = true }
+rand = { version = "0.7.3", optional = true, default-features = false }
+serde = { version = "1.0.117", optional = true, default-features = false, features = ["derive"] }
+standback = { version = "0.2.13", default-features = false }
+time-macros = { version = "=0.2.0-dev", path = "time-macros", optional = true }
 
 [workspace]
 members = ["time-benchmarks", "time-macros", "time-macros-impl"]
 
 [target.'cfg(unix)'.dependencies]
-libc = { version = "0.2", optional = true }
+libc = { version = "0.2.80", optional = true }
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
+winapi = { version = "0.3.9", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
 
 [build-dependencies]
-version_check = "0.9"
+version_check = "0.9.2"
 
 [dev-dependencies]
-rand = { version = "0.7", default-features = false }
-serde_json = "1"
-standback = "0.2"
+rand = { version = "0.7.3", default-features = false }
+serde_json = "1.0.59"
+standback = "0.2.13"
 time-macros = { path = "time-macros" }
