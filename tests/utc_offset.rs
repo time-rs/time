@@ -1,4 +1,4 @@
-#[cfg(feature = "local-offset")]
+#[cfg(all(feature = "local-offset", not(target_family = "unix")))]
 use time::OffsetDateTime;
 use time::{Result, UtcOffset};
 use time_macros::offset;
@@ -125,13 +125,13 @@ fn display() {
 }
 
 #[test]
-#[cfg(feature = "local-offset")]
+#[cfg(all(feature = "local-offset", not(target_family = "unix")))]
 fn local_offset_at() {
     assert!(UtcOffset::local_offset_at(OffsetDateTime::unix_epoch()).is_ok());
 }
 
 #[test]
-#[cfg(feature = "local-offset")]
+#[cfg(all(feature = "local-offset", not(target_family = "unix")))]
 fn current_local_offset() {
     assert!(UtcOffset::current_local_offset().is_ok());
 }

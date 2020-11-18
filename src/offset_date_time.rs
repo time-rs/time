@@ -74,7 +74,9 @@ impl OffsetDateTime {
     ///
     /// ```rust
     /// # use time::OffsetDateTime;
+    /// # if false {
     /// assert!(OffsetDateTime::now_local().is_ok());
+    /// # }
     /// ```
     #[cfg(feature = "local-offset")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]

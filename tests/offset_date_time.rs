@@ -17,7 +17,7 @@ fn now_utc() {
 }
 
 #[test]
-#[cfg(feature = "local-offset")]
+#[cfg(all(feature = "local-offset", not(target_family = "unix")))]
 fn now_local() {
     assert!(OffsetDateTime::now_local().is_ok());
 }
