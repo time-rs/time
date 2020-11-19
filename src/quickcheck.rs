@@ -48,22 +48,19 @@ use quickcheck_dep::{Arbitrary, Gen};
 use rand::Rng;
 
 /// Shim for the unstable clamp method.
-///
-/// Once stabilized, this will be added to standback, and should be imported
-/// from there.
-///
-/// See rust-lang/rust#44095 and rust-lang/rust#77872 for details.
+// This method seems likely to stabilized in Rust 1.50. This will result in a
+// NET usage date of 2021-08-11.
 trait Clamp {
     /// Constrain `self` between `min` and `max` (inclusive).
     ///
     /// If `self` is less than `min`, returns `min`.
     /// If `self` is greater than `max`, returns `max`.
     /// Otherwise, returns `self`.
-    fn clamp(self, min: Self, max: Self) -> Self;
+    fn clamp_(self, min: Self, max: Self) -> Self;
 }
 
 impl<T: Ord> Clamp for T {
-    fn clamp(self, min: Self, max: Self) -> Self {
+    fn clamp_(self, min: Self, max: Self) -> Self {
         core::cmp::max(min, core::cmp::min(self, max))
     }
 }
@@ -108,7 +105,7 @@ impl Arbitrary for Duration {
             g.size()
                 .try_into()
                 .unwrap_or(i32::MAX)
-                .clamp(1, 1_000_000_000),
+                .clamp_(1, 1_000_000_000),
         );
         Self {
             seconds,
@@ -135,15 +132,15 @@ impl Arbitrary for Duration {
 
 impl Arbitrary for Time {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        let hour = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp(1, 24));
-        let minute = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp(1, 60));
-        let second = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp(1, 60));
+        let hour = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp_(1, 24));
+        let minute = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp_(1, 60));
+        let second = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp_(1, 60));
         let nanosecond = g.gen_range(
             0,
             g.size()
                 .try_into()
                 .unwrap_or(u32::MAX)
-                .clamp(1, 1_000_000_000),
+                .clamp_(1, 1_000_000_000),
         );
         Self::from_hms_nanos_unchecked(hour, minute, second, nanosecond)
     }
@@ -198,7 +195,7 @@ impl Arbitrary for UtcOffset {
             .size()
             .try_into()
             .unwrap_or(i32::MAX)
-            .clamp(1, 60 * 60 * 24);
+            .clamp_(1, 60 * 60 * 24);
         let offset = g.gen_range(-cmp::max(0, size - 1), size);
         Self::seconds_unchecked(offset)
     }
@@ -233,7 +230,7 @@ impl Arbitrary for OffsetDateTime {
 impl Arbitrary for Weekday {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         use Weekday::*;
-        match g.gen_range(0, g.size().clamp(1, 7)) {
+        match g.gen_range(0, g.size().clamp_(1, 7)) {
             0 => Monday,
             1 => Tuesday,
             2 => Wednesday,
