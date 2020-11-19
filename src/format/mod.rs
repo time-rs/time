@@ -24,7 +24,6 @@ pub(crate) mod well_known;
 use crate::{error, Date, Time, UtcOffset};
 use core::fmt::Formatter;
 pub(crate) use deferred_format::DeferredFormat;
-#[allow(unreachable_pub)] // rust-lang/rust#64762
 pub use format::Format;
 #[cfg(feature = "alloc")]
 pub(crate) use parse::parse;

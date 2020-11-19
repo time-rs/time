@@ -85,8 +85,6 @@ impl Date {
     /// assert!(Date::from_ymd(2019, 12, 31).is_ok());
     /// ```
     ///
-    /// Returns `None` if the date is not valid.
-    ///
     /// ```rust
     /// # use time::Date;
     /// assert!(Date::from_ymd(2019, 2, 29).is_err()); // 2019 isn't a leap year.
@@ -121,8 +119,6 @@ impl Date {
     /// assert!(Date::from_yo(2019, 365).is_ok());
     /// ```
     ///
-    /// Returns `None` if the date is not valid.
-    ///
     /// ```rust
     /// # use time::Date;
     /// assert!(Date::from_yo(2019, 366).is_err()); // 2019 isn't a leap year.
@@ -144,8 +140,6 @@ impl Date {
     /// assert!(Date::from_iso_ywd(2019, 1, Tuesday).is_ok());
     /// assert!(Date::from_iso_ywd(2020, 53, Friday).is_ok());
     /// ```
-    ///
-    /// Returns `None` if the week is not valid.
     ///
     /// ```rust
     /// # use time::{Date, Weekday::*};
@@ -201,7 +195,6 @@ impl Date {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[allow(clippy::missing_const_for_fn)]
     #[const_fn("1.46")]
     pub const fn year(self) -> i32 {
         self.value >> 9
@@ -260,7 +253,6 @@ impl Date {
     pub const fn month_day(self) -> (u8, u8) {
         /// The number of days up to and including the given month. Common years
         /// are first, followed by leap years.
-        #[allow(clippy::items_after_statements)]
         const CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP: [[u16; 11]; 2] = [
             [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
             [31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
@@ -308,7 +300,6 @@ impl Date {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[allow(clippy::missing_const_for_fn)]
     #[const_fn("1.46")]
     pub const fn ordinal(self) -> u16 {
         (self.value & 0x1FF) as u16
@@ -330,7 +321,7 @@ impl Date {
     pub const fn iso_year_week(self) -> (i32, u8) {
         let (year, ordinal) = self.as_yo();
 
-        match ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as u8 {
+        match (ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7 {
             0 => (year - 1, weeks_in_year(year - 1)),
             53 if weeks_in_year(year) == 52 => (year + 1, 1),
             _ => (
@@ -417,7 +408,6 @@ impl Date {
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
-    #[allow(clippy::missing_const_for_fn)]
     #[const_fn("1.46")]
     pub const fn as_yo(self) -> (i32, u16) {
         (self.year(), self.ordinal())

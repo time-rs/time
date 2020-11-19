@@ -69,123 +69,117 @@ pub trait NumericalDuration {
 }
 
 macro_rules! impl_numerical_duration {
-    ($($type:ty),* $(,)?) => {
-        $(
-            impl NumericalDuration for $type {
-                fn nanoseconds(self) -> Duration {
-                    Duration::nanoseconds(self as i64)
-                }
-
-                fn microseconds(self) -> Duration {
-                    Duration::microseconds(self as i64)
-                }
-
-                fn milliseconds(self) -> Duration {
-                    Duration::milliseconds(self as i64)
-                }
-
-                fn seconds(self) -> Duration {
-                    Duration::seconds(self as i64)
-                }
-
-                fn minutes(self) -> Duration {
-                    Duration::minutes(self as i64)
-                }
-
-                fn hours(self) -> Duration {
-                    Duration::hours(self as i64)
-                }
-
-                fn days(self) -> Duration {
-                    Duration::days(self as i64)
-                }
-
-                fn weeks(self) -> Duration {
-                    Duration::weeks(self as i64)
-                }
+    ($($type:ty),+ $(,)?) => {$(
+        impl NumericalDuration for $type {
+            fn nanoseconds(self) -> Duration {
+                Duration::nanoseconds(self as i64)
             }
-        )*
-    };
+
+            fn microseconds(self) -> Duration {
+                Duration::microseconds(self as i64)
+            }
+
+            fn milliseconds(self) -> Duration {
+                Duration::milliseconds(self as i64)
+            }
+
+            fn seconds(self) -> Duration {
+                Duration::seconds(self as i64)
+            }
+
+            fn minutes(self) -> Duration {
+                Duration::minutes(self as i64)
+            }
+
+            fn hours(self) -> Duration {
+                Duration::hours(self as i64)
+            }
+
+            fn days(self) -> Duration {
+                Duration::days(self as i64)
+            }
+
+            fn weeks(self) -> Duration {
+                Duration::weeks(self as i64)
+            }
+        }
+    )+};
 }
 
 macro_rules! impl_numerical_duration_nonzero {
-    ($($type:ty),* $(,)?) => {
-        $(
-            impl NumericalDuration for $type {
-                fn nanoseconds(self) -> Duration {
-                    Duration::nanoseconds(self.get() as i64)
-                }
-
-                fn microseconds(self) -> Duration {
-                    Duration::microseconds(self.get() as i64)
-                }
-
-                fn milliseconds(self) -> Duration {
-                    Duration::milliseconds(self.get() as i64)
-                }
-
-                fn seconds(self) -> Duration {
-                    Duration::seconds(self.get() as i64)
-                }
-
-                fn minutes(self) -> Duration {
-                    Duration::minutes(self.get() as i64)
-                }
-
-                fn hours(self) -> Duration {
-                    Duration::hours(self.get() as i64)
-                }
-
-                fn days(self) -> Duration {
-                    Duration::days(self.get() as i64)
-                }
-
-                fn weeks(self) -> Duration {
-                    Duration::weeks(self.get() as i64)
-                }
+    ($($type:ty),+ $(,)?) => {$(
+        impl NumericalDuration for $type {
+            fn nanoseconds(self) -> Duration {
+                Duration::nanoseconds(self.get() as i64)
             }
-        )*
-    };
+
+            fn microseconds(self) -> Duration {
+                Duration::microseconds(self.get() as i64)
+            }
+
+            fn milliseconds(self) -> Duration {
+                Duration::milliseconds(self.get() as i64)
+            }
+
+            fn seconds(self) -> Duration {
+                Duration::seconds(self.get() as i64)
+            }
+
+            fn minutes(self) -> Duration {
+                Duration::minutes(self.get() as i64)
+            }
+
+            fn hours(self) -> Duration {
+                Duration::hours(self.get() as i64)
+            }
+
+            fn days(self) -> Duration {
+                Duration::days(self.get() as i64)
+            }
+
+            fn weeks(self) -> Duration {
+                Duration::weeks(self.get() as i64)
+            }
+        }
+    )+};
 }
 
 macro_rules! impl_numerical_duration_float {
-    ($($type:ty),* $(,)?) => {
-        $(
-            impl NumericalDuration for $type {
-                fn nanoseconds(self) -> Duration {
-                    Duration::nanoseconds(self as i64)
-                }
-
-                fn microseconds(self) -> Duration {
-                    Duration::nanoseconds((self * 1_000.) as i64)
-                }
-
-                fn milliseconds(self) -> Duration {
-                    Duration::nanoseconds((self * 1_000_000.) as i64)
-                }
-
-                fn seconds(self) -> Duration {
-                    Duration::nanoseconds((self * 1_000_000_000.) as i64)
-                }
-
-                fn minutes(self) -> Duration {
-                    Duration::nanoseconds((self * 60_000_000_000.) as i64)
-                }
-
-                fn hours(self) -> Duration {
-                    Duration::nanoseconds((self * 3_600_000_000_000.) as i64)
-                }
-
-                fn days(self) -> Duration {
-                    Duration::nanoseconds((self * 86_400_000_000_000.) as i64)
-                }
-
-                fn weeks(self) -> Duration {
-                    Duration::nanoseconds((self * 604_800_000_000_000.) as i64)
-                }
+    ($($type:ty),+ $(,)?) => {$(
+        impl NumericalDuration for $type {
+            fn nanoseconds(self) -> Duration {
+                Duration::nanoseconds(self as i64)
             }
-        )*
-    };
+
+            fn microseconds(self) -> Duration {
+                Duration::nanoseconds((self * 1_000.) as i64)
+            }
+
+            fn milliseconds(self) -> Duration {
+                Duration::nanoseconds((self * 1_000_000.) as i64)
+            }
+
+            fn seconds(self) -> Duration {
+                Duration::nanoseconds((self * 1_000_000_000.) as i64)
+            }
+
+            fn minutes(self) -> Duration {
+                Duration::nanoseconds((self * 60_000_000_000.) as i64)
+            }
+
+            fn hours(self) -> Duration {
+                Duration::nanoseconds((self * 3_600_000_000_000.) as i64)
+            }
+
+            fn days(self) -> Duration {
+                Duration::nanoseconds((self * 86_400_000_000_000.) as i64)
+            }
+
+            fn weeks(self) -> Duration {
+                Duration::nanoseconds((self * 604_800_000_000_000.) as i64)
+            }
+        }
+    )+};
 }
 
 impl_numerical_duration![u8, u16, u32, i8, i16, i32, i64];
@@ -193,9 +187,6 @@ impl_numerical_duration_nonzero![
     core::num::NonZeroU8,
     core::num::NonZeroU16,
     core::num::NonZeroU32,
-];
-#[cfg(__time_02_nonzero_signed)]
-impl_numerical_duration_nonzero![
     core::num::NonZeroI8,
     core::num::NonZeroI16,
     core::num::NonZeroI32,
@@ -263,83 +254,79 @@ pub trait NumericalStdDuration {
 }
 
 macro_rules! impl_numerical_std_duration {
-    ($($type:ty),* $(,)?) => {
-        $(
-            impl NumericalStdDuration for $type {
-                fn std_nanoseconds(self) -> StdDuration {
-                    StdDuration::from_nanos(self as u64)
-                }
-
-                fn std_microseconds(self) -> StdDuration {
-                    StdDuration::from_micros(self as u64)
-                }
-
-                fn std_milliseconds(self) -> StdDuration {
-                    StdDuration::from_millis(self as u64)
-                }
-
-                fn std_seconds(self) -> StdDuration {
-                    StdDuration::from_secs(self as u64)
-                }
-
-                fn std_minutes(self) -> StdDuration {
-                    StdDuration::from_secs(self as u64 * 60)
-                }
-
-                fn std_hours(self) -> StdDuration {
-                    StdDuration::from_secs(self as u64 * 3_600)
-                }
-
-                fn std_days(self) -> StdDuration {
-                    StdDuration::from_secs(self as u64 * 86_400)
-                }
-
-                fn std_weeks(self) -> StdDuration {
-                    StdDuration::from_secs(self as u64 * 604_800)
-                }
+    ($($type:ty),+ $(,)?) => {$(
+        impl NumericalStdDuration for $type {
+            fn std_nanoseconds(self) -> StdDuration {
+                StdDuration::from_nanos(self as u64)
             }
-        )*
-    };
+
+            fn std_microseconds(self) -> StdDuration {
+                StdDuration::from_micros(self as u64)
+            }
+
+            fn std_milliseconds(self) -> StdDuration {
+                StdDuration::from_millis(self as u64)
+            }
+
+            fn std_seconds(self) -> StdDuration {
+                StdDuration::from_secs(self as u64)
+            }
+
+            fn std_minutes(self) -> StdDuration {
+                StdDuration::from_secs(self as u64 * 60)
+            }
+
+            fn std_hours(self) -> StdDuration {
+                StdDuration::from_secs(self as u64 * 3_600)
+            }
+
+            fn std_days(self) -> StdDuration {
+                StdDuration::from_secs(self as u64 * 86_400)
+            }
+
+            fn std_weeks(self) -> StdDuration {
+                StdDuration::from_secs(self as u64 * 604_800)
+            }
+        }
+    )+};
 }
 
 macro_rules! impl_numerical_std_duration_nonzero {
-    ($($type:ty),* $(,)?) => {
-        $(
-            impl NumericalStdDuration for $type {
-                fn std_nanoseconds(self) -> StdDuration {
-                    StdDuration::from_nanos(self.get() as u64)
-                }
-
-                fn std_microseconds(self) -> StdDuration {
-                    StdDuration::from_micros(self.get() as u64)
-                }
-
-                fn std_milliseconds(self) -> StdDuration {
-                    StdDuration::from_millis(self.get() as u64)
-                }
-
-                fn std_seconds(self) -> StdDuration {
-                    StdDuration::from_secs(self.get() as u64)
-                }
-
-                fn std_minutes(self) -> StdDuration {
-                    StdDuration::from_secs(self.get() as u64 * 60)
-                }
-
-                fn std_hours(self) -> StdDuration {
-                    StdDuration::from_secs(self.get() as u64 * 3_600)
-                }
-
-                fn std_days(self) -> StdDuration {
-                    StdDuration::from_secs(self.get() as u64 * 86_400)
-                }
-
-                fn std_weeks(self) -> StdDuration {
-                    StdDuration::from_secs(self.get() as u64 * 604_800)
-                }
+    ($($type:ty),+ $(,)?) => {$(
+        impl NumericalStdDuration for $type {
+            fn std_nanoseconds(self) -> StdDuration {
+                StdDuration::from_nanos(self.get() as u64)
             }
-        )*
-    };
+
+            fn std_microseconds(self) -> StdDuration {
+                StdDuration::from_micros(self.get() as u64)
+            }
+
+            fn std_milliseconds(self) -> StdDuration {
+                StdDuration::from_millis(self.get() as u64)
+            }
+
+            fn std_seconds(self) -> StdDuration {
+                StdDuration::from_secs(self.get() as u64)
+            }
+
+            fn std_minutes(self) -> StdDuration {
+                StdDuration::from_secs(self.get() as u64 * 60)
+            }
+
+            fn std_hours(self) -> StdDuration {
+                StdDuration::from_secs(self.get() as u64 * 3_600)
+            }
+
+            fn std_days(self) -> StdDuration {
+                StdDuration::from_secs(self.get() as u64 * 86_400)
+            }
+
+            fn std_weeks(self) -> StdDuration {
+                StdDuration::from_secs(self.get() as u64 * 604_800)
+            }
+        }
+    )+};
 }
 
 impl_numerical_std_duration![u8, u16, u32, u64];

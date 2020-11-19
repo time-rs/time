@@ -82,8 +82,6 @@ impl Time {
     /// assert!(Time::from_hms(1, 2, 3).is_ok());
     /// ```
     ///
-    /// Returns `None` if any component is not valid.
-    ///
     /// ```rust
     /// # use time::Time;
     /// assert!(Time::from_hms(24, 0, 0).is_err()); // 24 isn't a valid hour.
@@ -111,8 +109,6 @@ impl Time {
     /// # use time::Time;
     /// assert!(Time::from_hms_milli(1, 2, 3, 4).is_ok());
     /// ```
-    ///
-    /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;
@@ -149,8 +145,6 @@ impl Time {
     /// assert!(Time::from_hms_micro(1, 2, 3, 4).is_ok());
     /// ```
     ///
-    /// Returns `None` if any component is not valid.
-    ///
     /// ```rust
     /// # use time::Time;
     /// assert!(Time::from_hms_micro(24, 0, 0, 0).is_err()); // 24 isn't a valid hour.
@@ -185,8 +179,6 @@ impl Time {
     /// # use time::Time;
     /// assert!(Time::from_hms_nano(1, 2, 3, 4).is_ok());
     /// ```
-    ///
-    /// Returns `None` if any component is not valid.
     ///
     /// ```rust
     /// # use time::Time;

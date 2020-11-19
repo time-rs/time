@@ -796,49 +796,47 @@ impl SubAssign<Duration> for StdDuration {
 }
 
 macro_rules! duration_mul_div_int {
-    ($($type:ty),+) => {
-        $(
-            impl Mul<$type> for Duration {
-                type Output = Self;
+    ($($type:ty),+) => {$(
+        impl Mul<$type> for Duration {
+            type Output = Self;
 
-                fn mul(self, rhs: $type) -> Self::Output {
-                    Self::nanoseconds_i128(
-                        self.whole_nanoseconds()
-                            .checked_mul(rhs as i128)
-                            .expect("overflow when multiplying duration")
-                    )
-                }
+            fn mul(self, rhs: $type) -> Self::Output {
+                Self::nanoseconds_i128(
+                    self.whole_nanoseconds()
+                        .checked_mul(rhs as i128)
+                        .expect("overflow when multiplying duration")
+                )
             }
+        }
 
-            impl MulAssign<$type> for Duration {
-                fn mul_assign(&mut self, rhs: $type) {
-                    *self = *self * rhs;
-                }
+        impl MulAssign<$type> for Duration {
+            fn mul_assign(&mut self, rhs: $type) {
+                *self = *self * rhs;
             }
+        }
 
-            impl Mul<Duration> for $type {
-                type Output = Duration;
+        impl Mul<Duration> for $type {
+            type Output = Duration;
 
-                fn mul(self, rhs: Duration) -> Self::Output {
-                    rhs * self
-                }
+            fn mul(self, rhs: Duration) -> Self::Output {
+                rhs * self
             }
+        }
 
-            impl Div<$type> for Duration {
-                type Output = Self;
+        impl Div<$type> for Duration {
+            type Output = Self;
 
-                fn div(self, rhs: $type) -> Self::Output {
-                    Self::nanoseconds_i128(self.whole_nanoseconds() / rhs as i128)
-                }
+            fn div(self, rhs: $type) -> Self::Output {
+                Self::nanoseconds_i128(self.whole_nanoseconds() / rhs as i128)
             }
+        }
 
-            impl DivAssign<$type> for Duration {
-                fn div_assign(&mut self, rhs: $type) {
-                    *self = *self / rhs;
-                }
+        impl DivAssign<$type> for Duration {
+            fn div_assign(&mut self, rhs: $type) {
+                *self = *self / rhs;
             }
-        )+
-    };
+        }
+    )+};
 }
 duration_mul_div_int![i8, i16, i32, u8, u16, u32];
 
