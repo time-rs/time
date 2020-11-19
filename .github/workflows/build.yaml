@@ -19,7 +19,7 @@ on:
 jobs:
   check-other-targets:
     name: Type checking
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         rust: [1.40.0, stable]
@@ -86,7 +86,7 @@ jobs:
 
   check-benchmarks:
     name: Type-check benchmarks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -108,7 +108,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ubuntu-latest-cargo-stable-benchmarks-${{ hashFiles('**/Cargo.toml') }}
+          key: ubuntu-20.04-cargo-stable-benchmarks-${{ hashFiles('**/Cargo.toml') }}
 
       - name: Type-check benchmarks
         uses: actions-rs/cargo@v1
@@ -122,7 +122,7 @@ jobs:
     strategy:
       matrix:
         rust: [1.40.0, stable]
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-20.04, windows-latest, macOS-latest]
 
     steps:
       - name: Checkout sources
@@ -191,7 +191,7 @@ jobs:
 
   fmt:
     name: Formatting
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout sources
@@ -213,7 +213,7 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout sources
@@ -233,7 +233,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ubuntu-latest-cargo-stable-ubuntu-latest-${{ hashFiles('**/Cargo.toml') }}
+          key: ubuntu-20.04-cargo-stable-ubuntu-20.04-${{ hashFiles('**/Cargo.toml') }}
 
       - name: Run clippy
         uses: actions-rs/clippy-check@v1
@@ -243,7 +243,7 @@ jobs:
 
   documentation:
     name: Documentation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     # ensure docs only get pushed if everything else is successful
     needs:
       - check-other-targets
