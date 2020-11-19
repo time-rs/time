@@ -153,6 +153,7 @@
     clippy::cast_precision_loss,
     clippy::cast_sign_loss,
     clippy::enum_glob_use,
+    clippy::map_err_ignore,
     clippy::missing_errors_doc,
     clippy::must_use_candidate,
     clippy::redundant_pub_crate,
