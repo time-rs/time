@@ -246,7 +246,7 @@ mod rand;
 #[allow(missing_copy_implementations, missing_debug_implementations)]
 pub mod serde;
 /// The [`Time`] struct and its associated `impl`s.
-mod time_mod;
+mod time;
 /// The [`UtcOffset`] struct and its associated `impl`s.
 mod utc_offset;
 pub mod util;
@@ -349,6 +349,7 @@ pub mod macros {
     pub use time_macros::time;
 }
 
+pub use crate::time::Time;
 pub use date::Date;
 pub use duration::Duration;
 pub use error::Error;
@@ -360,7 +361,6 @@ use format::{DeferredFormat, ParseResult};
 pub use instant::Instant;
 pub use offset_date_time::OffsetDateTime;
 pub use primitive_date_time::PrimitiveDateTime;
-pub use time_mod::Time;
 pub use utc_offset::UtcOffset;
 pub use weekday::Weekday;
 
