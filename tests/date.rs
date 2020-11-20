@@ -891,6 +891,23 @@ fn as_yo() {
 }
 
 #[test]
+fn weekday() {
+    use Weekday::*;
+    assert_eq!(date!("2019-01-01").weekday(), Tuesday);
+    assert_eq!(date!("2019-02-01").weekday(), Friday);
+    assert_eq!(date!("2019-03-01").weekday(), Friday);
+    assert_eq!(date!("2019-04-01").weekday(), Monday);
+    assert_eq!(date!("2019-05-01").weekday(), Wednesday);
+    assert_eq!(date!("2019-06-01").weekday(), Saturday);
+    assert_eq!(date!("2019-07-01").weekday(), Monday);
+    assert_eq!(date!("2019-08-01").weekday(), Thursday);
+    assert_eq!(date!("2019-09-01").weekday(), Sunday);
+    assert_eq!(date!("2019-10-01").weekday(), Tuesday);
+    assert_eq!(date!("2019-11-01").weekday(), Friday);
+    assert_eq!(date!("2019-12-01").weekday(), Sunday);
+}
+
+#[test]
 fn next_day() {
     assert_eq!(date!("2019-01-01").next_day(), date!("2019-01-02"));
     assert_eq!(date!("2019-01-31").next_day(), date!("2019-02-01"));

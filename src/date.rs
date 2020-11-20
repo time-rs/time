@@ -193,9 +193,6 @@ impl Date {
     /// assert_eq!(date!("2019-12-31").year(), 2019);
     /// assert_eq!(date!("2020-01-01").year(), 2020);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
     pub const fn year(self) -> i32 {
         self.value >> 9
     }
@@ -298,9 +295,6 @@ impl Date {
     /// assert_eq!(date!("2019-01-01").ordinal(), 1);
     /// assert_eq!(date!("2019-12-31").ordinal(), 365);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
     pub const fn ordinal(self) -> u16 {
         (self.value & 0x1FF) as u16
     }
@@ -406,17 +400,11 @@ impl Date {
     /// # use time_macros::date;
     /// assert_eq!(date!("2019-01-01").as_yo(), (2019, 1));
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
     pub const fn as_yo(self) -> (i32, u16) {
         (self.year(), self.ordinal())
     }
 
     /// Get the weekday.
-    ///
-    /// This current uses [Zeller's congruence](https://en.wikipedia.org/wiki/Zeller%27s_congruence)
-    /// internally.
     ///
     /// ```rust
     /// # use time::Weekday::*;
@@ -438,28 +426,14 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn weekday(self) -> Weekday {
-        let (year, month, day) = self.as_ymd();
-
-        let (month, adjusted_year) = if month < 3 {
-            (month + 12, year - 1)
-        } else {
-            (month, year)
-        };
-
-        let raw_weekday =
-            (day as i32 + (13 * (month as i32 + 1)) / 5 + adjusted_year + adjusted_year / 4
-                - adjusted_year / 100
-                + adjusted_year / 400)
-                % 7;
-
-        match raw_weekday {
-            -6 | 1 => Weekday::Sunday,
-            -5 | 2 => Weekday::Monday,
-            -4 | 3 => Weekday::Tuesday,
-            -3 | 4 => Weekday::Wednesday,
-            -2 | 5 => Weekday::Thursday,
-            -1 | 6 => Weekday::Friday,
-            _ => Weekday::Saturday,
+        match self.julian_day() % 7 {
+            -6 | 1 => Weekday::Tuesday,
+            -5 | 2 => Weekday::Wednesday,
+            -4 | 3 => Weekday::Thursday,
+            -3 | 4 => Weekday::Friday,
+            -2 | 5 => Weekday::Saturday,
+            -1 | 6 => Weekday::Sunday,
+            _ => Weekday::Monday,
         }
     }
 

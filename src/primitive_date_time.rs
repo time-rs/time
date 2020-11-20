@@ -75,9 +75,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-12-31 0:00").year(), 2019);
     /// assert_eq!(datetime!("2020-01-01 0:00").year(), 2020);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
     pub const fn year(self) -> i32 {
         self.date().year()
     }
@@ -144,9 +141,6 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-01-01 0:00").ordinal(), 1);
     /// assert_eq!(datetime!("2019-12-31 0:00").ordinal(), 365);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
     pub const fn ordinal(self) -> u16 {
         self.date().ordinal()
     }

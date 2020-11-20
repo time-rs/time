@@ -85,6 +85,36 @@ setup_benchmark! {
         ben.iter(|| d.as_yo());
     }
 
+    fn weekday(ben: &mut Bencher) {
+        let a = date!("2019-01-01");
+        let b = date!("2019-02-01");
+        let c = date!("2019-03-01");
+        let d = date!("2019-04-01");
+        let e = date!("2019-05-01");
+        let f = date!("2019-06-01");
+        let g = date!("2019-07-01");
+        let h = date!("2019-08-01");
+        let i = date!("2019-09-01");
+        let j = date!("2019-10-01");
+        let k = date!("2019-11-01");
+        let l = date!("2019-12-01");
+
+        ben.iter(|| (
+            a.weekday(),
+            b.weekday(),
+            c.weekday(),
+            d.weekday(),
+            e.weekday(),
+            f.weekday(),
+            g.weekday(),
+            h.weekday(),
+            i.weekday(),
+            j.weekday(),
+            k.weekday(),
+            l.weekday(),
+        ));
+    }
+
     fn next_day(ben: &mut Bencher) {
         let d = date!("2019-01-01");
         ben.iter(|| d.next_day());
