@@ -8,7 +8,7 @@ use crate::{
 use alloc::string::{String, ToString};
 use const_fn::const_fn;
 #[cfg(feature = "std")]
-use core::convert::{From, TryFrom};
+use core::convert::From;
 #[cfg(feature = "alloc")]
 use core::fmt::{self, Display};
 use core::{
@@ -1099,17 +1099,11 @@ impl PartialOrd<OffsetDateTime> for SystemTime {
 
 #[cfg(feature = "std")]
 impl From<SystemTime> for OffsetDateTime {
-    // There is definitely some way to have this conversion be infallible, but
-    // it won't be an issue for over 500 years.
     fn from(system_time: SystemTime) -> Self {
-        let duration = match system_time.duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(duration) => Duration::try_from(duration)
-                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
-            Err(err) => -Duration::try_from(err.duration())
-                .expect("overflow converting `std::time::Duration` to `time::Duration`"),
-        };
-
-        Self::unix_epoch() + duration
+        match system_time.duration_since(SystemTime::UNIX_EPOCH) {
+            Ok(duration) => Self::unix_epoch() + duration,
+            Err(err) => Self::unix_epoch() - err.duration(),
+        }
     }
 }
 

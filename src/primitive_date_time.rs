@@ -538,16 +538,44 @@ impl Add<StdDuration> for PrimitiveDateTime {
     type Output = Self;
 
     fn add(self, duration: StdDuration) -> Self::Output {
-        let nanos = self.time.nanoseconds_since_midnight()
-            + (duration.as_nanos() % 86_400_000_000_000) as u64;
+        let mut nanoseconds = self.nanosecond() + duration.subsec_nanos();
+        let mut seconds = self.second() + (duration.as_secs() % 60) as u8;
+        let mut minutes = self.minute() + ((duration.as_secs() / 60) % 60) as u8;
+        let mut hours = self.hour() + ((duration.as_secs() / 3_600) % 24) as u8;
+        let mut needs_date_adjustment = false;
 
-        let date_modifier = if nanos >= 86_400_000_000_000 {
-            Duration::day()
+        // Provide a fast path for values that are already valid. The optimizer
+        // is able to eliminate duplicated comparisons, so the added cost of
+        // this is extremely little.
+        if nanoseconds >= 1_000_000_000 || seconds >= 60 || minutes >= 60 || hours >= 24 {
+            if nanoseconds >= 1_000_000_000 {
+                nanoseconds -= 1_000_000_000;
+                seconds += 1;
+            }
+            if seconds >= 60 {
+                seconds -= 60;
+                minutes += 1;
+            }
+            if minutes >= 60 {
+                minutes -= 60;
+                hours += 1;
+            }
+            if hours >= 24 {
+                needs_date_adjustment = true;
+            }
+        }
+
+        if needs_date_adjustment {
+            Self::new(
+                (self.date + duration).next_day(),
+                Time::from_hms_nanos_unchecked(hours - 24, minutes, seconds, nanoseconds),
+            )
         } else {
-            Duration::zero()
-        };
-
-        Self::new(self.date + duration + date_modifier, self.time + duration)
+            Self::new(
+                self.date + duration,
+                Time::from_hms_nanos_unchecked(hours, minutes, seconds, nanoseconds),
+            )
+        }
     }
 }
 
