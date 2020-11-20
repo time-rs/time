@@ -1,4 +1,4 @@
-use crate::{error, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{error, util, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
 #[cfg(feature = "alloc")]
 use crate::{
     format::parse::{parse, ParsedItems},
@@ -297,7 +297,38 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn date(self) -> Date {
-        self.utc_datetime.utc_to_offset(self.offset()).date()
+        let second = self.utc_datetime.second() as i8 + (self.offset.as_seconds() % 60) as i8;
+        let mut minute =
+            self.utc_datetime.minute() as i8 + (self.offset.as_seconds() / 60 % 60) as i8;
+        let mut hour = self.utc_datetime.hour() as i8 + (self.offset.as_seconds() / 3_600) as i8;
+
+        let mut ordinal = self.utc_datetime.ordinal();
+        let mut year = self.utc_datetime.year();
+
+        if second >= 60 {
+            minute += 1;
+        } else if second < 0 {
+            minute -= 1;
+        }
+        if minute >= 60 {
+            hour += 1;
+        } else if minute < 0 {
+            hour -= 1;
+        }
+        if hour >= 24 {
+            ordinal += 1;
+        } else if hour < 0 {
+            ordinal -= 1;
+        }
+        if ordinal > util::days_in_year(year) {
+            year += 1;
+            ordinal = 1;
+        } else if ordinal == 0 {
+            year -= 1;
+            ordinal = util::days_in_year(year);
+        }
+
+        Date::from_yo_unchecked(year, ordinal)
     }
 
     /// Get the [`Time`] in the stored offset.
@@ -316,7 +347,37 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn time(self) -> Time {
-        self.utc_datetime.utc_to_offset(self.offset()).time()
+        let mut second = self.utc_datetime.second() as i8 + (self.offset.as_seconds() % 60) as i8;
+        let mut minute =
+            self.utc_datetime.minute() as i8 + (self.offset.as_seconds() / 60 % 60) as i8;
+        let mut hour = self.utc_datetime.hour() as i8 + (self.offset.as_seconds() / 3_600) as i8;
+
+        if second >= 60 {
+            second -= 60;
+            minute += 1;
+        } else if second < 0 {
+            second += 60;
+            minute -= 1;
+        }
+        if minute >= 60 {
+            minute -= 60;
+            hour += 1;
+        } else if minute < 0 {
+            minute += 60;
+            hour -= 1;
+        }
+        if hour >= 24 {
+            hour -= 24;
+        } else if hour < 0 {
+            hour += 24;
+        }
+
+        Time::from_hms_nanos_unchecked(
+            hour as u8,
+            minute as u8,
+            second as u8,
+            self.utc_datetime.nanosecond(),
+        )
     }
 
     /// Get the year of the date in the stored offset.
@@ -336,7 +397,36 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn year(self) -> i32 {
-        self.date().year()
+        let second = self.utc_datetime.second() as i8 + (self.offset.as_seconds() % 60) as i8;
+        let mut minute =
+            self.utc_datetime.minute() as i8 + (self.offset.as_seconds() / 60 % 60) as i8;
+        let mut hour = self.utc_datetime.hour() as i8 + (self.offset.as_seconds() / 3_600) as i8;
+
+        let mut ordinal = self.utc_datetime.ordinal();
+        let mut year = self.utc_datetime.year();
+
+        if second >= 60 {
+            minute += 1;
+        } else if second < 0 {
+            minute -= 1;
+        }
+        if minute >= 60 {
+            hour += 1;
+        } else if minute < 0 {
+            hour -= 1;
+        }
+        if hour >= 24 {
+            ordinal += 1;
+        } else if hour < 0 {
+            ordinal -= 1;
+        }
+        if ordinal > util::days_in_year(year) {
+            year += 1;
+        } else if ordinal == 0 {
+            year -= 1;
+        }
+
+        year
     }
 
     /// Get the month of the date in the stored offset. If fetching both the
@@ -424,7 +514,36 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn ordinal(self) -> u16 {
-        self.date().ordinal()
+        let second = self.utc_datetime.second() as i8 + (self.offset.as_seconds() % 60) as i8;
+        let mut minute =
+            self.utc_datetime.minute() as i8 + (self.offset.as_seconds() / 60 % 60) as i8;
+        let mut hour = self.utc_datetime.hour() as i8 + (self.offset.as_seconds() / 3_600) as i8;
+
+        let mut ordinal = self.utc_datetime.ordinal();
+        let year = self.utc_datetime.year();
+
+        if second >= 60 {
+            minute += 1;
+        } else if second < 0 {
+            minute -= 1;
+        }
+        if minute >= 60 {
+            hour += 1;
+        } else if minute < 0 {
+            hour -= 1;
+        }
+        if hour >= 24 {
+            ordinal += 1;
+        } else if hour < 0 {
+            ordinal -= 1;
+        }
+        if ordinal > util::days_in_year(year) {
+            ordinal = 1;
+        } else if ordinal == 0 {
+            ordinal = util::days_in_year(year);
+        }
+
+        ordinal
     }
 
     /// Get the ISO 8601 year and week number in the stored offset.
@@ -499,7 +618,28 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn hour(self) -> u8 {
-        self.time().hour()
+        let second = self.utc_datetime.second() as i8 + (self.offset.as_seconds() % 60) as i8;
+        let mut minute =
+            self.utc_datetime.minute() as i8 + (self.offset.as_seconds() / 60 % 60) as i8;
+        let mut hour = self.utc_datetime.hour() as i8 + (self.offset.as_seconds() / 3_600) as i8;
+
+        if second >= 60 {
+            minute += 1;
+        } else if second < 0 {
+            minute -= 1;
+        }
+        if minute >= 60 {
+            hour += 1;
+        } else if minute < 0 {
+            hour -= 1;
+        }
+        if hour >= 24 {
+            hour -= 24;
+        } else if hour < 0 {
+            hour += 24;
+        }
+
+        hour as u8
     }
 
     /// Get the minute within the hour in the stored offset.
@@ -520,7 +660,22 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn minute(self) -> u8 {
-        self.time().minute()
+        let second = self.utc_datetime.second() as i8 + (self.offset.as_seconds() % 60) as i8;
+        let mut minute =
+            self.utc_datetime.minute() as i8 + (self.offset.as_seconds() / 60 % 60) as i8;
+
+        if second >= 60 {
+            minute += 1;
+        } else if second < 0 {
+            minute -= 1;
+        }
+        if minute >= 60 {
+            minute -= 60;
+        } else if minute < 0 {
+            minute += 60;
+        }
+
+        minute as u8
     }
 
     /// Get the second within the minute in the stored offset.
@@ -541,7 +696,15 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn second(self) -> u8 {
-        self.time().second()
+        let mut second = self.utc_datetime.second() as i8 + (self.offset.as_seconds() % 60) as i8;
+
+        if second >= 60 {
+            second -= 60;
+        } else if second < 0 {
+            second += 60;
+        }
+
+        second as u8
     }
 
     // Because a `UtcOffset` is limited in resolution to one second, any
