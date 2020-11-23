@@ -206,6 +206,7 @@ impl Duration {
     // used when it's enabled.
     #[allow(clippy::missing_const_for_fn)] // false positive
     #[cfg(feature = "std")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
     pub(crate) fn abs_std(self) -> StdDuration {
         StdDuration::new(self.seconds.abs() as u64, self.nanoseconds.abs() as u32)
     }

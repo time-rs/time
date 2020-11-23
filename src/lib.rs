@@ -230,19 +230,24 @@ pub mod error;
 /// Extension traits.
 pub mod ext;
 #[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 mod format;
 /// The [`Instant`] struct and its associated `impl`s.
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 mod instant;
 /// The [`OffsetDateTime`] struct and its associated `impl`s.
 mod offset_date_time;
 /// The [`PrimitiveDateTime`] struct and its associated `impl`s.
 mod primitive_date_time;
 #[cfg(feature = "quickcheck")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 mod quickcheck;
 #[cfg(feature = "rand")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 mod rand;
 #[cfg(feature = "serde")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "serde")))]
 #[allow(missing_copy_implementations, missing_debug_implementations)]
 pub mod serde;
 /// The [`Time`] struct and its associated `impl`s.
@@ -369,6 +374,7 @@ pub use weekday::Weekday;
 pub type Result<T> = core::result::Result<T, Error>;
 
 #[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 #[allow(clippy::missing_docs_in_private_items)]
 mod private {
     use super::*;

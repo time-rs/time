@@ -58,6 +58,7 @@ impl fmt::Display for ConversionRange {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for ConversionRange {}
 
 impl From<ConversionRange> for Error {
@@ -109,9 +110,11 @@ impl From<ComponentRange> for Error {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for ComponentRange {}
 
 #[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl From<Parse> for Error {
     fn from(original: Parse) -> Self {
         Self::Parse(original)
@@ -129,6 +132,7 @@ impl fmt::Display for IndeterminateOffset {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for IndeterminateOffset {}
 
 impl From<IndeterminateOffset> for Error {
@@ -159,6 +163,7 @@ impl fmt::Display for Format {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for Format {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {

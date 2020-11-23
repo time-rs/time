@@ -903,6 +903,7 @@ impl OffsetDateTime {
 }
 
 #[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl Display for OffsetDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}", self.date(), self.time(), self.offset())
@@ -1013,6 +1014,7 @@ impl Sub<OffsetDateTime> for OffsetDateTime {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl Add<Duration> for SystemTime {
     type Output = Self;
 
@@ -1029,6 +1031,7 @@ impl Add<Duration> for SystemTime {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl AddAssign<Duration> for SystemTime {
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
@@ -1036,6 +1039,7 @@ impl AddAssign<Duration> for SystemTime {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl Sub<Duration> for SystemTime {
     type Output = Self;
 
@@ -1045,6 +1049,7 @@ impl Sub<Duration> for SystemTime {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl SubAssign<Duration> for SystemTime {
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
@@ -1052,6 +1057,7 @@ impl SubAssign<Duration> for SystemTime {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl Sub<SystemTime> for OffsetDateTime {
     type Output = Duration;
 
@@ -1061,6 +1067,7 @@ impl Sub<SystemTime> for OffsetDateTime {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl Sub<OffsetDateTime> for SystemTime {
     type Output = Duration;
 
@@ -1070,6 +1077,7 @@ impl Sub<OffsetDateTime> for SystemTime {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl PartialEq<SystemTime> for OffsetDateTime {
     fn eq(&self, rhs: &SystemTime) -> bool {
         self == &Self::from(*rhs)
@@ -1077,6 +1085,7 @@ impl PartialEq<SystemTime> for OffsetDateTime {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl PartialEq<OffsetDateTime> for SystemTime {
     fn eq(&self, rhs: &OffsetDateTime) -> bool {
         &OffsetDateTime::from(*self) == rhs
@@ -1084,6 +1093,7 @@ impl PartialEq<OffsetDateTime> for SystemTime {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl PartialOrd<SystemTime> for OffsetDateTime {
     fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
         self.partial_cmp(&Self::from(*other))
@@ -1091,6 +1101,7 @@ impl PartialOrd<SystemTime> for OffsetDateTime {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl PartialOrd<OffsetDateTime> for SystemTime {
     fn partial_cmp(&self, other: &OffsetDateTime) -> Option<Ordering> {
         OffsetDateTime::from(*self).partial_cmp(other)
@@ -1098,6 +1109,7 @@ impl PartialOrd<OffsetDateTime> for SystemTime {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl From<SystemTime> for OffsetDateTime {
     fn from(system_time: SystemTime) -> Self {
         match system_time.duration_since(SystemTime::UNIX_EPOCH) {
@@ -1108,6 +1120,7 @@ impl From<SystemTime> for OffsetDateTime {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl From<OffsetDateTime> for SystemTime {
     fn from(datetime: OffsetDateTime) -> Self {
         let duration = datetime - OffsetDateTime::unix_epoch();

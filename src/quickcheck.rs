@@ -65,6 +65,7 @@ impl<T: Ord> Clamp for T {
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Date {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         let year_size = g.size().try_into().unwrap_or(i32::MAX);
@@ -97,6 +98,7 @@ impl Arbitrary for Date {
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Duration {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         let seconds = i64::arbitrary(g);
@@ -130,6 +132,7 @@ impl Arbitrary for Duration {
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Time {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         let hour = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp_(1, 24));
@@ -173,6 +176,7 @@ impl Arbitrary for Time {
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for PrimitiveDateTime {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         Self::new(Date::arbitrary(g), Time::arbitrary(g))
@@ -189,6 +193,7 @@ impl Arbitrary for PrimitiveDateTime {
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for UtcOffset {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         let size = g
@@ -205,6 +210,7 @@ impl Arbitrary for UtcOffset {
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for OffsetDateTime {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         let datetime = PrimitiveDateTime::arbitrary(g);
@@ -227,6 +233,7 @@ impl Arbitrary for OffsetDateTime {
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Weekday {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         use Weekday::*;

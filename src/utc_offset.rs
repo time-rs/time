@@ -341,6 +341,7 @@ impl Display for UtcOffset {
 /// Attempt to obtain the system's UTC offset. If the offset cannot be
 /// determined, `None` is returned.
 #[cfg(feature = "local-offset")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
 #[allow(clippy::too_many_lines, clippy::missing_const_for_fn)]
 fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     #[cfg(target_family = "unix")]
