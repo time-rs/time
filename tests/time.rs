@@ -1,5 +1,5 @@
 #[cfg(feature = "alloc")]
-use time::formatting::parse_format_description;
+use time::format_description;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
     Result, Time,
@@ -171,7 +171,8 @@ fn format() -> time::Result<()> {
 
     for &(format_description, output) in &input_output {
         assert_eq!(
-            time!("13:02:03.456_789_012").format(&parse_format_description(format_description)?)?,
+            time!("13:02:03.456_789_012")
+                .format(&format_description::parse(format_description)?)?,
             output
         );
     }

@@ -349,23 +349,23 @@ impl Time {
     /// Format the `Time` using the provided format description. The formatted
     /// value will be output to the provided writer. The format description will
     /// typically be parsed by using
-    /// [`parse_format_description`](crate::formatting::parse_format_description).
+    /// [`format_description::parse`](crate::format_description::parse()).
     pub fn format_into<'a>(
         self,
         output: &mut dyn core::fmt::Write,
-        description: impl Into<crate::formatting::FormatDescription<'a>>,
-    ) -> Result<(), crate::formatting::error::Error> {
+        description: impl Into<crate::format_description::FormatDescription<'a>>,
+    ) -> Result<(), error::Format> {
         crate::formatting::format::format_into(output, description.into(), None, Some(self), None)
     }
 
     /// Format the `Time` using the provided format description. The format
     /// description will typically be parsed by using
-    /// [`parse_format_description`](crate::formatting::parse_format_description).
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::formatting::parse_format_description;
+    /// # use time::format_description;
     /// # use time_macros::time;
-    /// let format = parse_format_description("[hour]:[minute]:[second]")?;
+    /// let format = format_description::parse("[hour]:[minute]:[second]")?;
     /// assert_eq!(time!("12:00").format(&format)?, "12:00:00");
     /// # Ok::<_, time::Error>(())
     /// ```
@@ -373,8 +373,8 @@ impl Time {
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub fn format<'a>(
         self,
-        description: impl Into<crate::formatting::FormatDescription<'a>>,
-    ) -> Result<String, crate::formatting::error::Error> {
+        description: impl Into<crate::format_description::FormatDescription<'a>>,
+    ) -> Result<String, error::Format> {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
         Ok(s)
@@ -383,7 +383,7 @@ impl Time {
 
 impl Display for Time {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use crate::formatting::{format, modifier, Component, FormatDescription};
+        use crate::format_description::{modifier, Component, FormatDescription};
 
         match self.format_into(
             f,
@@ -407,8 +407,8 @@ impl Display for Time {
             ]),
         ) {
             Ok(()) => Ok(()),
-            Err(format::Error::StdFmt) => Err(core::fmt::Error),
-            Err(format::Error::InsufficientTypeInformation { .. }) => {
+            Err(error::Format::StdFmt) => Err(core::fmt::Error),
+            Err(error::Format::InsufficientTypeInformation { .. }) => {
                 unreachable!("All components used only require a `Time`")
             }
         }

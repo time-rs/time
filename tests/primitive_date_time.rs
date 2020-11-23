@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 #[cfg(feature = "alloc")]
-use time::formatting::parse_format_description;
+use time::format_description;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
     PrimitiveDateTime, Weekday,
@@ -428,7 +428,7 @@ fn format() -> time::Result<()> {
     // Various components are tested thoroughly in their relevant files. As
     // such, this test only exists to ensure that nothing breaks unexpectedly.
     assert_eq!(
-        datetime!("1970-01-01 0:00").format(&parse_format_description(
+        datetime!("1970-01-01 0:00").format(&format_description::parse(
             "[year]-[month repr:numerical]-[day] [hour]:[minute]:[second].[subsecond]"
         )?)?,
         "1970-01-01 00:00:00.0"

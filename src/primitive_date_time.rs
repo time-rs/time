@@ -1,4 +1,4 @@
-use crate::{util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
+use crate::{error, util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
 #[cfg(feature = "alloc")]
 use alloc::string::String;
 use const_fn::const_fn;
@@ -459,12 +459,12 @@ impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided format description.
     /// The formatted value will be output to the provided writer. The format
     /// description will typically be parsed by using
-    /// [`parse_format_description`](crate::formatting::parse_format_description).
+    /// [`format_description::parse`](crate::format_description::parse()).
     pub fn format_into<'a>(
         self,
         output: &mut dyn core::fmt::Write,
-        description: impl Into<crate::formatting::FormatDescription<'a>>,
-    ) -> Result<(), crate::formatting::error::Error> {
+        description: impl Into<crate::format_description::FormatDescription<'a>>,
+    ) -> Result<(), error::Format> {
         crate::formatting::format::format_into(
             output,
             description.into(),
@@ -476,13 +476,13 @@ impl PrimitiveDateTime {
 
     /// Format the `PrimitiveDateTime` using the provided format description.
     /// The format description will typically be parsed by using
-    /// [`parse_format_description`](crate::formatting::parse_format_description).
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::formatting::parse_format_description;
+    /// # use time::format_description;
     /// # use time_macros::datetime;
     /// let format =
-    ///     parse_format_description("[year]-[month repr:numerical]-[day] [hour]:[minute]:[second]")?;
+    ///     format_description::parse("[year]-[month repr:numerical]-[day] [hour]:[minute]:[second]")?;
     /// assert_eq!(
     ///     datetime!("2020-01-02 03:04:05").format(&format)?,
     ///     "2020-01-02 03:04:05"
@@ -493,8 +493,8 @@ impl PrimitiveDateTime {
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub fn format<'a>(
         self,
-        description: impl Into<crate::formatting::FormatDescription<'a>>,
-    ) -> Result<String, crate::formatting::error::Error> {
+        description: impl Into<crate::format_description::FormatDescription<'a>>,
+    ) -> Result<String, error::Format> {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
         Ok(s)

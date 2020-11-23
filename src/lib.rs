@@ -48,6 +48,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(
     anonymous_parameters,
+    broken_intra_doc_links,
     clippy::all,
     const_err,
     illegal_floating_point_literal_pattern,
@@ -160,6 +161,7 @@ mod duration;
 pub mod error;
 /// Extension traits.
 pub mod ext;
+pub mod format_description;
 // TODO visibility checks
 pub mod formatting;
 /// The [`Instant`] struct and its associated `impl`s.

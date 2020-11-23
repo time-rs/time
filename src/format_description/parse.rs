@@ -1,6 +1,6 @@
 //! Parse a format description into a standardized representation.
 
-use crate::formatting::format_description::{
+use crate::format_description::{
     error::InvalidFormatDescription, helper, modifier, Component, FormatDescription,
 };
 use alloc::{borrow::ToOwned, vec::Vec};
@@ -152,10 +152,7 @@ fn parse_item<'a>(
 
 /// Parse a sequence of items from the format description.
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-#[allow(clippy::module_name_repetitions)]
-pub fn parse_format_description(
-    mut s: &str,
-) -> Result<Vec<FormatDescription<'_>>, InvalidFormatDescription> {
+pub fn parse(mut s: &str) -> Result<Vec<FormatDescription<'_>>, InvalidFormatDescription> {
     let mut compound = Vec::new();
     let mut loc = 0;
 

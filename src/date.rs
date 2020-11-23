@@ -685,23 +685,23 @@ impl Date {
     /// Format the `Date` using the provided format description. The formatted
     /// value will be output to the provided writer. The format description will
     /// typically be parsed by using
-    /// [`parse_format_description`](crate::formatting::parse_format_description).
+    /// [`format_description::parse`](crate::format_description::parse()).
     pub fn format_into<'a>(
         self,
         output: &mut dyn core::fmt::Write,
-        description: impl Into<crate::formatting::FormatDescription<'a>>,
-    ) -> Result<(), crate::formatting::error::Error> {
+        description: impl Into<crate::format_description::FormatDescription<'a>>,
+    ) -> Result<(), error::Format> {
         crate::formatting::format::format_into(output, description.into(), Some(self), None, None)
     }
 
     /// Format the `Date` using the provided format description. The format
     /// description will typically be parsed by using
-    /// [`parse_format_description`](crate::formatting::parse_format_description).
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::formatting::parse_format_description;
+    /// # use time::format_description;
     /// # use time_macros::date;
-    /// let format = parse_format_description("[year]-[month repr:numerical]-[day]")?;
+    /// let format = format_description::parse("[year]-[month repr:numerical]-[day]")?;
     /// assert_eq!(date!("2020-01-02").format(&format)?, "2020-01-02");
     /// # Ok::<_, time::Error>(())
     /// ```
@@ -709,8 +709,8 @@ impl Date {
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub fn format<'a>(
         self,
-        description: impl Into<crate::formatting::FormatDescription<'a>>,
-    ) -> Result<String, crate::formatting::error::Error> {
+        description: impl Into<crate::format_description::FormatDescription<'a>>,
+    ) -> Result<String, error::Format> {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
         Ok(s)
@@ -719,7 +719,7 @@ impl Date {
 
 impl Display for Date {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use crate::formatting::{format, modifier, Component, FormatDescription};
+        use crate::format_description::{modifier, Component, FormatDescription};
 
         match self.format_into(
             f,
@@ -742,8 +742,8 @@ impl Display for Date {
             ]),
         ) {
             Ok(()) => Ok(()),
-            Err(format::Error::StdFmt) => Err(core::fmt::Error),
-            Err(format::Error::InsufficientTypeInformation { .. }) => {
+            Err(error::Format::StdFmt) => Err(core::fmt::Error),
+            Err(error::Format::InsufficientTypeInformation { .. }) => {
                 unreachable!("All components used only require a `Date`")
             }
         }

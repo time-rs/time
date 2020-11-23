@@ -1,54 +1,14 @@
 //! Implementation of the formatter for all types in the time crate.
 
 use crate::{
-    formatting::format_description::{
+    error,
+    format_description::{
         modifier::{MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr},
         Component, FormatDescription,
     },
     Weekday,
 };
 use core::fmt;
-
-/// An error returned when formatting.
-#[allow(missing_copy_implementations)]
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Error {
-    /// The type being formatted does not contain sufficient information to
-    /// format a component.
-    #[non_exhaustive]
-    InsufficientTypeInformation,
-    /// A value of `core::fmt::Error` was returned internally.
-    StdFmt,
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::InsufficientTypeInformation { .. } => f.write_str(
-                "The type being formatted does not contain sufficient information to format a \
-                 component.",
-            ),
-            Self::StdFmt => core::fmt::Error.fmt(f),
-        }
-    }
-}
-
-impl From<fmt::Error> for Error {
-    fn from(_: fmt::Error) -> Self {
-        Self::StdFmt
-    }
-}
-
-#[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Self::InsufficientTypeInformation { .. } => None,
-            Self::StdFmt => Some(&core::fmt::Error),
-        }
-    }
-}
 
 /// Using the format description provided, write the formatted value to the
 /// designated output. An `Err` will be returned if the format description
@@ -61,7 +21,7 @@ pub(crate) fn format_into(
     date: Option<crate::Date>,
     time: Option<crate::Time>,
     offset: Option<crate::UtcOffset>,
-) -> Result<(), Error> {
+) -> Result<(), error::Format> {
     match description {
         FormatDescription::Literal(literal) => output.write_str(literal)?,
         FormatDescription::Component(component) => match (date, time, offset, component) {
@@ -257,7 +217,7 @@ pub(crate) fn format_into(
 
                 format_value(output, value, padding, width)?
             }
-            _ => return Err(Error::InsufficientTypeInformation),
+            _ => return Err(error::Format::InsufficientTypeInformation),
         },
         FormatDescription::Compound(descriptions) => {
             for &description in descriptions {

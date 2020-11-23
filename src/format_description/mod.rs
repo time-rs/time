@@ -6,6 +6,10 @@ pub mod modifier;
 pub(crate) mod parse;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
+#[cfg(feature = "alloc")]
+pub use error::InvalidFormatDescription;
+#[cfg(feature = "alloc")]
+pub use parse::parse;
 
 /// Helper methods.
 #[cfg(feature = "alloc")]

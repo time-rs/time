@@ -1,5 +1,5 @@
 #[cfg(feature = "alloc")]
-use time::formatting::parse_format_description;
+use time::format_description;
 #[cfg(all(feature = "local-offset", not(target_family = "unix")))]
 use time::OffsetDateTime;
 use time::{Result, UtcOffset};
@@ -87,27 +87,27 @@ fn utc_is_zero() {
 #[cfg(feature = "alloc")]
 fn format() -> time::Result<()> {
     assert_eq!(
-        offset!("+01:02:03").format(&parse_format_description("[offset_hour sign:automatic]")?)?,
+        offset!("+01:02:03").format(&format_description::parse("[offset_hour sign:automatic]")?)?,
         "01"
     );
     assert_eq!(
-        offset!("+01:02:03").format(&parse_format_description("[offset_hour sign:mandatory]")?)?,
+        offset!("+01:02:03").format(&format_description::parse("[offset_hour sign:mandatory]")?)?,
         "+01"
     );
     assert_eq!(
-        offset!("-01:02:03").format(&parse_format_description("[offset_hour sign:automatic]")?)?,
+        offset!("-01:02:03").format(&format_description::parse("[offset_hour sign:automatic]")?)?,
         "-01"
     );
     assert_eq!(
-        offset!("-01:02:03").format(&parse_format_description("[offset_hour sign:mandatory]")?)?,
+        offset!("-01:02:03").format(&format_description::parse("[offset_hour sign:mandatory]")?)?,
         "-01"
     );
     assert_eq!(
-        offset!("+01:02:03").format(&parse_format_description("[offset_minute]")?)?,
+        offset!("+01:02:03").format(&format_description::parse("[offset_minute]")?)?,
         "02"
     );
     assert_eq!(
-        offset!("+01:02:03").format(&parse_format_description("[offset_second]")?)?,
+        offset!("+01:02:03").format(&format_description::parse("[offset_second]")?)?,
         "03"
     );
 
