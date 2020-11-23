@@ -250,7 +250,7 @@ impl Arbitrary for Weekday {
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
         match self {
-            Weekday::Monday => Box::new(iter::empty()),
+            Self::Monday => Box::new(iter::empty()),
             _ => Box::new(iter::once(self.previous())),
         }
     }

@@ -1,4 +1,4 @@
-#![allow(trivial_numeric_casts)]
+#![allow(trivial_numeric_casts, clippy::use_self)]
 
 use crate::Duration;
 use core::time::Duration as StdDuration;

@@ -24,18 +24,18 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::InsufficientTypeInformation { .. } => f.write_str(
+            Self::InsufficientTypeInformation { .. } => f.write_str(
                 "The type being formatted does not contain sufficient information to format a \
                  component.",
             ),
-            Error::StdFmt => core::fmt::Error.fmt(f),
+            Self::StdFmt => core::fmt::Error.fmt(f),
         }
     }
 }
 
 impl From<fmt::Error> for Error {
     fn from(_: fmt::Error) -> Self {
-        Error::StdFmt
+        Self::StdFmt
     }
 }
 
@@ -44,8 +44,8 @@ impl From<fmt::Error> for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Error::InsufficientTypeInformation { .. } => None,
-            Error::StdFmt => Some(&core::fmt::Error),
+            Self::InsufficientTypeInformation { .. } => None,
+            Self::StdFmt => Some(&core::fmt::Error),
         }
     }
 }

@@ -107,12 +107,12 @@ macro_rules! impl_default {
 }
 
 impl_default! {
-    Padding => Padding::Zero;
-    MonthRepr => MonthRepr::Long;
-    SubsecondDigits => SubsecondDigits::OneOrMore;
-    WeekdayRepr => WeekdayRepr::Long;
-    WeekNumberRepr => WeekNumberRepr::Iso;
-    YearRepr => YearRepr::Full;
+    Padding => Self::Zero;
+    MonthRepr => Self::Long;
+    SubsecondDigits => Self::OneOrMore;
+    WeekdayRepr => Self::Long;
+    WeekNumberRepr => Self::Iso;
+    YearRepr => Self::Full;
 }
 
 /// The modifiers parsed for any given component. `None` indicates the modifier

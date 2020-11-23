@@ -24,12 +24,12 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::ConversionRange => ConversionRange.fmt(f),
-            Error::ComponentRange(e) => e.fmt(f),
-            Error::IndeterminateOffset => IndeterminateOffset.fmt(f),
-            Error::Format(e) => e.fmt(f),
+            Self::ConversionRange => ConversionRange.fmt(f),
+            Self::ComponentRange(e) => e.fmt(f),
+            Self::IndeterminateOffset => IndeterminateOffset.fmt(f),
+            Self::Format(e) => e.fmt(f),
             #[cfg(feature = "alloc")]
-            Error::InvalidFormatDescription(e) => e.fmt(f),
+            Self::InvalidFormatDescription(e) => e.fmt(f),
         }
     }
 }
@@ -39,11 +39,11 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Error::ConversionRange => Some(&ConversionRange),
-            Error::ComponentRange(err) => Some(err),
-            Error::IndeterminateOffset => Some(&IndeterminateOffset),
-            Error::Format(err) => Some(err),
-            Error::InvalidFormatDescription(err) => Some(err),
+            Self::ConversionRange => Some(&ConversionRange),
+            Self::ComponentRange(err) => Some(err),
+            Self::IndeterminateOffset => Some(&IndeterminateOffset),
+            Self::Format(err) => Some(err),
+            Self::InvalidFormatDescription(err) => Some(err),
         }
     }
 }
@@ -139,13 +139,13 @@ impl From<IndeterminateOffset> for Error {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl From<InvalidFormatDescription> for Error {
     fn from(original: InvalidFormatDescription) -> Self {
-        Error::InvalidFormatDescription(original)
+        Self::InvalidFormatDescription(original)
     }
 }
 
 impl From<format::Error> for Error {
     fn from(original: format::Error) -> Self {
-        Error::Format(original)
+        Self::Format(original)
     }
 }
 

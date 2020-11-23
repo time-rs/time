@@ -89,7 +89,6 @@
     clippy::missing_errors_doc,
     clippy::must_use_candidate,
     clippy::redundant_pub_crate,
-    clippy::use_self,
     clippy::wildcard_imports
 )]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
