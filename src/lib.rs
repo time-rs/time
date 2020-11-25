@@ -45,10 +45,10 @@
 //!   Enables [quickcheck](https://docs.rs/quickcheck) support for all types except [`Instant`].
 
 #![cfg_attr(__time_03_docs, feature(doc_cfg))]
+#![cfg_attr(__time_03_docs, deny(broken_intra_doc_links))]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(
     anonymous_parameters,
-    broken_intra_doc_links,
     clippy::all,
     const_err,
     illegal_floating_point_literal_pattern,
