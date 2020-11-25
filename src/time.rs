@@ -3,7 +3,6 @@ use crate::{error, Duration};
 use alloc::string::String;
 use const_fn::const_fn;
 use core::{
-    convert::TryFrom,
     fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
@@ -286,22 +285,24 @@ impl Time {
     }
 
     /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on
-    /// overflow, returning the necessary adjustment to the date value as the
-    /// first element of the tuple.
-    pub(crate) fn adjusting_add(self, duration: Duration) -> (Duration, Self) {
+    /// overflow, returning the necessary whether the date is the following day.
+    #[const_fn("1.46")]
+    pub(crate) const fn adjusting_add(self, duration: Duration) -> (Duration, Self) {
         let mut nanoseconds = self.nanosecond as i32 + duration.subsec_nanoseconds();
         let mut seconds = self.second as i8 + (duration.whole_seconds() % 60) as i8;
         let mut minutes = self.minute as i8 + (duration.whole_minutes() % 60) as i8;
         let mut hours = self.hour as i8 + (duration.whole_hours() % 24) as i8;
         let mut date_adjustment = Duration::zero();
 
-        // Provide a fast path for values that are already valid. The optimizer
-        // is able to eliminate duplicated comparisons, so the added cost of
-        // this is extremely little.
-        if !(0..1_000_000_000).contains(&nanoseconds)
-            || !(0..60).contains(&seconds)
-            || !(0..60).contains(&minutes)
-            || !(0..24).contains(&hours)
+        // Provide a fast path for values that are already valid.
+        if nanoseconds < 0
+            || nanoseconds >= 1_000_000_000
+            || seconds < 0
+            || seconds >= 60
+            || minutes < 0
+            || minutes >= 60
+            || hours < 0
+            || hours >= 24
         {
             if nanoseconds >= 1_000_000_000 {
                 nanoseconds -= 1_000_000_000;
@@ -329,7 +330,7 @@ impl Time {
                 date_adjustment = Duration::day()
             } else if hours < 0 {
                 hours += 24;
-                date_adjustment = -Duration::day()
+                date_adjustment = Duration::days(-1)
             }
         }
 
@@ -340,6 +341,90 @@ impl Time {
                 minute: minutes as u8,
                 second: seconds as u8,
                 nanosecond: nanoseconds as u32,
+            },
+        )
+    }
+
+    /// Add the sub-day time of the [`std::time::Duration`] to the `Time`. Wraps
+    /// on overflow, returning whether the date is the previous date as the
+    /// first element of the tuple.
+    #[const_fn("1.46")]
+    pub(crate) const fn adjusting_add_std(self, duration: StdDuration) -> (bool, Self) {
+        let mut nanosecond = self.nanosecond + duration.subsec_nanos();
+        let mut second = self.second + (duration.as_secs() % 60) as u8;
+        let mut minute = self.minute + ((duration.as_secs() / 60) % 60) as u8;
+        let mut hour = self.hour + ((duration.as_secs() / 3_600) % 24) as u8;
+        let mut is_next_day = false;
+
+        // Provide a fast path for values that are already valid.
+        if nanosecond >= 1_000_000_000 || second >= 60 || minute >= 60 || hour >= 60 {
+            if nanosecond >= 1_000_000_000 {
+                nanosecond -= 1_000_000_000;
+                second += 1;
+            }
+            if second >= 60 {
+                second -= 60;
+                minute += 1;
+            }
+            if minute >= 60 {
+                minute -= 60;
+                hour += 1;
+            }
+            if hour >= 24 {
+                hour -= 24;
+                is_next_day = true;
+            }
+        }
+
+        (
+            is_next_day,
+            Self {
+                hour,
+                minute,
+                second,
+                nanosecond,
+            },
+        )
+    }
+
+    /// Subtract the sub-day time of the [`std::time::Duration`] to the `Time`.
+    /// Wraps on overflow, returning whether the date is the previous date as
+    /// the first element of the tuple.
+    #[const_fn("1.46")]
+    pub(crate) const fn adjusting_sub_std(self, duration: StdDuration) -> (bool, Self) {
+        let mut nanosecond = self.nanosecond as i32 - duration.subsec_nanos() as i32;
+        let mut second = self.second as i8 - (duration.as_secs() % 60) as i8;
+        let mut minute = self.minute as i8 - ((duration.as_secs() / 60) % 60) as i8;
+        let mut hour = self.hour as i8 - ((duration.as_secs() / 3_600) % 24) as i8;
+        let mut is_previous_day = false;
+
+        // Provide a fast path for values that are already valid.
+        if nanosecond < 0 || second < 0 || minute < 0 || hour < 0 {
+            if nanosecond < 0 {
+                nanosecond += 1_000_000_000;
+                second -= 1;
+            }
+            if second < 0 {
+                second += 60;
+                minute -= 1;
+            }
+            if minute < 0 {
+                minute += 60;
+                hour -= 1;
+            }
+            if hour < 0 {
+                hour += 24;
+                is_previous_day = true;
+            }
+        }
+
+        (
+            is_previous_day,
+            Self {
+                hour: hour as u8,
+                minute: minute as u8,
+                second: second as u8,
+                nanosecond: nanosecond as u32,
             },
         )
     }
@@ -445,8 +530,7 @@ impl Add<StdDuration> for Time {
     /// assert_eq!(time!("23:59:59") + 2.std_seconds(), time!("0:00:01"));
     /// ```
     fn add(self, duration: StdDuration) -> Self::Output {
-        self + Duration::try_from(duration)
-            .expect("overflow converting `core::time::Duration` to `time::Duration`")
+        self.adjusting_add_std(duration).1
     }
 }
 
@@ -521,8 +605,7 @@ impl Sub<StdDuration> for Time {
     /// assert_eq!(time!("0:00:01") - 2.std_seconds(), time!("23:59:59"));
     /// ```
     fn sub(self, duration: StdDuration) -> Self::Output {
-        self - Duration::try_from(duration)
-            .expect("overflow converting `core::time::Duration` to `time::Duration`")
+        self.adjusting_sub_std(duration).1
     }
 }
 
