@@ -145,7 +145,12 @@ impl Arbitrary for Time {
                 .unwrap_or(u32::MAX)
                 .clamp_(1, 1_000_000_000),
         );
-        Self::from_hms_nanos_unchecked(hour, minute, second, nanosecond)
+        Self {
+            hour,
+            minute,
+            second,
+            nanosecond,
+        }
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
@@ -154,17 +159,29 @@ impl Arbitrary for Time {
         let second = self.second;
         let nanosecond = self.nanosecond;
 
-        let shrunk_hour = hour
-            .shrink()
-            .map(move |hour| Self::from_hms_nanos_unchecked(hour, minute, second, nanosecond));
-        let shrunk_minute = minute
-            .shrink()
-            .map(move |minute| Self::from_hms_nanos_unchecked(hour, minute, second, nanosecond));
-        let shrunk_second = second
-            .shrink()
-            .map(move |second| Self::from_hms_nanos_unchecked(hour, minute, second, nanosecond));
-        let shrunk_nanos = nanosecond.shrink().map(move |nanosecond| {
-            Self::from_hms_nanos_unchecked(hour, minute, second, nanosecond)
+        let shrunk_hour = self.hour.shrink().map(move |hour| Self {
+            hour,
+            minute,
+            second,
+            nanosecond,
+        });
+        let shrunk_minute = minute.shrink().map(move |minute| Self {
+            hour,
+            minute,
+            second,
+            nanosecond,
+        });
+        let shrunk_second = second.shrink().map(move |second| Self {
+            hour,
+            minute,
+            second,
+            nanosecond,
+        });
+        let shrunk_nanos = nanosecond.shrink().map(move |nanosecond| Self {
+            hour,
+            minute,
+            second,
+            nanosecond,
         });
 
         Box::new(
@@ -202,11 +219,11 @@ impl Arbitrary for UtcOffset {
             .unwrap_or(i32::MAX)
             .clamp_(1, 60 * 60 * 24);
         let offset = g.gen_range(-cmp::max(0, size - 1), size);
-        Self::seconds_unchecked(offset)
+        Self { seconds: offset }
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
-        Box::new(self.as_seconds().shrink().map(Self::seconds_unchecked))
+        Box::new(self.seconds.shrink().map(|seconds| Self { seconds }))
     }
 }
 
@@ -219,8 +236,8 @@ impl Arbitrary for OffsetDateTime {
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
-        let datetime = PrimitiveDateTime::new(self.date(), self.time());
-        let offset = self.offset();
+        let datetime = self.utc_datetime.utc_to_offset(self.offset);
+        let offset = self.offset;
 
         let shrunk_datetime = datetime
             .shrink()

@@ -248,7 +248,7 @@ impl Time {
     /// assert_eq!(time!("23:59:59.999").millisecond(), 999);
     /// ```
     pub const fn millisecond(self) -> u16 {
-        (self.nanosecond() / 1_000_000) as u16
+        (self.nanosecond / 1_000_000) as u16
     }
 
     /// Get the microseconds within the second.
@@ -261,7 +261,7 @@ impl Time {
     /// assert_eq!(time!("23:59:59.999_999").microsecond(), 999_999);
     /// ```
     pub const fn microsecond(self) -> u32 {
-        self.nanosecond() / 1_000
+        self.nanosecond / 1_000
     }
 
     /// Get the nanoseconds within the second.
@@ -279,10 +279,10 @@ impl Time {
 
     /// Get the number of nanoseconds since midnight.
     pub(crate) const fn nanoseconds_since_midnight(self) -> u64 {
-        self.hour() as u64 * 60 * 60 * 1_000_000_000
-            + self.minute() as u64 * 60 * 1_000_000_000
-            + self.second() as u64 * 1_000_000_000
-            + self.nanosecond() as u64
+        self.hour as u64 * 60 * 60 * 1_000_000_000
+            + self.minute as u64 * 60 * 1_000_000_000
+            + self.second as u64 * 1_000_000_000
+            + self.nanosecond as u64
     }
 
     /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on
@@ -335,12 +335,12 @@ impl Time {
 
         (
             date_adjustment,
-            Self::from_hms_nanos_unchecked(
-                hours as u8,
-                minutes as u8,
-                seconds as u8,
-                nanoseconds as u32,
-            ),
+            Self {
+                hour: hours as u8,
+                minute: minutes as u8,
+                second: seconds as u8,
+                nanosecond: nanoseconds as u32,
+            },
         )
     }
 }

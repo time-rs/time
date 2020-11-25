@@ -6,7 +6,7 @@ pub(crate) struct UtcOffset(pub(crate) i32);
 
 impl From<crate::UtcOffset> for UtcOffset {
     fn from(offset: crate::UtcOffset) -> Self {
-        Self(offset.as_seconds())
+        Self(offset.seconds)
     }
 }
 

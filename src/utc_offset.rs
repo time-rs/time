@@ -32,7 +32,7 @@ impl UtcOffset {
     /// # use time_macros::offset;
     /// assert_eq!(UtcOffset::UTC, offset!("UTC"));
     /// ```
-    pub const UTC: Self = Self::seconds_unchecked(0);
+    pub const UTC: Self = Self { seconds: 0 };
 
     /// Create a `UtcOffset` representing an offset by the number of seconds
     /// provided, the validity of which must be guaranteed by the caller.
@@ -55,7 +55,9 @@ impl UtcOffset {
     #[const_fn("1.46")]
     pub const fn east_hours(hours: u8) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(hours in 0 => 23);
-        Ok(Self::seconds_unchecked(hours as i32 * 3_600))
+        Ok(Self {
+            seconds: hours as i32 * 3_600,
+        })
     }
 
     /// Create a `UtcOffset` representing a westerly offset by the number of
@@ -72,7 +74,9 @@ impl UtcOffset {
     #[const_fn("1.46")]
     pub const fn west_hours(hours: u8) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(hours in 0 => 23);
-        Ok(Self::seconds_unchecked(hours as i32 * -3600))
+        Ok(Self {
+            seconds: hours as i32 * -3600,
+        })
     }
 
     /// Create a `UtcOffset` representing an offset by the number of hours
@@ -89,7 +93,9 @@ impl UtcOffset {
     #[const_fn("1.46")]
     pub const fn hours(hours: i8) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(hours in -23 => 23);
-        Ok(Self::seconds_unchecked(hours as i32 * 3_600))
+        Ok(Self {
+            seconds: hours as i32 * 3_600,
+        })
     }
 
     /// Create a `UtcOffset` representing an easterly offset by the number of
@@ -105,7 +111,9 @@ impl UtcOffset {
     #[const_fn("1.46")]
     pub const fn east_minutes(minutes: u16) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(minutes in 0 => 1_439);
-        Ok(Self::seconds_unchecked(minutes as i32 * 60))
+        Ok(Self {
+            seconds: minutes as i32 * 60,
+        })
     }
 
     /// Create a `UtcOffset` representing a westerly offset by the number of
@@ -121,7 +129,9 @@ impl UtcOffset {
     #[const_fn("1.46")]
     pub const fn west_minutes(minutes: u16) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(minutes in 0 => 1_439);
-        Ok(Self::seconds_unchecked(minutes as i32 * -60))
+        Ok(Self {
+            seconds: minutes as i32 * -60,
+        })
     }
 
     /// Create a `UtcOffset` representing a offset by the number of minutes
@@ -138,7 +148,9 @@ impl UtcOffset {
     #[const_fn("1.46")]
     pub const fn minutes(minutes: i16) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(minutes in -1_439 => 1_439);
-        Ok(Self::seconds_unchecked(minutes as i32 * 60))
+        Ok(Self {
+            seconds: minutes as i32 * 60,
+        })
     }
 
     /// Create a `UtcOffset` representing an easterly offset by the number of
@@ -155,7 +167,9 @@ impl UtcOffset {
     #[const_fn("1.46")]
     pub const fn east_seconds(seconds: u32) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(seconds in 0 => 86_399);
-        Ok(Self::seconds_unchecked(seconds as i32))
+        Ok(Self {
+            seconds: seconds as i32,
+        })
     }
 
     /// Create a `UtcOffset` representing a westerly offset by the number of
@@ -172,7 +186,9 @@ impl UtcOffset {
     #[const_fn("1.46")]
     pub const fn west_seconds(seconds: u32) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(seconds in 0 => 86_399);
-        Ok(Self::seconds_unchecked(-(seconds as i32)))
+        Ok(Self {
+            seconds: -(seconds as i32),
+        })
     }
 
     /// Create a `UtcOffset` representing an offset by the number of seconds
@@ -189,7 +205,7 @@ impl UtcOffset {
     #[const_fn("1.46")]
     pub const fn seconds(seconds: i32) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(seconds in -86_399 => 86_399);
-        Ok(Self::seconds_unchecked(seconds))
+        Ok(Self { seconds })
     }
 
     /// Get the number of seconds from UTC the value is. Positive is east,
@@ -217,7 +233,7 @@ impl UtcOffset {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub const fn as_minutes(self) -> i16 {
-        (self.as_seconds() / 60) as i16
+        (self.seconds / 60) as i16
     }
 
     /// Get the number of hours from UTC the value is. Positive is east,
@@ -231,7 +247,7 @@ impl UtcOffset {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub const fn as_hours(self) -> i8 {
-        (self.as_seconds() / 3_600) as i8
+        (self.seconds / 3_600) as i8
     }
 
     /// Attempt to obtain the system's UTC offset at a known moment in time. If

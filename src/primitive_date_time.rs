@@ -3,7 +3,6 @@ use crate::{error, util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekda
 use alloc::string::String;
 use const_fn::const_fn;
 use core::{
-    cmp::Ordering,
     fmt,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
@@ -18,7 +17,7 @@ use core::{
         try_from = "crate::serde::PrimitiveDateTime"
     )
 )]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct PrimitiveDateTime {
     #[allow(clippy::missing_docs_in_private_items)]
     pub(crate) date: Date,
@@ -70,7 +69,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2020-01-01 0:00").year(), 2020);
     /// ```
     pub const fn year(self) -> i32 {
-        self.date().year()
+        self.date.year()
     }
 
     /// Get the month of the date. If fetching both the month and day, it is
@@ -87,7 +86,7 @@ impl PrimitiveDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn month(self) -> u8 {
-        self.date().month()
+        self.date.month()
     }
 
     /// Get the day of the date.  If fetching both the month and day, it is
@@ -104,7 +103,7 @@ impl PrimitiveDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn day(self) -> u8 {
-        self.date().day()
+        self.date.day()
     }
 
     /// Get the month and day of the date. This is more efficient than fetching
@@ -122,7 +121,7 @@ impl PrimitiveDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn month_day(self) -> (u8, u8) {
-        self.date().month_day()
+        self.date.month_day()
     }
 
     /// Get the day of the year.
@@ -136,7 +135,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-12-31 0:00").ordinal(), 365);
     /// ```
     pub const fn ordinal(self) -> u16 {
-        self.date().ordinal()
+        self.date.ordinal()
     }
 
     /// Get the ISO 8601 year and week number.
@@ -153,7 +152,7 @@ impl PrimitiveDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn iso_year_week(self) -> (i32, u8) {
-        self.date().iso_year_week()
+        self.date.iso_year_week()
     }
 
     /// Get the ISO week number.
@@ -172,7 +171,7 @@ impl PrimitiveDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn week(self) -> u8 {
-        self.date().week()
+        self.date.week()
     }
 
     /// Get the week number where week 1 begins on the first Sunday.
@@ -190,7 +189,7 @@ impl PrimitiveDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn sunday_based_week(self) -> u8 {
-        self.date().sunday_based_week()
+        self.date.sunday_based_week()
     }
 
     /// Get the week number where week 1 begins on the first Monday.
@@ -208,7 +207,7 @@ impl PrimitiveDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn monday_based_week(self) -> u8 {
-        self.date().monday_based_week()
+        self.date.monday_based_week()
     }
 
     /// Get the weekday.
@@ -236,7 +235,7 @@ impl PrimitiveDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn weekday(self) -> Weekday {
-        self.date().weekday()
+        self.date.weekday()
     }
 
     /// Get the clock hour.
@@ -249,7 +248,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-01-01 23:59:59").hour(), 23);
     /// ```
     pub const fn hour(self) -> u8 {
-        self.time().hour()
+        self.time.hour
     }
 
     /// Get the minute within the hour.
@@ -262,7 +261,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-01-01 23:59:59").minute(), 59);
     /// ```
     pub const fn minute(self) -> u8 {
-        self.time().minute()
+        self.time.minute
     }
 
     /// Get the second within the minute.
@@ -275,7 +274,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-01-01 23:59:59").second(), 59);
     /// ```
     pub const fn second(self) -> u8 {
-        self.time().second()
+        self.time.second
     }
 
     /// Get the milliseconds within the second.
@@ -288,7 +287,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-01-01 23:59:59.999").millisecond(), 999);
     /// ```
     pub const fn millisecond(self) -> u16 {
-        self.time().millisecond()
+        self.time.millisecond()
     }
 
     /// Get the microseconds within the second.
@@ -304,7 +303,7 @@ impl PrimitiveDateTime {
     /// );
     /// ```
     pub const fn microsecond(self) -> u32 {
-        self.time().microsecond()
+        self.time.microsecond()
     }
 
     /// Get the nanoseconds within the second.
@@ -320,7 +319,7 @@ impl PrimitiveDateTime {
     /// );
     /// ```
     pub const fn nanosecond(self) -> u32 {
-        self.time().nanosecond()
+        self.time.nanosecond
     }
 
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in
@@ -345,7 +344,10 @@ impl PrimitiveDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn assume_offset(self, offset: UtcOffset) -> OffsetDateTime {
-        OffsetDateTime::new(self.offset_to_utc(offset), offset)
+        OffsetDateTime {
+            utc_datetime: self.offset_to_utc(offset),
+            offset,
+        }
     }
 
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in
@@ -359,7 +361,10 @@ impl PrimitiveDateTime {
     /// );
     /// ```
     pub const fn assume_utc(self) -> OffsetDateTime {
-        OffsetDateTime::new(self, UtcOffset::UTC)
+        OffsetDateTime {
+            utc_datetime: self,
+            offset: UtcOffset::UTC,
+        }
     }
 }
 
@@ -400,12 +405,10 @@ impl PrimitiveDateTime {
     /// provided [`UtcOffset`], obtain the equivalent value in the UTC.
     #[const_fn("1.46")]
     pub(crate) const fn offset_to_utc(self, offset: UtcOffset) -> Self {
-        let mut second = self.time.second() as i8 - (offset.as_seconds() % 60) as i8;
-        let mut minute = self.time.minute() as i8 - (offset.as_seconds() / 60 % 60) as i8;
-        let mut hour = self.time.hour() as i8 - (offset.as_seconds() / 3_600) as i8;
-
-        let mut ordinal = self.date.ordinal();
-        let mut year = self.date.year();
+        let mut second = self.second() as i8 - (offset.seconds % 60) as i8;
+        let mut minute = self.minute() as i8 - (offset.seconds / 60 % 60) as i8;
+        let mut hour = self.hour() as i8 - (offset.seconds / 3_600) as i8;
+        let (mut year, mut ordinal) = self.date.as_yo();
 
         if second >= 60 {
             second -= 60;
@@ -436,22 +439,24 @@ impl PrimitiveDateTime {
             ordinal = util::days_in_year(year);
         }
 
-        let date = Date::from_yo_unchecked(year, ordinal);
-        let time = Time::from_hms_nanos_unchecked(
-            hour as u8,
-            minute as u8,
-            second as u8,
-            self.time.nanosecond(),
-        );
-
-        date.with_time(time)
+        Self {
+            date: Date::from_yo_unchecked(year, ordinal),
+            time: Time {
+                hour: hour as u8,
+                minute: minute as u8,
+                second: second as u8,
+                nanosecond: self.nanosecond(),
+            },
+        }
     }
 
     /// Assuming that the current [`PrimitiveDateTime`] is a value in UTC,
     /// obtain the equivalent value in the provided [`UtcOffset`].
     #[const_fn("1.46")]
     pub(crate) const fn utc_to_offset(self, offset: UtcOffset) -> Self {
-        self.offset_to_utc(UtcOffset::seconds_unchecked(-offset.as_seconds()))
+        self.offset_to_utc(UtcOffset {
+            seconds: -offset.seconds,
+        })
     }
 }
 
@@ -468,8 +473,8 @@ impl PrimitiveDateTime {
         crate::formatting::format::format_into(
             output,
             description.into(),
-            Some(self.date()),
-            Some(self.time()),
+            Some(self.date),
+            Some(self.time),
             None,
         )
     }
@@ -503,7 +508,7 @@ impl PrimitiveDateTime {
 
 impl fmt::Display for PrimitiveDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} {}", self.date(), self.time())
+        write!(f, "{} {}", self.date, self.time)
     }
 }
 
@@ -512,7 +517,10 @@ impl Add<Duration> for PrimitiveDateTime {
 
     fn add(self, duration: Duration) -> Self::Output {
         let (date_modifier, time) = self.time.adjusting_add(duration);
-        Self::new(self.date + duration + date_modifier, time)
+        Self {
+            date: self.date + duration + date_modifier,
+            time,
+        }
     }
 }
 
@@ -543,20 +551,23 @@ impl Add<StdDuration> for PrimitiveDateTime {
                 hours += 1;
             }
             if hours >= 24 {
+                hours -= 24;
                 needs_date_adjustment = true;
             }
         }
 
-        if needs_date_adjustment {
-            Self::new(
-                (self.date + duration).next_day(),
-                Time::from_hms_nanos_unchecked(hours - 24, minutes, seconds, nanoseconds),
-            )
-        } else {
-            Self::new(
-                self.date + duration,
-                Time::from_hms_nanos_unchecked(hours, minutes, seconds, nanoseconds),
-            )
+        Self {
+            date: if needs_date_adjustment {
+                (self.date + duration).next_day()
+            } else {
+                self.date + duration
+            },
+            time: Time {
+                hour: hours,
+                minute: minutes,
+                second: seconds,
+                nanosecond: nanoseconds,
+            },
         }
     }
 }
@@ -585,16 +596,14 @@ impl Sub<StdDuration> for PrimitiveDateTime {
     type Output = Self;
 
     fn sub(self, duration: StdDuration) -> Self::Output {
-        let nanos = self.time.nanoseconds_since_midnight() as i64
-            - (duration.as_nanos() % 86_400_000_000_000) as i64;
-
-        let date_modifier = if nanos < 0 {
-            Duration::days(-1)
-        } else {
-            Duration::zero()
-        };
-
-        Self::new(self.date - duration + date_modifier, self.time - duration)
+        Self {
+            date: if self.time < Time::midnight() + duration {
+                (self.date - duration).previous_day()
+            } else {
+                self.date - duration
+            },
+            time: self.time - duration,
+        }
     }
 }
 
@@ -615,19 +624,5 @@ impl Sub<PrimitiveDateTime> for PrimitiveDateTime {
 
     fn sub(self, rhs: Self) -> Self::Output {
         (self.date - rhs.date) + (self.time - rhs.time)
-    }
-}
-
-impl PartialOrd for PrimitiveDateTime {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for PrimitiveDateTime {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.date
-            .cmp(&other.date)
-            .then_with(|| self.time.cmp(&other.time))
     }
 }

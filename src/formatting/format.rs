@@ -37,7 +37,7 @@ pub(crate) fn format_into(
                     is_12_hour_clock,
                 },
             ) => {
-                let value = match (time.hour(), is_12_hour_clock) {
+                let value = match (time.hour, is_12_hour_clock) {
                     (hour, false) => hour,
                     (0, true) | (12, true) => 12,
                     (hour, true) if hour < 12 => hour,
@@ -46,7 +46,7 @@ pub(crate) fn format_into(
                 format_value(output, value, padding, 2)?
             }
             (_, Some(time), _, Component::Minute { padding }) => {
-                format_value(output, time.minute(), padding, 2)?
+                format_value(output, time.minute, padding, 2)?
             }
             (Some(date), _, _, Component::Month { padding, repr }) => {
                 #[allow(clippy::clippy::missing_docs_in_private_items)]
@@ -81,27 +81,24 @@ pub(crate) fn format_into(
                     sign_is_mandatory,
                 },
             ) => {
-                if offset.as_seconds().is_negative() {
+                if offset.seconds.is_negative() {
                     output.write_char('-')?;
                 } else if sign_is_mandatory {
                     output.write_char('+')?;
                 }
-                format_value(output, (offset.as_seconds() / 3_600).abs(), padding, 2)?
+                format_value(output, (offset.seconds / 3_600).abs(), padding, 2)?
             }
-            (_, _, Some(offset), Component::OffsetMinute { padding }) => format_value(
-                output,
-                ((offset.as_seconds() % 3_600) / 60).abs(),
-                padding,
-                2,
-            )?,
+            (_, _, Some(offset), Component::OffsetMinute { padding }) => {
+                format_value(output, ((offset.seconds % 3_600) / 60).abs(), padding, 2)?
+            }
             (_, _, Some(offset), Component::OffsetSecond { padding }) => {
-                format_value(output, (offset.as_seconds() % 60).abs(), padding, 2)?
+                format_value(output, (offset.seconds % 60).abs(), padding, 2)?
             }
             (Some(date), _, _, Component::Ordinal { padding }) => {
                 format_value(output, date.ordinal(), padding, 3)?
             }
             (_, Some(time), _, Component::Period { is_uppercase }) => {
-                match (time.hour() >= 12, is_uppercase) {
+                match (time.hour >= 12, is_uppercase) {
                     (false, false) => output.write_str("am"),
                     (false, true) => output.write_str("AM"),
                     (true, false) => output.write_str("pm"),
@@ -109,20 +106,20 @@ pub(crate) fn format_into(
                 }?
             }
             (_, Some(time), _, Component::Second { padding }) => {
-                format_value(output, time.second(), padding, 2)?
+                format_value(output, time.second, padding, 2)?
             }
             (_, Some(time), _, Component::Subsecond { digits }) => {
                 let (value, width) = match digits {
-                    SubsecondDigits::One => (time.nanosecond() / 100_000_000, 1),
-                    SubsecondDigits::Two => (time.nanosecond() / 10_000_000, 2),
-                    SubsecondDigits::Three => (time.nanosecond() / 1_000_000, 3),
-                    SubsecondDigits::Four => (time.nanosecond() / 100_000, 4),
-                    SubsecondDigits::Five => (time.nanosecond() / 10_000, 5),
-                    SubsecondDigits::Six => (time.nanosecond() / 1_000, 6),
-                    SubsecondDigits::Seven => (time.nanosecond() / 100, 7),
-                    SubsecondDigits::Eight => (time.nanosecond() / 10, 8),
-                    SubsecondDigits::Nine => (time.nanosecond(), 9),
-                    SubsecondDigits::OneOrMore => match time.nanosecond() {
+                    SubsecondDigits::One => (time.nanosecond / 100_000_000, 1),
+                    SubsecondDigits::Two => (time.nanosecond / 10_000_000, 2),
+                    SubsecondDigits::Three => (time.nanosecond / 1_000_000, 3),
+                    SubsecondDigits::Four => (time.nanosecond / 100_000, 4),
+                    SubsecondDigits::Five => (time.nanosecond / 10_000, 5),
+                    SubsecondDigits::Six => (time.nanosecond / 1_000, 6),
+                    SubsecondDigits::Seven => (time.nanosecond / 100, 7),
+                    SubsecondDigits::Eight => (time.nanosecond / 10, 8),
+                    SubsecondDigits::Nine => (time.nanosecond, 9),
+                    SubsecondDigits::OneOrMore => match time.nanosecond {
                         nanos if nanos % 10 != 0 => (nanos, 9),
                         nanos if (nanos / 10) % 10 != 0 => (nanos / 10, 8),
                         nanos if (nanos / 100) % 10 != 0 => (nanos / 100, 7),

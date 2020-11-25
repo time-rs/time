@@ -6,7 +6,7 @@ pub(crate) struct Time(pub(crate) u8, pub(crate) u8, pub(crate) u8, pub(crate) u
 
 impl From<crate::Time> for Time {
     fn from(time: crate::Time) -> Self {
-        Self(time.hour(), time.minute(), time.second(), time.nanosecond())
+        Self(time.hour, time.minute, time.second, time.nanosecond)
     }
 }
 
