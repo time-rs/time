@@ -1,9 +1,11 @@
 //! Parse a format description into a standardized representation.
 
 use crate::format_description::{
-    error::InvalidFormatDescription, helper, modifier, Component, FormatDescription,
+    component::{Component, NakedComponent},
+    error::InvalidFormatDescription,
+    helper, modifier, FormatDescription,
 };
-use alloc::{borrow::ToOwned, vec::Vec};
+use alloc::vec::Vec;
 
 /// The item parsed and remaining chunk of the format description after one
 /// iteration.
@@ -41,73 +43,8 @@ fn parse_component<'a>(
         s = "";
     }
 
-    match component_name {
-        "day" | "hour" | "minute" | "month" | "offset_hour" | "offset_minute" | "offset_second"
-        | "ordinal" | "period" | "second" | "subsecond" | "weekday" | "week_number" | "year" => {}
-        name => {
-            return Err(InvalidFormatDescription::InvalidComponentName {
-                name: name.to_owned(),
-                index: component_index,
-            })
-        }
-    }
-
-    let modifiers = modifier::ParsedModifiers::parse(component_name, s, index)?;
-    Ok(match component_name {
-        "day" => Component::Day {
-            padding: modifiers.padding.unwrap_or_default(),
-        },
-        "hour" => Component::Hour {
-            padding: modifiers.padding.unwrap_or_default(),
-            is_12_hour_clock: modifiers.hour_is_12_hour_clock.unwrap_or_default(),
-        },
-        "minute" => Component::Minute {
-            padding: modifiers.padding.unwrap_or_default(),
-        },
-        "month" => Component::Month {
-            padding: modifiers.padding.unwrap_or_default(),
-            repr: modifiers.month_repr.unwrap_or_default(),
-        },
-        "offset_hour" => Component::OffsetHour {
-            sign_is_mandatory: modifiers.sign_is_mandatory.unwrap_or_default(),
-            padding: modifiers.padding.unwrap_or_default(),
-        },
-        "offset_minute" => Component::OffsetMinute {
-            padding: modifiers.padding.unwrap_or_default(),
-        },
-        "offset_second" => Component::OffsetSecond {
-            padding: modifiers.padding.unwrap_or_default(),
-        },
-        "ordinal" => Component::Ordinal {
-            padding: modifiers.padding.unwrap_or_default(),
-        },
-        "period" => Component::Period {
-            is_uppercase: modifiers.period_is_uppercase.unwrap_or(true),
-        },
-        "second" => Component::Second {
-            padding: modifiers.padding.unwrap_or_default(),
-        },
-        "subsecond" => Component::Subsecond {
-            digits: modifiers.subsecond_digits.unwrap_or_default(),
-        },
-        "weekday" => Component::Weekday {
-            repr: modifiers.weekday_repr.unwrap_or_default(),
-            one_indexed: modifiers.weekday_is_one_indexed.unwrap_or(true),
-        },
-        "week_number" => Component::WeekNumber {
-            padding: modifiers.padding.unwrap_or_default(),
-            repr: modifiers.week_number_repr.unwrap_or_default(),
-        },
-        "year" => Component::Year {
-            padding: modifiers.padding.unwrap_or_default(),
-            repr: modifiers.year_repr.unwrap_or_default(),
-            iso_week_based: modifiers.year_is_iso_week_based.unwrap_or_default(),
-            sign_is_mandatory: modifiers.sign_is_mandatory.unwrap_or_default(),
-        },
-        _ => unreachable!(
-            "All valid component names should be caught in the above `matches!` clause."
-        ),
-    })
+    Ok(NakedComponent::parse(component_name, component_index)?
+        .attach_modifiers(&modifier::Modifiers::parse(component_name, s, index)?))
 }
 
 /// Parse a literal string from the format description.

@@ -119,7 +119,7 @@ impl_default! {
 /// was not present.
 #[allow(clippy::missing_docs_in_private_items)] // fields
 #[derive(Debug, Default)]
-pub(crate) struct ParsedModifiers {
+pub(crate) struct Modifiers {
     pub(crate) padding: Option<Padding>,
     pub(crate) hour_is_12_hour_clock: Option<bool>,
     pub(crate) period_is_uppercase: Option<bool>,
@@ -133,7 +133,7 @@ pub(crate) struct ParsedModifiers {
     pub(crate) sign_is_mandatory: Option<bool>,
 }
 
-impl ParsedModifiers {
+impl Modifiers {
     /// Parse the modifiers of a given component.
     #[cfg(feature = "alloc")]
     #[allow(clippy::too_many_lines)]
