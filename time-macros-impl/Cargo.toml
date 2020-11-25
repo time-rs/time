@@ -1,7 +1,7 @@
 [package]
 name = "time-macros-impl"
 version = "0.2.0-dev"
-authors = ["Jacob Pratt <the.z.cuber@gmail.com>", "Time contributors"]
+authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
 edition = "2018"
 repository = "https://github.com/time-rs/time"
 keywords = ["date", "time", "calendar", "duration"]
