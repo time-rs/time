@@ -76,7 +76,7 @@ impl Date {
                     value: month.to_string(),
                 });
             }
-            let month = month as u8;
+            let month = month as _;
             if day == 0 || day > days_in_year_month(year, month) {
                 return Err(Error::InvalidComponent {
                     name: "day",

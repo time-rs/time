@@ -127,7 +127,7 @@ fn is_leap_year(year: i32) -> bool {
 #[allow(unstable_name_collisions)]
 fn jan_weekday(year: i32, ordinal: i32) -> u8 {
     let adj_year = year - 1;
-    ((ordinal + adj_year + adj_year / 4 - adj_year / 100 + adj_year / 400 + 6).rem_euclid(7)) as u8
+    ((ordinal + adj_year + adj_year / 4 - adj_year / 100 + adj_year / 400 + 6).rem_euclid(7)) as _
 }
 
 pub(crate) fn days_in_year(year: i32) -> u16 {

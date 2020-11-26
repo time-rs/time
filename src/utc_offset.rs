@@ -168,7 +168,7 @@ impl UtcOffset {
     pub const fn east_seconds(seconds: u32) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(seconds in 0 => 86_399);
         Ok(Self {
-            seconds: seconds as i32,
+            seconds: seconds as _,
         })
     }
 
@@ -233,7 +233,7 @@ impl UtcOffset {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub const fn as_minutes(self) -> i16 {
-        (self.seconds / 60) as i16
+        (self.seconds / 60) as _
     }
 
     /// Get the number of hours from UTC the value is. Positive is east,
@@ -247,7 +247,7 @@ impl UtcOffset {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub const fn as_hours(self) -> i8 {
-        (self.seconds / 3_600) as i8
+        (self.seconds / 3_600) as _
     }
 
     /// Attempt to obtain the system's UTC offset at a known moment in time. If
@@ -486,13 +486,13 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         fn offset_to_systemtime(datetime: OffsetDateTime) -> SYSTEMTIME {
             let (month, day_of_month) = datetime.to_offset(UtcOffset::UTC).month_day();
             SYSTEMTIME {
-                wYear: datetime.year() as u16,
-                wMonth: month as u16,
-                wDay: day_of_month as u16,
+                wYear: datetime.year() as _,
+                wMonth: month as _,
+                wDay: day_of_month as _,
                 wDayOfWeek: 0, // ignored
-                wHour: datetime.hour() as u16,
-                wMinute: datetime.minute() as u16,
-                wSecond: datetime.second() as u16,
+                wHour: datetime.hour() as _,
+                wMinute: datetime.minute() as _,
+                wSecond: datetime.second() as _,
                 wMilliseconds: datetime.millisecond(),
             }
         }

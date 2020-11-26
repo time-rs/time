@@ -208,7 +208,7 @@ impl Duration {
     #[cfg(feature = "std")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
     pub(crate) fn abs_std(self) -> StdDuration {
-        StdDuration::new(self.seconds.abs() as u64, self.nanoseconds.abs() as u32)
+        StdDuration::new(self.seconds.abs() as _, self.nanoseconds.abs() as _)
     }
 
     /// Create a new `Duration` with the provided seconds and nanoseconds. If
@@ -374,8 +374,8 @@ impl Duration {
     /// ```
     pub fn seconds_f64(seconds: f64) -> Self {
         Self {
-            seconds: seconds as i64,
-            nanoseconds: ((seconds % 1.) * 1_000_000_000.) as i32,
+            seconds: seconds as _,
+            nanoseconds: ((seconds % 1.) * 1_000_000_000.) as _,
         }
     }
 
@@ -400,8 +400,8 @@ impl Duration {
     /// ```
     pub fn seconds_f32(seconds: f32) -> Self {
         Self {
-            seconds: seconds as i64,
-            nanoseconds: ((seconds % 1.) * 1_000_000_000.) as i32,
+            seconds: seconds as _,
+            nanoseconds: ((seconds % 1.) * 1_000_000_000.) as _,
         }
     }
 
@@ -426,7 +426,7 @@ impl Duration {
     pub const fn milliseconds(milliseconds: i64) -> Self {
         Self {
             seconds: milliseconds / 1_000,
-            nanoseconds: ((milliseconds % 1_000) * 1_000_000) as i32,
+            nanoseconds: ((milliseconds % 1_000) * 1_000_000) as _,
         }
     }
 
@@ -454,7 +454,7 @@ impl Duration {
     /// ```
     // Allow the lint, as the value is guaranteed to be less than 1000.
     pub const fn subsec_milliseconds(self) -> i16 {
-        (self.nanoseconds / 1_000_000) as i16
+        (self.nanoseconds / 1_000_000) as _
     }
 
     /// Create a new `Duration` with the given number of microseconds.
@@ -467,7 +467,7 @@ impl Duration {
     pub const fn microseconds(microseconds: i64) -> Self {
         Self {
             seconds: microseconds / 1_000_000,
-            nanoseconds: ((microseconds % 1_000_000) * 1_000) as i32,
+            nanoseconds: ((microseconds % 1_000_000) * 1_000) as _,
         }
     }
 
@@ -507,7 +507,7 @@ impl Duration {
     pub const fn nanoseconds(nanoseconds: i64) -> Self {
         Self {
             seconds: nanoseconds / 1_000_000_000,
-            nanoseconds: (nanoseconds % 1_000_000_000) as i32,
+            nanoseconds: (nanoseconds % 1_000_000_000) as _,
         }
     }
 
@@ -517,8 +517,8 @@ impl Duration {
     /// only be used where it's known to result in a valid value.
     pub(crate) const fn nanoseconds_i128(nanoseconds: i128) -> Self {
         Self {
-            seconds: (nanoseconds / 1_000_000_000) as i64,
-            nanoseconds: (nanoseconds % 1_000_000_000) as i32,
+            seconds: (nanoseconds / 1_000_000_000) as _,
+            nanoseconds: (nanoseconds % 1_000_000_000) as _,
         }
     }
 
@@ -613,9 +613,9 @@ impl Duration {
         // Multiply nanoseconds as i64, because it cannot overflow that way.
         let total_nanos = self.nanoseconds as i64 * rhs as i64;
         let extra_secs = total_nanos / 1_000_000_000;
-        let nanoseconds = (total_nanos % 1_000_000_000) as i32;
+        let nanoseconds = (total_nanos % 1_000_000_000) as _;
         let seconds = const_try_opt!(
-            const_try_opt!(self.seconds.checked_mul(rhs as i64)).checked_add(extra_secs)
+            const_try_opt!(self.seconds.checked_mul(rhs as _)).checked_add(extra_secs)
         );
 
         Some(Self {
@@ -804,7 +804,7 @@ macro_rules! duration_mul_div_int {
             fn mul(self, rhs: $type) -> Self::Output {
                 Self::nanoseconds_i128(
                     self.whole_nanoseconds()
-                        .checked_mul(rhs as i128)
+                        .checked_mul(rhs as _)
                         .expect("overflow when multiplying duration")
                 )
             }
@@ -951,14 +951,14 @@ impl PartialEq<Duration> for StdDuration {
 
 impl PartialOrd<StdDuration> for Duration {
     fn partial_cmp(&self, rhs: &StdDuration) -> Option<Ordering> {
-        if rhs.as_secs() > i64::max_value() as u64 {
+        if rhs.as_secs() > i64::max_value() as _ {
             return Some(Ordering::Less);
         }
 
         Some(
             self.seconds
-                .cmp(&(rhs.as_secs() as i64))
-                .then_with(|| self.nanoseconds.cmp(&(rhs.subsec_nanos() as i32))),
+                .cmp(&(rhs.as_secs() as _))
+                .then_with(|| self.nanoseconds.cmp(&(rhs.subsec_nanos() as _))),
         )
     }
 }

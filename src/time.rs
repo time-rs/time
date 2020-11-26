@@ -247,7 +247,7 @@ impl Time {
     /// assert_eq!(time!("23:59:59.999").millisecond(), 999);
     /// ```
     pub const fn millisecond(self) -> u16 {
-        (self.nanosecond / 1_000_000) as u16
+        (self.nanosecond / 1_000_000) as _
     }
 
     /// Get the microseconds within the second.
@@ -337,10 +337,10 @@ impl Time {
         (
             date_adjustment,
             Self {
-                hour: hours as u8,
-                minute: minutes as u8,
-                second: seconds as u8,
-                nanosecond: nanoseconds as u32,
+                hour: hours as _,
+                minute: minutes as _,
+                second: seconds as _,
+                nanosecond: nanoseconds as _,
             },
         )
     }
@@ -421,10 +421,10 @@ impl Time {
         (
             is_previous_day,
             Self {
-                hour: hour as u8,
-                minute: minute as u8,
-                second: second as u8,
-                nanosecond: nanosecond as u32,
+                hour: hour as _,
+                minute: minute as _,
+                second: second as _,
+                nanosecond: nanosecond as _,
             },
         )
     }

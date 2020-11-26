@@ -106,9 +106,9 @@ macro_rules! ensure_value_in_range {
         if $value < $start || $value > $end {
             return Err(crate::error::ComponentRange {
                 name: stringify!($value),
-                minimum: $start as i64,
-                maximum: $end as i64,
-                value: $value as i64,
+                minimum: $start as _,
+                maximum: $end as _,
+                value: $value as _,
                 conditional_range: false,
             });
         }
@@ -119,9 +119,9 @@ macro_rules! ensure_value_in_range {
         if $value < $start || $value > $end {
             return Err(crate::error::ComponentRange {
                 name: stringify!($value),
-                minimum: $start as i64,
-                maximum: $end as i64,
-                value: $value as i64,
+                minimum: $start as _,
+                maximum: $end as _,
+                value: $value as _,
                 conditional_range: true,
             });
         }

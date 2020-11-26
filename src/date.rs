@@ -154,9 +154,9 @@ impl Date {
                 let adj_year = year - 1;
                 let rem = (adj_year + adj_year / 4 - adj_year / 100 + adj_year / 400 + 3) % 7;
                 if rem < 0 {
-                    (rem + 11) as u16
+                    (rem + 11) as _
                 } else {
-                    (rem + 4) as u16
+                    (rem + 4) as _
                 }
             });
 
@@ -252,29 +252,29 @@ impl Date {
         let ordinal = self.ordinal();
 
         if ordinal > days[10] {
-            (12, (ordinal - days[10]) as u8)
+            (12, (ordinal - days[10]) as _)
         } else if ordinal > days[9] {
-            (11, (ordinal - days[9]) as u8)
+            (11, (ordinal - days[9]) as _)
         } else if ordinal > days[8] {
-            (10, (ordinal - days[8]) as u8)
+            (10, (ordinal - days[8]) as _)
         } else if ordinal > days[7] {
-            (9, (ordinal - days[7]) as u8)
+            (9, (ordinal - days[7]) as _)
         } else if ordinal > days[6] {
-            (8, (ordinal - days[6]) as u8)
+            (8, (ordinal - days[6]) as _)
         } else if ordinal > days[5] {
-            (7, (ordinal - days[5]) as u8)
+            (7, (ordinal - days[5]) as _)
         } else if ordinal > days[4] {
-            (6, (ordinal - days[4]) as u8)
+            (6, (ordinal - days[4]) as _)
         } else if ordinal > days[3] {
-            (5, (ordinal - days[3]) as u8)
+            (5, (ordinal - days[3]) as _)
         } else if ordinal > days[2] {
-            (4, (ordinal - days[2]) as u8)
+            (4, (ordinal - days[2]) as _)
         } else if ordinal > days[1] {
-            (3, (ordinal - days[1]) as u8)
+            (3, (ordinal - days[1]) as _)
         } else if ordinal > days[0] {
-            (2, (ordinal - days[0]) as u8)
+            (2, (ordinal - days[0]) as _)
         } else {
-            (1, ordinal as u8)
+            (1, ordinal as _)
         }
     }
 
@@ -289,7 +289,7 @@ impl Date {
     /// assert_eq!(date!("2019-12-31").ordinal(), 365);
     /// ```
     pub const fn ordinal(self) -> u16 {
-        (self.value & 0x1FF) as u16
+        (self.value & 0x1FF) as _
     }
 
     /// Get the ISO 8601 year and week number.
@@ -308,7 +308,7 @@ impl Date {
     pub const fn iso_year_week(self) -> (i32, u8) {
         let (year, ordinal) = self.as_yo();
 
-        match ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as u8 {
+        match ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as _ {
             0 => (year - 1, weeks_in_year(year - 1)),
             53 if weeks_in_year(year) == 52 => (year + 1, 1),
             week => (year, week),
@@ -349,7 +349,7 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn sunday_based_week(self) -> u8 {
-        ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as u8
+        ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as _
     }
 
     /// Get the week number where week 1 begins on the first Monday.
@@ -367,7 +367,7 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn monday_based_week(self) -> u8 {
-        ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as u8
+        ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as _
     }
 
     /// Get the year, month, and day.
@@ -528,8 +528,8 @@ impl Date {
         let g = 100 * z - 25;
         let a = g / 3_652_425;
         let b = a - a / 4;
-        let mut year = div_floor(100 * b + g, 36525) as i32;
-        let mut ordinal = (b + z - div_floor(36525 * year as i64, 100)) as u16;
+        let mut year = div_floor(100 * b + g, 36525) as _;
+        let mut ordinal = (b + z - div_floor(36525 * year as i64, 100)) as _;
 
         if year % 4 != 0 {
             ordinal += 59;

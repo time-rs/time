@@ -86,9 +86,9 @@ impl DateTime {
         (
             Date { year, ordinal },
             Time {
-                hour: hour as u8,
-                minute: minute as u8,
-                second: second as u8,
+                hour: hour as _,
+                minute: minute as _,
+                second: second as _,
                 nanosecond: self.time.nanosecond,
             },
         )

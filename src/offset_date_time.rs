@@ -163,9 +163,9 @@ impl OffsetDateTime {
             value => value,
         };
         let time = Time {
-            hour: hour as u8,
-            minute: minute as u8,
-            second: second as u8,
+            hour: hour as _,
+            minute: minute as _,
+            second: second as _,
             nanosecond: 0,
         };
 
@@ -217,10 +217,10 @@ impl OffsetDateTime {
             value => value,
         };
         let time = Time {
-            hour: hour as u8,
-            minute: minute as u8,
-            second: second as u8,
-            nanosecond: nanos as u32,
+            hour: hour as _,
+            minute: minute as _,
+            second: second as _,
+            nanosecond: nanos as _,
         };
 
         Ok(PrimitiveDateTime::new(date, time).assume_utc())
@@ -362,9 +362,9 @@ impl OffsetDateTime {
         }
 
         Time {
-            hour: hour as u8,
-            minute: minute as u8,
-            second: second as u8,
+            hour: hour as _,
+            minute: minute as _,
+            second: second as _,
             nanosecond: self.utc_datetime.nanosecond(),
         }
     }
@@ -621,7 +621,7 @@ impl OffsetDateTime {
             hour += 24;
         }
 
-        hour as u8
+        hour as _
     }
 
     /// Get the minute within the hour in the stored offset.
@@ -656,7 +656,7 @@ impl OffsetDateTime {
             minute += 60;
         }
 
-        minute as u8
+        minute as _
     }
 
     /// Get the second within the minute in the stored offset.
@@ -685,7 +685,7 @@ impl OffsetDateTime {
             second += 60;
         }
 
-        second as u8
+        second as _
     }
 
     // Because a `UtcOffset` is limited in resolution to one second, any
