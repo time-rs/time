@@ -308,13 +308,10 @@ impl Date {
     pub const fn iso_year_week(self) -> (i32, u8) {
         let (year, ordinal) = self.as_yo();
 
-        match (ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7 {
+        match ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as u8 {
             0 => (year - 1, weeks_in_year(year - 1)),
             53 if weeks_in_year(year) == 52 => (year + 1, 1),
-            _ => (
-                year,
-                ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as u8,
-            ),
+            week => (year, week),
         }
     }
 
