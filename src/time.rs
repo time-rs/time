@@ -1,4 +1,4 @@
-use crate::{error, Duration};
+use crate::{error, util::DateAdjustment, Duration};
 #[cfg(feature = "alloc")]
 use alloc::string::String;
 use const_fn::const_fn;
@@ -287,12 +287,12 @@ impl Time {
     /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on
     /// overflow, returning the necessary whether the date is the following day.
     #[const_fn("1.46")]
-    pub(crate) const fn adjusting_add(self, duration: Duration) -> (Duration, Self) {
+    pub(crate) const fn adjusting_add(self, duration: Duration) -> (DateAdjustment, Self) {
         let mut nanoseconds = self.nanosecond as i32 + duration.subsec_nanoseconds();
         let mut seconds = self.second as i8 + (duration.whole_seconds() % 60) as i8;
         let mut minutes = self.minute as i8 + (duration.whole_minutes() % 60) as i8;
         let mut hours = self.hour as i8 + (duration.whole_hours() % 24) as i8;
-        let mut date_adjustment = Duration::zero();
+        let mut date_adjustment = DateAdjustment::None;
 
         // Provide a fast path for values that are already valid.
         if nanoseconds < 0
@@ -327,10 +327,10 @@ impl Time {
             }
             if hours >= 24 {
                 hours -= 24;
-                date_adjustment = Duration::day()
+                date_adjustment = DateAdjustment::Next;
             } else if hours < 0 {
                 hours += 24;
-                date_adjustment = Duration::days(-1)
+                date_adjustment = DateAdjustment::Previous;
             }
         }
 

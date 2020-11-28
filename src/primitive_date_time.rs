@@ -516,9 +516,15 @@ impl Add<Duration> for PrimitiveDateTime {
     type Output = Self;
 
     fn add(self, duration: Duration) -> Self::Output {
-        let (date_modifier, time) = self.time.adjusting_add(duration);
+        let (date_adjustment, time) = self.time.adjusting_add(duration);
+        let date = self.date + duration;
+
         Self {
-            date: self.date + duration + date_modifier,
+            date: match date_adjustment {
+                util::DateAdjustment::Previous => date.previous_day(),
+                util::DateAdjustment::Next => date.next_day(),
+                util::DateAdjustment::None => date,
+            },
             time,
         }
     }

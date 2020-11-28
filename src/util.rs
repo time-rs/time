@@ -2,6 +2,17 @@
 
 use const_fn::const_fn;
 
+/// Whether to adjust the date, and in which direction. Useful when implementing
+/// arithmetic.
+pub(crate) enum DateAdjustment {
+    /// The previous day should be used.
+    Previous,
+    /// The next day should be used.
+    Next,
+    /// The date should be used as-is.
+    None,
+}
+
 /// The number of days in a month in both common and leap years.
 const DAYS_IN_MONTH_COMMON_LEAP: [[u8; 12]; 2] = [
     [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
