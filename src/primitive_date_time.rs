@@ -408,7 +408,7 @@ impl PrimitiveDateTime {
         let mut second = self.second() as i8 - (offset.seconds % 60) as i8;
         let mut minute = self.minute() as i8 - (offset.seconds / 60 % 60) as i8;
         let mut hour = self.hour() as i8 - (offset.seconds / 3_600) as i8;
-        let (mut year, mut ordinal) = self.date.as_yo();
+        let (mut year, mut ordinal) = self.date.to_ordinal_date();
 
         if second >= 60 {
             second -= 60;
@@ -440,7 +440,7 @@ impl PrimitiveDateTime {
         }
 
         Self {
-            date: Date::from_yo_unchecked(year, ordinal),
+            date: Date::from_ordinal_date_unchecked(year, ordinal),
             time: Time {
                 hour: hour as _,
                 minute: minute as _,

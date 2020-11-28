@@ -111,7 +111,9 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn unix_epoch() -> Self {
-        Date::from_yo_unchecked(1970, 1).midnight().assume_utc()
+        Date::from_ordinal_date_unchecked(1970, 1)
+            .midnight()
+            .assume_utc()
     }
 
     /// Create an `OffsetDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
@@ -145,7 +147,7 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn from_unix_timestamp(timestamp: i64) -> Result<Self, error::ComponentRange> {
-        let unix_epoch_julian_date = Date::from_yo_unchecked(1970, 1).julian_day();
+        let unix_epoch_julian_date = Date::from_ordinal_date_unchecked(1970, 1).julian_day();
 
         let whole_days = timestamp / 86_400;
         let date = const_try!(Date::from_julian_day(unix_epoch_julian_date + whole_days));
@@ -191,7 +193,7 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange> {
-        let unix_epoch_julian_date = Date::from_yo_unchecked(1970, 1).julian_day();
+        let unix_epoch_julian_date = Date::from_ordinal_date_unchecked(1970, 1).julian_day();
 
         // Performing the division early lets us use an i64 instead of an i128.
         // This leads to significant performance gains.
@@ -249,7 +251,7 @@ impl OffsetDateTime {
     #[const_fn("1.46")]
     pub const fn unix_timestamp(self) -> i64 {
         let days = (self.utc_datetime.date.julian_day()
-            - Date::from_yo_unchecked(1970, 1).julian_day())
+            - Date::from_ordinal_date_unchecked(1970, 1).julian_day())
             * 86_400;
         let hours = self.utc_datetime.hour() as i64 * 3_600;
         let minutes = self.utc_datetime.minute() as i64 * 60;
@@ -293,7 +295,7 @@ impl OffsetDateTime {
         let second = self.utc_datetime.second() as i8 + (self.offset.seconds % 60) as i8;
         let mut minute = self.utc_datetime.minute() as i8 + (self.offset.seconds / 60 % 60) as i8;
         let mut hour = self.utc_datetime.hour() as i8 + (self.offset.seconds / 3_600) as i8;
-        let (mut year, mut ordinal) = self.utc_datetime.date.as_yo();
+        let (mut year, mut ordinal) = self.utc_datetime.date.to_ordinal_date();
 
         if second >= 60 {
             minute += 1;
@@ -318,7 +320,7 @@ impl OffsetDateTime {
             ordinal = util::days_in_year(year);
         }
 
-        Date::from_yo_unchecked(year, ordinal)
+        Date::from_ordinal_date_unchecked(year, ordinal)
     }
 
     /// Get the [`Time`] in the stored offset.
@@ -389,7 +391,7 @@ impl OffsetDateTime {
         let second = self.utc_datetime.second() as i8 + (self.offset.seconds % 60) as i8;
         let mut minute = self.utc_datetime.minute() as i8 + (self.offset.seconds / 60 % 60) as i8;
         let mut hour = self.utc_datetime.hour() as i8 + (self.offset.seconds / 3_600) as i8;
-        let (mut year, mut ordinal) = self.utc_datetime.date.as_yo();
+        let (mut year, mut ordinal) = self.utc_datetime.date.to_ordinal_date();
 
         if second >= 60 {
             minute += 1;
@@ -503,7 +505,7 @@ impl OffsetDateTime {
         let second = self.utc_datetime.second() as i8 + (self.offset.seconds % 60) as i8;
         let mut minute = self.utc_datetime.minute() as i8 + (self.offset.seconds / 60 % 60) as i8;
         let mut hour = self.utc_datetime.hour() as i8 + (self.offset.seconds / 3_600) as i8;
-        let (year, mut ordinal) = self.utc_datetime.date.as_yo();
+        let (year, mut ordinal) = self.utc_datetime.date.to_ordinal_date();
 
         if second >= 60 {
             minute += 1;

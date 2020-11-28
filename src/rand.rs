@@ -24,8 +24,8 @@ impl Distribution<Time> for Standard {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 impl Distribution<Date> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Date {
-        let min_date = Date::from_yo_unchecked(MIN_YEAR, 1);
-        let max_date = Date::from_yo_unchecked(MAX_YEAR, util::days_in_year(MAX_YEAR));
+        let min_date = Date::from_ordinal_date_unchecked(MIN_YEAR, 1);
+        let max_date = Date::from_ordinal_date_unchecked(MAX_YEAR, util::days_in_year(MAX_YEAR));
 
         match Date::from_julian_day(rng.gen_range(min_date.julian_day(), max_date.julian_day() + 1))
         {

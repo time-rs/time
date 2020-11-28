@@ -64,7 +64,7 @@ impl Date {
     /// Construct a `Date` from the year and ordinal values, the validity of
     /// which must be guaranteed by the caller.
     #[doc(hidden)]
-    pub const fn from_yo_unchecked(year: i32, ordinal: u16) -> Self {
+    pub const fn from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
         Self {
             value: (year << 9) | ordinal as i32,
         }
@@ -74,18 +74,22 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::from_ymd(2019, 1, 1).is_ok());
-    /// assert!(Date::from_ymd(2019, 12, 31).is_ok());
+    /// assert!(Date::from_calendar_date(2019, 1, 1).is_ok());
+    /// assert!(Date::from_calendar_date(2019, 12, 31).is_ok());
     /// ```
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::from_ymd(2019, 2, 29).is_err()); // 2019 isn't a leap year.
+    /// assert!(Date::from_calendar_date(2019, 2, 29).is_err()); // 2019 isn't a leap year.
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn from_ymd(year: i32, month: u8, day: u8) -> Result<Self, error::ComponentRange> {
+    pub const fn from_calendar_date(
+        year: i32,
+        month: u8,
+        day: u8,
+    ) -> Result<Self, error::ComponentRange> {
         /// Cumulative days through the beginning of a month in both common and
         /// leap years.
         const DAYS_CUMULATIVE_COMMON_LEAP: [[u16; 12]; 2] = [
@@ -97,7 +101,7 @@ impl Date {
         ensure_value_in_range!(month in 1 => 12);
         ensure_value_in_range!(day conditionally in 1 => days_in_year_month(year, month));
 
-        Ok(Self::from_yo_unchecked(
+        Ok(Self::from_ordinal_date_unchecked(
             year,
             DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
                 + day as u16,
@@ -108,40 +112,40 @@ impl Date {
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::from_yo(2019, 1).is_ok());
-    /// assert!(Date::from_yo(2019, 365).is_ok());
+    /// assert!(Date::from_ordinal_date(2019, 1).is_ok());
+    /// assert!(Date::from_ordinal_date(2019, 365).is_ok());
     /// ```
     ///
     /// ```rust
     /// # use time::Date;
-    /// assert!(Date::from_yo(2019, 366).is_err()); // 2019 isn't a leap year.
+    /// assert!(Date::from_ordinal_date(2019, 366).is_err()); // 2019 isn't a leap year.
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn from_yo(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
+    pub const fn from_ordinal_date(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(ordinal conditionally in 1 => days_in_year(year));
-        Ok(Self::from_yo_unchecked(year, ordinal))
+        Ok(Self::from_ordinal_date_unchecked(year, ordinal))
     }
 
     /// Attempt to create a `Date` from the ISO year, week, and weekday.
     ///
     /// ```rust
     /// # use time::{Date, Weekday::*};
-    /// assert!(Date::from_iso_ywd(2019, 1, Monday).is_ok());
-    /// assert!(Date::from_iso_ywd(2019, 1, Tuesday).is_ok());
-    /// assert!(Date::from_iso_ywd(2020, 53, Friday).is_ok());
+    /// assert!(Date::from_iso_week_date(2019, 1, Monday).is_ok());
+    /// assert!(Date::from_iso_week_date(2019, 1, Tuesday).is_ok());
+    /// assert!(Date::from_iso_week_date(2020, 53, Friday).is_ok());
     /// ```
     ///
     /// ```rust
     /// # use time::{Date, Weekday::*};
-    /// assert!(Date::from_iso_ywd(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
+    /// assert!(Date::from_iso_week_date(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn from_iso_ywd(
+    pub const fn from_iso_week_date(
         year: i32,
         week: u8,
         weekday: Weekday,
@@ -161,7 +165,7 @@ impl Date {
             });
 
         if overflow || ordinal == 0 {
-            return Ok(Self::from_yo_unchecked(
+            return Ok(Self::from_ordinal_date_unchecked(
                 year - 1,
                 ordinal.wrapping_add(days_in_year(year - 1)),
             ));
@@ -169,12 +173,12 @@ impl Date {
 
         let days_in_cur_year = days_in_year(year);
         if ordinal > days_in_cur_year {
-            Ok(Self::from_yo_unchecked(
+            Ok(Self::from_ordinal_date_unchecked(
                 year + 1,
                 ordinal - days_in_cur_year,
             ))
         } else {
-            Ok(Self::from_yo_unchecked(year, ordinal))
+            Ok(Self::from_ordinal_date_unchecked(year, ordinal))
         }
     }
 
@@ -306,7 +310,7 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn iso_year_week(self) -> (i32, u8) {
-        let (year, ordinal) = self.as_yo();
+        let (year, ordinal) = self.to_ordinal_date();
 
         match ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as _ {
             0 => (year - 1, weeks_in_year(year - 1)),
@@ -374,12 +378,12 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!("2019-01-01").as_ymd(), (2019, 1, 1));
+    /// assert_eq!(date!("2019-01-01").to_calendar_date(), (2019, 1, 1));
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn as_ymd(self) -> (i32, u8, u8) {
+    pub const fn to_calendar_date(self) -> (i32, u8, u8) {
         let (month, day) = self.month_day();
         (self.year(), month, day)
     }
@@ -388,9 +392,9 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!("2019-01-01").as_yo(), (2019, 1));
+    /// assert_eq!(date!("2019-01-01").to_ordinal_date(), (2019, 1));
     /// ```
-    pub const fn as_yo(self) -> (i32, u16) {
+    pub const fn to_ordinal_date(self) -> (i32, u16) {
         (self.year(), self.ordinal())
     }
 
@@ -436,7 +440,7 @@ impl Date {
     /// assert_eq!(date!("2019-12-31").next_day(), date!("2020-01-01"));
     /// ```
     pub fn next_day(self) -> Self {
-        let (mut year, mut ordinal) = self.as_yo();
+        let (mut year, mut ordinal) = self.to_ordinal_date();
 
         ordinal += 1;
 
@@ -449,7 +453,7 @@ impl Date {
             panic!("overflow when fetching next day");
         }
 
-        Self::from_yo_unchecked(year, ordinal)
+        Self::from_ordinal_date_unchecked(year, ordinal)
     }
 
     /// Get the previous calendar date.
@@ -461,7 +465,7 @@ impl Date {
     /// assert_eq!(date!("2020-01-01").previous_day(), date!("2019-12-31"));
     /// ```
     pub fn previous_day(self) -> Self {
-        let (mut year, mut ordinal) = self.as_yo();
+        let (mut year, mut ordinal) = self.to_ordinal_date();
 
         ordinal -= 1;
 
@@ -474,7 +478,7 @@ impl Date {
             panic!("overflow when fetching previous day");
         }
 
-        Self::from_yo_unchecked(year, ordinal)
+        Self::from_ordinal_date_unchecked(year, ordinal)
     }
 
     /// Get the Julian day for the date.
@@ -519,9 +523,11 @@ impl Date {
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
+    #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date"))]
     pub const fn from_julian_day(julian_day: i64) -> Result<Self, error::ComponentRange> {
-        let min_julian_day = Self::from_yo_unchecked(MIN_YEAR, 1).julian_day();
-        let max_julian_day = Self::from_yo_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).julian_day();
+        let min_julian_day = Self::from_ordinal_date_unchecked(MIN_YEAR, 1).julian_day();
+        let max_julian_day =
+            Self::from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).julian_day();
         ensure_value_in_range!(julian_day in min_julian_day => max_julian_day);
 
         let z = julian_day - 1_721_119;
@@ -551,7 +557,7 @@ impl Date {
             }
         }
 
-        Ok(Self::from_yo_unchecked(year, ordinal))
+        Ok(Self::from_ordinal_date_unchecked(year, ordinal))
     }
 }
 

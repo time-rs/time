@@ -35,10 +35,10 @@ setup_benchmark! {
     fn from_iso_ywd(ben: &mut Bencher) {
         use Weekday::*;
         ben.iter(|| (
-            Date::from_iso_ywd(2019, 1, Monday),
-            Date::from_iso_ywd(2019, 1, Tuesday),
-            Date::from_iso_ywd(2020, 53, Friday),
-            Date::from_iso_ywd(2019, 53, Monday),
+            Date::from_iso_week_date(2019, 1, Monday),
+            Date::from_iso_week_date(2019, 1, Tuesday),
+            Date::from_iso_week_date(2020, 53, Friday),
+            Date::from_iso_week_date(2019, 53, Monday),
         ));
     }
 
@@ -67,14 +67,14 @@ setup_benchmark! {
         ben.iter(|| d.week());
     }
 
-    fn as_ymd(ben: &mut Bencher) {
+    fn to_calendar_date(ben: &mut Bencher) {
         let d = date!("2019-01-02");
-        ben.iter(|| d.as_ymd());
+        ben.iter(|| d.to_calendar_date());
     }
 
-    fn as_yo(ben: &mut Bencher) {
+    fn to_ordinal_date(ben: &mut Bencher) {
         let d = date!("2019-01-01");
-        ben.iter(|| d.as_yo());
+        ben.iter(|| d.to_ordinal_date());
     }
 
     fn weekday(ben: &mut Bencher) {

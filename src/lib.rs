@@ -203,9 +203,12 @@ pub mod macros {
     /// ```rust
     /// # use time::{Date, Weekday::*};
     /// # use time_macros::date;
-    /// assert_eq!(date!("2020-W01-3"), Date::from_iso_ywd(2020, 1, Wednesday)?);
-    /// assert_eq!(date!("2020-001"), Date::from_yo(2020, 1)?);
-    /// assert_eq!(date!("2020-01-01"), Date::from_ymd(2020, 1, 1)?);
+    /// assert_eq!(
+    ///     date!("2020-W01-3"),
+    ///     Date::from_iso_week_date(2020, 1, Wednesday)?
+    /// );
+    /// assert_eq!(date!("2020-001"), Date::from_ordinal_date(2020, 1)?);
+    /// assert_eq!(date!("2020-01-01"), Date::from_calendar_date(2020, 1, 1)?);
     /// # Ok::<_, time::Error>(())
     /// ```
     pub use time_macros::date;

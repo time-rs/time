@@ -116,7 +116,7 @@ impl ToTokens for Date {
                 TokenTree::Ident(Ident::new("Date", Span::call_site())),
                 TokenTree::Punct(Punct::new(':', Spacing::Joint)),
                 TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("from_yo_unchecked", Span::call_site())),
+                TokenTree::Ident(Ident::new("from_ordinal_date_unchecked", Span::call_site())),
                 TokenTree::Group(Group::new(
                     Delimiter::Parenthesis,
                     [

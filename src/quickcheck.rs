@@ -81,18 +81,18 @@ impl Arbitrary for Date {
         let ordinal_size = cmp::min(g.size().try_into().unwrap_or(u16::MAX), days_in_year(year));
         let ordinal = g.gen_range(1, cmp::max(2, ordinal_size + 1));
 
-        Self::from_yo_unchecked(year, ordinal)
+        Self::from_ordinal_date_unchecked(year, ordinal)
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
-        let (year, ordinal) = self.as_yo();
+        let (year, ordinal) = self.to_ordinal_date();
 
         let shrunk_year = year
             .shrink()
-            .flat_map(move |year| Self::from_yo(year, ordinal));
+            .flat_map(move |year| Self::from_ordinal_date(year, ordinal));
         let shrunk_ordinal = ordinal
             .shrink()
-            .flat_map(move |ordinal| Self::from_yo(year, ordinal));
+            .flat_map(move |ordinal| Self::from_ordinal_date(year, ordinal));
 
         Box::new(shrunk_year.chain(shrunk_ordinal))
     }

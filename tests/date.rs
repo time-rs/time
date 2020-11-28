@@ -432,10 +432,10 @@ fn test_sunday_based_week() {
 #[test]
 fn from_iso_ywd() {
     use Weekday::*;
-    assert!(Date::from_iso_ywd(2019, 1, Monday).is_ok());
-    assert!(Date::from_iso_ywd(2019, 1, Tuesday).is_ok());
-    assert!(Date::from_iso_ywd(2020, 53, Friday).is_ok());
-    assert!(Date::from_iso_ywd(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
+    assert!(Date::from_iso_week_date(2019, 1, Monday).is_ok());
+    assert!(Date::from_iso_week_date(2019, 1, Tuesday).is_ok());
+    assert!(Date::from_iso_week_date(2020, 53, Friday).is_ok());
+    assert!(Date::from_iso_week_date(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
 }
 
 #[test]
@@ -479,13 +479,13 @@ fn week() {
 }
 
 #[test]
-fn as_ymd() {
-    assert_eq!(date!("2019-01-02").as_ymd(), (2019, 1, 2));
+fn to_calendar_date() {
+    assert_eq!(date!("2019-01-02").to_calendar_date(), (2019, 1, 2));
 }
 
 #[test]
-fn as_yo() {
-    assert_eq!(date!("2019-01-01").as_yo(), (2019, 1));
+fn to_ordinal_date() {
+    assert_eq!(date!("2019-01-01").to_ordinal_date(), (2019, 1));
 }
 
 #[test]

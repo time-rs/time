@@ -30,9 +30,9 @@ Versioning].
 - Renamed
   - `OffsetDatetime::timestamp` → `OffsetDateTime::unix_timestamp`
   - `OffsetDatetime::timestamp_nanos` → `OffsetDateTime::unix_timestamp_nanos`
-  - `Date::try_from_ymd` → `Date::from_ymd`
-  - `Date::try_from_yo` → `Date::from_yo`
-  - `Date::try_from_iso_ywd` → `Date::from_iso_ywd`
+  - `Date::try_from_ymd` → `Date::from_calendar_date`
+  - `Date::try_from_yo` → `Date::from_ordinal_date`
+  - `Date::try_from_iso_ywd` → `Date::from_iso_week_date`
   - `Date::try_with_hms` → `Date::with_hms`
   - `Date::try_with_hms_milli` → `Date::with_hms_milli`
   - `Date::try_with_hms_micro` → `Date::with_hms_micro`

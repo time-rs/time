@@ -2,7 +2,7 @@ use bench_util::setup_benchmark;
 use time::{error, Date, Error};
 
 fn component_range() -> error::ComponentRange {
-    Date::from_yo(0, 367).unwrap_err()
+    Date::from_ordinal_date(0, 367).unwrap_err()
 }
 
 setup_benchmark! {

@@ -88,7 +88,7 @@ macro_rules! test_shrink {
 
 quickcheck! {
     fn date_supports_arbitrary(d: Date) -> bool {
-        Date::from_ymd(d.year(), d.month(), d.day()) == Ok(d)
+        Date::from_calendar_date(d.year(), d.month(), d.day()) == Ok(d)
     }
 }
 test_shrink!(Date, date_can_shrink_year, year().abs());
