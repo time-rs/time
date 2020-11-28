@@ -57,11 +57,6 @@ setup_benchmark! {
         ben.iter(|| d.day());
     }
 
-    fn iso_year_week(ben: &mut Bencher) {
-        let d = date!("2019-01-01");
-        ben.iter(|| d.iso_year_week());
-    }
-
     fn week(ben: &mut Bencher) {
         let d = date!("2019-01-01");
         ben.iter(|| d.week());
@@ -75,6 +70,11 @@ setup_benchmark! {
     fn to_ordinal_date(ben: &mut Bencher) {
         let d = date!("2019-01-01");
         ben.iter(|| d.to_ordinal_date());
+    }
+
+    fn to_iso_week_date(ben: &mut Bencher) {
+        let d = date!("2019-01-01");
+        ben.iter(|| d.to_iso_week_date());
     }
 
     fn weekday(ben: &mut Bencher) {

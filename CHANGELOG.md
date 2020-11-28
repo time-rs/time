@@ -20,11 +20,12 @@ Versioning].
 - `OffsetDateTime::replace_date_time`
 - `OffsetDateTime::replace_offset`
 - `#![no_alloc]` support
+- `Date::to_iso_week_date`, replacing `Date::iso_year_week`
 
 ### Changed
 
 - The minimum supported Rust version is now 1.40.0.
-- Macros are placed behind the `macro` feature flag.
+- Macros are placed behind the `macros` feature flag.
 - All macros now accept strings, rather than unquoted tokens. The syntax
   accepted is otherwise the same as before.
 - Renamed
@@ -33,6 +34,8 @@ Versioning].
   - `Date::try_from_ymd` → `Date::from_calendar_date`
   - `Date::try_from_yo` → `Date::from_ordinal_date`
   - `Date::try_from_iso_ywd` → `Date::from_iso_week_date`
+  - `Date::as_ymd` → `Date::to_calendar_date`
+  - `Date::as_yo` → `Date::to_ordinal_date`
   - `Date::try_with_hms` → `Date::with_hms`
   - `Date::try_with_hms_milli` → `Date::with_hms_milli`
   - `Date::try_with_hms_micro` → `Date::with_hms_micro`
@@ -61,7 +64,7 @@ Versioning].
   - `OffsetDateTime::day`
   - `OffsetDateTime::month_day`
   - `OffsetDateTime::ordinal`
-  - `OffsetDateTime::iso_year_week`
+  - `OffsetDateTime::to_iso_week_date`
   - `OffsetDateTime::week`
   - `OffsetDateTime::weekday`
   - `OffsetDateTime::hour`
@@ -188,6 +191,7 @@ Versioning].
   - `OffsetDateTime::lazy_format`
 - Support for stdweb has been removed, as the crate is unmaintained.
 - The `prelude` module has been removed in its entirety.
+- `Date::iso_year_week`, in favor of `Date::to_iso_week_date`
 
 ## 0.2.22 [2020-09-25]
 

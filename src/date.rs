@@ -297,19 +297,8 @@ impl Date {
     }
 
     /// Get the ISO 8601 year and week number.
-    ///
-    /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!("2019-01-01").iso_year_week(), (2019, 1));
-    /// assert_eq!(date!("2019-10-04").iso_year_week(), (2019, 40));
-    /// assert_eq!(date!("2020-01-01").iso_year_week(), (2020, 1));
-    /// assert_eq!(date!("2020-12-31").iso_year_week(), (2020, 53));
-    /// assert_eq!(date!("2021-01-01").iso_year_week(), (2020, 53));
-    /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn iso_year_week(self) -> (i32, u8) {
+    pub(crate) const fn iso_year_week(self) -> (i32, u8) {
         let (year, ordinal) = self.to_ordinal_date();
 
         match ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as _ {
@@ -396,6 +385,31 @@ impl Date {
     /// ```
     pub const fn to_ordinal_date(self) -> (i32, u16) {
         (self.year(), self.ordinal())
+    }
+
+    /// Get the ISO 8601 year, week number, and weekday.
+    ///
+    /// ```rust
+    /// # use time::Weekday::*;
+    /// # use time_macros::date;
+    /// assert_eq!(date!("2019-01-01").to_iso_week_date(), (2019, 1, Tuesday));
+    /// assert_eq!(date!("2019-10-04").to_iso_week_date(), (2019, 40, Friday));
+    /// assert_eq!(date!("2020-01-01").to_iso_week_date(), (2020, 1, Wednesday));
+    /// assert_eq!(date!("2020-12-31").to_iso_week_date(), (2020, 53, Thursday));
+    /// assert_eq!(date!("2021-01-01").to_iso_week_date(), (2020, 53, Friday));
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn to_iso_week_date(self) -> (i32, u8, Weekday) {
+        let (year, ordinal) = self.to_ordinal_date();
+        let weekday = self.weekday();
+
+        match ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as _ {
+            0 => (year - 1, weeks_in_year(year - 1), weekday),
+            53 if weeks_in_year(year) == 52 => (year + 1, 1, weekday),
+            week => (year, week, weekday),
+        }
     }
 
     /// Get the weekday.

@@ -461,15 +461,6 @@ fn day() {
 }
 
 #[test]
-fn iso_year_week() {
-    assert_eq!(date!("2019-01-01").iso_year_week(), (2019, 1));
-    assert_eq!(date!("2019-10-04").iso_year_week(), (2019, 40));
-    assert_eq!(date!("2020-01-01").iso_year_week(), (2020, 1));
-    assert_eq!(date!("2020-12-31").iso_year_week(), (2020, 53));
-    assert_eq!(date!("2021-01-01").iso_year_week(), (2020, 53));
-}
-
-#[test]
 fn week() {
     assert_eq!(date!("2019-01-01").week(), 1);
     assert_eq!(date!("2019-10-04").week(), 40);
@@ -486,6 +477,16 @@ fn to_calendar_date() {
 #[test]
 fn to_ordinal_date() {
     assert_eq!(date!("2019-01-01").to_ordinal_date(), (2019, 1));
+}
+
+#[test]
+fn to_iso_week_date() {
+    use Weekday::*;
+    assert_eq!(date!("2019-01-01").to_iso_week_date(), (2019, 1, Tuesday));
+    assert_eq!(date!("2019-10-04").to_iso_week_date(), (2019, 40, Friday));
+    assert_eq!(date!("2020-01-01").to_iso_week_date(), (2020, 1, Wednesday));
+    assert_eq!(date!("2020-12-31").to_iso_week_date(), (2020, 53, Thursday));
+    assert_eq!(date!("2021-01-01").to_iso_week_date(), (2020, 53, Friday));
 }
 
 #[test]
