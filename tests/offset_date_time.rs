@@ -166,17 +166,6 @@ fn day() {
 }
 
 #[test]
-fn month_day() {
-    assert_eq!(datetime!("2019-01-01 0:00 UTC").month_day(), (1, 1));
-    assert_eq!(
-        datetime!("2019-12-31 23:00 UTC")
-            .to_offset(offset!("+1"))
-            .month_day(),
-        (1, 1),
-    );
-}
-
-#[test]
 fn ordinal() {
     assert_eq!(datetime!("2019-01-01 0:00 UTC").ordinal(), 1);
     assert_eq!(

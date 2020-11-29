@@ -106,24 +106,6 @@ impl PrimitiveDateTime {
         self.date.day()
     }
 
-    /// Get the month and day of the date. This is more efficient than fetching
-    /// the components individually.
-    ///
-    /// The month component will always be in the range `1..=12`;
-    /// the day component in `1..=31`.
-    ///
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").month_day(), (1, 1));
-    /// assert_eq!(datetime!("2019-12-31 0:00").month_day(), (12, 31));
-    /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn month_day(self) -> (u8, u8) {
-        self.date.month_day()
-    }
-
     /// Get the day of the year.
     ///
     /// The returned value will always be in the range `1..=366` (`1..=365` for

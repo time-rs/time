@@ -45,12 +45,6 @@ fn day() {
 }
 
 #[test]
-fn month_day() {
-    assert_eq!(datetime!("2019-01-01 0:00").month_day(), (1, 1));
-    assert_eq!(datetime!("2019-12-31 0:00").month_day(), (12, 31));
-}
-
-#[test]
 fn ordinal() {
     assert_eq!(datetime!("2019-01-01 0:00").ordinal(), 1);
     assert_eq!(datetime!("2019-12-31 0:00").ordinal(), 365);

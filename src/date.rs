@@ -230,21 +230,10 @@ impl Date {
 
     /// Get the month and day. This is more efficient than fetching the
     /// components individually.
-    ///
-    /// The month component will always be in the range `1..=12`;
-    /// the day component in `1..=31`.
-    ///
-    /// ```rust
-    /// # use time_macros::date;
-    /// assert_eq!(date!("2019-01-01").month_day(), (1, 1));
-    /// assert_eq!(date!("2019-12-31").month_day(), (12, 31));
-    /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
     // For whatever reason, rustc has difficulty optimizing this function. It's
     // significantly faster to write the statements out by hand.
     #[const_fn("1.46")]
-    pub const fn month_day(self) -> (u8, u8) {
+    pub(crate) const fn month_day(self) -> (u8, u8) {
         /// The number of days up to and including the given month. Common years
         /// are first, followed by leap years.
         const CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP: [[u16; 11]; 2] = [

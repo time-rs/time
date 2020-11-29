@@ -462,28 +462,6 @@ impl OffsetDateTime {
         self.date().day()
     }
 
-    /// Get the month and day of the date in the stored offset.
-    ///
-    /// The month component will always be in the range `1..=12`;
-    /// the day component in `1..=31`.
-    ///
-    /// ```rust
-    /// # use time_macros::{datetime, offset};
-    /// assert_eq!(datetime!("2019-01-01 0:00 UTC").month_day(), (1, 1));
-    /// assert_eq!(
-    ///     datetime!("2019-12-31 23:00 UTC")
-    ///         .to_offset(offset!("+1"))
-    ///         .month_day(),
-    ///     (1, 1),
-    /// );
-    /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn month_day(self) -> (u8, u8) {
-        self.date().month_day()
-    }
-
     /// Get the day of the year of the date in the stored offset.
     ///
     /// The returned value will always be in the range `1..=366`.

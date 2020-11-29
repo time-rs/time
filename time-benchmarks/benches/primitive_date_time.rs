@@ -48,15 +48,6 @@ setup_benchmark! {
         ben.iter(|| (a.day(), b.day()));
     }
 
-    fn month_day(ben: &mut Bencher) {
-        let a = datetime!("2019-01-01 0:00");
-        let b = datetime!("2019-12-31 0:00");
-        ben.iter(|| (
-            a.month_day(),
-            b.month_day(),
-        ));
-    }
-
     fn ordinal(ben: &mut Bencher) {
         let a = datetime!("2019-01-01 0:00");
         let b = datetime!("2019-12-31 0:00");
