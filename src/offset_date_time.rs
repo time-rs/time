@@ -526,9 +526,6 @@ impl OffsetDateTime {
 
     /// Get the weekday of the date in the stored offset.
     ///
-    /// This current uses [Zeller's congruence](https://en.wikipedia.org/wiki/Zeller%27s_congruence)
-    /// internally.
-    ///
     /// ```rust
     /// # use time::Weekday::*;
     /// # use time_macros::datetime;
