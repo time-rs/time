@@ -531,23 +531,6 @@ impl OffsetDateTime {
         ordinal
     }
 
-    /// Get the ISO 8601 year and week number in the stored offset.
-    ///
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00 UTC").iso_year_week(), (2019, 1));
-    /// assert_eq!(datetime!("2019-10-04 0:00 UTC").iso_year_week(), (2019, 40));
-    /// assert_eq!(datetime!("2020-01-01 0:00 UTC").iso_year_week(), (2020, 1));
-    /// assert_eq!(datetime!("2020-12-31 0:00 UTC").iso_year_week(), (2020, 53));
-    /// assert_eq!(datetime!("2021-01-01 0:00 UTC").iso_year_week(), (2020, 53));
-    /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn iso_year_week(self) -> (i32, u8) {
-        self.date().iso_year_week()
-    }
-
     /// Get the ISO week number of the date in the stored offset.
     ///
     /// The returned value will always be in the range `1..=53`.
