@@ -99,30 +99,29 @@ setup_benchmark! {
         ));
     }
 
-    // TODO
-    //fn display(ben: &mut Bencher) {
-    //    let a = offset!("UTC");
-    //    let b = offset!("+0:00:01");
-    //    let c = offset!("-0:00:01");
-    //    let d = offset!("+1");
-    //    let e = offset!("-1");
-    //    let f = offset!("+23:59");
-    //    let g = offset!("-23:59");
-    //    let h = offset!("+23:59:59");
-    //    let i = offset!("-23:59:59");
-    //
-    //    ben.iter(|| (
-    //        a.to_string(),
-    //        b.to_string(),
-    //        c.to_string(),
-    //        d.to_string(),
-    //        e.to_string(),
-    //        f.to_string(),
-    //        g.to_string(),
-    //        h.to_string(),
-    //        i.to_string(),
-    //    ));
-    //}
+    fn display(ben: &mut Bencher) {
+        let a = offset!("UTC");
+        let b = offset!("+0:00:01");
+        let c = offset!("-0:00:01");
+        let d = offset!("+1");
+        let e = offset!("-1");
+        let f = offset!("+23:59");
+        let g = offset!("-23:59");
+        let h = offset!("+23:59:59");
+        let i = offset!("-23:59:59");
+
+        ben.iter(|| (
+            a.to_string(),
+            b.to_string(),
+            c.to_string(),
+            d.to_string(),
+            e.to_string(),
+            f.to_string(),
+            g.to_string(),
+            h.to_string(),
+            i.to_string(),
+        ));
+    }
 
     fn local_offset_at(ben: &mut Bencher) {
         let epoch = OffsetDateTime::unix_epoch();

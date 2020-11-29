@@ -157,11 +157,10 @@ setup_benchmark! {
         ben.iter(|| d.with_hms_nano(0, 0, 0, 0));
     }
 
-    // TODO
-    // fn display(ben: &mut Bencher) {
-    //     let d = date!("2019-01-01");
-    //     ben.iter(|| d.to_string());
-    // }
+    fn display(ben: &mut Bencher) {
+        let d = date!("2019-01-01");
+        ben.iter(|| d.to_string());
+    }
 
     fn add(ben: &mut Bencher) {
         let d = date!("2019-01-01");

@@ -393,9 +393,8 @@ setup_benchmark! {
         ));
     }
 
-    // TODO
-    // fn display(ben: &mut Bencher) {
-    //     let a = datetime!("1970-01-01 0:00");
-    //     ben.iter(|| a.to_string());
-    // }
+    fn display(ben: &mut Bencher) {
+        let a = datetime!("1970-01-01 0:00");
+        ben.iter(|| a.to_string());
+    }
 }
