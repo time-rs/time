@@ -21,6 +21,9 @@ Versioning].
 - `OffsetDateTime::replace_offset`
 - `#![no_alloc]` support
 - `Date::to_iso_week_date`, replacing `Date::iso_year_week`
+- `UtcOffset::from_hms`
+- `UtcOffset::as_hms`
+- `UtcOffset::to_seconds`, replacing `UtcOffset::as_seconds`
 
 ### Changed
 
@@ -45,6 +48,7 @@ Versioning].
   - `Time::try_from_hms_micro` → `Time::from_hms_micro`
   - `Time::try_from_hms_nano` → `Time::from_hms_nano`
   - `UtcOffset::try_local_offset_at` → `UtcOffset::local_offset_at`
+  - `UtcOffset::as_seconds` → `UtcOffset::to_seconds`
   - `OffsetDateTime::try_now_local` → `OffsetDateTime::now_local`
   - Macros have been moved to the `macros` module, but are otherwise named the
     same.
@@ -82,15 +86,6 @@ Versioning].
   - `Duration::is_positive`
   - `Duration::is_negative`
   - `Duration::is_zero`
-  - `UtcOffset::east_hours`
-  - `UtcOffset::west_hours`
-  - `UtcOffset::hours`
-  - `UtcOffset::east_minutes`
-  - `UtcOffset::west_minutes`
-  - `UtcOffset::minutes`
-  - `UtcOffset::east_seconds`
-  - `UtcOffset::west_seconds`
-  - `UtcOffset::seconds`
 - Some variants of `Error` no longer contain an inner item. This is because the
   item is already guaranteed to be a zero-sized struct.
 - The following functions now return a `Result`:
@@ -192,6 +187,17 @@ Versioning].
 - Support for stdweb has been removed, as the crate is unmaintained.
 - The `prelude` module has been removed in its entirety.
 - `Date::iso_year_week`, in favor of `Date::to_iso_week_date`
+- `PrimitiveDateTime::iso_year_week`
+- `OffsetDateTime::iso_year_week`
+- `UtcOffset::east_hours`
+- `UtcOffset::west_hours`
+- `UtcOffset::hours`
+- `UtcOffset::east_minutes`
+- `UtcOffset::west_minutes`
+- `UtcOffset::minutes`
+- `UtcOffset::east_seconds`
+- `UtcOffset::west_seconds`
+- `UtcOffset::seconds`
 
 ## 0.2.22 [2020-09-25]
 

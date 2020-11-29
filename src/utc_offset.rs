@@ -12,6 +12,7 @@ use core::fmt::{self, Display};
 /// may have incidental support that can change at any time without notice. If
 /// you need support outside this range, please file an issue with your use
 /// case.
+// All three components _must_ have the same sign.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -19,9 +20,12 @@ use core::fmt::{self, Display};
 )]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct UtcOffset {
-    /// The number of seconds offset from UTC. Positive is east, negative is
-    /// west.
-    pub(crate) seconds: i32,
+    #[allow(clippy::missing_docs_in_private_items)]
+    pub(crate) hours: i8,
+    #[allow(clippy::missing_docs_in_private_items)]
+    pub(crate) minutes: i8,
+    #[allow(clippy::missing_docs_in_private_items)]
+    pub(crate) seconds: i8,
 }
 
 impl UtcOffset {
@@ -32,222 +36,87 @@ impl UtcOffset {
     /// # use time_macros::offset;
     /// assert_eq!(UtcOffset::UTC, offset!("UTC"));
     /// ```
-    pub const UTC: Self = Self { seconds: 0 };
+    pub const UTC: Self = Self {
+        hours: 0,
+        minutes: 0,
+        seconds: 0,
+    };
 
-    /// Create a `UtcOffset` representing an offset by the number of seconds
-    /// provided, the validity of which must be guaranteed by the caller.
+    /// Create a `UtcOffset` representing an offset of the hours, minutes, and
+    /// seconds provided, the validity of which must be guaranteed by the
+    /// caller. All three parameters must have the same sign.
     #[doc(hidden)]
-    pub const fn seconds_unchecked(seconds: i32) -> Self {
-        Self { seconds }
+    pub const fn from_hms_unchecked(hours: i8, minutes: i8, seconds: i8) -> Self {
+        Self {
+            hours,
+            minutes,
+            seconds,
+        }
     }
 
-    /// Create a `UtcOffset` representing an easterly offset by the number of
-    /// hours provided.
+    /// Create a `UtcOffset` representing an offset by the number of hours,
+    /// minutes, and seconds provided.
+    ///
+    /// The sign of all three components should match. If they do not, all
+    /// smaller components will have their signs flipped.
     ///
     /// ```rust
     /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::east_hours(1)?.as_hours(), 1);
-    /// assert_eq!(UtcOffset::east_hours(2)?.as_minutes(), 120);
+    /// assert_eq!(UtcOffset::from_hms(1, 2, 3)?.as_hms(), (1, 2, 3));
+    /// assert_eq!(UtcOffset::from_hms(1, -2, -3)?.as_hms(), (1, 2, 3));
     /// # Ok::<_, time::Error>(())
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn east_hours(hours: u8) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(hours in 0 => 23);
-        Ok(Self {
-            seconds: hours as i32 * 3_600,
-        })
-    }
-
-    /// Create a `UtcOffset` representing a westerly offset by the number of
-    /// hours provided.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::west_hours(1)?.as_hours(), -1);
-    /// assert_eq!(UtcOffset::west_hours(2)?.as_minutes(), -120);
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn west_hours(hours: u8) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(hours in 0 => 23);
-        Ok(Self {
-            seconds: hours as i32 * -3600,
-        })
-    }
-
-    /// Create a `UtcOffset` representing an offset by the number of hours
-    /// provided.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::hours(2)?.as_minutes(), 120);
-    /// assert_eq!(UtcOffset::hours(-2)?.as_minutes(), -120);
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn hours(hours: i8) -> Result<Self, error::ComponentRange> {
+    pub const fn from_hms(
+        hours: i8,
+        mut minutes: i8,
+        mut seconds: i8,
+    ) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(hours in -23 => 23);
-        Ok(Self {
-            seconds: hours as i32 * 3_600,
-        })
+        ensure_value_in_range!(minutes in -59 => 59);
+        ensure_value_in_range!(seconds in -59 => 59);
+
+        if (hours > 0 && minutes < 0) || (hours < 0 && minutes > 0) {
+            minutes *= -1;
+        }
+        if (hours > 0 && seconds < 0)
+            || (hours < 0 && seconds > 0)
+            || (minutes > 0 && seconds < 0)
+            || (minutes < 0 && seconds > 0)
+        {
+            seconds *= -1;
+        }
+
+        Ok(Self::from_hms_unchecked(hours, minutes, seconds))
     }
 
-    /// Create a `UtcOffset` representing an easterly offset by the number of
-    /// minutes provided.
+    /// Obtain the UTC offset as its hours, minutes, and seconds. The sign of
+    /// all three components will always match. A positive value indicates an
+    /// offset to the east; a negative to the west.
     ///
     /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::east_minutes(60)?.as_hours(), 1);
-    /// # Ok::<_, time::Error>(())
+    /// # use time_macros::offset;
+    /// assert_eq!(offset!("+1:02:03").as_hms(), (1, 2, 3));
+    /// assert_eq!(offset!("-1:02:03").as_hms(), (-1, -2, -3));
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn east_minutes(minutes: u16) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(minutes in 0 => 1_439);
-        Ok(Self {
-            seconds: minutes as i32 * 60,
-        })
+    pub const fn as_hms(self) -> (i8, i8, i8) {
+        (self.hours, self.minutes, self.seconds)
     }
 
-    /// Create a `UtcOffset` representing a westerly offset by the number of
-    /// minutes provided.
+    /// Obtain the number of seconds the offset is from UTC. A positive value
+    /// indicates an offset to the east; a negative to the west.
     ///
     /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::west_minutes(60)?.as_hours(), -1);
-    /// # Ok::<_, time::Error>(())
+    /// # use time_macros::offset;
+    /// assert_eq!(offset!("+1:02:03").to_seconds(), 3723);
+    /// assert_eq!(offset!("-1:02:03").to_seconds(), -3723);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn west_minutes(minutes: u16) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(minutes in 0 => 1_439);
-        Ok(Self {
-            seconds: minutes as i32 * -60,
-        })
-    }
-
-    /// Create a `UtcOffset` representing a offset by the number of minutes
-    /// provided.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::minutes(60)?.as_hours(), 1);
-    /// assert_eq!(UtcOffset::minutes(-60)?.as_hours(), -1);
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn minutes(minutes: i16) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(minutes in -1_439 => 1_439);
-        Ok(Self {
-            seconds: minutes as i32 * 60,
-        })
-    }
-
-    /// Create a `UtcOffset` representing an easterly offset by the number of
-    /// seconds provided.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::east_seconds(3_600)?.as_hours(), 1);
-    /// assert_eq!(UtcOffset::east_seconds(1_800)?.as_minutes(), 30);
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn east_seconds(seconds: u32) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(seconds in 0 => 86_399);
-        Ok(Self {
-            seconds: seconds as _,
-        })
-    }
-
-    /// Create a `UtcOffset` representing a westerly offset by the number of
-    /// seconds provided.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::west_seconds(3_600)?.as_hours(), -1);
-    /// assert_eq!(UtcOffset::west_seconds(1_800)?.as_minutes(), -30);
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn west_seconds(seconds: u32) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(seconds in 0 => 86_399);
-        Ok(Self {
-            seconds: -(seconds as i32),
-        })
-    }
-
-    /// Create a `UtcOffset` representing an offset by the number of seconds
-    /// provided.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::seconds(3_600)?.as_hours(), 1);
-    /// assert_eq!(UtcOffset::seconds(-3_600)?.as_hours(), -1);
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn seconds(seconds: i32) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(seconds in -86_399 => 86_399);
-        Ok(Self { seconds })
-    }
-
-    /// Get the number of seconds from UTC the value is. Positive is east,
-    /// negative is west.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::UTC.as_seconds(), 0);
-    /// assert_eq!(UtcOffset::hours(12)?.as_seconds(), 43_200);
-    /// assert_eq!(UtcOffset::hours(-12)?.as_seconds(), -43_200);
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    pub const fn as_seconds(self) -> i32 {
-        self.seconds
-    }
-
-    /// Get the number of minutes from UTC the value is. Positive is east,
-    /// negative is west.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::UTC.as_minutes(), 0);
-    /// assert_eq!(UtcOffset::hours(12)?.as_minutes(), 720);
-    /// assert_eq!(UtcOffset::hours(-12)?.as_minutes(), -720);
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    pub const fn as_minutes(self) -> i16 {
-        (self.seconds / 60) as _
-    }
-
-    /// Get the number of hours from UTC the value is. Positive is east,
-    /// negative is west.
-    ///
-    /// ```rust
-    /// # use time::UtcOffset;
-    /// assert_eq!(UtcOffset::UTC.as_hours(), 0);
-    /// assert_eq!(UtcOffset::hours(12)?.as_hours(), 12);
-    /// assert_eq!(UtcOffset::hours(-12)?.as_hours(), -12);
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    pub const fn as_hours(self) -> i8 {
-        (self.seconds / 3_600) as _
+    // This may be useful for anyone manually implementing arithmetic, as it
+    // would let them construct a `Duration` directly.
+    pub const fn to_seconds(self) -> i32 {
+        self.hours as i32 * 3_600 + self.minutes as i32 * 60 + self.seconds as i32
     }
 
     /// Attempt to obtain the system's UTC offset at a known moment in time. If
@@ -411,7 +280,13 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         // // `tm_gmtoff` extension
         // #[cfg(not(any(target_os = "solaris", target_os = "illumos")))]
         // {
-        //     UtcOffset::seconds(tm.tm_gmtoff.try_into().ok()?).ok()
+        //     let seconds: i32 = tm.tm_gmtoff.try_into().ok()?;
+        //     UtcOffset::from_hms(
+        //         (seconds / 3_600) as _,
+        //         ((seconds / 60) % 60) as _,
+        //         (seconds % 60) as _,
+        //     )
+        //     .ok()
         // }
         //
         // // No `tm_gmtoff` extension
@@ -438,10 +313,12 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         //             .assume_utc()
         //             .unix_timestamp();
         //
-        //     UtcOffset::seconds(
-        //         (local_timestamp - datetime.unix_timestamp())
-        //             .try_into()
-        //             .ok()?,
+        //     let diff_secs: i32 = (local_timestamp - datetime.unix_timestamp()).try_into().ok()?;
+        //
+        //     UtcOffset::from_hms(
+        //         (diff_secs / 3_600) as _,
+        //         ((diff_secs / 60) % 60) as _,
+        //         (diff_secs % 60) as _,
         //     )
         //     .ok()
         // }
@@ -523,9 +400,16 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         let ft_system = systemtime_to_filetime(&systime_utc)?;
         let ft_local = systemtime_to_filetime(&systime_local)?;
 
-        let diff_secs = filetime_to_secs(&ft_local) - filetime_to_secs(&ft_system);
+        let diff_secs: i32 = (filetime_to_secs(&ft_local) - filetime_to_secs(&ft_system))
+            .try_into()
+            .ok()?;
 
-        UtcOffset::seconds(diff_secs.try_into().ok()?).ok()
+        UtcOffset::from_hms(
+            (diff_secs / 3_600) as _,
+            ((diff_secs / 60) % 60) as _,
+            (diff_secs % 60) as _,
+        )
+        .ok()
     }
     #[cfg(not(any(target_family = "unix", target_family = "windows")))]
     {

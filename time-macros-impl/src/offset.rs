@@ -7,13 +7,19 @@ use std::{iter::Peekable, str::Chars};
 
 #[derive(Clone, Copy)]
 pub(crate) struct Offset {
-    pub(crate) seconds: i32,
+    pub(crate) hours: i8,
+    pub(crate) minutes: i8,
+    pub(crate) seconds: i8,
 }
 
 impl Offset {
     pub(crate) fn parse(chars: &mut Peekable<Chars<'_>>) -> Result<Self, Error> {
         if consume_str("utc", chars).is_ok() || consume_str("UTC", chars).is_ok() {
-            return Ok(Self { seconds: 0 });
+            return Ok(Self {
+                hours: 0,
+                minutes: 0,
+                seconds: 0,
+            });
         }
 
         let sign = match chars.next() {
@@ -23,36 +29,38 @@ impl Offset {
             None => return Err(Error::MissingComponent { name: "sign" }),
         };
 
-        let hour = consume_digits::<i32>("hour", chars)?;
-        let mut minute = 0;
-        let mut second = 0;
+        let hours = consume_digits::<i8>("hour", chars)?;
+        let mut minutes = 0;
+        let mut seconds = 0;
 
         if consume_char(':', chars).is_ok() {
-            minute = consume_digits::<i32>("minute", chars)?;
+            minutes = consume_digits::<i8>("minute", chars)?;
 
             if consume_char(':', chars).is_ok() {
-                second = consume_digits::<i32>("second", chars)?;
+                seconds = consume_digits::<i8>("second", chars)?;
             }
         }
 
-        if hour >= 24 {
+        if hours >= 24 {
             Err(Error::InvalidComponent {
                 name: "hour",
-                value: hour.to_string(),
+                value: hours.to_string(),
             })
-        } else if minute >= 60 {
+        } else if minutes >= 60 {
             Err(Error::InvalidComponent {
                 name: "minute",
-                value: minute.to_string(),
+                value: minutes.to_string(),
             })
-        } else if second >= 60 {
+        } else if seconds >= 60 {
             Err(Error::InvalidComponent {
                 name: "second",
-                value: second.to_string(),
+                value: seconds.to_string(),
             })
         } else {
             Ok(Self {
-                seconds: sign * (hour * 3_600 + minute * 60 + second),
+                hours: sign * hours,
+                minutes: sign * minutes,
+                seconds: sign * seconds,
             })
         }
     }
@@ -70,10 +78,19 @@ impl ToTokens for Offset {
                 TokenTree::Ident(Ident::new("UtcOffset", Span::call_site())),
                 TokenTree::Punct(Punct::new(':', Spacing::Joint)),
                 TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("seconds_unchecked", Span::call_site())),
+                TokenTree::Ident(Ident::new("from_hms_unchecked", Span::call_site())),
                 TokenTree::Group(Group::new(
                     Delimiter::Parenthesis,
-                    TokenStream::from(TokenTree::Literal(Literal::i32_unsuffixed(self.seconds))),
+                    [
+                        TokenTree::Literal(Literal::i8_unsuffixed(self.hours)),
+                        TokenTree::Punct(Punct::new(',', Spacing::Alone)),
+                        TokenTree::Literal(Literal::i8_unsuffixed(self.minutes)),
+                        TokenTree::Punct(Punct::new(',', Spacing::Alone)),
+                        TokenTree::Literal(Literal::i8_unsuffixed(self.seconds)),
+                    ]
+                    .iter()
+                    .cloned()
+                    .collect(),
                 )),
             ]
             .iter()

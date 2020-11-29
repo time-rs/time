@@ -238,17 +238,17 @@ pub mod macros {
     /// ```rust
     /// # use time::UtcOffset;
     /// # use time_macros::offset;
-    /// assert_eq!(offset!("UTC"), UtcOffset::hours(0)?);
-    /// assert_eq!(offset!("utc"), UtcOffset::hours(0)?);
-    /// assert_eq!(offset!("+0"), UtcOffset::hours(0)?);
-    /// assert_eq!(offset!("+1"), UtcOffset::hours(1)?);
-    /// assert_eq!(offset!("-1"), UtcOffset::hours(-1)?);
-    /// assert_eq!(offset!("+1:30"), UtcOffset::minutes(90)?);
-    /// assert_eq!(offset!("-1:30"), UtcOffset::minutes(-90)?);
-    /// assert_eq!(offset!("+1:30:59"), UtcOffset::seconds(5459)?);
-    /// assert_eq!(offset!("-1:30:59"), UtcOffset::seconds(-5459)?);
-    /// assert_eq!(offset!("+23:59:59"), UtcOffset::seconds(86_399)?);
-    /// assert_eq!(offset!("-23:59:59"), UtcOffset::seconds(-86_399)?);
+    /// assert_eq!(offset!("UTC"), UtcOffset::from_hms(0, 0, 0)?);
+    /// assert_eq!(offset!("utc"), UtcOffset::from_hms(0, 0, 0)?);
+    /// assert_eq!(offset!("+0"), UtcOffset::from_hms(0, 0, 0)?);
+    /// assert_eq!(offset!("+1"), UtcOffset::from_hms(1, 0, 0)?);
+    /// assert_eq!(offset!("-1"), UtcOffset::from_hms(-1, 0, 0)?);
+    /// assert_eq!(offset!("+1:30"), UtcOffset::from_hms(1, 30, 0)?);
+    /// assert_eq!(offset!("-1:30"), UtcOffset::from_hms(-1, -30, 0)?);
+    /// assert_eq!(offset!("+1:30:59"), UtcOffset::from_hms(1, 30, 59)?);
+    /// assert_eq!(offset!("-1:30:59"), UtcOffset::from_hms(-1, -30, -59)?);
+    /// assert_eq!(offset!("+23:59:59"), UtcOffset::from_hms(23, 59, 59)?);
+    /// assert_eq!(offset!("-23:59:59"), UtcOffset::from_hms(-23, -59, -59)?);
     /// # Ok::<_, time::Error>(())
     /// ```
     pub use time_macros::offset;

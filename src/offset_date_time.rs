@@ -292,9 +292,9 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn date(self) -> Date {
-        let second = self.utc_datetime.second() as i8 + (self.offset.seconds % 60) as i8;
-        let mut minute = self.utc_datetime.minute() as i8 + (self.offset.seconds / 60 % 60) as i8;
-        let mut hour = self.utc_datetime.hour() as i8 + (self.offset.seconds / 3_600) as i8;
+        let second = self.utc_datetime.second() as i8 + self.offset.seconds;
+        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
+        let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
         let (mut year, mut ordinal) = self.utc_datetime.date.to_ordinal_date();
 
         if second >= 60 {
@@ -339,9 +339,9 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn time(self) -> Time {
-        let mut second = self.utc_datetime.second() as i8 + (self.offset.seconds % 60) as i8;
-        let mut minute = self.utc_datetime.minute() as i8 + (self.offset.seconds / 60 % 60) as i8;
-        let mut hour = self.utc_datetime.hour() as i8 + (self.offset.seconds / 3_600) as i8;
+        let mut second = self.utc_datetime.second() as i8 + self.offset.seconds;
+        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
+        let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
 
         if second >= 60 {
             second -= 60;
@@ -388,9 +388,9 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn year(self) -> i32 {
-        let second = self.utc_datetime.second() as i8 + (self.offset.seconds % 60) as i8;
-        let mut minute = self.utc_datetime.minute() as i8 + (self.offset.seconds / 60 % 60) as i8;
-        let mut hour = self.utc_datetime.hour() as i8 + (self.offset.seconds / 3_600) as i8;
+        let second = self.utc_datetime.second() as i8 + self.offset.seconds;
+        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
+        let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
         let (mut year, mut ordinal) = self.utc_datetime.date.to_ordinal_date();
 
         if second >= 60 {
@@ -502,9 +502,9 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn ordinal(self) -> u16 {
-        let second = self.utc_datetime.second() as i8 + (self.offset.seconds % 60) as i8;
-        let mut minute = self.utc_datetime.minute() as i8 + (self.offset.seconds / 60 % 60) as i8;
-        let mut hour = self.utc_datetime.hour() as i8 + (self.offset.seconds / 3_600) as i8;
+        let second = self.utc_datetime.second() as i8 + self.offset.seconds;
+        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
+        let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
         let (year, mut ordinal) = self.utc_datetime.date.to_ordinal_date();
 
         if second >= 60 {
@@ -586,9 +586,9 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn hour(self) -> u8 {
-        let second = self.utc_datetime.second() as i8 + (self.offset.seconds % 60) as i8;
-        let mut minute = self.utc_datetime.minute() as i8 + (self.offset.seconds / 60 % 60) as i8;
-        let mut hour = self.utc_datetime.hour() as i8 + (self.offset.seconds / 3_600) as i8;
+        let second = self.utc_datetime.second() as i8 + self.offset.seconds;
+        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
+        let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
 
         if second >= 60 {
             minute += 1;
@@ -627,8 +627,8 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn minute(self) -> u8 {
-        let second = self.utc_datetime.second() as i8 + (self.offset.seconds % 60) as i8;
-        let mut minute = self.utc_datetime.minute() as i8 + (self.offset.seconds / 60 % 60) as i8;
+        let second = self.utc_datetime.second() as i8 + self.offset.seconds;
+        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
 
         if second >= 60 {
             minute += 1;
@@ -662,7 +662,7 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn second(self) -> u8 {
-        let mut second = self.utc_datetime.second() as i8 + (self.offset.seconds % 60) as i8;
+        let mut second = self.utc_datetime.second() as i8 + self.offset.seconds;
 
         if second >= 60 {
             second -= 60;

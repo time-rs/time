@@ -48,7 +48,7 @@ fn offset_date_time() -> serde_json::Result<()> {
         datetime!("-999_999-001 0:00 UTC").to_offset(offset!("+23:59:59")),
         datetime!("+999_999-365 23:59:59.999_999_999 UTC").to_offset(offset!("-23:59:59")),
     ];
-    let serialized = "[[-999999,1,23,59,59,0,86399],[999999,365,0,0,0,999999999,-86399]]";
+    let serialized = "[[-999999,1,23,59,59,0,23,59,59],[999999,365,0,0,0,999999999,-23,-59,-59]]";
 
     assert_eq!(serde_json::to_string(&original)?, serialized);
     assert_eq!(
@@ -62,7 +62,7 @@ fn offset_date_time() -> serde_json::Result<()> {
 #[test]
 fn utc_offset() -> serde_json::Result<()> {
     let original = [offset!("-23:59:59"), offset!("+23:59:59")];
-    let serialized = "[-86399,86399]";
+    let serialized = "[[-23,-59,-59],[23,59,59]]";
 
     assert_eq!(serde_json::to_string(&original)?, serialized);
     assert_eq!(

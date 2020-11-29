@@ -213,17 +213,32 @@ impl Arbitrary for PrimitiveDateTime {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for UtcOffset {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        let size = g
-            .size()
-            .try_into()
-            .unwrap_or(i32::MAX)
-            .clamp_(1, 60 * 60 * 24);
-        let offset = g.gen_range(-cmp::max(0, size - 1), size);
-        Self { seconds: offset }
+        let total_seconds =
+            g.gen_range(0, g.size().try_into().unwrap_or(i32::MAX).clamp_(1, 86_400));
+
+        let mut hours = total_seconds / 3_600;
+        let mut minutes = (total_seconds / 60) % 60;
+        let mut seconds = total_seconds % 60;
+
+        if g.gen() {
+            hours *= -1;
+            minutes *= -1;
+            seconds *= -1;
+        }
+
+        Self {
+            hours: hours as _,
+            minutes: minutes as _,
+            seconds: seconds as _,
+        }
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
-        Box::new(self.seconds.shrink().map(|seconds| Self { seconds }))
+        Box::new(self.to_seconds().shrink().map(move |total_seconds| Self {
+            hours: (total_seconds / 3_600) as _,
+            minutes: ((total_seconds / 60) % 60) as _,
+            seconds: (total_seconds % 60) as _,
+        }))
     }
 }
 

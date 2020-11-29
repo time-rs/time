@@ -38,8 +38,19 @@ impl Distribution<Date> for Standard {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 impl Distribution<UtcOffset> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> UtcOffset {
+        let hours = rng.gen_range(-23, 24);
+        let mut minutes = rng.gen_range(0, 60);
+        let mut seconds = rng.gen_range(0, 60);
+
+        if hours < 0 {
+            minutes *= 1;
+            seconds *= 1;
+        }
+
         UtcOffset {
-            seconds: rng.gen_range(-86_399, 86_400),
+            hours,
+            minutes,
+            seconds,
         }
     }
 }

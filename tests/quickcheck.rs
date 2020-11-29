@@ -2,7 +2,6 @@
 
 use quickcheck_dep::{quickcheck, Arbitrary, QuickCheck, StdGen, TestResult};
 use rand::{rngs::StdRng, SeedableRng};
-use std::convert::TryFrom;
 use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// Returns a statically seeded generator to ensure tests are deterministic
@@ -215,22 +214,18 @@ fn arbitrary_primitive_date_time_respects_generator_size() {
 
 quickcheck! {
     fn utc_offset_supports_arbitrary(o: UtcOffset) -> bool {
-        let o2 = if o.as_seconds() < 0 {
-            UtcOffset::west_seconds(u32::try_from(o.as_seconds().abs()).unwrap())
-        } else {
-            UtcOffset::east_seconds(u32::try_from(o.as_seconds()).unwrap())
-        };
-        o2 == Ok(o)
+        let (hours, minutes, seconds) = o.as_hms();
+        UtcOffset::from_hms(hours, minutes, seconds) == Ok(o)
     }
 }
-test_shrink!(UtcOffset, utc_offset_can_shrink, as_seconds().abs());
+test_shrink!(UtcOffset, utc_offset_can_shrink, to_seconds().abs());
 
 #[test]
 fn arbitrary_utc_offset_respects_generator_size() {
-    test_generator_size!(UtcOffset, as_seconds().abs(), 0);
-    test_generator_size!(UtcOffset, as_seconds().abs(), 1);
-    test_generator_size!(UtcOffset, as_seconds().abs(), 1_000);
-    test_generator_size!(UtcOffset, as_seconds().abs(), 100_000);
+    test_generator_size!(UtcOffset, to_seconds(), 0);
+    test_generator_size!(UtcOffset, to_seconds(), 1);
+    test_generator_size!(UtcOffset, to_seconds(), 1_000);
+    test_generator_size!(UtcOffset, to_seconds(), 100_000);
 }
 
 quickcheck! {
@@ -241,7 +236,7 @@ quickcheck! {
 test_shrink!(
     OffsetDateTime,
     offset_date_time_can_shrink_offset,
-    offset().as_seconds().abs()
+    offset().to_seconds().abs()
 );
 test_shrink!(
     OffsetDateTime,
@@ -286,10 +281,10 @@ fn arbitrary_offset_date_time_respects_generator_size() {
     test_generator_size!(OffsetDateTime, nanosecond(), 1_000_000);
     test_generator_size!(OffsetDateTime, nanosecond(), 1_000_000_000);
 
-    test_generator_size!(OffsetDateTime, offset().as_seconds().abs(), 0);
-    test_generator_size!(OffsetDateTime, offset().as_seconds().abs(), 1);
-    test_generator_size!(OffsetDateTime, offset().as_seconds().abs(), 1000);
-    test_generator_size!(OffsetDateTime, offset().as_seconds().abs(), 100_000);
+    test_generator_size!(OffsetDateTime, offset().to_seconds().abs(), 0);
+    test_generator_size!(OffsetDateTime, offset().to_seconds().abs(), 1);
+    test_generator_size!(OffsetDateTime, offset().to_seconds().abs(), 1000);
+    test_generator_size!(OffsetDateTime, offset().to_seconds().abs(), 100_000);
 }
 
 quickcheck! {

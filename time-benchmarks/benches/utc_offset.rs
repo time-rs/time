@@ -4,98 +4,65 @@ use time::{macros::offset, OffsetDateTime, UtcOffset};
 setup_benchmark! {
     "UtcOffset",
 
-    fn hours(ben: &mut Bencher) {
+    fn from_hms(ben: &mut Bencher) {
         ben.iter(|| (
-            UtcOffset::hours(1),
-            UtcOffset::hours(-1),
-            UtcOffset::hours(23),
-            UtcOffset::hours(-23),
+            UtcOffset::from_hms(0, 0, 0),
+            UtcOffset::from_hms(0, 0, 1),
+            UtcOffset::from_hms(0, 0, -1),
+            UtcOffset::from_hms(1, 0, 0),
+            UtcOffset::from_hms(-1, 0, 0),
+            UtcOffset::from_hms(23, 59, 0),
+            UtcOffset::from_hms(-23, -59, 0),
+            UtcOffset::from_hms(23, 59, 59),
+            UtcOffset::from_hms(-23, -59, -59),
         ));
     }
 
-    fn directional_hours(ben: &mut Bencher) {
+    fn as_hms(ben: &mut Bencher) {
+        let a = offset!("UTC");
+        let b = offset!("+0:00:01");
+        let c = offset!("-0:00:01");
+        let d = offset!("+1");
+        let e = offset!("-1");
+        let f = offset!("+23:59");
+        let g = offset!("-23:59");
+        let h = offset!("+23:59:59");
+        let i = offset!("-23:59:59");
+
         ben.iter(|| (
-            UtcOffset::east_hours(1),
-            UtcOffset::west_hours(1),
+            a.as_hms(),
+            b.as_hms(),
+            c.as_hms(),
+            d.as_hms(),
+            e.as_hms(),
+            f.as_hms(),
+            g.as_hms(),
+            h.as_hms(),
+            i.as_hms(),
         ));
     }
 
-    fn minutes(ben: &mut Bencher) {
-        ben.iter(|| (
-            UtcOffset::minutes(1),
-            UtcOffset::minutes(-1),
-            UtcOffset::minutes(1_439),
-            UtcOffset::minutes(-1_439),
-        ));
-    }
+    fn to_seconds(ben: &mut Bencher) {
+        let a = offset!("UTC");
+        let b = offset!("+0:00:01");
+        let c = offset!("-0:00:01");
+        let d = offset!("+1");
+        let e = offset!("-1");
+        let f = offset!("+23:59");
+        let g = offset!("-23:59");
+        let h = offset!("+23:59:59");
+        let i = offset!("-23:59:59");
 
-    fn directional_minutes(ben: &mut Bencher) {
         ben.iter(|| (
-            UtcOffset::east_minutes(1),
-            UtcOffset::west_minutes(1),
-        ));
-    }
-
-    fn seconds(ben: &mut Bencher) {
-        ben.iter(|| (
-            UtcOffset::seconds(1),
-            UtcOffset::seconds(-1),
-            UtcOffset::seconds(86_399),
-            UtcOffset::seconds(-86_399),
-        ));
-    }
-
-    fn directional_seconds(ben: &mut Bencher) {
-        ben.iter(|| (
-            UtcOffset::east_seconds(1),
-            UtcOffset::west_seconds(1),
-        ));
-    }
-
-    fn as_hours(ben: &mut Bencher) {
-        let a = offset!("+1");
-        let b = offset!("+0:59");
-        let c = offset!("-1");
-        let d = offset!("-0:59");
-        ben.iter(|| (
-            a.as_hours(),
-            b.as_hours(),
-            c.as_hours(),
-            d.as_hours(),
-        ));
-    }
-
-    fn as_minutes(ben: &mut Bencher) {
-        let a = offset!("+1");
-        let b = offset!("+0:01");
-        let c = offset!("+0:00:59");
-        let d = offset!("-1");
-        let e = offset!("-0:01");
-        let f = offset!("-0:00:59");
-        ben.iter(|| (
-            a.as_minutes(),
-            b.as_minutes(),
-            c.as_minutes(),
-            d.as_minutes(),
-            e.as_minutes(),
-            f.as_minutes(),
-        ));
-    }
-
-    fn as_seconds(ben: &mut Bencher) {
-        let a = offset!("+1");
-        let b = offset!("+0:01");
-        let c = offset!("+0:00:01");
-        let d = offset!("-1");
-        let e = offset!("-0:01");
-        let f = offset!("-0:00:01");
-        ben.iter(|| (
-            a.as_seconds(),
-            b.as_seconds(),
-            c.as_seconds(),
-            d.as_seconds(),
-            e.as_seconds(),
-            f.as_seconds(),
+            a.to_seconds(),
+            b.to_seconds(),
+            c.to_seconds(),
+            d.to_seconds(),
+            e.to_seconds(),
+            f.to_seconds(),
+            g.to_seconds(),
+            h.to_seconds(),
+            i.to_seconds(),
         ));
     }
 

@@ -388,9 +388,9 @@ impl PrimitiveDateTime {
     /// provided [`UtcOffset`], obtain the equivalent value in the UTC.
     #[const_fn("1.46")]
     pub(crate) const fn offset_to_utc(self, offset: UtcOffset) -> Self {
-        let mut second = self.second() as i8 - (offset.seconds % 60) as i8;
-        let mut minute = self.minute() as i8 - (offset.seconds / 60 % 60) as i8;
-        let mut hour = self.hour() as i8 - (offset.seconds / 3_600) as i8;
+        let mut second = self.second() as i8 - offset.seconds;
+        let mut minute = self.minute() as i8 - offset.minutes;
+        let mut hour = self.hour() as i8 - offset.hours;
         let (mut year, mut ordinal) = self.date.to_ordinal_date();
 
         if second >= 60 {
@@ -437,9 +437,11 @@ impl PrimitiveDateTime {
     /// obtain the equivalent value in the provided [`UtcOffset`].
     #[const_fn("1.46")]
     pub(crate) const fn utc_to_offset(self, offset: UtcOffset) -> Self {
-        self.offset_to_utc(UtcOffset {
-            seconds: -offset.seconds,
-        })
+        self.offset_to_utc(UtcOffset::from_hms_unchecked(
+            -offset.hours,
+            -offset.minutes,
+            -offset.seconds,
+        ))
     }
 }
 

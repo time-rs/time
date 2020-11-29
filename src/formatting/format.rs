@@ -81,18 +81,18 @@ pub(crate) fn format_into(
                     sign_is_mandatory,
                 },
             ) => {
-                if offset.seconds.is_negative() {
+                if offset.hours < 0 || offset.minutes < 0 || offset.seconds < 0 {
                     output.write_char('-')?;
                 } else if sign_is_mandatory {
                     output.write_char('+')?;
                 }
-                format_value(output, (offset.seconds / 3_600).abs(), padding, 2)?
+                format_value(output, offset.hours.abs(), padding, 2)?
             }
             (_, _, Some(offset), Component::OffsetMinute { padding }) => {
-                format_value(output, ((offset.seconds % 3_600) / 60).abs(), padding, 2)?
+                format_value(output, offset.minutes.abs(), padding, 2)?
             }
             (_, _, Some(offset), Component::OffsetSecond { padding }) => {
-                format_value(output, (offset.seconds % 60).abs(), padding, 2)?
+                format_value(output, offset.seconds.abs(), padding, 2)?
             }
             (Some(date), _, _, Component::Ordinal { padding }) => {
                 format_value(output, date.ordinal(), padding, 3)?

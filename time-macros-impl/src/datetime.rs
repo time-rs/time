@@ -47,9 +47,9 @@ impl DateTime {
             None => return (self.date, self.time),
         };
 
-        let mut second = self.time.second as i8 - (offset.seconds % 60) as i8;
-        let mut minute = self.time.minute as i8 - (offset.seconds / 60 % 60) as i8;
-        let mut hour = self.time.hour as i8 - (offset.seconds / 3_600) as i8;
+        let mut second = self.time.second as i8 - offset.seconds;
+        let mut minute = self.time.minute as i8 - offset.minutes;
+        let mut hour = self.time.hour as i8 - offset.hours;
 
         let mut ordinal = self.date.ordinal;
         let mut year = self.date.year;
