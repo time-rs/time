@@ -23,7 +23,6 @@ Versioning].
 - `Date::to_iso_week_date`, replacing `Date::iso_year_week`
 - `UtcOffset::from_hms`
 - `UtcOffset::as_hms`
-- `UtcOffset::to_seconds`, replacing `UtcOffset::as_seconds`
 
 ### Changed
 
@@ -69,7 +68,6 @@ Versioning].
   - `OffsetDateTime::year`
   - `OffsetDateTime::month`
   - `OffsetDateTime::day`
-  - `OffsetDateTime::month_day`
   - `OffsetDateTime::ordinal`
   - `OffsetDateTime::to_iso_week_date`
   - `OffsetDateTime::week`
@@ -92,20 +90,9 @@ Versioning].
 - Some variants of `Error` no longer contain an inner item. This is because the
   item is already guaranteed to be a zero-sized struct.
 - The following functions now return a `Result`:
-  - `UtcOffset::east_hours`
-  - `UtcOffset::west_hours`
-  - `UtcOffset::hours`
-  - `UtcOffset::east_minutes`
-  - `UtcOffset::west_minutes`
-  - `UtcOffset::minutes`
-  - `UtcOffset::east_seconds`
-  - `UtcOffset::west_seconds`
-  - `UtcOffset::seconds`
   - `Date::from_julian_day`
   - `OffsetDateTime::from_unix_timestamp`
   - `OffsetDateTime::from_unix_timestamp_nanos`
-- Formatting strings must be provided as `&str`. As it is trivial to take a
-  reference to a `String`, this shouldn't be an issue.
 - The range of valid years has been increased to ±999,999.
 - The following are now gated under the `local-offset` feature:
   - `UtcOffset::local_offset_at`
