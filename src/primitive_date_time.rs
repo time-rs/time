@@ -72,8 +72,7 @@ impl PrimitiveDateTime {
         self.date.year()
     }
 
-    /// Get the month of the date. If fetching both the month and day, it is
-    /// more efficient to use [`PrimitiveDateTime::month_day`].
+    /// Get the month of the date.
     ///
     /// The returned value will always be in the range `1..=12`.
     ///
@@ -89,8 +88,7 @@ impl PrimitiveDateTime {
         self.date.month()
     }
 
-    /// Get the day of the date.  If fetching both the month and day, it is
-    /// more efficient to use [`PrimitiveDateTime::month_day`].
+    /// Get the day of the date.
     ///
     /// The returned value will always be in the range `1..=31`.
     ///
@@ -126,17 +124,17 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time_macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").week(), 1);
-    /// assert_eq!(datetime!("2019-10-04 0:00").week(), 40);
-    /// assert_eq!(datetime!("2020-01-01 0:00").week(), 1);
-    /// assert_eq!(datetime!("2020-12-31 0:00").week(), 53);
-    /// assert_eq!(datetime!("2021-01-01 0:00").week(), 53);
+    /// assert_eq!(datetime!("2019-01-01 0:00").iso_week(), 1);
+    /// assert_eq!(datetime!("2019-10-04 0:00").iso_week(), 40);
+    /// assert_eq!(datetime!("2020-01-01 0:00").iso_week(), 1);
+    /// assert_eq!(datetime!("2020-12-31 0:00").iso_week(), 53);
+    /// assert_eq!(datetime!("2021-01-01 0:00").iso_week(), 53);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn week(self) -> u8 {
-        self.date.week()
+    pub const fn iso_week(self) -> u8 {
+        self.date.iso_week()
     }
 
     /// Get the week number where week 1 begins on the first Sunday.

@@ -50,6 +50,9 @@ Versioning].
   - `UtcOffset::try_local_offset_at` → `UtcOffset::local_offset_at`
   - `UtcOffset::as_seconds` → `UtcOffset::to_seconds`
   - `OffsetDateTime::try_now_local` → `OffsetDateTime::now_local`
+  - `Date::week` → `Date::iso_week`
+  - `PrimitiveDateTime::week` → `PrimitiveDateTime::iso_week`
+  - `OffsetDateTime::week` → `OffsetDateTime::iso_week`
   - Macros have been moved to the `macros` module, but are otherwise named the
     same.
 - Now `const fn` (on at least newer compilers)
@@ -198,6 +201,9 @@ Versioning].
 - `UtcOffset::east_seconds`
 - `UtcOffset::west_seconds`
 - `UtcOffset::seconds`
+- `Date::month_day`
+- `PrimitiveDateTime::month_day`
+- `OffsetDateTime::month_day`
 
 ## 0.2.22 [2020-09-25]
 

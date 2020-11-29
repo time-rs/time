@@ -168,7 +168,7 @@ pub(crate) fn format_into(
             (Some(date), _, _, Component::WeekNumber { padding, repr }) => format_value(
                 output,
                 match repr {
-                    WeekNumberRepr::Iso => date.week(),
+                    WeekNumberRepr::Iso => date.iso_week(),
                     WeekNumberRepr::Sunday => date.sunday_based_week(),
                     WeekNumberRepr::Monday => date.monday_based_week(),
                 },

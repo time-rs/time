@@ -177,11 +177,11 @@ fn ordinal() {
 }
 
 #[test]
-fn week() {
-    assert_eq!(datetime!("2019-01-01 0:00 UTC").week(), 1);
-    assert_eq!(datetime!("2020-01-01 0:00 UTC").week(), 1);
-    assert_eq!(datetime!("2020-12-31 0:00 UTC").week(), 53);
-    assert_eq!(datetime!("2021-01-01 0:00 UTC").week(), 53);
+fn iso_week() {
+    assert_eq!(datetime!("2019-01-01 0:00 UTC").iso_week(), 1);
+    assert_eq!(datetime!("2020-01-01 0:00 UTC").iso_week(), 1);
+    assert_eq!(datetime!("2020-12-31 0:00 UTC").iso_week(), 53);
+    assert_eq!(datetime!("2021-01-01 0:00 UTC").iso_week(), 53);
 }
 
 #[test]

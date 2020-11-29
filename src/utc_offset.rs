@@ -361,7 +361,8 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
         /// Convert an [`OffsetDateTime`] to a `SYSTEMTIME`.
         fn offset_to_systemtime(datetime: OffsetDateTime) -> SYSTEMTIME {
-            let (month, day_of_month) = datetime.to_offset(UtcOffset::UTC).month_day();
+            let (_, month, day_of_month) =
+                datetime.to_offset(UtcOffset::UTC).date().to_calendar_date();
             SYSTEMTIME {
                 wYear: datetime.year() as _,
                 wMonth: month as _,

@@ -120,16 +120,16 @@ setup_benchmark! {
         ben.iter(|| (a.ordinal(), b.ordinal()));
     }
 
-    fn week(ben: &mut Bencher) {
+    fn iso_week(ben: &mut Bencher) {
         let a = datetime!("2019-01-01 0:00 UTC");
         let b = datetime!("2020-01-01 0:00 UTC");
         let c = datetime!("2020-12-31 0:00 UTC");
         let d = datetime!("2021-01-01 0:00 UTC");
         ben.iter(|| (
-            a.week(),
-            b.week(),
-            c.week(),
-            d.week(),
+            a.iso_week(),
+            b.iso_week(),
+            c.iso_week(),
+            d.iso_week(),
         ));
     }
 

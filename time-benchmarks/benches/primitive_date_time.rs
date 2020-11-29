@@ -57,18 +57,18 @@ setup_benchmark! {
         ));
     }
 
-    fn week(ben: &mut Bencher) {
+    fn iso_week(ben: &mut Bencher) {
         let a = datetime!("2019-01-01 0:00");
         let b = datetime!("2019-10-04 0:00");
         let c = datetime!("2020-01-01 0:00");
         let d = datetime!("2020-12-31 0:00");
         let e = datetime!("2021-01-01 0:00");
         ben.iter(|| (
-            a.week(),
-            b.week(),
-            c.week(),
-            d.week(),
-            e.week(),
+            a.iso_week(),
+            b.iso_week(),
+            c.iso_week(),
+            d.iso_week(),
+            e.iso_week(),
         ));
     }
 

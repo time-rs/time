@@ -51,12 +51,12 @@ fn ordinal() {
 }
 
 #[test]
-fn week() {
-    assert_eq!(datetime!("2019-01-01 0:00").week(), 1);
-    assert_eq!(datetime!("2019-10-04 0:00").week(), 40);
-    assert_eq!(datetime!("2020-01-01 0:00").week(), 1);
-    assert_eq!(datetime!("2020-12-31 0:00").week(), 53);
-    assert_eq!(datetime!("2021-01-01 0:00").week(), 53);
+fn iso_week() {
+    assert_eq!(datetime!("2019-01-01 0:00").iso_week(), 1);
+    assert_eq!(datetime!("2019-10-04 0:00").iso_week(), 40);
+    assert_eq!(datetime!("2020-01-01 0:00").iso_week(), 1);
+    assert_eq!(datetime!("2020-12-31 0:00").iso_week(), 53);
+    assert_eq!(datetime!("2021-01-01 0:00").iso_week(), 53);
 }
 
 #[test]

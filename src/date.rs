@@ -194,8 +194,7 @@ impl Date {
         self.value >> 9
     }
 
-    /// Get the month. If fetching both the month and day, it is more efficient
-    /// to use [`Date::month_day`].
+    /// Get the month.
     ///
     /// The returned value will always be in the range `1..=12`.
     ///
@@ -303,16 +302,16 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!("2019-01-01").week(), 1);
-    /// assert_eq!(date!("2019-10-04").week(), 40);
-    /// assert_eq!(date!("2020-01-01").week(), 1);
-    /// assert_eq!(date!("2020-12-31").week(), 53);
-    /// assert_eq!(date!("2021-01-01").week(), 53);
+    /// assert_eq!(date!("2019-01-01").iso_week(), 1);
+    /// assert_eq!(date!("2019-10-04").iso_week(), 40);
+    /// assert_eq!(date!("2020-01-01").iso_week(), 1);
+    /// assert_eq!(date!("2020-12-31").iso_week(), 53);
+    /// assert_eq!(date!("2021-01-01").iso_week(), 53);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn week(self) -> u8 {
+    pub const fn iso_week(self) -> u8 {
         self.iso_year_week().1
     }
 

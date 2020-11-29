@@ -57,9 +57,9 @@ setup_benchmark! {
         ben.iter(|| d.day());
     }
 
-    fn week(ben: &mut Bencher) {
+    fn iso_week(ben: &mut Bencher) {
         let d = date!("2019-01-01");
-        ben.iter(|| d.week());
+        ben.iter(|| d.iso_week());
     }
 
     fn to_calendar_date(ben: &mut Bencher) {

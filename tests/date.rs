@@ -461,12 +461,12 @@ fn day() {
 }
 
 #[test]
-fn week() {
-    assert_eq!(date!("2019-01-01").week(), 1);
-    assert_eq!(date!("2019-10-04").week(), 40);
-    assert_eq!(date!("2020-01-01").week(), 1);
-    assert_eq!(date!("2020-12-31").week(), 53);
-    assert_eq!(date!("2021-01-01").week(), 53);
+fn iso_week() {
+    assert_eq!(date!("2019-01-01").iso_week(), 1);
+    assert_eq!(date!("2019-10-04").iso_week(), 40);
+    assert_eq!(date!("2020-01-01").iso_week(), 1);
+    assert_eq!(date!("2020-12-31").iso_week(), 53);
+    assert_eq!(date!("2021-01-01").iso_week(), 53);
 }
 
 #[test]
