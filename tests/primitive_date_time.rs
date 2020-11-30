@@ -131,6 +131,15 @@ fn weekday() {
 }
 
 #[test]
+fn to_julian_day() {
+    assert_eq!(datetime!("-999_999-01-01 0:00").to_julian_day(), -363521074);
+    assert_eq!(datetime!("-4713-11-24 0:00").to_julian_day(), 0);
+    assert_eq!(datetime!("2000-01-01 0:00").to_julian_day(), 2_451_545);
+    assert_eq!(datetime!("2019-01-01 0:00").to_julian_day(), 2_458_485);
+    assert_eq!(datetime!("2019-12-31 0:00").to_julian_day(), 2_458_849);
+}
+
+#[test]
 fn hour() {
     assert_eq!(datetime!("2019-01-01 0:00").hour(), 0);
     assert_eq!(datetime!("2019-01-01 23:59:59").hour(), 23);

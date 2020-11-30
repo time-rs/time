@@ -28,9 +28,11 @@ Versioning].
 - `PrimitiveDateTime::to_calendar_date`
 - `PrimitiveDateTime::to_ordinal_date`
 - `PrimitiveDateTime::to_iso_week_date`
+- `PrimitiveDateTime::to_julian_day`
 - `OffsetDateTime::to_calendar_date`
 - `OffsetDateTime::to_ordinal_date`
 - `OffsetDateTime::to_iso_week_date`
+- `OffsetDateTime::to_julian_day`
 
 ### Changed
 
@@ -60,6 +62,7 @@ Versioning].
   - `Date::week` → `Date::iso_week`
   - `PrimitiveDateTime::week` → `PrimitiveDateTime::iso_week`
   - `OffsetDateTime::week` → `OffsetDateTime::iso_week`
+  - `Date::julian_day` → `Date::to_julian_day`
   - Macros have been moved to the `macros` module, but are otherwise named the
     same.
 - Now `const fn` (on at least newer compilers)

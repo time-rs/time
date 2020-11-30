@@ -257,6 +257,27 @@ impl PrimitiveDateTime {
         self.date.weekday()
     }
 
+    /// Get the Julian day for the date. The time is not taken into account for
+    /// this calculation.
+    ///
+    /// The algorithm to perform this conversion is derived from one provided by
+    /// Peter Baum; it is freely available
+    /// [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("-4713-11-24 0:00").to_julian_day(), 0);
+    /// assert_eq!(datetime!("2000-01-01 0:00").to_julian_day(), 2_451_545);
+    /// assert_eq!(datetime!("2019-01-01 0:00").to_julian_day(), 2_458_485);
+    /// assert_eq!(datetime!("2019-12-31 0:00").to_julian_day(), 2_458_849);
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn to_julian_day(self) -> i64 {
+        self.date.to_julian_day()
+    }
+
     /// Get the clock hour.
     ///
     /// The returned value will always be in the range `0..24`.

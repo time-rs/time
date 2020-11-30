@@ -521,12 +521,12 @@ fn previous_day() {
 }
 
 #[test]
-fn julian_day() {
-    assert_eq!(date!("-999_999-01-01").julian_day(), -363521074);
-    assert_eq!(date!("-4713-11-24").julian_day(), 0);
-    assert_eq!(date!("2000-01-01").julian_day(), 2_451_545);
-    assert_eq!(date!("2019-01-01").julian_day(), 2_458_485);
-    assert_eq!(date!("2019-12-31").julian_day(), 2_458_849);
+fn to_julian_day() {
+    assert_eq!(date!("-999_999-01-01").to_julian_day(), -363521074);
+    assert_eq!(date!("-4713-11-24").to_julian_day(), 0);
+    assert_eq!(date!("2000-01-01").to_julian_day(), 2_451_545);
+    assert_eq!(date!("2019-01-01").to_julian_day(), 2_458_485);
+    assert_eq!(date!("2019-12-31").to_julian_day(), 2_458_849);
 }
 
 #[test]

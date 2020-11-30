@@ -27,8 +27,9 @@ impl Distribution<Date> for Standard {
         let min_date = Date::from_ordinal_date_unchecked(MIN_YEAR, 1);
         let max_date = Date::from_ordinal_date_unchecked(MAX_YEAR, util::days_in_year(MAX_YEAR));
 
-        match Date::from_julian_day(rng.gen_range(min_date.julian_day(), max_date.julian_day() + 1))
-        {
+        match Date::from_julian_day(
+            rng.gen_range(min_date.to_julian_day(), max_date.to_julian_day() + 1),
+        ) {
             Ok(date) => date,
             Err(_) => unreachable!("The value is guaranteed to be in the range of valid dates."),
         }

@@ -147,7 +147,7 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn from_unix_timestamp(timestamp: i64) -> Result<Self, error::ComponentRange> {
-        let unix_epoch_julian_date = Date::from_ordinal_date_unchecked(1970, 1).julian_day();
+        let unix_epoch_julian_date = Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
 
         let whole_days = timestamp / 86_400;
         let date = const_try!(Date::from_julian_day(unix_epoch_julian_date + whole_days));
@@ -193,7 +193,7 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange> {
-        let unix_epoch_julian_date = Date::from_ordinal_date_unchecked(1970, 1).julian_day();
+        let unix_epoch_julian_date = Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
 
         // Performing the division early lets us use an i64 instead of an i128.
         // This leads to significant performance gains.
@@ -250,8 +250,8 @@ impl OffsetDateTime {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn unix_timestamp(self) -> i64 {
-        let days = (self.utc_datetime.date.julian_day()
-            - Date::from_ordinal_date_unchecked(1970, 1).julian_day())
+        let days = (self.utc_datetime.date.to_julian_day()
+            - Date::from_ordinal_date_unchecked(1970, 1).to_julian_day())
             * 86_400;
         let hours = self.utc_datetime.hour() as i64 * 3_600;
         let minutes = self.utc_datetime.minute() as i64 * 60;
@@ -639,6 +639,27 @@ impl OffsetDateTime {
     #[const_fn("1.46")]
     pub const fn weekday(self) -> Weekday {
         self.date().weekday()
+    }
+
+    /// Get the Julian day for the date. The time is not taken into account for
+    /// this calculation.
+    ///
+    /// The algorithm to perform this conversion is derived from one provided by
+    /// Peter Baum; it is freely available
+    /// [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("-4713-11-24 0:00 UTC").to_julian_day(), 0);
+    /// assert_eq!(datetime!("2000-01-01 0:00 UTC").to_julian_day(), 2_451_545);
+    /// assert_eq!(datetime!("2019-01-01 0:00 UTC").to_julian_day(), 2_458_485);
+    /// assert_eq!(datetime!("2019-12-31 0:00 UTC").to_julian_day(), 2_458_849);
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn to_julian_day(self) -> i64 {
+        self.date().to_julian_day()
     }
 
     /// Get the clock hour in the stored offset.

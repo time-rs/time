@@ -422,7 +422,7 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn weekday(self) -> Weekday {
-        match self.julian_day() % 7 {
+        match self.to_julian_day() % 7 {
             -6 | 1 => Weekday::Tuesday,
             -5 | 2 => Weekday::Wednesday,
             -4 | 3 => Weekday::Thursday,
@@ -491,15 +491,15 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!("-4713-11-24").julian_day(), 0);
-    /// assert_eq!(date!("2000-01-01").julian_day(), 2_451_545);
-    /// assert_eq!(date!("2019-01-01").julian_day(), 2_458_485);
-    /// assert_eq!(date!("2019-12-31").julian_day(), 2_458_849);
+    /// assert_eq!(date!("-4713-11-24").to_julian_day(), 0);
+    /// assert_eq!(date!("2000-01-01").to_julian_day(), 2_451_545);
+    /// assert_eq!(date!("2019-01-01").to_julian_day(), 2_458_485);
+    /// assert_eq!(date!("2019-12-31").to_julian_day(), 2_458_849);
     /// ```
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn julian_day(self) -> i64 {
+    pub const fn to_julian_day(self) -> i64 {
         let year = self.year() as i64 - 1;
         let ordinal = self.ordinal() as i64;
 
@@ -527,9 +527,9 @@ impl Date {
     #[const_fn("1.46")]
     #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date"))]
     pub const fn from_julian_day(julian_day: i64) -> Result<Self, error::ComponentRange> {
-        let min_julian_day = Self::from_ordinal_date_unchecked(MIN_YEAR, 1).julian_day();
+        let min_julian_day = Self::from_ordinal_date_unchecked(MIN_YEAR, 1).to_julian_day();
         let max_julian_day =
-            Self::from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).julian_day();
+            Self::from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).to_julian_day();
         ensure_value_in_range!(julian_day in min_julian_day => max_julian_day);
 
         let z = julian_day - 1_721_119;
@@ -759,7 +759,7 @@ impl Add<Duration> for Date {
     type Output = Self;
 
     fn add(self, duration: Duration) -> Self::Output {
-        Self::from_julian_day(self.julian_day() + duration.whole_days())
+        Self::from_julian_day(self.to_julian_day() + duration.whole_days())
             .expect("overflow adding duration to date")
     }
 }
@@ -768,7 +768,7 @@ impl Add<StdDuration> for Date {
     type Output = Self;
 
     fn add(self, duration: StdDuration) -> Self::Output {
-        Self::from_julian_day(self.julian_day() + (duration.as_secs() / 86_400) as i64)
+        Self::from_julian_day(self.to_julian_day() + (duration.as_secs() / 86_400) as i64)
             .expect("overflow adding duration to date")
     }
 }
@@ -797,7 +797,7 @@ impl Sub<StdDuration> for Date {
     type Output = Self;
 
     fn sub(self, duration: StdDuration) -> Self::Output {
-        Self::from_julian_day(self.julian_day() - (duration.as_secs() / 86_400) as i64)
+        Self::from_julian_day(self.to_julian_day() - (duration.as_secs() / 86_400) as i64)
             .expect("overflow subtracting duration from date")
     }
 }
@@ -818,7 +818,7 @@ impl Sub<Date> for Date {
     type Output = Duration;
 
     fn sub(self, other: Self) -> Self::Output {
-        Duration::days(self.julian_day() - other.julian_day())
+        Duration::days(self.to_julian_day() - other.to_julian_day())
     }
 }
 
