@@ -23,6 +23,8 @@ Versioning].
 - `Date::to_iso_week_date`, replacing `Date::iso_year_week`
 - `UtcOffset::from_hms`
 - `UtcOffset::as_hms`
+- `OffsetDateTime::sunday_based_week`
+- `OffsetDateTime::monday_based_week`
 
 ### Changed
 

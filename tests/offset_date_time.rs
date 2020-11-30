@@ -185,6 +185,22 @@ fn iso_week() {
 }
 
 #[test]
+fn sunday_based_week() {
+    assert_eq!(datetime!("2019-01-01 0:00 UTC").sunday_based_week(), 0);
+    assert_eq!(datetime!("2020-01-01 0:00 UTC").sunday_based_week(), 0);
+    assert_eq!(datetime!("2020-12-31 0:00 UTC").sunday_based_week(), 52);
+    assert_eq!(datetime!("2021-01-01 0:00 UTC").sunday_based_week(), 0);
+}
+
+#[test]
+fn monday_based_week() {
+    assert_eq!(datetime!("2019-01-01 0:00 UTC").monday_based_week(), 0);
+    assert_eq!(datetime!("2020-01-01 0:00 UTC").monday_based_week(), 0);
+    assert_eq!(datetime!("2020-12-31 0:00 UTC").monday_based_week(), 52);
+    assert_eq!(datetime!("2021-01-01 0:00 UTC").monday_based_week(), 0);
+}
+
+#[test]
 fn weekday() {
     use Weekday::*;
     assert_eq!(datetime!("2019-01-01 0:00 UTC").weekday(), Tuesday);

@@ -524,6 +524,42 @@ impl OffsetDateTime {
         self.date().iso_week()
     }
 
+    /// Get the week number where week 1 begins on the first Sunday.
+    ///
+    /// The returned value will always be in the range `0..=53`.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00 UTC").sunday_based_week(), 0);
+    /// assert_eq!(datetime!("2020-01-01 0:00 UTC").sunday_based_week(), 0);
+    /// assert_eq!(datetime!("2020-12-31 0:00 UTC").sunday_based_week(), 52);
+    /// assert_eq!(datetime!("2021-01-01 0:00 UTC").sunday_based_week(), 0);
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn sunday_based_week(self) -> u8 {
+        self.date().sunday_based_week()
+    }
+
+    /// Get the week number where week 1 begins on the first Monday.
+    ///
+    /// The returned value will always be in the range `0..=53`.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2019-01-01 0:00 UTC").monday_based_week(), 0);
+    /// assert_eq!(datetime!("2020-01-01 0:00 UTC").monday_based_week(), 0);
+    /// assert_eq!(datetime!("2020-12-31 0:00 UTC").monday_based_week(), 52);
+    /// assert_eq!(datetime!("2021-01-01 0:00 UTC").monday_based_week(), 0);
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn monday_based_week(self) -> u8 {
+        self.date().monday_based_week()
+    }
+
     /// Get the weekday of the date in the stored offset.
     ///
     /// ```rust
