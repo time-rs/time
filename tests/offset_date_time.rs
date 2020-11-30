@@ -201,6 +201,47 @@ fn monday_based_week() {
 }
 
 #[test]
+fn to_calendar_date() {
+    assert_eq!(
+        datetime!("2019-01-02 0:00 UTC").to_calendar_date(),
+        (2019, 1, 2)
+    );
+}
+
+#[test]
+fn to_ordinal_date() {
+    assert_eq!(
+        datetime!("2019-01-01 0:00 UTC").to_ordinal_date(),
+        (2019, 1)
+    );
+}
+
+#[test]
+fn to_iso_week_date() {
+    use Weekday::*;
+    assert_eq!(
+        datetime!("2019-01-01 0:00 UTC").to_iso_week_date(),
+        (2019, 1, Tuesday)
+    );
+    assert_eq!(
+        datetime!("2019-10-04 0:00 UTC").to_iso_week_date(),
+        (2019, 40, Friday)
+    );
+    assert_eq!(
+        datetime!("2020-01-01 0:00 UTC").to_iso_week_date(),
+        (2020, 1, Wednesday)
+    );
+    assert_eq!(
+        datetime!("2020-12-31 0:00 UTC").to_iso_week_date(),
+        (2020, 53, Thursday)
+    );
+    assert_eq!(
+        datetime!("2021-01-01 0:00 UTC").to_iso_week_date(),
+        (2020, 53, Friday)
+    );
+}
+
+#[test]
 fn weekday() {
     use Weekday::*;
     assert_eq!(datetime!("2019-01-01 0:00 UTC").weekday(), Tuesday);

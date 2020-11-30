@@ -560,6 +560,71 @@ impl OffsetDateTime {
         self.date().monday_based_week()
     }
 
+    /// Get the year, month, and day.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!("2019-01-01 0:00 UTC").to_calendar_date(),
+    ///     (2019, 1, 1)
+    /// );
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn to_calendar_date(self) -> (i32, u8, u8) {
+        self.date().to_calendar_date()
+    }
+
+    /// Get the year and ordinal day number.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!("2019-01-01 0:00 UTC").to_ordinal_date(),
+    ///     (2019, 1)
+    /// );
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn to_ordinal_date(self) -> (i32, u16) {
+        self.date().to_ordinal_date()
+    }
+
+    /// Get the ISO 8601 year, week number, and weekday.
+    ///
+    /// ```rust
+    /// # use time::Weekday::*;
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!("2019-01-01 0:00 UTC").to_iso_week_date(),
+    ///     (2019, 1, Tuesday)
+    /// );
+    /// assert_eq!(
+    ///     datetime!("2019-10-04 0:00 UTC").to_iso_week_date(),
+    ///     (2019, 40, Friday)
+    /// );
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 0:00 UTC").to_iso_week_date(),
+    ///     (2020, 1, Wednesday)
+    /// );
+    /// assert_eq!(
+    ///     datetime!("2020-12-31 0:00 UTC").to_iso_week_date(),
+    ///     (2020, 53, Thursday)
+    /// );
+    /// assert_eq!(
+    ///     datetime!("2021-01-01 0:00 UTC").to_iso_week_date(),
+    ///     (2020, 53, Friday)
+    /// );
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn to_iso_week_date(self) -> (i32, u8, Weekday) {
+        self.date().to_iso_week_date()
+    }
+
     /// Get the weekday of the date in the stored offset.
     ///
     /// ```rust

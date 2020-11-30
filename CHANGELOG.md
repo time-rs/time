@@ -25,6 +25,12 @@ Versioning].
 - `UtcOffset::as_hms`
 - `OffsetDateTime::sunday_based_week`
 - `OffsetDateTime::monday_based_week`
+- `PrimitiveDateTime::to_calendar_date`
+- `PrimitiveDateTime::to_ordinal_date`
+- `PrimitiveDateTime::to_iso_week_date`
+- `OffsetDateTime::to_calendar_date`
+- `OffsetDateTime::to_ordinal_date`
+- `OffsetDateTime::to_iso_week_date`
 
 ### Changed
 
