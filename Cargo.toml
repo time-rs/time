@@ -20,7 +20,7 @@ rustdoc-args = ["--cfg", "__time_03_docs"]
 [features]
 default = ["std"]
 macros = ["time-macros"]
-local-offset = ["std", "libc", "winapi"]
+local-offset = ["std", "winapi"]
 quickcheck = ["quickcheck-dep", "rand", "std"]
 std = ["alloc"]
 alloc = []
@@ -34,9 +34,6 @@ time-macros = { version = "=0.2.0-dev", path = "time-macros", optional = true }
 
 [workspace]
 members = ["time-benchmarks", "time-macros", "time-macros-impl"]
-
-[target.'cfg(unix)'.dependencies]
-libc = { version = "0.2.80", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
