@@ -130,6 +130,9 @@ impl UtcOffset {
     /// assert!(local_offset.is_ok());
     /// # }
     /// ```
+    ///
+    /// Due to a [soundness bug](https://github.com/time-rs/time/issues/293),
+    /// the error value is currently always returned on Unix-like platforms.
     #[cfg(feature = "local-offset")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
     pub fn local_offset_at(datetime: OffsetDateTime) -> Result<Self, error::IndeterminateOffset> {

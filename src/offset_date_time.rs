@@ -63,6 +63,9 @@ impl OffsetDateTime {
     /// assert!(OffsetDateTime::now_local().is_ok());
     /// # }
     /// ```
+    ///
+    /// Due to a [soundness bug](https://github.com/time-rs/time/issues/293),
+    /// the error value is currently always returned on Unix-like platforms.
     #[cfg(feature = "local-offset")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
     pub fn now_local() -> Result<Self, error::IndeterminateOffset> {
