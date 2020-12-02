@@ -152,8 +152,9 @@ impl OffsetDateTime {
     pub const fn from_unix_timestamp(timestamp: i64) -> Result<Self, error::ComponentRange> {
         let unix_epoch_julian_date = Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
 
-        let whole_days = timestamp / 86_400;
-        let date = const_try!(Date::from_julian_day(unix_epoch_julian_date + whole_days));
+        let date = const_try!(Date::from_julian_day(
+            unix_epoch_julian_date + (timestamp / 86_400) as i32
+        ));
 
         let hour = match (timestamp % 86_400 / 3_600) % 24 {
             value if value < 0 => value + 24,
@@ -202,8 +203,9 @@ impl OffsetDateTime {
         // This leads to significant performance gains.
         let timestamp_seconds = (timestamp / 1_000_000_000) as i64;
 
-        let whole_days = timestamp_seconds / 86_400;
-        let date = const_try!(Date::from_julian_day(unix_epoch_julian_date + whole_days));
+        let date = const_try!(Date::from_julian_day(
+            unix_epoch_julian_date + (timestamp_seconds / 86_400) as i32
+        ));
 
         let hour = match (timestamp_seconds % 86_400 / 3_600) % 24 {
             value if value < 0 => value + 24,
@@ -259,7 +261,7 @@ impl OffsetDateTime {
         let hours = self.utc_datetime.hour() as i64 * 3_600;
         let minutes = self.utc_datetime.minute() as i64 * 60;
         let seconds = self.utc_datetime.second() as i64;
-        days + hours + minutes + seconds
+        days as i64 + hours + minutes + seconds
     }
 
     /// Get the Unix timestamp in nanoseconds.
@@ -661,7 +663,7 @@ impl OffsetDateTime {
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn to_julian_day(self) -> i64 {
+    pub const fn to_julian_day(self) -> i32 {
         self.date().to_julian_day()
     }
 

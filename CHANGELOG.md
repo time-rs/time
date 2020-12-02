@@ -124,6 +124,8 @@ Versioning].
   `std::time::Instant`.
 - Macros now simulate `const` blocks, guaranteeing that the value is statically
   generated.
+- `Date::to_julian_day` now returns an `i32` (was `i64`).
+- `Date::from_julian_day` now accepts an `i32` (was `i64`).
 
 ### Removed
 

@@ -274,7 +274,7 @@ impl PrimitiveDateTime {
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn to_julian_day(self) -> i64 {
+    pub const fn to_julian_day(self) -> i32 {
         self.date.to_julian_day()
     }
 

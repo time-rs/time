@@ -17,19 +17,6 @@ pub(crate) const MIN_YEAR: i32 = -999_999;
 /// The maximum valid year.
 pub(crate) const MAX_YEAR: i32 = 999_999;
 
-/// Floored division for integers. This differs from the default behavior, which
-/// is truncation.
-#[const_fn("1.46")]
-pub(crate) const fn div_floor(a: i64, b: i64) -> i64 {
-    let (quotient, remainder) = (a / b, a % b);
-
-    if (remainder > 0 && b < 0) || (remainder < 0 && b > 0) {
-        quotient - 1
-    } else {
-        quotient
-    }
-}
-
 /// Calendar date.
 ///
 /// Years between `-999_999` and `+999_999` inclusive are guaranteed to be
@@ -499,9 +486,22 @@ impl Date {
     ///
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
-    pub const fn to_julian_day(self) -> i64 {
-        let year = self.year() as i64 - 1;
-        let ordinal = self.ordinal() as i64;
+    pub const fn to_julian_day(self) -> i32 {
+        /// Floored division for integers. This differs from the default
+        /// behavior, which is truncation.
+        #[const_fn("1.46")]
+        pub(crate) const fn div_floor(a: i32, b: i32) -> i32 {
+            let (quotient, remainder) = (a / b, a % b);
+
+            if (remainder > 0 && b < 0) || (remainder < 0 && b > 0) {
+                quotient - 1
+            } else {
+                quotient
+            }
+        }
+
+        let year = self.year() - 1;
+        let ordinal = self.ordinal() as i32;
 
         ordinal + 365 * year + div_floor(year, 4) - div_floor(year, 100)
             + div_floor(year, 400)
@@ -526,17 +526,33 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date"))]
-    pub const fn from_julian_day(julian_day: i64) -> Result<Self, error::ComponentRange> {
+    pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
+        /// Floored division for integers. This differs from the default
+        /// behavior, which is truncation.
+        #[const_fn("1.46")]
+        pub(crate) const fn div_floor(a: i64, b: i32) -> i32 {
+            let (quotient, remainder) = (a / b as i64, a % b as i64);
+
+            if (remainder > 0 && b < 0) || (remainder < 0 && b > 0) {
+                (quotient - 1) as i32
+            } else {
+                quotient as i32
+            }
+        }
+
         let min_julian_day = Self::from_ordinal_date_unchecked(MIN_YEAR, 1).to_julian_day();
         let max_julian_day =
             Self::from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).to_julian_day();
         ensure_value_in_range!(julian_day in min_julian_day => max_julian_day);
 
+        // To avoid a potential overflow, the value must be widened to an i64
+        // for some arithmetic.
+
         let z = julian_day - 1_721_119;
-        let g = 100 * z - 25;
-        let a = g / 3_652_425;
+        let g = 100 * z as i64 - 25;
+        let a = (g / 3_652_425) as i32;
         let b = a - a / 4;
-        let mut year = div_floor(100 * b + g, 36525) as _;
+        let mut year = div_floor(100 * b as i64 + g, 36525);
         let mut ordinal = (b + z - div_floor(36525 * year as i64, 100)) as _;
 
         if year % 4 != 0 {
@@ -759,7 +775,7 @@ impl Add<Duration> for Date {
     type Output = Self;
 
     fn add(self, duration: Duration) -> Self::Output {
-        Self::from_julian_day(self.to_julian_day() + duration.whole_days())
+        Self::from_julian_day(self.to_julian_day() + duration.whole_days() as i32)
             .expect("overflow adding duration to date")
     }
 }
@@ -768,7 +784,7 @@ impl Add<StdDuration> for Date {
     type Output = Self;
 
     fn add(self, duration: StdDuration) -> Self::Output {
-        Self::from_julian_day(self.to_julian_day() + (duration.as_secs() / 86_400) as i64)
+        Self::from_julian_day(self.to_julian_day() + (duration.as_secs() / 86_400) as i32)
             .expect("overflow adding duration to date")
     }
 }
@@ -797,7 +813,7 @@ impl Sub<StdDuration> for Date {
     type Output = Self;
 
     fn sub(self, duration: StdDuration) -> Self::Output {
-        Self::from_julian_day(self.to_julian_day() - (duration.as_secs() / 86_400) as i64)
+        Self::from_julian_day(self.to_julian_day() - (duration.as_secs() / 86_400) as i32)
             .expect("overflow subtracting duration from date")
     }
 }
@@ -818,7 +834,7 @@ impl Sub<Date> for Date {
     type Output = Duration;
 
     fn sub(self, other: Self) -> Self::Output {
-        Duration::days(self.to_julian_day() - other.to_julian_day())
+        Duration::days((self.to_julian_day() - other.to_julian_day()) as _)
     }
 }
 

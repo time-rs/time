@@ -1,4 +1,4 @@
-use core::i64;
+use core::i32;
 use std::{cmp::Ordering, collections::HashSet};
 #[cfg(feature = "alloc")]
 use time::format_description;
@@ -539,7 +539,7 @@ fn from_julian_day() {
     assert_eq!(Date::from_julian_day(2_451_545), Ok(date!("2000-01-01")));
     assert_eq!(Date::from_julian_day(2_458_485), Ok(date!("2019-01-01")));
     assert_eq!(Date::from_julian_day(2_458_849), Ok(date!("2019-12-31")));
-    assert!(Date::from_julian_day(i64::MAX).is_err());
+    assert!(Date::from_julian_day(i32::MAX).is_err());
 }
 
 #[test]
