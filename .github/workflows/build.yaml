@@ -252,14 +252,6 @@ jobs:
   documentation:
     name: Documentation
     runs-on: ubuntu-20.04
-    # ensure docs only get pushed if everything else is successful
-    needs:
-      - check-other-targets
-      - check-benchmarks
-      - test
-      - fmt
-      - clippy
-    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
 
     steps:
       - name: Checkout
@@ -273,6 +265,15 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
+
+      - name: Cache cargo output
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-doc-${{ hashFiles('**/Cargo.toml') }}2
 
       - name: Build documentation
         uses: actions-rs/cargo@v1
@@ -294,3 +295,4 @@ jobs:
           FOLDER: target/doc
           SINGLE_COMMIT: true
           REPOSITORY_NAME: time-rs/time-rs.github.io
+        if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
