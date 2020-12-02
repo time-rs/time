@@ -79,7 +79,7 @@ jobs:
             --no-dev-deps
             --feature-powerset
             --optional-deps
-            --group-features serde,rand,quickcheck
+            --group-features serde,rand
             --exclude-features default,winapi,time-macros,quickcheck-dep
             --target ${{ matrix.target.triple }}
         if: matrix.target.std == true
@@ -180,7 +180,7 @@ jobs:
             check
             --feature-powerset
             --optional-deps
-            --group-features serde,rand,quickcheck
+            --group-features serde,rand
             --exclude-features default,winapi,time-macros,quickcheck-dep
 
       - name: Test (--all --all-features)
