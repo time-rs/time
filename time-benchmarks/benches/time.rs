@@ -52,6 +52,22 @@ setup_benchmark! {
         ))
     }
 
+    fn as_hms(ben: &mut Bencher) {
+        ben.iter(|| time!("1:02:03").as_hms());
+    }
+
+    fn as_hms_milli(ben: &mut Bencher) {
+        ben.iter(|| time!("1:02:03.004").as_hms_milli());
+    }
+
+    fn as_hms_micro(ben: &mut Bencher) {
+        ben.iter(|| time!("1:02:03.004_005").as_hms_micro());
+    }
+
+    fn as_hms_nano(ben: &mut Bencher) {
+        ben.iter(|| time!("1:02:03.004_005_006").as_hms_nano());
+    }
+
     fn hour(ben: &mut Bencher) {
         let a = Time::from_hms(0, 0, 0).unwrap();
         let b = Time::from_hms(0, 59, 59).unwrap();

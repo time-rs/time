@@ -665,6 +665,80 @@ impl OffsetDateTime {
         self.date().to_julian_day()
     }
 
+    /// Get the clock hour, minute, and second.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2020-01-01 0:00:00 UTC").to_hms(), (0, 0, 0));
+    /// assert_eq!(datetime!("2020-01-01 23:59:59 UTC").to_hms(), (23, 59, 59));
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn to_hms(self) -> (u8, u8, u8) {
+        self.time().as_hms()
+    }
+
+    /// Get the clock hour, minute, second, and millisecond.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 0:00:00 UTC").to_hms_milli(),
+    ///     (0, 0, 0, 0)
+    /// );
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 23:59:59.999 UTC").to_hms_milli(),
+    ///     (23, 59, 59, 999)
+    /// );
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn to_hms_milli(self) -> (u8, u8, u8, u16) {
+        self.time().as_hms_milli()
+    }
+
+    /// Get the clock hour, minute, second, and microsecond.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 0:00:00 UTC").to_hms_micro(),
+    ///     (0, 0, 0, 0)
+    /// );
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 23:59:59.999_999 UTC").to_hms_micro(),
+    ///     (23, 59, 59, 999_999)
+    /// );
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn to_hms_micro(self) -> (u8, u8, u8, u32) {
+        self.time().as_hms_micro()
+    }
+
+    /// Get the clock hour, minute, second, and nanosecond.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 0:00:00 UTC").to_hms_nano(),
+    ///     (0, 0, 0, 0)
+    /// );
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 23:59:59.999_999_999 UTC").to_hms_nano(),
+    ///     (23, 59, 59, 999_999_999)
+    /// );
+    /// ```
+    ///
+    /// This function is `const fn` when using rustc >= 1.46.
+    #[const_fn("1.46")]
+    pub const fn to_hms_nano(self) -> (u8, u8, u8, u32) {
+        self.time().as_hms_nano()
+    }
+
     /// Get the clock hour in the stored offset.
     ///
     /// The returned value will always be in the range `0..24`.

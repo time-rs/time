@@ -278,6 +278,59 @@ impl PrimitiveDateTime {
         self.date.to_julian_day()
     }
 
+    /// Get the clock hour, minute, and second.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2020-01-01 0:00:00").as_hms(), (0, 0, 0));
+    /// assert_eq!(datetime!("2020-01-01 23:59:59").as_hms(), (23, 59, 59));
+    /// ```
+    pub const fn as_hms(self) -> (u8, u8, u8) {
+        self.time.as_hms()
+    }
+
+    /// Get the clock hour, minute, second, and millisecond.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2020-01-01 0:00:00").as_hms_milli(), (0, 0, 0, 0));
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 23:59:59.999").as_hms_milli(),
+    ///     (23, 59, 59, 999)
+    /// );
+    /// ```
+    pub const fn as_hms_milli(self) -> (u8, u8, u8, u16) {
+        self.time.as_hms_milli()
+    }
+
+    /// Get the clock hour, minute, second, and microsecond.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2020-01-01 0:00:00").as_hms_micro(), (0, 0, 0, 0));
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 23:59:59.999_999").as_hms_micro(),
+    ///     (23, 59, 59, 999_999)
+    /// );
+    /// ```
+    pub const fn as_hms_micro(self) -> (u8, u8, u8, u32) {
+        self.time.as_hms_micro()
+    }
+
+    /// Get the clock hour, minute, second, and nanosecond.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!("2020-01-01 0:00:00").as_hms_nano(), (0, 0, 0, 0));
+    /// assert_eq!(
+    ///     datetime!("2020-01-01 23:59:59.999_999_999").as_hms_nano(),
+    ///     (23, 59, 59, 999_999_999)
+    /// );
+    /// ```
+    pub const fn as_hms_nano(self) -> (u8, u8, u8, u32) {
+        self.time.as_hms_nano()
+    }
+
     /// Get the clock hour.
     ///
     /// The returned value will always be in the range `0..24`.

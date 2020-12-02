@@ -33,6 +33,18 @@ Versioning].
 - `OffsetDateTime::to_ordinal_date`
 - `OffsetDateTime::to_iso_week_date`
 - `OffsetDateTime::to_julian_day`
+- `Time::as_hms`
+- `Time::as_hms_milli`
+- `Time::as_hms_micro`
+- `Time::as_hms_nano`
+- `PrimitiveDateTime::as_hms`
+- `PrimitiveDateTime::as_hms_milli`
+- `PrimitiveDateTime::as_hms_micro`
+- `PrimitiveDateTime::as_hms_nano`
+- `OffsetDateTime::to_hms`
+- `OffsetDateTime::to_hms_milli`
+- `OffsetDateTime::to_hms_micro`
+- `OffsetDateTime::to_hms_nano`
 
 ### Changed
 

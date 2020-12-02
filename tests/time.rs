@@ -81,6 +81,29 @@ fn from_hms_nano() -> Result<()> {
 }
 
 #[test]
+fn as_hms() {
+    assert_eq!(time!("1:02:03").as_hms(), (1, 2, 3));
+}
+
+#[test]
+fn as_hms_milli() {
+    assert_eq!(time!("1:02:03.004").as_hms_milli(), (1, 2, 3, 4));
+}
+
+#[test]
+fn as_hms_micro() {
+    assert_eq!(time!("1:02:03.004_005").as_hms_micro(), (1, 2, 3, 4_005));
+}
+
+#[test]
+fn as_hms_nano() {
+    assert_eq!(
+        time!("1:02:03.004_005_006").as_hms_nano(),
+        (1, 2, 3, 4_005_006)
+    );
+}
+
+#[test]
 fn hour() -> Result<()> {
     for hour in 0..24 {
         assert_eq!(Time::from_hms(hour, 0, 0)?.hour(), hour);

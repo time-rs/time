@@ -198,6 +198,61 @@ impl Time {
         })
     }
 
+    /// Get the clock hour, minute, and second.
+    ///
+    /// ```rust
+    /// # use time_macros::time;
+    /// assert_eq!(time!("0:00:00").as_hms(), (0, 0, 0));
+    /// assert_eq!(time!("23:59:59").as_hms(), (23, 59, 59));
+    /// ```
+    pub const fn as_hms(self) -> (u8, u8, u8) {
+        (self.hour, self.minute, self.second)
+    }
+
+    /// Get the clock hour, minute, second, and millisecond.
+    ///
+    /// ```rust
+    /// # use time_macros::time;
+    /// assert_eq!(time!("0:00:00").as_hms_milli(), (0, 0, 0, 0));
+    /// assert_eq!(time!("23:59:59.999").as_hms_milli(), (23, 59, 59, 999));
+    /// ```
+    pub const fn as_hms_milli(self) -> (u8, u8, u8, u16) {
+        (
+            self.hour,
+            self.minute,
+            self.second,
+            (self.nanosecond / 1_000_000) as u16,
+        )
+    }
+
+    /// Get the clock hour, minute, second, and microsecond.
+    ///
+    /// ```rust
+    /// # use time_macros::time;
+    /// assert_eq!(time!("0:00:00").as_hms_micro(), (0, 0, 0, 0));
+    /// assert_eq!(
+    ///     time!("23:59:59.999_999").as_hms_micro(),
+    ///     (23, 59, 59, 999_999)
+    /// );
+    /// ```
+    pub const fn as_hms_micro(self) -> (u8, u8, u8, u32) {
+        (self.hour, self.minute, self.second, self.nanosecond / 1_000)
+    }
+
+    /// Get the clock hour, minute, second, and nanosecond.
+    ///
+    /// ```rust
+    /// # use time_macros::time;
+    /// assert_eq!(time!("0:00:00").as_hms_nano(), (0, 0, 0, 0));
+    /// assert_eq!(
+    ///     time!("23:59:59.999_999_999").as_hms_nano(),
+    ///     (23, 59, 59, 999_999_999)
+    /// );
+    /// ```
+    pub const fn as_hms_nano(self) -> (u8, u8, u8, u32) {
+        (self.hour, self.minute, self.second, self.nanosecond)
+    }
+
     /// Get the clock hour.
     ///
     /// The returned value will always be in the range `0..24`.

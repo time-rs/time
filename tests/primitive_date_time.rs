@@ -140,6 +140,35 @@ fn to_julian_day() {
 }
 
 #[test]
+fn as_hms() {
+    assert_eq!(datetime!("2020-01-01 1:02:03").as_hms(), (1, 2, 3));
+}
+
+#[test]
+fn as_hms_milli() {
+    assert_eq!(
+        datetime!("2020-01-01 1:02:03.004").as_hms_milli(),
+        (1, 2, 3, 4)
+    );
+}
+
+#[test]
+fn as_hms_micro() {
+    assert_eq!(
+        datetime!("2020-01-01 1:02:03.004_005").as_hms_micro(),
+        (1, 2, 3, 4_005)
+    );
+}
+
+#[test]
+fn as_hms_nano() {
+    assert_eq!(
+        datetime!("2020-01-01 1:02:03.004_005_006").as_hms_nano(),
+        (1, 2, 3, 4_005_006)
+    );
+}
+
+#[test]
 fn hour() {
     assert_eq!(datetime!("2019-01-01 0:00").hour(), 0);
     assert_eq!(datetime!("2019-01-01 23:59:59").hour(), 23);
