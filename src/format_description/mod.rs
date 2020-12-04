@@ -8,7 +8,7 @@ pub(crate) mod parse;
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
-pub use component::Component;
+pub use component::{Component, DateComponent, TimeComponent, UtcOffsetComponent};
 #[cfg(feature = "alloc")]
 pub use error::InvalidFormatDescription;
 #[cfg(feature = "alloc")]

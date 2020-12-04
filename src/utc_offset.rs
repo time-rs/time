@@ -195,23 +195,31 @@ impl UtcOffset {
 
 impl Display for UtcOffset {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use crate::format_description::{modifier, Component, FormatDescription};
+        use crate::format_description::{
+            modifier, Component, FormatDescription, UtcOffsetComponent,
+        };
 
         match self.format_into(
             f,
             &FormatDescription::BorrowedCompound(&[
-                FormatDescription::Component(Component::OffsetHour {
-                    padding: modifier::Padding::Zero,
-                    sign_is_mandatory: true,
-                }),
+                FormatDescription::Component(Component::UtcOffset(
+                    UtcOffsetComponent::OffsetHour {
+                        padding: modifier::Padding::Zero,
+                        sign_is_mandatory: true,
+                    },
+                )),
                 FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::OffsetMinute {
-                    padding: modifier::Padding::Zero,
-                }),
+                FormatDescription::Component(Component::UtcOffset(
+                    UtcOffsetComponent::OffsetMinute {
+                        padding: modifier::Padding::Zero,
+                    },
+                )),
                 FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::OffsetSecond {
-                    padding: modifier::Padding::Zero,
-                }),
+                FormatDescription::Component(Component::UtcOffset(
+                    UtcOffsetComponent::OffsetSecond {
+                        padding: modifier::Padding::Zero,
+                    },
+                )),
             ]),
         ) {
             Ok(()) => Ok(()),

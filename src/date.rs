@@ -740,26 +740,26 @@ impl Date {
 
 impl Display for Date {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use crate::format_description::{modifier, Component, FormatDescription};
+        use crate::format_description::{modifier, Component, DateComponent, FormatDescription};
 
         match self.format_into(
             f,
             &FormatDescription::BorrowedCompound(&[
-                FormatDescription::Component(Component::Year {
+                FormatDescription::Component(Component::Date(DateComponent::Year {
                     padding: modifier::Padding::Zero,
                     repr: modifier::YearRepr::Full,
                     iso_week_based: false,
                     sign_is_mandatory: false,
-                }),
+                })),
                 FormatDescription::Literal("-"),
-                FormatDescription::Component(Component::Month {
+                FormatDescription::Component(Component::Date(DateComponent::Month {
                     padding: modifier::Padding::Zero,
                     repr: modifier::MonthRepr::Numerical,
-                }),
+                })),
                 FormatDescription::Literal("-"),
-                FormatDescription::Component(Component::Day {
+                FormatDescription::Component(Component::Date(DateComponent::Day {
                     padding: modifier::Padding::Zero,
-                }),
+                })),
             ]),
         ) {
             Ok(()) => Ok(()),
