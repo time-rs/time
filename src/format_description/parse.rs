@@ -89,7 +89,7 @@ fn parse_item<'a>(
 
 /// Parse a sequence of items from the format description.
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-pub fn parse(mut s: &str) -> Result<Vec<FormatDescription<'_>>, InvalidFormatDescription> {
+pub fn parse(mut s: &str) -> Result<FormatDescription<'_>, InvalidFormatDescription> {
     let mut compound = Vec::new();
     let mut loc = 0;
 
@@ -99,5 +99,5 @@ pub fn parse(mut s: &str) -> Result<Vec<FormatDescription<'_>>, InvalidFormatDes
         compound.push(item);
     }
 
-    Ok(compound)
+    Ok(FormatDescription::OwnedCompound(compound))
 }

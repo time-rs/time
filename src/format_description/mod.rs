@@ -28,7 +28,8 @@ mod helper {
 }
 
 /// A complete description of how to format and parse a type.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FormatDescription<'a> {
     /// A string that is formatted as-is.
     Literal(&'a str),
@@ -37,27 +38,15 @@ pub enum FormatDescription<'a> {
     /// A series of literals or components that collectively form a partial or
     /// complete description.
     ///
-    /// Note that this is a reference to a slice, such that either a [`Vec`] or
-    /// statically known list can be provided.
-    Compound(&'a [Self]),
-}
-
-impl From<Component> for FormatDescription<'_> {
-    fn from(component: Component) -> Self {
-        FormatDescription::Component(component)
-    }
-}
-
-impl<'a> From<&'a [FormatDescription<'_>]> for FormatDescription<'a> {
-    fn from(x: &'a [FormatDescription<'_>]) -> Self {
-        FormatDescription::Compound(x)
-    }
-}
-
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl<'a> From<&'a Vec<FormatDescription<'_>>> for FormatDescription<'a> {
-    fn from(x: &'a Vec<FormatDescription<'_>>) -> Self {
-        FormatDescription::Compound(x)
-    }
+    /// Note that this is a reference to a slice, such that a statically known
+    /// list can be provided.
+    BorrowedCompound(&'a [Self]),
+    /// A series of literals or components that collectively form a partial or
+    /// complete description.
+    // It's necessary to have a separate variant rather than use `Cow`, as
+    // features should be strictly additive; a `Cow` cannot be used in non-alloc
+    // environments.
+    #[cfg(feature = "alloc")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+    OwnedCompound(Vec<Self>),
 }

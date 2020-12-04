@@ -17,12 +17,12 @@ use core::fmt;
 #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 pub(crate) fn format_into(
     output: &mut dyn fmt::Write,
-    description: FormatDescription<'_>,
+    description: &FormatDescription<'_>,
     date: Option<crate::Date>,
     time: Option<crate::Time>,
     offset: Option<crate::UtcOffset>,
 ) -> Result<(), error::Format> {
-    match description {
+    match *description {
         FormatDescription::Literal(literal) => output.write_str(literal)?,
         FormatDescription::Component(component) => match (date, time, offset, component) {
             (Some(date), _, _, Component::Day { padding }) => {
@@ -216,8 +216,14 @@ pub(crate) fn format_into(
             }
             _ => return Err(error::Format::InsufficientTypeInformation),
         },
-        FormatDescription::Compound(descriptions) => {
-            for &description in descriptions {
+        FormatDescription::BorrowedCompound(descriptions) => {
+            for description in descriptions {
+                format_into(output, description, date, time, offset)?;
+            }
+        }
+        #[cfg(feature = "alloc")]
+        FormatDescription::OwnedCompound(ref descriptions) => {
+            for description in descriptions {
                 format_into(output, description, date, time, offset)?;
             }
         }

@@ -563,11 +563,11 @@ impl PrimitiveDateTime {
     pub fn format_into<'a>(
         self,
         output: &mut dyn core::fmt::Write,
-        description: impl Into<crate::format_description::FormatDescription<'a>>,
+        description: &crate::format_description::FormatDescription<'a>,
     ) -> Result<(), error::Format> {
         crate::formatting::format::format_into(
             output,
-            description.into(),
+            description,
             Some(self.date),
             Some(self.time),
             None,
@@ -593,7 +593,7 @@ impl PrimitiveDateTime {
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub fn format<'a>(
         self,
-        description: impl Into<crate::format_description::FormatDescription<'a>>,
+        description: &crate::format_description::FormatDescription<'a>,
     ) -> Result<String, error::Format> {
         let mut s = String::new();
         self.format_into(&mut s, description)?;

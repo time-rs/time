@@ -165,9 +165,9 @@ impl UtcOffset {
     pub fn format_into<'a>(
         self,
         output: &mut dyn core::fmt::Write,
-        description: impl Into<crate::format_description::FormatDescription<'a>>,
+        description: &crate::format_description::FormatDescription<'a>,
     ) -> Result<(), error::Format> {
-        crate::formatting::format::format_into(output, description.into(), None, None, Some(self))
+        crate::formatting::format::format_into(output, description, None, None, Some(self))
     }
 
     /// Format the `UtcOffset` using the provided format description. The format
@@ -185,7 +185,7 @@ impl UtcOffset {
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub fn format<'a>(
         self,
-        description: impl Into<crate::format_description::FormatDescription<'a>>,
+        description: &crate::format_description::FormatDescription<'a>,
     ) -> Result<String, error::Format> {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
@@ -199,7 +199,7 @@ impl Display for UtcOffset {
 
         match self.format_into(
             f,
-            FormatDescription::Compound(&[
+            &FormatDescription::BorrowedCompound(&[
                 FormatDescription::Component(Component::OffsetHour {
                     padding: modifier::Padding::Zero,
                     sign_is_mandatory: true,

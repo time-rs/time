@@ -493,9 +493,9 @@ impl Time {
     pub fn format_into<'a>(
         self,
         output: &mut dyn core::fmt::Write,
-        description: impl Into<crate::format_description::FormatDescription<'a>>,
+        description: &crate::format_description::FormatDescription<'a>,
     ) -> Result<(), error::Format> {
-        crate::formatting::format::format_into(output, description.into(), None, Some(self), None)
+        crate::formatting::format::format_into(output, description, None, Some(self), None)
     }
 
     /// Format the `Time` using the provided format description. The format
@@ -513,7 +513,7 @@ impl Time {
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub fn format<'a>(
         self,
-        description: impl Into<crate::format_description::FormatDescription<'a>>,
+        description: &crate::format_description::FormatDescription<'a>,
     ) -> Result<String, error::Format> {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
@@ -527,7 +527,7 @@ impl Display for Time {
 
         match self.format_into(
             f,
-            FormatDescription::Compound(&[
+            &FormatDescription::BorrowedCompound(&[
                 FormatDescription::Component(Component::Hour {
                     padding: modifier::Padding::None,
                     is_12_hour_clock: false,

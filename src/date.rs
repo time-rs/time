@@ -710,9 +710,9 @@ impl Date {
     pub fn format_into<'a>(
         self,
         output: &mut dyn core::fmt::Write,
-        description: impl Into<crate::format_description::FormatDescription<'a>>,
+        description: &crate::format_description::FormatDescription<'a>,
     ) -> Result<(), error::Format> {
-        crate::formatting::format::format_into(output, description.into(), Some(self), None, None)
+        crate::formatting::format::format_into(output, description, Some(self), None, None)
     }
 
     /// Format the `Date` using the provided format description. The format
@@ -730,7 +730,7 @@ impl Date {
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub fn format<'a>(
         self,
-        description: impl Into<crate::format_description::FormatDescription<'a>>,
+        description: &crate::format_description::FormatDescription<'a>,
     ) -> Result<String, error::Format> {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
@@ -744,7 +744,7 @@ impl Display for Date {
 
         match self.format_into(
             f,
-            FormatDescription::Compound(&[
+            &FormatDescription::BorrowedCompound(&[
                 FormatDescription::Component(Component::Year {
                     padding: modifier::Padding::Zero,
                     repr: modifier::YearRepr::Full,
