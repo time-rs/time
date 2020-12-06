@@ -1,4 +1,9 @@
-use crate::{error, util::DateAdjustment, Duration};
+use crate::{
+    error,
+    format_description::{component, modifier, Component, FormatDescription},
+    util::DateAdjustment,
+    Duration,
+};
 #[cfg(feature = "alloc")]
 use alloc::string::String;
 use const_fn::const_fn;
@@ -488,22 +493,21 @@ impl Time {
 impl Time {
     /// Format the `Time` using the provided format description. The formatted
     /// value will be output to the provided writer. The format description will
-    /// typically be parsed by using
-    /// [`FormatDescription::parse`](crate::format_description::FormatDescription::parse()).
+    /// typically be parsed by using [`FormatDescription::parse`].
     pub fn format_into<'a>(
         self,
-        output: &mut dyn core::fmt::Write,
-        description: &crate::format_description::FormatDescription<'a>,
+        output: &mut dyn fmt::Write,
+        description: &FormatDescription<'a>,
     ) -> Result<(), error::Format> {
-        crate::formatting::format_into(output, description, None, Some(self), None)
+        description.format_into(output, None, Some(self), None)
     }
 
     /// Format the `Time` using the provided format description. The format
     /// description will typically be parsed by using
-    /// [`FormatDescription::parse`](crate::format_description::FormatDescription::parse()).
+    /// [`FormatDescription::parse`].
     ///
     /// ```rust
-    /// # use time::format_description;
+    /// # use time::format_description::FormatDescription;
     /// # use time_macros::time;
     /// let format = FormatDescription::parse("[hour]:[minute]:[second]")?;
     /// assert_eq!(time!("12:00").format(&format)?, "12:00:00");
@@ -511,10 +515,7 @@ impl Time {
     /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn format<'a>(
-        self,
-        description: &crate::format_description::FormatDescription<'a>,
-    ) -> Result<String, error::Format> {
+    pub fn format<'a>(self, description: &FormatDescription<'a>) -> Result<String, error::Format> {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
         Ok(s)
@@ -523,31 +524,29 @@ impl Time {
 
 impl Display for Time {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use crate::format_description::{component::Time, modifier, Component, FormatDescription};
-
         match self.format_into(
             f,
             &FormatDescription::BorrowedCompound(&[
-                FormatDescription::Component(Component::Time(Time::Hour {
+                FormatDescription::Component(Component::Time(component::Time::Hour {
                     padding: modifier::Padding::None,
                     is_12_hour_clock: false,
                 })),
                 FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::Time(Time::Minute {
+                FormatDescription::Component(Component::Time(component::Time::Minute {
                     padding: modifier::Padding::Zero,
                 })),
                 FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::Time(Time::Second {
+                FormatDescription::Component(Component::Time(component::Time::Second {
                     padding: modifier::Padding::Zero,
                 })),
                 FormatDescription::Literal("."),
-                FormatDescription::Component(Component::Time(Time::Subsecond {
+                FormatDescription::Component(Component::Time(component::Time::Subsecond {
                     digits: modifier::SubsecondDigits::OneOrMore,
                 })),
             ]),
         ) {
             Ok(()) => Ok(()),
-            Err(error::Format::StdFmt) => Err(core::fmt::Error),
+            Err(error::Format::StdFmt) => Err(fmt::Error),
             Err(error::Format::InsufficientTypeInformation { .. }) => {
                 unreachable!("All components used only require a `Time`")
             }

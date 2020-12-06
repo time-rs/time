@@ -1,6 +1,9 @@
-use crate::error;
 #[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
+use crate::{
+    error,
+    format_description::{component, modifier, Component, FormatDescription},
+};
 #[cfg(feature = "alloc")]
 use alloc::string::String;
 use const_fn::const_fn;
@@ -161,21 +164,21 @@ impl UtcOffset {
     /// Format the `UtcOffset` using the provided format description. The
     /// formatted value will be output to the provided writer. The format
     /// description will typically be parsed by using
-    /// [`FormatDescription::parse`](crate::format_description::FormatDescription::parse()).
+    /// [`FormatDescription::parse`].
     pub fn format_into<'a>(
         self,
-        output: &mut dyn core::fmt::Write,
-        description: &crate::format_description::FormatDescription<'a>,
+        output: &mut dyn fmt::Write,
+        description: &FormatDescription<'a>,
     ) -> Result<(), error::Format> {
-        crate::formatting::format_into(output, description, None, None, Some(self))
+        description.format_into(output, None, None, Some(self))
     }
 
     /// Format the `UtcOffset` using the provided format description. The format
     /// description will typically be parsed by using
-    /// [`FormatDescription::parse`](crate::format_description::FormatDescription::parse()).
+    /// [`FormatDescription::parse`].
     ///
     /// ```rust
-    /// # use time::format_description;
+    /// # use time::format_description::FormatDescription;
     /// # use time_macros::offset;
     /// let format = FormatDescription::parse("[offset_hour sign:mandatory]:[offset_minute]")?;
     /// assert_eq!(offset!("+1").format(&format)?, "+01:00");
@@ -183,10 +186,7 @@ impl UtcOffset {
     /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn format<'a>(
-        self,
-        description: &crate::format_description::FormatDescription<'a>,
-    ) -> Result<String, error::Format> {
+    pub fn format<'a>(self, description: &FormatDescription<'a>) -> Result<String, error::Format> {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
         Ok(s)
@@ -195,29 +195,25 @@ impl UtcOffset {
 
 impl Display for UtcOffset {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use crate::format_description::{
-            component::UtcOffset, modifier, Component, FormatDescription,
-        };
-
         match self.format_into(
             f,
             &FormatDescription::BorrowedCompound(&[
-                FormatDescription::Component(Component::UtcOffset(UtcOffset::Hour {
+                FormatDescription::Component(Component::UtcOffset(component::UtcOffset::Hour {
                     padding: modifier::Padding::Zero,
                     sign_is_mandatory: true,
                 })),
                 FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::UtcOffset(UtcOffset::Minute {
+                FormatDescription::Component(Component::UtcOffset(component::UtcOffset::Minute {
                     padding: modifier::Padding::Zero,
                 })),
                 FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::UtcOffset(UtcOffset::Second {
+                FormatDescription::Component(Component::UtcOffset(component::UtcOffset::Second {
                     padding: modifier::Padding::Zero,
                 })),
             ]),
         ) {
             Ok(()) => Ok(()),
-            Err(error::Format::StdFmt) => Err(core::fmt::Error),
+            Err(error::Format::StdFmt) => Err(fmt::Error),
             Err(error::Format::InsufficientTypeInformation { .. }) => {
                 unreachable!("All components used only require a `UtcOffset`")
             }

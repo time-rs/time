@@ -1,4 +1,7 @@
-use crate::{error, util, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{
+    error, format_description::FormatDescription, util, Date, Duration, PrimitiveDateTime, Time,
+    UtcOffset, Weekday,
+};
 #[cfg(feature = "alloc")]
 use alloc::string::String;
 use const_fn::const_fn;
@@ -995,15 +998,14 @@ impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided format description. The
     /// formatted value will be output to the provided writer. The format
     /// description will typically be parsed by using
-    /// [`FormatDescription::parse`](crate::format_description::FormatDescription::parse()).
+    /// [`FormatDescription::parse`].
     pub fn format_into<'a>(
         self,
-        output: &mut dyn core::fmt::Write,
-        description: &crate::format_description::FormatDescription<'a>,
+        output: &mut dyn fmt::Write,
+        description: &FormatDescription<'a>,
     ) -> Result<(), error::Format> {
-        crate::formatting::format_into(
+        description.format_into(
             output,
-            description,
             Some(self.date()),
             Some(self.time()),
             Some(self.offset),
@@ -1012,10 +1014,10 @@ impl OffsetDateTime {
 
     /// Format the `OffsetDateTime` using the provided format description. The
     /// format description will typically be parsed by using
-    /// [`FormatDescription::parse`](crate::format_description::FormatDescription::parse()).
+    /// [`FormatDescription::parse`].
     ///
     /// ```rust
-    /// # use time::format_description;
+    /// # use time::format_description::FormatDescription;
     /// # use time_macros::datetime;
     /// let format = FormatDescription::parse(
     ///     "[year]-[month repr:numerical]-[day] [hour]:[minute]:[second] [offset_hour \
@@ -1029,10 +1031,7 @@ impl OffsetDateTime {
     /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn format<'a>(
-        self,
-        description: &crate::format_description::FormatDescription<'a>,
-    ) -> Result<String, error::Format> {
+    pub fn format<'a>(self, description: &FormatDescription<'a>) -> Result<String, error::Format> {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
         Ok(s)
