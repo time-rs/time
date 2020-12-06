@@ -6,14 +6,40 @@ use crate::{
         modifier::{MonthRepr, Padding, WeekNumberRepr, WeekdayRepr, YearRepr},
     },
     formatting::format_value,
-    Date, Weekday,
+    Date,
 };
 use core::fmt;
+
+#[allow(clippy::clippy::missing_docs_in_private_items)]
+const MONTH_NAMES: [&str; 12] = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+];
+
+#[allow(clippy::missing_docs_in_private_items)]
+const WEEKDAY_NAMES: [&str; 7] = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+];
 
 impl component::Date {
     /// Write the formatted value to the designated output. An `Err` will be
     /// returned if the value cannot be output to the stream.
-    #[allow(clippy::too_many_lines)] // TODO remove this
     pub(super) fn format_into(
         self,
         output: &mut dyn fmt::Write,
@@ -21,50 +47,20 @@ impl component::Date {
     ) -> Result<(), fmt::Error> {
         match self {
             Self::Day { padding } => format_value(output, date.day(), padding, 2)?,
-            Self::Month { padding, repr } => {
-                #[allow(clippy::clippy::missing_docs_in_private_items)]
-                const MONTH_NAMES: [&str; 12] = [
-                    "January",
-                    "February",
-                    "March",
-                    "April",
-                    "May",
-                    "June",
-                    "July",
-                    "August",
-                    "September",
-                    "October",
-                    "November",
-                    "December",
-                ];
-                match repr {
-                    MonthRepr::Numerical => format_value(output, date.month(), padding, 2)?,
-                    MonthRepr::Long => output.write_str(MONTH_NAMES[date.month() as usize - 1])?,
-                    MonthRepr::Short => {
-                        output.write_str(&MONTH_NAMES[date.month() as usize - 1][..3])?
-                    }
+            Self::Month { padding, repr } => match repr {
+                MonthRepr::Numerical => format_value(output, date.month(), padding, 2)?,
+                MonthRepr::Long => output.write_str(MONTH_NAMES[date.month() as usize - 1])?,
+                MonthRepr::Short => {
+                    output.write_str(&MONTH_NAMES[date.month() as usize - 1][..3])?
                 }
-            }
+            },
             Self::Ordinal { padding } => format_value(output, date.ordinal(), padding, 3)?,
             Self::Weekday { repr, one_indexed } => match repr {
-                WeekdayRepr::Short => match date.weekday() {
-                    Weekday::Monday => output.write_str("Mon"),
-                    Weekday::Tuesday => output.write_str("Tue"),
-                    Weekday::Wednesday => output.write_str("Wed"),
-                    Weekday::Thursday => output.write_str("Thu"),
-                    Weekday::Friday => output.write_str("Fri"),
-                    Weekday::Saturday => output.write_str("Sat"),
-                    Weekday::Sunday => output.write_str("Sun"),
-                }?,
-                WeekdayRepr::Long => match date.weekday() {
-                    Weekday::Monday => output.write_str("Monday"),
-                    Weekday::Tuesday => output.write_str("Tuesday"),
-                    Weekday::Wednesday => output.write_str("Wednesday"),
-                    Weekday::Thursday => output.write_str("Thursday"),
-                    Weekday::Friday => output.write_str("Friday"),
-                    Weekday::Saturday => output.write_str("Saturday"),
-                    Weekday::Sunday => output.write_str("Sunday"),
-                }?,
+                WeekdayRepr::Short => output.write_str(
+                    &WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3],
+                )?,
+                WeekdayRepr::Long => output
+                    .write_str(WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize])?,
                 WeekdayRepr::Sunday => format_value(
                     output,
                     date.weekday().number_days_from_sunday() + one_indexed as u8,
