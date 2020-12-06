@@ -495,7 +495,7 @@ impl Time {
         output: &mut dyn core::fmt::Write,
         description: &crate::format_description::FormatDescription<'a>,
     ) -> Result<(), error::Format> {
-        crate::formatting::format::format_into(output, description, None, Some(self), None)
+        crate::formatting::format_into(output, description, None, Some(self), None)
     }
 
     /// Format the `Time` using the provided format description. The format

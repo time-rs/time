@@ -565,13 +565,7 @@ impl PrimitiveDateTime {
         output: &mut dyn core::fmt::Write,
         description: &crate::format_description::FormatDescription<'a>,
     ) -> Result<(), error::Format> {
-        crate::formatting::format::format_into(
-            output,
-            description,
-            Some(self.date),
-            Some(self.time),
-            None,
-        )
+        crate::formatting::format_into(output, description, Some(self.date), Some(self.time), None)
     }
 
     /// Format the `PrimitiveDateTime` using the provided format description.

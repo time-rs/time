@@ -162,8 +162,7 @@ pub mod error;
 /// Extension traits.
 pub mod ext;
 pub mod format_description;
-// TODO visibility checks
-pub mod formatting;
+mod formatting;
 /// The [`Instant`] struct and its associated `impl`s.
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]

@@ -167,7 +167,7 @@ impl UtcOffset {
         output: &mut dyn core::fmt::Write,
         description: &crate::format_description::FormatDescription<'a>,
     ) -> Result<(), error::Format> {
-        crate::formatting::format::format_into(output, description, None, None, Some(self))
+        crate::formatting::format_into(output, description, None, None, Some(self))
     }
 
     /// Format the `UtcOffset` using the provided format description. The format

@@ -712,7 +712,7 @@ impl Date {
         output: &mut dyn core::fmt::Write,
         description: &crate::format_description::FormatDescription<'a>,
     ) -> Result<(), error::Format> {
-        crate::formatting::format::format_into(output, description, Some(self), None, None)
+        crate::formatting::format_into(output, description, Some(self), None, None)
     }
 
     /// Format the `Date` using the provided format description. The format
