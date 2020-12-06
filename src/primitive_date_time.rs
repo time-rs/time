@@ -559,7 +559,7 @@ impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided format description.
     /// The formatted value will be output to the provided writer. The format
     /// description will typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// [`FormatDescription::parse`](crate::format_description::FormatDescription::parse()).
     pub fn format_into<'a>(
         self,
         output: &mut dyn core::fmt::Write,
@@ -570,13 +570,13 @@ impl PrimitiveDateTime {
 
     /// Format the `PrimitiveDateTime` using the provided format description.
     /// The format description will typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// [`FormatDescription::parse`](crate::format_description::FormatDescription::parse()).
     ///
     /// ```rust
     /// # use time::format_description;
     /// # use time_macros::datetime;
     /// let format =
-    ///     format_description::parse("[year]-[month repr:numerical]-[day] [hour]:[minute]:[second]")?;
+    ///     FormatDescription::parse("[year]-[month repr:numerical]-[day] [hour]:[minute]:[second]")?;
     /// assert_eq!(
     ///     datetime!("2020-01-02 03:04:05").format(&format)?,
     ///     "2020-01-02 03:04:05"

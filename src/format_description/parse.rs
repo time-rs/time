@@ -87,17 +87,19 @@ fn parse_item<'a>(
     }
 }
 
-/// Parse a sequence of items from the format description.
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-pub fn parse(mut s: &str) -> Result<FormatDescription<'_>, InvalidFormatDescription> {
-    let mut compound = Vec::new();
-    let mut loc = 0;
+impl<'a> FormatDescription<'a> {
+    /// Parse a sequence of items from the format description.
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+    pub fn parse(mut s: &'a str) -> Result<Self, InvalidFormatDescription> {
+        let mut compound = Vec::new();
+        let mut loc = 0;
 
-    while !s.is_empty() {
-        let ParsedItem { item, remaining } = parse_item(s, &mut loc)?;
-        s = remaining;
-        compound.push(item);
+        while !s.is_empty() {
+            let ParsedItem { item, remaining } = parse_item(s, &mut loc)?;
+            s = remaining;
+            compound.push(item);
+        }
+
+        Ok(FormatDescription::OwnedCompound(compound))
     }
-
-    Ok(FormatDescription::OwnedCompound(compound))
 }

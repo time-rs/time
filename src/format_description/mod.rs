@@ -11,8 +11,6 @@ use alloc::vec::Vec;
 pub use component::Component;
 #[cfg(feature = "alloc")]
 pub use error::InvalidFormatDescription;
-#[cfg(feature = "alloc")]
-pub use parse::parse;
 
 /// Helper methods.
 #[cfg(feature = "alloc")]

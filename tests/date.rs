@@ -1,7 +1,7 @@
 use core::i32;
 use std::{cmp::Ordering, collections::HashSet};
 #[cfg(feature = "alloc")]
-use time::format_description;
+use time::format_description::FormatDescription;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
     util, Date, Weekday,
@@ -623,7 +623,7 @@ fn format() -> time::Result<()> {
 
     for &(format_description, output) in &input_output {
         assert_eq!(
-            date!("2019-12-31").format(&format_description::parse(format_description)?)?,
+            date!("2019-12-31").format(&FormatDescription::parse(format_description)?)?,
             output
         );
     }

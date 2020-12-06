@@ -489,7 +489,7 @@ impl Time {
     /// Format the `Time` using the provided format description. The formatted
     /// value will be output to the provided writer. The format description will
     /// typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// [`FormatDescription::parse`](crate::format_description::FormatDescription::parse()).
     pub fn format_into<'a>(
         self,
         output: &mut dyn core::fmt::Write,
@@ -500,12 +500,12 @@ impl Time {
 
     /// Format the `Time` using the provided format description. The format
     /// description will typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// [`FormatDescription::parse`](crate::format_description::FormatDescription::parse()).
     ///
     /// ```rust
     /// # use time::format_description;
     /// # use time_macros::time;
-    /// let format = format_description::parse("[hour]:[minute]:[second]")?;
+    /// let format = FormatDescription::parse("[hour]:[minute]:[second]")?;
     /// assert_eq!(time!("12:00").format(&format)?, "12:00:00");
     /// # Ok::<_, time::Error>(())
     /// ```
