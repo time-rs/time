@@ -2,15 +2,15 @@
 
 use crate::{
     format_description::{
+        component,
         modifier::{MonthRepr, Padding, WeekNumberRepr, WeekdayRepr, YearRepr},
-        DateComponent,
     },
     formatting::format_value,
     Date, Weekday,
 };
 use core::fmt;
 
-impl DateComponent {
+impl component::Date {
     /// Write the formatted value to the designated output. An `Err` will be
     /// returned if the value cannot be output to the stream.
     #[allow(clippy::too_many_lines)] // TODO remove this

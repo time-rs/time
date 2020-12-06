@@ -1,9 +1,9 @@
 //! Format implementations for the `UtcOffset` struct.
 
-use crate::{format_description::UtcOffsetComponent, formatting::format_value, UtcOffset};
+use crate::{format_description::component, formatting::format_value, UtcOffset};
 use core::fmt;
 
-impl UtcOffsetComponent {
+impl component::UtcOffset {
     /// Write the formatted value to the designated output. An `Err` will be
     /// returned if the value cannot be output to the stream.
     pub(super) fn format_into(
@@ -12,7 +12,7 @@ impl UtcOffsetComponent {
         offset: UtcOffset,
     ) -> Result<(), fmt::Error> {
         match self {
-            Self::OffsetHour {
+            Self::Hour {
                 padding,
                 sign_is_mandatory,
             } => {
@@ -23,10 +23,10 @@ impl UtcOffsetComponent {
                 }
                 format_value(output, offset.hours.abs(), padding, 2)?;
             }
-            Self::OffsetMinute { padding } => {
+            Self::Minute { padding } => {
                 format_value(output, offset.minutes.abs(), padding, 2)?;
             }
-            Self::OffsetSecond { padding } => {
+            Self::Second { padding } => {
                 format_value(output, offset.seconds.abs(), padding, 2)?;
             }
         }

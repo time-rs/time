@@ -11,18 +11,17 @@ use alloc::borrow::ToOwned;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Component {
     /// A component that requires a [`Date`](crate::Date) to be present.
-    Date(DateComponent),
+    Date(Date),
     /// A component that requires a [`Time`](crate::Time) to be present.
-    Time(TimeComponent),
+    Time(Time),
     /// A component that requires a [`UtcOffset`](crate::UtcOffset) to be present.
-    UtcOffset(UtcOffsetComponent),
+    UtcOffset(UtcOffset),
 }
 
 /// A component of a larger format description.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[allow(clippy::module_name_repetitions)]
-pub enum DateComponent {
+pub enum Date {
     /// Day of the month.
     Day {
         /// The padding to obtain the minimum width.
@@ -74,8 +73,7 @@ pub enum DateComponent {
 /// A component of a larger format description.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[allow(clippy::module_name_repetitions)]
-pub enum TimeComponent {
+pub enum Time {
     /// Hour of the day.
     Hour {
         /// The padding to obtain the minimum width.
@@ -108,22 +106,21 @@ pub enum TimeComponent {
 /// A component of a larger format description.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[allow(clippy::module_name_repetitions, clippy::pub_enum_variant_names)]
-pub enum UtcOffsetComponent {
+pub enum UtcOffset {
     /// Hour of the UTC offset.
-    OffsetHour {
+    Hour {
         /// Whether the `+` sign is present on positive values.
         sign_is_mandatory: bool,
         /// The padding to obtain the minimum width.
         padding: modifier::Padding,
     },
     /// Minute within the hour of the UTC offset.
-    OffsetMinute {
+    Minute {
         /// The padding to obtain the minimum width.
         padding: modifier::Padding,
     },
     /// Second within the minute of the UTC offset.
-    OffsetSecond {
+    Second {
         /// The padding to obtain the minimum width.
         padding: modifier::Padding,
     },
@@ -205,27 +202,27 @@ impl NakedDateComponent {
     }
 
     /// Attach the necessary modifiers to the component.
-    fn attach_modifiers(self, modifiers: &Modifiers) -> DateComponent {
+    fn attach_modifiers(self, modifiers: &Modifiers) -> Date {
         match self {
-            Self::Day => DateComponent::Day {
+            Self::Day => Date::Day {
                 padding: modifiers.padding.unwrap_or_default(),
             },
-            Self::Month => DateComponent::Month {
+            Self::Month => Date::Month {
                 padding: modifiers.padding.unwrap_or_default(),
                 repr: modifiers.month_repr.unwrap_or_default(),
             },
-            Self::Ordinal => DateComponent::Ordinal {
+            Self::Ordinal => Date::Ordinal {
                 padding: modifiers.padding.unwrap_or_default(),
             },
-            Self::Weekday => DateComponent::Weekday {
+            Self::Weekday => Date::Weekday {
                 repr: modifiers.weekday_repr.unwrap_or_default(),
                 one_indexed: modifiers.weekday_is_one_indexed.unwrap_or(true),
             },
-            Self::WeekNumber => DateComponent::WeekNumber {
+            Self::WeekNumber => Date::WeekNumber {
                 padding: modifiers.padding.unwrap_or_default(),
                 repr: modifiers.week_number_repr.unwrap_or_default(),
             },
-            Self::Year => DateComponent::Year {
+            Self::Year => Date::Year {
                 padding: modifiers.padding.unwrap_or_default(),
                 repr: modifiers.year_repr.unwrap_or_default(),
                 iso_week_based: modifiers.year_is_iso_week_based.unwrap_or_default(),
@@ -251,22 +248,22 @@ impl NakedTimeComponent {
     }
 
     /// Attach the necessary modifiers to the component.
-    fn attach_modifiers(self, modifiers: &Modifiers) -> TimeComponent {
+    fn attach_modifiers(self, modifiers: &Modifiers) -> Time {
         match self {
-            Self::Hour => TimeComponent::Hour {
+            Self::Hour => Time::Hour {
                 padding: modifiers.padding.unwrap_or_default(),
                 is_12_hour_clock: modifiers.hour_is_12_hour_clock.unwrap_or_default(),
             },
-            Self::Minute => TimeComponent::Minute {
+            Self::Minute => Time::Minute {
                 padding: modifiers.padding.unwrap_or_default(),
             },
-            Self::Period => TimeComponent::Period {
+            Self::Period => Time::Period {
                 is_uppercase: modifiers.period_is_uppercase.unwrap_or(true),
             },
-            Self::Second => TimeComponent::Second {
+            Self::Second => Time::Second {
                 padding: modifiers.padding.unwrap_or_default(),
             },
-            Self::Subsecond => TimeComponent::Subsecond {
+            Self::Subsecond => Time::Subsecond {
                 digits: modifiers.subsecond_digits.unwrap_or_default(),
             },
         }
@@ -287,16 +284,16 @@ impl NakedUtcOffsetComponent {
     }
 
     /// Attach the necessary modifiers to the component.
-    fn attach_modifiers(self, modifiers: &Modifiers) -> UtcOffsetComponent {
+    fn attach_modifiers(self, modifiers: &Modifiers) -> UtcOffset {
         match self {
-            Self::OffsetHour => UtcOffsetComponent::OffsetHour {
+            Self::OffsetHour => UtcOffset::Hour {
                 sign_is_mandatory: modifiers.sign_is_mandatory.unwrap_or_default(),
                 padding: modifiers.padding.unwrap_or_default(),
             },
-            Self::OffsetMinute => UtcOffsetComponent::OffsetMinute {
+            Self::OffsetMinute => UtcOffset::Minute {
                 padding: modifiers.padding.unwrap_or_default(),
             },
-            Self::OffsetSecond => UtcOffsetComponent::OffsetSecond {
+            Self::OffsetSecond => UtcOffset::Second {
                 padding: modifiers.padding.unwrap_or_default(),
             },
         }

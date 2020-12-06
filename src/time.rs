@@ -523,25 +523,25 @@ impl Time {
 
 impl Display for Time {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use crate::format_description::{modifier, Component, FormatDescription, TimeComponent};
+        use crate::format_description::{component::Time, modifier, Component, FormatDescription};
 
         match self.format_into(
             f,
             &FormatDescription::BorrowedCompound(&[
-                FormatDescription::Component(Component::Time(TimeComponent::Hour {
+                FormatDescription::Component(Component::Time(Time::Hour {
                     padding: modifier::Padding::None,
                     is_12_hour_clock: false,
                 })),
                 FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::Time(TimeComponent::Minute {
+                FormatDescription::Component(Component::Time(Time::Minute {
                     padding: modifier::Padding::Zero,
                 })),
                 FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::Time(TimeComponent::Second {
+                FormatDescription::Component(Component::Time(Time::Second {
                     padding: modifier::Padding::Zero,
                 })),
                 FormatDescription::Literal("."),
-                FormatDescription::Component(Component::Time(TimeComponent::Subsecond {
+                FormatDescription::Component(Component::Time(Time::Subsecond {
                     digits: modifier::SubsecondDigits::OneOrMore,
                 })),
             ]),

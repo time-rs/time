@@ -2,15 +2,15 @@
 
 use crate::{
     format_description::{
+        component,
         modifier::{Padding, SubsecondDigits},
-        TimeComponent,
     },
     formatting::format_value,
     Time,
 };
 use core::fmt;
 
-impl TimeComponent {
+impl component::Time {
     /// Write the formatted value to the designated output. An `Err` will be
     /// returned if the value cannot be output to the stream.
     pub(super) fn format_into(
