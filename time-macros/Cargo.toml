@@ -13,6 +13,9 @@ description = "Procedural macros for the time crate."
 [lib]
 path = "lib.rs"
 
+[features]
+large-dates = ["time-macros-impl/large-dates"]
+
 [dependencies]
 time-macros-impl = { version = "=0.2.0-dev", path = "../time-macros-impl" }
 proc-macro-hack = "0.5.19"

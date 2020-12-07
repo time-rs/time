@@ -17,8 +17,8 @@ setup_benchmark! {
     }
 
     fn date(ben: &mut Bencher) {
-        let original = [date!("-999_999-001"), date!("+999_999-365")];
-        let serialized = "[[-999999,1],[999999,365]]";
+        let original = [date!("-9999-001"), date!("+9999-365")];
+        let serialized = "[[-9999,1],[9999,365]]";
         ben.iter(|| (
             serde_json::to_string(&original),
             serde_json::from_str::<[Date; 2]>(serialized),
@@ -27,10 +27,10 @@ setup_benchmark! {
 
     fn primitive_date_time(ben: &mut Bencher) {
         let original = [
-            datetime!("-999_999-001 0:00"),
-            datetime!("+999_999-365 23:59:59.999_999_999"),
+            datetime!("-9999-001 0:00"),
+            datetime!("+9999-365 23:59:59.999_999_999"),
         ];
-        let serialized = "[[-999999,1,0,0,0,0],[999999,365,23,59,59,999999999]]";
+        let serialized = "[[-9999,1,0,0,0,0],[9999,365,23,59,59,999999999]]";
 
         ben.iter(|| (
             serde_json::to_string(&original),
@@ -40,10 +40,10 @@ setup_benchmark! {
 
     fn offset_date_time(ben: &mut Bencher) {
         let original = [
-            datetime!("-999_999-001 0:00 UTC").to_offset(offset!("+23:59:59")),
-            datetime!("+999_999-365 23:59:59.999_999_999 UTC").to_offset(offset!("-23:59:59")),
+            datetime!("-9999-001 0:00 UTC").to_offset(offset!("+23:59:59")),
+            datetime!("+9999-365 23:59:59.999_999_999 UTC").to_offset(offset!("-23:59:59")),
         ];
-        let serialized = "[[-999999,1,23,59,59,0,86399],[999999,365,0,0,0,999999999,-86399]]";
+        let serialized = "[[-9999,1,23,59,59,0,86399],[9999,365,0,0,0,999999999,-86399]]";
         ben.iter(|| (
             serde_json::to_string(&original),
             serde_json::from_str::<[OffsetDateTime; 2]>(serialized),

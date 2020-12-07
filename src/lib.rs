@@ -32,6 +32,16 @@
 //!   This feature enables a number of methods that allow obtaining the system's
 //!   UTC offset.
 //!
+//! - `large-dates`
+//!
+//!   By default, only years within the ±9999 range (inclusive) are supported.
+//!   If you need support for years outside this range, consider enabling this
+//!   feature; the supported range will be increased to ±999,999.
+//!
+//!   Note that enabling this feature has some costs, as it means forgoing some
+//!   optimizations. Ambiguities may be introduced when parsing that would not
+//!   otherwise exist.
+//!
 //! - `serde`
 //!
 //!   Enables [serde](https://docs.rs/serde) support for all types.

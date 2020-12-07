@@ -522,7 +522,9 @@ fn previous_day() {
 
 #[test]
 fn to_julian_day() {
+    #[cfg(feature = "large-dates")]
     assert_eq!(date!("-999_999-01-01").to_julian_day(), -363521074);
+    assert_eq!(date!("-9999-01-01").to_julian_day(), -1930999);
     assert_eq!(date!("-4713-11-24").to_julian_day(), 0);
     assert_eq!(date!("2000-01-01").to_julian_day(), 2_451_545);
     assert_eq!(date!("2019-01-01").to_julian_day(), 2_458_485);
@@ -531,10 +533,12 @@ fn to_julian_day() {
 
 #[test]
 fn from_julian_day() {
+    #[cfg(feature = "large-dates")]
     assert_eq!(
         Date::from_julian_day(-363_521_074),
         Ok(date!("-999_999-01-01"))
     );
+    assert_eq!(Date::from_julian_day(-1930999), Ok(date!("-9999-01-01")));
     assert_eq!(Date::from_julian_day(0), Ok(date!("-4713-11-24")));
     assert_eq!(Date::from_julian_day(2_451_545), Ok(date!("2000-01-01")));
     assert_eq!(Date::from_julian_day(2_458_485), Ok(date!("2019-01-01")));
@@ -637,10 +641,14 @@ fn display() {
     assert_eq!(date!("2019-01-01").to_string(), "2019-01-01");
     assert_eq!(date!("2019-12-31").to_string(), "2019-12-31");
     assert_eq!(date!("-4713-11-24").to_string(), "-4713-11-24");
-    assert_eq!(date!("+10_000-01-01").to_string(), "+10000-01-01");
-    assert_eq!(date!("+100_000-01-01").to_string(), "+100000-01-01");
-    assert_eq!(date!("-10_000-01-01").to_string(), "-10000-01-01");
-    assert_eq!(date!("-100_000-01-01").to_string(), "-100000-01-01");
+
+    #[cfg(feature = "large-dates")]
+    {
+        assert_eq!(date!("+10_000-01-01").to_string(), "+10000-01-01");
+        assert_eq!(date!("+100_000-01-01").to_string(), "+100000-01-01");
+        assert_eq!(date!("-10_000-01-01").to_string(), "-10000-01-01");
+        assert_eq!(date!("-100_000-01-01").to_string(), "-100000-01-01");
+    }
 }
 
 #[test]
@@ -724,11 +732,17 @@ fn ord() {
 #[test]
 #[should_panic]
 fn next_day_panics() {
+    #[cfg(feature = "large-dates")]
     date!("+999_999-12-31").next_day();
+    #[cfg(not(feature = "large-dates"))]
+    date!("+9999-12-31").next_day();
 }
 
 #[test]
 #[should_panic]
 fn previous_day_panics() {
+    #[cfg(feature = "large-dates")]
     date!("-999_999-01-01").previous_day();
+    #[cfg(not(feature = "large-dates"))]
+    date!("-9999-01-01").previous_day();
 }

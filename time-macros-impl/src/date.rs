@@ -8,6 +8,11 @@ use crate::{
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::{iter::Peekable, str::Chars};
 
+#[cfg(feature = "large-dates")]
+const MAX_YEAR: i32 = 999_999;
+#[cfg(not(feature = "large-dates"))]
+const MAX_YEAR: i32 = 9_999;
+
 #[derive(Clone, Copy)]
 pub(crate) struct Date {
     pub(crate) year: i32,
@@ -24,7 +29,7 @@ impl Date {
             (1, false)
         };
         let year = year_sign * consume_digits::<i32>("year", chars)?;
-        if year.abs() >= 1_000_000 {
+        if year.abs() > MAX_YEAR {
             return Err(Error::InvalidComponent {
                 name: "year",
                 value: year.to_string(),

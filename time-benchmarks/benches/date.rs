@@ -118,7 +118,7 @@ setup_benchmark! {
     }
 
     fn to_julian_day(ben: &mut Bencher) {
-        let d = date!("-100_000-01-01");
+        let d = date!("2000-01-01");
         ben.iter(|| d.to_julian_day());
     }
 

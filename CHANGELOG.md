@@ -116,7 +116,9 @@ Versioning].
   - `Date::from_julian_day`
   - `OffsetDateTime::from_unix_timestamp`
   - `OffsetDateTime::from_unix_timestamp_nanos`
-- The range of valid years has been increased to ±999,999.
+- The range of valid years has changed. By default, it is ±9999. When using the
+  `large-dates` feature, this is increased to ±999,999. Enabling the feature has
+  performance implications and introduces ambiguities when parsing.
 - The following are now gated under the `local-offset` feature:
   - `UtcOffset::local_offset_at`
   - `OffsetDateTime::now_local`

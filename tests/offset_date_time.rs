@@ -251,6 +251,7 @@ fn weekday() {
 
 #[test]
 fn to_julian_day() {
+    #[cfg(feature = "large-dates")]
     assert_eq!(
         datetime!("-999_999-01-01 0:00 UTC").to_julian_day(),
         -363521074

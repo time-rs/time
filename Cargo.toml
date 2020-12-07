@@ -24,6 +24,7 @@ local-offset = ["std", "winapi"]
 quickcheck = ["quickcheck-dep", "rand", "std"]
 std = ["alloc"]
 alloc = []
+large-dates = ["time-macros/large-dates"]
 
 [dependencies]
 const_fn = "0.4.3"

@@ -14,17 +14,25 @@ use core::{
 };
 
 /// The minimum valid year.
+#[cfg(feature = "large-dates")]
 pub(crate) const MIN_YEAR: i32 = -999_999;
 /// The maximum valid year.
+#[cfg(feature = "large-dates")]
 pub(crate) const MAX_YEAR: i32 = 999_999;
 
-/// Calendar date.
+/// The minimum valid year.
+#[cfg(not(feature = "large-dates"))]
+pub(crate) const MIN_YEAR: i32 = -9999;
+/// The maximum valid year.
+#[cfg(not(feature = "large-dates"))]
+pub(crate) const MAX_YEAR: i32 = 9999;
+
+/// Date in the proleptic Gregorian calendar.
 ///
-/// Years between `-999_999` and `+999_999` inclusive are guaranteed to be
-/// representable. Any values outside this range may have incidental support
-/// that can change at any time without notice. If you need support outside this
-/// range, please [file an issue](https://github.com/time-rs/time/issues/new)
-/// with your use case.
+/// By default, years between ±9999 inclusive are representable. This can be
+/// expanded to ±999,999 inclusive by enabling the `large-dates` crate feature.
+/// Doing so has some performance implications, and introduces some ambiguities
+/// when parsing.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -36,6 +44,7 @@ pub struct Date {
     // |     xx     | xxxxxxxxxxxxxxxxxxxxx | xxxxxxxxx |
     // |   2 bits   |        21 bits        |  9 bits   |
     // | unassigned |         year          |  ordinal  |
+    // The year is 15 bits when `large-dates` is not enabled.
     pub(crate) value: i32,
 }
 
@@ -528,11 +537,21 @@ impl Date {
     #[const_fn("1.46")]
     #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date"))]
     pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
+        #![allow(trivial_numeric_casts)] // cast depends on type alias
+
+        /// A type that is either `i32` or `i64`. This subtle difference allows
+        /// for optimization based on the valid values.
+        #[cfg(feature = "large-dates")]
+        type MaybeWidened = i64;
+        #[allow(clippy::missing_docs_in_private_items)]
+        #[cfg(not(feature = "large-dates"))]
+        type MaybeWidened = i32;
+
         /// Floored division for integers. This differs from the default
         /// behavior, which is truncation.
         #[const_fn("1.46")]
-        pub(crate) const fn div_floor(a: i64, b: i32) -> i32 {
-            let (quotient, remainder) = (a / b as i64, a % b as i64);
+        pub(crate) const fn div_floor(a: MaybeWidened, b: i32) -> i32 {
+            let (quotient, remainder) = (a / b as MaybeWidened, a % b as MaybeWidened);
 
             if (remainder > 0 && b < 0) || (remainder < 0 && b > 0) {
                 (quotient - 1) as i32
@@ -546,15 +565,15 @@ impl Date {
             Self::from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).to_julian_day();
         ensure_value_in_range!(julian_day in min_julian_day => max_julian_day);
 
-        // To avoid a potential overflow, the value must be widened to an i64
-        // for some arithmetic.
+        // To avoid a potential overflow, the value may need to be widened for
+        // some arithmetic.
 
         let z = julian_day - 1_721_119;
-        let g = 100 * z as i64 - 25;
+        let g = 100 * z as MaybeWidened - 25;
         let a = (g / 3_652_425) as i32;
         let b = a - a / 4;
-        let mut year = div_floor(100 * b as i64 + g, 36525);
-        let mut ordinal = (b + z - div_floor(36525 * year as i64, 100)) as _;
+        let mut year = div_floor(100 * b as MaybeWidened + g, 36525);
+        let mut ordinal = (b + z - div_floor(36525 * year as MaybeWidened, 100)) as _;
 
         if year % 4 != 0 {
             ordinal += 59;
