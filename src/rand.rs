@@ -2,7 +2,7 @@
 
 use crate::{
     date::{MAX_YEAR, MIN_YEAR},
-    util, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
+    hack, util, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
 };
 use rand::{
     distributions::{Distribution, Standard},
@@ -17,6 +17,7 @@ impl Distribution<Time> for Standard {
             minute: rng.gen_range(0, 60),
             second: rng.gen_range(0, 60),
             nanosecond: rng.gen_range(0, 1_000_000_000),
+            padding: hack::Padding::Optimize,
         }
     }
 }

@@ -1,6 +1,7 @@
 use crate::{
     error,
     format_description::{component, modifier, Component, FormatDescription},
+    hack,
     util::DateAdjustment,
     Duration,
 };
@@ -25,7 +26,7 @@ use core::{
     feature = "serde",
     serde(into = "crate::serde::Time", try_from = "crate::serde::Time")
 )]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Time {
     #[allow(clippy::missing_docs_in_private_items)]
     pub(crate) hour: u8,
@@ -35,6 +36,19 @@ pub struct Time {
     pub(crate) second: u8,
     #[allow(clippy::missing_docs_in_private_items)]
     pub(crate) nanosecond: u32,
+    #[allow(clippy::missing_docs_in_private_items)]
+    pub(crate) padding: hack::Padding,
+}
+
+impl fmt::Debug for Time {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Time")
+            .field("hour", &self.hour)
+            .field("minute", &self.minute)
+            .field("second", &self.second)
+            .field("nanosecond", &self.nanosecond)
+            .finish()
+    }
 }
 
 impl Time {
@@ -51,6 +65,7 @@ impl Time {
             minute,
             second,
             nanosecond,
+            padding: hack::Padding::Optimize,
         }
     }
 
@@ -67,6 +82,7 @@ impl Time {
             minute: 0,
             second: 0,
             nanosecond: 0,
+            padding: hack::Padding::Optimize,
         }
     }
 
@@ -95,6 +111,7 @@ impl Time {
             minute,
             second,
             nanosecond: 0,
+            padding: hack::Padding::Optimize,
         })
     }
 
@@ -130,6 +147,7 @@ impl Time {
             minute,
             second,
             nanosecond: millisecond as u32 * 1_000_000,
+            padding: hack::Padding::Optimize,
         })
     }
 
@@ -165,6 +183,7 @@ impl Time {
             minute,
             second,
             nanosecond: microsecond * 1_000,
+            padding: hack::Padding::Optimize,
         })
     }
 
@@ -200,6 +219,7 @@ impl Time {
             minute,
             second,
             nanosecond,
+            padding: hack::Padding::Optimize,
         })
     }
 
@@ -401,6 +421,7 @@ impl Time {
                 minute: minutes as _,
                 second: seconds as _,
                 nanosecond: nanoseconds as _,
+                padding: hack::Padding::Optimize,
             },
         )
     }
@@ -443,6 +464,7 @@ impl Time {
                 minute,
                 second,
                 nanosecond,
+                padding: hack::Padding::Optimize,
             },
         )
     }
@@ -485,6 +507,7 @@ impl Time {
                 minute: minute as _,
                 second: second as _,
                 nanosecond: nanosecond as _,
+                padding: hack::Padding::Optimize,
             },
         )
     }

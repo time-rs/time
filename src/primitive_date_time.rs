@@ -1,5 +1,5 @@
 use crate::{
-    error, format_description::FormatDescription, util, Date, Duration, OffsetDateTime, Time,
+    error, format_description::FormatDescription, hack, util, Date, Duration, OffsetDateTime, Time,
     UtcOffset, Weekday,
 };
 #[cfg(feature = "alloc")]
@@ -542,6 +542,7 @@ impl PrimitiveDateTime {
                 minute: minute as _,
                 second: second as _,
                 nanosecond: self.nanosecond(),
+                padding: hack::Padding::Optimize,
             },
         }
     }

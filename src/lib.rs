@@ -173,6 +173,7 @@ pub mod error;
 pub mod ext;
 pub mod format_description;
 mod formatting;
+mod hack;
 /// The [`Instant`] struct and its associated `impl`s.
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]

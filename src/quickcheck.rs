@@ -40,6 +40,7 @@
 
 use crate::{
     date::{MAX_YEAR, MIN_YEAR},
+    hack,
     util::days_in_year,
     Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
 };
@@ -150,6 +151,7 @@ impl Arbitrary for Time {
             minute,
             second,
             nanosecond,
+            padding: hack::Padding::Optimize,
         }
     }
 
@@ -164,24 +166,28 @@ impl Arbitrary for Time {
             minute,
             second,
             nanosecond,
+            padding: hack::Padding::Optimize,
         });
         let shrunk_minute = minute.shrink().map(move |minute| Self {
             hour,
             minute,
             second,
             nanosecond,
+            padding: hack::Padding::Optimize,
         });
         let shrunk_second = second.shrink().map(move |second| Self {
             hour,
             minute,
             second,
             nanosecond,
+            padding: hack::Padding::Optimize,
         });
         let shrunk_nanos = nanosecond.shrink().map(move |nanosecond| Self {
             hour,
             minute,
             second,
             nanosecond,
+            padding: hack::Padding::Optimize,
         });
 
         Box::new(

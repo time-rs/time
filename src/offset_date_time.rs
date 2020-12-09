@@ -1,6 +1,6 @@
 use crate::{
-    error, format_description::FormatDescription, util, Date, Duration, PrimitiveDateTime, Time,
-    UtcOffset, Weekday,
+    error, format_description::FormatDescription, hack, util, Date, Duration, PrimitiveDateTime,
+    Time, UtcOffset, Weekday,
 };
 #[cfg(feature = "alloc")]
 use alloc::string::String;
@@ -176,6 +176,7 @@ impl OffsetDateTime {
             minute: minute as _,
             second: second as _,
             nanosecond: 0,
+            padding: hack::Padding::Optimize,
         };
 
         Ok(PrimitiveDateTime::new(date, time).assume_utc())
@@ -231,6 +232,7 @@ impl OffsetDateTime {
             minute: minute as _,
             second: second as _,
             nanosecond: nanos as _,
+            padding: hack::Padding::Optimize,
         };
 
         Ok(PrimitiveDateTime::new(date, time).assume_utc())
@@ -376,6 +378,7 @@ impl OffsetDateTime {
             minute: minute as _,
             second: second as _,
             nanosecond: self.utc_datetime.nanosecond(),
+            padding: hack::Padding::Optimize,
         }
     }
 
