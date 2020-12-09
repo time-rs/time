@@ -13,8 +13,6 @@ on:
       - "**.md"
       - LICENSE-Apache
       - LICENSE-MIT
-  schedule:
-    - cron: "0 0 * * 6" # midnight on Saturdays
 
 jobs:
   check-other-targets:
@@ -24,10 +22,10 @@ jobs:
       matrix:
         rust: [1.40.0, stable]
         target:
-          - { triple: x86_64-unknown-netbsd, std: true }
-          - { triple: x86_64-sun-solaris, std: true }
-          - { triple: wasm32-wasi, std: true }
-          - { triple: thumbv7em-none-eabihf, std: false }
+          - { triple: x86_64-unknown-netbsd, has_std: true }
+          - { triple: x86_64-sun-solaris, has_std: true }
+          - { triple: wasm32-wasi, has_std: true }
+          - { triple: thumbv7em-none-eabihf, has_std: false }
 
     steps:
       - name: Checkout sources
@@ -68,7 +66,7 @@ jobs:
             --exclude-features default,winapi,std,local-offset,time-macros,quickcheck,quickcheck-dep
             --exclude-all-features
             --target ${{ matrix.target.triple }}
-        if: matrix.target.std == false
+        if: matrix.target.has_std == false
 
       - name: Check feature powerset
         uses: actions-rs/cargo@v1
@@ -82,7 +80,7 @@ jobs:
             --group-features serde,rand
             --exclude-features default,winapi,time-macros,quickcheck-dep
             --target ${{ matrix.target.triple }}
-        if: matrix.target.std == true
+        if: matrix.target.has_std == true
 
   check-benchmarks:
     name: Type-check benchmarks
@@ -183,19 +181,11 @@ jobs:
             --group-features serde,rand
             --exclude-features default,winapi,time-macros,quickcheck-dep
 
-      - name: Test (--all --all-features)
+      - name: Test
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all --all-features
-        if: matrix.rust == '1.36.0' # `--workspace` was not implemented until Rust 1.39.
-
-      - name: Test (--workspace --all-features)
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --workspace --all-features
-        if: matrix.rust != '1.36.0'
+          args: --all-features
 
   fmt:
     name: Formatting
@@ -213,7 +203,7 @@ jobs:
           override: true
           components: rustfmt
 
-      - name: Run `cargo fmt -- --check`
+      - name: Check formatting
         uses: actions-rs/cargo@v1
         with:
           command: fmt

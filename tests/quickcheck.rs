@@ -99,6 +99,7 @@ fn arbitrary_date_respects_generator_size() {
     test_generator_size!(Date, year().abs(), 1);
     test_generator_size!(Date, year().abs(), 100);
     test_generator_size!(Date, year().abs(), 10_000);
+    #[cfg(feature = "large-dates")]
     test_generator_size!(Date, year().abs(), 100_000);
 
     test_generator_size!(Date, ordinal() min=1, 1);
@@ -194,6 +195,7 @@ fn arbitrary_primitive_date_time_respects_generator_size() {
     test_generator_size!(PrimitiveDateTime, year().abs(), 1);
     test_generator_size!(PrimitiveDateTime, year().abs(), 100);
     test_generator_size!(PrimitiveDateTime, year().abs(), 10_000);
+    #[cfg(feature = "large-dates")]
     test_generator_size!(PrimitiveDateTime, year().abs(), 100_000);
 
     test_generator_size!(PrimitiveDateTime, ordinal() min=1, 0);
@@ -264,6 +266,7 @@ fn arbitrary_offset_date_time_respects_generator_size() {
     test_generator_size!(OffsetDateTime, year().abs(), 1);
     test_generator_size!(OffsetDateTime, year().abs(), 100);
     test_generator_size!(OffsetDateTime, year().abs(), 10_000);
+    #[cfg(feature = "large-dates")]
     test_generator_size!(OffsetDateTime, year().abs(), 100_000);
 
     test_generator_size!(OffsetDateTime, ordinal() min=1, 0);
