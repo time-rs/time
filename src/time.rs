@@ -356,14 +356,6 @@ impl Time {
         self.nanosecond
     }
 
-    /// Get the number of nanoseconds since midnight.
-    pub(crate) const fn nanoseconds_since_midnight(self) -> u64 {
-        self.hour as u64 * 60 * 60 * 1_000_000_000
-            + self.minute as u64 * 60 * 1_000_000_000
-            + self.second as u64 * 1_000_000_000
-            + self.nanosecond as u64
-    }
-
     /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on
     /// overflow, returning the necessary whether the date is the following day.
     #[const_fn("1.46")]
@@ -741,8 +733,19 @@ impl Sub<Time> for Time {
     /// assert_eq!(time!("0:00") - time!("23:00"), (-23).hours());
     /// ```
     fn sub(self, rhs: Self) -> Self::Output {
-        Duration::nanoseconds(
-            self.nanoseconds_since_midnight() as i64 - rhs.nanoseconds_since_midnight() as i64,
-        )
+        let hour_diff = (self.hour as i8) - (rhs.hour as i8);
+        let minute_diff = (self.minute as i8) - (rhs.minute as i8);
+        let mut second_diff = (self.second as i8) - (rhs.second as i8);
+        let mut nanosecond_diff = (self.nanosecond as i32) - (rhs.nanosecond as i32);
+
+        if nanosecond_diff < 0 {
+            nanosecond_diff += 1_000_000_000;
+            second_diff -= 1;
+        }
+
+        Duration {
+            seconds: hour_diff as i64 * 3_600 + minute_diff as i64 * 60 + second_diff as i64,
+            nanoseconds: nanosecond_diff,
+        }
     }
 }
