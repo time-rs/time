@@ -30,7 +30,8 @@
 //! - `local-offset` (_implicitly enables `std`_)
 //!
 //!   This feature enables a number of methods that allow obtaining the system's
-//!   UTC offset.
+//!   UTC offset.  The methods enabled by this feature currently always return
+//!   Err results on unix platforms.  See #293 for details.
 //!
 //! - `large-dates`
 //!
