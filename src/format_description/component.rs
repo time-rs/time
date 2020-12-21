@@ -14,7 +14,8 @@ pub enum Component {
     Date(Date),
     /// A component that requires a [`Time`](crate::Time) to be present.
     Time(Time),
-    /// A component that requires a [`UtcOffset`](crate::UtcOffset) to be present.
+    /// A component that requires a [`UtcOffset`](crate::UtcOffset) to be
+    /// present.
     UtcOffset(UtcOffset),
 }
 
@@ -181,7 +182,8 @@ pub(crate) enum NakedComponent {
     Date(NakedDateComponent),
     /// A component that requires a [`Time`](crate::Time) to be present.
     Time(NakedTimeComponent),
-    /// A component that requires a [`UtcOffset`](crate::UtcOffset) to be present.
+    /// A component that requires a [`UtcOffset`](crate::UtcOffset) to be
+    /// present.
     UtcOffset(NakedUtcOffsetComponent),
 }
 

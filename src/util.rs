@@ -59,11 +59,7 @@ pub const fn is_leap_year(year: i32) -> bool {
 /// This function is `const fn` when using rustc >= 1.46.
 #[const_fn("1.46")]
 pub const fn days_in_year(year: i32) -> u16 {
-    if is_leap_year(year) {
-        366
-    } else {
-        365
-    }
+    if is_leap_year(year) { 366 } else { 365 }
 }
 
 /// Get the number of weeks in the ISO year.

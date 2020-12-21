@@ -435,7 +435,8 @@ fn from_iso_ywd() {
     assert!(Date::from_iso_week_date(2019, 1, Monday).is_ok());
     assert!(Date::from_iso_week_date(2019, 1, Tuesday).is_ok());
     assert!(Date::from_iso_week_date(2020, 53, Friday).is_ok());
-    assert!(Date::from_iso_week_date(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
+    // 2019 doesn't have 53 weeks.
+    assert!(Date::from_iso_week_date(2019, 53, Monday).is_err());
 }
 
 #[test]

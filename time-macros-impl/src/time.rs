@@ -41,7 +41,7 @@ impl Time {
                         return Err(Error::InvalidComponent {
                             name: "nanosecond",
                             value: raw_nanosecond.to_string(),
-                        })
+                        });
                     }
                 }
             }

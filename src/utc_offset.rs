@@ -235,8 +235,8 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
         // use core::{convert::TryInto, mem::MaybeUninit};
         //
-        // /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on
-        // /// any error.
+        // /// Convert the given Unix timestamp to a `libc::tm`. Returns `None`
+        // /// on any error.
         // fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
         //     extern "C" {
         //         #[cfg_attr(target_os = "netbsd", link_name = "__tzset50")]
@@ -250,8 +250,8 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         //
         //     let mut tm = MaybeUninit::uninit();
         //
-        //     // Update timezone information from system. `localtime_r` does not
-        //     // do this for us.
+        //     // Update timezone information from system. `localtime_r` does
+        //     // not do this for us.
         //     //
         //     // Safety: tzset is thread-safe.
         //     #[allow(unsafe_code)]
@@ -262,7 +262,9 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         //     // Safety: We are calling a system API, which mutates the `tm`
         //     // variable. If a null pointer is returned, an error occurred.
         //     #[allow(unsafe_code)]
-        //     let tm_ptr = unsafe { libc::localtime_r(&timestamp, tm.as_mut_ptr()) };
+        //     let tm_ptr = unsafe {
+        //         libc::localtime_r(&timestamp, tm.as_mut_ptr())
+        //     };
         //
         //     if tm_ptr.is_null() {
         //         None
@@ -302,19 +304,24 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         //         tm.tm_sec = 59;
         //     }
         //
-        //     let local_timestamp =
-        //         Date::from_yo(1900 + tm.tm_year, u16::try_from(tm.tm_yday).ok()? + 1)
-        //             .ok()?
-        //             .with_hms(
-        //                 tm.tm_hour.try_into().ok()?,
-        //                 tm.tm_min.try_into().ok()?,
-        //                 tm.tm_sec.try_into().ok()?,
-        //             )
-        //             .ok()?
-        //             .assume_utc()
-        //             .unix_timestamp();
+        //     let local_timestamp = Date::from_yo(
+        //             1900 + tm.tm_year,
+        //             u16::try_from(tm.tm_yday).ok()? + 1
+        //         )
+        //         .ok()?
+        //         .with_hms(
+        //             tm.tm_hour.try_into().ok()?,
+        //             tm.tm_min.try_into().ok()?,
+        //             tm.tm_sec.try_into().ok()?,
+        //         )
+        //         .ok()?
+        //         .assume_utc()
+        //         .unix_timestamp();
         //
-        //     let diff_secs: i32 = (local_timestamp - datetime.unix_timestamp()).try_into().ok()?;
+        //     let diff_secs: i32 =
+        //         (local_timestamp - datetime.unix_timestamp())
+        //         .try_into()
+        //         .ok()?;
         //
         //     UtcOffset::from_hms(
         //         (diff_secs / 3_600) as _,

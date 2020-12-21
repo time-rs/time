@@ -24,12 +24,16 @@ fn display() {
 fn source() {
     use std::error::Error as StdError;
 
-    assert!(Error::from(error::ConversionRange)
-        .source()
-        .unwrap()
-        .is::<error::ConversionRange>());
-    assert!(Error::from(component_range())
-        .source()
-        .unwrap()
-        .is::<error::ComponentRange>());
+    assert!(
+        Error::from(error::ConversionRange)
+            .source()
+            .unwrap()
+            .is::<error::ConversionRange>()
+    );
+    assert!(
+        Error::from(component_range())
+            .source()
+            .unwrap()
+            .is::<error::ComponentRange>()
+    );
 }

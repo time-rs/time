@@ -115,7 +115,8 @@ impl Time {
         })
     }
 
-    /// Attempt to create a `Time` from the hour, minute, second, and millisecond.
+    /// Attempt to create a `Time` from the hour, minute, second, and
+    /// millisecond.
     ///
     /// ```rust
     /// # use time::Time;
@@ -151,7 +152,8 @@ impl Time {
         })
     }
 
-    /// Attempt to create a `Time` from the hour, minute, second, and microsecond.
+    /// Attempt to create a `Time` from the hour, minute, second, and
+    /// microsecond.
     ///
     /// ```rust
     /// # use time::Time;
@@ -187,7 +189,8 @@ impl Time {
         })
     }
 
-    /// Attempt to create a `Time` from the hour, minute, second, and nanosecond.
+    /// Attempt to create a `Time` from the hour, minute, second, and
+    /// nanosecond.
     ///
     /// ```rust
     /// # use time::Time;

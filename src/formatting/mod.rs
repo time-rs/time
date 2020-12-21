@@ -65,7 +65,7 @@ impl FormatDescription<'_> {
             (&FormatDescription::Component(Component::Date(_)), None, _, _)
             | (&FormatDescription::Component(Component::Time(_)), _, None, _)
             | (&FormatDescription::Component(Component::UtcOffset(_)), _, _, None) => {
-                return Err(error::Format::InsufficientTypeInformation)
+                return Err(error::Format::InsufficientTypeInformation);
             }
         }
 

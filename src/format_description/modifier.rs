@@ -263,7 +263,7 @@ impl Modifiers {
                     return Err(InvalidFormatDescription::InvalidModifier {
                         value: modifier.to_owned(),
                         index: *index,
-                    })
+                    });
                 }
             }
         }

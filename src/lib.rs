@@ -205,7 +205,8 @@ mod weekday;
 pub mod macros {
     /// Construct a [`Date`](crate::Date) with a statically known value.
     ///
-    /// The resulting expression can be used in `const` or `static` declarations.
+    /// The resulting expression can be used in `const` or `static`
+    /// declarations.
     ///
     /// Three formats are supported: year-week-weekday, year-ordinal, and
     /// year-month-day.
@@ -225,7 +226,8 @@ pub mod macros {
     /// Construct a [`PrimitiveDateTime`] or [`OffsetDateTime`] with a
     /// statically known value.
     ///
-    /// The resulting expression can be used in `const` or `static` declarations.
+    /// The resulting expression can be used in `const` or `static`
+    /// declarations.
     ///
     /// The syntax accepted by this macro is the same as [`date!`] and
     /// [`time!`], with an optional [`offset!`], all space-separated. If an
@@ -238,12 +240,14 @@ pub mod macros {
     /// [`OffsetDateTime`]: crate::OffsetDateTime
     /// [`PrimitiveDateTime`]: crate::PrimitiveDateTime
     pub use time_macros::datetime;
-    /// Construct a [`UtcOffset`](crate::UtcOffset) with a statically known value.
+    /// Construct a [`UtcOffset`](crate::UtcOffset) with a statically known
+    /// value.
     ///
-    /// The resulting expression can be used in `const` or `static` declarations.
+    /// The resulting expression can be used in `const` or `static`
+    /// declarations.
     ///
-    /// A sign and the hour must be provided; minutes and seconds default to zero.
-    /// `UTC` (both uppercase and lowercase) is also allowed.
+    /// A sign and the hour must be provided; minutes and seconds default to
+    /// zero. `UTC` (both uppercase and lowercase) is also allowed.
     ///
     /// ```rust
     /// # use time::UtcOffset;
@@ -264,14 +268,16 @@ pub mod macros {
     pub use time_macros::offset;
     /// Construct a [`Time`](crate::Time) with a statically known value.
     ///
-    /// The resulting expression can be used in `const` or `static` declarations.
+    /// The resulting expression can be used in `const` or `static`
+    /// declarations.
     ///
-    /// Hours and minutes must be provided, while seconds defaults to zero. AM/PM is
-    /// allowed (either uppercase or lowercase). Any number of subsecond digits may
-    /// be provided (though any past nine will be discarded).
+    /// Hours and minutes must be provided, while seconds defaults to zero.
+    /// AM/PM is allowed (either uppercase or lowercase). Any number of
+    /// subsecond digits may be provided (though any past nine will be
+    /// discarded).
     ///
-    /// All components are validated at compile-time. An error will be raised if any
-    /// value is invalid.
+    /// All components are validated at compile-time. An error will be raised if
+    /// any value is invalid.
     ///
     /// ```rust
     /// # use time::Time;
