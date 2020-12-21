@@ -7,26 +7,23 @@ use core::{
 };
 use std::time::Instant as StdInstant;
 
-/// A measurement of a monotonically non-decreasing clock. Opaque and useful
-/// only with [`Duration`].
+/// A measurement of a monotonically non-decreasing clock. Opaque and useful only with [`Duration`].
 ///
-/// Instants are always guaranteed to be no less than any previously measured
-/// instant when created, and are often useful for tasks such as measuring
-/// benchmarks or timing how long an operation takes.
+/// Instants are always guaranteed to be no less than any previously measured instant when created,
+/// and are often useful for tasks such as measuring benchmarks or timing how long an operation
+/// takes.
 ///
-/// Note, however, that instants are not guaranteed to be **steady**. In other
-/// words, each tick of the underlying clock may not be the same length (e.g.
-/// some seconds may be longer than others). An instant may jump forwards or
-/// experience time dilation (slow down or speed up), but it will never go
-/// backwards.
+/// Note, however, that instants are not guaranteed to be **steady**. In other words, each tick of
+/// the underlying clock may not be the same length (e.g. some seconds may be longer than others).
+/// An instant may jump forwards or experience time dilation (slow down or speed up), but it will
+/// never go backwards.
 ///
-/// Instants are opaque types that can only be compared to one another. There is
-/// no method to get "the number of seconds" from an instant. Instead, it only
-/// allows measuring the duration between two instants (or comparing two
-/// instants).
+/// Instants are opaque types that can only be compared to one another. There is no method to get
+/// "the number of seconds" from an instant. Instead, it only allows measuring the duration between
+/// two instants (or comparing two instants).
 ///
-/// This implementation allows for operations with signed [`Duration`]s, but is
-/// otherwise identical to [`std::time::Instant`].
+/// This implementation allows for operations with signed [`Duration`]s, but is otherwise identical
+/// to [`std::time::Instant`].
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Instant(pub StdInstant);
@@ -42,9 +39,8 @@ impl Instant {
         Self(StdInstant::now())
     }
 
-    /// Returns the amount of time elapsed since this instant was created. The
-    /// duration will always be nonnegative if the instant is not synthetically
-    /// created.
+    /// Returns the amount of time elapsed since this instant was created. The duration will always
+    /// be nonnegative if the instant is not synthetically created.
     ///
     /// ```rust
     /// # use time::{Instant, ext::{NumericalStdDuration, NumericalDuration}};
@@ -57,9 +53,9 @@ impl Instant {
         Self::now() - self
     }
 
-    /// Returns `Some(t)` where `t` is the time `self + duration` if `t` can be
-    /// represented as `Instant` (which means it's inside the bounds of the
-    /// underlying data structure), `None` otherwise.
+    /// Returns `Some(t)` where `t` is the time `self + duration` if `t` can be represented as
+    /// `Instant` (which means it's inside the bounds of the underlying data structure), `None`
+    /// otherwise.
     ///
     /// ```rust
     /// # use time::{Instant, ext::NumericalDuration};
@@ -78,9 +74,9 @@ impl Instant {
         }
     }
 
-    /// Returns `Some(t)` where `t` is the time `self - duration` if `t` can be
-    /// represented as `Instant` (which means it's inside the bounds of the
-    /// underlying data structure), `None` otherwise.
+    /// Returns `Some(t)` where `t` is the time `self - duration` if `t` can be represented as
+    /// `Instant` (which means it's inside the bounds of the underlying data structure), `None`
+    /// otherwise.
     ///
     /// ```rust
     /// # use time::{Instant, ext::NumericalDuration};

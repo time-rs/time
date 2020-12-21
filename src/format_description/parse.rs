@@ -7,8 +7,7 @@ use crate::format_description::{
 };
 use alloc::vec::Vec;
 
-/// The item parsed and remaining chunk of the format description after one
-/// iteration.
+/// The item parsed and remaining chunk of the format description after one iteration.
 #[derive(Debug)]
 struct ParsedItem<'a> {
     /// The item that was parsed.
@@ -17,8 +16,8 @@ struct ParsedItem<'a> {
     remaining: &'a str,
 }
 
-/// Parse a component from the format description. Neither the leading nor
-/// trailing bracket should be present in the parameter.
+/// Parse a component from the format description. Neither the leading nor trailing bracket should
+/// be present in the parameter.
 fn parse_component<'a>(
     mut s: &'a str,
     index: &mut usize,
@@ -33,13 +32,11 @@ fn parse_component<'a>(
         *index += whitespace_loc;
         component_name = &s[..whitespace_loc];
         s = &s[whitespace_loc..];
-        // Trim any whitespace between the component name and the first
-        // modifier.
+        // Trim any whitespace between the component name and the first modifier.
         s = helper::consume_whitespace(s, index);
     } else {
         component_name = s;
-        // There is no whitespace remaining, so the full input is the component
-        // name.
+        // There is no whitespace remaining, so the full input is the component name.
         s = "";
     }
 

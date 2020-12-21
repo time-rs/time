@@ -29,10 +29,9 @@ pub(crate) const MAX_YEAR: i32 = 9999;
 
 /// Date in the proleptic Gregorian calendar.
 ///
-/// By default, years between ±9999 inclusive are representable. This can be
-/// expanded to ±999,999 inclusive by enabling the `large-dates` crate feature.
-/// Doing so has some performance implications, and introduces some ambiguities
-/// when parsing.
+/// By default, years between ±9999 inclusive are representable. This can be expanded to ±999,999
+/// inclusive by enabling the `large-dates` crate feature. Doing so has some performance
+/// implications, and introduces some ambiguities when parsing.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -58,8 +57,8 @@ impl fmt::Debug for Date {
 }
 
 impl Date {
-    /// Construct a `Date` from the year and ordinal values, the validity of
-    /// which must be guaranteed by the caller.
+    /// Construct a `Date` from the year and ordinal values, the validity of which must be
+    /// guaranteed by the caller.
     #[doc(hidden)]
     pub const fn from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
         Self {
@@ -87,8 +86,7 @@ impl Date {
         month: u8,
         day: u8,
     ) -> Result<Self, error::ComponentRange> {
-        /// Cumulative days through the beginning of a month in both common and
-        /// leap years.
+        /// Cumulative days through the beginning of a month in both common and leap years.
         const DAYS_CUMULATIVE_COMMON_LEAP: [[u16; 12]; 2] = [
             [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
             [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
@@ -207,8 +205,8 @@ impl Date {
         self.month_day().0
     }
 
-    /// Get the day of the month. If fetching both the month and day, it is more
-    /// efficient to use [`Date::month_day`].
+    /// Get the day of the month. If fetching both the month and day, it is more efficient to use
+    /// [`Date::month_day`].
     ///
     /// The returned value will always be in the range `1..=31`.
     ///
@@ -224,10 +222,9 @@ impl Date {
         self.month_day().1
     }
 
-    /// Get the month and day. This is more efficient than fetching the
-    /// components individually.
-    // For whatever reason, rustc has difficulty optimizing this function. It's
-    // significantly faster to write the statements out by hand.
+    /// Get the month and day. This is more efficient than fetching the components individually.
+    // For whatever reason, rustc has difficulty optimizing this function. It's significantly faster
+    // to write the statements out by hand.
     #[const_fn("1.46")]
     pub(crate) const fn month_day(self) -> (u8, u8) {
         /// The number of days up to and including the given month. Common years
@@ -269,8 +266,7 @@ impl Date {
 
     /// Get the day of the year.
     ///
-    /// The returned value will always be in the range `1..=366` (`1..=365` for
-    /// common years).
+    /// The returned value will always be in the range `1..=366` (`1..=365` for common years).
     ///
     /// ```rust
     /// # use time_macros::date;
@@ -482,9 +478,8 @@ impl Date {
 
     /// Get the Julian day for the date.
     ///
-    /// The algorithm to perform this conversion is derived from one provided by
-    /// Peter Baum; it is freely available
-    /// [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
+    /// The algorithm to perform this conversion is derived from one provided by Peter Baum; it is
+    /// freely available [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
     ///
     /// ```rust
     /// # use time_macros::date;
@@ -497,8 +492,8 @@ impl Date {
     /// This function is `const fn` when using rustc >= 1.46.
     #[const_fn("1.46")]
     pub const fn to_julian_day(self) -> i32 {
-        /// Floored division for integers. This differs from the default
-        /// behavior, which is truncation.
+        /// Floored division for integers. This differs from the default behavior, which is
+        /// truncation.
         #[const_fn("1.46")]
         pub(crate) const fn div_floor(a: i32, b: i32) -> i32 {
             let (quotient, remainder) = (a / b, a % b);
@@ -520,9 +515,8 @@ impl Date {
 
     /// Create a `Date` from the Julian day.
     ///
-    /// The algorithm to perform this conversion is derived from one provided by
-    /// Peter Baum; it is freely available
-    /// [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
+    /// The algorithm to perform this conversion is derived from one provided by Peter Baum; it is
+    /// freely available [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
     ///
     /// ```rust
     /// # use time::Date;
@@ -539,8 +533,8 @@ impl Date {
     pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
         #![allow(trivial_numeric_casts)] // cast depends on type alias
 
-        /// A type that is either `i32` or `i64`. This subtle difference allows
-        /// for optimization based on the valid values.
+        /// A type that is either `i32` or `i64`. This subtle difference allows for optimization
+        /// based on the valid values.
         #[cfg(feature = "large-dates")]
         type MaybeWidened = i64;
         #[allow(clippy::missing_docs_in_private_items)]
@@ -565,8 +559,7 @@ impl Date {
             Self::from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).to_julian_day();
         ensure_value_in_range!(julian_day in min_julian_day => max_julian_day);
 
-        // To avoid a potential overflow, the value may need to be widened for
-        // some arithmetic.
+        // To avoid a potential overflow, the value may need to be widened for some arithmetic.
 
         let z = julian_day - 1_721_119;
         let g = 100 * z as MaybeWidened - 25;
@@ -601,8 +594,8 @@ impl Date {
 
 /// Methods to add a [`Time`] component, resulting in a [`PrimitiveDateTime`].
 impl Date {
-    /// Create a [`PrimitiveDateTime`] using the existing date. The [`Time`]
-    /// component will be set to midnight.
+    /// Create a [`PrimitiveDateTime`] using the existing date. The [`Time`] component will be set
+    /// to midnight.
     ///
     /// ```rust
     /// # use time_macros::{date, datetime};
@@ -612,8 +605,7 @@ impl Date {
         PrimitiveDateTime::new(self, Time::midnight())
     }
 
-    /// Create a [`PrimitiveDateTime`] using the existing date and the provided
-    /// [`Time`].
+    /// Create a [`PrimitiveDateTime`] using the existing date and the provided [`Time`].
     ///
     /// ```rust
     /// # use time_macros::{date, datetime, time};
@@ -626,8 +618,7 @@ impl Date {
         PrimitiveDateTime::new(self, time)
     }
 
-    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and
-    /// the provided time.
+    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time_macros::date;
@@ -649,8 +640,7 @@ impl Date {
         ))
     }
 
-    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and
-    /// the provided time.
+    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time_macros::date;
@@ -673,8 +663,7 @@ impl Date {
         ))
     }
 
-    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and
-    /// the provided time.
+    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time_macros::date;
@@ -697,8 +686,7 @@ impl Date {
         ))
     }
 
-    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and
-    /// the provided time.
+    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time_macros::date;
@@ -723,9 +711,9 @@ impl Date {
 }
 
 impl Date {
-    /// Format the `Date` using the provided format description. The formatted
-    /// value will be output to the provided writer. The format description will
-    /// typically be parsed by using [`FormatDescription::parse`].
+    /// Format the `Date` using the provided format description. The formatted value will be output
+    /// to the provided writer. The format description will typically be parsed by using
+    /// [`FormatDescription::parse`].
     pub fn format_into<'a>(
         self,
         output: &mut dyn fmt::Write,
@@ -734,9 +722,8 @@ impl Date {
         description.format_into(output, Some(self), None, None)
     }
 
-    /// Format the `Date` using the provided format description. The format
-    /// description will typically be parsed by using
-    /// [`FormatDescription::parse`].
+    /// Format the `Date` using the provided format description. The format description will
+    /// typically be parsed by using [`FormatDescription::parse`].
     ///
     /// ```rust
     /// # use time::format_description::FormatDescription;

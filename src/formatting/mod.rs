@@ -26,10 +26,9 @@ fn format_value<T: fmt::Display>(
 }
 
 impl FormatDescription<'_> {
-    /// Using the format description provided, write the formatted value to the
-    /// designated output. An `Err` will be returned if the format description
-    /// requires information that the components do not provide or the value
-    /// cannot be output to the stream.
+    /// Using the format description provided, write the formatted value to the designated output.
+    /// An `Err` will be returned if the format description requires information that the components
+    /// do not provide or the value cannot be output to the stream.
     pub(crate) fn format_into(
         &self,
         output: &mut dyn fmt::Write,

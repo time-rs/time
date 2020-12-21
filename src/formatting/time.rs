@@ -11,8 +11,8 @@ use crate::{
 use core::fmt;
 
 impl component::Time {
-    /// Write the formatted value to the designated output. An `Err` will be
-    /// returned if the value cannot be output to the stream.
+    /// Write the formatted value to the designated output. An `Err` will be returned if the value
+    /// cannot be output to the stream.
     pub(super) fn format_into(
         self,
         output: &mut dyn fmt::Write,

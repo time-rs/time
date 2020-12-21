@@ -20,10 +20,9 @@ use std::time::SystemTime;
 /// A [`PrimitiveDateTime`] with a [`UtcOffset`].
 ///
 /// All comparisons are performed using the UTC time.
-// Internally, an `OffsetDateTime` is a thin wrapper around a
-// [`PrimitiveDateTime`] coupled with a [`UtcOffset`]. This offset is added to
-// the date, time, or datetime as necessary for presentation or returning from a
-// function.
+// Internally, an `OffsetDateTime` is a thin wrapper around a [`PrimitiveDateTime`] coupled with a
+// [`UtcOffset`]. This offset is added to the date, time, or datetime as necessary for presentation
+// or returning from a function.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -36,8 +35,7 @@ use std::time::SystemTime;
 pub struct OffsetDateTime {
     /// The [`PrimitiveDateTime`], which is _always_ UTC.
     pub(crate) utc_datetime: PrimitiveDateTime,
-    /// The [`UtcOffset`], which will be added to the [`PrimitiveDateTime`] as
-    /// necessary.
+    /// The [`UtcOffset`], which will be added to the [`PrimitiveDateTime`] as necessary.
     pub(crate) offset: UtcOffset,
 }
 
@@ -56,9 +54,8 @@ impl OffsetDateTime {
         SystemTime::now().into()
     }
 
-    /// Attempt to create a new `OffsetDateTime` with the current date and time
-    /// in the local offset. If the offset cannot be determined, an error is
-    /// returned.
+    /// Attempt to create a new `OffsetDateTime` with the current date and time in the local offset.
+    /// If the offset cannot be determined, an error is returned.
     ///
     /// ```rust
     /// # use time::OffsetDateTime;
@@ -76,8 +73,7 @@ impl OffsetDateTime {
         Ok(t.to_offset(UtcOffset::local_offset_at(t)?))
     }
 
-    /// Convert the `OffsetDateTime` from the current [`UtcOffset`] to the
-    /// provided [`UtcOffset`].
+    /// Convert the `OffsetDateTime` from the current [`UtcOffset`] to the provided [`UtcOffset`].
     ///
     /// ```rust
     /// # use time_macros::{datetime, offset};
@@ -88,8 +84,7 @@ impl OffsetDateTime {
     ///     1999,
     /// );
     ///
-    /// // Let's see what time Sydney's new year's celebration is in New York
-    /// // and Los Angeles.
+    /// // Let's see what time Sydney's new year's celebration is in New York // and Los Angeles.
     ///
     /// // Construct midnight on new year's in Sydney.
     /// let sydney = datetime!("2000-01-01 0:00 +11");
@@ -122,7 +117,8 @@ impl OffsetDateTime {
             .assume_utc()
     }
 
-    /// Create an `OffsetDateTime` from the provided [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
+    /// Create an `OffsetDateTime` from the provided
+    /// [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
     /// # use time::OffsetDateTime;
@@ -137,8 +133,8 @@ impl OffsetDateTime {
     /// );
     /// ```
     ///
-    /// If you have a timestamp-nanosecond pair, you can use something along the
-    /// lines of the following:
+    /// If you have a timestamp-nanosecond pair, you can use something along the lines of the
+    /// following:
     ///
     /// ```rust
     /// # use time::{Duration, OffsetDateTime, ext::NumericalDuration};
@@ -182,8 +178,7 @@ impl OffsetDateTime {
         Ok(PrimitiveDateTime::new(date, time).assume_utc())
     }
 
-    /// Construct an `OffsetDateTime` from the provided Unix timestamp (in
-    /// nanoseconds).
+    /// Construct an `OffsetDateTime` from the provided Unix timestamp (in nanoseconds).
     ///
     /// ```rust
     /// # use time::OffsetDateTime;
@@ -652,12 +647,10 @@ impl OffsetDateTime {
         self.date().weekday()
     }
 
-    /// Get the Julian day for the date. The time is not taken into account for
-    /// this calculation.
+    /// Get the Julian day for the date. The time is not taken into account for this calculation.
     ///
-    /// The algorithm to perform this conversion is derived from one provided by
-    /// Peter Baum; it is freely available
-    /// [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
+    /// The algorithm to perform this conversion is derived from one provided by Peter Baum; it is
+    /// freely available [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
     ///
     /// ```rust
     /// # use time_macros::datetime;
@@ -852,8 +845,8 @@ impl OffsetDateTime {
         second as _
     }
 
-    // Because a `UtcOffset` is limited in resolution to one second, any
-    // subsecond value will not change when adjusting for the offset.
+    // Because a `UtcOffset` is limited in resolution to one second, any subsecond value will not
+    // change when adjusting for the offset.
 
     /// Get the milliseconds within the second in the stored offset.
     ///
@@ -903,8 +896,8 @@ impl OffsetDateTime {
 
 /// Methods that replace part of the `OffsetDateTime`.
 impl OffsetDateTime {
-    /// Replace the time, which is assumed to be in the stored offset. The date
-    /// and offset components are unchanged.
+    /// Replace the time, which is assumed to be in the stored offset. The date and offset
+    /// components are unchanged.
     ///
     /// ```rust
     /// # use time_macros::{datetime, time};
@@ -932,8 +925,8 @@ impl OffsetDateTime {
             .assume_offset(self.offset)
     }
 
-    /// Replace the date, which is assumed to be in the stored offset. The time
-    /// and offset components are unchanged.
+    /// Replace the date, which is assumed to be in the stored offset. The time and offset
+    /// components are unchanged.
     ///
     /// ```rust
     /// # use time_macros::{datetime, date};
@@ -957,8 +950,8 @@ impl OffsetDateTime {
             .assume_offset(self.offset)
     }
 
-    /// Replace the date and time, which are assumed to be in the stored offset.
-    /// The offset component remains unchanged.
+    /// Replace the date and time, which are assumed to be in the stored offset. The offset
+    /// component remains unchanged.
     ///
     /// ```rust
     /// # use time_macros::datetime;
@@ -998,9 +991,8 @@ impl OffsetDateTime {
 }
 
 impl OffsetDateTime {
-    /// Format the `OffsetDateTime` using the provided format description. The
-    /// formatted value will be output to the provided writer. The format
-    /// description will typically be parsed by using
+    /// Format the `OffsetDateTime` using the provided format description. The formatted value will
+    /// be output to the provided writer. The format description will typically be parsed by using
     /// [`FormatDescription::parse`].
     pub fn format_into<'a>(
         self,
@@ -1015,9 +1007,8 @@ impl OffsetDateTime {
         )
     }
 
-    /// Format the `OffsetDateTime` using the provided format description. The
-    /// format description will typically be parsed by using
-    /// [`FormatDescription::parse`].
+    /// Format the `OffsetDateTime` using the provided format description. The format description
+    /// will typically be parsed by using [`FormatDescription::parse`].
     ///
     /// ```rust
     /// # use time::format_description::FormatDescription;
@@ -1067,8 +1058,7 @@ impl Ord for OffsetDateTime {
 
 impl Hash for OffsetDateTime {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
-        // We need to distinguish this from a `PrimitiveDateTime`, which would
-        // otherwise conflict.
+        // We need to distinguish this from a `PrimitiveDateTime`, which would otherwise conflict.
         hasher.write(b"OffsetDateTime");
         self.utc_datetime.hash(hasher);
     }

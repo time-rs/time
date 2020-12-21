@@ -1,5 +1,5 @@
-/// Helper macro that wraps code blocks in benchmark functions, and makes sure
-/// to add all those functions to the Criterion benchmark group.
+/// Helper macro that wraps code blocks in benchmark functions, and makes sure to add all those
+/// functions to the Criterion benchmark group.
 #[macro_export]
 macro_rules! setup_benchmark {
     (

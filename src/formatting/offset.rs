@@ -4,8 +4,8 @@ use crate::{format_description::component, formatting::format_value, UtcOffset};
 use core::fmt;
 
 impl component::UtcOffset {
-    /// Write the formatted value to the designated output. An `Err` will be
-    /// returned if the value cannot be output to the stream.
+    /// Write the formatted value to the designated output. An `Err` will be returned if the value
+    /// cannot be output to the stream.
     pub(super) fn format_into(
         self,
         output: &mut dyn fmt::Write,

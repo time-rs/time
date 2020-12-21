@@ -1,7 +1,7 @@
 //! Differential formats for serde.
 
-// Types with guaranteed stable serde representations. Strings are avoided to
-// allow for optimal representations in various binary forms.
+// Types with guaranteed stable serde representations. Strings are avoided to allow for optimal
+// representations in various binary forms.
 
 #![allow(clippy::missing_docs_in_private_items)]
 

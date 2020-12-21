@@ -13,8 +13,8 @@ pub enum Padding {
     Space,
     /// A zero character (`0`) should be used as padding.
     Zero,
-    /// There is no padding. This can result in a width below the otherwise
-    /// minimum number of characters.
+    /// There is no padding. This can result in a width below the otherwise minimum number of
+    /// characters.
     None,
 }
 
@@ -50,8 +50,8 @@ pub enum SubsecondDigits {
     Eight,
     /// Exactly nine digits.
     Nine,
-    /// Any number of digits that is at least one. When formatting, the minimum
-    /// digits necessary will be used.
+    /// Any number of digits that is at least one. When formatting, the minimum digits necessary
+    /// will be used.
     OneOrMore,
 }
 
@@ -115,8 +115,7 @@ impl_default! {
     YearRepr => Self::Full;
 }
 
-/// The modifiers parsed for any given component. `None` indicates the modifier
-/// was not present.
+/// The modifiers parsed for any given component. `None` indicates the modifier was not present.
 #[allow(clippy::missing_docs_in_private_items)] // fields
 #[derive(Debug, Default)]
 pub(crate) struct Modifiers {

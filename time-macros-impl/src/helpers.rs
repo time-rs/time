@@ -5,8 +5,7 @@ use std::{
     str::{Chars, FromStr},
 };
 
-/// Simulate a const block, ensuring that the value will be computed at
-/// compile-time.
+/// Simulate a const block, ensuring that the value will be computed at compile-time.
 pub(crate) fn const_block(value: TokenStream, type_: TokenStream) -> TokenStream {
     TokenStream::from(TokenTree::Group(Group::new(
         Delimiter::Brace,

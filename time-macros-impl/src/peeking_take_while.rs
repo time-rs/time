@@ -1,5 +1,5 @@
-// Modified from the `peeking_take_while` crate. Copyright 2017 Nick Fitzgerald.
-// License MIT OR Apache-2.
+// Modified from the `peeking_take_while` crate. Copyright 2017 Nick Fitzgerald. License MIT OR
+// Apache-2.
 
 use std::iter::Peekable;
 

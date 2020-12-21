@@ -16,11 +16,10 @@ use core::{
 
 /// The clock time within a given date. Nanosecond precision.
 ///
-/// All minutes are assumed to have exactly 60 seconds; no attempt is made to
-/// handle leap seconds (either positive or negative).
+/// All minutes are assumed to have exactly 60 seconds; no attempt is made to handle leap seconds
+/// (either positive or negative).
 ///
-/// When comparing two `Time`s, they are assumed to be in the same calendar
-/// date.
+/// When comparing two `Time`s, they are assumed to be in the same calendar date.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -115,8 +114,7 @@ impl Time {
         })
     }
 
-    /// Attempt to create a `Time` from the hour, minute, second, and
-    /// millisecond.
+    /// Attempt to create a `Time` from the hour, minute, second, and millisecond.
     ///
     /// ```rust
     /// # use time::Time;
@@ -152,8 +150,7 @@ impl Time {
         })
     }
 
-    /// Attempt to create a `Time` from the hour, minute, second, and
-    /// microsecond.
+    /// Attempt to create a `Time` from the hour, minute, second, and microsecond.
     ///
     /// ```rust
     /// # use time::Time;
@@ -189,8 +186,7 @@ impl Time {
         })
     }
 
-    /// Attempt to create a `Time` from the hour, minute, second, and
-    /// nanosecond.
+    /// Attempt to create a `Time` from the hour, minute, second, and nanosecond.
     ///
     /// ```rust
     /// # use time::Time;
@@ -359,8 +355,8 @@ impl Time {
         self.nanosecond
     }
 
-    /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on
-    /// overflow, returning the necessary whether the date is the following day.
+    /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow, returning the
+    /// necessary whether the date is the following day.
     #[const_fn("1.46")]
     pub(crate) const fn adjusting_add(self, duration: Duration) -> (DateAdjustment, Self) {
         let mut nanoseconds = self.nanosecond as i32 + duration.subsec_nanoseconds();
@@ -421,9 +417,8 @@ impl Time {
         )
     }
 
-    /// Add the sub-day time of the [`std::time::Duration`] to the `Time`. Wraps
-    /// on overflow, returning whether the date is the previous date as the
-    /// first element of the tuple.
+    /// Add the sub-day time of the [`std::time::Duration`] to the `Time`. Wraps on overflow,
+    /// returning whether the date is the previous date as the first element of the tuple.
     #[const_fn("1.46")]
     pub(crate) const fn adjusting_add_std(self, duration: StdDuration) -> (bool, Self) {
         let mut nanosecond = self.nanosecond + duration.subsec_nanos();
@@ -464,9 +459,8 @@ impl Time {
         )
     }
 
-    /// Subtract the sub-day time of the [`std::time::Duration`] to the `Time`.
-    /// Wraps on overflow, returning whether the date is the previous date as
-    /// the first element of the tuple.
+    /// Subtract the sub-day time of the [`std::time::Duration`] to the `Time`. Wraps on overflow,
+    /// returning whether the date is the previous date as the first element of the tuple.
     #[const_fn("1.46")]
     pub(crate) const fn adjusting_sub_std(self, duration: StdDuration) -> (bool, Self) {
         let mut nanosecond = self.nanosecond as i32 - duration.subsec_nanos() as i32;
@@ -509,9 +503,9 @@ impl Time {
 }
 
 impl Time {
-    /// Format the `Time` using the provided format description. The formatted
-    /// value will be output to the provided writer. The format description will
-    /// typically be parsed by using [`FormatDescription::parse`].
+    /// Format the `Time` using the provided format description. The formatted value will be output
+    /// to the provided writer. The format description will typically be parsed by using
+    /// [`FormatDescription::parse`].
     pub fn format_into<'a>(
         self,
         output: &mut dyn fmt::Write,
@@ -520,9 +514,8 @@ impl Time {
         description.format_into(output, None, Some(self), None)
     }
 
-    /// Format the `Time` using the provided format description. The format
-    /// description will typically be parsed by using
-    /// [`FormatDescription::parse`].
+    /// Format the `Time` using the provided format description. The format description will
+    /// typically be parsed by using [`FormatDescription::parse`].
     ///
     /// ```rust
     /// # use time::format_description::FormatDescription;
@@ -575,8 +568,7 @@ impl Display for Time {
 impl Add<Duration> for Time {
     type Output = Self;
 
-    /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on
-    /// overflow.
+    /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow.
     ///
     /// ```rust
     /// # use time::ext::NumericalDuration;
@@ -592,8 +584,7 @@ impl Add<Duration> for Time {
 impl Add<StdDuration> for Time {
     type Output = Self;
 
-    /// Add the sub-day time of the [`std::time::Duration`] to the `Time`. Wraps
-    /// on overflow.
+    /// Add the sub-day time of the [`std::time::Duration`] to the `Time`. Wraps on overflow.
     ///
     /// ```rust
     /// # use time::ext::NumericalStdDuration;
@@ -607,8 +598,7 @@ impl Add<StdDuration> for Time {
 }
 
 impl AddAssign<Duration> for Time {
-    /// Add the sub-day time of the [`Duration`] to the existing `Time`. Wraps
-    /// on overflow.
+    /// Add the sub-day time of the [`Duration`] to the existing `Time`. Wraps on overflow.
     ///
     /// ```rust
     /// # use time::ext::NumericalDuration;
@@ -627,8 +617,8 @@ impl AddAssign<Duration> for Time {
 }
 
 impl AddAssign<StdDuration> for Time {
-    /// Add the sub-day time of the [`std::time::Duration`] to the existing
-    /// `Time`. Wraps on overflow.
+    /// Add the sub-day time of the [`std::time::Duration`] to the existing `Time`. Wraps on
+    /// overflow.
     ///
     /// ```rust
     /// # use time::ext::NumericalStdDuration;
@@ -649,8 +639,7 @@ impl AddAssign<StdDuration> for Time {
 impl Sub<Duration> for Time {
     type Output = Self;
 
-    /// Subtract the sub-day time of the [`Duration`] from the `Time`. Wraps on
-    /// overflow.
+    /// Subtract the sub-day time of the [`Duration`] from the `Time`. Wraps on overflow.
     ///
     /// ```rust
     /// # use time::ext::NumericalDuration;
@@ -666,9 +655,7 @@ impl Sub<Duration> for Time {
 impl Sub<StdDuration> for Time {
     type Output = Self;
 
-    /// Subtract the sub-day time of the [`std::time::Duration`] from the
-    /// `Time`.
-    /// Wraps on overflow.
+    /// Subtract the sub-day time of the [`std::time::Duration`] from the `Time`. Wraps on overflow.
     ///
     /// ```rust
     /// # use time::ext::NumericalStdDuration;
@@ -682,8 +669,7 @@ impl Sub<StdDuration> for Time {
 }
 
 impl SubAssign<Duration> for Time {
-    /// Subtract the sub-day time of the [`Duration`] from the existing `Time`.
-    /// Wraps on overflow.
+    /// Subtract the sub-day time of the [`Duration`] from the existing `Time`. Wraps on overflow.
     ///
     /// ```rust
     /// # use time::ext::NumericalDuration;
@@ -702,8 +688,8 @@ impl SubAssign<Duration> for Time {
 }
 
 impl SubAssign<StdDuration> for Time {
-    /// Subtract the sub-day time of the [`std::time::Duration`] from the
-    /// existing `Time`. Wraps on overflow.
+    /// Subtract the sub-day time of the [`std::time::Duration`] from the existing `Time`. Wraps on
+    /// overflow.
     ///
     /// ```rust
     /// # use time::ext::NumericalStdDuration;
@@ -724,8 +710,8 @@ impl SubAssign<StdDuration> for Time {
 impl Sub<Time> for Time {
     type Output = Duration;
 
-    /// Subtract two `Time`s, returning the [`Duration`] between. This assumes
-    /// both `Time`s are in the same calendar day.
+    /// Subtract two `Time`s, returning the [`Duration`] between. This assumes both `Time`s are in
+    /// the same calendar day.
     ///
     /// ```rust
     /// # use time::ext::NumericalDuration;

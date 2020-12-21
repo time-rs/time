@@ -33,17 +33,16 @@ pub enum FormatDescription<'a> {
     Literal(&'a str),
     /// A minimal representation of a single non-literal item.
     Component(Component),
-    /// A series of literals or components that collectively form a partial or
-    /// complete description.
+    /// A series of literals or components that collectively form a partial or complete
+    /// description.
     ///
-    /// Note that this is a reference to a slice, such that a statically known
-    /// list can be provided.
+    /// Note that this is a reference to a slice, such that a statically known list can be
+    /// provided.
     BorrowedCompound(&'a [Self]),
-    /// A series of literals or components that collectively form a partial or
-    /// complete description.
-    // It's necessary to have a separate variant rather than use `Cow`, as
-    // features should be strictly additive; a `Cow` cannot be used in non-alloc
-    // environments.
+    /// A series of literals or components that collectively form a partial or complete
+    /// description.
+    // It's necessary to have a separate variant rather than use `Cow`, as features should be
+    // strictly additive; a `Cow` cannot be used in non-alloc environments.
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     OwnedCompound(Vec<Self>),

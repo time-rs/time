@@ -1,8 +1,6 @@
-//! Implementations of the [`quickcheck::Arbitrary`](quickcheck_dep::Arbitrary)
-//! trait.
+//! Implementations of the [`quickcheck::Arbitrary`](quickcheck_dep::Arbitrary) trait.
 //!
-//! This enables users to write tests such as this, and have test values
-//! provided automatically:
+//! This enables users to write tests such as this, and have test values provided automatically:
 //!
 //! ```
 //! # #![allow(dead_code)]
@@ -34,9 +32,9 @@
 //! }
 //! ```
 //!
-//! An implementation for `Instant` is intentionally omitted since its values
-//! are only meaningful in relation to a [`Duration`], and obtaining an
-//! `Instant` from a [`Duration`] is very simple anyway.
+//! An implementation for `Instant` is intentionally omitted since its values are only meaningful in
+//! relation to a [`Duration`], and obtaining an `Instant` from a [`Duration`] is very simple
+//! anyway.
 
 use crate::{
     date::{MAX_YEAR, MIN_YEAR},
@@ -49,8 +47,8 @@ use quickcheck_dep::{Arbitrary, Gen};
 use rand::Rng;
 
 /// Shim for the unstable clamp method.
-// This method seems likely to stabilized in Rust 1.50. This will result in a
-// NET usage date of 2021-08-11.
+// This method seems likely to stabilized in Rust 1.50. This will result in a NET usage date of
+// 2021-08-11.
 trait Clamp {
     /// Constrain `self` between `min` and `max` (inclusive).
     ///

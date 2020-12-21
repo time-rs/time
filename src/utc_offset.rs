@@ -11,10 +11,9 @@ use core::fmt::{self, Display};
 
 /// An offset from UTC.
 ///
-/// Guaranteed to store values up to ±23:59:59. Any values outside this range
-/// may have incidental support that can change at any time without notice. If
-/// you need support outside this range, please file an issue with your use
-/// case.
+/// Guaranteed to store values up to ±23:59:59. Any values outside this range may have incidental
+/// support that can change at any time without notice. If you need support outside this range,
+/// please file an issue with your use case.
 // All three components _must_ have the same sign.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
@@ -45,9 +44,9 @@ impl UtcOffset {
         seconds: 0,
     };
 
-    /// Create a `UtcOffset` representing an offset of the hours, minutes, and
-    /// seconds provided, the validity of which must be guaranteed by the
-    /// caller. All three parameters must have the same sign.
+    /// Create a `UtcOffset` representing an offset of the hours, minutes, and seconds provided, the
+    /// validity of which must be guaranteed by the caller. All three parameters must have the same
+    /// sign.
     #[doc(hidden)]
     pub const fn from_hms_unchecked(hours: i8, minutes: i8, seconds: i8) -> Self {
         Self {
@@ -57,11 +56,11 @@ impl UtcOffset {
         }
     }
 
-    /// Create a `UtcOffset` representing an offset by the number of hours,
-    /// minutes, and seconds provided.
+    /// Create a `UtcOffset` representing an offset by the number of hours, minutes, and seconds
+    /// provided.
     ///
-    /// The sign of all three components should match. If they do not, all
-    /// smaller components will have their signs flipped.
+    /// The sign of all three components should match. If they do not, all smaller components will
+    /// have their signs flipped.
     ///
     /// ```rust
     /// # use time::UtcOffset;
@@ -95,9 +94,8 @@ impl UtcOffset {
         Ok(Self::from_hms_unchecked(hours, minutes, seconds))
     }
 
-    /// Obtain the UTC offset as its hours, minutes, and seconds. The sign of
-    /// all three components will always match. A positive value indicates an
-    /// offset to the east; a negative to the west.
+    /// Obtain the UTC offset as its hours, minutes, and seconds. The sign of all three components
+    /// will always match. A positive value indicates an offset to the east; a negative to the west.
     ///
     /// ```rust
     /// # use time_macros::offset;
@@ -108,8 +106,8 @@ impl UtcOffset {
         (self.hours, self.minutes, self.seconds)
     }
 
-    /// Obtain the number of seconds the offset is from UTC. A positive value
-    /// indicates an offset to the east; a negative to the west.
+    /// Obtain the number of seconds the offset is from UTC. A positive value indicates an offset to
+    /// the east; a negative to the west.
     ///
     /// ```rust
     /// # use time_macros::offset;
@@ -122,8 +120,8 @@ impl UtcOffset {
         self.hours as i32 * 3_600 + self.minutes as i32 * 60 + self.seconds as i32
     }
 
-    /// Attempt to obtain the system's UTC offset at a known moment in time. If
-    /// the offset cannot be determined, an error is returned.
+    /// Attempt to obtain the system's UTC offset at a known moment in time. If the offset cannot be
+    /// determined, an error is returned.
     ///
     /// ```rust
     /// # use time::{UtcOffset, OffsetDateTime};
@@ -134,16 +132,16 @@ impl UtcOffset {
     /// # }
     /// ```
     ///
-    /// Due to a [soundness bug](https://github.com/time-rs/time/issues/293),
-    /// the error value is currently always returned on Unix-like platforms.
+    /// Due to a [soundness bug](https://github.com/time-rs/time/issues/293), the error value is
+    /// currently always returned on Unix-like platforms.
     #[cfg(feature = "local-offset")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
     pub fn local_offset_at(datetime: OffsetDateTime) -> Result<Self, error::IndeterminateOffset> {
         local_offset_at(datetime).ok_or(error::IndeterminateOffset)
     }
 
-    /// Attempt to obtain the system's current UTC offset. If the offset cannot
-    /// be determined, an error is returned.
+    /// Attempt to obtain the system's current UTC offset. If the offset cannot be determined, an
+    /// error is returned.
     ///
     /// ```rust
     /// # use time::UtcOffset;
@@ -161,9 +159,8 @@ impl UtcOffset {
 }
 
 impl UtcOffset {
-    /// Format the `UtcOffset` using the provided format description. The
-    /// formatted value will be output to the provided writer. The format
-    /// description will typically be parsed by using
+    /// Format the `UtcOffset` using the provided format description. The formatted value will be
+    /// output to the provided writer. The format description will typically be parsed by using
     /// [`FormatDescription::parse`].
     pub fn format_into<'a>(
         self,
@@ -173,9 +170,8 @@ impl UtcOffset {
         description.format_into(output, None, None, Some(self))
     }
 
-    /// Format the `UtcOffset` using the provided format description. The format
-    /// description will typically be parsed by using
-    /// [`FormatDescription::parse`].
+    /// Format the `UtcOffset` using the provided format description. The format description will
+    /// typically be parsed by using [`FormatDescription::parse`].
     ///
     /// ```rust
     /// # use time::format_description::FormatDescription;
@@ -221,8 +217,8 @@ impl Display for UtcOffset {
     }
 }
 
-/// Attempt to obtain the system's UTC offset. If the offset cannot be
-/// determined, `None` is returned.
+/// Attempt to obtain the system's UTC offset. If the offset cannot be determined, `None` is
+/// returned.
 #[cfg(feature = "local-offset")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
 #[allow(clippy::too_many_lines, clippy::missing_const_for_fn)]
@@ -235,23 +231,21 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
         // use core::{convert::TryInto, mem::MaybeUninit};
         //
-        // /// Convert the given Unix timestamp to a `libc::tm`. Returns `None`
-        // /// on any error.
+        // /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on any error.
         // fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
         //     extern "C" {
         //         #[cfg_attr(target_os = "netbsd", link_name = "__tzset50")]
         //         fn tzset();
         //     }
         //
-        //     // The exact type of `timestamp` beforehand can vary, so this
-        //     // conversion is necessary.
+        //     // The exact type of `timestamp` beforehand can vary, so this conversion is
+        //     // necessary.
         //     #[allow(clippy::useless_conversion)]
         //     let timestamp = timestamp.try_into().ok()?;
         //
         //     let mut tm = MaybeUninit::uninit();
         //
-        //     // Update timezone information from system. `localtime_r` does
-        //     // not do this for us.
+        //     // Update timezone information from system. `localtime_r` does not do this for us.
         //     //
         //     // Safety: tzset is thread-safe.
         //     #[allow(unsafe_code)]
@@ -259,18 +253,15 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         //         tzset();
         //     }
         //
-        //     // Safety: We are calling a system API, which mutates the `tm`
-        //     // variable. If a null pointer is returned, an error occurred.
+        //     // Safety: We are calling a system API, which mutates the `tm` variable. If a null
+        //     // pointer is returned, an error occurred.
         //     #[allow(unsafe_code)]
-        //     let tm_ptr = unsafe {
-        //         libc::localtime_r(&timestamp, tm.as_mut_ptr())
-        //     };
+        //     let tm_ptr = unsafe { libc::localtime_r(&timestamp, tm.as_mut_ptr()) };
         //
         //     if tm_ptr.is_null() {
         //         None
         //     } else {
-        //         // Safety: The value was initialized, as we no longer have a
-        //         // null pointer.
+        //         // Safety: The value was initialized, as we no longer have a null pointer.
         //         #[allow(unsafe_code)]
         //         {
         //             Some(unsafe { tm.assume_init() })
@@ -304,22 +295,19 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         //         tm.tm_sec = 59;
         //     }
         //
-        //     let local_timestamp = Date::from_yo(
-        //             1900 + tm.tm_year,
-        //             u16::try_from(tm.tm_yday).ok()? + 1
-        //         )
-        //         .ok()?
-        //         .with_hms(
-        //             tm.tm_hour.try_into().ok()?,
-        //             tm.tm_min.try_into().ok()?,
-        //             tm.tm_sec.try_into().ok()?,
-        //         )
-        //         .ok()?
-        //         .assume_utc()
-        //         .unix_timestamp();
+        //     let local_timestamp =
+        //         Date::from_yo(1900 + tm.tm_year, u16::try_from(tm.tm_yday).ok()? + 1)
+        //             .ok()?
+        //             .with_hms(
+        //                 tm.tm_hour.try_into().ok()?,
+        //                 tm.tm_min.try_into().ok()?,
+        //                 tm.tm_sec.try_into().ok()?,
+        //             )
+        //             .ok()?
+        //             .assume_utc()
+        //             .unix_timestamp();
         //
-        //     let diff_secs: i32 =
-        //         (local_timestamp - datetime.unix_timestamp())
+        //     let diff_secs: i32 = (local_timestamp - datetime.unix_timestamp())
         //         .try_into()
         //         .ok()?;
         //
@@ -342,13 +330,12 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             },
         };
 
-        /// Convert a `SYSTEMTIME` to a `FILETIME`. Returns `None` if any error
-        /// occurred.
+        /// Convert a `SYSTEMTIME` to a `FILETIME`. Returns `None` if any error occurred.
         fn systemtime_to_filetime(systime: &SYSTEMTIME) -> Option<FILETIME> {
             let mut ft = MaybeUninit::uninit();
 
-            // Safety: `SystemTimeToFileTime` is thread-safe. We are only
-            // assuming initialization if the call succeeded.
+            // Safety: `SystemTimeToFileTime` is thread-safe. We are only assuming initialization if
+            // the call succeeded.
             #[allow(unsafe_code)]
             {
                 if 0 == unsafe { SystemTimeToFileTime(systime, ft.as_mut_ptr()) } {
@@ -404,8 +391,7 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             }
         };
 
-        // Convert SYSTEMTIMEs to FILETIMEs so we can perform arithmetic on
-        // them.
+        // Convert SYSTEMTIMEs to FILETIMEs so we can perform arithmetic on them.
         let ft_system = systemtime_to_filetime(&systime_utc)?;
         let ft_local = systemtime_to_filetime(&systime_local)?;
 

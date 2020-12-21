@@ -40,8 +40,8 @@ fn weeks_in_year_exhaustive() {
     }
 }
 
-// Test all dominical letters. For leap years, check the dates
-// immediately preceding and after the leap day.
+// Test all dominical letters. For leap years, check the dates immediately preceding and after the
+// leap day.
 
 #[test]
 #[cfg(feature = "alloc")]

@@ -4,9 +4,8 @@ use Weekday::*;
 
 /// Days of the week.
 ///
-/// As order is dependent on context (Sunday could be either
-/// two days after or five days before Friday), this type does not implement
-/// `PartialOrd` or `Ord`.
+/// As order is dependent on context (Sunday could be either two days after or five days before
+/// Friday), this type does not implement `PartialOrd` or `Ord`.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -73,8 +72,7 @@ impl Weekday {
         }
     }
 
-    /// Get the ISO 8601 weekday number. Equivalent to
-    /// [`Weekday::number_from_monday`].
+    /// Get the ISO 8601 weekday number. Equivalent to [`Weekday::number_from_monday`].
     ///
     /// ```rust
     /// # use time::Weekday;

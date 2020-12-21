@@ -4,8 +4,8 @@ use core::fmt;
 
 /// A unified error type for anything returned by a method in the time crate.
 ///
-/// This can be used when you either don't know or don't care about the exact
-/// error returned. `Result<_, time::Error>` will work in these situations.
+/// This can be used when you either don't know or don't care about the exact error returned.
+/// `Result<_, time::Error>` will work in these situations.
 #[allow(missing_copy_implementations, variant_size_differences)]
 #[allow(clippy::missing_docs_in_private_items)] // variants only
 #[non_exhaustive]
@@ -47,8 +47,8 @@ impl std::error::Error for Error {
     }
 }
 
-/// An error type indicating that a conversion failed because the target type
-/// could not store the initial value.
+/// An error type indicating that a conversion failed because the target type could not store the
+/// initial value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ConversionRange;
 
@@ -68,10 +68,9 @@ impl From<ConversionRange> for Error {
     }
 }
 
-/// An error type indicating that a component provided to a method was out of
-/// range, causing a failure.
-// i64 is the narrowest type fitting all use cases. This eliminates the need
-// for a type parameter.
+/// An error type indicating that a component provided to a method was out of range, causing a
+/// failure.
+// i64 is the narrowest type fitting all use cases. This eliminates the need for a type parameter.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ComponentRange {
@@ -146,8 +145,7 @@ impl From<InvalidFormatDescription> for Error {
 #[allow(missing_copy_implementations)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Format {
-    /// The type being formatted does not contain sufficient information to
-    /// format a component.
+    /// The type being formatted does not contain sufficient information to format a component.
     #[non_exhaustive]
     InsufficientTypeInformation,
     /// A value of `core::fmt::Error` was returned internally.

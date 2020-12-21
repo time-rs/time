@@ -11,14 +11,13 @@ use core::{
 
 /// A span of time with nanosecond precision.
 ///
-/// Each `Duration` is composed of a whole number of seconds and a fractional
-/// part represented in nanoseconds.
+/// Each `Duration` is composed of a whole number of seconds and a fractional part represented in
+/// nanoseconds.
 ///
-/// `Duration` implements many traits, including [`Add`], [`Sub`], [`Mul`], and
-/// [`Div`], among others.
+/// `Duration` implements many traits, including [`Add`], [`Sub`], [`Mul`], and [`Div`], among
+/// others.
 ///
-/// This implementation allows for negative durations, unlike
-/// [`core::time::Duration`].
+/// This implementation allows for negative durations, unlike [`core::time::Duration`].
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -28,8 +27,7 @@ use core::{
 pub struct Duration {
     /// Number of whole seconds.
     pub(crate) seconds: i64,
-    /// Number of nanoseconds within the second. The sign always matches the
-    /// `seconds` field.
+    /// Number of nanoseconds within the second. The sign always matches the `seconds` field.
     pub(crate) nanoseconds: i32, // always -10^9 < nanoseconds < 10^9
 }
 
@@ -124,8 +122,7 @@ impl Duration {
         Self::weeks(1)
     }
 
-    /// The maximum possible duration. Adding any positive duration to this will
-    /// cause an overflow.
+    /// The maximum possible duration. Adding any positive duration to this will cause an overflow.
     pub const fn max_value() -> Self {
         Self {
             seconds: i64::max_value(),
@@ -133,8 +130,7 @@ impl Duration {
         }
     }
 
-    /// The minimum possible duration. Adding any negative duration to this will
-    /// cause an overflow.
+    /// The minimum possible duration. Adding any negative duration to this will cause an overflow.
     pub const fn min_value() -> Self {
         Self {
             seconds: i64::min_value(),
@@ -201,9 +197,8 @@ impl Duration {
         }
     }
 
-    /// Convert the existing `Duration` to a `std::time::Duration` and its sign.
-    // This doesn't actually require the standard library, but is currently only
-    // used when it's enabled.
+    /// Convert the existing `Duration` to a `std::time::Duration` and its sign. This doesn't
+    /// actually require the standard library, but is currently only used when it's enabled.
     #[allow(clippy::missing_const_for_fn)] // false positive
     #[cfg(feature = "std")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
@@ -211,9 +206,8 @@ impl Duration {
         StdDuration::new(self.seconds.abs() as _, self.nanoseconds.abs() as _)
     }
 
-    /// Create a new `Duration` with the provided seconds and nanoseconds. If
-    /// nanoseconds is at least ±10<sup>9</sup>, it will wrap to the number of
-    /// seconds.
+    /// Create a new `Duration` with the provided seconds and nanoseconds. If nanoseconds is at
+    /// least ±10<sup>9</sup>, it will wrap to the number of seconds.
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
@@ -364,8 +358,7 @@ impl Duration {
         self.seconds
     }
 
-    /// Creates a new `Duration` from the specified number of seconds
-    /// represented as `f64`.
+    /// Creates a new `Duration` from the specified number of seconds represented as `f64`.
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
@@ -390,8 +383,7 @@ impl Duration {
         self.seconds as f64 + self.nanoseconds as f64 / 1_000_000_000.
     }
 
-    /// Creates a new `Duration` from the specified number of seconds
-    /// represented as `f32`.
+    /// Creates a new `Duration` from the specified number of seconds represented as `f32`.
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
@@ -513,8 +505,8 @@ impl Duration {
 
     /// Create a new `Duration` with the given number of nanoseconds.
     ///
-    /// As the input range cannot be fully mapped to the output, this should
-    /// only be used where it's known to result in a valid value.
+    /// As the input range cannot be fully mapped to the output, this should only be used where it's
+    /// known to result in a valid value.
     pub(crate) const fn nanoseconds_i128(nanoseconds: i128) -> Self {
         Self {
             seconds: (nanoseconds / 1_000_000_000) as _,
@@ -537,8 +529,7 @@ impl Duration {
 
     /// Get the number of nanoseconds past the number of whole seconds.
     ///
-    /// The returned value will always be in the range
-    /// `-1_000_000_000..1_000_000_000`.
+    /// The returned value will always be in the range `-1_000_000_000..1_000_000_000`.
     ///
     /// ```rust
     /// # use time::ext::NumericalDuration;
@@ -651,8 +642,8 @@ impl Duration {
         })
     }
 
-    /// Runs a closure, returning the duration of time it took to run. The
-    /// return value of the closure is provided in the second part of the tuple.
+    /// Runs a closure, returning the duration of time it took to run. The return value of the
+    /// closure is provided in the second part of the tuple.
     #[cfg(feature = "std")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
     pub fn time_fn<T>(f: impl FnOnce() -> T) -> (Self, T) {

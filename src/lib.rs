@@ -4,43 +4,38 @@
 //!
 //! # Feature flags
 //!
-//! This crate exposes a number of features. These can be enabled or disabled as
-//! shown [in Cargo's documentation](https://doc.rust-lang.org/cargo/reference/features.html).
-//! Features are _disabled_ by default unless otherwise noted.
+//! This crate exposes a number of features. These can be enabled or disabled as shown
+//! [in Cargo's documentation](https://doc.rust-lang.org/cargo/reference/features.html). Features
+//! are _disabled_ by default unless otherwise noted.
 //!
-//! Reliance on a given feature is always indicated alongside the item
-//! definition.
+//! Reliance on a given feature is always indicated alongside the item definition.
 //!
 //! - `std` (_enabled by default, implicitly enables `alloc`_)
 //!
-//!   This enables a number of features that depend on the standard library.
-//!   [`Instant`] is the primary item that requires this feature, though some
-//!   others methods may rely on [`Instant`] internally.
+//!   This enables a number of features that depend on the standard library. [`Instant`] is the
+//!   primary item that requires this feature, though some   others methods may rely on [`Instant`]
+//!   internally.
 //!
 //! - `alloc` (_enabled by default via `std`_)
 //!
-//!   Enables a number of features that require the ability to dynamically
-//!   allocate memory.
+//!   Enables a number of features that require the ability to dynamically allocate memory.
 //!
 //! - `macros`
 //!
-//!   Enables macros that provide compile-time verification of values and
-//!   intuitive syntax.
+//!   Enables macros that provide compile-time verification of values and intuitive syntax.
 //!
 //! - `local-offset` (_implicitly enables `std`_)
 //!
-//!   This feature enables a number of methods that allow obtaining the system's
-//!   UTC offset.
+//!   This feature enables a number of methods that allow obtaining the system's UTC offset.
 //!
 //! - `large-dates`
 //!
-//!   By default, only years within the ±9999 range (inclusive) are supported.
-//!   If you need support for years outside this range, consider enabling this
-//!   feature; the supported range will be increased to ±999,999.
+//!   By default, only years within the ±9999 range (inclusive) are supported. If you need support
+//!   for years outside this range, consider enabling this feature; the supported range will be
+//!   increased to ±999,999.
 //!
-//!   Note that enabling this feature has some costs, as it means forgoing some
-//!   optimizations. Ambiguities may be introduced when parsing that would not
-//!   otherwise exist.
+//!   Note that enabling this feature has some costs, as it means forgoing some optimizations.
+//!   Ambiguities may be introduced when parsing that would not otherwise exist.
 //!
 //! - `serde`
 //!
@@ -140,8 +135,8 @@ macro_rules! ensure_value_in_range {
 
 /// Try to unwrap an expression, returning if not possible.
 ///
-/// This is similar to the `?` operator, but does not perform `.into()`. Because
-/// of this, it is usable in `const` contexts.
+/// This is similar to the `?` operator, but does not perform `.into()`. Because of this, it is
+/// usable in `const` contexts.
 macro_rules! const_try {
     ($e:expr) => {
         match $e {
@@ -205,11 +200,9 @@ mod weekday;
 pub mod macros {
     /// Construct a [`Date`](crate::Date) with a statically known value.
     ///
-    /// The resulting expression can be used in `const` or `static`
-    /// declarations.
+    /// The resulting expression can be used in `const` or `static` declarations.
     ///
-    /// Three formats are supported: year-week-weekday, year-ordinal, and
-    /// year-month-day.
+    /// Three formats are supported: year-week-weekday, year-ordinal, and year-month-day.
     ///
     /// ```rust
     /// # use time::{Date, Weekday::*};
@@ -223,16 +216,13 @@ pub mod macros {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub use time_macros::date;
-    /// Construct a [`PrimitiveDateTime`] or [`OffsetDateTime`] with a
-    /// statically known value.
+    /// Construct a [`PrimitiveDateTime`] or [`OffsetDateTime`] with a statically known value.
     ///
-    /// The resulting expression can be used in `const` or `static`
-    /// declarations.
+    /// The resulting expression can be used in `const` or `static` declarations.
     ///
-    /// The syntax accepted by this macro is the same as [`date!`] and
-    /// [`time!`], with an optional [`offset!`], all space-separated. If an
-    /// [`offset!`] is provided, the resulting value will be an
-    /// [`OffsetDateTime`]; otherwise it will be a [`PrimitiveDateTime`].
+    /// The syntax accepted by this macro is the same as [`date!`] and [`time!`], with an
+    /// optional [`offset!`], all space-separated. If an [`offset!`] is provided, the resulting
+    /// value will be an [`OffsetDateTime`]; otherwise it will be a [`PrimitiveDateTime`].
     ///
     /// [`date!`]: crate::macros::date
     /// [`time!`]: crate::macros::time
@@ -240,14 +230,12 @@ pub mod macros {
     /// [`OffsetDateTime`]: crate::OffsetDateTime
     /// [`PrimitiveDateTime`]: crate::PrimitiveDateTime
     pub use time_macros::datetime;
-    /// Construct a [`UtcOffset`](crate::UtcOffset) with a statically known
-    /// value.
+    /// Construct a [`UtcOffset`](crate::UtcOffset) with a statically known value.
     ///
-    /// The resulting expression can be used in `const` or `static`
-    /// declarations.
+    /// The resulting expression can be used in `const` or `static` declarations.
     ///
-    /// A sign and the hour must be provided; minutes and seconds default to
-    /// zero. `UTC` (both uppercase and lowercase) is also allowed.
+    /// A sign and the hour must be provided; minutes and seconds default to zero. `UTC` (both
+    /// uppercase and lowercase) is also allowed.
     ///
     /// ```rust
     /// # use time::UtcOffset;
@@ -268,16 +256,14 @@ pub mod macros {
     pub use time_macros::offset;
     /// Construct a [`Time`](crate::Time) with a statically known value.
     ///
-    /// The resulting expression can be used in `const` or `static`
-    /// declarations.
+    /// The resulting expression can be used in `const` or `static` declarations.
     ///
-    /// Hours and minutes must be provided, while seconds defaults to zero.
-    /// AM/PM is allowed (either uppercase or lowercase). Any number of
-    /// subsecond digits may be provided (though any past nine will be
-    /// discarded).
+    /// Hours and minutes must be provided, while seconds defaults to zero. AM/PM is allowed
+    /// (either uppercase or lowercase). Any number of subsecond digits may be provided (though
+    /// any past nine will be discarded).
     ///
-    /// All components are validated at compile-time. An error will be raised if
-    /// any value is invalid.
+    /// All components are validated at compile-time. An error will be raised if any value is
+    /// invalid.
     ///
     /// ```rust
     /// # use time::Time;
@@ -316,6 +302,5 @@ pub use primitive_date_time::PrimitiveDateTime;
 pub use utc_offset::UtcOffset;
 pub use weekday::Weekday;
 
-/// An alias for [`std::result::Result`] with a generic error from the time
-/// crate.
+/// An alias for [`std::result::Result`] with a generic error from the time crate.
 pub type Result<T> = core::result::Result<T, Error>;

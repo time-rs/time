@@ -29,8 +29,7 @@ pub struct PrimitiveDateTime {
 }
 
 impl PrimitiveDateTime {
-    /// Create a new `PrimitiveDateTime` from the provided [`Date`] and
-    /// [`Time`].
+    /// Create a new `PrimitiveDateTime` from the provided [`Date`] and [`Time`].
     ///
     /// ```rust
     /// # use time::PrimitiveDateTime;
@@ -109,8 +108,7 @@ impl PrimitiveDateTime {
 
     /// Get the day of the year.
     ///
-    /// The returned value will always be in the range `1..=366` (`1..=365` for
-    /// common years).
+    /// The returned value will always be in the range `1..=366` (`1..=365` for common years).
     ///
     /// ```rust
     /// # use time_macros::datetime;
@@ -260,12 +258,10 @@ impl PrimitiveDateTime {
         self.date.weekday()
     }
 
-    /// Get the Julian day for the date. The time is not taken into account for
-    /// this calculation.
+    /// Get the Julian day for the date. The time is not taken into account for this calculation.
     ///
-    /// The algorithm to perform this conversion is derived from one provided by
-    /// Peter Baum; it is freely available
-    /// [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
+    /// The algorithm to perform this conversion is derived from one provided by Peter Baum; it is
+    /// freely available [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
     ///
     /// ```rust
     /// # use time_macros::datetime;
@@ -418,8 +414,8 @@ impl PrimitiveDateTime {
         self.time.nanosecond
     }
 
-    /// Assuming that the existing `PrimitiveDateTime` represents a moment in
-    /// the provided [`UtcOffset`], return an [`OffsetDateTime`].
+    /// Assuming that the existing `PrimitiveDateTime` represents a moment in the provided
+    /// [`UtcOffset`], return an [`OffsetDateTime`].
     ///
     /// ```rust
     /// # use time_macros::{datetime, offset};
@@ -446,8 +442,8 @@ impl PrimitiveDateTime {
         }
     }
 
-    /// Assuming that the existing `PrimitiveDateTime` represents a moment in
-    /// the UTC, return an [`OffsetDateTime`].
+    /// Assuming that the existing `PrimitiveDateTime` represents a moment in the UTC, return an
+    /// [`OffsetDateTime`].
     ///
     /// ```rust
     /// # use time_macros::datetime;
@@ -497,8 +493,8 @@ impl PrimitiveDateTime {
 
 /// Helper methods to adjust a [`PrimitiveDateTime`] to a given [`UtcOffset`].
 impl PrimitiveDateTime {
-    /// Assuming that the current [`PrimitiveDateTime`] is a value in the
-    /// provided [`UtcOffset`], obtain the equivalent value in the UTC.
+    /// Assuming that the current [`PrimitiveDateTime`] is a value in the provided [`UtcOffset`],
+    /// obtain the equivalent value in the UTC.
     #[const_fn("1.46")]
     pub(crate) const fn offset_to_utc(self, offset: UtcOffset) -> Self {
         let mut second = self.second() as i8 - offset.seconds;
@@ -547,8 +543,8 @@ impl PrimitiveDateTime {
         }
     }
 
-    /// Assuming that the current [`PrimitiveDateTime`] is a value in UTC,
-    /// obtain the equivalent value in the provided [`UtcOffset`].
+    /// Assuming that the current [`PrimitiveDateTime`] is a value in UTC, obtain the equivalent
+    /// value in the provided [`UtcOffset`].
     #[const_fn("1.46")]
     pub(crate) const fn utc_to_offset(self, offset: UtcOffset) -> Self {
         self.offset_to_utc(UtcOffset::from_hms_unchecked(
@@ -560,10 +556,9 @@ impl PrimitiveDateTime {
 }
 
 impl PrimitiveDateTime {
-    /// Format the `PrimitiveDateTime` using the provided format description.
-    /// The formatted value will be output to the provided writer. The format
-    /// description will typically be parsed by using
-    /// [`FormatDescription::parse`].
+    /// Format the `PrimitiveDateTime` using the provided format description. The formatted value
+    /// will be output to the provided writer. The format description will typically be parsed by
+    /// using [`FormatDescription::parse`].
     pub fn format_into<'a>(
         self,
         output: &mut dyn fmt::Write,
@@ -572,9 +567,8 @@ impl PrimitiveDateTime {
         description.format_into(output, Some(self.date), Some(self.time), None)
     }
 
-    /// Format the `PrimitiveDateTime` using the provided format description.
-    /// The format description will typically be parsed by using
-    /// [`FormatDescription::parse`].
+    /// Format the `PrimitiveDateTime` using the provided format description. The format description
+    /// will typically be parsed by using [`FormatDescription::parse`].
     ///
     /// ```rust
     /// # use time::format_description::FormatDescription;

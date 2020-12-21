@@ -14,8 +14,7 @@ pub enum Component {
     Date(Date),
     /// A component that requires a [`Time`](crate::Time) to be present.
     Time(Time),
-    /// A component that requires a [`UtcOffset`](crate::UtcOffset) to be
-    /// present.
+    /// A component that requires a [`UtcOffset`](crate::UtcOffset) to be present.
     UtcOffset(UtcOffset),
 }
 
@@ -44,8 +43,7 @@ pub enum Date {
     Weekday {
         /// What form of representation should be used?
         repr: modifier::WeekdayRepr,
-        /// When using a numerical representation, should it be zero or
-        /// one-indexed?
+        /// When using a numerical representation, should it be zero or one-indexed?
         ///
         /// This setting has no effect on textual representations.
         one_indexed: bool,
@@ -65,8 +63,7 @@ pub enum Date {
         repr: modifier::YearRepr,
         /// Whether the value based on the ISO week number.
         iso_week_based: bool,
-        /// Whether the `+` sign is present when a positive year contains fewer
-        /// than five digits.
+        /// Whether the `+` sign is present when a positive year contains fewer than five digits.
         sign_is_mandatory: bool,
     },
 }
@@ -182,8 +179,7 @@ pub(crate) enum NakedComponent {
     Date(NakedDateComponent),
     /// A component that requires a [`Time`](crate::Time) to be present.
     Time(NakedTimeComponent),
-    /// A component that requires a [`UtcOffset`](crate::UtcOffset) to be
-    /// present.
+    /// A component that requires a [`UtcOffset`](crate::UtcOffset) to be present.
     UtcOffset(NakedUtcOffsetComponent),
 }
 

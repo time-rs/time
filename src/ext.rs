@@ -5,8 +5,8 @@ use core::time::Duration as StdDuration;
 
 /// Create [`Duration`]s from primitive and core numeric types.
 ///
-/// Due to limitations in rustc, these methods are currently _not_ `const fn`.
-/// See [RFC 2632](https://github.com/rust-lang/rfcs/pull/2632) for details.
+/// Due to limitations in rustc, these methods are currently _not_ `const fn`. See
+/// [RFC 2632](https://github.com/rust-lang/rfcs/pull/2632) for details.
 ///
 /// # Examples
 ///
@@ -46,9 +46,9 @@ use core::time::Duration as StdDuration;
 /// assert_eq!(2.seconds() - 500.milliseconds(), 1_500.milliseconds());
 /// ```
 ///
-/// When called on floating point values, any remainder of the floating point
-/// value will be truncated. Keep in mind that floating point numbers are
-/// inherently imprecise and have limited capacity.
+/// When called on floating point values, any remainder of the floating point value will be
+/// truncated. Keep in mind that floating point numbers are inherently imprecise and have limited
+/// capacity.
 pub trait NumericalDuration {
     /// Create a [`Duration`] from the number of nanoseconds.
     fn nanoseconds(self) -> Duration;
@@ -196,8 +196,8 @@ impl_numerical_duration_float![f32, f64];
 
 /// Create [`std::time::Duration`]s from primitive and core numeric types.
 ///
-/// Due to limitations in rustc, these methods are currently _not_ `const fn`.
-/// See [RFC 2632](https://github.com/rust-lang/rfcs/pull/2632) for details.
+/// Due to limitations in rustc, these methods are currently _not_ `const fn`. See
+/// [RFC 2632](https://github.com/rust-lang/rfcs/pull/2632) for details.
 ///
 /// # Examples
 ///
@@ -216,8 +216,7 @@ impl_numerical_duration_float![f32, f64];
 /// assert_eq!(5.std_weeks(), Duration::from_secs(5 * 604_800));
 /// ```
 ///
-/// Just like any other [`std::time::Duration`], they can be added, subtracted,
-/// etc.
+/// Just like any other [`std::time::Duration`], they can be added, subtracted, etc.
 ///
 /// ```rust
 /// # use time::ext::NumericalStdDuration;
@@ -231,9 +230,9 @@ impl_numerical_duration_float![f32, f64];
 /// );
 /// ```
 ///
-/// When called on floating point values, any remainder of the floating point
-/// value will be truncated. Keep in mind that floating point numbers are
-/// inherently imprecise and have limited capacity.
+/// When called on floating point values, any remainder of the floating point value will be
+/// truncated. Keep in mind that floating point numbers are inherently imprecise and have limited
+/// capacity.
 pub trait NumericalStdDuration {
     /// Create a [`std::time::Duration`] from the number of nanoseconds.
     fn std_nanoseconds(self) -> StdDuration;
@@ -337,8 +336,8 @@ impl_numerical_std_duration_nonzero![
     core::num::NonZeroU64,
 ];
 
-/// Implement on `i32` because that's the default type for integers. This
-/// performs a runtime check and panics if the value is negative.
+/// Implement on `i32` because that's the default type for integers. This performs a runtime check
+/// and panics if the value is negative.
 impl NumericalStdDuration for i32 {
     fn std_nanoseconds(self) -> StdDuration {
         assert!(self >= 0);
@@ -381,8 +380,8 @@ impl NumericalStdDuration for i32 {
     }
 }
 
-/// Implement on `f64` because that's the default type for floats. This performs
-/// a runtime check and panics if the value is negative.
+/// Implement on `f64` because that's the default type for floats. This performs a runtime check and
+/// panics if the value is negative.
 impl NumericalStdDuration for f64 {
     fn std_nanoseconds(self) -> StdDuration {
         assert!(self >= 0.);
@@ -425,12 +424,12 @@ impl NumericalStdDuration for f64 {
     }
 }
 
-/// Create [`std::time::Duration`]s from primitive and core numeric types.
-/// Unless you are always expecting a [`std::time::Duration`], you should prefer
-/// to use [`NumericalStdDuration`] for clarity.
+/// Create [`std::time::Duration`]s from primitive and core numeric types. Unless you are always
+/// expecting a [`std::time::Duration`], you should prefer to use [`NumericalStdDuration`] for
+/// clarity.
 ///
-/// Due to limitations in rustc, these methods are currently _not_ `const fn`.
-/// See [this RFC](https://github.com/rust-lang/rfcs/pull/2632) for details.
+/// Due to limitations in rustc, these methods are currently _not_ `const fn`. See
+/// [this RFC](https://github.com/rust-lang/rfcs/pull/2632) for details.
 ///
 /// # Examples
 ///
@@ -449,8 +448,7 @@ impl NumericalStdDuration for f64 {
 /// assert_eq!(5.weeks(), Duration::from_secs(5 * 604_800));
 /// ```
 ///
-/// Just like any other [`std::time::Duration`], they can be added, subtracted,
-/// etc.
+/// Just like any other [`std::time::Duration`], they can be added, subtracted, etc.
 ///
 /// ```rust
 /// # use time::ext::NumericalStdDurationShort;
@@ -458,9 +456,9 @@ impl NumericalStdDuration for f64 {
 /// assert_eq!(2.seconds() - 500.milliseconds(), 1_500.milliseconds());
 /// ```
 ///
-/// When called on floating point values, any remainder of the floating point
-/// value will be truncated. Keep in mind that floating point numbers are
-/// inherently imprecise and have limited capacity.
+/// When called on floating point values, any remainder of the floating point value will be
+/// truncated. Keep in mind that floating point numbers are inherently imprecise and have limited
+/// capacity.
 pub trait NumericalStdDurationShort {
     /// Create a [`std::time::Duration`] from the number of nanoseconds.
     fn nanoseconds(self) -> StdDuration;
