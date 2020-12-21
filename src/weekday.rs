@@ -1,4 +1,3 @@
-use const_fn::const_fn;
 use core::fmt::{self, Display};
 use Weekday::*;
 
@@ -36,10 +35,12 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Tuesday.previous(), Weekday::Monday);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn previous(self) -> Self {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn previous(self) -> Self {
         match self {
             Monday => Sunday,
             Tuesday => Monday,
@@ -57,10 +58,12 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.next(), Weekday::Tuesday);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn next(self) -> Self {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn next(self) -> Self {
         match self {
             Monday => Tuesday,
             Tuesday => Wednesday,

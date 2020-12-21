@@ -7,7 +7,6 @@ use crate::{
 };
 #[cfg(feature = "alloc")]
 use alloc::string::String;
-use const_fn::const_fn;
 use core::{
     fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
@@ -98,10 +97,12 @@ impl Time {
     /// assert!(Time::from_hms(0, 60, 0).is_err()); // 60 isn't a valid minute.
     /// assert!(Time::from_hms(0, 0, 60).is_err()); // 60 isn't a valid second.
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, error::ComponentRange> {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(hour in 0 => 23);
         ensure_value_in_range!(minute in 0 => 59);
         ensure_value_in_range!(second in 0 => 59);
@@ -128,10 +129,12 @@ impl Time {
     /// assert!(Time::from_hms_milli(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
     /// assert!(Time::from_hms_milli(0, 0, 0, 1_000).is_err()); // 1_000 isn't a valid millisecond.
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn from_hms_milli(
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn from_hms_milli(
         hour: u8,
         minute: u8,
         second: u8,
@@ -164,10 +167,12 @@ impl Time {
     /// assert!(Time::from_hms_micro(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
     /// assert!(Time::from_hms_micro(0, 0, 0, 1_000_000).is_err()); // 1_000_000 isn't a valid microsecond.
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn from_hms_micro(
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn from_hms_micro(
         hour: u8,
         minute: u8,
         second: u8,
@@ -200,10 +205,12 @@ impl Time {
     /// assert!(Time::from_hms_nano(0, 0, 60, 0).is_err()); // 60 isn't a valid second.
     /// assert!(Time::from_hms_nano(0, 0, 0, 1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond.
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn from_hms_nano(
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn from_hms_nano(
         hour: u8,
         minute: u8,
         second: u8,
@@ -357,8 +364,8 @@ impl Time {
 
     /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow, returning the
     /// necessary whether the date is the following day.
-    #[const_fn("1.46")]
-    pub(crate) const fn adjusting_add(self, duration: Duration) -> (DateAdjustment, Self) {
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub(crate) fn adjusting_add(self, duration: Duration) -> (DateAdjustment, Self) {
         let mut nanoseconds = self.nanosecond as i32 + duration.subsec_nanoseconds();
         let mut seconds = self.second as i8 + (duration.whole_seconds() % 60) as i8;
         let mut minutes = self.minute as i8 + (duration.whole_minutes() % 60) as i8;
@@ -419,8 +426,8 @@ impl Time {
 
     /// Add the sub-day time of the [`std::time::Duration`] to the `Time`. Wraps on overflow,
     /// returning whether the date is the previous date as the first element of the tuple.
-    #[const_fn("1.46")]
-    pub(crate) const fn adjusting_add_std(self, duration: StdDuration) -> (bool, Self) {
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub(crate) fn adjusting_add_std(self, duration: StdDuration) -> (bool, Self) {
         let mut nanosecond = self.nanosecond + duration.subsec_nanos();
         let mut second = self.second + (duration.as_secs() % 60) as u8;
         let mut minute = self.minute + ((duration.as_secs() / 60) % 60) as u8;
@@ -461,8 +468,8 @@ impl Time {
 
     /// Subtract the sub-day time of the [`std::time::Duration`] to the `Time`. Wraps on overflow,
     /// returning whether the date is the previous date as the first element of the tuple.
-    #[const_fn("1.46")]
-    pub(crate) const fn adjusting_sub_std(self, duration: StdDuration) -> (bool, Self) {
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub(crate) fn adjusting_sub_std(self, duration: StdDuration) -> (bool, Self) {
         let mut nanosecond = self.nanosecond as i32 - duration.subsec_nanos() as i32;
         let mut second = self.second as i8 - (duration.as_secs() % 60) as i8;
         let mut minute = self.minute as i8 - ((duration.as_secs() / 60) % 60) as i8;

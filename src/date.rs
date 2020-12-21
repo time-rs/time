@@ -6,7 +6,6 @@ use crate::{
 };
 #[cfg(feature = "alloc")]
 use alloc::string::String;
-use const_fn::const_fn;
 use core::{
     fmt::{self, Display},
     ops::{Add, AddAssign, Sub, SubAssign},
@@ -78,10 +77,12 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::from_calendar_date(2019, 2, 29).is_err()); // 2019 isn't a leap year.
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn from_calendar_date(
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn from_calendar_date(
         year: i32,
         month: u8,
         day: u8,
@@ -115,10 +116,12 @@ impl Date {
     /// # use time::Date;
     /// assert!(Date::from_ordinal_date(2019, 366).is_err()); // 2019 isn't a leap year.
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn from_ordinal_date(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn from_ordinal_date(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(ordinal conditionally in 1 => days_in_year(year));
         Ok(Self::from_ordinal_date_unchecked(year, ordinal))
@@ -137,10 +140,12 @@ impl Date {
     /// # use time::{Date, Weekday::*};
     /// assert!(Date::from_iso_week_date(2019, 53, Monday).is_err()); // 2019 doesn't have 53 weeks.
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn from_iso_week_date(
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn from_iso_week_date(
         year: i32,
         week: u8,
         weekday: Weekday,
@@ -198,10 +203,12 @@ impl Date {
     /// assert_eq!(date!("2019-01-01").month(), 1);
     /// assert_eq!(date!("2019-12-31").month(), 12);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn month(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn month(self) -> u8 {
         self.month_day().0
     }
 
@@ -215,18 +222,20 @@ impl Date {
     /// assert_eq!(date!("2019-01-01").day(), 1);
     /// assert_eq!(date!("2019-12-31").day(), 31);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn day(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn day(self) -> u8 {
         self.month_day().1
     }
 
     /// Get the month and day. This is more efficient than fetching the components individually.
     // For whatever reason, rustc has difficulty optimizing this function. It's significantly faster
     // to write the statements out by hand.
-    #[const_fn("1.46")]
-    pub(crate) const fn month_day(self) -> (u8, u8) {
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub(crate) fn month_day(self) -> (u8, u8) {
         /// The number of days up to and including the given month. Common years
         /// are first, followed by leap years.
         const CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP: [[u16; 11]; 2] = [
@@ -278,8 +287,8 @@ impl Date {
     }
 
     /// Get the ISO 8601 year and week number.
-    #[const_fn("1.46")]
-    pub(crate) const fn iso_year_week(self) -> (i32, u8) {
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub(crate) fn iso_year_week(self) -> (i32, u8) {
         let (year, ordinal) = self.to_ordinal_date();
 
         match ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as _ {
@@ -301,10 +310,12 @@ impl Date {
     /// assert_eq!(date!("2020-12-31").iso_week(), 53);
     /// assert_eq!(date!("2021-01-01").iso_week(), 53);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn iso_week(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn iso_week(self) -> u8 {
         self.iso_year_week().1
     }
 
@@ -319,10 +330,12 @@ impl Date {
     /// assert_eq!(date!("2020-12-31").sunday_based_week(), 52);
     /// assert_eq!(date!("2021-01-01").sunday_based_week(), 0);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn sunday_based_week(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn sunday_based_week(self) -> u8 {
         ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as _
     }
 
@@ -337,10 +350,12 @@ impl Date {
     /// assert_eq!(date!("2020-12-31").monday_based_week(), 52);
     /// assert_eq!(date!("2021-01-01").monday_based_week(), 0);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn monday_based_week(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn monday_based_week(self) -> u8 {
         ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as _
     }
 
@@ -350,10 +365,12 @@ impl Date {
     /// # use time_macros::date;
     /// assert_eq!(date!("2019-01-01").to_calendar_date(), (2019, 1, 1));
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn to_calendar_date(self) -> (i32, u8, u8) {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn to_calendar_date(self) -> (i32, u8, u8) {
         let (month, day) = self.month_day();
         (self.year(), month, day)
     }
@@ -379,10 +396,12 @@ impl Date {
     /// assert_eq!(date!("2020-12-31").to_iso_week_date(), (2020, 53, Thursday));
     /// assert_eq!(date!("2021-01-01").to_iso_week_date(), (2020, 53, Friday));
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn to_iso_week_date(self) -> (i32, u8, Weekday) {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn to_iso_week_date(self) -> (i32, u8, Weekday) {
         let (year, ordinal) = self.to_ordinal_date();
         let weekday = self.weekday();
 
@@ -411,10 +430,12 @@ impl Date {
     /// assert_eq!(date!("2019-11-01").weekday(), Friday);
     /// assert_eq!(date!("2019-12-01").weekday(), Sunday);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn weekday(self) -> Weekday {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn weekday(self) -> Weekday {
         match self.to_julian_day() % 7 {
             -6 | 1 => Weekday::Tuesday,
             -5 | 2 => Weekday::Wednesday,
@@ -488,14 +509,16 @@ impl Date {
     /// assert_eq!(date!("2019-01-01").to_julian_day(), 2_458_485);
     /// assert_eq!(date!("2019-12-31").to_julian_day(), 2_458_849);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn to_julian_day(self) -> i32 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn to_julian_day(self) -> i32 {
         /// Floored division for integers. This differs from the default behavior, which is
         /// truncation.
-        #[const_fn("1.46")]
-        pub(crate) const fn div_floor(a: i32, b: i32) -> i32 {
+        #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+        pub(crate) fn div_floor(a: i32, b: i32) -> i32 {
             let (quotient, remainder) = (a / b, a % b);
 
             if (remainder > 0 && b < 0) || (remainder < 0 && b > 0) {
@@ -526,11 +549,13 @@ impl Date {
     /// assert_eq!(Date::from_julian_day(2_458_485), Ok(date!("2019-01-01")));
     /// assert_eq!(Date::from_julian_day(2_458_849), Ok(date!("2019-12-31")));
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
     #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date"))]
-    pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
+    pub fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
         #![allow(trivial_numeric_casts)] // cast depends on type alias
 
         /// A type that is either `i32` or `i64`. This subtle difference allows for optimization
@@ -543,8 +568,8 @@ impl Date {
 
         /// Floored division for integers. This differs from the default
         /// behavior, which is truncation.
-        #[const_fn("1.46")]
-        pub(crate) const fn div_floor(a: MaybeWidened, b: i32) -> i32 {
+        #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+        pub(crate) fn div_floor(a: MaybeWidened, b: i32) -> i32 {
             let (quotient, remainder) = (a / b as MaybeWidened, a % b as MaybeWidened);
 
             if (remainder > 0 && b < 0) || (remainder < 0 && b > 0) {
@@ -625,10 +650,12 @@ impl Date {
     /// assert!(date!("1970-01-01").with_hms(0, 0, 0).is_ok());
     /// assert!(date!("1970-01-01").with_hms(24, 0, 0).is_err());
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn with_hms(
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn with_hms(
         self,
         hour: u8,
         minute: u8,
@@ -647,10 +674,12 @@ impl Date {
     /// assert!(date!("1970-01-01").with_hms_milli(0, 0, 0, 0).is_ok());
     /// assert!(date!("1970-01-01").with_hms_milli(24, 0, 0, 0).is_err());
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn with_hms_milli(
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn with_hms_milli(
         self,
         hour: u8,
         minute: u8,
@@ -670,10 +699,12 @@ impl Date {
     /// assert!(date!("1970-01-01").with_hms_micro(0, 0, 0, 0).is_ok());
     /// assert!(date!("1970-01-01").with_hms_micro(24, 0, 0, 0).is_err());
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn with_hms_micro(
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn with_hms_micro(
         self,
         hour: u8,
         minute: u8,
@@ -693,10 +724,12 @@ impl Date {
     /// assert!(date!("1970-01-01").with_hms_nano(0, 0, 0, 0).is_ok());
     /// assert!(date!("1970-01-01").with_hms_nano(24, 0, 0, 0).is_err());
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn with_hms_nano(
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn with_hms_nano(
         self,
         hour: u8,
         minute: u8,

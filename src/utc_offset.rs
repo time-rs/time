@@ -6,7 +6,6 @@ use crate::{
 };
 #[cfg(feature = "alloc")]
 use alloc::string::String;
-use const_fn::const_fn;
 use core::fmt::{self, Display};
 
 /// An offset from UTC.
@@ -68,10 +67,12 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::from_hms(1, -2, -3)?.as_hms(), (1, 2, 3));
     /// # Ok::<_, time::Error>(())
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn from_hms(
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn from_hms(
         hours: i8,
         mut minutes: i8,
         mut seconds: i8,

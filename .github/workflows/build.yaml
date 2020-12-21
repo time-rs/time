@@ -65,6 +65,7 @@ jobs:
             --group-features serde,rand
             --exclude-features default,winapi,std,local-offset,time-macros,quickcheck,quickcheck-dep
             --exclude-all-features
+            --features const_fn
             --target ${{ matrix.target.triple }}
         if: matrix.target.has_std == false
 
@@ -79,6 +80,7 @@ jobs:
             --optional-deps
             --group-features serde,rand
             --exclude-features default,winapi,time-macros,quickcheck-dep
+            --features const_fn
             --target ${{ matrix.target.triple }}
         if: matrix.target.has_std == true
 
@@ -180,6 +182,7 @@ jobs:
             --optional-deps
             --group-features serde,rand
             --exclude-features default,winapi,time-macros,quickcheck-dep
+            --features const_fn
 
       - name: Test
         uses: actions-rs/cargo@v1

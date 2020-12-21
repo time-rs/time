@@ -4,7 +4,6 @@ use crate::{
 };
 #[cfg(feature = "alloc")]
 use alloc::string::String;
-use const_fn::const_fn;
 #[cfg(feature = "std")]
 use core::convert::From;
 use core::{
@@ -145,10 +144,12 @@ impl OffsetDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn from_unix_timestamp(timestamp: i64) -> Result<Self, error::ComponentRange> {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn from_unix_timestamp(timestamp: i64) -> Result<Self, error::ComponentRange> {
         let unix_epoch_julian_date = Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
 
         let date = const_try!(Date::from_julian_day(
@@ -192,10 +193,12 @@ impl OffsetDateTime {
     ///     Ok(datetime!("2019-01-01 0:00 UTC")),
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange> {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange> {
         let unix_epoch_julian_date = Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
 
         // Performing the division early lets us use an i64 instead of an i128.
@@ -251,10 +254,12 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("1970-01-01 0:00 UTC").unix_timestamp(), 0);
     /// assert_eq!(datetime!("1970-01-01 0:00 -1").unix_timestamp(), 3_600);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn unix_timestamp(self) -> i64 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn unix_timestamp(self) -> i64 {
         let days = (self.utc_datetime.date.to_julian_day()
             - Date::from_ordinal_date_unchecked(1970, 1).to_julian_day())
             * 86_400;
@@ -274,10 +279,12 @@ impl OffsetDateTime {
     ///     3_600_000_000_000,
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn unix_timestamp_nanos(self) -> i128 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn unix_timestamp_nanos(self) -> i128 {
         self.unix_timestamp() as i128 * 1_000_000_000 + self.utc_datetime.nanosecond() as i128
     }
 
@@ -293,10 +300,12 @@ impl OffsetDateTime {
     ///     date!("2018-12-31"),
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn date(self) -> Date {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn date(self) -> Date {
         let second = self.utc_datetime.second() as i8 + self.offset.seconds;
         let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
         let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
@@ -340,10 +349,12 @@ impl OffsetDateTime {
     ///     time!("23:00")
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn time(self) -> Time {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn time(self) -> Time {
         let mut second = self.utc_datetime.second() as i8 + self.offset.seconds;
         let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
         let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
@@ -390,10 +401,12 @@ impl OffsetDateTime {
     /// );
     /// assert_eq!(datetime!("2020-01-01 0:00 UTC").year(), 2020);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn year(self) -> i32 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn year(self) -> i32 {
         let second = self.utc_datetime.second() as i8 + self.offset.seconds;
         let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
         let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
@@ -437,10 +450,12 @@ impl OffsetDateTime {
     ///     1,
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn month(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn month(self) -> u8 {
         self.date().month()
     }
 
@@ -458,10 +473,12 @@ impl OffsetDateTime {
     ///     1,
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn day(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn day(self) -> u8 {
         self.date().day()
     }
 
@@ -479,10 +496,12 @@ impl OffsetDateTime {
     ///     1,
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn ordinal(self) -> u16 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn ordinal(self) -> u16 {
         let second = self.utc_datetime.second() as i8 + self.offset.seconds;
         let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
         let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
@@ -523,10 +542,12 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("2020-12-31 0:00 UTC").iso_week(), 53);
     /// assert_eq!(datetime!("2021-01-01 0:00 UTC").iso_week(), 53);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn iso_week(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn iso_week(self) -> u8 {
         self.date().iso_week()
     }
 
@@ -541,10 +562,12 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("2020-12-31 0:00 UTC").sunday_based_week(), 52);
     /// assert_eq!(datetime!("2021-01-01 0:00 UTC").sunday_based_week(), 0);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn sunday_based_week(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn sunday_based_week(self) -> u8 {
         self.date().sunday_based_week()
     }
 
@@ -559,10 +582,12 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("2020-12-31 0:00 UTC").monday_based_week(), 52);
     /// assert_eq!(datetime!("2021-01-01 0:00 UTC").monday_based_week(), 0);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn monday_based_week(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn monday_based_week(self) -> u8 {
         self.date().monday_based_week()
     }
 
@@ -575,10 +600,12 @@ impl OffsetDateTime {
     ///     (2019, 1, 1)
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn to_calendar_date(self) -> (i32, u8, u8) {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn to_calendar_date(self) -> (i32, u8, u8) {
         self.date().to_calendar_date()
     }
 
@@ -591,10 +618,12 @@ impl OffsetDateTime {
     ///     (2019, 1)
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn to_ordinal_date(self) -> (i32, u16) {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn to_ordinal_date(self) -> (i32, u16) {
         self.date().to_ordinal_date()
     }
 
@@ -624,10 +653,12 @@ impl OffsetDateTime {
     ///     (2020, 53, Friday)
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn to_iso_week_date(self) -> (i32, u8, Weekday) {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn to_iso_week_date(self) -> (i32, u8, Weekday) {
         self.date().to_iso_week_date()
     }
 
@@ -640,10 +671,12 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("2019-02-01 0:00 UTC").weekday(), Friday);
     /// assert_eq!(datetime!("2019-03-01 0:00 UTC").weekday(), Friday);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn weekday(self) -> Weekday {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn weekday(self) -> Weekday {
         self.date().weekday()
     }
 
@@ -659,10 +692,12 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").to_julian_day(), 2_458_485);
     /// assert_eq!(datetime!("2019-12-31 0:00 UTC").to_julian_day(), 2_458_849);
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn to_julian_day(self) -> i32 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn to_julian_day(self) -> i32 {
         self.date().to_julian_day()
     }
 
@@ -673,10 +708,12 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("2020-01-01 0:00:00 UTC").to_hms(), (0, 0, 0));
     /// assert_eq!(datetime!("2020-01-01 23:59:59 UTC").to_hms(), (23, 59, 59));
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn to_hms(self) -> (u8, u8, u8) {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn to_hms(self) -> (u8, u8, u8) {
         self.time().as_hms()
     }
 
@@ -693,10 +730,12 @@ impl OffsetDateTime {
     ///     (23, 59, 59, 999)
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn to_hms_milli(self) -> (u8, u8, u8, u16) {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn to_hms_milli(self) -> (u8, u8, u8, u16) {
         self.time().as_hms_milli()
     }
 
@@ -713,10 +752,12 @@ impl OffsetDateTime {
     ///     (23, 59, 59, 999_999)
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn to_hms_micro(self) -> (u8, u8, u8, u32) {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn to_hms_micro(self) -> (u8, u8, u8, u32) {
         self.time().as_hms_micro()
     }
 
@@ -733,10 +774,12 @@ impl OffsetDateTime {
     ///     (23, 59, 59, 999_999_999)
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn to_hms_nano(self) -> (u8, u8, u8, u32) {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn to_hms_nano(self) -> (u8, u8, u8, u32) {
         self.time().as_hms_nano()
     }
 
@@ -754,10 +797,12 @@ impl OffsetDateTime {
     ///     21,
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn hour(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn hour(self) -> u8 {
         let second = self.utc_datetime.second() as i8 + self.offset.seconds;
         let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
         let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
@@ -795,10 +840,12 @@ impl OffsetDateTime {
     ///     29,
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn minute(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn minute(self) -> u8 {
         let second = self.utc_datetime.second() as i8 + self.offset.seconds;
         let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
 
@@ -830,10 +877,12 @@ impl OffsetDateTime {
     ///     29,
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
-    #[const_fn("1.46")]
-    pub const fn second(self) -> u8 {
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn second(self) -> u8 {
         let mut second = self.utc_datetime.second() as i8 + self.offset.seconds;
 
         if second >= 60 {
@@ -914,11 +963,13 @@ impl OffsetDateTime {
     ///     datetime!("2020-01-01 12:00 +1")
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
-    #[const_fn("1.46")]
-    pub const fn replace_time(self, time: Time) -> Self {
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn replace_time(self, time: Time) -> Self {
         self.utc_datetime
             .utc_to_offset(self.offset)
             .replace_time(time)
@@ -939,11 +990,13 @@ impl OffsetDateTime {
     ///     datetime!("2020-01-30 0:00 +1")
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
-    #[const_fn("1.46")]
-    pub const fn replace_date(self, date: Date) -> Self {
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn replace_date(self, date: Date) -> Self {
         self.utc_datetime
             .utc_to_offset(self.offset)
             .replace_date(date)
@@ -964,11 +1017,13 @@ impl OffsetDateTime {
     ///     datetime!("2020-01-30 0:00 +1")
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
-    #[const_fn("1.46")]
-    pub const fn replace_date_time(self, date_time: PrimitiveDateTime) -> Self {
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn replace_date_time(self, date_time: PrimitiveDateTime) -> Self {
         date_time.assume_offset(self.offset)
     }
 
@@ -981,11 +1036,13 @@ impl OffsetDateTime {
     ///     datetime!("2020-01-01 0:00 -5")
     /// );
     /// ```
-    ///
-    /// This function is `const fn` when using rustc >= 1.46.
+    #[cfg_attr(
+        feature = "const_fn",
+        doc = "This feature is `const fn` when using rustc >= 1.46."
+    )]
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
-    #[const_fn("1.46")]
-    pub const fn replace_offset(self, offset: UtcOffset) -> Self {
+    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+    pub fn replace_offset(self, offset: UtcOffset) -> Self {
         self.utc_datetime.assume_offset(offset)
     }
 }

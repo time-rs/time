@@ -1,7 +1,5 @@
 //! Utility functions.
 
-use const_fn::const_fn;
-
 /// Whether to adjust the date, and in which direction. Useful when implementing arithmetic.
 pub(crate) enum DateAdjustment {
     /// The previous day should be used.
@@ -19,8 +17,8 @@ const DAYS_IN_MONTH_COMMON_LEAP: [[u8; 12]; 2] = [
 ];
 
 /// Get the number of days in the month of a given year.
-#[const_fn("1.46")]
-pub(crate) const fn days_in_year_month(year: i32, month: u8) -> u8 {
+#[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+pub(crate) fn days_in_year_month(year: i32, month: u8) -> u8 {
     DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
 }
 
@@ -35,10 +33,12 @@ pub(crate) const fn days_in_year_month(year: i32, month: u8) -> u8 {
 /// assert!(!is_leap_year(2005));
 /// assert!(!is_leap_year(2100));
 /// ```
-///
-/// This function is `const fn` when using rustc >= 1.46.
-#[const_fn("1.46")]
-pub const fn is_leap_year(year: i32) -> bool {
+#[cfg_attr(
+    feature = "const_fn",
+    doc = "This feature is `const fn` when using rustc >= 1.46."
+)]
+#[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+pub fn is_leap_year(year: i32) -> bool {
     year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
 }
 
@@ -54,10 +54,12 @@ pub const fn is_leap_year(year: i32) -> bool {
 /// assert_eq!(days_in_year(2005), 365);
 /// assert_eq!(days_in_year(2100), 365);
 /// ```
-///
-/// This function is `const fn` when using rustc >= 1.46.
-#[const_fn("1.46")]
-pub const fn days_in_year(year: i32) -> u16 {
+#[cfg_attr(
+    feature = "const_fn",
+    doc = "This feature is `const fn` when using rustc >= 1.46."
+)]
+#[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+pub fn days_in_year(year: i32) -> u16 {
     if is_leap_year(year) { 366 } else { 365 }
 }
 
@@ -70,10 +72,12 @@ pub const fn days_in_year(year: i32) -> u16 {
 /// assert_eq!(weeks_in_year(2019), 52);
 /// assert_eq!(weeks_in_year(2020), 53);
 /// ```
-///
-/// This function is `const fn` when using rustc >= 1.46.
-#[const_fn("1.46")]
-pub const fn weeks_in_year(year: i32) -> u8 {
+#[cfg_attr(
+    feature = "const_fn",
+    doc = "This feature is `const fn` when using rustc >= 1.46."
+)]
+#[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
+pub fn weeks_in_year(year: i32) -> u8 {
     let mut within_period = year % 400;
     if within_period < 0 {
         within_period += 400;

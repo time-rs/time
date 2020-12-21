@@ -18,7 +18,7 @@ rustc-args = ["--cfg",  "__time_03_docs"]
 rustdoc-args = ["--cfg", "__time_03_docs"]
 
 [features]
-default = ["std"]
+default = ["std", "const_fn"]
 macros = ["time-macros"]
 local-offset = ["std", "winapi"]
 quickcheck = ["quickcheck-dep", "rand", "std"]
@@ -27,7 +27,7 @@ alloc = []
 large-dates = ["time-macros/large-dates"]
 
 [dependencies]
-const_fn = "0.4.3"
+const_fn = { version = "0.4.4", optional = true }
 quickcheck-dep = { package = "quickcheck", version = "0.9.2", optional = true }
 rand = { version = "0.7.3", optional = true, default-features = false }
 serde = { version = "1.0.117", optional = true, default-features = false, features = ["derive"] }
