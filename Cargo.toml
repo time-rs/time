@@ -39,6 +39,9 @@ members = ["time-benchmarks", "time-macros", "time-macros-impl"]
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
 
+[target.'cfg(unsound_local_offset)'.dependencies]
+libc = "0.2.81"
+
 [dev-dependencies]
 rand = { version = "0.7.3", default-features = false }
 serde_json = "1.0.59"

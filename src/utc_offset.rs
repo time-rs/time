@@ -224,13 +224,16 @@ impl Display for UtcOffset {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
 #[allow(clippy::too_many_lines, clippy::missing_const_for_fn)]
 fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
-    #[cfg(target_family = "unix")]
+    // See #293 for details.
+    #[cfg(all(target_family = "unix", not(unsound_local_offset)))]
     {
-        // See #293 for details.
         let _ = datetime;
         None
-
-        /*
+    }
+    // Let a user explicitly opt-in to unsound behavior. As this is not done via feature flags, it
+    // can only be enabled by the end user. It must be explicitly passed on each compilation.
+    #[cfg(all(target_family = "unix", unsound_local_offset))]
+    {
         use core::{convert::TryInto, mem::MaybeUninit};
 
         /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on any error.
@@ -319,7 +322,6 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             )
             .ok()
         }
-        */
     }
     #[cfg(target_family = "windows")]
     {

@@ -53,6 +53,14 @@
 //! - `quickcheck` (_implicitly enables `rand`_)
 //!
 //!   Enables [quickcheck](https://docs.rs/quickcheck) support for all types except [`Instant`].
+//!
+//! One pseudo-feature flag that is only available to end users is the `unsound_local_offset` cfg.
+//! As the name indicates, using the feature is unsound, and [may cause unexpected segmentation
+//! faults](https://github.com/time-rs/time/issues/293). Unlike other flags, this is deliberately
+//! only available to end users; this is to ensure that a user doesn't have unsound behavior without
+//! knowing it. To enable this behavior, you must use `RUSTFLAGS="--cfg unsound_local_offset" cargo
+//! build` or similar. Note: This flag is _not tested anywhere_, including in the regular test of
+//! the powerset of all feature flags. Use at your own risk.
 
 #![cfg_attr(__time_03_docs, feature(doc_cfg))]
 #![cfg_attr(__time_03_docs, deny(broken_intra_doc_links))]
