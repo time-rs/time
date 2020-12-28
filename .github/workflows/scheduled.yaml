@@ -5,6 +5,7 @@ on:
     - cron: "0 0 * * 1,3,5" # midnight on Monday, Wednesday, Friday
   push:
     paths: [".github/workflows/scheduled.yaml"] # build when this file is updated
+  workflow_dispatch:
 
 jobs:
   stale:
@@ -35,19 +36,31 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   check-other-targets:
-    name: Type checking
+    name: Type checking (${{ matrix.target.name }})
     runs-on: ubuntu-20.04
     strategy:
+      fail-fast: false
       matrix:
         target:
-          - { triple: x86_64-unknown-netbsd, has_std: true }
-          - { triple: x86_64-sun-solaris, has_std: true }
-          - { triple: wasm32-wasi, has_std: true }
-          - { triple: thumbv7em-none-eabihf, has_std: false }
-          - { triple: x86_64-apple-darwin, has_std: true }
-          - { triple: x86_64-fuchsia, has_std: true }
-          - { triple: x86_64-linux-android, has_std: true }
-          - { triple: x86_64-pc-windows-msvc, has_std: true }
+          # All tier 1 platforms as of 2020-12-28
+          - { name: "ARM64 Linux", triple: aarch64-unknown-linux-gnu, has_std: true }
+          - { name: "32-bit MinGW", triple: i686-pc-windows-gnu, has_std: true }
+          - { name: "32-bit MSVC", triple: i686-pc-windows-msvc, has_std: true }
+          - { name: "32-bit Linux", triple: i686-unknown-linux-gnu, has_std: true }
+          - { name: "64-bit macOS", triple: x86_64-apple-darwin, has_std: true }
+          - { name: "64-bit MinGW", triple: x86_64-pc-windows-gnu, has_std: true }
+          - { name: "64-bit MSVC", triple: x86_64-pc-windows-msvc, has_std: true }
+          - { name: "64-bit Linux", triple: x86_64-unknown-linux-gnu, has_std: true }
+          # Select tier 2 platforms as of 2020-12-28
+          - { name: "ARM64 Fuchsia", triple: aarch64-fuchsia, has_std: true }
+          - { name: "ARM64 Android", triple: aarch64-linux-android, has_std: true }
+          - { name: "Bare Cortex", triple: thumbv7em-none-eabihf, has_std: false }
+          - { name: "WebAssembly", triple: wasm32-unknown-unknown, has_std: true }
+          - { name: "WebAssembly with WASI", triple: wasm32-wasi, has_std: true }
+          - { name: "64-bit Fuchsia", triple: x86_64-fuchsia, has_std: true }
+          - { name: "64-bit x86 Android", triple: x86_64-linux-android, has_std: true }
+          - { name: "64-bit Solaris", triple: x86_64-sun-solaris, has_std: true }
+          - { name: "NetBSD", triple: x86_64-unknown-netbsd, has_std: true }
 
     steps:
       - name: Checkout sources
