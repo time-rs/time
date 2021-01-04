@@ -364,6 +364,7 @@ impl Time {
 
     /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow, returning the
     /// necessary whether the date is the following day.
+    #[allow(clippy::manual_range_contains)] // rust-lang/rust-clippy#6373
     #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
     pub(crate) fn adjusting_add(self, duration: Duration) -> (DateAdjustment, Self) {
         let mut nanoseconds = self.nanosecond as i32 + duration.subsec_nanoseconds();
@@ -513,10 +514,10 @@ impl Time {
     /// Format the `Time` using the provided format description. The formatted value will be output
     /// to the provided writer. The format description will typically be parsed by using
     /// [`FormatDescription::parse`].
-    pub fn format_into<'a>(
+    pub fn format_into(
         self,
         output: &mut dyn fmt::Write,
-        description: &FormatDescription<'a>,
+        description: &FormatDescription<'_>,
     ) -> Result<(), error::Format> {
         description.format_into(output, None, Some(self), None)
     }
@@ -533,7 +534,7 @@ impl Time {
     /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn format<'a>(self, description: &FormatDescription<'a>) -> Result<String, error::Format> {
+    pub fn format(self, description: &FormatDescription<'_>) -> Result<String, error::Format> {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
         Ok(s)

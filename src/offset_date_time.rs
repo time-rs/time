@@ -1051,10 +1051,10 @@ impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided format description. The formatted value will
     /// be output to the provided writer. The format description will typically be parsed by using
     /// [`FormatDescription::parse`].
-    pub fn format_into<'a>(
+    pub fn format_into(
         self,
         output: &mut dyn fmt::Write,
-        description: &FormatDescription<'a>,
+        description: &FormatDescription<'_>,
     ) -> Result<(), error::Format> {
         description.format_into(
             output,
@@ -1082,7 +1082,7 @@ impl OffsetDateTime {
     /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn format<'a>(self, description: &FormatDescription<'a>) -> Result<String, error::Format> {
+    pub fn format(self, description: &FormatDescription<'_>) -> Result<String, error::Format> {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
         Ok(s)

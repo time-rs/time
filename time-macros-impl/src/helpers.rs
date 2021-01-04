@@ -68,7 +68,7 @@ pub(crate) fn consume_digits_with_length<T: FromStr>(
 
     let num_digits = digits.len();
 
-    if digits == "" {
+    if digits.is_empty() {
         Err(Error::MissingComponent {
             name: component_name,
         })

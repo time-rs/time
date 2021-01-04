@@ -18,10 +18,7 @@ struct ParsedItem<'a> {
 
 /// Parse a component from the format description. Neither the leading nor trailing bracket should
 /// be present in the parameter.
-fn parse_component<'a>(
-    mut s: &'a str,
-    index: &mut usize,
-) -> Result<Component, InvalidFormatDescription> {
+fn parse_component(mut s: &str, index: &mut usize) -> Result<Component, InvalidFormatDescription> {
     // Trim any whitespace between the opening bracket and the component name.
     s = helper::consume_whitespace(s, index);
 
