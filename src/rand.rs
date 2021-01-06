@@ -45,8 +45,8 @@ impl Distribution<UtcOffset> for Standard {
         let mut seconds = rng.gen_range(0, 60);
 
         if hours < 0 {
-            minutes *= 1;
-            seconds *= 1;
+            minutes *= -1;
+            seconds *= -1;
         }
 
         UtcOffset {
