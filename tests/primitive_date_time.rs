@@ -45,6 +45,10 @@ fn from_unix_timestamp() {
 fn timestamp() {
     assert_eq!(PrimitiveDateTime::unix_epoch().timestamp(), 0);
     assert_eq!(date!(2019 - 01 - 01).midnight().timestamp(), 1_546_300_800);
+    assert_eq!(
+        (PrimitiveDateTime::unix_epoch() - 1.nanoseconds()).timestamp(),
+        -1
+    );
 }
 
 #[test]
