@@ -123,6 +123,10 @@ fn timestamp() {
             .timestamp(),
         3_600,
     );
+    assert_eq!(
+        (OffsetDateTime::unix_epoch() - 1.nanoseconds()).timestamp(),
+        -1
+    );
 }
 
 #[test]
