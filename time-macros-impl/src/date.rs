@@ -33,6 +33,7 @@ impl Parse for Date {
         input.parse::<Token![-]>()?;
 
         // year-week-day
+        #[allow(clippy::manual_strip)]
         let (year, ordinal) = if input.peek(Ident) {
             let week = {
                 let week = input.parse::<Ident>()?;
