@@ -50,7 +50,7 @@
 //!
 //!   Enables [rand](https://docs.rs/rand) support for all types.
 //!
-//! - `quickcheck` (_implicitly enables `rand`_)
+//! - `quickcheck` (_implicitly enables `alloc`_)
 //!
 //!   Enables [quickcheck](https://docs.rs/quickcheck) support for all types except [`Instant`].
 //!

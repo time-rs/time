@@ -42,9 +42,9 @@ use crate::{
     util::days_in_year,
     Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
 };
-use core::{cmp, convert::TryInto, i32, iter, u16, u32, u8};
+use alloc::boxed::Box;
+use core::iter;
 use quickcheck_dep::{Arbitrary, Gen};
-use rand::Rng;
 
 /// Shim for the unstable clamp method.
 // This method seems likely to stabilized in Rust 1.50. This will result in a NET usage date of
@@ -64,21 +64,35 @@ impl<T: Ord> Clamp for T {
     }
 }
 
+/// Obtain an arbitrary value between the minimum and maximum inclusive.
+fn arbitrary_between<T>(g: &mut Gen, min: T, max: T) -> T
+where
+    T: PartialOrd
+        + core::ops::AddAssign
+        + core::ops::Add<Output = T>
+        + core::ops::Sub<Output = T>
+        + core::ops::Rem<Output = T>
+        + Arbitrary
+        + Copy,
+{
+    #[allow(clippy::eq_op)]
+    let zero = min - min;
+
+    let range = max - min;
+    let mut within_range = T::arbitrary(g) % range;
+
+    if within_range < zero {
+        within_range += range;
+    }
+
+    within_range + min
+}
+
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Date {
-    fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        let year_size = g.size().try_into().unwrap_or(i32::MAX);
-        let year = if year_size == 0 {
-            0
-        } else {
-            g.gen_range(
-                cmp::max(MIN_YEAR, -year_size),
-                cmp::min(MAX_YEAR, year_size),
-            )
-        };
-
-        let ordinal_size = cmp::min(g.size().try_into().unwrap_or(u16::MAX), days_in_year(year));
-        let ordinal = g.gen_range(1, cmp::max(2, ordinal_size + 1));
+    fn arbitrary(g: &mut Gen) -> Self {
+        let year = arbitrary_between(g, MIN_YEAR, MAX_YEAR);
+        let ordinal = arbitrary_between(g, 1, days_in_year(year));
 
         Self::from_ordinal_date_unchecked(year, ordinal)
     }
@@ -99,18 +113,17 @@ impl Arbitrary for Date {
 
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Duration {
-    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+    fn arbitrary(g: &mut Gen) -> Self {
         let seconds = i64::arbitrary(g);
-        let nanoseconds: i32 = g.gen_range(
-            0,
-            g.size()
-                .try_into()
-                .unwrap_or(i32::MAX)
-                .clamp_(1, 1_000_000_000),
-        );
+        let mut nanoseconds = arbitrary_between(g, 0, 999_999_999);
+
+        if seconds < 0 {
+            nanoseconds *= -1;
+        }
+
         Self {
             seconds,
-            nanoseconds: nanoseconds * (seconds.signum() as i32),
+            nanoseconds,
         }
     }
 
@@ -133,17 +146,12 @@ impl Arbitrary for Duration {
 
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Time {
-    fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        let hour = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp_(1, 24));
-        let minute = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp_(1, 60));
-        let second = g.gen_range(0, g.size().try_into().unwrap_or(u8::MAX).clamp_(1, 60));
-        let nanosecond = g.gen_range(
-            0,
-            g.size()
-                .try_into()
-                .unwrap_or(u32::MAX)
-                .clamp_(1, 1_000_000_000),
-        );
+    fn arbitrary(g: &mut Gen) -> Self {
+        let hour = arbitrary_between(g, 0, 23);
+        let minute = arbitrary_between(g, 0, 59);
+        let second = arbitrary_between(g, 0, 59);
+        let nanosecond = arbitrary_between(g, 0, 999_999_999);
+
         Self {
             hour,
             minute,
@@ -199,7 +207,7 @@ impl Arbitrary for Time {
 
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for PrimitiveDateTime {
-    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+    fn arbitrary(g: &mut Gen) -> Self {
         Self::new(Date::arbitrary(g), Time::arbitrary(g))
     }
 
@@ -216,24 +224,20 @@ impl Arbitrary for PrimitiveDateTime {
 
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for UtcOffset {
-    fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        let total_seconds =
-            g.gen_range(0, g.size().try_into().unwrap_or(i32::MAX).clamp_(1, 86_400));
+    fn arbitrary(g: &mut Gen) -> Self {
+        let hours = arbitrary_between(g, -23, 23);
+        let mut minutes = arbitrary_between(g, 0, 59);
+        let mut seconds = arbitrary_between(g, 0, 59);
 
-        let mut hours = total_seconds / 3_600;
-        let mut minutes = (total_seconds / 60) % 60;
-        let mut seconds = total_seconds % 60;
-
-        if g.gen() {
-            hours *= -1;
+        if hours < 0 {
             minutes *= -1;
             seconds *= -1;
         }
 
         Self {
-            hours: hours as _,
-            minutes: minutes as _,
-            seconds: seconds as _,
+            hours,
+            minutes,
+            seconds,
         }
     }
 
@@ -248,7 +252,7 @@ impl Arbitrary for UtcOffset {
 
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for OffsetDateTime {
-    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+    fn arbitrary(g: &mut Gen) -> Self {
         let datetime = PrimitiveDateTime::arbitrary(g);
         let offset = UtcOffset::arbitrary(g);
         datetime.assume_offset(offset)
@@ -271,9 +275,9 @@ impl Arbitrary for OffsetDateTime {
 
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Weekday {
-    fn arbitrary<G: Gen>(g: &mut G) -> Self {
+    fn arbitrary(g: &mut Gen) -> Self {
         use Weekday::*;
-        match g.gen_range(0, g.size().clamp_(1, 7)) {
+        match arbitrary_between::<u8>(g, 0, 6) {
             0 => Monday,
             1 => Tuesday,
             2 => Wednesday,

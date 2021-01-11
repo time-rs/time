@@ -13,10 +13,10 @@ use rand::{
 impl Distribution<Time> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Time {
         Time {
-            hour: rng.gen_range(0, 24),
-            minute: rng.gen_range(0, 60),
-            second: rng.gen_range(0, 60),
-            nanosecond: rng.gen_range(0, 1_000_000_000),
+            hour: rng.gen_range(0..24),
+            minute: rng.gen_range(0..60),
+            second: rng.gen_range(0..60),
+            nanosecond: rng.gen_range(0..1_000_000_000),
             padding: hack::Padding::Optimize,
         }
     }
@@ -29,7 +29,7 @@ impl Distribution<Date> for Standard {
         let max_date = Date::from_ordinal_date_unchecked(MAX_YEAR, util::days_in_year(MAX_YEAR));
 
         match Date::from_julian_day(
-            rng.gen_range(min_date.to_julian_day(), max_date.to_julian_day() + 1),
+            rng.gen_range(min_date.to_julian_day()..=max_date.to_julian_day()),
         ) {
             Ok(date) => date,
             Err(_) => unreachable!("The value is guaranteed to be in the range of valid dates."),
@@ -40,9 +40,9 @@ impl Distribution<Date> for Standard {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 impl Distribution<UtcOffset> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> UtcOffset {
-        let hours = rng.gen_range(-23, 24);
-        let mut minutes = rng.gen_range(0, 60);
-        let mut seconds = rng.gen_range(0, 60);
+        let hours = rng.gen_range(-23..24);
+        let mut minutes = rng.gen_range(0..60);
+        let mut seconds = rng.gen_range(0..60);
 
         if hours < 0 {
             minutes *= -1;
@@ -78,7 +78,7 @@ impl Distribution<Duration> for Standard {
         let seconds = Self.sample(rng);
         Duration {
             seconds,
-            nanoseconds: seconds.signum() as i32 * rng.gen_range(0, 1_000_000_000),
+            nanoseconds: seconds.signum() as i32 * rng.gen_range(0..1_000_000_000),
         }
     }
 }
@@ -88,7 +88,7 @@ impl Distribution<Weekday> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Weekday {
         use Weekday::*;
 
-        match rng.gen_range(0, 7) {
+        match rng.gen_range(0..7) {
             0 => Monday,
             1 => Tuesday,
             2 => Wednesday,
