@@ -642,6 +642,7 @@ fn display() {
     assert_eq!(date!("2019-01-01").to_string(), "2019-01-01");
     assert_eq!(date!("2019-12-31").to_string(), "2019-12-31");
     assert_eq!(date!("-4713-11-24").to_string(), "-4713-11-24");
+    assert_eq!(date!("-0001-01-01").to_string(), "-0001-01-01");
 
     #[cfg(feature = "large-dates")]
     {

@@ -1,6 +1,6 @@
 //! Format implementations for the `UtcOffset` struct.
 
-use crate::{format_description::component, formatting::format_value, UtcOffset};
+use crate::{format_description::component, formatting::format_number, UtcOffset};
 use core::fmt;
 
 impl component::UtcOffset {
@@ -21,13 +21,13 @@ impl component::UtcOffset {
                 } else if sign_is_mandatory {
                     output.write_char('+')?;
                 }
-                format_value(output, offset.hours.abs(), padding, 2)?;
+                format_number(output, offset.hours.abs() as u8, padding, 2)?;
             }
             Self::Minute { padding } => {
-                format_value(output, offset.minutes.abs(), padding, 2)?;
+                format_number(output, offset.minutes.abs() as u8, padding, 2)?;
             }
             Self::Second { padding } => {
-                format_value(output, offset.seconds.abs(), padding, 2)?;
+                format_number(output, offset.seconds.abs() as u8, padding, 2)?;
             }
         }
 

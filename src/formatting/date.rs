@@ -5,7 +5,7 @@ use crate::{
         component,
         modifier::{MonthRepr, Padding, WeekNumberRepr, WeekdayRepr, YearRepr},
     },
-    formatting::format_value,
+    formatting::format_number,
     Date,
 };
 use core::fmt;
@@ -46,35 +46,35 @@ impl component::Date {
         date: Date,
     ) -> Result<(), fmt::Error> {
         match self {
-            Self::Day { padding } => format_value(output, date.day(), padding, 2)?,
+            Self::Day { padding } => format_number(output, date.day(), padding, 2)?,
             Self::Month { padding, repr } => match repr {
-                MonthRepr::Numerical => format_value(output, date.month(), padding, 2)?,
+                MonthRepr::Numerical => format_number(output, date.month(), padding, 2)?,
                 MonthRepr::Long => output.write_str(MONTH_NAMES[date.month() as usize - 1])?,
                 MonthRepr::Short => {
                     output.write_str(&MONTH_NAMES[date.month() as usize - 1][..3])?
                 }
             },
-            Self::Ordinal { padding } => format_value(output, date.ordinal(), padding, 3)?,
+            Self::Ordinal { padding } => format_number(output, date.ordinal(), padding, 3)?,
             Self::Weekday { repr, one_indexed } => match repr {
                 WeekdayRepr::Short => output.write_str(
                     &WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3],
                 )?,
                 WeekdayRepr::Long => output
                     .write_str(WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize])?,
-                WeekdayRepr::Sunday => format_value(
+                WeekdayRepr::Sunday => format_number(
                     output,
                     date.weekday().number_days_from_sunday() + one_indexed as u8,
                     Padding::None,
                     1,
                 )?,
-                WeekdayRepr::Monday => format_value(
+                WeekdayRepr::Monday => format_number(
                     output,
                     date.weekday().number_days_from_monday() + one_indexed as u8,
                     Padding::None,
                     1,
                 )?,
             },
-            Self::WeekNumber { padding, repr } => format_value(
+            Self::WeekNumber { padding, repr } => format_number(
                 output,
                 match repr {
                     WeekNumberRepr::Iso => date.iso_week(),
@@ -112,11 +112,15 @@ impl component::Date {
                 };
 
                 // Don't emit a sign when only displaying the last two digits.
-                if repr != YearRepr::LastTwo && (sign_is_mandatory || full_year >= 10_000) {
-                    output.write_char('+')?;
+                if repr != YearRepr::LastTwo {
+                    if full_year < 0 {
+                        output.write_char('-')?;
+                    } else if sign_is_mandatory || full_year >= 10_000 {
+                        output.write_char('+')?;
+                    }
                 }
 
-                format_value(output, value, padding, width)?
+                format_number(output, value.abs() as u32, padding, width)?
             }
         }
 

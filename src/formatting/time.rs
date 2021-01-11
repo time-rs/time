@@ -5,7 +5,7 @@ use crate::{
         component,
         modifier::{Padding, SubsecondDigits},
     },
-    formatting::format_value,
+    formatting::format_number,
     Time,
 };
 use core::fmt;
@@ -29,16 +29,16 @@ impl component::Time {
                     (hour, true) if hour < 12 => hour,
                     (hour, true) => hour - 12,
                 };
-                format_value(output, value, padding, 2)?
+                format_number(output, value, padding, 2)?
             }
-            Self::Minute { padding } => format_value(output, time.minute, padding, 2)?,
+            Self::Minute { padding } => format_number(output, time.minute, padding, 2)?,
             Self::Period { is_uppercase } => match (time.hour >= 12, is_uppercase) {
                 (false, false) => output.write_str("am"),
                 (false, true) => output.write_str("AM"),
                 (true, false) => output.write_str("pm"),
                 (true, true) => output.write_str("PM"),
             }?,
-            Self::Second { padding } => format_value(output, time.second, padding, 2)?,
+            Self::Second { padding } => format_number(output, time.second, padding, 2)?,
             Self::Subsecond { digits } => {
                 let (value, width) = match digits {
                     SubsecondDigits::One => (time.nanosecond / 100_000_000, 1),
@@ -62,7 +62,7 @@ impl component::Time {
                         nanos => (nanos / 100_000_000, 1),
                     },
                 };
-                format_value(output, value, Padding::Zero, width)?
+                format_number(output, value, Padding::Zero, width)?
             }
         }
 

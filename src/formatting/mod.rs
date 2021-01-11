@@ -11,17 +11,89 @@ use crate::{
 };
 use core::fmt;
 
-/// Format a value with the provided padding and width.
-fn format_value<T: fmt::Display>(
+/// A trait that indicates the formatted width of the value can be determined.
+///
+/// Note that this should not be implemented for any signed integers. This forces the caller to
+/// write the sign if desired.
+trait DigitCount {
+    /// The number of digits in the stringified value.
+    fn num_digits(self) -> u8;
+}
+impl DigitCount for u8 {
+    fn num_digits(self) -> u8 {
+        if self < 10 {
+            1
+        } else if self < 100 {
+            2
+        } else {
+            3
+        }
+    }
+}
+impl DigitCount for u16 {
+    fn num_digits(self) -> u8 {
+        if self < 10 {
+            1
+        } else if self < 100 {
+            2
+        } else if self < 1_000 {
+            3
+        } else if self < 10_000 {
+            4
+        } else {
+            5
+        }
+    }
+}
+impl DigitCount for u32 {
+    fn num_digits(self) -> u8 {
+        if self < 10 {
+            1
+        } else if self < 100 {
+            2
+        } else if self < 1_000 {
+            3
+        } else if self < 10_000 {
+            4
+        } else if self < 100_000 {
+            5
+        } else if self < 1_000_000 {
+            6
+        } else if self < 10_000_000 {
+            7
+        } else if self < 100_000_000 {
+            8
+        } else if self < 1_000_000_000 {
+            9
+        } else {
+            10
+        }
+    }
+}
+
+/// Format a number with the provided padding and width.
+///
+/// The sign must be written by the caller.
+fn format_number(
     output: &mut dyn fmt::Write,
-    value: T,
+    value: impl itoa::Integer + DigitCount + Copy,
     padding: Padding,
-    width: usize,
+    width: u8,
 ) -> Result<(), fmt::Error> {
     match padding {
-        Padding::Space => write!(output, "{: >width$}", value, width = width),
-        Padding::Zero => write!(output, "{:0>width$}", value, width = width),
-        Padding::None => write!(output, "{}", value),
+        Padding::Space => {
+            for _ in 0..(width.saturating_sub(value.num_digits())) {
+                output.write_char(' ')?;
+            }
+            itoa::fmt(output, value)
+        }
+        Padding::Zero => {
+            for _ in 0..(width.saturating_sub(value.num_digits())) {
+                output.write_char('0')?;
+            }
+            itoa::fmt(output, value)
+        }
+        Padding::None => itoa::fmt(output, value),
     }
 }
 
