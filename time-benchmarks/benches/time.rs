@@ -146,26 +146,25 @@ setup_benchmark! {
         ));
     }
 
-    // OTDO
-    //fn display(ben: &mut Bencher) {
-    //    let a = time!("0:00");
-    //    let b = time!("23:59");
-    //    let c = time!("23:59:59");
-    //    let d = time!("0:00:01");
-    //    let e = time!("0:00:00.001");
-    //    let f = time!("0:00:00.000_001");
-    //    let g = time!("0:00:00.000_000_001");
-    //
-    //    ben.iter(|| (
-    //        a.to_string(),
-    //        b.to_string(),
-    //        c.to_string(),
-    //        d.to_string(),
-    //        e.to_string(),
-    //        f.to_string(),
-    //        g.to_string(),
-    //    ));
-    //}
+    fn display(ben: &mut Bencher) {
+        let a = time!("0:00");
+        let b = time!("23:59");
+        let c = time!("23:59:59");
+        let d = time!("0:00:01");
+        let e = time!("0:00:00.001");
+        let f = time!("0:00:00.000_001");
+        let g = time!("0:00:00.000_000_001");
+
+        ben.iter(|| (
+            a.to_string(),
+            b.to_string(),
+            c.to_string(),
+            d.to_string(),
+            e.to_string(),
+            f.to_string(),
+            g.to_string(),
+        ));
+    }
 
     fn add_duration(ben: &mut Bencher) {
         let t = time!("0:00");

@@ -8,7 +8,7 @@ impl component::UtcOffset {
     /// cannot be output to the stream.
     pub(super) fn format_into(
         self,
-        output: &mut dyn fmt::Write,
+        output: &mut impl fmt::Write,
         offset: UtcOffset,
     ) -> Result<(), fmt::Error> {
         match self {

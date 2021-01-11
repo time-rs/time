@@ -75,7 +75,7 @@ impl DigitCount for u32 {
 ///
 /// The sign must be written by the caller.
 fn format_number(
-    output: &mut dyn fmt::Write,
+    output: &mut impl fmt::Write,
     value: impl itoa::Integer + DigitCount + Copy,
     padding: Padding,
     width: u8,
@@ -103,7 +103,7 @@ impl FormatDescription<'_> {
     /// do not provide or the value cannot be output to the stream.
     pub(crate) fn format_into(
         &self,
-        output: &mut dyn fmt::Write,
+        output: &mut impl fmt::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,

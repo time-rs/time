@@ -42,7 +42,7 @@ impl component::Date {
     /// returned if the value cannot be output to the stream.
     pub(super) fn format_into(
         self,
-        output: &mut dyn fmt::Write,
+        output: &mut impl fmt::Write,
         date: Date,
     ) -> Result<(), fmt::Error> {
         match self {

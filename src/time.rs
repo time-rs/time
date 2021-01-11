@@ -516,7 +516,7 @@ impl Time {
     /// [`FormatDescription::parse`].
     pub fn format_into(
         self,
-        output: &mut dyn fmt::Write,
+        output: &mut impl fmt::Write,
         description: &FormatDescription<'_>,
     ) -> Result<(), error::Format> {
         description.format_into(output, None, Some(self), None)
