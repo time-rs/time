@@ -82,12 +82,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-01-01 0:00").month(), 1);
     /// assert_eq!(datetime!("2019-12-31 0:00").month(), 12);
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn month(self) -> u8 {
+    pub const fn month(self) -> u8 {
         self.date.month()
     }
 
@@ -100,12 +95,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-01-01 0:00").day(), 1);
     /// assert_eq!(datetime!("2019-12-31 0:00").day(), 31);
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn day(self) -> u8 {
+    pub const fn day(self) -> u8 {
         self.date.day()
     }
 
@@ -134,12 +124,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2020-12-31 0:00").iso_week(), 53);
     /// assert_eq!(datetime!("2021-01-01 0:00").iso_week(), 53);
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn iso_week(self) -> u8 {
+    pub const fn iso_week(self) -> u8 {
         self.date.iso_week()
     }
 
@@ -154,12 +139,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2020-12-31 0:00").sunday_based_week(), 52);
     /// assert_eq!(datetime!("2021-01-01 0:00").sunday_based_week(), 0);
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn sunday_based_week(self) -> u8 {
+    pub const fn sunday_based_week(self) -> u8 {
         self.date.sunday_based_week()
     }
 
@@ -174,12 +154,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2020-12-31 0:00").monday_based_week(), 52);
     /// assert_eq!(datetime!("2021-01-01 0:00").monday_based_week(), 0);
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn monday_based_week(self) -> u8 {
+    pub const fn monday_based_week(self) -> u8 {
         self.date.monday_based_week()
     }
 
@@ -192,12 +167,7 @@ impl PrimitiveDateTime {
     ///     (2019, 1, 1)
     /// );
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn to_calendar_date(self) -> (i32, u8, u8) {
+    pub const fn to_calendar_date(self) -> (i32, u8, u8) {
         self.date.to_calendar_date()
     }
 
@@ -237,12 +207,7 @@ impl PrimitiveDateTime {
     ///     (2020, 53, Friday)
     /// );
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn to_iso_week_date(self) -> (i32, u8, Weekday) {
+    pub const fn to_iso_week_date(self) -> (i32, u8, Weekday) {
         self.date.to_iso_week_date()
     }
 
@@ -264,12 +229,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-11-01 0:00").weekday(), Friday);
     /// assert_eq!(datetime!("2019-12-01 0:00").weekday(), Sunday);
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn weekday(self) -> Weekday {
+    pub const fn weekday(self) -> Weekday {
         self.date.weekday()
     }
 
@@ -285,12 +245,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-01-01 0:00").to_julian_day(), 2_458_485);
     /// assert_eq!(datetime!("2019-12-31 0:00").to_julian_day(), 2_458_849);
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn to_julian_day(self) -> i32 {
+    pub const fn to_julian_day(self) -> i32 {
         self.date.to_julian_day()
     }
 
@@ -449,12 +404,7 @@ impl PrimitiveDateTime {
     ///     1_546_304_400,
     /// );
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn assume_offset(self, offset: UtcOffset) -> OffsetDateTime {
+    pub const fn assume_offset(self, offset: UtcOffset) -> OffsetDateTime {
         OffsetDateTime {
             utc_datetime: self.offset_to_utc(offset),
             offset,
@@ -514,8 +464,7 @@ impl PrimitiveDateTime {
 impl PrimitiveDateTime {
     /// Assuming that the current [`PrimitiveDateTime`] is a value in the provided [`UtcOffset`],
     /// obtain the equivalent value in the UTC.
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub(crate) fn offset_to_utc(self, offset: UtcOffset) -> Self {
+    pub(crate) const fn offset_to_utc(self, offset: UtcOffset) -> Self {
         let mut second = self.second() as i8 - offset.seconds;
         let mut minute = self.minute() as i8 - offset.minutes;
         let mut hour = self.hour() as i8 - offset.hours;
@@ -564,8 +513,7 @@ impl PrimitiveDateTime {
 
     /// Assuming that the current [`PrimitiveDateTime`] is a value in UTC, obtain the equivalent
     /// value in the provided [`UtcOffset`].
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub(crate) fn utc_to_offset(self, offset: UtcOffset) -> Self {
+    pub(crate) const fn utc_to_offset(self, offset: UtcOffset) -> Self {
         self.offset_to_utc(UtcOffset {
             hours: -offset.hours,
             minutes: -offset.minutes,

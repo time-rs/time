@@ -36,9 +36,6 @@
     clippy::redundant_pub_crate
 )]
 
-#[allow(unused_extern_crates)]
-extern crate proc_macro;
-
 mod date;
 mod datetime;
 mod error;
@@ -52,7 +49,6 @@ use datetime::DateTime;
 use error::Error;
 use offset::Offset;
 use proc_macro::TokenStream;
-use proc_macro_hack::proc_macro_hack;
 use time::Time;
 
 trait ToTokens {
@@ -75,7 +71,7 @@ trait ToTokens {
 macro_rules! impl_macros {
     ($($name:ident : $type:ty)*) => {$(
         #[allow(clippy::unimplemented)] // macro-generated
-        #[proc_macro_hack]
+        #[proc_macro]
         pub fn $name(input: TokenStream) -> TokenStream {
             let string = match helpers::get_string_literal(input) {
                 Ok(string) => string,

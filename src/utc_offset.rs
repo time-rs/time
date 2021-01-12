@@ -68,12 +68,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::from_hms(1, -2, -3)?.as_hms(), (1, 2, 3));
     /// # Ok::<_, time::Error>(())
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn from_hms(
+    pub const fn from_hms(
         hours: i8,
         mut minutes: i8,
         mut seconds: i8,

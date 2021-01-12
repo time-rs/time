@@ -55,8 +55,7 @@ jobs:
           - { name: "ARM64 Fuchsia", triple: aarch64-fuchsia, has_std: true }
           - { name: "ARM64 Android", triple: aarch64-linux-android, has_std: true }
           - { name: "Bare Cortex", triple: thumbv7em-none-eabihf, has_std: false }
-          - { name: "WebAssembly", triple: wasm32-unknown-unknown, has_std: true }
-          - { name: "WebAssembly with WASI", triple: wasm32-wasi, has_std: true }
+          - { name: "WASI", triple: wasm32-wasi, has_std: true }
           - { name: "64-bit Fuchsia", triple: x86_64-fuchsia, has_std: true }
           - { name: "64-bit x86 Android", triple: x86_64-linux-android, has_std: true }
           - { name: "64-bit Solaris", triple: x86_64-sun-solaris, has_std: true }
@@ -86,7 +85,7 @@ jobs:
           args: |
             check
             --no-dev-deps
-            --version-range 1.40..
+            --version-range 1.46..
             --feature-powerset
             --optional-deps
             --exclude-features default,winapi,std,local-offset,time-macros,quickcheck,quickcheck-dep
@@ -101,7 +100,7 @@ jobs:
           args: |
             check
             --no-dev-deps
-            --version-range 1.40..
+            --version-range 1.46..
             --feature-powerset
             --optional-deps
             --exclude-features default,winapi,time-macros,quickcheck-dep

@@ -48,7 +48,9 @@ Versioning].
 
 ### Changed
 
-- The minimum supported Rust version is now 1.40.0.
+- The minimum supported Rust version is now 1.46.0.
+- rand has been updated to 0.8.
+- quickcheck has been updated to 1.0.
 - Macros are placed behind the `macros` feature flag.
 - All macros now accept strings, rather than unquoted tokens. The syntax
   accepted is otherwise the same as before.
@@ -103,13 +105,6 @@ Versioning].
   - `OffsetDateTime::nanosecond`
   - `OffsetDateTime::unix_timestamp`
   - `OffsetDateTime::unix_timestamp_nanos`
-- No longer `const fn` on older compilers
-  - `util::is_leap_year`
-  - `util::days_in_year`
-  - `Duration::new`
-  - `Duration::is_positive`
-  - `Duration::is_negative`
-  - `Duration::is_zero`
 - Some variants of `Error` no longer contain an inner item. This is because the
   item is already guaranteed to be a zero-sized struct.
 - The following functions now return a `Result`:

@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        rust: ["1.40", stable]
+        rust: ["1.46", stable]
         target:
           - { name: NetBSD, triple: x86_64-unknown-netbsd, has_std: true }
           - { name: Solaris, triple: x86_64-sun-solaris, has_std: true }
@@ -121,7 +121,7 @@ jobs:
     runs-on: ${{ matrix.os.value }}
     strategy:
       matrix:
-        rust: ["1.40", stable]
+        rust: ["1.46", stable]
         os:
           - { name: Ubuntu, value: ubuntu-20.04 }
           - { name: Windows, value: windows-latest }

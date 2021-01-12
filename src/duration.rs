@@ -144,12 +144,7 @@ impl Duration {
     /// assert!(0.seconds().is_zero());
     /// assert!(!1.nanoseconds().is_zero());
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn is_zero(self) -> bool {
+    pub const fn is_zero(self) -> bool {
         self.seconds == 0 && self.nanoseconds == 0
     }
 
@@ -161,12 +156,7 @@ impl Duration {
     /// assert!(!0.seconds().is_negative());
     /// assert!(!1.seconds().is_negative());
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn is_negative(self) -> bool {
+    pub const fn is_negative(self) -> bool {
         self.seconds < 0 || self.nanoseconds < 0
     }
 
@@ -178,12 +168,7 @@ impl Duration {
     /// assert!(!0.seconds().is_positive());
     /// assert!(!(-1).seconds().is_positive());
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn is_positive(self) -> bool {
+    pub const fn is_positive(self) -> bool {
         self.seconds > 0 || self.nanoseconds > 0
     }
 
@@ -220,12 +205,7 @@ impl Duration {
     /// assert_eq!(Duration::new(-1, 0), (-1).seconds());
     /// assert_eq!(Duration::new(1, 2_000_000_000), 3.seconds());
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.46."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
-    pub fn new(mut seconds: i64, mut nanoseconds: i32) -> Self {
+    pub const fn new(mut seconds: i64, mut nanoseconds: i32) -> Self {
         seconds += nanoseconds as i64 / 1_000_000_000;
         nanoseconds %= 1_000_000_000;
 
@@ -636,12 +616,7 @@ impl Duration {
     /// assert_eq!(10.seconds().checked_div(-2), Some((-5).seconds()));
     /// assert_eq!(1.seconds().checked_div(0), None);
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.47."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.47"))]
-    pub fn checked_div(self, rhs: i32) -> Option<Self> {
+    pub const fn checked_div(self, rhs: i32) -> Option<Self> {
         if rhs == 0 {
             return None;
         }

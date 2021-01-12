@@ -85,6 +85,7 @@ pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDat
 /// [Unix timestamp]: https://en.wikipedia.org/wiki/Unix_time
 /// [with]: https://serde.rs/field-attrs.html#with
 pub mod option {
+    #[allow(clippy::wildcard_imports)]
     use super::*;
 
     #[derive(Serialize, Deserialize)]
