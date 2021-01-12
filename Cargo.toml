@@ -24,7 +24,7 @@ local-offset = ["std", "winapi"]
 quickcheck = ["quickcheck-dep", "alloc"]
 std = ["alloc"]
 alloc = []
-large-dates = ["time-macros/large-dates"]
+large-dates = ["time-macros/large-dates"] # Weak feature dependencies would be nice here! See rust-lang/cargo#8832 for status.
 
 [dependencies]
 const_fn = { version = "0.4.5", optional = true }
@@ -35,7 +35,7 @@ serde = { version = "1.0.119", optional = true, default-features = false, featur
 time-macros = { version = "=0.2.0-dev", path = "time-macros", optional = true }
 
 [workspace]
-members = ["time-benchmarks", "time-macros", "time-macros-impl"]
+members = ["time-benchmarks", "time-macros"]
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
