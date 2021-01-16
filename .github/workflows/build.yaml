@@ -9,6 +9,8 @@ on:
       - LICENSE-Apache
       - LICENSE-MIT
   pull_request:
+    branches:
+      - "**:**" # ignore branches that are in the time-rs/time repo, as they're included in push
     paths-ignore:
       - "**.md"
       - LICENSE-Apache
