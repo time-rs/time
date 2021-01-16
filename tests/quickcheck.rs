@@ -15,7 +15,7 @@ macro_rules! test_shrink {
                 if method_value == 0 $(|| method_value == $min_value)? {
                     TestResult::discard()
                 } else {
-                    TestResult::from_bool(v.shrink().take(1_000).any(|shrunk|
+                    TestResult::from_bool(v.shrink().any(|shrunk|
                         if method_value > 0 {
                             shrunk.$($method()).+ < v.$($method()).+
                         } else {

@@ -43,26 +43,7 @@ use crate::{
     Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
 };
 use alloc::boxed::Box;
-use core::iter;
-use quickcheck_dep::{Arbitrary, Gen};
-
-/// Shim for the unstable clamp method.
-// This method seems likely to stabilized in Rust 1.50. This will result in a NET usage date of
-// 2021-08-11.
-trait Clamp {
-    /// Constrain `self` between `min` and `max` (inclusive).
-    ///
-    /// If `self` is less than `min`, returns `min`.
-    /// If `self` is greater than `max`, returns `max`.
-    /// Otherwise, returns `self`.
-    fn clamp_(self, min: Self, max: Self) -> Self;
-}
-
-impl<T: Ord> Clamp for T {
-    fn clamp_(self, min: Self, max: Self) -> Self {
-        core::cmp::max(min, core::cmp::min(self, max))
-    }
-}
+use quickcheck_dep::{empty_shrinker, single_shrinker, Arbitrary, Gen};
 
 /// Obtain an arbitrary value between the minimum and maximum inclusive.
 fn arbitrary_between<T>(g: &mut Gen, min: T, max: T) -> T
@@ -93,21 +74,15 @@ impl Arbitrary for Date {
     fn arbitrary(g: &mut Gen) -> Self {
         let year = arbitrary_between(g, MIN_YEAR, MAX_YEAR);
         let ordinal = arbitrary_between(g, 1, days_in_year(year));
-
         Self::from_ordinal_date_unchecked(year, ordinal)
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
-        let (year, ordinal) = self.to_ordinal_date();
-
-        let shrunk_year = year
-            .shrink()
-            .flat_map(move |year| Self::from_ordinal_date(year, ordinal));
-        let shrunk_ordinal = ordinal
-            .shrink()
-            .flat_map(move |ordinal| Self::from_ordinal_date(year, ordinal));
-
-        Box::new(shrunk_year.chain(shrunk_ordinal))
+        Box::new(
+            self.to_ordinal_date()
+                .shrink()
+                .flat_map(|(year, ordinal)| Self::from_ordinal_date(year, ordinal)),
+        )
     }
 }
 
@@ -117,7 +92,9 @@ impl Arbitrary for Duration {
         let seconds = i64::arbitrary(g);
         let mut nanoseconds = arbitrary_between(g, 0, 999_999_999);
 
-        if seconds < 0 {
+        // Coerce the sign if necessary. Also allow for the creation of a negative Duration under
+        // one second.
+        if seconds < 0 || (seconds == 0 && bool::arbitrary(g)) {
             nanoseconds *= -1;
         }
 
@@ -128,79 +105,47 @@ impl Arbitrary for Duration {
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
-        let seconds = self.seconds;
-        let nanoseconds = self.nanoseconds;
+        Box::new(
+            (self.nanoseconds, self.seconds)
+                .shrink()
+                .map(|(mut nanoseconds, seconds)| {
+                    // Coerce the sign if necessary.
+                    if (seconds > 0 && nanoseconds < 0) || (seconds < 0 && nanoseconds > 0) {
+                        nanoseconds *= -1;
+                    }
 
-        let shrunk_seconds = seconds.shrink().map(move |seconds| Self {
-            seconds,
-            nanoseconds,
-        });
-        let shrunk_nanoseconds = nanoseconds.shrink().map(move |nanoseconds| Self {
-            seconds,
-            nanoseconds,
-        });
-
-        Box::new(shrunk_seconds.chain(shrunk_nanoseconds))
+                    Self {
+                        seconds,
+                        nanoseconds,
+                    }
+                }),
+        )
     }
 }
 
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Time {
     fn arbitrary(g: &mut Gen) -> Self {
-        let hour = arbitrary_between(g, 0, 23);
-        let minute = arbitrary_between(g, 0, 59);
-        let second = arbitrary_between(g, 0, 59);
-        let nanosecond = arbitrary_between(g, 0, 999_999_999);
-
         Self {
-            hour,
-            minute,
-            second,
-            nanosecond,
+            hour: arbitrary_between(g, 0, 23),
+            minute: arbitrary_between(g, 0, 59),
+            second: arbitrary_between(g, 0, 59),
+            nanosecond: arbitrary_between(g, 0, 999_999_999),
             padding: hack::Padding::Optimize,
         }
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
-        let hour = self.hour;
-        let minute = self.minute;
-        let second = self.second;
-        let nanosecond = self.nanosecond;
-
-        let shrunk_hour = self.hour.shrink().map(move |hour| Self {
-            hour,
-            minute,
-            second,
-            nanosecond,
-            padding: hack::Padding::Optimize,
-        });
-        let shrunk_minute = minute.shrink().map(move |minute| Self {
-            hour,
-            minute,
-            second,
-            nanosecond,
-            padding: hack::Padding::Optimize,
-        });
-        let shrunk_second = second.shrink().map(move |second| Self {
-            hour,
-            minute,
-            second,
-            nanosecond,
-            padding: hack::Padding::Optimize,
-        });
-        let shrunk_nanos = nanosecond.shrink().map(move |nanosecond| Self {
-            hour,
-            minute,
-            second,
-            nanosecond,
-            padding: hack::Padding::Optimize,
-        });
-
         Box::new(
-            shrunk_hour
-                .chain(shrunk_minute)
-                .chain(shrunk_second)
-                .chain(shrunk_nanos),
+            self.as_hms_nano()
+                .shrink()
+                .map(|(hour, minute, second, nanosecond)| Self {
+                    hour,
+                    minute,
+                    second,
+                    nanosecond,
+                    padding: hack::Padding::Optimize,
+                }),
         )
     }
 }
@@ -212,13 +157,11 @@ impl Arbitrary for PrimitiveDateTime {
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
-        let date = self.date;
-        let time = self.time;
-
-        let shrunk_date = date.shrink().map(move |date| Self::new(date, time));
-        let shrunk_time = time.shrink().map(move |time| Self::new(date, time));
-
-        Box::new(shrunk_date.chain(shrunk_time))
+        Box::new(
+            (self.date, self.time)
+                .shrink()
+                .map(|(date, time)| Self { date, time }),
+        )
     }
 }
 
@@ -229,7 +172,12 @@ impl Arbitrary for UtcOffset {
         let mut minutes = arbitrary_between(g, 0, 59);
         let mut seconds = arbitrary_between(g, 0, 59);
 
-        if hours < 0 {
+        // Coerce the signs if necessary. Also allow for the creation of a negative offset under one
+        // hour.
+        if hours < 0
+            || (hours == 0 && bool::arbitrary(g))
+            || (hours == 0 && minutes == 0 && bool::arbitrary(g))
+        {
             minutes *= -1;
             seconds *= -1;
         }
@@ -242,11 +190,29 @@ impl Arbitrary for UtcOffset {
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
-        Box::new(self.to_seconds().shrink().map(move |total_seconds| Self {
-            hours: (total_seconds / 3_600) as _,
-            minutes: ((total_seconds / 60) % 60) as _,
-            seconds: (total_seconds % 60) as _,
-        }))
+        Box::new(
+            self.as_hms()
+                .shrink()
+                .map(|(hours, mut minutes, mut seconds)| {
+                    // Coerce the signs if necessary.
+                    if (hours > 0 && minutes < 0) || (hours < 0 && minutes > 0) {
+                        minutes *= -1;
+                    }
+                    if (hours > 0 && seconds < 0)
+                        || (hours < 0 && seconds > 0)
+                        || (minutes > 0 && seconds < 0)
+                        || (minutes < 0 && seconds > 0)
+                    {
+                        seconds *= -1;
+                    }
+
+                    Self {
+                        hours,
+                        minutes,
+                        seconds,
+                    }
+                }),
+        )
     }
 }
 
@@ -259,17 +225,11 @@ impl Arbitrary for OffsetDateTime {
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
-        let datetime = self.utc_datetime.utc_to_offset(self.offset);
-        let offset = self.offset;
-
-        let shrunk_datetime = datetime
-            .shrink()
-            .map(move |datetime| datetime.assume_offset(offset));
-        let shrunk_offset = offset
-            .shrink()
-            .map(move |offset| datetime.assume_offset(offset));
-
-        Box::new(shrunk_datetime.chain(shrunk_offset))
+        Box::new(
+            (self.utc_datetime.utc_to_offset(self.offset), self.offset)
+                .shrink()
+                .map(|(utc_datetime, offset)| utc_datetime.assume_offset(offset)),
+        )
     }
 }
 
@@ -290,8 +250,8 @@ impl Arbitrary for Weekday {
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
         match self {
-            Self::Monday => Box::new(iter::empty()),
-            _ => Box::new(iter::once(self.previous())),
+            Self::Monday => empty_shrinker(),
+            _ => single_shrinker(self.previous()),
         }
     }
 }
