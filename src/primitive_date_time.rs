@@ -566,11 +566,11 @@ impl PrimitiveDateTime {
     /// value in the provided [`UtcOffset`].
     #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.46"))]
     pub(crate) fn utc_to_offset(self, offset: UtcOffset) -> Self {
-        self.offset_to_utc(UtcOffset::from_hms_unchecked(
-            -offset.hours,
-            -offset.minutes,
-            -offset.seconds,
-        ))
+        self.offset_to_utc(UtcOffset {
+            hours: -offset.hours,
+            minutes: -offset.minutes,
+            seconds: -offset.seconds,
+        })
     }
 }
 

@@ -47,6 +47,7 @@ impl UtcOffset {
     /// validity of which must be guaranteed by the caller. All three parameters must have the same
     /// sign.
     #[doc(hidden)]
+    #[deprecated(note = "This method should only ever be called from the included macros.")]
     pub const fn from_hms_unchecked(hours: i8, minutes: i8, seconds: i8) -> Self {
         Self {
             hours,
@@ -92,7 +93,11 @@ impl UtcOffset {
             seconds *= -1;
         }
 
-        Ok(Self::from_hms_unchecked(hours, minutes, seconds))
+        Ok(Self {
+            hours,
+            minutes,
+            seconds,
+        })
     }
 
     /// Obtain the UTC offset as its hours, minutes, and seconds. The sign of all three components

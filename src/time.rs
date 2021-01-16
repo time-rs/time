@@ -52,6 +52,7 @@ impl fmt::Debug for Time {
 impl Time {
     /// Create a `Time` from its components.
     #[doc(hidden)]
+    #[deprecated(note = "This method should only ever be called from the included macros.")]
     pub const fn from_hms_nanos_unchecked(
         hour: u8,
         minute: u8,
