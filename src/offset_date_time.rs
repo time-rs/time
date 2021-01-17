@@ -42,8 +42,7 @@ impl OffsetDateTime {
     /// Create a new `OffsetDateTime` with the current date and time in UTC.
     ///
     /// ```rust
-    /// # use time::OffsetDateTime;
-    /// # use time_macros::offset;
+    /// # use time::{OffsetDateTime, macros::offset};
     /// assert!(OffsetDateTime::now_utc().year() >= 2019);
     /// assert_eq!(OffsetDateTime::now_utc().offset(), offset!("UTC"));
     /// ```
@@ -75,7 +74,7 @@ impl OffsetDateTime {
     /// Convert the `OffsetDateTime` from the current [`UtcOffset`] to the provided [`UtcOffset`].
     ///
     /// ```rust
-    /// # use time_macros::{datetime, offset};
+    /// # use time::macros::{datetime, offset};
     /// assert_eq!(
     ///     datetime!("2000-01-01 0:00 UTC")
     ///         .to_offset(offset!("-1"))
@@ -103,8 +102,7 @@ impl OffsetDateTime {
     /// Midnight, 1 January, 1970 (UTC).
     ///
     /// ```rust
-    /// # use time::OffsetDateTime;
-    /// # use time_macros::datetime;
+    /// # use time::{OffsetDateTime, macros::datetime};
     /// assert_eq!(
     ///     OffsetDateTime::unix_epoch(),
     ///     datetime!("1970-01-01 0:00 UTC"),
@@ -120,8 +118,7 @@ impl OffsetDateTime {
     /// [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
-    /// # use time::OffsetDateTime;
-    /// # use time_macros::datetime;
+    /// # use time::{OffsetDateTime, macros::datetime};
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp(0),
     ///     Ok(OffsetDateTime::unix_epoch()),
@@ -177,8 +174,7 @@ impl OffsetDateTime {
     /// Construct an `OffsetDateTime` from the provided Unix timestamp (in nanoseconds).
     ///
     /// ```rust
-    /// # use time::OffsetDateTime;
-    /// # use time_macros::datetime;
+    /// # use time::{OffsetDateTime, macros::datetime};
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp_nanos(0),
     ///     Ok(OffsetDateTime::unix_epoch()),
@@ -229,7 +225,7 @@ impl OffsetDateTime {
     /// Get the [`UtcOffset`].
     ///
     /// ```rust
-    /// # use time_macros::{datetime, offset};
+    /// # use time::macros::{datetime, offset};
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").offset(), offset!("UTC"));
     /// assert_eq!(datetime!("2019-01-01 0:00 +1").offset(), offset!("+1"));
     /// ```
@@ -240,7 +236,7 @@ impl OffsetDateTime {
     /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(datetime!("1970-01-01 0:00 UTC").unix_timestamp(), 0);
     /// assert_eq!(datetime!("1970-01-01 0:00 -1").unix_timestamp(), 3_600);
     /// ```
@@ -257,7 +253,7 @@ impl OffsetDateTime {
     /// Get the Unix timestamp in nanoseconds.
     ///
     /// ```rust
-    /// use time_macros::datetime;
+    /// use time::macros::datetime;
     /// assert_eq!(datetime!("1970-01-01 0:00 UTC").unix_timestamp_nanos(), 0);
     /// assert_eq!(
     ///     datetime!("1970-01-01 0:00 -1").unix_timestamp_nanos(),
@@ -271,7 +267,7 @@ impl OffsetDateTime {
     /// Get the [`Date`] in the stored offset.
     ///
     /// ```rust
-    /// # use time_macros::{date, datetime, offset};
+    /// # use time::macros::{date, datetime, offset};
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").date(), date!("2019-01-01"));
     /// assert_eq!(
     ///     datetime!("2019-01-01 0:00 UTC")
@@ -315,7 +311,7 @@ impl OffsetDateTime {
     /// Get the [`Time`] in the stored offset.
     ///
     /// ```rust
-    /// # use time_macros::{datetime, offset, time};
+    /// # use time::macros::{datetime, offset, time};
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").time(), time!("0:00"));
     /// assert_eq!(
     ///     datetime!("2019-01-01 0:00 UTC")
@@ -361,7 +357,7 @@ impl OffsetDateTime {
     /// Get the year of the date in the stored offset.
     ///
     /// ```rust
-    /// # use time_macros::{datetime, offset};
+    /// # use time::macros::{datetime, offset};
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").year(), 2019);
     /// assert_eq!(
     ///     datetime!("2019-12-31 23:00 UTC")
@@ -406,7 +402,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `1..=12`.
     ///
     /// ```rust
-    /// # use time_macros::{datetime, offset};
+    /// # use time::macros::{datetime, offset};
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").month(), 1);
     /// assert_eq!(
     ///     datetime!("2019-12-31 23:00 UTC")
@@ -424,7 +420,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `1..=31`.
     ///
     /// ```rust
-    /// # use time_macros::{datetime, offset};
+    /// # use time::macros::{datetime, offset};
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").day(), 1);
     /// assert_eq!(
     ///     datetime!("2019-12-31 23:00 UTC")
@@ -442,7 +438,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `1..=366`.
     ///
     /// ```rust
-    /// # use time_macros::{datetime, offset};
+    /// # use time::macros::{datetime, offset};
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").ordinal(), 1);
     /// assert_eq!(
     ///     datetime!("2019-12-31 23:00 UTC")
@@ -486,7 +482,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `1..=53`.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").iso_week(), 1);
     /// assert_eq!(datetime!("2020-01-01 0:00 UTC").iso_week(), 1);
     /// assert_eq!(datetime!("2020-12-31 0:00 UTC").iso_week(), 53);
@@ -501,7 +497,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..=53`.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").sunday_based_week(), 0);
     /// assert_eq!(datetime!("2020-01-01 0:00 UTC").sunday_based_week(), 0);
     /// assert_eq!(datetime!("2020-12-31 0:00 UTC").sunday_based_week(), 52);
@@ -516,7 +512,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..=53`.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").monday_based_week(), 0);
     /// assert_eq!(datetime!("2020-01-01 0:00 UTC").monday_based_week(), 0);
     /// assert_eq!(datetime!("2020-12-31 0:00 UTC").monday_based_week(), 52);
@@ -529,7 +525,7 @@ impl OffsetDateTime {
     /// Get the year, month, and day.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(
     ///     datetime!("2019-01-01 0:00 UTC").to_calendar_date(),
     ///     (2019, 1, 1)
@@ -542,7 +538,7 @@ impl OffsetDateTime {
     /// Get the year and ordinal day number.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(
     ///     datetime!("2019-01-01 0:00 UTC").to_ordinal_date(),
     ///     (2019, 1)
@@ -555,8 +551,7 @@ impl OffsetDateTime {
     /// Get the ISO 8601 year, week number, and weekday.
     ///
     /// ```rust
-    /// # use time::Weekday::*;
-    /// # use time_macros::datetime;
+    /// # use time::{Weekday::*, macros::datetime};
     /// assert_eq!(
     ///     datetime!("2019-01-01 0:00 UTC").to_iso_week_date(),
     ///     (2019, 1, Tuesday)
@@ -585,8 +580,7 @@ impl OffsetDateTime {
     /// Get the weekday of the date in the stored offset.
     ///
     /// ```rust
-    /// # use time::Weekday::*;
-    /// # use time_macros::datetime;
+    /// # use time::{Weekday::*, macros::datetime};
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").weekday(), Tuesday);
     /// assert_eq!(datetime!("2019-02-01 0:00 UTC").weekday(), Friday);
     /// assert_eq!(datetime!("2019-03-01 0:00 UTC").weekday(), Friday);
@@ -601,7 +595,7 @@ impl OffsetDateTime {
     /// freely available [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(datetime!("-4713-11-24 0:00 UTC").to_julian_day(), 0);
     /// assert_eq!(datetime!("2000-01-01 0:00 UTC").to_julian_day(), 2_451_545);
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").to_julian_day(), 2_458_485);
@@ -614,7 +608,7 @@ impl OffsetDateTime {
     /// Get the clock hour, minute, and second.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(datetime!("2020-01-01 0:00:00 UTC").to_hms(), (0, 0, 0));
     /// assert_eq!(datetime!("2020-01-01 23:59:59 UTC").to_hms(), (23, 59, 59));
     /// ```
@@ -625,7 +619,7 @@ impl OffsetDateTime {
     /// Get the clock hour, minute, second, and millisecond.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(
     ///     datetime!("2020-01-01 0:00:00 UTC").to_hms_milli(),
     ///     (0, 0, 0, 0)
@@ -642,7 +636,7 @@ impl OffsetDateTime {
     /// Get the clock hour, minute, second, and microsecond.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(
     ///     datetime!("2020-01-01 0:00:00 UTC").to_hms_micro(),
     ///     (0, 0, 0, 0)
@@ -659,7 +653,7 @@ impl OffsetDateTime {
     /// Get the clock hour, minute, second, and nanosecond.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(
     ///     datetime!("2020-01-01 0:00:00 UTC").to_hms_nano(),
     ///     (0, 0, 0, 0)
@@ -678,7 +672,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..24`.
     ///
     /// ```rust
-    /// # use time_macros::{datetime, offset};
+    /// # use time::macros::{datetime, offset};
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").hour(), 0);
     /// assert_eq!(
     ///     datetime!("2019-01-01 23:59:59 UTC")
@@ -716,7 +710,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time_macros::{datetime, offset};
+    /// # use time::macros::{datetime, offset};
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").minute(), 0);
     /// assert_eq!(
     ///     datetime!("2019-01-01 23:59:59 UTC")
@@ -748,7 +742,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time_macros::{datetime, offset};
+    /// # use time::macros::{datetime, offset};
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").second(), 0);
     /// assert_eq!(
     ///     datetime!("2019-01-01 23:59:59 UTC")
@@ -777,7 +771,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..1_000`.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").millisecond(), 0);
     /// assert_eq!(datetime!("2019-01-01 23:59:59.999 UTC").millisecond(), 999);
     /// ```
@@ -790,7 +784,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..1_000_000`.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").microsecond(), 0);
     /// assert_eq!(
     ///     datetime!("2019-01-01 23:59:59.999_999 UTC").microsecond(),
@@ -806,7 +800,7 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(datetime!("2019-01-01 0:00 UTC").nanosecond(), 0);
     /// assert_eq!(
     ///     datetime!("2019-01-01 23:59:59.999_999_999 UTC").nanosecond(),
@@ -824,7 +818,7 @@ impl OffsetDateTime {
     /// components are unchanged.
     ///
     /// ```rust
-    /// # use time_macros::{datetime, time};
+    /// # use time::macros::{datetime, time};
     /// assert_eq!(
     ///     datetime!("2020-01-01 5:00 UTC").replace_time(time!("12:00")),
     ///     datetime!("2020-01-01 12:00 UTC")
@@ -850,7 +844,7 @@ impl OffsetDateTime {
     /// components are unchanged.
     ///
     /// ```rust
-    /// # use time_macros::{datetime, date};
+    /// # use time::macros::{datetime, date};
     /// assert_eq!(
     ///     datetime!("2020-01-01 12:00 UTC").replace_date(date!("2020-01-30")),
     ///     datetime!("2020-01-30 12:00 UTC")
@@ -872,7 +866,7 @@ impl OffsetDateTime {
     /// component remains unchanged.
     ///
     /// ```rust
-    /// # use time_macros::datetime;
+    /// # use time::macros::datetime;
     /// assert_eq!(
     ///     datetime!("2020-01-01 12:00 UTC").replace_date_time(datetime!("2020-01-30 16:00")),
     ///     datetime!("2020-01-30 16:00 UTC")
@@ -890,7 +884,7 @@ impl OffsetDateTime {
     /// Replace the offset. The date and time components remain unchanged.
     ///
     /// ```rust
-    /// # use time_macros::{datetime, offset};
+    /// # use time::macros::{datetime, offset};
     /// assert_eq!(
     ///     datetime!("2020-01-01 0:00 UTC").replace_offset(offset!("-5")),
     ///     datetime!("2020-01-01 0:00 -5")
@@ -923,8 +917,7 @@ impl OffsetDateTime {
     /// will typically be parsed by using [`FormatDescription::parse`].
     ///
     /// ```rust
-    /// # use time::format_description::FormatDescription;
-    /// # use time_macros::datetime;
+    /// # use time::{format_description::FormatDescription, macros::datetime};
     /// let format = FormatDescription::parse(
     ///     "[year]-[month repr:numerical]-[day] [hour]:[minute]:[second] [offset_hour \
     ///          sign:mandatory]:[offset_minute]:[offset_second]",

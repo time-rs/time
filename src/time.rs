@@ -71,8 +71,7 @@ impl Time {
     /// Create a `Time` that is exactly midnight.
     ///
     /// ```rust
-    /// # use time::Time;
-    /// # use time_macros::time;
+    /// # use time::{Time, macros::time};
     /// assert_eq!(Time::midnight(), time!("0:00"));
     /// ```
     pub const fn midnight() -> Self {
@@ -213,7 +212,7 @@ impl Time {
     /// Get the clock hour, minute, and second.
     ///
     /// ```rust
-    /// # use time_macros::time;
+    /// # use time::macros::time;
     /// assert_eq!(time!("0:00:00").as_hms(), (0, 0, 0));
     /// assert_eq!(time!("23:59:59").as_hms(), (23, 59, 59));
     /// ```
@@ -224,7 +223,7 @@ impl Time {
     /// Get the clock hour, minute, second, and millisecond.
     ///
     /// ```rust
-    /// # use time_macros::time;
+    /// # use time::macros::time;
     /// assert_eq!(time!("0:00:00").as_hms_milli(), (0, 0, 0, 0));
     /// assert_eq!(time!("23:59:59.999").as_hms_milli(), (23, 59, 59, 999));
     /// ```
@@ -240,7 +239,7 @@ impl Time {
     /// Get the clock hour, minute, second, and microsecond.
     ///
     /// ```rust
-    /// # use time_macros::time;
+    /// # use time::macros::time;
     /// assert_eq!(time!("0:00:00").as_hms_micro(), (0, 0, 0, 0));
     /// assert_eq!(
     ///     time!("23:59:59.999_999").as_hms_micro(),
@@ -254,7 +253,7 @@ impl Time {
     /// Get the clock hour, minute, second, and nanosecond.
     ///
     /// ```rust
-    /// # use time_macros::time;
+    /// # use time::macros::time;
     /// assert_eq!(time!("0:00:00").as_hms_nano(), (0, 0, 0, 0));
     /// assert_eq!(
     ///     time!("23:59:59.999_999_999").as_hms_nano(),
@@ -270,7 +269,7 @@ impl Time {
     /// The returned value will always be in the range `0..24`.
     ///
     /// ```rust
-    /// # use time_macros::time;
+    /// # use time::macros::time;
     /// assert_eq!(time!("0:00:00").hour(), 0);
     /// assert_eq!(time!("23:59:59").hour(), 23);
     /// ```
@@ -283,7 +282,7 @@ impl Time {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time_macros::time;
+    /// # use time::macros::time;
     /// assert_eq!(time!("0:00:00").minute(), 0);
     /// assert_eq!(time!("23:59:59").minute(), 59);
     /// ```
@@ -296,7 +295,7 @@ impl Time {
     /// The returned value will always be in the range `0..60`.
     ///
     /// ```rust
-    /// # use time_macros::time;
+    /// # use time::macros::time;
     /// assert_eq!(time!("0:00:00").second(), 0);
     /// assert_eq!(time!("23:59:59").second(), 59);
     /// ```
@@ -309,7 +308,7 @@ impl Time {
     /// The returned value will always be in the range `0..1_000`.
     ///
     /// ```rust
-    /// # use time_macros::time;
+    /// # use time::macros::time;
     /// assert_eq!(time!("0:00").millisecond(), 0);
     /// assert_eq!(time!("23:59:59.999").millisecond(), 999);
     /// ```
@@ -322,7 +321,7 @@ impl Time {
     /// The returned value will always be in the range `0..1_000_000`.
     ///
     /// ```rust
-    /// # use time_macros::time;
+    /// # use time::macros::time;
     /// assert_eq!(time!("0:00").microsecond(), 0);
     /// assert_eq!(time!("23:59:59.999_999").microsecond(), 999_999);
     /// ```
@@ -335,7 +334,7 @@ impl Time {
     /// The returned value will always be in the range `0..1_000_000_000`.
     ///
     /// ```rust
-    /// # use time_macros::time;
+    /// # use time::macros::time;
     /// assert_eq!(time!("0:00").nanosecond(), 0);
     /// assert_eq!(time!("23:59:59.999_999_999").nanosecond(), 999_999_999);
     /// ```
@@ -504,8 +503,7 @@ impl Time {
     /// typically be parsed by using [`FormatDescription::parse`].
     ///
     /// ```rust
-    /// # use time::format_description::FormatDescription;
-    /// # use time_macros::time;
+    /// # use time::{format_description::FormatDescription, macros::time};
     /// let format = FormatDescription::parse("[hour]:[minute]:[second]")?;
     /// assert_eq!(time!("12:00").format(&format)?, "12:00:00");
     /// # Ok::<_, time::Error>(())
@@ -557,8 +555,7 @@ impl Add<Duration> for Time {
     /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow.
     ///
     /// ```rust
-    /// # use time::ext::NumericalDuration;
-    /// # use time_macros::time;
+    /// # use time::{ext::NumericalDuration, macros::time};
     /// assert_eq!(time!("12:00") + 2.hours(), time!("14:00"));
     /// assert_eq!(time!("0:00:01") + (-2).seconds(), time!("23:59:59"));
     /// ```
@@ -573,8 +570,7 @@ impl Add<StdDuration> for Time {
     /// Add the sub-day time of the [`std::time::Duration`] to the `Time`. Wraps on overflow.
     ///
     /// ```rust
-    /// # use time::ext::NumericalStdDuration;
-    /// # use time_macros::time;
+    /// # use time::{ext::NumericalStdDuration, macros::time};
     /// assert_eq!(time!("12:00") + 2.std_hours(), time!("14:00"));
     /// assert_eq!(time!("23:59:59") + 2.std_seconds(), time!("0:00:01"));
     /// ```
@@ -587,8 +583,7 @@ impl AddAssign<Duration> for Time {
     /// Add the sub-day time of the [`Duration`] to the existing `Time`. Wraps on overflow.
     ///
     /// ```rust
-    /// # use time::ext::NumericalDuration;
-    /// # use time_macros::time;
+    /// # use time::{ext::NumericalDuration, macros::time};
     /// let mut time = time!("12:00");
     /// time += 2.hours();
     /// assert_eq!(time, time!("14:00"));
@@ -607,8 +602,7 @@ impl AddAssign<StdDuration> for Time {
     /// overflow.
     ///
     /// ```rust
-    /// # use time::ext::NumericalStdDuration;
-    /// # use time_macros::time;
+    /// # use time::{ext::NumericalStdDuration, macros::time};
     /// let mut time = time!("12:00");
     /// time += 2.std_hours();
     /// assert_eq!(time, time!("14:00"));
@@ -628,8 +622,7 @@ impl Sub<Duration> for Time {
     /// Subtract the sub-day time of the [`Duration`] from the `Time`. Wraps on overflow.
     ///
     /// ```rust
-    /// # use time::ext::NumericalDuration;
-    /// # use time_macros::time;
+    /// # use time::{ext::NumericalDuration, macros::time};
     /// assert_eq!(time!("14:00") - 2.hours(), time!("12:00"));
     /// assert_eq!(time!("23:59:59") - (-2).seconds(), time!("0:00:01"));
     /// ```
@@ -644,8 +637,7 @@ impl Sub<StdDuration> for Time {
     /// Subtract the sub-day time of the [`std::time::Duration`] from the `Time`. Wraps on overflow.
     ///
     /// ```rust
-    /// # use time::ext::NumericalStdDuration;
-    /// # use time_macros::time;
+    /// # use time::{ext::NumericalStdDuration, macros::time};
     /// assert_eq!(time!("14:00") - 2.std_hours(), time!("12:00"));
     /// assert_eq!(time!("0:00:01") - 2.std_seconds(), time!("23:59:59"));
     /// ```
@@ -658,8 +650,7 @@ impl SubAssign<Duration> for Time {
     /// Subtract the sub-day time of the [`Duration`] from the existing `Time`. Wraps on overflow.
     ///
     /// ```rust
-    /// # use time::ext::NumericalDuration;
-    /// # use time_macros::time;
+    /// # use time::{ext::NumericalDuration, macros::time};
     /// let mut time = time!("14:00");
     /// time -= 2.hours();
     /// assert_eq!(time, time!("12:00"));
@@ -678,8 +669,7 @@ impl SubAssign<StdDuration> for Time {
     /// overflow.
     ///
     /// ```rust
-    /// # use time::ext::NumericalStdDuration;
-    /// # use time_macros::time;
+    /// # use time::{ext::NumericalStdDuration, macros::time};
     /// let mut time = time!("14:00");
     /// time -= 2.std_hours();
     /// assert_eq!(time, time!("12:00"));
@@ -700,8 +690,7 @@ impl Sub<Time> for Time {
     /// the same calendar day.
     ///
     /// ```rust
-    /// # use time::ext::NumericalDuration;
-    /// # use time_macros::time;
+    /// # use time::{ext::NumericalDuration, macros::time};
     /// assert_eq!(time!("0:00") - time!("0:00"), 0.seconds());
     /// assert_eq!(time!("1:00") - time!("0:00"), 1.hours());
     /// assert_eq!(time!("0:00") - time!("1:00"), (-1).hours());

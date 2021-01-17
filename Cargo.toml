@@ -45,4 +45,3 @@ libc = "0.2.82"
 [dev-dependencies]
 rand = { version = "0.8.2", default-features = false }
 serde_json = "1.0.61"
-time-macros = { path = "time-macros" }

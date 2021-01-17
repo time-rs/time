@@ -4,9 +4,9 @@ use std::{cmp::Ordering, collections::HashSet};
 use time::format_description::FormatDescription;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
+    macros::{date, datetime, time},
     util, Date, Weekday,
 };
-use time_macros::{date, datetime, time};
 
 #[test]
 fn debug() {

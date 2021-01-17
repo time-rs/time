@@ -3,9 +3,9 @@ use std::cmp::Ordering;
 use time::format_description::FormatDescription;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
+    macros::{date, datetime, offset, time},
     PrimitiveDateTime, Weekday,
 };
-use time_macros::{date, datetime, offset, time};
 
 #[test]
 fn new() {

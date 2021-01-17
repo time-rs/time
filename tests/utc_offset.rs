@@ -2,8 +2,7 @@
 use time::format_description::FormatDescription;
 #[cfg(all(feature = "local-offset", not(target_family = "unix")))]
 use time::OffsetDateTime;
-use time::{Result, UtcOffset};
-use time_macros::offset;
+use time::{macros::offset, Result, UtcOffset};
 
 #[test]
 fn utc_is_zero() {

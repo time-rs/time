@@ -1,7 +1,9 @@
 #![cfg(feature = "serde")]
 
-use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
-use time_macros::{date, datetime, offset, time};
+use time::{
+    macros::{date, datetime, offset, time},
+    Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
+};
 
 #[test]
 fn time() -> serde_json::Result<()> {

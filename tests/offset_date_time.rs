@@ -5,9 +5,9 @@ use std::time::SystemTime;
 use time::format_description::FormatDescription;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
+    macros::{date, datetime, offset, time},
     OffsetDateTime, Weekday,
 };
-use time_macros::{date, datetime, offset, time};
 
 #[test]
 #[cfg(feature = "std")]

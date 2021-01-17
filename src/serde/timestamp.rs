@@ -5,8 +5,7 @@
 //! When deserializing, the offset is assumed to be UTC.
 //!
 //! ```rust
-//! # use time::OffsetDateTime;
-//! # use time_macros::datetime;
+//! # use time::{OffsetDateTime, macros::datetime};
 //! # use serde_json::json;
 //! # use serde::{Serialize, Deserialize};
 //! #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -58,8 +57,7 @@ pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDat
 /// When deserializing, the offset is assumed to be UTC.
 ///
 /// ```rust
-/// # use time::OffsetDateTime;
-/// # use time_macros::datetime;
+/// # use time::{OffsetDateTime, macros::datetime};
 /// # use serde_json::json;
 /// # use serde::{Serialize, Deserialize};
 /// #[derive(Debug, PartialEq, Serialize, Deserialize)]

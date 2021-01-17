@@ -5,8 +5,7 @@
 /// Three formats are supported: year-week-weekday, year-ordinal, and year-month-day.
 ///
 /// ```rust
-/// # use time::{Date, Weekday::*};
-/// # use time_macros::date;
+/// # use time::{Date, Weekday::*, macros::date};
 /// assert_eq!(
 ///     date!("2020-W01-3"),
 ///     Date::from_iso_week_date(2020, 1, Wednesday)?
@@ -35,8 +34,7 @@ pub use time_macros::datetime;
 /// uppercase and lowercase) is also allowed.
 ///
 /// ```rust
-/// # use time::UtcOffset;
-/// # use time_macros::offset;
+/// # use time::{UtcOffset, macros::offset};
 /// assert_eq!(offset!("UTC"), UtcOffset::from_hms(0, 0, 0)?);
 /// assert_eq!(offset!("utc"), UtcOffset::from_hms(0, 0, 0)?);
 /// assert_eq!(offset!("+0"), UtcOffset::from_hms(0, 0, 0)?);
@@ -63,8 +61,7 @@ pub use time_macros::offset;
 /// invalid.
 ///
 /// ```rust
-/// # use time::Time;
-/// # use time_macros::time;
+/// # use time::{Time, macros::time};
 /// assert_eq!(time!("0:00"), Time::from_hms(0, 0, 0)?);
 /// assert_eq!(time!("1:02:03"), Time::from_hms(1, 2, 3)?);
 /// assert_eq!(

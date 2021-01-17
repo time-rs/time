@@ -2,9 +2,9 @@
 use time::format_description::FormatDescription;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
+    macros::time,
     Result, Time,
 };
-use time_macros::time;
 
 #[test]
 fn midnight() {
