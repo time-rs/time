@@ -24,11 +24,6 @@
 //!
 //!   Enables macros that provide compile-time verification of values and intuitive syntax.
 //!
-//! - `const_fn` (_enabled by default_)
-//!
-//!   Allows a number of methods to become `const fn` on compilers newer than the minimum supported
-//!   Rust version.
-//!
 //! - `local-offset` (_implicitly enables `std`_)
 //!
 //!   This feature enables a number of methods that allow obtaining the system's UTC offset.

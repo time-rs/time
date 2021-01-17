@@ -18,7 +18,7 @@ rustc-args = ["--cfg",  "__time_03_docs"]
 rustdoc-args = ["--cfg", "__time_03_docs"]
 
 [features]
-default = ["std", "const_fn"]
+default = ["std"]
 macros = ["time-macros"]
 local-offset = ["std", "winapi"]
 quickcheck = ["quickcheck-dep", "alloc"]
@@ -27,7 +27,7 @@ alloc = []
 large-dates = ["time-macros/large-dates"] # Weak feature dependencies would be nice here! See rust-lang/cargo#8832 for status.
 
 [dependencies]
-const_fn = { version = "0.4.5", optional = true }
+const_fn = "0.4.5"
 itoa = { version = "0.4.7", default-features = false } # TODO make optional when formatting is made optional
 quickcheck-dep = { package = "quickcheck", version = "1.0.3", optional = true }
 rand = { version = "0.8.2", optional = true, default-features = false }

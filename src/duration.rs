@@ -1,6 +1,7 @@
 use crate::error;
 #[cfg(feature = "std")]
 use crate::Instant;
+use const_fn::const_fn;
 use core::{
     cmp::Ordering,
     convert::{TryFrom, TryInto},
@@ -535,12 +536,10 @@ impl Duration {
     /// assert_eq!(Duration::max_value().checked_add(1.nanoseconds()), None);
     /// assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.47."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.47"))]
-    pub fn checked_add(self, rhs: Self) -> Option<Self> {
+    ///
+    /// This feature is `const fn` when using rustc >= 1.47.
+    #[const_fn("1.47")]
+    pub const fn checked_add(self, rhs: Self) -> Option<Self> {
         let mut seconds = const_try_opt!(self.seconds.checked_add(rhs.seconds));
         let mut nanoseconds = self.nanoseconds + rhs.nanoseconds;
 
@@ -566,12 +565,10 @@ impl Duration {
     /// assert_eq!(Duration::min_value().checked_sub(1.nanoseconds()), None);
     /// assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.47."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.47"))]
-    pub fn checked_sub(self, rhs: Self) -> Option<Self> {
+    ///
+    /// This feature is `const fn` when using rustc >= 1.47.
+    #[const_fn("1.47")]
+    pub const fn checked_sub(self, rhs: Self) -> Option<Self> {
         self.checked_add(Self {
             seconds: -rhs.seconds,
             nanoseconds: -rhs.nanoseconds,
@@ -588,12 +585,10 @@ impl Duration {
     /// assert_eq!(Duration::max_value().checked_mul(2), None);
     /// assert_eq!(Duration::min_value().checked_mul(2), None);
     /// ```
-    #[cfg_attr(
-        feature = "const_fn",
-        doc = "This feature is `const fn` when using rustc >= 1.47."
-    )]
-    #[cfg_attr(feature = "const_fn", const_fn::const_fn("1.47"))]
-    pub fn checked_mul(self, rhs: i32) -> Option<Self> {
+    ///
+    /// This feature is `const fn` when using rustc >= 1.47.
+    #[const_fn("1.47")]
+    pub const fn checked_mul(self, rhs: i32) -> Option<Self> {
         // Multiply nanoseconds as i64, because it cannot overflow that way.
         let total_nanos = self.nanoseconds as i64 * rhs as i64;
         let extra_secs = total_nanos / 1_000_000_000;
