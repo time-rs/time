@@ -88,7 +88,7 @@ jobs:
             --version-range 1.46..
             --feature-powerset
             --optional-deps
-            --exclude-features default,winapi,std,local-offset,time-macros,quickcheck,quickcheck-dep
+            --exclude-features default,winapi,std,local-offset,quickcheck,quickcheck-dep
             --exclude-all-features
             --target ${{ matrix.target.triple }}
         if: matrix.target.has_std == false
@@ -103,6 +103,6 @@ jobs:
             --version-range 1.46..
             --feature-powerset
             --optional-deps
-            --exclude-features default,winapi,time-macros,quickcheck-dep
+            --exclude-features default,winapi,quickcheck-dep
             --target ${{ matrix.target.triple }}
         if: matrix.target.has_std == true

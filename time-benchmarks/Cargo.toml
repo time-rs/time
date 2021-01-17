@@ -13,7 +13,7 @@ criterion = "0.3.3"
 bench-util = { path = "./bench-util" }
 rand = { version = "0.8.1", default-features = false }
 serde_json = "1.0.61"
-time = { path = "..", features = ["local-offset", "macros", "rand", "serde"] }
+time = { path = "..", features = ["local-offset", "rand", "serde"] }
 
 [[bench]]
 name = "date"

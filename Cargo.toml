@@ -19,12 +19,11 @@ rustdoc-args = ["--cfg", "__time_03_docs"]
 
 [features]
 default = ["std"]
-macros = ["time-macros"]
 local-offset = ["std", "winapi"]
 quickcheck = ["quickcheck-dep", "alloc"]
 std = ["alloc"]
 alloc = []
-large-dates = ["time-macros/large-dates"] # Weak feature dependencies would be nice here! See rust-lang/cargo#8832 for status.
+large-dates = ["time-macros/large-dates"]
 
 [dependencies]
 const_fn = "0.4.5"
@@ -32,7 +31,7 @@ itoa = { version = "0.4.7", default-features = false } # TODO make optional when
 quickcheck-dep = { package = "quickcheck", version = "1.0.3", optional = true }
 rand = { version = "0.8.2", optional = true, default-features = false }
 serde = { version = "1.0.119", optional = true, default-features = false, features = ["derive"] }
-time-macros = { version = "=0.2.0-dev", path = "time-macros", optional = true }
+time-macros = { version = "=0.2.0-dev", path = "time-macros" }
 
 [workspace]
 members = ["time-benchmarks", "time-macros"]
