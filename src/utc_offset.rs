@@ -14,11 +14,6 @@ use core::fmt::{self, Display};
 /// support that can change at any time without notice. If you need support outside this range,
 /// please file an issue with your use case.
 // All three components _must_ have the same sign.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(into = "crate::serde::UtcOffset", try_from = "crate::serde::UtcOffset")
-)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct UtcOffset {
     #[allow(clippy::missing_docs_in_private_items)]

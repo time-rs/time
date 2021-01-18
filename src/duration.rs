@@ -18,11 +18,6 @@ use core::{
 /// others.
 ///
 /// This implementation allows for negative durations, unlike [`core::time::Duration`].
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(into = "crate::serde::Duration", from = "crate::serde::Duration")
-)]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Duration {
     /// Number of whole seconds.

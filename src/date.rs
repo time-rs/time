@@ -31,11 +31,6 @@ pub(crate) const MAX_YEAR: i32 = 9999;
 /// By default, years between ±9999 inclusive are representable. This can be expanded to ±999,999
 /// inclusive by enabling the `large-dates` crate feature. Doing so has some performance
 /// implications, and introduces some ambiguities when parsing.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(into = "crate::serde::Date", try_from = "crate::serde::Date")
-)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Date {
     /// Bitpacked field containing both the year and ordinal.

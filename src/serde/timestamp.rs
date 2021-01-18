@@ -27,26 +27,21 @@
 //! [with]: https://serde.rs/field-attrs.html#with
 
 use crate::OffsetDateTime;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 
-#[derive(Serialize, Deserialize)]
-#[serde(transparent)]
-struct Wrapper(i64);
-
+/// Serialize an `OffsetDateTime` as its Unix timestamp
 pub fn serialize<S: Serializer>(
     datetime: &OffsetDateTime,
     serializer: S,
 ) -> Result<S::Ok, S::Error> {
-    Wrapper(datetime.unix_timestamp()).serialize(serializer)
+    datetime.unix_timestamp().serialize(serializer)
 }
 
+/// Deserialize an `OffsetDateTime` from its Unix timestamp
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
-    Wrapper::deserialize(deserializer)
-        .map(|Wrapper(timestamp)| timestamp)
-        .and_then(|timestamp| {
-            OffsetDateTime::from_unix_timestamp(timestamp)
-                .map_err(<D::Error as serde::de::Error>::custom)
-        })
+    i64::deserialize(deserializer).and_then(|timestamp| {
+        OffsetDateTime::from_unix_timestamp(timestamp).map_err(D::Error::custom)
+    })
 }
 
 /// Treat an `Option<OffsetDateTime>` as a [Unix timestamp] for the purposes of
@@ -86,20 +81,23 @@ pub mod option {
     #[allow(clippy::wildcard_imports)]
     use super::*;
 
-    #[derive(Serialize, Deserialize)]
-    #[serde(transparent)]
-    struct Wrapper(#[serde(with = "super")] OffsetDateTime);
-
+    /// Serialize an `Option<OffsetDateTime>` as its Unix timestamp
     pub fn serialize<S: Serializer>(
         option: &Option<OffsetDateTime>,
         serializer: S,
     ) -> Result<S::Ok, S::Error> {
-        option.map(Wrapper).serialize(serializer)
+        option
+            .map(OffsetDateTime::unix_timestamp)
+            .serialize(serializer)
     }
 
+    /// Deserialize an `Option<OffsetDateTime>` from its Unix timestamp
     pub fn deserialize<'a, D: Deserializer<'a>>(
         deserializer: D,
     ) -> Result<Option<OffsetDateTime>, D::Error> {
-        Option::deserialize(deserializer).map(|opt| opt.map(|Wrapper(datetime)| datetime))
+        Option::deserialize(deserializer)?
+            .map(OffsetDateTime::from_unix_timestamp)
+            .transpose()
+            .map_err(D::Error::custom)
     }
 }

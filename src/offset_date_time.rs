@@ -22,14 +22,6 @@ use std::time::SystemTime;
 // Internally, an `OffsetDateTime` is a thin wrapper around a [`PrimitiveDateTime`] coupled with a
 // [`UtcOffset`]. This offset is added to the date, time, or datetime as necessary for presentation
 // or returning from a function.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(
-        into = "crate::serde::OffsetDateTime",
-        try_from = "crate::serde::OffsetDateTime"
-    )
-)]
 #[derive(Debug, Clone, Copy, Eq)]
 pub struct OffsetDateTime {
     /// The [`PrimitiveDateTime`], which is _always_ UTC.

@@ -19,11 +19,6 @@ use core::{
 /// (either positive or negative).
 ///
 /// When comparing two `Time`s, they are assumed to be in the same calendar date.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(into = "crate::serde::Time", try_from = "crate::serde::Time")
-)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Time {
     #[allow(clippy::missing_docs_in_private_items)]

@@ -11,14 +11,6 @@ use core::{
 };
 
 /// Combined date and time.
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(
-        into = "crate::serde::PrimitiveDateTime",
-        try_from = "crate::serde::PrimitiveDateTime"
-    )
-)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct PrimitiveDateTime {
     #[allow(clippy::missing_docs_in_private_items)]
