@@ -9,7 +9,6 @@ use rand::{
     Rng,
 };
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 impl Distribution<Time> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Time {
         Time {
@@ -22,7 +21,6 @@ impl Distribution<Time> for Standard {
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 impl Distribution<Date> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Date {
         let min_date = Date::from_ordinal_date_unchecked(MIN_YEAR, 1);
@@ -37,7 +35,6 @@ impl Distribution<Date> for Standard {
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 impl Distribution<UtcOffset> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> UtcOffset {
         let hours = rng.gen_range(-23..24);
@@ -57,14 +54,12 @@ impl Distribution<UtcOffset> for Standard {
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 impl Distribution<PrimitiveDateTime> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> PrimitiveDateTime {
         PrimitiveDateTime::new(Self.sample(rng), Self.sample(rng))
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 impl Distribution<OffsetDateTime> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> OffsetDateTime {
         let date_time: PrimitiveDateTime = Self.sample(rng);
@@ -72,7 +67,6 @@ impl Distribution<OffsetDateTime> for Standard {
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 impl Distribution<Duration> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Duration {
         let seconds = Self.sample(rng);
@@ -83,7 +77,6 @@ impl Distribution<Duration> for Standard {
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 impl Distribution<Weekday> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Weekday {
         use Weekday::*;

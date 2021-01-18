@@ -55,7 +55,6 @@ macro_rules! arbitrary_between {
     }};
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Date {
     fn arbitrary(g: &mut Gen) -> Self {
         let year = arbitrary_between!(i32; g, MIN_YEAR, MAX_YEAR);
@@ -72,7 +71,6 @@ impl Arbitrary for Date {
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Duration {
     fn arbitrary(g: &mut Gen) -> Self {
         let seconds = i64::arbitrary(g);
@@ -109,7 +107,6 @@ impl Arbitrary for Duration {
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Time {
     fn arbitrary(g: &mut Gen) -> Self {
         Self {
@@ -136,7 +133,6 @@ impl Arbitrary for Time {
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for PrimitiveDateTime {
     fn arbitrary(g: &mut Gen) -> Self {
         Self::new(Date::arbitrary(g), Time::arbitrary(g))
@@ -151,7 +147,6 @@ impl Arbitrary for PrimitiveDateTime {
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for UtcOffset {
     fn arbitrary(g: &mut Gen) -> Self {
         let hours = arbitrary_between!(i8; g, -23, 23);
@@ -202,7 +197,6 @@ impl Arbitrary for UtcOffset {
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for OffsetDateTime {
     fn arbitrary(g: &mut Gen) -> Self {
         let datetime = PrimitiveDateTime::arbitrary(g);
@@ -219,7 +213,6 @@ impl Arbitrary for OffsetDateTime {
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Weekday {
     fn arbitrary(g: &mut Gen) -> Self {
         use Weekday::*;
