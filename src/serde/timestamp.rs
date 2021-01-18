@@ -26,8 +26,8 @@
 //! [Unix timestamp]: https://en.wikipedia.org/wiki/Unix_time
 //! [with]: https://serde.rs/field-attrs.html#with
 
-use crate::OffsetDateTime;
-use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use crate::{error::ComponentRange, OffsetDateTime};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// Serialize an `OffsetDateTime` as its Unix timestamp
 pub fn serialize<S: Serializer>(
@@ -40,7 +40,8 @@ pub fn serialize<S: Serializer>(
 /// Deserialize an `OffsetDateTime` from its Unix timestamp
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
     i64::deserialize(deserializer).and_then(|timestamp| {
-        OffsetDateTime::from_unix_timestamp(timestamp).map_err(D::Error::custom)
+        OffsetDateTime::from_unix_timestamp(timestamp)
+            .map_err(ComponentRange::to_invalid_serde_value::<D>)
     })
 }
 
@@ -98,6 +99,6 @@ pub mod option {
         Option::deserialize(deserializer)?
             .map(OffsetDateTime::from_unix_timestamp)
             .transpose()
-            .map_err(D::Error::custom)
+            .map_err(ComponentRange::to_invalid_serde_value::<D>)
     }
 }

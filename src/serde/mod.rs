@@ -7,7 +7,10 @@
 
 pub mod timestamp;
 
-use crate::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{
+    error::ComponentRange, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset,
+    Weekday,
+};
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 
 impl Serialize for Date {
@@ -19,7 +22,7 @@ impl Serialize for Date {
 impl<'a> Deserialize<'a> for Date {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
         let (year, ordinal) = Deserialize::deserialize(deserializer)?;
-        Self::from_ordinal_date(year, ordinal).map_err(D::Error::custom)
+        Self::from_ordinal_date(year, ordinal).map_err(ComponentRange::to_invalid_serde_value::<D>)
     }
 }
 
@@ -66,13 +69,14 @@ impl<'a> Deserialize<'a> for OffsetDateTime {
             offset_minutes,
             offset_seconds,
         ) = Deserialize::deserialize(deserializer)?;
+
         Ok(Date::from_ordinal_date(year, ordinal)
-            .map_err(D::Error::custom)?
+            .map_err(ComponentRange::to_invalid_serde_value::<D>)?
             .with_hms_nano(hour, minute, second, nanosecond)
-            .map_err(D::Error::custom)?
+            .map_err(ComponentRange::to_invalid_serde_value::<D>)?
             .assume_offset(
                 UtcOffset::from_hms(offset_hours, offset_minutes, offset_seconds)
-                    .map_err(D::Error::custom)?,
+                    .map_err(ComponentRange::to_invalid_serde_value::<D>)?,
             ))
     }
 }
@@ -96,9 +100,9 @@ impl<'a> Deserialize<'a> for PrimitiveDateTime {
         let (year, ordinal, hour, minute, second, nanosecond) =
             Deserialize::deserialize(deserializer)?;
         Date::from_ordinal_date(year, ordinal)
-            .map_err(D::Error::custom)?
+            .map_err(ComponentRange::to_invalid_serde_value::<D>)?
             .with_hms_nano(hour, minute, second, nanosecond)
-            .map_err(D::Error::custom)
+            .map_err(ComponentRange::to_invalid_serde_value::<D>)
     }
 }
 
@@ -111,7 +115,8 @@ impl Serialize for Time {
 impl<'a> Deserialize<'a> for Time {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
         let (hour, minute, second, nanosecond) = Deserialize::deserialize(deserializer)?;
-        Self::from_hms_nano(hour, minute, second, nanosecond).map_err(D::Error::custom)
+        Self::from_hms_nano(hour, minute, second, nanosecond)
+            .map_err(ComponentRange::to_invalid_serde_value::<D>)
     }
 }
 
@@ -124,7 +129,7 @@ impl Serialize for UtcOffset {
 impl<'a> Deserialize<'a> for UtcOffset {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
         let (hours, minutes, seconds) = Deserialize::deserialize(deserializer)?;
-        Self::from_hms(hours, minutes, seconds).map_err(D::Error::custom)
+        Self::from_hms(hours, minutes, seconds).map_err(ComponentRange::to_invalid_serde_value::<D>)
     }
 }
 
@@ -144,7 +149,10 @@ impl<'a> Deserialize<'a> for Weekday {
             5 => Ok(Self::Friday),
             6 => Ok(Self::Saturday),
             7 => Ok(Self::Sunday),
-            _ => Err(D::Error::custom("invalid weekday")),
+            val => Err(D::Error::invalid_value(
+                serde::de::Unexpected::Unsigned(val.into()),
+                &"a value in the range 1..=7",
+            )),
         }
     }
 }

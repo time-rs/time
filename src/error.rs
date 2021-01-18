@@ -109,6 +109,29 @@ impl From<ComponentRange> for Error {
     }
 }
 
+#[cfg(feature = "serde")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "serde")))]
+impl serde::de::Expected for ComponentRange {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "a value in the range {}..={}",
+            self.minimum, self.maximum
+        )
+    }
+}
+
+#[cfg(feature = "serde")]
+impl ComponentRange {
+    /// Obtain an "invalid value" error type for the deserializer.
+    pub(crate) fn to_invalid_serde_value<'a, D: serde::Deserializer<'a>>(self) -> D::Error {
+        <D::Error as serde::de::Error>::invalid_value(
+            serde::de::Unexpected::Signed(self.value),
+            &self,
+        )
+    }
+}
+
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for ComponentRange {}
