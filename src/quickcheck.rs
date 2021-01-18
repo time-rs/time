@@ -46,34 +46,20 @@ use alloc::boxed::Box;
 use quickcheck_dep::{empty_shrinker, single_shrinker, Arbitrary, Gen};
 
 /// Obtain an arbitrary value between the minimum and maximum inclusive.
-fn arbitrary_between<T>(g: &mut Gen, min: T, max: T) -> T
-where
-    T: PartialOrd
-        + core::ops::AddAssign
-        + core::ops::Add<Output = T>
-        + core::ops::Sub<Output = T>
-        + core::ops::Rem<Output = T>
-        + Arbitrary
-        + Copy,
-{
-    #[allow(clippy::eq_op)]
-    let zero = min - min;
-
-    let range = max - min;
-    let mut within_range = T::arbitrary(g) % range;
-
-    if within_range < zero {
-        within_range += range;
-    }
-
-    within_range + min
+macro_rules! arbitrary_between {
+    ($type:ty; $gen:expr, $min:expr, $max:expr) => {{
+        let min = $min;
+        let max = $max;
+        let range = max - min;
+        <$type>::arbitrary($gen).rem_euclid(range + 1) + min
+    }};
 }
 
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for Date {
     fn arbitrary(g: &mut Gen) -> Self {
-        let year = arbitrary_between(g, MIN_YEAR, MAX_YEAR);
-        let ordinal = arbitrary_between(g, 1, days_in_year(year));
+        let year = arbitrary_between!(i32; g, MIN_YEAR, MAX_YEAR);
+        let ordinal = arbitrary_between!(u16; g, 1, days_in_year(year));
         Self::from_ordinal_date_unchecked(year, ordinal)
     }
 
@@ -90,7 +76,7 @@ impl Arbitrary for Date {
 impl Arbitrary for Duration {
     fn arbitrary(g: &mut Gen) -> Self {
         let seconds = i64::arbitrary(g);
-        let mut nanoseconds = arbitrary_between(g, 0, 999_999_999);
+        let mut nanoseconds = arbitrary_between!(i32; g, 0, 999_999_999);
 
         // Coerce the sign if necessary. Also allow for the creation of a negative Duration under
         // one second.
@@ -127,10 +113,10 @@ impl Arbitrary for Duration {
 impl Arbitrary for Time {
     fn arbitrary(g: &mut Gen) -> Self {
         Self {
-            hour: arbitrary_between(g, 0, 23),
-            minute: arbitrary_between(g, 0, 59),
-            second: arbitrary_between(g, 0, 59),
-            nanosecond: arbitrary_between(g, 0, 999_999_999),
+            hour: arbitrary_between!(u8; g, 0, 23),
+            minute: arbitrary_between!(u8; g, 0, 59),
+            second: arbitrary_between!(u8; g, 0, 59),
+            nanosecond: arbitrary_between!(u32; g, 0, 999_999_999),
             padding: hack::Padding::Optimize,
         }
     }
@@ -168,9 +154,9 @@ impl Arbitrary for PrimitiveDateTime {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 impl Arbitrary for UtcOffset {
     fn arbitrary(g: &mut Gen) -> Self {
-        let hours = arbitrary_between(g, -23, 23);
-        let mut minutes = arbitrary_between(g, 0, 59);
-        let mut seconds = arbitrary_between(g, 0, 59);
+        let hours = arbitrary_between!(i8; g, -23, 23);
+        let mut minutes = arbitrary_between!(i8; g, 0, 59);
+        let mut seconds = arbitrary_between!(i8; g, 0, 59);
 
         // Coerce the signs if necessary. Also allow for the creation of a negative offset under one
         // hour.
@@ -237,7 +223,7 @@ impl Arbitrary for OffsetDateTime {
 impl Arbitrary for Weekday {
     fn arbitrary(g: &mut Gen) -> Self {
         use Weekday::*;
-        match arbitrary_between::<u8>(g, 0, 6) {
+        match arbitrary_between!(u8; g, 0, 6) {
             0 => Monday,
             1 => Tuesday,
             2 => Wednesday,
