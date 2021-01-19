@@ -111,6 +111,23 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+/// Division of integers, rounding the resulting value towards negative infinity.
+macro_rules! div_floor {
+    ($a:expr, $b:expr) => {{
+        // Guarantee the expressions are only evaluated once.
+        let _a = $a;
+        let _b = $b;
+
+        let (_quotient, _remainder) = (_a / _b, _a % _b);
+
+        if (_remainder > 0 && _b < 0) || (_remainder < 0 && _b > 0) {
+            _quotient - 1
+        } else {
+            _quotient
+        }
+    }};
+}
+
 /// Returns `Err(error::ComponentRange)` if the value is not in range.
 macro_rules! ensure_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {{

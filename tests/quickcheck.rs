@@ -54,6 +54,16 @@ quickcheck! {
         PrimitiveDateTime::new(a.date(), a.time()).assume_offset(a.offset()) == a
     }
 
+    fn unix_timestamp_roundtrip(odt: OffsetDateTime) -> bool {
+        // nanoseconds are not stored in the basic Unix timestamp
+        let odt = odt - Duration::nanoseconds(odt.nanosecond().into());
+        OffsetDateTime::from_unix_timestamp(odt.unix_timestamp()) == Ok(odt)
+    }
+
+    fn unix_timestamp_nanos_roundtrip(odt: OffsetDateTime) -> bool {
+        OffsetDateTime::from_unix_timestamp_nanos(odt.unix_timestamp_nanos()) == Ok(odt)
+    }
+
     fn weekday_supports_arbitrary(w: Weekday) -> bool {
         (1..=7).contains(&w.iso_weekday_number())
     }

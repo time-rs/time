@@ -134,17 +134,17 @@ impl OffsetDateTime {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub const fn from_unix_timestamp(timestamp: i64) -> Result<Self, error::ComponentRange> {
-        let unix_epoch_julian_date = Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
+        let unix_epoch_julian_day = Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
 
         let date = const_try!(Date::from_julian_day(
-            unix_epoch_julian_date + (timestamp / 86_400) as i32
+            unix_epoch_julian_day + div_floor!(timestamp, 86_400) as i32
         ));
 
-        let hour = match (timestamp % 86_400 / 3_600) % 24 {
+        let hour = match div_floor!(timestamp % 86_400, 3_600) % 24 {
             value if value < 0 => value + 24,
             value => value,
         };
-        let minute = match (timestamp % 3_600 / 60) % 60 {
+        let minute = match div_floor!(timestamp % 3_600, 60) % 60 {
             value if value < 0 => value + 60,
             value => value,
         };
@@ -177,41 +177,16 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange> {
-        let unix_epoch_julian_date = Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
-
-        // Performing the division early lets us use an i64 instead of an i128.
-        // This leads to significant performance gains.
-        let timestamp_seconds = (timestamp / 1_000_000_000) as i64;
-
-        let date = const_try!(Date::from_julian_day(
-            unix_epoch_julian_date + (timestamp_seconds / 86_400) as i32
+        let mut datetime = const_try!(Self::from_unix_timestamp(
+            div_floor!(timestamp, 1_000_000_000) as i64
         ));
 
-        let hour = match (timestamp_seconds % 86_400 / 3_600) % 24 {
-            value if value < 0 => value + 24,
-            value => value,
-        };
-        let minute = match (timestamp_seconds % 3_600 / 60_000) % 60 {
-            value if value < 0 => value + 60,
-            value => value,
-        };
-        let second = match timestamp_seconds % 60 {
-            value if value < 0 => value + 60,
-            value => value,
-        };
-        let nanos = match timestamp % 1_000_000_000 {
+        datetime.utc_datetime.time.nanosecond = match timestamp % 1_000_000_000 {
             value if value < 0 => value + 1_000_000_000,
             value => value,
-        };
-        let time = Time {
-            hour: hour as _,
-            minute: minute as _,
-            second: second as _,
-            nanosecond: nanos as _,
-            padding: hack::Padding::Optimize,
-        };
+        } as u32;
 
-        Ok(PrimitiveDateTime::new(date, time).assume_utc())
+        Ok(datetime)
     }
 
     /// Get the [`UtcOffset`].
@@ -233,13 +208,13 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("1970-01-01 0:00 -1").unix_timestamp(), 3_600);
     /// ```
     pub const fn unix_timestamp(self) -> i64 {
-        let days = (self.utc_datetime.date.to_julian_day()
-            - Date::from_ordinal_date_unchecked(1970, 1).to_julian_day())
+        let days = (self.utc_datetime.to_julian_day() as i64
+            - Date::from_ordinal_date_unchecked(1970, 1).to_julian_day() as i64)
             * 86_400;
         let hours = self.utc_datetime.hour() as i64 * 3_600;
         let minutes = self.utc_datetime.minute() as i64 * 60;
         let seconds = self.utc_datetime.second() as i64;
-        days as i64 + hours + minutes + seconds
+        days + hours + minutes + seconds
     }
 
     /// Get the Unix timestamp in nanoseconds.

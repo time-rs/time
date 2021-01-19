@@ -446,23 +446,11 @@ impl Date {
     /// assert_eq!(date!("2019-12-31").to_julian_day(), 2_458_849);
     /// ```
     pub const fn to_julian_day(self) -> i32 {
-        /// Floored division for integers. This differs from the default behavior, which is
-        /// truncation.
-        pub(crate) const fn div_floor(a: i32, b: i32) -> i32 {
-            let (quotient, remainder) = (a / b, a % b);
-
-            if (remainder > 0 && b < 0) || (remainder < 0 && b > 0) {
-                quotient - 1
-            } else {
-                quotient
-            }
-        }
-
         let year = self.year() - 1;
         let ordinal = self.ordinal() as i32;
 
-        ordinal + 365 * year + div_floor(year, 4) - div_floor(year, 100)
-            + div_floor(year, 400)
+        ordinal + 365 * year + div_floor!(year, 4) - div_floor!(year, 100)
+            + div_floor!(year, 400)
             + 1_721_425
     }
 
@@ -490,18 +478,6 @@ impl Date {
         #[cfg(not(feature = "large-dates"))]
         type MaybeWidened = i32;
 
-        /// Floored division for integers. This differs from the default
-        /// behavior, which is truncation.
-        pub(crate) const fn div_floor(a: MaybeWidened, b: i32) -> i32 {
-            let (quotient, remainder) = (a / b as MaybeWidened, a % b as MaybeWidened);
-
-            if (remainder > 0 && b < 0) || (remainder < 0 && b > 0) {
-                (quotient - 1) as i32
-            } else {
-                quotient as i32
-            }
-        }
-
         let min_julian_day = Self::from_ordinal_date_unchecked(MIN_YEAR, 1).to_julian_day();
         let max_julian_day =
             Self::from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).to_julian_day();
@@ -513,8 +489,8 @@ impl Date {
         let g = 100 * z as MaybeWidened - 25;
         let a = (g / 3_652_425) as i32;
         let b = a - a / 4;
-        let mut year = div_floor(100 * b as MaybeWidened + g, 36525);
-        let mut ordinal = (b + z - div_floor(36525 * year as MaybeWidened, 100)) as _;
+        let mut year = div_floor!(100 * b as MaybeWidened + g, 36525) as i32;
+        let mut ordinal = (b + z - div_floor!(36525 * year as MaybeWidened, 100) as i32) as _;
 
         if year % 4 != 0 {
             ordinal += 59;
