@@ -1,9 +1,6 @@
 //! Implementation of [`Distribution`] for various structs.
 
-use crate::{
-    date::{MAX_YEAR, MIN_YEAR},
-    hack, util, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
-};
+use crate::{hack, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 use rand::{
     distributions::{Distribution, Standard},
     Rng,
@@ -23,11 +20,8 @@ impl Distribution<Time> for Standard {
 
 impl Distribution<Date> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Date {
-        let min_date = Date::from_ordinal_date_unchecked(MIN_YEAR, 1);
-        let max_date = Date::from_ordinal_date_unchecked(MAX_YEAR, util::days_in_year(MAX_YEAR));
-
         match Date::from_julian_day(
-            rng.gen_range(min_date.to_julian_day()..=max_date.to_julian_day()),
+            rng.gen_range(Date::MIN.to_julian_day()..=Date::MAX.to_julian_day()),
         ) {
             Ok(date) => date,
             Err(_) => unreachable!("The value is guaranteed to be in the range of valid dates."),

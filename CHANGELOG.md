@@ -21,6 +21,8 @@ Versioning].
 - `OffsetDateTime::replace_offset`
 - `#![no_alloc]` support
 - `Date::to_iso_week_date`, replacing `Date::iso_year_week`
+- `Date::MIN`
+- `Date::MAX`
 - `UtcOffset::from_hms`
 - `UtcOffset::as_hms`
 - `OffsetDateTime::sunday_based_week`

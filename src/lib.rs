@@ -1,6 +1,6 @@
 //! [![GitHub time-rs/time](https://img.shields.io/badge/GitHub-time--rs%2Ftime-9b88bb?logo=github&style=for-the-badge)](https://github.com/time-rs/time)
 //! ![license MIT or Apache-2.0](https://img.shields.io/badge/license-MIT%20or%20Apache--2.0-779a6b?style=for-the-badge)
-//! [![minimum rustc 1.40.0](https://img.shields.io/badge/minimum%20rustc-1.40.0-c18170?logo=rust&style=for-the-badge)](https://www.whatrustisit.com)
+//! [![minimum rustc 1.46](https://img.shields.io/badge/minimum%20rustc-1.46-c18170?logo=rust&style=for-the-badge)](https://www.whatrustisit.com)
 //!
 //! # Feature flags
 //!

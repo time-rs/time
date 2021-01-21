@@ -13,5 +13,4 @@ format_macro_matchers = true
 format_strings = true
 merge_imports = true
 normalize_doc_attributes = true
-reorder_impl_items = true
 wrap_comments = true

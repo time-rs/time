@@ -51,6 +51,16 @@ impl fmt::Debug for Date {
 }
 
 impl Date {
+    /// The minimum valid `Date`.
+    ///
+    /// The value of this may vary depending on the feature flags enabled.
+    pub const MIN: Self = Self::from_ordinal_date_unchecked(MIN_YEAR, 1);
+
+    /// The maximum valid `Date`.
+    ///
+    /// The value of this may vary depending on the feature flags enabled.
+    pub const MAX: Self = Self::from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR));
+
     /// Construct a `Date` from the year and ordinal values, the validity of which must be
     /// guaranteed by the caller.
     #[doc(hidden)]
@@ -478,10 +488,9 @@ impl Date {
         #[cfg(not(feature = "large-dates"))]
         type MaybeWidened = i32;
 
-        let min_julian_day = Self::from_ordinal_date_unchecked(MIN_YEAR, 1).to_julian_day();
-        let max_julian_day =
-            Self::from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)).to_julian_day();
-        ensure_value_in_range!(julian_day in min_julian_day => max_julian_day);
+        ensure_value_in_range!(
+            julian_day in Self::MAX.to_julian_day() => Self::MIN.to_julian_day()
+        );
 
         // To avoid a potential overflow, the value may need to be widened for some arithmetic.
 
