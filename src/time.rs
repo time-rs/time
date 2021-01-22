@@ -357,27 +357,9 @@ impl Time {
             || hours < 0
             || hours >= 24
         {
-            if nanoseconds >= 1_000_000_000 {
-                nanoseconds -= 1_000_000_000;
-                seconds += 1;
-            } else if nanoseconds < 0 {
-                nanoseconds += 1_000_000_000;
-                seconds -= 1;
-            }
-            if seconds >= 60 {
-                seconds -= 60;
-                minutes += 1;
-            } else if seconds < 0 {
-                seconds += 60;
-                minutes -= 1;
-            }
-            if minutes >= 60 {
-                minutes -= 60;
-                hours += 1;
-            } else if minutes < 0 {
-                minutes += 60;
-                hours -= 1;
-            }
+            cascade!(nanoseconds in 0..1_000_000_000 => seconds);
+            cascade!(seconds in 0..60 => minutes);
+            cascade!(minutes in 0..60 => hours);
             if hours >= 24 {
                 hours -= 24;
                 date_adjustment = DateAdjustment::Next;
@@ -410,18 +392,9 @@ impl Time {
 
         // Provide a fast path for values that are already valid.
         if nanosecond >= 1_000_000_000 || second >= 60 || minute >= 60 || hour >= 60 {
-            if nanosecond >= 1_000_000_000 {
-                nanosecond -= 1_000_000_000;
-                second += 1;
-            }
-            if second >= 60 {
-                second -= 60;
-                minute += 1;
-            }
-            if minute >= 60 {
-                minute -= 60;
-                hour += 1;
-            }
+            cascade!(nanosecond in 0..1_000_000_000 => second);
+            cascade!(second in 0..60 => minute);
+            cascade!(minute in 0..60 => hour);
             if hour >= 24 {
                 hour -= 24;
                 is_next_day = true;
@@ -451,18 +424,9 @@ impl Time {
 
         // Provide a fast path for values that are already valid.
         if nanosecond < 0 || second < 0 || minute < 0 || hour < 0 {
-            if nanosecond < 0 {
-                nanosecond += 1_000_000_000;
-                second -= 1;
-            }
-            if second < 0 {
-                second += 60;
-                minute -= 1;
-            }
-            if minute < 0 {
-                minute += 60;
-                hour -= 1;
-            }
+            cascade!(nanosecond in 0..1_000_000_000 => second);
+            cascade!(second in 0..60 => minute);
+            cascade!(minute in 0..60 => hour);
             if hour < 0 {
                 hour += 24;
                 is_previous_day = true;
@@ -697,10 +661,7 @@ impl Sub<Time> for Time {
         let mut second_diff = (self.second as i8) - (rhs.second as i8);
         let mut nanosecond_diff = (self.nanosecond as i32) - (rhs.nanosecond as i32);
 
-        if nanosecond_diff < 0 {
-            nanosecond_diff += 1_000_000_000;
-            second_diff -= 1;
-        }
+        cascade!(nanosecond_diff in 0..1_000_000_000 => second_diff);
 
         Duration {
             seconds: hour_diff as i64 * 3_600 + minute_diff as i64 * 60 + second_diff as i64,

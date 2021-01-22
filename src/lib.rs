@@ -114,7 +114,6 @@ extern crate alloc;
 /// Division of integers, rounding the resulting value towards negative infinity.
 macro_rules! div_floor {
     ($a:expr, $b:expr) => {{
-        // Guarantee the expressions are only evaluated once.
         let _a = $a;
         let _b = $b;
 
@@ -128,11 +127,63 @@ macro_rules! div_floor {
     }};
 }
 
+/// Euclidean remainder. Useful for `const` contexts.
+macro_rules! rem_euclid {
+    ($a:expr, $b:expr) => {{
+        let _a = $a;
+        let _b = $b;
+        let r = _a % _b;
+        if r < 0 {
+            if _b < 0 { r - _b } else { r + _b }
+        } else {
+            r
+        }
+    }};
+}
+
+/// Cascade an out-of-bounds value.
+macro_rules! cascade {
+    (@discard_if_underscore(_); $($x:tt)*) => {};
+    (@discard_if_underscore($i:ident); $($x:tt)*) => { $($x)* };
+    (@discard_if_not_mut(mut); $($x:tt)*) => {};
+    (@discard_if_not_mut(); $($x:tt)*) => { $($x)* };
+    (@ordinal) => {};
+    (@year) => {};
+
+    // Cascade an out-of-bounds value from "from" to "to".
+    ($(!$from_not_mut:ident)? $from:ident in $min:literal.. $max:literal => $to:tt) => {
+        #[allow(unused_comparisons)]
+        if $from >= $max {
+            cascade!(@discard_if_not_mut($($from_not_mut)?); $from -= $max - $min);
+            cascade!(@discard_if_underscore($to); $to += 1);
+        } else if $from < $min {
+            cascade!(@discard_if_not_mut($($from_not_mut)?); $from += $max - $min);
+            cascade!(@discard_if_underscore($to); $to -= 1);
+        }
+    };
+
+    // Special case the ordinal-to-year cascade, as it has different behavior.
+    ($(!$ordinal_not_mut:ident)? $ordinal:ident => $(!$year_not_mut:ident)? $year:ident) => {
+        // We need to actually capture the idents. Without this, macro hygiene causes errors.
+        cascade!(@$ordinal);
+        cascade!(@$year);
+        if $ordinal > crate::util::days_in_year($year) {
+            cascade!(@discard_if_not_mut($($year_not_mut)?); $year += 1);
+            cascade!(@discard_if_not_mut($($ordinal_not_mut)?); $ordinal = 1);
+        } else if $ordinal == 0 {
+            cascade!(@discard_if_not_mut($($year_not_mut)?); $year -= 1);
+            cascade!(@discard_if_not_mut($($ordinal_not_mut)?);
+                $ordinal = crate::util::days_in_year($year)
+            );
+        }
+    };
+}
+
 /// Returns `Err(error::ComponentRange)` if the value is not in range.
 macro_rules! ensure_value_in_range {
-    ($value:ident in $start:expr => $end:expr) => {{
-        #![allow(clippy::manual_range_contains)] // rust-lang/rust-clippy#6373
-        #![allow(trivial_numeric_casts, unused_comparisons)]
+    ($value:ident in $start:expr => $end:expr) => {
+        #[allow(clippy::manual_range_contains)] // rust-lang/rust-clippy#6373
+        #[allow(trivial_numeric_casts, unused_comparisons)]
         if $value < $start || $value > $end {
             return Err(crate::error::ComponentRange {
                 name: stringify!($value),
@@ -142,11 +193,11 @@ macro_rules! ensure_value_in_range {
                 conditional_range: false,
             });
         }
-    }};
+    };
 
-    ($value:ident conditionally in $start:expr => $end:expr) => {{
-        #![allow(clippy::manual_range_contains)] // rust-lang/rust-clippy#6373
-        #![allow(trivial_numeric_casts, unused_comparisons)]
+    ($value:ident conditionally in $start:expr => $end:expr) => {
+        #[allow(clippy::manual_range_contains)] // rust-lang/rust-clippy#6373
+        #[allow(trivial_numeric_casts, unused_comparisons)]
         if $value < $start || $value > $end {
             return Err(crate::error::ComponentRange {
                 name: stringify!($value),
@@ -156,7 +207,7 @@ macro_rules! ensure_value_in_range {
                 conditional_range: true,
             });
         }
-    }};
+    };
 }
 
 /// Try to unwrap an expression, returning if not possible.

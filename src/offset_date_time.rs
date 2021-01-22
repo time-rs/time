@@ -1,6 +1,6 @@
 use crate::{
-    error, format_description::FormatDescription, hack, util, Date, Duration, PrimitiveDateTime,
-    Time, UtcOffset, Weekday,
+    error, format_description::FormatDescription, hack, Date, Duration, PrimitiveDateTime, Time,
+    UtcOffset, Weekday,
 };
 #[cfg(feature = "alloc")]
 use alloc::string::String;
@@ -139,23 +139,10 @@ impl OffsetDateTime {
         let date = const_try!(Date::from_julian_day(
             unix_epoch_julian_day + div_floor!(timestamp, 86_400) as i32
         ));
-
-        let hour = match div_floor!(timestamp % 86_400, 3_600) % 24 {
-            value if value < 0 => value + 24,
-            value => value,
-        };
-        let minute = match div_floor!(timestamp % 3_600, 60) % 60 {
-            value if value < 0 => value + 60,
-            value => value,
-        };
-        let second = match timestamp % 60 {
-            value if value < 0 => value + 60,
-            value => value,
-        };
         let time = Time {
-            hour: hour as _,
-            minute: minute as _,
-            second: second as _,
+            hour: rem_euclid!(div_floor!(timestamp % 86_400, 3_600), 24) as _,
+            minute: rem_euclid!(div_floor!(timestamp % 3_600, 60), 60) as _,
+            second: rem_euclid!(timestamp, 60) as _,
             nanosecond: 0,
             padding: hack::Padding::Optimize,
         };
@@ -181,10 +168,7 @@ impl OffsetDateTime {
             div_floor!(timestamp, 1_000_000_000) as i64
         ));
 
-        datetime.utc_datetime.time.nanosecond = match timestamp % 1_000_000_000 {
-            value if value < 0 => value + 1_000_000_000,
-            value => value,
-        } as u32;
+        datetime.utc_datetime.time.nanosecond = rem_euclid!(timestamp, 1_000_000_000) as u32;
 
         Ok(datetime)
     }
@@ -249,28 +233,10 @@ impl OffsetDateTime {
         let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
         let (mut year, mut ordinal) = self.utc_datetime.date.to_ordinal_date();
 
-        if second >= 60 {
-            minute += 1;
-        } else if second < 0 {
-            minute -= 1;
-        }
-        if minute >= 60 {
-            hour += 1;
-        } else if minute < 0 {
-            hour -= 1;
-        }
-        if hour >= 24 {
-            ordinal += 1;
-        } else if hour < 0 {
-            ordinal -= 1;
-        }
-        if ordinal > util::days_in_year(year) {
-            year += 1;
-            ordinal = 1;
-        } else if ordinal == 0 {
-            year -= 1;
-            ordinal = util::days_in_year(year);
-        }
+        cascade!(!mut second in 0..60 => minute);
+        cascade!(!mut minute in 0..60 => hour);
+        cascade!(!mut hour in 0..24 => ordinal);
+        cascade!(ordinal => year);
 
         Date::from_ordinal_date_unchecked(year, ordinal)
     }
@@ -292,25 +258,9 @@ impl OffsetDateTime {
         let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
         let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
 
-        if second >= 60 {
-            second -= 60;
-            minute += 1;
-        } else if second < 0 {
-            second += 60;
-            minute -= 1;
-        }
-        if minute >= 60 {
-            minute -= 60;
-            hour += 1;
-        } else if minute < 0 {
-            minute += 60;
-            hour -= 1;
-        }
-        if hour >= 24 {
-            hour -= 24;
-        } else if hour < 0 {
-            hour += 24;
-        }
+        cascade!(second in 0..60 => minute);
+        cascade!(minute in 0..60 => hour);
+        cascade!(hour in 0..24 => _);
 
         Time {
             hour: hour as _,
@@ -340,26 +290,10 @@ impl OffsetDateTime {
         let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
         let (mut year, mut ordinal) = self.utc_datetime.date.to_ordinal_date();
 
-        if second >= 60 {
-            minute += 1;
-        } else if second < 0 {
-            minute -= 1;
-        }
-        if minute >= 60 {
-            hour += 1;
-        } else if minute < 0 {
-            hour -= 1;
-        }
-        if hour >= 24 {
-            ordinal += 1;
-        } else if hour < 0 {
-            ordinal -= 1;
-        }
-        if ordinal > util::days_in_year(year) {
-            year += 1;
-        } else if ordinal == 0 {
-            year -= 1;
-        }
+        cascade!(!mut second in 0..60 => minute);
+        cascade!(!mut minute in 0..60 => hour);
+        cascade!(!mut hour in 0..24 => ordinal);
+        cascade!(!mut ordinal => year);
 
         year
     }
@@ -420,26 +354,10 @@ impl OffsetDateTime {
         let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
         let (year, mut ordinal) = self.utc_datetime.date.to_ordinal_date();
 
-        if second >= 60 {
-            minute += 1;
-        } else if second < 0 {
-            minute -= 1;
-        }
-        if minute >= 60 {
-            hour += 1;
-        } else if minute < 0 {
-            hour -= 1;
-        }
-        if hour >= 24 {
-            ordinal += 1;
-        } else if hour < 0 {
-            ordinal -= 1;
-        }
-        if ordinal > util::days_in_year(year) {
-            ordinal = 1;
-        } else if ordinal == 0 {
-            ordinal = util::days_in_year(year);
-        }
+        cascade!(!mut second in 0..60 => minute);
+        cascade!(!mut minute in 0..60 => hour);
+        cascade!(!mut hour in 0..24 => ordinal);
+        cascade!(ordinal => !mut year);
 
         ordinal
     }
@@ -653,21 +571,9 @@ impl OffsetDateTime {
         let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
         let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
 
-        if second >= 60 {
-            minute += 1;
-        } else if second < 0 {
-            minute -= 1;
-        }
-        if minute >= 60 {
-            hour += 1;
-        } else if minute < 0 {
-            hour -= 1;
-        }
-        if hour >= 24 {
-            hour -= 24;
-        } else if hour < 0 {
-            hour += 24;
-        }
+        cascade!(!mut second in 0..60 => minute);
+        cascade!(!mut minute in 0..60 => hour);
+        cascade!(hour in 0..24 => _);
 
         hour as _
     }
@@ -690,16 +596,8 @@ impl OffsetDateTime {
         let second = self.utc_datetime.second() as i8 + self.offset.seconds;
         let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
 
-        if second >= 60 {
-            minute += 1;
-        } else if second < 0 {
-            minute -= 1;
-        }
-        if minute >= 60 {
-            minute -= 60;
-        } else if minute < 0 {
-            minute += 60;
-        }
+        cascade!(!mut second in 0..60 => minute);
+        cascade!(minute in 0..60 => _);
 
         minute as _
     }
@@ -720,13 +618,7 @@ impl OffsetDateTime {
     /// ```
     pub const fn second(self) -> u8 {
         let mut second = self.utc_datetime.second() as i8 + self.offset.seconds;
-
-        if second >= 60 {
-            second -= 60;
-        } else if second < 0 {
-            second += 60;
-        }
-
+        cascade!(second in 0..60 => _);
         second as _
     }
 

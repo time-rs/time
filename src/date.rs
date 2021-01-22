@@ -501,24 +501,12 @@ impl Date {
         let mut year = div_floor!(100 * b as MaybeWidened + g, 36525) as i32;
         let mut ordinal = (b + z - div_floor!(36525 * year as MaybeWidened, 100) as i32) as _;
 
-        if year % 4 != 0 {
-            ordinal += 59;
-            if ordinal > 365 {
-                ordinal -= 365;
-                year += 1;
-            }
-        } else if year % 100 != 0 || year % 400 == 0 {
+        if is_leap_year(year) {
             ordinal += 60;
-            if ordinal > 366 {
-                ordinal -= 366;
-                year += 1;
-            }
+            cascade!(ordinal in 1..367 => year);
         } else {
             ordinal += 59;
-            if ordinal > 365 {
-                ordinal -= 365;
-                year += 1;
-            }
+            cascade!(ordinal in 1..366 => year);
         }
 
         Ok(Self::from_ordinal_date_unchecked(year, ordinal))

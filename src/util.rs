@@ -62,12 +62,7 @@ pub const fn days_in_year(year: i32) -> u16 {
 /// assert_eq!(weeks_in_year(2020), 53);
 /// ```
 pub const fn weeks_in_year(year: i32) -> u8 {
-    let mut within_period = year % 400;
-    if within_period < 0 {
-        within_period += 400;
-    }
-
-    match within_period {
+    match rem_euclid!(year, 400) {
         4 | 9 | 15 | 20 | 26 | 32 | 37 | 43 | 48 | 54 | 60 | 65 | 71 | 76 | 82 | 88 | 93 | 99
         | 105 | 111 | 116 | 122 | 128 | 133 | 139 | 144 | 150 | 156 | 161 | 167 | 172 | 178
         | 184 | 189 | 195 | 201 | 207 | 212 | 218 | 224 | 229 | 235 | 240 | 246 | 252 | 257

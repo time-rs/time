@@ -459,34 +459,10 @@ impl PrimitiveDateTime {
         let mut hour = self.hour() as i8 - offset.hours;
         let (mut year, mut ordinal) = self.date.to_ordinal_date();
 
-        if second >= 60 {
-            second -= 60;
-            minute += 1;
-        } else if second < 0 {
-            second += 60;
-            minute -= 1;
-        }
-        if minute >= 60 {
-            minute -= 60;
-            hour += 1;
-        } else if minute < 0 {
-            minute += 60;
-            hour -= 1;
-        }
-        if hour >= 24 {
-            hour -= 24;
-            ordinal += 1;
-        } else if hour < 0 {
-            hour += 24;
-            ordinal -= 1;
-        }
-        if ordinal > util::days_in_year(year) {
-            year += 1;
-            ordinal = 1;
-        } else if ordinal == 0 {
-            year -= 1;
-            ordinal = util::days_in_year(year);
-        }
+        cascade!(second in 0..60 => minute);
+        cascade!(minute in 0..60 => hour);
+        cascade!(hour in 0..24 => ordinal);
+        cascade!(ordinal => year);
 
         Self {
             date: Date::from_ordinal_date_unchecked(year, ordinal),
