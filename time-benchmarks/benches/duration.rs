@@ -9,20 +9,6 @@ use time::{
 setup_benchmark! {
     "Duration",
 
-    fn unit_values(ben: &mut Bencher) {
-        ben.iter(|| (
-            Duration::zero(),
-            Duration::nanosecond(),
-            Duration::microsecond(),
-            Duration::millisecond(),
-            Duration::second(),
-            Duration::minute(),
-            Duration::hour(),
-            Duration::day(),
-            Duration::week(),
-        ));
-    }
-
     fn is_zero(ben: &mut Bencher) {
         let a = (-1).nanoseconds();
         let b = 0.seconds();
@@ -341,7 +327,7 @@ setup_benchmark! {
 
     fn checked_add(ben: &mut Bencher) {
         let a = 5.seconds();
-        let b = Duration::max_value();
+        let b = Duration::MAX;
         let c = (-5).seconds();
 
         let a2 = 5.seconds();
@@ -357,7 +343,7 @@ setup_benchmark! {
 
     fn checked_sub(ben: &mut Bencher) {
         let a = 5.seconds();
-        let b = Duration::min_value();
+        let b = Duration::MIN;
         let c = 5.seconds();
 
         let a2 = 5.seconds();

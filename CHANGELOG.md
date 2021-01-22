@@ -80,6 +80,7 @@ Versioning].
   - `Date::julian_day` → `Date::to_julian_day`
   - Macros have been moved to the `macros` module, but are otherwise named the
     same.
+  - All `Duration` unit values, as well as the minimum and maximum, are now associated constants.
 - Now `const fn` (on at least newer compilers)
   - `Date::weekday`
   - `PrimitiveDateTime::assume_offset`

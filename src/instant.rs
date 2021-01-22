@@ -106,7 +106,7 @@ impl Sub for Instant {
 
     fn sub(self, other: Self) -> Self::Output {
         match self.0.cmp(&other.0) {
-            Ordering::Equal => Duration::zero(),
+            Ordering::Equal => Duration::ZERO,
             Ordering::Greater => (self.0 - other.0)
                 .try_into()
                 .expect("overflow converting `std::time::Duration` to `time::Duration`"),

@@ -31,107 +31,85 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::zero(), 0.seconds());
+    /// assert_eq!(Duration::ZERO, 0.seconds());
     /// ```
-    pub const fn zero() -> Self {
-        Self::seconds(0)
-    }
+    pub const ZERO: Self = Self::seconds(0);
 
     /// Equivalent to `1.nanoseconds()`.
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::nanosecond(), 1.nanoseconds());
+    /// assert_eq!(Duration::NANOSECOND, 1.nanoseconds());
     /// ```
-    pub const fn nanosecond() -> Self {
-        Self::nanoseconds(1)
-    }
+    pub const NANOSECOND: Self = Self::nanoseconds(1);
 
     /// Equivalent to `1.microseconds()`.
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::microsecond(), 1.microseconds());
+    /// assert_eq!(Duration::MICROSECOND, 1.microseconds());
     /// ```
-    pub const fn microsecond() -> Self {
-        Self::microseconds(1)
-    }
+    pub const MICROSECOND: Self = Self::microseconds(1);
 
     /// Equivalent to `1.milliseconds()`.
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::millisecond(), 1.milliseconds());
+    /// assert_eq!(Duration::MILLISECOND, 1.milliseconds());
     /// ```
-    pub const fn millisecond() -> Self {
-        Self::milliseconds(1)
-    }
+    pub const MILLISECOND: Self = Self::milliseconds(1);
 
     /// Equivalent to `1.seconds()`.
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::second(), 1.seconds());
+    /// assert_eq!(Duration::SECOND, 1.seconds());
     /// ```
-    pub const fn second() -> Self {
-        Self::seconds(1)
-    }
+    pub const SECOND: Self = Self::seconds(1);
 
     /// Equivalent to `1.minutes()`.
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::minute(), 1.minutes());
+    /// assert_eq!(Duration::MINUTE, 1.minutes());
     /// ```
-    pub const fn minute() -> Self {
-        Self::minutes(1)
-    }
+    pub const MINUTE: Self = Self::minutes(1);
 
     /// Equivalent to `1.hours()`.
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::hour(), 1.hours());
+    /// assert_eq!(Duration::HOUR, 1.hours());
     /// ```
-    pub const fn hour() -> Self {
-        Self::hours(1)
-    }
+    pub const HOUR: Self = Self::hours(1);
 
     /// Equivalent to `1.days()`.
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::day(), 1.days());
+    /// assert_eq!(Duration::DAY, 1.days());
     /// ```
-    pub const fn day() -> Self {
-        Self::days(1)
-    }
+    pub const DAY: Self = Self::days(1);
 
     /// Equivalent to `1.weeks()`.
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::week(), 1.weeks());
+    /// assert_eq!(Duration::WEEK, 1.weeks());
     /// ```
-    pub const fn week() -> Self {
-        Self::weeks(1)
-    }
-
-    /// The maximum possible duration. Adding any positive duration to this will cause an overflow.
-    pub const fn max_value() -> Self {
-        Self {
-            seconds: i64::max_value(),
-            nanoseconds: 999_999_999,
-        }
-    }
+    pub const WEEK: Self = Self::weeks(1);
 
     /// The minimum possible duration. Adding any negative duration to this will cause an overflow.
-    pub const fn min_value() -> Self {
-        Self {
-            seconds: i64::min_value(),
-            nanoseconds: -999_999_999,
-        }
-    }
+    pub const MIN: Self = Self {
+        seconds: i64::min_value(),
+        nanoseconds: -999_999_999,
+    };
+
+    /// The maximum possible duration. Adding any positive duration to this will cause an overflow.
+    pub const MAX: Self = Self {
+        seconds: i64::max_value(),
+        nanoseconds: 999_999_999,
+    };
 
     /// Check if a duration is exactly zero.
     ///
@@ -528,7 +506,7 @@ impl Duration {
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(5.seconds().checked_add(5.seconds()), Some(10.seconds()));
-    /// assert_eq!(Duration::max_value().checked_add(1.nanoseconds()), None);
+    /// assert_eq!(Duration::MAX.checked_add(1.nanoseconds()), None);
     /// assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
     /// ```
     ///
@@ -556,8 +534,8 @@ impl Duration {
     ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(5.seconds().checked_sub(5.seconds()), Some(Duration::zero()));
-    /// assert_eq!(Duration::min_value().checked_sub(1.nanoseconds()), None);
+    /// assert_eq!(5.seconds().checked_sub(5.seconds()), Some(Duration::ZERO));
+    /// assert_eq!(Duration::MIN.checked_sub(1.nanoseconds()), None);
     /// assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
     /// ```
     ///
@@ -577,8 +555,8 @@ impl Duration {
     /// assert_eq!(5.seconds().checked_mul(2), Some(10.seconds()));
     /// assert_eq!(5.seconds().checked_mul(-2), Some((-10).seconds()));
     /// assert_eq!(5.seconds().checked_mul(0), Some(0.seconds()));
-    /// assert_eq!(Duration::max_value().checked_mul(2), None);
-    /// assert_eq!(Duration::min_value().checked_mul(2), None);
+    /// assert_eq!(Duration::MAX.checked_mul(2), None);
+    /// assert_eq!(Duration::MIN.checked_mul(2), None);
     /// ```
     ///
     /// This feature is `const fn` when using rustc >= 1.47.

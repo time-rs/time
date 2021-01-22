@@ -7,15 +7,15 @@ use time::{
 
 #[test]
 fn unit_values() {
-    assert_eq!(Duration::zero(), 0.seconds());
-    assert_eq!(Duration::nanosecond(), 1.nanoseconds());
-    assert_eq!(Duration::microsecond(), 1.microseconds());
-    assert_eq!(Duration::millisecond(), 1.milliseconds());
-    assert_eq!(Duration::second(), 1.seconds());
-    assert_eq!(Duration::minute(), 60.seconds());
-    assert_eq!(Duration::hour(), 3_600.seconds());
-    assert_eq!(Duration::day(), 86_400.seconds());
-    assert_eq!(Duration::week(), 604_800.seconds());
+    assert_eq!(Duration::ZERO, 0.seconds());
+    assert_eq!(Duration::NANOSECOND, 1.nanoseconds());
+    assert_eq!(Duration::MICROSECOND, 1.microseconds());
+    assert_eq!(Duration::MILLISECOND, 1.milliseconds());
+    assert_eq!(Duration::SECOND, 1.seconds());
+    assert_eq!(Duration::MINUTE, 60.seconds());
+    assert_eq!(Duration::HOUR, 3_600.seconds());
+    assert_eq!(Duration::DAY, 86_400.seconds());
+    assert_eq!(Duration::WEEK, 604_800.seconds());
 }
 
 #[test]
@@ -249,14 +249,14 @@ fn subsec_nanoseconds() {
 #[test]
 fn checked_add() {
     assert_eq!(5.seconds().checked_add(5.seconds()), Some(10.seconds()));
-    assert_eq!(Duration::max_value().checked_add(1.nanoseconds()), None);
+    assert_eq!(Duration::MAX.checked_add(1.nanoseconds()), None);
     assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
 }
 
 #[test]
 fn checked_sub() {
     assert_eq!(5.seconds().checked_sub(5.seconds()), Some(0.seconds()));
-    assert_eq!(Duration::min_value().checked_sub(1.nanoseconds()), None);
+    assert_eq!(Duration::MIN.checked_sub(1.nanoseconds()), None);
     assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
 }
 
@@ -264,9 +264,9 @@ fn checked_sub() {
 fn checked_mul() {
     assert_eq!(5.seconds().checked_mul(2), Some(10.seconds()));
     assert_eq!(5.seconds().checked_mul(-2), Some((-10).seconds()));
-    assert_eq!(5.seconds().checked_mul(0), Some(Duration::zero()));
-    assert_eq!(Duration::max_value().checked_mul(2), None);
-    assert_eq!(Duration::min_value().checked_mul(2), None);
+    assert_eq!(5.seconds().checked_mul(0), Some(Duration::ZERO));
+    assert_eq!(Duration::MAX.checked_mul(2), None);
+    assert_eq!(Duration::MIN.checked_mul(2), None);
 }
 
 #[test]

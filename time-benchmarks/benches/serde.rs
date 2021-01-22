@@ -60,7 +60,7 @@ setup_benchmark! {
     }
 
     fn duration(ben: &mut Bencher) {
-        let original = [Duration::min_value(), Duration::max_value()];
+        let original = [Duration::MIN, Duration::MAX];
         let serialized = "[[-9223372036854775808,-999999999],[9223372036854775807,999999999]]";
         ben.iter(|| (
             serde_json::to_string(&original),

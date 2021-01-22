@@ -489,7 +489,7 @@ impl Date {
         type MaybeWidened = i32;
 
         ensure_value_in_range!(
-            julian_day in Self::MAX.to_julian_day() => Self::MIN.to_julian_day()
+            julian_day in Self::MIN.to_julian_day() => Self::MAX.to_julian_day()
         );
 
         // To avoid a potential overflow, the value may need to be widened for some arithmetic.

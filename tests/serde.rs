@@ -77,7 +77,7 @@ fn utc_offset() -> serde_json::Result<()> {
 
 #[test]
 fn duration() -> serde_json::Result<()> {
-    let original = [Duration::min_value(), Duration::max_value()];
+    let original = [Duration::MIN, Duration::MAX];
     let serialized = "[[-9223372036854775808,-999999999],[9223372036854775807,999999999]]";
 
     assert_eq!(serde_json::to_string(&original)?, serialized);
