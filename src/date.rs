@@ -478,6 +478,18 @@ impl Date {
     /// ```
     #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date"))]
     pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
+        ensure_value_in_range!(
+            julian_day in Self::MIN.to_julian_day() => Self::MAX.to_julian_day()
+        );
+        Ok(Self::from_julian_day_unchecked(julian_day))
+    }
+
+    /// Create a `Date` from the Julian day.
+    ///
+    /// This does not check the validity of the provided Julian day, and as such may result in an
+    /// internally invalid value.
+    #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date_unchecked"))]
+    pub(crate) const fn from_julian_day_unchecked(julian_day: i32) -> Self {
         #![allow(trivial_numeric_casts)] // cast depends on type alias
 
         /// A type that is either `i32` or `i64`. This subtle difference allows for optimization
@@ -487,10 +499,6 @@ impl Date {
         #[allow(clippy::missing_docs_in_private_items)]
         #[cfg(not(feature = "large-dates"))]
         type MaybeWidened = i32;
-
-        ensure_value_in_range!(
-            julian_day in Self::MIN.to_julian_day() => Self::MAX.to_julian_day()
-        );
 
         // To avoid a potential overflow, the value may need to be widened for some arithmetic.
 
@@ -509,7 +517,7 @@ impl Date {
             cascade!(ordinal in 1..366 => year);
         }
 
-        Ok(Self::from_ordinal_date_unchecked(year, ordinal))
+        Self::from_ordinal_date_unchecked(year, ordinal)
     }
 }
 

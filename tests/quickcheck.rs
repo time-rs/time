@@ -33,6 +33,10 @@ quickcheck! {
         Date::from_ordinal_date(d.year(), d.ordinal()) == Ok(d)
     }
 
+    fn julian_day_roundtrip(d: Date) -> bool {
+        Date::from_julian_day(d.to_julian_day()) == Ok(d)
+    }
+
     fn duration_roundtrip(d: Duration) -> bool {
         Duration::new(d.whole_seconds(), d.subsec_nanoseconds()) == d
     }
@@ -54,14 +58,24 @@ quickcheck! {
         PrimitiveDateTime::new(a.date(), a.time()).assume_offset(a.offset()) == a
     }
 
-    fn unix_timestamp_roundtrip(odt: OffsetDateTime) -> bool {
-        // nanoseconds are not stored in the basic Unix timestamp
-        let odt = odt - Duration::nanoseconds(odt.nanosecond().into());
-        OffsetDateTime::from_unix_timestamp(odt.unix_timestamp()) == Ok(odt)
+    fn unix_timestamp_roundtrip(odt: OffsetDateTime) -> TestResult {
+        match odt.date() {
+            Date::MIN | Date::MAX => TestResult::discard(),
+            _ => TestResult::from_bool({
+                // nanoseconds are not stored in the basic Unix timestamp
+                let odt = odt - Duration::nanoseconds(odt.nanosecond().into());
+                OffsetDateTime::from_unix_timestamp(odt.unix_timestamp()) == Ok(odt)
+            })
+        }
     }
 
-    fn unix_timestamp_nanos_roundtrip(odt: OffsetDateTime) -> bool {
-        OffsetDateTime::from_unix_timestamp_nanos(odt.unix_timestamp_nanos()) == Ok(odt)
+    fn unix_timestamp_nanos_roundtrip(odt: OffsetDateTime) -> TestResult {
+        match odt.date() {
+            Date::MIN | Date::MAX => TestResult::discard(),
+            _ => TestResult::from_bool(
+                OffsetDateTime::from_unix_timestamp_nanos(odt.unix_timestamp_nanos()) == Ok(odt)
+            )
+        }
     }
 
     fn weekday_supports_arbitrary(w: Weekday) -> bool {

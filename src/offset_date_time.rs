@@ -134,15 +134,36 @@ impl OffsetDateTime {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub const fn from_unix_timestamp(timestamp: i64) -> Result<Self, error::ComponentRange> {
-        let unix_epoch_julian_day = Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
+        #[allow(clippy::missing_docs_in_private_items)]
+        const MIN_TIMESTAMP: i64 = Date::MIN.midnight().assume_utc().unix_timestamp();
+        #[allow(clippy::missing_docs_in_private_items)]
+        const MAX_TIMESTAMP: i64 = Date::MAX
+            .with_time(Time {
+                hour: 23,
+                minute: 59,
+                second: 59,
+                nanosecond: 999_999_999,
+                padding: hack::Padding::Optimize,
+            })
+            .assume_utc()
+            .unix_timestamp();
 
-        let date = const_try!(Date::from_julian_day(
-            unix_epoch_julian_day + div_floor!(timestamp, 86_400) as i32
-        ));
+        #[allow(clippy::missing_docs_in_private_items)]
+        const UNIX_EPOCH_JULIAN_DAY: i32 =
+            Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
+
+        ensure_value_in_range!(timestamp in MIN_TIMESTAMP => MAX_TIMESTAMP);
+
+        // Use the unchecked method here, as the input validity has already been verified.
+        let date = Date::from_julian_day_unchecked(
+            UNIX_EPOCH_JULIAN_DAY + div_floor!(timestamp, 86_400) as i32,
+        );
+
+        let seconds_within_day = rem_euclid!(timestamp, 86_400);
         let time = Time {
-            hour: rem_euclid!(div_floor!(timestamp % 86_400, 3_600), 24) as _,
-            minute: rem_euclid!(div_floor!(timestamp % 3_600, 60), 60) as _,
-            second: rem_euclid!(timestamp, 60) as _,
+            hour: (seconds_within_day / 3_600) as _,
+            minute: ((seconds_within_day % 3_600) / 60) as _,
+            second: (seconds_within_day % 60) as _,
             nanosecond: 0,
             padding: hack::Padding::Optimize,
         };
