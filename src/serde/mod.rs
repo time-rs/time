@@ -135,7 +135,7 @@ impl<'a> Deserialize<'a> for UtcOffset {
 
 impl Serialize for Weekday {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        self.iso_weekday_number().serialize(serializer)
+        self.number_from_monday().serialize(serializer)
     }
 }
 

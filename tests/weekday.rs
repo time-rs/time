@@ -23,17 +23,6 @@ fn next() {
 }
 
 #[test]
-fn iso_weekday_number() {
-    assert_eq!(Monday.iso_weekday_number(), 1);
-    assert_eq!(Tuesday.iso_weekday_number(), 2);
-    assert_eq!(Wednesday.iso_weekday_number(), 3);
-    assert_eq!(Thursday.iso_weekday_number(), 4);
-    assert_eq!(Friday.iso_weekday_number(), 5);
-    assert_eq!(Saturday.iso_weekday_number(), 6);
-    assert_eq!(Sunday.iso_weekday_number(), 7);
-}
-
-#[test]
 fn number_from_monday() {
     assert_eq!(Monday.number_from_monday(), 1);
     assert_eq!(Tuesday.number_from_monday(), 2);

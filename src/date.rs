@@ -143,7 +143,7 @@ impl Date {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(week conditionally in 1 => weeks_in_year(year));
 
-        let (ordinal, overflow) = (week as u16 * 7 + weekday.iso_weekday_number() as u16)
+        let (ordinal, overflow) = (week as u16 * 7 + weekday.number_from_monday() as u16)
             .overflowing_sub({
                 let adj_year = year - 1;
                 let rem = (adj_year + adj_year / 4 - adj_year / 100 + adj_year / 400 + 3) % 7;
@@ -269,7 +269,7 @@ impl Date {
     pub(crate) const fn iso_year_week(self) -> (i32, u8) {
         let (year, ordinal) = self.to_ordinal_date();
 
-        match ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as _ {
+        match ((ordinal + 10 - self.weekday().number_from_monday() as u16) / 7) as _ {
             0 => (year - 1, weeks_in_year(year - 1)),
             53 if weeks_in_year(year) == 52 => (year + 1, 1),
             week => (year, week),
@@ -357,7 +357,7 @@ impl Date {
         let (year, ordinal) = self.to_ordinal_date();
         let weekday = self.weekday();
 
-        match ((ordinal + 10 - self.weekday().iso_weekday_number() as u16) / 7) as _ {
+        match ((ordinal + 10 - self.weekday().number_from_monday() as u16) / 7) as _ {
             0 => (year - 1, weeks_in_year(year - 1), weekday),
             53 if weeks_in_year(year) == 52 => (year + 1, 1, weekday),
             week => (year, week, weekday),

@@ -217,6 +217,7 @@ Versioning].
 - `Date::month_day`
 - `PrimitiveDateTime::month_day`
 - `OffsetDateTime::month_day`
+- `Weekday::iso_weekday_number` (identical to `Weekday::number_from_monday`)
 
 ## 0.2.22 [2020-09-25]
 

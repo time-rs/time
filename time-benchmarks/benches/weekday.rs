@@ -28,18 +28,6 @@ setup_benchmark! {
         ));
     }
 
-    fn iso_weekday_number(ben: &mut Bencher) {
-        ben.iter(|| (
-            Monday.iso_weekday_number(),
-            Tuesday.iso_weekday_number(),
-            Wednesday.iso_weekday_number(),
-            Thursday.iso_weekday_number(),
-            Friday.iso_weekday_number(),
-            Saturday.iso_weekday_number(),
-            Sunday.iso_weekday_number(),
-        ));
-    }
-
     fn number_from_monday(ben: &mut Bencher) {
         ben.iter(|| (
             Monday.number_from_monday(),

@@ -79,7 +79,7 @@ quickcheck! {
     }
 
     fn weekday_supports_arbitrary(w: Weekday) -> bool {
-        (1..=7).contains(&w.iso_weekday_number())
+        (1..=7).contains(&w.number_from_monday())
     }
 
     fn weekday_can_shrink(w: Weekday) -> bool {

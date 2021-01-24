@@ -60,22 +60,13 @@ impl Weekday {
         }
     }
 
-    /// Get the ISO 8601 weekday number. Equivalent to [`Weekday::number_from_monday`].
-    ///
-    /// ```rust
-    /// # use time::Weekday;
-    /// assert_eq!(Weekday::Monday.iso_weekday_number(), 1);
-    /// ```
-    pub const fn iso_weekday_number(self) -> u8 {
-        self.number_from_monday()
-    }
-
     /// Get the one-indexed number of days from Monday.
     ///
     /// ```rust
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.number_from_monday(), 1);
     /// ```
+    #[cfg_attr(__time_03_docs, doc(alias = "iso_weekday_number"))]
     pub const fn number_from_monday(self) -> u8 {
         self.number_days_from_monday() + 1
     }
