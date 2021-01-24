@@ -106,8 +106,8 @@ impl OffsetDateTime {
             .assume_utc()
     }
 
-    /// Create an `OffsetDateTime` from the provided
-    /// [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
+    /// Create an `OffsetDateTime` from the provided Unix timestamp. Calling `.offset()` on the
+    /// resulting value is guaranteed to return UTC.
     ///
     /// ```rust
     /// # use time::{OffsetDateTime, macros::datetime};
@@ -171,7 +171,8 @@ impl OffsetDateTime {
         Ok(PrimitiveDateTime::new(date, time).assume_utc())
     }
 
-    /// Construct an `OffsetDateTime` from the provided Unix timestamp (in nanoseconds).
+    /// Construct an `OffsetDateTime` from the provided Unix timestamp (in nanoseconds). Calling
+    /// `.offset()` on the resulting value is guaranteed to return UTC.
     ///
     /// ```rust
     /// # use time::{OffsetDateTime, macros::datetime};
