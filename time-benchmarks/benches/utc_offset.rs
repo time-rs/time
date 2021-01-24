@@ -91,8 +91,7 @@ setup_benchmark! {
     }
 
     fn local_offset_at(ben: &mut Bencher) {
-        let epoch = OffsetDateTime::unix_epoch();
-        ben.iter(|| UtcOffset::local_offset_at(epoch));
+        ben.iter(|| UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH));
     }
 
     fn current_local_offset(ben: &mut Bencher) {

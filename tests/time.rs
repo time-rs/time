@@ -7,11 +7,6 @@ use time::{
 };
 
 #[test]
-fn midnight() {
-    assert_eq!(Time::midnight(), time!("0:00"));
-}
-
-#[test]
 fn from_hms() -> Result<()> {
     let time = Time::from_hms(1, 2, 3)?;
     assert_eq!(time.hour(), 1);

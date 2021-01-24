@@ -16,6 +16,9 @@ use core::{
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
+/// The Julian day of the Unix epoch.
+const UNIX_EPOCH_JULIAN_DAY: i32 = Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
+
 /// A [`PrimitiveDateTime`] with a [`UtcOffset`].
 ///
 /// All comparisons are performed using the UTC time.
@@ -31,6 +34,16 @@ pub struct OffsetDateTime {
 }
 
 impl OffsetDateTime {
+    /// Midnight, 1 January, 1970 (UTC).
+    ///
+    /// ```rust
+    /// # use time::{OffsetDateTime, macros::datetime};
+    /// assert_eq!(OffsetDateTime::UNIX_EPOCH, datetime!("1970-01-01 0:00 UTC"),);
+    /// ```
+    pub const UNIX_EPOCH: Self = Date::from_ordinal_date_unchecked(1970, 1)
+        .midnight()
+        .assume_utc();
+
     /// Create a new `OffsetDateTime` with the current date and time in UTC.
     ///
     /// ```rust
@@ -91,21 +104,6 @@ impl OffsetDateTime {
         }
     }
 
-    /// Midnight, 1 January, 1970 (UTC).
-    ///
-    /// ```rust
-    /// # use time::{OffsetDateTime, macros::datetime};
-    /// assert_eq!(
-    ///     OffsetDateTime::unix_epoch(),
-    ///     datetime!("1970-01-01 0:00 UTC"),
-    /// );
-    /// ```
-    pub const fn unix_epoch() -> Self {
-        Date::from_ordinal_date_unchecked(1970, 1)
-            .midnight()
-            .assume_utc()
-    }
-
     /// Create an `OffsetDateTime` from the provided Unix timestamp. Calling `.offset()` on the
     /// resulting value is guaranteed to return UTC.
     ///
@@ -113,7 +111,7 @@ impl OffsetDateTime {
     /// # use time::{OffsetDateTime, macros::datetime};
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp(0),
-    ///     Ok(OffsetDateTime::unix_epoch()),
+    ///     Ok(OffsetDateTime::UNIX_EPOCH),
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp(1_546_300_800),
@@ -129,7 +127,7 @@ impl OffsetDateTime {
     /// let (timestamp, nanos) = (1, 500_000_000);
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp(timestamp)? + Duration::nanoseconds(nanos),
-    ///     OffsetDateTime::unix_epoch() + 1.5.seconds()
+    ///     OffsetDateTime::UNIX_EPOCH + 1.5.seconds()
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
@@ -147,10 +145,6 @@ impl OffsetDateTime {
             })
             .assume_utc()
             .unix_timestamp();
-
-        #[allow(clippy::missing_docs_in_private_items)]
-        const UNIX_EPOCH_JULIAN_DAY: i32 =
-            Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
 
         ensure_value_in_range!(timestamp in MIN_TIMESTAMP => MAX_TIMESTAMP);
 
@@ -178,7 +172,7 @@ impl OffsetDateTime {
     /// # use time::{OffsetDateTime, macros::datetime};
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp_nanos(0),
-    ///     Ok(OffsetDateTime::unix_epoch()),
+    ///     Ok(OffsetDateTime::UNIX_EPOCH),
     /// );
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp_nanos(1_546_300_800_000_000_000),
@@ -214,9 +208,8 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("1970-01-01 0:00 -1").unix_timestamp(), 3_600);
     /// ```
     pub const fn unix_timestamp(self) -> i64 {
-        let days = (self.utc_datetime.to_julian_day() as i64
-            - Date::from_ordinal_date_unchecked(1970, 1).to_julian_day() as i64)
-            * 86_400;
+        let days =
+            (self.utc_datetime.to_julian_day() as i64 - UNIX_EPOCH_JULIAN_DAY as i64) * 86_400;
         let hours = self.utc_datetime.hour() as i64 * 3_600;
         let minutes = self.utc_datetime.minute() as i64 * 60;
         let seconds = self.utc_datetime.second() as i64;
@@ -1026,8 +1019,8 @@ impl PartialOrd<OffsetDateTime> for SystemTime {
 impl From<SystemTime> for OffsetDateTime {
     fn from(system_time: SystemTime) -> Self {
         match system_time.duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(duration) => Self::unix_epoch() + duration,
-            Err(err) => Self::unix_epoch() - err.duration(),
+            Ok(duration) => Self::UNIX_EPOCH + duration,
+            Err(err) => Self::UNIX_EPOCH - err.duration(),
         }
     }
 }
@@ -1036,7 +1029,7 @@ impl From<SystemTime> for OffsetDateTime {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl From<OffsetDateTime> for SystemTime {
     fn from(datetime: OffsetDateTime) -> Self {
-        let duration = datetime - OffsetDateTime::unix_epoch();
+        let duration = datetime - OffsetDateTime::UNIX_EPOCH;
 
         if duration.is_zero() {
             Self::UNIX_EPOCH

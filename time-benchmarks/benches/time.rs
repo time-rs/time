@@ -9,10 +9,6 @@ use time::{
 setup_benchmark! {
     "Time",
 
-    fn midnight(ben: &mut Bencher) {
-        ben.iter(Time::midnight);
-    }
-
     fn from_hms(ben: &mut Bencher) {
         ben.iter(|| (
             Time::from_hms(1, 2, 3),

@@ -7,7 +7,7 @@ use time::{
 
 #[test]
 fn time() -> serde_json::Result<()> {
-    let original = [Time::midnight(), time!("23:59:59.999_999_999")];
+    let original = [Time::MIDNIGHT, time!("23:59:59.999_999_999")];
     let serialized = "[[0,0,0,0],[23,59,59,999999999]]";
 
     assert_eq!(serde_json::to_string(&original)?, serialized);

@@ -120,8 +120,7 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::{UtcOffset, OffsetDateTime};
-    /// let unix_epoch = OffsetDateTime::unix_epoch();
-    /// let local_offset = UtcOffset::local_offset_at(unix_epoch);
+    /// let local_offset = UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH);
     /// # if false {
     /// assert!(local_offset.is_ok());
     /// # }

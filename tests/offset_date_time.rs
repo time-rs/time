@@ -43,18 +43,10 @@ fn to_offset() {
 }
 
 #[test]
-fn unix_epoch() {
-    assert_eq!(
-        OffsetDateTime::unix_epoch(),
-        datetime!("1970-01-01 0:00 UTC"),
-    );
-}
-
-#[test]
 fn from_unix_timestamp() {
     assert_eq!(
         OffsetDateTime::from_unix_timestamp(0),
-        Ok(OffsetDateTime::unix_epoch()),
+        Ok(OffsetDateTime::UNIX_EPOCH),
     );
     assert_eq!(
         OffsetDateTime::from_unix_timestamp(1_546_300_800),
@@ -66,7 +58,7 @@ fn from_unix_timestamp() {
 fn from_unix_timestamp_nanos() {
     assert_eq!(
         OffsetDateTime::from_unix_timestamp_nanos(0),
-        Ok(OffsetDateTime::unix_epoch()),
+        Ok(OffsetDateTime::UNIX_EPOCH),
     );
     assert_eq!(
         OffsetDateTime::from_unix_timestamp_nanos(1_546_300_800_000_000_000),
@@ -88,9 +80,9 @@ fn offset() {
 
 #[test]
 fn unix_timestamp() {
-    assert_eq!(OffsetDateTime::unix_epoch().unix_timestamp(), 0);
+    assert_eq!(OffsetDateTime::UNIX_EPOCH.unix_timestamp(), 0);
     assert_eq!(
-        OffsetDateTime::unix_epoch()
+        OffsetDateTime::UNIX_EPOCH
             .to_offset(offset!("+1"))
             .unix_timestamp(),
         0,
@@ -860,15 +852,15 @@ fn std_ord() {
 fn from_std() {
     assert_eq!(
         OffsetDateTime::from(SystemTime::UNIX_EPOCH),
-        OffsetDateTime::unix_epoch()
+        OffsetDateTime::UNIX_EPOCH
     );
     assert_eq!(
         OffsetDateTime::from(SystemTime::UNIX_EPOCH - 1.std_days()),
-        OffsetDateTime::unix_epoch() - 1.days()
+        OffsetDateTime::UNIX_EPOCH - 1.days()
     );
     assert_eq!(
         OffsetDateTime::from(SystemTime::UNIX_EPOCH + 1.std_days()),
-        OffsetDateTime::unix_epoch() + 1.days()
+        OffsetDateTime::UNIX_EPOCH + 1.days()
     );
 }
 
@@ -876,15 +868,15 @@ fn from_std() {
 #[cfg(feature = "std")]
 fn to_std() {
     assert_eq!(
-        SystemTime::from(OffsetDateTime::unix_epoch()),
+        SystemTime::from(OffsetDateTime::UNIX_EPOCH),
         SystemTime::UNIX_EPOCH
     );
     assert_eq!(
-        SystemTime::from(OffsetDateTime::unix_epoch() + 1.days()),
+        SystemTime::from(OffsetDateTime::UNIX_EPOCH + 1.days()),
         SystemTime::UNIX_EPOCH + 1.std_days()
     );
     assert_eq!(
-        SystemTime::from(OffsetDateTime::unix_epoch() - 1.days()),
+        SystemTime::from(OffsetDateTime::UNIX_EPOCH - 1.days()),
         SystemTime::UNIX_EPOCH - 1.std_days()
     );
 }

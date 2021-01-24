@@ -100,7 +100,7 @@ fn display() {
 #[test]
 #[cfg(all(feature = "local-offset", not(target_family = "unix")))]
 fn local_offset_at() {
-    assert!(UtcOffset::local_offset_at(OffsetDateTime::unix_epoch()).is_ok());
+    assert!(UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH).is_ok());
 }
 
 #[test]

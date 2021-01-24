@@ -531,7 +531,7 @@ impl Date {
     /// assert_eq!(date!("1970-01-01").midnight(), datetime!("1970-01-01 0:00"));
     /// ```
     pub const fn midnight(self) -> PrimitiveDateTime {
-        PrimitiveDateTime::new(self, Time::midnight())
+        PrimitiveDateTime::new(self, Time::MIDNIGHT)
     }
 
     /// Create a [`PrimitiveDateTime`] using the existing date and the provided [`Time`].

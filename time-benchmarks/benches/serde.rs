@@ -8,7 +8,7 @@ setup_benchmark! {
     "Serde",
 
     fn time(ben: &mut Bencher) {
-        let original = [Time::midnight(), time!("23:59:59.999_999_999")];
+        let original = [Time::MIDNIGHT, time!("23:59:59.999_999_999")];
         let serialized = "[[0,0,0,0],[23,59,59,999999999]]";
         ben.iter(|| (
             serde_json::to_string(&original),

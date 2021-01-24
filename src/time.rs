@@ -45,6 +45,20 @@ impl fmt::Debug for Time {
 }
 
 impl Time {
+    /// Create a `Time` that is exactly midnight.
+    ///
+    /// ```rust
+    /// # use time::{Time, macros::time};
+    /// assert_eq!(Time::MIDNIGHT, time!("0:00"));
+    /// ```
+    pub const MIDNIGHT: Self = Self {
+        hour: 0,
+        minute: 0,
+        second: 0,
+        nanosecond: 0,
+        padding: hack::Padding::Optimize,
+    };
+
     /// Create a `Time` from its components.
     #[doc(hidden)]
     #[deprecated(note = "This method should only ever be called from the included macros.")]
@@ -59,22 +73,6 @@ impl Time {
             minute,
             second,
             nanosecond,
-            padding: hack::Padding::Optimize,
-        }
-    }
-
-    /// Create a `Time` that is exactly midnight.
-    ///
-    /// ```rust
-    /// # use time::{Time, macros::time};
-    /// assert_eq!(Time::midnight(), time!("0:00"));
-    /// ```
-    pub const fn midnight() -> Self {
-        Self {
-            hour: 0,
-            minute: 0,
-            second: 0,
-            nanosecond: 0,
             padding: hack::Padding::Optimize,
         }
     }

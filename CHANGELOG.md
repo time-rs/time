@@ -81,6 +81,8 @@ Versioning].
   - Macros have been moved to the `macros` module, but are otherwise named the
     same.
   - All `Duration` unit values, as well as the minimum and maximum, are now associated constants.
+  - `OffsetDateTime::unix_epoch()` → `OffsetDateTime::UNIX_EPOCH`
+  - `Time::midnight()` → `Time::MIDNIGHT`
 - Now `const fn` (on at least newer compilers)
   - `Date::weekday`
   - `PrimitiveDateTime::assume_offset`

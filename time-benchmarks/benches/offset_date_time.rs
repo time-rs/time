@@ -29,10 +29,6 @@ setup_benchmark! {
         ));
     }
 
-    fn unix_epoch(ben: &mut Bencher) {
-        ben.iter(OffsetDateTime::unix_epoch);
-    }
-
     fn from_unix_timestamp(ben: &mut Bencher) {
         ben.iter(|| (
             OffsetDateTime::from_unix_timestamp(0),
@@ -60,8 +56,8 @@ setup_benchmark! {
     }
 
     fn unix_timestamp(ben: &mut Bencher) {
-        let a = OffsetDateTime::unix_epoch();
-        let b = OffsetDateTime::unix_epoch().to_offset(offset!("+1"));
+        let a = OffsetDateTime::UNIX_EPOCH;
+        let b = OffsetDateTime::UNIX_EPOCH.to_offset(offset!("+1"));
         let c = datetime!("1970-01-01 0:00 -1");
         ben.iter(|| (
             a.unix_timestamp(),
@@ -584,9 +580,9 @@ setup_benchmark! {
     }
 
     fn to_std(ben: &mut Bencher) {
-        let a = OffsetDateTime::unix_epoch();
-        let b = OffsetDateTime::unix_epoch() + 1.days();
-        let c = OffsetDateTime::unix_epoch() - 1.days();
+        let a = OffsetDateTime::UNIX_EPOCH;
+        let b = OffsetDateTime::UNIX_EPOCH + 1.days();
+        let c = OffsetDateTime::UNIX_EPOCH - 1.days();
         ben.iter(|| (
             SystemTime::from(a),
             SystemTime::from(b),
