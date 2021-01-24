@@ -1,6 +1,6 @@
 use crate::{
     error::Error,
-    helpers::{self, consume_char, days_in_year},
+    helpers::{self, consume_char},
     Date, Offset, Time, ToTokens,
 };
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
@@ -15,17 +15,9 @@ pub(crate) struct DateTime {
 
 impl DateTime {
     pub(crate) fn parse(chars: &mut Peekable<Chars<'_>>) -> Result<Self, Error> {
-        let date = match Date::parse(chars) {
-            Ok(result) => result,
-            Err(err) => return Err(err),
-        };
-
+        let date = Date::parse(chars)?;
         consume_char(' ', chars)?;
-
-        let time = match Time::parse(chars) {
-            Ok(result) => result,
-            Err(err) => return Err(err),
-        };
+        let time = Time::parse(chars)?;
 
         let offset = if chars.peek() == Some(&' ') {
             consume_char(' ', chars)?;
@@ -40,65 +32,10 @@ impl DateTime {
 
         Ok(Self { date, time, offset })
     }
-
-    fn utc_date_time(&self) -> (Date, Time) {
-        let offset = match self.offset {
-            Some(offset) => offset,
-            None => return (self.date, self.time),
-        };
-
-        let mut second = self.time.second as i8 - offset.seconds;
-        let mut minute = self.time.minute as i8 - offset.minutes;
-        let mut hour = self.time.hour as i8 - offset.hours;
-
-        let mut ordinal = self.date.ordinal;
-        let mut year = self.date.year;
-
-        if second >= 60 {
-            second -= 60;
-            minute += 1;
-        } else if second < 0 {
-            second += 60;
-            minute -= 1;
-        }
-        if minute >= 60 {
-            minute -= 60;
-            hour += 1;
-        } else if minute < 0 {
-            minute += 60;
-            hour -= 1;
-        }
-        if hour >= 24 {
-            hour -= 24;
-            ordinal += 1;
-        } else if hour < 0 {
-            hour += 24;
-            ordinal -= 1;
-        }
-        if ordinal > days_in_year(year) {
-            year += 1;
-            ordinal = 1;
-        } else if ordinal == 0 {
-            year -= 1;
-            ordinal = days_in_year(year);
-        }
-
-        (
-            Date { year, ordinal },
-            Time {
-                hour: hour as _,
-                minute: minute as _,
-                second: second as _,
-                nanosecond: self.time.nanosecond,
-            },
-        )
-    }
 }
 
 impl ToTokens for DateTime {
     fn to_internal_tokens(&self, tokens: &mut TokenStream) {
-        let (utc_date, utc_time) = self.utc_date_time();
-
         tokens.extend(
             [
                 TokenTree::Punct(Punct::new(':', Spacing::Joint)),
@@ -113,9 +50,9 @@ impl ToTokens for DateTime {
                 TokenTree::Group(Group::new(
                     Delimiter::Parenthesis,
                     [
-                        utc_date.to_internal_token_stream(),
+                        self.date.to_internal_token_stream(),
                         TokenTree::Punct(Punct::new(',', Spacing::Alone)).into(),
-                        utc_time.to_internal_token_stream(),
+                        self.time.to_internal_token_stream(),
                     ]
                     .iter()
                     .cloned()
@@ -131,10 +68,7 @@ impl ToTokens for DateTime {
             tokens.extend(
                 [
                     TokenTree::Punct(Punct::new('.', Spacing::Alone)),
-                    TokenTree::Ident(Ident::new("assume_utc", Span::call_site())),
-                    TokenTree::Group(Group::new(Delimiter::Parenthesis, TokenStream::new())),
-                    TokenTree::Punct(Punct::new('.', Spacing::Alone)),
-                    TokenTree::Ident(Ident::new("to_offset", Span::call_site())),
+                    TokenTree::Ident(Ident::new("assume_offset", Span::call_site())),
                     TokenTree::Group(Group::new(
                         Delimiter::Parenthesis,
                         offset.to_internal_token_stream(),

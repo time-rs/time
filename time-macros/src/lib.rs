@@ -70,7 +70,6 @@ trait ToTokens {
 
 macro_rules! impl_macros {
     ($($name:ident : $type:ty)*) => {$(
-        #[allow(clippy::unimplemented)] // macro-generated
         #[proc_macro]
         pub fn $name(input: TokenStream) -> TokenStream {
             let string = match helpers::get_string_literal(input) {
