@@ -1230,3 +1230,14 @@ fn previous_day_panics() {
 fn julian_day_panics() {
     Date::from_julian_day(i64::MAX);
 }
+
+#[test]
+fn issue_309() {
+    assert_eq!(date!(-36 - 11 - 01).weekday(), Weekday::Sunday);
+    assert_eq!(date!(-26 - 96).weekday(), Weekday::Sunday);
+    assert_eq!(date!(-31 - 137).weekday(), Weekday::Sunday);
+    assert_eq!(date!(-31 - 137).week(), 20);
+    assert_eq!(date!(-60 - 63).iso_year_week(), (-60, 9));
+    assert_eq!(date!(-208 - 99).week(), 14);
+    assert_eq!(util::weeks_in_year(-102), 52);
+}
