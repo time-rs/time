@@ -1,6 +1,6 @@
 #![allow(dead_code)] // TODO remove this
 
-//! Parsing for the time crate.
+//! Parsing for various types.
 
 macro_rules! try_parse_all {
     ($input:ident, $($e:expr),+ $(,)?) => {{
@@ -11,9 +11,12 @@ macro_rules! try_parse_all {
     }};
 }
 
+#[macro_use]
 mod combinator;
+
 mod offset;
 mod parsed;
+mod time;
 
 pub use parsed::Parsed;
 

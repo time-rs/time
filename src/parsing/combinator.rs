@@ -17,6 +17,20 @@ impl Integer for u64 {}
 impl Integer for u128 {}
 impl Integer for usize {}
 
+macro_rules! first_string_of_map {
+    ($($s:literal => $e:expr),+ $(,)?) => {
+        |input: &mut &str| {
+            $(if let Some(remaining) = input.strip_prefix($s) {
+                *input = remaining;
+                Some($e)
+            })else+
+            else {
+                None
+            }
+        }
+    };
+}
+
 /// Parse a string.
 pub(crate) fn string<'a>(expected: &'a str) -> impl Fn(&mut &'a str) -> Option<()> {
     move |input| {

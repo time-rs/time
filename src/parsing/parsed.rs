@@ -9,6 +9,9 @@ use core::{
 /// All information parsed.
 ///
 /// This information is directly used to construct the final values.
+///
+/// Most users will not need think about this struct in any way. It is public to allow for manual
+/// control over values, in the instance that the default parser is insufficient.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy)]
 pub struct Parsed {
