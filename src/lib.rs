@@ -254,6 +254,7 @@ mod instant;
 pub mod macros;
 /// The [`OffsetDateTime`] struct and its associated `impl`s.
 mod offset_date_time;
+pub mod parsing;
 /// The [`PrimitiveDateTime`] struct and its associated `impl`s.
 mod primitive_date_time;
 #[cfg(feature = "quickcheck")]
@@ -273,6 +274,7 @@ mod utc_offset;
 pub mod util;
 /// Days of the week.
 mod weekday;
+
 pub use crate::time::Time;
 pub use date::Date;
 pub use duration::Duration;
