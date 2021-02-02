@@ -64,7 +64,6 @@ mod iterator {
     pub(super) fn year_repr() -> Vec<(YearRepr, &'static str)> {
         vec![
             (YearRepr::Full, "repr:full"),
-            (YearRepr::Century, "repr:century"),
             (YearRepr::LastTwo, "repr:last_two"),
         ]
     }

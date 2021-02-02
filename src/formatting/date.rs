@@ -98,7 +98,6 @@ impl component::Date {
 
                 let value = match repr {
                     YearRepr::Full => full_year,
-                    YearRepr::Century => full_year / 100,
                     YearRepr::LastTwo => (full_year % 100).abs(),
                 };
 
@@ -106,9 +105,7 @@ impl component::Date {
                     YearRepr::Full if value.abs() >= 100_000 => 6,
                     YearRepr::Full if value.abs() >= 10_000 => 5,
                     YearRepr::Full => 4,
-                    YearRepr::Century if value.abs() >= 1_000 => 4,
-                    YearRepr::Century if value.abs() >= 100 => 3,
-                    YearRepr::Century | YearRepr::LastTwo => 2,
+                    YearRepr::LastTwo => 2,
                 };
 
                 // Don't emit a sign when only displaying the last two digits.

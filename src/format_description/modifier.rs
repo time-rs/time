@@ -90,8 +90,6 @@ pub enum WeekNumberRepr {
 pub enum YearRepr {
     /// The full value of the year.
     Full,
-    /// Only the century portion of the year.
-    Century,
     /// Only the last two digits of the year.
     LastTwo,
 }
@@ -254,7 +252,6 @@ impl Modifiers {
                     modifiers.week_number_repr = Some(WeekNumberRepr::Monday)
                 }
                 ("year", "repr:full") => modifiers.year_repr = Some(YearRepr::Full),
-                ("year", "repr:century") => modifiers.year_repr = Some(YearRepr::Century),
                 ("year", "repr:last_two") => modifiers.year_repr = Some(YearRepr::LastTwo),
                 ("year", "base:calendar") => modifiers.year_is_iso_week_based = Some(false),
                 ("year", "base:iso_week") => modifiers.year_is_iso_week_based = Some(true),
