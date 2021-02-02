@@ -1,6 +1,6 @@
 use crate::{
     error,
-    format_description::{component, modifier, Component, FormatDescription},
+    format_description::{modifier, Component, FormatDescription},
     hack,
     util::DateAdjustment,
     Duration,
@@ -479,20 +479,20 @@ impl Display for Time {
         match self.format_into(
             f,
             &FormatDescription::BorrowedCompound(&[
-                FormatDescription::Component(Component::Time(component::Time::Hour {
+                FormatDescription::Component(Component::Hour(modifier::Hour {
                     padding: modifier::Padding::None,
                     is_12_hour_clock: false,
                 })),
                 FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::Time(component::Time::Minute {
+                FormatDescription::Component(Component::Minute(modifier::Minute {
                     padding: modifier::Padding::Zero,
                 })),
                 FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::Time(component::Time::Second {
+                FormatDescription::Component(Component::Second(modifier::Second {
                     padding: modifier::Padding::Zero,
                 })),
                 FormatDescription::Literal("."),
-                FormatDescription::Component(Component::Time(component::Time::Subsecond {
+                FormatDescription::Component(Component::Subsecond(modifier::Subsecond {
                     digits: modifier::SubsecondDigits::OneOrMore,
                 })),
             ]),

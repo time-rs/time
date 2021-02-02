@@ -2,7 +2,7 @@
 use crate::OffsetDateTime;
 use crate::{
     error,
-    format_description::{component, modifier, Component, FormatDescription},
+    format_description::{modifier, Component, FormatDescription},
 };
 #[cfg(feature = "alloc")]
 use alloc::string::String;
@@ -187,16 +187,16 @@ impl Display for UtcOffset {
         match self.format_into(
             f,
             &FormatDescription::BorrowedCompound(&[
-                FormatDescription::Component(Component::UtcOffset(component::UtcOffset::Hour {
+                FormatDescription::Component(Component::OffsetHour(modifier::OffsetHour {
                     padding: modifier::Padding::Zero,
                     sign_is_mandatory: true,
                 })),
                 FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::UtcOffset(component::UtcOffset::Minute {
+                FormatDescription::Component(Component::OffsetMinute(modifier::OffsetMinute {
                     padding: modifier::Padding::Zero,
                 })),
                 FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::UtcOffset(component::UtcOffset::Second {
+                FormatDescription::Component(Component::OffsetSecond(modifier::OffsetSecond {
                     padding: modifier::Padding::Zero,
                 })),
             ]),

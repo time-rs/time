@@ -5,17 +5,11 @@ use crate::format_description::{error::InvalidFormatDescription, helper};
 #[cfg(feature = "alloc")]
 use alloc::borrow::ToOwned;
 
-/// Type of padding to ensure a minimum width.
-#[non_exhaustive]
+/// Day of the month.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Padding {
-    /// A space character (` `) should be used as padding.
-    Space,
-    /// A zero character (`0`) should be used as padding.
-    Zero,
-    /// There is no padding. This can result in a width below the otherwise minimum number of
-    /// characters.
-    None,
+pub struct Day {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
 }
 
 /// The representation of a month.
@@ -27,6 +21,124 @@ pub enum MonthRepr {
     Long,
     /// The short form of the month name (e.g. "Jan").
     Short,
+}
+
+/// Month of the year.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Month {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
+    /// What form of representation should be used?
+    pub repr: MonthRepr,
+}
+
+/// Ordinal day of the year.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Ordinal {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
+}
+
+/// The representation used for the day of the week.
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WeekdayRepr {
+    /// The short form of the weekday (e.g. "Mon").
+    Short,
+    /// The long form of the weekday (e.g. "Monday").
+    Long,
+    /// A numerical representation using Sunday as the first day of the week.
+    ///
+    /// Sunday is either 0 or 1, depending on the other modifier's value.
+    Sunday,
+    /// A numerical representation using Monday as the first day of the week.
+    ///
+    /// Monday is either 0 or 1, depending on the other modifier's value.
+    Monday,
+}
+
+/// Day of the week.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Weekday {
+    /// What form of representation should be used?
+    pub repr: WeekdayRepr,
+    /// When using a numerical representation, should it be zero or one-indexed?
+    ///
+    /// This setting has no effect on textual representations.
+    pub one_indexed: bool,
+}
+
+/// The representation used for the week number.
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WeekNumberRepr {
+    /// Week 1 is the week that contains January 4.
+    Iso,
+    /// Week 1 begins on the first Sunday of the calendar year.
+    Sunday,
+    /// Week 1 begins on the first Monday of the calendar year.
+    Monday,
+}
+
+/// Week within the year.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WeekNumber {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
+    /// What kind of representation should be used?
+    pub repr: WeekNumberRepr,
+}
+
+/// The representation used for a year value.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum YearRepr {
+    /// The full value of the year.
+    Full,
+    /// Only the last two digits of the year.
+    LastTwo,
+}
+
+/// Year of the date.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Year {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
+    /// What kind of representation should be used?
+    pub repr: YearRepr,
+    /// Whether the value based on the ISO week number.
+    pub iso_week_based: bool,
+    /// Whether the `+` sign is present when a positive year contains fewer than five digits.
+    pub sign_is_mandatory: bool,
+}
+
+/// Hour of the day.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Hour {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
+    /// Is the hour displayed using a 12 or 24-hour clock?
+    pub is_12_hour_clock: bool,
+}
+
+/// Minute within the hour.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Minute {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
+}
+
+/// AM/PM part of the time.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Period {
+    /// Is the period uppercase or lowercase?
+    pub is_uppercase: bool,
+}
+
+/// Second within the minute.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Second {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
 }
 
 /// The number of digits present in a subsecond representation.
@@ -55,43 +167,47 @@ pub enum SubsecondDigits {
     OneOrMore,
 }
 
-/// The representation used for the day of the week.
-#[non_exhaustive]
+/// Subsecond within the second.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum WeekdayRepr {
-    /// The short form of the weekday (e.g. "Mon").
-    Short,
-    /// The long form of the weekday (e.g. "Monday").
-    Long,
-    /// A numerical representation using Sunday as the first day of the week.
-    ///
-    /// Sunday is either 0 or 1, depending on the other modifier's value.
-    Sunday,
-    /// A numerical representation using Monday as the first day of the week.
-    ///
-    /// Monday is either 0 or 1, depending on the other modifier's value.
-    Monday,
+pub struct Subsecond {
+    /// How many digits are present in the component?
+    pub digits: SubsecondDigits,
 }
 
-/// The representation used for the week number.
-#[non_exhaustive]
+/// Hour of the UTC offset.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum WeekNumberRepr {
-    /// Week 1 is the week that contains January 4.
-    Iso,
-    /// Week 1 begins on the first Sunday of the calendar year.
-    Sunday,
-    /// Week 1 begins on the first Monday of the calendar year.
-    Monday,
+pub struct OffsetHour {
+    /// Whether the `+` sign is present on positive values.
+    pub sign_is_mandatory: bool,
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
 }
 
-/// The representation used for a year value.
+/// Minute within the hour of the UTC offset.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum YearRepr {
-    /// The full value of the year.
-    Full,
-    /// Only the last two digits of the year.
-    LastTwo,
+pub struct OffsetMinute {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
+}
+
+/// Second within the minute of the UTC offset.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct OffsetSecond {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
+}
+
+/// Type of padding to ensure a minimum width.
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Padding {
+    /// A space character (` `) should be used as padding.
+    Space,
+    /// A zero character (`0`) should be used as padding.
+    Zero,
+    /// There is no padding. This can result in a width below the otherwise minimum number of
+    /// characters.
+    None,
 }
 
 macro_rules! impl_default {

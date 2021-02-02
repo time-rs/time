@@ -82,8 +82,7 @@ mod iterator {
 }
 
 use time::format_description::{
-    component,
-    modifier::{MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr},
+    modifier::{self, MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr},
     Component, FormatDescription, InvalidFormatDescription,
 };
 
@@ -130,16 +129,16 @@ fn only_literal() {
 fn simple_component() {
     assert_eq!(
         FormatDescription::parse("[day]"),
-        Ok(owned![FormatDescription::Component(Component::Date(
-            component::Date::Day {
+        Ok(owned![FormatDescription::Component(Component::Day(
+            modifier::Day {
                 padding: Padding::Zero
             }
         ))])
     );
     assert_eq!(
         FormatDescription::parse("[hour]"),
-        Ok(owned![FormatDescription::Component(Component::Time(
-            component::Time::Hour {
+        Ok(owned![FormatDescription::Component(Component::Hour(
+            modifier::Hour {
                 padding: Padding::Zero,
                 is_12_hour_clock: false
             }
@@ -147,16 +146,16 @@ fn simple_component() {
     );
     assert_eq!(
         FormatDescription::parse("[minute]"),
-        Ok(owned![FormatDescription::Component(Component::Time(
-            component::Time::Minute {
+        Ok(owned![FormatDescription::Component(Component::Minute(
+            modifier::Minute {
                 padding: Padding::Zero
             }
         ))])
     );
     assert_eq!(
         FormatDescription::parse("[month]"),
-        Ok(owned![FormatDescription::Component(Component::Date(
-            component::Date::Month {
+        Ok(owned![FormatDescription::Component(Component::Month(
+            modifier::Month {
                 padding: Padding::Zero,
                 repr: MonthRepr::Long
             }
@@ -164,8 +163,8 @@ fn simple_component() {
     );
     assert_eq!(
         FormatDescription::parse("[offset_hour]"),
-        Ok(owned![FormatDescription::Component(Component::UtcOffset(
-            component::UtcOffset::Hour {
+        Ok(owned![FormatDescription::Component(Component::OffsetHour(
+            modifier::OffsetHour {
                 sign_is_mandatory: false,
                 padding: Padding::Zero
             }
@@ -173,54 +172,54 @@ fn simple_component() {
     );
     assert_eq!(
         FormatDescription::parse("[offset_minute]"),
-        Ok(owned![FormatDescription::Component(Component::UtcOffset(
-            component::UtcOffset::Minute {
+        Ok(owned![FormatDescription::Component(
+            Component::OffsetMinute(modifier::OffsetMinute {
                 padding: Padding::Zero
-            }
-        ))])
+            })
+        )])
     );
     assert_eq!(
         FormatDescription::parse("[offset_second]"),
-        Ok(owned![FormatDescription::Component(Component::UtcOffset(
-            component::UtcOffset::Second {
+        Ok(owned![FormatDescription::Component(
+            Component::OffsetSecond(modifier::OffsetSecond {
                 padding: Padding::Zero
-            }
-        ))])
+            })
+        )])
     );
     assert_eq!(
         FormatDescription::parse("[ordinal]"),
-        Ok(owned![FormatDescription::Component(Component::Date(
-            component::Date::Ordinal {
+        Ok(owned![FormatDescription::Component(Component::Ordinal(
+            modifier::Ordinal {
                 padding: Padding::Zero
             }
         ))])
     );
     assert_eq!(
         FormatDescription::parse("[period]"),
-        Ok(owned![FormatDescription::Component(Component::Time(
-            component::Time::Period { is_uppercase: true }
+        Ok(owned![FormatDescription::Component(Component::Period(
+            modifier::Period { is_uppercase: true }
         ))])
     );
     assert_eq!(
         FormatDescription::parse("[second]"),
-        Ok(owned![FormatDescription::Component(Component::Time(
-            component::Time::Second {
+        Ok(owned![FormatDescription::Component(Component::Second(
+            modifier::Second {
                 padding: Padding::Zero
             }
         ))])
     );
     assert_eq!(
         FormatDescription::parse("[subsecond]"),
-        Ok(owned![FormatDescription::Component(Component::Time(
-            component::Time::Subsecond {
+        Ok(owned![FormatDescription::Component(Component::Subsecond(
+            modifier::Subsecond {
                 digits: SubsecondDigits::OneOrMore
             }
         ))])
     );
     assert_eq!(
         FormatDescription::parse("[weekday]"),
-        Ok(owned![FormatDescription::Component(Component::Date(
-            component::Date::Weekday {
+        Ok(owned![FormatDescription::Component(Component::Weekday(
+            modifier::Weekday {
                 repr: WeekdayRepr::Long,
                 one_indexed: true,
             }
@@ -228,8 +227,8 @@ fn simple_component() {
     );
     assert_eq!(
         FormatDescription::parse("[week_number]"),
-        Ok(owned![FormatDescription::Component(Component::Date(
-            component::Date::WeekNumber {
+        Ok(owned![FormatDescription::Component(Component::WeekNumber(
+            modifier::WeekNumber {
                 padding: Padding::Zero,
                 repr: WeekNumberRepr::Iso
             }
@@ -237,8 +236,8 @@ fn simple_component() {
     );
     assert_eq!(
         FormatDescription::parse("[year]"),
-        Ok(owned![FormatDescription::Component(Component::Date(
-            component::Date::Year {
+        Ok(owned![FormatDescription::Component(Component::Year(
+            modifier::Year {
                 padding: Padding::Zero,
                 repr: YearRepr::Full,
                 iso_week_based: false,
@@ -275,38 +274,38 @@ fn component_with_modifiers() {
     for (padding, padding_str) in iterator::padding() {
         assert_eq!(
             FormatDescription::parse(&format!("[day {}]", padding_str)),
-            Ok(owned![FormatDescription::Component(Component::Date(
-                component::Date::Day { padding }
+            Ok(owned![FormatDescription::Component(Component::Day(
+                modifier::Day { padding }
             ))])
         );
         assert_eq!(
             FormatDescription::parse(&format!("[minute {}]", padding_str)),
-            Ok(owned![FormatDescription::Component(Component::Time(
-                component::Time::Minute { padding }
+            Ok(owned![FormatDescription::Component(Component::Minute(
+                modifier::Minute { padding }
             ))])
         );
         assert_eq!(
             FormatDescription::parse(&format!("[offset_minute {}]", padding_str)),
-            Ok(owned![FormatDescription::Component(Component::UtcOffset(
-                component::UtcOffset::Minute { padding }
-            ))])
+            Ok(owned![FormatDescription::Component(
+                Component::OffsetMinute(modifier::OffsetMinute { padding })
+            )])
         );
         assert_eq!(
             FormatDescription::parse(&format!("[offset_second {}]", padding_str)),
-            Ok(owned![FormatDescription::Component(Component::UtcOffset(
-                component::UtcOffset::Second { padding }
-            ))])
+            Ok(owned![FormatDescription::Component(
+                Component::OffsetSecond(modifier::OffsetSecond { padding })
+            )])
         );
         assert_eq!(
             FormatDescription::parse(&format!("[ordinal {}]", padding_str)),
-            Ok(owned![FormatDescription::Component(Component::Date(
-                component::Date::Ordinal { padding }
+            Ok(owned![FormatDescription::Component(Component::Ordinal(
+                modifier::Ordinal { padding }
             ))])
         );
         assert_eq!(
             FormatDescription::parse(&format!("[second {}]", padding_str)),
-            Ok(owned![FormatDescription::Component(Component::Time(
-                component::Time::Second { padding }
+            Ok(owned![FormatDescription::Component(Component::Second(
+                modifier::Second { padding }
             ))])
         );
 
@@ -316,8 +315,8 @@ fn component_with_modifiers() {
                     "[hour {} {}]",
                     padding_str, is_12_hour_clock_str
                 )),
-                Ok(owned![FormatDescription::Component(Component::Time(
-                    component::Time::Hour {
+                Ok(owned![FormatDescription::Component(Component::Hour(
+                    modifier::Hour {
                         padding,
                         is_12_hour_clock
                     }
@@ -327,24 +326,24 @@ fn component_with_modifiers() {
         for (repr, repr_str) in iterator::month_repr() {
             assert_eq!(
                 FormatDescription::parse(&format!("[month {} {}]", padding_str, repr_str)),
-                Ok(owned![FormatDescription::Component(Component::Date(
-                    component::Date::Month { padding, repr }
+                Ok(owned![FormatDescription::Component(Component::Month(
+                    modifier::Month { padding, repr }
                 ))])
             );
         }
         for (is_uppercase, is_uppercase_str) in iterator::period_is_uppercase() {
             assert_eq!(
                 FormatDescription::parse(&format!("[period {}]", is_uppercase_str)),
-                Ok(owned![FormatDescription::Component(Component::Time(
-                    component::Time::Period { is_uppercase }
+                Ok(owned![FormatDescription::Component(Component::Period(
+                    modifier::Period { is_uppercase }
                 ))])
             );
         }
         for (repr, repr_str) in iterator::week_number_repr() {
             assert_eq!(
                 FormatDescription::parse(&format!("[week_number {} {}]", padding_str, repr_str)),
-                Ok(owned![FormatDescription::Component(Component::Date(
-                    component::Date::WeekNumber { padding, repr }
+                Ok(owned![FormatDescription::Component(Component::WeekNumber(
+                    modifier::WeekNumber { padding, repr }
                 ))])
             );
         }
@@ -354,8 +353,8 @@ fn component_with_modifiers() {
                     "[offset_hour {} {}]",
                     padding_str, sign_is_mandatory_str
                 )),
-                Ok(owned![FormatDescription::Component(Component::UtcOffset(
-                    component::UtcOffset::Hour {
+                Ok(owned![FormatDescription::Component(Component::OffsetHour(
+                    modifier::OffsetHour {
                         sign_is_mandatory,
                         padding
                     }
@@ -369,8 +368,8 @@ fn component_with_modifiers() {
                             "[year {} {} {} {}]",
                             padding_str, repr_str, iso_week_based_str, sign_is_mandatory_str
                         )),
-                        Ok(owned![FormatDescription::Component(Component::Date(
-                            component::Date::Year {
+                        Ok(owned![FormatDescription::Component(Component::Year(
+                            modifier::Year {
                                 padding,
                                 repr,
                                 iso_week_based,
@@ -386,8 +385,8 @@ fn component_with_modifiers() {
     for (digits, digits_str) in iterator::subsecond_digits() {
         assert_eq!(
             FormatDescription::parse(&format!("[subsecond {}]", digits_str)),
-            Ok(owned![FormatDescription::Component(Component::Time(
-                component::Time::Subsecond { digits }
+            Ok(owned![FormatDescription::Component(Component::Subsecond(
+                modifier::Subsecond { digits }
             ))])
         );
     }
@@ -396,8 +395,8 @@ fn component_with_modifiers() {
         for (one_indexed, one_indexed_str) in iterator::weekday_is_one_indexed() {
             assert_eq!(
                 FormatDescription::parse(&format!("[weekday {} {} ]", repr_str, one_indexed_str)),
-                Ok(owned![FormatDescription::Component(Component::Date(
-                    component::Date::Weekday { repr, one_indexed }
+                Ok(owned![FormatDescription::Component(Component::Weekday(
+                    modifier::Weekday { repr, one_indexed }
                 ))])
             );
         }
@@ -440,44 +439,44 @@ fn rfc_3339() {
              sign:mandatory]:[offset_minute]"
         ),
         Ok(owned![
-            FormatDescription::Component(Component::Date(component::Date::Year {
+            FormatDescription::Component(Component::Year(modifier::Year {
                 padding: Padding::Zero,
                 repr: YearRepr::Full,
                 iso_week_based: false,
                 sign_is_mandatory: false
             })),
             FormatDescription::Literal("-"),
-            FormatDescription::Component(Component::Date(component::Date::Month {
+            FormatDescription::Component(Component::Month(modifier::Month {
                 padding: Padding::Zero,
                 repr: MonthRepr::Numerical
             })),
             FormatDescription::Literal("-"),
-            FormatDescription::Component(Component::Date(component::Date::Day {
+            FormatDescription::Component(Component::Day(modifier::Day {
                 padding: Padding::Zero
             })),
             FormatDescription::Literal("T"),
-            FormatDescription::Component(Component::Time(component::Time::Hour {
+            FormatDescription::Component(Component::Hour(modifier::Hour {
                 padding: Padding::Zero,
                 is_12_hour_clock: false
             })),
             FormatDescription::Literal(":"),
-            FormatDescription::Component(Component::Time(component::Time::Minute {
+            FormatDescription::Component(Component::Minute(modifier::Minute {
                 padding: Padding::Zero
             })),
             FormatDescription::Literal(":"),
-            FormatDescription::Component(Component::Time(component::Time::Second {
+            FormatDescription::Component(Component::Second(modifier::Second {
                 padding: Padding::Zero
             })),
             FormatDescription::Literal("."),
-            FormatDescription::Component(Component::Time(component::Time::Subsecond {
+            FormatDescription::Component(Component::Subsecond(modifier::Subsecond {
                 digits: SubsecondDigits::OneOrMore
             })),
-            FormatDescription::Component(Component::UtcOffset(component::UtcOffset::Hour {
+            FormatDescription::Component(Component::OffsetHour(modifier::OffsetHour {
                 padding: Padding::Zero,
                 sign_is_mandatory: true
             })),
             FormatDescription::Literal(":"),
-            FormatDescription::Component(Component::UtcOffset(component::UtcOffset::Minute {
+            FormatDescription::Component(Component::OffsetMinute(modifier::OffsetMinute {
                 padding: Padding::Zero
             }))
         ])

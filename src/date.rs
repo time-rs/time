@@ -1,6 +1,6 @@
 use crate::{
     error,
-    format_description::{component, modifier, Component, FormatDescription},
+    format_description::{modifier, Component, FormatDescription},
     util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year},
     Duration, PrimitiveDateTime, Time, Weekday,
 };
@@ -662,19 +662,19 @@ impl Display for Date {
         match self.format_into(
             f,
             &FormatDescription::BorrowedCompound(&[
-                FormatDescription::Component(Component::Date(component::Date::Year {
+                FormatDescription::Component(Component::Year(modifier::Year {
                     padding: modifier::Padding::Zero,
                     repr: modifier::YearRepr::Full,
                     iso_week_based: false,
                     sign_is_mandatory: false,
                 })),
                 FormatDescription::Literal("-"),
-                FormatDescription::Component(Component::Date(component::Date::Month {
+                FormatDescription::Component(Component::Month(modifier::Month {
                     padding: modifier::Padding::Zero,
                     repr: modifier::MonthRepr::Numerical,
                 })),
                 FormatDescription::Literal("-"),
-                FormatDescription::Component(Component::Date(component::Date::Day {
+                FormatDescription::Component(Component::Day(modifier::Day {
                     padding: modifier::Padding::Zero,
                 })),
             ]),

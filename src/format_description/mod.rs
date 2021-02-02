@@ -1,6 +1,6 @@
 //! Description of how types should be formatted and parsed.
 
-pub mod component;
+mod component;
 pub(crate) mod error;
 pub mod modifier;
 #[cfg(feature = "alloc")]
