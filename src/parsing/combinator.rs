@@ -1,15 +1,10 @@
 //! Implementations of the low-level parser combinators.
 
+use crate::format_description::modifier::Padding;
 use core::{str::FromStr, u128};
 
 /// Marker trait for integers.
 pub(crate) trait Integer: FromStr {}
-impl Integer for i8 {}
-impl Integer for i16 {}
-impl Integer for i32 {}
-impl Integer for i64 {}
-impl Integer for i128 {}
-impl Integer for isize {}
 impl Integer for u8 {}
 impl Integer for u16 {}
 impl Integer for u32 {}
@@ -31,12 +26,27 @@ macro_rules! first_string_of_map {
     };
 }
 
+/// Call the provided parser, only mutating the original input if the final value is successful.
+///
+/// This is helpful when there may be multiple steps in parsing, as wrapping it with this will
+/// ensure the input is never partially mutated.
+pub(crate) fn lazy_mut<'a, T>(
+    parser: impl Fn(&mut &'a str) -> Option<T>,
+) -> impl Fn(&mut &'a str) -> Option<T> {
+    move |orig_input| {
+        let mut input = *orig_input;
+        let value = parser(&mut input)?;
+        *orig_input = input;
+        Some(value)
+    }
+}
+
 /// Parse a string.
-pub(crate) fn string<'a>(expected: &'a str) -> impl Fn(&mut &'a str) -> Option<()> {
+pub(crate) fn string<'a>(expected: &'a str) -> impl Fn(&mut &'a str) -> Option<&'a str> {
     move |input| {
         let remaining = input.strip_prefix(expected)?;
         *input = remaining;
-        Some(())
+        Some(expected)
     }
 }
 
@@ -45,12 +55,9 @@ pub(crate) fn first_string_of<'a>(
     expected_one_of: &'a [&str],
 ) -> impl Fn(&mut &'a str) -> Option<&'a str> {
     move |input| {
-        for &expected in expected_one_of {
-            if string(expected)(input).is_some() {
-                return Some(expected);
-            }
-        }
-        None
+        expected_one_of
+            .iter()
+            .find_map(|expected| string(expected)(input))
     }
 }
 
@@ -67,70 +74,94 @@ pub(crate) fn flat_map<'a, T, U>(
     parser: impl Fn(&mut &'a str) -> Option<T>,
     map_fn: impl Fn(T) -> Option<U>,
 ) -> impl Fn(&mut &'a str) -> Option<U> {
-    move |input| parser(input).and_then(|v| map_fn(v))
+    lazy_mut(move |input| parser(input).and_then(|v| map_fn(v)))
 }
 
 /// Consume between `n` and `m` instances of the provided parser.
-pub(crate) fn n_to_m<'a, 'b: 'a, T>(
-    n: usize,
-    m: usize,
+pub(crate) fn n_to_m<'a, T>(
+    n: u8,
+    m: u8,
     parser: impl Fn(&mut &'a str) -> Option<T>,
-) -> impl Fn(&mut &'b str) -> Option<&'a str> {
+) -> impl Fn(&mut &'a str) -> Option<&'a str> {
     debug_assert!(m >= n);
-    move |orig_input| {
-        // We don't want to mutate the input if the parser fails.
-        let mut input = *orig_input;
+    lazy_mut(move |input| {
+        // We need to keep this to determine the total length eventually consumed.
+        let orig_input = *input;
 
         // Mandatory
         for _ in 0..n {
-            parser(&mut input)?;
+            parser(input)?;
         }
 
         // Optional
         for _ in n..m {
-            if parser(&mut input).is_none() {
+            if parser(input).is_none() {
                 break;
             };
         }
 
-        // Find out how much was consumed. We can finally mutate the true input, returning the chunk
-        // at the front.
-        let (ret_val, remaining_input) = orig_input.split_at(orig_input.len() - input.len());
-        *orig_input = remaining_input;
-        Some(ret_val)
-    }
+        Some(&orig_input[..(orig_input.len() - input.len())])
+    })
 }
 
 /// Consume exactly `n` instances of the provided parser.
-pub(crate) fn exactly_n<'a, 'b: 'a, T>(
-    n: usize,
+pub(crate) fn exactly_n<'a, T>(
+    n: u8,
     parser: impl Fn(&mut &'a str) -> Option<T>,
-) -> impl Fn(&mut &'b str) -> Option<&'a str> {
+) -> impl Fn(&mut &'a str) -> Option<&'a str> {
     n_to_m(n, n, parser)
 }
 
 /// Consume between `n` and `m` digits, returning the numerical value.
-pub(crate) fn n_to_m_digits<'a, T: Integer>(
-    n: usize,
-    m: usize,
-) -> impl Fn(&mut &'a str) -> Option<T> {
+pub(crate) fn n_to_m_digits<'a, T: Integer>(n: u8, m: u8) -> impl Fn(&mut &'a str) -> Option<T> {
     debug_assert!(m >= n);
-    flat_map(
-        n_to_m(n, m, pred(any_char, char::is_ascii_digit)),
-        |value| value.parse().ok(),
-    )
+    flat_map(n_to_m(n, m, any_digit), |value| value.parse().ok())
 }
 
 /// Consume exactly `n` digits, returning the numerical value.
-pub(crate) fn exactly_n_digits<'a, T: Integer>(n: usize) -> impl Fn(&mut &'a str) -> Option<T> {
+pub(crate) fn exactly_n_digits<'a, T: Integer>(n: u8) -> impl Fn(&mut &'a str) -> Option<T> {
     n_to_m_digits(n, n)
 }
 
-/// Consume exactly one character.
-pub(crate) fn any_char(input: &mut &str) -> Option<char> {
-    let value = input.chars().next()?;
-    *input = &input[value.len_utf8()..];
-    Some(value)
+/// Consume exactly `n` digits, returning the numerical value.
+pub(crate) fn exactly_n_digits_padded<'a, T: Integer>(
+    n: u8,
+    padding: Padding,
+) -> impl Fn(&mut &'a str) -> Option<T> {
+    lazy_mut(move |input| {
+        if padding == Padding::None {
+            n_to_m_digits(1, n)(input)
+        } else if padding == Padding::Space {
+            let pad_width = n_to_m(0, n, ascii_char(b' '))(input).map_or(0, |s| s.len() as u8);
+            exactly_n_digits(n - pad_width)(input)
+        } else {
+            let pad_width = n_to_m(0, n, ascii_char(b'0'))(input).map_or(0, |s| s.len() as u8);
+            exactly_n_digits(n - pad_width)(input)
+        }
+    })
+}
+
+/// Consume exactly one digit.
+pub(crate) fn any_digit(input: &mut &str) -> Option<u8> {
+    if !input.is_empty() && input.as_bytes()[0].is_ascii_digit() {
+        let ret_val = input.as_bytes()[0];
+        *input = &input[1..];
+        Some(ret_val)
+    } else {
+        None
+    }
+}
+
+/// Consume exactly one of the provided ASCII characters.
+pub(crate) fn ascii_char(char: u8) -> impl Fn(&mut &str) -> Option<()> {
+    move |input| {
+        if !input.is_empty() && input.as_bytes()[0] == char {
+            *input = &input[1..];
+            Some(())
+        } else {
+            None
+        }
+    }
 }
 
 /// Filter the output based on a predicate.
@@ -138,21 +169,5 @@ pub(crate) fn pred<'a, T>(
     parser: impl Fn(&mut &'a str) -> Option<T>,
     predicate: impl Fn(&T) -> bool,
 ) -> impl Fn(&mut &'a str) -> Option<T> {
-    move |orig_input| {
-        let mut input = *orig_input;
-        let value = parser(&mut input).filter(|v| predicate(v))?;
-        *orig_input = input;
-        Some(value)
-    }
-}
-
-/// Indicate that the parser need not succeed, as the parsed value is optional.
-///
-/// To remain consistent with the other combinators, this method returns `Option<_>`. However, it is
-/// _guaranteed_ to return `Some(_)`. The contained value may still be `None`, indicating that the
-/// attempted parse was unsuccessful.
-pub(crate) fn opt<'a, T>(
-    parser: impl Fn(&mut &'a str) -> Option<T>,
-) -> impl Fn(&mut &'a str) -> Option<Option<T>> {
-    map(parser, Some)
+    lazy_mut(move |input| parser(input).filter(|v| predicate(v)))
 }

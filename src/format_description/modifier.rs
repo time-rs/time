@@ -162,8 +162,8 @@ pub enum SubsecondDigits {
     Eight,
     /// Exactly nine digits.
     Nine,
-    /// Any number of digits that is at least one. When formatting, the minimum digits necessary
-    /// will be used.
+    /// Any number of digits (up to nine) that is at least one. When formatting, the minimum digits
+    /// necessary will be used.
     OneOrMore,
 }
 
