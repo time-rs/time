@@ -69,14 +69,6 @@ pub(crate) fn first_match<'a, T: Copy + 'a>(
 }
 
 /// Map the resulting value to a new value (that may or may not be the same type).
-pub(crate) fn map<'a, T, U>(
-    parser: impl Fn(&mut &'a str) -> Option<T>,
-    map_fn: impl Fn(T) -> U,
-) -> impl Fn(&mut &'a str) -> Option<U> {
-    move |input| parser(input).map(|v| map_fn(v))
-}
-
-/// Map the resulting value to a new value (that may or may not be the same type).
 pub(crate) fn flat_map<'a, T, U>(
     parser: impl Fn(&mut &'a str) -> Option<T>,
     map_fn: impl Fn(T) -> Option<U>,
@@ -169,12 +161,4 @@ pub(crate) fn ascii_char(char: u8) -> impl Fn(&mut &str) -> Option<()> {
             None
         }
     }
-}
-
-/// Filter the output based on a predicate.
-pub(crate) fn pred<'a, T>(
-    parser: impl Fn(&mut &'a str) -> Option<T>,
-    predicate: impl Fn(&T) -> bool,
-) -> impl Fn(&mut &'a str) -> Option<T> {
-    lazy_mut(move |input| parser(input).filter(|v| predicate(v)))
 }
