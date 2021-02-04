@@ -7,11 +7,11 @@ use crate::{
     },
     parsing::{
         combinator,
-        date::{
-            parse_day, parse_month, parse_ordinal, parse_week_number, parse_weekday, parse_year,
+        component::{
+            parse_day, parse_hour, parse_minute, parse_month, parse_offset_hour,
+            parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
+            parse_subsecond, parse_week_number, parse_weekday, parse_year, Period,
         },
-        offset::{parse_offset_hour, parse_offset_minute, parse_offset_second},
-        time::{parse_hour, parse_minute, parse_period, parse_second, parse_subsecond, Period},
         Error,
     },
     Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,

@@ -1,12 +1,8 @@
 //! Parsing for various types.
 
-#[macro_use]
 mod combinator;
-
-mod date;
-mod offset;
+mod component;
 mod parsed;
-mod time;
 
 pub use parsed::Parsed;
 
