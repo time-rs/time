@@ -37,7 +37,7 @@ pub(crate) fn lazy_mut<'a, T>(
 }
 
 /// Parse a string.
-pub(crate) fn string<'a>(expected: &'a str) -> impl Fn(&mut &'a str) -> Option<&'a str> {
+pub(crate) fn string<'a, 'b: 'a>(expected: &'b str) -> impl Fn(&mut &'a str) -> Option<&'a str> {
     move |input| {
         let remaining = input.strip_prefix(expected)?;
         *input = remaining;
@@ -45,21 +45,22 @@ pub(crate) fn string<'a>(expected: &'a str) -> impl Fn(&mut &'a str) -> Option<&
     }
 }
 
-/// Parse one of the provided strings.
-pub(crate) fn first_string_of<'a>(
-    expected_one_of: &'a [&str],
-) -> impl Fn(&mut &'a str) -> Option<&'a str> {
-    move |input| {
-        expected_one_of
-            .iter()
-            .find_map(|expected| string(expected)(input))
+/// Parse a "+" or "-" sign. Returns the ASCII byte representing the sign, if present.
+pub(crate) fn sign(input: &mut &str) -> Option<char> {
+    if let Some(remaining) = input.strip_prefix('-') {
+        *input = remaining;
+        Some('-')
+    } else {
+        let remaining = input.strip_prefix('+')?;
+        *input = remaining;
+        Some('+')
     }
 }
 
 /// Consume the first matching string, returning its associated value.
-pub(crate) fn first_match<'a, T: Copy + 'a>(
-    mut options: impl Iterator<Item = &'a (&'a str, T)>,
-) -> impl FnMut(&mut &'a str) -> Option<T> {
+pub(crate) fn first_match<'a, 'b: 'a, T: Copy + 'a>(
+    mut options: impl Iterator<Item = &'a (&'b str, T)>,
+) -> impl FnMut(&mut &'b str) -> Option<T> {
     move |input| {
         options.find_map(|&(expected, t)| {
             string(expected)(input)?;

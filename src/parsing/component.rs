@@ -1,10 +1,9 @@
-//! Parsing implementations for all [`Component`]s.
+//! Parsing implementations for all [`Component`](crate::format_description::Component)s.
 
 use crate::{
     format_description::modifier,
     parsing::combinator::{
-        any_digit, exactly_n, exactly_n_digits_padded, first_match, first_string_of, lazy_mut,
-        n_to_m,
+        any_digit, exactly_n, exactly_n_digits_padded, first_match, lazy_mut, n_to_m, sign,
     },
     Weekday,
 };
@@ -14,13 +13,13 @@ use core::num::{NonZeroU16, NonZeroU8};
 pub(crate) fn parse_year(input: &mut &str, modifiers: modifier::Year) -> Option<i32> {
     match modifiers.repr {
         modifier::YearRepr::Full => lazy_mut(|input| {
-            let sign = first_string_of(&["-", "+"])(input);
+            let sign = sign(input);
             let year = exactly_n_digits_padded::<u32>(
                 if cfg!(feature = "large-dates") { 6 } else { 4 },
                 modifiers.padding,
             )(input)?;
             match sign {
-                Some("-") => Some(-(year as i32)),
+                Some('-') => Some(-(year as i32)),
                 None if modifiers.sign_is_mandatory || year >= 10_000 => None,
                 _ => Some(year as i32),
             }
@@ -33,7 +32,42 @@ pub(crate) fn parse_year(input: &mut &str, modifiers: modifier::Year) -> Option<
 
 /// Parse the "month" component of a `Date`.
 pub(crate) fn parse_month(input: &mut &str, modifiers: modifier::Month) -> Option<NonZeroU8> {
-    exactly_n_digits_padded(2, modifiers.padding)(input)
+    first_match(match modifiers.repr {
+        modifier::MonthRepr::Numerical => {
+            return exactly_n_digits_padded(2, modifiers.padding)(input);
+        }
+        modifier::MonthRepr::Long => [
+            ("January", 1),
+            ("February", 2),
+            ("March", 3),
+            ("April", 4),
+            ("May", 5),
+            ("June", 6),
+            ("July", 7),
+            ("August", 8),
+            ("September", 9),
+            ("October", 10),
+            ("November", 11),
+            ("December", 12),
+        ]
+        .iter(),
+        modifier::MonthRepr::Short => [
+            ("Jan", 1),
+            ("Feb", 2),
+            ("Mar", 3),
+            ("Apr", 4),
+            ("May", 5),
+            ("Jun", 6),
+            ("Jul", 7),
+            ("Aug", 8),
+            ("Sep", 9),
+            ("Oct", 10),
+            ("Nov", 11),
+            ("Dec", 12),
+        ]
+        .iter(),
+    })(input)
+    .and_then(NonZeroU8::new)
 }
 
 /// Parse the "week number" component of a `Date`.
@@ -173,10 +207,10 @@ pub(crate) fn parse_subsecond(input: &mut &str, modifiers: modifier::Subsecond) 
 /// Parse the "hour" component of a `UtcOffset`.
 pub(crate) fn parse_offset_hour(input: &mut &str, modifiers: modifier::OffsetHour) -> Option<i8> {
     lazy_mut(|input| {
-        let sign = first_string_of(&["-", "+"])(input);
+        let sign = sign(input);
         let hour = exactly_n_digits_padded::<u8>(2, modifiers.padding)(input)?;
         match sign {
-            Some("-") => Some(-(hour as i8)),
+            Some('-') => Some(-(hour as i8)),
             None if modifiers.sign_is_mandatory => None,
             _ => Some(hour as i8),
         }
