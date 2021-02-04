@@ -5,6 +5,7 @@
 #[macro_use]
 mod combinator;
 
+mod date;
 mod offset;
 mod parsed;
 mod time;

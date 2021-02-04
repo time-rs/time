@@ -2,11 +2,11 @@
 
 use crate::{
     format_description::modifier,
-    parsing::combinator::{any_digit, exactly_n, exactly_n_digits_padded, n_to_m},
+    parsing::combinator::{any_digit, exactly_n, exactly_n_digits_padded, first_match, n_to_m},
 };
 
 /// Indicate whether the hour is "am" or "pm".
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) enum Period {
     #[allow(clippy::missing_docs_in_private_items)]
     Am,
@@ -31,17 +31,11 @@ pub(crate) fn parse_second(input: &mut &str, modifiers: modifier::Second) -> Opt
 
 /// Parse the "period" component of a `Time`. Required if the hour is on a 12-hour clock.
 pub(crate) fn parse_period(input: &mut &str, modifiers: modifier::Period) -> Option<Period> {
-    if modifiers.is_uppercase {
-        first_string_of_map!(
-            "AM" => Period::Am,
-            "PM" => Period::Pm,
-        )(input)
+    first_match(if modifiers.is_uppercase {
+        [("AM", Period::Am), ("PM", Period::Pm)].iter()
     } else {
-        first_string_of_map!(
-            "am" => Period::Am,
-            "pm" => Period::Pm,
-        )(input)
-    }
+        [("am", Period::Am), ("pm", Period::Pm)].iter()
+    })(input)
 }
 
 /// Parse the "subsecond" component of a `Time`.

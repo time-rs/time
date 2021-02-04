@@ -1,7 +1,10 @@
 //! Implementations of the low-level parser combinators.
 
 use crate::format_description::modifier::Padding;
-use core::{str::FromStr, u128};
+use core::{
+    num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize},
+    str::FromStr,
+};
 
 /// Marker trait for integers.
 pub(crate) trait Integer: FromStr {}
@@ -11,20 +14,12 @@ impl Integer for u32 {}
 impl Integer for u64 {}
 impl Integer for u128 {}
 impl Integer for usize {}
-
-macro_rules! first_string_of_map {
-    ($($s:literal => $e:expr),+ $(,)?) => {
-        |input: &mut &str| {
-            $(if let Some(remaining) = input.strip_prefix($s) {
-                *input = remaining;
-                Some($e)
-            })else+
-            else {
-                None
-            }
-        }
-    };
-}
+impl Integer for NonZeroU8 {}
+impl Integer for NonZeroU16 {}
+impl Integer for NonZeroU32 {}
+impl Integer for NonZeroU64 {}
+impl Integer for NonZeroU128 {}
+impl Integer for NonZeroUsize {}
 
 /// Call the provided parser, only mutating the original input if the final value is successful.
 ///
@@ -58,6 +53,18 @@ pub(crate) fn first_string_of<'a>(
         expected_one_of
             .iter()
             .find_map(|expected| string(expected)(input))
+    }
+}
+
+/// Consume the first matching string, returning its associated value.
+pub(crate) fn first_match<'a, T: Copy + 'a>(
+    mut options: impl Iterator<Item = &'a (&'a str, T)>,
+) -> impl FnMut(&mut &'a str) -> Option<T> {
+    move |input| {
+        options.find_map(|&(expected, t)| {
+            string(expected)(input)?;
+            Some(t)
+        })
     }
 }
 
