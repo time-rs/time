@@ -34,7 +34,7 @@ pub(crate) fn parse_month(input: &mut &str, modifiers: modifier::Month) -> Optio
 }
 
 /// Parse the "week number" component of a `Date`.
-pub(crate) fn parse_week(input: &mut &str, modifiers: modifier::WeekNumber) -> Option<u8> {
+pub(crate) fn parse_week_number(input: &mut &str, modifiers: modifier::WeekNumber) -> Option<u8> {
     exactly_n_digits_padded(2, modifiers.padding)(input)
 }
 

@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// Indicate whether the hour is "am" or "pm".
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Period {
     #[allow(clippy::missing_docs_in_private_items)]
     Am,
