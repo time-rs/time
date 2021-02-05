@@ -4,7 +4,10 @@ use alloc::string::String;
 use core::fmt;
 
 /// The format description provided was not valid.
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+#[cfg_attr(
+    __time_03_docs,
+    doc(cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc")))
+)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InvalidFormatDescription {
     /// There was a bracket pair that was opened but not closed.
@@ -33,14 +36,16 @@ pub enum InvalidFormatDescription {
     },
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+#[cfg_attr(
+    __time_03_docs,
+    doc(cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc")))
+)]
 impl From<InvalidFormatDescription> for crate::Error {
     fn from(original: InvalidFormatDescription) -> Self {
         Self::InvalidFormatDescription(original)
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl fmt::Display for InvalidFormatDescription {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use InvalidFormatDescription::*;

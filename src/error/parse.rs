@@ -3,6 +3,7 @@
 use core::fmt;
 
 /// An error that occurred during parsing.
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Parse {
@@ -25,8 +26,10 @@ impl fmt::Display for Parse {
 }
 
 #[cfg(feature = "std")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for Parse {}
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl From<Parse> for crate::Error {
     fn from(original: Parse) -> Self {
         Self::Parse(original)

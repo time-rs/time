@@ -1,19 +1,27 @@
 mod component_range;
 mod conversion_range;
+#[cfg(feature = "formatting")]
 mod format;
+#[cfg(feature = "parsing")]
 mod from_parsed;
+#[cfg(feature = "local-offset")]
 mod indeterminate_offset;
-#[cfg(feature = "alloc")]
+#[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
 mod invalid_format_description;
+#[cfg(feature = "parsing")]
 mod parse;
 
 pub use component_range::ComponentRange;
 pub use conversion_range::ConversionRange;
+#[cfg(feature = "formatting")]
 pub use format::Format;
+#[cfg(feature = "parsing")]
 pub use from_parsed::FromParsed;
+#[cfg(feature = "local-offset")]
 pub use indeterminate_offset::IndeterminateOffset;
-#[cfg(feature = "alloc")]
+#[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
 pub use invalid_format_description::InvalidFormatDescription;
+#[cfg(feature = "parsing")]
 pub use parse::Parse;
 
 use core::fmt;
@@ -29,12 +37,23 @@ use core::fmt;
 pub enum Error {
     ConversionRange,
     ComponentRange(ComponentRange),
+    #[cfg(feature = "local-offset")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
     IndeterminateOffset,
+    #[cfg(feature = "formatting")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
     Format(Format),
+    #[cfg(feature = "parsing")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
     Parse(Parse),
+    #[cfg(feature = "parsing")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
     FromParsed(FromParsed),
-    #[cfg(feature = "alloc")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+    #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
+    #[cfg_attr(
+        __time_03_docs,
+        doc(cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc")))
+    )]
     InvalidFormatDescription(InvalidFormatDescription),
 }
 
@@ -43,11 +62,15 @@ impl fmt::Display for Error {
         match self {
             Self::ConversionRange => ConversionRange.fmt(f),
             Self::ComponentRange(e) => e.fmt(f),
+            #[cfg(feature = "local-offset")]
             Self::IndeterminateOffset => IndeterminateOffset.fmt(f),
+            #[cfg(feature = "formatting")]
             Self::Format(e) => e.fmt(f),
+            #[cfg(feature = "parsing")]
             Self::Parse(e) => e.fmt(f),
+            #[cfg(feature = "parsing")]
             Self::FromParsed(e) => e.fmt(f),
-            #[cfg(feature = "alloc")]
+            #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
             Self::InvalidFormatDescription(e) => e.fmt(f),
         }
     }
@@ -60,10 +83,15 @@ impl std::error::Error for Error {
         match self {
             Self::ConversionRange => Some(&ConversionRange),
             Self::ComponentRange(err) => Some(err),
+            #[cfg(feature = "local-offset")]
             Self::IndeterminateOffset => Some(&IndeterminateOffset),
+            #[cfg(feature = "formatting")]
             Self::Format(err) => Some(err),
+            #[cfg(feature = "parsing")]
             Self::Parse(err) => Some(err),
+            #[cfg(feature = "parsing")]
             Self::FromParsed(err) => Some(err),
+            #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
             Self::InvalidFormatDescription(err) => Some(err),
         }
     }

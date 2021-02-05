@@ -116,6 +116,7 @@
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(test(attr(deny(warnings))))]
 
+#[allow(unused_extern_crates)]
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
