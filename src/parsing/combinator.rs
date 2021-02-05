@@ -39,8 +39,7 @@ pub(crate) fn lazy_mut<'a, T>(
 /// Parse a string.
 pub(crate) fn string<'a, 'b: 'a>(expected: &'b str) -> impl Fn(&mut &'a str) -> Option<&'a str> {
     move |input| {
-        let remaining = input.strip_prefix(expected)?;
-        *input = remaining;
+        *input = input.strip_prefix(expected)?;
         Some(expected)
     }
 }
@@ -132,10 +131,10 @@ pub(crate) fn exactly_n_digits_padded<'a, T: Integer>(
         if padding == Padding::None {
             n_to_m_digits(1, n)(input)
         } else if padding == Padding::Space {
-            let pad_width = n_to_m(0, n, ascii_char(b' '))(input).map_or(0, |s| s.len() as u8);
+            let pad_width = n_to_m(0, n - 1, ascii_char(b' '))(input).map_or(0, |s| s.len() as u8);
             exactly_n_digits(n - pad_width)(input)
         } else {
-            let pad_width = n_to_m(0, n, ascii_char(b'0'))(input).map_or(0, |s| s.len() as u8);
+            let pad_width = n_to_m(0, n - 1, ascii_char(b'0'))(input).map_or(0, |s| s.len() as u8);
             exactly_n_digits(n - pad_width)(input)
         }
     })
@@ -143,23 +142,22 @@ pub(crate) fn exactly_n_digits_padded<'a, T: Integer>(
 
 /// Consume exactly one digit.
 pub(crate) fn any_digit(input: &mut &str) -> Option<u8> {
-    if !input.is_empty() && input.as_bytes()[0].is_ascii_digit() {
-        let ret_val = input.as_bytes()[0];
-        *input = &input[1..];
-        Some(ret_val)
-    } else {
-        None
+    match input.as_bytes() {
+        [c, ..] if c.is_ascii_digit() => {
+            *input = &input[1..];
+            Some(*c)
+        }
+        _ => None,
     }
 }
 
 /// Consume exactly one of the provided ASCII characters.
 pub(crate) fn ascii_char(char: u8) -> impl Fn(&mut &str) -> Option<()> {
-    move |input| {
-        if !input.is_empty() && input.as_bytes()[0] == char {
+    move |input| match input.as_bytes() {
+        [c, ..] if *c == char => {
             *input = &input[1..];
             Some(())
-        } else {
-            None
         }
+        _ => None,
     }
 }
