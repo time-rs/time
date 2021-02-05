@@ -15,6 +15,8 @@ pub enum Error {
     ComponentRange(ComponentRange),
     IndeterminateOffset,
     Format(Format),
+    Parse(crate::parsing::ParseError),
+    FromParsed(crate::parsing::FromParsedError),
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     InvalidFormatDescription(InvalidFormatDescription),
@@ -27,6 +29,8 @@ impl fmt::Display for Error {
             Self::ComponentRange(e) => e.fmt(f),
             Self::IndeterminateOffset => IndeterminateOffset.fmt(f),
             Self::Format(e) => e.fmt(f),
+            Self::Parse(e) => e.fmt(f),
+            Self::FromParsed(e) => e.fmt(f),
             #[cfg(feature = "alloc")]
             Self::InvalidFormatDescription(e) => e.fmt(f),
         }
@@ -42,6 +46,8 @@ impl std::error::Error for Error {
             Self::ComponentRange(err) => Some(err),
             Self::IndeterminateOffset => Some(&IndeterminateOffset),
             Self::Format(err) => Some(err),
+            Self::Parse(err) => Some(err),
+            Self::FromParsed(err) => Some(err),
             Self::InvalidFormatDescription(err) => Some(err),
         }
     }
