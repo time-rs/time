@@ -1,7 +1,7 @@
 //! Various modifiers for components.
 
 #[cfg(feature = "alloc")]
-use crate::format_description::{error::InvalidFormatDescription, helper};
+use crate::{error::InvalidFormatDescription, format_description::helper};
 #[cfg(feature = "alloc")]
 use alloc::borrow::ToOwned;
 

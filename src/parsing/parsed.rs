@@ -1,6 +1,7 @@
 //! Information parsed from an input and format description.
 
 use crate::{
+    error,
     format_description::{
         modifier::{WeekNumberRepr, YearRepr},
         Component, FormatDescription,
@@ -12,7 +13,6 @@ use crate::{
             parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
             parse_subsecond, parse_week_number, parse_weekday, parse_year, Period,
         },
-        FromParsedError, ParseError,
     },
     Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
 };
@@ -104,7 +104,7 @@ impl Parsed {
     pub fn parse_from_description<'a>(
         mut input: &'a str,
         format_description: &FormatDescription<'a>,
-    ) -> Result<Self, ParseError> {
+    ) -> Result<Self, error::Parse> {
         let mut parsed = Self::new();
         parsed._parse_from_description(&mut input, format_description)?;
         Ok(parsed)
@@ -115,10 +115,10 @@ impl Parsed {
         &mut self,
         input: &mut &'a str,
         format_description: &FormatDescription<'a>,
-    ) -> Result<(), ParseError> {
+    ) -> Result<(), error::Parse> {
         match format_description {
             FormatDescription::Literal(literal) => {
-                combinator::string(literal)(input).ok_or(ParseError::InvalidLiteral)?;
+                combinator::string(literal)(input).ok_or(error::Parse::InvalidLiteral)?;
             }
             FormatDescription::Component(component) => {
                 self.parse_component(input, *component)?;
@@ -144,46 +144,38 @@ impl Parsed {
         &mut self,
         input: &mut &'a str,
         component: Component,
-    ) -> Result<(), ParseError> {
+    ) -> Result<(), error::Parse> {
+        use error::Parse::InvalidComponent;
+
         match component {
             Component::Day(modifiers) => {
-                self.day =
-                    Some(parse_day(input, modifiers).ok_or(ParseError::InvalidComponent("day"))?);
+                self.day = Some(parse_day(input, modifiers).ok_or(InvalidComponent("day"))?);
             }
             Component::Month(modifiers) => {
-                self.month = Some(
-                    parse_month(input, modifiers).ok_or(ParseError::InvalidComponent("month"))?,
-                );
+                self.month = Some(parse_month(input, modifiers).ok_or(InvalidComponent("month"))?);
             }
             Component::Ordinal(modifiers) => {
-                self.ordinal = Some(
-                    parse_ordinal(input, modifiers)
-                        .ok_or(ParseError::InvalidComponent("ordinal"))?,
-                );
+                self.ordinal =
+                    Some(parse_ordinal(input, modifiers).ok_or(InvalidComponent("ordinal"))?);
             }
             Component::Weekday(modifiers) => {
-                self.weekday = Some(
-                    parse_weekday(input, modifiers)
-                        .ok_or(ParseError::InvalidComponent("weekday"))?,
-                );
+                self.weekday =
+                    Some(parse_weekday(input, modifiers).ok_or(InvalidComponent("weekday"))?);
             }
             Component::WeekNumber(modifiers) => {
-                let value = parse_week_number(input, modifiers)
-                    .ok_or(ParseError::InvalidComponent("week number"))?;
+                let value =
+                    parse_week_number(input, modifiers).ok_or(InvalidComponent("week number"))?;
                 match modifiers.repr {
                     WeekNumberRepr::Iso => {
-                        self.iso_week_number = Some(
-                            NonZeroU8::new(value)
-                                .ok_or(ParseError::InvalidComponent("week number"))?,
-                        )
+                        self.iso_week_number =
+                            Some(NonZeroU8::new(value).ok_or(InvalidComponent("week number"))?)
                     }
                     WeekNumberRepr::Sunday => self.sunday_week_number = Some(value),
                     WeekNumberRepr::Monday => self.monday_week_number = Some(value),
                 }
             }
             Component::Year(modifiers) => {
-                let value =
-                    parse_year(input, modifiers).ok_or(ParseError::InvalidComponent("year"))?;
+                let value = parse_year(input, modifiers).ok_or(InvalidComponent("year"))?;
                 match (modifiers.iso_week_based, modifiers.repr) {
                     (false, YearRepr::Full) => self.iso_year = Some(value),
                     (false, YearRepr::LastTwo) => self.iso_year_last_two = Some(value as u8),
@@ -192,53 +184,45 @@ impl Parsed {
                 }
             }
             Component::Hour(modifiers) => {
-                let value =
-                    parse_hour(input, modifiers).ok_or(ParseError::InvalidComponent("hour"))?;
+                let value = parse_hour(input, modifiers).ok_or(InvalidComponent("hour"))?;
                 if modifiers.is_12_hour_clock {
-                    self.hour_12 =
-                        Some(NonZeroU8::new(value).ok_or(ParseError::InvalidComponent("hour"))?);
+                    self.hour_12 = Some(NonZeroU8::new(value).ok_or(InvalidComponent("hour"))?);
                 } else {
                     self.hour_24 = Some(value);
                 }
             }
             Component::Minute(modifiers) => {
-                self.minute = Some(
-                    parse_minute(input, modifiers).ok_or(ParseError::InvalidComponent("minute"))?,
-                );
+                self.minute =
+                    Some(parse_minute(input, modifiers).ok_or(InvalidComponent("minute"))?);
             }
             Component::Period(modifiers) => {
                 self.hour_12_is_pm = Some(
-                    parse_period(input, modifiers).ok_or(ParseError::InvalidComponent("period"))?
-                        == Period::Pm,
+                    parse_period(input, modifiers).ok_or(InvalidComponent("period"))? == Period::Pm,
                 );
             }
             Component::Second(modifiers) => {
-                self.second = Some(
-                    parse_second(input, modifiers).ok_or(ParseError::InvalidComponent("second"))?,
-                );
+                self.second =
+                    Some(parse_second(input, modifiers).ok_or(InvalidComponent("second"))?);
             }
             Component::Subsecond(modifiers) => {
-                self.subsecond = Some(
-                    parse_subsecond(input, modifiers)
-                        .ok_or(ParseError::InvalidComponent("subsecond"))?,
-                );
+                self.subsecond =
+                    Some(parse_subsecond(input, modifiers).ok_or(InvalidComponent("subsecond"))?);
             }
             Component::OffsetHour(modifiers) => {
                 self.offset_hour = Some(
-                    parse_offset_hour(input, modifiers)
-                        .ok_or(ParseError::InvalidComponent("offset hour"))?,
+                    parse_offset_hour(input, modifiers).ok_or(InvalidComponent("offset hour"))?,
                 );
             }
             Component::OffsetMinute(modifiers) => {
                 self.offset_minute = Some(
                     parse_offset_minute(input, modifiers)
-                        .ok_or(ParseError::InvalidComponent("offset minute"))?,
+                        .ok_or(InvalidComponent("offset minute"))?,
                 );
             }
             Component::OffsetSecond(modifiers) => {
                 self.offset_second = Some(
                     parse_offset_second(input, modifiers)
-                        .ok_or(ParseError::InvalidComponent("offset second"))?,
+                        .ok_or(InvalidComponent("offset second"))?,
                 );
             }
         }
@@ -248,7 +232,7 @@ impl Parsed {
 }
 
 impl TryFrom<Parsed> for Date {
-    type Error = FromParsedError;
+    type Error = error::FromParsed;
 
     fn try_from(_parsed: Parsed) -> Result<Self, Self::Error> {
         todo!()
@@ -256,7 +240,7 @@ impl TryFrom<Parsed> for Date {
 }
 
 impl TryFrom<Parsed> for Time {
-    type Error = FromParsedError;
+    type Error = error::FromParsed;
 
     fn try_from(_parsed: Parsed) -> Result<Self, Self::Error> {
         todo!()
@@ -264,7 +248,7 @@ impl TryFrom<Parsed> for Time {
 }
 
 impl TryFrom<Parsed> for UtcOffset {
-    type Error = FromParsedError;
+    type Error = error::FromParsed;
 
     fn try_from(_parsed: Parsed) -> Result<Self, Self::Error> {
         todo!()
@@ -272,7 +256,7 @@ impl TryFrom<Parsed> for UtcOffset {
 }
 
 impl TryFrom<Parsed> for PrimitiveDateTime {
-    type Error = FromParsedError;
+    type Error = error::FromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
         Ok(Self::new(parsed.try_into()?, parsed.try_into()?))
@@ -280,7 +264,7 @@ impl TryFrom<Parsed> for PrimitiveDateTime {
 }
 
 impl TryFrom<Parsed> for OffsetDateTime {
-    type Error = FromParsedError;
+    type Error = error::FromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
         Ok(PrimitiveDateTime::try_from(parsed)?.assume_offset(parsed.try_into()?))

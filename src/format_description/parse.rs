@@ -1,9 +1,11 @@
 //! Parse a format description into a standardized representation.
 
-use crate::format_description::{
-    component::{Component, NakedComponent},
+use crate::{
     error::InvalidFormatDescription,
-    helper, modifier, FormatDescription,
+    format_description::{
+        component::{Component, NakedComponent},
+        helper, modifier, FormatDescription,
+    },
 };
 use alloc::vec::Vec;
 

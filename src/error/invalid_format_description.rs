@@ -1,12 +1,9 @@
-//! Errors that can be returned when parsing a format description.
+//! Invalid format description
 
-#[cfg(feature = "alloc")]
 use alloc::string::String;
-#[cfg(feature = "alloc")]
 use core::fmt;
 
 /// The format description provided was not valid.
-#[cfg(feature = "alloc")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InvalidFormatDescription {
@@ -36,7 +33,13 @@ pub enum InvalidFormatDescription {
     },
 }
 
-#[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+impl From<InvalidFormatDescription> for crate::Error {
+    fn from(original: InvalidFormatDescription) -> Self {
+        Self::InvalidFormatDescription(original)
+    }
+}
+
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl fmt::Display for InvalidFormatDescription {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

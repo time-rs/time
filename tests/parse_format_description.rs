@@ -81,9 +81,14 @@ mod iterator {
     }
 }
 
-use time::format_description::{
-    modifier::{self, MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr},
-    Component, FormatDescription, InvalidFormatDescription,
+use time::{
+    error::InvalidFormatDescription,
+    format_description::{
+        modifier::{
+            self, MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,
+        },
+        Component, FormatDescription,
+    },
 };
 
 macro_rules! owned {

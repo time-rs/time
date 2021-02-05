@@ -1,7 +1,6 @@
 //! Description of how types should be formatted and parsed.
 
 mod component;
-pub(crate) mod error;
 pub mod modifier;
 #[cfg(feature = "alloc")]
 pub(crate) mod parse;
@@ -9,8 +8,6 @@ pub(crate) mod parse;
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
 pub use component::Component;
-#[cfg(feature = "alloc")]
-pub use error::InvalidFormatDescription;
 
 /// Helper methods.
 #[cfg(feature = "alloc")]

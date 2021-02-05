@@ -2,7 +2,7 @@
 
 use crate::format_description::modifier;
 #[cfg(feature = "alloc")]
-use crate::format_description::{modifier::Modifiers, InvalidFormatDescription};
+use crate::{error::InvalidFormatDescription, format_description::modifier::Modifiers};
 #[cfg(feature = "alloc")]
 use alloc::borrow::ToOwned;
 
