@@ -1,4 +1,4 @@
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 use time::format_description::FormatDescription;
 #[cfg(all(feature = "local-offset", not(target_family = "unix")))]
 use time::OffsetDateTime;
@@ -53,7 +53,7 @@ fn to_seconds() {
 }
 
 #[test]
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 fn format() -> time::Result<()> {
     assert_eq!(
         offset!("+01:02:03").format(&FormatDescription::parse("[offset_hour sign:automatic]")?)?,
@@ -84,7 +84,7 @@ fn format() -> time::Result<()> {
 }
 
 #[test]
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 fn display() {
     assert_eq!(offset!("UTC").to_string(), "+00:00:00");
     assert_eq!(offset!("+0:00:01").to_string(), "+00:00:01");

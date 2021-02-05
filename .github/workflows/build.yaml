@@ -65,6 +65,7 @@ jobs:
             --feature-powerset
             --optional-deps
             --group-features serde,rand
+            --group-features formatting,parsing
             --exclude-features default,winapi,std,local-offset,quickcheck,quickcheck-dep
             --exclude-all-features
             --target ${{ matrix.target.triple }}
@@ -80,6 +81,7 @@ jobs:
             --feature-powerset
             --optional-deps
             --group-features serde,rand
+            --group-features formatting,parsing
             --exclude-features default,winapi,quickcheck-dep
             --target ${{ matrix.target.triple }}
         if: matrix.target.has_std == true
@@ -184,6 +186,7 @@ jobs:
             --feature-powerset
             --optional-deps
             --group-features serde,rand
+            --group-features formatting,parsing
             --exclude-features default,winapi,quickcheck-dep
 
       - name: Test
@@ -280,7 +283,7 @@ jobs:
 
       - name: Create top-level redirect
         run: |
-          echo "<meta http-equiv='refresh' content='0; url=https://time-rs.github.io/time'>" >> ./target/doc/index.html
+          echo "<meta http-equiv='refresh' content='0; url=https://time-rs.github.io/time'>" > ./target/doc/index.html
 
       - name: Publish documentation
         uses: JamesIves/github-pages-deploy-action@releases/v3

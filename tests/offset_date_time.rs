@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 use time::format_description::FormatDescription;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
@@ -882,7 +882,7 @@ fn to_std() {
 }
 
 #[test]
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 fn format() -> time::Result<()> {
     // Various components are tested thoroughly in their relevant files. As
     // such, this test only exists to ensure that nothing breaks unexpectedly.
@@ -898,7 +898,7 @@ fn format() -> time::Result<()> {
 }
 
 #[test]
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 fn display() {
     assert_eq!(
         datetime!("1970-01-01 0:00 UTC").to_string(),

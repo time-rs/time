@@ -1,13 +1,14 @@
+#[cfg(feature = "formatting")]
+use crate::format_description::{modifier, Component, FormatDescription};
 use crate::{
     error,
-    format_description::{modifier, Component, FormatDescription},
     util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year},
     Duration, PrimitiveDateTime, Time, Weekday,
 };
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 use alloc::string::String;
 use core::{
-    fmt::{self, Display},
+    fmt,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
@@ -627,6 +628,8 @@ impl Date {
     }
 }
 
+#[cfg(feature = "formatting")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl Date {
     /// Format the `Date` using the provided format description. The formatted value will be output
     /// to the provided writer. The format description will typically be parsed by using
@@ -657,7 +660,9 @@ impl Date {
     }
 }
 
-impl Display for Date {
+#[cfg(feature = "formatting")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
+impl fmt::Display for Date {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.format_into(
             f,

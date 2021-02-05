@@ -1,6 +1,6 @@
 use core::i32;
 use std::{cmp::Ordering, collections::HashSet};
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 use time::format_description::FormatDescription;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
@@ -597,7 +597,7 @@ fn with_hms_nano() {
 }
 
 #[test]
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 fn format() -> time::Result<()> {
     let input_output = [
         ("[day]", "31"),
@@ -635,7 +635,7 @@ fn format() -> time::Result<()> {
 }
 
 #[test]
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 fn display() {
     assert_eq!(date!("2019-01-01").to_string(), "2019-01-01");
     assert_eq!(date!("2019-12-31").to_string(), "2019-12-31");

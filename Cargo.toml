@@ -24,13 +24,15 @@ quickcheck = ["quickcheck-dep", "alloc"]
 std = ["alloc"]
 alloc = []
 large-dates = ["time-macros/large-dates"]
+formatting = ["itoa"]
+parsing = []
 
 [dependencies]
 const_fn = "0.4.5"
-itoa = { version = "0.4.7", default-features = false } # TODO make optional when formatting is made optional
+itoa = { version = "0.4.7", default-features = false, optional = true }
 quickcheck-dep = { package = "quickcheck", version = "1.0.3", optional = true }
-rand = { version = "0.8.2", optional = true, default-features = false }
-serde = { version = "1.0.119", optional = true, default-features = false }
+rand = { version = "0.8.3", optional = true, default-features = false }
+serde = { version = "1.0.123", optional = true, default-features = false }
 time-macros = { version = "=0.2.0-dev", path = "time-macros" }
 
 [workspace]
@@ -40,9 +42,9 @@ members = ["time-benchmarks", "time-macros"]
 winapi = { version = "0.3.9", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
 
 [target.'cfg(unsound_local_offset)'.dependencies]
-libc = "0.2.82"
+libc = "0.2.85"
 
 [dev-dependencies]
-rand = { version = "0.8.2", default-features = false }
-serde = { version = "1.0.119", default-features = false, features = ["derive"] }
+rand = { version = "0.8.3", default-features = false }
+serde = { version = "1.0.123", default-features = false, features = ["derive"] }
 serde_json = "1.0.61"

@@ -1,12 +1,13 @@
+use crate::error;
+#[cfg(feature = "formatting")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
+use crate::format_description::{modifier, Component, FormatDescription};
 #[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
-use crate::{
-    error,
-    format_description::{modifier, Component, FormatDescription},
-};
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 use alloc::string::String;
-use core::fmt::{self, Display};
+#[cfg(feature = "formatting")]
+use core::fmt;
 
 /// An offset from UTC.
 ///
@@ -152,6 +153,8 @@ impl UtcOffset {
     }
 }
 
+#[cfg(feature = "formatting")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl UtcOffset {
     /// Format the `UtcOffset` using the provided format description. The formatted value will be
     /// output to the provided writer. The format description will typically be parsed by using
@@ -182,7 +185,9 @@ impl UtcOffset {
     }
 }
 
-impl Display for UtcOffset {
+#[cfg(feature = "formatting")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
+impl fmt::Display for UtcOffset {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.format_into(
             f,

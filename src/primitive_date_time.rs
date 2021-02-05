@@ -1,11 +1,11 @@
-use crate::{
-    error, format_description::FormatDescription, hack, util, Date, Duration, OffsetDateTime, Time,
-    UtcOffset, Weekday,
-};
-#[cfg(feature = "alloc")]
+#[cfg(feature = "formatting")]
+use crate::{error, format_description::FormatDescription};
+use crate::{hack, util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 use alloc::string::String;
+#[cfg(feature = "formatting")]
+use core::fmt;
 use core::{
-    fmt,
     ops::{Add, AddAssign, Sub, SubAssign},
     time::Duration as StdDuration,
 };
@@ -487,6 +487,8 @@ impl PrimitiveDateTime {
     }
 }
 
+#[cfg(feature = "formatting")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided format description. The formatted value
     /// will be output to the provided writer. The format description will typically be parsed by
@@ -521,6 +523,8 @@ impl PrimitiveDateTime {
     }
 }
 
+#[cfg(feature = "formatting")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl fmt::Display for PrimitiveDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {}", self.date, self.time)

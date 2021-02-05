@@ -1,4 +1,4 @@
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 use time::format_description::FormatDescription;
 use time::{
     ext::{NumericalDuration, NumericalStdDuration},
@@ -151,7 +151,7 @@ fn nanosecond() -> Result<()> {
 }
 
 #[test]
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 fn format() -> time::Result<()> {
     let input_output = [
         ("[hour]", "13"),
@@ -190,7 +190,7 @@ fn format() -> time::Result<()> {
 }
 
 #[test]
-#[cfg(feature = "alloc")]
+#[cfg(all(feature = "formatting", feature = "alloc"))]
 fn display() {
     assert_eq!(time!("0:00").to_string(), "0:00:00.0");
     assert_eq!(time!("23:59").to_string(), "23:59:00.0");

@@ -20,6 +20,14 @@
 //!
 //!   Enables a number of features that require the ability to dynamically allocate memory.
 //!
+//! - `formatting`
+//!
+//!   Enables formatting of most structs.
+//!
+//! - `parsing`
+//!
+//!   Enables parsing of most structs.
+//!
 //! - `local-offset` (_implicitly enables `std`_)
 //!
 //!   This feature enables a number of methods that allow obtaining the system's UTC offset.
@@ -243,7 +251,14 @@ mod duration;
 pub mod error;
 /// Extension traits.
 pub mod ext;
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+#[cfg_attr(
+    __time_03_docs,
+    doc(cfg(any(feature = "formatting", feature = "parsing")))
+)]
 pub mod format_description;
+#[cfg(feature = "formatting")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 mod formatting;
 mod hack;
 /// The [`Instant`] struct and its associated `impl`s.
@@ -254,6 +269,8 @@ mod instant;
 pub mod macros;
 /// The [`OffsetDateTime`] struct and its associated `impl`s.
 mod offset_date_time;
+#[cfg(feature = "parsing")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 pub mod parsing;
 /// The [`PrimitiveDateTime`] struct and its associated `impl`s.
 mod primitive_date_time;
