@@ -397,51 +397,57 @@ impl Date {
     /// Get the next calendar date.
     ///
     /// ```rust
-    /// # use time::macros::date;
-    /// assert_eq!(date!("2019-01-01").next_day(), date!("2019-01-02"));
-    /// assert_eq!(date!("2019-01-31").next_day(), date!("2019-02-01"));
-    /// assert_eq!(date!("2019-12-31").next_day(), date!("2020-01-01"));
+    /// # use time::{Date, macros::date};
+    /// assert_eq!(date!("2019-01-01").next_day(), Some(date!("2019-01-02")));
+    /// assert_eq!(date!("2019-01-31").next_day(), Some(date!("2019-02-01")));
+    /// assert_eq!(date!("2019-12-31").next_day(), Some(date!("2020-01-01")));
+    /// assert_eq!(Date::MAX.next_day(), None);
     /// ```
-    pub fn next_day(self) -> Self {
-        let (mut year, mut ordinal) = self.to_ordinal_date();
-
-        ordinal += 1;
-
-        if ordinal > days_in_year(year) {
-            year += 1;
-            ordinal = 1;
+    pub const fn next_day(self) -> Option<Self> {
+        if self.ordinal() == 366 || (self.ordinal() == 365 && !is_leap_year(self.year())) {
+            if self.value == Self::MAX.value {
+                None
+            } else {
+                Some(Self::from_ordinal_date_unchecked(self.year() + 1, 1))
+            }
+        } else {
+            Some(Self {
+                value: self.value + 1,
+            })
         }
-
-        if year > MAX_YEAR {
-            panic!("overflow when fetching next day");
-        }
-
-        Self::from_ordinal_date_unchecked(year, ordinal)
     }
 
     /// Get the previous calendar date.
     ///
     /// ```rust
-    /// # use time::macros::date;
-    /// assert_eq!(date!("2019-01-02").previous_day(), date!("2019-01-01"));
-    /// assert_eq!(date!("2019-02-01").previous_day(), date!("2019-01-31"));
-    /// assert_eq!(date!("2020-01-01").previous_day(), date!("2019-12-31"));
+    /// # use time::{Date, macros::date};
+    /// assert_eq!(
+    ///     date!("2019-01-02").previous_day(),
+    ///     Some(date!("2019-01-01"))
+    /// );
+    /// assert_eq!(
+    ///     date!("2019-02-01").previous_day(),
+    ///     Some(date!("2019-01-31"))
+    /// );
+    /// assert_eq!(
+    ///     date!("2020-01-01").previous_day(),
+    ///     Some(date!("2019-12-31"))
+    /// );
+    /// assert_eq!(Date::MIN.previous_day(), None);
     /// ```
-    pub fn previous_day(self) -> Self {
-        let (mut year, mut ordinal) = self.to_ordinal_date();
-
-        ordinal -= 1;
-
-        if ordinal == 0 {
-            year -= 1;
-            ordinal = days_in_year(year);
+    pub const fn previous_day(self) -> Option<Self> {
+        if self.ordinal() != 1 {
+            Some(Self {
+                value: self.value - 1,
+            })
+        } else if self.value == Self::MIN.value {
+            None
+        } else {
+            Some(Self::from_ordinal_date_unchecked(
+                self.year() - 1,
+                days_in_year(self.year() - 1),
+            ))
         }
-
-        if year < MIN_YEAR {
-            panic!("overflow when fetching previous day");
-        }
-
-        Self::from_ordinal_date_unchecked(year, ordinal)
     }
 
     /// Get the Julian day for the date.

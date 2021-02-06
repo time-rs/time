@@ -108,13 +108,35 @@ setup_benchmark! {
     }
 
     fn next_day(ben: &mut Bencher) {
-        let d = date!("2019-01-01");
-        ben.iter(|| d.next_day());
+        let a = date!("2019-01-01");
+        let b = date!("2019-02-01");
+        let c = date!("2019-12-31");
+        let d = date!("2020-12-31");
+        let e = Date::MAX;
+
+        ben.iter(|| (
+            a.next_day(),
+            b.next_day(),
+            c.next_day(),
+            d.next_day(),
+            e.next_day(),
+        ));
     }
 
     fn previous_day(ben: &mut Bencher) {
-        let d = date!("2019-01-02");
-        ben.iter(|| d.previous_day());
+        let a = date!("2019-01-02");
+        let b = date!("2019-02-01");
+        let c = date!("2020-01-01");
+        let d = date!("2021-01-01");
+        let e = Date::MIN;
+
+        ben.iter(|| (
+            a.previous_day(),
+            b.previous_day(),
+            c.previous_day(),
+            d.previous_day(),
+            e.previous_day(),
+        ));
     }
 
     fn to_julian_day(ben: &mut Bencher) {

@@ -509,16 +509,32 @@ fn weekday() {
 
 #[test]
 fn next_day() {
-    assert_eq!(date!("2019-01-01").next_day(), date!("2019-01-02"));
-    assert_eq!(date!("2019-01-31").next_day(), date!("2019-02-01"));
-    assert_eq!(date!("2019-12-31").next_day(), date!("2020-01-01"));
+    assert_eq!(date!("2019-01-01").next_day(), Some(date!("2019-01-02")));
+    assert_eq!(date!("2019-01-31").next_day(), Some(date!("2019-02-01")));
+    assert_eq!(date!("2019-12-31").next_day(), Some(date!("2020-01-01")));
+    assert_eq!(date!("2020-12-31").next_day(), Some(date!("2021-01-01")));
+    assert_eq!(Date::MAX.next_day(), None);
 }
 
 #[test]
 fn previous_day() {
-    assert_eq!(date!("2019-01-02").previous_day(), date!("2019-01-01"));
-    assert_eq!(date!("2019-02-01").previous_day(), date!("2019-01-31"));
-    assert_eq!(date!("2020-01-01").previous_day(), date!("2019-12-31"));
+    assert_eq!(
+        date!("2019-01-02").previous_day(),
+        Some(date!("2019-01-01"))
+    );
+    assert_eq!(
+        date!("2019-02-01").previous_day(),
+        Some(date!("2019-01-31"))
+    );
+    assert_eq!(
+        date!("2020-01-01").previous_day(),
+        Some(date!("2019-12-31"))
+    );
+    assert_eq!(
+        date!("2021-01-01").previous_day(),
+        Some(date!("2020-12-31"))
+    );
+    assert_eq!(Date::MIN.previous_day(), None);
 }
 
 #[test]
@@ -727,22 +743,4 @@ fn ord() {
     assert_eq!(first.cmp(&first), Ordering::Equal);
     assert_eq!(first.cmp(&second), Ordering::Less);
     assert_eq!(second.cmp(&first), Ordering::Greater);
-}
-
-#[test]
-#[should_panic]
-fn next_day_panics() {
-    #[cfg(feature = "large-dates")]
-    date!("+999_999-12-31").next_day();
-    #[cfg(not(feature = "large-dates"))]
-    date!("+9999-12-31").next_day();
-}
-
-#[test]
-#[should_panic]
-fn previous_day_panics() {
-    #[cfg(feature = "large-dates")]
-    date!("-999_999-01-01").previous_day();
-    #[cfg(not(feature = "large-dates"))]
-    date!("-9999-01-01").previous_day();
 }

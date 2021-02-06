@@ -85,6 +85,8 @@ Versioning].
   - `Time::midnight()` → `Time::MIDNIGHT`
 - Now `const fn` (on at least newer compilers)
   - `Date::weekday`
+  - `Date::next_day`
+  - `Date::previous_day`
   - `PrimitiveDateTime::assume_offset`
   - `PrimitiveDateTime::weekday`
   - `Duration::checked_add`
@@ -115,6 +117,9 @@ Versioning].
   - `Date::from_julian_day`
   - `OffsetDateTime::from_unix_timestamp`
   - `OffsetDateTime::from_unix_timestamp_nanos`
+- The following functions now return an `Option`:
+  - `Date::next_day`
+  - `Date::previous_day`
 - The range of valid years has changed. By default, it is ±9999. When using the
   `large-dates` feature, this is increased to ±999,999. Enabling the feature has
   performance implications and introduces ambiguities when parsing.

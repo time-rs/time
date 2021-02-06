@@ -540,8 +540,12 @@ impl Add<Duration> for PrimitiveDateTime {
 
         Self {
             date: match date_adjustment {
-                util::DateAdjustment::Previous => date.previous_day(),
-                util::DateAdjustment::Next => date.next_day(),
+                util::DateAdjustment::Previous => date
+                    .previous_day()
+                    .expect("resulting value is out of range"),
+                util::DateAdjustment::Next => {
+                    date.next_day().expect("resulting value is out of range")
+                }
                 util::DateAdjustment::None => date,
             },
             time,
@@ -557,7 +561,9 @@ impl Add<StdDuration> for PrimitiveDateTime {
 
         Self {
             date: if is_next_day {
-                (self.date + duration).next_day()
+                (self.date + duration)
+                    .next_day()
+                    .expect("resulting value is out of range")
             } else {
                 self.date + duration
             },
@@ -594,7 +600,9 @@ impl Sub<StdDuration> for PrimitiveDateTime {
 
         Self {
             date: if is_previous_day {
-                (self.date - duration).previous_day()
+                (self.date - duration)
+                    .previous_day()
+                    .expect("resulting value is out of range")
             } else {
                 self.date - duration
             },
