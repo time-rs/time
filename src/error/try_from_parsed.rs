@@ -7,7 +7,7 @@ use core::fmt;
 #[non_exhaustive]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FromParsed {
+pub enum TryFromParsed {
     /// The [`Parsed`](crate::parsing::Parsed) did not include enough information to construct the
     /// type.
     InsufficientInformation,
@@ -15,7 +15,7 @@ pub enum FromParsed {
     ComponentRange(error::ComponentRange),
 }
 
-impl fmt::Display for FromParsed {
+impl fmt::Display for TryFromParsed {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InsufficientInformation => f.write_str(
@@ -26,7 +26,7 @@ impl fmt::Display for FromParsed {
     }
 }
 
-impl From<error::ComponentRange> for FromParsed {
+impl From<error::ComponentRange> for TryFromParsed {
     fn from(v: error::ComponentRange) -> Self {
         Self::ComponentRange(v)
     }
@@ -34,7 +34,7 @@ impl From<error::ComponentRange> for FromParsed {
 
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
-impl std::error::Error for FromParsed {
+impl std::error::Error for TryFromParsed {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::InsufficientInformation => None,
@@ -44,8 +44,8 @@ impl std::error::Error for FromParsed {
 }
 
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
-impl From<FromParsed> for crate::Error {
-    fn from(original: FromParsed) -> Self {
-        Self::FromParsed(original)
+impl From<TryFromParsed> for crate::Error {
+    fn from(original: TryFromParsed) -> Self {
+        Self::TryFromParsed(original)
     }
 }

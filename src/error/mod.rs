@@ -2,29 +2,32 @@ mod component_range;
 mod conversion_range;
 #[cfg(feature = "formatting")]
 mod format;
-#[cfg(feature = "parsing")]
-mod from_parsed;
 #[cfg(feature = "local-offset")]
 mod indeterminate_offset;
+#[cfg(feature = "parsing")]
+mod intermediate_parse;
 #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
 mod invalid_format_description;
 #[cfg(feature = "parsing")]
 mod parse;
+#[cfg(feature = "parsing")]
+mod try_from_parsed;
 
 pub use component_range::ComponentRange;
 pub use conversion_range::ConversionRange;
+use core::fmt;
 #[cfg(feature = "formatting")]
 pub use format::Format;
-#[cfg(feature = "parsing")]
-pub use from_parsed::FromParsed;
 #[cfg(feature = "local-offset")]
 pub use indeterminate_offset::IndeterminateOffset;
+#[cfg(feature = "parsing")]
+pub use intermediate_parse::IntermediateParse;
 #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
 pub use invalid_format_description::InvalidFormatDescription;
 #[cfg(feature = "parsing")]
 pub use parse::Parse;
-
-use core::fmt;
+#[cfg(feature = "parsing")]
+pub use try_from_parsed::TryFromParsed;
 
 /// A unified error type for anything returned by a method in the time crate.
 ///
@@ -45,10 +48,10 @@ pub enum Error {
     Format(Format),
     #[cfg(feature = "parsing")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
-    Parse(Parse),
+    IntermediateParse(IntermediateParse),
     #[cfg(feature = "parsing")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
-    FromParsed(FromParsed),
+    TryFromParsed(TryFromParsed),
     #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
     #[cfg_attr(
         __time_03_docs,
@@ -67,9 +70,9 @@ impl fmt::Display for Error {
             #[cfg(feature = "formatting")]
             Self::Format(e) => e.fmt(f),
             #[cfg(feature = "parsing")]
-            Self::Parse(e) => e.fmt(f),
+            Self::IntermediateParse(e) => e.fmt(f),
             #[cfg(feature = "parsing")]
-            Self::FromParsed(e) => e.fmt(f),
+            Self::TryFromParsed(e) => e.fmt(f),
             #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
             Self::InvalidFormatDescription(e) => e.fmt(f),
         }
@@ -88,9 +91,9 @@ impl std::error::Error for Error {
             #[cfg(feature = "formatting")]
             Self::Format(err) => Some(err),
             #[cfg(feature = "parsing")]
-            Self::Parse(err) => Some(err),
+            Self::IntermediateParse(err) => Some(err),
             #[cfg(feature = "parsing")]
-            Self::FromParsed(err) => Some(err),
+            Self::TryFromParsed(err) => Some(err),
             #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
             Self::InvalidFormatDescription(err) => Some(err),
         }

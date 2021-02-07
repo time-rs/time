@@ -1,8 +1,12 @@
-#[cfg(feature = "formatting")]
+#[cfg(feature = "parsing")]
+use crate::parsing::Parsed;
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 use crate::{error, format_description::FormatDescription};
 use crate::{hack, util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 use alloc::string::String;
+#[cfg(feature = "parsing")]
+use core::convert::TryInto;
 #[cfg(feature = "formatting")]
 use core::fmt;
 use core::{
@@ -520,6 +524,27 @@ impl PrimitiveDateTime {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
         Ok(s)
+    }
+}
+
+#[cfg(feature = "parsing")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
+impl PrimitiveDateTime {
+    /// Parse a `PrimitiveDateTime` from the input using the provided format description. The format
+    /// description will typically be parsed by using [`FormatDescription::parse`].
+    ///
+    /// ```rust
+    /// # use time::{format_description::FormatDescription, macros::datetime, PrimitiveDateTime};
+    /// let format =
+    ///     FormatDescription::parse("[year]-[month repr:numerical]-[day] [hour]:[minute]:[second]")?;
+    /// assert_eq!(
+    ///     PrimitiveDateTime::parse("2020-01-02 03:04:05", &format)?,
+    ///     datetime!("2020-01-02 03:04:05")
+    /// );
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    pub fn parse(input: &str, description: &FormatDescription<'_>) -> Result<Self, error::Parse> {
+        Ok(Parsed::parse_from_description(input, description)?.try_into()?)
     }
 }
 

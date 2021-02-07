@@ -1,8 +1,14 @@
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use crate::format_description::FormatDescription;
 #[cfg(feature = "formatting")]
-use crate::format_description::{modifier, Component, FormatDescription};
+use crate::format_description::{modifier, Component};
+#[cfg(feature = "parsing")]
+use crate::parsing::Parsed;
 use crate::{error, hack, util::DateAdjustment, Duration};
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 use alloc::string::String;
+#[cfg(feature = "parsing")]
+use core::convert::TryInto;
 use core::{
     fmt,
     ops::{Add, AddAssign, Sub, SubAssign},
@@ -469,6 +475,23 @@ impl Time {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
         Ok(s)
+    }
+}
+
+#[cfg(feature = "parsing")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
+impl Time {
+    /// Parse a `Time` from the input using the provided format description. The format description
+    /// will typically be parsed by using [`FormatDescription::parse`].
+    ///
+    /// ```rust
+    /// # use time::{format_description::FormatDescription, macros::time, Time};
+    /// let format = FormatDescription::parse("[hour]:[minute]:[second]")?;
+    /// assert_eq!(Time::parse("12:00:00", &format)?, time!("12:00"));
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    pub fn parse(input: &str, description: &FormatDescription<'_>) -> Result<Self, error::Parse> {
+        Ok(Parsed::parse_from_description(input, description)?.try_into()?)
     }
 }
 

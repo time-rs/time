@@ -1,11 +1,16 @@
 use crate::error;
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use crate::format_description::FormatDescription;
 #[cfg(feature = "formatting")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
-use crate::format_description::{modifier, Component, FormatDescription};
+use crate::format_description::{modifier, Component};
+#[cfg(feature = "parsing")]
+use crate::parsing::Parsed;
 #[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 use alloc::string::String;
+#[cfg(feature = "parsing")]
+use core::convert::TryInto;
 #[cfg(feature = "formatting")]
 use core::fmt;
 
@@ -182,6 +187,23 @@ impl UtcOffset {
         let mut s = String::new();
         self.format_into(&mut s, description)?;
         Ok(s)
+    }
+}
+
+#[cfg(feature = "parsing")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
+impl UtcOffset {
+    /// Parse a `UtcOffset` from the input using the provided format description. The format
+    /// description will typically be parsed by using [`FormatDescription::parse`].
+    ///
+    /// ```rust
+    /// # use time::{format_description::FormatDescription, macros::offset, UtcOffset};
+    /// let format = FormatDescription::parse("[offset_hour]:[offset_minute]")?;
+    /// assert_eq!(UtcOffset::parse("-03:42", &format)?, offset!("-3:42"));
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    pub fn parse(input: &str, description: &FormatDescription<'_>) -> Result<Self, error::Parse> {
+        Ok(Parsed::parse_from_description(input, description)?.try_into()?)
     }
 }
 

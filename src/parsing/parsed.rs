@@ -1,7 +1,7 @@
 //! Information parsed from an input and format description.
 
 use crate::{
-    error::{self, FromParsed::InsufficientInformation},
+    error::{self, TryFromParsed::InsufficientInformation},
     format_description::{
         modifier::{WeekNumberRepr, YearRepr},
         Component, FormatDescription,
@@ -104,7 +104,7 @@ impl Parsed {
     pub fn parse_from_description<'a>(
         mut input: &'a str,
         format_description: &FormatDescription<'a>,
-    ) -> Result<Self, error::Parse> {
+    ) -> Result<Self, error::IntermediateParse> {
         let mut parsed = Self::new();
         parsed._parse_from_description(&mut input, format_description)?;
         Ok(parsed)
@@ -115,10 +115,11 @@ impl Parsed {
         &mut self,
         input: &mut &'a str,
         format_description: &FormatDescription<'a>,
-    ) -> Result<(), error::Parse> {
+    ) -> Result<(), error::IntermediateParse> {
         match format_description {
             FormatDescription::Literal(literal) => {
-                combinator::string(literal)(input).ok_or(error::Parse::InvalidLiteral)?;
+                combinator::string(literal)(input)
+                    .ok_or(error::IntermediateParse::InvalidLiteral)?;
             }
             FormatDescription::Component(component) => {
                 self.parse_component(input, *component)?;
@@ -144,8 +145,8 @@ impl Parsed {
         &mut self,
         input: &mut &'a str,
         component: Component,
-    ) -> Result<(), error::Parse> {
-        use error::Parse::InvalidComponent;
+    ) -> Result<(), error::IntermediateParse> {
+        use error::IntermediateParse::InvalidComponent;
 
         match component {
             Component::Day(modifiers) => {
@@ -232,7 +233,7 @@ impl Parsed {
 }
 
 impl TryFrom<Parsed> for Date {
-    type Error = error::FromParsed;
+    type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
         macro_rules! items {
@@ -284,7 +285,7 @@ impl TryFrom<Parsed> for Date {
 }
 
 impl TryFrom<Parsed> for Time {
-    type Error = error::FromParsed;
+    type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
         let hour = match (parsed.hour_24, parsed.hour_12, parsed.hour_12_is_pm) {
@@ -296,25 +297,25 @@ impl TryFrom<Parsed> for Time {
             _ => return Err(InsufficientInformation),
         };
         let minute = parsed.minute.ok_or(InsufficientInformation)?;
-        let second = parsed.second.ok_or(InsufficientInformation)?;
-        let subsecond = parsed.subsecond.ok_or(InsufficientInformation)?;
+        let second = parsed.second.unwrap_or(0);
+        let subsecond = parsed.subsecond.unwrap_or(0);
         Ok(Self::from_hms_nano(hour, minute, second, subsecond)?)
     }
 }
 
 impl TryFrom<Parsed> for UtcOffset {
-    type Error = error::FromParsed;
+    type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
         let hour = parsed.offset_hour.ok_or(InsufficientInformation)?;
-        let minute = parsed.offset_minute.ok_or(InsufficientInformation)?;
-        let second = parsed.offset_second.ok_or(InsufficientInformation)?;
+        let minute = parsed.offset_minute.unwrap_or(0);
+        let second = parsed.offset_second.unwrap_or(0);
         Ok(Self::from_hms(hour, minute as i8, second as i8)?)
     }
 }
 
 impl TryFrom<Parsed> for PrimitiveDateTime {
-    type Error = error::FromParsed;
+    type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
         Ok(Self::new(parsed.try_into()?, parsed.try_into()?))
@@ -322,7 +323,7 @@ impl TryFrom<Parsed> for PrimitiveDateTime {
 }
 
 impl TryFrom<Parsed> for OffsetDateTime {
-    type Error = error::FromParsed;
+    type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
         Ok(PrimitiveDateTime::try_from(parsed)?.assume_offset(parsed.try_into()?))
