@@ -1,7 +1,7 @@
 //! Information parsed from an input and format description.
 
 use crate::{
-    error,
+    error::{self, FromParsed::InsufficientInformation},
     format_description::{
         modifier::{WeekNumberRepr, YearRepr},
         Component, FormatDescription,
@@ -177,10 +177,10 @@ impl Parsed {
             Component::Year(modifiers) => {
                 let value = parse_year(input, modifiers).ok_or(InvalidComponent("year"))?;
                 match (modifiers.iso_week_based, modifiers.repr) {
-                    (false, YearRepr::Full) => self.iso_year = Some(value),
-                    (false, YearRepr::LastTwo) => self.iso_year_last_two = Some(value as u8),
-                    (true, YearRepr::Full) => self.year = Some(value),
-                    (true, YearRepr::LastTwo) => self.year_last_two = Some(value as u8),
+                    (false, YearRepr::Full) => self.year = Some(value),
+                    (false, YearRepr::LastTwo) => self.year_last_two = Some(value as u8),
+                    (true, YearRepr::Full) => self.iso_year = Some(value),
+                    (true, YearRepr::LastTwo) => self.iso_year_last_two = Some(value as u8),
                 }
             }
             Component::Hour(modifiers) => {
@@ -234,24 +234,82 @@ impl Parsed {
 impl TryFrom<Parsed> for Date {
     type Error = error::FromParsed;
 
-    fn try_from(_parsed: Parsed) -> Result<Self, Self::Error> {
-        todo!()
+    fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
+        macro_rules! items {
+            ($($item:ident),+ $(,)?) => {
+                Parsed { $($item: Some($item)),*, .. }
+            };
+        }
+
+        /// Get the value needed to adjust the ordinal day for Sunday and Monday-based week
+        /// numbering.
+        const fn adjustment(year: i32) -> i16 {
+            match Date::from_ordinal_date_unchecked(year, 1).weekday() {
+                Weekday::Monday => 7,
+                Weekday::Tuesday => 1,
+                Weekday::Wednesday => 2,
+                Weekday::Thursday => 3,
+                Weekday::Friday => 4,
+                Weekday::Saturday => 5,
+                Weekday::Sunday => 6,
+            }
+        }
+
+        // TODO Only the basics have been covered. There are many other valid values that are not
+        // currently constructed from the information known.
+
+        match parsed {
+            items!(year, ordinal) => Ok(Self::from_ordinal_date(year, ordinal.get())?),
+            items!(year, month, day) => Ok(Self::from_calendar_date(year, month.get(), day.get())?),
+            items!(iso_year, iso_week_number, weekday) => Ok(Self::from_iso_week_date(
+                iso_year,
+                iso_week_number.get(),
+                weekday,
+            )?),
+            items!(year, sunday_week_number, weekday) => Ok(Self::from_ordinal_date(
+                year,
+                (sunday_week_number as i16 * 7 + weekday.number_days_from_sunday() as i16
+                    - adjustment(year)
+                    + 1) as u16,
+            )?),
+            items!(year, monday_week_number, weekday) => Ok(Self::from_ordinal_date(
+                year,
+                (monday_week_number as i16 * 7 + weekday.number_days_from_monday() as i16
+                    - adjustment(year)
+                    + 1) as u16,
+            )?),
+            _ => Err(InsufficientInformation),
+        }
     }
 }
 
 impl TryFrom<Parsed> for Time {
     type Error = error::FromParsed;
 
-    fn try_from(_parsed: Parsed) -> Result<Self, Self::Error> {
-        todo!()
+    fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
+        let hour = match (parsed.hour_24, parsed.hour_12, parsed.hour_12_is_pm) {
+            (Some(hour), _, _) => hour,
+            (_, Some(hour), Some(false)) if hour.get() == 12 => 0,
+            (_, Some(hour), Some(true)) if hour.get() == 12 => 12,
+            (_, Some(hour), Some(false)) => hour.get(),
+            (_, Some(hour), Some(true)) => hour.get() + 12,
+            _ => return Err(InsufficientInformation),
+        };
+        let minute = parsed.minute.ok_or(InsufficientInformation)?;
+        let second = parsed.second.ok_or(InsufficientInformation)?;
+        let subsecond = parsed.subsecond.ok_or(InsufficientInformation)?;
+        Ok(Self::from_hms_nano(hour, minute, second, subsecond)?)
     }
 }
 
 impl TryFrom<Parsed> for UtcOffset {
     type Error = error::FromParsed;
 
-    fn try_from(_parsed: Parsed) -> Result<Self, Self::Error> {
-        todo!()
+    fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
+        let hour = parsed.offset_hour.ok_or(InsufficientInformation)?;
+        let minute = parsed.offset_minute.ok_or(InsufficientInformation)?;
+        let second = parsed.offset_second.ok_or(InsufficientInformation)?;
+        Ok(Self::from_hms(hour, minute as i8, second as i8)?)
     }
 }
 

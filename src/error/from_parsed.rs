@@ -26,6 +26,12 @@ impl fmt::Display for FromParsed {
     }
 }
 
+impl From<error::ComponentRange> for FromParsed {
+    fn from(v: error::ComponentRange) -> Self {
+        Self::ComponentRange(v)
+    }
+}
+
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for FromParsed {
