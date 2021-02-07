@@ -1,5 +1,7 @@
 //! Parsing implementations for all [`Component`](crate::format_description::Component)s.
 
+#[cfg(feature = "large-dates")]
+use crate::parsing::combinator::n_to_m_digits_padded;
 use crate::{
     format_description::modifier,
     parsing::combinator::{
@@ -14,10 +16,10 @@ pub(crate) fn parse_year(input: &mut &str, modifiers: modifier::Year) -> Option<
     match modifiers.repr {
         modifier::YearRepr::Full => lazy_mut(|input| {
             let sign = sign(input);
-            let year = exactly_n_digits_padded::<u32>(
-                if cfg!(feature = "large-dates") { 6 } else { 4 },
-                modifiers.padding,
-            )(input)?;
+            #[cfg(not(feature = "large-dates"))]
+            let year = exactly_n_digits_padded::<u32>(4, modifiers.padding)(input)?;
+            #[cfg(feature = "large-dates")]
+            let year = n_to_m_digits_padded::<u32>(4, 6, modifiers.padding)(input)?;
             match sign {
                 Some('-') => Some(-(year as i32)),
                 None if modifiers.sign_is_mandatory || year >= 10_000 => None,

@@ -118,24 +118,29 @@ pub(crate) fn n_to_m_digits<'a, T: Integer>(n: u8, m: u8) -> impl Fn(&mut &'a st
 }
 
 /// Consume exactly `n` digits, returning the numerical value.
-pub(crate) fn exactly_n_digits<'a, T: Integer>(n: u8) -> impl Fn(&mut &'a str) -> Option<T> {
-    n_to_m_digits(n, n)
-}
-
-/// Consume exactly `n` digits, returning the numerical value.
 pub(crate) fn exactly_n_digits_padded<'a, T: Integer>(
     n: u8,
     padding: Padding,
 ) -> impl Fn(&mut &'a str) -> Option<T> {
+    n_to_m_digits_padded(n, n, padding)
+}
+
+/// Consume between `n` and `m` digits, returning the numerical value.
+pub(crate) fn n_to_m_digits_padded<'a, T: Integer>(
+    n: u8,
+    m: u8,
+    padding: Padding,
+) -> impl Fn(&mut &'a str) -> Option<T> {
+    debug_assert!(m >= n);
     lazy_mut(move |input| {
         if padding == Padding::None {
-            n_to_m_digits(1, n)(input)
+            n_to_m_digits(1, m)(input)
         } else if padding == Padding::Space {
             let pad_width = n_to_m(0, n - 1, ascii_char(b' '))(input).map_or(0, |s| s.len() as u8);
-            exactly_n_digits(n - pad_width)(input)
+            n_to_m_digits(n - pad_width, m - pad_width)(input)
         } else {
             let pad_width = n_to_m(0, n - 1, ascii_char(b'0'))(input).map_or(0, |s| s.len() as u8);
-            exactly_n_digits(n - pad_width)(input)
+            n_to_m_digits(n - pad_width, m - pad_width)(input)
         }
     })
 }
