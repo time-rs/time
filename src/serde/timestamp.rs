@@ -4,25 +4,6 @@
 //!
 //! When deserializing, the offset is assumed to be UTC.
 //!
-//! ```rust
-//! # use time::{OffsetDateTime, macros::datetime};
-//! # use serde_json::json;
-//! # use serde::{Serialize, Deserialize};
-//! #[derive(Debug, PartialEq, Serialize, Deserialize)]
-//! struct S {
-//!     #[serde(with = "time::serde::timestamp")]
-//!     datetime: OffsetDateTime,
-//! }
-//!
-//! let s = S {
-//!     datetime: datetime!("2019-01-01 0:00 UTC"),
-//! };
-//! let v = json!({ "datetime": 1_546_300_800 });
-//! assert_eq!(v, serde_json::to_value(&s)?);
-//! assert_eq!(s, serde_json::from_value(v)?);
-//! # Ok::<_, serde_json::Error>(())
-//! ```
-//!
 //! [Unix timestamp]: https://en.wikipedia.org/wiki/Unix_time
 //! [with]: https://serde.rs/field-attrs.html#with
 
@@ -51,30 +32,6 @@ pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDat
 /// Use this module in combination with serde's [`#[with]`][with] attribute.
 ///
 /// When deserializing, the offset is assumed to be UTC.
-///
-/// ```rust
-/// # use time::{OffsetDateTime, macros::datetime};
-/// # use serde_json::json;
-/// # use serde::{Serialize, Deserialize};
-/// #[derive(Debug, PartialEq, Serialize, Deserialize)]
-/// struct S {
-///     #[serde(with = "time::serde::timestamp::option")]
-///     datetime: Option<OffsetDateTime>,
-/// }
-///
-/// let s = S {
-///     datetime: Some(datetime!("2019-01-01 0:00 UTC")),
-/// };
-/// let v = json!({ "datetime": 1_546_300_800 });
-/// assert_eq!(v, serde_json::to_value(&s)?);
-/// assert_eq!(s, serde_json::from_value(v)?);
-///
-/// let s = S { datetime: None };
-/// let v = json!({ "datetime": null });
-/// assert_eq!(v, serde_json::to_value(&s)?);
-/// assert_eq!(s, serde_json::from_value(v)?);
-/// # Ok::<_, serde_json::Error>(())
-/// ```
 ///
 /// [Unix timestamp]: https://en.wikipedia.org/wiki/Unix_time
 /// [with]: https://serde.rs/field-attrs.html#with
