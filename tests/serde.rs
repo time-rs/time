@@ -1,106 +1,182 @@
 #![cfg(feature = "serde")]
 
+use serde_test::{assert_tokens, Configure, Token};
 use time::{
     macros::{date, datetime, offset, time},
-    Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
+    Duration, Time, Weekday,
 };
 
 #[test]
-fn time() -> serde_json::Result<()> {
-    let original = [Time::MIDNIGHT, time!("23:59:59.999_999_999")];
-    let serialized = "[[0,0,0,0],[23,59,59,999999999]]";
-
-    assert_eq!(serde_json::to_string(&original)?, serialized);
-    assert_eq!(serde_json::from_str::<[Time; 2]>(serialized)?, original);
-
-    Ok(())
-}
-
-#[test]
-fn date() -> serde_json::Result<()> {
-    let original = [date!("-9999-001"), date!("+9999-365")];
-    let serialized = "[[-9999,1],[9999,365]]";
-
-    assert_eq!(serde_json::to_string(&original)?, serialized);
-    assert_eq!(serde_json::from_str::<[Date; 2]>(serialized)?, original);
-
-    Ok(())
-}
-
-#[test]
-fn primitive_date_time() -> serde_json::Result<()> {
-    let original = [
-        datetime!("-9999-001 0:00"),
-        datetime!("+9999-365 23:59:59.999_999_999"),
-    ];
-    let serialized = "[[-9999,1,0,0,0,0],[9999,365,23,59,59,999999999]]";
-
-    assert_eq!(serde_json::to_string(&original)?, serialized);
-    assert_eq!(
-        serde_json::from_str::<[PrimitiveDateTime; 2]>(serialized)?,
-        original
+fn time() {
+    assert_tokens(
+        &Time::MIDNIGHT.compact(),
+        &[
+            Token::Tuple { len: 4 },
+            Token::U8(0),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U32(0),
+            Token::TupleEnd,
+        ],
     );
-
-    Ok(())
-}
-
-#[test]
-fn offset_date_time() -> serde_json::Result<()> {
-    let original = [
-        datetime!("-9999-001 0:00 UTC").to_offset(offset!("+23:59:59")),
-        datetime!("+9999-365 23:59:59.999_999_999 UTC").to_offset(offset!("-23:59:59")),
-    ];
-    let serialized = "[[-9999,1,23,59,59,0,23,59,59],[9999,365,0,0,0,999999999,-23,-59,-59]]";
-
-    assert_eq!(serde_json::to_string(&original)?, serialized);
-    assert_eq!(
-        serde_json::from_str::<[OffsetDateTime; 2]>(serialized)?,
-        original
+    assert_tokens(
+        &time!("23:58:59.123_456_789").compact(),
+        &[
+            Token::Tuple { len: 4 },
+            Token::U8(23),
+            Token::U8(58),
+            Token::U8(59),
+            Token::U32(123_456_789),
+            Token::TupleEnd,
+        ],
     );
-
-    Ok(())
 }
 
 #[test]
-fn utc_offset() -> serde_json::Result<()> {
-    let original = [offset!("-23:59:59"), offset!("+23:59:59")];
-    let serialized = "[[-23,-59,-59],[23,59,59]]";
-
-    assert_eq!(serde_json::to_string(&original)?, serialized);
-    assert_eq!(
-        serde_json::from_str::<[UtcOffset; 2]>(serialized)?,
-        original
+fn date() {
+    assert_tokens(
+        &date!("-9999-001").compact(),
+        &[
+            Token::Tuple { len: 2 },
+            Token::I32(-9999),
+            Token::U16(1),
+            Token::TupleEnd,
+        ],
     );
-
-    Ok(())
+    assert_tokens(
+        &date!("+9999-365").compact(),
+        &[
+            Token::Tuple { len: 2 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::TupleEnd,
+        ],
+    );
 }
 
 #[test]
-fn duration() -> serde_json::Result<()> {
-    let original = [Duration::MIN, Duration::MAX];
-    let serialized = "[[-9223372036854775808,-999999999],[9223372036854775807,999999999]]";
-
-    assert_eq!(serde_json::to_string(&original)?, serialized);
-    assert_eq!(serde_json::from_str::<[Duration; 2]>(serialized)?, original);
-
-    Ok(())
+fn primitive_date_time() {
+    assert_tokens(
+        &datetime!("-9999-001 0:00").compact(),
+        &[
+            Token::Tuple { len: 6 },
+            Token::I32(-9999),
+            Token::U16(1),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U32(0),
+            Token::TupleEnd,
+        ],
+    );
+    assert_tokens(
+        &datetime!("+9999-365 23:58:59.123_456_789").compact(),
+        &[
+            Token::Tuple { len: 6 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::U8(23),
+            Token::U8(58),
+            Token::U8(59),
+            Token::U32(123_456_789),
+            Token::TupleEnd,
+        ],
+    );
 }
 
 #[test]
-fn weekday() -> serde_json::Result<()> {
-    let original = [
-        Weekday::Monday,
-        Weekday::Tuesday,
-        Weekday::Wednesday,
-        Weekday::Thursday,
-        Weekday::Friday,
-        Weekday::Saturday,
-        Weekday::Sunday,
-    ];
-    let serialized = "[1,2,3,4,5,6,7]";
+fn offset_date_time() {
+    assert_tokens(
+        &datetime!("-9999-001 0:00 UTC")
+            .to_offset(offset!("+23:58:59"))
+            .compact(),
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(-9999),
+            Token::U16(1),
+            Token::U8(23),
+            Token::U8(58),
+            Token::U8(59),
+            Token::U32(0),
+            Token::I8(23),
+            Token::I8(58),
+            Token::I8(59),
+            Token::TupleEnd,
+        ],
+    );
+    assert_tokens(
+        &datetime!("+9999-365 23:58:59.123_456_789 UTC")
+            .to_offset(offset!("-23:58:59"))
+            .compact(),
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U32(123_456_789),
+            Token::I8(-23),
+            Token::I8(-58),
+            Token::I8(-59),
+            Token::TupleEnd,
+        ],
+    );
+}
 
-    assert_eq!(serde_json::to_string(&original)?, serialized);
-    assert_eq!(serde_json::from_str::<[Weekday; 7]>(serialized)?, original);
+#[test]
+fn utc_offset() {
+    assert_tokens(
+        &offset!("-23:58:59").compact(),
+        &[
+            Token::Tuple { len: 3 },
+            Token::I8(-23),
+            Token::I8(-58),
+            Token::I8(-59),
+            Token::TupleEnd,
+        ],
+    );
+    assert_tokens(
+        &offset!("+23:58:59").compact(),
+        &[
+            Token::Tuple { len: 3 },
+            Token::I8(23),
+            Token::I8(58),
+            Token::I8(59),
+            Token::TupleEnd,
+        ],
+    );
+}
 
-    Ok(())
+#[test]
+fn duration() {
+    assert_tokens(
+        &Duration::MIN.compact(),
+        &[
+            Token::Tuple { len: 2 },
+            Token::I64(i64::MIN),
+            Token::I32(-999_999_999),
+            Token::TupleEnd,
+        ],
+    );
+    assert_tokens(
+        &Duration::MAX.compact(),
+        &[
+            Token::Tuple { len: 2 },
+            Token::I64(i64::MAX),
+            Token::I32(999_999_999),
+            Token::TupleEnd,
+        ],
+    );
+}
+
+#[test]
+fn weekday() {
+    assert_tokens(&Weekday::Monday.compact(), &[Token::U8(1)]);
+    assert_tokens(&Weekday::Tuesday.compact(), &[Token::U8(2)]);
+    assert_tokens(&Weekday::Wednesday.compact(), &[Token::U8(3)]);
+    assert_tokens(&Weekday::Thursday.compact(), &[Token::U8(4)]);
+    assert_tokens(&Weekday::Friday.compact(), &[Token::U8(5)]);
+    assert_tokens(&Weekday::Saturday.compact(), &[Token::U8(6)]);
+    assert_tokens(&Weekday::Sunday.compact(), &[Token::U8(7)]);
 }
