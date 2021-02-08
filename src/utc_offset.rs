@@ -9,7 +9,16 @@ use crate::parsing::Parsed;
 use crate::OffsetDateTime;
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 use alloc::string::String;
-#[cfg(feature = "parsing")]
+#[cfg(any(
+    feature = "parsing",
+    all(
+        any(
+            all(target_family = "unix", unsound_local_offset),
+            target_family = "windows"
+        ),
+        feature = "local-offset"
+    )
+))]
 use core::convert::TryInto;
 #[cfg(feature = "formatting")]
 use core::fmt;
@@ -253,7 +262,7 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     // can only be enabled by the end user. It must be explicitly passed on each compilation.
     #[cfg(all(target_family = "unix", unsound_local_offset))]
     {
-        use core::{convert::TryInto, mem::MaybeUninit};
+        use core::mem::MaybeUninit;
 
         /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on any error.
         fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
@@ -344,7 +353,7 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     }
     #[cfg(target_family = "windows")]
     {
-        use core::{convert::TryInto, mem::MaybeUninit};
+        use core::mem::MaybeUninit;
         use winapi::{
             shared::minwindef::FILETIME,
             um::{

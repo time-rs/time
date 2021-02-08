@@ -5,6 +5,7 @@ use core::fmt;
 
 /// An error that occurred at some stage of parsing.
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
+#[allow(variant_size_differences)]
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Parse {
