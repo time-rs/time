@@ -49,6 +49,12 @@
 //!
 //!   Enables [serde](https://docs.rs/serde) support for all types.
 //!
+//! - `serde-human-readable` (_implicitly enables `serde`, `formatting`, `parsing`, and `alloc`)
+//!
+//!   Allows serde representations to use a human-readable format. This is determined by the
+//!   serializer, not the user. If this feature is not enabled or if the serializer requests a
+//!   non-human-readable format, a format optimized for binary representation will be used.
+//!
 //! - `rand`
 //!
 //!   Enables [rand](https://docs.rs/rand) support for all types.

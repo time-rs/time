@@ -26,6 +26,7 @@ alloc = []
 large-dates = ["time-macros/large-dates"]
 formatting = ["itoa"]
 parsing = []
+serde-human-readable = ["serde", "formatting", "parsing", "alloc"]
 
 [dependencies]
 const_fn = "0.4.5"
