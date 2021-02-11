@@ -1,6 +1,6 @@
 //! Implementations of the low-level parser combinators.
 
-use crate::format_description::modifier::Padding;
+use crate::{format_description::modifier::Padding, parsing::ParsedItem};
 use core::{
     num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize},
     str::FromStr,
@@ -21,107 +21,83 @@ impl Integer for NonZeroU64 {}
 impl Integer for NonZeroU128 {}
 impl Integer for NonZeroUsize {}
 
-/// Call the provided parser, only mutating the original input if the final value is successful.
-///
-/// This is helpful when there may be multiple steps in parsing, as wrapping it with this will
-/// ensure the input is never partially mutated.
-pub(crate) fn lazy_mut<'a, T>(
-    parser: impl Fn(&mut &'a str) -> Option<T>,
-) -> impl Fn(&mut &'a str) -> Option<T> {
-    move |orig_input| {
-        let mut input = *orig_input;
-        let value = parser(&mut input)?;
-        *orig_input = input;
-        Some(value)
-    }
-}
-
 /// Parse a string.
-pub(crate) fn string<'a, 'b: 'a>(expected: &'b str) -> impl Fn(&mut &'a str) -> Option<&'a str> {
-    move |input| {
-        *input = input.strip_prefix(expected)?;
-        Some(expected)
-    }
+pub(crate) fn string<'a, 'b: 'a>(
+    expected: &'b str,
+) -> impl Fn(&'a str) -> Option<ParsedItem<'a, &'a str>> {
+    move |input| Some(ParsedItem(input.strip_prefix(expected)?, expected))
 }
 
 /// Parse a "+" or "-" sign. Returns the ASCII byte representing the sign, if present.
-pub(crate) fn sign(input: &mut &str) -> Option<char> {
+pub(crate) fn sign(input: &str) -> Option<ParsedItem<'_, char>> {
     if let Some(remaining) = input.strip_prefix('-') {
-        *input = remaining;
-        Some('-')
+        Some(ParsedItem(remaining, '-'))
     } else {
         let remaining = input.strip_prefix('+')?;
-        *input = remaining;
-        Some('+')
+        Some(ParsedItem(remaining, '+'))
     }
 }
 
 /// Consume the first matching string, returning its associated value.
 pub(crate) fn first_match<'a, 'b: 'a, T: Copy + 'a>(
     mut options: impl Iterator<Item = &'a (&'b str, T)>,
-) -> impl FnMut(&mut &'b str) -> Option<T> {
-    move |input| {
-        options.find_map(|&(expected, t)| {
-            string(expected)(input)?;
-            Some(t)
-        })
-    }
-}
-
-/// Map the resulting value to a new value (that may or may not be the same type).
-pub(crate) fn flat_map<'a, T, U>(
-    parser: impl Fn(&mut &'a str) -> Option<T>,
-    map_fn: impl Fn(T) -> Option<U>,
-) -> impl Fn(&mut &'a str) -> Option<U> {
-    lazy_mut(move |input| parser(input).and_then(|v| map_fn(v)))
+) -> impl FnMut(&'b str) -> Option<ParsedItem<'b, T>> {
+    move |input| options.find_map(|&(expected, t)| Some(ParsedItem(string(expected)(input)?.0, t)))
 }
 
 /// Consume between `n` and `m` instances of the provided parser.
 pub(crate) fn n_to_m<'a, T>(
     n: u8,
     m: u8,
-    parser: impl Fn(&mut &'a str) -> Option<T>,
-) -> impl Fn(&mut &'a str) -> Option<&'a str> {
+    parser: impl Fn(&'a str) -> Option<ParsedItem<'a, T>>,
+) -> impl Fn(&'a str) -> Option<ParsedItem<'a, &'a str>> {
     debug_assert!(m >= n);
-    lazy_mut(move |input| {
+    move |mut input| {
         // We need to keep this to determine the total length eventually consumed.
-        let orig_input = *input;
+        let orig_input = input;
 
         // Mandatory
         for _ in 0..n {
-            parser(input)?;
+            input = parser(input)?.0;
         }
 
         // Optional
         for _ in n..m {
-            if parser(input).is_none() {
-                break;
-            };
+            match parser(input) {
+                Some(parsed) => input = parsed.0,
+                None => break,
+            }
         }
 
-        Some(&orig_input[..(orig_input.len() - input.len())])
-    })
+        Some(ParsedItem(
+            input,
+            &orig_input[..(orig_input.len() - input.len())],
+        ))
+    }
 }
 
 /// Consume exactly `n` instances of the provided parser.
 pub(crate) fn exactly_n<'a, T>(
     n: u8,
-    parser: impl Fn(&mut &'a str) -> Option<T>,
-) -> impl Fn(&mut &'a str) -> Option<&'a str> {
+    parser: impl Fn(&'a str) -> Option<ParsedItem<'a, T>>,
+) -> impl Fn(&'a str) -> Option<ParsedItem<'a, &'a str>> {
     n_to_m(n, n, parser)
 }
 
 /// Consume between `n` and `m` digits, returning the numerical value.
-pub(crate) fn n_to_m_digits<'a, T: Integer>(n: u8, m: u8) -> impl Fn(&mut &'a str) -> Option<T> {
+pub(crate) fn n_to_m_digits<'a, T: Integer>(
+    n: u8,
+    m: u8,
+) -> impl Fn(&'a str) -> Option<ParsedItem<'a, T>> {
     debug_assert!(m >= n);
-    flat_map(n_to_m(n, m, any_digit), |value| value.parse().ok())
+    move |input| n_to_m(n, m, any_digit)(input)?.flat_map(|value| value.parse().ok())
 }
 
 /// Consume exactly `n` digits, returning the numerical value.
 pub(crate) fn exactly_n_digits_padded<'a, T: Integer>(
     n: u8,
     padding: Padding,
-) -> impl Fn(&mut &'a str) -> Option<T> {
+) -> impl Fn(&'a str) -> Option<ParsedItem<'a, T>> {
     n_to_m_digits_padded(n, n, padding)
 }
 
@@ -130,39 +106,44 @@ pub(crate) fn n_to_m_digits_padded<'a, T: Integer>(
     n: u8,
     m: u8,
     padding: Padding,
-) -> impl Fn(&mut &'a str) -> Option<T> {
+) -> impl Fn(&'a str) -> Option<ParsedItem<'a, T>> {
     debug_assert!(m >= n);
-    lazy_mut(move |input| {
-        if padding == Padding::None {
-            n_to_m_digits(1, m)(input)
-        } else if padding == Padding::Space {
-            let pad_width = n_to_m(0, n - 1, ascii_char(b' '))(input).map_or(0, |s| s.len() as u8);
-            n_to_m_digits(n - pad_width, m - pad_width)(input)
-        } else {
-            let pad_width = n_to_m(0, n - 1, ascii_char(b'0'))(input).map_or(0, |s| s.len() as u8);
-            n_to_m_digits(n - pad_width, m - pad_width)(input)
-        }
-    })
+    move |input| {
+        let pad_char = match padding {
+            Padding::None => return n_to_m_digits(1, m)(input),
+            Padding::Space => b' ',
+            Padding::Zero => b'0',
+        };
+
+        let ParsedItem(input, value) = n_to_m(0, n - 1, ascii_char(pad_char))(input)?;
+        let pad_width = value.len() as u8;
+
+        n_to_m_digits(n - pad_width, m - pad_width)(input)
+    }
 }
 
 /// Consume exactly one digit.
-pub(crate) fn any_digit(input: &mut &str) -> Option<u8> {
+pub(crate) fn any_digit(input: &str) -> Option<ParsedItem<'_, u8>> {
     match input.as_bytes() {
-        [c, ..] if c.is_ascii_digit() => {
-            *input = &input[1..];
-            Some(*c)
-        }
+        [c, ..] if c.is_ascii_digit() => Some(ParsedItem(&input[1..], *c)),
         _ => None,
     }
 }
 
 /// Consume exactly one of the provided ASCII characters.
-pub(crate) fn ascii_char(char: u8) -> impl Fn(&mut &str) -> Option<()> {
+pub(crate) fn ascii_char(char: u8) -> impl Fn(&str) -> Option<ParsedItem<'_, ()>> {
     move |input| match input.as_bytes() {
-        [c, ..] if *c == char => {
-            *input = &input[1..];
-            Some(())
-        }
+        [c, ..] if *c == char => Some(ParsedItem(&input[1..], ())),
         _ => None,
+    }
+}
+
+/// Optionally consume an input with a given parser.
+pub(crate) fn opt<'a, T>(
+    parser: impl Fn(&'a str) -> Option<ParsedItem<'a, T>>,
+) -> impl Fn(&'a str) -> ParsedItem<'a, Option<T>> {
+    move |input| match parser(input) {
+        Some(value) => value.map(Some),
+        None => ParsedItem(input, None),
     }
 }

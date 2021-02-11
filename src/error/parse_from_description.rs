@@ -6,7 +6,7 @@ use core::fmt;
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IntermediateParse {
+pub enum ParseFromDescription {
     /// A string literal was not what was expected.
     #[non_exhaustive]
     InvalidLiteral,
@@ -14,7 +14,7 @@ pub enum IntermediateParse {
     InvalidComponent(&'static str),
 }
 
-impl fmt::Display for IntermediateParse {
+impl fmt::Display for ParseFromDescription {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidLiteral => f.write_str("a character literal was not valid"),
@@ -27,11 +27,11 @@ impl fmt::Display for IntermediateParse {
 
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
-impl std::error::Error for IntermediateParse {}
+impl std::error::Error for ParseFromDescription {}
 
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
-impl From<IntermediateParse> for crate::Error {
-    fn from(original: IntermediateParse) -> Self {
+impl From<ParseFromDescription> for crate::Error {
+    fn from(original: ParseFromDescription) -> Self {
         Self::IntermediateParse(original)
     }
 }

@@ -4,12 +4,12 @@ mod conversion_range;
 mod format;
 #[cfg(feature = "local-offset")]
 mod indeterminate_offset;
-#[cfg(feature = "parsing")]
-mod intermediate_parse;
 #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
 mod invalid_format_description;
 #[cfg(feature = "parsing")]
 mod parse;
+#[cfg(feature = "parsing")]
+mod parse_from_description;
 #[cfg(feature = "parsing")]
 mod try_from_parsed;
 
@@ -20,12 +20,12 @@ use core::fmt;
 pub use format::Format;
 #[cfg(feature = "local-offset")]
 pub use indeterminate_offset::IndeterminateOffset;
-#[cfg(feature = "parsing")]
-pub use intermediate_parse::IntermediateParse;
 #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
 pub use invalid_format_description::InvalidFormatDescription;
 #[cfg(feature = "parsing")]
 pub use parse::Parse;
+#[cfg(feature = "parsing")]
+pub use parse_from_description::ParseFromDescription;
 #[cfg(feature = "parsing")]
 pub use try_from_parsed::TryFromParsed;
 
@@ -48,7 +48,7 @@ pub enum Error {
     Format(Format),
     #[cfg(feature = "parsing")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
-    IntermediateParse(IntermediateParse),
+    IntermediateParse(ParseFromDescription),
     #[cfg(feature = "parsing")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
     TryFromParsed(TryFromParsed),

@@ -13,6 +13,7 @@ use crate::{
             parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
             parse_subsecond, parse_week_number, parse_weekday, parse_year, Period,
         },
+        ParsedItem,
     },
     Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
 };
@@ -102,69 +103,69 @@ impl Parsed {
 
     /// Parse a given string into its components from the provided format description.
     pub fn parse_from_description<'a>(
-        mut input: &'a str,
+        input: &'a str,
         format_description: &FormatDescription<'a>,
-    ) -> Result<Self, error::IntermediateParse> {
+    ) -> Result<Self, error::ParseFromDescription> {
         let mut parsed = Self::new();
-        parsed._parse_from_description(&mut input, format_description)?;
+        parsed._parse_from_description(input, format_description)?;
         Ok(parsed)
     }
 
     /// Parse a given string into its components from the provided format description.
     fn _parse_from_description<'a>(
         &mut self,
-        input: &mut &'a str,
+        mut input: &'a str,
         format_description: &FormatDescription<'a>,
-    ) -> Result<(), error::IntermediateParse> {
+    ) -> Result<&'a str, error::ParseFromDescription> {
         match format_description {
             FormatDescription::Literal(literal) => {
-                combinator::string(literal)(input)
-                    .ok_or(error::IntermediateParse::InvalidLiteral)?;
+                input = combinator::string(literal)(input)
+                    .ok_or(error::ParseFromDescription::InvalidLiteral)?
+                    .0;
             }
             FormatDescription::Component(component) => {
-                self.parse_component(input, *component)?;
+                input = self.parse_component(input, *component)?;
             }
             FormatDescription::BorrowedCompound(compound) => {
                 for format_description in *compound {
-                    self._parse_from_description(input, format_description)?;
+                    input = self._parse_from_description(input, format_description)?;
                 }
             }
             #[cfg(feature = "alloc")]
             FormatDescription::OwnedCompound(compound) => {
                 for format_description in compound {
-                    self._parse_from_description(input, format_description)?;
+                    input = self._parse_from_description(input, format_description)?;
                 }
             }
         }
 
-        Ok(())
+        Ok(input)
     }
 
-    /// Parse a single component, mutating the provided `Parsed` struct.
+    /// Parse a single component, mutating the provided `Parsed` struct. The remaining input is
+    /// returned as the `Ok` value.
     fn parse_component<'a>(
         &mut self,
-        input: &mut &'a str,
+        input: &'a str,
         component: Component,
-    ) -> Result<(), error::IntermediateParse> {
-        use error::IntermediateParse::InvalidComponent;
+    ) -> Result<&'a str, error::ParseFromDescription> {
+        use error::ParseFromDescription::InvalidComponent;
 
         match component {
-            Component::Day(modifiers) => {
-                self.day = Some(parse_day(input, modifiers).ok_or(InvalidComponent("day"))?);
-            }
-            Component::Month(modifiers) => {
-                self.month = Some(parse_month(input, modifiers).ok_or(InvalidComponent("month"))?);
-            }
-            Component::Ordinal(modifiers) => {
-                self.ordinal =
-                    Some(parse_ordinal(input, modifiers).ok_or(InvalidComponent("ordinal"))?);
-            }
-            Component::Weekday(modifiers) => {
-                self.weekday =
-                    Some(parse_weekday(input, modifiers).ok_or(InvalidComponent("weekday"))?);
-            }
+            Component::Day(modifiers) => Ok(parse_day(input, modifiers)
+                .ok_or(InvalidComponent("day"))?
+                .assign_value_to(&mut self.day)),
+            Component::Month(modifiers) => Ok(parse_month(input, modifiers)
+                .ok_or(InvalidComponent("month"))?
+                .assign_value_to(&mut self.month)),
+            Component::Ordinal(modifiers) => Ok(parse_ordinal(input, modifiers)
+                .ok_or(InvalidComponent("ordinal"))?
+                .assign_value_to(&mut self.ordinal)),
+            Component::Weekday(modifiers) => Ok(parse_weekday(input, modifiers)
+                .ok_or(InvalidComponent("weekday"))?
+                .assign_value_to(&mut self.weekday)),
             Component::WeekNumber(modifiers) => {
-                let value =
+                let ParsedItem(remaining, value) =
                     parse_week_number(input, modifiers).ok_or(InvalidComponent("week number"))?;
                 match modifiers.repr {
                     WeekNumberRepr::Iso => {
@@ -174,61 +175,52 @@ impl Parsed {
                     WeekNumberRepr::Sunday => self.sunday_week_number = Some(value),
                     WeekNumberRepr::Monday => self.monday_week_number = Some(value),
                 }
+                Ok(remaining)
             }
             Component::Year(modifiers) => {
-                let value = parse_year(input, modifiers).ok_or(InvalidComponent("year"))?;
+                let ParsedItem(remaining, value) =
+                    parse_year(input, modifiers).ok_or(InvalidComponent("year"))?;
                 match (modifiers.iso_week_based, modifiers.repr) {
                     (false, YearRepr::Full) => self.year = Some(value),
                     (false, YearRepr::LastTwo) => self.year_last_two = Some(value as u8),
                     (true, YearRepr::Full) => self.iso_year = Some(value),
                     (true, YearRepr::LastTwo) => self.iso_year_last_two = Some(value as u8),
                 }
+                Ok(remaining)
             }
             Component::Hour(modifiers) => {
-                let value = parse_hour(input, modifiers).ok_or(InvalidComponent("hour"))?;
+                let ParsedItem(remaining, value) =
+                    parse_hour(input, modifiers).ok_or(InvalidComponent("hour"))?;
                 if modifiers.is_12_hour_clock {
                     self.hour_12 = Some(NonZeroU8::new(value).ok_or(InvalidComponent("hour"))?);
                 } else {
                     self.hour_24 = Some(value);
                 }
+                Ok(remaining)
             }
-            Component::Minute(modifiers) => {
-                self.minute =
-                    Some(parse_minute(input, modifiers).ok_or(InvalidComponent("minute"))?);
-            }
-            Component::Period(modifiers) => {
-                self.hour_12_is_pm = Some(
-                    parse_period(input, modifiers).ok_or(InvalidComponent("period"))? == Period::Pm,
-                );
-            }
-            Component::Second(modifiers) => {
-                self.second =
-                    Some(parse_second(input, modifiers).ok_or(InvalidComponent("second"))?);
-            }
-            Component::Subsecond(modifiers) => {
-                self.subsecond =
-                    Some(parse_subsecond(input, modifiers).ok_or(InvalidComponent("subsecond"))?);
-            }
-            Component::OffsetHour(modifiers) => {
-                self.offset_hour = Some(
-                    parse_offset_hour(input, modifiers).ok_or(InvalidComponent("offset hour"))?,
-                );
-            }
-            Component::OffsetMinute(modifiers) => {
-                self.offset_minute = Some(
-                    parse_offset_minute(input, modifiers)
-                        .ok_or(InvalidComponent("offset minute"))?,
-                );
-            }
-            Component::OffsetSecond(modifiers) => {
-                self.offset_second = Some(
-                    parse_offset_second(input, modifiers)
-                        .ok_or(InvalidComponent("offset second"))?,
-                );
-            }
+            Component::Minute(modifiers) => Ok(parse_minute(input, modifiers)
+                .ok_or(InvalidComponent("minute"))?
+                .assign_value_to(&mut self.minute)),
+            Component::Period(modifiers) => Ok(parse_period(input, modifiers)
+                .ok_or(InvalidComponent("period"))?
+                .map(|period| period == Period::Pm)
+                .assign_value_to(&mut self.hour_12_is_pm)),
+            Component::Second(modifiers) => Ok(parse_second(input, modifiers)
+                .ok_or(InvalidComponent("second"))?
+                .assign_value_to(&mut self.second)),
+            Component::Subsecond(modifiers) => Ok(parse_subsecond(input, modifiers)
+                .ok_or(InvalidComponent("subsecond"))?
+                .assign_value_to(&mut self.subsecond)),
+            Component::OffsetHour(modifiers) => Ok(parse_offset_hour(input, modifiers)
+                .ok_or(InvalidComponent("offset hour"))?
+                .assign_value_to(&mut self.offset_hour)),
+            Component::OffsetMinute(modifiers) => Ok(parse_offset_minute(input, modifiers)
+                .ok_or(InvalidComponent("offset minute"))?
+                .assign_value_to(&mut self.offset_minute)),
+            Component::OffsetSecond(modifiers) => Ok(parse_offset_second(input, modifiers)
+                .ok_or(InvalidComponent("offset second"))?
+                .assign_value_to(&mut self.offset_second)),
         }
-
-        Ok(())
     }
 }
 

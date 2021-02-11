@@ -1,6 +1,6 @@
 //! Error that occurred at some stage of parsing
 
-use crate::error::{IntermediateParse, TryFromParsed};
+use crate::error::{ParseFromDescription, TryFromParsed};
 use core::fmt;
 
 /// An error that occurred at some stage of parsing.
@@ -12,7 +12,7 @@ pub enum Parse {
     #[allow(clippy::missing_docs_in_private_items)]
     TryFromParsed(TryFromParsed),
     #[allow(clippy::missing_docs_in_private_items)]
-    IntermediateParse(IntermediateParse),
+    IntermediateParse(ParseFromDescription),
 }
 
 impl fmt::Display for Parse {
@@ -41,8 +41,8 @@ impl From<TryFromParsed> for Parse {
     }
 }
 
-impl From<IntermediateParse> for Parse {
-    fn from(err: IntermediateParse) -> Self {
+impl From<ParseFromDescription> for Parse {
+    fn from(err: ParseFromDescription) -> Self {
         Self::IntermediateParse(err)
     }
 }
@@ -71,10 +71,10 @@ impl Parse {
             Self::TryFromParsed(TryFromParsed::ComponentRange(err)) => {
                 err.to_invalid_serde_value::<D>()
             }
-            Self::IntermediateParse(IntermediateParse::InvalidLiteral) => {
+            Self::IntermediateParse(ParseFromDescription::InvalidLiteral) => {
                 D::Error::invalid_value(serde::de::Unexpected::Other("literal"), &"valid format")
             }
-            Self::IntermediateParse(IntermediateParse::InvalidComponent(component)) => {
+            Self::IntermediateParse(ParseFromDescription::InvalidComponent(component)) => {
                 D::Error::invalid_value(
                     serde::de::Unexpected::Other(component),
                     &&*format!("valid {}", component),
