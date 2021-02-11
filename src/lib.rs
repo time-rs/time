@@ -299,16 +299,16 @@ pub mod util;
 /// Days of the week.
 mod weekday;
 
-pub use crate::time::Time;
-pub use date::Date;
-pub use duration::Duration;
-pub use error::Error;
+pub use crate::date::Date;
+pub use crate::duration::Duration;
+pub use crate::error::Error;
 #[cfg(feature = "std")]
-pub use instant::Instant;
-pub use offset_date_time::OffsetDateTime;
-pub use primitive_date_time::PrimitiveDateTime;
-pub use utc_offset::UtcOffset;
-pub use weekday::Weekday;
+pub use crate::instant::Instant;
+pub use crate::offset_date_time::OffsetDateTime;
+pub use crate::primitive_date_time::PrimitiveDateTime;
+pub use crate::time::Time;
+pub use crate::utc_offset::UtcOffset;
+pub use crate::weekday::Weekday;
 
 /// An alias for [`std::result::Result`] with a generic error from the time crate.
 pub type Result<T> = core::result::Result<T, Error>;

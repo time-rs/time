@@ -1,9 +1,11 @@
-use crate::{
-    helpers::{self, consume_char, consume_digits, consume_digits_with_length, consume_str},
-    Error, ToTokens,
-};
+use std::cmp::Ordering;
+use std::iter::Peekable;
+use std::str::Chars;
+
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
-use std::{cmp::Ordering, iter::Peekable, str::Chars};
+
+use crate::helpers::{self, consume_char, consume_digits, consume_digits_with_length, consume_str};
+use crate::{Error, ToTokens};
 
 enum Period {
     Am,

@@ -1,4 +1,5 @@
 use core::fmt::{self, Display};
+
 use Weekday::*;
 
 /// Days of the week.

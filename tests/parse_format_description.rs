@@ -81,15 +81,11 @@ mod iterator {
     }
 }
 
-use time::{
-    error::InvalidFormatDescription,
-    format_description::{
-        modifier::{
-            self, MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,
-        },
-        Component, FormatDescription,
-    },
+use time::error::InvalidFormatDescription;
+use time::format_description::modifier::{
+    self, MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,
 };
+use time::format_description::{Component, FormatDescription};
 
 macro_rules! owned {
     ($($x:tt)*) => {

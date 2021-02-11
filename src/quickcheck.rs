@@ -36,14 +36,13 @@
 //! relation to a [`Duration`], and obtaining an `Instant` from a [`Duration`] is very simple
 //! anyway.
 
-use crate::{
-    date::{MAX_YEAR, MIN_YEAR},
-    hack,
-    util::days_in_year,
-    Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
-};
 use alloc::boxed::Box;
+
 use quickcheck_dep::{empty_shrinker, single_shrinker, Arbitrary, Gen};
+
+use crate::date::{MAX_YEAR, MIN_YEAR};
+use crate::util::days_in_year;
+use crate::{hack, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// Obtain an arbitrary value between the minimum and maximum inclusive.
 macro_rules! arbitrary_between {

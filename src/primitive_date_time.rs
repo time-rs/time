@@ -1,18 +1,17 @@
-#[cfg(feature = "parsing")]
-use crate::parsing::Parsed;
-#[cfg(any(feature = "formatting", feature = "parsing"))]
-use crate::{error, format_description::FormatDescription};
-use crate::{hack, util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 use alloc::string::String;
 #[cfg(feature = "parsing")]
 use core::convert::TryInto;
 #[cfg(feature = "formatting")]
 use core::fmt;
-use core::{
-    ops::{Add, AddAssign, Sub, SubAssign},
-    time::Duration as StdDuration,
-};
+use core::ops::{Add, AddAssign, Sub, SubAssign};
+use core::time::Duration as StdDuration;
+
+#[cfg(feature = "parsing")]
+use crate::parsing::Parsed;
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use crate::{error, format_description::FormatDescription};
+use crate::{hack, util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
 
 /// Combined date and time.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]

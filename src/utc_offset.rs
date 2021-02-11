@@ -1,12 +1,3 @@
-use crate::error;
-#[cfg(any(feature = "formatting", feature = "parsing"))]
-use crate::format_description::FormatDescription;
-#[cfg(feature = "formatting")]
-use crate::format_description::{modifier, Component};
-#[cfg(feature = "parsing")]
-use crate::parsing::Parsed;
-#[cfg(feature = "local-offset")]
-use crate::OffsetDateTime;
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 use alloc::string::String;
 #[cfg(any(
@@ -22,6 +13,16 @@ use alloc::string::String;
 use core::convert::TryInto;
 #[cfg(feature = "formatting")]
 use core::fmt;
+
+use crate::error;
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use crate::format_description::FormatDescription;
+#[cfg(feature = "formatting")]
+use crate::format_description::{modifier, Component};
+#[cfg(feature = "parsing")]
+use crate::parsing::Parsed;
+#[cfg(feature = "local-offset")]
+use crate::OffsetDateTime;
 
 /// An offset from UTC.
 ///
@@ -318,8 +319,9 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         // No `tm_gmtoff` extension
         #[cfg(any(target_os = "solaris", target_os = "illumos"))]
         {
-            use crate::Date;
             use core::convert::TryFrom;
+
+            use crate::Date;
 
             let mut tm = tm;
             if tm.tm_sec == 60 {
@@ -354,13 +356,10 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     #[cfg(target_family = "windows")]
     {
         use core::mem::MaybeUninit;
-        use winapi::{
-            shared::minwindef::FILETIME,
-            um::{
-                minwinbase::SYSTEMTIME,
-                timezoneapi::{SystemTimeToFileTime, SystemTimeToTzSpecificLocalTime},
-            },
-        };
+
+        use winapi::shared::minwindef::FILETIME;
+        use winapi::um::minwinbase::SYSTEMTIME;
+        use winapi::um::timezoneapi::{SystemTimeToFileTime, SystemTimeToTzSpecificLocalTime};
 
         /// Convert a `SYSTEMTIME` to a `FILETIME`. Returns `None` if any error occurred.
         fn systemtime_to_filetime(systime: &SYSTEMTIME) -> Option<FILETIME> {

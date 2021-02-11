@@ -1,9 +1,10 @@
-use core::{convert::TryFrom, u64};
-use std::{cmp::Ordering, time::Duration as StdDuration};
-use time::{
-    ext::{NumericalDuration, NumericalStdDuration},
-    Duration,
-};
+use core::convert::TryFrom;
+use core::u64;
+use std::cmp::Ordering;
+use std::time::Duration as StdDuration;
+
+use time::ext::{NumericalDuration, NumericalStdDuration};
+use time::Duration;
 
 #[test]
 fn unit_values() {

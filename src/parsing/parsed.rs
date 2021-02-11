@@ -1,26 +1,18 @@
 //! Information parsed from an input and format description.
 
-use crate::{
-    error::{self, TryFromParsed::InsufficientInformation},
-    format_description::{
-        modifier::{WeekNumberRepr, YearRepr},
-        Component, FormatDescription,
-    },
-    parsing::{
-        combinator,
-        component::{
-            parse_day, parse_hour, parse_minute, parse_month, parse_offset_hour,
-            parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
-            parse_subsecond, parse_week_number, parse_weekday, parse_year, Period,
-        },
-        ParsedItem,
-    },
-    Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
+use core::convert::{TryFrom, TryInto};
+use core::num::{NonZeroU16, NonZeroU8};
+
+use crate::error::TryFromParsed::InsufficientInformation;
+use crate::format_description::modifier::{WeekNumberRepr, YearRepr};
+use crate::format_description::{Component, FormatDescription};
+use crate::parsing::component::{
+    parse_day, parse_hour, parse_minute, parse_month, parse_offset_hour, parse_offset_minute,
+    parse_offset_second, parse_ordinal, parse_period, parse_second, parse_subsecond,
+    parse_week_number, parse_weekday, parse_year, Period,
 };
-use core::{
-    convert::{TryFrom, TryInto},
-    num::{NonZeroU16, NonZeroU8},
-};
+use crate::parsing::{combinator, ParsedItem};
+use crate::{error, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// All information parsed.
 ///

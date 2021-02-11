@@ -1,9 +1,10 @@
-use crate::{
-    helpers::{self, consume_char, consume_digits, consume_str},
-    Error, ToTokens,
-};
+use std::iter::Peekable;
+use std::str::Chars;
+
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
-use std::{iter::Peekable, str::Chars};
+
+use crate::helpers::{self, consume_char, consume_digits, consume_str};
+use crate::{Error, ToTokens};
 
 #[derive(Clone, Copy)]
 pub(crate) struct Offset {

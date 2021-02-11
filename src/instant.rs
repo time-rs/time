@@ -1,11 +1,10 @@
-use crate::Duration;
-use core::{
-    cmp::{Ord, Ordering, PartialEq, PartialOrd},
-    convert::{TryFrom, TryInto},
-    ops::{Add, AddAssign, Sub, SubAssign},
-    time::Duration as StdDuration,
-};
+use core::cmp::{Ord, Ordering, PartialEq, PartialOrd};
+use core::convert::{TryFrom, TryInto};
+use core::ops::{Add, AddAssign, Sub, SubAssign};
+use core::time::Duration as StdDuration;
 use std::time::Instant as StdInstant;
+
+use crate::Duration;
 
 /// A measurement of a monotonically non-decreasing clock. Opaque and useful only with [`Duration`].
 ///

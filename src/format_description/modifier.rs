@@ -1,9 +1,10 @@
 //! Various modifiers for components.
 
 #[cfg(feature = "alloc")]
-use crate::{error::InvalidFormatDescription, format_description::helper};
-#[cfg(feature = "alloc")]
 use alloc::borrow::ToOwned;
+
+#[cfg(feature = "alloc")]
+use crate::{error::InvalidFormatDescription, format_description::helper};
 
 /// Day of the month.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

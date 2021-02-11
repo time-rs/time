@@ -1,8 +1,9 @@
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 use time::format_description::FormatDescription;
+use time::macros::offset;
 #[cfg(all(feature = "local-offset", not(target_family = "unix")))]
 use time::OffsetDateTime;
-use time::{macros::offset, Result, UtcOffset};
+use time::{Result, UtcOffset};
 
 #[test]
 fn utc_is_zero() {

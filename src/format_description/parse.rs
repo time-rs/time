@@ -1,13 +1,10 @@
 //! Parse a format description into a standardized representation.
 
-use crate::{
-    error::InvalidFormatDescription,
-    format_description::{
-        component::{Component, NakedComponent},
-        helper, modifier, FormatDescription,
-    },
-};
 use alloc::vec::Vec;
+
+use crate::error::InvalidFormatDescription;
+use crate::format_description::component::{Component, NakedComponent};
+use crate::format_description::{helper, modifier, FormatDescription};
 
 /// The item parsed and remaining chunk of the format description after one iteration.
 #[derive(Debug)]

@@ -1,6 +1,8 @@
 mod numerical_duration {
     use std::num::NonZeroU8;
-    use time::{ext::NumericalDuration, Duration};
+
+    use time::ext::NumericalDuration;
+    use time::Duration;
 
     #[test]
     fn unsigned() {
@@ -80,7 +82,9 @@ mod numerical_duration {
 }
 
 mod numerical_std_duration {
-    use std::{num::NonZeroU8, time::Duration};
+    use std::num::NonZeroU8;
+    use std::time::Duration;
+
     use time::ext::NumericalStdDuration;
 
     #[test]
@@ -183,6 +187,7 @@ mod numerical_std_duration {
 
 mod numerical_std_duration_short {
     use std::time::Duration;
+
     use time::ext::NumericalStdDurationShort;
 
     #[test]

@@ -1,8 +1,6 @@
 use bench_util::setup_benchmark;
-use time::{
-    macros::{date, datetime, offset, time},
-    Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
-};
+use time::macros::{date, datetime, offset, time};
+use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 setup_benchmark! {
     "Serde",

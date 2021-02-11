@@ -1,11 +1,9 @@
 //! Formatting for the time crate.
 
-use crate::{
-    error,
-    format_description::{modifier, Component, FormatDescription},
-    Date, Time, UtcOffset,
-};
 use core::fmt;
+
+use crate::format_description::{modifier, Component, FormatDescription};
+use crate::{error, Date, Time, UtcOffset};
 
 #[allow(clippy::clippy::missing_docs_in_private_items)]
 const MONTH_NAMES: [&str; 12] = [

@@ -1,13 +1,13 @@
+use core::cmp::Ordering;
+use core::convert::{TryFrom, TryInto};
+use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use core::time::Duration as StdDuration;
+
+use const_fn::const_fn;
+
 use crate::error;
 #[cfg(feature = "std")]
 use crate::Instant;
-use const_fn::const_fn;
-use core::{
-    cmp::Ordering,
-    convert::{TryFrom, TryInto},
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
-    time::Duration as StdDuration,
-};
 
 /// A span of time with nanosecond precision.
 ///

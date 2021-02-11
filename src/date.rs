@@ -1,23 +1,19 @@
+#[cfg(all(feature = "formatting", feature = "alloc"))]
+use alloc::string::String;
+#[cfg(feature = "parsing")]
+use core::convert::TryInto;
+use core::fmt;
+use core::ops::{Add, AddAssign, Sub, SubAssign};
+use core::time::Duration as StdDuration;
+
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 use crate::format_description::FormatDescription;
 #[cfg(feature = "formatting")]
 use crate::format_description::{modifier, Component};
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsed;
-use crate::{
-    error,
-    util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year},
-    Duration, PrimitiveDateTime, Time, Weekday,
-};
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-use alloc::string::String;
-#[cfg(feature = "parsing")]
-use core::convert::TryInto;
-use core::{
-    fmt,
-    ops::{Add, AddAssign, Sub, SubAssign},
-    time::Duration as StdDuration,
-};
+use crate::util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year};
+use crate::{error, Duration, PrimitiveDateTime, Time, Weekday};
 
 /// The minimum valid year.
 #[cfg(feature = "large-dates")]

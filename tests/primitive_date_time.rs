@@ -1,11 +1,10 @@
 use std::cmp::Ordering;
+
+use time::ext::{NumericalDuration, NumericalStdDuration};
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 use time::format_description::FormatDescription;
-use time::{
-    ext::{NumericalDuration, NumericalStdDuration},
-    macros::{date, datetime, offset, time},
-    PrimitiveDateTime, Weekday,
-};
+use time::macros::{date, datetime, offset, time};
+use time::{PrimitiveDateTime, Weekday};
 
 #[test]
 fn new() {

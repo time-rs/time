@@ -1,10 +1,9 @@
 //! Implementation of [`Distribution`] for various structs.
 
+use rand::distributions::{Distribution, Standard};
+use rand::Rng;
+
 use crate::{hack, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
-use rand::{
-    distributions::{Distribution, Standard},
-    Rng,
-};
 
 impl Distribution<Time> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Time {

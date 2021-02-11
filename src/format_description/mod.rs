@@ -7,6 +7,7 @@ pub(crate) mod parse;
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
+
 pub use component::Component;
 
 /// Helper methods.

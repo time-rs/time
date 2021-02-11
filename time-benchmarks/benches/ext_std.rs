@@ -1,5 +1,6 @@
-use bench_util::setup_benchmark;
 use std::num::NonZeroU8;
+
+use bench_util::setup_benchmark;
 use time::ext::NumericalStdDuration;
 
 setup_benchmark! {

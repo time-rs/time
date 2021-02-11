@@ -7,16 +7,16 @@
 
 pub mod timestamp;
 
+use serde::de::Error;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+use crate::error::ComponentRange;
 #[cfg(feature = "serde-human-readable")]
 use crate::{
     error,
     format_description::{modifier, Component, FormatDescription},
 };
-use crate::{
-    error::ComponentRange, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset,
-    Weekday,
-};
-use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use crate::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// The format used when serializing and deserializing a human-readable `Date`.
 #[cfg(feature = "serde-human-readable")]

@@ -1,7 +1,8 @@
 #![allow(trivial_numeric_casts, clippy::use_self)]
 
-use crate::Duration;
 use core::time::Duration as StdDuration;
+
+use crate::Duration;
 
 /// Create [`Duration`]s from primitive and core numeric types.
 ///

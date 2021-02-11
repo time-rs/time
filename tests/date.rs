@@ -1,12 +1,12 @@
 use core::i32;
-use std::{cmp::Ordering, collections::HashSet};
+use std::cmp::Ordering;
+use std::collections::HashSet;
+
+use time::ext::{NumericalDuration, NumericalStdDuration};
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 use time::format_description::FormatDescription;
-use time::{
-    ext::{NumericalDuration, NumericalStdDuration},
-    macros::{date, datetime, time},
-    util, Date, Weekday,
-};
+use time::macros::{date, datetime, time};
+use time::{util, Date, Weekday};
 
 #[test]
 fn debug() {

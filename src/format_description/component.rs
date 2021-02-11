@@ -1,10 +1,11 @@
 //! Part of a format description.
 
+#[cfg(feature = "alloc")]
+use alloc::borrow::ToOwned;
+
 use crate::format_description::modifier;
 #[cfg(feature = "alloc")]
 use crate::{error::InvalidFormatDescription, format_description::modifier::Modifiers};
-#[cfg(feature = "alloc")]
-use alloc::borrow::ToOwned;
 
 /// A component of a larger format description.
 #[non_exhaustive]

@@ -1,10 +1,11 @@
-use crate::{
-    error::Error,
-    helpers::{self, consume_char},
-    Date, Offset, Time, ToTokens,
-};
+use std::iter::Peekable;
+use std::str::Chars;
+
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
-use std::{iter::Peekable, str::Chars};
+
+use crate::error::Error;
+use crate::helpers::{self, consume_char};
+use crate::{Date, Offset, Time, ToTokens};
 
 #[derive(Clone, Copy)]
 pub(crate) struct DateTime {

@@ -1,10 +1,10 @@
+use std::convert::TryFrom;
+use std::time::Duration as StdDuration;
+
 use bench_util::setup_benchmark;
 use criterion::BatchSize;
-use std::{convert::TryFrom, time::Duration as StdDuration};
-use time::{
-    ext::{NumericalDuration, NumericalStdDuration},
-    Duration,
-};
+use time::ext::{NumericalDuration, NumericalStdDuration};
+use time::Duration;
 
 setup_benchmark! {
     "Duration",

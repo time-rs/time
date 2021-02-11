@@ -1,18 +1,15 @@
 //! Parsing implementations for all [`Component`](crate::format_description::Component)s.
 
+use core::num::{NonZeroU16, NonZeroU8};
+
+use crate::format_description::modifier;
 #[cfg(feature = "large-dates")]
 use crate::parsing::combinator::n_to_m_digits_padded;
-use crate::{
-    format_description::modifier,
-    parsing::{
-        combinator::{
-            any_digit, exactly_n, exactly_n_digits_padded, first_match, n_to_m, opt, sign,
-        },
-        ParsedItem,
-    },
-    Weekday,
+use crate::parsing::combinator::{
+    any_digit, exactly_n, exactly_n_digits_padded, first_match, n_to_m, opt, sign,
 };
-use core::num::{NonZeroU16, NonZeroU8};
+use crate::parsing::ParsedItem;
+use crate::Weekday;
 
 /// Parse the "year" component of a `Date`.
 pub(crate) fn parse_year(input: &str, modifiers: modifier::Year) -> Option<ParsedItem<'_, i32>> {

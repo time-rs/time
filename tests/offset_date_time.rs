@@ -1,13 +1,12 @@
 use std::cmp::Ordering;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
+
+use time::ext::{NumericalDuration, NumericalStdDuration};
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 use time::format_description::FormatDescription;
-use time::{
-    ext::{NumericalDuration, NumericalStdDuration},
-    macros::{date, datetime, offset, time},
-    OffsetDateTime, Weekday,
-};
+use time::macros::{date, datetime, offset, time};
+use time::{OffsetDateTime, Weekday};
 
 #[test]
 #[cfg(feature = "std")]
@@ -417,10 +416,8 @@ fn ord() {
 #[test]
 #[cfg(feature = "std")]
 fn hash() {
-    use std::{
-        collections::hash_map::DefaultHasher,
-        hash::{Hash, Hasher},
-    };
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
 
     assert_eq!(
         {

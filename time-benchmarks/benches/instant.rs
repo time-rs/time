@@ -1,10 +1,9 @@
+use std::time::{Duration as StdDuration, Instant as StdInstant};
+
 use bench_util::setup_benchmark;
 use criterion::BatchSize;
-use std::time::{Duration as StdDuration, Instant as StdInstant};
-use time::{
-    ext::{NumericalDuration, NumericalStdDuration},
-    Duration, Instant,
-};
+use time::ext::{NumericalDuration, NumericalStdDuration};
+use time::{Duration, Instant};
 
 setup_benchmark! {
     "Instant",

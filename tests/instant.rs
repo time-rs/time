@@ -1,10 +1,10 @@
 #![cfg(feature = "std")]
 
-use std::{thread, time::Instant as StdInstant};
-use time::{
-    ext::{NumericalDuration, NumericalStdDuration},
-    Duration, Instant,
-};
+use std::thread;
+use std::time::Instant as StdInstant;
+
+use time::ext::{NumericalDuration, NumericalStdDuration};
+use time::{Duration, Instant};
 
 #[test]
 fn elapsed() {

@@ -1,10 +1,8 @@
+use time::ext::{NumericalDuration, NumericalStdDuration};
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 use time::format_description::FormatDescription;
-use time::{
-    ext::{NumericalDuration, NumericalStdDuration},
-    macros::time,
-    Result, Time,
-};
+use time::macros::time;
+use time::{Result, Time};
 
 #[test]
 fn from_hms() -> Result<()> {

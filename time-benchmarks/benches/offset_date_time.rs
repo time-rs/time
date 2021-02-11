@@ -1,11 +1,10 @@
+use std::time::SystemTime;
+
 use bench_util::setup_benchmark;
 use criterion::BatchSize;
-use std::time::SystemTime;
-use time::{
-    ext::{NumericalDuration, NumericalStdDuration},
-    macros::{datetime, offset},
-    OffsetDateTime,
-};
+use time::ext::{NumericalDuration, NumericalStdDuration};
+use time::macros::{datetime, offset};
+use time::OffsetDateTime;
 
 setup_benchmark! {
     "OffsetDateTime",

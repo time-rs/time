@@ -13,9 +13,10 @@ mod parse_from_description;
 #[cfg(feature = "parsing")]
 mod try_from_parsed;
 
+use core::fmt;
+
 pub use component_range::ComponentRange;
 pub use conversion_range::ConversionRange;
-use core::fmt;
 #[cfg(feature = "formatting")]
 pub use format::Format;
 #[cfg(feature = "local-offset")]

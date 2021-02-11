@@ -1,10 +1,10 @@
 //! Implementations of the low-level parser combinators.
 
-use crate::{format_description::modifier::Padding, parsing::ParsedItem};
-use core::{
-    num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize},
-    str::FromStr,
-};
+use core::num::{NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize};
+use core::str::FromStr;
+
+use crate::format_description::modifier::Padding;
+use crate::parsing::ParsedItem;
 
 /// Marker trait for integers.
 pub(crate) trait Integer: FromStr {}

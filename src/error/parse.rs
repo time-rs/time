@@ -1,7 +1,8 @@
 //! Error that occurred at some stage of parsing
 
-use crate::error::{ParseFromDescription, TryFromParsed};
 use core::fmt;
+
+use crate::error::{ParseFromDescription, TryFromParsed};
 
 /// An error that occurred at some stage of parsing.
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
@@ -62,6 +63,7 @@ impl Parse {
     pub(crate) fn to_invalid_serde_value<'a, D: serde::Deserializer<'a>>(self) -> D::Error {
         #[cfg(not(feature = "std"))]
         use alloc::format;
+
         use serde::de::Error;
 
         match self {

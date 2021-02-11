@@ -1,7 +1,8 @@
 //! Error converting a [`Parsed`](crate::parsing::Parsed) struct to another type
 
-use crate::error;
 use core::fmt;
+
+use crate::error;
 
 /// An error that occurred when converting a [`Parsed`](crate::parsing::Parsed) to another type.
 #[non_exhaustive]

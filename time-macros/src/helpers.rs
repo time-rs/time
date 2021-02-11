@@ -1,9 +1,10 @@
-use crate::{peeking_take_while::PeekableExt, Error};
+use std::iter::Peekable;
+use std::str::{Chars, FromStr};
+
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
-use std::{
-    iter::Peekable,
-    str::{Chars, FromStr},
-};
+
+use crate::peeking_take_while::PeekableExt;
+use crate::Error;
 
 /// `#[allow(deprecated)]` attribute
 fn allow_deprecated() -> TokenStream {

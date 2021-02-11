@@ -1,10 +1,8 @@
 #![cfg(feature = "serde")]
 
 use serde_test::{assert_tokens, Configure, Token};
-use time::{
-    macros::{date, datetime, offset, time},
-    Duration, Time, Weekday,
-};
+use time::macros::{date, datetime, offset, time};
+use time::{Duration, Time, Weekday};
 
 #[test]
 fn time() {

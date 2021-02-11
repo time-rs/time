@@ -1,12 +1,13 @@
-use crate::{
-    helpers::{
-        self, consume_char, consume_digits, days_in_year, days_in_year_month, weeks_in_year,
-        ymd_to_yo, ywd_to_yo,
-    },
-    Error, ToTokens,
-};
+use std::iter::Peekable;
+use std::str::Chars;
+
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
-use std::{iter::Peekable, str::Chars};
+
+use crate::helpers::{
+    self, consume_char, consume_digits, days_in_year, days_in_year_month, weeks_in_year, ymd_to_yo,
+    ywd_to_yo,
+};
+use crate::{Error, ToTokens};
 
 #[cfg(feature = "large-dates")]
 const MAX_YEAR: i32 = 999_999;

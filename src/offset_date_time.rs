@@ -1,24 +1,23 @@
-#[cfg(any(feature = "formatting", feature = "parsing"))]
-use crate::format_description::FormatDescription;
-#[cfg(feature = "parsing")]
-use crate::parsing::Parsed;
-use crate::{error, hack, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 use alloc::string::String;
+use core::cmp::Ordering;
 #[cfg(feature = "std")]
 use core::convert::From;
 #[cfg(feature = "parsing")]
 use core::convert::TryInto;
 #[cfg(feature = "formatting")]
 use core::fmt;
-use core::{
-    cmp::Ordering,
-    hash::{Hash, Hasher},
-    ops::{Add, AddAssign, Sub, SubAssign},
-    time::Duration as StdDuration,
-};
+use core::hash::{Hash, Hasher};
+use core::ops::{Add, AddAssign, Sub, SubAssign};
+use core::time::Duration as StdDuration;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
+
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use crate::format_description::FormatDescription;
+#[cfg(feature = "parsing")]
+use crate::parsing::Parsed;
+use crate::{error, hack, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// The Julian day of the Unix epoch.
 const UNIX_EPOCH_JULIAN_DAY: i32 = Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();

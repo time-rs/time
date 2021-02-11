@@ -7,8 +7,10 @@
 //! [Unix timestamp]: https://en.wikipedia.org/wiki/Unix_time
 //! [with]: https://serde.rs/field-attrs.html#with
 
-use crate::{error::ComponentRange, OffsetDateTime};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+use crate::error::ComponentRange;
+use crate::OffsetDateTime;
 
 /// Serialize an `OffsetDateTime` as its Unix timestamp
 pub fn serialize<S: Serializer>(
