@@ -198,8 +198,7 @@ impl Date {
         self.month_day().0
     }
 
-    /// Get the day of the month. If fetching both the month and day, it is more efficient to use
-    /// [`Date::month_day`].
+    /// Get the day of the month.
     ///
     /// The returned value will always be in the range `1..=31`.
     ///
