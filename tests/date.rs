@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
 #[cfg(all(feature = "formatting", feature = "alloc"))]
-use time::format_description::FormatDescription;
+use time::format_description;
 use time::macros::{date, datetime, time};
 use time::{util, Date, Weekday};
 
@@ -642,7 +642,7 @@ fn format() -> time::Result<()> {
 
     for &(format_description, output) in &input_output {
         assert_eq!(
-            date!("2019-12-31").format(&FormatDescription::parse(format_description)?)?,
+            date!("2019-12-31").format(&format_description::parse(format_description)?)?,
             output
         );
     }

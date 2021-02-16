@@ -4,13 +4,13 @@ use alloc::vec::Vec;
 
 use crate::error::InvalidFormatDescription;
 use crate::format_description::component::{Component, NakedComponent};
-use crate::format_description::{helper, modifier, FormatDescription};
+use crate::format_description::{helper, modifier, FormatItem};
 
 /// The item parsed and remaining chunk of the format description after one iteration.
 #[derive(Debug)]
 struct ParsedItem<'a> {
     /// The item that was parsed.
-    item: FormatDescription<'a>,
+    item: FormatItem<'a>,
     /// What is left of the input string after the item was parsed.
     remaining: &'a str,
 }
@@ -46,7 +46,7 @@ fn parse_literal<'a>(s: &'a str, index: &mut usize) -> ParsedItem<'a> {
     let loc = s.find('[').unwrap_or_else(|| s.len());
     *index += loc;
     ParsedItem {
-        item: FormatDescription::Literal(&s[..loc]),
+        item: FormatItem::Literal(&s[..loc]),
         remaining: &s[loc..],
     }
 }
@@ -60,7 +60,7 @@ fn parse_item<'a>(
     if s.starts_with("[[") {
         *index += 2;
         return Ok(ParsedItem {
-            item: FormatDescription::Literal(&s[..1]),
+            item: FormatItem::Literal(&s[..1]),
             remaining: &s[2..],
         });
     }
@@ -69,7 +69,7 @@ fn parse_item<'a>(
         if let Some(bracket_index) = s.find(']') {
             *index += 1;
             Ok(ParsedItem {
-                item: FormatDescription::Component(parse_component(&s[1..bracket_index], index)?),
+                item: FormatItem::Component(parse_component(&s[1..bracket_index], index)?),
                 remaining: &s[bracket_index + 1..],
             })
         } else {
@@ -80,19 +80,17 @@ fn parse_item<'a>(
     }
 }
 
-impl<'a> FormatDescription<'a> {
-    /// Parse a sequence of items from the format description.
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn parse(mut s: &'a str) -> Result<Self, InvalidFormatDescription> {
-        let mut compound = Vec::new();
-        let mut loc = 0;
+/// Parse a sequence of items from the format description.
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+pub fn parse(mut s: &str) -> Result<Vec<FormatItem<'_>>, InvalidFormatDescription> {
+    let mut compound = Vec::new();
+    let mut loc = 0;
 
-        while !s.is_empty() {
-            let ParsedItem { item, remaining } = parse_item(s, &mut loc)?;
-            s = remaining;
-            compound.push(item);
-        }
-
-        Ok(FormatDescription::OwnedCompound(compound))
+    while !s.is_empty() {
+        let ParsedItem { item, remaining } = parse_item(s, &mut loc)?;
+        s = remaining;
+        compound.push(item);
     }
+
+    Ok(compound)
 }

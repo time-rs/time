@@ -2,7 +2,7 @@
 
 use core::fmt;
 
-use crate::format_description::{modifier, Component, FormatDescription};
+use crate::format_description::{modifier, Component};
 use crate::{error, Date, Time, UtcOffset};
 
 #[allow(clippy::clippy::missing_docs_in_private_items)]
@@ -122,7 +122,7 @@ fn format_number(
 /// component requires information that it does not provide or if the value cannot be output to the
 /// stream.
 #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
-fn format_component(
+pub(crate) fn format_component(
     output: &mut impl fmt::Write,
     component: Component,
     date: Option<Date>,
@@ -298,37 +298,4 @@ fn format_component(
     }
 
     Ok(())
-}
-
-impl FormatDescription<'_> {
-    /// Using the format description provided, write the formatted value to the designated output.
-    /// An `Err` will be returned if the format description requires information that the components
-    /// do not provide or the value cannot be output to the stream.
-    pub(crate) fn format_into(
-        &self,
-        output: &mut impl fmt::Write,
-        date: Option<Date>,
-        time: Option<Time>,
-        offset: Option<UtcOffset>,
-    ) -> Result<(), error::Format> {
-        match *self {
-            FormatDescription::Literal(literal) => output.write_str(literal)?,
-            FormatDescription::BorrowedCompound(descriptions) => {
-                for description in descriptions {
-                    description.format_into(output, date, time, offset)?;
-                }
-            }
-            #[cfg(feature = "alloc")]
-            FormatDescription::OwnedCompound(ref descriptions) => {
-                for description in descriptions {
-                    description.format_into(output, date, time, offset)?;
-                }
-            }
-            FormatDescription::Component(component) => {
-                format_component(output, component, date, time, offset)?;
-            }
-        }
-
-        Ok(())
-    }
 }

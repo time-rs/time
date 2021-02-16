@@ -15,8 +15,6 @@ use std::time::SystemTime;
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 use crate::format_description::FormatDescription;
-#[cfg(feature = "parsing")]
-use crate::parsing::Parsed;
 use crate::{error, hack, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// The Julian day of the Unix epoch.
@@ -778,26 +776,28 @@ impl OffsetDateTime {
 impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided format description. The formatted value will
     /// be output to the provided writer. The format description will typically be parsed by using
-    /// [`FormatDescription::parse`].
-    pub fn format_into(
+    /// [`format_description::parse`](crate::format_description::parse()).
+    pub fn format_into<'a, F: FormatDescription<'a>>(
         self,
         output: &mut impl fmt::Write,
-        description: &FormatDescription<'_>,
-    ) -> Result<(), error::Format> {
-        description.format_into(
+        format: &F,
+    ) -> Result<(), F::FormatError> {
+        let local = self.utc_datetime.utc_to_offset(self.offset);
+        format.format_into(
             output,
-            Some(self.date()),
-            Some(self.time()),
+            Some(local.date),
+            Some(local.time),
             Some(self.offset),
         )
     }
 
     /// Format the `OffsetDateTime` using the provided format description. The format description
-    /// will typically be parsed by using [`FormatDescription::parse`].
+    /// will typically be parsed by using
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::{format_description::FormatDescription, macros::datetime};
-    /// let format = FormatDescription::parse(
+    /// # use time::{format_description, macros::datetime};
+    /// let format = format_description::parse(
     ///     "[year]-[month repr:numerical]-[day] [hour]:[minute]:[second] [offset_hour \
     ///          sign:mandatory]:[offset_minute]:[offset_second]",
     /// )?;
@@ -809,10 +809,12 @@ impl OffsetDateTime {
     /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn format(self, description: &FormatDescription<'_>) -> Result<String, error::Format> {
-        let mut s = String::new();
-        self.format_into(&mut s, description)?;
-        Ok(s)
+    pub fn format<'a, F: FormatDescription<'a>>(
+        self,
+        format: &F,
+    ) -> Result<String, F::FormatError> {
+        let local = self.utc_datetime.utc_to_offset(self.offset);
+        format.format(Some(local.date), Some(local.time), Some(self.offset))
     }
 }
 
@@ -820,11 +822,12 @@ impl OffsetDateTime {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl OffsetDateTime {
     /// Parse a `PrimitiveDateTime` from the input using the provided format description. The format
-    /// description will typically be parsed by using [`FormatDescription::parse`].
+    /// description will typically be parsed by using
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::{format_description::FormatDescription, macros::datetime, OffsetDateTime};
-    /// let format = FormatDescription::parse(
+    /// # use time::{format_description, macros::datetime, OffsetDateTime};
+    /// let format = format_description::parse(
     ///     "[year]-[month repr:numerical]-[day] [hour]:[minute]:[second] [offset_hour \
     ///          sign:mandatory]:[offset_minute]:[offset_second]",
     /// )?;
@@ -834,8 +837,14 @@ impl OffsetDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(input: &str, description: &FormatDescription<'_>) -> Result<Self, error::Parse> {
-        Ok(Parsed::parse_from_description(input, description)?.try_into()?)
+    pub fn parse<'a, F: FormatDescription<'a>>(
+        input: &'a str,
+        description: &F,
+    ) -> Result<Self, error::Parse> {
+        match description.parse(input) {
+            Ok(parsed) => Ok(parsed.try_into()?),
+            Err(err) => Err(err.into()),
+        }
     }
 }
 

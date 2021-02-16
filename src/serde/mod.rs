@@ -14,85 +14,85 @@ use crate::error::ComponentRange;
 #[cfg(feature = "serde-human-readable")]
 use crate::{
     error,
-    format_description::{modifier, Component, FormatDescription},
+    format_description::{modifier, Component, FormatItem},
 };
 use crate::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// The format used when serializing and deserializing a human-readable `Date`.
 #[cfg(feature = "serde-human-readable")]
-const DATE_FORMAT: FormatDescription<'_> = FormatDescription::BorrowedCompound(&[
-    FormatDescription::Component(Component::Year(modifier::Year {
+const DATE_FORMAT: &[FormatItem<'_>] = &[
+    FormatItem::Component(Component::Year(modifier::Year {
         repr: modifier::YearRepr::Full,
         iso_week_based: false,
         sign_is_mandatory: false,
         padding: modifier::Padding::Zero,
     })),
-    FormatDescription::Literal("-"),
-    FormatDescription::Component(Component::Month(modifier::Month {
+    FormatItem::Literal("-"),
+    FormatItem::Component(Component::Month(modifier::Month {
         repr: modifier::MonthRepr::Numerical,
         padding: modifier::Padding::Zero,
     })),
-    FormatDescription::Literal("-"),
-    FormatDescription::Component(Component::Day(modifier::Day {
+    FormatItem::Literal("-"),
+    FormatItem::Component(Component::Day(modifier::Day {
         padding: modifier::Padding::Zero,
     })),
-]);
+];
 
 /// The format used when serializing and deserializing a human-readable `Time`.
 #[cfg(feature = "serde-human-readable")]
-const TIME_FORMAT: FormatDescription<'_> = FormatDescription::BorrowedCompound(&[
-    FormatDescription::Component(Component::Hour(modifier::Hour {
+const TIME_FORMAT: &[FormatItem<'_>] = &[
+    FormatItem::Component(Component::Hour(modifier::Hour {
         padding: modifier::Padding::Zero,
         is_12_hour_clock: false,
     })),
-    FormatDescription::Literal(":"),
-    FormatDescription::Component(Component::Minute(modifier::Minute {
+    FormatItem::Literal(":"),
+    FormatItem::Component(Component::Minute(modifier::Minute {
         padding: modifier::Padding::Zero,
     })),
-    FormatDescription::Literal(":"),
-    FormatDescription::Component(Component::Second(modifier::Second {
+    FormatItem::Literal(":"),
+    FormatItem::Component(Component::Second(modifier::Second {
         padding: modifier::Padding::Zero,
     })),
-    FormatDescription::Literal("."),
-    FormatDescription::Component(Component::Subsecond(modifier::Subsecond {
+    FormatItem::Literal("."),
+    FormatItem::Component(Component::Subsecond(modifier::Subsecond {
         digits: modifier::SubsecondDigits::OneOrMore,
     })),
-]);
+];
 
 /// The format used when serializing and deserializing a human-readable `UtcOffset`.
 #[cfg(feature = "serde-human-readable")]
-const UTC_OFFSET_FORMAT: FormatDescription<'_> = FormatDescription::BorrowedCompound(&[
-    FormatDescription::Component(Component::OffsetHour(modifier::OffsetHour {
+const UTC_OFFSET_FORMAT: &[FormatItem<'_>] = &[
+    FormatItem::Component(Component::OffsetHour(modifier::OffsetHour {
         sign_is_mandatory: true,
         padding: modifier::Padding::Zero,
     })),
-    FormatDescription::Literal(":"),
-    FormatDescription::Component(Component::OffsetMinute(modifier::OffsetMinute {
+    FormatItem::Literal(":"),
+    FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute {
         padding: modifier::Padding::Zero,
     })),
-    FormatDescription::Literal(":"),
-    FormatDescription::Component(Component::OffsetSecond(modifier::OffsetSecond {
+    FormatItem::Literal(":"),
+    FormatItem::Component(Component::OffsetSecond(modifier::OffsetSecond {
         padding: modifier::Padding::Zero,
     })),
-]);
+];
 
 /// The format used when serializing and deserializing a human-readable `PrimitiveDateTime`.
 #[cfg(feature = "serde-human-readable")]
-const PRIMITIVE_DATE_TIME_FORMAT: FormatDescription<'_> = FormatDescription::BorrowedCompound(&[
-    DATE_FORMAT,
-    FormatDescription::Literal(" "),
-    TIME_FORMAT,
-]);
+const PRIMITIVE_DATE_TIME_FORMAT: &[FormatItem<'_>] = &[
+    FormatItem::Compound(DATE_FORMAT),
+    FormatItem::Literal(" "),
+    FormatItem::Compound(TIME_FORMAT),
+];
 
 /// The format used when serializing and deserializing a human-readable `OffsetDateTime`.
 #[cfg(feature = "serde-human-readable")]
-const OFFSET_DATE_TIME_FORMAT: FormatDescription<'_> = FormatDescription::BorrowedCompound(&[
-    DATE_FORMAT,
-    FormatDescription::Literal(" "),
-    TIME_FORMAT,
-    FormatDescription::Literal(" "),
-    UTC_OFFSET_FORMAT,
-]);
+const OFFSET_DATE_TIME_FORMAT: &[FormatItem<'_>] = &[
+    FormatItem::Compound(DATE_FORMAT),
+    FormatItem::Literal(" "),
+    FormatItem::Compound(TIME_FORMAT),
+    FormatItem::Literal(" "),
+    FormatItem::Compound(UTC_OFFSET_FORMAT),
+];
 
 impl Serialize for Date {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {

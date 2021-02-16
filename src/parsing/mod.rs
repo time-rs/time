@@ -1,6 +1,6 @@
 //! Parsing for various types.
 
-mod combinator;
+pub(crate) mod combinator;
 mod component;
 mod parsed;
 
@@ -8,7 +8,7 @@ pub use parsed::Parsed;
 
 /// An item that has been parsed. Represented as a `(remaining, value)` pair.
 #[derive(Debug, Clone)]
-pub(crate) struct ParsedItem<'a, T>(&'a str, T);
+pub(crate) struct ParsedItem<'a, T>(pub(crate) &'a str, pub(crate) T);
 
 impl<'a, T> ParsedItem<'a, T> {
     /// Map the value to a new value, preserving the remaining input.

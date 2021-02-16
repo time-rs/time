@@ -9,9 +9,7 @@ use core::time::Duration as StdDuration;
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 use crate::format_description::FormatDescription;
 #[cfg(feature = "formatting")]
-use crate::format_description::{modifier, Component};
-#[cfg(feature = "parsing")]
-use crate::parsing::Parsed;
+use crate::format_description::{modifier, Component, FormatItem};
 use crate::util::DateAdjustment;
 use crate::{error, hack, Duration};
 
@@ -451,30 +449,32 @@ impl Time {
 impl Time {
     /// Format the `Time` using the provided format description. The formatted value will be output
     /// to the provided writer. The format description will typically be parsed by using
-    /// [`FormatDescription::parse`].
-    pub fn format_into(
+    /// [`format_description::parse`](crate::format_description::parse()).
+    pub fn format_into<'a, F: FormatDescription<'a>>(
         self,
         output: &mut impl fmt::Write,
-        description: &FormatDescription<'_>,
-    ) -> Result<(), error::Format> {
-        description.format_into(output, None, Some(self), None)
+        format: &F,
+    ) -> Result<(), F::FormatError> {
+        format.format_into(output, None, Some(self), None)
     }
 
     /// Format the `Time` using the provided format description. The format description will
-    /// typically be parsed by using [`FormatDescription::parse`].
+    /// typically be parsed by using
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::{format_description::FormatDescription, macros::time};
-    /// let format = FormatDescription::parse("[hour]:[minute]:[second]")?;
+    /// # use time::{format_description, macros::time};
+    /// let format = format_description::parse("[hour]:[minute]:[second]")?;
     /// assert_eq!(time!("12:00").format(&format)?, "12:00:00");
     /// # Ok::<_, time::Error>(())
     /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn format(self, description: &FormatDescription<'_>) -> Result<String, error::Format> {
-        let mut s = String::new();
-        self.format_into(&mut s, description)?;
-        Ok(s)
+    pub fn format<'a, F: FormatDescription<'a>>(
+        self,
+        format: &F,
+    ) -> Result<String, F::FormatError> {
+        format.format(None, Some(self), None)
     }
 }
 
@@ -482,16 +482,23 @@ impl Time {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl Time {
     /// Parse a `Time` from the input using the provided format description. The format description
-    /// will typically be parsed by using [`FormatDescription::parse`].
+    /// will typically be parsed by using
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::{format_description::FormatDescription, macros::time, Time};
-    /// let format = FormatDescription::parse("[hour]:[minute]:[second]")?;
+    /// # use time::{format_description, macros::time, Time};
+    /// let format = format_description::parse("[hour]:[minute]:[second]")?;
     /// assert_eq!(Time::parse("12:00:00", &format)?, time!("12:00"));
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(input: &str, description: &FormatDescription<'_>) -> Result<Self, error::Parse> {
-        Ok(Parsed::parse_from_description(input, description)?.try_into()?)
+    pub fn parse<'a, F: FormatDescription<'a>>(
+        input: &'a str,
+        description: &F,
+    ) -> Result<Self, error::Parse> {
+        match description.parse(input) {
+            Ok(parsed) => Ok(parsed.try_into()?),
+            Err(err) => Err(err.into()),
+        }
     }
 }
 
@@ -501,21 +508,21 @@ impl fmt::Display for Time {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.format_into(
             f,
-            &FormatDescription::BorrowedCompound(&[
-                FormatDescription::Component(Component::Hour(modifier::Hour {
+            &FormatItem::Compound(&[
+                FormatItem::Component(Component::Hour(modifier::Hour {
                     padding: modifier::Padding::None,
                     is_12_hour_clock: false,
                 })),
-                FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::Minute(modifier::Minute {
+                FormatItem::Literal(":"),
+                FormatItem::Component(Component::Minute(modifier::Minute {
                     padding: modifier::Padding::Zero,
                 })),
-                FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::Second(modifier::Second {
+                FormatItem::Literal(":"),
+                FormatItem::Component(Component::Second(modifier::Second {
                     padding: modifier::Padding::Zero,
                 })),
-                FormatDescription::Literal("."),
-                FormatDescription::Component(Component::Subsecond(modifier::Subsecond {
+                FormatItem::Literal("."),
+                FormatItem::Component(Component::Subsecond(modifier::Subsecond {
                     digits: modifier::SubsecondDigits::OneOrMore,
                 })),
             ]),

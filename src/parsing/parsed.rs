@@ -5,13 +5,13 @@ use core::num::{NonZeroU16, NonZeroU8};
 
 use crate::error::TryFromParsed::InsufficientInformation;
 use crate::format_description::modifier::{WeekNumberRepr, YearRepr};
-use crate::format_description::{Component, FormatDescription};
+use crate::format_description::Component;
 use crate::parsing::component::{
     parse_day, parse_hour, parse_minute, parse_month, parse_offset_hour, parse_offset_minute,
     parse_offset_second, parse_ordinal, parse_period, parse_second, parse_subsecond,
     parse_week_number, parse_weekday, parse_year, Period,
 };
-use crate::parsing::{combinator, ParsedItem};
+use crate::parsing::ParsedItem;
 use crate::{error, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// All information parsed.
@@ -93,50 +93,9 @@ impl Parsed {
         }
     }
 
-    /// Parse a given string into its components from the provided format description.
-    pub fn parse_from_description<'a>(
-        input: &'a str,
-        format_description: &FormatDescription<'a>,
-    ) -> Result<Self, error::ParseFromDescription> {
-        let mut parsed = Self::new();
-        parsed._parse_from_description(input, format_description)?;
-        Ok(parsed)
-    }
-
-    /// Parse a given string into its components from the provided format description.
-    fn _parse_from_description<'a>(
-        &mut self,
-        mut input: &'a str,
-        format_description: &FormatDescription<'a>,
-    ) -> Result<&'a str, error::ParseFromDescription> {
-        match format_description {
-            FormatDescription::Literal(literal) => {
-                input = combinator::string(literal)(input)
-                    .ok_or(error::ParseFromDescription::InvalidLiteral)?
-                    .0;
-            }
-            FormatDescription::Component(component) => {
-                input = self.parse_component(input, *component)?;
-            }
-            FormatDescription::BorrowedCompound(compound) => {
-                for format_description in *compound {
-                    input = self._parse_from_description(input, format_description)?;
-                }
-            }
-            #[cfg(feature = "alloc")]
-            FormatDescription::OwnedCompound(compound) => {
-                for format_description in compound {
-                    input = self._parse_from_description(input, format_description)?;
-                }
-            }
-        }
-
-        Ok(input)
-    }
-
     /// Parse a single component, mutating the provided `Parsed` struct. The remaining input is
     /// returned as the `Ok` value.
-    fn parse_component<'a>(
+    pub(crate) fn parse_component<'a>(
         &mut self,
         input: &'a str,
         component: Component,

@@ -1,6 +1,6 @@
 use time::ext::{NumericalDuration, NumericalStdDuration};
 #[cfg(all(feature = "formatting", feature = "alloc"))]
-use time::format_description::FormatDescription;
+use time::format_description;
 use time::macros::time;
 use time::{Result, Time};
 
@@ -179,7 +179,8 @@ fn format() -> time::Result<()> {
 
     for &(format_description, output) in &input_output {
         assert_eq!(
-            time!("13:02:03.456_789_012").format(&FormatDescription::parse(format_description)?)?,
+            time!("13:02:03.456_789_012")
+                .format(&format_description::parse(format_description)?)?,
             output
         );
     }

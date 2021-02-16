@@ -8,9 +8,9 @@ use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 
 #[cfg(feature = "parsing")]
-use crate::parsing::Parsed;
+use crate::error;
 #[cfg(any(feature = "formatting", feature = "parsing"))]
-use crate::{error, format_description::FormatDescription};
+use crate::format_description::FormatDescription;
 use crate::{hack, util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
 
 /// Combined date and time.
@@ -495,22 +495,23 @@ impl PrimitiveDateTime {
 impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided format description. The formatted value
     /// will be output to the provided writer. The format description will typically be parsed by
-    /// using [`FormatDescription::parse`].
-    pub fn format_into(
+    /// using [`format_description::parse`](crate::format_description::parse()).
+    pub fn format_into<'a, F: FormatDescription<'a>>(
         self,
         output: &mut impl fmt::Write,
-        description: &FormatDescription<'_>,
-    ) -> Result<(), error::Format> {
-        description.format_into(output, Some(self.date), Some(self.time), None)
+        format: &F,
+    ) -> Result<(), F::FormatError> {
+        format.format_into(output, Some(self.date), Some(self.time), None)
     }
 
     /// Format the `PrimitiveDateTime` using the provided format description. The format description
-    /// will typically be parsed by using [`FormatDescription::parse`].
+    /// will typically be parsed by using
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::{format_description::FormatDescription, macros::datetime};
+    /// # use time::{format_description, macros::datetime};
     /// let format =
-    ///     FormatDescription::parse("[year]-[month repr:numerical]-[day] [hour]:[minute]:[second]")?;
+    ///     format_description::parse("[year]-[month repr:numerical]-[day] [hour]:[minute]:[second]")?;
     /// assert_eq!(
     ///     datetime!("2020-01-02 03:04:05").format(&format)?,
     ///     "2020-01-02 03:04:05"
@@ -519,10 +520,11 @@ impl PrimitiveDateTime {
     /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn format(self, description: &FormatDescription<'_>) -> Result<String, error::Format> {
-        let mut s = String::new();
-        self.format_into(&mut s, description)?;
-        Ok(s)
+    pub fn format<'a, F: FormatDescription<'a>>(
+        self,
+        format: &F,
+    ) -> Result<String, F::FormatError> {
+        format.format(Some(self.date), Some(self.time), None)
     }
 }
 
@@ -530,20 +532,27 @@ impl PrimitiveDateTime {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl PrimitiveDateTime {
     /// Parse a `PrimitiveDateTime` from the input using the provided format description. The format
-    /// description will typically be parsed by using [`FormatDescription::parse`].
+    /// description will typically be parsed by using
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::{format_description::FormatDescription, macros::datetime, PrimitiveDateTime};
+    /// # use time::{format_description, macros::datetime, PrimitiveDateTime};
     /// let format =
-    ///     FormatDescription::parse("[year]-[month repr:numerical]-[day] [hour]:[minute]:[second]")?;
+    ///     format_description::parse("[year]-[month repr:numerical]-[day] [hour]:[minute]:[second]")?;
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2020-01-02 03:04:05", &format)?,
     ///     datetime!("2020-01-02 03:04:05")
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(input: &str, description: &FormatDescription<'_>) -> Result<Self, error::Parse> {
-        Ok(Parsed::parse_from_description(input, description)?.try_into()?)
+    pub fn parse<'a, F: FormatDescription<'a>>(
+        input: &'a str,
+        description: &F,
+    ) -> Result<Self, error::Parse> {
+        match description.parse(input) {
+            Ok(parsed) => Ok(parsed.try_into()?),
+            Err(err) => Err(err.into()),
+        }
     }
 }
 

@@ -9,9 +9,7 @@ use core::time::Duration as StdDuration;
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 use crate::format_description::FormatDescription;
 #[cfg(feature = "formatting")]
-use crate::format_description::{modifier, Component};
-#[cfg(feature = "parsing")]
-use crate::parsing::Parsed;
+use crate::format_description::{modifier, Component, FormatItem};
 use crate::util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year};
 use crate::{error, Duration, PrimitiveDateTime, Time, Weekday};
 
@@ -641,30 +639,32 @@ impl Date {
 impl Date {
     /// Format the `Date` using the provided format description. The formatted value will be output
     /// to the provided writer. The format description will typically be parsed by using
-    /// [`FormatDescription::parse`].
-    pub fn format_into(
+    /// [`format_description::parse`](crate::format_description::parse()).
+    pub fn format_into<'a, F: FormatDescription<'a>>(
         self,
         output: &mut impl fmt::Write,
-        description: &FormatDescription<'_>,
-    ) -> Result<(), error::Format> {
-        description.format_into(output, Some(self), None, None)
+        format: &F,
+    ) -> Result<(), F::FormatError> {
+        format.format_into(output, Some(self), None, None)
     }
 
     /// Format the `Date` using the provided format description. The format description will
-    /// typically be parsed by using [`FormatDescription::parse`].
+    /// typically be parsed by using
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::{format_description::FormatDescription, macros::date};
-    /// let format = FormatDescription::parse("[year]-[month repr:numerical]-[day]")?;
+    /// # use time::{format_description, macros::date};
+    /// let format = format_description::parse("[year]-[month repr:numerical]-[day]")?;
     /// assert_eq!(date!("2020-01-02").format(&format)?, "2020-01-02");
     /// # Ok::<_, time::Error>(())
     /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn format(self, description: &FormatDescription<'_>) -> Result<String, error::Format> {
-        let mut s = String::new();
-        self.format_into(&mut s, description)?;
-        Ok(s)
+    pub fn format<'a, F: FormatDescription<'a>>(
+        self,
+        format: &F,
+    ) -> Result<String, F::FormatError> {
+        format.format(Some(self), None, None)
     }
 }
 
@@ -672,16 +672,25 @@ impl Date {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl Date {
     /// Parse a `Date` from the input using the provided format description. The format description
-    /// will typically be parsed by using [`FormatDescription::parse`].
+    /// will typically be parsed by using
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::{format_description::FormatDescription, macros::date, Date};
-    /// let format = FormatDescription::parse("[year]-[month repr:numerical]-[day]")?;
+    /// # use time::{format_description, macros::date, Date};
+    /// let format = format_description::parse("[year]-[month repr:numerical]-[day]")?;
     /// assert_eq!(Date::parse("2020-01-02", &format)?, date!("2020-01-02"));
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(input: &str, description: &FormatDescription<'_>) -> Result<Self, error::Parse> {
-        Ok(Parsed::parse_from_description(input, description)?.try_into()?)
+    // TODO It may be possible (via typestate) to eliminate the `try_into` error path. This applies
+    // to all structs.
+    pub fn parse<'a, F: FormatDescription<'a>>(
+        input: &'a str,
+        description: &F,
+    ) -> Result<Self, error::Parse> {
+        match description.parse(input) {
+            Ok(parsed) => Ok(parsed.try_into()?),
+            Err(err) => Err(err.into()),
+        }
     }
 }
 
@@ -691,20 +700,20 @@ impl fmt::Display for Date {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.format_into(
             f,
-            &FormatDescription::BorrowedCompound(&[
-                FormatDescription::Component(Component::Year(modifier::Year {
+            &FormatItem::Compound(&[
+                FormatItem::Component(Component::Year(modifier::Year {
                     padding: modifier::Padding::Zero,
                     repr: modifier::YearRepr::Full,
                     iso_week_based: false,
                     sign_is_mandatory: false,
                 })),
-                FormatDescription::Literal("-"),
-                FormatDescription::Component(Component::Month(modifier::Month {
+                FormatItem::Literal("-"),
+                FormatItem::Component(Component::Month(modifier::Month {
                     padding: modifier::Padding::Zero,
                     repr: modifier::MonthRepr::Numerical,
                 })),
-                FormatDescription::Literal("-"),
-                FormatDescription::Component(Component::Day(modifier::Day {
+                FormatItem::Literal("-"),
+                FormatItem::Component(Component::Day(modifier::Day {
                     padding: modifier::Padding::Zero,
                 })),
             ]),

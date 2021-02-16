@@ -18,9 +18,7 @@ use crate::error;
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 use crate::format_description::FormatDescription;
 #[cfg(feature = "formatting")]
-use crate::format_description::{modifier, Component};
-#[cfg(feature = "parsing")]
-use crate::parsing::Parsed;
+use crate::format_description::{modifier, Component, FormatItem};
 #[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
 
@@ -173,30 +171,32 @@ impl UtcOffset {
 impl UtcOffset {
     /// Format the `UtcOffset` using the provided format description. The formatted value will be
     /// output to the provided writer. The format description will typically be parsed by using
-    /// [`FormatDescription::parse`].
-    pub fn format_into(
+    /// [`format_description::parse`](crate::format_description::parse()).
+    pub fn format_into<'a, F: FormatDescription<'a>>(
         self,
         output: &mut impl fmt::Write,
-        description: &FormatDescription<'_>,
-    ) -> Result<(), error::Format> {
-        description.format_into(output, None, None, Some(self))
+        format: &F,
+    ) -> Result<(), F::FormatError> {
+        format.format_into(output, None, None, Some(self))
     }
 
     /// Format the `UtcOffset` using the provided format description. The format description will
-    /// typically be parsed by using [`FormatDescription::parse`].
+    /// typically be parsed by using
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::{format_description::FormatDescription, macros::offset};
-    /// let format = FormatDescription::parse("[offset_hour sign:mandatory]:[offset_minute]")?;
+    /// # use time::{format_description, macros::offset};
+    /// let format = format_description::parse("[offset_hour sign:mandatory]:[offset_minute]")?;
     /// assert_eq!(offset!("+1").format(&format)?, "+01:00");
     /// # Ok::<_, time::Error>(())
     /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn format(self, description: &FormatDescription<'_>) -> Result<String, error::Format> {
-        let mut s = String::new();
-        self.format_into(&mut s, description)?;
-        Ok(s)
+    pub fn format<'a, F: FormatDescription<'a>>(
+        self,
+        format: &F,
+    ) -> Result<String, F::FormatError> {
+        format.format(None, None, Some(self))
     }
 }
 
@@ -204,16 +204,23 @@ impl UtcOffset {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl UtcOffset {
     /// Parse a `UtcOffset` from the input using the provided format description. The format
-    /// description will typically be parsed by using [`FormatDescription::parse`].
+    /// description will typically be parsed by using
+    /// [`format_description::parse`](crate::format_description::parse()).
     ///
     /// ```rust
-    /// # use time::{format_description::FormatDescription, macros::offset, UtcOffset};
-    /// let format = FormatDescription::parse("[offset_hour]:[offset_minute]")?;
+    /// # use time::{format_description, macros::offset, UtcOffset};
+    /// let format = format_description::parse("[offset_hour]:[offset_minute]")?;
     /// assert_eq!(UtcOffset::parse("-03:42", &format)?, offset!("-3:42"));
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(input: &str, description: &FormatDescription<'_>) -> Result<Self, error::Parse> {
-        Ok(Parsed::parse_from_description(input, description)?.try_into()?)
+    pub fn parse<'a, F: FormatDescription<'a>>(
+        input: &'a str,
+        description: &F,
+    ) -> Result<Self, error::Parse> {
+        match description.parse(input) {
+            Ok(parsed) => Ok(parsed.try_into()?),
+            Err(err) => Err(err.into()),
+        }
     }
 }
 
@@ -223,17 +230,17 @@ impl fmt::Display for UtcOffset {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.format_into(
             f,
-            &FormatDescription::BorrowedCompound(&[
-                FormatDescription::Component(Component::OffsetHour(modifier::OffsetHour {
+            &FormatItem::Compound(&[
+                FormatItem::Component(Component::OffsetHour(modifier::OffsetHour {
                     padding: modifier::Padding::Zero,
                     sign_is_mandatory: true,
                 })),
-                FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::OffsetMinute(modifier::OffsetMinute {
+                FormatItem::Literal(":"),
+                FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute {
                     padding: modifier::Padding::Zero,
                 })),
-                FormatDescription::Literal(":"),
-                FormatDescription::Component(Component::OffsetSecond(modifier::OffsetSecond {
+                FormatItem::Literal(":"),
+                FormatItem::Component(Component::OffsetSecond(modifier::OffsetSecond {
                     padding: modifier::Padding::Zero,
                 })),
             ]),

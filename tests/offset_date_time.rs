@@ -4,7 +4,7 @@ use std::time::SystemTime;
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
 #[cfg(all(feature = "formatting", feature = "alloc"))]
-use time::format_description::FormatDescription;
+use time::format_description;
 use time::macros::{date, datetime, offset, time};
 use time::{OffsetDateTime, Weekday};
 
@@ -884,7 +884,7 @@ fn format() -> time::Result<()> {
     // Various components are tested thoroughly in their relevant files. As
     // such, this test only exists to ensure that nothing breaks unexpectedly.
     assert_eq!(
-        datetime!("1970-01-01 0:00 UTC").format(&FormatDescription::parse(
+        datetime!("1970-01-01 0:00 UTC").format(&format_description::parse(
             "[year]-[month repr:numerical]-[day] [hour]:[minute]:[second].[subsecond] \
              [offset_hour sign:mandatory]:[offset_minute]:[offset_second]"
         )?)?,
