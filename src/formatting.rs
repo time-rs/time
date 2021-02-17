@@ -199,7 +199,9 @@ pub(crate) fn format_component(
             };
 
             let width = match repr {
+                #[cfg(feature = "large-dates")]
                 modifier::YearRepr::Full if value.abs() >= 100_000 => 6,
+                #[cfg(feature = "large-dates")]
                 modifier::YearRepr::Full if value.abs() >= 10_000 => 5,
                 modifier::YearRepr::Full => 4,
                 modifier::YearRepr::LastTwo => 2,
@@ -209,7 +211,8 @@ pub(crate) fn format_component(
             if repr != modifier::YearRepr::LastTwo {
                 if full_year < 0 {
                     output.write_char('-')?;
-                } else if sign_is_mandatory || full_year >= 10_000 {
+                } else if sign_is_mandatory || cfg!(feature = "large-dates") && full_year >= 10_000
+                {
                     output.write_char('+')?;
                 }
             }
