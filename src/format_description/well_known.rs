@@ -1,12 +1,18 @@
 //! Well-known formats, typically RFCs.
 
+#[cfg(feature = "formatting")]
 use core::fmt;
 
+use crate::error;
+#[cfg(feature = "formatting")]
 use crate::format_description::modifier::Padding;
 use crate::format_description::FormatDescription;
+#[cfg(feature = "formatting")]
 use crate::formatting::format_number;
-use crate::parsing::{combinator, Parsed, ParsedItem};
-use crate::{error, Date, Time, UtcOffset};
+#[cfg(feature = "parsing")]
+use crate::parsing::{Parsed, ParsedItem};
+#[cfg(feature = "formatting")]
+use crate::{Date, Time, UtcOffset};
 
 /// The format described in [RFC 3339](https://tools.ietf.org/html/rfc3339#section-5.6).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -87,45 +93,46 @@ impl<'a> FormatDescription<'a> for Rfc3339 {
 
     #[cfg(feature = "parsing")]
     fn parse_into(&self, input: &'a str, parsed: &mut Parsed) -> Result<&'a str, Self::ParseError> {
-        use error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
+        use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
+        use crate::parsing::combinator::{
+            any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, n_to_m, sign,
+        };
 
-        let dash = combinator::ascii_char(b'-');
-        let colon = combinator::ascii_char(b':');
+        let dash = ascii_char(b'-');
+        let colon = ascii_char(b':');
 
-        let input = combinator::exactly_n_digits_padded::<u32>(4, Padding::Zero)(input)
+        let input = exactly_n_digits(4)(input)
             .ok_or(InvalidComponent("year"))?
-            .assign_value_to_with(&mut parsed.year, |year| year as i32);
+            .assign_value_to_with(&mut parsed.year, |year: u32| year as i32);
         let input = dash(input).ok_or(InvalidLiteral)?.unwrap();
-        let input = combinator::exactly_n_digits_padded(2, Padding::Zero)(input)
+        let input = exactly_n_digits(2)(input)
             .ok_or(InvalidComponent("month"))?
             .assign_value_to(&mut parsed.month);
         let input = dash(input).ok_or(InvalidLiteral)?.unwrap();
-        let input = combinator::exactly_n_digits_padded(2, Padding::Zero)(input)
+        let input = exactly_n_digits(2)(input)
             .ok_or(InvalidComponent("day"))?
             .assign_value_to(&mut parsed.day);
-        let input = combinator::ascii_char(b'T')(input)
-            .or_else(|| combinator::ascii_char(b't')(input))
+        let input = ascii_char_ignore_case(b'T')(input)
             .ok_or(InvalidLiteral)?
             .unwrap();
-        let input = combinator::exactly_n_digits_padded(2, Padding::Zero)(input)
+        let input = exactly_n_digits(2)(input)
             .ok_or(InvalidComponent("hour"))?
             .assign_value_to(&mut parsed.hour_24);
         let input = colon(input).ok_or(InvalidLiteral)?.unwrap();
-        let input = combinator::exactly_n_digits_padded(2, Padding::Zero)(input)
+        let input = exactly_n_digits(2)(input)
             .ok_or(InvalidComponent("minute"))?
             .assign_value_to(&mut parsed.minute);
         let input = colon(input).ok_or(InvalidLiteral)?.unwrap();
-        let input = combinator::exactly_n_digits_padded(2, Padding::Zero)(input)
+        let input = exactly_n_digits(2)(input)
             .ok_or(InvalidComponent("second"))?
             .assign_value_to(&mut parsed.second);
-        let input = if let Some(ParsedItem(input, ())) = combinator::ascii_char(b'.')(input) {
+        let input = if let Some(ParsedItem(input, ())) = ascii_char(b'.')(input) {
             let ParsedItem(mut input, raw_digits) =
-                combinator::n_to_m(1, 9, combinator::any_digit)(input)
-                    .ok_or(InvalidComponent("subsecond"))?;
+                n_to_m(1, 9, any_digit)(input).ok_or(InvalidComponent("subsecond"))?;
 
             // Consume any remaining digits as allowed by the spec. They are discarded, as we only
             // have nanosecond precision.
-            while let Some(ParsedItem(new_input, _)) = combinator::any_digit(input) {
+            while let Some(ParsedItem(new_input, _)) = any_digit(input) {
                 input = new_input;
             }
 
@@ -138,29 +145,25 @@ impl<'a> FormatDescription<'a> for Rfc3339 {
             input
         };
 
-        if let Some(ParsedItem(input, ())) =
-            combinator::ascii_char(b'Z')(input).or_else(|| combinator::ascii_char(b'z')(input))
-        {
+        if let Some(ParsedItem(input, ())) = ascii_char_ignore_case(b'Z')(input) {
             parsed.offset_hour = Some(0);
             parsed.offset_minute = Some(0);
             parsed.offset_second = Some(0);
             return Ok(input);
         }
 
-        let ParsedItem(input, offset_sign) =
-            combinator::first_match([("-", -1), ("+", 1)].iter())(input)
-                .ok_or(InvalidComponent("offset_hour"))?;
-        let input = combinator::exactly_n_digits_padded::<u8>(2, Padding::Zero)(input)
+        let ParsedItem(input, offset_sign) = sign(input).ok_or(InvalidComponent("offset_hour"))?;
+        let input = exactly_n_digits(2)(input)
             .ok_or(InvalidComponent("offset_hour"))?
-            .assign_value_to_with(&mut parsed.offset_hour, |offset_hour| {
-                if offset_sign == -1 {
+            .assign_value_to_with(&mut parsed.offset_hour, |offset_hour: u8| {
+                if offset_sign == '-' {
                     -(offset_hour as i8)
                 } else {
                     offset_hour as _
                 }
             });
         let input = colon(input).ok_or(InvalidLiteral)?.unwrap();
-        let input = combinator::exactly_n_digits_padded(2, Padding::Zero)(input)
+        let input = exactly_n_digits(2)(input)
             .ok_or(InvalidComponent("offset_minute"))?
             .assign_value_to(&mut parsed.offset_minute);
 

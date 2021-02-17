@@ -94,6 +94,13 @@ pub(crate) fn n_to_m_digits<'a, T: Integer>(
 }
 
 /// Consume exactly `n` digits, returning the numerical value.
+pub(crate) fn exactly_n_digits<'a, T: Integer>(
+    n: u8,
+) -> impl Fn(&'a str) -> Option<ParsedItem<'a, T>> {
+    n_to_m_digits(n, n)
+}
+
+/// Consume exactly `n` digits, returning the numerical value.
 pub(crate) fn exactly_n_digits_padded<'a, T: Integer>(
     n: u8,
     padding: Padding,
@@ -129,8 +136,18 @@ pub(crate) fn any_digit(input: &str) -> Option<ParsedItem<'_, u8>> {
 
 /// Consume exactly one of the provided ASCII characters.
 pub(crate) fn ascii_char(char: u8) -> impl Fn(&str) -> Option<ParsedItem<'_, ()>> {
+    debug_assert!(char.is_ascii_graphic() || char.is_ascii_whitespace());
     move |input| match input.as_bytes() {
         [c, ..] if *c == char => Some(ParsedItem(&input[1..], ())),
+        _ => None,
+    }
+}
+
+/// Consume exactly one of the provided ASCII characters, case-insensitive.
+pub(crate) fn ascii_char_ignore_case(char: u8) -> impl Fn(&str) -> Option<ParsedItem<'_, ()>> {
+    debug_assert!(char.is_ascii_graphic() || char.is_ascii_whitespace());
+    move |input| match input.as_bytes() {
+        [c, ..] if c.eq_ignore_ascii_case(&char) => Some(ParsedItem(&input[1..], ())),
         _ => None,
     }
 }
