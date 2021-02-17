@@ -21,13 +21,6 @@ impl Integer for NonZeroU64 {}
 impl Integer for NonZeroU128 {}
 impl Integer for NonZeroUsize {}
 
-/// Parse a string.
-pub(crate) fn string<'a, 'b: 'a>(
-    expected: &'b str,
-) -> impl Fn(&'a str) -> Option<ParsedItem<'a, &'a str>> {
-    move |input| Some(ParsedItem(input.strip_prefix(expected)?, expected))
-}
-
 /// Parse a "+" or "-" sign. Returns the ASCII byte representing the sign, if present.
 pub(crate) fn sign(input: &str) -> Option<ParsedItem<'_, char>> {
     if let Some(remaining) = input.strip_prefix('-') {
@@ -42,7 +35,9 @@ pub(crate) fn sign(input: &str) -> Option<ParsedItem<'_, char>> {
 pub(crate) fn first_match<'a, 'b: 'a, T: Copy + 'a>(
     mut options: impl Iterator<Item = &'a (&'b str, T)>,
 ) -> impl FnMut(&'b str) -> Option<ParsedItem<'b, T>> {
-    move |input| options.find_map(|&(expected, t)| Some(ParsedItem(string(expected)(input)?.0, t)))
+    move |input| {
+        options.find_map(|&(expected, t)| Some(ParsedItem(input.strip_prefix(expected)?, t)))
+    }
 }
 
 /// Consume between `n` and `m` instances of the provided parser.

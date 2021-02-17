@@ -21,7 +21,7 @@ use crate::error;
 #[cfg(feature = "formatting")]
 use crate::formatting::format_component;
 #[cfg(feature = "parsing")]
-use crate::parsing::{combinator, Parsed};
+use crate::parsing::Parsed;
 #[cfg(feature = "formatting")]
 use crate::{Date, Time, UtcOffset};
 
@@ -147,9 +147,9 @@ impl<'a> FormatDescription<'a> for FormatItem<'a> {
     ) -> Result<&'a str, Self::ParseError> {
         match self {
             Self::Literal(literal) => {
-                input = combinator::string(literal)(input)
-                    .ok_or(error::ParseFromDescription::InvalidLiteral)?
-                    .0;
+                input = input
+                    .strip_prefix(literal)
+                    .ok_or(error::ParseFromDescription::InvalidLiteral)?;
             }
             Self::Component(component) => input = parsed.parse_component(input, *component)?,
             Self::Compound(compound) => input = compound.parse_into(input, parsed)?,
