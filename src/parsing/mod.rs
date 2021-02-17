@@ -27,4 +27,22 @@ impl<'a, T> ParsedItem<'a, T> {
         *target = Some(self.1);
         self.0
     }
+
+    /// Consume the stored value, assigning the result of the given function to the provided target.
+    /// The remaining input is returned.
+    pub(crate) fn assign_value_to_with<U>(
+        self,
+        target: &mut Option<U>,
+        f: impl Fn(T) -> U,
+    ) -> &'a str {
+        *target = Some(f(self.1));
+        self.0
+    }
+}
+
+impl<'a> ParsedItem<'a, ()> {
+    /// Discard the unit value, returning the remaining input.
+    pub(crate) const fn unwrap(self) -> &'a str {
+        self.0
+    }
 }

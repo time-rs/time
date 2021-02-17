@@ -11,6 +11,10 @@ pub enum Format {
     /// The type being formatted does not contain sufficient information to format a component.
     #[non_exhaustive]
     InsufficientTypeInformation,
+    /// The component named has a value that cannot be formatted into the requested format.
+    ///
+    /// This variant is only returned when using well-known formats.
+    InvalidComponent(&'static str),
     /// A value of `core::fmt::Error` was returned internally.
     StdFmt,
 }
@@ -18,9 +22,14 @@ pub enum Format {
 impl fmt::Display for Format {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InsufficientTypeInformation { .. } => f.write_str(
+            Self::InsufficientTypeInformation => f.write_str(
                 "The type being formatted does not contain sufficient information to format a \
                  component.",
+            ),
+            Self::InvalidComponent(component) => write!(
+                f,
+                "The {} component cannot be formatted into the requested format.",
+                component
             ),
             Self::StdFmt => core::fmt::Error.fmt(f),
         }
@@ -38,7 +47,7 @@ impl From<fmt::Error> for Format {
 impl std::error::Error for Format {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Self::InsufficientTypeInformation { .. } => None,
+            Self::InsufficientTypeInformation | Self::InvalidComponent(_) => None,
             Self::StdFmt => Some(&core::fmt::Error),
         }
     }

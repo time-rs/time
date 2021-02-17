@@ -4,6 +4,7 @@ mod component;
 pub mod modifier;
 #[cfg(feature = "alloc")]
 pub(crate) mod parse;
+pub mod well_known;
 
 #[cfg(all(feature = "alloc", feature = "formatting"))]
 use alloc::string::String;

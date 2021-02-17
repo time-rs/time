@@ -719,7 +719,10 @@ impl fmt::Display for Date {
         ) {
             Ok(()) => Ok(()),
             Err(error::Format::StdFmt) => Err(fmt::Error),
-            Err(error::Format::InsufficientTypeInformation { .. }) => {
+            Err(error::Format::InvalidComponent(_)) => {
+                unreachable!("A well-known format is not used")
+            }
+            Err(error::Format::InsufficientTypeInformation) => {
                 unreachable!("All components used only require a `Date`")
             }
         }

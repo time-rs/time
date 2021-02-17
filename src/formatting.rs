@@ -36,7 +36,7 @@ const WEEKDAY_NAMES: [&str; 7] = [
 ///
 /// Note that this should not be implemented for any signed integers. This forces the caller to
 /// write the sign if desired.
-trait DigitCount {
+pub(crate) trait DigitCount {
     /// The number of digits in the stringified value.
     fn num_digits(self) -> u8;
 }
@@ -95,7 +95,7 @@ impl DigitCount for u32 {
 /// Format a number with the provided padding and width.
 ///
 /// The sign must be written by the caller.
-fn format_number(
+pub(crate) fn format_number(
     output: &mut impl fmt::Write,
     value: impl itoa::Integer + DigitCount + Copy,
     padding: modifier::Padding,
