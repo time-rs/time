@@ -20,6 +20,8 @@ pub(crate) mod sealed {
         type Error: Into<error::Parse>;
 
         /// Parse the item into the provided [`Parsed`] struct.
+        ///
+        /// This method can be used to parse part of a type without parsing the full value.
         fn parse_into<'a>(
             &self,
             input: &'a str,
@@ -27,10 +29,20 @@ pub(crate) mod sealed {
         ) -> Result<&'a str, Self::Error>;
 
         /// Parse the item into a new [`Parsed`] struct.
-        fn parse(&self, input: &str) -> Result<Parsed, Self::Error> {
+        ///
+        /// This method can only be used to parse a complete value of a type. If any characters
+        /// remain after parsing, an error will be returned.
+        fn parse(&self, input: &str) -> Result<Parsed, error::Parse> {
             let mut parsed = Parsed::new();
-            self.parse_into(input, &mut parsed)?;
-            Ok(parsed)
+            let remaining = match self.parse_into(input, &mut parsed) {
+                Ok(value) => value,
+                Err(err) => return Err(err.into()),
+            };
+            if remaining.is_empty() {
+                Ok(parsed)
+            } else {
+                Err(error::Parse::UnexpectedTrailingCharacters)
+            }
         }
     }
 }

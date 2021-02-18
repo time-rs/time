@@ -52,6 +52,10 @@ pub enum Error {
     IntermediateParse(ParseFromDescription),
     #[cfg(feature = "parsing")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
+    #[non_exhaustive]
+    UnexpectedTrailingCharacters,
+    #[cfg(feature = "parsing")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
     TryFromParsed(TryFromParsed),
     #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
     #[cfg_attr(
@@ -73,6 +77,8 @@ impl fmt::Display for Error {
             #[cfg(feature = "parsing")]
             Self::IntermediateParse(e) => e.fmt(f),
             #[cfg(feature = "parsing")]
+            Self::UnexpectedTrailingCharacters => f.write_str("unexpected trailing characters"),
+            #[cfg(feature = "parsing")]
             Self::TryFromParsed(e) => e.fmt(f),
             #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
             Self::InvalidFormatDescription(e) => e.fmt(f),
@@ -93,6 +99,8 @@ impl std::error::Error for Error {
             Self::Format(err) => Some(err),
             #[cfg(feature = "parsing")]
             Self::IntermediateParse(err) => Some(err),
+            #[cfg(feature = "parsing")]
+            Self::UnexpectedTrailingCharacters => None,
             #[cfg(feature = "parsing")]
             Self::TryFromParsed(err) => Some(err),
             #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]

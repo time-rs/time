@@ -545,10 +545,7 @@ impl PrimitiveDateTime {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
-        match description.parse(input) {
-            Ok(parsed) => Ok(parsed.try_into()?),
-            Err(err) => Err(err.into()),
-        }
+        Ok(description.parse(input)?.try_into()?)
     }
 }
 

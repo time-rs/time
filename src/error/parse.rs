@@ -14,6 +14,9 @@ pub enum Parse {
     TryFromParsed(TryFromParsed),
     #[allow(clippy::missing_docs_in_private_items)]
     IntermediateParse(ParseFromDescription),
+    /// The input should have ended, but there were characters remaining.
+    #[non_exhaustive]
+    UnexpectedTrailingCharacters,
 }
 
 impl fmt::Display for Parse {
@@ -21,6 +24,7 @@ impl fmt::Display for Parse {
         match self {
             Self::TryFromParsed(err) => err.fmt(f),
             Self::IntermediateParse(err) => err.fmt(f),
+            Self::UnexpectedTrailingCharacters => f.write_str("unexpected trailing characters"),
         }
     }
 }
@@ -32,6 +36,7 @@ impl std::error::Error for Parse {
         match self {
             Self::TryFromParsed(err) => Some(err),
             Self::IntermediateParse(err) => Some(err),
+            Self::UnexpectedTrailingCharacters => None,
         }
     }
 }
@@ -53,6 +58,7 @@ impl From<Parse> for crate::Error {
         match err {
             Parse::TryFromParsed(err) => Self::TryFromParsed(err),
             Parse::IntermediateParse(err) => Self::IntermediateParse(err),
+            Parse::UnexpectedTrailingCharacters => Self::UnexpectedTrailingCharacters,
         }
     }
 }
@@ -82,6 +88,10 @@ impl Parse {
                     &&*format!("valid {}", component),
                 )
             }
+            Self::UnexpectedTrailingCharacters => D::Error::invalid_value(
+                serde::de::Unexpected::Other("literal"),
+                &"no extraneous characters",
+            ),
         }
     }
 }
