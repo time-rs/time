@@ -1,5 +1,7 @@
 //! Formatting for the time crate.
 
+pub(crate) mod formattable;
+
 use core::fmt;
 
 use crate::format_description::{modifier, Component};

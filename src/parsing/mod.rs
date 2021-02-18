@@ -2,6 +2,7 @@
 
 pub(crate) mod combinator;
 mod component;
+pub(crate) mod parsable;
 mod parsed;
 
 pub use parsed::Parsed;

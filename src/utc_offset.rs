@@ -15,10 +15,12 @@ use core::convert::TryInto;
 use core::fmt;
 
 use crate::error;
-#[cfg(any(feature = "formatting", feature = "parsing"))]
-use crate::format_description::FormatDescription;
 #[cfg(feature = "formatting")]
 use crate::format_description::{modifier, Component, FormatItem};
+#[cfg(feature = "formatting")]
+use crate::formatting::formattable::sealed::Formattable;
+#[cfg(feature = "parsing")]
+use crate::parsing::parsable::sealed::Parsable;
 #[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
 
@@ -172,11 +174,11 @@ impl UtcOffset {
     /// Format the `UtcOffset` using the provided format description. The formatted value will be
     /// output to the provided writer. The format description will typically be parsed by using
     /// [`format_description::parse`](crate::format_description::parse()).
-    pub fn format_into<'a, F: FormatDescription<'a>>(
+    pub fn format_into<F: Formattable>(
         self,
         output: &mut impl fmt::Write,
         format: &F,
-    ) -> Result<(), F::FormatError> {
+    ) -> Result<(), F::Error> {
         format.format_into(output, None, None, Some(self))
     }
 
@@ -192,10 +194,7 @@ impl UtcOffset {
     /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn format<'a, F: FormatDescription<'a>>(
-        self,
-        format: &F,
-    ) -> Result<String, F::FormatError> {
+    pub fn format<F: Formattable>(self, format: &F) -> Result<String, F::Error> {
         format.format(None, None, Some(self))
     }
 }
@@ -213,10 +212,7 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::parse("-03:42", &format)?, offset!("-3:42"));
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse<'a, F: FormatDescription<'a>>(
-        input: &'a str,
-        description: &F,
-    ) -> Result<Self, error::Parse> {
+    pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
         match description.parse(input) {
             Ok(parsed) => Ok(parsed.try_into()?),
             Err(err) => Err(err.into()),

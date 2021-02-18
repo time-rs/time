@@ -13,8 +13,10 @@ use core::time::Duration as StdDuration;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
-#[cfg(any(feature = "formatting", feature = "parsing"))]
-use crate::format_description::FormatDescription;
+#[cfg(feature = "formatting")]
+use crate::formatting::formattable::sealed::Formattable;
+#[cfg(feature = "parsing")]
+use crate::parsing::parsable::sealed::Parsable;
 use crate::{error, hack, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// The Julian day of the Unix epoch.
@@ -777,11 +779,11 @@ impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided format description. The formatted value will
     /// be output to the provided writer. The format description will typically be parsed by using
     /// [`format_description::parse`](crate::format_description::parse()).
-    pub fn format_into<'a, F: FormatDescription<'a>>(
+    pub fn format_into<F: Formattable>(
         self,
         output: &mut impl fmt::Write,
         format: &F,
-    ) -> Result<(), F::FormatError> {
+    ) -> Result<(), F::Error> {
         let local = self.utc_datetime.utc_to_offset(self.offset);
         format.format_into(
             output,
@@ -809,10 +811,7 @@ impl OffsetDateTime {
     /// ```
     #[cfg(feature = "alloc")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-    pub fn format<'a, F: FormatDescription<'a>>(
-        self,
-        format: &F,
-    ) -> Result<String, F::FormatError> {
+    pub fn format<F: Formattable>(self, format: &F) -> Result<String, F::Error> {
         let local = self.utc_datetime.utc_to_offset(self.offset);
         format.format(Some(local.date), Some(local.time), Some(self.offset))
     }
@@ -837,10 +836,7 @@ impl OffsetDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse<'a, F: FormatDescription<'a>>(
-        input: &'a str,
-        description: &F,
-    ) -> Result<Self, error::Parse> {
+    pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
         match description.parse(input) {
             Ok(parsed) => Ok(parsed.try_into()?),
             Err(err) => Err(err.into()),

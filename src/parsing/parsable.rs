@@ -1,98 +1,90 @@
-//! Well-known formats, typically RFCs.
+//! A trait that can be used to parse an item from an input.
 
-#[cfg(feature = "formatting")]
-use core::fmt;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 use crate::error;
-#[cfg(feature = "formatting")]
-use crate::format_description::modifier::Padding;
-use crate::format_description::FormatDescription;
-#[cfg(feature = "formatting")]
-use crate::formatting::format_number;
-#[cfg(feature = "parsing")]
+use crate::format_description::{well_known, FormatItem};
 use crate::parsing::{Parsed, ParsedItem};
-#[cfg(feature = "formatting")]
-use crate::{Date, Time, UtcOffset};
 
-/// The format described in [RFC 3339](https://tools.ietf.org/html/rfc3339#section-5.6).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Rfc3339;
+/// Seal the trait to prevent downstream users from implementing it, while still allowing it to
+/// exist in generic bounds.
+pub(crate) mod sealed {
+    #[allow(clippy::wildcard_imports)]
+    use super::*;
 
-impl<'a> FormatDescription<'a> for Rfc3339 {
-    #[cfg(feature = "formatting")]
-    type FormatError = error::Format;
-    #[cfg(feature = "parsing")]
-    type ParseError = error::ParseFromDescription;
+    /// Parse the item using a format description and an input.
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
+    pub trait Parsable {
+        /// An error that may be returned when parsing.
+        type Error: Into<error::Parse>;
 
-    #[cfg(feature = "formatting")]
-    fn format_into(
-        &self,
-        output: &mut impl fmt::Write,
-        date: Option<Date>,
-        time: Option<Time>,
-        offset: Option<UtcOffset>,
-    ) -> Result<(), Self::FormatError> {
-        let date = date.ok_or(error::Format::InsufficientTypeInformation)?;
-        let time = time.ok_or(error::Format::InsufficientTypeInformation)?;
-        let offset = offset.ok_or(error::Format::InsufficientTypeInformation)?;
+        /// Parse the item into the provided [`Parsed`] struct.
+        fn parse_into<'a>(
+            &self,
+            input: &'a str,
+            parsed: &mut Parsed,
+        ) -> Result<&'a str, Self::Error>;
 
-        let year = date.year();
-
-        if !(0..10_000).contains(&year) {
-            return Err(error::Format::InvalidComponent("year"));
+        /// Parse the item into a new [`Parsed`] struct.
+        fn parse(&self, input: &str) -> Result<Parsed, Self::Error> {
+            let mut parsed = Parsed::new();
+            self.parse_into(input, &mut parsed)?;
+            Ok(parsed)
         }
-        if offset.seconds != 0 {
-            return Err(error::Format::InvalidComponent("offset_second"));
-        }
-
-        format_number(output, year as u32, Padding::Zero, 4)?;
-        output.write_char('-')?;
-        format_number(output, date.month(), Padding::Zero, 2)?;
-        output.write_char('-')?;
-        format_number(output, date.day(), Padding::Zero, 2)?;
-        output.write_char('T')?;
-        format_number(output, time.hour, Padding::Zero, 2)?;
-        output.write_char(':')?;
-        format_number(output, time.minute, Padding::Zero, 2)?;
-        output.write_char(':')?;
-        format_number(output, time.second, Padding::Zero, 2)?;
-
-        if time.nanosecond != 0 {
-            output.write_char('.')?;
-
-            let (value, width) = match time.nanosecond {
-                nanos if nanos % 10 != 0 => (nanos, 9),
-                nanos if (nanos / 10) % 10 != 0 => (nanos / 10, 8),
-                nanos if (nanos / 100) % 10 != 0 => (nanos / 100, 7),
-                nanos if (nanos / 1_000) % 10 != 0 => (nanos / 1_000, 6),
-                nanos if (nanos / 10_000) % 10 != 0 => (nanos / 10_000, 5),
-                nanos if (nanos / 100_000) % 10 != 0 => (nanos / 100_000, 4),
-                nanos if (nanos / 1_000_000) % 10 != 0 => (nanos / 1_000_000, 3),
-                nanos if (nanos / 10_000_000) % 10 != 0 => (nanos / 10_000_000, 2),
-                nanos => (nanos / 100_000_000, 1),
-            };
-            format_number(output, value, Padding::Zero, width)?;
-        }
-
-        if offset == UtcOffset::UTC {
-            output.write_char('Z')?;
-            return Ok(());
-        }
-
-        output.write_char(if offset.hours < 0 || offset.minutes < 0 {
-            '-'
-        } else {
-            '+'
-        })?;
-        format_number(output, offset.hours.abs() as u8, Padding::Zero, 2)?;
-        output.write_char(':')?;
-        format_number(output, offset.minutes.abs() as u8, Padding::Zero, 2)?;
-
-        Ok(())
     }
+}
 
-    #[cfg(feature = "parsing")]
-    fn parse_into(&self, input: &'a str, parsed: &mut Parsed) -> Result<&'a str, Self::ParseError> {
+impl sealed::Parsable for FormatItem<'_> {
+    type Error = error::ParseFromDescription;
+
+    fn parse_into<'a>(
+        &self,
+        mut input: &'a str,
+        parsed: &mut Parsed,
+    ) -> Result<&'a str, Self::Error> {
+        match self {
+            Self::Literal(literal) => {
+                input = input
+                    .strip_prefix(literal)
+                    .ok_or(error::ParseFromDescription::InvalidLiteral)?;
+            }
+            Self::Component(component) => input = parsed.parse_component(input, *component)?,
+            Self::Compound(compound) => input = compound.parse_into(input, parsed)?,
+        }
+        Ok(input)
+    }
+}
+
+impl sealed::Parsable for &[FormatItem<'_>] {
+    type Error = error::ParseFromDescription;
+
+    fn parse_into<'a>(
+        &self,
+        mut input: &'a str,
+        parsed: &mut Parsed,
+    ) -> Result<&'a str, Self::Error> {
+        for item in self.iter() {
+            input = item.parse_into(input, parsed)?;
+        }
+        Ok(input)
+    }
+}
+
+#[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+impl sealed::Parsable for Vec<FormatItem<'_>> {
+    type Error = error::ParseFromDescription;
+
+    fn parse_into<'a>(&self, input: &'a str, parsed: &mut Parsed) -> Result<&'a str, Self::Error> {
+        self.as_slice().parse_into(input, parsed)
+    }
+}
+
+impl sealed::Parsable for well_known::Rfc3339 {
+    type Error = error::ParseFromDescription;
+
+    fn parse_into<'a>(&self, input: &'a str, parsed: &mut Parsed) -> Result<&'a str, Self::Error> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
         use crate::parsing::combinator::{
             any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, n_to_m, sign,
