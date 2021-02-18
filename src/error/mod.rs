@@ -49,7 +49,7 @@ pub enum Error {
     Format(Format),
     #[cfg(feature = "parsing")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
-    IntermediateParse(ParseFromDescription),
+    ParseFromDescription(ParseFromDescription),
     #[cfg(feature = "parsing")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
     #[non_exhaustive]
@@ -75,7 +75,7 @@ impl fmt::Display for Error {
             #[cfg(feature = "formatting")]
             Self::Format(e) => e.fmt(f),
             #[cfg(feature = "parsing")]
-            Self::IntermediateParse(e) => e.fmt(f),
+            Self::ParseFromDescription(e) => e.fmt(f),
             #[cfg(feature = "parsing")]
             Self::UnexpectedTrailingCharacters => f.write_str("unexpected trailing characters"),
             #[cfg(feature = "parsing")]
@@ -98,7 +98,7 @@ impl std::error::Error for Error {
             #[cfg(feature = "formatting")]
             Self::Format(err) => Some(err),
             #[cfg(feature = "parsing")]
-            Self::IntermediateParse(err) => Some(err),
+            Self::ParseFromDescription(err) => Some(err),
             #[cfg(feature = "parsing")]
             Self::UnexpectedTrailingCharacters => None,
             #[cfg(feature = "parsing")]

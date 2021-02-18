@@ -7,13 +7,14 @@ use crate::error::{ParseFromDescription, TryFromParsed};
 /// An error that occurred at some stage of parsing.
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 #[allow(variant_size_differences)]
+#[allow(clippy::pub_enum_variant_names)] // an attribute on the variant doesn't work for some reason
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Parse {
     #[allow(clippy::missing_docs_in_private_items)]
     TryFromParsed(TryFromParsed),
     #[allow(clippy::missing_docs_in_private_items)]
-    IntermediateParse(ParseFromDescription),
+    ParseFromDescription(ParseFromDescription),
     /// The input should have ended, but there were characters remaining.
     #[non_exhaustive]
     UnexpectedTrailingCharacters,
@@ -23,7 +24,7 @@ impl fmt::Display for Parse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::TryFromParsed(err) => err.fmt(f),
-            Self::IntermediateParse(err) => err.fmt(f),
+            Self::ParseFromDescription(err) => err.fmt(f),
             Self::UnexpectedTrailingCharacters => f.write_str("unexpected trailing characters"),
         }
     }
@@ -35,7 +36,7 @@ impl std::error::Error for Parse {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::TryFromParsed(err) => Some(err),
-            Self::IntermediateParse(err) => Some(err),
+            Self::ParseFromDescription(err) => Some(err),
             Self::UnexpectedTrailingCharacters => None,
         }
     }
@@ -49,7 +50,7 @@ impl From<TryFromParsed> for Parse {
 
 impl From<ParseFromDescription> for Parse {
     fn from(err: ParseFromDescription) -> Self {
-        Self::IntermediateParse(err)
+        Self::ParseFromDescription(err)
     }
 }
 
@@ -57,7 +58,7 @@ impl From<Parse> for crate::Error {
     fn from(err: Parse) -> Self {
         match err {
             Parse::TryFromParsed(err) => Self::TryFromParsed(err),
-            Parse::IntermediateParse(err) => Self::IntermediateParse(err),
+            Parse::ParseFromDescription(err) => Self::ParseFromDescription(err),
             Parse::UnexpectedTrailingCharacters => Self::UnexpectedTrailingCharacters,
         }
     }
@@ -79,10 +80,10 @@ impl Parse {
             Self::TryFromParsed(TryFromParsed::ComponentRange(err)) => {
                 err.to_invalid_serde_value::<D>()
             }
-            Self::IntermediateParse(ParseFromDescription::InvalidLiteral) => {
+            Self::ParseFromDescription(ParseFromDescription::InvalidLiteral) => {
                 D::Error::invalid_value(serde::de::Unexpected::Other("literal"), &"valid format")
             }
-            Self::IntermediateParse(ParseFromDescription::InvalidComponent(component)) => {
+            Self::ParseFromDescription(ParseFromDescription::InvalidComponent(component)) => {
                 D::Error::invalid_value(
                     serde::de::Unexpected::Other(component),
                     &&*format!("valid {}", component),

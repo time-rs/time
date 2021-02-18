@@ -32,6 +32,6 @@ impl std::error::Error for ParseFromDescription {}
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl From<ParseFromDescription> for crate::Error {
     fn from(original: ParseFromDescription) -> Self {
-        Self::IntermediateParse(original)
+        Self::ParseFromDescription(original)
     }
 }
