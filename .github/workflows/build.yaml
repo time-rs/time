@@ -24,10 +24,10 @@ jobs:
       matrix:
         rust: ["1.46", stable]
         target:
-          - { name: NetBSD, triple: x86_64-unknown-netbsd, has_std: true }
-          - { name: Solaris, triple: x86_64-sun-solaris, has_std: true }
-          - { name: wasi, triple: wasm32-wasi, has_std: true }
-          - { name: embedded, triple: thumbv7em-none-eabihf, has_std: false }
+          - { name: NetBSD, triple: x86_64-unknown-netbsd, has_std: true, has_local_offset: false }
+          - { name: Solaris, triple: x86_64-sun-solaris, has_std: true, has_local_offset: false }
+          - { name: wasi, triple: wasm32-wasi, has_std: true, has_local_offset: false }
+          - { name: embedded, triple: thumbv7em-none-eabihf, has_std: false, has_local_offset: false }
 
     steps:
       - name: Checkout sources
@@ -72,6 +72,25 @@ jobs:
             --target ${{ matrix.target.triple }}
         if: matrix.target.has_std == false
 
+      # Unconditionally enable the local-offset flag when the target doesn't provide any useful
+      # information.
+      # This currently _does not_ include NetBSD or Solaris due to a soundness bug.
+      - name: Check feature powerset
+        uses: actions-rs/cargo@v1
+        with:
+          command: hack
+          args: |
+            check
+            --no-dev-deps
+            --feature-powerset
+            --optional-deps
+            --group-features serde,rand
+            --group-features formatting,parsing
+            --exclude-features default,winapi,quickcheck-dep,time-macros
+            --features macros,local-offset
+            --target ${{ matrix.target.triple }}
+        if: matrix.target.has_std == true && matrix.target.has_local_offset == false
+
       - name: Check feature powerset
         uses: actions-rs/cargo@v1
         with:
@@ -86,7 +105,7 @@ jobs:
             --exclude-features default,winapi,quickcheck-dep,time-macros
             --features macros
             --target ${{ matrix.target.triple }}
-        if: matrix.target.has_std == true
+        if: matrix.target.has_std == true && matrix.target.has_local_offset == true
 
   check-benchmarks:
     name: Type-check benchmarks
@@ -127,9 +146,9 @@ jobs:
       matrix:
         rust: ["1.46", stable]
         os:
-          - { name: Ubuntu, value: ubuntu-20.04 }
-          - { name: Windows, value: windows-latest }
-          - { name: MacOS, value: macOS-latest }
+          - { name: Ubuntu, value: ubuntu-20.04, has_local_offset: false }
+          - { name: Windows, value: windows-latest, has_local_offset: true }
+          - { name: MacOS, value: macOS-latest, has_local_offset: false }
 
     steps:
       - name: Checkout sources
@@ -173,12 +192,6 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ matrix.os.value }}-${{ hashFiles('**/Cargo.toml') }}2
 
-      # For speed reasons, it's worth it to just check the feature powerset and
-      # test with everything enabled. As features are additive, the tests ensure
-      # that everything works, while the checking ensures any combination would
-      # compile without issue. Where I am confident features do not interact in
-      # any way, the features are grouped to reduce the size of the powerset.
-
       - name: Check feature powerset
         uses: actions-rs/cargo@v1
         with:
@@ -191,6 +204,24 @@ jobs:
             --group-features formatting,parsing
             --exclude-features default,winapi,quickcheck-dep,time-macros
             --features macros
+        if: matrix.os.has_local_offset == true
+
+      # Due to the soundness bug on Unix-like platforms, adding the local-offset flag doesn't
+      # actually add any new behavior. Since we know nothing changes, we can unconditionally enable
+      # the flag.
+      - name: Check feature powerset
+        uses: actions-rs/cargo@v1
+        with:
+          command: hack
+          args: |
+            check
+            --feature-powerset
+            --optional-deps
+            --group-features serde,rand
+            --group-features formatting,parsing
+            --exclude-features default,winapi,quickcheck-dep,time-macros
+            --features macros,local-offset
+        if: matrix.os.has_local_offset == false
 
       - name: Test
         uses: actions-rs/cargo@v1
