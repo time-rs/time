@@ -129,7 +129,11 @@ impl sealed::Parsable for well_known::Rfc3339 {
         let input = colon(input).ok_or(InvalidLiteral)?.unwrap();
         let input = exactly_n_digits(2)(input)
             .ok_or(InvalidComponent("second"))?
-            .assign_value_to(&mut parsed.second);
+            .assign_value_to_with(&mut parsed.second, |second| {
+                // The RFC explicitly allows leap seconds. We don't support them, so treat it as
+                // the previous second.
+                if second == 60 { 59 } else { second }
+            });
         let input = if let Some(ParsedItem(input, ())) = ascii_char(b'.')(input) {
             let ParsedItem(mut input, raw_digits) =
                 n_to_m(1, 9, any_digit)(input).ok_or(InvalidComponent("subsecond"))?;
