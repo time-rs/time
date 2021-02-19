@@ -286,7 +286,7 @@ pub(crate) fn format_component(
             _,
             Some(offset),
         ) => {
-            if offset.hours < 0 || offset.minutes < 0 || offset.seconds < 0 {
+            if offset.is_negative() {
                 output.write_char('-')?;
             } else if sign_is_mandatory {
                 output.write_char('+')?;

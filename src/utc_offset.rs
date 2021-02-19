@@ -131,6 +131,30 @@ impl UtcOffset {
         self.hours as i32 * 3_600 + self.minutes as i32 * 60 + self.seconds as i32
     }
 
+    /// Check if the offset is positive, or east of UTC. UTC itself is considered positive.
+    ///
+    /// ```rust
+    /// # use time::macros::offset;
+    /// assert!(offset!("+1:02:03").is_positive());
+    /// assert!(!offset!("-1:02:03").is_positive());
+    /// assert!(offset!("UTC").is_positive());
+    /// ```
+    pub const fn is_positive(self) -> bool {
+        !self.is_negative()
+    }
+
+    /// Check if the offset is positive, or east of UTC. UTC itself is not considered negative.
+    ///
+    /// ```rust
+    /// # use time::macros::offset;
+    /// assert!(!offset!("+1:02:03").is_negative());
+    /// assert!(offset!("-1:02:03").is_negative());
+    /// assert!(!offset!("UTC").is_negative());
+    /// ```
+    pub const fn is_negative(self) -> bool {
+        self.hours < 0 || self.minutes < 0 || self.seconds < 0
+    }
+
     /// Attempt to obtain the system's UTC offset at a known moment in time. If the offset cannot be
     /// determined, an error is returned.
     ///

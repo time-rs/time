@@ -158,11 +158,7 @@ impl sealed::Formattable for Rfc3339 {
             return Ok(());
         }
 
-        output.write_char(if offset.hours < 0 || offset.minutes < 0 {
-            '-'
-        } else {
-            '+'
-        })?;
+        output.write_char(if offset.is_negative() { '-' } else { '+' })?;
         format_number(output, offset.hours.abs() as u8, Padding::Zero, 2)?;
         output.write_char(':')?;
         format_number(output, offset.minutes.abs() as u8, Padding::Zero, 2)?;

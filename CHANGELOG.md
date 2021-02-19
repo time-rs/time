@@ -25,6 +25,8 @@ Versioning].
 - `Date::MAX`
 - `UtcOffset::from_hms`
 - `UtcOffset::as_hms`
+- `UtcOffset::is_positive`
+- `UtcOffset::is_negative`
 - `OffsetDateTime::sunday_based_week`
 - `OffsetDateTime::monday_based_week`
 - `PrimitiveDateTime::to_calendar_date`

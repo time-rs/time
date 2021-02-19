@@ -54,6 +54,32 @@ fn to_seconds() {
 }
 
 #[test]
+fn is_positive() {
+    assert!(offset!("UTC").is_positive());
+    assert!(offset!("+0:00:01").is_positive());
+    assert!(!offset!("-0:00:01").is_positive());
+    assert!(offset!("+1").is_positive());
+    assert!(!offset!("-1").is_positive());
+    assert!(offset!("+23:59").is_positive());
+    assert!(!offset!("-23:59").is_positive());
+    assert!(offset!("+23:59:59").is_positive());
+    assert!(!offset!("-23:59:59").is_positive());
+}
+
+#[test]
+fn is_negative() {
+    assert!(!offset!("UTC").is_negative());
+    assert!(!offset!("+0:00:01").is_negative());
+    assert!(offset!("-0:00:01").is_negative());
+    assert!(!offset!("+1").is_negative());
+    assert!(offset!("-1").is_negative());
+    assert!(!offset!("+23:59").is_negative());
+    assert!(offset!("-23:59").is_negative());
+    assert!(!offset!("+23:59:59").is_negative());
+    assert!(offset!("-23:59:59").is_negative());
+}
+
+#[test]
 #[cfg(all(feature = "formatting", feature = "alloc"))]
 fn format() -> time::Result<()> {
     assert_eq!(
