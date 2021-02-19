@@ -55,6 +55,7 @@ Versioning].
 - The minimum supported Rust version is now 1.46.0.
 - rand has been updated to 0.8.
 - quickcheck has been updated to 1.0.
+- Macros are placed behind the `macros` feature flag.
 - All macros now accept strings, rather than unquoted tokens. The syntax
   accepted is otherwise the same as before.
 - Renamed

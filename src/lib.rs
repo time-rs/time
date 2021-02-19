@@ -20,6 +20,10 @@
 //!
 //!   Enables a number of features that require the ability to dynamically allocate memory.
 //!
+//! - `macros`
+//!
+//!   Enables macros that provide compile-time verification of values and intuitive syntax.
+//!
 //! - `formatting`
 //!
 //!   Enables formatting of most structs.
@@ -273,6 +277,8 @@ mod hack;
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 mod instant;
 /// Macros to construct statically known values.
+#[cfg(feature = "macros")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "macros")))]
 pub mod macros;
 /// The [`OffsetDateTime`] struct and its associated `impl`s.
 mod offset_date_time;
