@@ -1,85 +1,87 @@
-//! Part of a format description.
+use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 
-#[cfg(feature = "alloc")]
-use alloc::borrow::ToOwned;
-
+use crate::format_description::error::InvalidFormatDescription;
 use crate::format_description::modifier;
-#[cfg(feature = "alloc")]
-use crate::{error::InvalidFormatDescription, format_description::modifier::Modifiers};
+use crate::format_description::modifier::Modifiers;
+use crate::ToTokens;
 
-/// A component of a larger format description.
-#[non_exhaustive]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Component {
-    /// Day of the month.
+pub(crate) enum Component {
     Day(modifier::Day),
-    /// Month of the year.
     Month(modifier::Month),
-    /// Ordinal day of the year.
     Ordinal(modifier::Ordinal),
-    /// Day of the week.
     Weekday(modifier::Weekday),
-    /// Week within the year.
     WeekNumber(modifier::WeekNumber),
-    /// Year of the date.
     Year(modifier::Year),
-    /// Hour of the day.
     Hour(modifier::Hour),
-    /// Minute within the hour.
     Minute(modifier::Minute),
-    /// AM/PM part of the time.
     Period(modifier::Period),
-    /// Second within the minute.
     Second(modifier::Second),
-    /// Subsecond within the second.
     Subsecond(modifier::Subsecond),
-    /// Hour of the UTC offset.
     OffsetHour(modifier::OffsetHour),
-    /// Minute within the hour of the UTC offset.
     OffsetMinute(modifier::OffsetMinute),
-    /// Second within the minute of the UTC offset.
     OffsetSecond(modifier::OffsetSecond),
 }
 
-/// A component with no modifiers present.
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+impl ToTokens for Component {
+    fn to_internal_tokens(&self, tokens: &mut TokenStream) {
+        let (name, inner_tokens) = match self {
+            Self::Day(modifier) => ("Day", modifier.to_internal_token_stream()),
+            Self::Month(modifier) => ("Month", modifier.to_internal_token_stream()),
+            Self::Ordinal(modifier) => ("Ordinal", modifier.to_internal_token_stream()),
+            Self::Weekday(modifier) => ("Weekday", modifier.to_internal_token_stream()),
+            Self::WeekNumber(modifier) => ("WeekNumber", modifier.to_internal_token_stream()),
+            Self::Year(modifier) => ("Year", modifier.to_internal_token_stream()),
+            Self::Hour(modifier) => ("Hour", modifier.to_internal_token_stream()),
+            Self::Minute(modifier) => ("Minute", modifier.to_internal_token_stream()),
+            Self::Period(modifier) => ("Period", modifier.to_internal_token_stream()),
+            Self::Second(modifier) => ("Second", modifier.to_internal_token_stream()),
+            Self::Subsecond(modifier) => ("Subsecond", modifier.to_internal_token_stream()),
+            Self::OffsetHour(modifier) => ("OffsetHour", modifier.to_internal_token_stream()),
+            Self::OffsetMinute(modifier) => ("OffsetMinute", modifier.to_internal_token_stream()),
+            Self::OffsetSecond(modifier) => ("OffsetSecond", modifier.to_internal_token_stream()),
+        };
+
+        tokens.extend(
+            [
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new("time", Span::mixed_site())),
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new("format_description", Span::mixed_site())),
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new("Component", Span::mixed_site())),
+                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                TokenTree::Ident(Ident::new(name, Span::mixed_site())),
+                TokenTree::Group(Group::new(Delimiter::Parenthesis, inner_tokens)),
+            ]
+            .iter()
+            .cloned()
+            .collect::<TokenStream>(),
+        );
+    }
+}
+
 pub(crate) enum NakedComponent {
-    /// Day of the month.
     Day,
-    /// Month of the year.
     Month,
-    /// Ordinal day of the year.
     Ordinal,
-    /// Day of the week.
     Weekday,
-    /// Week within the year.
     WeekNumber,
-    /// Year of the date.
     Year,
-    /// Hour of the day.
     Hour,
-    /// Minute within the hour.
     Minute,
-    /// AM/PM part of the time.
     Period,
-    /// Second within the minute.
     Second,
-    /// Subsecond within the second.
     Subsecond,
-    /// Hour of the UTC offset.
     OffsetHour,
-    /// Minute within the hour of the UTC offset.
     OffsetMinute,
-    /// Second within the minute of the UTC offset.
     OffsetSecond,
 }
 
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl NakedComponent {
-    // We can't use `FromStr` here because we need the component index as well.
-    /// Parse a component (without its modifiers) from the provided name.
     pub(crate) fn parse(
         component_name: &str,
         component_index: usize,
@@ -109,8 +111,7 @@ impl NakedComponent {
         }
     }
 
-    /// Attach the necessary modifiers to the component.
-    pub(crate) fn attach_modifiers(self, modifiers: &Modifiers) -> Component {
+    pub(crate) fn attach_modifiers(self, modifiers: Modifiers) -> Component {
         match self {
             Self::Day => Component::Day(modifier::Day {
                 padding: modifiers.padding.unwrap_or_default(),

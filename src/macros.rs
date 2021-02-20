@@ -26,6 +26,30 @@ pub use time_macros::date;
 /// [`OffsetDateTime`]: crate::OffsetDateTime
 /// [`PrimitiveDateTime`]: crate::PrimitiveDateTime
 pub use time_macros::datetime;
+/// Equivalent of performing [`format_description::parse()`] at compile time.
+///
+/// Using the macro instead of the function results in a static slice rather than a [`Vec`],
+/// such that it can be used in `#![no_alloc]` situations.
+///
+/// The resulting expression can be used in `const` or `static` declarations, and implements
+/// the sealed traits required for both formatting and parsing.
+///
+/// ```rust
+/// # use time::{format_description, macros::format_description};
+/// assert_eq!(
+///     format_description!("[hour]:[minute]:[second]"),
+///     format_description::parse("[hour]:[minute]:[second]")?
+/// );
+/// # Ok::<_, time::Error>(())
+/// ```
+///
+/// [`format_description::parse()`]: crate::format_description::parse()
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+#[cfg_attr(
+    __time_03_docs,
+    doc(cfg(any(feature = "formatting", feature = "parsing")))
+)]
+pub use time_macros::format_description;
 /// Construct a [`UtcOffset`](crate::UtcOffset) with a statically known value.
 ///
 /// The resulting expression can be used in `const` or `static` declarations.

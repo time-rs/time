@@ -39,17 +39,21 @@
 mod date;
 mod datetime;
 mod error;
+mod format_description;
 mod helpers;
 mod offset;
 mod peeking_take_while;
 mod time;
 
-use date::Date;
-use datetime::DateTime;
-use error::Error;
-use offset::Offset;
-use proc_macro::TokenStream;
-use time::Time;
+use std::iter;
+
+use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
+
+use self::date::Date;
+use self::datetime::DateTime;
+use self::error::Error;
+use self::offset::Offset;
+use self::time::Time;
 
 trait ToTokens {
     fn to_internal_tokens(&self, tokens: &mut TokenStream);
@@ -65,6 +69,16 @@ trait ToTokens {
         let mut tokens = TokenStream::new();
         self.to_external_tokens(&mut tokens);
         tokens
+    }
+}
+
+#[allow(clippy::use_self)] // false positive
+impl ToTokens for bool {
+    fn to_internal_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(iter::once(TokenTree::Ident(Ident::new(
+            if *self { "true" } else { "false" },
+            Span::mixed_site(),
+        ))))
     }
 }
 
@@ -96,4 +110,69 @@ impl_macros! {
     datetime: DateTime
     offset: Offset
     time: Time
+}
+
+// TODO Gate this behind the the `formatting` or `parsing` feature flag when weak dependency
+// features land.
+#[proc_macro]
+pub fn format_description(input: TokenStream) -> TokenStream {
+    let string = match helpers::get_string_literal(input) {
+        Ok(string) => string,
+        Err(err) => return err.to_compile_error(),
+    };
+
+    let items = match format_description::parse(&string) {
+        Ok(items) => items,
+        Err(err) => return err.to_compile_error(),
+    };
+
+    let mut tokens = TokenStream::new();
+    for item in items {
+        tokens.extend(
+            [
+                item.to_external_token_stream(),
+                TokenStream::from(TokenTree::Punct(Punct::new(',', Spacing::Alone))),
+            ]
+            .iter()
+            .cloned()
+            .collect::<TokenStream>(),
+        );
+    }
+
+    helpers::const_block(
+        [
+            TokenTree::Punct(Punct::new('&', Spacing::Alone)),
+            TokenTree::Group(Group::new(Delimiter::Bracket, tokens)),
+        ]
+        .iter()
+        .cloned()
+        .collect(),
+        [
+            TokenTree::Punct(Punct::new('&', Spacing::Alone)),
+            TokenTree::Group(Group::new(
+                Delimiter::Bracket,
+                [
+                    TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                    TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                    TokenTree::Ident(Ident::new("time", Span::mixed_site())),
+                    TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                    TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                    TokenTree::Ident(Ident::new("format_description", Span::mixed_site())),
+                    TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                    TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                    TokenTree::Ident(Ident::new("FormatItem", Span::mixed_site())),
+                    TokenTree::Punct(Punct::new('<', Spacing::Alone)),
+                    TokenTree::Punct(Punct::new('\'', Spacing::Joint)),
+                    TokenTree::Ident(Ident::new("_", Span::mixed_site())),
+                    TokenTree::Punct(Punct::new('>', Spacing::Alone)),
+                ]
+                .iter()
+                .cloned()
+                .collect(),
+            )),
+        ]
+        .iter()
+        .cloned()
+        .collect(),
+    )
 }
