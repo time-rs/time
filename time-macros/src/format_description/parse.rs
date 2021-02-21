@@ -19,6 +19,7 @@ fn parse_component(mut s: &str, index: &mut usize) -> Result<Component, InvalidF
         s = &s[whitespace_loc..];
         s = helper::consume_whitespace(s, index);
     } else {
+        *index += s.len();
         component_name = s;
         s = "";
     }
@@ -52,10 +53,12 @@ fn parse_item<'a>(
     if s.starts_with('[') {
         if let Some(bracket_index) = s.find(']') {
             *index += 1;
-            Ok(ParsedItem {
+            let ret_val = ParsedItem {
                 item: FormatItem::Component(parse_component(&s[1..bracket_index], index)?),
                 remaining: &s[bracket_index + 1..],
-            })
+            };
+            *index += 1;
+            Ok(ret_val)
         } else {
             Err(InvalidFormatDescription::UnclosedOpeningBracket { index: *index })
         }

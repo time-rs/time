@@ -31,6 +31,8 @@ fn parse_component(mut s: &str, index: &mut usize) -> Result<Component, InvalidF
         // Trim any whitespace between the component name and the first modifier.
         s = helper::consume_whitespace(s, index);
     } else {
+        dbg!(s);
+        *index += s.len();
         component_name = s;
         // There is no whitespace remaining, so the full input is the component name.
         s = "";
@@ -67,11 +69,13 @@ fn parse_item<'a>(
 
     if s.starts_with('[') {
         if let Some(bracket_index) = s.find(']') {
-            *index += 1;
-            Ok(ParsedItem {
+            *index += 1; // opening bracket
+            let ret_val = ParsedItem {
                 item: FormatItem::Component(parse_component(&s[1..bracket_index], index)?),
                 remaining: &s[bracket_index + 1..],
-            })
+            };
+            *index += 1; // closing bracket
+            Ok(ret_val)
         } else {
             Err(InvalidFormatDescription::UnclosedOpeningBracket { index: *index })
         }
