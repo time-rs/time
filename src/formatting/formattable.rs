@@ -1,10 +1,6 @@
 //! A trait that can be used to format an item from its components.
 
-#[cfg(feature = "alloc")]
-use alloc::string::String;
-#[cfg(feature = "alloc")]
-use alloc::vec::Vec;
-use core::fmt;
+use std::io;
 
 use crate::format_description::modifier::Padding;
 use crate::format_description::well_known::Rfc3339;
@@ -22,29 +18,28 @@ pub(crate) mod sealed {
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
     pub trait Formattable {
         /// An error that may be returned when formatting.
-        type Error;
+        type Error: From<io::Error>;
 
-        /// Format the item into the provided output.
+        /// Format the item into the provided output, returning the number of bytes written.
         fn format_into(
             &self,
-            output: &mut impl fmt::Write,
+            output: &mut impl io::Write,
             date: Option<Date>,
             time: Option<Time>,
             offset: Option<UtcOffset>,
-        ) -> Result<(), Self::Error>;
+        ) -> Result<usize, Self::Error>;
 
         /// Format the item directly to a `String`.
-        #[cfg(feature = "alloc")]
-        #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
         fn format(
             &self,
             date: Option<Date>,
             time: Option<Time>,
             offset: Option<UtcOffset>,
         ) -> Result<String, Self::Error> {
-            let mut s = String::new();
-            self.format_into(&mut s, date, time, offset)?;
-            Ok(s)
+            let mut buf = Vec::new();
+            self.format_into(&mut buf, date, time, offset)?;
+            io::Write::flush(&mut buf)?;
+            Ok(String::from_utf8(buf).expect("invalid UTF-8"))
         }
     }
 }
@@ -54,17 +49,16 @@ impl<'a> sealed::Formattable for FormatItem<'a> {
 
     fn format_into(
         &self,
-        output: &mut impl fmt::Write,
+        output: &mut impl io::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<(), Self::Error> {
-        match *self {
-            Self::Literal(literal) => output.write_str(literal)?,
+    ) -> Result<usize, Self::Error> {
+        Ok(match *self {
+            Self::Literal(literal) => output.write(literal.as_bytes())?,
             Self::Component(component) => format_component(output, component, date, time, offset)?,
             Self::Compound(items) => items.format_into(output, date, time, offset)?,
-        }
-        Ok(())
+        })
     }
 }
 
@@ -73,15 +67,16 @@ impl<'a> sealed::Formattable for &[FormatItem<'a>] {
 
     fn format_into(
         &self,
-        output: &mut impl fmt::Write,
+        output: &mut impl io::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<usize, Self::Error> {
+        let mut bytes = 0;
         for item in self.iter() {
-            item.format_into(output, date, time, offset)?;
+            bytes += item.format_into(output, date, time, offset)?;
         }
-        Ok(())
+        Ok(bytes)
     }
 }
 
@@ -92,11 +87,11 @@ impl<'a> sealed::Formattable for Vec<FormatItem<'a>> {
 
     fn format_into(
         &self,
-        output: &mut impl fmt::Write,
+        output: &mut impl io::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<usize, Self::Error> {
         self.as_slice().format_into(output, date, time, offset)
     }
 }
@@ -106,14 +101,16 @@ impl sealed::Formattable for Rfc3339 {
 
     fn format_into(
         &self,
-        output: &mut impl fmt::Write,
+        output: &mut impl io::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<(), Self::Error> {
+    ) -> Result<usize, Self::Error> {
         let date = date.ok_or(error::Format::InsufficientTypeInformation)?;
         let time = time.ok_or(error::Format::InsufficientTypeInformation)?;
         let offset = offset.ok_or(error::Format::InsufficientTypeInformation)?;
+
+        let mut bytes = 0;
 
         let year = date.year();
 
@@ -124,20 +121,20 @@ impl sealed::Formattable for Rfc3339 {
             return Err(error::Format::InvalidComponent("offset_second"));
         }
 
-        format_number(output, year as u32, Padding::Zero, 4)?;
-        output.write_char('-')?;
-        format_number(output, date.month(), Padding::Zero, 2)?;
-        output.write_char('-')?;
-        format_number(output, date.day(), Padding::Zero, 2)?;
-        output.write_char('T')?;
-        format_number(output, time.hour, Padding::Zero, 2)?;
-        output.write_char(':')?;
-        format_number(output, time.minute, Padding::Zero, 2)?;
-        output.write_char(':')?;
-        format_number(output, time.second, Padding::Zero, 2)?;
+        bytes += format_number(output, year as u32, Padding::Zero, 4)?;
+        bytes += output.write(&[b'-'])?;
+        bytes += format_number(output, date.month(), Padding::Zero, 2)?;
+        bytes += output.write(&[b'-'])?;
+        bytes += format_number(output, date.day(), Padding::Zero, 2)?;
+        bytes += output.write(&[b'T'])?;
+        bytes += format_number(output, time.hour, Padding::Zero, 2)?;
+        bytes += output.write(&[b':'])?;
+        bytes += format_number(output, time.minute, Padding::Zero, 2)?;
+        bytes += output.write(&[b':'])?;
+        bytes += format_number(output, time.second, Padding::Zero, 2)?;
 
         if time.nanosecond != 0 {
-            output.write_char('.')?;
+            bytes += output.write(&[b'.'])?;
 
             let (value, width) = match time.nanosecond {
                 nanos if nanos % 10 != 0 => (nanos, 9),
@@ -150,19 +147,23 @@ impl sealed::Formattable for Rfc3339 {
                 nanos if (nanos / 10_000_000) % 10 != 0 => (nanos / 10_000_000, 2),
                 nanos => (nanos / 100_000_000, 1),
             };
-            format_number(output, value, Padding::Zero, width)?;
+            bytes += format_number(output, value, Padding::Zero, width)?;
         }
 
         if offset == UtcOffset::UTC {
-            output.write_char('Z')?;
-            return Ok(());
+            bytes += output.write(&[b'Z'])?;
+            return Ok(bytes);
         }
 
-        output.write_char(if offset.is_negative() { '-' } else { '+' })?;
-        format_number(output, offset.hours.abs() as u8, Padding::Zero, 2)?;
-        output.write_char(':')?;
-        format_number(output, offset.minutes.abs() as u8, Padding::Zero, 2)?;
+        bytes += output.write(if offset.is_negative() {
+            &[b'-']
+        } else {
+            &[b'+']
+        })?;
+        bytes += format_number(output, offset.hours.abs() as u8, Padding::Zero, 2)?;
+        bytes += output.write(&[b':'])?;
+        bytes += format_number(output, offset.minutes.abs() as u8, Padding::Zero, 2)?;
 
-        Ok(())
+        Ok(bytes)
     }
 }

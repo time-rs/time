@@ -1,12 +1,13 @@
 //! Error formatting a struct
 
 use core::fmt;
+use std::io;
 
 /// An error occurred when formatting.
 #[non_exhaustive]
 #[allow(missing_copy_implementations)]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum Format {
     /// The type being formatted does not contain sufficient information to format a component.
     #[non_exhaustive]
@@ -15,8 +16,8 @@ pub enum Format {
     ///
     /// This variant is only returned when using well-known formats.
     InvalidComponent(&'static str),
-    /// A value of `core::fmt::Error` was returned internally.
-    StdFmt,
+    /// A value of `std::io::Error` was returned internally.
+    StdIo(io::Error),
 }
 
 impl fmt::Display for Format {
@@ -31,14 +32,14 @@ impl fmt::Display for Format {
                 "The {} component cannot be formatted into the requested format.",
                 component
             ),
-            Self::StdFmt => core::fmt::Error.fmt(f),
+            Self::StdIo(err) => err.fmt(f),
         }
     }
 }
 
-impl From<fmt::Error> for Format {
-    fn from(_: fmt::Error) -> Self {
-        Self::StdFmt
+impl From<io::Error> for Format {
+    fn from(err: io::Error) -> Self {
+        Self::StdIo(err)
     }
 }
 
@@ -46,9 +47,9 @@ impl From<fmt::Error> for Format {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for Format {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
+        match *self {
             Self::InsufficientTypeInformation | Self::InvalidComponent(_) => None,
-            Self::StdFmt => Some(&core::fmt::Error),
+            Self::StdIo(ref err) => Some(err),
         }
     }
 }

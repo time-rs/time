@@ -37,7 +37,7 @@ pub use try_from_parsed::TryFromParsed;
 #[allow(missing_copy_implementations, variant_size_differences)]
 #[allow(clippy::missing_docs_in_private_items)] // variants only
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum Error {
     ConversionRange,
     ComponentRange(ComponentRange),

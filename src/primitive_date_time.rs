@@ -1,11 +1,11 @@
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-use alloc::string::String;
 #[cfg(feature = "parsing")]
 use core::convert::TryInto;
 #[cfg(feature = "formatting")]
 use core::fmt;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
+#[cfg(feature = "formatting")]
+use std::io;
 
 #[cfg(feature = "parsing")]
 use crate::error;
@@ -500,9 +500,9 @@ impl PrimitiveDateTime {
     /// using [`format_description::parse`](crate::format_description::parse()).
     pub fn format_into<F: Formattable>(
         self,
-        output: &mut impl fmt::Write,
+        output: &mut impl io::Write,
         format: &F,
-    ) -> Result<(), F::Error> {
+    ) -> Result<usize, F::Error> {
         format.format_into(output, Some(self.date), Some(self.time), None)
     }
 
@@ -520,8 +520,6 @@ impl PrimitiveDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
-    #[cfg(feature = "alloc")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub fn format<F: Formattable>(self, format: &F) -> Result<String, F::Error> {
         format.format(Some(self.date), Some(self.time), None)
     }

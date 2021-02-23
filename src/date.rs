@@ -1,10 +1,10 @@
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-use alloc::string::String;
 #[cfg(feature = "parsing")]
 use core::convert::TryInto;
 use core::fmt;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
+#[cfg(feature = "formatting")]
+use std::io;
 
 #[cfg(feature = "formatting")]
 use crate::format_description::{modifier, Component, FormatItem};
@@ -643,9 +643,9 @@ impl Date {
     /// [`format_description::parse`](crate::format_description::parse()).
     pub fn format_into<F: Formattable>(
         self,
-        output: &mut impl fmt::Write,
+        output: &mut impl io::Write,
         format: &F,
-    ) -> Result<(), F::Error> {
+    ) -> Result<usize, F::Error> {
         format.format_into(output, Some(self), None, None)
     }
 
@@ -659,8 +659,6 @@ impl Date {
     /// assert_eq!(date!("2020-01-02").format(&format)?, "2020-01-02");
     /// # Ok::<_, time::Error>(())
     /// ```
-    #[cfg(feature = "alloc")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub fn format<F: Formattable>(self, format: &F) -> Result<String, F::Error> {
         format.format(Some(self), None, None)
     }
@@ -688,34 +686,31 @@ impl Date {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl fmt::Display for Date {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.format_into(
-            f,
-            &FormatItem::Compound(&[
-                FormatItem::Component(Component::Year(modifier::Year {
-                    padding: modifier::Padding::Zero,
-                    repr: modifier::YearRepr::Full,
-                    iso_week_based: false,
-                    sign_is_mandatory: false,
-                })),
-                FormatItem::Literal("-"),
-                FormatItem::Component(Component::Month(modifier::Month {
-                    padding: modifier::Padding::Zero,
-                    repr: modifier::MonthRepr::Numerical,
-                })),
-                FormatItem::Literal("-"),
-                FormatItem::Component(Component::Day(modifier::Day {
-                    padding: modifier::Padding::Zero,
-                })),
-            ]),
-        ) {
-            Ok(()) => Ok(()),
-            Err(error::Format::StdFmt) => Err(fmt::Error),
+        match self.format(&FormatItem::Compound(&[
+            FormatItem::Component(Component::Year(modifier::Year {
+                padding: modifier::Padding::Zero,
+                repr: modifier::YearRepr::Full,
+                iso_week_based: false,
+                sign_is_mandatory: false,
+            })),
+            FormatItem::Literal("-"),
+            FormatItem::Component(Component::Month(modifier::Month {
+                padding: modifier::Padding::Zero,
+                repr: modifier::MonthRepr::Numerical,
+            })),
+            FormatItem::Literal("-"),
+            FormatItem::Component(Component::Day(modifier::Day {
+                padding: modifier::Padding::Zero,
+            })),
+        ])) {
+            Ok(ref s) => f.write_str(s),
             Err(error::Format::InvalidComponent(_)) => {
                 unreachable!("A well-known format is not used")
             }
             Err(error::Format::InsufficientTypeInformation) => {
                 unreachable!("All components used only require a `Date`")
             }
+            Err(error::Format::StdIo(_)) => Err(fmt::Error),
         }
     }
 }

@@ -1,10 +1,10 @@
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-use alloc::string::String;
 #[cfg(feature = "parsing")]
 use core::convert::TryInto;
 use core::fmt;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
+#[cfg(feature = "formatting")]
+use std::io;
 
 #[cfg(feature = "formatting")]
 use crate::format_description::{modifier, Component, FormatItem};
@@ -454,9 +454,9 @@ impl Time {
     /// [`format_description::parse`](crate::format_description::parse()).
     pub fn format_into<F: Formattable>(
         self,
-        output: &mut impl fmt::Write,
+        output: &mut impl io::Write,
         format: &F,
-    ) -> Result<(), F::Error> {
+    ) -> Result<usize, F::Error> {
         format.format_into(output, None, Some(self), None)
     }
 
@@ -470,8 +470,6 @@ impl Time {
     /// assert_eq!(time!("12:00").format(&format)?, "12:00:00");
     /// # Ok::<_, time::Error>(())
     /// ```
-    #[cfg(feature = "alloc")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub fn format<F: Formattable>(self, format: &F) -> Result<String, F::Error> {
         format.format(None, Some(self), None)
     }
@@ -499,35 +497,32 @@ impl Time {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl fmt::Display for Time {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.format_into(
-            f,
-            &FormatItem::Compound(&[
-                FormatItem::Component(Component::Hour(modifier::Hour {
-                    padding: modifier::Padding::None,
-                    is_12_hour_clock: false,
-                })),
-                FormatItem::Literal(":"),
-                FormatItem::Component(Component::Minute(modifier::Minute {
-                    padding: modifier::Padding::Zero,
-                })),
-                FormatItem::Literal(":"),
-                FormatItem::Component(Component::Second(modifier::Second {
-                    padding: modifier::Padding::Zero,
-                })),
-                FormatItem::Literal("."),
-                FormatItem::Component(Component::Subsecond(modifier::Subsecond {
-                    digits: modifier::SubsecondDigits::OneOrMore,
-                })),
-            ]),
-        ) {
-            Ok(()) => Ok(()),
-            Err(error::Format::StdFmt) => Err(fmt::Error),
+        match self.format(&FormatItem::Compound(&[
+            FormatItem::Component(Component::Hour(modifier::Hour {
+                padding: modifier::Padding::None,
+                is_12_hour_clock: false,
+            })),
+            FormatItem::Literal(":"),
+            FormatItem::Component(Component::Minute(modifier::Minute {
+                padding: modifier::Padding::Zero,
+            })),
+            FormatItem::Literal(":"),
+            FormatItem::Component(Component::Second(modifier::Second {
+                padding: modifier::Padding::Zero,
+            })),
+            FormatItem::Literal("."),
+            FormatItem::Component(Component::Subsecond(modifier::Subsecond {
+                digits: modifier::SubsecondDigits::OneOrMore,
+            })),
+        ])) {
+            Ok(ref s) => f.write_str(s),
             Err(error::Format::InvalidComponent(_)) => {
                 unreachable!("A well-known format is not used")
             }
             Err(error::Format::InsufficientTypeInformation) => {
                 unreachable!("All components used only require a `Time`")
             }
+            Err(error::Format::StdIo(_)) => Err(fmt::Error),
         }
     }
 }

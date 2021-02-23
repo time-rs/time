@@ -24,7 +24,7 @@
 //!
 //!   Enables macros that provide compile-time verification of values and intuitive syntax.
 //!
-//! - `formatting`
+//! - `formatting` (_implicitly enables `std`_)
 //!
 //!   Enables formatting of most structs.
 //!
@@ -53,7 +53,7 @@
 //!
 //!   Enables [serde](https://docs.rs/serde) support for all types.
 //!
-//! - `serde-human-readable` (_implicitly enables `serde`, `formatting`, `parsing`, and `alloc`)
+//! - `serde-human-readable` (_implicitly enables `serde`, `formatting`, `parsing`, and `alloc`_)
 //!
 //!   Allows serde representations to use a human-readable format. This is determined by the
 //!   serializer, not the user. If this feature is not enabled or if the serializer requests a

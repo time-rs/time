@@ -1,5 +1,3 @@
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-use alloc::string::String;
 use core::cmp::Ordering;
 #[cfg(feature = "std")]
 use core::convert::From;
@@ -10,6 +8,8 @@ use core::fmt;
 use core::hash::{Hash, Hasher};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
+#[cfg(feature = "formatting")]
+use std::io;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
@@ -781,9 +781,9 @@ impl OffsetDateTime {
     /// [`format_description::parse`](crate::format_description::parse()).
     pub fn format_into<F: Formattable>(
         self,
-        output: &mut impl fmt::Write,
+        output: &mut impl io::Write,
         format: &F,
-    ) -> Result<(), F::Error> {
+    ) -> Result<usize, F::Error> {
         let local = self.utc_datetime.utc_to_offset(self.offset);
         format.format_into(
             output,
@@ -809,8 +809,6 @@ impl OffsetDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
-    #[cfg(feature = "alloc")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub fn format<F: Formattable>(self, format: &F) -> Result<String, F::Error> {
         let local = self.utc_datetime.utc_to_offset(self.offset);
         format.format(Some(local.date), Some(local.time), Some(self.offset))

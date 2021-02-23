@@ -1,5 +1,3 @@
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-use alloc::string::String;
 #[cfg(any(
     feature = "parsing",
     all(
@@ -13,6 +11,8 @@ use alloc::string::String;
 use core::convert::TryInto;
 #[cfg(feature = "formatting")]
 use core::fmt;
+#[cfg(feature = "formatting")]
+use std::io;
 
 use crate::error;
 #[cfg(feature = "formatting")]
@@ -200,9 +200,9 @@ impl UtcOffset {
     /// [`format_description::parse`](crate::format_description::parse()).
     pub fn format_into<F: Formattable>(
         self,
-        output: &mut impl fmt::Write,
+        output: &mut impl io::Write,
         format: &F,
-    ) -> Result<(), F::Error> {
+    ) -> Result<usize, F::Error> {
         format.format_into(output, None, None, Some(self))
     }
 
@@ -216,8 +216,6 @@ impl UtcOffset {
     /// assert_eq!(offset!("+1").format(&format)?, "+01:00");
     /// # Ok::<_, time::Error>(())
     /// ```
-    #[cfg(feature = "alloc")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
     pub fn format<F: Formattable>(self, format: &F) -> Result<String, F::Error> {
         format.format(None, None, Some(self))
     }
@@ -245,31 +243,28 @@ impl UtcOffset {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl fmt::Display for UtcOffset {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.format_into(
-            f,
-            &FormatItem::Compound(&[
-                FormatItem::Component(Component::OffsetHour(modifier::OffsetHour {
-                    padding: modifier::Padding::Zero,
-                    sign_is_mandatory: true,
-                })),
-                FormatItem::Literal(":"),
-                FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute {
-                    padding: modifier::Padding::Zero,
-                })),
-                FormatItem::Literal(":"),
-                FormatItem::Component(Component::OffsetSecond(modifier::OffsetSecond {
-                    padding: modifier::Padding::Zero,
-                })),
-            ]),
-        ) {
-            Ok(()) => Ok(()),
-            Err(error::Format::StdFmt) => Err(fmt::Error),
+        match self.format(&FormatItem::Compound(&[
+            FormatItem::Component(Component::OffsetHour(modifier::OffsetHour {
+                padding: modifier::Padding::Zero,
+                sign_is_mandatory: true,
+            })),
+            FormatItem::Literal(":"),
+            FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute {
+                padding: modifier::Padding::Zero,
+            })),
+            FormatItem::Literal(":"),
+            FormatItem::Component(Component::OffsetSecond(modifier::OffsetSecond {
+                padding: modifier::Padding::Zero,
+            })),
+        ])) {
+            Ok(ref s) => f.write_str(s),
             Err(error::Format::InvalidComponent(_)) => {
                 unreachable!("A well-known format is not used")
             }
             Err(error::Format::InsufficientTypeInformation) => {
                 unreachable!("All components used only require a `UtcOffset`")
             }
+            Err(error::Format::StdIo(_)) => Err(fmt::Error),
         }
     }
 }

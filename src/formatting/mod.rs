@@ -2,7 +2,7 @@
 
 pub(crate) mod formattable;
 
-use core::fmt;
+use std::io;
 
 use crate::format_description::{modifier, Component};
 use crate::{error, Date, Time, UtcOffset};
@@ -98,25 +98,29 @@ impl DigitCount for u32 {
 ///
 /// The sign must be written by the caller.
 pub(crate) fn format_number(
-    output: &mut impl fmt::Write,
+    output: &mut impl io::Write,
     value: impl itoa::Integer + DigitCount + Copy,
     padding: modifier::Padding,
     width: u8,
-) -> Result<(), fmt::Error> {
+) -> Result<usize, io::Error> {
     match padding {
         modifier::Padding::Space => {
+            let mut bytes = 0;
             for _ in 0..(width.saturating_sub(value.num_digits())) {
-                output.write_char(' ')?;
+                bytes += output.write(&[b' '])?;
             }
-            itoa::fmt(output, value)
+            bytes += itoa::write(output, value)?;
+            Ok(bytes)
         }
         modifier::Padding::Zero => {
+            let mut bytes = 0;
             for _ in 0..(width.saturating_sub(value.num_digits())) {
-                output.write_char('0')?;
+                bytes += output.write(&[b'0'])?;
             }
-            itoa::fmt(output, value)
+            bytes += itoa::write(output, value)?;
+            Ok(bytes)
         }
-        modifier::Padding::None => itoa::fmt(output, value),
+        modifier::Padding::None => itoa::write(output, value),
     }
 }
 
@@ -125,23 +129,23 @@ pub(crate) fn format_number(
 /// stream.
 #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 pub(crate) fn format_component(
-    output: &mut impl fmt::Write,
+    output: &mut impl io::Write,
     component: Component,
     date: Option<Date>,
     time: Option<Time>,
     offset: Option<UtcOffset>,
-) -> Result<(), error::Format> {
-    match (component, date, time, offset) {
+) -> Result<usize, error::Format> {
+    Ok(match (component, date, time, offset) {
         (Component::Day(modifier::Day { padding }), Some(date), ..) => {
             format_number(output, date.day(), padding, 2)?
         }
         (Component::Month(modifier::Month { padding, repr }), Some(date), ..) => match repr {
             modifier::MonthRepr::Numerical => format_number(output, date.month(), padding, 2)?,
             modifier::MonthRepr::Long => {
-                output.write_str(MONTH_NAMES[date.month() as usize - 1])?
+                output.write(MONTH_NAMES[date.month() as usize - 1].as_bytes())?
             }
             modifier::MonthRepr::Short => {
-                output.write_str(&MONTH_NAMES[date.month() as usize - 1][..3])?
+                output.write(MONTH_NAMES[date.month() as usize - 1][..3].as_bytes())?
             }
         },
         (Component::Ordinal(modifier::Ordinal { padding }), Some(date), ..) => {
@@ -149,11 +153,12 @@ pub(crate) fn format_component(
         }
         (Component::Weekday(modifier::Weekday { repr, one_indexed }), Some(date), ..) => match repr
         {
-            modifier::WeekdayRepr::Short => output.write_str(
-                &WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3],
+            modifier::WeekdayRepr::Short => output.write(
+                WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3].as_bytes(),
             )?,
-            modifier::WeekdayRepr::Long => output
-                .write_str(WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize])?,
+            modifier::WeekdayRepr::Long => output.write(
+                WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize].as_bytes(),
+            )?,
             modifier::WeekdayRepr::Sunday => format_number(
                 output,
                 date.weekday().number_days_from_sunday() + one_indexed as u8,
@@ -209,17 +214,20 @@ pub(crate) fn format_component(
                 modifier::YearRepr::LastTwo => 2,
             };
 
+            let mut bytes = 0;
+
             // Don't emit a sign when only displaying the last two digits.
             if repr != modifier::YearRepr::LastTwo {
                 if full_year < 0 {
-                    output.write_char('-')?;
+                    bytes += output.write(&[b'-'])?;
                 } else if sign_is_mandatory || cfg!(feature = "large-dates") && full_year >= 10_000
                 {
-                    output.write_char('+')?;
+                    bytes += output.write(&[b'+'])?;
                 }
             }
 
-            format_number(output, value.abs() as u32, padding, width)?
+            bytes += format_number(output, value.abs() as u32, padding, width)?;
+            bytes
         }
         (
             Component::Hour(modifier::Hour {
@@ -243,10 +251,10 @@ pub(crate) fn format_component(
         }
         (Component::Period(modifier::Period { is_uppercase }), _, Some(time), _) => {
             match (time.hour >= 12, is_uppercase) {
-                (false, false) => output.write_str("am"),
-                (false, true) => output.write_str("AM"),
-                (true, false) => output.write_str("pm"),
-                (true, true) => output.write_str("PM"),
+                (false, false) => output.write(b"am"),
+                (false, true) => output.write(b"AM"),
+                (true, false) => output.write(b"pm"),
+                (true, true) => output.write(b"PM"),
             }?
         }
         (Component::Second(modifier::Second { padding }), _, Some(time), _) => {
@@ -286,21 +294,22 @@ pub(crate) fn format_component(
             _,
             Some(offset),
         ) => {
+            let mut bytes = 0;
             if offset.is_negative() {
-                output.write_char('-')?;
+                bytes += output.write(&[b'-'])?;
             } else if sign_is_mandatory {
-                output.write_char('+')?;
+                bytes += output.write(&[b'+'])?;
             }
-            format_number(output, offset.hours.abs() as u8, padding, 2)?;
+            bytes += format_number(output, offset.hours.abs() as u8, padding, 2)?;
+            bytes
         }
         (Component::OffsetMinute(modifier::OffsetMinute { padding }), _, _, Some(offset)) => {
-            format_number(output, offset.minutes.abs() as u8, padding, 2)?;
+            format_number(output, offset.minutes.abs() as u8, padding, 2)?
         }
+
         (Component::OffsetSecond(modifier::OffsetSecond { padding }), _, _, Some(offset)) => {
-            format_number(output, offset.seconds.abs() as u8, padding, 2)?;
+            format_number(output, offset.seconds.abs() as u8, padding, 2)?
         }
         _ => return Err(error::Format::InsufficientTypeInformation),
-    }
-
-    Ok(())
+    })
 }
