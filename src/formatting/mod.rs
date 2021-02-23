@@ -127,7 +127,6 @@ pub(crate) fn format_number(
 /// Format the provided component into the designated output. An `Err` will be returned if the
 /// component requires information that it does not provide or if the value cannot be output to the
 /// stream.
-#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 pub(crate) fn format_component(
     output: &mut impl io::Write,
     component: Component,
@@ -135,181 +134,260 @@ pub(crate) fn format_component(
     time: Option<Time>,
     offset: Option<UtcOffset>,
 ) -> Result<usize, error::Format> {
+    use Component::*;
     Ok(match (component, date, time, offset) {
-        (Component::Day(modifier::Day { padding }), Some(date), ..) => {
-            format_number(output, date.day(), padding, 2)?
-        }
-        (Component::Month(modifier::Month { padding, repr }), Some(date), ..) => match repr {
-            modifier::MonthRepr::Numerical => format_number(output, date.month(), padding, 2)?,
-            modifier::MonthRepr::Long => {
-                output.write(MONTH_NAMES[date.month() as usize - 1].as_bytes())?
-            }
-            modifier::MonthRepr::Short => {
-                output.write(MONTH_NAMES[date.month() as usize - 1][..3].as_bytes())?
-            }
-        },
-        (Component::Ordinal(modifier::Ordinal { padding }), Some(date), ..) => {
-            format_number(output, date.ordinal(), padding, 3)?
-        }
-        (Component::Weekday(modifier::Weekday { repr, one_indexed }), Some(date), ..) => match repr
-        {
-            modifier::WeekdayRepr::Short => output.write(
-                WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3].as_bytes(),
-            )?,
-            modifier::WeekdayRepr::Long => output.write(
-                WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize].as_bytes(),
-            )?,
-            modifier::WeekdayRepr::Sunday => format_number(
-                output,
-                date.weekday().number_days_from_sunday() + one_indexed as u8,
-                modifier::Padding::None,
-                1,
-            )?,
-            modifier::WeekdayRepr::Monday => format_number(
-                output,
-                date.weekday().number_days_from_monday() + one_indexed as u8,
-                modifier::Padding::None,
-                1,
-            )?,
-        },
-        (Component::WeekNumber(modifier::WeekNumber { padding, repr }), Some(date), ..) => {
-            format_number(
-                output,
-                match repr {
-                    modifier::WeekNumberRepr::Iso => date.iso_week(),
-                    modifier::WeekNumberRepr::Sunday => date.sunday_based_week(),
-                    modifier::WeekNumberRepr::Monday => date.monday_based_week(),
-                },
-                padding,
-                2,
-            )?
-        }
-        (
-            Component::Year(modifier::Year {
-                padding,
-                repr,
-                iso_week_based,
-                sign_is_mandatory,
-            }),
-            Some(date),
-            ..,
-        ) => {
-            let full_year = if iso_week_based {
-                date.iso_year_week().0
-            } else {
-                date.year()
-            };
-
-            let value = match repr {
-                modifier::YearRepr::Full => full_year,
-                modifier::YearRepr::LastTwo => (full_year % 100).abs(),
-            };
-
-            let width = match repr {
-                #[cfg(feature = "large-dates")]
-                modifier::YearRepr::Full if value.abs() >= 100_000 => 6,
-                #[cfg(feature = "large-dates")]
-                modifier::YearRepr::Full if value.abs() >= 10_000 => 5,
-                modifier::YearRepr::Full => 4,
-                modifier::YearRepr::LastTwo => 2,
-            };
-
-            let mut bytes = 0;
-
-            // Don't emit a sign when only displaying the last two digits.
-            if repr != modifier::YearRepr::LastTwo {
-                if full_year < 0 {
-                    bytes += output.write(&[b'-'])?;
-                } else if sign_is_mandatory || cfg!(feature = "large-dates") && full_year >= 10_000
-                {
-                    bytes += output.write(&[b'+'])?;
-                }
-            }
-
-            bytes += format_number(output, value.abs() as u32, padding, width)?;
-            bytes
-        }
-        (
-            Component::Hour(modifier::Hour {
-                padding,
-                is_12_hour_clock,
-            }),
-            _,
-            Some(time),
-            _,
-        ) => {
-            let value = match (time.hour, is_12_hour_clock) {
-                (hour, false) => hour,
-                (0, true) | (12, true) => 12,
-                (hour, true) if hour < 12 => hour,
-                (hour, true) => hour - 12,
-            };
-            format_number(output, value, padding, 2)?
-        }
-        (Component::Minute(modifier::Minute { padding }), _, Some(time), _) => {
-            format_number(output, time.minute, padding, 2)?
-        }
-        (Component::Period(modifier::Period { is_uppercase }), _, Some(time), _) => {
-            match (time.hour >= 12, is_uppercase) {
-                (false, false) => output.write(b"am"),
-                (false, true) => output.write(b"AM"),
-                (true, false) => output.write(b"pm"),
-                (true, true) => output.write(b"PM"),
-            }?
-        }
-        (Component::Second(modifier::Second { padding }), _, Some(time), _) => {
-            format_number(output, time.second, padding, 2)?
-        }
-        (Component::Subsecond(modifier::Subsecond { digits }), _, Some(time), _) => {
-            let (value, width) = match digits {
-                modifier::SubsecondDigits::One => (time.nanosecond / 100_000_000, 1),
-                modifier::SubsecondDigits::Two => (time.nanosecond / 10_000_000, 2),
-                modifier::SubsecondDigits::Three => (time.nanosecond / 1_000_000, 3),
-                modifier::SubsecondDigits::Four => (time.nanosecond / 100_000, 4),
-                modifier::SubsecondDigits::Five => (time.nanosecond / 10_000, 5),
-                modifier::SubsecondDigits::Six => (time.nanosecond / 1_000, 6),
-                modifier::SubsecondDigits::Seven => (time.nanosecond / 100, 7),
-                modifier::SubsecondDigits::Eight => (time.nanosecond / 10, 8),
-                modifier::SubsecondDigits::Nine => (time.nanosecond, 9),
-                modifier::SubsecondDigits::OneOrMore => match time.nanosecond {
-                    nanos if nanos % 10 != 0 => (nanos, 9),
-                    nanos if (nanos / 10) % 10 != 0 => (nanos / 10, 8),
-                    nanos if (nanos / 100) % 10 != 0 => (nanos / 100, 7),
-                    nanos if (nanos / 1_000) % 10 != 0 => (nanos / 1_000, 6),
-                    nanos if (nanos / 10_000) % 10 != 0 => (nanos / 10_000, 5),
-                    nanos if (nanos / 100_000) % 10 != 0 => (nanos / 100_000, 4),
-                    nanos if (nanos / 1_000_000) % 10 != 0 => (nanos / 1_000_000, 3),
-                    nanos if (nanos / 10_000_000) % 10 != 0 => (nanos / 10_000_000, 2),
-                    nanos => (nanos / 100_000_000, 1),
-                },
-            };
-            format_number(output, value, modifier::Padding::Zero, width)?
-        }
-        (
-            Component::OffsetHour(modifier::OffsetHour {
-                padding,
-                sign_is_mandatory,
-            }),
-            _,
-            _,
-            Some(offset),
-        ) => {
-            let mut bytes = 0;
-            if offset.is_negative() {
-                bytes += output.write(&[b'-'])?;
-            } else if sign_is_mandatory {
-                bytes += output.write(&[b'+'])?;
-            }
-            bytes += format_number(output, offset.hours.abs() as u8, padding, 2)?;
-            bytes
-        }
-        (Component::OffsetMinute(modifier::OffsetMinute { padding }), _, _, Some(offset)) => {
-            format_number(output, offset.minutes.abs() as u8, padding, 2)?
-        }
-
-        (Component::OffsetSecond(modifier::OffsetSecond { padding }), _, _, Some(offset)) => {
-            format_number(output, offset.seconds.abs() as u8, padding, 2)?
-        }
+        (Day(modifier), Some(date), ..) => fmt_day(output, date, modifier)?,
+        (Month(modifier), Some(date), ..) => fmt_month(output, date, modifier)?,
+        (Ordinal(modifier), Some(date), ..) => fmt_ordinal(output, date, modifier)?,
+        (Weekday(modifier), Some(date), ..) => fmt_weekday(output, date, modifier)?,
+        (WeekNumber(modifier), Some(date), ..) => fmt_week_number(output, date, modifier)?,
+        (Year(modifier), Some(date), ..) => fmt_year(output, date, modifier)?,
+        (Hour(modifier), _, Some(time), _) => fmt_hour(output, time, modifier)?,
+        (Minute(modifier), _, Some(time), _) => fmt_minute(output, time, modifier)?,
+        (Period(modifier), _, Some(time), _) => fmt_period(output, time, modifier)?,
+        (Second(modifier), _, Some(time), _) => fmt_second(output, time, modifier)?,
+        (Subsecond(modifier), _, Some(time), _) => fmt_subsecond(output, time, modifier)?,
+        (OffsetHour(modifier), .., Some(offset)) => fmt_offset_hour(output, offset, modifier)?,
+        (OffsetMinute(modifier), .., Some(offset)) => fmt_offset_minute(output, offset, modifier)?,
+        (OffsetSecond(modifier), .., Some(offset)) => fmt_offset_second(output, offset, modifier)?,
         _ => return Err(error::Format::InsufficientTypeInformation),
     })
+}
+
+/// Format the day into the designated output.
+fn fmt_day(
+    output: &mut impl io::Write,
+    date: Date,
+    modifier::Day { padding }: modifier::Day,
+) -> Result<usize, io::Error> {
+    format_number(output, date.day(), padding, 2)
+}
+
+/// Format the month into the designated output.
+fn fmt_month(
+    output: &mut impl io::Write,
+    date: Date,
+    modifier::Month { padding, repr }: modifier::Month,
+) -> Result<usize, io::Error> {
+    match repr {
+        modifier::MonthRepr::Numerical => format_number(output, date.month(), padding, 2),
+        modifier::MonthRepr::Long => {
+            output.write(MONTH_NAMES[date.month() as usize - 1].as_bytes())
+        }
+        modifier::MonthRepr::Short => {
+            output.write(MONTH_NAMES[date.month() as usize - 1][..3].as_bytes())
+        }
+    }
+}
+
+/// Format the ordinal into the designated output.
+fn fmt_ordinal(
+    output: &mut impl io::Write,
+    date: Date,
+    modifier::Ordinal { padding }: modifier::Ordinal,
+) -> Result<usize, io::Error> {
+    format_number(output, date.ordinal(), padding, 3)
+}
+
+/// Format the weekday into the designated output.
+fn fmt_weekday(
+    output: &mut impl io::Write,
+    date: Date,
+    modifier::Weekday { repr, one_indexed }: modifier::Weekday,
+) -> Result<usize, io::Error> {
+    match repr {
+        modifier::WeekdayRepr::Short => output.write(
+            WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3].as_bytes(),
+        ),
+        modifier::WeekdayRepr::Long => output
+            .write(WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize].as_bytes()),
+        modifier::WeekdayRepr::Sunday => format_number(
+            output,
+            date.weekday().number_days_from_sunday() + one_indexed as u8,
+            modifier::Padding::None,
+            1,
+        ),
+        modifier::WeekdayRepr::Monday => format_number(
+            output,
+            date.weekday().number_days_from_monday() + one_indexed as u8,
+            modifier::Padding::None,
+            1,
+        ),
+    }
+}
+
+/// Format the week number into the designated output.
+fn fmt_week_number(
+    output: &mut impl io::Write,
+    date: Date,
+    modifier::WeekNumber { padding, repr }: modifier::WeekNumber,
+) -> Result<usize, io::Error> {
+    format_number(
+        output,
+        match repr {
+            modifier::WeekNumberRepr::Iso => date.iso_week(),
+            modifier::WeekNumberRepr::Sunday => date.sunday_based_week(),
+            modifier::WeekNumberRepr::Monday => date.monday_based_week(),
+        },
+        padding,
+        2,
+    )
+}
+
+/// Format the year into the designated output.
+fn fmt_year(
+    output: &mut impl io::Write,
+    date: Date,
+    modifier::Year {
+        padding,
+        repr,
+        iso_week_based,
+        sign_is_mandatory,
+    }: modifier::Year,
+) -> Result<usize, io::Error> {
+    let full_year = if iso_week_based {
+        date.iso_year_week().0
+    } else {
+        date.year()
+    };
+    let value = match repr {
+        modifier::YearRepr::Full => full_year,
+        modifier::YearRepr::LastTwo => (full_year % 100).abs(),
+    };
+    let width = match repr {
+        #[cfg(feature = "large-dates")]
+        modifier::YearRepr::Full if value.abs() >= 100_000 => 6,
+        #[cfg(feature = "large-dates")]
+        modifier::YearRepr::Full if value.abs() >= 10_000 => 5,
+        modifier::YearRepr::Full => 4,
+        modifier::YearRepr::LastTwo => 2,
+    };
+    let mut bytes = 0;
+    if repr != modifier::YearRepr::LastTwo {
+        if full_year < 0 {
+            bytes += output.write(&[b'-'])?;
+        } else if sign_is_mandatory || cfg!(feature = "large-dates") && full_year >= 10_000 {
+            bytes += output.write(&[b'+'])?;
+        }
+    }
+    bytes += format_number(output, value.abs() as u32, padding, width)?;
+    Ok(bytes)
+}
+
+/// Format the hour into the designated output.
+fn fmt_hour(
+    output: &mut impl io::Write,
+    time: Time,
+    modifier::Hour {
+        padding,
+        is_12_hour_clock,
+    }: modifier::Hour,
+) -> Result<usize, io::Error> {
+    let value = match (time.hour, is_12_hour_clock) {
+        (hour, false) => hour,
+        (0, true) | (12, true) => 12,
+        (hour, true) if hour < 12 => hour,
+        (hour, true) => hour - 12,
+    };
+    format_number(output, value, padding, 2)
+}
+
+/// Format the minute into the designated output.
+fn fmt_minute(
+    output: &mut impl io::Write,
+    time: Time,
+    modifier::Minute { padding }: modifier::Minute,
+) -> Result<usize, io::Error> {
+    format_number(output, time.minute, padding, 2)
+}
+
+/// Format the period into the designated output.
+fn fmt_period(
+    output: &mut impl io::Write,
+    time: Time,
+    modifier::Period { is_uppercase }: modifier::Period,
+) -> Result<usize, io::Error> {
+    match (time.hour >= 12, is_uppercase) {
+        (false, false) => output.write(b"am"),
+        (false, true) => output.write(b"AM"),
+        (true, false) => output.write(b"pm"),
+        (true, true) => output.write(b"PM"),
+    }
+}
+
+/// Format the second into the designated output.
+fn fmt_second(
+    output: &mut impl io::Write,
+    time: Time,
+    modifier::Second { padding }: modifier::Second,
+) -> Result<usize, io::Error> {
+    format_number(output, time.second, padding, 2)
+}
+
+/// Format the subsecond into the designated output.
+fn fmt_subsecond(
+    output: &mut impl io::Write,
+    time: Time,
+    modifier::Subsecond { digits }: modifier::Subsecond,
+) -> Result<usize, io::Error> {
+    let (value, width) = match digits {
+        modifier::SubsecondDigits::One => (time.nanosecond / 100_000_000, 1),
+        modifier::SubsecondDigits::Two => (time.nanosecond / 10_000_000, 2),
+        modifier::SubsecondDigits::Three => (time.nanosecond / 1_000_000, 3),
+        modifier::SubsecondDigits::Four => (time.nanosecond / 100_000, 4),
+        modifier::SubsecondDigits::Five => (time.nanosecond / 10_000, 5),
+        modifier::SubsecondDigits::Six => (time.nanosecond / 1_000, 6),
+        modifier::SubsecondDigits::Seven => (time.nanosecond / 100, 7),
+        modifier::SubsecondDigits::Eight => (time.nanosecond / 10, 8),
+        modifier::SubsecondDigits::Nine => (time.nanosecond, 9),
+        modifier::SubsecondDigits::OneOrMore => match time.nanosecond {
+            nanos if nanos % 10 != 0 => (nanos, 9),
+            nanos if (nanos / 10) % 10 != 0 => (nanos / 10, 8),
+            nanos if (nanos / 100) % 10 != 0 => (nanos / 100, 7),
+            nanos if (nanos / 1_000) % 10 != 0 => (nanos / 1_000, 6),
+            nanos if (nanos / 10_000) % 10 != 0 => (nanos / 10_000, 5),
+            nanos if (nanos / 100_000) % 10 != 0 => (nanos / 100_000, 4),
+            nanos if (nanos / 1_000_000) % 10 != 0 => (nanos / 1_000_000, 3),
+            nanos if (nanos / 10_000_000) % 10 != 0 => (nanos / 10_000_000, 2),
+            nanos => (nanos / 100_000_000, 1),
+        },
+    };
+    format_number(output, value, modifier::Padding::Zero, width)
+}
+
+/// Format the offset hour into the designated output.
+fn fmt_offset_hour(
+    output: &mut impl io::Write,
+    offset: UtcOffset,
+    modifier::OffsetHour {
+        padding,
+        sign_is_mandatory,
+    }: modifier::OffsetHour,
+) -> Result<usize, io::Error> {
+    let mut bytes = 0;
+    if offset.is_negative() {
+        bytes += output.write(&[b'-'])?;
+    } else if sign_is_mandatory {
+        bytes += output.write(&[b'+'])?;
+    }
+    bytes += format_number(output, offset.hours.abs() as u8, padding, 2)?;
+    Ok(bytes)
+}
+
+/// Format the offset minute into the designated output.
+fn fmt_offset_minute(
+    output: &mut impl io::Write,
+    offset: UtcOffset,
+    modifier::OffsetMinute { padding }: modifier::OffsetMinute,
+) -> Result<usize, io::Error> {
+    format_number(output, offset.minutes.abs() as u8, padding, 2)
+}
+
+/// Format the offset second into the designated output.
+fn fmt_offset_second(
+    output: &mut impl io::Write,
+    offset: UtcOffset,
+    modifier::OffsetSecond { padding }: modifier::OffsetSecond,
+) -> Result<usize, io::Error> {
+    format_number(output, offset.seconds.abs() as u8, padding, 2)
 }
