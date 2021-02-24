@@ -31,7 +31,6 @@ fn parse_component(mut s: &str, index: &mut usize) -> Result<Component, InvalidF
         // Trim any whitespace between the component name and the first modifier.
         s = helper::consume_whitespace(s, index);
     } else {
-        dbg!(s);
         *index += s.len();
         component_name = s;
         // There is no whitespace remaining, so the full input is the component name.

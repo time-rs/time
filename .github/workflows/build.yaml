@@ -65,8 +65,7 @@ jobs:
             --feature-powerset
             --optional-deps
             --group-features serde,rand
-            --group-features formatting,parsing
-            --exclude-features default,winapi,std,local-offset,quickcheck,quickcheck-dep,time-macros
+            --exclude-features default,winapi,std,formatting,serde-human-readable,local-offset,quickcheck,quickcheck-dep,time-macros,itoa
             --features macros
             --exclude-all-features
             --target ${{ matrix.target.triple }}
@@ -86,7 +85,7 @@ jobs:
             --optional-deps
             --group-features serde,rand
             --group-features formatting,parsing
-            --exclude-features default,winapi,quickcheck-dep,time-macros
+            --exclude-features default,winapi,quickcheck-dep,time-macros,itoa
             --features macros,local-offset
             --target ${{ matrix.target.triple }}
         if: matrix.target.has_std == true && matrix.target.has_local_offset == false
@@ -102,7 +101,7 @@ jobs:
             --optional-deps
             --group-features serde,rand
             --group-features formatting,parsing
-            --exclude-features default,winapi,quickcheck-dep,time-macros
+            --exclude-features default,winapi,quickcheck-dep,time-macros,itoa
             --features macros
             --target ${{ matrix.target.triple }}
         if: matrix.target.has_std == true && matrix.target.has_local_offset == true
@@ -202,7 +201,7 @@ jobs:
             --optional-deps
             --group-features serde,rand
             --group-features formatting,parsing
-            --exclude-features default,winapi,quickcheck-dep,time-macros
+            --exclude-features default,winapi,quickcheck-dep,time-macros,itoa
             --features macros
         if: matrix.os.has_local_offset == true
 
@@ -219,7 +218,7 @@ jobs:
             --optional-deps
             --group-features serde,rand
             --group-features formatting,parsing
-            --exclude-features default,winapi,quickcheck-dep,time-macros
+            --exclude-features default,winapi,quickcheck-dep,time-macros,itoa
             --features macros,local-offset
         if: matrix.os.has_local_offset == false
 
