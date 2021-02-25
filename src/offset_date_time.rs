@@ -835,7 +835,7 @@ impl OffsetDateTime {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
-        Ok(description.parse(input)?.try_into()?)
+        Ok(description.parse(input.as_bytes())?.try_into()?)
     }
 }
 

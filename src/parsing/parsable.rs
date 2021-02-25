@@ -5,6 +5,7 @@ use alloc::vec::Vec;
 
 use crate::error;
 use crate::format_description::{well_known, FormatItem};
+use crate::parsing::shim::{IntegerParseBytes, SliceStripPrefix};
 use crate::parsing::{Parsed, ParsedItem};
 
 /// Seal the trait to prevent downstream users from implementing it, while still allowing it to
@@ -24,15 +25,15 @@ pub(crate) mod sealed {
         /// This method can be used to parse part of a type without parsing the full value.
         fn parse_into<'a>(
             &self,
-            input: &'a str,
+            input: &'a [u8],
             parsed: &mut Parsed,
-        ) -> Result<&'a str, Self::Error>;
+        ) -> Result<&'a [u8], Self::Error>;
 
         /// Parse the item into a new [`Parsed`] struct.
         ///
         /// This method can only be used to parse a complete value of a type. If any characters
         /// remain after parsing, an error will be returned.
-        fn parse(&self, input: &str) -> Result<Parsed, error::Parse> {
+        fn parse(&self, input: &[u8]) -> Result<Parsed, error::Parse> {
             let mut parsed = Parsed::new();
             let remaining = match self.parse_into(input, &mut parsed) {
                 Ok(value) => value,
@@ -52,13 +53,13 @@ impl sealed::Parsable for FormatItem<'_> {
 
     fn parse_into<'a>(
         &self,
-        mut input: &'a str,
+        mut input: &'a [u8],
         parsed: &mut Parsed,
-    ) -> Result<&'a str, Self::Error> {
+    ) -> Result<&'a [u8], Self::Error> {
         match self {
             Self::Literal(literal) => {
                 input = input
-                    .strip_prefix(literal)
+                    .strip_prefix_(literal.as_bytes())
                     .ok_or(error::ParseFromDescription::InvalidLiteral)?;
             }
             Self::Component(component) => input = parsed.parse_component(input, *component)?,
@@ -73,9 +74,9 @@ impl sealed::Parsable for &[FormatItem<'_>] {
 
     fn parse_into<'a>(
         &self,
-        mut input: &'a str,
+        mut input: &'a [u8],
         parsed: &mut Parsed,
-    ) -> Result<&'a str, Self::Error> {
+    ) -> Result<&'a [u8], Self::Error> {
         for item in self.iter() {
             input = item.parse_into(input, parsed)?;
         }
@@ -88,7 +89,11 @@ impl sealed::Parsable for &[FormatItem<'_>] {
 impl sealed::Parsable for Vec<FormatItem<'_>> {
     type Error = error::ParseFromDescription;
 
-    fn parse_into<'a>(&self, input: &'a str, parsed: &mut Parsed) -> Result<&'a str, Self::Error> {
+    fn parse_into<'a>(
+        &self,
+        input: &'a [u8],
+        parsed: &mut Parsed,
+    ) -> Result<&'a [u8], Self::Error> {
         self.as_slice().parse_into(input, parsed)
     }
 }
@@ -96,7 +101,11 @@ impl sealed::Parsable for Vec<FormatItem<'_>> {
 impl sealed::Parsable for well_known::Rfc3339 {
     type Error = error::ParseFromDescription;
 
-    fn parse_into<'a>(&self, input: &'a str, parsed: &mut Parsed) -> Result<&'a str, Self::Error> {
+    fn parse_into<'a>(
+        &self,
+        input: &'a [u8],
+        parsed: &mut Parsed,
+    ) -> Result<&'a [u8], Self::Error> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
         use crate::parsing::combinator::{
             any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, n_to_m, sign,
@@ -145,8 +154,8 @@ impl sealed::Parsable for well_known::Rfc3339 {
             }
 
             let raw_num: u32 = raw_digits
-                .parse()
-                .map_err(|_| InvalidComponent("subsecond"))?;
+                .parse_bytes()
+                .ok_or(InvalidComponent("subsecond"))?;
             let adjustment_factor = 10_u32.pow(9 - raw_digits.len() as u32);
             ParsedItem(input, raw_num * adjustment_factor).assign_value_to(&mut parsed.subsecond)
         } else {
@@ -164,7 +173,7 @@ impl sealed::Parsable for well_known::Rfc3339 {
         let input = exactly_n_digits(2)(input)
             .ok_or(InvalidComponent("offset_hour"))?
             .assign_value_to_with(&mut parsed.offset_hour, |offset_hour: u8| {
-                if offset_sign == '-' {
+                if offset_sign == b'-' {
                     -(offset_hour as i8)
                 } else {
                     offset_hour as _

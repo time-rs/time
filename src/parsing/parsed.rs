@@ -97,9 +97,9 @@ impl Parsed {
     /// returned as the `Ok` value.
     pub(crate) fn parse_component<'a>(
         &mut self,
-        input: &'a str,
+        input: &'a [u8],
         component: Component,
-    ) -> Result<&'a str, error::ParseFromDescription> {
+    ) -> Result<&'a [u8], error::ParseFromDescription> {
         use error::ParseFromDescription::InvalidComponent;
 
         match component {

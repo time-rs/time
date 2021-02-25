@@ -8,11 +8,12 @@ use crate::parsing::combinator::n_to_m_digits_padded;
 use crate::parsing::combinator::{
     any_digit, exactly_n, exactly_n_digits_padded, first_match, n_to_m, opt, sign,
 };
+use crate::parsing::shim::IntegerParseBytes;
 use crate::parsing::ParsedItem;
 use crate::Weekday;
 
 /// Parse the "year" component of a `Date`.
-pub(crate) fn parse_year(input: &str, modifiers: modifier::Year) -> Option<ParsedItem<'_, i32>> {
+pub(crate) fn parse_year(input: &[u8], modifiers: modifier::Year) -> Option<ParsedItem<'_, i32>> {
     match modifiers.repr {
         modifier::YearRepr::Full => {
             let ParsedItem(input, sign) = opt(sign)(input);
@@ -23,7 +24,7 @@ pub(crate) fn parse_year(input: &str, modifiers: modifier::Year) -> Option<Parse
             let ParsedItem(input, year) =
                 n_to_m_digits_padded::<u32>(4, 6, modifiers.padding)(input)?;
             match sign {
-                Some('-') => Some(ParsedItem(input, -(year as i32))),
+                Some(b'-') => Some(ParsedItem(input, -(year as i32))),
                 None if modifiers.sign_is_mandatory || year >= 10_000 => None,
                 _ => Some(ParsedItem(input, year as i32)),
             }
@@ -36,7 +37,7 @@ pub(crate) fn parse_year(input: &str, modifiers: modifier::Year) -> Option<Parse
 
 /// Parse the "month" component of a `Date`.
 pub(crate) fn parse_month(
-    input: &str,
+    input: &[u8],
     modifiers: modifier::Month,
 ) -> Option<ParsedItem<'_, NonZeroU8>> {
     let ParsedItem(remaining, value) = first_match(match modifiers.repr {
@@ -79,7 +80,7 @@ pub(crate) fn parse_month(
 
 /// Parse the "week number" component of a `Date`.
 pub(crate) fn parse_week_number(
-    input: &str,
+    input: &[u8],
     modifiers: modifier::WeekNumber,
 ) -> Option<ParsedItem<'_, u8>> {
     exactly_n_digits_padded(2, modifiers.padding)(input)
@@ -87,7 +88,7 @@ pub(crate) fn parse_week_number(
 
 /// Parse the "weekday" component of a `Date`.
 pub(crate) fn parse_weekday(
-    input: &str,
+    input: &[u8],
     modifiers: modifier::Weekday,
 ) -> Option<ParsedItem<'_, Weekday>> {
     first_match(match (modifiers.repr, modifiers.one_indexed) {
@@ -156,7 +157,7 @@ pub(crate) fn parse_weekday(
 
 /// Parse the "ordinal" component of a `Date`.
 pub(crate) fn parse_ordinal(
-    input: &str,
+    input: &[u8],
     modifiers: modifier::Ordinal,
 ) -> Option<ParsedItem<'_, NonZeroU16>> {
     exactly_n_digits_padded(3, modifiers.padding)(input)
@@ -164,7 +165,7 @@ pub(crate) fn parse_ordinal(
 
 /// Parse the "day" component of a `Date`.
 pub(crate) fn parse_day(
-    input: &str,
+    input: &[u8],
     modifiers: modifier::Day,
 ) -> Option<ParsedItem<'_, NonZeroU8>> {
     exactly_n_digits_padded(2, modifiers.padding)(input)
@@ -180,23 +181,29 @@ pub(crate) enum Period {
 }
 
 /// Parse the "hour" component of a `Time`.
-pub(crate) fn parse_hour(input: &str, modifiers: modifier::Hour) -> Option<ParsedItem<'_, u8>> {
+pub(crate) fn parse_hour(input: &[u8], modifiers: modifier::Hour) -> Option<ParsedItem<'_, u8>> {
     exactly_n_digits_padded(2, modifiers.padding)(input)
 }
 
 /// Parse the "minute" component of a `Time`.
-pub(crate) fn parse_minute(input: &str, modifiers: modifier::Minute) -> Option<ParsedItem<'_, u8>> {
+pub(crate) fn parse_minute(
+    input: &[u8],
+    modifiers: modifier::Minute,
+) -> Option<ParsedItem<'_, u8>> {
     exactly_n_digits_padded(2, modifiers.padding)(input)
 }
 
 /// Parse the "second" component of a `Time`.
-pub(crate) fn parse_second(input: &str, modifiers: modifier::Second) -> Option<ParsedItem<'_, u8>> {
+pub(crate) fn parse_second(
+    input: &[u8],
+    modifiers: modifier::Second,
+) -> Option<ParsedItem<'_, u8>> {
     exactly_n_digits_padded(2, modifiers.padding)(input)
 }
 
 /// Parse the "period" component of a `Time`. Required if the hour is on a 12-hour clock.
 pub(crate) fn parse_period(
-    input: &str,
+    input: &[u8],
     modifiers: modifier::Period,
 ) -> Option<ParsedItem<'_, Period>> {
     first_match(if modifiers.is_uppercase {
@@ -208,7 +215,7 @@ pub(crate) fn parse_period(
 
 /// Parse the "subsecond" component of a `Time`.
 pub(crate) fn parse_subsecond(
-    input: &str,
+    input: &[u8],
     modifiers: modifier::Subsecond,
 ) -> Option<ParsedItem<'_, u32>> {
     let ParsedItem(input, raw_digits) = match modifiers.digits {
@@ -223,7 +230,7 @@ pub(crate) fn parse_subsecond(
         modifier::SubsecondDigits::Nine => exactly_n(9, any_digit)(input),
         modifier::SubsecondDigits::OneOrMore => n_to_m(1, 9, any_digit)(input),
     }?;
-    let raw_num: u32 = raw_digits.parse().ok()?;
+    let raw_num: u32 = raw_digits.parse_bytes()?;
     let adjustment_factor = 10_u32.pow(9 - raw_digits.len() as u32);
 
     Some(ParsedItem(input, raw_num * adjustment_factor))
@@ -231,13 +238,13 @@ pub(crate) fn parse_subsecond(
 
 /// Parse the "hour" component of a `UtcOffset`.
 pub(crate) fn parse_offset_hour(
-    input: &str,
+    input: &[u8],
     modifiers: modifier::OffsetHour,
 ) -> Option<ParsedItem<'_, i8>> {
     let ParsedItem(input, sign) = opt(sign)(input);
     let ParsedItem(input, hour) = exactly_n_digits_padded::<u8>(2, modifiers.padding)(input)?;
     match sign {
-        Some('-') => Some(ParsedItem(input, -(hour as i8))),
+        Some(b'-') => Some(ParsedItem(input, -(hour as i8))),
         None if modifiers.sign_is_mandatory => None,
         _ => Some(ParsedItem(input, hour as i8)),
     }
@@ -245,7 +252,7 @@ pub(crate) fn parse_offset_hour(
 
 /// Parse the "minute" component of a `UtcOffset`.
 pub(crate) fn parse_offset_minute(
-    input: &str,
+    input: &[u8],
     modifiers: modifier::OffsetMinute,
 ) -> Option<ParsedItem<'_, u8>> {
     exactly_n_digits_padded(2, modifiers.padding)(input)
@@ -253,7 +260,7 @@ pub(crate) fn parse_offset_minute(
 
 /// Parse the "second" component of a `UtcOffset`.
 pub(crate) fn parse_offset_second(
-    input: &str,
+    input: &[u8],
     modifiers: modifier::OffsetSecond,
 ) -> Option<ParsedItem<'_, u8>> {
     exactly_n_digits_padded(2, modifiers.padding)(input)
