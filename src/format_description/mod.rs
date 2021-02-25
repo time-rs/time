@@ -5,6 +5,10 @@ pub mod modifier;
 #[cfg(feature = "alloc")]
 pub(crate) mod parse;
 
+#[cfg(feature = "alloc")]
+use alloc::string::String;
+use core::fmt;
+
 pub use self::component::Component;
 #[cfg(feature = "alloc")]
 pub use self::parse::parse;
@@ -13,12 +17,14 @@ pub use self::parse::parse;
 #[cfg(feature = "alloc")]
 mod helper {
     /// Consume all leading whitespace, advancing `index` as appropriate.
-    #[must_use = "This does not modify the original string."]
-    pub(crate) fn consume_whitespace<'a>(s: &'a str, index: &mut usize) -> &'a str {
-        *index += s.len();
-        let s = s.trim_start();
-        *index -= s.len();
-        s
+    #[must_use = "This does not modify the original slice."]
+    pub(crate) fn consume_whitespace<'a>(bytes: &'a [u8], index: &mut usize) -> &'a [u8] {
+        let first_non_whitespace = bytes
+            .iter()
+            .position(|c| !c.is_ascii_whitespace())
+            .unwrap_or(bytes.len());
+        *index += first_non_whitespace;
+        &bytes[first_non_whitespace..]
     }
 }
 
@@ -31,13 +37,28 @@ pub mod well_known {
 
 /// A complete description of how to format and parse a type.
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum FormatItem<'a> {
-    /// A string that is formatted as-is.
-    Literal(&'a str),
+    /// Bytes that are formatted as-is.
+    ///
+    /// **Note**: If you call the `format` method that returns a `String`, these bytes will be
+    /// passed through `String::from_utf8_lossy`.
+    Literal(&'a [u8]),
     /// A minimal representation of a single non-literal item.
     Component(Component),
     /// A series of literals or components that collectively form a partial or complete
     /// description.
     Compound(&'a [Self]),
+}
+
+#[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+impl fmt::Debug for FormatItem<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            FormatItem::Literal(literal) => f.write_str(&String::from_utf8_lossy(literal)),
+            FormatItem::Component(component) => component.fmt(f),
+            FormatItem::Compound(compound) => compound.fmt(f),
+        }
+    }
 }

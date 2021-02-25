@@ -12,39 +12,33 @@ struct ParsedItem<'a> {
     /// The item that was parsed.
     item: FormatItem<'a>,
     /// What is left of the input string after the item was parsed.
-    remaining: &'a str,
+    remaining: &'a [u8],
 }
 
 /// Parse a component from the format description. Neither the leading nor trailing bracket should
 /// be present in the parameter.
-fn parse_component(mut s: &str, index: &mut usize) -> Result<Component, InvalidFormatDescription> {
+fn parse_component(mut s: &[u8], index: &mut usize) -> Result<Component, InvalidFormatDescription> {
     // Trim any whitespace between the opening bracket and the component name.
     s = helper::consume_whitespace(s, index);
 
     // Everything before the first whitespace is the component name.
-    let component_name;
     let component_index = *index;
-    if let Some(whitespace_loc) = s.find(char::is_whitespace) {
-        *index += whitespace_loc;
-        component_name = &s[..whitespace_loc];
-        s = &s[whitespace_loc..];
-        // Trim any whitespace between the component name and the first modifier.
-        s = helper::consume_whitespace(s, index);
-    } else {
-        *index += s.len();
-        component_name = s;
-        // There is no whitespace remaining, so the full input is the component name.
-        s = "";
-    }
+    let whitespace_loc = s
+        .iter()
+        .position(u8::is_ascii_whitespace)
+        .unwrap_or(s.len());
+    *index += whitespace_loc;
+    let component_name = &s[..whitespace_loc];
+    s = &s[whitespace_loc..];
+    s = helper::consume_whitespace(s, index);
 
     Ok(NakedComponent::parse(component_name, component_index)?
         .attach_modifiers(&modifier::Modifiers::parse(component_name, s, index)?))
 }
 
 /// Parse a literal string from the format description.
-#[allow(clippy::option_if_let_else)] // I think this style is better here.
-fn parse_literal<'a>(s: &'a str, index: &mut usize) -> ParsedItem<'a> {
-    let loc = s.find('[').unwrap_or_else(|| s.len());
+fn parse_literal<'a>(s: &'a [u8], index: &mut usize) -> ParsedItem<'a> {
+    let loc = s.iter().position(|&c| c == b'[').unwrap_or(s.len());
     *index += loc;
     ParsedItem {
         item: FormatItem::Literal(&s[..loc]),
@@ -53,21 +47,20 @@ fn parse_literal<'a>(s: &'a str, index: &mut usize) -> ParsedItem<'a> {
 }
 
 /// Parse either a literal or a component from the format description.
-#[allow(clippy::manual_strip)] // lint was not designed for this case
 fn parse_item<'a>(
-    s: &'a str,
+    s: &'a [u8],
     index: &mut usize,
 ) -> Result<ParsedItem<'a>, InvalidFormatDescription> {
-    if s.starts_with("[[") {
+    if let [b'[', b'[', remaining @ ..] = s {
         *index += 2;
         return Ok(ParsedItem {
-            item: FormatItem::Literal(&s[..1]),
-            remaining: &s[2..],
+            item: FormatItem::Literal(&[b'[']),
+            remaining,
         });
-    }
+    };
 
-    if s.starts_with('[') {
-        if let Some(bracket_index) = s.find(']') {
+    if s.starts_with(&[b'[']) {
+        if let Some(bracket_index) = s.iter().position(|&c| c == b']') {
             *index += 1; // opening bracket
             let ret_val = ParsedItem {
                 item: FormatItem::Component(parse_component(&s[1..bracket_index], index)?),
@@ -85,9 +78,11 @@ fn parse_item<'a>(
 
 /// Parse a sequence of items from the format description.
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-pub fn parse(mut s: &str) -> Result<Vec<FormatItem<'_>>, InvalidFormatDescription> {
+pub fn parse(s: &str) -> Result<Vec<FormatItem<'_>>, InvalidFormatDescription> {
     let mut compound = Vec::new();
     let mut loc = 0;
+
+    let mut s = s.as_bytes();
 
     while !s.is_empty() {
         let ParsedItem { item, remaining } = parse_item(s, &mut loc)?;

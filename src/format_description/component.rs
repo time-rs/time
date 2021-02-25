@@ -1,7 +1,7 @@
 //! Part of a format description.
 
 #[cfg(feature = "alloc")]
-use alloc::borrow::ToOwned;
+use alloc::string::String;
 
 use crate::format_description::modifier;
 #[cfg(feature = "alloc")]
@@ -78,32 +78,31 @@ pub(crate) enum NakedComponent {
 #[cfg(feature = "alloc")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl NakedComponent {
-    // We can't use `FromStr` here because we need the component index as well.
     /// Parse a component (without its modifiers) from the provided name.
     pub(crate) fn parse(
-        component_name: &str,
+        component_name: &[u8],
         component_index: usize,
     ) -> Result<Self, InvalidFormatDescription> {
         match component_name {
-            "day" => Ok(Self::Day),
-            "month" => Ok(Self::Month),
-            "ordinal" => Ok(Self::Ordinal),
-            "weekday" => Ok(Self::Weekday),
-            "week_number" => Ok(Self::WeekNumber),
-            "year" => Ok(Self::Year),
-            "hour" => Ok(Self::Hour),
-            "minute" => Ok(Self::Minute),
-            "period" => Ok(Self::Period),
-            "second" => Ok(Self::Second),
-            "subsecond" => Ok(Self::Subsecond),
-            "offset_hour" => Ok(Self::OffsetHour),
-            "offset_minute" => Ok(Self::OffsetMinute),
-            "offset_second" => Ok(Self::OffsetSecond),
-            "" => Err(InvalidFormatDescription::MissingComponentName {
+            b"day" => Ok(Self::Day),
+            b"month" => Ok(Self::Month),
+            b"ordinal" => Ok(Self::Ordinal),
+            b"weekday" => Ok(Self::Weekday),
+            b"week_number" => Ok(Self::WeekNumber),
+            b"year" => Ok(Self::Year),
+            b"hour" => Ok(Self::Hour),
+            b"minute" => Ok(Self::Minute),
+            b"period" => Ok(Self::Period),
+            b"second" => Ok(Self::Second),
+            b"subsecond" => Ok(Self::Subsecond),
+            b"offset_hour" => Ok(Self::OffsetHour),
+            b"offset_minute" => Ok(Self::OffsetMinute),
+            b"offset_second" => Ok(Self::OffsetSecond),
+            b"" => Err(InvalidFormatDescription::MissingComponentName {
                 index: component_index,
             }),
             _ => Err(InvalidFormatDescription::InvalidComponentName {
-                name: component_name.to_owned(),
+                name: String::from_utf8_lossy(component_name).into_owned(),
                 index: component_index,
             }),
         }

@@ -96,26 +96,30 @@ fn empty() {
 fn only_literal() {
     assert_eq!(
         format_description::parse("foo bar"),
-        Ok(vec![FormatItem::Literal("foo bar")])
+        Ok(vec![FormatItem::Literal(b"foo bar")])
     );
     assert_eq!(
         format_description::parse("  leading spaces"),
-        Ok(vec![FormatItem::Literal("  leading spaces")])
+        Ok(vec![FormatItem::Literal(b"  leading spaces")])
     );
     assert_eq!(
         format_description::parse("trailing spaces  "),
-        Ok(vec![FormatItem::Literal("trailing spaces  ")])
+        Ok(vec![FormatItem::Literal(b"trailing spaces  ")])
+    );
+    assert_eq!(
+        format_description::parse("     "),
+        Ok(vec![FormatItem::Literal(b"     ")])
     );
     assert_eq!(
         format_description::parse("[["),
-        Ok(vec![FormatItem::Literal("[")])
+        Ok(vec![FormatItem::Literal(b"[")])
     );
     assert_eq!(
         format_description::parse("foo[[bar"),
         Ok(vec![
-            FormatItem::Literal("foo"),
-            FormatItem::Literal("["),
-            FormatItem::Literal("bar")
+            FormatItem::Literal(b"foo"),
+            FormatItem::Literal(b"["),
+            FormatItem::Literal(b"bar")
         ])
     );
 }
@@ -438,29 +442,29 @@ fn rfc_3339() {
                 iso_week_based: false,
                 sign_is_mandatory: false
             })),
-            FormatItem::Literal("-"),
+            FormatItem::Literal(b"-"),
             FormatItem::Component(Component::Month(modifier::Month {
                 padding: Padding::Zero,
                 repr: MonthRepr::Numerical
             })),
-            FormatItem::Literal("-"),
+            FormatItem::Literal(b"-"),
             FormatItem::Component(Component::Day(modifier::Day {
                 padding: Padding::Zero
             })),
-            FormatItem::Literal("T"),
+            FormatItem::Literal(b"T"),
             FormatItem::Component(Component::Hour(modifier::Hour {
                 padding: Padding::Zero,
                 is_12_hour_clock: false
             })),
-            FormatItem::Literal(":"),
+            FormatItem::Literal(b":"),
             FormatItem::Component(Component::Minute(modifier::Minute {
                 padding: Padding::Zero
             })),
-            FormatItem::Literal(":"),
+            FormatItem::Literal(b":"),
             FormatItem::Component(Component::Second(modifier::Second {
                 padding: Padding::Zero
             })),
-            FormatItem::Literal("."),
+            FormatItem::Literal(b"."),
             FormatItem::Component(Component::Subsecond(modifier::Subsecond {
                 digits: SubsecondDigits::OneOrMore
             })),
@@ -468,7 +472,7 @@ fn rfc_3339() {
                 padding: Padding::Zero,
                 sign_is_mandatory: true
             })),
-            FormatItem::Literal(":"),
+            FormatItem::Literal(b":"),
             FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute {
                 padding: Padding::Zero
             }))

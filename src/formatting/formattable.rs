@@ -39,7 +39,7 @@ pub(crate) mod sealed {
             let mut buf = Vec::new();
             self.format_into(&mut buf, date, time, offset)?;
             io::Write::flush(&mut buf)?;
-            Ok(String::from_utf8(buf).expect("invalid UTF-8"))
+            Ok(String::from_utf8_lossy(&buf).into_owned())
         }
     }
 }
@@ -55,7 +55,7 @@ impl<'a> sealed::Formattable for FormatItem<'a> {
         offset: Option<UtcOffset>,
     ) -> Result<usize, Self::Error> {
         Ok(match *self {
-            Self::Literal(literal) => output.write(literal.as_bytes())?,
+            Self::Literal(literal) => output.write(literal)?,
             Self::Component(component) => format_component(output, component, date, time, offset)?,
             Self::Compound(items) => items.format_into(output, date, time, offset)?,
         })

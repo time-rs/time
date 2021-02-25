@@ -44,7 +44,7 @@ impl ToTokens for FormatItem<'_> {
                     TokenTree::Ident(Ident::new("Literal", Span::mixed_site())),
                     TokenTree::Group(Group::new(
                         Delimiter::Parenthesis,
-                        TokenStream::from(TokenTree::Literal(Literal::string(s))),
+                        TokenStream::from(TokenTree::Literal(Literal::byte_string(s.as_bytes()))),
                     )),
                 ]
                 .iter()

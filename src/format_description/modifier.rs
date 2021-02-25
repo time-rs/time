@@ -1,7 +1,7 @@
 //! Various modifiers for components.
 
 #[cfg(feature = "alloc")]
-use alloc::borrow::ToOwned;
+use alloc::string::String;
 
 #[cfg(feature = "alloc")]
 use crate::{error::InvalidFormatDescription, format_description::helper};
@@ -252,24 +252,24 @@ impl Modifiers {
     #[cfg(feature = "alloc")]
     #[allow(clippy::too_many_lines)]
     pub(crate) fn parse(
-        component_name: &str,
-        mut s: &str,
+        component_name: &[u8],
+        mut bytes: &[u8],
         index: &mut usize,
     ) -> Result<Self, InvalidFormatDescription> {
         let mut modifiers = Self::default();
 
-        while !s.is_empty() {
+        while !bytes.is_empty() {
             // Trim any whitespace between modifiers.
-            s = helper::consume_whitespace(s, index);
+            bytes = helper::consume_whitespace(bytes, index);
 
             let modifier;
-            if let Some(whitespace_loc) = s.find(char::is_whitespace) {
+            if let Some(whitespace_loc) = bytes.iter().position(u8::is_ascii_whitespace) {
                 *index += whitespace_loc;
-                modifier = &s[..whitespace_loc];
-                s = &s[whitespace_loc..];
+                modifier = &bytes[..whitespace_loc];
+                bytes = &bytes[whitespace_loc..];
             } else {
-                modifier = s;
-                s = "";
+                modifier = bytes;
+                bytes = b"";
             }
 
             if modifier.is_empty() {
@@ -277,104 +277,106 @@ impl Modifiers {
             }
 
             match (component_name, modifier) {
-                ("day", "padding:space")
-                | ("hour", "padding:space")
-                | ("minute", "padding:space")
-                | ("month", "padding:space")
-                | ("offset_hour", "padding:space")
-                | ("offset_minute", "padding:space")
-                | ("offset_second", "padding:space")
-                | ("ordinal", "padding:space")
-                | ("second", "padding:space")
-                | ("week_number", "padding:space")
-                | ("year", "padding:space") => modifiers.padding = Some(Padding::Space),
-                ("day", "padding:zero")
-                | ("hour", "padding:zero")
-                | ("minute", "padding:zero")
-                | ("month", "padding:zero")
-                | ("offset_hour", "padding:zero")
-                | ("offset_minute", "padding:zero")
-                | ("offset_second", "padding:zero")
-                | ("ordinal", "padding:zero")
-                | ("second", "padding:zero")
-                | ("week_number", "padding:zero")
-                | ("year", "padding:zero") => modifiers.padding = Some(Padding::Zero),
-                ("day", "padding:none")
-                | ("hour", "padding:none")
-                | ("minute", "padding:none")
-                | ("month", "padding:none")
-                | ("offset_hour", "padding:none")
-                | ("offset_minute", "padding:none")
-                | ("offset_second", "padding:none")
-                | ("ordinal", "padding:none")
-                | ("second", "padding:none")
-                | ("week_number", "padding:none")
-                | ("year", "padding:none") => modifiers.padding = Some(Padding::None),
-                ("hour", "repr:24") => modifiers.hour_is_12_hour_clock = Some(false),
-                ("hour", "repr:12") => modifiers.hour_is_12_hour_clock = Some(true),
-                ("month", "repr:numerical") => modifiers.month_repr = Some(MonthRepr::Numerical),
-                ("month", "repr:long") => modifiers.month_repr = Some(MonthRepr::Long),
-                ("month", "repr:short") => modifiers.month_repr = Some(MonthRepr::Short),
-                ("offset_hour", "sign:automatic") | ("year", "sign:automatic") => {
+                (b"day", b"padding:space")
+                | (b"hour", b"padding:space")
+                | (b"minute", b"padding:space")
+                | (b"month", b"padding:space")
+                | (b"offset_hour", b"padding:space")
+                | (b"offset_minute", b"padding:space")
+                | (b"offset_second", b"padding:space")
+                | (b"ordinal", b"padding:space")
+                | (b"second", b"padding:space")
+                | (b"week_number", b"padding:space")
+                | (b"year", b"padding:space") => modifiers.padding = Some(Padding::Space),
+                (b"day", b"padding:zero")
+                | (b"hour", b"padding:zero")
+                | (b"minute", b"padding:zero")
+                | (b"month", b"padding:zero")
+                | (b"offset_hour", b"padding:zero")
+                | (b"offset_minute", b"padding:zero")
+                | (b"offset_second", b"padding:zero")
+                | (b"ordinal", b"padding:zero")
+                | (b"second", b"padding:zero")
+                | (b"week_number", b"padding:zero")
+                | (b"year", b"padding:zero") => modifiers.padding = Some(Padding::Zero),
+                (b"day", b"padding:none")
+                | (b"hour", b"padding:none")
+                | (b"minute", b"padding:none")
+                | (b"month", b"padding:none")
+                | (b"offset_hour", b"padding:none")
+                | (b"offset_minute", b"padding:none")
+                | (b"offset_second", b"padding:none")
+                | (b"ordinal", b"padding:none")
+                | (b"second", b"padding:none")
+                | (b"week_number", b"padding:none")
+                | (b"year", b"padding:none") => modifiers.padding = Some(Padding::None),
+                (b"hour", b"repr:24") => modifiers.hour_is_12_hour_clock = Some(false),
+                (b"hour", b"repr:12") => modifiers.hour_is_12_hour_clock = Some(true),
+                (b"month", b"repr:numerical") => modifiers.month_repr = Some(MonthRepr::Numerical),
+                (b"month", b"repr:long") => modifiers.month_repr = Some(MonthRepr::Long),
+                (b"month", b"repr:short") => modifiers.month_repr = Some(MonthRepr::Short),
+                (b"offset_hour", b"sign:automatic") | (b"year", b"sign:automatic") => {
                     modifiers.sign_is_mandatory = Some(false)
                 }
-                ("offset_hour", "sign:mandatory") | ("year", "sign:mandatory") => {
+                (b"offset_hour", b"sign:mandatory") | (b"year", b"sign:mandatory") => {
                     modifiers.sign_is_mandatory = Some(true)
                 }
-                ("period", "case:upper") => modifiers.period_is_uppercase = Some(true),
-                ("period", "case:lower") => modifiers.period_is_uppercase = Some(false),
-                ("subsecond", "digits:1") => {
+                (b"period", b"case:upper") => modifiers.period_is_uppercase = Some(true),
+                (b"period", b"case:lower") => modifiers.period_is_uppercase = Some(false),
+                (b"subsecond", b"digits:1") => {
                     modifiers.subsecond_digits = Some(SubsecondDigits::One)
                 }
-                ("subsecond", "digits:2") => {
+                (b"subsecond", b"digits:2") => {
                     modifiers.subsecond_digits = Some(SubsecondDigits::Two)
                 }
-                ("subsecond", "digits:3") => {
+                (b"subsecond", b"digits:3") => {
                     modifiers.subsecond_digits = Some(SubsecondDigits::Three)
                 }
-                ("subsecond", "digits:4") => {
+                (b"subsecond", b"digits:4") => {
                     modifiers.subsecond_digits = Some(SubsecondDigits::Four)
                 }
-                ("subsecond", "digits:5") => {
+                (b"subsecond", b"digits:5") => {
                     modifiers.subsecond_digits = Some(SubsecondDigits::Five)
                 }
-                ("subsecond", "digits:6") => {
+                (b"subsecond", b"digits:6") => {
                     modifiers.subsecond_digits = Some(SubsecondDigits::Six)
                 }
-                ("subsecond", "digits:7") => {
+                (b"subsecond", b"digits:7") => {
                     modifiers.subsecond_digits = Some(SubsecondDigits::Seven)
                 }
-                ("subsecond", "digits:8") => {
+                (b"subsecond", b"digits:8") => {
                     modifiers.subsecond_digits = Some(SubsecondDigits::Eight)
                 }
-                ("subsecond", "digits:9") => {
+                (b"subsecond", b"digits:9") => {
                     modifiers.subsecond_digits = Some(SubsecondDigits::Nine)
                 }
-                ("subsecond", "digits:1+") => {
+                (b"subsecond", b"digits:1+") => {
                     modifiers.subsecond_digits = Some(SubsecondDigits::OneOrMore)
                 }
-                ("weekday", "repr:short") => modifiers.weekday_repr = Some(WeekdayRepr::Short),
-                ("weekday", "repr:long") => modifiers.weekday_repr = Some(WeekdayRepr::Long),
-                ("weekday", "repr:sunday") => modifiers.weekday_repr = Some(WeekdayRepr::Sunday),
-                ("weekday", "repr:monday") => modifiers.weekday_repr = Some(WeekdayRepr::Monday),
-                ("weekday", "one_indexed:true") => modifiers.weekday_is_one_indexed = Some(true),
-                ("weekday", "one_indexed:false") => modifiers.weekday_is_one_indexed = Some(false),
-                ("week_number", "repr:iso") => {
+                (b"weekday", b"repr:short") => modifiers.weekday_repr = Some(WeekdayRepr::Short),
+                (b"weekday", b"repr:long") => modifiers.weekday_repr = Some(WeekdayRepr::Long),
+                (b"weekday", b"repr:sunday") => modifiers.weekday_repr = Some(WeekdayRepr::Sunday),
+                (b"weekday", b"repr:monday") => modifiers.weekday_repr = Some(WeekdayRepr::Monday),
+                (b"weekday", b"one_indexed:true") => modifiers.weekday_is_one_indexed = Some(true),
+                (b"weekday", b"one_indexed:false") => {
+                    modifiers.weekday_is_one_indexed = Some(false)
+                }
+                (b"week_number", b"repr:iso") => {
                     modifiers.week_number_repr = Some(WeekNumberRepr::Iso)
                 }
-                ("week_number", "repr:sunday") => {
+                (b"week_number", b"repr:sunday") => {
                     modifiers.week_number_repr = Some(WeekNumberRepr::Sunday)
                 }
-                ("week_number", "repr:monday") => {
+                (b"week_number", b"repr:monday") => {
                     modifiers.week_number_repr = Some(WeekNumberRepr::Monday)
                 }
-                ("year", "repr:full") => modifiers.year_repr = Some(YearRepr::Full),
-                ("year", "repr:last_two") => modifiers.year_repr = Some(YearRepr::LastTwo),
-                ("year", "base:calendar") => modifiers.year_is_iso_week_based = Some(false),
-                ("year", "base:iso_week") => modifiers.year_is_iso_week_based = Some(true),
+                (b"year", b"repr:full") => modifiers.year_repr = Some(YearRepr::Full),
+                (b"year", b"repr:last_two") => modifiers.year_repr = Some(YearRepr::LastTwo),
+                (b"year", b"base:calendar") => modifiers.year_is_iso_week_based = Some(false),
+                (b"year", b"base:iso_week") => modifiers.year_is_iso_week_based = Some(true),
                 _ => {
                     return Err(InvalidFormatDescription::InvalidModifier {
-                        value: modifier.to_owned(),
+                        value: String::from_utf8_lossy(modifier).into_owned(),
                         index: *index,
                     });
                 }

@@ -502,15 +502,15 @@ impl fmt::Display for Time {
                 padding: modifier::Padding::None,
                 is_12_hour_clock: false,
             })),
-            FormatItem::Literal(":"),
+            FormatItem::Literal(b":"),
             FormatItem::Component(Component::Minute(modifier::Minute {
                 padding: modifier::Padding::Zero,
             })),
-            FormatItem::Literal(":"),
+            FormatItem::Literal(b":"),
             FormatItem::Component(Component::Second(modifier::Second {
                 padding: modifier::Padding::Zero,
             })),
-            FormatItem::Literal("."),
+            FormatItem::Literal(b"."),
             FormatItem::Component(Component::Subsecond(modifier::Subsecond {
                 digits: modifier::SubsecondDigits::OneOrMore,
             })),

@@ -59,7 +59,7 @@ impl sealed::Parsable for FormatItem<'_> {
         match self {
             Self::Literal(literal) => {
                 input = input
-                    .strip_prefix_(literal.as_bytes())
+                    .strip_prefix_(literal)
                     .ok_or(error::ParseFromDescription::InvalidLiteral)?;
             }
             Self::Component(component) => input = parsed.parse_component(input, *component)?,

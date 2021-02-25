@@ -693,12 +693,12 @@ impl fmt::Display for Date {
                 iso_week_based: false,
                 sign_is_mandatory: false,
             })),
-            FormatItem::Literal("-"),
+            FormatItem::Literal(b"-"),
             FormatItem::Component(Component::Month(modifier::Month {
                 padding: modifier::Padding::Zero,
                 repr: modifier::MonthRepr::Numerical,
             })),
-            FormatItem::Literal("-"),
+            FormatItem::Literal(b"-"),
             FormatItem::Component(Component::Day(modifier::Day {
                 padding: modifier::Padding::Zero,
             })),

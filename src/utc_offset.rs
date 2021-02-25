@@ -248,11 +248,11 @@ impl fmt::Display for UtcOffset {
                 padding: modifier::Padding::Zero,
                 sign_is_mandatory: true,
             })),
-            FormatItem::Literal(":"),
+            FormatItem::Literal(b":"),
             FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute {
                 padding: modifier::Padding::Zero,
             })),
-            FormatItem::Literal(":"),
+            FormatItem::Literal(b":"),
             FormatItem::Component(Component::OffsetSecond(modifier::OffsetSecond {
                 padding: modifier::Padding::Zero,
             })),

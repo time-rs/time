@@ -27,12 +27,12 @@ const DATE_FORMAT: &[FormatItem<'_>] = &[
         sign_is_mandatory: false,
         padding: modifier::Padding::Zero,
     })),
-    FormatItem::Literal("-"),
+    FormatItem::Literal(b"-"),
     FormatItem::Component(Component::Month(modifier::Month {
         repr: modifier::MonthRepr::Numerical,
         padding: modifier::Padding::Zero,
     })),
-    FormatItem::Literal("-"),
+    FormatItem::Literal(b"-"),
     FormatItem::Component(Component::Day(modifier::Day {
         padding: modifier::Padding::Zero,
     })),
@@ -45,15 +45,15 @@ const TIME_FORMAT: &[FormatItem<'_>] = &[
         padding: modifier::Padding::Zero,
         is_12_hour_clock: false,
     })),
-    FormatItem::Literal(":"),
+    FormatItem::Literal(b":"),
     FormatItem::Component(Component::Minute(modifier::Minute {
         padding: modifier::Padding::Zero,
     })),
-    FormatItem::Literal(":"),
+    FormatItem::Literal(b":"),
     FormatItem::Component(Component::Second(modifier::Second {
         padding: modifier::Padding::Zero,
     })),
-    FormatItem::Literal("."),
+    FormatItem::Literal(b"."),
     FormatItem::Component(Component::Subsecond(modifier::Subsecond {
         digits: modifier::SubsecondDigits::OneOrMore,
     })),
@@ -66,11 +66,11 @@ const UTC_OFFSET_FORMAT: &[FormatItem<'_>] = &[
         sign_is_mandatory: true,
         padding: modifier::Padding::Zero,
     })),
-    FormatItem::Literal(":"),
+    FormatItem::Literal(b":"),
     FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute {
         padding: modifier::Padding::Zero,
     })),
-    FormatItem::Literal(":"),
+    FormatItem::Literal(b":"),
     FormatItem::Component(Component::OffsetSecond(modifier::OffsetSecond {
         padding: modifier::Padding::Zero,
     })),
@@ -80,7 +80,7 @@ const UTC_OFFSET_FORMAT: &[FormatItem<'_>] = &[
 #[cfg(feature = "serde-human-readable")]
 const PRIMITIVE_DATE_TIME_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Compound(DATE_FORMAT),
-    FormatItem::Literal(" "),
+    FormatItem::Literal(b" "),
     FormatItem::Compound(TIME_FORMAT),
 ];
 
@@ -88,9 +88,9 @@ const PRIMITIVE_DATE_TIME_FORMAT: &[FormatItem<'_>] = &[
 #[cfg(feature = "serde-human-readable")]
 const OFFSET_DATE_TIME_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Compound(DATE_FORMAT),
-    FormatItem::Literal(" "),
+    FormatItem::Literal(b" "),
     FormatItem::Compound(TIME_FORMAT),
-    FormatItem::Literal(" "),
+    FormatItem::Literal(b" "),
     FormatItem::Compound(UTC_OFFSET_FORMAT),
 ];
 
