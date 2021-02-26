@@ -655,7 +655,7 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{format_description, macros::date};
-    /// let format = format_description::parse("[year]-[month repr:numerical]-[day]")?;
+    /// let format = format_description::parse("[year]-[month]-[day]")?;
     /// assert_eq!(date!("2020-01-02").format(&format)?, "2020-01-02");
     /// # Ok::<_, time::Error>(())
     /// ```
@@ -673,7 +673,7 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{format_description, macros::date, Date};
-    /// let format = format_description::parse("[year]-[month repr:numerical]-[day]")?;
+    /// let format = format_description::parse("[year]-[month]-[day]")?;
     /// assert_eq!(Date::parse("2020-01-02", &format)?, date!("2020-01-02"));
     /// # Ok::<_, time::Error>(())
     /// ```

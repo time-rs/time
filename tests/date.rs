@@ -617,9 +617,9 @@ fn with_hms_nano() {
 fn format() -> time::Result<()> {
     let input_output = [
         ("[day]", "31"),
-        ("[month]", "December"),
+        ("[month]", "12"),
         ("[month repr:short]", "Dec"),
-        ("[month repr:numerical]", "12"),
+        ("[month repr:long]", "December"),
         ("[ordinal]", "365"),
         ("[weekday]", "Tuesday"),
         ("[weekday repr:short]", "Tue"),

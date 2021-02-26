@@ -154,7 +154,7 @@ fn simple_component() {
         Ok(vec![FormatItem::Component(Component::Month(
             modifier::Month {
                 padding: Padding::Zero,
-                repr: MonthRepr::Long
+                repr: MonthRepr::Numerical
             }
         ))])
     );

@@ -223,7 +223,7 @@ macro_rules! impl_default {
 
 impl_default! {
     Padding => Self::Zero;
-    MonthRepr => Self::Long;
+    MonthRepr => Self::Numerical;
     SubsecondDigits => Self::OneOrMore;
     WeekdayRepr => Self::Long;
     WeekNumberRepr => Self::Iso;

@@ -800,7 +800,7 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{format_description, macros::datetime};
     /// let format = format_description::parse(
-    ///     "[year]-[month repr:numerical]-[day] [hour]:[minute]:[second] [offset_hour \
+    ///     "[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour \
     ///          sign:mandatory]:[offset_minute]:[offset_second]",
     /// )?;
     /// assert_eq!(
@@ -825,7 +825,7 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::{format_description, macros::datetime, OffsetDateTime};
     /// let format = format_description::parse(
-    ///     "[year]-[month repr:numerical]-[day] [hour]:[minute]:[second] [offset_hour \
+    ///     "[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour \
     ///          sign:mandatory]:[offset_minute]:[offset_second]",
     /// )?;
     /// assert_eq!(

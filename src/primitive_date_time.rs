@@ -512,8 +512,7 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::{format_description, macros::datetime};
-    /// let format =
-    ///     format_description::parse("[year]-[month repr:numerical]-[day] [hour]:[minute]:[second]")?;
+    /// let format = format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]")?;
     /// assert_eq!(
     ///     datetime!("2020-01-02 03:04:05").format(&format)?,
     ///     "2020-01-02 03:04:05"
@@ -534,8 +533,7 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::{format_description, macros::datetime, PrimitiveDateTime};
-    /// let format =
-    ///     format_description::parse("[year]-[month repr:numerical]-[day] [hour]:[minute]:[second]")?;
+    /// let format = format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]")?;
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2020-01-02 03:04:05", &format)?,
     ///     datetime!("2020-01-02 03:04:05")
