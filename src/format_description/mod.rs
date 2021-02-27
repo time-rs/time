@@ -7,6 +7,7 @@ pub(crate) mod parse;
 
 #[cfg(feature = "alloc")]
 use alloc::string::String;
+#[cfg(feature = "alloc")]
 use core::fmt;
 
 pub use self::component::Component;
@@ -37,6 +38,7 @@ pub mod well_known {
 
 /// A complete description of how to format and parse a type.
 #[non_exhaustive]
+#[cfg_attr(not(feature = "alloc"), derive(Debug))]
 #[derive(Clone, PartialEq, Eq)]
 pub enum FormatItem<'a> {
     /// Bytes that are formatted as-is.
