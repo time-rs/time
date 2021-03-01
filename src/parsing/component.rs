@@ -6,9 +6,8 @@ use crate::format_description::modifier;
 #[cfg(feature = "large-dates")]
 use crate::parsing::combinator::n_to_m_digits_padded;
 use crate::parsing::combinator::{
-    any_digit, exactly_n, exactly_n_digits_padded, first_match, n_to_m, opt, sign,
+    any_digit, exactly_n_digits, exactly_n_digits_padded, first_match, opt, sign,
 };
-use crate::parsing::shim::IntegerParseBytes;
 use crate::parsing::ParsedItem;
 use crate::Weekday;
 
@@ -218,22 +217,30 @@ pub(crate) fn parse_subsecond(
     input: &[u8],
     modifiers: modifier::Subsecond,
 ) -> Option<ParsedItem<'_, u32>> {
-    let ParsedItem(input, raw_digits) = match modifiers.digits {
-        modifier::SubsecondDigits::One => exactly_n(1, any_digit)(input),
-        modifier::SubsecondDigits::Two => exactly_n(2, any_digit)(input),
-        modifier::SubsecondDigits::Three => exactly_n(3, any_digit)(input),
-        modifier::SubsecondDigits::Four => exactly_n(4, any_digit)(input),
-        modifier::SubsecondDigits::Five => exactly_n(5, any_digit)(input),
-        modifier::SubsecondDigits::Six => exactly_n(6, any_digit)(input),
-        modifier::SubsecondDigits::Seven => exactly_n(7, any_digit)(input),
-        modifier::SubsecondDigits::Eight => exactly_n(8, any_digit)(input),
-        modifier::SubsecondDigits::Nine => exactly_n(9, any_digit)(input),
-        modifier::SubsecondDigits::OneOrMore => n_to_m(1, 9, any_digit)(input),
-    }?;
-    let raw_num: u32 = raw_digits.parse_bytes()?;
-    let adjustment_factor = 10_u32.pow(9 - raw_digits.len() as u32);
+    Some(match modifiers.digits {
+        modifier::SubsecondDigits::One => exactly_n_digits(1)(input)?.map(|v: u32| v * 100_000_000),
+        modifier::SubsecondDigits::Two => exactly_n_digits(2)(input)?.map(|v: u32| v * 10_000_000),
+        modifier::SubsecondDigits::Three => exactly_n_digits(3)(input)?.map(|v: u32| v * 1_000_000),
+        modifier::SubsecondDigits::Four => exactly_n_digits(4)(input)?.map(|v: u32| v * 100_000),
+        modifier::SubsecondDigits::Five => exactly_n_digits(5)(input)?.map(|v: u32| v * 10_000),
+        modifier::SubsecondDigits::Six => exactly_n_digits(6)(input)?.map(|v: u32| v * 1_000),
+        modifier::SubsecondDigits::Seven => exactly_n_digits(7)(input)?.map(|v: u32| v * 100),
+        modifier::SubsecondDigits::Eight => exactly_n_digits(8)(input)?.map(|v: u32| v * 10),
+        modifier::SubsecondDigits::Nine => exactly_n_digits(9)(input)?,
+        modifier::SubsecondDigits::OneOrMore => {
+            let ParsedItem(mut input, mut value) =
+                any_digit(input)?.map(|v| (v - b'0') as u32 * 100_000_000);
 
-    Some(ParsedItem(input, raw_num * adjustment_factor))
+            let mut multiplier = 10_000_000;
+            while let Some(ParsedItem(new_input, digit)) = any_digit(input) {
+                value += (digit - b'0') as u32 * multiplier;
+                input = new_input;
+                multiplier /= 10;
+            }
+
+            ParsedItem(input, value)
+        }
+    })
 }
 
 /// Parse the "hour" component of a `UtcOffset`.

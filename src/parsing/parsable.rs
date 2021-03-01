@@ -6,7 +6,7 @@ use core::convert::TryInto;
 
 use crate::error::TryFromParsed;
 use crate::format_description::{well_known, FormatItem};
-use crate::parsing::shim::{IntegerParseBytes, SliceStripPrefix};
+use crate::parsing::shim::SliceStripPrefix;
 use crate::parsing::{Parsed, ParsedItem};
 use crate::{error, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
@@ -132,7 +132,7 @@ impl sealed::Parsable for well_known::Rfc3339 {
     ) -> Result<&'a [u8], Self::Error> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
         use crate::parsing::combinator::{
-            any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, n_to_m, sign,
+            any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, sign,
         };
 
         let dash = ascii_char(b'-');
@@ -168,20 +168,18 @@ impl sealed::Parsable for well_known::Rfc3339 {
                 if second == 60 { 59 } else { second }
             });
         let input = if let Some(ParsedItem(input, ())) = ascii_char(b'.')(input) {
-            let ParsedItem(mut input, raw_digits) =
-                n_to_m(1, 9, any_digit)(input).ok_or(InvalidComponent("subsecond"))?;
+            let ParsedItem(mut input, mut value) = any_digit(input)
+                .ok_or(InvalidComponent("subsecond"))?
+                .map(|v| v as u32 * 100_000_000);
 
-            // Consume any remaining digits as allowed by the spec. They are discarded, as we only
-            // have nanosecond precision.
-            while let Some(ParsedItem(new_input, _)) = any_digit(input) {
+            let mut multiplier = 10_000_000;
+            while let Some(ParsedItem(new_input, digit)) = any_digit(input) {
+                value += (digit - b'0') as u32 * multiplier;
                 input = new_input;
+                multiplier /= 10;
             }
 
-            let raw_num: u32 = raw_digits
-                .parse_bytes()
-                .ok_or(InvalidComponent("subsecond"))?;
-            let adjustment_factor = 10_u32.pow(9 - raw_digits.len() as u32);
-            ParsedItem(input, raw_num * adjustment_factor).assign_value_to(&mut parsed.subsecond)
+            ParsedItem(input, value).assign_value_to(&mut parsed.subsecond)
         } else {
             input
         };
@@ -214,7 +212,7 @@ impl sealed::Parsable for well_known::Rfc3339 {
     fn parse_offset_date_time(&self, input: &[u8]) -> Result<OffsetDateTime, error::Parse> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
         use crate::parsing::combinator::{
-            any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, n_to_m, sign,
+            any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, sign,
         };
 
         let dash = ascii_char(b'-');
@@ -239,20 +237,18 @@ impl sealed::Parsable for well_known::Rfc3339 {
             .map(|seconds| if seconds == 60 { 59 } else { seconds });
         let ParsedItem(input, nanosecond) =
             if let Some(ParsedItem(input, ())) = ascii_char(b'.')(input) {
-                let ParsedItem(mut input, raw_digits) =
-                    n_to_m(1, 9, any_digit)(input).ok_or(InvalidComponent("subsecond"))?;
+                let ParsedItem(mut input, mut value) = any_digit(input)
+                    .ok_or(InvalidComponent("subsecond"))?
+                    .map(|v| v as u32 * 100_000_000);
 
-                // Consume any remaining digits as allowed by the spec. They are discarded, as we
-                // only have nanosecond precision.
-                while let Some(ParsedItem(new_input, _)) = any_digit(input) {
+                let mut multiplier = 10_000_000;
+                while let Some(ParsedItem(new_input, digit)) = any_digit(input) {
+                    value += (digit - b'0') as u32 * multiplier;
                     input = new_input;
+                    multiplier /= 10;
                 }
 
-                let raw_num: u32 = raw_digits
-                    .parse_bytes()
-                    .ok_or(InvalidComponent("subsecond"))?;
-                let adjustment_factor = 10_u32.pow(9 - raw_digits.len() as u32);
-                ParsedItem(input, raw_num * adjustment_factor)
+                ParsedItem(input, value)
             } else {
                 ParsedItem(input, 0)
             };

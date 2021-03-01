@@ -56,14 +56,6 @@ pub(crate) fn n_to_m<'a, T>(
     }
 }
 
-/// Consume exactly `n` instances of the provided parser.
-pub(crate) fn exactly_n<'a, T>(
-    n: u8,
-    parser: impl Fn(&'a [u8]) -> Option<ParsedItem<'a, T>>,
-) -> impl Fn(&'a [u8]) -> Option<ParsedItem<'a, &'a [u8]>> {
-    n_to_m(n, n, parser)
-}
-
 /// Consume between `n` and `m` digits, returning the numerical value.
 pub(crate) fn n_to_m_digits<'a, T: Integer>(
     n: u8,
