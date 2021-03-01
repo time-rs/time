@@ -2,15 +2,18 @@
 
 #[cfg(feature = "alloc")]
 use alloc::vec::Vec;
+use core::convert::TryInto;
 
-use crate::error;
+use crate::error::TryFromParsed;
 use crate::format_description::{well_known, FormatItem};
 use crate::parsing::shim::{IntegerParseBytes, SliceStripPrefix};
 use crate::parsing::{Parsed, ParsedItem};
+use crate::{error, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
 /// Seal the trait to prevent downstream users from implementing it, while still allowing it to
 /// exist in generic bounds.
 pub(crate) mod sealed {
+
     #[allow(clippy::wildcard_imports)]
     use super::*;
 
@@ -35,15 +38,36 @@ pub(crate) mod sealed {
         /// remain after parsing, an error will be returned.
         fn parse(&self, input: &[u8]) -> Result<Parsed, error::Parse> {
             let mut parsed = Parsed::new();
-            let remaining = match self.parse_into(input, &mut parsed) {
-                Ok(value) => value,
-                Err(err) => return Err(err.into()),
-            };
-            if remaining.is_empty() {
-                Ok(parsed)
-            } else {
-                Err(error::Parse::UnexpectedTrailingCharacters)
+            match self.parse_into(input, &mut parsed) {
+                Ok(remaining) if remaining.is_empty() => Ok(parsed),
+                Ok(_) => Err(error::Parse::UnexpectedTrailingCharacters),
+                Err(err) => Err(err.into()),
             }
+        }
+
+        /// Parse a [`Date`] from the format description.
+        fn parse_date(&self, input: &[u8]) -> Result<Date, error::Parse> {
+            Ok(self.parse(input)?.try_into()?)
+        }
+
+        /// Parse a [`Time`] from the format description.
+        fn parse_time(&self, input: &[u8]) -> Result<Time, error::Parse> {
+            Ok(self.parse(input)?.try_into()?)
+        }
+
+        /// Parse a [`UtcOffset`] from the format description.
+        fn parse_offset(&self, input: &[u8]) -> Result<UtcOffset, error::Parse> {
+            Ok(self.parse(input)?.try_into()?)
+        }
+
+        /// Parse a [`PrimitiveDateTime`] from the format description.
+        fn parse_date_time(&self, input: &[u8]) -> Result<PrimitiveDateTime, error::Parse> {
+            Ok(self.parse(input)?.try_into()?)
+        }
+
+        /// Parse a [`OffsetDateTime`] from the format description.
+        fn parse_offset_date_time(&self, input: &[u8]) -> Result<OffsetDateTime, error::Parse> {
+            Ok(self.parse(input)?.try_into()?)
         }
     }
 }
@@ -185,5 +209,88 @@ impl sealed::Parsable for well_known::Rfc3339 {
             .assign_value_to(&mut parsed.offset_minute);
 
         Ok(input)
+    }
+
+    fn parse_offset_date_time(&self, input: &[u8]) -> Result<OffsetDateTime, error::Parse> {
+        use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
+        use crate::parsing::combinator::{
+            any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, n_to_m, sign,
+        };
+
+        let dash = ascii_char(b'-');
+        let colon = ascii_char(b':');
+
+        let ParsedItem(input, year) = exactly_n_digits(4)(input).ok_or(InvalidComponent("year"))?;
+        let input = dash(input).ok_or(InvalidLiteral)?.unwrap();
+        let ParsedItem(input, month) =
+            exactly_n_digits(2)(input).ok_or(InvalidComponent("month"))?;
+        let input = dash(input).ok_or(InvalidLiteral)?.unwrap();
+        let ParsedItem(input, day) = exactly_n_digits(2)(input).ok_or(InvalidComponent("day"))?;
+        let input = ascii_char_ignore_case(b'T')(input)
+            .ok_or(InvalidLiteral)?
+            .unwrap();
+        let ParsedItem(input, hour) = exactly_n_digits(2)(input).ok_or(InvalidComponent("hour"))?;
+        let input = colon(input).ok_or(InvalidLiteral)?.unwrap();
+        let ParsedItem(input, minute) =
+            exactly_n_digits(2)(input).ok_or(InvalidComponent("minute"))?;
+        let input = colon(input).ok_or(InvalidLiteral)?.unwrap();
+        let ParsedItem(input, second) = exactly_n_digits(2)(input)
+            .ok_or(InvalidComponent("second"))?
+            .map(|seconds| if seconds == 60 { 59 } else { seconds });
+        let ParsedItem(input, nanosecond) =
+            if let Some(ParsedItem(input, ())) = ascii_char(b'.')(input) {
+                let ParsedItem(mut input, raw_digits) =
+                    n_to_m(1, 9, any_digit)(input).ok_or(InvalidComponent("subsecond"))?;
+
+                // Consume any remaining digits as allowed by the spec. They are discarded, as we
+                // only have nanosecond precision.
+                while let Some(ParsedItem(new_input, _)) = any_digit(input) {
+                    input = new_input;
+                }
+
+                let raw_num: u32 = raw_digits
+                    .parse_bytes()
+                    .ok_or(InvalidComponent("subsecond"))?;
+                let adjustment_factor = 10_u32.pow(9 - raw_digits.len() as u32);
+                ParsedItem(input, raw_num * adjustment_factor)
+            } else {
+                ParsedItem(input, 0)
+            };
+        let ParsedItem(input, offset) = {
+            if let Some(ParsedItem(input, ())) = ascii_char_ignore_case(b'Z')(input) {
+                ParsedItem(input, UtcOffset::UTC)
+            } else {
+                let ParsedItem(input, offset_sign) =
+                    sign(input).ok_or(InvalidComponent("offset_hour"))?;
+                let ParsedItem(input, offset_hour) =
+                    exactly_n_digits::<i8>(2)(input).ok_or(InvalidComponent("offset_hour"))?;
+                let input = colon(input).ok_or(InvalidLiteral)?.unwrap();
+                let ParsedItem(input, offset_minute) =
+                    exactly_n_digits(2)(input).ok_or(InvalidComponent("offset_minute"))?;
+                ParsedItem(
+                    input,
+                    UtcOffset::from_hms(
+                        if offset_sign == b'-' {
+                            -offset_hour
+                        } else {
+                            offset_hour
+                        },
+                        offset_minute,
+                        0,
+                    )
+                    .map_err(TryFromParsed::ComponentRange)?,
+                )
+            }
+        };
+
+        if !input.is_empty() {
+            return Err(error::Parse::UnexpectedTrailingCharacters);
+        }
+
+        Ok(Date::from_calendar_date(year, month, day)
+            .map_err(TryFromParsed::ComponentRange)?
+            .with_hms_nano(hour, minute, second, nanosecond)
+            .map_err(TryFromParsed::ComponentRange)?
+            .assume_offset(offset))
     }
 }

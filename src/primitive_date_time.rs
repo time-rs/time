@@ -1,5 +1,3 @@
-#[cfg(feature = "parsing")]
-use core::convert::TryInto;
 #[cfg(feature = "formatting")]
 use core::fmt;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
@@ -541,7 +539,7 @@ impl PrimitiveDateTime {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
-        Ok(description.parse(input.as_bytes())?.try_into()?)
+        description.parse_date_time(input.as_bytes())
     }
 }
 

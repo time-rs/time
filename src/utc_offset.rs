@@ -1,12 +1,9 @@
-#[cfg(any(
-    feature = "parsing",
-    all(
-        any(
-            all(target_family = "unix", unsound_local_offset),
-            target_family = "windows"
-        ),
-        feature = "local-offset"
-    )
+#[cfg(all(
+    any(
+        all(target_family = "unix", unsound_local_offset),
+        target_family = "windows"
+    ),
+    feature = "local-offset"
 ))]
 use core::convert::TryInto;
 #[cfg(feature = "formatting")]
@@ -235,7 +232,7 @@ impl UtcOffset {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
-        Ok(description.parse(input.as_bytes())?.try_into()?)
+        description.parse_offset(input.as_bytes())
     }
 }
 

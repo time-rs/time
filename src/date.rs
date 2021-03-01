@@ -1,5 +1,3 @@
-#[cfg(feature = "parsing")]
-use core::convert::TryInto;
 use core::fmt;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
@@ -678,7 +676,7 @@ impl Date {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
-        Ok(description.parse(input.as_bytes())?.try_into()?)
+        description.parse_date(input.as_bytes())
     }
 }
 

@@ -1,8 +1,6 @@
 use core::cmp::Ordering;
 #[cfg(feature = "std")]
 use core::convert::From;
-#[cfg(feature = "parsing")]
-use core::convert::TryInto;
 #[cfg(feature = "formatting")]
 use core::fmt;
 use core::hash::{Hash, Hasher};
@@ -835,7 +833,7 @@ impl OffsetDateTime {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
-        Ok(description.parse(input.as_bytes())?.try_into()?)
+        description.parse_offset_date_time(input.as_bytes())
     }
 }
 
