@@ -8,30 +8,30 @@ use crate::format_description::{modifier, Component};
 use crate::{error, Date, Time, UtcOffset};
 
 #[allow(clippy::clippy::missing_docs_in_private_items)]
-const MONTH_NAMES: [&str; 12] = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+const MONTH_NAMES: [&[u8]; 12] = [
+    b"January",
+    b"February",
+    b"March",
+    b"April",
+    b"May",
+    b"June",
+    b"July",
+    b"August",
+    b"September",
+    b"October",
+    b"November",
+    b"December",
 ];
 
 #[allow(clippy::missing_docs_in_private_items)]
-const WEEKDAY_NAMES: [&str; 7] = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
+const WEEKDAY_NAMES: [&[u8]; 7] = [
+    b"Monday",
+    b"Tuesday",
+    b"Wednesday",
+    b"Thursday",
+    b"Friday",
+    b"Saturday",
+    b"Sunday",
 ];
 
 /// A trait that indicates the formatted width of the value can be determined.
@@ -171,12 +171,8 @@ fn fmt_month(
 ) -> Result<usize, io::Error> {
     match repr {
         modifier::MonthRepr::Numerical => format_number(output, date.month(), padding, 2),
-        modifier::MonthRepr::Long => {
-            output.write(MONTH_NAMES[date.month() as usize - 1].as_bytes())
-        }
-        modifier::MonthRepr::Short => {
-            output.write(MONTH_NAMES[date.month() as usize - 1][..3].as_bytes())
-        }
+        modifier::MonthRepr::Long => output.write(MONTH_NAMES[date.month() as usize - 1]),
+        modifier::MonthRepr::Short => output.write(&MONTH_NAMES[date.month() as usize - 1][..3]),
     }
 }
 
@@ -196,11 +192,12 @@ fn fmt_weekday(
     modifier::Weekday { repr, one_indexed }: modifier::Weekday,
 ) -> Result<usize, io::Error> {
     match repr {
-        modifier::WeekdayRepr::Short => output.write(
-            WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3].as_bytes(),
-        ),
-        modifier::WeekdayRepr::Long => output
-            .write(WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize].as_bytes()),
+        modifier::WeekdayRepr::Short => {
+            output.write(&WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3])
+        }
+        modifier::WeekdayRepr::Long => {
+            output.write(WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize])
+        }
         modifier::WeekdayRepr::Sunday => format_number(
             output,
             date.weekday().number_days_from_sunday() + one_indexed as u8,
