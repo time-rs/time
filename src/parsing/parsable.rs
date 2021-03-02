@@ -20,9 +20,6 @@ pub(crate) mod sealed {
     /// Parse the item using a format description and an input.
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
     pub trait Parsable {
-        /// An error that may be returned when parsing.
-        type Error: Into<error::Parse>;
-
         /// Parse the item into the provided [`Parsed`] struct.
         ///
         /// This method can be used to parse part of a type without parsing the full value.
@@ -30,7 +27,7 @@ pub(crate) mod sealed {
             &self,
             input: &'a [u8],
             parsed: &mut Parsed,
-        ) -> Result<&'a [u8], Self::Error>;
+        ) -> Result<&'a [u8], error::Parse>;
 
         /// Parse the item into a new [`Parsed`] struct.
         ///
@@ -38,10 +35,10 @@ pub(crate) mod sealed {
         /// remain after parsing, an error will be returned.
         fn parse(&self, input: &[u8]) -> Result<Parsed, error::Parse> {
             let mut parsed = Parsed::new();
-            match self.parse_into(input, &mut parsed) {
-                Ok(remaining) if remaining.is_empty() => Ok(parsed),
-                Ok(_) => Err(error::Parse::UnexpectedTrailingCharacters),
-                Err(err) => Err(err.into()),
+            if self.parse_into(input, &mut parsed)?.is_empty() {
+                Ok(parsed)
+            } else {
+                Err(error::Parse::UnexpectedTrailingCharacters)
             }
         }
 
@@ -73,13 +70,11 @@ pub(crate) mod sealed {
 }
 
 impl sealed::Parsable for FormatItem<'_> {
-    type Error = error::ParseFromDescription;
-
     fn parse_into<'a>(
         &self,
         mut input: &'a [u8],
         parsed: &mut Parsed,
-    ) -> Result<&'a [u8], Self::Error> {
+    ) -> Result<&'a [u8], error::Parse> {
         match self {
             Self::Literal(literal) => {
                 input = input
@@ -94,13 +89,11 @@ impl sealed::Parsable for FormatItem<'_> {
 }
 
 impl sealed::Parsable for &[FormatItem<'_>] {
-    type Error = error::ParseFromDescription;
-
     fn parse_into<'a>(
         &self,
         mut input: &'a [u8],
         parsed: &mut Parsed,
-    ) -> Result<&'a [u8], Self::Error> {
+    ) -> Result<&'a [u8], error::Parse> {
         for item in self.iter() {
             input = item.parse_into(input, parsed)?;
         }
@@ -111,25 +104,21 @@ impl sealed::Parsable for &[FormatItem<'_>] {
 #[cfg(feature = "alloc")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl sealed::Parsable for Vec<FormatItem<'_>> {
-    type Error = error::ParseFromDescription;
-
     fn parse_into<'a>(
         &self,
         input: &'a [u8],
         parsed: &mut Parsed,
-    ) -> Result<&'a [u8], Self::Error> {
+    ) -> Result<&'a [u8], error::Parse> {
         self.as_slice().parse_into(input, parsed)
     }
 }
 
 impl sealed::Parsable for well_known::Rfc3339 {
-    type Error = error::ParseFromDescription;
-
     fn parse_into<'a>(
         &self,
         input: &'a [u8],
         parsed: &mut Parsed,
-    ) -> Result<&'a [u8], Self::Error> {
+    ) -> Result<&'a [u8], error::Parse> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
         use crate::parsing::combinator::{
             any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, sign,
