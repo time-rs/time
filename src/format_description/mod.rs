@@ -54,7 +54,6 @@ pub enum FormatItem<'a> {
 }
 
 #[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl fmt::Debug for FormatItem<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
