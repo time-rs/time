@@ -103,6 +103,7 @@
     clippy::print_stdout,
     clippy::todo,
     clippy::unimplemented,
+    clippy::unwrap_in_result,
     clippy::unwrap_used,
     clippy::use_debug,
     missing_copy_implementations,
