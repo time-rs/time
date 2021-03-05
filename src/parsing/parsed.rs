@@ -93,9 +93,9 @@ impl Parsed {
         }
     }
 
-    /// Parse a single component, mutating the provided `Parsed` struct. The remaining input is
-    /// returned as the `Ok` value.
-    pub(crate) fn parse_component<'a>(
+    /// Parse a single component, mutating the struct. The remaining input is returned as the `Ok`
+    /// value.
+    pub fn parse_component<'a>(
         &mut self,
         input: &'a [u8],
         component: Component,
