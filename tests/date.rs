@@ -3,8 +3,6 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-use time::format_description;
 use time::macros::{date, datetime, time};
 use time::{util, Date, Weekday};
 
@@ -430,11 +428,12 @@ fn test_sunday_based_week() {
 }
 
 #[test]
-fn from_iso_ywd() {
+fn from_iso_week_date() {
     use Weekday::*;
     assert!(Date::from_iso_week_date(2019, 1, Monday).is_ok());
     assert!(Date::from_iso_week_date(2019, 1, Tuesday).is_ok());
     assert!(Date::from_iso_week_date(2020, 53, Friday).is_ok());
+    assert!(Date::from_iso_week_date(-9999, 1, Monday).is_ok());
     // 2019 doesn't have 53 weeks.
     assert!(Date::from_iso_week_date(2019, 53, Monday).is_err());
 }
@@ -473,6 +472,17 @@ fn iso_week() {
 #[test]
 fn to_calendar_date() {
     assert_eq!(date!("2019-01-02").to_calendar_date(), (2019, 1, 2));
+    assert_eq!(date!("2019-02-02").to_calendar_date(), (2019, 2, 2));
+    assert_eq!(date!("2019-03-02").to_calendar_date(), (2019, 3, 2));
+    assert_eq!(date!("2019-04-02").to_calendar_date(), (2019, 4, 2));
+    assert_eq!(date!("2019-05-02").to_calendar_date(), (2019, 5, 2));
+    assert_eq!(date!("2019-06-02").to_calendar_date(), (2019, 6, 2));
+    assert_eq!(date!("2019-07-02").to_calendar_date(), (2019, 7, 2));
+    assert_eq!(date!("2019-08-02").to_calendar_date(), (2019, 8, 2));
+    assert_eq!(date!("2019-09-02").to_calendar_date(), (2019, 9, 2));
+    assert_eq!(date!("2019-10-02").to_calendar_date(), (2019, 10, 2));
+    assert_eq!(date!("2019-11-02").to_calendar_date(), (2019, 11, 2));
+    assert_eq!(date!("2019-12-02").to_calendar_date(), (2019, 12, 2));
 }
 
 #[test]
@@ -610,61 +620,6 @@ fn with_hms_nano() {
         Ok(datetime!("1970-01-01 0:00")),
     );
     assert!(date!("1970-01-01").with_hms_nano(24, 0, 0, 0).is_err());
-}
-
-#[test]
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-fn format() -> time::Result<()> {
-    let input_output = [
-        ("[day]", "31"),
-        ("[month]", "12"),
-        ("[month repr:short]", "Dec"),
-        ("[month repr:long]", "December"),
-        ("[ordinal]", "365"),
-        ("[weekday]", "Tuesday"),
-        ("[weekday repr:short]", "Tue"),
-        ("[weekday repr:sunday]", "3"),
-        ("[weekday repr:sunday one_indexed:false]", "2"),
-        ("[weekday repr:monday]", "2"),
-        ("[weekday repr:monday one_indexed:false]", "1"),
-        ("[week_number]", "01"),
-        ("[week_number padding:none]", "1"),
-        ("[week_number padding:space]", " 1"),
-        ("[week_number repr:sunday]", "52"),
-        ("[week_number repr:monday]", "52"),
-        ("[year]", "2019"),
-        ("[year base:iso_week]", "2020"),
-        ("[year sign:mandatory]", "+2019"),
-        ("[year base:iso_week sign:mandatory]", "+2020"),
-        ("[year repr:last_two]", "19"),
-        ("[year base:iso_week repr:last_two]", "20"),
-    ];
-
-    for &(format_description, output) in &input_output {
-        assert_eq!(
-            date!("2019-12-31").format(&format_description::parse(format_description)?)?,
-            output
-        );
-    }
-
-    Ok(())
-}
-
-#[test]
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-fn display() {
-    assert_eq!(date!("2019-01-01").to_string(), "2019-01-01");
-    assert_eq!(date!("2019-12-31").to_string(), "2019-12-31");
-    assert_eq!(date!("-4713-11-24").to_string(), "-4713-11-24");
-    assert_eq!(date!("-0001-01-01").to_string(), "-0001-01-01");
-
-    #[cfg(feature = "large-dates")]
-    {
-        assert_eq!(date!("+10_000-01-01").to_string(), "+10000-01-01");
-        assert_eq!(date!("+100_000-01-01").to_string(), "+100000-01-01");
-        assert_eq!(date!("-10_000-01-01").to_string(), "-10000-01-01");
-        assert_eq!(date!("-100_000-01-01").to_string(), "-100000-01-01");
-    }
 }
 
 #[test]

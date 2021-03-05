@@ -3,8 +3,6 @@ use std::cmp::Ordering;
 use std::time::SystemTime;
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-use time::format_description;
 use time::macros::{date, datetime, offset, time};
 use time::{OffsetDateTime, Weekday};
 
@@ -16,9 +14,14 @@ fn now_utc() {
 }
 
 #[test]
-#[cfg(all(feature = "local-offset", not(target_family = "unix")))]
+#[cfg(feature = "local-offset")]
 fn now_local() {
+    #[cfg(not(target_family = "unix"))]
     assert!(OffsetDateTime::now_local().is_ok());
+
+    // Include for test coverage.
+    #[cfg(target_family = "unix")]
+    let _ = OffsetDateTime::now_local();
 }
 
 #[test]
@@ -875,30 +878,5 @@ fn to_std() {
     assert_eq!(
         SystemTime::from(OffsetDateTime::UNIX_EPOCH - 1.days()),
         SystemTime::UNIX_EPOCH - 1.std_days()
-    );
-}
-
-#[test]
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-fn format() -> time::Result<()> {
-    // Various components are tested thoroughly in their relevant files. As
-    // such, this test only exists to ensure that nothing breaks unexpectedly.
-    assert_eq!(
-        datetime!("1970-01-01 0:00 UTC").format(&format_description::parse(
-            "[year]-[month repr:numerical]-[day] [hour]:[minute]:[second].[subsecond] \
-             [offset_hour sign:mandatory]:[offset_minute]:[offset_second]"
-        )?)?,
-        "1970-01-01 00:00:00.0 +00:00:00"
-    );
-
-    Ok(())
-}
-
-#[test]
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-fn display() {
-    assert_eq!(
-        datetime!("1970-01-01 0:00 UTC").to_string(),
-        "1970-01-01 0:00:00.0 +00:00:00"
     );
 }

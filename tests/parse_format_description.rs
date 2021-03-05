@@ -258,6 +258,10 @@ fn errors() {
         Err(InvalidFormatDescription::UnclosedOpeningBracket { index: 0 })
     );
     assert_eq!(
+        format_description::parse("[]"),
+        Err(InvalidFormatDescription::MissingComponentName { index: 1 })
+    );
+    assert_eq!(
         format_description::parse("[day sign:mandatory]"),
         Err(InvalidFormatDescription::InvalidModifier {
             value: "sign:mandatory".to_owned(),

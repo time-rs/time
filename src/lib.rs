@@ -49,7 +49,7 @@
 //!
 //!   Enables [serde](https://docs.rs/serde) support for all types.
 //!
-//! - `serde-human-readable` (_implicitly enables `serde`, `formatting`, `parsing`, and `alloc`_)
+//! - `serde-human-readable` (_implicitly enables `serde`, `formatting`, and `parsing`_)
 //!
 //!   Allows serde representations to use a human-readable format. This is determined by the
 //!   serializer, not the user. If this feature is not enabled or if the serializer requests a

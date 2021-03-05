@@ -1,8 +1,6 @@
 use std::cmp::Ordering;
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-use time::format_description;
 use time::macros::{date, datetime, offset, time};
 use time::{PrimitiveDateTime, Weekday};
 
@@ -480,33 +478,5 @@ fn ord() {
     assert_eq!(
         datetime!("2019-01-01 0:00:00.000_000_001").partial_cmp(&datetime!("2019-01-01 0:00")),
         Some(Greater)
-    );
-}
-
-#[test]
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-fn format() -> time::Result<()> {
-    // Various components are tested thoroughly in their relevant files. As
-    // such, this test only exists to ensure that nothing breaks unexpectedly.
-    assert_eq!(
-        datetime!("1970-01-01 0:00").format(&format_description::parse(
-            "[year]-[month repr:numerical]-[day] [hour]:[minute]:[second].[subsecond]"
-        )?)?,
-        "1970-01-01 00:00:00.0"
-    );
-
-    Ok(())
-}
-
-#[test]
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-fn display() {
-    assert_eq!(
-        datetime!("1970-01-01 0:00").to_string(),
-        String::from("1970-01-01 0:00:00.0")
-    );
-    assert_eq!(
-        datetime!("1970-01-01 0:00:01").to_string(),
-        String::from("1970-01-01 0:00:01.0")
     );
 }

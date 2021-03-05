@@ -495,7 +495,8 @@ impl Time {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl fmt::Display for Time {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.format(&FormatItem::Compound(&[
+        /// [hour]:[minute]:[second].[subsecond]
+        const FORMAT: &[FormatItem<'_>] = &[
             FormatItem::Component(Component::Hour(modifier::Hour {
                 padding: modifier::Padding::None,
                 is_12_hour_clock: false,
@@ -512,7 +513,8 @@ impl fmt::Display for Time {
             FormatItem::Component(Component::Subsecond(modifier::Subsecond {
                 digits: modifier::SubsecondDigits::OneOrMore,
             })),
-        ])) {
+        ];
+        match self.format(&FORMAT) {
             Ok(ref s) => f.write_str(s),
             Err(error::Format::InvalidComponent(_)) => {
                 unreachable!("A well-known format is not used")

@@ -1,6 +1,4 @@
 use time::ext::{NumericalDuration, NumericalStdDuration};
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-use time::format_description;
 use time::macros::time;
 use time::{Result, Time};
 
@@ -146,61 +144,6 @@ fn nanosecond() -> Result<()> {
         assert_eq!(Time::from_hms_nano(23, 59, 59, nano)?.nanosecond(), nano);
     }
     Ok(())
-}
-
-#[test]
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-fn format() -> time::Result<()> {
-    let input_output = [
-        ("[hour]", "13"),
-        ("[hour repr:12]", "01"),
-        ("[hour repr:12 padding:none]", "1"),
-        ("[hour repr:12 padding:space]", " 1"),
-        ("[minute]", "02"),
-        ("[minute padding:none]", "2"),
-        ("[minute padding:space]", " 2"),
-        ("[period]", "PM"),
-        ("[period case:upper]", "PM"),
-        ("[period case:lower]", "pm"),
-        ("[second]", "03"),
-        ("[second padding:none]", "3"),
-        ("[second padding:space]", " 3"),
-        ("[subsecond]", "456789012"),
-        ("[subsecond digits:1]", "4"),
-        ("[subsecond digits:2]", "45"),
-        ("[subsecond digits:3]", "456"),
-        ("[subsecond digits:4]", "4567"),
-        ("[subsecond digits:5]", "45678"),
-        ("[subsecond digits:6]", "456789"),
-        ("[subsecond digits:7]", "4567890"),
-        ("[subsecond digits:8]", "45678901"),
-        ("[subsecond digits:9]", "456789012"),
-    ];
-
-    for &(format_description, output) in &input_output {
-        assert_eq!(
-            time!("13:02:03.456_789_012")
-                .format(&format_description::parse(format_description)?)?,
-            output
-        );
-    }
-
-    Ok(())
-}
-
-#[test]
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-fn display() {
-    assert_eq!(time!("0:00").to_string(), "0:00:00.0");
-    assert_eq!(time!("23:59").to_string(), "23:59:00.0");
-    assert_eq!(time!("23:59:59").to_string(), "23:59:59.0");
-    assert_eq!(time!("0:00:01").to_string(), "0:00:01.0");
-    assert_eq!(time!("0:00:00.001").to_string(), "0:00:00.001");
-    assert_eq!(time!("0:00:00.000_001").to_string(), "0:00:00.000001");
-    assert_eq!(
-        time!("0:00:00.000_000_001").to_string(),
-        "0:00:00.000000001"
-    );
 }
 
 #[test]

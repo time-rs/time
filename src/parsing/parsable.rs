@@ -22,7 +22,7 @@ pub(crate) mod sealed {
     pub trait Parsable {
         /// Parse the item into the provided [`Parsed`] struct.
         ///
-        /// This method can be used to parse part of a type without parsing the full value.
+        /// This method can be used to parse a single component without parsing the full value.
         fn parse_into<'a>(
             &self,
             input: &'a [u8],
@@ -159,7 +159,7 @@ impl sealed::Parsable for well_known::Rfc3339 {
         let input = if let Some(ParsedItem(input, ())) = ascii_char(b'.')(input) {
             let ParsedItem(mut input, mut value) = any_digit(input)
                 .ok_or(InvalidComponent("subsecond"))?
-                .map(|v| v as u32 * 100_000_000);
+                .map(|v| (v - b'0') as u32 * 100_000_000);
 
             let mut multiplier = 10_000_000;
             while let Some(ParsedItem(new_input, digit)) = any_digit(input) {
@@ -228,7 +228,7 @@ impl sealed::Parsable for well_known::Rfc3339 {
             if let Some(ParsedItem(input, ())) = ascii_char(b'.')(input) {
                 let ParsedItem(mut input, mut value) = any_digit(input)
                     .ok_or(InvalidComponent("subsecond"))?
-                    .map(|v| v as u32 * 100_000_000);
+                    .map(|v| (v - b'0') as u32 * 100_000_000);
 
                 let mut multiplier = 10_000_000;
                 while let Some(ParsedItem(new_input, digit)) = any_digit(input) {

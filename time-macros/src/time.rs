@@ -51,7 +51,7 @@ impl Time {
 
         let period = if consume_str(" am", chars).is_ok() || consume_str(" AM", chars).is_ok() {
             Period::Am
-        } else if consume_str(" pm", chars).is_ok() || consume_str(" pm", chars).is_ok() {
+        } else if consume_str(" pm", chars).is_ok() || consume_str(" PM", chars).is_ok() {
             Period::Pm
         } else {
             Period::_24

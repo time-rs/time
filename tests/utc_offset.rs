@@ -1,7 +1,5 @@
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-use time::format_description;
 use time::macros::offset;
-#[cfg(all(feature = "local-offset", not(target_family = "unix")))]
+#[cfg(feature = "local-offset")]
 use time::OffsetDateTime;
 use time::{Result, UtcOffset};
 
@@ -80,58 +78,21 @@ fn is_negative() {
 }
 
 #[test]
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-fn format() -> time::Result<()> {
-    assert_eq!(
-        offset!("+01:02:03").format(&format_description::parse("[offset_hour sign:automatic]")?)?,
-        "01"
-    );
-    assert_eq!(
-        offset!("+01:02:03").format(&format_description::parse("[offset_hour sign:mandatory]")?)?,
-        "+01"
-    );
-    assert_eq!(
-        offset!("-01:02:03").format(&format_description::parse("[offset_hour sign:automatic]")?)?,
-        "-01"
-    );
-    assert_eq!(
-        offset!("-01:02:03").format(&format_description::parse("[offset_hour sign:mandatory]")?)?,
-        "-01"
-    );
-    assert_eq!(
-        offset!("+01:02:03").format(&format_description::parse("[offset_minute]")?)?,
-        "02"
-    );
-    assert_eq!(
-        offset!("+01:02:03").format(&format_description::parse("[offset_second]")?)?,
-        "03"
-    );
-
-    Ok(())
-}
-
-#[test]
-#[cfg(all(feature = "formatting", feature = "alloc"))]
-fn display() {
-    assert_eq!(offset!("UTC").to_string(), "+00:00:00");
-    assert_eq!(offset!("+0:00:01").to_string(), "+00:00:01");
-    assert_eq!(offset!("-0:00:01").to_string(), "-00:00:01");
-    assert_eq!(offset!("+1").to_string(), "+01:00:00");
-    assert_eq!(offset!("-1").to_string(), "-01:00:00");
-    assert_eq!(offset!("+23:59").to_string(), "+23:59:00");
-    assert_eq!(offset!("-23:59").to_string(), "-23:59:00");
-    assert_eq!(offset!("+23:59:59").to_string(), "+23:59:59");
-    assert_eq!(offset!("-23:59:59").to_string(), "-23:59:59");
-}
-
-#[test]
-#[cfg(all(feature = "local-offset", not(target_family = "unix")))]
+#[cfg(feature = "local-offset")]
 fn local_offset_at() {
+    #[cfg(not(target_family = "unix"))]
     assert!(UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH).is_ok());
+
+    #[cfg(target_family = "unix")]
+    let _ = UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH);
 }
 
 #[test]
-#[cfg(all(feature = "local-offset", not(target_family = "unix")))]
+#[cfg(feature = "local-offset")]
 fn current_local_offset() {
+    #[cfg(not(target_family = "unix"))]
     assert!(UtcOffset::current_local_offset().is_ok());
+
+    #[cfg(target_family = "unix")]
+    let _ = UtcOffset::current_local_offset();
 }

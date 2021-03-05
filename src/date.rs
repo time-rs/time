@@ -684,7 +684,8 @@ impl Date {
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl fmt::Display for Date {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.format(&FormatItem::Compound(&[
+        /// [year]-[month]-[day]
+        const FORMAT: &[FormatItem<'_>] = &[
             FormatItem::Component(Component::Year(modifier::Year {
                 padding: modifier::Padding::Zero,
                 repr: modifier::YearRepr::Full,
@@ -700,7 +701,8 @@ impl fmt::Display for Date {
             FormatItem::Component(Component::Day(modifier::Day {
                 padding: modifier::Padding::Zero,
             })),
-        ])) {
+        ];
+        match self.format(&FORMAT) {
             Ok(ref s) => f.write_str(s),
             Err(error::Format::InvalidComponent(_)) => {
                 unreachable!("A well-known format is not used")
