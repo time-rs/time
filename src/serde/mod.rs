@@ -8,6 +8,7 @@
 pub mod timestamp;
 
 use serde::de::Error as _;
+#[cfg(feature = "serde-human-readable")]
 use serde::ser::Error as _;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
