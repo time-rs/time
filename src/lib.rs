@@ -72,7 +72,10 @@
 //! the powerset of all feature flags. Use at your own risk.
 
 #![cfg_attr(__time_03_docs, feature(doc_cfg))]
-#![cfg_attr(__time_03_docs, deny(broken_intra_doc_links, private_intra_doc_links))]
+#![cfg_attr(
+    __time_03_docs,
+    deny(rustdoc::broken_intra_doc_links, rustdoc::private_intra_doc_links)
+)]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(
     anonymous_parameters,

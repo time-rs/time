@@ -304,13 +304,13 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: cargo-doc-${{ hashFiles('**/Cargo.toml') }}2
+          key: cargo-doc-${{ hashFiles('**/Cargo.toml') }}3
 
       - name: Build documentation
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: --all-features
+          args: --all-features --no-deps -Zrustdoc-map
         env:
           RUSTDOCFLAGS: --cfg __time_03_docs
 
