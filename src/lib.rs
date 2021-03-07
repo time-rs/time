@@ -297,6 +297,8 @@ mod rand;
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "serde")))]
 #[allow(missing_copy_implementations, missing_debug_implementations)]
 pub mod serde;
+#[cfg(test)]
+mod tests;
 /// The [`Time`] struct and its associated `impl`s.
 mod time;
 /// The [`UtcOffset`] struct and its associated `impl`s.

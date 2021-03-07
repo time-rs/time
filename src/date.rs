@@ -781,39 +781,3 @@ impl Sub<Date> for Date {
         Duration::days((self.to_julian_day() - other.to_julian_day()) as _)
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn test_days_in_year_month() {
-        // Common year
-        assert_eq!(days_in_year_month(2019, 1), 31);
-        assert_eq!(days_in_year_month(2019, 2), 28);
-        assert_eq!(days_in_year_month(2019, 3), 31);
-        assert_eq!(days_in_year_month(2019, 4), 30);
-        assert_eq!(days_in_year_month(2019, 5), 31);
-        assert_eq!(days_in_year_month(2019, 6), 30);
-        assert_eq!(days_in_year_month(2019, 7), 31);
-        assert_eq!(days_in_year_month(2019, 8), 31);
-        assert_eq!(days_in_year_month(2019, 9), 30);
-        assert_eq!(days_in_year_month(2019, 10), 31);
-        assert_eq!(days_in_year_month(2019, 11), 30);
-        assert_eq!(days_in_year_month(2019, 12), 31);
-
-        // Leap year
-        assert_eq!(days_in_year_month(2020, 1), 31);
-        assert_eq!(days_in_year_month(2020, 2), 29);
-        assert_eq!(days_in_year_month(2020, 3), 31);
-        assert_eq!(days_in_year_month(2020, 4), 30);
-        assert_eq!(days_in_year_month(2020, 5), 31);
-        assert_eq!(days_in_year_month(2020, 6), 30);
-        assert_eq!(days_in_year_month(2020, 7), 31);
-        assert_eq!(days_in_year_month(2020, 8), 31);
-        assert_eq!(days_in_year_month(2020, 9), 30);
-        assert_eq!(days_in_year_month(2020, 10), 31);
-        assert_eq!(days_in_year_month(2020, 11), 30);
-        assert_eq!(days_in_year_month(2020, 12), 31);
-    }
-}
