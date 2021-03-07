@@ -1,5 +1,3 @@
-#![cfg(feature = "quickcheck")]
-
 use quickcheck_dep::{quickcheck, Arbitrary, TestResult};
 use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 

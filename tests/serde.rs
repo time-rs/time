@@ -1,5 +1,3 @@
-#![cfg(feature = "serde")]
-
 use serde_test::{assert_de_tokens_error, assert_tokens, Compact, Configure, Readable, Token};
 use time::macros::{date, datetime, offset, time};
 use time::{Duration, Time, Weekday};
@@ -40,33 +38,30 @@ fn time() {
         "invalid value: integer `24`, expected a value in the range 0..=23",
     );
 
-    #[cfg(feature = "serde-human-readable")]
-    {
-        assert_tokens(
-            &Time::MIDNIGHT.readable(),
-            &[Token::BorrowedStr("00:00:00.0")],
-        );
-        assert_tokens(
-            &time!("23:58:59.123_456_789").readable(),
-            &[Token::BorrowedStr("23:58:59.123456789")],
-        );
-        assert_de_tokens_error::<Readable<Time>>(
-            &[Token::BorrowedStr("24:00:00.0")],
-            "invalid value: integer `24`, expected a value in the range 0..=23",
-        );
-        assert_de_tokens_error::<Readable<Time>>(
-            &[Token::BorrowedStr("24-00:00.0")],
-            "invalid value: literal, expected valid format",
-        );
-        assert_de_tokens_error::<Readable<Time>>(
-            &[Token::BorrowedStr("0:00:00.0")],
-            "invalid value: hour, expected valid hour",
-        );
-        assert_de_tokens_error::<Readable<Time>>(
-            &[Token::BorrowedStr("00:00:00.0x")],
-            "invalid value: literal, expected no extraneous characters",
-        );
-    }
+    assert_tokens(
+        &Time::MIDNIGHT.readable(),
+        &[Token::BorrowedStr("00:00:00.0")],
+    );
+    assert_tokens(
+        &time!("23:58:59.123_456_789").readable(),
+        &[Token::BorrowedStr("23:58:59.123456789")],
+    );
+    assert_de_tokens_error::<Readable<Time>>(
+        &[Token::BorrowedStr("24:00:00.0")],
+        "invalid value: integer `24`, expected a value in the range 0..=23",
+    );
+    assert_de_tokens_error::<Readable<Time>>(
+        &[Token::BorrowedStr("24-00:00.0")],
+        "invalid value: literal, expected valid format",
+    );
+    assert_de_tokens_error::<Readable<Time>>(
+        &[Token::BorrowedStr("0:00:00.0")],
+        "invalid value: hour, expected valid hour",
+    );
+    assert_de_tokens_error::<Readable<Time>>(
+        &[Token::BorrowedStr("00:00:00.0x")],
+        "invalid value: literal, expected no extraneous characters",
+    );
 }
 
 #[test]
@@ -90,17 +85,14 @@ fn date() {
         ],
     );
 
-    #[cfg(feature = "serde-human-readable")]
-    {
-        assert_tokens(
-            &date!("-9999-001").readable(),
-            &[Token::BorrowedStr("-9999-01-01")],
-        );
-        assert_tokens(
-            &date!("+9999-365").readable(),
-            &[Token::BorrowedStr("9999-12-31")],
-        );
-    }
+    assert_tokens(
+        &date!("-9999-001").readable(),
+        &[Token::BorrowedStr("-9999-01-01")],
+    );
+    assert_tokens(
+        &date!("+9999-365").readable(),
+        &[Token::BorrowedStr("9999-12-31")],
+    );
 }
 
 #[test]
@@ -132,17 +124,14 @@ fn primitive_date_time() {
         ],
     );
 
-    #[cfg(feature = "serde-human-readable")]
-    {
-        assert_tokens(
-            &datetime!("-9999-001 0:00").readable(),
-            &[Token::BorrowedStr("-9999-01-01 00:00:00.0")],
-        );
-        assert_tokens(
-            &datetime!("+9999-365 23:58:59.123_456_789").readable(),
-            &[Token::BorrowedStr("9999-12-31 23:58:59.123456789")],
-        );
-    }
+    assert_tokens(
+        &datetime!("-9999-001 0:00").readable(),
+        &[Token::BorrowedStr("-9999-01-01 00:00:00.0")],
+    );
+    assert_tokens(
+        &datetime!("+9999-365 23:58:59.123_456_789").readable(),
+        &[Token::BorrowedStr("9999-12-31 23:58:59.123456789")],
+    );
 }
 
 #[test]
@@ -184,23 +173,20 @@ fn offset_date_time() {
         ],
     );
 
-    #[cfg(feature = "serde-human-readable")]
-    {
-        assert_tokens(
-            &datetime!("-9999-001 0:00 UTC")
-                .to_offset(offset!("+23:58:59"))
-                .readable(),
-            &[Token::BorrowedStr("-9999-01-01 23:58:59.0 +23:58:59")],
-        );
-        assert_tokens(
-            &datetime!("+9999-365 23:58:59.123_456_789 UTC")
-                .to_offset(offset!("-23:58:59"))
-                .readable(),
-            &[Token::BorrowedStr(
-                "9999-12-31 00:00:00.123456789 -23:58:59",
-            )],
-        );
-    }
+    assert_tokens(
+        &datetime!("-9999-001 0:00 UTC")
+            .to_offset(offset!("+23:58:59"))
+            .readable(),
+        &[Token::BorrowedStr("-9999-01-01 23:58:59.0 +23:58:59")],
+    );
+    assert_tokens(
+        &datetime!("+9999-365 23:58:59.123_456_789 UTC")
+            .to_offset(offset!("-23:58:59"))
+            .readable(),
+        &[Token::BorrowedStr(
+            "9999-12-31 00:00:00.123456789 -23:58:59",
+        )],
+    );
 }
 
 #[test]
@@ -226,17 +212,14 @@ fn utc_offset() {
         ],
     );
 
-    #[cfg(feature = "serde-human-readable")]
-    {
-        assert_tokens(
-            &offset!("-23:58:59").readable(),
-            &[Token::BorrowedStr("-23:58:59")],
-        );
-        assert_tokens(
-            &offset!("+23:58:59").readable(),
-            &[Token::BorrowedStr("+23:58:59")],
-        );
-    }
+    assert_tokens(
+        &offset!("-23:58:59").readable(),
+        &[Token::BorrowedStr("-23:58:59")],
+    );
+    assert_tokens(
+        &offset!("+23:58:59").readable(),
+        &[Token::BorrowedStr("+23:58:59")],
+    );
 }
 
 #[test]
@@ -260,33 +243,30 @@ fn duration() {
         ],
     );
 
-    #[cfg(feature = "serde-human-readable")]
-    {
-        assert_tokens(
-            &Duration::MIN.readable(),
-            &[Token::BorrowedStr("-9223372036854775808.999999999")],
-        );
-        assert_tokens(
-            &Duration::MAX.readable(),
-            &[Token::BorrowedStr("9223372036854775807.999999999")],
-        );
-        assert_tokens(
-            &Duration::ZERO.readable(),
-            &[Token::BorrowedStr("0.000000000")],
-        );
-        assert_de_tokens_error::<Readable<Duration>>(
-            &[Token::BorrowedStr("x")],
-            r#"invalid value: string "x", expected a decimal point"#,
-        );
-        assert_de_tokens_error::<Readable<Duration>>(
-            &[Token::BorrowedStr("x.0")],
-            r#"invalid value: string "x", expected a number"#,
-        );
-        assert_de_tokens_error::<Readable<Duration>>(
-            &[Token::BorrowedStr("0.x")],
-            r#"invalid value: string "x", expected a number"#,
-        );
-    }
+    assert_tokens(
+        &Duration::MIN.readable(),
+        &[Token::BorrowedStr("-9223372036854775808.999999999")],
+    );
+    assert_tokens(
+        &Duration::MAX.readable(),
+        &[Token::BorrowedStr("9223372036854775807.999999999")],
+    );
+    assert_tokens(
+        &Duration::ZERO.readable(),
+        &[Token::BorrowedStr("0.000000000")],
+    );
+    assert_de_tokens_error::<Readable<Duration>>(
+        &[Token::BorrowedStr("x")],
+        r#"invalid value: string "x", expected a decimal point"#,
+    );
+    assert_de_tokens_error::<Readable<Duration>>(
+        &[Token::BorrowedStr("x.0")],
+        r#"invalid value: string "x", expected a number"#,
+    );
+    assert_de_tokens_error::<Readable<Duration>>(
+        &[Token::BorrowedStr("0.x")],
+        r#"invalid value: string "x", expected a number"#,
+    );
 }
 
 #[test]
@@ -303,30 +283,27 @@ fn weekday() {
         "invalid value: integer `0`, expected a value in the range 1..=7",
     );
 
-    #[cfg(feature = "serde-human-readable")]
-    {
-        assert_tokens(&Weekday::Monday.readable(), &[Token::BorrowedStr("Monday")]);
-        assert_tokens(
-            &Weekday::Tuesday.readable(),
-            &[Token::BorrowedStr("Tuesday")],
-        );
-        assert_tokens(
-            &Weekday::Wednesday.readable(),
-            &[Token::BorrowedStr("Wednesday")],
-        );
-        assert_tokens(
-            &Weekday::Thursday.readable(),
-            &[Token::BorrowedStr("Thursday")],
-        );
-        assert_tokens(&Weekday::Friday.readable(), &[Token::BorrowedStr("Friday")]);
-        assert_tokens(
-            &Weekday::Saturday.readable(),
-            &[Token::BorrowedStr("Saturday")],
-        );
-        assert_tokens(&Weekday::Sunday.readable(), &[Token::BorrowedStr("Sunday")]);
-        assert_de_tokens_error::<Readable<Weekday>>(
-            &[Token::BorrowedStr("NotADay")],
-            r#"invalid value: string "NotADay", expected a day of the week"#,
-        );
-    }
+    assert_tokens(&Weekday::Monday.readable(), &[Token::BorrowedStr("Monday")]);
+    assert_tokens(
+        &Weekday::Tuesday.readable(),
+        &[Token::BorrowedStr("Tuesday")],
+    );
+    assert_tokens(
+        &Weekday::Wednesday.readable(),
+        &[Token::BorrowedStr("Wednesday")],
+    );
+    assert_tokens(
+        &Weekday::Thursday.readable(),
+        &[Token::BorrowedStr("Thursday")],
+    );
+    assert_tokens(&Weekday::Friday.readable(), &[Token::BorrowedStr("Friday")]);
+    assert_tokens(
+        &Weekday::Saturday.readable(),
+        &[Token::BorrowedStr("Saturday")],
+    );
+    assert_tokens(&Weekday::Sunday.readable(), &[Token::BorrowedStr("Sunday")]);
+    assert_de_tokens_error::<Readable<Weekday>>(
+        &[Token::BorrowedStr("NotADay")],
+        r#"invalid value: string "NotADay", expected a day of the week"#,
+    );
 }

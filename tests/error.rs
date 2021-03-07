@@ -6,7 +6,6 @@ use time::error::{
 };
 use time::format_description::modifier::{self, Padding};
 use time::format_description::{Component, FormatItem};
-#[cfg(feature = "alloc")]
 use time::{Date, Time};
 
 macro_rules! assert_display_eq {
@@ -24,7 +23,6 @@ macro_rules! assert_source {
     };
 }
 
-#[cfg(feature = "alloc")]
 fn component_range() -> ComponentRange {
     Date::from_ordinal_date(0, 367).unwrap_err()
 }
@@ -40,7 +38,6 @@ fn unexpected_trailing_characters() -> Parse {
 }
 
 #[test]
-#[cfg(feature = "alloc")]
 fn debug() {
     assert_eq!(format!("{:?}", FormatItem::Literal(b"abcdef")), "abcdef");
     assert_eq!(
@@ -60,7 +57,6 @@ fn debug() {
 }
 
 #[test]
-#[cfg(feature = "alloc")]
 fn display() {
     assert_display_eq!(ConversionRange, Error::from(ConversionRange));
     assert_display_eq!(component_range(), Error::from(component_range()));
@@ -105,7 +101,6 @@ fn display() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn source() {
     assert_source!(Error::from(ConversionRange), ConversionRange);
     assert_source!(Error::from(component_range()), ComponentRange);

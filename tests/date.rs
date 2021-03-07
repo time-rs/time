@@ -42,7 +42,6 @@ fn weeks_in_year_exhaustive() {
 // leap day.
 
 #[test]
-#[cfg(feature = "alloc")]
 fn test_monday_based_week() {
     // A
     assert_eq!(date!("2023-01-01").monday_based_week(), 0);
@@ -235,7 +234,6 @@ fn test_monday_based_week() {
 }
 
 #[test]
-#[cfg(feature = "alloc")]
 fn test_sunday_based_week() {
     // A
     assert_eq!(date!("2023-01-01").sunday_based_week(), 1);
@@ -549,7 +547,6 @@ fn previous_day() {
 
 #[test]
 fn to_julian_day() {
-    #[cfg(feature = "large-dates")]
     assert_eq!(date!("-999_999-01-01").to_julian_day(), -363521074);
     assert_eq!(date!("-9999-01-01").to_julian_day(), -1930999);
     assert_eq!(date!("-4713-11-24").to_julian_day(), 0);
@@ -560,7 +557,6 @@ fn to_julian_day() {
 
 #[test]
 fn from_julian_day() {
-    #[cfg(feature = "large-dates")]
     assert_eq!(
         Date::from_julian_day(-363_521_074),
         Ok(date!("-999_999-01-01"))

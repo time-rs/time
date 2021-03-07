@@ -1,7 +1,5 @@
 use time::macros::offset;
-#[cfg(feature = "local-offset")]
-use time::OffsetDateTime;
-use time::{Result, UtcOffset};
+use time::{OffsetDateTime, Result, UtcOffset};
 
 #[test]
 fn utc_is_zero() {
@@ -78,7 +76,6 @@ fn is_negative() {
 }
 
 #[test]
-#[cfg(feature = "local-offset")]
 fn local_offset_at() {
     #[cfg(not(target_family = "unix"))]
     assert!(UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH).is_ok());
@@ -88,7 +85,6 @@ fn local_offset_at() {
 }
 
 #[test]
-#[cfg(feature = "local-offset")]
 fn current_local_offset() {
     #[cfg(not(target_family = "unix"))]
     assert!(UtcOffset::current_local_offset().is_ok());

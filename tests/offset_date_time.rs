@@ -1,5 +1,4 @@
 use std::cmp::Ordering;
-#[cfg(feature = "std")]
 use std::time::SystemTime;
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
@@ -7,14 +6,12 @@ use time::macros::{date, datetime, offset, time};
 use time::{OffsetDateTime, Weekday};
 
 #[test]
-#[cfg(feature = "std")]
 fn now_utc() {
     assert!(OffsetDateTime::now_utc().year() >= 2019);
     assert_eq!(OffsetDateTime::now_utc().offset(), offset!("UTC"));
 }
 
 #[test]
-#[cfg(feature = "local-offset")]
 fn now_local() {
     #[cfg(not(target_family = "unix"))]
     assert!(OffsetDateTime::now_local().is_ok());
@@ -245,7 +242,6 @@ fn weekday() {
 
 #[test]
 fn to_julian_day() {
-    #[cfg(feature = "large-dates")]
     assert_eq!(
         datetime!("-999_999-01-01 0:00 UTC").to_julian_day(),
         -363521074
@@ -417,7 +413,6 @@ fn ord() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn hash() {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
@@ -602,7 +597,6 @@ fn sub_assign_std_duration() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn std_add_duration() {
     assert_eq!(
         SystemTime::from(datetime!("2019-01-01 0:00 UTC")) + 0.seconds(),
@@ -627,7 +621,6 @@ fn std_add_duration() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn std_add_assign_duration() {
     let mut ny19 = SystemTime::from(datetime!("2019-01-01 0:00 UTC"));
     ny19 += 5.days();
@@ -647,7 +640,6 @@ fn std_add_assign_duration() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn std_sub_duration() {
     assert_eq!(
         SystemTime::from(datetime!("2019-01-06 0:00 UTC")) - 5.days(),
@@ -668,7 +660,6 @@ fn std_sub_duration() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn std_sub_assign_duration() {
     let mut ny19 = SystemTime::from(datetime!("2019-01-06 0:00 UTC"));
     ny19 -= 5.days();
@@ -708,7 +699,6 @@ fn sub_self() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn std_sub() {
     assert_eq!(
         SystemTime::from(datetime!("2019-01-02 0:00 UTC")) - datetime!("2019-01-01 0:00 UTC"),
@@ -729,7 +719,6 @@ fn std_sub() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn sub_std() {
     assert_eq!(
         datetime!("2019-01-02 0:00 UTC") - SystemTime::from(datetime!("2019-01-01 0:00 UTC")),
@@ -750,7 +739,6 @@ fn sub_std() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn eq_std() {
     let now_datetime = OffsetDateTime::now_utc();
     let now_systemtime = SystemTime::from(now_datetime);
@@ -758,7 +746,6 @@ fn eq_std() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn std_eq() {
     let now_datetime = OffsetDateTime::now_utc();
     let now_systemtime = SystemTime::from(now_datetime);
@@ -766,7 +753,6 @@ fn std_eq() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn ord_std() {
     assert_eq!(
         datetime!("2019-01-01 0:00 UTC"),
@@ -807,7 +793,6 @@ fn ord_std() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn std_ord() {
     assert_eq!(
         SystemTime::from(datetime!("2019-01-01 0:00 UTC")),
@@ -848,7 +833,6 @@ fn std_ord() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn from_std() {
     assert_eq!(
         OffsetDateTime::from(SystemTime::UNIX_EPOCH),
@@ -865,7 +849,6 @@ fn from_std() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn to_std() {
     assert_eq!(
         SystemTime::from(OffsetDateTime::UNIX_EPOCH),

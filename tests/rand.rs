@@ -1,5 +1,3 @@
-#![cfg(feature = "rand")]
-
 use rand::Rng;
 use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 

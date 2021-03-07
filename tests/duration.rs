@@ -278,7 +278,6 @@ fn checked_div() {
 }
 
 #[test]
-#[cfg(feature = "std")]
 fn time_fn() {
     let (time, value) = Duration::time_fn(|| {
         std::thread::sleep(1.std_milliseconds());

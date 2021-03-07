@@ -1,5 +1,3 @@
-#![cfg(feature = "std")]
-
 use std::thread;
 use std::time::Instant as StdInstant;
 

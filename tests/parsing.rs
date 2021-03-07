@@ -1,5 +1,3 @@
-#![cfg(feature = "parsing")]
-
 use core::convert::{TryFrom, TryInto};
 
 use time::format_description::well_known::Rfc3339;

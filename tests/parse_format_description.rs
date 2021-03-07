@@ -1,5 +1,3 @@
-#![cfg(all(feature = "formatting", feature = "alloc"))]
-
 mod iterator {
     use time::format_description::modifier::{
         MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,

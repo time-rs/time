@@ -1,5 +1,3 @@
-#![cfg(feature = "formatting")]
-
 use std::io;
 
 use time::format_description::well_known::Rfc3339;
@@ -181,13 +179,10 @@ fn display_date() {
     assert_eq!(date!("-4713-11-24").to_string(), "-4713-11-24");
     assert_eq!(date!("-0001-01-01").to_string(), "-0001-01-01");
 
-    #[cfg(feature = "large-dates")]
-    {
-        assert_eq!(date!("+10_000-01-01").to_string(), "+10000-01-01");
-        assert_eq!(date!("+100_000-01-01").to_string(), "+100000-01-01");
-        assert_eq!(date!("-10_000-01-01").to_string(), "-10000-01-01");
-        assert_eq!(date!("-100_000-01-01").to_string(), "-100000-01-01");
-    }
+    assert_eq!(date!("+10_000-01-01").to_string(), "+10000-01-01");
+    assert_eq!(date!("+100_000-01-01").to_string(), "+100000-01-01");
+    assert_eq!(date!("-10_000-01-01").to_string(), "-10000-01-01");
+    assert_eq!(date!("-100_000-01-01").to_string(), "-100000-01-01");
 }
 
 #[test]
