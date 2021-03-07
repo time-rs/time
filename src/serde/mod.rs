@@ -127,10 +127,11 @@ impl Serialize for Duration {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[cfg(feature = "serde-human-readable")]
         if serializer.is_human_readable() {
-            #[cfg(not(feature = "std"))]
-            use alloc::format;
-            return format!("{}.{:>09}", self.seconds, self.nanoseconds.abs())
-                .serialize(serializer);
+            return serializer.collect_str(&format_args!(
+                "{}.{:>09}",
+                self.seconds,
+                self.nanoseconds.abs()
+            ));
         }
 
         (self.seconds, self.nanoseconds).serialize(serializer)
