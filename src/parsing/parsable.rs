@@ -69,6 +69,7 @@ pub(crate) mod sealed {
     }
 }
 
+// region: custom formats
 impl sealed::Parsable for FormatItem<'_> {
     fn parse_into<'a>(
         &self,
@@ -112,7 +113,9 @@ impl sealed::Parsable for Vec<FormatItem<'_>> {
         self.as_slice().parse_into(input, parsed)
     }
 }
+// endregion custom formats
 
+// region: well-known formats
 impl sealed::Parsable for well_known::Rfc3339 {
     fn parse_into<'a>(
         &self,
@@ -279,3 +282,4 @@ impl sealed::Parsable for well_known::Rfc3339 {
             .assume_offset(offset))
     }
 }
+// endregion well-known formats

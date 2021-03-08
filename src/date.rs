@@ -62,6 +62,7 @@ impl Date {
     /// The value of this may vary depending on the feature flags enabled.
     pub const MAX: Self = Self::from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR));
 
+    // region: constructors
     /// Construct a `Date` from the year and ordinal values, the validity of which must be
     /// guaranteed by the caller.
     #[doc(hidden)]
@@ -173,6 +174,64 @@ impl Date {
         }
     }
 
+    /// Create a `Date` from the Julian day.
+    ///
+    /// The algorithm to perform this conversion is derived from one provided by Peter Baum; it is
+    /// freely available [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
+    ///
+    /// ```rust
+    /// # use time::{Date, macros::date};
+    /// assert_eq!(Date::from_julian_day(0), Ok(date!("-4713-11-24")));
+    /// assert_eq!(Date::from_julian_day(2_451_545), Ok(date!("2000-01-01")));
+    /// assert_eq!(Date::from_julian_day(2_458_485), Ok(date!("2019-01-01")));
+    /// assert_eq!(Date::from_julian_day(2_458_849), Ok(date!("2019-12-31")));
+    /// ```
+    #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date"))]
+    pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
+        ensure_value_in_range!(
+            julian_day in Self::MIN.to_julian_day() => Self::MAX.to_julian_day()
+        );
+        Ok(Self::from_julian_day_unchecked(julian_day))
+    }
+
+    /// Create a `Date` from the Julian day.
+    ///
+    /// This does not check the validity of the provided Julian day, and as such may result in an
+    /// internally invalid value.
+    #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date_unchecked"))]
+    pub(crate) const fn from_julian_day_unchecked(julian_day: i32) -> Self {
+        #![allow(trivial_numeric_casts)] // cast depends on type alias
+
+        /// A type that is either `i32` or `i64`. This subtle difference allows for optimization
+        /// based on the valid values.
+        #[cfg(feature = "large-dates")]
+        type MaybeWidened = i64;
+        #[allow(clippy::missing_docs_in_private_items)]
+        #[cfg(not(feature = "large-dates"))]
+        type MaybeWidened = i32;
+
+        // To avoid a potential overflow, the value may need to be widened for some arithmetic.
+
+        let z = julian_day - 1_721_119;
+        let g = 100 * z as MaybeWidened - 25;
+        let a = (g / 3_652_425) as i32;
+        let b = a - a / 4;
+        let mut year = div_floor!(100 * b as MaybeWidened + g, 36525) as i32;
+        let mut ordinal = (b + z - div_floor!(36525 * year as MaybeWidened, 100) as i32) as _;
+
+        if is_leap_year(year) {
+            ordinal += 60;
+            cascade!(ordinal in 1..367 => year);
+        } else {
+            ordinal += 59;
+            cascade!(ordinal in 1..366 => year);
+        }
+
+        Self::from_ordinal_date_unchecked(year, ordinal)
+    }
+    // endregion constructors
+
+    // region: getters
     /// Get the year of the date.
     ///
     /// ```rust
@@ -469,64 +528,10 @@ impl Date {
             + div_floor!(year, 400)
             + 1_721_425
     }
-
-    /// Create a `Date` from the Julian day.
-    ///
-    /// The algorithm to perform this conversion is derived from one provided by Peter Baum; it is
-    /// freely available [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
-    ///
-    /// ```rust
-    /// # use time::{Date, macros::date};
-    /// assert_eq!(Date::from_julian_day(0), Ok(date!("-4713-11-24")));
-    /// assert_eq!(Date::from_julian_day(2_451_545), Ok(date!("2000-01-01")));
-    /// assert_eq!(Date::from_julian_day(2_458_485), Ok(date!("2019-01-01")));
-    /// assert_eq!(Date::from_julian_day(2_458_849), Ok(date!("2019-12-31")));
-    /// ```
-    #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date"))]
-    pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(
-            julian_day in Self::MIN.to_julian_day() => Self::MAX.to_julian_day()
-        );
-        Ok(Self::from_julian_day_unchecked(julian_day))
-    }
-
-    /// Create a `Date` from the Julian day.
-    ///
-    /// This does not check the validity of the provided Julian day, and as such may result in an
-    /// internally invalid value.
-    #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date_unchecked"))]
-    pub(crate) const fn from_julian_day_unchecked(julian_day: i32) -> Self {
-        #![allow(trivial_numeric_casts)] // cast depends on type alias
-
-        /// A type that is either `i32` or `i64`. This subtle difference allows for optimization
-        /// based on the valid values.
-        #[cfg(feature = "large-dates")]
-        type MaybeWidened = i64;
-        #[allow(clippy::missing_docs_in_private_items)]
-        #[cfg(not(feature = "large-dates"))]
-        type MaybeWidened = i32;
-
-        // To avoid a potential overflow, the value may need to be widened for some arithmetic.
-
-        let z = julian_day - 1_721_119;
-        let g = 100 * z as MaybeWidened - 25;
-        let a = (g / 3_652_425) as i32;
-        let b = a - a / 4;
-        let mut year = div_floor!(100 * b as MaybeWidened + g, 36525) as i32;
-        let mut ordinal = (b + z - div_floor!(36525 * year as MaybeWidened, 100) as i32) as _;
-
-        if is_leap_year(year) {
-            ordinal += 60;
-            cascade!(ordinal in 1..367 => year);
-        } else {
-            ordinal += 59;
-            cascade!(ordinal in 1..366 => year);
-        }
-
-        Self::from_ordinal_date_unchecked(year, ordinal)
-    }
+    // endregion getters
 }
 
+// region: attach time
 /// Methods to add a [`Time`] component, resulting in a [`PrimitiveDateTime`].
 impl Date {
     /// Create a [`PrimitiveDateTime`] using the existing date. The [`Time`] component will be set
@@ -632,7 +637,9 @@ impl Date {
         ))
     }
 }
+// endregion attach time
 
+// region: formatting & parsing
 #[cfg(feature = "formatting")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl Date {
@@ -714,7 +721,9 @@ impl fmt::Display for Date {
         }
     }
 }
+// endregion formatting & parsing
 
+// region: trait impls
 impl Add<Duration> for Date {
     type Output = Self;
 
@@ -781,3 +790,4 @@ impl Sub<Date> for Date {
         Duration::days((self.to_julian_day() - other.to_julian_day()) as _)
     }
 }
+// endregion trait impls

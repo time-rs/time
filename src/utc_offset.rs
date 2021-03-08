@@ -50,6 +50,7 @@ impl UtcOffset {
         seconds: 0,
     };
 
+    // region: constructors
     /// Create a `UtcOffset` representing an offset of the hours, minutes, and seconds provided, the
     /// validity of which must be guaranteed by the caller. All three parameters must have the same
     /// sign.
@@ -101,7 +102,9 @@ impl UtcOffset {
             seconds,
         })
     }
+    // endregion constructors
 
+    // region: getters
     /// Obtain the UTC offset as its hours, minutes, and seconds. The sign of all three components
     /// will always match. A positive value indicates an offset to the east; a negative to the west.
     ///
@@ -151,7 +154,9 @@ impl UtcOffset {
     pub const fn is_negative(self) -> bool {
         self.hours < 0 || self.minutes < 0 || self.seconds < 0
     }
+    // endregion getters
 
+    // region: local offset
     /// Attempt to obtain the system's UTC offset at a known moment in time. If the offset cannot be
     /// determined, an error is returned.
     ///
@@ -187,8 +192,10 @@ impl UtcOffset {
         let now = OffsetDateTime::now_utc();
         local_offset_at(now).ok_or(error::IndeterminateOffset)
     }
+    // endregion: local offset
 }
 
+// region: formatting & parsing
 #[cfg(feature = "formatting")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl UtcOffset {
@@ -267,6 +274,7 @@ impl fmt::Display for UtcOffset {
         }
     }
 }
+// endregion formatting & parsing
 
 /// Attempt to obtain the system's UTC offset. If the offset cannot be determined, `None` is
 /// returned.

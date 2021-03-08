@@ -27,6 +27,7 @@ pub struct Duration {
 }
 
 impl Duration {
+    // region: constants
     /// Equivalent to `0.seconds()`.
     ///
     /// ```rust
@@ -110,7 +111,9 @@ impl Duration {
         seconds: i64::max_value(),
         nanoseconds: 999_999_999,
     };
+    // endregion constants
 
+    // region: is_{sign}
     /// Check if a duration is exactly zero.
     ///
     /// ```rust
@@ -145,7 +148,9 @@ impl Duration {
     pub const fn is_positive(self) -> bool {
         self.seconds > 0 || self.nanoseconds > 0
     }
+    // endregion is_{sign}
 
+    // region: abs
     /// Get the absolute value of the duration.
     ///
     /// ```rust
@@ -169,7 +174,9 @@ impl Duration {
     pub(crate) fn abs_std(self) -> StdDuration {
         StdDuration::new(self.seconds.abs() as _, self.nanoseconds.abs() as _)
     }
+    // endregion abs
 
+    // region: constructors
     /// Create a new `Duration` with the provided seconds and nanoseconds. If nanoseconds is at
     /// least ±10<sup>9</sup>, it will wrap to the number of seconds.
     ///
@@ -208,19 +215,6 @@ impl Duration {
         Self::seconds(weeks * 604_800)
     }
 
-    /// Get the number of whole weeks in the duration.
-    ///
-    /// ```rust
-    /// # use time::ext::NumericalDuration;
-    /// assert_eq!(1.weeks().whole_weeks(), 1);
-    /// assert_eq!((-1).weeks().whole_weeks(), -1);
-    /// assert_eq!(6.days().whole_weeks(), 0);
-    /// assert_eq!((-6).days().whole_weeks(), 0);
-    /// ```
-    pub const fn whole_weeks(self) -> i64 {
-        self.whole_seconds() / 604_800
-    }
-
     /// Create a new `Duration` with the given number of days. Equivalent to
     /// `Duration::seconds(days * 86_400)`.
     ///
@@ -230,19 +224,6 @@ impl Duration {
     /// ```
     pub const fn days(days: i64) -> Self {
         Self::seconds(days * 86_400)
-    }
-
-    /// Get the number of whole days in the duration.
-    ///
-    /// ```rust
-    /// # use time::ext::NumericalDuration;
-    /// assert_eq!(1.days().whole_days(), 1);
-    /// assert_eq!((-1).days().whole_days(), -1);
-    /// assert_eq!(23.hours().whole_days(), 0);
-    /// assert_eq!((-23).hours().whole_days(), 0);
-    /// ```
-    pub const fn whole_days(self) -> i64 {
-        self.whole_seconds() / 86_400
     }
 
     /// Create a new `Duration` with the given number of hours. Equivalent to
@@ -256,19 +237,6 @@ impl Duration {
         Self::seconds(hours * 3_600)
     }
 
-    /// Get the number of whole hours in the duration.
-    ///
-    /// ```rust
-    /// # use time::ext::NumericalDuration;
-    /// assert_eq!(1.hours().whole_hours(), 1);
-    /// assert_eq!((-1).hours().whole_hours(), -1);
-    /// assert_eq!(59.minutes().whole_hours(), 0);
-    /// assert_eq!((-59).minutes().whole_hours(), 0);
-    /// ```
-    pub const fn whole_hours(self) -> i64 {
-        self.whole_seconds() / 3_600
-    }
-
     /// Create a new `Duration` with the given number of minutes. Equivalent to
     /// `Duration::seconds(minutes * 60)`.
     ///
@@ -278,19 +246,6 @@ impl Duration {
     /// ```
     pub const fn minutes(minutes: i64) -> Self {
         Self::seconds(minutes * 60)
-    }
-
-    /// Get the number of whole minutes in the duration.
-    ///
-    /// ```rust
-    /// # use time::ext::NumericalDuration;
-    /// assert_eq!(1.minutes().whole_minutes(), 1);
-    /// assert_eq!((-1).minutes().whole_minutes(), -1);
-    /// assert_eq!(59.seconds().whole_minutes(), 0);
-    /// assert_eq!((-59).seconds().whole_minutes(), 0);
-    /// ```
-    pub const fn whole_minutes(self) -> i64 {
-        self.whole_seconds() / 60
     }
 
     /// Create a new `Duration` with the given number of seconds.
@@ -304,19 +259,6 @@ impl Duration {
             seconds,
             nanoseconds: 0,
         }
-    }
-
-    /// Get the number of whole seconds in the duration.
-    ///
-    /// ```rust
-    /// # use time::ext::NumericalDuration;
-    /// assert_eq!(1.seconds().whole_seconds(), 1);
-    /// assert_eq!((-1).seconds().whole_seconds(), -1);
-    /// assert_eq!(1.minutes().whole_seconds(), 60);
-    /// assert_eq!((-1).minutes().whole_seconds(), -60);
-    /// ```
-    pub const fn whole_seconds(self) -> i64 {
-        self.seconds
     }
 
     /// Creates a new `Duration` from the specified number of seconds represented as `f64`.
@@ -333,17 +275,6 @@ impl Duration {
         }
     }
 
-    /// Get the number of fractional seconds in the duration.
-    ///
-    /// ```rust
-    /// # use time::ext::NumericalDuration;
-    /// assert_eq!(1.5.seconds().as_seconds_f64(), 1.5);
-    /// assert_eq!((-1.5).seconds().as_seconds_f64(), -1.5);
-    /// ```
-    pub fn as_seconds_f64(self) -> f64 {
-        self.seconds as f64 + self.nanoseconds as f64 / 1_000_000_000.
-    }
-
     /// Creates a new `Duration` from the specified number of seconds represented as `f32`.
     ///
     /// ```rust
@@ -358,17 +289,6 @@ impl Duration {
         }
     }
 
-    /// Get the number of fractional seconds in the duration.
-    ///
-    /// ```rust
-    /// # use time::ext::NumericalDuration;
-    /// assert_eq!(1.5.seconds().as_seconds_f32(), 1.5);
-    /// assert_eq!((-1.5).seconds().as_seconds_f32(), -1.5);
-    /// ```
-    pub fn as_seconds_f32(self) -> f32 {
-        self.seconds as f32 + self.nanoseconds as f32 / 1_000_000_000.
-    }
-
     /// Create a new `Duration` with the given number of milliseconds.
     ///
     /// ```rust
@@ -381,6 +301,134 @@ impl Duration {
             seconds: milliseconds / 1_000,
             nanoseconds: ((milliseconds % 1_000) * 1_000_000) as _,
         }
+    }
+
+    /// Create a new `Duration` with the given number of microseconds.
+    ///
+    /// ```rust
+    /// # use time::{Duration, ext::NumericalDuration};
+    /// assert_eq!(Duration::microseconds(1), 1_000.nanoseconds());
+    /// assert_eq!(Duration::microseconds(-1), (-1_000).nanoseconds());
+    /// ```
+    pub const fn microseconds(microseconds: i64) -> Self {
+        Self {
+            seconds: microseconds / 1_000_000,
+            nanoseconds: ((microseconds % 1_000_000) * 1_000) as _,
+        }
+    }
+
+    /// Create a new `Duration` with the given number of nanoseconds.
+    ///
+    /// ```rust
+    /// # use time::{Duration, ext::NumericalDuration};
+    /// assert_eq!(Duration::nanoseconds(1), 1.microseconds() / 1_000);
+    /// assert_eq!(Duration::nanoseconds(-1), (-1).microseconds() / 1_000);
+    /// ```
+    pub const fn nanoseconds(nanoseconds: i64) -> Self {
+        Self {
+            seconds: nanoseconds / 1_000_000_000,
+            nanoseconds: (nanoseconds % 1_000_000_000) as _,
+        }
+    }
+
+    /// Create a new `Duration` with the given number of nanoseconds.
+    ///
+    /// As the input range cannot be fully mapped to the output, this should only be used where it's
+    /// known to result in a valid value.
+    pub(crate) const fn nanoseconds_i128(nanoseconds: i128) -> Self {
+        Self {
+            seconds: (nanoseconds / 1_000_000_000) as _,
+            nanoseconds: (nanoseconds % 1_000_000_000) as _,
+        }
+    }
+    // endregion constructors
+
+    // region: getters
+    /// Get the number of whole weeks in the duration.
+    ///
+    /// ```rust
+    /// # use time::ext::NumericalDuration;
+    /// assert_eq!(1.weeks().whole_weeks(), 1);
+    /// assert_eq!((-1).weeks().whole_weeks(), -1);
+    /// assert_eq!(6.days().whole_weeks(), 0);
+    /// assert_eq!((-6).days().whole_weeks(), 0);
+    /// ```
+    pub const fn whole_weeks(self) -> i64 {
+        self.whole_seconds() / 604_800
+    }
+
+    /// Get the number of whole days in the duration.
+    ///
+    /// ```rust
+    /// # use time::ext::NumericalDuration;
+    /// assert_eq!(1.days().whole_days(), 1);
+    /// assert_eq!((-1).days().whole_days(), -1);
+    /// assert_eq!(23.hours().whole_days(), 0);
+    /// assert_eq!((-23).hours().whole_days(), 0);
+    /// ```
+    pub const fn whole_days(self) -> i64 {
+        self.whole_seconds() / 86_400
+    }
+
+    /// Get the number of whole hours in the duration.
+    ///
+    /// ```rust
+    /// # use time::ext::NumericalDuration;
+    /// assert_eq!(1.hours().whole_hours(), 1);
+    /// assert_eq!((-1).hours().whole_hours(), -1);
+    /// assert_eq!(59.minutes().whole_hours(), 0);
+    /// assert_eq!((-59).minutes().whole_hours(), 0);
+    /// ```
+    pub const fn whole_hours(self) -> i64 {
+        self.whole_seconds() / 3_600
+    }
+
+    /// Get the number of whole minutes in the duration.
+    ///
+    /// ```rust
+    /// # use time::ext::NumericalDuration;
+    /// assert_eq!(1.minutes().whole_minutes(), 1);
+    /// assert_eq!((-1).minutes().whole_minutes(), -1);
+    /// assert_eq!(59.seconds().whole_minutes(), 0);
+    /// assert_eq!((-59).seconds().whole_minutes(), 0);
+    /// ```
+    pub const fn whole_minutes(self) -> i64 {
+        self.whole_seconds() / 60
+    }
+
+    /// Get the number of whole seconds in the duration.
+    ///
+    /// ```rust
+    /// # use time::ext::NumericalDuration;
+    /// assert_eq!(1.seconds().whole_seconds(), 1);
+    /// assert_eq!((-1).seconds().whole_seconds(), -1);
+    /// assert_eq!(1.minutes().whole_seconds(), 60);
+    /// assert_eq!((-1).minutes().whole_seconds(), -60);
+    /// ```
+    pub const fn whole_seconds(self) -> i64 {
+        self.seconds
+    }
+
+    /// Get the number of fractional seconds in the duration.
+    ///
+    /// ```rust
+    /// # use time::ext::NumericalDuration;
+    /// assert_eq!(1.5.seconds().as_seconds_f64(), 1.5);
+    /// assert_eq!((-1.5).seconds().as_seconds_f64(), -1.5);
+    /// ```
+    pub fn as_seconds_f64(self) -> f64 {
+        self.seconds as f64 + self.nanoseconds as f64 / 1_000_000_000.
+    }
+
+    /// Get the number of fractional seconds in the duration.
+    ///
+    /// ```rust
+    /// # use time::ext::NumericalDuration;
+    /// assert_eq!(1.5.seconds().as_seconds_f32(), 1.5);
+    /// assert_eq!((-1.5).seconds().as_seconds_f32(), -1.5);
+    /// ```
+    pub fn as_seconds_f32(self) -> f32 {
+        self.seconds as f32 + self.nanoseconds as f32 / 1_000_000_000.
     }
 
     /// Get the number of whole milliseconds in the duration.
@@ -410,20 +458,6 @@ impl Duration {
         (self.nanoseconds / 1_000_000) as _
     }
 
-    /// Create a new `Duration` with the given number of microseconds.
-    ///
-    /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::microseconds(1), 1_000.nanoseconds());
-    /// assert_eq!(Duration::microseconds(-1), (-1_000).nanoseconds());
-    /// ```
-    pub const fn microseconds(microseconds: i64) -> Self {
-        Self {
-            seconds: microseconds / 1_000_000,
-            nanoseconds: ((microseconds % 1_000_000) * 1_000) as _,
-        }
-    }
-
     /// Get the number of whole microseconds in the duration.
     ///
     /// ```rust
@@ -448,31 +482,6 @@ impl Duration {
     /// ```
     pub const fn subsec_microseconds(self) -> i32 {
         self.nanoseconds / 1_000
-    }
-
-    /// Create a new `Duration` with the given number of nanoseconds.
-    ///
-    /// ```rust
-    /// # use time::{Duration, ext::NumericalDuration};
-    /// assert_eq!(Duration::nanoseconds(1), 1.microseconds() / 1_000);
-    /// assert_eq!(Duration::nanoseconds(-1), (-1).microseconds() / 1_000);
-    /// ```
-    pub const fn nanoseconds(nanoseconds: i64) -> Self {
-        Self {
-            seconds: nanoseconds / 1_000_000_000,
-            nanoseconds: (nanoseconds % 1_000_000_000) as _,
-        }
-    }
-
-    /// Create a new `Duration` with the given number of nanoseconds.
-    ///
-    /// As the input range cannot be fully mapped to the output, this should only be used where it's
-    /// known to result in a valid value.
-    pub(crate) const fn nanoseconds_i128(nanoseconds: i128) -> Self {
-        Self {
-            seconds: (nanoseconds / 1_000_000_000) as _,
-            nanoseconds: (nanoseconds % 1_000_000_000) as _,
-        }
     }
 
     /// Get the number of nanoseconds in the duration.
@@ -500,7 +509,9 @@ impl Duration {
     pub const fn subsec_nanoseconds(self) -> i32 {
         self.nanoseconds
     }
+    // endregion getters
 
+    // region: checked arithmetic
     /// Computes `self + rhs`, returning `None` if an overflow occurred.
     ///
     /// ```rust
@@ -599,6 +610,7 @@ impl Duration {
             nanoseconds,
         })
     }
+    // endregion checked arithmetic
 
     /// Runs a closure, returning the duration of time it took to run. The return value of the
     /// closure is provided in the second part of the tuple.
@@ -613,6 +625,7 @@ impl Duration {
     }
 }
 
+// region: trait impls
 impl TryFrom<StdDuration> for Duration {
     type Error = error::ConversionRange;
 
@@ -917,3 +930,4 @@ impl PartialOrd<Duration> for StdDuration {
         rhs.partial_cmp(self).map(Ordering::reverse)
     }
 }
+// endregion trait impls

@@ -6,6 +6,7 @@ use alloc::string::String;
 #[cfg(feature = "alloc")]
 use crate::{error::InvalidFormatDescription, format_description::helper};
 
+// region: date modifiers
 /// Day of the month.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Day {
@@ -111,7 +112,9 @@ pub struct Year {
     /// Whether the `+` sign is present when a positive year contains fewer than five digits.
     pub sign_is_mandatory: bool,
 }
+// endregion date modifiers
 
+// region: time modifiers
 /// Hour of the day.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Hour {
@@ -174,7 +177,9 @@ pub struct Subsecond {
     /// How many digits are present in the component?
     pub digits: SubsecondDigits,
 }
+// endregion time modifiers
 
+// region: offset modifiers
 /// Hour of the UTC offset.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct OffsetHour {
@@ -197,6 +202,7 @@ pub struct OffsetSecond {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
 }
+// endregion offset modifiers
 
 /// Type of padding to ensure a minimum width.
 #[non_exhaustive]

@@ -45,6 +45,7 @@ impl OffsetDateTime {
         .midnight()
         .assume_utc();
 
+    // region: now
     /// Create a new `OffsetDateTime` with the current date and time in UTC.
     ///
     /// ```rust
@@ -76,6 +77,7 @@ impl OffsetDateTime {
         let t = Self::now_utc();
         Ok(t.to_offset(UtcOffset::local_offset_at(t)?))
     }
+    // endregion now
 
     /// Convert the `OffsetDateTime` from the current [`UtcOffset`] to the provided [`UtcOffset`].
     ///
@@ -105,6 +107,7 @@ impl OffsetDateTime {
         }
     }
 
+    // region: constructors
     /// Create an `OffsetDateTime` from the provided Unix timestamp. Calling `.offset()` on the
     /// resulting value is guaranteed to return UTC.
     ///
@@ -189,7 +192,9 @@ impl OffsetDateTime {
 
         Ok(datetime)
     }
+    // endregion constructors
 
+    // region: getters
     /// Get the [`UtcOffset`].
     ///
     /// ```rust
@@ -287,6 +292,7 @@ impl OffsetDateTime {
         }
     }
 
+    // region: date getters
     /// Get the year of the date in the stored offset.
     ///
     /// ```rust
@@ -505,7 +511,9 @@ impl OffsetDateTime {
     pub const fn to_julian_day(self) -> i32 {
         self.date().to_julian_day()
     }
+    // endregion date getters
 
+    // region: time getters
     /// Get the clock hour, minute, and second.
     ///
     /// ```rust
@@ -685,8 +693,11 @@ impl OffsetDateTime {
     pub const fn nanosecond(self) -> u32 {
         self.utc_datetime.nanosecond()
     }
+    // endregion time getters
+    // endregion getters
 }
 
+// region: replacement
 /// Methods that replace part of the `OffsetDateTime`.
 impl OffsetDateTime {
     /// Replace the time, which is assumed to be in the stored offset. The date and offset
@@ -770,7 +781,9 @@ impl OffsetDateTime {
         self.utc_datetime.assume_offset(offset)
     }
 }
+// endregion replacement
 
+// region: formatting & parsing
 #[cfg(feature = "formatting")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl OffsetDateTime {
@@ -844,7 +857,9 @@ impl fmt::Display for OffsetDateTime {
         write!(f, "{} {} {}", self.date(), self.time(), self.offset)
     }
 }
+// endregion formatting & parsing
 
+// region: trait impls
 impl PartialEq for OffsetDateTime {
     fn eq(&self, rhs: &Self) -> bool {
         self.utc_datetime.eq(&rhs.utc_datetime)
@@ -1069,3 +1084,4 @@ impl From<OffsetDateTime> for SystemTime {
         }
     }
 }
+// endregion trait impls

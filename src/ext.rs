@@ -4,6 +4,7 @@ use core::time::Duration as StdDuration;
 
 use crate::Duration;
 
+// region: NumericalDuration
 /// Create [`Duration`]s from primitive and core numeric types.
 ///
 /// Due to limitations in rustc, these methods are currently _not_ `const fn`. See
@@ -194,7 +195,9 @@ impl_numerical_duration_nonzero![
     core::num::NonZeroI64,
 ];
 impl_numerical_duration_float![f32, f64];
+// endregion NumericalDuration
 
+// region: NumericalStdDuration
 /// Create [`std::time::Duration`]s from primitive and core numeric types.
 ///
 /// Due to limitations in rustc, these methods are currently _not_ `const fn`. See
@@ -424,7 +427,9 @@ impl NumericalStdDuration for f64 {
         StdDuration::from_nanos((self * 604_800_000_000_000.) as _)
     }
 }
+// endregion NumericalStdDuration
 
+// region: NumericalStdDurationShort
 /// Create [`std::time::Duration`]s from primitive and core numeric types. Unless you are always
 /// expecting a [`std::time::Duration`], you should prefer to use [`NumericalStdDuration`] for
 /// clarity.
@@ -512,3 +517,4 @@ impl<T: NumericalStdDuration> NumericalStdDurationShort for T {
         <Self as NumericalStdDuration>::std_weeks(self)
     }
 }
+// endregion NumericalStdDurationShort

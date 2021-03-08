@@ -11,6 +11,7 @@ use crate::parsing::combinator::{
 use crate::parsing::ParsedItem;
 use crate::Weekday;
 
+// region: date components
 /// Parse the "year" component of a `Date`.
 pub(crate) fn parse_year(input: &[u8], modifiers: modifier::Year) -> Option<ParsedItem<'_, i32>> {
     match modifiers.repr {
@@ -169,7 +170,9 @@ pub(crate) fn parse_day(
 ) -> Option<ParsedItem<'_, NonZeroU8>> {
     exactly_n_digits_padded(2, modifiers.padding)(input)
 }
+// endregion date components
 
+// region: time components
 /// Indicate whether the hour is "am" or "pm".
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Period {
@@ -242,7 +245,9 @@ pub(crate) fn parse_subsecond(
         }
     })
 }
+// endregion time components
 
+// region: offset components
 /// Parse the "hour" component of a `UtcOffset`.
 pub(crate) fn parse_offset_hour(
     input: &[u8],
@@ -272,3 +277,4 @@ pub(crate) fn parse_offset_second(
 ) -> Option<ParsedItem<'_, u8>> {
     exactly_n_digits_padded(2, modifiers.padding)(input)
 }
+// endregion offset components

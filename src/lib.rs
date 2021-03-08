@@ -130,6 +130,7 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+// region: macros
 /// Division of integers, rounding the resulting value towards negative infinity.
 macro_rules! div_floor {
     ($a:expr, $b:expr) => {{
@@ -253,6 +254,7 @@ macro_rules! const_try_opt {
         }
     };
 }
+// endregion macros
 
 /// The [`Date`] struct and its associated `impl`s.
 mod date;

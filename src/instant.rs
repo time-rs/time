@@ -28,6 +28,7 @@ use crate::Duration;
 pub struct Instant(pub StdInstant);
 
 impl Instant {
+    // region: delegation
     /// Returns an `Instant` corresponding to "now".
     ///
     /// ```rust
@@ -51,7 +52,9 @@ impl Instant {
     pub fn elapsed(self) -> Duration {
         Self::now() - self
     }
+    // endregion delegation
 
+    // region: checked arithmetic
     /// Returns `Some(t)` where `t` is the time `self + duration` if `t` can be represented as
     /// `Instant` (which means it's inside the bounds of the underlying data structure), `None`
     /// otherwise.
@@ -86,8 +89,10 @@ impl Instant {
     pub fn checked_sub(self, duration: Duration) -> Option<Self> {
         self.checked_add(-duration)
     }
+    // endregion checked arithmetic
 }
 
+// region: trait impls
 impl From<StdInstant> for Instant {
     fn from(instant: StdInstant) -> Self {
         Self(instant)
@@ -244,3 +249,4 @@ impl PartialOrd<Instant> for StdInstant {
         self.partial_cmp(&rhs.0)
     }
 }
+// endregion trait impls

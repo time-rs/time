@@ -59,6 +59,7 @@ impl Time {
         padding: hack::Padding::Optimize,
     };
 
+    // region: constructors
     /// Create a `Time` from its components.
     #[doc(hidden)]
     #[deprecated(note = "This method should only ever be called from the included macros.")]
@@ -201,7 +202,9 @@ impl Time {
             padding: hack::Padding::Optimize,
         })
     }
+    // endregion constructors
 
+    // region: getters
     /// Get the clock hour, minute, and second.
     ///
     /// ```rust
@@ -334,7 +337,9 @@ impl Time {
     pub const fn nanosecond(self) -> u32 {
         self.nanosecond
     }
+    // endregion getters
 
+    // region: arithmetic helpers
     /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow, returning the
     /// necessary whether the date is the following day.
     #[allow(clippy::manual_range_contains)] // rust-lang/rust-clippy#6373
@@ -442,8 +447,10 @@ impl Time {
             },
         )
     }
+    // endregion arithmetic helpers
 }
 
+// region: formatting & parsing
 #[cfg(feature = "formatting")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl Time {
@@ -526,7 +533,9 @@ impl fmt::Display for Time {
         }
     }
 }
+// endregion formatting & parsing
 
+// region: trait impls
 impl Add<Duration> for Time {
     type Output = Self;
 
@@ -688,3 +697,4 @@ impl Sub<Time> for Time {
         }
     }
 }
+// endregion trait impls

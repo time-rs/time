@@ -44,6 +44,7 @@ pub(crate) mod sealed {
     }
 }
 
+// region: custom formats
 impl<'a> sealed::Formattable for FormatItem<'a> {
     type Error = error::Format;
 
@@ -95,7 +96,9 @@ impl<'a> sealed::Formattable for Vec<FormatItem<'a>> {
         self.as_slice().format_into(output, date, time, offset)
     }
 }
+// endregion custom formats
 
+// region: well-known formats
 impl sealed::Formattable for Rfc3339 {
     type Error = error::Format;
 
@@ -167,3 +170,4 @@ impl sealed::Formattable for Rfc3339 {
         Ok(bytes)
     }
 }
+// endregion well-known formats

@@ -34,6 +34,7 @@ const WEEKDAY_NAMES: [&[u8]; 7] = [
     b"Sunday",
 ];
 
+// region: extension trait
 /// A trait that indicates the formatted width of the value can be determined.
 ///
 /// Note that this should not be implemented for any signed integers. This forces the caller to
@@ -93,6 +94,7 @@ impl DigitCount for u32 {
         }
     }
 }
+// endregion extension trait
 
 /// Format a number with the provided padding and width.
 ///
@@ -154,6 +156,7 @@ pub(crate) fn format_component(
     })
 }
 
+// region: date formatters
 /// Format the day into the designated output.
 fn fmt_day(
     output: &mut impl io::Write,
@@ -270,7 +273,9 @@ fn fmt_year(
     bytes += format_number(output, value.abs() as u32, padding, width)?;
     Ok(bytes)
 }
+// endregion date formatters
 
+// region: time formatters
 /// Format the hour into the designated output.
 fn fmt_hour(
     output: &mut impl io::Write,
@@ -351,7 +356,9 @@ fn fmt_subsecond(
     };
     format_number(output, value, modifier::Padding::Zero, width)
 }
+// endregion time formatters
 
+// region: offset formatters
 /// Format the offset hour into the designated output.
 fn fmt_offset_hour(
     output: &mut impl io::Write,
@@ -388,3 +395,4 @@ fn fmt_offset_second(
 ) -> Result<usize, io::Error> {
     format_number(output, offset.seconds.abs() as u8, padding, 2)
 }
+// endregion offset formatters
