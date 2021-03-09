@@ -8,6 +8,7 @@
 use core::convert::TryInto;
 #[cfg(feature = "formatting")]
 use core::fmt;
+use core::ops::Neg;
 #[cfg(feature = "formatting")]
 use std::io;
 
@@ -117,33 +118,96 @@ impl UtcOffset {
         (self.hours, self.minutes, self.seconds)
     }
 
-    /// Obtain the number of seconds the offset is from UTC. A positive value indicates an offset to
-    /// the east; a negative to the west.
+    /// Obtain the number of whole hours the offset is from UTC. A positive value indicates an
+    /// offset to the east; a negative to the west.
     ///
     /// ```rust
     /// # use time::macros::offset;
-    /// assert_eq!(offset!("+1:02:03").to_seconds(), 3723);
-    /// assert_eq!(offset!("-1:02:03").to_seconds(), -3723);
+    /// assert_eq!(offset!("+1:02:03").whole_hours(), 1);
+    /// assert_eq!(offset!("-1:02:03").whole_hours(), -1);
+    /// ```
+    pub const fn whole_hours(self) -> i8 {
+        self.hours
+    }
+
+    /// Obtain the number of whole minutes the offset is from UTC. A positive value indicates an
+    /// offset to the east; a negative to the west.
+    ///
+    /// ```rust
+    /// # use time::macros::offset;
+    /// assert_eq!(offset!("+1:02:03").whole_minutes(), 62);
+    /// assert_eq!(offset!("-1:02:03").whole_minutes(), -62);
+    /// ```
+    pub const fn whole_minutes(self) -> i16 {
+        self.hours as i16 * 60 + self.minutes as i16
+    }
+
+    /// Obtain the number of minutes past the hour the offset is from UTC. A positive value
+    /// indicates an offset to the east; a negative to the west.
+    ///
+    /// ```rust
+    /// # use time::macros::offset;
+    /// assert_eq!(offset!("+1:02:03").minutes_past_hour(), 2);
+    /// assert_eq!(offset!("-1:02:03").minutes_past_hour(), -2);
+    /// ```
+    pub const fn minutes_past_hour(self) -> i8 {
+        self.minutes
+    }
+
+    /// Obtain the number of whole seconds the offset is from UTC. A positive value indicates an
+    /// offset to the east; a negative to the west.
+    ///
+    /// ```rust
+    /// # use time::macros::offset;
+    /// assert_eq!(offset!("+1:02:03").whole_seconds(), 3723);
+    /// assert_eq!(offset!("-1:02:03").whole_seconds(), -3723);
     /// ```
     // This may be useful for anyone manually implementing arithmetic, as it
     // would let them construct a `Duration` directly.
-    pub const fn to_seconds(self) -> i32 {
+    pub const fn whole_seconds(self) -> i32 {
         self.hours as i32 * 3_600 + self.minutes as i32 * 60 + self.seconds as i32
     }
 
-    /// Check if the offset is positive, or east of UTC. UTC itself is considered positive.
+    /// Obtain the number of seconds past the minute the offset is from UTC. A positive value
+    /// indicates an offset to the east; a negative to the west.
+    ///
+    /// ```rust
+    /// # use time::macros::offset;
+    /// assert_eq!(offset!("+1:02:03").seconds_past_minute(), 3);
+    /// assert_eq!(offset!("-1:02:03").seconds_past_minute(), -3);
+    /// ```
+    pub const fn seconds_past_minute(self) -> i8 {
+        self.seconds
+    }
+    // endregion getters
+
+    // region: is_{sign}
+    /// Check if the offset is exactly UTC.
+    ///
+    ///
+    /// ```rust
+    /// # use time::macros::offset;
+    /// assert!(!offset!("+1:02:03").is_utc());
+    /// assert!(!offset!("-1:02:03").is_utc());
+    /// assert!(offset!("UTC").is_utc());
+    /// ```
+    pub const fn is_utc(self) -> bool {
+        self.hours == 0 && self.minutes == 0 && self.seconds == 0
+    }
+
+    /// Check if the offset is positive, or east of UTC.
     ///
     /// ```rust
     /// # use time::macros::offset;
     /// assert!(offset!("+1:02:03").is_positive());
     /// assert!(!offset!("-1:02:03").is_positive());
-    /// assert!(offset!("UTC").is_positive());
+    /// assert!(!offset!("UTC").is_positive());
     /// ```
     pub const fn is_positive(self) -> bool {
-        !self.is_negative()
+        self.hours > 0 || self.minutes > 0 || self.seconds > 0
     }
 
-    /// Check if the offset is positive, or east of UTC. UTC itself is not considered negative.
+    /// Check if the offset is negative, or west of UTC.
     ///
     /// ```rust
     /// # use time::macros::offset;
@@ -154,7 +218,7 @@ impl UtcOffset {
     pub const fn is_negative(self) -> bool {
         self.hours < 0 || self.minutes < 0 || self.seconds < 0
     }
-    // endregion getters
+    // endregion is_{sign}
 
     // region: local offset
     /// Attempt to obtain the system's UTC offset at a known moment in time. If the offset cannot be
@@ -275,6 +339,18 @@ impl fmt::Display for UtcOffset {
     }
 }
 // endregion formatting & parsing
+
+impl Neg for UtcOffset {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            hours: -self.hours,
+            minutes: -self.minutes,
+            seconds: -self.seconds,
+        }
+    }
+}
 
 /// Attempt to obtain the system's UTC offset. If the offset cannot be determined, `None` is
 /// returned.

@@ -24,6 +24,11 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `Date::MAX`
 - `UtcOffset::from_hms`
 - `UtcOffset::as_hms`
+- `UtcOffset::whole_hours`
+- `UtcOffset::whole_minutes`
+- `UtcOffset::minutes_past_hour`
+- `UtcOffset::seconds_past_minute`
+- `UtcOffset::is_utc`
 - `UtcOffset::is_positive`
 - `UtcOffset::is_negative`
 - `OffsetDateTime::sunday_based_week`
@@ -77,7 +82,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
   - `Time::try_from_hms_micro` → `Time::from_hms_micro`
   - `Time::try_from_hms_nano` → `Time::from_hms_nano`
   - `UtcOffset::try_local_offset_at` → `UtcOffset::local_offset_at`
-  - `UtcOffset::as_seconds` → `UtcOffset::to_seconds`
+  - `UtcOffset::as_seconds` → `UtcOffset::whole_seconds`
   - `OffsetDateTime::try_now_local` → `OffsetDateTime::now_local`
   - `Date::week` → `Date::iso_week`
   - `PrimitiveDateTime::week` → `PrimitiveDateTime::iso_week`

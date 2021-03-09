@@ -131,12 +131,12 @@ test_shrink!(
     nanosecond()
 );
 
-test_shrink!(UtcOffset, utc_offset_can_shrink, to_seconds());
+test_shrink!(UtcOffset, utc_offset_can_shrink, whole_seconds());
 
 test_shrink!(
     OffsetDateTime,
     offset_date_time_can_shrink_offset,
-    offset().to_seconds()
+    offset().whole_seconds()
 );
 test_shrink!(OffsetDateTime, offset_date_time_can_shrink_year, year());
 test_shrink!(

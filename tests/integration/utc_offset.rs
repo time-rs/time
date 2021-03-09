@@ -37,21 +37,58 @@ fn as_hms() {
 }
 
 #[test]
-fn to_seconds() {
-    assert_eq!(offset!("UTC").to_seconds(), 0);
-    assert_eq!(offset!("+0:00:01").to_seconds(), 1);
-    assert_eq!(offset!("-0:00:01").to_seconds(), -1);
-    assert_eq!(offset!("+1").to_seconds(), 3_600);
-    assert_eq!(offset!("-1").to_seconds(), -3_600);
-    assert_eq!(offset!("+23:59").to_seconds(), 86_340);
-    assert_eq!(offset!("-23:59").to_seconds(), -86_340);
-    assert_eq!(offset!("+23:59:59").to_seconds(), 86_399);
-    assert_eq!(offset!("-23:59:59").to_seconds(), -86_399);
+fn whole_hours() {
+    assert_eq!(offset!("+1:02:03").whole_hours(), 1);
+    assert_eq!(offset!("-1:02:03").whole_hours(), -1);
+}
+
+#[test]
+fn whole_minutes() {
+    assert_eq!(offset!("+1:02:03").whole_minutes(), 62);
+    assert_eq!(offset!("-1:02:03").whole_minutes(), -62);
+}
+
+#[test]
+fn minutes_past_hour() {
+    assert_eq!(offset!("+1:02:03").minutes_past_hour(), 2);
+    assert_eq!(offset!("-1:02:03").minutes_past_hour(), -2);
+}
+
+#[test]
+fn whole_seconds() {
+    assert_eq!(offset!("UTC").whole_seconds(), 0);
+    assert_eq!(offset!("+0:00:01").whole_seconds(), 1);
+    assert_eq!(offset!("-0:00:01").whole_seconds(), -1);
+    assert_eq!(offset!("+1").whole_seconds(), 3_600);
+    assert_eq!(offset!("-1").whole_seconds(), -3_600);
+    assert_eq!(offset!("+23:59").whole_seconds(), 86_340);
+    assert_eq!(offset!("-23:59").whole_seconds(), -86_340);
+    assert_eq!(offset!("+23:59:59").whole_seconds(), 86_399);
+    assert_eq!(offset!("-23:59:59").whole_seconds(), -86_399);
+}
+
+#[test]
+fn seconds_past_minute() {
+    assert_eq!(offset!("+1:02:03").seconds_past_minute(), 3);
+    assert_eq!(offset!("-1:02:03").seconds_past_minute(), -3);
+}
+
+#[test]
+fn is_utc() {
+    assert!(offset!("UTC").is_utc());
+    assert!(!offset!("+0:00:01").is_utc());
+    assert!(!offset!("-0:00:01").is_utc());
+    assert!(!offset!("+1").is_utc());
+    assert!(!offset!("-1").is_utc());
+    assert!(!offset!("+23:59").is_utc());
+    assert!(!offset!("-23:59").is_utc());
+    assert!(!offset!("+23:59:59").is_utc());
+    assert!(!offset!("-23:59:59").is_utc());
 }
 
 #[test]
 fn is_positive() {
-    assert!(offset!("UTC").is_positive());
+    assert!(!offset!("UTC").is_positive());
     assert!(offset!("+0:00:01").is_positive());
     assert!(!offset!("-0:00:01").is_positive());
     assert!(offset!("+1").is_positive());
@@ -73,6 +110,19 @@ fn is_negative() {
     assert!(offset!("-23:59").is_negative());
     assert!(!offset!("+23:59:59").is_negative());
     assert!(offset!("-23:59:59").is_negative());
+}
+
+#[test]
+fn neg() {
+    assert_eq!(-offset!("UTC"), offset!("UTC"));
+    assert_eq!(-offset!("+0:00:01"), offset!("-0:00:01"));
+    assert_eq!(-offset!("-0:00:01"), offset!("+0:00:01"));
+    assert_eq!(-offset!("+1"), offset!("-1"));
+    assert_eq!(-offset!("-1"), offset!("+1"));
+    assert_eq!(-offset!("+23:59"), offset!("-23:59"));
+    assert_eq!(-offset!("-23:59"), offset!("+23:59"));
+    assert_eq!(-offset!("+23:59:59"), offset!("-23:59:59"));
+    assert_eq!(-offset!("-23:59:59"), offset!("+23:59:59"));
 }
 
 #[test]
