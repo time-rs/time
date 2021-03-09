@@ -48,6 +48,9 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `OffsetDateTime::to_hms_milli`
 - `OffsetDateTime::to_hms_micro`
 - `OffsetDateTime::to_hms_nano`
+- `Duration::saturating_add`
+- `Duration::saturating_sub`
+- `Duration::saturating_mul`
 
 ### Changed
 

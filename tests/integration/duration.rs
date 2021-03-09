@@ -278,6 +278,49 @@ fn checked_div() {
 }
 
 #[test]
+fn saturating_add() {
+    assert_eq!(5.seconds().saturating_add(5.seconds()), 10.seconds());
+    assert_eq!(Duration::MAX.saturating_add(1.nanoseconds()), Duration::MAX);
+    assert_eq!(Duration::MAX.saturating_add(1.seconds()), Duration::MAX);
+    assert_eq!(
+        Duration::MIN.saturating_add((-1).nanoseconds()),
+        Duration::MIN
+    );
+    assert_eq!(Duration::MIN.saturating_add((-1).seconds()), Duration::MIN);
+    assert_eq!((-5).seconds().saturating_add(5.seconds()), Duration::ZERO);
+}
+
+#[test]
+fn saturating_sub() {
+    assert_eq!(5.seconds().saturating_sub(5.seconds()), Duration::ZERO);
+    assert_eq!(Duration::MIN.saturating_sub(1.nanoseconds()), Duration::MIN);
+    assert_eq!(
+        Duration::MAX.saturating_sub((-1).nanoseconds()),
+        Duration::MAX
+    );
+    assert_eq!(5.seconds().saturating_sub(10.seconds()), (-5).seconds());
+}
+
+#[test]
+fn saturating_mul() {
+    assert_eq!(5.seconds().saturating_mul(2), 10.seconds());
+    assert_eq!(5.seconds().saturating_mul(-2), (-10).seconds());
+    assert_eq!(5.seconds().saturating_mul(0), Duration::ZERO);
+    assert_eq!(Duration::MAX.saturating_mul(2), Duration::MAX);
+    assert_eq!(Duration::MIN.saturating_mul(2), Duration::MIN);
+    assert_eq!(Duration::MAX.saturating_mul(-2), Duration::MIN);
+    assert_eq!(Duration::MIN.saturating_mul(-2), Duration::MAX);
+    assert_eq!(
+        Duration::new(1_844_674_407_370_955_161, 600_000_000).saturating_mul(5),
+        Duration::MAX
+    );
+    assert_eq!(
+        Duration::new(1_844_674_407_370_955_161, 800_000_000).saturating_mul(-5),
+        Duration::MIN
+    );
+}
+
+#[test]
 fn time_fn() {
     let (time, value) = Duration::time_fn(|| {
         std::thread::sleep(1.std_milliseconds());

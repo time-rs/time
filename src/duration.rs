@@ -612,6 +612,116 @@ impl Duration {
     }
     // endregion checked arithmetic
 
+    // region: saturating arithmetic
+    /// Computes `self + rhs`, saturating if an overflow occurred.
+    ///
+    /// ```rust
+    /// # use time::{Duration, ext::NumericalDuration};
+    /// assert_eq!(5.seconds().saturating_add(5.seconds()), 10.seconds());
+    /// assert_eq!(Duration::MAX.saturating_add(1.nanoseconds()), Duration::MAX);
+    /// assert_eq!(
+    ///     Duration::MIN.saturating_add((-1).nanoseconds()),
+    ///     Duration::MIN
+    /// );
+    /// assert_eq!((-5).seconds().saturating_add(5.seconds()), Duration::ZERO);
+    /// ```
+    ///
+    /// This feature is `const fn` when using rustc >= 1.47.
+    #[const_fn("1.47")]
+    pub const fn saturating_add(self, rhs: Self) -> Self {
+        let (mut seconds, overflow) = self.seconds.overflowing_add(rhs.seconds);
+        if overflow {
+            if self.seconds > 0 {
+                return Self::MAX;
+            }
+            return Self::MIN;
+        }
+        let mut nanoseconds = self.nanoseconds + rhs.nanoseconds;
+
+        if nanoseconds >= 1_000_000_000 || seconds < 0 && nanoseconds > 0 {
+            nanoseconds -= 1_000_000_000;
+            seconds = match seconds.checked_add(1) {
+                Some(seconds) => seconds,
+                None => return Self::MAX,
+            };
+        } else if nanoseconds <= -1_000_000_000 || seconds > 0 && nanoseconds < 0 {
+            nanoseconds += 1_000_000_000;
+            seconds = match seconds.checked_sub(1) {
+                Some(seconds) => seconds,
+                None => return Self::MIN,
+            };
+        }
+
+        Self {
+            seconds,
+            nanoseconds,
+        }
+    }
+
+    /// Computes `self - rhs`, saturating if an overflow occurred.
+    ///
+    /// ```rust
+    /// # use time::{Duration, ext::NumericalDuration};
+    /// assert_eq!(5.seconds().saturating_sub(5.seconds()), Duration::ZERO);
+    /// assert_eq!(Duration::MIN.saturating_sub(1.nanoseconds()), Duration::MIN);
+    /// assert_eq!(
+    ///     Duration::MAX.saturating_sub((-1).nanoseconds()),
+    ///     Duration::MAX
+    /// );
+    /// assert_eq!(5.seconds().saturating_sub(10.seconds()), (-5).seconds());
+    /// ```
+    ///
+    /// This feature is `const fn` when using rustc >= 1.47.
+    #[const_fn("1.47")]
+    pub const fn saturating_sub(self, rhs: Self) -> Self {
+        self.saturating_add(Self {
+            seconds: -rhs.seconds,
+            nanoseconds: -rhs.nanoseconds,
+        })
+    }
+
+    /// Computes `self * rhs`, saturating if an overflow occurred.
+    ///
+    /// ```rust
+    /// # use time::{Duration, ext::NumericalDuration};
+    /// assert_eq!(5.seconds().saturating_mul(2), 10.seconds());
+    /// assert_eq!(5.seconds().saturating_mul(-2), (-10).seconds());
+    /// assert_eq!(5.seconds().saturating_mul(0), Duration::ZERO);
+    /// assert_eq!(Duration::MAX.saturating_mul(2), Duration::MAX);
+    /// assert_eq!(Duration::MIN.saturating_mul(2), Duration::MIN);
+    /// assert_eq!(Duration::MAX.saturating_mul(-2), Duration::MIN);
+    /// assert_eq!(Duration::MIN.saturating_mul(-2), Duration::MAX);
+    /// ```
+    ///
+    /// This feature is `const fn` when using rustc >= 1.47.
+    #[const_fn("1.47")]
+    pub const fn saturating_mul(self, rhs: i32) -> Self {
+        // Multiply nanoseconds as i64, because it cannot overflow that way.
+        let total_nanos = self.nanoseconds as i64 * rhs as i64;
+        let extra_secs = total_nanos / 1_000_000_000;
+        let nanoseconds = (total_nanos % 1_000_000_000) as _;
+        let (seconds, overflow1) = self.seconds.overflowing_mul(rhs as _);
+        if overflow1 {
+            if self.seconds > 0 && rhs > 0 || self.seconds < 0 && rhs < 0 {
+                return Self::MAX;
+            }
+            return Self::MIN;
+        }
+        let (seconds, overflow2) = seconds.overflowing_add(extra_secs);
+        if overflow2 {
+            if self.seconds > 0 && rhs > 0 {
+                return Self::MAX;
+            }
+            return Self::MIN;
+        }
+
+        Self {
+            seconds,
+            nanoseconds,
+        }
+    }
+    // endregion saturating arithmetic
+
     /// Runs a closure, returning the duration of time it took to run. The return value of the
     /// closure is provided in the second part of the tuple.
     #[cfg(feature = "std")]
