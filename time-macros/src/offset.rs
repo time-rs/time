@@ -79,7 +79,7 @@ impl ToTokens for Offset {
                 TokenTree::Ident(Ident::new("UtcOffset", Span::call_site())),
                 TokenTree::Punct(Punct::new(':', Spacing::Joint)),
                 TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("from_hms_unchecked", Span::call_site())),
+                TokenTree::Ident(Ident::new("__from_hms_unchecked", Span::call_site())),
                 TokenTree::Group(Group::new(
                     Delimiter::Parenthesis,
                     [

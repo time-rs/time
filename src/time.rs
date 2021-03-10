@@ -22,15 +22,15 @@ use crate::{error, hack, Duration};
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Time {
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) hour: u8,
+    hour: u8,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) minute: u8,
+    minute: u8,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) second: u8,
+    second: u8,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) nanosecond: u32,
+    nanosecond: u32,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) padding: hack::Padding,
+    padding: hack::Padding,
 }
 
 impl fmt::Debug for Time {
@@ -51,19 +51,12 @@ impl Time {
     /// # use time::{Time, macros::time};
     /// assert_eq!(Time::MIDNIGHT, time!("0:00"));
     /// ```
-    pub const MIDNIGHT: Self = Self {
-        hour: 0,
-        minute: 0,
-        second: 0,
-        nanosecond: 0,
-        padding: hack::Padding::Optimize,
-    };
+    pub const MIDNIGHT: Self = Self::__from_hms_nanos_unchecked(0, 0, 0, 0);
 
     // region: constructors
     /// Create a `Time` from its components.
     #[doc(hidden)]
-    #[deprecated(note = "This method should only ever be called from the included macros.")]
-    pub const fn from_hms_nanos_unchecked(
+    pub const fn __from_hms_nanos_unchecked(
         hour: u8,
         minute: u8,
         second: u8,
@@ -95,13 +88,7 @@ impl Time {
         ensure_value_in_range!(hour in 0 => 23);
         ensure_value_in_range!(minute in 0 => 59);
         ensure_value_in_range!(second in 0 => 59);
-        Ok(Self {
-            hour,
-            minute,
-            second,
-            nanosecond: 0,
-            padding: hack::Padding::Optimize,
-        })
+        Ok(Self::__from_hms_nanos_unchecked(hour, minute, second, 0))
     }
 
     /// Attempt to create a `Time` from the hour, minute, second, and millisecond.
@@ -128,13 +115,12 @@ impl Time {
         ensure_value_in_range!(minute in 0 => 59);
         ensure_value_in_range!(second in 0 => 59);
         ensure_value_in_range!(millisecond in 0 => 999);
-        Ok(Self {
+        Ok(Self::__from_hms_nanos_unchecked(
             hour,
             minute,
             second,
-            nanosecond: millisecond as u32 * 1_000_000,
-            padding: hack::Padding::Optimize,
-        })
+            millisecond as u32 * 1_000_000,
+        ))
     }
 
     /// Attempt to create a `Time` from the hour, minute, second, and microsecond.
@@ -161,13 +147,12 @@ impl Time {
         ensure_value_in_range!(minute in 0 => 59);
         ensure_value_in_range!(second in 0 => 59);
         ensure_value_in_range!(microsecond in 0 => 999_999);
-        Ok(Self {
+        Ok(Self::__from_hms_nanos_unchecked(
             hour,
             minute,
             second,
-            nanosecond: microsecond * 1_000,
-            padding: hack::Padding::Optimize,
-        })
+            microsecond * 1_000,
+        ))
     }
 
     /// Attempt to create a `Time` from the hour, minute, second, and nanosecond.
@@ -194,13 +179,9 @@ impl Time {
         ensure_value_in_range!(minute in 0 => 59);
         ensure_value_in_range!(second in 0 => 59);
         ensure_value_in_range!(nanosecond in 0 => 999_999_999);
-        Ok(Self {
-            hour,
-            minute,
-            second,
-            nanosecond,
-            padding: hack::Padding::Optimize,
-        })
+        Ok(Self::__from_hms_nanos_unchecked(
+            hour, minute, second, nanosecond,
+        ))
     }
     // endregion constructors
 
@@ -374,13 +355,12 @@ impl Time {
 
         (
             date_adjustment,
-            Self {
-                hour: hours as _,
-                minute: minutes as _,
-                second: seconds as _,
-                nanosecond: nanoseconds as _,
-                padding: hack::Padding::Optimize,
-            },
+            Self::__from_hms_nanos_unchecked(
+                hours as _,
+                minutes as _,
+                seconds as _,
+                nanoseconds as _,
+            ),
         )
     }
 
@@ -406,13 +386,7 @@ impl Time {
 
         (
             is_next_day,
-            Self {
-                hour,
-                minute,
-                second,
-                nanosecond,
-                padding: hack::Padding::Optimize,
-            },
+            Self::__from_hms_nanos_unchecked(hour, minute, second, nanosecond),
         )
     }
 
@@ -438,13 +412,7 @@ impl Time {
 
         (
             is_previous_day,
-            Self {
-                hour: hour as _,
-                minute: minute as _,
-                second: second as _,
-                nanosecond: nanosecond as _,
-                padding: hack::Padding::Optimize,
-            },
+            Self::__from_hms_nanos_unchecked(hour as _, minute as _, second as _, nanosecond as _),
         )
     }
     // endregion arithmetic helpers

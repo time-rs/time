@@ -6,41 +6,11 @@ use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, Tok
 use crate::peeking_take_while::PeekableExt;
 use crate::Error;
 
-/// `#[allow(deprecated)]` attribute
-fn allow_deprecated() -> TokenStream {
-    [
-        TokenTree::Punct(Punct::new('#', Spacing::Alone)),
-        TokenTree::Group(Group::new(
-            Delimiter::Bracket,
-            [
-                TokenTree::Ident(Ident::new("allow", Span::call_site())),
-                TokenTree::Group(Group::new(
-                    Delimiter::Parenthesis,
-                    [TokenTree::Ident(Ident::new(
-                        "deprecated",
-                        Span::call_site(),
-                    ))]
-                    .iter()
-                    .cloned()
-                    .collect(),
-                )),
-            ]
-            .iter()
-            .cloned()
-            .collect(),
-        )),
-    ]
-    .iter()
-    .cloned()
-    .collect()
-}
-
 /// Simulate a const block, ensuring that the value will be computed at compile-time.
 pub(crate) fn const_block(value: TokenStream, type_: TokenStream) -> TokenStream {
     TokenStream::from(TokenTree::Group(Group::new(
         Delimiter::Brace,
         [
-            allow_deprecated(),
             TokenStream::from(TokenTree::Ident(Ident::new("const", Span::call_site()))),
             TokenStream::from(TokenTree::Ident(Ident::new("VALUE", Span::call_site()))),
             TokenStream::from(TokenTree::Punct(Punct::new(':', Spacing::Alone))),

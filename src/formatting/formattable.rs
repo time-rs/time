@@ -120,7 +120,7 @@ impl sealed::Formattable for Rfc3339 {
         if !(0..10_000).contains(&year) {
             return Err(error::Format::InvalidComponent("year"));
         }
-        if offset.seconds != 0 {
+        if offset.seconds_past_minute() != 0 {
             return Err(error::Format::InvalidComponent("offset_second"));
         }
 
@@ -130,16 +130,16 @@ impl sealed::Formattable for Rfc3339 {
         bytes += output.write(&[b'-'])?;
         bytes += format_number(output, date.day(), Padding::Zero, 2)?;
         bytes += output.write(&[b'T'])?;
-        bytes += format_number(output, time.hour, Padding::Zero, 2)?;
+        bytes += format_number(output, time.hour(), Padding::Zero, 2)?;
         bytes += output.write(&[b':'])?;
-        bytes += format_number(output, time.minute, Padding::Zero, 2)?;
+        bytes += format_number(output, time.minute(), Padding::Zero, 2)?;
         bytes += output.write(&[b':'])?;
-        bytes += format_number(output, time.second, Padding::Zero, 2)?;
+        bytes += format_number(output, time.second(), Padding::Zero, 2)?;
 
-        if time.nanosecond != 0 {
+        if time.nanosecond() != 0 {
             bytes += output.write(&[b'.'])?;
 
-            let (value, width) = match time.nanosecond {
+            let (value, width) = match time.nanosecond() {
                 nanos if nanos % 10 != 0 => (nanos, 9),
                 nanos if (nanos / 10) % 10 != 0 => (nanos / 10, 8),
                 nanos if (nanos / 100) % 10 != 0 => (nanos / 100, 7),
@@ -163,9 +163,14 @@ impl sealed::Formattable for Rfc3339 {
         } else {
             &[b'+']
         })?;
-        bytes += format_number(output, offset.hours.abs() as u8, Padding::Zero, 2)?;
+        bytes += format_number(output, offset.whole_hours().abs() as u8, Padding::Zero, 2)?;
         bytes += output.write(&[b':'])?;
-        bytes += format_number(output, offset.minutes.abs() as u8, Padding::Zero, 2)?;
+        bytes += format_number(
+            output,
+            offset.minutes_past_hour().abs() as u8,
+            Padding::Zero,
+            2,
+        )?;
 
         Ok(bytes)
     }

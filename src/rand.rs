@@ -3,17 +3,16 @@
 use rand::distributions::{Distribution, Standard};
 use rand::Rng;
 
-use crate::{hack, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 impl Distribution<Time> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Time {
-        Time {
-            hour: rng.gen_range(0..24),
-            minute: rng.gen_range(0..60),
-            second: rng.gen_range(0..60),
-            nanosecond: rng.gen_range(0..1_000_000_000),
-            padding: hack::Padding::Optimize,
-        }
+        Time::__from_hms_nanos_unchecked(
+            rng.gen_range(0..24),
+            rng.gen_range(0..60),
+            rng.gen_range(0..60),
+            rng.gen_range(0..1_000_000_000),
+        )
     }
 }
 
@@ -39,11 +38,7 @@ impl Distribution<UtcOffset> for Standard {
             seconds *= -1;
         }
 
-        UtcOffset {
-            hours,
-            minutes,
-            seconds,
-        }
+        UtcOffset::__from_hms_unchecked(hours, minutes, seconds)
     }
 }
 

@@ -11,7 +11,7 @@ use crate::error;
 use crate::formatting::formattable::sealed::Formattable;
 #[cfg(feature = "parsing")]
 use crate::parsing::parsable::sealed::Parsable;
-use crate::{hack, util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
+use crate::{util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
 
 /// Combined date and time.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -309,7 +309,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-01-01 23:59:59").hour(), 23);
     /// ```
     pub const fn hour(self) -> u8 {
-        self.time.hour
+        self.time.hour()
     }
 
     /// Get the minute within the hour.
@@ -322,7 +322,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-01-01 23:59:59").minute(), 59);
     /// ```
     pub const fn minute(self) -> u8 {
-        self.time.minute
+        self.time.minute()
     }
 
     /// Get the second within the minute.
@@ -335,7 +335,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!("2019-01-01 23:59:59").second(), 59);
     /// ```
     pub const fn second(self) -> u8 {
-        self.time.second
+        self.time.second()
     }
 
     /// Get the milliseconds within the second.
@@ -380,7 +380,7 @@ impl PrimitiveDateTime {
     /// );
     /// ```
     pub const fn nanosecond(self) -> u32 {
-        self.time.nanosecond
+        self.time.nanosecond()
     }
     // endregion time getters
 
@@ -468,9 +468,9 @@ impl PrimitiveDateTime {
     /// Assuming that the current [`PrimitiveDateTime`] is a value in the provided [`UtcOffset`],
     /// obtain the equivalent value in the UTC.
     pub(crate) const fn offset_to_utc(self, offset: UtcOffset) -> Self {
-        let mut second = self.second() as i8 - offset.seconds;
-        let mut minute = self.minute() as i8 - offset.minutes;
-        let mut hour = self.hour() as i8 - offset.hours;
+        let mut second = self.second() as i8 - offset.seconds_past_minute();
+        let mut minute = self.minute() as i8 - offset.minutes_past_hour();
+        let mut hour = self.hour() as i8 - offset.whole_hours();
         let (mut year, mut ordinal) = self.date.to_ordinal_date();
 
         cascade!(second in 0..60 => minute);
@@ -479,25 +479,24 @@ impl PrimitiveDateTime {
         cascade!(ordinal => year);
 
         Self {
-            date: Date::from_ordinal_date_unchecked(year, ordinal),
-            time: Time {
-                hour: hour as _,
-                minute: minute as _,
-                second: second as _,
-                nanosecond: self.nanosecond(),
-                padding: hack::Padding::Optimize,
-            },
+            date: Date::__from_ordinal_date_unchecked(year, ordinal),
+            time: Time::__from_hms_nanos_unchecked(
+                hour as _,
+                minute as _,
+                second as _,
+                self.nanosecond(),
+            ),
         }
     }
 
     /// Assuming that the current [`PrimitiveDateTime`] is a value in UTC, obtain the equivalent
     /// value in the provided [`UtcOffset`].
     pub(crate) const fn utc_to_offset(self, offset: UtcOffset) -> Self {
-        self.offset_to_utc(UtcOffset {
-            hours: -offset.hours,
-            minutes: -offset.minutes,
-            seconds: -offset.seconds,
-        })
+        self.offset_to_utc(UtcOffset::__from_hms_unchecked(
+            -offset.whole_hours(),
+            -offset.minutes_past_hour(),
+            -offset.seconds_past_minute(),
+        ))
     }
 }
 // endregion offset conversion helpers

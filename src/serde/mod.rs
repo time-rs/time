@@ -147,9 +147,9 @@ impl Serialize for OffsetDateTime {
             self.minute(),
             self.second(),
             self.nanosecond(),
-            self.offset.hours,
-            self.offset.minutes,
-            self.offset.seconds,
+            self.offset.whole_hours(),
+            self.offset.minutes_past_hour(),
+            self.offset.seconds_past_minute(),
         )
             .serialize(serializer)
     }
@@ -271,7 +271,7 @@ impl Serialize for Time {
             });
         }
 
-        (self.hour, self.minute, self.second, self.nanosecond).serialize(serializer)
+        (self.hour(), self.minute(), self.second(), self.nanosecond()).serialize(serializer)
     }
 }
 
@@ -318,7 +318,12 @@ impl Serialize for UtcOffset {
             });
         }
 
-        (self.hours, self.minutes, self.seconds).serialize(serializer)
+        (
+            self.whole_hours(),
+            self.minutes_past_hour(),
+            self.seconds_past_minute(),
+        )
+            .serialize(serializer)
     }
 }
 

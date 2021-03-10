@@ -15,10 +15,10 @@ use std::time::SystemTime;
 use crate::formatting::formattable::sealed::Formattable;
 #[cfg(feature = "parsing")]
 use crate::parsing::parsable::sealed::Parsable;
-use crate::{error, hack, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{error, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// The Julian day of the Unix epoch.
-const UNIX_EPOCH_JULIAN_DAY: i32 = Date::from_ordinal_date_unchecked(1970, 1).to_julian_day();
+const UNIX_EPOCH_JULIAN_DAY: i32 = Date::__from_ordinal_date_unchecked(1970, 1).to_julian_day();
 
 /// A [`PrimitiveDateTime`] with a [`UtcOffset`].
 ///
@@ -41,7 +41,7 @@ impl OffsetDateTime {
     /// # use time::{OffsetDateTime, macros::datetime};
     /// assert_eq!(OffsetDateTime::UNIX_EPOCH, datetime!("1970-01-01 0:00 UTC"),);
     /// ```
-    pub const UNIX_EPOCH: Self = Date::from_ordinal_date_unchecked(1970, 1)
+    pub const UNIX_EPOCH: Self = Date::__from_ordinal_date_unchecked(1970, 1)
         .midnight()
         .assume_utc();
 
@@ -140,13 +140,7 @@ impl OffsetDateTime {
         const MIN_TIMESTAMP: i64 = Date::MIN.midnight().assume_utc().unix_timestamp();
         #[allow(clippy::missing_docs_in_private_items)]
         const MAX_TIMESTAMP: i64 = Date::MAX
-            .with_time(Time {
-                hour: 23,
-                minute: 59,
-                second: 59,
-                nanosecond: 999_999_999,
-                padding: hack::Padding::Optimize,
-            })
+            .with_time(Time::__from_hms_nanos_unchecked(23, 59, 59, 999_999_999))
             .assume_utc()
             .unix_timestamp();
 
@@ -158,13 +152,12 @@ impl OffsetDateTime {
         );
 
         let seconds_within_day = rem_euclid!(timestamp, 86_400);
-        let time = Time {
-            hour: (seconds_within_day / 3_600) as _,
-            minute: ((seconds_within_day % 3_600) / 60) as _,
-            second: (seconds_within_day % 60) as _,
-            nanosecond: 0,
-            padding: hack::Padding::Optimize,
-        };
+        let time = Time::__from_hms_nanos_unchecked(
+            (seconds_within_day / 3_600) as _,
+            ((seconds_within_day % 3_600) / 60) as _,
+            (seconds_within_day % 60) as _,
+            0,
+        );
 
         Ok(PrimitiveDateTime::new(date, time).assume_utc())
     }
@@ -184,13 +177,19 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange> {
-        let mut datetime = const_try!(Self::from_unix_timestamp(
+        let datetime = const_try!(Self::from_unix_timestamp(
             div_floor!(timestamp, 1_000_000_000) as i64
         ));
 
-        datetime.utc_datetime.time.nanosecond = rem_euclid!(timestamp, 1_000_000_000) as u32;
-
-        Ok(datetime)
+        Ok(datetime
+            .utc_datetime
+            .replace_time(Time::__from_hms_nanos_unchecked(
+                datetime.utc_datetime.hour(),
+                datetime.utc_datetime.minute(),
+                datetime.utc_datetime.second(),
+                rem_euclid!(timestamp, 1_000_000_000) as u32,
+            ))
+            .assume_utc())
     }
     // endregion constructors
 
@@ -249,9 +248,9 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn date(self) -> Date {
-        let second = self.utc_datetime.second() as i8 + self.offset.seconds;
-        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
-        let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
+        let second = self.utc_datetime.second() as i8 + self.offset.seconds_past_minute();
+        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes_past_hour();
+        let mut hour = self.utc_datetime.hour() as i8 + self.offset.whole_hours();
         let (mut year, mut ordinal) = self.utc_datetime.date.to_ordinal_date();
 
         cascade!(!mut second in 0..60 => minute);
@@ -259,7 +258,7 @@ impl OffsetDateTime {
         cascade!(!mut hour in 0..24 => ordinal);
         cascade!(ordinal => year);
 
-        Date::from_ordinal_date_unchecked(year, ordinal)
+        Date::__from_ordinal_date_unchecked(year, ordinal)
     }
 
     /// Get the [`Time`] in the stored offset.
@@ -275,21 +274,20 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn time(self) -> Time {
-        let mut second = self.utc_datetime.second() as i8 + self.offset.seconds;
-        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
-        let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
+        let mut second = self.utc_datetime.second() as i8 + self.offset.seconds_past_minute();
+        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes_past_hour();
+        let mut hour = self.utc_datetime.hour() as i8 + self.offset.whole_hours();
 
         cascade!(second in 0..60 => minute);
         cascade!(minute in 0..60 => hour);
         cascade!(hour in 0..24 => _);
 
-        Time {
-            hour: hour as _,
-            minute: minute as _,
-            second: second as _,
-            nanosecond: self.utc_datetime.nanosecond(),
-            padding: hack::Padding::Optimize,
-        }
+        Time::__from_hms_nanos_unchecked(
+            hour as _,
+            minute as _,
+            second as _,
+            self.utc_datetime.nanosecond(),
+        )
     }
 
     // region: date getters
@@ -307,9 +305,9 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!("2020-01-01 0:00 UTC").year(), 2020);
     /// ```
     pub const fn year(self) -> i32 {
-        let second = self.utc_datetime.second() as i8 + self.offset.seconds;
-        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
-        let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
+        let second = self.utc_datetime.second() as i8 + self.offset.seconds_past_minute();
+        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes_past_hour();
+        let mut hour = self.utc_datetime.hour() as i8 + self.offset.whole_hours();
         let (mut year, mut ordinal) = self.utc_datetime.date.to_ordinal_date();
 
         cascade!(!mut second in 0..60 => minute);
@@ -371,9 +369,9 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn ordinal(self) -> u16 {
-        let second = self.utc_datetime.second() as i8 + self.offset.seconds;
-        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
-        let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
+        let second = self.utc_datetime.second() as i8 + self.offset.seconds_past_minute();
+        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes_past_hour();
+        let mut hour = self.utc_datetime.hour() as i8 + self.offset.whole_hours();
         let (year, mut ordinal) = self.utc_datetime.date.to_ordinal_date();
 
         cascade!(!mut second in 0..60 => minute);
@@ -591,9 +589,9 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn hour(self) -> u8 {
-        let second = self.utc_datetime.second() as i8 + self.offset.seconds;
-        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
-        let mut hour = self.utc_datetime.hour() as i8 + self.offset.hours;
+        let second = self.utc_datetime.second() as i8 + self.offset.seconds_past_minute();
+        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes_past_hour();
+        let mut hour = self.utc_datetime.hour() as i8 + self.offset.whole_hours();
 
         cascade!(!mut second in 0..60 => minute);
         cascade!(!mut minute in 0..60 => hour);
@@ -617,8 +615,8 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn minute(self) -> u8 {
-        let second = self.utc_datetime.second() as i8 + self.offset.seconds;
-        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes;
+        let second = self.utc_datetime.second() as i8 + self.offset.seconds_past_minute();
+        let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes_past_hour();
 
         cascade!(!mut second in 0..60 => minute);
         cascade!(minute in 0..60 => _);
@@ -641,7 +639,7 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn second(self) -> u8 {
-        let mut second = self.utc_datetime.second() as i8 + self.offset.seconds;
+        let mut second = self.utc_datetime.second() as i8 + self.offset.seconds_past_minute();
         cascade!(second in 0..60 => _);
         second as _
     }

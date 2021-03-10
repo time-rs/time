@@ -55,18 +55,18 @@ impl Date {
     /// The minimum valid `Date`.
     ///
     /// The value of this may vary depending on the feature flags enabled.
-    pub const MIN: Self = Self::from_ordinal_date_unchecked(MIN_YEAR, 1);
+    pub const MIN: Self = Self::__from_ordinal_date_unchecked(MIN_YEAR, 1);
 
     /// The maximum valid `Date`.
     ///
     /// The value of this may vary depending on the feature flags enabled.
-    pub const MAX: Self = Self::from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR));
+    pub const MAX: Self = Self::__from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR));
 
     // region: constructors
     /// Construct a `Date` from the year and ordinal values, the validity of which must be
     /// guaranteed by the caller.
     #[doc(hidden)]
-    pub const fn from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
+    pub const fn __from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
         Self {
             value: (year << 9) | ordinal as i32,
         }
@@ -99,7 +99,7 @@ impl Date {
         ensure_value_in_range!(month in 1 => 12);
         ensure_value_in_range!(day conditionally in 1 => days_in_year_month(year, month));
 
-        Ok(Self::from_ordinal_date_unchecked(
+        Ok(Self::__from_ordinal_date_unchecked(
             year,
             DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
                 + day as u16,
@@ -121,7 +121,7 @@ impl Date {
     pub const fn from_ordinal_date(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(ordinal conditionally in 1 => days_in_year(year));
-        Ok(Self::from_ordinal_date_unchecked(year, ordinal))
+        Ok(Self::__from_ordinal_date_unchecked(year, ordinal))
     }
 
     /// Attempt to create a `Date` from the ISO year, week, and weekday.
@@ -157,7 +157,7 @@ impl Date {
             });
 
         if overflow || ordinal == 0 {
-            return Ok(Self::from_ordinal_date_unchecked(
+            return Ok(Self::__from_ordinal_date_unchecked(
                 year - 1,
                 ordinal.wrapping_add(days_in_year(year - 1)),
             ));
@@ -165,12 +165,12 @@ impl Date {
 
         let days_in_cur_year = days_in_year(year);
         if ordinal > days_in_cur_year {
-            Ok(Self::from_ordinal_date_unchecked(
+            Ok(Self::__from_ordinal_date_unchecked(
                 year + 1,
                 ordinal - days_in_cur_year,
             ))
         } else {
-            Ok(Self::from_ordinal_date_unchecked(year, ordinal))
+            Ok(Self::__from_ordinal_date_unchecked(year, ordinal))
         }
     }
 
@@ -227,7 +227,7 @@ impl Date {
             cascade!(ordinal in 1..366 => year);
         }
 
-        Self::from_ordinal_date_unchecked(year, ordinal)
+        Self::__from_ordinal_date_unchecked(year, ordinal)
     }
     // endregion constructors
 
@@ -466,7 +466,7 @@ impl Date {
             if self.value == Self::MAX.value {
                 None
             } else {
-                Some(Self::from_ordinal_date_unchecked(self.year() + 1, 1))
+                Some(Self::__from_ordinal_date_unchecked(self.year() + 1, 1))
             }
         } else {
             Some(Self {
@@ -501,7 +501,7 @@ impl Date {
         } else if self.value == Self::MIN.value {
             None
         } else {
-            Some(Self::from_ordinal_date_unchecked(
+            Some(Self::__from_ordinal_date_unchecked(
                 self.year() - 1,
                 days_in_year(self.year() - 1),
             ))

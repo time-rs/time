@@ -42,7 +42,7 @@ use quickcheck_dep::{empty_shrinker, single_shrinker, Arbitrary, Gen};
 
 use crate::date::{MAX_YEAR, MIN_YEAR};
 use crate::util::days_in_year;
-use crate::{hack, Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// Obtain an arbitrary value between the minimum and maximum inclusive.
 macro_rules! arbitrary_between {
@@ -58,7 +58,7 @@ impl Arbitrary for Date {
     fn arbitrary(g: &mut Gen) -> Self {
         let year = arbitrary_between!(i32; g, MIN_YEAR, MAX_YEAR);
         let ordinal = arbitrary_between!(u16; g, 1, days_in_year(year));
-        Self::from_ordinal_date_unchecked(year, ordinal)
+        Self::__from_ordinal_date_unchecked(year, ordinal)
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
@@ -108,25 +108,20 @@ impl Arbitrary for Duration {
 
 impl Arbitrary for Time {
     fn arbitrary(g: &mut Gen) -> Self {
-        Self {
-            hour: arbitrary_between!(u8; g, 0, 23),
-            minute: arbitrary_between!(u8; g, 0, 59),
-            second: arbitrary_between!(u8; g, 0, 59),
-            nanosecond: arbitrary_between!(u32; g, 0, 999_999_999),
-            padding: hack::Padding::Optimize,
-        }
+        Self::__from_hms_nanos_unchecked(
+            arbitrary_between!(u8; g, 0, 23),
+            arbitrary_between!(u8; g, 0, 59),
+            arbitrary_between!(u8; g, 0, 59),
+            arbitrary_between!(u32; g, 0, 999_999_999),
+        )
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
         Box::new(
             self.as_hms_nano()
                 .shrink()
-                .map(|(hour, minute, second, nanosecond)| Self {
-                    hour,
-                    minute,
-                    second,
-                    nanosecond,
-                    padding: hack::Padding::Optimize,
+                .map(|(hour, minute, second, nanosecond)| {
+                    Self::__from_hms_nanos_unchecked(hour, minute, second, nanosecond)
                 }),
         )
     }
@@ -162,11 +157,7 @@ impl Arbitrary for UtcOffset {
             seconds *= -1;
         }
 
-        Self {
-            hours,
-            minutes,
-            seconds,
-        }
+        Self::__from_hms_unchecked(hours, minutes, seconds)
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
@@ -186,11 +177,7 @@ impl Arbitrary for UtcOffset {
                         seconds *= -1;
                     }
 
-                    Self {
-                        hours,
-                        minutes,
-                        seconds,
-                    }
+                    Self::__from_hms_unchecked(hours, minutes, seconds)
                 }),
         )
     }

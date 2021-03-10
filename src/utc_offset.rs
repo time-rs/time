@@ -31,11 +31,11 @@ use crate::OffsetDateTime;
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct UtcOffset {
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) hours: i8,
+    hours: i8,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) minutes: i8,
+    minutes: i8,
     #[allow(clippy::missing_docs_in_private_items)]
-    pub(crate) seconds: i8,
+    seconds: i8,
 }
 
 impl UtcOffset {
@@ -45,19 +45,14 @@ impl UtcOffset {
     /// # use time::{UtcOffset, macros::offset};
     /// assert_eq!(UtcOffset::UTC, offset!("UTC"));
     /// ```
-    pub const UTC: Self = Self {
-        hours: 0,
-        minutes: 0,
-        seconds: 0,
-    };
+    pub const UTC: Self = Self::__from_hms_unchecked(0, 0, 0);
 
     // region: constructors
     /// Create a `UtcOffset` representing an offset of the hours, minutes, and seconds provided, the
     /// validity of which must be guaranteed by the caller. All three parameters must have the same
     /// sign.
     #[doc(hidden)]
-    #[deprecated(note = "This method should only ever be called from the included macros.")]
-    pub const fn from_hms_unchecked(hours: i8, minutes: i8, seconds: i8) -> Self {
+    pub const fn __from_hms_unchecked(hours: i8, minutes: i8, seconds: i8) -> Self {
         Self {
             hours,
             minutes,
@@ -97,11 +92,7 @@ impl UtcOffset {
             seconds *= -1;
         }
 
-        Ok(Self {
-            hours,
-            minutes,
-            seconds,
-        })
+        Ok(Self::__from_hms_unchecked(hours, minutes, seconds))
     }
     // endregion constructors
 
@@ -344,11 +335,7 @@ impl Neg for UtcOffset {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Self {
-            hours: -self.hours,
-            minutes: -self.minutes,
-            seconds: -self.seconds,
-        }
+        Self::__from_hms_unchecked(-self.hours, -self.minutes, -self.seconds)
     }
 }
 

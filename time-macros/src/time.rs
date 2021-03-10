@@ -102,7 +102,7 @@ impl ToTokens for Time {
                 TokenTree::Ident(Ident::new("Time", Span::call_site())),
                 TokenTree::Punct(Punct::new(':', Spacing::Joint)),
                 TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("from_hms_nanos_unchecked", Span::call_site())),
+                TokenTree::Ident(Ident::new("__from_hms_nanos_unchecked", Span::call_site())),
                 TokenTree::Group(Group::new(
                     Delimiter::Parenthesis,
                     [

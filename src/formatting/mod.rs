@@ -285,7 +285,7 @@ fn fmt_hour(
         is_12_hour_clock,
     }: modifier::Hour,
 ) -> Result<usize, io::Error> {
-    let value = match (time.hour, is_12_hour_clock) {
+    let value = match (time.hour(), is_12_hour_clock) {
         (hour, false) => hour,
         (0, true) | (12, true) => 12,
         (hour, true) if hour < 12 => hour,
@@ -300,7 +300,7 @@ fn fmt_minute(
     time: Time,
     modifier::Minute { padding }: modifier::Minute,
 ) -> Result<usize, io::Error> {
-    format_number(output, time.minute, padding, 2)
+    format_number(output, time.minute(), padding, 2)
 }
 
 /// Format the period into the designated output.
@@ -309,7 +309,7 @@ fn fmt_period(
     time: Time,
     modifier::Period { is_uppercase }: modifier::Period,
 ) -> Result<usize, io::Error> {
-    match (time.hour >= 12, is_uppercase) {
+    match (time.hour() >= 12, is_uppercase) {
         (false, false) => output.write(b"am"),
         (false, true) => output.write(b"AM"),
         (true, false) => output.write(b"pm"),
@@ -323,7 +323,7 @@ fn fmt_second(
     time: Time,
     modifier::Second { padding }: modifier::Second,
 ) -> Result<usize, io::Error> {
-    format_number(output, time.second, padding, 2)
+    format_number(output, time.second(), padding, 2)
 }
 
 /// Format the subsecond into the designated output.
@@ -333,16 +333,16 @@ fn fmt_subsecond(
     modifier::Subsecond { digits }: modifier::Subsecond,
 ) -> Result<usize, io::Error> {
     let (value, width) = match digits {
-        modifier::SubsecondDigits::One => (time.nanosecond / 100_000_000, 1),
-        modifier::SubsecondDigits::Two => (time.nanosecond / 10_000_000, 2),
-        modifier::SubsecondDigits::Three => (time.nanosecond / 1_000_000, 3),
-        modifier::SubsecondDigits::Four => (time.nanosecond / 100_000, 4),
-        modifier::SubsecondDigits::Five => (time.nanosecond / 10_000, 5),
-        modifier::SubsecondDigits::Six => (time.nanosecond / 1_000, 6),
-        modifier::SubsecondDigits::Seven => (time.nanosecond / 100, 7),
-        modifier::SubsecondDigits::Eight => (time.nanosecond / 10, 8),
-        modifier::SubsecondDigits::Nine => (time.nanosecond, 9),
-        modifier::SubsecondDigits::OneOrMore => match time.nanosecond {
+        modifier::SubsecondDigits::One => (time.nanosecond() / 100_000_000, 1),
+        modifier::SubsecondDigits::Two => (time.nanosecond() / 10_000_000, 2),
+        modifier::SubsecondDigits::Three => (time.nanosecond() / 1_000_000, 3),
+        modifier::SubsecondDigits::Four => (time.nanosecond() / 100_000, 4),
+        modifier::SubsecondDigits::Five => (time.nanosecond() / 10_000, 5),
+        modifier::SubsecondDigits::Six => (time.nanosecond() / 1_000, 6),
+        modifier::SubsecondDigits::Seven => (time.nanosecond() / 100, 7),
+        modifier::SubsecondDigits::Eight => (time.nanosecond() / 10, 8),
+        modifier::SubsecondDigits::Nine => (time.nanosecond(), 9),
+        modifier::SubsecondDigits::OneOrMore => match time.nanosecond() {
             nanos if nanos % 10 != 0 => (nanos, 9),
             nanos if (nanos / 10) % 10 != 0 => (nanos / 10, 8),
             nanos if (nanos / 100) % 10 != 0 => (nanos / 100, 7),
@@ -374,7 +374,7 @@ fn fmt_offset_hour(
     } else if sign_is_mandatory {
         bytes += output.write(&[b'+'])?;
     }
-    bytes += format_number(output, offset.hours.abs() as u8, padding, 2)?;
+    bytes += format_number(output, offset.whole_hours().abs() as u8, padding, 2)?;
     Ok(bytes)
 }
 
@@ -384,7 +384,7 @@ fn fmt_offset_minute(
     offset: UtcOffset,
     modifier::OffsetMinute { padding }: modifier::OffsetMinute,
 ) -> Result<usize, io::Error> {
-    format_number(output, offset.minutes.abs() as u8, padding, 2)
+    format_number(output, offset.minutes_past_hour().abs() as u8, padding, 2)
 }
 
 /// Format the offset second into the designated output.
@@ -393,6 +393,6 @@ fn fmt_offset_second(
     offset: UtcOffset,
     modifier::OffsetSecond { padding }: modifier::OffsetSecond,
 ) -> Result<usize, io::Error> {
-    format_number(output, offset.seconds.abs() as u8, padding, 2)
+    format_number(output, offset.seconds_past_minute().abs() as u8, padding, 2)
 }
 // endregion offset formatters
