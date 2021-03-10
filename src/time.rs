@@ -11,7 +11,16 @@ use crate::formatting::formattable::sealed::Formattable;
 #[cfg(feature = "parsing")]
 use crate::parsing::parsable::sealed::Parsable;
 use crate::util::DateAdjustment;
-use crate::{error, hack, Duration};
+use crate::{error, Duration};
+
+/// By explicitly inserting this enum where padding is expected, the compiler is able to better
+/// perform niche value optimization.
+#[repr(u8)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum Padding {
+    #[allow(clippy::missing_docs_in_private_items)]
+    Optimize,
+}
 
 /// The clock time within a given date. Nanosecond precision.
 ///
@@ -30,7 +39,7 @@ pub struct Time {
     #[allow(clippy::missing_docs_in_private_items)]
     nanosecond: u32,
     #[allow(clippy::missing_docs_in_private_items)]
-    padding: hack::Padding,
+    padding: Padding,
 }
 
 impl fmt::Debug for Time {
@@ -67,7 +76,7 @@ impl Time {
             minute,
             second,
             nanosecond,
-            padding: hack::Padding::Optimize,
+            padding: Padding::Optimize,
         }
     }
 
