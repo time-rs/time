@@ -244,7 +244,7 @@ fn weekday() {
 fn to_julian_day() {
     assert_eq!(
         datetime!("-999_999-01-01 0:00 UTC").to_julian_day(),
-        -363521074
+        -363_521_074
     );
     assert_eq!(datetime!("-4713-11-24 0:00 UTC").to_julian_day(), 0);
     assert_eq!(datetime!("2000-01-01 0:00 UTC").to_julian_day(), 2_451_545);
@@ -490,36 +490,45 @@ fn add_std_duration() {
 
 #[test]
 fn add_assign_duration() {
-    let mut ny19 = datetime!("2019-01-01 0:00 UTC");
-    ny19 += 5.days();
-    assert_eq!(ny19, datetime!("2019-01-06 0:00 UTC"));
+    let mut new_years_day_2019 = datetime!("2019-01-01 0:00 UTC");
+    new_years_day_2019 += 5.days();
+    assert_eq!(new_years_day_2019, datetime!("2019-01-06 0:00 UTC"));
 
-    let mut nye20 = datetime!("2019-12-31 0:00 UTC");
-    nye20 += 1.days();
-    assert_eq!(nye20, datetime!("2020-01-01 0:00 UTC"));
+    let mut new_years_eve_2020_days = datetime!("2019-12-31 0:00 UTC");
+    new_years_eve_2020_days += 1.days();
+    assert_eq!(new_years_eve_2020_days, datetime!("2020-01-01 0:00 UTC"));
 
-    let mut nye20t = datetime!("2019-12-31 23:59:59 UTC");
-    nye20t += 2.seconds();
-    assert_eq!(nye20t, datetime!("2020-01-01 0:00:01 UTC"));
+    let mut new_years_eve_2020_seconds = datetime!("2019-12-31 23:59:59 UTC");
+    new_years_eve_2020_seconds += 2.seconds();
+    assert_eq!(
+        new_years_eve_2020_seconds,
+        datetime!("2020-01-01 0:00:01 UTC")
+    );
 
-    let mut ny20t = datetime!("2020-01-01 0:00:01 UTC");
-    ny20t += (-2).seconds();
-    assert_eq!(ny20t, datetime!("2019-12-31 23:59:59 UTC"));
+    let mut new_years_day_2020_seconds = datetime!("2020-01-01 0:00:01 UTC");
+    new_years_day_2020_seconds += (-2).seconds();
+    assert_eq!(
+        new_years_day_2020_seconds,
+        datetime!("2019-12-31 23:59:59 UTC")
+    );
 }
 
 #[test]
 fn add_assign_std_duration() {
-    let mut ny19 = datetime!("2019-01-01 0:00 UTC");
-    ny19 += 5.std_days();
-    assert_eq!(ny19, datetime!("2019-01-06 0:00 UTC"));
+    let mut new_years_day_2019 = datetime!("2019-01-01 0:00 UTC");
+    new_years_day_2019 += 5.std_days();
+    assert_eq!(new_years_day_2019, datetime!("2019-01-06 0:00 UTC"));
 
-    let mut nye20 = datetime!("2019-12-31 0:00 UTC");
-    nye20 += 1.std_days();
-    assert_eq!(nye20, datetime!("2020-01-01 0:00 UTC"));
+    let mut new_years_eve_2020_days = datetime!("2019-12-31 0:00 UTC");
+    new_years_eve_2020_days += 1.std_days();
+    assert_eq!(new_years_eve_2020_days, datetime!("2020-01-01 0:00 UTC"));
 
-    let mut nye20t = datetime!("2019-12-31 23:59:59 UTC");
-    nye20t += 2.std_seconds();
-    assert_eq!(nye20t, datetime!("2020-01-01 0:00:01 UTC"));
+    let mut new_years_eve_2020_seconds = datetime!("2019-12-31 23:59:59 UTC");
+    new_years_eve_2020_seconds += 2.std_seconds();
+    assert_eq!(
+        new_years_eve_2020_seconds,
+        datetime!("2020-01-01 0:00:01 UTC")
+    );
 }
 
 #[test]
@@ -564,21 +573,27 @@ fn sub_std_duration() {
 
 #[test]
 fn sub_assign_duration() {
-    let mut ny19 = datetime!("2019-01-06 0:00 UTC");
-    ny19 -= 5.days();
-    assert_eq!(ny19, datetime!("2019-01-01 0:00 UTC"));
+    let mut new_years_day_2019 = datetime!("2019-01-06 0:00 UTC");
+    new_years_day_2019 -= 5.days();
+    assert_eq!(new_years_day_2019, datetime!("2019-01-01 0:00 UTC"));
 
-    let mut ny20 = datetime!("2020-01-01 0:00 UTC");
-    ny20 -= 1.days();
-    assert_eq!(ny20, datetime!("2019-12-31 0:00 UTC"));
+    let mut new_years_day_2020_days = datetime!("2020-01-01 0:00 UTC");
+    new_years_day_2020_days -= 1.days();
+    assert_eq!(new_years_day_2020_days, datetime!("2019-12-31 0:00 UTC"));
 
-    let mut ny20t = datetime!("2020-01-01 0:00:01 UTC");
-    ny20t -= 2.seconds();
-    assert_eq!(ny20t, datetime!("2019-12-31 23:59:59 UTC"));
+    let mut new_years_day_2020_seconds = datetime!("2020-01-01 0:00:01 UTC");
+    new_years_day_2020_seconds -= 2.seconds();
+    assert_eq!(
+        new_years_day_2020_seconds,
+        datetime!("2019-12-31 23:59:59 UTC")
+    );
 
-    let mut nye20t = datetime!("2019-12-31 23:59:59 UTC");
-    nye20t -= (-2).seconds();
-    assert_eq!(nye20t, datetime!("2020-01-01 0:00:01 UTC"));
+    let mut new_years_eve_2020_seconds = datetime!("2019-12-31 23:59:59 UTC");
+    new_years_eve_2020_seconds -= (-2).seconds();
+    assert_eq!(
+        new_years_eve_2020_seconds,
+        datetime!("2020-01-01 0:00:01 UTC")
+    );
 }
 
 #[test]
@@ -622,21 +637,27 @@ fn std_add_duration() {
 
 #[test]
 fn std_add_assign_duration() {
-    let mut ny19 = SystemTime::from(datetime!("2019-01-01 0:00 UTC"));
-    ny19 += 5.days();
-    assert_eq!(ny19, datetime!("2019-01-06 0:00 UTC"));
+    let mut new_years_day_2019 = SystemTime::from(datetime!("2019-01-01 0:00 UTC"));
+    new_years_day_2019 += 5.days();
+    assert_eq!(new_years_day_2019, datetime!("2019-01-06 0:00 UTC"));
 
-    let mut nye20 = SystemTime::from(datetime!("2019-12-31 0:00 UTC"));
-    nye20 += 1.days();
-    assert_eq!(nye20, datetime!("2020-01-01 0:00 UTC"));
+    let mut new_years_eve_2020_days = SystemTime::from(datetime!("2019-12-31 0:00 UTC"));
+    new_years_eve_2020_days += 1.days();
+    assert_eq!(new_years_eve_2020_days, datetime!("2020-01-01 0:00 UTC"));
 
-    let mut nye20t = SystemTime::from(datetime!("2019-12-31 23:59:59 UTC"));
-    nye20t += 2.seconds();
-    assert_eq!(nye20t, datetime!("2020-01-01 0:00:01 UTC"));
+    let mut new_years_eve_2020_seconds = SystemTime::from(datetime!("2019-12-31 23:59:59 UTC"));
+    new_years_eve_2020_seconds += 2.seconds();
+    assert_eq!(
+        new_years_eve_2020_seconds,
+        datetime!("2020-01-01 0:00:01 UTC")
+    );
 
-    let mut ny20t = SystemTime::from(datetime!("2020-01-01 0:00:01 UTC"));
-    ny20t += (-2).seconds();
-    assert_eq!(ny20t, datetime!("2019-12-31 23:59:59 UTC"));
+    let mut new_years_day_2020_seconds = SystemTime::from(datetime!("2020-01-01 0:00:01 UTC"));
+    new_years_day_2020_seconds += (-2).seconds();
+    assert_eq!(
+        new_years_day_2020_seconds,
+        datetime!("2019-12-31 23:59:59 UTC")
+    );
 }
 
 #[test]
@@ -661,21 +682,27 @@ fn std_sub_duration() {
 
 #[test]
 fn std_sub_assign_duration() {
-    let mut ny19 = SystemTime::from(datetime!("2019-01-06 0:00 UTC"));
-    ny19 -= 5.days();
-    assert_eq!(ny19, datetime!("2019-01-01 0:00 UTC"));
+    let mut new_years_day_2019 = SystemTime::from(datetime!("2019-01-06 0:00 UTC"));
+    new_years_day_2019 -= 5.days();
+    assert_eq!(new_years_day_2019, datetime!("2019-01-01 0:00 UTC"));
 
-    let mut ny20 = SystemTime::from(datetime!("2020-01-01 0:00 UTC"));
-    ny20 -= 1.days();
-    assert_eq!(ny20, datetime!("2019-12-31 0:00 UTC"));
+    let mut new_years_day_2020 = SystemTime::from(datetime!("2020-01-01 0:00 UTC"));
+    new_years_day_2020 -= 1.days();
+    assert_eq!(new_years_day_2020, datetime!("2019-12-31 0:00 UTC"));
 
-    let mut ny20t = SystemTime::from(datetime!("2020-01-01 0:00:01 UTC"));
-    ny20t -= 2.seconds();
-    assert_eq!(ny20t, datetime!("2019-12-31 23:59:59 UTC"));
+    let mut new_years_day_2020_seconds = SystemTime::from(datetime!("2020-01-01 0:00:01 UTC"));
+    new_years_day_2020_seconds -= 2.seconds();
+    assert_eq!(
+        new_years_day_2020_seconds,
+        datetime!("2019-12-31 23:59:59 UTC")
+    );
 
-    let mut nye20t = SystemTime::from(datetime!("2019-12-31 23:59:59 UTC"));
-    nye20t -= (-2).seconds();
-    assert_eq!(nye20t, datetime!("2020-01-01 0:00:01 UTC"));
+    let mut new_years_eve_2020_seconds = SystemTime::from(datetime!("2019-12-31 23:59:59 UTC"));
+    new_years_eve_2020_seconds -= (-2).seconds();
+    assert_eq!(
+        new_years_eve_2020_seconds,
+        datetime!("2020-01-01 0:00:01 UTC")
+    );
 }
 
 #[test]

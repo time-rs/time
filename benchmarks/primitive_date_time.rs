@@ -9,20 +9,20 @@ setup_benchmark! {
     // a second time.
 
     // region: attach offset
-    fn assume_offset(ben: &mut Bencher) {
+    fn assume_offset(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-01 0:00").assume_offset(offset!("UTC")),
             datetime!("2019-01-01 0:00").assume_offset(offset!("-1")),
         ));
     }
 
-    fn assume_utc(ben: &mut Bencher) {
+    fn assume_utc(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!("2019-01-01 0:00").assume_utc());
     }
     // endregion attach offset
 
     // region: trait impls
-    fn add_duration(ben: &mut Bencher) {
+    fn add_duration(ben: &mut Bencher<'_>) {
         let a = 5.days();
         let b = 1.days();
         let c = 2.seconds();
@@ -38,7 +38,7 @@ setup_benchmark! {
         ));
     }
 
-    fn add_std_duration(ben: &mut Bencher) {
+    fn add_std_duration(ben: &mut Bencher<'_>) {
         let a = 5.std_days();
         let b = 1.std_days();
         let c = 2.std_seconds();
@@ -50,7 +50,7 @@ setup_benchmark! {
         ));
     }
 
-    fn add_assign_duration(ben: &mut Bencher) {
+    fn add_assign_duration(ben: &mut Bencher<'_>) {
         let a = 1.days();
         let b = 1.seconds();
         ben.iter_batched_ref(
@@ -63,7 +63,7 @@ setup_benchmark! {
         );
     }
 
-    fn add_assign_std_duration(ben: &mut Bencher) {
+    fn add_assign_std_duration(ben: &mut Bencher<'_>) {
         let a = 1.std_days();
         let b = 1.std_seconds();
         ben.iter_batched_ref(
@@ -76,7 +76,7 @@ setup_benchmark! {
         );
     }
 
-    fn sub_duration(ben: &mut Bencher) {
+    fn sub_duration(ben: &mut Bencher<'_>) {
         let a = 5.days();
         let b = 1.days();
         let c = 2.seconds();
@@ -92,7 +92,7 @@ setup_benchmark! {
         ));
     }
 
-    fn sub_std_duration(ben: &mut Bencher) {
+    fn sub_std_duration(ben: &mut Bencher<'_>) {
         let a = 5.std_days();
         let b = 1.std_days();
         let c = 2.std_seconds();
@@ -104,7 +104,7 @@ setup_benchmark! {
         ));
     }
 
-    fn sub_assign_duration(ben: &mut Bencher) {
+    fn sub_assign_duration(ben: &mut Bencher<'_>) {
         let a = 1.days();
         let b = 1.seconds();
         ben.iter_batched_ref(
@@ -117,7 +117,7 @@ setup_benchmark! {
         );
     }
 
-    fn sub_assign_std_duration(ben: &mut Bencher) {
+    fn sub_assign_std_duration(ben: &mut Bencher<'_>) {
         let a = 1.std_days();
         let b = 1.std_seconds();
         ben.iter_batched_ref(
@@ -130,7 +130,7 @@ setup_benchmark! {
         );
     }
 
-    fn sub_datetime(ben: &mut Bencher) {
+    fn sub_datetime(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-02 0:00") - datetime!("2019-01-01 0:00"),
             datetime!("2019-01-01 0:00") - datetime!("2019-01-02 0:00"),
@@ -139,7 +139,7 @@ setup_benchmark! {
         ));
     }
 
-    fn ord(ben: &mut Bencher) {
+    fn ord(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-01 0:00").partial_cmp(&datetime!("2019-01-01 0:00")),
             datetime!("2019-01-01 0:00").partial_cmp(&datetime!("2020-01-01 0:00")),

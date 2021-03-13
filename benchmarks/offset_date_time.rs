@@ -2,23 +2,23 @@ use std::time::SystemTime;
 
 use criterion::{BatchSize, Bencher};
 use time::ext::{NumericalDuration, NumericalStdDuration};
-use time::macros::{datetime, offset, date, time};
+use time::macros::{date, datetime, offset, time};
 use time::OffsetDateTime;
 
 setup_benchmark! {
     "OffsetDateTime",
 
     // region: now
-    fn now_utc(ben: &mut Bencher) {
+    fn now_utc(ben: &mut Bencher<'_>) {
         ben.iter(OffsetDateTime::now_utc);
     }
 
-    fn now_local(ben: &mut Bencher) {
+    fn now_local(ben: &mut Bencher<'_>) {
         ben.iter(OffsetDateTime::now_local);
     }
     // endregion now
 
-    fn to_offset(ben: &mut Bencher) {
+    fn to_offset(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2000-01-01 0:00 +11").to_offset(offset!("-5")),
             datetime!("2000-01-01 0:00 +11").to_offset(offset!("-8")),
@@ -26,14 +26,14 @@ setup_benchmark! {
     }
 
     // region: constructors
-    fn from_unix_timestamp(ben: &mut Bencher) {
+    fn from_unix_timestamp(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             OffsetDateTime::from_unix_timestamp(0),
             OffsetDateTime::from_unix_timestamp(1_546_300_800),
         ));
     }
 
-    fn from_unix_timestamp_nanos(ben: &mut Bencher) {
+    fn from_unix_timestamp_nanos(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             OffsetDateTime::from_unix_timestamp_nanos(0),
             OffsetDateTime::from_unix_timestamp_nanos(1_546_300_800_000_000_000),
@@ -42,7 +42,7 @@ setup_benchmark! {
     // endregion constructors
 
     // region: getters
-    fn offset(ben: &mut Bencher) {
+    fn offset(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-01 0:00 UTC").offset(),
             datetime!("2019-01-01 0:00 +1").offset(),
@@ -50,7 +50,7 @@ setup_benchmark! {
         ));
     }
 
-    fn unix_timestamp(ben: &mut Bencher) {
+    fn unix_timestamp(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             OffsetDateTime::UNIX_EPOCH.unix_timestamp(),
             datetime!("1970-01-01 1:00 +1").unix_timestamp(),
@@ -58,7 +58,7 @@ setup_benchmark! {
         ));
     }
 
-    fn unix_timestamp_nanos(ben: &mut Bencher) {
+    fn unix_timestamp_nanos(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("1970-01-01 0:00 UTC").unix_timestamp_nanos(),
             datetime!("1970-01-01 1:00 +1").unix_timestamp_nanos(),
@@ -66,49 +66,49 @@ setup_benchmark! {
         ));
     }
 
-    fn date(ben: &mut Bencher) {
+    fn date(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-01 0:00 UTC").date(),
             datetime!("2018-12-31 23:00 -1").date(),
         ));
     }
 
-    fn time(ben: &mut Bencher) {
+    fn time(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-01 0:00 UTC").time(),
             datetime!("2018-12-31 23:00 -1").time(),
         ));
     }
 
-    fn year(ben: &mut Bencher) {
+    fn year(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-01 0:00 UTC").year(),
             datetime!("2018-12-31 23:00 -1").year(),
         ));
     }
 
-    fn ordinal(ben: &mut Bencher) {
+    fn ordinal(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-01 0:00 UTC").ordinal(),
             datetime!("2018-12-31 23:00 -1").ordinal(),
         ));
     }
 
-    fn hour(ben: &mut Bencher) {
+    fn hour(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-01 0:00 UTC").hour(),
             datetime!("2018-12-31 23:00 -1").hour(),
         ));
     }
 
-    fn minute(ben: &mut Bencher) {
+    fn minute(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-01 0:00 UTC").minute(),
             datetime!("2018-12-31 23:00 -1").minute(),
         ));
     }
 
-    fn second(ben: &mut Bencher) {
+    fn second(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-01 0:00 UTC").second(),
             datetime!("2018-12-31 23:00 -1").second(),
@@ -117,7 +117,7 @@ setup_benchmark! {
     // endregion getters
 
     // region: replacement
-    fn replace_time(ben: &mut Bencher) {
+    fn replace_time(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2020-01-01 5:00 UTC").replace_time(time!("12:00")),
             datetime!("2020-01-01 12:00 -5").replace_time(time!("7:00")),
@@ -125,44 +125,44 @@ setup_benchmark! {
         ));
     }
 
-    fn replace_date(ben: &mut Bencher) {
+    fn replace_date(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2020-01-01 12:00 UTC").replace_date(date!("2020-01-30")),
             datetime!("2020-01-01 0:00 +1").replace_date(date!("2020-01-30")),
         ));
     }
 
-    fn replace_date_time(ben: &mut Bencher) {
+    fn replace_date_time(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2020-01-01 12:00 UTC").replace_date_time(datetime!("2020-01-30 16:00")),
             datetime!("2020-01-01 12:00 +1").replace_date_time(datetime!("2020-01-30 0:00")),
         ));
     }
 
-    fn replace_offset(ben: &mut Bencher) {
+    fn replace_offset(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!("2020-01-01 0:00 UTC").replace_offset(offset!("-5")));
     }
     // endregion replacement
 
     // region: trait impls
-    fn partial_eq(ben: &mut Bencher) {
+    fn partial_eq(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!("1999-12-31 23:00 -1") == datetime!("2000-01-01 0:00 UTC"));
     }
 
-    fn partial_ord(ben: &mut Bencher) {
+    fn partial_ord(ben: &mut Bencher<'_>) {
         ben.iter(||
             datetime!("2019-01-01 0:00 UTC").partial_cmp(&datetime!("1999-12-31 23:00 -1"))
         );
     }
 
-    fn ord(ben: &mut Bencher) {
+    fn ord(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-01 0:00 UTC") == datetime!("2018-12-31 23:00 -1"),
             datetime!("2019-01-01 0:00:00.000_000_001 UTC") > datetime!("2019-01-01 0:00 UTC")),
         );
     }
 
-    fn hash(ben: &mut Bencher) {
+    fn hash(ben: &mut Bencher<'_>) {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::Hash;
 
@@ -176,7 +176,7 @@ setup_benchmark! {
         );
     }
 
-    fn add_duration(ben: &mut Bencher) {
+    fn add_duration(ben: &mut Bencher<'_>) {
         let a = 5.days();
         let b = 1.days();
         let c = 2.seconds();
@@ -192,7 +192,7 @@ setup_benchmark! {
         ));
     }
 
-    fn add_std_duration(ben: &mut Bencher) {
+    fn add_std_duration(ben: &mut Bencher<'_>) {
         let a = 5.std_days();
         let b = 1.std_days();
         let c = 2.std_seconds();
@@ -204,7 +204,7 @@ setup_benchmark! {
         ));
     }
 
-    fn add_assign_duration(ben: &mut Bencher) {
+    fn add_assign_duration(ben: &mut Bencher<'_>) {
         let a = 1.days();
         let b = 1.seconds();
         ben.iter_batched_ref(
@@ -217,7 +217,7 @@ setup_benchmark! {
         );
     }
 
-    fn add_assign_std_duration(ben: &mut Bencher) {
+    fn add_assign_std_duration(ben: &mut Bencher<'_>) {
         let a = 1.std_days();
         let b = 1.std_seconds();
         ben.iter_batched_ref(
@@ -230,7 +230,7 @@ setup_benchmark! {
         );
     }
 
-    fn sub_duration(ben: &mut Bencher) {
+    fn sub_duration(ben: &mut Bencher<'_>) {
         let a = 5.days();
         let b = 1.days();
         let c = 2.seconds();
@@ -242,7 +242,7 @@ setup_benchmark! {
         ));
     }
 
-    fn sub_std_duration(ben: &mut Bencher) {
+    fn sub_std_duration(ben: &mut Bencher<'_>) {
         let a = 5.std_days();
         let b = 1.std_days();
         let c = 2.std_seconds();
@@ -254,7 +254,7 @@ setup_benchmark! {
         ));
     }
 
-    fn sub_assign_duration(ben: &mut Bencher) {
+    fn sub_assign_duration(ben: &mut Bencher<'_>) {
         let a = 1.days();
         let b = 1.seconds();
         ben.iter_batched_ref(
@@ -267,7 +267,7 @@ setup_benchmark! {
         );
     }
 
-    fn sub_assign_std_duration(ben: &mut Bencher) {
+    fn sub_assign_std_duration(ben: &mut Bencher<'_>) {
         let a = 1.std_days();
         let b = 1.std_seconds();
         ben.iter_batched_ref(
@@ -280,7 +280,7 @@ setup_benchmark! {
         );
     }
 
-    fn std_add_duration(ben: &mut Bencher) {
+    fn std_add_duration(ben: &mut Bencher<'_>) {
         let a1 = SystemTime::from(datetime!("2019-01-01 0:00 UTC"));
         let a2 = 0.seconds();
         let b1 = SystemTime::from(datetime!("2019-01-01 0:00 UTC"));
@@ -300,20 +300,20 @@ setup_benchmark! {
         ));
     }
 
-    fn std_add_assign_duration(ben: &mut Bencher) {
-        let dta = 1.days();
-        let dtb = 1.seconds();
+    fn std_add_assign_duration(ben: &mut Bencher<'_>) {
+        let a = 1.days();
+        let b = 1.seconds();
         ben.iter_batched_ref(
             || SystemTime::from(datetime!("2019-01-01 0:00 UTC")),
             |datetime| {
-                *datetime += dta;
-                *datetime += dtb;
+                *datetime += a;
+                *datetime += b;
             },
             BatchSize::SmallInput
         );
     }
 
-    fn std_sub_duration(ben: &mut Bencher) {
+    fn std_sub_duration(ben: &mut Bencher<'_>) {
         let a1 = SystemTime::from(datetime!("2019-01-06 0:00 UTC"));
         let a2 = 5.days();
         let b1 = SystemTime::from(datetime!("2020-01-01 0:00 UTC"));
@@ -330,7 +330,7 @@ setup_benchmark! {
         ));
     }
 
-    fn std_sub_assign_duration(ben: &mut Bencher) {
+    fn std_sub_assign_duration(ben: &mut Bencher<'_>) {
         let a = 1.days();
         let b = 1.seconds();
         ben.iter_batched_ref(
@@ -343,7 +343,7 @@ setup_benchmark! {
         );
     }
 
-    fn sub_self(ben: &mut Bencher) {
+    fn sub_self(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             datetime!("2019-01-02 0:00 UTC") - datetime!("2019-01-01 0:00 UTC"),
             datetime!("2019-01-01 0:00 UTC") - datetime!("2019-01-02 0:00 UTC"),
@@ -352,7 +352,7 @@ setup_benchmark! {
         ));
     }
 
-    fn std_sub(ben: &mut Bencher) {
+    fn std_sub(ben: &mut Bencher<'_>) {
         let a = SystemTime::from(datetime!("2019-01-02 0:00 UTC"));
         let b = SystemTime::from(datetime!("2019-01-01 0:00 UTC"));
         let c = SystemTime::from(datetime!("2020-01-01 0:00 UTC"));
@@ -366,7 +366,7 @@ setup_benchmark! {
         ));
     }
 
-    fn sub_std(ben: &mut Bencher) {
+    fn sub_std(ben: &mut Bencher<'_>) {
         let a = SystemTime::from(datetime!("2019-01-01 0:00 UTC"));
         let b = SystemTime::from(datetime!("2019-01-02 0:00 UTC"));
         let c = SystemTime::from(datetime!("2019-12-31 0:00 UTC"));
@@ -380,19 +380,19 @@ setup_benchmark! {
         ));
     }
 
-    fn eq_std(ben: &mut Bencher) {
+    fn eq_std(ben: &mut Bencher<'_>) {
         let a = OffsetDateTime::now_utc();
         let b = SystemTime::from(a);
         ben.iter(|| a == b);
     }
 
-    fn std_eq(ben: &mut Bencher) {
+    fn std_eq(ben: &mut Bencher<'_>) {
         let a = OffsetDateTime::now_utc();
         let b = SystemTime::from(a);
         ben.iter(|| b == a)
     }
 
-    fn ord_std(ben: &mut Bencher) {
+    fn ord_std(ben: &mut Bencher<'_>) {
         let a = SystemTime::from(datetime!("2019-01-01 0:00 UTC"));
         let b = SystemTime::from(datetime!("2020-01-01 0:00 UTC"));
         let c = SystemTime::from(datetime!("2019-02-01 0:00 UTC"));
@@ -428,7 +428,7 @@ setup_benchmark! {
         ));
     }
 
-    fn std_ord(ben: &mut Bencher) {
+    fn std_ord(ben: &mut Bencher<'_>) {
         let a = SystemTime::from(datetime!("2019-01-01 0:00 UTC"));
         let b = SystemTime::from(datetime!("2019-01-01 0:00 UTC"));
         let c = SystemTime::from(datetime!("2019-01-01 0:00 UTC"));
@@ -464,7 +464,7 @@ setup_benchmark! {
         ));
     }
 
-    fn from_std(ben: &mut Bencher) {
+    fn from_std(ben: &mut Bencher<'_>) {
         let a = SystemTime::UNIX_EPOCH;
         let b = SystemTime::UNIX_EPOCH - 1.std_days();
         let c = SystemTime::UNIX_EPOCH + 1.std_days();
@@ -475,7 +475,7 @@ setup_benchmark! {
         ));
     }
 
-    fn to_std(ben: &mut Bencher) {
+    fn to_std(ben: &mut Bencher<'_>) {
         let a = OffsetDateTime::UNIX_EPOCH;
         let b = OffsetDateTime::UNIX_EPOCH + 1.days();
         let c = OffsetDateTime::UNIX_EPOCH - 1.days();

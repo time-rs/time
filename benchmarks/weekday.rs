@@ -4,7 +4,7 @@ use time::Weekday::*;
 setup_benchmark! {
     "Weekday",
 
-    fn previous(ben: &mut Bencher) {
+    fn previous(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             Sunday.previous(),
             Monday.previous(),
@@ -16,7 +16,7 @@ setup_benchmark! {
         ));
     }
 
-    fn next(ben: &mut Bencher) {
+    fn next(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             Sunday.next(),
             Monday.next(),
@@ -28,7 +28,7 @@ setup_benchmark! {
         ));
     }
 
-    fn number_from_monday(ben: &mut Bencher) {
+    fn number_from_monday(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             Monday.number_from_monday(),
             Tuesday.number_from_monday(),
@@ -40,7 +40,7 @@ setup_benchmark! {
         ));
     }
 
-    fn number_from_sunday(ben: &mut Bencher) {
+    fn number_from_sunday(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             Sunday.number_from_sunday(),
             Monday.number_from_sunday(),
@@ -52,7 +52,7 @@ setup_benchmark! {
         ));
     }
 
-    fn number_days_from_monday(ben: &mut Bencher) {
+    fn number_days_from_monday(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             Monday.number_days_from_monday(),
             Tuesday.number_days_from_monday(),
@@ -64,7 +64,7 @@ setup_benchmark! {
         ));
     }
 
-    fn number_days_from_sunday(ben: &mut Bencher) {
+    fn number_days_from_sunday(ben: &mut Bencher<'_>) {
         ben.iter(|| (
             Sunday.number_days_from_sunday(),
             Monday.number_days_from_sunday(),

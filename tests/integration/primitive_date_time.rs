@@ -129,7 +129,10 @@ fn weekday() {
 
 #[test]
 fn to_julian_day() {
-    assert_eq!(datetime!("-999_999-01-01 0:00").to_julian_day(), -363521074);
+    assert_eq!(
+        datetime!("-999_999-01-01 0:00").to_julian_day(),
+        -363_521_074
+    );
     assert_eq!(datetime!("-4713-11-24 0:00").to_julian_day(), 0);
     assert_eq!(datetime!("2000-01-01 0:00").to_julian_day(), 2_451_545);
     assert_eq!(datetime!("2019-01-01 0:00").to_julian_day(), 2_458_485);
@@ -289,21 +292,21 @@ fn add_std_duration() {
 
 #[test]
 fn add_assign_duration() {
-    let mut ny19 = datetime!("2019-01-01 0:00");
-    ny19 += 5.days();
-    assert_eq!(ny19, datetime!("2019-01-06 0:00"));
+    let mut new_years_day_2019 = datetime!("2019-01-01 0:00");
+    new_years_day_2019 += 5.days();
+    assert_eq!(new_years_day_2019, datetime!("2019-01-06 0:00"));
 
-    let mut nye20 = datetime!("2019-12-31 0:00");
-    nye20 += 1.days();
-    assert_eq!(nye20, datetime!("2020-01-01 0:00"));
+    let mut new_years_eve_2020_days = datetime!("2019-12-31 0:00");
+    new_years_eve_2020_days += 1.days();
+    assert_eq!(new_years_eve_2020_days, datetime!("2020-01-01 0:00"));
 
-    let mut nye20t = datetime!("2019-12-31 23:59:59");
-    nye20t += 2.seconds();
-    assert_eq!(nye20t, datetime!("2020-01-01 0:00:01"));
+    let mut new_years_eve_2020_seconds = datetime!("2019-12-31 23:59:59");
+    new_years_eve_2020_seconds += 2.seconds();
+    assert_eq!(new_years_eve_2020_seconds, datetime!("2020-01-01 0:00:01"));
 
-    let mut ny20t = datetime!("2020-01-01 0:00:01");
-    ny20t += (-2).seconds();
-    assert_eq!(ny20t, datetime!("2019-12-31 23:59:59"));
+    let mut new_years_day_2020_days = datetime!("2020-01-01 0:00:01");
+    new_years_day_2020_days += (-2).seconds();
+    assert_eq!(new_years_day_2020_days, datetime!("2019-12-31 23:59:59"));
 }
 
 #[test]
@@ -363,21 +366,21 @@ fn sub_std_duration() {
 
 #[test]
 fn sub_assign_duration() {
-    let mut ny19 = datetime!("2019-01-06 0:00");
-    ny19 -= 5.days();
-    assert_eq!(ny19, datetime!("2019-01-01 0:00"));
+    let mut new_years_day_2019 = datetime!("2019-01-06 0:00");
+    new_years_day_2019 -= 5.days();
+    assert_eq!(new_years_day_2019, datetime!("2019-01-01 0:00"));
 
-    let mut ny20 = datetime!("2020-01-01 0:00");
-    ny20 -= 1.days();
-    assert_eq!(ny20, datetime!("2019-12-31 0:00"));
+    let mut new_years_day_2020_days = datetime!("2020-01-01 0:00");
+    new_years_day_2020_days -= 1.days();
+    assert_eq!(new_years_day_2020_days, datetime!("2019-12-31 0:00"));
 
-    let mut ny20t = datetime!("2020-01-01 0:00:01");
-    ny20t -= 2.seconds();
-    assert_eq!(ny20t, datetime!("2019-12-31 23:59:59"));
+    let mut new_years_day_2020_seconds = datetime!("2020-01-01 0:00:01");
+    new_years_day_2020_seconds -= 2.seconds();
+    assert_eq!(new_years_day_2020_seconds, datetime!("2019-12-31 23:59:59"));
 
-    let mut nye20t = datetime!("2019-12-31 23:59:59");
-    nye20t -= (-2).seconds();
-    assert_eq!(nye20t, datetime!("2020-01-01 0:00:01"));
+    let mut new_years_eve_2020_seconds = datetime!("2019-12-31 23:59:59");
+    new_years_eve_2020_seconds -= (-2).seconds();
+    assert_eq!(new_years_eve_2020_seconds, datetime!("2020-01-01 0:00:01"));
 }
 
 #[test]

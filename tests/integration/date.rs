@@ -547,8 +547,8 @@ fn previous_day() {
 
 #[test]
 fn to_julian_day() {
-    assert_eq!(date!("-999_999-01-01").to_julian_day(), -363521074);
-    assert_eq!(date!("-9999-01-01").to_julian_day(), -1930999);
+    assert_eq!(date!("-999_999-01-01").to_julian_day(), -363_521_074);
+    assert_eq!(date!("-9999-01-01").to_julian_day(), -1_930_999);
     assert_eq!(date!("-4713-11-24").to_julian_day(), 0);
     assert_eq!(date!("2000-01-01").to_julian_day(), 2_451_545);
     assert_eq!(date!("2019-01-01").to_julian_day(), 2_458_485);
@@ -561,7 +561,7 @@ fn from_julian_day() {
         Date::from_julian_day(-363_521_074),
         Ok(date!("-999_999-01-01"))
     );
-    assert_eq!(Date::from_julian_day(-1930999), Ok(date!("-9999-01-01")));
+    assert_eq!(Date::from_julian_day(-1_930_999), Ok(date!("-9999-01-01")));
     assert_eq!(Date::from_julian_day(0), Ok(date!("-4713-11-24")));
     assert_eq!(Date::from_julian_day(2_451_545), Ok(date!("2000-01-01")));
     assert_eq!(Date::from_julian_day(2_458_485), Ok(date!("2019-01-01")));

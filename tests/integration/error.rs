@@ -6,6 +6,7 @@ use time::error::{
 };
 use time::format_description::modifier::{self, Padding};
 use time::format_description::{Component, FormatItem};
+use time::macros::format_description;
 use time::{Date, Time};
 
 macro_rules! assert_display_eq {
@@ -34,7 +35,7 @@ fn insufficient_type_information() -> Format {
 }
 
 fn unexpected_trailing_characters() -> Parse {
-    Time::parse("a", &time::format_description::parse("").unwrap()).unwrap_err()
+    Time::parse("a", &format_description!("")).unwrap_err()
 }
 
 #[test]

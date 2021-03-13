@@ -8,13 +8,13 @@ setup_benchmark! {
     "Instant",
 
     // region: checked arithmetic
-    fn checked_add(ben: &mut Bencher) {
+    fn checked_add(ben: &mut Bencher<'_>) {
         let instant = Instant::now();
         let dt = 5.seconds();
         ben.iter(|| instant.checked_add(dt));
     }
 
-    fn checked_sub(ben: &mut Bencher) {
+    fn checked_sub(ben: &mut Bencher<'_>) {
         let instant = Instant::now();
         let dt = 5.seconds();
         ben.iter(|| instant.checked_sub(dt));
@@ -22,25 +22,25 @@ setup_benchmark! {
     // endregion checked arithmetic
 
     // region: trait impls
-    fn sub(ben: &mut Bencher) {
+    fn sub(ben: &mut Bencher<'_>) {
         let start: Instant = Instant::now();
         let end: Instant = start + 1.milliseconds();
         ben.iter(|| end - start);
     }
 
-    fn add_duration(ben: &mut Bencher) {
+    fn add_duration(ben: &mut Bencher<'_>) {
         let start = Instant::now();
         let dt: Duration = 1.seconds();
         ben.iter(|| start + dt);
     }
 
-    fn std_add_duration(ben: &mut Bencher) {
+    fn std_add_duration(ben: &mut Bencher<'_>) {
         let start = StdInstant::now();
         let dt: Duration = 1.milliseconds();
         ben.iter(|| start + dt);
     }
 
-    fn add_assign_duration(ben: &mut Bencher) {
+    fn add_assign_duration(ben: &mut Bencher<'_>) {
         let dt: Duration = 1.milliseconds();
         ben.iter_batched_ref(
             Instant::now,
@@ -51,7 +51,7 @@ setup_benchmark! {
         );
     }
 
-    fn std_add_assign_duration(ben: &mut Bencher) {
+    fn std_add_assign_duration(ben: &mut Bencher<'_>) {
         let dt: Duration = 1.milliseconds();
         ben.iter_batched_ref(
             StdInstant::now,
@@ -62,19 +62,19 @@ setup_benchmark! {
         );
     }
 
-    fn sub_duration(ben: &mut Bencher) {
+    fn sub_duration(ben: &mut Bencher<'_>) {
         let instant = Instant::now();
         let dt: Duration = 100.milliseconds();
         ben.iter(|| instant - dt);
     }
 
-    fn std_sub_duration(ben: &mut Bencher) {
+    fn std_sub_duration(ben: &mut Bencher<'_>) {
         let instant = StdInstant::now();
         let dt: Duration = 100.milliseconds();
         ben.iter(|| instant - dt);
     }
 
-    fn sub_assign_duration(ben: &mut Bencher) {
+    fn sub_assign_duration(ben: &mut Bencher<'_>) {
         let dt: Duration = 100.milliseconds();
         ben.iter_batched_ref(
             Instant::now,
@@ -85,7 +85,7 @@ setup_benchmark! {
         );
     }
 
-    fn std_sub_assign_duration(ben: &mut Bencher) {
+    fn std_sub_assign_duration(ben: &mut Bencher<'_>) {
         let dt: Duration = 100.milliseconds();
         ben.iter_batched_ref(
             StdInstant::now,

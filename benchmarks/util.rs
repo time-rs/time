@@ -4,7 +4,7 @@ use time::util;
 setup_benchmark! {
     "Utils",
 
-    fn is_leap_year(ben: &mut Bencher) {
+    fn is_leap_year(ben: &mut Bencher<'_>) {
         ben.iter(|| {
             for year in 0..400 {
                 black_box(util::is_leap_year(year));
@@ -12,7 +12,7 @@ setup_benchmark! {
         });
     }
 
-    fn days_in_year(ben: &mut Bencher) {
+    fn days_in_year(ben: &mut Bencher<'_>) {
         ben.iter(|| {
             for year in 0..400 {
                 black_box(util::days_in_year(year));
@@ -20,7 +20,7 @@ setup_benchmark! {
         });
     }
 
-    fn weeks_in_year(ben: &mut Bencher) {
+    fn weeks_in_year(ben: &mut Bencher<'_>) {
         ben.iter(|| {
             for year in 0..400 {
                 black_box(util::weeks_in_year(year));

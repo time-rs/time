@@ -5,7 +5,7 @@ use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, W
 setup_benchmark! {
     "Random",
 
-    fn rng(ben: &mut Bencher) {
+    fn rng(ben: &mut Bencher<'_>) {
         ben.iter_batched_ref(
             || rand::rngs::mock::StepRng::new(0, 1),
             |rng| {

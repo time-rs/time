@@ -1,3 +1,37 @@
+#![deny(
+    anonymous_parameters,
+    clippy::all,
+    const_err,
+    illegal_floating_point_literal_pattern,
+    late_bound_lifetime_arguments,
+    path_statements,
+    patterns_in_fns_without_body,
+    rust_2018_idioms,
+    trivial_casts,
+    trivial_numeric_casts,
+    unreachable_pub,
+    unsafe_code,
+    unused_extern_crates
+)]
+#![warn(
+    clippy::dbg_macro,
+    clippy::decimal_literal_representation,
+    clippy::get_unwrap,
+    clippy::nursery,
+    clippy::pedantic,
+    clippy::print_stdout,
+    clippy::todo,
+    clippy::unimplemented,
+    clippy::unwrap_in_result,
+    clippy::unwrap_used,
+    clippy::use_debug,
+    missing_copy_implementations,
+    missing_debug_implementations,
+    unused_qualifications,
+    variant_size_differences
+)]
+#![allow(clippy::enum_glob_use, clippy::many_single_char_names)]
+
 macro_rules! setup_benchmark {
     (
         $group_prefix:literal,
