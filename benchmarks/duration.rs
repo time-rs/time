@@ -1,8 +1,7 @@
 use std::convert::TryFrom;
 use std::time::Duration as StdDuration;
 
-use bench_util::setup_benchmark;
-use criterion::BatchSize;
+use criterion::{BatchSize, Bencher};
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::Duration;
 

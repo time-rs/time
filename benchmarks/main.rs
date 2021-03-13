@@ -1,27 +1,25 @@
-/// Helper macro that wraps code blocks in benchmark functions, and makes sure to add all those
-/// functions to the Criterion benchmark group.
-#[macro_export]
 macro_rules! setup_benchmark {
     (
         $group_prefix:literal,
         $(
             $(#[$fn_attr:meta])*
-            fn $fn_name:ident ($bencher:ident : &mut Bencher)
+            fn $fn_name:ident ($bencher:ident : $bencher_type:ty)
             $code:block
         )*
     ) => {
         $(
             $(#[$fn_attr])*
-            pub fn $fn_name(c: &mut criterion::Criterion) {
-                c.bench_function(&format!("{}: {}", $group_prefix, stringify!($fn_name)), |$bencher| {
-                    $code
-                });
+            fn $fn_name(c: &mut ::criterion::Criterion) {
+                c.bench_function(
+                    concat!($group_prefix, ": ", stringify!($fn_name)),
+                    |$bencher: $bencher_type| $code
+                );
             }
         )*
 
-        criterion::criterion_group! {
+        ::criterion::criterion_group! {
             name = benches;
-            config = criterion::Criterion::default()
+            config = ::criterion::Criterion::default()
                 // Set a stricter statistical significance threshold ("p-value")
                 // for deciding what's an actual performance change vs. noise.
                 // The more benchmarks, the lower this needs to be in order to
@@ -35,6 +33,25 @@ macro_rules! setup_benchmark {
                 .measurement_time(::std::time::Duration::from_millis(400));
             targets = $($fn_name,)*
         }
-        criterion::criterion_main!(benches);
     };
 }
+
+macro_rules! mods {
+    ($($mod:ident)+) => {
+        $(mod $mod;)+
+        criterion::criterion_main!($($mod::benches),+);
+    }
+}
+
+mods![
+    date
+    duration
+    instant
+    offset_date_time
+    primitive_date_time
+    rand
+    time
+    utc_offset
+    util
+    weekday
+];

@@ -120,9 +120,6 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Change directories
-        run: cd time-benchmarks
-
       - name: Cache cargo output
         uses: actions/cache@v2
         with:
@@ -278,7 +275,7 @@ jobs:
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
+          args: --all-features --benches --tests
 
   documentation:
     name: Documentation

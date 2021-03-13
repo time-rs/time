@@ -1,4 +1,4 @@
-use bench_util::setup_benchmark;
+use criterion::Bencher;
 use time::{OffsetDateTime, UtcOffset};
 
 setup_benchmark! {

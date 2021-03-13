@@ -1,5 +1,4 @@
-use bench_util::setup_benchmark;
-use criterion::black_box;
+use criterion::{black_box, Bencher};
 use time::util;
 
 setup_benchmark! {

@@ -1,5 +1,4 @@
-use bench_util::setup_benchmark;
-use criterion::BatchSize;
+use criterion::{BatchSize, Bencher};
 use rand::Rng;
 use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 

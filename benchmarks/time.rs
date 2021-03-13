@@ -1,5 +1,4 @@
-use bench_util::setup_benchmark;
-use criterion::BatchSize;
+use criterion::{BatchSize, Bencher};
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::time;
 use time::Time;
