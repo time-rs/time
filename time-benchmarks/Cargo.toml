@@ -24,22 +24,6 @@ name = "duration"
 harness = false
 
 [[bench]]
-name = "error"
-harness = false
-
-[[bench]]
-name = "ext"
-harness = false
-
-[[bench]]
-name = "ext_std"
-harness = false
-
-[[bench]]
-name = "ext_std_short"
-harness = false
-
-[[bench]]
 name = "instant"
 harness = false
 
@@ -53,10 +37,6 @@ harness = false
 
 [[bench]]
 name = "rand"
-harness = false
-
-[[bench]]
-name = "serde"
 harness = false
 
 [[bench]]

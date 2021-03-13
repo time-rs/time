@@ -9,6 +9,7 @@ use time::Duration;
 setup_benchmark! {
     "Duration",
 
+    // region: is_{sign}
     fn is_zero(ben: &mut Bencher) {
         let a = (-1).nanoseconds();
         let b = 0.seconds();
@@ -41,7 +42,9 @@ setup_benchmark! {
             c.is_positive(),
         ));
     }
+    // endregion is_{sign}
 
+    // region: abs
     fn abs(ben: &mut Bencher) {
         let a = 1.seconds();
         let b = 0.seconds();
@@ -52,7 +55,9 @@ setup_benchmark! {
             c.abs(),
         ));
     }
+    // endregion abs
 
+    // region: constructors
     fn new(ben: &mut Bencher) {
         ben.iter(|| (
             Duration::new(1, 0),
@@ -89,6 +94,77 @@ setup_benchmark! {
         ));
     }
 
+    fn days(ben: &mut Bencher) {
+        ben.iter(|| (
+            Duration::days(1),
+            Duration::days(2),
+            Duration::days(-1),
+            Duration::days(-2),
+        ));
+    }
+
+    fn hours(ben: &mut Bencher) {
+        ben.iter(|| (
+            Duration::hours(1),
+            Duration::hours(2),
+            Duration::hours(-1),
+            Duration::hours(-2),
+        ));
+    }
+
+    fn minutes(ben: &mut Bencher) {
+        ben.iter(|| (
+            Duration::minutes(1),
+            Duration::minutes(2),
+            Duration::minutes(-1),
+            Duration::minutes(-2),
+        ));
+    }
+
+    fn seconds(ben: &mut Bencher) {
+        ben.iter(|| (
+            Duration::seconds(1),
+            Duration::seconds(2),
+            Duration::seconds(-1),
+            Duration::seconds(-2),
+        ));
+    }
+
+    fn seconds_f64(ben: &mut Bencher) {
+        ben.iter(|| (
+            Duration::seconds_f64(0.5),
+            Duration::seconds_f64(-0.5),
+        ));
+    }
+
+    fn seconds_f32(ben: &mut Bencher) {
+        ben.iter(|| (
+            Duration::seconds_f32(0.5),
+            Duration::seconds_f32(-0.5),
+        ));
+    }
+
+    fn milliseconds(ben: &mut Bencher) {
+        ben.iter(|| (
+            Duration::milliseconds(1),
+            Duration::milliseconds(-1),
+        ));
+    }
+
+    fn microseconds(ben: &mut Bencher) {
+        ben.iter(|| (
+            Duration::microseconds(1),
+            Duration::microseconds(-1),
+        ));
+    }
+
+    fn nanoseconds(ben: &mut Bencher) {
+        ben.iter(|| (
+            Duration::nanoseconds(1),
+            Duration::nanoseconds(-1),
+        ));
+    }
+
     fn whole_weeks(ben: &mut Bencher) {
         let a = Duration::weeks(1);
         let b = Duration::weeks(-1);
@@ -101,16 +177,9 @@ setup_benchmark! {
             d.whole_weeks(),
         ));
     }
+    // endregion constructors
 
-    fn days(ben: &mut Bencher) {
-        ben.iter(|| (
-            Duration::days(1),
-            Duration::days(2),
-            Duration::days(-1),
-            Duration::days(-2),
-        ));
-    }
-
+    // region: getters
     fn whole_days(ben: &mut Bencher) {
         let a = Duration::days(1);
         let b = Duration::days(-1);
@@ -121,15 +190,6 @@ setup_benchmark! {
             b.whole_days(),
             c.whole_days(),
             d.whole_days(),
-        ));
-    }
-
-    fn hours(ben: &mut Bencher) {
-        ben.iter(|| (
-            Duration::hours(1),
-            Duration::hours(2),
-            Duration::hours(-1),
-            Duration::hours(-2),
         ));
     }
 
@@ -146,15 +206,6 @@ setup_benchmark! {
         ));
     }
 
-    fn minutes(ben: &mut Bencher) {
-        ben.iter(|| (
-            Duration::minutes(1),
-            Duration::minutes(2),
-            Duration::minutes(-1),
-            Duration::minutes(-2),
-        ));
-    }
-
     fn whole_minutes(ben: &mut Bencher) {
         let a = 1.minutes();
         let b = (-1).minutes();
@@ -168,15 +219,6 @@ setup_benchmark! {
         ));
     }
 
-    fn seconds(ben: &mut Bencher) {
-        ben.iter(|| (
-            Duration::seconds(1),
-            Duration::seconds(2),
-            Duration::seconds(-1),
-            Duration::seconds(-2),
-        ));
-    }
-
     fn whole_seconds(ben: &mut Bencher) {
         let a = 1.seconds();
         let b = (-1).seconds();
@@ -187,13 +229,6 @@ setup_benchmark! {
             b.whole_seconds(),
             c.whole_seconds(),
             d.whole_seconds(),
-        ));
-    }
-
-    fn seconds_f64(ben: &mut Bencher) {
-        ben.iter(|| (
-            Duration::seconds_f64(0.5),
-            Duration::seconds_f64(-0.5),
         ));
     }
 
@@ -214,13 +249,6 @@ setup_benchmark! {
         ));
     }
 
-    fn seconds_f32(ben: &mut Bencher) {
-        ben.iter(|| (
-            Duration::seconds_f32(0.5),
-            Duration::seconds_f32(-0.5),
-        ));
-    }
-
     fn as_seconds_f32(ben: &mut Bencher) {
         let a = 1.seconds();
         let b = (-1).seconds();
@@ -235,13 +263,6 @@ setup_benchmark! {
             d.as_seconds_f32(),
             e.as_seconds_f32(),
             f.as_seconds_f32(),
-        ));
-    }
-
-    fn milliseconds(ben: &mut Bencher) {
-        ben.iter(|| (
-            Duration::milliseconds(1),
-            Duration::milliseconds(-1),
         ));
     }
 
@@ -267,13 +288,6 @@ setup_benchmark! {
         ));
     }
 
-    fn microseconds(ben: &mut Bencher) {
-        ben.iter(|| (
-            Duration::microseconds(1),
-            Duration::microseconds(-1),
-        ));
-    }
-
     fn whole_microseconds(ben: &mut Bencher) {
         let a = 1.milliseconds();
         let b = (-1).milliseconds();
@@ -293,13 +307,6 @@ setup_benchmark! {
         ben.iter(|| (
             a.subsec_microseconds(),
             b.subsec_microseconds(),
-        ));
-    }
-
-    fn nanoseconds(ben: &mut Bencher) {
-        ben.iter(|| (
-            Duration::nanoseconds(1),
-            Duration::nanoseconds(-1),
         ));
     }
 
@@ -324,7 +331,9 @@ setup_benchmark! {
             b.subsec_nanoseconds(),
         ));
     }
+    // endregion getters
 
+    // region: checked arithmetic
     fn checked_add(ben: &mut Bencher) {
         let a = 5.seconds();
         let b = Duration::MAX;
@@ -358,15 +367,84 @@ setup_benchmark! {
     }
 
     fn checked_mul(ben: &mut Bencher) {
-        let d = 5.seconds();
-        ben.iter(|| d.checked_mul(2));
+        let a = 5.seconds();
+        let b = Duration::MAX;
+        ben.iter(|| (
+            a.checked_mul(2),
+            b.checked_mul(2),
+        ));
     }
 
     fn checked_div(ben: &mut Bencher) {
-        let d = 10.seconds();
-        ben.iter(|| d.checked_div(2));
+        let a = 10.seconds();
+        ben.iter(|| (
+            a.checked_div(2),
+            a.checked_div(0),
+        ));
+    }
+    // endregion checked arithmetic
+
+    // region: saturating arithmetic
+    fn saturating_add(ben: &mut Bencher) {
+        let a = 5.seconds();
+        let b = Duration::MAX;
+        let c = Duration::MIN;
+        let d = (-5).seconds();
+
+        let a2 = 5.seconds();
+        let b2 = 1.nanoseconds();
+        let c2 = (-1).nanoseconds();
+        let d2 = 5.seconds();
+
+        ben.iter(|| (
+            a.saturating_add(a2),
+            b.saturating_add(b2),
+            c.saturating_add(c2),
+            d.saturating_add(d2),
+        ));
     }
 
+    fn saturating_sub(ben: &mut Bencher) {
+        let a = 5.seconds();
+        let b = Duration::MIN;
+        let c = Duration::MAX;
+        let d = 5.seconds();
+
+        let a2 = 5.seconds();
+        let b2 = 1.nanoseconds();
+        let c2 = (-1).nanoseconds();
+        let d2 = 10.seconds();
+
+        ben.iter(|| (
+            a.saturating_sub(a2),
+            b.saturating_sub(b2),
+            c.saturating_sub(c2),
+            d.saturating_sub(d2),
+        ));
+    }
+
+    fn saturating_mul(ben: &mut Bencher) {
+        let a = 5.seconds();
+        let b = 5.seconds();
+        let c = 5.seconds();
+        let d = Duration::MAX;
+        let e = Duration::MIN;
+        let f = Duration::MAX;
+        let g = Duration::MIN;
+
+        ben.iter(|| (
+            a.saturating_mul(2),
+            b.saturating_mul(-2),
+            c.saturating_mul(0),
+            d.saturating_mul(2),
+            e.saturating_mul(2),
+            f.saturating_mul(-2),
+            g.saturating_mul(-2),
+        ));
+    }
+    // endregion saturating arithmetic
+
+    // region: trait impls
     fn try_from_std_duration(ben: &mut Bencher) {
         let a = 0.std_seconds();
         let b = 1.std_seconds();
@@ -679,4 +757,5 @@ setup_benchmark! {
             e < c,
         ));
     }
+    // endregion trait impls
 }

@@ -1,95 +1,54 @@
 use bench_util::setup_benchmark;
-use time::macros::offset;
 use time::{OffsetDateTime, UtcOffset};
 
 setup_benchmark! {
     "UtcOffset",
 
+    // region: constructors
     fn from_hms(ben: &mut Bencher) {
-        ben.iter(|| (
-            UtcOffset::from_hms(0, 0, 0),
-            UtcOffset::from_hms(0, 0, 1),
-            UtcOffset::from_hms(0, 0, -1),
-            UtcOffset::from_hms(1, 0, 0),
-            UtcOffset::from_hms(-1, 0, 0),
-            UtcOffset::from_hms(23, 59, 0),
-            UtcOffset::from_hms(-23, -59, 0),
-            UtcOffset::from_hms(23, 59, 59),
-            UtcOffset::from_hms(-23, -59, -59),
-        ));
+        ben.iter(|| UtcOffset::from_hms(0, 0, 0));
     }
+    // endregion constructors
 
+    // region: getters
     fn as_hms(ben: &mut Bencher) {
-        let a = offset!("UTC");
-        let b = offset!("+0:00:01");
-        let c = offset!("-0:00:01");
-        let d = offset!("+1");
-        let e = offset!("-1");
-        let f = offset!("+23:59");
-        let g = offset!("-23:59");
-        let h = offset!("+23:59:59");
-        let i = offset!("-23:59:59");
-
-        ben.iter(|| (
-            a.as_hms(),
-            b.as_hms(),
-            c.as_hms(),
-            d.as_hms(),
-            e.as_hms(),
-            f.as_hms(),
-            g.as_hms(),
-            h.as_hms(),
-            i.as_hms(),
-        ));
+        ben.iter(|| UtcOffset::UTC.as_hms());
     }
 
-    fn to_seconds(ben: &mut Bencher) {
-        let a = offset!("UTC");
-        let b = offset!("+0:00:01");
-        let c = offset!("-0:00:01");
-        let d = offset!("+1");
-        let e = offset!("-1");
-        let f = offset!("+23:59");
-        let g = offset!("-23:59");
-        let h = offset!("+23:59:59");
-        let i = offset!("-23:59:59");
-
-        ben.iter(|| (
-            a.to_seconds(),
-            b.to_seconds(),
-            c.to_seconds(),
-            d.to_seconds(),
-            e.to_seconds(),
-            f.to_seconds(),
-            g.to_seconds(),
-            h.to_seconds(),
-            i.to_seconds(),
-        ));
+    fn whole_hours(ben: &mut Bencher) {
+        ben.iter(|| UtcOffset::UTC.whole_hours());
     }
 
-    fn display(ben: &mut Bencher) {
-        let a = offset!("UTC");
-        let b = offset!("+0:00:01");
-        let c = offset!("-0:00:01");
-        let d = offset!("+1");
-        let e = offset!("-1");
-        let f = offset!("+23:59");
-        let g = offset!("-23:59");
-        let h = offset!("+23:59:59");
-        let i = offset!("-23:59:59");
-
-        ben.iter(|| (
-            a.to_string(),
-            b.to_string(),
-            c.to_string(),
-            d.to_string(),
-            e.to_string(),
-            f.to_string(),
-            g.to_string(),
-            h.to_string(),
-            i.to_string(),
-        ));
+    fn whole_minutes(ben: &mut Bencher) {
+        ben.iter(|| UtcOffset::UTC.whole_minutes());
     }
+
+    fn minutes_past_hour(ben: &mut Bencher) {
+        ben.iter(|| UtcOffset::UTC.minutes_past_hour());
+    }
+
+    fn whole_seconds(ben: &mut Bencher) {
+        ben.iter(|| UtcOffset::UTC.whole_seconds());
+    }
+
+    fn seconds_past_minute(ben: &mut Bencher) {
+        ben.iter(|| UtcOffset::UTC.seconds_past_minute());
+    }
+    // endregion getters
+
+    // region: is_{sign}
+    fn is_utc(ben: &mut Bencher) {
+        ben.iter(|| UtcOffset::UTC.is_utc());
+    }
+
+    fn is_positive(ben: &mut Bencher) {
+        ben.iter(|| UtcOffset::UTC.is_positive());
+    }
+
+    fn is_negative(ben: &mut Bencher) {
+        ben.iter(|| UtcOffset::UTC.is_negative());
+    }
+    // endregion is_{sign}
 
     fn local_offset_at(ben: &mut Bencher) {
         ben.iter(|| UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH));

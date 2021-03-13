@@ -7,303 +7,198 @@ use time::Time;
 setup_benchmark! {
     "Time",
 
+    // region: constructors
     fn from_hms(ben: &mut Bencher) {
-        ben.iter(|| (
-            Time::from_hms(1, 2, 3),
-            Time::from_hms(24, 0, 0),
-            Time::from_hms(0, 60, 0),
-            Time::from_hms(0, 0, 60),
-        ));
+        ben.iter(|| Time::from_hms(1, 2, 3));
     }
 
     fn from_hms_milli(ben: &mut Bencher) {
-        ben.iter(|| (
-            Time::from_hms_milli(1, 2, 3, 4),
-            Time::from_hms_milli(24, 0, 0, 0),
-            Time::from_hms_milli(0, 60, 0, 0),
-            Time::from_hms_milli(0, 0, 60, 0),
-            Time::from_hms_milli(0, 0, 0, 1_000),
-        ));
+        ben.iter(|| Time::from_hms_milli(1, 2, 3, 4));
     }
 
     fn from_hms_micro(ben: &mut Bencher) {
-        ben.iter(|| (
-            Time::from_hms_micro(1, 2, 3, 4),
-            Time::from_hms_micro(24, 0, 0, 0),
-            Time::from_hms_micro(0, 60, 0, 0),
-            Time::from_hms_micro(0, 0, 60, 0),
-            Time::from_hms_micro(0, 0, 0, 1_000_000),
-        ));
+        ben.iter(|| Time::from_hms_micro(1, 2, 3, 4));
     }
 
     fn from_hms_nano(ben: &mut Bencher) {
-        ben.iter(|| (
-            Time::from_hms_nano(1, 2, 3, 4),
-            Time::from_hms_nano(24, 0, 0, 0),
-            Time::from_hms_nano(0, 60, 0, 0),
-            Time::from_hms_nano(0, 0, 60, 0),
-            Time::from_hms_nano(0, 0, 0, 1_000_000_000),
-        ))
+        ben.iter(|| Time::from_hms_nano(1, 2, 3, 4))
     }
+    // endregion constructors
 
+    // region: getters
     fn as_hms(ben: &mut Bencher) {
-        ben.iter(|| time!("1:02:03").as_hms());
+        ben.iter(|| Time::MIDNIGHT.as_hms());
     }
 
     fn as_hms_milli(ben: &mut Bencher) {
-        ben.iter(|| time!("1:02:03.004").as_hms_milli());
+        ben.iter(|| Time::MIDNIGHT.as_hms_milli());
     }
 
     fn as_hms_micro(ben: &mut Bencher) {
-        ben.iter(|| time!("1:02:03.004_005").as_hms_micro());
+        ben.iter(|| Time::MIDNIGHT.as_hms_micro());
     }
 
     fn as_hms_nano(ben: &mut Bencher) {
-        ben.iter(|| time!("1:02:03.004_005_006").as_hms_nano());
+        ben.iter(|| Time::MIDNIGHT.as_hms_nano());
     }
 
     fn hour(ben: &mut Bencher) {
-        let a = Time::from_hms(0, 0, 0).unwrap();
-        let b = Time::from_hms(0, 59, 59).unwrap();
-        let c = Time::from_hms(23, 0, 0).unwrap();
-        let d = Time::from_hms(23, 59, 59).unwrap();
-        ben.iter(|| (
-            a.hour(),
-            b.hour(),
-            c.hour(),
-            d.hour(),
-        ));
+        ben.iter(|| Time::MIDNIGHT.hour());
     }
 
     fn minute(ben: &mut Bencher) {
-        let a = Time::from_hms(0, 0, 0).unwrap();
-        let b = Time::from_hms(23, 0, 59).unwrap();
-        let c = Time::from_hms(0, 23, 0).unwrap();
-        let d = Time::from_hms(23, 23, 59).unwrap();
-        ben.iter(|| (
-            a.minute(),
-            b.minute(),
-            c.minute(),
-            d.minute(),
-        ));
+        ben.iter(|| Time::MIDNIGHT.minute());
     }
 
     fn second(ben: &mut Bencher) {
-        let a = Time::from_hms(0, 0, 0).unwrap();
-        let b = Time::from_hms(23, 59, 0).unwrap();
-        let c = Time::from_hms(0, 0, 23).unwrap();
-        let d = Time::from_hms(23, 59, 23).unwrap();
-        ben.iter(|| (
-            a.second(),
-            b.second(),
-            c.second(),
-            d.second(),
-        ));
+        ben.iter(|| Time::MIDNIGHT.second());
     }
 
     fn millisecond(ben: &mut Bencher) {
-        let a = Time::from_hms_milli(0, 0, 0, 0).unwrap();
-        let b = Time::from_hms_milli(23, 59, 59, 0).unwrap();
-        let c = Time::from_hms_milli(0, 0, 0, 999).unwrap();
-        let d = Time::from_hms_milli(23, 59, 59, 999).unwrap();
-        ben.iter(|| (
-            a.millisecond(),
-            b.millisecond(),
-            c.millisecond(),
-            d.millisecond(),
-        ));
+        ben.iter(|| Time::MIDNIGHT.millisecond());
     }
 
     fn microsecond(ben: &mut Bencher) {
-        let a = Time::from_hms_micro(0, 0, 0, 0).unwrap();
-        let b = Time::from_hms_micro(23, 59, 59, 0).unwrap();
-        let c = Time::from_hms_micro(0, 0, 0, 999_999).unwrap();
-        let d = Time::from_hms_micro(23, 59, 59, 999_999).unwrap();
-        ben.iter(|| (
-            a.microsecond(),
-            b.microsecond(),
-            c.microsecond(),
-            d.microsecond(),
-        ));
+        ben.iter(|| Time::MIDNIGHT.microsecond());
     }
 
     fn nanosecond(ben: &mut Bencher) {
-        let a = Time::from_hms_nano(0, 0, 0, 0).unwrap();
-        let b = Time::from_hms_nano(23, 59, 59, 0).unwrap();
-        let c = Time::from_hms_nano(0, 0, 0, 999_999_999).unwrap();
-        let d = Time::from_hms_nano(23, 59, 59, 999_999_999).unwrap();
-        ben.iter(|| (
-            a.nanosecond(),
-            b.nanosecond(),
-            c.nanosecond(),
-            d.nanosecond(),
-        ));
+        ben.iter(|| Time::MIDNIGHT.nanosecond());
     }
+    // endregion getters
 
-    fn display(ben: &mut Bencher) {
-        let a = time!("0:00");
-        let b = time!("23:59");
-        let c = time!("23:59:59");
-        let d = time!("0:00:01");
-        let e = time!("0:00:00.001");
-        let f = time!("0:00:00.000_001");
-        let g = time!("0:00:00.000_000_001");
-
-        ben.iter(|| (
-            a.to_string(),
-            b.to_string(),
-            c.to_string(),
-            d.to_string(),
-            e.to_string(),
-            f.to_string(),
-            g.to_string(),
-        ));
-    }
-
+    // region: trait impls
     fn add_duration(ben: &mut Bencher) {
-        let t = time!("0:00");
-        let dta = 1.milliseconds();
-        let dtb = 1.seconds();
-        let dtc = 1.minutes();
-        let dtd = 1.hours();
-        let dte = 1.days();
-        ben.iter(|| t + dta + dtb + dtc + dtd + dte);
+        let a = 1.milliseconds();
+        let b = 1.seconds();
+        let c = 1.minutes();
+        let d = 1.hours();
+        let e = 1.days();
+        ben.iter(|| Time::MIDNIGHT + a + b + c + d + e);
     }
 
     fn add_assign_duration(ben: &mut Bencher) {
-        let dta = 1.milliseconds();
-        let dtb = 1.seconds();
-        let dtc = 1.minutes();
-        let dtd = 1.hours();
-        let dte = 1.days();
+        let a = 1.milliseconds();
+        let b = 1.seconds();
+        let c = 1.minutes();
+        let d = 1.hours();
+        let e = 1.days();
         ben.iter_batched_ref(
-            || time!("0:00"),
+            || Time::MIDNIGHT,
             |time| {
-                *time += dta;
-                *time += dtb;
-                *time += dtc;
-                *time += dtd;
-                *time += dte;
+                *time += a;
+                *time += b;
+                *time += c;
+                *time += d;
+                *time += e;
             },
             BatchSize::SmallInput
         );
     }
 
     fn sub_duration(ben: &mut Bencher) {
-        let t = time!("12:00");
+        let a = 1.milliseconds();
+        let b = 1.seconds();
+        let c = 1.minutes();
+        let d = 1.hours();
+        let e = 1.days();
 
-        let dta = 1.milliseconds();
-        let dtb = 1.seconds();
-        let dtc = 1.minutes();
-        let dtd = 1.hours();
-        let dte = 1.days();
-
-        ben.iter(|| t - dta - dtb - dtc - dtd - dte);
+        ben.iter(|| Time::MIDNIGHT - a - b - c - d - e);
     }
 
     fn sub_assign_duration(ben: &mut Bencher) {
-        let dta = 1.milliseconds();
-        let dtb = 1.seconds();
-        let dtc = 1.minutes();
-        let dtd = 1.hours();
-        let dte = 1.days();
+        let a = 1.milliseconds();
+        let b = 1.seconds();
+        let c = 1.minutes();
+        let d = 1.hours();
+        let e = 1.days();
 
         ben.iter_batched_ref(
-            || time!("0:00"),
+            || Time::MIDNIGHT,
             |time| {
-                *time -= dta;
-                *time -= dtb;
-                *time -= dtc;
-                *time -= dtd;
-                *time -= dte;
+                *time -= a;
+                *time -= b;
+                *time -= c;
+                *time -= d;
+                *time -= e;
             },
             BatchSize::SmallInput
         );
     }
 
     fn add_std_duration(ben: &mut Bencher) {
-        let t = time!("0:00");
-        let dta = 1.std_milliseconds();
-        let dtb = 1.std_seconds();
-        let dtc = 1.std_minutes();
-        let dtd = 1.std_hours();
-        let dte = 1.std_days();
-        ben.iter(|| t + dta + dtb + dtc + dtd + dte);
+        let a = 1.std_milliseconds();
+        let b = 1.std_seconds();
+        let c = 1.std_minutes();
+        let d = 1.std_hours();
+        let e = 1.std_days();
+        ben.iter(|| Time::MIDNIGHT + a + b + c + d + e);
     }
 
     fn add_assign_std_duration(ben: &mut Bencher) {
-        let dta = 1.std_milliseconds();
-        let dtb = 1.std_seconds();
-        let dtc = 1.std_minutes();
-        let dtd = 1.std_hours();
-        let dte = 1.std_days();
+        let a = 1.std_milliseconds();
+        let b = 1.std_seconds();
+        let c = 1.std_minutes();
+        let d = 1.std_hours();
+        let e = 1.std_days();
         ben.iter_batched_ref(
-            || time!("0:00"),
+            || Time::MIDNIGHT,
             |time| {
-                *time += dta;
-                *time += dtb;
-                *time += dtc;
-                *time += dtd;
-                *time += dte;
+                *time += a;
+                *time += b;
+                *time += c;
+                *time += d;
+                *time += e;
             },
             BatchSize::SmallInput
         );
     }
 
     fn sub_std_duration(ben: &mut Bencher) {
-        let t = time!("12:00");
+        let a = 1.std_milliseconds();
+        let b = 1.std_seconds();
+        let c = 1.std_minutes();
+        let d = 1.std_hours();
+        let e = 1.std_days();
 
-        let dta = 1.std_milliseconds();
-        let dtb = 1.std_seconds();
-        let dtc = 1.std_minutes();
-        let dtd = 1.std_hours();
-        let dte = 1.std_days();
-
-        ben.iter(|| t - dta - dtb - dtc - dtd - dte);
+        ben.iter(|| Time::MIDNIGHT - a - b - c - d - e);
     }
 
     fn sub_assign_std_duration(ben: &mut Bencher) {
-        let dta = 1.std_milliseconds();
-        let dtb = 1.std_seconds();
-        let dtc = 1.std_minutes();
-        let dtd = 1.std_hours();
-        let dte = 1.std_days();
+        let a = 1.std_milliseconds();
+        let b = 1.std_seconds();
+        let c = 1.std_minutes();
+        let d = 1.std_hours();
+        let e = 1.std_days();
 
         ben.iter_batched_ref(
-            || time!("0:00"),
+            || Time::MIDNIGHT,
             |time| {
-                *time -= dta;
-                *time -= dtb;
-                *time -= dtc;
-                *time -= dtd;
-                *time -= dte;
+                *time -= a;
+                *time -= b;
+                *time -= c;
+                *time -= d;
+                *time -= e;
             },
             BatchSize::SmallInput
         );
     }
 
     fn sub_time(ben: &mut Bencher) {
-        let a = time!("0:00");
-        let b = time!("1:00");
-        let c = time!("0:00:01");
         ben.iter(|| (
-            a - c,
-            b - a,
-            b - c,
+            Time::MIDNIGHT - time!("0:00:01"),
+            time!("1:00") - Time::MIDNIGHT,
+            time!("1:00") - time!("0:00:01"),
         ));
     }
 
     fn ordering(ben: &mut Bencher) {
-        let a = time!("0:00");
-        let b = time!("0:00:00.000_000_001");
-        let c = time!("0:00:01");
-        let d = time!("12:00");
-        let e = time!("11:00");
         ben.iter(|| (
-            a < b,
-            a < c,
-            d > e,
-            a == b,
+            Time::MIDNIGHT < time!("0:00:00.000_000_001"),
+            Time::MIDNIGHT < time!("0:00:01"),
+            time!("12:00") > time!("11:00"),
+            Time::MIDNIGHT == time!("0:00:00.000_000_001"),
         ));
     }
+    // endregion trait impls
 }
