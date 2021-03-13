@@ -18,12 +18,9 @@ impl Distribution<Time> for Standard {
 
 impl Distribution<Date> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Date {
-        match Date::from_julian_day(
+        Date::from_julian_day_unchecked(
             rng.gen_range(Date::MIN.to_julian_day()..=Date::MAX.to_julian_day()),
-        ) {
-            Ok(date) => date,
-            Err(_) => unreachable!("The value is guaranteed to be in the range of valid dates."),
-        }
+        )
     }
 }
 
