@@ -99,7 +99,15 @@ impl Weekday {
     /// assert_eq!(Weekday::Monday.number_days_from_sunday(), 1);
     /// ```
     pub const fn number_days_from_sunday(self) -> u8 {
-        (self as u8 + 1) % 7
+        match self {
+            Monday => 1,
+            Tuesday => 2,
+            Wednesday => 3,
+            Thursday => 4,
+            Friday => 5,
+            Saturday => 6,
+            Sunday => 0,
+        }
     }
 }
 
