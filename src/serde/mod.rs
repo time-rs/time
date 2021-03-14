@@ -76,12 +76,12 @@ impl Serialize for Duration {
         if serializer.is_human_readable() {
             return serializer.collect_str(&format_args!(
                 "{}.{:>09}",
-                self.seconds,
-                self.nanoseconds.abs()
+                self.whole_seconds(),
+                self.subsec_nanoseconds().abs()
             ));
         }
 
-        (self.seconds, self.nanoseconds).serialize(serializer)
+        (self.whole_seconds(), self.subsec_nanoseconds()).serialize(serializer)
     }
 }
 

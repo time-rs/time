@@ -81,15 +81,12 @@ impl Arbitrary for Duration {
             nanoseconds *= -1;
         }
 
-        Self {
-            seconds,
-            nanoseconds,
-        }
+        Self::new_unchecked(seconds, nanoseconds)
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
         Box::new(
-            (self.nanoseconds, self.seconds)
+            (self.subsec_nanoseconds(), self.whole_seconds())
                 .shrink()
                 .map(|(mut nanoseconds, seconds)| {
                     // Coerce the sign if necessary.
@@ -97,10 +94,7 @@ impl Arbitrary for Duration {
                         nanoseconds *= -1;
                     }
 
-                    Self {
-                        seconds,
-                        nanoseconds,
-                    }
+                    Self::new_unchecked(seconds, nanoseconds)
                 }),
         )
     }

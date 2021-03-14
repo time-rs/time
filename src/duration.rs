@@ -1,5 +1,6 @@
 use core::cmp::Ordering;
 use core::convert::{TryFrom, TryInto};
+use core::fmt;
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 
@@ -8,6 +9,21 @@ use const_fn::const_fn;
 use crate::error;
 #[cfg(feature = "std")]
 use crate::Instant;
+
+/// By explicitly inserting this enum where padding is expected, the compiler is able to better
+/// perform niche value optimization.
+#[repr(u32)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+enum Padding {
+    #[allow(clippy::missing_docs_in_private_items)]
+    Optimize,
+}
+
+impl Default for Padding {
+    fn default() -> Self {
+        Self::Optimize
+    }
+}
 
 /// A span of time with nanosecond precision.
 ///
@@ -18,12 +34,23 @@ use crate::Instant;
 /// others.
 ///
 /// This implementation allows for negative durations, unlike [`core::time::Duration`].
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Duration {
     /// Number of whole seconds.
-    pub(crate) seconds: i64,
+    seconds: i64,
     /// Number of nanoseconds within the second. The sign always matches the `seconds` field.
-    pub(crate) nanoseconds: i32, // always -10^9 < nanoseconds < 10^9
+    nanoseconds: i32, // always -10^9 < nanoseconds < 10^9
+    #[allow(clippy::missing_docs_in_private_items)]
+    padding: Padding,
+}
+
+impl fmt::Debug for Duration {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Duration")
+            .field("seconds", &self.seconds)
+            .field("nanoseconds", &self.nanoseconds)
+            .finish()
+    }
 }
 
 impl Duration {
@@ -101,16 +128,10 @@ impl Duration {
     pub const WEEK: Self = Self::weeks(1);
 
     /// The minimum possible duration. Adding any negative duration to this will cause an overflow.
-    pub const MIN: Self = Self {
-        seconds: i64::min_value(),
-        nanoseconds: -999_999_999,
-    };
+    pub const MIN: Self = Self::new_unchecked(i64::min_value(), -999_999_999);
 
     /// The maximum possible duration. Adding any positive duration to this will cause an overflow.
-    pub const MAX: Self = Self {
-        seconds: i64::max_value(),
-        nanoseconds: 999_999_999,
-    };
+    pub const MAX: Self = Self::new_unchecked(i64::max_value(), 999_999_999);
     // endregion constants
 
     // region: is_{sign}
@@ -160,10 +181,7 @@ impl Duration {
     /// assert_eq!((-1).seconds().abs(), 1.seconds());
     /// ```
     pub const fn abs(self) -> Self {
-        Self {
-            seconds: self.seconds.abs(),
-            nanoseconds: self.nanoseconds.abs(),
-        }
+        Self::new_unchecked(self.seconds.abs(), self.nanoseconds.abs())
     }
 
     /// Convert the existing `Duration` to a `std::time::Duration` and its sign. This doesn't
@@ -177,6 +195,15 @@ impl Duration {
     // endregion abs
 
     // region: constructors
+    /// Create a new `Duration` without checking the validity of the components.
+    pub(crate) const fn new_unchecked(seconds: i64, nanoseconds: i32) -> Self {
+        Self {
+            seconds,
+            nanoseconds,
+            padding: Padding::Optimize,
+        }
+    }
+
     /// Create a new `Duration` with the provided seconds and nanoseconds. If nanoseconds is at
     /// least ±10<sup>9</sup>, it will wrap to the number of seconds.
     ///
@@ -198,10 +225,7 @@ impl Duration {
             nanoseconds -= 1_000_000_000;
         }
 
-        Self {
-            seconds,
-            nanoseconds,
-        }
+        Self::new_unchecked(seconds, nanoseconds)
     }
 
     /// Create a new `Duration` with the given number of weeks. Equivalent to
@@ -255,10 +279,7 @@ impl Duration {
     /// assert_eq!(Duration::seconds(1), 1_000.milliseconds());
     /// ```
     pub const fn seconds(seconds: i64) -> Self {
-        Self {
-            seconds,
-            nanoseconds: 0,
-        }
+        Self::new_unchecked(seconds, 0)
     }
 
     /// Creates a new `Duration` from the specified number of seconds represented as `f64`.
@@ -269,10 +290,7 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f64(-0.5), -0.5.seconds());
     /// ```
     pub fn seconds_f64(seconds: f64) -> Self {
-        Self {
-            seconds: seconds as _,
-            nanoseconds: ((seconds % 1.) * 1_000_000_000.) as _,
-        }
+        Self::new_unchecked(seconds as _, ((seconds % 1.) * 1_000_000_000.) as _)
     }
 
     /// Creates a new `Duration` from the specified number of seconds represented as `f32`.
@@ -283,10 +301,7 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
     /// ```
     pub fn seconds_f32(seconds: f32) -> Self {
-        Self {
-            seconds: seconds as _,
-            nanoseconds: ((seconds % 1.) * 1_000_000_000.) as _,
-        }
+        Self::new_unchecked(seconds as _, ((seconds % 1.) * 1_000_000_000.) as _)
     }
 
     /// Create a new `Duration` with the given number of milliseconds.
@@ -297,10 +312,10 @@ impl Duration {
     /// assert_eq!(Duration::milliseconds(-1), (-1_000).microseconds());
     /// ```
     pub const fn milliseconds(milliseconds: i64) -> Self {
-        Self {
-            seconds: milliseconds / 1_000,
-            nanoseconds: ((milliseconds % 1_000) * 1_000_000) as _,
-        }
+        Self::new_unchecked(
+            milliseconds / 1_000,
+            ((milliseconds % 1_000) * 1_000_000) as _,
+        )
     }
 
     /// Create a new `Duration` with the given number of microseconds.
@@ -311,10 +326,10 @@ impl Duration {
     /// assert_eq!(Duration::microseconds(-1), (-1_000).nanoseconds());
     /// ```
     pub const fn microseconds(microseconds: i64) -> Self {
-        Self {
-            seconds: microseconds / 1_000_000,
-            nanoseconds: ((microseconds % 1_000_000) * 1_000) as _,
-        }
+        Self::new_unchecked(
+            microseconds / 1_000_000,
+            ((microseconds % 1_000_000) * 1_000) as _,
+        )
     }
 
     /// Create a new `Duration` with the given number of nanoseconds.
@@ -325,10 +340,10 @@ impl Duration {
     /// assert_eq!(Duration::nanoseconds(-1), (-1).microseconds() / 1_000);
     /// ```
     pub const fn nanoseconds(nanoseconds: i64) -> Self {
-        Self {
-            seconds: nanoseconds / 1_000_000_000,
-            nanoseconds: (nanoseconds % 1_000_000_000) as _,
-        }
+        Self::new_unchecked(
+            nanoseconds / 1_000_000_000,
+            (nanoseconds % 1_000_000_000) as _,
+        )
     }
 
     /// Create a new `Duration` with the given number of nanoseconds.
@@ -336,10 +351,10 @@ impl Duration {
     /// As the input range cannot be fully mapped to the output, this should only be used where it's
     /// known to result in a valid value.
     pub(crate) const fn nanoseconds_i128(nanoseconds: i128) -> Self {
-        Self {
-            seconds: (nanoseconds / 1_000_000_000) as _,
-            nanoseconds: (nanoseconds % 1_000_000_000) as _,
-        }
+        Self::new_unchecked(
+            (nanoseconds / 1_000_000_000) as _,
+            (nanoseconds % 1_000_000_000) as _,
+        )
     }
     // endregion constructors
 
@@ -535,10 +550,7 @@ impl Duration {
             seconds = const_try_opt!(seconds.checked_sub(1));
         }
 
-        Some(Self {
-            seconds,
-            nanoseconds,
-        })
+        Some(Self::new_unchecked(seconds, nanoseconds))
     }
 
     /// Computes `self - rhs`, returning `None` if an overflow occurred.
@@ -553,10 +565,7 @@ impl Duration {
     /// This feature is `const fn` when using rustc >= 1.47.
     #[const_fn("1.47")]
     pub const fn checked_sub(self, rhs: Self) -> Option<Self> {
-        self.checked_add(Self {
-            seconds: -rhs.seconds,
-            nanoseconds: -rhs.nanoseconds,
-        })
+        self.checked_add(Self::new_unchecked(-rhs.seconds, -rhs.nanoseconds))
     }
 
     /// Computes `self * rhs`, returning `None` if an overflow occurred.
@@ -581,10 +590,7 @@ impl Duration {
             const_try_opt!(self.seconds.checked_mul(rhs as _)).checked_add(extra_secs)
         );
 
-        Some(Self {
-            seconds,
-            nanoseconds,
-        })
+        Some(Self::new_unchecked(seconds, nanoseconds))
     }
 
     /// Computes `self / rhs`, returning `None` if `rhs == 0`.
@@ -605,10 +611,7 @@ impl Duration {
         let extra_nanos = carry * 1_000_000_000 / (rhs as i64);
         let nanoseconds = self.nanoseconds / rhs + (extra_nanos as i32);
 
-        Some(Self {
-            seconds,
-            nanoseconds,
-        })
+        Some(Self::new_unchecked(seconds, nanoseconds))
     }
     // endregion checked arithmetic
 
@@ -652,10 +655,7 @@ impl Duration {
             };
         }
 
-        Self {
-            seconds,
-            nanoseconds,
-        }
+        Self::new_unchecked(seconds, nanoseconds)
     }
 
     /// Computes `self - rhs`, saturating if an overflow occurred.
@@ -674,10 +674,7 @@ impl Duration {
     /// This feature is `const fn` when using rustc >= 1.47.
     #[const_fn("1.47")]
     pub const fn saturating_sub(self, rhs: Self) -> Self {
-        self.saturating_add(Self {
-            seconds: -rhs.seconds,
-            nanoseconds: -rhs.nanoseconds,
-        })
+        self.saturating_add(Self::new_unchecked(-rhs.seconds, -rhs.nanoseconds))
     }
 
     /// Computes `self * rhs`, saturating if an overflow occurred.
@@ -715,10 +712,7 @@ impl Duration {
             return Self::MIN;
         }
 
-        Self {
-            seconds,
-            nanoseconds,
-        }
+        Self::new_unchecked(seconds, nanoseconds)
     }
     // endregion saturating arithmetic
 
@@ -812,10 +806,7 @@ impl Neg for Duration {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Self {
-            seconds: -self.seconds,
-            nanoseconds: -self.nanoseconds,
-        }
+        Self::new_unchecked(-self.seconds, -self.nanoseconds)
     }
 }
 

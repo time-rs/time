@@ -55,10 +55,10 @@ impl Distribution<OffsetDateTime> for Standard {
 impl Distribution<Duration> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Duration {
         let seconds = Self.sample(rng);
-        Duration {
+        Duration::new_unchecked(
             seconds,
-            nanoseconds: seconds.signum() as i32 * rng.gen_range(0..1_000_000_000),
-        }
+            seconds.signum() as i32 * rng.gen_range(0..1_000_000_000),
+        )
     }
 }
 
