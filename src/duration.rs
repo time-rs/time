@@ -174,14 +174,19 @@ impl Duration {
     // region: abs
     /// Get the absolute value of the duration.
     ///
+    /// This method saturates the returned value if it would otherwise overflow.
+    ///
     /// ```rust
     /// # use time::ext::NumericalDuration;
     /// assert_eq!(1.seconds().abs(), 1.seconds());
     /// assert_eq!(0.seconds().abs(), 0.seconds());
     /// assert_eq!((-1).seconds().abs(), 1.seconds());
     /// ```
+    ///
+    /// This feature is `const fn` when using rustc >= 1.47.
+    #[const_fn("1.47")]
     pub const fn abs(self) -> Self {
-        Self::new_unchecked(self.seconds.abs(), self.nanoseconds.abs())
+        Self::new_unchecked(self.seconds.saturating_abs(), self.nanoseconds.abs())
     }
 
     /// Convert the existing `Duration` to a `std::time::Duration` and its sign. This doesn't
