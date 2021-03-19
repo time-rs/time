@@ -422,7 +422,7 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             }
 
             let local_timestamp =
-                Date::from_yo(1900 + tm.tm_year, u16::try_from(tm.tm_yday).ok()? + 1)
+                Date::from_ordinal_date(1900 + tm.tm_year, u16::try_from(tm.tm_yday).ok()? + 1)
                     .ok()?
                     .with_hms(
                         tm.tm_hour.try_into().ok()?,
