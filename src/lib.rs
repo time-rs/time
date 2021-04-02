@@ -202,33 +202,37 @@ macro_rules! cascade {
 
 /// Returns `Err(error::ComponentRange)` if the value is not in range.
 macro_rules! ensure_value_in_range {
-    ($value:ident in $start:expr => $end:expr) => {
+    ($value:ident in $start:expr => $end:expr) => {{
+        let _start = $start;
+        let _end = $end;
         #[allow(clippy::manual_range_contains)] // rust-lang/rust-clippy#6373
         #[allow(trivial_numeric_casts, unused_comparisons)]
-        if $value < $start || $value > $end {
+        if $value < _start || $value > _end {
             return Err(crate::error::ComponentRange {
                 name: stringify!($value),
-                minimum: $start as _,
-                maximum: $end as _,
+                minimum: _start as _,
+                maximum: _end as _,
                 value: $value as _,
                 conditional_range: false,
             });
         }
-    };
+    }};
 
-    ($value:ident conditionally in $start:expr => $end:expr) => {
+    ($value:ident conditionally in $start:expr => $end:expr) => {{
+        let _start = $start;
+        let _end = $end;
         #[allow(clippy::manual_range_contains)] // rust-lang/rust-clippy#6373
         #[allow(trivial_numeric_casts, unused_comparisons)]
-        if $value < $start || $value > $end {
+        if $value < _start || $value > _end {
             return Err(crate::error::ComponentRange {
                 name: stringify!($value),
-                minimum: $start as _,
-                maximum: $end as _,
+                minimum: _start as _,
+                maximum: _end as _,
                 value: $value as _,
                 conditional_range: true,
             });
         }
-    };
+    }};
 }
 
 /// Try to unwrap an expression, returning if not possible.
