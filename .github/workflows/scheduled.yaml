@@ -86,6 +86,7 @@ jobs:
             check
             --no-dev-deps
             --version-range 1.46..
+            --clean-per-version
             --feature-powerset
             --optional-deps
             --exclude-features default,winapi,std,local-offset,quickcheck,quickcheck-dep,time-macros,formatting,itoa,serde-human-readable
@@ -101,6 +102,7 @@ jobs:
             check
             --no-dev-deps
             --version-range 1.46..
+            --clean-per-version
             --feature-powerset
             --optional-deps
             --exclude-features default,winapi,quickcheck-dep,time-macros,itoa
