@@ -24,9 +24,8 @@ use crate::OffsetDateTime;
 
 /// An offset from UTC.
 ///
-/// Guaranteed to store values up to ±23:59:59. Any values outside this range may have incidental
-/// support that can change at any time without notice. If you need support outside this range,
-/// please file an issue with your use case.
+/// This struct can store values up to ±23:59:59. If you need support outside this range, please
+/// file an issue with your use case.
 // All three components _must_ have the same sign.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct UtcOffset {

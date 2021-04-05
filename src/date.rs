@@ -30,8 +30,8 @@ pub(crate) const MAX_YEAR: i32 = 9999;
 /// Date in the proleptic Gregorian calendar.
 ///
 /// By default, years between ±9999 inclusive are representable. This can be expanded to ±999,999
-/// inclusive by enabling the `large-dates` crate feature. Doing so has some performance
-/// implications, and introduces some ambiguities when parsing.
+/// inclusive by enabling the `large-dates` crate feature. Doing so has performance implications
+/// and introduces some ambiguities when parsing.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Date {
     /// Bitpacked field containing both the year and ordinal.

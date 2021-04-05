@@ -30,9 +30,6 @@ impl Default for Padding {
 /// Each `Duration` is composed of a whole number of seconds and a fractional part represented in
 /// nanoseconds.
 ///
-/// `Duration` implements many traits, including [`Add`], [`Sub`], [`Mul`], and [`Div`], among
-/// others.
-///
 /// This implementation allows for negative durations, unlike [`core::time::Duration`].
 #[derive(Clone, Copy, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Duration {
