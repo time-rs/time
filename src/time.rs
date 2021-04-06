@@ -543,40 +543,12 @@ impl Add<StdDuration> for Time {
     }
 }
 
-impl AddAssign<Duration> for Time {
-    /// Add the sub-day time of the [`Duration`] to the existing `Time`. Wraps on overflow.
-    ///
-    /// ```rust
-    /// # use time::{ext::NumericalDuration, macros::time};
-    /// let mut time = time!("12:00");
-    /// time += 2.hours();
-    /// assert_eq!(time, time!("14:00"));
-    ///
-    /// let mut time = time!("0:00:01");
-    /// time += (-2).seconds();
-    /// assert_eq!(time, time!("23:59:59"));
-    /// ```
-    fn add_assign(&mut self, duration: Duration) {
-        *self = *self + duration;
-    }
-}
-
-impl AddAssign<StdDuration> for Time {
-    /// Add the sub-day time of the [`std::time::Duration`] to the existing `Time`. Wraps on
-    /// overflow.
-    ///
-    /// ```rust
-    /// # use time::{ext::NumericalStdDuration, macros::time};
-    /// let mut time = time!("12:00");
-    /// time += 2.std_hours();
-    /// assert_eq!(time, time!("14:00"));
-    ///
-    /// let mut time = time!("23:59:59");
-    /// time += 2.std_seconds();
-    /// assert_eq!(time, time!("0:00:01"));
-    /// ```
-    fn add_assign(&mut self, duration: StdDuration) {
-        *self = *self + duration;
+impl<T> AddAssign<T> for Time
+where
+    Self: Add<T, Output = Self>,
+{
+    fn add_assign(&mut self, rhs: T) {
+        *self = *self + rhs;
     }
 }
 
@@ -610,40 +582,12 @@ impl Sub<StdDuration> for Time {
     }
 }
 
-impl SubAssign<Duration> for Time {
-    /// Subtract the sub-day time of the [`Duration`] from the existing `Time`. Wraps on overflow.
-    ///
-    /// ```rust
-    /// # use time::{ext::NumericalDuration, macros::time};
-    /// let mut time = time!("14:00");
-    /// time -= 2.hours();
-    /// assert_eq!(time, time!("12:00"));
-    ///
-    /// let mut time = time!("23:59:59");
-    /// time -= (-2).seconds();
-    /// assert_eq!(time, time!("0:00:01"));
-    /// ```
-    fn sub_assign(&mut self, duration: Duration) {
-        *self = *self - duration;
-    }
-}
-
-impl SubAssign<StdDuration> for Time {
-    /// Subtract the sub-day time of the [`std::time::Duration`] from the existing `Time`. Wraps on
-    /// overflow.
-    ///
-    /// ```rust
-    /// # use time::{ext::NumericalStdDuration, macros::time};
-    /// let mut time = time!("14:00");
-    /// time -= 2.std_hours();
-    /// assert_eq!(time, time!("12:00"));
-    ///
-    /// let mut time = time!("0:00:01");
-    /// time -= 2.std_seconds();
-    /// assert_eq!(time, time!("23:59:59"));
-    /// ```
-    fn sub_assign(&mut self, duration: StdDuration) {
-        *self = *self - duration;
+impl<T> SubAssign<T> for Time
+where
+    Self: Sub<T, Output = Self>,
+{
+    fn sub_assign(&mut self, rhs: T) {
+        *self = *self - rhs;
     }
 }
 

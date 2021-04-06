@@ -792,14 +792,11 @@ impl Add<Duration> for StdDuration {
     }
 }
 
-impl AddAssign for Duration {
-    fn add_assign(&mut self, rhs: Self) {
-        *self = *self + rhs;
-    }
-}
-
-impl AddAssign<StdDuration> for Duration {
-    fn add_assign(&mut self, rhs: StdDuration) {
+impl<T> AddAssign<T> for Duration
+where
+    Self: Add<T, Output = Self>,
+{
+    fn add_assign(&mut self, rhs: T) {
         *self = *self + rhs;
     }
 }
@@ -840,14 +837,11 @@ impl Sub<Duration> for StdDuration {
     }
 }
 
-impl SubAssign for Duration {
-    fn sub_assign(&mut self, rhs: Self) {
-        *self = *self - rhs;
-    }
-}
-
-impl SubAssign<StdDuration> for Duration {
-    fn sub_assign(&mut self, rhs: StdDuration) {
+impl<T> SubAssign<T> for Duration
+where
+    Self: Sub<T, Output = Self>,
+{
+    fn sub_assign(&mut self, rhs: T) {
         *self = *self - rhs;
     }
 }
@@ -875,12 +869,6 @@ macro_rules! duration_mul_div_int {
             }
         }
 
-        impl MulAssign<$type> for Duration {
-            fn mul_assign(&mut self, rhs: $type) {
-                *self = *self * rhs;
-            }
-        }
-
         impl Mul<Duration> for $type {
             type Output = Duration;
 
@@ -896,12 +884,6 @@ macro_rules! duration_mul_div_int {
                 Self::nanoseconds_i128(self.whole_nanoseconds() / rhs as i128)
             }
         }
-
-        impl DivAssign<$type> for Duration {
-            fn div_assign(&mut self, rhs: $type) {
-                *self = *self / rhs;
-            }
-        }
     )+};
 }
 duration_mul_div_int![i8, i16, i32, u8, u16, u32];
@@ -911,12 +893,6 @@ impl Mul<f32> for Duration {
 
     fn mul(self, rhs: f32) -> Self::Output {
         Self::seconds_f32(self.as_seconds_f32() * rhs)
-    }
-}
-
-impl MulAssign<f32> for Duration {
-    fn mul_assign(&mut self, rhs: f32) {
-        *self = *self * rhs;
     }
 }
 
@@ -936,17 +912,20 @@ impl Mul<f64> for Duration {
     }
 }
 
-impl MulAssign<f64> for Duration {
-    fn mul_assign(&mut self, rhs: f64) {
-        *self = *self * rhs;
-    }
-}
-
 impl Mul<Duration> for f64 {
     type Output = Duration;
 
     fn mul(self, rhs: Duration) -> Self::Output {
         rhs * self
+    }
+}
+
+impl<T> MulAssign<T> for Duration
+where
+    Self: Mul<T, Output = Self>,
+{
+    fn mul_assign(&mut self, rhs: T) {
+        *self = *self * rhs;
     }
 }
 
@@ -958,12 +937,6 @@ impl Div<f32> for Duration {
     }
 }
 
-impl DivAssign<f32> for Duration {
-    fn div_assign(&mut self, rhs: f32) {
-        *self = *self / rhs;
-    }
-}
-
 impl Div<f64> for Duration {
     type Output = Self;
 
@@ -972,8 +945,11 @@ impl Div<f64> for Duration {
     }
 }
 
-impl DivAssign<f64> for Duration {
-    fn div_assign(&mut self, rhs: f64) {
+impl<T> DivAssign<T> for Duration
+where
+    Self: Div<T, Output = Self>,
+{
+    fn div_assign(&mut self, rhs: T) {
         *self = *self / rhs;
     }
 }

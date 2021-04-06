@@ -606,15 +606,12 @@ impl Add<StdDuration> for PrimitiveDateTime {
     }
 }
 
-impl AddAssign<Duration> for PrimitiveDateTime {
-    fn add_assign(&mut self, duration: Duration) {
-        *self = *self + duration;
-    }
-}
-
-impl AddAssign<StdDuration> for PrimitiveDateTime {
-    fn add_assign(&mut self, duration: StdDuration) {
-        *self = *self + duration;
+impl<T> AddAssign<T> for PrimitiveDateTime
+where
+    Self: Add<T, Output = Self>,
+{
+    fn add_assign(&mut self, rhs: T) {
+        *self = *self + rhs;
     }
 }
 
@@ -645,15 +642,12 @@ impl Sub<StdDuration> for PrimitiveDateTime {
     }
 }
 
-impl SubAssign<Duration> for PrimitiveDateTime {
-    fn sub_assign(&mut self, duration: Duration) {
-        *self = *self - duration;
-    }
-}
-
-impl SubAssign<StdDuration> for PrimitiveDateTime {
-    fn sub_assign(&mut self, duration: StdDuration) {
-        *self = *self - duration;
+impl<T> SubAssign<T> for PrimitiveDateTime
+where
+    Self: Sub<T, Output = Self>,
+{
+    fn sub_assign(&mut self, rhs: T) {
+        *self = *self - rhs;
     }
 }
 

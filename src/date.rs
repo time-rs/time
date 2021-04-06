@@ -742,15 +742,12 @@ impl Add<StdDuration> for Date {
     }
 }
 
-impl AddAssign<Duration> for Date {
-    fn add_assign(&mut self, duration: Duration) {
-        *self = *self + duration;
-    }
-}
-
-impl AddAssign<StdDuration> for Date {
-    fn add_assign(&mut self, duration: StdDuration) {
-        *self = *self + duration;
+impl<T> AddAssign<T> for Date
+where
+    Self: Add<T, Output = Self>,
+{
+    fn add_assign(&mut self, rhs: T) {
+        *self = *self + rhs;
     }
 }
 
@@ -771,15 +768,12 @@ impl Sub<StdDuration> for Date {
     }
 }
 
-impl SubAssign<Duration> for Date {
-    fn sub_assign(&mut self, duration: Duration) {
-        *self = *self - duration;
-    }
-}
-
-impl SubAssign<StdDuration> for Date {
-    fn sub_assign(&mut self, duration: StdDuration) {
-        *self = *self - duration;
+impl<T> SubAssign<T> for Date
+where
+    Self: Sub<T, Output = Self>,
+{
+    fn sub_assign(&mut self, rhs: T) {
+        *self = *self - rhs;
     }
 }
 

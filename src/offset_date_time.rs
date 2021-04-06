@@ -906,15 +906,12 @@ impl Add<StdDuration> for OffsetDateTime {
     }
 }
 
-impl AddAssign<Duration> for OffsetDateTime {
-    fn add_assign(&mut self, duration: Duration) {
-        *self = *self + duration;
-    }
-}
-
-impl AddAssign<StdDuration> for OffsetDateTime {
-    fn add_assign(&mut self, duration: StdDuration) {
-        *self = *self + duration;
+impl<T> AddAssign<T> for OffsetDateTime
+where
+    Self: Add<T, Output = Self>,
+{
+    fn add_assign(&mut self, rhs: T) {
+        *self = *self + rhs;
     }
 }
 
@@ -940,15 +937,12 @@ impl Sub<StdDuration> for OffsetDateTime {
     }
 }
 
-impl SubAssign<Duration> for OffsetDateTime {
-    fn sub_assign(&mut self, duration: Duration) {
-        *self = *self - duration;
-    }
-}
-
-impl SubAssign<StdDuration> for OffsetDateTime {
-    fn sub_assign(&mut self, duration: StdDuration) {
-        *self = *self - duration;
+impl<T> SubAssign<T> for OffsetDateTime
+where
+    Self: Sub<T, Output = Self>,
+{
+    fn sub_assign(&mut self, rhs: T) {
+        *self = *self - rhs;
     }
 }
 

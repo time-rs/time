@@ -166,20 +166,17 @@ impl Add<StdDuration> for Instant {
     }
 }
 
-impl AddAssign<Duration> for Instant {
-    fn add_assign(&mut self, duration: Duration) {
-        *self = *self + duration;
+impl<T> AddAssign<T> for Instant
+where
+    Self: Add<T, Output = Self>,
+{
+    fn add_assign(&mut self, rhs: T) {
+        *self = *self + rhs;
     }
 }
 
 impl AddAssign<Duration> for StdInstant {
     fn add_assign(&mut self, duration: Duration) {
-        *self = *self + duration;
-    }
-}
-
-impl AddAssign<StdDuration> for Instant {
-    fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
 }
@@ -208,20 +205,17 @@ impl Sub<StdDuration> for Instant {
     }
 }
 
-impl SubAssign<Duration> for Instant {
-    fn sub_assign(&mut self, duration: Duration) {
-        *self = *self - duration;
+impl<T> SubAssign<T> for Instant
+where
+    Self: Sub<T, Output = Self>,
+{
+    fn sub_assign(&mut self, rhs: T) {
+        *self = *self - rhs;
     }
 }
 
 impl SubAssign<Duration> for StdInstant {
     fn sub_assign(&mut self, duration: Duration) {
-        *self = *self - duration;
-    }
-}
-
-impl SubAssign<StdDuration> for Instant {
-    fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }
 }
