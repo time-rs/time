@@ -946,7 +946,7 @@ where
     }
 }
 
-impl Sub<OffsetDateTime> for OffsetDateTime {
+impl Sub for OffsetDateTime {
     type Output = Duration;
 
     fn sub(self, rhs: Self) -> Self::Output {

@@ -777,7 +777,7 @@ where
     }
 }
 
-impl Sub<Date> for Date {
+impl Sub for Date {
     type Output = Duration;
 
     fn sub(self, other: Self) -> Self::Output {

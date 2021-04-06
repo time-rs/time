@@ -956,7 +956,7 @@ where
     }
 }
 
-impl Div<Duration> for Duration {
+impl Div for Duration {
     type Output = f64;
 
     fn div(self, rhs: Self) -> Self::Output {

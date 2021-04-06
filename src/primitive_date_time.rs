@@ -651,7 +651,7 @@ where
     }
 }
 
-impl Sub<PrimitiveDateTime> for PrimitiveDateTime {
+impl Sub for PrimitiveDateTime {
     type Output = Duration;
 
     fn sub(self, rhs: Self) -> Self::Output {

@@ -591,7 +591,7 @@ where
     }
 }
 
-impl Sub<Time> for Time {
+impl Sub for Time {
     type Output = Duration;
 
     /// Subtract two `Time`s, returning the [`Duration`] between. This assumes both `Time`s are in
