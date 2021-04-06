@@ -2,6 +2,7 @@
 
 #[cfg(feature = "alloc")]
 use alloc::string::String;
+use core::mem;
 
 #[cfg(feature = "alloc")]
 use crate::{error::InvalidFormatDescription, format_description::helper};
@@ -274,8 +275,7 @@ impl Modifiers {
                 modifier = &bytes[..whitespace_loc];
                 bytes = &bytes[whitespace_loc..];
             } else {
-                modifier = bytes;
-                bytes = b"";
+                modifier = mem::take(&mut bytes);
             }
 
             if modifier.is_empty() {

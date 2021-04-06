@@ -1,3 +1,5 @@
+use core::mem;
+
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 
 use crate::format_description::error::InvalidFormatDescription;
@@ -318,8 +320,7 @@ impl Modifiers {
                 modifier = &s[..whitespace_loc];
                 s = &s[whitespace_loc..];
             } else {
-                modifier = s;
-                s = "";
+                modifier = mem::take(&mut s);
             }
 
             if modifier.is_empty() {

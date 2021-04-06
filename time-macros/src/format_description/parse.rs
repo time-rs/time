@@ -1,3 +1,5 @@
+use core::mem;
+
 use crate::format_description::component::{Component, NakedComponent};
 use crate::format_description::error::InvalidFormatDescription;
 use crate::format_description::{helper, modifier, FormatItem};
@@ -20,8 +22,7 @@ fn parse_component(mut s: &str, index: &mut usize) -> Result<Component, InvalidF
         s = helper::consume_whitespace(s, index);
     } else {
         *index += s.len();
-        component_name = s;
-        s = "";
+        component_name = mem::take(&mut s);
     }
 
     Ok(NakedComponent::parse(component_name, component_index)?
