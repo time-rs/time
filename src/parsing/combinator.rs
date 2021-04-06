@@ -91,13 +91,13 @@ pub(crate) fn n_to_m_digits_padded<'a, T: Integer>(
 ) -> impl Fn(&'a [u8]) -> Option<ParsedItem<'a, T>> {
     debug_assert!(m >= n);
     move |input| match padding {
-        Padding::None => return n_to_m_digits(1, m)(input),
+        Padding::None => n_to_m_digits(1, m)(input),
         Padding::Space => {
             let ParsedItem(input, value) = n_to_m(0, n - 1, ascii_char(b' '))(input)?;
             let pad_width = value.len() as u8;
             n_to_m_digits(n - pad_width, m - pad_width)(input)
         }
-        Padding::Zero => return n_to_m_digits(n, m)(input),
+        Padding::Zero => n_to_m_digits(n, m)(input),
     }
 }
 
