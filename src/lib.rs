@@ -121,7 +121,8 @@
     clippy::map_err_ignore,
     clippy::missing_errors_doc,
     clippy::must_use_candidate,
-    clippy::redundant_pub_crate
+    clippy::redundant_pub_crate,
+    unstable_name_collisions
 )]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]

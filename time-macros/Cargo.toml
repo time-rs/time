@@ -15,3 +15,6 @@ large-dates = []
 
 [lib]
 proc-macro = true
+
+[dependencies]
+standback = { version = "0.3.1", default-features = false, features = ["msrv-1-46"] }

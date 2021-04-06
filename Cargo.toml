@@ -37,6 +37,7 @@ itoa = { version = "0.4.7", optional = true }
 quickcheck-dep = { package = "quickcheck", version = "1.0.3", default-features = false, optional = true }
 rand = { version = "0.8.3", optional = true, default-features = false }
 serde = { version = "1.0.123", optional = true, default-features = false }
+standback = { version = "0.3.1", default-features = false, features = ["msrv-1-46"] }
 time-macros = { version = "=0.2.0-dev", path = "time-macros", optional = true }
 
 [target.'cfg(windows)'.dependencies]

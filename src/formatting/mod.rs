@@ -4,6 +4,9 @@ pub(crate) mod formattable;
 
 use std::io;
 
+#[allow(unused_imports)]
+use standback::prelude::*;
+
 use crate::format_description::{modifier, Component};
 use crate::{error, Date, Time, UtcOffset};
 
@@ -270,7 +273,7 @@ fn fmt_year(
             bytes += output.write(&[b'+'])?;
         }
     }
-    bytes += format_number(output, value.abs() as u32, padding, width)?;
+    bytes += format_number(output, value.unsigned_abs(), padding, width)?;
     Ok(bytes)
 }
 // endregion date formatters
@@ -374,7 +377,7 @@ fn fmt_offset_hour(
     } else if sign_is_mandatory {
         bytes += output.write(&[b'+'])?;
     }
-    bytes += format_number(output, offset.whole_hours().abs() as u8, padding, 2)?;
+    bytes += format_number(output, offset.whole_hours().unsigned_abs(), padding, 2)?;
     Ok(bytes)
 }
 
@@ -384,7 +387,12 @@ fn fmt_offset_minute(
     offset: UtcOffset,
     modifier::OffsetMinute { padding }: modifier::OffsetMinute,
 ) -> Result<usize, io::Error> {
-    format_number(output, offset.minutes_past_hour().abs() as u8, padding, 2)
+    format_number(
+        output,
+        offset.minutes_past_hour().unsigned_abs(),
+        padding,
+        2,
+    )
 }
 
 /// Format the offset second into the designated output.
@@ -393,6 +401,11 @@ fn fmt_offset_second(
     offset: UtcOffset,
     modifier::OffsetSecond { padding }: modifier::OffsetSecond,
 ) -> Result<usize, io::Error> {
-    format_number(output, offset.seconds_past_minute().abs() as u8, padding, 2)
+    format_number(
+        output,
+        offset.seconds_past_minute().unsigned_abs(),
+        padding,
+        2,
+    )
 }
 // endregion offset formatters

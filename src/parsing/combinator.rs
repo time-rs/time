@@ -1,7 +1,10 @@
 //! Implementations of the low-level parser combinators.
 
+#[allow(unused_imports)]
+use standback::prelude::*;
+
 use crate::format_description::modifier::Padding;
-use crate::parsing::shim::{Integer, IntegerParseBytes, SliceStripPrefix};
+use crate::parsing::shim::{Integer, IntegerParseBytes};
 use crate::parsing::ParsedItem;
 
 /// Parse a "+" or "-" sign. Returns the ASCII byte representing the sign, if present.
@@ -20,7 +23,7 @@ pub(crate) fn first_match<'a, 'b: 'a, T: Copy + 'a>(
 ) -> impl FnMut(&'b [u8]) -> Option<ParsedItem<'b, T>> {
     move |input| {
         options.find_map(|&(expected, t)| {
-            Some(ParsedItem(input.strip_prefix_(expected.as_bytes())?, t))
+            Some(ParsedItem(input.strip_prefix(expected.as_bytes())?, t))
         })
     }
 }

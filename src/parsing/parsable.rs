@@ -4,9 +4,11 @@
 use alloc::vec::Vec;
 use core::convert::TryInto;
 
+#[allow(unused_imports)]
+use standback::prelude::*;
+
 use crate::error::TryFromParsed;
 use crate::format_description::{well_known, FormatItem};
-use crate::parsing::shim::SliceStripPrefix;
 use crate::parsing::{Parsed, ParsedItem};
 use crate::{error, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
@@ -79,7 +81,7 @@ impl sealed::Parsable for FormatItem<'_> {
         match self {
             Self::Literal(literal) => {
                 input = input
-                    .strip_prefix_(literal)
+                    .strip_prefix(*literal)
                     .ok_or(error::ParseFromDescription::InvalidLiteral)?;
             }
             Self::Component(component) => input = parsed.parse_component(input, *component)?,

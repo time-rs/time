@@ -1,33 +1,5 @@
 //! Extension traits for things either not implemented or not yet stable in the MSRV.
 
-/// `[u8]::strip_prefix()`
-///
-/// Stabilized in Rust 1.51. Once on stable, Standback can be used until the MSRV is met on
-/// 2021-09-25.
-pub(crate) trait SliceStripPrefix<T> {
-    #[allow(clippy::missing_docs_in_private_items)]
-    fn strip_prefix_(&self, prefix: &[T]) -> Option<&[T]>
-    where
-        T: PartialEq;
-}
-
-impl<T> SliceStripPrefix<T> for [T] {
-    #[must_use = "returns the subslice without modifying the original"]
-    fn strip_prefix_(&self, prefix: &[T]) -> Option<&[T]>
-    where
-        T: PartialEq,
-    {
-        let n = prefix.len();
-        if n <= self.len() {
-            let (head, tail) = self.split_at(n);
-            if head == prefix {
-                return Some(tail);
-            }
-        }
-        None
-    }
-}
-
 /// Equivalent of `foo.parse()` for slices.
 pub(crate) trait IntegerParseBytes<T> {
     #[allow(clippy::missing_docs_in_private_items)]

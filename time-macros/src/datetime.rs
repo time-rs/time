@@ -2,6 +2,8 @@ use std::iter::Peekable;
 use std::str::Chars;
 
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
+#[allow(unused_imports)]
+use standback::prelude::*;
 
 use crate::error::Error;
 use crate::helpers::{self, consume_char};
@@ -20,12 +22,10 @@ impl DateTime {
         consume_char(' ', chars)?;
         let time = Time::parse(chars)?;
 
-        let offset = if chars.peek() == Some(&' ') {
-            consume_char(' ', chars)?;
-            Some(Offset::parse(chars)?)
-        } else {
-            None
-        };
+        let offset = chars
+            .next_if_eq(&' ')
+            .map(|_| Offset::parse(chars))
+            .transpose()?;
 
         if let Some(&char) = chars.peek() {
             return Err(Error::UnexpectedCharacter(char));

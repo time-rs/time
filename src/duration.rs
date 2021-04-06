@@ -5,6 +5,8 @@ use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAss
 use core::time::Duration as StdDuration;
 
 use const_fn::const_fn;
+#[allow(unused_imports)]
+use standback::prelude::*;
 
 use crate::error;
 #[cfg(feature = "std")]
@@ -192,7 +194,7 @@ impl Duration {
     #[cfg(feature = "std")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
     pub(crate) fn abs_std(self) -> StdDuration {
-        StdDuration::new(self.seconds.abs() as _, self.nanoseconds.abs() as _)
+        StdDuration::new(self.seconds.unsigned_abs(), self.nanoseconds.unsigned_abs())
     }
     // endregion abs
 

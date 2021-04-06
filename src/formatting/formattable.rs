@@ -2,6 +2,9 @@
 
 use std::io;
 
+#[allow(unused_imports)]
+use standback::prelude::*;
+
 use crate::format_description::modifier::Padding;
 use crate::format_description::well_known::Rfc3339;
 use crate::format_description::FormatItem;
@@ -163,11 +166,16 @@ impl sealed::Formattable for Rfc3339 {
         } else {
             &[b'+']
         })?;
-        bytes += format_number(output, offset.whole_hours().abs() as u8, Padding::Zero, 2)?;
+        bytes += format_number(
+            output,
+            offset.whole_hours().unsigned_abs(),
+            Padding::Zero,
+            2,
+        )?;
         bytes += output.write(&[b':'])?;
         bytes += format_number(
             output,
-            offset.minutes_past_hour().abs() as u8,
+            offset.minutes_past_hour().unsigned_abs(),
             Padding::Zero,
             2,
         )?;

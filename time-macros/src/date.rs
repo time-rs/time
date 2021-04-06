@@ -2,6 +2,8 @@ use std::iter::Peekable;
 use std::str::Chars;
 
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
+#[allow(unused_imports)]
+use standback::prelude::*;
 
 use crate::helpers::{
     self, consume_char, consume_digits, days_in_year, days_in_year_month, weeks_in_year, ymd_to_yo,
@@ -22,12 +24,10 @@ pub(crate) struct Date {
 
 impl Date {
     pub(crate) fn parse(chars: &mut Peekable<Chars<'_>>) -> Result<Self, Error> {
-        let (year_sign, explicit_sign) = if consume_char('-', chars).is_ok() {
+        let (year_sign, explicit_sign) = if chars.next_if_eq(&'-').is_some() {
             (-1, true)
-        } else if consume_char('+', chars).is_ok() {
-            (1, true)
         } else {
-            (1, false)
+            (1, chars.next_if_eq(&'+').is_some())
         };
         let year = year_sign * consume_digits::<i32>("year", chars)?;
         if year.abs() > MAX_YEAR {
@@ -45,7 +45,7 @@ impl Date {
         consume_char('-', chars)?;
 
         // year-week-day
-        if consume_char('W', chars).is_ok() {
+        if chars.next_if_eq(&'W').is_some() {
             let week = consume_digits::<u8>("week", chars)?;
             consume_char('-', chars)?;
             let day = consume_digits::<u8>("day", chars)?;
@@ -72,7 +72,7 @@ impl Date {
         let month_or_ordinal = consume_digits::<u16>("month or ordinal", chars)?;
 
         // year-month-day
-        if consume_char('-', chars).is_ok() {
+        if chars.next_if_eq(&'-').is_some() {
             let month = month_or_ordinal;
             let day = consume_digits::<u8>("day", chars)?;
 
