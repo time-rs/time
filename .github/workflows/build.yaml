@@ -303,7 +303,7 @@ jobs:
             target
           key: cargo-doc-${{ hashFiles('**/Cargo.toml') }}3
 
-      - name: Build documentation
+      - name: Document public API
         uses: actions-rs/cargo@v1
         with:
           command: doc
@@ -313,14 +313,36 @@ jobs:
 
       - name: Create top-level redirect
         run: |
-          echo "<meta http-equiv='refresh' content='0; url=https://time-rs.github.io/time'>" > ./target/doc/index.html
+          echo "<meta http-equiv='refresh' content='0; url=https://time-rs.github.io/api/time'>" > ./target/doc/index.html
 
-      - name: Publish documentation
-        uses: JamesIves/github-pages-deploy-action@releases/v3
+      - name: Publish public docs
+        uses: JamesIves/github-pages-deploy-action@releases/v4
         with:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          BRANCH: main
-          FOLDER: target/doc
-          SINGLE_COMMIT: true
-          REPOSITORY_NAME: time-rs/time-rs.github.io
+          token: ${{ secrets.ACCESS_TOKEN }}
+          branch: main
+          folder: target/doc
+          target-folder: api
+          repository-name: time-rs/time-rs.github.io
+        if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
+
+      - name: Document internal API
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --all-features --no-deps -Zrustdoc-map --document-private-items
+        env:
+          RUSTDOCFLAGS: --cfg __time_03_docs
+
+      - name: Create top-level redirect
+        run: |
+          echo "<meta http-equiv='refresh' content='0; url=https://time-rs.github.io/internal-api/time'>" > ./target/doc/index.html
+
+      - name: Publish internal docs
+        uses: JamesIves/github-pages-deploy-action@releases/v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          branch: main
+          folder: target/doc
+          target-folder: internal-api
+          repository-name: time-rs/time-rs.github.io
         if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
