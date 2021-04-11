@@ -2,6 +2,7 @@
 
 #[cfg(feature = "alloc")]
 use alloc::string::String;
+#[cfg(feature = "alloc")]
 use core::mem;
 
 #[cfg(feature = "alloc")]
