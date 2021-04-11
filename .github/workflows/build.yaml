@@ -331,7 +331,7 @@ jobs:
           command: doc
           args: --all-features --no-deps -Zrustdoc-map --document-private-items
         env:
-          RUSTDOCFLAGS: --cfg __time_03_docs
+          RUSTDOCFLAGS: --cfg __time_03_docs --document-hidden-items
 
       - name: Create top-level redirect
         run: |
