@@ -7,6 +7,7 @@ version = "0.3.0-dev"
 authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
 edition = "2018"
 repository = "https://github.com/time-rs/time"
+homepage = "https://time-rs.github.io"
 keywords = ["date", "time", "calendar", "duration", "parser", "formatter", "no_std", "macro"]
 categories = ["date-and-time", "no-std", "parser-implementations", "value-formatting"]
 readme = "README.md"
