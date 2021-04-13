@@ -1,7 +1,7 @@
-// Modified from the `peeking_take_while` crate. Copyright 2017 Nick Fitzgerald. License MIT OR
-// Apache-2.
-
 use std::iter::Peekable;
+
+#[allow(unused_imports)]
+use standback::prelude::*;
 
 pub(crate) struct PeekingTakeWhile<'a, I: Iterator, P> {
     iter: &'a mut Peekable<I>,
@@ -12,12 +12,7 @@ impl<I: Iterator, P: Fn(&I::Item) -> bool> Iterator for PeekingTakeWhile<'_, I, 
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let pred = &self.pred;
-        if self.iter.peek().map_or(false, |v| !(pred)(v)) {
-            None
-        } else {
-            self.iter.next()
-        }
+        self.iter.next_if(&self.pred)
     }
 }
 
