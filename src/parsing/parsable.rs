@@ -212,7 +212,8 @@ impl sealed::Parsable for well_known::Rfc3339 {
         let dash = ascii_char(b'-');
         let colon = ascii_char(b':');
 
-        let ParsedItem(input, year) = exactly_n_digits(4)(input).ok_or(InvalidComponent("year"))?;
+        let ParsedItem(input, year) =
+            exactly_n_digits::<u32>(4)(input).ok_or(InvalidComponent("year"))?;
         let input = dash(input).ok_or(InvalidLiteral)?.unwrap();
         let ParsedItem(input, month) =
             exactly_n_digits(2)(input).ok_or(InvalidComponent("month"))?;
@@ -253,19 +254,19 @@ impl sealed::Parsable for well_known::Rfc3339 {
                 let ParsedItem(input, offset_sign) =
                     sign(input).ok_or(InvalidComponent("offset_hour"))?;
                 let ParsedItem(input, offset_hour) =
-                    exactly_n_digits::<i8>(2)(input).ok_or(InvalidComponent("offset_hour"))?;
+                    exactly_n_digits::<u8>(2)(input).ok_or(InvalidComponent("offset_hour"))?;
                 let input = colon(input).ok_or(InvalidLiteral)?.unwrap();
                 let ParsedItem(input, offset_minute) =
-                    exactly_n_digits(2)(input).ok_or(InvalidComponent("offset_minute"))?;
+                    exactly_n_digits::<u8>(2)(input).ok_or(InvalidComponent("offset_minute"))?;
                 ParsedItem(
                     input,
                     UtcOffset::from_hms(
                         if offset_sign == b'-' {
-                            -offset_hour
+                            -(offset_hour as i8)
                         } else {
-                            offset_hour
+                            offset_hour as _
                         },
-                        offset_minute,
+                        offset_minute as _,
                         0,
                     )
                     .map_err(TryFromParsed::ComponentRange)?,
@@ -277,7 +278,7 @@ impl sealed::Parsable for well_known::Rfc3339 {
             return Err(error::Parse::UnexpectedTrailingCharacters);
         }
 
-        Ok(Date::from_calendar_date(year, month, day)
+        Ok(Date::from_calendar_date(year as _, month, day)
             .map_err(TryFromParsed::ComponentRange)?
             .with_hms_nano(hour, minute, second, nanosecond)
             .map_err(TryFromParsed::ComponentRange)?

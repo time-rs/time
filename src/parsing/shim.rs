@@ -21,42 +21,16 @@ pub(crate) trait Integer: Sized {
 macro_rules! impl_parse_bytes {
     ($($t:ty)*) => ($(
         impl Integer for $t {
+            #[allow(trivial_numeric_casts)]
             fn parse_bytes(src: &[u8]) -> Option<Self> {
-                if src.is_empty() {
-                    return None;
-                }
-
-                #[allow(unused_comparisons)]
-                let is_signed_ty = 0 > Self::MIN;
-
-                let (is_positive, digits) = match src {
-                    [b'+'] | [b'-'] => return None,
-                    [b'+', remaining @ ..] => (true, remaining),
-                    [b'-', remaining @ ..] if is_signed_ty => (false, remaining),
-                    _ => (true, src),
-                };
-
-                let mut result: Self = 0;
-                #[allow(trivial_numeric_casts)]
-                if is_positive {
-                    // The number is positive
-                    for &c in digits {
-                        let x = (c as char).to_digit(10)?;
-                        result = result.checked_mul(10)?.checked_add(x as Self)?;
-                    }
-                } else {
-                    // The number is negative
-                    for &c in digits {
-                        let x = (c as char).to_digit(10)?;
-                        result = result.checked_mul(10)?.checked_sub(x as Self)?;
-                    }
-                }
-                Some(result)
+                src.iter().try_fold::<Self, _, _>(0, |result, c| {
+                    result.checked_mul(10)?.checked_add((c - b'0') as Self)
+                })
             }
         }
     )*)
 }
-impl_parse_bytes! { i8 i16 i32 i64 i128 isize u8 u16 u32 u64 u128 usize }
+impl_parse_bytes! { u8 u16 u32 }
 
 macro_rules! impl_parse_bytes_nonzero {
     ($($t:ty)*) => {$(
@@ -71,14 +45,4 @@ macro_rules! impl_parse_bytes_nonzero {
 impl_parse_bytes_nonzero! {
     core::num::NonZeroU8
     core::num::NonZeroU16
-    core::num::NonZeroU32
-    core::num::NonZeroU64
-    core::num::NonZeroU128
-    core::num::NonZeroUsize
-    core::num::NonZeroI8
-    core::num::NonZeroI16
-    core::num::NonZeroI32
-    core::num::NonZeroI64
-    core::num::NonZeroI128
-    core::num::NonZeroIsize
 }
