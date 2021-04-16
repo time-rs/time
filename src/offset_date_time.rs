@@ -5,7 +5,6 @@ use core::convert::From;
 use core::fmt;
 use core::hash::{Hash, Hasher};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
-use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
 #[cfg(feature = "std")]
@@ -884,25 +883,14 @@ impl Hash for OffsetDateTime {
     }
 }
 
-impl Add<Duration> for OffsetDateTime {
+impl<T> Add<T> for OffsetDateTime
+where
+    PrimitiveDateTime: Add<T, Output = PrimitiveDateTime>,
+{
     type Output = Self;
 
-    fn add(self, duration: Duration) -> Self::Output {
-        Self {
-            utc_datetime: self.utc_datetime + duration,
-            offset: self.offset,
-        }
-    }
-}
-
-impl Add<StdDuration> for OffsetDateTime {
-    type Output = Self;
-
-    fn add(self, duration: StdDuration) -> Self::Output {
-        Self {
-            utc_datetime: self.utc_datetime + duration,
-            offset: self.offset,
-        }
+    fn add(self, rhs: T) -> Self::Output {
+        self.replace_date_time(self.utc_datetime + rhs)
     }
 }
 
@@ -915,25 +903,14 @@ where
     }
 }
 
-impl Sub<Duration> for OffsetDateTime {
+impl<T> Sub<T> for OffsetDateTime
+where
+    PrimitiveDateTime: Sub<T, Output = PrimitiveDateTime>,
+{
     type Output = Self;
 
-    fn sub(self, duration: Duration) -> Self::Output {
-        Self {
-            utc_datetime: self.utc_datetime - duration,
-            offset: self.offset,
-        }
-    }
-}
-
-impl Sub<StdDuration> for OffsetDateTime {
-    type Output = Self;
-
-    fn sub(self, duration: StdDuration) -> Self::Output {
-        Self {
-            utc_datetime: self.utc_datetime - duration,
-            offset: self.offset,
-        }
+    fn sub(self, rhs: T) -> Self::Output {
+        self.replace_date_time(self.utc_datetime - rhs)
     }
 }
 
