@@ -206,7 +206,6 @@ macro_rules! ensure_value_in_range {
     ($value:ident in $start:expr => $end:expr) => {{
         let _start = $start;
         let _end = $end;
-        #[allow(clippy::manual_range_contains)] // rust-lang/rust-clippy#6373
         #[allow(trivial_numeric_casts, unused_comparisons)]
         if $value < _start || $value > _end {
             return Err(crate::error::ComponentRange {
@@ -222,7 +221,6 @@ macro_rules! ensure_value_in_range {
     ($value:ident conditionally in $start:expr => $end:expr) => {{
         let _start = $start;
         let _end = $end;
-        #[allow(clippy::manual_range_contains)] // rust-lang/rust-clippy#6373
         #[allow(trivial_numeric_casts, unused_comparisons)]
         if $value < _start || $value > _end {
             return Err(crate::error::ComponentRange {

@@ -10,7 +10,7 @@ use standback::prelude::*;
 use crate::format_description::{modifier, Component};
 use crate::{error, Date, Time, UtcOffset};
 
-#[allow(clippy::clippy::missing_docs_in_private_items)]
+#[allow(clippy::missing_docs_in_private_items)]
 const MONTH_NAMES: [&[u8]; 12] = [
     b"January",
     b"February",

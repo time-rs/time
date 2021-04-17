@@ -332,7 +332,6 @@ impl Time {
     // region: arithmetic helpers
     /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow, returning the
     /// necessary whether the date is the following day.
-    #[allow(clippy::manual_range_contains)] // rust-lang/rust-clippy#6373
     pub(crate) const fn adjusting_add(self, duration: Duration) -> (DateAdjustment, Self) {
         let mut nanoseconds = self.nanosecond as i32 + duration.subsec_nanoseconds();
         let mut seconds = self.second as i8 + (duration.whole_seconds() % 60) as i8;
