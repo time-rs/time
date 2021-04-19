@@ -28,9 +28,6 @@ mod sealed {
     /// Format the item using a format description, the intended output, and the various components.
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
     pub trait Sealed {
-        /// An error that may be returned when formatting.
-        type Error: From<io::Error>;
-
         /// Format the item into the provided output, returning the number of bytes written.
         fn format_into(
             &self,
@@ -38,7 +35,7 @@ mod sealed {
             date: Option<Date>,
             time: Option<Time>,
             offset: Option<UtcOffset>,
-        ) -> Result<usize, Self::Error>;
+        ) -> Result<usize, error::Format>;
 
         /// Format the item directly to a `String`.
         fn format(
@@ -46,7 +43,7 @@ mod sealed {
             date: Option<Date>,
             time: Option<Time>,
             offset: Option<UtcOffset>,
-        ) -> Result<String, Self::Error> {
+        ) -> Result<String, error::Format> {
             let mut buf = Vec::new();
             self.format_into(&mut buf, date, time, offset)?;
             io::Write::flush(&mut buf)?;
@@ -57,15 +54,13 @@ mod sealed {
 
 // region: custom formats
 impl<'a> sealed::Sealed for FormatItem<'a> {
-    type Error = error::Format;
-
     fn format_into(
         &self,
         output: &mut impl io::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<usize, Self::Error> {
+    ) -> Result<usize, error::Format> {
         Ok(match *self {
             Self::Literal(literal) => output.write(literal)?,
             Self::Component(component) => format_component(output, component, date, time, offset)?,
@@ -75,15 +70,13 @@ impl<'a> sealed::Sealed for FormatItem<'a> {
 }
 
 impl<'a> sealed::Sealed for &[FormatItem<'a>] {
-    type Error = error::Format;
-
     fn format_into(
         &self,
         output: &mut impl io::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<usize, Self::Error> {
+    ) -> Result<usize, error::Format> {
         let mut bytes = 0;
         for item in self.iter() {
             bytes += item.format_into(output, date, time, offset)?;
@@ -95,15 +88,13 @@ impl<'a> sealed::Sealed for &[FormatItem<'a>] {
 #[cfg(feature = "alloc")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl<'a> sealed::Sealed for Vec<FormatItem<'a>> {
-    type Error = <&'a [FormatItem<'a>] as sealed::Sealed>::Error;
-
     fn format_into(
         &self,
         output: &mut impl io::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<usize, Self::Error> {
+    ) -> Result<usize, error::Format> {
         self.as_slice().format_into(output, date, time, offset)
     }
 }
@@ -111,15 +102,13 @@ impl<'a> sealed::Sealed for Vec<FormatItem<'a>> {
 
 // region: well-known formats
 impl sealed::Sealed for Rfc3339 {
-    type Error = error::Format;
-
     fn format_into(
         &self,
         output: &mut impl io::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<usize, Self::Error> {
+    ) -> Result<usize, error::Format> {
         let date = date.ok_or(error::Format::InsufficientTypeInformation)?;
         let time = time.ok_or(error::Format::InsufficientTypeInformation)?;
         let offset = offset.ok_or(error::Format::InsufficientTypeInformation)?;

@@ -646,11 +646,11 @@ impl Date {
     /// Format the `Date` using the provided format description. The formatted value will be output
     /// to the provided writer. The format description will typically be parsed by using
     /// [`format_description::parse`](crate::format_description::parse()).
-    pub fn format_into<F: Formattable>(
+    pub fn format_into(
         self,
         output: &mut impl io::Write,
-        format: &F,
-    ) -> Result<usize, F::Error> {
+        format: &impl Formattable,
+    ) -> Result<usize, error::Format> {
         format.format_into(output, Some(self), None, None)
     }
 
@@ -664,7 +664,7 @@ impl Date {
     /// assert_eq!(date!("2020-01-02").format(&format)?, "2020-01-02");
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn format<F: Formattable>(self, format: &F) -> Result<String, F::Error> {
+    pub fn format(self, format: &impl Formattable) -> Result<String, error::Format> {
         format.format(Some(self), None, None)
     }
 }
