@@ -11,15 +11,23 @@ use crate::format_description::FormatItem;
 use crate::formatting::{format_component, format_number};
 use crate::{error, Date, Time, UtcOffset};
 
-/// Seal the trait to prevent downstream users from implementing it, while still allowing it to
-/// exist in generic bounds.
-pub(crate) mod sealed {
+/// A type that can be formatted.
+pub trait Formattable: sealed::Sealed {}
+impl Formattable for FormatItem<'_> {}
+impl Formattable for &[FormatItem<'_>] {}
+#[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+impl Formattable for Vec<FormatItem<'_>> {}
+impl Formattable for Rfc3339 {}
+
+/// Seal the trait to prevent downstream users from implementing it.
+mod sealed {
     #[allow(clippy::wildcard_imports)]
     use super::*;
 
     /// Format the item using a format description, the intended output, and the various components.
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
-    pub trait Formattable {
+    pub trait Sealed {
         /// An error that may be returned when formatting.
         type Error: From<io::Error>;
 
@@ -48,7 +56,7 @@ pub(crate) mod sealed {
 }
 
 // region: custom formats
-impl<'a> sealed::Formattable for FormatItem<'a> {
+impl<'a> sealed::Sealed for FormatItem<'a> {
     type Error = error::Format;
 
     fn format_into(
@@ -66,7 +74,7 @@ impl<'a> sealed::Formattable for FormatItem<'a> {
     }
 }
 
-impl<'a> sealed::Formattable for &[FormatItem<'a>] {
+impl<'a> sealed::Sealed for &[FormatItem<'a>] {
     type Error = error::Format;
 
     fn format_into(
@@ -86,8 +94,8 @@ impl<'a> sealed::Formattable for &[FormatItem<'a>] {
 
 #[cfg(feature = "alloc")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl<'a> sealed::Formattable for Vec<FormatItem<'a>> {
-    type Error = <&'a [FormatItem<'a>] as sealed::Formattable>::Error;
+impl<'a> sealed::Sealed for Vec<FormatItem<'a>> {
+    type Error = <&'a [FormatItem<'a>] as sealed::Sealed>::Error;
 
     fn format_into(
         &self,
@@ -102,7 +110,7 @@ impl<'a> sealed::Formattable for Vec<FormatItem<'a>> {
 // endregion custom formats
 
 // region: well-known formats
-impl sealed::Formattable for Rfc3339 {
+impl sealed::Sealed for Rfc3339 {
     type Error = error::Format;
 
     fn format_into(

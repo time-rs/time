@@ -276,7 +276,7 @@ pub mod ext;
 pub mod format_description;
 #[cfg(feature = "formatting")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
-mod formatting;
+pub mod formatting;
 /// The [`Instant`] struct and its associated `impl`s.
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]

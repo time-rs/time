@@ -8,20 +8,30 @@ use core::convert::TryInto;
 use standback::prelude::*;
 
 use crate::error::TryFromParsed;
-use crate::format_description::{well_known, FormatItem};
+use crate::format_description::well_known::Rfc3339;
+use crate::format_description::FormatItem;
 use crate::parsing::{Parsed, ParsedItem};
 use crate::{error, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
+/// A type that can be parsed.
+pub trait Parsable: sealed::Sealed {}
+impl Parsable for FormatItem<'_> {}
+impl Parsable for &[FormatItem<'_>] {}
+#[cfg(feature = "alloc")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
+impl Parsable for Vec<FormatItem<'_>> {}
+impl Parsable for Rfc3339 {}
+
 /// Seal the trait to prevent downstream users from implementing it, while still allowing it to
 /// exist in generic bounds.
-pub(crate) mod sealed {
+mod sealed {
 
     #[allow(clippy::wildcard_imports)]
     use super::*;
 
     /// Parse the item using a format description and an input.
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
-    pub trait Parsable {
+    pub trait Sealed {
         /// Parse the item into the provided [`Parsed`] struct.
         ///
         /// This method can be used to parse a single component without parsing the full value.
@@ -72,7 +82,7 @@ pub(crate) mod sealed {
 }
 
 // region: custom formats
-impl sealed::Parsable for FormatItem<'_> {
+impl sealed::Sealed for FormatItem<'_> {
     fn parse_into<'a>(
         &self,
         mut input: &'a [u8],
@@ -91,7 +101,7 @@ impl sealed::Parsable for FormatItem<'_> {
     }
 }
 
-impl sealed::Parsable for &[FormatItem<'_>] {
+impl sealed::Sealed for &[FormatItem<'_>] {
     fn parse_into<'a>(
         &self,
         mut input: &'a [u8],
@@ -106,7 +116,7 @@ impl sealed::Parsable for &[FormatItem<'_>] {
 
 #[cfg(feature = "alloc")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl sealed::Parsable for Vec<FormatItem<'_>> {
+impl sealed::Sealed for Vec<FormatItem<'_>> {
     fn parse_into<'a>(
         &self,
         input: &'a [u8],
@@ -118,7 +128,7 @@ impl sealed::Parsable for Vec<FormatItem<'_>> {
 // endregion custom formats
 
 // region: well-known formats
-impl sealed::Parsable for well_known::Rfc3339 {
+impl sealed::Sealed for Rfc3339 {
     fn parse_into<'a>(
         &self,
         input: &'a [u8],

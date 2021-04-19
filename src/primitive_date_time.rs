@@ -8,9 +8,9 @@ use std::io;
 #[cfg(feature = "parsing")]
 use crate::error;
 #[cfg(feature = "formatting")]
-use crate::formatting::formattable::sealed::Formattable;
+use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
-use crate::parsing::parsable::sealed::Parsable;
+use crate::parsing::Parsable;
 use crate::{util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
 
 /// Combined date and time.

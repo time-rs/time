@@ -11,9 +11,9 @@ use std::io;
 use std::time::SystemTime;
 
 #[cfg(feature = "formatting")]
-use crate::formatting::formattable::sealed::Formattable;
+use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
-use crate::parsing::parsable::sealed::Parsable;
+use crate::parsing::Parsable;
 use crate::{error, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// The Julian day of the Unix epoch.

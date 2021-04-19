@@ -7,9 +7,9 @@ use std::io;
 #[cfg(feature = "formatting")]
 use crate::format_description::{modifier, Component, FormatItem};
 #[cfg(feature = "formatting")]
-use crate::formatting::formattable::sealed::Formattable;
+use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
-use crate::parsing::parsable::sealed::Parsable;
+use crate::parsing::Parsable;
 use crate::util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year};
 use crate::{error, Duration, PrimitiveDateTime, Time, Weekday};
 

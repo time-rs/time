@@ -6,7 +6,8 @@ pub(crate) mod parsable;
 mod parsed;
 mod shim;
 
-pub use parsed::Parsed;
+pub use self::parsable::Parsable;
+pub use self::parsed::Parsed;
 
 /// An item that has been parsed. Represented as a `(remaining, value)` pair.
 #[derive(Debug, Clone)]

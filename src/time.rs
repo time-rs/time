@@ -7,9 +7,9 @@ use std::io;
 #[cfg(feature = "formatting")]
 use crate::format_description::{modifier, Component, FormatItem};
 #[cfg(feature = "formatting")]
-use crate::formatting::formattable::sealed::Formattable;
+use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
-use crate::parsing::parsable::sealed::Parsable;
+use crate::parsing::Parsable;
 use crate::util::DateAdjustment;
 use crate::{error, Duration};
 

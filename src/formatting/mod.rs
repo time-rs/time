@@ -1,4 +1,4 @@
-//! Formatting for the time crate.
+//! Formatting for various types.
 
 pub(crate) mod formattable;
 
@@ -7,6 +7,7 @@ use std::io;
 #[allow(unused_imports)]
 use standback::prelude::*;
 
+pub use self::formattable::Formattable;
 use crate::format_description::{modifier, Component};
 use crate::{error, Date, Time, UtcOffset};
 
