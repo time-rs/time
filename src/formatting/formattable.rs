@@ -1,5 +1,6 @@
 //! A trait that can be used to format an item from its components.
 
+use core::ops::Deref;
 use std::io;
 
 #[allow(unused_imports)]
@@ -14,11 +15,9 @@ use crate::{error, Date, Time, UtcOffset};
 /// A type that can be formatted.
 pub trait Formattable: sealed::Sealed {}
 impl Formattable for FormatItem<'_> {}
-impl Formattable for &[FormatItem<'_>] {}
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl Formattable for Vec<FormatItem<'_>> {}
+impl Formattable for [FormatItem<'_>] {}
 impl Formattable for Rfc3339 {}
+impl<T: Deref> Formattable for T where T::Target: Formattable {}
 
 /// Seal the trait to prevent downstream users from implementing it.
 mod sealed {
@@ -69,7 +68,7 @@ impl<'a> sealed::Sealed for FormatItem<'a> {
     }
 }
 
-impl<'a> sealed::Sealed for &[FormatItem<'a>] {
+impl<'a> sealed::Sealed for [FormatItem<'a>] {
     fn format_into(
         &self,
         output: &mut impl io::Write,
@@ -85,9 +84,10 @@ impl<'a> sealed::Sealed for &[FormatItem<'a>] {
     }
 }
 
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl<'a> sealed::Sealed for Vec<FormatItem<'a>> {
+impl<T: Deref> sealed::Sealed for T
+where
+    T::Target: sealed::Sealed,
+{
     fn format_into(
         &self,
         output: &mut impl io::Write,
@@ -95,7 +95,7 @@ impl<'a> sealed::Sealed for Vec<FormatItem<'a>> {
         time: Option<Time>,
         offset: Option<UtcOffset>,
     ) -> Result<usize, error::Format> {
-        self.as_slice().format_into(output, date, time, offset)
+        self.deref().format_into(output, date, time, offset)
     }
 }
 // endregion custom formats

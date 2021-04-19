@@ -1,8 +1,7 @@
 //! A trait that can be used to parse an item from an input.
 
-#[cfg(feature = "alloc")]
-use alloc::vec::Vec;
 use core::convert::TryInto;
+use core::ops::Deref;
 
 #[allow(unused_imports)]
 use standback::prelude::*;
@@ -16,11 +15,9 @@ use crate::{error, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 /// A type that can be parsed.
 pub trait Parsable: sealed::Sealed {}
 impl Parsable for FormatItem<'_> {}
-impl Parsable for &[FormatItem<'_>] {}
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl Parsable for Vec<FormatItem<'_>> {}
+impl Parsable for [FormatItem<'_>] {}
 impl Parsable for Rfc3339 {}
+impl<T: Deref> Parsable for T where T::Target: Parsable {}
 
 /// Seal the trait to prevent downstream users from implementing it, while still allowing it to
 /// exist in generic bounds.
@@ -101,7 +98,7 @@ impl sealed::Sealed for FormatItem<'_> {
     }
 }
 
-impl sealed::Sealed for &[FormatItem<'_>] {
+impl sealed::Sealed for [FormatItem<'_>] {
     fn parse_into<'a>(
         &self,
         mut input: &'a [u8],
@@ -114,15 +111,16 @@ impl sealed::Sealed for &[FormatItem<'_>] {
     }
 }
 
-#[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-impl sealed::Sealed for Vec<FormatItem<'_>> {
+impl<T: Deref> sealed::Sealed for T
+where
+    T::Target: sealed::Sealed,
+{
     fn parse_into<'a>(
         &self,
         input: &'a [u8],
         parsed: &mut Parsed,
     ) -> Result<&'a [u8], error::Parse> {
-        self.as_slice().parse_into(input, parsed)
+        self.deref().parse_into(input, parsed)
     }
 }
 // endregion custom formats
