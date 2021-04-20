@@ -80,6 +80,7 @@ macro_rules! mods {
 mods![
     date
     duration
+    formatting
     instant
     offset_date_time
     primitive_date_time
