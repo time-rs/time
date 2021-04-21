@@ -156,23 +156,9 @@ impl Arbitrary for UtcOffset {
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
         Box::new(
-            self.as_hms()
-                .shrink()
-                .map(|(hours, mut minutes, mut seconds)| {
-                    // Coerce the signs if necessary.
-                    if (hours > 0 && minutes < 0) || (hours < 0 && minutes > 0) {
-                        minutes *= -1;
-                    }
-                    if (hours > 0 && seconds < 0)
-                        || (hours < 0 && seconds > 0)
-                        || (minutes > 0 && seconds < 0)
-                        || (minutes < 0 && seconds > 0)
-                    {
-                        seconds *= -1;
-                    }
-
-                    Self::__from_hms_unchecked(hours, minutes, seconds)
-                }),
+            self.as_hms().shrink().map(|(hours, minutes, seconds)| {
+                Self::__from_hms_unchecked(hours, minutes, seconds)
+            }),
         )
     }
 }
