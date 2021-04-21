@@ -5,7 +5,7 @@ use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
 
-#[cfg(feature = "parsing")]
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 use crate::error;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
