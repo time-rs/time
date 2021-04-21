@@ -30,7 +30,7 @@ impl fmt::Display for ComponentRange {
         )?;
 
         if self.conditional_range {
-            write!(f, ", given values of other parameters")?;
+            f.write_str(", given values of other parameters")?;
         }
 
         Ok(())
