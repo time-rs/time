@@ -230,6 +230,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `PrimitiveDateTime::month_day`
 - `OffsetDateTime::month_day`
 - `Weekday::iso_weekday_number` (identical to `Weekday::number_from_monday`)
+- `ext::NumericalStdDurationShort`
 
 ## 0.2.22 [2020-09-25]
 
