@@ -139,6 +139,8 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - Macros now simulate `const` blocks, guaranteeing that the value is statically generated.
 - `Date::to_julian_day` now returns an `i32` (was `i64`).
 - `Date::from_julian_day` now accepts an `i32` (was `i64`).
+- Extension traits are only implemented for some types and are now sealed. As they are intended to
+  be used with value literals, the breakage caused by this should be minimal.
 
 ### Removed
 

@@ -1,8 +1,15 @@
-#![allow(trivial_numeric_casts, clippy::use_self)]
-
 use core::time::Duration as StdDuration;
 
 use crate::Duration;
+
+/// Sealed trait to prevent downstream implementations.
+mod sealed {
+    /// A trait that cannot be implemented by downstream users.
+    pub trait Sealed {}
+    impl Sealed for i64 {}
+    impl Sealed for u64 {}
+    impl Sealed for f64 {}
+}
 
 // region: NumericalDuration
 /// Create [`Duration`]s from primitive and core numeric types.
@@ -51,7 +58,7 @@ use crate::Duration;
 /// When called on floating point values, any remainder of the floating point value will be
 /// truncated. Keep in mind that floating point numbers are inherently imprecise and have limited
 /// capacity.
-pub trait NumericalDuration {
+pub trait NumericalDuration: sealed::Sealed {
     /// Create a [`Duration`] from the number of nanoseconds.
     fn nanoseconds(self) -> Duration;
     /// Create a [`Duration`] from the number of microseconds.
@@ -70,131 +77,73 @@ pub trait NumericalDuration {
     fn weeks(self) -> Duration;
 }
 
-macro_rules! impl_numerical_duration {
-    ($($type:ty),+ $(,)?) => {$(
-        impl NumericalDuration for $type {
-            fn nanoseconds(self) -> Duration {
-                Duration::nanoseconds(self as _)
-            }
+impl NumericalDuration for i64 {
+    fn nanoseconds(self) -> Duration {
+        Duration::nanoseconds(self)
+    }
 
-            fn microseconds(self) -> Duration {
-                Duration::microseconds(self as _)
-            }
+    fn microseconds(self) -> Duration {
+        Duration::microseconds(self)
+    }
 
-            fn milliseconds(self) -> Duration {
-                Duration::milliseconds(self as _)
-            }
+    fn milliseconds(self) -> Duration {
+        Duration::milliseconds(self)
+    }
 
-            fn seconds(self) -> Duration {
-                Duration::seconds(self as _)
-            }
+    fn seconds(self) -> Duration {
+        Duration::seconds(self)
+    }
 
-            fn minutes(self) -> Duration {
-                Duration::minutes(self as _)
-            }
+    fn minutes(self) -> Duration {
+        Duration::minutes(self)
+    }
 
-            fn hours(self) -> Duration {
-                Duration::hours(self as _)
-            }
+    fn hours(self) -> Duration {
+        Duration::hours(self)
+    }
 
-            fn days(self) -> Duration {
-                Duration::days(self as _)
-            }
+    fn days(self) -> Duration {
+        Duration::days(self)
+    }
 
-            fn weeks(self) -> Duration {
-                Duration::weeks(self as _)
-            }
-        }
-    )+};
+    fn weeks(self) -> Duration {
+        Duration::weeks(self)
+    }
 }
 
-macro_rules! impl_numerical_duration_nonzero {
-    ($($type:ty),+ $(,)?) => {$(
-        impl NumericalDuration for $type {
-            fn nanoseconds(self) -> Duration {
-                Duration::nanoseconds(self.get() as _)
-            }
+impl NumericalDuration for f64 {
+    fn nanoseconds(self) -> Duration {
+        Duration::nanoseconds(self as _)
+    }
 
-            fn microseconds(self) -> Duration {
-                Duration::microseconds(self.get() as _)
-            }
+    fn microseconds(self) -> Duration {
+        Duration::nanoseconds((self * 1_000.) as _)
+    }
 
-            fn milliseconds(self) -> Duration {
-                Duration::milliseconds(self.get() as _)
-            }
+    fn milliseconds(self) -> Duration {
+        Duration::nanoseconds((self * 1_000_000.) as _)
+    }
 
-            fn seconds(self) -> Duration {
-                Duration::seconds(self.get() as _)
-            }
+    fn seconds(self) -> Duration {
+        Duration::nanoseconds((self * 1_000_000_000.) as _)
+    }
 
-            fn minutes(self) -> Duration {
-                Duration::minutes(self.get() as _)
-            }
+    fn minutes(self) -> Duration {
+        Duration::nanoseconds((self * 60_000_000_000.) as _)
+    }
 
-            fn hours(self) -> Duration {
-                Duration::hours(self.get() as _)
-            }
+    fn hours(self) -> Duration {
+        Duration::nanoseconds((self * 3_600_000_000_000.) as _)
+    }
 
-            fn days(self) -> Duration {
-                Duration::days(self.get() as _)
-            }
+    fn days(self) -> Duration {
+        Duration::nanoseconds((self * 86_400_000_000_000.) as _)
+    }
 
-            fn weeks(self) -> Duration {
-                Duration::weeks(self.get() as _)
-            }
-        }
-    )+};
+    fn weeks(self) -> Duration {
+        Duration::nanoseconds((self * 604_800_000_000_000.) as _)
+    }
 }
-
-macro_rules! impl_numerical_duration_float {
-    ($($type:ty),+ $(,)?) => {$(
-        impl NumericalDuration for $type {
-            fn nanoseconds(self) -> Duration {
-                Duration::nanoseconds(self as _)
-            }
-
-            fn microseconds(self) -> Duration {
-                Duration::nanoseconds((self * 1_000.) as _)
-            }
-
-            fn milliseconds(self) -> Duration {
-                Duration::nanoseconds((self * 1_000_000.) as _)
-            }
-
-            fn seconds(self) -> Duration {
-                Duration::nanoseconds((self * 1_000_000_000.) as _)
-            }
-
-            fn minutes(self) -> Duration {
-                Duration::nanoseconds((self * 60_000_000_000.) as _)
-            }
-
-            fn hours(self) -> Duration {
-                Duration::nanoseconds((self * 3_600_000_000_000.) as _)
-            }
-
-            fn days(self) -> Duration {
-                Duration::nanoseconds((self * 86_400_000_000_000.) as _)
-            }
-
-            fn weeks(self) -> Duration {
-                Duration::nanoseconds((self * 604_800_000_000_000.) as _)
-            }
-        }
-    )+};
-}
-
-impl_numerical_duration![u8, u16, u32, i8, i16, i32, i64];
-impl_numerical_duration_nonzero![
-    core::num::NonZeroU8,
-    core::num::NonZeroU16,
-    core::num::NonZeroU32,
-    core::num::NonZeroI8,
-    core::num::NonZeroI16,
-    core::num::NonZeroI32,
-    core::num::NonZeroI64,
-];
-impl_numerical_duration_float![f32, f64];
 // endregion NumericalDuration
 
 // region: NumericalStdDuration
@@ -237,7 +186,7 @@ impl_numerical_duration_float![f32, f64];
 /// When called on floating point values, any remainder of the floating point value will be
 /// truncated. Keep in mind that floating point numbers are inherently imprecise and have limited
 /// capacity.
-pub trait NumericalStdDuration {
+pub trait NumericalStdDuration: sealed::Sealed {
     /// Create a [`std::time::Duration`] from the number of nanoseconds.
     fn std_nanoseconds(self) -> StdDuration;
     /// Create a [`std::time::Duration`] from the number of microseconds.
@@ -256,136 +205,40 @@ pub trait NumericalStdDuration {
     fn std_weeks(self) -> StdDuration;
 }
 
-macro_rules! impl_numerical_std_duration {
-    ($($type:ty),+ $(,)?) => {$(
-        impl NumericalStdDuration for $type {
-            fn std_nanoseconds(self) -> StdDuration {
-                StdDuration::from_nanos(self as _)
-            }
-
-            fn std_microseconds(self) -> StdDuration {
-                StdDuration::from_micros(self as _)
-            }
-
-            fn std_milliseconds(self) -> StdDuration {
-                StdDuration::from_millis(self as _)
-            }
-
-            fn std_seconds(self) -> StdDuration {
-                StdDuration::from_secs(self as _)
-            }
-
-            fn std_minutes(self) -> StdDuration {
-                StdDuration::from_secs(self as u64 * 60)
-            }
-
-            fn std_hours(self) -> StdDuration {
-                StdDuration::from_secs(self as u64 * 3_600)
-            }
-
-            fn std_days(self) -> StdDuration {
-                StdDuration::from_secs(self as u64 * 86_400)
-            }
-
-            fn std_weeks(self) -> StdDuration {
-                StdDuration::from_secs(self as u64 * 604_800)
-            }
-        }
-    )+};
-}
-
-macro_rules! impl_numerical_std_duration_nonzero {
-    ($($type:ty),+ $(,)?) => {$(
-        impl NumericalStdDuration for $type {
-            fn std_nanoseconds(self) -> StdDuration {
-                StdDuration::from_nanos(self.get() as _)
-            }
-
-            fn std_microseconds(self) -> StdDuration {
-                StdDuration::from_micros(self.get() as _)
-            }
-
-            fn std_milliseconds(self) -> StdDuration {
-                StdDuration::from_millis(self.get() as _)
-            }
-
-            fn std_seconds(self) -> StdDuration {
-                StdDuration::from_secs(self.get() as _)
-            }
-
-            fn std_minutes(self) -> StdDuration {
-                StdDuration::from_secs(self.get() as u64 * 60)
-            }
-
-            fn std_hours(self) -> StdDuration {
-                StdDuration::from_secs(self.get() as u64 * 3_600)
-            }
-
-            fn std_days(self) -> StdDuration {
-                StdDuration::from_secs(self.get() as u64 * 86_400)
-            }
-
-            fn std_weeks(self) -> StdDuration {
-                StdDuration::from_secs(self.get() as u64 * 604_800)
-            }
-        }
-    )+};
-}
-
-impl_numerical_std_duration![u8, u16, u32, u64];
-impl_numerical_std_duration_nonzero![
-    core::num::NonZeroU8,
-    core::num::NonZeroU16,
-    core::num::NonZeroU32,
-    core::num::NonZeroU64,
-];
-
-/// Implement on `i32` because that's the default type for integers. This performs a runtime check
-/// and panics if the value is negative.
-impl NumericalStdDuration for i32 {
+impl NumericalStdDuration for u64 {
     fn std_nanoseconds(self) -> StdDuration {
-        assert!(self >= 0);
-        StdDuration::from_nanos(self as _)
+        StdDuration::from_nanos(self)
     }
 
     fn std_microseconds(self) -> StdDuration {
-        assert!(self >= 0);
-        StdDuration::from_micros(self as _)
+        StdDuration::from_micros(self)
     }
 
     fn std_milliseconds(self) -> StdDuration {
-        assert!(self >= 0);
-        StdDuration::from_millis(self as _)
+        StdDuration::from_millis(self)
     }
 
     fn std_seconds(self) -> StdDuration {
-        assert!(self >= 0);
-        StdDuration::from_secs(self as _)
+        StdDuration::from_secs(self)
     }
 
     fn std_minutes(self) -> StdDuration {
-        assert!(self >= 0);
-        StdDuration::from_secs(self as u64 * 60)
+        StdDuration::from_secs(self * 60)
     }
 
     fn std_hours(self) -> StdDuration {
-        assert!(self >= 0);
-        StdDuration::from_secs(self as u64 * 3_600)
+        StdDuration::from_secs(self * 3_600)
     }
 
     fn std_days(self) -> StdDuration {
-        assert!(self >= 0);
-        StdDuration::from_secs(self as u64 * 86_400)
+        StdDuration::from_secs(self * 86_400)
     }
 
     fn std_weeks(self) -> StdDuration {
-        assert!(self >= 0);
-        StdDuration::from_secs(self as u64 * 604_800)
+        StdDuration::from_secs(self * 604_800)
     }
 }
 
-/// Implement on `f64` because that's the default type for floats. This performs a runtime check and
-/// panics if the value is negative.
 impl NumericalStdDuration for f64 {
     fn std_nanoseconds(self) -> StdDuration {
         assert!(self >= 0.);

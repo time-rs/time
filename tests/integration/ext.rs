@@ -1,6 +1,4 @@
 mod numerical_duration {
-    use std::num::NonZeroU8;
-
     use time::ext::NumericalDuration;
     use time::Duration;
 
@@ -26,28 +24,6 @@ mod numerical_duration {
         assert_eq!((-5).hours(), Duration::hours(-5));
         assert_eq!((-5).days(), Duration::days(-5));
         assert_eq!((-5).weeks(), Duration::weeks(-5));
-    }
-
-    #[test]
-    #[allow(clippy::unwrap_used)]
-    fn nonzero() {
-        assert_eq!(
-            NonZeroU8::new(5).unwrap().nanoseconds(),
-            Duration::nanoseconds(5)
-        );
-        assert_eq!(
-            NonZeroU8::new(5).unwrap().microseconds(),
-            Duration::microseconds(5)
-        );
-        assert_eq!(
-            NonZeroU8::new(5).unwrap().milliseconds(),
-            Duration::milliseconds(5)
-        );
-        assert_eq!(NonZeroU8::new(5).unwrap().seconds(), Duration::seconds(5));
-        assert_eq!(NonZeroU8::new(5).unwrap().minutes(), Duration::minutes(5));
-        assert_eq!(NonZeroU8::new(5).unwrap().hours(), Duration::hours(5));
-        assert_eq!(NonZeroU8::new(5).unwrap().days(), Duration::days(5));
-        assert_eq!(NonZeroU8::new(5).unwrap().weeks(), Duration::weeks(5));
     }
 
     #[test]
@@ -82,7 +58,6 @@ mod numerical_duration {
 }
 
 mod numerical_std_duration {
-    use std::num::NonZeroU8;
     use std::time::Duration;
 
     use time::ext::NumericalStdDuration;
@@ -97,55 +72,6 @@ mod numerical_std_duration {
         assert_eq!(5.std_hours(), Duration::from_secs(5 * 3_600));
         assert_eq!(5.std_days(), Duration::from_secs(5 * 86_400));
         assert_eq!(5.std_weeks(), Duration::from_secs(5 * 604_800));
-    }
-
-    #[test]
-    fn unsigned_typed() {
-        assert_eq!(5_u64.std_nanoseconds(), Duration::from_nanos(5));
-        assert_eq!(5_u64.std_microseconds(), Duration::from_micros(5));
-        assert_eq!(5_u64.std_milliseconds(), Duration::from_millis(5));
-        assert_eq!(5_u64.std_seconds(), Duration::from_secs(5));
-        assert_eq!(5_u64.std_minutes(), Duration::from_secs(5 * 60));
-        assert_eq!(5_u64.std_hours(), Duration::from_secs(5 * 3_600));
-        assert_eq!(5_u64.std_days(), Duration::from_secs(5 * 86_400));
-        assert_eq!(5_u64.std_weeks(), Duration::from_secs(5 * 604_800));
-    }
-
-    #[test]
-    #[allow(clippy::unwrap_used)]
-    fn nonzero() {
-        assert_eq!(
-            NonZeroU8::new(5).unwrap().std_nanoseconds(),
-            Duration::from_nanos(5)
-        );
-        assert_eq!(
-            NonZeroU8::new(5).unwrap().std_microseconds(),
-            Duration::from_micros(5)
-        );
-        assert_eq!(
-            NonZeroU8::new(5).unwrap().std_milliseconds(),
-            Duration::from_millis(5)
-        );
-        assert_eq!(
-            NonZeroU8::new(5).unwrap().std_seconds(),
-            Duration::from_secs(5)
-        );
-        assert_eq!(
-            NonZeroU8::new(5).unwrap().std_minutes(),
-            Duration::from_secs(5 * 60)
-        );
-        assert_eq!(
-            NonZeroU8::new(5).unwrap().std_hours(),
-            Duration::from_secs(5 * 3_600)
-        );
-        assert_eq!(
-            NonZeroU8::new(5).unwrap().std_days(),
-            Duration::from_secs(5 * 86_400)
-        );
-        assert_eq!(
-            NonZeroU8::new(5).unwrap().std_weeks(),
-            Duration::from_secs(5 * 604_800)
-        );
     }
 
     #[test]
