@@ -165,38 +165,33 @@ macro_rules! rem_euclid {
 
 /// Cascade an out-of-bounds value.
 macro_rules! cascade {
-    (@discard_if_underscore(_); $($x:tt)*) => {};
-    (@discard_if_underscore($i:ident); $($x:tt)*) => { $($x)* };
-    (@discard_if_not_mut(mut); $($x:tt)*) => {};
-    (@discard_if_not_mut(); $($x:tt)*) => { $($x)* };
     (@ordinal) => {};
     (@year) => {};
 
     // Cascade an out-of-bounds value from "from" to "to".
     ($(!$from_not_mut:ident)? $from:ident in $min:literal.. $max:literal => $to:tt) => {
-        #[allow(unused_comparisons)]
+        #[allow(unused_comparisons, unused_assignments)]
         if $from >= $max {
-            cascade!(@discard_if_not_mut($($from_not_mut)?); $from -= $max - $min);
-            cascade!(@discard_if_underscore($to); $to += 1);
+            $from -= $max - $min;
+            $to += 1;
         } else if $from < $min {
-            cascade!(@discard_if_not_mut($($from_not_mut)?); $from += $max - $min);
-            cascade!(@discard_if_underscore($to); $to -= 1);
+            $from += $max - $min;
+            $to -= 1;
         }
     };
 
     // Special case the ordinal-to-year cascade, as it has different behavior.
-    ($(!$ordinal_not_mut:ident)? $ordinal:ident => $(!$year_not_mut:ident)? $year:ident) => {
+    ($ordinal:ident => $year:ident) => {
         // We need to actually capture the idents. Without this, macro hygiene causes errors.
         cascade!(@$ordinal);
         cascade!(@$year);
+        #[allow(unused_assignments)]
         if $ordinal > crate::util::days_in_year($year) {
-            cascade!(@discard_if_not_mut($($year_not_mut)?); $year += 1);
-            cascade!(@discard_if_not_mut($($ordinal_not_mut)?); $ordinal = 1);
+            $year += 1;
+            $ordinal = 1;
         } else if $ordinal == 0 {
-            cascade!(@discard_if_not_mut($($year_not_mut)?); $year -= 1);
-            cascade!(@discard_if_not_mut($($ordinal_not_mut)?);
-                $ordinal = crate::util::days_in_year($year)
-            );
+            $year -= 1;
+            $ordinal = crate::util::days_in_year($year);
         }
     };
 }
