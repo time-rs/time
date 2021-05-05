@@ -11,6 +11,8 @@ use serde::de::Error as _;
 #[cfg(feature = "serde-human-readable")]
 use serde::ser::Error as _;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+#[allow(unused_imports)]
+use standback::prelude::*;
 
 use crate::error::ComponentRange;
 #[cfg(feature = "serde-human-readable")]
@@ -90,11 +92,9 @@ impl<'a> Deserialize<'a> for Duration {
         #[cfg(feature = "serde-human-readable")]
         if deserializer.is_human_readable() {
             let s = <&str>::deserialize(deserializer)?;
-            let dot = s.find('.').ok_or_else(|| {
+            let (seconds, nanoseconds) = s.split_once('.').ok_or_else(|| {
                 serde::de::Error::invalid_value(serde::de::Unexpected::Str(s), &"a decimal point")
             })?;
-            let (seconds, nanoseconds) = s.split_at(dot); // TODO use case for str_split_once
-            let nanoseconds = &nanoseconds[1..]; // strip the leading dot
 
             let seconds = seconds.parse().map_err(|_| {
                 serde::de::Error::invalid_value(serde::de::Unexpected::Str(seconds), &"a number")
