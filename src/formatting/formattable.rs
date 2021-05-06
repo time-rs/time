@@ -17,6 +17,7 @@ pub trait Formattable: sealed::Sealed {}
 impl Formattable for FormatItem<'_> {}
 impl Formattable for [FormatItem<'_>] {}
 impl Formattable for Rfc3339 {}
+#[allow(clippy::use_self)]
 impl<T: Deref> Formattable for T where T::Target: Formattable {}
 
 /// Seal the trait to prevent downstream users from implementing it.
@@ -84,6 +85,7 @@ impl<'a> sealed::Sealed for [FormatItem<'a>] {
     }
 }
 
+#[allow(clippy::use_self)]
 impl<T: Deref> sealed::Sealed for T
 where
     T::Target: sealed::Sealed,
