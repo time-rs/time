@@ -339,26 +339,15 @@ impl Time {
         let mut hours = self.hour as i8 + (duration.whole_hours() % 24) as i8;
         let mut date_adjustment = DateAdjustment::None;
 
-        // Provide a fast path for values that are already valid.
-        if nanoseconds < 0
-            || nanoseconds >= 1_000_000_000
-            || seconds < 0
-            || seconds >= 60
-            || minutes < 0
-            || minutes >= 60
-            || hours < 0
-            || hours >= 24
-        {
-            cascade!(nanoseconds in 0..1_000_000_000 => seconds);
-            cascade!(seconds in 0..60 => minutes);
-            cascade!(minutes in 0..60 => hours);
-            if hours >= 24 {
-                hours -= 24;
-                date_adjustment = DateAdjustment::Next;
-            } else if hours < 0 {
-                hours += 24;
-                date_adjustment = DateAdjustment::Previous;
-            }
+        cascade!(nanoseconds in 0..1_000_000_000 => seconds);
+        cascade!(seconds in 0..60 => minutes);
+        cascade!(minutes in 0..60 => hours);
+        if hours >= 24 {
+            hours -= 24;
+            date_adjustment = DateAdjustment::Next;
+        } else if hours < 0 {
+            hours += 24;
+            date_adjustment = DateAdjustment::Previous;
         }
 
         (
@@ -381,15 +370,12 @@ impl Time {
         let mut hour = self.hour + ((duration.as_secs() / 3_600) % 24) as u8;
         let mut is_next_day = false;
 
-        // Provide a fast path for values that are already valid.
-        if nanosecond >= 1_000_000_000 || second >= 60 || minute >= 60 || hour >= 60 {
-            cascade!(nanosecond in 0..1_000_000_000 => second);
-            cascade!(second in 0..60 => minute);
-            cascade!(minute in 0..60 => hour);
-            if hour >= 24 {
-                hour -= 24;
-                is_next_day = true;
-            }
+        cascade!(nanosecond in 0..1_000_000_000 => second);
+        cascade!(second in 0..60 => minute);
+        cascade!(minute in 0..60 => hour);
+        if hour >= 24 {
+            hour -= 24;
+            is_next_day = true;
         }
 
         (
@@ -407,15 +393,12 @@ impl Time {
         let mut hour = self.hour as i8 - ((duration.as_secs() / 3_600) % 24) as i8;
         let mut is_previous_day = false;
 
-        // Provide a fast path for values that are already valid.
-        if nanosecond < 0 || second < 0 || minute < 0 || hour < 0 {
-            cascade!(nanosecond in 0..1_000_000_000 => second);
-            cascade!(second in 0..60 => minute);
-            cascade!(minute in 0..60 => hour);
-            if hour < 0 {
-                hour += 24;
-                is_previous_day = true;
-            }
+        cascade!(nanosecond in 0..1_000_000_000 => second);
+        cascade!(second in 0..60 => minute);
+        cascade!(minute in 0..60 => hour);
+        if hour < 0 {
+            hour += 24;
+            is_previous_day = true;
         }
 
         (
