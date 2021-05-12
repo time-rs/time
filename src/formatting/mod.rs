@@ -110,24 +110,42 @@ pub(crate) fn format_number(
     width: u8,
 ) -> Result<usize, io::Error> {
     match padding {
-        modifier::Padding::Space => {
-            let mut bytes = 0;
-            for _ in 0..(width.saturating_sub(value.num_digits())) {
-                bytes += output.write(&[b' '])?;
-            }
-            bytes += itoa::write(output, value)?;
-            Ok(bytes)
-        }
-        modifier::Padding::Zero => {
-            let mut bytes = 0;
-            for _ in 0..(width.saturating_sub(value.num_digits())) {
-                bytes += output.write(&[b'0'])?;
-            }
-            bytes += itoa::write(output, value)?;
-            Ok(bytes)
-        }
+        modifier::Padding::Space => format_number_pad_space(output, value, width),
+        modifier::Padding::Zero => format_number_pad_zero(output, value, width),
         modifier::Padding::None => itoa::write(output, value),
     }
+}
+
+/// Format a number with the provided width and spaces as padding.
+///
+/// The sign must be written by the caller.
+pub(crate) fn format_number_pad_space(
+    output: &mut impl io::Write,
+    value: impl itoa::Integer + DigitCount + Copy,
+    width: u8,
+) -> Result<usize, io::Error> {
+    let mut bytes = 0;
+    for _ in 0..(width.saturating_sub(value.num_digits())) {
+        bytes += output.write(&[b' '])?;
+    }
+    bytes += itoa::write(output, value)?;
+    Ok(bytes)
+}
+
+/// Format a number with the provided width and zeros as padding.
+///
+/// The sign must be written by the caller.
+pub(crate) fn format_number_pad_zero(
+    output: &mut impl io::Write,
+    value: impl itoa::Integer + DigitCount + Copy,
+    width: u8,
+) -> Result<usize, io::Error> {
+    let mut bytes = 0;
+    for _ in 0..(width.saturating_sub(value.num_digits())) {
+        bytes += output.write(&[b'0'])?;
+    }
+    bytes += itoa::write(output, value)?;
+    Ok(bytes)
 }
 
 /// Format the provided component into the designated output. An `Err` will be returned if the
@@ -358,7 +376,7 @@ fn fmt_subsecond(
             nanos => (nanos / 100_000_000, 1),
         },
     };
-    format_number(output, value, modifier::Padding::Zero, width)
+    format_number_pad_zero(output, value, width)
 }
 // endregion time formatters
 

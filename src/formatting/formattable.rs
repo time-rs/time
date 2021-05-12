@@ -6,10 +6,9 @@ use std::io;
 #[allow(unused_imports)]
 use standback::prelude::*;
 
-use crate::format_description::modifier::Padding;
 use crate::format_description::well_known::Rfc3339;
 use crate::format_description::FormatItem;
-use crate::formatting::{format_component, format_number};
+use crate::formatting::{format_component, format_number_pad_zero};
 use crate::{error, Date, Time, UtcOffset};
 
 /// A type that can be formatted.
@@ -126,17 +125,17 @@ impl sealed::Sealed for Rfc3339 {
             return Err(error::Format::InvalidComponent("offset_second"));
         }
 
-        bytes += format_number(output, year as u32, Padding::Zero, 4)?;
+        bytes += format_number_pad_zero(output, year as u32, 4)?;
         bytes += output.write(&[b'-'])?;
-        bytes += format_number(output, date.month(), Padding::Zero, 2)?;
+        bytes += format_number_pad_zero(output, date.month(), 2)?;
         bytes += output.write(&[b'-'])?;
-        bytes += format_number(output, date.day(), Padding::Zero, 2)?;
+        bytes += format_number_pad_zero(output, date.day(), 2)?;
         bytes += output.write(&[b'T'])?;
-        bytes += format_number(output, time.hour(), Padding::Zero, 2)?;
+        bytes += format_number_pad_zero(output, time.hour(), 2)?;
         bytes += output.write(&[b':'])?;
-        bytes += format_number(output, time.minute(), Padding::Zero, 2)?;
+        bytes += format_number_pad_zero(output, time.minute(), 2)?;
         bytes += output.write(&[b':'])?;
-        bytes += format_number(output, time.second(), Padding::Zero, 2)?;
+        bytes += format_number_pad_zero(output, time.second(), 2)?;
 
         if time.nanosecond() != 0 {
             bytes += output.write(&[b'.'])?;
@@ -152,7 +151,7 @@ impl sealed::Sealed for Rfc3339 {
                 nanos if (nanos / 10_000_000) % 10 != 0 => (nanos / 10_000_000, 2),
                 nanos => (nanos / 100_000_000, 1),
             };
-            bytes += format_number(output, value, Padding::Zero, width)?;
+            bytes += format_number_pad_zero(output, value, width)?;
         }
 
         if offset == UtcOffset::UTC {
@@ -165,19 +164,9 @@ impl sealed::Sealed for Rfc3339 {
         } else {
             &[b'+']
         })?;
-        bytes += format_number(
-            output,
-            offset.whole_hours().unsigned_abs(),
-            Padding::Zero,
-            2,
-        )?;
+        bytes += format_number_pad_zero(output, offset.whole_hours().unsigned_abs(), 2)?;
         bytes += output.write(&[b':'])?;
-        bytes += format_number(
-            output,
-            offset.minutes_past_hour().unsigned_abs(),
-            Padding::Zero,
-            2,
-        )?;
+        bytes += format_number_pad_zero(output, offset.minutes_past_hour().unsigned_abs(), 2)?;
 
         Ok(bytes)
     }
