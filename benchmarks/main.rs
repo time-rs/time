@@ -83,6 +83,7 @@ mods![
     formatting
     instant
     offset_date_time
+    parsing
     primitive_date_time
     rand
     time
