@@ -5,74 +5,62 @@ setup_benchmark! {
     "Weekday",
 
     fn previous(ben: &mut Bencher<'_>) {
-        ben.iter(|| (
-            Sunday.previous(),
-            Monday.previous(),
-            Tuesday.previous(),
-            Wednesday.previous(),
-            Thursday.previous(),
-            Friday.previous(),
-            Saturday.previous(),
-        ));
+        ben.iter(|| Sunday.previous());
+        ben.iter(|| Monday.previous());
+        ben.iter(|| Tuesday.previous());
+        ben.iter(|| Wednesday.previous());
+        ben.iter(|| Thursday.previous());
+        ben.iter(|| Friday.previous());
+        ben.iter(|| Saturday.previous());
     }
 
     fn next(ben: &mut Bencher<'_>) {
-        ben.iter(|| (
-            Sunday.next(),
-            Monday.next(),
-            Tuesday.next(),
-            Wednesday.next(),
-            Thursday.next(),
-            Friday.next(),
-            Saturday.next(),
-        ));
+        ben.iter(|| Sunday.next());
+        ben.iter(|| Monday.next());
+        ben.iter(|| Tuesday.next());
+        ben.iter(|| Wednesday.next());
+        ben.iter(|| Thursday.next());
+        ben.iter(|| Friday.next());
+        ben.iter(|| Saturday.next());
     }
 
     fn number_from_monday(ben: &mut Bencher<'_>) {
-        ben.iter(|| (
-            Monday.number_from_monday(),
-            Tuesday.number_from_monday(),
-            Wednesday.number_from_monday(),
-            Thursday.number_from_monday(),
-            Friday.number_from_monday(),
-            Saturday.number_from_monday(),
-            Sunday.number_from_monday(),
-        ));
+        ben.iter(|| Monday.number_from_monday());
+        ben.iter(|| Tuesday.number_from_monday());
+        ben.iter(|| Wednesday.number_from_monday());
+        ben.iter(|| Thursday.number_from_monday());
+        ben.iter(|| Friday.number_from_monday());
+        ben.iter(|| Saturday.number_from_monday());
+        ben.iter(|| Sunday.number_from_monday());
     }
 
     fn number_from_sunday(ben: &mut Bencher<'_>) {
-        ben.iter(|| (
-            Sunday.number_from_sunday(),
-            Monday.number_from_sunday(),
-            Tuesday.number_from_sunday(),
-            Wednesday.number_from_sunday(),
-            Thursday.number_from_sunday(),
-            Friday.number_from_sunday(),
-            Saturday.number_from_sunday(),
-        ));
+        ben.iter(|| Sunday.number_from_sunday());
+        ben.iter(|| Monday.number_from_sunday());
+        ben.iter(|| Tuesday.number_from_sunday());
+        ben.iter(|| Wednesday.number_from_sunday());
+        ben.iter(|| Thursday.number_from_sunday());
+        ben.iter(|| Friday.number_from_sunday());
+        ben.iter(|| Saturday.number_from_sunday());
     }
 
     fn number_days_from_monday(ben: &mut Bencher<'_>) {
-        ben.iter(|| (
-            Monday.number_days_from_monday(),
-            Tuesday.number_days_from_monday(),
-            Wednesday.number_days_from_monday(),
-            Thursday.number_days_from_monday(),
-            Friday.number_days_from_monday(),
-            Saturday.number_days_from_monday(),
-            Sunday.number_days_from_monday(),
-        ));
+        ben.iter(|| Monday.number_days_from_monday());
+        ben.iter(|| Tuesday.number_days_from_monday());
+        ben.iter(|| Wednesday.number_days_from_monday());
+        ben.iter(|| Thursday.number_days_from_monday());
+        ben.iter(|| Friday.number_days_from_monday());
+        ben.iter(|| Saturday.number_days_from_monday());
+        ben.iter(|| Sunday.number_days_from_monday());
     }
 
     fn number_days_from_sunday(ben: &mut Bencher<'_>) {
-        ben.iter(|| (
-            Sunday.number_days_from_sunday(),
-            Monday.number_days_from_sunday(),
-            Tuesday.number_days_from_sunday(),
-            Wednesday.number_days_from_sunday(),
-            Thursday.number_days_from_sunday(),
-            Friday.number_days_from_sunday(),
-            Saturday.number_days_from_sunday(),
-        ));
+        ben.iter(|| Sunday.number_days_from_sunday());
+        ben.iter(|| Monday.number_days_from_sunday());
+        ben.iter(|| Tuesday.number_days_from_sunday());
+        ben.iter(|| Wednesday.number_days_from_sunday());
+        ben.iter(|| Thursday.number_days_from_sunday());
+        ben.iter(|| Friday.number_days_from_sunday());
+        ben.iter(|| Saturday.number_days_from_sunday());
     }
 }

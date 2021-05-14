@@ -70,24 +70,34 @@ macro_rules! setup_benchmark {
     };
 }
 
+macro_rules! iter_batched_ref {
+    ($ben:ident, $initializer:expr,[$($routine:expr),+ $(,)?]) => {$(
+        $ben.iter_batched_ref(
+            $initializer,
+            $routine,
+            ::criterion::BatchSize::SmallInput,
+        );
+    )+};
+}
+
 macro_rules! mods {
-    ($($mod:ident)+) => {
+    ($(mod $mod:ident;)+) => {
         $(mod $mod;)+
-        criterion::criterion_main!($($mod::benches),+);
+        ::criterion::criterion_main!($($mod::benches),+);
     }
 }
 
 mods![
-    date
-    duration
-    formatting
-    instant
-    offset_date_time
-    parsing
-    primitive_date_time
-    rand
-    time
-    utc_offset
-    util
-    weekday
+    mod date;
+    mod duration;
+    mod formatting;
+    mod instant;
+    mod offset_date_time;
+    mod parsing;
+    mod primitive_date_time;
+    mod rand;
+    mod time;
+    mod utc_offset;
+    mod util;
+    mod weekday;
 ];

@@ -1,23 +1,29 @@
-use criterion::{BatchSize, Bencher};
+use criterion::Bencher;
+use rand::rngs::mock::StepRng;
 use rand::Rng;
 use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
-setup_benchmark! {
-    "Random",
-
-    fn rng(ben: &mut Bencher<'_>) {
-        ben.iter_batched_ref(
-            || rand::rngs::mock::StepRng::new(0, 1),
-            |rng| {
-                let _ = rng.gen::<Time>();
-                let _ = rng.gen::<Date>();
-                let _ = rng.gen::<UtcOffset>();
-                let _ = rng.gen::<PrimitiveDateTime>();
-                let _ = rng.gen::<OffsetDateTime>();
-                let _ = rng.gen::<Duration>();
-                let _ = rng.gen::<Weekday>();
-            },
-            BatchSize::SmallInput
-        );
+macro_rules! bench_rand {
+    ($($name:ident : $type:ty),* $(,)?) => {
+        setup_benchmark! {
+            "Random",
+            $(fn $name(ben: &mut Bencher<'_>) {
+                iter_batched_ref!(
+                    ben,
+                    || StepRng::new(0, 1),
+                    [|rng| rng.gen::<$type>()]
+                );
+            })*
+        }
     }
 }
+
+bench_rand![
+    time: Time,
+    date: Date,
+    utc_offset: UtcOffset,
+    primitive_date_time: PrimitiveDateTime,
+    offset_date_time: OffsetDateTime,
+    duration: Duration,
+    weekday: Weekday,
+];

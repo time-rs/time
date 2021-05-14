@@ -1,6 +1,6 @@
 use std::time::Instant as StdInstant;
 
-use criterion::{BatchSize, Bencher};
+use criterion::Bencher;
 use time::ext::NumericalDuration;
 use time::{Duration, Instant};
 
@@ -42,23 +42,19 @@ setup_benchmark! {
 
     fn add_assign_duration(ben: &mut Bencher<'_>) {
         let dt: Duration = 1.milliseconds();
-        ben.iter_batched_ref(
+        iter_batched_ref!(
+            ben,
             Instant::now,
-            |start| {
-                *start += dt;
-            },
-            BatchSize::SmallInput
+            [|start| *start += dt]
         );
     }
 
     fn std_add_assign_duration(ben: &mut Bencher<'_>) {
         let dt: Duration = 1.milliseconds();
-        ben.iter_batched_ref(
+        iter_batched_ref!(
+            ben,
             StdInstant::now,
-            |start| {
-                *start += dt;
-            },
-            BatchSize::SmallInput
+            [|start| *start += dt]
         );
     }
 
@@ -76,23 +72,19 @@ setup_benchmark! {
 
     fn sub_assign_duration(ben: &mut Bencher<'_>) {
         let dt: Duration = 100.milliseconds();
-        ben.iter_batched_ref(
+        iter_batched_ref!(
+            ben,
             Instant::now,
-            |instant| {
-                *instant -= dt;
-            },
-            BatchSize::SmallInput
+            [|instant| *instant -= dt]
         );
     }
 
     fn std_sub_assign_duration(ben: &mut Bencher<'_>) {
         let dt: Duration = 100.milliseconds();
-        ben.iter_batched_ref(
+        iter_batched_ref!(
+            ben,
             StdInstant::now,
-            |instant| {
-                *instant -= dt;
-            },
-            BatchSize::SmallInput
+            [|instant| *instant -= dt]
         );
     }
     // endregion trait impls

@@ -1,4 +1,4 @@
-use criterion::{BatchSize, Bencher};
+use criterion::Bencher;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::time;
 use time::Time;
@@ -73,7 +73,11 @@ setup_benchmark! {
         let c = 1.minutes();
         let d = 1.hours();
         let e = 1.days();
-        ben.iter(|| Time::MIDNIGHT + a + b + c + d + e);
+        ben.iter(|| Time::MIDNIGHT + a);
+        ben.iter(|| Time::MIDNIGHT + b);
+        ben.iter(|| Time::MIDNIGHT + c);
+        ben.iter(|| Time::MIDNIGHT + d);
+        ben.iter(|| Time::MIDNIGHT + e);
     }
 
     fn add_assign_duration(ben: &mut Bencher<'_>) {
@@ -82,16 +86,16 @@ setup_benchmark! {
         let c = 1.minutes();
         let d = 1.hours();
         let e = 1.days();
-        ben.iter_batched_ref(
+        iter_batched_ref!(
+            ben,
             || Time::MIDNIGHT,
-            |time| {
-                *time += a;
-                *time += b;
-                *time += c;
-                *time += d;
-                *time += e;
-            },
-            BatchSize::SmallInput
+            [
+                |time| *time += a,
+                |time| *time += b,
+                |time| *time += c,
+                |time| *time += d,
+                |time| *time += e,
+            ]
         );
     }
 
@@ -101,8 +105,11 @@ setup_benchmark! {
         let c = 1.minutes();
         let d = 1.hours();
         let e = 1.days();
-
-        ben.iter(|| Time::MIDNIGHT - a - b - c - d - e);
+        ben.iter(|| Time::MIDNIGHT - a);
+        ben.iter(|| Time::MIDNIGHT - b);
+        ben.iter(|| Time::MIDNIGHT - c);
+        ben.iter(|| Time::MIDNIGHT - d);
+        ben.iter(|| Time::MIDNIGHT - e);
     }
 
     fn sub_assign_duration(ben: &mut Bencher<'_>) {
@@ -111,17 +118,16 @@ setup_benchmark! {
         let c = 1.minutes();
         let d = 1.hours();
         let e = 1.days();
-
-        ben.iter_batched_ref(
+        iter_batched_ref!(
+            ben,
             || Time::MIDNIGHT,
-            |time| {
-                *time -= a;
-                *time -= b;
-                *time -= c;
-                *time -= d;
-                *time -= e;
-            },
-            BatchSize::SmallInput
+            [
+                |time| *time -= a,
+                |time| *time -= b,
+                |time| *time -= c,
+                |time| *time -= d,
+                |time| *time -= e,
+            ]
         );
     }
 
@@ -131,7 +137,11 @@ setup_benchmark! {
         let c = 1.std_minutes();
         let d = 1.std_hours();
         let e = 1.std_days();
-        ben.iter(|| Time::MIDNIGHT + a + b + c + d + e);
+        ben.iter(|| Time::MIDNIGHT + a);
+        ben.iter(|| Time::MIDNIGHT + b);
+        ben.iter(|| Time::MIDNIGHT + c);
+        ben.iter(|| Time::MIDNIGHT + d);
+        ben.iter(|| Time::MIDNIGHT + e);
     }
 
     fn add_assign_std_duration(ben: &mut Bencher<'_>) {
@@ -140,16 +150,16 @@ setup_benchmark! {
         let c = 1.std_minutes();
         let d = 1.std_hours();
         let e = 1.std_days();
-        ben.iter_batched_ref(
+        iter_batched_ref!(
+            ben,
             || Time::MIDNIGHT,
-            |time| {
-                *time += a;
-                *time += b;
-                *time += c;
-                *time += d;
-                *time += e;
-            },
-            BatchSize::SmallInput
+            [
+                |time| *time += a,
+                |time| *time += b,
+                |time| *time += c,
+                |time| *time += d,
+                |time| *time += e,
+            ]
         );
     }
 
@@ -159,8 +169,11 @@ setup_benchmark! {
         let c = 1.std_minutes();
         let d = 1.std_hours();
         let e = 1.std_days();
-
-        ben.iter(|| Time::MIDNIGHT - a - b - c - d - e);
+        ben.iter(|| Time::MIDNIGHT - a);
+        ben.iter(|| Time::MIDNIGHT - b);
+        ben.iter(|| Time::MIDNIGHT - c);
+        ben.iter(|| Time::MIDNIGHT - d);
+        ben.iter(|| Time::MIDNIGHT - e);
     }
 
     fn sub_assign_std_duration(ben: &mut Bencher<'_>) {
@@ -169,35 +182,30 @@ setup_benchmark! {
         let c = 1.std_minutes();
         let d = 1.std_hours();
         let e = 1.std_days();
-
-        ben.iter_batched_ref(
+        iter_batched_ref!(
+            ben,
             || Time::MIDNIGHT,
-            |time| {
-                *time -= a;
-                *time -= b;
-                *time -= c;
-                *time -= d;
-                *time -= e;
-            },
-            BatchSize::SmallInput
+            [
+                |time| *time -= a,
+                |time| *time -= b,
+                |time| *time -= c,
+                |time| *time -= d,
+                |time| *time -= e,
+            ]
         );
     }
 
     fn sub_time(ben: &mut Bencher<'_>) {
-        ben.iter(|| (
-            Time::MIDNIGHT - time!("0:00:01"),
-            time!("1:00") - Time::MIDNIGHT,
-            time!("1:00") - time!("0:00:01"),
-        ));
+        ben.iter(|| Time::MIDNIGHT - time!("0:00:01"));
+        ben.iter(|| time!("1:00") - Time::MIDNIGHT);
+        ben.iter(|| time!("1:00") - time!("0:00:01"));
     }
 
     fn ordering(ben: &mut Bencher<'_>) {
-        ben.iter(|| (
-            Time::MIDNIGHT < time!("0:00:00.000_000_001"),
-            Time::MIDNIGHT < time!("0:00:01"),
-            time!("12:00") > time!("11:00"),
-            Time::MIDNIGHT == time!("0:00:00.000_000_001"),
-        ));
+        ben.iter(|| Time::MIDNIGHT < time!("0:00:00.000_000_001"));
+        ben.iter(|| Time::MIDNIGHT < time!("0:00:01"));
+        ben.iter(|| time!("12:00") > time!("11:00"));
+        ben.iter(|| Time::MIDNIGHT == time!("0:00:00.000_000_001"));
     }
     // endregion trait impls
 }
