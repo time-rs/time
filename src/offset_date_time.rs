@@ -884,7 +884,9 @@ where
     type Output = Self;
 
     fn add(self, rhs: T) -> Self::Output {
-        self.replace_date_time(self.utc_datetime + rhs)
+        (self.utc_datetime + rhs)
+            .assume_utc()
+            .to_offset(self.offset)
     }
 }
 
@@ -904,7 +906,9 @@ where
     type Output = Self;
 
     fn sub(self, rhs: T) -> Self::Output {
-        self.replace_date_time(self.utc_datetime - rhs)
+        (self.utc_datetime - rhs)
+            .assume_utc()
+            .to_offset(self.offset)
     }
 }
 

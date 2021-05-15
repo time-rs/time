@@ -1,9 +1,9 @@
 use std::cmp::Ordering;
-use std::time::SystemTime;
+use std::time::{Duration as StdDuration, SystemTime};
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, offset, time};
-use time::{OffsetDateTime, Weekday};
+use time::{Date, Duration, OffsetDateTime, Weekday};
 
 #[test]
 fn now_utc() {
@@ -446,6 +446,20 @@ fn hash() {
             hasher.finish()
         }
     );
+}
+
+#[test]
+fn arithmetic_regression() {
+    let val = Date::MIN
+        .next_day()
+        .expect("date is not maximum")
+        .midnight()
+        .assume_offset(offset!("+12:00:01"));
+
+    assert_eq!(val + Duration::ZERO, val);
+    assert_eq!(val - Duration::ZERO, val);
+    assert_eq!(val + StdDuration::from_secs(0), val);
+    assert_eq!(val - StdDuration::from_secs(0), val);
 }
 
 #[test]
