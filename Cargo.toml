@@ -28,7 +28,7 @@ default = ["std"]
 alloc = []
 formatting = ["itoa", "std"]
 large-dates = ["time-macros/large-dates"] # use case for weak feature dependencies (rust-lang/cargo#8832)
-local-offset = ["std", "winapi"]
+local-offset = ["std"]
 macros = ["time-macros"]
 parsing = []
 quickcheck = ["quickcheck-dep", "alloc"]
@@ -43,9 +43,6 @@ rand = { version = "0.8.3", optional = true, default-features = false }
 serde = { version = "1.0.125", optional = true, default-features = false }
 standback = { version = "0.3.2", default-features = false, features = ["msrv-1-46"] }
 time-macros = { version = "=0.2.0-alpha.0", path = "time-macros", optional = true }
-
-[target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3.9", features = ["minwinbase", "minwindef", "timezoneapi"], optional = true }
 
 [target.'cfg(unsound_local_offset)'.dependencies]
 libc = "0.2.93"
