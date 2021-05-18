@@ -88,7 +88,7 @@ jobs:
             --clean-per-version
             --feature-powerset
             --optional-deps
-            --exclude-features default,winapi,std,local-offset,quickcheck,quickcheck-dep,time-macros,formatting,itoa,serde-human-readable
+            --exclude-features default,std,local-offset,quickcheck,quickcheck-dep,time-macros,formatting,itoa,serde-human-readable
             --exclude-all-features
             --target ${{ matrix.target.triple }}
         if: matrix.target.has_std == false
@@ -104,6 +104,6 @@ jobs:
             --clean-per-version
             --feature-powerset
             --optional-deps
-            --exclude-features default,winapi,quickcheck-dep,time-macros,itoa
+            --exclude-features default,quickcheck-dep,time-macros,itoa
             --target ${{ matrix.target.triple }}
         if: matrix.target.has_std == true

@@ -473,7 +473,10 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         #[link(name = "Kernel32")]
         extern "system" {
             // https://docs.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-systemtimetofiletime
-            fn SystemTimeToFileTime(lpSystemTime: *const SystemTime, lpFileTime: *mut FileTime) -> i32;
+            fn SystemTimeToFileTime(
+                lpSystemTime: *const SystemTime,
+                lpFileTime: *mut FileTime,
+            ) -> i32;
 
             // https://docs.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-systemtimetotzspecificlocaltime
             fn SystemTimeToTzSpecificLocalTime(
