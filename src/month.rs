@@ -1,5 +1,6 @@
 //! The `Month` enum and its associated `impl`s.
 
+use core::fmt;
 #[cfg(feature = "parsing")]
 use core::num::NonZeroU8;
 
@@ -51,5 +52,70 @@ impl Month {
                 conditional_range: false,
             }),
         }
+    }
+
+    /// Get the previous month.
+    ///
+    /// ```rust
+    /// # use time::Month;
+    /// assert_eq!(Month::January.previous(), Month::December);
+    /// ```
+    pub const fn previous(self) -> Self {
+        match self {
+            January => December,
+            February => January,
+            March => February,
+            April => March,
+            May => April,
+            June => May,
+            July => June,
+            August => July,
+            September => August,
+            October => September,
+            November => October,
+            December => November,
+        }
+    }
+
+    /// Get the next month.
+    ///
+    /// ```rust
+    /// # use time::Month;
+    /// assert_eq!(Month::January.next(), Month::February);
+    /// ```
+    pub const fn next(self) -> Self {
+        match self {
+            January => February,
+            February => March,
+            March => April,
+            April => May,
+            May => June,
+            June => July,
+            July => August,
+            August => September,
+            September => October,
+            October => November,
+            November => December,
+            December => January,
+        }
+    }
+}
+
+impl fmt::Display for Month {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            January => "January",
+            February => "February",
+            March => "March",
+            April => "April",
+            May => "May",
+            June => "June",
+            July => "July",
+            August => "August",
+            September => "September",
+            October => "October",
+            November => "November",
+            December => "December",
+        })
     }
 }

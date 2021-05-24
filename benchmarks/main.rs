@@ -92,6 +92,7 @@ mods![
     mod duration;
     mod formatting;
     mod instant;
+    mod month;
     mod offset_date_time;
     mod parsing;
     mod primitive_date_time;

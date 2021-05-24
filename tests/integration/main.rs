@@ -43,6 +43,7 @@ mod error;
 mod ext;
 mod formatting;
 mod instant;
+mod month;
 mod offset_date_time;
 mod parse_format_description;
 mod parsing;
