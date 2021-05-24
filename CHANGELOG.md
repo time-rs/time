@@ -56,6 +56,8 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `Duration::saturating_add`
 - `Duration::saturating_sub`
 - `Duration::saturating_mul`
+- `util::days_in_year_month`
+- `Month`
 
 ### Changed
 
@@ -141,6 +143,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `Date::from_julian_day` now accepts an `i32` (was `i64`).
 - Extension traits are only implemented for some types and are now sealed. As they are intended to
   be used with value literals, the breakage caused by this should be minimal.
+- The new `Month` enum is used instead of numerical values where appropriate.
 
 ### Removed
 

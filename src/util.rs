@@ -12,15 +12,20 @@ pub(crate) enum DateAdjustment {
     None,
 }
 
-/// The number of days in a month in both common and leap years.
-const DAYS_IN_MONTH_COMMON_LEAP: [[u8; 12]; 2] = [
-    [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
-    [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
-];
-
 /// Get the number of days in the month of a given year.
-pub(crate) const fn days_in_year_month(year: i32, month: Month) -> u8 {
-    DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
+///
+/// ```rust
+/// # use time::{Month, util};
+/// assert_eq!(util::days_in_year_month(2020, Month::February), 29);
+/// ```
+pub const fn days_in_year_month(year: i32, month: Month) -> u8 {
+    use Month::*;
+    match month {
+        January | March | May | July | August | October | December => 31,
+        April | June | September | November => 30,
+        February if is_leap_year(year) => 29,
+        February => 28,
+    }
 }
 
 /// Returns if the provided year is a leap year in the proleptic Gregorian calendar. Uses

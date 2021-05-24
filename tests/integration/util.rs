@@ -1,4 +1,35 @@
-use time::util;
+use time::{util, Month};
+
+#[test]
+fn days_in_year_month() {
+    // Common year
+    assert_eq!(util::days_in_year_month(2019, Month::January), 31);
+    assert_eq!(util::days_in_year_month(2019, Month::February), 28);
+    assert_eq!(util::days_in_year_month(2019, Month::March), 31);
+    assert_eq!(util::days_in_year_month(2019, Month::April), 30);
+    assert_eq!(util::days_in_year_month(2019, Month::May), 31);
+    assert_eq!(util::days_in_year_month(2019, Month::June), 30);
+    assert_eq!(util::days_in_year_month(2019, Month::July), 31);
+    assert_eq!(util::days_in_year_month(2019, Month::August), 31);
+    assert_eq!(util::days_in_year_month(2019, Month::September), 30);
+    assert_eq!(util::days_in_year_month(2019, Month::October), 31);
+    assert_eq!(util::days_in_year_month(2019, Month::November), 30);
+    assert_eq!(util::days_in_year_month(2019, Month::December), 31);
+
+    // Leap year
+    assert_eq!(util::days_in_year_month(2020, Month::January), 31);
+    assert_eq!(util::days_in_year_month(2020, Month::February), 29);
+    assert_eq!(util::days_in_year_month(2020, Month::March), 31);
+    assert_eq!(util::days_in_year_month(2020, Month::April), 30);
+    assert_eq!(util::days_in_year_month(2020, Month::May), 31);
+    assert_eq!(util::days_in_year_month(2020, Month::June), 30);
+    assert_eq!(util::days_in_year_month(2020, Month::July), 31);
+    assert_eq!(util::days_in_year_month(2020, Month::August), 31);
+    assert_eq!(util::days_in_year_month(2020, Month::September), 30);
+    assert_eq!(util::days_in_year_month(2020, Month::October), 31);
+    assert_eq!(util::days_in_year_month(2020, Month::November), 30);
+    assert_eq!(util::days_in_year_month(2020, Month::December), 31);
+}
 
 #[test]
 fn is_leap_year() {
