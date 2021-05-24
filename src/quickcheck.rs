@@ -42,7 +42,7 @@ use quickcheck_dep::{empty_shrinker, single_shrinker, Arbitrary, Gen};
 
 use crate::date::{MAX_YEAR, MIN_YEAR};
 use crate::util::days_in_year;
-use crate::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// Obtain an arbitrary value between the minimum and maximum inclusive.
 macro_rules! arbitrary_between {
@@ -196,6 +196,33 @@ impl Arbitrary for Weekday {
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
         match self {
             Self::Monday => empty_shrinker(),
+            _ => single_shrinker(self.previous()),
+        }
+    }
+}
+
+impl Arbitrary for Month {
+    fn arbitrary(g: &mut Gen) -> Self {
+        use Month::*;
+        match arbitrary_between!(u8; g, 1, 12) {
+            1 => January,
+            2 => February,
+            3 => March,
+            4 => April,
+            5 => May,
+            6 => June,
+            7 => July,
+            8 => August,
+            9 => September,
+            10 => October,
+            11 => November,
+            _ => December,
+        }
+    }
+
+    fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
+        match self {
+            Self::January => empty_shrinker(),
             _ => single_shrinker(self.previous()),
         }
     }

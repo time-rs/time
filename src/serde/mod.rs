@@ -20,7 +20,7 @@ use crate::{
     error,
     format_description::{modifier, Component, FormatItem},
 };
-use crate::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 // region: Date
 /// The format used when serializing and deserializing a human-readable `Date`.
@@ -390,3 +390,63 @@ impl<'a> Deserialize<'a> for Weekday {
     }
 }
 // endregion Weekday
+
+// region: Month
+impl Serialize for Month {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[cfg(feature = "serde-human-readable")]
+        if serializer.is_human_readable() {
+            #[cfg(not(feature = "std"))]
+            use alloc::string::String;
+            return self.to_string().serialize(serializer);
+        }
+
+        (*self as u8).serialize(serializer)
+    }
+}
+
+impl<'a> Deserialize<'a> for Month {
+    fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
+        #[cfg(feature = "serde-human-readable")]
+        if deserializer.is_human_readable() {
+            return match <&str>::deserialize(deserializer)? {
+                "January" => Ok(Self::January),
+                "February" => Ok(Self::February),
+                "March" => Ok(Self::March),
+                "April" => Ok(Self::April),
+                "May" => Ok(Self::May),
+                "June" => Ok(Self::June),
+                "July" => Ok(Self::July),
+                "August" => Ok(Self::August),
+                "September" => Ok(Self::September),
+                "October" => Ok(Self::October),
+                "November" => Ok(Self::November),
+                "December" => Ok(Self::December),
+                val => Err(D::Error::invalid_value(
+                    serde::de::Unexpected::Str(val),
+                    &"a month of the year",
+                )),
+            };
+        }
+
+        match u8::deserialize(deserializer)? {
+            1 => Ok(Self::January),
+            2 => Ok(Self::February),
+            3 => Ok(Self::March),
+            4 => Ok(Self::April),
+            5 => Ok(Self::May),
+            6 => Ok(Self::June),
+            7 => Ok(Self::July),
+            8 => Ok(Self::August),
+            9 => Ok(Self::September),
+            10 => Ok(Self::October),
+            11 => Ok(Self::November),
+            12 => Ok(Self::December),
+            val => Err(D::Error::invalid_value(
+                serde::de::Unexpected::Unsigned(val.into()),
+                &"a value in the range 1..=12",
+            )),
+        }
+    }
+}
+// endregion Month

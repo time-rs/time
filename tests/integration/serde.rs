@@ -1,6 +1,6 @@
 use serde_test::{assert_de_tokens_error, assert_tokens, Compact, Configure, Readable, Token};
 use time::macros::{date, datetime, offset, time};
-use time::{Duration, Time, Weekday};
+use time::{Duration, Month, Time, Weekday};
 
 #[test]
 fn time() {
@@ -305,5 +305,43 @@ fn weekday() {
     assert_de_tokens_error::<Readable<Weekday>>(
         &[Token::BorrowedStr("NotADay")],
         r#"invalid value: string "NotADay", expected a day of the week"#,
+    );
+}
+
+#[test]
+fn month() {
+    use Month::*;
+    assert_tokens(&January.compact(), &[Token::U8(1)]);
+    assert_tokens(&February.compact(), &[Token::U8(2)]);
+    assert_tokens(&March.compact(), &[Token::U8(3)]);
+    assert_tokens(&April.compact(), &[Token::U8(4)]);
+    assert_tokens(&May.compact(), &[Token::U8(5)]);
+    assert_tokens(&June.compact(), &[Token::U8(6)]);
+    assert_tokens(&July.compact(), &[Token::U8(7)]);
+    assert_tokens(&August.compact(), &[Token::U8(8)]);
+    assert_tokens(&September.compact(), &[Token::U8(9)]);
+    assert_tokens(&October.compact(), &[Token::U8(10)]);
+    assert_tokens(&November.compact(), &[Token::U8(11)]);
+    assert_tokens(&December.compact(), &[Token::U8(12)]);
+    assert_de_tokens_error::<Compact<Month>>(
+        &[Token::U8(0)],
+        "invalid value: integer `0`, expected a value in the range 1..=12",
+    );
+
+    assert_tokens(&January.readable(), &[Token::BorrowedStr("January")]);
+    assert_tokens(&February.readable(), &[Token::BorrowedStr("February")]);
+    assert_tokens(&March.readable(), &[Token::BorrowedStr("March")]);
+    assert_tokens(&April.readable(), &[Token::BorrowedStr("April")]);
+    assert_tokens(&May.readable(), &[Token::BorrowedStr("May")]);
+    assert_tokens(&June.readable(), &[Token::BorrowedStr("June")]);
+    assert_tokens(&July.readable(), &[Token::BorrowedStr("July")]);
+    assert_tokens(&August.readable(), &[Token::BorrowedStr("August")]);
+    assert_tokens(&September.readable(), &[Token::BorrowedStr("September")]);
+    assert_tokens(&October.readable(), &[Token::BorrowedStr("October")]);
+    assert_tokens(&November.readable(), &[Token::BorrowedStr("November")]);
+    assert_tokens(&December.readable(), &[Token::BorrowedStr("December")]);
+    assert_de_tokens_error::<Readable<Month>>(
+        &[Token::BorrowedStr("NotAMonth")],
+        r#"invalid value: string "NotAMonth", expected a month of the year"#,
     );
 }

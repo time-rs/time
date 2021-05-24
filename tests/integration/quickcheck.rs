@@ -1,5 +1,5 @@
 use quickcheck_dep::{quickcheck, Arbitrary, TestResult};
-use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 macro_rules! test_shrink {
     ($type:ty,
@@ -84,6 +84,17 @@ quickcheck! {
         match w {
             Weekday::Monday => w.shrink().next() == None,
             _ => w.shrink().next() == Some(w.previous())
+        }
+    }
+
+    fn month_supports_arbitrary(m: Month) -> bool {
+        (1..=12).contains(&(m as u8))
+    }
+
+    fn month_can_shrink(m: Month) -> bool {
+        match m {
+            Month::January => m.shrink().next() == None,
+            _ => m.shrink().next() == Some(m.previous())
         }
     }
 }
