@@ -1,11 +1,3 @@
-#[cfg(all(
-    any(
-        all(target_family = "unix", unsound_local_offset),
-        target_family = "windows"
-    ),
-    feature = "local-offset"
-))]
-use core::convert::TryInto;
 #[cfg(feature = "formatting")]
 use core::fmt;
 use core::ops::Neg;
@@ -354,6 +346,7 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     // can only be enabled by the end user. It must be explicitly passed on each compilation.
     #[cfg(all(target_family = "unix", unsound_local_offset))]
     {
+        use core::convert::TryInto;
         use core::mem::MaybeUninit;
 
         /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on any error.
@@ -446,6 +439,7 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     }
     #[cfg(target_family = "windows")]
     {
+        use core::convert::TryInto;
         use core::mem::MaybeUninit;
 
         // ffi: WINAPI FILETIME struct
