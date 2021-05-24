@@ -10,7 +10,7 @@ macro_rules! test_shrink {
         quickcheck! {
             fn $fn_name(v: $type) -> TestResult {
                 let method_value = v.$($method()).+;
-                if method_value == 0 $(|| method_value == $min_value)? {
+                if method_value == test_shrink!(@min_or_zero $($min_value)?) {
                     TestResult::discard()
                 } else {
                     TestResult::from_bool(v.shrink().any(|shrunk|
@@ -24,6 +24,8 @@ macro_rules! test_shrink {
             }
         }
     };
+    (@min_or_zero) => { 0 };
+    (@min_or_zero $min:literal) => { $min };
 }
 
 quickcheck! {
