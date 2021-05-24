@@ -12,7 +12,7 @@ use crate::parsing::component::{
     parse_week_number, parse_weekday, parse_year, Period,
 };
 use crate::parsing::ParsedItem;
-use crate::{error, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// All information parsed.
 ///
@@ -32,7 +32,7 @@ pub struct Parsed {
     /// The last two digits of the ISO week year.
     pub iso_year_last_two: Option<u8>,
     /// Month of the year.
-    pub month: Option<NonZeroU8>,
+    pub month: Option<Month>,
     /// Week of the year, where week one begins on the first Sunday of the calendar year.
     pub sunday_week_number: Option<u8>,
     /// Week of the year, where week one begins on the first Monday of the calendar year.
@@ -204,7 +204,7 @@ impl TryFrom<Parsed> for Date {
 
         match parsed {
             items!(year, ordinal) => Ok(Self::from_ordinal_date(year, ordinal.get())?),
-            items!(year, month, day) => Ok(Self::from_calendar_date(year, month.get(), day.get())?),
+            items!(year, month, day) => Ok(Self::from_calendar_date(year, month, day.get())?),
             items!(iso_year, iso_week_number, weekday) => Ok(Self::from_iso_week_date(
                 iso_year,
                 iso_week_number.get(),

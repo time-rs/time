@@ -10,7 +10,7 @@ use crate::error::TryFromParsed;
 use crate::format_description::well_known::Rfc3339;
 use crate::format_description::FormatItem;
 use crate::parsing::{Parsed, ParsedItem};
-use crate::{error, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
+use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
 /// A type that can be parsed.
 pub trait Parsable: sealed::Sealed {}
@@ -148,6 +148,8 @@ impl sealed::Sealed for Rfc3339 {
         let input = dash(input).ok_or(InvalidLiteral)?.unwrap();
         let input = exactly_n_digits(2)(input)
             .ok_or(InvalidComponent("month"))?
+            .flat_map_res(Month::from_number)
+            .map_err(error::TryFromParsed::ComponentRange)?
             .assign_value_to(&mut parsed.month);
         let input = dash(input).ok_or(InvalidLiteral)?.unwrap();
         let input = exactly_n_digits(2)(input)
@@ -288,11 +290,15 @@ impl sealed::Sealed for Rfc3339 {
             return Err(error::Parse::UnexpectedTrailingCharacters);
         }
 
-        Ok(Date::from_calendar_date(year as _, month, day)
-            .map_err(TryFromParsed::ComponentRange)?
-            .with_hms_nano(hour, minute, second, nanosecond)
-            .map_err(TryFromParsed::ComponentRange)?
-            .assume_offset(offset))
+        Ok(Date::from_calendar_date(
+            year as _,
+            crate::Month::from_number(month).map_err(TryFromParsed::ComponentRange)?,
+            day,
+        )
+        .map_err(TryFromParsed::ComponentRange)?
+        .with_hms_nano(hour, minute, second, nanosecond)
+        .map_err(TryFromParsed::ComponentRange)?
+        .assume_offset(offset))
     }
 }
 // endregion well-known formats

@@ -280,6 +280,7 @@ mod instant;
 #[cfg(feature = "macros")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "macros")))]
 pub mod macros;
+mod month;
 /// The [`OffsetDateTime`] struct and its associated `impl`s.
 mod offset_date_time;
 #[cfg(feature = "parsing")]
@@ -312,6 +313,7 @@ pub use crate::duration::Duration;
 pub use crate::error::Error;
 #[cfg(feature = "std")]
 pub use crate::instant::Instant;
+pub use crate::month::Month;
 pub use crate::offset_date_time::OffsetDateTime;
 pub use crate::primitive_date_time::PrimitiveDateTime;
 pub use crate::time::Time;

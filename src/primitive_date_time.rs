@@ -11,7 +11,7 @@ use crate::error;
 use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
-use crate::{util, Date, Duration, OffsetDateTime, Time, UtcOffset, Weekday};
+use crate::{util, Date, Duration, Month, OffsetDateTime, Time, UtcOffset, Weekday};
 
 /// Combined date and time.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -75,11 +75,11 @@ impl PrimitiveDateTime {
     /// The returned value will always be in the range `1..=12`.
     ///
     /// ```rust
-    /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").month(), 1);
-    /// assert_eq!(datetime!("2019-12-31 0:00").month(), 12);
+    /// # use time::{macros::datetime, Month};
+    /// assert_eq!(datetime!("2019-01-01 0:00").month(), Month::January);
+    /// assert_eq!(datetime!("2019-12-31 0:00").month(), Month::December);
     /// ```
-    pub const fn month(self) -> u8 {
+    pub const fn month(self) -> Month {
         self.date.month()
     }
 
@@ -158,13 +158,13 @@ impl PrimitiveDateTime {
     /// Get the year, month, and day.
     ///
     /// ```rust
-    /// # use time::macros::datetime;
+    /// # use time::{macros::datetime, Month};
     /// assert_eq!(
     ///     datetime!("2019-01-01 0:00").to_calendar_date(),
-    ///     (2019, 1, 1)
+    ///     (2019, Month::January, 1)
     /// );
     /// ```
-    pub const fn to_calendar_date(self) -> (i32, u8, u8) {
+    pub const fn to_calendar_date(self) -> (i32, Month, u8) {
         self.date.to_calendar_date()
     }
 

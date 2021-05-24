@@ -195,7 +195,7 @@ fn fmt_month(
     modifier::Month { padding, repr }: modifier::Month,
 ) -> Result<usize, io::Error> {
     match repr {
-        modifier::MonthRepr::Numerical => format_number(output, date.month(), padding, 2),
+        modifier::MonthRepr::Numerical => format_number(output, date.month() as u8, padding, 2),
         modifier::MonthRepr::Long => output.write(MONTH_NAMES[date.month() as usize - 1]),
         modifier::MonthRepr::Short => output.write(&MONTH_NAMES[date.month() as usize - 1][..3]),
     }

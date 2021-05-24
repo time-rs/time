@@ -3,7 +3,7 @@ use std::time::{Duration as StdDuration, SystemTime};
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, offset, time};
-use time::{Date, Duration, OffsetDateTime, Weekday};
+use time::{Date, Duration, Month, OffsetDateTime, Weekday};
 
 #[test]
 fn now_utc() {
@@ -136,12 +136,12 @@ fn year() {
 
 #[test]
 fn month() {
-    assert_eq!(datetime!("2019-01-01 0:00 UTC").month(), 1);
+    assert_eq!(datetime!("2019-01-01 0:00 UTC").month(), Month::January);
     assert_eq!(
         datetime!("2019-12-31 23:00 UTC")
             .to_offset(offset!("+1"))
             .month(),
-        1,
+        Month::January,
     );
 }
 
@@ -195,7 +195,7 @@ fn monday_based_week() {
 fn to_calendar_date() {
     assert_eq!(
         datetime!("2019-01-02 0:00 UTC").to_calendar_date(),
-        (2019, 1, 2)
+        (2019, Month::January, 2)
     );
 }
 

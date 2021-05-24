@@ -9,7 +9,7 @@ use crate::parsing::combinator::{
     any_digit, exactly_n_digits, exactly_n_digits_padded, first_match, opt, sign,
 };
 use crate::parsing::ParsedItem;
-use crate::Weekday;
+use crate::{Month, Weekday};
 
 // region: date components
 /// Parse the "year" component of a `Date`.
@@ -39,43 +39,45 @@ pub(crate) fn parse_year(input: &[u8], modifiers: modifier::Year) -> Option<Pars
 pub(crate) fn parse_month(
     input: &[u8],
     modifiers: modifier::Month,
-) -> Option<ParsedItem<'_, NonZeroU8>> {
+) -> Option<ParsedItem<'_, Month>> {
+    use Month::*;
     let ParsedItem(remaining, value) = first_match(match modifiers.repr {
         modifier::MonthRepr::Numerical => {
-            return exactly_n_digits_padded(2, modifiers.padding)(input);
+            return exactly_n_digits_padded(2, modifiers.padding)(input)?
+                .flat_map(|n| Month::from_number(n).ok());
         }
         modifier::MonthRepr::Long => [
-            ("January", 1),
-            ("February", 2),
-            ("March", 3),
-            ("April", 4),
-            ("May", 5),
-            ("June", 6),
-            ("July", 7),
-            ("August", 8),
-            ("September", 9),
-            ("October", 10),
-            ("November", 11),
-            ("December", 12),
+            ("January", January),
+            ("February", February),
+            ("March", March),
+            ("April", April),
+            ("May", May),
+            ("June", June),
+            ("July", July),
+            ("August", August),
+            ("September", September),
+            ("October", October),
+            ("November", November),
+            ("December", December),
         ]
         .iter(),
         modifier::MonthRepr::Short => [
-            ("Jan", 1),
-            ("Feb", 2),
-            ("Mar", 3),
-            ("Apr", 4),
-            ("May", 5),
-            ("Jun", 6),
-            ("Jul", 7),
-            ("Aug", 8),
-            ("Sep", 9),
-            ("Oct", 10),
-            ("Nov", 11),
-            ("Dec", 12),
+            ("Jan", January),
+            ("Feb", February),
+            ("Mar", March),
+            ("Apr", April),
+            ("May", May),
+            ("Jun", June),
+            ("Jul", July),
+            ("Aug", August),
+            ("Sep", September),
+            ("Oct", October),
+            ("Nov", November),
+            ("Dec", December),
         ]
         .iter(),
     })(input)?;
-    Some(ParsedItem(remaining, NonZeroU8::new(value)?))
+    Some(ParsedItem(remaining, value))
 }
 
 /// Parse the "week number" component of a `Date`.

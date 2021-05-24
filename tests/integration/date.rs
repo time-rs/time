@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, time};
-use time::{util, Date, Weekday};
+use time::{util, Date, Month, Weekday};
 
 #[test]
 fn debug() {
@@ -444,10 +444,10 @@ fn year() {
 
 #[test]
 fn month() {
-    assert_eq!(date!("2019-002").month(), 1);
-    assert_eq!(date!("2020-002").month(), 1);
-    assert_eq!(date!("2019-060").month(), 3);
-    assert_eq!(date!("2020-060").month(), 2);
+    assert_eq!(date!("2019-002").month(), Month::January);
+    assert_eq!(date!("2020-002").month(), Month::January);
+    assert_eq!(date!("2019-060").month(), Month::March);
+    assert_eq!(date!("2020-060").month(), Month::February);
 }
 
 #[test]
@@ -469,18 +469,54 @@ fn iso_week() {
 
 #[test]
 fn to_calendar_date() {
-    assert_eq!(date!("2019-01-02").to_calendar_date(), (2019, 1, 2));
-    assert_eq!(date!("2019-02-02").to_calendar_date(), (2019, 2, 2));
-    assert_eq!(date!("2019-03-02").to_calendar_date(), (2019, 3, 2));
-    assert_eq!(date!("2019-04-02").to_calendar_date(), (2019, 4, 2));
-    assert_eq!(date!("2019-05-02").to_calendar_date(), (2019, 5, 2));
-    assert_eq!(date!("2019-06-02").to_calendar_date(), (2019, 6, 2));
-    assert_eq!(date!("2019-07-02").to_calendar_date(), (2019, 7, 2));
-    assert_eq!(date!("2019-08-02").to_calendar_date(), (2019, 8, 2));
-    assert_eq!(date!("2019-09-02").to_calendar_date(), (2019, 9, 2));
-    assert_eq!(date!("2019-10-02").to_calendar_date(), (2019, 10, 2));
-    assert_eq!(date!("2019-11-02").to_calendar_date(), (2019, 11, 2));
-    assert_eq!(date!("2019-12-02").to_calendar_date(), (2019, 12, 2));
+    assert_eq!(
+        date!("2019-01-02").to_calendar_date(),
+        (2019, Month::January, 2)
+    );
+    assert_eq!(
+        date!("2019-02-02").to_calendar_date(),
+        (2019, Month::February, 2)
+    );
+    assert_eq!(
+        date!("2019-03-02").to_calendar_date(),
+        (2019, Month::March, 2)
+    );
+    assert_eq!(
+        date!("2019-04-02").to_calendar_date(),
+        (2019, Month::April, 2)
+    );
+    assert_eq!(
+        date!("2019-05-02").to_calendar_date(),
+        (2019, Month::May, 2)
+    );
+    assert_eq!(
+        date!("2019-06-02").to_calendar_date(),
+        (2019, Month::June, 2)
+    );
+    assert_eq!(
+        date!("2019-07-02").to_calendar_date(),
+        (2019, Month::July, 2)
+    );
+    assert_eq!(
+        date!("2019-08-02").to_calendar_date(),
+        (2019, Month::August, 2)
+    );
+    assert_eq!(
+        date!("2019-09-02").to_calendar_date(),
+        (2019, Month::September, 2)
+    );
+    assert_eq!(
+        date!("2019-10-02").to_calendar_date(),
+        (2019, Month::October, 2)
+    );
+    assert_eq!(
+        date!("2019-11-02").to_calendar_date(),
+        (2019, Month::November, 2)
+    );
+    assert_eq!(
+        date!("2019-12-02").to_calendar_date(),
+        (2019, Month::December, 2)
+    );
 }
 
 #[test]

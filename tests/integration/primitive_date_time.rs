@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, offset, time};
-use time::{PrimitiveDateTime, Weekday};
+use time::{Month, PrimitiveDateTime, Weekday};
 
 #[test]
 fn new() {
@@ -31,8 +31,8 @@ fn year() {
 
 #[test]
 fn month() {
-    assert_eq!(datetime!("2019-01-01 0:00").month(), 1);
-    assert_eq!(datetime!("2019-12-31 0:00").month(), 12);
+    assert_eq!(datetime!("2019-01-01 0:00").month(), Month::January);
+    assert_eq!(datetime!("2019-12-31 0:00").month(), Month::December);
 }
 
 #[test]
@@ -76,7 +76,7 @@ fn monday_based_week() {
 fn to_calendar_date() {
     assert_eq!(
         datetime!("2019-01-02 0:00").to_calendar_date(),
-        (2019, 1, 2)
+        (2019, Month::January, 2)
     );
 }
 

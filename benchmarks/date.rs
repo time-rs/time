@@ -1,17 +1,17 @@
 use criterion::Bencher;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::date;
-use time::{Date, Time, Weekday};
+use time::{Date, Month, Time, Weekday};
 
 setup_benchmark! {
     "Date",
 
     // region: constructors
     fn from_calendar_date(ben: &mut Bencher<'_>) {
-        ben.iter(|| Date::from_calendar_date(2019, 1, 1));
-        ben.iter(|| Date::from_calendar_date(2019, 12, 31));
-        ben.iter(|| Date::from_calendar_date(2020, 1, 1));
-        ben.iter(|| Date::from_calendar_date(2020, 12, 31));
+        ben.iter(|| Date::from_calendar_date(2019, Month::January, 1));
+        ben.iter(|| Date::from_calendar_date(2019, Month::December, 31));
+        ben.iter(|| Date::from_calendar_date(2020, Month::January, 1));
+        ben.iter(|| Date::from_calendar_date(2020, Month::December, 31));
     }
 
     fn from_ordinal_date(ben: &mut Bencher<'_>) {

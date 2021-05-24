@@ -1,5 +1,7 @@
 //! Utility functions.
 
+use crate::Month;
+
 /// Whether to adjust the date, and in which direction. Useful when implementing arithmetic.
 pub(crate) enum DateAdjustment {
     /// The previous day should be used.
@@ -17,7 +19,7 @@ const DAYS_IN_MONTH_COMMON_LEAP: [[u8; 12]; 2] = [
 ];
 
 /// Get the number of days in the month of a given year.
-pub(crate) const fn days_in_year_month(year: i32, month: u8) -> u8 {
+pub(crate) const fn days_in_year_month(year: i32, month: Month) -> u8 {
     DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
 }
 

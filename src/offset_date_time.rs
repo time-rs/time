@@ -14,7 +14,7 @@ use std::time::SystemTime;
 use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
-use crate::{error, Date, Duration, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{error, Date, Duration, Month, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// The Julian day of the Unix epoch.
 const UNIX_EPOCH_JULIAN_DAY: i32 = Date::__from_ordinal_date_unchecked(1970, 1).to_julian_day();
@@ -321,16 +321,17 @@ impl OffsetDateTime {
     /// The returned value will always be in the range `1..=12`.
     ///
     /// ```rust
+    /// # use time::Month;
     /// # use time::macros::{datetime, offset};
-    /// assert_eq!(datetime!("2019-01-01 0:00 UTC").month(), 1);
+    /// assert_eq!(datetime!("2019-01-01 0:00 UTC").month(), Month::January);
     /// assert_eq!(
     ///     datetime!("2019-12-31 23:00 UTC")
     ///         .to_offset(offset!("+1"))
     ///         .month(),
-    ///     1,
+    ///     Month::January,
     /// );
     /// ```
-    pub const fn month(self) -> u8 {
+    pub const fn month(self) -> Month {
         self.date().month()
     }
 
@@ -428,13 +429,13 @@ impl OffsetDateTime {
     /// Get the year, month, and day.
     ///
     /// ```rust
-    /// # use time::macros::datetime;
+    /// # use time::{macros::datetime, Month};
     /// assert_eq!(
     ///     datetime!("2019-01-01 0:00 UTC").to_calendar_date(),
-    ///     (2019, 1, 1)
+    ///     (2019, Month::January, 1)
     /// );
     /// ```
-    pub const fn to_calendar_date(self) -> (i32, u8, u8) {
+    pub const fn to_calendar_date(self) -> (i32, Month, u8) {
         self.date().to_calendar_date()
     }
 

@@ -11,7 +11,7 @@ use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year};
-use crate::{error, Duration, PrimitiveDateTime, Time, Weekday};
+use crate::{error, Duration, Month, PrimitiveDateTime, Time, Weekday};
 
 /// The minimum valid year.
 #[cfg(feature = "large-dates")]
@@ -75,18 +75,18 @@ impl Date {
     /// Attempt to create a `Date` from the year, month, and day.
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert!(Date::from_calendar_date(2019, 1, 1).is_ok());
-    /// assert!(Date::from_calendar_date(2019, 12, 31).is_ok());
+    /// # use time::{Date, Month};
+    /// assert!(Date::from_calendar_date(2019, Month::January, 1).is_ok());
+    /// assert!(Date::from_calendar_date(2019, Month::December, 31).is_ok());
     /// ```
     ///
     /// ```rust
-    /// # use time::Date;
-    /// assert!(Date::from_calendar_date(2019, 2, 29).is_err()); // 2019 isn't a leap year.
+    /// # use time::{Date, Month};
+    /// assert!(Date::from_calendar_date(2019, Month::February, 29).is_err()); // 2019 isn't a leap year.
     /// ```
     pub const fn from_calendar_date(
         year: i32,
-        month: u8,
+        month: Month,
         day: u8,
     ) -> Result<Self, error::ComponentRange> {
         /// Cumulative days through the beginning of a month in both common and leap years.
@@ -96,7 +96,6 @@ impl Date {
         ];
 
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
-        ensure_value_in_range!(month in 1 => 12);
         ensure_value_in_range!(day conditionally in 1 => days_in_year_month(year, month));
 
         Ok(Self::__from_ordinal_date_unchecked(
@@ -249,11 +248,11 @@ impl Date {
     /// The returned value will always be in the range `1..=12`.
     ///
     /// ```rust
-    /// # use time::macros::date;
-    /// assert_eq!(date!("2019-01-01").month(), 1);
-    /// assert_eq!(date!("2019-12-31").month(), 12);
+    /// # use time::{macros::date, Month};
+    /// assert_eq!(date!("2019-01-01").month(), Month::January);
+    /// assert_eq!(date!("2019-12-31").month(), Month::December);
     /// ```
-    pub const fn month(self) -> u8 {
+    pub const fn month(self) -> Month {
         self.month_day().0
     }
 
@@ -273,7 +272,7 @@ impl Date {
     /// Get the month and day. This is more efficient than fetching the components individually.
     // For whatever reason, rustc has difficulty optimizing this function. It's significantly faster
     // to write the statements out by hand.
-    pub(crate) const fn month_day(self) -> (u8, u8) {
+    pub(crate) const fn month_day(self) -> (Month, u8) {
         /// The number of days up to and including the given month. Common years
         /// are first, followed by leap years.
         const CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP: [[u16; 11]; 2] = [
@@ -285,29 +284,29 @@ impl Date {
         let ordinal = self.ordinal();
 
         if ordinal > days[10] {
-            (12, (ordinal - days[10]) as _)
+            (Month::December, (ordinal - days[10]) as _)
         } else if ordinal > days[9] {
-            (11, (ordinal - days[9]) as _)
+            (Month::November, (ordinal - days[9]) as _)
         } else if ordinal > days[8] {
-            (10, (ordinal - days[8]) as _)
+            (Month::October, (ordinal - days[8]) as _)
         } else if ordinal > days[7] {
-            (9, (ordinal - days[7]) as _)
+            (Month::September, (ordinal - days[7]) as _)
         } else if ordinal > days[6] {
-            (8, (ordinal - days[6]) as _)
+            (Month::August, (ordinal - days[6]) as _)
         } else if ordinal > days[5] {
-            (7, (ordinal - days[5]) as _)
+            (Month::July, (ordinal - days[5]) as _)
         } else if ordinal > days[4] {
-            (6, (ordinal - days[4]) as _)
+            (Month::June, (ordinal - days[4]) as _)
         } else if ordinal > days[3] {
-            (5, (ordinal - days[3]) as _)
+            (Month::May, (ordinal - days[3]) as _)
         } else if ordinal > days[2] {
-            (4, (ordinal - days[2]) as _)
+            (Month::April, (ordinal - days[2]) as _)
         } else if ordinal > days[1] {
-            (3, (ordinal - days[1]) as _)
+            (Month::March, (ordinal - days[1]) as _)
         } else if ordinal > days[0] {
-            (2, (ordinal - days[0]) as _)
+            (Month::February, (ordinal - days[0]) as _)
         } else {
-            (1, ordinal as _)
+            (Month::January, ordinal as _)
         }
     }
 
@@ -384,10 +383,13 @@ impl Date {
     /// Get the year, month, and day.
     ///
     /// ```rust
-    /// # use time::macros::date;
-    /// assert_eq!(date!("2019-01-01").to_calendar_date(), (2019, 1, 1));
+    /// # use time::{macros::date, Month};
+    /// assert_eq!(
+    ///     date!("2019-01-01").to_calendar_date(),
+    ///     (2019, Month::January, 1)
+    /// );
     /// ```
-    pub const fn to_calendar_date(self) -> (i32, u8, u8) {
+    pub const fn to_calendar_date(self) -> (i32, Month, u8) {
         let (month, day) = self.month_day();
         (self.year(), month, day)
     }

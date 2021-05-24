@@ -127,7 +127,7 @@ impl sealed::Sealed for Rfc3339 {
 
         bytes += format_number_pad_zero(output, year as u32, 4)?;
         bytes += output.write(&[b'-'])?;
-        bytes += format_number_pad_zero(output, date.month(), 2)?;
+        bytes += format_number_pad_zero(output, date.month() as u8, 2)?;
         bytes += output.write(&[b'-'])?;
         bytes += format_number_pad_zero(output, date.day(), 2)?;
         bytes += output.write(&[b'T'])?;

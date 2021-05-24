@@ -4,7 +4,7 @@ use time::format_description::well_known::Rfc3339;
 use time::format_description::{modifier, Component};
 use time::macros::{date, datetime, time};
 use time::parsing::Parsed;
-use time::{format_description as fd, Date, OffsetDateTime, Time, UtcOffset, Weekday};
+use time::{format_description as fd, Date, Month, OffsetDateTime, Time, UtcOffset, Weekday};
 
 #[test]
 fn rfc_3339() -> time::Result<()> {
@@ -260,7 +260,7 @@ fn parse_components() -> time::Result<()> {
             repr: modifier::MonthRepr::Numerical,
         }),
         b" 1",
-        _.month == 1.try_into().ok()
+        _.month == Some(Month::January)
     );
     parse_component!(
         Component::Month(modifier::Month {
@@ -268,7 +268,7 @@ fn parse_components() -> time::Result<()> {
             repr: modifier::MonthRepr::Short,
         }),
         b"Jan",
-        _.month == 1.try_into().ok()
+        _.month == Some(Month::January)
     );
     parse_component!(
         Component::Month(modifier::Month {
@@ -276,7 +276,7 @@ fn parse_components() -> time::Result<()> {
             repr: modifier::MonthRepr::Long,
         }),
         b"January",
-        _.month == 1.try_into().ok()
+        _.month == Some(Month::January)
     );
     parse_component!(
         Component::Ordinal(modifier::Ordinal {

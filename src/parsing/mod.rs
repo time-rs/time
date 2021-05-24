@@ -24,6 +24,14 @@ impl<'a, T> ParsedItem<'a, T> {
         Some(ParsedItem(self.0, f(self.1)?))
     }
 
+    /// Map the value to a new, optional value, preserving the remaining input.
+    pub(crate) fn flat_map_res<U, V>(
+        self,
+        f: impl Fn(T) -> Result<U, V>,
+    ) -> Result<ParsedItem<'a, U>, V> {
+        Ok(ParsedItem(self.0, f(self.1)?))
+    }
+
     /// Consume the stored value, assigning it to the provided target. The remaining input is
     /// returned.
     pub(crate) fn assign_value_to(self, target: &mut Option<T>) -> &'a [u8] {

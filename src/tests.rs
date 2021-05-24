@@ -5,6 +5,7 @@
 
 use crate::formatting::DigitCount;
 use crate::util::days_in_year_month;
+use crate::Month;
 
 #[test]
 fn digit_count() {
@@ -33,30 +34,30 @@ fn digit_count() {
 #[test]
 fn test_days_in_year_month() {
     // Common year
-    assert_eq!(days_in_year_month(2019, 1), 31);
-    assert_eq!(days_in_year_month(2019, 2), 28);
-    assert_eq!(days_in_year_month(2019, 3), 31);
-    assert_eq!(days_in_year_month(2019, 4), 30);
-    assert_eq!(days_in_year_month(2019, 5), 31);
-    assert_eq!(days_in_year_month(2019, 6), 30);
-    assert_eq!(days_in_year_month(2019, 7), 31);
-    assert_eq!(days_in_year_month(2019, 8), 31);
-    assert_eq!(days_in_year_month(2019, 9), 30);
-    assert_eq!(days_in_year_month(2019, 10), 31);
-    assert_eq!(days_in_year_month(2019, 11), 30);
-    assert_eq!(days_in_year_month(2019, 12), 31);
+    assert_eq!(days_in_year_month(2019, Month::January), 31);
+    assert_eq!(days_in_year_month(2019, Month::February), 28);
+    assert_eq!(days_in_year_month(2019, Month::March), 31);
+    assert_eq!(days_in_year_month(2019, Month::April), 30);
+    assert_eq!(days_in_year_month(2019, Month::May), 31);
+    assert_eq!(days_in_year_month(2019, Month::June), 30);
+    assert_eq!(days_in_year_month(2019, Month::July), 31);
+    assert_eq!(days_in_year_month(2019, Month::August), 31);
+    assert_eq!(days_in_year_month(2019, Month::September), 30);
+    assert_eq!(days_in_year_month(2019, Month::October), 31);
+    assert_eq!(days_in_year_month(2019, Month::November), 30);
+    assert_eq!(days_in_year_month(2019, Month::December), 31);
 
     // Leap year
-    assert_eq!(days_in_year_month(2020, 1), 31);
-    assert_eq!(days_in_year_month(2020, 2), 29);
-    assert_eq!(days_in_year_month(2020, 3), 31);
-    assert_eq!(days_in_year_month(2020, 4), 30);
-    assert_eq!(days_in_year_month(2020, 5), 31);
-    assert_eq!(days_in_year_month(2020, 6), 30);
-    assert_eq!(days_in_year_month(2020, 7), 31);
-    assert_eq!(days_in_year_month(2020, 8), 31);
-    assert_eq!(days_in_year_month(2020, 9), 30);
-    assert_eq!(days_in_year_month(2020, 10), 31);
-    assert_eq!(days_in_year_month(2020, 11), 30);
-    assert_eq!(days_in_year_month(2020, 12), 31);
+    assert_eq!(days_in_year_month(2020, Month::January), 31);
+    assert_eq!(days_in_year_month(2020, Month::February), 29);
+    assert_eq!(days_in_year_month(2020, Month::March), 31);
+    assert_eq!(days_in_year_month(2020, Month::April), 30);
+    assert_eq!(days_in_year_month(2020, Month::May), 31);
+    assert_eq!(days_in_year_month(2020, Month::June), 30);
+    assert_eq!(days_in_year_month(2020, Month::July), 31);
+    assert_eq!(days_in_year_month(2020, Month::August), 31);
+    assert_eq!(days_in_year_month(2020, Month::September), 30);
+    assert_eq!(days_in_year_month(2020, Month::October), 31);
+    assert_eq!(days_in_year_month(2020, Month::November), 30);
+    assert_eq!(days_in_year_month(2020, Month::December), 31);
 }
