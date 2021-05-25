@@ -1,12 +1,9 @@
-#[cfg(feature = "formatting")]
 use core::fmt;
 use core::ops::Neg;
 #[cfg(feature = "formatting")]
 use std::io;
 
 use crate::error;
-#[cfg(feature = "formatting")]
-use crate::format_description::{modifier, Component, FormatItem};
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
@@ -289,35 +286,16 @@ impl UtcOffset {
     }
 }
 
-#[cfg(feature = "formatting")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl fmt::Display for UtcOffset {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        /// [offset_hour sign:mandatory]:[offset_minute]:[offset_second]
-        const FORMAT: &[FormatItem<'_>] = &[
-            FormatItem::Component(Component::OffsetHour(modifier::OffsetHour {
-                padding: modifier::Padding::Zero,
-                sign_is_mandatory: true,
-            })),
-            FormatItem::Literal(b":"),
-            FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute {
-                padding: modifier::Padding::Zero,
-            })),
-            FormatItem::Literal(b":"),
-            FormatItem::Component(Component::OffsetSecond(modifier::OffsetSecond {
-                padding: modifier::Padding::Zero,
-            })),
-        ];
-        match self.format(&FORMAT) {
-            Ok(ref s) => f.write_str(s),
-            Err(error::Format::InvalidComponent(_)) => {
-                unreachable!("A well-known format is not used")
-            }
-            Err(error::Format::InsufficientTypeInformation) => {
-                unreachable!("All components used only require a `UtcOffset`")
-            }
-            Err(error::Format::StdIo(_)) => Err(fmt::Error),
-        }
+        write!(
+            f,
+            "{}{:02}:{:02}:{:02}",
+            if self.is_negative() { '-' } else { '+' },
+            self.hours.abs(),
+            self.minutes.abs(),
+            self.seconds.abs()
+        )
     }
 }
 // endregion formatting & parsing

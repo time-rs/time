@@ -1,7 +1,6 @@
 use core::cmp::Ordering;
 #[cfg(feature = "std")]
 use core::convert::From;
-#[cfg(feature = "formatting")]
 use core::fmt;
 use core::hash::{Hash, Hasher};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
@@ -842,8 +841,6 @@ impl OffsetDateTime {
     }
 }
 
-#[cfg(feature = "formatting")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl fmt::Display for OffsetDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}", self.date(), self.time(), self.offset)

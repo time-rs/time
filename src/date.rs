@@ -5,8 +5,6 @@ use core::time::Duration as StdDuration;
 use std::io;
 
 #[cfg(feature = "formatting")]
-use crate::format_description::{modifier, Component, FormatItem};
-#[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
@@ -689,37 +687,25 @@ impl Date {
     }
 }
 
-#[cfg(feature = "formatting")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl fmt::Display for Date {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        /// [year]-[month]-[day]
-        const FORMAT: &[FormatItem<'_>] = &[
-            FormatItem::Component(Component::Year(modifier::Year {
-                padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::Full,
-                iso_week_based: false,
-                sign_is_mandatory: false,
-            })),
-            FormatItem::Literal(b"-"),
-            FormatItem::Component(Component::Month(modifier::Month {
-                padding: modifier::Padding::Zero,
-                repr: modifier::MonthRepr::Numerical,
-            })),
-            FormatItem::Literal(b"-"),
-            FormatItem::Component(Component::Day(modifier::Day {
-                padding: modifier::Padding::Zero,
-            })),
-        ];
-        match self.format(&FORMAT) {
-            Ok(ref s) => f.write_str(s),
-            Err(error::Format::InvalidComponent(_)) => {
-                unreachable!("A well-known format is not used")
-            }
-            Err(error::Format::InsufficientTypeInformation) => {
-                unreachable!("All components used only require a `Date`")
-            }
-            Err(error::Format::StdIo(_)) => Err(fmt::Error),
+        if cfg!(feature = "large-dates") && self.year().abs() >= 10_000 {
+            write!(
+                f,
+                "{:+}-{:02}-{:02}",
+                self.year(),
+                self.month() as u8,
+                self.day()
+            )
+        } else {
+            write!(
+                f,
+                "{:0width$}-{:02}-{:02}",
+                self.year(),
+                self.month() as u8,
+                self.day(),
+                width = 4 + (self.year() < 0) as usize
+            )
         }
     }
 }

@@ -5,8 +5,6 @@ use core::time::Duration as StdDuration;
 use std::io;
 
 #[cfg(feature = "formatting")]
-use crate::format_description::{modifier, Component, FormatItem};
-#[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
@@ -457,39 +455,28 @@ impl Time {
     }
 }
 
-#[cfg(feature = "formatting")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl fmt::Display for Time {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        /// [hour]:[minute]:[second].[subsecond]
-        const FORMAT: &[FormatItem<'_>] = &[
-            FormatItem::Component(Component::Hour(modifier::Hour {
-                padding: modifier::Padding::None,
-                is_12_hour_clock: false,
-            })),
-            FormatItem::Literal(b":"),
-            FormatItem::Component(Component::Minute(modifier::Minute {
-                padding: modifier::Padding::Zero,
-            })),
-            FormatItem::Literal(b":"),
-            FormatItem::Component(Component::Second(modifier::Second {
-                padding: modifier::Padding::Zero,
-            })),
-            FormatItem::Literal(b"."),
-            FormatItem::Component(Component::Subsecond(modifier::Subsecond {
-                digits: modifier::SubsecondDigits::OneOrMore,
-            })),
-        ];
-        match self.format(&FORMAT) {
-            Ok(ref s) => f.write_str(s),
-            Err(error::Format::InvalidComponent(_)) => {
-                unreachable!("A well-known format is not used")
-            }
-            Err(error::Format::InsufficientTypeInformation) => {
-                unreachable!("All components used only require a `Time`")
-            }
-            Err(error::Format::StdIo(_)) => Err(fmt::Error),
-        }
+        let (value, width) = match self.nanosecond() {
+            nanos if nanos % 10 != 0 => (nanos, 9),
+            nanos if (nanos / 10) % 10 != 0 => (nanos / 10, 8),
+            nanos if (nanos / 100) % 10 != 0 => (nanos / 100, 7),
+            nanos if (nanos / 1_000) % 10 != 0 => (nanos / 1_000, 6),
+            nanos if (nanos / 10_000) % 10 != 0 => (nanos / 10_000, 5),
+            nanos if (nanos / 100_000) % 10 != 0 => (nanos / 100_000, 4),
+            nanos if (nanos / 1_000_000) % 10 != 0 => (nanos / 1_000_000, 3),
+            nanos if (nanos / 10_000_000) % 10 != 0 => (nanos / 10_000_000, 2),
+            nanos => (nanos / 100_000_000, 1),
+        };
+        write!(
+            f,
+            "{}:{:02}:{:02}.{:0width$}",
+            self.hour,
+            self.minute,
+            self.second,
+            value,
+            width = width
+        )
     }
 }
 // endregion formatting & parsing

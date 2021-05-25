@@ -1,4 +1,3 @@
-#[cfg(feature = "formatting")]
 use core::fmt;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
@@ -555,8 +554,6 @@ impl PrimitiveDateTime {
     }
 }
 
-#[cfg(feature = "formatting")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl fmt::Display for PrimitiveDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {}", self.date, self.time)
