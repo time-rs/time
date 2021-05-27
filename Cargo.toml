@@ -3,7 +3,7 @@ members = ["time-macros"]
 
 [package]
 name = "time"
-version = "0.3.0-alpha-0"
+version = "0.3.0-alpha-1"
 authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
 edition = "2018"
 repository = "https://github.com/time-rs/time"
