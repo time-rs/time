@@ -24,9 +24,24 @@ jobs:
       matrix:
         rust: ["1.46", stable]
         target:
-          - { name: NetBSD, triple: x86_64-unknown-netbsd, has_std: true, has_local_offset: false }
-          - { name: wasi, triple: wasm32-wasi, has_std: true, has_local_offset: false }
-          - { name: embedded, triple: thumbv7em-none-eabihf, has_std: false, has_local_offset: false }
+          - {
+              name: NetBSD,
+              triple: x86_64-unknown-netbsd,
+              has_std: true,
+              has_local_offset: false,
+            }
+          - {
+              name: wasi,
+              triple: wasm32-wasi,
+              has_std: true,
+              has_local_offset: false,
+            }
+          - {
+              name: embedded,
+              triple: thumbv7em-none-eabihf,
+              has_std: false,
+              has_local_offset: false,
+            }
 
     steps:
       - name: Checkout sources
@@ -345,3 +360,38 @@ jobs:
           target-folder: internal-api
           repository-name: time-rs/time-rs.github.io
         if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: llvm-tools-preview
+
+      - name: Install rustfilt
+        # Release mode isn't worth the extra time.
+        run: cargo install --debug rustfilt
+
+      - name: Install cargo-llvm-cov
+        run: |
+          curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/download/v0.1.0-alpha.3/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz | tar xzf - -C ~/.cargo/bin
+
+      - name: Generate coverage report
+        run: cargo llvm-cov --all-features --lcov > lcov.txt
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v1
+        with:
+          files: ./lcov.txt
+          fail_ci_if_error: false

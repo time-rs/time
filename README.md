@@ -1,10 +1,9 @@
 # time
 
-[![GitHub: time-rs/time](https://img.shields.io/badge/GitHub-time--rs%2Ftime-lightgrey?logo=github&style=flat-square)](https://github.com/time-rs/time)
-![license: MIT or Apache-2.0](https://img.shields.io/badge/license-MIT%20or%20Apache--2.0-red?style=flat-square)
 [![minimum rustc: 1.46](https://img.shields.io/badge/minimum%20rustc-1.46-yellowgreen?logo=rust&style=flat-square)](https://www.whatrustisit.com)
 [![version](https://img.shields.io/crates/v/time?color=blue&logo=rust&style=flat-square)](https://crates.io/crates/time)
 [![build status](https://img.shields.io/github/workflow/status/time-rs/time/Build/main?style=flat-square)](https://github.com/time-rs/time/actions)
+[![codecov](https://codecov.io/gh/time-rs/time/branch/main/graph/badge.svg?token=yt4XSmQNKQ)](https://codecov.io/gh/time-rs/time)
 
 Documentation:
 - [latest release](https://docs.rs/time)
