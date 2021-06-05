@@ -115,6 +115,43 @@ fn format_time() -> time::Result<()> {
     }
 
     assert_eq!(time!("1:02:03").format(&fd!("[period]"))?, "AM");
+    assert_eq!(
+        Time::MIDNIGHT.format(&fd!("[hour repr:12][period case:lower]"))?,
+        "12am"
+    );
+    assert_eq!(Time::MIDNIGHT.format(&fd!("[subsecond digits:1+]"))?, "0");
+    assert_eq!(
+        time!("0:00:00.01").format(&fd!("[subsecond digits:1+]"))?,
+        "01"
+    );
+    assert_eq!(
+        time!("0:00:00.001").format(&fd!("[subsecond digits:1+]"))?,
+        "001"
+    );
+    assert_eq!(
+        time!("0:00:00.0001").format(&fd!("[subsecond digits:1+]"))?,
+        "0001"
+    );
+    assert_eq!(
+        time!("0:00:00.00001").format(&fd!("[subsecond digits:1+]"))?,
+        "00001"
+    );
+    assert_eq!(
+        time!("0:00:00.000001").format(&fd!("[subsecond digits:1+]"))?,
+        "000001"
+    );
+    assert_eq!(
+        time!("0:00:00.0000001").format(&fd!("[subsecond digits:1+]"))?,
+        "0000001"
+    );
+    assert_eq!(
+        time!("0:00:00.00000001").format(&fd!("[subsecond digits:1+]"))?,
+        "00000001"
+    );
+    assert_eq!(
+        time!("0:00:00.000000001").format(&fd!("[subsecond digits:1+]"))?,
+        "000000001"
+    );
 
     Ok(())
 }

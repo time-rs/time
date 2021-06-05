@@ -96,6 +96,7 @@ fn parse_time() -> time::Result<()> {
             "01:02 AM",
             time!("1:02 AM"),
         ),
+        (fd::parse("[hour]:[minute]")?, "01:02", time!("1:02")),
     ];
 
     for (format_description, input, output) in &format_input_output {
@@ -426,6 +427,13 @@ fn parse_components() -> time::Result<()> {
         }),
         b"123456789",
         _.subsecond == Some(123_456_789)
+    );
+    parse_component!(
+        Component::Period(modifier::Period {
+            is_uppercase: false
+        }),
+        b"am",
+        _.hour_12_is_pm == Some(false)
     );
 
     Ok(())

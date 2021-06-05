@@ -288,6 +288,10 @@ fn saturating_add() {
     );
     assert_eq!(Duration::MIN.saturating_add((-1).seconds()), Duration::MIN);
     assert_eq!((-5).seconds().saturating_add(5.seconds()), Duration::ZERO);
+    assert_eq!(
+        1_600.milliseconds().saturating_add(1_600.milliseconds()),
+        3_200.milliseconds()
+    );
 }
 
 #[test]
@@ -299,6 +303,10 @@ fn saturating_sub() {
         Duration::MAX
     );
     assert_eq!(5.seconds().saturating_sub(10.seconds()), (-5).seconds());
+    assert_eq!(
+        (-1_600).milliseconds().saturating_sub(1_600.milliseconds()),
+        (-3_200).milliseconds()
+    );
 }
 
 #[test]

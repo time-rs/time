@@ -1,4 +1,5 @@
 use std::error::Error as _;
+use std::io;
 
 use time::error::{
     ComponentRange, ConversionRange, Error, Format, IndeterminateOffset, InvalidFormatDescription,
@@ -36,6 +37,10 @@ fn insufficient_type_information() -> Format {
 
 fn unexpected_trailing_characters() -> Parse {
     Time::parse("a", &format_description!("")).unwrap_err()
+}
+
+fn io_error() -> io::Error {
+    io::Error::last_os_error()
 }
 
 #[test]
@@ -99,6 +104,7 @@ fn display() {
         InvalidFormatDescription::UnclosedOpeningBracket { index: 0 },
         Error::from(InvalidFormatDescription::UnclosedOpeningBracket { index: 0 })
     );
+    assert_display_eq!(io_error(), Format::from(io_error()));
 }
 
 #[test]
@@ -133,4 +139,5 @@ fn source() {
         Error::from(InvalidFormatDescription::UnclosedOpeningBracket { index: 0 }),
         InvalidFormatDescription
     );
+    assert_source!(Format::from(io_error()), io::Error);
 }
