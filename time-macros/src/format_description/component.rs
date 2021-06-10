@@ -23,22 +23,22 @@ pub(crate) enum Component {
 }
 
 impl ToTokens for Component {
-    fn to_internal_tokens(&self, tokens: &mut TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         let (name, inner_tokens) = match self {
-            Self::Day(modifier) => ("Day", modifier.to_internal_token_stream()),
-            Self::Month(modifier) => ("Month", modifier.to_internal_token_stream()),
-            Self::Ordinal(modifier) => ("Ordinal", modifier.to_internal_token_stream()),
-            Self::Weekday(modifier) => ("Weekday", modifier.to_internal_token_stream()),
-            Self::WeekNumber(modifier) => ("WeekNumber", modifier.to_internal_token_stream()),
-            Self::Year(modifier) => ("Year", modifier.to_internal_token_stream()),
-            Self::Hour(modifier) => ("Hour", modifier.to_internal_token_stream()),
-            Self::Minute(modifier) => ("Minute", modifier.to_internal_token_stream()),
-            Self::Period(modifier) => ("Period", modifier.to_internal_token_stream()),
-            Self::Second(modifier) => ("Second", modifier.to_internal_token_stream()),
-            Self::Subsecond(modifier) => ("Subsecond", modifier.to_internal_token_stream()),
-            Self::OffsetHour(modifier) => ("OffsetHour", modifier.to_internal_token_stream()),
-            Self::OffsetMinute(modifier) => ("OffsetMinute", modifier.to_internal_token_stream()),
-            Self::OffsetSecond(modifier) => ("OffsetSecond", modifier.to_internal_token_stream()),
+            Self::Day(modifier) => ("Day", modifier.to_token_stream()),
+            Self::Month(modifier) => ("Month", modifier.to_token_stream()),
+            Self::Ordinal(modifier) => ("Ordinal", modifier.to_token_stream()),
+            Self::Weekday(modifier) => ("Weekday", modifier.to_token_stream()),
+            Self::WeekNumber(modifier) => ("WeekNumber", modifier.to_token_stream()),
+            Self::Year(modifier) => ("Year", modifier.to_token_stream()),
+            Self::Hour(modifier) => ("Hour", modifier.to_token_stream()),
+            Self::Minute(modifier) => ("Minute", modifier.to_token_stream()),
+            Self::Period(modifier) => ("Period", modifier.to_token_stream()),
+            Self::Second(modifier) => ("Second", modifier.to_token_stream()),
+            Self::Subsecond(modifier) => ("Subsecond", modifier.to_token_stream()),
+            Self::OffsetHour(modifier) => ("OffsetHour", modifier.to_token_stream()),
+            Self::OffsetMinute(modifier) => ("OffsetMinute", modifier.to_token_stream()),
+            Self::OffsetSecond(modifier) => ("OffsetSecond", modifier.to_token_stream()),
         };
 
         tokens.extend(

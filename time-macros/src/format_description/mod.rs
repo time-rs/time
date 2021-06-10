@@ -26,7 +26,7 @@ pub(crate) enum FormatItem<'a> {
 }
 
 impl ToTokens for FormatItem<'_> {
-    fn to_internal_tokens(&self, tokens: &mut TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         match self {
             FormatItem::Literal(s) => tokens.extend(
                 [
@@ -67,7 +67,7 @@ impl ToTokens for FormatItem<'_> {
                     TokenTree::Ident(Ident::new("Component", Span::mixed_site())),
                     TokenTree::Group(Group::new(
                         Delimiter::Parenthesis,
-                        component.to_internal_token_stream(),
+                        component.to_token_stream(),
                     )),
                 ]
                 .iter()

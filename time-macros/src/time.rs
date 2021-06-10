@@ -91,8 +91,8 @@ impl Time {
 }
 
 impl ToTokens for Time {
-    fn to_internal_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(helpers::const_block(
             [
                 TokenTree::Punct(Punct::new(':', Spacing::Joint)),
                 TokenTree::Punct(Punct::new(':', Spacing::Alone)),
@@ -122,12 +122,6 @@ impl ToTokens for Time {
             .iter()
             .cloned()
             .collect::<TokenStream>(),
-        )
-    }
-
-    fn to_external_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(helpers::const_block(
-            self.to_internal_token_stream(),
             [
                 TokenTree::Punct(Punct::new(':', Spacing::Joint)),
                 TokenTree::Punct(Punct::new(':', Spacing::Alone)),

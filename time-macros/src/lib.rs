@@ -57,25 +57,17 @@ use self::offset::Offset;
 use self::time::Time;
 
 trait ToTokens {
-    fn to_internal_tokens(&self, tokens: &mut TokenStream);
-    fn to_external_tokens(&self, tokens: &mut TokenStream) {
-        self.to_internal_tokens(tokens);
-    }
-    fn to_internal_token_stream(&self) -> TokenStream {
+    fn to_tokens(&self, tokens: &mut TokenStream);
+    fn to_token_stream(&self) -> TokenStream {
         let mut tokens = TokenStream::new();
-        self.to_internal_tokens(&mut tokens);
-        tokens
-    }
-    fn to_external_token_stream(&self) -> TokenStream {
-        let mut tokens = TokenStream::new();
-        self.to_external_tokens(&mut tokens);
+        self.to_tokens(&mut tokens);
         tokens
     }
 }
 
 #[allow(clippy::use_self)] // false positive
 impl ToTokens for bool {
-    fn to_internal_tokens(&self, tokens: &mut TokenStream) {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(iter::once(TokenTree::Ident(Ident::new(
             if *self { "true" } else { "false" },
             Span::mixed_site(),
@@ -100,7 +92,7 @@ macro_rules! impl_macros {
 
             match chars.peek() {
                 Some(&char) => Error::UnexpectedCharacter(char).to_compile_error(),
-                None => value.to_external_token_stream(),
+                None => value.to_token_stream(),
             }
         }
     )*};
@@ -131,7 +123,7 @@ pub fn format_description(input: TokenStream) -> TokenStream {
     for item in items {
         tokens.extend(
             [
-                item.to_external_token_stream(),
+                item.to_token_stream(),
                 TokenStream::from(TokenTree::Punct(Punct::new(',', Spacing::Alone))),
             ]
             .iter()

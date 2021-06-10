@@ -25,7 +25,7 @@ macro_rules! to_tokens {
         }
 
         impl ToTokens for $struct_name {
-            fn to_internal_tokens(&self, tokens: &mut TokenStream) {
+            fn to_tokens(&self, tokens: &mut TokenStream) {
                 tokens.extend(
                     [
                         TokenTree::Punct(Punct::new(':', Spacing::Joint)),
@@ -51,7 +51,7 @@ macro_rules! to_tokens {
                                     ':',
                                     Spacing::Alone,
                                 ))),
-                                self.$field_name.to_internal_token_stream(),
+                                self.$field_name.to_token_stream(),
                                 TokenStream::from(TokenTree::Punct(Punct::new(
                                     ',',
                                     Spacing::Alone,
@@ -88,7 +88,7 @@ macro_rules! to_tokens {
         }
 
         impl ToTokens for $enum_name {
-            fn to_internal_tokens(&self, tokens: &mut TokenStream) {
+            fn to_tokens(&self, tokens: &mut TokenStream) {
                 tokens.extend(
                     [
                         TokenTree::Punct(Punct::new(':', Spacing::Joint)),

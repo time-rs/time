@@ -36,55 +36,53 @@ impl DateTime {
 }
 
 impl ToTokens for DateTime {
-    fn to_internal_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(
-            [
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("time", Span::call_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("PrimitiveDateTime", Span::call_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("new", Span::call_site())),
-                TokenTree::Group(Group::new(
-                    Delimiter::Parenthesis,
-                    [
-                        self.date.to_internal_token_stream(),
-                        TokenTree::Punct(Punct::new(',', Spacing::Alone)).into(),
-                        self.time.to_internal_token_stream(),
-                    ]
-                    .iter()
-                    .cloned()
-                    .collect(),
-                )),
-            ]
-            .iter()
-            .cloned()
-            .collect::<TokenStream>(),
-        );
-
-        if let Some(offset) = self.offset {
-            tokens.extend(
-                [
-                    TokenTree::Punct(Punct::new('.', Spacing::Alone)),
-                    TokenTree::Ident(Ident::new("assume_offset", Span::call_site())),
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend(helpers::const_block(
+            {
+                let mut tokens = [
+                    TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                    TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                    TokenTree::Ident(Ident::new("time", Span::call_site())),
+                    TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                    TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                    TokenTree::Ident(Ident::new("PrimitiveDateTime", Span::call_site())),
+                    TokenTree::Punct(Punct::new(':', Spacing::Joint)),
+                    TokenTree::Punct(Punct::new(':', Spacing::Alone)),
+                    TokenTree::Ident(Ident::new("new", Span::call_site())),
                     TokenTree::Group(Group::new(
                         Delimiter::Parenthesis,
-                        offset.to_internal_token_stream(),
+                        [
+                            self.date.to_token_stream(),
+                            TokenTree::Punct(Punct::new(',', Spacing::Alone)).into(),
+                            self.time.to_token_stream(),
+                        ]
+                        .iter()
+                        .cloned()
+                        .collect(),
                     )),
                 ]
                 .iter()
                 .cloned()
-                .collect::<TokenStream>(),
-            );
-        }
-    }
+                .collect::<TokenStream>();
 
-    fn to_external_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(helpers::const_block(
-            self.to_internal_token_stream(),
+                if let Some(offset) = self.offset {
+                    tokens.extend(
+                        [
+                            TokenTree::Punct(Punct::new('.', Spacing::Alone)),
+                            TokenTree::Ident(Ident::new("assume_offset", Span::call_site())),
+                            TokenTree::Group(Group::new(
+                                Delimiter::Parenthesis,
+                                offset.to_token_stream(),
+                            )),
+                        ]
+                        .iter()
+                        .cloned()
+                        .collect::<TokenStream>(),
+                    );
+                }
+
+                tokens
+            },
             [
                 TokenTree::Punct(Punct::new(':', Spacing::Joint)),
                 TokenTree::Punct(Punct::new(':', Spacing::Alone)),
