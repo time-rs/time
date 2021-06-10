@@ -31,7 +31,7 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::{UtcOffset, macros::offset};
-    /// assert_eq!(UtcOffset::UTC, offset!("UTC"));
+    /// assert_eq!(UtcOffset::UTC, offset!(UTC));
     /// ```
     pub const UTC: Self = Self::__from_hms_unchecked(0, 0, 0);
 
@@ -90,8 +90,8 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::macros::offset;
-    /// assert_eq!(offset!("+1:02:03").as_hms(), (1, 2, 3));
-    /// assert_eq!(offset!("-1:02:03").as_hms(), (-1, -2, -3));
+    /// assert_eq!(offset!(+1:02:03).as_hms(), (1, 2, 3));
+    /// assert_eq!(offset!(-1:02:03).as_hms(), (-1, -2, -3));
     /// ```
     pub const fn as_hms(self) -> (i8, i8, i8) {
         (self.hours, self.minutes, self.seconds)
@@ -102,8 +102,8 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::macros::offset;
-    /// assert_eq!(offset!("+1:02:03").whole_hours(), 1);
-    /// assert_eq!(offset!("-1:02:03").whole_hours(), -1);
+    /// assert_eq!(offset!(+1:02:03).whole_hours(), 1);
+    /// assert_eq!(offset!(-1:02:03).whole_hours(), -1);
     /// ```
     pub const fn whole_hours(self) -> i8 {
         self.hours
@@ -114,8 +114,8 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::macros::offset;
-    /// assert_eq!(offset!("+1:02:03").whole_minutes(), 62);
-    /// assert_eq!(offset!("-1:02:03").whole_minutes(), -62);
+    /// assert_eq!(offset!(+1:02:03).whole_minutes(), 62);
+    /// assert_eq!(offset!(-1:02:03).whole_minutes(), -62);
     /// ```
     pub const fn whole_minutes(self) -> i16 {
         self.hours as i16 * 60 + self.minutes as i16
@@ -126,8 +126,8 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::macros::offset;
-    /// assert_eq!(offset!("+1:02:03").minutes_past_hour(), 2);
-    /// assert_eq!(offset!("-1:02:03").minutes_past_hour(), -2);
+    /// assert_eq!(offset!(+1:02:03).minutes_past_hour(), 2);
+    /// assert_eq!(offset!(-1:02:03).minutes_past_hour(), -2);
     /// ```
     pub const fn minutes_past_hour(self) -> i8 {
         self.minutes
@@ -138,8 +138,8 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::macros::offset;
-    /// assert_eq!(offset!("+1:02:03").whole_seconds(), 3723);
-    /// assert_eq!(offset!("-1:02:03").whole_seconds(), -3723);
+    /// assert_eq!(offset!(+1:02:03).whole_seconds(), 3723);
+    /// assert_eq!(offset!(-1:02:03).whole_seconds(), -3723);
     /// ```
     // This may be useful for anyone manually implementing arithmetic, as it
     // would let them construct a `Duration` directly.
@@ -152,8 +152,8 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::macros::offset;
-    /// assert_eq!(offset!("+1:02:03").seconds_past_minute(), 3);
-    /// assert_eq!(offset!("-1:02:03").seconds_past_minute(), -3);
+    /// assert_eq!(offset!(+1:02:03).seconds_past_minute(), 3);
+    /// assert_eq!(offset!(-1:02:03).seconds_past_minute(), -3);
     /// ```
     pub const fn seconds_past_minute(self) -> i8 {
         self.seconds
@@ -166,9 +166,9 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::macros::offset;
-    /// assert!(!offset!("+1:02:03").is_utc());
-    /// assert!(!offset!("-1:02:03").is_utc());
-    /// assert!(offset!("UTC").is_utc());
+    /// assert!(!offset!(+1:02:03).is_utc());
+    /// assert!(!offset!(-1:02:03).is_utc());
+    /// assert!(offset!(UTC).is_utc());
     /// ```
     pub const fn is_utc(self) -> bool {
         self.hours == 0 && self.minutes == 0 && self.seconds == 0
@@ -178,9 +178,9 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::macros::offset;
-    /// assert!(offset!("+1:02:03").is_positive());
-    /// assert!(!offset!("-1:02:03").is_positive());
-    /// assert!(!offset!("UTC").is_positive());
+    /// assert!(offset!(+1:02:03).is_positive());
+    /// assert!(!offset!(-1:02:03).is_positive());
+    /// assert!(!offset!(UTC).is_positive());
     /// ```
     pub const fn is_positive(self) -> bool {
         self.hours > 0 || self.minutes > 0 || self.seconds > 0
@@ -190,9 +190,9 @@ impl UtcOffset {
     ///
     /// ```rust
     /// # use time::macros::offset;
-    /// assert!(!offset!("+1:02:03").is_negative());
-    /// assert!(offset!("-1:02:03").is_negative());
-    /// assert!(!offset!("UTC").is_negative());
+    /// assert!(!offset!(+1:02:03).is_negative());
+    /// assert!(offset!(-1:02:03).is_negative());
+    /// assert!(!offset!(UTC).is_negative());
     /// ```
     pub const fn is_negative(self) -> bool {
         self.hours < 0 || self.minutes < 0 || self.seconds < 0
@@ -260,7 +260,7 @@ impl UtcOffset {
     /// ```rust
     /// # use time::{format_description, macros::offset};
     /// let format = format_description::parse("[offset_hour sign:mandatory]:[offset_minute]")?;
-    /// assert_eq!(offset!("+1").format(&format)?, "+01:00");
+    /// assert_eq!(offset!(+1).format(&format)?, "+01:00");
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn format(self, format: &impl Formattable) -> Result<String, error::Format> {
@@ -278,7 +278,7 @@ impl UtcOffset {
     /// ```rust
     /// # use time::{format_description, macros::offset, UtcOffset};
     /// let format = format_description::parse("[offset_hour]:[offset_minute]")?;
-    /// assert_eq!(UtcOffset::parse("-03:42", &format)?, offset!("-3:42"));
+    /// assert_eq!(UtcOffset::parse("-03:42", &format)?, offset!(-3:42));
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {

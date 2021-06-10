@@ -196,16 +196,16 @@ setup_benchmark! {
     }
 
     fn sub_time(ben: &mut Bencher<'_>) {
-        ben.iter(|| Time::MIDNIGHT - time!("0:00:01"));
-        ben.iter(|| time!("1:00") - Time::MIDNIGHT);
-        ben.iter(|| time!("1:00") - time!("0:00:01"));
+        ben.iter(|| Time::MIDNIGHT - time!(0:00:01));
+        ben.iter(|| time!(1:00) - Time::MIDNIGHT);
+        ben.iter(|| time!(1:00) - time!(0:00:01));
     }
 
     fn ordering(ben: &mut Bencher<'_>) {
-        ben.iter(|| Time::MIDNIGHT < time!("0:00:00.000_000_001"));
-        ben.iter(|| Time::MIDNIGHT < time!("0:00:01"));
-        ben.iter(|| time!("12:00") > time!("11:00"));
-        ben.iter(|| Time::MIDNIGHT == time!("0:00:00.000_000_001"));
+        ben.iter(|| Time::MIDNIGHT < time!(0:00:00.000_000_001));
+        ben.iter(|| Time::MIDNIGHT < time!(0:00:01));
+        ben.iter(|| time!(12:00) > time!(11:00));
+        ben.iter(|| Time::MIDNIGHT == time!(0:00:00.000_000_001));
     }
     // endregion trait impls
 }

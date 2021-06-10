@@ -1,9 +1,10 @@
 use std::iter::Peekable;
-use std::str::{Chars, FromStr};
+use std::str::FromStr;
 
-use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
+use proc_macro::{
+    token_stream, Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree,
+};
 
-use crate::peeking_take_while::PeekableExt;
 use crate::Error;
 
 /// Simulate a const block, ensuring that the value will be computed at compile-time.
@@ -46,78 +47,56 @@ pub(crate) fn get_string_literal(tokens: TokenStream) -> Result<String, Error> {
     }
 }
 
-pub(crate) fn consume_digits<T: FromStr>(
+pub(crate) fn consume_number<T: FromStr>(
     component_name: &'static str,
-    chars: &mut Peekable<Chars<'_>>,
+    chars: &mut Peekable<token_stream::IntoIter>,
 ) -> Result<T, Error> {
-    Ok(consume_digits_with_length(component_name, chars)?.0)
-}
-
-pub(crate) fn consume_digits_with_length<T: FromStr>(
-    component_name: &'static str,
-    chars: &mut Peekable<Chars<'_>>,
-) -> Result<(T, usize), Error> {
-    let digits = chars
-        .peeking_take_while(|&c| c.is_ascii_digit() || c == '_')
-        .collect::<String>();
-
-    // Internal underscores are allowed.
-    if digits.starts_with('_') || digits.ends_with('_') {
-        return Err(Error::UnexpectedCharacter('_'));
-    }
-    let digits = digits.replace('_', "");
-
-    let num_digits = digits.len();
+    let digits = match chars.next() {
+        Some(TokenTree::Literal(literal)) => literal.to_string(),
+        Some(tree) => return Err(Error::UnexpectedToken { tree }),
+        None => return Err(Error::UnexpectedEndOfInput),
+    };
 
     if digits.is_empty() {
         Err(Error::MissingComponent {
             name: component_name,
         })
+    } else if let Ok(value) = digits.replace('_', "").parse() {
+        Ok(value)
     } else {
-        match digits.parse() {
-            Ok(value) => Ok((value, num_digits)),
-            Err(_) => Err(Error::InvalidComponent {
-                name: component_name,
-                value: digits,
-            }),
-        }
+        Err(Error::InvalidComponent {
+            name: component_name,
+            value: digits,
+        })
     }
 }
 
-pub(crate) fn consume_char(c: char, chars: &mut Peekable<Chars<'_>>) -> Result<(), Error> {
+pub(crate) fn consume_ident(
+    s: &str,
+    chars: &mut Peekable<token_stream::IntoIter>,
+) -> Result<(), Error> {
     match chars.peek() {
-        Some(&char) if c == char => {
-            let _ = chars.next();
+        Some(TokenTree::Ident(char)) if s == char.to_string() => {
+            drop(chars.next());
             Ok(())
         }
-        Some(&char) => Err(Error::UnexpectedCharacter(char)),
+        Some(tree) => Err(Error::UnexpectedToken { tree: tree.clone() }),
         None => Err(Error::UnexpectedEndOfInput),
     }
 }
 
-pub(crate) fn consume_str(s: &str, chars: &mut Peekable<Chars<'_>>) -> Result<(), Error> {
-    // If the first character matches, but additional characters don't, we need
-    // to be able to reset the iterator to its original state. If this isn't
-    // done, a failure would have side effects, which is undesirable.
-    let old_chars = chars.clone();
-
-    for c1 in s.chars() {
-        match chars.peek() {
-            Some(&c2) if c1 == c2 => {
-                let _ = chars.next();
-            }
-            Some(&char) => {
-                *chars = old_chars;
-                return Err(Error::UnexpectedCharacter(char));
-            }
-            None => {
-                *chars = old_chars;
-                return Err(Error::UnexpectedEndOfInput);
-            }
+pub(crate) fn consume_punct(
+    c: char,
+    chars: &mut Peekable<token_stream::IntoIter>,
+) -> Result<(), Error> {
+    match chars.peek() {
+        Some(TokenTree::Punct(punct)) if punct.as_char() == c => {
+            drop(chars.next());
+            Ok(())
         }
+        Some(tree) => Err(Error::UnexpectedToken { tree: tree.clone() }),
+        None => Err(Error::UnexpectedEndOfInput),
     }
-
-    Ok(())
 }
 
 fn is_leap_year(year: i32) -> bool {

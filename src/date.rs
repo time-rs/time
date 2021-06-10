@@ -178,10 +178,10 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, macros::date};
-    /// assert_eq!(Date::from_julian_day(0), Ok(date!("-4713-11-24")));
-    /// assert_eq!(Date::from_julian_day(2_451_545), Ok(date!("2000-01-01")));
-    /// assert_eq!(Date::from_julian_day(2_458_485), Ok(date!("2019-01-01")));
-    /// assert_eq!(Date::from_julian_day(2_458_849), Ok(date!("2019-12-31")));
+    /// assert_eq!(Date::from_julian_day(0), Ok(date!(-4713 - 11 - 24)));
+    /// assert_eq!(Date::from_julian_day(2_451_545), Ok(date!(2000 - 01 - 01)));
+    /// assert_eq!(Date::from_julian_day(2_458_485), Ok(date!(2019 - 01 - 01)));
+    /// assert_eq!(Date::from_julian_day(2_458_849), Ok(date!(2019 - 12 - 31)));
     /// ```
     #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date"))]
     pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
@@ -233,9 +233,9 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::date;
-    /// assert_eq!(date!("2019-01-01").year(), 2019);
-    /// assert_eq!(date!("2019-12-31").year(), 2019);
-    /// assert_eq!(date!("2020-01-01").year(), 2020);
+    /// assert_eq!(date!(2019 - 01 - 01).year(), 2019);
+    /// assert_eq!(date!(2019 - 12 - 31).year(), 2019);
+    /// assert_eq!(date!(2020 - 01 - 01).year(), 2020);
     /// ```
     pub const fn year(self) -> i32 {
         self.value >> 9
@@ -247,8 +247,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{macros::date, Month};
-    /// assert_eq!(date!("2019-01-01").month(), Month::January);
-    /// assert_eq!(date!("2019-12-31").month(), Month::December);
+    /// assert_eq!(date!(2019 - 01 - 01).month(), Month::January);
+    /// assert_eq!(date!(2019 - 12 - 31).month(), Month::December);
     /// ```
     pub const fn month(self) -> Month {
         self.month_day().0
@@ -260,8 +260,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::date;
-    /// assert_eq!(date!("2019-01-01").day(), 1);
-    /// assert_eq!(date!("2019-12-31").day(), 31);
+    /// assert_eq!(date!(2019 - 01 - 01).day(), 1);
+    /// assert_eq!(date!(2019 - 12 - 31).day(), 31);
     /// ```
     pub const fn day(self) -> u8 {
         self.month_day().1
@@ -314,8 +314,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::date;
-    /// assert_eq!(date!("2019-01-01").ordinal(), 1);
-    /// assert_eq!(date!("2019-12-31").ordinal(), 365);
+    /// assert_eq!(date!(2019 - 01 - 01).ordinal(), 1);
+    /// assert_eq!(date!(2019 - 12 - 31).ordinal(), 365);
     /// ```
     pub const fn ordinal(self) -> u16 {
         (self.value & 0x1FF) as _
@@ -338,11 +338,11 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::date;
-    /// assert_eq!(date!("2019-01-01").iso_week(), 1);
-    /// assert_eq!(date!("2019-10-04").iso_week(), 40);
-    /// assert_eq!(date!("2020-01-01").iso_week(), 1);
-    /// assert_eq!(date!("2020-12-31").iso_week(), 53);
-    /// assert_eq!(date!("2021-01-01").iso_week(), 53);
+    /// assert_eq!(date!(2019 - 01 - 01).iso_week(), 1);
+    /// assert_eq!(date!(2019 - 10 - 04).iso_week(), 40);
+    /// assert_eq!(date!(2020 - 01 - 01).iso_week(), 1);
+    /// assert_eq!(date!(2020 - 12 - 31).iso_week(), 53);
+    /// assert_eq!(date!(2021 - 01 - 01).iso_week(), 53);
     /// ```
     pub const fn iso_week(self) -> u8 {
         self.iso_year_week().1
@@ -354,10 +354,10 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::date;
-    /// assert_eq!(date!("2019-01-01").sunday_based_week(), 0);
-    /// assert_eq!(date!("2020-01-01").sunday_based_week(), 0);
-    /// assert_eq!(date!("2020-12-31").sunday_based_week(), 52);
-    /// assert_eq!(date!("2021-01-01").sunday_based_week(), 0);
+    /// assert_eq!(date!(2019 - 01 - 01).sunday_based_week(), 0);
+    /// assert_eq!(date!(2020 - 01 - 01).sunday_based_week(), 0);
+    /// assert_eq!(date!(2020 - 12 - 31).sunday_based_week(), 52);
+    /// assert_eq!(date!(2021 - 01 - 01).sunday_based_week(), 0);
     /// ```
     pub const fn sunday_based_week(self) -> u8 {
         ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as _
@@ -369,10 +369,10 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::date;
-    /// assert_eq!(date!("2019-01-01").monday_based_week(), 0);
-    /// assert_eq!(date!("2020-01-01").monday_based_week(), 0);
-    /// assert_eq!(date!("2020-12-31").monday_based_week(), 52);
-    /// assert_eq!(date!("2021-01-01").monday_based_week(), 0);
+    /// assert_eq!(date!(2019 - 01 - 01).monday_based_week(), 0);
+    /// assert_eq!(date!(2020 - 01 - 01).monday_based_week(), 0);
+    /// assert_eq!(date!(2020 - 12 - 31).monday_based_week(), 52);
+    /// assert_eq!(date!(2021 - 01 - 01).monday_based_week(), 0);
     /// ```
     pub const fn monday_based_week(self) -> u8 {
         ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as _
@@ -383,7 +383,7 @@ impl Date {
     /// ```rust
     /// # use time::{macros::date, Month};
     /// assert_eq!(
-    ///     date!("2019-01-01").to_calendar_date(),
+    ///     date!(2019 - 01 - 01).to_calendar_date(),
     ///     (2019, Month::January, 1)
     /// );
     /// ```
@@ -396,7 +396,7 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::date;
-    /// assert_eq!(date!("2019-01-01").to_ordinal_date(), (2019, 1));
+    /// assert_eq!(date!(2019 - 01 - 01).to_ordinal_date(), (2019, 1));
     /// ```
     pub const fn to_ordinal_date(self) -> (i32, u16) {
         (self.year(), self.ordinal())
@@ -406,11 +406,17 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Weekday::*, macros::date};
-    /// assert_eq!(date!("2019-01-01").to_iso_week_date(), (2019, 1, Tuesday));
-    /// assert_eq!(date!("2019-10-04").to_iso_week_date(), (2019, 40, Friday));
-    /// assert_eq!(date!("2020-01-01").to_iso_week_date(), (2020, 1, Wednesday));
-    /// assert_eq!(date!("2020-12-31").to_iso_week_date(), (2020, 53, Thursday));
-    /// assert_eq!(date!("2021-01-01").to_iso_week_date(), (2020, 53, Friday));
+    /// assert_eq!(date!(2019 - 01 - 01).to_iso_week_date(), (2019, 1, Tuesday));
+    /// assert_eq!(date!(2019 - 10 - 04).to_iso_week_date(), (2019, 40, Friday));
+    /// assert_eq!(
+    ///     date!(2020 - 01 - 01).to_iso_week_date(),
+    ///     (2020, 1, Wednesday)
+    /// );
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).to_iso_week_date(),
+    ///     (2020, 53, Thursday)
+    /// );
+    /// assert_eq!(date!(2021 - 01 - 01).to_iso_week_date(), (2020, 53, Friday));
     /// ```
     pub const fn to_iso_week_date(self) -> (i32, u8, Weekday) {
         let (year, ordinal) = self.to_ordinal_date();
@@ -427,18 +433,18 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Weekday::*, macros::date};
-    /// assert_eq!(date!("2019-01-01").weekday(), Tuesday);
-    /// assert_eq!(date!("2019-02-01").weekday(), Friday);
-    /// assert_eq!(date!("2019-03-01").weekday(), Friday);
-    /// assert_eq!(date!("2019-04-01").weekday(), Monday);
-    /// assert_eq!(date!("2019-05-01").weekday(), Wednesday);
-    /// assert_eq!(date!("2019-06-01").weekday(), Saturday);
-    /// assert_eq!(date!("2019-07-01").weekday(), Monday);
-    /// assert_eq!(date!("2019-08-01").weekday(), Thursday);
-    /// assert_eq!(date!("2019-09-01").weekday(), Sunday);
-    /// assert_eq!(date!("2019-10-01").weekday(), Tuesday);
-    /// assert_eq!(date!("2019-11-01").weekday(), Friday);
-    /// assert_eq!(date!("2019-12-01").weekday(), Sunday);
+    /// assert_eq!(date!(2019 - 01 - 01).weekday(), Tuesday);
+    /// assert_eq!(date!(2019 - 02 - 01).weekday(), Friday);
+    /// assert_eq!(date!(2019 - 03 - 01).weekday(), Friday);
+    /// assert_eq!(date!(2019 - 04 - 01).weekday(), Monday);
+    /// assert_eq!(date!(2019 - 05 - 01).weekday(), Wednesday);
+    /// assert_eq!(date!(2019 - 06 - 01).weekday(), Saturday);
+    /// assert_eq!(date!(2019 - 07 - 01).weekday(), Monday);
+    /// assert_eq!(date!(2019 - 08 - 01).weekday(), Thursday);
+    /// assert_eq!(date!(2019 - 09 - 01).weekday(), Sunday);
+    /// assert_eq!(date!(2019 - 10 - 01).weekday(), Tuesday);
+    /// assert_eq!(date!(2019 - 11 - 01).weekday(), Friday);
+    /// assert_eq!(date!(2019 - 12 - 01).weekday(), Sunday);
     /// ```
     pub const fn weekday(self) -> Weekday {
         match self.to_julian_day() % 7 {
@@ -456,9 +462,18 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, macros::date};
-    /// assert_eq!(date!("2019-01-01").next_day(), Some(date!("2019-01-02")));
-    /// assert_eq!(date!("2019-01-31").next_day(), Some(date!("2019-02-01")));
-    /// assert_eq!(date!("2019-12-31").next_day(), Some(date!("2020-01-01")));
+    /// assert_eq!(
+    ///     date!(2019 - 01 - 01).next_day(),
+    ///     Some(date!(2019 - 01 - 02))
+    /// );
+    /// assert_eq!(
+    ///     date!(2019 - 01 - 31).next_day(),
+    ///     Some(date!(2019 - 02 - 01))
+    /// );
+    /// assert_eq!(
+    ///     date!(2019 - 12 - 31).next_day(),
+    ///     Some(date!(2020 - 01 - 01))
+    /// );
     /// assert_eq!(Date::MAX.next_day(), None);
     /// ```
     pub const fn next_day(self) -> Option<Self> {
@@ -480,16 +495,16 @@ impl Date {
     /// ```rust
     /// # use time::{Date, macros::date};
     /// assert_eq!(
-    ///     date!("2019-01-02").previous_day(),
-    ///     Some(date!("2019-01-01"))
+    ///     date!(2019 - 01 - 02).previous_day(),
+    ///     Some(date!(2019 - 01 - 01))
     /// );
     /// assert_eq!(
-    ///     date!("2019-02-01").previous_day(),
-    ///     Some(date!("2019-01-31"))
+    ///     date!(2019 - 02 - 01).previous_day(),
+    ///     Some(date!(2019 - 01 - 31))
     /// );
     /// assert_eq!(
-    ///     date!("2020-01-01").previous_day(),
-    ///     Some(date!("2019-12-31"))
+    ///     date!(2020 - 01 - 01).previous_day(),
+    ///     Some(date!(2019 - 12 - 31))
     /// );
     /// assert_eq!(Date::MIN.previous_day(), None);
     /// ```
@@ -515,10 +530,10 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::date;
-    /// assert_eq!(date!("-4713-11-24").to_julian_day(), 0);
-    /// assert_eq!(date!("2000-01-01").to_julian_day(), 2_451_545);
-    /// assert_eq!(date!("2019-01-01").to_julian_day(), 2_458_485);
-    /// assert_eq!(date!("2019-12-31").to_julian_day(), 2_458_849);
+    /// assert_eq!(date!(-4713 - 11 - 24).to_julian_day(), 0);
+    /// assert_eq!(date!(2000 - 01 - 01).to_julian_day(), 2_451_545);
+    /// assert_eq!(date!(2019 - 01 - 01).to_julian_day(), 2_458_485);
+    /// assert_eq!(date!(2019 - 12 - 31).to_julian_day(), 2_458_849);
     /// ```
     pub const fn to_julian_day(self) -> i32 {
         let year = self.year() - 1;
@@ -539,7 +554,7 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::{date, datetime};
-    /// assert_eq!(date!("1970-01-01").midnight(), datetime!("1970-01-01 0:00"));
+    /// assert_eq!(date!(1970-01-01).midnight(), datetime!(1970-01-01 0:00));
     /// ```
     pub const fn midnight(self) -> PrimitiveDateTime {
         PrimitiveDateTime::new(self, Time::MIDNIGHT)
@@ -550,8 +565,8 @@ impl Date {
     /// ```rust
     /// # use time::macros::{date, datetime, time};
     /// assert_eq!(
-    ///     date!("1970-01-01").with_time(time!("0:00")),
-    ///     datetime!("1970-01-01 0:00"),
+    ///     date!(1970-01-01).with_time(time!(0:00)),
+    ///     datetime!(1970-01-01 0:00),
     /// );
     /// ```
     pub const fn with_time(self, time: Time) -> PrimitiveDateTime {
@@ -562,8 +577,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::date;
-    /// assert!(date!("1970-01-01").with_hms(0, 0, 0).is_ok());
-    /// assert!(date!("1970-01-01").with_hms(24, 0, 0).is_err());
+    /// assert!(date!(1970 - 01 - 01).with_hms(0, 0, 0).is_ok());
+    /// assert!(date!(1970 - 01 - 01).with_hms(24, 0, 0).is_err());
     /// ```
     pub const fn with_hms(
         self,
@@ -581,8 +596,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::date;
-    /// assert!(date!("1970-01-01").with_hms_milli(0, 0, 0, 0).is_ok());
-    /// assert!(date!("1970-01-01").with_hms_milli(24, 0, 0, 0).is_err());
+    /// assert!(date!(1970 - 01 - 01).with_hms_milli(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970 - 01 - 01).with_hms_milli(24, 0, 0, 0).is_err());
     /// ```
     pub const fn with_hms_milli(
         self,
@@ -601,8 +616,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::date;
-    /// assert!(date!("1970-01-01").with_hms_micro(0, 0, 0, 0).is_ok());
-    /// assert!(date!("1970-01-01").with_hms_micro(24, 0, 0, 0).is_err());
+    /// assert!(date!(1970 - 01 - 01).with_hms_micro(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970 - 01 - 01).with_hms_micro(24, 0, 0, 0).is_err());
     /// ```
     pub const fn with_hms_micro(
         self,
@@ -621,8 +636,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time::macros::date;
-    /// assert!(date!("1970-01-01").with_hms_nano(0, 0, 0, 0).is_ok());
-    /// assert!(date!("1970-01-01").with_hms_nano(24, 0, 0, 0).is_err());
+    /// assert!(date!(1970 - 01 - 01).with_hms_nano(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970 - 01 - 01).with_hms_nano(24, 0, 0, 0).is_err());
     /// ```
     pub const fn with_hms_nano(
         self,
@@ -661,7 +676,7 @@ impl Date {
     /// ```rust
     /// # use time::{format_description, macros::date};
     /// let format = format_description::parse("[year]-[month]-[day]")?;
-    /// assert_eq!(date!("2020-01-02").format(&format)?, "2020-01-02");
+    /// assert_eq!(date!(2020 - 01 - 02).format(&format)?, "2020-01-02");
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn format(self, format: &impl Formattable) -> Result<String, error::Format> {
@@ -679,7 +694,7 @@ impl Date {
     /// ```rust
     /// # use time::{format_description, macros::date, Date};
     /// let format = format_description::parse("[year]-[month]-[day]")?;
-    /// assert_eq!(Date::parse("2020-01-02", &format)?, date!("2020-01-02"));
+    /// assert_eq!(Date::parse("2020-01-02", &format)?, date!(2020 - 01 - 02));
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {

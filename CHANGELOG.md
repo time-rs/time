@@ -65,8 +65,6 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - rand has been updated to 0.8.
 - quickcheck has been updated to 1.0.
 - Macros are placed behind the `macros` feature flag.
-- All macros now accept strings, rather than unquoted tokens. The syntax accepted is otherwise the
-  same as before.
 - Renamed
   - `OffsetDatetime::timestamp` → `OffsetDateTime::unix_timestamp`
   - `OffsetDatetime::timestamp_nanos` → `OffsetDateTime::unix_timestamp_nanos`

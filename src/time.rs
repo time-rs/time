@@ -56,7 +56,7 @@ impl Time {
     ///
     /// ```rust
     /// # use time::{Time, macros::time};
-    /// assert_eq!(Time::MIDNIGHT, time!("0:00"));
+    /// assert_eq!(Time::MIDNIGHT, time!(0:00));
     /// ```
     pub const MIDNIGHT: Self = Self::__from_hms_nanos_unchecked(0, 0, 0, 0);
 
@@ -197,8 +197,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time::macros::time;
-    /// assert_eq!(time!("0:00:00").as_hms(), (0, 0, 0));
-    /// assert_eq!(time!("23:59:59").as_hms(), (23, 59, 59));
+    /// assert_eq!(time!(0:00:00).as_hms(), (0, 0, 0));
+    /// assert_eq!(time!(23:59:59).as_hms(), (23, 59, 59));
     /// ```
     pub const fn as_hms(self) -> (u8, u8, u8) {
         (self.hour, self.minute, self.second)
@@ -208,8 +208,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time::macros::time;
-    /// assert_eq!(time!("0:00:00").as_hms_milli(), (0, 0, 0, 0));
-    /// assert_eq!(time!("23:59:59.999").as_hms_milli(), (23, 59, 59, 999));
+    /// assert_eq!(time!(0:00:00).as_hms_milli(), (0, 0, 0, 0));
+    /// assert_eq!(time!(23:59:59.999).as_hms_milli(), (23, 59, 59, 999));
     /// ```
     pub const fn as_hms_milli(self) -> (u8, u8, u8, u16) {
         (
@@ -224,9 +224,9 @@ impl Time {
     ///
     /// ```rust
     /// # use time::macros::time;
-    /// assert_eq!(time!("0:00:00").as_hms_micro(), (0, 0, 0, 0));
+    /// assert_eq!(time!(0:00:00).as_hms_micro(), (0, 0, 0, 0));
     /// assert_eq!(
-    ///     time!("23:59:59.999_999").as_hms_micro(),
+    ///     time!(23:59:59.999_999).as_hms_micro(),
     ///     (23, 59, 59, 999_999)
     /// );
     /// ```
@@ -238,9 +238,9 @@ impl Time {
     ///
     /// ```rust
     /// # use time::macros::time;
-    /// assert_eq!(time!("0:00:00").as_hms_nano(), (0, 0, 0, 0));
+    /// assert_eq!(time!(0:00:00).as_hms_nano(), (0, 0, 0, 0));
     /// assert_eq!(
-    ///     time!("23:59:59.999_999_999").as_hms_nano(),
+    ///     time!(23:59:59.999_999_999).as_hms_nano(),
     ///     (23, 59, 59, 999_999_999)
     /// );
     /// ```
@@ -254,8 +254,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time::macros::time;
-    /// assert_eq!(time!("0:00:00").hour(), 0);
-    /// assert_eq!(time!("23:59:59").hour(), 23);
+    /// assert_eq!(time!(0:00:00).hour(), 0);
+    /// assert_eq!(time!(23:59:59).hour(), 23);
     /// ```
     pub const fn hour(self) -> u8 {
         self.hour
@@ -267,8 +267,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time::macros::time;
-    /// assert_eq!(time!("0:00:00").minute(), 0);
-    /// assert_eq!(time!("23:59:59").minute(), 59);
+    /// assert_eq!(time!(0:00:00).minute(), 0);
+    /// assert_eq!(time!(23:59:59).minute(), 59);
     /// ```
     pub const fn minute(self) -> u8 {
         self.minute
@@ -280,8 +280,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time::macros::time;
-    /// assert_eq!(time!("0:00:00").second(), 0);
-    /// assert_eq!(time!("23:59:59").second(), 59);
+    /// assert_eq!(time!(0:00:00).second(), 0);
+    /// assert_eq!(time!(23:59:59).second(), 59);
     /// ```
     pub const fn second(self) -> u8 {
         self.second
@@ -293,8 +293,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time::macros::time;
-    /// assert_eq!(time!("0:00").millisecond(), 0);
-    /// assert_eq!(time!("23:59:59.999").millisecond(), 999);
+    /// assert_eq!(time!(0:00).millisecond(), 0);
+    /// assert_eq!(time!(23:59:59.999).millisecond(), 999);
     /// ```
     pub const fn millisecond(self) -> u16 {
         (self.nanosecond / 1_000_000) as _
@@ -306,8 +306,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time::macros::time;
-    /// assert_eq!(time!("0:00").microsecond(), 0);
-    /// assert_eq!(time!("23:59:59.999_999").microsecond(), 999_999);
+    /// assert_eq!(time!(0:00).microsecond(), 0);
+    /// assert_eq!(time!(23:59:59.999_999).microsecond(), 999_999);
     /// ```
     pub const fn microsecond(self) -> u32 {
         self.nanosecond / 1_000
@@ -319,8 +319,8 @@ impl Time {
     ///
     /// ```rust
     /// # use time::macros::time;
-    /// assert_eq!(time!("0:00").nanosecond(), 0);
-    /// assert_eq!(time!("23:59:59.999_999_999").nanosecond(), 999_999_999);
+    /// assert_eq!(time!(0:00).nanosecond(), 0);
+    /// assert_eq!(time!(23:59:59.999_999_999).nanosecond(), 999_999_999);
     /// ```
     pub const fn nanosecond(self) -> u32 {
         self.nanosecond
@@ -429,7 +429,7 @@ impl Time {
     /// ```rust
     /// # use time::{format_description, macros::time};
     /// let format = format_description::parse("[hour]:[minute]:[second]")?;
-    /// assert_eq!(time!("12:00").format(&format)?, "12:00:00");
+    /// assert_eq!(time!(12:00).format(&format)?, "12:00:00");
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn format(self, format: &impl Formattable) -> Result<String, crate::error::Format> {
@@ -447,7 +447,7 @@ impl Time {
     /// ```rust
     /// # use time::{format_description, macros::time, Time};
     /// let format = format_description::parse("[hour]:[minute]:[second]")?;
-    /// assert_eq!(Time::parse("12:00:00", &format)?, time!("12:00"));
+    /// assert_eq!(Time::parse("12:00:00", &format)?, time!(12:00));
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
@@ -489,8 +489,8 @@ impl Add<Duration> for Time {
     ///
     /// ```rust
     /// # use time::{ext::NumericalDuration, macros::time};
-    /// assert_eq!(time!("12:00") + 2.hours(), time!("14:00"));
-    /// assert_eq!(time!("0:00:01") + (-2).seconds(), time!("23:59:59"));
+    /// assert_eq!(time!(12:00) + 2.hours(), time!(14:00));
+    /// assert_eq!(time!(0:00:01) + (-2).seconds(), time!(23:59:59));
     /// ```
     fn add(self, duration: Duration) -> Self::Output {
         self.adjusting_add(duration).1
@@ -504,8 +504,8 @@ impl Add<StdDuration> for Time {
     ///
     /// ```rust
     /// # use time::{ext::NumericalStdDuration, macros::time};
-    /// assert_eq!(time!("12:00") + 2.std_hours(), time!("14:00"));
-    /// assert_eq!(time!("23:59:59") + 2.std_seconds(), time!("0:00:01"));
+    /// assert_eq!(time!(12:00) + 2.std_hours(), time!(14:00));
+    /// assert_eq!(time!(23:59:59) + 2.std_seconds(), time!(0:00:01));
     /// ```
     fn add(self, duration: StdDuration) -> Self::Output {
         self.adjusting_add_std(duration).1
@@ -528,8 +528,8 @@ impl Sub<Duration> for Time {
     ///
     /// ```rust
     /// # use time::{ext::NumericalDuration, macros::time};
-    /// assert_eq!(time!("14:00") - 2.hours(), time!("12:00"));
-    /// assert_eq!(time!("23:59:59") - (-2).seconds(), time!("0:00:01"));
+    /// assert_eq!(time!(14:00) - 2.hours(), time!(12:00));
+    /// assert_eq!(time!(23:59:59) - (-2).seconds(), time!(0:00:01));
     /// ```
     fn sub(self, duration: Duration) -> Self::Output {
         self + -duration
@@ -543,8 +543,8 @@ impl Sub<StdDuration> for Time {
     ///
     /// ```rust
     /// # use time::{ext::NumericalStdDuration, macros::time};
-    /// assert_eq!(time!("14:00") - 2.std_hours(), time!("12:00"));
-    /// assert_eq!(time!("0:00:01") - 2.std_seconds(), time!("23:59:59"));
+    /// assert_eq!(time!(14:00) - 2.std_hours(), time!(12:00));
+    /// assert_eq!(time!(0:00:01) - 2.std_seconds(), time!(23:59:59));
     /// ```
     fn sub(self, duration: StdDuration) -> Self::Output {
         self.adjusting_sub_std(duration).1
@@ -568,10 +568,10 @@ impl Sub for Time {
     ///
     /// ```rust
     /// # use time::{ext::NumericalDuration, macros::time};
-    /// assert_eq!(time!("0:00") - time!("0:00"), 0.seconds());
-    /// assert_eq!(time!("1:00") - time!("0:00"), 1.hours());
-    /// assert_eq!(time!("0:00") - time!("1:00"), (-1).hours());
-    /// assert_eq!(time!("0:00") - time!("23:00"), (-23).hours());
+    /// assert_eq!(time!(0:00) - time!(0:00), 0.seconds());
+    /// assert_eq!(time!(1:00) - time!(0:00), 1.hours());
+    /// assert_eq!(time!(0:00) - time!(1:00), (-1).hours());
+    /// assert_eq!(time!(0:00) - time!(23:00), (-23).hours());
     /// ```
     fn sub(self, rhs: Self) -> Self::Output {
         let hour_diff = (self.hour as i8) - (rhs.hour as i8);

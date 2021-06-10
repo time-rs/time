@@ -1,13 +1,12 @@
 use std::iter::Peekable;
-use std::str::Chars;
 
-use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
-#[allow(unused_imports)]
-use standback::prelude::*;
+use proc_macro::{
+    token_stream, Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree,
+};
 
 use crate::helpers::{
-    self, consume_char, consume_digits, days_in_year, days_in_year_month, weeks_in_year, ymd_to_yo,
-    ywd_to_yo,
+    self, consume_ident, consume_number, consume_punct, days_in_year, days_in_year_month,
+    weeks_in_year, ymd_to_yo, ywd_to_yo,
 };
 use crate::{Error, ToTokens};
 
@@ -23,13 +22,13 @@ pub(crate) struct Date {
 }
 
 impl Date {
-    pub(crate) fn parse(chars: &mut Peekable<Chars<'_>>) -> Result<Self, Error> {
-        let (year_sign, explicit_sign) = if chars.next_if_eq(&'-').is_some() {
+    pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Self, Error> {
+        let (year_sign, explicit_sign) = if consume_punct('-', chars).is_ok() {
             (-1, true)
         } else {
-            (1, chars.next_if_eq(&'+').is_some())
+            (1, consume_punct('+', chars).is_ok())
         };
-        let year = year_sign * consume_digits::<i32>("year", chars)?;
+        let year = year_sign * consume_number::<i32>("year", chars)?;
         if year.abs() > MAX_YEAR {
             return Err(Error::InvalidComponent {
                 name: "year",
@@ -42,13 +41,13 @@ impl Date {
             ));
         }
 
-        consume_char('-', chars)?;
+        consume_punct('-', chars)?;
 
         // year-week-day
-        if chars.next_if_eq(&'W').is_some() {
-            let week = consume_digits::<u8>("week", chars)?;
-            consume_char('-', chars)?;
-            let day = consume_digits::<u8>("day", chars)?;
+        if consume_ident("W", chars).is_ok() {
+            let week = consume_number::<u8>("week", chars)?;
+            consume_punct('-', chars)?;
+            let day = consume_number::<u8>("day", chars)?;
 
             if week > weeks_in_year(year) {
                 return Err(Error::InvalidComponent {
@@ -69,12 +68,12 @@ impl Date {
         }
 
         // We don't yet know whether it's year-month-day or year-ordinal.
-        let month_or_ordinal = consume_digits::<u16>("month or ordinal", chars)?;
+        let month_or_ordinal = consume_number::<u16>("month or ordinal", chars)?;
 
         // year-month-day
-        if chars.next_if_eq(&'-').is_some() {
+        if consume_punct('-', chars).is_ok() {
             let month = month_or_ordinal;
-            let day = consume_digits::<u8>("day", chars)?;
+            let day = consume_number::<u8>("day", chars)?;
 
             if month == 0 || month > 12 {
                 return Err(Error::InvalidComponent {

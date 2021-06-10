@@ -7,7 +7,6 @@ use crate::format_description::error::InvalidFormatDescription;
 pub(crate) enum Error {
     MissingComponent { name: &'static str },
     InvalidComponent { name: &'static str, value: String },
-    UnexpectedCharacter(char),
     ExpectedString,
     UnexpectedToken { tree: TokenTree },
     UnexpectedEndOfInput,
@@ -29,7 +28,6 @@ impl fmt::Display for Error {
             Self::InvalidComponent { name, value } => {
                 write!(f, "invalid component: {} was {}", name, value)
             }
-            Self::UnexpectedCharacter(char) => write!(f, "unexpected character: {}", char),
             Self::ExpectedString => f.write_str("expected string"),
             Self::UnexpectedToken { tree } => write!(f, "unexpected token: {}", tree),
             Self::UnexpectedEndOfInput => f.write_str("unexpected end of input"),

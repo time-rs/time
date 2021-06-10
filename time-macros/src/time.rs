@@ -1,10 +1,10 @@
-use std::cmp::Ordering;
 use std::iter::Peekable;
-use std::str::Chars;
 
-use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
+use proc_macro::{
+    token_stream, Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree,
+};
 
-use crate::helpers::{self, consume_char, consume_digits, consume_digits_with_length, consume_str};
+use crate::helpers::{self, consume_ident, consume_number, consume_punct};
 use crate::{Error, ToTokens};
 
 enum Period {
@@ -22,36 +22,18 @@ pub(crate) struct Time {
 }
 
 impl Time {
-    pub(crate) fn parse(chars: &mut Peekable<Chars<'_>>) -> Result<Self, Error> {
-        let hour = consume_digits("hour", chars)?;
-        consume_char(':', chars)?;
-        let minute = consume_digits::<u8>("minute", chars)?;
-        let mut second = 0;
-        let mut nanosecond = 0;
-
-        if consume_char(':', chars).is_ok() {
-            second = consume_digits("second", chars)?;
-
-            if consume_char('.', chars).is_ok() {
-                let (raw_nanosecond, num_digits) =
-                    consume_digits_with_length::<u32>("nanosecond", chars)?;
-
-                nanosecond = match num_digits.cmp(&9) {
-                    Ordering::Less => raw_nanosecond * 10_u32.pow(9 - num_digits as u32),
-                    Ordering::Equal => raw_nanosecond,
-                    Ordering::Greater => {
-                        return Err(Error::InvalidComponent {
-                            name: "nanosecond",
-                            value: raw_nanosecond.to_string(),
-                        });
-                    }
-                }
-            }
-        }
-
-        let period = if consume_str(" am", chars).is_ok() || consume_str(" AM", chars).is_ok() {
+    pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Self, Error> {
+        let hour = consume_number("hour", chars)?;
+        consume_punct(':', chars)?;
+        let minute = consume_number::<u8>("minute", chars)?;
+        let second: f64 = if consume_punct(':', chars).is_ok() {
+            consume_number("second", chars)?
+        } else {
+            0.
+        };
+        let period = if consume_ident("am", chars).is_ok() || consume_ident("AM", chars).is_ok() {
             Period::Am
-        } else if consume_str(" pm", chars).is_ok() || consume_str(" PM", chars).is_ok() {
+        } else if consume_ident("pm", chars).is_ok() || consume_ident("PM", chars).is_ok() {
             Period::Pm
         } else {
             Period::_24
@@ -74,7 +56,7 @@ impl Time {
                 name: "minute",
                 value: minute.to_string(),
             })
-        } else if second >= 60 {
+        } else if second >= 60. {
             Err(Error::InvalidComponent {
                 name: "second",
                 value: second.to_string(),
@@ -83,8 +65,8 @@ impl Time {
             Ok(Self {
                 hour,
                 minute,
-                second,
-                nanosecond,
+                second: second.trunc() as _,
+                nanosecond: (second.fract() * 1_000_000_000.).round() as _,
             })
         }
     }

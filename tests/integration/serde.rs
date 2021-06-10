@@ -16,7 +16,7 @@ fn time() {
         ],
     );
     assert_tokens(
-        &time!("23:58:59.123_456_789").compact(),
+        &time!(23:58:59.123_456_789).compact(),
         &[
             Token::Tuple { len: 4 },
             Token::U8(23),
@@ -43,7 +43,7 @@ fn time() {
         &[Token::BorrowedStr("00:00:00.0")],
     );
     assert_tokens(
-        &time!("23:58:59.123_456_789").readable(),
+        &time!(23:58:59.123_456_789).readable(),
         &[Token::BorrowedStr("23:58:59.123456789")],
     );
     assert_de_tokens_error::<Readable<Time>>(
@@ -67,7 +67,7 @@ fn time() {
 #[test]
 fn date() {
     assert_tokens(
-        &date!("-9999-001").compact(),
+        &date!(-9999 - 001).compact(),
         &[
             Token::Tuple { len: 2 },
             Token::I32(-9999),
@@ -76,7 +76,7 @@ fn date() {
         ],
     );
     assert_tokens(
-        &date!("+9999-365").compact(),
+        &date!(+9999-365).compact(),
         &[
             Token::Tuple { len: 2 },
             Token::I32(9999),
@@ -86,11 +86,11 @@ fn date() {
     );
 
     assert_tokens(
-        &date!("-9999-001").readable(),
+        &date!(-9999 - 001).readable(),
         &[Token::BorrowedStr("-9999-01-01")],
     );
     assert_tokens(
-        &date!("+9999-365").readable(),
+        &date!(+9999-365).readable(),
         &[Token::BorrowedStr("9999-12-31")],
     );
 }
@@ -98,7 +98,7 @@ fn date() {
 #[test]
 fn primitive_date_time() {
     assert_tokens(
-        &datetime!("-9999-001 0:00").compact(),
+        &datetime!(-9999-001 0:00).compact(),
         &[
             Token::Tuple { len: 6 },
             Token::I32(-9999),
@@ -111,7 +111,7 @@ fn primitive_date_time() {
         ],
     );
     assert_tokens(
-        &datetime!("+9999-365 23:58:59.123_456_789").compact(),
+        &datetime!(+9999-365 23:58:59.123_456_789).compact(),
         &[
             Token::Tuple { len: 6 },
             Token::I32(9999),
@@ -125,11 +125,11 @@ fn primitive_date_time() {
     );
 
     assert_tokens(
-        &datetime!("-9999-001 0:00").readable(),
+        &datetime!(-9999-001 0:00).readable(),
         &[Token::BorrowedStr("-9999-01-01 00:00:00.0")],
     );
     assert_tokens(
-        &datetime!("+9999-365 23:58:59.123_456_789").readable(),
+        &datetime!(+9999-365 23:58:59.123_456_789).readable(),
         &[Token::BorrowedStr("9999-12-31 23:58:59.123456789")],
     );
 }
@@ -137,8 +137,8 @@ fn primitive_date_time() {
 #[test]
 fn offset_date_time() {
     assert_tokens(
-        &datetime!("-9999-001 0:00 UTC")
-            .to_offset(offset!("+23:58:59"))
+        &datetime!(-9999-001 0:00 UTC)
+            .to_offset(offset!(+23:58:59))
             .compact(),
         &[
             Token::Tuple { len: 9 },
@@ -155,8 +155,8 @@ fn offset_date_time() {
         ],
     );
     assert_tokens(
-        &datetime!("+9999-365 23:58:59.123_456_789 UTC")
-            .to_offset(offset!("-23:58:59"))
+        &datetime!(+9999-365 23:58:59.123_456_789 UTC)
+            .to_offset(offset!(-23:58:59))
             .compact(),
         &[
             Token::Tuple { len: 9 },
@@ -174,14 +174,14 @@ fn offset_date_time() {
     );
 
     assert_tokens(
-        &datetime!("-9999-001 0:00 UTC")
-            .to_offset(offset!("+23:58:59"))
+        &datetime!(-9999-001 0:00 UTC)
+            .to_offset(offset!(+23:58:59))
             .readable(),
         &[Token::BorrowedStr("-9999-01-01 23:58:59.0 +23:58:59")],
     );
     assert_tokens(
-        &datetime!("+9999-365 23:58:59.123_456_789 UTC")
-            .to_offset(offset!("-23:58:59"))
+        &datetime!(+9999-365 23:58:59.123_456_789 UTC)
+            .to_offset(offset!(-23:58:59))
             .readable(),
         &[Token::BorrowedStr(
             "9999-12-31 00:00:00.123456789 -23:58:59",
@@ -192,7 +192,7 @@ fn offset_date_time() {
 #[test]
 fn utc_offset() {
     assert_tokens(
-        &offset!("-23:58:59").compact(),
+        &offset!(-23:58:59).compact(),
         &[
             Token::Tuple { len: 3 },
             Token::I8(-23),
@@ -202,7 +202,7 @@ fn utc_offset() {
         ],
     );
     assert_tokens(
-        &offset!("+23:58:59").compact(),
+        &offset!(+23:58:59).compact(),
         &[
             Token::Tuple { len: 3 },
             Token::I8(23),
@@ -213,11 +213,11 @@ fn utc_offset() {
     );
 
     assert_tokens(
-        &offset!("-23:58:59").readable(),
+        &offset!(-23:58:59).readable(),
         &[Token::BorrowedStr("-23:58:59")],
     );
     assert_tokens(
-        &offset!("+23:58:59").readable(),
+        &offset!(+23:58:59).readable(),
         &[Token::BorrowedStr("+23:58:59")],
     );
 }

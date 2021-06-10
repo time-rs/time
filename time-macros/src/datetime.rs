@@ -1,13 +1,11 @@
 use std::iter::Peekable;
-use std::str::Chars;
 
-use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
-#[allow(unused_imports)]
-use standback::prelude::*;
+use proc_macro::{
+    token_stream, Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree,
+};
 
 use crate::error::Error;
-use crate::helpers::{self, consume_char};
-use crate::{Date, Offset, Time, ToTokens};
+use crate::{helpers, Date, Offset, Time, ToTokens};
 
 #[derive(Clone, Copy)]
 pub(crate) struct DateTime {
@@ -17,18 +15,21 @@ pub(crate) struct DateTime {
 }
 
 impl DateTime {
-    pub(crate) fn parse(chars: &mut Peekable<Chars<'_>>) -> Result<Self, Error> {
+    pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Self, Error> {
         let date = Date::parse(chars)?;
-        consume_char(' ', chars)?;
         let time = Time::parse(chars)?;
+        let offset = match Offset::parse(chars) {
+            Ok(offset) => Some(offset),
+            Err(Error::UnexpectedEndOfInput) | Err(Error::MissingComponent { name: "sign" }) => {
+                None
+            }
+            Err(err) => return Err(err),
+        };
 
-        let offset = chars
-            .next_if_eq(&' ')
-            .map(|_| Offset::parse(chars))
-            .transpose()?;
-
-        if let Some(&char) = chars.peek() {
-            return Err(Error::UnexpectedCharacter(char));
+        if let Some(token) = chars.peek() {
+            return Err(Error::UnexpectedToken {
+                tree: token.clone(),
+            });
         }
 
         Ok(Self { date, time, offset })

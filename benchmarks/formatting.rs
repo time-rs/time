@@ -15,24 +15,24 @@ setup_benchmark! {
             }
         }
 
-        ben.iter(|| item!(datetime!("2021-01-02 03:04:05 UTC")));
-        ben.iter(|| item!(datetime!("2021-01-02 03:04:05.1 UTC")));
-        ben.iter(|| item!(datetime!("2021-01-02 03:04:05.12 UTC")));
-        ben.iter(|| item!(datetime!("2021-01-02 03:04:05.123 UTC")));
-        ben.iter(|| item!(datetime!("2021-01-02 03:04:05.123_4 UTC")));
-        ben.iter(|| item!(datetime!("2021-01-02 03:04:05.123_45 UTC")));
-        ben.iter(|| item!(datetime!("2021-01-02 03:04:05.123_456 UTC")));
-        ben.iter(|| item!(datetime!("2021-01-02 03:04:05.123_456_7 UTC")));
-        ben.iter(|| item!(datetime!("2021-01-02 03:04:05.123_456_78 UTC")));
-        ben.iter(|| item!(datetime!("2021-01-02 03:04:05.123_456_789 UTC")));
-        ben.iter(|| item!(datetime!("2021-01-02 03:04:05.123_456_789 -01:02")));
-        ben.iter(|| item!(datetime!("2021-01-02 03:04:05.123_456_789 +01:02")));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05 UTC)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05.1 UTC)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05.12 UTC)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05.123 UTC)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05.123_4 UTC)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05.123_45 UTC)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05.123_456 UTC)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05.123_456_7 UTC)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05.123_456_78 UTC)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05.123_456_789 UTC)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05.123_456_789 -01:02)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05.123_456_789 +01:02)));
     }
 
     fn format_time(ben: &mut Bencher<'_>) {
         macro_rules! item {
             ($format:expr) => {
-                time!("13:02:03.456_789_012").format_into(
+                time!(13:02:03.456_789_012).format_into(
                     &mut io::sink(),
                     &$format,
                 )
@@ -72,19 +72,19 @@ setup_benchmark! {
     }
 
     fn display_time(ben: &mut Bencher<'_>) {
-        ben.iter(|| time!("0:00").to_string());
-        ben.iter(|| time!("23:59").to_string());
-        ben.iter(|| time!("23:59:59").to_string());
-        ben.iter(|| time!("0:00:01").to_string());
-        ben.iter(|| time!("0:00:00.001").to_string());
-        ben.iter(|| time!("0:00:00.000_001").to_string());
-        ben.iter(|| time!("0:00:00.000_000_001").to_string());
+        ben.iter(|| time!(0:00).to_string());
+        ben.iter(|| time!(23:59).to_string());
+        ben.iter(|| time!(23:59:59).to_string());
+        ben.iter(|| time!(0:00:01).to_string());
+        ben.iter(|| time!(0:00:00.001).to_string());
+        ben.iter(|| time!(0:00:00.000_001).to_string());
+        ben.iter(|| time!(0:00:00.000_000_001).to_string());
     }
 
     fn format_date(ben: &mut Bencher<'_>) {
         macro_rules! item {
             ($format:expr) => {
-                date!("2019-12-31").format_into(&mut io::sink(), &$format)
+                date!(2019-12-31).format_into(&mut io::sink(), &$format)
             }
         }
 
@@ -113,10 +113,10 @@ setup_benchmark! {
     }
 
     fn display_date(ben: &mut Bencher<'_>) {
-        ben.iter(|| date!("2019-01-01").to_string());
-        ben.iter(|| date!("2019-12-31").to_string());
-        ben.iter(|| date!("-4713-11-24").to_string());
-        ben.iter(|| date!("-0001-01-01").to_string());
+        ben.iter(|| date!(2019-01-01).to_string());
+        ben.iter(|| date!(2019-12-31).to_string());
+        ben.iter(|| date!(-4713-11-24).to_string());
+        ben.iter(|| date!(-0001-01-01).to_string());
     }
 
     fn format_offset(ben: &mut Bencher<'_>) {
@@ -126,29 +126,29 @@ setup_benchmark! {
             }
         }
 
-        ben.iter(|| item!(offset!("+01:02:03"), fd!("[offset_hour sign:automatic]")));
-        ben.iter(|| item!(offset!("+01:02:03"), fd!("[offset_hour sign:mandatory]")));
-        ben.iter(|| item!(offset!("-01:02:03"), fd!("[offset_hour sign:automatic]")));
-        ben.iter(|| item!(offset!("-01:02:03"), fd!("[offset_hour sign:mandatory]")));
-        ben.iter(|| item!(offset!("+01:02:03"), fd!("[offset_minute]")));
-        ben.iter(|| item!(offset!("+01:02:03"), fd!("[offset_second]")));
+        ben.iter(|| item!(offset!(+01:02:03), fd!("[offset_hour sign:automatic]")));
+        ben.iter(|| item!(offset!(+01:02:03), fd!("[offset_hour sign:mandatory]")));
+        ben.iter(|| item!(offset!(-01:02:03), fd!("[offset_hour sign:automatic]")));
+        ben.iter(|| item!(offset!(-01:02:03), fd!("[offset_hour sign:mandatory]")));
+        ben.iter(|| item!(offset!(+01:02:03), fd!("[offset_minute]")));
+        ben.iter(|| item!(offset!(+01:02:03), fd!("[offset_second]")));
     }
 
     fn display_offset(ben: &mut Bencher<'_>) {
-        ben.iter(|| offset!("UTC").to_string());
-        ben.iter(|| offset!("+0:00:01").to_string());
-        ben.iter(|| offset!("-0:00:01").to_string());
-        ben.iter(|| offset!("+1").to_string());
-        ben.iter(|| offset!("-1").to_string());
-        ben.iter(|| offset!("+23:59").to_string());
-        ben.iter(|| offset!("-23:59").to_string());
-        ben.iter(|| offset!("+23:59:59").to_string());
-        ben.iter(|| offset!("-23:59:59").to_string());
+        ben.iter(|| offset!(UTC).to_string());
+        ben.iter(|| offset!(+0:00:01).to_string());
+        ben.iter(|| offset!(-0:00:01).to_string());
+        ben.iter(|| offset!(+1).to_string());
+        ben.iter(|| offset!(-1).to_string());
+        ben.iter(|| offset!(+23:59).to_string());
+        ben.iter(|| offset!(-23:59).to_string());
+        ben.iter(|| offset!(+23:59:59).to_string());
+        ben.iter(|| offset!(-23:59:59).to_string());
     }
 
     fn format_pdt(ben: &mut Bencher<'_>) {
         ben.iter(|| {
-            datetime!("1970-01-01 0:00").format_into(
+            datetime!(1970-01-01 0:00).format_into(
                 &mut io::sink(),
                 &fd!("[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]"),
             )
@@ -156,8 +156,8 @@ setup_benchmark! {
     }
 
     fn display_pdt(ben: &mut Bencher<'_>) {
-        ben.iter(|| datetime!("1970-01-01 0:00").to_string());
-        ben.iter(|| datetime!("1970-01-01 0:00:01").to_string());
+        ben.iter(|| datetime!(1970-01-01 0:00).to_string());
+        ben.iter(|| datetime!(1970-01-01 0:00:01).to_string());
     }
 
     fn format_odt(ben: &mut Bencher<'_>) {
@@ -168,11 +168,11 @@ setup_benchmark! {
         ).expect("invalid format description");
 
         ben.iter(|| {
-            datetime!("1970-01-01 0:00 UTC").format_into(&mut io::sink(), &format_description)
+            datetime!(1970-01-01 0:00 UTC).format_into(&mut io::sink(), &format_description)
         });
     }
 
     fn display_odt(ben: &mut Bencher<'_>) {
-        ben.iter(|| datetime!("1970-01-01 0:00 UTC").to_string());
+        ben.iter(|| datetime!(1970-01-01 0:00 UTC).to_string());
     }
 }

@@ -27,8 +27,8 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::{PrimitiveDateTime, macros::{date, datetime, time}};
     /// assert_eq!(
-    ///     PrimitiveDateTime::new(date!("2019-01-01"), time!("0:00")),
-    ///     datetime!("2019-01-01 0:00"),
+    ///     PrimitiveDateTime::new(date!(2019-01-01), time!(0:00)),
+    ///     datetime!(2019-01-01 0:00),
     /// );
     /// ```
     pub const fn new(date: Date, time: Time) -> Self {
@@ -40,7 +40,7 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::{date, datetime};
-    /// assert_eq!(datetime!("2019-01-01 0:00").date(), date!("2019-01-01"));
+    /// assert_eq!(datetime!(2019-01-01 0:00).date(), date!(2019-01-01));
     /// ```
     pub const fn date(self) -> Date {
         self.date
@@ -50,7 +50,7 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::{datetime, time};
-    /// assert_eq!(datetime!("2019-01-01 0:00").time(), time!("0:00"));
+    /// assert_eq!(datetime!(2019-01-01 0:00).time(), time!(0:00));
     pub const fn time(self) -> Time {
         self.time
     }
@@ -61,9 +61,9 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").year(), 2019);
-    /// assert_eq!(datetime!("2019-12-31 0:00").year(), 2019);
-    /// assert_eq!(datetime!("2020-01-01 0:00").year(), 2020);
+    /// assert_eq!(datetime!(2019-01-01 0:00).year(), 2019);
+    /// assert_eq!(datetime!(2019-12-31 0:00).year(), 2019);
+    /// assert_eq!(datetime!(2020-01-01 0:00).year(), 2020);
     /// ```
     pub const fn year(self) -> i32 {
         self.date.year()
@@ -75,8 +75,8 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::{macros::datetime, Month};
-    /// assert_eq!(datetime!("2019-01-01 0:00").month(), Month::January);
-    /// assert_eq!(datetime!("2019-12-31 0:00").month(), Month::December);
+    /// assert_eq!(datetime!(2019-01-01 0:00).month(), Month::January);
+    /// assert_eq!(datetime!(2019-12-31 0:00).month(), Month::December);
     /// ```
     pub const fn month(self) -> Month {
         self.date.month()
@@ -88,8 +88,8 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").day(), 1);
-    /// assert_eq!(datetime!("2019-12-31 0:00").day(), 31);
+    /// assert_eq!(datetime!(2019-01-01 0:00).day(), 1);
+    /// assert_eq!(datetime!(2019-12-31 0:00).day(), 31);
     /// ```
     pub const fn day(self) -> u8 {
         self.date.day()
@@ -101,8 +101,8 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").ordinal(), 1);
-    /// assert_eq!(datetime!("2019-12-31 0:00").ordinal(), 365);
+    /// assert_eq!(datetime!(2019-01-01 0:00).ordinal(), 1);
+    /// assert_eq!(datetime!(2019-12-31 0:00).ordinal(), 365);
     /// ```
     pub const fn ordinal(self) -> u16 {
         self.date.ordinal()
@@ -114,11 +114,11 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").iso_week(), 1);
-    /// assert_eq!(datetime!("2019-10-04 0:00").iso_week(), 40);
-    /// assert_eq!(datetime!("2020-01-01 0:00").iso_week(), 1);
-    /// assert_eq!(datetime!("2020-12-31 0:00").iso_week(), 53);
-    /// assert_eq!(datetime!("2021-01-01 0:00").iso_week(), 53);
+    /// assert_eq!(datetime!(2019-01-01 0:00).iso_week(), 1);
+    /// assert_eq!(datetime!(2019-10-04 0:00).iso_week(), 40);
+    /// assert_eq!(datetime!(2020-01-01 0:00).iso_week(), 1);
+    /// assert_eq!(datetime!(2020-12-31 0:00).iso_week(), 53);
+    /// assert_eq!(datetime!(2021-01-01 0:00).iso_week(), 53);
     /// ```
     pub const fn iso_week(self) -> u8 {
         self.date.iso_week()
@@ -130,10 +130,10 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").sunday_based_week(), 0);
-    /// assert_eq!(datetime!("2020-01-01 0:00").sunday_based_week(), 0);
-    /// assert_eq!(datetime!("2020-12-31 0:00").sunday_based_week(), 52);
-    /// assert_eq!(datetime!("2021-01-01 0:00").sunday_based_week(), 0);
+    /// assert_eq!(datetime!(2019-01-01 0:00).sunday_based_week(), 0);
+    /// assert_eq!(datetime!(2020-01-01 0:00).sunday_based_week(), 0);
+    /// assert_eq!(datetime!(2020-12-31 0:00).sunday_based_week(), 52);
+    /// assert_eq!(datetime!(2021-01-01 0:00).sunday_based_week(), 0);
     /// ```
     pub const fn sunday_based_week(self) -> u8 {
         self.date.sunday_based_week()
@@ -145,10 +145,10 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").monday_based_week(), 0);
-    /// assert_eq!(datetime!("2020-01-01 0:00").monday_based_week(), 0);
-    /// assert_eq!(datetime!("2020-12-31 0:00").monday_based_week(), 52);
-    /// assert_eq!(datetime!("2021-01-01 0:00").monday_based_week(), 0);
+    /// assert_eq!(datetime!(2019-01-01 0:00).monday_based_week(), 0);
+    /// assert_eq!(datetime!(2020-01-01 0:00).monday_based_week(), 0);
+    /// assert_eq!(datetime!(2020-12-31 0:00).monday_based_week(), 52);
+    /// assert_eq!(datetime!(2021-01-01 0:00).monday_based_week(), 0);
     /// ```
     pub const fn monday_based_week(self) -> u8 {
         self.date.monday_based_week()
@@ -159,7 +159,7 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::{macros::datetime, Month};
     /// assert_eq!(
-    ///     datetime!("2019-01-01 0:00").to_calendar_date(),
+    ///     datetime!(2019-01-01 0:00).to_calendar_date(),
     ///     (2019, Month::January, 1)
     /// );
     /// ```
@@ -171,7 +171,7 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").to_ordinal_date(), (2019, 1));
+    /// assert_eq!(datetime!(2019-01-01 0:00).to_ordinal_date(), (2019, 1));
     /// ```
     pub const fn to_ordinal_date(self) -> (i32, u16) {
         self.date.to_ordinal_date()
@@ -182,23 +182,23 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::{Weekday::*, macros::datetime};
     /// assert_eq!(
-    ///     datetime!("2019-01-01 0:00").to_iso_week_date(),
+    ///     datetime!(2019-01-01 0:00).to_iso_week_date(),
     ///     (2019, 1, Tuesday)
     /// );
     /// assert_eq!(
-    ///     datetime!("2019-10-04 0:00").to_iso_week_date(),
+    ///     datetime!(2019-10-04 0:00).to_iso_week_date(),
     ///     (2019, 40, Friday)
     /// );
     /// assert_eq!(
-    ///     datetime!("2020-01-01 0:00").to_iso_week_date(),
+    ///     datetime!(2020-01-01 0:00).to_iso_week_date(),
     ///     (2020, 1, Wednesday)
     /// );
     /// assert_eq!(
-    ///     datetime!("2020-12-31 0:00").to_iso_week_date(),
+    ///     datetime!(2020-12-31 0:00).to_iso_week_date(),
     ///     (2020, 53, Thursday)
     /// );
     /// assert_eq!(
-    ///     datetime!("2021-01-01 0:00").to_iso_week_date(),
+    ///     datetime!(2021-01-01 0:00).to_iso_week_date(),
     ///     (2020, 53, Friday)
     /// );
     /// ```
@@ -210,18 +210,18 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::{Weekday::*, macros::datetime};
-    /// assert_eq!(datetime!("2019-01-01 0:00").weekday(), Tuesday);
-    /// assert_eq!(datetime!("2019-02-01 0:00").weekday(), Friday);
-    /// assert_eq!(datetime!("2019-03-01 0:00").weekday(), Friday);
-    /// assert_eq!(datetime!("2019-04-01 0:00").weekday(), Monday);
-    /// assert_eq!(datetime!("2019-05-01 0:00").weekday(), Wednesday);
-    /// assert_eq!(datetime!("2019-06-01 0:00").weekday(), Saturday);
-    /// assert_eq!(datetime!("2019-07-01 0:00").weekday(), Monday);
-    /// assert_eq!(datetime!("2019-08-01 0:00").weekday(), Thursday);
-    /// assert_eq!(datetime!("2019-09-01 0:00").weekday(), Sunday);
-    /// assert_eq!(datetime!("2019-10-01 0:00").weekday(), Tuesday);
-    /// assert_eq!(datetime!("2019-11-01 0:00").weekday(), Friday);
-    /// assert_eq!(datetime!("2019-12-01 0:00").weekday(), Sunday);
+    /// assert_eq!(datetime!(2019-01-01 0:00).weekday(), Tuesday);
+    /// assert_eq!(datetime!(2019-02-01 0:00).weekday(), Friday);
+    /// assert_eq!(datetime!(2019-03-01 0:00).weekday(), Friday);
+    /// assert_eq!(datetime!(2019-04-01 0:00).weekday(), Monday);
+    /// assert_eq!(datetime!(2019-05-01 0:00).weekday(), Wednesday);
+    /// assert_eq!(datetime!(2019-06-01 0:00).weekday(), Saturday);
+    /// assert_eq!(datetime!(2019-07-01 0:00).weekday(), Monday);
+    /// assert_eq!(datetime!(2019-08-01 0:00).weekday(), Thursday);
+    /// assert_eq!(datetime!(2019-09-01 0:00).weekday(), Sunday);
+    /// assert_eq!(datetime!(2019-10-01 0:00).weekday(), Tuesday);
+    /// assert_eq!(datetime!(2019-11-01 0:00).weekday(), Friday);
+    /// assert_eq!(datetime!(2019-12-01 0:00).weekday(), Sunday);
     /// ```
     pub const fn weekday(self) -> Weekday {
         self.date.weekday()
@@ -234,10 +234,10 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("-4713-11-24 0:00").to_julian_day(), 0);
-    /// assert_eq!(datetime!("2000-01-01 0:00").to_julian_day(), 2_451_545);
-    /// assert_eq!(datetime!("2019-01-01 0:00").to_julian_day(), 2_458_485);
-    /// assert_eq!(datetime!("2019-12-31 0:00").to_julian_day(), 2_458_849);
+    /// assert_eq!(datetime!(-4713-11-24 0:00).to_julian_day(), 0);
+    /// assert_eq!(datetime!(2000-01-01 0:00).to_julian_day(), 2_451_545);
+    /// assert_eq!(datetime!(2019-01-01 0:00).to_julian_day(), 2_458_485);
+    /// assert_eq!(datetime!(2019-12-31 0:00).to_julian_day(), 2_458_849);
     /// ```
     pub const fn to_julian_day(self) -> i32 {
         self.date.to_julian_day()
@@ -249,8 +249,8 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2020-01-01 0:00:00").as_hms(), (0, 0, 0));
-    /// assert_eq!(datetime!("2020-01-01 23:59:59").as_hms(), (23, 59, 59));
+    /// assert_eq!(datetime!(2020-01-01 0:00:00).as_hms(), (0, 0, 0));
+    /// assert_eq!(datetime!(2020-01-01 23:59:59).as_hms(), (23, 59, 59));
     /// ```
     pub const fn as_hms(self) -> (u8, u8, u8) {
         self.time.as_hms()
@@ -260,9 +260,9 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2020-01-01 0:00:00").as_hms_milli(), (0, 0, 0, 0));
+    /// assert_eq!(datetime!(2020-01-01 0:00:00).as_hms_milli(), (0, 0, 0, 0));
     /// assert_eq!(
-    ///     datetime!("2020-01-01 23:59:59.999").as_hms_milli(),
+    ///     datetime!(2020-01-01 23:59:59.999).as_hms_milli(),
     ///     (23, 59, 59, 999)
     /// );
     /// ```
@@ -274,9 +274,9 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2020-01-01 0:00:00").as_hms_micro(), (0, 0, 0, 0));
+    /// assert_eq!(datetime!(2020-01-01 0:00:00).as_hms_micro(), (0, 0, 0, 0));
     /// assert_eq!(
-    ///     datetime!("2020-01-01 23:59:59.999_999").as_hms_micro(),
+    ///     datetime!(2020-01-01 23:59:59.999_999).as_hms_micro(),
     ///     (23, 59, 59, 999_999)
     /// );
     /// ```
@@ -288,9 +288,9 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2020-01-01 0:00:00").as_hms_nano(), (0, 0, 0, 0));
+    /// assert_eq!(datetime!(2020-01-01 0:00:00).as_hms_nano(), (0, 0, 0, 0));
     /// assert_eq!(
-    ///     datetime!("2020-01-01 23:59:59.999_999_999").as_hms_nano(),
+    ///     datetime!(2020-01-01 23:59:59.999_999_999).as_hms_nano(),
     ///     (23, 59, 59, 999_999_999)
     /// );
     /// ```
@@ -304,8 +304,8 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").hour(), 0);
-    /// assert_eq!(datetime!("2019-01-01 23:59:59").hour(), 23);
+    /// assert_eq!(datetime!(2019-01-01 0:00).hour(), 0);
+    /// assert_eq!(datetime!(2019-01-01 23:59:59).hour(), 23);
     /// ```
     pub const fn hour(self) -> u8 {
         self.time.hour()
@@ -317,8 +317,8 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").minute(), 0);
-    /// assert_eq!(datetime!("2019-01-01 23:59:59").minute(), 59);
+    /// assert_eq!(datetime!(2019-01-01 0:00).minute(), 0);
+    /// assert_eq!(datetime!(2019-01-01 23:59:59).minute(), 59);
     /// ```
     pub const fn minute(self) -> u8 {
         self.time.minute()
@@ -330,8 +330,8 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").second(), 0);
-    /// assert_eq!(datetime!("2019-01-01 23:59:59").second(), 59);
+    /// assert_eq!(datetime!(2019-01-01 0:00).second(), 0);
+    /// assert_eq!(datetime!(2019-01-01 23:59:59).second(), 59);
     /// ```
     pub const fn second(self) -> u8 {
         self.time.second()
@@ -343,8 +343,8 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").millisecond(), 0);
-    /// assert_eq!(datetime!("2019-01-01 23:59:59.999").millisecond(), 999);
+    /// assert_eq!(datetime!(2019-01-01 0:00).millisecond(), 0);
+    /// assert_eq!(datetime!(2019-01-01 23:59:59.999).millisecond(), 999);
     /// ```
     pub const fn millisecond(self) -> u16 {
         self.time.millisecond()
@@ -356,9 +356,9 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").microsecond(), 0);
+    /// assert_eq!(datetime!(2019-01-01 0:00).microsecond(), 0);
     /// assert_eq!(
-    ///     datetime!("2019-01-01 23:59:59.999_999").microsecond(),
+    ///     datetime!(2019-01-01 23:59:59.999_999).microsecond(),
     ///     999_999
     /// );
     /// ```
@@ -372,9 +372,9 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::macros::datetime;
-    /// assert_eq!(datetime!("2019-01-01 0:00").nanosecond(), 0);
+    /// assert_eq!(datetime!(2019-01-01 0:00).nanosecond(), 0);
     /// assert_eq!(
-    ///     datetime!("2019-01-01 23:59:59.999_999_999").nanosecond(),
+    ///     datetime!(2019-01-01 23:59:59.999_999_999).nanosecond(),
     ///     999_999_999,
     /// );
     /// ```
@@ -390,14 +390,14 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::macros::{datetime, offset};
     /// assert_eq!(
-    ///     datetime!("2019-01-01 0:00")
-    ///         .assume_offset(offset!("UTC"))
+    ///     datetime!(2019-01-01 0:00)
+    ///         .assume_offset(offset!(UTC))
     ///         .unix_timestamp(),
     ///     1_546_300_800,
     /// );
     /// assert_eq!(
-    ///     datetime!("2019-01-01 0:00")
-    ///         .assume_offset(offset!("-1"))
+    ///     datetime!(2019-01-01 0:00)
+    ///         .assume_offset(offset!(-1))
     ///         .unix_timestamp(),
     ///     1_546_304_400,
     /// );
@@ -415,7 +415,7 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::macros::datetime;
     /// assert_eq!(
-    ///     datetime!("2019-01-01 0:00").assume_utc().unix_timestamp(),
+    ///     datetime!(2019-01-01 0:00).assume_utc().unix_timestamp(),
     ///     1_546_300_800,
     /// );
     /// ```
@@ -436,8 +436,8 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::macros::{datetime, time};
     /// assert_eq!(
-    ///     datetime!("2020-01-01 17:00").replace_time(time!("5:00")),
-    ///     datetime!("2020-01-01 5:00")
+    ///     datetime!(2020-01-01 17:00).replace_time(time!(5:00)),
+    ///     datetime!(2020-01-01 5:00)
     /// );
     /// ```
     #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
@@ -450,8 +450,8 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::macros::{datetime, date};
     /// assert_eq!(
-    ///     datetime!("2020-01-01 12:00").replace_date(date!("2020-01-30")),
-    ///     datetime!("2020-01-30 12:00")
+    ///     datetime!(2020-01-01 12:00).replace_date(date!(2020-01-30)),
+    ///     datetime!(2020-01-30 12:00)
     /// );
     /// ```
     #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
@@ -523,7 +523,7 @@ impl PrimitiveDateTime {
     /// # use time::{format_description, macros::datetime};
     /// let format = format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]")?;
     /// assert_eq!(
-    ///     datetime!("2020-01-02 03:04:05").format(&format)?,
+    ///     datetime!(2020-01-02 03:04:05).format(&format)?,
     ///     "2020-01-02 03:04:05"
     /// );
     /// # Ok::<_, time::Error>(())
@@ -545,7 +545,7 @@ impl PrimitiveDateTime {
     /// let format = format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]")?;
     /// assert_eq!(
     ///     PrimitiveDateTime::parse("2020-01-02 03:04:05", &format)?,
-    ///     datetime!("2020-01-02 03:04:05")
+    ///     datetime!(2020-01-02 03:04:05)
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```

@@ -7,12 +7,12 @@
 /// ```rust
 /// # use time::{Date, Weekday::*, Month, macros::date};
 /// assert_eq!(
-///     date!("2020-W01-3"),
+///     date!(2020 - W 01 - 3),
 ///     Date::from_iso_week_date(2020, 1, Wednesday)?
 /// );
-/// assert_eq!(date!("2020-001"), Date::from_ordinal_date(2020, 1)?);
+/// assert_eq!(date!(2020 - 001), Date::from_ordinal_date(2020, 1)?);
 /// assert_eq!(
-///     date!("2020-01-01"),
+///     date!(2020 - 01 - 01),
 ///     Date::from_calendar_date(2020, Month::January, 1)?
 /// );
 /// # Ok::<_, time::Error>(())
@@ -62,17 +62,17 @@ pub use time_macros::format_description;
 ///
 /// ```rust
 /// # use time::{UtcOffset, macros::offset};
-/// assert_eq!(offset!("UTC"), UtcOffset::from_hms(0, 0, 0)?);
-/// assert_eq!(offset!("utc"), UtcOffset::from_hms(0, 0, 0)?);
-/// assert_eq!(offset!("+0"), UtcOffset::from_hms(0, 0, 0)?);
-/// assert_eq!(offset!("+1"), UtcOffset::from_hms(1, 0, 0)?);
-/// assert_eq!(offset!("-1"), UtcOffset::from_hms(-1, 0, 0)?);
-/// assert_eq!(offset!("+1:30"), UtcOffset::from_hms(1, 30, 0)?);
-/// assert_eq!(offset!("-1:30"), UtcOffset::from_hms(-1, -30, 0)?);
-/// assert_eq!(offset!("+1:30:59"), UtcOffset::from_hms(1, 30, 59)?);
-/// assert_eq!(offset!("-1:30:59"), UtcOffset::from_hms(-1, -30, -59)?);
-/// assert_eq!(offset!("+23:59:59"), UtcOffset::from_hms(23, 59, 59)?);
-/// assert_eq!(offset!("-23:59:59"), UtcOffset::from_hms(-23, -59, -59)?);
+/// assert_eq!(offset!(UTC), UtcOffset::from_hms(0, 0, 0)?);
+/// assert_eq!(offset!(utc), UtcOffset::from_hms(0, 0, 0)?);
+/// assert_eq!(offset!(+0), UtcOffset::from_hms(0, 0, 0)?);
+/// assert_eq!(offset!(+1), UtcOffset::from_hms(1, 0, 0)?);
+/// assert_eq!(offset!(-1), UtcOffset::from_hms(-1, 0, 0)?);
+/// assert_eq!(offset!(+1:30), UtcOffset::from_hms(1, 30, 0)?);
+/// assert_eq!(offset!(-1:30), UtcOffset::from_hms(-1, -30, 0)?);
+/// assert_eq!(offset!(+1:30:59), UtcOffset::from_hms(1, 30, 59)?);
+/// assert_eq!(offset!(-1:30:59), UtcOffset::from_hms(-1, -30, -59)?);
+/// assert_eq!(offset!(+23:59:59), UtcOffset::from_hms(23, 59, 59)?);
+/// assert_eq!(offset!(-23:59:59), UtcOffset::from_hms(-23, -59, -59)?);
 /// # Ok::<_, time::Error>(())
 /// ```
 pub use time_macros::offset;
@@ -89,22 +89,22 @@ pub use time_macros::offset;
 ///
 /// ```rust
 /// # use time::{Time, macros::time};
-/// assert_eq!(time!("0:00"), Time::from_hms(0, 0, 0)?);
-/// assert_eq!(time!("1:02:03"), Time::from_hms(1, 2, 3)?);
+/// assert_eq!(time!(0:00), Time::from_hms(0, 0, 0)?);
+/// assert_eq!(time!(1:02:03), Time::from_hms(1, 2, 3)?);
 /// assert_eq!(
-///     time!("1:02:03.004_005_006"),
+///     time!(1:02:03.004_005_006),
 ///     Time::from_hms_nano(1, 2, 3, 4_005_006)?
 /// );
-/// assert_eq!(time!("12:00 am"), Time::from_hms(0, 0, 0)?);
-/// assert_eq!(time!("1:02:03 am"), Time::from_hms(1, 2, 3)?);
+/// assert_eq!(time!(12:00 am), Time::from_hms(0, 0, 0)?);
+/// assert_eq!(time!(1:02:03 am), Time::from_hms(1, 2, 3)?);
 /// assert_eq!(
-///     time!("1:02:03.004_005_006 am"),
+///     time!(1:02:03.004_005_006 am),
 ///     Time::from_hms_nano(1, 2, 3, 4_005_006)?
 /// );
-/// assert_eq!(time!("12:00 pm"), Time::from_hms(12, 0, 0)?);
-/// assert_eq!(time!("1:02:03 pm"), Time::from_hms(13, 2, 3)?);
+/// assert_eq!(time!(12:00 pm), Time::from_hms(12, 0, 0)?);
+/// assert_eq!(time!(1:02:03 pm), Time::from_hms(13, 2, 3)?);
 /// assert_eq!(
-///     time!("1:02:03.004_005_006 pm"),
+///     time!(1:02:03.004_005_006 pm),
 ///     Time::from_hms_nano(13, 2, 3, 4_005_006)?
 /// );
 /// # Ok::<_, time::Error>(())

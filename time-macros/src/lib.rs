@@ -43,7 +43,6 @@ mod error;
 mod format_description;
 mod helpers;
 mod offset;
-mod peeking_take_while;
 mod time;
 
 use std::iter;
@@ -65,11 +64,10 @@ trait ToTokens {
     }
 }
 
-#[allow(clippy::use_self)] // false positive
 impl ToTokens for bool {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         tokens.extend(iter::once(TokenTree::Ident(Ident::new(
-            if *self { "true" } else { "false" },
+            self.to_string().as_str(),
             Span::mixed_site(),
         ))))
     }
@@ -79,20 +77,13 @@ macro_rules! impl_macros {
     ($($name:ident : $type:ty)*) => {$(
         #[proc_macro]
         pub fn $name(input: TokenStream) -> TokenStream {
-            let string = match helpers::get_string_literal(input) {
-                Ok(string) => string,
-                Err(err) => return err.to_compile_error(),
-            };
-            let chars = &mut string.chars().peekable();
-
-            let value = match <$type>::parse(chars) {
-                Ok(value) => value,
-                Err(err) => return err.to_compile_error(),
-            };
-
-            match chars.peek() {
-                Some(&char) => Error::UnexpectedCharacter(char).to_compile_error(),
-                None => value.to_token_stream(),
+            let mut iter = input.into_iter().peekable();
+            match <$type>::parse(&mut iter) {
+                Ok(offset) => match iter.peek() {
+                    Some(tree) => Error::UnexpectedToken { tree: tree.clone() }.to_compile_error(),
+                    None => offset.to_token_stream(),
+                },
+                Err(err) => err.to_compile_error(),
             }
         }
     )*};

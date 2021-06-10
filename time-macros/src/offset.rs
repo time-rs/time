@@ -1,9 +1,10 @@
 use std::iter::Peekable;
-use std::str::Chars;
 
-use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
+use proc_macro::{
+    token_stream, Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree,
+};
 
-use crate::helpers::{self, consume_char, consume_digits, consume_str};
+use crate::helpers::{self, consume_ident, consume_number, consume_punct};
 use crate::{Error, ToTokens};
 
 #[derive(Clone, Copy)]
@@ -14,8 +15,8 @@ pub(crate) struct Offset {
 }
 
 impl Offset {
-    pub(crate) fn parse(chars: &mut Peekable<Chars<'_>>) -> Result<Self, Error> {
-        if consume_str("utc", chars).is_ok() || consume_str("UTC", chars).is_ok() {
+    pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Self, Error> {
+        if consume_ident("utc", chars).is_ok() || consume_ident("UTC", chars).is_ok() {
             return Ok(Self {
                 hours: 0,
                 minutes: 0,
@@ -23,22 +24,25 @@ impl Offset {
             });
         }
 
-        let sign = match chars.next() {
-            Some('+') => 1,
-            Some('-') => -1,
-            Some(char) => return Err(Error::UnexpectedCharacter(char)),
-            None => return Err(Error::MissingComponent { name: "sign" }),
+        let sign = if consume_punct('+', chars).is_ok() {
+            1
+        } else if consume_punct('-', chars).is_ok() {
+            -1
+        } else if let Some(tree) = chars.next() {
+            return Err(Error::UnexpectedToken { tree });
+        } else {
+            return Err(Error::MissingComponent { name: "sign" });
         };
 
-        let hours = consume_digits::<i8>("hour", chars)?;
+        let hours = consume_number::<i8>("hour", chars)?;
         let mut minutes = 0;
         let mut seconds = 0;
 
-        if consume_char(':', chars).is_ok() {
-            minutes = consume_digits::<i8>("minute", chars)?;
+        if consume_punct(':', chars).is_ok() {
+            minutes = consume_number::<i8>("minute", chars)?;
 
-            if consume_char(':', chars).is_ok() {
-                seconds = consume_digits::<i8>("second", chars)?;
+            if consume_punct(':', chars).is_ok() {
+                seconds = consume_number::<i8>("second", chars)?;
             }
         }
 
