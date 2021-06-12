@@ -1,9 +1,9 @@
-use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
+use proc_macro::TokenStream;
 
 use crate::format_description::error::InvalidFormatDescription;
 use crate::format_description::modifier;
 use crate::format_description::modifier::Modifiers;
-use crate::ToTokens;
+use crate::to_tokens::ToTokens;
 
 pub(crate) enum Component {
     Day(modifier::Day),
@@ -23,44 +23,25 @@ pub(crate) enum Component {
 }
 
 impl ToTokens for Component {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let (name, inner_tokens) = match self {
-            Self::Day(modifier) => ("Day", modifier.to_token_stream()),
-            Self::Month(modifier) => ("Month", modifier.to_token_stream()),
-            Self::Ordinal(modifier) => ("Ordinal", modifier.to_token_stream()),
-            Self::Weekday(modifier) => ("Weekday", modifier.to_token_stream()),
-            Self::WeekNumber(modifier) => ("WeekNumber", modifier.to_token_stream()),
-            Self::Year(modifier) => ("Year", modifier.to_token_stream()),
-            Self::Hour(modifier) => ("Hour", modifier.to_token_stream()),
-            Self::Minute(modifier) => ("Minute", modifier.to_token_stream()),
-            Self::Period(modifier) => ("Period", modifier.to_token_stream()),
-            Self::Second(modifier) => ("Second", modifier.to_token_stream()),
-            Self::Subsecond(modifier) => ("Subsecond", modifier.to_token_stream()),
-            Self::OffsetHour(modifier) => ("OffsetHour", modifier.to_token_stream()),
-            Self::OffsetMinute(modifier) => ("OffsetMinute", modifier.to_token_stream()),
-            Self::OffsetSecond(modifier) => ("OffsetSecond", modifier.to_token_stream()),
-        };
-
-        tokens.extend(
-            [
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("time", Span::mixed_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("format_description", Span::mixed_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("Component", Span::mixed_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new(name, Span::mixed_site())),
-                TokenTree::Group(Group::new(Delimiter::Parenthesis, inner_tokens)),
-            ]
-            .iter()
-            .cloned()
-            .collect::<TokenStream>(),
-        );
+    fn into_tokens(self, tokens: &mut TokenStream) {
+        tokens.extend(quote! {
+            ::time::format_description::Component::#(match self {
+                Self::Day(modifier) => quote! { Day(#(modifier)) },
+                Self::Month(modifier) => quote! { Month(#(modifier)) },
+                Self::Ordinal(modifier) => quote! { Ordinal(#(modifier)) },
+                Self::Weekday(modifier) => quote! { Weekday(#(modifier)) },
+                Self::WeekNumber(modifier) => quote! { WeekNumber(#(modifier)) },
+                Self::Year(modifier) => quote! { Year(#(modifier)) },
+                Self::Hour(modifier) => quote! { Hour(#(modifier)) },
+                Self::Minute(modifier) => quote! { Minute(#(modifier)) },
+                Self::Period(modifier) => quote! { Period(#(modifier)) },
+                Self::Second(modifier) => quote! { Second(#(modifier)) },
+                Self::Subsecond(modifier) => quote! { Subsecond(#(modifier)) },
+                Self::OffsetHour(modifier) => quote! { OffsetHour(#(modifier)) },
+                Self::OffsetMinute(modifier) => quote! { OffsetMinute(#(modifier)) },
+                Self::OffsetSecond(modifier) => quote! { OffsetSecond(#(modifier)) },
+            })
+        });
     }
 }
 

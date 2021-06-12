@@ -1,11 +1,10 @@
 use std::iter::Peekable;
 
-use proc_macro::{
-    token_stream, Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree,
-};
+use proc_macro::{token_stream, Span, TokenStream};
 
-use crate::helpers::{self, consume_any_ident, consume_number, consume_punct};
-use crate::{Error, ToTokens};
+use crate::helpers::{consume_any_ident, consume_number, consume_punct};
+use crate::to_tokens::ToTokens;
+use crate::Error;
 
 #[derive(Clone, Copy)]
 pub(crate) struct Offset {
@@ -86,46 +85,14 @@ impl Offset {
 }
 
 impl ToTokens for Offset {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(helpers::const_block(
-            [
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("time", Span::call_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("UtcOffset", Span::call_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("__from_hms_unchecked", Span::call_site())),
-                TokenTree::Group(Group::new(
-                    Delimiter::Parenthesis,
-                    [
-                        TokenTree::Literal(Literal::i8_unsuffixed(self.hours)),
-                        TokenTree::Punct(Punct::new(',', Spacing::Alone)),
-                        TokenTree::Literal(Literal::i8_unsuffixed(self.minutes)),
-                        TokenTree::Punct(Punct::new(',', Spacing::Alone)),
-                        TokenTree::Literal(Literal::i8_unsuffixed(self.seconds)),
-                    ]
-                    .iter()
-                    .cloned()
-                    .collect(),
-                )),
-            ]
-            .iter()
-            .cloned()
-            .collect::<TokenStream>(),
-            [
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("time", Span::call_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("UtcOffset", Span::call_site())),
-            ]
-            .iter()
-            .cloned()
-            .collect(),
-        ));
+    fn into_tokens(self, tokens: &mut TokenStream) {
+        tokens.extend(quote! {{
+            const OFFSET: ::time::UtcOffset = ::time::UtcOffset::__from_hms_unchecked(
+                #(self.hours),
+                #(self.minutes),
+                #(self.seconds),
+            );
+            OFFSET
+        }});
     }
 }

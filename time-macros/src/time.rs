@@ -1,11 +1,10 @@
 use std::iter::Peekable;
 
-use proc_macro::{
-    token_stream, Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree,
-};
+use proc_macro::{token_stream, Span, TokenStream};
 
-use crate::helpers::{self, consume_any_ident, consume_number, consume_punct};
-use crate::{Error, ToTokens};
+use crate::helpers::{consume_any_ident, consume_number, consume_punct};
+use crate::to_tokens::ToTokens;
+use crate::Error;
 
 enum Period {
     Am,
@@ -78,48 +77,15 @@ impl Time {
 }
 
 impl ToTokens for Time {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(helpers::const_block(
-            [
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("time", Span::call_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("Time", Span::call_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("__from_hms_nanos_unchecked", Span::call_site())),
-                TokenTree::Group(Group::new(
-                    Delimiter::Parenthesis,
-                    [
-                        TokenTree::Literal(Literal::u8_unsuffixed(self.hour)),
-                        TokenTree::Punct(Punct::new(',', Spacing::Alone)),
-                        TokenTree::Literal(Literal::u8_unsuffixed(self.minute)),
-                        TokenTree::Punct(Punct::new(',', Spacing::Alone)),
-                        TokenTree::Literal(Literal::u8_unsuffixed(self.second)),
-                        TokenTree::Punct(Punct::new(',', Spacing::Alone)),
-                        TokenTree::Literal(Literal::u32_unsuffixed(self.nanosecond)),
-                    ]
-                    .iter()
-                    .cloned()
-                    .collect(),
-                )),
-            ]
-            .iter()
-            .cloned()
-            .collect::<TokenStream>(),
-            [
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("time", Span::call_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("Time", Span::call_site())),
-            ]
-            .iter()
-            .cloned()
-            .collect(),
-        ));
+    fn into_tokens(self, tokens: &mut TokenStream) {
+        tokens.extend(quote! {{
+            const TIME: ::time::Time = ::time::Time::__from_hms_nanos_unchecked(
+                #(self.hour),
+                #(self.minute),
+                #(self.second),
+                #(self.nanosecond),
+            );
+            TIME
+        }});
     }
 }

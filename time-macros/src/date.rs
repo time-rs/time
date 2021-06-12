@@ -1,14 +1,13 @@
 use std::iter::Peekable;
 
-use proc_macro::{
-    token_stream, Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree,
-};
+use proc_macro::{token_stream, TokenStream};
 
 use crate::helpers::{
-    self, consume_any_ident, consume_number, consume_punct, days_in_year, days_in_year_month,
+    consume_any_ident, consume_number, consume_punct, days_in_year, days_in_year_month,
     weeks_in_year, ymd_to_yo, ywd_to_yo,
 };
-use crate::{Error, ToTokens};
+use crate::to_tokens::ToTokens;
+use crate::Error;
 
 #[cfg(feature = "large-dates")]
 const MAX_YEAR: i32 = 999_999;
@@ -128,47 +127,13 @@ impl Date {
 }
 
 impl ToTokens for Date {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(helpers::const_block(
-            [
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("time", Span::call_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("Date", Span::call_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new(
-                    "__from_ordinal_date_unchecked",
-                    Span::call_site(),
-                )),
-                TokenTree::Group(Group::new(
-                    Delimiter::Parenthesis,
-                    [
-                        TokenTree::Literal(Literal::i32_unsuffixed(self.year)),
-                        TokenTree::Punct(Punct::new(',', Spacing::Alone)),
-                        TokenTree::Literal(Literal::u16_unsuffixed(self.ordinal)),
-                    ]
-                    .iter()
-                    .cloned()
-                    .collect(),
-                )),
-            ]
-            .iter()
-            .cloned()
-            .collect::<TokenStream>(),
-            [
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("time", Span::call_site())),
-                TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                TokenTree::Ident(Ident::new("Date", Span::call_site())),
-            ]
-            .iter()
-            .cloned()
-            .collect(),
-        ));
+    fn into_tokens(self, tokens: &mut TokenStream) {
+        tokens.extend(quote! {{
+            const DATE: ::time::Date = ::time::Date::__from_ordinal_date_unchecked(
+                #(self.year),
+                #(self.ordinal),
+            );
+            DATE
+        }});
     }
 }

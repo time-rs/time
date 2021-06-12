@@ -37,6 +37,9 @@
     unstable_name_collisions
 )]
 
+#[macro_use]
+mod quote;
+
 mod date;
 mod datetime;
 mod error;
@@ -44,10 +47,9 @@ mod format_description;
 mod helpers;
 mod offset;
 mod time;
+mod to_tokens;
 
-use std::iter;
-
-use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
+use proc_macro::TokenStream;
 
 use self::date::Date;
 use self::datetime::DateTime;
@@ -55,33 +57,17 @@ use self::error::Error;
 use self::offset::Offset;
 use self::time::Time;
 
-trait ToTokens {
-    fn to_tokens(&self, tokens: &mut TokenStream);
-    fn to_token_stream(&self) -> TokenStream {
-        let mut tokens = TokenStream::new();
-        self.to_tokens(&mut tokens);
-        tokens
-    }
-}
-
-impl ToTokens for bool {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        tokens.extend(iter::once(TokenTree::Ident(Ident::new(
-            self.to_string().as_str(),
-            Span::mixed_site(),
-        ))))
-    }
-}
-
 macro_rules! impl_macros {
     ($($name:ident : $type:ty)*) => {$(
         #[proc_macro]
         pub fn $name(input: TokenStream) -> TokenStream {
+            use crate::to_tokens::ToTokens;
+
             let mut iter = input.into_iter().peekable();
             match <$type>::parse(&mut iter) {
                 Ok(offset) => match iter.peek() {
                     Some(tree) => Error::UnexpectedToken { tree: tree.clone() }.to_compile_error(),
-                    None => offset.to_token_stream(),
+                    None => offset.into_token_stream(),
                 },
                 Err(err) => err.to_compile_error(),
             }
@@ -110,53 +96,13 @@ pub fn format_description(input: TokenStream) -> TokenStream {
         Err(err) => return err.to_compile_error(),
     };
 
-    let mut tokens = TokenStream::new();
-    for item in items {
-        tokens.extend(
-            [
-                item.to_token_stream(),
-                TokenStream::from(TokenTree::Punct(Punct::new(',', Spacing::Alone))),
-            ]
-            .iter()
-            .cloned()
-            .collect::<TokenStream>(),
-        );
-    }
-
-    helpers::const_block(
-        [
-            TokenTree::Punct(Punct::new('&', Spacing::Alone)),
-            TokenTree::Group(Group::new(Delimiter::Bracket, tokens)),
-        ]
-        .iter()
-        .cloned()
-        .collect(),
-        [
-            TokenTree::Punct(Punct::new('&', Spacing::Alone)),
-            TokenTree::Group(Group::new(
-                Delimiter::Bracket,
-                [
-                    TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                    TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                    TokenTree::Ident(Ident::new("time", Span::mixed_site())),
-                    TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                    TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                    TokenTree::Ident(Ident::new("format_description", Span::mixed_site())),
-                    TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                    TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                    TokenTree::Ident(Ident::new("FormatItem", Span::mixed_site())),
-                    TokenTree::Punct(Punct::new('<', Spacing::Alone)),
-                    TokenTree::Punct(Punct::new('\'', Spacing::Joint)),
-                    TokenTree::Ident(Ident::new("_", Span::mixed_site())),
-                    TokenTree::Punct(Punct::new('>', Spacing::Alone)),
-                ]
-                .iter()
-                .cloned()
-                .collect(),
-            )),
-        ]
-        .iter()
-        .cloned()
-        .collect(),
-    )
+    quote! {{
+        const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = &[#(
+            items
+                .into_iter()
+                .map(|item| quote! { #(item), })
+                .collect::<TokenStream>()
+        )];
+        DESCRIPTION
+    }}
 }

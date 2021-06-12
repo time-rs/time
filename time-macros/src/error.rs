@@ -89,22 +89,20 @@ impl Error {
         let (start, end) = (self.span_start(), self.span_end());
 
         [
-            TokenStream::from(TokenTree::Punct(Punct::new(':', Spacing::Joint)).with_span(start)),
-            TokenStream::from(TokenTree::Punct(Punct::new(':', Spacing::Alone)).with_span(start)),
-            TokenStream::from(TokenTree::Ident(Ident::new("core", self.span_start()))),
-            TokenStream::from(TokenTree::Punct(Punct::new(':', Spacing::Joint)).with_span(start)),
-            TokenStream::from(TokenTree::Punct(Punct::new(':', Spacing::Alone)).with_span(start)),
-            TokenStream::from(TokenTree::Ident(Ident::new("compile_error", start))),
-            TokenStream::from(TokenTree::Punct(Punct::new('!', Spacing::Alone)).with_span(start)),
-            TokenStream::from(
-                TokenTree::Group(Group::new(
-                    Delimiter::Parenthesis,
-                    TokenStream::from(
-                        TokenTree::Literal(Literal::string(&self.to_string())).with_span(end),
-                    ),
-                ))
-                .with_span(end),
-            ),
+            TokenTree::from(Punct::new(':', Spacing::Joint)).with_span(start),
+            TokenTree::from(Punct::new(':', Spacing::Alone)).with_span(start),
+            TokenTree::from(Ident::new("core", start)),
+            TokenTree::from(Punct::new(':', Spacing::Joint)).with_span(start),
+            TokenTree::from(Punct::new(':', Spacing::Alone)).with_span(start),
+            TokenTree::from(Ident::new("compile_error", start)),
+            TokenTree::from(Punct::new('!', Spacing::Alone)).with_span(start),
+            TokenTree::from(Group::new(
+                Delimiter::Parenthesis,
+                TokenStream::from(
+                    TokenTree::from(Literal::string(&self.to_string())).with_span(end),
+                ),
+            ))
+            .with_span(end),
         ]
         .iter()
         .cloned()

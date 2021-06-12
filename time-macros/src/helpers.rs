@@ -1,31 +1,9 @@
 use std::iter::Peekable;
 use std::str::FromStr;
 
-use proc_macro::{
-    token_stream, Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree,
-};
+use proc_macro::{token_stream, Span, TokenStream, TokenTree};
 
 use crate::Error;
-
-/// Simulate a const block, ensuring that the value will be computed at compile-time.
-pub(crate) fn const_block(value: TokenStream, type_: TokenStream) -> TokenStream {
-    TokenStream::from(TokenTree::Group(Group::new(
-        Delimiter::Brace,
-        [
-            TokenStream::from(TokenTree::Ident(Ident::new("const", Span::call_site()))),
-            TokenStream::from(TokenTree::Ident(Ident::new("VALUE", Span::call_site()))),
-            TokenStream::from(TokenTree::Punct(Punct::new(':', Spacing::Alone))),
-            type_,
-            TokenStream::from(TokenTree::Punct(Punct::new('=', Spacing::Alone))),
-            value,
-            TokenStream::from(TokenTree::Punct(Punct::new(';', Spacing::Alone))),
-            TokenStream::from(TokenTree::Ident(Ident::new("VALUE", Span::call_site()))),
-        ]
-        .iter()
-        .cloned()
-        .collect(),
-    )))
-}
 
 pub(crate) fn get_string_literal(tokens: TokenStream) -> Result<(Span, String), Error> {
     let mut tokens = tokens.into_iter();

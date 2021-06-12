@@ -1,121 +1,56 @@
 use core::mem;
 
-use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
+use proc_macro::TokenStream;
 
 use crate::format_description::error::InvalidFormatDescription;
 use crate::format_description::helper;
-use crate::ToTokens;
+use crate::to_tokens::ToTokens;
 
 macro_rules! to_tokens {
     (
         $(#[$struct_attr:meta])*
-        $struct_vis:vis struct $struct_name:ident {
-            $(
-                $(#[$field_attr:meta])*
-                $field_vis:vis $field_name:ident : $field_ty:ty
-            ),+ $(,)?
-        }
+        $struct_vis:vis struct $struct_name:ident {$(
+            $(#[$field_attr:meta])*
+            $field_vis:vis $field_name:ident : $field_ty:ty
+        ),+ $(,)?}
     ) => {
         $(#[$struct_attr])*
-        $struct_vis struct $struct_name {
-            $(
-                $(#[$field_attr])*
-                $field_vis $field_name: $field_ty
-            ),+
-        }
+        $struct_vis struct $struct_name {$(
+            $(#[$field_attr])*
+            $field_vis $field_name: $field_ty
+        ),+}
 
         impl ToTokens for $struct_name {
-            fn to_tokens(&self, tokens: &mut TokenStream) {
-                tokens.extend(
-                    [
-                        TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                        TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                        TokenTree::Ident(Ident::new("time", Span::mixed_site())),
-                        TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                        TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                        TokenTree::Ident(Ident::new("format_description", Span::mixed_site())),
-                        TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                        TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                        TokenTree::Ident(Ident::new("modifier", Span::mixed_site())),
-                        TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                        TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                        TokenTree::Ident(Ident::new(stringify!($struct_name), Span::mixed_site())),
-                        TokenTree::Group(Group::new(
-                            Delimiter::Brace,
-                            [$(
-                                TokenStream::from(TokenTree::Ident(Ident::new(
-                                    stringify!($field_name),
-                                    Span::mixed_site(),
-                                ))),
-                                TokenStream::from(TokenTree::Punct(Punct::new(
-                                    ':',
-                                    Spacing::Alone,
-                                ))),
-                                self.$field_name.to_token_stream(),
-                                TokenStream::from(TokenTree::Punct(Punct::new(
-                                    ',',
-                                    Spacing::Alone,
-                                ))),
-                            )+]
-                            .iter()
-                            .cloned()
-                            .collect(),
-                        )),
-                    ]
-                    .iter()
-                    .cloned()
-                    .collect::<TokenStream>(),
-                )
+            fn into_tokens(self, tokens: &mut TokenStream) {
+                tokens.extend(quote! {
+                    ::time::format_description::modifier::$struct_name {$(
+                        $field_name: #(self.$field_name),
+                    )+}
+                });
             }
         }
     };
 
     (
         $(#[$enum_attr:meta])*
-        $enum_vis:vis enum $enum_name:ident {
-            $(
-                $(#[$variant_attr:meta])*
-                $variant_name:ident
-            ),+ $(,)?
-        }
+        $enum_vis:vis enum $enum_name:ident {$(
+            $(#[$variant_attr:meta])*
+            $variant_name:ident
+        ),+ $(,)?}
     ) => {
         $(#[$enum_attr])*
-        $enum_vis enum $enum_name {
-            $(
-                $(#[$variant_attr])*
-                $variant_name
-            ),+
-        }
+        $enum_vis enum $enum_name {$(
+            $(#[$variant_attr])*
+            $variant_name
+        ),+}
 
         impl ToTokens for $enum_name {
-            fn to_tokens(&self, tokens: &mut TokenStream) {
-                tokens.extend(
-                    [
-                        TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                        TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                        TokenTree::Ident(Ident::new("time", Span::mixed_site())),
-                        TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                        TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                        TokenTree::Ident(Ident::new("format_description", Span::mixed_site())),
-                        TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                        TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                        TokenTree::Ident(Ident::new("modifier", Span::mixed_site())),
-                        TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                        TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                        TokenTree::Ident(Ident::new(stringify!($enum_name), Span::mixed_site())),
-                        TokenTree::Punct(Punct::new(':', Spacing::Joint)),
-                        TokenTree::Punct(Punct::new(':', Spacing::Alone)),
-                        TokenTree::Ident(Ident::new(
-                            match self {
-                                $(Self::$variant_name => stringify!($variant_name)),+
-                            },
-                            Span::mixed_site(),
-                        )),
-                    ]
-                    .iter()
-                    .cloned()
-                    .collect::<TokenStream>()
-                )
+            fn into_tokens(self, tokens: &mut TokenStream) {
+                tokens.extend(quote! {
+                    ::time::format_description::modifier::$enum_name::#(match self {
+                        $(Self::$variant_name => quote!($variant_name)),+
+                    })
+                });
             }
         }
     }
