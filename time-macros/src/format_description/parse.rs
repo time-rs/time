@@ -1,5 +1,7 @@
 use core::mem;
 
+use proc_macro::Span;
+
 use crate::format_description::component::{Component, NakedComponent};
 use crate::format_description::error::InvalidFormatDescription;
 use crate::format_description::{helper, modifier, FormatItem};
@@ -68,12 +70,17 @@ fn parse_item<'a>(
     }
 }
 
-pub(crate) fn parse(mut s: &str) -> Result<Vec<FormatItem<'_>>, Error> {
+pub(crate) fn parse(mut s: &str, span: Span) -> Result<Vec<FormatItem<'_>>, Error> {
     let mut compound = Vec::new();
     let mut loc = 0;
 
     while !s.is_empty() {
-        let ParsedItem { item, remaining } = parse_item(s, &mut loc)?;
+        let ParsedItem { item, remaining } =
+            parse_item(s, &mut loc).map_err(|error| Error::InvalidFormatDescription {
+                error,
+                span_start: Some(span),
+                span_end: Some(span),
+            })?;
         s = remaining;
         compound.push(item);
     }

@@ -5,7 +5,7 @@ use proc_macro::{
 };
 
 use crate::helpers::{
-    self, consume_ident, consume_number, consume_punct, days_in_year, days_in_year_month,
+    self, consume_any_ident, consume_number, consume_punct, days_in_year, days_in_year_month,
     weeks_in_year, ymd_to_yo, ywd_to_yo,
 };
 use crate::{Error, ToTokens};
@@ -15,7 +15,6 @@ const MAX_YEAR: i32 = 999_999;
 #[cfg(not(feature = "large-dates"))]
 const MAX_YEAR: i32 = 9_999;
 
-#[derive(Clone, Copy)]
 pub(crate) struct Date {
     pub(crate) year: i32,
     pub(crate) ordinal: u16,
@@ -23,42 +22,54 @@ pub(crate) struct Date {
 
 impl Date {
     pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Self, Error> {
-        let (year_sign, explicit_sign) = if consume_punct('-', chars).is_ok() {
-            (-1, true)
+        let (year_sign_span, year_sign, explicit_sign) = if let Ok(span) = consume_punct('-', chars)
+        {
+            (Some(span), -1, true)
+        } else if let Ok(span) = consume_punct('+', chars) {
+            (Some(span), 1, true)
         } else {
-            (1, consume_punct('+', chars).is_ok())
+            (None, 1, false)
         };
-        let year = year_sign * consume_number::<i32>("year", chars)?;
+        let (year_span, mut year) = consume_number::<i32>("year", chars)?;
+        year *= year_sign;
         if year.abs() > MAX_YEAR {
             return Err(Error::InvalidComponent {
                 name: "year",
                 value: year.to_string(),
+                span_start: Some(year_sign_span.unwrap_or(year_span)),
+                span_end: Some(year_span),
             });
         }
         if !explicit_sign && year.abs() >= 10_000 {
-            return Err(Error::Custom(
-                "years with more than four digits must have an explicit sign".into(),
-            ));
+            return Err(Error::Custom {
+                message: "years with more than four digits must have an explicit sign".into(),
+                span_start: Some(year_sign_span.unwrap_or(year_span)),
+                span_end: Some(year_span),
+            });
         }
 
         consume_punct('-', chars)?;
 
         // year-week-day
-        if consume_ident("W", chars).is_ok() {
-            let week = consume_number::<u8>("week", chars)?;
+        if let Ok(w_span) = consume_any_ident(&["W"], chars) {
+            let (week_span, week) = consume_number::<u8>("week", chars)?;
             consume_punct('-', chars)?;
-            let day = consume_number::<u8>("day", chars)?;
+            let (day_span, day) = consume_number::<u8>("day", chars)?;
 
             if week > weeks_in_year(year) {
                 return Err(Error::InvalidComponent {
                     name: "week",
                     value: week.to_string(),
+                    span_start: Some(w_span),
+                    span_end: Some(week_span),
                 });
             }
             if day == 0 || day > 7 {
                 return Err(Error::InvalidComponent {
                     name: "day",
                     value: day.to_string(),
+                    span_start: Some(day_span),
+                    span_end: Some(day_span),
                 });
             }
 
@@ -68,17 +79,20 @@ impl Date {
         }
 
         // We don't yet know whether it's year-month-day or year-ordinal.
-        let month_or_ordinal = consume_number::<u16>("month or ordinal", chars)?;
+        let (month_or_ordinal_span, month_or_ordinal) =
+            consume_number::<u16>("month or ordinal", chars)?;
 
         // year-month-day
         if consume_punct('-', chars).is_ok() {
-            let month = month_or_ordinal;
-            let day = consume_number::<u8>("day", chars)?;
+            let (month_span, month) = (month_or_ordinal_span, month_or_ordinal);
+            let (day_span, day) = consume_number::<u8>("day", chars)?;
 
             if month == 0 || month > 12 {
                 return Err(Error::InvalidComponent {
                     name: "month",
                     value: month.to_string(),
+                    span_start: Some(month_span),
+                    span_end: Some(month_span),
                 });
             }
             let month = month as _;
@@ -86,6 +100,8 @@ impl Date {
                 return Err(Error::InvalidComponent {
                     name: "day",
                     value: day.to_string(),
+                    span_start: Some(day_span),
+                    span_end: Some(day_span),
                 });
             }
 
@@ -95,12 +111,14 @@ impl Date {
         }
         // year-ordinal
         else {
-            let ordinal = month_or_ordinal;
+            let (ordinal_span, ordinal) = (month_or_ordinal_span, month_or_ordinal);
 
             if ordinal == 0 || ordinal > days_in_year(year) {
                 return Err(Error::InvalidComponent {
                     name: "ordinal",
                     value: ordinal.to_string(),
+                    span_start: Some(ordinal_span),
+                    span_end: Some(ordinal_span),
                 });
             }
 

@@ -4,7 +4,7 @@ use proc_macro::{
     token_stream, Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree,
 };
 
-use crate::helpers::{self, consume_ident, consume_number, consume_punct};
+use crate::helpers::{self, consume_any_ident, consume_number, consume_punct};
 use crate::{Error, ToTokens};
 
 #[derive(Clone, Copy)]
@@ -16,7 +16,7 @@ pub(crate) struct Offset {
 
 impl Offset {
     pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Self, Error> {
-        if consume_ident("utc", chars).is_ok() || consume_ident("UTC", chars).is_ok() {
+        if consume_any_ident(&["utc", "UTC"], chars).is_ok() {
             return Ok(Self {
                 hours: 0,
                 minutes: 0,
@@ -31,18 +31,26 @@ impl Offset {
         } else if let Some(tree) = chars.next() {
             return Err(Error::UnexpectedToken { tree });
         } else {
-            return Err(Error::MissingComponent { name: "sign" });
+            return Err(Error::MissingComponent {
+                name: "sign",
+                span_start: None,
+                span_end: None,
+            });
         };
 
-        let hours = consume_number::<i8>("hour", chars)?;
-        let mut minutes = 0;
-        let mut seconds = 0;
+        let (hours_span, hours) = consume_number::<i8>("hour", chars)?;
+        let (mut minutes_span, mut minutes) = (Span::mixed_site(), 0);
+        let (mut seconds_span, mut seconds) = (Span::mixed_site(), 0);
 
         if consume_punct(':', chars).is_ok() {
-            minutes = consume_number::<i8>("minute", chars)?;
+            let min = consume_number::<i8>("minute", chars)?;
+            minutes_span = min.0;
+            minutes = min.1;
 
             if consume_punct(':', chars).is_ok() {
-                seconds = consume_number::<i8>("second", chars)?;
+                let sec = consume_number::<i8>("second", chars)?;
+                seconds_span = sec.0;
+                seconds = sec.1;
             }
         }
 
@@ -50,16 +58,22 @@ impl Offset {
             Err(Error::InvalidComponent {
                 name: "hour",
                 value: hours.to_string(),
+                span_start: Some(hours_span),
+                span_end: Some(hours_span),
             })
         } else if minutes >= 60 {
             Err(Error::InvalidComponent {
                 name: "minute",
                 value: minutes.to_string(),
+                span_start: Some(minutes_span),
+                span_end: Some(minutes_span),
             })
         } else if seconds >= 60 {
             Err(Error::InvalidComponent {
                 name: "second",
                 value: seconds.to_string(),
+                span_start: Some(seconds_span),
+                span_end: Some(seconds_span),
             })
         } else {
             Ok(Self {

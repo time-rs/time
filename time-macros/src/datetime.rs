@@ -7,7 +7,6 @@ use proc_macro::{
 use crate::error::Error;
 use crate::{helpers, Date, Offset, Time, ToTokens};
 
-#[derive(Clone, Copy)]
 pub(crate) struct DateTime {
     date: Date,
     time: Time,
@@ -20,9 +19,8 @@ impl DateTime {
         let time = Time::parse(chars)?;
         let offset = match Offset::parse(chars) {
             Ok(offset) => Some(offset),
-            Err(Error::UnexpectedEndOfInput) | Err(Error::MissingComponent { name: "sign" }) => {
-                None
-            }
+            Err(Error::UnexpectedEndOfInput)
+            | Err(Error::MissingComponent { name: "sign", .. }) => None,
             Err(err) => return Err(err),
         };
 

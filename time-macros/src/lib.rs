@@ -100,12 +100,12 @@ impl_macros! {
 // features land.
 #[proc_macro]
 pub fn format_description(input: TokenStream) -> TokenStream {
-    let string = match helpers::get_string_literal(input) {
-        Ok(string) => string,
+    let (span, string) = match helpers::get_string_literal(input) {
+        Ok(val) => val,
         Err(err) => return err.to_compile_error(),
     };
 
-    let items = match format_description::parse(&string) {
+    let items = match format_description::parse(&string, span) {
         Ok(items) => items,
         Err(err) => return err.to_compile_error(),
     };

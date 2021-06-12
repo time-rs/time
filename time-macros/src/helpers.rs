@@ -27,7 +27,7 @@ pub(crate) fn const_block(value: TokenStream, type_: TokenStream) -> TokenStream
     )))
 }
 
-pub(crate) fn get_string_literal(tokens: TokenStream) -> Result<String, Error> {
+pub(crate) fn get_string_literal(tokens: TokenStream) -> Result<(Span, String), Error> {
     let mut tokens = tokens.into_iter();
 
     match tokens.next() {
@@ -36,7 +36,7 @@ pub(crate) fn get_string_literal(tokens: TokenStream) -> Result<String, Error> {
             if s.starts_with('"') && s.ends_with('"') {
                 tokens
                     .next()
-                    .map_or(Ok(s[1..s.len() - 1].to_owned()), |tree| {
+                    .map_or(Ok((literal.span(), s[1..s.len() - 1].to_owned())), |tree| {
                         Err(Error::UnexpectedToken { tree })
                     })
             } else {
@@ -50,9 +50,9 @@ pub(crate) fn get_string_literal(tokens: TokenStream) -> Result<String, Error> {
 pub(crate) fn consume_number<T: FromStr>(
     component_name: &'static str,
     chars: &mut Peekable<token_stream::IntoIter>,
-) -> Result<T, Error> {
-    let digits = match chars.next() {
-        Some(TokenTree::Literal(literal)) => literal.to_string(),
+) -> Result<(Span, T), Error> {
+    let (span, digits) = match chars.next() {
+        Some(TokenTree::Literal(literal)) => (literal.span(), literal.to_string()),
         Some(tree) => return Err(Error::UnexpectedToken { tree }),
         None => return Err(Error::UnexpectedEndOfInput),
     };
@@ -60,25 +60,30 @@ pub(crate) fn consume_number<T: FromStr>(
     if digits.is_empty() {
         Err(Error::MissingComponent {
             name: component_name,
+            span_start: None,
+            span_end: None,
         })
     } else if let Ok(value) = digits.replace('_', "").parse() {
-        Ok(value)
+        Ok((span, value))
     } else {
         Err(Error::InvalidComponent {
             name: component_name,
             value: digits,
+            span_start: Some(span),
+            span_end: Some(span),
         })
     }
 }
 
-pub(crate) fn consume_ident(
-    s: &str,
+pub(crate) fn consume_any_ident(
+    idents: &[&str],
     chars: &mut Peekable<token_stream::IntoIter>,
-) -> Result<(), Error> {
+) -> Result<Span, Error> {
     match chars.peek() {
-        Some(TokenTree::Ident(char)) if s == char.to_string() => {
+        Some(TokenTree::Ident(char)) if idents.contains(&char.to_string().as_str()) => {
+            let ret = Ok(char.span());
             drop(chars.next());
-            Ok(())
+            ret
         }
         Some(tree) => Err(Error::UnexpectedToken { tree: tree.clone() }),
         None => Err(Error::UnexpectedEndOfInput),
@@ -88,11 +93,12 @@ pub(crate) fn consume_ident(
 pub(crate) fn consume_punct(
     c: char,
     chars: &mut Peekable<token_stream::IntoIter>,
-) -> Result<(), Error> {
+) -> Result<Span, Error> {
     match chars.peek() {
         Some(TokenTree::Punct(punct)) if punct.as_char() == c => {
+            let ret = Ok(punct.span());
             drop(chars.next());
-            Ok(())
+            ret
         }
         Some(tree) => Err(Error::UnexpectedToken { tree: tree.clone() }),
         None => Err(Error::UnexpectedEndOfInput),

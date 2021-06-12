@@ -4,7 +4,7 @@ use proc_macro::{
     token_stream, Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree,
 };
 
-use crate::helpers::{self, consume_ident, consume_number, consume_punct};
+use crate::helpers::{self, consume_any_ident, consume_number, consume_punct};
 use crate::{Error, ToTokens};
 
 enum Period {
@@ -13,7 +13,6 @@ enum Period {
     _24,
 }
 
-#[derive(Clone, Copy)]
 pub(crate) struct Time {
     pub(crate) hour: u8,
     pub(crate) minute: u8,
@@ -23,20 +22,20 @@ pub(crate) struct Time {
 
 impl Time {
     pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Self, Error> {
-        let hour = consume_number("hour", chars)?;
+        let (hour_span, hour) = consume_number("hour", chars)?;
         consume_punct(':', chars)?;
-        let minute = consume_number::<u8>("minute", chars)?;
-        let second: f64 = if consume_punct(':', chars).is_ok() {
+        let (minute_span, minute) = consume_number::<u8>("minute", chars)?;
+        let (second_span, second): (_, f64) = if consume_punct(':', chars).is_ok() {
             consume_number("second", chars)?
         } else {
-            0.
+            (Span::mixed_site(), 0.)
         };
-        let period = if consume_ident("am", chars).is_ok() || consume_ident("AM", chars).is_ok() {
-            Period::Am
-        } else if consume_ident("pm", chars).is_ok() || consume_ident("PM", chars).is_ok() {
-            Period::Pm
+        let (period_span, period) = if let Ok(span) = consume_any_ident(&["am", "AM"], chars) {
+            (Some(span), Period::Am)
+        } else if let Ok(span) = consume_any_ident(&["pm", "PM"], chars) {
+            (Some(span), Period::Pm)
         } else {
-            Period::_24
+            (None, Period::_24)
         };
 
         let hour = match (hour, period) {
@@ -50,16 +49,22 @@ impl Time {
             Err(Error::InvalidComponent {
                 name: "hour",
                 value: hour.to_string(),
+                span_start: Some(hour_span),
+                span_end: Some(period_span.unwrap_or(hour_span)),
             })
         } else if minute >= 60 {
             Err(Error::InvalidComponent {
                 name: "minute",
                 value: minute.to_string(),
+                span_start: Some(minute_span),
+                span_end: Some(minute_span),
             })
         } else if second >= 60. {
             Err(Error::InvalidComponent {
                 name: "second",
                 value: second.to_string(),
+                span_start: Some(second_span),
+                span_end: Some(second_span),
             })
         } else {
             Ok(Self {
