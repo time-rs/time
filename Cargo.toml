@@ -3,7 +3,7 @@ members = ["time-macros"]
 
 [package]
 name = "time"
-version = "0.3.0-alpha-1"
+version = "0.3.0-alpha-2"
 authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
 edition = "2018"
 repository = "https://github.com/time-rs/time"
@@ -42,7 +42,7 @@ quickcheck-dep = { package = "quickcheck", version = "1.0.3", default-features =
 rand = { version = "0.8.3", optional = true, default-features = false }
 serde = { version = "1.0.125", optional = true, default-features = false }
 standback = { version = "0.3.2", default-features = false, features = ["msrv-1-46"] }
-time-macros = { version = "=0.2.0-alpha.0", path = "time-macros", optional = true }
+time-macros = { version = "=0.2.0-alpha.1", path = "time-macros", optional = true }
 
 [target.'cfg(unsound_local_offset)'.dependencies]
 libc = "0.2.93"
