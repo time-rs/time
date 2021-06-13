@@ -65,8 +65,9 @@ pub(crate) fn fmt_N(f: &mut Formatter<'_>, time: Time) -> fmt::Result {
 
 /// Subsecond nanoseconds. Always 9 digits
 pub(crate) fn parse_N(items: &mut ParsedItems, s: &mut &str) -> ParseResult<()> {
-    items.nanosecond =
-        Some(try_consume_exact_digits(s, 9, Padding::None).ok_or(error::Parse::InvalidNanosecond)?);
+    items.nanosecond = Some(
+        try_consume_exact_digits(s, 9, Padding::Space).ok_or(error::Parse::InvalidNanosecond)?,
+    );
     Ok(())
 }
 
