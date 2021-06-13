@@ -6,10 +6,7 @@ use crate::{
     DeferredFormat, Duration, ParseResult,
 };
 #[cfg(not(feature = "std"))]
-use alloc::{
-    borrow::ToOwned,
-    string::{String, ToString},
-};
+use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::{
     cmp::Ordering,
@@ -567,9 +564,7 @@ impl Time {
     /// assert_eq!(time!(0:00).lazy_format("%r").to_string(), "12:00:00 am");
     /// ```
     pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
-        DeferredFormat::new(format.as_ref())
-            .with_time(self)
-            .to_owned()
+        DeferredFormat::new(format.as_ref()).with_time(self).clone()
     }
 
     /// Attempt to parse a `Time` using the provided string.

@@ -6,10 +6,7 @@ use crate::{
     DeferredFormat, Duration, ParseResult,
 };
 #[cfg(not(feature = "std"))]
-use alloc::{
-    borrow::ToOwned,
-    string::{String, ToString},
-};
+use alloc::string::{String, ToString};
 use core::fmt::{self, Display};
 
 /// An offset from UTC.
@@ -289,7 +286,7 @@ impl UtcOffset {
     pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
         DeferredFormat::new(format.as_ref())
             .with_offset(self)
-            .to_owned()
+            .clone()
     }
 
     /// Attempt to parse the `UtcOffset` using the provided string.

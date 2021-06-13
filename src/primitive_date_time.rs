@@ -4,10 +4,7 @@ use crate::{
     Weekday,
 };
 #[cfg(not(feature = "std"))]
-use alloc::{
-    borrow::ToOwned,
-    string::{String, ToString},
-};
+use alloc::string::{String, ToString};
 use const_fn::const_fn;
 #[cfg(feature = "std")]
 use core::convert::From;
@@ -515,7 +512,7 @@ impl PrimitiveDateTime {
         DeferredFormat::new(format.as_ref())
             .with_date(self.date())
             .with_time(self.time())
-            .to_owned()
+            .clone()
     }
 
     /// Attempt to parse a `PrimitiveDateTime` using the provided string.

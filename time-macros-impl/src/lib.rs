@@ -91,20 +91,20 @@ use quote::ToTokens;
 use syn::parse_macro_input;
 use time::Time;
 
-macro_rules! impl_macros {
-    ($($name:ident : $type:ty),* $(,)?) => {
-        $(
-            #[proc_macro_hack]
-            #[allow(clippy::unimplemented)]
-            pub fn $name(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-                parse_macro_input!(input as $type).to_token_stream().into()
-            }
-        )*
-    };
+#[proc_macro_hack]
+#[allow(clippy::unimplemented)]
+pub fn time(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    parse_macro_input!(input as Time).to_token_stream().into()
 }
 
-impl_macros! {
-    time: Time,
-    offset: Offset,
-    date: Date,
+#[proc_macro_hack]
+#[allow(clippy::unimplemented)]
+pub fn offset(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    parse_macro_input!(input as Offset).to_token_stream().into()
+}
+
+#[proc_macro_hack]
+#[allow(clippy::unimplemented)]
+pub fn date(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    parse_macro_input!(input as Date).to_token_stream().into()
 }

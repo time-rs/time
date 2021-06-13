@@ -6,10 +6,7 @@ use crate::{
     UtcOffset, Weekday,
 };
 #[cfg(not(feature = "std"))]
-use alloc::{
-    borrow::ToOwned,
-    string::{String, ToString},
-};
+use alloc::string::{String, ToString};
 #[cfg(feature = "std")]
 use core::convert::From;
 use core::{
@@ -883,7 +880,7 @@ impl OffsetDateTime {
             .with_date(self.date())
             .with_time(self.time())
             .with_offset(self.offset())
-            .to_owned()
+            .clone()
     }
 
     /// Attempt to parse an `OffsetDateTime` using the provided string.

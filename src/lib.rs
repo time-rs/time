@@ -152,6 +152,7 @@
     clippy::inline_always,
     clippy::map_err_ignore,
     clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
     clippy::module_name_repetitions,
     clippy::must_use_candidate,
     clippy::redundant_pub_crate,

@@ -6,10 +6,7 @@ use crate::{
     DeferredFormat, Duration, ParseResult, PrimitiveDateTime, Time, Weekday,
 };
 #[cfg(not(feature = "std"))]
-use alloc::{
-    borrow::ToOwned,
-    string::{String, ToString},
-};
+use alloc::string::{String, ToString};
 use const_fn::const_fn;
 use core::{
     cmp::{Ord, Ordering, PartialOrd},
@@ -972,9 +969,7 @@ impl Date {
     /// assert_eq!(date!(2019-01-02).lazy_format("%Y-%m-%d").to_string(), "2019-01-02");
     /// ```
     pub fn lazy_format(self, format: impl AsRef<str>) -> impl Display {
-        DeferredFormat::new(format.as_ref())
-            .with_date(self)
-            .to_owned()
+        DeferredFormat::new(format.as_ref()).with_date(self).clone()
     }
 
     /// Attempt to parse a `Date` using the provided string.
