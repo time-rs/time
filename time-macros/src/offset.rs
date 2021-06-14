@@ -85,14 +85,14 @@ impl Offset {
 }
 
 impl ToTokens for Offset {
-    fn into_tokens(self, tokens: &mut TokenStream) {
-        tokens.extend(quote! {{
+    fn into_token_stream(self) -> TokenStream {
+        quote! {{
             const OFFSET: ::time::UtcOffset = ::time::UtcOffset::__from_hms_unchecked(
                 #(self.hours),
                 #(self.minutes),
                 #(self.seconds),
             );
             OFFSET
-        }});
+        }}
     }
 }

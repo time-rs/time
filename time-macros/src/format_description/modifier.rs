@@ -21,12 +21,12 @@ macro_rules! to_tokens {
         ),+}
 
         impl ToTokens for $struct_name {
-            fn into_tokens(self, tokens: &mut TokenStream) {
-                tokens.extend(quote! {
+            fn into_token_stream(self) -> TokenStream {
+                quote! {
                     ::time::format_description::modifier::$struct_name {$(
                         $field_name: #(self.$field_name),
                     )+}
-                });
+                }
             }
         }
     };
@@ -45,12 +45,12 @@ macro_rules! to_tokens {
         ),+}
 
         impl ToTokens for $enum_name {
-            fn into_tokens(self, tokens: &mut TokenStream) {
-                tokens.extend(quote! {
+            fn into_token_stream(self) -> TokenStream {
+                quote! {
                     ::time::format_description::modifier::$enum_name::#(match self {
                         $(Self::$variant_name => quote!($variant_name)),+
                     })
-                });
+                }
             }
         }
     }

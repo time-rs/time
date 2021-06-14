@@ -34,18 +34,18 @@ impl DateTime {
 }
 
 impl ToTokens for DateTime {
-    fn into_tokens(self, tokens: &mut TokenStream) {
+    fn into_token_stream(self) -> TokenStream {
         let (type_name, maybe_offset) = match self.offset {
             Some(offset) => (quote!(OffsetDateTime), quote!(.assume_offset(#(offset)))),
             None => (quote!(PrimitiveDateTime), quote!()),
         };
 
-        tokens.extend(quote! {{
+        quote! {{
             const DATE_TIME: ::time::#(type_name) = ::time::PrimitiveDateTime::new(
                 #(self.date),
                 #(self.time),
             ) #(maybe_offset);
             DATE_TIME
-        }});
+        }}
     }
 }

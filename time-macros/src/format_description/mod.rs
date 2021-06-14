@@ -26,12 +26,12 @@ pub(crate) enum FormatItem<'a> {
 }
 
 impl ToTokens for FormatItem<'_> {
-    fn into_tokens(self, tokens: &mut TokenStream) {
-        tokens.extend(quote! {
+    fn into_token_stream(self) -> TokenStream {
+        quote! {
             ::time::format_description::FormatItem::#(match self {
                 FormatItem::Literal(s) => quote! { Literal(#(Literal::byte_string(s.as_bytes()))) },
                 FormatItem::Component(component) => quote! { Component(#(component)) },
             })
-        });
+        }
     }
 }

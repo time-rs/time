@@ -23,8 +23,8 @@ pub(crate) enum Component {
 }
 
 impl ToTokens for Component {
-    fn into_tokens(self, tokens: &mut TokenStream) {
-        tokens.extend(quote! {
+    fn into_token_stream(self) -> TokenStream {
+        quote! {
             ::time::format_description::Component::#(match self {
                 Self::Day(modifier) => quote! { Day(#(modifier)) },
                 Self::Month(modifier) => quote! { Month(#(modifier)) },
@@ -41,7 +41,7 @@ impl ToTokens for Component {
                 Self::OffsetMinute(modifier) => quote! { OffsetMinute(#(modifier)) },
                 Self::OffsetSecond(modifier) => quote! { OffsetSecond(#(modifier)) },
             })
-        });
+        }
     }
 }
 

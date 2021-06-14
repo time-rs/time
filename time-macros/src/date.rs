@@ -127,13 +127,13 @@ impl Date {
 }
 
 impl ToTokens for Date {
-    fn into_tokens(self, tokens: &mut TokenStream) {
-        tokens.extend(quote! {{
+    fn into_token_stream(self) -> TokenStream {
+        quote! {{
             const DATE: ::time::Date = ::time::Date::__from_ordinal_date_unchecked(
                 #(self.year),
                 #(self.ordinal),
             );
             DATE
-        }});
+        }}
     }
 }

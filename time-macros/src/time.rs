@@ -77,8 +77,8 @@ impl Time {
 }
 
 impl ToTokens for Time {
-    fn into_tokens(self, tokens: &mut TokenStream) {
-        tokens.extend(quote! {{
+    fn into_token_stream(self) -> TokenStream {
+        quote! {{
             const TIME: ::time::Time = ::time::Time::__from_hms_nanos_unchecked(
                 #(self.hour),
                 #(self.minute),
@@ -86,6 +86,6 @@ impl ToTokens for Time {
                 #(self.nanosecond),
             );
             TIME
-        }});
+        }}
     }
 }
