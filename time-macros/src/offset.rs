@@ -6,7 +6,6 @@ use crate::helpers::{consume_any_ident, consume_number, consume_punct};
 use crate::to_tokens::ToTokens;
 use crate::Error;
 
-#[derive(Clone, Copy)]
 pub(crate) struct Offset {
     pub(crate) hours: i8,
     pub(crate) minutes: i8,

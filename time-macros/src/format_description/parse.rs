@@ -48,7 +48,7 @@ fn parse_item<'a>(
     if let Some(remaining) = s.strip_prefix("[[") {
         *index += 2;
         return Ok(ParsedItem {
-            item: FormatItem::Literal("]"),
+            item: FormatItem::Literal("["),
             remaining,
         });
     }

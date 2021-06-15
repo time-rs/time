@@ -35,13 +35,7 @@ pub(crate) fn consume_number<T: FromStr>(
         None => return Err(Error::UnexpectedEndOfInput),
     };
 
-    if digits.is_empty() {
-        Err(Error::MissingComponent {
-            name: component_name,
-            span_start: None,
-            span_end: None,
-        })
-    } else if let Ok(value) = digits.replace('_', "").parse() {
+    if let Ok(value) = digits.replace('_', "").parse() {
         Ok((span, value))
     } else {
         Err(Error::InvalidComponent {

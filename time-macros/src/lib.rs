@@ -65,9 +65,9 @@ macro_rules! impl_macros {
 
             let mut iter = input.into_iter().peekable();
             match <$type>::parse(&mut iter) {
-                Ok(offset) => match iter.peek() {
+                Ok(value) => match iter.peek() {
                     Some(tree) => Error::UnexpectedToken { tree: tree.clone() }.to_compile_error(),
-                    None => offset.into_token_stream(),
+                    None => value.into_token_stream(),
                 },
                 Err(err) => err.to_compile_error(),
             }

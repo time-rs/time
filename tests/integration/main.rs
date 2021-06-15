@@ -37,12 +37,17 @@
     clippy::cognitive_complexity
 )]
 
+use std::path::PathBuf;
+
+use compiletest::common::Mode;
+
 mod date;
 mod duration;
 mod error;
 mod ext;
 mod formatting;
 mod instant;
+mod macros;
 mod month;
 mod offset_date_time;
 mod parse_format_description;
@@ -55,3 +60,20 @@ mod time;
 mod utc_offset;
 mod util;
 mod weekday;
+
+#[test]
+fn compile_fail() {
+    let mut config = compiletest::Config {
+        mode: Mode::CompileFail,
+        src_base: PathBuf::from("tests")
+            .join("integration")
+            .join("compile-fail"),
+        target_rustcflags: Some("--edition=2018 --extern time".into()),
+        ..compiletest::Config::default()
+    };
+
+    config.link_deps();
+    config.clean_rmeta();
+
+    compiletest::run_tests(&config);
+}

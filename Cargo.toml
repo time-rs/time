@@ -48,6 +48,7 @@ time-macros = { version = "=0.2.0-alpha.1", path = "time-macros", optional = tru
 libc = "0.2.93"
 
 [dev-dependencies]
+compiletest = { package = "compiletest_rs", version = "0.7.0" }
 criterion = { version = "0.3.4", features = ["html_reports"] }
 rand = { version = "0.8.3", default-features = false }
 serde = { version = "1.0.125", default-features = false }
