@@ -1,6 +1,6 @@
 use serde_test::{assert_de_tokens_error, assert_tokens, Compact, Configure, Readable, Token};
 use time::macros::{date, datetime, offset, time};
-use time::{Duration, Month, Time, Weekday};
+use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 #[test]
 fn time() {
@@ -62,6 +62,14 @@ fn time() {
         &[Token::BorrowedStr("00:00:00.0x")],
         "invalid value: literal, expected no extraneous characters",
     );
+    assert_de_tokens_error::<Readable<Time>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a borrowed string",
+    );
+    assert_de_tokens_error::<Compact<Time>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a tuple of size 4",
+    );
 }
 
 #[test]
@@ -84,7 +92,6 @@ fn date() {
             Token::TupleEnd,
         ],
     );
-
     assert_tokens(
         &date!(-9999 - 001).readable(),
         &[Token::BorrowedStr("-9999-01-01")],
@@ -92,6 +99,14 @@ fn date() {
     assert_tokens(
         &date!(+9999-365).readable(),
         &[Token::BorrowedStr("9999-12-31")],
+    );
+    assert_de_tokens_error::<Readable<Date>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a borrowed string",
+    );
+    assert_de_tokens_error::<Compact<Date>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a tuple of size 2",
     );
 }
 
@@ -123,7 +138,6 @@ fn primitive_date_time() {
             Token::TupleEnd,
         ],
     );
-
     assert_tokens(
         &datetime!(-9999-001 0:00).readable(),
         &[Token::BorrowedStr("-9999-01-01 00:00:00.0")],
@@ -131,6 +145,40 @@ fn primitive_date_time() {
     assert_tokens(
         &datetime!(+9999-365 23:58:59.123_456_789).readable(),
         &[Token::BorrowedStr("9999-12-31 23:58:59.123456789")],
+    );
+    assert_de_tokens_error::<Readable<PrimitiveDateTime>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a borrowed string",
+    );
+    assert_de_tokens_error::<Compact<PrimitiveDateTime>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a tuple of size 6",
+    );
+    assert_de_tokens_error::<Compact<PrimitiveDateTime>>(
+        &[
+            Token::Tuple { len: 6 },
+            Token::I32(2021),
+            Token::U16(366),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U32(0),
+            Token::TupleEnd,
+        ],
+        "invalid value: integer `366`, expected a value in the range 1..=365",
+    );
+    assert_de_tokens_error::<Compact<PrimitiveDateTime>>(
+        &[
+            Token::Tuple { len: 6 },
+            Token::I32(2021),
+            Token::U16(1),
+            Token::U8(24),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U32(0),
+            Token::TupleEnd,
+        ],
+        "invalid value: integer `24`, expected a value in the range 0..=23",
     );
 }
 
@@ -187,6 +235,62 @@ fn offset_date_time() {
             "9999-12-31 00:00:00.123456789 -23:58:59",
         )],
     );
+    assert_de_tokens_error::<Readable<OffsetDateTime>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a borrowed string",
+    );
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a tuple of size 9",
+    );
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(2021),
+            Token::U16(366),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U32(0),
+            Token::I8(0),
+            Token::I8(0),
+            Token::I8(0),
+            Token::TupleEnd,
+        ],
+        "invalid value: integer `366`, expected a value in the range 1..=365",
+    );
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(2021),
+            Token::U16(1),
+            Token::U8(24),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U32(0),
+            Token::I8(0),
+            Token::I8(0),
+            Token::I8(0),
+            Token::TupleEnd,
+        ],
+        "invalid value: integer `24`, expected a value in the range 0..=23",
+    );
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(2021),
+            Token::U16(1),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U32(0),
+            Token::I8(24),
+            Token::I8(0),
+            Token::I8(0),
+            Token::TupleEnd,
+        ],
+        "invalid value: integer `24`, expected a value in the range -23..=23",
+    );
 }
 
 #[test]
@@ -219,6 +323,24 @@ fn utc_offset() {
     assert_tokens(
         &offset!(+23:58:59).readable(),
         &[Token::BorrowedStr("+23:58:59")],
+    );
+    assert_de_tokens_error::<Readable<UtcOffset>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a borrowed string",
+    );
+    assert_de_tokens_error::<Compact<UtcOffset>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a tuple of size 3",
+    );
+    assert_de_tokens_error::<Compact<UtcOffset>>(
+        &[
+            Token::Tuple { len: 3 },
+            Token::I8(24),
+            Token::I8(0),
+            Token::I8(0),
+            Token::TupleEnd,
+        ],
+        "invalid value: integer `24`, expected a value in the range -23..=23",
     );
 }
 
@@ -267,6 +389,14 @@ fn duration() {
         &[Token::BorrowedStr("0.x")],
         r#"invalid value: string "x", expected a number"#,
     );
+    assert_de_tokens_error::<Readable<Duration>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a borrowed string",
+    );
+    assert_de_tokens_error::<Compact<Duration>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a tuple of size 2",
+    );
 }
 
 #[test]
@@ -306,6 +436,14 @@ fn weekday() {
         &[Token::BorrowedStr("NotADay")],
         r#"invalid value: string "NotADay", expected a day of the week"#,
     );
+    assert_de_tokens_error::<Readable<Weekday>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a borrowed string",
+    );
+    assert_de_tokens_error::<Compact<Weekday>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected u8",
+    );
 }
 
 #[test]
@@ -343,5 +481,13 @@ fn month() {
     assert_de_tokens_error::<Readable<Month>>(
         &[Token::BorrowedStr("NotAMonth")],
         r#"invalid value: string "NotAMonth", expected a month of the year"#,
+    );
+    assert_de_tokens_error::<Readable<Month>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected a borrowed string",
+    );
+    assert_de_tokens_error::<Compact<Month>>(
+        &[Token::Bool(false)],
+        "invalid type: boolean `false`, expected u8",
     );
 }

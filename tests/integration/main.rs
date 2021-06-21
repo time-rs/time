@@ -42,6 +42,7 @@ use std::path::PathBuf;
 use compiletest::common::Mode;
 
 mod date;
+mod derives;
 mod duration;
 mod error;
 mod ext;

@@ -3,9 +3,9 @@
 //! This module should only be used when it is not possible to test the implementation in a
 //! reasonable manner externally.
 
-use std::default::Default;
 use std::num::NonZeroU8;
 
+use crate::format_description::modifier::Modifiers;
 use crate::formatting::DigitCount;
 use crate::{duration, Month};
 
@@ -58,5 +58,14 @@ fn month_from_number() {
 
 #[test]
 fn default() {
-    assert_eq!(duration::Padding::Optimize, duration::Padding::default());
+    assert_eq!(
+        duration::Padding::Optimize.clone(),
+        duration::Padding::default()
+    );
+}
+
+#[test]
+fn debug() {
+    let _ = format!("{:?}", duration::Padding::Optimize);
+    let _ = format!("{:?}", Modifiers::default());
 }

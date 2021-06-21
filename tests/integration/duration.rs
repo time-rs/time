@@ -4,7 +4,7 @@ use std::cmp::Ordering;
 use std::time::Duration as StdDuration;
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
-use time::Duration;
+use time::{error, Duration};
 
 #[test]
 fn unit_values() {
@@ -17,6 +17,11 @@ fn unit_values() {
     assert_eq!(Duration::HOUR, 3_600.seconds());
     assert_eq!(Duration::DAY, 86_400.seconds());
     assert_eq!(Duration::WEEK, 604_800.seconds());
+}
+
+#[test]
+fn default() {
+    assert_eq!(Duration::default(), Duration::ZERO);
 }
 
 #[test]
@@ -343,6 +348,10 @@ fn time_fn() {
 fn try_from_std_duration() {
     assert_eq!(Duration::try_from(0.std_seconds()), Ok(0.seconds()));
     assert_eq!(Duration::try_from(1.std_seconds()), Ok(1.seconds()));
+    assert_eq!(
+        Duration::try_from(u64::MAX.std_seconds()),
+        Err(error::ConversionRange)
+    );
 }
 
 #[test]
@@ -350,6 +359,10 @@ fn try_to_std_duration() {
     assert_eq!(StdDuration::try_from(0.seconds()), Ok(0.std_seconds()));
     assert_eq!(StdDuration::try_from(1.seconds()), Ok(1.std_seconds()));
     assert!(StdDuration::try_from((-1).seconds()).is_err());
+    assert_eq!(
+        StdDuration::try_from((-500).milliseconds()),
+        Err(error::ConversionRange)
+    );
 }
 
 #[test]
@@ -692,17 +705,20 @@ fn std_partial_ord() {
 
 #[test]
 fn ord() {
-    assert_eq!(0.seconds(), 0.seconds());
-    assert!(1.seconds() > 0.seconds());
-    assert!(1.seconds() > (-1).seconds());
-    assert!((-1).seconds() < 1.seconds());
-    assert!(0.seconds() > (-1).seconds());
-    assert!(0.seconds() < 1.seconds());
-    assert!((-1).seconds() < 0.seconds());
-    assert!(1.minutes() > 1.seconds());
-    assert!((-1).minutes() < (-1).seconds());
-    assert!(100.nanoseconds() < 200.nanoseconds());
-    assert!((-100).nanoseconds() > (-200).nanoseconds());
+    assert_eq!(0.seconds().cmp(&0.seconds()), Ordering::Equal);
+    assert_eq!(1.seconds().cmp(&0.seconds()), Ordering::Greater);
+    assert_eq!(1.seconds().cmp(&(-1).seconds()), Ordering::Greater);
+    assert_eq!((-1).seconds().cmp(&1.seconds()), Ordering::Less);
+    assert_eq!(0.seconds().cmp(&(-1).seconds()), Ordering::Greater);
+    assert_eq!(0.seconds().cmp(&1.seconds()), Ordering::Less);
+    assert_eq!((-1).seconds().cmp(&0.seconds()), Ordering::Less);
+    assert_eq!(1.minutes().cmp(&1.seconds()), Ordering::Greater);
+    assert_eq!((-1).minutes().cmp(&(-1).seconds()), Ordering::Less);
+    assert_eq!(100.nanoseconds().cmp(&200.nanoseconds()), Ordering::Less);
+    assert_eq!(
+        (-100).nanoseconds().cmp(&(-200).nanoseconds()),
+        Ordering::Greater
+    );
 }
 
 #[test]

@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::thread;
 use std::time::Instant as StdInstant;
 
@@ -46,6 +47,7 @@ fn sub() {
     let start = Instant::now();
     thread::sleep(1.std_milliseconds());
     assert!(Instant::now() - start >= 1.milliseconds());
+    assert_eq!(start - start, Duration::ZERO);
 }
 
 #[test]
@@ -162,7 +164,18 @@ fn std_eq() {
 }
 
 #[test]
-fn ord_std() {
+fn ord() {
+    let now_time = Instant::now();
+    let now_std = now_time + 1.seconds();
+    assert_eq!(now_time.cmp(&now_std), Ordering::Less);
+
+    let now_time = Instant::now();
+    let now_std = now_time - 1.seconds();
+    assert_eq!(now_time.cmp(&now_std), Ordering::Greater);
+}
+
+#[test]
+fn partial_ord_std() {
     let now_time = Instant::now();
     let now_std = StdInstant::from(now_time) + 1.seconds();
     assert!(now_time < now_std);
@@ -173,7 +186,7 @@ fn ord_std() {
 }
 
 #[test]
-fn std_ord() {
+fn std_partial_ord() {
     let now_time = Instant::now();
     let now_std = StdInstant::from(now_time) + 1.seconds();
     assert!(now_std > now_time);
