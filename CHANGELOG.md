@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `Date::MIN`
 - `Date::MAX`
 - `UtcOffset::from_hms`
+- `UtcOffset::from_whole_seconds`
 - `UtcOffset::as_hms`
 - `UtcOffset::whole_hours`
 - `UtcOffset::whole_minutes`

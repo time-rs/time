@@ -2,7 +2,6 @@ use std::cmp::Ordering;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::Hash;
 
-use ::time::format_description::modifier::MonthRepr;
 use time::error::{
     self, ConversionRange, IndeterminateOffset, InvalidFormatDescription, TryFromParsed,
 };

@@ -82,6 +82,23 @@ impl UtcOffset {
 
         Ok(Self::__from_hms_unchecked(hours, minutes, seconds))
     }
+
+    /// Create a `UtcOffset` representing an offset by the number of seconds provided.
+    ///
+    /// ```rust
+    /// # use time::UtcOffset;
+    /// assert_eq!(UtcOffset::from_whole_seconds(3_723)?.as_hms(), (1, 2, 3));
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    pub const fn from_whole_seconds(seconds: i32) -> Result<Self, error::ComponentRange> {
+        ensure_value_in_range!(seconds in -86_399 => 86_399);
+
+        Ok(Self::__from_hms_unchecked(
+            (seconds / 3_600) as _,
+            ((seconds / 60) % 60) as _,
+            (seconds % 60) as _,
+        ))
+    }
     // endregion constructors
 
     // region: getters

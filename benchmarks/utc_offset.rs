@@ -8,6 +8,10 @@ setup_benchmark! {
     fn from_hms(ben: &mut Bencher<'_>) {
         ben.iter(|| UtcOffset::from_hms(0, 0, 0));
     }
+
+    fn from_whole_seconds(ben: &mut Bencher<'_>) {
+        ben.iter(|| UtcOffset::from_whole_seconds(0));
+    }
     // endregion constructors
 
     // region: getters
