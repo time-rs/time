@@ -61,13 +61,9 @@ jobs:
           curl -LsSf https://github.com/taiki-e/cargo-hack/releases/latest/download/cargo-hack-x86_64-unknown-linux-gnu.tar.gz | tar xzf - -C ~/.cargo/bin
 
       - name: Cache cargo output
-        uses: actions/cache@v2
+        uses: Swatinem/rust-cache@v1
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ matrix.target.triple }}-${{ hashFiles('**/Cargo.toml') }}
+          key: ${{ matrix.target.triple }}
 
       - name: Check feature powerset
         uses: actions-rs/cargo@v1
@@ -135,13 +131,7 @@ jobs:
           override: true
 
       - name: Cache cargo output
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ubuntu-20.04-cargo-stable-benchmarks-${{ hashFiles('**/Cargo.toml') }}
+        uses: Swatinem/rust-cache@v1
 
       - name: Type-check benchmarks
         uses: actions-rs/cargo@v1
@@ -185,22 +175,8 @@ jobs:
               exit 1
           fi
 
-      # This is a workaround for a known bug in GitHub Actions. See
-      # actions/cache#403 and rust-lang/cargo#8603 for details.
-      - name: Install GNU tar
-        run: |
-          brew install gnu-tar
-          echo "/usr/local/opt/gnu-tar/libexec/gnubin" >> $GITHUB_PATH
-        if: matrix.os.value == 'macOS-latest'
-
       - name: Cache cargo output
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ matrix.rust }}-${{ matrix.os.value }}-${{ hashFiles('**/Cargo.toml') }}2
+        uses: Swatinem/rust-cache@v1
 
       - name: Check feature powerset
         uses: actions-rs/cargo@v1
@@ -287,13 +263,7 @@ jobs:
           override: true
 
       - name: Cache cargo output
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ubuntu-20.04-cargo-stable-ubuntu-20.04-${{ hashFiles('**/Cargo.toml') }}
+        uses: Swatinem/rust-cache@v1
 
       - name: Run clippy
         uses: actions-rs/clippy-check@v1
@@ -317,15 +287,6 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-
-      - name: Cache cargo output
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: cargo-doc-${{ hashFiles('**/Cargo.toml') }}3
 
       - name: Document public API
         uses: actions-rs/cargo@v1
