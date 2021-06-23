@@ -52,6 +52,7 @@ fn clone() {
 
 #[test]
 fn modifier_clone() {
+    #[allow(clippy::wildcard_imports)]
     use time::format_description::modifier::*;
 
     assert_cloned_eq!(Day {
@@ -167,6 +168,7 @@ fn debug() {
 
 #[test]
 fn modifier_debug() {
+    #[allow(clippy::wildcard_imports)]
     use time::format_description::modifier::*;
 
     let _ = format!(

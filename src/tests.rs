@@ -1,3 +1,5 @@
+#![allow(clippy::let_underscore_drop, clippy::clone_on_copy)]
+
 //! Tests for internal details.
 //!
 //! This module should only be used when it is not possible to test the implementation in a

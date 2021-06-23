@@ -34,7 +34,11 @@
 #![allow(
     clippy::enum_glob_use,
     clippy::too_many_lines,
-    clippy::cognitive_complexity
+    clippy::cognitive_complexity,
+    clippy::clone_on_copy,
+    clippy::default_trait_access,
+    clippy::let_underscore_drop,
+    clippy::cmp_owned
 )]
 
 #[cfg(not(skip_ui_tests))]
