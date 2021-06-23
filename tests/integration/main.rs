@@ -37,8 +37,10 @@
     clippy::cognitive_complexity
 )]
 
+#[cfg(not(skip_ui_tests))]
 use std::path::PathBuf;
 
+#[cfg(not(skip_ui_tests))]
 use compiletest::common::Mode;
 
 mod date;
@@ -62,6 +64,7 @@ mod utc_offset;
 mod util;
 mod weekday;
 
+#[cfg(not(skip_ui_tests))]
 #[test]
 fn compile_fail() {
     let mut config = compiletest::Config {

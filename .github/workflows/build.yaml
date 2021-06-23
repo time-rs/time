@@ -238,6 +238,16 @@ jobs:
         with:
           command: test
           args: --all-features
+        if: matrix.os.name == 'Ubuntu'
+
+      - name: Test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
+        env:
+          RUSTFLAGS: "--cfg skip_ui_tests"
+        if: matrix.os.name != 'Ubuntu'
 
   fmt:
     name: Formatting
@@ -378,10 +388,6 @@ jobs:
           toolchain: nightly
           override: true
           components: llvm-tools-preview
-
-      - name: Install rustfilt
-        # Release mode isn't worth the extra time.
-        run: cargo install --debug rustfilt
 
       - name: Install cargo-llvm-cov
         run: |
