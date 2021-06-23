@@ -283,6 +283,7 @@ impl Modifiers {
                 break;
             }
 
+            #[allow(clippy::unnested_or_patterns)]
             match (component_name, modifier) {
                 (b"day", b"padding:space")
                 | (b"hour", b"padding:space")

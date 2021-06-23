@@ -37,6 +37,7 @@ impl Time {
             (None, Period::_24)
         };
 
+        #[allow(clippy::unnested_or_patterns)]
         let hour = match (hour, period) {
             (12, Period::Am) => 0,
             (12, Period::Pm) => 12,

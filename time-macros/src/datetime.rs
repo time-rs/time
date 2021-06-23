@@ -16,6 +16,7 @@ impl DateTime {
     pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Self, Error> {
         let date = Date::parse(chars)?;
         let time = Time::parse(chars)?;
+        #[allow(clippy::unnested_or_patterns)]
         let offset = match Offset::parse(chars) {
             Ok(offset) => Some(offset),
             Err(Error::UnexpectedEndOfInput)
