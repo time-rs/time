@@ -2,6 +2,7 @@ use std::cmp::Ordering;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::Hash;
 
+use ::time::format_description::modifier::MonthRepr;
 use time::error::{
     self, ConversionRange, IndeterminateOffset, InvalidFormatDescription, TryFromParsed,
 };
@@ -48,69 +49,27 @@ fn clone() {
     }));
     assert_cloned_eq!(well_known::Rfc3339);
     assert_cloned_eq!(component_range_error());
-}
 
-#[test]
-fn modifier_clone() {
-    #[allow(clippy::wildcard_imports)]
-    use time::format_description::modifier::*;
-
-    assert_cloned_eq!(Day {
-        padding: Default::default()
-    });
-    assert_cloned_eq!(MonthRepr::Numerical);
-    assert_cloned_eq!(Month {
-        padding: Default::default(),
-        repr: Default::default(),
-    });
-    assert_cloned_eq!(Ordinal {
-        padding: Default::default(),
-    });
-    assert_cloned_eq!(WeekdayRepr::Short);
-    assert_cloned_eq!(Weekday {
-        repr: Default::default(),
-        one_indexed: Default::default(),
-    });
-    assert_cloned_eq!(WeekNumberRepr::Iso);
-    assert_cloned_eq!(WeekNumber {
-        padding: Default::default(),
-        repr: Default::default(),
-    });
-    assert_cloned_eq!(YearRepr::Full);
-    assert_cloned_eq!(Year {
-        padding: Default::default(),
-        repr: Default::default(),
-        iso_week_based: Default::default(),
-        sign_is_mandatory: Default::default(),
-    });
-    assert_cloned_eq!(Hour {
-        padding: Default::default(),
-        is_12_hour_clock: Default::default(),
-    });
-    assert_cloned_eq!(Minute {
-        padding: Default::default(),
-    });
-    assert_cloned_eq!(Period {
-        is_uppercase: Default::default(),
-    });
-    assert_cloned_eq!(Second {
-        padding: Default::default(),
-    });
-    assert_cloned_eq!(SubsecondDigits::One);
-    assert_cloned_eq!(Subsecond {
-        digits: Default::default(),
-    });
-    assert_cloned_eq!(OffsetHour {
-        sign_is_mandatory: Default::default(),
-        padding: Default::default(),
-    });
-    assert_cloned_eq!(OffsetMinute {
-        padding: Default::default(),
-    });
-    assert_cloned_eq!(OffsetSecond {
-        padding: Default::default(),
-    });
-    assert_cloned_eq!(Padding::Zero);
+    assert_cloned_eq!(modifier::Day::default());
+    assert_cloned_eq!(modifier::MonthRepr::default());
+    assert_cloned_eq!(modifier::Month::default());
+    assert_cloned_eq!(modifier::Ordinal::default());
+    assert_cloned_eq!(modifier::WeekdayRepr::default());
+    assert_cloned_eq!(modifier::Weekday::default());
+    assert_cloned_eq!(modifier::WeekNumberRepr::default());
+    assert_cloned_eq!(modifier::WeekNumber::default());
+    assert_cloned_eq!(modifier::YearRepr::default());
+    assert_cloned_eq!(modifier::Year::default());
+    assert_cloned_eq!(modifier::Hour::default());
+    assert_cloned_eq!(modifier::Minute::default());
+    assert_cloned_eq!(modifier::Period::default());
+    assert_cloned_eq!(modifier::Second::default());
+    assert_cloned_eq!(modifier::SubsecondDigits::default());
+    assert_cloned_eq!(modifier::Subsecond::default());
+    assert_cloned_eq!(modifier::OffsetHour::default());
+    assert_cloned_eq!(modifier::OffsetMinute::default());
+    assert_cloned_eq!(modifier::OffsetSecond::default());
+    assert_cloned_eq!(modifier::Padding::default());
 }
 
 #[test]
@@ -164,70 +123,25 @@ fn debug() {
     let _ = format!("{:?}", error::ParseFromDescription::InvalidComponent("foo"));
     let _ = format!("{:?}", well_known::Rfc3339);
     let _ = format!("{:?}", component_range_error());
-}
 
-#[test]
-fn modifier_debug() {
-    #[allow(clippy::wildcard_imports)]
-    use time::format_description::modifier::*;
-
-    let _ = format!(
-        "{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}{:?}",
-        Day {
-            padding: Default::default()
-        },
-        MonthRepr::Numerical,
-        Month {
-            padding: Default::default(),
-            repr: Default::default(),
-        },
-        Ordinal {
-            padding: Default::default(),
-        },
-        WeekdayRepr::Short,
-        Weekday {
-            repr: Default::default(),
-            one_indexed: Default::default(),
-        },
-        WeekNumberRepr::Iso,
-        WeekNumber {
-            padding: Default::default(),
-            repr: Default::default(),
-        },
-        YearRepr::Full,
-        Year {
-            padding: Default::default(),
-            repr: Default::default(),
-            iso_week_based: Default::default(),
-            sign_is_mandatory: Default::default(),
-        },
-        Hour {
-            padding: Default::default(),
-            is_12_hour_clock: Default::default(),
-        },
-        Minute {
-            padding: Default::default(),
-        },
-        Period {
-            is_uppercase: Default::default(),
-        },
-        Second {
-            padding: Default::default(),
-        },
-        SubsecondDigits::One,
-        Subsecond {
-            digits: Default::default(),
-        },
-        OffsetHour {
-            sign_is_mandatory: Default::default(),
-            padding: Default::default(),
-        },
-        OffsetMinute {
-            padding: Default::default(),
-        },
-        OffsetSecond {
-            padding: Default::default(),
-        },
-        Padding::Zero,
-    );
+    let _ = format!("{:?}", modifier::Day::default());
+    let _ = format!("{:?}", modifier::MonthRepr::default());
+    let _ = format!("{:?}", modifier::Month::default());
+    let _ = format!("{:?}", modifier::Ordinal::default());
+    let _ = format!("{:?}", modifier::WeekdayRepr::default());
+    let _ = format!("{:?}", modifier::Weekday::default());
+    let _ = format!("{:?}", modifier::WeekNumberRepr::default());
+    let _ = format!("{:?}", modifier::WeekNumber::default());
+    let _ = format!("{:?}", modifier::YearRepr::default());
+    let _ = format!("{:?}", modifier::Year::default());
+    let _ = format!("{:?}", modifier::Hour::default());
+    let _ = format!("{:?}", modifier::Minute::default());
+    let _ = format!("{:?}", modifier::Period::default());
+    let _ = format!("{:?}", modifier::Second::default());
+    let _ = format!("{:?}", modifier::SubsecondDigits::default());
+    let _ = format!("{:?}", modifier::Subsecond::default());
+    let _ = format!("{:?}", modifier::OffsetHour::default());
+    let _ = format!("{:?}", modifier::OffsetMinute::default());
+    let _ = format!("{:?}", modifier::OffsetSecond::default());
+    let _ = format!("{:?}", modifier::Padding::default());
 }

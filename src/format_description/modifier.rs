@@ -10,7 +10,7 @@ use crate::{error::InvalidFormatDescription, format_description::helper};
 
 // region: date modifiers
 /// Day of the month.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Day {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -28,7 +28,7 @@ pub enum MonthRepr {
 }
 
 /// Month of the year.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Month {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -37,7 +37,7 @@ pub struct Month {
 }
 
 /// Ordinal day of the year.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Ordinal {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -85,7 +85,7 @@ pub enum WeekNumberRepr {
 }
 
 /// Week within the year.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct WeekNumber {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -103,7 +103,7 @@ pub enum YearRepr {
 }
 
 /// Year of the date.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Year {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -118,7 +118,7 @@ pub struct Year {
 
 // region: time modifiers
 /// Hour of the day.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Hour {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -127,7 +127,7 @@ pub struct Hour {
 }
 
 /// Minute within the hour.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Minute {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -141,7 +141,7 @@ pub struct Period {
 }
 
 /// Second within the minute.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Second {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -174,7 +174,7 @@ pub enum SubsecondDigits {
 }
 
 /// Subsecond within the second.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Subsecond {
     /// How many digits are present in the component?
     pub digits: SubsecondDigits,
@@ -183,7 +183,7 @@ pub struct Subsecond {
 
 // region: offset modifiers
 /// Hour of the UTC offset.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct OffsetHour {
     /// Whether the `+` sign is present on positive values.
     pub sign_is_mandatory: bool,
@@ -192,14 +192,14 @@ pub struct OffsetHour {
 }
 
 /// Minute within the hour of the UTC offset.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct OffsetMinute {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
 }
 
 /// Second within the minute of the UTC offset.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct OffsetSecond {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -236,6 +236,13 @@ impl_default! {
     WeekdayRepr => Self::Long;
     WeekNumberRepr => Self::Iso;
     YearRepr => Self::Full;
+    Weekday => Self {
+        repr: WeekdayRepr::default(),
+        one_indexed: true,
+    };
+    Period => Self {
+        is_uppercase: true,
+    };
 }
 
 /// The modifiers parsed for any given component. `None` indicates the modifier was not present.
