@@ -692,9 +692,6 @@ impl Duration {
     /// assert_eq!(Duration::MAX.saturating_mul(-2), Duration::MIN);
     /// assert_eq!(Duration::MIN.saturating_mul(-2), Duration::MAX);
     /// ```
-    ///
-    /// This feature is `const fn` when using rustc >= 1.47.
-    #[const_fn("1.47")]
     pub const fn saturating_mul(self, rhs: i32) -> Self {
         // Multiply nanoseconds as i64, because it cannot overflow that way.
         let total_nanos = self.nanoseconds as i64 * rhs as i64;
