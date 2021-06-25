@@ -597,7 +597,7 @@ impl Duration {
         Some(Self::new_unchecked(seconds, nanoseconds))
     }
 
-    /// Computes `self / rhs`, returning `None` if `rhs == 0`.
+    /// Computes `self / rhs`, returning `None` if `rhs == 0` or if the result would overflow.
     ///
     /// ```rust
     /// # use time::ext::NumericalDuration;
@@ -605,15 +605,14 @@ impl Duration {
     /// assert_eq!(10.seconds().checked_div(-2), Some((-5).seconds()));
     /// assert_eq!(1.seconds().checked_div(0), None);
     /// ```
+    ///
+    /// This feature is `const fn` when using rustc >= 1.52.
+    #[const_fn("1.52")]
     pub const fn checked_div(self, rhs: i32) -> Option<Self> {
-        if rhs == 0 {
-            return None;
-        }
-
-        let seconds = self.seconds / (rhs as i64);
+        let seconds = const_try_opt!(self.seconds.checked_div(rhs as i64));
         let carry = self.seconds - seconds * (rhs as i64);
-        let extra_nanos = carry * 1_000_000_000 / (rhs as i64);
-        let nanoseconds = self.nanoseconds / rhs + (extra_nanos as i32);
+        let extra_nanos = const_try_opt!((carry * 1_000_000_000).checked_div(rhs as i64));
+        let nanoseconds = const_try_opt!(self.nanoseconds.checked_div(rhs)) + (extra_nanos as i32);
 
         Some(Self::new_unchecked(seconds, nanoseconds))
     }
@@ -746,6 +745,7 @@ impl TryFrom<StdDuration> for Duration {
             match original.subsec_nanos().try_into() {
                 Ok(nanoseconds) => nanoseconds,
                 Err(_) => {
+                    // TODO return error just in case?
                     unreachable!("bug in stdlib: nanoseconds are always in range 0..1_000_000_000")
                 }
             },

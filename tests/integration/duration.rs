@@ -280,6 +280,7 @@ fn checked_div() {
     assert_eq!(10.seconds().checked_div(2), Some(5.seconds()));
     assert_eq!(10.seconds().checked_div(-2), Some((-5).seconds()));
     assert_eq!(1.seconds().checked_div(0), None);
+    assert_eq!(Duration::MIN.checked_div(-1), None);
 }
 
 #[test]
