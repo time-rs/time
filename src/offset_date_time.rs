@@ -938,7 +938,7 @@ impl Add<Duration> for SystemTime {
         } else if duration.is_positive() {
             self + duration.abs_std()
         } else {
-            // duration.is_negative()
+            debug_assert!(duration.is_negative());
             self - duration.abs_std()
         }
     }
@@ -1033,6 +1033,7 @@ impl From<SystemTime> for OffsetDateTime {
     }
 }
 
+#[allow(clippy::fallible_impl_from)] // caused by `debug_assert!`
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl From<OffsetDateTime> for SystemTime {
@@ -1044,7 +1045,7 @@ impl From<OffsetDateTime> for SystemTime {
         } else if duration.is_positive() {
             Self::UNIX_EPOCH + duration.abs_std()
         } else {
-            // duration.is_negative()
+            debug_assert!(duration.is_negative());
             Self::UNIX_EPOCH - duration.abs_std()
         }
     }

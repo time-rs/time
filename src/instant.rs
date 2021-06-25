@@ -71,7 +71,7 @@ impl Instant {
         } else if duration.is_positive() {
             self.0.checked_add(duration.abs_std()).map(Self)
         } else {
-            // duration.is_negative()
+            debug_assert!(duration.is_negative());
             self.0.checked_sub(duration.abs_std()).map(Self)
         }
     }
