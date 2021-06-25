@@ -24,7 +24,7 @@ fn from_hms() -> Result<()> {
 }
 
 #[test]
-fn from_whole_seconds() -> Result<()> {
+fn from_whole_seconds() {
     assert_eq!(UtcOffset::from_whole_seconds(0), Ok(offset!(UTC)));
     assert_eq!(UtcOffset::from_whole_seconds(1), Ok(offset!(+0:00:01)));
     assert_eq!(UtcOffset::from_whole_seconds(-1), Ok(offset!(-0:00:01)));
@@ -40,7 +40,6 @@ fn from_whole_seconds() -> Result<()> {
         UtcOffset::from_whole_seconds(-86_399),
         Ok(offset!(-23:59:59))
     );
-    Ok(())
 }
 
 #[test]
