@@ -739,13 +739,10 @@ impl TryFrom<StdDuration> for Duration {
                 .as_secs()
                 .try_into()
                 .map_err(|_| error::ConversionRange)?,
-            match original.subsec_nanos().try_into() {
-                Ok(nanoseconds) => nanoseconds,
-                Err(_) => {
-                    // TODO return error just in case?
-                    unreachable!("bug in stdlib: nanoseconds are always in range 0..1_000_000_000")
-                }
-            },
+            original
+                .subsec_nanos()
+                .try_into()
+                .map_err(|_| error::ConversionRange)?,
         ))
     }
 }
