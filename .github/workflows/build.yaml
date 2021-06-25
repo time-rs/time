@@ -288,6 +288,9 @@ jobs:
           toolchain: nightly
           override: true
 
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v1
+
       - name: Document public API
         uses: actions-rs/cargo@v1
         with:
@@ -349,6 +352,9 @@ jobs:
           toolchain: nightly
           override: true
           components: llvm-tools-preview
+
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v1
 
       - name: Install cargo-llvm-cov
         run: |

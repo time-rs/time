@@ -72,11 +72,6 @@ jobs:
           target: ${{ matrix.target.triple }}
           override: true
 
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v1
-        with:
-          key: ${{ matrix.target.triple }}
-
       - name: Install cargo-hack
         shell: bash
         run: |
