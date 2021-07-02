@@ -5,8 +5,7 @@ use time::error::{
     ComponentRange, ConversionRange, Error, Format, IndeterminateOffset, InvalidFormatDescription,
     Parse, ParseFromDescription, TryFromParsed,
 };
-use time::format_description::modifier::{self, Padding};
-use time::format_description::{Component, FormatItem};
+use time::format_description::{modifier, Component, FormatItem};
 use time::macros::format_description;
 use time::{Date, Time};
 
@@ -49,15 +48,15 @@ fn debug() {
     assert_eq!(
         format!(
             "{:?}",
-            FormatItem::Compound(&[FormatItem::Component(Component::Day(modifier::Day {
-                padding: Padding::Zero
-            }))])
+            FormatItem::Compound(&[FormatItem::Component(Component::Day(
+                modifier::Day::default()
+            ))])
         ),
         format!(
             "{:?}",
-            FormatItem::Compound(&[FormatItem::Component(Component::Day(modifier::Day {
-                padding: Padding::Zero
-            }))])
+            FormatItem::Compound(&[FormatItem::Component(Component::Day(
+                modifier::Day::default()
+            ))])
         )
     );
 }

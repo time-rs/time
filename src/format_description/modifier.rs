@@ -10,13 +10,15 @@ use crate::{error::InvalidFormatDescription, format_description::helper};
 
 // region: date modifiers
 /// Day of the month.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Day {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
 }
 
 /// The representation of a month.
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MonthRepr {
     /// The number of the month (January is 1, December is 12).
@@ -28,7 +30,8 @@ pub enum MonthRepr {
 }
 
 /// Month of the year.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Month {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -37,7 +40,8 @@ pub struct Month {
 }
 
 /// Ordinal day of the year.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Ordinal {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -62,6 +66,7 @@ pub enum WeekdayRepr {
 }
 
 /// Day of the week.
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Weekday {
     /// What form of representation should be used?
@@ -85,7 +90,8 @@ pub enum WeekNumberRepr {
 }
 
 /// Week within the year.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WeekNumber {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -94,6 +100,7 @@ pub struct WeekNumber {
 }
 
 /// The representation used for a year value.
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum YearRepr {
     /// The full value of the year.
@@ -103,7 +110,8 @@ pub enum YearRepr {
 }
 
 /// Year of the date.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Year {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -118,7 +126,8 @@ pub struct Year {
 
 // region: time modifiers
 /// Hour of the day.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Hour {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -127,13 +136,15 @@ pub struct Hour {
 }
 
 /// Minute within the hour.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Minute {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
 }
 
 /// AM/PM part of the time.
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Period {
     /// Is the period uppercase or lowercase?
@@ -141,13 +152,15 @@ pub struct Period {
 }
 
 /// Second within the minute.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Second {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
 }
 
 /// The number of digits present in a subsecond representation.
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SubsecondDigits {
     /// Exactly one digit.
@@ -174,7 +187,8 @@ pub enum SubsecondDigits {
 }
 
 /// Subsecond within the second.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Subsecond {
     /// How many digits are present in the component?
     pub digits: SubsecondDigits,
@@ -183,7 +197,8 @@ pub struct Subsecond {
 
 // region: offset modifiers
 /// Hour of the UTC offset.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct OffsetHour {
     /// Whether the `+` sign is present on positive values.
     pub sign_is_mandatory: bool,
@@ -192,14 +207,16 @@ pub struct OffsetHour {
 }
 
 /// Minute within the hour of the UTC offset.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct OffsetMinute {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
 }
 
 /// Second within the minute of the UTC offset.
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct OffsetSecond {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
@@ -219,8 +236,22 @@ pub enum Padding {
     None,
 }
 
-macro_rules! impl_default {
+// Every modifier should use this macro rather than a derived `Default`. This ensures that it is
+// const-compatible, albeit with a slight hack.
+macro_rules! impl_const_default {
     ($($type:ty => $default:expr;)*) => {$(
+        impl $type {
+            /// A hack to work around the lack of const traits. Once const traits are stabilized,
+            /// this method will be removed in favor of `impl const Default`. As the `Default` trait
+            /// is in the prelude, this should not cause any resolution failures. Regardless, this
+            /// method is explicitly **not** part of the stable API of the time crate. It exists
+            /// solely for use in macros.
+            #[doc(hidden)]
+            pub const fn default() -> Self {
+                $default
+            }
+        }
+
         impl Default for $type {
             fn default() -> Self {
                 $default
@@ -229,20 +260,47 @@ macro_rules! impl_default {
     )*};
 }
 
-impl_default! {
-    Padding => Self::Zero;
+impl_const_default! {
+    Day => Self { padding: Padding::default() };
     MonthRepr => Self::Numerical;
-    SubsecondDigits => Self::OneOrMore;
+    Month => Self {
+        padding: Padding::default(),
+        repr: MonthRepr::default(),
+    };
+    Ordinal => Self { padding: Padding::default() };
     WeekdayRepr => Self::Long;
-    WeekNumberRepr => Self::Iso;
-    YearRepr => Self::Full;
     Weekday => Self {
         repr: WeekdayRepr::default(),
         one_indexed: true,
     };
-    Period => Self {
-        is_uppercase: true,
+    WeekNumberRepr => Self::Iso;
+    WeekNumber => Self {
+        padding: Padding::default(),
+        repr: WeekNumberRepr::default(),
     };
+    YearRepr => Self::Full;
+    Year => Self {
+        padding: Padding::default(),
+        repr: YearRepr::default(),
+        iso_week_based: false,
+        sign_is_mandatory: false,
+    };
+    Hour => Self {
+        padding: Padding::default(),
+        is_12_hour_clock: false,
+    };
+    Minute => Self { padding: Padding::default() };
+    Period => Self { is_uppercase: true };
+    Second => Self { padding: Padding::default() };
+    SubsecondDigits => Self::OneOrMore;
+    Subsecond => Self { digits: SubsecondDigits::default() };
+    OffsetHour => Self {
+        sign_is_mandatory: true,
+        padding: Padding::default(),
+    };
+    OffsetMinute => Self { padding: Padding::default() };
+    OffsetSecond => Self { padding: Padding::default() };
+    Padding => Self::Zero;
 }
 
 /// The modifiers parsed for any given component. `None` indicates the modifier was not present.

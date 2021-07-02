@@ -22,11 +22,11 @@ macro_rules! to_tokens {
 
         impl ToTokens for $struct_name {
             fn into_token_stream(self) -> TokenStream {
-                quote! {
-                    ::time::format_description::modifier::$struct_name {$(
-                        $field_name: #(self.$field_name),
-                    )+}
-                }
+                quote! {{
+                    let mut value = ::time::format_description::modifier::$struct_name::default();
+                    $(value.$field_name = #(self.$field_name);)+
+                    value
+                }}
             }
         }
     };
@@ -214,12 +214,46 @@ macro_rules! impl_default {
 }
 
 impl_default! {
-    Padding => Self::Zero;
+    Day => Self { padding: Padding::default() };
     MonthRepr => Self::Numerical;
-    SubsecondDigits => Self::OneOrMore;
+    Month => Self {
+        padding: Padding::default(),
+        repr: MonthRepr::default(),
+    };
+    Ordinal => Self { padding: Padding::default() };
     WeekdayRepr => Self::Long;
+    Weekday => Self {
+        repr: WeekdayRepr::default(),
+        one_indexed: true,
+    };
     WeekNumberRepr => Self::Iso;
+    WeekNumber => Self {
+        padding: Padding::default(),
+        repr: WeekNumberRepr::default(),
+    };
     YearRepr => Self::Full;
+    Year => Self {
+        padding: Padding::default(),
+        repr: YearRepr::default(),
+        iso_week_based: false,
+        sign_is_mandatory: false,
+    };
+    Hour => Self {
+        padding: Padding::default(),
+        is_12_hour_clock: false,
+    };
+    Minute => Self { padding: Padding::default() };
+    Period => Self { is_uppercase: true };
+    Second => Self { padding: Padding::default() };
+    SubsecondDigits => Self::OneOrMore;
+    Subsecond => Self { digits: SubsecondDigits::default() };
+    OffsetHour => Self {
+        sign_is_mandatory: true,
+        padding: Padding::default(),
+    };
+    OffsetMinute => Self { padding: Padding::default() };
+    OffsetSecond => Self { padding: Padding::default() };
+    Padding => Self::Zero;
 }
 
 #[derive(Default)]

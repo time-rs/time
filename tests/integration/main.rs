@@ -47,6 +47,20 @@ use std::path::PathBuf;
 #[cfg(not(skip_ui_tests))]
 use compiletest::common::Mode;
 
+/// Construct a non-exhaustive modifier.
+macro_rules! modifier {
+    ($name:ident {
+        $($field:ident $(: $value:expr)?),+ $(,)?
+    }) => {{
+        let mut value = modifier::$name::default();
+        $(value.$field = modifier!(@value $field $($value)?);)+
+        value
+    }};
+
+    (@value $field:ident) => ($field);
+    (@value $field:ident $value:expr) => ($value);
+}
+
 mod date;
 mod derives;
 mod duration;

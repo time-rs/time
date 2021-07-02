@@ -126,119 +126,121 @@ fn only_literal() {
 fn simple_component() {
     assert_eq!(
         format_description::parse("[day]"),
-        Ok(vec![FormatItem::Component(Component::Day(modifier::Day {
-            padding: Padding::Zero
-        }))])
+        Ok(vec![FormatItem::Component(Component::Day(modifier!(
+            Day {
+                padding: Padding::Zero
+            }
+        )))])
     );
     assert_eq!(
         format_description::parse("[hour]"),
-        Ok(vec![FormatItem::Component(Component::Hour(
-            modifier::Hour {
+        Ok(vec![FormatItem::Component(Component::Hour(modifier!(
+            Hour {
                 padding: Padding::Zero,
                 is_12_hour_clock: false
             }
-        ))])
+        )))])
     );
     assert_eq!(
         format_description::parse("[minute]"),
-        Ok(vec![FormatItem::Component(Component::Minute(
-            modifier::Minute {
+        Ok(vec![FormatItem::Component(Component::Minute(modifier!(
+            Minute {
                 padding: Padding::Zero
             }
-        ))])
+        )))])
     );
     assert_eq!(
         format_description::parse("[month]"),
-        Ok(vec![FormatItem::Component(Component::Month(
-            modifier::Month {
+        Ok(vec![FormatItem::Component(Component::Month(modifier!(
+            Month {
                 padding: Padding::Zero,
                 repr: MonthRepr::Numerical
             }
-        ))])
+        )))])
     );
     assert_eq!(
         format_description::parse("[offset_hour]"),
         Ok(vec![FormatItem::Component(Component::OffsetHour(
-            modifier::OffsetHour {
+            modifier!(OffsetHour {
                 sign_is_mandatory: false,
                 padding: Padding::Zero
-            }
+            })
         ))])
     );
     assert_eq!(
         format_description::parse("[offset_minute]"),
         Ok(vec![FormatItem::Component(Component::OffsetMinute(
-            modifier::OffsetMinute {
+            modifier!(OffsetMinute {
                 padding: Padding::Zero
-            }
+            })
         ))])
     );
     assert_eq!(
         format_description::parse("[offset_second]"),
         Ok(vec![FormatItem::Component(Component::OffsetSecond(
-            modifier::OffsetSecond {
+            modifier!(OffsetSecond {
                 padding: Padding::Zero
-            }
+            })
         ))])
     );
     assert_eq!(
         format_description::parse("[ordinal]"),
-        Ok(vec![FormatItem::Component(Component::Ordinal(
-            modifier::Ordinal {
+        Ok(vec![FormatItem::Component(Component::Ordinal(modifier!(
+            Ordinal {
                 padding: Padding::Zero
             }
-        ))])
+        )))])
     );
     assert_eq!(
         format_description::parse("[period]"),
-        Ok(vec![FormatItem::Component(Component::Period(
-            modifier::Period { is_uppercase: true }
-        ))])
+        Ok(vec![FormatItem::Component(Component::Period(modifier!(
+            Period { is_uppercase: true }
+        )))])
     );
     assert_eq!(
         format_description::parse("[second]"),
-        Ok(vec![FormatItem::Component(Component::Second(
-            modifier::Second {
+        Ok(vec![FormatItem::Component(Component::Second(modifier!(
+            Second {
                 padding: Padding::Zero
             }
-        ))])
+        )))])
     );
     assert_eq!(
         format_description::parse("[subsecond]"),
         Ok(vec![FormatItem::Component(Component::Subsecond(
-            modifier::Subsecond {
+            modifier!(Subsecond {
                 digits: SubsecondDigits::OneOrMore
-            }
+            })
         ))])
     );
     assert_eq!(
         format_description::parse("[weekday]"),
-        Ok(vec![FormatItem::Component(Component::Weekday(
-            modifier::Weekday {
+        Ok(vec![FormatItem::Component(Component::Weekday(modifier!(
+            Weekday {
                 repr: WeekdayRepr::Long,
                 one_indexed: true,
             }
-        ))])
+        )))])
     );
     assert_eq!(
         format_description::parse("[week_number]"),
         Ok(vec![FormatItem::Component(Component::WeekNumber(
-            modifier::WeekNumber {
+            modifier!(WeekNumber {
                 padding: Padding::Zero,
                 repr: WeekNumberRepr::Iso
-            }
+            })
         ))])
     );
     assert_eq!(
         format_description::parse("[year]"),
-        Ok(vec![FormatItem::Component(Component::Year(
-            modifier::Year {
+        Ok(vec![FormatItem::Component(Component::Year(modifier!(
+            Year {
                 padding: Padding::Zero,
                 repr: YearRepr::Full,
                 iso_week_based: false,
                 sign_is_mandatory: false
             }
-        ))])
+        )))])
     );
 }
 
@@ -273,39 +275,39 @@ fn component_with_modifiers() {
     for (padding, padding_str) in iterator::padding() {
         assert_eq!(
             format_description::parse(&format!("[day {}]", padding_str)),
-            Ok(vec![FormatItem::Component(Component::Day(modifier::Day {
-                padding
-            }))])
+            Ok(vec![FormatItem::Component(Component::Day(modifier!(
+                Day { padding }
+            )))])
         );
         assert_eq!(
             format_description::parse(&format!("[minute {}]", padding_str)),
-            Ok(vec![FormatItem::Component(Component::Minute(
-                modifier::Minute { padding }
-            ))])
+            Ok(vec![FormatItem::Component(Component::Minute(modifier!(
+                Minute { padding }
+            )))])
         );
         assert_eq!(
             format_description::parse(&format!("[offset_minute {}]", padding_str)),
             Ok(vec![FormatItem::Component(Component::OffsetMinute(
-                modifier::OffsetMinute { padding }
+                modifier!(OffsetMinute { padding })
             ))])
         );
         assert_eq!(
             format_description::parse(&format!("[offset_second {}]", padding_str)),
             Ok(vec![FormatItem::Component(Component::OffsetSecond(
-                modifier::OffsetSecond { padding }
+                modifier!(OffsetSecond { padding })
             ))])
         );
         assert_eq!(
             format_description::parse(&format!("[ordinal {}]", padding_str)),
-            Ok(vec![FormatItem::Component(Component::Ordinal(
-                modifier::Ordinal { padding }
-            ))])
+            Ok(vec![FormatItem::Component(Component::Ordinal(modifier!(
+                Ordinal { padding }
+            )))])
         );
         assert_eq!(
             format_description::parse(&format!("[second {}]", padding_str)),
-            Ok(vec![FormatItem::Component(Component::Second(
-                modifier::Second { padding }
-            ))])
+            Ok(vec![FormatItem::Component(Component::Second(modifier!(
+                Second { padding }
+            )))])
         );
 
         for (is_12_hour_clock, is_12_hour_clock_str) in iterator::hour_is_12_hour_clock() {
@@ -314,35 +316,35 @@ fn component_with_modifiers() {
                     "[hour {} {}]",
                     padding_str, is_12_hour_clock_str
                 )),
-                Ok(vec![FormatItem::Component(Component::Hour(
-                    modifier::Hour {
+                Ok(vec![FormatItem::Component(Component::Hour(modifier!(
+                    Hour {
                         padding,
                         is_12_hour_clock
                     }
-                ))])
+                )))])
             );
         }
         for (repr, repr_str) in iterator::month_repr() {
             assert_eq!(
                 format_description::parse(&format!("[month {} {}]", padding_str, repr_str)),
-                Ok(vec![FormatItem::Component(Component::Month(
-                    modifier::Month { padding, repr }
-                ))])
+                Ok(vec![FormatItem::Component(Component::Month(modifier!(
+                    Month { padding, repr }
+                )))])
             );
         }
         for (is_uppercase, is_uppercase_str) in iterator::period_is_uppercase() {
             assert_eq!(
                 format_description::parse(&format!("[period {}]", is_uppercase_str)),
-                Ok(vec![FormatItem::Component(Component::Period(
-                    modifier::Period { is_uppercase }
-                ))])
+                Ok(vec![FormatItem::Component(Component::Period(modifier!(
+                    Period { is_uppercase }
+                )))])
             );
         }
         for (repr, repr_str) in iterator::week_number_repr() {
             assert_eq!(
                 format_description::parse(&format!("[week_number {} {}]", padding_str, repr_str)),
                 Ok(vec![FormatItem::Component(Component::WeekNumber(
-                    modifier::WeekNumber { padding, repr }
+                    modifier!(WeekNumber { padding, repr })
                 ))])
             );
         }
@@ -353,10 +355,10 @@ fn component_with_modifiers() {
                     padding_str, sign_is_mandatory_str
                 )),
                 Ok(vec![FormatItem::Component(Component::OffsetHour(
-                    modifier::OffsetHour {
+                    modifier!(OffsetHour {
                         sign_is_mandatory,
                         padding
-                    }
+                    })
                 ))])
             );
 
@@ -367,14 +369,14 @@ fn component_with_modifiers() {
                             "[year {} {} {} {}]",
                             padding_str, repr_str, iso_week_based_str, sign_is_mandatory_str
                         )),
-                        Ok(vec![FormatItem::Component(Component::Year(
-                            modifier::Year {
+                        Ok(vec![FormatItem::Component(Component::Year(modifier!(
+                            Year {
                                 padding,
                                 repr,
                                 iso_week_based,
                                 sign_is_mandatory
                             }
-                        ))])
+                        )))])
                     );
                 }
             }
@@ -385,7 +387,7 @@ fn component_with_modifiers() {
         assert_eq!(
             format_description::parse(&format!("[subsecond {}]", digits_str)),
             Ok(vec![FormatItem::Component(Component::Subsecond(
-                modifier::Subsecond { digits }
+                modifier!(Subsecond { digits })
             ))])
         );
     }
@@ -394,9 +396,9 @@ fn component_with_modifiers() {
         for (one_indexed, one_indexed_str) in iterator::weekday_is_one_indexed() {
             assert_eq!(
                 format_description::parse(&format!("[weekday {} {} ]", repr_str, one_indexed_str)),
-                Ok(vec![FormatItem::Component(Component::Weekday(
-                    modifier::Weekday { repr, one_indexed }
-                ))])
+                Ok(vec![FormatItem::Component(Component::Weekday(modifier!(
+                    Weekday { repr, one_indexed }
+                )))])
             );
         }
     }
@@ -438,46 +440,46 @@ fn rfc_3339() {
              sign:mandatory]:[offset_minute]"
         ),
         Ok(vec![
-            FormatItem::Component(Component::Year(modifier::Year {
+            FormatItem::Component(Component::Year(modifier!(Year {
                 padding: Padding::Zero,
                 repr: YearRepr::Full,
                 iso_week_based: false,
                 sign_is_mandatory: false
-            })),
+            }))),
             FormatItem::Literal(b"-"),
-            FormatItem::Component(Component::Month(modifier::Month {
+            FormatItem::Component(Component::Month(modifier!(Month {
                 padding: Padding::Zero,
                 repr: MonthRepr::Numerical
-            })),
+            }))),
             FormatItem::Literal(b"-"),
-            FormatItem::Component(Component::Day(modifier::Day {
+            FormatItem::Component(Component::Day(modifier!(Day {
                 padding: Padding::Zero
-            })),
+            }))),
             FormatItem::Literal(b"T"),
-            FormatItem::Component(Component::Hour(modifier::Hour {
+            FormatItem::Component(Component::Hour(modifier!(Hour {
                 padding: Padding::Zero,
                 is_12_hour_clock: false
-            })),
+            }))),
             FormatItem::Literal(b":"),
-            FormatItem::Component(Component::Minute(modifier::Minute {
+            FormatItem::Component(Component::Minute(modifier!(Minute {
                 padding: Padding::Zero
-            })),
+            }))),
             FormatItem::Literal(b":"),
-            FormatItem::Component(Component::Second(modifier::Second {
+            FormatItem::Component(Component::Second(modifier!(Second {
                 padding: Padding::Zero
-            })),
+            }))),
             FormatItem::Literal(b"."),
-            FormatItem::Component(Component::Subsecond(modifier::Subsecond {
+            FormatItem::Component(Component::Subsecond(modifier!(Subsecond {
                 digits: SubsecondDigits::OneOrMore
-            })),
-            FormatItem::Component(Component::OffsetHour(modifier::OffsetHour {
+            }))),
+            FormatItem::Component(Component::OffsetHour(modifier!(OffsetHour {
                 padding: Padding::Zero,
                 sign_is_mandatory: true
-            })),
+            }))),
             FormatItem::Literal(b":"),
-            FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute {
+            FormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
                 padding: Padding::Zero
-            }))
+            })))
         ])
     );
 }

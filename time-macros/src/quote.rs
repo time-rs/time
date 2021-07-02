@@ -4,7 +4,8 @@ macro_rules! quote {
 }
 
 macro_rules! quote_internal {
-    // Base base
+    // Base case
+    ([]) => (::proc_macro::TokenStream::new());
     ([$($expanded:tt)*]) => {
         [$($expanded)*].iter().cloned().collect::<::proc_macro::TokenStream>()
     };
@@ -16,6 +17,14 @@ macro_rules! quote_internal {
         )),
         ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
             ::proc_macro::Punct::new(':', ::proc_macro::Spacing::Alone)
+        )),
+    ] $($tail)*));
+    ([$($expanded:tt)*] .. $($tail:tt)*) => (quote_internal!([$($expanded)*
+        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
+            ::proc_macro::Punct::new('.', ::proc_macro::Spacing::Joint)
+        )),
+        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
+            ::proc_macro::Punct::new('.', ::proc_macro::Spacing::Alone)
         )),
     ] $($tail)*));
     ([$($expanded:tt)*] : $($tail:tt)*) => (quote_internal!([$($expanded)*
