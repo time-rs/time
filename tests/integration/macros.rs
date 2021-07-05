@@ -6,6 +6,16 @@ use time::macros::{date, format_description};
 use time::Date;
 
 #[test]
+fn nontrivial_string() {
+    #[rustfmt::skip]
+    assert_eq!(
+        format_description!("foo\
+        bar\n\r\n"),
+        &[FormatItem::Literal(b"foobar\n\r\n")]
+    );
+}
+
+#[test]
 fn format_description_coverage() {
     assert_eq!(
         format_description!("[day padding:space][day padding:zero][day padding:none]"),

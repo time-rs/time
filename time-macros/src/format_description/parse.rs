@@ -65,11 +65,9 @@ fn parse_item<'a>(
     }
 }
 
-pub(crate) fn parse(s: &str, span: Span) -> Result<Vec<FormatItem<'_>>, Error> {
+pub(crate) fn parse(mut s: &[u8], span: Span) -> Result<Vec<FormatItem<'_>>, Error> {
     let mut compound = Vec::new();
     let mut loc = 0;
-
-    let mut s = s.as_bytes();
 
     while !s.is_empty() {
         let ParsedItem { item, remaining } =

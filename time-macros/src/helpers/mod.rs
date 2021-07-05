@@ -1,3 +1,5 @@
+mod string;
+
 use std::iter::Peekable;
 use std::str::FromStr;
 
@@ -5,23 +7,20 @@ use proc_macro::{token_stream, Span, TokenStream, TokenTree};
 
 use crate::Error;
 
-pub(crate) fn get_string_literal(tokens: TokenStream) -> Result<(Span, String), Error> {
+pub(crate) fn get_string_literal(tokens: TokenStream) -> Result<(Span, Vec<u8>), Error> {
     let mut tokens = tokens.into_iter();
 
-    match tokens.next() {
-        Some(TokenTree::Literal(literal)) => {
-            let s = literal.to_string();
-            if s.starts_with('"') && s.ends_with('"') {
-                tokens
-                    .next()
-                    .map_or(Ok((literal.span(), s[1..s.len() - 1].to_owned())), |tree| {
-                        Err(Error::UnexpectedToken { tree })
-                    })
-            } else {
-                Err(Error::ExpectedString)
-            }
-        }
-        _ => Err(Error::ExpectedString),
+    match (tokens.next(), tokens.next()) {
+        (Some(TokenTree::Literal(literal)), None) => string::parse(&literal),
+        (Some(tree), None) => Err(Error::ExpectedString {
+            span_start: Some(tree.span()),
+            span_end: Some(tree.span()),
+        }),
+        (_, Some(tree)) => Err(Error::UnexpectedToken { tree }),
+        (None, None) => Err(Error::ExpectedString {
+            span_start: None,
+            span_end: None,
+        }),
     }
 }
 

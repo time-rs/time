@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt;
 
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
@@ -27,7 +28,10 @@ pub(crate) enum Error {
         span_start: Option<Span>,
         span_end: Option<Span>,
     },
-    ExpectedString,
+    ExpectedString {
+        span_start: Option<Span>,
+        span_end: Option<Span>,
+    },
     UnexpectedToken {
         tree: TokenTree,
     },
@@ -38,7 +42,7 @@ pub(crate) enum Error {
         span_end: Option<Span>,
     },
     Custom {
-        message: String,
+        message: Cow<'static, str>,
         span_start: Option<Span>,
         span_end: Option<Span>,
     },
@@ -51,7 +55,7 @@ impl fmt::Display for Error {
             Self::InvalidComponent { name, value, .. } => {
                 write!(f, "invalid component: {} was {}", name, value)
             }
-            Self::ExpectedString => f.write_str("expected string"),
+            Self::ExpectedString { .. } => f.write_str("expected string"),
             Self::UnexpectedToken { tree } => write!(f, "unexpected token: {}", tree),
             Self::UnexpectedEndOfInput => f.write_str("unexpected end of input"),
             Self::InvalidFormatDescription { error, .. } => error.fmt(f),
@@ -65,10 +69,11 @@ impl Error {
         match self {
             Self::MissingComponent { span_start, .. }
             | Self::InvalidComponent { span_start, .. }
+            | Self::ExpectedString { span_start, .. }
             | Self::InvalidFormatDescription { span_start, .. }
             | Self::Custom { span_start, .. } => *span_start,
             Self::UnexpectedToken { tree } => Some(tree.span()),
-            Self::ExpectedString | Self::UnexpectedEndOfInput => Some(Span::mixed_site()),
+            Self::UnexpectedEndOfInput => Some(Span::mixed_site()),
         }
         .unwrap_or_else(Span::mixed_site)
     }
@@ -77,10 +82,11 @@ impl Error {
         match self {
             Self::MissingComponent { span_end, .. }
             | Self::InvalidComponent { span_end, .. }
+            | Self::ExpectedString { span_end, .. }
             | Self::InvalidFormatDescription { span_end, .. }
             | Self::Custom { span_end, .. } => *span_end,
             Self::UnexpectedToken { tree, .. } => Some(tree.span()),
-            Self::ExpectedString | Self::UnexpectedEndOfInput => Some(Span::mixed_site()),
+            Self::UnexpectedEndOfInput => Some(Span::mixed_site()),
         }
         .unwrap_or_else(|| self.span_start())
     }
