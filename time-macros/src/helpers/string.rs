@@ -1,4 +1,4 @@
-use std::char;
+use std::char; // until MSRV is at least 1.52
 use std::ops::{Index, RangeFrom};
 
 use proc_macro::Span;
@@ -10,8 +10,8 @@ pub(crate) fn parse(token: &proc_macro::Literal) -> Result<(Span, Vec<u8>), Erro
     let repr = token.to_string();
 
     match repr.as_bytes() {
-        [b'"', ..] => Ok((span, parse_lit_str_cooked(&repr[1..], span)?)),
-        [b'b', b'"', rest @ ..] => Ok((span, parse_lit_byte_str_cooked(rest, span)?)),
+        [b'"', ..] => Ok((span, parse_lit_str_cooked(&repr[1..]))),
+        [b'b', b'"', rest @ ..] => Ok((span, parse_lit_byte_str_cooked(rest))),
         [b'r', rest @ ..] | [b'b', b'r', rest @ ..] => Ok((span, parse_lit_str_raw(rest))),
         _ => Err(Error::ExpectedString {
             span_start: Some(span),
@@ -24,7 +24,7 @@ fn byte(s: impl AsRef<[u8]>, idx: usize) -> u8 {
     s.as_ref().get(idx).copied().unwrap_or_default()
 }
 
-fn parse_lit_str_cooked(mut s: &str, span: Span) -> Result<Vec<u8>, Error> {
+fn parse_lit_str_cooked(mut s: &str) -> Vec<u8> {
     let mut content = String::new();
     'outer: loop {
         let ch = match byte(s, 0) {
@@ -34,13 +34,12 @@ fn parse_lit_str_cooked(mut s: &str, span: Span) -> Result<Vec<u8>, Error> {
                 s = &s[2..];
                 match b {
                     b'x' => {
-                        let (byte, rest) = backslash_x(s, span)?;
+                        let (byte, rest) = backslash_x(s);
                         s = rest;
-                        assert!(byte <= 0x80, "Invalid \\x byte in string literal");
                         char::from_u32(u32::from(byte)).expect("byte was just validated")
                     }
                     b'u' => {
-                        let (chr, rest) = backslash_u(s, span)?;
+                        let (chr, rest) = backslash_u(s);
                         s = rest;
                         chr
                     }
@@ -59,21 +58,11 @@ fn parse_lit_str_cooked(mut s: &str, span: Span) -> Result<Vec<u8>, Error> {
                             continue 'outer;
                         }
                     },
-                    b => {
-                        return Err(Error::Custom {
-                            message: format!(
-                                "unexpected byte {:?} after \\ character in byte literal",
-                                b
-                            )
-                            .into(),
-                            span_start: Some(span),
-                            span_end: Some(span),
-                        });
-                    }
+                    _ => unreachable!("invalid escape"),
                 }
             }
             b'\r' => {
-                assert_eq!(byte(s, 1), b'\n', "Bare CR not allowed in string");
+                // bare CR not permitted
                 s = &s[2..];
                 '\n'
             }
@@ -86,8 +75,7 @@ fn parse_lit_str_cooked(mut s: &str, span: Span) -> Result<Vec<u8>, Error> {
         content.push(ch);
     }
 
-    assert!(s.starts_with('"'));
-    Ok(content.into_bytes())
+    content.into_bytes()
 }
 
 fn parse_lit_str_raw(s: &[u8]) -> Vec<u8> {
@@ -95,19 +83,15 @@ fn parse_lit_str_raw(s: &[u8]) -> Vec<u8> {
     while byte(s, pounds) == b'#' {
         pounds += 1;
     }
-    assert_eq!(byte(s, pounds), b'"');
     let close = s
         .iter()
         .rposition(|&b| b == b'"')
         .expect("had a string without trailing \"");
-    for &end in &s[close + 1..close + 1 + pounds] {
-        assert_eq!(end, b'#');
-    }
 
     s[pounds + 1..close].to_owned()
 }
 
-fn parse_lit_byte_str_cooked(mut v: &[u8], span: Span) -> Result<Vec<u8>, Error> {
+fn parse_lit_byte_str_cooked(mut v: &[u8]) -> Vec<u8> {
     let mut out = Vec::new();
     'outer: loop {
         let byte = match byte(v, 0) {
@@ -117,7 +101,7 @@ fn parse_lit_byte_str_cooked(mut v: &[u8], span: Span) -> Result<Vec<u8>, Error>
                 v = &v[2..];
                 match b {
                     b'x' => {
-                        let (byte, rest) = backslash_x(v, span)?;
+                        let (byte, rest) = backslash_x(v);
                         v = rest;
                         byte
                     }
@@ -137,21 +121,11 @@ fn parse_lit_byte_str_cooked(mut v: &[u8], span: Span) -> Result<Vec<u8>, Error>
                             continue 'outer;
                         }
                     },
-                    b => {
-                        return Err(Error::Custom {
-                            message: format!(
-                                "unexpected byte {:?} after \\ character in byte literal",
-                                b
-                            )
-                            .into(),
-                            span_start: Some(span),
-                            span_end: Some(span),
-                        });
-                    }
+                    _ => unreachable!("invalid escape"),
                 }
             }
             b'\r' => {
-                assert_eq!(byte(v, 1), b'\n', "Bare CR not allowed in string");
+                // bare CR not permitted
                 v = &v[2..];
                 b'\n'
             }
@@ -163,53 +137,27 @@ fn parse_lit_byte_str_cooked(mut v: &[u8], span: Span) -> Result<Vec<u8>, Error>
         out.push(byte);
     }
 
-    assert_eq!(byte(v, 0), b'"');
-    Ok(out)
+    out
 }
 
-fn backslash_x<S>(s: &S, span: Span) -> Result<(u8, &S), Error>
+fn backslash_x<S>(s: &S) -> (u8, &S)
 where
     S: Index<RangeFrom<usize>, Output = S> + AsRef<[u8]> + ?Sized,
 {
     let mut ch = 0;
     let b0 = byte(s, 0);
     let b1 = byte(s, 1);
-    ch += 0x10
-        * match b0 {
-            b'0'..=b'9' => b0 - b'0',
-            b'a'..=b'f' => 10 + (b0 - b'a'),
-            b'A'..=b'F' => 10 + (b0 - b'A'),
-            _ => {
-                return Err(Error::Custom {
-                    message: "unexpected non-hex character after \\x".into(),
-                    span_start: Some(span),
-                    span_end: Some(span),
-                });
-            }
-        };
+    ch += 0x10 * (b0 - b'0');
     ch += match b1 {
         b'0'..=b'9' => b1 - b'0',
         b'a'..=b'f' => 10 + (b1 - b'a'),
         b'A'..=b'F' => 10 + (b1 - b'A'),
-        _ => {
-            return Err(Error::Custom {
-                message: "unexpected non-hex character after \\x".into(),
-                span_start: Some(span),
-                span_end: Some(span),
-            });
-        }
+        _ => unreachable!("invalid hex escape"),
     };
-    Ok((ch, &s[2..]))
+    (ch, &s[2..])
 }
 
-fn backslash_u(mut s: &str, span: Span) -> Result<(char, &str), Error> {
-    if byte(s, 0) != b'{' {
-        return Err(Error::Custom {
-            message: "expected { after \\u".into(),
-            span_start: Some(span),
-            span_end: Some(span),
-        });
-    }
+fn backslash_u(mut s: &str) -> (char, &str) {
     s = &s[1..];
 
     let mut ch = 0;
@@ -224,44 +172,18 @@ fn backslash_u(mut s: &str, span: Span) -> Result<(char, &str), Error> {
                 s = &s[1..];
                 continue;
             }
-            b'}' if digits == 0 => {
-                return Err(Error::Custom {
-                    message: "invalid empty unicode escape".into(),
-                    span_start: Some(span),
-                    span_end: Some(span),
-                });
-            }
-            b'}' => break,
-            _ => {
-                return Err(Error::Custom {
-                    message: "unexpected non-hex character after \\u".into(),
-                    span_start: Some(span),
-                    span_end: Some(span),
-                });
-            }
+            b'}' if digits != 0 => break,
+            _ => unreachable!("invalid unicode escape"),
         };
-        if digits == 6 {
-            return Err(Error::Custom {
-                message: "overlong unicode escape (must have at most 6 hex digits)".into(),
-                span_start: Some(span),
-                span_end: Some(span),
-            });
-        }
         ch *= 0x10;
         ch += u32::from(digit);
         digits += 1;
         s = &s[1..];
     }
-    assert_eq!(byte(s, 0), b'}');
     s = &s[1..];
 
-    if let Some(ch) = char::from_u32(ch) {
-        Ok((ch, s))
-    } else {
-        Err(Error::Custom {
-            message: format!("character code {:x} is not a valid unicode character", ch).into(),
-            span_start: Some(span),
-            span_end: Some(span),
-        })
-    }
+    (
+        char::from_u32(ch).expect("invalid unicode escape passed by compiler"),
+        s,
+    )
 }

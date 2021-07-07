@@ -7,11 +7,22 @@ use time::Date;
 
 #[test]
 fn nontrivial_string() {
+    assert!(format_description!(r"").is_empty());
+    assert!(format_description!(r###""###).is_empty());
+    assert!(format_description!(b"").is_empty());
+    assert!(format_description!(br"").is_empty());
+    assert!(format_description!(br###""###).is_empty());
     #[rustfmt::skip]
     assert_eq!(
         format_description!("foo\
-        bar\n\r\n"),
-        &[FormatItem::Literal(b"foobar\n\r\n")]
+        bar\n\r\t\\\"\'\0\x20\x4E\x4e\u{20}\u{4E}\u{4_e}"),
+        &[FormatItem::Literal(b"foobar\n\r\t\\\"'\0 NN NN")]
+    );
+    #[rustfmt::skip]
+    assert_eq!(
+        format_description!(b"foo\
+        bar\n\r\t\\\"\'\0\x20\x4E\x4e"),
+        &[FormatItem::Literal(b"foobar\n\r\t\\\"'\0 NN")]
     );
 }
 
