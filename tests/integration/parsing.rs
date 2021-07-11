@@ -267,6 +267,7 @@ fn parse_components() -> time::Result<()> {
         Component::Month(modifier!(Month {
             padding: modifier::Padding::None,
             repr: modifier::MonthRepr::Short,
+            case_sensitive: true,
         })),
         b"Jan",
         _.month == Some(Month::January)
@@ -274,9 +275,28 @@ fn parse_components() -> time::Result<()> {
     parse_component!(
         Component::Month(modifier!(Month {
             padding: modifier::Padding::None,
+            repr: modifier::MonthRepr::Short,
+            case_sensitive: false,
+        })),
+        b"jAn",
+        _.month == Some(Month::January)
+    );
+    parse_component!(
+        Component::Month(modifier!(Month {
+            padding: modifier::Padding::None,
             repr: modifier::MonthRepr::Long,
+            case_sensitive: true,
         })),
         b"January",
+        _.month == Some(Month::January)
+    );
+    parse_component!(
+        Component::Month(modifier!(Month {
+            padding: modifier::Padding::None,
+            repr: modifier::MonthRepr::Long,
+            case_sensitive: false,
+        })),
+        b"jAnUaRy",
         _.month == Some(Month::January)
     );
     parse_component!(
@@ -290,16 +310,36 @@ fn parse_components() -> time::Result<()> {
         Component::Weekday(modifier!(Weekday {
             repr: modifier::WeekdayRepr::Short,
             one_indexed: false,
+            case_sensitive: true,
         })),
         b"Sun",
         _.weekday == Some(Weekday::Sunday)
     );
     parse_component!(
         Component::Weekday(modifier!(Weekday {
+            repr: modifier::WeekdayRepr::Short,
+            one_indexed: false,
+            case_sensitive: false,
+        })),
+        b"sUn",
+        _.weekday == Some(Weekday::Sunday)
+    );
+    parse_component!(
+        Component::Weekday(modifier!(Weekday {
             repr: modifier::WeekdayRepr::Long,
             one_indexed: false,
+            case_sensitive: true,
         })),
         b"Sunday",
+        _.weekday == Some(Weekday::Sunday)
+    );
+    parse_component!(
+        Component::Weekday(modifier!(Weekday {
+            repr: modifier::WeekdayRepr::Long,
+            one_indexed: false,
+            case_sensitive: false,
+        })),
+        b"sUnDaY",
         _.weekday == Some(Weekday::Sunday)
     );
     parse_component!(
@@ -430,9 +470,18 @@ fn parse_components() -> time::Result<()> {
     );
     parse_component!(
         Component::Period(modifier!(Period {
-            is_uppercase: false
+            is_uppercase: false,
+            case_sensitive: true,
         })),
         b"am",
+        _.hour_12_is_pm == Some(false)
+    );
+    parse_component!(
+        Component::Period(modifier!(Period {
+            is_uppercase: false,
+            case_sensitive: false,
+        })),
+        b"aM",
         _.hour_12_is_pm == Some(false)
     );
 

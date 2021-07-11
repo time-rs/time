@@ -192,7 +192,11 @@ fn fmt_day(
 fn fmt_month(
     output: &mut impl io::Write,
     date: Date,
-    modifier::Month { padding, repr }: modifier::Month,
+    modifier::Month {
+        padding,
+        repr,
+        case_sensitive: _case_sensitive, // no effect on formatting
+    }: modifier::Month,
 ) -> Result<usize, io::Error> {
     match repr {
         modifier::MonthRepr::Numerical => format_number(output, date.month() as u8, padding, 2),
@@ -214,7 +218,11 @@ fn fmt_ordinal(
 fn fmt_weekday(
     output: &mut impl io::Write,
     date: Date,
-    modifier::Weekday { repr, one_indexed }: modifier::Weekday,
+    modifier::Weekday {
+        repr,
+        one_indexed,
+        case_sensitive: _case_sensitive, // no effect on formatting
+    }: modifier::Weekday,
 ) -> Result<usize, io::Error> {
     match repr {
         modifier::WeekdayRepr::Short => {
@@ -330,7 +338,10 @@ fn fmt_minute(
 fn fmt_period(
     output: &mut impl io::Write,
     time: Time,
-    modifier::Period { is_uppercase }: modifier::Period,
+    modifier::Period {
+        is_uppercase,
+        case_sensitive: _case_sensitive, // no effect on formatting
+    }: modifier::Period,
 ) -> Result<usize, io::Error> {
     match (time.hour() >= 12, is_uppercase) {
         (false, false) => output.write(b"am"),

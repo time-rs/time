@@ -77,6 +77,13 @@ mod iterator {
     pub(super) fn weekday_is_one_indexed() -> Vec<(bool, &'static str)> {
         vec![(true, "one_indexed:true"), (false, "one_indexed:false")]
     }
+
+    pub(super) fn case_sensitive() -> Vec<(bool, &'static str)> {
+        vec![
+            (true, "case_sensitive:true"),
+            (false, "case_sensitive:false"),
+        ]
+    }
 }
 
 use time::error::InvalidFormatDescription;
@@ -324,21 +331,53 @@ fn component_with_modifiers() {
                 )))])
             );
         }
-        for (repr, repr_str) in iterator::month_repr() {
-            assert_eq!(
-                format_description::parse(&format!("[month {} {}]", padding_str, repr_str)),
-                Ok(vec![FormatItem::Component(Component::Month(modifier!(
-                    Month { padding, repr }
-                )))])
-            );
-        }
-        for (is_uppercase, is_uppercase_str) in iterator::period_is_uppercase() {
-            assert_eq!(
-                format_description::parse(&format!("[period {}]", is_uppercase_str)),
-                Ok(vec![FormatItem::Component(Component::Period(modifier!(
-                    Period { is_uppercase }
-                )))])
-            );
+        for (case_sensitive, case_sensitive_repr) in iterator::case_sensitive() {
+            for (repr, repr_str) in iterator::month_repr() {
+                assert_eq!(
+                    format_description::parse(&format!(
+                        "[month {} {} {}]",
+                        padding_str, case_sensitive_repr, repr_str
+                    )),
+                    Ok(vec![FormatItem::Component(Component::Month(modifier!(
+                        Month {
+                            padding,
+                            repr,
+                            case_sensitive
+                        }
+                    )))])
+                );
+            }
+            for (is_uppercase, is_uppercase_str) in iterator::period_is_uppercase() {
+                assert_eq!(
+                    format_description::parse(&format!(
+                        "[period {} {}]",
+                        is_uppercase_str, case_sensitive_repr
+                    )),
+                    Ok(vec![FormatItem::Component(Component::Period(modifier!(
+                        Period {
+                            is_uppercase,
+                            case_sensitive
+                        }
+                    )))])
+                );
+            }
+            for (repr, repr_str) in iterator::weekday_repr() {
+                for (one_indexed, one_indexed_str) in iterator::weekday_is_one_indexed() {
+                    assert_eq!(
+                        format_description::parse(&format!(
+                            "[weekday {} {} {} ]",
+                            repr_str, one_indexed_str, case_sensitive_repr
+                        )),
+                        Ok(vec![FormatItem::Component(Component::Weekday(modifier!(
+                            Weekday {
+                                repr,
+                                one_indexed,
+                                case_sensitive
+                            }
+                        )))])
+                    );
+                }
+            }
         }
         for (repr, repr_str) in iterator::week_number_repr() {
             assert_eq!(
@@ -390,17 +429,6 @@ fn component_with_modifiers() {
                 modifier!(Subsecond { digits })
             ))])
         );
-    }
-
-    for (repr, repr_str) in iterator::weekday_repr() {
-        for (one_indexed, one_indexed_str) in iterator::weekday_is_one_indexed() {
-            assert_eq!(
-                format_description::parse(&format!("[weekday {} {} ]", repr_str, one_indexed_str)),
-                Ok(vec![FormatItem::Component(Component::Weekday(modifier!(
-                    Weekday { repr, one_indexed }
-                )))])
-            );
-        }
     }
 }
 

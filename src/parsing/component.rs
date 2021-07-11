@@ -41,42 +41,45 @@ pub(crate) fn parse_month(
     modifiers: modifier::Month,
 ) -> Option<ParsedItem<'_, Month>> {
     use Month::*;
-    let ParsedItem(remaining, value) = first_match(match modifiers.repr {
-        modifier::MonthRepr::Numerical => {
-            return exactly_n_digits_padded(2, modifiers.padding)(input)?
-                .flat_map(|n| Month::from_number(n).ok());
-        }
-        modifier::MonthRepr::Long => [
-            ("January", January),
-            ("February", February),
-            ("March", March),
-            ("April", April),
-            ("May", May),
-            ("June", June),
-            ("July", July),
-            ("August", August),
-            ("September", September),
-            ("October", October),
-            ("November", November),
-            ("December", December),
-        ]
-        .iter(),
-        modifier::MonthRepr::Short => [
-            ("Jan", January),
-            ("Feb", February),
-            ("Mar", March),
-            ("Apr", April),
-            ("May", May),
-            ("Jun", June),
-            ("Jul", July),
-            ("Aug", August),
-            ("Sep", September),
-            ("Oct", October),
-            ("Nov", November),
-            ("Dec", December),
-        ]
-        .iter(),
-    })(input)?;
+    let ParsedItem(remaining, value) = first_match(
+        match modifiers.repr {
+            modifier::MonthRepr::Numerical => {
+                return exactly_n_digits_padded(2, modifiers.padding)(input)?
+                    .flat_map(|n| Month::from_number(n).ok());
+            }
+            modifier::MonthRepr::Long => [
+                ("January", January),
+                ("February", February),
+                ("March", March),
+                ("April", April),
+                ("May", May),
+                ("June", June),
+                ("July", July),
+                ("August", August),
+                ("September", September),
+                ("October", October),
+                ("November", November),
+                ("December", December),
+            ]
+            .iter(),
+            modifier::MonthRepr::Short => [
+                ("Jan", January),
+                ("Feb", February),
+                ("Mar", March),
+                ("Apr", April),
+                ("May", May),
+                ("Jun", June),
+                ("Jul", July),
+                ("Aug", August),
+                ("Sep", September),
+                ("Oct", October),
+                ("Nov", November),
+                ("Dec", December),
+            ]
+            .iter(),
+        },
+        modifiers.case_sensitive,
+    )(input)?;
     Some(ParsedItem(remaining, value))
 }
 
@@ -93,68 +96,71 @@ pub(crate) fn parse_weekday(
     input: &[u8],
     modifiers: modifier::Weekday,
 ) -> Option<ParsedItem<'_, Weekday>> {
-    first_match(match (modifiers.repr, modifiers.one_indexed) {
-        (modifier::WeekdayRepr::Short, _) => [
-            ("Mon", Weekday::Monday),
-            ("Tue", Weekday::Tuesday),
-            ("Wed", Weekday::Wednesday),
-            ("Thu", Weekday::Thursday),
-            ("Fri", Weekday::Friday),
-            ("Sat", Weekday::Saturday),
-            ("Sun", Weekday::Sunday),
-        ]
-        .iter(),
-        (modifier::WeekdayRepr::Long, _) => [
-            ("Monday", Weekday::Monday),
-            ("Tuesday", Weekday::Tuesday),
-            ("Wednesday", Weekday::Wednesday),
-            ("Thursday", Weekday::Thursday),
-            ("Friday", Weekday::Friday),
-            ("Saturday", Weekday::Saturday),
-            ("Sunday", Weekday::Sunday),
-        ]
-        .iter(),
-        (modifier::WeekdayRepr::Sunday, false) => [
-            ("1", Weekday::Monday),
-            ("2", Weekday::Tuesday),
-            ("3", Weekday::Wednesday),
-            ("4", Weekday::Thursday),
-            ("5", Weekday::Friday),
-            ("6", Weekday::Saturday),
-            ("0", Weekday::Sunday),
-        ]
-        .iter(),
-        (modifier::WeekdayRepr::Sunday, true) => [
-            ("2", Weekday::Monday),
-            ("3", Weekday::Tuesday),
-            ("4", Weekday::Wednesday),
-            ("5", Weekday::Thursday),
-            ("6", Weekday::Friday),
-            ("7", Weekday::Saturday),
-            ("1", Weekday::Sunday),
-        ]
-        .iter(),
-        (modifier::WeekdayRepr::Monday, false) => [
-            ("0", Weekday::Monday),
-            ("1", Weekday::Tuesday),
-            ("2", Weekday::Wednesday),
-            ("3", Weekday::Thursday),
-            ("4", Weekday::Friday),
-            ("5", Weekday::Saturday),
-            ("6", Weekday::Sunday),
-        ]
-        .iter(),
-        (modifier::WeekdayRepr::Monday, true) => [
-            ("1", Weekday::Monday),
-            ("2", Weekday::Tuesday),
-            ("3", Weekday::Wednesday),
-            ("4", Weekday::Thursday),
-            ("5", Weekday::Friday),
-            ("6", Weekday::Saturday),
-            ("7", Weekday::Sunday),
-        ]
-        .iter(),
-    })(input)
+    first_match(
+        match (modifiers.repr, modifiers.one_indexed) {
+            (modifier::WeekdayRepr::Short, _) => [
+                ("Mon", Weekday::Monday),
+                ("Tue", Weekday::Tuesday),
+                ("Wed", Weekday::Wednesday),
+                ("Thu", Weekday::Thursday),
+                ("Fri", Weekday::Friday),
+                ("Sat", Weekday::Saturday),
+                ("Sun", Weekday::Sunday),
+            ]
+            .iter(),
+            (modifier::WeekdayRepr::Long, _) => [
+                ("Monday", Weekday::Monday),
+                ("Tuesday", Weekday::Tuesday),
+                ("Wednesday", Weekday::Wednesday),
+                ("Thursday", Weekday::Thursday),
+                ("Friday", Weekday::Friday),
+                ("Saturday", Weekday::Saturday),
+                ("Sunday", Weekday::Sunday),
+            ]
+            .iter(),
+            (modifier::WeekdayRepr::Sunday, false) => [
+                ("1", Weekday::Monday),
+                ("2", Weekday::Tuesday),
+                ("3", Weekday::Wednesday),
+                ("4", Weekday::Thursday),
+                ("5", Weekday::Friday),
+                ("6", Weekday::Saturday),
+                ("0", Weekday::Sunday),
+            ]
+            .iter(),
+            (modifier::WeekdayRepr::Sunday, true) => [
+                ("2", Weekday::Monday),
+                ("3", Weekday::Tuesday),
+                ("4", Weekday::Wednesday),
+                ("5", Weekday::Thursday),
+                ("6", Weekday::Friday),
+                ("7", Weekday::Saturday),
+                ("1", Weekday::Sunday),
+            ]
+            .iter(),
+            (modifier::WeekdayRepr::Monday, false) => [
+                ("0", Weekday::Monday),
+                ("1", Weekday::Tuesday),
+                ("2", Weekday::Wednesday),
+                ("3", Weekday::Thursday),
+                ("4", Weekday::Friday),
+                ("5", Weekday::Saturday),
+                ("6", Weekday::Sunday),
+            ]
+            .iter(),
+            (modifier::WeekdayRepr::Monday, true) => [
+                ("1", Weekday::Monday),
+                ("2", Weekday::Tuesday),
+                ("3", Weekday::Wednesday),
+                ("4", Weekday::Thursday),
+                ("5", Weekday::Friday),
+                ("6", Weekday::Saturday),
+                ("7", Weekday::Sunday),
+            ]
+            .iter(),
+        },
+        modifiers.case_sensitive,
+    )(input)
 }
 
 /// Parse the "ordinal" component of a `Date`.
@@ -210,11 +216,14 @@ pub(crate) fn parse_period(
     input: &[u8],
     modifiers: modifier::Period,
 ) -> Option<ParsedItem<'_, Period>> {
-    first_match(if modifiers.is_uppercase {
-        [("AM", Period::Am), ("PM", Period::Pm)].iter()
-    } else {
-        [("am", Period::Am), ("pm", Period::Pm)].iter()
-    })(input)
+    first_match(
+        if modifiers.is_uppercase {
+            [("AM", Period::Am), ("PM", Period::Pm)].iter()
+        } else {
+            [("am", Period::Am), ("pm", Period::Pm)].iter()
+        },
+        modifiers.case_sensitive,
+    )(input)
 }
 
 /// Parse the "subsecond" component of a `Time`.

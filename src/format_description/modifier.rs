@@ -37,6 +37,8 @@ pub struct Month {
     pub padding: Padding,
     /// What form of representation should be used?
     pub repr: MonthRepr,
+    /// Is the value case sensitive when parsing?
+    pub case_sensitive: bool,
 }
 
 /// Ordinal day of the year.
@@ -72,9 +74,9 @@ pub struct Weekday {
     /// What form of representation should be used?
     pub repr: WeekdayRepr,
     /// When using a numerical representation, should it be zero or one-indexed?
-    ///
-    /// This setting has no effect on textual representations.
     pub one_indexed: bool,
+    /// Is the value case sensitive when parsing?
+    pub case_sensitive: bool,
 }
 
 /// The representation used for the week number.
@@ -149,6 +151,10 @@ pub struct Minute {
 pub struct Period {
     /// Is the period uppercase or lowercase?
     pub is_uppercase: bool,
+    /// Is the value case sensitive when parsing?
+    ///
+    /// Note that when `false`, the `is_uppercase` field has no effect on parsing behavior.
+    pub case_sensitive: bool,
 }
 
 /// Second within the minute.
@@ -266,12 +272,14 @@ impl_const_default! {
     Month => Self {
         padding: Padding::default(),
         repr: MonthRepr::default(),
+        case_sensitive: true,
     };
     Ordinal => Self { padding: Padding::default() };
     WeekdayRepr => Self::Long;
     Weekday => Self {
         repr: WeekdayRepr::default(),
         one_indexed: true,
+        case_sensitive: true,
     };
     WeekNumberRepr => Self::Iso;
     WeekNumber => Self {
@@ -290,7 +298,10 @@ impl_const_default! {
         is_12_hour_clock: false,
     };
     Minute => Self { padding: Padding::default() };
-    Period => Self { is_uppercase: true };
+    Period => Self {
+        is_uppercase: true,
+        case_sensitive: true,
+    };
     Second => Self { padding: Padding::default() };
     SubsecondDigits => Self::OneOrMore;
     Subsecond => Self { digits: SubsecondDigits::default() };
@@ -318,6 +329,7 @@ pub(crate) struct Modifiers {
     pub(crate) year_repr: Option<YearRepr>,
     pub(crate) year_is_iso_week_based: Option<bool>,
     pub(crate) sign_is_mandatory: Option<bool>,
+    pub(crate) case_sensitive: Option<bool>,
 }
 
 impl Modifiers {
@@ -385,6 +397,12 @@ impl Modifiers {
                 | (b"year", b"padding:none") => modifiers.padding = Some(Padding::None),
                 (b"hour", b"repr:24") => modifiers.hour_is_12_hour_clock = Some(false),
                 (b"hour", b"repr:12") => modifiers.hour_is_12_hour_clock = Some(true),
+                (b"month", b"case_sensitive:true")
+                | (b"period", b"case_sensitive:true")
+                | (b"weekday", b"case_sensitive:true") => modifiers.case_sensitive = Some(true),
+                (b"month", b"case_sensitive:false")
+                | (b"period", b"case_sensitive:false")
+                | (b"weekday", b"case_sensitive:false") => modifiers.case_sensitive = Some(false),
                 (b"month", b"repr:numerical") => modifiers.month_repr = Some(MonthRepr::Numerical),
                 (b"month", b"repr:long") => modifiers.month_repr = Some(MonthRepr::Long),
                 (b"month", b"repr:short") => modifiers.month_repr = Some(MonthRepr::Short),

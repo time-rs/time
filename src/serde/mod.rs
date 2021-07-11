@@ -36,6 +36,7 @@ const DATE_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Component(Component::Month(modifier::Month {
         repr: modifier::MonthRepr::Numerical,
         padding: modifier::Padding::Zero,
+        case_sensitive: true,
     })),
     FormatItem::Literal(b"-"),
     FormatItem::Component(Component::Day(modifier::Day {
