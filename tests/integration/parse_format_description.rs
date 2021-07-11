@@ -3,32 +3,38 @@ mod iterator {
         MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,
     };
 
-    pub(super) fn padding() -> Vec<(Padding, &'static str)> {
-        vec![
+    pub(super) fn padding() -> impl Iterator<Item = (Padding, &'static str)> {
+        [
             (Padding::Space, "padding:space"),
             (Padding::Zero, "padding:zero"),
             (Padding::None, "padding:none"),
         ]
+        .iter()
+        .copied()
     }
 
-    pub(super) fn hour_is_12_hour_clock() -> Vec<(bool, &'static str)> {
-        vec![(false, "repr:24"), (true, "repr:12")]
+    pub(super) fn hour_is_12_hour_clock() -> impl Iterator<Item = (bool, &'static str)> {
+        [(false, "repr:24"), (true, "repr:12")].iter().copied()
     }
 
-    pub(super) fn period_is_uppercase() -> Vec<(bool, &'static str)> {
-        vec![(true, "case:upper"), (false, "case:lower")]
+    pub(super) fn period_is_uppercase() -> impl Iterator<Item = (bool, &'static str)> {
+        [(true, "case:upper"), (false, "case:lower")]
+            .iter()
+            .copied()
     }
 
-    pub(super) fn month_repr() -> Vec<(MonthRepr, &'static str)> {
-        vec![
+    pub(super) fn month_repr() -> impl Iterator<Item = (MonthRepr, &'static str)> {
+        [
             (MonthRepr::Numerical, "repr:numerical"),
             (MonthRepr::Long, "repr:long"),
             (MonthRepr::Short, "repr:short"),
         ]
+        .iter()
+        .copied()
     }
 
-    pub(super) fn subsecond_digits() -> Vec<(SubsecondDigits, &'static str)> {
-        vec![
+    pub(super) fn subsecond_digits() -> impl Iterator<Item = (SubsecondDigits, &'static str)> {
+        [
             (SubsecondDigits::One, "digits:1"),
             (SubsecondDigits::Two, "digits:2"),
             (SubsecondDigits::Three, "digits:3"),
@@ -40,49 +46,65 @@ mod iterator {
             (SubsecondDigits::Nine, "digits:9"),
             (SubsecondDigits::OneOrMore, "digits:1+"),
         ]
+        .iter()
+        .copied()
     }
 
-    pub(super) fn weekday_repr() -> Vec<(WeekdayRepr, &'static str)> {
-        vec![
+    pub(super) fn weekday_repr() -> impl Iterator<Item = (WeekdayRepr, &'static str)> {
+        [
             (WeekdayRepr::Short, "repr:short"),
             (WeekdayRepr::Long, "repr:long"),
             (WeekdayRepr::Sunday, "repr:sunday"),
             (WeekdayRepr::Monday, "repr:monday"),
         ]
+        .iter()
+        .copied()
     }
 
-    pub(super) fn week_number_repr() -> Vec<(WeekNumberRepr, &'static str)> {
-        vec![
+    pub(super) fn week_number_repr() -> impl Iterator<Item = (WeekNumberRepr, &'static str)> {
+        [
             (WeekNumberRepr::Iso, "repr:iso"),
             (WeekNumberRepr::Sunday, "repr:sunday"),
             (WeekNumberRepr::Monday, "repr:monday"),
         ]
+        .iter()
+        .copied()
     }
 
-    pub(super) fn year_repr() -> Vec<(YearRepr, &'static str)> {
-        vec![
+    pub(super) fn year_repr() -> impl Iterator<Item = (YearRepr, &'static str)> {
+        [
             (YearRepr::Full, "repr:full"),
             (YearRepr::LastTwo, "repr:last_two"),
         ]
+        .iter()
+        .copied()
     }
 
-    pub(super) fn year_is_iso_week_based() -> Vec<(bool, &'static str)> {
-        vec![(false, "base:calendar"), (true, "base:iso_week")]
+    pub(super) fn year_is_iso_week_based() -> impl Iterator<Item = (bool, &'static str)> {
+        [(false, "base:calendar"), (true, "base:iso_week")]
+            .iter()
+            .copied()
     }
 
-    pub(super) fn sign_is_mandatory() -> Vec<(bool, &'static str)> {
-        vec![(false, "sign:automatic"), (true, "sign:mandatory")]
+    pub(super) fn sign_is_mandatory() -> impl Iterator<Item = (bool, &'static str)> {
+        [(false, "sign:automatic"), (true, "sign:mandatory")]
+            .iter()
+            .copied()
     }
 
-    pub(super) fn weekday_is_one_indexed() -> Vec<(bool, &'static str)> {
-        vec![(true, "one_indexed:true"), (false, "one_indexed:false")]
+    pub(super) fn weekday_is_one_indexed() -> impl Iterator<Item = (bool, &'static str)> {
+        [(true, "one_indexed:true"), (false, "one_indexed:false")]
+            .iter()
+            .copied()
     }
 
-    pub(super) fn case_sensitive() -> Vec<(bool, &'static str)> {
-        vec![
+    pub(super) fn case_sensitive() -> impl Iterator<Item = (bool, &'static str)> {
+        [
             (true, "case_sensitive:true"),
             (false, "case_sensitive:false"),
         ]
+        .iter()
+        .copied()
     }
 }
 
