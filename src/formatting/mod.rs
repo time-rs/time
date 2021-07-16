@@ -49,6 +49,7 @@ pub(crate) trait DigitCount {
 }
 impl DigitCount for u8 {
     fn num_digits(self) -> u8 {
+        // Using a lookup table as with u32 is *not* faster in standalone benchmarks.
         if self < 10 {
             1
         } else if self < 100 {
@@ -60,6 +61,7 @@ impl DigitCount for u8 {
 }
 impl DigitCount for u16 {
     fn num_digits(self) -> u8 {
+        // Using a lookup table as with u32 is *not* faster in standalone benchmarks.
         if self < 10 {
             1
         } else if self < 100 {
@@ -73,29 +75,45 @@ impl DigitCount for u16 {
         }
     }
 }
+
 impl DigitCount for u32 {
     fn num_digits(self) -> u8 {
-        if self < 10 {
-            1
-        } else if self < 100 {
-            2
-        } else if self < 1_000 {
-            3
-        } else if self < 10_000 {
-            4
-        } else if self < 100_000 {
-            5
-        } else if self < 1_000_000 {
-            6
-        } else if self < 10_000_000 {
-            7
-        } else if self < 100_000_000 {
-            8
-        } else if self < 1_000_000_000 {
-            9
-        } else {
-            10
-        }
+        /// Lookup table
+        const TABLE: &[u64] = &[
+            0x0001_0000_0000,
+            0x0001_0000_0000,
+            0x0001_0000_0000,
+            0x0001_FFFF_FFF6,
+            0x0002_0000_0000,
+            0x0002_0000_0000,
+            0x0002_FFFF_FF9C,
+            0x0003_0000_0000,
+            0x0003_0000_0000,
+            0x0003_FFFF_FC18,
+            0x0004_0000_0000,
+            0x0004_0000_0000,
+            0x0004_0000_0000,
+            0x0004_FFFF_D8F0,
+            0x0005_0000_0000,
+            0x0005_0000_0000,
+            0x0005_FFFE_7960,
+            0x0006_0000_0000,
+            0x0006_0000_0000,
+            0x0006_FFF0_BDC0,
+            0x0007_0000_0000,
+            0x0007_0000_0000,
+            0x0007_0000_0000,
+            0x0007_FF67_6980,
+            0x0008_0000_0000,
+            0x0008_0000_0000,
+            0x0008_FA0A_1F00,
+            0x0009_0000_0000,
+            0x0009_0000_0000,
+            0x0009_C465_3600,
+            0x000A_0000_0000,
+            0x000A_0000_0000,
+        ];
+        ((self as u64 + TABLE[31_u32.saturating_sub(self.leading_zeros()) as usize]) >> 32) as _
     }
 }
 // endregion extension trait
