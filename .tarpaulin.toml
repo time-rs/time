@@ -1,8 +1,0 @@
-[default]
-all-features = true
-run-type = ["Tests"]
-exclude-files = ["time-macros"]
-ignore-tests = true
-
-[report]
-out = ["Html"]
