@@ -71,6 +71,7 @@ mod instant;
 mod macros;
 mod month;
 mod offset_date_time;
+mod parsable;
 mod parse_format_description;
 mod parsing;
 mod primitive_date_time;

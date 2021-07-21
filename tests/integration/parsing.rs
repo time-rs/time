@@ -208,10 +208,10 @@ fn parse_offset() -> time::Result<()> {
 #[test]
 fn parse_components() -> time::Result<()> {
     macro_rules! parse_component {
-        ($component:expr, $input:expr,_. $property:ident == $expected:expr) => {
+        ($component:expr, $input:expr,_. $property:ident() == $expected:expr) => {
             let mut parsed = Parsed::new();
             parsed.parse_component($input, $component)?;
-            assert_eq!(parsed.$property, $expected);
+            assert_eq!(parsed.$property(), $expected);
         };
     }
 
@@ -223,7 +223,7 @@ fn parse_components() -> time::Result<()> {
             sign_is_mandatory: false,
         })),
         b"2021",
-        _.year == Some(2021)
+        _.year() == Some(2021)
     );
     parse_component!(
         Component::Year(modifier!(Year {
@@ -233,7 +233,7 @@ fn parse_components() -> time::Result<()> {
             sign_is_mandatory: false,
         })),
         b"21",
-        _.year_last_two == Some(21)
+        _.year_last_two() == Some(21)
     );
     parse_component!(
         Component::Year(modifier!(Year {
@@ -243,7 +243,7 @@ fn parse_components() -> time::Result<()> {
             sign_is_mandatory: false,
         })),
         b"2021",
-        _.iso_year == Some(2021)
+        _.iso_year() == Some(2021)
     );
     parse_component!(
         Component::Year(modifier!(Year {
@@ -253,7 +253,7 @@ fn parse_components() -> time::Result<()> {
             sign_is_mandatory: false,
         })),
         b"21",
-        _.iso_year_last_two == Some(21)
+        _.iso_year_last_two() == Some(21)
     );
     parse_component!(
         Component::Month(modifier!(Month {
@@ -261,7 +261,7 @@ fn parse_components() -> time::Result<()> {
             repr: modifier::MonthRepr::Numerical,
         })),
         b" 1",
-        _.month == Some(Month::January)
+        _.month() == Some(Month::January)
     );
     parse_component!(
         Component::Month(modifier!(Month {
@@ -270,7 +270,7 @@ fn parse_components() -> time::Result<()> {
             case_sensitive: true,
         })),
         b"Jan",
-        _.month == Some(Month::January)
+        _.month() == Some(Month::January)
     );
     parse_component!(
         Component::Month(modifier!(Month {
@@ -279,7 +279,7 @@ fn parse_components() -> time::Result<()> {
             case_sensitive: false,
         })),
         b"jAn",
-        _.month == Some(Month::January)
+        _.month() == Some(Month::January)
     );
     parse_component!(
         Component::Month(modifier!(Month {
@@ -288,7 +288,7 @@ fn parse_components() -> time::Result<()> {
             case_sensitive: true,
         })),
         b"January",
-        _.month == Some(Month::January)
+        _.month() == Some(Month::January)
     );
     parse_component!(
         Component::Month(modifier!(Month {
@@ -297,14 +297,14 @@ fn parse_components() -> time::Result<()> {
             case_sensitive: false,
         })),
         b"jAnUaRy",
-        _.month == Some(Month::January)
+        _.month() == Some(Month::January)
     );
     parse_component!(
         Component::Ordinal(modifier!(Ordinal {
             padding: modifier::Padding::Zero,
         })),
         b"012",
-        _.ordinal == 12.try_into().ok()
+        _.ordinal() == 12.try_into().ok()
     );
     parse_component!(
         Component::Weekday(modifier!(Weekday {
@@ -313,7 +313,7 @@ fn parse_components() -> time::Result<()> {
             case_sensitive: true,
         })),
         b"Sun",
-        _.weekday == Some(Weekday::Sunday)
+        _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
         Component::Weekday(modifier!(Weekday {
@@ -322,7 +322,7 @@ fn parse_components() -> time::Result<()> {
             case_sensitive: false,
         })),
         b"sUn",
-        _.weekday == Some(Weekday::Sunday)
+        _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
         Component::Weekday(modifier!(Weekday {
@@ -331,7 +331,7 @@ fn parse_components() -> time::Result<()> {
             case_sensitive: true,
         })),
         b"Sunday",
-        _.weekday == Some(Weekday::Sunday)
+        _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
         Component::Weekday(modifier!(Weekday {
@@ -340,7 +340,7 @@ fn parse_components() -> time::Result<()> {
             case_sensitive: false,
         })),
         b"sUnDaY",
-        _.weekday == Some(Weekday::Sunday)
+        _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
         Component::Weekday(modifier!(Weekday {
@@ -348,7 +348,7 @@ fn parse_components() -> time::Result<()> {
             one_indexed: false,
         })),
         b"0",
-        _.weekday == Some(Weekday::Sunday)
+        _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
         Component::Weekday(modifier!(Weekday {
@@ -356,7 +356,7 @@ fn parse_components() -> time::Result<()> {
             one_indexed: true,
         })),
         b"1",
-        _.weekday == Some(Weekday::Sunday)
+        _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
         Component::Weekday(modifier!(Weekday {
@@ -364,7 +364,7 @@ fn parse_components() -> time::Result<()> {
             one_indexed: false,
         })),
         b"6",
-        _.weekday == Some(Weekday::Sunday)
+        _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
         Component::Weekday(modifier!(Weekday {
@@ -372,7 +372,7 @@ fn parse_components() -> time::Result<()> {
             one_indexed: true,
         })),
         b"7",
-        _.weekday == Some(Weekday::Sunday)
+        _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
         Component::WeekNumber(modifier!(WeekNumber {
@@ -380,7 +380,7 @@ fn parse_components() -> time::Result<()> {
             repr: modifier::WeekNumberRepr::Sunday,
         })),
         b"2",
-        _.sunday_week_number == Some(2)
+        _.sunday_week_number() == Some(2)
     );
     parse_component!(
         Component::WeekNumber(modifier!(WeekNumber {
@@ -388,7 +388,7 @@ fn parse_components() -> time::Result<()> {
             repr: modifier::WeekNumberRepr::Monday,
         })),
         b"2",
-        _.monday_week_number == Some(2)
+        _.monday_week_number() == Some(2)
     );
     parse_component!(
         Component::WeekNumber(modifier!(WeekNumber {
@@ -396,77 +396,77 @@ fn parse_components() -> time::Result<()> {
             repr: modifier::WeekNumberRepr::Iso,
         })),
         b"2",
-        _.iso_week_number == 2.try_into().ok()
+        _.iso_week_number() == 2.try_into().ok()
     );
     parse_component!(
         Component::Subsecond(modifier!(Subsecond {
             digits: modifier::SubsecondDigits::One
         })),
         b"1",
-        _.subsecond == Some(100_000_000)
+        _.subsecond() == Some(100_000_000)
     );
     parse_component!(
         Component::Subsecond(modifier!(Subsecond {
             digits: modifier::SubsecondDigits::Two
         })),
         b"12",
-        _.subsecond == Some(120_000_000)
+        _.subsecond() == Some(120_000_000)
     );
     parse_component!(
         Component::Subsecond(modifier!(Subsecond {
             digits: modifier::SubsecondDigits::Three
         })),
         b"123",
-        _.subsecond == Some(123_000_000)
+        _.subsecond() == Some(123_000_000)
     );
     parse_component!(
         Component::Subsecond(modifier!(Subsecond {
             digits: modifier::SubsecondDigits::Four
         })),
         b"1234",
-        _.subsecond == Some(123_400_000)
+        _.subsecond() == Some(123_400_000)
     );
     parse_component!(
         Component::Subsecond(modifier!(Subsecond {
             digits: modifier::SubsecondDigits::Five
         })),
         b"12345",
-        _.subsecond == Some(123_450_000)
+        _.subsecond() == Some(123_450_000)
     );
     parse_component!(
         Component::Subsecond(modifier!(Subsecond {
             digits: modifier::SubsecondDigits::Six
         })),
         b"123456",
-        _.subsecond == Some(123_456_000)
+        _.subsecond() == Some(123_456_000)
     );
     parse_component!(
         Component::Subsecond(modifier!(Subsecond {
             digits: modifier::SubsecondDigits::Seven
         })),
         b"1234567",
-        _.subsecond == Some(123_456_700)
+        _.subsecond() == Some(123_456_700)
     );
     parse_component!(
         Component::Subsecond(modifier!(Subsecond {
             digits: modifier::SubsecondDigits::Eight
         })),
         b"12345678",
-        _.subsecond == Some(123_456_780)
+        _.subsecond() == Some(123_456_780)
     );
     parse_component!(
         Component::Subsecond(modifier!(Subsecond {
             digits: modifier::SubsecondDigits::Nine
         })),
         b"123456789",
-        _.subsecond == Some(123_456_789)
+        _.subsecond() == Some(123_456_789)
     );
     parse_component!(
         Component::Subsecond(modifier!(Subsecond {
             digits: modifier::SubsecondDigits::OneOrMore
         })),
         b"123456789",
-        _.subsecond == Some(123_456_789)
+        _.subsecond() == Some(123_456_789)
     );
     parse_component!(
         Component::Period(modifier!(Period {
@@ -474,7 +474,7 @@ fn parse_components() -> time::Result<()> {
             case_sensitive: true,
         })),
         b"am",
-        _.hour_12_is_pm == Some(false)
+        _.hour_12_is_pm() == Some(false)
     );
     parse_component!(
         Component::Period(modifier!(Period {
@@ -482,7 +482,7 @@ fn parse_components() -> time::Result<()> {
             case_sensitive: false,
         })),
         b"aM",
-        _.hour_12_is_pm == Some(false)
+        _.hour_12_is_pm() == Some(false)
     );
 
     Ok(())
