@@ -2,6 +2,7 @@ use core::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use core::convert::{TryFrom, TryInto};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
+use std::borrow::Borrow;
 use std::time::Instant as StdInstant;
 
 use crate::Duration;
@@ -90,6 +91,17 @@ impl Instant {
         self.checked_add(-duration)
     }
     // endregion checked arithmetic
+
+    /// Obtain the inner [`std::time::Instant`].
+    ///
+    /// ```rust
+    /// # use time::Instant;
+    /// let now = Instant::now();
+    /// assert_eq!(now.into_inner(), now.0);
+    /// ```
+    pub const fn into_inner(self) -> StdInstant {
+        self.0
+    }
 }
 
 // region: trait impls
@@ -241,6 +253,18 @@ impl PartialOrd<StdInstant> for Instant {
 impl PartialOrd<Instant> for StdInstant {
     fn partial_cmp(&self, rhs: &Instant) -> Option<Ordering> {
         self.partial_cmp(&rhs.0)
+    }
+}
+
+impl AsRef<StdInstant> for Instant {
+    fn as_ref(&self) -> &StdInstant {
+        &self.0
+    }
+}
+
+impl Borrow<StdInstant> for Instant {
+    fn borrow(&self) -> &StdInstant {
+        &self.0
     }
 }
 // endregion trait impls

@@ -59,6 +59,8 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `Duration::saturating_mul`
 - `util::days_in_year_month`
 - `Month`
+- `Instant::into_inner`
+- `impl AsRef<StdInstant>` and `impl Borrow<StdInstant>` for `Instant`
 
 ### Changed
 

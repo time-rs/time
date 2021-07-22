@@ -29,6 +29,12 @@ fn checked_sub() {
 }
 
 #[test]
+fn into_inner() {
+    let now = Instant::now();
+    assert_eq!(now.into_inner(), now.0);
+}
+
+#[test]
 fn std_from() {
     let now_time = Instant::now();
     let now_std = StdInstant::from(now_time);
@@ -210,4 +216,20 @@ fn sub_regression() {
     assert_eq!(now - future, Duration::seconds(-5));
     assert_eq!(past - now, Duration::seconds(-5));
     assert_eq!(past - future, Duration::seconds(-10));
+}
+
+#[test]
+fn as_ref() {
+    let now = Instant::now();
+    assert_eq!(now.as_ref(), now.as_ref());
+}
+
+#[test]
+fn borrow() {
+    use std::borrow::Borrow;
+    let now = Instant::now();
+    assert_eq!(
+        <Instant as Borrow<StdInstant>>::borrow(&now),
+        <Instant as Borrow<StdInstant>>::borrow(&now)
+    );
 }
