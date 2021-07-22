@@ -165,8 +165,8 @@ macro_rules! rem_euclid {
 
 /// Cascade an out-of-bounds value.
 macro_rules! cascade {
-    (@ordinal) => {};
-    (@year) => {};
+    (@ordinal ordinal) => {};
+    (@year year) => {};
 
     // Cascade an out-of-bounds value from "from" to "to".
     ($(!$from_not_mut:ident)? $from:ident in $min:literal.. $max:literal => $to:tt) => {
@@ -183,8 +183,8 @@ macro_rules! cascade {
     // Special case the ordinal-to-year cascade, as it has different behavior.
     ($ordinal:ident => $year:ident) => {
         // We need to actually capture the idents. Without this, macro hygiene causes errors.
-        cascade!(@$ordinal);
-        cascade!(@$year);
+        cascade!(@ordinal $ordinal);
+        cascade!(@year $year);
         #[allow(unused_assignments)]
         if $ordinal > crate::util::days_in_year($year) {
             $year += 1;
