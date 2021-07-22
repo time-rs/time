@@ -1,7 +1,7 @@
 use core::cmp::Ordering;
 use core::convert::{TryFrom, TryInto};
 use core::fmt;
-use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use core::ops::{Add, Div, Mul, Neg, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 
 use const_fn::const_fn;
@@ -790,14 +790,7 @@ impl Add<Duration> for StdDuration {
     }
 }
 
-impl<T> AddAssign<T> for Duration
-where
-    Self: Add<T, Output = Self>,
-{
-    fn add_assign(&mut self, rhs: T) {
-        *self = *self + rhs;
-    }
-}
+impl_add_assign!(Duration: Duration, StdDuration);
 
 impl Neg for Duration {
     type Output = Self;
@@ -835,14 +828,7 @@ impl Sub<Duration> for StdDuration {
     }
 }
 
-impl<T> SubAssign<T> for Duration
-where
-    Self: Sub<T, Output = Self>,
-{
-    fn sub_assign(&mut self, rhs: T) {
-        *self = *self - rhs;
-    }
-}
+impl_sub_assign!(Duration: Duration, StdDuration);
 
 impl SubAssign<Duration> for StdDuration {
     fn sub_assign(&mut self, rhs: Duration) {
@@ -918,14 +904,7 @@ impl Mul<Duration> for f64 {
     }
 }
 
-impl<T> MulAssign<T> for Duration
-where
-    Self: Mul<T, Output = Self>,
-{
-    fn mul_assign(&mut self, rhs: T) {
-        *self = *self * rhs;
-    }
-}
+impl_mul_assign!(Duration: i8, i16, i32, u8, u16, u32, f32, f64);
 
 impl Div<f32> for Duration {
     type Output = Self;
@@ -943,14 +922,7 @@ impl Div<f64> for Duration {
     }
 }
 
-impl<T> DivAssign<T> for Duration
-where
-    Self: Div<T, Output = Self>,
-{
-    fn div_assign(&mut self, rhs: T) {
-        *self = *self / rhs;
-    }
-}
+impl_div_assign!(Duration: i8, i16, i32, u8, u16, u32, f32, f64);
 
 impl Div for Duration {
     type Output = f64;

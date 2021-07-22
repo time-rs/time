@@ -1,5 +1,5 @@
 use core::fmt;
-use core::ops::{Add, AddAssign, Sub, SubAssign};
+use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
@@ -603,14 +603,7 @@ impl Add<StdDuration> for PrimitiveDateTime {
     }
 }
 
-impl<T> AddAssign<T> for PrimitiveDateTime
-where
-    Self: Add<T, Output = Self>,
-{
-    fn add_assign(&mut self, rhs: T) {
-        *self = *self + rhs;
-    }
-}
+impl_add_assign!(PrimitiveDateTime: Duration, StdDuration);
 
 impl Sub<Duration> for PrimitiveDateTime {
     type Output = Self;
@@ -639,14 +632,7 @@ impl Sub<StdDuration> for PrimitiveDateTime {
     }
 }
 
-impl<T> SubAssign<T> for PrimitiveDateTime
-where
-    Self: Sub<T, Output = Self>,
-{
-    fn sub_assign(&mut self, rhs: T) {
-        *self = *self - rhs;
-    }
-}
+impl_sub_assign!(PrimitiveDateTime: Duration, StdDuration);
 
 impl Sub for PrimitiveDateTime {
     type Output = Duration;

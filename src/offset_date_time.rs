@@ -3,7 +3,8 @@ use core::cmp::Ordering;
 use core::convert::From;
 use core::fmt;
 use core::hash::{Hash, Hasher};
-use core::ops::{Add, AddAssign, Sub, SubAssign};
+use core::ops::{Add, Sub};
+use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
 #[cfg(feature = "std")]
@@ -888,14 +889,7 @@ where
     }
 }
 
-impl<T> AddAssign<T> for OffsetDateTime
-where
-    Self: Add<T, Output = Self>,
-{
-    fn add_assign(&mut self, rhs: T) {
-        *self = *self + rhs;
-    }
-}
+impl_add_assign!(OffsetDateTime: Duration, StdDuration);
 
 impl<T> Sub<T> for OffsetDateTime
 where
@@ -910,14 +904,7 @@ where
     }
 }
 
-impl<T> SubAssign<T> for OffsetDateTime
-where
-    Self: Sub<T, Output = Self>,
-{
-    fn sub_assign(&mut self, rhs: T) {
-        *self = *self - rhs;
-    }
-}
+impl_sub_assign!(OffsetDateTime: Duration, StdDuration);
 
 impl Sub for OffsetDateTime {
     type Output = Duration;
@@ -944,13 +931,11 @@ impl Add<Duration> for SystemTime {
     }
 }
 
-#[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
-impl AddAssign<Duration> for SystemTime {
-    fn add_assign(&mut self, duration: Duration) {
-        *self = *self + duration;
-    }
-}
+impl_add_assign!(SystemTime:
+    #[cfg(feature = "std")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
+    Duration
+);
 
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
@@ -962,13 +947,11 @@ impl Sub<Duration> for SystemTime {
     }
 }
 
-#[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
-impl SubAssign<Duration> for SystemTime {
-    fn sub_assign(&mut self, duration: Duration) {
-        *self = *self - duration;
-    }
-}
+impl_sub_assign!(SystemTime:
+    #[cfg(feature = "std")]
+    #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
+    Duration
+);
 
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]

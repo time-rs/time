@@ -133,6 +133,46 @@
 extern crate alloc;
 
 // region: macros
+macro_rules! __impl_assign {
+    ($sym:tt $op:ident $fn:ident $target:ty : $($(#[$attr:meta])* $t:ty),+) => {$(
+        #[allow(unused_qualifications)]
+        $(#[$attr])*
+        impl core::ops::$op<$t> for $target {
+            fn $fn(&mut self, rhs: $t) {
+                *self = *self $sym rhs;
+            }
+        }
+    )+};
+}
+
+/// Implement `AddAssign` for the provided types.
+macro_rules! impl_add_assign {
+    ($target:ty : $($(#[$attr:meta])* $t:ty),+ $(,)?) => {
+        __impl_assign!(+ AddAssign add_assign $target : $($(#[$attr])* $t),+);
+    };
+}
+
+/// Implement `SubAssign` for the provided types.
+macro_rules! impl_sub_assign {
+    ($target:ty : $($(#[$attr:meta])* $t:ty),+ $(,)?) => {
+        __impl_assign!(- SubAssign sub_assign $target : $($(#[$attr])* $t),+);
+    };
+}
+
+/// Implement `MulAssign` for the provided types.
+macro_rules! impl_mul_assign {
+    ($target:ty : $($(#[$attr:meta])* $t:ty),+ $(,)?) => {
+        __impl_assign!(* MulAssign mul_assign $target : $($(#[$attr])* $t),+);
+    };
+}
+
+/// Implement `DivAssign` for the provided types.
+macro_rules! impl_div_assign {
+    ($target:ty : $($(#[$attr:meta])* $t:ty),+ $(,)?) => {
+        __impl_assign!(/ DivAssign div_assign $target : $($(#[$attr])* $t),+);
+    };
+}
+
 /// Division of integers, rounding the resulting value towards negative infinity.
 macro_rules! div_floor {
     ($a:expr, $b:expr) => {{

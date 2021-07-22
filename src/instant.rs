@@ -1,6 +1,6 @@
 use core::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use core::convert::{TryFrom, TryInto};
-use core::ops::{Add, AddAssign, Sub, SubAssign};
+use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
 use std::borrow::Borrow;
 use std::time::Instant as StdInstant;
@@ -178,20 +178,8 @@ impl Add<StdDuration> for Instant {
     }
 }
 
-impl<T> AddAssign<T> for Instant
-where
-    Self: Add<T, Output = Self>,
-{
-    fn add_assign(&mut self, rhs: T) {
-        *self = *self + rhs;
-    }
-}
-
-impl AddAssign<Duration> for StdInstant {
-    fn add_assign(&mut self, duration: Duration) {
-        *self = *self + duration;
-    }
-}
+impl_add_assign!(Instant: Duration, StdDuration);
+impl_add_assign!(StdInstant: Duration);
 
 impl Sub<Duration> for Instant {
     type Output = Self;
@@ -217,20 +205,8 @@ impl Sub<StdDuration> for Instant {
     }
 }
 
-impl<T> SubAssign<T> for Instant
-where
-    Self: Sub<T, Output = Self>,
-{
-    fn sub_assign(&mut self, rhs: T) {
-        *self = *self - rhs;
-    }
-}
-
-impl SubAssign<Duration> for StdInstant {
-    fn sub_assign(&mut self, duration: Duration) {
-        *self = *self - duration;
-    }
-}
+impl_sub_assign!(Instant: Duration, StdDuration);
+impl_sub_assign!(StdInstant: Duration);
 
 impl PartialEq<StdInstant> for Instant {
     fn eq(&self, rhs: &StdInstant) -> bool {
