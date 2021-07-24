@@ -22,10 +22,8 @@ pub fn serialize<S: Serializer>(
 
 /// Deserialize an `OffsetDateTime` from its Unix timestamp
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
-    i64::deserialize(deserializer).and_then(|timestamp| {
-        OffsetDateTime::from_unix_timestamp(timestamp)
-            .map_err(ComponentRange::to_invalid_serde_value::<D>)
-    })
+    OffsetDateTime::from_unix_timestamp(Deserialize::deserialize(deserializer)?)
+        .map_err(ComponentRange::to_invalid_serde_value::<D>)
 }
 
 /// Treat an `Option<OffsetDateTime>` as a [Unix timestamp] for the purposes of

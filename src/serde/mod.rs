@@ -14,34 +14,22 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 #[allow(unused_imports)]
 use standback::prelude::*;
 
+#[cfg(feature = "serde-human-readable")]
+use crate::error;
 use crate::error::ComponentRange;
 #[cfg(feature = "serde-human-readable")]
-use crate::{
-    error,
-    format_description::{modifier, Component, FormatItem},
-};
+use crate::format_description::{modifier, Component, FormatItem};
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 // region: Date
 /// The format used when serializing and deserializing a human-readable `Date`.
 #[cfg(feature = "serde-human-readable")]
 const DATE_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Component(Component::Year(modifier::Year {
-        repr: modifier::YearRepr::Full,
-        iso_week_based: false,
-        sign_is_mandatory: false,
-        padding: modifier::Padding::Zero,
-    })),
+    FormatItem::Component(Component::Year(modifier::Year::default())),
     FormatItem::Literal(b"-"),
-    FormatItem::Component(Component::Month(modifier::Month {
-        repr: modifier::MonthRepr::Numerical,
-        padding: modifier::Padding::Zero,
-        case_sensitive: true,
-    })),
+    FormatItem::Component(Component::Month(modifier::Month::default())),
     FormatItem::Literal(b"-"),
-    FormatItem::Component(Component::Day(modifier::Day {
-        padding: modifier::Padding::Zero,
-    })),
+    FormatItem::Component(Component::Day(modifier::Day::default())),
 ];
 
 impl Serialize for Date {
@@ -176,14 +164,13 @@ impl<'a> Deserialize<'a> for OffsetDateTime {
             offset_seconds,
         ) = Deserialize::deserialize(deserializer)?;
 
-        Ok(Date::from_ordinal_date(year, ordinal)
-            .map_err(ComponentRange::to_invalid_serde_value::<D>)?
-            .with_hms_nano(hour, minute, second, nanosecond)
-            .map_err(ComponentRange::to_invalid_serde_value::<D>)?
-            .assume_offset(
+        Date::from_ordinal_date(year, ordinal)
+            .and_then(|date| date.with_hms_nano(hour, minute, second, nanosecond))
+            .and_then(|datetime| {
                 UtcOffset::from_hms(offset_hours, offset_minutes, offset_seconds)
-                    .map_err(ComponentRange::to_invalid_serde_value::<D>)?,
-            ))
+                    .map(|offset| datetime.assume_offset(offset))
+            })
+            .map_err(ComponentRange::to_invalid_serde_value::<D>)
     }
 }
 // endregion OffsetDateTime
@@ -233,8 +220,7 @@ impl<'a> Deserialize<'a> for PrimitiveDateTime {
         let (year, ordinal, hour, minute, second, nanosecond) =
             Deserialize::deserialize(deserializer)?;
         Date::from_ordinal_date(year, ordinal)
-            .map_err(ComponentRange::to_invalid_serde_value::<D>)?
-            .with_hms_nano(hour, minute, second, nanosecond)
+            .and_then(|date| date.with_hms_nano(hour, minute, second, nanosecond))
             .map_err(ComponentRange::to_invalid_serde_value::<D>)
     }
 }
@@ -244,22 +230,13 @@ impl<'a> Deserialize<'a> for PrimitiveDateTime {
 /// The format used when serializing and deserializing a human-readable `Time`.
 #[cfg(feature = "serde-human-readable")]
 const TIME_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Component(Component::Hour(modifier::Hour {
-        padding: modifier::Padding::Zero,
-        is_12_hour_clock: false,
-    })),
+    FormatItem::Component(Component::Hour(modifier::Hour::default())),
     FormatItem::Literal(b":"),
-    FormatItem::Component(Component::Minute(modifier::Minute {
-        padding: modifier::Padding::Zero,
-    })),
+    FormatItem::Component(Component::Minute(modifier::Minute::default())),
     FormatItem::Literal(b":"),
-    FormatItem::Component(Component::Second(modifier::Second {
-        padding: modifier::Padding::Zero,
-    })),
+    FormatItem::Component(Component::Second(modifier::Second::default())),
     FormatItem::Literal(b"."),
-    FormatItem::Component(Component::Subsecond(modifier::Subsecond {
-        digits: modifier::SubsecondDigits::OneOrMore,
-    })),
+    FormatItem::Component(Component::Subsecond(modifier::Subsecond::default())),
 ];
 
 impl Serialize for Time {
@@ -295,18 +272,11 @@ impl<'a> Deserialize<'a> for Time {
 /// The format used when serializing and deserializing a human-readable `UtcOffset`.
 #[cfg(feature = "serde-human-readable")]
 const UTC_OFFSET_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Component(Component::OffsetHour(modifier::OffsetHour {
-        sign_is_mandatory: true,
-        padding: modifier::Padding::Zero,
-    })),
+    FormatItem::Component(Component::OffsetHour(modifier::OffsetHour::default())),
     FormatItem::Literal(b":"),
-    FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute {
-        padding: modifier::Padding::Zero,
-    })),
+    FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute::default())),
     FormatItem::Literal(b":"),
-    FormatItem::Component(Component::OffsetSecond(modifier::OffsetSecond {
-        padding: modifier::Padding::Zero,
-    })),
+    FormatItem::Component(Component::OffsetSecond(modifier::OffsetSecond::default())),
 ];
 
 impl Serialize for UtcOffset {
