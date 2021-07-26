@@ -5,20 +5,26 @@ use core::fmt;
 /// An error type indicating that a component provided to a method was out of range, causing a
 /// failure.
 // i64 is the narrowest type fitting all use cases. This eliminates the need for a type parameter.
-#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ComponentRange {
     /// Name of the component.
-    pub name: &'static str,
+    pub(crate) name: &'static str,
     /// Minimum allowed value, inclusive.
-    pub minimum: i64,
+    pub(crate) minimum: i64,
     /// Maximum allowed value, inclusive.
-    pub maximum: i64,
+    pub(crate) maximum: i64,
     /// Value that was provided.
-    pub value: i64,
+    pub(crate) value: i64,
     /// The minimum and/or maximum value is conditional on the value of other
     /// parameters.
-    pub conditional_range: bool,
+    pub(crate) conditional_range: bool,
+}
+
+impl ComponentRange {
+    /// Obtain the name of the component whose value was out of range.
+    pub const fn name(self) -> &'static str {
+        self.name
+    }
 }
 
 impl fmt::Display for ComponentRange {
