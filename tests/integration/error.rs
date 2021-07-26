@@ -66,7 +66,7 @@ fn display() {
     assert_display_eq!(ConversionRange, Error::from(ConversionRange));
     assert_display_eq!(component_range(), Error::from(component_range()));
     assert_display_eq!(component_range(), TryFromParsed::from(component_range()));
-    assert_display_eq!(IndeterminateOffset, Error::IndeterminateOffset);
+    assert_display_eq!(IndeterminateOffset, Error::from(IndeterminateOffset));
     assert_display_eq!(
         TryFromParsed::InsufficientInformation,
         Error::from(TryFromParsed::InsufficientInformation)
@@ -139,4 +139,9 @@ fn source() {
         InvalidFormatDescription
     );
     assert_source!(Format::from(io_error()), io::Error);
+}
+
+#[test]
+fn component_name() {
+    assert_eq!(component_range().name(), "ordinal");
 }

@@ -18,7 +18,7 @@ impl fmt::Display for ConversionRange {
 impl std::error::Error for ConversionRange {}
 
 impl From<ConversionRange> for crate::Error {
-    fn from(_: ConversionRange) -> Self {
-        Self::ConversionRange
+    fn from(err: ConversionRange) -> Self {
+        Self::ConversionRange(err)
     }
 }

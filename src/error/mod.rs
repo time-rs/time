@@ -39,11 +39,11 @@ pub use try_from_parsed::TryFromParsed;
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum Error {
-    ConversionRange,
+    ConversionRange(ConversionRange),
     ComponentRange(ComponentRange),
     #[cfg(feature = "local-offset")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
-    IndeterminateOffset,
+    IndeterminateOffset(IndeterminateOffset),
     #[cfg(feature = "formatting")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
     Format(Format),
@@ -68,10 +68,10 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::ConversionRange => ConversionRange.fmt(f),
+            Self::ConversionRange(e) => e.fmt(f),
             Self::ComponentRange(e) => e.fmt(f),
             #[cfg(feature = "local-offset")]
-            Self::IndeterminateOffset => IndeterminateOffset.fmt(f),
+            Self::IndeterminateOffset(e) => e.fmt(f),
             #[cfg(feature = "formatting")]
             Self::Format(e) => e.fmt(f),
             #[cfg(feature = "parsing")]
@@ -91,10 +91,10 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Self::ConversionRange => Some(&ConversionRange),
+            Self::ConversionRange(err) => Some(err),
             Self::ComponentRange(err) => Some(err),
             #[cfg(feature = "local-offset")]
-            Self::IndeterminateOffset => Some(&IndeterminateOffset),
+            Self::IndeterminateOffset(err) => Some(err),
             #[cfg(feature = "formatting")]
             Self::Format(err) => Some(err),
             #[cfg(feature = "parsing")]
