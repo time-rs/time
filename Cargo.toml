@@ -52,7 +52,6 @@ compiletest = { package = "compiletest_rs", version = "0.7.0" }
 criterion = { version = "0.3.4", features = ["html_reports"] }
 rand = { version = "0.8.3", default-features = false }
 serde = { version = "1.0.125", default-features = false }
-serde_json = "1.0.64"
 serde_test = "1.0.125"
 
 # Significant contributions to the benchmarks provided by Emil Lundberg.
