@@ -4,7 +4,7 @@ use core::ops::Deref;
 use std::io;
 
 #[allow(unused_imports)]
-use standback::prelude::*;
+use standback::shim::*;
 
 use crate::format_description::well_known::Rfc3339;
 use crate::format_description::FormatItem;

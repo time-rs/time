@@ -4,7 +4,7 @@ use core::convert::TryInto;
 use core::ops::Deref;
 
 #[allow(unused_imports)]
-use standback::prelude::*;
+use standback::shim::*;
 
 use crate::error::TryFromParsed;
 use crate::format_description::well_known::Rfc3339;

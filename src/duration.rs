@@ -6,7 +6,7 @@ use core::time::Duration as StdDuration;
 
 use const_fn::const_fn;
 #[allow(unused_imports)]
-use standback::prelude::*;
+use standback::shim::*;
 
 use crate::error;
 #[cfg(feature = "std")]

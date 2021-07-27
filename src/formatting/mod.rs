@@ -5,7 +5,7 @@ pub(crate) mod formattable;
 use std::io;
 
 #[allow(unused_imports)]
-use standback::prelude::*;
+use standback::shim::*;
 
 pub use self::formattable::Formattable;
 use crate::format_description::{modifier, Component};

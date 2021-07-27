@@ -1,7 +1,7 @@
 //! Implementations of the low-level parser combinators.
 
 #[allow(unused_imports)]
-use standback::prelude::*;
+use standback::shim::*;
 
 use crate::format_description::modifier::Padding;
 use crate::parsing::shim::{Integer, IntegerParseBytes};

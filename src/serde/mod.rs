@@ -12,7 +12,7 @@ use serde::de::Error as _;
 use serde::ser::Error as _;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 #[allow(unused_imports)]
-use standback::prelude::*;
+use standback::shim::*;
 
 #[cfg(feature = "serde-human-readable")]
 use crate::error;
