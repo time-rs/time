@@ -5,7 +5,7 @@ use time::error::{
     ComponentRange, ConversionRange, Error, Format, IndeterminateOffset, InvalidFormatDescription,
     Parse, ParseFromDescription, TryFromParsed,
 };
-use time::format_description::{modifier, Component, FormatItem};
+use time::format_description::{self, modifier, Component, FormatItem};
 use time::macros::format_description;
 use time::{Date, Time};
 
@@ -36,6 +36,10 @@ fn insufficient_type_information() -> Format {
 
 fn unexpected_trailing_characters() -> Parse {
     Time::parse("a", &format_description!("")).unwrap_err()
+}
+
+fn invalid_format_description() -> InvalidFormatDescription {
+    format_description::parse("[").unwrap_err()
 }
 
 fn io_error() -> io::Error {
@@ -100,8 +104,8 @@ fn display() {
         Error::from(unexpected_trailing_characters()),
     );
     assert_display_eq!(
-        InvalidFormatDescription::UnclosedOpeningBracket { index: 0 },
-        Error::from(InvalidFormatDescription::UnclosedOpeningBracket { index: 0 })
+        invalid_format_description(),
+        Error::from(invalid_format_description())
     );
     assert_display_eq!(io_error(), Format::from(io_error()));
 }
@@ -135,7 +139,7 @@ fn source() {
     assert_source!(unexpected_trailing_characters(), None);
     assert_source!(Error::from(unexpected_trailing_characters()), None);
     assert_source!(
-        Error::from(InvalidFormatDescription::UnclosedOpeningBracket { index: 0 }),
+        Error::from(invalid_format_description()),
         InvalidFormatDescription
     );
     assert_source!(Format::from(io_error()), io::Error);

@@ -8,14 +8,17 @@ use core::fmt;
     __time_03_docs,
     doc(cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc")))
 )]
+#[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InvalidFormatDescription {
     /// There was a bracket pair that was opened but not closed.
+    #[non_exhaustive]
     UnclosedOpeningBracket {
         /// The zero-based index of the opening bracket.
         index: usize,
     },
     /// A component name is not valid.
+    #[non_exhaustive]
     InvalidComponentName {
         /// The name of the invalid component name.
         name: String,
@@ -23,6 +26,7 @@ pub enum InvalidFormatDescription {
         index: usize,
     },
     /// A modifier is not valid.
+    #[non_exhaustive]
     InvalidModifier {
         /// The value of the invalid modifier.
         value: String,
@@ -30,6 +34,7 @@ pub enum InvalidFormatDescription {
         index: usize,
     },
     /// A component name is missing.
+    #[non_exhaustive]
     MissingComponentName {
         /// The zero-based index where the component name should start.
         index: usize,

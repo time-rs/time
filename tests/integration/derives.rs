@@ -2,11 +2,9 @@ use std::cmp::Ordering;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::Hash;
 
-use time::error::{
-    self, ConversionRange, IndeterminateOffset, InvalidFormatDescription, TryFromParsed,
-};
+use time::error::{self, ConversionRange, IndeterminateOffset, TryFromParsed};
 use time::ext::NumericalDuration;
-use time::format_description::{modifier, well_known, Component};
+use time::format_description::{self, modifier, well_known, Component};
 use time::macros::{date, offset, time};
 use time::parsing::Parsed;
 use time::{Duration, Instant, Month, Time, Weekday};
@@ -20,6 +18,10 @@ macro_rules! assert_cloned_eq {
 
 fn component_range_error() -> error::ComponentRange {
     Time::from_hms(24, 0, 0).unwrap_err()
+}
+
+fn invalid_format_description() -> error::InvalidFormatDescription {
+    format_description::parse("[").unwrap_err()
 }
 
 #[test]
@@ -36,7 +38,7 @@ fn clone() {
     assert_cloned_eq!(instant);
     assert_cloned_eq!(IndeterminateOffset);
     assert_cloned_eq!(ConversionRange);
-    assert_cloned_eq!(InvalidFormatDescription::MissingComponentName { index: 0 });
+    assert_cloned_eq!(invalid_format_description());
     assert_cloned_eq!(TryFromParsed::InsufficientInformation);
     let _ = Parsed::new().clone();
     assert_cloned_eq!(error::Parse::ParseFromDescription(

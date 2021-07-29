@@ -275,28 +275,23 @@ fn simple_component() {
 
 #[test]
 fn errors() {
-    assert_eq!(
+    use InvalidFormatDescription::*;
+    assert!(matches!(
         format_description::parse("[ invalid ]"),
-        Err(InvalidFormatDescription::InvalidComponentName {
-            name: "invalid".to_owned(),
-            index: 2
-        })
-    );
-    assert_eq!(
+        Err(InvalidComponentName { name, index: 2, .. }) if name == "invalid"
+    ));
+    assert!(matches!(
         format_description::parse("["),
-        Err(InvalidFormatDescription::UnclosedOpeningBracket { index: 0 })
-    );
-    assert_eq!(
+        Err(UnclosedOpeningBracket { index: 0, .. })
+    ));
+    assert!(matches!(
         format_description::parse("[]"),
-        Err(InvalidFormatDescription::MissingComponentName { index: 1 })
-    );
-    assert_eq!(
+        Err(MissingComponentName { index: 1, .. })
+    ));
+    assert!(matches!(
         format_description::parse("[day sign:mandatory]"),
-        Err(InvalidFormatDescription::InvalidModifier {
-            value: "sign:mandatory".to_owned(),
-            index: 5
-        })
-    );
+        Err(InvalidModifier { value, index: 5,.. }) if value == "sign:mandatory"
+    ));
 }
 
 #[test]
@@ -457,28 +452,22 @@ fn component_with_modifiers() {
 #[test]
 fn error_display() {
     assert_eq!(
-        InvalidFormatDescription::UnclosedOpeningBracket { index: 1 }.to_string(),
-        "unclosed opening bracket at byte index 1"
+        format_description::parse("[").unwrap_err().to_string(),
+        "unclosed opening bracket at byte index 0"
     );
     assert_eq!(
-        InvalidFormatDescription::InvalidComponentName {
-            name: "foo".to_owned(),
-            index: 2
-        }
-        .to_string(),
-        "invalid component name `foo` at byte index 2"
+        format_description::parse("[foo]").unwrap_err().to_string(),
+        "invalid component name `foo` at byte index 1"
     );
     assert_eq!(
-        InvalidFormatDescription::InvalidModifier {
-            value: "bar".to_owned(),
-            index: 3
-        }
-        .to_string(),
-        "invalid modifier `bar` at byte index 3"
+        format_description::parse("[day bar]")
+            .unwrap_err()
+            .to_string(),
+        "invalid modifier `bar` at byte index 5"
     );
     assert_eq!(
-        InvalidFormatDescription::MissingComponentName { index: 4 }.to_string(),
-        "missing component name at byte index 4"
+        format_description::parse("[]").unwrap_err().to_string(),
+        "missing component name at byte index 1"
     );
 }
 
