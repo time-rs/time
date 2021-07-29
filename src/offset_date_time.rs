@@ -67,9 +67,6 @@ impl OffsetDateTime {
     /// assert!(OffsetDateTime::now_local().is_ok());
     /// # }
     /// ```
-    ///
-    /// Due to a [soundness bug](https://github.com/time-rs/time/issues/293),
-    /// the error value is currently always returned on Unix-like platforms.
     #[cfg(feature = "local-offset")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
     pub fn now_local() -> Result<Self, error::IndeterminateOffset> {
@@ -317,8 +314,6 @@ impl OffsetDateTime {
     }
 
     /// Get the month of the date in the stored offset.
-    ///
-    /// The returned value will always be in the range `1..=12`.
     ///
     /// ```rust
     /// # use time::Month;
@@ -779,9 +774,8 @@ impl OffsetDateTime {
 #[cfg(feature = "formatting")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl OffsetDateTime {
-    /// Format the `OffsetDateTime` using the provided format description. The formatted value will
-    /// be output to the provided writer. The format description will typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// Format the `OffsetDateTime` using the provided [format
+    /// description](crate::format_description).
     pub fn format_into(
         self,
         output: &mut impl io::Write,
@@ -796,9 +790,8 @@ impl OffsetDateTime {
         )
     }
 
-    /// Format the `OffsetDateTime` using the provided format description. The format description
-    /// will typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// Format the `OffsetDateTime` using the provided [format
+    /// description](crate::format_description).
     ///
     /// ```rust
     /// # use time::{format_description, macros::datetime};
@@ -821,9 +814,8 @@ impl OffsetDateTime {
 #[cfg(feature = "parsing")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl OffsetDateTime {
-    /// Parse a `PrimitiveDateTime` from the input using the provided format description. The format
-    /// description will typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// Parse an `OffsetDateTime` from the input using the provided [format
+    /// description](crate::format_description).
     ///
     /// ```rust
     /// # use time::{format_description, macros::datetime, OffsetDateTime};

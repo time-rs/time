@@ -411,9 +411,7 @@ impl Time {
 #[cfg(feature = "formatting")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl Time {
-    /// Format the `Time` using the provided format description. The formatted value will be output
-    /// to the provided writer. The format description will typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// Format the `Time` using the provided [format description](crate::format_description).
     pub fn format_into(
         self,
         output: &mut impl io::Write,
@@ -422,9 +420,7 @@ impl Time {
         format.format_into(output, None, Some(self), None)
     }
 
-    /// Format the `Time` using the provided format description. The format description will
-    /// typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// Format the `Time` using the provided [format description](crate::format_description).
     ///
     /// ```rust
     /// # use time::{format_description, macros::time};
@@ -440,9 +436,8 @@ impl Time {
 #[cfg(feature = "parsing")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl Time {
-    /// Parse a `Time` from the input using the provided format description. The format description
-    /// will typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// Parse a `Time` from the input using the provided [format
+    /// description](crate::format_description).
     ///
     /// ```rust
     /// # use time::{format_description, macros::time, Time};

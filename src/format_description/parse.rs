@@ -77,6 +77,9 @@ fn parse_item<'a>(
 }
 
 /// Parse a sequence of items from the format description.
+///
+/// The syntax for the format description can be found in [the
+/// book](https://time-rs.github.io/book/api/format-description.html).
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 pub fn parse(s: &str) -> Result<Vec<FormatItem<'_>>, InvalidFormatDescription> {
     let mut compound = Vec::new();

@@ -12,10 +12,7 @@ mod sealed {
 }
 
 // region: NumericalDuration
-/// Create [`Duration`]s from primitive and core numeric types.
-///
-/// Due to limitations in rustc, these methods are currently _not_ `const fn`. See
-/// [RFC 2632](https://github.com/rust-lang/rfcs/pull/2632) for details.
+/// Create [`Duration`]s from numeric literals.
 ///
 /// # Examples
 ///
@@ -147,10 +144,7 @@ impl NumericalDuration for f64 {
 // endregion NumericalDuration
 
 // region: NumericalStdDuration
-/// Create [`std::time::Duration`]s from primitive and core numeric types.
-///
-/// Due to limitations in rustc, these methods are currently _not_ `const fn`. See
-/// [RFC 2632](https://github.com/rust-lang/rfcs/pull/2632) for details.
+/// Create [`std::time::Duration`]s from numeric literals.
 ///
 /// # Examples
 ///

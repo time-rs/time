@@ -1,4 +1,9 @@
 //! Description of how types should be formatted and parsed.
+//!
+//! The formatted value will be output to the provided writer. Format descriptions can be
+//! [well-known](crate::format_description::well_known) or obtained by using the
+//! [`format_description!`](crate::macros::format_description) macro, the
+//! [`format_description::parse`](crate::format_description::parse()) function.
 
 mod component;
 pub mod modifier;

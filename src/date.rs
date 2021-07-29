@@ -243,8 +243,6 @@ impl Date {
 
     /// Get the month.
     ///
-    /// The returned value will always be in the range `1..=12`.
-    ///
     /// ```rust
     /// # use time::{macros::date, Month};
     /// assert_eq!(date!(2019 - 01 - 01).month(), Month::January);
@@ -658,9 +656,7 @@ impl Date {
 #[cfg(feature = "formatting")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl Date {
-    /// Format the `Date` using the provided format description. The formatted value will be output
-    /// to the provided writer. The format description will typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// Format the `Date` using the provided [format description](crate::format_description).
     pub fn format_into(
         self,
         output: &mut impl io::Write,
@@ -669,9 +665,7 @@ impl Date {
         format.format_into(output, Some(self), None, None)
     }
 
-    /// Format the `Date` using the provided format description. The format description will
-    /// typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// Format the `Date` using the provided [format description](crate::format_description).
     ///
     /// ```rust
     /// # use time::{format_description, macros::date};
@@ -687,9 +681,8 @@ impl Date {
 #[cfg(feature = "parsing")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl Date {
-    /// Parse a `Date` from the input using the provided format description. The format description
-    /// will typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// Parse a `Date` from the input using the provided [format
+    /// description](crate::format_description).
     ///
     /// ```rust
     /// # use time::{format_description, macros::date, Date};

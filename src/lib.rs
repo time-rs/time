@@ -69,7 +69,8 @@
 //! only available to end users; this is to ensure that a user doesn't have unsound behavior without
 //! knowing it. To enable this behavior, you must use `RUSTFLAGS="--cfg unsound_local_offset" cargo
 //! build` or similar. Note: This flag is _not tested anywhere_, including in the regular test of
-//! the powerset of all feature flags. Use at your own risk.
+//! the powerset of all feature flags. Use at your own risk. Without this flag, any method that
+//! requires the local offset will return the `Err` variant.
 
 #![doc(html_playground_url = "https://play.rust-lang.org")]
 #![cfg_attr(__time_03_docs, feature(doc_cfg))]

@@ -71,8 +71,6 @@ impl PrimitiveDateTime {
 
     /// Get the month of the date.
     ///
-    /// The returned value will always be in the range `1..=12`.
-    ///
     /// ```rust
     /// # use time::{macros::datetime, Month};
     /// assert_eq!(datetime!(2019-01-01 0:00).month(), Month::January);
@@ -409,7 +407,7 @@ impl PrimitiveDateTime {
         }
     }
 
-    /// Assuming that the existing `PrimitiveDateTime` represents a moment in the UTC, return an
+    /// Assuming that the existing `PrimitiveDateTime` represents a moment in UTC, return an
     /// [`OffsetDateTime`].
     ///
     /// ```rust
@@ -504,9 +502,8 @@ impl PrimitiveDateTime {
 #[cfg(feature = "formatting")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl PrimitiveDateTime {
-    /// Format the `PrimitiveDateTime` using the provided format description. The formatted value
-    /// will be output to the provided writer. The format description will typically be parsed by
-    /// using [`format_description::parse`](crate::format_description::parse()).
+    /// Format the `PrimitiveDateTime` using the provided [format
+    /// description](crate::format_description).
     pub fn format_into(
         self,
         output: &mut impl io::Write,
@@ -515,9 +512,8 @@ impl PrimitiveDateTime {
         format.format_into(output, Some(self.date), Some(self.time), None)
     }
 
-    /// Format the `PrimitiveDateTime` using the provided format description. The format description
-    /// will typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// Format the `PrimitiveDateTime` using the provided [format
+    /// description](crate::format_description).
     ///
     /// ```rust
     /// # use time::{format_description, macros::datetime};
@@ -536,9 +532,8 @@ impl PrimitiveDateTime {
 #[cfg(feature = "parsing")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl PrimitiveDateTime {
-    /// Parse a `PrimitiveDateTime` from the input using the provided format description. The format
-    /// description will typically be parsed by using
-    /// [`format_description::parse`](crate::format_description::parse()).
+    /// Parse a `PrimitiveDateTime` from the input using the provided [format
+    /// description](crate::format_description).
     ///
     /// ```rust
     /// # use time::{format_description, macros::datetime, PrimitiveDateTime};
