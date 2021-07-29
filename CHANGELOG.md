@@ -61,10 +61,15 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `Month`
 - `Instant::into_inner`
 - `impl AsRef<StdInstant>` and `impl Borrow<StdInstant>` for `Instant`
+- Support for obtaining the local UTC offset on Unix-like systems has been re-added under a
+  user-provided flag. This functionality is not tested in any way and is not guaranteed to work.
+  Library authors are unable to enable this feature, as it must be passed via `RUSTFLAGS`. Further
+  information is available in the documentation.
 
 ### Changed
 
-- The minimum supported Rust version is now 1.46.0.
+- The minimum supported Rust version is now 1.46.0. Per the policy in the README, this may be bumped
+  within the 0.3 series without being a breaking change.
 - rand has been updated to 0.8.
 - quickcheck has been updated to 1.0.
 - Macros are placed behind the `macros` feature flag.
@@ -91,7 +96,6 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
   - `PrimitiveDateTime::week` → `PrimitiveDateTime::iso_week`
   - `OffsetDateTime::week` → `OffsetDateTime::iso_week`
   - `Date::julian_day` → `Date::to_julian_day`
-  - Macros have been moved to the `macros` module, but are otherwise named the same.
   - All `Duration` unit values, as well as the minimum and maximum, are now associated constants.
   - `OffsetDateTime::unix_epoch()` → `OffsetDateTime::UNIX_EPOCH`
   - `Time::midnight()` → `Time::MIDNIGHT`
@@ -123,8 +127,6 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
   - `OffsetDateTime::nanosecond`
   - `OffsetDateTime::unix_timestamp`
   - `OffsetDateTime::unix_timestamp_nanos`
-- Some variants of `Error` no longer contain an inner item. This is because the item is already
-  guaranteed to be a zero-sized struct.
 - The following functions now return a `Result`:
   - `Date::from_julian_day`
   - `OffsetDateTime::from_unix_timestamp`
@@ -139,7 +141,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
   - `UtcOffset::local_offset_at`
   - `OffsetDateTime::now_local`
 - `Instant` is now guaranteed to be represented as a tuple struct containing a `std::time::Instant`.
-- Macros now simulate `const` blocks, guaranteeing that the value is statically generated.
+- Macros are guaranteed to be evaluated at compile time.
 - `Date::to_julian_day` now returns an `i32` (was `i64`).
 - `Date::from_julian_day` now accepts an `i32` (was `i64`).
 - Extension traits are only implemented for some types and are now sealed. As they are intended to
@@ -211,6 +213,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
   - `NumericalDuration`
   - `NumericalStdDuration`
   - `NumericalStdDurationShort`
+  - All top-level macros
 - Lazy formatting, which was unidiomatic as a failure would have returned `fmt::Error`, indicating
   an error unrelated to the time crate.
   - `Time::lazy_format`
@@ -220,7 +223,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
   - `OffsetDateTime::lazy_format`
 - Support for stdweb has been removed, as the crate is unmaintained.
 - The `prelude` module has been removed in its entirety.
-- `Date::iso_year_week`, in favor of `Date::to_iso_week_date`
+- `Date::iso_year_week` in favor of `Date::to_iso_week_date`
 - `PrimitiveDateTime::iso_year_week`
 - `OffsetDateTime::iso_year_week`
 - `UtcOffset::east_hours`
@@ -237,6 +240,46 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `OffsetDateTime::month_day`
 - `Weekday::iso_weekday_number` (identical to `Weekday::number_from_monday`)
 - `ext::NumericalStdDurationShort`
+
+## 0.2.26 [2021-03-16]
+
+### Fixed
+
+- #316, where the build script was wrongly unable to determine the correct compiler version
+- Dependencies have been bumped to the latest patch version, ensuring compatibility.
+
+## 0.2.25 [2021-01-24]
+
+### Fixed
+
+- Fix #309, which can cause panics in certain situations.
+
+## 0.2.24 [2021-01-08]
+
+### Fixed
+
+- The implementation of `OffsetDateTime::timestamp`, `OffsetDateTime::unix_timestamp`,
+  `PrimitiveDatetime::timestamp`, and `OffsetDateTime::unix_timestamp` have been corrected. This
+  affects all negative timestamps with a nonzero subsecond value.
+
+## 0.2.23 [2020-11-17]
+
+## Compatibility notes
+
+Due to #293, any method that requires knowledge of the local offset will now
+_fail_ on Linux. For `try_` methods, this means returning an error. For others,
+it means assuming UTC.
+
+### Deprecated
+
+- `UtcOffset::timestamp` (moved to `UtcOffset::unix_timestamp`)
+- `UtcOffset::timestamp_nanos` (moved to `UtcOffset::unix_timestamp_nanos`)
+- `date` (moved to `macros::date`)
+- `time` (moved to `macros::time`)
+- `offset` (moved to `macros::offset`)
+- `OffsetDateTime::now_local` (assumes UTC if unable to be determined)
+- `UtcOffset::local_offset_at` (assumes UTC if unable to be determined)
+- `UtcOffset::current_local_offset` (assumes UTC if unable to be determined)
 
 ## 0.2.22 [2020-09-25]
 
