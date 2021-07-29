@@ -20,6 +20,9 @@ use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffs
 ///
 /// Most users will not need think about this struct in any way. It is public to allow for manual
 /// control over values, in the instance that the default parser is insufficient.
+///
+/// All setters return `Option<()>`, which is `Some` if the value was set and `None` if not. The
+/// setters _may_ fail if the value is invalid, though behavior is not guaranteed.
 #[derive(Debug, Clone, Copy)]
 pub struct Parsed {
     /// Calendar year.
@@ -179,8 +182,9 @@ impl Parsed {
     }
 
     /// Set the `year` component.
-    pub fn set_year(&mut self, value: i32) {
+    pub fn set_year(&mut self, value: i32) -> Option<()> {
         self.year = Some(value);
+        Some(())
     }
 
     /// Obtain the `year_last_two` component.
@@ -189,8 +193,9 @@ impl Parsed {
     }
 
     /// Set the `year_last_two` component.
-    pub fn set_year_last_two(&mut self, value: u8) {
+    pub fn set_year_last_two(&mut self, value: u8) -> Option<()> {
         self.year_last_two = Some(value);
+        Some(())
     }
 
     /// Obtain the `iso_year` component.
@@ -199,8 +204,9 @@ impl Parsed {
     }
 
     /// Set the `iso_year` component.
-    pub fn set_iso_year(&mut self, value: i32) {
+    pub fn set_iso_year(&mut self, value: i32) -> Option<()> {
         self.iso_year = Some(value);
+        Some(())
     }
 
     /// Obtain the `iso_year_last_two` component.
@@ -209,8 +215,9 @@ impl Parsed {
     }
 
     /// Set the `iso_year_last_two` component.
-    pub fn set_iso_year_last_two(&mut self, value: u8) {
+    pub fn set_iso_year_last_two(&mut self, value: u8) -> Option<()> {
         self.iso_year_last_two = Some(value);
+        Some(())
     }
 
     /// Obtain the `month` component.
@@ -219,8 +226,9 @@ impl Parsed {
     }
 
     /// Set the `month` component.
-    pub fn set_month(&mut self, value: Month) {
+    pub fn set_month(&mut self, value: Month) -> Option<()> {
         self.month = Some(value);
+        Some(())
     }
 
     /// Obtain the `sunday_week_number` component.
@@ -229,8 +237,9 @@ impl Parsed {
     }
 
     /// Set the `sunday_week_number` component.
-    pub fn set_sunday_week_number(&mut self, value: u8) {
+    pub fn set_sunday_week_number(&mut self, value: u8) -> Option<()> {
         self.sunday_week_number = Some(value);
+        Some(())
     }
 
     /// Obtain the `monday_week_number` component.
@@ -239,8 +248,9 @@ impl Parsed {
     }
 
     /// Set the `monday_week_number` component.
-    pub fn set_monday_week_number(&mut self, value: u8) {
+    pub fn set_monday_week_number(&mut self, value: u8) -> Option<()> {
         self.monday_week_number = Some(value);
+        Some(())
     }
 
     /// Obtain the `iso_week_number` component.
@@ -249,8 +259,9 @@ impl Parsed {
     }
 
     /// Set the `iso_week_number` component.
-    pub fn set_iso_week_number(&mut self, value: NonZeroU8) {
+    pub fn set_iso_week_number(&mut self, value: NonZeroU8) -> Option<()> {
         self.iso_week_number = Some(value);
+        Some(())
     }
 
     /// Obtain the `weekday` component.
@@ -259,8 +270,9 @@ impl Parsed {
     }
 
     /// Set the `weekday` component.
-    pub fn set_weekday(&mut self, value: Weekday) {
+    pub fn set_weekday(&mut self, value: Weekday) -> Option<()> {
         self.weekday = Some(value);
+        Some(())
     }
 
     /// Obtain the `ordinal` component.
@@ -269,8 +281,9 @@ impl Parsed {
     }
 
     /// Set the `ordinal` component.
-    pub fn set_ordinal(&mut self, value: NonZeroU16) {
+    pub fn set_ordinal(&mut self, value: NonZeroU16) -> Option<()> {
         self.ordinal = Some(value);
+        Some(())
     }
 
     /// Obtain the `day` component.
@@ -279,8 +292,9 @@ impl Parsed {
     }
 
     /// Set the `day` component.
-    pub fn set_day(&mut self, value: NonZeroU8) {
+    pub fn set_day(&mut self, value: NonZeroU8) -> Option<()> {
         self.day = Some(value);
+        Some(())
     }
 
     /// Obtain the `hour_24` component.
@@ -289,8 +303,9 @@ impl Parsed {
     }
 
     /// Set the `hour_24` component.
-    pub fn set_hour_24(&mut self, value: u8) {
+    pub fn set_hour_24(&mut self, value: u8) -> Option<()> {
         self.hour_24 = Some(value);
+        Some(())
     }
 
     /// Obtain the `hour_12` component.
@@ -299,8 +314,9 @@ impl Parsed {
     }
 
     /// Set the `hour_12` component.
-    pub fn set_hour_12(&mut self, value: NonZeroU8) {
+    pub fn set_hour_12(&mut self, value: NonZeroU8) -> Option<()> {
         self.hour_12 = Some(value);
+        Some(())
     }
 
     /// Obtain the `hour_12_is_pm` component.
@@ -309,8 +325,9 @@ impl Parsed {
     }
 
     /// Set the `hour_12_is_pm` component.
-    pub fn set_hour_12_is_pm(&mut self, value: bool) {
+    pub fn set_hour_12_is_pm(&mut self, value: bool) -> Option<()> {
         self.hour_12_is_pm = Some(value);
+        Some(())
     }
 
     /// Obtain the `minute` component.
@@ -319,8 +336,9 @@ impl Parsed {
     }
 
     /// Set the `minute` component.
-    pub fn set_minute(&mut self, value: u8) {
+    pub fn set_minute(&mut self, value: u8) -> Option<()> {
         self.minute = Some(value);
+        Some(())
     }
 
     /// Obtain the `second` component.
@@ -329,8 +347,9 @@ impl Parsed {
     }
 
     /// Set the `second` component.
-    pub fn set_second(&mut self, value: u8) {
+    pub fn set_second(&mut self, value: u8) -> Option<()> {
         self.second = Some(value);
+        Some(())
     }
 
     /// Obtain the `subsecond` component.
@@ -339,8 +358,9 @@ impl Parsed {
     }
 
     /// Set the `subsecond` component.
-    pub fn set_subsecond(&mut self, value: u32) {
+    pub fn set_subsecond(&mut self, value: u32) -> Option<()> {
         self.subsecond = Some(value);
+        Some(())
     }
 
     /// Obtain the `offset_hour` component.
@@ -349,8 +369,9 @@ impl Parsed {
     }
 
     /// Set the `offset_hour` component.
-    pub fn set_offset_hour(&mut self, value: i8) {
+    pub fn set_offset_hour(&mut self, value: i8) -> Option<()> {
         self.offset_hour = Some(value);
+        Some(())
     }
 
     /// Obtain the `offset_minute` component.
@@ -359,8 +380,9 @@ impl Parsed {
     }
 
     /// Set the `offset_minute` component.
-    pub fn set_offset_minute(&mut self, value: u8) {
+    pub fn set_offset_minute(&mut self, value: u8) -> Option<()> {
         self.offset_minute = Some(value);
+        Some(())
     }
 
     /// Obtain the `offset_second` component.
@@ -369,8 +391,9 @@ impl Parsed {
     }
 
     /// Set the `offset_second` component.
-    pub fn set_offset_second(&mut self, value: u8) {
+    pub fn set_offset_second(&mut self, value: u8) -> Option<()> {
         self.offset_second = Some(value);
+        Some(())
     }
 }
 
