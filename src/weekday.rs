@@ -67,7 +67,7 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.number_from_monday(), 1);
     /// ```
-    #[cfg_attr(__time_03_docs, doc(alias = "iso_weekday_number"))]
+    #[doc(alias = "iso_weekday_number")]
     pub const fn number_from_monday(self) -> u8 {
         self.number_days_from_monday() + 1
     }

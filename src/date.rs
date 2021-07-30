@@ -183,7 +183,7 @@ impl Date {
     /// assert_eq!(Date::from_julian_day(2_458_485), Ok(date!(2019 - 01 - 01)));
     /// assert_eq!(Date::from_julian_day(2_458_849), Ok(date!(2019 - 12 - 31)));
     /// ```
-    #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date"))]
+    #[doc(alias = "from_julian_date")]
     pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
         ensure_value_in_range!(
             julian_day in Self::MIN.to_julian_day() => Self::MAX.to_julian_day()
@@ -195,7 +195,7 @@ impl Date {
     ///
     /// This does not check the validity of the provided Julian day, and as such may result in an
     /// internally invalid value.
-    #[cfg_attr(__time_03_docs, doc(alias = "from_julian_date_unchecked"))]
+    #[doc(alias = "from_julian_date_unchecked")]
     pub(crate) const fn from_julian_day_unchecked(julian_day: i32) -> Self {
         #![allow(trivial_numeric_casts)] // cast depends on type alias
 
