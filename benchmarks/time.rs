@@ -20,7 +20,7 @@ setup_benchmark! {
     }
 
     fn from_hms_nano(ben: &mut Bencher<'_>) {
-        ben.iter(|| Time::from_hms_nano(1, 2, 3, 4))
+        ben.iter(|| Time::from_hms_nano(1, 2, 3, 4));
     }
     // endregion constructors
 

@@ -338,42 +338,42 @@ impl Modifiers {
                 (b"month", b"repr:long") => modifiers.month_repr = Some(MonthRepr::Long),
                 (b"month", b"repr:short") => modifiers.month_repr = Some(MonthRepr::Short),
                 (b"offset_hour", b"sign:automatic") | (b"year", b"sign:automatic") => {
-                    modifiers.sign_is_mandatory = Some(false)
+                    modifiers.sign_is_mandatory = Some(false);
                 }
                 (b"offset_hour", b"sign:mandatory") | (b"year", b"sign:mandatory") => {
-                    modifiers.sign_is_mandatory = Some(true)
+                    modifiers.sign_is_mandatory = Some(true);
                 }
                 (b"period", b"case:upper") => modifiers.period_is_uppercase = Some(true),
                 (b"period", b"case:lower") => modifiers.period_is_uppercase = Some(false),
                 (b"subsecond", b"digits:1") => {
-                    modifiers.subsecond_digits = Some(SubsecondDigits::One)
+                    modifiers.subsecond_digits = Some(SubsecondDigits::One);
                 }
                 (b"subsecond", b"digits:2") => {
-                    modifiers.subsecond_digits = Some(SubsecondDigits::Two)
+                    modifiers.subsecond_digits = Some(SubsecondDigits::Two);
                 }
                 (b"subsecond", b"digits:3") => {
-                    modifiers.subsecond_digits = Some(SubsecondDigits::Three)
+                    modifiers.subsecond_digits = Some(SubsecondDigits::Three);
                 }
                 (b"subsecond", b"digits:4") => {
-                    modifiers.subsecond_digits = Some(SubsecondDigits::Four)
+                    modifiers.subsecond_digits = Some(SubsecondDigits::Four);
                 }
                 (b"subsecond", b"digits:5") => {
-                    modifiers.subsecond_digits = Some(SubsecondDigits::Five)
+                    modifiers.subsecond_digits = Some(SubsecondDigits::Five);
                 }
                 (b"subsecond", b"digits:6") => {
-                    modifiers.subsecond_digits = Some(SubsecondDigits::Six)
+                    modifiers.subsecond_digits = Some(SubsecondDigits::Six);
                 }
                 (b"subsecond", b"digits:7") => {
-                    modifiers.subsecond_digits = Some(SubsecondDigits::Seven)
+                    modifiers.subsecond_digits = Some(SubsecondDigits::Seven);
                 }
                 (b"subsecond", b"digits:8") => {
-                    modifiers.subsecond_digits = Some(SubsecondDigits::Eight)
+                    modifiers.subsecond_digits = Some(SubsecondDigits::Eight);
                 }
                 (b"subsecond", b"digits:9") => {
-                    modifiers.subsecond_digits = Some(SubsecondDigits::Nine)
+                    modifiers.subsecond_digits = Some(SubsecondDigits::Nine);
                 }
                 (b"subsecond", b"digits:1+") => {
-                    modifiers.subsecond_digits = Some(SubsecondDigits::OneOrMore)
+                    modifiers.subsecond_digits = Some(SubsecondDigits::OneOrMore);
                 }
                 (b"weekday", b"repr:short") => modifiers.weekday_repr = Some(WeekdayRepr::Short),
                 (b"weekday", b"repr:long") => modifiers.weekday_repr = Some(WeekdayRepr::Long),
@@ -381,16 +381,16 @@ impl Modifiers {
                 (b"weekday", b"repr:monday") => modifiers.weekday_repr = Some(WeekdayRepr::Monday),
                 (b"weekday", b"one_indexed:true") => modifiers.weekday_is_one_indexed = Some(true),
                 (b"weekday", b"one_indexed:false") => {
-                    modifiers.weekday_is_one_indexed = Some(false)
+                    modifiers.weekday_is_one_indexed = Some(false);
                 }
                 (b"week_number", b"repr:iso") => {
-                    modifiers.week_number_repr = Some(WeekNumberRepr::Iso)
+                    modifiers.week_number_repr = Some(WeekNumberRepr::Iso);
                 }
                 (b"week_number", b"repr:sunday") => {
-                    modifiers.week_number_repr = Some(WeekNumberRepr::Sunday)
+                    modifiers.week_number_repr = Some(WeekNumberRepr::Sunday);
                 }
                 (b"week_number", b"repr:monday") => {
-                    modifiers.week_number_repr = Some(WeekNumberRepr::Monday)
+                    modifiers.week_number_repr = Some(WeekNumberRepr::Monday);
                 }
                 (b"year", b"repr:full") => modifiers.year_repr = Some(YearRepr::Full),
                 (b"year", b"repr:last_two") => modifiers.year_repr = Some(YearRepr::LastTwo),

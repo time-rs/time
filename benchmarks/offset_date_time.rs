@@ -337,7 +337,7 @@ setup_benchmark! {
     fn std_eq(ben: &mut Bencher<'_>) {
         let a = OffsetDateTime::now_utc();
         let b = SystemTime::from(a);
-        ben.iter(|| b == a)
+        ben.iter(|| b == a);
     }
 
     fn ord_std(ben: &mut Bencher<'_>) {

@@ -7,7 +7,6 @@ use crate::error::{ParseFromDescription, TryFromParsed};
 /// An error that occurred at some stage of parsing.
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 #[allow(variant_size_differences)]
-#[allow(clippy::pub_enum_variant_names)] // an attribute on the variant doesn't work for some reason
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Parse {

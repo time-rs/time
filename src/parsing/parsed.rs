@@ -123,7 +123,7 @@ impl Parsed {
                 match modifiers.repr {
                     WeekNumberRepr::Iso => {
                         self.iso_week_number =
-                            Some(NonZeroU8::new(value).ok_or(InvalidComponent("week number"))?)
+                            Some(NonZeroU8::new(value).ok_or(InvalidComponent("week number"))?);
                     }
                     WeekNumberRepr::Sunday => self.sunday_week_number = Some(value),
                     WeekNumberRepr::Monday => self.monday_week_number = Some(value),
