@@ -9,6 +9,18 @@ mod shim;
 pub use self::parsable::Parsable;
 pub use self::parsed::Parsed;
 
+/// Strip the prefix of the provided slice.
+fn strip_prefix<'a>(slice: &'a [u8], prefix: &[u8]) -> Option<&'a [u8]> {
+    let n = prefix.len();
+    if n <= slice.len() {
+        let (head, tail) = slice.split_at(n);
+        if head == prefix {
+            return Some(tail);
+        }
+    }
+    None
+}
+
 /// An item that has been parsed. Represented as a `(remaining, value)` pair.
 #[derive(Debug, Clone)]
 pub(crate) struct ParsedItem<'a, T>(pub(crate) &'a [u8], pub(crate) T);

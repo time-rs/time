@@ -3,9 +3,6 @@
 use core::ops::Deref;
 use std::io;
 
-#[allow(unused_imports)]
-use standback::shim::*;
-
 use crate::format_description::well_known::Rfc3339;
 use crate::format_description::FormatItem;
 use crate::formatting::{format_component, format_number_pad_zero};
@@ -164,9 +161,10 @@ impl sealed::Sealed for Rfc3339 {
         } else {
             &[b'+']
         })?;
-        bytes += format_number_pad_zero(output, offset.whole_hours().unsigned_abs(), 2)?;
+        bytes += format_number_pad_zero(output, offset.whole_hours().wrapping_abs() as u8, 2)?;
         bytes += output.write(&[b':'])?;
-        bytes += format_number_pad_zero(output, offset.minutes_past_hour().unsigned_abs(), 2)?;
+        bytes +=
+            format_number_pad_zero(output, offset.minutes_past_hour().wrapping_abs() as u8, 2)?;
 
         Ok(bytes)
     }

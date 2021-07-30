@@ -68,7 +68,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ### Changed
 
-- The minimum supported Rust version is now 1.46.0. Per the policy in the README, this may be bumped
+- The minimum supported Rust version is now 1.48.0. Per the policy in the README, this may be bumped
   within the 0.3 series without being a breaking change.
 - rand has been updated to 0.8.
 - quickcheck has been updated to 1.0.

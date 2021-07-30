@@ -1,11 +1,8 @@
 //! Implementations of the low-level parser combinators.
 
-#[allow(unused_imports)]
-use standback::shim::*;
-
 use crate::format_description::modifier::Padding;
 use crate::parsing::shim::{Integer, IntegerParseBytes};
-use crate::parsing::ParsedItem;
+use crate::parsing::{strip_prefix, ParsedItem};
 
 /// Parse a "+" or "-" sign. Returns the ASCII byte representing the sign, if present.
 pub(crate) const fn sign(input: &[u8]) -> Option<ParsedItem<'_, u8>> {
@@ -25,7 +22,7 @@ pub(crate) fn first_match<'a, 'b: 'a, T: Copy + 'a>(
     move |input| {
         options.find_map(|&(expected, t)| {
             if case_sensitive {
-                Some(ParsedItem(input.strip_prefix(expected.as_bytes())?, t))
+                Some(ParsedItem(strip_prefix(input, expected.as_bytes())?, t))
             } else {
                 let n = expected.len();
                 if n <= input.len() {

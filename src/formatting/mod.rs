@@ -4,9 +4,6 @@ pub(crate) mod formattable;
 
 use std::io;
 
-#[allow(unused_imports)]
-use standback::shim::*;
-
 pub use self::formattable::Formattable;
 use crate::format_description::{modifier, Component};
 use crate::{error, Date, Time, UtcOffset};
@@ -318,7 +315,7 @@ fn fmt_year(
             bytes += output.write(&[b'+'])?;
         }
     }
-    bytes += format_number(output, value.unsigned_abs(), padding, width)?;
+    bytes += format_number(output, value.wrapping_abs() as u32, padding, width)?;
     Ok(bytes)
 }
 // endregion date formatters
@@ -426,7 +423,12 @@ fn fmt_offset_hour(
     } else if sign_is_mandatory {
         bytes += output.write(&[b'+'])?;
     }
-    bytes += format_number(output, offset.whole_hours().unsigned_abs(), padding, 2)?;
+    bytes += format_number(
+        output,
+        offset.whole_hours().wrapping_abs() as u8,
+        padding,
+        2,
+    )?;
     Ok(bytes)
 }
 
@@ -438,7 +440,7 @@ fn fmt_offset_minute(
 ) -> Result<usize, io::Error> {
     format_number(
         output,
-        offset.minutes_past_hour().unsigned_abs(),
+        offset.minutes_past_hour().wrapping_abs() as u8,
         padding,
         2,
     )
@@ -452,7 +454,7 @@ fn fmt_offset_second(
 ) -> Result<usize, io::Error> {
     format_number(
         output,
-        offset.seconds_past_minute().unsigned_abs(),
+        offset.seconds_past_minute().wrapping_abs() as u8,
         padding,
         2,
     )

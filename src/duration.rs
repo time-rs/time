@@ -4,10 +4,6 @@ use core::fmt;
 use core::ops::{Add, Div, Mul, Neg, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 
-use const_fn::const_fn;
-#[allow(unused_imports)]
-use standback::shim::*;
-
 use crate::error;
 #[cfg(feature = "std")]
 use crate::Instant;
@@ -181,9 +177,6 @@ impl Duration {
     /// assert_eq!(0.seconds().abs(), 0.seconds());
     /// assert_eq!((-1).seconds().abs(), 1.seconds());
     /// ```
-    ///
-    /// This feature is `const fn` when using rustc >= 1.47.
-    #[const_fn("1.47")]
     pub const fn abs(self) -> Self {
         Self::new_unchecked(self.seconds.saturating_abs(), self.nanoseconds.abs())
     }
@@ -194,7 +187,10 @@ impl Duration {
     #[cfg(feature = "std")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
     pub(crate) fn abs_std(self) -> StdDuration {
-        StdDuration::new(self.seconds.unsigned_abs(), self.nanoseconds.unsigned_abs())
+        StdDuration::new(
+            self.seconds.wrapping_abs() as _,
+            self.nanoseconds.wrapping_abs() as _,
+        )
     }
     // endregion abs
 
@@ -539,9 +535,6 @@ impl Duration {
     /// assert_eq!(Duration::MAX.checked_add(1.nanoseconds()), None);
     /// assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
     /// ```
-    ///
-    /// This feature is `const fn` when using rustc >= 1.47.
-    #[const_fn("1.47")]
     pub const fn checked_add(self, rhs: Self) -> Option<Self> {
         let mut seconds = const_try_opt!(self.seconds.checked_add(rhs.seconds));
         let mut nanoseconds = self.nanoseconds + rhs.nanoseconds;
@@ -565,9 +558,6 @@ impl Duration {
     /// assert_eq!(Duration::MIN.checked_sub(1.nanoseconds()), None);
     /// assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
     /// ```
-    ///
-    /// This feature is `const fn` when using rustc >= 1.47.
-    #[const_fn("1.47")]
     pub const fn checked_sub(self, rhs: Self) -> Option<Self> {
         self.checked_add(Self::new_unchecked(-rhs.seconds, -rhs.nanoseconds))
     }
@@ -582,9 +572,6 @@ impl Duration {
     /// assert_eq!(Duration::MAX.checked_mul(2), None);
     /// assert_eq!(Duration::MIN.checked_mul(2), None);
     /// ```
-    ///
-    /// This feature is `const fn` when using rustc >= 1.47.
-    #[const_fn("1.47")]
     pub const fn checked_mul(self, rhs: i32) -> Option<Self> {
         // Multiply nanoseconds as i64, because it cannot overflow that way.
         let total_nanos = self.nanoseconds as i64 * rhs as i64;
@@ -605,10 +592,8 @@ impl Duration {
     /// assert_eq!(10.seconds().checked_div(-2), Some((-5).seconds()));
     /// assert_eq!(1.seconds().checked_div(0), None);
     /// ```
-    ///
-    /// This feature is `const fn` when using rustc >= 1.52.
-    #[const_fn("1.52")]
-    pub const fn checked_div(self, rhs: i32) -> Option<Self> {
+    #[allow(clippy::missing_const_for_fn)] // requires Rust 1.52
+    pub fn checked_div(self, rhs: i32) -> Option<Self> {
         let seconds = const_try_opt!(self.seconds.checked_div(rhs as i64));
         let carry = self.seconds - seconds * (rhs as i64);
         let extra_nanos = const_try_opt!((carry * 1_000_000_000).checked_div(rhs as i64));
@@ -631,9 +616,6 @@ impl Duration {
     /// );
     /// assert_eq!((-5).seconds().saturating_add(5.seconds()), Duration::ZERO);
     /// ```
-    ///
-    /// This feature is `const fn` when using rustc >= 1.47.
-    #[const_fn("1.47")]
     pub const fn saturating_add(self, rhs: Self) -> Self {
         let (mut seconds, overflow) = self.seconds.overflowing_add(rhs.seconds);
         if overflow {
@@ -673,9 +655,6 @@ impl Duration {
     /// );
     /// assert_eq!(5.seconds().saturating_sub(10.seconds()), (-5).seconds());
     /// ```
-    ///
-    /// This feature is `const fn` when using rustc >= 1.47.
-    #[const_fn("1.47")]
     pub const fn saturating_sub(self, rhs: Self) -> Self {
         self.saturating_add(Self::new_unchecked(-rhs.seconds, -rhs.nanoseconds))
     }

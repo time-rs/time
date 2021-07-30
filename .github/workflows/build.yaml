@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        rust: ["1.46", stable]
+        rust: ["1.48", stable]
         target:
           - {
               name: NetBSD,
@@ -144,7 +144,7 @@ jobs:
     runs-on: ${{ matrix.os.value }}
     strategy:
       matrix:
-        rust: ["1.46", stable]
+        rust: ["1.48", stable]
         os:
           - { name: Ubuntu, value: ubuntu-20.04, has_local_offset: false }
           - { name: Windows, value: windows-latest, has_local_offset: true }
@@ -355,6 +355,8 @@ jobs:
 
       - name: Cache cargo output
         uses: Swatinem/rust-cache@v1
+        with:
+          key: 4
 
       - name: Install cargo-llvm-cov
         run: |
