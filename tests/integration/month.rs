@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 
-use time::{Month, Month::*};
+use time::Month::{self, *};
 
 #[test]
 fn previous() {
@@ -68,7 +68,7 @@ fn to_u8() {
 
 #[test]
 fn try_from_u8() {
-    assert!(Month::try_from(0u8).is_err());
+    assert!(matches!(Month::try_from(0u8), Err(err) if err.name() == "month"));
     assert_eq!(Month::try_from(1u8), Ok(January));
     assert_eq!(Month::try_from(2u8), Ok(February));
     assert_eq!(Month::try_from(3u8), Ok(March));
@@ -81,5 +81,5 @@ fn try_from_u8() {
     assert_eq!(Month::try_from(10u8), Ok(October));
     assert_eq!(Month::try_from(11u8), Ok(November));
     assert_eq!(Month::try_from(12u8), Ok(December));
-    assert!(Month::try_from(13u8).is_err());
+    assert!(matches!(Month::try_from(0u8), Err(err) if err.name() == "month"));
 }
