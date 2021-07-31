@@ -128,13 +128,17 @@ impl TryFrom<u8> for Month {
     type Error = error::ComponentRange;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
-        let n = NonZeroU8::new(value).ok_or_else(|| error::ComponentRange {
-            name: "month",
-            minimum: 1,
-            maximum: 12,
-            value: value.into(),
-            conditional_range: false,
-        })?;
-        Self::from_number(n)
+        NonZeroU8::new(value).map_or_else(
+            || {
+                Err(error::ComponentRange {
+                    name: "month",
+                    minimum: 1,
+                    maximum: 12,
+                    value: value as _,
+                    conditional_range: false,
+                })
+            },
+            Self::from_number,
+        )
     }
 }
