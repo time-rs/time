@@ -52,34 +52,34 @@ fn display() {
 
 #[test]
 fn to_u8() {
-    assert_eq!(u8::from(January), 1u8);
-    assert_eq!(u8::from(February), 2u8);
-    assert_eq!(u8::from(March), 3u8);
-    assert_eq!(u8::from(April), 4u8);
-    assert_eq!(u8::from(May), 5u8);
-    assert_eq!(u8::from(June), 6u8);
-    assert_eq!(u8::from(July), 7u8);
-    assert_eq!(u8::from(August), 8u8);
-    assert_eq!(u8::from(September), 9u8);
-    assert_eq!(u8::from(October), 10u8);
-    assert_eq!(u8::from(November), 11u8);
-    assert_eq!(u8::from(December), 12u8);
+    assert_eq!(u8::from(January), 1);
+    assert_eq!(u8::from(February), 2);
+    assert_eq!(u8::from(March), 3);
+    assert_eq!(u8::from(April), 4);
+    assert_eq!(u8::from(May), 5);
+    assert_eq!(u8::from(June), 6);
+    assert_eq!(u8::from(July), 7);
+    assert_eq!(u8::from(August), 8);
+    assert_eq!(u8::from(September), 9);
+    assert_eq!(u8::from(October), 10);
+    assert_eq!(u8::from(November), 11);
+    assert_eq!(u8::from(December), 12);
 }
 
 #[test]
 fn try_from_u8() {
-    assert!(matches!(Month::try_from(0u8), Err(err) if err.name() == "month"));
-    assert_eq!(Month::try_from(1u8), Ok(January));
-    assert_eq!(Month::try_from(2u8), Ok(February));
-    assert_eq!(Month::try_from(3u8), Ok(March));
-    assert_eq!(Month::try_from(4u8), Ok(April));
-    assert_eq!(Month::try_from(5u8), Ok(May));
-    assert_eq!(Month::try_from(6u8), Ok(June));
-    assert_eq!(Month::try_from(7u8), Ok(July));
-    assert_eq!(Month::try_from(8u8), Ok(August));
-    assert_eq!(Month::try_from(9u8), Ok(September));
-    assert_eq!(Month::try_from(10u8), Ok(October));
-    assert_eq!(Month::try_from(11u8), Ok(November));
-    assert_eq!(Month::try_from(12u8), Ok(December));
-    assert!(matches!(Month::try_from(0u8), Err(err) if err.name() == "month"));
+    assert!(matches!(Month::try_from(0), Err(err) if err.name() == "month"));
+    assert_eq!(Month::try_from(1), Ok(January));
+    assert_eq!(Month::try_from(2), Ok(February));
+    assert_eq!(Month::try_from(3), Ok(March));
+    assert_eq!(Month::try_from(4), Ok(April));
+    assert_eq!(Month::try_from(5), Ok(May));
+    assert_eq!(Month::try_from(6), Ok(June));
+    assert_eq!(Month::try_from(7), Ok(July));
+    assert_eq!(Month::try_from(8), Ok(August));
+    assert_eq!(Month::try_from(9), Ok(September));
+    assert_eq!(Month::try_from(10), Ok(October));
+    assert_eq!(Month::try_from(11), Ok(November));
+    assert_eq!(Month::try_from(12), Ok(December));
+    assert!(matches!(Month::try_from(13), Err(err) if err.name() == "month"));
 }
