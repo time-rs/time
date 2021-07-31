@@ -1,12 +1,11 @@
 //! The `Month` enum and its associated `impl`s.
 
+use core::convert::TryFrom;
 use core::fmt;
-#[cfg(feature = "parsing")]
 use core::num::NonZeroU8;
 
 use self::Month::*;
-#[cfg(feature = "parsing")]
-use crate::error;
+use crate::error::ComponentRange;
 
 /// Months of the year.
 #[allow(clippy::missing_docs_in_private_items)] // variants
@@ -29,8 +28,7 @@ pub enum Month {
 
 impl Month {
     /// Create a `Month` from its numerical value.
-    #[cfg(feature = "parsing")]
-    pub(crate) const fn from_number(n: NonZeroU8) -> Result<Self, error::ComponentRange> {
+    pub(crate) const fn from_number(n: NonZeroU8) -> Result<Self, ComponentRange> {
         match n.get() {
             1 => Ok(January),
             2 => Ok(February),
@@ -44,7 +42,7 @@ impl Month {
             10 => Ok(October),
             11 => Ok(November),
             12 => Ok(December),
-            n => Err(error::ComponentRange {
+            n => Err(ComponentRange {
                 name: "month",
                 minimum: 1,
                 maximum: 12,
@@ -117,5 +115,39 @@ impl fmt::Display for Month {
             November => "November",
             December => "December",
         })
+    }
+}
+
+impl From<Month> for u8 {
+    fn from(month: Month) -> Self {
+        match month {
+            January => 1,
+            February => 2,
+            March => 3,
+            April => 4,
+            May => 5,
+            June => 6,
+            July => 7,
+            August => 8,
+            September => 9,
+            October => 10,
+            November => 11,
+            December => 12,
+        }
+    }
+}
+
+impl TryFrom<u8> for Month {
+    type Error = ComponentRange;
+
+    fn try_from(value: u8) -> Result<Self, ComponentRange> {
+        let n = NonZeroU8::new(value).ok_or_else(|| ComponentRange {
+            name: "month",
+            minimum: 1,
+            maximum: 12,
+            value: value.into(),
+            conditional_range: false,
+        })?;
+        Self::from_number(n)
     }
 }
