@@ -1,11 +1,10 @@
 //! The `Month` enum and its associated `impl`s.
 
+use core::convert::TryFrom;
 use core::fmt;
-#[cfg(feature = "parsing")]
 use core::num::NonZeroU8;
 
 use self::Month::*;
-#[cfg(feature = "parsing")]
 use crate::error;
 
 /// Months of the year.
@@ -29,7 +28,6 @@ pub enum Month {
 
 impl Month {
     /// Create a `Month` from its numerical value.
-    #[cfg(feature = "parsing")]
     pub(crate) const fn from_number(n: NonZeroU8) -> Result<Self, error::ComponentRange> {
         match n.get() {
             1 => Ok(January),
@@ -117,5 +115,28 @@ impl fmt::Display for Month {
             November => "November",
             December => "December",
         })
+    }
+}
+
+impl From<Month> for u8 {
+    fn from(month: Month) -> Self {
+        month as _
+    }
+}
+
+impl TryFrom<u8> for Month {
+    type Error = error::ComponentRange;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match NonZeroU8::new(value) {
+            Some(value) => Self::from_number(value),
+            None => Err(error::ComponentRange {
+                name: "month",
+                minimum: 1,
+                maximum: 12,
+                value: 0,
+                conditional_range: false,
+            }),
+        }
     }
 }
