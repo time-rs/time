@@ -8,9 +8,7 @@
 //!
 //! - `std` (_enabled by default, implicitly enables `alloc`_)
 //!
-//!   This enables a number of features that depend on the standard library. [`Instant`] is the
-//!   primary item that requires this feature, though some   others methods may rely on [`Instant`]
-//!   internally.
+//!   This enables a number of features that depend on the standard library.
 //!
 //! - `alloc` (_enabled by default via `std`_)
 //!
