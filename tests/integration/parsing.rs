@@ -80,11 +80,7 @@ fn rfc_3339() -> time::Result<()> {
 #[test]
 fn parse_time() -> time::Result<()> {
     let format_input_output = [
-        (
-            fd::parse("[hour repr:12] [period]")?,
-            "01 PM",
-            time!(1:00 PM),
-        ),
+        (fd::parse("[hour repr:12] [period]")?, "01 PM", time!(1 PM)),
         (
             fd::parse("[hour]:[minute]:[second]")?,
             "13:02:03",

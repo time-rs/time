@@ -10,4 +10,8 @@ fn main() {
     let _ = time!(0:); //~ERROR unexpected end of input
     let _ = time!(0,); //~ERROR unexpected token: ,
     let _ = time!(0:00:0a); //~ERROR invalid component: second was 0a
+    let _ = time!(0:00 pm); //~ERROR invalid component: hour was 0
+    let _ = time!(0); //~ERROR unexpected end of input
+    let _ = time!(0 pm); //~ERROR invalid component: hour was 0
+    let _ = time!(1 am :); //~ERROR unexpected token: :
 }
