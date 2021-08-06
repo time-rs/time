@@ -461,6 +461,15 @@ impl TryFrom<Parsed> for Time {
             (_, Some(hour), Some(true)) => hour.get() + 12,
             _ => return Err(InsufficientInformation),
         };
+        if parsed.hour_24.is_none()
+            && parsed.hour_12.is_some()
+            && parsed.hour_12_is_pm.is_some()
+            && parsed.minute.is_none()
+            && parsed.second.is_none()
+            && parsed.subsecond.is_none()
+        {
+            return Ok(Self::from_hms_nano(hour, 0, 0, 0)?);
+        }
         let minute = parsed.minute.ok_or(InsufficientInformation)?;
         let second = parsed.second.unwrap_or(0);
         let subsecond = parsed.subsecond.unwrap_or(0);
