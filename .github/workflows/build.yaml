@@ -353,10 +353,9 @@ jobs:
           override: true
           components: llvm-tools-preview
 
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v1
-        with:
-          key: 4
+      # Re-enable once switching to trybuild
+      # - name: Cache cargo output
+      #   uses: Swatinem/rust-cache@v1
 
       - name: Install cargo-llvm-cov
         run: |

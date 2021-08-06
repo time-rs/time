@@ -6,7 +6,23 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
-## 0.3.0 [_unreleased_]
+## 0.3.1 [2021-08-06]
+
+### Added
+
+- `Month` now implements `TryFrom<u8>`
+- `From<Month>` is now implemented for `u8`
+- The parser now accepts "5 PM" and similar as a valid time. Only the 12-hour clock hour and the
+  AM/PM suffix may be present; any other components representing a time will cause an error (this
+  exact behavior is not guaranteed).
+- The `time!` macro accepts the "5 PM" syntax with the same restriction.
+
+### Fixes
+
+- Macros that have a time component (`time!` and `datetime!`) no longer accept "0:00 AM" and
+  similar. This was previously erroneously accepted.
+
+## 0.3.0 [2021-07-30]
 
 ### Added
 
