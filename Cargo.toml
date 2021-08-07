@@ -46,11 +46,11 @@ time-macros = { version = "=0.2.1", path = "time-macros", optional = true }
 libc = "0.2.98"
 
 [dev-dependencies]
-compiletest = { package = "compiletest_rs", version = "0.7.0" }
 criterion = { version = "0.3.5", features = ["html_reports"] }
 rand = { version = "0.8.4", default-features = false }
 serde = { version = "1.0.126", default-features = false }
 serde_test = "1.0.126"
+trybuild = "1.0.44"
 
 # Significant contributions to the benchmarks provided by Emil Lundberg.
 [[bench]]

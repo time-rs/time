@@ -41,11 +41,7 @@
     clippy::cmp_owned
 )]
 
-#[cfg(not(skip_ui_tests))]
-use std::path::PathBuf;
-
-#[cfg(not(skip_ui_tests))]
-use compiletest::common::Mode;
+use trybuild::TestCases;
 
 /// Construct a non-exhaustive modifier.
 macro_rules! modifier {
@@ -83,20 +79,8 @@ mod utc_offset;
 mod util;
 mod weekday;
 
-#[cfg(not(skip_ui_tests))]
 #[test]
 fn compile_fail() {
-    let mut config = compiletest::Config {
-        mode: Mode::CompileFail,
-        src_base: PathBuf::from("tests")
-            .join("integration")
-            .join("compile-fail"),
-        target_rustcflags: Some("--edition=2018 --extern time".into()),
-        ..compiletest::Config::default()
-    };
-
-    config.link_deps();
-    config.clean_rmeta();
-
-    compiletest::run_tests(&config);
+    let tests = TestCases::new();
+    tests.compile_fail("tests/integration/compile-fail/*.rs");
 }

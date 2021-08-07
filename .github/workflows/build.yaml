@@ -353,13 +353,14 @@ jobs:
           override: true
           components: llvm-tools-preview
 
-      # Re-enable once switching to trybuild
-      # - name: Cache cargo output
-      #   uses: Swatinem/rust-cache@v1
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v1
+        with:
+          key: trybuild-llvm-cov-0.1.0-alpha.5
 
       - name: Install cargo-llvm-cov
         run: |
-          curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/download/v0.1.0-alpha.4/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz | tar xzf - -C ~/.cargo/bin
+          curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/download/v0.1.0-alpha.5/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz | tar xzf - -C ~/.cargo/bin
 
       - name: Generate coverage report
         run: cargo llvm-cov --all-features --lcov > lcov.txt

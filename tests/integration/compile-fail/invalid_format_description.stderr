@@ -1,0 +1,49 @@
+error: expected string
+ --> $DIR/invalid_format_description.rs:4:13
+  |
+4 |     let _ = format_description!();
+  |             ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: missing component name at byte index 1
+ --> $DIR/invalid_format_description.rs:5:33
+  |
+5 |     let _ = format_description!("[]");
+  |                                 ^^^^
+
+error: invalid component name `foo` at byte index 1
+ --> $DIR/invalid_format_description.rs:6:33
+  |
+6 |     let _ = format_description!("[foo]");
+  |                                 ^^^^^^^
+
+error: unclosed opening bracket at byte index 0
+ --> $DIR/invalid_format_description.rs:7:33
+  |
+7 |     let _ = format_description!("[");
+  |                                 ^^^
+
+error: invalid modifier `foo` at byte index 6
+ --> $DIR/invalid_format_description.rs:8:33
+  |
+8 |     let _ = format_description!("[hour foo]");
+  |                                 ^^^^^^^^^^^^
+
+error: unexpected token: x
+ --> $DIR/invalid_format_description.rs:9:36
+  |
+9 |     let _ = format_description!("" x);
+  |                                    ^
+
+error: expected string
+  --> $DIR/invalid_format_description.rs:10:33
+   |
+10 |     let _ = format_description!(x);
+   |                                 ^
+
+error: expected string
+  --> $DIR/invalid_format_description.rs:11:33
+   |
+11 |     let _ = format_description!(0);
+   |                                 ^

@@ -1,0 +1,107 @@
+error: invalid component: year was 1000000
+ --> $DIR/invalid_date.rs:4:19
+  |
+4 |     let _ = date!(+1_000_000-01-01);
+  |                   ^^^^^^^^^^
+
+error: years with more than four digits must have an explicit sign
+ --> $DIR/invalid_date.rs:5:19
+  |
+5 |     let _ = date!(10_000 - 01 - 01);
+  |                   ^^^^^^
+
+error: invalid component: week was 60
+ --> $DIR/invalid_date.rs:6:24
+  |
+6 |     let _ = date!(2021-W 60-1);
+  |                        ^^^^
+
+error: invalid component: day was 0
+ --> $DIR/invalid_date.rs:7:29
+  |
+7 |     let _ = date!(2021-W 01-0);
+  |                             ^
+
+error: invalid component: day was 8
+ --> $DIR/invalid_date.rs:8:29
+  |
+8 |     let _ = date!(2021-W 01-8);
+  |                             ^
+
+error: invalid component: month was 0
+ --> $DIR/invalid_date.rs:9:26
+  |
+9 |     let _ = date!(2021 - 00 - 01);
+  |                          ^^
+
+error: invalid component: month was 13
+  --> $DIR/invalid_date.rs:10:26
+   |
+10 |     let _ = date!(2021 - 13 - 01);
+   |                          ^^
+
+error: invalid component: day was 0
+  --> $DIR/invalid_date.rs:11:31
+   |
+11 |     let _ = date!(2021 - 01 - 00);
+   |                               ^^
+
+error: invalid component: day was 32
+  --> $DIR/invalid_date.rs:12:31
+   |
+12 |     let _ = date!(2021 - 01 - 32);
+   |                               ^^
+
+error: invalid component: ordinal was 0
+  --> $DIR/invalid_date.rs:13:26
+   |
+13 |     let _ = date!(2021 - 000);
+   |                          ^^^
+
+error: invalid component: ordinal was 366
+  --> $DIR/invalid_date.rs:14:26
+   |
+14 |     let _ = date!(2021 - 366);
+   |                          ^^^
+
+error: invalid component: year was 0a
+  --> $DIR/invalid_date.rs:15:19
+   |
+15 |     let _ = date!(0a);
+   |                   ^^
+
+error: unexpected token: :
+  --> $DIR/invalid_date.rs:16:23
+   |
+16 |     let _ = date!(2021:);
+   |                       ^
+
+error: invalid component: week was 0a
+  --> $DIR/invalid_date.rs:17:26
+   |
+17 |     let _ = date!(2021-W 0a);
+   |                          ^^
+
+error: unexpected token: :
+  --> $DIR/invalid_date.rs:18:28
+   |
+18 |     let _ = date!(2021-W 01:);
+   |                            ^
+
+error: invalid component: day was 0a
+  --> $DIR/invalid_date.rs:19:29
+   |
+19 |     let _ = date!(2021-W 01-0a);
+   |                             ^^
+
+error: invalid component: month or ordinal was 0a
+  --> $DIR/invalid_date.rs:20:24
+   |
+20 |     let _ = date!(2021-0a);
+   |                        ^^
+
+error: invalid component: day was 0a
+  --> $DIR/invalid_date.rs:21:27
+   |
+21 |     let _ = date!(2021-01-0a);
+   |                           ^^
