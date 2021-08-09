@@ -41,8 +41,6 @@
     clippy::cmp_owned
 )]
 
-use trybuild::TestCases;
-
 /// Construct a non-exhaustive modifier.
 macro_rules! modifier {
     ($name:ident {
@@ -79,8 +77,9 @@ mod utc_offset;
 mod util;
 mod weekday;
 
+#[cfg(__ui_tests)]
 #[test]
 fn compile_fail() {
-    let tests = TestCases::new();
+    let tests = trybuild::TestCases::new();
     tests.compile_fail("tests/integration/compile-fail/*.rs");
 }

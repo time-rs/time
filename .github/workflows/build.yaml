@@ -214,16 +214,6 @@ jobs:
         with:
           command: test
           args: --all-features
-        if: matrix.os.name == 'Ubuntu'
-
-      - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features
-        env:
-          RUSTFLAGS: "--cfg skip_ui_tests"
-        if: matrix.os.name != 'Ubuntu'
 
   fmt:
     name: Formatting
@@ -363,10 +353,12 @@ jobs:
           curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/download/v0.1.0-alpha.5/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz | tar xzf - -C ~/.cargo/bin
 
       - name: Generate coverage report
-        run: cargo llvm-cov --all-features --lcov > lcov.txt
+        run: cargo llvm-cov --all-features --workspace --lcov > lcov.txt
+        env:
+          # Don't run these anywhere else as the results can depend on the exact compiler used.
+          RUSTFLAGS: "--cfg __ui_tests"
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v1
         with:
           files: ./lcov.txt
-          fail_ci_if_error: false
