@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `Parsed::parse_items`
 - `Parsed::parse_literal`
 
+### Changed
+
+The minimum supported version is now 1.51.0.
+
 ## 0.3.2 [2021-08-25]
 
 ### Added

@@ -11,7 +11,7 @@ use crate::parsing::component::{
     parse_offset_second, parse_ordinal, parse_period, parse_second, parse_subsecond,
     parse_week_number, parse_weekday, parse_year, Period,
 };
-use crate::parsing::{strip_prefix, ParsedItem};
+use crate::parsing::ParsedItem;
 use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// All information parsed.
@@ -127,7 +127,9 @@ impl Parsed {
         input: &'a [u8],
         literal: &[u8],
     ) -> Result<&'a [u8], error::ParseFromDescription> {
-        strip_prefix(input, literal).ok_or(error::ParseFromDescription::InvalidLiteral)
+        input
+            .strip_prefix(literal)
+            .ok_or(error::ParseFromDescription::InvalidLiteral)
     }
 
     /// Parse a single component, mutating the struct. The remaining input is returned as the `Ok`

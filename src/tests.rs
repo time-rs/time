@@ -14,7 +14,6 @@ use std::num::NonZeroU8;
 use crate::format_description::modifier::Modifiers;
 use crate::format_description::FormatItem;
 use crate::formatting::DigitCount;
-use crate::parsing::combinator::ascii_char_ignore_case;
 use crate::parsing::shim::Integer;
 use crate::{duration, parsing};
 
@@ -92,8 +91,6 @@ fn clone() {
 
 #[test]
 fn parsing_internals() {
-    // Silence must-use warning, as we're only interested in the pre-closure assertion.
-    let _ = ascii_char_ignore_case(b' ');
     assert!(
         parsing::ParsedItem(b"", ())
             .flat_map(|_| None::<()>)

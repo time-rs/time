@@ -61,6 +61,7 @@ fn from_unix_timestamp_nanos() {
         OffsetDateTime::from_unix_timestamp_nanos(1_546_300_800_000_000_000),
         Ok(datetime!(2019-01-01 0:00 UTC)),
     );
+    assert!(OffsetDateTime::from_unix_timestamp_nanos(i128::MAX).is_err());
 }
 
 #[test]

@@ -121,33 +121,41 @@ impl sealed::Sealed for Rfc3339 {
             return Err(error::Format::InvalidComponent("offset_second"));
         }
 
-        bytes += format_number_pad_zero(output, year as u32, 4)?;
+        bytes += format_number_pad_zero::<_, _, 4>(output, year as u32)?;
         bytes += write(output, &[b'-'])?;
-        bytes += format_number_pad_zero(output, date.month() as u8, 2)?;
+        bytes += format_number_pad_zero::<_, _, 2>(output, date.month() as u8)?;
         bytes += write(output, &[b'-'])?;
-        bytes += format_number_pad_zero(output, date.day(), 2)?;
+        bytes += format_number_pad_zero::<_, _, 2>(output, date.day())?;
         bytes += write(output, &[b'T'])?;
-        bytes += format_number_pad_zero(output, time.hour(), 2)?;
+        bytes += format_number_pad_zero::<_, _, 2>(output, time.hour())?;
         bytes += write(output, &[b':'])?;
-        bytes += format_number_pad_zero(output, time.minute(), 2)?;
+        bytes += format_number_pad_zero::<_, _, 2>(output, time.minute())?;
         bytes += write(output, &[b':'])?;
-        bytes += format_number_pad_zero(output, time.second(), 2)?;
+        bytes += format_number_pad_zero::<_, _, 2>(output, time.second())?;
 
+        #[allow(clippy::if_not_else)]
         if time.nanosecond() != 0 {
+            let nanos = time.nanosecond();
             bytes += write(output, &[b'.'])?;
-
-            let (value, width) = match time.nanosecond() {
-                nanos if nanos % 10 != 0 => (nanos, 9),
-                nanos if (nanos / 10) % 10 != 0 => (nanos / 10, 8),
-                nanos if (nanos / 100) % 10 != 0 => (nanos / 100, 7),
-                nanos if (nanos / 1_000) % 10 != 0 => (nanos / 1_000, 6),
-                nanos if (nanos / 10_000) % 10 != 0 => (nanos / 10_000, 5),
-                nanos if (nanos / 100_000) % 10 != 0 => (nanos / 100_000, 4),
-                nanos if (nanos / 1_000_000) % 10 != 0 => (nanos / 1_000_000, 3),
-                nanos if (nanos / 10_000_000) % 10 != 0 => (nanos / 10_000_000, 2),
-                nanos => (nanos / 100_000_000, 1),
-            };
-            bytes += format_number_pad_zero(output, value, width)?;
+            bytes += if nanos % 10 != 0 {
+                format_number_pad_zero::<_, _, 9>(output, nanos)
+            } else if (nanos / 10) % 10 != 0 {
+                format_number_pad_zero::<_, _, 8>(output, nanos / 10)
+            } else if (nanos / 100) % 10 != 0 {
+                format_number_pad_zero::<_, _, 7>(output, nanos / 100)
+            } else if (nanos / 1_000) % 10 != 0 {
+                format_number_pad_zero::<_, _, 6>(output, nanos / 1_000)
+            } else if (nanos / 10_000) % 10 != 0 {
+                format_number_pad_zero::<_, _, 5>(output, nanos / 10_000)
+            } else if (nanos / 100_000) % 10 != 0 {
+                format_number_pad_zero::<_, _, 4>(output, nanos / 100_000)
+            } else if (nanos / 1_000_000) % 10 != 0 {
+                format_number_pad_zero::<_, _, 3>(output, nanos / 1_000_000)
+            } else if (nanos / 10_000_000) % 10 != 0 {
+                format_number_pad_zero::<_, _, 2>(output, nanos / 10_000_000)
+            } else {
+                format_number_pad_zero::<_, _, 1>(output, nanos / 100_000_000)
+            }?;
         }
 
         if offset == UtcOffset::UTC {
@@ -163,10 +171,10 @@ impl sealed::Sealed for Rfc3339 {
                 &[b'+']
             },
         )?;
-        bytes += format_number_pad_zero(output, offset.whole_hours().wrapping_abs() as u8, 2)?;
+        bytes += format_number_pad_zero::<_, _, 2>(output, offset.whole_hours().unsigned_abs())?;
         bytes += write(output, &[b':'])?;
         bytes +=
-            format_number_pad_zero(output, offset.minutes_past_hour().wrapping_abs() as u8, 2)?;
+            format_number_pad_zero::<_, _, 2>(output, offset.minutes_past_hour().unsigned_abs())?;
 
         Ok(bytes)
     }

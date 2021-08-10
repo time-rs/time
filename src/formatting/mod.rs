@@ -124,15 +124,14 @@ fn write(output: &mut impl io::Write, bytes: &[u8]) -> io::Result<usize> {
 /// Format a number with the provided padding and width.
 ///
 /// The sign must be written by the caller.
-pub(crate) fn format_number(
-    output: &mut impl io::Write,
-    value: impl itoa::Integer + DigitCount + Copy,
+pub(crate) fn format_number<W: io::Write, V: itoa::Integer + DigitCount + Copy, const WIDTH: u8>(
+    output: &mut W,
+    value: V,
     padding: modifier::Padding,
-    width: u8,
 ) -> Result<usize, io::Error> {
     match padding {
-        modifier::Padding::Space => format_number_pad_space(output, value, width),
-        modifier::Padding::Zero => format_number_pad_zero(output, value, width),
+        modifier::Padding::Space => format_number_pad_space::<_, _, WIDTH>(output, value),
+        modifier::Padding::Zero => format_number_pad_zero::<_, _, WIDTH>(output, value),
         modifier::Padding::None => itoa::write(output, value),
     }
 }
@@ -140,13 +139,16 @@ pub(crate) fn format_number(
 /// Format a number with the provided width and spaces as padding.
 ///
 /// The sign must be written by the caller.
-pub(crate) fn format_number_pad_space(
-    output: &mut impl io::Write,
-    value: impl itoa::Integer + DigitCount + Copy,
-    width: u8,
+pub(crate) fn format_number_pad_space<
+    W: io::Write,
+    V: itoa::Integer + DigitCount + Copy,
+    const WIDTH: u8,
+>(
+    output: &mut W,
+    value: V,
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
-    for _ in 0..(width.saturating_sub(value.num_digits())) {
+    for _ in 0..(WIDTH.saturating_sub(value.num_digits())) {
         bytes += write(output, &[b' '])?;
     }
     bytes += itoa::write(output, value)?;
@@ -156,13 +158,16 @@ pub(crate) fn format_number_pad_space(
 /// Format a number with the provided width and zeros as padding.
 ///
 /// The sign must be written by the caller.
-pub(crate) fn format_number_pad_zero(
-    output: &mut impl io::Write,
-    value: impl itoa::Integer + DigitCount + Copy,
-    width: u8,
+pub(crate) fn format_number_pad_zero<
+    W: io::Write,
+    V: itoa::Integer + DigitCount + Copy,
+    const WIDTH: u8,
+>(
+    output: &mut W,
+    value: V,
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
-    for _ in 0..(width.saturating_sub(value.num_digits())) {
+    for _ in 0..(WIDTH.saturating_sub(value.num_digits())) {
         bytes += write(output, &[b'0'])?;
     }
     bytes += itoa::write(output, value)?;
@@ -206,7 +211,7 @@ fn fmt_day(
     date: Date,
     modifier::Day { padding }: modifier::Day,
 ) -> Result<usize, io::Error> {
-    format_number(output, date.day(), padding, 2)
+    format_number::<_, _, 2>(output, date.day(), padding)
 }
 
 /// Format the month into the designated output.
@@ -216,11 +221,13 @@ fn fmt_month(
     modifier::Month {
         padding,
         repr,
-        case_sensitive: _case_sensitive, // no effect on formatting
+        case_sensitive: _, // no effect on formatting
     }: modifier::Month,
 ) -> Result<usize, io::Error> {
     match repr {
-        modifier::MonthRepr::Numerical => format_number(output, date.month() as u8, padding, 2),
+        modifier::MonthRepr::Numerical => {
+            format_number::<_, _, 2>(output, date.month() as u8, padding)
+        }
         modifier::MonthRepr::Long => write(output, MONTH_NAMES[date.month() as usize - 1]),
         modifier::MonthRepr::Short => write(output, &MONTH_NAMES[date.month() as usize - 1][..3]),
     }
@@ -232,7 +239,7 @@ fn fmt_ordinal(
     date: Date,
     modifier::Ordinal { padding }: modifier::Ordinal,
 ) -> Result<usize, io::Error> {
-    format_number(output, date.ordinal(), padding, 3)
+    format_number::<_, _, 3>(output, date.ordinal(), padding)
 }
 
 /// Format the weekday into the designated output.
@@ -242,7 +249,7 @@ fn fmt_weekday(
     modifier::Weekday {
         repr,
         one_indexed,
-        case_sensitive: _case_sensitive, // no effect on formatting
+        case_sensitive: _, // no effect on formatting
     }: modifier::Weekday,
 ) -> Result<usize, io::Error> {
     match repr {
@@ -254,17 +261,15 @@ fn fmt_weekday(
             output,
             WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize],
         ),
-        modifier::WeekdayRepr::Sunday => format_number(
+        modifier::WeekdayRepr::Sunday => format_number::<_, _, 1>(
             output,
             date.weekday().number_days_from_sunday() + one_indexed as u8,
             modifier::Padding::None,
-            1,
         ),
-        modifier::WeekdayRepr::Monday => format_number(
+        modifier::WeekdayRepr::Monday => format_number::<_, _, 1>(
             output,
             date.weekday().number_days_from_monday() + one_indexed as u8,
             modifier::Padding::None,
-            1,
         ),
     }
 }
@@ -275,7 +280,7 @@ fn fmt_week_number(
     date: Date,
     modifier::WeekNumber { padding, repr }: modifier::WeekNumber,
 ) -> Result<usize, io::Error> {
-    format_number(
+    format_number::<_, _, 2>(
         output,
         match repr {
             modifier::WeekNumberRepr::Iso => date.iso_week(),
@@ -283,7 +288,6 @@ fn fmt_week_number(
             modifier::WeekNumberRepr::Monday => date.monday_based_week(),
         },
         padding,
-        2,
     )
 }
 
@@ -307,13 +311,13 @@ fn fmt_year(
         modifier::YearRepr::Full => full_year,
         modifier::YearRepr::LastTwo => (full_year % 100).abs(),
     };
-    let width = match repr {
+    let format_number = match repr {
         #[cfg(feature = "large-dates")]
-        modifier::YearRepr::Full if value.abs() >= 100_000 => 6,
+        modifier::YearRepr::Full if value.abs() >= 100_000 => format_number::<_, _, 6>,
         #[cfg(feature = "large-dates")]
-        modifier::YearRepr::Full if value.abs() >= 10_000 => 5,
-        modifier::YearRepr::Full => 4,
-        modifier::YearRepr::LastTwo => 2,
+        modifier::YearRepr::Full if value.abs() >= 10_000 => format_number::<_, _, 5>,
+        modifier::YearRepr::Full => format_number::<_, _, 4>,
+        modifier::YearRepr::LastTwo => format_number::<_, _, 2>,
     };
     let mut bytes = 0;
     if repr != modifier::YearRepr::LastTwo {
@@ -323,7 +327,7 @@ fn fmt_year(
             bytes += write(output, &[b'+'])?;
         }
     }
-    bytes += format_number(output, value.wrapping_abs() as u32, padding, width)?;
+    bytes += format_number(output, value.unsigned_abs(), padding)?;
     Ok(bytes)
 }
 // endregion date formatters
@@ -345,7 +349,7 @@ fn fmt_hour(
         (hour, true) if hour < 12 => hour,
         (hour, true) => hour - 12,
     };
-    format_number(output, value, padding, 2)
+    format_number::<_, _, 2>(output, value, padding)
 }
 
 /// Format the minute into the designated output.
@@ -354,7 +358,7 @@ fn fmt_minute(
     time: Time,
     modifier::Minute { padding }: modifier::Minute,
 ) -> Result<usize, io::Error> {
-    format_number(output, time.minute(), padding, 2)
+    format_number::<_, _, 2>(output, time.minute(), padding)
 }
 
 /// Format the period into the designated output.
@@ -363,7 +367,7 @@ fn fmt_period(
     time: Time,
     modifier::Period {
         is_uppercase,
-        case_sensitive: _case_sensitive, // no effect on formatting
+        case_sensitive: _, // no effect on formatting
     }: modifier::Period,
 ) -> Result<usize, io::Error> {
     match (time.hour() >= 12, is_uppercase) {
@@ -380,38 +384,37 @@ fn fmt_second(
     time: Time,
     modifier::Second { padding }: modifier::Second,
 ) -> Result<usize, io::Error> {
-    format_number(output, time.second(), padding, 2)
+    format_number::<_, _, 2>(output, time.second(), padding)
 }
 
 /// Format the subsecond into the designated output.
-fn fmt_subsecond(
-    output: &mut impl io::Write,
+fn fmt_subsecond<W: io::Write>(
+    output: &mut W,
     time: Time,
     modifier::Subsecond { digits }: modifier::Subsecond,
 ) -> Result<usize, io::Error> {
-    let (value, width) = match digits {
-        modifier::SubsecondDigits::One => (time.nanosecond() / 100_000_000, 1),
-        modifier::SubsecondDigits::Two => (time.nanosecond() / 10_000_000, 2),
-        modifier::SubsecondDigits::Three => (time.nanosecond() / 1_000_000, 3),
-        modifier::SubsecondDigits::Four => (time.nanosecond() / 100_000, 4),
-        modifier::SubsecondDigits::Five => (time.nanosecond() / 10_000, 5),
-        modifier::SubsecondDigits::Six => (time.nanosecond() / 1_000, 6),
-        modifier::SubsecondDigits::Seven => (time.nanosecond() / 100, 7),
-        modifier::SubsecondDigits::Eight => (time.nanosecond() / 10, 8),
-        modifier::SubsecondDigits::Nine => (time.nanosecond(), 9),
-        modifier::SubsecondDigits::OneOrMore => match time.nanosecond() {
-            nanos if nanos % 10 != 0 => (nanos, 9),
-            nanos if (nanos / 10) % 10 != 0 => (nanos / 10, 8),
-            nanos if (nanos / 100) % 10 != 0 => (nanos / 100, 7),
-            nanos if (nanos / 1_000) % 10 != 0 => (nanos / 1_000, 6),
-            nanos if (nanos / 10_000) % 10 != 0 => (nanos / 10_000, 5),
-            nanos if (nanos / 100_000) % 10 != 0 => (nanos / 100_000, 4),
-            nanos if (nanos / 1_000_000) % 10 != 0 => (nanos / 1_000_000, 3),
-            nanos if (nanos / 10_000_000) % 10 != 0 => (nanos / 10_000_000, 2),
-            nanos => (nanos / 100_000_000, 1),
-        },
-    };
-    format_number_pad_zero(output, value, width)
+    use modifier::SubsecondDigits::*;
+    let nanos = time.nanosecond();
+
+    if digits == Nine || (digits == OneOrMore && nanos % 10 != 0) {
+        format_number_pad_zero::<_, _, 9>(output, nanos)
+    } else if digits == Eight || (digits == OneOrMore && (nanos / 10) % 10 != 0) {
+        format_number_pad_zero::<_, _, 8>(output, nanos / 10)
+    } else if digits == Seven || (digits == OneOrMore && (nanos / 100) % 10 != 0) {
+        format_number_pad_zero::<_, _, 7>(output, nanos / 100)
+    } else if digits == Six || (digits == OneOrMore && (nanos / 1_000) % 10 != 0) {
+        format_number_pad_zero::<_, _, 6>(output, nanos / 1_000)
+    } else if digits == Five || (digits == OneOrMore && (nanos / 10_000) % 10 != 0) {
+        format_number_pad_zero::<_, _, 5>(output, nanos / 10_000)
+    } else if digits == Four || (digits == OneOrMore && (nanos / 100_000) % 10 != 0) {
+        format_number_pad_zero::<_, _, 4>(output, nanos / 100_000)
+    } else if digits == Three || (digits == OneOrMore && (nanos / 1_000_000) % 10 != 0) {
+        format_number_pad_zero::<_, _, 3>(output, nanos / 1_000_000)
+    } else if digits == Two || (digits == OneOrMore && (nanos / 10_000_000) % 10 != 0) {
+        format_number_pad_zero::<_, _, 2>(output, nanos / 10_000_000)
+    } else {
+        format_number_pad_zero::<_, _, 1>(output, nanos / 100_000_000)
+    }
 }
 // endregion time formatters
 
@@ -431,12 +434,7 @@ fn fmt_offset_hour(
     } else if sign_is_mandatory {
         bytes += write(output, &[b'+'])?;
     }
-    bytes += format_number(
-        output,
-        offset.whole_hours().wrapping_abs() as u8,
-        padding,
-        2,
-    )?;
+    bytes += format_number::<_, _, 2>(output, offset.whole_hours().unsigned_abs(), padding)?;
     Ok(bytes)
 }
 
@@ -446,12 +444,7 @@ fn fmt_offset_minute(
     offset: UtcOffset,
     modifier::OffsetMinute { padding }: modifier::OffsetMinute,
 ) -> Result<usize, io::Error> {
-    format_number(
-        output,
-        offset.minutes_past_hour().wrapping_abs() as u8,
-        padding,
-        2,
-    )
+    format_number::<_, _, 2>(output, offset.minutes_past_hour().unsigned_abs(), padding)
 }
 
 /// Format the offset second into the designated output.
@@ -460,11 +453,6 @@ fn fmt_offset_second(
     offset: UtcOffset,
     modifier::OffsetSecond { padding }: modifier::OffsetSecond,
 ) -> Result<usize, io::Error> {
-    format_number(
-        output,
-        offset.seconds_past_minute().wrapping_abs() as u8,
-        padding,
-        2,
-    )
+    format_number::<_, _, 2>(output, offset.seconds_past_minute().unsigned_abs(), padding)
 }
 // endregion offset formatters

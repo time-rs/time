@@ -1,5 +1,6 @@
 [workspace]
 members = ["time-macros"]
+resolver = "2"
 
 [package]
 name = "time"

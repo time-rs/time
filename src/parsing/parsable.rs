@@ -124,35 +124,35 @@ impl sealed::Sealed for Rfc3339 {
             any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, sign,
         };
 
-        let dash = ascii_char(b'-');
-        let colon = ascii_char(b':');
+        let dash = ascii_char::<b'-'>;
+        let colon = ascii_char::<b':'>;
 
-        let input = exactly_n_digits(4)(input)
+        let input = exactly_n_digits::<_, 4>(input)
             .ok_or(InvalidComponent("year"))?
             .map(|year: u32| year as _)
             .assign_value_to(&mut parsed.year);
         let input = dash(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits(2)(input)
+        let input = exactly_n_digits::<_, 2>(input)
             .ok_or(InvalidComponent("month"))?
             .flat_map_res(Month::from_number)
             .map_err(error::TryFromParsed::ComponentRange)?
             .assign_value_to(&mut parsed.month);
         let input = dash(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits(2)(input)
+        let input = exactly_n_digits::<_, 2>(input)
             .ok_or(InvalidComponent("day"))?
             .assign_value_to(&mut parsed.day);
-        let input = ascii_char_ignore_case(b'T')(input)
+        let input = ascii_char_ignore_case::<b'T'>(input)
             .ok_or(InvalidLiteral)?
             .into_inner();
-        let input = exactly_n_digits(2)(input)
+        let input = exactly_n_digits::<_, 2>(input)
             .ok_or(InvalidComponent("hour"))?
             .assign_value_to(&mut parsed.hour_24);
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits(2)(input)
+        let input = exactly_n_digits::<_, 2>(input)
             .ok_or(InvalidComponent("minute"))?
             .assign_value_to(&mut parsed.minute);
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits(2)(input)
+        let input = exactly_n_digits::<_, 2>(input)
             .ok_or(InvalidComponent("second"))?
             .map(|second|
                 // The RFC explicitly allows leap seconds. We don't support them, so treat it
@@ -160,7 +160,7 @@ impl sealed::Sealed for Rfc3339 {
                 if second == 60 { 59 } else { second }
             )
             .assign_value_to(&mut parsed.second);
-        let input = if let Some(ParsedItem(input, ())) = ascii_char(b'.')(input) {
+        let input = if let Some(ParsedItem(input, ())) = ascii_char::<b'.'>(input) {
             let ParsedItem(mut input, mut value) = any_digit(input)
                 .ok_or(InvalidComponent("subsecond"))?
                 .map(|v| (v - b'0') as u32 * 100_000_000);
@@ -177,7 +177,7 @@ impl sealed::Sealed for Rfc3339 {
             input
         };
 
-        if let Some(ParsedItem(input, ())) = ascii_char_ignore_case(b'Z')(input) {
+        if let Some(ParsedItem(input, ())) = ascii_char_ignore_case::<b'Z'>(input) {
             parsed.offset_hour = Some(0);
             parsed.offset_minute = Some(0);
             parsed.offset_second = Some(0);
@@ -185,7 +185,7 @@ impl sealed::Sealed for Rfc3339 {
         }
 
         let ParsedItem(input, offset_sign) = sign(input).ok_or(InvalidComponent("offset_hour"))?;
-        let input = exactly_n_digits(2)(input)
+        let input = exactly_n_digits::<_, 2>(input)
             .ok_or(InvalidComponent("offset_hour"))?
             .map(|offset_hour: u8| {
                 if offset_sign == b'-' {
@@ -196,7 +196,7 @@ impl sealed::Sealed for Rfc3339 {
             })
             .assign_value_to(&mut parsed.offset_hour);
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits(2)(input)
+        let input = exactly_n_digits::<_, 2>(input)
             .ok_or(InvalidComponent("offset_minute"))?
             .assign_value_to(&mut parsed.offset_minute);
 
@@ -209,29 +209,31 @@ impl sealed::Sealed for Rfc3339 {
             any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, sign,
         };
 
-        let dash = ascii_char(b'-');
-        let colon = ascii_char(b':');
+        let dash = ascii_char::<b'-'>;
+        let colon = ascii_char::<b':'>;
 
         let ParsedItem(input, year) =
-            exactly_n_digits::<u32>(4)(input).ok_or(InvalidComponent("year"))?;
+            exactly_n_digits::<u32, 4>(input).ok_or(InvalidComponent("year"))?;
         let input = dash(input).ok_or(InvalidLiteral)?.into_inner();
         let ParsedItem(input, month) =
-            exactly_n_digits(2)(input).ok_or(InvalidComponent("month"))?;
+            exactly_n_digits::<_, 2>(input).ok_or(InvalidComponent("month"))?;
         let input = dash(input).ok_or(InvalidLiteral)?.into_inner();
-        let ParsedItem(input, day) = exactly_n_digits(2)(input).ok_or(InvalidComponent("day"))?;
-        let input = ascii_char_ignore_case(b'T')(input)
+        let ParsedItem(input, day) =
+            exactly_n_digits::<_, 2>(input).ok_or(InvalidComponent("day"))?;
+        let input = ascii_char_ignore_case::<b'T'>(input)
             .ok_or(InvalidLiteral)?
             .into_inner();
-        let ParsedItem(input, hour) = exactly_n_digits(2)(input).ok_or(InvalidComponent("hour"))?;
+        let ParsedItem(input, hour) =
+            exactly_n_digits::<_, 2>(input).ok_or(InvalidComponent("hour"))?;
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
         let ParsedItem(input, minute) =
-            exactly_n_digits(2)(input).ok_or(InvalidComponent("minute"))?;
+            exactly_n_digits::<_, 2>(input).ok_or(InvalidComponent("minute"))?;
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
-        let ParsedItem(input, second) = exactly_n_digits(2)(input)
+        let ParsedItem(input, second) = exactly_n_digits::<_, 2>(input)
             .ok_or(InvalidComponent("second"))?
             .map(|seconds| if seconds == 60 { 59 } else { seconds });
         let ParsedItem(input, nanosecond) =
-            if let Some(ParsedItem(input, ())) = ascii_char(b'.')(input) {
+            if let Some(ParsedItem(input, ())) = ascii_char::<b'.'>(input) {
                 let ParsedItem(mut input, mut value) = any_digit(input)
                     .ok_or(InvalidComponent("subsecond"))?
                     .map(|v| (v - b'0') as u32 * 100_000_000);
@@ -248,16 +250,16 @@ impl sealed::Sealed for Rfc3339 {
                 ParsedItem(input, 0)
             };
         let ParsedItem(input, offset) = {
-            if let Some(ParsedItem(input, ())) = ascii_char_ignore_case(b'Z')(input) {
+            if let Some(ParsedItem(input, ())) = ascii_char_ignore_case::<b'Z'>(input) {
                 ParsedItem(input, UtcOffset::UTC)
             } else {
                 let ParsedItem(input, offset_sign) =
                     sign(input).ok_or(InvalidComponent("offset_hour"))?;
                 let ParsedItem(input, offset_hour) =
-                    exactly_n_digits::<u8>(2)(input).ok_or(InvalidComponent("offset_hour"))?;
+                    exactly_n_digits::<u8, 2>(input).ok_or(InvalidComponent("offset_hour"))?;
                 let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
                 let ParsedItem(input, offset_minute) =
-                    exactly_n_digits::<u8>(2)(input).ok_or(InvalidComponent("offset_minute"))?;
+                    exactly_n_digits::<u8, 2>(input).ok_or(InvalidComponent("offset_minute"))?;
                 UtcOffset::from_hms(
                     if offset_sign == b'-' {
                         -(offset_hour as i8)

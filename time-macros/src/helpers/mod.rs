@@ -66,7 +66,7 @@ pub(crate) fn consume_punct(
     chars: &mut Peekable<token_stream::IntoIter>,
 ) -> Result<Span, Error> {
     match chars.peek() {
-        Some(TokenTree::Punct(punct)) if punct.as_char() == c => {
+        Some(TokenTree::Punct(punct)) if *punct == c => {
             let ret = Ok(punct.span());
             drop(chars.next());
             ret

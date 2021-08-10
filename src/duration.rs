@@ -187,10 +187,7 @@ impl Duration {
     #[cfg(feature = "std")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
     pub(crate) fn abs_std(self) -> StdDuration {
-        StdDuration::new(
-            self.seconds.wrapping_abs() as _,
-            self.nanoseconds.wrapping_abs() as _,
-        )
+        StdDuration::new(self.seconds.unsigned_abs(), self.nanoseconds.unsigned_abs())
     }
     // endregion abs
 
