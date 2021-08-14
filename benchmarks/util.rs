@@ -1,10 +1,11 @@
 use criterion::{black_box, Bencher};
+use criterion_cycles_per_byte::CyclesPerByte;
 use time::{util, Month};
 
 setup_benchmark! {
     "Utils",
 
-    fn days_in_year_month(ben: &mut Bencher<'_>) {
+    fn days_in_year_month(ben: &mut Bencher<'_, CyclesPerByte>) {
         // Common year
         ben.iter(|| util::days_in_year_month(2019, Month::January));
         ben.iter(|| util::days_in_year_month(2019, Month::February));
@@ -34,7 +35,7 @@ setup_benchmark! {
         ben.iter(|| util::days_in_year_month(2020, Month::December));
     }
 
-    fn is_leap_year(ben: &mut Bencher<'_>) {
+    fn is_leap_year(ben: &mut Bencher<'_, CyclesPerByte>) {
         ben.iter(|| {
             for year in 0..400 {
                 black_box(util::is_leap_year(year));
@@ -42,7 +43,7 @@ setup_benchmark! {
         });
     }
 
-    fn days_in_year(ben: &mut Bencher<'_>) {
+    fn days_in_year(ben: &mut Bencher<'_, CyclesPerByte>) {
         ben.iter(|| {
             for year in 0..400 {
                 black_box(util::days_in_year(year));
@@ -50,7 +51,7 @@ setup_benchmark! {
         });
     }
 
-    fn weeks_in_year(ben: &mut Bencher<'_>) {
+    fn weeks_in_year(ben: &mut Bencher<'_, CyclesPerByte>) {
         ben.iter(|| {
             for year in 0..400 {
                 black_box(util::weeks_in_year(year));

@@ -43,7 +43,9 @@ macro_rules! setup_benchmark {
     ) => {
         $(
             $(#[$fn_attr])*
-            fn $fn_name(c: &mut ::criterion::Criterion) {
+            fn $fn_name(
+                c: &mut ::criterion::Criterion<::criterion_cycles_per_byte::CyclesPerByte>
+            ) {
                 c.bench_function(
                     concat!($group_prefix, ": ", stringify!($fn_name)),
                     |$bencher: $bencher_type| $code
@@ -54,6 +56,7 @@ macro_rules! setup_benchmark {
         ::criterion::criterion_group! {
             name = benches;
             config = ::criterion::Criterion::default()
+                .with_measurement(::criterion_cycles_per_byte::CyclesPerByte)
                 // Set a stricter statistical significance threshold ("p-value")
                 // for deciding what's an actual performance change vs. noise.
                 // The more benchmarks, the lower this needs to be in order to

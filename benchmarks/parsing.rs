@@ -1,11 +1,12 @@
 use criterion::Bencher;
+use criterion_cycles_per_byte::CyclesPerByte;
 use time::format_description::{modifier, Component};
 use time::parsing::Parsed;
 
 setup_benchmark! {
     "Parsing",
 
-    fn parse_component(ben: &mut Bencher<'_>) {
+    fn parse_component(ben: &mut Bencher<'_, CyclesPerByte>) {
         macro_rules! component {
             ($name:ident {$($field:ident : $value:expr),+ $(,)? }) => {{
                 const COMPONENT: Component = Component::$name({

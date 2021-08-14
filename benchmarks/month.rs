@@ -1,10 +1,11 @@
 use criterion::Bencher;
+use criterion_cycles_per_byte::CyclesPerByte;
 use time::Month::*;
 
 setup_benchmark! {
     "Month",
 
-    fn previous(ben: &mut Bencher<'_>) {
+    fn previous(ben: &mut Bencher<'_, CyclesPerByte>) {
         ben.iter(|| January.previous());
         ben.iter(|| February.previous());
         ben.iter(|| March.previous());
@@ -19,7 +20,7 @@ setup_benchmark! {
         ben.iter(|| December.previous());
     }
 
-    fn next(ben: &mut Bencher<'_>) {
+    fn next(ben: &mut Bencher<'_, CyclesPerByte>) {
         ben.iter(|| January.next());
         ben.iter(|| February.next());
         ben.iter(|| March.next());
