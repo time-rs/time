@@ -53,7 +53,7 @@ serde = { version = "1.0.126", default-features = false }
 serde_test = "1.0.126"
 
 [target.'cfg(__ui_tests)'.dev-dependencies]
-trybuild = "1.0.44"
+trybuild = "=1.0.34"
 
 # Significant contributions to the benchmarks provided by Emil Lundberg.
 [[bench]]
