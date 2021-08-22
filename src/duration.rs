@@ -123,10 +123,10 @@ impl Duration {
     pub const WEEK: Self = Self::weeks(1);
 
     /// The minimum possible duration. Adding any negative duration to this will cause an overflow.
-    pub const MIN: Self = Self::new_unchecked(i64::min_value(), -999_999_999);
+    pub const MIN: Self = Self::new_unchecked(i64::MIN, -999_999_999);
 
     /// The maximum possible duration. Adding any positive duration to this will cause an overflow.
-    pub const MAX: Self = Self::new_unchecked(i64::max_value(), 999_999_999);
+    pub const MAX: Self = Self::new_unchecked(i64::MAX, 999_999_999);
     // endregion constants
 
     // region: is_{sign}
@@ -941,7 +941,7 @@ impl PartialEq<Duration> for StdDuration {
 
 impl PartialOrd<StdDuration> for Duration {
     fn partial_cmp(&self, rhs: &StdDuration) -> Option<Ordering> {
-        if rhs.as_secs() > i64::max_value() as _ {
+        if rhs.as_secs() > i64::MAX as _ {
             return Some(Ordering::Less);
         }
 

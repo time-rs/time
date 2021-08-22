@@ -105,6 +105,7 @@
     clippy::unwrap_in_result,
     clippy::unwrap_used,
     clippy::use_debug,
+    deprecated_in_future,
     missing_copy_implementations,
     missing_debug_implementations,
     unused_qualifications,
