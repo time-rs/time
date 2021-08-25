@@ -29,8 +29,17 @@ macro_rules! test_shrink {
 }
 
 quickcheck! {
-    fn date_roundtrip(d: Date) -> bool {
+    fn date_yo_roundtrip(d: Date) -> bool {
         Date::from_ordinal_date(d.year(), d.ordinal()) == Ok(d)
+    }
+
+    fn date_ymd_roundtrip(d: Date) -> bool {
+        Date::from_calendar_date(d.year(), d.month(), d.day()) == Ok(d)
+    }
+
+    fn date_ywd_roundtrip(d: Date) -> bool {
+        let (year, week, weekday) = d.to_iso_week_date();
+        Date::from_iso_week_date(year, week, weekday) == Ok(d)
     }
 
     fn julian_day_roundtrip(d: Date) -> bool {
