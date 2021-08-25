@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.2 [2021-08-25]
+
+### Added
+
+- `Instant` is now `#[repr(transparent)]`
+
+### Fixed
+
+- Constructing a `Date` from its ISO year, week, and weekday now returns the correct value in all
+  circumstances. Previously, dates with an ISO year less than zero may have returned incorrect
+  values. This affects both the `Date::from_iso_week_date` method and the `date!` macro.
+
 ## 0.3.1 [2021-08-06]
 
 ### Added
@@ -17,7 +29,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
   exact behavior is not guaranteed).
 - The `time!` macro accepts the "5 PM" syntax with the same restriction.
 
-### Fixes
+### Fixed
 
 - Macros that have a time component (`time!` and `datetime!`) no longer accept "0:00 AM" and
   similar. This was previously erroneously accepted.
