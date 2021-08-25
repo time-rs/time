@@ -434,6 +434,12 @@ fn from_iso_week_date() {
     assert!(Date::from_iso_week_date(-9999, 1, Monday).is_ok());
     // 2019 doesn't have 53 weeks.
     assert!(Date::from_iso_week_date(2019, 53, Monday).is_err());
+    // Regression test. Year zero (1 BCE) has dominical letter BA.
+    assert_eq!(
+        Date::from_iso_week_date(-1, 52, Saturday),
+        Ok(date!(0000 - 01 - 01))
+    );
+    assert_eq!(date!(-0001-W 52-6), date!(0000 - 01 - 01));
 }
 
 #[test]
@@ -538,6 +544,7 @@ fn to_iso_week_date() {
         (2020, 53, Thursday)
     );
     assert_eq!(date!(2021 - 01 - 01).to_iso_week_date(), (2020, 53, Friday));
+    assert_eq!(date!(0000 - 01 - 01).to_iso_week_date(), (-1, 52, Saturday));
 }
 
 #[test]

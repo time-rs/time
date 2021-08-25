@@ -142,33 +142,30 @@ impl Date {
         ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
         ensure_value_in_range!(week conditionally in 1 => weeks_in_year(year));
 
-        let (ordinal, overflow) = (week as u16 * 7 + weekday.number_from_monday() as u16)
-            .overflowing_sub({
-                let adj_year = year - 1;
-                let rem = (adj_year + adj_year / 4 - adj_year / 100 + adj_year / 400 + 3) % 7;
-                if rem < 0 {
-                    (rem + 11) as _
-                } else {
-                    (rem + 4) as _
-                }
-            });
+        let adj_year = year - 1;
+        let raw = 365 * adj_year + div_floor!(adj_year, 4) - div_floor!(adj_year, 100)
+            + div_floor!(adj_year, 400);
+        let jan_4 = match (raw % 7) as i8 {
+            -6 | 1 => 8,
+            -5 | 2 => 9,
+            -4 | 3 => 10,
+            -3 | 4 => 4,
+            -2 | 5 => 5,
+            -1 | 6 => 6,
+            _ => 7,
+        };
+        let ordinal = week as i16 * 7 + weekday.number_from_monday() as i16 - jan_4;
 
-        if overflow || ordinal == 0 {
-            return Ok(Self::__from_ordinal_date_unchecked(
+        Ok(if ordinal <= 0 {
+            Self::__from_ordinal_date_unchecked(
                 year - 1,
-                ordinal.wrapping_add(days_in_year(year - 1)),
-            ));
-        }
-
-        let days_in_cur_year = days_in_year(year);
-        if ordinal > days_in_cur_year {
-            Ok(Self::__from_ordinal_date_unchecked(
-                year + 1,
-                ordinal - days_in_cur_year,
-            ))
+                (ordinal as u16).wrapping_add(days_in_year(year - 1)),
+            )
+        } else if ordinal > days_in_year(year) as i16 {
+            Self::__from_ordinal_date_unchecked(year + 1, ordinal as u16 - days_in_year(year))
         } else {
-            Ok(Self::__from_ordinal_date_unchecked(year, ordinal))
-        }
+            Self::__from_ordinal_date_unchecked(year, ordinal as _)
+        })
     }
 
     /// Create a `Date` from the Julian day.
