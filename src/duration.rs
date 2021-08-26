@@ -718,10 +718,7 @@ impl TryFrom<StdDuration> for Duration {
                 .as_secs()
                 .try_into()
                 .map_err(|_| error::ConversionRange)?,
-            original
-                .subsec_nanos()
-                .try_into()
-                .map_err(|_| error::ConversionRange)?,
+            original.subsec_nanos() as _,
         ))
     }
 }
