@@ -2,8 +2,8 @@ use time::format_description::modifier::{
     self, MonthRepr, Padding, WeekNumberRepr, WeekdayRepr, YearRepr,
 };
 use time::format_description::{Component, FormatItem};
-use time::macros::{date, format_description};
-use time::Date;
+use time::macros::{date, format_description, time};
+use time::{Date, Time};
 
 #[test]
 fn nontrivial_string() {
@@ -133,4 +133,11 @@ fn date_coverage() {
     assert_eq!(Ok(date!(2000 - 001)), Date::from_ordinal_date(2000, 1));
     assert_eq!(Ok(date!(2019-W 01-1)), Date::from_ordinal_date(2018, 365));
     assert_eq!(Ok(date!(2021-W 52-6)), Date::from_ordinal_date(2022, 1));
+    assert_eq!(Ok(date!(2021-W 34-5)), Date::from_ordinal_date(2021, 239));
+}
+
+#[test]
+fn time_coverage() {
+    assert_eq!(time!(12 AM), Time::MIDNIGHT);
+    assert_eq!(Ok(time!(12 PM)), Time::from_hms(12, 0, 0));
 }

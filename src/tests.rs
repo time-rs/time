@@ -11,6 +11,7 @@
 
 use crate::duration;
 use crate::format_description::modifier::Modifiers;
+use crate::format_description::FormatItem;
 use crate::formatting::DigitCount;
 
 #[test]
@@ -64,4 +65,12 @@ fn default() {
 fn debug() {
     let _ = format!("{:?}", duration::Padding::Optimize);
     let _ = format!("{:?}", Modifiers::default());
+    let _ = format!(
+        "{:?}",
+        crate::format_description::parse::ParsedItem {
+            item: FormatItem::Literal(b""),
+            remaining: b""
+        }
+    );
+    let _ = format!("{:?}", crate::parsing::ParsedItem(b"", 0));
 }

@@ -7,7 +7,7 @@ use time::ext::NumericalDuration;
 use time::format_description::{self, modifier, well_known, Component};
 use time::macros::{date, offset, time};
 use time::parsing::Parsed;
-use time::{Duration, Instant, Month, Time, Weekday};
+use time::{Duration, Error, Instant, Month, Time, Weekday};
 use time_macros::datetime;
 
 macro_rules! assert_cloned_eq {
@@ -120,8 +120,10 @@ fn debug() {
     let _ = format!("{:?}", Parsed::new());
     let _ = format!("{:?}", Instant::now());
     let _ = format!("{:?}", error::ParseFromDescription::InvalidComponent("foo"));
+    let _ = format!("{:?}", error::Format::InvalidComponent("foo"));
     let _ = format!("{:?}", well_known::Rfc3339);
     let _ = format!("{:?}", component_range_error());
+    let _ = format!("{:?}", Error::ConversionRange(ConversionRange));
 
     let _ = format!("{:?}", modifier::Day::default());
     let _ = format!("{:?}", modifier::MonthRepr::default());

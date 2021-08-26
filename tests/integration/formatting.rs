@@ -1,8 +1,9 @@
-use std::io;
+use std::io::{self, ErrorKind};
 
 use time::format_description::well_known::Rfc3339;
+use time::format_description::FormatItem;
 use time::macros::{date, datetime, format_description as fd, offset, time};
-use time::{format_description, Time};
+use time::{format_description, OffsetDateTime, Time};
 
 #[test]
 fn rfc_3339() -> time::Result<()> {
@@ -332,8 +333,55 @@ fn display_odt() {
 
 #[test]
 fn insufficient_type_information() {
-    assert!(matches!(
-        Time::MIDNIGHT.format(&fd!("[year]")),
-        Err(time::error::Format::InsufficientTypeInformation { .. })
-    ));
+    let assert_insufficient_type_information = |res| {
+        assert!(matches!(
+            res,
+            Err(time::error::Format::InsufficientTypeInformation { .. })
+        ));
+    };
+    assert_insufficient_type_information(Time::MIDNIGHT.format(&fd!("[year]")));
+    assert_insufficient_type_information(Time::MIDNIGHT.format(&Rfc3339));
+    assert_insufficient_type_information(date!(2021 - 001).format(&Rfc3339));
+    assert_insufficient_type_information(datetime!(2021 - 001 0:00).format(&Rfc3339));
+}
+
+#[test]
+fn failed_write() {
+    /// Allow at most `$n` bytes to be written.
+    macro_rules! bytes {
+        ($n:literal) => {
+            &mut &mut [0; $n][..]
+        };
+    }
+
+    let assert_err = |res| {
+        assert!(
+            matches!(res, Err(time::error::Format::StdIo(e)) if e.kind() == ErrorKind::WriteZero)
+        );
+    };
+    assert_err(Time::MIDNIGHT.format_into(bytes!(0), &fd!("foo")));
+    assert_err(Time::MIDNIGHT.format_into(bytes!(0), &FormatItem::Compound(fd!("foo"))));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(0), &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(4), &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(5), &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(7), &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(8), &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(10), &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(11), &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(13), &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(14), &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(16), &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(17), &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(19), &Rfc3339));
+    assert_err(datetime!(2021-001 0:00:00.1 UTC).format_into(bytes!(19), &Rfc3339));
+    assert_err(datetime!(2021-001 0:00:00.1 UTC).format_into(bytes!(20), &Rfc3339));
+    assert_err(datetime!(2021-001 0:00 +0:01).format_into(bytes!(19), &Rfc3339));
+    assert_err(datetime!(2021-001 0:00 +0:01).format_into(bytes!(20), &Rfc3339));
+    assert_err(datetime!(2021-001 0:00 +0:01).format_into(bytes!(22), &Rfc3339));
+    assert_err(datetime!(2021-001 0:00 +0:01).format_into(bytes!(23), &Rfc3339));
+    assert_err(Time::MIDNIGHT.format_into(bytes!(0), &fd!("[hour padding:space]")));
+    assert_err(Time::MIDNIGHT.format_into(bytes!(1), &fd!("[hour padding:space]")));
+    assert_err(offset!(+1).format_into(bytes!(0), &fd!("[offset_hour sign:mandatory]")));
+    assert_err(offset!(-1).format_into(bytes!(0), &fd!("[offset_hour]")));
+    assert_err(offset!(-1).format_into(bytes!(1), &fd!("[offset_hour]")));
 }

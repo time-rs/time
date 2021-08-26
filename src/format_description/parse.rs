@@ -8,11 +8,11 @@ use crate::format_description::{helper, modifier, FormatItem};
 
 /// The item parsed and remaining chunk of the format description after one iteration.
 #[derive(Debug)]
-struct ParsedItem<'a> {
+pub(crate) struct ParsedItem<'a> {
     /// The item that was parsed.
-    item: FormatItem<'a>,
+    pub(crate) item: FormatItem<'a>,
     /// What is left of the input string after the item was parsed.
-    remaining: &'a [u8],
+    pub(crate) remaining: &'a [u8],
 }
 
 /// Parse a component from the format description. Neither the leading nor trailing bracket should
