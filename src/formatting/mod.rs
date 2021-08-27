@@ -115,6 +115,12 @@ impl DigitCount for u32 {
 }
 // endregion extension trait
 
+/// Write all bytes to the output, returning the number of bytes written.
+fn write(output: &mut impl io::Write, bytes: &[u8]) -> io::Result<usize> {
+    output.write_all(bytes)?;
+    Ok(bytes.len())
+}
+
 /// Format a number with the provided padding and width.
 ///
 /// The sign must be written by the caller.
@@ -141,7 +147,7 @@ pub(crate) fn format_number_pad_space(
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     for _ in 0..(width.saturating_sub(value.num_digits())) {
-        bytes += output.write(&[b' '])?;
+        bytes += write(output, &[b' '])?;
     }
     bytes += itoa::write(output, value)?;
     Ok(bytes)
@@ -157,7 +163,7 @@ pub(crate) fn format_number_pad_zero(
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     for _ in 0..(width.saturating_sub(value.num_digits())) {
-        bytes += output.write(&[b'0'])?;
+        bytes += write(output, &[b'0'])?;
     }
     bytes += itoa::write(output, value)?;
     Ok(bytes)
@@ -215,8 +221,8 @@ fn fmt_month(
 ) -> Result<usize, io::Error> {
     match repr {
         modifier::MonthRepr::Numerical => format_number(output, date.month() as u8, padding, 2),
-        modifier::MonthRepr::Long => output.write(MONTH_NAMES[date.month() as usize - 1]),
-        modifier::MonthRepr::Short => output.write(&MONTH_NAMES[date.month() as usize - 1][..3]),
+        modifier::MonthRepr::Long => write(output, MONTH_NAMES[date.month() as usize - 1]),
+        modifier::MonthRepr::Short => write(output, &MONTH_NAMES[date.month() as usize - 1][..3]),
     }
 }
 
@@ -240,12 +246,14 @@ fn fmt_weekday(
     }: modifier::Weekday,
 ) -> Result<usize, io::Error> {
     match repr {
-        modifier::WeekdayRepr::Short => {
-            output.write(&WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3])
-        }
-        modifier::WeekdayRepr::Long => {
-            output.write(WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize])
-        }
+        modifier::WeekdayRepr::Short => write(
+            output,
+            &WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3],
+        ),
+        modifier::WeekdayRepr::Long => write(
+            output,
+            WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize],
+        ),
         modifier::WeekdayRepr::Sunday => format_number(
             output,
             date.weekday().number_days_from_sunday() + one_indexed as u8,
@@ -310,9 +318,9 @@ fn fmt_year(
     let mut bytes = 0;
     if repr != modifier::YearRepr::LastTwo {
         if full_year < 0 {
-            bytes += output.write(&[b'-'])?;
+            bytes += write(output, &[b'-'])?;
         } else if sign_is_mandatory || cfg!(feature = "large-dates") && full_year >= 10_000 {
-            bytes += output.write(&[b'+'])?;
+            bytes += write(output, &[b'+'])?;
         }
     }
     bytes += format_number(output, value.wrapping_abs() as u32, padding, width)?;
@@ -359,10 +367,10 @@ fn fmt_period(
     }: modifier::Period,
 ) -> Result<usize, io::Error> {
     match (time.hour() >= 12, is_uppercase) {
-        (false, false) => output.write(b"am"),
-        (false, true) => output.write(b"AM"),
-        (true, false) => output.write(b"pm"),
-        (true, true) => output.write(b"PM"),
+        (false, false) => write(output, b"am"),
+        (false, true) => write(output, b"AM"),
+        (true, false) => write(output, b"pm"),
+        (true, true) => write(output, b"PM"),
     }
 }
 
@@ -419,9 +427,9 @@ fn fmt_offset_hour(
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     if offset.is_negative() {
-        bytes += output.write(&[b'-'])?;
+        bytes += write(output, &[b'-'])?;
     } else if sign_is_mandatory {
-        bytes += output.write(&[b'+'])?;
+        bytes += write(output, &[b'+'])?;
     }
     bytes += format_number(
         output,

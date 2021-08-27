@@ -5,7 +5,7 @@ use std::io;
 
 use crate::format_description::well_known::Rfc3339;
 use crate::format_description::FormatItem;
-use crate::formatting::{format_component, format_number_pad_zero};
+use crate::formatting::{format_component, format_number_pad_zero, write};
 use crate::{error, Date, Time, UtcOffset};
 
 /// A type that can be formatted.
@@ -58,7 +58,7 @@ impl<'a> sealed::Sealed for FormatItem<'a> {
         offset: Option<UtcOffset>,
     ) -> Result<usize, error::Format> {
         Ok(match *self {
-            Self::Literal(literal) => output.write(literal)?,
+            Self::Literal(literal) => write(output, literal)?,
             Self::Component(component) => format_component(output, component, date, time, offset)?,
             Self::Compound(items) => items.format_into(output, date, time, offset)?,
         })
@@ -123,19 +123,19 @@ impl sealed::Sealed for Rfc3339 {
         }
 
         bytes += format_number_pad_zero(output, year as u32, 4)?;
-        bytes += output.write(&[b'-'])?;
+        bytes += write(output, &[b'-'])?;
         bytes += format_number_pad_zero(output, date.month() as u8, 2)?;
-        bytes += output.write(&[b'-'])?;
+        bytes += write(output, &[b'-'])?;
         bytes += format_number_pad_zero(output, date.day(), 2)?;
-        bytes += output.write(&[b'T'])?;
+        bytes += write(output, &[b'T'])?;
         bytes += format_number_pad_zero(output, time.hour(), 2)?;
-        bytes += output.write(&[b':'])?;
+        bytes += write(output, &[b':'])?;
         bytes += format_number_pad_zero(output, time.minute(), 2)?;
-        bytes += output.write(&[b':'])?;
+        bytes += write(output, &[b':'])?;
         bytes += format_number_pad_zero(output, time.second(), 2)?;
 
         if time.nanosecond() != 0 {
-            bytes += output.write(&[b'.'])?;
+            bytes += write(output, &[b'.'])?;
 
             let (value, width) = match time.nanosecond() {
                 nanos if nanos % 10 != 0 => (nanos, 9),
@@ -152,17 +152,20 @@ impl sealed::Sealed for Rfc3339 {
         }
 
         if offset == UtcOffset::UTC {
-            bytes += output.write(&[b'Z'])?;
+            bytes += write(output, &[b'Z'])?;
             return Ok(bytes);
         }
 
-        bytes += output.write(if offset.is_negative() {
-            &[b'-']
-        } else {
-            &[b'+']
-        })?;
+        bytes += write(
+            output,
+            if offset.is_negative() {
+                &[b'-']
+            } else {
+                &[b'+']
+            },
+        )?;
         bytes += format_number_pad_zero(output, offset.whole_hours().wrapping_abs() as u8, 2)?;
-        bytes += output.write(&[b':'])?;
+        bytes += write(output, &[b':'])?;
         bytes +=
             format_number_pad_zero(output, offset.minutes_past_hour().wrapping_abs() as u8, 2)?;
 
