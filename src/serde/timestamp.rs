@@ -22,7 +22,7 @@ pub fn serialize<S: Serializer>(
 
 /// Deserialize an `OffsetDateTime` from its Unix timestamp
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
-    OffsetDateTime::from_unix_timestamp(Deserialize::deserialize(deserializer)?)
+    OffsetDateTime::from_unix_timestamp(<_>::deserialize(deserializer)?)
         .map_err(ComponentRange::to_invalid_serde_value::<D>)
 }
 

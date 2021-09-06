@@ -48,11 +48,11 @@ impl<'a> Deserialize<'a> for Date {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
         #[cfg(feature = "serde-human-readable")]
         if deserializer.is_human_readable() {
-            return Self::parse(<&str>::deserialize(deserializer)?, &DATE_FORMAT)
+            return Self::parse(<_>::deserialize(deserializer)?, &DATE_FORMAT)
                 .map_err(error::Parse::to_invalid_serde_value::<D>);
         }
 
-        let (year, ordinal) = Deserialize::deserialize(deserializer)?;
+        let (year, ordinal) = <_>::deserialize(deserializer)?;
         Self::from_ordinal_date(year, ordinal).map_err(ComponentRange::to_invalid_serde_value::<D>)
     }
 }
@@ -102,7 +102,7 @@ impl<'a> Deserialize<'a> for Duration {
             return Ok(Self::new(seconds, nanoseconds));
         }
 
-        let (seconds, nanoseconds) = Deserialize::deserialize(deserializer)?;
+        let (seconds, nanoseconds) = <_>::deserialize(deserializer)?;
         Ok(Self::new(seconds, nanoseconds))
     }
 }
@@ -148,7 +148,7 @@ impl<'a> Deserialize<'a> for OffsetDateTime {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
         #[cfg(feature = "serde-human-readable")]
         if deserializer.is_human_readable() {
-            return Self::parse(<&str>::deserialize(deserializer)?, &OFFSET_DATE_TIME_FORMAT)
+            return Self::parse(<_>::deserialize(deserializer)?, &OFFSET_DATE_TIME_FORMAT)
                 .map_err(error::Parse::to_invalid_serde_value::<D>);
         }
 
@@ -162,7 +162,7 @@ impl<'a> Deserialize<'a> for OffsetDateTime {
             offset_hours,
             offset_minutes,
             offset_seconds,
-        ) = Deserialize::deserialize(deserializer)?;
+        ) = <_>::deserialize(deserializer)?;
 
         Date::from_ordinal_date(year, ordinal)
             .and_then(|date| date.with_hms_nano(hour, minute, second, nanosecond))
@@ -190,7 +190,7 @@ impl Serialize for PrimitiveDateTime {
         if serializer.is_human_readable() {
             return serializer.serialize_str(&match self.format(&PRIMITIVE_DATE_TIME_FORMAT) {
                 Ok(s) => s,
-                Err(_) => return Err(S::Error::custom("failed formatting `PrimitiveDateTime`")),
+                Err(_) => return Err(<S::Error>::custom("failed formatting `PrimitiveDateTime`")),
             });
         }
 
@@ -210,15 +210,11 @@ impl<'a> Deserialize<'a> for PrimitiveDateTime {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
         #[cfg(feature = "serde-human-readable")]
         if deserializer.is_human_readable() {
-            return Self::parse(
-                <&str>::deserialize(deserializer)?,
-                &PRIMITIVE_DATE_TIME_FORMAT,
-            )
-            .map_err(error::Parse::to_invalid_serde_value::<D>);
+            return Self::parse(<_>::deserialize(deserializer)?, &PRIMITIVE_DATE_TIME_FORMAT)
+                .map_err(error::Parse::to_invalid_serde_value::<D>);
         }
 
-        let (year, ordinal, hour, minute, second, nanosecond) =
-            Deserialize::deserialize(deserializer)?;
+        let (year, ordinal, hour, minute, second, nanosecond) = <_>::deserialize(deserializer)?;
         Date::from_ordinal_date(year, ordinal)
             .and_then(|date| date.with_hms_nano(hour, minute, second, nanosecond))
             .map_err(ComponentRange::to_invalid_serde_value::<D>)
@@ -230,13 +226,13 @@ impl<'a> Deserialize<'a> for PrimitiveDateTime {
 /// The format used when serializing and deserializing a human-readable `Time`.
 #[cfg(feature = "serde-human-readable")]
 const TIME_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Component(Component::Hour(modifier::Hour::default())),
+    FormatItem::Component(Component::Hour(<modifier::Hour>::default())),
     FormatItem::Literal(b":"),
-    FormatItem::Component(Component::Minute(modifier::Minute::default())),
+    FormatItem::Component(Component::Minute(<modifier::Minute>::default())),
     FormatItem::Literal(b":"),
-    FormatItem::Component(Component::Second(modifier::Second::default())),
+    FormatItem::Component(Component::Second(<modifier::Second>::default())),
     FormatItem::Literal(b"."),
-    FormatItem::Component(Component::Subsecond(modifier::Subsecond::default())),
+    FormatItem::Component(Component::Subsecond(<modifier::Subsecond>::default())),
 ];
 
 impl Serialize for Time {
@@ -257,11 +253,11 @@ impl<'a> Deserialize<'a> for Time {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
         #[cfg(feature = "serde-human-readable")]
         if deserializer.is_human_readable() {
-            return Self::parse(<&str>::deserialize(deserializer)?, &TIME_FORMAT)
+            return Self::parse(<_>::deserialize(deserializer)?, &TIME_FORMAT)
                 .map_err(error::Parse::to_invalid_serde_value::<D>);
         }
 
-        let (hour, minute, second, nanosecond) = Deserialize::deserialize(deserializer)?;
+        let (hour, minute, second, nanosecond) = <_>::deserialize(deserializer)?;
         Self::from_hms_nano(hour, minute, second, nanosecond)
             .map_err(ComponentRange::to_invalid_serde_value::<D>)
     }
@@ -302,11 +298,11 @@ impl<'a> Deserialize<'a> for UtcOffset {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
         #[cfg(feature = "serde-human-readable")]
         if deserializer.is_human_readable() {
-            return Self::parse(<&str>::deserialize(deserializer)?, &UTC_OFFSET_FORMAT)
+            return Self::parse(<_>::deserialize(deserializer)?, &UTC_OFFSET_FORMAT)
                 .map_err(error::Parse::to_invalid_serde_value::<D>);
         }
 
-        let (hours, minutes, seconds) = Deserialize::deserialize(deserializer)?;
+        let (hours, minutes, seconds) = <_>::deserialize(deserializer)?;
         Self::from_hms(hours, minutes, seconds).map_err(ComponentRange::to_invalid_serde_value::<D>)
     }
 }
@@ -330,7 +326,7 @@ impl<'a> Deserialize<'a> for Weekday {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
         #[cfg(feature = "serde-human-readable")]
         if deserializer.is_human_readable() {
-            return match <&str>::deserialize(deserializer)? {
+            return match <_>::deserialize(deserializer)? {
                 "Monday" => Ok(Self::Monday),
                 "Tuesday" => Ok(Self::Tuesday),
                 "Wednesday" => Ok(Self::Wednesday),
@@ -380,7 +376,7 @@ impl<'a> Deserialize<'a> for Month {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
         #[cfg(feature = "serde-human-readable")]
         if deserializer.is_human_readable() {
-            return match <&str>::deserialize(deserializer)? {
+            return match <_>::deserialize(deserializer)? {
                 "January" => Ok(Self::January),
                 "February" => Ok(Self::February),
                 "March" => Ok(Self::March),
