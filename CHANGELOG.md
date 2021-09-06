@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## Unreleased
+
+### Added
+
+- `Parsed::parse_item`
+- `Parsed::parse_items`
+- `Parsed::parse_literal`
+
 ## 0.3.2 [2021-08-25]
 
 ### Added

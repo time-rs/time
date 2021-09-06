@@ -5,13 +5,13 @@ use core::num::{NonZeroU16, NonZeroU8};
 
 use crate::error::TryFromParsed::InsufficientInformation;
 use crate::format_description::modifier::{WeekNumberRepr, YearRepr};
-use crate::format_description::Component;
+use crate::format_description::{Component, FormatItem};
 use crate::parsing::component::{
     parse_day, parse_hour, parse_minute, parse_month, parse_offset_hour, parse_offset_minute,
     parse_offset_second, parse_ordinal, parse_period, parse_second, parse_subsecond,
     parse_week_number, parse_weekday, parse_year, Period,
 };
-use crate::parsing::ParsedItem;
+use crate::parsing::{strip_prefix, ParsedItem};
 use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// All information parsed.
@@ -95,6 +95,41 @@ impl Parsed {
         }
     }
 
+    /// Parse a single [`FormatItem`], mutating the struct. The remaining input is returned as the
+    /// `Ok` value.
+    pub fn parse_item<'a>(
+        &mut self,
+        input: &'a [u8],
+        item: &FormatItem<'_>,
+    ) -> Result<&'a [u8], error::ParseFromDescription> {
+        match item {
+            FormatItem::Literal(literal) => Self::parse_literal(input, literal),
+            FormatItem::Component(component) => self.parse_component(input, *component),
+            FormatItem::Compound(compound) => self.parse_items(input, compound),
+        }
+    }
+
+    /// Parse a sequence of [`FormatItem`]s, mutating the struct. The remaining input is returned as
+    /// the `Ok` value.
+    pub fn parse_items<'a>(
+        &mut self,
+        mut input: &'a [u8],
+        items: &[FormatItem<'_>],
+    ) -> Result<&'a [u8], error::ParseFromDescription> {
+        for item in items {
+            input = self.parse_item(input, item)?;
+        }
+        Ok(input)
+    }
+
+    /// Parse a literal byte sequence. The remaining input is returned as the `Ok` value.
+    pub fn parse_literal<'a>(
+        input: &'a [u8],
+        literal: &[u8],
+    ) -> Result<&'a [u8], error::ParseFromDescription> {
+        strip_prefix(input, literal).ok_or(error::ParseFromDescription::InvalidLiteral)
+    }
+
     /// Parse a single component, mutating the struct. The remaining input is returned as the `Ok`
     /// value.
     pub fn parse_component<'a>(
@@ -176,6 +211,7 @@ impl Parsed {
         }
     }
 
+    // region: getters/setters
     /// Obtain the `year` component.
     pub const fn year(&self) -> Option<i32> {
         self.year
@@ -395,6 +431,7 @@ impl Parsed {
         self.offset_second = Some(value);
         Some(())
     }
+    // endregion getters/setters
 }
 
 impl TryFrom<Parsed> for Date {

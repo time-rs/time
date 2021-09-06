@@ -6,7 +6,7 @@ use core::ops::Deref;
 use crate::error::TryFromParsed;
 use crate::format_description::well_known::Rfc3339;
 use crate::format_description::FormatItem;
-use crate::parsing::{strip_prefix, Parsed, ParsedItem};
+use crate::parsing::{Parsed, ParsedItem};
 use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
 /// A type that can be parsed.
@@ -80,31 +80,20 @@ mod sealed {
 impl sealed::Sealed for FormatItem<'_> {
     fn parse_into<'a>(
         &self,
-        mut input: &'a [u8],
+        input: &'a [u8],
         parsed: &mut Parsed,
     ) -> Result<&'a [u8], error::Parse> {
-        match self {
-            Self::Literal(literal) => {
-                input = strip_prefix(input, *literal)
-                    .ok_or(error::ParseFromDescription::InvalidLiteral)?;
-            }
-            Self::Component(component) => input = parsed.parse_component(input, *component)?,
-            Self::Compound(compound) => input = compound.parse_into(input, parsed)?,
-        }
-        Ok(input)
+        Ok(parsed.parse_item(input, self)?)
     }
 }
 
 impl sealed::Sealed for [FormatItem<'_>] {
     fn parse_into<'a>(
         &self,
-        mut input: &'a [u8],
+        input: &'a [u8],
         parsed: &mut Parsed,
     ) -> Result<&'a [u8], error::Parse> {
-        for item in self.iter() {
-            input = item.parse_into(input, parsed)?;
-        }
-        Ok(input)
+        Ok(parsed.parse_items(input, self)?)
     }
 }
 

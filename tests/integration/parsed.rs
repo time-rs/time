@@ -1,7 +1,8 @@
 use std::num::{NonZeroU16, NonZeroU8};
 
+use time::format_description::FormatItem;
 use time::parsing::Parsed;
-use time::{Month, Weekday};
+use time::{Month, Time, Weekday};
 
 #[test]
 fn getters_setters() {
@@ -35,4 +36,10 @@ fn getters_setters() {
         set_offset_minute offset_minute 5;
         set_offset_second offset_second 5;
     }
+}
+
+#[test]
+fn single_item_parse() {
+    assert!(Time::parse("a", &FormatItem::Literal(b"a")).is_err());
+    assert!(Time::parse("b", &FormatItem::Literal(b"a")).is_err());
 }
