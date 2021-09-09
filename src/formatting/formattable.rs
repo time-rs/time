@@ -42,7 +42,6 @@ mod sealed {
         ) -> Result<String, error::Format> {
             let mut buf = Vec::new();
             self.format_into(&mut buf, date, time, offset)?;
-            io::Write::flush(&mut buf)?;
             Ok(String::from_utf8_lossy(&buf).into_owned())
         }
     }

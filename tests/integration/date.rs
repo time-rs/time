@@ -759,3 +759,11 @@ fn ord() {
     assert_eq!(first.cmp(&second), Ordering::Less);
     assert_eq!(second.cmp(&first), Ordering::Greater);
 }
+
+#[test]
+fn regression_check() {
+    let (year, week, weekday) = (date!(0063 - 365)).to_iso_week_date();
+    assert_eq!(year, 64);
+    assert_eq!(week, 1);
+    assert_eq!(weekday, Weekday::Monday);
+}
