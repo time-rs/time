@@ -1,9 +1,9 @@
 use std::io::{self, ErrorKind};
 
 use time::format_description::well_known::Rfc3339;
-use time::format_description::FormatItem;
+use time::format_description::{self, FormatItem};
 use time::macros::{date, datetime, format_description as fd, offset, time};
-use time::{format_description, OffsetDateTime, Time};
+use time::{OffsetDateTime, Time};
 
 #[test]
 fn rfc_3339() -> time::Result<()> {
@@ -115,7 +115,10 @@ fn format_time() -> time::Result<()> {
         );
     }
 
-    assert_eq!(time!(1:02:03).format(&fd!("[period]"))?, "AM");
+    assert_eq!(
+        time!(1:02:03).format(&fd!("[hour repr:12][period]"))?,
+        "01AM"
+    );
     assert_eq!(
         Time::MIDNIGHT.format(&fd!("[hour repr:12][period case:lower]"))?,
         "12am"
@@ -163,8 +166,14 @@ fn display_time() {
     assert_eq!(time!(23:59).to_string(), "23:59:00.0");
     assert_eq!(time!(23:59:59).to_string(), "23:59:59.0");
     assert_eq!(time!(0:00:01).to_string(), "0:00:01.0");
+    assert_eq!(time!(0:00:00.1).to_string(), "0:00:00.1");
+    assert_eq!(time!(0:00:00.01).to_string(), "0:00:00.01");
     assert_eq!(time!(0:00:00.001).to_string(), "0:00:00.001");
+    assert_eq!(time!(0:00:00.000_1).to_string(), "0:00:00.0001");
+    assert_eq!(time!(0:00:00.000_01).to_string(), "0:00:00.00001");
     assert_eq!(time!(0:00:00.000_001).to_string(), "0:00:00.000001");
+    assert_eq!(time!(0:00:00.000_000_1).to_string(), "0:00:00.0000001");
+    assert_eq!(time!(0:00:00.000_000_01).to_string(), "0:00:00.00000001");
     assert_eq!(time!(0:00:00.000_000_001).to_string(), "0:00:00.000000001");
 }
 
@@ -303,10 +312,8 @@ fn display_pdt() {
 
 #[test]
 fn format_odt() -> time::Result<()> {
-    // We can't currently handle escaped line breaks in the format description macro. This also
-    // gives us coverage of the dynamic formatting strings (to an extent).
     let format_description = format_description::parse(
-        "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond] [offset_hour \
+        "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond digits:1+] [offset_hour \
          sign:mandatory]:[offset_minute]:[offset_second]",
     )?;
 
@@ -346,7 +353,7 @@ fn insufficient_type_information() {
 }
 
 #[test]
-fn failed_write() {
+fn failed_write() -> time::Result<()> {
     /// Allow at most `$n` bytes to be written.
     macro_rules! bytes {
         ($n:literal) => {
@@ -384,4 +391,33 @@ fn failed_write() {
     assert_err(offset!(+1).format_into(bytes!(0), &fd!("[offset_hour sign:mandatory]")));
     assert_err(offset!(-1).format_into(bytes!(0), &fd!("[offset_hour]")));
     assert_err(offset!(-1).format_into(bytes!(1), &fd!("[offset_hour]")));
+    assert_err(date!(-1 - 001).format_into(bytes!(0), &fd!("[year]")));
+    assert_err(date!(2021 - 001).format_into(bytes!(0), &fd!("[year sign:mandatory]")));
+    assert_err(date!(+999_999 - 001).format_into(bytes!(4), &fd!("[year]")));
+    assert_err(date!(+99_999 - 001).format_into(bytes!(4), &fd!("[year]")));
+
+    let component_names = [
+        "day",
+        "month",
+        "ordinal",
+        "weekday",
+        "week_number",
+        "year",
+        "hour",
+        "minute",
+        "period",
+        "second",
+        "subsecond",
+        "offset_hour",
+        "offset_minute",
+        "offset_second",
+    ];
+    for component in &component_names {
+        assert_err(OffsetDateTime::UNIX_EPOCH.format_into(
+            bytes!(0),
+            &format_description::parse(&format!("[{}]", component))?,
+        ));
+    }
+
+    Ok(())
 }

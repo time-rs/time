@@ -46,7 +46,7 @@ macro_rules! modifier {
     ($name:ident {
         $($field:ident $(: $value:expr)?),+ $(,)?
     }) => {{
-        let mut value = modifier::$name::default();
+        let mut value = ::time::format_description::modifier::$name::default();
         $(value.$field = modifier!(@value $field $($value)?);)+
         value
     }};

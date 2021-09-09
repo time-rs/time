@@ -1,10 +1,10 @@
 //! Parsing for various types.
 
 pub(crate) mod combinator;
-mod component;
+pub(crate) mod component;
 pub(crate) mod parsable;
 mod parsed;
-mod shim;
+pub(crate) mod shim;
 
 pub use self::parsable::Parsable;
 pub use self::parsed::Parsed;
@@ -22,7 +22,7 @@ fn strip_prefix<'a>(slice: &'a [u8], prefix: &[u8]) -> Option<&'a [u8]> {
 }
 
 /// An item that has been parsed. Represented as a `(remaining, value)` pair.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub(crate) struct ParsedItem<'a, T>(pub(crate) &'a [u8], pub(crate) T);
 
 impl<'a, T> ParsedItem<'a, T> {

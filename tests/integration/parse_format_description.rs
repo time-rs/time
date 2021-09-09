@@ -110,7 +110,7 @@ mod iterator {
 
 use time::error::InvalidFormatDescription;
 use time::format_description::modifier::{
-    self, MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,
+    MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,
 };
 use time::format_description::{self, Component, FormatItem};
 

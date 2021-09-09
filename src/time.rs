@@ -15,7 +15,7 @@ use crate::{error, Duration};
 /// perform niche value optimization.
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum Padding {
+pub(crate) enum Padding {
     #[allow(clippy::missing_docs_in_private_items)]
     Optimize,
 }

@@ -9,10 +9,14 @@
 //! This module should only be used when it is not possible to test the implementation in a
 //! reasonable manner externally.
 
-use crate::duration;
+use std::num::NonZeroU8;
+
 use crate::format_description::modifier::Modifiers;
 use crate::format_description::FormatItem;
 use crate::formatting::DigitCount;
+use crate::parsing::combinator::ascii_char_ignore_case;
+use crate::parsing::shim::Integer;
+use crate::{duration, parsing};
 
 #[test]
 fn digit_count() {
@@ -72,5 +76,28 @@ fn debug() {
             remaining: b""
         }
     );
-    let _ = format!("{:?}", crate::parsing::ParsedItem(b"", 0));
+    let _ = format!("{:?}", parsing::ParsedItem(b"", 0));
+    let _ = format!("{:?}", parsing::component::Period::Am);
+}
+
+#[test]
+fn clone() {
+    assert_eq!(
+        parsing::component::Period::Am.clone(),
+        parsing::component::Period::Am
+    );
+    // does not impl Debug
+    assert!(crate::time::Padding::Optimize.clone() == crate::time::Padding::Optimize);
+}
+
+#[test]
+fn parsing_internals() {
+    // Silence must-use warning, as we're only interested in the pre-closure assertion.
+    let _ = ascii_char_ignore_case(b' ');
+    assert!(
+        parsing::ParsedItem(b"", ())
+            .flat_map(|_| None::<()>)
+            .is_none()
+    );
+    assert!(<NonZeroU8 as Integer>::parse_bytes(b"256").is_none());
 }

@@ -4,7 +4,7 @@ use std::hash::Hash;
 
 use time::error::{self, ConversionRange, IndeterminateOffset, TryFromParsed};
 use time::ext::NumericalDuration;
-use time::format_description::{self, modifier, well_known, Component};
+use time::format_description::{self, modifier, well_known, Component, FormatItem};
 use time::macros::{date, offset, time};
 use time::parsing::Parsed;
 use time::{Duration, Error, Instant, Month, Time, Weekday};
@@ -48,6 +48,7 @@ fn clone() {
     assert_cloned_eq!(Component::OffsetSecond(modifier::OffsetSecond::default()));
     assert_cloned_eq!(well_known::Rfc3339);
     assert_cloned_eq!(component_range_error());
+    assert_cloned_eq!(FormatItem::Literal(b""));
 
     assert_cloned_eq!(modifier::Day::default());
     assert_cloned_eq!(modifier::MonthRepr::default());

@@ -1,5 +1,5 @@
 use time::format_description::modifier::{
-    self, MonthRepr, Padding, WeekNumberRepr, WeekdayRepr, YearRepr,
+    MonthRepr, Padding, WeekNumberRepr, WeekdayRepr, YearRepr,
 };
 use time::format_description::{Component, FormatItem};
 use time::macros::{date, format_description, time};

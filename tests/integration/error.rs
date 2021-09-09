@@ -7,6 +7,7 @@ use time::error::{
 };
 use time::format_description::{self, modifier, Component, FormatItem};
 use time::macros::format_description;
+use time::parsing::Parsed;
 use time::{Date, Time};
 
 macro_rules! assert_display_eq {
@@ -15,12 +16,18 @@ macro_rules! assert_display_eq {
     };
 }
 
+macro_rules! assert_dbg_reflexive {
+    ($a:expr) => {
+        assert_eq!(format!("{:?}", $a), format!("{:?}", $a))
+    };
+}
+
 macro_rules! assert_source {
     ($err:expr,None $(,)?) => {
         assert!($err.source().is_none())
     };
     ($err:expr, $source:ty $(,)?) => {
-        assert!($err.source().unwrap().is::<$source>());
+        assert!($err.source().unwrap().is::<$source>())
     };
 }
 
@@ -46,23 +53,18 @@ fn io_error() -> io::Error {
     io::Error::last_os_error()
 }
 
+fn invalid_literal() -> ParseFromDescription {
+    Parsed::parse_literal(b"a", b"b").unwrap_err()
+}
+
 #[test]
 fn debug() {
     assert_eq!(format!("{:?}", FormatItem::Literal(b"abcdef")), "abcdef");
-    assert_eq!(
-        format!(
-            "{:?}",
-            FormatItem::Compound(&[FormatItem::Component(Component::Day(
-                modifier::Day::default()
-            ))])
-        ),
-        format!(
-            "{:?}",
-            FormatItem::Compound(&[FormatItem::Component(Component::Day(
-                modifier::Day::default()
-            ))])
-        )
-    );
+    assert_dbg_reflexive!(FormatItem::Compound(&[FormatItem::Component(
+        Component::Day(modifier::Day::default())
+    )]));
+    assert_dbg_reflexive!(Parse::from(ParseFromDescription::InvalidComponent("a")));
+    assert_dbg_reflexive!(invalid_format_description());
 }
 
 #[test]
@@ -87,6 +89,7 @@ fn display() {
         ParseFromDescription::InvalidComponent("a"),
         Error::from(Parse::from(ParseFromDescription::InvalidComponent("a")))
     );
+    assert_display_eq!(invalid_literal(), Parse::from(invalid_literal()));
     assert_display_eq!(
         component_range(),
         Error::from(Parse::from(TryFromParsed::from(component_range())))
