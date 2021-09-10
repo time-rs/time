@@ -26,16 +26,12 @@ impl Distribution<Date> for Standard {
 
 impl Distribution<UtcOffset> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> UtcOffset {
-        let hours = rng.gen_range(-23..24);
-        let mut minutes = rng.gen_range(0..60);
-        let mut seconds = rng.gen_range(0..60);
-
-        if hours < 0 {
-            minutes *= -1;
-            seconds *= -1;
-        }
-
-        UtcOffset::__from_hms_unchecked(hours, minutes, seconds)
+        let seconds = rng.gen_range(-86399..=86399);
+        UtcOffset::__from_hms_unchecked(
+            (seconds / 3600) as _,
+            ((seconds % 3600) / 60) as _,
+            (seconds % 60) as _,
+        )
     }
 }
 
@@ -54,10 +50,8 @@ impl Distribution<OffsetDateTime> for Standard {
 
 impl Distribution<Duration> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Duration {
-        let seconds = Self.sample(rng);
-        Duration::new_unchecked(
-            seconds,
-            seconds.signum() as i32 * rng.gen_range(0..1_000_000_000),
+        Duration::nanoseconds_i128(
+            rng.gen_range(Duration::MIN.whole_nanoseconds()..=Duration::MAX.whole_nanoseconds()),
         )
     }
 }

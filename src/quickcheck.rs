@@ -40,8 +40,6 @@ use alloc::boxed::Box;
 
 use quickcheck_dep::{empty_shrinker, single_shrinker, Arbitrary, Gen};
 
-use crate::date::{MAX_YEAR, MIN_YEAR};
-use crate::util::days_in_year;
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// Obtain an arbitrary value between the minimum and maximum inclusive.
@@ -56,9 +54,12 @@ macro_rules! arbitrary_between {
 
 impl Arbitrary for Date {
     fn arbitrary(g: &mut Gen) -> Self {
-        let year = arbitrary_between!(i32; g, MIN_YEAR, MAX_YEAR);
-        let ordinal = arbitrary_between!(u16; g, 1, days_in_year(year));
-        Self::__from_ordinal_date_unchecked(year, ordinal)
+        Self::from_julian_day_unchecked(arbitrary_between!(
+            i32;
+            g,
+            Self::MIN.to_julian_day(),
+            Self::MAX.to_julian_day()
+        ))
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
@@ -72,16 +73,12 @@ impl Arbitrary for Date {
 
 impl Arbitrary for Duration {
     fn arbitrary(g: &mut Gen) -> Self {
-        let seconds = i64::arbitrary(g);
-        let mut nanoseconds = arbitrary_between!(i32; g, 0, 999_999_999);
-
-        // Coerce the sign if necessary. Also allow for the creation of a negative Duration under
-        // one second.
-        if seconds < 0 || (seconds == 0 && bool::arbitrary(g)) {
-            nanoseconds *= -1;
-        }
-
-        Self::new_unchecked(seconds, nanoseconds)
+        Self::nanoseconds_i128(arbitrary_between!(
+            i128;
+            g,
+            Self::MIN.whole_nanoseconds(),
+            Self::MAX.whole_nanoseconds()
+        ))
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
@@ -123,7 +120,7 @@ impl Arbitrary for Time {
 
 impl Arbitrary for PrimitiveDateTime {
     fn arbitrary(g: &mut Gen) -> Self {
-        Self::new(Date::arbitrary(g), Time::arbitrary(g))
+        Self::new(<_>::arbitrary(g), <_>::arbitrary(g))
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
@@ -137,21 +134,12 @@ impl Arbitrary for PrimitiveDateTime {
 
 impl Arbitrary for UtcOffset {
     fn arbitrary(g: &mut Gen) -> Self {
-        let hours = arbitrary_between!(i8; g, -23, 23);
-        let mut minutes = arbitrary_between!(i8; g, 0, 59);
-        let mut seconds = arbitrary_between!(i8; g, 0, 59);
-
-        // Coerce the signs if necessary. Also allow for the creation of a negative offset under one
-        // hour.
-        if hours < 0
-            || (hours == 0 && bool::arbitrary(g))
-            || (hours == 0 && minutes == 0 && bool::arbitrary(g))
-        {
-            minutes *= -1;
-            seconds *= -1;
-        }
-
-        Self::__from_hms_unchecked(hours, minutes, seconds)
+        let seconds = arbitrary_between!(i32; g, -86_399, 86_399);
+        Self::__from_hms_unchecked(
+            (seconds / 3600) as _,
+            ((seconds % 3600) / 60) as _,
+            (seconds % 60) as _,
+        )
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
@@ -166,8 +154,7 @@ impl Arbitrary for UtcOffset {
 impl Arbitrary for OffsetDateTime {
     fn arbitrary(g: &mut Gen) -> Self {
         let datetime = PrimitiveDateTime::arbitrary(g);
-        let offset = UtcOffset::arbitrary(g);
-        datetime.assume_offset(offset)
+        datetime.assume_offset(<_>::arbitrary(g))
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
