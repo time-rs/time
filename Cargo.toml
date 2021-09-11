@@ -60,3 +60,6 @@ trybuild = "=1.0.34"
 name = "benchmarks"
 harness = false
 path = "benchmarks/main.rs"
+
+[profile.dev]
+debug = 0

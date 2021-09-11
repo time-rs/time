@@ -1,5 +1,8 @@
 name: Build
 
+env:
+  CARGO_INCREMENTAL: 0
+
 on:
   push:
     branches: ["**"]
