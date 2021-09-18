@@ -3,55 +3,58 @@ use criterion_cycles_per_byte::CyclesPerByte;
 use time::format_description::{modifier, Component};
 use time::parsing::Parsed;
 
+macro_rules! component {
+    ($name:ident {$($field:ident : $value:expr),+ $(,)? }) => {{
+        const COMPONENT: Component = Component::$name({
+            let mut modifier = modifier::$name::default();
+            $(modifier.$field = $value;)+
+            modifier
+        });
+        COMPONENT
+    }};
+}
+
 setup_benchmark! {
     "Parsing",
 
-    fn parse_component(ben: &mut Bencher<'_, CyclesPerByte>) {
-        macro_rules! component {
-            ($name:ident {$($field:ident : $value:expr),+ $(,)? }) => {{
-                const COMPONENT: Component = Component::$name({
-                    let mut modifier = modifier::$name::default();
-                    $(modifier.$field = $value;)+
-                    modifier
-                });
-                COMPONENT
-            }};
-        }
-
+    fn parse_component_year(ben: &mut Bencher<'_, CyclesPerByte>) {
         let mut parsed = Parsed::new();
+        ben.iter(|| {
+            parsed.parse_component(b"2021", component!(Year {
+                padding: modifier::Padding::Zero,
+                repr: modifier::YearRepr::Full,
+                iso_week_based: false,
+                sign_is_mandatory: false,
+            }))
+        });
+        ben.iter(|| {
+            parsed.parse_component(b"21", component!(Year {
+                padding: modifier::Padding::Zero,
+                repr: modifier::YearRepr::LastTwo,
+                iso_week_based: false,
+                sign_is_mandatory: false,
+            }))
+        });
+        ben.iter(|| {
+            parsed.parse_component(b"2021", component!(Year {
+                padding: modifier::Padding::Zero,
+                repr: modifier::YearRepr::Full,
+                iso_week_based: true,
+                sign_is_mandatory: false,
+            }))
+        });
+        ben.iter(|| {
+            parsed.parse_component(b"21", component!(Year {
+                padding: modifier::Padding::Zero,
+                repr: modifier::YearRepr::LastTwo,
+                iso_week_based: true,
+                sign_is_mandatory: false,
+            }))
+        });
+    }
 
-        ben.iter(|| {
-            parsed.parse_component(b"2021", component!(Year {
-                padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::Full,
-                iso_week_based: false,
-                sign_is_mandatory: false,
-            }))
-        });
-        ben.iter(|| {
-            parsed.parse_component(b"21", component!(Year {
-                padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::LastTwo,
-                iso_week_based: false,
-                sign_is_mandatory: false,
-            }))
-        });
-        ben.iter(|| {
-            parsed.parse_component(b"2021", component!(Year {
-                padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::Full,
-                iso_week_based: true,
-                sign_is_mandatory: false,
-            }))
-        });
-        ben.iter(|| {
-            parsed.parse_component(b"21", component!(Year {
-                padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::LastTwo,
-                iso_week_based: true,
-                sign_is_mandatory: false,
-            }))
-        });
+    fn parse_component_month(ben: &mut Bencher<'_, CyclesPerByte>) {
+        let mut parsed = Parsed::new();
         ben.iter(|| {
             parsed.parse_component(b" 1", component!(Month {
                 padding: modifier::Padding::Space,
@@ -70,11 +73,19 @@ setup_benchmark! {
                 repr: modifier::MonthRepr::Long,
             }))
         });
+    }
+
+    fn parse_component_ordinal(ben: &mut Bencher<'_, CyclesPerByte>) {
+        let mut parsed = Parsed::new();
         ben.iter(|| {
             parsed.parse_component(b"012", component!(Ordinal {
                 padding: modifier::Padding::Zero,
             }))
         });
+    }
+
+    fn parse_component_weekday(ben: &mut Bencher<'_, CyclesPerByte>) {
+        let mut parsed = Parsed::new();
         ben.iter(|| {
             parsed.parse_component(b"Sun", component!(Weekday {
                 repr: modifier::WeekdayRepr::Short,
@@ -111,6 +122,10 @@ setup_benchmark! {
                 one_indexed: true,
             }))
         });
+    }
+
+    fn parse_component_week_number(ben: &mut Bencher<'_, CyclesPerByte>) {
+        let mut parsed = Parsed::new();
         ben.iter(|| {
             parsed.parse_component(b"2", component!(WeekNumber {
                 padding: modifier::Padding::None,
@@ -129,6 +144,10 @@ setup_benchmark! {
                 repr: modifier::WeekNumberRepr::Iso,
             }))
         });
+    }
+
+    fn parse_component_subsecond(ben: &mut Bencher<'_, CyclesPerByte>) {
+        let mut parsed = Parsed::new();
         ben.iter(|| {
             parsed.parse_component(b"1", component!(Subsecond {
                 digits: modifier::SubsecondDigits::One,
