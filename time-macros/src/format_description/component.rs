@@ -100,6 +100,7 @@ impl NakedComponent {
             Self::Month => Component::Month(modifier::Month {
                 padding: modifiers.padding.unwrap_or_default(),
                 repr: modifiers.month_repr.unwrap_or_default(),
+                case_sensitive: modifiers.case_sensitive.unwrap_or(true),
             }),
             Self::Ordinal => Component::Ordinal(modifier::Ordinal {
                 padding: modifiers.padding.unwrap_or_default(),
@@ -107,6 +108,7 @@ impl NakedComponent {
             Self::Weekday => Component::Weekday(modifier::Weekday {
                 repr: modifiers.weekday_repr.unwrap_or_default(),
                 one_indexed: modifiers.weekday_is_one_indexed.unwrap_or(true),
+                case_sensitive: modifiers.case_sensitive.unwrap_or(true),
             }),
             Self::WeekNumber => Component::WeekNumber(modifier::WeekNumber {
                 padding: modifiers.padding.unwrap_or_default(),
@@ -127,6 +129,7 @@ impl NakedComponent {
             }),
             Self::Period => Component::Period(modifier::Period {
                 is_uppercase: modifiers.period_is_uppercase.unwrap_or(true),
+                case_sensitive: modifiers.case_sensitive.unwrap_or(true),
             }),
             Self::Second => Component::Second(modifier::Second {
                 padding: modifiers.padding.unwrap_or_default(),

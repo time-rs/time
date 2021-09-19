@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `Parsed::parse_item`
 - `Parsed::parse_items`
 - `Parsed::parse_literal`
+- The `format_description!` macro now supports the `case_sensitive` modifier.
 
 ### Changed
 
