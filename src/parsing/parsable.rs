@@ -14,7 +14,6 @@ pub trait Parsable: sealed::Sealed {}
 impl Parsable for FormatItem<'_> {}
 impl Parsable for [FormatItem<'_>] {}
 impl Parsable for Rfc3339 {}
-#[allow(clippy::use_self)]
 impl<T: Deref> Parsable for T where T::Target: Parsable {}
 
 /// Seal the trait to prevent downstream users from implementing it, while still allowing it to
@@ -97,7 +96,6 @@ impl sealed::Sealed for [FormatItem<'_>] {
     }
 }
 
-#[allow(clippy::use_self)]
 impl<T: Deref> sealed::Sealed for T
 where
     T::Target: sealed::Sealed,
