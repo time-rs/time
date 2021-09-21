@@ -2,9 +2,12 @@ use std::iter::Peekable;
 
 use proc_macro::{token_stream, TokenStream};
 
+use crate::date::Date;
 use crate::error::Error;
+use crate::offset::Offset;
+use crate::time::Time;
 use crate::to_tokens::ToTokens;
-use crate::{Date, Offset, Time};
+use crate::{date, offset, time};
 
 pub(crate) struct DateTime {
     date: Date,
@@ -12,26 +15,25 @@ pub(crate) struct DateTime {
     offset: Option<Offset>,
 }
 
-impl DateTime {
-    pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Self, Error> {
-        let date = Date::parse(chars)?;
-        let time = Time::parse(chars)?;
-        #[allow(clippy::unnested_or_patterns)]
-        let offset = match Offset::parse(chars) {
-            Ok(offset) => Some(offset),
-            Err(Error::UnexpectedEndOfInput)
-            | Err(Error::MissingComponent { name: "sign", .. }) => None,
-            Err(err) => return Err(err),
-        };
-
-        if let Some(token) = chars.peek() {
-            return Err(Error::UnexpectedToken {
-                tree: token.clone(),
-            });
+pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<DateTime, Error> {
+    let date = date::parse(chars)?;
+    let time = time::parse(chars)?;
+    #[allow(clippy::unnested_or_patterns)]
+    let offset = match offset::parse(chars) {
+        Ok(offset) => Some(offset),
+        Err(Error::UnexpectedEndOfInput) | Err(Error::MissingComponent { name: "sign", .. }) => {
+            None
         }
+        Err(err) => return Err(err),
+    };
 
-        Ok(Self { date, time, offset })
+    if let Some(token) = chars.peek() {
+        return Err(Error::UnexpectedToken {
+            tree: token.clone(),
+        });
     }
+
+    Ok(DateTime { date, time, offset })
 }
 
 impl ToTokens for DateTime {

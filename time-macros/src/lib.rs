@@ -43,20 +43,16 @@ mod to_tokens;
 
 use proc_macro::TokenStream;
 
-use self::date::Date;
-use self::datetime::DateTime;
 use self::error::Error;
-use self::offset::Offset;
-use self::time::Time;
 
 macro_rules! impl_macros {
-    ($($name:ident : $type:ty)*) => {$(
+    ($($name:ident)*) => {$(
         #[proc_macro]
         pub fn $name(input: TokenStream) -> TokenStream {
             use crate::to_tokens::ToTokens;
 
             let mut iter = input.into_iter().peekable();
-            match <$type>::parse(&mut iter) {
+            match $name::parse(&mut iter) {
                 Ok(value) => match iter.peek() {
                     Some(tree) => Error::UnexpectedToken { tree: tree.clone() }.to_compile_error(),
                     None => value.into_token_stream(),
@@ -67,12 +63,7 @@ macro_rules! impl_macros {
     )*};
 }
 
-impl_macros! {
-    date: Date
-    datetime: DateTime
-    offset: Offset
-    time: Time
-}
+impl_macros![date datetime offset time];
 
 // TODO Gate this behind the the `formatting` or `parsing` feature flag when weak dependency
 // features land.
