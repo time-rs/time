@@ -19,27 +19,16 @@
     clippy::get_unwrap,
     clippy::missing_docs_in_private_items,
     clippy::nursery,
-    clippy::pedantic,
     clippy::print_stdout,
     clippy::todo,
     clippy::unimplemented,
     clippy::unwrap_in_result,
     clippy::unwrap_used,
     clippy::use_debug,
-    missing_copy_implementations,
-    missing_debug_implementations,
     unused_qualifications,
     variant_size_differences
 )]
-#![allow(
-    clippy::enum_glob_use,
-    clippy::too_many_lines,
-    clippy::cognitive_complexity,
-    clippy::clone_on_copy,
-    clippy::default_trait_access,
-    clippy::let_underscore_drop,
-    clippy::cmp_owned
-)]
+#![allow(clippy::cognitive_complexity, clippy::clone_on_copy, clippy::cmp_owned)]
 
 /// Construct a non-exhaustive modifier.
 macro_rules! modifier {

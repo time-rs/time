@@ -18,7 +18,6 @@
     clippy::decimal_literal_representation,
     clippy::get_unwrap,
     clippy::nursery,
-    clippy::pedantic,
     clippy::print_stdout,
     clippy::todo,
     clippy::unimplemented,
@@ -28,14 +27,7 @@
     unused_qualifications,
     variant_size_differences
 )]
-#![allow(
-    clippy::cast_possible_truncation,
-    clippy::cast_possible_wrap,
-    clippy::cast_sign_loss,
-    clippy::missing_const_for_fn,
-    clippy::redundant_pub_crate,
-    unstable_name_collisions
-)]
+#![allow(clippy::missing_const_for_fn, clippy::redundant_pub_crate)]
 
 #[macro_use]
 mod quote;

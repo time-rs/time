@@ -242,8 +242,9 @@ pub enum Padding {
     None,
 }
 
-// Every modifier should use this macro rather than a derived `Default`. This ensures that it is
-// const-compatible, albeit with a slight hack.
+/// Implement `Default` for the given type. This also generates an inherent implementation of a
+/// `default` method that is `const fn`, permitting the default value to be used in const contexts.
+// Every modifier should use this macro rather than a derived `Default`.
 macro_rules! impl_const_default {
     ($($type:ty => $default:expr;)*) => {$(
         impl $type {

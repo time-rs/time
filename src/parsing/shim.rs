@@ -18,6 +18,7 @@ pub(crate) trait Integer: Sized {
     fn parse_bytes(src: &[u8]) -> Option<Self>;
 }
 
+/// Parse the given types from bytes.
 macro_rules! impl_parse_bytes {
     ($($t:ty)*) => ($(
         impl Integer for $t {
@@ -32,6 +33,7 @@ macro_rules! impl_parse_bytes {
 }
 impl_parse_bytes! { u8 u16 u32 }
 
+/// Parse the given types from bytes.
 macro_rules! impl_parse_bytes_nonzero {
     ($($t:ty)*) => {$(
         impl Integer for $t {

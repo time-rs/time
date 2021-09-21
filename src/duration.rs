@@ -812,6 +812,7 @@ impl SubAssign<Duration> for StdDuration {
     }
 }
 
+/// Implement `Mul` (reflexively) and `Div` for `Duration` for various types.
 macro_rules! duration_mul_div_int {
     ($($type:ty),+) => {$(
         impl Mul<$type> for Duration {

@@ -440,6 +440,7 @@ impl TryFrom<Parsed> for Date {
     type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
+        /// Require the items listed.
         macro_rules! items {
             ($($item:ident),+ $(,)?) => {
                 Parsed { $($item: Some($item)),*, .. }

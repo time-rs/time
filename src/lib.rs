@@ -98,7 +98,6 @@
     clippy::get_unwrap,
     clippy::missing_docs_in_private_items,
     clippy::nursery,
-    clippy::pedantic,
     clippy::print_stdout,
     clippy::todo,
     clippy::unimplemented,
@@ -111,19 +110,7 @@
     unused_qualifications,
     variant_size_differences
 )]
-#![allow(
-    clippy::cast_lossless,
-    clippy::cast_possible_truncation,
-    clippy::cast_possible_wrap,
-    clippy::cast_precision_loss,
-    clippy::cast_sign_loss,
-    clippy::enum_glob_use,
-    clippy::map_err_ignore,
-    clippy::missing_errors_doc,
-    clippy::must_use_candidate,
-    clippy::redundant_pub_crate,
-    unstable_name_collisions
-)]
+#![allow(clippy::redundant_pub_crate)]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(test(attr(deny(warnings))))]
@@ -133,6 +120,7 @@
 extern crate alloc;
 
 // region: macros
+/// Helper macro for easily implementing `OpAssign`.
 macro_rules! __impl_assign {
     ($sym:tt $op:ident $fn:ident $target:ty : $($(#[$attr:meta])* $t:ty),+) => {$(
         #[allow(unused_qualifications)]

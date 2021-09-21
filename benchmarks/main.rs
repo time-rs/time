@@ -18,7 +18,6 @@
     clippy::decimal_literal_representation,
     clippy::get_unwrap,
     clippy::nursery,
-    clippy::pedantic,
     clippy::print_stdout,
     clippy::todo,
     clippy::unimplemented,
@@ -30,7 +29,7 @@
     unused_qualifications,
     variant_size_differences
 )]
-#![allow(clippy::enum_glob_use, clippy::many_single_char_names)]
+#![allow(clippy::many_single_char_names)]
 
 macro_rules! setup_benchmark {
     (
