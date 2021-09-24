@@ -432,6 +432,14 @@ fn parse_date() -> time::Result<()> {
             "2018-W01-2",
             date!(2018 - 01 - 02),
         ),
+        (
+            fd::parse(
+                "[year padding:space]-W[week_number repr:sunday padding:none]-[weekday \
+                 repr:sunday]",
+            )?,
+            " 2018-W01-2",
+            date!(2018 - 01 - 02),
+        ),
     ];
 
     for (format_description, input, output) in &format_input_output {
@@ -505,6 +513,12 @@ fn parse_date_err() -> time::Result<()> {
         Date::parse("Ja", &fd::parse("[month repr:short]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("month")
+        ))
+    ));
+    assert!(matches!(
+        Date::parse("  2a21", &fd::parse("[year padding:space]")?),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("year")
         ))
     ));
 
