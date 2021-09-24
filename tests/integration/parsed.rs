@@ -40,6 +40,62 @@ fn getters_setters() {
 }
 
 #[test]
+fn builder_methods() {
+    let parsed = Parsed::new()
+        .with_year(5)
+        .and_then(|parsed| parsed.with_year_last_two(5))
+        .and_then(|parsed| parsed.with_iso_year(5))
+        .and_then(|parsed| parsed.with_iso_year_last_two(5))
+        .and_then(|parsed| parsed.with_month(Month::May))
+        .and_then(|parsed| parsed.with_sunday_week_number(5))
+        .and_then(|parsed| parsed.with_monday_week_number(5))
+        .and_then(|parsed| parsed.with_iso_week_number(NonZeroU8::new(5).expect("valid value")))
+        .and_then(|parsed| parsed.with_weekday(Weekday::Monday))
+        .and_then(|parsed| parsed.with_ordinal(NonZeroU16::new(5).expect("valid value")))
+        .and_then(|parsed| parsed.with_day(NonZeroU8::new(5).expect("valid value")))
+        .and_then(|parsed| parsed.with_hour_24(5))
+        .and_then(|parsed| parsed.with_hour_12(NonZeroU8::new(5).expect("valid value")))
+        .and_then(|parsed| parsed.with_hour_12_is_pm(true))
+        .and_then(|parsed| parsed.with_minute(5))
+        .and_then(|parsed| parsed.with_second(5))
+        .and_then(|parsed| parsed.with_subsecond(5))
+        .and_then(|parsed| parsed.with_offset_hour(5))
+        .and_then(|parsed| parsed.with_offset_minute(5))
+        .and_then(|parsed| parsed.with_offset_second(5))
+        .expect("all values are valid");
+
+    assert_eq!(parsed.year(), Some(5));
+    assert_eq!(parsed.year_last_two(), Some(5));
+    assert_eq!(parsed.iso_year(), Some(5));
+    assert_eq!(parsed.iso_year_last_two(), Some(5));
+    assert_eq!(parsed.month(), Some(Month::May));
+    assert_eq!(parsed.sunday_week_number(), Some(5));
+    assert_eq!(parsed.monday_week_number(), Some(5));
+    assert_eq!(
+        parsed.iso_week_number(),
+        Some(NonZeroU8::new(5).expect("valid value"))
+    );
+    assert_eq!(parsed.weekday(), Some(Weekday::Monday));
+    assert_eq!(
+        parsed.ordinal(),
+        Some(NonZeroU16::new(5).expect("valid value"))
+    );
+    assert_eq!(parsed.day(), Some(NonZeroU8::new(5).expect("valid value")));
+    assert_eq!(parsed.hour_24(), Some(5));
+    assert_eq!(
+        parsed.hour_12(),
+        Some(NonZeroU8::new(5).expect("valid value"))
+    );
+    assert_eq!(parsed.hour_12_is_pm(), Some(true));
+    assert_eq!(parsed.minute(), Some(5));
+    assert_eq!(parsed.second(), Some(5));
+    assert_eq!(parsed.subsecond(), Some(5));
+    assert_eq!(parsed.offset_hour(), Some(5));
+    assert_eq!(parsed.offset_minute(), Some(5));
+    assert_eq!(parsed.offset_second(), Some(5));
+}
+
+#[test]
 fn single_item_parse() {
     assert!(Time::parse("a", &FormatItem::Literal(b"a")).is_err());
     assert!(Time::parse("b", &FormatItem::Literal(b"a")).is_err());
