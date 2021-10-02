@@ -449,7 +449,7 @@ fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
             wMilliseconds: u16,
         }
 
-        #[link(name = "Kernel32")]
+        #[link(name = "kernel32")]
         extern "system" {
             // https://docs.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-systemtimetofiletime
             fn SystemTimeToFileTime(
