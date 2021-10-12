@@ -9,6 +9,7 @@ use crate::formatting::{format_component, format_number_pad_zero, write};
 use crate::{error, Date, Time, UtcOffset};
 
 /// A type that can be formatted.
+#[cfg_attr(__time_03_docs, doc(notable_trait))]
 pub trait Formattable: sealed::Sealed {}
 impl Formattable for FormatItem<'_> {}
 impl Formattable for [FormatItem<'_>] {}

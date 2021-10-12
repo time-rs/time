@@ -10,6 +10,7 @@ use crate::parsing::{Parsed, ParsedItem};
 use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
 /// A type that can be parsed.
+#[cfg_attr(__time_03_docs, doc(notable_trait))]
 pub trait Parsable: sealed::Sealed {}
 impl Parsable for FormatItem<'_> {}
 impl Parsable for [FormatItem<'_>] {}
