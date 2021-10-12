@@ -260,7 +260,7 @@ impl UtcOffset {
     pub fn format_into(
         self,
         output: &mut impl io::Write,
-        format: &impl Formattable,
+        format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
         format.format_into(output, None, None, Some(self))
     }
@@ -273,7 +273,7 @@ impl UtcOffset {
     /// assert_eq!(offset!(+1).format(&format)?, "+01:00");
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn format(self, format: &impl Formattable) -> Result<String, error::Format> {
+    pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
         format.format(None, None, Some(self))
     }
 }
@@ -290,7 +290,10 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::parse("-03:42", &format)?, offset!(-3:42));
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
+    pub fn parse(
+        input: &str,
+        description: &(impl Parsable + ?Sized),
+    ) -> Result<Self, error::Parse> {
         description.parse_offset(input.as_bytes())
     }
 }
