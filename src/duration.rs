@@ -953,4 +953,16 @@ impl PartialOrd<Duration> for StdDuration {
         rhs.partial_cmp(self).map(Ordering::reverse)
     }
 }
+
+impl std::iter::Sum<Duration> for Duration {
+    fn sum<I: Iterator<Item = Duration>>(iter: I) -> Duration {
+        iter.reduce(|a, b| a.add(b)).unwrap_or(Duration::ZERO)
+    }
+}
+
+impl<'a> std::iter::Sum<&'a Duration> for Duration {
+    fn sum<I: Iterator<Item = &'a Duration>>(iter: I) -> Duration {
+        iter.map(|x| *x).sum()
+    }
+}
 // endregion trait impls
