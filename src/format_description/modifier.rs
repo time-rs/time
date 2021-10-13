@@ -119,7 +119,7 @@ pub struct Year {
     pub padding: Padding,
     /// What kind of representation should be used?
     pub repr: YearRepr,
-    /// Whether the value based on the ISO week number.
+    /// Whether the value is based on the ISO week number or the calendar.
     pub iso_week_based: bool,
     /// Whether the `+` sign is present when a positive year contains fewer than five digits.
     pub sign_is_mandatory: bool,
@@ -246,9 +246,10 @@ pub enum Padding {
 /// `default` method that is `const fn`, permitting the default value to be used in const contexts.
 /// Every modifier should use this macro rather than a derived `Default`.
 macro_rules! impl_const_default {
-    ($($type:ty => $default:expr;)*) => {$(
+    ($(#[$doc_meta:meta] $type:ty => $default:expr;)*) => {$(
         impl $type {
-            /// Creates an instance of this modifier with default values.
+            /// Creates an instance of this type that
+            #[$doc_meta]
             ///
             /// This function exists since `Default::default()` cannot be used in a const context,
             /// and will be removed once that becomes possible. As the `Default` trait is in the prelude,
@@ -269,50 +270,70 @@ macro_rules! impl_const_default {
 }
 
 impl_const_default! {
+    /// has the default padding.
     Day => Self { padding: Padding::default() };
+    /// has the `Numerical` representation.
     MonthRepr => Self::Numerical;
+    /// has the default padding, default representation, and is case-sensitive when parsing.
     Month => Self {
         padding: Padding::default(),
         repr: MonthRepr::default(),
         case_sensitive: true,
     };
+    /// has the default padding.
     Ordinal => Self { padding: Padding::default() };
+    /// has the `Long` representation.
     WeekdayRepr => Self::Long;
+    /// has the default representation and is case-sensitive when parsing.
     Weekday => Self {
         repr: WeekdayRepr::default(),
         one_indexed: true,
         case_sensitive: true,
     };
+    /// has the `Iso` representation.
     WeekNumberRepr => Self::Iso;
+    /// has the default padding and default representation.
     WeekNumber => Self {
         padding: Padding::default(),
         repr: WeekNumberRepr::default(),
     };
+    /// has the `Full` representation.
     YearRepr => Self::Full;
+    /// has the default padding, default representation, calendar base and automatic sign.
     Year => Self {
         padding: Padding::default(),
         repr: YearRepr::default(),
         iso_week_based: false,
         sign_is_mandatory: false,
     };
+    /// has the default padding and 24-hour representation.
     Hour => Self {
         padding: Padding::default(),
         is_12_hour_clock: false,
     };
+    /// has the default padding.
     Minute => Self { padding: Padding::default() };
+    /// has upper-case representation and is case-sensitive when parsing.
     Period => Self {
         is_uppercase: true,
         case_sensitive: true,
     };
+    /// has the default padding.
     Second => Self { padding: Padding::default() };
+    /// one or more digits.
     SubsecondDigits => Self::OneOrMore;
+    /// has the default number of digits.
     Subsecond => Self { digits: SubsecondDigits::default() };
+    /// has the `+` sign for positive values and default padding.
     OffsetHour => Self {
         sign_is_mandatory: true,
         padding: Padding::default(),
     };
+    /// has the default padding.
     OffsetMinute => Self { padding: Padding::default() };
+    /// has the default padding.
     OffsetSecond => Self { padding: Padding::default() };
+    /// specifies to pad with zeroes.
     Padding => Self::Zero;
 }
 
