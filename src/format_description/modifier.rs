@@ -244,16 +244,17 @@ pub enum Padding {
 
 /// Implement `Default` for the given type. This also generates an inherent implementation of a
 /// `default` method that is `const fn`, permitting the default value to be used in const contexts.
-// Every modifier should use this macro rather than a derived `Default`.
+/// Every modifier should use this macro rather than a derived `Default`.
 macro_rules! impl_const_default {
     ($($type:ty => $default:expr;)*) => {$(
         impl $type {
-            /// A hack to work around the lack of const traits. Once const traits are stabilized,
-            /// this method will be removed in favor of `impl const Default`. As the `Default` trait
-            /// is in the prelude, this should not cause any resolution failures. Regardless, this
-            /// method is explicitly **not** part of the stable API of the time crate. It exists
-            /// solely for use in macros.
-            #[doc(hidden)]
+            /// Creates an instance of this modifier with default values.
+            ///
+            /// This function exists since `Default::default()` cannot be used in a const context,
+            /// and will be removed once that becomes possible. As the `Default` trait is in the prelude,
+            /// removing this function in the future will not cause any resolution failures for most users,
+            /// so this will not be considered a breaking change. Only users who compile their code with
+            /// `#![no_implicit_prelude]` will be affected.
             pub const fn default() -> Self {
                 $default
             }
