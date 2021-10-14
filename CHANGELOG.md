@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## Unreleased
+
+### Added
+
+- `error::DefaultVariant` and `Error::DefaultVariant`
+- `impl From<Component> for FormatItem<'_>`
+- `impl TryFrom<FormatItem<'_>> for Component`
+- `impl<'a> From<&'a [FormatItem<'_>]> for FormatItem<'a>`
+- `impl<'a> TryFrom<FormatItem<'a>> for &[FormatItem<'a>]`
+- `impl PartialEq<Component> for FormatItem<'_>`
+- `impl PartialEq<FormatItem<'_>> for Component`
+- `impl PartialEq<&[FormatItem<'_>]> for FormatItem<'_>`
+- `impl PartialEq<FormatItem<'_>> for &[FormatItem<'_>]`
+
 ## 0.3.3 [2021-09-25]
 
 ### Added

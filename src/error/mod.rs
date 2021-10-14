@@ -1,5 +1,6 @@
 mod component_range;
 mod conversion_range;
+mod different_variant;
 #[cfg(feature = "formatting")]
 mod format;
 #[cfg(feature = "local-offset")]
@@ -17,6 +18,7 @@ use core::fmt;
 
 pub use component_range::ComponentRange;
 pub use conversion_range::ConversionRange;
+pub use different_variant::DifferentVariant;
 #[cfg(feature = "formatting")]
 pub use format::Format;
 #[cfg(feature = "local-offset")]
@@ -63,6 +65,7 @@ pub enum Error {
         doc(cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc")))
     )]
     InvalidFormatDescription(InvalidFormatDescription),
+    DifferentVariant(DifferentVariant),
 }
 
 impl fmt::Display for Error {
@@ -82,6 +85,7 @@ impl fmt::Display for Error {
             Self::TryFromParsed(e) => e.fmt(f),
             #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
             Self::InvalidFormatDescription(e) => e.fmt(f),
+            Self::DifferentVariant(e) => e.fmt(f),
         }
     }
 }
@@ -105,6 +109,7 @@ impl std::error::Error for Error {
             Self::TryFromParsed(err) => Some(err),
             #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
             Self::InvalidFormatDescription(err) => Some(err),
+            Self::DifferentVariant(err) => Some(err),
         }
     }
 }

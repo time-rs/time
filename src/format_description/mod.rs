@@ -12,12 +12,14 @@ pub(crate) mod parse;
 
 #[cfg(feature = "alloc")]
 use alloc::string::String;
+use core::convert::TryFrom;
 #[cfg(feature = "alloc")]
 use core::fmt;
 
 pub use self::component::Component;
 #[cfg(feature = "alloc")]
 pub use self::parse::parse;
+use crate::error;
 
 /// Helper methods.
 #[cfg(feature = "alloc")]
@@ -66,5 +68,63 @@ impl fmt::Debug for FormatItem<'_> {
             FormatItem::Component(component) => component.fmt(f),
             FormatItem::Compound(compound) => compound.fmt(f),
         }
+    }
+}
+
+impl From<Component> for FormatItem<'_> {
+    fn from(component: Component) -> Self {
+        Self::Component(component)
+    }
+}
+
+impl TryFrom<FormatItem<'_>> for Component {
+    type Error = error::DifferentVariant;
+
+    fn try_from(value: FormatItem<'_>) -> Result<Self, Self::Error> {
+        match value {
+            FormatItem::Component(component) => Ok(component),
+            _ => Err(error::DifferentVariant),
+        }
+    }
+}
+
+impl<'a> From<&'a [FormatItem<'_>]> for FormatItem<'a> {
+    fn from(items: &'a [FormatItem<'_>]) -> FormatItem<'a> {
+        FormatItem::Compound(items)
+    }
+}
+
+impl<'a> TryFrom<FormatItem<'a>> for &[FormatItem<'a>] {
+    type Error = error::DifferentVariant;
+
+    fn try_from(value: FormatItem<'a>) -> Result<Self, Self::Error> {
+        match value {
+            FormatItem::Compound(items) => Ok(items),
+            _ => Err(error::DifferentVariant),
+        }
+    }
+}
+
+impl PartialEq<Component> for FormatItem<'_> {
+    fn eq(&self, rhs: &Component) -> bool {
+        matches!(self, FormatItem::Component(component) if component == rhs)
+    }
+}
+
+impl PartialEq<FormatItem<'_>> for Component {
+    fn eq(&self, rhs: &FormatItem<'_>) -> bool {
+        rhs == self
+    }
+}
+
+impl PartialEq<&[FormatItem<'_>]> for FormatItem<'_> {
+    fn eq(&self, rhs: &&[FormatItem<'_>]) -> bool {
+        matches!(self, FormatItem::Compound(compound) if compound == rhs)
+    }
+}
+
+impl PartialEq<FormatItem<'_>> for &[FormatItem<'_>] {
+    fn eq(&self, rhs: &FormatItem<'_>) -> bool {
+        rhs == self
     }
 }
