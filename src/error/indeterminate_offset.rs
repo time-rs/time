@@ -1,6 +1,9 @@
 //! Indeterminate offset
 
+use core::convert::TryFrom;
 use core::fmt;
+
+use crate::error;
 
 /// The system's UTC offset could not be determined at the given datetime.
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
@@ -21,5 +24,17 @@ impl std::error::Error for IndeterminateOffset {}
 impl From<IndeterminateOffset> for crate::Error {
     fn from(err: IndeterminateOffset) -> Self {
         Self::IndeterminateOffset(err)
+    }
+}
+
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
+impl TryFrom<crate::Error> for IndeterminateOffset {
+    type Error = error::DifferentVariant;
+
+    fn try_from(err: crate::Error) -> Result<Self, Self::Error> {
+        match err {
+            crate::Error::IndeterminateOffset(err) => Ok(err),
+            _ => Err(error::DifferentVariant),
+        }
     }
 }

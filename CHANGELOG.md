@@ -19,6 +19,18 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `impl PartialEq<FormatItem<'_>> for Component`
 - `impl PartialEq<&[FormatItem<'_>]> for FormatItem<'_>`
 - `impl PartialEq<FormatItem<'_>> for &[FormatItem<'_>]`
+- `impl TryFrom<Error> for error::TryFromParsed`
+- `impl TryFrom<Error> for error::Parse`
+- `impl TryFrom<Error> for error::ParseFromDescription`
+- `impl TryFrom<Error> for error::InvalidFormatDescription`
+- `impl TryFrom<Error> for error::IndeterminateOffset`
+- `impl TryFrom<Error> for error::Format`
+- `impl TryFrom<Error> for error::ConversionRange`
+- `impl TryFrom<Error> for error::ComponentRange`
+- `impl TryFrom<error::TryFromParsed> for error::ComponentRange`
+- `impl TryFrom<error::Parse> for error::TryFromParsed`
+- `impl TryFrom<error::Parse> for error::ParseFromDescription`
+- `impl TryFrom<error::Format> for std::io::Error`
 
 ## 0.3.3 [2021-09-25]
 

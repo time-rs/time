@@ -1,6 +1,9 @@
 //! Component range error
 
+use core::convert::TryFrom;
 use core::fmt;
+
+use crate::error;
 
 /// An error type indicating that a component provided to a method was out of range, causing a
 /// failure.
@@ -46,6 +49,17 @@ impl fmt::Display for ComponentRange {
 impl From<ComponentRange> for crate::Error {
     fn from(original: ComponentRange) -> Self {
         Self::ComponentRange(original)
+    }
+}
+
+impl TryFrom<crate::Error> for ComponentRange {
+    type Error = error::DifferentVariant;
+
+    fn try_from(err: crate::Error) -> Result<Self, Self::Error> {
+        match err {
+            crate::Error::ComponentRange(err) => Ok(err),
+            _ => Err(error::DifferentVariant),
+        }
     }
 }
 

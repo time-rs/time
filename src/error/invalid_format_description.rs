@@ -1,7 +1,10 @@
 //! Invalid format description
 
 use alloc::string::String;
+use core::convert::TryFrom;
 use core::fmt;
+
+use crate::error;
 
 /// The format description provided was not valid.
 #[cfg_attr(
@@ -48,6 +51,21 @@ pub enum InvalidFormatDescription {
 impl From<InvalidFormatDescription> for crate::Error {
     fn from(original: InvalidFormatDescription) -> Self {
         Self::InvalidFormatDescription(original)
+    }
+}
+
+#[cfg_attr(
+    __time_03_docs,
+    doc(cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc")))
+)]
+impl TryFrom<crate::Error> for InvalidFormatDescription {
+    type Error = error::DifferentVariant;
+
+    fn try_from(err: crate::Error) -> Result<Self, Self::Error> {
+        match err {
+            crate::Error::InvalidFormatDescription(err) => Ok(err),
+            _ => Err(error::DifferentVariant),
+        }
     }
 }
 

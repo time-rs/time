@@ -1,8 +1,9 @@
 //! Error that occurred at some stage of parsing
 
+use core::convert::TryFrom;
 use core::fmt;
 
-use crate::error::{ParseFromDescription, TryFromParsed};
+use crate::error::{self, ParseFromDescription, TryFromParsed};
 
 /// An error that occurred at some stage of parsing.
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
@@ -47,9 +48,31 @@ impl From<TryFromParsed> for Parse {
     }
 }
 
+impl TryFrom<Parse> for TryFromParsed {
+    type Error = error::DifferentVariant;
+
+    fn try_from(err: Parse) -> Result<Self, Self::Error> {
+        match err {
+            Parse::TryFromParsed(err) => Ok(err),
+            _ => Err(error::DifferentVariant),
+        }
+    }
+}
+
 impl From<ParseFromDescription> for Parse {
     fn from(err: ParseFromDescription) -> Self {
         Self::ParseFromDescription(err)
+    }
+}
+
+impl TryFrom<Parse> for ParseFromDescription {
+    type Error = error::DifferentVariant;
+
+    fn try_from(err: Parse) -> Result<Self, Self::Error> {
+        match err {
+            Parse::ParseFromDescription(err) => Ok(err),
+            _ => Err(error::DifferentVariant),
+        }
     }
 }
 
@@ -59,6 +82,19 @@ impl From<Parse> for crate::Error {
             Parse::TryFromParsed(err) => Self::TryFromParsed(err),
             Parse::ParseFromDescription(err) => Self::ParseFromDescription(err),
             Parse::UnexpectedTrailingCharacters => Self::UnexpectedTrailingCharacters,
+        }
+    }
+}
+
+impl TryFrom<crate::Error> for Parse {
+    type Error = error::DifferentVariant;
+
+    fn try_from(err: crate::Error) -> Result<Self, Self::Error> {
+        match err {
+            crate::Error::ParseFromDescription(err) => Ok(Self::ParseFromDescription(err)),
+            crate::Error::UnexpectedTrailingCharacters => Ok(Self::UnexpectedTrailingCharacters),
+            crate::Error::TryFromParsed(err) => Ok(Self::TryFromParsed(err)),
+            _ => Err(error::DifferentVariant),
         }
     }
 }

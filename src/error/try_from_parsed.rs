@@ -1,5 +1,6 @@
 //! Error converting a [`Parsed`](crate::parsing::Parsed) struct to another type
 
+use core::convert::TryFrom;
 use core::fmt;
 
 use crate::error;
@@ -33,6 +34,17 @@ impl From<error::ComponentRange> for TryFromParsed {
     }
 }
 
+impl TryFrom<TryFromParsed> for error::ComponentRange {
+    type Error = error::DifferentVariant;
+
+    fn try_from(err: TryFromParsed) -> Result<Self, Self::Error> {
+        match err {
+            TryFromParsed::ComponentRange(err) => Ok(err),
+            _ => Err(error::DifferentVariant),
+        }
+    }
+}
+
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for TryFromParsed {
@@ -48,5 +60,17 @@ impl std::error::Error for TryFromParsed {
 impl From<TryFromParsed> for crate::Error {
     fn from(original: TryFromParsed) -> Self {
         Self::TryFromParsed(original)
+    }
+}
+
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
+impl TryFrom<crate::Error> for TryFromParsed {
+    type Error = error::DifferentVariant;
+
+    fn try_from(err: crate::Error) -> Result<Self, Self::Error> {
+        match err {
+            crate::Error::TryFromParsed(err) => Ok(err),
+            _ => Err(error::DifferentVariant),
+        }
     }
 }

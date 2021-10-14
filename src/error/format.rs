@@ -1,7 +1,10 @@
 //! Error formatting a struct
 
+use core::convert::TryFrom;
 use core::fmt;
 use std::io;
+
+use crate::error;
 
 /// An error occurred when formatting.
 #[non_exhaustive]
@@ -43,6 +46,17 @@ impl From<io::Error> for Format {
     }
 }
 
+impl TryFrom<Format> for io::Error {
+    type Error = error::DifferentVariant;
+
+    fn try_from(err: Format) -> Result<Self, Self::Error> {
+        match err {
+            Format::StdIo(err) => Ok(err),
+            _ => Err(error::DifferentVariant),
+        }
+    }
+}
+
 #[cfg(feature = "std")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for Format {
@@ -58,5 +72,17 @@ impl std::error::Error for Format {
 impl From<Format> for crate::Error {
     fn from(original: Format) -> Self {
         Self::Format(original)
+    }
+}
+
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
+impl TryFrom<crate::Error> for Format {
+    type Error = error::DifferentVariant;
+
+    fn try_from(err: crate::Error) -> Result<Self, Self::Error> {
+        match err {
+            crate::Error::Format(err) => Ok(err),
+            _ => Err(error::DifferentVariant),
+        }
     }
 }
