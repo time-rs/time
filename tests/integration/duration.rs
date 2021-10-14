@@ -734,17 +734,15 @@ fn arithmetic_regression() {
 }
 
 #[test]
-fn sum_vec() {
+fn sum_iter_ref() {
     let i = vec![1.6.seconds(), 1.6.seconds()];
-    let added = i.iter().sum::<Duration>();
-    assert_eq!(added.whole_seconds(), 3);
-    assert_eq!(added.subsec_milliseconds(), 200);
+    let sum = i.iter().sum::<Duration>();
+    assert_eq!(sum, 3.2.seconds());
 }
 
 #[test]
-fn sum_dereferenced() {
+fn sum_iter() {
     let i = vec![1.6.seconds(), 1.6.seconds()];
-    let added = i.iter().map(|x| *x).sum::<Duration>();
-    assert_eq!(added.whole_seconds(), 3);
-    assert_eq!(added.subsec_milliseconds(), 200);
+    let sum = i.into_iter().sum::<Duration>();
+    assert_eq!(sum, 3.2.seconds());
 }
