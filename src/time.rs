@@ -409,7 +409,6 @@ impl Time {
 
 // region: formatting & parsing
 #[cfg(feature = "formatting")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl Time {
     /// Format the `Time` using the provided [format description](crate::format_description).
     pub fn format_into(
@@ -434,7 +433,6 @@ impl Time {
 }
 
 #[cfg(feature = "parsing")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl Time {
     /// Parse a `Time` from the input using the provided [format
     /// description](crate::format_description).

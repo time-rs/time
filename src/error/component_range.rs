@@ -64,7 +64,6 @@ impl TryFrom<crate::Error> for ComponentRange {
 }
 
 #[cfg(feature = "serde")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "serde")))]
 impl serde::de::Expected for ComponentRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -87,5 +86,4 @@ impl ComponentRange {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for ComponentRange {}

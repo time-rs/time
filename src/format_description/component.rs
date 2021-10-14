@@ -43,7 +43,6 @@ pub enum Component {
 
 /// A component with no modifiers present.
 #[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 pub(crate) enum NakedComponent {
     /// Day of the month.
     Day,
@@ -76,7 +75,6 @@ pub(crate) enum NakedComponent {
 }
 
 #[cfg(feature = "alloc")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
 impl NakedComponent {
     /// Parse a component (without its modifiers) from the provided name.
     pub(crate) fn parse(

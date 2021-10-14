@@ -228,7 +228,6 @@ impl UtcOffset {
     /// # }
     /// ```
     #[cfg(feature = "local-offset")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
     pub fn local_offset_at(datetime: OffsetDateTime) -> Result<Self, error::IndeterminateOffset> {
         local_offset_at(datetime).ok_or(error::IndeterminateOffset)
     }
@@ -244,7 +243,6 @@ impl UtcOffset {
     /// # }
     /// ```
     #[cfg(feature = "local-offset")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
     pub fn current_local_offset() -> Result<Self, error::IndeterminateOffset> {
         let now = OffsetDateTime::now_utc();
         local_offset_at(now).ok_or(error::IndeterminateOffset)
@@ -254,7 +252,6 @@ impl UtcOffset {
 
 // region: formatting & parsing
 #[cfg(feature = "formatting")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl UtcOffset {
     /// Format the `UtcOffset` using the provided [format description](crate::format_description).
     pub fn format_into(
@@ -279,7 +276,6 @@ impl UtcOffset {
 }
 
 #[cfg(feature = "parsing")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl UtcOffset {
     /// Parse a `UtcOffset` from the input using the provided [format
     /// description](crate::format_description).
@@ -320,7 +316,6 @@ impl Neg for UtcOffset {
 /// Attempt to obtain the system's UTC offset. If the offset cannot be determined, `None` is
 /// returned.
 #[cfg(feature = "local-offset")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
 #[allow(clippy::too_many_lines, clippy::missing_const_for_fn)]
 fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     // See #293 for details.

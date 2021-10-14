@@ -292,27 +292,19 @@ pub mod error;
 /// Extension traits.
 pub mod ext;
 #[cfg(any(feature = "formatting", feature = "parsing"))]
-#[cfg_attr(
-    __time_03_docs,
-    doc(cfg(any(feature = "formatting", feature = "parsing")))
-)]
 pub mod format_description;
 #[cfg(feature = "formatting")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 pub mod formatting;
 /// The [`Instant`] struct and its associated `impl`s.
 #[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 mod instant;
 /// Macros to construct statically known values.
 #[cfg(feature = "macros")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "macros")))]
 pub mod macros;
 mod month;
 /// The [`OffsetDateTime`] struct and its associated `impl`s.
 mod offset_date_time;
 #[cfg(feature = "parsing")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 pub mod parsing;
 /// The [`PrimitiveDateTime`] struct and its associated `impl`s.
 mod primitive_date_time;

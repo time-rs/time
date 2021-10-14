@@ -15,7 +15,6 @@ impl fmt::Display for DifferentVariant {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for DifferentVariant {}
 
 impl From<DifferentVariant> for crate::Error {

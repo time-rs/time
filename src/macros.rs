@@ -51,10 +51,6 @@ pub use time_macros::datetime;
 ///
 /// [`format_description::parse()`]: crate::format_description::parse()
 #[cfg(any(feature = "formatting", feature = "parsing"))]
-#[cfg_attr(
-    __time_03_docs,
-    doc(cfg(any(feature = "formatting", feature = "parsing")))
-)]
 pub use time_macros::format_description;
 /// Construct a [`UtcOffset`](crate::UtcOffset) with a statically known value.
 ///

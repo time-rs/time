@@ -185,7 +185,6 @@ impl Duration {
     /// actually require the standard library, but is currently only used when it's enabled.
     #[allow(clippy::missing_const_for_fn)] // false positive
     #[cfg(feature = "std")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
     pub(crate) fn abs_std(self) -> StdDuration {
         StdDuration::new(self.seconds.unsigned_abs(), self.nanoseconds.unsigned_abs())
     }
@@ -695,7 +694,6 @@ impl Duration {
     /// Runs a closure, returning the duration of time it took to run. The return value of the
     /// closure is provided in the second part of the tuple.
     #[cfg(feature = "std")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
     pub fn time_fn<T>(f: impl FnOnce() -> T) -> (Self, T) {
         let start = Instant::now();
         let return_value = f();

@@ -29,7 +29,6 @@ impl fmt::Display for ParseFromDescription {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for ParseFromDescription {}
 
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
@@ -39,6 +38,7 @@ impl From<ParseFromDescription> for crate::Error {
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl TryFrom<crate::Error> for ParseFromDescription {
     type Error = error::DifferentVariant;
 

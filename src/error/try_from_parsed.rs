@@ -46,7 +46,6 @@ impl TryFrom<TryFromParsed> for error::ComponentRange {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for TryFromParsed {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {

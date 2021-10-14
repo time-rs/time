@@ -651,7 +651,6 @@ impl Date {
 
 // region: formatting & parsing
 #[cfg(feature = "formatting")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl Date {
     /// Format the `Date` using the provided [format description](crate::format_description).
     pub fn format_into(
@@ -676,7 +675,6 @@ impl Date {
 }
 
 #[cfg(feature = "parsing")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl Date {
     /// Parse a `Date` from the input using the provided [format
     /// description](crate::format_description).

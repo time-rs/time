@@ -500,7 +500,6 @@ impl PrimitiveDateTime {
 
 // region: formatting & parsing
 #[cfg(feature = "formatting")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided [format
     /// description](crate::format_description).
@@ -530,7 +529,6 @@ impl PrimitiveDateTime {
 }
 
 #[cfg(feature = "parsing")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl PrimitiveDateTime {
     /// Parse a `PrimitiveDateTime` from the input using the provided [format
     /// description](crate::format_description).

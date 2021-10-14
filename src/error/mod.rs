@@ -44,26 +44,17 @@ pub enum Error {
     ConversionRange(ConversionRange),
     ComponentRange(ComponentRange),
     #[cfg(feature = "local-offset")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
     IndeterminateOffset(IndeterminateOffset),
     #[cfg(feature = "formatting")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
     Format(Format),
     #[cfg(feature = "parsing")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
     ParseFromDescription(ParseFromDescription),
     #[cfg(feature = "parsing")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
     #[non_exhaustive]
     UnexpectedTrailingCharacters,
     #[cfg(feature = "parsing")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
     TryFromParsed(TryFromParsed),
     #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
-    #[cfg_attr(
-        __time_03_docs,
-        doc(cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc")))
-    )]
     InvalidFormatDescription(InvalidFormatDescription),
     DifferentVariant(DifferentVariant),
 }
@@ -91,7 +82,6 @@ impl fmt::Display for Error {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {

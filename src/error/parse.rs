@@ -31,7 +31,6 @@ impl fmt::Display for Parse {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for Parse {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
@@ -42,12 +41,14 @@ impl std::error::Error for Parse {
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl From<TryFromParsed> for Parse {
     fn from(err: TryFromParsed) -> Self {
         Self::TryFromParsed(err)
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl TryFrom<Parse> for TryFromParsed {
     type Error = error::DifferentVariant;
 
@@ -59,12 +60,14 @@ impl TryFrom<Parse> for TryFromParsed {
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl From<ParseFromDescription> for Parse {
     fn from(err: ParseFromDescription) -> Self {
         Self::ParseFromDescription(err)
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl TryFrom<Parse> for ParseFromDescription {
     type Error = error::DifferentVariant;
 
@@ -76,6 +79,7 @@ impl TryFrom<Parse> for ParseFromDescription {
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl From<Parse> for crate::Error {
     fn from(err: Parse) -> Self {
         match err {
@@ -86,6 +90,7 @@ impl From<Parse> for crate::Error {
     }
 }
 
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
 impl TryFrom<crate::Error> for Parse {
     type Error = error::DifferentVariant;
 

@@ -58,7 +58,6 @@ impl TryFrom<Format> for io::Error {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for Format {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match *self {

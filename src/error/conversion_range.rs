@@ -17,7 +17,6 @@ impl fmt::Display for ConversionRange {
 }
 
 #[cfg(feature = "std")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
 impl std::error::Error for ConversionRange {}
 
 impl From<ConversionRange> for crate::Error {
