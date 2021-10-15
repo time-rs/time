@@ -49,6 +49,7 @@ mod derives;
 mod duration;
 mod error;
 mod ext;
+mod format_description;
 mod formatting;
 mod instant;
 mod macros;

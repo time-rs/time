@@ -44,6 +44,7 @@ fn clone() {
     assert_cloned_eq!(error::Parse::ParseFromDescription(
         error::ParseFromDescription::InvalidComponent("foo")
     ));
+    assert_cloned_eq!(error::DifferentVariant);
     assert_cloned_eq!(error::ParseFromDescription::InvalidComponent("foo"));
     assert_cloned_eq!(Component::OffsetSecond(modifier::OffsetSecond::default()));
     assert_cloned_eq!(well_known::Rfc3339);

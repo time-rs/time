@@ -1,9 +1,10 @@
+use std::convert::TryFrom;
 use std::error::Error as _;
 use std::io;
 
 use time::error::{
-    ComponentRange, ConversionRange, Error, Format, IndeterminateOffset, InvalidFormatDescription,
-    Parse, ParseFromDescription, TryFromParsed,
+    ComponentRange, ConversionRange, DifferentVariant, Error, Format, IndeterminateOffset,
+    InvalidFormatDescription, Parse, ParseFromDescription, TryFromParsed,
 };
 use time::format_description::{self, modifier, Component, FormatItem};
 use time::macros::format_description;
@@ -65,6 +66,7 @@ fn debug() {
     )]));
     assert_dbg_reflexive!(Parse::from(ParseFromDescription::InvalidComponent("a")));
     assert_dbg_reflexive!(invalid_format_description());
+    assert_dbg_reflexive!(DifferentVariant);
 }
 
 #[test]
@@ -111,6 +113,7 @@ fn display() {
         Error::from(invalid_format_description())
     );
     assert_display_eq!(io_error(), Format::from(io_error()));
+    assert_display_eq!(DifferentVariant, Error::from(DifferentVariant));
 }
 
 #[test]
@@ -146,9 +149,43 @@ fn source() {
         InvalidFormatDescription
     );
     assert_source!(Format::from(io_error()), io::Error);
+    assert_source!(Error::from(DifferentVariant), DifferentVariant);
 }
 
 #[test]
 fn component_name() {
     assert_eq!(component_range().name(), "ordinal");
+}
+
+#[test]
+fn conversion() {
+    assert!(ComponentRange::try_from(Error::from(component_range())).is_ok());
+    assert!(ConversionRange::try_from(Error::from(ConversionRange)).is_ok());
+    assert!(Format::try_from(Error::from(insufficient_type_information())).is_ok());
+    assert!(IndeterminateOffset::try_from(Error::from(IndeterminateOffset)).is_ok());
+    assert!(InvalidFormatDescription::try_from(Error::from(invalid_format_description())).is_ok());
+    assert!(ParseFromDescription::try_from(Error::from(invalid_literal())).is_ok());
+    assert!(ParseFromDescription::try_from(Parse::from(invalid_literal())).is_ok());
+    assert!(Parse::try_from(Error::from(unexpected_trailing_characters())).is_ok());
+    assert!(Parse::try_from(Error::from(invalid_literal())).is_ok());
+    assert!(Parse::try_from(Error::from(TryFromParsed::InsufficientInformation)).is_ok());
+    assert!(DifferentVariant::try_from(Error::from(DifferentVariant)).is_ok());
+    assert!(ComponentRange::try_from(TryFromParsed::ComponentRange(component_range())).is_ok());
+    assert!(TryFromParsed::try_from(Error::from(TryFromParsed::InsufficientInformation)).is_ok());
+    assert!(TryFromParsed::try_from(Parse::from(TryFromParsed::InsufficientInformation)).is_ok());
+    assert!(std::io::Error::try_from(Format::from(io_error())).is_ok());
+
+    assert!(ComponentRange::try_from(Error::from(IndeterminateOffset)).is_err());
+    assert!(ConversionRange::try_from(Error::from(IndeterminateOffset)).is_err());
+    assert!(Format::try_from(Error::from(IndeterminateOffset)).is_err());
+    assert!(IndeterminateOffset::try_from(Error::from(ConversionRange)).is_err());
+    assert!(InvalidFormatDescription::try_from(Error::from(IndeterminateOffset)).is_err());
+    assert!(ParseFromDescription::try_from(Error::from(IndeterminateOffset)).is_err());
+    assert!(ParseFromDescription::try_from(unexpected_trailing_characters()).is_err());
+    assert!(Parse::try_from(Error::from(IndeterminateOffset)).is_err());
+    assert!(DifferentVariant::try_from(Error::from(IndeterminateOffset)).is_err());
+    assert!(ComponentRange::try_from(TryFromParsed::InsufficientInformation).is_err());
+    assert!(TryFromParsed::try_from(Error::from(IndeterminateOffset)).is_err());
+    assert!(TryFromParsed::try_from(unexpected_trailing_characters()).is_err());
+    assert!(std::io::Error::try_from(insufficient_type_information()).is_err());
 }
