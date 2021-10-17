@@ -1,6 +1,7 @@
 use core::cmp::Ordering;
 use core::convert::{TryFrom, TryInto};
 use core::fmt;
+use core::iter::Sum;
 use core::ops::{Add, Div, Mul, Neg, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 
@@ -949,6 +950,18 @@ impl PartialOrd<StdDuration> for Duration {
 impl PartialOrd<Duration> for StdDuration {
     fn partial_cmp(&self, rhs: &Duration) -> Option<Ordering> {
         rhs.partial_cmp(self).map(Ordering::reverse)
+    }
+}
+
+impl Sum<Duration> for Duration {
+    fn sum<I: Iterator<Item = Duration>>(iter: I) -> Duration {
+        iter.reduce(|a, b| a + b).unwrap_or_default()
+    }
+}
+
+impl<'a> Sum<&'a Duration> for Duration {
+    fn sum<I: Iterator<Item = &'a Duration>>(iter: I) -> Duration {
+        iter.copied().sum()
     }
 }
 // endregion trait impls
