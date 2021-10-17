@@ -953,14 +953,14 @@ impl PartialOrd<Duration> for StdDuration {
     }
 }
 
-impl Sum<Duration> for Duration {
-    fn sum<I: Iterator<Item = Duration>>(iter: I) -> Duration {
+impl Sum for Duration {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.reduce(|a, b| a + b).unwrap_or_default()
     }
 }
 
-impl<'a> Sum<&'a Duration> for Duration {
-    fn sum<I: Iterator<Item = &'a Duration>>(iter: I) -> Duration {
+impl<'a> Sum<&'a Self> for Duration {
+    fn sum<I: Iterator<Item = &'a Self>>(iter: I) -> Self {
         iter.copied().sum()
     }
 }
