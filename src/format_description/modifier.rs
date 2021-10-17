@@ -246,20 +246,22 @@ pub enum Padding {
 /// `default` method that is `const fn`, permitting the default value to be used in const contexts.
 // Every modifier should use this macro rather than a derived `Default`.
 macro_rules! impl_const_default {
-    ($($(#[$doc_meta:meta])* $type:ty => $default:expr;)*) => {$(
+    ($($(#[$doc:meta])* $type:ty => $default:expr;)*) => {$(
         impl $type {
-            $(#[$doc_meta])*
+            $(#[$doc])*
             ///
-            /// This function exists since `Default::default()` cannot be used in a const context,
-            /// and may be removed once that becomes possible. As the `Default` trait is in the prelude,
-            /// removing this function in the future will not cause any resolution failures for most users,
-            /// so this will not be considered a breaking change. Only users who compile their code with
-            /// `#![no_implicit_prelude]` will be affected.
+            /// This function exists since [`Default::default()`] cannot be used in a `const`
+            /// context. It may be removed once that becomes possible. As the [`Default`] trait is
+            /// in the prelude, removing this function in the future will not cause any resolution
+            /// failures for the overwhelming majority of users; only users who use
+            /// `#![no_implicit_prelude]` will be affected. As such it will not be considered a
+            /// breaking change.
             pub const fn default() -> Self {
                 $default
             }
         }
 
+        $(#[$doc])*
         impl Default for $type {
             fn default() -> Self {
                 $default
@@ -269,77 +271,83 @@ macro_rules! impl_const_default {
 }
 
 impl_const_default! {
-    /// Creates an instance of this type that specifies that the value should be padded with [zeroes.](Padding::Zero)
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
     Day => Self { padding: Padding::default() };
-    /// Creates an instance of this type that specifies that the value should use the [`Numerical`](Self::Numerical) representation.
+    /// Creates a modifier that indicates the value uses the
+    /// [`Numerical`](Self::Numerical) representation.
     MonthRepr => Self::Numerical;
-    /// Creates an instance of this type that specifies that the value should use the [`Numerical`](MonthRepr::Numerical) representation,
-    /// padding with [zeroes,](Padding::Zero) and be case-sensitive when parsing.
+    /// Creates an instance of this type that indicates the value uses the
+    /// [`Numerical`](MonthRepr::Numerical) representation, is [padded with zeroes](Padding::Zero),
+    /// and is case-sensitive when parsing.
     Month => Self {
         padding: Padding::default(),
         repr: MonthRepr::default(),
         case_sensitive: true,
     };
-    /// Creates an instance of this type that specifies that the value should be padded with [zeroes.](Padding::Zero)
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
     Ordinal => Self { padding: Padding::default() };
-    /// Creates an instance of this type that specifies that the value should have the [`Long`](Self::Long) representation.
+    /// Creates a modifier that indicates the value uses the [`Long`](Self::Long) representation.
     WeekdayRepr => Self::Long;
-    /// Creates an instance of this type that specifies that the value should have the [`Long`](WeekdayRepr::Long) representation,
-    /// and be case-sensitive when parsing. If the representation is changed to a numerical one, the instance defaults to one-based indexing.
+    /// Creates a modifier that indicates the value uses the [`Long`](WeekdayRepr::Long)
+    /// representation and is case-sensitive when parsing. If the representation is changed to a
+    /// numerical one, the instance defaults to one-based indexing.
     Weekday => Self {
         repr: WeekdayRepr::default(),
         one_indexed: true,
         case_sensitive: true,
     };
-    /// Creates an instance of this type that specifies that the value should use the [`Iso`](Self::Iso) representation.
+    /// Creates a modifier that indicates that the value uses the [`Iso`](Self::Iso) representation.
     WeekNumberRepr => Self::Iso;
-    /// Creates an instance of this type that specifies that the value should be padded with [zeroes](Padding::Zero)
-    /// and have the [`Iso`](WeekNumberRepr::Iso) representation.
+    /// Creates a modifier that indicates that the value is [padded with zeroes](Padding::Zero)
+            /// and uses the [`Iso`](WeekNumberRepr::Iso) representation.
     WeekNumber => Self {
         padding: Padding::default(),
         repr: WeekNumberRepr::default(),
     };
-    /// Creates an instance of this type that specifies that the value should have the [`Full`](Self::Full) representation.
+    /// Creates a modifier that indicates the value uses the [`Full`](Self::Full) representation.
     YearRepr => Self::Full;
-    /// Creates an instance of this type that specifies that the value should have the [`Full`](YearRepr::Full) representation,
-    /// padding with [zeroes,](Padding::Zero), Gregorian calendar base and automatic sign.
+    /// Creates a modifier that indicates the value uses the [`Full`](YearRepr::Full)
+    /// representation, is [padded with zeroes](Padding::Zero), uses the Gregorian calendar as its
+    /// base, and only includes the year's sign if necessary.
     Year => Self {
         padding: Padding::default(),
         repr: YearRepr::default(),
         iso_week_based: false,
         sign_is_mandatory: false,
     };
-    /// Creates an instance of this type that specifies that the value should be padded with [zeroes](Padding::Zero)
-    /// and have the 24-hour representation.
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero) and
+    /// has the 24-hour representation.
     Hour => Self {
         padding: Padding::default(),
         is_12_hour_clock: false,
     };
-    /// Creates an instance of this type that specifies that the value should be padded with [zeroes.](Padding::Zero)
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
     Minute => Self { padding: Padding::default() };
-    /// Creates an instance of this type that specifies that the value should have the upper-case representation
-    /// and be case-sensitive when parsing.
+    /// Creates a modifier that indicates the value uses the upper-case representation and is
+    /// case-sensitive when parsing.
     Period => Self {
         is_uppercase: true,
         case_sensitive: true,
     };
-    /// Creates an instance of this type that specifies that the value should be padded with [zeroes.](Padding::Zero)
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
     Second => Self { padding: Padding::default() };
-    /// Creates an instance of this type that specifies that the value should have [`one or more`](Self::OneOrMore) digits.
+    /// Creates a modifier that indicates the stringified value contains [`one or more
+    /// digits`](Self::OneOrMore).
     SubsecondDigits => Self::OneOrMore;
-    /// Creates an instance of this type that specifies that the value should have [`one or more`](SubsecondDigits::OneOrMore) digits.
+    /// Creates a modifier that indicates the stringified value contains [`one or more
+    /// digits`](SubsecondDigits::OneOrMore).
     Subsecond => Self { digits: SubsecondDigits::default() };
-    /// Creates an instance of this type that specifies that the value should have the `+` sign for all positive values
-    /// and be padded with [zeroes.](Padding::Zero)
+    /// Creates a modifier that indicates the value uses the `+` sign for all positive values
+    /// and is [padded with zeroes](Padding::Zero).
     OffsetHour => Self {
         sign_is_mandatory: true,
         padding: Padding::default(),
     };
-    /// Creates an instance of this type that specifies that the value should be padded with [zeroes.](Padding::Zero)
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
     OffsetMinute => Self { padding: Padding::default() };
-    /// Creates an instance of this type that specifies that the value should be padded with [zeroes.](Padding::Zero)
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
     OffsetSecond => Self { padding: Padding::default() };
-    /// Creates an instance of this type that specifies that the value should be padded with [zeroes.](Self::Zero)
+    /// Creates a modifier that indicates the value is [padded with zeroes](Self::Zero).
     Padding => Self::Zero;
 }
 
