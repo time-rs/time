@@ -36,6 +36,8 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - A `const fn default()` has been added to all modifiers that are `struct`s. These methods exist to
   permit construction in `const` contexts and may be removed (without being considered a breaking
   change) once `impl const Default` is stabilized.
+- `FormatItem::Optional`, which will consume the contained value if present but still succeed
+  otherwise.
 
 ## 0.3.3 [2021-09-25]
 

@@ -1,7 +1,8 @@
 use core::convert::{TryFrom, TryInto};
+use std::num::NonZeroU8;
 
 use time::format_description::well_known::Rfc3339;
-use time::format_description::{modifier, Component};
+use time::format_description::{modifier, Component, FormatItem};
 use time::macros::{date, datetime, time};
 use time::parsing::Parsed;
 use time::{
@@ -868,6 +869,33 @@ fn parse_components() -> time::Result<()> {
         b"aM",
         _.hour_12_is_pm() == Some(false)
     );
+
+    Ok(())
+}
+
+#[test]
+fn parse_optional() -> time::Result<()> {
+    // Ensure full parsing works as expected.
+    let mut parsed = Parsed::new();
+    let remaining_input = parsed.parse_item(
+        b"2021-01-02",
+        &FormatItem::Optional(&FormatItem::Compound(&fd::parse("[year]-[month]-[day]")?)),
+    )?;
+    assert!(remaining_input.is_empty());
+    assert_eq!(parsed.year(), Some(2021));
+    assert_eq!(parsed.month(), Some(Month::January));
+    assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
+
+    // Ensure a successful partial parse *does not* mutate `parsed`.
+    let mut parsed = Parsed::new();
+    let remaining_input = parsed.parse_item(
+        b"2021-01",
+        &FormatItem::Optional(&FormatItem::Compound(&fd::parse("[year]-[month]-[day]")?)),
+    )?;
+    assert_eq!(remaining_input, b"2021-01");
+    assert!(parsed.year().is_none());
+    assert!(parsed.month().is_none());
+    assert!(parsed.day().is_none());
 
     Ok(())
 }

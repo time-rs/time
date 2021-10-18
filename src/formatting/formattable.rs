@@ -60,6 +60,7 @@ impl<'a> sealed::Sealed for FormatItem<'a> {
             Self::Literal(literal) => write(output, literal)?,
             Self::Component(component) => format_component(output, component, date, time, offset)?,
             Self::Compound(items) => items.format_into(output, date, time, offset)?,
+            Self::Optional(item) => item.format_into(output, date, time, offset)?,
         })
     }
 }

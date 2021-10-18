@@ -6,10 +6,9 @@ use time::error::{
     ComponentRange, ConversionRange, DifferentVariant, Error, Format, IndeterminateOffset,
     InvalidFormatDescription, Parse, ParseFromDescription, TryFromParsed,
 };
-use time::format_description::{self, modifier, Component, FormatItem};
 use time::macros::format_description;
 use time::parsing::Parsed;
-use time::{Date, Time};
+use time::{format_description, Date, Time};
 
 macro_rules! assert_display_eq {
     ($a:expr, $b:expr $(,)?) => {
@@ -60,10 +59,6 @@ fn invalid_literal() -> ParseFromDescription {
 
 #[test]
 fn debug() {
-    assert_eq!(format!("{:?}", FormatItem::Literal(b"abcdef")), "abcdef");
-    assert_dbg_reflexive!(FormatItem::Compound(&[FormatItem::Component(
-        Component::Day(modifier::Day::default())
-    )]));
     assert_dbg_reflexive!(Parse::from(ParseFromDescription::InvalidComponent("a")));
     assert_dbg_reflexive!(invalid_format_description());
     assert_dbg_reflexive!(DifferentVariant);

@@ -368,6 +368,10 @@ fn failed_write() -> time::Result<()> {
     };
     assert_err(Time::MIDNIGHT.format_into(bytes!(0), fd!("foo")));
     assert_err(Time::MIDNIGHT.format_into(bytes!(0), &FormatItem::Compound(fd!("foo"))));
+    assert_err(Time::MIDNIGHT.format_into(
+        bytes!(0),
+        &FormatItem::Optional(&FormatItem::Compound(fd!("foo"))),
+    ));
     assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(0), &Rfc3339));
     assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(4), &Rfc3339));
     assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(5), &Rfc3339));

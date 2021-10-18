@@ -94,6 +94,9 @@ impl Parsed {
 
     /// Parse a single [`FormatItem`], mutating the struct. The remaining input is returned as the
     /// `Ok` value.
+    ///
+    /// If a [`FormatItem::Optional`] is passed, parsing will not fail; the input will be returned
+    /// as-is if the expected format is not present.
     pub fn parse_item<'a>(
         &mut self,
         input: &'a [u8],
@@ -103,6 +106,7 @@ impl Parsed {
             FormatItem::Literal(literal) => Self::parse_literal(input, literal),
             FormatItem::Component(component) => self.parse_component(input, *component),
             FormatItem::Compound(compound) => self.parse_items(input, compound),
+            FormatItem::Optional(item) => self.parse_item(input, item).or(Ok(input)),
         }
     }
 

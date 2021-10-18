@@ -115,36 +115,48 @@ fn ord() {
 
 #[test]
 fn debug() {
-    let _ = format!("{:?}", Duration::ZERO);
-    let _ = format!("{:?}", IndeterminateOffset);
-    let _ = format!("{:?}", ConversionRange);
-    let _ = format!("{:?}", TryFromParsed::InsufficientInformation);
-    let _ = format!("{:?}", Parsed::new());
-    let _ = format!("{:?}", Instant::now());
-    let _ = format!("{:?}", error::ParseFromDescription::InvalidComponent("foo"));
-    let _ = format!("{:?}", error::Format::InvalidComponent("foo"));
-    let _ = format!("{:?}", well_known::Rfc3339);
-    let _ = format!("{:?}", component_range_error());
-    let _ = format!("{:?}", Error::ConversionRange(ConversionRange));
+    macro_rules! debug_all {
+        ($($x:expr;)*) => {$(
+            let _ = format!("{:?}", $x);
+        )*};
+    }
 
-    let _ = format!("{:?}", modifier::Day::default());
-    let _ = format!("{:?}", modifier::MonthRepr::default());
-    let _ = format!("{:?}", modifier::Month::default());
-    let _ = format!("{:?}", modifier::Ordinal::default());
-    let _ = format!("{:?}", modifier::WeekdayRepr::default());
-    let _ = format!("{:?}", modifier::Weekday::default());
-    let _ = format!("{:?}", modifier::WeekNumberRepr::default());
-    let _ = format!("{:?}", modifier::WeekNumber::default());
-    let _ = format!("{:?}", modifier::YearRepr::default());
-    let _ = format!("{:?}", modifier::Year::default());
-    let _ = format!("{:?}", modifier::Hour::default());
-    let _ = format!("{:?}", modifier::Minute::default());
-    let _ = format!("{:?}", modifier::Period::default());
-    let _ = format!("{:?}", modifier::Second::default());
-    let _ = format!("{:?}", modifier::SubsecondDigits::default());
-    let _ = format!("{:?}", modifier::Subsecond::default());
-    let _ = format!("{:?}", modifier::OffsetHour::default());
-    let _ = format!("{:?}", modifier::OffsetMinute::default());
-    let _ = format!("{:?}", modifier::OffsetSecond::default());
-    let _ = format!("{:?}", modifier::Padding::default());
+    debug_all! {
+        Duration::ZERO;
+        IndeterminateOffset;
+        ConversionRange;
+        TryFromParsed::InsufficientInformation;
+        Parsed::new();
+        Instant::now();
+        error::ParseFromDescription::InvalidComponent("foo");
+        error::Format::InvalidComponent("foo");
+        well_known::Rfc3339;
+        component_range_error();
+        Error::ConversionRange(ConversionRange);
+
+        modifier::Day::default();
+        modifier::MonthRepr::default();
+        modifier::Month::default();
+        modifier::Ordinal::default();
+        modifier::WeekdayRepr::default();
+        modifier::Weekday::default();
+        modifier::WeekNumberRepr::default();
+        modifier::WeekNumber::default();
+        modifier::YearRepr::default();
+        modifier::Year::default();
+        modifier::Hour::default();
+        modifier::Minute::default();
+        modifier::Period::default();
+        modifier::Second::default();
+        modifier::SubsecondDigits::default();
+        modifier::Subsecond::default();
+        modifier::OffsetHour::default();
+        modifier::OffsetMinute::default();
+        modifier::OffsetSecond::default();
+        modifier::Padding::default();
+
+        FormatItem::Literal(b"abcdef");
+        FormatItem::Compound(&[FormatItem::Component(Component::Day(modifier::Day::default()))]);
+        FormatItem::Optional(&FormatItem::Compound(&[]));
+    }
 }

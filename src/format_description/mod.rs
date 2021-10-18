@@ -58,6 +58,11 @@ pub enum FormatItem<'a> {
     /// A series of literals or components that collectively form a partial or complete
     /// description.
     Compound(&'a [Self]),
+    /// A `FormatItem` that may or may not be present when parsing. If parsing fails, there will be
+    /// no effect on the resulting `struct`.
+    ///
+    /// This variant has no effect on formatting, as the value is guaranteed to be present.
+    Optional(&'a Self),
 }
 
 #[cfg(feature = "alloc")]
@@ -67,6 +72,7 @@ impl fmt::Debug for FormatItem<'_> {
             FormatItem::Literal(literal) => f.write_str(&String::from_utf8_lossy(literal)),
             FormatItem::Component(component) => component.fmt(f),
             FormatItem::Compound(compound) => compound.fmt(f),
+            FormatItem::Optional(item) => f.debug_tuple("Optional").field(item).finish(),
         }
     }
 }
