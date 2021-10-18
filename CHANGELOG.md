@@ -31,6 +31,11 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `impl TryFrom<error::Parse> for error::TryFromParsed`
 - `impl TryFrom<error::Parse> for error::ParseFromDescription`
 - `impl TryFrom<error::Format> for std::io::Error`
+- `impl Sum for Duration`
+- `impl Sum<&Duration> for Duration`
+- A `const fn default()` has been added to all modifiers that are `struct`s. These methods exist to
+  permit construction in `const` contexts and may be removed (without being considered a breaking
+  change) once `impl const Default` is stabilized.
 
 ## 0.3.3 [2021-09-25]
 
