@@ -112,14 +112,21 @@ impl Parsed {
 
     /// Parse a sequence of [`FormatItem`]s, mutating the struct. The remaining input is returned as
     /// the `Ok` value.
+    ///
+    /// This method will fail if any of the contained [`FormatItem`]s fail to parse. `self` will not
+    /// be mutated in this instance.
     pub fn parse_items<'a>(
         &mut self,
         mut input: &'a [u8],
         items: &[FormatItem<'_>],
     ) -> Result<&'a [u8], error::ParseFromDescription> {
+        // Make a copy that we can mutate. It will only be set to the user's copy if everything
+        // succeeds.
+        let mut this = *self;
         for item in items {
-            input = self.parse_item(input, item)?;
+            input = this.parse_item(input, item)?;
         }
+        *self = this;
         Ok(input)
     }
 
