@@ -656,7 +656,7 @@ impl Date {
     pub fn format_into(
         self,
         output: &mut impl io::Write,
-        format: &impl Formattable,
+        format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
         format.format_into(output, Some(self), None, None)
     }
@@ -669,7 +669,7 @@ impl Date {
     /// assert_eq!(date!(2020 - 01 - 02).format(&format)?, "2020-01-02");
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn format(self, format: &impl Formattable) -> Result<String, error::Format> {
+    pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
         format.format(Some(self), None, None)
     }
 }
@@ -685,7 +685,10 @@ impl Date {
     /// assert_eq!(Date::parse("2020-01-02", &format)?, date!(2020 - 01 - 02));
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
+    pub fn parse(
+        input: &str,
+        description: &(impl Parsable + ?Sized),
+    ) -> Result<Self, error::Parse> {
         description.parse_date(input.as_bytes())
     }
 }

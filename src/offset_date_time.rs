@@ -778,7 +778,7 @@ impl OffsetDateTime {
     pub fn format_into(
         self,
         output: &mut impl io::Write,
-        format: &impl Formattable,
+        format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
         let local = self.utc_datetime.utc_to_offset(self.offset);
         format.format_into(
@@ -804,7 +804,7 @@ impl OffsetDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn format(self, format: &impl Formattable) -> Result<String, error::Format> {
+    pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
         let local = self.utc_datetime.utc_to_offset(self.offset);
         format.format(Some(local.date), Some(local.time), Some(self.offset))
     }
@@ -827,7 +827,10 @@ impl OffsetDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
+    pub fn parse(
+        input: &str,
+        description: &(impl Parsable + ?Sized),
+    ) -> Result<Self, error::Parse> {
         description.parse_offset_date_time(input.as_bytes())
     }
 }

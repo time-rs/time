@@ -506,7 +506,7 @@ impl PrimitiveDateTime {
     pub fn format_into(
         self,
         output: &mut impl io::Write,
-        format: &impl Formattable,
+        format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
         format.format_into(output, Some(self.date), Some(self.time), None)
     }
@@ -523,7 +523,7 @@ impl PrimitiveDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn format(self, format: &impl Formattable) -> Result<String, error::Format> {
+    pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
         format.format(Some(self.date), Some(self.time), None)
     }
 }
@@ -542,7 +542,10 @@ impl PrimitiveDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(input: &str, description: &impl Parsable) -> Result<Self, error::Parse> {
+    pub fn parse(
+        input: &str,
+        description: &(impl Parsable + ?Sized),
+    ) -> Result<Self, error::Parse> {
         description.parse_date_time(input.as_bytes())
     }
 }

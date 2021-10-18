@@ -105,55 +105,55 @@ fn format_time() -> time::Result<()> {
 
     for &(format_description, output) in &format_output {
         assert_eq!(
-            time!(13:02:03.456_789_012).format(&format_description)?,
+            time!(13:02:03.456_789_012).format(format_description)?,
             output
         );
         assert!(
             time!(13:02:03.456_789_012)
-                .format_into(&mut io::sink(), &format_description)
+                .format_into(&mut io::sink(), format_description)
                 .is_ok()
         );
     }
 
     assert_eq!(
-        time!(1:02:03).format(&fd!("[hour repr:12][period]"))?,
+        time!(1:02:03).format(fd!("[hour repr:12][period]"))?,
         "01AM"
     );
     assert_eq!(
-        Time::MIDNIGHT.format(&fd!("[hour repr:12][period case:lower]"))?,
+        Time::MIDNIGHT.format(fd!("[hour repr:12][period case:lower]"))?,
         "12am"
     );
-    assert_eq!(Time::MIDNIGHT.format(&fd!("[subsecond digits:1+]"))?, "0");
+    assert_eq!(Time::MIDNIGHT.format(fd!("[subsecond digits:1+]"))?, "0");
     assert_eq!(
-        time!(0:00:00.01).format(&fd!("[subsecond digits:1+]"))?,
+        time!(0:00:00.01).format(fd!("[subsecond digits:1+]"))?,
         "01"
     );
     assert_eq!(
-        time!(0:00:00.001).format(&fd!("[subsecond digits:1+]"))?,
+        time!(0:00:00.001).format(fd!("[subsecond digits:1+]"))?,
         "001"
     );
     assert_eq!(
-        time!(0:00:00.0001).format(&fd!("[subsecond digits:1+]"))?,
+        time!(0:00:00.0001).format(fd!("[subsecond digits:1+]"))?,
         "0001"
     );
     assert_eq!(
-        time!(0:00:00.00001).format(&fd!("[subsecond digits:1+]"))?,
+        time!(0:00:00.00001).format(fd!("[subsecond digits:1+]"))?,
         "00001"
     );
     assert_eq!(
-        time!(0:00:00.000001).format(&fd!("[subsecond digits:1+]"))?,
+        time!(0:00:00.000001).format(fd!("[subsecond digits:1+]"))?,
         "000001"
     );
     assert_eq!(
-        time!(0:00:00.0000001).format(&fd!("[subsecond digits:1+]"))?,
+        time!(0:00:00.0000001).format(fd!("[subsecond digits:1+]"))?,
         "0000001"
     );
     assert_eq!(
-        time!(0:00:00.00000001).format(&fd!("[subsecond digits:1+]"))?,
+        time!(0:00:00.00000001).format(fd!("[subsecond digits:1+]"))?,
         "00000001"
     );
     assert_eq!(
-        time!(0:00:00.000000001).format(&fd!("[subsecond digits:1+]"))?,
+        time!(0:00:00.000000001).format(fd!("[subsecond digits:1+]"))?,
         "000000001"
     );
 
@@ -205,10 +205,10 @@ fn format_date() -> time::Result<()> {
     ];
 
     for &(format_description, output) in &format_output {
-        assert_eq!(date!(2019 - 12 - 31).format(&format_description)?, output);
+        assert_eq!(date!(2019 - 12 - 31).format(format_description)?, output);
         assert!(
             date!(2019 - 12 - 31)
-                .format_into(&mut io::sink(), &format_description)
+                .format_into(&mut io::sink(), format_description)
                 .is_ok()
         );
     }
@@ -257,10 +257,10 @@ fn format_offset() -> time::Result<()> {
     ];
 
     for &(value, format_description, output) in &value_format_output {
-        assert_eq!(value.format(&format_description)?, output);
+        assert_eq!(value.format(format_description)?, output);
         assert!(
             value
-                .format_into(&mut io::sink(), &format_description)
+                .format_into(&mut io::sink(), format_description)
                 .is_ok()
         );
     }
@@ -286,12 +286,12 @@ fn format_pdt() -> time::Result<()> {
     let format_description = fd!("[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]");
 
     assert_eq!(
-        datetime!(1970-01-01 0:00).format(&format_description)?,
+        datetime!(1970-01-01 0:00).format(format_description)?,
         "1970-01-01 00:00:00.0"
     );
     assert!(
         datetime!(1970-01-01 0:00)
-            .format_into(&mut io::sink(), &format_description)
+            .format_into(&mut io::sink(), format_description)
             .is_ok()
     );
 
@@ -346,7 +346,7 @@ fn insufficient_type_information() {
             Err(time::error::Format::InsufficientTypeInformation { .. })
         ));
     };
-    assert_insufficient_type_information(Time::MIDNIGHT.format(&fd!("[year]")));
+    assert_insufficient_type_information(Time::MIDNIGHT.format(fd!("[year]")));
     assert_insufficient_type_information(Time::MIDNIGHT.format(&Rfc3339));
     assert_insufficient_type_information(date!(2021 - 001).format(&Rfc3339));
     assert_insufficient_type_information(datetime!(2021 - 001 0:00).format(&Rfc3339));
@@ -366,7 +366,7 @@ fn failed_write() -> time::Result<()> {
             matches!(res, Err(time::error::Format::StdIo(e)) if e.kind() == ErrorKind::WriteZero)
         );
     };
-    assert_err(Time::MIDNIGHT.format_into(bytes!(0), &fd!("foo")));
+    assert_err(Time::MIDNIGHT.format_into(bytes!(0), fd!("foo")));
     assert_err(Time::MIDNIGHT.format_into(bytes!(0), &FormatItem::Compound(fd!("foo"))));
     assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(0), &Rfc3339));
     assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(4), &Rfc3339));
@@ -386,15 +386,15 @@ fn failed_write() -> time::Result<()> {
     assert_err(datetime!(2021-001 0:00 +0:01).format_into(bytes!(20), &Rfc3339));
     assert_err(datetime!(2021-001 0:00 +0:01).format_into(bytes!(22), &Rfc3339));
     assert_err(datetime!(2021-001 0:00 +0:01).format_into(bytes!(23), &Rfc3339));
-    assert_err(Time::MIDNIGHT.format_into(bytes!(0), &fd!("[hour padding:space]")));
-    assert_err(Time::MIDNIGHT.format_into(bytes!(1), &fd!("[hour padding:space]")));
-    assert_err(offset!(+1).format_into(bytes!(0), &fd!("[offset_hour sign:mandatory]")));
-    assert_err(offset!(-1).format_into(bytes!(0), &fd!("[offset_hour]")));
-    assert_err(offset!(-1).format_into(bytes!(1), &fd!("[offset_hour]")));
-    assert_err(date!(-1 - 001).format_into(bytes!(0), &fd!("[year]")));
-    assert_err(date!(2021 - 001).format_into(bytes!(0), &fd!("[year sign:mandatory]")));
-    assert_err(date!(+999_999 - 001).format_into(bytes!(4), &fd!("[year]")));
-    assert_err(date!(+99_999 - 001).format_into(bytes!(4), &fd!("[year]")));
+    assert_err(Time::MIDNIGHT.format_into(bytes!(0), fd!("[hour padding:space]")));
+    assert_err(Time::MIDNIGHT.format_into(bytes!(1), fd!("[hour padding:space]")));
+    assert_err(offset!(+1).format_into(bytes!(0), fd!("[offset_hour sign:mandatory]")));
+    assert_err(offset!(-1).format_into(bytes!(0), fd!("[offset_hour]")));
+    assert_err(offset!(-1).format_into(bytes!(1), fd!("[offset_hour]")));
+    assert_err(date!(-1 - 001).format_into(bytes!(0), fd!("[year]")));
+    assert_err(date!(2021 - 001).format_into(bytes!(0), fd!("[year sign:mandatory]")));
+    assert_err(date!(+999_999 - 001).format_into(bytes!(4), fd!("[year]")));
+    assert_err(date!(+99_999 - 001).format_into(bytes!(4), fd!("[year]")));
 
     let component_names = [
         "day",
