@@ -119,7 +119,7 @@ pub struct Year {
     pub padding: Padding,
     /// What kind of representation should be used?
     pub repr: YearRepr,
-    /// Whether the value based on the ISO week number.
+    /// Whether the value is based on the ISO week number or the Gregorian calendar.
     pub iso_week_based: bool,
     /// Whether the `+` sign is present when a positive year contains fewer than five digits.
     pub sign_is_mandatory: bool,
@@ -242,23 +242,44 @@ pub enum Padding {
     None,
 }
 
+macro_rules! doc_hack {
+    (pub $(#[$attr:meta])*; $($x:tt)*) => {
+        $(#[$attr])*
+        ///
+        /// This function exists since [`Default::default()`] cannot be used in a `const` context.
+        /// It may be removed once that becomes possible. As the [`Default`] trait is in the
+        /// prelude, removing this function in the future will not cause any resolution failures for
+        /// the overwhelming majority of users; only users who use `#![no_implicit_prelude]` will be
+        /// affected. As such it will not be considered a breaking change.
+        $($x)*
+    };
+
+    ($(#[$attr:meta])*; $($x:tt)*) => {
+        $(#[$attr])*
+        ///
+        /// A hack to work around the lack of const trait impls. This method is explicitly **not**
+        /// part of the stable API of the time crate and may be removed at any point.
+        #[doc(hidden)]
+        $($x)*
+    };
+}
+
 /// Implement `Default` for the given type. This also generates an inherent implementation of a
 /// `default` method that is `const fn`, permitting the default value to be used in const contexts.
 // Every modifier should use this macro rather than a derived `Default`.
 macro_rules! impl_const_default {
-    ($($type:ty => $default:expr;)*) => {$(
+    ($($(#[$doc:meta])* $(@$pub:ident)? $type:ty => $default:expr;)*) => {$(
         impl $type {
-            /// A hack to work around the lack of const traits. Once const traits are stabilized,
-            /// this method will be removed in favor of `impl const Default`. As the `Default` trait
-            /// is in the prelude, this should not cause any resolution failures. Regardless, this
-            /// method is explicitly **not** part of the stable API of the time crate. It exists
-            /// solely for use in macros.
-            #[doc(hidden)]
-            pub const fn default() -> Self {
-                $default
+            doc_hack! {
+                $($pub)?
+                $(#[$doc])*;
+                pub const fn default() -> Self {
+                    $default
+                }
             }
         }
 
+        $(#[$doc])*
         impl Default for $type {
             fn default() -> Self {
                 $default
@@ -268,50 +289,83 @@ macro_rules! impl_const_default {
 }
 
 impl_const_default! {
-    Day => Self { padding: Padding::default() };
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
+    @pub Day => Self { padding: Padding::default() };
+    /// Creates a modifier that indicates the value uses the
+    /// [`Numerical`](Self::Numerical) representation.
     MonthRepr => Self::Numerical;
-    Month => Self {
+    /// Creates an instance of this type that indicates the value uses the
+    /// [`Numerical`](MonthRepr::Numerical) representation, is [padded with zeroes](Padding::Zero),
+    /// and is case-sensitive when parsing.
+    @pub Month => Self {
         padding: Padding::default(),
         repr: MonthRepr::default(),
         case_sensitive: true,
     };
-    Ordinal => Self { padding: Padding::default() };
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
+    @pub Ordinal => Self { padding: Padding::default() };
+    /// Creates a modifier that indicates the value uses the [`Long`](Self::Long) representation.
     WeekdayRepr => Self::Long;
-    Weekday => Self {
+    /// Creates a modifier that indicates the value uses the [`Long`](WeekdayRepr::Long)
+    /// representation and is case-sensitive when parsing. If the representation is changed to a
+    /// numerical one, the instance defaults to one-based indexing.
+    @pub Weekday => Self {
         repr: WeekdayRepr::default(),
         one_indexed: true,
         case_sensitive: true,
     };
-    WeekNumberRepr => Self::Iso;
-    WeekNumber => Self {
+    /// Creates a modifier that indicates that the value uses the [`Iso`](Self::Iso) representation.
+    @pub WeekNumberRepr => Self::Iso;
+    /// Creates a modifier that indicates that the value is [padded with zeroes](Padding::Zero)
+            /// and uses the [`Iso`](WeekNumberRepr::Iso) representation.
+    @pub WeekNumber => Self {
         padding: Padding::default(),
         repr: WeekNumberRepr::default(),
     };
+    /// Creates a modifier that indicates the value uses the [`Full`](Self::Full) representation.
     YearRepr => Self::Full;
-    Year => Self {
+    /// Creates a modifier that indicates the value uses the [`Full`](YearRepr::Full)
+    /// representation, is [padded with zeroes](Padding::Zero), uses the Gregorian calendar as its
+    /// base, and only includes the year's sign if necessary.
+    @pub Year => Self {
         padding: Padding::default(),
         repr: YearRepr::default(),
         iso_week_based: false,
         sign_is_mandatory: false,
     };
-    Hour => Self {
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero) and
+    /// has the 24-hour representation.
+    @pub Hour => Self {
         padding: Padding::default(),
         is_12_hour_clock: false,
     };
-    Minute => Self { padding: Padding::default() };
-    Period => Self {
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
+    @pub Minute => Self { padding: Padding::default() };
+    /// Creates a modifier that indicates the value uses the upper-case representation and is
+    /// case-sensitive when parsing.
+    @pub Period => Self {
         is_uppercase: true,
         case_sensitive: true,
     };
-    Second => Self { padding: Padding::default() };
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
+    @pub Second => Self { padding: Padding::default() };
+    /// Creates a modifier that indicates the stringified value contains [one or more
+    /// digits](Self::OneOrMore).
     SubsecondDigits => Self::OneOrMore;
-    Subsecond => Self { digits: SubsecondDigits::default() };
-    OffsetHour => Self {
+    /// Creates a modifier that indicates the stringified value contains [one or more
+    /// digits](SubsecondDigits::OneOrMore).
+    @pub Subsecond => Self { digits: SubsecondDigits::default() };
+    /// Creates a modifier that indicates the value uses the `+` sign for all positive values
+    /// and is [padded with zeroes](Padding::Zero).
+    @pub OffsetHour => Self {
         sign_is_mandatory: true,
         padding: Padding::default(),
     };
-    OffsetMinute => Self { padding: Padding::default() };
-    OffsetSecond => Self { padding: Padding::default() };
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
+    @pub OffsetMinute => Self { padding: Padding::default() };
+    /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
+    @pub OffsetSecond => Self { padding: Padding::default() };
+    /// Creates a modifier that indicates the value is [padded with zeroes](Self::Zero).
     Padding => Self::Zero;
 }
 
