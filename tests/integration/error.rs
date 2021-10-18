@@ -42,7 +42,7 @@ fn insufficient_type_information() -> Format {
 }
 
 fn unexpected_trailing_characters() -> Parse {
-    Time::parse("a", &format_description!("")).unwrap_err()
+    Time::parse("a", format_description!("")).unwrap_err()
 }
 
 fn invalid_format_description() -> InvalidFormatDescription {

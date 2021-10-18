@@ -151,7 +151,7 @@ setup_benchmark! {
         ben.iter(|| {
             datetime!(1970-01-01 0:00).format_into(
                 &mut io::sink(),
-                &fd!("[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]"),
+                fd!("[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]"),
             )
         });
     }
