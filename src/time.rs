@@ -446,11 +446,11 @@ impl Time {
     /// assert_eq!(Time::parse("12:00:00", &format)?, time!(12:00));
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(
-        input: &str,
+    pub fn parse<S: AsRef<str>>(
+        input: S,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_time(input.as_bytes())
+        description.parse_time(input.as_ref().as_bytes())
     }
 }
 

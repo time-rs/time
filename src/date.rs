@@ -685,11 +685,11 @@ impl Date {
     /// assert_eq!(Date::parse("2020-01-02", &format)?, date!(2020 - 01 - 02));
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(
-        input: &str,
+    pub fn parse<S: AsRef<str>>(
+        input: S,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_date(input.as_bytes())
+        description.parse_date(input.as_ref().as_bytes())
     }
 }
 

@@ -827,11 +827,11 @@ impl OffsetDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(
-        input: &str,
+    pub fn parse<S: AsRef<str>>(
+        input: S,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_offset_date_time(input.as_bytes())
+        description.parse_offset_date_time(input.as_ref().as_bytes())
     }
 }
 

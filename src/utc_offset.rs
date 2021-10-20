@@ -286,11 +286,11 @@ impl UtcOffset {
     /// assert_eq!(UtcOffset::parse("-03:42", &format)?, offset!(-3:42));
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn parse(
-        input: &str,
+    pub fn parse<S: AsRef<str>>(
+        input: S,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_offset(input.as_bytes())
+        description.parse_offset(input.as_ref().as_bytes())
     }
 }
 

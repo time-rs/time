@@ -81,11 +81,11 @@ fn parse_item<'a>(
 /// The syntax for the format description can be found in [the
 /// book](https://time-rs.github.io/book/api/format-description.html).
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "alloc")))]
-pub fn parse(s: &str) -> Result<Vec<FormatItem<'_>>, InvalidFormatDescription> {
+pub fn parse<S: AsRef<str>>(s: S) -> Result<Vec<FormatItem<'_>>, InvalidFormatDescription> {
     let mut compound = Vec::new();
     let mut loc = 0;
 
-    let mut s = s.as_bytes();
+    let mut s = s.as_ref().as_bytes();
 
     while !s.is_empty() {
         let ParsedItem { item, remaining } = parse_item(s, &mut loc)?;
