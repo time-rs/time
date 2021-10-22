@@ -12,17 +12,20 @@ on:
       - LICENSE-Apache
       - LICENSE-MIT
   pull_request:
-    branches:
-      - "**:**" # ignore branches that are in the time-rs/time repo, as they're included in push
     paths-ignore:
       - "**.md"
-      - LICENSE-Apache
-      - LICENSE-MIT
+      - "**/LICENSE-Apache"
+      - "**/LICENSE-MIT"
+      - .github/FUNDING.yml
+      - .editorconfig
+      - .gitignore
+      - logo.svg
 
 jobs:
   check-other-targets:
     name: Type checking (${{ matrix.target.name }}, ${{ matrix.rust }})
     runs-on: ubuntu-20.04
+    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
     strategy:
       matrix:
         rust: ["1.51", stable]
@@ -116,6 +119,7 @@ jobs:
   check-benchmarks:
     name: Type-check benchmarks
     runs-on: ubuntu-20.04
+    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -139,6 +143,7 @@ jobs:
   test:
     name: Test (${{ matrix.os.name }}, ${{ matrix.rust }})
     runs-on: ${{ matrix.os.value }}
+    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
     strategy:
       matrix:
         rust: ["1.51", stable]
@@ -212,9 +217,40 @@ jobs:
           command: test
           args: --all-features
 
+  cross-build:
+    name: Cross-build
+    runs-on: ubuntu-20.04
+    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: x86_64-pc-windows-gnu
+
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v1
+
+      - name: Install dependencies
+        run: sudo apt install gcc-mingw-w64
+
+      - name: Cross-build tests
+        uses: actions-rs/cargo@v1
+        with:
+          # We're testing the linking, so running `cargo check` is insufficient.
+          command: build
+          args: --tests --all-features --target x86_64-pc-windows-gnu
+
   fmt:
     name: Formatting
     runs-on: ubuntu-20.04
+    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
 
     steps:
       - name: Checkout sources
@@ -237,6 +273,7 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-20.04
+    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
 
     steps:
       - name: Checkout sources
@@ -261,6 +298,7 @@ jobs:
   documentation:
     name: Documentation
     runs-on: ubuntu-20.04
+    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
 
     steps:
       - name: Checkout
@@ -325,6 +363,7 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-20.04
+    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
 
     steps:
       - name: Checkout
