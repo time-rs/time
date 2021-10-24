@@ -39,6 +39,11 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `FormatItem::Optional`, which will consume the contained value if present but still succeed
   otherwise.
 
+### Fixed
+
+- Cross-building to Windows now succeeds.
+- A parse error on a `UtcOffset` component now indicates the error comes from the offset.
+
 ## 0.3.3 [2021-09-25]
 
 ### Added

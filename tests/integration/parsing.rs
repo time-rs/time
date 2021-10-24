@@ -156,11 +156,11 @@ fn rfc_3339_err() {
     ));
     assert!(matches!(
         PrimitiveDateTime::parse("2021-01-01T00:00:00x", &Rfc3339),
-        invalid_component!("offset_hour")
+        invalid_component!("offset hour")
     ));
     assert!(matches!(
         PrimitiveDateTime::parse("2021-01-01T00:00:00+0", &Rfc3339),
-        invalid_component!("offset_hour")
+        invalid_component!("offset hour")
     ));
     assert!(matches!(
         PrimitiveDateTime::parse("2021-01-01T00:00:00+00x", &Rfc3339),
@@ -168,7 +168,7 @@ fn rfc_3339_err() {
     ));
     assert!(matches!(
         PrimitiveDateTime::parse("2021-01-01T00:00:00+00:0", &Rfc3339),
-        invalid_component!("offset_minute")
+        invalid_component!("offset minute")
     ));
     assert!(matches!(
         PrimitiveDateTime::parse("2021-13-01T00:00:00Z", &Rfc3339),
@@ -233,11 +233,11 @@ fn rfc_3339_err() {
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-01-01T00:00:00x", &Rfc3339),
-        invalid_component!("offset_hour")
+        invalid_component!("offset hour")
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-01-01T00:00:00+0", &Rfc3339),
-        invalid_component!("offset_hour")
+        invalid_component!("offset hour")
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-01-01T00:00:00+00x", &Rfc3339),
@@ -245,11 +245,15 @@ fn rfc_3339_err() {
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-01-01T00:00:00+00:0", &Rfc3339),
-        invalid_component!("offset_minute")
+        invalid_component!("offset minute")
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-01-01T00:00:00+24:00", &Rfc3339),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "hours"
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "offset hour"
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-01-01T00:00:00+00:60", &Rfc3339),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "offset minute"
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-13-01T00:00:00Z", &Rfc3339),
@@ -542,7 +546,15 @@ fn parse_offset_err() -> time::Result<()> {
     );
     assert!(matches!(
         UtcOffset::parse("24", &fd::parse("[offset_hour]")?),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "hours"
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "offset hour"
+    ));
+    assert!(matches!(
+        UtcOffset::parse("00:60", &fd::parse("[offset_hour]:[offset_minute]")?),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "offset minute"
+    ));
+    assert!(matches!(
+        UtcOffset::parse("00:00:60", &fd::parse("[offset_hour]:[offset_minute]:[offset_second]")?),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "offset second"
     ));
 
     Ok(())
@@ -584,7 +596,7 @@ fn parse_offset_date_time_err() -> time::Result<()> {
         OffsetDateTime::parse("2021-001 12 PM +25", &fd::parse("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::ComponentRange(component)
-        )) if component.name() == "hours"
+        )) if component.name() == "offset hour"
     ));
 
     Ok(())

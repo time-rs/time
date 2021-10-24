@@ -183,9 +183,9 @@ impl sealed::Sealed for Rfc3339 {
             return Ok(input);
         }
 
-        let ParsedItem(input, offset_sign) = sign(input).ok_or(InvalidComponent("offset_hour"))?;
+        let ParsedItem(input, offset_sign) = sign(input).ok_or(InvalidComponent("offset hour"))?;
         let input = exactly_n_digits::<_, 2>(input)
-            .ok_or(InvalidComponent("offset_hour"))?
+            .ok_or(InvalidComponent("offset hour"))?
             .map(|offset_hour: u8| {
                 if offset_sign == b'-' {
                     -(offset_hour as i8)
@@ -196,7 +196,7 @@ impl sealed::Sealed for Rfc3339 {
             .assign_value_to(&mut parsed.offset_hour);
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
         let input = exactly_n_digits::<_, 2>(input)
-            .ok_or(InvalidComponent("offset_minute"))?
+            .ok_or(InvalidComponent("offset minute"))?
             .assign_value_to(&mut parsed.offset_minute);
 
         Ok(input)
@@ -253,12 +253,12 @@ impl sealed::Sealed for Rfc3339 {
                 ParsedItem(input, UtcOffset::UTC)
             } else {
                 let ParsedItem(input, offset_sign) =
-                    sign(input).ok_or(InvalidComponent("offset_hour"))?;
+                    sign(input).ok_or(InvalidComponent("offset hour"))?;
                 let ParsedItem(input, offset_hour) =
-                    exactly_n_digits::<u8, 2>(input).ok_or(InvalidComponent("offset_hour"))?;
+                    exactly_n_digits::<u8, 2>(input).ok_or(InvalidComponent("offset hour"))?;
                 let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
                 let ParsedItem(input, offset_minute) =
-                    exactly_n_digits::<u8, 2>(input).ok_or(InvalidComponent("offset_minute"))?;
+                    exactly_n_digits::<u8, 2>(input).ok_or(InvalidComponent("offset minute"))?;
                 UtcOffset::from_hms(
                     if offset_sign == b'-' {
                         -(offset_hour as i8)
@@ -269,6 +269,15 @@ impl sealed::Sealed for Rfc3339 {
                     0,
                 )
                 .map(|offset| ParsedItem(input, offset))
+                .map_err(|mut err| {
+                    // Provide the user a more accurate error.
+                    if err.name == "hours" {
+                        err.name = "offset hour";
+                    } else if err.name == "minutes" {
+                        err.name = "offset minute";
+                    }
+                    err
+                })
                 .map_err(TryFromParsed::ComponentRange)?
             }
         };

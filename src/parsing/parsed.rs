@@ -665,7 +665,17 @@ impl TryFrom<Parsed> for UtcOffset {
         let hour = parsed.offset_hour.ok_or(InsufficientInformation)?;
         let minute = parsed.offset_minute.unwrap_or(0);
         let second = parsed.offset_second.unwrap_or(0);
-        Ok(Self::from_hms(hour, minute as i8, second as i8)?)
+        Self::from_hms(hour, minute as i8, second as i8).map_err(|mut err| {
+            // Provide the user a more accurate error.
+            if err.name == "hours" {
+                err.name = "offset hour";
+            } else if err.name == "minutes" {
+                err.name = "offset minute";
+            } else if err.name == "seconds" {
+                err.name = "offset second";
+            }
+            err.into()
+        })
     }
 }
 
