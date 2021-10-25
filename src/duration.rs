@@ -556,7 +556,18 @@ impl Duration {
     /// assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
     /// ```
     pub const fn checked_sub(self, rhs: Self) -> Option<Self> {
-        self.checked_add(Self::new_unchecked(-rhs.seconds, -rhs.nanoseconds))
+        let mut seconds = const_try_opt!(self.seconds.checked_sub(rhs.seconds));
+        let mut nanoseconds = self.nanoseconds - rhs.nanoseconds;
+
+        if nanoseconds >= 1_000_000_000 || seconds < 0 && nanoseconds > 0 {
+            nanoseconds -= 1_000_000_000;
+            seconds = const_try_opt!(seconds.checked_add(1));
+        } else if nanoseconds <= -1_000_000_000 || seconds > 0 && nanoseconds < 0 {
+            nanoseconds += 1_000_000_000;
+            seconds = const_try_opt!(seconds.checked_sub(1));
+        }
+
+        Some(Self::new_unchecked(seconds, nanoseconds))
     }
 
     /// Computes `self * rhs`, returning `None` if an overflow occurred.
@@ -653,7 +664,30 @@ impl Duration {
     /// assert_eq!(5.seconds().saturating_sub(10.seconds()), (-5).seconds());
     /// ```
     pub const fn saturating_sub(self, rhs: Self) -> Self {
-        self.saturating_add(Self::new_unchecked(-rhs.seconds, -rhs.nanoseconds))
+        let (mut seconds, overflow) = self.seconds.overflowing_sub(rhs.seconds);
+        if overflow {
+            if self.seconds > 0 {
+                return Self::MAX;
+            }
+            return Self::MIN;
+        }
+        let mut nanoseconds = self.nanoseconds - rhs.nanoseconds;
+
+        if nanoseconds >= 1_000_000_000 || seconds < 0 && nanoseconds > 0 {
+            nanoseconds -= 1_000_000_000;
+            seconds = match seconds.checked_add(1) {
+                Some(seconds) => seconds,
+                None => return Self::MAX,
+            };
+        } else if nanoseconds <= -1_000_000_000 || seconds > 0 && nanoseconds < 0 {
+            nanoseconds += 1_000_000_000;
+            seconds = match seconds.checked_sub(1) {
+                Some(seconds) => seconds,
+                None => return Self::MIN,
+            };
+        }
+
+        Self::new_unchecked(seconds, nanoseconds)
     }
 
     /// Computes `self * rhs`, saturating if an overflow occurred.

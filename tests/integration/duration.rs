@@ -257,6 +257,10 @@ fn checked_add() {
     assert_eq!(5.seconds().checked_add(5.seconds()), Some(10.seconds()));
     assert_eq!(Duration::MAX.checked_add(1.nanoseconds()), None);
     assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
+    assert_eq!(
+        1.seconds().checked_add((-1).milliseconds()),
+        Some(999.milliseconds())
+    );
 }
 
 #[test]
@@ -264,6 +268,7 @@ fn checked_sub() {
     assert_eq!(5.seconds().checked_sub(5.seconds()), Some(0.seconds()));
     assert_eq!(Duration::MIN.checked_sub(1.nanoseconds()), None);
     assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
+    assert_eq!(Duration::MIN.checked_sub(Duration::MIN), Some(0.seconds()));
 }
 
 #[test]
@@ -298,6 +303,10 @@ fn saturating_add() {
         1_600.milliseconds().saturating_add(1_600.milliseconds()),
         3_200.milliseconds()
     );
+    assert_eq!(
+        1.seconds().saturating_add((-1).milliseconds()),
+        (999).milliseconds()
+    );
 }
 
 #[test]
@@ -308,10 +317,23 @@ fn saturating_sub() {
         Duration::MAX.saturating_sub((-1).nanoseconds()),
         Duration::MAX
     );
+    assert_eq!(Duration::MAX.saturating_sub((-1).seconds()), Duration::MAX);
     assert_eq!(5.seconds().saturating_sub(10.seconds()), (-5).seconds());
     assert_eq!(
         (-1_600).milliseconds().saturating_sub(1_600.milliseconds()),
         (-3_200).milliseconds()
+    );
+    assert_eq!(0.seconds().saturating_sub(Duration::MIN), Duration::MIN);
+    assert_eq!(Duration::MIN.saturating_sub(5.seconds()), Duration::MIN);
+    assert_eq!(
+        1_200.milliseconds().saturating_sub(600.milliseconds()),
+        600.milliseconds()
+    );
+    assert_eq!(
+        (-1_200)
+            .milliseconds()
+            .saturating_sub((-600).milliseconds()),
+        (-600).milliseconds()
     );
 }
 
