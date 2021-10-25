@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ### Added
 
-- `error::DefaultVariant` and `Error::DefaultVariant`
+- `error::DifferentVariant` and `Error::DifferentVariant`
 - `impl From<Component> for FormatItem<'_>`
 - `impl TryFrom<FormatItem<'_>> for Component`
 - `impl<'a> From<&'a [FormatItem<'_>]> for FormatItem<'a>`
