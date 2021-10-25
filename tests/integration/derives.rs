@@ -158,5 +158,6 @@ fn debug() {
         FormatItem::Literal(b"abcdef");
         FormatItem::Compound(&[FormatItem::Component(Component::Day(modifier::Day::default()))]);
         FormatItem::Optional(&FormatItem::Compound(&[]));
+        FormatItem::First(&[]);
     }
 }

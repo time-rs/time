@@ -911,3 +911,55 @@ fn parse_optional() -> time::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn parse_first() -> time::Result<()> {
+    // Ensure the first item is parsed correctly.
+    let mut parsed = Parsed::new();
+    let remaining_input = parsed.parse_item(
+        b"2021-01-02",
+        &FormatItem::First(&[FormatItem::Compound(&fd::parse("[year]-[month]-[day]")?)]),
+    )?;
+    assert!(remaining_input.is_empty());
+    assert_eq!(parsed.year(), Some(2021));
+    assert_eq!(parsed.month(), Some(Month::January));
+    assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
+
+    // Ensure an empty slice is a no-op success.
+    let mut parsed = Parsed::new();
+    let remaining_input = parsed.parse_item(b"2021-01-02", &FormatItem::First(&[]))?;
+    assert_eq!(remaining_input, b"2021-01-02");
+    assert!(parsed.year().is_none());
+    assert!(parsed.month().is_none());
+    assert!(parsed.day().is_none());
+
+    // Ensure success when the first item fails.
+    let mut parsed = Parsed::new();
+    let remaining_input = parsed.parse_item(
+        b"2021-01-02",
+        &FormatItem::First(&[
+            FormatItem::Compound(&fd::parse("[period]")?),
+            FormatItem::Compound(&fd::parse("x")?),
+            FormatItem::Compound(&fd::parse("[year]-[month]-[day]")?),
+        ]),
+    )?;
+    assert!(remaining_input.is_empty());
+    assert_eq!(parsed.year(), Some(2021));
+    assert_eq!(parsed.month(), Some(Month::January));
+    assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
+
+    // Ensure the first error is returned.
+    let mut parsed = Parsed::new();
+    let err = parsed
+        .parse_item(
+            b"2021-01-02",
+            &FormatItem::First(&[
+                FormatItem::Compound(&fd::parse("[period]")?),
+                FormatItem::Compound(&fd::parse("x")?),
+            ]),
+        )
+        .unwrap_err();
+    assert_eq!(err, error::ParseFromDescription::InvalidComponent("period"));
+
+    Ok(())
+}

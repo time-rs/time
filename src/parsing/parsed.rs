@@ -107,6 +107,24 @@ impl Parsed {
             FormatItem::Component(component) => self.parse_component(input, *component),
             FormatItem::Compound(compound) => self.parse_items(input, compound),
             FormatItem::Optional(item) => self.parse_item(input, item).or(Ok(input)),
+            FormatItem::First(items) => {
+                let mut first_err = None;
+
+                for item in items.iter() {
+                    match self.parse_item(input, item) {
+                        Ok(remaining_input) => return Ok(remaining_input),
+                        Err(err) if first_err.is_none() => first_err = Some(err),
+                        Err(_) => {}
+                    }
+                }
+
+                match first_err {
+                    Some(err) => Err(err),
+                    // This location will be reached if the slice is empty, skipping the `for` loop.
+                    // As this case is expected to be uncommon, there's no need to check up front.
+                    None => Ok(input),
+                }
+            }
         }
     }
 

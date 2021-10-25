@@ -61,6 +61,10 @@ impl<'a> sealed::Sealed for FormatItem<'a> {
             Self::Component(component) => format_component(output, component, date, time, offset)?,
             Self::Compound(items) => items.format_into(output, date, time, offset)?,
             Self::Optional(item) => item.format_into(output, date, time, offset)?,
+            Self::First(items) => match items {
+                [] => 0,
+                [item, ..] => item.format_into(output, date, time, offset)?,
+            },
         })
     }
 }

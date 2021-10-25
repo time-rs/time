@@ -350,6 +350,9 @@ fn insufficient_type_information() {
     assert_insufficient_type_information(Time::MIDNIGHT.format(&Rfc3339));
     assert_insufficient_type_information(date!(2021 - 001).format(&Rfc3339));
     assert_insufficient_type_information(datetime!(2021 - 001 0:00).format(&Rfc3339));
+    assert_insufficient_type_information(
+        Time::MIDNIGHT.format(&FormatItem::First(&[FormatItem::Compound(fd!("[year]"))])),
+    );
 }
 
 #[test]
@@ -422,6 +425,17 @@ fn failed_write() -> time::Result<()> {
             &format_description::parse(&format!("[{}]", component))?,
         ));
     }
+
+    Ok(())
+}
+
+#[test]
+fn first() -> time::Result<()> {
+    assert_eq!(Time::MIDNIGHT.format(&FormatItem::First(&[]))?, "");
+    assert_eq!(
+        Time::MIDNIGHT.format(&FormatItem::First(&[FormatItem::Compound(fd!("[hour]"))]))?,
+        "00"
+    );
 
     Ok(())
 }

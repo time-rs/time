@@ -63,6 +63,10 @@ pub enum FormatItem<'a> {
     ///
     /// This variant has no effect on formatting, as the value is guaranteed to be present.
     Optional(&'a Self),
+    /// A series of `FormatItem`s where, when parsing, the first successful parse is used. When
+    /// formatting, the first element of the slice is used.  An empty slice is a no-op when
+    /// formatting or parsing.
+    First(&'a [Self]),
 }
 
 #[cfg(feature = "alloc")]
@@ -73,6 +77,7 @@ impl fmt::Debug for FormatItem<'_> {
             FormatItem::Component(component) => component.fmt(f),
             FormatItem::Compound(compound) => compound.fmt(f),
             FormatItem::Optional(item) => f.debug_tuple("Optional").field(item).finish(),
+            FormatItem::First(items) => f.debug_tuple("First").field(items).finish(),
         }
     }
 }

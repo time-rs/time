@@ -38,6 +38,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
   change) once `impl const Default` is stabilized.
 - `FormatItem::Optional`, which will consume the contained value if present but still succeed
   otherwise.
+- `FormatItem::First`, which will consume the first successful parse, ignoring any prior errors.
 
 ### Fixed
 
