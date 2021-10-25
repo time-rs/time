@@ -43,7 +43,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 - Cross-building to Windows now succeeds.
 - A parse error on a `UtcOffset` component now indicates the error comes from the offset.
-- `Duration::checked_sub` and `Duration::saturating_sub` no longer panic in edge cases.
+- Some arithmetic no longer panics in edge cases.
 
 ## 0.3.3 [2021-09-25]
 

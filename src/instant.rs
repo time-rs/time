@@ -89,7 +89,14 @@ impl Instant {
     /// assert_eq!(now.checked_sub((-5).seconds()), Some(now - (-5).seconds()));
     /// ```
     pub fn checked_sub(self, duration: Duration) -> Option<Self> {
-        self.checked_add(-duration)
+        if duration.is_zero() {
+            Some(self)
+        } else if duration.is_positive() {
+            self.0.checked_sub(duration.abs_std()).map(Self)
+        } else {
+            debug_assert!(duration.is_negative());
+            self.0.checked_add(duration.abs_std()).map(Self)
+        }
     }
     // endregion checked arithmetic
 
@@ -186,7 +193,13 @@ impl Sub<Duration> for Instant {
     type Output = Self;
 
     fn sub(self, duration: Duration) -> Self::Output {
-        self + -duration
+        if duration.is_positive() {
+            Self(self.0 - duration.abs_std())
+        } else if duration.is_negative() {
+            Self(self.0 + duration.abs_std())
+        } else {
+            self
+        }
     }
 }
 

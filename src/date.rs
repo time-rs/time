@@ -742,7 +742,8 @@ impl Sub<Duration> for Date {
     type Output = Self;
 
     fn sub(self, duration: Duration) -> Self::Output {
-        self + -duration
+        Self::from_julian_day(self.to_julian_day() - duration.whole_days() as i32)
+            .expect("overflow subtracting duration to date")
     }
 }
 

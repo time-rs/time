@@ -605,7 +605,21 @@ impl Sub<Duration> for PrimitiveDateTime {
     type Output = Self;
 
     fn sub(self, duration: Duration) -> Self::Output {
-        self + -duration
+        let (date_adjustment, time) = self.time.adjusting_sub(duration);
+        let date = self.date - duration;
+
+        Self {
+            date: match date_adjustment {
+                util::DateAdjustment::Previous => date
+                    .previous_day()
+                    .expect("resulting value is out of range"),
+                util::DateAdjustment::Next => {
+                    date.next_day().expect("resulting value is out of range")
+                }
+                util::DateAdjustment::None => date,
+            },
+            time,
+        }
     }
 }
 

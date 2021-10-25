@@ -121,6 +121,7 @@ fn add_assign_std_duration() {
 fn sub_duration() {
     let instant = Instant::now();
     assert!(instant - 100.milliseconds() <= Instant::now());
+    assert_eq!(instant - Duration::ZERO, instant);
 }
 
 #[test]

@@ -328,13 +328,44 @@ impl Time {
     // endregion getters
 
     // region: arithmetic helpers
-    /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow, returning the
-    /// necessary whether the date is the following day.
+    /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow, returning whether
+    /// the date is different.
     pub(crate) const fn adjusting_add(self, duration: Duration) -> (DateAdjustment, Self) {
         let mut nanoseconds = self.nanosecond as i32 + duration.subsec_nanoseconds();
         let mut seconds = self.second as i8 + (duration.whole_seconds() % 60) as i8;
         let mut minutes = self.minute as i8 + (duration.whole_minutes() % 60) as i8;
         let mut hours = self.hour as i8 + (duration.whole_hours() % 24) as i8;
+        let mut date_adjustment = DateAdjustment::None;
+
+        cascade!(nanoseconds in 0..1_000_000_000 => seconds);
+        cascade!(seconds in 0..60 => minutes);
+        cascade!(minutes in 0..60 => hours);
+        if hours >= 24 {
+            hours -= 24;
+            date_adjustment = DateAdjustment::Next;
+        } else if hours < 0 {
+            hours += 24;
+            date_adjustment = DateAdjustment::Previous;
+        }
+
+        (
+            date_adjustment,
+            Self::__from_hms_nanos_unchecked(
+                hours as _,
+                minutes as _,
+                seconds as _,
+                nanoseconds as _,
+            ),
+        )
+    }
+
+    /// Subtract the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow, returning
+    /// whether the date is different.
+    pub(crate) const fn adjusting_sub(self, duration: Duration) -> (DateAdjustment, Self) {
+        let mut nanoseconds = self.nanosecond as i32 - duration.subsec_nanoseconds();
+        let mut seconds = self.second as i8 - (duration.whole_seconds() % 60) as i8;
+        let mut minutes = self.minute as i8 - (duration.whole_minutes() % 60) as i8;
+        let mut hours = self.hour as i8 - (duration.whole_hours() % 24) as i8;
         let mut date_adjustment = DateAdjustment::None;
 
         cascade!(nanoseconds in 0..1_000_000_000 => seconds);
@@ -524,7 +555,7 @@ impl Sub<Duration> for Time {
     /// assert_eq!(time!(23:59:59) - (-2).seconds(), time!(0:00:01));
     /// ```
     fn sub(self, duration: Duration) -> Self::Output {
-        self + -duration
+        self.adjusting_sub(duration).1
     }
 }
 
