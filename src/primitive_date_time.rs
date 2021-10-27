@@ -424,6 +424,70 @@ impl PrimitiveDateTime {
         }
     }
     // endregion attach offset
+
+    // region: checked arithmetic
+    /// Computes `self + duration`, returning `None` if an overflow occurred.
+    ///
+    /// ```
+    /// # use time::{Date, ext::NumericalDuration};
+    /// # use time::macros::datetime;
+    ///
+    /// let datetime = Date::MIN.midnight();
+    /// assert_eq!(datetime.checked_add((-2).days()), None);
+    ///
+    /// let datetime = Date::MAX.midnight();
+    /// assert_eq!(datetime.checked_add(1.days()), None);
+    ///
+    /// assert_eq!(
+    ///     datetime!(2019 - 11 - 25 15:30).checked_add(27.hours()),
+    ///     Some(datetime!(2019 - 11 - 26 18:30))
+    /// );
+    /// ```
+    pub const fn checked_add(self, duration: Duration) -> Option<Self> {
+        let (date_adjustment, time) = self.time.adjusting_add(duration);
+        let date = const_try_opt!(self.date.checked_add(duration));
+
+        Some(Self {
+            date: match date_adjustment {
+                util::DateAdjustment::Previous => const_try_opt!(date.previous_day()),
+                util::DateAdjustment::Next => const_try_opt!(date.next_day()),
+                util::DateAdjustment::None => date,
+            },
+            time,
+        })
+    }
+
+    /// Computes `self - duration`, returning `None` if an overflow occurred.
+    ///
+    /// ```
+    /// # use time::{Date, ext::NumericalDuration};
+    /// # use time::macros::datetime;
+    ///
+    /// let datetime = Date::MIN.midnight();
+    /// assert_eq!(datetime.checked_sub(2.days()), None);
+    ///
+    /// let datetime = Date::MAX.midnight();
+    /// assert_eq!(datetime.checked_sub((-1).days()), None);
+    ///
+    /// assert_eq!(
+    ///     datetime!(2019 - 11 - 25 15:30).checked_sub(27.hours()),
+    ///     Some(datetime!(2019 - 11 - 24 12:30))
+    /// );
+    /// ```
+    pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
+        let (date_adjustment, time) = self.time.adjusting_sub(duration);
+        let date = const_try_opt!(self.date.checked_sub(duration));
+
+        Some(Self {
+            date: match date_adjustment {
+                util::DateAdjustment::Previous => const_try_opt!(date.previous_day()),
+                util::DateAdjustment::Next => const_try_opt!(date.next_day()),
+                util::DateAdjustment::None => date,
+            },
+            time,
+        })
+    }
+    // endregion: checked arithmetic
 }
 
 // region: replacement
@@ -562,21 +626,8 @@ impl Add<Duration> for PrimitiveDateTime {
     type Output = Self;
 
     fn add(self, duration: Duration) -> Self::Output {
-        let (date_adjustment, time) = self.time.adjusting_add(duration);
-        let date = self.date + duration;
-
-        Self {
-            date: match date_adjustment {
-                util::DateAdjustment::Previous => date
-                    .previous_day()
-                    .expect("resulting value is out of range"),
-                util::DateAdjustment::Next => {
-                    date.next_day().expect("resulting value is out of range")
-                }
-                util::DateAdjustment::None => date,
-            },
-            time,
-        }
+        self.checked_add(duration)
+            .expect("resulting value is out of range")
     }
 }
 
@@ -605,21 +656,8 @@ impl Sub<Duration> for PrimitiveDateTime {
     type Output = Self;
 
     fn sub(self, duration: Duration) -> Self::Output {
-        let (date_adjustment, time) = self.time.adjusting_sub(duration);
-        let date = self.date - duration;
-
-        Self {
-            date: match date_adjustment {
-                util::DateAdjustment::Previous => date
-                    .previous_day()
-                    .expect("resulting value is out of range"),
-                util::DateAdjustment::Next => {
-                    date.next_day().expect("resulting value is out of range")
-                }
-                util::DateAdjustment::None => date,
-            },
-            time,
-        }
+        self.checked_sub(duration)
+            .expect("resulting value is out of range")
     }
 }
 

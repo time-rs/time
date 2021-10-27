@@ -4,7 +4,7 @@ use std::collections::HashSet;
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, time};
-use time::{util, Date, Month, Weekday};
+use time::{util, Date, Duration, Month, Weekday};
 
 #[test]
 fn debug() {
@@ -766,4 +766,112 @@ fn regression_check() {
     assert_eq!(year, 64);
     assert_eq!(week, 1);
     assert_eq!(weekday, Weekday::Monday);
+}
+
+#[test]
+fn checked_add_duration() {
+    // Adding subday duration
+    assert_eq!(
+        Date::MIN.checked_add(Duration::new(84_399, 999_999_999)),
+        Some(Date::MIN)
+    );
+    assert_eq!(
+        Date::MIN.checked_add(Duration::new(-84_399, -999_999_999)),
+        Some(Date::MIN)
+    );
+
+    assert_eq!(
+        date!(2021 - 10 - 25).checked_add(Duration::new(84_399, 999_999_999)),
+        Some(date!(2021 - 10 - 25))
+    );
+    assert_eq!(
+        date!(2021 - 10 - 25).checked_add(Duration::new(-84_399, -999_999_999)),
+        Some(date!(2021 - 10 - 25))
+    );
+
+    assert_eq!(
+        Date::MAX.checked_add(Duration::new(84_399, 999_999_999)),
+        Some(Date::MAX)
+    );
+    assert_eq!(
+        Date::MAX.checked_add(Duration::new(-84_399, -999_999_999)),
+        Some(Date::MAX)
+    );
+
+    // Adding 1 day duration
+    assert_eq!(Date::MIN.checked_add(Duration::DAY), Date::MIN.next_day());
+    assert_eq!(Date::MIN.checked_add(-Duration::DAY), None);
+
+    assert_eq!(
+        date!(2021 - 10 - 25).checked_add(Duration::DAY),
+        Some(date!(2021 - 10 - 26))
+    );
+    assert_eq!(
+        date!(2021 - 10 - 25).checked_add(-Duration::DAY),
+        Some(date!(2021 - 10 - 24))
+    );
+
+    assert_eq!(Date::MAX.checked_add(Duration::DAY), None);
+    assert_eq!(
+        Date::MAX.checked_add(-Duration::DAY),
+        Date::MAX.previous_day()
+    );
+
+    // Adding MIN/MAX duration
+    assert_eq!(Date::MIN.checked_add(Duration::MIN), None);
+    assert_eq!(Date::MAX.checked_add(Duration::MAX), None);
+}
+
+#[test]
+fn checked_sub_duration() {
+    // Subtracting subday duration
+    assert_eq!(
+        Date::MIN.checked_sub(Duration::new(84_399, 999_999_999)),
+        Some(Date::MIN)
+    );
+    assert_eq!(
+        Date::MIN.checked_sub(Duration::new(-84_399, -999_999_999)),
+        Some(Date::MIN)
+    );
+
+    assert_eq!(
+        date!(2021 - 10 - 25).checked_sub(Duration::new(84_399, 999_999_999)),
+        Some(date!(2021 - 10 - 25))
+    );
+    assert_eq!(
+        date!(2021 - 10 - 25).checked_sub(Duration::new(-84_399, -999_999_999)),
+        Some(date!(2021 - 10 - 25))
+    );
+
+    assert_eq!(
+        Date::MAX.checked_sub(Duration::new(84_399, 999_999_999)),
+        Some(Date::MAX)
+    );
+    assert_eq!(
+        Date::MAX.checked_sub(Duration::new(-84_399, -999_999_999)),
+        Some(Date::MAX)
+    );
+
+    // Subtracting 1 day duration
+    assert_eq!(Date::MIN.checked_sub(Duration::DAY), None);
+    assert_eq!(Date::MIN.checked_sub(-Duration::DAY), Date::MIN.next_day());
+
+    assert_eq!(
+        date!(2021 - 10 - 25).checked_sub(Duration::DAY),
+        Some(date!(2021 - 10 - 24))
+    );
+    assert_eq!(
+        date!(2021 - 10 - 25).checked_sub(-Duration::DAY),
+        Some(date!(2021 - 10 - 26))
+    );
+
+    assert_eq!(
+        Date::MAX.checked_sub(Duration::DAY),
+        Date::MAX.previous_day()
+    );
+    assert_eq!(Date::MAX.checked_sub(-Duration::DAY), None);
+
+    // Subtracting MIN/MAX duration
+    assert_eq!(Date::MIN.checked_sub(Duration::MAX), None);
+    assert_eq!(Date::MAX.checked_sub(Duration::MIN), None);
 }
