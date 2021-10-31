@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, offset, time};
-use time::{Month, PrimitiveDateTime, Weekday};
+use time::{Duration, Month, PrimitiveDateTime, Weekday};
 
 #[test]
 fn new() {
@@ -477,5 +477,135 @@ fn ord() {
     assert_eq!(
         datetime!(2019-01-01 0:00:00.000_000_001).partial_cmp(&datetime!(2019-01-01 0:00)),
         Some(Greater)
+    );
+}
+
+#[test]
+fn checked_add_duration() {
+    // Successful addition
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_add(5.nanoseconds()),
+        Some(datetime!(2021 - 10 - 25 14:01:53.450_000_005))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_add(4.seconds()),
+        Some(datetime!(2021 - 10 - 25 14:01:57.45))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_add(2.days()),
+        Some(datetime!(2021 - 10 - 27 14:01:53.45))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_add(1.weeks()),
+        Some(datetime!(2021 - 11 - 01 14:01:53.45))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_add((-5).nanoseconds()),
+        Some(datetime!(2021 - 10 - 25 14:01:53.449_999_995))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_add((-4).seconds()),
+        Some(datetime!(2021 - 10 - 25 14:01:49.45))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_add((-2).days()),
+        Some(datetime!(2021 - 10 - 23 14:01:53.45))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_add((-1).weeks()),
+        Some(datetime!(2021 - 10 - 18 14:01:53.45))
+    );
+
+    // Addition with underflow
+    assert_eq!(
+        datetime!(-999_999 - 01 - 01 00:00).checked_add((-1).nanoseconds()),
+        None
+    );
+    assert_eq!(
+        datetime!(-999_999 - 01 - 01 00:00).checked_add(Duration::MIN),
+        None
+    );
+    assert_eq!(
+        datetime!(-999_990 - 01 - 01 00:00).checked_add((-530).weeks()),
+        None
+    );
+
+    // Addition with overflow
+    assert_eq!(
+        datetime!(+999_999 - 12 - 31 23:59:59.999_999_999).checked_add(1.nanoseconds()),
+        None
+    );
+    assert_eq!(
+        datetime!(+999_999 - 12 - 31 23:59:59.999_999_999).checked_add(Duration::MAX),
+        None
+    );
+    assert_eq!(
+        datetime!(+999_990 - 12 - 31 23:59:59.999_999_999).checked_add(530.weeks()),
+        None
+    );
+}
+
+#[test]
+fn checked_sub_duration() {
+    // Successful subtraction
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_sub((-5).nanoseconds()),
+        Some(datetime!(2021 - 10 - 25 14:01:53.450_000_005))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_sub((-4).seconds()),
+        Some(datetime!(2021 - 10 - 25 14:01:57.45))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_sub((-2).days()),
+        Some(datetime!(2021 - 10 - 27 14:01:53.45))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_sub((-1).weeks()),
+        Some(datetime!(2021 - 11 - 01 14:01:53.45))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_sub(5.nanoseconds()),
+        Some(datetime!(2021 - 10 - 25 14:01:53.449_999_995))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_sub(4.seconds()),
+        Some(datetime!(2021 - 10 - 25 14:01:49.45))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_sub(2.days()),
+        Some(datetime!(2021 - 10 - 23 14:01:53.45))
+    );
+    assert_eq!(
+        datetime!(2021 - 10 - 25 14:01:53.45).checked_sub(1.weeks()),
+        Some(datetime!(2021 - 10 - 18 14:01:53.45))
+    );
+
+    // Subtraction with underflow
+    assert_eq!(
+        datetime!(-999_999 - 01 - 01 00:00).checked_sub(1.nanoseconds()),
+        None
+    );
+    assert_eq!(
+        datetime!(-999_999 - 01 - 01 00:00).checked_sub(Duration::MAX),
+        None
+    );
+    assert_eq!(
+        datetime!(-999_990 - 01 - 01 00:00).checked_sub(530.weeks()),
+        None
+    );
+
+    // Subtraction with overflow
+    assert_eq!(
+        datetime!(+999_999 - 12 - 31 23:59:59.999_999_999).checked_sub((-1).nanoseconds()),
+        None
+    );
+    assert_eq!(
+        datetime!(+999_999 - 12 - 31 23:59:59.999_999_999).checked_sub(Duration::MIN),
+        None
+    );
+    assert_eq!(
+        datetime!(+999_990 - 12 - 31 23:59:59.999_999_999).checked_sub((-530).weeks()),
+        None
     );
 }

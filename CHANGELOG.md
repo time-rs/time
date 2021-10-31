@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## Unreleased
+
+### Added
+
+- `Date::checked_add`
+- `Date::checked_sub`
+- `PrimitiveDateTime::checked_add`
+- `PrimitiveDateTime::checked_sub`
+- `OffsetDateTime::checked_add`
+- `OffsetDateTime::checked_sub`
+
 ## 0.3.4 [2021-10-26]
 
 ### Added
@@ -346,7 +357,7 @@ The minimum supported version is now 1.51.0.
 
 ## 0.2.23 [2020-11-17]
 
-## Compatibility notes
+### Compatibility notes
 
 Due to #293, any method that requires knowledge of the local offset will now
 _fail_ on Linux. For `try_` methods, this means returning an error. For others,

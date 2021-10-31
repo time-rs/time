@@ -684,6 +684,53 @@ impl OffsetDateTime {
     }
     // endregion time getters
     // endregion getters
+
+    // region: checked arithmetic
+    /// Computes `self + duration`, returning `None` if an overflow occurred.
+    ///
+    /// ```
+    /// # use time::{Date, ext::NumericalDuration};
+    /// # use time::macros::{datetime, offset};
+    ///
+    /// let datetime = Date::MIN.midnight().assume_offset(offset!(+10:00));
+    /// assert_eq!(datetime.checked_add((-2).days()), None);
+    ///
+    /// let datetime = Date::MAX.midnight().assume_offset(offset!(+10:00));
+    /// assert_eq!(datetime.checked_add(2.days()), None);
+    ///
+    /// assert_eq!(
+    ///     datetime!(2019 - 11 - 25 15:30 +10:00).checked_add(27.hours()),
+    ///     Some(datetime!(2019 - 11 - 26 18:30 +10:00))
+    /// );
+    /// ```
+    pub const fn checked_add(self, duration: Duration) -> Option<Self> {
+        let utc_datetime = const_try_opt!(self.utc_datetime.checked_add(duration));
+        Some(utc_datetime.assume_utc().to_offset(self.offset))
+    }
+
+    /// Computes `self - duration`, returning `None` if an overflow occurred.
+    ///
+    /// ```
+    /// # use time::{Date, ext::NumericalDuration};
+    /// # use time::macros::{datetime, offset};
+    ///
+    /// let datetime = Date::MIN.midnight().assume_offset(offset!(+10:00));
+    /// assert_eq!(datetime.checked_sub(2.days()), None);
+    ///
+    /// let datetime = Date::MAX.midnight().assume_offset(offset!(+10:00));
+    /// assert_eq!(datetime.checked_sub((-2).days()), None);
+    ///
+    /// assert_eq!(
+    ///     datetime!(2019 - 11 - 25 15:30 +10:00).checked_sub(27.hours()),
+    ///     Some(datetime!(2019 - 11 - 24 12:30 +10:00))
+    /// );
+    /// ```
+    pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
+        let utc_datetime = const_try_opt!(self.utc_datetime.checked_sub(duration));
+        Some(utc_datetime.assume_utc().to_offset(self.offset))
+    }
+
+    // endregion: checked arithmetic
 }
 
 // region: replacement
