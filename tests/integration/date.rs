@@ -772,29 +772,29 @@ fn regression_check() {
 fn checked_add_duration() {
     // Adding subday duration
     assert_eq!(
-        Date::MIN.checked_add(Duration::new(84_399, 999_999_999)),
+        Date::MIN.checked_add(Duration::new(86_399, 999_999_999)),
         Some(Date::MIN)
     );
     assert_eq!(
-        Date::MIN.checked_add(Duration::new(-84_399, -999_999_999)),
+        Date::MIN.checked_add(Duration::new(-86_399, -999_999_999)),
         Some(Date::MIN)
     );
 
     assert_eq!(
-        date!(2021 - 10 - 25).checked_add(Duration::new(84_399, 999_999_999)),
+        date!(2021 - 10 - 25).checked_add(Duration::new(86_399, 999_999_999)),
         Some(date!(2021 - 10 - 25))
     );
     assert_eq!(
-        date!(2021 - 10 - 25).checked_add(Duration::new(-84_399, -999_999_999)),
+        date!(2021 - 10 - 25).checked_add(Duration::new(-86_399, -999_999_999)),
         Some(date!(2021 - 10 - 25))
     );
 
     assert_eq!(
-        Date::MAX.checked_add(Duration::new(84_399, 999_999_999)),
+        Date::MAX.checked_add(Duration::new(86_399, 999_999_999)),
         Some(Date::MAX)
     );
     assert_eq!(
-        Date::MAX.checked_add(Duration::new(-84_399, -999_999_999)),
+        Date::MAX.checked_add(Duration::new(-86_399, -999_999_999)),
         Some(Date::MAX)
     );
 
@@ -826,29 +826,29 @@ fn checked_add_duration() {
 fn checked_sub_duration() {
     // Subtracting subday duration
     assert_eq!(
-        Date::MIN.checked_sub(Duration::new(84_399, 999_999_999)),
+        Date::MIN.checked_sub(Duration::new(86_399, 999_999_999)),
         Some(Date::MIN)
     );
     assert_eq!(
-        Date::MIN.checked_sub(Duration::new(-84_399, -999_999_999)),
+        Date::MIN.checked_sub(Duration::new(-86_399, -999_999_999)),
         Some(Date::MIN)
     );
 
     assert_eq!(
-        date!(2021 - 10 - 25).checked_sub(Duration::new(84_399, 999_999_999)),
+        date!(2021 - 10 - 25).checked_sub(Duration::new(86_399, 999_999_999)),
         Some(date!(2021 - 10 - 25))
     );
     assert_eq!(
-        date!(2021 - 10 - 25).checked_sub(Duration::new(-84_399, -999_999_999)),
+        date!(2021 - 10 - 25).checked_sub(Duration::new(-86_399, -999_999_999)),
         Some(date!(2021 - 10 - 25))
     );
 
     assert_eq!(
-        Date::MAX.checked_sub(Duration::new(84_399, 999_999_999)),
+        Date::MAX.checked_sub(Duration::new(86_399, 999_999_999)),
         Some(Date::MAX)
     );
     assert_eq!(
-        Date::MAX.checked_sub(Duration::new(-84_399, -999_999_999)),
+        Date::MAX.checked_sub(Duration::new(-86_399, -999_999_999)),
         Some(Date::MAX)
     );
 

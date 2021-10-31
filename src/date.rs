@@ -578,7 +578,7 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as i32));
+        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as _));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
@@ -623,7 +623,7 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as i32));
+        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as _));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
