@@ -197,7 +197,7 @@ macro_rules! cascade {
     (@year year) => {};
 
     // Cascade an out-of-bounds value from "from" to "to".
-    ($(!$from_not_mut:ident)? $from:ident in $min:literal.. $max:literal => $to:tt) => {
+    ($from:ident in $min:literal.. $max:literal => $to:tt) => {
         #[allow(unused_comparisons, unused_assignments)]
         if $from >= $max {
             $from -= $max - $min;
