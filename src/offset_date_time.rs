@@ -1,3 +1,5 @@
+//! The [`OffsetDateTime`] struct and its associated `impl`s.
+
 use core::cmp::Ordering;
 #[cfg(feature = "std")]
 use core::convert::From;

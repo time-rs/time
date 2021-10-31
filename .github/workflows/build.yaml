@@ -1,5 +1,9 @@
 name: Build
 
+concurrency:
+  group: build-${{ github.head_ref }}
+  cancel-in-progress: true
+
 env:
   CARGO_INCREMENTAL: 0
 

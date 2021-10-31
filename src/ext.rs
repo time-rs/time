@@ -1,3 +1,5 @@
+//! Extension traits.
+
 use core::time::Duration as StdDuration;
 
 use crate::Duration;

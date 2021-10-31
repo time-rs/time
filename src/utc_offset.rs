@@ -1,3 +1,5 @@
+//! The [`UtcOffset`] struct and its associated `impl`s.
+
 use core::fmt;
 use core::ops::Neg;
 #[cfg(feature = "formatting")]
