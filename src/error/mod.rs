@@ -1,3 +1,5 @@
+//! Various error types returned by methods in the time crate.
+
 mod component_range;
 mod conversion_range;
 mod different_variant;

@@ -1,3 +1,5 @@
+//! Macros to construct statically known values.
+
 /// Construct a [`Date`](crate::Date) with a statically known value.
 ///
 /// The resulting expression can be used in `const` or `static` declarations.

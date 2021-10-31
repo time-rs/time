@@ -1,3 +1,5 @@
+//! The [`Date`] struct and its associated `impl`s.
+
 use core::fmt;
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
