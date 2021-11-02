@@ -13,6 +13,8 @@ macro_rules! item {
     };
 }
 
+#[cfg(feature = "macros")]
+pub mod macros;
 #[cfg(feature = "serde-well-known")]
 pub mod rfc2822;
 #[cfg(feature = "serde-well-known")]

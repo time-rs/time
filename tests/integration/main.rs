@@ -66,6 +66,7 @@ mod quickcheck_mod;
 mod rand;
 mod serde;
 mod serde_helpers;
+mod serde_macros;
 mod serde_timestamp;
 mod time;
 mod utc_offset;

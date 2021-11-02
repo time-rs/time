@@ -85,3 +85,21 @@ impl TryFrom<crate::Error> for Format {
         }
     }
 }
+
+#[cfg(feature = "serde")]
+impl Format {
+    /// Obtain an error type for the serializer.
+    pub fn into_invalid_serde_value<S: serde::Serializer>(self) -> S::Error {
+        use serde::ser::Error;
+        match self {
+            Self::InsufficientTypeInformation => {
+                S::Error::custom("Insufficient type information to format a component.")
+            }
+            Self::InvalidComponent(component) => S::Error::custom(format!(
+                "The component {} has a value that cannot be formatted into the requested format.",
+                component
+            )),
+            Self::StdIo(err) => S::Error::custom(err),
+        }
+    }
+}
