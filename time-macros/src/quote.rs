@@ -57,14 +57,6 @@ macro_rules! quote_internal {
             ::proc_macro::Punct::new('&', ::proc_macro::Spacing::Alone)
         )),
     ] $($tail)*));
-    ([$($expanded:tt)*] '_ $($tail:tt)*) => (quote_internal!([$($expanded)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('\'', ::proc_macro::Spacing::Joint)
-        )),
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Ident::new("_", ::proc_macro::Span::mixed_site())
-        )),
-    ] $($tail)*));
     ([$($expanded:tt)*] < $($tail:tt)*) => (quote_internal!([$($expanded)*
         ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
             ::proc_macro::Punct::new('<', ::proc_macro::Spacing::Alone)
@@ -75,11 +67,42 @@ macro_rules! quote_internal {
             ::proc_macro::Punct::new('>', ::proc_macro::Spacing::Alone)
         )),
     ] $($tail)*));
+    ([$($expanded:tt)*] -> $($tail:tt)*) => (quote_internal!([$($expanded)*
+        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
+            ::proc_macro::Punct::new('-', ::proc_macro::Spacing::Joint)
+        )),
+        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
+            ::proc_macro::Punct::new('>', ::proc_macro::Spacing::Alone)
+        )),
+    ] $($tail)*));
+    ([$($expanded:tt)*] ? $($tail:tt)*) => (quote_internal!([$($expanded)*
+        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
+            ::proc_macro::Punct::new('?', ::proc_macro::Spacing::Alone)
+        )),
+    ] $($tail)*));
+    ([$($expanded:tt)*] '_' $($tail:tt)*) => (quote_internal!([$($expanded)*
+        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
+            ::proc_macro::Punct::new('_', ::proc_macro::Spacing::Alone)
+        )),
+    ] $($tail)*));
 
     // Identifier
     ([$($expanded:tt)*] $i:ident $($tail:tt)*) => (quote_internal!([$($expanded)*
         ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
             ::proc_macro::Ident::new(stringify!($i), ::proc_macro::Span::mixed_site())
+        )),
+    ] $($tail)*));
+
+
+    // Lifetime
+    ([$($expanded:tt)*] $l:lifetime $($tail:tt)*) => (quote_internal!([$($expanded)*
+        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
+            ::proc_macro::Punct::new('\'', ::proc_macro::Spacing::Joint)
+        )),
+        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
+            ::proc_macro::Ident::new(
+                stringify!($l).trim_start_matches(|c: char| c == '\''),
+                ::proc_macro::Span::mixed_site())
         )),
     ] $($tail)*));
 

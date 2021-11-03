@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use time::macros::datetime;
-use time::{declare_format_string, OffsetDateTime};
 use serde_test::{assert_de_tokens_error, assert_tokens, Configure, Token};
+use time::macros::{datetime, declare_format_string};
+use time::OffsetDateTime;
 
 declare_format_string!(
     test_custom_format,
