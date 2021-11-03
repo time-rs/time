@@ -89,6 +89,7 @@ impl TryFrom<crate::Error> for Format {
 #[cfg(feature = "serde")]
 impl Format {
     /// Obtain an error type for the serializer.
+    #[doc(hidden)] // Exposed only for the `declare_format!` macros
     pub fn into_invalid_serde_value<S: serde::Serializer>(self) -> S::Error {
         use serde::ser::Error;
         match self {

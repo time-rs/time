@@ -107,6 +107,7 @@ impl TryFrom<crate::Error> for Parse {
 #[cfg(feature = "serde")]
 impl Parse {
     /// Obtain an error type for the deserializer.
+    #[doc(hidden)] // Exposed only for the `declare_format!` macros
     pub fn to_invalid_serde_value<'a, D: serde::Deserializer<'a>>(self) -> D::Error {
         #[cfg(not(feature = "std"))]
         use alloc::format;
