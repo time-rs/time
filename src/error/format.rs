@@ -94,13 +94,13 @@ impl Format {
         use serde::ser::Error;
         match self {
             Self::InsufficientTypeInformation => {
-                S::Error::custom("Insufficient type information to format a component.")
+                S::Error::custom("insufficient type information to format a component")
             }
             Self::InvalidComponent(component) => S::Error::custom(format!(
-                "The component {} has a value that cannot be formatted into the requested format.",
+                "the component {} has a value that cannot be formatted into the requested format",
                 component
             )),
-            Self::StdIo(err) => S::Error::custom(err),
+            Self::StdIo(err) => S::Error::custom(format!("encountered IO err: {}", err)),
         }
     }
 }
