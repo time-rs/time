@@ -97,26 +97,58 @@ fn make_serde_serializer_module(
     mod_name: proc_macro::Ident,
     items: impl to_tokens::ToTokens,
 ) -> TokenStream {
+    let serialize_fns = quote! {
+        pub fn serialize<S: ::serde::Serializer>(
+                datetime: &::time::OffsetDateTime,
+                serializer: S,
+            ) -> Result<S::Ok, S::Error> {
+                use ::serde::Serialize;
+                datetime.format(&DESCRIPTION)
+                    .map_err(::time::error::Format::into_invalid_serde_value::<S>)?
+                    .serialize(serializer)
+        }
+
+        pub fn deserialize<'a, D: ::serde::Deserializer<'a> >(
+                deserializer: D
+        ) -> Result<::time::OffsetDateTime, D::Error> {
+            use ::serde::Deserialize;
+                ::time::OffsetDateTime::parse(<&str>::deserialize(deserializer)?, &DESCRIPTION)
+                    .map_err(time::error::Parse::to_invalid_serde_value::<D>)
+        }
+    };
+    let option_serialize_fns = quote! {
+        pub fn serialize<S: ::serde::Serializer>(
+            option: &Option<::time::OffsetDateTime>,
+            serializer: S,
+        ) -> Result<S::Ok, S::Error> {
+            use ::serde::Serialize;
+            option.map(|datetime| datetime.format(&DESCRIPTION))
+                    .transpose()
+                    .map_err(::time::error::Format::into_invalid_serde_value::<S>)?
+                    .serialize(serializer)
+        }
+
+        pub fn deserialize<'a, D: ::serde::Deserializer<'a> >(
+            deserializer: D
+        ) -> Result<Option<::time::OffsetDateTime>, D::Error> {
+            use ::serde::Deserialize;
+            Option::<&str>::deserialize(deserializer)?
+                .map(|string| ::time::OffsetDateTime::parse(string, &DESCRIPTION))
+                .transpose()
+                .map_err(time::error::Parse::to_invalid_serde_value::<D>)
+        }
+    };
+
     quote! {
         mod #(mod_name) {
             const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = &[#(items)];
 
-            pub fn serialize<S: ::serde::Serializer>(
-                 datetime: &::time::OffsetDateTime,
-                 serializer: S,
-             ) -> Result<S::Ok, S::Error> {
-                 use ::serde::Serialize;
-                 datetime.format(&DESCRIPTION)
-                     .map_err(::time::error::Format::into_invalid_serde_value::<S>)?
-                     .serialize(serializer)
-            }
+            #(serialize_fns)
 
-            pub fn deserialize<'a, D: ::serde::Deserializer<'a> >(
-                 deserializer: D
-            ) -> Result<::time::OffsetDateTime, D::Error> {
-                use ::serde::Deserialize;
-                 ::time::OffsetDateTime::parse(<&str>::deserialize(deserializer)?, &DESCRIPTION)
-                     .map_err(time::error::Parse::to_invalid_serde_value::<D>)
+            pub mod option {
+                use super::DESCRIPTION;
+
+                #(option_serialize_fns)
             }
         }
     }

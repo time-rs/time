@@ -85,6 +85,11 @@ macro_rules! quote_internal {
             ::proc_macro::Punct::new('_', ::proc_macro::Spacing::Alone)
         )),
     ] $($tail)*));
+    ([$($expanded:tt)*] | $($tail:tt)*) => (quote_internal!([$($expanded)*
+        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
+            ::proc_macro::Punct::new('|', ::proc_macro::Spacing::Alone)
+        )),
+    ] $($tail)*));
 
     // Identifier
     ([$($expanded:tt)*] $i:ident $($tail:tt)*) => (quote_internal!([$($expanded)*
