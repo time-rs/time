@@ -2,6 +2,10 @@ use serde_test::{assert_de_tokens_error, assert_tokens, Compact, Configure, Read
 use time::macros::{date, datetime, offset, time};
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
+#[cfg(feature = "macros")]
+mod macros;
+mod timestamps;
+
 #[test]
 fn time() {
     assert_tokens(
