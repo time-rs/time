@@ -692,7 +692,7 @@ impl OffsetDateTime {
     /// # use time::{Date, ext::NumericalDuration};
     /// # use time::macros::{datetime, offset};
     ///
-    /// let datetime = Date::MIN.midnight().assume_offset(offset!(+10:00));
+    /// let datetime = Date::MIN.midnight().assume_offset(offset!(-10:00));
     /// assert_eq!(datetime.checked_add((-2).days()), None);
     ///
     /// let datetime = Date::MAX.midnight().assume_offset(offset!(+10:00));
@@ -714,7 +714,7 @@ impl OffsetDateTime {
     /// # use time::{Date, ext::NumericalDuration};
     /// # use time::macros::{datetime, offset};
     ///
-    /// let datetime = Date::MIN.midnight().assume_offset(offset!(+10:00));
+    /// let datetime = Date::MIN.midnight().assume_offset(offset!(-10:00));
     /// assert_eq!(datetime.checked_sub(2.days()), None);
     ///
     /// let datetime = Date::MAX.midnight().assume_offset(offset!(+10:00));
