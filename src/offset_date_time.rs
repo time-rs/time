@@ -704,8 +704,8 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn checked_add(self, duration: Duration) -> Option<Self> {
-        let utc_datetime = const_try_opt!(self.utc_datetime.checked_add(duration));
-        Some(utc_datetime.assume_utc().to_offset(self.offset))
+        let offset_datetime = self.utc_datetime.utc_to_offset(self.offset);
+        Some(const_try_opt!(offset_datetime.checked_add(duration)).assume_offset(self.offset))
     }
 
     /// Computes `self - duration`, returning `None` if an overflow occurred.
@@ -726,8 +726,8 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
-        let utc_datetime = const_try_opt!(self.utc_datetime.checked_sub(duration));
-        Some(utc_datetime.assume_utc().to_offset(self.offset))
+        let offset_datetime = self.utc_datetime.utc_to_offset(self.offset);
+        Some(const_try_opt!(offset_datetime.checked_sub(duration)).assume_offset(self.offset))
     }
 
     // endregion: checked arithmetic

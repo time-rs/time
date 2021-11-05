@@ -932,6 +932,16 @@ fn checked_add_duration() {
         datetime!(+999_990 - 12 - 31 23:59:59.999_999_999 UTC).checked_add(530.weeks()),
         None
     );
+
+    // Adding 0 duration at MIN/MAX values with non-zero offset
+    assert_eq!(
+        datetime!(+999_999 - 12 - 31 23:59:59.999_999_999 -10:00).checked_add(Duration::ZERO),
+        Some(datetime!(+999_999 - 12 - 31 23:59:59.999_999_999 -10:00))
+    );
+    assert_eq!(
+        datetime!(-999_999 - 01 - 01 0:00 +10:00).checked_add(Duration::ZERO),
+        Some(datetime!(-999_999 - 01 - 01 0:00 +10:00))
+    );
 }
 
 #[test]
@@ -996,5 +1006,15 @@ fn checked_sub_duration() {
     assert_eq!(
         datetime!(+999_990 - 12 - 31 23:59:59.999_999_999 UTC).checked_sub((-530).weeks()),
         None
+    );
+
+    // Subtracting 0 duration at MIN/MAX values with non-zero offset
+    assert_eq!(
+        datetime!(+999_999 - 12 - 31 23:59:59.999_999_999 -10:00).checked_sub(Duration::ZERO),
+        Some(datetime!(+999_999 - 12 - 31 23:59:59.999_999_999 -10:00))
+    );
+    assert_eq!(
+        datetime!(-999_999 - 01 - 01 0:00 +10:00).checked_sub(Duration::ZERO),
+        Some(datetime!(-999_999 - 01 - 01 0:00 +10:00))
     );
 }
