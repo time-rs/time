@@ -71,7 +71,7 @@
 //! requires the local offset will return the `Err` variant.
 
 #![doc(html_playground_url = "https://play.rust-lang.org")]
-#![cfg_attr(__time_03_docs, feature(doc_cfg, doc_notable_trait))]
+#![cfg_attr(__time_03_docs, feature(doc_cfg, doc_auto_cfg, doc_notable_trait))]
 #![cfg_attr(
     __time_03_docs,
     deny(rustdoc::broken_intra_doc_links, rustdoc::private_intra_doc_links)
@@ -184,7 +184,11 @@ macro_rules! rem_euclid {
         let _b = $b;
         let r = _a % _b;
         if r < 0 {
-            if _b < 0 { r - _b } else { r + _b }
+            if _b < 0 {
+                r - _b
+            } else {
+                r + _b
+            }
         } else {
             r
         }
