@@ -19,8 +19,8 @@ struct TestCustomFormat {
 #[test]
 fn custom_serialize() {
     let value = TestCustomFormat {
-        dt: datetime!(2000-01-01 00:00:00 -4:00),
-        option: Some(datetime!(2000-01-01 00:00:00 -4:00)),
+        dt: datetime!(2000-01-01 00:00 -4:00),
+        option: Some(datetime!(2000-01-01 00:00 -4:00)),
     };
     assert_tokens(
         &value.compact(),
@@ -38,7 +38,7 @@ fn custom_serialize() {
         ],
     );
     let value = TestCustomFormat {
-        dt: datetime!(2000-01-01 00:00:00 -4:00),
+        dt: datetime!(2000-01-01 00:00 -4:00),
         option: None,
     };
     assert_tokens(
@@ -88,4 +88,35 @@ fn custom_serialize_error() {
         ],
         "invalid value: literal, expected valid format",
     );
+}
+
+use std::io;
+struct BadWriter;
+
+impl io::Write for BadWriter {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        Err(io::Error::new(io::ErrorKind::Other, "oh no"))
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Err(io::Error::new(io::ErrorKind::Other, "oh no"))
+    }
+}
+
+#[test]
+fn custom_serialize_io_error() {
+    let value = TestCustomFormat {
+        dt: datetime!(2000-01-01 00:00 -4:00),
+        option: None,
+    };
+
+    let mut bytes = [0u8; 0];
+
+    let assert_err = |res| {
+        assert!(
+            matches!(res, Err(time::error::Format::StdIo(e)) if e.kind() == std::io::ErrorKind::WriteZero)
+        );
+    };
+    let mut ser = serde_json::Serializer::new(&mut BadWriter);
+    assert_err(value.compact().serialize(&mut ser))
 }

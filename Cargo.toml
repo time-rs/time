@@ -51,6 +51,7 @@ num_threads = "0.1.2"
 [dev-dependencies]
 rand = { version = "0.8.4", default-features = false }
 serde = { version = "1.0.126", default-features = false, features = ["derive"] }
+serde_json = "1.0.68"
 serde_test = "1.0.126"
 quickcheck_macros = "1.0.0"
 
