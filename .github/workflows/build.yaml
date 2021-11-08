@@ -143,6 +143,8 @@ jobs:
         with:
           command: check
           args: --benches --all-features
+        env:
+          RUSTFLAGS: "--cfg bench"
 
   test:
     name: Test (${{ matrix.os.name }}, ${{ matrix.rust }})
@@ -273,6 +275,8 @@ jobs:
         with:
           command: fmt
           args: --all -- --check
+        env:
+          RUSTFLAGS: "--cfg bench"
 
   clippy:
     name: Clippy
@@ -298,6 +302,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features --benches --tests
+        env:
+          RUSTFLAGS: "--cfg bench"
 
   documentation:
     name: Documentation
