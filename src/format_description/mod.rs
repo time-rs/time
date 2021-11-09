@@ -39,6 +39,8 @@ mod helper {
 /// Well-known formats, typically RFCs.
 pub mod well_known {
     /// The format described in [RFC 3339](https://tools.ietf.org/html/rfc3339#section-5.6).
+    ///
+    /// Example: 1985-04-12T23:20:50.52Z
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     pub struct Rfc3339;
 }
