@@ -184,11 +184,7 @@ macro_rules! rem_euclid {
         let _b = $b;
         let r = _a % _b;
         if r < 0 {
-            if _b < 0 {
-                r - _b
-            } else {
-                r + _b
-            }
+            if _b < 0 { r - _b } else { r + _b }
         } else {
             r
         }
