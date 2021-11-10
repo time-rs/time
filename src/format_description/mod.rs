@@ -54,7 +54,7 @@ pub mod well_known {
     /// ```rust
     /// # use time::{format_description::well_known::Rfc3339, macros::datetime};
     /// assert_eq!(
-    ///     datetime!(1985-04-12 23:20:50.52).format(&Rfc3339)?,
+    ///     datetime!(1985-04-12 23:20:50.52 +00:00).format(&Rfc3339)?,
     ///     "1985-04-12T23:20:50.52Z"
     /// );
     /// # Ok::<_, time::Error>(())
