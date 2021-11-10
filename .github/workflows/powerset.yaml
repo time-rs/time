@@ -126,7 +126,7 @@ jobs:
 
   release:
     name: Create release
-    if: ${{ github.event_name }} == "push" # tags
+    if: startsWith(github.ref, 'refs/tags') && github.run_attempt == 1
     needs: check-powerset
     runs-on: ubuntu-latest
     steps:
@@ -140,9 +140,11 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
-          body: ""
+          body: "See the [changelog](https://github.com/time-rs/time/blob/main/CHANGELOG.md) for details."
           draft: false
           prerelease: |
-            contains(${{ github.ref }}, 'alpha')
-            || contains(${{ github.ref }}, 'beta')
-            || contains(${{ github.ref }}, 'rc')
+            ${{
+              contains(github.ref, 'alpha')
+              || contains(github.ref, 'beta')
+              || contains(github.ref, 'rc')
+            }}
