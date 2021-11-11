@@ -1,3 +1,5 @@
+use std::io;
+
 use serde::{Deserialize, Serialize};
 use serde_test::{assert_de_tokens_error, assert_tokens, Configure, Token};
 use time::macros::{datetime, declare_format_string};
@@ -90,11 +92,10 @@ fn custom_serialize_error() {
     );
 }
 
-use std::io;
 struct BadWriter;
 
 impl io::Write for BadWriter {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+    fn write(&mut self, _buf: &[u8]) -> io::Result<usize> {
         Err(io::Error::new(io::ErrorKind::Other, "oh no"))
     }
 
@@ -110,13 +111,17 @@ fn custom_serialize_io_error() {
         option: None,
     };
 
-    let mut bytes = [0u8; 0];
+    let mut bad_writer = BadWriter;
+    let mut ser = serde_json::Serializer::new(&mut bad_writer);
+    let res = value.compact().serialize(&mut ser);
 
-    let assert_err = |res| {
-        assert!(
-            matches!(res, Err(time::error::Format::StdIo(e)) if e.kind() == std::io::ErrorKind::WriteZero)
-        );
+    match res {
+        Err(err) => {
+            assert!(err.is_io());
+            assert_eq!(format!("{}", err), "oh no".to_string());
+        }
+        _ => {
+            panic!("Expected error.");
+        }
     };
-    let mut ser = serde_json::Serializer::new(&mut BadWriter);
-    assert_err(value.compact().serialize(&mut ser))
 }
