@@ -34,6 +34,7 @@ macros = ["time-macros"]
 parsing = []
 quickcheck = ["quickcheck-dep", "alloc"]
 serde-human-readable = ["serde", "formatting", "parsing"]
+serde-well-known = ["serde/alloc", "formatting", "parsing"] # use case for weak feature dependencies (`alloc` could just require `serde?.alloc`)
 std = ["alloc"]
 
 [dependencies]

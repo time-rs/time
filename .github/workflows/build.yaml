@@ -79,7 +79,7 @@ jobs:
             --feature-powerset
             --optional-deps
             --group-features serde,rand
-            --exclude-features default,std,formatting,serde-human-readable,local-offset,quickcheck,quickcheck-dep,time-macros,itoa
+            --exclude-features default,std,formatting,serde-human-readable,serde-well-known,local-offset,quickcheck,quickcheck-dep,time-macros,itoa
             --features macros
             --exclude-all-features
             --target ${{ matrix.target.triple }}
@@ -99,6 +99,7 @@ jobs:
             --optional-deps
             --group-features serde,rand
             --group-features formatting,parsing
+            --group-features serde-human-readable,serde-well-known
             --exclude-features default,quickcheck-dep,time-macros,itoa
             --features macros,local-offset
             --target ${{ matrix.target.triple }}
@@ -115,6 +116,7 @@ jobs:
             --optional-deps
             --group-features serde,rand
             --group-features formatting,parsing
+            --group-features serde-human-readable,serde-well-known
             --exclude-features default,quickcheck-dep,time-macros,itoa
             --features macros
             --target ${{ matrix.target.triple }}
@@ -196,6 +198,7 @@ jobs:
             --optional-deps
             --group-features serde,rand
             --group-features formatting,parsing
+            --group-features serde-human-readable,serde-well-known
             --exclude-features default,quickcheck-dep,time-macros,itoa
             --features macros
         if: matrix.os.has_local_offset == true
@@ -213,6 +216,7 @@ jobs:
             --optional-deps
             --group-features serde,rand
             --group-features formatting,parsing
+            --group-features serde-human-readable,serde-well-known
             --exclude-features default,quickcheck-dep,time-macros,itoa
             --features macros,local-offset
         if: matrix.os.has_local_offset == false

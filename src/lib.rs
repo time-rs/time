@@ -53,6 +53,11 @@
 //!   serializer, not the user. If this feature is not enabled or if the serializer requests a
 //!   non-human-readable format, a format optimized for binary representation will be used.
 //!
+//! - `serde-well-known` (_implicitly enables `serde/alloc`, `formatting`, and `parsing`_)
+//!
+//!   Enables support for serializing and deserializing well-known formats using serde's
+//!   [`#[with]` attribute](https://serde.rs/field-attrs.html#with).
+//!
 //! - `rand`
 //!
 //!   Enables [rand](https://docs.rs/rand) support for all types.
