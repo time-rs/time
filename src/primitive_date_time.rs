@@ -433,7 +433,6 @@ impl PrimitiveDateTime {
     /// ```
     /// # use time::{Date, ext::NumericalDuration};
     /// # use time::macros::datetime;
-    ///
     /// let datetime = Date::MIN.midnight();
     /// assert_eq!(datetime.checked_add((-2).days()), None);
     ///
@@ -464,7 +463,6 @@ impl PrimitiveDateTime {
     /// ```
     /// # use time::{Date, ext::NumericalDuration};
     /// # use time::macros::datetime;
-    ///
     /// let datetime = Date::MIN.midnight();
     /// assert_eq!(datetime.checked_sub(2.days()), None);
     ///

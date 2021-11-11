@@ -547,7 +547,6 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, ext::NumericalDuration, macros::date};
-    ///
     /// assert_eq!(Date::MAX.checked_add(1.days()), None);
     /// assert_eq!(Date::MIN.checked_add((-2).days()), None);
     /// assert_eq!(
@@ -562,7 +561,6 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, ext::NumericalDuration, macros::date};
-    ///
     /// assert_eq!(Date::MAX.checked_add(23.hours()), Some(Date::MAX));
     /// assert_eq!(Date::MIN.checked_add((-23).hours()), Some(Date::MIN));
     /// assert_eq!(
@@ -592,7 +590,6 @@ impl Date {
     ///
     /// ```
     /// # use time::{Date, ext::NumericalDuration, macros::date};
-    ///
     /// assert_eq!(Date::MAX.checked_sub((-2).days()), None);
     /// assert_eq!(Date::MIN.checked_sub(1.days()), None);
     /// assert_eq!(
@@ -607,7 +604,6 @@ impl Date {
     ///
     /// ```
     /// # use time::{Date, ext::NumericalDuration, macros::date};
-    ///
     /// assert_eq!(Date::MAX.checked_sub((-23).hours()), Some(Date::MAX));
     /// assert_eq!(Date::MIN.checked_sub(23.hours()), Some(Date::MIN));
     /// assert_eq!(
