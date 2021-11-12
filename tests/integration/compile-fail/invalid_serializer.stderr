@@ -8,7 +8,7 @@ error: unexpected end of input
  --> $DIR/invalid_serializer.rs:4:1
   |
 4 | declare_format_string_offset_date_time!(my_format); // missing string format
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: this error originates in the macro `declare_format_string_offset_date_time` (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -16,7 +16,7 @@ error: expected string
  --> $DIR/invalid_serializer.rs:5:1
   |
 5 | declare_format_string_offset_date_time!(my_format "[year] [month]"); // missing comma
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: this error originates in the macro `declare_format_string_offset_date_time` (in Nightly builds, run with -Z macro-backtrace for more info)
 
