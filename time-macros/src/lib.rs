@@ -134,7 +134,7 @@ fn make_serde_serializer_module(
         ) -> Result<Option<#(formattable.clone())>, D::Error> {
             use ::serde::Deserialize;
             Option::<&str>::deserialize(deserializer)?
-                .map(|string| #(formattable.clone())::parse(string, &DESCRIPTION))
+                .map(|string| #(formattable)::parse(string, &DESCRIPTION))
                 .transpose()
                 .map_err(time::error::Parse::to_invalid_serde_value::<D>)
         }
