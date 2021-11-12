@@ -1,33 +1,33 @@
 error: unexpected token: "[year] [month]"
- --> $DIR/invalid_serializer.rs:3:24
+ --> $DIR/invalid_serializer.rs:3:41
   |
-3 | declare_format_string!("[year] [month]"); // missing ident
-  |                        ^^^^^^^^^^^^^^^^
+3 | declare_format_string_offset_date_time!("[year] [month]"); // missing ident
+  |                                         ^^^^^^^^^^^^^^^^
 
 error: unexpected end of input
  --> $DIR/invalid_serializer.rs:4:1
   |
-4 | declare_format_string!(my_format); // missing string format
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 | declare_format_string_offset_date_time!(my_format); // missing string format
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
-  = note: this error originates in the macro `declare_format_string` (in Nightly builds, run with -Z macro-backtrace for more info)
+  = note: this error originates in the macro `declare_format_string_offset_date_time` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected string
  --> $DIR/invalid_serializer.rs:5:1
   |
-5 | declare_format_string!(my_format "[year] [month]"); // missing comma
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5 | declare_format_string_offset_date_time!(my_format "[year] [month]"); // missing comma
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
-  = note: this error originates in the macro `declare_format_string` (in Nightly builds, run with -Z macro-backtrace for more info)
+  = note: this error originates in the macro `declare_format_string_offset_date_time` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: invalid component name `bad` at byte index 1
- --> $DIR/invalid_serializer.rs:6:35
+ --> $DIR/invalid_serializer.rs:6:52
   |
-6 | declare_format_string!(my_format, "[bad]"); // bad component name
-  |                                   ^^^^^^^
+6 | declare_format_string_offset_date_time!(my_format, "[bad]"); // bad component name
+  |                                                    ^^^^^^^
 
 error: expected string
- --> $DIR/invalid_serializer.rs:7:35
+ --> $DIR/invalid_serializer.rs:7:52
   |
-7 | declare_format_string!(my_format, not_string); // string format wrong type
-  |                                   ^^^^^^^^^^
+7 | declare_format_string_offset_date_time!(my_format, not_string); // string format wrong type
+  |                                                    ^^^^^^^^^^

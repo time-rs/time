@@ -96,10 +96,11 @@ pub fn format_description(input: TokenStream) -> TokenStream {
 fn make_serde_serializer_module(
     mod_name: proc_macro::Ident,
     items: impl to_tokens::ToTokens,
+    formattable: TokenStream,
 ) -> TokenStream {
     let serialize_fns = quote! {
         pub fn serialize<S: ::serde::Serializer>(
-                datetime: &::time::OffsetDateTime,
+                datetime: &#(formattable.clone()),
                 serializer: S,
             ) -> Result<S::Ok, S::Error> {
                 use ::serde::Serialize;
@@ -110,15 +111,15 @@ fn make_serde_serializer_module(
 
         pub fn deserialize<'a, D: ::serde::Deserializer<'a> >(
                 deserializer: D
-        ) -> Result<::time::OffsetDateTime, D::Error> {
+        ) -> Result<#(formattable.clone()), D::Error> {
             use ::serde::Deserialize;
-                ::time::OffsetDateTime::parse(<&str>::deserialize(deserializer)?, &DESCRIPTION)
+                #(formattable.clone())::parse(<&str>::deserialize(deserializer)?, &DESCRIPTION)
                     .map_err(time::error::Parse::to_invalid_serde_value::<D>)
         }
     };
     let option_serialize_fns = quote! {
         pub fn serialize<S: ::serde::Serializer>(
-            option: &Option<::time::OffsetDateTime>,
+            option: &Option<#(formattable.clone())>,
             serializer: S,
         ) -> Result<S::Ok, S::Error> {
             use ::serde::Serialize;
@@ -130,10 +131,10 @@ fn make_serde_serializer_module(
 
         pub fn deserialize<'a, D: ::serde::Deserializer<'a> >(
             deserializer: D
-        ) -> Result<Option<::time::OffsetDateTime>, D::Error> {
+        ) -> Result<Option<#(formattable.clone())>, D::Error> {
             use ::serde::Deserialize;
             Option::<&str>::deserialize(deserializer)?
-                .map(|string| ::time::OffsetDateTime::parse(string, &DESCRIPTION))
+                .map(|string| #(formattable.clone())::parse(string, &DESCRIPTION))
                 .transpose()
                 .map_err(time::error::Parse::to_invalid_serde_value::<D>)
         }
@@ -154,8 +155,7 @@ fn make_serde_serializer_module(
     }
 }
 
-#[proc_macro]
-pub fn declare_format_string(input: TokenStream) -> TokenStream {
+fn declare_format_string(input: TokenStream, formattable: TokenStream) -> TokenStream {
     let mut tokens = input.into_iter();
     // First, an identifier (the desired module name)
     let mod_name = match tokens.next() {
@@ -191,5 +191,15 @@ pub fn declare_format_string(input: TokenStream) -> TokenStream {
     };
     let items: TokenStream = items.into_iter().map(|item| quote! { #(item), }).collect();
 
-    make_serde_serializer_module(mod_name, items)
+    make_serde_serializer_module(mod_name, items, formattable)
+}
+
+#[proc_macro]
+pub fn declare_format_string_offset_date_time(input: TokenStream) -> TokenStream {
+    declare_format_string(input, quote! {::time::OffsetDateTime })
+}
+
+#[proc_macro]
+pub fn declare_format_string_primitive_date_time(input: TokenStream) -> TokenStream {
+    declare_format_string(input, quote! {::time::PrimitiveDateTime })
 }

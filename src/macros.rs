@@ -38,17 +38,18 @@ pub use time_macros::datetime;
 ///
 /// # Usage
 ///
-/// Invoked as `declare_format_string!(mod_name, "<format string>")`: puts a
-/// module named `mod_name` in the current namespace.
+/// Invoked as
+/// `declare_format_string_offset_date_time!(mod_name, "<format string>")`: puts
+/// a module named `mod_name` in the current namespace.
 ///
 /// # Examples
 ///
 /// ```
 /// # use time::OffsetDateTime;
-/// # use time::macros::declare_format_string;
+/// # use time::macros::declare_format_string_offset_date_time;
 /// # use serde::{Serialize, Deserialize};
 /// // Makes a module `mod my_format { ... }`.
-/// declare_format_string!(my_format, "hour=[hour], minute=[minute]");
+/// declare_format_string_offset_date_time!(my_format, "hour=[hour], minute=[minute]");
 ///
 /// #[derive(Serialize, Deserialize)]
 /// struct SerializesWithCustom {
@@ -62,7 +63,33 @@ pub use time_macros::datetime;
 ///
 /// [`format_description::parse()`]: crate::format_description::parse()
 #[cfg(feature = "serde")]
-pub use time_macros::declare_format_string;
+pub use time_macros::declare_format_string_offset_date_time;
+/// Invoked as
+/// `declare_format_string_primitive_date_time!(mod_name, "<format string>")`: puts
+/// a module named `mod_name` in the current namespace.
+///
+/// # Examples
+///
+/// ```
+/// # use time::PrimitiveDateTime;
+/// # use time::macros::declare_format_string_primitive_date_time;
+/// # use serde::{Serialize, Deserialize};
+/// // Makes a module `mod my_format { ... }`.
+/// declare_format_string_primitive_date_time!(my_format, "hour=[hour], minute=[minute]");
+///
+/// #[derive(Serialize, Deserialize)]
+/// struct SerializesWithCustom {
+///     #[serde(with = "my_format")]
+///     dt: PrimitiveDateTime,
+/// }
+/// #
+/// # // otherwise rustdoc tests don't work because we put a module in `main()`
+/// # fn main() {}
+/// ```
+///
+/// [`format_description::parse()`]: crate::format_description::parse()
+#[cfg(feature = "serde")]
+pub use time_macros::declare_format_string_primitive_date_time; // TODO: doc
 /// Equivalent of performing [`format_description::parse()`] at compile time.
 ///
 /// Using the macro instead of the function results in a static slice rather than a [`Vec`],
