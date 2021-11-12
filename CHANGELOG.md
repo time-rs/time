@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
-## Unreleased
+## 0.3.5 [2021-11-12]
 
 ### Added
 
