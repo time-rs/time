@@ -122,10 +122,7 @@ impl<'a> From<fmt::Arguments<'a>> for ArgumentsWrapper<'a> {
 #[cfg(feature = "serde")]
 impl serde::de::Expected for ArgumentsWrapper<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // #[cfg(not(feature = "std"))]
-        use alloc::fmt::Display;
-
-        Display::fmt(&self.args, formatter)
+        fmt::Display::fmt(&self.args, formatter)
     }
 }
 
