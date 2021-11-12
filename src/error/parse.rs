@@ -104,14 +104,36 @@ impl TryFrom<crate::Error> for Parse {
     }
 }
 
+/// Simple wrapper for fmt::Arguments that implements `serde::de::Expected`.
+///
+/// This allows us to use `format_args!()` in a `serde::de::Error`.
+#[cfg(feature = "serde")]
+struct ArgumentsWrapper<'a> {
+    args: fmt::Arguments<'a>,
+}
+
+#[cfg(feature = "serde")]
+impl<'a> From<fmt::Arguments<'a>> for ArgumentsWrapper<'a> {
+    fn from(args: fmt::Arguments<'a>) -> Self {
+        Self { args }
+    }
+}
+
+#[cfg(feature = "serde")]
+impl serde::de::Expected for ArgumentsWrapper<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // #[cfg(not(feature = "std"))]
+        use alloc::fmt::Display;
+
+        Display::fmt(&self.args, formatter)
+    }
+}
+
 #[cfg(feature = "serde")]
 impl Parse {
     /// Obtain an error type for the deserializer.
     #[doc(hidden)] // Exposed only for the `declare_format!` macros
     pub fn to_invalid_serde_value<'a, D: serde::Deserializer<'a>>(self) -> D::Error {
-        #[cfg(not(feature = "std"))]
-        use alloc::format;
-
         use serde::de::Error;
 
         match self {
@@ -127,7 +149,7 @@ impl Parse {
             Self::ParseFromDescription(ParseFromDescription::InvalidComponent(component)) => {
                 D::Error::invalid_value(
                     serde::de::Unexpected::Other(component),
-                    &&*format!("valid {}", component),
+                    &ArgumentsWrapper::from(format_args!("valid {}", component)),
                 )
             }
             Self::UnexpectedTrailingCharacters => D::Error::invalid_value(
