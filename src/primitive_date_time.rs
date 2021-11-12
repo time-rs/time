@@ -518,6 +518,70 @@ impl PrimitiveDateTime {
         })
     }
     // endregion: checked arithmetic
+
+    // region: saturating arithmetic
+    /// Computes `self + duration`, saturating value on overflow.
+    ///
+    /// ```
+    /// # use time::{PrimitiveDateTime, ext::NumericalDuration};
+    /// # use time::macros::datetime;
+    ///
+    /// assert_eq!(
+    ///     PrimitiveDateTime::MIN.saturating_add((-2).days()),
+    ///     PrimitiveDateTime::MIN
+    /// );
+    ///
+    /// assert_eq!(
+    ///     PrimitiveDateTime::MAX.saturating_add(2.days()),
+    ///     PrimitiveDateTime::MAX
+    /// );
+    ///
+    /// assert_eq!(
+    ///     datetime!(2019 - 11 - 25 15:30).saturating_add(27.hours()),
+    ///     datetime!(2019 - 11 - 26 18:30)
+    /// );
+    /// ```
+    pub const fn saturating_add(self, duration: Duration) -> Self {
+        if let Some(datetime) = self.checked_add(duration) {
+            datetime
+        } else if duration.is_negative() {
+            Self::MIN
+        } else {
+            Self::MAX
+        }
+    }
+
+    /// Computes `self - duration`, saturating value on overflow.
+    ///
+    /// ```
+    /// # use time::{PrimitiveDateTime, ext::NumericalDuration};
+    /// # use time::macros::datetime;
+    ///
+    /// assert_eq!(
+    ///     PrimitiveDateTime::MIN.saturating_sub(2.days()),
+    ///     PrimitiveDateTime::MIN
+    /// );
+    ///
+    /// assert_eq!(
+    ///     PrimitiveDateTime::MAX.saturating_sub((-2).days()),
+    ///     PrimitiveDateTime::MAX
+    /// );
+    ///
+    /// assert_eq!(
+    ///     datetime!(2019 - 11 - 25 15:30).saturating_sub(27.hours()),
+    ///     datetime!(2019 - 11 - 24 12:30)
+    /// );
+    /// ```
+    pub const fn saturating_sub(self, duration: Duration) -> Self {
+        if let Some(datetime) = self.checked_sub(duration) {
+            datetime
+        } else if duration.is_negative() {
+            Self::MAX
+        } else {
+            Self::MIN
+        }
+    }
+    // endregion: checked arithmetic
 }
 
 // region: replacement
