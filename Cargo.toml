@@ -43,7 +43,7 @@ rand = { version = "0.8.4", optional = true, default-features = false }
 serde = { version = "1.0.126", optional = true, default-features = false }
 time-macros = { version = "=0.2.3", path = "time-macros", optional = true }
 
-[target.'cfg(unsound_local_offset)'.dependencies]
+[target.'cfg(any(target_os = "linux", unsound_local_offset))'.dependencies]
 libc = "0.2.98"
 
 [dev-dependencies]

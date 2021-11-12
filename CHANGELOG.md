@@ -17,6 +17,12 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `OffsetDateTime::checked_add`
 - `OffsetDateTime::checked_sub`
 
+### Changed
+
+- Attempts to obtain the local UTC offset will now succeed on Linux if the process is
+  single-threaded. This does not affect other Unix platforms. As a reminder, the relevant methods
+  are fallible and may return an `Err` value for any reason.
+
 ## 0.3.4 [2021-10-26]
 
 ### Added

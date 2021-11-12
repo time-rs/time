@@ -90,6 +90,7 @@
     trivial_numeric_casts,
     unreachable_pub,
     unsafe_code,
+    // unsafe_op_in_unsafe_fn, // requires Rust 1.51
     unused_extern_crates
 )]
 #![warn(

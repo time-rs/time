@@ -154,7 +154,7 @@ jobs:
       matrix:
         rust: ["1.51", stable]
         os:
-          - { name: Ubuntu, value: ubuntu-20.04, has_local_offset: false }
+          - { name: Ubuntu, value: ubuntu-20.04, has_local_offset: true }
           - { name: Windows, value: windows-latest, has_local_offset: true }
           - { name: MacOS, value: macOS-latest, has_local_offset: false }
 

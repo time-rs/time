@@ -3,6 +3,8 @@
 use core::convert::TryInto;
 use core::mem::MaybeUninit;
 
+use crate::{OffsetDateTime, UtcOffset};
+
 // ffi: WINAPI FILETIME struct
 #[repr(C)]
 #[allow(non_snake_case)]
@@ -42,16 +44,13 @@ extern "system" {
 fn systemtime_to_filetime(systime: &SystemTime) -> Option<FileTime> {
     let mut ft = MaybeUninit::uninit();
 
-    // Safety: `SystemTimeToFileTime` is thread-safe. We are only assuming initialization if
-    // the call succeeded.
-    #[allow(unsafe_code)]
-    {
-        if 0 == unsafe { SystemTimeToFileTime(systime, ft.as_mut_ptr()) } {
-            // failed
-            None
-        } else {
-            Some(unsafe { ft.assume_init() })
-        }
+    // Safety: `SystemTimeToFileTime` is thread-safe.
+    if 0 == unsafe { SystemTimeToFileTime(systime, ft.as_mut_ptr()) } {
+        // failed
+        None
+    } else {
+        // Safety: The call succeeded.
+        Some(unsafe { ft.assume_init() })
     }
 }
 
@@ -84,7 +83,6 @@ pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
 
     // Safety: `local_time` is only read if it is properly initialized, and
     // `SystemTimeToTzSpecificLocalTime` is thread-safe.
-    #[allow(unsafe_code)]
     let systime_local = unsafe {
         let mut local_time = MaybeUninit::uninit();
 
