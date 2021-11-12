@@ -629,6 +629,86 @@ impl Date {
         }
     }
     // endregion: checked arithmetic
+
+    // region: saturating arithmetic
+    /// Computes `self + duration`, saturating value on overflow.
+    ///
+    /// ```rust
+    /// # use time::{Date, ext::NumericalDuration, macros::date};
+    ///
+    /// assert_eq!(Date::MAX.saturating_add(1.days()), Date::MAX);
+    /// assert_eq!(Date::MIN.saturating_add((-2).days()), Date::MIN);
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).saturating_add(2.days()),
+    ///     date!(2021 - 01 - 02)
+    /// );
+    /// ```
+    ///
+    /// # Note
+    ///
+    /// This function only takes whole days into account.
+    ///
+    /// ```rust
+    /// # use time::{ext::NumericalDuration, macros::date};
+    ///
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).saturating_add(23.hours()),
+    ///     date!(2020 - 12 - 31)
+    /// );
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).saturating_add(47.hours()),
+    ///     date!(2021 - 01 - 01)
+    /// );
+    /// ```
+    pub const fn saturating_add(self, duration: Duration) -> Self {
+        if let Some(datetime) = self.checked_add(duration) {
+            datetime
+        } else if duration.is_negative() {
+            Self::MIN
+        } else {
+            Self::MAX
+        }
+    }
+
+    /// Computes `self - duration`, saturating value on overflow.
+    ///
+    /// ```
+    /// # use time::{Date, ext::NumericalDuration, macros::date};
+    ///
+    /// assert_eq!(Date::MAX.saturating_sub((-2).days()), Date::MAX);
+    /// assert_eq!(Date::MIN.saturating_sub(1.days()), Date::MIN);
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).saturating_sub(2.days()),
+    ///     date!(2020 - 12 - 29)
+    /// );
+    /// ```
+    ///
+    /// # Note
+    ///
+    /// This function only takes whole days into account.
+    ///
+    /// ```
+    /// # use time::{ext::NumericalDuration, macros::date};
+    ///
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).saturating_sub(23.hours()),
+    ///     date!(2020 - 12 - 31)
+    /// );
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).saturating_sub(47.hours()),
+    ///     date!(2020 - 12 - 30)
+    /// );
+    /// ```
+    pub const fn saturating_sub(self, duration: Duration) -> Self {
+        if let Some(datetime) = self.checked_sub(duration) {
+            datetime
+        } else if duration.is_negative() {
+            Self::MAX
+        } else {
+            Self::MIN
+        }
+    }
+    // region: saturating arithmetic
 }
 
 // region: attach time

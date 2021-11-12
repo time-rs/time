@@ -875,3 +875,47 @@ fn checked_sub_duration() {
     assert_eq!(Date::MIN.checked_sub(Duration::MAX), None);
     assert_eq!(Date::MAX.checked_sub(Duration::MIN), None);
 }
+
+#[test]
+fn saturating_add() {
+    assert_eq!(
+        date!(2021 - 11 - 05).saturating_add(2.days()),
+        date!(2021 - 11 - 07)
+    );
+    assert_eq!(
+        date!(2021 - 11 - 05).saturating_add((-2).days()),
+        date!(2021 - 11 - 03)
+    );
+
+    // Adding with underflow
+    assert_eq!(Date::MIN.saturating_add((-10).days()), Date::MIN);
+
+    // Adding with overflow
+    assert_eq!(Date::MAX.saturating_add(10.days()), Date::MAX);
+
+    // Adding zero duration at boundaries
+    assert_eq!(Date::MIN.saturating_add(Duration::ZERO), Date::MIN);
+    assert_eq!(Date::MAX.saturating_add(Duration::ZERO), Date::MAX);
+}
+
+#[test]
+fn saturating_sub() {
+    assert_eq!(
+        date!(2021 - 11 - 05).saturating_sub(2.days()),
+        date!(2021 - 11 - 03)
+    );
+    assert_eq!(
+        date!(2021 - 11 - 05).saturating_sub((-2).days()),
+        date!(2021 - 11 - 07)
+    );
+
+    // Subtracting with underflow
+    assert_eq!(Date::MIN.saturating_sub(10.days()), Date::MIN);
+
+    // Subtracting with overflow
+    assert_eq!(Date::MAX.saturating_sub((-10).days()), Date::MAX);
+
+    // Subtracting zero duration at boundaries
+    assert_eq!(Date::MIN.saturating_sub(Duration::ZERO), Date::MIN);
+    assert_eq!(Date::MAX.saturating_sub(Duration::ZERO), Date::MAX);
+}
