@@ -1,7 +1,9 @@
 use std::io;
 
 use serde::{Deserialize, Serialize};
-use serde_test::{assert_de_tokens_error, assert_tokens, Configure, Token};
+use serde_test::{
+    assert_de_tokens_error, assert_ser_tokens_error, assert_tokens, Configure, Token,
+};
 use time::macros::{
     datetime, declare_format_string_offset_date_time, declare_format_string_primitive_date_time,
 };
@@ -171,18 +173,15 @@ fn custom_serialize_bad_type_error() {
         dt: datetime!(2000-01-01 00:00),
     };
 
-    let res = serde_json::to_string(&value);
-
-    match res {
-        Err(err) => {
-            assert!(err.is_data());
-            assert_eq!(
-                format!("{}", err),
-                "insufficient type information to format a component".to_string()
-            );
-        }
-        _ => {
-            panic!("Expected error.");
-        }
-    };
+    assert_ser_tokens_error::<TestCustomFormatPrimitiveDateTimeBad>(
+        &value,
+        &[
+            Token::Struct {
+                name: "TestCustomFormatPrimitiveDateTimeBad",
+                len: 1,
+            },
+            Token::Str("dt"),
+        ],
+        "insufficient type information to format a component",
+    );
 }
