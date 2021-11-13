@@ -109,6 +109,7 @@ impl TryFrom<crate::Error> for Parse {
 /// This allows us to use `format_args!()` in a `serde::de::Error`.
 #[cfg(feature = "serde")]
 struct ArgumentsWrapper<'a> {
+    /// Inner wrapped value.
     args: fmt::Arguments<'a>,
 }
 
