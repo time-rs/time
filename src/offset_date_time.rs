@@ -691,15 +691,15 @@ impl OffsetDateTime {
     /// ```
     /// # use time::{Date, ext::NumericalDuration};
     /// # use time::macros::{datetime, offset};
-    /// let datetime = Date::MIN.midnight().assume_offset(offset!(+10:00));
+    /// let datetime = Date::MIN.midnight().assume_offset(offset!(+10));
     /// assert_eq!(datetime.checked_add((-2).days()), None);
     ///
-    /// let datetime = Date::MAX.midnight().assume_offset(offset!(+10:00));
+    /// let datetime = Date::MAX.midnight().assume_offset(offset!(+10));
     /// assert_eq!(datetime.checked_add(2.days()), None);
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30 +10:00).checked_add(27.hours()),
-    ///     Some(datetime!(2019 - 11 - 26 18:30 +10:00))
+    ///     datetime!(2019 - 11 - 25 15:30 +10).checked_add(27.hours()),
+    ///     Some(datetime!(2019 - 11 - 26 18:30 +10))
     /// );
     /// ```
     pub const fn checked_add(self, duration: Duration) -> Option<Self> {
@@ -712,15 +712,15 @@ impl OffsetDateTime {
     /// ```
     /// # use time::{Date, ext::NumericalDuration};
     /// # use time::macros::{datetime, offset};
-    /// let datetime = Date::MIN.midnight().assume_offset(offset!(+10:00));
+    /// let datetime = Date::MIN.midnight().assume_offset(offset!(+10));
     /// assert_eq!(datetime.checked_sub(2.days()), None);
     ///
-    /// let datetime = Date::MAX.midnight().assume_offset(offset!(+10:00));
+    /// let datetime = Date::MAX.midnight().assume_offset(offset!(+10));
     /// assert_eq!(datetime.checked_sub((-2).days()), None);
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30 +10:00).checked_sub(27.hours()),
-    ///     Some(datetime!(2019 - 11 - 24 12:30 +10:00))
+    ///     datetime!(2019 - 11 - 25 15:30 +10).checked_sub(27.hours()),
+    ///     Some(datetime!(2019 - 11 - 24 12:30 +10))
     /// );
     /// ```
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
