@@ -727,7 +727,6 @@ impl OffsetDateTime {
         let offset_datetime = self.utc_datetime.utc_to_offset(self.offset);
         Some(const_try_opt!(offset_datetime.checked_sub(duration)).assume_offset(self.offset))
     }
-
     // endregion: checked arithmetic
 
     // region: saturating arithmetic
@@ -736,20 +735,19 @@ impl OffsetDateTime {
     /// ```
     /// # use time::ext::NumericalDuration;
     /// # use time::macros::datetime;
-    ///
     /// assert_eq!(
-    ///     datetime!(-999999 - 01 - 01 00:00 +10:00).saturating_add((-2).days()),
-    ///     datetime!(-999999 - 01 - 01 00:00 +10:00)
+    ///     datetime!(-999999 - 01 - 01 0:00 +10).saturating_add((-2).days()),
+    ///     datetime!(-999999 - 01 - 01 0:00 +10)
     /// );
     ///
     /// assert_eq!(
-    ///     datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10:00).saturating_add(2.days()),
-    ///     datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10:00)
+    ///     datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10).saturating_add(2.days()),
+    ///     datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10)
     /// );
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30 +10:00).saturating_add(27.hours()),
-    ///     datetime!(2019 - 11 - 26 18:30 +10:00)
+    ///     datetime!(2019 - 11 - 25 15:30 +10).saturating_add(27.hours()),
+    ///     datetime!(2019 - 11 - 26 18:30 +10)
     /// );
     /// ```
     pub const fn saturating_add(self, duration: Duration) -> Self {
@@ -771,20 +769,19 @@ impl OffsetDateTime {
     /// ```
     /// # use time::ext::NumericalDuration;
     /// # use time::macros::datetime;
-    ///
     /// assert_eq!(
-    ///     datetime!(-999999 - 01 - 01 00:00 +10:00).saturating_sub(2.days()),
-    ///     datetime!(-999999 - 01 - 01 00:00 +10:00)
+    ///     datetime!(-999999 - 01 - 01 0:00 +10).saturating_sub(2.days()),
+    ///     datetime!(-999999 - 01 - 01 0:00 +10)
     /// );
     ///
     /// assert_eq!(
-    ///     datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10:00).saturating_sub((-2).days()),
-    ///     datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10:00)
+    ///     datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10).saturating_sub((-2).days()),
+    ///     datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10)
     /// );
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30 +10:00).saturating_sub(27.hours()),
-    ///     datetime!(2019 - 11 - 24 12:30 +10:00)
+    ///     datetime!(2019 - 11 - 25 15:30 +10).saturating_sub(27.hours()),
+    ///     datetime!(2019 - 11 - 24 12:30 +10)
     /// );
     /// ```
     pub const fn saturating_sub(self, duration: Duration) -> Self {
@@ -800,6 +797,7 @@ impl OffsetDateTime {
                 .replace_offset(self.offset)
         }
     }
+    // endregion: saturating arithmetic
 }
 
 // region: replacement

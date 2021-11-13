@@ -877,7 +877,7 @@ fn checked_sub_duration() {
 }
 
 #[test]
-fn saturating_add() {
+fn saturating_add_duration() {
     assert_eq!(
         date!(2021 - 11 - 05).saturating_add(2.days()),
         date!(2021 - 11 - 07)
@@ -899,7 +899,7 @@ fn saturating_add() {
 }
 
 #[test]
-fn saturating_sub() {
+fn saturating_sub_duration() {
     assert_eq!(
         date!(2021 - 11 - 05).saturating_sub(2.days()),
         date!(2021 - 11 - 03)

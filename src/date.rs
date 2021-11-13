@@ -635,7 +635,6 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{Date, ext::NumericalDuration, macros::date};
-    ///
     /// assert_eq!(Date::MAX.saturating_add(1.days()), Date::MAX);
     /// assert_eq!(Date::MIN.saturating_add((-2).days()), Date::MIN);
     /// assert_eq!(
@@ -650,7 +649,6 @@ impl Date {
     ///
     /// ```rust
     /// # use time::{ext::NumericalDuration, macros::date};
-    ///
     /// assert_eq!(
     ///     date!(2020 - 12 - 31).saturating_add(23.hours()),
     ///     date!(2020 - 12 - 31)
@@ -674,7 +672,6 @@ impl Date {
     ///
     /// ```
     /// # use time::{Date, ext::NumericalDuration, macros::date};
-    ///
     /// assert_eq!(Date::MAX.saturating_sub((-2).days()), Date::MAX);
     /// assert_eq!(Date::MIN.saturating_sub(1.days()), Date::MIN);
     /// assert_eq!(
@@ -689,7 +686,6 @@ impl Date {
     ///
     /// ```
     /// # use time::{ext::NumericalDuration, macros::date};
-    ///
     /// assert_eq!(
     ///     date!(2020 - 12 - 31).saturating_sub(23.hours()),
     ///     date!(2020 - 12 - 31)

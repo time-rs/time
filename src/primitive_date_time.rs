@@ -33,7 +33,6 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::{PrimitiveDateTime, macros::datetime};
-    ///
     /// // Assuming `large-dates` feature is enabled.
     /// assert_eq!(PrimitiveDateTime::MIN, datetime!(-999999 - 01 - 01 0:00));
     /// ```
@@ -48,7 +47,6 @@ impl PrimitiveDateTime {
     ///
     /// ```rust
     /// # use time::{PrimitiveDateTime, macros::datetime};
-    ///
     /// // Assuming `large-dates` feature is enabled.
     /// assert_eq!(PrimitiveDateTime::MAX, datetime!(+999999 - 12 - 31 23:59:59.999_999_999));
     /// ```
@@ -525,7 +523,6 @@ impl PrimitiveDateTime {
     /// ```
     /// # use time::{PrimitiveDateTime, ext::NumericalDuration};
     /// # use time::macros::datetime;
-    ///
     /// assert_eq!(
     ///     PrimitiveDateTime::MIN.saturating_add((-2).days()),
     ///     PrimitiveDateTime::MIN
@@ -556,7 +553,6 @@ impl PrimitiveDateTime {
     /// ```
     /// # use time::{PrimitiveDateTime, ext::NumericalDuration};
     /// # use time::macros::datetime;
-    ///
     /// assert_eq!(
     ///     PrimitiveDateTime::MIN.saturating_sub(2.days()),
     ///     PrimitiveDateTime::MIN
@@ -581,7 +577,7 @@ impl PrimitiveDateTime {
             Self::MIN
         }
     }
-    // endregion: checked arithmetic
+    // endregion: saturating arithmetic
 }
 
 // region: replacement
