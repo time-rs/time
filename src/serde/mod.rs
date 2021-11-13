@@ -23,6 +23,7 @@ pub mod timestamp;
 mod visitor;
 
 use core::marker::PhantomData;
+pub mod well_known;
 
 #[cfg(feature = "serde-human-readable")]
 use serde::ser::Error as _;

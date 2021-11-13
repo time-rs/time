@@ -5,6 +5,7 @@ use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOf
 #[cfg(feature = "macros")]
 mod macros;
 mod timestamps;
+mod well_known;
 
 #[test]
 fn time() {
