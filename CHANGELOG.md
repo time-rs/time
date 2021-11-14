@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## Unreleased
+
+### Changed
+
+- FreeBSD, OpenBSD, and NetBSD now support obtaining the local offset when single-threaded.
+
 ## 0.3.5 [2021-11-12]
 
 ### Added
