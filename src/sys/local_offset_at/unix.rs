@@ -106,32 +106,6 @@ fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
     .ok()
 }
 
-/// Determine if the current process is single-threaded. Returns `None` if this cannot be
-/// determined.
-#[cfg(target_os = "linux")]
-fn process_is_single_threaded() -> Option<bool> {
-    std::fs::read_dir("/proc/self/task")
-        // If we can't read the directory, return `None`.
-        .ok()
-        // Check for the presence of multiple files in the directory. If there is exactly one then
-        // the process is single-threaded. This is indicated by the second element of the iterator
-        // (index 1) being `None`.
-        .map(|mut tasks| tasks.nth(1).is_none())
-}
-
-/// Determine if the current process is single-threaded. Returns `None` if this cannot be
-/// determined.
-#[cfg(any(target_os = "freebsd"))]
-fn process_is_single_threaded() -> Option<bool> {
-    extern "C" {
-        fn kinfo_getproc(pid: libc::pid_t) -> *mut libc::kinfo_proc;
-    }
-
-    // Safety: `kinfo_getproc` and `getpid` are both thread-safe. All invariants of `as_ref` are
-    // upheld.
-    Some(unsafe { kinfo_getproc(libc::getpid()).as_ref() }?.ki_numthreads != 1)
-}
-
 /// Obtain the system's UTC offset.
 #[cfg(any(target_os = "linux", target_os = "freebsd", unsound_local_offset))]
 pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
@@ -139,12 +113,12 @@ pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     // check. This is to prevent issues with the environment being mutated by a different thread in
     // the process while execution of this function is taking place, which can cause a segmentation
     // fault by dereferencing a dangling pointer.
-    if !cfg!(unsound_local_offset) && !matches!(process_is_single_threaded(), Some(true)) {
+    if !cfg!(unsound_local_offset) && num_threads::is_single_threaded() != Some(true) {
         return None;
     }
 
     // Safety: We have just confirmed that the process is single-threaded or the user has explicitly
     // opted out of soundness.
-    let tm = unsafe { timestamp_to_tm(datetime.unix_timestamp())? };
+    let tm = unsafe { timestamp_to_tm(datetime.unix_timestamp()) }?;
     tm_to_offset(tm)
 }
