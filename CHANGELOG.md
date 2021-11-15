@@ -8,6 +8,17 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ## Unreleased
 
+### Added
+
+- `Date::saturating_add`
+- `Date::saturating_sub`
+- `PrimitiveDateTime::saturating_add`
+- `PrimitiveDateTime::saturating_sub`
+- `OffsetDateTime::saturating_add`
+- `OffsetDateTime::saturating_sub`
+- `PrimitiveDatetime::MIN`
+- `PrimitiveDatetime::MAX`
+
 ### Changed
 
 - FreeBSD, OpenBSD, and NetBSD now support obtaining the local offset when single-threaded.
