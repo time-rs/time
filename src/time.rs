@@ -62,6 +62,16 @@ impl Time {
     /// ```
     pub const MIDNIGHT: Self = Self::__from_hms_nanos_unchecked(0, 0, 0, 0);
 
+    /// The smallest value that can be represented by `Time`.
+    ///
+    /// `00:00:00.0`
+    pub(crate) const MIN: Self = Self::__from_hms_nanos_unchecked(0, 0, 0, 0);
+
+    /// The largest value that can be represented by `Time`.
+    ///
+    /// `23:59:59.999_999_999`
+    pub(crate) const MAX: Self = Self::__from_hms_nanos_unchecked(23, 59, 59, 999_999_999);
+
     // region: constructors
     /// Create a `Time` from its components.
     #[doc(hidden)]

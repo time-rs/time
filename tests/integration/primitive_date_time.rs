@@ -518,15 +518,15 @@ fn checked_add_duration() {
 
     // Addition with underflow
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 00:00).checked_add((-1).nanoseconds()),
+        datetime!(-999_999 - 01 - 01 0:00).checked_add((-1).nanoseconds()),
         None
     );
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 00:00).checked_add(Duration::MIN),
+        datetime!(-999_999 - 01 - 01 0:00).checked_add(Duration::MIN),
         None
     );
     assert_eq!(
-        datetime!(-999_990 - 01 - 01 00:00).checked_add((-530).weeks()),
+        datetime!(-999_990 - 01 - 01 0:00).checked_add((-530).weeks()),
         None
     );
 
@@ -583,15 +583,15 @@ fn checked_sub_duration() {
 
     // Subtraction with underflow
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 00:00).checked_sub(1.nanoseconds()),
+        datetime!(-999_999 - 01 - 01 0:00).checked_sub(1.nanoseconds()),
         None
     );
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 00:00).checked_sub(Duration::MAX),
+        datetime!(-999_999 - 01 - 01 0:00).checked_sub(Duration::MAX),
         None
     );
     assert_eq!(
-        datetime!(-999_990 - 01 - 01 00:00).checked_sub(530.weeks()),
+        datetime!(-999_990 - 01 - 01 0:00).checked_sub(530.weeks()),
         None
     );
 
@@ -607,5 +607,73 @@ fn checked_sub_duration() {
     assert_eq!(
         datetime!(+999_990 - 12 - 31 23:59:59.999_999_999).checked_sub((-530).weeks()),
         None
+    );
+}
+
+#[test]
+fn saturating_add_duration() {
+    assert_eq!(
+        datetime!(2021 - 11 - 12 17:47).saturating_add(2.days()),
+        datetime!(2021 - 11 - 14 17:47)
+    );
+    assert_eq!(
+        datetime!(2021 - 11 - 12 17:47).saturating_add((-2).days()),
+        datetime!(2021 - 11 - 10 17:47)
+    );
+
+    // Adding with underflow
+    assert_eq!(
+        PrimitiveDateTime::MIN.saturating_add((-10).days()),
+        PrimitiveDateTime::MIN
+    );
+
+    // Adding with overflow
+    assert_eq!(
+        PrimitiveDateTime::MAX.saturating_add(10.days()),
+        PrimitiveDateTime::MAX
+    );
+
+    // Adding zero duration at boundaries
+    assert_eq!(
+        PrimitiveDateTime::MIN.saturating_add(Duration::ZERO),
+        PrimitiveDateTime::MIN
+    );
+    assert_eq!(
+        PrimitiveDateTime::MAX.saturating_add(Duration::ZERO),
+        PrimitiveDateTime::MAX
+    );
+}
+
+#[test]
+fn saturating_sub_duration() {
+    assert_eq!(
+        datetime!(2021 - 11 - 12 17:47).saturating_sub(2.days()),
+        datetime!(2021 - 11 - 10 17:47)
+    );
+    assert_eq!(
+        datetime!(2021 - 11 - 12 17:47).saturating_sub((-2).days()),
+        datetime!(2021 - 11 - 14 17:47)
+    );
+
+    // Subtracting with underflow
+    assert_eq!(
+        PrimitiveDateTime::MIN.saturating_sub(10.days()),
+        PrimitiveDateTime::MIN
+    );
+
+    // Subtracting with overflow
+    assert_eq!(
+        PrimitiveDateTime::MAX.saturating_sub((-10).days()),
+        PrimitiveDateTime::MAX
+    );
+
+    // Subtracting zero duration at boundaries
+    assert_eq!(
+        PrimitiveDateTime::MIN.saturating_sub(Duration::ZERO),
+        PrimitiveDateTime::MIN
+    );
+    assert_eq!(
+        PrimitiveDateTime::MAX.saturating_sub(Duration::ZERO),
+        PrimitiveDateTime::MAX
     );
 }

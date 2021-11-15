@@ -24,6 +24,34 @@ pub struct PrimitiveDateTime {
 }
 
 impl PrimitiveDateTime {
+    /// The smallest value that can be represented by `PrimitiveDateTime`.
+    ///
+    /// Depending on `large-dates` feature flag, value of this constant may vary.
+    ///
+    /// 1. With `large-dates` disabled it is equal to `-9999 - 01 - 01 00:00:00.0`
+    /// 2. With `large-dates` enabled it is equal to `-999999 - 01 - 01 00:00:00.0`
+    ///
+    /// ```rust
+    /// # use time::{PrimitiveDateTime, macros::datetime};
+    /// // Assuming `large-dates` feature is enabled.
+    /// assert_eq!(PrimitiveDateTime::MIN, datetime!(-999999 - 01 - 01 0:00));
+    /// ```
+    pub const MIN: Self = Self::new(Date::MIN, Time::MIN);
+
+    /// The largest value that can be represented by `PrimitiveDateTime`.
+    ///
+    /// Depending on `large-dates` feature flag, value of this constant may vary.
+    ///
+    /// 1. With `large-dates` disabled it is equal to `9999 - 12 - 31 23:59:59.999_999_999`
+    /// 2. With `large-dates` enabled it is equal to `999999 - 12 - 31 23:59:59.999_999_999`
+    ///
+    /// ```rust
+    /// # use time::{PrimitiveDateTime, macros::datetime};
+    /// // Assuming `large-dates` feature is enabled.
+    /// assert_eq!(PrimitiveDateTime::MAX, datetime!(+999999 - 12 - 31 23:59:59.999_999_999));
+    /// ```
+    pub const MAX: Self = Self::new(Date::MAX, Time::MAX);
+
     /// Create a new `PrimitiveDateTime` from the provided [`Date`] and [`Time`].
     ///
     /// ```rust
@@ -488,6 +516,68 @@ impl PrimitiveDateTime {
         })
     }
     // endregion: checked arithmetic
+
+    // region: saturating arithmetic
+    /// Computes `self + duration`, saturating value on overflow.
+    ///
+    /// ```
+    /// # use time::{PrimitiveDateTime, ext::NumericalDuration};
+    /// # use time::macros::datetime;
+    /// assert_eq!(
+    ///     PrimitiveDateTime::MIN.saturating_add((-2).days()),
+    ///     PrimitiveDateTime::MIN
+    /// );
+    ///
+    /// assert_eq!(
+    ///     PrimitiveDateTime::MAX.saturating_add(2.days()),
+    ///     PrimitiveDateTime::MAX
+    /// );
+    ///
+    /// assert_eq!(
+    ///     datetime!(2019 - 11 - 25 15:30).saturating_add(27.hours()),
+    ///     datetime!(2019 - 11 - 26 18:30)
+    /// );
+    /// ```
+    pub const fn saturating_add(self, duration: Duration) -> Self {
+        if let Some(datetime) = self.checked_add(duration) {
+            datetime
+        } else if duration.is_negative() {
+            Self::MIN
+        } else {
+            Self::MAX
+        }
+    }
+
+    /// Computes `self - duration`, saturating value on overflow.
+    ///
+    /// ```
+    /// # use time::{PrimitiveDateTime, ext::NumericalDuration};
+    /// # use time::macros::datetime;
+    /// assert_eq!(
+    ///     PrimitiveDateTime::MIN.saturating_sub(2.days()),
+    ///     PrimitiveDateTime::MIN
+    /// );
+    ///
+    /// assert_eq!(
+    ///     PrimitiveDateTime::MAX.saturating_sub((-2).days()),
+    ///     PrimitiveDateTime::MAX
+    /// );
+    ///
+    /// assert_eq!(
+    ///     datetime!(2019 - 11 - 25 15:30).saturating_sub(27.hours()),
+    ///     datetime!(2019 - 11 - 24 12:30)
+    /// );
+    /// ```
+    pub const fn saturating_sub(self, duration: Duration) -> Self {
+        if let Some(datetime) = self.checked_sub(duration) {
+            datetime
+        } else if duration.is_negative() {
+            Self::MAX
+        } else {
+            Self::MIN
+        }
+    }
+    // endregion: saturating arithmetic
 }
 
 // region: replacement

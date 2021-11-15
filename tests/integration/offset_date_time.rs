@@ -907,15 +907,15 @@ fn checked_add_duration() {
 
     // Addition with underflow
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 00:00 UTC).checked_add((-1).nanoseconds()),
+        datetime!(-999_999 - 01 - 01 0:00 UTC).checked_add((-1).nanoseconds()),
         None
     );
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 00:00 UTC).checked_add(Duration::MIN),
+        datetime!(-999_999 - 01 - 01 0:00 UTC).checked_add(Duration::MIN),
         None
     );
     assert_eq!(
-        datetime!(-999_990 - 01 - 01 00:00 UTC).checked_add((-530).weeks()),
+        datetime!(-999_990 - 01 - 01 0:00 UTC).checked_add((-530).weeks()),
         None
     );
 
@@ -982,15 +982,15 @@ fn checked_sub_duration() {
 
     // Subtraction with underflow
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 00:00 UTC).checked_sub(1.nanoseconds()),
+        datetime!(-999_999 - 01 - 01 0:00 UTC).checked_sub(1.nanoseconds()),
         None
     );
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 00:00 UTC).checked_sub(Duration::MAX),
+        datetime!(-999_999 - 01 - 01 0:00 UTC).checked_sub(Duration::MAX),
         None
     );
     assert_eq!(
-        datetime!(-999_990 - 01 - 01 00:00 UTC).checked_sub(530.weeks()),
+        datetime!(-999_990 - 01 - 01 0:00 UTC).checked_sub(530.weeks()),
         None
     );
 
@@ -1010,11 +1010,79 @@ fn checked_sub_duration() {
 
     // Subtracting 0 duration at MIN/MAX values with non-zero offset
     assert_eq!(
-        datetime!(+999_999 - 12 - 31 23:59:59.999_999_999 -10:00).checked_sub(Duration::ZERO),
-        Some(datetime!(+999_999 - 12 - 31 23:59:59.999_999_999 -10:00))
+        datetime!(+999_999 - 12 - 31 23:59:59.999_999_999 -10).checked_sub(Duration::ZERO),
+        Some(datetime!(+999_999 - 12 - 31 23:59:59.999_999_999 -10))
     );
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 0:00 +10:00).checked_sub(Duration::ZERO),
-        Some(datetime!(-999_999 - 01 - 01 0:00 +10:00))
+        datetime!(-999_999 - 01 - 01 0:00 +10).checked_sub(Duration::ZERO),
+        Some(datetime!(-999_999 - 01 - 01 0:00 +10))
+    );
+}
+
+#[test]
+fn saturating_add_duration() {
+    assert_eq!(
+        datetime!(2021 - 11 - 12 17:47 +10).saturating_add(2.days()),
+        datetime!(2021 - 11 - 14 17:47 +10)
+    );
+    assert_eq!(
+        datetime!(2021 - 11 - 12 17:47 +10).saturating_add((-2).days()),
+        datetime!(2021 - 11 - 10 17:47 +10)
+    );
+
+    // Adding with underflow
+    assert_eq!(
+        datetime!(-999999 - 01 - 01 0:00 +10).saturating_add((-10).days()),
+        datetime!(-999999 - 01 - 01 0:00 +10)
+    );
+
+    // Adding with overflow
+    assert_eq!(
+        datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10).saturating_add(10.days()),
+        datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10)
+    );
+
+    // Adding zero duration at boundaries
+    assert_eq!(
+        datetime!(-999999 - 01 - 01 0:00 +10).saturating_add(Duration::ZERO),
+        datetime!(-999999 - 01 - 01 0:00 +10)
+    );
+    assert_eq!(
+        datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10).saturating_add(Duration::ZERO),
+        datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10)
+    );
+}
+
+#[test]
+fn saturating_sub_duration() {
+    assert_eq!(
+        datetime!(2021 - 11 - 12 17:47 +10).saturating_sub(2.days()),
+        datetime!(2021 - 11 - 10 17:47 +10)
+    );
+    assert_eq!(
+        datetime!(2021 - 11 - 12 17:47 +10).saturating_sub((-2).days()),
+        datetime!(2021 - 11 - 14 17:47 +10)
+    );
+
+    // Subtracting with underflow
+    assert_eq!(
+        datetime!(-999999 - 01 - 01 0:00 +10).saturating_sub(10.days()),
+        datetime!(-999999 - 01 - 01 0:00 +10)
+    );
+
+    // Subtracting with overflow
+    assert_eq!(
+        datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10).saturating_sub((-10).days()),
+        datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10)
+    );
+
+    // Subtracting zero duration at boundaries
+    assert_eq!(
+        datetime!(-999999 - 01 - 01 0:00 +10).saturating_sub(Duration::ZERO),
+        datetime!(-999999 - 01 - 01 0:00 +10)
+    );
+    assert_eq!(
+        datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10).saturating_sub(Duration::ZERO),
+        datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10)
     );
 }
