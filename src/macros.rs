@@ -62,7 +62,7 @@ pub use time_macros::datetime;
 /// ```
 ///
 /// [`format_description::parse()`]: crate::format_description::parse()
-#[cfg(feature = "serde")]
+#[cfg(feature = "serde-human-readable")]
 pub use time_macros::declare_format_string_offset_date_time;
 /// Invoked as
 /// `declare_format_string_primitive_date_time!(mod_name, "<format string>")`: puts
@@ -88,8 +88,8 @@ pub use time_macros::declare_format_string_offset_date_time;
 /// ```
 ///
 /// [`format_description::parse()`]: crate::format_description::parse()
-#[cfg(feature = "serde")]
-pub use time_macros::declare_format_string_primitive_date_time; // TODO: doc
+#[cfg(feature = "serde-human-readable")]
+pub use time_macros::declare_format_string_primitive_date_time;
 /// Equivalent of performing [`format_description::parse()`] at compile time.
 ///
 /// Using the macro instead of the function results in a static slice rather than a [`Vec`],
