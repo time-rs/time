@@ -1,5 +1,3 @@
-use std::io;
-
 use serde::{Deserialize, Serialize};
 use serde_test::{
     assert_de_tokens_error, assert_ser_tokens_error, assert_tokens, Configure, Token,
@@ -116,42 +114,6 @@ fn custom_serialize_error() {
         ],
         "invalid value: literal, expected valid format",
     );
-}
-
-struct BadWriter;
-
-impl io::Write for BadWriter {
-    fn write(&mut self, _buf: &[u8]) -> io::Result<usize> {
-        Err(io::Error::new(io::ErrorKind::Other, "oh no"))
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
-        Err(io::Error::new(io::ErrorKind::Other, "oh no"))
-    }
-}
-
-#[test]
-fn custom_serialize_io_error() {
-    let value = TestCustomFormat {
-        offset_dt: datetime!(2000-01-01 00:00 -4:00),
-        offset_option: None,
-        primitive_dt: datetime!(2000-01-01 00:00),
-        primitive_option: None,
-    };
-
-    let mut bad_writer = BadWriter;
-    let mut ser = serde_json::Serializer::new(&mut bad_writer);
-    let res = value.compact().serialize(&mut ser);
-
-    match res {
-        Err(err) => {
-            assert!(err.is_io());
-            assert_eq!(format!("{}", err), "oh no".to_string());
-        }
-        _ => {
-            panic!("Expected error.");
-        }
-    };
 }
 
 // This format string has offset_hour and offset_minute, but is for formatting
