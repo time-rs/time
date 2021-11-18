@@ -169,10 +169,8 @@ fn declare_format_string(input: TokenStream, formattable: TokenStream) -> TokenS
     // Followed by a comma
     match tokens.next() {
         Some(tree) => {
-            if let TokenTree::Punct(ref punct) = tree {
-                if punct.as_char() != ',' {
-                    return Error::UnexpectedToken { tree }.to_compile_error_standalone();
-                }
+            if matches!(tree, TokenTree::Punct(ref punct) if punct != &',') {
+                return Error::UnexpectedToken { tree }.to_compile_error_standalone();
             }
         }
         None => {
