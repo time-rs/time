@@ -100,21 +100,22 @@ fn make_serde_serializer_module(
 ) -> TokenStream {
     let serialize_fns = quote! {
         pub fn serialize<S: ::serde::Serializer>(
-                datetime: &#(formattable.clone()),
-                serializer: S,
-            ) -> Result<S::Ok, S::Error> {
-                use ::serde::Serialize;
-                datetime.format(&DESCRIPTION)
-                    .map_err(::time::error::Format::into_invalid_serde_value::<S>)?
-                    .serialize(serializer)
+            datetime: &#(formattable.clone()),
+            serializer: S,
+        ) -> Result<S::Ok, S::Error> {
+            use ::serde::Serialize;
+            datetime
+                .format(&DESCRIPTION)
+                .map_err(::time::error::Format::into_invalid_serde_value::<S>)?
+                .serialize(serializer)
         }
 
         pub fn deserialize<'a, D: ::serde::Deserializer<'a> >(
-                deserializer: D
+            deserializer: D
         ) -> Result<#(formattable.clone()), D::Error> {
             use ::serde::Deserialize;
-                #(formattable.clone())::parse(<&str>::deserialize(deserializer)?, &DESCRIPTION)
-                    .map_err(time::error::Parse::to_invalid_serde_value::<D>)
+            #(formattable.clone())::parse(<&str>::deserialize(deserializer)?, &DESCRIPTION)
+                .map_err(time::error::Parse::to_invalid_serde_value::<D>)
         }
     };
     let option_serialize_fns = quote! {
