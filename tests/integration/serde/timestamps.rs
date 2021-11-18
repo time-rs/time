@@ -4,7 +4,7 @@ use time::macros::datetime;
 use time::serde::timestamp;
 use time::OffsetDateTime;
 
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 struct Test {
     #[serde(with = "timestamp")]
     dt: OffsetDateTime,
