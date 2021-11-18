@@ -110,7 +110,7 @@ fn make_serde_serializer_module(
                 .serialize(serializer)
         }
 
-        pub fn deserialize<'a, D: ::serde::Deserializer<'a> >(
+        pub fn deserialize<'a, D: ::serde::Deserializer<'a>>(
             deserializer: D
         ) -> Result<#(formattable.clone()), D::Error> {
             use ::serde::Deserialize;
@@ -130,7 +130,7 @@ fn make_serde_serializer_module(
                     .serialize(serializer)
         }
 
-        pub fn deserialize<'a, D: ::serde::Deserializer<'a> >(
+        pub fn deserialize<'a, D: ::serde::Deserializer<'a>>(
             deserializer: D
         ) -> Result<Option<#(formattable.clone())>, D::Error> {
             use ::serde::Deserialize;
