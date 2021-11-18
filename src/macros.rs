@@ -55,6 +55,8 @@ pub use time_macros::datetime;
 /// struct SerializesWithCustom {
 ///     #[serde(with = "my_format")]
 ///     dt: OffsetDateTime,
+///     #[serde(with = "my_format::option")]
+///     maybe_dt: Option<OffsetDateTime>,
 /// }
 /// #
 /// # // otherwise rustdoc tests don't work because we put a module in `main()`
@@ -81,6 +83,8 @@ pub use time_macros::declare_format_string_offset_date_time;
 /// struct SerializesWithCustom {
 ///     #[serde(with = "my_format")]
 ///     dt: PrimitiveDateTime,
+///     #[serde(with = "my_format::option")]
+///     maybe_dt: Option<PrimitiveDateTime>,
 /// }
 /// #
 /// # // otherwise rustdoc tests don't work because we put a module in `main()`
