@@ -35,32 +35,6 @@ fn custom_serialize() {
         offset_dt: datetime!(2000-01-01 00:00 -4:00),
         offset_option: Some(datetime!(2000-01-01 00:00 -4:00)),
         primitive_dt: datetime!(2000-01-01 00:00),
-        primitive_option: Some(datetime!(2000-01-01 00:00)),
-    };
-    assert_tokens(
-        &value.compact(),
-        &[
-            Token::Struct {
-                name: "TestCustomFormat",
-                len: 4,
-            },
-            Token::Str("offset_dt"),
-            Token::BorrowedStr("custom format: 2000-01-01 00:00:00 -04:00"),
-            Token::Str("offset_option"),
-            Token::Some,
-            Token::BorrowedStr("custom format: 2000-01-01 00:00:00 -04:00"),
-            Token::Str("primitive_dt"),
-            Token::BorrowedStr("custom format: 2000-01-01 00:00:00"),
-            Token::Str("primitive_option"),
-            Token::Some,
-            Token::BorrowedStr("custom format: 2000-01-01 00:00:00"),
-            Token::StructEnd,
-        ],
-    );
-    let value = TestCustomFormat {
-        offset_dt: datetime!(2000-01-01 00:00 -4:00),
-        offset_option: None,
-        primitive_dt: datetime!(2000-01-01 00:00),
         primitive_option: None,
     };
     assert_tokens(
@@ -73,7 +47,8 @@ fn custom_serialize() {
             Token::Str("offset_dt"),
             Token::BorrowedStr("custom format: 2000-01-01 00:00:00 -04:00"),
             Token::Str("offset_option"),
-            Token::None,
+            Token::Some,
+            Token::BorrowedStr("custom format: 2000-01-01 00:00:00 -04:00"),
             Token::Str("primitive_dt"),
             Token::BorrowedStr("custom format: 2000-01-01 00:00:00"),
             Token::Str("primitive_option"),
