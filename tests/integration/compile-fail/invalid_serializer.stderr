@@ -2,7 +2,7 @@ error: unexpected end of input
  --> $DIR/invalid_serializer.rs:5:1
   |
 5 | declare_format_string_offset_date_time!(); // unexpected end of input
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: this error originates in the macro `declare_format_string_offset_date_time` (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -16,7 +16,7 @@ error: unexpected end of input
  --> $DIR/invalid_serializer.rs:7:1
   |
 7 | declare_format_string_offset_date_time!(my_format); // missing string format
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: this error originates in the macro `declare_format_string_offset_date_time` (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -24,7 +24,7 @@ error: expected string
  --> $DIR/invalid_serializer.rs:8:1
   |
 8 | declare_format_string_offset_date_time!(my_format "[year] [month]"); // missing comma
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: this error originates in the macro `declare_format_string_offset_date_time` (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -50,7 +50,7 @@ error: unexpected end of input
   --> $DIR/invalid_serializer.rs:13:1
    |
 13 | declare_format_string_primitive_date_time!(); // unexpected end of input
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in the macro `declare_format_string_primitive_date_time` (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -64,7 +64,7 @@ error: unexpected end of input
   --> $DIR/invalid_serializer.rs:15:1
    |
 15 | declare_format_string_primitive_date_time!(my_format); // missing string format
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in the macro `declare_format_string_primitive_date_time` (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -72,7 +72,7 @@ error: expected string
   --> $DIR/invalid_serializer.rs:16:1
    |
 16 | declare_format_string_primitive_date_time!(my_format "[year] [month]"); // missing comma
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: this error originates in the macro `declare_format_string_primitive_date_time` (in Nightly builds, run with -Z macro-backtrace for more info)
 

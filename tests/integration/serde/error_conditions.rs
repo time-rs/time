@@ -12,13 +12,13 @@ use time::{error, OffsetDateTime};
 ///
 /// Therefore, we need a contrived serializer to trigger coverage.
 fn serialize<S: Serializer>(datetime: &OffsetDateTime, _serializer: S) -> Result<S::Ok, S::Error> {
-    datetime
+    Err(datetime
         .format_into(
             &mut &mut [0u8; 0][..],
             format_description!("nonempty format description"),
         )
-        .map_err(error::Format::into_invalid_serde_value::<S>)?;
-    unreachable!("Above should always error.");
+        .map_err(error::Format::into_invalid_serde_value::<S>)
+        .expect_err("Writing to a zero-length buffer should always error."))
 }
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]

@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::fmt;
+use std::iter::once;
 
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 
@@ -117,27 +118,12 @@ impl Error {
 
     /// Like `to_compile_error`, but for use in macros that produce items.
     pub(crate) fn to_compile_error_standalone(&self) -> TokenStream {
-        let (start, end) = (self.span_start(), self.span_end());
-
-        [
-            TokenTree::from(Punct::new(':', Spacing::Joint)).with_span(start),
-            TokenTree::from(Punct::new(':', Spacing::Alone)).with_span(start),
-            TokenTree::from(Ident::new("core", start)),
-            TokenTree::from(Punct::new(':', Spacing::Joint)).with_span(start),
-            TokenTree::from(Punct::new(':', Spacing::Alone)).with_span(start),
-            TokenTree::from(Ident::new("compile_error", start)),
-            TokenTree::from(Punct::new('!', Spacing::Alone)).with_span(start),
-            TokenTree::from(Group::new(
-                Delimiter::Parenthesis,
-                TokenStream::from(
-                    TokenTree::from(Literal::string(&self.to_string())).with_span(end),
-                ),
+        let end = self.span_end();
+        self.to_compile_error()
+            .into_iter()
+            .chain(once(
+                TokenTree::from(Punct::new(';', Spacing::Alone)).with_span(end),
             ))
-            .with_span(start),
-            TokenTree::from(Punct::new(';', Spacing::Alone)).with_span(end),
-        ]
-        .iter()
-        .cloned()
-        .collect()
+            .collect()
     }
 }
