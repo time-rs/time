@@ -1,4 +1,6 @@
-use serde_test::{assert_de_tokens_error, assert_tokens, Compact, Configure, Readable, Token};
+use serde_test::{
+    assert_de_tokens, assert_de_tokens_error, assert_tokens, Compact, Configure, Readable, Token,
+};
 use time::macros::{date, datetime, offset, time};
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
@@ -45,6 +47,15 @@ fn time() {
     assert_tokens(
         &time!(23:58:59.123_456_789).readable(),
         &[Token::BorrowedStr("23:58:59.123456789")],
+    );
+    assert_de_tokens::<Readable<Time>>(
+        &time!(23:58:59).readable(),
+        &[Token::BorrowedStr("23:58:59")],
+    );
+    assert_de_tokens::<Readable<Time>>(&time!(23:58).readable(), &[Token::BorrowedStr("23:58")]);
+    assert_de_tokens_error::<Readable<Time>>(
+        &[Token::BorrowedStr("24:00.0")],
+        "invalid value: literal, expected no extraneous characters",
     );
     assert_de_tokens_error::<Readable<Time>>(
         &[Token::BorrowedStr("24:00:00.0")],
