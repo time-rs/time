@@ -2,57 +2,72 @@ use serde::{Deserialize, Serialize};
 use serde_test::{
     assert_de_tokens_error, assert_ser_tokens_error, assert_tokens, Configure, Token,
 };
-use time::macros::{datetime, declare_format_string};
-use time::{OffsetDateTime, PrimitiveDateTime};
+use time::macros::{date, datetime, declare_format_string, offset};
+use time::{Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
 declare_format_string!(
-    test_custom_format_offset_date_time,
+    offset_dt_format,
     OffsetDateTime,
     "custom format: [year]-[month]-[day] [hour]:[minute]:[second] [offset_hour]:[offset_minute]"
 );
 
 declare_format_string!(
-    test_custom_format_primitive_date_time,
+    primitive_dt_format,
     PrimitiveDateTime,
     "custom format: [year]-[month]-[day] [hour]:[minute]:[second]"
 );
 
+declare_format_string!(time_format, Time, "custom format: [minute]:[second]");
+
+declare_format_string!(date_format, Date, "custom format: [year]-[month]-[day]");
+
+declare_format_string!(
+    offset_format,
+    UtcOffset,
+    "custom format: [offset_hour]:[offset_minute]"
+);
+
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 struct TestCustomFormat {
-    #[serde(with = "test_custom_format_offset_date_time")]
+    #[serde(with = "offset_dt_format")]
     offset_dt: OffsetDateTime,
-    #[serde(with = "test_custom_format_offset_date_time::option")]
-    offset_option: Option<OffsetDateTime>,
-    #[serde(with = "test_custom_format_primitive_date_time")]
-    primitive_dt: PrimitiveDateTime,
-    #[serde(with = "test_custom_format_primitive_date_time::option")]
-    primitive_option: Option<PrimitiveDateTime>,
+    #[serde(with = "primitive_dt_format::option")]
+    primitive_dt: Option<PrimitiveDateTime>,
+    #[serde(with = "date_format")]
+    date: Date,
+    #[serde(with = "time_format::option")]
+    time: Option<Time>,
+    #[serde(with = "offset_format")]
+    offset: UtcOffset,
 }
 
 #[test]
 fn custom_serialize() {
     let value = TestCustomFormat {
         offset_dt: datetime!(2000-01-01 00:00 -4:00),
-        offset_option: Some(datetime!(2000-01-01 00:00 -4:00)),
-        primitive_dt: datetime!(2000-01-01 00:00),
-        primitive_option: None,
+        primitive_dt: Some(datetime!(2000-01-01 00:00)),
+        date: date!(2000 - 01 - 01),
+        time: None,
+        offset: offset!(-4),
     };
     assert_tokens(
         &value.compact(),
         &[
             Token::Struct {
                 name: "TestCustomFormat",
-                len: 4,
+                len: 5,
             },
             Token::Str("offset_dt"),
             Token::BorrowedStr("custom format: 2000-01-01 00:00:00 -04:00"),
-            Token::Str("offset_option"),
-            Token::Some,
-            Token::BorrowedStr("custom format: 2000-01-01 00:00:00 -04:00"),
             Token::Str("primitive_dt"),
+            Token::Some,
             Token::BorrowedStr("custom format: 2000-01-01 00:00:00"),
-            Token::Str("primitive_option"),
+            Token::Str("date"),
+            Token::BorrowedStr("custom format: 2000-01-01"),
+            Token::Str("time"),
             Token::None,
+            Token::Str("offset"),
+            Token::BorrowedStr("custom format: -04:00"),
             Token::StructEnd,
         ],
     );
@@ -65,11 +80,10 @@ fn custom_serialize_error() {
         &[
             Token::Struct {
                 name: "TestCustomFormat",
-                len: 4,
+                len: 5,
             },
             Token::Str("offset_dt"),
             Token::BorrowedStr("not a date"),
-            Token::StructEnd,
         ],
         "invalid value: literal, expected valid format",
     );
@@ -78,14 +92,13 @@ fn custom_serialize_error() {
         &[
             Token::Struct {
                 name: "TestCustomFormat",
-                len: 2,
+                len: 5,
             },
             Token::Str("offset_dt"),
             Token::BorrowedStr("custom format: 2000-01-01 00:00:00 -04:00"),
-            Token::Str("offset_option"),
+            Token::Str("primitive_dt"),
             Token::Some,
             Token::BorrowedStr("not a date"),
-            Token::StructEnd,
         ],
         "invalid value: literal, expected valid format",
     );
@@ -94,14 +107,14 @@ fn custom_serialize_error() {
 // This format string has offset_hour and offset_minute, but is for formatting
 // PrimitiveDateTime.
 declare_format_string!(
-    test_custom_format_primitive_date_time_bad,
+    primitive_date_time_format_bad,
     PrimitiveDateTime,
     "[offset_hour]:[offset_minute]"
 );
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 struct TestCustomFormatPrimitiveDateTimeBad {
-    #[serde(with = "test_custom_format_primitive_date_time_bad")]
+    #[serde(with = "primitive_date_time_format_bad")]
     dt: PrimitiveDateTime,
 }
 
