@@ -3,9 +3,11 @@
 use core::ops::Deref;
 use std::io;
 
-use crate::format_description::well_known::Rfc3339;
+use crate::format_description::well_known::{Rfc2822, Rfc3339};
 use crate::format_description::FormatItem;
-use crate::formatting::{format_component, format_number_pad_zero, write};
+use crate::formatting::{
+    format_component, format_number_pad_zero, write, MONTH_NAMES, WEEKDAY_NAMES,
+};
 use crate::{error, Date, Time, UtcOffset};
 
 /// A type that can be formatted.
@@ -14,6 +16,7 @@ pub trait Formattable: sealed::Sealed {}
 impl Formattable for FormatItem<'_> {}
 impl Formattable for [FormatItem<'_>] {}
 impl Formattable for Rfc3339 {}
+impl Formattable for Rfc2822 {}
 impl<T: Deref> Formattable for T where T::Target: Formattable {}
 
 /// Seal the trait to prevent downstream users from implementing it.
@@ -102,6 +105,54 @@ where
 // endregion custom formats
 
 // region: well-known formats
+impl sealed::Sealed for Rfc2822 {
+    fn format_into(
+        &self,
+        output: &mut impl io::Write,
+        date: Option<Date>,
+        time: Option<Time>,
+        offset: Option<UtcOffset>,
+    ) -> Result<usize, error::Format> {
+        let date = date.ok_or(error::Format::InsufficientTypeInformation)?;
+        let time = time.ok_or(error::Format::InsufficientTypeInformation)?;
+        let offset = offset.ok_or(error::Format::InsufficientTypeInformation)?;
+
+        let mut bytes = 0;
+
+        let (year, month, day) = date.to_calendar_date();
+
+        if year < 1900 {
+            return Err(error::Format::InvalidComponent("year"));
+        }
+        if offset.seconds_past_minute() != 0 {
+            return Err(error::Format::InvalidComponent("offset_second"));
+        }
+
+        bytes += write(
+            output,
+            &WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3],
+        )?;
+        bytes += write(output, b", ")?;
+        bytes += format_number_pad_zero::<_, _, 2>(output, day)?;
+        bytes += write(output, b" ")?;
+        bytes += write(output, &MONTH_NAMES[month as u8 as usize - 1][..3])?;
+        bytes += write(output, b" ")?;
+        bytes += format_number_pad_zero::<_, _, 4>(output, year as u32)?;
+        bytes += write(output, b" ")?;
+        bytes += format_number_pad_zero::<_, _, 2>(output, time.hour())?;
+        bytes += write(output, b":")?;
+        bytes += format_number_pad_zero::<_, _, 2>(output, time.minute())?;
+        bytes += write(output, b":")?;
+        bytes += format_number_pad_zero::<_, _, 2>(output, time.second())?;
+        bytes += write(output, b" ")?;
+        bytes += write(output, if offset.is_negative() { b"-" } else { b"+" })?;
+        bytes += format_number_pad_zero::<_, _, 2>(output, offset.whole_hours().unsigned_abs())?;
+        bytes +=
+            format_number_pad_zero::<_, _, 2>(output, offset.minutes_past_hour().unsigned_abs())?;
+
+        Ok(bytes)
+    }
+}
 impl sealed::Sealed for Rfc3339 {
     fn format_into(
         &self,

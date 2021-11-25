@@ -4,16 +4,17 @@ use core::convert::TryInto;
 use core::ops::Deref;
 
 use crate::error::TryFromParsed;
-use crate::format_description::well_known::Rfc3339;
+use crate::format_description::well_known::{Rfc2822, Rfc3339};
 use crate::format_description::FormatItem;
 use crate::parsing::{Parsed, ParsedItem};
-use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
+use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// A type that can be parsed.
 #[cfg_attr(__time_03_docs, doc(notable_trait))]
 pub trait Parsable: sealed::Sealed {}
 impl Parsable for FormatItem<'_> {}
 impl Parsable for [FormatItem<'_>] {}
+impl Parsable for Rfc2822 {}
 impl Parsable for Rfc3339 {}
 impl<T: Deref> Parsable for T where T::Target: Parsable {}
 
@@ -112,6 +113,128 @@ where
 // endregion custom formats
 
 // region: well-known formats
+impl sealed::Sealed for Rfc2822 {
+    fn parse_into<'a>(
+        &self,
+        input: &'a [u8],
+        parsed: &mut Parsed,
+    ) -> Result<&'a [u8], error::Parse> {
+        use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
+        use crate::parsing::combinator::{
+            ascii_char, exactly_n_digits, first_match, n_to_m_digits, sign,
+        };
+        let colon = ascii_char::<b':'>;
+        let space = ascii_char::<b' '>;
+        let comma = ascii_char::<b','>;
+
+        let input = first_match(
+            [
+                ("Mon", Weekday::Monday),
+                ("Tue", Weekday::Tuesday),
+                ("Wed", Weekday::Wednesday),
+                ("Thu", Weekday::Thursday),
+                ("Fri", Weekday::Friday),
+                ("Sat", Weekday::Saturday),
+                ("Sun", Weekday::Sunday),
+            ]
+            .iter(),
+            false,
+        )(input)
+        .ok_or(InvalidComponent("weekday"))?
+        .assign_value_to(&mut parsed.weekday);
+        let input = comma(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = space(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = exactly_n_digits::<_, 2>(input)
+            .ok_or(InvalidComponent("day"))?
+            .assign_value_to(&mut parsed.day);
+        let input = space(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = first_match(
+            [
+                ("Jan", Month::January),
+                ("Feb", Month::February),
+                ("Mar", Month::March),
+                ("Apr", Month::April),
+                ("May", Month::May),
+                ("Jun", Month::June),
+                ("Jul", Month::July),
+                ("Aug", Month::August),
+                ("Sep", Month::September),
+                ("Oct", Month::October),
+                ("Nov", Month::November),
+                ("Dec", Month::December),
+            ]
+            .iter(),
+            false,
+        )(input)
+        .ok_or(InvalidComponent("month"))?
+        .assign_value_to(&mut parsed.month);
+        let input = space(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = n_to_m_digits::<u32, 2, 4>(input)
+            .ok_or(InvalidComponent("year"))?
+            .flat_map_res(|year| match year {
+                0..=49 => Ok(2000 + year),
+                50..=99 => Ok(1900 + year),
+                100..=1899 => Err(InvalidComponent("year")),
+                _ => Ok(year),
+            })?
+            .map(|year| year as _)
+            .assign_value_to(&mut parsed.year);
+        let input = space(input).ok_or(InvalidLiteral)?.into_inner();
+
+        let input = exactly_n_digits::<_, 2>(input)
+            .ok_or(InvalidComponent("hour"))?
+            .assign_value_to(&mut parsed.hour_24);
+        let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = exactly_n_digits::<_, 2>(input)
+            .ok_or(InvalidComponent("minute"))?
+            .assign_value_to(&mut parsed.minute);
+        let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = exactly_n_digits::<_, 2>(input)
+            .ok_or(InvalidComponent("second"))?
+            .assign_value_to(&mut parsed.second);
+        let input = space(input).ok_or(InvalidLiteral)?.into_inner();
+
+        let zone_literal = first_match(
+            [
+                ("UT", 0),
+                ("GMT", 0),
+                ("EST", -5),
+                ("EDT", -4),
+                ("CST", -6),
+                ("CDT", -5),
+                ("MST", -7),
+                ("MDT", -6),
+                ("PST", -8),
+                ("PDT", -7),
+            ]
+            .iter(),
+            true,
+        )(input);
+        if let Some(zone_literal) = zone_literal {
+            let input = zone_literal.assign_value_to(&mut parsed.offset_hour);
+            parsed.offset_minute = Some(0);
+            parsed.offset_second = Some(0);
+            return Ok(input);
+        }
+
+        let ParsedItem(input, offset_sign) = sign(input).ok_or(InvalidComponent("offset hour"))?;
+        let input = exactly_n_digits::<u8, 2>(input)
+            .ok_or(InvalidComponent("offset hour"))?
+            .map(|offset_hour| {
+                if offset_sign == b'-' {
+                    -(offset_hour as i8)
+                } else {
+                    offset_hour as _
+                }
+            })
+            .assign_value_to(&mut parsed.offset_hour);
+        let input = exactly_n_digits::<_, 2>(input)
+            .ok_or(InvalidComponent("offset minute"))?
+            .assign_value_to(&mut parsed.offset_minute);
+
+        Ok(input)
+    }
+}
 impl sealed::Sealed for Rfc3339 {
     fn parse_into<'a>(
         &self,

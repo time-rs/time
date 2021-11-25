@@ -1,7 +1,7 @@
 use core::convert::{TryFrom, TryInto};
 use std::num::NonZeroU8;
 
-use time::format_description::well_known::Rfc3339;
+use time::format_description::well_known::{Rfc2822, Rfc3339};
 use time::format_description::{modifier, Component, FormatItem};
 use time::macros::{date, datetime, time};
 use time::parsing::Parsed;
@@ -9,6 +9,48 @@ use time::{
     error, format_description as fd, Date, Month, OffsetDateTime, PrimitiveDateTime, Time,
     UtcOffset, Weekday,
 };
+
+#[test]
+fn rfc_2822() -> time::Result<()> {
+    assert_eq!(
+        OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
+        datetime!(2021-01-02 03:04:05 UTC),
+    );
+    assert_eq!(
+        OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 UT", &Rfc2822)?,
+        datetime!(2021-01-02 03:04:05 UTC),
+    );
+    assert_eq!(
+        OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 +0000", &Rfc2822)?,
+        datetime!(2021-01-02 03:04:05 UTC),
+    );
+    assert_eq!(
+        OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 +0607", &Rfc2822)?,
+        datetime!(2021-01-02 03:04:05 +06:07),
+    );
+    assert_eq!(
+        OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 -0607", &Rfc2822)?,
+        datetime!(2021-01-02 03:04:05 -06:07),
+    );
+
+    assert_eq!(
+        Date::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
+        date!(2021 - 01 - 02)
+    );
+    assert_eq!(
+        Date::parse("Sat, 02 Jan 2021 03:04:05 +0607", &Rfc2822)?,
+        date!(2021 - 01 - 02)
+    );
+    assert_eq!(
+        Date::parse("Sat, 02 Jan 2021 03:04:05 -0607", &Rfc2822)?,
+        date!(2021 - 01 - 02)
+    );
+    assert_eq!(
+        Time::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
+        time!(03:04:05)
+    );
+    Ok(())
+}
 
 #[test]
 fn rfc_3339() -> time::Result<()> {

@@ -130,6 +130,7 @@ fn debug() {
         Instant::now();
         error::ParseFromDescription::InvalidComponent("foo");
         error::Format::InvalidComponent("foo");
+        well_known::Rfc2822;
         well_known::Rfc3339;
         component_range_error();
         Error::ConversionRange(ConversionRange);
