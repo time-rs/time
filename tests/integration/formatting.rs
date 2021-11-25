@@ -1,9 +1,36 @@
 use std::io::{self, ErrorKind};
 
-use time::format_description::well_known::Rfc3339;
+use time::format_description::well_known::{Rfc2822, Rfc3339};
 use time::format_description::{self, FormatItem};
 use time::macros::{date, datetime, format_description as fd, offset, time};
 use time::{OffsetDateTime, Time};
+
+#[test]
+fn rfc_2822() -> time::Result<()> {
+    assert_eq!(
+        datetime!(2021-01-02 03:04:05 UTC).format(&Rfc2822)?,
+        "Sat, 02 Jan 2021 03:04:05 +0000"
+    );
+    assert_eq!(
+        datetime!(2021-01-02 03:04:05 +06:07).format(&Rfc2822)?,
+        "Sat, 02 Jan 2021 03:04:05 +0607"
+    );
+    assert_eq!(
+        datetime!(2021-01-02 03:04:05 -06:07).format(&Rfc2822)?,
+        "Sat, 02 Jan 2021 03:04:05 -0607"
+    );
+
+    assert!(matches!(
+        datetime!(1885-01-01 01:01:01 UTC).format(&Rfc2822),
+        Err(time::error::Format::InvalidComponent("year"))
+    ));
+    assert!(matches!(
+        datetime!(2000-01-01 00:00:00 +00:00:01).format(&Rfc2822),
+        Err(time::error::Format::InvalidComponent("offset_second"))
+    ));
+
+    Ok(())
+}
 
 #[test]
 fn rfc_3339() -> time::Result<()> {
