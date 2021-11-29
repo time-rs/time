@@ -153,11 +153,6 @@ impl sealed::Sealed for Rfc3339 {
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
         let input = exactly_n_digits::<_, 2>(input)
             .ok_or(InvalidComponent("second"))?
-            .map(|second|
-                // The RFC explicitly allows leap seconds. We don't support them, so treat it
-                // as the previous second.
-                if second == 60 { 59 } else { second }
-            )
             .assign_value_to(&mut parsed.second);
         let input = if let Some(ParsedItem(input, ())) = ascii_char::<b'.'>(input) {
             let ParsedItem(mut input, mut value) = any_digit(input)
@@ -175,6 +170,13 @@ impl sealed::Sealed for Rfc3339 {
         } else {
             input
         };
+
+        // The RFC explicitly allows leap seconds. We don't currently support them, so treat it as
+        // the previous moment.
+        if parsed.second == Some(60) {
+            parsed.second = Some(59);
+            parsed.subsecond = Some(999_999_999);
+        }
 
         if let Some(ParsedItem(input, ())) = ascii_char_ignore_case::<b'Z'>(input) {
             parsed.offset_hour = Some(0);
@@ -228,10 +230,9 @@ impl sealed::Sealed for Rfc3339 {
         let ParsedItem(input, minute) =
             exactly_n_digits::<_, 2>(input).ok_or(InvalidComponent("minute"))?;
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
-        let ParsedItem(input, second) = exactly_n_digits::<_, 2>(input)
-            .ok_or(InvalidComponent("second"))?
-            .map(|seconds| if seconds == 60 { 59 } else { seconds });
-        let ParsedItem(input, nanosecond) =
+        let ParsedItem(input, mut second) =
+            exactly_n_digits::<_, 2>(input).ok_or(InvalidComponent("second"))?;
+        let ParsedItem(input, mut nanosecond) =
             if let Some(ParsedItem(input, ())) = ascii_char::<b'.'>(input) {
                 let ParsedItem(mut input, mut value) = any_digit(input)
                     .ok_or(InvalidComponent("subsecond"))?
@@ -284,6 +285,13 @@ impl sealed::Sealed for Rfc3339 {
 
         if !input.is_empty() {
             return Err(error::Parse::UnexpectedTrailingCharacters);
+        }
+
+        // The RFC explicitly allows leap seconds. We don't currently support them, so treat it as
+        // the previous moment.
+        if second == 60 {
+            second = 59;
+            nanosecond = 999_999_999;
         }
 
         Ok(Month::from_number(month)

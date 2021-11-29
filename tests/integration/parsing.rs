@@ -18,7 +18,7 @@ fn rfc_3339() -> time::Result<()> {
     );
     assert_eq!(
         OffsetDateTime::parse("2021-01-02T03:04:60Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:59 UTC),
+        datetime!(2021-01-02 03:04:59.999_999_999 UTC),
     );
     assert_eq!(
         OffsetDateTime::parse("2021-01-02T03:04:05.1Z", &Rfc3339)?,
@@ -79,7 +79,7 @@ fn rfc_3339() -> time::Result<()> {
     );
     assert_eq!(
         Time::parse("2021-01-02T03:04:60Z", &Rfc3339)?,
-        time!(03:04:59)
+        time!(03:04:59.999_999_999)
     );
 
     Ok(())
