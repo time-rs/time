@@ -120,13 +120,15 @@ impl sealed::Sealed for Rfc2822 {
         parsed: &mut Parsed,
     ) -> Result<&'a [u8], error::Parse> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
+        use crate::parsing::combinator::rfc::rfc2822::{cfws, fws};
         use crate::parsing::combinator::{
-            ascii_char, exactly_n_digits, first_match, n_to_m_digits, sign,
+            ascii_char, exactly_n_digits, first_match, n_to_m_digits, opt, sign,
         };
+
         let colon = ascii_char::<b':'>;
-        let space = ascii_char::<b' '>;
         let comma = ascii_char::<b','>;
 
+        let input = opt(fws)(input).into_inner();
         let input = first_match(
             [
                 ("Mon", Weekday::Monday),
@@ -143,11 +145,11 @@ impl sealed::Sealed for Rfc2822 {
         .ok_or(InvalidComponent("weekday"))?
         .assign_value_to(&mut parsed.weekday);
         let input = comma(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = space(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits::<_, 2>(input)
+        let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = n_to_m_digits::<_, 1, 2>(input)
             .ok_or(InvalidComponent("day"))?
             .assign_value_to(&mut parsed.day);
-        let input = space(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
         let input = first_match(
             [
                 ("Jan", Month::January),
@@ -168,31 +170,61 @@ impl sealed::Sealed for Rfc2822 {
         )(input)
         .ok_or(InvalidComponent("month"))?
         .assign_value_to(&mut parsed.month);
-        let input = space(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = n_to_m_digits::<u32, 2, 4>(input)
-            .ok_or(InvalidComponent("year"))?
-            .flat_map_res(|year| match year {
-                0..=49 => Ok(2000 + year),
-                50..=99 => Ok(1900 + year),
-                100..=1899 => Err(InvalidComponent("year")),
-                _ => Ok(year),
-            })?
-            .map(|year| year as _)
-            .assign_value_to(&mut parsed.year);
-        let input = space(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = match exactly_n_digits::<u32, 4>(input) {
+            Some(item) => {
+                let input = item
+                    .flat_map_res(|year| {
+                        if year >= 1900 {
+                            Ok(year)
+                        } else {
+                            Err(InvalidComponent("year"))
+                        }
+                    })?
+                    .map(|year| year as _)
+                    .assign_value_to(&mut parsed.year);
+                let input = fws(input).ok_or(InvalidLiteral)?.into_inner();
+                input
+            }
+            None => {
+                let input = exactly_n_digits::<u32, 2>(input)
+                    .ok_or(InvalidComponent("year"))?
+                    .map(|year| if year < 50 { year + 2000 } else { year + 1900 })
+                    .map(|year| year as _)
+                    .assign_value_to(&mut parsed.year);
+                let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
+                input
+            }
+        };
 
         let input = exactly_n_digits::<_, 2>(input)
             .ok_or(InvalidComponent("hour"))?
             .assign_value_to(&mut parsed.hour_24);
+        let input = opt(cfws)(input).into_inner();
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = opt(cfws)(input).into_inner();
         let input = exactly_n_digits::<_, 2>(input)
             .ok_or(InvalidComponent("minute"))?
             .assign_value_to(&mut parsed.minute);
-        let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits::<_, 2>(input)
-            .ok_or(InvalidComponent("second"))?
-            .assign_value_to(&mut parsed.second);
-        let input = space(input).ok_or(InvalidLiteral)?.into_inner();
+
+        let input = if let Some(input) = colon(opt(cfws)(input).into_inner()) {
+            let input = input.into_inner(); // discard the colon
+            let input = opt(cfws)(input).into_inner();
+            let input = exactly_n_digits::<_, 2>(input)
+                .ok_or(InvalidComponent("second"))?
+                .assign_value_to(&mut parsed.second);
+            let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
+            input
+        } else {
+            cfws(input).ok_or(InvalidLiteral)?.into_inner()
+        };
+
+        // The RFC explicitly allows leap seconds. We don't currently support them, so treat it as
+        // the previous moment.
+        if parsed.second == Some(60) {
+            parsed.second = Some(59);
+            parsed.subsecond = Some(999_999_999);
+        }
 
         let zone_literal = first_match(
             [
@@ -208,8 +240,15 @@ impl sealed::Sealed for Rfc2822 {
                 ("PDT", -7),
             ]
             .iter(),
-            true,
-        )(input);
+            false,
+        )(input)
+        .or_else(|| match input {
+            [b'a'..=b'i', rest @ ..]
+            | [b'k'..=b'z', rest @ ..]
+            | [b'A'..=b'I', rest @ ..]
+            | [b'K'..=b'Z', rest @ ..] => Some(ParsedItem(rest, 0)),
+            _ => None,
+        });
         if let Some(zone_literal) = zone_literal {
             let input = zone_literal.assign_value_to(&mut parsed.offset_hour);
             parsed.offset_minute = Some(0);
@@ -235,6 +274,7 @@ impl sealed::Sealed for Rfc2822 {
         Ok(input)
     }
 }
+
 impl sealed::Sealed for Rfc3339 {
     fn parse_into<'a>(
         &self,

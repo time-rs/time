@@ -49,6 +49,7 @@ fn rfc_2822() -> time::Result<()> {
         Time::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
         time!(03:04:05)
     );
+
     Ok(())
 }
 
