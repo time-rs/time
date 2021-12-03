@@ -1,5 +1,7 @@
 //! Implementations of the low-level parser combinators.
 
+pub(crate) mod rfc;
+
 use crate::format_description::modifier::Padding;
 use crate::parsing::shim::{Integer, IntegerParseBytes};
 use crate::parsing::ParsedItem;
@@ -34,6 +36,31 @@ pub(crate) fn first_match<'a, 'b: 'a, T: Copy + 'a>(
                 None
             }
         })
+    }
+}
+
+/// Consume zero or more instances of the provided parser. The parser must return the unit value.
+pub(crate) fn zero_or_more<'a, P: Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>>>(
+    parser: P,
+) -> impl FnMut(&'a [u8]) -> ParsedItem<'a, ()> {
+    move |mut input| {
+        while let Some(remaining) = parser(input) {
+            input = remaining.into_inner();
+        }
+        ParsedItem(input, ())
+    }
+}
+
+/// Consume one of or more instances of the provided parser. The parser must produce the unit value.
+pub(crate) fn one_or_more<'a, P: Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>>>(
+    parser: P,
+) -> impl Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>> {
+    move |mut input| {
+        input = parser(input)?.into_inner();
+        while let Some(remaining) = parser(input) {
+            input = remaining.into_inner();
+        }
+        Some(ParsedItem(input, ()))
     }
 }
 

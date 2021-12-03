@@ -135,7 +135,7 @@ impl sealed::Sealed for Rfc2822 {
         bytes += write(output, b", ")?;
         bytes += format_number_pad_zero::<_, _, 2>(output, day)?;
         bytes += write(output, b" ")?;
-        bytes += write(output, &MONTH_NAMES[month as u8 as usize - 1][..3])?;
+        bytes += write(output, &MONTH_NAMES[month as usize - 1][..3])?;
         bytes += write(output, b" ")?;
         bytes += format_number_pad_zero::<_, _, 4>(output, year as u32)?;
         bytes += write(output, b" ")?;
