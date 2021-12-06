@@ -186,7 +186,7 @@ pub(crate) fn format_component(
     offset: Option<UtcOffset>,
 ) -> Result<(), error::Format> {
     use Component::*;
-    Ok(match (component, date, time, offset) {
+    match (component, date, time, offset) {
         (Day(modifier), Some(date), ..) => fmt_day(output, date, modifier)?,
         (Month(modifier), Some(date), ..) => fmt_month(output, date, modifier)?,
         (Ordinal(modifier), Some(date), ..) => fmt_ordinal(output, date, modifier)?,
@@ -202,7 +202,9 @@ pub(crate) fn format_component(
         (OffsetMinute(modifier), .., Some(offset)) => fmt_offset_minute(output, offset, modifier)?,
         (OffsetSecond(modifier), .., Some(offset)) => fmt_offset_second(output, offset, modifier)?,
         _ => return Err(error::Format::InsufficientTypeInformation),
-    })
+    };
+
+    Ok(())
 }
 
 // region: date formatters

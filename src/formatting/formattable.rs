@@ -19,9 +19,13 @@ impl Formattable for Rfc3339 {}
 impl Formattable for Rfc2822 {}
 impl<T: Deref> Formattable for T where T::Target: Formattable {}
 
+/// A compatibility layer to translate [`io::Write`] into [`fmt::Write`]
 struct Compat<'a, W: io::Write> {
+    /// The [`io::Write`]r to apply the translation on
     writer: &'a mut W,
+    /// The total bytes written into the writer so far
     bytes_written: usize,
+    /// The last error from the writer if it returned errors
     error: Option<io::Error>,
 }
 
@@ -76,7 +80,7 @@ mod sealed {
                     compat
                         .error
                         .map(error::Format::from)
-                        .unwrap_or_else(|| error::Format::from(fmt_error))
+                        .unwrap_or_else(|| fmt_error)
                 })
         }
 
@@ -103,7 +107,7 @@ impl<'a> sealed::Sealed for FormatItem<'a> {
         time: Option<Time>,
         offset: Option<UtcOffset>,
     ) -> Result<(), error::Format> {
-        Ok(match *self {
+        match *self {
             Self::Literal(literal) => {
                 output.write_str(String::from_utf8_lossy(literal).as_ref())?
             }
@@ -114,7 +118,9 @@ impl<'a> sealed::Sealed for FormatItem<'a> {
                 [] => (),
                 [item, ..] => item.format_into(output, date, time, offset)?,
             },
-        })
+        };
+
+        Ok(())
     }
 }
 
