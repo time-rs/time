@@ -1,7 +1,7 @@
 //! A trait that can be used to format an item from its components.
 
 use core::ops::Deref;
-use std::io;
+use std::{fmt, io};
 
 use crate::format_description::well_known::{Rfc2822, Rfc3339};
 use crate::format_description::FormatItem;
@@ -18,6 +18,27 @@ impl Formattable for [FormatItem<'_>] {}
 impl Formattable for Rfc3339 {}
 impl Formattable for Rfc2822 {}
 impl<T: Deref> Formattable for T where T::Target: Formattable {}
+
+struct Compat<'a, W: io::Write> {
+    writer: &'a mut W,
+    bytes_written: usize,
+    error: Option<io::Error>,
+}
+
+impl<'a, W> fmt::Write for Compat<'a, W>
+where
+    W: io::Write,
+{
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        self.writer
+            .write_all(s.as_bytes())
+            .map(|_| self.bytes_written += s.len())
+            .map_err(|error| {
+                self.error = Some(error);
+                fmt::Error
+            })
+    }
+}
 
 /// Seal the trait to prevent downstream users from implementing it.
 mod sealed {
