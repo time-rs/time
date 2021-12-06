@@ -268,6 +268,26 @@ impl UtcOffset {
 
     /// Format the `UtcOffset` using the provided [format description](crate::format_description).
     ///
+    /// Exactly like [`UtcOffset::format_into`] but accepts a [`fmt::Write`] instead of an
+    /// [`io::Write`]
+    /// ```rust
+    /// # use time::{format_description, macros::offset};
+    /// let format = format_description::parse("[offset_hour sign:mandatory]:[offset_minute]")?;
+    /// let mut buf = String::new();
+    /// offset!(+1).format_into_fmt_writer(&mut buf, &format)?;
+    /// assert_eq!(buf, "+01:00");
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    pub fn format_into_fmt_writer(
+        self,
+        output: &mut impl fmt::Write,
+        format: &(impl Formattable + ?Sized),
+    ) -> Result<(), error::Format> {
+        format.format_into(output, None, None, Some(self))
+    }
+
+    /// Format the `UtcOffset` using the provided [format description](crate::format_description).
+    ///
     /// ```rust
     /// # use time::{format_description, macros::offset};
     /// let format = format_description::parse("[offset_hour sign:mandatory]:[offset_minute]")?;

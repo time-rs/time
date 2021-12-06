@@ -668,6 +668,27 @@ impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided [format
     /// description](crate::format_description).
     ///
+    /// Exactly like [`PrimitiveDateTime::format_into`] but accepts a [`fmt::Write`] instead of an
+    /// [`io::Write`]
+    /// ```rust
+    /// # use time::{format_description, macros::datetime};
+    /// let format = format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]")?;
+    /// let mut buf = String::new();
+    /// datetime!(2020-01-02 03:04:05).format_into_fmt_writer(&mut buf, &format)?;
+    /// assert_eq!(buf, "2020-01-02 03:04:05");
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    pub fn format_into_fmt_writer(
+        self,
+        output: &mut impl fmt::Write,
+        format: &(impl Formattable + ?Sized),
+    ) -> Result<(), error::Format> {
+        format.format_into(output, Some(self.date), Some(self.time), None)
+    }
+
+    /// Format the `PrimitiveDateTime` using the provided [format
+    /// description](crate::format_description).
+    ///
     /// ```rust
     /// # use time::{format_description, macros::datetime};
     /// let format = format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]")?;

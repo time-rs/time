@@ -829,6 +829,25 @@ impl Date {
 
     /// Format the `Date` using the provided [format description](crate::format_description).
     ///
+    /// Exactly like [`Date::format_into`] but accepts a [`fmt::Write`] instead of an [`io::Write`]
+    /// ```rust
+    /// # use time::{format_description, macros::date};
+    /// let format = format_description::parse("[year]-[month]-[day]")?;
+    /// let mut buf = String::new();
+    /// date!(2020 - 01 - 02).format_into_fmt_writer(&mut buf, &format)?;
+    /// assert_eq!(buf, "2020-01-02");
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    pub fn format_into_fmt_writer(
+        self,
+        output: &mut impl fmt::Write,
+        format: &(impl Formattable + ?Sized),
+    ) -> Result<(), error::Format> {
+        format.format_into(output, Some(self), None, None)
+    }
+
+    /// Format the `Date` using the provided [format description](crate::format_description).
+    ///
     /// ```rust
     /// # use time::{format_description, macros::date};
     /// let format = format_description::parse("[year]-[month]-[day]")?;

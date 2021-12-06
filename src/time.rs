@@ -464,6 +464,25 @@ impl Time {
 
     /// Format the `Time` using the provided [format description](crate::format_description).
     ///
+    /// Exactly like [`Time::format_into`] but accepts a [`fmt::Write`] instead of an [`io::Write`]
+    /// ```rust
+    /// # use time::{format_description, macros::time};
+    /// let format = format_description::parse("[hour]:[minute]:[second]")?;
+    /// let mut buf = String::new();
+    /// time!(12:00).format_into_fmt_writer(&mut buf, &format)?;
+    /// assert_eq!(buf, "12:00:00");
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    pub fn format_into_fmt_writer(
+        self,
+        output: &mut impl fmt::Write,
+        format: &(impl Formattable + ?Sized),
+    ) -> Result<(), crate::error::Format> {
+        format.format_into(output, None, Some(self), None)
+    }
+
+    /// Format the `Time` using the provided [format description](crate::format_description).
+    ///
     /// ```rust
     /// # use time::{format_description, macros::time};
     /// let format = format_description::parse("[hour]:[minute]:[second]")?;
