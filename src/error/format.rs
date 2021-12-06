@@ -21,6 +21,8 @@ pub enum Format {
     InvalidComponent(&'static str),
     /// A value of `std::io::Error` was returned internally.
     StdIo(io::Error),
+    /// A value of `std::fmt::Error` was returned internally.
+    StdFmt(fmt::Error),
 }
 
 impl fmt::Display for Format {
@@ -36,6 +38,7 @@ impl fmt::Display for Format {
                 component
             ),
             Self::StdIo(err) => err.fmt(f),
+            Self::StdFmt(err) => err.fmt(f),
         }
     }
 }
@@ -43,6 +46,12 @@ impl fmt::Display for Format {
 impl From<io::Error> for Format {
     fn from(err: io::Error) -> Self {
         Self::StdIo(err)
+    }
+}
+
+impl From<fmt::Error> for Format {
+    fn from(err: fmt::Error) -> Self {
+        Self::StdFmt(err)
     }
 }
 
@@ -63,6 +72,7 @@ impl std::error::Error for Format {
         match *self {
             Self::InsufficientTypeInformation | Self::InvalidComponent(_) => None,
             Self::StdIo(ref err) => Some(err),
+            Self::StdFmt(ref err) => Some(err),
         }
     }
 }

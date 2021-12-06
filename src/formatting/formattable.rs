@@ -48,14 +48,37 @@ mod sealed {
     /// Format the item using a format description, the intended output, and the various components.
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
     pub trait Sealed {
-        /// Format the item into the provided output, returning the number of bytes written.
+        /// Format the item into the provided output.
         fn format_into(
+            &self,
+            output: &mut impl fmt::Write,
+            date: Option<Date>,
+            time: Option<Time>,
+            offset: Option<UtcOffset>,
+        ) -> Result<(), error::Format>;
+
+        /// Format the item into the provided output, returning the number of bytes written.
+        fn format_into_old(
             &self,
             output: &mut impl io::Write,
             date: Option<Date>,
             time: Option<Time>,
             offset: Option<UtcOffset>,
-        ) -> Result<usize, error::Format>;
+        ) -> Result<usize, error::Format> {
+            let mut compat = Compat {
+                writer: output,
+                bytes_written: 0,
+                error: None,
+            };
+            self.format_into(&mut compat, date, time, offset)
+                .map(|_| compat.bytes_written)
+                .map_err(|fmt_error| {
+                    compat
+                        .error
+                        .map(error::Format::from)
+                        .unwrap_or_else(|| error::Format::from(fmt_error))
+                })
+        }
 
         /// Format the item directly to a `String`.
         fn format(
@@ -64,9 +87,9 @@ mod sealed {
             time: Option<Time>,
             offset: Option<UtcOffset>,
         ) -> Result<String, error::Format> {
-            let mut buf = Vec::new();
+            let mut buf = String::new();
             self.format_into(&mut buf, date, time, offset)?;
-            Ok(String::from_utf8_lossy(&buf).into_owned())
+            Ok(buf)
         }
     }
 }
