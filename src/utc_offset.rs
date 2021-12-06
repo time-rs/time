@@ -263,7 +263,7 @@ impl UtcOffset {
         output: &mut impl io::Write,
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
-        format.format_into(output, None, None, Some(self))
+        format.format_into_old(output, None, None, Some(self))
     }
 
     /// Format the `UtcOffset` using the provided [format description](crate::format_description).

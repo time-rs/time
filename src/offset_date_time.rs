@@ -897,7 +897,7 @@ impl OffsetDateTime {
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
         let local = self.utc_datetime.utc_to_offset(self.offset);
-        format.format_into(
+        format.format_into_old(
             output,
             Some(local.date),
             Some(local.time),

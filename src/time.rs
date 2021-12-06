@@ -459,7 +459,7 @@ impl Time {
         output: &mut impl io::Write,
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, crate::error::Format> {
-        format.format_into(output, None, Some(self), None)
+        format.format_into_old(output, None, Some(self), None)
     }
 
     /// Format the `Time` using the provided [format description](crate::format_description).

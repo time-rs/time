@@ -662,7 +662,7 @@ impl PrimitiveDateTime {
         output: &mut impl io::Write,
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
-        format.format_into(output, Some(self.date), Some(self.time), None)
+        format.format_into_old(output, Some(self.date), Some(self.time), None)
     }
 
     /// Format the `PrimitiveDateTime` using the provided [format
