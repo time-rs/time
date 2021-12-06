@@ -140,6 +140,12 @@ fn format_time() -> time::Result<()> {
                 .format_into(&mut io::sink(), format_description)
                 .is_ok()
         );
+        let mut buf = String::new();
+        assert!(
+            time!(13:02:03.456_789_012)
+                .format_into_fmt_writer(&mut buf, format_description)
+                .is_ok()
+        );
     }
 
     assert_eq!(
@@ -238,6 +244,12 @@ fn format_date() -> time::Result<()> {
                 .format_into(&mut io::sink(), format_description)
                 .is_ok()
         );
+        let mut buf = String::new();
+        assert!(
+            date!(2019 - 12 - 31)
+                .format_into_fmt_writer(&mut buf, format_description)
+                .is_ok()
+        );
     }
 
     Ok(())
@@ -290,6 +302,12 @@ fn format_offset() -> time::Result<()> {
                 .format_into(&mut io::sink(), format_description)
                 .is_ok()
         );
+        let mut buf = String::new();
+        assert!(
+            value
+                .format_into_fmt_writer(&mut buf, format_description)
+                .is_ok()
+        );
     }
 
     Ok(())
@@ -319,6 +337,12 @@ fn format_pdt() -> time::Result<()> {
     assert!(
         datetime!(1970-01-01 0:00)
             .format_into(&mut io::sink(), format_description)
+            .is_ok()
+    );
+    let mut buf = String::new();
+    assert!(
+        datetime!(1970-01-01 0:00)
+            .format_into_fmt_writer(&mut buf, format_description)
             .is_ok()
     );
 
@@ -351,6 +375,12 @@ fn format_odt() -> time::Result<()> {
     assert!(
         datetime!(1970-01-01 0:00 UTC)
             .format_into(&mut io::sink(), &format_description)
+            .is_ok()
+    );
+    let mut buf = String::new();
+    assert!(
+        datetime!(1970-01-01 0:00 UTC)
+            .format_into_fmt_writer(&mut buf, &format_description)
             .is_ok()
     );
 
