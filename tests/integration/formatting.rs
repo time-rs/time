@@ -1,3 +1,4 @@
+use std::fmt;
 use std::io::{self, ErrorKind};
 
 use time::format_description::well_known::{Rfc2822, Rfc3339};
@@ -502,6 +503,85 @@ fn failed_write() -> time::Result<()> {
     for component in &component_names {
         assert_err(OffsetDateTime::UNIX_EPOCH.format_into(
             bytes!(0),
+            &format_description::parse(&format!("[{}]", component))?,
+        ));
+    }
+
+    Ok(())
+}
+
+#[test]
+fn failed_fmt_write() -> time::Result<()> {
+    struct TestWriter;
+    impl fmt::Write for TestWriter {
+        fn write_str(&mut self, _s: &str) -> fmt::Result {
+            Err(fmt::Error)
+        }
+    }
+
+    let assert_err = |res| {
+        assert!(matches!(res, Err(time::error::Format::StdFmt(fmt::Error))));
+    };
+    assert_err(Time::MIDNIGHT.format_into_fmt_writer(&mut TestWriter, fd!("foo")));
+    assert_err(Time::MIDNIGHT.format_into_fmt_writer(&mut TestWriter, fd!("foo")));
+    assert_err(
+        Time::MIDNIGHT.format_into_fmt_writer(&mut TestWriter, &FormatItem::Compound(fd!("foo"))),
+    );
+    assert_err(Time::MIDNIGHT.format_into_fmt_writer(
+        &mut TestWriter,
+        &FormatItem::Optional(&FormatItem::Compound(fd!("foo"))),
+    ));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(datetime!(2021-001 0:00:00.1 UTC).format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(datetime!(2021-001 0:00:00.1 UTC).format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(datetime!(2021-001 0:00 +0:01).format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(datetime!(2021-001 0:00 +0:01).format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(datetime!(2021-001 0:00 +0:01).format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(datetime!(2021-001 0:00 +0:01).format_into_fmt_writer(&mut TestWriter, &Rfc3339));
+    assert_err(Time::MIDNIGHT.format_into_fmt_writer(&mut TestWriter, fd!("[hour padding:space]")));
+    assert_err(Time::MIDNIGHT.format_into_fmt_writer(&mut TestWriter, fd!("[hour padding:space]")));
+    assert_err(
+        offset!(+1).format_into_fmt_writer(&mut TestWriter, fd!("[offset_hour sign:mandatory]")),
+    );
+    assert_err(offset!(-1).format_into_fmt_writer(&mut TestWriter, fd!("[offset_hour]")));
+    assert_err(offset!(-1).format_into_fmt_writer(&mut TestWriter, fd!("[offset_hour]")));
+    assert_err(date!(-1 - 001).format_into_fmt_writer(&mut TestWriter, fd!("[year]")));
+    assert_err(
+        date!(2021 - 001).format_into_fmt_writer(&mut TestWriter, fd!("[year sign:mandatory]")),
+    );
+    assert_err(date!(+999_999 - 001).format_into_fmt_writer(&mut TestWriter, fd!("[year]")));
+    assert_err(date!(+99_999 - 001).format_into_fmt_writer(&mut TestWriter, fd!("[year]")));
+
+    let component_names = [
+        "day",
+        "month",
+        "ordinal",
+        "weekday",
+        "week_number",
+        "year",
+        "hour",
+        "minute",
+        "period",
+        "second",
+        "subsecond",
+        "offset_hour",
+        "offset_minute",
+        "offset_second",
+    ];
+    for component in &component_names {
+        assert_err(OffsetDateTime::UNIX_EPOCH.format_into_fmt_writer(
+            &mut TestWriter,
             &format_description::parse(&format!("[{}]", component))?,
         ));
     }
