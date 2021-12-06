@@ -98,18 +98,20 @@ mod sealed {
 impl<'a> sealed::Sealed for FormatItem<'a> {
     fn format_into(
         &self,
-        output: &mut impl io::Write,
+        output: &mut impl fmt::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<usize, error::Format> {
+    ) -> Result<(), error::Format> {
         Ok(match *self {
-            Self::Literal(literal) => write(output, literal)?,
+            Self::Literal(literal) => {
+                output.write_str(String::from_utf8_lossy(literal).as_ref())?
+            }
             Self::Component(component) => format_component(output, component, date, time, offset)?,
             Self::Compound(items) => items.format_into(output, date, time, offset)?,
             Self::Optional(item) => item.format_into(output, date, time, offset)?,
             Self::First(items) => match items {
-                [] => 0,
+                [] => (),
                 [item, ..] => item.format_into(output, date, time, offset)?,
             },
         })
@@ -119,16 +121,15 @@ impl<'a> sealed::Sealed for FormatItem<'a> {
 impl<'a> sealed::Sealed for [FormatItem<'a>] {
     fn format_into(
         &self,
-        output: &mut impl io::Write,
+        output: &mut impl fmt::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<usize, error::Format> {
-        let mut bytes = 0;
+    ) -> Result<(), error::Format> {
         for item in self.iter() {
-            bytes += item.format_into(output, date, time, offset)?;
+            item.format_into(output, date, time, offset)?;
         }
-        Ok(bytes)
+        Ok(())
     }
 }
 
@@ -138,11 +139,11 @@ where
 {
     fn format_into(
         &self,
-        output: &mut impl io::Write,
+        output: &mut impl fmt::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<usize, error::Format> {
+    ) -> Result<(), error::Format> {
         self.deref().format_into(output, date, time, offset)
     }
 }
@@ -152,16 +153,14 @@ where
 impl sealed::Sealed for Rfc2822 {
     fn format_into(
         &self,
-        output: &mut impl io::Write,
+        output: &mut impl fmt::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<usize, error::Format> {
+    ) -> Result<(), error::Format> {
         let date = date.ok_or(error::Format::InsufficientTypeInformation)?;
         let time = time.ok_or(error::Format::InsufficientTypeInformation)?;
         let offset = offset.ok_or(error::Format::InsufficientTypeInformation)?;
-
-        let mut bytes = 0;
 
         let (year, month, day) = date.to_calendar_date();
 
@@ -172,45 +171,42 @@ impl sealed::Sealed for Rfc2822 {
             return Err(error::Format::InvalidComponent("offset_second"));
         }
 
-        bytes += write(
+        write(
             output,
             &WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3],
         )?;
-        bytes += write(output, b", ")?;
-        bytes += format_number_pad_zero::<_, _, 2>(output, day)?;
-        bytes += write(output, b" ")?;
-        bytes += write(output, &MONTH_NAMES[month as usize - 1][..3])?;
-        bytes += write(output, b" ")?;
-        bytes += format_number_pad_zero::<_, _, 4>(output, year as u32)?;
-        bytes += write(output, b" ")?;
-        bytes += format_number_pad_zero::<_, _, 2>(output, time.hour())?;
-        bytes += write(output, b":")?;
-        bytes += format_number_pad_zero::<_, _, 2>(output, time.minute())?;
-        bytes += write(output, b":")?;
-        bytes += format_number_pad_zero::<_, _, 2>(output, time.second())?;
-        bytes += write(output, b" ")?;
-        bytes += write(output, if offset.is_negative() { b"-" } else { b"+" })?;
-        bytes += format_number_pad_zero::<_, _, 2>(output, offset.whole_hours().unsigned_abs())?;
-        bytes +=
-            format_number_pad_zero::<_, _, 2>(output, offset.minutes_past_hour().unsigned_abs())?;
+        write(output, ", ")?;
+        format_number_pad_zero::<_, _, 2>(output, day)?;
+        write(output, " ")?;
+        write(output, &MONTH_NAMES[month as usize - 1][..3])?;
+        write(output, " ")?;
+        format_number_pad_zero::<_, _, 4>(output, year as u32)?;
+        write(output, " ")?;
+        format_number_pad_zero::<_, _, 2>(output, time.hour())?;
+        write(output, ":")?;
+        format_number_pad_zero::<_, _, 2>(output, time.minute())?;
+        write(output, ":")?;
+        format_number_pad_zero::<_, _, 2>(output, time.second())?;
+        write(output, " ")?;
+        write(output, if offset.is_negative() { "-" } else { "+" })?;
+        format_number_pad_zero::<_, _, 2>(output, offset.whole_hours().unsigned_abs())?;
+        format_number_pad_zero::<_, _, 2>(output, offset.minutes_past_hour().unsigned_abs())?;
 
-        Ok(bytes)
+        Ok(())
     }
 }
 
 impl sealed::Sealed for Rfc3339 {
     fn format_into(
         &self,
-        output: &mut impl io::Write,
+        output: &mut impl fmt::Write,
         date: Option<Date>,
         time: Option<Time>,
         offset: Option<UtcOffset>,
-    ) -> Result<usize, error::Format> {
+    ) -> Result<(), error::Format> {
         let date = date.ok_or(error::Format::InsufficientTypeInformation)?;
         let time = time.ok_or(error::Format::InsufficientTypeInformation)?;
         let offset = offset.ok_or(error::Format::InsufficientTypeInformation)?;
-
-        let mut bytes = 0;
 
         let year = date.year();
 
@@ -221,23 +217,23 @@ impl sealed::Sealed for Rfc3339 {
             return Err(error::Format::InvalidComponent("offset_second"));
         }
 
-        bytes += format_number_pad_zero::<_, _, 4>(output, year as u32)?;
-        bytes += write(output, &[b'-'])?;
-        bytes += format_number_pad_zero::<_, _, 2>(output, date.month() as u8)?;
-        bytes += write(output, &[b'-'])?;
-        bytes += format_number_pad_zero::<_, _, 2>(output, date.day())?;
-        bytes += write(output, &[b'T'])?;
-        bytes += format_number_pad_zero::<_, _, 2>(output, time.hour())?;
-        bytes += write(output, &[b':'])?;
-        bytes += format_number_pad_zero::<_, _, 2>(output, time.minute())?;
-        bytes += write(output, &[b':'])?;
-        bytes += format_number_pad_zero::<_, _, 2>(output, time.second())?;
+        format_number_pad_zero::<_, _, 4>(output, year as u32)?;
+        write(output, "-")?;
+        format_number_pad_zero::<_, _, 2>(output, date.month() as u8)?;
+        write(output, "-")?;
+        format_number_pad_zero::<_, _, 2>(output, date.day())?;
+        write(output, "T")?;
+        format_number_pad_zero::<_, _, 2>(output, time.hour())?;
+        write(output, ":")?;
+        format_number_pad_zero::<_, _, 2>(output, time.minute())?;
+        write(output, ":")?;
+        format_number_pad_zero::<_, _, 2>(output, time.second())?;
 
         #[allow(clippy::if_not_else)]
         if time.nanosecond() != 0 {
             let nanos = time.nanosecond();
-            bytes += write(output, &[b'.'])?;
-            bytes += if nanos % 10 != 0 {
+            write(output, ".")?;
+            if nanos % 10 != 0 {
                 format_number_pad_zero::<_, _, 9>(output, nanos)
             } else if (nanos / 10) % 10 != 0 {
                 format_number_pad_zero::<_, _, 8>(output, nanos / 10)
@@ -259,24 +255,16 @@ impl sealed::Sealed for Rfc3339 {
         }
 
         if offset == UtcOffset::UTC {
-            bytes += write(output, &[b'Z'])?;
-            return Ok(bytes);
+            write(output, "Z")?;
+            return Ok(());
         }
 
-        bytes += write(
-            output,
-            if offset.is_negative() {
-                &[b'-']
-            } else {
-                &[b'+']
-            },
-        )?;
-        bytes += format_number_pad_zero::<_, _, 2>(output, offset.whole_hours().unsigned_abs())?;
-        bytes += write(output, &[b':'])?;
-        bytes +=
-            format_number_pad_zero::<_, _, 2>(output, offset.minutes_past_hour().unsigned_abs())?;
+        write(output, if offset.is_negative() { "-" } else { "+" })?;
+        format_number_pad_zero::<_, _, 2>(output, offset.whole_hours().unsigned_abs())?;
+        write(output, ":")?;
+        format_number_pad_zero::<_, _, 2>(output, offset.minutes_past_hour().unsigned_abs())?;
 
-        Ok(bytes)
+        Ok(())
     }
 }
 // endregion well-known formats
