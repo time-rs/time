@@ -15,6 +15,8 @@ pub enum TryFromParsed {
     InsufficientInformation,
     /// Some component contained an invalid value for the type.
     ComponentRange(error::ComponentRange),
+    /// Leap second is not allowed to occur at this date and time.
+    LeapSecondNotValid,
 }
 
 impl fmt::Display for TryFromParsed {
@@ -24,6 +26,9 @@ impl fmt::Display for TryFromParsed {
                 "the `Parsed` struct did not include enough information to construct the type",
             ),
             Self::ComponentRange(err) => err.fmt(f),
+            Self::LeapSecondNotValid => {
+                f.write_str("leap second is not allowed to occur at this date and time")
+            }
         }
     }
 }
@@ -51,6 +56,7 @@ impl std::error::Error for TryFromParsed {
         match self {
             Self::InsufficientInformation => None,
             Self::ComponentRange(err) => Some(err),
+            Self::LeapSecondNotValid => None,
         }
     }
 }

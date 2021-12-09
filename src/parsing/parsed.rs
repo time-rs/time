@@ -3,7 +3,7 @@
 use core::convert::{TryFrom, TryInto};
 use core::num::{NonZeroU16, NonZeroU8};
 
-use crate::error::TryFromParsed::InsufficientInformation;
+use crate::error::TryFromParsed::{InsufficientInformation, LeapSecondNotValid};
 use crate::format_description::modifier::{WeekNumberRepr, YearRepr};
 use crate::format_description::{Component, FormatItem};
 use crate::parsing::component::{
@@ -63,6 +63,12 @@ pub struct Parsed {
     pub(crate) offset_minute: Option<u8>,
     /// Seconds within the minute of the UTC offset.
     pub(crate) offset_second: Option<u8>,
+    /// Flag used by the well-known format parsers that must support leap second
+    /// times, to signal when the data have been fudged to the nearest
+    /// preceding moment that this crate can represent.
+    /// The TryFrom conversions need to check if the leap second is allowed at
+    /// this date and time in UTC.
+    pub(crate) leap_second_input: bool,
 }
 
 impl Parsed {
@@ -89,6 +95,7 @@ impl Parsed {
             offset_hour: None,
             offset_minute: None,
             offset_second: None,
+            leap_second_input: false,
         }
     }
 
@@ -413,31 +420,44 @@ impl TryFrom<Parsed> for Date {
     }
 }
 
+fn naive_time_from_parsed(parsed: Parsed) -> Result<Time, error::TryFromParsed> {
+    let hour = match (parsed.hour_24, parsed.hour_12, parsed.hour_12_is_pm) {
+        (Some(hour), _, _) => hour,
+        (_, Some(hour), Some(false)) if hour.get() == 12 => 0,
+        (_, Some(hour), Some(true)) if hour.get() == 12 => 12,
+        (_, Some(hour), Some(false)) => hour.get(),
+        (_, Some(hour), Some(true)) => hour.get() + 12,
+        _ => return Err(InsufficientInformation),
+    };
+    if parsed.hour_24.is_none()
+        && parsed.hour_12.is_some()
+        && parsed.hour_12_is_pm.is_some()
+        && parsed.minute.is_none()
+        && parsed.second.is_none()
+        && parsed.subsecond.is_none()
+    {
+        return Ok(Time::from_hms_nano(hour, 0, 0, 0)?);
+    }
+    let minute = parsed.minute.ok_or(InsufficientInformation)?;
+    let second = parsed.second.unwrap_or(0);
+    let subsecond = parsed.subsecond.unwrap_or(0);
+    Ok(Time::from_hms_nano(hour, minute, second, subsecond)?)
+}
+
 impl TryFrom<Parsed> for Time {
     type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
-        let hour = match (parsed.hour_24, parsed.hour_12, parsed.hour_12_is_pm) {
-            (Some(hour), _, _) => hour,
-            (_, Some(hour), Some(false)) if hour.get() == 12 => 0,
-            (_, Some(hour), Some(true)) if hour.get() == 12 => 12,
-            (_, Some(hour), Some(false)) => hour.get(),
-            (_, Some(hour), Some(true)) => hour.get() + 12,
-            _ => return Err(InsufficientInformation),
-        };
-        if parsed.hour_24.is_none()
-            && parsed.hour_12.is_some()
-            && parsed.hour_12_is_pm.is_some()
-            && parsed.minute.is_none()
-            && parsed.second.is_none()
-            && parsed.subsecond.is_none()
-        {
-            return Ok(Self::from_hms_nano(hour, 0, 0, 0)?);
+        if !parsed.leap_second_input {
+            naive_time_from_parsed(parsed)
+        } else {
+            // Validate if the leap second is allowed to occur at this
+            // date and time in UTC, by delegating to the impl for
+            // OffsetDateTime. If the date or offset information is not
+            // available, it's an error in these circumstances.
+            let dt: OffsetDateTime = parsed.try_into()?;
+            Ok(dt.time())
         }
-        let minute = parsed.minute.ok_or(InsufficientInformation)?;
-        let second = parsed.second.unwrap_or(0);
-        let subsecond = parsed.subsecond.unwrap_or(0);
-        Ok(Self::from_hms_nano(hour, minute, second, subsecond)?)
     }
 }
 
@@ -462,11 +482,27 @@ impl TryFrom<Parsed> for UtcOffset {
     }
 }
 
+fn naive_date_time_from_parsed(parsed: Parsed) -> Result<PrimitiveDateTime, error::TryFromParsed> {
+    Ok(PrimitiveDateTime::new(
+        parsed.try_into()?,
+        naive_time_from_parsed(parsed)?,
+    ))
+}
+
 impl TryFrom<Parsed> for PrimitiveDateTime {
     type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
-        Ok(Self::new(parsed.try_into()?, parsed.try_into()?))
+        if !parsed.leap_second_input {
+            naive_date_time_from_parsed(parsed)
+        } else {
+            // Validate if the leap second is allowed to occur at this
+            // date and time in UTC, by delegating to the impl for
+            // OffsetDateTime. If the offset information is not
+            // available, it's an error in these circumstances.
+            let dt: OffsetDateTime = parsed.try_into()?;
+            Ok(PrimitiveDateTime::new(dt.date(), dt.time()))
+        }
     }
 }
 
@@ -474,6 +510,10 @@ impl TryFrom<Parsed> for OffsetDateTime {
     type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
-        Ok(PrimitiveDateTime::try_from(parsed)?.assume_offset(parsed.try_into()?))
+        let dt = naive_date_time_from_parsed(parsed)?.assume_offset(parsed.try_into()?);
+        if parsed.leap_second_input && !dt.is_valid_leap_second_stand_in() {
+            return Err(LeapSecondNotValid);
+        }
+        Ok(dt)
     }
 }

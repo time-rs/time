@@ -332,8 +332,10 @@ impl sealed::Sealed for Rfc3339 {
         };
 
         // The RFC explicitly allows leap seconds. We don't currently support them, so treat it as
-        // the previous moment.
+        // the nearest preceding moment that can be represented, but set a flag to perform
+        // special validation when the time value is constructed.
         if parsed.second == Some(60) {
+            parsed.leap_second_input = true;
             parsed.second = Some(59);
             parsed.subsecond = Some(999_999_999);
         }
@@ -448,17 +450,27 @@ impl sealed::Sealed for Rfc3339 {
         }
 
         // The RFC explicitly allows leap seconds. We don't currently support them, so treat it as
-        // the previous moment.
-        if second == 60 {
+        // the nearest preceding moment that can be represented, but check if the second 60
+        // occurs at the expected 23:59 UTC at the end of a month.
+        let leap_second_input = if second == 60 {
             second = 59;
             nanosecond = 999_999_999;
-        }
+            true
+        } else {
+            false
+        };
 
-        Ok(Month::from_number(month)
+        let dt = Month::from_number(month)
             .and_then(|month| Date::from_calendar_date(year as _, month, day))
             .and_then(|date| date.with_hms_nano(hour, minute, second, nanosecond))
             .map(|date| date.assume_offset(offset))
-            .map_err(TryFromParsed::ComponentRange)?)
+            .map_err(TryFromParsed::ComponentRange)?;
+
+        if leap_second_input && !dt.is_valid_leap_second_stand_in() {
+            return Err(TryFromParsed::LeapSecondNotValid.into());
+        }
+
+        Ok(dt)
     }
 }
 // endregion well-known formats
