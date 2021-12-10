@@ -75,6 +75,10 @@ fn display() {
         Error::from(TryFromParsed::InsufficientInformation)
     );
     assert_display_eq!(
+        TryFromParsed::LeapSecondNotValid,
+        Error::from(TryFromParsed::LeapSecondNotValid)
+    );
+    assert_display_eq!(
         insufficient_type_information(),
         Error::from(insufficient_type_information())
     );
@@ -117,6 +121,7 @@ fn source() {
     assert_source!(Error::from(component_range()), ComponentRange);
     assert_source!(TryFromParsed::from(component_range()), ComponentRange);
     assert_source!(TryFromParsed::InsufficientInformation, None);
+    assert_source!(TryFromParsed::LeapSecondNotValid, None);
     assert_source!(insufficient_type_information(), None);
     assert_source!(Format::InvalidComponent("a"), None);
     assert_source!(Error::from(insufficient_type_information()), Format);
