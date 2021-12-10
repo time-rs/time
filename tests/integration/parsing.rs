@@ -275,6 +275,11 @@ fn rfc_3339() -> time::Result<()> {
     );
 
     assert_eq!(
+        PrimitiveDateTime::parse("2022-01-01T00:59:60+01:00", &Rfc3339)?,
+        datetime!(2022-01-01 00:59:59.999_999_999),
+    );
+
+    assert_eq!(
         Date::parse("2021-01-02T03:04:05Z", &Rfc3339)?,
         date!(2021 - 01 - 02),
     );
