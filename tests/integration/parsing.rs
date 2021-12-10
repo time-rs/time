@@ -10,6 +10,21 @@ use time::{
     UtcOffset, Weekday,
 };
 
+macro_rules! invalid_literal {
+    () => {
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidLiteral { .. },
+        ))
+    };
+}
+macro_rules! invalid_component {
+    ($name:literal) => {
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent($name),
+        ))
+    };
+}
+
 #[test]
 fn rfc_2822() -> time::Result<()> {
     assert_eq!(
@@ -32,6 +47,30 @@ fn rfc_2822() -> time::Result<()> {
         OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 -0607", &Rfc2822)?,
         datetime!(2021-01-02 03:04:05 -06:07),
     );
+    assert_eq!(
+        OffsetDateTime::parse("Fri, 31 Dec 2021 23:59:60 Z", &Rfc2822)?,
+        datetime!(2021-12-31 23:59:59.999_999_999 UTC),
+    );
+    assert_eq!(
+        OffsetDateTime::parse("Fri, 31 Dec 2021 23:59:60 z", &Rfc2822)?,
+        datetime!(2021-12-31 23:59:59.999_999_999 UTC),
+    );
+    assert_eq!(
+        OffsetDateTime::parse("Fri, 31 Dec 2021 23:59:60 a", &Rfc2822)?,
+        datetime!(2021-12-31 23:59:59.999_999_999 UTC),
+    );
+    assert_eq!(
+        OffsetDateTime::parse("Fri, 31 Dec 2021 23:59:60 A", &Rfc2822)?,
+        datetime!(2021-12-31 23:59:59.999_999_999 UTC),
+    );
+    assert_eq!(
+        OffsetDateTime::parse("Fri, 31 Dec 2021 17:52:60 -0607", &Rfc2822)?,
+        datetime!(2021-12-31 17:52:59.999_999_999 -06:07),
+    );
+    assert_eq!(
+        OffsetDateTime::parse("Sat, 01 Jan 2022 06:06:60 +0607", &Rfc2822)?,
+        datetime!(2022-01-01 06:06:59.999_999_999 +06:07),
+    );
 
     assert_eq!(
         Date::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
@@ -46,11 +85,134 @@ fn rfc_2822() -> time::Result<()> {
         date!(2021 - 01 - 02)
     );
     assert_eq!(
-        Time::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
+        Date::parse("Sat, 02 Jan 21 03:04:05 -0607", &Rfc2822)?,
+        date!(2021 - 01 - 02)
+    );
+    assert_eq!(
+        Date::parse("Sat, 02 Jan 71 03:04:05 -0607", &Rfc2822)?,
+        date!(1971 - 01 - 02)
+    );
+
+    assert_eq!(
+        OffsetDateTime::parse("Sat,(\\\u{a})02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
+        datetime!(2021 - 01 - 02 03:04:05 UTC),
+    );
+    #[rustfmt::skip]
+    assert_eq!(
+        Time::parse(
+            "  \t Sat,\r\n \
+            (\tfoo012FOO!)\
+            (\u{1}\u{b}\u{e}\u{7f})\
+            (\\\u{1}\\\u{9}\\\u{28}\\\u{29}\\\\u{5c}\\\u{7f})\
+            (\\\n\\\u{b})\
+            02 \r\n  \r\n Jan 2021 03:04:05 GMT",
+            &Rfc2822
+        )?,
         time!(03:04:05)
     );
 
     Ok(())
+}
+
+#[test]
+fn rfc_2822_err() {
+    // In the first test, the "weekday" component is invalid, we're actually testing the whitespace
+    // parser. The error is because the parser attempts and fails to parse the whitespace, but it's
+    // optional so it backtracks and attempts to parse the weekday (while still having leading
+    // whitespace), thus failing.
+    assert!(matches!(
+        OffsetDateTime::parse(" \r\nM", &Rfc2822),
+        invalid_component!("weekday")
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon,(\u{0}", &Rfc2822),
+        invalid_literal!()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon,(", &Rfc2822),
+        invalid_literal!()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon,(\\\u{ff}", &Rfc2822),
+        invalid_literal!()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon,((\\\u{0})(\\\u{b} )(\\\u{d})", &Rfc2822),
+        invalid_literal!()
+    ));
+
+    assert!(matches!(
+        OffsetDateTime::parse("Mon:", &Rfc2822),
+        invalid_literal!()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, o2", &Rfc2822),
+        invalid_component!("day")
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02_", &Rfc2822),
+        invalid_literal!()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 jxn", &Rfc2822),
+        invalid_component!("month")
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan_", &Rfc2822),
+        invalid_literal!()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan abcd", &Rfc2822),
+        invalid_component!("year")
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan 1899", &Rfc2822),
+        invalid_component!("year")
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan 2021_", &Rfc2822),
+        invalid_literal!()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan 21_", &Rfc2822),
+        invalid_literal!()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan 2021 ab", &Rfc2822),
+        invalid_component!("hour")
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan 2021 03_", &Rfc2822),
+        invalid_literal!()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan 2021 03:ab", &Rfc2822),
+        invalid_component!("minute")
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan 2021 03:04_", &Rfc2822),
+        invalid_literal!()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan 2021 03:04:ab", &Rfc2822),
+        invalid_component!("second")
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan 2021 03:04:05_", &Rfc2822),
+        invalid_literal!()
+    ));
+    assert!(matches!(
+        dbg!(OffsetDateTime::parse("Mon, 02 Jan 2021 03:04 6", &Rfc2822)),
+        invalid_component!("offset hour")
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan 2021 03:04:05 -6", &Rfc2822),
+        invalid_component!("offset hour")
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Mon, 02 Jan 2021 03:04:05 -060", &Rfc2822),
+        invalid_component!("offset minute")
+    ));
 }
 
 #[test]
@@ -130,21 +292,6 @@ fn rfc_3339() -> time::Result<()> {
 
 #[test]
 fn rfc_3339_err() {
-    macro_rules! invalid_literal {
-        () => {
-            Err(error::Parse::ParseFromDescription(
-                error::ParseFromDescription::InvalidLiteral { .. },
-            ))
-        };
-    }
-    macro_rules! invalid_component {
-        ($name:literal) => {
-            Err(error::Parse::ParseFromDescription(
-                error::ParseFromDescription::InvalidComponent($name),
-            ))
-        };
-    }
-
     assert!(matches!(
         PrimitiveDateTime::parse("x", &Rfc3339),
         invalid_component!("year")
