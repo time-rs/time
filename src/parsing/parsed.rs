@@ -240,107 +240,53 @@ impl Parsed {
     }
 }
 
+/// Generate getters for each of the fields.
+macro_rules! getters {
+    ($($name:ident: $ty:ty),+ $(,)?) => {$(
+        /// Obtain the named component.
+        pub const fn $name(&self) -> Option<$ty> {
+            self.$name
+        }
+    )*}
+}
+
 /// Getter methods
 impl Parsed {
-    /// Obtain the `year` component.
-    pub const fn year(&self) -> Option<i32> {
-        self.year
+    getters! {
+        year: i32,
+        year_last_two: u8,
+        iso_year: i32,
+        iso_year_last_two: u8,
+        month: Month,
+        sunday_week_number: u8,
+        monday_week_number: u8,
+        iso_week_number: NonZeroU8,
+        weekday: Weekday,
+        ordinal: NonZeroU16,
+        day: NonZeroU8,
+        hour_24: u8,
+        hour_12: NonZeroU8,
+        hour_12_is_pm: bool,
+        minute: u8,
+        second: u8,
+        subsecond: u32,
+        offset_hour: i8,
+        offset_minute: u8,
+        offset_second: u8,
     }
+}
 
-    /// Obtain the `year_last_two` component.
-    pub const fn year_last_two(&self) -> Option<u8> {
-        self.year_last_two
-    }
-
-    /// Obtain the `iso_year` component.
-    pub const fn iso_year(&self) -> Option<i32> {
-        self.iso_year
-    }
-
-    /// Obtain the `iso_year_last_two` component.
-    pub const fn iso_year_last_two(&self) -> Option<u8> {
-        self.iso_year_last_two
-    }
-
-    /// Obtain the `month` component.
-    pub const fn month(&self) -> Option<Month> {
-        self.month
-    }
-
-    /// Obtain the `sunday_week_number` component.
-    pub const fn sunday_week_number(&self) -> Option<u8> {
-        self.sunday_week_number
-    }
-
-    /// Obtain the `monday_week_number` component.
-    pub const fn monday_week_number(&self) -> Option<u8> {
-        self.monday_week_number
-    }
-
-    /// Obtain the `iso_week_number` component.
-    pub const fn iso_week_number(&self) -> Option<NonZeroU8> {
-        self.iso_week_number
-    }
-
-    /// Obtain the `weekday` component.
-    pub const fn weekday(&self) -> Option<Weekday> {
-        self.weekday
-    }
-
-    /// Obtain the `ordinal` component.
-    pub const fn ordinal(&self) -> Option<NonZeroU16> {
-        self.ordinal
-    }
-
-    /// Obtain the `day` component.
-    pub const fn day(&self) -> Option<NonZeroU8> {
-        self.day
-    }
-
-    /// Obtain the `hour_24` component.
-    pub const fn hour_24(&self) -> Option<u8> {
-        self.hour_24
-    }
-
-    /// Obtain the `hour_12` component.
-    pub const fn hour_12(&self) -> Option<NonZeroU8> {
-        self.hour_12
-    }
-
-    /// Obtain the `hour_12_is_pm` component.
-    pub const fn hour_12_is_pm(&self) -> Option<bool> {
-        self.hour_12_is_pm
-    }
-
-    /// Obtain the `minute` component.
-    pub const fn minute(&self) -> Option<u8> {
-        self.minute
-    }
-
-    /// Obtain the `second` component.
-    pub const fn second(&self) -> Option<u8> {
-        self.second
-    }
-
-    /// Obtain the `subsecond` component.
-    pub const fn subsecond(&self) -> Option<u32> {
-        self.subsecond
-    }
-
-    /// Obtain the `offset_hour` component.
-    pub const fn offset_hour(&self) -> Option<i8> {
-        self.offset_hour
-    }
-
-    /// Obtain the `offset_minute` component.
-    pub const fn offset_minute(&self) -> Option<u8> {
-        self.offset_minute
-    }
-
-    /// Obtain the `offset_second` component.
-    pub const fn offset_second(&self) -> Option<u8> {
-        self.offset_second
-    }
+/// Generate setters for each of the fields.
+///
+/// This macro should only be used for fields where the value is not validated beyond its type.
+macro_rules! setters {
+    ($($setter_name:ident $name:ident: $ty:ty),+ $(,)?) => {$(
+        /// Set the named component.
+        pub fn $setter_name(&mut self, value: $ty) -> Option<()> {
+            self.$name = Some(value);
+            Some(())
+        }
+    )*}
 }
 
 /// Setter methods
@@ -348,125 +294,41 @@ impl Parsed {
 /// All setters return `Option<()>`, which is `Some` if the value was set, and `None` if not. The
 /// setters _may_ fail if the value is invalid, though behavior is not guaranteed.
 impl Parsed {
-    /// Set the `year` component.
-    pub fn set_year(&mut self, value: i32) -> Option<()> {
-        self.year = Some(value);
-        Some(())
+    setters! {
+        set_year year: i32,
+        set_year_last_two year_last_two: u8,
+        set_iso_year iso_year: i32,
+        set_iso_year_last_two iso_year_last_two: u8,
+        set_month month: Month,
+        set_sunday_week_number sunday_week_number: u8,
+        set_monday_week_number monday_week_number: u8,
+        set_iso_week_number iso_week_number: NonZeroU8,
+        set_weekday weekday: Weekday,
+        set_ordinal ordinal: NonZeroU16,
+        set_day day: NonZeroU8,
+        set_hour_24 hour_24: u8,
+        set_hour_12 hour_12: NonZeroU8,
+        set_hour_12_is_pm hour_12_is_pm: bool,
+        set_minute minute: u8,
+        set_second second: u8,
+        set_subsecond subsecond: u32,
+        set_offset_hour offset_hour: i8,
+        set_offset_minute offset_minute: u8,
+        set_offset_second offset_second: u8,
     }
+}
 
-    /// Set the `year_last_two` component.
-    pub fn set_year_last_two(&mut self, value: u8) -> Option<()> {
-        self.year_last_two = Some(value);
-        Some(())
-    }
-
-    /// Set the `iso_year` component.
-    pub fn set_iso_year(&mut self, value: i32) -> Option<()> {
-        self.iso_year = Some(value);
-        Some(())
-    }
-
-    /// Set the `iso_year_last_two` component.
-    pub fn set_iso_year_last_two(&mut self, value: u8) -> Option<()> {
-        self.iso_year_last_two = Some(value);
-        Some(())
-    }
-
-    /// Set the `month` component.
-    pub fn set_month(&mut self, value: Month) -> Option<()> {
-        self.month = Some(value);
-        Some(())
-    }
-
-    /// Set the `sunday_week_number` component.
-    pub fn set_sunday_week_number(&mut self, value: u8) -> Option<()> {
-        self.sunday_week_number = Some(value);
-        Some(())
-    }
-
-    /// Set the `monday_week_number` component.
-    pub fn set_monday_week_number(&mut self, value: u8) -> Option<()> {
-        self.monday_week_number = Some(value);
-        Some(())
-    }
-
-    /// Set the `iso_week_number` component.
-    pub fn set_iso_week_number(&mut self, value: NonZeroU8) -> Option<()> {
-        self.iso_week_number = Some(value);
-        Some(())
-    }
-
-    /// Set the `weekday` component.
-    pub fn set_weekday(&mut self, value: Weekday) -> Option<()> {
-        self.weekday = Some(value);
-        Some(())
-    }
-
-    /// Set the `ordinal` component.
-    pub fn set_ordinal(&mut self, value: NonZeroU16) -> Option<()> {
-        self.ordinal = Some(value);
-        Some(())
-    }
-
-    /// Set the `day` component.
-    pub fn set_day(&mut self, value: NonZeroU8) -> Option<()> {
-        self.day = Some(value);
-        Some(())
-    }
-
-    /// Set the `hour_24` component.
-    pub fn set_hour_24(&mut self, value: u8) -> Option<()> {
-        self.hour_24 = Some(value);
-        Some(())
-    }
-
-    /// Set the `hour_12` component.
-    pub fn set_hour_12(&mut self, value: NonZeroU8) -> Option<()> {
-        self.hour_12 = Some(value);
-        Some(())
-    }
-
-    /// Set the `hour_12_is_pm` component.
-    pub fn set_hour_12_is_pm(&mut self, value: bool) -> Option<()> {
-        self.hour_12_is_pm = Some(value);
-        Some(())
-    }
-
-    /// Set the `minute` component.
-    pub fn set_minute(&mut self, value: u8) -> Option<()> {
-        self.minute = Some(value);
-        Some(())
-    }
-
-    /// Set the `second` component.
-    pub fn set_second(&mut self, value: u8) -> Option<()> {
-        self.second = Some(value);
-        Some(())
-    }
-
-    /// Set the `subsecond` component.
-    pub fn set_subsecond(&mut self, value: u32) -> Option<()> {
-        self.subsecond = Some(value);
-        Some(())
-    }
-
-    /// Set the `offset_hour` component.
-    pub fn set_offset_hour(&mut self, value: i8) -> Option<()> {
-        self.offset_hour = Some(value);
-        Some(())
-    }
-
-    /// Set the `offset_minute` component.
-    pub fn set_offset_minute(&mut self, value: u8) -> Option<()> {
-        self.offset_minute = Some(value);
-        Some(())
-    }
-
-    /// Set the `offset_second` component.
-    pub fn set_offset_second(&mut self, value: u8) -> Option<()> {
-        self.offset_second = Some(value);
-        Some(())
-    }
+/// Generate build methods for each of the fields.
+///
+/// This macro should only be used for fields where the value is not validated beyond its type.
+macro_rules! builders {
+    ($($builder_name:ident $name:ident: $ty:ty),+ $(,)?) => {$(
+        /// Set the named component and return `self`.
+        pub const fn $builder_name(mut self, value: $ty) -> Option<Self> {
+            self.$name = Some(value);
+            Some(self)
+        }
+    )*}
 }
 
 /// Builder methods
@@ -474,124 +336,27 @@ impl Parsed {
 /// All builder methods return `Option<Self>`, which is `Some` if the value was set, and `None` if
 /// not. The builder methods _may_ fail if the value is invalid, though behavior is not guaranteed.
 impl Parsed {
-    /// Set the `year` component and return `self`.
-    pub const fn with_year(mut self, value: i32) -> Option<Self> {
-        self.year = Some(value);
-        Some(self)
-    }
-
-    /// Set the `year_last_two` component and return `self`.
-    pub const fn with_year_last_two(mut self, value: u8) -> Option<Self> {
-        self.year_last_two = Some(value);
-        Some(self)
-    }
-
-    /// Set the `iso_year` component and return `self`.
-    pub const fn with_iso_year(mut self, value: i32) -> Option<Self> {
-        self.iso_year = Some(value);
-        Some(self)
-    }
-
-    /// Set the `iso_year_last_two` component and return `self`.
-    pub const fn with_iso_year_last_two(mut self, value: u8) -> Option<Self> {
-        self.iso_year_last_two = Some(value);
-        Some(self)
-    }
-
-    /// Set the `month` component and return `self`.
-    pub const fn with_month(mut self, value: Month) -> Option<Self> {
-        self.month = Some(value);
-        Some(self)
-    }
-
-    /// Set the `sunday_week_number` component and return `self`.
-    pub const fn with_sunday_week_number(mut self, value: u8) -> Option<Self> {
-        self.sunday_week_number = Some(value);
-        Some(self)
-    }
-
-    /// Set the `monday_week_number` component and return `self`.
-    pub const fn with_monday_week_number(mut self, value: u8) -> Option<Self> {
-        self.monday_week_number = Some(value);
-        Some(self)
-    }
-
-    /// Set the `iso_week_number` component and return `self`.
-    pub const fn with_iso_week_number(mut self, value: NonZeroU8) -> Option<Self> {
-        self.iso_week_number = Some(value);
-        Some(self)
-    }
-
-    /// Set the `weekday` component and return `self`.
-    pub const fn with_weekday(mut self, value: Weekday) -> Option<Self> {
-        self.weekday = Some(value);
-        Some(self)
-    }
-
-    /// Set the `ordinal` component and return `self`.
-    pub const fn with_ordinal(mut self, value: NonZeroU16) -> Option<Self> {
-        self.ordinal = Some(value);
-        Some(self)
-    }
-
-    /// Set the `day` component and return `self`.
-    pub const fn with_day(mut self, value: NonZeroU8) -> Option<Self> {
-        self.day = Some(value);
-        Some(self)
-    }
-
-    /// Set the `hour_24` component and return `self`.
-    pub const fn with_hour_24(mut self, value: u8) -> Option<Self> {
-        self.hour_24 = Some(value);
-        Some(self)
-    }
-
-    /// Set the `hour_12` component and return `self`.
-    pub const fn with_hour_12(mut self, value: NonZeroU8) -> Option<Self> {
-        self.hour_12 = Some(value);
-        Some(self)
-    }
-
-    /// Set the `hour_12_is_pm` component and return `self`.
-    pub const fn with_hour_12_is_pm(mut self, value: bool) -> Option<Self> {
-        self.hour_12_is_pm = Some(value);
-        Some(self)
-    }
-
-    /// Set the `minute` component and return `self`.
-    pub const fn with_minute(mut self, value: u8) -> Option<Self> {
-        self.minute = Some(value);
-        Some(self)
-    }
-
-    /// Set the `second` component and return `self`.
-    pub const fn with_second(mut self, value: u8) -> Option<Self> {
-        self.second = Some(value);
-        Some(self)
-    }
-
-    /// Set the `subsecond` component and return `self`.
-    pub const fn with_subsecond(mut self, value: u32) -> Option<Self> {
-        self.subsecond = Some(value);
-        Some(self)
-    }
-
-    /// Set the `offset_hour` component and return `self`.
-    pub const fn with_offset_hour(mut self, value: i8) -> Option<Self> {
-        self.offset_hour = Some(value);
-        Some(self)
-    }
-
-    /// Set the `offset_minute` component and return `self`.
-    pub const fn with_offset_minute(mut self, value: u8) -> Option<Self> {
-        self.offset_minute = Some(value);
-        Some(self)
-    }
-
-    /// Set the `offset_second` component and return `self`.
-    pub const fn with_offset_second(mut self, value: u8) -> Option<Self> {
-        self.offset_second = Some(value);
-        Some(self)
+    builders! {
+        with_year year: i32,
+        with_year_last_two year_last_two: u8,
+        with_iso_year iso_year: i32,
+        with_iso_year_last_two iso_year_last_two: u8,
+        with_month month: Month,
+        with_sunday_week_number sunday_week_number: u8,
+        with_monday_week_number monday_week_number: u8,
+        with_iso_week_number iso_week_number: NonZeroU8,
+        with_weekday weekday: Weekday,
+        with_ordinal ordinal: NonZeroU16,
+        with_day day: NonZeroU8,
+        with_hour_24 hour_24: u8,
+        with_hour_12 hour_12: NonZeroU8,
+        with_hour_12_is_pm hour_12_is_pm: bool,
+        with_minute minute: u8,
+        with_second second: u8,
+        with_subsecond subsecond: u32,
+        with_offset_hour offset_hour: i8,
+        with_offset_minute offset_minute: u8,
+        with_offset_second offset_second: u8,
     }
 }
 
