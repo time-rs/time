@@ -18,10 +18,12 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `OffsetDateTime::saturating_sub`
 - `PrimitiveDatetime::MIN`
 - `PrimitiveDatetime::MAX`
+- `Rfc2822` format description
 
 ### Changed
 
 - FreeBSD, OpenBSD, and NetBSD now support obtaining the local offset when single-threaded.
+- Leap seconds are now parsed as the final nanosecond of the preceding second.
 
 ## 0.3.5 [2021-11-12]
 
