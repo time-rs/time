@@ -363,6 +363,7 @@ impl_const_default! {
 }
 
 /// The modifiers parsed for any given component. `None` indicates the modifier was not present.
+#[cfg(feature = "alloc")]
 #[allow(clippy::missing_docs_in_private_items)] // fields
 #[derive(Debug, Default)]
 pub(crate) struct Modifiers {
@@ -380,9 +381,9 @@ pub(crate) struct Modifiers {
     pub(crate) case_sensitive: Option<bool>,
 }
 
+#[cfg(feature = "alloc")]
 impl Modifiers {
     /// Parse the modifiers of a given component.
-    #[cfg(feature = "alloc")]
     #[allow(clippy::too_many_lines)]
     pub(crate) fn parse(
         component_name: &[u8],
