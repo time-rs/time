@@ -92,15 +92,6 @@ impl Format {
     #[doc(hidden)] // Exposed only for the `declare_format_string` macro
     pub fn into_invalid_serde_value<S: serde::Serializer>(self) -> S::Error {
         use serde::ser::Error;
-        match self {
-            Self::InsufficientTypeInformation => {
-                S::Error::custom("insufficient type information to format a component")
-            }
-            Self::InvalidComponent(component) => S::Error::custom(format!(
-                "the component {} has a value that cannot be formatted into the requested format",
-                component
-            )),
-            Self::StdIo(err) => S::Error::custom(format!("encountered IO err: {}", err)),
-        }
+        S::Error::custom(format!("{}", self))
     }
 }

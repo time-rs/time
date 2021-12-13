@@ -41,6 +41,6 @@ fn custom_serialize_io_error() {
             },
             Token::Str("dt"),
         ],
-        "encountered IO err: failed to write whole buffer",
+        "failed to write whole buffer",
     );
 }

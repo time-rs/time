@@ -133,6 +133,6 @@ fn custom_serialize_bad_type_error() {
             },
             Token::Str("dt"),
         ],
-        "insufficient type information to format a component",
+        "The type being formatted does not contain sufficient information to format a component.",
     );
 }
