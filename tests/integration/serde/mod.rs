@@ -5,7 +5,6 @@ use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOf
 mod error_conditions;
 mod macros;
 mod timestamps;
-mod well_known;
 
 #[test]
 fn time() {
