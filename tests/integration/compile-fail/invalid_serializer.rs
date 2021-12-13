@@ -12,6 +12,5 @@ declare_format_string!(my_format, OffsetDateTime "[year] [month]"); // missing c
 declare_format_string!(my_format, OffsetDateTime : "[year] [month]"); // not a comma
 declare_format_string!(my_format, OffsetDateTime, "[bad]"); // bad component name
 declare_format_string!(my_format, OffsetDateTime, not_string); // string format wrong type
-declare_format_string!(my_format, Date, "[year] [month]"); // formattable not in scope
 
 fn main() {}
