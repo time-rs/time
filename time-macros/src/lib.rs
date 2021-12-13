@@ -175,7 +175,7 @@ pub fn declare_format_string(input: TokenStream) -> TokenStream {
     }
     // Then, the type to create serde serializers for (e.g., `OffsetDateTime`).
     let formattable = match tokens.next() {
-        Some(TokenTree::Ident(ident)) => TokenTree::Ident(ident),
+        Some(tree @ TokenTree::Ident(_)) => tree,
         Some(tree) => return Error::UnexpectedToken { tree }.to_compile_error_standalone(),
         None => return Error::UnexpectedEndOfInput.to_compile_error_standalone(),
     };
