@@ -9,8 +9,7 @@ use crate::parsing::ParsedItem;
 /// Parse a "+" or "-" sign. Returns the ASCII byte representing the sign, if present.
 pub(crate) const fn sign(input: &[u8]) -> Option<ParsedItem<'_, u8>> {
     match input {
-        [b'-', remaining @ ..] => Some(ParsedItem(remaining, b'-')),
-        [b'+', remaining @ ..] => Some(ParsedItem(remaining, b'+')),
+        [sign @ (b'-' | b'+'), remaining @ ..] => Some(ParsedItem(remaining, *sign)),
         _ => None,
     }
 }

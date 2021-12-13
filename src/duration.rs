@@ -602,8 +602,7 @@ impl Duration {
     /// assert_eq!(10.seconds().checked_div(-2), Some((-5).seconds()));
     /// assert_eq!(1.seconds().checked_div(0), None);
     /// ```
-    #[allow(clippy::missing_const_for_fn)] // requires Rust 1.52
-    pub fn checked_div(self, rhs: i32) -> Option<Self> {
+    pub const fn checked_div(self, rhs: i32) -> Option<Self> {
         let seconds = const_try_opt!(self.seconds.checked_div(rhs as i64));
         let carry = self.seconds - seconds * (rhs as i64);
         let extra_nanos = const_try_opt!((carry * 1_000_000_000).checked_div(rhs as i64));

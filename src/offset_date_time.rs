@@ -149,7 +149,7 @@ impl OffsetDateTime {
             UNIX_EPOCH_JULIAN_DAY + div_floor!(timestamp, 86_400) as i32,
         );
 
-        let seconds_within_day = rem_euclid!(timestamp, 86_400);
+        let seconds_within_day = timestamp.rem_euclid(86_400);
         let time = Time::__from_hms_nanos_unchecked(
             (seconds_within_day / 3_600) as _,
             ((seconds_within_day % 3_600) / 60) as _,
@@ -185,7 +185,7 @@ impl OffsetDateTime {
                 datetime.utc_datetime.hour(),
                 datetime.utc_datetime.minute(),
                 datetime.utc_datetime.second(),
-                rem_euclid!(timestamp, 1_000_000_000) as u32,
+                timestamp.rem_euclid(1_000_000_000) as u32,
             ))
             .assume_utc())
     }
@@ -280,7 +280,7 @@ impl OffsetDateTime {
         cascade!(minute in 0..60 => hour);
 
         Time::__from_hms_nanos_unchecked(
-            rem_euclid!(hour, 24) as _,
+            hour.rem_euclid(24) as _,
             minute as _,
             second as _,
             self.utc_datetime.nanosecond(),
@@ -591,7 +591,7 @@ impl OffsetDateTime {
 
         cascade!(second in 0..60 => minute);
         cascade!(minute in 0..60 => hour);
-        rem_euclid!(hour, 24) as _
+        hour.rem_euclid(24) as _
     }
 
     /// Get the minute within the hour in the stored offset.
@@ -613,7 +613,7 @@ impl OffsetDateTime {
         let mut minute = self.utc_datetime.minute() as i8 + self.offset.minutes_past_hour();
 
         cascade!(second in 0..60 => minute);
-        rem_euclid!(minute, 60) as _
+        minute.rem_euclid(60) as _
     }
 
     /// Get the second within the minute in the stored offset.
@@ -632,7 +632,7 @@ impl OffsetDateTime {
     /// ```
     pub const fn second(self) -> u8 {
         let second = self.utc_datetime.second() as i8 + self.offset.seconds_past_minute();
-        rem_euclid!(second, 60) as _
+        second.rem_euclid(60) as _
     }
 
     // Because a `UtcOffset` is limited in resolution to one second, any subsecond value will not

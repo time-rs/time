@@ -303,56 +303,37 @@ impl Modifiers {
                 break;
             }
 
-            #[allow(clippy::unnested_or_patterns)]
             match (component_name, modifier) {
-                (b"day", b"padding:space")
-                | (b"hour", b"padding:space")
-                | (b"minute", b"padding:space")
-                | (b"month", b"padding:space")
-                | (b"offset_hour", b"padding:space")
-                | (b"offset_minute", b"padding:space")
-                | (b"offset_second", b"padding:space")
-                | (b"ordinal", b"padding:space")
-                | (b"second", b"padding:space")
-                | (b"week_number", b"padding:space")
-                | (b"year", b"padding:space") => modifiers.padding = Some(Padding::Space),
-                (b"day", b"padding:zero")
-                | (b"hour", b"padding:zero")
-                | (b"minute", b"padding:zero")
-                | (b"month", b"padding:zero")
-                | (b"offset_hour", b"padding:zero")
-                | (b"offset_minute", b"padding:zero")
-                | (b"offset_second", b"padding:zero")
-                | (b"ordinal", b"padding:zero")
-                | (b"second", b"padding:zero")
-                | (b"week_number", b"padding:zero")
-                | (b"year", b"padding:zero") => modifiers.padding = Some(Padding::Zero),
-                (b"day", b"padding:none")
-                | (b"hour", b"padding:none")
-                | (b"minute", b"padding:none")
-                | (b"month", b"padding:none")
-                | (b"offset_hour", b"padding:none")
-                | (b"offset_minute", b"padding:none")
-                | (b"offset_second", b"padding:none")
-                | (b"ordinal", b"padding:none")
-                | (b"second", b"padding:none")
-                | (b"week_number", b"padding:none")
-                | (b"year", b"padding:none") => modifiers.padding = Some(Padding::None),
+                (
+                    b"day" | b"hour" | b"minute" | b"month" | b"offset_hour" | b"offset_minute"
+                    | b"offset_second" | b"ordinal" | b"second" | b"week_number" | b"year",
+                    b"padding:space",
+                ) => modifiers.padding = Some(Padding::Space),
+                (
+                    b"day" | b"hour" | b"minute" | b"month" | b"offset_hour" | b"offset_minute"
+                    | b"offset_second" | b"ordinal" | b"second" | b"week_number" | b"year",
+                    b"padding:zero",
+                ) => modifiers.padding = Some(Padding::Zero),
+                (
+                    b"day" | b"hour" | b"minute" | b"month" | b"offset_hour" | b"offset_minute"
+                    | b"offset_second" | b"ordinal" | b"second" | b"week_number" | b"year",
+                    b"padding:none",
+                ) => modifiers.padding = Some(Padding::None),
                 (b"hour", b"repr:24") => modifiers.hour_is_12_hour_clock = Some(false),
                 (b"hour", b"repr:12") => modifiers.hour_is_12_hour_clock = Some(true),
-                (b"month", b"case_sensitive:true")
-                | (b"period", b"case_sensitive:true")
-                | (b"weekday", b"case_sensitive:true") => modifiers.case_sensitive = Some(true),
-                (b"month", b"case_sensitive:false")
-                | (b"period", b"case_sensitive:false")
-                | (b"weekday", b"case_sensitive:false") => modifiers.case_sensitive = Some(false),
+                (b"month" | b"period" | b"weekday", b"case_sensitive:true") => {
+                    modifiers.case_sensitive = Some(true)
+                }
+                (b"month" | b"period" | b"weekday", b"case_sensitive:false") => {
+                    modifiers.case_sensitive = Some(false)
+                }
                 (b"month", b"repr:numerical") => modifiers.month_repr = Some(MonthRepr::Numerical),
                 (b"month", b"repr:long") => modifiers.month_repr = Some(MonthRepr::Long),
                 (b"month", b"repr:short") => modifiers.month_repr = Some(MonthRepr::Short),
-                (b"offset_hour", b"sign:automatic") | (b"year", b"sign:automatic") => {
+                (b"offset_hour" | b"year", b"sign:automatic") => {
                     modifiers.sign_is_mandatory = Some(false);
                 }
-                (b"offset_hour", b"sign:mandatory") | (b"year", b"sign:mandatory") => {
+                (b"offset_hour" | b"year", b"sign:mandatory") => {
                     modifiers.sign_is_mandatory = Some(true);
                 }
                 (b"period", b"case:upper") => modifiers.period_is_uppercase = Some(true),

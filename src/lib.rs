@@ -90,7 +90,7 @@
     trivial_numeric_casts,
     unreachable_pub,
     unsafe_code,
-    // unsafe_op_in_unsafe_fn, // requires Rust 1.51
+    unsafe_op_in_unsafe_fn,
     unused_extern_crates
 )]
 #![warn(
@@ -102,6 +102,7 @@
     clippy::print_stdout,
     clippy::todo,
     clippy::unimplemented,
+    clippy::unnested_or_patterns,
     clippy::unwrap_in_result,
     clippy::unwrap_used,
     clippy::use_debug,
@@ -174,20 +175,6 @@ macro_rules! div_floor {
             _quotient - 1
         } else {
             _quotient
-        }
-    }};
-}
-
-/// Euclidean remainder. Useful for `const` contexts.
-macro_rules! rem_euclid {
-    ($a:expr, $b:expr) => {{
-        let _a = $a;
-        let _b = $b;
-        let r = _a % _b;
-        if r < 0 {
-            if _b < 0 { r - _b } else { r + _b }
-        } else {
-            r
         }
     }};
 }

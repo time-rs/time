@@ -49,9 +49,7 @@ fn ccontent(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 /// Consume the `ctext` rule.
 fn ctext(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     no_ws_ctl(input).or_else(|| match input {
-        [33..=39, rest @ ..] | [42..=91, rest @ ..] | [93..=126, rest @ ..] => {
-            Some(ParsedItem(rest, ()))
-        }
+        [33..=39 | 42..=91 | 93..=126, rest @ ..] => Some(ParsedItem(rest, ())),
         _ => None,
     })
 }
@@ -80,9 +78,7 @@ fn quoted_pair(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 /// Consume the `no_ws_ctl` rule.
 const fn no_ws_ctl(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     match input {
-        [1..=8, rest @ ..] | [11..=12, rest @ ..] | [14..=31, rest @ ..] | [127, rest @ ..] => {
-            Some(ParsedItem(rest, ()))
-        }
+        [1..=8 | 11..=12 | 14..=31 | 127, rest @ ..] => Some(ParsedItem(rest, ())),
         _ => None,
     }
 }
@@ -90,9 +86,7 @@ const fn no_ws_ctl(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 /// Consume the `text` rule.
 fn text<'a>(input: &'a [u8]) -> ParsedItem<'a, ()> {
     let new_text = |input: &'a [u8]| match input {
-        [1..=9, rest @ ..] | [11..=12, rest @ ..] | [14..=127, rest @ ..] => {
-            Some(ParsedItem(rest, ()))
-        }
+        [1..=9 | 11..=12 | 14..=127, rest @ ..] => Some(ParsedItem(rest, ())),
         _ => None,
     };
 
@@ -100,7 +94,7 @@ fn text<'a>(input: &'a [u8]) -> ParsedItem<'a, ()> {
         // This is technically allowed, but consuming this would mean the rest of the string is
         // eagerly consumed without consideration for where the comment actually ends.
         [b')', ..] => None,
-        [0..=9, rest @ ..] | [11..=12, rest @ ..] | [14..=127, rest @ ..] => Some(rest),
+        [0..=9 | 11..=12 | 14..=127, rest @ ..] => Some(rest),
         _ => None,
     };
 

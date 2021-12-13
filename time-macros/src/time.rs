@@ -57,9 +57,8 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Time
             }
         };
 
-    #[allow(clippy::unnested_or_patterns)]
     let hour = match (hour, period) {
-        (0, Period::Am) | (0, Period::Pm) => {
+        (0, Period::Am | Period::Pm) => {
             return Err(Error::InvalidComponent {
                 name: "hour",
                 value: hour.to_string(),
@@ -69,7 +68,7 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Time
         }
         (12, Period::Am) => 0,
         (12, Period::Pm) => 12,
-        (hour, Period::Am) | (hour, Period::_24) => hour,
+        (hour, Period::Am | Period::_24) => hour,
         (hour, Period::Pm) => hour + 12,
     };
 

@@ -342,10 +342,9 @@ fn fmt_hour(
         is_12_hour_clock,
     }: modifier::Hour,
 ) -> Result<usize, io::Error> {
-    #[allow(clippy::unnested_or_patterns)]
     let value = match (time.hour(), is_12_hour_clock) {
         (hour, false) => hour,
-        (0, true) | (12, true) => 12,
+        (0 | 12, true) => 12,
         (hour, true) if hour < 12 => hour,
         (hour, true) => hour - 12,
     };

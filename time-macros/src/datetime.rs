@@ -18,12 +18,9 @@ pub(crate) struct DateTime {
 pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<DateTime, Error> {
     let date = date::parse(chars)?;
     let time = time::parse(chars)?;
-    #[allow(clippy::unnested_or_patterns)]
     let offset = match offset::parse(chars) {
         Ok(offset) => Some(offset),
-        Err(Error::UnexpectedEndOfInput) | Err(Error::MissingComponent { name: "sign", .. }) => {
-            None
-        }
+        Err(Error::UnexpectedEndOfInput | Error::MissingComponent { name: "sign", .. }) => None,
         Err(err) => return Err(err),
     };
 

@@ -32,7 +32,7 @@ jobs:
     if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
     strategy:
       matrix:
-        rust: ["1.51", stable]
+        rust: ["1.53", stable]
         target:
           - name: NetBSD
             triple: x86_64-unknown-netbsd
@@ -152,7 +152,7 @@ jobs:
     if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
     strategy:
       matrix:
-        rust: ["1.51", stable]
+        rust: ["1.53", stable]
         os:
           - { name: Ubuntu, value: ubuntu-20.04, has_local_offset: true }
           - { name: Windows, value: windows-latest, has_local_offset: true }

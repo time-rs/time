@@ -21,6 +21,7 @@
     clippy::print_stdout,
     clippy::todo,
     clippy::unimplemented,
+    clippy::unnested_or_patterns,
     clippy::unwrap_used,
     clippy::use_debug,
     single_use_lifetimes,

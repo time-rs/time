@@ -100,7 +100,7 @@ jobs:
           args: |
             check
             --no-dev-deps
-            --version-range 1.51..
+            --version-range 1.53..
             --clean-per-version
             --feature-powerset
             --optional-deps
@@ -116,7 +116,7 @@ jobs:
           args: |
             check
             --no-dev-deps
-            --version-range 1.51..
+            --version-range 1.53..
             --clean-per-version
             --feature-powerset
             --optional-deps

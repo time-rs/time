@@ -1,4 +1,3 @@
-use std::char; // until MSRV is at least 1.52
 use std::ops::{Index, RangeFrom};
 
 use proc_macro::Span;

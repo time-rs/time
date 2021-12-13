@@ -7,7 +7,7 @@ use crate::parsing::ParsedItem;
 /// Consume exactly one space or tab.
 pub(crate) const fn wsp(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     match input {
-        [b' ', rest @ ..] | [b'\t', rest @ ..] => Some(ParsedItem(rest, ())),
+        [b' ' | b'\t', rest @ ..] => Some(ParsedItem(rest, ())),
         _ => None,
     }
 }

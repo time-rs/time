@@ -40,17 +40,17 @@ unsafe fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
     // Update timezone information from system. `localtime_r` does not do this for us.
     //
     // Safety: tzset is thread-safe.
-    tzset();
+    unsafe { tzset() };
 
     // Safety: We are calling a system API, which mutates the `tm` variable. If a null
     // pointer is returned, an error occurred.
-    let tm_ptr = libc::localtime_r(&timestamp, tm.as_mut_ptr());
+    let tm_ptr = unsafe { libc::localtime_r(&timestamp, tm.as_mut_ptr()) };
 
     if tm_ptr.is_null() {
         None
     } else {
         // Safety: The value was initialized, as we no longer have a null pointer.
-        Some(tm.assume_init())
+        Some(unsafe { tm.assume_init() })
     }
 }
 
