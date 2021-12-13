@@ -4,6 +4,7 @@ use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOf
 
 mod error_conditions;
 mod macros;
+mod rfc3339;
 mod timestamps;
 
 #[test]
