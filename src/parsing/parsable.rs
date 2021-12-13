@@ -131,15 +131,14 @@ impl sealed::Sealed for Rfc2822 {
         let input = opt(fws)(input).into_inner();
         let input = first_match(
             [
-                ("Mon", Weekday::Monday),
-                ("Tue", Weekday::Tuesday),
-                ("Wed", Weekday::Wednesday),
-                ("Thu", Weekday::Thursday),
-                ("Fri", Weekday::Friday),
-                ("Sat", Weekday::Saturday),
-                ("Sun", Weekday::Sunday),
-            ]
-            .iter(),
+                (&b"Mon"[..], Weekday::Monday),
+                (&b"Tue"[..], Weekday::Tuesday),
+                (&b"Wed"[..], Weekday::Wednesday),
+                (&b"Thu"[..], Weekday::Thursday),
+                (&b"Fri"[..], Weekday::Friday),
+                (&b"Sat"[..], Weekday::Saturday),
+                (&b"Sun"[..], Weekday::Sunday),
+            ],
             false,
         )(input)
         .ok_or(InvalidComponent("weekday"))?
@@ -152,20 +151,19 @@ impl sealed::Sealed for Rfc2822 {
         let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
         let input = first_match(
             [
-                ("Jan", Month::January),
-                ("Feb", Month::February),
-                ("Mar", Month::March),
-                ("Apr", Month::April),
-                ("May", Month::May),
-                ("Jun", Month::June),
-                ("Jul", Month::July),
-                ("Aug", Month::August),
-                ("Sep", Month::September),
-                ("Oct", Month::October),
-                ("Nov", Month::November),
-                ("Dec", Month::December),
-            ]
-            .iter(),
+                (&b"Jan"[..], Month::January),
+                (&b"Feb"[..], Month::February),
+                (&b"Mar"[..], Month::March),
+                (&b"Apr"[..], Month::April),
+                (&b"May"[..], Month::May),
+                (&b"Jun"[..], Month::June),
+                (&b"Jul"[..], Month::July),
+                (&b"Aug"[..], Month::August),
+                (&b"Sep"[..], Month::September),
+                (&b"Oct"[..], Month::October),
+                (&b"Nov"[..], Month::November),
+                (&b"Dec"[..], Month::December),
+            ],
             false,
         )(input)
         .ok_or(InvalidComponent("month"))?
@@ -228,18 +226,17 @@ impl sealed::Sealed for Rfc2822 {
 
         let zone_literal = first_match(
             [
-                ("UT", 0),
-                ("GMT", 0),
-                ("EST", -5),
-                ("EDT", -4),
-                ("CST", -6),
-                ("CDT", -5),
-                ("MST", -7),
-                ("MDT", -6),
-                ("PST", -8),
-                ("PDT", -7),
-            ]
-            .iter(),
+                (&b"UT"[..], 0),
+                (&b"GMT"[..], 0),
+                (&b"EST"[..], -5),
+                (&b"EDT"[..], -4),
+                (&b"CST"[..], -6),
+                (&b"CDT"[..], -5),
+                (&b"MST"[..], -7),
+                (&b"MDT"[..], -6),
+                (&b"PST"[..], -8),
+                (&b"PDT"[..], -7),
+            ],
             false,
         )(input)
         .or_else(|| match input {

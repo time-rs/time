@@ -15,20 +15,20 @@ pub(crate) const fn sign(input: &[u8]) -> Option<ParsedItem<'_, u8>> {
 }
 
 /// Consume the first matching item, returning its associated value.
-// Due to compiler limitations, we must accept a `&str` instead of `&[u8]`.
-pub(crate) fn first_match<'a, 'b: 'a, T: Copy + 'a>(
-    mut options: impl Iterator<Item = &'a (&'b str, T)>,
+pub(crate) fn first_match<'a, T>(
+    options: impl IntoIterator<Item = (&'a [u8], T)>,
     case_sensitive: bool,
-) -> impl FnMut(&'b [u8]) -> Option<ParsedItem<'b, T>> {
+) -> impl FnMut(&'a [u8]) -> Option<ParsedItem<'a, T>> {
+    let mut options = options.into_iter();
     move |input| {
-        options.find_map(|&(expected, t)| {
+        options.find_map(|(expected, t)| {
             if case_sensitive {
-                Some(ParsedItem(input.strip_prefix(expected.as_bytes())?, t))
+                Some(ParsedItem(input.strip_prefix(expected)?, t))
             } else {
                 let n = expected.len();
                 if n <= input.len() {
                     let (head, tail) = input.split_at(n);
-                    if head.eq_ignore_ascii_case(expected.as_bytes()) {
+                    if head.eq_ignore_ascii_case(expected) {
                         return Some(ParsedItem(tail, t));
                     }
                 }
