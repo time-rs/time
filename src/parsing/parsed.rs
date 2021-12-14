@@ -3,7 +3,8 @@
 use core::convert::{TryFrom, TryInto};
 use core::num::{NonZeroU16, NonZeroU8};
 
-use crate::error::{self, TryFromParsed::InsufficientInformation};
+use crate::error;
+use crate::error::TryFromParsed::InsufficientInformation;
 use crate::format_description::modifier::{WeekNumberRepr, YearRepr};
 use crate::format_description::{Component, FormatItem};
 use crate::parsing::component::{
