@@ -213,6 +213,21 @@ fn rfc_2822_err() {
         OffsetDateTime::parse("Mon, 02 Jan 2021 03:04:05 -060", &Rfc2822),
         invalid_component!("offset minute")
     ));
+    assert!(matches!(
+        OffsetDateTime::parse("Fri, 31 Dec 2021 23:59:61 Z", &Rfc2822),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
+            if component.name() == "second" && !component.is_conditional()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Fri, 31 Dec 2021 03:04:60 Z", &Rfc2822),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
+            if component.name() == "second" && component.is_conditional()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Fri, 30 Dec 2021 23:59:60 Z", &Rfc2822),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
+            if component.name() == "second" && component.is_conditional()
+    ));
 }
 
 #[test]
