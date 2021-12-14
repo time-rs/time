@@ -40,9 +40,10 @@ impl ComponentRange {
     /// of the UTC day at the end of a month.
     /// The `conditional_range` flag is used to inform that the value of 60 would have succeeded
     /// had the other date-time components lined up to a plausible leap second time.
-    pub(crate) fn invalid_leap_second_input() -> Self {
+    #[cfg(feature = "parsing")]
+    pub(crate) const fn invalid_leap_second_input() -> Self {
         Self {
-            name: &"second",
+            name: "second",
             minimum: 0,
             maximum: 59,
             value: 60,
