@@ -3,7 +3,7 @@
 use core::convert::{TryFrom, TryInto};
 use core::num::{NonZeroU16, NonZeroU8};
 
-use crate::error::TryFromParsed::{InsufficientInformation, LeapSecondNotValid};
+use crate::error::{self, TryFromParsed::InsufficientInformation};
 use crate::format_description::modifier::{WeekNumberRepr, YearRepr};
 use crate::format_description::{Component, FormatItem};
 use crate::parsing::component::{
@@ -12,7 +12,7 @@ use crate::parsing::component::{
     parse_week_number, parse_weekday, parse_year, Period,
 };
 use crate::parsing::ParsedItem;
-use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// All information parsed.
 ///
@@ -495,7 +495,7 @@ impl TryFrom<Parsed> for OffsetDateTime {
         };
         let dt = PrimitiveDateTime::try_from(parsed)?.assume_offset(parsed.try_into()?);
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {
-            return Err(LeapSecondNotValid);
+            return Err(error::ComponentRange::invalid_leap_second_input().into());
         }
         Ok(dt)
     }

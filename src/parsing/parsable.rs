@@ -3,11 +3,11 @@
 use core::convert::TryInto;
 use core::ops::Deref;
 
-use crate::error::TryFromParsed;
+use crate::error::{self, TryFromParsed};
 use crate::format_description::well_known::{Rfc2822, Rfc3339};
 use crate::format_description::FormatItem;
 use crate::parsing::{Parsed, ParsedItem};
-use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// A type that can be parsed.
 #[cfg_attr(__time_03_docs, doc(notable_trait))]
@@ -459,7 +459,10 @@ impl sealed::Sealed for Rfc3339 {
             .map_err(TryFromParsed::ComponentRange)?;
 
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {
-            return Err(TryFromParsed::LeapSecondNotValid.into());
+            return Err(TryFromParsed::ComponentRange(
+                error::ComponentRange::invalid_leap_second_input(),
+            )
+            .into());
         }
 
         Ok(dt)

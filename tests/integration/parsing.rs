@@ -465,22 +465,20 @@ fn rfc_3339_err() {
         Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "month"
     ));
     assert!(matches!(
+        OffsetDateTime::parse("2021-12-31T23:59:61Z", &Rfc3339),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && !component.is_conditional()
+    ));
+    assert!(matches!(
         OffsetDateTime::parse("2021-01-02T23:59:60Z", &Rfc3339),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::LeapSecondNotValid
-        ))
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && component.is_conditional()
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-12-31T03:04:60Z", &Rfc3339),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::LeapSecondNotValid
-        ))
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && component.is_conditional()
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-12-31T23:59:60+01:00", &Rfc3339),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::LeapSecondNotValid
-        ))
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && component.is_conditional()
     ));
 }
 
