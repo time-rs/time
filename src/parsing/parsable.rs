@@ -217,12 +217,9 @@ impl sealed::Sealed for Rfc2822 {
             cfws(input).ok_or(InvalidLiteral)?.into_inner()
         };
 
-        // The RFC explicitly allows leap seconds. We don't currently support them, so treat it as
-        // the previous moment.
-        if parsed.second == Some(60) {
-            parsed.second = Some(59);
-            parsed.subsecond = Some(999_999_999);
-        }
+        // The RFC explicitly allows leap seconds.
+        // Inform the consumer of the Parsed to enable coping behavior.
+        parsed.leap_second_allowed = true;
 
         let zone_literal = first_match(
             [
@@ -331,14 +328,9 @@ impl sealed::Sealed for Rfc3339 {
             input
         };
 
-        // The RFC explicitly allows leap seconds. We don't currently support them, so treat it as
-        // the nearest preceding moment that can be represented, but set a flag to perform
-        // special validation when the time value is constructed.
-        if parsed.second == Some(60) {
-            parsed.leap_second_input = true;
-            parsed.second = Some(59);
-            parsed.subsecond = Some(999_999_999);
-        }
+        // The RFC explicitly allows leap seconds.
+        // Inform the consumer of the Parsed to enable coping behavior.
+        parsed.leap_second_allowed = true;
 
         if let Some(ParsedItem(input, ())) = ascii_char_ignore_case::<b'Z'>(input) {
             parsed.offset_hour = Some(0);

@@ -275,11 +275,6 @@ fn rfc_3339() -> time::Result<()> {
     );
 
     assert_eq!(
-        PrimitiveDateTime::parse("2022-01-01T00:59:60+01:00", &Rfc3339)?,
-        datetime!(2022-01-01 00:59:59.999_999_999),
-    );
-
-    assert_eq!(
         Date::parse("2021-01-02T03:04:05Z", &Rfc3339)?,
         date!(2021 - 01 - 02),
     );
@@ -290,10 +285,6 @@ fn rfc_3339() -> time::Result<()> {
     assert_eq!(
         Date::parse("2021-01-02T03:04:05.123-01:02", &Rfc3339)?,
         date!(2021 - 01 - 02),
-    );
-    assert_eq!(
-        Time::parse("2021-12-31T23:59:60Z", &Rfc3339)?,
-        time!(23:59:59.999_999_999)
     );
 
     Ok(())
@@ -375,10 +366,20 @@ fn rfc_3339_err() {
     ));
     assert!(matches!(
         PrimitiveDateTime::parse("2021-01-02T03:04:60Z", &Rfc3339),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::LeapSecondNotValid
-        ))
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second"
     ));
+
+    // Conversions to offset-unaware types do not perform special treatment for leap seconds
+    // even if the input could refer to one.
+    assert!(matches!(
+        PrimitiveDateTime::parse("2022-01-01T00:59:60+01:00", &Rfc3339),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second"
+    ));
+    assert!(matches!(
+        Time::parse("2021-12-31T23:04:60Z", &Rfc3339),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second"
+    ));
+
     assert!(matches!(
         OffsetDateTime::parse("2021-01-02T03:04:05Z ", &Rfc3339),
         Err(error::Parse::UnexpectedTrailingCharacters { .. })
@@ -477,30 +478,6 @@ fn rfc_3339_err() {
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-12-31T23:59:60+01:00", &Rfc3339),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::LeapSecondNotValid
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("2021-12-31T23:04:60Z", &Rfc3339),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::LeapSecondNotValid
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("2021-12-31T03:59:60Z", &Rfc3339),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::LeapSecondNotValid
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("2021-01-02T23:59:60Z", &Rfc3339),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::LeapSecondNotValid
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("2021-12-31T23:59:60+01:00", &Rfc3339),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::LeapSecondNotValid
         ))
