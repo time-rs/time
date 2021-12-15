@@ -6,6 +6,8 @@
 // representations in various binary forms.
 
 #[cfg(feature = "serde-well-known")]
+pub mod rfc2822;
+#[cfg(feature = "serde-well-known")]
 pub mod rfc3339;
 pub mod timestamp;
 
