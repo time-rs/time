@@ -103,36 +103,3 @@ impl TryFrom<crate::Error> for Parse {
         }
     }
 }
-
-#[cfg(feature = "serde-human-readable")]
-impl Parse {
-    /// Obtain an error type for the deserializer.
-    pub(crate) fn to_invalid_serde_value<'a, D: serde::Deserializer<'a>>(self) -> D::Error {
-        #[cfg(not(feature = "std"))]
-        use alloc::format;
-
-        use serde::de::Error;
-
-        match self {
-            Self::TryFromParsed(TryFromParsed::InsufficientInformation) => unreachable!(
-                "The deserializing format contains all information needed to construct a `Time`."
-            ),
-            Self::TryFromParsed(TryFromParsed::ComponentRange(err)) => {
-                err.to_invalid_serde_value::<D>()
-            }
-            Self::ParseFromDescription(ParseFromDescription::InvalidLiteral) => {
-                D::Error::invalid_value(serde::de::Unexpected::Other("literal"), &"valid format")
-            }
-            Self::ParseFromDescription(ParseFromDescription::InvalidComponent(component)) => {
-                D::Error::invalid_value(
-                    serde::de::Unexpected::Other(component),
-                    &&*format!("valid {}", component),
-                )
-            }
-            Self::UnexpectedTrailingCharacters => D::Error::invalid_value(
-                serde::de::Unexpected::Other("literal"),
-                &"no extraneous characters",
-            ),
-        }
-    }
-}

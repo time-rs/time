@@ -153,6 +153,7 @@ impl sealed::Sealed for Rfc2822 {
         Ok(bytes)
     }
 }
+
 impl sealed::Sealed for Rfc3339 {
     fn format_into(
         &self,

@@ -63,6 +63,7 @@ impl TryFrom<crate::Error> for ComponentRange {
     }
 }
 
+/// **This trait implementation is deprecated and will be removed in a future breaking release.**
 #[cfg(feature = "serde")]
 impl serde::de::Expected for ComponentRange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -76,12 +77,9 @@ impl serde::de::Expected for ComponentRange {
 
 #[cfg(feature = "serde")]
 impl ComponentRange {
-    /// Obtain an "invalid value" error type for the deserializer.
-    pub(crate) fn to_invalid_serde_value<'a, D: serde::Deserializer<'a>>(self) -> D::Error {
-        <D::Error as serde::de::Error>::invalid_value(
-            serde::de::Unexpected::Signed(self.value),
-            &self,
-        )
+    /// Convert the error to a deserialization error.
+    pub(crate) fn into_de_error<E: serde::de::Error>(self) -> E {
+        E::invalid_value(serde::de::Unexpected::Signed(self.value), &self)
     }
 }
 

@@ -62,6 +62,7 @@ mod primitive_date_time;
 mod quickcheck;
 mod rand;
 mod serde;
+mod serde_helpers;
 mod time;
 mod utc_offset;
 mod util;

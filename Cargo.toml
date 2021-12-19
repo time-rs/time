@@ -52,7 +52,7 @@ num_threads = "0.1.0"
 
 [dev-dependencies]
 rand = { version = "0.8.4", default-features = false }
-serde = { version = "1.0.126", default-features = false }
+serde = { version = "1.0.126", default-features = false, features = ["derive"] }
 serde_test = "1.0.126"
 
 [target.'cfg(__ui_tests)'.dev-dependencies]

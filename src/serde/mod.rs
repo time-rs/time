@@ -5,20 +5,28 @@
 // Types with guaranteed stable serde representations. Strings are avoided to allow for optimal
 // representations in various binary forms.
 
+/// Consume the next item in a sequence.
+macro_rules! item {
+    ($seq:expr, $name:literal) => {
+        $seq.next_element()?
+            .ok_or_else(|| <A::Error as serde::de::Error>::custom(concat!("expected ", $name)))
+    };
+}
+
 #[cfg(feature = "serde-well-known")]
 pub mod rfc2822;
 #[cfg(feature = "serde-well-known")]
 pub mod rfc3339;
 pub mod timestamp;
+mod visitor;
 
-use serde::de::Error as _;
+use core::marker::PhantomData;
+
 #[cfg(feature = "serde-human-readable")]
 use serde::ser::Error as _;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-#[cfg(feature = "serde-human-readable")]
-use crate::error;
-use crate::error::ComponentRange;
+use self::visitor::Visitor;
 #[cfg(feature = "serde-human-readable")]
 use crate::format_description::{modifier, Component, FormatItem};
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
@@ -50,14 +58,7 @@ impl Serialize for Date {
 
 impl<'a> Deserialize<'a> for Date {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
-        #[cfg(feature = "serde-human-readable")]
-        if deserializer.is_human_readable() {
-            return Self::parse(<_>::deserialize(deserializer)?, &DATE_FORMAT)
-                .map_err(error::Parse::to_invalid_serde_value::<D>);
-        }
-
-        let (year, ordinal) = <_>::deserialize(deserializer)?;
-        Self::from_ordinal_date(year, ordinal).map_err(ComponentRange::to_invalid_serde_value::<D>)
+        deserializer.deserialize_any(Visitor::<Self>(PhantomData))
     }
 }
 // endregion date
@@ -80,32 +81,7 @@ impl Serialize for Duration {
 
 impl<'a> Deserialize<'a> for Duration {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
-        #[cfg(feature = "serde-human-readable")]
-        if deserializer.is_human_readable() {
-            let s = <&str>::deserialize(deserializer)?;
-            let (seconds, nanoseconds) = s.split_once('.').ok_or_else(|| {
-                serde::de::Error::invalid_value(serde::de::Unexpected::Str(s), &"a decimal point")
-            })?;
-
-            let seconds = seconds.parse().map_err(|_| {
-                serde::de::Error::invalid_value(serde::de::Unexpected::Str(seconds), &"a number")
-            })?;
-            let mut nanoseconds = nanoseconds.parse().map_err(|_| {
-                serde::de::Error::invalid_value(
-                    serde::de::Unexpected::Str(nanoseconds),
-                    &"a number",
-                )
-            })?;
-
-            if seconds < 0 {
-                nanoseconds *= -1;
-            }
-
-            return Ok(Self::new(seconds, nanoseconds));
-        }
-
-        let (seconds, nanoseconds) = <_>::deserialize(deserializer)?;
-        Ok(Self::new(seconds, nanoseconds))
+        deserializer.deserialize_any(Visitor::<Self>(PhantomData))
     }
 }
 // endregion Duration
@@ -148,31 +124,7 @@ impl Serialize for OffsetDateTime {
 
 impl<'a> Deserialize<'a> for OffsetDateTime {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
-        #[cfg(feature = "serde-human-readable")]
-        if deserializer.is_human_readable() {
-            return Self::parse(<_>::deserialize(deserializer)?, &OFFSET_DATE_TIME_FORMAT)
-                .map_err(error::Parse::to_invalid_serde_value::<D>);
-        }
-
-        let (
-            year,
-            ordinal,
-            hour,
-            minute,
-            second,
-            nanosecond,
-            offset_hours,
-            offset_minutes,
-            offset_seconds,
-        ) = <_>::deserialize(deserializer)?;
-
-        Date::from_ordinal_date(year, ordinal)
-            .and_then(|date| date.with_hms_nano(hour, minute, second, nanosecond))
-            .and_then(|datetime| {
-                UtcOffset::from_hms(offset_hours, offset_minutes, offset_seconds)
-                    .map(|offset| datetime.assume_offset(offset))
-            })
-            .map_err(ComponentRange::to_invalid_serde_value::<D>)
+        deserializer.deserialize_any(Visitor::<Self>(PhantomData))
     }
 }
 // endregion OffsetDateTime
@@ -210,16 +162,7 @@ impl Serialize for PrimitiveDateTime {
 
 impl<'a> Deserialize<'a> for PrimitiveDateTime {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
-        #[cfg(feature = "serde-human-readable")]
-        if deserializer.is_human_readable() {
-            return Self::parse(<_>::deserialize(deserializer)?, &PRIMITIVE_DATE_TIME_FORMAT)
-                .map_err(error::Parse::to_invalid_serde_value::<D>);
-        }
-
-        let (year, ordinal, hour, minute, second, nanosecond) = <_>::deserialize(deserializer)?;
-        Date::from_ordinal_date(year, ordinal)
-            .and_then(|date| date.with_hms_nano(hour, minute, second, nanosecond))
-            .map_err(ComponentRange::to_invalid_serde_value::<D>)
+        deserializer.deserialize_any(Visitor::<Self>(PhantomData))
     }
 }
 // endregion PrimitiveDateTime
@@ -253,15 +196,7 @@ impl Serialize for Time {
 
 impl<'a> Deserialize<'a> for Time {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
-        #[cfg(feature = "serde-human-readable")]
-        if deserializer.is_human_readable() {
-            return Self::parse(<_>::deserialize(deserializer)?, &TIME_FORMAT)
-                .map_err(error::Parse::to_invalid_serde_value::<D>);
-        }
-
-        let (hour, minute, second, nanosecond) = <_>::deserialize(deserializer)?;
-        Self::from_hms_nano(hour, minute, second, nanosecond)
-            .map_err(ComponentRange::to_invalid_serde_value::<D>)
+        deserializer.deserialize_any(Visitor::<Self>(PhantomData))
     }
 }
 // endregion Time
@@ -298,14 +233,7 @@ impl Serialize for UtcOffset {
 
 impl<'a> Deserialize<'a> for UtcOffset {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
-        #[cfg(feature = "serde-human-readable")]
-        if deserializer.is_human_readable() {
-            return Self::parse(<_>::deserialize(deserializer)?, &UTC_OFFSET_FORMAT)
-                .map_err(error::Parse::to_invalid_serde_value::<D>);
-        }
-
-        let (hours, minutes, seconds) = <_>::deserialize(deserializer)?;
-        Self::from_hms(hours, minutes, seconds).map_err(ComponentRange::to_invalid_serde_value::<D>)
+        deserializer.deserialize_any(Visitor::<Self>(PhantomData))
     }
 }
 // endregion UtcOffset
@@ -326,36 +254,7 @@ impl Serialize for Weekday {
 
 impl<'a> Deserialize<'a> for Weekday {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
-        #[cfg(feature = "serde-human-readable")]
-        if deserializer.is_human_readable() {
-            return match <_>::deserialize(deserializer)? {
-                "Monday" => Ok(Self::Monday),
-                "Tuesday" => Ok(Self::Tuesday),
-                "Wednesday" => Ok(Self::Wednesday),
-                "Thursday" => Ok(Self::Thursday),
-                "Friday" => Ok(Self::Friday),
-                "Saturday" => Ok(Self::Saturday),
-                "Sunday" => Ok(Self::Sunday),
-                val => Err(D::Error::invalid_value(
-                    serde::de::Unexpected::Str(val),
-                    &"a day of the week",
-                )),
-            };
-        }
-
-        match u8::deserialize(deserializer)? {
-            1 => Ok(Self::Monday),
-            2 => Ok(Self::Tuesday),
-            3 => Ok(Self::Wednesday),
-            4 => Ok(Self::Thursday),
-            5 => Ok(Self::Friday),
-            6 => Ok(Self::Saturday),
-            7 => Ok(Self::Sunday),
-            val => Err(D::Error::invalid_value(
-                serde::de::Unexpected::Unsigned(val.into()),
-                &"a value in the range 1..=7",
-            )),
-        }
+        deserializer.deserialize_any(Visitor::<Self>(PhantomData))
     }
 }
 // endregion Weekday
@@ -376,46 +275,7 @@ impl Serialize for Month {
 
 impl<'a> Deserialize<'a> for Month {
     fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
-        #[cfg(feature = "serde-human-readable")]
-        if deserializer.is_human_readable() {
-            return match <_>::deserialize(deserializer)? {
-                "January" => Ok(Self::January),
-                "February" => Ok(Self::February),
-                "March" => Ok(Self::March),
-                "April" => Ok(Self::April),
-                "May" => Ok(Self::May),
-                "June" => Ok(Self::June),
-                "July" => Ok(Self::July),
-                "August" => Ok(Self::August),
-                "September" => Ok(Self::September),
-                "October" => Ok(Self::October),
-                "November" => Ok(Self::November),
-                "December" => Ok(Self::December),
-                val => Err(D::Error::invalid_value(
-                    serde::de::Unexpected::Str(val),
-                    &"a month of the year",
-                )),
-            };
-        }
-
-        match u8::deserialize(deserializer)? {
-            1 => Ok(Self::January),
-            2 => Ok(Self::February),
-            3 => Ok(Self::March),
-            4 => Ok(Self::April),
-            5 => Ok(Self::May),
-            6 => Ok(Self::June),
-            7 => Ok(Self::July),
-            8 => Ok(Self::August),
-            9 => Ok(Self::September),
-            10 => Ok(Self::October),
-            11 => Ok(Self::November),
-            12 => Ok(Self::December),
-            val => Err(D::Error::invalid_value(
-                serde::de::Unexpected::Unsigned(val.into()),
-                &"a value in the range 1..=12",
-            )),
-        }
+        deserializer.deserialize_any(Visitor::<Self>(PhantomData))
     }
 }
 // endregion Month

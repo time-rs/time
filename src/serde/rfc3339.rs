@@ -5,10 +5,12 @@
 //! [RFC3339 format]: https://tools.ietf.org/html/rfc3339#section-5.6
 //! [with]: https://serde.rs/field-attrs.html#with
 
-use serde::de::Error as _;
-use serde::ser::Error as _;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use core::marker::PhantomData;
 
+use serde::ser::Error as _;
+use serde::{Deserializer, Serialize, Serializer};
+
+use super::Visitor;
 use crate::format_description::well_known::Rfc3339;
 use crate::OffsetDateTime;
 
@@ -25,7 +27,7 @@ pub fn serialize<S: Serializer>(
 
 /// Deserialize an [`OffsetDateTime`] from its RFC3339 representation.
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
-    OffsetDateTime::parse(<_>::deserialize(deserializer)?, &Rfc3339).map_err(D::Error::custom)
+    deserializer.deserialize_any(Visitor::<Rfc3339>(PhantomData))
 }
 
 /// Use the well-known [RFC3339 format] when serializing and deserializing an
@@ -55,9 +57,6 @@ pub mod option {
     pub fn deserialize<'a, D: Deserializer<'a>>(
         deserializer: D,
     ) -> Result<Option<OffsetDateTime>, D::Error> {
-        Option::deserialize(deserializer)?
-            .map(|s| OffsetDateTime::parse(s, &Rfc3339))
-            .transpose()
-            .map_err(D::Error::custom)
+        deserializer.deserialize_option(Visitor::<Option<Rfc3339>>(PhantomData))
     }
 }
