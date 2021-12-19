@@ -40,7 +40,7 @@ pub const fn days_in_year_month(year: i32, month: Month) -> u8 {
 /// assert!(!is_leap_year(2100));
 /// ```
 pub const fn is_leap_year(year: i32) -> bool {
-    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)
+    year % 4 == 0 && (year % 25 != 0 || year % 16 == 0)
 }
 
 /// Get the number of calendar days in a given year.
