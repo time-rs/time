@@ -38,7 +38,7 @@ serde-well-known = ["serde/alloc", "formatting", "parsing"] # use case for weak 
 std = ["alloc"]
 
 [dependencies]
-itoa = { version = "0.4.7", optional = true }
+itoa = { version = "1.0.1", optional = true }
 quickcheck-dep = { package = "quickcheck", version = "1.0.3", default-features = false, optional = true }
 rand = { version = "0.8.4", optional = true, default-features = false }
 serde = { version = "1.0.126", optional = true, default-features = false }

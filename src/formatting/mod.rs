@@ -132,7 +132,7 @@ pub(crate) fn format_number<W: io::Write, V: itoa::Integer + DigitCount + Copy, 
     match padding {
         modifier::Padding::Space => format_number_pad_space::<_, _, WIDTH>(output, value),
         modifier::Padding::Zero => format_number_pad_zero::<_, _, WIDTH>(output, value),
-        modifier::Padding::None => itoa::write(output, value),
+        modifier::Padding::None => write(output, itoa::Buffer::new().format(value).as_bytes()),
     }
 }
 
@@ -151,7 +151,7 @@ pub(crate) fn format_number_pad_space<
     for _ in 0..(WIDTH.saturating_sub(value.num_digits())) {
         bytes += write(output, &[b' '])?;
     }
-    bytes += itoa::write(output, value)?;
+    bytes += write(output, itoa::Buffer::new().format(value).as_bytes())?;
     Ok(bytes)
 }
 
@@ -170,7 +170,7 @@ pub(crate) fn format_number_pad_zero<
     for _ in 0..(WIDTH.saturating_sub(value.num_digits())) {
         bytes += write(output, &[b'0'])?;
     }
-    bytes += itoa::write(output, value)?;
+    bytes += write(output, itoa::Buffer::new().format(value).as_bytes())?;
     Ok(bytes)
 }
 
