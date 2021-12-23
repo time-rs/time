@@ -4,16 +4,16 @@ use core::fmt;
 use core::marker::PhantomData;
 
 use serde::de;
-#[cfg(feature = "serde-human-readable")]
+#[cfg(feature = "serde-well-known")]
 use serde::Deserializer;
 
-#[cfg(feature = "serde-human-readable")]
+#[cfg(feature = "parsing")]
 use super::{
     DATE_FORMAT, OFFSET_DATE_TIME_FORMAT, PRIMITIVE_DATE_TIME_FORMAT, TIME_FORMAT,
     UTC_OFFSET_FORMAT,
 };
 use crate::error::ComponentRange;
-#[cfg(feature = "serde-human-readable")]
+#[cfg(feature = "serde-well-known")]
 use crate::format_description::well_known;
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
@@ -27,7 +27,7 @@ impl<'a> de::Visitor<'a> for Visitor<Date> {
         formatter.write_str("a `Date`")
     }
 
-    #[cfg(feature = "serde-human-readable")]
+    #[cfg(feature = "parsing")]
     fn visit_str<E: de::Error>(self, value: &str) -> Result<Date, E> {
         Date::parse(value, &DATE_FORMAT).map_err(E::custom)
     }
@@ -46,7 +46,6 @@ impl<'a> de::Visitor<'a> for Visitor<Duration> {
         formatter.write_str("a `Duration`")
     }
 
-    #[cfg(feature = "serde-human-readable")]
     fn visit_str<E: de::Error>(self, value: &str) -> Result<Duration, E> {
         let (seconds, nanoseconds) = value.split_once('.').ok_or_else(|| {
             de::Error::invalid_value(de::Unexpected::Str(value), &"a decimal point")
@@ -80,7 +79,7 @@ impl<'a> de::Visitor<'a> for Visitor<OffsetDateTime> {
         formatter.write_str("an `OffsetDateTime`")
     }
 
-    #[cfg(feature = "serde-human-readable")]
+    #[cfg(feature = "parsing")]
     fn visit_str<E: de::Error>(self, value: &str) -> Result<OffsetDateTime, E> {
         OffsetDateTime::parse(value, &OFFSET_DATE_TIME_FORMAT).map_err(E::custom)
     }
@@ -113,7 +112,7 @@ impl<'a> de::Visitor<'a> for Visitor<PrimitiveDateTime> {
         formatter.write_str("a `PrimitiveDateTime`")
     }
 
-    #[cfg(feature = "serde-human-readable")]
+    #[cfg(feature = "parsing")]
     fn visit_str<E: de::Error>(self, value: &str) -> Result<PrimitiveDateTime, E> {
         PrimitiveDateTime::parse(value, &PRIMITIVE_DATE_TIME_FORMAT).map_err(E::custom)
     }
@@ -139,7 +138,7 @@ impl<'a> de::Visitor<'a> for Visitor<Time> {
         formatter.write_str("a `Time`")
     }
 
-    #[cfg(feature = "serde-human-readable")]
+    #[cfg(feature = "parsing")]
     fn visit_str<E: de::Error>(self, value: &str) -> Result<Time, E> {
         Time::parse(value, &TIME_FORMAT).map_err(E::custom)
     }
@@ -161,7 +160,7 @@ impl<'a> de::Visitor<'a> for Visitor<UtcOffset> {
         formatter.write_str("a `UtcOffset`")
     }
 
-    #[cfg(feature = "serde-human-readable")]
+    #[cfg(feature = "parsing")]
     fn visit_str<E: de::Error>(self, value: &str) -> Result<UtcOffset, E> {
         UtcOffset::parse(value, &UTC_OFFSET_FORMAT).map_err(E::custom)
     }
@@ -182,7 +181,6 @@ impl<'a> de::Visitor<'a> for Visitor<Weekday> {
         formatter.write_str("a `Weekday`")
     }
 
-    #[cfg(feature = "serde-human-readable")]
     fn visit_str<E: de::Error>(self, value: &str) -> Result<Weekday, E> {
         match value {
             "Monday" => Ok(Weekday::Monday),
@@ -220,7 +218,6 @@ impl<'a> de::Visitor<'a> for Visitor<Month> {
         formatter.write_str("a `Month`")
     }
 
-    #[cfg(feature = "serde-human-readable")]
     fn visit_str<E: de::Error>(self, value: &str) -> Result<Month, E> {
         match value {
             "January" => Ok(Month::January),

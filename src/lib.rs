@@ -53,6 +53,9 @@
 //!   serializer, not the user. If this feature is not enabled or if the serializer requests a
 //!   non-human-readable format, a format optimized for binary representation will be used.
 //!
+//!   Libraries should never enable this feature, as the decision of what format to use should be up
+//!   to the user.
+//!
 //! - `serde-well-known` (_implicitly enables `serde/alloc`, `formatting`, and `parsing`_)
 //!
 //!   Enables support for serializing and deserializing well-known formats using serde's

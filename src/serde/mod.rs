@@ -27,13 +27,13 @@ use serde::ser::Error as _;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use self::visitor::Visitor;
-#[cfg(feature = "serde-human-readable")]
+#[cfg(feature = "parsing")]
 use crate::format_description::{modifier, Component, FormatItem};
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 // region: Date
 /// The format used when serializing and deserializing a human-readable `Date`.
-#[cfg(feature = "serde-human-readable")]
+#[cfg(feature = "parsing")]
 const DATE_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Component(Component::Year(modifier::Year::default())),
     FormatItem::Literal(b"-"),
@@ -88,7 +88,7 @@ impl<'a> Deserialize<'a> for Duration {
 
 // region: OffsetDateTime
 /// The format used when serializing and deserializing a human-readable `OffsetDateTime`.
-#[cfg(feature = "serde-human-readable")]
+#[cfg(feature = "parsing")]
 const OFFSET_DATE_TIME_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Compound(DATE_FORMAT),
     FormatItem::Literal(b" "),
@@ -131,7 +131,7 @@ impl<'a> Deserialize<'a> for OffsetDateTime {
 
 // region: PrimitiveDateTime
 /// The format used when serializing and deserializing a human-readable `PrimitiveDateTime`.
-#[cfg(feature = "serde-human-readable")]
+#[cfg(feature = "parsing")]
 const PRIMITIVE_DATE_TIME_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Compound(DATE_FORMAT),
     FormatItem::Literal(b" "),
@@ -169,7 +169,7 @@ impl<'a> Deserialize<'a> for PrimitiveDateTime {
 
 // region: Time
 /// The format used when serializing and deserializing a human-readable `Time`.
-#[cfg(feature = "serde-human-readable")]
+#[cfg(feature = "parsing")]
 const TIME_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Component(Component::Hour(<modifier::Hour>::default())),
     FormatItem::Literal(b":"),
@@ -203,7 +203,7 @@ impl<'a> Deserialize<'a> for Time {
 
 // region: UtcOffset
 /// The format used when serializing and deserializing a human-readable `UtcOffset`.
-#[cfg(feature = "serde-human-readable")]
+#[cfg(feature = "parsing")]
 const UTC_OFFSET_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Component(Component::OffsetHour(modifier::OffsetHour::default())),
     FormatItem::Literal(b":"),
