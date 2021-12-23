@@ -156,9 +156,9 @@ jobs:
       matrix:
         rust: ["1.53", stable]
         os:
-          - { name: Ubuntu, value: ubuntu-20.04, has_local_offset: true }
-          - { name: Windows, value: windows-latest, has_local_offset: true }
-          - { name: MacOS, value: macOS-latest, has_local_offset: false }
+          - { name: Ubuntu, value: ubuntu-20.04 }
+          - { name: Windows, value: windows-latest }
+          - { name: MacOS, value: macOS-latest }
 
     steps:
       - name: Checkout sources
@@ -202,24 +202,6 @@ jobs:
             --exclude-features default,quickcheck-dep,time-macros,itoa
             --features macros
         if: matrix.os.has_local_offset == true
-
-      # Due to the soundness bug on Unix-like platforms, adding the local-offset flag doesn't
-      # actually add any new behavior. Since we know nothing changes, we can unconditionally enable
-      # the flag.
-      - name: Check feature powerset
-        uses: actions-rs/cargo@v1
-        with:
-          command: hack
-          args: |
-            check
-            --feature-powerset
-            --optional-deps
-            --group-features serde,rand
-            --group-features formatting,parsing
-            --group-features serde-human-readable,serde-well-known
-            --exclude-features default,quickcheck-dep,time-macros,itoa
-            --features macros,local-offset
-        if: matrix.os.has_local_offset == false
 
       - name: Test
         uses: actions-rs/cargo@v1
