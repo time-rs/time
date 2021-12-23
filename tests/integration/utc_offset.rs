@@ -161,3 +161,13 @@ fn current_local_offset() {
     #[cfg(target_family = "unix")]
     let _ = UtcOffset::current_local_offset();
 }
+
+#[test]
+#[cfg(target_family = "unix")]
+fn local_offset_error_when_multithreaded() {
+    std::thread::spawn(|| {
+        assert!(UtcOffset::current_local_offset().is_err());
+    })
+    .join()
+    .expect("failed to join thread");
+}
