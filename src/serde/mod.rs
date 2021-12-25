@@ -13,8 +13,6 @@ macro_rules! item {
     };
 }
 
-#[cfg(feature = "macros")]
-pub mod macros;
 #[cfg(feature = "serde-well-known")]
 pub mod rfc2822;
 #[cfg(feature = "serde-well-known")]
@@ -23,8 +21,6 @@ pub mod timestamp;
 mod visitor;
 
 use core::marker::PhantomData;
-#[cfg(feature = "serde-human-readable")]
-pub mod well_known;
 
 #[cfg(feature = "serde-human-readable")]
 use serde::ser::Error as _;
