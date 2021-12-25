@@ -138,9 +138,7 @@ impl Parse {
             Self::TryFromParsed(TryFromParsed::InsufficientInformation) => unreachable!(
                 "The deserializing format contains all information needed to construct a `Time`."
             ),
-            Self::TryFromParsed(TryFromParsed::ComponentRange(err)) => {
-                err.to_invalid_serde_value::<D>()
-            }
+            Self::TryFromParsed(TryFromParsed::ComponentRange(err)) => err.into_de_error(),
             Self::ParseFromDescription(ParseFromDescription::InvalidLiteral) => {
                 D::Error::invalid_value(serde::de::Unexpected::Other("literal"), &"valid format")
             }
