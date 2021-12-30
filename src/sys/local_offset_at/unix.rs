@@ -1,7 +1,7 @@
 //! Get the system's UTC offset on Unix.
-#[cfg(any(target_os = "linux", target_os = "freebsd", unsound_local_offset))]
+#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "macos", unsound_local_offset))]
 use core::convert::TryInto;
-#[cfg(any(target_os = "linux", target_os = "freebsd", unsound_local_offset))]
+#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "macos", unsound_local_offset))]
 use core::mem::MaybeUninit;
 
 use crate::{OffsetDateTime, UtcOffset};
@@ -9,7 +9,7 @@ use crate::{OffsetDateTime, UtcOffset};
 /// Obtain the system's UTC offset.
 // This fallback is used whenever an operating system doesn't have a method below for determine if a
 // process is single threaded.
-#[cfg(not(any(target_os = "linux", target_os = "freebsd", unsound_local_offset)))]
+#[cfg(not(any(target_os = "linux", target_os = "freebsd", target_os = "macos", unsound_local_offset)))]
 #[allow(clippy::missing_const_for_fn)]
 pub(super) fn local_offset_at(_datetime: OffsetDateTime) -> Option<UtcOffset> {
     None
@@ -24,7 +24,7 @@ pub(super) fn local_offset_at(_datetime: OffsetDateTime) -> Option<UtcOffset> {
 /// This method will remain `unsafe` until `std::env::set_var` is deprecated or has its behavior
 /// altered. This method is, on its own, safe. It is the presence of a safe, unsound way to set
 /// environment variables that makes it unsafe.
-#[cfg(any(target_os = "linux", target_os = "freebsd", unsound_local_offset))]
+#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "macos", unsound_local_offset))]
 unsafe fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
     extern "C" {
         #[cfg_attr(target_os = "netbsd", link_name = "__tzset50")]
@@ -56,7 +56,7 @@ unsafe fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
 
 /// Convert a `libc::tm` to a `UtcOffset`. Returns `None` on any error.
 // `tm_gmtoff` extension
-#[cfg(any(target_os = "linux", target_os = "freebsd", unsound_local_offset))]
+#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "macos", unsound_local_offset))]
 #[cfg(not(any(target_os = "solaris", target_os = "illumos")))]
 fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
     let seconds: i32 = tm.tm_gmtoff.try_into().ok()?;
@@ -107,7 +107,7 @@ fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
 }
 
 /// Obtain the system's UTC offset.
-#[cfg(any(target_os = "linux", target_os = "freebsd", unsound_local_offset))]
+#[cfg(any(target_os = "linux", target_os = "freebsd", target_os = "macos", unsound_local_offset))]
 pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     // Ensure that the process is single-threaded unless the user has explicitly opted out of this
     // check. This is to prevent issues with the environment being mutated by a different thread in
