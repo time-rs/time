@@ -1,6 +1,6 @@
 use std::convert::TryFrom;
 use std::error::Error as _;
-use std::io;
+use std::{fmt, io};
 
 use time::error::{
     ComponentRange, ConversionRange, DifferentVariant, Error, Format, IndeterminateOffset,
@@ -108,6 +108,7 @@ fn display() {
         Error::from(invalid_format_description())
     );
     assert_display_eq!(io_error(), Format::from(io_error()));
+    assert_display_eq!(fmt::Error, Format::from(fmt::Error));
     assert_display_eq!(DifferentVariant, Error::from(DifferentVariant));
 }
 
@@ -144,6 +145,7 @@ fn source() {
         InvalidFormatDescription
     );
     assert_source!(Format::from(io_error()), io::Error);
+    assert_source!(Format::from(fmt::Error), fmt::Error);
     assert_source!(Error::from(DifferentVariant), DifferentVariant);
 }
 
