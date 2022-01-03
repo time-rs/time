@@ -599,3 +599,13 @@ fn first() -> time::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn format_into_invalid_utf8() -> time::Result<()> {
+    let mut bytes = Vec::new();
+    let bytes_written = Time::MIDNIGHT.format_into(&mut bytes, &FormatItem::Literal(&[195, 40]))?;
+    assert_eq!(bytes, vec![195, 40]);
+    assert_eq!(bytes_written, 2);
+
+    Ok(())
+}
