@@ -135,6 +135,26 @@ impl<'a> sealed::Sealed for FormatItem<'a> {
 
         Ok(())
     }
+
+    fn format_into_old(
+        &self,
+        output: &mut impl io::Write,
+        date: Option<Date>,
+        time: Option<Time>,
+        offset: Option<UtcOffset>,
+    ) -> Result<usize, error::Format> {
+        match self {
+            Self::Literal(literal) => {
+                output.write_all(literal)?;
+                Ok(literal.len())
+            }
+            other => {
+                let mut compat = Compat::from_io(output);
+                let result = other.format_into(&mut compat, date, time, offset);
+                compat.into_io_result(result)
+            }
+        }
+    }
 }
 
 impl<'a> sealed::Sealed for [FormatItem<'a>] {
