@@ -44,6 +44,29 @@ where
     }
 }
 
+impl<'a, W> Compat<'a, W>
+where
+    W: io::Write,
+{
+    /// Create the compatibility layer from this [`io::Write`]
+    fn from_io(writer: &'a mut W) -> Self {
+        Self {
+            writer,
+            bytes_written: 0,
+            error: None,
+        }
+    }
+
+    /// Turn a `Result<(), error::Format::StdFmt>` into `Result<usize, error::Format::StdIo>`
+    fn into_io_result(self, result: Result<(), error::Format>) -> Result<usize, error::Format> {
+        result.map(|_| self.bytes_written).map_err(|fmt_error| {
+            self.error
+                .map(error::Format::from)
+                .unwrap_or_else(|| fmt_error)
+        })
+    }
+}
+
 /// Seal the trait to prevent downstream users from implementing it.
 mod sealed {
     #[allow(clippy::wildcard_imports)]
@@ -69,19 +92,9 @@ mod sealed {
             time: Option<Time>,
             offset: Option<UtcOffset>,
         ) -> Result<usize, error::Format> {
-            let mut compat = Compat {
-                writer: output,
-                bytes_written: 0,
-                error: None,
-            };
-            self.format_into(&mut compat, date, time, offset)
-                .map(|_| compat.bytes_written)
-                .map_err(|fmt_error| {
-                    compat
-                        .error
-                        .map(error::Format::from)
-                        .unwrap_or_else(|| fmt_error)
-                })
+            let mut compat = Compat::from_io(output);
+            let result = self.format_into(&mut compat, date, time, offset);
+            compat.into_io_result(result)
         }
 
         /// Format the item directly to a `String`.
