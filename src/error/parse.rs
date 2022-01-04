@@ -103,26 +103,3 @@ impl TryFrom<crate::Error> for Parse {
         }
     }
 }
-
-/// Simple wrapper for fmt::Arguments that implements `serde::de::Expected`.
-///
-/// This allows us to use `format_args!()` in a `serde::de::Error`.
-#[cfg(feature = "serde")]
-struct ArgumentsWrapper<'a> {
-    /// Inner wrapped value.
-    args: fmt::Arguments<'a>,
-}
-
-#[cfg(feature = "serde")]
-impl<'a> From<fmt::Arguments<'a>> for ArgumentsWrapper<'a> {
-    fn from(args: fmt::Arguments<'a>) -> Self {
-        Self { args }
-    }
-}
-
-#[cfg(feature = "serde")]
-impl serde::de::Expected for ArgumentsWrapper<'_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&self.args, formatter)
-    }
-}
