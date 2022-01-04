@@ -126,32 +126,3 @@ impl serde::de::Expected for ArgumentsWrapper<'_> {
         fmt::Display::fmt(&self.args, formatter)
     }
 }
-
-#[cfg(feature = "serde")]
-impl Parse {
-    /// Obtain an error type for the deserializer.
-    #[doc(hidden)] // Exposed only for the `declare_format!` macros
-    pub fn to_invalid_serde_value<'a, D: serde::Deserializer<'a>>(self) -> D::Error {
-        use serde::de::Error;
-
-        match self {
-            Self::TryFromParsed(TryFromParsed::InsufficientInformation) => unreachable!(
-                "The deserializing format contains all information needed to construct a `Time`."
-            ),
-            Self::TryFromParsed(TryFromParsed::ComponentRange(err)) => err.into_de_error(),
-            Self::ParseFromDescription(ParseFromDescription::InvalidLiteral) => {
-                D::Error::invalid_value(serde::de::Unexpected::Other("literal"), &"valid format")
-            }
-            Self::ParseFromDescription(ParseFromDescription::InvalidComponent(component)) => {
-                D::Error::invalid_value(
-                    serde::de::Unexpected::Other(component),
-                    &ArgumentsWrapper::from(format_args!("valid {}", component)),
-                )
-            }
-            Self::UnexpectedTrailingCharacters => D::Error::invalid_value(
-                serde::de::Unexpected::Other("literal"),
-                &"no extraneous characters",
-            ),
-        }
-    }
-}

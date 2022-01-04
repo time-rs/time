@@ -29,6 +29,7 @@
     variant_size_differences
 )]
 #![allow(clippy::missing_const_for_fn, clippy::redundant_pub_crate)]
+#![recursion_limit = "256"]
 
 #[macro_use]
 mod quote;
@@ -97,7 +98,61 @@ fn make_serde_serializer_module(
     mod_name: proc_macro::Ident,
     items: impl to_tokens::ToTokens,
     formattable: TokenStream,
+    format_string: &str,
 ) -> TokenStream {
+    let visitor_struct = quote! {
+        struct Visitor<T: ?Sized>(::core::marker::PhantomData<T>);
+
+        impl<'a> ::serde::de::Visitor<'a> for Visitor<#(formattable.clone())> {
+            type Value = #(formattable.clone());
+
+            fn expecting(&self, formatter: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                // `write!` macro confuses `quote!` so format our message manually
+                formatter.write_str("a(n) `")?;
+                formatter.write_str(#(formattable.to_string()))?;
+                formatter.write_str("` in the format \"")?;
+                formatter.write_str(&FORMAT_STRING)?;
+                formatter.write_str("\"")
+            }
+
+            fn visit_str<E: ::serde::de::Error>(
+                self,
+                value: &str
+            ) -> Result<Self::Value, E> {
+                #(formattable.clone())::parse(value, &DESCRIPTION).map_err(E::custom)
+            }
+        }
+
+        impl<'a> ::serde::de::Visitor<'a> for Visitor<Option<#(formattable.clone())>> {
+            type Value = Option<#(formattable.clone())>;
+
+            fn expecting(&self, formatter: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                // `write!` macro confuses `quote!` so format our message manually
+                formatter.write_str("an `Option<")?;
+                formatter.write_str(#(formattable.to_string()))?;
+                formatter.write_str(">` in the format \"")?;
+                formatter.write_str(&FORMAT_STRING)?;
+                formatter.write_str("\"")
+            }
+
+            fn visit_some<D: ::serde::de::Deserializer<'a>>(
+                self,
+                deserializer: D
+            ) -> Result<Self::Value, D::Error> {
+                let visitor = Visitor::<#(formattable.clone())>(::core::marker::PhantomData);
+                deserializer
+                    .deserialize_any(visitor)
+                    .map(Some)
+            }
+
+            fn visit_none<E: ::serde::de::Error>(
+                self
+            ) -> Result<Option<#(formattable.clone())>, E> {
+                Ok(None)
+            }
+        }
+
+    };
     let serialize_fns = quote! {
         pub fn serialize<S: ::serde::Serializer>(
             datetime: &#(formattable.clone()),
@@ -114,8 +169,8 @@ fn make_serde_serializer_module(
             deserializer: D
         ) -> Result<#(formattable.clone()), D::Error> {
             use ::serde::Deserialize;
-            #(formattable.clone())::parse(<&str>::deserialize(deserializer)?, &DESCRIPTION)
-                .map_err(::time::error::Parse::to_invalid_serde_value::<D>)
+            let visitor = Visitor::<#(formattable.clone())>(::core::marker::PhantomData);
+            deserializer.deserialize_any(visitor)
         }
     };
     let option_serialize_fns = quote! {
@@ -134,23 +189,23 @@ fn make_serde_serializer_module(
             deserializer: D
         ) -> Result<Option<#(formattable.clone())>, D::Error> {
             use ::serde::Deserialize;
-            Option::<&str>::deserialize(deserializer)?
-                .map(|string| #(formattable.clone())::parse(string, &DESCRIPTION))
-                .transpose()
-                .map_err(::time::error::Parse::to_invalid_serde_value::<D>)
+            let visitor = Visitor::<Option<#(formattable.clone())>>(::core::marker::PhantomData);
+            deserializer.deserialize_option(visitor)
         }
     };
 
-    quote! {
-        mod #(mod_name) {
+    quote! {mod #(mod_name) {
             use ::time::#(formattable.clone());
 
             const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = &[#(items)];
+            const FORMAT_STRING: &str = #(format_string);
+
+            #(visitor_struct)
 
             #(serialize_fns)
 
             pub mod option {
-                use super::{DESCRIPTION, #(formattable)};
+                use super::{DESCRIPTION, #(formattable), Visitor};
 
                 #(option_serialize_fns)
             }
@@ -185,16 +240,21 @@ pub fn declare_format_string(input: TokenStream) -> TokenStream {
     }
     // Then, a string literal.
     let input = TokenStream::from_iter(tokens);
-    let (span, string) = match helpers::get_string_literal(input) {
+    let (span, format_string) = match helpers::get_string_literal(input) {
         Ok(val) => val,
         Err(err) => return err.to_compile_error_standalone(),
     };
 
-    let items = match format_description::parse(&string, span) {
+    let items = match format_description::parse(&format_string, span) {
         Ok(items) => items,
         Err(err) => return err.to_compile_error_standalone(),
     };
     let items: TokenStream = items.into_iter().map(|item| quote! { #(item), }).collect();
 
-    make_serde_serializer_module(mod_name, items, formattable.into())
+    make_serde_serializer_module(
+        mod_name,
+        items,
+        formattable.into(),
+        std::str::from_utf8(&format_string).unwrap(),
+    )
 }

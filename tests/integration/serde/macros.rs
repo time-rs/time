@@ -83,9 +83,9 @@ fn custom_serialize_error() {
                 len: 5,
             },
             Token::Str("offset_dt"),
-            Token::BorrowedStr("not a date"),
+            Token::BorrowedStr("custom format: 2000-01-01 0:00:00 -04:00"),
         ],
-        "invalid value: literal, expected valid format",
+        "the 'hour' component could not be parsed",
     );
     // Parse problem in optional field.
     assert_de_tokens_error::<TestCustomFormat>(
@@ -98,9 +98,36 @@ fn custom_serialize_error() {
             Token::BorrowedStr("custom format: 2000-01-01 00:00:00 -04:00"),
             Token::Str("primitive_dt"),
             Token::Some,
-            Token::BorrowedStr("not a date"),
+            Token::BorrowedStr("custom format: 2000-01-01 0:00:00 -04:00"),
         ],
-        "invalid value: literal, expected valid format",
+        "the 'hour' component could not be parsed",
+    );
+    // Type error
+    assert_de_tokens_error::<TestCustomFormat>(
+        &[
+            Token::Struct {
+                name: "TestCustomFormat",
+                len: 5,
+            },
+            Token::Str("offset_dt"),
+            Token::Bool(false),
+        ],
+        "invalid type: boolean `false`, expected a(n) `OffsetDateTime` in the format \"custom \
+         format: [year]-[month]-[day] [hour]:[minute]:[second] [offset_hour]:[offset_minute]\"",
+    );
+    assert_de_tokens_error::<TestCustomFormat>(
+        &[
+            Token::Struct {
+                name: "TestCustomFormat",
+                len: 5,
+            },
+            Token::Str("offset_dt"),
+            Token::BorrowedStr("custom format: 2000-01-01 00:00:00 -04:00"),
+            Token::Str("primitive_dt"),
+            Token::Bool(false),
+        ],
+        "invalid type: boolean `false`, expected an `Option<PrimitiveDateTime>` in the format \
+         \"custom format: [year]-[month]-[day] [hour]:[minute]:[second]\"",
     );
 }
 

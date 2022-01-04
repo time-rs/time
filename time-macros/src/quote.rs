@@ -114,6 +114,13 @@ macro_rules! quote_internal {
         )),
     ] $($tail)*));
 
+    // Literal
+    ([$($expanded:tt)*] $l:literal $($tail:tt)*) => (quote_internal!([$($expanded)*
+        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
+            ::proc_macro::Literal::string($l)
+        )),
+    ] $($tail)*));
+
 
     // Lifetime
     ([$($expanded:tt)*] $l:lifetime $($tail:tt)*) => (quote_internal!([$($expanded)*
