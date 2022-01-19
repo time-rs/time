@@ -11,7 +11,7 @@ pub mod modifier;
 pub(crate) mod parse;
 
 #[cfg(feature = "alloc")]
-use alloc::string::String;
+use alloc::{string::String, vec::Vec};
 use core::convert::TryFrom;
 #[cfg(feature = "alloc")]
 use core::fmt;
@@ -114,6 +114,15 @@ pub enum FormatItem<'a> {
     First(&'a [Self]),
 }
 
+impl<'a> FormatItem<'a> {
+    /// Create an OwnedFormatItem for this FormatItem.
+    /// Due to the self-referential nature of this struct, std::borrow::ToOwned cannot be used.
+    #[cfg(feature = "alloc")]
+    pub fn make_owned(&self) -> OwnedFormatItem {
+        self.into()
+    }
+}
+
 #[cfg(feature = "alloc")]
 impl fmt::Debug for FormatItem<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -181,6 +190,114 @@ impl PartialEq<&[FormatItem<'_>]> for FormatItem<'_> {
 
 impl PartialEq<FormatItem<'_>> for &[FormatItem<'_>] {
     fn eq(&self, rhs: &FormatItem<'_>) -> bool {
+        rhs == self
+    }
+}
+
+/// A complete description of how to format and parse a type which owns its components.
+#[non_exhaustive]
+#[cfg(feature = "alloc")]
+#[derive(Clone, PartialEq, Eq)]
+pub enum OwnedFormatItem {
+    /// Bytes that are formatted as-is.
+    ///
+    /// **Note**: If you call the `format` method that returns a `String`, these bytes will be
+    /// passed through `String::from_utf8_lossy`.
+    Literal(Vec<u8>),
+    /// A minimal representation of a single non-literal item.
+    Component(Component),
+    /// A series of literals or components that collectively form a partial or complete
+    /// description.
+    Compound(Vec<Self>),
+    /// A `FormatItem` that may or may not be present when parsing. If parsing fails, there will be
+    /// no effect on the resulting `struct`.
+    ///
+    /// This variant has no effect on formatting, as the value is guaranteed to be present.
+    Optional(Box<Self>),
+    /// A series of `FormatItem`s where, when parsing, the first successful parse is used. When
+    /// formatting, the first element of the slice is used.  An empty slice is a no-op when
+    /// formatting or parsing.
+    First(Vec<Self>),
+}
+
+#[cfg(feature = "alloc")]
+impl fmt::Debug for OwnedFormatItem {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OwnedFormatItem::Literal(literal) => f.write_str(&String::from_utf8_lossy(literal)),
+            OwnedFormatItem::Component(component) => component.fmt(f),
+            OwnedFormatItem::Compound(compound) => compound.fmt(f),
+            OwnedFormatItem::Optional(item) => f.debug_tuple("Optional").field(item).finish(),
+            OwnedFormatItem::First(items) => f.debug_tuple("First").field(items).finish(),
+        }
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl<'a> From<&FormatItem<'a>> for OwnedFormatItem {
+    fn from(fi: &FormatItem<'a>) -> Self {
+        match fi {
+            FormatItem::Literal(lit) => OwnedFormatItem::Literal(lit.to_vec()),
+            FormatItem::Component(c) => OwnedFormatItem::Component(*c),
+            FormatItem::Compound(l) => {
+                OwnedFormatItem::Compound(l.into_iter().map(|i| i.into()).collect())
+            }
+            FormatItem::Optional(item) => OwnedFormatItem::Optional(Box::new((*item).into())),
+            FormatItem::First(items) => {
+                OwnedFormatItem::First(items.into_iter().map(|i| i.into()).collect())
+            }
+        }
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl From<Component> for OwnedFormatItem {
+    fn from(component: Component) -> Self {
+        Self::Component(component)
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl TryFrom<OwnedFormatItem> for Component {
+    type Error = error::DifferentVariant;
+
+    fn try_from(value: OwnedFormatItem) -> Result<Self, Self::Error> {
+        match value {
+            OwnedFormatItem::Component(component) => Ok(component),
+            _ => Err(error::DifferentVariant),
+        }
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl From<Vec<OwnedFormatItem>> for OwnedFormatItem {
+    fn from(items: Vec<OwnedFormatItem>) -> OwnedFormatItem {
+        OwnedFormatItem::Compound(items)
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl TryFrom<OwnedFormatItem> for Vec<OwnedFormatItem> {
+    type Error = error::DifferentVariant;
+
+    fn try_from(value: OwnedFormatItem) -> Result<Self, Self::Error> {
+        match value {
+            OwnedFormatItem::Compound(items) => Ok(items),
+            _ => Err(error::DifferentVariant),
+        }
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl PartialEq<Component> for OwnedFormatItem {
+    fn eq(&self, rhs: &Component) -> bool {
+        matches!(self, OwnedFormatItem::Component(component) if component == rhs)
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl PartialEq<OwnedFormatItem> for Component {
+    fn eq(&self, rhs: &OwnedFormatItem) -> bool {
         rhs == self
     }
 }

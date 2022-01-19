@@ -1,7 +1,7 @@
 use std::io::{self, ErrorKind};
 
 use time::format_description::well_known::{Rfc2822, Rfc3339};
-use time::format_description::{self, FormatItem};
+use time::format_description::{self, FormatItem, OwnedFormatItem};
 use time::macros::{date, datetime, format_description as fd, offset, time};
 use time::{OffsetDateTime, Time};
 
@@ -135,11 +135,9 @@ fn format_time() -> time::Result<()> {
             time!(13:02:03.456_789_012).format(format_description)?,
             output
         );
-        assert!(
-            time!(13:02:03.456_789_012)
-                .format_into(&mut io::sink(), format_description)
-                .is_ok()
-        );
+        assert!(time!(13:02:03.456_789_012)
+            .format_into(&mut io::sink(), format_description)
+            .is_ok());
     }
 
     assert_eq!(
@@ -233,11 +231,9 @@ fn format_date() -> time::Result<()> {
 
     for &(format_description, output) in &format_output {
         assert_eq!(date!(2019 - 12 - 31).format(format_description)?, output);
-        assert!(
-            date!(2019 - 12 - 31)
-                .format_into(&mut io::sink(), format_description)
-                .is_ok()
-        );
+        assert!(date!(2019 - 12 - 31)
+            .format_into(&mut io::sink(), format_description)
+            .is_ok());
     }
 
     Ok(())
@@ -285,11 +281,9 @@ fn format_offset() -> time::Result<()> {
 
     for &(value, format_description, output) in &value_format_output {
         assert_eq!(value.format(format_description)?, output);
-        assert!(
-            value
-                .format_into(&mut io::sink(), format_description)
-                .is_ok()
-        );
+        assert!(value
+            .format_into(&mut io::sink(), format_description)
+            .is_ok());
     }
 
     Ok(())
@@ -316,11 +310,9 @@ fn format_pdt() -> time::Result<()> {
         datetime!(1970-01-01 0:00).format(format_description)?,
         "1970-01-01 00:00:00.0"
     );
-    assert!(
-        datetime!(1970-01-01 0:00)
-            .format_into(&mut io::sink(), format_description)
-            .is_ok()
-    );
+    assert!(datetime!(1970-01-01 0:00)
+        .format_into(&mut io::sink(), format_description)
+        .is_ok());
 
     Ok(())
 }
@@ -348,11 +340,9 @@ fn format_odt() -> time::Result<()> {
         datetime!(1970-01-01 0:00 UTC).format(&format_description)?,
         "1970-01-01 00:00:00.0 +00:00:00"
     );
-    assert!(
-        datetime!(1970-01-01 0:00 UTC)
-            .format_into(&mut io::sink(), &format_description)
-            .is_ok()
-    );
+    assert!(datetime!(1970-01-01 0:00 UTC)
+        .format_into(&mut io::sink(), &format_description)
+        .is_ok());
 
     Ok(())
 }
@@ -487,5 +477,19 @@ fn first() -> time::Result<()> {
         "00"
     );
 
+    Ok(())
+}
+
+#[test]
+fn test_ownedformat_item() -> time::Result<()> {
+    let owned = {
+        let format_string = format!("[hour]-[minute]-literal");
+        let borrowed = format_description::parse(&format_string)?;
+        borrowed
+            .into_iter()
+            .map(|v| v.make_owned())
+            .collect::<Vec<OwnedFormatItem>>()
+    };
+    assert_eq!(Time::MIDNIGHT.format(&owned)?, "00-00-literal");
     Ok(())
 }
