@@ -45,7 +45,7 @@
 //!
 //! - `serde`
 //!
-//!   Enables [serde](https://docs.rs/serde) support for all types.
+//!   Enables [serde](https://docs.rs/serde) support for all types except [`Instant`].
 //!
 //! - `serde-human-readable` (_implicitly enables `serde`, `formatting`, and `parsing`_)
 //!
