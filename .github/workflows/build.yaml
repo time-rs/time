@@ -375,11 +375,6 @@ jobs:
           override: true
           components: llvm-tools-preview
 
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v1
-        with:
-          key: trybuild-llvm-cov-0.1.0-alpha.5
-
       - name: Install cargo-llvm-cov
         run: |
           curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/latest/download/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz | tar xzf - -C ~/.cargo/bin

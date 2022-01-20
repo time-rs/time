@@ -19,11 +19,21 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `PrimitiveDatetime::MIN`
 - `PrimitiveDatetime::MAX`
 - `Rfc2822` format description
+- Serde support for well-known formats
+  - This is placed behind the new `serde-well-known` feature flag.
 
 ### Changed
 
-- FreeBSD, OpenBSD, and NetBSD now support obtaining the local offset when single-threaded.
+- MacOS and FreeBSD are supported obtaining the local offset when single-threaded.
+  - Starting with this version, this is delegated to the `num_threads` crate.
 - Leap seconds are now parsed as the final nanosecond of the preceding second.
+- The minimum supported Rust version is now 1.53.0.
+- Deserializers for human readable formats will fall back to the binary format if the human readable
+  format fails to deserialize.
+
+### Fixed
+
+- Deserialization will no longer fail when given a non-borrowed string.
 
 ## 0.3.5 [2021-11-12]
 
