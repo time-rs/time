@@ -45,10 +45,7 @@ unsafe fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
 
 /// Convert a `libc::tm` to a `UtcOffset`. Returns `None` on any error.
 // `tm_gmtoff` extension
-#[cfg(not(all(
-    unsound_local_offset,
-    any(target_os = "solaris", target_os = "illumos")
-)))]
+#[cfg(not(any(target_os = "solaris", target_os = "illumos")))]
 fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
     let seconds: i32 = tm.tm_gmtoff.try_into().ok()?;
     UtcOffset::from_hms(
@@ -57,6 +54,17 @@ fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
         (seconds % 60) as _,
     )
     .ok()
+}
+
+/// Convert a `libc::tm` to a `UtcOffset`. Returns `None` on any error.
+// Solaris/Illumos is unsound and requires opting into.
+#[cfg(all(
+    not(unsound_local_offset),
+    any(target_os = "solaris", target_os = "illumos")
+))]
+#[allow(unused_variables, clippy::missing_const_for_fn)]
+fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
+    None
 }
 
 /// Convert a `libc::tm` to a `UtcOffset`. Returns `None` on any error.
