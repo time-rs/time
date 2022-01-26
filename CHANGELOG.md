@@ -6,7 +6,13 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
-## 0.3.6 [2022-01-20] 
+## 0.3.7 [2021-01-26]
+
+### Fixed
+
+Solaris and Illumos build again.
+
+## 0.3.6 [2022-01-20]
 
 ### Added
 
