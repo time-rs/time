@@ -38,6 +38,10 @@ jobs:
             triple: x86_64-unknown-netbsd
             has_std: true
             has_local_offset: false
+          - name: Illumos
+            triple: x86_64-unknown-illumos
+            has_std: true
+            has_local_offset: false
           - name: wasi
             triple: wasm32-wasi
             has_std: true
