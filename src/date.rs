@@ -705,6 +705,60 @@ impl Date {
         }
     }
     // region: saturating arithmetic
+
+    // region: replacement
+    /// Replace the year.
+    ///
+    /// ```rust
+    /// # use time::macros::date;
+    /// assert_eq!(
+    ///     date!(2022 - 02 - 18).replace_year(2019),
+    ///     Ok(date!(2019 - 02 - 18))
+    /// );
+    /// assert!(date!(2022 - 02 - 18).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
+    /// assert!(date!(2022 - 02 - 18).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
+    /// ```
+    pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
+        let (_, m, d) = self.to_calendar_date();
+        Self::from_calendar_date(year, m, d)
+    }
+
+    /// Replace the month of the year.
+    ///
+    /// ```rust
+    /// # use time::macros::date;
+    /// # use time::Month;
+    /// assert_eq!(
+    ///     date!(2022 - 02 - 18).replace_month(Month::January),
+    ///     Ok(date!(2022 - 01 - 18))
+    /// );
+    /// assert!(
+    ///     date!(2022 - 01 - 30)
+    ///         .replace_month(Month::February)
+    ///         .is_err()
+    /// ); // 30 isn't a valid day in February
+    /// ```
+    pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
+        let (y, _, d) = self.to_calendar_date();
+        Self::from_calendar_date(y, month, d)
+    }
+
+    /// Replace the day of the month.
+    ///
+    /// ```rust
+    /// # use time::macros::date;
+    /// assert_eq!(
+    ///     date!(2022 - 02 - 18).replace_day(1),
+    ///     Ok(date!(2022 - 02 - 01))
+    /// );
+    /// assert!(date!(2022 - 02 - 18).replace_day(0).is_err()); // 00 isn't a valid day
+    /// assert!(date!(2022 - 02 - 18).replace_day(30).is_err()); // 30 isn't a valid day in February
+    /// ```
+    pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
+        let (y, m, _) = self.to_calendar_date();
+        Self::from_calendar_date(y, m, day)
+    }
+    // endregion replacement
 }
 
 // region: attach time

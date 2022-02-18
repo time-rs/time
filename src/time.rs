@@ -448,6 +448,104 @@ impl Time {
         )
     }
     // endregion arithmetic helpers
+
+    // region: replacement
+    /// Replace the clock hour.
+    ///
+    /// ```rust
+    /// # use time::macros::time;
+    /// assert_eq!(
+    ///     time!(01:02:03.004_005_006).replace_hour(7),
+    ///     Ok(time!(07:02:03.004_005_006))
+    /// );
+    /// assert!(time!(01:02:03.004_005_006).replace_hour(24).is_err()); // 24 isn't a valid hour
+    /// ```
+    pub const fn replace_hour(self, hour: u8) -> Result<Self, error::ComponentRange> {
+        let (_, m, s, n) = self.as_hms_nano();
+        Self::from_hms_nano(hour, m, s, n)
+    }
+
+    /// Replace the minutes within the hour.
+    ///
+    /// ```rust
+    /// # use time::macros::time;
+    /// assert_eq!(
+    ///     time!(01:02:03.004_005_006).replace_minute(7),
+    ///     Ok(time!(01:07:03.004_005_006))
+    /// );
+    /// assert!(time!(01:02:03.004_005_006).replace_minute(60).is_err()); // 60 isn't a valid minute
+    /// ```
+    pub const fn replace_minute(self, minute: u8) -> Result<Self, error::ComponentRange> {
+        let (h, _, s, n) = self.as_hms_nano();
+        Self::from_hms_nano(h, minute, s, n)
+    }
+
+    /// Replace the seconds within the minute.
+    ///
+    /// ```rust
+    /// # use time::macros::time;
+    /// assert_eq!(
+    ///     time!(01:02:03.004_005_006).replace_second(7),
+    ///     Ok(time!(01:02:07.004_005_006))
+    /// );
+    /// assert!(time!(01:02:03.004_005_006).replace_second(60).is_err()); // 60 isn't a valid second
+    /// ```
+    pub const fn replace_second(self, second: u8) -> Result<Self, error::ComponentRange> {
+        let (h, m, _, n) = self.as_hms_nano();
+        Self::from_hms_nano(h, m, second, n)
+    }
+
+    /// Replace the milliseconds within the second.
+    ///
+    /// ```rust
+    /// # use time::macros::time;
+    /// assert_eq!(
+    ///     time!(01:02:03.004_005_006).replace_millisecond(7),
+    ///     Ok(time!(01:02:03.007))
+    /// );
+    /// assert!(time!(01:02:03.004_005_006).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
+    /// ```
+    pub const fn replace_millisecond(
+        self,
+        millisecond: u16,
+    ) -> Result<Self, error::ComponentRange> {
+        let (h, m, s) = self.as_hms();
+        Self::from_hms_milli(h, m, s, millisecond)
+    }
+
+    /// Replace the microseconds within the second.
+    ///
+    /// ```rust
+    /// # use time::macros::time;
+    /// assert_eq!(
+    ///     time!(01:02:03.004_005_006).replace_microsecond(7_008),
+    ///     Ok(time!(01:02:03.007_008))
+    /// );
+    /// assert!(time!(01:02:03.004_005_006).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
+    /// ```
+    pub const fn replace_microsecond(
+        self,
+        microsecond: u32,
+    ) -> Result<Self, error::ComponentRange> {
+        let (h, m, s) = self.as_hms();
+        Self::from_hms_micro(h, m, s, microsecond)
+    }
+
+    /// Replace the nanoseconds within the second.
+    ///
+    /// ```rust
+    /// # use time::macros::time;
+    /// assert_eq!(
+    ///     time!(01:02:03.004_005_006).replace_nanosecond(7_008_009),
+    ///     Ok(time!(01:02:03.007_008_009))
+    /// );
+    /// assert!(time!(01:02:03.004_005_006).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
+    /// ```
+    pub const fn replace_nanosecond(self, nanosecond: u32) -> Result<Self, error::ComponentRange> {
+        let (h, m, s) = self.as_hms();
+        Self::from_hms_nano(h, m, s, nanosecond)
+    }
+    // endregion replacement
 }
 
 // region: formatting & parsing

@@ -147,6 +147,78 @@ fn nanosecond() -> Result<()> {
 }
 
 #[test]
+fn replace_hour() -> Result<()> {
+    assert_eq!(
+        time!(1:02:03.004_005_006).replace_hour(7)?,
+        time!(7:02:03.004_005_006)
+    );
+    assert!(time!(1:02:03.004_005_006).replace_hour(24).is_err());
+    Ok(())
+}
+
+#[test]
+fn replace_minute() -> Result<()> {
+    assert_eq!(
+        time!(1:02:03.004_005_006).replace_minute(7)?,
+        time!(1:07:03.004_005_006)
+    );
+    assert!(time!(1:02:03.004_005_006).replace_minute(60).is_err());
+    Ok(())
+}
+
+#[test]
+fn replace_second() -> Result<()> {
+    assert_eq!(
+        time!(1:02:03.004_005_006).replace_second(7)?,
+        time!(1:02:07.004_005_006)
+    );
+    assert!(time!(1:02:03.004_005_006).replace_second(60).is_err());
+    Ok(())
+}
+
+#[test]
+fn replace_millisecond() -> Result<()> {
+    assert_eq!(
+        time!(1:02:03.004_005_006).replace_millisecond(7)?,
+        time!(1:02:03.007)
+    );
+    assert!(
+        time!(1:02:03.004_005_006)
+            .replace_millisecond(1_000)
+            .is_err()
+    );
+    Ok(())
+}
+
+#[test]
+fn replace_microsecond() -> Result<()> {
+    assert_eq!(
+        time!(1:02:03.004_005_006).replace_microsecond(7_008)?,
+        time!(1:02:03.007_008)
+    );
+    assert!(
+        time!(1:02:03.004_005_006)
+            .replace_microsecond(1_000_000)
+            .is_err()
+    );
+    Ok(())
+}
+
+#[test]
+fn replace_nanosecond() -> Result<()> {
+    assert_eq!(
+        time!(1:02:03.004_005_006).replace_nanosecond(7_008_009)?,
+        time!(1:02:03.007_008_009)
+    );
+    assert!(
+        time!(1:02:03.004_005_006)
+            .replace_nanosecond(1_000_000_000)
+            .is_err()
+    );
+    Ok(())
+}
+
+#[test]
 fn add_duration() {
     assert_eq!(time!(0:00) + 1.seconds(), time!(0:00:01));
     assert_eq!(time!(0:00) + 1.minutes(), time!(0:01));
