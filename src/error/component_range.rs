@@ -29,26 +29,10 @@ impl ComponentRange {
         self.name
     }
 
-    /// Whether the range error is conditional, i.e. could an input with
-    /// this component value have succeeded if the values of other components were different.
+    /// Whether the value's permitted range is conditional, i.e. whether an input with this
+    /// value could have succeeded if the values of other components were different.
     pub const fn is_conditional(self) -> bool {
         self.conditional_range
-    }
-
-    /// Constructs a `ComponentRange` error suitable for a parser that must accept
-    /// leap second inputs. Leap seconds are only expected to occur as the last second
-    /// of the UTC day at the end of a month.
-    /// The `conditional_range` flag is used to inform that the value of 60 would have succeeded
-    /// had the other date-time components lined up to a plausible leap second time.
-    #[cfg(feature = "parsing")]
-    pub(crate) const fn invalid_leap_second_input() -> Self {
-        Self {
-            name: "second",
-            minimum: 0,
-            maximum: 59,
-            value: 60,
-            conditional_range: true,
-        }
     }
 }
 

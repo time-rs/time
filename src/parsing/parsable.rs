@@ -3,11 +3,11 @@
 use core::convert::TryInto;
 use core::ops::Deref;
 
-use crate::error::{self, TryFromParsed};
+use crate::error::TryFromParsed;
 use crate::format_description::well_known::{Rfc2822, Rfc3339};
 use crate::format_description::FormatItem;
 use crate::parsing::{Parsed, ParsedItem};
-use crate::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// A type that can be parsed.
 #[cfg_attr(__time_03_docs, doc(notable_trait))]
@@ -218,7 +218,6 @@ impl sealed::Sealed for Rfc2822 {
         };
 
         // The RFC explicitly allows leap seconds.
-        // Inform the consumer of the Parsed to enable coping behavior.
         parsed.leap_second_allowed = true;
 
         let zone_literal = first_match(
@@ -329,7 +328,6 @@ impl sealed::Sealed for Rfc3339 {
         };
 
         // The RFC explicitly allows leap seconds.
-        // Inform the consumer of the Parsed to enable coping behavior.
         parsed.leap_second_allowed = true;
 
         if let Some(ParsedItem(input, ())) = ascii_char_ignore_case::<b'Z'>(input) {
@@ -441,9 +439,9 @@ impl sealed::Sealed for Rfc3339 {
             return Err(error::Parse::UnexpectedTrailingCharacters);
         }
 
-        // The RFC explicitly allows leap seconds. We don't currently support them, so treat it as
-        // the nearest preceding moment that can be represented, but check if the second 60
-        // occurs at the expected 23:59 UTC at the end of a month.
+        // The RFC explicitly permits leap seconds. We don't currently support them, so treat it as
+        // the preceding nanosecond. However, leap seconds can only occur as the last second of the
+        // month UTC.
         let leap_second_input = if second == 60 {
             second = 59;
             nanosecond = 999_999_999;
@@ -459,10 +457,15 @@ impl sealed::Sealed for Rfc3339 {
             .map_err(TryFromParsed::ComponentRange)?;
 
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {
-            return Err(TryFromParsed::ComponentRange(
-                error::ComponentRange::invalid_leap_second_input(),
-            )
-            .into());
+            return Err(error::Parse::TryFromParsed(TryFromParsed::ComponentRange(
+                error::ComponentRange {
+                    name: "second",
+                    minimum: 0,
+                    maximum: 59,
+                    value: 60,
+                    conditional_range: true,
+                },
+            )));
         }
 
         Ok(dt)

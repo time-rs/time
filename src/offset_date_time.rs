@@ -952,11 +952,9 @@ impl OffsetDateTime {
         description.parse_offset_date_time(input.as_bytes())
     }
 
-    /// A helper to check if the parsed `OffsetDateTime` is a valid stand-in value
-    /// for leap second times. Well-known formats such as RFC 3339 allow times
-    /// with the second value of 60. Such inputs are approximated
-    /// by the parsing conversions in this crate to the nearest preceding nanosecond,
-    /// but a leap second can only occur as 23:59:60 UTC at the end of a month.
+    /// A helper method to check if the `OffsetDateTime` is a valid representation of a leap second.
+    /// Leap seconds, when parsed, are represented as the preceding nanosecond. However, leap
+    /// seconds can only occur as the last second of a month UTC.
     pub(crate) const fn is_valid_leap_second_stand_in(self) -> bool {
         let udt = self.utc_datetime;
         udt.hour() == 23

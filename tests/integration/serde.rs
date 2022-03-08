@@ -415,7 +415,7 @@ fn offset_date_time_error() {
     );
     assert_de_tokens_error::<Readable<OffsetDateTime>>(
         &[Token::BorrowedStr("2021-12-31 23:59:60.0 +00:00:00")],
-        "invalid value: integer `60`, expected a value in the range 0..=59",
+        "second must be in the range 0..=59",
     );
 }
 
