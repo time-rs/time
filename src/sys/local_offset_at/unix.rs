@@ -3,6 +3,8 @@
 use core::convert::TryInto;
 use core::mem::MaybeUninit;
 
+use tz::TimeZone;
+
 use crate::{OffsetDateTime, UtcOffset};
 
 /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on any error.
@@ -115,12 +117,32 @@ pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     // fault by dereferencing a dangling pointer.
     // If the `num_threads` crate is incapable of determining the number of running threads, then
     // we conservatively return `None` to avoid a soundness bug.
-    if !cfg!(unsound_local_offset) && num_threads::is_single_threaded() != Some(true) {
-        return None;
-    }
+    // if !cfg!(unsound_local_offset) && num_threads::is_single_threaded() != Some(true) {
+    //     return None;
+    // }
 
     // Safety: We have just confirmed that the process is single-threaded or the user has explicitly
     // opted out of soundness.
-    let tm = unsafe { timestamp_to_tm(datetime.unix_timestamp()) }?;
-    tm_to_offset(tm)
+    // let tm = unsafe { timestamp_to_tm(datetime.unix_timestamp()) }?;
+    // tm_to_offset(tm)
+
+    // Get local time zone (UNIX only)
+    let time_zone_local = match TimeZone::local() {
+        Ok(tz_local) => tz_local,
+        Err(_) => return None,
+    };
+    // Get the current local time type
+    let current_local_time_type = match time_zone_local.find_current_local_time_type() {
+        Ok(cur_ltt) => cur_ltt,
+        Err(_) => return None,
+    };
+
+    let diff_secs = current_local_time_type.ut_offset();
+
+    UtcOffset::from_hms(
+        (diff_secs / 3_600) as _,
+        ((diff_secs / 60) % 60) as _,
+        (diff_secs % 60) as _,
+    )
+    .ok()
 }
