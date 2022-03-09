@@ -28,6 +28,12 @@ impl ComponentRange {
     pub const fn name(self) -> &'static str {
         self.name
     }
+
+    /// Whether the value's permitted range is conditional, i.e. whether an input with this
+    /// value could have succeeded if the values of other components were different.
+    pub const fn is_conditional(self) -> bool {
+        self.conditional_range
+    }
 }
 
 impl fmt::Display for ComponentRange {

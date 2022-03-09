@@ -16,6 +16,8 @@ use std::time::SystemTime;
 use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
+#[cfg(feature = "parsing")]
+use crate::util;
 use crate::{error, Date, Duration, Month, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// The Julian day of the Unix epoch.
@@ -948,6 +950,18 @@ impl OffsetDateTime {
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
         description.parse_offset_date_time(input.as_bytes())
+    }
+
+    /// A helper method to check if the `OffsetDateTime` is a valid representation of a leap second.
+    /// Leap seconds, when parsed, are represented as the preceding nanosecond. However, leap
+    /// seconds can only occur as the last second of a month UTC.
+    pub(crate) const fn is_valid_leap_second_stand_in(self) -> bool {
+        let udt = self.utc_datetime;
+        udt.hour() == 23
+            && udt.minute() == 59
+            && udt.second() == 59
+            && udt.nanosecond() == 999_999_999
+            && udt.day() == util::days_in_year_month(udt.year(), udt.month())
     }
 }
 

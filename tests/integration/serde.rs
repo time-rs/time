@@ -396,6 +396,27 @@ fn offset_date_time_error() {
         ],
         "invalid value: integer `24`, expected a value in the range -23..=23",
     );
+    // the Deserialize impl does not recognize leap second times as valid
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(2021),
+            Token::U16(365),
+            Token::U8(23),
+            Token::U8(59),
+            Token::U8(60),
+            Token::U32(0),
+            Token::I8(0),
+            Token::I8(0),
+            Token::I8(0),
+            Token::TupleEnd,
+        ],
+        "invalid value: integer `60`, expected a value in the range 0..=59",
+    );
+    assert_de_tokens_error::<Readable<OffsetDateTime>>(
+        &[Token::BorrowedStr("2021-12-31 23:59:60.0 +00:00:00")],
+        "second must be in the range 0..=59",
+    );
 }
 
 #[test]

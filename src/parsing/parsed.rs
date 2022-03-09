@@ -63,6 +63,9 @@ pub struct Parsed {
     pub(crate) offset_minute: Option<u8>,
     /// Seconds within the minute of the UTC offset.
     pub(crate) offset_second: Option<u8>,
+    /// Indicates whether a leap second is permitted to be parsed. This is required by some
+    /// well-known formats.
+    pub(crate) leap_second_allowed: bool,
 }
 
 impl Parsed {
@@ -89,6 +92,7 @@ impl Parsed {
             offset_hour: None,
             offset_minute: None,
             offset_second: None,
+            leap_second_allowed: false,
         }
     }
 
@@ -473,7 +477,29 @@ impl TryFrom<Parsed> for PrimitiveDateTime {
 impl TryFrom<Parsed> for OffsetDateTime {
     type Error = error::TryFromParsed;
 
-    fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
-        Ok(PrimitiveDateTime::try_from(parsed)?.assume_offset(parsed.try_into()?))
+    fn try_from(mut parsed: Parsed) -> Result<Self, Self::Error> {
+        // Some well-known formats explicitly allow leap seconds. We don't currently support them,
+        // so treat it as the nearest preceding moment that can be represented. Because leap seconds
+        // always fall at the end of a month UTC, reject any that are at other times.
+        let leap_second_input = if parsed.leap_second_allowed && parsed.second == Some(60) {
+            parsed.second = Some(59);
+            parsed.subsecond = Some(999_999_999);
+            true
+        } else {
+            false
+        };
+        let dt = PrimitiveDateTime::try_from(parsed)?.assume_offset(parsed.try_into()?);
+        if leap_second_input && !dt.is_valid_leap_second_stand_in() {
+            return Err(error::TryFromParsed::ComponentRange(
+                error::ComponentRange {
+                    name: "second",
+                    minimum: 0,
+                    maximum: 59,
+                    value: 60,
+                    conditional_range: true,
+                },
+            ));
+        }
+        Ok(dt)
     }
 }

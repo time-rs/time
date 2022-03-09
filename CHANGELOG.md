@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## Unreleased
+
+### Changed
+
+- Well-known formats that support leap seconds now return the `TryFromParsed::ComponentRange` error
+  variant if the leap second could not occur at that given moment.
+
 ## 0.3.7 [2021-01-26]
 
 ### Fixed

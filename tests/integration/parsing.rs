@@ -213,6 +213,21 @@ fn rfc_2822_err() {
         OffsetDateTime::parse("Mon, 02 Jan 2021 03:04:05 -060", &Rfc2822),
         invalid_component!("offset minute")
     ));
+    assert!(matches!(
+        OffsetDateTime::parse("Fri, 31 Dec 2021 23:59:61 Z", &Rfc2822),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
+            if component.name() == "second" && !component.is_conditional()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Fri, 31 Dec 2021 03:04:60 Z", &Rfc2822),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
+            if component.name() == "second" && component.is_conditional()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("Fri, 30 Dec 2021 23:59:60 Z", &Rfc2822),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
+            if component.name() == "second" && component.is_conditional()
+    ));
 }
 
 #[test]
@@ -222,8 +237,12 @@ fn rfc_3339() -> time::Result<()> {
         datetime!(2021-01-02 03:04:05 UTC),
     );
     assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:60Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:59.999_999_999 UTC),
+        OffsetDateTime::parse("2021-12-31T23:59:60Z", &Rfc3339)?,
+        datetime!(2021-12-31 23:59:59.999_999_999 UTC),
+    );
+    assert_eq!(
+        OffsetDateTime::parse("2015-07-01T00:59:60+01:00", &Rfc3339)?,
+        datetime!(2015-06-30 23:59:59.999_999_999 UTC),
     );
     assert_eq!(
         OffsetDateTime::parse("2021-01-02T03:04:05.1Z", &Rfc3339)?,
@@ -281,10 +300,6 @@ fn rfc_3339() -> time::Result<()> {
     assert_eq!(
         Date::parse("2021-01-02T03:04:05.123-01:02", &Rfc3339)?,
         date!(2021 - 01 - 02),
-    );
-    assert_eq!(
-        Time::parse("2021-01-02T03:04:60Z", &Rfc3339)?,
-        time!(03:04:59.999_999_999)
     );
 
     Ok(())
@@ -363,6 +378,21 @@ fn rfc_3339_err() {
     assert!(matches!(
         PrimitiveDateTime::parse("2021-13-01T00:00:00Z", &Rfc3339),
         Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "month"
+    ));
+    assert!(matches!(
+        PrimitiveDateTime::parse("2021-01-02T03:04:60Z", &Rfc3339),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second"
+    ));
+
+    // Conversions to offset-unaware types do not perform special treatment for leap seconds
+    // even if the input could refer to one.
+    assert!(matches!(
+        PrimitiveDateTime::parse("2022-01-01T00:59:60+01:00", &Rfc3339),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second"
+    ));
+    assert!(matches!(
+        Time::parse("2021-12-31T23:04:60Z", &Rfc3339),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second"
     ));
 
     assert!(matches!(
@@ -448,6 +478,22 @@ fn rfc_3339_err() {
     assert!(matches!(
         OffsetDateTime::parse("2021-13-01T00:00:00Z", &Rfc3339),
         Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "month"
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-12-31T23:59:61Z", &Rfc3339),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && !component.is_conditional()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-01-02T23:59:60Z", &Rfc3339),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && component.is_conditional()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-12-31T03:04:60Z", &Rfc3339),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && component.is_conditional()
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-12-31T23:59:60+01:00", &Rfc3339),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && component.is_conditional()
     ));
 }
 

@@ -217,12 +217,8 @@ impl sealed::Sealed for Rfc2822 {
             cfws(input).ok_or(InvalidLiteral)?.into_inner()
         };
 
-        // The RFC explicitly allows leap seconds. We don't currently support them, so treat it as
-        // the previous moment.
-        if parsed.second == Some(60) {
-            parsed.second = Some(59);
-            parsed.subsecond = Some(999_999_999);
-        }
+        // The RFC explicitly allows leap seconds.
+        parsed.leap_second_allowed = true;
 
         let zone_literal = first_match(
             [
@@ -331,12 +327,8 @@ impl sealed::Sealed for Rfc3339 {
             input
         };
 
-        // The RFC explicitly allows leap seconds. We don't currently support them, so treat it as
-        // the previous moment.
-        if parsed.second == Some(60) {
-            parsed.second = Some(59);
-            parsed.subsecond = Some(999_999_999);
-        }
+        // The RFC explicitly allows leap seconds.
+        parsed.leap_second_allowed = true;
 
         if let Some(ParsedItem(input, ())) = ascii_char_ignore_case::<b'Z'>(input) {
             parsed.offset_hour = Some(0);
@@ -447,18 +439,36 @@ impl sealed::Sealed for Rfc3339 {
             return Err(error::Parse::UnexpectedTrailingCharacters);
         }
 
-        // The RFC explicitly allows leap seconds. We don't currently support them, so treat it as
-        // the previous moment.
-        if second == 60 {
+        // The RFC explicitly permits leap seconds. We don't currently support them, so treat it as
+        // the preceding nanosecond. However, leap seconds can only occur as the last second of the
+        // month UTC.
+        let leap_second_input = if second == 60 {
             second = 59;
             nanosecond = 999_999_999;
-        }
+            true
+        } else {
+            false
+        };
 
-        Ok(Month::from_number(month)
+        let dt = Month::from_number(month)
             .and_then(|month| Date::from_calendar_date(year as _, month, day))
             .and_then(|date| date.with_hms_nano(hour, minute, second, nanosecond))
             .map(|date| date.assume_offset(offset))
-            .map_err(TryFromParsed::ComponentRange)?)
+            .map_err(TryFromParsed::ComponentRange)?;
+
+        if leap_second_input && !dt.is_valid_leap_second_stand_in() {
+            return Err(error::Parse::TryFromParsed(TryFromParsed::ComponentRange(
+                error::ComponentRange {
+                    name: "second",
+                    minimum: 0,
+                    maximum: 59,
+                    value: 60,
+                    conditional_range: true,
+                },
+            )));
+        }
+
+        Ok(dt)
     }
 }
 // endregion well-known formats
