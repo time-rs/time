@@ -31,6 +31,42 @@ pub use time_macros::date;
 /// [`OffsetDateTime`]: crate::OffsetDateTime
 /// [`PrimitiveDateTime`]: crate::PrimitiveDateTime
 pub use time_macros::datetime;
+/// Declares a custom format based on the provided string.
+///
+/// The syntax accepted by this macro is the same as [`format_description::parse()`], which can
+/// be found in [the book](https://time-rs.github.io/book/api/format-description.html).
+///
+/// # Usage
+///
+/// Invoked as
+/// `declare_format_string!(mod_name, Date, "<format string>")`: puts
+/// a module named `mod_name` in the current namespace that can be used to
+/// format `Date` structs.
+///
+/// # Examples
+///
+/// ```
+/// # use time::OffsetDateTime;
+/// # use time::macros::declare_format_string;
+/// # use serde::{Serialize, Deserialize};
+/// // Makes a module `mod my_format { ... }`.
+/// declare_format_string!(my_format, OffsetDateTime, "hour=[hour], minute=[minute]");
+///
+/// #[derive(Serialize, Deserialize)]
+/// struct SerializesWithCustom {
+///     #[serde(with = "my_format")]
+///     dt: OffsetDateTime,
+///     #[serde(with = "my_format::option")]
+///     maybe_dt: Option<OffsetDateTime>,
+/// }
+/// #
+/// # // otherwise rustdoc tests don't work because we put a module in `main()`
+/// # fn main() {}
+/// ```
+///
+/// [`format_description::parse()`]: crate::format_description::parse()
+#[cfg(feature = "serde-human-readable")]
+pub use time_macros::declare_format_string;
 /// Equivalent of performing [`format_description::parse()`] at compile time.
 ///
 /// Using the macro instead of the function results in a static slice rather than a [`Vec`],

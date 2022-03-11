@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::fmt;
+use std::iter::once;
 
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 
@@ -113,5 +114,16 @@ impl Error {
         .iter()
         .cloned()
         .collect()
+    }
+
+    /// Like `to_compile_error`, but for use in macros that produce items.
+    pub(crate) fn to_compile_error_standalone(&self) -> TokenStream {
+        let end = self.span_end();
+        self.to_compile_error()
+            .into_iter()
+            .chain(once(
+                TokenTree::from(Punct::new(';', Spacing::Alone)).with_span(end),
+            ))
+            .collect()
     }
 }

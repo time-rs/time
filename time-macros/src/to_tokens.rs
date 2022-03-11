@@ -16,6 +16,18 @@ impl ToTokens for TokenStream {
     }
 }
 
+impl ToTokens for &str {
+    fn into_token_stream(self) -> TokenStream {
+        TokenStream::from(TokenTree::Literal(Literal::string(self)))
+    }
+}
+
+impl ToTokens for String {
+    fn into_token_stream(self) -> TokenStream {
+        self.as_str().into_token_stream()
+    }
+}
+
 macro_rules! impl_for_tree_types {
     ($($type:ty)*) => {$(
         impl ToTokens for $type {

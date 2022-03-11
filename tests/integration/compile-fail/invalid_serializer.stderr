@@ -1,0 +1,79 @@
+error: unexpected end of input
+ --> $DIR/invalid_serializer.rs:3:1
+  |
+3 | declare_format_string!(); // unexpected end of input
+  | ^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `declare_format_string` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected token: "bad string"
+ --> $DIR/invalid_serializer.rs:4:24
+  |
+4 | declare_format_string!("bad string", OffsetDateTime, "[year] [month]"); // module name is not ident
+  |                        ^^^^^^^^^^^^
+
+error: unexpected token: :
+ --> $DIR/invalid_serializer.rs:5:33
+  |
+5 | declare_format_string!(my_format: OffsetDateTime, "[year] [month]"); // not a comma
+  |                                 ^
+
+error: unexpected end of input
+ --> $DIR/invalid_serializer.rs:6:1
+  |
+6 | declare_format_string!(my_format,); // missing formattable and string
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `declare_format_string` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected token: "[year] [month]"
+ --> $DIR/invalid_serializer.rs:7:35
+  |
+7 | declare_format_string!(my_format, "[year] [month]"); // missing formattable
+  |                                   ^^^^^^^^^^^^^^^^
+
+error: unexpected token: "[year] [month]"
+ --> $DIR/invalid_serializer.rs:8:40
+  |
+8 | declare_format_string!(OffsetDateTime, "[year] [month]"); // missing ident
+  |                                        ^^^^^^^^^^^^^^^^
+
+error: unexpected end of input
+ --> $DIR/invalid_serializer.rs:9:1
+  |
+9 | declare_format_string!(my_format, OffsetDateTime); // missing string format
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `declare_format_string` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected string
+  --> $DIR/invalid_serializer.rs:10:1
+   |
+10 | declare_format_string!(my_format, OffsetDateTime,); // missing string format
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `declare_format_string` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected token: "[year] [month]"
+  --> $DIR/invalid_serializer.rs:11:50
+   |
+11 | declare_format_string!(my_format, OffsetDateTime "[year] [month]"); // missing comma
+   |                                                  ^^^^^^^^^^^^^^^^
+
+error: unexpected token: :
+  --> $DIR/invalid_serializer.rs:12:50
+   |
+12 | declare_format_string!(my_format, OffsetDateTime : "[year] [month]"); // not a comma
+   |                                                  ^
+
+error: invalid component name `bad` at byte index 1
+  --> $DIR/invalid_serializer.rs:13:51
+   |
+13 | declare_format_string!(my_format, OffsetDateTime, "[bad]"); // bad component name
+   |                                                   ^^^^^^^
+
+error: expected string
+  --> $DIR/invalid_serializer.rs:14:51
+   |
+14 | declare_format_string!(my_format, OffsetDateTime, not_string); // string format wrong type
+   |                                                   ^^^^^^^^^^
