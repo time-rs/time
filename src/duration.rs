@@ -797,7 +797,7 @@ impl Add<Duration> for StdDuration {
     }
 }
 
-impl_add_assign!(Duration: Duration, StdDuration);
+impl_add_assign!(Duration: Self, StdDuration);
 
 impl Neg for Duration {
     type Output = Self;
@@ -835,7 +835,7 @@ impl Sub<Duration> for StdDuration {
     }
 }
 
-impl_sub_assign!(Duration: Duration, StdDuration);
+impl_sub_assign!(Duration: Self, StdDuration);
 
 impl SubAssign<Duration> for StdDuration {
     fn sub_assign(&mut self, rhs: Duration) {

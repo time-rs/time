@@ -47,6 +47,7 @@ fn ccontent(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 }
 
 /// Consume the `ctext` rule.
+#[allow(clippy::unnecessary_lazy_evaluations)] // rust-lang/rust-clippy#8522
 fn ctext(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     no_ws_ctl(input).or_else(|| match input {
         [33..=39 | 42..=91 | 93..=126, rest @ ..] => Some(ParsedItem(rest, ())),

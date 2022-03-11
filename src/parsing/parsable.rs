@@ -220,6 +220,7 @@ impl sealed::Sealed for Rfc2822 {
         // The RFC explicitly allows leap seconds.
         parsed.leap_second_allowed = true;
 
+        #[allow(clippy::unnecessary_lazy_evaluations)] // rust-lang/rust-clippy#8522
         let zone_literal = first_match(
             [
                 (&b"UT"[..], 0),
