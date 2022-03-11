@@ -30,6 +30,8 @@
 )]
 #![allow(clippy::cognitive_complexity, clippy::clone_on_copy, clippy::cmp_owned)]
 
+extern crate quickcheck_dep as quickcheck;
+
 /// Construct a non-exhaustive modifier.
 macro_rules! modifier {
     ($name:ident {
@@ -59,7 +61,8 @@ mod parse_format_description;
 mod parsed;
 mod parsing;
 mod primitive_date_time;
-mod quickcheck;
+#[path = "quickcheck.rs"]
+mod quickcheck_mod;
 mod rand;
 mod serde;
 mod serde_helpers;
