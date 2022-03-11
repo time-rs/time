@@ -192,18 +192,6 @@ impl OffsetDateTime {
     // endregion constructors
 
     // region: getters
-    /// Get the [`PrimitiveDateTime`] in relative to the offset.
-    ///
-    /// ```rust
-    /// # use time::macros::{datetime};
-    /// assert_eq!(datetime!(2019-01-01 0:00 UTC).primitive_date_time(), datetime!(2019-01-01 0:00));
-    /// assert_eq!(datetime!(2019-01-01 0:00 +1).primitive_date_time(), datetime!(2019-01-01 0:00));
-    /// ```
-    pub const fn primitive_date_time(self) -> PrimitiveDateTime {
-        self.utc_datetime
-            .saturating_add(Duration::seconds(self.offset.whole_seconds() as _))
-    }
-
     /// Get the [`UtcOffset`].
     ///
     /// ```rust
@@ -896,7 +884,7 @@ impl OffsetDateTime {
         self.utc_datetime.assume_offset(offset)
     }
 
-    /// Replace the year.
+    /// Replace the year. The month and day will be unchanged.
     ///
     /// ```rust
     /// # use time::macros::datetime;
@@ -908,10 +896,12 @@ impl OffsetDateTime {
     /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
     /// ```
     pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
-        match self.primitive_date_time().replace_year(year) {
-            Ok(date_time) => Ok(self.replace_date_time(date_time)),
-            Err(e) => Err(e),
-        }
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_year(year)
+        )
+        .assume_offset(self.offset))
     }
 
     /// Replace the month of the year.
@@ -926,10 +916,12 @@ impl OffsetDateTime {
     /// assert!(datetime!(2022 - 01 - 30 12:00 +01).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
     /// ```
     pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
-        match self.primitive_date_time().replace_month(month) {
-            Ok(date_time) => Ok(self.replace_date_time(date_time)),
-            Err(e) => Err(e),
-        }
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_month(month)
+        )
+        .assume_offset(self.offset))
     }
 
     /// Replace the day of the month.
@@ -944,10 +936,12 @@ impl OffsetDateTime {
     /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_day(30).is_err()); // 30 isn't a valid day in February
     /// ```
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
-        match self.primitive_date_time().replace_day(day) {
-            Ok(date_time) => Ok(self.replace_date_time(date_time)),
-            Err(e) => Err(e),
-        }
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_day(day)
+        )
+        .assume_offset(self.offset))
     }
 
     /// Replace the clock hour.
@@ -961,10 +955,12 @@ impl OffsetDateTime {
     /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_hour(24).is_err()); // 24 isn't a valid hour
     /// ```
     pub const fn replace_hour(self, hour: u8) -> Result<Self, error::ComponentRange> {
-        match self.primitive_date_time().replace_hour(hour) {
-            Ok(date_time) => Ok(self.replace_date_time(date_time)),
-            Err(e) => Err(e),
-        }
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_hour(hour)
+        )
+        .assume_offset(self.offset))
     }
 
     /// Replace the minutes within the hour.
@@ -978,10 +974,12 @@ impl OffsetDateTime {
     /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_minute(60).is_err()); // 60 isn't a valid minute
     /// ```
     pub const fn replace_minute(self, minute: u8) -> Result<Self, error::ComponentRange> {
-        match self.primitive_date_time().replace_minute(minute) {
-            Ok(date_time) => Ok(self.replace_date_time(date_time)),
-            Err(e) => Err(e),
-        }
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_minute(minute)
+        )
+        .assume_offset(self.offset))
     }
 
     /// Replace the seconds within the minute.
@@ -995,10 +993,12 @@ impl OffsetDateTime {
     /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_second(60).is_err()); // 60 isn't a valid second
     /// ```
     pub const fn replace_second(self, second: u8) -> Result<Self, error::ComponentRange> {
-        match self.primitive_date_time().replace_second(second) {
-            Ok(date_time) => Ok(self.replace_date_time(date_time)),
-            Err(e) => Err(e),
-        }
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_second(second)
+        )
+        .assume_offset(self.offset))
     }
 
     /// Replace the milliseconds within the second.
@@ -1015,10 +1015,12 @@ impl OffsetDateTime {
         self,
         millisecond: u16,
     ) -> Result<Self, error::ComponentRange> {
-        match self.primitive_date_time().replace_millisecond(millisecond) {
-            Ok(date_time) => Ok(self.replace_date_time(date_time)),
-            Err(e) => Err(e),
-        }
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_millisecond(millisecond)
+        )
+        .assume_offset(self.offset))
     }
 
     /// Replace the microseconds within the second.
@@ -1035,10 +1037,12 @@ impl OffsetDateTime {
         self,
         microsecond: u32,
     ) -> Result<Self, error::ComponentRange> {
-        match self.primitive_date_time().replace_microsecond(microsecond) {
-            Ok(date_time) => Ok(self.replace_date_time(date_time)),
-            Err(e) => Err(e),
-        }
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_microsecond(microsecond)
+        )
+        .assume_offset(self.offset))
     }
 
     /// Replace the nanoseconds within the second.
@@ -1052,10 +1056,12 @@ impl OffsetDateTime {
     /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
     /// ```
     pub const fn replace_nanosecond(self, nanosecond: u32) -> Result<Self, error::ComponentRange> {
-        match self.primitive_date_time().replace_nanosecond(nanosecond) {
-            Ok(date_time) => Ok(self.replace_date_time(date_time)),
-            Err(e) => Err(e),
-        }
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_nanosecond(nanosecond)
+        )
+        .assume_offset(self.offset))
     }
 }
 // endregion replacement

@@ -707,7 +707,7 @@ impl Date {
     // region: saturating arithmetic
 
     // region: replacement
-    /// Replace the year.
+    /// Replace the year. The month and day will be unchanged.
     ///
     /// ```rust
     /// # use time::macros::date;
@@ -718,9 +718,42 @@ impl Date {
     /// assert!(date!(2022 - 02 - 18).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
     /// assert!(date!(2022 - 02 - 18).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
     /// ```
+    #[must_use = "This method does not mutate the original `Date`."]
     pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
-        let (_, m, d) = self.to_calendar_date();
-        Self::from_calendar_date(year, m, d)
+        ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
+
+        let ordinal = self.ordinal();
+
+        // Dates in January and February are unaffected by leap years.
+        if ordinal <= 59 {
+            return Ok(Self {
+                value: year << 9 | ordinal as i32,
+            });
+        }
+
+        match (is_leap_year(self.year()), is_leap_year(year)) {
+            (false, false) | (true, true) => Ok(Self {
+                value: year << 9 | ordinal as i32,
+            }),
+            // February 29 does not exist in common years.
+            (true, false) if ordinal == 60 => Err(error::ComponentRange {
+                name: "day",
+                value: 29,
+                minimum: 1,
+                maximum: 28,
+                conditional_range: true,
+            }),
+            // We're going from a common year to a leap year. Shift dates in March and later by
+            // one day.
+            (false, true) => Ok(Self {
+                value: year << 9 | (ordinal + 1) as i32,
+            }),
+            // We're going from a leap year to a common year. Shift dates in January and
+            // February by one day.
+            (true, false) => Ok(Self {
+                value: year << 9 | (ordinal - 1) as i32,
+            }),
+        }
     }
 
     /// Replace the month of the year.
@@ -738,9 +771,10 @@ impl Date {
     ///         .is_err()
     /// ); // 30 isn't a valid day in February
     /// ```
+    #[must_use = "This method does not mutate the original `Date`."]
     pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
-        let (y, _, d) = self.to_calendar_date();
-        Self::from_calendar_date(y, month, d)
+        let (year, _, day) = self.to_calendar_date();
+        Self::from_calendar_date(year, month, day)
     }
 
     /// Replace the day of the month.
@@ -751,12 +785,22 @@ impl Date {
     ///     date!(2022 - 02 - 18).replace_day(1),
     ///     Ok(date!(2022 - 02 - 01))
     /// );
-    /// assert!(date!(2022 - 02 - 18).replace_day(0).is_err()); // 00 isn't a valid day
+    /// assert!(date!(2022 - 02 - 18).replace_day(0).is_err()); // 0 isn't a valid day
     /// assert!(date!(2022 - 02 - 18).replace_day(30).is_err()); // 30 isn't a valid day in February
     /// ```
+    #[must_use = "This method does not mutate the original `Date`."]
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
-        let (y, m, _) = self.to_calendar_date();
-        Self::from_calendar_date(y, m, day)
+        // Days 1-28 are present in every month, so we can skip checking.
+        if day == 0 || day >= 29 {
+            ensure_value_in_range!(
+                day conditionally in 1 => days_in_year_month(self.year(), self.month())
+            );
+        }
+
+        Ok(Self::__from_ordinal_date_unchecked(
+            self.year(),
+            (self.ordinal() as i16 - self.day() as i16 + day as i16) as _,
+        ))
     }
     // endregion replacement
 }

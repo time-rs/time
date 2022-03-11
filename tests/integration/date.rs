@@ -926,9 +926,41 @@ fn replace_year() {
         date!(2022 - 02 - 18).replace_year(2019),
         Ok(date!(2019 - 02 - 18))
     );
-
     assert!(date!(2022 - 02 - 18).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
     assert!(date!(2022 - 02 - 18).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
+
+    // Common to leap year, before leap day.
+    assert_eq!(
+        date!(2022 - 01 - 01).replace_year(2024),
+        Ok(date!(2024 - 01 - 01))
+    );
+    // Common to leap year, after leap day.
+    assert_eq!(
+        date!(2022 - 12 - 01).replace_year(2024),
+        Ok(date!(2024 - 12 - 01))
+    );
+    // Leap to common year, before leap day.
+    assert_eq!(
+        date!(2024 - 01 - 01).replace_year(2022),
+        Ok(date!(2022 - 01 - 01))
+    );
+    // Leap to common year, after leap day.
+    assert_eq!(
+        date!(2024 - 12 - 01).replace_year(2022),
+        Ok(date!(2022 - 12 - 01))
+    );
+    // Leap to common year, leap day.
+    assert!(date!(2024 - 02 - 29).replace_year(2022).is_err());
+    // Common to common year.
+    assert_eq!(
+        date!(2022 - 12 - 01).replace_year(2023),
+        Ok(date!(2023 - 12 - 01))
+    );
+    // Leap to leap year.
+    assert_eq!(
+        date!(2024 - 12 - 01).replace_year(2028),
+        Ok(date!(2028 - 12 - 01))
+    );
 }
 
 #[test]
@@ -937,7 +969,6 @@ fn replace_month() {
         date!(2022 - 02 - 18).replace_month(Month::January),
         Ok(date!(2022 - 01 - 18))
     );
-
     assert!(
         date!(2022 - 01 - 30)
             .replace_month(Month::February)
@@ -951,7 +982,6 @@ fn replace_day() {
         date!(2022 - 02 - 18).replace_day(1),
         Ok(date!(2022 - 02 - 01))
     );
-
-    assert!(date!(2022 - 02 - 18).replace_day(0).is_err()); // 00 isn't a valid day
+    assert!(date!(2022 - 02 - 18).replace_day(0).is_err()); // 0 isn't a valid day
     assert!(date!(2022 - 02 - 18).replace_day(30).is_err()); // 30 isn't a valid day in February
 }

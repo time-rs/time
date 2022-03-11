@@ -609,7 +609,7 @@ impl PrimitiveDateTime {
         date.with_time(self.time)
     }
 
-    /// Replace the year.
+    /// Replace the year. The month and day will be unchanged.
     ///
     /// ```rust
     /// # use time::macros::datetime;
@@ -620,11 +620,9 @@ impl PrimitiveDateTime {
     /// assert!(datetime!(2022 - 02 - 18 12:00).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
     /// assert!(datetime!(2022 - 02 - 18 12:00).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
-        match self.date.replace_year(year) {
-            Ok(date) => Ok(self.replace_date(date)),
-            Err(e) => Err(e),
-        }
+        Ok(const_try!(self.date.replace_year(year)).with_time(self.time))
     }
 
     /// Replace the month of the year.
@@ -638,11 +636,9 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022 - 01 - 30 12:00).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
-        match self.date.replace_month(month) {
-            Ok(date) => Ok(self.replace_date(date)),
-            Err(e) => Err(e),
-        }
+        Ok(const_try!(self.date.replace_month(month)).with_time(self.time))
     }
 
     /// Replace the day of the month.
@@ -656,11 +652,9 @@ impl PrimitiveDateTime {
     /// assert!(datetime!(2022 - 02 - 18 12:00).replace_day(0).is_err()); // 00 isn't a valid day
     /// assert!(datetime!(2022 - 02 - 18 12:00).replace_day(30).is_err()); // 30 isn't a valid day in February
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
-        match self.date.replace_day(day) {
-            Ok(date) => Ok(self.replace_date(date)),
-            Err(e) => Err(e),
-        }
+        Ok(const_try!(self.date.replace_day(day)).with_time(self.time))
     }
 
     /// Replace the clock hour.
@@ -673,11 +667,11 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_hour(24).is_err()); // 24 isn't a valid hour
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_hour(self, hour: u8) -> Result<Self, error::ComponentRange> {
-        match self.time.replace_hour(hour) {
-            Ok(time) => Ok(self.replace_time(time)),
-            Err(e) => Err(e),
-        }
+        Ok(self
+            .date()
+            .with_time(const_try!(self.time.replace_hour(hour))))
     }
 
     /// Replace the minutes within the hour.
@@ -690,11 +684,11 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_minute(60).is_err()); // 60 isn't a valid minute
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_minute(self, minute: u8) -> Result<Self, error::ComponentRange> {
-        match self.time.replace_minute(minute) {
-            Ok(time) => Ok(self.replace_time(time)),
-            Err(e) => Err(e),
-        }
+        Ok(self
+            .date()
+            .with_time(const_try!(self.time.replace_minute(minute))))
     }
 
     /// Replace the seconds within the minute.
@@ -707,11 +701,11 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_second(60).is_err()); // 60 isn't a valid second
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_second(self, second: u8) -> Result<Self, error::ComponentRange> {
-        match self.time.replace_second(second) {
-            Ok(time) => Ok(self.replace_time(time)),
-            Err(e) => Err(e),
-        }
+        Ok(self
+            .date()
+            .with_time(const_try!(self.time.replace_second(second))))
     }
 
     /// Replace the milliseconds within the second.
@@ -724,14 +718,14 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_millisecond(
         self,
         millisecond: u16,
     ) -> Result<Self, error::ComponentRange> {
-        match self.time.replace_millisecond(millisecond) {
-            Ok(time) => Ok(self.replace_time(time)),
-            Err(e) => Err(e),
-        }
+        Ok(self
+            .date()
+            .with_time(const_try!(self.time.replace_millisecond(millisecond))))
     }
 
     /// Replace the microseconds within the second.
@@ -744,14 +738,14 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_microsecond(
         self,
         microsecond: u32,
     ) -> Result<Self, error::ComponentRange> {
-        match self.time.replace_microsecond(microsecond) {
-            Ok(time) => Ok(self.replace_time(time)),
-            Err(e) => Err(e),
-        }
+        Ok(self
+            .date()
+            .with_time(const_try!(self.time.replace_microsecond(microsecond))))
     }
 
     /// Replace the nanoseconds within the second.
@@ -764,11 +758,11 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_nanosecond(self, nanosecond: u32) -> Result<Self, error::ComponentRange> {
-        match self.time.replace_nanosecond(nanosecond) {
-            Ok(time) => Ok(self.replace_time(time)),
-            Err(e) => Err(e),
-        }
+        Ok(self
+            .date()
+            .with_time(const_try!(self.time.replace_nanosecond(nanosecond))))
     }
 }
 // endregion replacement
