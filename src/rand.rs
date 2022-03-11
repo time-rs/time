@@ -60,7 +60,7 @@ impl Distribution<Weekday> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Weekday {
         use Weekday::*;
 
-        match rng.gen_range(0..7) {
+        match rng.gen_range(0u8..7) {
             0 => Monday,
             1 => Tuesday,
             2 => Wednesday,
@@ -75,7 +75,7 @@ impl Distribution<Weekday> for Standard {
 impl Distribution<Month> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Month {
         use Month::*;
-        match rng.gen_range(1..=12) {
+        match rng.gen_range(1u8..=12) {
             1 => January,
             2 => February,
             3 => March,
