@@ -3,7 +3,7 @@ use std::time::{Duration as StdDuration, SystemTime};
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, offset, time};
-use time::{Date, Duration, Month, OffsetDateTime, Weekday};
+use time::{Date, Duration, Month, OffsetDateTime, Result, Weekday};
 
 #[test]
 fn now_utc() {
@@ -374,6 +374,134 @@ fn replace_offset() {
         datetime!(2020-01-01 0:00 UTC).replace_offset(offset!(-5)),
         datetime!(2020-01-01 0:00 -5)
     );
+}
+
+#[test]
+fn replace_year() -> Result<()> {
+    assert_eq!(
+        datetime!(2022 - 02 - 18 12:00 +01).replace_year(2019),
+        Ok(datetime!(2019 - 02 - 18 12:00 +01))
+    );
+    assert!(
+        datetime!(2022 - 02 - 18 12:00 +01)
+            .replace_year(-1_000_000_000)
+            .is_err()
+    ); // -1_000_000_000 isn't a valid year
+    assert!(
+        datetime!(2022 - 02 - 18 12:00 +01)
+            .replace_year(1_000_000_000)
+            .is_err()
+    ); // 1_000_000_000 isn't a valid year
+    Ok(())
+}
+
+#[test]
+fn replace_month() -> Result<()> {
+    assert_eq!(
+        datetime!(2022 - 02 - 18 12:00 +01).replace_month(Month::January),
+        Ok(datetime!(2022 - 01 - 18 12:00 +01))
+    );
+    assert!(
+        datetime!(2022 - 01 - 30 12:00 +01)
+            .replace_month(Month::February)
+            .is_err()
+    ); // 30 isn't a valid day in February
+    Ok(())
+}
+
+#[test]
+fn replace_day() -> Result<()> {
+    assert_eq!(
+        datetime!(2022 - 02 - 18 12:00 +01).replace_day(1),
+        Ok(datetime!(2022 - 02 - 01 12:00 +01))
+    );
+    assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_day(0).is_err()); // 00 isn't a valid day
+    assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_day(30).is_err()); // 30 isn't a valid day in February
+    Ok(())
+}
+
+#[test]
+fn replace_hour() -> Result<()> {
+    assert_eq!(
+        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_hour(7),
+        Ok(datetime!(2022 - 02 - 18 07:02:03.004_005_006 +01))
+    );
+    assert!(
+        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
+            .replace_hour(24)
+            .is_err()
+    ); // 24 isn't a valid hour
+    Ok(())
+}
+
+#[test]
+fn replace_minute() -> Result<()> {
+    assert_eq!(
+        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_minute(7),
+        Ok(datetime!(2022 - 02 - 18 01:07:03.004_005_006 +01))
+    );
+    assert!(
+        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
+            .replace_minute(60)
+            .is_err()
+    ); // 60 isn't a valid minute
+    Ok(())
+}
+
+#[test]
+fn replace_second() -> Result<()> {
+    assert_eq!(
+        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_second(7),
+        Ok(datetime!(2022 - 02 - 18 01:02:07.004_005_006 +01))
+    );
+    assert!(
+        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
+            .replace_second(60)
+            .is_err()
+    ); // 60 isn't a valid second
+    Ok(())
+}
+
+#[test]
+fn replace_millisecond() -> Result<()> {
+    assert_eq!(
+        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_millisecond(7),
+        Ok(datetime!(2022 - 02 - 18 01:02:03.007 +01))
+    );
+    assert!(
+        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
+            .replace_millisecond(1_000)
+            .is_err()
+    ); // 1_000 isn't a valid millisecond
+    Ok(())
+}
+
+#[test]
+fn replace_microsecond() -> Result<()> {
+    assert_eq!(
+        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_microsecond(7_008),
+        Ok(datetime!(2022 - 02 - 18 01:02:03.007_008 +01))
+    );
+    assert!(
+        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
+            .replace_microsecond(1_000_000)
+            .is_err()
+    ); // 1_000_000 isn't a valid microsecond
+    Ok(())
+}
+
+#[test]
+fn replace_nanosecond() -> Result<()> {
+    assert_eq!(
+        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_nanosecond(7_008_009),
+        Ok(datetime!(2022 - 02 - 18 01:02:03.007_008_009 +01))
+    );
+    assert!(
+        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
+            .replace_nanosecond(1_000_000_000)
+            .is_err()
+    ); // 1_000_000_000 isn't a valid nanosecond
+    Ok(())
 }
 
 #[test]

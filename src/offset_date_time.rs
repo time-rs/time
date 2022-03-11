@@ -885,6 +885,186 @@ impl OffsetDateTime {
     pub const fn replace_offset(self, offset: UtcOffset) -> Self {
         self.utc_datetime.assume_offset(offset)
     }
+
+    /// Replace the year. The month and day will be unchanged.
+    ///
+    /// ```rust
+    /// # use time::macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022 - 02 - 18 12:00 +01).replace_year(2019),
+    ///     Ok(datetime!(2019 - 02 - 18 12:00 +01))
+    /// );
+    /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
+    /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
+    /// ```
+    pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_year(year)
+        )
+        .assume_offset(self.offset))
+    }
+
+    /// Replace the month of the year.
+    ///
+    /// ```rust
+    /// # use time::macros::datetime;
+    /// # use time::Month;
+    /// assert_eq!(
+    ///     datetime!(2022 - 02 - 18 12:00 +01).replace_month(Month::January),
+    ///     Ok(datetime!(2022 - 01 - 18 12:00 +01))
+    /// );
+    /// assert!(datetime!(2022 - 01 - 30 12:00 +01).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
+    /// ```
+    pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_month(month)
+        )
+        .assume_offset(self.offset))
+    }
+
+    /// Replace the day of the month.
+    ///
+    /// ```rust
+    /// # use time::macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022 - 02 - 18 12:00 +01).replace_day(1),
+    ///     Ok(datetime!(2022 - 02 - 01 12:00 +01))
+    /// );
+    /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_day(0).is_err()); // 00 isn't a valid day
+    /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_day(30).is_err()); // 30 isn't a valid day in February
+    /// ```
+    pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_day(day)
+        )
+        .assume_offset(self.offset))
+    }
+
+    /// Replace the clock hour.
+    ///
+    /// ```rust
+    /// # use time::macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_hour(7),
+    ///     Ok(datetime!(2022 - 02 - 18 07:02:03.004_005_006 +01))
+    /// );
+    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_hour(24).is_err()); // 24 isn't a valid hour
+    /// ```
+    pub const fn replace_hour(self, hour: u8) -> Result<Self, error::ComponentRange> {
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_hour(hour)
+        )
+        .assume_offset(self.offset))
+    }
+
+    /// Replace the minutes within the hour.
+    ///
+    /// ```rust
+    /// # use time::macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_minute(7),
+    ///     Ok(datetime!(2022 - 02 - 18 01:07:03.004_005_006 +01))
+    /// );
+    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_minute(60).is_err()); // 60 isn't a valid minute
+    /// ```
+    pub const fn replace_minute(self, minute: u8) -> Result<Self, error::ComponentRange> {
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_minute(minute)
+        )
+        .assume_offset(self.offset))
+    }
+
+    /// Replace the seconds within the minute.
+    ///
+    /// ```rust
+    /// # use time::macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_second(7),
+    ///     Ok(datetime!(2022 - 02 - 18 01:02:07.004_005_006 +01))
+    /// );
+    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_second(60).is_err()); // 60 isn't a valid second
+    /// ```
+    pub const fn replace_second(self, second: u8) -> Result<Self, error::ComponentRange> {
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_second(second)
+        )
+        .assume_offset(self.offset))
+    }
+
+    /// Replace the milliseconds within the second.
+    ///
+    /// ```rust
+    /// # use time::macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_millisecond(7),
+    ///     Ok(datetime!(2022 - 02 - 18 01:02:03.007 +01))
+    /// );
+    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
+    /// ```
+    pub const fn replace_millisecond(
+        self,
+        millisecond: u16,
+    ) -> Result<Self, error::ComponentRange> {
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_millisecond(millisecond)
+        )
+        .assume_offset(self.offset))
+    }
+
+    /// Replace the microseconds within the second.
+    ///
+    /// ```rust
+    /// # use time::macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_microsecond(7_008),
+    ///     Ok(datetime!(2022 - 02 - 18 01:02:03.007_008 +01))
+    /// );
+    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
+    /// ```
+    pub const fn replace_microsecond(
+        self,
+        microsecond: u32,
+    ) -> Result<Self, error::ComponentRange> {
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_microsecond(microsecond)
+        )
+        .assume_offset(self.offset))
+    }
+
+    /// Replace the nanoseconds within the second.
+    ///
+    /// ```rust
+    /// # use time::macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_nanosecond(7_008_009),
+    ///     Ok(datetime!(2022 - 02 - 18 01:02:03.007_008_009 +01))
+    /// );
+    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
+    /// ```
+    pub const fn replace_nanosecond(self, nanosecond: u32) -> Result<Self, error::ComponentRange> {
+        Ok(const_try!(
+            self.utc_datetime
+                .utc_to_offset(self.offset)
+                .replace_nanosecond(nanosecond)
+        )
+        .assume_offset(self.offset))
+    }
 }
 // endregion replacement
 
