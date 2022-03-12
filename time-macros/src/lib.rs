@@ -73,25 +73,21 @@ impl_macros![date datetime offset time];
 // features land.
 #[proc_macro]
 pub fn format_description(input: TokenStream) -> TokenStream {
-    let (span, string) = match helpers::get_string_literal(input) {
-        Ok(val) => val,
-        Err(err) => return err.to_compile_error(),
-    };
+    (|| {
+        let (span, string) = helpers::get_string_literal(input)?;
+        let items = format_description::parse(&string, span)?;
 
-    let items = match format_description::parse(&string, span) {
-        Ok(items) => items,
-        Err(err) => return err.to_compile_error(),
-    };
-
-    quote! {{
-        const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = &[#(
-            items
-                .into_iter()
-                .map(|item| quote! { #(item), })
-                .collect::<TokenStream>()
-        )];
-        DESCRIPTION
-    }}
+        Ok(quote! {{
+            const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = &[#(
+                items
+                    .into_iter()
+                    .map(|item| quote! { #(item), })
+                    .collect::<TokenStream>()
+            )];
+            DESCRIPTION
+        }})
+    })()
+    .unwrap_or_else(|err: Error| err.to_compile_error())
 }
 
 fn make_serde_serializer_module(
@@ -215,46 +211,41 @@ fn make_serde_serializer_module(
 
 #[proc_macro]
 pub fn declare_format_string(input: TokenStream) -> TokenStream {
-    let mut tokens = input.into_iter().peekable();
-    // First, an identifier (the desired module name)
-    let mod_name = match tokens.next() {
-        Some(TokenTree::Ident(ident)) => ident,
-        Some(tree) => {
-            return Error::UnexpectedToken { tree }.to_compile_error_standalone();
-        }
-        None => return Error::UnexpectedEndOfInput.to_compile_error_standalone(),
-    };
-    // Followed by a comma
-    if let Err(err) = helpers::consume_punct(',', &mut tokens) {
-        return err.to_compile_error_standalone();
-    }
-    // Then, the type to create serde serializers for (e.g., `OffsetDateTime`).
-    let formattable = match tokens.next() {
-        Some(tree @ TokenTree::Ident(_)) => tree,
-        Some(tree) => return Error::UnexpectedToken { tree }.to_compile_error_standalone(),
-        None => return Error::UnexpectedEndOfInput.to_compile_error_standalone(),
-    };
-    // Another comma
-    if let Err(err) = helpers::consume_punct(',', &mut tokens) {
-        return err.to_compile_error_standalone();
-    }
-    // Then, a string literal.
-    let input = TokenStream::from_iter(tokens);
-    let (span, format_string) = match helpers::get_string_literal(input) {
-        Ok(val) => val,
-        Err(err) => return err.to_compile_error_standalone(),
-    };
+    (|| {
+        let mut tokens = input.into_iter().peekable();
+        // First, an identifier (the desired module name)
+        let mod_name = match tokens.next() {
+            Some(TokenTree::Ident(ident)) => Ok(ident),
+            Some(tree) => Err(Error::UnexpectedToken { tree }),
+            None => Err(Error::UnexpectedEndOfInput),
+        }?;
 
-    let items = match format_description::parse(&format_string, span) {
-        Ok(items) => items,
-        Err(err) => return err.to_compile_error_standalone(),
-    };
-    let items: TokenStream = items.into_iter().map(|item| quote! { #(item), }).collect();
+        // Followed by a comma
+        helpers::consume_punct(',', &mut tokens)?;
 
-    make_serde_serializer_module(
-        mod_name,
-        items,
-        formattable.into(),
-        std::str::from_utf8(&format_string).unwrap(),
-    )
+        // Then, the type to create serde serializers for (e.g., `OffsetDateTime`).
+        let formattable = match tokens.next() {
+            Some(tree @ TokenTree::Ident(_)) => Ok(tree),
+            Some(tree) => Err(Error::UnexpectedToken { tree }),
+            None => Err(Error::UnexpectedEndOfInput),
+        }?;
+
+        // Another comma
+        helpers::consume_punct(',', &mut tokens)?;
+
+        // Then, a string literal.
+        let input = TokenStream::from_iter(tokens);
+        let (span, format_string) = helpers::get_string_literal(input)?;
+
+        let items = format_description::parse(&format_string, span)?;
+        let items: TokenStream = items.into_iter().map(|item| quote! { #(item), }).collect();
+
+        Ok(make_serde_serializer_module(
+            mod_name,
+            items,
+            formattable.into(),
+            std::str::from_utf8(&format_string).unwrap(),
+        ))
+    })()
+    .unwrap_or_else(|err: Error| err.to_compile_error_standalone())
 }
