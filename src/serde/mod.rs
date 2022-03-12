@@ -25,6 +25,43 @@ use core::marker::PhantomData;
 #[cfg(feature = "serde-human-readable")]
 use serde::ser::Error as _;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+/// Generate a custom serializer and deserializer from the provided string.
+///
+/// The syntax accepted by this macro is the same as [`format_description::parse()`], which can
+/// be found in [the book](https://time-rs.github.io/book/api/format-description.html).
+///
+/// # Usage
+///
+/// Invoked as `serde::format_description!(mod_name, Date, "<format string>")`. This puts a
+/// module named `mod_name` in the current scope that can be used to format `Date` structs. A
+/// submodule (`mod_name::option`) is also generated for `Option<Date>`. Both modules are only
+/// visible in the current scope.
+///
+/// # Examples
+///
+/// ```
+/// # use time::OffsetDateTime;
+/// # use ::serde::{Serialize, Deserialize};
+/// use time::serde;
+///
+/// // Makes a module `mod my_format { ... }`.
+/// serde::format_description!(my_format, OffsetDateTime, "hour=[hour], minute=[minute]");
+///
+/// #[derive(Serialize, Deserialize)]
+/// struct SerializesWithCustom {
+///     #[serde(with = "my_format")]
+///     dt: OffsetDateTime,
+///     #[serde(with = "my_format::option")]
+///     maybe_dt: Option<OffsetDateTime>,
+/// }
+/// #
+/// # // otherwise rustdoc tests don't work because we put a module in `main()`
+/// # fn main() {}
+/// ```
+///
+/// [`format_description::parse()`]: crate::format_description::parse()
+#[cfg(all(feature = "macros", feature = "serde-human-readable"))]
+pub use time_macros::serde_format_description as format_description;
 
 use self::visitor::Visitor;
 #[cfg(feature = "parsing")]

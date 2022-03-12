@@ -1,27 +1,23 @@
-use serde::{Deserialize, Serialize};
+use ::serde::{Deserialize, Serialize};
 use serde_test::{
     assert_de_tokens_error, assert_ser_tokens_error, assert_tokens, Configure, Token,
 };
-use time::macros::{date, datetime, declare_format_string, offset};
-use time::{Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
+use time::macros::{date, datetime, offset};
+use time::{serde, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
-declare_format_string!(
+serde::format_description!(
     offset_dt_format,
     OffsetDateTime,
     "custom format: [year]-[month]-[day] [hour]:[minute]:[second] [offset_hour]:[offset_minute]"
 );
-
-declare_format_string!(
+serde::format_description!(
     primitive_dt_format,
     PrimitiveDateTime,
     "custom format: [year]-[month]-[day] [hour]:[minute]:[second]"
 );
-
-declare_format_string!(time_format, Time, "custom format: [minute]:[second]");
-
-declare_format_string!(date_format, Date, "custom format: [year]-[month]-[day]");
-
-declare_format_string!(
+serde::format_description!(time_format, Time, "custom format: [minute]:[second]");
+serde::format_description!(date_format, Date, "custom format: [year]-[month]-[day]");
+serde::format_description!(
     offset_format,
     UtcOffset,
     "custom format: [offset_hour]:[offset_minute]"
@@ -131,9 +127,8 @@ fn custom_serialize_error() {
     );
 }
 
-// This format string has offset_hour and offset_minute, but is for formatting
-// PrimitiveDateTime.
-declare_format_string!(
+// This format string has offset_hour and offset_minute, but is for formatting PrimitiveDateTime.
+serde::format_description!(
     primitive_date_time_format_bad,
     PrimitiveDateTime,
     "[offset_hour]:[offset_minute]"

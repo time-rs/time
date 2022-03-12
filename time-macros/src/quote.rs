@@ -96,6 +96,11 @@ macro_rules! quote_inner {
             ::proc_macro::Punct::new('?', ::proc_macro::Spacing::Alone)
         )),
     ]));
+    ([! $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
+        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
+            ::proc_macro::Punct::new('!', ::proc_macro::Spacing::Alone)
+        )),
+    ]));
     ([| $($tail:tt)*] -> [$($accum:tt)*] ) => (quote_inner!([$($tail)*] -> [$($accum)*
         ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
             ::proc_macro::Punct::new('|', ::proc_macro::Spacing::Alone)
