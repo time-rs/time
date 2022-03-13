@@ -107,6 +107,41 @@ impl OffsetDateTime {
         }
     }
 
+    /// Obtain the corresponding UTC timestamp without offset as [`PrimitiveDateTime`].
+    ///
+    /// ```rust
+    /// # use time::macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2018-12-31 23:00:00),
+    ///     datetime!(2019-01-01 01:00:00 +02:00).to_primitive_utc(),
+    /// );
+    /// ```
+    pub fn to_primitive_utc(self) -> PrimitiveDateTime {
+        let Self {
+            utc_datetime,
+            offset: _,
+        } = self;
+        utc_datetime
+    }
+
+    /// Obtain the corresponding timestamp including the UTC offset as [`PrimitiveDateTime`].
+    ///
+    /// ```rust
+    /// # use time::macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2019-01-01 01:00:00),
+    ///     datetime!(2019-01-01 01:00:00 +02:00).to_primitive_offset(),
+    /// );
+    /// ```
+    pub fn to_primitive_offset(self) -> PrimitiveDateTime {
+        let Self {
+            utc_datetime,
+            offset,
+        } = self;
+        let utc_offset = Duration::seconds(offset.whole_seconds().into());
+        utc_datetime + utc_offset
+    }
+
     // region: constructors
     /// Create an `OffsetDateTime` from the provided Unix timestamp. Calling `.offset()` on the
     /// resulting value is guaranteed to return UTC.
