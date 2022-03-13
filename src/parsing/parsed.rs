@@ -60,9 +60,9 @@ pub struct Parsed {
     /// Whole hours of the UTC offset.
     pub(crate) offset_hour: Option<i8>,
     /// Minutes within the hour of the UTC offset.
-    pub(crate) offset_minute: Option<u8>,
+    pub(crate) offset_minute: Option<i8>,
     /// Seconds within the minute of the UTC offset.
-    pub(crate) offset_second: Option<u8>,
+    pub(crate) offset_second: Option<i8>,
     /// Indicates whether a leap second is permitted to be parsed. This is required by some
     /// well-known formats.
     pub(crate) leap_second_allowed: bool,
@@ -275,8 +275,28 @@ impl Parsed {
         second: u8,
         subsecond: u32,
         offset_hour: i8,
-        offset_minute: u8,
-        offset_second: u8,
+    }
+
+    /// Obtain the absolute value of the offset minute.
+    #[deprecated(since = "0.3.8", note = "use `parsed.offset_minute_signed()` instead")]
+    pub const fn offset_minute(&self) -> Option<u8> {
+        Some(const_try_opt!(self.offset_minute_signed()).unsigned_abs())
+    }
+
+    /// Obtain the offset minute as an `i8`.
+    pub const fn offset_minute_signed(&self) -> Option<i8> {
+        self.offset_minute
+    }
+
+    /// Obtain the absolute value of the offset second.
+    #[deprecated(since = "0.3.8", note = "use `parsed.offset_second_signed()` instead")]
+    pub const fn offset_second(&self) -> Option<u8> {
+        Some(const_try_opt!(self.offset_second_signed()).unsigned_abs())
+    }
+
+    /// Obtain the offset second as an `i8`.
+    pub const fn offset_second_signed(&self) -> Option<i8> {
+        self.offset_second
     }
 }
 
@@ -317,8 +337,44 @@ impl Parsed {
         set_second second: u8,
         set_subsecond subsecond: u32,
         set_offset_hour offset_hour: i8,
-        set_offset_minute offset_minute: u8,
-        set_offset_second offset_second: u8,
+    }
+
+    /// Set the named component.
+    #[deprecated(
+        since = "0.3.8",
+        note = "use `parsed.set_offset_minute_signed()` instead"
+    )]
+    pub fn set_offset_minute(&mut self, value: u8) -> Option<()> {
+        if value > i8::MAX as u8 {
+            None
+        } else {
+            self.set_offset_minute_signed(value as _)
+        }
+    }
+
+    /// Set the `offset_minute` component.
+    pub fn set_offset_minute_signed(&mut self, value: i8) -> Option<()> {
+        self.offset_minute = Some(value);
+        Some(())
+    }
+
+    /// Set the named component.
+    #[deprecated(
+        since = "0.3.8",
+        note = "use `parsed.set_offset_second_signed()` instead"
+    )]
+    pub fn set_offset_second(&mut self, value: u8) -> Option<()> {
+        if value > i8::MAX as u8 {
+            None
+        } else {
+            self.set_offset_second_signed(value as _)
+        }
+    }
+
+    /// Set the `offset_second` component.
+    pub fn set_offset_second_signed(&mut self, value: i8) -> Option<()> {
+        self.offset_second = Some(value);
+        Some(())
     }
 }
 
@@ -359,8 +415,44 @@ impl Parsed {
         with_second second: u8,
         with_subsecond subsecond: u32,
         with_offset_hour offset_hour: i8,
-        with_offset_minute offset_minute: u8,
-        with_offset_second offset_second: u8,
+    }
+
+    /// Set the named component and return `self`.
+    #[deprecated(
+        since = "0.3.8",
+        note = "use `parsed.with_offset_minute_signed()` instead"
+    )]
+    pub const fn with_offset_minute(self, value: u8) -> Option<Self> {
+        if value > i8::MAX as u8 {
+            None
+        } else {
+            self.with_offset_minute_signed(value as _)
+        }
+    }
+
+    /// Set the `offset_minute` component and return `self`.
+    pub const fn with_offset_minute_signed(mut self, value: i8) -> Option<Self> {
+        self.offset_minute = Some(value);
+        Some(self)
+    }
+
+    /// Set the named component and return `self`.
+    #[deprecated(
+        since = "0.3.8",
+        note = "use `parsed.with_offset_second_signed()` instead"
+    )]
+    pub const fn with_offset_second(self, value: u8) -> Option<Self> {
+        if value > i8::MAX as u8 {
+            None
+        } else {
+            self.with_offset_second_signed(value as _)
+        }
+    }
+
+    /// Set the `offset_second` component and return `self`.
+    pub const fn with_offset_second_signed(mut self, value: i8) -> Option<Self> {
+        self.offset_second = Some(value);
+        Some(self)
     }
 }
 
@@ -452,7 +544,8 @@ impl TryFrom<Parsed> for UtcOffset {
         let hour = parsed.offset_hour.ok_or(InsufficientInformation)?;
         let minute = parsed.offset_minute.unwrap_or(0);
         let second = parsed.offset_second.unwrap_or(0);
-        Self::from_hms(hour, minute as i8, second as i8).map_err(|mut err| {
+
+        Self::from_hms(hour, minute, second).map_err(|mut err| {
             // Provide the user a more accurate error.
             if err.name == "hours" {
                 err.name = "offset hour";

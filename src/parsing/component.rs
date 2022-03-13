@@ -270,15 +270,21 @@ pub(crate) fn parse_offset_hour(
 pub(crate) fn parse_offset_minute(
     input: &[u8],
     modifiers: modifier::OffsetMinute,
-) -> Option<ParsedItem<'_, u8>> {
-    exactly_n_digits_padded::<_, 2>(modifiers.padding)(input)
+) -> Option<ParsedItem<'_, i8>> {
+    Some(
+        exactly_n_digits_padded::<u8, 2>(modifiers.padding)(input)?
+            .map(|offset_minute| offset_minute as _),
+    )
 }
 
 /// Parse the "second" component of a `UtcOffset`.
 pub(crate) fn parse_offset_second(
     input: &[u8],
     modifiers: modifier::OffsetSecond,
-) -> Option<ParsedItem<'_, u8>> {
-    exactly_n_digits_padded::<_, 2>(modifiers.padding)(input)
+) -> Option<ParsedItem<'_, i8>> {
+    Some(
+        exactly_n_digits_padded::<u8, 2>(modifiers.padding)(input)?
+            .map(|offset_second| offset_second as _),
+    )
 }
 // endregion offset components

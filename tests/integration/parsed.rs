@@ -8,10 +8,13 @@ use time::{error, Month, Time, Weekday};
 #[test]
 fn getters_setters() {
     macro_rules! getters_setters {
-        ($($setter:ident $getter:ident $value:expr;)*) => {$(
-            let mut parsed = Parsed::new();
-            parsed.$setter($value);
-            assert_eq!(parsed.$getter(), Some($value));
+        ($( $(#[$attr:meta])* $setter:ident $getter:ident $value:expr;)*) => {$(
+            $(#[$attr])*
+            {
+                let mut parsed = Parsed::new();
+                parsed.$setter($value);
+                assert_eq!(parsed.$getter(), Some($value));
+            }
         )*};
     }
 
@@ -34,13 +37,25 @@ fn getters_setters() {
         set_second second 5;
         set_subsecond subsecond 5;
         set_offset_hour offset_hour 5;
-        set_offset_minute offset_minute 5;
-        set_offset_second offset_second 5;
+        #[allow(deprecated)] set_offset_minute offset_minute 5;
+        set_offset_minute_signed offset_minute_signed -5;
+        #[allow(deprecated)] set_offset_second offset_second 5;
+        set_offset_second_signed offset_second_signed -5;
+    }
+
+    #[allow(deprecated)]
+    {
+        let mut parsed = Parsed::new();
+        parsed.set_offset_minute(200);
+        assert_eq!(parsed.offset_minute(), None);
+        parsed.set_offset_second(200);
+        assert_eq!(parsed.offset_second(), None);
     }
 }
 
 #[test]
 fn builder_methods() {
+    #[allow(deprecated)]
     let parsed = Parsed::new()
         .with_year(5)
         .and_then(|parsed| parsed.with_year_last_two(5))
@@ -91,8 +106,25 @@ fn builder_methods() {
     assert_eq!(parsed.second(), Some(5));
     assert_eq!(parsed.subsecond(), Some(5));
     assert_eq!(parsed.offset_hour(), Some(5));
-    assert_eq!(parsed.offset_minute(), Some(5));
-    assert_eq!(parsed.offset_second(), Some(5));
+    #[allow(deprecated)]
+    {
+        assert_eq!(parsed.offset_minute(), Some(5));
+        assert_eq!(parsed.offset_second(), Some(5));
+    }
+
+    let parsed = Parsed::new()
+        .with_offset_minute_signed(-5)
+        .and_then(|parsed| parsed.with_offset_second_signed(-5))
+        .expect("all values are valid");
+
+    assert_eq!(parsed.offset_minute_signed(), Some(-5));
+    assert_eq!(parsed.offset_second_signed(), Some(-5));
+
+    #[allow(deprecated)]
+    {
+        assert!(Parsed::new().with_offset_minute(200).is_none());
+        assert!(Parsed::new().with_offset_second(200).is_none());
+    }
 }
 
 #[test]

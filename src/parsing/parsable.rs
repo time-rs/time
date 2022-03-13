@@ -261,8 +261,9 @@ impl sealed::Sealed for Rfc2822 {
                 }
             })
             .assign_value_to(&mut parsed.offset_hour);
-        let input = exactly_n_digits::<_, 2>(input)
+        let input = exactly_n_digits::<u8, 2>(input)
             .ok_or(InvalidComponent("offset minute"))?
+            .map(|offset_minute| offset_minute as _)
             .assign_value_to(&mut parsed.offset_minute);
 
         Ok(input)
@@ -350,8 +351,9 @@ impl sealed::Sealed for Rfc3339 {
             })
             .assign_value_to(&mut parsed.offset_hour);
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits::<_, 2>(input)
+        let input = exactly_n_digits::<u8, 2>(input)
             .ok_or(InvalidComponent("offset minute"))?
+            .map(|offset_minute: u8| offset_minute as _)
             .assign_value_to(&mut parsed.offset_minute);
 
         Ok(input)
