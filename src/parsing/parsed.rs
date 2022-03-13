@@ -23,49 +23,49 @@ use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffs
 #[derive(Debug, Clone, Copy)]
 pub struct Parsed {
     /// Calendar year.
-    pub(crate) year: Option<i32>,
+    year: Option<i32>,
     /// The last two digits of the calendar year.
-    pub(crate) year_last_two: Option<u8>,
+    year_last_two: Option<u8>,
     /// Year of the [ISO week date](https://en.wikipedia.org/wiki/ISO_week_date).
-    pub(crate) iso_year: Option<i32>,
+    iso_year: Option<i32>,
     /// The last two digits of the ISO week year.
-    pub(crate) iso_year_last_two: Option<u8>,
+    iso_year_last_two: Option<u8>,
     /// Month of the year.
-    pub(crate) month: Option<Month>,
+    month: Option<Month>,
     /// Week of the year, where week one begins on the first Sunday of the calendar year.
-    pub(crate) sunday_week_number: Option<u8>,
+    sunday_week_number: Option<u8>,
     /// Week of the year, where week one begins on the first Monday of the calendar year.
-    pub(crate) monday_week_number: Option<u8>,
+    monday_week_number: Option<u8>,
     /// Week of the year, where week one is the Monday-to-Sunday period containing January 4.
-    pub(crate) iso_week_number: Option<NonZeroU8>,
+    iso_week_number: Option<NonZeroU8>,
     /// Day of the week.
-    pub(crate) weekday: Option<Weekday>,
+    weekday: Option<Weekday>,
     /// Day of the year.
-    pub(crate) ordinal: Option<NonZeroU16>,
+    ordinal: Option<NonZeroU16>,
     /// Day of the month.
-    pub(crate) day: Option<NonZeroU8>,
+    day: Option<NonZeroU8>,
     /// Hour within the day.
-    pub(crate) hour_24: Option<u8>,
+    hour_24: Option<u8>,
     /// Hour within the 12-hour period (midnight to noon or vice versa). This is typically used in
     /// conjunction with AM/PM, which is indicated by the `hour_12_is_pm` field.
-    pub(crate) hour_12: Option<NonZeroU8>,
+    hour_12: Option<NonZeroU8>,
     /// Whether the `hour_12` field indicates a time that "PM".
-    pub(crate) hour_12_is_pm: Option<bool>,
+    hour_12_is_pm: Option<bool>,
     /// Minute within the hour.
-    pub(crate) minute: Option<u8>,
+    minute: Option<u8>,
     /// Second within the minute.
-    pub(crate) second: Option<u8>,
+    second: Option<u8>,
     /// Nanosecond within the second.
-    pub(crate) subsecond: Option<u32>,
+    subsecond: Option<u32>,
     /// Whole hours of the UTC offset.
-    pub(crate) offset_hour: Option<i8>,
+    offset_hour: Option<i8>,
     /// Minutes within the hour of the UTC offset.
-    pub(crate) offset_minute: Option<i8>,
+    offset_minute: Option<i8>,
     /// Seconds within the minute of the UTC offset.
-    pub(crate) offset_second: Option<i8>,
+    offset_second: Option<i8>,
     /// Indicates whether a leap second is permitted to be parsed. This is required by some
     /// well-known formats.
-    pub(crate) leap_second_allowed: bool,
+    leap_second_allowed: bool,
 }
 
 impl Parsed {
@@ -172,74 +172,81 @@ impl Parsed {
         use error::ParseFromDescription::InvalidComponent;
 
         match component {
-            Component::Day(modifiers) => Ok(parse_day(input, modifiers)
-                .ok_or(InvalidComponent("day"))?
-                .assign_value_to(&mut self.day)),
-            Component::Month(modifiers) => Ok(parse_month(input, modifiers)
-                .ok_or(InvalidComponent("month"))?
-                .assign_value_to(&mut self.month)),
-            Component::Ordinal(modifiers) => Ok(parse_ordinal(input, modifiers)
-                .ok_or(InvalidComponent("ordinal"))?
-                .assign_value_to(&mut self.ordinal)),
-            Component::Weekday(modifiers) => Ok(parse_weekday(input, modifiers)
-                .ok_or(InvalidComponent("weekday"))?
-                .assign_value_to(&mut self.weekday)),
+            Component::Day(modifiers) => parse_day(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_day(value)))
+                .ok_or(InvalidComponent("day")),
+            Component::Month(modifiers) => parse_month(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_month(value)))
+                .ok_or(InvalidComponent("month")),
+            Component::Ordinal(modifiers) => parse_ordinal(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_ordinal(value)))
+                .ok_or(InvalidComponent("ordinal")),
+            Component::Weekday(modifiers) => parse_weekday(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_weekday(value)))
+                .ok_or(InvalidComponent("weekday")),
             Component::WeekNumber(modifiers) => {
                 let ParsedItem(remaining, value) =
                     parse_week_number(input, modifiers).ok_or(InvalidComponent("week number"))?;
                 match modifiers.repr {
                     WeekNumberRepr::Iso => {
-                        self.iso_week_number =
-                            Some(NonZeroU8::new(value).ok_or(InvalidComponent("week number"))?);
+                        NonZeroU8::new(value).and_then(|value| self.set_iso_week_number(value))
                     }
-                    WeekNumberRepr::Sunday => self.sunday_week_number = Some(value),
-                    WeekNumberRepr::Monday => self.monday_week_number = Some(value),
+                    WeekNumberRepr::Sunday => self.set_sunday_week_number(value),
+                    WeekNumberRepr::Monday => self.set_monday_week_number(value),
                 }
+                .ok_or(InvalidComponent("week number"))?;
                 Ok(remaining)
             }
             Component::Year(modifiers) => {
                 let ParsedItem(remaining, value) =
                     parse_year(input, modifiers).ok_or(InvalidComponent("year"))?;
                 match (modifiers.iso_week_based, modifiers.repr) {
-                    (false, YearRepr::Full) => self.year = Some(value),
-                    (false, YearRepr::LastTwo) => self.year_last_two = Some(value as u8),
-                    (true, YearRepr::Full) => self.iso_year = Some(value),
-                    (true, YearRepr::LastTwo) => self.iso_year_last_two = Some(value as u8),
+                    (false, YearRepr::Full) => self.set_year(value),
+                    (false, YearRepr::LastTwo) => self.set_year_last_two(value as _),
+                    (true, YearRepr::Full) => self.set_iso_year(value),
+                    (true, YearRepr::LastTwo) => self.set_iso_year_last_two(value as _),
                 }
+                .ok_or(InvalidComponent("year"))?;
                 Ok(remaining)
             }
             Component::Hour(modifiers) => {
                 let ParsedItem(remaining, value) =
                     parse_hour(input, modifiers).ok_or(InvalidComponent("hour"))?;
                 if modifiers.is_12_hour_clock {
-                    self.hour_12 = Some(NonZeroU8::new(value).ok_or(InvalidComponent("hour"))?);
+                    NonZeroU8::new(value).and_then(|value| self.set_hour_12(value))
                 } else {
-                    self.hour_24 = Some(value);
+                    self.set_hour_24(value)
                 }
+                .ok_or(InvalidComponent("hour"))?;
                 Ok(remaining)
             }
-            Component::Minute(modifiers) => Ok(parse_minute(input, modifiers)
-                .ok_or(InvalidComponent("minute"))?
-                .assign_value_to(&mut self.minute)),
-            Component::Period(modifiers) => Ok(parse_period(input, modifiers)
-                .ok_or(InvalidComponent("period"))?
-                .map(|period| period == Period::Pm)
-                .assign_value_to(&mut self.hour_12_is_pm)),
-            Component::Second(modifiers) => Ok(parse_second(input, modifiers)
-                .ok_or(InvalidComponent("second"))?
-                .assign_value_to(&mut self.second)),
-            Component::Subsecond(modifiers) => Ok(parse_subsecond(input, modifiers)
-                .ok_or(InvalidComponent("subsecond"))?
-                .assign_value_to(&mut self.subsecond)),
-            Component::OffsetHour(modifiers) => Ok(parse_offset_hour(input, modifiers)
-                .ok_or(InvalidComponent("offset hour"))?
-                .assign_value_to(&mut self.offset_hour)),
-            Component::OffsetMinute(modifiers) => Ok(parse_offset_minute(input, modifiers)
-                .ok_or(InvalidComponent("offset minute"))?
-                .assign_value_to(&mut self.offset_minute)),
-            Component::OffsetSecond(modifiers) => Ok(parse_offset_second(input, modifiers)
-                .ok_or(InvalidComponent("offset second"))?
-                .assign_value_to(&mut self.offset_second)),
+            Component::Minute(modifiers) => parse_minute(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_minute(value)))
+                .ok_or(InvalidComponent("minute")),
+            Component::Period(modifiers) => parse_period(input, modifiers)
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_hour_12_is_pm(value == Period::Pm))
+                })
+                .ok_or(InvalidComponent("period")),
+            Component::Second(modifiers) => parse_second(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_second(value)))
+                .ok_or(InvalidComponent("second")),
+            Component::Subsecond(modifiers) => parse_subsecond(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_subsecond(value)))
+                .ok_or(InvalidComponent("subsecond")),
+            Component::OffsetHour(modifiers) => parse_offset_hour(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_offset_hour(value)))
+                .ok_or(InvalidComponent("offset hour")),
+            Component::OffsetMinute(modifiers) => parse_offset_minute(input, modifiers)
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_offset_minute_signed(value))
+                })
+                .ok_or(InvalidComponent("offset minute")),
+            Component::OffsetSecond(modifiers) => parse_offset_second(input, modifiers)
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_offset_second_signed(value))
+                })
+                .ok_or(InvalidComponent("offset second")),
         }
     }
 }
@@ -297,6 +304,11 @@ impl Parsed {
     /// Obtain the offset second as an `i8`.
     pub const fn offset_second_signed(&self) -> Option<i8> {
         self.offset_second
+    }
+
+    /// Obtain whether leap seconds are permitted in the current format.
+    pub(crate) const fn leap_second_allowed(&self) -> bool {
+        self.leap_second_allowed
     }
 }
 
@@ -375,6 +387,11 @@ impl Parsed {
     pub fn set_offset_second_signed(&mut self, value: i8) -> Option<()> {
         self.offset_second = Some(value);
         Some(())
+    }
+
+    /// Set the leap second allowed flag.
+    pub(crate) fn set_leap_second_allowed(&mut self, value: bool) {
+        self.leap_second_allowed = value;
     }
 }
 
@@ -460,10 +477,17 @@ impl TryFrom<Parsed> for Date {
     type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
-        /// Require the items listed.
-        macro_rules! items {
-            ($($item:ident),+ $(,)?) => {
-                Parsed { $($item: Some($item)),*, .. }
+        /// Match on the components that need to be present.
+        macro_rules! match_ {
+            (_ => $catch_all:expr $(,)?) => {
+                $catch_all
+            };
+            (($($name:ident),* $(,)?) => $arm:expr, $($rest:tt)*) => {
+                if let ($(Some($name)),*) = ($(parsed.$name()),*) {
+                    $arm
+                } else {
+                    match_!($($rest)*)
+                }
             };
         }
 
@@ -484,21 +508,21 @@ impl TryFrom<Parsed> for Date {
         // TODO Only the basics have been covered. There are many other valid values that are not
         // currently constructed from the information known.
 
-        match parsed {
-            items!(year, ordinal) => Ok(Self::from_ordinal_date(year, ordinal.get())?),
-            items!(year, month, day) => Ok(Self::from_calendar_date(year, month, day.get())?),
-            items!(iso_year, iso_week_number, weekday) => Ok(Self::from_iso_week_date(
+        match_! {
+            (year, ordinal) => Ok(Self::from_ordinal_date(year, ordinal.get())?),
+            (year, month, day) => Ok(Self::from_calendar_date(year, month, day.get())?),
+            (iso_year, iso_week_number, weekday) => Ok(Self::from_iso_week_date(
                 iso_year,
                 iso_week_number.get(),
                 weekday,
             )?),
-            items!(year, sunday_week_number, weekday) => Ok(Self::from_ordinal_date(
+            (year, sunday_week_number, weekday) => Ok(Self::from_ordinal_date(
                 year,
                 (sunday_week_number as i16 * 7 + weekday.number_days_from_sunday() as i16
                     - adjustment(year)
                     + 1) as u16,
             )?),
-            items!(year, monday_week_number, weekday) => Ok(Self::from_ordinal_date(
+            (year, monday_week_number, weekday) => Ok(Self::from_ordinal_date(
                 year,
                 (monday_week_number as i16 * 7 + weekday.number_days_from_monday() as i16
                     - adjustment(year)
@@ -513,7 +537,7 @@ impl TryFrom<Parsed> for Time {
     type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
-        let hour = match (parsed.hour_24, parsed.hour_12, parsed.hour_12_is_pm) {
+        let hour = match (parsed.hour_24(), parsed.hour_12(), parsed.hour_12_is_pm()) {
             (Some(hour), _, _) => hour,
             (_, Some(hour), Some(false)) if hour.get() == 12 => 0,
             (_, Some(hour), Some(true)) if hour.get() == 12 => 12,
@@ -521,18 +545,18 @@ impl TryFrom<Parsed> for Time {
             (_, Some(hour), Some(true)) => hour.get() + 12,
             _ => return Err(InsufficientInformation),
         };
-        if parsed.hour_24.is_none()
-            && parsed.hour_12.is_some()
-            && parsed.hour_12_is_pm.is_some()
-            && parsed.minute.is_none()
-            && parsed.second.is_none()
-            && parsed.subsecond.is_none()
+        if parsed.hour_24().is_none()
+            && parsed.hour_12().is_some()
+            && parsed.hour_12_is_pm().is_some()
+            && parsed.minute().is_none()
+            && parsed.second().is_none()
+            && parsed.subsecond().is_none()
         {
             return Ok(Self::from_hms_nano(hour, 0, 0, 0)?);
         }
-        let minute = parsed.minute.ok_or(InsufficientInformation)?;
-        let second = parsed.second.unwrap_or(0);
-        let subsecond = parsed.subsecond.unwrap_or(0);
+        let minute = parsed.minute().ok_or(InsufficientInformation)?;
+        let second = parsed.second().unwrap_or(0);
+        let subsecond = parsed.subsecond().unwrap_or(0);
         Ok(Self::from_hms_nano(hour, minute, second, subsecond)?)
     }
 }
@@ -541,9 +565,9 @@ impl TryFrom<Parsed> for UtcOffset {
     type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
-        let hour = parsed.offset_hour.ok_or(InsufficientInformation)?;
-        let minute = parsed.offset_minute.unwrap_or(0);
-        let second = parsed.offset_second.unwrap_or(0);
+        let hour = parsed.offset_hour().ok_or(InsufficientInformation)?;
+        let minute = parsed.offset_minute_signed().unwrap_or(0);
+        let second = parsed.offset_second_signed().unwrap_or(0);
 
         Self::from_hms(hour, minute, second).map_err(|mut err| {
             // Provide the user a more accurate error.
@@ -570,13 +594,16 @@ impl TryFrom<Parsed> for PrimitiveDateTime {
 impl TryFrom<Parsed> for OffsetDateTime {
     type Error = error::TryFromParsed;
 
+    #[allow(clippy::unwrap_in_result)] // We know the values are valid.
     fn try_from(mut parsed: Parsed) -> Result<Self, Self::Error> {
         // Some well-known formats explicitly allow leap seconds. We don't currently support them,
         // so treat it as the nearest preceding moment that can be represented. Because leap seconds
         // always fall at the end of a month UTC, reject any that are at other times.
-        let leap_second_input = if parsed.leap_second_allowed && parsed.second == Some(60) {
-            parsed.second = Some(59);
-            parsed.subsecond = Some(999_999_999);
+        let leap_second_input = if parsed.leap_second_allowed() && parsed.second() == Some(60) {
+            parsed.set_second(59).expect("59 is a valid second");
+            parsed
+                .set_subsecond(999_999_999)
+                .expect("999_999_999 is a valid subsecond");
             true
         } else {
             false
