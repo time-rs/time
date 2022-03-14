@@ -51,6 +51,23 @@ fn display() {
 }
 
 #[test]
+fn from_str() {
+    assert_eq!("January".parse(), Ok(January));
+    assert_eq!("February".parse(), Ok(February));
+    assert_eq!("March".parse(), Ok(March));
+    assert_eq!("April".parse(), Ok(April));
+    assert_eq!("May".parse(), Ok(May));
+    assert_eq!("June".parse(), Ok(June));
+    assert_eq!("July".parse(), Ok(July));
+    assert_eq!("August".parse(), Ok(August));
+    assert_eq!("September".parse(), Ok(September));
+    assert_eq!("October".parse(), Ok(October));
+    assert_eq!("November".parse(), Ok(November));
+    assert_eq!("December".parse(), Ok(December));
+    assert_eq!("foo".parse::<Month>(), Err(time::error::InvalidVariant));
+}
+
+#[test]
 fn to_u8() {
     assert_eq!(u8::from(January), 1);
     assert_eq!(u8::from(February), 2);

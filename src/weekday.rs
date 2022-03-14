@@ -1,8 +1,11 @@
 //! Days of the week.
 
 use core::fmt::{self, Display};
+use core::str::FromStr;
 
 use Weekday::*;
+
+use crate::error;
 
 /// Days of the week.
 ///
@@ -124,5 +127,22 @@ impl Display for Weekday {
             Saturday => "Saturday",
             Sunday => "Sunday",
         })
+    }
+}
+
+impl FromStr for Weekday {
+    type Err = error::InvalidVariant;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Monday" => Ok(Monday),
+            "Tuesday" => Ok(Tuesday),
+            "Wednesday" => Ok(Wednesday),
+            "Thursday" => Ok(Thursday),
+            "Friday" => Ok(Friday),
+            "Saturday" => Ok(Saturday),
+            "Sunday" => Ok(Sunday),
+            _ => Err(error::InvalidVariant),
+        }
     }
 }

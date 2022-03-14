@@ -4,7 +4,7 @@ use std::io;
 
 use time::error::{
     ComponentRange, ConversionRange, DifferentVariant, Error, Format, IndeterminateOffset,
-    InvalidFormatDescription, Parse, ParseFromDescription, TryFromParsed,
+    InvalidFormatDescription, InvalidVariant, Parse, ParseFromDescription, TryFromParsed,
 };
 use time::macros::format_description;
 use time::parsing::Parsed;
@@ -62,6 +62,7 @@ fn debug() {
     assert_dbg_reflexive!(Parse::from(ParseFromDescription::InvalidComponent("a")));
     assert_dbg_reflexive!(invalid_format_description());
     assert_dbg_reflexive!(DifferentVariant);
+    assert_dbg_reflexive!(InvalidVariant);
 }
 
 #[test]
@@ -109,6 +110,7 @@ fn display() {
     );
     assert_display_eq!(io_error(), Format::from(io_error()));
     assert_display_eq!(DifferentVariant, Error::from(DifferentVariant));
+    assert_display_eq!(InvalidVariant, Error::from(InvalidVariant));
 }
 
 #[test]
@@ -145,6 +147,7 @@ fn source() {
     );
     assert_source!(Format::from(io_error()), io::Error);
     assert_source!(Error::from(DifferentVariant), DifferentVariant);
+    assert_source!(Error::from(InvalidVariant), InvalidVariant);
 }
 
 #[test]
@@ -165,6 +168,7 @@ fn conversion() {
     assert!(Parse::try_from(Error::from(invalid_literal())).is_ok());
     assert!(Parse::try_from(Error::from(TryFromParsed::InsufficientInformation)).is_ok());
     assert!(DifferentVariant::try_from(Error::from(DifferentVariant)).is_ok());
+    assert!(InvalidVariant::try_from(Error::from(InvalidVariant)).is_ok());
     assert!(ComponentRange::try_from(TryFromParsed::ComponentRange(component_range())).is_ok());
     assert!(TryFromParsed::try_from(Error::from(TryFromParsed::InsufficientInformation)).is_ok());
     assert!(TryFromParsed::try_from(Parse::from(TryFromParsed::InsufficientInformation)).is_ok());
@@ -179,6 +183,7 @@ fn conversion() {
     assert!(ParseFromDescription::try_from(unexpected_trailing_characters()).is_err());
     assert!(Parse::try_from(Error::from(IndeterminateOffset)).is_err());
     assert!(DifferentVariant::try_from(Error::from(IndeterminateOffset)).is_err());
+    assert!(InvalidVariant::try_from(Error::from(IndeterminateOffset)).is_err());
     assert!(ComponentRange::try_from(TryFromParsed::InsufficientInformation).is_err());
     assert!(TryFromParsed::try_from(Error::from(IndeterminateOffset)).is_err());
     assert!(TryFromParsed::try_from(unexpected_trailing_characters()).is_err());

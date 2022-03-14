@@ -3,6 +3,7 @@
 use core::convert::TryFrom;
 use core::fmt;
 use core::num::NonZeroU8;
+use core::str::FromStr;
 
 use self::Month::*;
 use crate::error;
@@ -115,6 +116,28 @@ impl fmt::Display for Month {
             November => "November",
             December => "December",
         })
+    }
+}
+
+impl FromStr for Month {
+    type Err = error::InvalidVariant;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "January" => Ok(January),
+            "February" => Ok(February),
+            "March" => Ok(March),
+            "April" => Ok(April),
+            "May" => Ok(May),
+            "June" => Ok(June),
+            "July" => Ok(July),
+            "August" => Ok(August),
+            "September" => Ok(September),
+            "October" => Ok(October),
+            "November" => Ok(November),
+            "December" => Ok(December),
+            _ => Err(error::InvalidVariant),
+        }
     }
 }
 

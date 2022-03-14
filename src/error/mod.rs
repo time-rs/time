@@ -9,6 +9,7 @@ mod format;
 mod indeterminate_offset;
 #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
 mod invalid_format_description;
+mod invalid_variant;
 #[cfg(feature = "parsing")]
 mod parse;
 #[cfg(feature = "parsing")]
@@ -27,6 +28,7 @@ pub use format::Format;
 pub use indeterminate_offset::IndeterminateOffset;
 #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
 pub use invalid_format_description::InvalidFormatDescription;
+pub use invalid_variant::InvalidVariant;
 #[cfg(feature = "parsing")]
 pub use parse::Parse;
 #[cfg(feature = "parsing")]
@@ -59,6 +61,7 @@ pub enum Error {
     #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
     InvalidFormatDescription(InvalidFormatDescription),
     DifferentVariant(DifferentVariant),
+    InvalidVariant(InvalidVariant),
 }
 
 impl fmt::Display for Error {
@@ -79,6 +82,7 @@ impl fmt::Display for Error {
             #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
             Self::InvalidFormatDescription(e) => e.fmt(f),
             Self::DifferentVariant(e) => e.fmt(f),
+            Self::InvalidVariant(e) => e.fmt(f),
         }
     }
 }
@@ -102,6 +106,7 @@ impl std::error::Error for Error {
             #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
             Self::InvalidFormatDescription(err) => Some(err),
             Self::DifferentVariant(err) => Some(err),
+            Self::InvalidVariant(err) => Some(err),
         }
     }
 }

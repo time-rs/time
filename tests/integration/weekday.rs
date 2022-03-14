@@ -1,4 +1,4 @@
-use time::Weekday::*;
+use time::Weekday::{self, *};
 
 #[test]
 fn previous() {
@@ -75,4 +75,16 @@ fn display() {
     assert_eq!(Friday.to_string(), "Friday");
     assert_eq!(Saturday.to_string(), "Saturday");
     assert_eq!(Sunday.to_string(), "Sunday");
+}
+
+#[test]
+fn from_str() {
+    assert_eq!("Monday".parse(), Ok(Monday));
+    assert_eq!("Tuesday".parse(), Ok(Tuesday));
+    assert_eq!("Wednesday".parse(), Ok(Wednesday));
+    assert_eq!("Thursday".parse(), Ok(Thursday));
+    assert_eq!("Friday".parse(), Ok(Friday));
+    assert_eq!("Saturday".parse(), Ok(Saturday));
+    assert_eq!("Sunday".parse(), Ok(Sunday));
+    assert_eq!("foo".parse::<Weekday>(), Err(time::error::InvalidVariant));
 }
