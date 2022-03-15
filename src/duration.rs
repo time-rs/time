@@ -740,6 +740,44 @@ impl Duration {
 }
 
 // region: trait impls
+/// The format returned by this implementation is not stable and must not be relied upon.
+///
+/// For the purposes of this implementation, a day is exactly 24 hours and a minute is exactly 60
+/// seconds.
+impl fmt::Display for Duration {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        /// Format a single item.
+        macro_rules! item {
+            ($name:literal, $value:expr) => {
+                match $value {
+                    0 => Ok(()),
+                    value => value.fmt(f).and(f.write_str($name)),
+                }
+            };
+        }
+
+        if self.is_zero() {
+            return f.write_str("0s");
+        }
+
+        let seconds = self.seconds.unsigned_abs();
+        let nanoseconds = self.nanoseconds.unsigned_abs();
+
+        if self.is_negative() {
+            f.write_str("-")?;
+        }
+
+        item!("d", seconds / 86_400)?;
+        item!("h", seconds / 3_600 % 24)?;
+        item!("m", seconds / 60 % 60)?;
+        item!("s", seconds % 60)?;
+        item!("ms", nanoseconds / 1_000_000)?;
+        item!("µs", nanoseconds / 1_000 % 1_000)?;
+        item!("ns", nanoseconds % 1_000)?;
+        Ok(())
+    }
+}
+
 impl TryFrom<StdDuration> for Duration {
     type Error = error::ConversionRange;
 

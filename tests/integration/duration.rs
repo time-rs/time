@@ -368,6 +368,38 @@ fn time_fn() {
 }
 
 #[test]
+fn display() {
+    assert_eq!(0.seconds().to_string(), "0s");
+    assert_eq!(60.days().to_string(), "60d");
+    assert_eq!((-48).hours().to_string(), "-2d");
+    assert_eq!(48.hours().to_string(), "2d");
+    assert_eq!(1.minutes().to_string(), "1m");
+    assert_eq!(10.minutes().to_string(), "10m");
+    assert_eq!(1.seconds().to_string(), "1s");
+    assert_eq!(10.seconds().to_string(), "10s");
+    assert_eq!(1.milliseconds().to_string(), "1ms");
+    assert_eq!(10.milliseconds().to_string(), "10ms");
+    assert_eq!(100.milliseconds().to_string(), "100ms");
+    assert_eq!(1.microseconds().to_string(), "1µs");
+    assert_eq!(10.microseconds().to_string(), "10µs");
+    assert_eq!(100.microseconds().to_string(), "100µs");
+    assert_eq!(1.nanoseconds().to_string(), "1ns");
+    assert_eq!(10.nanoseconds().to_string(), "10ns");
+    assert_eq!(100.nanoseconds().to_string(), "100ns");
+
+    assert_eq!(1.days().to_string(), "1d");
+    assert_eq!(26.hours().to_string(), "1d2h");
+    assert_eq!(1_563.minutes().to_string(), "1d2h3m");
+    assert_eq!(93_784.seconds().to_string(), "1d2h3m4s");
+    assert_eq!(93_784_005.milliseconds().to_string(), "1d2h3m4s5ms");
+    assert_eq!(93_784_005_006.microseconds().to_string(), "1d2h3m4s5ms6µs");
+    assert_eq!(
+        93_784_005_006_007.nanoseconds().to_string(),
+        "1d2h3m4s5ms6µs7ns"
+    );
+}
+
+#[test]
 fn try_from_std_duration() {
     assert_eq!(Duration::try_from(0.std_seconds()), Ok(0.seconds()));
     assert_eq!(Duration::try_from(1.std_seconds()), Ok(1.seconds()));
