@@ -1,161 +1,110 @@
 macro_rules! quote {
     () => (::proc_macro::TokenStream::new());
-    ($($x:tt)*) => (quote_inner!([$($x)*] -> []));
+    ($($x:tt)*) => {{
+        let mut ts = ::proc_macro::TokenStream::new();
+        quote_inner!(ts $($x)*);
+        ts
+    }};
+}
+
+macro_rules! sym {
+    ($ts:ident $x:tt $y:tt) => {
+        $ts.extend([
+            ::proc_macro::TokenTree::from(::proc_macro::Punct::new(
+                $x,
+                ::proc_macro::Spacing::Joint,
+            )),
+            ::proc_macro::TokenTree::from(::proc_macro::Punct::new(
+                $y,
+                ::proc_macro::Spacing::Alone,
+            )),
+        ]);
+    };
+    ($ts:ident $x:tt) => {
+        $ts.extend([::proc_macro::TokenTree::from(::proc_macro::Punct::new(
+            $x,
+            ::proc_macro::Spacing::Alone,
+        ))]);
+    };
 }
 
 macro_rules! quote_inner {
     // Base case
-    ([] -> []) => (::proc_macro::TokenStream::new());
-    ([] -> [$($accum:tt)*]) => {
-        [$($accum)*].iter().cloned().collect::<::proc_macro::TokenStream>()
-    };
+    ($ts:ident) => {};
 
-    // Symbols and symbol pairs
-    ([:: $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new(':', ::proc_macro::Spacing::Joint)
-        )),
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new(':', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([.. $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('.', ::proc_macro::Spacing::Joint)
-        )),
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('.', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([: $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new(':', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([= $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('=', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([; $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new(';', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([, $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new(',', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([. $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('.', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([& $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('&', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([<< $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('<', ::proc_macro::Spacing::Joint)
-        )),
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('<', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([< $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('<', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([>> $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('>', ::proc_macro::Spacing::Joint)
-        )),
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('>', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([> $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('>', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([-> $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('-', ::proc_macro::Spacing::Joint)
-        )),
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('>', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([? $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('?', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([! $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('!', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
-    ([| $($tail:tt)*] -> [$($accum:tt)*] ) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('|', ::proc_macro::Spacing::Alone)
-        )),
-    ]));
+    // Single or double symbols
+    ($ts:ident :: $($tail:tt)*) => { sym!($ts ':' ':'); quote_inner!($ts $($tail)*); };
+    ($ts:ident .. $($tail:tt)*) => { sym!($ts '.' '.'); quote_inner!($ts $($tail)*); };
+    ($ts:ident : $($tail:tt)*) => { sym!($ts ':'); quote_inner!($ts $($tail)*); };
+    ($ts:ident = $($tail:tt)*) => { sym!($ts '='); quote_inner!($ts $($tail)*); };
+    ($ts:ident ; $($tail:tt)*) => { sym!($ts ';'); quote_inner!($ts $($tail)*); };
+    ($ts:ident , $($tail:tt)*) => { sym!($ts ','); quote_inner!($ts $($tail)*); };
+    ($ts:ident . $($tail:tt)*) => { sym!($ts '.'); quote_inner!($ts $($tail)*); };
+    ($ts:ident & $($tail:tt)*) => { sym!($ts '&'); quote_inner!($ts $($tail)*); };
+    ($ts:ident << $($tail:tt)*) => { sym!($ts '<' '<'); quote_inner!($ts $($tail)*); };
+    ($ts:ident < $($tail:tt)*) => { sym!($ts '<'); quote_inner!($ts $($tail)*); };
+    ($ts:ident >> $($tail:tt)*) => { sym!($ts '>' '>'); quote_inner!($ts $($tail)*); };
+    ($ts:ident > $($tail:tt)*) => { sym!($ts '>'); quote_inner!($ts $($tail)*); };
+    ($ts:ident -> $($tail:tt)*) => { sym!($ts '-' '>'); quote_inner!($ts $($tail)*); };
+    ($ts:ident ? $($tail:tt)*) => { sym!($ts '?'); quote_inner!($ts $($tail)*); };
+    ($ts:ident ! $($tail:tt)*) => { sym!($ts '!'); quote_inner!($ts $($tail)*); };
+    ($ts:ident | $($tail:tt)*) => { sym!($ts '|'); quote_inner!($ts $($tail)*); };
 
     // Identifier
-    ([$i:ident $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Ident::new(stringify!($i), ::proc_macro::Span::mixed_site())
-        )),
-    ]));
+    ($ts:ident $i:ident $($tail:tt)*) => {
+        $ts.extend([::proc_macro::TokenTree::from(::proc_macro::Ident::new(
+            &stringify!($i),
+            ::proc_macro::Span::mixed_site(),
+        ))]);
+        quote_inner!($ts $($tail)*);
+    };
 
     // Literal
-    ([$l:literal $($tail:tt)*] -> [$($expanded:tt)*]) => (quote_inner!([$($tail)*] -> [$($expanded)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Literal::string($l)
-        )),
-    ]));
-
+    ($ts:ident $l:literal $($tail:tt)*) => {
+        $ts.extend([::proc_macro::TokenTree::from(::proc_macro::Literal::string(&$l))]);
+        quote_inner!($ts $($tail)*);
+    };
 
     // Lifetime
-    ([$l:lifetime $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Punct::new('\'', ::proc_macro::Spacing::Joint)
-        )),
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(
-            ::proc_macro::Ident::new(
-                stringify!($l).trim_start_matches(|c: char| c == '\''),
-                ::proc_macro::Span::mixed_site())
-        )),
-    ]));
+    ($ts:ident $l:lifetime $($tail:tt)*) => {
+        $ts.extend([
+            ::proc_macro::TokenTree::from(
+                ::proc_macro::Punct::new('\'', ::proc_macro::Spacing::Joint)
+            ),
+            ::proc_macro::TokenTree::from(::proc_macro::Ident::new(
+                stringify!($l).trim_start_matches(|c| c == '\''),
+                ::proc_macro::Span::mixed_site(),
+            )),
+        ]);
+        quote_inner!($ts $($tail)*);
+    };
 
     // Groups
-    ([($($inner:tt)*) $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(::proc_macro::Group::new(
+    ($ts:ident ($($inner:tt)*) $($tail:tt)*) => {
+        $ts.extend([::proc_macro::TokenTree::Group(::proc_macro::Group::new(
             ::proc_macro::Delimiter::Parenthesis,
-            quote_inner!([$($inner)*] -> []))
-        )),
-    ]));
-    ([{$($inner:tt)*} $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(::proc_macro::Group::new(
-            ::proc_macro::Delimiter::Brace,
-            quote_inner!([$($inner)*] -> [])
-        ))),
-    ]));
-    ([[$($inner:tt)*] $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        ::proc_macro::TokenStream::from(::proc_macro::TokenTree::from(::proc_macro::Group::new(
+            quote!($($inner)*)
+        ))]);
+        quote_inner!($ts $($tail)*);
+    };
+    ($ts:ident [$($inner:tt)*] $($tail:tt)*) => {
+        $ts.extend([::proc_macro::TokenTree::Group(::proc_macro::Group::new(
             ::proc_macro::Delimiter::Bracket,
-            quote_inner!([$($inner)*] -> [])
-        ))),
-    ]));
+            quote!($($inner)*)
+        ))]);
+        quote_inner!($ts $($tail)*);
+    };
+    ($ts:ident {$($inner:tt)*} $($tail:tt)*) => {
+        $ts.extend([::proc_macro::TokenTree::Group(::proc_macro::Group::new(
+            ::proc_macro::Delimiter::Brace,
+            quote!($($inner)*)
+        ))]);
+        quote_inner!($ts $($tail)*);
+    };
 
     // Interpolated values
-    ([#($e:expr) $($tail:tt)*] -> [$($accum:tt)*]) => (quote_inner!([$($tail)*] -> [$($accum)*
-        $crate::to_tokens::ToTokens::into_token_stream($e),
-    ]));
+    ($ts:ident #($e:expr) $($tail:tt)*) => {
+        $ts.extend($crate::to_tokens::ToTokens::into_token_stream($e));
+        quote_inner!($ts $($tail)*);
+    };
 }

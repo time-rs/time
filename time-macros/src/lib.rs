@@ -29,7 +29,6 @@
     variant_size_differences
 )]
 #![allow(clippy::missing_const_for_fn, clippy::redundant_pub_crate)]
-#![recursion_limit = "256"]
 
 #[macro_use]
 mod quote;
