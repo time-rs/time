@@ -7,7 +7,7 @@ use proc_macro::{Literal, TokenStream};
 
 pub(crate) use self::component::Component;
 pub(crate) use self::parse::parse;
-use crate::to_tokens::ToTokens;
+use crate::to_tokens::ToTokenStream;
 
 mod helper {
     #[must_use = "This does not modify the original slice."]
@@ -28,12 +28,12 @@ pub(crate) enum FormatItem<'a> {
     Component(Component),
 }
 
-impl ToTokens for FormatItem<'_> {
-    fn into_token_stream(self) -> TokenStream {
-        quote! {
-            ::time::format_description::FormatItem::#(match self {
+impl ToTokenStream for FormatItem<'_> {
+    fn append_to(self, ts: &mut TokenStream) {
+        quote_append! { ts
+            ::time::format_description::FormatItem::#S(match self {
                 FormatItem::Literal(bytes) => quote! { Literal(#(Literal::byte_string(bytes))) },
-                FormatItem::Component(component) => quote! { Component(#(component)) },
+                FormatItem::Component(component) => quote! { Component(#S(component)) },
             })
         }
     }

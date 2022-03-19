@@ -1,9 +1,9 @@
-use proc_macro::TokenStream;
+use proc_macro::{Ident, Span, TokenStream};
 
 use crate::format_description::error::InvalidFormatDescription;
 use crate::format_description::modifier;
 use crate::format_description::modifier::Modifiers;
-use crate::to_tokens::ToTokens;
+use crate::to_tokens::ToTokenStream;
 
 pub(crate) enum Component {
     Day(modifier::Day),
@@ -22,25 +22,41 @@ pub(crate) enum Component {
     OffsetSecond(modifier::OffsetSecond),
 }
 
-impl ToTokens for Component {
-    fn into_token_stream(self) -> TokenStream {
-        quote! {
-            ::time::format_description::Component::#(match self {
-                Self::Day(modifier) => quote! { Day(#(modifier)) },
-                Self::Month(modifier) => quote! { Month(#(modifier)) },
-                Self::Ordinal(modifier) => quote! { Ordinal(#(modifier)) },
-                Self::Weekday(modifier) => quote! { Weekday(#(modifier)) },
-                Self::WeekNumber(modifier) => quote! { WeekNumber(#(modifier)) },
-                Self::Year(modifier) => quote! { Year(#(modifier)) },
-                Self::Hour(modifier) => quote! { Hour(#(modifier)) },
-                Self::Minute(modifier) => quote! { Minute(#(modifier)) },
-                Self::Period(modifier) => quote! { Period(#(modifier)) },
-                Self::Second(modifier) => quote! { Second(#(modifier)) },
-                Self::Subsecond(modifier) => quote! { Subsecond(#(modifier)) },
-                Self::OffsetHour(modifier) => quote! { OffsetHour(#(modifier)) },
-                Self::OffsetMinute(modifier) => quote! { OffsetMinute(#(modifier)) },
-                Self::OffsetSecond(modifier) => quote! { OffsetSecond(#(modifier)) },
-            })
+impl ToTokenStream for Component {
+    fn append_to(self, ts: &mut TokenStream) {
+        let mut mts = TokenStream::new();
+
+        macro_rules! component_name_and_append {
+            ($($name:ident)*) => {
+                match self {
+                    $(Self::$name(modifier) => {
+                        modifier.append_to(&mut mts);
+                        stringify!($name)
+                    })*
+                }
+            };
+        }
+
+        let component = component_name_and_append![
+            Day
+            Month
+            Ordinal
+            Weekday
+            WeekNumber
+            Year
+            Hour
+            Minute
+            Period
+            Second
+            Subsecond
+            OffsetHour
+            OffsetMinute
+            OffsetSecond
+        ];
+        let component = Ident::new(component, Span::mixed_site());
+
+        quote_append! { ts
+            ::time::format_description::Component::#(component)(#S(mts))
         }
     }
 }

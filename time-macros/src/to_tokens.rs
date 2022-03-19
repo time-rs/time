@@ -1,38 +1,49 @@
-use proc_macro::{Group, Ident, Literal, Punct, TokenStream, TokenTree};
+use proc_macro::{Group, Ident, Literal, Punct, Span, TokenStream, TokenTree};
 
-pub(crate) trait ToTokens: Sized {
-    fn into_token_stream(self) -> TokenStream;
+pub(crate) trait ToTokenStream: Sized {
+    fn append_to(self, ts: &mut TokenStream);
 }
 
-impl ToTokens for bool {
-    fn into_token_stream(self) -> TokenStream {
-        if self { quote!(true) } else { quote!(false) }
+pub(crate) trait ToTokenTree: Sized {
+    fn into_token_tree(self) -> TokenTree;
+}
+
+impl<T: ToTokenTree> ToTokenStream for T {
+    fn append_to(self, ts: &mut TokenStream) {
+        ts.extend([self.into_token_tree()])
     }
 }
 
-impl ToTokens for TokenStream {
-    fn into_token_stream(self) -> TokenStream {
+impl ToTokenTree for bool {
+    fn into_token_tree(self) -> TokenTree {
+        let lit = if self { "true" } else { "false" };
+        TokenTree::Ident(Ident::new(lit, Span::mixed_site()))
+    }
+}
+
+impl ToTokenStream for TokenStream {
+    fn append_to(self, ts: &mut TokenStream) {
+        ts.extend(self)
+    }
+}
+
+impl ToTokenTree for TokenTree {
+    fn into_token_tree(self) -> TokenTree {
         self
     }
 }
 
-impl ToTokens for &str {
-    fn into_token_stream(self) -> TokenStream {
-        TokenStream::from(TokenTree::Literal(Literal::string(self)))
-    }
-}
-
-impl ToTokens for String {
-    fn into_token_stream(self) -> TokenStream {
-        self.as_str().into_token_stream()
+impl ToTokenTree for &str {
+    fn into_token_tree(self) -> TokenTree {
+        TokenTree::Literal(Literal::string(self))
     }
 }
 
 macro_rules! impl_for_tree_types {
     ($($type:ty)*) => {$(
-        impl ToTokens for $type {
-            fn into_token_stream(self) -> TokenStream {
-                TokenStream::from(TokenTree::from(self))
+        impl ToTokenTree for $type {
+            fn into_token_tree(self) -> TokenTree {
+                TokenTree::from(self)
             }
         }
     )*};
@@ -41,9 +52,9 @@ impl_for_tree_types![Ident Literal Group Punct];
 
 macro_rules! impl_for_int {
     ($($type:ty => $method:ident)*) => {$(
-        impl ToTokens for $type {
-            fn into_token_stream(self) -> TokenStream {
-                TokenStream::from(TokenTree::from(Literal::$method(self)))
+        impl ToTokenTree for $type {
+            fn into_token_tree(self) -> TokenTree {
+                TokenTree::from(Literal::$method(self))
             }
         }
     )*};

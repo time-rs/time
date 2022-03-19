@@ -2,9 +2,25 @@ macro_rules! quote {
     () => (::proc_macro::TokenStream::new());
     ($($x:tt)*) => {{
         let mut ts = ::proc_macro::TokenStream::new();
-        quote_inner!(ts $($x)*);
+        let ts_mut = &mut ts;
+        quote_inner!(ts_mut $($x)*);
         ts
     }};
+}
+
+macro_rules! quote_append {
+    ($ts:ident $($x:tt)*) => {{
+        quote_inner!($ts $($x)*);
+    }};
+}
+
+macro_rules! quote_group {
+    ({ $($x:tt)* }) => {
+        ::proc_macro::TokenTree::Group(::proc_macro::Group::new(
+            ::proc_macro::Delimiter::Brace,
+            quote!($($x)*)
+        ))
+    };
 }
 
 macro_rules! sym {
@@ -103,8 +119,14 @@ macro_rules! quote_inner {
     };
 
     // Interpolated values
+    // TokenTree by default
     ($ts:ident #($e:expr) $($tail:tt)*) => {
-        $ts.extend($crate::to_tokens::ToTokens::into_token_stream($e));
+        $ts.extend([$crate::to_tokens::ToTokenTree::into_token_tree($e)]);
+        quote_inner!($ts $($tail)*);
+    };
+    // Allow a TokenStream by request. It's more expensive, so avoid if possible.
+    ($ts:ident #S($e:expr) $($tail:tt)*) => {
+        $crate::to_tokens::ToTokenStream::append_to($e, $ts);
         quote_inner!($ts $($tail)*);
     };
 }

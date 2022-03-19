@@ -51,13 +51,13 @@ macro_rules! impl_macros {
     ($($name:ident)*) => {$(
         #[proc_macro]
         pub fn $name(input: TokenStream) -> TokenStream {
-            use crate::to_tokens::ToTokens;
+            use crate::to_tokens::ToTokenTree;
 
             let mut iter = input.into_iter().peekable();
             match $name::parse(&mut iter) {
                 Ok(value) => match iter.peek() {
                     Some(tree) => Error::UnexpectedToken { tree: tree.clone() }.to_compile_error(),
-                    None => value.into_token_stream(),
+                    None => TokenStream::from(value.into_token_tree()),
                 },
                 Err(err) => err.to_compile_error(),
             }
@@ -76,10 +76,10 @@ pub fn format_description(input: TokenStream) -> TokenStream {
         let items = format_description::parse(&string, span)?;
 
         Ok(quote! {{
-            const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = &[#(
+            const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = &[#S(
                 items
                     .into_iter()
-                    .map(|item| quote! { #(item), })
+                    .map(|item| quote! { #S(item), })
                     .collect::<TokenStream>()
             )];
             DESCRIPTION
@@ -116,12 +116,12 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
         let (span, format_string) = helpers::get_string_literal(tokens.collect())?;
 
         let items = format_description::parse(&format_string, span)?;
-        let items: TokenStream = items.into_iter().map(|item| quote! { #(item), }).collect();
+        let items: TokenStream = items.into_iter().map(|item| quote! { #S(item), }).collect();
 
         Ok(serde_format_description::build(
             mod_name,
             items,
-            formattable.into(),
+            formattable,
             &String::from_utf8_lossy(&format_string),
         ))
     })()

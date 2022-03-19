@@ -1,9 +1,9 @@
 use std::iter::Peekable;
 
-use proc_macro::{token_stream, Span, TokenStream};
+use proc_macro::{token_stream, Span, TokenTree};
 
 use crate::helpers::{consume_any_ident, consume_number, consume_punct};
-use crate::to_tokens::ToTokens;
+use crate::to_tokens::ToTokenTree;
 use crate::Error;
 
 enum Period {
@@ -103,9 +103,9 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Time
     }
 }
 
-impl ToTokens for Time {
-    fn into_token_stream(self) -> TokenStream {
-        quote! {{
+impl ToTokenTree for Time {
+    fn into_token_tree(self) -> TokenTree {
+        quote_group! {{
             const TIME: ::time::Time = ::time::Time::__from_hms_nanos_unchecked(
                 #(self.hour),
                 #(self.minute),

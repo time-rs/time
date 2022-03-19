@@ -1,10 +1,10 @@
 use core::mem;
 
-use proc_macro::TokenStream;
+use proc_macro::{Ident, Span, TokenStream, TokenTree};
 
 use crate::format_description::error::InvalidFormatDescription;
 use crate::format_description::helper;
-use crate::to_tokens::ToTokens;
+use crate::to_tokens::{ToTokenStream, ToTokenTree};
 
 macro_rules! to_tokens {
     (
@@ -20,13 +20,25 @@ macro_rules! to_tokens {
             $field_vis $field_name: $field_ty
         ),+}
 
-        impl ToTokens for $struct_name {
-            fn into_token_stream(self) -> TokenStream {
-                quote! {{
+        impl ToTokenTree for $struct_name {
+            fn into_token_tree(self) -> TokenTree {
+                let mut tokens = TokenStream::new();
+                let Self {$($field_name),+} = self;
+
+                quote_append! { tokens
                     let mut value = ::time::format_description::modifier::$struct_name::default();
-                    $(value.$field_name = #(self.$field_name);)+
-                    value
-                }}
+                };
+                $(
+                    quote_append!(tokens value.$field_name =);
+                    $field_name.append_to(&mut tokens);
+                    quote_append!(tokens ;);
+                )+
+                quote_append!(tokens value);
+
+                proc_macro::TokenTree::Group(proc_macro::Group::new(
+                    proc_macro::Delimiter::Brace,
+                    tokens,
+                ))
             }
         }
     };
@@ -44,13 +56,15 @@ macro_rules! to_tokens {
             $variant_name
         ),+}
 
-        impl ToTokens for $enum_name {
-            fn into_token_stream(self) -> TokenStream {
-                quote! {
-                    ::time::format_description::modifier::$enum_name::#(match self {
-                        $(Self::$variant_name => quote!($variant_name)),+
-                    })
-                }
+        impl ToTokenStream for $enum_name {
+            fn append_to(self, ts: &mut TokenStream) {
+                quote_append! { ts
+                    ::time::format_description::modifier::$enum_name::
+                };
+                let name = match self {
+                    $(Self::$variant_name => stringify!($variant_name)),+
+                };
+                ts.extend([TokenTree::Ident(Ident::new(name, Span::mixed_site()))]);
             }
         }
     }
