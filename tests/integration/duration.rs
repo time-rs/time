@@ -472,6 +472,17 @@ fn add_assign_std() {
 }
 
 #[test]
+fn std_add_assign() {
+    let mut duration = 1.std_seconds();
+    duration += 1.seconds();
+    assert_eq!(duration, 2.seconds());
+
+    let mut duration = 500.std_milliseconds();
+    duration += 500.milliseconds();
+    assert_eq!(duration, 1.seconds());
+}
+
+#[test]
 fn neg() {
     assert_eq!(-(1.seconds()), (-1).seconds());
     assert_eq!(-(-1).seconds(), 1.seconds());

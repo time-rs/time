@@ -28,7 +28,12 @@
     unused_qualifications,
     variant_size_differences
 )]
-#![allow(clippy::cognitive_complexity, clippy::clone_on_copy, clippy::cmp_owned)]
+#![allow(
+    clippy::clone_on_copy,
+    clippy::cmp_owned,
+    clippy::cognitive_complexity,
+    clippy::missing_const_for_fn
+)]
 
 extern crate quickcheck_dep as quickcheck;
 
@@ -55,6 +60,7 @@ mod format_description;
 mod formatting;
 mod instant;
 mod macros;
+mod meta;
 mod month;
 mod offset_date_time;
 mod parse_format_description;

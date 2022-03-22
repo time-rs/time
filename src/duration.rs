@@ -4,7 +4,7 @@ use core::cmp::Ordering;
 use core::convert::{TryFrom, TryInto};
 use core::fmt;
 use core::iter::Sum;
-use core::ops::{Add, Div, Mul, Neg, Sub, SubAssign};
+use core::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 
 use crate::error;
@@ -836,6 +836,15 @@ impl Add<Duration> for StdDuration {
 }
 
 impl_add_assign!(Duration: Self, StdDuration);
+
+impl AddAssign<Duration> for StdDuration {
+    fn add_assign(&mut self, rhs: Duration) {
+        *self = (*self + rhs).try_into().expect(
+            "Cannot represent a resulting duration in std. Try `let x = x + rhs;`, which will \
+             change the type.",
+        );
+    }
+}
 
 impl Neg for Duration {
     type Output = Self;
