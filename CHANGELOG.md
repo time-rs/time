@@ -6,14 +6,69 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
-## Unreleased
+## 0.3.8 [2022-03-22]
+
+### Added
+
+- `time::serde::format_description!`
+  - This macro is similar to `time::format_description!`, but it generates a module that can be used
+    in `#[serde(with = "foo")]`. This makes it far easier to serialize/deserialize a custom format.
+- `Date::replace_year`
+- `Date::replace_month`
+- `Date::replace_day`
+- `Time::replace_hour`
+- `Time::replace_minute`
+- `Time::replace_second`
+- `Time::replace_millisecond`
+- `Time::replace_microsecond`
+- `Time::replace_nanosecond`
+- `PrimitiveDateTime::replace_year`
+- `PrimitiveDateTime::replace_month`
+- `PrimitiveDateTime::replace_day`
+- `PrimitiveDateTime::replace_hour`
+- `PrimitiveDateTime::replace_minute`
+- `PrimitiveDateTime::replace_second`
+- `PrimitiveDateTime::replace_millisecond`
+- `PrimitiveDateTime::replace_microsecond`
+- `PrimitiveDateTime::replace_nanosecond`
+- `OffsetDateTime::replace_year`
+- `OffsetDateTime::replace_month`
+- `OffsetDateTime::replace_day`
+- `OffsetDateTime::replace_hour`
+- `OffsetDateTime::replace_minute`
+- `OffsetDateTime::replace_second`
+- `OffsetDateTime::replace_millisecond`
+- `OffsetDateTime::replace_microsecond`
+- `OffsetDateTime::replace_nanosecond`
+- `Parsed::offset_minute_signed`
+- `Parsed::offset_second_signed`
+- `Parsed::set_offset_minute_signed`
+- `Parsed::set_offset_second_signed`
+- `Parsed::with_offset_minute_signed`
+- `Parsed::with_offset_second_signed`
+- `error::InvalidVariant`
+- `impl FromStr` for `Weekday`
+- `impl FromStr` for `Month`
+- `impl Display for Duration`
+
+### Deprecated
+
+The following methods have been deprecated in favor of the new, signed equivalent methods. The
+pre-existing methods
+
+- `Parsed::offset_minute`
+- `Parsed::offset_second`
+- `Parsed::set_offset_minute`
+- `Parsed::set_offset_second`
+- `Parsed::with_offset_minute`
+- `Parsed::with_offset_second`
 
 ### Changed
 
 - Well-known formats that support leap seconds now return the `TryFromParsed::ComponentRange` error
   variant if the leap second could not occur at that given moment.
 
-## 0.3.7 [2021-01-26]
+## 0.3.7 [2022-01-26]
 
 ### Fixed
 
