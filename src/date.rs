@@ -39,7 +39,7 @@ pub struct Date {
     // |   2 bits   |        21 bits        |  9 bits   |
     // | unassigned |         year          |  ordinal  |
     // The year is 15 bits when `large-dates` is not enabled.
-    pub(crate) value: i32,
+    value: i32,
 }
 
 impl fmt::Debug for Date {
@@ -726,15 +726,11 @@ impl Date {
 
         // Dates in January and February are unaffected by leap years.
         if ordinal <= 59 {
-            return Ok(Self {
-                value: year << 9 | ordinal as i32,
-            });
+            return Ok(Self::__from_ordinal_date_unchecked(year, ordinal));
         }
 
         match (is_leap_year(self.year()), is_leap_year(year)) {
-            (false, false) | (true, true) => Ok(Self {
-                value: year << 9 | ordinal as i32,
-            }),
+            (false, false) | (true, true) => Ok(Self::__from_ordinal_date_unchecked(year, ordinal)),
             // February 29 does not exist in common years.
             (true, false) if ordinal == 60 => Err(error::ComponentRange {
                 name: "day",
@@ -745,14 +741,10 @@ impl Date {
             }),
             // We're going from a common year to a leap year. Shift dates in March and later by
             // one day.
-            (false, true) => Ok(Self {
-                value: year << 9 | (ordinal + 1) as i32,
-            }),
+            (false, true) => Ok(Self::__from_ordinal_date_unchecked(year, ordinal + 1)),
             // We're going from a leap year to a common year. Shift dates in January and
             // February by one day.
-            (true, false) => Ok(Self {
-                value: year << 9 | (ordinal - 1) as i32,
-            }),
+            (true, false) => Ok(Self::__from_ordinal_date_unchecked(year, ordinal - 1)),
         }
     }
 
