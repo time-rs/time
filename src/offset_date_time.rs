@@ -204,6 +204,19 @@ impl OffsetDateTime {
     pub const fn offset(self) -> UtcOffset {
         self.offset
     }
+    
+    
+    // region: getters
+    /// Get the [`PrimitiveDateTime`].
+    ///
+    /// ```rust
+    /// # use time::macros::{datetime};
+    /// assert_eq!(datetime!(2019-01-01 0:00 UTC).primitive_date_time(), datetime!(2019-01-01 0:00));
+    /// assert_eq!(datetime!(2019-01-01 0:00 +1).primitive_date_time(), datetime!(2019-01-01 0:00));
+    /// ```
+    pub const fn primitive_date_time(self) -> PrimitiveDateTime {
+        self.utc_datetime
+    }
 
     /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
