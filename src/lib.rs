@@ -39,10 +39,6 @@
 //!   Note that enabling this feature has some costs, as it means forgoing some optimizations.
 //!   Ambiguities may be introduced when parsing that would not otherwise exist.
 //!
-//!   If you are using this feature, **please leave a comment**
-//!   [on this discussion](https://github.com/time-rs/time/discussions/306) with your use case. If
-//!   there is not sufficient demand for this feature, it will be dropped in a future release.
-//!
 //! - `serde`
 //!
 //!   Enables [serde](https://docs.rs/serde) support for all types except [`Instant`].
@@ -76,7 +72,7 @@
 //! knowing it. To enable this behavior, you must use `RUSTFLAGS="--cfg unsound_local_offset" cargo
 //! build` or similar. Note: This flag is _not tested anywhere_, including in the regular test of
 //! the powerset of all feature flags. Use at your own risk. Without this flag, any method that
-//! requires the local offset will return the `Err` variant.
+//! requires the local offset will return the `Err` variant when otherwise unsound.
 
 #![doc(html_playground_url = "https://play.rust-lang.org")]
 #![cfg_attr(__time_03_docs, feature(doc_cfg, doc_auto_cfg, doc_notable_trait))]
