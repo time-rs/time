@@ -284,7 +284,7 @@ impl<'a> de::Visitor<'a> for Visitor<Option<well_known::Rfc2822>> {
         deserializer: D,
     ) -> Result<Option<OffsetDateTime>, D::Error> {
         deserializer
-            .deserialize_any(Visitor::<well_known::Rfc2822>(PhantomData))
+            .deserialize_option(Visitor::<well_known::Rfc2822>(PhantomData))
             .map(Some)
     }
 
@@ -319,7 +319,7 @@ impl<'a> de::Visitor<'a> for Visitor<Option<well_known::Rfc3339>> {
         deserializer: D,
     ) -> Result<Option<OffsetDateTime>, D::Error> {
         deserializer
-            .deserialize_any(Visitor::<well_known::Rfc3339>(PhantomData))
+            .deserialize_option(Visitor::<well_known::Rfc3339>(PhantomData))
             .map(Some)
     }
 

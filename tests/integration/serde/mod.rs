@@ -82,12 +82,15 @@ fn time_error() {
 
 #[test]
 fn time_partial() {
-    assert_de_tokens_error::<Time>(&[Token::Tuple { len: 4 }, Token::TupleEnd], "expected hour");
-    assert_de_tokens_error::<Time>(
+    assert_de_tokens_error::<Compact<Time>>(
+        &[Token::Tuple { len: 4 }, Token::TupleEnd],
+        "expected hour",
+    );
+    assert_de_tokens_error::<Compact<Time>>(
         &[Token::Tuple { len: 4 }, Token::U8(0), Token::TupleEnd],
         "expected minute",
     );
-    assert_de_tokens_error::<Time>(
+    assert_de_tokens_error::<Compact<Time>>(
         &[
             Token::Tuple { len: 4 },
             Token::U8(0),
@@ -96,7 +99,35 @@ fn time_partial() {
         ],
         "expected second",
     );
-    assert_de_tokens_error::<Time>(
+    assert_de_tokens_error::<Compact<Time>>(
+        &[
+            Token::Tuple { len: 4 },
+            Token::U8(0),
+            Token::U8(0),
+            Token::U8(0),
+            Token::TupleEnd,
+        ],
+        "expected nanosecond",
+    );
+
+    assert_de_tokens_error::<Readable<Time>>(
+        &[Token::Tuple { len: 4 }, Token::TupleEnd],
+        "expected hour",
+    );
+    assert_de_tokens_error::<Readable<Time>>(
+        &[Token::Tuple { len: 4 }, Token::U8(0), Token::TupleEnd],
+        "expected minute",
+    );
+    assert_de_tokens_error::<Readable<Time>>(
+        &[
+            Token::Tuple { len: 4 },
+            Token::U8(0),
+            Token::U8(0),
+            Token::TupleEnd,
+        ],
+        "expected second",
+    );
+    assert_de_tokens_error::<Readable<Time>>(
         &[
             Token::Tuple { len: 4 },
             Token::U8(0),
@@ -152,8 +183,20 @@ fn date_error() {
 
 #[test]
 fn date_partial() {
-    assert_de_tokens_error::<Date>(&[Token::Tuple { len: 2 }, Token::TupleEnd], "expected year");
-    assert_de_tokens_error::<Date>(
+    assert_de_tokens_error::<Compact<Date>>(
+        &[Token::Tuple { len: 2 }, Token::TupleEnd],
+        "expected year",
+    );
+    assert_de_tokens_error::<Compact<Date>>(
+        &[Token::Tuple { len: 2 }, Token::I32(9999), Token::TupleEnd],
+        "expected day of year",
+    );
+
+    assert_de_tokens_error::<Readable<Date>>(
+        &[Token::Tuple { len: 2 }, Token::TupleEnd],
+        "expected year",
+    );
+    assert_de_tokens_error::<Readable<Date>>(
         &[Token::Tuple { len: 2 }, Token::I32(9999), Token::TupleEnd],
         "expected day of year",
     );
@@ -237,15 +280,15 @@ fn primitive_date_time_error() {
 
 #[test]
 fn primitive_date_time_partial() {
-    assert_de_tokens_error::<PrimitiveDateTime>(
+    assert_de_tokens_error::<Compact<PrimitiveDateTime>>(
         &[Token::Tuple { len: 6 }, Token::TupleEnd],
         "expected year",
     );
-    assert_de_tokens_error::<PrimitiveDateTime>(
+    assert_de_tokens_error::<Compact<PrimitiveDateTime>>(
         &[Token::Tuple { len: 6 }, Token::I32(9999), Token::TupleEnd],
         "expected day of year",
     );
-    assert_de_tokens_error::<PrimitiveDateTime>(
+    assert_de_tokens_error::<Compact<PrimitiveDateTime>>(
         &[
             Token::Tuple { len: 6 },
             Token::I32(9999),
@@ -254,7 +297,7 @@ fn primitive_date_time_partial() {
         ],
         "expected hour",
     );
-    assert_de_tokens_error::<PrimitiveDateTime>(
+    assert_de_tokens_error::<Compact<PrimitiveDateTime>>(
         &[
             Token::Tuple { len: 6 },
             Token::I32(9999),
@@ -264,7 +307,7 @@ fn primitive_date_time_partial() {
         ],
         "expected minute",
     );
-    assert_de_tokens_error::<PrimitiveDateTime>(
+    assert_de_tokens_error::<Compact<PrimitiveDateTime>>(
         &[
             Token::Tuple { len: 6 },
             Token::I32(9999),
@@ -275,7 +318,58 @@ fn primitive_date_time_partial() {
         ],
         "expected second",
     );
-    assert_de_tokens_error::<PrimitiveDateTime>(
+    assert_de_tokens_error::<Compact<PrimitiveDateTime>>(
+        &[
+            Token::Tuple { len: 6 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::U8(23),
+            Token::U8(58),
+            Token::U8(59),
+            Token::TupleEnd,
+        ],
+        "expected nanosecond",
+    );
+
+    assert_de_tokens_error::<Readable<PrimitiveDateTime>>(
+        &[Token::Tuple { len: 6 }, Token::TupleEnd],
+        "expected year",
+    );
+    assert_de_tokens_error::<Readable<PrimitiveDateTime>>(
+        &[Token::Tuple { len: 6 }, Token::I32(9999), Token::TupleEnd],
+        "expected day of year",
+    );
+    assert_de_tokens_error::<Readable<PrimitiveDateTime>>(
+        &[
+            Token::Tuple { len: 6 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::TupleEnd,
+        ],
+        "expected hour",
+    );
+    assert_de_tokens_error::<Readable<PrimitiveDateTime>>(
+        &[
+            Token::Tuple { len: 6 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::U8(23),
+            Token::TupleEnd,
+        ],
+        "expected minute",
+    );
+    assert_de_tokens_error::<Readable<PrimitiveDateTime>>(
+        &[
+            Token::Tuple { len: 6 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::U8(23),
+            Token::U8(58),
+            Token::TupleEnd,
+        ],
+        "expected second",
+    );
+    assert_de_tokens_error::<Readable<PrimitiveDateTime>>(
         &[
             Token::Tuple { len: 6 },
             Token::I32(9999),
@@ -426,15 +520,15 @@ fn offset_date_time_error() {
 
 #[test]
 fn offset_date_time_partial() {
-    assert_de_tokens_error::<OffsetDateTime>(
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
         &[Token::Tuple { len: 9 }, Token::TupleEnd],
         "expected year",
     );
-    assert_de_tokens_error::<OffsetDateTime>(
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
         &[Token::Tuple { len: 9 }, Token::I32(9999), Token::TupleEnd],
         "expected day of year",
     );
-    assert_de_tokens_error::<OffsetDateTime>(
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
         &[
             Token::Tuple { len: 9 },
             Token::I32(9999),
@@ -443,7 +537,7 @@ fn offset_date_time_partial() {
         ],
         "expected hour",
     );
-    assert_de_tokens_error::<OffsetDateTime>(
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
         &[
             Token::Tuple { len: 9 },
             Token::I32(9999),
@@ -453,7 +547,7 @@ fn offset_date_time_partial() {
         ],
         "expected minute",
     );
-    assert_de_tokens_error::<OffsetDateTime>(
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
         &[
             Token::Tuple { len: 9 },
             Token::I32(9999),
@@ -464,7 +558,7 @@ fn offset_date_time_partial() {
         ],
         "expected second",
     );
-    assert_de_tokens_error::<OffsetDateTime>(
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
         &[
             Token::Tuple { len: 9 },
             Token::I32(9999),
@@ -476,7 +570,7 @@ fn offset_date_time_partial() {
         ],
         "expected nanosecond",
     );
-    assert_de_tokens_error::<OffsetDateTime>(
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
         &[
             Token::Tuple { len: 9 },
             Token::I32(9999),
@@ -489,7 +583,7 @@ fn offset_date_time_partial() {
         ],
         "expected offset hours",
     );
-    assert_de_tokens_error::<OffsetDateTime>(
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
         &[
             Token::Tuple { len: 9 },
             Token::I32(9999),
@@ -503,7 +597,100 @@ fn offset_date_time_partial() {
         ],
         "expected offset minutes",
     );
-    assert_de_tokens_error::<OffsetDateTime>(
+    assert_de_tokens_error::<Compact<OffsetDateTime>>(
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U32(123_456_789),
+            Token::I8(-23),
+            Token::I8(-58),
+            Token::TupleEnd,
+        ],
+        "expected offset seconds",
+    );
+
+    assert_de_tokens_error::<Readable<OffsetDateTime>>(
+        &[Token::Tuple { len: 9 }, Token::TupleEnd],
+        "expected year",
+    );
+    assert_de_tokens_error::<Readable<OffsetDateTime>>(
+        &[Token::Tuple { len: 9 }, Token::I32(9999), Token::TupleEnd],
+        "expected day of year",
+    );
+    assert_de_tokens_error::<Readable<OffsetDateTime>>(
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::TupleEnd,
+        ],
+        "expected hour",
+    );
+    assert_de_tokens_error::<Readable<OffsetDateTime>>(
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::U8(0),
+            Token::TupleEnd,
+        ],
+        "expected minute",
+    );
+    assert_de_tokens_error::<Readable<OffsetDateTime>>(
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::U8(0),
+            Token::U8(0),
+            Token::TupleEnd,
+        ],
+        "expected second",
+    );
+    assert_de_tokens_error::<Readable<OffsetDateTime>>(
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U8(0),
+            Token::TupleEnd,
+        ],
+        "expected nanosecond",
+    );
+    assert_de_tokens_error::<Readable<OffsetDateTime>>(
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U32(123_456_789),
+            Token::TupleEnd,
+        ],
+        "expected offset hours",
+    );
+    assert_de_tokens_error::<Readable<OffsetDateTime>>(
+        &[
+            Token::Tuple { len: 9 },
+            Token::I32(9999),
+            Token::U16(365),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U8(0),
+            Token::U32(123_456_789),
+            Token::I8(-23),
+            Token::TupleEnd,
+        ],
+        "expected offset minutes",
+    );
+    assert_de_tokens_error::<Readable<OffsetDateTime>>(
         &[
             Token::Tuple { len: 9 },
             Token::I32(9999),
@@ -576,15 +763,33 @@ fn utc_offset_error() {
 
 #[test]
 fn utc_offset_partial() {
-    assert_de_tokens_error::<UtcOffset>(
+    assert_de_tokens_error::<Compact<UtcOffset>>(
         &[Token::Tuple { len: 3 }, Token::TupleEnd],
         "expected offset hours",
     );
-    assert_de_tokens_error::<UtcOffset>(
+    assert_de_tokens_error::<Compact<UtcOffset>>(
         &[Token::Tuple { len: 3 }, Token::I8(23), Token::TupleEnd],
         "expected offset minutes",
     );
-    assert_de_tokens_error::<UtcOffset>(
+    assert_de_tokens_error::<Compact<UtcOffset>>(
+        &[
+            Token::Tuple { len: 3 },
+            Token::I8(23),
+            Token::I8(58),
+            Token::TupleEnd,
+        ],
+        "expected offset seconds",
+    );
+
+    assert_de_tokens_error::<Readable<UtcOffset>>(
+        &[Token::Tuple { len: 3 }, Token::TupleEnd],
+        "expected offset hours",
+    );
+    assert_de_tokens_error::<Readable<UtcOffset>>(
+        &[Token::Tuple { len: 3 }, Token::I8(23), Token::TupleEnd],
+        "expected offset minutes",
+    );
+    assert_de_tokens_error::<Readable<UtcOffset>>(
         &[
             Token::Tuple { len: 3 },
             Token::I8(23),
@@ -655,11 +860,24 @@ fn duration_error() {
 
 #[test]
 fn duration_partial() {
-    assert_de_tokens_error::<Duration>(
+    assert_de_tokens_error::<Compact<Duration>>(
         &[Token::Tuple { len: 2 }, Token::TupleEnd],
         "expected seconds",
     );
-    assert_de_tokens_error::<Duration>(
+    assert_de_tokens_error::<Compact<Duration>>(
+        &[
+            Token::Tuple { len: 2 },
+            Token::I64(i64::MAX),
+            Token::TupleEnd,
+        ],
+        "expected nanoseconds",
+    );
+
+    assert_de_tokens_error::<Readable<Duration>>(
+        &[Token::Tuple { len: 2 }, Token::TupleEnd],
+        "expected seconds",
+    );
+    assert_de_tokens_error::<Readable<Duration>>(
         &[
             Token::Tuple { len: 2 },
             Token::I64(i64::MAX),
