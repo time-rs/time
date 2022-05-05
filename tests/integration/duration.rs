@@ -404,6 +404,38 @@ fn display() {
         93_784_005_006_007.nanoseconds().to_string(),
         "1d2h3m4s5ms6µs7ns"
     );
+
+    assert_eq!(format!("{:.3}", 0.seconds()), "0.000s");
+    assert_eq!(format!("{:.3}", 60.days()), "60.000d");
+    assert_eq!(format!("{:.3}", (-48).hours()), "-2.000d");
+    assert_eq!(format!("{:.3}", 48.hours()), "2.000d");
+    assert_eq!(format!("{:.3}", 1.minutes()), "1.000m");
+    assert_eq!(format!("{:.3}", 10.minutes()), "10.000m");
+    assert_eq!(format!("{:.3}", 1.seconds()), "1.000s");
+    assert_eq!(format!("{:.3}", 10.seconds()), "10.000s");
+    assert_eq!(format!("{:.3}", 1.milliseconds()), "1.000ms");
+    assert_eq!(format!("{:.3}", 10.milliseconds()), "10.000ms");
+    assert_eq!(format!("{:.3}", 100.milliseconds()), "100.000ms");
+    assert_eq!(format!("{:.3}", 1.microseconds()), "1.000µs");
+    assert_eq!(format!("{:.3}", 10.microseconds()), "10.000µs");
+    assert_eq!(format!("{:.3}", 100.microseconds()), "100.000µs");
+    assert_eq!(format!("{:.3}", 1.nanoseconds()), "1.000ns");
+    assert_eq!(format!("{:.3}", 10.nanoseconds()), "10.000ns");
+    assert_eq!(format!("{:.3}", 100.nanoseconds()), "100.000ns");
+
+    assert_eq!(format!("{:.3}", 1.days()), "1.000d");
+    assert_eq!(format!("{:.3}", 26.hours()), "1.083d");
+    assert_eq!(format!("{:.4}", 1_563.minutes()), "1.0854d");
+    assert_eq!(format!("{:.5}", 93_784.seconds()), "1.08546d");
+    assert_eq!(format!("{:.6}", 93_784_005.milliseconds()), "1.085463d");
+    assert_eq!(
+        format!("{:.9}", 93_784_005_006.microseconds()),
+        "1.085463021d"
+    );
+    assert_eq!(
+        format!("{:.12}", 93_784_005_006_007.nanoseconds()),
+        "1.085463020903d"
+    );
 }
 
 #[test]
