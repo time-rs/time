@@ -47,6 +47,15 @@ setup_benchmark! {
         ben.iter(|| b.abs());
         ben.iter(|| c.abs());
     }
+
+    fn unsigned_abs(ben: &mut Bencher<'_, CyclesPerByte>) {
+        let a = 1.seconds();
+        let b = 0.seconds();
+        let c = (-1).seconds();
+        ben.iter(|| a.unsigned_abs());
+        ben.iter(|| b.unsigned_abs());
+        ben.iter(|| c.unsigned_abs());
+    }
     // endregion abs
 
     // region: constructors

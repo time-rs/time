@@ -184,11 +184,17 @@ impl Duration {
         Self::new_unchecked(self.seconds.saturating_abs(), self.nanoseconds.abs())
     }
 
-    /// Convert the existing `Duration` to a `std::time::Duration` and its sign. This doesn't
-    /// actually require the standard library, but is currently only used when it's enabled.
-    #[allow(clippy::missing_const_for_fn)] // false positive
-    #[cfg(feature = "std")]
-    pub(crate) fn abs_std(self) -> StdDuration {
+    /// Convert the existing `Duration` to a `std::time::Duration` and its sign. This returns a
+    /// [`std::time::Duration`] and does not saturate the returned value (unlike [`Duration::abs`]).
+    ///
+    /// ```rust
+    /// # use time::ext::{NumericalDuration, NumericalStdDuration};
+    /// assert_eq!(1.seconds().unsigned_abs(), 1.std_seconds());
+    /// assert_eq!(0.seconds().unsigned_abs(), 0.std_seconds());
+    /// assert_eq!((-1).seconds().unsigned_abs(), 1.std_seconds());
+    /// ```
+    #[allow(clippy::missing_const_for_fn)] // requires MSRV of 1.58 (2022-07-13)
+    pub fn unsigned_abs(self) -> StdDuration {
         StdDuration::new(self.seconds.unsigned_abs(), self.nanoseconds.unsigned_abs())
     }
     // endregion abs

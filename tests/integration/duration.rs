@@ -53,6 +53,13 @@ fn abs() {
 }
 
 #[test]
+fn unsigned_abs() {
+    assert_eq!(1.seconds().unsigned_abs(), 1.std_seconds());
+    assert_eq!(0.seconds().unsigned_abs(), 0.std_seconds());
+    assert_eq!((-1).seconds().unsigned_abs(), 1.std_seconds());
+}
+
+#[test]
 fn new() {
     assert_eq!(Duration::new(1, 0), 1.seconds());
     assert_eq!(Duration::new(-1, 0), (-1).seconds());
