@@ -27,7 +27,7 @@ pub fn serialize<S: Serializer>(
 
 /// Deserialize an [`OffsetDateTime`] from its RFC3339 representation.
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
-    deserializer.deserialize_any(Visitor::<Rfc3339>(PhantomData))
+    deserializer.deserialize_str(Visitor::<Rfc3339>(PhantomData))
 }
 
 /// Use the well-known [RFC3339 format] when serializing and deserializing an
