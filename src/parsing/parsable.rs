@@ -4,7 +4,8 @@ use core::convert::TryInto;
 use core::ops::Deref;
 
 use crate::error::TryFromParsed;
-use crate::format_description::well_known::{Rfc2822, Rfc3339};
+use crate::format_description::well_known::iso8601::EncodedConfig;
+use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::format_description::FormatItem;
 use crate::parsing::{Parsed, ParsedItem};
 use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
@@ -16,6 +17,7 @@ impl Parsable for FormatItem<'_> {}
 impl Parsable for [FormatItem<'_>] {}
 impl Parsable for Rfc2822 {}
 impl Parsable for Rfc3339 {}
+impl<const CONFIG: EncodedConfig> Parsable for Iso8601<CONFIG> {}
 impl<T: Deref> Parsable for T where T::Target: Parsable {}
 
 /// Seal the trait to prevent downstream users from implementing it, while still allowing it to
@@ -487,6 +489,16 @@ impl sealed::Sealed for Rfc3339 {
         }
 
         Ok(dt)
+    }
+}
+
+impl<const CONFIG: EncodedConfig> sealed::Sealed for Iso8601<CONFIG> {
+    fn parse_into<'a>(
+        &self,
+        input: &'a [u8],
+        parsed: &mut Parsed,
+    ) -> Result<&'a [u8], error::Parse> {
+        todo!()
     }
 }
 // endregion well-known formats

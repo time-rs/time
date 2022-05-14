@@ -14,7 +14,7 @@ use super::{
 };
 use crate::error::ComponentRange;
 #[cfg(feature = "serde-well-known")]
-use crate::format_description::well_known;
+use crate::format_description::well_known::*;
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// A serde visitor for various types.
@@ -258,72 +258,55 @@ impl<'a> de::Visitor<'a> for Visitor<Month> {
     }
 }
 
-#[cfg(feature = "serde-well-known")]
-impl<'a> de::Visitor<'a> for Visitor<well_known::Rfc2822> {
-    type Value = OffsetDateTime;
+/// Implement a visitor for a well-known format.
+macro_rules! well_known {
+    ($article:literal, $name:literal, $($ty:tt)+) => {
+        #[cfg(feature = "serde-well-known")]
+        impl<'a> de::Visitor<'a> for Visitor<$($ty)+> {
+            type Value = OffsetDateTime;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("an RFC2822-formatted `OffsetDateTime`")
-    }
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.write_str(concat!($article, " ", $name, "-formatted `OffsetDateTime`"))
+            }
 
-    fn visit_str<E: de::Error>(self, value: &str) -> Result<OffsetDateTime, E> {
-        OffsetDateTime::parse(value, &well_known::Rfc2822).map_err(E::custom)
-    }
+            fn visit_str<E: de::Error>(self, value: &str) -> Result<OffsetDateTime, E> {
+                OffsetDateTime::parse(value, &$($ty)+).map_err(E::custom)
+            }
+        }
+
+        #[cfg(feature = "serde-well-known")]
+        impl<'a> de::Visitor<'a> for Visitor<Option<$($ty)+>> {
+            type Value = Option<OffsetDateTime>;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.write_str(concat!(
+                    $article,
+                    " ",
+                    $name,
+                    "-formatted `Option<OffsetDateTime>`"
+                ))
+            }
+
+            fn visit_some<D: Deserializer<'a>>(
+                self,
+                deserializer: D,
+            ) -> Result<Option<OffsetDateTime>, D::Error> {
+                deserializer
+                    .deserialize_option(Visitor::<$($ty)+>(PhantomData))
+                    .map(Some)
+            }
+
+            fn visit_none<E: de::Error>(self) -> Result<Option<OffsetDateTime>, E> {
+                Ok(None)
+            }
+        }
+    };
 }
 
-#[cfg(feature = "serde-well-known")]
-impl<'a> de::Visitor<'a> for Visitor<Option<well_known::Rfc2822>> {
-    type Value = Option<OffsetDateTime>;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("an RFC2822-formatted `Option<OffsetDateTime>`")
-    }
-
-    fn visit_some<D: Deserializer<'a>>(
-        self,
-        deserializer: D,
-    ) -> Result<Option<OffsetDateTime>, D::Error> {
-        deserializer
-            .deserialize_option(Visitor::<well_known::Rfc2822>(PhantomData))
-            .map(Some)
-    }
-
-    fn visit_none<E: de::Error>(self) -> Result<Option<OffsetDateTime>, E> {
-        Ok(None)
-    }
-}
-
-#[cfg(feature = "serde-well-known")]
-impl<'a> de::Visitor<'a> for Visitor<well_known::Rfc3339> {
-    type Value = OffsetDateTime;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("an RFC3339-formatted `OffsetDateTime`")
-    }
-
-    fn visit_str<E: de::Error>(self, value: &str) -> Result<OffsetDateTime, E> {
-        OffsetDateTime::parse(value, &well_known::Rfc3339).map_err(E::custom)
-    }
-}
-
-#[cfg(feature = "serde-well-known")]
-impl<'a> de::Visitor<'a> for Visitor<Option<well_known::Rfc3339>> {
-    type Value = Option<OffsetDateTime>;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("an RFC3339-formatted `Option<OffsetDateTime>`")
-    }
-
-    fn visit_some<D: Deserializer<'a>>(
-        self,
-        deserializer: D,
-    ) -> Result<Option<OffsetDateTime>, D::Error> {
-        deserializer
-            .deserialize_option(Visitor::<well_known::Rfc3339>(PhantomData))
-            .map(Some)
-    }
-
-    fn visit_none<E: de::Error>(self) -> Result<Option<OffsetDateTime>, E> {
-        Ok(None)
-    }
-}
+well_known!("an", "RFC2822", Rfc2822);
+well_known!("an", "RFC3339", Rfc3339);
+well_known!(
+    "an",
+    "ISO 8601",
+    Iso8601::<{ super::iso8601::SERDE_CONFIG }>
+);

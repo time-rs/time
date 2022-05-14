@@ -14,6 +14,8 @@ macro_rules! item {
 }
 
 #[cfg(feature = "serde-well-known")]
+pub mod iso8601;
+#[cfg(feature = "serde-well-known")]
 pub mod rfc2822;
 #[cfg(feature = "serde-well-known")]
 pub mod rfc3339;

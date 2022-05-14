@@ -36,56 +36,16 @@ mod helper {
     }
 }
 
-/// Well-known formats, typically RFCs.
+/// Well-known formats, typically standards.
 pub mod well_known {
-    /// The format described in [RFC 3339](https://tools.ietf.org/html/rfc3339#section-5.6).
-    ///
-    /// Format example: 1985-04-12T23:20:50.52Z
-    ///
-    /// ```rust
-    /// # use time::{format_description::well_known::Rfc3339, macros::datetime, OffsetDateTime};
-    /// assert_eq!(
-    ///     OffsetDateTime::parse("1985-04-12T23:20:50.52Z", &Rfc3339)?,
-    ///     datetime!(1985-04-12 23:20:50.52 +00:00)
-    /// );
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    ///
-    /// ```rust
-    /// # use time::{format_description::well_known::Rfc3339, macros::datetime};
-    /// assert_eq!(
-    ///     datetime!(1985-04-12 23:20:50.52 +00:00).format(&Rfc3339)?,
-    ///     "1985-04-12T23:20:50.52Z"
-    /// );
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    pub struct Rfc3339;
+    pub mod iso8601;
+    mod rfc2822;
+    mod rfc3339;
 
-    /// The format described in [RFC 2822](https://tools.ietf.org/html/rfc2822#section-3.3).
-    ///
-    /// Example: Fri, 21 Nov 1997 09:55:06 -0600
-    ///
-    /// # Examples
-    /// ```rust
-    /// # use time::{format_description::well_known::Rfc2822, macros::datetime, OffsetDateTime};
-    /// assert_eq!(
-    ///     OffsetDateTime::parse("Sat, 12 Jun 1993 13:25:19 GMT", &Rfc2822)?,
-    ///     datetime!(1993-06-12 13:25:19 +00:00)
-    /// );
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    ///
-    /// ```rust
-    /// # use time::{format_description::well_known::Rfc2822, macros::datetime};
-    /// assert_eq!(
-    ///     datetime!(1997-11-21 09:55:06 -06:00).format(&Rfc2822)?,
-    ///     "Fri, 21 Nov 1997 09:55:06 -0600"
-    /// );
-    /// # Ok::<_, time::Error>(())
-    /// ```
-    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    pub struct Rfc2822;
+    #[doc(inline)]
+    pub use iso8601::Iso8601;
+    pub use rfc2822::Rfc2822;
+    pub use rfc3339::Rfc3339;
 }
 
 /// A complete description of how to format and parse a type.

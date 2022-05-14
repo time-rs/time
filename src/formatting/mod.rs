@@ -1,7 +1,9 @@
 //! Formatting for various types.
 
 pub(crate) mod formattable;
+mod iso8601;
 
+use core::num::NonZeroU8;
 use std::io;
 
 pub use self::formattable::Formattable;
@@ -116,9 +118,56 @@ impl DigitCount for u32 {
 // endregion extension trait
 
 /// Write all bytes to the output, returning the number of bytes written.
-fn write(output: &mut impl io::Write, bytes: &[u8]) -> io::Result<usize> {
+pub(crate) fn write(output: &mut impl io::Write, bytes: &[u8]) -> io::Result<usize> {
     output.write_all(bytes)?;
     Ok(bytes.len())
+}
+
+/// If `pred` is true, write all bytes to the output, returning the number of bytes written.
+pub(crate) fn write_if(output: &mut impl io::Write, pred: bool, bytes: &[u8]) -> io::Result<usize> {
+    if pred { write(output, bytes) } else { Ok(0) }
+}
+
+/// If `pred` is true, write `true_bytes` to the output. Otherwise, write `false_bytes`.
+pub(crate) fn write_if_else(
+    output: &mut impl io::Write,
+    pred: bool,
+    true_bytes: &[u8],
+    false_bytes: &[u8],
+) -> io::Result<usize> {
+    write(output, if pred { true_bytes } else { false_bytes })
+}
+
+/// Write the floating point number to the output, returning the number of bytes written.
+///
+/// This method accepts the number of digits before and after the decimal. The value will be padded
+/// with zeroes to the left if necessary.
+pub(crate) fn format_float(
+    output: &mut impl io::Write,
+    value: f64,
+    digits_before_decimal: u8,
+    digits_after_decimal: Option<NonZeroU8>,
+) -> io::Result<usize> {
+    match digits_after_decimal {
+        Some(digits_after_decimal) => {
+            let digits_after_decimal = digits_after_decimal.get() as usize;
+            let width = digits_before_decimal as usize + 1 + digits_after_decimal;
+            write!(
+                output,
+                "{value:0>width$.digits_after_decimal$}",
+                value = value,
+                width = width,
+                digits_after_decimal = digits_after_decimal,
+            )?;
+            Ok(width)
+        }
+        None => {
+            let value = value.trunc() as u64;
+            let width = digits_before_decimal as usize;
+            write!(output, "{value:0>width$?}", value = value, width = width)?;
+            Ok(width)
+        }
+    }
 }
 
 /// Format a number with the provided padding and width.

@@ -3,10 +3,11 @@
 use core::ops::Deref;
 use std::io;
 
-use crate::format_description::well_known::{Rfc2822, Rfc3339};
+use crate::format_description::well_known::iso8601::EncodedConfig;
+use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::format_description::FormatItem;
 use crate::formatting::{
-    format_component, format_number_pad_zero, write, MONTH_NAMES, WEEKDAY_NAMES,
+    format_component, format_number_pad_zero, iso8601, write, MONTH_NAMES, WEEKDAY_NAMES,
 };
 use crate::{error, Date, Time, UtcOffset};
 
@@ -17,6 +18,7 @@ impl Formattable for FormatItem<'_> {}
 impl Formattable for [FormatItem<'_>] {}
 impl Formattable for Rfc3339 {}
 impl Formattable for Rfc2822 {}
+impl<const CONFIG: EncodedConfig> Formattable for Iso8601<CONFIG> {}
 impl<T: Deref> Formattable for T where T::Target: Formattable {}
 
 /// Seal the trait to prevent downstream users from implementing it.
@@ -231,6 +233,39 @@ impl sealed::Sealed for Rfc3339 {
         bytes += write(output, &[b':'])?;
         bytes +=
             format_number_pad_zero::<_, _, 2>(output, offset.minutes_past_hour().unsigned_abs())?;
+
+        Ok(bytes)
+    }
+}
+
+impl<const CONFIG: EncodedConfig> sealed::Sealed for Iso8601<CONFIG> {
+    fn format_into(
+        &self,
+        output: &mut impl io::Write,
+        date: Option<Date>,
+        time: Option<Time>,
+        offset: Option<UtcOffset>,
+    ) -> Result<usize, error::Format> {
+        let mut bytes = 0;
+
+        if Self::FORMAT_DATE {
+            let date = date.ok_or(error::Format::InsufficientTypeInformation)?;
+            bytes += iso8601::format_date::<_, CONFIG>(output, date)?;
+        }
+        if Self::FORMAT_TIME {
+            let time = time.ok_or(error::Format::InsufficientTypeInformation)?;
+            bytes += iso8601::format_time::<_, CONFIG>(output, time)?;
+        }
+        if Self::FORMAT_OFFSET {
+            let offset = offset.ok_or(error::Format::InsufficientTypeInformation)?;
+            bytes += iso8601::format_offset::<_, CONFIG>(output, offset)?;
+        }
+
+        if bytes == 0 {
+            // The only reason there would be no bytes written is if the format was only for
+            // parsing.
+            panic!("attempted to format a parsing-only format description");
+        }
 
         Ok(bytes)
     }
