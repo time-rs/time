@@ -1,3 +1,4 @@
+#![feature(assert_matches)]
 #![deny(
     anonymous_parameters,
     clippy::all,

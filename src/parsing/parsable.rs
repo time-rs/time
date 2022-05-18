@@ -495,10 +495,58 @@ impl sealed::Sealed for Rfc3339 {
 impl<const CONFIG: EncodedConfig> sealed::Sealed for Iso8601<CONFIG> {
     fn parse_into<'a>(
         &self,
-        input: &'a [u8],
+        mut input: &'a [u8],
         parsed: &mut Parsed,
     ) -> Result<&'a [u8], error::Parse> {
-        todo!()
+        use crate::parsing::combinator::rfc::iso8601::ExtendedKind;
+
+        let mut extended_kind = ExtendedKind::Unknown;
+        let mut date_is_present = false;
+        let mut time_is_present = false;
+        let mut offset_is_present = false;
+        let mut first_error = None;
+
+        match Self::parse_date(parsed, &mut extended_kind)(input) {
+            Ok(new_input) => {
+                input = new_input;
+                date_is_present = true;
+            }
+            Err(err) => {
+                first_error.get_or_insert(err);
+            }
+        }
+
+        match Self::parse_time(parsed, &mut extended_kind, date_is_present)(input) {
+            Ok(new_input) => {
+                input = new_input;
+                time_is_present = true;
+            }
+            Err(err) => {
+                first_error.get_or_insert(err);
+            }
+        }
+
+        // If a date and offset are present, a time must be as well.
+        if !date_is_present || time_is_present {
+            match Self::parse_offset(parsed, &mut extended_kind)(input) {
+                Ok(new_input) => {
+                    input = new_input;
+                    offset_is_present = true;
+                }
+                Err(err) => {
+                    first_error.get_or_insert(err);
+                }
+            }
+        }
+
+        if !date_is_present && !time_is_present && !offset_is_present {
+            match first_error {
+                Some(err) => return Err(err),
+                None => unreachable!("an error should be present if no components were parsed"),
+            }
+        }
+
+        Ok(input)
     }
 }
 // endregion well-known formats

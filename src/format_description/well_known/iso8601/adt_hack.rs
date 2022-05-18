@@ -2,7 +2,9 @@
 
 use core::num::NonZeroU8;
 
-use super::{Config, DateKind, FormattedComponents as FC, Iso8601, OffsetPrecision, TimePrecision};
+#[cfg(feature = "formatting")]
+use super::Iso8601;
+use super::{Config, DateKind, FormattedComponents as FC, OffsetPrecision, TimePrecision};
 
 // This provides a way to include `EncodedConfig` in documentation without displaying the type it is
 // aliased to.
@@ -15,6 +17,7 @@ pub type DoNotRelyOnWhatThisIs = u128;
 /// notice.
 pub type EncodedConfig = DoNotRelyOnWhatThisIs;
 
+#[cfg(feature = "formatting")]
 impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
     /// The user-provided configuration for the ISO 8601 format.
     const CONFIG: Config = Config::decode(CONFIG);
