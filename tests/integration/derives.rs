@@ -50,6 +50,14 @@ fn clone() {
     assert_cloned_eq!(Component::OffsetSecond(modifier::OffsetSecond::default()));
     assert_cloned_eq!(well_known::Rfc2822);
     assert_cloned_eq!(well_known::Rfc3339);
+    assert_cloned_eq!(well_known::Iso8601::DEFAULT);
+    assert_cloned_eq!(well_known::iso8601::FormattedComponents::None);
+    assert_cloned_eq!(well_known::iso8601::DateKind::Calendar);
+    assert_cloned_eq!(well_known::iso8601::TimePrecision::Hour {
+        decimal_digits: None
+    });
+    assert_cloned_eq!(well_known::iso8601::OffsetPrecision::Hour);
+    assert_cloned_eq!(well_known::iso8601::FormattedComponents::None);
     assert_cloned_eq!(component_range_error());
     assert_cloned_eq!(FormatItem::Literal(b""));
 
@@ -134,6 +142,12 @@ fn debug() {
         error::Format::InvalidComponent("foo");
         well_known::Rfc2822;
         well_known::Rfc3339;
+        well_known::Iso8601::DEFAULT;
+        well_known::iso8601::FormattedComponents::None;
+        well_known::iso8601::DateKind::Calendar;
+        well_known::iso8601::TimePrecision::Hour { decimal_digits: None };
+        well_known::iso8601::OffsetPrecision::Hour;
+        well_known::iso8601::Config::DEFAULT;
         component_range_error();
         Error::ConversionRange(ConversionRange);
 

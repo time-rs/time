@@ -1,6 +1,7 @@
-use std::io::{self, ErrorKind};
+use std::io;
 
-use time::format_description::well_known::{Rfc2822, Rfc3339};
+use time::format_description::well_known::iso8601::{DateKind, OffsetPrecision, TimePrecision};
+use time::format_description::well_known::{iso8601, Iso8601, Rfc2822, Rfc3339};
 use time::format_description::{self, FormatItem};
 use time::macros::{date, datetime, format_description as fd, offset, time};
 use time::{OffsetDateTime, Time};
@@ -90,6 +91,136 @@ fn rfc_3339() -> time::Result<()> {
     assert!(matches!(
         datetime!(0000-01-01 0:00 +00:00:01).format(&Rfc3339),
         Err(time::error::Format::InvalidComponent("offset_second"))
+    ));
+
+    Ok(())
+}
+
+#[test]
+fn iso_8601() -> time::Result<()> {
+    macro_rules! assert_format_config {
+        ($formatted:literal $(, $($config:tt)+)?) => {
+            assert_eq!(
+                datetime!(2021-01-02 03:04:05 UTC).format(
+                    &Iso8601::<{ iso8601::Config::DEFAULT$($($config)+)?.encode() }>
+                )?,
+                $formatted
+            );
+        };
+    }
+
+    assert!(
+        std::panic::catch_unwind(|| {
+            let _ = datetime!(2021-01-02 03:04:05 UTC).format(&Iso8601::PARSING);
+        })
+        .is_err()
+    );
+    assert_eq!(
+        datetime!(-123_456-01-02 03:04:05 UTC).format(
+            &Iso8601::<
+                {
+                    iso8601::Config::DEFAULT
+                        .set_year_is_six_digits(true)
+                        .encode()
+                },
+            >
+        )?,
+        "-123456-01-02T03:04:05.000000000Z"
+    );
+    assert_eq!(
+        datetime!(-123_456-01-02 03:04:05 UTC).format(
+            &Iso8601::<
+                {
+                    iso8601::Config::DEFAULT
+                        .set_date_kind(DateKind::Ordinal)
+                        .set_year_is_six_digits(true)
+                        .encode()
+                },
+            >
+        )?,
+        "-123456-002T03:04:05.000000000Z"
+    );
+    assert_eq!(
+        datetime!(-123_456-01-02 03:04:05 UTC).format(
+            &Iso8601::<
+                {
+                    iso8601::Config::DEFAULT
+                        .set_date_kind(DateKind::Week)
+                        .set_year_is_six_digits(true)
+                        .encode()
+                },
+            >
+        )?,
+        "-123456-W01-4T03:04:05.000000000Z"
+    );
+    assert_eq!(
+        datetime!(2021-01-02 03:04:05+1:00).format(&Iso8601::DEFAULT)?,
+        "2021-01-02T03:04:05.000000000+01:00"
+    );
+    assert_eq!(
+        datetime!(2021-01-02 03:04:05+1:00).format(
+            &Iso8601::<
+                {
+                    iso8601::Config::DEFAULT
+                        .set_offset_precision(OffsetPrecision::Hour)
+                        .encode()
+                },
+            >
+        )?,
+        "2021-01-02T03:04:05.000000000+01"
+    );
+    assert_format_config!("2021-01-02T03:04:05.000000000Z");
+    assert_format_config!("20210102T030405.000000000Z", .set_use_separators(false));
+    assert_format_config!("+002021-01-02T03:04:05.000000000Z", .set_year_is_six_digits(true));
+    assert_format_config!("2021-01-02T03Z", .set_time_precision(TimePrecision::Hour { decimal_digits: None }));
+    assert_format_config!("2021-01-02T03:04Z", .set_time_precision(TimePrecision::Minute { decimal_digits: None }));
+    assert_format_config!("2021-01-02T03:04:05Z", .set_time_precision(TimePrecision::Second { decimal_digits: None }));
+    assert_format_config!("2021-002T03:04:05.000000000Z", .set_date_kind(DateKind::Ordinal));
+    assert_format_config!("2020-W53-6T03:04:05.000000000Z", .set_date_kind(DateKind::Week));
+
+    assert!(matches!(
+        datetime!(+10_000-01-01 0:00 UTC).format(&Iso8601::DEFAULT),
+        Err(time::error::Format::InvalidComponent("year"))
+    ));
+    assert!(matches!(
+        datetime!(+10_000-W 01-1 0:00 UTC).format(
+            &Iso8601::<
+                {
+                    iso8601::Config::DEFAULT
+                        .set_date_kind(DateKind::Week)
+                        .encode()
+                },
+            >
+        ),
+        Err(time::error::Format::InvalidComponent("year"))
+    ));
+    assert!(matches!(
+        datetime!(+10_000-001 0:00 UTC).format(
+            &Iso8601::<
+                {
+                    iso8601::Config::DEFAULT
+                        .set_date_kind(DateKind::Ordinal)
+                        .encode()
+                },
+            >
+        ),
+        Err(time::error::Format::InvalidComponent("year"))
+    ));
+    assert!(matches!(
+        datetime!(2021-01-02 03:04:05 +0:00:01).format(&Iso8601::DEFAULT),
+        Err(time::error::Format::InvalidComponent("offset_second"))
+    ));
+    assert!(matches!(
+        datetime!(2021-01-02 03:04:05 +0:01).format(
+            &Iso8601::<
+                {
+                    iso8601::Config::DEFAULT
+                        .set_offset_precision(OffsetPrecision::Hour)
+                        .encode()
+                },
+            >
+        ),
+        Err(time::error::Format::InvalidComponent("offset_minute"))
     ));
 
     Ok(())
@@ -383,75 +514,125 @@ fn insufficient_type_information() {
     assert_insufficient_type_information(
         Time::MIDNIGHT.format(&FormatItem::First(&[FormatItem::Compound(fd!("[year]"))])),
     );
+    assert_insufficient_type_information(Time::MIDNIGHT.format(&Iso8601::DEFAULT));
+    assert_insufficient_type_information(date!(2021 - 001).format(&Iso8601::DEFAULT));
+    assert_insufficient_type_information(datetime!(2021-001 0:00).format(&Iso8601::DEFAULT));
 }
 
 #[test]
 fn failed_write() -> time::Result<()> {
-    /// Allow at most `$n` bytes to be written.
-    macro_rules! bytes {
-        ($n:literal) => {
-            &mut &mut [0; $n][..]
-        };
+    macro_rules! assert_err {
+        ($val:expr, $format:expr) => {{
+            let val = $val;
+            let format = $format;
+            let success_len = val.format(&format)?.len();
+            for len in 0..success_len {
+                let mut buf = &mut vec![0; len][..];
+                let res = val.format_into(&mut buf, &format);
+                assert!(matches!(
+                    res,
+                    Err(time::error::Format::StdIo(e)) if e.kind() == io::ErrorKind::WriteZero)
+                );
+            }
+        }};
     }
 
-    let assert_err = |res| {
-        assert!(
-            matches!(res, Err(time::error::Format::StdIo(e)) if e.kind() == ErrorKind::WriteZero)
-        );
-    };
-    assert_err(Time::MIDNIGHT.format_into(bytes!(0), fd!("foo")));
-    assert_err(Time::MIDNIGHT.format_into(bytes!(0), &FormatItem::Compound(fd!("foo"))));
-    assert_err(Time::MIDNIGHT.format_into(
-        bytes!(0),
-        &FormatItem::Optional(&FormatItem::Compound(fd!("foo"))),
-    ));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(0), &Rfc3339));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(4), &Rfc3339));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(5), &Rfc3339));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(7), &Rfc3339));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(8), &Rfc3339));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(10), &Rfc3339));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(11), &Rfc3339));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(13), &Rfc3339));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(14), &Rfc3339));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(16), &Rfc3339));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(17), &Rfc3339));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(19), &Rfc3339));
-    assert_err(datetime!(2021-001 0:00:00.1 UTC).format_into(bytes!(19), &Rfc3339));
-    assert_err(datetime!(2021-001 0:00:00.1 UTC).format_into(bytes!(20), &Rfc3339));
-    assert_err(datetime!(2021-001 0:00 +0:01).format_into(bytes!(19), &Rfc3339));
-    assert_err(datetime!(2021-001 0:00 +0:01).format_into(bytes!(20), &Rfc3339));
-    assert_err(datetime!(2021-001 0:00 +0:01).format_into(bytes!(22), &Rfc3339));
-    assert_err(datetime!(2021-001 0:00 +0:01).format_into(bytes!(23), &Rfc3339));
+    assert_err!(Time::MIDNIGHT, fd!("foo"));
+    assert_err!(Time::MIDNIGHT, FormatItem::Compound(fd!("foo")));
+    assert_err!(
+        Time::MIDNIGHT,
+        FormatItem::Optional(&FormatItem::Compound(fd!("foo")))
+    );
+    assert_err!(OffsetDateTime::UNIX_EPOCH, Rfc3339);
+    assert_err!(datetime!(2021-001 0:00:00.1 UTC), Rfc3339);
+    assert_err!(datetime!(2021-001 0:00 +0:01), Rfc3339);
+    assert_err!(OffsetDateTime::UNIX_EPOCH, Rfc2822);
+    assert_err!(OffsetDateTime::UNIX_EPOCH, Iso8601::DEFAULT);
+    assert_err!(datetime!(2021-001 0:00 +0:01), Iso8601::DEFAULT);
+    assert_err!(
+        OffsetDateTime::UNIX_EPOCH,
+        Iso8601::<
+            {
+                iso8601::Config::DEFAULT
+                    .set_year_is_six_digits(true)
+                    .encode()
+            },
+        >
+    );
+    assert_err!(
+        OffsetDateTime::UNIX_EPOCH,
+        Iso8601::<
+            {
+                iso8601::Config::DEFAULT
+                    .set_date_kind(DateKind::Ordinal)
+                    .encode()
+            },
+        >
+    );
+    assert_err!(
+        OffsetDateTime::UNIX_EPOCH,
+        Iso8601::<
+            {
+                iso8601::Config::DEFAULT
+                    .set_year_is_six_digits(true)
+                    .set_date_kind(DateKind::Ordinal)
+                    .encode()
+            },
+        >
+    );
+    assert_err!(
+        OffsetDateTime::UNIX_EPOCH,
+        Iso8601::<
+            {
+                iso8601::Config::DEFAULT
+                    .set_year_is_six_digits(true)
+                    .set_date_kind(DateKind::Week)
+                    .encode()
+            },
+        >
+    );
+    assert_err!(
+        OffsetDateTime::UNIX_EPOCH,
+        Iso8601::<
+            {
+                iso8601::Config::DEFAULT
+                    .set_date_kind(DateKind::Week)
+                    .encode()
+            },
+        >
+    );
+    assert_err!(
+        OffsetDateTime::UNIX_EPOCH,
+        Iso8601::<
+            {
+                iso8601::Config::DEFAULT
+                    .set_time_precision(TimePrecision::Minute {
+                        decimal_digits: None,
+                    })
+                    .encode()
+            },
+        >
+    );
+    assert_err!(
+        OffsetDateTime::UNIX_EPOCH,
+        Iso8601::<
+            {
+                iso8601::Config::DEFAULT
+                    .set_time_precision(TimePrecision::Hour {
+                        decimal_digits: None,
+                    })
+                    .encode()
+            },
+        >
+    );
 
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(0), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(4), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(6), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(7), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(8), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(11), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(12), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(16), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(17), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(19), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(20), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(22), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(23), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(25), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(26), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(27), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(29), &Rfc2822));
-    assert_err(OffsetDateTime::UNIX_EPOCH.format_into(bytes!(30), &Rfc2822));
-
-    assert_err(Time::MIDNIGHT.format_into(bytes!(0), fd!("[hour padding:space]")));
-    assert_err(Time::MIDNIGHT.format_into(bytes!(1), fd!("[hour padding:space]")));
-    assert_err(offset!(+1).format_into(bytes!(0), fd!("[offset_hour sign:mandatory]")));
-    assert_err(offset!(-1).format_into(bytes!(0), fd!("[offset_hour]")));
-    assert_err(offset!(-1).format_into(bytes!(1), fd!("[offset_hour]")));
-    assert_err(date!(-1 - 001).format_into(bytes!(0), fd!("[year]")));
-    assert_err(date!(2021 - 001).format_into(bytes!(0), fd!("[year sign:mandatory]")));
-    assert_err(date!(+999_999 - 001).format_into(bytes!(4), fd!("[year]")));
-    assert_err(date!(+99_999 - 001).format_into(bytes!(4), fd!("[year]")));
+    assert_err!(Time::MIDNIGHT, fd!("[hour padding:space]"));
+    assert_err!(offset!(+1), fd!("[offset_hour sign:mandatory]"));
+    assert_err!(offset!(-1), fd!("[offset_hour]"));
+    assert_err!(date!(-1 - 001), fd!("[year]"));
+    assert_err!(date!(2021 - 001), fd!("[year sign:mandatory]"));
+    assert_err!(date!(+999_999 - 001), fd!("[year]"));
+    assert_err!(date!(+99_999 - 001), fd!("[year]"));
 
     let component_names = [
         "day",
@@ -470,10 +651,11 @@ fn failed_write() -> time::Result<()> {
         "offset_second",
     ];
     for component in &component_names {
-        assert_err(OffsetDateTime::UNIX_EPOCH.format_into(
-            bytes!(0),
-            &format_description::parse(&format!("[{}]", component))?,
-        ));
+        let component = format!("[{}]", component);
+        assert_err!(
+            OffsetDateTime::UNIX_EPOCH,
+            format_description::parse(&component)?
+        );
     }
 
     Ok(())

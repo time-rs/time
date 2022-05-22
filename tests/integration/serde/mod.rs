@@ -3,6 +3,7 @@ use time::macros::{date, datetime, offset, time};
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 mod error_conditions;
+mod iso8601;
 mod macros;
 mod rfc3339;
 mod timestamps;

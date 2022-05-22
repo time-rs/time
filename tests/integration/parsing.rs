@@ -1,9 +1,9 @@
 use core::convert::{TryFrom, TryInto};
 use std::num::NonZeroU8;
 
-use time::format_description::well_known::{Rfc2822, Rfc3339};
+use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use time::format_description::{modifier, Component, FormatItem};
-use time::macros::{date, datetime, time};
+use time::macros::{date, datetime, offset, time};
 use time::parsing::Parsed;
 use time::{
     error, format_description as fd, Date, Month, OffsetDateTime, PrimitiveDateTime, Time,
@@ -202,7 +202,7 @@ fn rfc_2822_err() {
         invalid_literal!()
     ));
     assert!(matches!(
-        dbg!(OffsetDateTime::parse("Mon, 02 Jan 2021 03:04 6", &Rfc2822)),
+        OffsetDateTime::parse("Mon, 02 Jan 2021 03:04 6", &Rfc2822),
         invalid_component!("offset hour")
     ));
     assert!(matches!(
@@ -494,6 +494,100 @@ fn rfc_3339_err() {
     assert!(matches!(
         OffsetDateTime::parse("2021-12-31T23:59:60+01:00", &Rfc3339),
         Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && component.is_conditional()
+    ));
+}
+
+#[test]
+fn iso_8601() {
+    assert_eq!(
+        OffsetDateTime::parse("2021-01-02T03:04:05Z", &Iso8601::DEFAULT),
+        Ok(datetime!(2021-01-02 03:04:05 UTC))
+    );
+    assert_eq!(
+        OffsetDateTime::parse("2021-002T03:04:05Z", &Iso8601::DEFAULT),
+        Ok(datetime!(2021-002 03:04:05 UTC))
+    );
+    assert_eq!(
+        OffsetDateTime::parse("2021-W01-2T03:04:05Z", &Iso8601::DEFAULT),
+        Ok(datetime!(2021-W 01-2 03:04:05 UTC))
+    );
+    assert_eq!(
+        OffsetDateTime::parse("-002021-01-02T03:04:05+01:00", &Iso8601::DEFAULT),
+        Ok(datetime!(-002021-01-02 03:04:05 +01:00))
+    );
+    assert_eq!(
+        OffsetDateTime::parse("20210102T03.1Z", &Iso8601::DEFAULT),
+        Ok(datetime!(2021-01-02 03:06:00 UTC))
+    );
+    assert_eq!(
+        OffsetDateTime::parse("2021002T0304.1Z", &Iso8601::DEFAULT),
+        Ok(datetime!(2021-002 03:04:06 UTC))
+    );
+    assert_eq!(
+        OffsetDateTime::parse("2021W012T030405.1-0100", &Iso8601::DEFAULT),
+        Ok(datetime!(2021-W 01-2 03:04:05.1 -01:00))
+    );
+    assert_eq!(
+        OffsetDateTime::parse("20210102T03Z", &Iso8601::DEFAULT),
+        Ok(datetime!(2021-01-02 03:00:00 UTC))
+    );
+    assert_eq!(
+        OffsetDateTime::parse("20210102T0304Z", &Iso8601::DEFAULT),
+        Ok(datetime!(2021-01-02 03:04:00 UTC))
+    );
+    assert_eq!(
+        UtcOffset::parse("+0304", &Iso8601::DEFAULT),
+        Ok(offset!(+03:04))
+    );
+}
+
+#[test]
+fn iso_8601_error() {
+    assert!(matches!(
+        OffsetDateTime::parse("20210102T03:04Z", &Iso8601::DEFAULT),
+        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("20210102T03.", &Iso8601::DEFAULT),
+        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-0102", &Iso8601::DEFAULT),
+        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-01-x", &Iso8601::DEFAULT),
+        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-Wx", &Iso8601::DEFAULT),
+        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-W012", &Iso8601::DEFAULT),
+        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-W01-x", &Iso8601::DEFAULT),
+        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-01-02T03:x", &Iso8601::DEFAULT),
+        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-01-02T03:04x", &Iso8601::DEFAULT),
+        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("2021-01-02T03:04:", &Iso8601::DEFAULT),
+        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+    ));
+    assert!(matches!(
+        OffsetDateTime::parse("01:02", &Iso8601::DEFAULT),
+        Err(error::Parse::TryFromParsed(
+            error::TryFromParsed::InsufficientInformation { .. }
+        ))
     ));
 }
 
