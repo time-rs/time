@@ -299,6 +299,10 @@ macro_rules! well_known {
             fn visit_none<E: de::Error>(self) -> Result<Option<OffsetDateTime>, E> {
                 Ok(None)
             }
+
+            fn visit_unit<E: de::Error>(self) -> Result<Self::Value, E> {
+                Ok(None)
+            }
         }
     };
 }

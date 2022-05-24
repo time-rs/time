@@ -15,7 +15,7 @@ struct Test {
 }
 
 #[test]
-fn serialize() {
+fn serialize_deserialize() {
     let value = Test {
         dt: datetime!(2000-01-01 00:00:00 UTC),
         option_dt: Some(datetime!(2000-01-01 00:00:00 UTC)),
@@ -79,5 +79,22 @@ fn serialize() {
             Token::Str("dt"),
         ],
         "The offset_second component cannot be formatted into the requested format.",
+    );
+}
+
+#[test]
+fn parse_json() {
+    #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
+    #[serde(untagged)]
+    enum Wrapper {
+        A(Test),
+    }
+    assert_eq!(
+        serde_json::from_str::<Wrapper>("{\"dt\": \"2000-01-01T00:00:00Z\", \"option_dt\": null}")
+            .unwrap(),
+        Wrapper::A(Test {
+            dt: datetime!(2000-01-01 00:00:00 UTC),
+            option_dt: None,
+        })
     );
 }
