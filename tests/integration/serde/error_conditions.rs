@@ -14,7 +14,7 @@ use time::{error, OffsetDateTime};
 fn serialize<S: Serializer>(datetime: &OffsetDateTime, _serializer: S) -> Result<S::Ok, S::Error> {
     Err(datetime
         .format_into(
-            &mut &mut [0u8; 0][..],
+            &mut [0u8; 0].as_mut_slice(),
             format_description!("nonempty format description"),
         )
         .map_err(error::Format::into_invalid_serde_value::<S>)

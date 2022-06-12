@@ -73,18 +73,18 @@ pub(crate) fn year(input: &[u8]) -> Option<ParsedItem<'_, i32>> {
 pub(crate) fn month(input: &[u8]) -> Option<ParsedItem<'_, Month>> {
     first_match(
         [
-            (&b"01"[..], Month::January),
-            (&b"02"[..], Month::February),
-            (&b"03"[..], Month::March),
-            (&b"04"[..], Month::April),
-            (&b"05"[..], Month::May),
-            (&b"06"[..], Month::June),
-            (&b"07"[..], Month::July),
-            (&b"08"[..], Month::August),
-            (&b"09"[..], Month::September),
-            (&b"10"[..], Month::October),
-            (&b"11"[..], Month::November),
-            (&b"12"[..], Month::December),
+            (b"01".as_slice(), Month::January),
+            (b"02".as_slice(), Month::February),
+            (b"03".as_slice(), Month::March),
+            (b"04".as_slice(), Month::April),
+            (b"05".as_slice(), Month::May),
+            (b"06".as_slice(), Month::June),
+            (b"07".as_slice(), Month::July),
+            (b"08".as_slice(), Month::August),
+            (b"09".as_slice(), Month::September),
+            (b"10".as_slice(), Month::October),
+            (b"11".as_slice(), Month::November),
+            (b"12".as_slice(), Month::December),
         ],
         true,
     )(input)
@@ -104,13 +104,13 @@ pub(crate) fn day(input: &[u8]) -> Option<ParsedItem<'_, NonZeroU8>> {
 pub(crate) fn dayk(input: &[u8]) -> Option<ParsedItem<'_, Weekday>> {
     first_match(
         [
-            (&b"1"[..], Weekday::Monday),
-            (&b"2"[..], Weekday::Tuesday),
-            (&b"3"[..], Weekday::Wednesday),
-            (&b"4"[..], Weekday::Thursday),
-            (&b"5"[..], Weekday::Friday),
-            (&b"6"[..], Weekday::Saturday),
-            (&b"7"[..], Weekday::Sunday),
+            (b"1".as_slice(), Weekday::Monday),
+            (b"2".as_slice(), Weekday::Tuesday),
+            (b"3".as_slice(), Weekday::Wednesday),
+            (b"4".as_slice(), Weekday::Thursday),
+            (b"5".as_slice(), Weekday::Friday),
+            (b"6".as_slice(), Weekday::Saturday),
+            (b"7".as_slice(), Weekday::Sunday),
         ],
         true,
     )(input)

@@ -12,7 +12,7 @@ fn format_item_component_conversions() {
 
 #[test]
 fn format_item_compound_conversions() {
-    let compound = &[FormatItem::Literal(b"")][..];
+    let compound = [FormatItem::Literal(b"")].as_slice();
     let item = FormatItem::from(compound);
     assert!(matches!(item, FormatItem::Compound(inner) if inner == compound));
     assert_eq!(<&[FormatItem<'_>]>::try_from(item), Ok(compound));
@@ -21,7 +21,7 @@ fn format_item_compound_conversions() {
 #[test]
 fn format_item_equality() {
     let component = Component::Year(modifier::Year::default());
-    let compound = &[FormatItem::Literal(b"")][..];
+    let compound = [FormatItem::Literal(b"")].as_slice();
     let component_item = FormatItem::from(component);
     let compound_item = FormatItem::from(compound);
 
