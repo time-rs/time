@@ -748,38 +748,81 @@ impl Duration {
 // region: trait impls
 /// The format returned by this implementation is not stable and must not be relied upon.
 ///
+/// By default this produces an exact, full-precision printout of the duration.
+/// For a concise, rounded printout instead, you can use the `.N` format specifier:
+///
+/// ```
+/// # use time::Duration;
+/// #
+/// let duration = Duration::new(123456, 789011223);
+/// println!("{:.3}", duration);
+/// ```
+///
 /// For the purposes of this implementation, a day is exactly 24 hours and a minute is exactly 60
 /// seconds.
 impl fmt::Display for Duration {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        /// Format a single item.
-        macro_rules! item {
-            ($name:literal, $value:expr) => {
-                match $value {
-                    0 => Ok(()),
-                    value => value.fmt(f).and(f.write_str($name)),
-                }
-            };
-        }
-
-        if self.is_zero() {
-            return f.write_str("0s");
-        }
-
-        let seconds = self.seconds.unsigned_abs();
-        let nanoseconds = self.nanoseconds.unsigned_abs();
-
         if self.is_negative() {
             f.write_str("-")?;
         }
 
-        item!("d", seconds / 86_400)?;
-        item!("h", seconds / 3_600 % 24)?;
-        item!("m", seconds / 60 % 60)?;
-        item!("s", seconds % 60)?;
-        item!("ms", nanoseconds / 1_000_000)?;
-        item!("µs", nanoseconds / 1_000 % 1_000)?;
-        item!("ns", nanoseconds % 1_000)?;
+        if let Some(_precision) = f.precision() {
+            // Concise, rounded representation.
+
+            if self.is_zero() {
+                // Write a zero value with the requested precision.
+                return (0.).fmt(f).and_then(|_| f.write_str("s"));
+            }
+
+            /// Format the first item that produces a value greater than 1 and then break.
+            macro_rules! item {
+                ($name:literal, $value:expr) => {
+                    let value = $value;
+                    if value >= 1.0 {
+                        return value.fmt(f).and_then(|_| f.write_str($name));
+                    }
+                };
+            }
+
+            // Even if this produces a de-normal float, because we're rounding we don't really care.
+            let seconds = self.unsigned_abs().as_secs_f64();
+
+            item!("d", seconds / 86_400.);
+            item!("h", seconds / 3_600.);
+            item!("m", seconds / 60.);
+            item!("s", seconds);
+            item!("ms", seconds * 1_000.);
+            item!("µs", seconds * 1_000_000.);
+            item!("ns", seconds * 1_000_000_000.);
+        } else {
+            // Precise, but verbose representation.
+
+            if self.is_zero() {
+                return f.write_str("0s");
+            }
+
+            /// Format a single item.
+            macro_rules! item {
+                ($name:literal, $value:expr) => {
+                    match $value {
+                        0 => Ok(()),
+                        value => value.fmt(f).and_then(|_| f.write_str($name)),
+                    }
+                };
+            }
+
+            let seconds = self.seconds.unsigned_abs();
+            let nanoseconds = self.nanoseconds.unsigned_abs();
+
+            item!("d", seconds / 86_400)?;
+            item!("h", seconds / 3_600 % 24)?;
+            item!("m", seconds / 60 % 60)?;
+            item!("s", seconds % 60)?;
+            item!("ms", nanoseconds / 1_000_000)?;
+            item!("µs", nanoseconds / 1_000 % 1_000)?;
+            item!("ns", nanoseconds % 1_000)?;
+        }
+
         Ok(())
     }
 }
