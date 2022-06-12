@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use time::format_description::{modifier, Component, FormatItem};
 
 #[test]

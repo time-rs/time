@@ -1,7 +1,6 @@
 //! The [`Instant`] struct and its associated `impl`s.
 
 use core::cmp::{Ord, Ordering, PartialEq, PartialOrd};
-use core::convert::{TryFrom, TryInto};
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
 use std::borrow::Borrow;

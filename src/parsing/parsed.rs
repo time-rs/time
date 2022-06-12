@@ -1,6 +1,5 @@
 //! Information parsed from an input and format description.
 
-use core::convert::{TryFrom, TryInto};
 use core::num::{NonZeroU16, NonZeroU8};
 
 use crate::error::TryFromParsed::InsufficientInformation;

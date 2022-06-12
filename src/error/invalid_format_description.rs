@@ -1,7 +1,6 @@
 //! Invalid format description
 
 use alloc::string::String;
-use core::convert::TryFrom;
 use core::fmt;
 
 use crate::error;

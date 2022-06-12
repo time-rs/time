@@ -1,6 +1,5 @@
 //! A trait that can be used to parse an item from an input.
 
-use core::convert::TryInto;
 use core::ops::Deref;
 
 use crate::error::TryFromParsed;

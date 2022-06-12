@@ -1,6 +1,5 @@
 //! Error formatting a struct
 
-use core::convert::TryFrom;
 use core::fmt;
 use std::io;
 

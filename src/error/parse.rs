@@ -1,6 +1,5 @@
 //! Error that occurred at some stage of parsing
 
-use core::convert::TryFrom;
 use core::fmt;
 
 use crate::error::{self, ParseFromDescription, TryFromParsed};

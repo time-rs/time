@@ -2,7 +2,6 @@
 // changed.
 
 use std::borrow::Borrow;
-use std::convert::TryFrom;
 use std::error::Error as StdError;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;

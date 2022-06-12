@@ -1,7 +1,6 @@
 //! The [`Duration`] struct and its associated `impl`s.
 
 use core::cmp::Ordering;
-use core::convert::{TryFrom, TryInto};
 use core::fmt;
 use core::iter::Sum;
 use core::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};

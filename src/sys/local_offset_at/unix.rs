@@ -1,6 +1,5 @@
 //! Get the system's UTC offset on Unix.
 
-use core::convert::TryInto;
 use core::mem::MaybeUninit;
 
 use crate::{OffsetDateTime, UtcOffset};
@@ -73,8 +72,6 @@ fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
     any(target_os = "solaris", target_os = "illumos")
 ))]
 fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
-    use core::convert::TryFrom;
-
     use crate::Date;
 
     let mut tm = tm;

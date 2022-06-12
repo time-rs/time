@@ -1,4 +1,3 @@
-use std::convert::TryFrom;
 use std::time::Duration as StdDuration;
 
 use criterion::Bencher;

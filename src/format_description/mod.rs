@@ -12,7 +12,6 @@ pub(crate) mod parse;
 
 #[cfg(feature = "alloc")]
 use alloc::string::String;
-use core::convert::TryFrom;
 #[cfg(feature = "alloc")]
 use core::fmt;
 

@@ -1,6 +1,5 @@
 //! Get the system's UTC offset on Windows.
 
-use core::convert::TryInto;
 use core::mem::MaybeUninit;
 
 use crate::{OffsetDateTime, UtcOffset};

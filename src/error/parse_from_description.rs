@@ -1,6 +1,5 @@
 //! Error parsing an input into a [`Parsed`](crate::parsing::Parsed) struct
 
-use core::convert::TryFrom;
 use core::fmt;
 
 use crate::error;
