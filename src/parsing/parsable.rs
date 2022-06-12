@@ -275,6 +275,174 @@ impl sealed::Sealed for Rfc2822 {
 
         Ok(input)
     }
+
+    fn parse_offset_date_time(&self, input: &[u8]) -> Result<OffsetDateTime, error::Parse> {
+        use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
+        use crate::parsing::combinator::rfc::rfc2822::{cfws, fws};
+        use crate::parsing::combinator::{
+            ascii_char, exactly_n_digits, first_match, n_to_m_digits, opt, sign,
+        };
+
+        let colon = ascii_char::<b':'>;
+        let comma = ascii_char::<b','>;
+
+        let input = opt(fws)(input).into_inner();
+        // This parses the weekday, but we don't actually use the value anywhere. Because of this,
+        // just return `()` to avoid unnecessary generated code.
+        let ParsedItem(input, ()) = first_match(
+            [
+                (&b"Mon"[..], ()),
+                (&b"Tue"[..], ()),
+                (&b"Wed"[..], ()),
+                (&b"Thu"[..], ()),
+                (&b"Fri"[..], ()),
+                (&b"Sat"[..], ()),
+                (&b"Sun"[..], ()),
+            ],
+            false,
+        )(input)
+        .ok_or(InvalidComponent("weekday"))?;
+        let input = comma(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
+        let ParsedItem(input, day) =
+            n_to_m_digits::<_, 1, 2>(input).ok_or(InvalidComponent("day"))?;
+        let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
+        let ParsedItem(input, month) = first_match(
+            [
+                (&b"Jan"[..], Month::January),
+                (&b"Feb"[..], Month::February),
+                (&b"Mar"[..], Month::March),
+                (&b"Apr"[..], Month::April),
+                (&b"May"[..], Month::May),
+                (&b"Jun"[..], Month::June),
+                (&b"Jul"[..], Month::July),
+                (&b"Aug"[..], Month::August),
+                (&b"Sep"[..], Month::September),
+                (&b"Oct"[..], Month::October),
+                (&b"Nov"[..], Month::November),
+                (&b"Dec"[..], Month::December),
+            ],
+            false,
+        )(input)
+        .ok_or(InvalidComponent("month"))?;
+        let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
+        let (input, year) = match exactly_n_digits::<u32, 4>(input) {
+            Some(item) => {
+                let ParsedItem(input, year) = item
+                    .flat_map(|year| if year >= 1900 { Some(year) } else { None })
+                    .ok_or(InvalidComponent("year"))?;
+                let input = fws(input).ok_or(InvalidLiteral)?.into_inner();
+                (input, year)
+            }
+            None => {
+                let ParsedItem(input, year) = exactly_n_digits::<u32, 2>(input)
+                    .map(|item| item.map(|year| if year < 50 { year + 2000 } else { year + 1900 }))
+                    .ok_or(InvalidComponent("year"))?;
+                let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
+                (input, year)
+            }
+        };
+
+        let ParsedItem(input, hour) =
+            exactly_n_digits::<_, 2>(input).ok_or(InvalidComponent("hour"))?;
+        let input = opt(cfws)(input).into_inner();
+        let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
+        let input = opt(cfws)(input).into_inner();
+        let ParsedItem(input, minute) =
+            exactly_n_digits::<_, 2>(input).ok_or(InvalidComponent("minute"))?;
+
+        let (input, mut second) = if let Some(input) = colon(opt(cfws)(input).into_inner()) {
+            let input = input.into_inner(); // discard the colon
+            let input = opt(cfws)(input).into_inner();
+            let ParsedItem(input, second) =
+                exactly_n_digits::<_, 2>(input).ok_or(InvalidComponent("second"))?;
+            let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
+            (input, second)
+        } else {
+            (cfws(input).ok_or(InvalidLiteral)?.into_inner(), 0)
+        };
+
+        #[allow(clippy::unnecessary_lazy_evaluations)] // rust-lang/rust-clippy#8522
+        let zone_literal = first_match(
+            [
+                (&b"UT"[..], 0),
+                (&b"GMT"[..], 0),
+                (&b"EST"[..], -5),
+                (&b"EDT"[..], -4),
+                (&b"CST"[..], -6),
+                (&b"CDT"[..], -5),
+                (&b"MST"[..], -7),
+                (&b"MDT"[..], -6),
+                (&b"PST"[..], -8),
+                (&b"PDT"[..], -7),
+            ],
+            false,
+        )(input)
+        .or_else(|| match input {
+            [
+                b'a'..=b'i' | b'k'..=b'z' | b'A'..=b'I' | b'K'..=b'Z',
+                rest @ ..,
+            ] => Some(ParsedItem(rest, 0)),
+            _ => None,
+        });
+
+        let (input, offset_hour, offset_minute) = if let Some(zone_literal) = zone_literal {
+            let ParsedItem(input, offset_hour) = zone_literal;
+            (input, offset_hour, 0)
+        } else {
+            let ParsedItem(input, offset_sign) =
+                sign(input).ok_or(InvalidComponent("offset hour"))?;
+            let ParsedItem(input, offset_hour) = exactly_n_digits::<u8, 2>(input)
+                .map(|item| {
+                    item.map(|offset_hour| {
+                        if offset_sign == b'-' {
+                            -(offset_hour as i8)
+                        } else {
+                            offset_hour as _
+                        }
+                    })
+                })
+                .ok_or(InvalidComponent("offset hour"))?;
+            let ParsedItem(input, offset_minute) =
+                exactly_n_digits::<u8, 2>(input).ok_or(InvalidComponent("offset minute"))?;
+            (input, offset_hour, offset_minute as i8)
+        };
+
+        if !input.is_empty() {
+            return Err(error::Parse::UnexpectedTrailingCharacters);
+        }
+
+        let mut nanosecond = 0;
+        let leap_second_input = if second == 60 {
+            second = 59;
+            nanosecond = 999_999_999;
+            true
+        } else {
+            false
+        };
+
+        let dt = (|| {
+            let date = Date::from_calendar_date(year as _, month, day)?;
+            let time = Time::from_hms_nano(hour, minute, second, nanosecond)?;
+            let offset = UtcOffset::from_hms(offset_hour, offset_minute, 0)?;
+            Ok(date.with_time(time).assume_offset(offset))
+        })()
+        .map_err(TryFromParsed::ComponentRange)?;
+
+        if leap_second_input && !dt.is_valid_leap_second_stand_in() {
+            return Err(error::Parse::TryFromParsed(TryFromParsed::ComponentRange(
+                error::ComponentRange {
+                    name: "second",
+                    minimum: 0,
+                    maximum: 59,
+                    value: 60,
+                    conditional_range: true,
+                },
+            )));
+        }
+
+        Ok(dt)
+    }
 }
 
 impl sealed::Sealed for Rfc3339 {

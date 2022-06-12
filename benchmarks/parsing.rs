@@ -2,6 +2,8 @@ use criterion::Bencher;
 use criterion_cycles_per_byte::CyclesPerByte;
 use time::format_description::{modifier, Component};
 use time::parsing::Parsed;
+use time::format_description::well_known::{Rfc3339, Rfc2822};
+use time::OffsetDateTime;
 
 macro_rules! component {
     ($name:ident {$($field:ident : $value:expr),+ $(,)? }) => {{
@@ -198,5 +200,26 @@ setup_benchmark! {
                 digits: modifier::SubsecondDigits::OneOrMore,
             }))
         });
+    }
+
+    fn parse_rfc3339(ben: &mut Bencher<'_, CyclesPerByte>) {
+        ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05Z", &Rfc3339));
+        ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.1Z", &Rfc3339));
+        ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.12Z", &Rfc3339));
+        ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.123Z", &Rfc3339));
+        ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.1234Z", &Rfc3339));
+        ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.12345Z", &Rfc3339));
+        ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.123456Z", &Rfc3339));
+        ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.1234567Z", &Rfc3339));
+        ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.12345678Z", &Rfc3339));
+        ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.123456789Z", &Rfc3339));
+        ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.123456789-01:02", &Rfc3339));
+        ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.123456789+01:02", &Rfc3339));
+    }
+
+    fn parse_rfc2822(ben: &mut Bencher<'_, CyclesPerByte>) {
+        ben.iter(|| OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 +0000", &Rfc2822));
+        ben.iter(|| OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 +0607", &Rfc2822));
+        ben.iter(|| OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 -0607", &Rfc2822));
     }
 }

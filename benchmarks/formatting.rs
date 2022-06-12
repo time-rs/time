@@ -3,13 +3,13 @@ use std::io;
 use criterion::Bencher;
 use criterion_cycles_per_byte::CyclesPerByte;
 use time::format_description;
-use time::format_description::well_known::Rfc3339;
+use time::format_description::well_known::{Rfc3339, Rfc2822};
 use time::macros::{date, datetime, format_description as fd, offset, time};
 
 setup_benchmark! {
     "Formatting",
 
-    fn rfc_3339(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn format_rfc3339(ben: &mut Bencher<'_, CyclesPerByte>) {
         macro_rules! item {
             ($value:expr) => {
                 $value.format_into(&mut io::sink(), &Rfc3339)
@@ -29,6 +29,19 @@ setup_benchmark! {
         ben.iter(|| item!(datetime!(2021-01-02 03:04:05.123_456_789 -01:02)));
         ben.iter(|| item!(datetime!(2021-01-02 03:04:05.123_456_789 +01:02)));
     }
+
+    fn format_rfc2822(ben: &mut Bencher<'_, CyclesPerByte>) {
+        macro_rules! item {
+            ($value:expr) => {
+                $value.format_into(&mut io::sink(), &Rfc2822)
+            }
+        }
+
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05 UTC)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05 +06:07)));
+        ben.iter(|| item!(datetime!(2021-01-02 03:04:05 -06:07)));
+    }
+
 
     fn format_time(ben: &mut Bencher<'_, CyclesPerByte>) {
         macro_rules! item {
