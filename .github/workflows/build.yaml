@@ -384,10 +384,11 @@ jobs:
           curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/latest/download/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz | tar xzf - -C ~/.cargo/bin
 
       - name: Generate coverage report
-        run: cargo llvm-cov --all-features --workspace --lcov -- --test-threads=1 > lcov.txt
-        env:
-          # Don't run these anywhere else as the results can depend on the exact compiler used.
-          RUSTFLAGS: "--cfg __ui_tests"
+        run: |
+          cargo llvm-cov clean --workspace
+          cargo llvm-cov --no-report --all-features -- --test-threads=1
+          RUSTFLAGS="--cfg __ui_tests" cargo llvm-cov --no-report --tests --all-features -- compile_fail
+          cargo llvm-cov --no-run --lcov > lcov.txt
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v1

@@ -57,7 +57,7 @@ serde_test = "1.0.126"
 quickcheck_macros = "1.0.0"
 
 [target.'cfg(__ui_tests)'.dev-dependencies]
-trybuild = "=1.0.34"
+trybuild = "1.0.63"
 
 [target.'cfg(bench)'.dev-dependencies]
 criterion = "0.3.5"
