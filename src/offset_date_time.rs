@@ -760,6 +760,7 @@ impl OffsetDateTime {
                 .assume_utc()
                 .replace_offset(self.offset)
         } else {
+            debug_assert!(duration.is_positive());
             PrimitiveDateTime::MAX
                 .assume_utc()
                 .replace_offset(self.offset)
@@ -794,6 +795,7 @@ impl OffsetDateTime {
                 .assume_utc()
                 .replace_offset(self.offset)
         } else {
+            debug_assert!(duration.is_positive());
             PrimitiveDateTime::MIN
                 .assume_utc()
                 .replace_offset(self.offset)

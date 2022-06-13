@@ -166,6 +166,7 @@ impl Add<Duration> for Instant {
         } else if duration.is_negative() {
             Self(self.0 - duration.unsigned_abs())
         } else {
+            debug_assert!(duration.is_zero());
             self
         }
     }
@@ -199,6 +200,7 @@ impl Sub<Duration> for Instant {
         } else if duration.is_negative() {
             Self(self.0 + duration.unsigned_abs())
         } else {
+            debug_assert!(duration.is_zero());
             self
         }
     }

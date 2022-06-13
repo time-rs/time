@@ -176,7 +176,10 @@ impl Arbitrary for Weekday {
             3 => Thursday,
             4 => Friday,
             5 => Saturday,
-            _ => Sunday,
+            val => {
+                debug_assert!(val == 6);
+                Sunday
+            }
         }
     }
 
@@ -203,7 +206,10 @@ impl Arbitrary for Month {
             9 => September,
             10 => October,
             11 => November,
-            _ => December,
+            val => {
+                debug_assert!(val == 12);
+                December
+            }
         }
     }
 

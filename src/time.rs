@@ -81,6 +81,11 @@ impl Time {
         second: u8,
         nanosecond: u32,
     ) -> Self {
+        debug_assert!(hour < 24);
+        debug_assert!(minute < 60);
+        debug_assert!(second < 60);
+        debug_assert!(nanosecond < 1_000_000_000);
+
         Self {
             hour,
             minute,

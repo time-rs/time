@@ -201,6 +201,16 @@ impl Duration {
     // region: constructors
     /// Create a new `Duration` without checking the validity of the components.
     pub(crate) const fn new_unchecked(seconds: i64, nanoseconds: i32) -> Self {
+        if seconds < 0 {
+            debug_assert!(nanoseconds <= 0);
+            debug_assert!(nanoseconds > -1_000_000_000);
+        } else if seconds > 0 {
+            debug_assert!(nanoseconds >= 0);
+            debug_assert!(nanoseconds < 1_000_000_000);
+        } else {
+            debug_assert!(nanoseconds.unsigned_abs() < 1_000_000_000);
+        }
+
         Self {
             seconds,
             nanoseconds,

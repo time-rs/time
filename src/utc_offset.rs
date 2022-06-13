@@ -45,6 +45,22 @@ impl UtcOffset {
     /// sign.
     #[doc(hidden)]
     pub const fn __from_hms_unchecked(hours: i8, minutes: i8, seconds: i8) -> Self {
+        if hours < 0 {
+            debug_assert!(minutes <= 0);
+            debug_assert!(seconds <= 0);
+        } else if hours > 0 {
+            debug_assert!(minutes >= 0);
+            debug_assert!(seconds >= 0);
+        }
+        if minutes < 0 {
+            debug_assert!(seconds <= 0);
+        } else if minutes > 0 {
+            debug_assert!(seconds >= 0);
+        }
+        debug_assert!(hours.unsigned_abs() < 24);
+        debug_assert!(minutes.unsigned_abs() < 60);
+        debug_assert!(seconds.unsigned_abs() < 60);
+
         Self {
             hours,
             minutes,

@@ -198,6 +198,9 @@ impl Date {
     pub(crate) const fn from_julian_day_unchecked(julian_day: i32) -> Self {
         #![allow(trivial_numeric_casts)] // cast depends on type alias
 
+        debug_assert!(julian_day >= Self::MIN.to_julian_day());
+        debug_assert!(julian_day <= Self::MAX.to_julian_day());
+
         /// A type that is either `i32` or `i64`. This subtle difference allows for optimization
         /// based on the valid values.
         #[cfg(feature = "large-dates")]
@@ -451,7 +454,10 @@ impl Date {
             -3 | 4 => Weekday::Friday,
             -2 | 5 => Weekday::Saturday,
             -1 | 6 => Weekday::Sunday,
-            _ => Weekday::Monday,
+            val => {
+                debug_assert!(val == 0);
+                Weekday::Monday
+            }
         }
     }
 
@@ -664,6 +670,7 @@ impl Date {
         } else if duration.is_negative() {
             Self::MIN
         } else {
+            debug_assert!(duration.is_positive());
             Self::MAX
         }
     }
@@ -701,6 +708,7 @@ impl Date {
         } else if duration.is_negative() {
             Self::MAX
         } else {
+            debug_assert!(duration.is_positive());
             Self::MIN
         }
     }
