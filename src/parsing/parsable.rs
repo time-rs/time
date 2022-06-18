@@ -536,7 +536,14 @@ impl sealed::Sealed for Rfc3339 {
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
         let input = exactly_n_digits::<u8, 2>(input)
             .and_then(|item| {
-                item.consume_value(|value| parsed.set_offset_minute_signed(value as _))
+                item.map(|offset_minute| {
+                    if offset_sign == b'-' {
+                        -(offset_minute as i8)
+                    } else {
+                        offset_minute as _
+                    }
+                })
+                .consume_value(|value| parsed.set_offset_minute_signed(value))
             })
             .ok_or(InvalidComponent("offset minute"))?;
 
@@ -605,7 +612,11 @@ impl sealed::Sealed for Rfc3339 {
                     } else {
                         offset_hour as _
                     },
-                    offset_minute as _,
+                    if offset_sign == b'-' {
+                        -(offset_minute as i8)
+                    } else {
+                        offset_minute as _
+                    },
                     0,
                 )
                 .map(|offset| ParsedItem(input, offset))

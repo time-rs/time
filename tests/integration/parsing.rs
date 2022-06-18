@@ -287,6 +287,10 @@ fn rfc_3339() -> time::Result<()> {
         OffsetDateTime::parse("2021-01-02T03:04:05.123456789+01:02", &Rfc3339)?,
         datetime!(2021-01-02 03:04:05.123_456_789 +01:02),
     );
+    assert_eq!(
+        OffsetDateTime::parse("2021-01-02T03:04:05.123-00:01", &Rfc3339)?,
+        datetime!(2021-01-02 03:04:05.123 -00:01),
+    );
 
     assert_eq!(
         Date::parse("2021-01-02T03:04:05Z", &Rfc3339)?,
@@ -299,6 +303,23 @@ fn rfc_3339() -> time::Result<()> {
     assert_eq!(
         Date::parse("2021-01-02T03:04:05.123-01:02", &Rfc3339)?,
         date!(2021 - 01 - 02),
+    );
+
+    assert_eq!(
+        UtcOffset::parse("2021-01-02T03:04:05Z", &Rfc3339)?,
+        offset!(UTC),
+    );
+    assert_eq!(
+        UtcOffset::parse("2021-01-02T03:04:05.123+01:02", &Rfc3339)?,
+        offset!(+01:02),
+    );
+    assert_eq!(
+        UtcOffset::parse("2021-01-02T03:04:05.123-01:02", &Rfc3339)?,
+        offset!(-01:02),
+    );
+    assert_eq!(
+        UtcOffset::parse("2021-01-02T03:04:05.123-00:01", &Rfc3339)?,
+        offset!(-00:01),
     );
 
     Ok(())
