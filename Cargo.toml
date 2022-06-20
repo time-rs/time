@@ -4,7 +4,7 @@ resolver = "2"
 
 [package]
 name = "time"
-version = "0.3.9"
+version = "0.3.10"
 authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
 edition = "2021"
 rust-version = "1.57.0"

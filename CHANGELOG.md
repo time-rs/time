@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.10 [2022-06-19]
+
+### Added
+
+- Serde support for non-self-describing formats
+- `Duration::unsigned_abs`, which returns a `std::time::Duration`
+- ISO 8601 well-known format
+- `Duration` can now be formatted with a `.N` specifier, providing a shorter representation when
+  using `Display`.
+- Parse `null` as `None` on serde structs
+
+### Fixed
+
+- Fix incorrect parsing of UTC offset in `Rfc3339`.
+
+### Changed
+
+- The minimum supported Rust version is now 1.57.0.
+- Performance for `Rfc2822` has been improved.
+- Debug assertions have been added in a few places. This should have no user facing impact, as it
+  only serves to catch bugs and is disabled in release mode.
+
 ## 0.3.9 [2022-03-22]
 
 ### Added
