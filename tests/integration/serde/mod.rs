@@ -5,6 +5,7 @@ use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOf
 mod error_conditions;
 mod iso8601;
 mod macros;
+mod rfc2822;
 mod rfc3339;
 mod timestamps;
 
