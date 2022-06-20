@@ -36,7 +36,7 @@ fn serialize_deserialize() {
 }
 
 #[test]
-fn parse_json() {
+fn parse_json() -> serde_json::Result<()> {
     #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
     #[serde(untagged)]
     enum Wrapper {
@@ -45,11 +45,12 @@ fn parse_json() {
     assert_eq!(
         serde_json::from_str::<Wrapper>(
             r#"{"dt": "Sat, 01 Jan 2000 00:00:00 +0000", "option_dt": null}"#
-        )
-        .unwrap(),
+        )?,
         Wrapper::A(Test {
             dt: datetime!(2000-01-01 00:00:00 UTC),
             option_dt: None,
         })
     );
+
+    Ok(())
 }

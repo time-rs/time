@@ -39,6 +39,10 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// submodule (`mod_name::option`) is also generated for `Option<Date>`. Both modules are only
 /// visible in the current scope.
 ///
+/// The returned `Option` will contain a deserialized value if present and `None` if the field
+/// is present but the value is `null` (or the equivalent in other formats). To return `None`
+/// when the field is not present, you should use `#[serde(default)]` on the field.
+///
 /// # Examples
 ///
 /// ```
