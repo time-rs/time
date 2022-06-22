@@ -99,3 +99,43 @@ fn parse_json() -> serde_json::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn issue_479() -> serde_json::Result<()> {
+    const A: &str = r#"{
+        "date": "2022-05-01T10:20:42.123Z"
+    }"#;
+
+    const B: &str = r#"{
+        "date": "2022-05-01T10:20:42.123Z",
+        "maybe_date": "2022-05-01T10:20:42.123Z"
+    }"#;
+
+    #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
+    struct S {
+        #[serde(with = "time::serde::rfc3339")]
+        date: OffsetDateTime,
+        #[serde(with = "time::serde::rfc3339::option", default)]
+        maybe_date: Option<OffsetDateTime>,
+    }
+
+    let a = serde_json::from_str::<S>(A)?;
+    let b = serde_json::from_str::<S>(B)?;
+
+    assert_eq!(
+        a,
+        S {
+            date: datetime!(2022-05-01 10:20:42.123 UTC),
+            maybe_date: None
+        }
+    );
+    assert_eq!(
+        b,
+        S {
+            date: datetime!(2022-05-01 10:20:42.123 UTC),
+            maybe_date: Some(datetime!(2022-05-01 10:20:42.123 UTC))
+        }
+    );
+
+    Ok(())
+}

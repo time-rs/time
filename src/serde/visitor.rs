@@ -292,7 +292,7 @@ macro_rules! well_known {
                 deserializer: D,
             ) -> Result<Option<OffsetDateTime>, D::Error> {
                 deserializer
-                    .deserialize_option(Visitor::<$($ty)+>(PhantomData))
+                    .deserialize_any(Visitor::<$($ty)+>(PhantomData))
                     .map(Some)
             }
 
