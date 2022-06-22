@@ -748,7 +748,8 @@ impl Sub for Time {
 
         cascade!(nanosecond_diff in 0..1_000_000_000 => second_diff);
 
-        Duration::new_unchecked(
+        // TODO(jhpratt) use `new_unchecked` and ensure validity
+        Duration::new(
             hour_diff as i64 * 3_600 + minute_diff as i64 * 60 + second_diff as i64,
             nanosecond_diff,
         )

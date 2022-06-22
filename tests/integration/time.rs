@@ -340,3 +340,12 @@ fn ordering() {
     assert!(time!(12:00) > time!(11:00));
     assert_eq!(time!(0:00), time!(0:00));
 }
+
+#[test]
+fn issue_481() {
+    assert_eq!(time!(0:00) - time!(01:00:00.1), (-3600.1).seconds());
+    assert_eq!(
+        time!(0:00) - time!(23:59:59.999_999_999),
+        (-86_399.999_999_999).seconds()
+    );
+}
