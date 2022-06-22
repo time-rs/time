@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.11 [2022-06-21]
+
+### Fixed
+
+- [#479]: regression when parsing optional values with `serde`
+- [#481]: `Time` subtracted from `Time` can panic. This was caused by a bug that has always existed,
+  in that an internal invariant was not upheld. Memory safety was not violated.
+
+[#479]: https://github.com/time-rs/time/issues/479
+[#481]: https://github.com/time-rs/time/issues/481
+
 ## 0.3.10 [2022-06-19]
 
 ### Added
