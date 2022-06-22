@@ -743,16 +743,20 @@ impl Sub for Time {
     fn sub(self, rhs: Self) -> Self::Output {
         let hour_diff = (self.hour as i8) - (rhs.hour as i8);
         let minute_diff = (self.minute as i8) - (rhs.minute as i8);
-        let mut second_diff = (self.second as i8) - (rhs.second as i8);
-        let mut nanosecond_diff = (self.nanosecond as i32) - (rhs.nanosecond as i32);
+        let second_diff = (self.second as i8) - (rhs.second as i8);
+        let nanosecond_diff = (self.nanosecond as i32) - (rhs.nanosecond as i32);
 
-        cascade!(nanosecond_diff in 0..1_000_000_000 => second_diff);
+        let seconds = hour_diff as i64 * 3_600 + minute_diff as i64 * 60 + second_diff as i64;
 
-        // TODO(jhpratt) use `new_unchecked` and ensure validity
-        Duration::new(
-            hour_diff as i64 * 3_600 + minute_diff as i64 * 60 + second_diff as i64,
-            nanosecond_diff,
-        )
+        let (seconds, nanoseconds) = if seconds > 0 && nanosecond_diff < 0 {
+            (seconds - 1, nanosecond_diff + 1_000_000_000)
+        } else if seconds < 0 && nanosecond_diff > 0 {
+            (seconds + 1, nanosecond_diff - 1_000_000_000)
+        } else {
+            (seconds, nanosecond_diff)
+        };
+
+        Duration::new_unchecked(seconds, nanoseconds)
     }
 }
 // endregion trait impls

@@ -165,6 +165,16 @@ fn pdt_replace_day(pdt: PrimitiveDateTime, day: u8) -> bool {
             .map(|date| date.with_time(pdt.time()))
 }
 
+// Regression test for #481
+#[quickcheck]
+fn time_sub_time_no_panic(time_a: Time, time_b: Time) -> bool {
+    std::panic::catch_unwind(|| {
+        let _ = time_a - time_b;
+        let _ = time_b - time_a;
+    })
+    .is_ok()
+}
+
 test_shrink!(Date, date_can_shrink_year, year());
 test_shrink!(Date, date_can_shrink_ordinal, ordinal(), min = 1);
 
