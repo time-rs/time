@@ -13,6 +13,7 @@ use std::time::{Duration as StdDuration, Instant as StdInstant, SystemTime};
 use quickcheck_dep::Arbitrary;
 use rand::distributions::{Distribution, Standard};
 use serde::{Deserialize, Serialize};
+use time::format_description::well_known::iso8601;
 use time::format_description::{modifier, well_known, Component, FormatItem};
 use time::formatting::Formattable;
 use time::parsing::{Parsable, Parsed};
@@ -24,68 +25,68 @@ use time::{
 #[test]
 fn alignment() {
     macro_rules! assert_alignment {
-        ($t:ty, $alignment:literal, $opt_alignment:literal) => {
+        ($t:ty, $alignment:literal) => {
             assert_eq!(
                 ::core::mem::align_of::<$t>(),
                 $alignment,
-                concat!("alignment of `", stringify!($t), "` was ", $alignment)
-            );
-            assert_eq!(
-                ::core::mem::align_of::<Option<$t>>(),
-                $opt_alignment,
-                concat!(
-                    "alignment of `Option<",
-                    stringify!($t),
-                    ">` was ",
-                    $opt_alignment
-                )
+                concat!("alignment of `{}` was ", $alignment),
+                stringify!($t),
             );
         };
     }
 
-    assert_alignment!(Date, 4, 4);
-    assert_alignment!(Duration, 8, 8);
-    assert_alignment!(OffsetDateTime, 4, 4);
-    assert_alignment!(PrimitiveDateTime, 4, 4);
-    assert_alignment!(Time, 4, 4);
-    assert_alignment!(UtcOffset, 1, 1);
-    assert_alignment!(error::ComponentRange, 8, 8);
-    assert_alignment!(error::ConversionRange, 1, 1);
-    assert_alignment!(error::DifferentVariant, 1, 1);
-    assert_alignment!(error::IndeterminateOffset, 1, 1);
-    assert_alignment!(modifier::Day, 1, 1);
-    assert_alignment!(modifier::Hour, 1, 1);
-    assert_alignment!(modifier::Minute, 1, 1);
-    assert_alignment!(modifier::Month, 1, 1);
-    assert_alignment!(modifier::OffsetHour, 1, 1);
-    assert_alignment!(modifier::OffsetMinute, 1, 1);
-    assert_alignment!(modifier::OffsetSecond, 1, 1);
-    assert_alignment!(modifier::Ordinal, 1, 1);
-    assert_alignment!(modifier::Period, 1, 1);
-    assert_alignment!(modifier::Second, 1, 1);
-    assert_alignment!(modifier::Subsecond, 1, 1);
-    assert_alignment!(modifier::WeekNumber, 1, 1);
-    assert_alignment!(modifier::Weekday, 1, 1);
-    assert_alignment!(modifier::Year, 1, 1);
-    assert_alignment!(well_known::Rfc2822, 1, 1);
-    assert_alignment!(well_known::Rfc3339, 1, 1);
-    assert_alignment!(Parsed, 4, 4);
-    assert_alignment!(Month, 1, 1);
-    assert_alignment!(Weekday, 1, 1);
-    assert_alignment!(Error, 8, 8);
-    assert_alignment!(error::Format, 8, 8);
-    assert_alignment!(error::InvalidFormatDescription, 8, 8);
-    assert_alignment!(error::Parse, 8, 8);
-    assert_alignment!(error::ParseFromDescription, 8, 8);
-    assert_alignment!(error::TryFromParsed, 8, 8);
-    assert_alignment!(Component, 1, 1);
-    assert_alignment!(FormatItem<'_>, 8, 8);
-    assert_alignment!(modifier::MonthRepr, 1, 1);
-    assert_alignment!(modifier::Padding, 1, 1);
-    assert_alignment!(modifier::SubsecondDigits, 1, 1);
-    assert_alignment!(modifier::WeekNumberRepr, 1, 1);
-    assert_alignment!(modifier::WeekdayRepr, 1, 1);
-    assert_alignment!(modifier::YearRepr, 1, 1);
+    assert_alignment!(Date, 4);
+    assert_alignment!(Duration, 8);
+    assert_alignment!(OffsetDateTime, 4);
+    assert_alignment!(PrimitiveDateTime, 4);
+    assert_alignment!(Time, 4);
+    assert_alignment!(UtcOffset, 1);
+    assert_alignment!(error::ComponentRange, 8);
+    assert_alignment!(error::ConversionRange, 1);
+    assert_alignment!(error::DifferentVariant, 1);
+    assert_alignment!(error::IndeterminateOffset, 1);
+    assert_alignment!(modifier::Day, 1);
+    assert_alignment!(modifier::Hour, 1);
+    assert_alignment!(modifier::Minute, 1);
+    assert_alignment!(modifier::Month, 1);
+    assert_alignment!(modifier::OffsetHour, 1);
+    assert_alignment!(modifier::OffsetMinute, 1);
+    assert_alignment!(modifier::OffsetSecond, 1);
+    assert_alignment!(modifier::Ordinal, 1);
+    assert_alignment!(modifier::Period, 1);
+    assert_alignment!(modifier::Second, 1);
+    assert_alignment!(modifier::Subsecond, 1);
+    assert_alignment!(modifier::WeekNumber, 1);
+    assert_alignment!(modifier::Weekday, 1);
+    assert_alignment!(modifier::Year, 1);
+    assert_alignment!(well_known::Rfc2822, 1);
+    assert_alignment!(well_known::Rfc3339, 1);
+    assert_alignment!(
+        well_known::Iso8601<{ iso8601::Config::DEFAULT.encode() }>,
+        1
+    );
+    assert_alignment!(iso8601::Config, 1);
+    assert_alignment!(iso8601::DateKind, 1);
+    assert_alignment!(iso8601::FormattedComponents, 1);
+    assert_alignment!(iso8601::OffsetPrecision, 1);
+    assert_alignment!(iso8601::TimePrecision, 1);
+    assert_alignment!(Parsed, 4);
+    assert_alignment!(Month, 1);
+    assert_alignment!(Weekday, 1);
+    assert_alignment!(Error, 8);
+    assert_alignment!(error::Format, 8);
+    assert_alignment!(error::InvalidFormatDescription, 8);
+    assert_alignment!(error::Parse, 8);
+    assert_alignment!(error::ParseFromDescription, 8);
+    assert_alignment!(error::TryFromParsed, 8);
+    assert_alignment!(Component, 1);
+    assert_alignment!(FormatItem<'_>, 8);
+    assert_alignment!(modifier::MonthRepr, 1);
+    assert_alignment!(modifier::Padding, 1);
+    assert_alignment!(modifier::SubsecondDigits, 1);
+    assert_alignment!(modifier::WeekNumberRepr, 1);
+    assert_alignment!(modifier::WeekdayRepr, 1);
+    assert_alignment!(modifier::YearRepr, 1);
 }
 
 #[test]
@@ -95,12 +96,14 @@ fn size() {
             assert_eq!(
                 ::core::mem::size_of::<$t>(),
                 $size,
-                concat!("size of `", stringify!($t), "` was ", $size)
+                concat!("size of `{}` was ", $size),
+                stringify!($t),
             );
             assert_eq!(
                 ::core::mem::size_of::<Option<$t>>(),
                 $opt_size,
-                concat!("size of `Option<", stringify!($t), ">` was ", $opt_size)
+                concat!("size of `Option<{}>` was ", $opt_size),
+                stringify!($t),
             );
         };
     }
@@ -131,6 +134,16 @@ fn size() {
     assert_size!(modifier::Year, 4, 4);
     assert_size!(well_known::Rfc2822, 0, 1);
     assert_size!(well_known::Rfc3339, 0, 1);
+    assert_size!(
+        well_known::Iso8601<{ iso8601::Config::DEFAULT.encode() }>,
+        0,
+        1
+    );
+    assert_size!(iso8601::Config, 7, 7);
+    assert_size!(iso8601::DateKind, 1, 1);
+    assert_size!(iso8601::FormattedComponents, 1, 1);
+    assert_size!(iso8601::OffsetPrecision, 1, 1);
+    assert_size!(iso8601::TimePrecision, 2, 2);
     assert_size!(Parsed, 56, 56);
     assert_size!(Month, 1, 1);
     assert_size!(Weekday, 1, 1);
@@ -675,6 +688,76 @@ assert_impl! { well_known::Rfc3339:
     Eq,
     Formattable,
     Parsable,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { well_known::Iso8601::<{ iso8601::Config::DEFAULT.encode() }>:
+    Clone,
+    Debug,
+    PartialEq<well_known::Iso8601<{ iso8601::Config::DEFAULT.encode() }>>,
+    Copy,
+    Eq,
+    Formattable,
+    Parsable,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { iso8601::Config:
+    Debug,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { iso8601::DateKind:
+    Clone,
+    Debug,
+    PartialEq<iso8601::DateKind>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { iso8601::FormattedComponents:
+    Clone,
+    Debug,
+    PartialEq<iso8601::FormattedComponents>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { iso8601::OffsetPrecision:
+    Clone,
+    Debug,
+    PartialEq<iso8601::OffsetPrecision>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { iso8601::TimePrecision:
+    Clone,
+    Debug,
+    PartialEq<iso8601::TimePrecision>,
+    Copy,
+    Eq,
     RefUnwindSafe,
     Send,
     Sync,
