@@ -32,6 +32,8 @@ setup_benchmark! {
 
     fn from_julian_day(ben: &mut Bencher<'_, CyclesPerByte>) {
         ben.iter(|| Date::from_julian_day(-34_803_190));
+        ben.iter(|| Date::from_julian_day(0));
+        ben.iter(|| Date::from_julian_day(2_459_753));
     }
     // endregion constructors
 

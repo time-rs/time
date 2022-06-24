@@ -14,18 +14,17 @@ use crate::util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year}
 use crate::{error, Duration, Month, PrimitiveDateTime, Time, Weekday};
 
 /// The minimum valid year.
-#[cfg(feature = "large-dates")]
-pub(crate) const MIN_YEAR: i32 = -999_999;
+pub(crate) const MIN_YEAR: i32 = if cfg!(feature = "large-dates") {
+    -999_999
+} else {
+    -9999
+};
 /// The maximum valid year.
-#[cfg(feature = "large-dates")]
-pub(crate) const MAX_YEAR: i32 = 999_999;
-
-/// The minimum valid year.
-#[cfg(not(feature = "large-dates"))]
-pub(crate) const MIN_YEAR: i32 = -9999;
-/// The maximum valid year.
-#[cfg(not(feature = "large-dates"))]
-pub(crate) const MAX_YEAR: i32 = 9999;
+pub(crate) const MAX_YEAR: i32 = if cfg!(feature = "large-dates") {
+    999_999
+} else {
+    9999
+};
 
 /// Date in the proleptic Gregorian calendar.
 ///
@@ -196,27 +195,27 @@ impl Date {
     /// internally invalid value.
     #[doc(alias = "from_julian_date_unchecked")]
     pub(crate) const fn from_julian_day_unchecked(julian_day: i32) -> Self {
-        #![allow(trivial_numeric_casts)] // cast depends on type alias
-
         debug_assert!(julian_day >= Self::MIN.to_julian_day());
         debug_assert!(julian_day <= Self::MAX.to_julian_day());
-
-        /// A type that is either `i32` or `i64`. This subtle difference allows for optimization
-        /// based on the valid values.
-        #[cfg(feature = "large-dates")]
-        type MaybeWidened = i64;
-        #[allow(clippy::missing_docs_in_private_items)]
-        #[cfg(not(feature = "large-dates"))]
-        type MaybeWidened = i32;
 
         // To avoid a potential overflow, the value may need to be widened for some arithmetic.
 
         let z = julian_day - 1_721_119;
-        let g = 100 * z as MaybeWidened - 25;
-        let a = (g / 3_652_425) as i32;
-        let b = a - a / 4;
-        let mut year = div_floor!(100 * b as MaybeWidened + g, 36525) as i32;
-        let mut ordinal = (b + z - div_floor!(36525 * year as MaybeWidened, 100) as i32) as _;
+        let (mut year, mut ordinal) = if julian_day < -19_752_948 || julian_day > 23_195_514 {
+            let g = 100 * z as i64 - 25;
+            let a = (g / 3_652_425) as i32;
+            let b = a - a / 4;
+            let year = div_floor!(100 * b as i64 + g, 36525) as i32;
+            let ordinal = (b + z - div_floor!(36525 * year as i64, 100) as i32) as _;
+            (year, ordinal)
+        } else {
+            let g = 100 * z - 25;
+            let a = g / 3_652_425;
+            let b = a - a / 4;
+            let year = div_floor!(100 * b + g, 36525);
+            let ordinal = (b + z - div_floor!(36525 * year, 100)) as _;
+            (year, ordinal)
+        };
 
         if is_leap_year(year) {
             ordinal += 60;

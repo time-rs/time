@@ -175,6 +175,20 @@ fn time_sub_time_no_panic(time_a: Time, time_b: Time) -> bool {
     .is_ok()
 }
 
+#[quickcheck]
+fn from_julian_day_no_panic(julian_day: i32) -> TestResult {
+    if !(Date::MIN.to_julian_day()..=Date::MAX.to_julian_day()).contains(&julian_day) {
+        return TestResult::discard();
+    }
+
+    TestResult::from_bool(
+        std::panic::catch_unwind(|| {
+            let _ = Date::from_julian_day(julian_day);
+        })
+        .is_ok(),
+    )
+}
+
 test_shrink!(Date, date_can_shrink_year, year());
 test_shrink!(Date, date_can_shrink_ordinal, ordinal(), min = 1);
 
