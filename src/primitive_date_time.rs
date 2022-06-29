@@ -768,7 +768,7 @@ impl PrimitiveDateTime {
 // endregion replacement
 
 // region: offset conversion helpers
-/// Helper methods to adjust a [`PrimitiveDateTime`] to a given [`UtcOffset`].
+// Helper methods to adjust a [`PrimitiveDateTime`] to a given [`UtcOffset`].
 impl PrimitiveDateTime {
     /// Assuming that the current [`PrimitiveDateTime`] is a value in the provided [`UtcOffset`],
     /// obtain the equivalent value in the UTC.
