@@ -30,6 +30,24 @@ pub use time_macros::date;
 ///
 /// [`OffsetDateTime`]: crate::OffsetDateTime
 /// [`PrimitiveDateTime`]: crate::PrimitiveDateTime
+///
+/// ```rust
+/// # use time::{Date, Month, macros::datetime, UtcOffset};
+/// assert_eq!(
+///     datetime!(2020-01-01 0:00),
+///     Date::from_calendar_date(2020, Month::January, 1)?.midnight()
+/// );
+/// assert_eq!(
+///     datetime!(2020-01-01 0:00 UTC),
+///     Date::from_calendar_date(2020, Month::January, 1)?.midnight().assume_utc()
+/// );
+/// assert_eq!(
+///     datetime!(2020-01-01 0:00 -1),
+///     Date::from_calendar_date(2020, Month::January, 1)?.midnight()
+///         .assume_offset(UtcOffset::from_hms(-1, 0, 0)?)
+/// );
+/// # Ok::<_, time::Error>(())
+/// ```
 pub use time_macros::datetime;
 /// Equivalent of performing [`format_description::parse()`] at compile time.
 ///
