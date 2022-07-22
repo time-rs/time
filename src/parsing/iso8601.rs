@@ -1,5 +1,8 @@
 //! Parse parts of an ISO 8601-formatted value.
 
+#[cfg(not(feature = "std"))]
+use num_traits::float::FloatCore;
+
 use crate::error;
 use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
 use crate::format_description::well_known::iso8601::EncodedConfig;
