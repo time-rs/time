@@ -202,9 +202,11 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
 
             let (input, second, subsecond) = match float(input) {
                 Some(ParsedItem(input, (second, None))) => (input, second, 0),
-                Some(ParsedItem(input, (second, Some(fractional_part)))) => {
-                    (input, second, (fractional_part * 1_000_000_000.) as _)
-                }
+                Some(ParsedItem(input, (second, Some(fractional_part)))) => (
+                    input,
+                    second,
+                    (fractional_part * 1_000_000_000.).round() as _,
+                ),
                 None if extended_kind.is_extended() => {
                     return Err(error::Parse::ParseFromDescription(InvalidComponent(
                         "second",

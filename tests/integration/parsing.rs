@@ -559,6 +559,10 @@ fn iso_8601() {
         UtcOffset::parse("+0304", &Iso8601::DEFAULT),
         Ok(offset!(+03:04))
     );
+    assert_eq!(
+        PrimitiveDateTime::parse("2022-07-22T12:52:50.349409", &Iso8601::DEFAULT),
+        Ok(datetime!(2022-07-22 12:52:50.349409000))
+    );
 }
 
 #[test]
