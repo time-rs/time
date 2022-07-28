@@ -203,7 +203,7 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
             let (input, second, subsecond) = match float(input) {
                 Some(ParsedItem(input, (second, None))) => (input, second, 0),
                 Some(ParsedItem(input, (second, Some(fractional_part)))) => {
-                    (input, second, (fractional_part * 1_000_000_000.) as _)
+                    (input, second, round(fractional_part * 1_000_000_000.) as _)
                 }
                 None if extended_kind.is_extended() => {
                     return Err(error::Parse::ParseFromDescription(InvalidComponent(
@@ -284,5 +284,39 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
 
             Ok(input)
         }
+    }
+}
+
+/// Round wrapper that uses hardware implementation if `std` is available, falling back to manual
+/// implementation for `no_std`
+fn round(value: f64) -> f64 {
+    #[cfg(feature = "std")]
+    let rounded = value.round();
+    #[cfg(not(feature = "std"))]
+    let rounded = round_impl(value);
+    rounded
+}
+
+#[cfg(not(feature = "std"))]
+#[allow(clippy::missing_docs_in_private_items)]
+// Based on num-trait for no_std feature
+#[inline]
+fn round_impl(value: f64) -> f64 {
+    #[inline]
+    fn fract(value: f64) -> f64 {
+        if value == 0. { 0.0 } else { value % 1. }
+    }
+
+    let one = 1.;
+    let h = 0.5;
+    let f = fract(value);
+    if f.is_nan() || f == 0. {
+        value
+    } else if value > 0. {
+        if f < h { value - f } else { value - f + one }
+    } else if -f < h {
+        value - f
+    } else {
+        value - f - one
     }
 }
