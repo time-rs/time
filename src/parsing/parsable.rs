@@ -176,8 +176,7 @@ impl sealed::Sealed for Rfc2822 {
                     .flat_map(|year| if year >= 1900 { Some(year) } else { None })
                     .and_then(|item| item.consume_value(|value| parsed.set_year(value as _)))
                     .ok_or(InvalidComponent("year"))?;
-                let input = fws(input).ok_or(InvalidLiteral)?.into_inner();
-                input
+                fws(input).ok_or(InvalidLiteral)?.into_inner()
             }
             None => {
                 let input = exactly_n_digits::<u32, 2>(input)
@@ -187,8 +186,7 @@ impl sealed::Sealed for Rfc2822 {
                             .consume_value(|value| parsed.set_year(value))
                     })
                     .ok_or(InvalidComponent("year"))?;
-                let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
-                input
+                cfws(input).ok_or(InvalidLiteral)?.into_inner()
             }
         };
 
@@ -208,8 +206,7 @@ impl sealed::Sealed for Rfc2822 {
             let input = exactly_n_digits::<_, 2>(input)
                 .and_then(|item| item.consume_value(|value| parsed.set_second(value)))
                 .ok_or(InvalidComponent("second"))?;
-            let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
-            input
+            cfws(input).ok_or(InvalidLiteral)?.into_inner()
         } else {
             cfws(input).ok_or(InvalidLiteral)?.into_inner()
         };
