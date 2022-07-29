@@ -2,6 +2,13 @@
 
 #[cfg_attr(target_family = "windows", path = "windows.rs")]
 #[cfg_attr(target_family = "unix", path = "unix.rs")]
+#[cfg_attr(
+    all(
+        target_arch = "wasm32",
+        not(any(target_os = "emscripten", target_os = "wasi"))
+    ),
+    path = "wasm_js.rs"
+)]
 mod imp;
 
 use crate::{OffsetDateTime, UtcOffset};

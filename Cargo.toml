@@ -49,6 +49,9 @@ time-macros = { version = "=0.2.4", path = "time-macros", optional = true }
 libc = "0.2.98"
 num_threads = "0.1.2"
 
+[target.'cfg(all(target_arch = "wasm32", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
+js-sys = "0.3.58"
+
 [dev-dependencies]
 rand = { version = "0.8.4", default-features = false }
 serde = { version = "1.0.126", default-features = false, features = ["derive"] }

@@ -59,6 +59,18 @@ impl OffsetDateTime {
     #[cfg(feature = "std")]
     #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
     pub fn now_utc() -> Self {
+        #[cfg(all(
+            target_arch = "wasm32",
+            not(any(target_os = "emscripten", target_os = "wasi"))
+        ))]
+        {
+            js_sys::Date::new_0().into()
+        }
+
+        #[cfg(not(all(
+            target_arch = "wasm32",
+            not(any(target_os = "emscripten", target_os = "wasi"))
+        )))]
         SystemTime::now().into()
     }
 
@@ -1320,4 +1332,31 @@ impl From<OffsetDateTime> for SystemTime {
         }
     }
 }
+
+#[allow(clippy::fallible_impl_from)]
+#[cfg(all(
+    target_arch = "wasm32",
+    not(any(target_os = "emscripten", target_os = "wasi"))
+))]
+impl From<js_sys::Date> for OffsetDateTime {
+    fn from(js_date: js_sys::Date) -> Self {
+        // get_time() returns milliseconds
+        let timestamp_nanos = (js_date.get_time() * 1_000_000.0) as i128;
+        Self::from_unix_timestamp_nanos(timestamp_nanos)
+            .expect("invalid timestamp: Timestamp cannot fit in range")
+    }
+}
+
+#[cfg(all(
+    target_arch = "wasm32",
+    not(any(target_os = "emscripten", target_os = "wasi"))
+))]
+impl From<OffsetDateTime> for js_sys::Date {
+    fn from(datetime: OffsetDateTime) -> Self {
+        // new Date() takes milliseconds
+        let timestamp = (datetime.unix_timestamp_nanos() / 1_000_000) as f64;
+        js_sys::Date::new(&timestamp.into())
+    }
+}
+
 // endregion trait impls
