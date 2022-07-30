@@ -159,9 +159,9 @@ impl Arbitrary for OffsetDateTime {
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
         Box::new(
-            (self.utc_datetime.utc_to_offset(self.offset), self.offset)
+            (self.local_datetime, self.offset)
                 .shrink()
-                .map(|(utc_datetime, offset)| utc_datetime.assume_offset(offset)),
+                .map(|(local_datetime, offset)| local_datetime.assume_offset(offset)),
         )
     }
 }

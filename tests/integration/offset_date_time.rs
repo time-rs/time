@@ -3,7 +3,7 @@ use std::time::{Duration as StdDuration, SystemTime};
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, offset, time};
-use time::{Date, Duration, Month, OffsetDateTime, Result, Weekday};
+use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Result, Weekday};
 
 #[test]
 fn now_utc() {
@@ -37,6 +37,28 @@ fn to_offset() {
     assert_eq!(new_york.day(), 31);
     assert_eq!(los_angeles.hour(), 5);
     assert_eq!(los_angeles.day(), 31);
+
+    assert_eq!(
+        datetime!(0000-001 0:00 +0:00:02).to_offset(offset!(-0:00:59)),
+        datetime!(-0001-365 23:58:59 -0:00:59)
+    );
+
+    assert_eq!(
+        datetime!(0000-001 0:00 UTC).to_offset(offset!(UTC)),
+        datetime!(0000-001 0:00 UTC),
+    );
+}
+
+#[test]
+fn to_offset_panic() {
+    assert!(
+        std::panic::catch_unwind(|| { PrimitiveDateTime::MAX.assume_utc().to_offset(offset!(+1)) })
+            .is_err()
+    );
+    assert!(
+        std::panic::catch_unwind(|| { PrimitiveDateTime::MIN.assume_utc().to_offset(offset!(-1)) })
+            .is_err()
+    );
 }
 
 #[test]
@@ -854,6 +876,11 @@ fn sub_self() {
     assert_eq!(
         datetime!(2019-12-31 0:00 UTC) - datetime!(2020-01-01 0:00 UTC),
         (-1).days(),
+    );
+    assert_eq!(
+        datetime!(+999_999-12-31 23:59:59.999_999_999 -23:59:59)
+            - datetime!(-999_999-01-01 0:00 +23:59:59),
+        Duration::new(63_113_872_550_397, 999_999_999),
     );
 }
 

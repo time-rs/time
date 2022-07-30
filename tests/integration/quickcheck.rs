@@ -28,6 +28,15 @@ macro_rules! test_shrink {
     (@min_or_zero $min:literal) => { $min };
 }
 
+macro_rules! no_panic {
+    ($($x:tt)*) => {
+        std::panic::catch_unwind(|| {
+            $($x)*
+        })
+        .is_ok()
+    }
+}
+
 #[quickcheck]
 fn date_yo_roundtrip(d: Date) -> bool {
     Date::from_ordinal_date(d.year(), d.ordinal()) == Ok(d)
@@ -71,8 +80,14 @@ fn utc_offset_roundtrip(o: UtcOffset) -> bool {
 }
 
 #[quickcheck]
-fn offset_date_time_roundtrip(a: OffsetDateTime) -> bool {
-    PrimitiveDateTime::new(a.date(), a.time()).assume_offset(a.offset()) == a
+fn offset_date_time_roundtrip(a: OffsetDateTime) -> TestResult {
+    // Values near the edge of what is allowed may panic if the conversion brings the underlying
+    // value outside the valid range of values.
+    if a.date() == Date::MIN || a.date() == Date::MAX {
+        return TestResult::discard();
+    }
+
+    TestResult::from_bool(PrimitiveDateTime::new(a.date(), a.time()).assume_offset(a.offset()) == a)
 }
 
 #[quickcheck]
@@ -168,11 +183,10 @@ fn pdt_replace_day(pdt: PrimitiveDateTime, day: u8) -> bool {
 // Regression test for #481
 #[quickcheck]
 fn time_sub_time_no_panic(time_a: Time, time_b: Time) -> bool {
-    std::panic::catch_unwind(|| {
+    no_panic! {
         let _ = time_a - time_b;
         let _ = time_b - time_a;
-    })
-    .is_ok()
+    }
 }
 
 #[quickcheck]
@@ -187,6 +201,50 @@ fn from_julian_day_no_panic(julian_day: i32) -> TestResult {
         })
         .is_ok(),
     )
+}
+
+#[quickcheck]
+fn odt_eq_no_panic(left: OffsetDateTime, right: OffsetDateTime) -> bool {
+    no_panic! {
+        let _ = left == right;
+    }
+}
+
+#[quickcheck]
+fn odt_ord_no_panic(left: OffsetDateTime, right: OffsetDateTime) -> bool {
+    no_panic! {
+        let _ = left < right;
+        let _ = left > right;
+    }
+}
+
+#[quickcheck]
+fn odt_sub_no_panic(left: OffsetDateTime, right: OffsetDateTime) -> bool {
+    no_panic! {
+        let _ = left - right;
+    }
+}
+
+#[quickcheck]
+fn odt_to_offset_no_panic(odt: OffsetDateTime, offset: UtcOffset) -> TestResult {
+    if odt.date() == Date::MIN || odt.date() == Date::MAX {
+        return TestResult::discard();
+    }
+
+    TestResult::from_bool(no_panic! {
+        let _ = odt.to_offset(offset);
+    })
+}
+
+#[quickcheck]
+fn odt_replace_offset_no_panic(odt: OffsetDateTime, offset: UtcOffset) -> TestResult {
+    if odt.date() == Date::MIN || odt.date() == Date::MAX {
+        return TestResult::discard();
+    }
+
+    TestResult::from_bool(no_panic! {
+        let _ = odt.replace_offset(offset);
+    })
 }
 
 test_shrink!(Date, date_can_shrink_year, year());

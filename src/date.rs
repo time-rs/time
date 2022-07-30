@@ -66,6 +66,11 @@ impl Date {
     /// guaranteed by the caller.
     #[doc(hidden)]
     pub const fn __from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
+        debug_assert!(year >= MIN_YEAR);
+        debug_assert!(year <= MAX_YEAR);
+        debug_assert!(ordinal != 0);
+        debug_assert!(ordinal <= days_in_year(year));
+
         Self {
             value: (year << 9) | ordinal as i32,
         }
