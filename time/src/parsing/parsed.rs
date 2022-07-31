@@ -3,6 +3,7 @@
 use core::mem::MaybeUninit;
 use core::num::{NonZeroU16, NonZeroU8};
 
+use crate::date_time::{offset_kind, DateTime, MaybeOffset};
 use crate::error::TryFromParsed::InsufficientInformation;
 use crate::format_description::modifier::{WeekNumberRepr, YearRepr};
 #[cfg(feature = "alloc")]
@@ -718,14 +719,22 @@ impl TryFrom<Parsed> for UtcOffset {
 }
 
 impl TryFrom<Parsed> for PrimitiveDateTime {
-    type Error = error::TryFromParsed;
+    type Error = <DateTime<offset_kind::None> as TryFrom<Parsed>>::Error;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
-        Ok(Self::new(parsed.try_into()?, parsed.try_into()?))
+        parsed.try_into().map(Self)
     }
 }
 
 impl TryFrom<Parsed> for OffsetDateTime {
+    type Error = <DateTime<offset_kind::Fixed> as TryFrom<Parsed>>::Error;
+
+    fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
+        parsed.try_into().map(Self)
+    }
+}
+
+impl<O: MaybeOffset> TryFrom<Parsed> for DateTime<O> {
     type Error = error::TryFromParsed;
 
     #[allow(clippy::unwrap_in_result)] // We know the values are valid.
@@ -742,7 +751,13 @@ impl TryFrom<Parsed> for OffsetDateTime {
         } else {
             false
         };
-        let dt = PrimitiveDateTime::try_from(parsed)?.assume_offset(parsed.try_into()?);
+
+        let dt = Self {
+            date: Date::try_from(parsed)?,
+            time: Time::try_from(parsed)?,
+            offset: O::try_from_parsed(parsed)?,
+        };
+
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {
             return Err(error::TryFromParsed::ComponentRange(
                 error::ComponentRange {

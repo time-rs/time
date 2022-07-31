@@ -83,6 +83,7 @@
 
 #![doc(html_playground_url = "https://play.rust-lang.org")]
 #![cfg_attr(__time_03_docs, feature(doc_auto_cfg, doc_notable_trait))]
+#![cfg_attr(coverage_nightly, feature(no_coverage))]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(
     anonymous_parameters,
@@ -305,6 +306,7 @@ macro_rules! expect_opt {
 mod shim;
 
 mod date;
+mod date_time;
 mod duration;
 pub mod error;
 pub mod ext;
@@ -337,6 +339,7 @@ pub mod util;
 mod weekday;
 
 pub use crate::date::Date;
+use crate::date_time::DateTime;
 pub use crate::duration::Duration;
 pub use crate::error::Error;
 #[cfg(feature = "std")]

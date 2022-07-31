@@ -397,7 +397,7 @@ fn rfc_3339_err() {
     ));
     assert!(matches!(
         PrimitiveDateTime::parse("2021-13-01T00:00:00Z", &Rfc3339),
-        invalid_component!("month")
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "month"
     ));
     assert!(matches!(
         PrimitiveDateTime::parse("2021-01-02T03:04:60Z", &Rfc3339),

@@ -38,6 +38,7 @@ use alloc::boxed::Box;
 
 use quickcheck::{empty_shrinker, single_shrinker, Arbitrary, Gen};
 
+use crate::date_time::{DateTime, MaybeOffset};
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// Obtain an arbitrary value between the minimum and maximum inclusive.
@@ -118,15 +119,11 @@ impl Arbitrary for Time {
 
 impl Arbitrary for PrimitiveDateTime {
     fn arbitrary(g: &mut Gen) -> Self {
-        Self::new(<_>::arbitrary(g), <_>::arbitrary(g))
+        Self(<_>::arbitrary(g))
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
-        Box::new(
-            (self.date, self.time)
-                .shrink()
-                .map(|(date, time)| Self { date, time }),
-        )
+        Box::new(self.0.shrink().map(Self))
     }
 }
 
@@ -151,15 +148,28 @@ impl Arbitrary for UtcOffset {
 
 impl Arbitrary for OffsetDateTime {
     fn arbitrary(g: &mut Gen) -> Self {
-        let datetime = PrimitiveDateTime::arbitrary(g);
-        datetime.assume_offset(<_>::arbitrary(g))
+        Self(<_>::arbitrary(g))
+    }
+
+    fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
+        Box::new(self.0.shrink().map(Self))
+    }
+}
+
+impl<O: MaybeOffset + 'static> Arbitrary for DateTime<O> {
+    fn arbitrary(g: &mut Gen) -> Self {
+        Self {
+            date: <_>::arbitrary(g),
+            time: <_>::arbitrary(g),
+            offset: <_>::arbitrary(g),
+        }
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
         Box::new(
-            (self.local_datetime, self.offset)
+            (self.date, self.time, self.offset)
                 .shrink()
-                .map(|(local_datetime, offset)| local_datetime.assume_offset(offset)),
+                .map(|(date, time, offset)| Self { date, time, offset }),
         )
     }
 }

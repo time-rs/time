@@ -174,7 +174,7 @@ macro_rules! assert_obj_safe {
 
 assert_obj_safe!(ext::NumericalDuration);
 assert_obj_safe!(ext::NumericalStdDuration);
-assert_obj_safe!(Parsable);
+// `Parsable` is not object safe.
 // `Formattable` is not object safe.
 
 macro_rules! assert_impl {
