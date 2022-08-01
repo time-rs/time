@@ -291,32 +291,20 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
 /// implementation for `no_std`
 fn round(value: f64) -> f64 {
     #[cfg(feature = "std")]
-    let rounded = value.round();
+    {
+        value.round()
+    }
     #[cfg(not(feature = "std"))]
-    let rounded = round_impl(value);
-    rounded
+    {
+        round_impl(value)
+    }
 }
 
 #[cfg(not(feature = "std"))]
 #[allow(clippy::missing_docs_in_private_items)]
-// Based on num-trait for no_std feature
-#[inline]
 fn round_impl(value: f64) -> f64 {
-    #[inline]
-    fn fract(value: f64) -> f64 {
-        if value == 0. { 0.0 } else { value % 1. }
-    }
+    debug_assert!(value.is_sign_positive() && !value.is_nan());
 
-    let one = 1.;
-    let h = 0.5;
-    let f = fract(value);
-    if f.is_nan() || f == 0. {
-        value
-    } else if value > 0. {
-        if f < h { value - f } else { value - f + one }
-    } else if -f < h {
-        value - f
-    } else {
-        value - f - one
-    }
+    let f = value % 1.;
+    if f < 0.5 { value - f } else { value - f + 1. }
 }
