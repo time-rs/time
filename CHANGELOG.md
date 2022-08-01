@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.12 [2022-08-01]
+
+### Added
+
+- `js-sys` now supports obtaining the system's local UTC offset.
+
+### Changed
+
+- Performance of many `Date` operations has improved when using the `large-dates` feature.
+- While an internal change, `OffsetDateTime` now stores the value in the attached `UtcOffset`, not
+  UTC. This leads to significant performance gains on nearly all `OffsetDateTime` methods.
+
+### Fixed
+
+- Subtracting two `Time`s can no longer panic. This previously occurred in some situations where the
+  result was invalid.
+- ISO 8601 parsing rounds the subseconds to avoid incorrectly truncating the value.
+
 ## 0.3.11 [2022-06-21]
 
 ### Fixed
