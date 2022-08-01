@@ -22,17 +22,10 @@ Contributions are always welcome! If you have an idea, it's best to float it by 
 it to ensure no effort is wasted. If there's already an open issue for it, knock yourself out.
 Internal documentation can be viewed [here](https://time-rs.github.io/internal-api/time).
 
-If you have any questions, feel free to use [Discussions] or [Codestream]. There are a few notes
-inline with Codestream, though questions can be asked directly! As a bonus, they are visible and
-searchable for others. Feedback (prior to opening a pull request) can be provided with Codestream
-and [VS Live Share]. Don't hesitate to ask questions — that's what I'm here for!
-
-If using Codestream, just open up a local copy of this repository. It _should_ add you
-automatically.
+If you have any questions, feel free to use [Discussions]. Don't hesitate to ask questions — that's
+what I'm here for!
 
 [Discussions]: https://github.com/time-rs/time/discussions
-[Codestream]: https://codestream.com
-[VS Live Share]: https://code.visualstudio.com/learn/collaboration/live-share
 
 ## License
 
