@@ -27,12 +27,14 @@ on:
 
 jobs:
   check-other-targets:
-    name: Type checking (${{ matrix.target.name }}, ${{ matrix.rust }})
+    name: Type checking (${{ matrix.target.name }}, ${{ matrix.rust.name }})
     runs-on: ubuntu-20.04
     if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
     strategy:
       matrix:
-        rust: ["1.57", stable]
+        rust:
+          - { version: "1.59", name: MSRV }
+          - { version: stable, name: stable }
         target:
           - name: NetBSD
             triple: x86_64-unknown-netbsd
@@ -59,7 +61,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: ${{ matrix.rust }}
+          toolchain: ${{ matrix.rust.version }}
           target: ${{ matrix.target.triple }}
           override: true
 
@@ -153,12 +155,14 @@ jobs:
           RUSTFLAGS: "--cfg bench"
 
   test:
-    name: Test (${{ matrix.os.name }}, ${{ matrix.rust }})
+    name: Test (${{ matrix.os.name }}, ${{ matrix.rust.name }})
     runs-on: ${{ matrix.os.value }}
     if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
     strategy:
       matrix:
-        rust: ["1.57", stable]
+        rust:
+          - { version: "1.59", name: MSRV }
+          - { version: stable, name: stable }
         os:
           - { name: Ubuntu, value: ubuntu-20.04 }
           - { name: Windows, value: windows-latest }
@@ -172,7 +176,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: ${{ matrix.rust }}
+          toolchain: ${{ matrix.rust.version }}
           override: true
 
       - name: Install cargo-hack
