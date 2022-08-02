@@ -19,10 +19,10 @@ pub(crate) fn parse_year(input: &[u8], modifiers: modifier::Year) -> Option<Pars
             let ParsedItem(input, sign) = opt(sign)(input);
             #[cfg(not(feature = "large-dates"))]
             let ParsedItem(input, year) =
-                exactly_n_digits_padded::<u32, 4>(modifiers.padding)(input)?;
+                exactly_n_digits_padded::<4, u32>(modifiers.padding)(input)?;
             #[cfg(feature = "large-dates")]
             let ParsedItem(input, year) =
-                n_to_m_digits_padded::<u32, 4, 6>(modifiers.padding)(input)?;
+                n_to_m_digits_padded::<4, 6, u32>(modifiers.padding)(input)?;
             match sign {
                 Some(b'-') => Some(ParsedItem(input, -(year as i32))),
                 None if modifiers.sign_is_mandatory || year >= 10_000 => None,
@@ -30,7 +30,7 @@ pub(crate) fn parse_year(input: &[u8], modifiers: modifier::Year) -> Option<Pars
             }
         }
         modifier::YearRepr::LastTwo => {
-            Some(exactly_n_digits_padded::<u32, 2>(modifiers.padding)(input)?.map(|v| v as i32))
+            Some(exactly_n_digits_padded::<2, u32>(modifiers.padding)(input)?.map(|v| v as i32))
         }
     }
 }
@@ -44,7 +44,7 @@ pub(crate) fn parse_month(
     let ParsedItem(remaining, value) = first_match(
         match modifiers.repr {
             modifier::MonthRepr::Numerical => {
-                return exactly_n_digits_padded::<_, 2>(modifiers.padding)(input)?
+                return exactly_n_digits_padded::<2, _>(modifiers.padding)(input)?
                     .flat_map(|n| Month::from_number(n).ok());
             }
             modifier::MonthRepr::Long => [
@@ -86,7 +86,7 @@ pub(crate) fn parse_week_number(
     input: &[u8],
     modifiers: modifier::WeekNumber,
 ) -> Option<ParsedItem<'_, u8>> {
-    exactly_n_digits_padded::<_, 2>(modifiers.padding)(input)
+    exactly_n_digits_padded::<2, _>(modifiers.padding)(input)
 }
 
 /// Parse the "weekday" component of a `Date`.
@@ -160,7 +160,7 @@ pub(crate) fn parse_ordinal(
     input: &[u8],
     modifiers: modifier::Ordinal,
 ) -> Option<ParsedItem<'_, NonZeroU16>> {
-    exactly_n_digits_padded::<_, 3>(modifiers.padding)(input)
+    exactly_n_digits_padded::<3, _>(modifiers.padding)(input)
 }
 
 /// Parse the "day" component of a `Date`.
@@ -168,7 +168,7 @@ pub(crate) fn parse_day(
     input: &[u8],
     modifiers: modifier::Day,
 ) -> Option<ParsedItem<'_, NonZeroU8>> {
-    exactly_n_digits_padded::<_, 2>(modifiers.padding)(input)
+    exactly_n_digits_padded::<2, _>(modifiers.padding)(input)
 }
 // endregion date components
 
@@ -184,7 +184,7 @@ pub(crate) enum Period {
 
 /// Parse the "hour" component of a `Time`.
 pub(crate) fn parse_hour(input: &[u8], modifiers: modifier::Hour) -> Option<ParsedItem<'_, u8>> {
-    exactly_n_digits_padded::<_, 2>(modifiers.padding)(input)
+    exactly_n_digits_padded::<2, _>(modifiers.padding)(input)
 }
 
 /// Parse the "minute" component of a `Time`.
@@ -192,7 +192,7 @@ pub(crate) fn parse_minute(
     input: &[u8],
     modifiers: modifier::Minute,
 ) -> Option<ParsedItem<'_, u8>> {
-    exactly_n_digits_padded::<_, 2>(modifiers.padding)(input)
+    exactly_n_digits_padded::<2, _>(modifiers.padding)(input)
 }
 
 /// Parse the "second" component of a `Time`.
@@ -200,7 +200,7 @@ pub(crate) fn parse_second(
     input: &[u8],
     modifiers: modifier::Second,
 ) -> Option<ParsedItem<'_, u8>> {
-    exactly_n_digits_padded::<_, 2>(modifiers.padding)(input)
+    exactly_n_digits_padded::<2, _>(modifiers.padding)(input)
 }
 
 /// Parse the "period" component of a `Time`. Required if the hour is on a 12-hour clock.
@@ -231,15 +231,15 @@ pub(crate) fn parse_subsecond(
 ) -> Option<ParsedItem<'_, u32>> {
     use modifier::SubsecondDigits::*;
     Some(match modifiers.digits {
-        One => exactly_n_digits::<u32, 1>(input)?.map(|v| v * 100_000_000),
-        Two => exactly_n_digits::<u32, 2>(input)?.map(|v| v * 10_000_000),
-        Three => exactly_n_digits::<u32, 3>(input)?.map(|v| v * 1_000_000),
-        Four => exactly_n_digits::<u32, 4>(input)?.map(|v| v * 100_000),
-        Five => exactly_n_digits::<u32, 5>(input)?.map(|v| v * 10_000),
-        Six => exactly_n_digits::<u32, 6>(input)?.map(|v| v * 1_000),
-        Seven => exactly_n_digits::<u32, 7>(input)?.map(|v| v * 100),
-        Eight => exactly_n_digits::<u32, 8>(input)?.map(|v| v * 10),
-        Nine => exactly_n_digits::<u32, 9>(input)?,
+        One => exactly_n_digits::<1, u32>(input)?.map(|v| v * 100_000_000),
+        Two => exactly_n_digits::<2, u32>(input)?.map(|v| v * 10_000_000),
+        Three => exactly_n_digits::<3, u32>(input)?.map(|v| v * 1_000_000),
+        Four => exactly_n_digits::<4, u32>(input)?.map(|v| v * 100_000),
+        Five => exactly_n_digits::<5, u32>(input)?.map(|v| v * 10_000),
+        Six => exactly_n_digits::<6, u32>(input)?.map(|v| v * 1_000),
+        Seven => exactly_n_digits::<7, u32>(input)?.map(|v| v * 100),
+        Eight => exactly_n_digits::<8, u32>(input)?.map(|v| v * 10),
+        Nine => exactly_n_digits::<9, _>(input)?,
         OneOrMore => {
             let ParsedItem(mut input, mut value) =
                 any_digit(input)?.map(|v| (v - b'0') as u32 * 100_000_000);
@@ -264,7 +264,7 @@ pub(crate) fn parse_offset_hour(
     modifiers: modifier::OffsetHour,
 ) -> Option<ParsedItem<'_, i8>> {
     let ParsedItem(input, sign) = opt(sign)(input);
-    let ParsedItem(input, hour) = exactly_n_digits_padded::<u8, 2>(modifiers.padding)(input)?;
+    let ParsedItem(input, hour) = exactly_n_digits_padded::<2, u8>(modifiers.padding)(input)?;
     match sign {
         Some(b'-') => Some(ParsedItem(input, -(hour as i8))),
         None if modifiers.sign_is_mandatory => None,
@@ -278,7 +278,7 @@ pub(crate) fn parse_offset_minute(
     modifiers: modifier::OffsetMinute,
 ) -> Option<ParsedItem<'_, i8>> {
     Some(
-        exactly_n_digits_padded::<u8, 2>(modifiers.padding)(input)?
+        exactly_n_digits_padded::<2, u8>(modifiers.padding)(input)?
             .map(|offset_minute| offset_minute as _),
     )
 }
@@ -289,7 +289,7 @@ pub(crate) fn parse_offset_second(
     modifiers: modifier::OffsetSecond,
 ) -> Option<ParsedItem<'_, i8>> {
     Some(
-        exactly_n_digits_padded::<u8, 2>(modifiers.padding)(input)?
+        exactly_n_digits_padded::<2, u8>(modifiers.padding)(input)?
             .map(|offset_second| offset_second as _),
     )
 }

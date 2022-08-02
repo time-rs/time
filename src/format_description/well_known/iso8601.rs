@@ -43,7 +43,7 @@ const DEFAULT_CONFIG: EncodedConfig = Config::DEFAULT.encode();
 /// # Ok::<_, time::Error>(())
 /// ```
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub struct Iso8601<const CONFIG: EncodedConfig>;
+pub struct Iso8601<const CONFIG: EncodedConfig = DEFAULT_CONFIG>;
 
 impl<const CONFIG: EncodedConfig> core::fmt::Debug for Iso8601<CONFIG> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {

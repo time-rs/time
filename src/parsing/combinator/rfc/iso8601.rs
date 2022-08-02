@@ -61,11 +61,11 @@ impl ExtendedKind {
 /// Parse a possibly expanded year.
 pub(crate) fn year(input: &[u8]) -> Option<ParsedItem<'_, i32>> {
     Some(match sign(input) {
-        Some(ParsedItem(input, sign)) => exactly_n_digits::<u32, 6>(input)?.map(|val| {
+        Some(ParsedItem(input, sign)) => exactly_n_digits::<6, u32>(input)?.map(|val| {
             let val = val as i32;
             if sign == b'-' { -val } else { val }
         }),
-        None => exactly_n_digits::<u32, 4>(input)?.map(|val| val as _),
+        None => exactly_n_digits::<4, u32>(input)?.map(|val| val as _),
     })
 }
 
@@ -92,12 +92,12 @@ pub(crate) fn month(input: &[u8]) -> Option<ParsedItem<'_, Month>> {
 
 /// Parse a week number.
 pub(crate) fn week(input: &[u8]) -> Option<ParsedItem<'_, NonZeroU8>> {
-    exactly_n_digits::<_, 2>(input)
+    exactly_n_digits::<2, _>(input)
 }
 
 /// Parse a day of the month.
 pub(crate) fn day(input: &[u8]) -> Option<ParsedItem<'_, NonZeroU8>> {
-    exactly_n_digits::<_, 2>(input)
+    exactly_n_digits::<2, _>(input)
 }
 
 /// Parse a day of the week.
@@ -118,17 +118,17 @@ pub(crate) fn dayk(input: &[u8]) -> Option<ParsedItem<'_, Weekday>> {
 
 /// Parse a day of the year.
 pub(crate) fn dayo(input: &[u8]) -> Option<ParsedItem<'_, NonZeroU16>> {
-    exactly_n_digits::<_, 3>(input)
+    exactly_n_digits::<3, _>(input)
 }
 
 /// Parse the hour.
 pub(crate) fn hour(input: &[u8]) -> Option<ParsedItem<'_, u8>> {
-    exactly_n_digits::<_, 2>(input)
+    exactly_n_digits::<2, _>(input)
 }
 
 /// Parse the minute.
 pub(crate) fn min(input: &[u8]) -> Option<ParsedItem<'_, u8>> {
-    exactly_n_digits::<_, 2>(input)
+    exactly_n_digits::<2, _>(input)
 }
 
 /// Parse a floating point number as its integer and optional fractional parts.
