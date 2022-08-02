@@ -764,7 +764,7 @@ impl Duration {
 /// # use time::Duration;
 /// #
 /// let duration = Duration::new(123456, 789011223);
-/// println!("{:.3}", duration);
+/// println!("{duration:.3}");
 /// ```
 ///
 /// For the purposes of this implementation, a day is exactly 24 hours and a minute is exactly 60

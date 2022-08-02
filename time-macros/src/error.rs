@@ -52,12 +52,12 @@ pub(crate) enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::MissingComponent { name, .. } => write!(f, "missing component: {}", name),
+            Self::MissingComponent { name, .. } => write!(f, "missing component: {name}"),
             Self::InvalidComponent { name, value, .. } => {
-                write!(f, "invalid component: {} was {}", name, value)
+                write!(f, "invalid component: {name} was {value}")
             }
             Self::ExpectedString { .. } => f.write_str("expected string"),
-            Self::UnexpectedToken { tree } => write!(f, "unexpected token: {}", tree),
+            Self::UnexpectedToken { tree } => write!(f, "unexpected token: {tree}"),
             Self::UnexpectedEndOfInput => f.write_str("unexpected end of input"),
             Self::InvalidFormatDescription { error, .. } => error.fmt(f),
             Self::Custom { message, .. } => f.write_str(message),

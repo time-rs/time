@@ -21,7 +21,7 @@ impl fmt::Display for ParseFromDescription {
         match self {
             Self::InvalidLiteral => f.write_str("a character literal was not valid"),
             Self::InvalidComponent(name) => {
-                write!(f, "the '{}' component could not be parsed", name)
+                write!(f, "the '{name}' component could not be parsed")
             }
         }
     }

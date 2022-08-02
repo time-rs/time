@@ -298,37 +298,37 @@ fn errors() {
 fn component_with_modifiers() {
     for (padding, padding_str) in iterator::padding() {
         assert_eq!(
-            format_description::parse(&format!("[day {}]", padding_str)),
+            format_description::parse(&format!("[day {padding_str}]")),
             Ok(vec![FormatItem::Component(Component::Day(modifier!(
                 Day { padding }
             )))])
         );
         assert_eq!(
-            format_description::parse(&format!("[minute {}]", padding_str)),
+            format_description::parse(&format!("[minute {padding_str}]")),
             Ok(vec![FormatItem::Component(Component::Minute(modifier!(
                 Minute { padding }
             )))])
         );
         assert_eq!(
-            format_description::parse(&format!("[offset_minute {}]", padding_str)),
+            format_description::parse(&format!("[offset_minute {padding_str}]")),
             Ok(vec![FormatItem::Component(Component::OffsetMinute(
                 modifier!(OffsetMinute { padding })
             ))])
         );
         assert_eq!(
-            format_description::parse(&format!("[offset_second {}]", padding_str)),
+            format_description::parse(&format!("[offset_second {padding_str}]")),
             Ok(vec![FormatItem::Component(Component::OffsetSecond(
                 modifier!(OffsetSecond { padding })
             ))])
         );
         assert_eq!(
-            format_description::parse(&format!("[ordinal {}]", padding_str)),
+            format_description::parse(&format!("[ordinal {padding_str}]")),
             Ok(vec![FormatItem::Component(Component::Ordinal(modifier!(
                 Ordinal { padding }
             )))])
         );
         assert_eq!(
-            format_description::parse(&format!("[second {}]", padding_str)),
+            format_description::parse(&format!("[second {padding_str}]")),
             Ok(vec![FormatItem::Component(Component::Second(modifier!(
                 Second { padding }
             )))])
@@ -336,10 +336,7 @@ fn component_with_modifiers() {
 
         for (is_12_hour_clock, is_12_hour_clock_str) in iterator::hour_is_12_hour_clock() {
             assert_eq!(
-                format_description::parse(&format!(
-                    "[hour {} {}]",
-                    padding_str, is_12_hour_clock_str
-                )),
+                format_description::parse(&format!("[hour {padding_str} {is_12_hour_clock_str}]")),
                 Ok(vec![FormatItem::Component(Component::Hour(modifier!(
                     Hour {
                         padding,
@@ -352,8 +349,7 @@ fn component_with_modifiers() {
             for (repr, repr_str) in iterator::month_repr() {
                 assert_eq!(
                     format_description::parse(&format!(
-                        "[month {} {} {}]",
-                        padding_str, case_sensitive_repr, repr_str
+                        "[month {padding_str} {case_sensitive_repr} {repr_str}]"
                     )),
                     Ok(vec![FormatItem::Component(Component::Month(modifier!(
                         Month {
@@ -367,8 +363,7 @@ fn component_with_modifiers() {
             for (is_uppercase, is_uppercase_str) in iterator::period_is_uppercase() {
                 assert_eq!(
                     format_description::parse(&format!(
-                        "[period {} {}]",
-                        is_uppercase_str, case_sensitive_repr
+                        "[period {is_uppercase_str} {case_sensitive_repr}]"
                     )),
                     Ok(vec![FormatItem::Component(Component::Period(modifier!(
                         Period {
@@ -382,8 +377,7 @@ fn component_with_modifiers() {
                 for (one_indexed, one_indexed_str) in iterator::weekday_is_one_indexed() {
                     assert_eq!(
                         format_description::parse(&format!(
-                            "[weekday {} {} {} ]",
-                            repr_str, one_indexed_str, case_sensitive_repr
+                            "[weekday {repr_str} {one_indexed_str} {case_sensitive_repr} ]"
                         )),
                         Ok(vec![FormatItem::Component(Component::Weekday(modifier!(
                             Weekday {
@@ -398,7 +392,7 @@ fn component_with_modifiers() {
         }
         for (repr, repr_str) in iterator::week_number_repr() {
             assert_eq!(
-                format_description::parse(&format!("[week_number {} {}]", padding_str, repr_str)),
+                format_description::parse(&format!("[week_number {padding_str} {repr_str}]")),
                 Ok(vec![FormatItem::Component(Component::WeekNumber(
                     modifier!(WeekNumber { padding, repr })
                 ))])
@@ -407,8 +401,7 @@ fn component_with_modifiers() {
         for (sign_is_mandatory, sign_is_mandatory_str) in iterator::sign_is_mandatory() {
             assert_eq!(
                 format_description::parse(&format!(
-                    "[offset_hour {} {}]",
-                    padding_str, sign_is_mandatory_str
+                    "[offset_hour {padding_str} {sign_is_mandatory_str}]"
                 )),
                 Ok(vec![FormatItem::Component(Component::OffsetHour(
                     modifier!(OffsetHour {
@@ -422,8 +415,8 @@ fn component_with_modifiers() {
                 for (iso_week_based, iso_week_based_str) in iterator::year_is_iso_week_based() {
                     assert_eq!(
                         format_description::parse(&format!(
-                            "[year {} {} {} {}]",
-                            padding_str, repr_str, iso_week_based_str, sign_is_mandatory_str
+                            "[year {padding_str} {repr_str} {iso_week_based_str} \
+                             {sign_is_mandatory_str}]",
                         )),
                         Ok(vec![FormatItem::Component(Component::Year(modifier!(
                             Year {
@@ -441,7 +434,7 @@ fn component_with_modifiers() {
 
     for (digits, digits_str) in iterator::subsecond_digits() {
         assert_eq!(
-            format_description::parse(&format!("[subsecond {}]", digits_str)),
+            format_description::parse(&format!("[subsecond {digits_str}]")),
             Ok(vec![FormatItem::Component(Component::Subsecond(
                 modifier!(Subsecond { digits })
             ))])

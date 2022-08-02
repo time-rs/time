@@ -651,12 +651,8 @@ impl fmt::Display for Time {
         };
         write!(
             f,
-            "{}:{:02}:{:02}.{:0width$}",
-            self.hour,
-            self.minute,
-            self.second,
-            value,
-            width = width
+            "{}:{:02}:{:02}.{value:0width$}",
+            self.hour, self.minute, self.second,
         )
     }
 }

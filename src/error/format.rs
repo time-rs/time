@@ -31,8 +31,7 @@ impl fmt::Display for Format {
             ),
             Self::InvalidComponent(component) => write!(
                 f,
-                "The {} component cannot be formatted into the requested format.",
-                component
+                "The {component} component cannot be formatted into the requested format."
             ),
             Self::StdIo(err) => err.fmt(f),
         }

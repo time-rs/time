@@ -651,7 +651,7 @@ fn failed_write() -> time::Result<()> {
         "offset_second",
     ];
     for component in &component_names {
-        let component = format!("[{}]", component);
+        let component = format!("[{component}]");
         assert_err!(
             OffsetDateTime::UNIX_EPOCH,
             format_description::parse(&component)?
