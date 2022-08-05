@@ -59,7 +59,8 @@ impl OffsetDateTime {
     pub fn now_utc() -> Self {
         #[cfg(all(
             target_arch = "wasm32",
-            not(any(target_os = "emscripten", target_os = "wasi"))
+            not(any(target_os = "emscripten", target_os = "wasi")),
+            feature = "wasm-bindgen"
         ))]
         {
             js_sys::Date::new_0().into()
@@ -67,7 +68,8 @@ impl OffsetDateTime {
 
         #[cfg(not(all(
             target_arch = "wasm32",
-            not(any(target_os = "emscripten", target_os = "wasi"))
+            not(any(target_os = "emscripten", target_os = "wasi")),
+            feature = "wasm-bindgen"
         )))]
         SystemTime::now().into()
     }
@@ -1301,7 +1303,8 @@ impl From<OffsetDateTime> for SystemTime {
 #[allow(clippy::fallible_impl_from)]
 #[cfg(all(
     target_arch = "wasm32",
-    not(any(target_os = "emscripten", target_os = "wasi"))
+    not(any(target_os = "emscripten", target_os = "wasi")),
+    feature = "wasm-bindgen"
 ))]
 impl From<js_sys::Date> for OffsetDateTime {
     fn from(js_date: js_sys::Date) -> Self {
@@ -1314,7 +1317,8 @@ impl From<js_sys::Date> for OffsetDateTime {
 
 #[cfg(all(
     target_arch = "wasm32",
-    not(any(target_os = "emscripten", target_os = "wasi"))
+    not(any(target_os = "emscripten", target_os = "wasi")),
+    feature = "wasm-bindgen"
 ))]
 impl From<OffsetDateTime> for js_sys::Date {
     fn from(datetime: OffsetDateTime) -> Self {
