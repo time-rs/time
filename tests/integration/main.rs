@@ -35,6 +35,26 @@
     clippy::missing_const_for_fn
 )]
 
+#[cfg(not(all(
+    feature = "default",
+    feature = "alloc",
+    feature = "formatting",
+    feature = "large-dates",
+    feature = "local-offset",
+    feature = "macros",
+    feature = "parsing",
+    feature = "quickcheck",
+    feature = "serde-human-readable",
+    feature = "serde-well-known",
+    feature = "std",
+    feature = "itoa",
+    feature = "quickcheck-dep",
+    feature = "rand",
+    feature = "serde",
+    feature = "time-macros",
+)))]
+compile_error!("tests must be run with the `--all-features` flag");
+
 extern crate quickcheck_dep as quickcheck;
 
 /// Construct a non-exhaustive modifier.

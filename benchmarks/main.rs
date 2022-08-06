@@ -31,6 +31,29 @@
 )]
 #![allow(clippy::many_single_char_names)]
 
+#[cfg(not(all(
+    feature = "default",
+    feature = "alloc",
+    feature = "formatting",
+    feature = "large-dates",
+    feature = "local-offset",
+    feature = "macros",
+    feature = "parsing",
+    feature = "quickcheck",
+    feature = "serde-human-readable",
+    feature = "serde-well-known",
+    feature = "std",
+    feature = "itoa",
+    feature = "quickcheck-dep",
+    feature = "rand",
+    feature = "serde",
+    feature = "time-macros",
+    bench,
+)))]
+compile_error!(
+    "benchmarks must be run as `RUSTFLAGS=\"--cfg bench\" cargo criterion --all-features`"
+);
+
 macro_rules! setup_benchmark {
     (
         $group_prefix:literal,
