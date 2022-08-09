@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.13 [2022-08-09]
+
+### Fixed
+
+- wasm builds other than those using `wasm-bindgen` work again.
+
 ## 0.3.12 [2022-08-01]
 
 ### Added
