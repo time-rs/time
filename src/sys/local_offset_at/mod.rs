@@ -5,7 +5,8 @@
 #[cfg_attr(
     all(
         target_arch = "wasm32",
-        not(any(target_os = "emscripten", target_os = "wasi"))
+        not(any(target_os = "emscripten", target_os = "wasi")),
+        feature = "wasm-bindgen"
     ),
     path = "wasm_js.rs"
 )]

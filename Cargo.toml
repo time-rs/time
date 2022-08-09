@@ -37,6 +37,7 @@ quickcheck = ["quickcheck-dep", "alloc"]
 serde-human-readable = ["serde", "formatting", "parsing"]
 serde-well-known = ["serde/alloc", "formatting", "parsing"] # use case for weak feature dependencies (`alloc` could just require `serde?.alloc`)
 std = ["alloc"]
+wasm-bindgen = ["js-sys"]
 
 [dependencies]
 itoa = { version = "1.0.1", optional = true }
@@ -50,7 +51,7 @@ libc = "0.2.98"
 num_threads = "0.1.2"
 
 [target.'cfg(all(target_arch = "wasm32", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
-js-sys = "0.3.58"
+js-sys = { version = "0.3.58", optional = true }
 
 [dev-dependencies]
 rand = { version = "0.8.4", default-features = false }
