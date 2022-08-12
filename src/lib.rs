@@ -90,6 +90,7 @@
 #![deny(
     anonymous_parameters,
     clippy::all,
+    clippy::undocumented_unsafe_blocks,
     const_err,
     illegal_floating_point_literal_pattern,
     late_bound_lifetime_arguments,
@@ -99,7 +100,6 @@
     trivial_casts,
     trivial_numeric_casts,
     unreachable_pub,
-    unsafe_code,
     unsafe_op_in_unsafe_fn,
     unused_extern_crates
 )]

@@ -288,7 +288,6 @@ macro_rules! getters {
                 None
             } else {
                 // SAFETY: We just checked if the field is present.
-                #[allow(unsafe_code)]
                 Some(unsafe { self.$name.assume_init() })
             }
         }
@@ -330,7 +329,6 @@ impl Parsed {
             None
         } else {
             // SAFETY: We just checked if the field is present.
-            #[allow(unsafe_code)]
             Some(unsafe { self.offset_minute.assume_init() })
         }
     }
@@ -347,7 +345,6 @@ impl Parsed {
             None
         } else {
             // SAFETY: We just checked if the field is present.
-            #[allow(unsafe_code)]
             Some(unsafe { self.offset_second.assume_init() })
         }
     }
