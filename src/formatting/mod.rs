@@ -198,7 +198,7 @@ pub(crate) fn format_number_pad_space<
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     for _ in 0..(WIDTH.saturating_sub(value.num_digits())) {
-        bytes += write(output, &[b' '])?;
+        bytes += write(output, b" ")?;
     }
     bytes += write(output, itoa::Buffer::new().format(value).as_bytes())?;
     Ok(bytes)
@@ -217,7 +217,7 @@ pub(crate) fn format_number_pad_zero<
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     for _ in 0..(WIDTH.saturating_sub(value.num_digits())) {
-        bytes += write(output, &[b'0'])?;
+        bytes += write(output, b"0")?;
     }
     bytes += write(output, itoa::Buffer::new().format(value).as_bytes())?;
     Ok(bytes)
@@ -371,9 +371,9 @@ fn fmt_year(
     let mut bytes = 0;
     if repr != modifier::YearRepr::LastTwo {
         if full_year < 0 {
-            bytes += write(output, &[b'-'])?;
+            bytes += write(output, b"-")?;
         } else if sign_is_mandatory || cfg!(feature = "large-dates") && full_year >= 10_000 {
-            bytes += write(output, &[b'+'])?;
+            bytes += write(output, b"+")?;
         }
     }
     bytes += format_number(output, value.unsigned_abs(), padding)?;
@@ -478,9 +478,9 @@ fn fmt_offset_hour(
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     if offset.is_negative() {
-        bytes += write(output, &[b'-'])?;
+        bytes += write(output, b"-")?;
     } else if sign_is_mandatory {
-        bytes += write(output, &[b'+'])?;
+        bytes += write(output, b"+")?;
     }
     bytes += format_number::<2, _, _>(output, offset.whole_hours().unsigned_abs(), padding)?;
     Ok(bytes)

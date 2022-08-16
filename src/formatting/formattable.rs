@@ -180,21 +180,21 @@ impl sealed::Sealed for Rfc3339 {
         }
 
         bytes += format_number_pad_zero::<4, _, _>(output, year as u32)?;
-        bytes += write(output, &[b'-'])?;
+        bytes += write(output, b"-")?;
         bytes += format_number_pad_zero::<2, _, _>(output, date.month() as u8)?;
-        bytes += write(output, &[b'-'])?;
+        bytes += write(output, b"-")?;
         bytes += format_number_pad_zero::<2, _, _>(output, date.day())?;
-        bytes += write(output, &[b'T'])?;
+        bytes += write(output, b"T")?;
         bytes += format_number_pad_zero::<2, _, _>(output, time.hour())?;
-        bytes += write(output, &[b':'])?;
+        bytes += write(output, b":")?;
         bytes += format_number_pad_zero::<2, _, _>(output, time.minute())?;
-        bytes += write(output, &[b':'])?;
+        bytes += write(output, b":")?;
         bytes += format_number_pad_zero::<2, _, _>(output, time.second())?;
 
         #[allow(clippy::if_not_else)]
         if time.nanosecond() != 0 {
             let nanos = time.nanosecond();
-            bytes += write(output, &[b'.'])?;
+            bytes += write(output, b".")?;
             bytes += if nanos % 10 != 0 {
                 format_number_pad_zero::<9, _, _>(output, nanos)
             } else if (nanos / 10) % 10 != 0 {
@@ -217,20 +217,13 @@ impl sealed::Sealed for Rfc3339 {
         }
 
         if offset == UtcOffset::UTC {
-            bytes += write(output, &[b'Z'])?;
+            bytes += write(output, b"Z")?;
             return Ok(bytes);
         }
 
-        bytes += write(
-            output,
-            if offset.is_negative() {
-                &[b'-']
-            } else {
-                &[b'+']
-            },
-        )?;
+        bytes += write(output, if offset.is_negative() { b"-" } else { b"+" })?;
         bytes += format_number_pad_zero::<2, _, _>(output, offset.whole_hours().unsigned_abs())?;
-        bytes += write(output, &[b':'])?;
+        bytes += write(output, b":")?;
         bytes +=
             format_number_pad_zero::<2, _, _>(output, offset.minutes_past_hour().unsigned_abs())?;
 
