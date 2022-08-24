@@ -65,6 +65,10 @@
 //!
 //!   Enables [quickcheck](https://docs.rs/quickcheck) support for all types except [`Instant`].
 //!
+//! - `arbitrary` (_implicitly enables `alloc`_)
+//!
+//!   Enables [arbitrary](https://docs.rs/arbitrary) support for all types except [`Instant`].
+//!
 //! - `wasm-bindgen`
 //!
 //!   Enables [wasm-bindgen](https://github.com/rustwasm/wasm-bindgen) support for converting
@@ -301,6 +305,9 @@ mod primitive_date_time;
 #[cfg(feature = "quickcheck")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 mod quickcheck;
+#[cfg(feature = "arbitrary")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "arbitrary")))]
+mod arbitrary;
 #[cfg(feature = "rand")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 mod rand;
