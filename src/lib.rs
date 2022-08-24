@@ -285,6 +285,9 @@ macro_rules! const_try_opt {
 }
 // endregion macros
 
+#[cfg(feature = "arbitrary")]
+#[cfg_attr(__time_03_docs, doc(cfg(feature = "arbitrary")))]
+mod arbitrary;
 mod date;
 mod duration;
 pub mod error;
@@ -305,9 +308,6 @@ mod primitive_date_time;
 #[cfg(feature = "quickcheck")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 mod quickcheck;
-#[cfg(feature = "arbitrary")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "arbitrary")))]
-mod arbitrary;
 #[cfg(feature = "rand")]
 #[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 mod rand;

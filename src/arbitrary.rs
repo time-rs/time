@@ -25,7 +25,7 @@
 //! relation to a [`Duration`], and obtaining an `Instant` from a [`Duration`] is very simple
 //! anyway.
 
-use arbitrary_dep::{Arbitrary, Result, Unstructured, size_hint};
+use arbitrary_dep::{size_hint, Arbitrary, Result, Unstructured};
 
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
