@@ -55,8 +55,8 @@ impl<'a> Arbitrary<'a> for Duration {
 impl<'a> Arbitrary<'a> for Time {
     fn arbitrary(u: &mut Unstructured<'a>) -> Result<Self> {
         let hour = u.int_in_range(0..=23)?;
-        let minute = u.int_in_range(0..=60)?;
-        let second = u.int_in_range(0..=60)?;
+        let minute = u.int_in_range(0..=59)?;
+        let second = u.int_in_range(0..=59)?;
         let nanosecond = u.int_in_range(0..=999_999_999)?;
         Ok(Self::__from_hms_nanos_unchecked(
             hour, minute, second, nanosecond,
