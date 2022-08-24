@@ -85,7 +85,7 @@ jobs:
             --feature-powerset
             --optional-deps
             --group-features serde,rand
-            --exclude-features default,std,formatting,serde-human-readable,serde-well-known,local-offset,quickcheck,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen
+            --exclude-features default,std,formatting,serde-human-readable,serde-well-known,local-offset,quickcheck,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen,arbitrary,arbitrary-dep
             --features macros
             --exclude-all-features
             --target ${{ matrix.target.triple }}
@@ -106,7 +106,7 @@ jobs:
             --group-features serde,rand
             --group-features formatting,parsing
             --group-features serde-human-readable,serde-well-known
-            --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen
+            --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen,arbitrary,arbitrary-dep
             --features macros,local-offset
             --target ${{ matrix.target.triple }}
         if: matrix.target.has_std == true && matrix.target.has_local_offset == false
@@ -123,7 +123,7 @@ jobs:
             --group-features serde,rand
             --group-features formatting,parsing
             --group-features serde-human-readable,serde-well-known
-            --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen
+            --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen,arbitrary,arbitrary-dep
             --features macros
             --target ${{ matrix.target.triple }}
         if: matrix.target.has_std == true && matrix.target.has_local_offset == true
@@ -207,7 +207,7 @@ jobs:
             --group-features serde,rand
             --group-features formatting,parsing
             --group-features serde-human-readable,serde-well-known
-            --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen
+            --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen,arbitrary,arbitrary-dep
             --features macros
         if: matrix.os.has_local_offset == true
 
