@@ -48,8 +48,7 @@ impl<'a> Arbitrary<'a> for Duration {
     }
 
     fn size_hint(_: usize) -> (usize, Option<usize>) {
-        let n = core::mem::size_of::<i128>();
-        (n, Some(n))
+        size_hint::and(i64::size_hint(0), i32::size_hint(0))
     }
 }
 
@@ -86,15 +85,19 @@ impl<'a> Arbitrary<'a> for PrimitiveDateTime {
     }
 }
 
+const UTC_OFFSET_SECONDS_MIN: i32 = -86_399;
+const UTC_OFFSET_SECONDS_MAX: i32 = 86_399;
+
 impl<'a> Arbitrary<'a> for UtcOffset {
     fn arbitrary(u: &mut Unstructured<'a>) -> Result<Self> {
-        u.int_in_range(-86_399..=86_399).map(|seconds| {
-            Self::__from_hms_unchecked(
-                (seconds / 3600) as _,
-                ((seconds % 3600) / 60) as _,
-                (seconds % 60) as _,
-            )
-        })
+        u.int_in_range(UTC_OFFSET_SECONDS_MIN..=UTC_OFFSET_SECONDS_MAX)
+            .map(|seconds| {
+                Self::__from_hms_unchecked(
+                    (seconds / 3600) as _,
+                    ((seconds % 3600) / 60) as _,
+                    (seconds % 60) as _,
+                )
+            })
     }
 
     fn size_hint(_: usize) -> (usize, Option<usize>) {
@@ -156,5 +159,180 @@ impl<'a> Arbitrary<'a> for Month {
     fn size_hint(_: usize) -> (usize, Option<usize>) {
         let n = core::mem::size_of::<u8>();
         (n, Some(n))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use arbitrary_dep::{Arbitrary, Error, Unstructured};
+
+    // Not really "arbitrary".  As the input data is not random, generated
+    // data will be identical each run.  But we're not testing randomness,
+    // we're testing for valid generated data.
+
+    const DATA: &[u8] = &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+
+    #[test]
+    fn test_arbitrary_duration() {
+        let n = crate::Duration::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n]);
+        let duration =
+            crate::Duration::arbitrary(&mut u).expect("Unable to generate arbitrary Date");
+        assert!(duration >= crate::Duration::MIN);
+        assert!(duration <= crate::Duration::MAX);
+    }
+
+    #[test]
+    fn test_arbitrary_duration_without_enough_data() {
+        let n = crate::Duration::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n - 1]);
+        match crate::Duration::arbitrary(&mut u) {
+            Err(Error::NotEnoughData) => {}
+            other => panic! {"Expected not enough data, got: {:?}", other},
+        }
+    }
+
+    #[test]
+    fn test_arbitrary_date() {
+        let n = crate::Date::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n]);
+        let date = crate::Date::arbitrary(&mut u).expect("Unable to generate arbitrary Date");
+        assert!(date >= crate::Date::MIN);
+        assert!(date <= crate::Date::MAX);
+    }
+
+    #[test]
+    fn test_arbitrary_date_without_enough_data() {
+        let n = crate::Date::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n - 1]);
+        match crate::Date::arbitrary(&mut u) {
+            Err(Error::NotEnoughData) => {}
+            other => panic! {"Expected not enough data, got: {:?}", other},
+        }
+    }
+
+    #[test]
+    fn test_arbitrary_time() {
+        let n = crate::Time::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n]);
+        let time = crate::Time::arbitrary(&mut u).expect("Unable to generate arbitrary Time");
+        assert!(time >= crate::Time::MIN);
+        assert!(time <= crate::Time::MAX);
+    }
+
+    #[test]
+    fn test_arbitrary_time_without_enough_data() {
+        let n = crate::Time::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n - 1]);
+        match crate::Time::arbitrary(&mut u) {
+            Err(Error::NotEnoughData) => {}
+            other => panic! {"Expected not enough data, got: {:?}", other},
+        }
+    }
+
+    #[test]
+    fn test_arbitrary_weekday() {
+        let n = crate::Weekday::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n]);
+        let _weekday =
+            crate::Weekday::arbitrary(&mut u).expect("Unable to generate arbitrary Weekday");
+    }
+
+    #[test]
+    fn test_arbitrary_weekday_without_enough_data() {
+        let n = crate::Weekday::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n - 1]);
+        match crate::Weekday::arbitrary(&mut u) {
+            Err(Error::NotEnoughData) => {}
+            other => panic! {"Expected not enough data, got: {:?}", other},
+        }
+    }
+
+    #[test]
+    fn test_arbitrary_month() {
+        let n = crate::Month::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n]);
+        let _month = crate::Month::arbitrary(&mut u).expect("Unable to generate arbitrary Month");
+    }
+
+    #[test]
+    fn test_arbitrary_month_without_enough_data() {
+        let n = crate::Month::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n - 1]);
+        match crate::Month::arbitrary(&mut u) {
+            Err(Error::NotEnoughData) => {}
+            other => panic! {"Expected not enough data, got: {:?}", other},
+        }
+    }
+
+    #[test]
+    fn test_arbitrary_offset() {
+        let n = crate::UtcOffset::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n]);
+        let offset =
+            crate::UtcOffset::arbitrary(&mut u).expect("Unable to generate arbitrary UtcOffset");
+        assert!(offset.whole_seconds() >= super::UTC_OFFSET_SECONDS_MIN);
+        assert!(offset.whole_seconds() <= super::UTC_OFFSET_SECONDS_MAX);
+    }
+
+    #[test]
+    fn test_arbitrary_offset_without_enough_data() {
+        let n = crate::UtcOffset::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n - 1]);
+        match crate::UtcOffset::arbitrary(&mut u) {
+            Err(Error::NotEnoughData) => {}
+            other => panic! {"Expected not enough data, got: {:?}", other},
+        }
+    }
+
+    #[test]
+    fn test_arbitrary_primitivedatetime() {
+        let n = crate::PrimitiveDateTime::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n]);
+        let datetime = crate::PrimitiveDateTime::arbitrary(&mut u)
+            .expect("Unable to generate arbitrary PrimitiveDateTime");
+        let date = datetime.date();
+        assert!(date >= crate::Date::MIN);
+        assert!(date <= crate::Date::MAX);
+        let time = datetime.time();
+        assert!(time >= crate::Time::MIN);
+        assert!(time <= crate::Time::MAX);
+    }
+
+    #[test]
+    fn test_arbitrary_primitivedatetime_without_enough_data() {
+        let n = crate::PrimitiveDateTime::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n - 1]);
+        match crate::PrimitiveDateTime::arbitrary(&mut u) {
+            Err(Error::NotEnoughData) => {}
+            other => panic! {"Expected not enough data, got: {:?}", other},
+        }
+    }
+
+    #[test]
+    fn test_arbitrary_offsetdatetime() {
+        let n = crate::OffsetDateTime::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n]);
+        let datetime = crate::OffsetDateTime::arbitrary(&mut u)
+            .expect("Unable to generate arbitrary OffsetDateTime");
+        let date = datetime.date();
+        assert!(date >= crate::Date::MIN);
+        assert!(date <= crate::Date::MAX);
+        let time = datetime.time();
+        assert!(time >= crate::Time::MIN);
+        assert!(time <= crate::Time::MAX);
+        let offset = datetime.offset();
+        assert!(offset.whole_seconds() >= super::UTC_OFFSET_SECONDS_MIN);
+        assert!(offset.whole_seconds() <= super::UTC_OFFSET_SECONDS_MAX);
+    }
+
+    #[test]
+    fn test_arbitrary_offsetdatetime_without_enough_data() {
+        let n = crate::OffsetDateTime::size_hint(0).0;
+        let mut u = Unstructured::new(&DATA[..n - 1]);
+        match crate::OffsetDateTime::arbitrary(&mut u) {
+            Err(Error::NotEnoughData) => {}
+            other => panic! {"Expected not enough data, got: {:?}", other},
+        }
     }
 }
