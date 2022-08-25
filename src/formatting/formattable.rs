@@ -1,4 +1,4 @@
-//! A trait that can d, be use to format an item from its components.
+//! A trait that can be used to format an item from its components.
 
 use core::ops::Deref;
 use std::io;

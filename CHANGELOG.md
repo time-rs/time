@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.14 [2022-08-24]
+
+### Changed
+
+- The minimum supported Rust version is now 1.59.0.
+- `Duration::unsigned_abs` is now `const fn`.
+- The const parameter for `time::format_description::well_known::Iso8601` now has a default. This
+  means `Iso8601` is the same as `Iso8601::DEFAULT`.
+- The `Parsed` struct has been reduced in size from 56 to 32 bytes (a 43% reduction).
+
 ## 0.3.13 [2022-08-09]
 
 ### Fixed
