@@ -1,3 +1,6 @@
+use std::error;
+
+use serde::{Serialize, Deserialize};
 use serde_test::{assert_de_tokens_error, assert_tokens, Compact, Configure, Readable, Token};
 use time::macros::{date, datetime, offset, time};
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
@@ -907,6 +910,24 @@ fn weekday() {
     assert_tokens(&Friday.readable(), &[Token::BorrowedStr("Friday")]);
     assert_tokens(&Saturday.readable(), &[Token::BorrowedStr("Saturday")]);
     assert_tokens(&Sunday.readable(), &[Token::BorrowedStr("Sunday")]);
+}
+
+#[test]
+fn weekday_json() -> Result<(), Box<dyn error::Error>> {
+    use Weekday::*;
+
+    let mut buf: Vec<u8> = Vec::new();
+    let mut ser = serde_json::Serializer::new(&mut buf);
+    let ser = (&mut ser).compact();
+    Monday.serialize(ser)?;
+    assert_eq!(String::from_utf8(buf)?, "1");
+    
+    let mut de = serde_json::Deserializer::from_str("1");
+    let de = (&mut de).compact();
+    let monday = Weekday::deserialize(de)?;
+    assert_eq!(monday, Monday);
+
+    Ok(())
 }
 
 #[test]
