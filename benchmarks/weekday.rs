@@ -1,11 +1,10 @@
 use criterion::Bencher;
-use criterion_cycles_per_byte::CyclesPerByte;
 use time::Weekday::*;
 
 setup_benchmark! {
     "Weekday",
 
-    fn previous(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn previous(ben: &mut Bencher<'_>) {
         ben.iter(|| Sunday.previous());
         ben.iter(|| Monday.previous());
         ben.iter(|| Tuesday.previous());
@@ -15,7 +14,7 @@ setup_benchmark! {
         ben.iter(|| Saturday.previous());
     }
 
-    fn next(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn next(ben: &mut Bencher<'_>) {
         ben.iter(|| Sunday.next());
         ben.iter(|| Monday.next());
         ben.iter(|| Tuesday.next());
@@ -25,7 +24,7 @@ setup_benchmark! {
         ben.iter(|| Saturday.next());
     }
 
-    fn number_from_monday(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn number_from_monday(ben: &mut Bencher<'_>) {
         ben.iter(|| Monday.number_from_monday());
         ben.iter(|| Tuesday.number_from_monday());
         ben.iter(|| Wednesday.number_from_monday());
@@ -35,7 +34,7 @@ setup_benchmark! {
         ben.iter(|| Sunday.number_from_monday());
     }
 
-    fn number_from_sunday(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn number_from_sunday(ben: &mut Bencher<'_>) {
         ben.iter(|| Sunday.number_from_sunday());
         ben.iter(|| Monday.number_from_sunday());
         ben.iter(|| Tuesday.number_from_sunday());
@@ -45,7 +44,7 @@ setup_benchmark! {
         ben.iter(|| Saturday.number_from_sunday());
     }
 
-    fn number_days_from_monday(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn number_days_from_monday(ben: &mut Bencher<'_>) {
         ben.iter(|| Monday.number_days_from_monday());
         ben.iter(|| Tuesday.number_days_from_monday());
         ben.iter(|| Wednesday.number_days_from_monday());
@@ -55,7 +54,7 @@ setup_benchmark! {
         ben.iter(|| Sunday.number_days_from_monday());
     }
 
-    fn number_days_from_sunday(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn number_days_from_sunday(ben: &mut Bencher<'_>) {
         ben.iter(|| Sunday.number_days_from_sunday());
         ben.iter(|| Monday.number_days_from_sunday());
         ben.iter(|| Tuesday.number_days_from_sunday());

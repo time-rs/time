@@ -1,15 +1,14 @@
 use std::io;
 
 use criterion::Bencher;
-use criterion_cycles_per_byte::CyclesPerByte;
 use time::format_description;
-use time::format_description::well_known::{Rfc3339, Rfc2822};
+use time::format_description::well_known::{Rfc2822, Rfc3339};
 use time::macros::{date, datetime, format_description as fd, offset, time};
 
 setup_benchmark! {
     "Formatting",
 
-    fn format_rfc3339(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn format_rfc3339(ben: &mut Bencher<'_>) {
         macro_rules! item {
             ($value:expr) => {
                 $value.format_into(&mut io::sink(), &Rfc3339)
@@ -30,7 +29,7 @@ setup_benchmark! {
         ben.iter(|| item!(datetime!(2021-01-02 03:04:05.123_456_789 +01:02)));
     }
 
-    fn format_rfc2822(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn format_rfc2822(ben: &mut Bencher<'_>) {
         macro_rules! item {
             ($value:expr) => {
                 $value.format_into(&mut io::sink(), &Rfc2822)
@@ -43,7 +42,7 @@ setup_benchmark! {
     }
 
 
-    fn format_time(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn format_time(ben: &mut Bencher<'_>) {
         macro_rules! item {
             ($format:expr) => {
                 time!(13:02:03.456_789_012).format_into(
@@ -85,7 +84,7 @@ setup_benchmark! {
         ben.iter(|| item!(fd!("[subsecond digits:1+]")));
     }
 
-    fn display_time(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn display_time(ben: &mut Bencher<'_>) {
         ben.iter(|| time!(0:00).to_string());
         ben.iter(|| time!(23:59).to_string());
         ben.iter(|| time!(23:59:59).to_string());
@@ -95,7 +94,7 @@ setup_benchmark! {
         ben.iter(|| time!(0:00:00.000_000_001).to_string());
     }
 
-    fn format_date(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn format_date(ben: &mut Bencher<'_>) {
         macro_rules! item {
             ($format:expr) => {
                 date!(2019-12-31).format_into(&mut io::sink(), &$format)
@@ -126,14 +125,14 @@ setup_benchmark! {
         ben.iter(|| item!(fd!("[year base:iso_week repr:last_two]")));
     }
 
-    fn display_date(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn display_date(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).to_string());
         ben.iter(|| date!(2019-12-31).to_string());
         ben.iter(|| date!(-4713-11-24).to_string());
         ben.iter(|| date!(-0001-01-01).to_string());
     }
 
-    fn format_offset(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn format_offset(ben: &mut Bencher<'_>) {
         macro_rules! item {
             ($value:expr, $format:expr) => {
                 $value.format_into(&mut io::sink(), &$format)
@@ -148,7 +147,7 @@ setup_benchmark! {
         ben.iter(|| item!(offset!(+01:02:03), fd!("[offset_second]")));
     }
 
-    fn display_offset(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn display_offset(ben: &mut Bencher<'_>) {
         ben.iter(|| offset!(UTC).to_string());
         ben.iter(|| offset!(+0:00:01).to_string());
         ben.iter(|| offset!(-0:00:01).to_string());
@@ -160,7 +159,7 @@ setup_benchmark! {
         ben.iter(|| offset!(-23:59:59).to_string());
     }
 
-    fn format_pdt(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn format_pdt(ben: &mut Bencher<'_>) {
         ben.iter(|| {
             datetime!(1970-01-01 0:00).format_into(
                 &mut io::sink(),
@@ -169,12 +168,12 @@ setup_benchmark! {
         });
     }
 
-    fn display_pdt(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn display_pdt(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(1970-01-01 0:00).to_string());
         ben.iter(|| datetime!(1970-01-01 0:00:01).to_string());
     }
 
-    fn format_odt(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn format_odt(ben: &mut Bencher<'_>) {
         // We can't currently handle escaped line breaks in the format description macro.
         let format_description = format_description::parse(
             "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond] [offset_hour \
@@ -186,7 +185,7 @@ setup_benchmark! {
         });
     }
 
-    fn display_odt(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn display_odt(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(1970-01-01 0:00 UTC).to_string());
     }
 }

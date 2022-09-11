@@ -1,8 +1,7 @@
 use criterion::Bencher;
-use criterion_cycles_per_byte::CyclesPerByte;
+use time::format_description::well_known::{Rfc2822, Rfc3339};
 use time::format_description::{modifier, Component};
 use time::parsing::Parsed;
-use time::format_description::well_known::{Rfc3339, Rfc2822};
 use time::OffsetDateTime;
 
 macro_rules! component {
@@ -19,7 +18,7 @@ macro_rules! component {
 setup_benchmark! {
     "Parsing",
 
-    fn parse_component_year(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn parse_component_year(ben: &mut Bencher<'_>) {
         let mut parsed = Parsed::new();
         ben.iter(|| {
             parsed.parse_component(b"2021", component!(Year {
@@ -55,7 +54,7 @@ setup_benchmark! {
         });
     }
 
-    fn parse_component_month(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn parse_component_month(ben: &mut Bencher<'_>) {
         let mut parsed = Parsed::new();
         ben.iter(|| {
             parsed.parse_component(b" 1", component!(Month {
@@ -77,7 +76,7 @@ setup_benchmark! {
         });
     }
 
-    fn parse_component_ordinal(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn parse_component_ordinal(ben: &mut Bencher<'_>) {
         let mut parsed = Parsed::new();
         ben.iter(|| {
             parsed.parse_component(b"012", component!(Ordinal {
@@ -86,7 +85,7 @@ setup_benchmark! {
         });
     }
 
-    fn parse_component_weekday(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn parse_component_weekday(ben: &mut Bencher<'_>) {
         let mut parsed = Parsed::new();
         ben.iter(|| {
             parsed.parse_component(b"Sun", component!(Weekday {
@@ -126,7 +125,7 @@ setup_benchmark! {
         });
     }
 
-    fn parse_component_week_number(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn parse_component_week_number(ben: &mut Bencher<'_>) {
         let mut parsed = Parsed::new();
         ben.iter(|| {
             parsed.parse_component(b"2", component!(WeekNumber {
@@ -148,7 +147,7 @@ setup_benchmark! {
         });
     }
 
-    fn parse_component_subsecond(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn parse_component_subsecond(ben: &mut Bencher<'_>) {
         let mut parsed = Parsed::new();
         ben.iter(|| {
             parsed.parse_component(b"1", component!(Subsecond {
@@ -202,7 +201,7 @@ setup_benchmark! {
         });
     }
 
-    fn parse_rfc3339(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn parse_rfc3339(ben: &mut Bencher<'_>) {
         ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05Z", &Rfc3339));
         ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.1Z", &Rfc3339));
         ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.12Z", &Rfc3339));
@@ -217,7 +216,7 @@ setup_benchmark! {
         ben.iter(|| OffsetDateTime::parse("2021-01-02T03:04:05.123456789+01:02", &Rfc3339));
     }
 
-    fn parse_rfc2822(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn parse_rfc2822(ben: &mut Bencher<'_>) {
         ben.iter(|| OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 +0000", &Rfc2822));
         ben.iter(|| OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 +0607", &Rfc2822));
         ben.iter(|| OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 -0607", &Rfc2822));

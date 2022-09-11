@@ -1,5 +1,4 @@
 use criterion::Bencher;
-use criterion_cycles_per_byte::CyclesPerByte;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::date;
 use time::{Date, Month, Time, Weekday};
@@ -8,21 +7,21 @@ setup_benchmark! {
     "Date",
 
     // region: constructors
-    fn from_calendar_date(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn from_calendar_date(ben: &mut Bencher<'_>) {
         ben.iter(|| Date::from_calendar_date(2019, Month::January, 1));
         ben.iter(|| Date::from_calendar_date(2019, Month::December, 31));
         ben.iter(|| Date::from_calendar_date(2020, Month::January, 1));
         ben.iter(|| Date::from_calendar_date(2020, Month::December, 31));
     }
 
-    fn from_ordinal_date(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn from_ordinal_date(ben: &mut Bencher<'_>) {
         ben.iter(|| Date::from_ordinal_date(2019, 1));
         ben.iter(|| Date::from_ordinal_date(2019, 365));
         ben.iter(|| Date::from_ordinal_date(2020, 1));
         ben.iter(|| Date::from_ordinal_date(2020, 366));
     }
 
-    fn from_iso_week_date(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn from_iso_week_date(ben: &mut Bencher<'_>) {
         use Weekday::*;
         ben.iter(|| Date::from_iso_week_date(2019, 1, Tuesday));
         ben.iter(|| Date::from_iso_week_date(2020, 1, Tuesday));
@@ -30,7 +29,7 @@ setup_benchmark! {
         ben.iter(|| Date::from_iso_week_date(2020, 53, Thursday));
     }
 
-    fn from_julian_day(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn from_julian_day(ben: &mut Bencher<'_>) {
         ben.iter(|| Date::from_julian_day(-34_803_190));
         ben.iter(|| Date::from_julian_day(0));
         ben.iter(|| Date::from_julian_day(2_459_753));
@@ -38,12 +37,12 @@ setup_benchmark! {
     // endregion constructors
 
     // region: getters
-    fn year(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn year(ben: &mut Bencher<'_>) {
         let d = date!(2019-002);
         ben.iter(|| d.year());
     }
 
-    fn month(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn month(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).month());
         ben.iter(|| date!(2019-02-01).month());
         ben.iter(|| date!(2019-03-01).month());
@@ -58,7 +57,7 @@ setup_benchmark! {
         ben.iter(|| date!(2019-12-01).month());
     }
 
-    fn day(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn day(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).day());
         ben.iter(|| date!(2019-02-01).day());
         ben.iter(|| date!(2019-03-01).day());
@@ -73,7 +72,7 @@ setup_benchmark! {
         ben.iter(|| date!(2019-12-01).day());
     }
 
-    fn ordinal(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn ordinal(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).ordinal());
         ben.iter(|| date!(2019-02-01).ordinal());
         ben.iter(|| date!(2019-03-01).ordinal());
@@ -88,7 +87,7 @@ setup_benchmark! {
         ben.iter(|| date!(2019-12-01).ordinal());
     }
 
-    fn iso_week(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn iso_week(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).iso_week());
         ben.iter(|| date!(2019-02-01).iso_week());
         ben.iter(|| date!(2019-03-01).iso_week());
@@ -103,7 +102,7 @@ setup_benchmark! {
         ben.iter(|| date!(2019-12-01).iso_week());
     }
 
-    fn sunday_based_week(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn sunday_based_week(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).sunday_based_week());
         ben.iter(|| date!(2019-02-01).sunday_based_week());
         ben.iter(|| date!(2019-03-01).sunday_based_week());
@@ -118,7 +117,7 @@ setup_benchmark! {
         ben.iter(|| date!(2019-12-01).sunday_based_week());
     }
 
-    fn monday_based_week(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn monday_based_week(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).monday_based_week());
         ben.iter(|| date!(2019-02-01).monday_based_week());
         ben.iter(|| date!(2019-03-01).monday_based_week());
@@ -133,7 +132,7 @@ setup_benchmark! {
         ben.iter(|| date!(2019-12-01).monday_based_week());
     }
 
-    fn to_calendar_date(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn to_calendar_date(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).to_calendar_date());
         ben.iter(|| date!(2019-02-01).to_calendar_date());
         ben.iter(|| date!(2019-03-01).to_calendar_date());
@@ -148,7 +147,7 @@ setup_benchmark! {
         ben.iter(|| date!(2019-12-01).to_calendar_date());
     }
 
-    fn to_ordinal_date(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn to_ordinal_date(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).to_ordinal_date());
         ben.iter(|| date!(2019-02-01).to_ordinal_date());
         ben.iter(|| date!(2019-03-01).to_ordinal_date());
@@ -163,7 +162,7 @@ setup_benchmark! {
         ben.iter(|| date!(2019-12-01).to_ordinal_date());
     }
 
-    fn to_iso_week_date(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn to_iso_week_date(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).to_iso_week_date());
         ben.iter(|| date!(2019-02-01).to_iso_week_date());
         ben.iter(|| date!(2019-03-01).to_iso_week_date());
@@ -178,7 +177,7 @@ setup_benchmark! {
         ben.iter(|| date!(2019-12-01).to_iso_week_date());
     }
 
-    fn weekday(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn weekday(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).weekday());
         ben.iter(|| date!(2019-02-01).weekday());
         ben.iter(|| date!(2019-03-01).weekday());
@@ -193,7 +192,7 @@ setup_benchmark! {
         ben.iter(|| date!(2019-12-01).weekday());
     }
 
-    fn next_day(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn next_day(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).next_day());
         ben.iter(|| date!(2019-02-01).next_day());
         ben.iter(|| date!(2019-12-31).next_day());
@@ -201,7 +200,7 @@ setup_benchmark! {
         ben.iter(|| Date::MAX.next_day());
     }
 
-    fn previous_day(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn previous_day(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-02).previous_day());
         ben.iter(|| date!(2019-02-01).previous_day());
         ben.iter(|| date!(2020-01-01).previous_day());
@@ -209,7 +208,7 @@ setup_benchmark! {
         ben.iter(|| Date::MIN.previous_day());
     }
 
-    fn to_julian_day(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn to_julian_day(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-01).to_julian_day());
         ben.iter(|| date!(2019-02-01).to_julian_day());
         ben.iter(|| date!(2019-03-01).to_julian_day());
@@ -226,43 +225,43 @@ setup_benchmark! {
     // endregion getters
 
     // region: attach time
-    fn midnight(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn midnight(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(1970-01-01).midnight());
     }
 
-    fn with_time(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn with_time(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(1970-01-01).with_time(Time::MIDNIGHT));
     }
 
-    fn with_hms(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn with_hms(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(1970-01-01).with_hms(0, 0, 0));
     }
 
-    fn with_hms_milli(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn with_hms_milli(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(1970-01-01).with_hms_milli(0, 0, 0, 0));
     }
 
-    fn with_hms_micro(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn with_hms_micro(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(1970-01-01).with_hms_micro(0, 0, 0, 0));
     }
 
-    fn with_hms_nano(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn with_hms_nano(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(1970-01-01).with_hms_nano(0, 0, 0, 0));
     }
     // endregion attach time
 
     // region: trait impls
-    fn add(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn add(ben: &mut Bencher<'_>) {
         let dt = 5.days();
         ben.iter(|| date!(2019-01-01) + dt);
     }
 
-    fn add_std(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn add_std(ben: &mut Bencher<'_>) {
         let dt = 5.std_days();
         ben.iter(|| date!(2019-01-01) + dt);
     }
 
-    fn add_assign(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn add_assign(ben: &mut Bencher<'_>) {
         let dt = 1.days();
         iter_batched_ref!(
             ben,
@@ -271,7 +270,7 @@ setup_benchmark! {
         );
     }
 
-    fn add_assign_std(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn add_assign_std(ben: &mut Bencher<'_>) {
         let dt = 1.std_days();
         iter_batched_ref!(
             ben,
@@ -280,17 +279,17 @@ setup_benchmark! {
         );
     }
 
-    fn sub(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn sub(ben: &mut Bencher<'_>) {
         let dt = 5.days();
         ben.iter(|| date!(2019-01-06) - dt);
     }
 
-    fn sub_std(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn sub_std(ben: &mut Bencher<'_>) {
         let dt = 5.std_days();
         ben.iter(|| date!(2019-01-06) - dt);
     }
 
-    fn sub_assign(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn sub_assign(ben: &mut Bencher<'_>) {
         let dt = 1.days();
         iter_batched_ref!(
             ben,
@@ -299,7 +298,7 @@ setup_benchmark! {
         );
     }
 
-    fn sub_assign_std(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn sub_assign_std(ben: &mut Bencher<'_>) {
         let dt = 1.std_days();
         iter_batched_ref!(
             ben,
@@ -308,11 +307,11 @@ setup_benchmark! {
         );
     }
 
-    fn sub_self(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn sub_self(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(2019-01-02) - date!(2019-01-01));
     }
 
-    fn partial_ord(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn partial_ord(ben: &mut Bencher<'_>) {
         let first = date!(2019-01-01);
         let second = date!(2019-01-02);
         ben.iter(|| first.partial_cmp(&first));
@@ -320,7 +319,7 @@ setup_benchmark! {
         ben.iter(|| second.partial_cmp(&first));
     }
 
-    fn ord(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn ord(ben: &mut Bencher<'_>) {
         let first = date!(2019-01-01);
         let second = date!(2019-01-02);
         ben.iter(|| first.cmp(&first));

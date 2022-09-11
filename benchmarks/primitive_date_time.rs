@@ -1,7 +1,6 @@
 use criterion::Bencher;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{datetime, offset};
-use criterion_cycles_per_byte::CyclesPerByte;
 
 setup_benchmark! {
     "PrimitiveDateTime",
@@ -10,18 +9,18 @@ setup_benchmark! {
     // a second time.
 
     // region: attach offset
-    fn assume_offset(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn assume_offset(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(2019-01-01 0:00).assume_offset(offset!(UTC)));
         ben.iter(|| datetime!(2019-01-01 0:00).assume_offset(offset!(-1)));
     }
 
-    fn assume_utc(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn assume_utc(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(2019-01-01 0:00).assume_utc());
     }
     // endregion attach offset
 
     // region: trait impls
-    fn add_duration(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn add_duration(ben: &mut Bencher<'_>) {
         let a = 5.days();
         let b = 1.days();
         let c = 2.seconds();
@@ -35,7 +34,7 @@ setup_benchmark! {
         ben.iter(|| datetime!(1999-12-31 23:00) + e);
     }
 
-    fn add_std_duration(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn add_std_duration(ben: &mut Bencher<'_>) {
         let a = 5.std_days();
         let b = 1.std_days();
         let c = 2.std_seconds();
@@ -45,7 +44,7 @@ setup_benchmark! {
         ben.iter(|| datetime!(2019-12-31 23:59:59) + c);
     }
 
-    fn add_assign_duration(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn add_assign_duration(ben: &mut Bencher<'_>) {
         let a = 1.days();
         let b = 1.seconds();
         iter_batched_ref!(
@@ -58,7 +57,7 @@ setup_benchmark! {
         );
     }
 
-    fn add_assign_std_duration(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn add_assign_std_duration(ben: &mut Bencher<'_>) {
         let a = 1.std_days();
         let b = 1.std_seconds();
         iter_batched_ref!(
@@ -71,7 +70,7 @@ setup_benchmark! {
         );
     }
 
-    fn sub_duration(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn sub_duration(ben: &mut Bencher<'_>) {
         let a = 5.days();
         let b = 1.days();
         let c = 2.seconds();
@@ -85,7 +84,7 @@ setup_benchmark! {
         ben.iter(|| datetime!(1999-12-31 23:00) - e);
     }
 
-    fn sub_std_duration(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn sub_std_duration(ben: &mut Bencher<'_>) {
         let a = 5.std_days();
         let b = 1.std_days();
         let c = 2.std_seconds();
@@ -95,7 +94,7 @@ setup_benchmark! {
         ben.iter(|| datetime!(2020-01-01 0:00:01) - c);
     }
 
-    fn sub_assign_duration(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn sub_assign_duration(ben: &mut Bencher<'_>) {
         let a = 1.days();
         let b = 1.seconds();
         iter_batched_ref!(
@@ -108,7 +107,7 @@ setup_benchmark! {
         );
     }
 
-    fn sub_assign_std_duration(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn sub_assign_std_duration(ben: &mut Bencher<'_>) {
         let a = 1.std_days();
         let b = 1.std_seconds();
         iter_batched_ref!(
@@ -121,14 +120,14 @@ setup_benchmark! {
         );
     }
 
-    fn sub_datetime(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn sub_datetime(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(2019-01-02 0:00) - datetime!(2019-01-01 0:00));
         ben.iter(|| datetime!(2019-01-01 0:00) - datetime!(2019-01-02 0:00));
         ben.iter(|| datetime!(2020-01-01 0:00) - datetime!(2019-12-31 0:00));
         ben.iter(|| datetime!(2019-12-31 0:00) - datetime!(2020-01-01 0:00));
     }
 
-    fn ord(ben: &mut Bencher<'_, CyclesPerByte>) {
+    fn ord(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(2019-01-01 0:00).partial_cmp(&datetime!(2019-01-01 0:00)));
         ben.iter(|| datetime!(2019-01-01 0:00).partial_cmp(&datetime!(2020-01-01 0:00)));
         ben.iter(|| datetime!(2019-01-01 0:00).partial_cmp(&datetime!(2019-02-01 0:00)));
