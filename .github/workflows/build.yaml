@@ -381,7 +381,6 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-          components: llvm-tools-preview
 
       - name: Install cargo-llvm-cov
         run: |
@@ -390,9 +389,9 @@ jobs:
       - name: Generate coverage report
         run: |
           cargo llvm-cov clean --workspace
-          cargo llvm-cov --no-report --all-features -- --test-threads=1
-          RUSTFLAGS="--cfg __ui_tests" cargo llvm-cov --no-report --tests --all-features -- compile_fail
-          cargo llvm-cov --no-run --lcov > lcov.txt
+          cargo llvm-cov test --no-report --all-features -- --test-threads=1
+          RUSTFLAGS="--cfg __ui_tests" cargo llvm-cov test --no-report --tests --all-features -- compile_fail
+          cargo llvm-cov report --lcov > lcov.txt
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v1
