@@ -53,6 +53,7 @@ fn weekday_json() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(serialize(Monday, Readable)?, "\"Monday\"");
     assert_eq!(deserialize::<Weekday>("\"Monday\"", Readable)?, Monday);
+    assert_eq!(deserialize::<Weekday>("1", Readable)?, Monday);
 
     Ok(())
 }
@@ -66,17 +67,21 @@ fn month_json() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(serialize(March, Readable)?, "\"March\"");
     assert_eq!(deserialize::<Month>("\"March\"", Readable)?, March);
+    assert_eq!(deserialize::<Month>("3", Readable)?, March);
 
     Ok(())
 }
 
 #[test]
 fn time_json() -> Result<(), Box<dyn Error>> {
-    assert_eq!(serialize(Time::from_hms(12, 40, 20)?, Compact)?, "[12,40,20,0]");
-    assert_eq!(deserialize::<Time>("[12,40,20,0]", Compact)?, Time::from_hms(12, 40, 20)?);
+    let time = Time::from_hms(12, 40, 20)?;
 
-    assert_eq!(serialize(Time::from_hms(12, 40, 20)?, Readable)?, "\"12:40:20.0\"");
-    assert_eq!(deserialize::<Time>("\"12:40:20.0\"", Readable)?, Time::from_hms(12, 40, 20)?);
+    assert_eq!(serialize(time, Compact)?, "[12,40,20,0]");
+    assert_eq!(deserialize::<Time>("[12,40,20,0]", Compact)?, time);
+
+    assert_eq!(serialize(time, Readable)?, "\"12:40:20.0\"");
+    assert_eq!(deserialize::<Time>("\"12:40:20.0\"", Readable)?, time);
+    assert_eq!(deserialize::<Time>("[12,40,20,0]", Readable)?, time);
 
     Ok(())
 }
@@ -90,6 +95,7 @@ fn primitive_datetime_json() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(serialize(dt, Readable)?, "\"2022-05-20 12:40:20.0\"");
     assert_eq!(deserialize::<PrimitiveDateTime>("\"2022-05-20 12:40:20.0\"", Readable)?, dt);
+    assert_eq!(deserialize::<PrimitiveDateTime>("[2022,140,12,40,20,0]", Readable)?, dt);
 
     Ok(())
 }
@@ -104,6 +110,7 @@ fn offset_datetime_json() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(serialize(dt, Readable)?, "\"2022-05-20 12:40:20.0 +00:00:00\"");
     assert_eq!(deserialize::<OffsetDateTime>("\"2022-05-20 12:40:20.0 +00:00:00\"", Readable)?, dt);
+    assert_eq!(deserialize::<OffsetDateTime>("[2022,140,12,40,20,0,0,0,0]", Readable)?, dt);
 
     Ok(())
 }
@@ -117,6 +124,7 @@ fn duration_json() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(serialize(dur, Readable)?, "\"50.000000000\"");
     assert_eq!(deserialize::<Duration>("\"50.000000000\"", Readable)?, dur);
+    assert_eq!(deserialize::<Duration>("[50,0]", Readable)?, dur);
 
     Ok(())
 }
@@ -130,6 +138,7 @@ fn date_json() -> Result<(), Box<dyn Error>> {
 
     assert_eq!(serialize(date, Readable)?, "\"2022-04-05\"");
     assert_eq!(deserialize::<Date>("\"2022-04-05\"", Readable)?, date);
+    assert_eq!(deserialize::<Date>("[2022,95]", Readable)?, date);
 
     Ok(())
 }
