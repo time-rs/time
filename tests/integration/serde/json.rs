@@ -3,6 +3,7 @@ use std::error::Error;
 use serde::{Deserialize, Serialize};
 use serde_test::Configure;
 use time::{Weekday, Time, Month, PrimitiveDateTime, Date, OffsetDateTime, Duration};
+use time::macros::{time, date, datetime};
 
 enum Format {
     Compact,
@@ -74,7 +75,7 @@ fn month_json() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn time_json() -> Result<(), Box<dyn Error>> {
-    let time = Time::from_hms(12, 40, 20)?;
+    let time = time!(12:40:20);
 
     assert_eq!(serialize(time, Compact)?, "[12,40,20,0]");
     assert_eq!(deserialize::<Time>("[12,40,20,0]", Compact)?, time);
@@ -88,7 +89,7 @@ fn time_json() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn primitive_datetime_json() -> Result<(), Box<dyn Error>> {
-    let dt = PrimitiveDateTime::new(Date::from_ordinal_date(2022, 140)?, Time::from_hms(12, 40, 20)?);
+    let dt = datetime!(2022-05-20 12:40:20);
 
     assert_eq!(serialize(dt, Compact)?, "[2022,140,12,40,20,0]");
     assert_eq!(deserialize::<PrimitiveDateTime>("[2022,140,12,40,20,0]", Compact)?, dt);
@@ -102,8 +103,7 @@ fn primitive_datetime_json() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn offset_datetime_json() -> Result<(), Box<dyn Error>> {
-    let dt = PrimitiveDateTime::new(Date::from_ordinal_date(2022, 140)?, Time::from_hms(12, 40, 20)?);
-    let dt = dt.assume_utc();
+    let dt = datetime!(2022-05-20 12:40:20).assume_utc();
 
     assert_eq!(serialize(dt, Compact)?, "[2022,140,12,40,20,0,0,0,0]");
     assert_eq!(deserialize::<OffsetDateTime>("[2022,140,12,40,20,0,0,0,0]", Compact)?, dt);
@@ -131,7 +131,7 @@ fn duration_json() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn date_json() -> Result<(), Box<dyn Error>> {
-    let date = Date::from_calendar_date(2022, Month::April, 5)?;
+    let date = date!(2022-04-05);
 
     assert_eq!(serialize(date, Compact)?, "[2022,95]");
     assert_eq!(deserialize::<Date>("[2022,95]", Compact)?, date);
