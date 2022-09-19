@@ -194,22 +194,6 @@ impl<'a> de::Visitor<'a> for Visitor<Weekday> {
         }
     }
 
-    fn visit_i64<E: de::Error>(self, value: i64) -> Result<Weekday, E> {
-        match value {
-            1 => Ok(Weekday::Monday),
-            2 => Ok(Weekday::Tuesday),
-            3 => Ok(Weekday::Wednesday),
-            4 => Ok(Weekday::Thursday),
-            5 => Ok(Weekday::Friday),
-            6 => Ok(Weekday::Saturday),
-            7 => Ok(Weekday::Sunday),
-            _ => Err(E::invalid_value(
-                de::Unexpected::Signed(value),
-                &"a value in the range 1..=7",
-            )),
-        }
-    }
-
     fn visit_u64<E: de::Error>(self, value: u64) -> Result<Weekday, E> {
         match value {
             1 => Ok(Weekday::Monday),
@@ -249,27 +233,6 @@ impl<'a> de::Visitor<'a> for Visitor<Month> {
             "November" => Ok(Month::November),
             "December" => Ok(Month::December),
             _ => Err(E::invalid_value(de::Unexpected::Str(value), &"a `Month`")),
-        }
-    }
-
-    fn visit_i64<E: de::Error>(self, value: i64) -> Result<Month, E> {
-        match value {
-            1 => Ok(Month::January),
-            2 => Ok(Month::February),
-            3 => Ok(Month::March),
-            4 => Ok(Month::April),
-            5 => Ok(Month::May),
-            6 => Ok(Month::June),
-            7 => Ok(Month::July),
-            8 => Ok(Month::August),
-            9 => Ok(Month::September),
-            10 => Ok(Month::October),
-            11 => Ok(Month::November),
-            12 => Ok(Month::December),
-            _ => Err(E::invalid_value(
-                de::Unexpected::Signed(value),
-                &"a value in the range 1..=12",
-            )),
         }
     }
 
