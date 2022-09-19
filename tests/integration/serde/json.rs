@@ -2,8 +2,8 @@ use std::error::Error;
 
 use serde::{Deserialize, Serialize};
 use serde_test::Configure;
-use time::{Weekday, Time, Month, PrimitiveDateTime, Date, OffsetDateTime, Duration};
-use time::macros::{time, date, datetime};
+use time::macros::{date, datetime, time};
+use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, Weekday};
 
 enum Format {
     Compact,
@@ -92,11 +92,20 @@ fn primitive_datetime_json() -> Result<(), Box<dyn Error>> {
     let dt = datetime!(2022-05-20 12:40:20);
 
     assert_eq!(serialize(dt, Compact)?, "[2022,140,12,40,20,0]");
-    assert_eq!(deserialize::<PrimitiveDateTime>("[2022,140,12,40,20,0]", Compact)?, dt);
+    assert_eq!(
+        deserialize::<PrimitiveDateTime>("[2022,140,12,40,20,0]", Compact)?,
+        dt
+    );
 
     assert_eq!(serialize(dt, Readable)?, "\"2022-05-20 12:40:20.0\"");
-    assert_eq!(deserialize::<PrimitiveDateTime>("\"2022-05-20 12:40:20.0\"", Readable)?, dt);
-    assert_eq!(deserialize::<PrimitiveDateTime>("[2022,140,12,40,20,0]", Readable)?, dt);
+    assert_eq!(
+        deserialize::<PrimitiveDateTime>("\"2022-05-20 12:40:20.0\"", Readable)?,
+        dt
+    );
+    assert_eq!(
+        deserialize::<PrimitiveDateTime>("[2022,140,12,40,20,0]", Readable)?,
+        dt
+    );
 
     Ok(())
 }
@@ -106,11 +115,23 @@ fn offset_datetime_json() -> Result<(), Box<dyn Error>> {
     let dt = datetime!(2022-05-20 12:40:20).assume_utc();
 
     assert_eq!(serialize(dt, Compact)?, "[2022,140,12,40,20,0,0,0,0]");
-    assert_eq!(deserialize::<OffsetDateTime>("[2022,140,12,40,20,0,0,0,0]", Compact)?, dt);
+    assert_eq!(
+        deserialize::<OffsetDateTime>("[2022,140,12,40,20,0,0,0,0]", Compact)?,
+        dt
+    );
 
-    assert_eq!(serialize(dt, Readable)?, "\"2022-05-20 12:40:20.0 +00:00:00\"");
-    assert_eq!(deserialize::<OffsetDateTime>("\"2022-05-20 12:40:20.0 +00:00:00\"", Readable)?, dt);
-    assert_eq!(deserialize::<OffsetDateTime>("[2022,140,12,40,20,0,0,0,0]", Readable)?, dt);
+    assert_eq!(
+        serialize(dt, Readable)?,
+        "\"2022-05-20 12:40:20.0 +00:00:00\""
+    );
+    assert_eq!(
+        deserialize::<OffsetDateTime>("\"2022-05-20 12:40:20.0 +00:00:00\"", Readable)?,
+        dt
+    );
+    assert_eq!(
+        deserialize::<OffsetDateTime>("[2022,140,12,40,20,0,0,0,0]", Readable)?,
+        dt
+    );
 
     Ok(())
 }
@@ -131,7 +152,7 @@ fn duration_json() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn date_json() -> Result<(), Box<dyn Error>> {
-    let date = date!(2022-04-05);
+    let date = date!(2022 - 04 - 05);
 
     assert_eq!(serialize(date, Compact)?, "[2022,95]");
     assert_eq!(deserialize::<Date>("[2022,95]", Compact)?, date);
