@@ -194,7 +194,7 @@ impl<'a> de::Visitor<'a> for Visitor<Weekday> {
         }
     }
 
-    fn visit_u8<E: de::Error>(self, value: u8) -> Result<Weekday, E> {
+    fn visit_u64<E: de::Error>(self, value: u64) -> Result<Weekday, E> {
         match value {
             1 => Ok(Weekday::Monday),
             2 => Ok(Weekday::Tuesday),
@@ -204,7 +204,7 @@ impl<'a> de::Visitor<'a> for Visitor<Weekday> {
             6 => Ok(Weekday::Saturday),
             7 => Ok(Weekday::Sunday),
             _ => Err(E::invalid_value(
-                de::Unexpected::Unsigned(value.into()),
+                de::Unexpected::Unsigned(value),
                 &"a value in the range 1..=7",
             )),
         }
@@ -236,7 +236,7 @@ impl<'a> de::Visitor<'a> for Visitor<Month> {
         }
     }
 
-    fn visit_u8<E: de::Error>(self, value: u8) -> Result<Month, E> {
+    fn visit_u64<E: de::Error>(self, value: u64) -> Result<Month, E> {
         match value {
             1 => Ok(Month::January),
             2 => Ok(Month::February),
@@ -251,7 +251,7 @@ impl<'a> de::Visitor<'a> for Visitor<Month> {
             11 => Ok(Month::November),
             12 => Ok(Month::December),
             _ => Err(E::invalid_value(
-                de::Unexpected::Unsigned(value.into()),
+                de::Unexpected::Unsigned(value),
                 &"a value in the range 1..=12",
             )),
         }
