@@ -90,6 +90,10 @@
 #![deny(
     anonymous_parameters,
     clippy::all,
+    clippy::alloc_instead_of_core,
+    clippy::explicit_auto_deref,
+    clippy::obfuscated_if_else,
+    clippy::std_instead_of_core,
     clippy::undocumented_unsafe_blocks,
     const_err,
     illegal_floating_point_literal_pattern,

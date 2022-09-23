@@ -1,9 +1,9 @@
 //! The [`Instant`] struct and its associated `impl`s.
 
+use core::borrow::Borrow;
 use core::cmp::{Ord, Ordering, PartialEq, PartialOrd};
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
-use std::borrow::Borrow;
 use std::time::Instant as StdInstant;
 
 use crate::Duration;

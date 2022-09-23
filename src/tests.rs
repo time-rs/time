@@ -1,7 +1,8 @@
 #![allow(
     clippy::let_underscore_drop,
     clippy::clone_on_copy,
-    clippy::cognitive_complexity
+    clippy::cognitive_complexity,
+    clippy::std_instead_of_core
 )]
 
 //! Tests for internal details.

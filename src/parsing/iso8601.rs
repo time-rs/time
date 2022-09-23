@@ -56,16 +56,14 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
                 Err(err) => err,
             };
 
-            match dayo(input) {
-                Some(ParsedItem(input, ordinal)) => {
-                    *parsed = parsed
-                        .with_year(year)
-                        .ok_or(InvalidComponent("year"))?
-                        .with_ordinal(ordinal)
-                        .ok_or(InvalidComponent("ordinal"))?;
-                    return Ok(input);
-                }
-                None => {} // The error from year-month-day will always take priority.
+            // Don't check for `None`, as the error from year-month-day will always take priority.
+            if let Some(ParsedItem(input, ordinal)) = dayo(input) {
+                *parsed = parsed
+                    .with_year(year)
+                    .ok_or(InvalidComponent("year"))?
+                    .with_ordinal(ordinal)
+                    .ok_or(InvalidComponent("ordinal"))?;
+                return Ok(input);
             }
 
             match (|| {
