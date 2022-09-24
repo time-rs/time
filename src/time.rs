@@ -42,17 +42,6 @@ pub struct Time {
     padding: Padding,
 }
 
-impl fmt::Debug for Time {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Time")
-            .field("hour", &self.hour)
-            .field("minute", &self.minute)
-            .field("second", &self.second)
-            .field("nanosecond", &self.nanosecond)
-            .finish()
-    }
-}
-
 impl Time {
     /// Create a `Time` that is exactly midnight.
     ///
@@ -654,6 +643,12 @@ impl fmt::Display for Time {
             "{}:{:02}:{:02}.{value:0width$}",
             self.hour, self.minute, self.second,
         )
+    }
+}
+
+impl fmt::Debug for Time {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 // endregion formatting & parsing

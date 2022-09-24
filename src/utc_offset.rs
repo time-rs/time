@@ -20,7 +20,7 @@ use crate::OffsetDateTime;
 /// This struct can store values up to ±23:59:59. If you need support outside this range, please
 /// file an issue with your use case.
 // All three components _must_ have the same sign.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct UtcOffset {
     #[allow(clippy::missing_docs_in_private_items)]
     hours: i8,
@@ -324,6 +324,12 @@ impl fmt::Display for UtcOffset {
             self.minutes.abs(),
             self.seconds.abs()
         )
+    }
+}
+
+impl fmt::Debug for UtcOffset {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 // endregion formatting & parsing
