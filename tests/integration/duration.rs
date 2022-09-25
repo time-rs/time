@@ -82,6 +82,9 @@ fn new() {
     assert_eq!(Duration::new(1, -1_400_000_000), (-400).milliseconds());
     assert_eq!(Duration::new(2, -1_400_000_000), 600.milliseconds());
     assert_eq!(Duration::new(3, -1_400_000_000), 1_600.milliseconds());
+
+    assert_panic!(Duration::new(i64::MAX, 1_000_000_000));
+    assert_panic!(Duration::new(i64::MIN, -1_000_000_000));
 }
 
 #[test]
@@ -90,6 +93,9 @@ fn weeks() {
     assert_eq!(Duration::weeks(2), (2 * 604_800).seconds());
     assert_eq!(Duration::weeks(-1), (-604_800).seconds());
     assert_eq!(Duration::weeks(-2), (2 * -604_800).seconds());
+
+    assert_panic!(Duration::weeks(i64::MAX));
+    assert_panic!(Duration::weeks(i64::MIN));
 }
 
 #[test]
@@ -106,6 +112,9 @@ fn days() {
     assert_eq!(Duration::days(2), (2 * 86_400).seconds());
     assert_eq!(Duration::days(-1), (-86_400).seconds());
     assert_eq!(Duration::days(-2), (2 * -86_400).seconds());
+
+    assert_panic!(Duration::days(i64::MAX));
+    assert_panic!(Duration::days(i64::MIN));
 }
 
 #[test]
@@ -122,6 +131,9 @@ fn hours() {
     assert_eq!(Duration::hours(2), (2 * 3_600).seconds());
     assert_eq!(Duration::hours(-1), (-3_600).seconds());
     assert_eq!(Duration::hours(-2), (2 * -3_600).seconds());
+
+    assert_panic!(Duration::hours(i64::MAX));
+    assert_panic!(Duration::hours(i64::MIN));
 }
 
 #[test]
@@ -138,6 +150,9 @@ fn minutes() {
     assert_eq!(Duration::minutes(2), (2 * 60).seconds());
     assert_eq!(Duration::minutes(-1), (-60).seconds());
     assert_eq!(Duration::minutes(-2), (2 * -60).seconds());
+
+    assert_panic!(Duration::minutes(i64::MAX));
+    assert_panic!(Duration::minutes(i64::MIN));
 }
 
 #[test]
@@ -168,6 +183,9 @@ fn whole_seconds() {
 fn seconds_f64() {
     assert_eq!(Duration::seconds_f64(0.5), 0.5.seconds());
     assert_eq!(Duration::seconds_f64(-0.5), (-0.5).seconds());
+
+    assert_panic!(Duration::seconds_f64(f64::MAX));
+    assert_panic!(Duration::seconds_f64(f64::MIN));
 }
 
 #[test]
@@ -185,6 +203,9 @@ fn as_seconds_f64() {
 fn seconds_f32() {
     assert_eq!(Duration::seconds_f32(0.5), 0.5.seconds());
     assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
+
+    assert_panic!(Duration::seconds_f32(f32::MAX));
+    assert_panic!(Duration::seconds_f32(f32::MIN));
 }
 
 #[test]
@@ -600,6 +621,9 @@ fn std_sub_assign_overflow() {
 fn mul_int() {
     assert_eq!(1.seconds() * 2, 2.seconds());
     assert_eq!(1.seconds() * -2, (-2).seconds());
+
+    assert_panic!(Duration::MAX * 2);
+    assert_panic!(Duration::MIN * 2);
 }
 
 #[test]

@@ -283,6 +283,18 @@ macro_rules! const_try_opt {
         }
     };
 }
+
+/// Try to unwrap an expression, panicking if not possible.
+///
+/// This is similar to `$e.expect($message)`, but is usable in `const` contexts.
+macro_rules! expect_opt {
+    ($e:expr, $message:literal) => {
+        match $e {
+            Some(value) => value,
+            None => crate::expect_failed($message),
+        }
+    };
+}
 // endregion macros
 
 mod date;
@@ -334,3 +346,11 @@ pub use crate::weekday::Weekday;
 
 /// An alias for [`std::result::Result`] with a generic error from the time crate.
 pub type Result<T> = core::result::Result<T, Error>;
+
+/// This is a separate function to reduce the code size of `expect_opt!`.
+#[inline(never)]
+#[cold]
+#[track_caller]
+const fn expect_failed(message: &str) -> ! {
+    panic!("{}", message)
+}

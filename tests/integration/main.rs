@@ -71,6 +71,16 @@ macro_rules! modifier {
     (@value $field:ident $value:expr) => ($value);
 }
 
+/// Assert that the given expression panics.
+macro_rules! assert_panic {
+    ($($x:tt)*) => {
+        assert!(std::panic::catch_unwind(|| {
+            $($x)*
+        })
+        .is_err())
+    }
+}
+
 mod date;
 mod derives;
 mod duration;

@@ -51,14 +51,8 @@ fn to_offset() {
 
 #[test]
 fn to_offset_panic() {
-    assert!(
-        std::panic::catch_unwind(|| { PrimitiveDateTime::MAX.assume_utc().to_offset(offset!(+1)) })
-            .is_err()
-    );
-    assert!(
-        std::panic::catch_unwind(|| { PrimitiveDateTime::MIN.assume_utc().to_offset(offset!(-1)) })
-            .is_err()
-    );
+    assert_panic!(PrimitiveDateTime::MAX.assume_utc().to_offset(offset!(+1)));
+    assert_panic!(PrimitiveDateTime::MIN.assume_utc().to_offset(offset!(-1)));
 }
 
 #[test]

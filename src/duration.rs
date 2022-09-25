@@ -227,13 +227,18 @@ impl Duration {
     /// assert_eq!(Duration::new(1, 2_000_000_000), 3.seconds());
     /// ```
     pub const fn new(mut seconds: i64, mut nanoseconds: i32) -> Self {
-        seconds += nanoseconds as i64 / 1_000_000_000;
+        seconds = expect_opt!(
+            seconds.checked_add(nanoseconds as i64 / 1_000_000_000),
+            "overflow constructing `time::Duration`"
+        );
         nanoseconds %= 1_000_000_000;
 
         if seconds > 0 && nanoseconds < 0 {
+            // `seconds` cannot overflow here because it is positive.
             seconds -= 1;
             nanoseconds += 1_000_000_000;
         } else if seconds < 0 && nanoseconds > 0 {
+            // `seconds` cannot overflow here because it is negative.
             seconds += 1;
             nanoseconds -= 1_000_000_000;
         }
@@ -249,7 +254,10 @@ impl Duration {
     /// assert_eq!(Duration::weeks(1), 604_800.seconds());
     /// ```
     pub const fn weeks(weeks: i64) -> Self {
-        Self::seconds(weeks * 604_800)
+        Self::seconds(expect_opt!(
+            weeks.checked_mul(604_800),
+            "overflow constructing `time::Duration`"
+        ))
     }
 
     /// Create a new `Duration` with the given number of days. Equivalent to
@@ -260,7 +268,10 @@ impl Duration {
     /// assert_eq!(Duration::days(1), 86_400.seconds());
     /// ```
     pub const fn days(days: i64) -> Self {
-        Self::seconds(days * 86_400)
+        Self::seconds(expect_opt!(
+            days.checked_mul(86_400),
+            "overflow constructing `time::Duration`"
+        ))
     }
 
     /// Create a new `Duration` with the given number of hours. Equivalent to
@@ -271,7 +282,10 @@ impl Duration {
     /// assert_eq!(Duration::hours(1), 3_600.seconds());
     /// ```
     pub const fn hours(hours: i64) -> Self {
-        Self::seconds(hours * 3_600)
+        Self::seconds(expect_opt!(
+            hours.checked_mul(3_600),
+            "overflow constructing `time::Duration`"
+        ))
     }
 
     /// Create a new `Duration` with the given number of minutes. Equivalent to
@@ -282,7 +296,10 @@ impl Duration {
     /// assert_eq!(Duration::minutes(1), 60.seconds());
     /// ```
     pub const fn minutes(minutes: i64) -> Self {
-        Self::seconds(minutes * 60)
+        Self::seconds(expect_opt!(
+            minutes.checked_mul(60),
+            "overflow constructing `time::Duration`"
+        ))
     }
 
     /// Create a new `Duration` with the given number of seconds.
@@ -303,6 +320,9 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f64(-0.5), -0.5.seconds());
     /// ```
     pub fn seconds_f64(seconds: f64) -> Self {
+        if seconds > i64::MAX as f64 || seconds < i64::MIN as f64 {
+            crate::expect_failed("overflow constructing `time::Duration`");
+        }
         Self::new_unchecked(seconds as _, ((seconds % 1.) * 1_000_000_000.) as _)
     }
 
@@ -314,6 +334,9 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
     /// ```
     pub fn seconds_f32(seconds: f32) -> Self {
+        if seconds > i64::MAX as f32 || seconds < i64::MIN as f32 {
+            crate::expect_failed("overflow constructing `time::Duration`");
+        }
         Self::new_unchecked(seconds as _, ((seconds % 1.) * 1_000_000_000.) as _)
     }
 
@@ -364,10 +387,14 @@ impl Duration {
     /// As the input range cannot be fully mapped to the output, this should only be used where it's
     /// known to result in a valid value.
     pub(crate) const fn nanoseconds_i128(nanoseconds: i128) -> Self {
-        Self::new_unchecked(
-            (nanoseconds / 1_000_000_000) as _,
-            (nanoseconds % 1_000_000_000) as _,
-        )
+        let seconds = nanoseconds / 1_000_000_000;
+        let nanoseconds = nanoseconds % 1_000_000_000;
+
+        if seconds > i64::MAX as i128 || seconds < i64::MIN as i128 {
+            crate::expect_failed("overflow constructing `time::Duration`");
+        }
+
+        Self::new_unchecked(seconds as _, nanoseconds as _)
     }
     // endregion constructors
 
