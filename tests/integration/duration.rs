@@ -186,6 +186,7 @@ fn seconds_f64() {
 
     assert_panic!(Duration::seconds_f64(f64::MAX));
     assert_panic!(Duration::seconds_f64(f64::MIN));
+    assert_panic!(Duration::seconds_f64(f64::NAN));
 }
 
 #[test]
@@ -206,6 +207,7 @@ fn seconds_f32() {
 
     assert_panic!(Duration::seconds_f32(f32::MAX));
     assert_panic!(Duration::seconds_f32(f32::MIN));
+    assert_panic!(Duration::seconds_f32(f32::NAN));
 }
 
 #[test]

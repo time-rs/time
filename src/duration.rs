@@ -323,6 +323,9 @@ impl Duration {
         if seconds > i64::MAX as f64 || seconds < i64::MIN as f64 {
             crate::expect_failed("overflow constructing `time::Duration`");
         }
+        if seconds.is_nan() {
+            crate::expect_failed("passed NaN to `time::Duration::seconds_f64`");
+        }
         Self::new_unchecked(seconds as _, ((seconds % 1.) * 1_000_000_000.) as _)
     }
 
@@ -336,6 +339,9 @@ impl Duration {
     pub fn seconds_f32(seconds: f32) -> Self {
         if seconds > i64::MAX as f32 || seconds < i64::MIN as f32 {
             crate::expect_failed("overflow constructing `time::Duration`");
+        }
+        if seconds.is_nan() {
+            crate::expect_failed("passed NaN to `time::Duration::seconds_f32`");
         }
         Self::new_unchecked(seconds as _, ((seconds % 1.) * 1_000_000_000.) as _)
     }
