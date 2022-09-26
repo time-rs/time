@@ -1,31 +1,33 @@
-name: "Scheduled tasks"
+name: Scheduled tasks
 
 on:
   schedule:
     - cron: "0 0 * * 1,5" # midnight on Monday, Friday
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
 
 jobs:
   stale:
     name: Close stale PRs
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/stale@v2
+      - uses: actions/stale@v6
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          stale-pr-message: "This pull request has not had any activity recently. It will be closed without further activity."
-
-          days-before-stale: 14
+          enable-statistics: false
+          stale-pr-message: This pull request has not had any activity recently. It will be closed without further activity.
+          days-before-stale: 30
           days-before-close: 7
-
-          stale-pr-label: "C-stale"
-          exempt-pr-labels: "C-keep-open"
+          stale-pr-label: C-stale
+          exempt-pr-labels: C-keep-open
 
   security-audit:
     name: Security audit
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Audit dependencies
         uses: actions-rs/audit-check@v1

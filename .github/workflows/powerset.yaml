@@ -2,10 +2,38 @@ name: "Check powerset"
 
 env:
   RUSTFLAGS: -Dwarnings
+  TARGETS: '{
+    "no_std": [
+    "thumbv7em-none-eabihf"
+    ],
+    "std_no_offset": [
+    "aarch64-fuchsia",
+    "x86_64-fuchsia"
+    ],
+    "std_with_offset": [
+    "aarch64-unknown-linux-gnu",
+    "i686-pc-windows-gnu",
+    "i686-pc-windows-msvc",
+    "i686-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "x86_64-pc-windows-gnu",
+    "x86_64-pc-windows-msvc",
+    "x86_64-unknown-linux-gnu",
+    "aarch64-linux-android",
+    "wasm32-wasi",
+    "x86_64-linux-android",
+    "x86_64-unknown-netbsd",
+    "x86_64-unknown-illumos"
+    ]
+    }'
 
 concurrency:
   group: powerset-${{ github.head_ref }}
   cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
 
 on:
   schedule:
@@ -19,120 +47,71 @@ on:
   workflow_dispatch:
 
 jobs:
-  check-powerset:
-    name: Type checking (${{ matrix.target.name }})
+  check:
+    name: Type checking (${{ matrix.kind.name }}, ${{ matrix.rust.name }})
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
-        target:
-          # All tier 1 platforms as of 2022-01-26
-          - name: ARM64 Linux
-            triple: aarch64-unknown-linux-gnu
-            has_std: true
-          - name: 32-bit MinGW
-            triple: i686-pc-windows-gnu
-            has_std: true
-          - name: 32-bit MSVC
-            triple: i686-pc-windows-msvc
-            has_std: true
-          - name: 32-bit Linux
-            triple: i686-unknown-linux-gnu
-            has_std: true
-          - name: 64-bit macOS
-            triple: x86_64-apple-darwin
-            has_std: true
-          - name: 64-bit MinGW
-            triple: x86_64-pc-windows-gnu
-            has_std: true
-          - name: 64-bit MSVC
-            triple: x86_64-pc-windows-msvc
-            has_std: true
-          - name: 64-bit Linux
-            triple: x86_64-unknown-linux-gnu
-            has_std: true
-          # Select tier 2 platforms as of 2022-01-26
-          - name: ARM64 Fuchsia
-            triple: aarch64-fuchsia
-            has_std: true
-          - name: ARM64 Android
-            triple: aarch64-linux-android
-            has_std: true
-          - name: Bare Cortex
-            triple: thumbv7em-none-eabihf
-            has_std: false
-          - name: WASI
-            triple: wasm32-wasi
-            has_std: true
-          - name: 64-bit Fuchsia
-            triple: x86_64-fuchsia
-            has_std: true
-          - name: 64-bit x86 Android
-            triple: x86_64-linux-android
-            has_std: true,
-          - name: NetBSD
-            triple: x86_64-unknown-netbsd
-            has_std: true
-          - name: Illumos
-            triple: x86_64-unknown-illumos
-            has_std: true
+        rust:
+          - { version: "1.59.0", name: MSRV }
+          - { version: stable, name: stable }
+        kind:
+          - name: no_std
+            query: .no_std + .std_no_offset + .std_with_offset
+            exclude_features:
+              - std
+              - local-offset
+              - quickcheck
+              - formatting
+              - serde-human-readable
+              - serde-well-known
+          - name: std_no_offset
+            query: .std_no_offset + .std_with_offset
+            exclude_features: [local-offset]
+            enable_features: [std]
+          - name: std_with_offset
+            query: .std_with_offset
+            enable_features: [std, local-offset]
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Generate target list
+        run: jq -r 'env.TARGETS | ${{ matrix.kind.query }} | join(",") | "TARGET_LIST=" + .' >> $GITHUB_ENV
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
-          toolchain: stable
-          target: ${{ matrix.target.triple }}
-          override: true
+          targets: ${{ env.TARGET_LIST }}
+          toolchain: ${{ matrix.rust.version}}
 
       - name: Install cargo-hack
         shell: bash
         run: |
-          curl -LsSf https://github.com/taiki-e/cargo-hack/releases/latest/download/cargo-hack-x86_64-unknown-linux-gnu.tar.gz | tar xzf - -C ~/.cargo/bin
+          curl -LsSf https://github.com/taiki-e/cargo-hack/releases/latest/download/cargo-hack-x86_64-unknown-linux-gnu.tar.gz \
+          | tar xzf - -C ~/.cargo/bin
 
       - name: Check feature powerset
-        uses: actions-rs/cargo@v1
-        with:
-          command: hack
-          args: |
-            check
-            --no-dev-deps
-            --version-range 1.59..
-            --clean-per-version
-            --feature-powerset
-            --optional-deps
-            --exclude-features default,std,local-offset,quickcheck,quickcheck-dep,time-macros,formatting,itoa,serde-human-readable,serde-well-known,js-sys,wasm-bindgen
-            --exclude-all-features
-            --target ${{ matrix.target.triple }}
-        if: matrix.target.has_std == false
-
-      - name: Check feature powerset
-        uses: actions-rs/cargo@v1
-        with:
-          command: hack
-          args: |
-            check
-            --no-dev-deps
-            --version-range 1.59..
-            --clean-per-version
-            --feature-powerset
-            --optional-deps
-            --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen
-            --target ${{ matrix.target.triple }}
-        if: matrix.target.has_std == true
+        run: |
+          | jq -r 'env.TARGETS | ${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
+          | xargs -d" " \
+          cargo hack check \
+          --no-dev-deps \
+          --feature-powerset \
+          --optional-deps \
+          --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen,${{
+            join(matrix.kind.exclude_features)
+          }} ${{ matrix.kind.enable_features && format('--features {0}', join(matrix.kind.enable_features)) }}
 
   release:
     name: Create release
     if: startsWith(github.ref, 'refs/tags') && github.run_attempt == 1
-    needs: check-powerset
+    needs: check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Create release
         uses: actions/create-release@v1
@@ -141,7 +120,7 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
-          body: "See the [changelog](https://github.com/time-rs/time/blob/main/CHANGELOG.md) for details."
+          body: See the [changelog](https://github.com/time-rs/time/blob/main/CHANGELOG.md) for details.
           draft: false
           prerelease: |
             ${{

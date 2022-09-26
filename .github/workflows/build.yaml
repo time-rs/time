@@ -6,6 +6,25 @@ concurrency:
 
 env:
   CARGO_INCREMENTAL: 0
+  TYPE_CHECK_TARGETS: '{
+    "no_std": [
+    "thumbv7em-none-eabihf"
+    ],
+    "std_no_offset": [
+    "x86_64-unknown-netbsd",
+    "x86_64-unknown-illumos",
+    "wasm32-wasi"
+    ],
+    "std_with_offset": [
+    "x86_64-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "x86_64-pc-windows-gnu"
+    ]
+    }'
+
+defaults:
+  run:
+    shell: bash
 
 on:
   push:
@@ -26,142 +45,112 @@ on:
       - logo.svg
 
 jobs:
-  check-other-targets:
-    name: Type checking (${{ matrix.target.name }}, ${{ matrix.rust.name }})
+  check-targets:
+    name: Type checking (${{ matrix.rust.name }}, ${{ matrix.kind.name }})
     runs-on: ubuntu-20.04
-    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
     strategy:
       matrix:
         rust:
-          - { version: "1.59", name: MSRV }
+          - { version: "1.59.0", name: MSRV }
           - { version: stable, name: stable }
-        target:
-          - name: NetBSD
-            triple: x86_64-unknown-netbsd
-            has_std: true
-            has_local_offset: false
-          - name: Illumos
-            triple: x86_64-unknown-illumos
-            has_std: true
-            has_local_offset: false
-          - name: wasi
-            triple: wasm32-wasi
-            has_std: true
-            has_local_offset: false
-          - name: embedded
-            triple: thumbv7em-none-eabihf
-            has_std: false
-            has_local_offset: false
+        kind:
+          - name: no_std
+            query: .no_std + .std_no_offset + .std_with_offset
+            exclude-features:
+              - std
+              - formatting
+              - serde-human-readable
+              - serde-well-known
+              - local-offset
+              - quickcheck
+            group-features: []
+          - name: std_no_offset
+            query: .std_no_offset + .std_with_offset
+            exclude-features: [local-offset]
+            enable-features: [std]
+            group-features:
+              - [formatting, parsing]
+              - [serde-human-readable, serde-well-known]
+          - name: std_with_offset
+            query: .std_with_offset
+            enable-features: [std, local-offset]
+            group-features:
+              - [formatting, parsing]
+              - [serde-human-readable, serde-well-known]
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Generate target list
+        run: jq -r 'env.TYPE_CHECK_TARGETS | ${{ matrix.kind.query }} | join(",") | "TARGETS=" + .' >> $GITHUB_ENV
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
           toolchain: ${{ matrix.rust.version }}
-          target: ${{ matrix.target.triple }}
-          override: true
+          targets: ${{ env.TARGETS }}
 
       - name: Install cargo-hack
         shell: bash
         run: |
-          curl -LsSf https://github.com/taiki-e/cargo-hack/releases/latest/download/cargo-hack-x86_64-unknown-linux-gnu.tar.gz | tar xzf - -C ~/.cargo/bin
+          curl -LsSf https://github.com/taiki-e/cargo-hack/releases/latest/download/cargo-hack-x86_64-unknown-linux-gnu.tar.gz \
+          | tar xzf - -C ~/.cargo/bin
 
       - name: Cache cargo output
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.target.triple }}
+          key: ${{ matrix.kind.name }}
 
       - name: Check feature powerset
-        uses: actions-rs/cargo@v1
-        with:
-          command: hack
-          args: |
-            check
-            --no-dev-deps
-            --feature-powerset
-            --optional-deps
-            --group-features serde,rand
-            --exclude-features default,std,formatting,serde-human-readable,serde-well-known,local-offset,quickcheck,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen
-            --features macros
-            --exclude-all-features
-            --target ${{ matrix.target.triple }}
-        if: matrix.target.has_std == false
-
-      # Unconditionally enable the local-offset flag when the target doesn't provide any useful
-      # information.
-      # This currently _does not_ include NetBSD or Solaris due to a soundness bug.
-      - name: Check feature powerset
-        uses: actions-rs/cargo@v1
-        with:
-          command: hack
-          args: |
-            check
-            --no-dev-deps
-            --feature-powerset
-            --optional-deps
-            --group-features serde,rand
-            --group-features formatting,parsing
-            --group-features serde-human-readable,serde-well-known
-            --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen
-            --features macros,local-offset
-            --target ${{ matrix.target.triple }}
-        if: matrix.target.has_std == true && matrix.target.has_local_offset == false
-
-      - name: Check feature powerset
-        uses: actions-rs/cargo@v1
-        with:
-          command: hack
-          args: |
-            check
-            --no-dev-deps
-            --feature-powerset
-            --optional-deps
-            --group-features serde,rand
-            --group-features formatting,parsing
-            --group-features serde-human-readable,serde-well-known
-            --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen
-            --features macros
-            --target ${{ matrix.target.triple }}
-        if: matrix.target.has_std == true && matrix.target.has_local_offset == true
+        env:
+          GROUP_FEATURES: ${{ toJSON(matrix.kind.group-features) }}
+        run: |
+          jq -r 'env.GROUP_FEATURES | [.[] | join(",")] | map("--group-features " + .) | join(" ")' \
+          | xargs -d" " \
+          | ( \
+          jq -r 'env.TYPE_CHECK_TARGETS | ${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
+          | xargs -d" " \
+          cargo hack check \
+          --no-dev-deps \
+          --feature-powerset \
+          --optional-deps \
+          --group-features serde,rand \
+          --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen,${{
+            join(matrix.kind.exclude-features)
+          }} \
+          --features macros,${{ join(matrix.kind.enable-features) }} \
+          --exclude-all-features \
+          )
 
   check-benchmarks:
     name: Type-check benchmarks
     runs-on: ubuntu-20.04
-    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Cache cargo output
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Type-check benchmarks
-        uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: --benches --all-features
+        run: cargo check --benches --all-features
         env:
-          RUSTFLAGS: "--cfg bench"
+          RUSTFLAGS: --cfg bench
 
   test:
     name: Test (${{ matrix.os.name }}, ${{ matrix.rust.name }})
     runs-on: ${{ matrix.os.value }}
-    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
     strategy:
       matrix:
         rust:
-          - { version: "1.59", name: MSRV }
+          - { version: "1.59.0", name: MSRV }
           - { version: stable, name: stable }
         os:
           - { name: Ubuntu, value: ubuntu-20.04 }
@@ -170,17 +159,14 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
           toolchain: ${{ matrix.rust.version }}
-          override: true
 
       - name: Install cargo-hack
-        shell: bash
         run: |
           host=$(rustc -Vv | grep host | sed 's/host: //')
           if [[ $host =~ windows ]]; then
@@ -194,143 +180,120 @@ jobs:
           fi
 
       - name: Cache cargo output
-        uses: Swatinem/rust-cache@v1
-
-      - name: Check feature powerset
-        uses: actions-rs/cargo@v1
-        with:
-          command: hack
-          args: |
-            check
-            --feature-powerset
-            --optional-deps
-            --group-features serde,rand
-            --group-features formatting,parsing
-            --group-features serde-human-readable,serde-well-known
-            --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen
-            --features macros
-        if: matrix.os.has_local_offset == true
+        uses: Swatinem/rust-cache@v2
 
       - name: Test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features
+        run: cargo test --all-features
 
   cross-build:
     name: Cross-build
     runs-on: ubuntu-20.04
-    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          target: x86_64-pc-windows-gnu
+          targets: x86_64-pc-windows-gnu
 
       - name: Cache cargo output
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Install dependencies
         run: sudo apt install gcc-mingw-w64
 
+      # We're testing the linking, so running `cargo check` is insufficient.
       - name: Cross-build tests
-        uses: actions-rs/cargo@v1
-        with:
-          # We're testing the linking, so running `cargo check` is insufficient.
-          command: build
-          args: --tests --all-features --target x86_64-pc-windows-gnu
+        run: cargo build --tests --all-features --target x86_64-pc-windows-gnu
 
   fmt:
     name: Formatting
     runs-on: ubuntu-20.04
-    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@nightly
         with:
-          profile: minimal
-          toolchain: nightly
-          override: true
           components: rustfmt
 
       - name: Check formatting
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+        run: cargo fmt --all -- --check
         env:
-          RUSTFLAGS: "--cfg bench"
+          RUSTFLAGS: --cfg bench
 
   clippy:
     name: Clippy
     runs-on: ubuntu-20.04
-    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install targets
+        run: |
+          rustup target add \
+          x86_64-unknown-linux-gnu \
+          aarch64-apple-darwin \
+          x86_64-pc-windows-gnu \
+          x86_64-unknown-netbsd \
+          x86_64-unknown-illumos \
+          wasm32-wasi
 
       - name: Cache cargo output
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Run clippy
-        uses: actions-rs/clippy-check@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features --benches --tests
+        run: |
+          cargo clippy \
+          --all-features \
+          --benches \
+          --tests \
+          --target x86_64-unknown-linux-gnu \
+          --target aarch64-apple-darwin \
+          --target x86_64-pc-windows-gnu \
+          --target x86_64-unknown-netbsd \
+          --target x86_64-unknown-illumos \
+          --target wasm32-wasi
         env:
-          RUSTFLAGS: "--cfg bench"
+          RUSTFLAGS: --cfg bench
 
   documentation:
     name: Documentation
     runs-on: ubuntu-20.04
-    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           persist-credentials: false
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          override: true
+        uses: dtolnay/rust-toolchain@nightly
 
       - name: Cache cargo output
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Document public API
-        uses: actions-rs/cargo@v1
-        with:
-          command: doc
-          args: --all-features --no-deps -Zrustdoc-map
+        run: cargo doc --all-features --no-deps -Zrustdoc-map
         env:
           RUSTDOCFLAGS: --cfg __time_03_docs
 
       - name: Create top-level redirect
         run: |
-          echo "<meta http-equiv='refresh' content='0; url=https://time-rs.github.io/api/time'>" > ./target/doc/index.html
+          echo "<meta http-equiv='refresh' content='0; url=https://time-rs.github.io/api/time'>" \
+          > ./target/doc/index.html
 
       - name: Publish public docs
         uses: JamesIves/github-pages-deploy-action@releases/v4
@@ -343,16 +306,14 @@ jobs:
         if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
 
       - name: Document internal API
-        uses: actions-rs/cargo@v1
-        with:
-          command: doc
-          args: --all-features --no-deps -Zrustdoc-map --document-private-items
+        run: cargo doc --all-features --no-deps -Zrustdoc-map --document-private-items
         env:
           RUSTDOCFLAGS: --cfg __time_03_docs --document-hidden-items
 
       - name: Create top-level redirect
         run: |
-          echo "<meta http-equiv='refresh' content='0; url=https://time-rs.github.io/internal-api/time'>" > ./target/doc/index.html
+          echo "<meta http-equiv='refresh' content='0; url=https://time-rs.github.io/internal-api/time'>" \
+          > ./target/doc/index.html
 
       - name: Publish internal docs
         uses: JamesIves/github-pages-deploy-action@releases/v4
@@ -367,31 +328,30 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-20.04
-    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push' }}
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           persist-credentials: false
 
       - name: Install toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly
-          override: true
+        uses: dtolnay/rust-toolchain@nightly
 
       - name: Install cargo-llvm-cov
         run: |
-          curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/latest/download/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz | tar xzf - -C ~/.cargo/bin
+          curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/latest/download/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz \
+          | tar xzf - -C ~/.cargo/bin
 
       - name: Generate coverage report
         run: |
           cargo llvm-cov clean --workspace
           cargo llvm-cov test --no-report --all-features -- --test-threads=1
-          RUSTFLAGS="--cfg __ui_tests" cargo llvm-cov test --no-report --tests --all-features -- compile_fail
+          cargo llvm-cov test --no-report --tests --all-features -- compile_fail
           cargo llvm-cov report --lcov > lcov.txt
+        env:
+          RUSTFLAGS: --cfg __ui_tests
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v1
