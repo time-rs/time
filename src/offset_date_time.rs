@@ -152,7 +152,8 @@ impl OffsetDateTime {
         let mut minute =
             self.minute() as i16 - from.minutes_past_hour() as i16 + to.minutes_past_hour() as i16;
         let mut hour = self.hour() as i8 - from.whole_hours() + to.whole_hours();
-        let (mut year, mut ordinal) = self.to_ordinal_date();
+        let (mut year, ordinal) = self.to_ordinal_date();
+        let mut ordinal = ordinal as i16;
 
         // Cascade the values twice. This is needed because the values are adjusted twice above.
         cascade!(second in 0..60 => minute);
@@ -163,9 +164,12 @@ impl OffsetDateTime {
         cascade!(hour in 0..24 => ordinal);
         cascade!(ordinal => year);
 
+        debug_assert!(ordinal > 0);
+        debug_assert!(ordinal <= crate::util::days_in_year(year) as i16);
+
         (
             year,
-            ordinal,
+            ordinal as _,
             Time::__from_hms_nanos_unchecked(
                 hour as _,
                 minute as _,

@@ -56,6 +56,14 @@ fn to_offset_panic() {
 }
 
 #[test]
+fn to_offset_invalid_regression() {
+    assert_eq!(
+        datetime!(2019-01-01 0:00 +13).to_offset(offset!(-13)),
+        datetime!(2018-12-30 22:00:00 -13),
+    );
+}
+
+#[test]
 fn from_unix_timestamp() {
     assert_eq!(
         OffsetDateTime::from_unix_timestamp(0),

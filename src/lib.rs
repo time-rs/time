@@ -216,12 +216,12 @@ macro_rules! cascade {
         cascade!(@ordinal $ordinal);
         cascade!(@year $year);
         #[allow(unused_assignments)]
-        if $ordinal > crate::util::days_in_year($year) {
+        if $ordinal > crate::util::days_in_year($year) as i16 {
+            $ordinal -= crate::util::days_in_year($year) as i16;
             $year += 1;
-            $ordinal = 1;
-        } else if $ordinal == 0 {
+        } else if $ordinal < 1 {
             $year -= 1;
-            $ordinal = crate::util::days_in_year($year);
+            $ordinal += crate::util::days_in_year($year) as i16;
         }
     };
 }
