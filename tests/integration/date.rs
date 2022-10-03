@@ -8,10 +8,7 @@ use time::{util, Date, Duration, Month, Weekday};
 
 #[test]
 fn debug() {
-    assert_eq!(
-        format!("{:?}", date!(2020 - 02 - 03)),
-        "Date { year: 2020, ordinal: 34 }"
-    );
+    assert_eq!(format!("{:?}", date!(2020 - 02 - 03)), "2020-02-03");
 }
 
 #[test]

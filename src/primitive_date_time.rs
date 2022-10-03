@@ -13,7 +13,7 @@ use crate::parsing::Parsable;
 use crate::{error, util, Date, Duration, Month, OffsetDateTime, Time, UtcOffset, Weekday};
 
 /// Combined date and time.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct PrimitiveDateTime {
     #[allow(clippy::missing_docs_in_private_items)]
     pub(crate) date: Date,
@@ -819,6 +819,12 @@ impl PrimitiveDateTime {
 impl fmt::Display for PrimitiveDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {}", self.date, self.time)
+    }
+}
+
+impl fmt::Debug for PrimitiveDateTime {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 // endregion formatting & parsing

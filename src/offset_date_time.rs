@@ -27,7 +27,7 @@ const UNIX_EPOCH_JULIAN_DAY: i32 = Date::__from_ordinal_date_unchecked(1970, 1).
 /// A [`PrimitiveDateTime`] with a [`UtcOffset`].
 ///
 /// All comparisons are performed using the UTC time.
-#[derive(Debug, Clone, Copy, Eq)]
+#[derive(Clone, Copy, Eq)]
 pub struct OffsetDateTime {
     /// The [`PrimitiveDateTime`], which is _always_ in the stored offset.
     pub(crate) local_datetime: PrimitiveDateTime,
@@ -1130,6 +1130,12 @@ impl OffsetDateTime {
 impl fmt::Display for OffsetDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {} {}", self.date(), self.time(), self.offset)
+    }
+}
+
+impl fmt::Debug for OffsetDateTime {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 // endregion formatting & parsing

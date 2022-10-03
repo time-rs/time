@@ -41,15 +41,6 @@ pub struct Date {
     value: i32,
 }
 
-impl fmt::Debug for Date {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
-        f.debug_struct("Date")
-            .field("year", &self.year())
-            .field("ordinal", &self.ordinal())
-            .finish()
-    }
-}
-
 impl Date {
     /// The minimum valid `Date`.
     ///
@@ -981,6 +972,12 @@ impl fmt::Display for Date {
                 width = 4 + (self.year() < 0) as usize
             )
         }
+    }
+}
+
+impl fmt::Debug for Date {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        fmt::Display::fmt(self, f)
     }
 }
 // endregion formatting & parsing
