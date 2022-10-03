@@ -94,7 +94,7 @@ jobs:
 
       - name: Check feature powerset
         run: |
-          | jq -r 'env.TARGETS | ${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
+          jq -r 'env.TARGETS | ${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
           | xargs -d" " \
           cargo hack check \
           --no-dev-deps \
