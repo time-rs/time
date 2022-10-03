@@ -27,7 +27,6 @@ mod sealed {
     use super::*;
 
     /// Parse the item using a format description and an input.
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "parsing")))]
     pub trait Sealed {
         /// Parse the item into the provided [`Parsed`] struct.
         ///

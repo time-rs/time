@@ -81,7 +81,7 @@
 //! requires the local offset will return the `Err` variant when otherwise unsound.
 
 #![doc(html_playground_url = "https://play.rust-lang.org")]
-#![cfg_attr(__time_03_docs, feature(doc_cfg, doc_auto_cfg, doc_notable_trait))]
+#![cfg_attr(__time_03_docs, feature(doc_auto_cfg, doc_notable_trait))]
 #![cfg_attr(
     __time_03_docs,
     deny(rustdoc::broken_intra_doc_links, rustdoc::private_intra_doc_links)
@@ -315,13 +315,10 @@ mod offset_date_time;
 pub mod parsing;
 mod primitive_date_time;
 #[cfg(feature = "quickcheck")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "quickcheck")))]
 mod quickcheck;
 #[cfg(feature = "rand")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "rand")))]
 mod rand;
 #[cfg(feature = "serde")]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "serde")))]
 #[allow(missing_copy_implementations, missing_debug_implementations)]
 pub mod serde;
 mod sys;

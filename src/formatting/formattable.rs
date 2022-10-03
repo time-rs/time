@@ -27,7 +27,6 @@ mod sealed {
     use super::*;
 
     /// Format the item using a format description, the intended output, and the various components.
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
     pub trait Sealed {
         /// Format the item into the provided output, returning the number of bytes written.
         fn format_into(

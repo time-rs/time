@@ -55,7 +55,6 @@ impl OffsetDateTime {
     /// assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
     /// ```
     #[cfg(feature = "std")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "std")))]
     pub fn now_utc() -> Self {
         #[cfg(all(
             target_arch = "wasm32",
@@ -84,7 +83,6 @@ impl OffsetDateTime {
     /// # }
     /// ```
     #[cfg(feature = "local-offset")]
-    #[cfg_attr(__time_03_docs, doc(cfg(feature = "local-offset")))]
     pub fn now_local() -> Result<Self, error::IndeterminateOffset> {
         let t = Self::now_utc();
         Ok(t.to_offset(UtcOffset::local_offset_at(t)?))

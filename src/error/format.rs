@@ -8,7 +8,6 @@ use crate::error;
 /// An error occurred when formatting.
 #[non_exhaustive]
 #[allow(missing_copy_implementations)]
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 #[derive(Debug)]
 pub enum Format {
     /// The type being formatted does not contain sufficient information to format a component.
@@ -65,14 +64,12 @@ impl std::error::Error for Format {
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl From<Format> for crate::Error {
     fn from(original: Format) -> Self {
         Self::Format(original)
     }
 }
 
-#[cfg_attr(__time_03_docs, doc(cfg(feature = "formatting")))]
 impl TryFrom<crate::Error> for Format {
     type Error = error::DifferentVariant;
 
