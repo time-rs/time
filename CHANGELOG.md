@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.15 [2022-10-03]
+
+### Changed
+
+- Better gating for `tm_gmtoff` extension. This should eliminate build failures on some untested
+  platforms.
+- `Debug` output for types are now human-readable. While this should not be relied upon, it is
+  currently the same as the output with `Display`.
+- Eliminate overflows in the constructors for `Duration. When there is an overflow, the methods now
+  panic. This was previously only the case in debug mode.
+- Panic if `NaN` is passed to `Duration::from_secs_f32` or `Duration::from_secs_f64`.
+
+### Fixed
+
+- Fix error when deserializing data types from bytes. This affects formats such as JSON.
+- Eliminate a panic in an edge case when converting `OffsetDateTime` to another `UtcOffset`. This
+  occurred due to an old assumption in code that was no longer the case.
+
 ## 0.3.14 [2022-08-24]
 
 ### Changed
@@ -47,9 +65,6 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - [#479]: regression when parsing optional values with `serde`
 - [#481]: `Time` subtracted from `Time` can panic. This was caused by a bug that has always existed,
   in that an internal invariant was not upheld. Memory safety was not violated.
-
-[#479]: https://github.com/time-rs/time/issues/479
-[#481]: https://github.com/time-rs/time/issues/481
 
 ## 0.3.10 [2022-06-19]
 
