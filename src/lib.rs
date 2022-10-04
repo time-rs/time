@@ -82,10 +82,6 @@
 
 #![doc(html_playground_url = "https://play.rust-lang.org")]
 #![cfg_attr(__time_03_docs, feature(doc_auto_cfg, doc_notable_trait))]
-#![cfg_attr(
-    __time_03_docs,
-    deny(rustdoc::broken_intra_doc_links, rustdoc::private_intra_doc_links)
-)]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![deny(
     anonymous_parameters,
@@ -105,7 +101,9 @@
     trivial_numeric_casts,
     unreachable_pub,
     unsafe_op_in_unsafe_fn,
-    unused_extern_crates
+    unused_extern_crates,
+    rustdoc::broken_intra_doc_links,
+    rustdoc::private_intra_doc_links
 )]
 #![warn(
     clippy::dbg_macro,
