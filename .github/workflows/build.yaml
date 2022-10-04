@@ -52,7 +52,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - { version: "1.59.0", name: MSRV }
+          - { version: "1.60.0", name: MSRV }
           - { version: stable, name: stable }
         kind:
           - name: no_std
@@ -121,9 +121,7 @@ jobs:
           --feature-powerset \
           --optional-deps \
           --group-features serde,rand \
-          --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen,${{
-            join(matrix.kind.exclude-features)
-          }} \
+          --exclude-features default,wasm-bindgen,${{ join(matrix.kind.exclude-features) }} \
           --features macros,${{ join(matrix.kind.enable-features) }} \
           --exclude-all-features \
           )
@@ -154,7 +152,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - { version: "1.59.0", name: MSRV }
+          - { version: "1.60.0", name: MSRV }
           - { version: stable, name: stable }
         os:
           - { name: Ubuntu, value: ubuntu-20.04 }

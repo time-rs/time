@@ -43,11 +43,8 @@
     feature = "serde-human-readable",
     feature = "serde-well-known",
     feature = "std",
-    feature = "itoa",
-    feature = "quickcheck-dep",
     feature = "rand",
     feature = "serde",
-    feature = "time-macros",
     bench,
 )))]
 compile_error!(

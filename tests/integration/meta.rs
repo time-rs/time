@@ -10,7 +10,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 use std::panic::{RefUnwindSafe, UnwindSafe};
 use std::time::{Duration as StdDuration, Instant as StdInstant, SystemTime};
 
-use quickcheck_dep::Arbitrary;
+use quickcheck::Arbitrary;
 use rand::distributions::{Distribution, Standard};
 use serde::{Deserialize, Serialize};
 use time::format_description::well_known::iso8601;

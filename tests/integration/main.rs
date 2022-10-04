@@ -47,15 +47,10 @@
     feature = "serde-human-readable",
     feature = "serde-well-known",
     feature = "std",
-    feature = "itoa",
-    feature = "quickcheck-dep",
     feature = "rand",
     feature = "serde",
-    feature = "time-macros",
 )))]
 compile_error!("tests must be run with the `--all-features` flag");
-
-extern crate quickcheck_dep as quickcheck;
 
 /// Construct a non-exhaustive modifier.
 macro_rules! modifier {

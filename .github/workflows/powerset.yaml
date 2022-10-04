@@ -53,7 +53,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - { version: "1.59.0", name: MSRV }
+          - { version: "1.60.0", name: MSRV }
           - { version: stable, name: stable }
         kind:
           - name: no_std
@@ -103,9 +103,8 @@ jobs:
           --no-dev-deps \
           --feature-powerset \
           --optional-deps \
-          --exclude-features default,quickcheck-dep,time-macros,itoa,js-sys,wasm-bindgen,${{
-            join(matrix.kind.exclude_features)
-          }} ${{ matrix.kind.enable_features && format('--features {0}', join(matrix.kind.enable_features)) }}
+          --exclude-features default,wasm-bindgen,${{ join(matrix.kind.exclude_features) }}
+          ${{ matrix.kind.enable_features && format('--features {0}', join(matrix.kind.enable_features)) }}
 
   release:
     name: Create release

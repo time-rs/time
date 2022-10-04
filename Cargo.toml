@@ -7,7 +7,7 @@ name = "time"
 version = "0.3.15"
 authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
 edition = "2021"
-rust-version = "1.59.0"
+rust-version = "1.60.0"
 repository = "https://github.com/time-rs/time"
 homepage = "https://time-rs.github.io"
 keywords = ["date", "time", "calendar", "duration"]
@@ -27,21 +27,25 @@ rustdoc-args = ["--cfg", "__time_03_docs"]
 
 [features]
 default = ["std"]
-alloc = []
-formatting = ["itoa", "std"]
-large-dates = ["time-macros/large-dates"] # use case for weak feature dependencies (rust-lang/cargo#8832)
+alloc = ["serde?/alloc"]
+formatting = ["dep:itoa", "std"]
+large-dates = ["time-macros?/large-dates"]
 local-offset = ["std"]
-macros = ["time-macros"]
+macros = ["dep:time-macros"]
 parsing = []
-quickcheck = ["quickcheck-dep", "alloc"]
+quickcheck = ["dep:quickcheck", "alloc"]
+rand = ["dep:rand"]
+serde = ["dep:serde"]
 serde-human-readable = ["serde", "formatting", "parsing"]
-serde-well-known = ["serde/alloc", "formatting", "parsing"] # use case for weak feature dependencies (`alloc` could just require `serde?.alloc`)
+serde-well-known = ["serde-human-readable", "alloc"]
 std = ["alloc"]
-wasm-bindgen = ["js-sys"]
+wasm-bindgen = ["dep:js-sys"]
 
+# If adding an optional dependency, be sure to use the `dep:` prefix above to avoid an implicit
+# feature gate.
 [dependencies]
 itoa = { version = "1.0.1", optional = true }
-quickcheck-dep = { package = "quickcheck", version = "1.0.3", default-features = false, optional = true }
+quickcheck = { version = "1.0.3", default-features = false, optional = true }
 rand = { version = "0.8.4", optional = true, default-features = false }
 serde = { version = "1.0.126", optional = true, default-features = false }
 time-macros = { version = "=0.2.4", path = "time-macros", optional = true }

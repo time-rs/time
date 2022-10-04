@@ -1,11 +1,9 @@
-//! Implementations of the [`quickcheck::Arbitrary`](quickcheck_dep::Arbitrary) trait.
+//! Implementations of the [`quickcheck::Arbitrary`](quickcheck::Arbitrary) trait.
 //!
 //! This enables users to write tests such as this, and have test values provided automatically:
 //!
 //! ```
 //! # #![allow(dead_code)]
-//! # use quickcheck_dep::quickcheck;
-//! # #[cfg(pretend_we_didnt_rename_the_dependency)]
 //! use quickcheck::quickcheck;
 //! use time::Date;
 //!
@@ -38,7 +36,7 @@
 
 use alloc::boxed::Box;
 
-use quickcheck_dep::{empty_shrinker, single_shrinker, Arbitrary, Gen};
+use quickcheck::{empty_shrinker, single_shrinker, Arbitrary, Gen};
 
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
