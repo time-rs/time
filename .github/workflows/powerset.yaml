@@ -78,7 +78,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Generate target list
-        run: jq -r 'env.TARGETS | ${{ matrix.kind.query }} | join(",") | "TARGET_LIST=" + .' >> $GITHUB_ENV
+        run: |
+          echo $TARGETS \
+          | jq -r '${{ matrix.kind.query }} | join(",") | "TARGET_LIST=" + .' >> $GITHUB_ENV
 
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@master
@@ -94,7 +96,8 @@ jobs:
 
       - name: Check feature powerset
         run: |
-          jq -r 'env.TARGETS | ${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
+          echo $TARGETS \
+          | jq -r '${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
           | xargs -d" " \
           cargo hack check \
           --no-dev-deps \
@@ -109,6 +112,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags') && github.run_attempt == 1
     needs: check
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

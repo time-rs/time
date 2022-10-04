@@ -84,7 +84,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Generate target list
-        run: jq -r 'env.TYPE_CHECK_TARGETS | ${{ matrix.kind.query }} | join(",") | "TARGETS=" + .' >> $GITHUB_ENV
+        run: |
+          echo $TYPE_CHECK_TARGETS \
+          | jq -r '${{ matrix.kind.query }} | join(",") | "TARGETS=" + .' >> $GITHUB_ENV
 
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@master
@@ -107,10 +109,12 @@ jobs:
         env:
           GROUP_FEATURES: ${{ toJSON(matrix.kind.group-features) }}
         run: |
-          jq -r 'env.GROUP_FEATURES | [.[] | join(",")] | map("--group-features " + .) | join(" ")' \
+          echo $GROUP_FEATURES \
+          | jq -r '[.[] | join(",")] | map("--group-features " + .) | join(" ")' \
           | xargs -d" " \
           | ( \
-          jq -r 'env.TYPE_CHECK_TARGETS | ${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
+          echo $TYPE_CHECK_TARGETS \
+          | jq -r '${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
           | xargs -d" " \
           cargo hack check \
           --no-dev-deps \
@@ -328,6 +332,8 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-20.04
+    permissions:
+      issues: write
     if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
 
     steps:
