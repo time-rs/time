@@ -13,11 +13,11 @@ macro_rules! item {
     };
 }
 
-#[cfg(feature = "serde-human-readable")]
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 pub mod iso8601;
-#[cfg(feature = "serde-human-readable")]
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 pub mod rfc2822;
-#[cfg(feature = "serde-human-readable")]
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 pub mod rfc3339;
 pub mod timestamp;
 mod visitor;
@@ -66,7 +66,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// ```
 ///
 /// [`format_description::parse()`]: crate::format_description::parse()
-#[cfg(all(feature = "macros", feature = "serde-human-readable"))]
+#[cfg(all(feature = "macros", any(feature = "formatting", feature = "parsing"),))]
 pub use time_macros::serde_format_description as format_description;
 
 use self::visitor::Visitor;

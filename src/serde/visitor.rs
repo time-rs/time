@@ -4,7 +4,7 @@ use core::fmt;
 use core::marker::PhantomData;
 
 use serde::de;
-#[cfg(feature = "serde-human-readable")]
+#[cfg(feature = "parsing")]
 use serde::Deserializer;
 
 #[cfg(feature = "parsing")]
@@ -13,7 +13,7 @@ use super::{
     UTC_OFFSET_FORMAT,
 };
 use crate::error::ComponentRange;
-#[cfg(feature = "serde-human-readable")]
+#[cfg(feature = "parsing")]
 use crate::format_description::well_known::*;
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
@@ -261,7 +261,7 @@ impl<'a> de::Visitor<'a> for Visitor<Month> {
 /// Implement a visitor for a well-known format.
 macro_rules! well_known {
     ($article:literal, $name:literal, $($ty:tt)+) => {
-        #[cfg(feature = "serde-human-readable")]
+        #[cfg(feature = "parsing")]
         impl<'a> de::Visitor<'a> for Visitor<$($ty)+> {
             type Value = OffsetDateTime;
 
@@ -274,7 +274,7 @@ macro_rules! well_known {
             }
         }
 
-        #[cfg(feature = "serde-human-readable")]
+        #[cfg(feature = "parsing")]
         impl<'a> de::Visitor<'a> for Visitor<Option<$($ty)+>> {
             type Value = Option<OffsetDateTime>;
 
