@@ -52,7 +52,10 @@
 //!   Libraries should never enable this feature, as the decision of what format to use should be up
 //!   to the user.
 //!
-//! - `serde-well-known` (_implicitly enables `serde/alloc`, `formatting`, and `parsing`_)
+//! - `serde-well-known` (_implicitly enables `serde-human-readable`_)
+//!
+//!   _This feature flag is deprecated and will be removed in a future breaking release. Use the
+//!   `serde-human-readable` feature instead._
 //!
 //!   Enables support for serializing and deserializing well-known formats using serde's
 //!   [`#[with]` attribute](https://serde.rs/field-attrs.html#with).
@@ -71,14 +74,12 @@
 //!   [JavaScript dates](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Date.html), as
 //!   well as obtaining the UTC offset from JavaScript.
 //!
-//! One pseudo-feature flag that is only available to end users is the `unsound_local_offset` cfg.
-//! As the name indicates, using the feature is unsound, and [may cause unexpected segmentation
-//! faults](https://github.com/time-rs/time/issues/293). Unlike other flags, this is deliberately
-//! only available to end users; this is to ensure that a user doesn't have unsound behavior without
-//! knowing it. To enable this behavior, you must use `RUSTFLAGS="--cfg unsound_local_offset" cargo
-//! build` or similar. Note: This flag is _not tested anywhere_, including in the regular test of
-//! the powerset of all feature flags. Use at your own risk. Without this flag, any method that
-//! requires the local offset will return the `Err` variant when otherwise unsound.
+//! <small>
+//! One feature only available to end users is the <code>unsound_local_offset</code> cfg. This
+//! enables obtaining the system's UTC offset even when it is unsound. To enable this, use the
+//! <code>RUSTFLAGS</code> environment variable. This is untested and officially unsupported. Do not
+//! use this unless you understand the risk.
+//! </small>
 
 #![doc(html_playground_url = "https://play.rust-lang.org")]
 #![cfg_attr(__time_03_docs, feature(doc_auto_cfg, doc_notable_trait))]

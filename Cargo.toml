@@ -37,7 +37,8 @@ quickcheck = ["dep:quickcheck", "alloc"]
 rand = ["dep:rand"]
 serde = ["dep:serde"]
 serde-human-readable = ["serde", "formatting", "parsing"]
-serde-well-known = ["serde-human-readable", "alloc"]
+# Deprecated in favor of `serde-human-readable`.
+serde-well-known = ["serde-human-readable"]
 std = ["alloc"]
 wasm-bindgen = ["dep:js-sys"]
 

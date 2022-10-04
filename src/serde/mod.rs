@@ -13,11 +13,11 @@ macro_rules! item {
     };
 }
 
-#[cfg(feature = "serde-well-known")]
+#[cfg(feature = "serde-human-readable")]
 pub mod iso8601;
-#[cfg(feature = "serde-well-known")]
+#[cfg(feature = "serde-human-readable")]
 pub mod rfc2822;
-#[cfg(feature = "serde-well-known")]
+#[cfg(feature = "serde-human-readable")]
 pub mod rfc3339;
 pub mod timestamp;
 mod visitor;
