@@ -36,14 +36,18 @@ mod quote;
 mod date;
 mod datetime;
 mod error;
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 mod format_description;
 mod helpers;
 mod offset;
+#[cfg(all(feature = "serde", any(feature = "formatting", feature = "parsing")))]
 mod serde_format_description;
 mod time;
 mod to_tokens;
 
-use proc_macro::{TokenStream, TokenTree};
+use proc_macro::TokenStream;
+#[cfg(all(feature = "serde", any(feature = "formatting", feature = "parsing")))]
+use proc_macro::TokenTree;
 
 use self::error::Error;
 
@@ -67,8 +71,7 @@ macro_rules! impl_macros {
 
 impl_macros![date datetime offset time];
 
-// TODO Gate this behind the the `formatting` or `parsing` feature flag when weak dependency
-// features land.
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 #[proc_macro]
 pub fn format_description(input: TokenStream) -> TokenStream {
     (|| {
@@ -88,6 +91,7 @@ pub fn format_description(input: TokenStream) -> TokenStream {
     .unwrap_or_else(|err: Error| err.to_compile_error())
 }
 
+#[cfg(all(feature = "serde", any(feature = "formatting", feature = "parsing")))]
 #[proc_macro]
 pub fn serde_format_description(input: TokenStream) -> TokenStream {
     (|| {

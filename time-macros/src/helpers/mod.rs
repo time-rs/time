@@ -1,12 +1,16 @@
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 mod string;
 
 use std::iter::Peekable;
 use std::str::FromStr;
 
-use proc_macro::{token_stream, Span, TokenStream, TokenTree};
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use proc_macro::TokenStream;
+use proc_macro::{token_stream, Span, TokenTree};
 
 use crate::Error;
 
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 pub(crate) fn get_string_literal(tokens: TokenStream) -> Result<(Span, Vec<u8>), Error> {
     let mut tokens = tokens.into_iter();
 

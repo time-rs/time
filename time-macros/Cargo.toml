@@ -12,7 +12,10 @@ license = "MIT OR Apache-2.0"
 description = "Procedural macros for the time crate."
 
 [features]
+formatting = []
 large-dates = []
+parsing = []
+serde = []
 
 [lib]
 proc-macro = true
