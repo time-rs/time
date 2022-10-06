@@ -7,9 +7,11 @@ rust-version = "1.60.0"
 repository = "https://github.com/time-rs/time"
 keywords = ["date", "time", "calendar", "duration"]
 categories = ["date-and-time"]
-readme = "../README.md"
 license = "MIT OR Apache-2.0"
-description = "Procedural macros for the time crate."
+description = """
+    Procedural macros for the time crate.
+    This crate is an implementation detail and should not be relied upon directly.
+"""
 
 [features]
 formatting = []

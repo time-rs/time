@@ -106,5 +106,6 @@ mod weekday;
 #[test]
 fn compile_fail() {
     let tests = trybuild::TestCases::new();
-    tests.compile_fail("tests/integration/compile-fail/*.rs");
+    // Path is relative from `time/Cargo.toml`.
+    tests.compile_fail("../tests/compile-fail/*.rs");
 }

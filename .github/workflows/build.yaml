@@ -117,6 +117,7 @@ jobs:
           | jq -r '${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
           | xargs -d" " \
           cargo hack check \
+          -p time \
           --no-dev-deps \
           --feature-powerset \
           --optional-deps \
@@ -141,7 +142,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Type-check benchmarks
-        run: cargo check --benches --all-features
+        run: cargo check -p time --benches --all-features
         env:
           RUSTFLAGS: --cfg bench
 
@@ -185,7 +186,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Test
-        run: cargo test --all-features
+        run: cargo test -p time --all-features
 
   cross-build:
     name: Cross-build
@@ -209,7 +210,7 @@ jobs:
 
       # We're testing the linking, so running `cargo check` is insufficient.
       - name: Cross-build tests
-        run: cargo build --tests --all-features --target x86_64-pc-windows-gnu
+        run: cargo build -p time --tests --all-features --target x86_64-pc-windows-gnu
 
   fmt:
     name: Formatting
@@ -288,7 +289,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Document public API
-        run: cargo doc --all-features --no-deps -Zrustdoc-map
+        run: cargo doc -p time --all-features --no-deps -Zrustdoc-map
         env:
           RUSTDOCFLAGS: --cfg __time_03_docs
 
@@ -308,7 +309,7 @@ jobs:
         if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
 
       - name: Document internal API
-        run: cargo doc --all-features --no-deps -Zrustdoc-map --document-private-items
+        run: cargo doc -p time --all-features --no-deps -Zrustdoc-map --document-private-items
         env:
           RUSTDOCFLAGS: --cfg __time_03_docs --document-hidden-items
 
@@ -354,7 +355,7 @@ jobs:
       - name: Generate coverage report
         run: |
           cargo llvm-cov clean --workspace
-          cargo llvm-cov test --no-report --all-features -- --test-threads=1
+          cargo llvm-cov test -p time --no-report --all-features -- --test-threads=1
           cargo llvm-cov report --lcov > lcov.txt
         env:
           RUSTFLAGS: --cfg __ui_tests

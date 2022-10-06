@@ -6,6 +6,7 @@
 [![codecov](https://codecov.io/gh/time-rs/time/branch/main/graph/badge.svg?token=yt4XSmQNKQ)](https://codecov.io/gh/time-rs/time)
 
 Documentation:
+
 - [latest release](https://docs.rs/time)
 - [main branch](https://time-rs.github.io/api/time)
 - [book](https://time-rs.github.io/book)
