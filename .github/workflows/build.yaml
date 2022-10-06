@@ -341,18 +341,20 @@ jobs:
           persist-credentials: false
 
       - name: Install toolchain
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Install cargo-llvm-cov
         run: |
           curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/latest/download/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz \
           | tar xzf - -C ~/.cargo/bin
 
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v2
+
       - name: Generate coverage report
         run: |
           cargo llvm-cov clean --workspace
           cargo llvm-cov test --no-report --all-features -- --test-threads=1
-          cargo llvm-cov test --no-report --tests --all-features -- compile_fail
           cargo llvm-cov report --lcov > lcov.txt
         env:
           RUSTFLAGS: --cfg __ui_tests
