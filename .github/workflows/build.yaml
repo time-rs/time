@@ -188,6 +188,25 @@ jobs:
       - name: Test
         run: cargo test -p time --all-features
 
+  miri:
+    name: Test (miri)
+    runs-on: ubuntu-20.04
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: miri
+
+      - name: Test
+        run: cargo miri test -p time --all-features
+        env:
+          MIRIFLAGS: -Zmiri-disable-isolation -Zmiri-strict-provenance -Zmiri-symbolic-alignment-check
+
   cross-build:
     name: Cross-build
     runs-on: ubuntu-20.04
