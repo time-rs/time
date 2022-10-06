@@ -100,7 +100,7 @@ impl OffsetDateTime {
     ///     1999,
     /// );
     ///
-    /// // Let's see what time Sydney's new year's celebration is in New York // and Los Angeles.
+    /// // Let's see what time Sydney's new year's celebration is in New York and Los Angeles.
     ///
     /// // Construct midnight on new year's in Sydney.
     /// let sydney = datetime!(2000-01-01 0:00 +11);
