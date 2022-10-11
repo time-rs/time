@@ -21,3 +21,6 @@ serde = []
 
 [lib]
 proc-macro = true
+
+[dependencies]
+time-core = { version = "=0.1.0", path = "../time-core" }

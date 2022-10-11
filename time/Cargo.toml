@@ -45,6 +45,7 @@ itoa = { version = "1.0.1", optional = true }
 quickcheck = { version = "1.0.3", default-features = false, optional = true }
 rand = { version = "0.8.4", optional = true, default-features = false }
 serde = { version = "1.0.126", optional = true, default-features = false }
+time-core = { version = "=0.1.0", path = "../time-core" }
 time-macros = { version = "=0.2.4", path = "../time-macros", optional = true }
 
 [target.'cfg(target_family = "unix")'.dependencies]
