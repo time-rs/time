@@ -308,7 +308,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Document public API
-        run: cargo doc -p time --all-features --no-deps -Zrustdoc-map
+        run: cargo doc -p time --all-features -Zrustdoc-map
         env:
           RUSTDOCFLAGS: --cfg __time_03_docs
 
