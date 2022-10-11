@@ -2,6 +2,7 @@
 default-members = ["time"]
 members = [
     "time",
+    "time-core",
     "time-macros",
 ]
 resolver = "2"
