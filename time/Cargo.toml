@@ -33,8 +33,8 @@ quickcheck = ["dep:quickcheck", "alloc"]
 rand = ["dep:rand"]
 serde = ["dep:serde", "time-macros?/serde"]
 serde-human-readable = ["serde", "formatting", "parsing"]
-# Deprecated in favor of `serde-human-readable`.
-serde-well-known = ["serde-human-readable"]
+# Deprecated in favor of using the relevant flags directly.
+serde-well-known = ["serde", "formatting", "parsing"]
 std = ["alloc"]
 wasm-bindgen = ["dep:js-sys"]
 
