@@ -100,6 +100,7 @@ jobs:
           | jq -r '${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
           | xargs -d" " \
           cargo hack check \
+          -p time \
           --no-dev-deps \
           --feature-powerset \
           --optional-deps \
