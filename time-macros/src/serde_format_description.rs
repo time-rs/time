@@ -1,14 +1,14 @@
 use proc_macro::{Ident, TokenStream, TokenTree};
 
-use crate::to_tokens;
-
 pub(crate) fn build(
     mod_name: Ident,
-    items: impl to_tokens::ToTokenStream,
     ty: TokenTree,
-    format_string: &str,
+    format: TokenStream,
+    raw_format_string: Option<String>,
 ) -> TokenStream {
     let ty_s = &*ty.to_string();
+
+    let format_description_display = raw_format_string.unwrap_or_else(|| format.to_string());
 
     let visitor = quote! {
         struct Visitor;
@@ -23,10 +23,9 @@ pub(crate) fn build(
                     concat!(
                         "a(n) `",
                         #(ty_s),
-                        "` in the format \"",
-                        #(format_string),
-                        "\"",
-                    )
+                        "` in the format \"{}\"",
+                    ),
+                    #(format_description_display.as_str())
                 )
             }
 
@@ -47,10 +46,9 @@ pub(crate) fn build(
                     concat!(
                         "an `Option<",
                         #(ty_s),
-                        ">` in the format \"",
-                        #(format_string),
-                        "\"",
-                    )
+                        ">` in the format \"{}\"",
+                    ),
+                    #(format_description_display.as_str())
                 )
             }
 
@@ -116,7 +114,7 @@ pub(crate) fn build(
         mod #(mod_name) {
             use ::time::#(ty) as __TimeSerdeType;
 
-            const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = &[#S(items)];
+            const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = #S(format);
 
             #S(visitor)
             #S(primary_fns)

@@ -116,17 +116,47 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
         // Another comma
         helpers::consume_punct(',', &mut tokens)?;
 
-        // Then, a string literal.
-        let (span, format_string) = helpers::get_string_literal(tokens.collect())?;
+        // We now have two options. The user can either provide a format description as a string or
+        // they can provide a path to a format description. If the latter, all remaining tokens are
+        // assumed to be part of the path.
+        let (format, raw_format_string) = match tokens.peek() {
+            // string literal
+            Some(TokenTree::Literal(_)) => {
+                let (span, format_string) = helpers::get_string_literal(tokens.collect())?;
+                let items = format_description::parse(&format_string, span)?;
+                let items: TokenStream =
+                    items.into_iter().map(|item| quote! { #S(item), }).collect();
+                let items = quote! { &[#S(items)] };
 
-        let items = format_description::parse(&format_string, span)?;
-        let items: TokenStream = items.into_iter().map(|item| quote! { #S(item), }).collect();
+                (
+                    items,
+                    Some(String::from_utf8_lossy(&format_string).into_owned()),
+                )
+            }
+            // path
+            Some(_) => (
+                quote! {{
+                    // We can't just do `super::path` because the path could be an absolute path. In
+                    // that case, we'd be generating `super::::path`, which is invalid. Even if we
+                    // took that into account, it's not possible to know if it's an external crate,
+                    // which would just require emitting `path` directly. By taking this approach,
+                    // we can leave it to the compiler to do the actual resolution.
+                    mod __path_hack {
+                        pub(super) use super::super::*;
+                        pub(super) use #S(tokens.collect::<TokenStream>()) as FORMAT;
+                    }
+                    __path_hack::FORMAT
+                }},
+                None,
+            ),
+            None => return Err(Error::UnexpectedEndOfInput),
+        };
 
         Ok(serde_format_description::build(
             mod_name,
-            items,
             formattable,
-            &String::from_utf8_lossy(&format_string),
+            format,
+            raw_format_string,
         ))
     })()
     .unwrap_or_else(|err: Error| err.to_compile_error_standalone())

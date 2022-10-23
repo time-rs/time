@@ -2,7 +2,8 @@ use ::serde::{Deserialize, Serialize};
 use serde_test::{
     assert_de_tokens_error, assert_ser_tokens_error, assert_tokens, Configure, Token,
 };
-use time::macros::{date, datetime, offset};
+use time::format_description::FormatItem;
+use time::macros::{date, datetime, offset, time};
 use time::{serde, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
 serde::format_description!(
@@ -23,6 +24,9 @@ serde::format_description!(
     "custom format: [offset_hour]:[offset_minute]"
 );
 
+const TIME_FORMAT_ALT: &[FormatItem<'_>] = time::macros::format_description!("[hour]:[minute]");
+serde::format_description!(time_format_alt, Time, TIME_FORMAT_ALT);
+
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 struct TestCustomFormat {
     #[serde(with = "offset_dt_format")]
@@ -35,6 +39,8 @@ struct TestCustomFormat {
     time: Option<Time>,
     #[serde(with = "offset_format")]
     offset: UtcOffset,
+    #[serde(with = "time_format_alt")]
+    time_alt: Time,
 }
 
 #[test]
@@ -45,13 +51,14 @@ fn custom_serialize() {
         date: date!(2000 - 01 - 01),
         time: None,
         offset: offset!(-4),
+        time_alt: time!(12:34),
     };
     assert_tokens(
         &value.compact(),
         &[
             Token::Struct {
                 name: "TestCustomFormat",
-                len: 5,
+                len: 6,
             },
             Token::Str("offset_dt"),
             Token::BorrowedStr("custom format: 2000-01-01 00:00:00 -04:00"),
@@ -64,6 +71,8 @@ fn custom_serialize() {
             Token::None,
             Token::Str("offset"),
             Token::BorrowedStr("custom format: -04:00"),
+            Token::Str("time_alt"),
+            Token::BorrowedStr("12:34"),
             Token::StructEnd,
         ],
     );
