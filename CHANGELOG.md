@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.16 [2022-10-24]
+
+### Changed
+
+- The minimum supported Rust version is now 1.60.0.
+- The `serde-well-known` feature flag is deprecated. The necessary features for an item to be
+  enabled are indicated in documentation.
+- Feature gates have been loosened for well-known formats.
+
+### Added
+
+- `const`s can now be provided as the format description for `time::serde::format_description!`. The
+  `const` must be of type `&[FormatItem<'_>]`, which is what is returned by the
+  `time::macros::format_description!` macro.
+
+  ```rust
+  const TIME_FORMAT_ALT: &[FormatItem<'_>] = time::macros::format_description!("[hour]:[minute]");
+  time::serde::format_description!(time_format_alt, Time, TIME_FORMAT_ALT);
+  ```
+
+### Compatibility
+
+- Some feature flags have been removed. None of these have ever been documented as flags, so any use
+  was unsupported. These flags are:
+  - `js-sys`
+  - `quickcheck-dep`
+  - `itoa`
+  - `time-macros`
+
 ## 0.3.15 [2022-10-03]
 
 ### Changed
