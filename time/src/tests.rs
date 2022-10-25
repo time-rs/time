@@ -1,3 +1,18 @@
+#![cfg(all( // require `--all-features` to be passed
+    feature = "default",
+    feature = "alloc",
+    feature = "formatting",
+    feature = "large-dates",
+    feature = "local-offset",
+    feature = "macros",
+    feature = "parsing",
+    feature = "quickcheck",
+    feature = "serde-human-readable",
+    feature = "serde-well-known",
+    feature = "std",
+    feature = "rand",
+    feature = "serde",
+))]
 #![allow(
     clippy::let_underscore_drop,
     clippy::clone_on_copy,
