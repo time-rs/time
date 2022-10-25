@@ -10,104 +10,135 @@ pub(crate) fn build(
 
     let format_description_display = raw_format_string.unwrap_or_else(|| format.to_string());
 
-    let visitor = quote! {
-        struct Visitor;
-        struct OptionVisitor;
+    let visitor = if cfg!(feature = "parsing") {
+        quote! {
+            struct Visitor;
+            struct OptionVisitor;
 
-        impl<'a> ::serde::de::Visitor<'a> for Visitor {
-            type Value = __TimeSerdeType;
+            impl<'a> ::serde::de::Visitor<'a> for Visitor {
+                type Value = __TimeSerdeType;
 
-            fn expecting(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                write!(
-                    f,
-                    concat!(
-                        "a(n) `",
-                        #(ty_s),
-                        "` in the format \"{}\"",
-                    ),
-                    #(format_description_display.as_str())
-                )
+                fn expecting(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                    write!(
+                        f,
+                        concat!(
+                            "a(n) `",
+                            #(ty_s),
+                            "` in the format \"{}\"",
+                        ),
+                        #(format_description_display.as_str())
+                    )
+                }
+
+                fn visit_str<E: ::serde::de::Error>(
+                    self,
+                    value: &str
+                ) -> Result<__TimeSerdeType, E> {
+                    __TimeSerdeType::parse(value, &DESCRIPTION).map_err(E::custom)
+                }
             }
 
-            fn visit_str<E: ::serde::de::Error>(
-                self,
-                value: &str
-            ) -> Result<__TimeSerdeType, E> {
-                __TimeSerdeType::parse(value, &DESCRIPTION).map_err(E::custom)
+            impl<'a> ::serde::de::Visitor<'a> for OptionVisitor {
+                type Value = Option<__TimeSerdeType>;
+
+                fn expecting(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                    write!(
+                        f,
+                        concat!(
+                            "an `Option<",
+                            #(ty_s),
+                            ">` in the format \"{}\"",
+                        ),
+                        #(format_description_display.as_str())
+                    )
+                }
+
+                fn visit_some<D: ::serde::de::Deserializer<'a>>(
+                    self,
+                    deserializer: D
+                ) -> Result<Option<__TimeSerdeType>, D::Error> {
+                    deserializer
+                        .deserialize_any(Visitor)
+                        .map(Some)
+                }
+
+                fn visit_none<E: ::serde::de::Error>(
+                    self
+                ) -> Result<Option<__TimeSerdeType>, E> {
+                    Ok(None)
+                }
             }
         }
+    } else {
+        quote!()
+    };
 
-        impl<'a> ::serde::de::Visitor<'a> for OptionVisitor {
-            type Value = Option<__TimeSerdeType>;
-
-            fn expecting(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                write!(
-                    f,
-                    concat!(
-                        "an `Option<",
-                        #(ty_s),
-                        ">` in the format \"{}\"",
-                    ),
-                    #(format_description_display.as_str())
-                )
+    let serialize_primary = if cfg!(feature = "formatting") {
+        quote! {
+            pub fn serialize<S: ::serde::Serializer>(
+                datetime: &__TimeSerdeType,
+                serializer: S,
+            ) -> Result<S::Ok, S::Error> {
+                use ::serde::Serialize;
+                datetime
+                    .format(&DESCRIPTION)
+                    .map_err(::time::error::Format::into_invalid_serde_value::<S>)?
+                    .serialize(serializer)
             }
+        }
+    } else {
+        quote!()
+    };
 
-            fn visit_some<D: ::serde::de::Deserializer<'a>>(
-                self,
+    let deserialize_primary = if cfg!(feature = "parsing") {
+        quote! {
+            pub fn deserialize<'a, D: ::serde::Deserializer<'a>>(
+                deserializer: D
+            ) -> Result<__TimeSerdeType, D::Error> {
+                use ::serde::Deserialize;
+                deserializer.deserialize_any(Visitor)
+            }
+        }
+    } else {
+        quote!()
+    };
+
+    let serialize_option = if cfg!(feature = "formatting") {
+        quote! {
+            pub fn serialize<S: ::serde::Serializer>(
+                option: &Option<__TimeSerdeType>,
+                serializer: S,
+            ) -> Result<S::Ok, S::Error> {
+                use ::serde::Serialize;
+                option.map(|datetime| datetime.format(&DESCRIPTION))
+                    .transpose()
+                    .map_err(::time::error::Format::into_invalid_serde_value::<S>)?
+                    .serialize(serializer)
+            }
+        }
+    } else {
+        quote!()
+    };
+
+    let deserialize_option = if cfg!(feature = "parsing") {
+        quote! {
+            pub fn deserialize<'a, D: ::serde::Deserializer<'a>>(
                 deserializer: D
             ) -> Result<Option<__TimeSerdeType>, D::Error> {
-                deserializer
-                    .deserialize_any(Visitor)
-                    .map(Some)
-            }
-
-            fn visit_none<E: ::serde::de::Error>(
-                self
-            ) -> Result<Option<__TimeSerdeType>, E> {
-                Ok(None)
+                use ::serde::Deserialize;
+                deserializer.deserialize_option(OptionVisitor)
             }
         }
-
+    } else {
+        quote!()
     };
 
-    let primary_fns = quote! {
-        pub fn serialize<S: ::serde::Serializer>(
-            datetime: &__TimeSerdeType,
-            serializer: S,
-        ) -> Result<S::Ok, S::Error> {
-            use ::serde::Serialize;
-            datetime
-                .format(&DESCRIPTION)
-                .map_err(::time::error::Format::into_invalid_serde_value::<S>)?
-                .serialize(serializer)
+    let deserialize_option_imports = if cfg!(feature = "parsing") {
+        quote! {
+            use super::{OptionVisitor, Visitor};
         }
-
-        pub fn deserialize<'a, D: ::serde::Deserializer<'a>>(
-            deserializer: D
-        ) -> Result<__TimeSerdeType, D::Error> {
-            use ::serde::Deserialize;
-            deserializer.deserialize_any(Visitor)
-        }
-    };
-
-    let options_fns = quote! {
-        pub fn serialize<S: ::serde::Serializer>(
-            option: &Option<__TimeSerdeType>,
-            serializer: S,
-        ) -> Result<S::Ok, S::Error> {
-            use ::serde::Serialize;
-            option.map(|datetime| datetime.format(&DESCRIPTION))
-                .transpose()
-                .map_err(::time::error::Format::into_invalid_serde_value::<S>)?
-                .serialize(serializer)
-        }
-
-        pub fn deserialize<'a, D: ::serde::Deserializer<'a>>(
-            deserializer: D
-        ) -> Result<Option<__TimeSerdeType>, D::Error> {
-            use ::serde::Deserialize;
-            deserializer.deserialize_option(OptionVisitor)
-        }
+    } else {
+        quote!()
     };
 
     quote! {
@@ -117,12 +148,15 @@ pub(crate) fn build(
             const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = #S(format);
 
             #S(visitor)
-            #S(primary_fns)
+            #S(serialize_primary)
+            #S(deserialize_primary)
 
             pub(super) mod option {
-                use super::{DESCRIPTION, OptionVisitor, Visitor, __TimeSerdeType};
+                use super::{DESCRIPTION, __TimeSerdeType};
+                #S(deserialize_option_imports)
 
-                #S(options_fns)
+                #S(serialize_option)
+                #S(deserialize_option)
             }
         }
     }
