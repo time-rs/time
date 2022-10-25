@@ -5,9 +5,10 @@
 /// Format example: 1985-04-12T23:20:50.52Z
 ///
 /// # Examples
-///
-/// ```rust
-/// # use time::{format_description::well_known::Rfc3339, macros::datetime, OffsetDateTime};
+#[cfg_attr(feature = "parsing", doc = "```rust")]
+#[cfg_attr(not(feature = "parsing"), doc = "```rust,ignore")]
+/// # use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+/// # use time_macros::datetime;
 /// assert_eq!(
 ///     OffsetDateTime::parse("1985-04-12T23:20:50.52Z", &Rfc3339)?,
 ///     datetime!(1985-04-12 23:20:50.52 +00:00)
@@ -15,8 +16,10 @@
 /// # Ok::<_, time::Error>(())
 /// ```
 ///
-/// ```rust
-/// # use time::{format_description::well_known::Rfc3339, macros::datetime};
+#[cfg_attr(feature = "formatting", doc = "```rust")]
+#[cfg_attr(not(feature = "formatting"), doc = "```rust,ignore")]
+/// # use time::format_description::well_known::Rfc3339;
+/// # use time_macros::datetime;
 /// assert_eq!(
 ///     datetime!(1985-04-12 23:20:50.52 +00:00).format(&Rfc3339)?,
 ///     "1985-04-12T23:20:50.52Z"

@@ -56,8 +56,8 @@ pub use time_macros::datetime;
 ///
 /// The resulting expression can be used in `const` or `static` declarations, and implements
 /// the sealed traits required for both formatting and parsing.
-///
-/// ```rust
+#[cfg_attr(feature = "alloc", doc = "```rust")]
+#[cfg_attr(not(feature = "alloc"), doc = "```rust,ignore")]
 /// # use time::{format_description, macros::format_description};
 /// assert_eq!(
 ///     format_description!("[hour]:[minute]:[second]"),

@@ -32,10 +32,10 @@ const DEFAULT_CONFIG: EncodedConfig = Config::DEFAULT.encode();
 /// Example: 1997-11-21T09:55:06.000000000-06:00
 ///
 /// # Examples
-///
-/// ```rust
+#[cfg_attr(feature = "formatting", doc = "```rust")]
+#[cfg_attr(not(feature = "formatting"), doc = "```rust,ignore")]
 /// # use time::format_description::well_known::Iso8601;
-/// # use time::macros::datetime;
+/// # use time_macros::datetime;
 /// assert_eq!(
 ///     datetime!(1997-11-12 9:55:06 -6:00).format(&Iso8601::DEFAULT)?,
 ///     "1997-11-12T09:55:06.000000000-06:00"
