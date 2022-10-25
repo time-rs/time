@@ -11,7 +11,7 @@ categories = ["date-and-time", "no-std", "parser-implementations", "value-format
 readme = "../README.md"
 license = "MIT OR Apache-2.0"
 description = "Date and time library. Fully interoperable with the standard library. Mostly compatible with #![no_std]."
-include = ["src/**/*", "LICENSE-*", "README.md", "!src/tests.rs"]
+include = ["src/**/*", "LICENSE-*", "README.md"]
 
 [lib]
 bench = false
