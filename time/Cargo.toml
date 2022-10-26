@@ -26,7 +26,7 @@ default = ["std"]
 alloc = ["serde?/alloc"]
 formatting = ["dep:itoa", "std", "time-macros?/formatting"]
 large-dates = ["time-macros?/large-dates"]
-local-offset = ["std"]
+local-offset = ["std", "dep:libc", "dep:num_threads"]
 macros = ["dep:time-macros"]
 parsing = ["time-macros?/parsing"]
 quickcheck = ["dep:quickcheck", "alloc"]
@@ -49,8 +49,8 @@ time-core = { version = "=0.1.0", path = "../time-core" }
 time-macros = { version = "=0.2.5", path = "../time-macros", optional = true }
 
 [target.'cfg(target_family = "unix")'.dependencies]
-libc = "0.2.98"
-num_threads = "0.1.2"
+libc = { version = "0.2.98", optional = true }
+num_threads = { version = "0.1.2", optional = true }
 
 [target.'cfg(all(target_arch = "wasm32", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 js-sys = { version = "0.3.58", optional = true }
