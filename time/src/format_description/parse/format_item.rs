@@ -1,20 +1,27 @@
+//! Typed, validated representation of a parsed format description.
+
 use alloc::string::String;
 
 use super::{ast, Error};
 
+/// Parse an AST iterator into a sequence of format items.
 pub(super) fn parse<'a>(
     ast_items: impl Iterator<Item = Result<ast::Item<'a>, Error>>,
 ) -> impl Iterator<Item = Result<Item<'a>, Error>> {
     ast_items.map(|ast_item| ast_item.and_then(Item::from_ast))
 }
 
+/// A description of how to format and parse one part of a type.
 #[allow(variant_size_differences)]
 pub(super) enum Item<'a> {
+    /// A literal string.
     Literal(&'a [u8]),
+    /// Part of a type, along with its modifiers.
     Component(Component),
 }
 
 impl Item<'_> {
+    /// Parse an AST item into a format item.
     pub(super) fn from_ast(ast_item: ast::Item<'_>) -> Result<Item<'_>, Error> {
         Ok(match ast_item {
             ast::Item::Component {
@@ -43,6 +50,7 @@ impl<'a> From<Item<'a>> for crate::format_description::FormatItem<'a> {
     }
 }
 
+/// Declare the `Component` struct.
 macro_rules! component_definition {
     ($vis:vis enum $name:ident {
         $($variant:ident = $parse_variant:literal {
@@ -59,6 +67,7 @@ macro_rules! component_definition {
         })*
 
         $(impl $variant {
+            /// Parse the component from the AST, given its modifiers.
             fn with_modifiers(modifiers: &[ast::Modifier<'_>]) -> Result<Self, Error> {
                 let mut this = Self {
                     $($field: None),*
@@ -96,6 +105,7 @@ macro_rules! component_definition {
             }
         }
 
+        /// Parse a component from the AST, given its name and modifiers.
         fn component_from_ast(
             name: &ast::Name<'_>,
             modifiers: &[ast::Modifier<'_>],
@@ -173,6 +183,7 @@ component_definition! {
     }
 }
 
+/// Get the target type for a given enum.
 macro_rules! target_ty {
     ($name:ident $type:ty) => {
         $type
@@ -182,6 +193,7 @@ macro_rules! target_ty {
     };
 }
 
+/// Get the target value for a given enum.
 macro_rules! target_value {
     ($name:ident $variant:ident $value:expr) => {
         $value
@@ -192,6 +204,7 @@ macro_rules! target_value {
 }
 
 // TODO use `#[derive(Default)]` on enums once MSRV is 1.62 (NET 2022-12-30)
+/// Simulate `#[derive(Default)]` on enums.
 macro_rules! derived_default_on_enum {
     ($type:ty; $default:expr) => {};
     ($attr:meta $type:ty; $default:expr) => {
@@ -203,6 +216,23 @@ macro_rules! derived_default_on_enum {
     };
 }
 
+/// Declare the various modifiers.
+///
+/// For the general case, ordinary syntax can be used. Note that you _must_ declare a default
+/// variant. The only significant change is that the string representation of the variant must be
+/// provided after the variant name. For example, `Numerical = b"numerical"` declares a variant
+/// named `Numerical` with the string representation `b"numerical"`. This is the value that will be
+/// used when parsing the modifier. The value is not case sensitive.
+///
+/// If the type in the public API does not have the same name as the type in the internal
+/// representation, then the former must be specified in parenthesis after the internal name. For
+/// example, `HourBase(bool)` has an internal name "HourBase", but is represented as a boolean in
+/// the public API.
+///
+/// By default, the internal variant name is assumed to be the same as the public variant name. If
+/// this is not the case, the qualified path to the variant must be specified in parenthesis after
+/// the internal variant name. For example, `Twelve(true)` has an internal variant name "Twelve",
+/// but is represented as `true` in the public API.
 macro_rules! modifier {
     ($(
         enum $name:ident $(($target_ty:ty))? {
@@ -221,6 +251,7 @@ macro_rules! modifier {
         })*
 
         impl $name {
+            /// Parse the modifier from its string representation.
             fn from_modifier_value(value: &ast::Value<'_>) -> Result<Option<Self>, Error> {
                 $(if value.value.eq_ignore_ascii_case($parse_variant) {
                     return Ok(Some(Self::$variant));

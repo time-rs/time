@@ -1,3 +1,5 @@
+//! AST for parsing format descriptions.
+
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::iter;
@@ -5,53 +7,85 @@ use core::iter::Peekable;
 
 use super::{lexer, Error, Location, Span};
 
+/// One part of a complete format description.
 #[allow(variant_size_differences)]
 pub(super) enum Item<'a> {
+    /// A literal string, formatted and parsed as-is.
     Literal {
+        /// The string itself.
         value: &'a [u8],
+        /// Where the string originates from in the format string.
         _span: Span,
     },
+    /// A sequence of brackets. The first acts as the escape character.
     EscapedBracket {
+        /// The first bracket.
         _first: Location,
+        /// The second bracket.
         _second: Location,
     },
+    /// Part of a type, along with its modifiers.
     Component {
+        /// Where the opening bracket was in the format string.
         _opening_bracket: Location,
+        /// Whitespace between the opening bracket and name.
         _leading_whitespace: Option<Whitespace<'a>>,
+        /// The name of the component.
         name: Name<'a>,
+        /// The modifiers for the component.
         modifiers: Vec<Modifier<'a>>,
+        /// Whitespace between the modifiers and closing bracket.
         _trailing_whitespace: Option<Whitespace<'a>>,
+        /// Where the closing bracket was in the format string.
         _closing_bracket: Location,
     },
 }
 
+/// Whitespace within a component.
 pub(super) struct Whitespace<'a> {
+    /// The whitespace itself.
     pub(super) _value: &'a [u8],
+    /// Where the whitespace was in the format string.
     pub(super) span: Span,
 }
 
+/// The name of a component.
 pub(super) struct Name<'a> {
+    /// The name itself.
     pub(super) value: &'a [u8],
+    /// Where the name was in the format string.
     pub(super) span: Span,
 }
 
+/// A modifier for a component.
 pub(super) struct Modifier<'a> {
+    /// Whitespace preceding the modifier.
     pub(super) _leading_whitespace: Whitespace<'a>,
+    /// The key of the modifier.
     pub(super) key: Key<'a>,
+    /// Where the colon of the modifier was in the format string.
     pub(super) _colon: Location,
+    /// The value of the modifier.
     pub(super) value: Value<'a>,
 }
 
+/// The key of a modifier.
 pub(super) struct Key<'a> {
+    /// The key itself.
     pub(super) value: &'a [u8],
+    /// Where the key was in the format string.
     pub(super) span: Span,
 }
 
+/// The value of a modifier.
 pub(super) struct Value<'a> {
+    /// The value itself.
     pub(super) value: &'a [u8],
+    /// Where the value was in the format string.
     pub(super) span: Span,
 }
 
+/// Parse the provided tokens into an AST.
 pub(super) fn parse<'a>(
     tokens: impl Iterator<Item = lexer::Token<'a>>,
 ) -> impl Iterator<Item = Result<Item<'a>, Error>> {
@@ -97,6 +131,7 @@ pub(super) fn parse<'a>(
     })
 }
 
+/// Parse a component. This assumes that the opening bracket has already been consumed.
 fn parse_component<'a>(
     opening_bracket: Location,
     tokens: &mut Peekable<impl Iterator<Item = lexer::Token<'a>>>,

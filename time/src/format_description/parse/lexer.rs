@@ -1,33 +1,53 @@
+//! Lexer for parsing format descriptions.
+
 use core::iter;
 
 use super::{Location, Span};
 
+/// A token emitted by the lexer. There is no semantic meaning at this stage.
 pub(super) enum Token<'a> {
+    /// A literal string, formatted and parsed as-is.
     Literal {
+        /// The string itself.
         value: &'a [u8],
+        /// Where the string was in the format string.
         span: Span,
     },
+    /// An opening or closing bracket. May or may not be the start or end of a component.
     Bracket {
+        /// Whether the bracket is opening or closing.
         kind: BracketKind,
+        /// Where the bracket was in the format string.
         location: Location,
     },
+    /// One part of a component. This could be its name, a modifier, or whitespace.
     ComponentPart {
+        /// Whether the part is whitespace or not.
         kind: ComponentKind,
+        /// The part itself.
         value: &'a [u8],
+        /// Where the part was in the format string.
         span: Span,
     },
 }
 
+/// What type of bracket is present.
 pub(super) enum BracketKind {
+    /// An opening bracket: `[`
     Opening,
+    /// A closing bracket: `]`
     Closing,
 }
 
+/// Indicates whether the component is whitespace or not.
 pub(super) enum ComponentKind {
+    #[allow(clippy::missing_docs_in_private_items)]
     Whitespace,
+    #[allow(clippy::missing_docs_in_private_items)]
     NotWhitespace,
 }
 
+/// Attach [`Location`] information to each byte in the iterator.
 fn attach_location(iter: impl Iterator<Item = u8>) -> impl Iterator<Item = (u8, Location)> {
     let mut line = 1;
     let mut column = 1;
@@ -51,6 +71,7 @@ fn attach_location(iter: impl Iterator<Item = u8>) -> impl Iterator<Item = (u8, 
     })
 }
 
+/// Parse the string into a series of [`Token`]s.
 pub(super) fn lex(mut input: &[u8]) -> impl Iterator<Item = Token<'_>> {
     let mut depth: u8 = 0;
     let mut iter = attach_location(input.iter().copied()).peekable();
