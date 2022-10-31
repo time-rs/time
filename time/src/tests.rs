@@ -27,8 +27,6 @@
 
 use std::num::NonZeroU8;
 
-use crate::format_description::modifier::Modifiers;
-use crate::format_description::FormatItem;
 use crate::formatting::DigitCount;
 use crate::parsing::combinator::rfc::iso8601;
 use crate::parsing::shim::Integer;
@@ -84,14 +82,6 @@ fn default() {
 #[test]
 fn debug() {
     let _ = format!("{:?}", duration::Padding::Optimize);
-    let _ = format!("{:?}", Modifiers::default());
-    let _ = format!(
-        "{:?}",
-        crate::format_description::parse::ParsedItem {
-            item: FormatItem::Literal(b""),
-            remaining: b""
-        }
-    );
     let _ = format!("{:?}", parsing::ParsedItem(b"", 0));
     let _ = format!("{:?}", parsing::component::Period::Am);
     let _ = format!("{:?}", iso8601::ExtendedKind::Basic);

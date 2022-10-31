@@ -282,15 +282,35 @@ fn errors() {
     ));
     assert!(matches!(
         format_description::parse("["),
-        Err(UnclosedOpeningBracket { index: 0, .. })
+        Err(MissingComponentName { index: 0, .. })
     ));
     assert!(matches!(
-        format_description::parse("[]"),
+        format_description::parse("[ "),
         Err(MissingComponentName { index: 1, .. })
     ));
     assert!(matches!(
+        format_description::parse("[]"),
+        Err(MissingComponentName { index: 0, .. })
+    ));
+    assert!(matches!(
         format_description::parse("[day sign:mandatory]"),
-        Err(InvalidModifier { value, index: 5,.. }) if value == "sign:mandatory"
+        Err(InvalidModifier { value, index: 5, .. }) if value == "sign"
+    ));
+    assert!(matches!(
+        format_description::parse("[day sign:]"),
+        Err(InvalidModifier { value, index: 9,.. }) if value.is_empty()
+    ));
+    assert!(matches!(
+        format_description::parse("[day :mandatory]"),
+        Err(InvalidModifier { value, index: 5,.. }) if value.is_empty()
+    ));
+    assert!(matches!(
+        format_description::parse("[day sign:mandatory"),
+        Err(UnclosedOpeningBracket { index: 0, .. })
+    ));
+    assert!(matches!(
+        dbg!(format_description::parse("[day padding:invalid]")),
+        Err(InvalidModifier { value, index: 13, .. }) if value == "invalid"
     ));
 }
 
@@ -416,7 +436,7 @@ fn component_with_modifiers() {
                     assert_eq!(
                         format_description::parse(&format!(
                             "[year {padding_str} {repr_str} {iso_week_based_str} \
-                             {sign_is_mandatory_str}]",
+                             \n{sign_is_mandatory_str}]",
                         )),
                         Ok(vec![FormatItem::Component(Component::Year(modifier!(
                             Year {
@@ -446,7 +466,7 @@ fn component_with_modifiers() {
 fn error_display() {
     assert_eq!(
         format_description::parse("[").unwrap_err().to_string(),
-        "unclosed opening bracket at byte index 0"
+        "missing component name at byte index 0"
     );
     assert_eq!(
         format_description::parse("[foo]").unwrap_err().to_string(),
@@ -460,7 +480,7 @@ fn error_display() {
     );
     assert_eq!(
         format_description::parse("[]").unwrap_err().to_string(),
-        "missing component name at byte index 1"
+        "missing component name at byte index 0"
     );
 }
 

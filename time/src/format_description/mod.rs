@@ -8,7 +8,7 @@
 mod component;
 pub mod modifier;
 #[cfg(feature = "alloc")]
-pub(crate) mod parse;
+mod parse;
 
 #[cfg(feature = "alloc")]
 use alloc::string::String;
@@ -19,21 +19,6 @@ pub use self::component::Component;
 #[cfg(feature = "alloc")]
 pub use self::parse::parse;
 use crate::error;
-
-/// Helper methods.
-#[cfg(feature = "alloc")]
-mod helper {
-    /// Consume all leading whitespace, advancing `index` as appropriate.
-    #[must_use = "This does not modify the original slice."]
-    pub(crate) fn consume_whitespace<'a>(bytes: &'a [u8], index: &mut usize) -> &'a [u8] {
-        let first_non_whitespace = bytes
-            .iter()
-            .position(|c| !c.is_ascii_whitespace())
-            .unwrap_or(bytes.len());
-        *index += first_non_whitespace;
-        &bytes[first_non_whitespace..]
-    }
-}
 
 /// Well-known formats, typically standards.
 pub mod well_known {
