@@ -309,7 +309,7 @@ fn errors() {
         Err(UnclosedOpeningBracket { index: 0, .. })
     ));
     assert!(matches!(
-        dbg!(format_description::parse("[day padding:invalid]")),
+        format_description::parse("[day padding:invalid]"),
         Err(InvalidModifier { value, index: 13, .. }) if value == "invalid"
     ));
 }
