@@ -1,7 +1,7 @@
 use std::num::NonZeroU8;
 
 use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
-use time::format_description::{modifier, Component, FormatItem};
+use time::format_description::{modifier, Component, FormatItem, OwnedFormatItem};
 use time::macros::{date, datetime, offset, time};
 use time::parsing::Parsed;
 use time::{
@@ -642,6 +642,17 @@ fn parse_time() -> time::Result<()> {
 
     for (format_description, input, output) in &format_input_output {
         assert_eq!(&Time::parse(input, format_description)?, output);
+        assert_eq!(
+            &Time::parse(input, &OwnedFormatItem::from(format_description))?,
+            output
+        );
+        assert_eq!(
+            &Time::parse(
+                input,
+                [OwnedFormatItem::from(format_description)].as_slice()
+            )?,
+            output
+        );
     }
 
     Ok(())
@@ -683,6 +694,24 @@ fn parse_time_err() -> time::Result<()> {
     ));
     assert!(matches!(
         Time::parse("1a", &fd::parse("[subsecond digits:2]")?),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("subsecond")
+        ))
+    ));
+    assert!(matches!(
+        Time::parse(
+            "1a",
+            &OwnedFormatItem::from(fd::parse("[subsecond digits:2]")?)
+        ),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("subsecond")
+        ))
+    ));
+    assert!(matches!(
+        Time::parse(
+            "1a",
+            [OwnedFormatItem::from(fd::parse("[subsecond digits:2]")?)].as_slice()
+        ),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("subsecond")
         ))
@@ -803,6 +832,10 @@ fn parse_date() -> time::Result<()> {
 
     for (format_description, input, output) in &format_input_output {
         assert_eq!(&Date::parse(input, format_description)?, output);
+        assert_eq!(
+            &Date::parse(input, &OwnedFormatItem::from(format_description))?,
+            output
+        );
     }
 
     Ok(())
@@ -1252,11 +1285,35 @@ fn parse_optional() -> time::Result<()> {
     assert_eq!(parsed.month(), Some(Month::January));
     assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
 
+    let mut parsed = Parsed::new();
+    let remaining_input = parsed.parse_item(
+        b"2021-01-02",
+        &OwnedFormatItem::from(FormatItem::Optional(&FormatItem::Compound(&fd::parse(
+            "[year]-[month]-[day]",
+        )?))),
+    )?;
+    assert!(remaining_input.is_empty());
+    assert_eq!(parsed.year(), Some(2021));
+    assert_eq!(parsed.month(), Some(Month::January));
+    assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
+
     // Ensure a successful partial parse *does not* mutate `parsed`.
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"2021-01",
         &FormatItem::Optional(&FormatItem::Compound(&fd::parse("[year]-[month]-[day]")?)),
+    )?;
+    assert_eq!(remaining_input, b"2021-01");
+    assert!(parsed.year().is_none());
+    assert!(parsed.month().is_none());
+    assert!(parsed.day().is_none());
+
+    let mut parsed = Parsed::new();
+    let remaining_input = parsed.parse_item(
+        b"2021-01",
+        &OwnedFormatItem::from(FormatItem::Optional(&FormatItem::Compound(&fd::parse(
+            "[year]-[month]-[day]",
+        )?))),
     )?;
     assert_eq!(remaining_input, b"2021-01");
     assert!(parsed.year().is_none());
@@ -1279,9 +1336,29 @@ fn parse_first() -> time::Result<()> {
     assert_eq!(parsed.month(), Some(Month::January));
     assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
 
+    let mut parsed = Parsed::new();
+    let remaining_input = parsed.parse_item(
+        b"2021-01-02",
+        &OwnedFormatItem::from(FormatItem::First(&[FormatItem::Compound(&fd::parse(
+            "[year]-[month]-[day]",
+        )?)])),
+    )?;
+    assert!(remaining_input.is_empty());
+    assert_eq!(parsed.year(), Some(2021));
+    assert_eq!(parsed.month(), Some(Month::January));
+    assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
+
     // Ensure an empty slice is a no-op success.
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(b"2021-01-02", &FormatItem::First(&[]))?;
+    assert_eq!(remaining_input, b"2021-01-02");
+    assert!(parsed.year().is_none());
+    assert!(parsed.month().is_none());
+    assert!(parsed.day().is_none());
+
+    let mut parsed = Parsed::new();
+    let remaining_input =
+        parsed.parse_item(b"2021-01-02", &OwnedFormatItem::First(Box::new([])))?;
     assert_eq!(remaining_input, b"2021-01-02");
     assert!(parsed.year().is_none());
     assert!(parsed.month().is_none());
@@ -1302,6 +1379,20 @@ fn parse_first() -> time::Result<()> {
     assert_eq!(parsed.month(), Some(Month::January));
     assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
 
+    let mut parsed = Parsed::new();
+    let remaining_input = parsed.parse_item(
+        b"2021-01-02",
+        &OwnedFormatItem::from(FormatItem::First(&[
+            FormatItem::Compound(&fd::parse("[period]")?),
+            FormatItem::Compound(&fd::parse("x")?),
+            FormatItem::Compound(&fd::parse("[year]-[month]-[day]")?),
+        ])),
+    )?;
+    assert!(remaining_input.is_empty());
+    assert_eq!(parsed.year(), Some(2021));
+    assert_eq!(parsed.month(), Some(Month::January));
+    assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
+
     // Ensure the first error is returned.
     let mut parsed = Parsed::new();
     let err = parsed
@@ -1311,6 +1402,18 @@ fn parse_first() -> time::Result<()> {
                 FormatItem::Compound(&fd::parse("[period]")?),
                 FormatItem::Compound(&fd::parse("x")?),
             ]),
+        )
+        .unwrap_err();
+    assert_eq!(err, error::ParseFromDescription::InvalidComponent("period"));
+
+    let mut parsed = Parsed::new();
+    let err = parsed
+        .parse_item(
+            b"2021-01-02",
+            &OwnedFormatItem::from(FormatItem::First(&[
+                FormatItem::Compound(&fd::parse("[period]")?),
+                FormatItem::Compound(&fd::parse("x")?),
+            ])),
         )
         .unwrap_err();
     assert_eq!(err, error::ParseFromDescription::InvalidComponent("period"));

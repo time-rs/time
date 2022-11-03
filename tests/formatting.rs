@@ -2,7 +2,7 @@ use std::io;
 
 use time::format_description::well_known::iso8601::{DateKind, OffsetPrecision, TimePrecision};
 use time::format_description::well_known::{iso8601, Iso8601, Rfc2822, Rfc3339};
-use time::format_description::{self, FormatItem};
+use time::format_description::{self, FormatItem, OwnedFormatItem};
 use time::macros::{date, datetime, format_description as fd, offset, time};
 use time::{OffsetDateTime, Time};
 
@@ -271,6 +271,15 @@ fn format_time() -> time::Result<()> {
                 .format_into(&mut io::sink(), format_description)
                 .is_ok()
         );
+        assert_eq!(
+            time!(13:02:03.456_789_012).format(&OwnedFormatItem::from(format_description))?,
+            output
+        );
+        assert!(
+            time!(13:02:03.456_789_012)
+                .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
+                .is_ok()
+        );
     }
 
     assert_eq!(
@@ -369,6 +378,15 @@ fn format_date() -> time::Result<()> {
                 .format_into(&mut io::sink(), format_description)
                 .is_ok()
         );
+        assert_eq!(
+            date!(2019 - 12 - 31).format(&OwnedFormatItem::from(format_description))?,
+            output
+        );
+        assert!(
+            date!(2019 - 12 - 31)
+                .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
+                .is_ok()
+        );
     }
 
     Ok(())
@@ -421,6 +439,15 @@ fn format_offset() -> time::Result<()> {
                 .format_into(&mut io::sink(), format_description)
                 .is_ok()
         );
+        assert_eq!(
+            value.format(&OwnedFormatItem::from(format_description))?,
+            output
+        );
+        assert!(
+            value
+                .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
+                .is_ok()
+        );
     }
 
     Ok(())
@@ -450,6 +477,15 @@ fn format_pdt() -> time::Result<()> {
     assert!(
         datetime!(1970-01-01 0:00)
             .format_into(&mut io::sink(), format_description)
+            .is_ok()
+    );
+    assert_eq!(
+        datetime!(1970-01-01 0:00).format(&OwnedFormatItem::from(format_description))?,
+        "1970-01-01 00:00:00.0"
+    );
+    assert!(
+        datetime!(1970-01-01 0:00)
+            .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
             .is_ok()
     );
 
@@ -482,6 +518,15 @@ fn format_odt() -> time::Result<()> {
     assert!(
         datetime!(1970-01-01 0:00 UTC)
             .format_into(&mut io::sink(), &format_description)
+            .is_ok()
+    );
+    assert_eq!(
+        datetime!(1970-01-01 0:00 UTC).format(&OwnedFormatItem::from(&format_description))?,
+        "1970-01-01 00:00:00.0 +00:00:00"
+    );
+    assert!(
+        datetime!(1970-01-01 0:00 UTC)
+            .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
             .is_ok()
     );
 
@@ -538,10 +583,15 @@ fn failed_write() -> time::Result<()> {
     }
 
     assert_err!(Time::MIDNIGHT, fd!("foo"));
+    assert_err!(Time::MIDNIGHT, OwnedFormatItem::from(fd!("foo")));
     assert_err!(Time::MIDNIGHT, FormatItem::Compound(fd!("foo")));
     assert_err!(
         Time::MIDNIGHT,
         FormatItem::Optional(&FormatItem::Compound(fd!("foo")))
+    );
+    assert_err!(
+        Time::MIDNIGHT,
+        OwnedFormatItem::from(FormatItem::Optional(&FormatItem::Compound(fd!("foo"))))
     );
     assert_err!(OffsetDateTime::UNIX_EPOCH, Rfc3339);
     assert_err!(datetime!(2021-001 0:00:00.1 UTC), Rfc3339);
@@ -666,6 +716,16 @@ fn first() -> time::Result<()> {
     assert_eq!(Time::MIDNIGHT.format(&FormatItem::First(&[]))?, "");
     assert_eq!(
         Time::MIDNIGHT.format(&FormatItem::First(&[FormatItem::Compound(fd!("[hour]"))]))?,
+        "00"
+    );
+    assert_eq!(
+        Time::MIDNIGHT.format(&OwnedFormatItem::First(Box::new([])))?,
+        ""
+    );
+    assert_eq!(
+        Time::MIDNIGHT.format(&OwnedFormatItem::from(FormatItem::First(&[
+            FormatItem::Compound(fd!("[hour]"))
+        ])))?,
         "00"
     );
 

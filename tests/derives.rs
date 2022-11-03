@@ -4,7 +4,7 @@ use std::hash::Hash;
 
 use time::error::{self, ConversionRange, IndeterminateOffset, TryFromParsed};
 use time::ext::NumericalDuration;
-use time::format_description::{self, modifier, well_known, Component, FormatItem};
+use time::format_description::{self, modifier, well_known, Component, FormatItem, OwnedFormatItem};
 use time::macros::{date, offset, time};
 use time::parsing::Parsed;
 use time::{Duration, Error, Instant, Month, Time, Weekday};
@@ -176,5 +176,9 @@ fn debug() {
         FormatItem::Compound(&[FormatItem::Component(Component::Day(modifier::Day::default()))]);
         FormatItem::Optional(&FormatItem::Compound(&[]));
         FormatItem::First(&[]);
+        OwnedFormatItem::from(FormatItem::Literal(b"abcdef"));
+        OwnedFormatItem::from(FormatItem::Compound(&[FormatItem::Component(Component::Day(modifier::Day::default()))]));
+        OwnedFormatItem::from(FormatItem::Optional(&FormatItem::Compound(&[])));
+        OwnedFormatItem::from(FormatItem::First(&[]));
     }
 }
