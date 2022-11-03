@@ -5,6 +5,8 @@ use core::num::{NonZeroU16, NonZeroU8};
 
 use crate::error::TryFromParsed::InsufficientInformation;
 use crate::format_description::modifier::{WeekNumberRepr, YearRepr};
+#[cfg(feature = "alloc")]
+use crate::format_description::OwnedFormatItem;
 use crate::format_description::{Component, FormatItem};
 use crate::parsing::component::{
     parse_day, parse_hour, parse_minute, parse_month, parse_offset_hour, parse_offset_minute,
@@ -13,6 +15,88 @@ use crate::parsing::component::{
 };
 use crate::parsing::ParsedItem;
 use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+
+/// Sealed to prevent downstream implementations.
+mod sealed {
+    use super::*;
+
+    /// A trait to allow `parse_item` to be generic.
+    pub trait AnyFormatItem {
+        /// Parse a single item, returning the remaining input on success.
+        fn parse_item<'a>(
+            &self,
+            parsed: &mut Parsed,
+            input: &'a [u8],
+        ) -> Result<&'a [u8], error::ParseFromDescription>;
+    }
+}
+
+impl sealed::AnyFormatItem for FormatItem<'_> {
+    fn parse_item<'a>(
+        &self,
+        parsed: &mut Parsed,
+        input: &'a [u8],
+    ) -> Result<&'a [u8], error::ParseFromDescription> {
+        match self {
+            Self::Literal(literal) => Parsed::parse_literal(input, literal),
+            Self::Component(component) => parsed.parse_component(input, *component),
+            Self::Compound(compound) => parsed.parse_items(input, compound),
+            Self::Optional(item) => parsed.parse_item(input, *item).or(Ok(input)),
+            Self::First(items) => {
+                let mut first_err = None;
+
+                for item in items.iter() {
+                    match parsed.parse_item(input, item) {
+                        Ok(remaining_input) => return Ok(remaining_input),
+                        Err(err) if first_err.is_none() => first_err = Some(err),
+                        Err(_) => {}
+                    }
+                }
+
+                match first_err {
+                    Some(err) => Err(err),
+                    // This location will be reached if the slice is empty, skipping the `for` loop.
+                    // As this case is expected to be uncommon, there's no need to check up front.
+                    None => Ok(input),
+                }
+            }
+        }
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl sealed::AnyFormatItem for OwnedFormatItem {
+    fn parse_item<'a>(
+        &self,
+        parsed: &mut Parsed,
+        input: &'a [u8],
+    ) -> Result<&'a [u8], error::ParseFromDescription> {
+        match self {
+            Self::Literal(literal) => Parsed::parse_literal(input, literal),
+            Self::Component(component) => parsed.parse_component(input, *component),
+            Self::Compound(compound) => parsed.parse_items(input, compound),
+            Self::Optional(item) => parsed.parse_item(input, item.as_ref()).or(Ok(input)),
+            Self::First(items) => {
+                let mut first_err = None;
+
+                for item in items.iter() {
+                    match parsed.parse_item(input, item) {
+                        Ok(remaining_input) => return Ok(remaining_input),
+                        Err(err) if first_err.is_none() => first_err = Some(err),
+                        Err(_) => {}
+                    }
+                }
+
+                match first_err {
+                    Some(err) => Err(err),
+                    // This location will be reached if the slice is empty, skipping the `for` loop.
+                    // As this case is expected to be uncommon, there's no need to check up front.
+                    None => Ok(input),
+                }
+            }
+        }
+    }
+}
 
 /// All information parsed.
 ///
@@ -115,51 +199,28 @@ impl Parsed {
         }
     }
 
-    /// Parse a single [`FormatItem`], mutating the struct. The remaining input is returned as the
-    /// `Ok` value.
+    /// Parse a single [`FormatItem`] or [`OwnedFormatItem`], mutating the struct. The remaining
+    /// input is returned as the `Ok` value.
     ///
-    /// If a [`FormatItem::Optional`] is passed, parsing will not fail; the input will be returned
-    /// as-is if the expected format is not present.
+    /// If a [`FormatItem::Optional`] or [`OwnedFormatItem::Optional`] is passed, parsing will not
+    /// fail; the input will be returned as-is if the expected format is not present.
     pub fn parse_item<'a>(
         &mut self,
         input: &'a [u8],
-        item: &FormatItem<'_>,
+        item: &impl sealed::AnyFormatItem,
     ) -> Result<&'a [u8], error::ParseFromDescription> {
-        match item {
-            FormatItem::Literal(literal) => Self::parse_literal(input, literal),
-            FormatItem::Component(component) => self.parse_component(input, *component),
-            FormatItem::Compound(compound) => self.parse_items(input, compound),
-            FormatItem::Optional(item) => self.parse_item(input, item).or(Ok(input)),
-            FormatItem::First(items) => {
-                let mut first_err = None;
-
-                for item in items.iter() {
-                    match self.parse_item(input, item) {
-                        Ok(remaining_input) => return Ok(remaining_input),
-                        Err(err) if first_err.is_none() => first_err = Some(err),
-                        Err(_) => {}
-                    }
-                }
-
-                match first_err {
-                    Some(err) => Err(err),
-                    // This location will be reached if the slice is empty, skipping the `for` loop.
-                    // As this case is expected to be uncommon, there's no need to check up front.
-                    None => Ok(input),
-                }
-            }
-        }
+        item.parse_item(self, input)
     }
 
-    /// Parse a sequence of [`FormatItem`]s, mutating the struct. The remaining input is returned as
-    /// the `Ok` value.
+    /// Parse a sequence of [`FormatItem`]s or [`OwnedFormatItem`]s, mutating the struct. The
+    /// remaining input is returned as the `Ok` value.
     ///
-    /// This method will fail if any of the contained [`FormatItem`]s fail to parse. `self` will not
-    /// be mutated in this instance.
+    /// This method will fail if any of the contained [`FormatItem`]s or [`OwnedFormatItem`]s fail
+    /// to parse. `self` will not be mutated in this instance.
     pub fn parse_items<'a>(
         &mut self,
         mut input: &'a [u8],
-        items: &[FormatItem<'_>],
+        items: &[impl sealed::AnyFormatItem],
     ) -> Result<&'a [u8], error::ParseFromDescription> {
         // Make a copy that we can mutate. It will only be set to the user's copy if everything
         // succeeds.

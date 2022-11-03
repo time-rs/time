@@ -1,5 +1,6 @@
 //! A format item with borrowed data.
 
+#[cfg(feature = "alloc")]
 use alloc::string::String;
 #[cfg(feature = "alloc")]
 use core::fmt;
@@ -37,11 +38,11 @@ pub enum BorrowedFormatItem<'a> {
 impl fmt::Debug for BorrowedFormatItem<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            BorrowedFormatItem::Literal(literal) => f.write_str(&String::from_utf8_lossy(literal)),
-            BorrowedFormatItem::Component(component) => component.fmt(f),
-            BorrowedFormatItem::Compound(compound) => compound.fmt(f),
-            BorrowedFormatItem::Optional(item) => f.debug_tuple("Optional").field(item).finish(),
-            BorrowedFormatItem::First(items) => f.debug_tuple("First").field(items).finish(),
+            Self::Literal(literal) => f.write_str(&String::from_utf8_lossy(literal)),
+            Self::Component(component) => component.fmt(f),
+            Self::Compound(compound) => compound.fmt(f),
+            Self::Optional(item) => f.debug_tuple("Optional").field(item).finish(),
+            Self::First(items) => f.debug_tuple("First").field(items).finish(),
         }
     }
 }

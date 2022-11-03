@@ -9,9 +9,13 @@ mod borrowed_format_item;
 mod component;
 pub mod modifier;
 #[cfg(feature = "alloc")]
+mod owned_format_item;
+#[cfg(feature = "alloc")]
 mod parse;
 
 pub use borrowed_format_item::BorrowedFormatItem as FormatItem;
+#[cfg(feature = "alloc")]
+pub use owned_format_item::OwnedFormatItem;
 
 pub use self::component::Component;
 #[cfg(feature = "alloc")]

@@ -6,6 +6,8 @@ use crate::error::TryFromParsed;
 use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::format_description::FormatItem;
+#[cfg(feature = "alloc")]
+use crate::format_description::OwnedFormatItem;
 use crate::parsing::{Parsed, ParsedItem};
 use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
@@ -14,6 +16,10 @@ use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffs
 pub trait Parsable: sealed::Sealed {}
 impl Parsable for FormatItem<'_> {}
 impl Parsable for [FormatItem<'_>] {}
+#[cfg(feature = "alloc")]
+impl Parsable for OwnedFormatItem {}
+#[cfg(feature = "alloc")]
+impl Parsable for [OwnedFormatItem] {}
 impl Parsable for Rfc2822 {}
 impl Parsable for Rfc3339 {}
 impl<const CONFIG: EncodedConfig> Parsable for Iso8601<CONFIG> {}
@@ -89,6 +95,28 @@ impl sealed::Sealed for FormatItem<'_> {
 }
 
 impl sealed::Sealed for [FormatItem<'_>] {
+    fn parse_into<'a>(
+        &self,
+        input: &'a [u8],
+        parsed: &mut Parsed,
+    ) -> Result<&'a [u8], error::Parse> {
+        Ok(parsed.parse_items(input, self)?)
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl sealed::Sealed for OwnedFormatItem {
+    fn parse_into<'a>(
+        &self,
+        input: &'a [u8],
+        parsed: &mut Parsed,
+    ) -> Result<&'a [u8], error::Parse> {
+        Ok(parsed.parse_item(input, self)?)
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl sealed::Sealed for [OwnedFormatItem] {
     fn parse_into<'a>(
         &self,
         input: &'a [u8],

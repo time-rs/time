@@ -5,7 +5,7 @@ use std::io;
 
 use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
-use crate::format_description::FormatItem;
+use crate::format_description::{FormatItem, OwnedFormatItem};
 use crate::formatting::{
     format_component, format_number_pad_zero, iso8601, write, MONTH_NAMES, WEEKDAY_NAMES,
 };
@@ -16,6 +16,8 @@ use crate::{error, Date, Time, UtcOffset};
 pub trait Formattable: sealed::Sealed {}
 impl Formattable for FormatItem<'_> {}
 impl Formattable for [FormatItem<'_>] {}
+impl Formattable for OwnedFormatItem {}
+impl Formattable for [OwnedFormatItem] {}
 impl Formattable for Rfc3339 {}
 impl Formattable for Rfc2822 {}
 impl<const CONFIG: EncodedConfig> Formattable for Iso8601<CONFIG> {}
@@ -74,6 +76,43 @@ impl<'a> sealed::Sealed for FormatItem<'a> {
 }
 
 impl<'a> sealed::Sealed for [FormatItem<'a>] {
+    fn format_into(
+        &self,
+        output: &mut impl io::Write,
+        date: Option<Date>,
+        time: Option<Time>,
+        offset: Option<UtcOffset>,
+    ) -> Result<usize, error::Format> {
+        let mut bytes = 0;
+        for item in self.iter() {
+            bytes += item.format_into(output, date, time, offset)?;
+        }
+        Ok(bytes)
+    }
+}
+
+impl sealed::Sealed for OwnedFormatItem {
+    fn format_into(
+        &self,
+        output: &mut impl io::Write,
+        date: Option<Date>,
+        time: Option<Time>,
+        offset: Option<UtcOffset>,
+    ) -> Result<usize, error::Format> {
+        match self {
+            Self::Literal(literal) => Ok(write(output, literal)?),
+            Self::Component(component) => format_component(output, *component, date, time, offset),
+            Self::Compound(items) => items.format_into(output, date, time, offset),
+            Self::Optional(item) => item.format_into(output, date, time, offset),
+            Self::First(items) => match &**items {
+                [] => Ok(0),
+                [item, ..] => item.format_into(output, date, time, offset),
+            },
+        }
+    }
+}
+
+impl sealed::Sealed for [OwnedFormatItem] {
     fn format_into(
         &self,
         output: &mut impl io::Write,
