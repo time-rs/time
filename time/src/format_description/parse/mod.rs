@@ -18,9 +18,31 @@ pub fn parse(
     let lexed = lexer::lex(s.as_bytes());
     let ast = ast::parse(lexed);
     let format_items = format_item::parse(ast);
-    let items = format_items.collect::<Result<Vec<_>, _>>()?;
+    Ok(format_items
+        .map(|res| res.map(Into::into))
+        .collect::<Result<Vec<_>, _>>()?)
+}
 
-    Ok(items.into_iter().map(Into::into).collect())
+/// Parse a sequence of items from the format description.
+///
+/// The syntax for the format description can be found in [the
+/// book](https://time-rs.github.io/book/api/format-description.html).
+///
+/// Unlike [`parse`], this function returns [`OwnedFormatItem`], which owns its contents. This means
+/// that there is no lifetime that needs to be handled.
+///
+/// [`OwnedFormatItem`]: crate::format_description::OwnedFormatItem
+pub fn parse_owned(
+    s: &str,
+) -> Result<crate::format_description::OwnedFormatItem, crate::error::InvalidFormatDescription> {
+    let lexed = lexer::lex(s.as_bytes());
+    let ast = ast::parse(lexed);
+    let format_items = format_item::parse(ast);
+    let items = format_items
+        .map(|res| res.map(Into::into))
+        .collect::<Result<Vec<_>, _>>()?
+        .into_boxed_slice();
+    Ok(crate::format_description::OwnedFormatItem::Compound(items))
 }
 
 /// A location within a string.

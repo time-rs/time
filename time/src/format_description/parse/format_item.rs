@@ -50,6 +50,15 @@ impl<'a> From<Item<'a>> for crate::format_description::FormatItem<'a> {
     }
 }
 
+impl From<Item<'_>> for crate::format_description::OwnedFormatItem {
+    fn from(item: Item<'_>) -> Self {
+        match item {
+            Item::Literal(literal) => Self::Literal(literal.to_vec().into_boxed_slice()),
+            Item::Component(component) => Self::Component(component.into()),
+        }
+    }
+}
+
 /// Declare the `Component` struct.
 macro_rules! component_definition {
     ($vis:vis enum $name:ident {

@@ -19,7 +19,7 @@ pub use owned_format_item::OwnedFormatItem;
 
 pub use self::component::Component;
 #[cfg(feature = "alloc")]
-pub use self::parse::parse;
+pub use self::parse::{parse, parse_owned};
 
 /// Well-known formats, typically standards.
 pub mod well_known {
