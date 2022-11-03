@@ -112,11 +112,15 @@ use time::error::InvalidFormatDescription;
 use time::format_description::modifier::{
     MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,
 };
-use time::format_description::{self, Component, FormatItem};
+use time::format_description::{self, Component, FormatItem, OwnedFormatItem};
 
 #[test]
 fn empty() {
     assert_eq!(format_description::parse(""), Ok(vec![]));
+    assert_eq!(
+        format_description::parse_owned(""),
+        Ok(OwnedFormatItem::Compound(Box::new([])))
+    );
 }
 
 #[test]
@@ -276,42 +280,31 @@ fn simple_component() {
 #[test]
 fn errors() {
     use InvalidFormatDescription::*;
-    assert!(matches!(
-        format_description::parse("[ invalid ]"),
-        Err(InvalidComponentName { name, index: 2, .. }) if name == "invalid"
-    ));
-    assert!(matches!(
-        format_description::parse("["),
-        Err(MissingComponentName { index: 0, .. })
-    ));
-    assert!(matches!(
-        format_description::parse("[ "),
-        Err(MissingComponentName { index: 1, .. })
-    ));
-    assert!(matches!(
-        format_description::parse("[]"),
-        Err(MissingComponentName { index: 0, .. })
-    ));
-    assert!(matches!(
-        format_description::parse("[day sign:mandatory]"),
-        Err(InvalidModifier { value, index: 5, .. }) if value == "sign"
-    ));
-    assert!(matches!(
-        format_description::parse("[day sign:]"),
-        Err(InvalidModifier { value, index: 9,.. }) if value.is_empty()
-    ));
-    assert!(matches!(
-        format_description::parse("[day :mandatory]"),
-        Err(InvalidModifier { value, index: 5,.. }) if value.is_empty()
-    ));
-    assert!(matches!(
-        format_description::parse("[day sign:mandatory"),
-        Err(UnclosedOpeningBracket { index: 0, .. })
-    ));
-    assert!(matches!(
-        format_description::parse("[day padding:invalid]"),
-        Err(InvalidModifier { value, index: 13, .. }) if value == "invalid"
-    ));
+
+    macro_rules! assert_errs {
+        ($($format_description:literal, $error:pat $(if $condition:expr)?,)*) => {$(
+            assert!(matches!(
+                format_description::parse($format_description),
+                Err($error) $(if $condition)?
+            ));
+            assert!(matches!(
+                format_description::parse_owned($format_description),
+                Err($error) $(if $condition)?
+            ));
+        )*};
+    }
+
+    assert_errs! {
+        "[ invalid ]", InvalidComponentName { name, index: 2, .. } if name == "invalid",
+        "[", MissingComponentName { index: 0, .. },
+        "[ ", MissingComponentName { index: 1, .. },
+        "[]", MissingComponentName { index: 0, .. },
+        "[day sign:mandatory]", InvalidModifier { value, index: 5, .. } if value == "sign",
+        "[day sign:]", InvalidModifier { value, index: 9,.. } if value.is_empty(),
+        "[day :mandatory]", InvalidModifier { value, index: 5,.. } if value.is_empty(),
+        "[day sign:mandatory", UnclosedOpeningBracket { index: 0, .. },
+        "[day padding:invalid]", InvalidModifier { value, index: 13, .. } if value == "invalid",
+    }
 }
 
 #[test]

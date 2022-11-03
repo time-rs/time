@@ -699,19 +699,13 @@ fn parse_time_err() -> time::Result<()> {
         ))
     ));
     assert!(matches!(
-        Time::parse(
-            "1a",
-            &OwnedFormatItem::from(fd::parse("[subsecond digits:2]")?)
-        ),
+        Time::parse("1a", &fd::parse_owned("[subsecond digits:2]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("subsecond")
         ))
     ));
     assert!(matches!(
-        Time::parse(
-            "1a",
-            [OwnedFormatItem::from(fd::parse("[subsecond digits:2]")?)].as_slice()
-        ),
+        Time::parse("1a", [fd::parse_owned("[subsecond digits:2]")?].as_slice()),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("subsecond")
         ))
