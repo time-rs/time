@@ -1,8 +1,9 @@
 //! Typed, validated representation of a parsed format description.
 
+use alloc::boxed::Box;
 use alloc::string::String;
 
-use super::{ast, Error};
+use super::{ast, Error, Span, Spanned};
 
 /// Parse an AST iterator into a sequence of format items.
 pub(super) fn parse<'a>(
@@ -18,6 +19,13 @@ pub(super) enum Item<'a> {
     Literal(&'a [u8]),
     /// Part of a type, along with its modifiers.
     Component(Component),
+    /// A sequence of optional items.
+    Optional {
+        /// The items themselves.
+        value: Box<[Self]>,
+        /// The span of the full sequence.
+        span: Span,
+    },
 }
 
 impl Item<'_> {
@@ -32,20 +40,53 @@ impl Item<'_> {
                 _trailing_whitespace: _,
                 _closing_bracket: _,
             } => Item::Component(component_from_ast(&name, &modifiers)?),
-            ast::Item::Literal { value, _span: _ } => Item::Literal(value),
+            ast::Item::Literal(Spanned { value, span: _ }) => Item::Literal(value),
             ast::Item::EscapedBracket {
                 _first: _,
                 _second: _,
             } => Item::Literal(b"["),
+            ast::Item::Optional {
+                opening_bracket,
+                _leading_whitespace: _,
+                _optional_kw: _,
+                _whitespace: _,
+                nested_format_description,
+                closing_bracket,
+            } => {
+                let items = nested_format_description
+                    .items
+                    .into_vec()
+                    .into_iter()
+                    .map(Item::from_ast)
+                    .collect::<Result<_, _>>()?;
+                Item::Optional {
+                    value: items,
+                    span: opening_bracket.to(closing_bracket),
+                }
+            }
         })
     }
 }
 
-impl<'a> From<Item<'a>> for crate::format_description::FormatItem<'a> {
-    fn from(item: Item<'a>) -> Self {
+impl<'a> TryFrom<Item<'a>> for crate::format_description::FormatItem<'a> {
+    type Error = Error;
+
+    fn try_from(item: Item<'a>) -> Result<Self, Self::Error> {
         match item {
-            Item::Literal(literal) => Self::Literal(literal),
-            Item::Component(component) => Self::Component(component.into()),
+            Item::Literal(literal) => Ok(Self::Literal(literal)),
+            Item::Component(component) => Ok(Self::Component(component.into())),
+            Item::Optional { value: _, span } => Err(Error {
+                _inner: super::ErrorInner {
+                    _message: "optional items are not supported in runtime-parsed format \
+                               descriptions",
+                    _span: span,
+                },
+                public: crate::error::InvalidFormatDescription::NotSupported {
+                    what: "optional item",
+                    context: "runtime-parsed format descriptions",
+                    index: span.start.byte as _,
+                },
+            }),
         }
     }
 }
@@ -55,6 +96,9 @@ impl From<Item<'_>> for crate::format_description::OwnedFormatItem {
         match item {
             Item::Literal(literal) => Self::Literal(literal.to_vec().into_boxed_slice()),
             Item::Component(component) => Self::Component(component.into()),
+            Item::Optional { value, span: _ } => Self::Optional(Box::new(Self::Compound(
+                value.into_vec().into_iter().map(Self::from).collect(),
+            ))),
         }
     }
 }
@@ -83,15 +127,15 @@ macro_rules! component_definition {
                 };
 
                 for modifier in modifiers {
-                    $(if modifier.key.value.eq_ignore_ascii_case($parse_field) {
+                    $(if modifier.key.eq_ignore_ascii_case($parse_field) {
                         this.$field = <$field_type>::from_modifier_value(&modifier.value)?;
                         continue;
                     })*
                     return Err(Error {
                         _inner: modifier.key.span.error("invalid modifier key"),
                         public: crate::error::InvalidFormatDescription::InvalidModifier {
-                            value: String::from_utf8_lossy(modifier.key.value).into_owned(),
-                            index: modifier.key.span.start_byte(),
+                            value: String::from_utf8_lossy(*modifier.key).into_owned(),
+                            index: modifier.key.span.start.byte as _,
                         }
                     });
                 }
@@ -116,17 +160,17 @@ macro_rules! component_definition {
 
         /// Parse a component from the AST, given its name and modifiers.
         fn component_from_ast(
-            name: &ast::Name<'_>,
+            name: &Spanned<&[u8]>,
             modifiers: &[ast::Modifier<'_>],
         ) -> Result<Component, Error> {
-            $(if name.value.eq_ignore_ascii_case($parse_variant) {
+            $(if name.eq_ignore_ascii_case($parse_variant) {
                 return Ok(Component::$variant($variant::with_modifiers(&modifiers)?));
             })*
             Err(Error {
                 _inner: name.span.error("invalid component"),
                 public: crate::error::InvalidFormatDescription::InvalidComponentName {
-                    name: String::from_utf8_lossy(name.value).into_owned(),
-                    index: name.span.start_byte(),
+                    name: String::from_utf8_lossy(name).into_owned(),
+                    index: name.span.start.byte as _,
                 },
             })
         }
@@ -261,15 +305,15 @@ macro_rules! modifier {
 
         impl $name {
             /// Parse the modifier from its string representation.
-            fn from_modifier_value(value: &ast::Value<'_>) -> Result<Option<Self>, Error> {
-                $(if value.value.eq_ignore_ascii_case($parse_variant) {
+            fn from_modifier_value(value: &Spanned<&[u8]>) -> Result<Option<Self>, Error> {
+                $(if value.eq_ignore_ascii_case($parse_variant) {
                     return Ok(Some(Self::$variant));
                 })*
                 Err(Error {
                     _inner: value.span.error("invalid modifier value"),
                     public: crate::error::InvalidFormatDescription::InvalidModifier {
-                        value: String::from_utf8_lossy(value.value).into_owned(),
-                        index: value.span.start_byte(),
+                        value: String::from_utf8_lossy(value).into_owned(),
+                        index: value.span.start.byte as _,
                     },
                 })
             }

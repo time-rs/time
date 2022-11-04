@@ -456,10 +456,100 @@ fn component_with_modifiers() {
 }
 
 #[test]
+fn optional() {
+    assert_eq!(
+        format_description::parse_owned("[optional [:[year]]]"),
+        Ok(OwnedFormatItem::Compound(Box::new([
+            OwnedFormatItem::Optional(Box::new(OwnedFormatItem::Compound(Box::new([
+                OwnedFormatItem::Literal(Box::new(*b":")),
+                OwnedFormatItem::Component(Component::Year(Default::default()))
+            ]))))
+        ])))
+    );
+    assert_eq!(
+        format_description::parse_owned("[optional [[year]]]"),
+        Ok(OwnedFormatItem::Compound(Box::new([
+            OwnedFormatItem::Optional(Box::new(OwnedFormatItem::Compound(Box::new([
+                OwnedFormatItem::Component(Component::Year(Default::default()))
+            ]))))
+        ])))
+    );
+    assert_eq!(
+        format_description::parse_owned("[optional [[[]]"),
+        Ok(OwnedFormatItem::Compound(Box::new([
+            OwnedFormatItem::Optional(Box::new(OwnedFormatItem::Compound(Box::new([
+                OwnedFormatItem::Literal(Box::new(*b"[")),
+            ]))))
+        ])))
+    );
+    assert_eq!(
+        format_description::parse_owned("[optional [ [[ ]]"),
+        Ok(OwnedFormatItem::Compound(Box::new([
+            OwnedFormatItem::Optional(Box::new(OwnedFormatItem::Compound(Box::new([
+                OwnedFormatItem::Literal(Box::new(*b" ")),
+                OwnedFormatItem::Literal(Box::new(*b"[")),
+                OwnedFormatItem::Literal(Box::new(*b" ")),
+            ]))))
+        ])))
+    );
+}
+
+#[test]
+fn nested_error() {
+    use InvalidFormatDescription::*;
+
+    assert!(matches!(
+        format_description::parse("[optional []]"),
+        Err(NotSupported {
+            what: "optional item",
+            context: "runtime-parsed format descriptions",
+            index: 0,
+            ..
+        })
+    ));
+    assert!(matches!(
+        format_description::parse_owned("[year [month]]"),
+        Err(InvalidModifier { value, index: 6, .. }) if value == "["
+    ));
+    assert!(matches!(
+        format_description::parse_owned("[optional[]]"),
+        Err(Expected {
+            what: "whitespace after `optional`",
+            index: 8,
+            ..
+        })
+    ));
+    assert!(matches!(
+        format_description::parse_owned("[optional []"),
+        Err(UnclosedOpeningBracket { index: 0, .. })
+    ));
+    assert!(matches!(
+        format_description::parse_owned("[optional ["),
+        Err(UnclosedOpeningBracket { index: 10, .. })
+    ));
+    assert!(matches!(
+        dbg!(format_description::parse_owned("[optional [[year")),
+        Err(UnclosedOpeningBracket { index: 11, .. })
+    ));
+    assert!(matches!(
+        format_description::parse_owned("[optional "),
+        Err(Expected {
+            what: "opening bracket",
+            index: 9,
+            ..
+        })
+    ));
+}
+
+#[test]
 fn error_display() {
     assert_eq!(
         format_description::parse("[").unwrap_err().to_string(),
         "missing component name at byte index 0"
+    );
+    assert_eq!(
+        format_description::parse("[foo").unwrap_err().to_string(),
+        "unclosed opening bracket at byte index 0"
     );
     assert_eq!(
         format_description::parse("[foo]").unwrap_err().to_string(),
@@ -474,6 +564,18 @@ fn error_display() {
     assert_eq!(
         format_description::parse("[]").unwrap_err().to_string(),
         "missing component name at byte index 0"
+    );
+    assert_eq!(
+        format_description::parse_owned("[optional ")
+            .unwrap_err()
+            .to_string(),
+        "expected opening bracket at byte index 9"
+    );
+    assert_eq!(
+        format_description::parse("[optional []]")
+            .unwrap_err()
+            .to_string(),
+        "optional item is not supported in runtime-parsed format descriptions at byte index 0"
     );
 }
 

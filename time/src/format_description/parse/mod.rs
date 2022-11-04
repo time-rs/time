@@ -1,7 +1,6 @@
 //! Parser for format descriptions.
 
 use alloc::vec::Vec;
-use core::ops::{RangeFrom, RangeTo};
 
 mod ast;
 mod format_item;
@@ -15,12 +14,12 @@ pub fn parse(
     s: &str,
 ) -> Result<Vec<crate::format_description::FormatItem<'_>>, crate::error::InvalidFormatDescription>
 {
-    let lexed = lexer::lex(s.as_bytes());
-    let ast = ast::parse(lexed);
+    let mut lexed = lexer::lex(s.as_bytes()).peekable();
+    let ast = ast::parse(&mut lexed);
     let format_items = format_item::parse(ast);
     Ok(format_items
-        .map(|res| res.map(Into::into))
-        .collect::<Result<Vec<_>, _>>()?)
+        .map(|res| res.and_then(TryInto::try_into))
+        .collect::<Result<_, _>>()?)
 }
 
 /// Parse a sequence of items from the format description.
@@ -35,36 +34,34 @@ pub fn parse(
 pub fn parse_owned(
     s: &str,
 ) -> Result<crate::format_description::OwnedFormatItem, crate::error::InvalidFormatDescription> {
-    let lexed = lexer::lex(s.as_bytes());
-    let ast = ast::parse(lexed);
+    let mut lexed = lexer::lex(s.as_bytes()).peekable();
+    let ast = ast::parse(&mut lexed);
     let format_items = format_item::parse(ast);
     let items = format_items
         .map(|res| res.map(Into::into))
-        .collect::<Result<Vec<_>, _>>()?
-        .into_boxed_slice();
+        .collect::<Result<_, _>>()?;
     Ok(crate::format_description::OwnedFormatItem::Compound(items))
 }
 
 /// A location within a string.
 #[derive(Clone, Copy)]
 struct Location {
-    /// The one-indexed line of the string.
-    line: usize,
-    /// The one-indexed column of the string.
-    column: usize,
     /// The zero-indexed byte of the string.
-    byte: usize,
+    byte: u32,
 }
 
 impl Location {
+    /// Create a new [`Span`] from `self` to `other`.
+    const fn to(self, end: Self) -> Span {
+        Span { start: self, end }
+    }
+
     /// Offset the location by the provided amount.
     ///
     /// Note that this assumes the resulting location is on the same line as the original location.
     #[must_use = "this does not modify the original value"]
-    const fn offset(&self, offset: usize) -> Self {
+    const fn offset(&self, offset: u32) -> Self {
         Self {
-            line: self.line,
-            column: self.column + offset,
             byte: self.byte + offset,
         }
     }
@@ -91,17 +88,6 @@ struct Span {
 }
 
 impl Span {
-    /// Create a new `Span` from the provided start and end locations.
-    const fn start_end(start: Location, end: Location) -> Self {
-        Self { start, end }
-    }
-
-    /// Reduce this span to the provided range.
-    #[must_use = "this does not modify the original value"]
-    fn subspan(&self, range: impl Subspan) -> Self {
-        range.subspan(self)
-    }
-
     /// Obtain a `Span` pointing at the start of the pre-existing span.
     #[must_use = "this does not modify the original value"]
     const fn shrink_to_start(&self) -> Self {
@@ -120,6 +106,28 @@ impl Span {
         }
     }
 
+    /// Obtain a `Span` that ends before the provided position of the pre-existing span.
+    #[must_use = "this does not modify the original value"]
+    const fn shrink_to_before(&self, pos: u32) -> Self {
+        Self {
+            start: self.start,
+            end: Location {
+                byte: self.start.byte + pos - 1,
+            },
+        }
+    }
+
+    /// Obtain a `Span` that starts after provided position to the end of the pre-existing span.
+    #[must_use = "this does not modify the original value"]
+    const fn shrink_to_after(&self, pos: u32) -> Self {
+        Self {
+            start: Location {
+                byte: self.start.byte + pos + 1,
+            },
+            end: self.end,
+        }
+    }
+
     /// Create an error with the provided message at this span.
     const fn error(self, message: &'static str) -> ErrorInner {
         ErrorInner {
@@ -127,46 +135,34 @@ impl Span {
             _span: self,
         }
     }
+}
 
-    /// Get the byte index that the span starts at.
-    const fn start_byte(&self) -> usize {
-        self.start.byte
+/// A value with an associated [`Span`].
+#[derive(Clone, Copy)]
+struct Spanned<T> {
+    /// The value.
+    value: T,
+    /// Where the value was in the format string.
+    span: Span,
+}
+
+impl<T> core::ops::Deref for Spanned<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
     }
 }
 
-/// A trait for types that can be used to reduce a `Span`.
-trait Subspan {
-    /// Reduce the provided `Span` to a new `Span`.
-    fn subspan(self, span: &Span) -> Span;
+/// Helper trait to attach a [`Span`] to a value.
+trait SpannedValue: Sized {
+    /// Attach a [`Span`] to a value.
+    fn spanned(self, span: Span) -> Spanned<Self>;
 }
 
-impl Subspan for RangeFrom<usize> {
-    fn subspan(self, span: &Span) -> Span {
-        assert_eq!(span.start.line, span.end.line);
-
-        Span {
-            start: Location {
-                line: span.start.line,
-                column: span.start.column + self.start,
-                byte: span.start.byte + self.start,
-            },
-            end: span.end,
-        }
-    }
-}
-
-impl Subspan for RangeTo<usize> {
-    fn subspan(self, span: &Span) -> Span {
-        assert_eq!(span.start.line, span.end.line);
-
-        Span {
-            start: span.start,
-            end: Location {
-                line: span.start.line,
-                column: span.start.column + self.end - 1,
-                byte: span.start.byte + self.end - 1,
-            },
-        }
+impl<T> SpannedValue for T {
+    fn spanned(self, span: Span) -> Spanned<Self> {
+        Spanned { value: self, span }
     }
 }
 

@@ -152,7 +152,7 @@ fn size() {
     assert_size!(Weekday, 1, 1);
     // assert_size!(Error, 56, 56);
     assert_size!(error::Format, 24, 24);
-    assert_size!(error::InvalidFormatDescription, 40, 40);
+    assert_size!(error::InvalidFormatDescription, 48, 48);
     // assert_size!(error::Parse, 56, 56);
     assert_size!(error::ParseFromDescription, 16, 24);
     assert_size!(error::TryFromParsed, 48, 48);
