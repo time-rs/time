@@ -32,7 +32,8 @@
     clippy::clone_on_copy,
     clippy::cmp_owned,
     clippy::cognitive_complexity,
-    clippy::missing_const_for_fn
+    clippy::missing_const_for_fn,
+    clippy::unwrap_used
 )]
 
 #[cfg(not(all(

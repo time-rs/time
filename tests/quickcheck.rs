@@ -120,7 +120,7 @@ fn weekday_supports_arbitrary(w: Weekday) -> bool {
 #[quickcheck]
 fn weekday_can_shrink(w: Weekday) -> bool {
     match w {
-        Weekday::Monday => w.shrink().next() == None,
+        Weekday::Monday => w.shrink().next().is_none(),
         _ => w.shrink().next() == Some(w.previous()),
     }
 }
@@ -133,7 +133,7 @@ fn month_supports_arbitrary(m: Month) -> bool {
 #[quickcheck]
 fn month_can_shrink(m: Month) -> bool {
     match m {
-        Month::January => m.shrink().next() == None,
+        Month::January => m.shrink().next().is_none(),
         _ => m.shrink().next() == Some(m.previous()),
     }
 }

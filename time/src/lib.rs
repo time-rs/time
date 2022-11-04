@@ -125,7 +125,12 @@
     unused_qualifications,
     variant_size_differences
 )]
-#![allow(clippy::redundant_pub_crate)]
+#![allow(
+    clippy::redundant_pub_crate, // suggests bad style
+    clippy::option_if_let_else, // suggests terrible code
+    clippy::unused_peekable, // temporary due to bug: remove when Rust 1.66 is released
+    clippy::std_instead_of_core, // temporary due to bug: remove when Rust 1.66 is released
+)]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(test(attr(deny(warnings))))]

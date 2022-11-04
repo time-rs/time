@@ -28,7 +28,11 @@
     unused_qualifications,
     variant_size_differences
 )]
-#![allow(clippy::missing_const_for_fn, clippy::redundant_pub_crate)]
+#![allow(
+    clippy::missing_const_for_fn, // useless in proc macro
+    clippy::redundant_pub_crate, // suggests bad style
+    clippy::option_if_let_else, // suggests terrible code
+)]
 
 #[macro_use]
 mod quote;
