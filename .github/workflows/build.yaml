@@ -1,7 +1,7 @@
 name: Build
 
 concurrency:
-  group: build-${{ github.head_ref }}
+  group: ${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true
 
 env:
