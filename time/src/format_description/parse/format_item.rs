@@ -13,7 +13,6 @@ pub(super) fn parse<'a>(
 }
 
 /// A description of how to format and parse one part of a type.
-#[allow(variant_size_differences)]
 pub(super) enum Item<'a> {
     /// A literal string.
     Literal(&'a [u8]),
@@ -23,6 +22,13 @@ pub(super) enum Item<'a> {
     Optional {
         /// The items themselves.
         value: Box<[Self]>,
+        /// The span of the full sequence.
+        span: Span,
+    },
+    /// The first matching parse of a sequence of format descriptions.
+    First {
+        /// The sequence of format descriptions.
+        value: Box<[Box<[Self]>]>,
         /// The span of the full sequence.
         span: Span,
     },
@@ -64,6 +70,31 @@ impl Item<'_> {
                     span: opening_bracket.to(closing_bracket),
                 }
             }
+            ast::Item::First {
+                opening_bracket,
+                _leading_whitespace: _,
+                _first_kw: _,
+                _whitespace: _,
+                nested_format_descriptions,
+                closing_bracket,
+            } => {
+                let items = nested_format_descriptions
+                    .into_vec()
+                    .into_iter()
+                    .map(|nested_format_description| {
+                        nested_format_description
+                            .items
+                            .into_vec()
+                            .into_iter()
+                            .map(Item::from_ast)
+                            .collect()
+                    })
+                    .collect::<Result<_, _>>()?;
+                Item::First {
+                    value: items,
+                    span: opening_bracket.to(closing_bracket),
+                }
+            }
         })
     }
 }
@@ -76,13 +107,20 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::FormatItem<'a> {
             Item::Literal(literal) => Ok(Self::Literal(literal)),
             Item::Component(component) => Ok(Self::Component(component.into())),
             Item::Optional { value: _, span } => Err(Error {
-                _inner: super::ErrorInner {
-                    _message: "optional items are not supported in runtime-parsed format \
-                               descriptions",
-                    _span: span,
-                },
+                _inner: span.error(
+                    "optional items are not supported in runtime-parsed format descriptions",
+                ),
                 public: crate::error::InvalidFormatDescription::NotSupported {
                     what: "optional item",
+                    context: "runtime-parsed format descriptions",
+                    index: span.start.byte as _,
+                },
+            }),
+            Item::First { value: _, span } => Err(Error {
+                _inner: span
+                    .error("'first' items are not supported in runtime-parsed format descriptions"),
+                public: crate::error::InvalidFormatDescription::NotSupported {
+                    what: "'first' item",
                     context: "runtime-parsed format descriptions",
                     index: span.start.byte as _,
                 },
@@ -99,6 +137,21 @@ impl From<Item<'_>> for crate::format_description::OwnedFormatItem {
             Item::Optional { value, span: _ } => Self::Optional(Box::new(Self::Compound(
                 value.into_vec().into_iter().map(Self::from).collect(),
             ))),
+            Item::First { value, span: _ } => Self::First(
+                value
+                    .into_vec()
+                    .into_iter()
+                    .map(|nested_description| {
+                        Self::Compound(
+                            nested_description
+                                .into_vec()
+                                .into_iter()
+                                .map(Self::from)
+                                .collect(),
+                        )
+                    })
+                    .collect(),
+            ),
         }
     }
 }

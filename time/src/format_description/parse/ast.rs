@@ -9,7 +9,6 @@ use core::iter::Peekable;
 use super::{lexer, Error, Location, Span, Spanned, SpannedValue};
 
 /// One part of a complete format description.
-#[allow(variant_size_differences)]
 pub(super) enum Item<'a> {
     /// A literal string, formatted and parsed as-is.
     Literal(Spanned<&'a [u8]>),
@@ -47,6 +46,21 @@ pub(super) enum Item<'a> {
         _whitespace: Spanned<&'a [u8]>,
         /// The items within the optional sequence.
         nested_format_description: NestedFormatDescription<'a>,
+        /// Where the closing bracket was in the format string.
+        closing_bracket: Location,
+    },
+    /// The first matching parse of a sequence of items.
+    First {
+        /// Where the opening bracket was in the format string.
+        opening_bracket: Location,
+        /// Whitespace between the opening bracket and "first".
+        _leading_whitespace: Option<Spanned<&'a [u8]>>,
+        /// The "first" keyword.
+        _first_kw: Spanned<&'a [u8]>,
+        /// Whitespace between the "first" keyword and the opening bracket.
+        _whitespace: Spanned<&'a [u8]>,
+        /// The sequences of items to try.
+        nested_format_descriptions: Box<[NestedFormatDescription<'a>]>,
         /// Where the closing bracket was in the format string.
         closing_bracket: Location,
     },
@@ -234,6 +248,54 @@ fn parse_component<'a>(
                 _inner: name.span.error("expected whitespace after `optional`"),
                 public: crate::error::InvalidFormatDescription::Expected {
                     what: "whitespace after `optional`",
+                    index: name.span.end.byte as _,
+                },
+            });
+        }
+    }
+
+    if name.value == b"first" {
+        if let Some(&lexer::Token::ComponentPart {
+            kind: lexer::ComponentKind::Whitespace,
+            value: whitespace,
+        }) = tokens.peek()
+        {
+            tokens.next(); // consume
+
+            let mut nested_format_descriptions = Vec::new();
+            while let Ok(description) = parse_nested(whitespace.span.end, tokens) {
+                nested_format_descriptions.push(description);
+            }
+
+            let closing_bracket = if let Some(&lexer::Token::Bracket {
+                kind: lexer::BracketKind::Closing,
+                location,
+            }) = tokens.peek()
+            {
+                tokens.next(); // consume
+                location
+            } else {
+                return Err(Error {
+                    _inner: opening_bracket.error("unclosed bracket"),
+                    public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
+                        index: opening_bracket.byte as _,
+                    },
+                });
+            };
+
+            return Ok(Item::First {
+                opening_bracket,
+                _leading_whitespace: leading_whitespace,
+                _first_kw: name,
+                _whitespace: whitespace,
+                nested_format_descriptions: nested_format_descriptions.into_boxed_slice(),
+                closing_bracket,
+            });
+        } else {
+            return Err(Error {
+                _inner: name.span.error("expected whitespace after `first`"),
+                public: crate::error::InvalidFormatDescription::Expected {
+                    what: "whitespace after `first`",
                     index: name.span.end.byte as _,
                 },
             });

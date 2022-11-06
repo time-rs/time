@@ -495,6 +495,64 @@ fn optional() {
 }
 
 #[test]
+fn first() {
+    assert_eq!(
+        format_description::parse_owned("[first [a]]"),
+        Ok(OwnedFormatItem::Compound(Box::new([
+            OwnedFormatItem::First(Box::new([OwnedFormatItem::Compound(Box::new([
+                OwnedFormatItem::Literal(Box::new(*b"a"))
+            ]))]))
+        ])))
+    );
+    assert_eq!(
+        format_description::parse_owned("[first [a] [b]]"),
+        Ok(OwnedFormatItem::Compound(Box::new([
+            OwnedFormatItem::First(Box::new([
+                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Literal(Box::new(*b"a"))])),
+                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Literal(Box::new(*b"b"))])),
+            ]))
+        ])))
+    );
+    assert_eq!(
+        format_description::parse_owned("[first [a][b]]"),
+        Ok(OwnedFormatItem::Compound(Box::new([
+            OwnedFormatItem::First(Box::new([
+                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Literal(Box::new(*b"a"))])),
+                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Literal(Box::new(*b"b"))])),
+            ]))
+        ])))
+    );
+    assert_eq!(
+        format_description::parse_owned("[first [a][[[]]"),
+        Ok(OwnedFormatItem::Compound(Box::new([
+            OwnedFormatItem::First(Box::new([
+                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Literal(Box::new(*b"a"))])),
+                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Literal(Box::new(*b"["))])),
+            ]))
+        ])))
+    );
+    assert_eq!(
+        format_description::parse_owned("[first [[period case:upper]] [[period case:lower]] ]"),
+        Ok(OwnedFormatItem::Compound(Box::new([
+            OwnedFormatItem::First(Box::new([
+                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Component(
+                    Component::Period(modifier!(Period {
+                        is_uppercase: true,
+                        case_sensitive: true,
+                    }))
+                )])),
+                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Component(
+                    Component::Period(modifier!(Period {
+                        is_uppercase: false,
+                        case_sensitive: true,
+                    }))
+                )])),
+            ]))
+        ])))
+    );
+}
+
+#[test]
 fn nested_error() {
     use InvalidFormatDescription::*;
 
@@ -502,6 +560,15 @@ fn nested_error() {
         format_description::parse("[optional []]"),
         Err(NotSupported {
             what: "optional item",
+            context: "runtime-parsed format descriptions",
+            index: 0,
+            ..
+        })
+    ));
+    assert!(matches!(
+        format_description::parse("[first []]"),
+        Err(NotSupported {
+            what: "'first' item",
             context: "runtime-parsed format descriptions",
             index: 0,
             ..
@@ -520,7 +587,19 @@ fn nested_error() {
         })
     ));
     assert!(matches!(
+        format_description::parse_owned("[first[]]"),
+        Err(Expected {
+            what: "whitespace after `first`",
+            index: 5,
+            ..
+        })
+    ));
+    assert!(matches!(
         format_description::parse_owned("[optional []"),
+        Err(UnclosedOpeningBracket { index: 0, .. })
+    ));
+    assert!(matches!(
+        format_description::parse_owned("[first []"),
         Err(UnclosedOpeningBracket { index: 0, .. })
     ));
     assert!(matches!(
