@@ -459,38 +459,34 @@ fn component_with_modifiers() {
 fn optional() {
     assert_eq!(
         format_description::parse_owned("[optional [:[year]]]"),
-        Ok(OwnedFormatItem::Compound(Box::new([
-            OwnedFormatItem::Optional(Box::new(OwnedFormatItem::Compound(Box::new([
+        Ok(OwnedFormatItem::Optional(Box::new(
+            OwnedFormatItem::Compound(Box::new([
                 OwnedFormatItem::Literal(Box::new(*b":")),
                 OwnedFormatItem::Component(Component::Year(Default::default()))
-            ]))))
-        ])))
+            ]))
+        )))
     );
     assert_eq!(
         format_description::parse_owned("[optional [[year]]]"),
-        Ok(OwnedFormatItem::Compound(Box::new([
-            OwnedFormatItem::Optional(Box::new(OwnedFormatItem::Compound(Box::new([
-                OwnedFormatItem::Component(Component::Year(Default::default()))
-            ]))))
-        ])))
+        Ok(OwnedFormatItem::Optional(Box::new(
+            OwnedFormatItem::Component(Component::Year(Default::default()))
+        )))
     );
     assert_eq!(
         format_description::parse_owned("[optional [[[]]"),
-        Ok(OwnedFormatItem::Compound(Box::new([
-            OwnedFormatItem::Optional(Box::new(OwnedFormatItem::Compound(Box::new([
-                OwnedFormatItem::Literal(Box::new(*b"[")),
-            ]))))
-        ])))
+        Ok(OwnedFormatItem::Optional(Box::new(
+            OwnedFormatItem::Literal(Box::new(*b"["))
+        )))
     );
     assert_eq!(
         format_description::parse_owned("[optional [ [[ ]]"),
-        Ok(OwnedFormatItem::Compound(Box::new([
-            OwnedFormatItem::Optional(Box::new(OwnedFormatItem::Compound(Box::new([
+        Ok(OwnedFormatItem::Optional(Box::new(
+            OwnedFormatItem::Compound(Box::new([
                 OwnedFormatItem::Literal(Box::new(*b" ")),
                 OwnedFormatItem::Literal(Box::new(*b"[")),
                 OwnedFormatItem::Literal(Box::new(*b" ")),
-            ]))))
-        ])))
+            ]))
+        )))
     );
 }
 
@@ -498,56 +494,42 @@ fn optional() {
 fn first() {
     assert_eq!(
         format_description::parse_owned("[first [a]]"),
-        Ok(OwnedFormatItem::Compound(Box::new([
-            OwnedFormatItem::First(Box::new([OwnedFormatItem::Compound(Box::new([
-                OwnedFormatItem::Literal(Box::new(*b"a"))
-            ]))]))
+        Ok(OwnedFormatItem::First(Box::new([
+            OwnedFormatItem::Literal(Box::new(*b"a"))
         ])))
     );
     assert_eq!(
         format_description::parse_owned("[first [a] [b]]"),
-        Ok(OwnedFormatItem::Compound(Box::new([
-            OwnedFormatItem::First(Box::new([
-                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Literal(Box::new(*b"a"))])),
-                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Literal(Box::new(*b"b"))])),
-            ]))
+        Ok(OwnedFormatItem::First(Box::new([
+            OwnedFormatItem::Literal(Box::new(*b"a")),
+            OwnedFormatItem::Literal(Box::new(*b"b")),
         ])))
     );
     assert_eq!(
         format_description::parse_owned("[first [a][b]]"),
-        Ok(OwnedFormatItem::Compound(Box::new([
-            OwnedFormatItem::First(Box::new([
-                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Literal(Box::new(*b"a"))])),
-                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Literal(Box::new(*b"b"))])),
-            ]))
+        Ok(OwnedFormatItem::First(Box::new([
+            OwnedFormatItem::Literal(Box::new(*b"a")),
+            OwnedFormatItem::Literal(Box::new(*b"b")),
         ])))
     );
     assert_eq!(
         format_description::parse_owned("[first [a][[[]]"),
-        Ok(OwnedFormatItem::Compound(Box::new([
-            OwnedFormatItem::First(Box::new([
-                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Literal(Box::new(*b"a"))])),
-                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Literal(Box::new(*b"["))])),
-            ]))
+        Ok(OwnedFormatItem::First(Box::new([
+            OwnedFormatItem::Literal(Box::new(*b"a")),
+            OwnedFormatItem::Literal(Box::new(*b"[")),
         ])))
     );
     assert_eq!(
         format_description::parse_owned("[first [[period case:upper]] [[period case:lower]] ]"),
-        Ok(OwnedFormatItem::Compound(Box::new([
-            OwnedFormatItem::First(Box::new([
-                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Component(
-                    Component::Period(modifier!(Period {
-                        is_uppercase: true,
-                        case_sensitive: true,
-                    }))
-                )])),
-                OwnedFormatItem::Compound(Box::new([OwnedFormatItem::Component(
-                    Component::Period(modifier!(Period {
-                        is_uppercase: false,
-                        case_sensitive: true,
-                    }))
-                )])),
-            ]))
+        Ok(OwnedFormatItem::First(Box::new([
+            OwnedFormatItem::Component(Component::Period(modifier!(Period {
+                is_uppercase: true,
+                case_sensitive: true,
+            }))),
+            OwnedFormatItem::Component(Component::Period(modifier!(Period {
+                is_uppercase: false,
+                case_sensitive: true,
+            }))),
         ])))
     );
 }

@@ -134,24 +134,25 @@ impl From<Item<'_>> for crate::format_description::OwnedFormatItem {
         match item {
             Item::Literal(literal) => Self::Literal(literal.to_vec().into_boxed_slice()),
             Item::Component(component) => Self::Component(component.into()),
-            Item::Optional { value, span: _ } => Self::Optional(Box::new(Self::Compound(
-                value.into_vec().into_iter().map(Self::from).collect(),
-            ))),
-            Item::First { value, span: _ } => Self::First(
-                value
-                    .into_vec()
-                    .into_iter()
-                    .map(|nested_description| {
-                        Self::Compound(
-                            nested_description
-                                .into_vec()
-                                .into_iter()
-                                .map(Self::from)
-                                .collect(),
-                        )
-                    })
-                    .collect(),
-            ),
+            Item::Optional { value, span: _ } => Self::Optional(Box::new(value.into())),
+            Item::First { value, span: _ } => {
+                Self::First(value.into_vec().into_iter().map(Into::into).collect())
+            }
+        }
+    }
+}
+
+impl<'a> From<Box<[Item<'a>]>> for crate::format_description::OwnedFormatItem {
+    fn from(items: Box<[Item<'a>]>) -> Self {
+        let items = items.into_vec();
+        if items.len() == 1 {
+            if let Ok([item]) = <[_; 1]>::try_from(items) {
+                item.into()
+            } else {
+                unreachable!("the length was just checked to be 1")
+            }
+        } else {
+            Self::Compound(items.into_iter().map(Self::from).collect())
         }
     }
 }

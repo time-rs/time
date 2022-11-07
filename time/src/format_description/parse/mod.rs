@@ -39,8 +39,8 @@ pub fn parse_owned(
     let format_items = format_item::parse(ast);
     let items = format_items
         .map(|res| res.map(Into::into))
-        .collect::<Result<_, _>>()?;
-    Ok(crate::format_description::OwnedFormatItem::Compound(items))
+        .collect::<Result<Box<_>, _>>()?;
+    Ok(items.into())
 }
 
 /// A location within a string.
