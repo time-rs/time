@@ -1,5 +1,6 @@
 //! Parser for format descriptions.
 
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 mod ast;
@@ -14,7 +15,7 @@ pub fn parse(
     s: &str,
 ) -> Result<Vec<crate::format_description::FormatItem<'_>>, crate::error::InvalidFormatDescription>
 {
-    let mut lexed = lexer::lex(s.as_bytes()).peekable();
+    let mut lexed = lexer::lex(s.as_bytes());
     let ast = ast::parse(&mut lexed);
     let format_items = format_item::parse(ast);
     Ok(format_items
@@ -34,7 +35,7 @@ pub fn parse(
 pub fn parse_owned(
     s: &str,
 ) -> Result<crate::format_description::OwnedFormatItem, crate::error::InvalidFormatDescription> {
-    let mut lexed = lexer::lex(s.as_bytes()).peekable();
+    let mut lexed = lexer::lex(s.as_bytes());
     let ast = ast::parse(&mut lexed);
     let format_items = format_item::parse(ast);
     let items = format_items

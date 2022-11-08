@@ -4,6 +4,96 @@ use core::iter;
 
 use super::{Location, Spanned, SpannedValue};
 
+/// An iterator over the lexed tokens.
+pub(super) struct Lexed<I: Iterator> {
+    /// The internal iterator.
+    iter: core::iter::Peekable<I>,
+}
+
+impl<I: Iterator> Iterator for Lexed<I> {
+    type Item = I::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<'iter, 'token: 'iter, I: Iterator<Item = Token<'token>> + 'iter> Lexed<I> {
+    /// Peek at the next item in the iterator.
+    pub(super) fn peek(&mut self) -> Option<&I::Item> {
+        self.iter.peek()
+    }
+
+    /// Consume the next token if it is whitespace.
+    pub(super) fn next_if_whitespace(&mut self) -> Option<Spanned<&'token [u8]>> {
+        if let Some(&Token::ComponentPart {
+            kind: ComponentKind::Whitespace,
+            value,
+        }) = self.peek()
+        {
+            self.next(); // consume
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    /// Consume the next token if it is a component item that is not whitespace.
+    pub(super) fn next_if_not_whitespace(&mut self) -> Option<Spanned<&'token [u8]>> {
+        if let Some(&Token::ComponentPart {
+            kind: ComponentKind::NotWhitespace,
+            value,
+        }) = self.peek()
+        {
+            self.next(); // consume
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+    /// Consume the next token if it is an opening bracket.
+    pub(super) fn next_if_opening_bracket(&mut self) -> Option<Location> {
+        if let Some(&Token::Bracket {
+            kind: BracketKind::Opening,
+            location,
+        }) = self.peek()
+        {
+            self.next(); // consume
+            Some(location)
+        } else {
+            None
+        }
+    }
+
+    /// Peek at the next token if it is a closing bracket.
+    pub(super) fn peek_closing_bracket(&'iter mut self) -> Option<&'iter Location> {
+        if let Some(Token::Bracket {
+            kind: BracketKind::Closing,
+            location,
+        }) = self.peek()
+        {
+            Some(location)
+        } else {
+            None
+        }
+    }
+
+    /// Consume the next token if it is a closing bracket.
+    pub(super) fn next_if_closing_bracket(&mut self) -> Option<Location> {
+        if let Some(&Token::Bracket {
+            kind: BracketKind::Closing,
+            location,
+        }) = self.peek()
+        {
+            self.next(); // consume
+            Some(location)
+        } else {
+            None
+        }
+    }
+}
+
 /// A token emitted by the lexer. There is no semantic meaning at this stage.
 pub(super) enum Token<'a> {
     /// A literal string, formatted and parsed as-is.
@@ -87,7 +177,7 @@ fn attach_location(iter: impl Iterator<Item = u8>) -> impl Iterator<Item = (u8, 
 }
 
 /// Parse the string into a series of [`Token`]s.
-pub(super) fn lex(mut input: &[u8]) -> impl Iterator<Item = Token<'_>> {
+pub(super) fn lex(mut input: &[u8]) -> Lexed<impl Iterator<Item = Token<'_>>> {
     let mut depth: u8 = 0;
     let mut iter = attach_location(input.iter().copied()).peekable();
     let mut second_bracket_location = None;
@@ -95,7 +185,7 @@ pub(super) fn lex(mut input: &[u8]) -> impl Iterator<Item = Token<'_>> {
     // of `depth`.
     let mut nested_state = NestedState::Inconsequential;
 
-    iter::from_fn(move || {
+    let iter = iter::from_fn(move || {
         // There is a flag set to emit the second half of an escaped bracket pair.
         if let Some(location) = second_bracket_location.take() {
             if nested_state.should_increment_depth() {
@@ -198,5 +288,9 @@ pub(super) fn lex(mut input: &[u8]) -> impl Iterator<Item = Token<'_>> {
                 }
             }
         })
-    })
+    });
+
+    Lexed {
+        iter: iter.peekable(),
+    }
 }

@@ -4,9 +4,8 @@ use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::iter;
-use core::iter::Peekable;
 
-use super::{lexer, Error, Location, Span, Spanned, SpannedValue};
+use super::{lexer, Error, Location, Spanned, SpannedValue};
 
 /// One part of a complete format description.
 pub(super) enum Item<'a> {
@@ -92,7 +91,8 @@ pub(super) struct Modifier<'a> {
 
 /// Parse the provided tokens into an AST.
 pub(super) fn parse<'item: 'iter, 'iter>(
-    tokens: &'iter mut Peekable<impl Iterator<Item = lexer::Token<'item>>>,
+    // tokens: &'iter mut Peekable<impl Iterator<Item = lexer::Token<'item>>>,
+    tokens: &'iter mut lexer::Lexed<impl Iterator<Item = lexer::Token<'item>>>,
 ) -> impl Iterator<Item = Result<Item<'item>, Error>> + 'iter {
     parse_inner::<_, false>(tokens)
 }
@@ -100,18 +100,10 @@ pub(super) fn parse<'item: 'iter, 'iter>(
 /// Parse the provided tokens into an AST. The const generic indicates whether the resulting
 /// [`Item`] will be used directly or as part of a [`NestedFormatDescription`].
 fn parse_inner<'item, I: Iterator<Item = lexer::Token<'item>>, const NESTED: bool>(
-    tokens: &mut Peekable<I>,
+    tokens: &mut lexer::Lexed<I>,
 ) -> impl Iterator<Item = Result<Item<'item>, Error>> + '_ {
     iter::from_fn(move || {
-        if NESTED
-            && matches!(
-                tokens.peek(),
-                Some(lexer::Token::Bracket {
-                    kind: lexer::BracketKind::Closing,
-                    location: _,
-                })
-            )
-        {
+        if NESTED && tokens.peek_closing_bracket().is_some() {
             return None;
         }
 
@@ -119,26 +111,17 @@ fn parse_inner<'item, I: Iterator<Item = lexer::Token<'item>>, const NESTED: boo
             lexer::Token::Literal(Spanned { value: _, span: _ }) if NESTED => {
                 unreachable!("internal error: literal should not be present in nested description")
             }
-            lexer::Token::Literal(Spanned { value, span }) => {
-                Ok(Item::Literal(value.spanned(span)))
-            }
+            lexer::Token::Literal(value) => Ok(Item::Literal(value)),
             lexer::Token::Bracket {
                 kind: lexer::BracketKind::Opening,
                 location,
             } => {
-                if let Some(&lexer::Token::Bracket {
-                    // escaped bracket
-                    kind: lexer::BracketKind::Opening,
-                    location: second_location,
-                }) = tokens.peek()
-                {
-                    tokens.next(); // consume
+                if let Some(second_location) = tokens.next_if_opening_bracket() {
                     Ok(Item::EscapedBracket {
                         _first: location,
                         _second: second_location,
                     })
                 } else {
-                    // component
                     parse_component(location, tokens)
                 }
             }
@@ -173,33 +156,14 @@ fn parse_inner<'item, I: Iterator<Item = lexer::Token<'item>>, const NESTED: boo
 /// Parse a component. This assumes that the opening bracket has already been consumed.
 fn parse_component<'a>(
     opening_bracket: Location,
-    tokens: &mut Peekable<impl Iterator<Item = lexer::Token<'a>>>,
+    tokens: &mut lexer::Lexed<impl Iterator<Item = lexer::Token<'a>>>,
 ) -> Result<Item<'a>, Error> {
-    let leading_whitespace = if let Some(&lexer::Token::ComponentPart {
-        kind: lexer::ComponentKind::Whitespace,
-        value,
-    }) = tokens.peek()
-    {
-        tokens.next(); // consume
-        Some(value)
-    } else {
-        None
-    };
+    let leading_whitespace = tokens.next_if_whitespace();
 
-    let name = if let Some(&lexer::Token::ComponentPart {
-        kind: lexer::ComponentKind::NotWhitespace,
-        value,
-    }) = tokens.peek()
-    {
-        tokens.next(); // consume
-        value
-    } else {
+    guard!(let Some(name) = tokens.next_if_not_whitespace() else {
         let span = match leading_whitespace {
             Some(Spanned { value: _, span }) => span,
-            None => Span {
-                start: opening_bracket,
-                end: opening_bracket,
-            },
+            None => opening_bracket.to(opening_bracket),
         };
         return Err(Error {
             _inner: span.error("expected component name"),
@@ -207,43 +171,10 @@ fn parse_component<'a>(
                 index: span.start.byte as _,
             },
         });
-    };
+    });
 
     if *name == b"optional" {
-        if let Some(&lexer::Token::ComponentPart {
-            kind: lexer::ComponentKind::Whitespace,
-            value: whitespace,
-        }) = tokens.peek()
-        {
-            tokens.next(); // consume
-
-            let nested = parse_nested(whitespace.span.end, tokens)?;
-
-            let closing_bracket = if let Some(&lexer::Token::Bracket {
-                kind: lexer::BracketKind::Closing,
-                location,
-            }) = tokens.peek()
-            {
-                tokens.next(); // consume
-                location
-            } else {
-                return Err(Error {
-                    _inner: opening_bracket.error("unclosed bracket"),
-                    public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
-                        index: opening_bracket.byte as _,
-                    },
-                });
-            };
-
-            return Ok(Item::Optional {
-                opening_bracket,
-                _leading_whitespace: leading_whitespace,
-                _optional_kw: name,
-                _whitespace: whitespace,
-                nested_format_description: nested,
-                closing_bracket,
-            });
-        } else {
+        guard!(let Some(whitespace) = tokens.next_if_whitespace() else {
             return Err(Error {
                 _inner: name.span.error("expected whitespace after `optional`"),
                 public: crate::error::InvalidFormatDescription::Expected {
@@ -251,47 +182,31 @@ fn parse_component<'a>(
                     index: name.span.end.byte as _,
                 },
             });
-        }
+        });
+
+        let nested = parse_nested(whitespace.span.end, tokens)?;
+
+        guard!(let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
+            return Err(Error {
+                _inner: opening_bracket.error("unclosed bracket"),
+                public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
+                    index: opening_bracket.byte as _,
+                },
+            });
+        });
+
+        return Ok(Item::Optional {
+            opening_bracket,
+            _leading_whitespace: leading_whitespace,
+            _optional_kw: name,
+            _whitespace: whitespace,
+            nested_format_description: nested,
+            closing_bracket,
+        });
     }
 
-    if name.value == b"first" {
-        if let Some(&lexer::Token::ComponentPart {
-            kind: lexer::ComponentKind::Whitespace,
-            value: whitespace,
-        }) = tokens.peek()
-        {
-            tokens.next(); // consume
-
-            let mut nested_format_descriptions = Vec::new();
-            while let Ok(description) = parse_nested(whitespace.span.end, tokens) {
-                nested_format_descriptions.push(description);
-            }
-
-            let closing_bracket = if let Some(&lexer::Token::Bracket {
-                kind: lexer::BracketKind::Closing,
-                location,
-            }) = tokens.peek()
-            {
-                tokens.next(); // consume
-                location
-            } else {
-                return Err(Error {
-                    _inner: opening_bracket.error("unclosed bracket"),
-                    public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
-                        index: opening_bracket.byte as _,
-                    },
-                });
-            };
-
-            return Ok(Item::First {
-                opening_bracket,
-                _leading_whitespace: leading_whitespace,
-                _first_kw: name,
-                _whitespace: whitespace,
-                nested_format_descriptions: nested_format_descriptions.into_boxed_slice(),
-                closing_bracket,
-            });
-        } else {
+    if *name == b"first" {
+        guard!(let Some(whitespace) = tokens.next_if_whitespace() else {
             return Err(Error {
                 _inner: name.span.error("expected whitespace after `first`"),
                 public: crate::error::InvalidFormatDescription::Expected {
@@ -299,29 +214,39 @@ fn parse_component<'a>(
                     index: name.span.end.byte as _,
                 },
             });
+        });
+
+        let mut nested_format_descriptions = Vec::new();
+        while let Ok(description) = parse_nested(whitespace.span.end, tokens) {
+            nested_format_descriptions.push(description);
         }
+
+        guard!(let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
+            return Err(Error {
+                _inner: opening_bracket.error("unclosed bracket"),
+                public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
+                    index: opening_bracket.byte as _,
+                },
+            });
+        });
+
+        return Ok(Item::First {
+            opening_bracket,
+            _leading_whitespace: leading_whitespace,
+            _first_kw: name,
+            _whitespace: whitespace,
+            nested_format_descriptions: nested_format_descriptions.into_boxed_slice(),
+            closing_bracket,
+        });
     }
 
     let mut modifiers = Vec::new();
     let trailing_whitespace = loop {
-        let whitespace = if let Some(&lexer::Token::ComponentPart {
-            kind: lexer::ComponentKind::Whitespace,
-            value,
-        }) = tokens.peek()
-        {
-            tokens.next(); // consume
-            value
-        } else {
-            break None;
-        };
+        guard!(let Some(whitespace) = tokens.next_if_whitespace() else { break None });
 
         // This is not necessary for proper parsing, but provides a much better error when a nested
         // description is used where it's not allowed.
-        if let Some(&lexer::Token::Bracket {
-            kind: lexer::BracketKind::Opening,
-            location,
-        }) = tokens.peek()
-        {
+        if let Some(location) = tokens.next_if_opening_bracket() {
             return Err(Error {
                 _inner: location
                     .to(location)
@@ -333,73 +258,57 @@ fn parse_component<'a>(
             });
         }
 
-        if let Some(&lexer::Token::ComponentPart {
-            kind: lexer::ComponentKind::NotWhitespace,
-            value: Spanned { value, span },
-        }) = tokens.peek()
-        {
-            tokens.next(); // consume
-
-            let colon_index = match value.iter().position(|&b| b == b':') {
-                Some(index) => index,
-                None => {
-                    return Err(Error {
-                        _inner: span.error("modifier must be of the form `key:value`"),
-                        public: crate::error::InvalidFormatDescription::InvalidModifier {
-                            value: String::from_utf8_lossy(value).into_owned(),
-                            index: span.start.byte as _,
-                        },
-                    });
-                }
-            };
-            let key = &value[..colon_index];
-            let value = &value[colon_index + 1..];
-
-            if key.is_empty() {
-                return Err(Error {
-                    _inner: span.shrink_to_start().error("expected modifier key"),
-                    public: crate::error::InvalidFormatDescription::InvalidModifier {
-                        value: String::new(),
-                        index: span.start.byte as _,
-                    },
-                });
-            }
-            if value.is_empty() {
-                return Err(Error {
-                    _inner: span.shrink_to_end().error("expected modifier value"),
-                    public: crate::error::InvalidFormatDescription::InvalidModifier {
-                        value: String::new(),
-                        index: span.shrink_to_end().start.byte as _,
-                    },
-                });
-            }
-
-            modifiers.push(Modifier {
-                _leading_whitespace: whitespace,
-                key: key.spanned(span.shrink_to_before(colon_index as _)),
-                _colon: span.start.offset(colon_index as _),
-                value: value.spanned(span.shrink_to_after(colon_index as _)),
-            });
-        } else {
+        guard!(let Some(Spanned { value, span }) = tokens.next_if_not_whitespace() else {
             break Some(whitespace);
+        });
+
+        guard!(let Some(colon_index) = value.iter().position(|&b| b == b':') else {
+            return Err(Error {
+                _inner: span.error("modifier must be of the form `key:value`"),
+                public: crate::error::InvalidFormatDescription::InvalidModifier {
+                    value: String::from_utf8_lossy(value).into_owned(),
+                    index: span.start.byte as _,
+                },
+            });
+        });
+        let key = &value[..colon_index];
+        let value = &value[colon_index + 1..];
+
+        if key.is_empty() {
+            return Err(Error {
+                _inner: span.shrink_to_start().error("expected modifier key"),
+                public: crate::error::InvalidFormatDescription::InvalidModifier {
+                    value: String::new(),
+                    index: span.start.byte as _,
+                },
+            });
         }
+        if value.is_empty() {
+            return Err(Error {
+                _inner: span.shrink_to_end().error("expected modifier value"),
+                public: crate::error::InvalidFormatDescription::InvalidModifier {
+                    value: String::new(),
+                    index: span.shrink_to_end().start.byte as _,
+                },
+            });
+        }
+
+        modifiers.push(Modifier {
+            _leading_whitespace: whitespace,
+            key: key.spanned(span.shrink_to_before(colon_index as _)),
+            _colon: span.start.offset(colon_index as _),
+            value: value.spanned(span.shrink_to_after(colon_index as _)),
+        });
     };
 
-    let closing_bracket = if let Some(&lexer::Token::Bracket {
-        kind: lexer::BracketKind::Closing,
-        location,
-    }) = tokens.peek()
-    {
-        tokens.next(); // consume
-        location
-    } else {
+    guard!(let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
         return Err(Error {
             _inner: opening_bracket.error("unclosed bracket"),
             public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
                 index: opening_bracket.byte as _,
             },
         });
-    };
+    });
 
     Ok(Item::Component {
         _opening_bracket: opening_bracket,
@@ -414,16 +323,9 @@ fn parse_component<'a>(
 /// Parse a nested format description. The location provided is the the most recent one consumed.
 fn parse_nested<'a>(
     last_location: Location,
-    tokens: &mut Peekable<impl Iterator<Item = lexer::Token<'a>>>,
+    tokens: &mut lexer::Lexed<impl Iterator<Item = lexer::Token<'a>>>,
 ) -> Result<NestedFormatDescription<'a>, Error> {
-    let opening_bracket = if let Some(&lexer::Token::Bracket {
-        kind: lexer::BracketKind::Opening,
-        location,
-    }) = tokens.peek()
-    {
-        tokens.next(); // consume
-        location
-    } else {
+    guard!(let Some(opening_bracket) = tokens.next_if_opening_bracket() else {
         return Err(Error {
             _inner: last_location.error("expected opening bracket"),
             public: crate::error::InvalidFormatDescription::Expected {
@@ -431,36 +333,17 @@ fn parse_nested<'a>(
                 index: last_location.byte as _,
             },
         });
-    };
-
+    });
     let items = parse_inner::<_, true>(tokens).collect::<Result<_, _>>()?;
-
-    let closing_bracket = if let Some(&lexer::Token::Bracket {
-        kind: lexer::BracketKind::Closing,
-        location,
-    }) = tokens.peek()
-    {
-        tokens.next(); // consume
-        location
-    } else {
+    guard!(let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
         return Err(Error {
             _inner: opening_bracket.error("unclosed bracket"),
             public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
                 index: opening_bracket.byte as _,
             },
         });
-    };
-
-    let trailing_whitespace = if let Some(&lexer::Token::ComponentPart {
-        kind: lexer::ComponentKind::Whitespace,
-        value,
-    }) = tokens.peek()
-    {
-        tokens.next(); // consume
-        Some(value)
-    } else {
-        None
-    };
+    });
+    let trailing_whitespace = tokens.next_if_whitespace();
 
     Ok(NestedFormatDescription {
         _opening_bracket: opening_bracket,

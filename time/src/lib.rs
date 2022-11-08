@@ -301,6 +301,9 @@ macro_rules! expect_opt {
 }
 // endregion macros
 
+#[macro_use]
+mod shim;
+
 mod date;
 mod duration;
 pub mod error;
