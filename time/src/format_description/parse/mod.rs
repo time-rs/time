@@ -178,7 +178,7 @@ struct ErrorInner {
 /// A complete error description.
 struct Error {
     /// The internal error.
-    _inner: ErrorInner,
+    _inner: Unused<ErrorInner>,
     /// The error needed for interoperability with the rest of `time`.
     public: crate::error::InvalidFormatDescription,
 }
@@ -187,4 +187,17 @@ impl From<Error> for crate::error::InvalidFormatDescription {
     fn from(error: Error) -> Self {
         error.public
     }
+}
+
+/// A value that may be used in the future, but currently is not.
+///
+/// This struct exists so that data can semantically be passed around without _actually_ passing it
+/// around. This way the data still exists if it is needed in the future.
+// `PhantomData` is not used directly because we don't want to introduce any trait implementations.
+struct Unused<T>(core::marker::PhantomData<T>);
+
+/// Indicate that a value is currently unused.
+#[allow(clippy::missing_const_for_fn)] // false positive
+fn unused<T>(_: T) -> Unused<T> {
+    Unused(core::marker::PhantomData)
 }

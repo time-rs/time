@@ -5,7 +5,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::iter;
 
-use super::{lexer, Error, Location, Spanned, SpannedValue};
+use super::{lexer, unused, Error, Location, Spanned, SpannedValue, Unused};
 
 /// One part of a complete format description.
 pub(super) enum Item<'a> {
@@ -14,35 +14,35 @@ pub(super) enum Item<'a> {
     /// A sequence of brackets. The first acts as the escape character.
     EscapedBracket {
         /// The first bracket.
-        _first: Location,
+        _first: Unused<Location>,
         /// The second bracket.
-        _second: Location,
+        _second: Unused<Location>,
     },
     /// Part of a type, along with its modifiers.
     Component {
         /// Where the opening bracket was in the format string.
-        _opening_bracket: Location,
+        _opening_bracket: Unused<Location>,
         /// Whitespace between the opening bracket and name.
-        _leading_whitespace: Option<Spanned<&'a [u8]>>,
+        _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
         /// The name of the component.
         name: Spanned<&'a [u8]>,
         /// The modifiers for the component.
         modifiers: Box<[Modifier<'a>]>,
         /// Whitespace between the modifiers and closing bracket.
-        _trailing_whitespace: Option<Spanned<&'a [u8]>>,
+        _trailing_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
         /// Where the closing bracket was in the format string.
-        _closing_bracket: Location,
+        _closing_bracket: Unused<Location>,
     },
     /// An optional sequence of items.
     Optional {
         /// Where the opening bracket was in the format string.
         opening_bracket: Location,
         /// Whitespace between the opening bracket and "optional".
-        _leading_whitespace: Option<Spanned<&'a [u8]>>,
+        _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
         /// The "optional" keyword.
-        _optional_kw: Spanned<&'a [u8]>,
+        _optional_kw: Unused<Spanned<&'a [u8]>>,
         /// Whitespace between the "optional" keyword and the opening bracket.
-        _whitespace: Spanned<&'a [u8]>,
+        _whitespace: Unused<Spanned<&'a [u8]>>,
         /// The items within the optional sequence.
         nested_format_description: NestedFormatDescription<'a>,
         /// Where the closing bracket was in the format string.
@@ -53,11 +53,11 @@ pub(super) enum Item<'a> {
         /// Where the opening bracket was in the format string.
         opening_bracket: Location,
         /// Whitespace between the opening bracket and "first".
-        _leading_whitespace: Option<Spanned<&'a [u8]>>,
+        _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
         /// The "first" keyword.
-        _first_kw: Spanned<&'a [u8]>,
+        _first_kw: Unused<Spanned<&'a [u8]>>,
         /// Whitespace between the "first" keyword and the opening bracket.
-        _whitespace: Spanned<&'a [u8]>,
+        _whitespace: Unused<Spanned<&'a [u8]>>,
         /// The sequences of items to try.
         nested_format_descriptions: Box<[NestedFormatDescription<'a>]>,
         /// Where the closing bracket was in the format string.
@@ -68,23 +68,23 @@ pub(super) enum Item<'a> {
 /// A format description that is nested within another format description.
 pub(super) struct NestedFormatDescription<'a> {
     /// Where the opening bracket was in the format string.
-    pub(super) _opening_bracket: Location,
+    pub(super) _opening_bracket: Unused<Location>,
     /// The items within the nested format description.
     pub(super) items: Box<[Item<'a>]>,
     /// Where the closing bracket was in the format string.
-    pub(super) _closing_bracket: Location,
+    pub(super) _closing_bracket: Unused<Location>,
     /// Whitespace between the closing bracket and the next item.
-    pub(super) _trailing_whitespace: Option<Spanned<&'a [u8]>>,
+    pub(super) _trailing_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
 }
 
 /// A modifier for a component.
 pub(super) struct Modifier<'a> {
     /// Whitespace preceding the modifier.
-    pub(super) _leading_whitespace: Spanned<&'a [u8]>,
+    pub(super) _leading_whitespace: Unused<Spanned<&'a [u8]>>,
     /// The key of the modifier.
     pub(super) key: Spanned<&'a [u8]>,
     /// Where the colon of the modifier was in the format string.
-    pub(super) _colon: Location,
+    pub(super) _colon: Unused<Location>,
     /// The value of the modifier.
     pub(super) value: Spanned<&'a [u8]>,
 }
@@ -118,8 +118,8 @@ fn parse_inner<'item, I: Iterator<Item = lexer::Token<'item>>, const NESTED: boo
             } => {
                 if let Some(second_location) = tokens.next_if_opening_bracket() {
                     Ok(Item::EscapedBracket {
-                        _first: location,
-                        _second: second_location,
+                        _first: unused(location),
+                        _second: unused(second_location),
                     })
                 } else {
                     parse_component(location, tokens)
@@ -166,7 +166,7 @@ fn parse_component<'a>(
             None => opening_bracket.to(opening_bracket),
         };
         return Err(Error {
-            _inner: span.error("expected component name"),
+            _inner: unused(span.error("expected component name")),
             public: crate::error::InvalidFormatDescription::MissingComponentName {
                 index: span.start.byte as _,
             },
@@ -176,7 +176,7 @@ fn parse_component<'a>(
     if *name == b"optional" {
         guard!(let Some(whitespace) = tokens.next_if_whitespace() else {
             return Err(Error {
-                _inner: name.span.error("expected whitespace after `optional`"),
+                _inner: unused(name.span.error("expected whitespace after `optional`")),
                 public: crate::error::InvalidFormatDescription::Expected {
                     what: "whitespace after `optional`",
                     index: name.span.end.byte as _,
@@ -188,7 +188,7 @@ fn parse_component<'a>(
 
         guard!(let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
             return Err(Error {
-                _inner: opening_bracket.error("unclosed bracket"),
+                _inner: unused(opening_bracket.error("unclosed bracket")),
                 public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
                     index: opening_bracket.byte as _,
                 },
@@ -197,9 +197,9 @@ fn parse_component<'a>(
 
         return Ok(Item::Optional {
             opening_bracket,
-            _leading_whitespace: leading_whitespace,
-            _optional_kw: name,
-            _whitespace: whitespace,
+            _leading_whitespace: unused(leading_whitespace),
+            _optional_kw: unused(name),
+            _whitespace: unused(whitespace),
             nested_format_description: nested,
             closing_bracket,
         });
@@ -208,7 +208,7 @@ fn parse_component<'a>(
     if *name == b"first" {
         guard!(let Some(whitespace) = tokens.next_if_whitespace() else {
             return Err(Error {
-                _inner: name.span.error("expected whitespace after `first`"),
+                _inner: unused(name.span.error("expected whitespace after `first`")),
                 public: crate::error::InvalidFormatDescription::Expected {
                     what: "whitespace after `first`",
                     index: name.span.end.byte as _,
@@ -223,7 +223,7 @@ fn parse_component<'a>(
 
         guard!(let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
             return Err(Error {
-                _inner: opening_bracket.error("unclosed bracket"),
+                _inner: unused(opening_bracket.error("unclosed bracket")),
                 public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
                     index: opening_bracket.byte as _,
                 },
@@ -232,9 +232,9 @@ fn parse_component<'a>(
 
         return Ok(Item::First {
             opening_bracket,
-            _leading_whitespace: leading_whitespace,
-            _first_kw: name,
-            _whitespace: whitespace,
+            _leading_whitespace: unused(leading_whitespace),
+            _first_kw: unused(name),
+            _whitespace: unused(whitespace),
             nested_format_descriptions: nested_format_descriptions.into_boxed_slice(),
             closing_bracket,
         });
@@ -248,9 +248,11 @@ fn parse_component<'a>(
         // description is used where it's not allowed.
         if let Some(location) = tokens.next_if_opening_bracket() {
             return Err(Error {
-                _inner: location
-                    .to(location)
-                    .error("modifier must be of the form `key:value`"),
+                _inner: unused(
+                    location
+                        .to(location)
+                        .error("modifier must be of the form `key:value`"),
+                ),
                 public: crate::error::InvalidFormatDescription::InvalidModifier {
                     value: String::from("["),
                     index: location.byte as _,
@@ -264,7 +266,7 @@ fn parse_component<'a>(
 
         guard!(let Some(colon_index) = value.iter().position(|&b| b == b':') else {
             return Err(Error {
-                _inner: span.error("modifier must be of the form `key:value`"),
+                _inner: unused(span.error("modifier must be of the form `key:value`")),
                 public: crate::error::InvalidFormatDescription::InvalidModifier {
                     value: String::from_utf8_lossy(value).into_owned(),
                     index: span.start.byte as _,
@@ -276,7 +278,7 @@ fn parse_component<'a>(
 
         if key.is_empty() {
             return Err(Error {
-                _inner: span.shrink_to_start().error("expected modifier key"),
+                _inner: unused(span.shrink_to_start().error("expected modifier key")),
                 public: crate::error::InvalidFormatDescription::InvalidModifier {
                     value: String::new(),
                     index: span.start.byte as _,
@@ -285,7 +287,7 @@ fn parse_component<'a>(
         }
         if value.is_empty() {
             return Err(Error {
-                _inner: span.shrink_to_end().error("expected modifier value"),
+                _inner: unused(span.shrink_to_end().error("expected modifier value")),
                 public: crate::error::InvalidFormatDescription::InvalidModifier {
                     value: String::new(),
                     index: span.shrink_to_end().start.byte as _,
@@ -294,16 +296,16 @@ fn parse_component<'a>(
         }
 
         modifiers.push(Modifier {
-            _leading_whitespace: whitespace,
+            _leading_whitespace: unused(whitespace),
             key: key.spanned(span.shrink_to_before(colon_index as _)),
-            _colon: span.start.offset(colon_index as _),
+            _colon: unused(span.start.offset(colon_index as _)),
             value: value.spanned(span.shrink_to_after(colon_index as _)),
         });
     };
 
     guard!(let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
         return Err(Error {
-            _inner: opening_bracket.error("unclosed bracket"),
+            _inner: unused(opening_bracket.error("unclosed bracket")),
             public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
                 index: opening_bracket.byte as _,
             },
@@ -311,12 +313,12 @@ fn parse_component<'a>(
     });
 
     Ok(Item::Component {
-        _opening_bracket: opening_bracket,
-        _leading_whitespace: leading_whitespace,
+        _opening_bracket: unused(opening_bracket),
+        _leading_whitespace: unused(leading_whitespace),
         name,
         modifiers: modifiers.into_boxed_slice(),
-        _trailing_whitespace: trailing_whitespace,
-        _closing_bracket: closing_bracket,
+        _trailing_whitespace: unused(trailing_whitespace),
+        _closing_bracket: unused(closing_bracket),
     })
 }
 
@@ -327,7 +329,7 @@ fn parse_nested<'a>(
 ) -> Result<NestedFormatDescription<'a>, Error> {
     guard!(let Some(opening_bracket) = tokens.next_if_opening_bracket() else {
         return Err(Error {
-            _inner: last_location.error("expected opening bracket"),
+            _inner: unused(last_location.error("expected opening bracket")),
             public: crate::error::InvalidFormatDescription::Expected {
                 what: "opening bracket",
                 index: last_location.byte as _,
@@ -337,7 +339,7 @@ fn parse_nested<'a>(
     let items = parse_inner::<_, true>(tokens).collect::<Result<_, _>>()?;
     guard!(let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
         return Err(Error {
-            _inner: opening_bracket.error("unclosed bracket"),
+            _inner: unused(opening_bracket.error("unclosed bracket")),
             public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
                 index: opening_bracket.byte as _,
             },
@@ -346,9 +348,9 @@ fn parse_nested<'a>(
     let trailing_whitespace = tokens.next_if_whitespace();
 
     Ok(NestedFormatDescription {
-        _opening_bracket: opening_bracket,
+        _opening_bracket: unused(opening_bracket),
         items,
-        _closing_bracket: closing_bracket,
-        _trailing_whitespace: trailing_whitespace,
+        _closing_bracket: unused(closing_bracket),
+        _trailing_whitespace: unused(trailing_whitespace),
     })
 }

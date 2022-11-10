@@ -3,7 +3,7 @@
 use alloc::boxed::Box;
 use alloc::string::String;
 
-use super::{ast, Error, Span, Spanned};
+use super::{ast, unused, Error, Span, Spanned};
 
 /// Parse an AST iterator into a sequence of format items.
 pub(super) fn parse<'a>(
@@ -107,9 +107,9 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::FormatItem<'a> {
             Item::Literal(literal) => Ok(Self::Literal(literal)),
             Item::Component(component) => Ok(Self::Component(component.into())),
             Item::Optional { value: _, span } => Err(Error {
-                _inner: span.error(
+                _inner: unused(span.error(
                     "optional items are not supported in runtime-parsed format descriptions",
-                ),
+                )),
                 public: crate::error::InvalidFormatDescription::NotSupported {
                     what: "optional item",
                     context: "runtime-parsed format descriptions",
@@ -117,8 +117,9 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::FormatItem<'a> {
                 },
             }),
             Item::First { value: _, span } => Err(Error {
-                _inner: span
-                    .error("'first' items are not supported in runtime-parsed format descriptions"),
+                _inner: unused(span.error(
+                    "'first' items are not supported in runtime-parsed format descriptions",
+                )),
                 public: crate::error::InvalidFormatDescription::NotSupported {
                     what: "'first' item",
                     context: "runtime-parsed format descriptions",
@@ -186,7 +187,7 @@ macro_rules! component_definition {
                         continue;
                     })*
                     return Err(Error {
-                        _inner: modifier.key.span.error("invalid modifier key"),
+                        _inner: unused(modifier.key.span.error("invalid modifier key")),
                         public: crate::error::InvalidFormatDescription::InvalidModifier {
                             value: String::from_utf8_lossy(*modifier.key).into_owned(),
                             index: modifier.key.span.start.byte as _,
@@ -221,7 +222,7 @@ macro_rules! component_definition {
                 return Ok(Component::$variant($variant::with_modifiers(&modifiers)?));
             })*
             Err(Error {
-                _inner: name.span.error("invalid component"),
+                _inner: unused(name.span.error("invalid component")),
                 public: crate::error::InvalidFormatDescription::InvalidComponentName {
                     name: String::from_utf8_lossy(name).into_owned(),
                     index: name.span.start.byte as _,
@@ -364,7 +365,7 @@ macro_rules! modifier {
                     return Ok(Some(Self::$variant));
                 })*
                 Err(Error {
-                    _inner: value.span.error("invalid modifier value"),
+                    _inner: unused(value.span.error("invalid modifier value")),
                     public: crate::error::InvalidFormatDescription::InvalidModifier {
                         value: String::from_utf8_lossy(value).into_owned(),
                         index: value.span.start.byte as _,
