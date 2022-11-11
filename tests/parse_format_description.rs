@@ -535,6 +535,31 @@ fn first() {
 }
 
 #[test]
+fn nested_escape() {
+    assert_eq!(
+        format_description::parse_owned(r"[optional [[[]]"),
+        Ok(OwnedFormatItem::Optional(Box::new(
+            OwnedFormatItem::Literal(Box::new(*b"["))
+        )))
+    );
+    assert_eq!(
+        format_description::parse_owned(r"[optional [\]]]"),
+        Ok(OwnedFormatItem::Optional(Box::new(
+            OwnedFormatItem::Literal(Box::new(*b"]"))
+        )))
+    );
+    assert_eq!(
+        format_description::parse_owned(r"[optional [\a]]"),
+        Ok(OwnedFormatItem::Optional(Box::new(
+            OwnedFormatItem::Compound(Box::new([
+                OwnedFormatItem::Literal(Box::new(*br"\")),
+                OwnedFormatItem::Literal(Box::new(*b"a")),
+            ]))
+        )))
+    );
+}
+
+#[test]
 fn nested_error() {
     use InvalidFormatDescription::*;
 

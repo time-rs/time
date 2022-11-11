@@ -235,6 +235,25 @@ pub(super) fn lex(mut input: &[u8]) -> Lexed<impl Iterator<Item = Token<'_>>> {
                     location,
                 }
             }
+            (b'\\', backslash_loc) if depth > 0 => {
+                if let Some((_, bracket_loc)) = iter.next_if(|&(byte, _)| byte == b']') {
+                    let bracket = &input[1..2];
+                    input = &input[2..];
+
+                    Token::ComponentPart {
+                        kind: ComponentKind::NotWhitespace,
+                        value: bracket.spanned(backslash_loc.to(bracket_loc)),
+                    }
+                } else {
+                    // `#![feature(if_let_guard)]` would be ideal to avoid this branch.
+                    let backslash = &input[..1];
+                    input = &input[1..];
+                    Token::ComponentPart {
+                        kind: ComponentKind::NotWhitespace,
+                        value: backslash.spanned(backslash_loc.to(backslash_loc)),
+                    }
+                }
+            }
             // literal
             (_, start_location) if depth == 0 => {
                 let mut bytes = 1;
