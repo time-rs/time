@@ -1176,10 +1176,7 @@ impl OffsetDateTime {
 
         let (year, ordinal, time) = self.to_offset_raw(UtcOffset::UTC);
 
-        let date = match Date::from_ordinal_date(year, ordinal) {
-            Ok(date) => date,
-            Err(_) => return false,
-        };
+        guard!(let Ok(date) = Date::from_ordinal_date(year, ordinal) else { return false });
 
         time.hour() == 23
             && time.minute() == 59
