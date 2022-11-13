@@ -169,7 +169,13 @@ impl Parsed {
     const OFFSET_SECOND_FLAG: u16 = 1 << 12;
     /// Indicates whether a leap second is permitted to be parsed. This is required by some
     /// well-known formats.
-    const LEAP_SECOND_ALLOWED_FLAG: u16 = 1 << 13;
+    pub(super) const LEAP_SECOND_ALLOWED_FLAG: u16 = 1 << 13;
+    /// Indicates whether the `UtcOffset` is negative. This information is obtained when parsing the
+    /// offset hour, but may not otherwise be stored due to "-0" being equivalent to "0".
+    const OFFSET_IS_NEGATIVE_FLAG: u16 = 1 << 14;
+    /// Does the value at `OFFSET_IS_NEGATIVE_FLAG` have any semantic meaning, or is it just the
+    /// default value? If the latter, the value should be considered to have no meaning.
+    const OFFSET_IS_NEGATIVE_FLAG_IS_INITIALIZED: u16 = 1 << 15;
 }
 
 impl Parsed {
@@ -316,7 +322,13 @@ impl Parsed {
                 .and_then(|parsed| parsed.consume_value(|value| self.set_subsecond(value)))
                 .ok_or(InvalidComponent("subsecond")),
             Component::OffsetHour(modifiers) => parse_offset_hour(input, modifiers)
-                .and_then(|parsed| parsed.consume_value(|value| self.set_offset_hour(value)))
+                .and_then(|parsed| {
+                    parsed.consume_value(|(value, is_negative)| {
+                        self.set_flag(Self::OFFSET_IS_NEGATIVE_FLAG_IS_INITIALIZED, true);
+                        self.set_flag(Self::OFFSET_IS_NEGATIVE_FLAG, is_negative);
+                        self.set_offset_hour(value)
+                    })
+                })
                 .ok_or(InvalidComponent("offset hour")),
             Component::OffsetMinute(modifiers) => parse_offset_minute(input, modifiers)
                 .and_then(|parsed| {
@@ -328,6 +340,20 @@ impl Parsed {
                     parsed.consume_value(|value| self.set_offset_second_signed(value))
                 })
                 .ok_or(InvalidComponent("offset second")),
+        }
+    }
+
+    /// Get the value of the provided flag.
+    const fn get_flag(&self, flag: u16) -> bool {
+        self.flags & flag == flag
+    }
+
+    /// Set the value of the provided flag.
+    pub(super) fn set_flag(&mut self, flag: u16, value: bool) {
+        if value {
+            self.flags |= flag;
+        } else {
+            self.flags &= !flag;
         }
     }
 }
@@ -346,7 +372,7 @@ macro_rules! getters {
     (! @$flag:ident $name:ident : $ty:ty) => {
         /// Obtain the named component.
         pub const fn $name(&self) -> Option<$ty> {
-            if self.flags & Self::$flag != Self::$flag {
+            if !self.get_flag(Self::$flag) {
                 None
             } else {
                 // SAFETY: We just checked if the field is present.
@@ -387,11 +413,19 @@ impl Parsed {
 
     /// Obtain the offset minute as an `i8`.
     pub const fn offset_minute_signed(&self) -> Option<i8> {
-        if self.flags & Self::OFFSET_MINUTE_FLAG != Self::OFFSET_MINUTE_FLAG {
+        if !self.get_flag(Self::OFFSET_MINUTE_FLAG) {
             None
         } else {
             // SAFETY: We just checked if the field is present.
-            Some(unsafe { self.offset_minute.assume_init() })
+            let value = unsafe { self.offset_minute.assume_init() };
+
+            if self.get_flag(Self::OFFSET_IS_NEGATIVE_FLAG_IS_INITIALIZED)
+                && (value.is_negative() != self.get_flag(Self::OFFSET_IS_NEGATIVE_FLAG))
+            {
+                Some(-value)
+            } else {
+                Some(value)
+            }
         }
     }
 
@@ -403,17 +437,20 @@ impl Parsed {
 
     /// Obtain the offset second as an `i8`.
     pub const fn offset_second_signed(&self) -> Option<i8> {
-        if self.flags & Self::OFFSET_SECOND_FLAG != Self::OFFSET_SECOND_FLAG {
+        if !self.get_flag(Self::OFFSET_SECOND_FLAG) {
             None
         } else {
             // SAFETY: We just checked if the field is present.
-            Some(unsafe { self.offset_second.assume_init() })
-        }
-    }
+            let value = unsafe { self.offset_second.assume_init() };
 
-    /// Obtain whether leap seconds are permitted in the current format.
-    pub(crate) const fn leap_second_allowed(&self) -> bool {
-        self.flags & Self::LEAP_SECOND_ALLOWED_FLAG == Self::LEAP_SECOND_ALLOWED_FLAG
+            if self.get_flag(Self::OFFSET_IS_NEGATIVE_FLAG_IS_INITIALIZED)
+                && (value.is_negative() != self.get_flag(Self::OFFSET_IS_NEGATIVE_FLAG))
+            {
+                Some(-value)
+            } else {
+                Some(value)
+            }
+        }
     }
 }
 
@@ -435,7 +472,7 @@ macro_rules! setters {
         /// Set the named component.
         pub fn $setter_name(&mut self, value: $ty) -> Option<()> {
             self.$name = MaybeUninit::new(value);
-            self.flags |= Self::$flag;
+            self.set_flag(Self::$flag, true);
             Some(())
         }
     };
@@ -483,7 +520,7 @@ impl Parsed {
     /// Set the `offset_minute` component.
     pub fn set_offset_minute_signed(&mut self, value: i8) -> Option<()> {
         self.offset_minute = MaybeUninit::new(value);
-        self.flags |= Self::OFFSET_MINUTE_FLAG;
+        self.set_flag(Self::OFFSET_MINUTE_FLAG, true);
         Some(())
     }
 
@@ -503,17 +540,8 @@ impl Parsed {
     /// Set the `offset_second` component.
     pub fn set_offset_second_signed(&mut self, value: i8) -> Option<()> {
         self.offset_second = MaybeUninit::new(value);
-        self.flags |= Self::OFFSET_SECOND_FLAG;
+        self.set_flag(Self::OFFSET_SECOND_FLAG, true);
         Some(())
-    }
-
-    /// Set the leap second allowed flag.
-    pub(crate) fn set_leap_second_allowed(&mut self, value: bool) {
-        if value {
-            self.flags |= Self::LEAP_SECOND_ALLOWED_FLAG;
-        } else {
-            self.flags &= !Self::LEAP_SECOND_ALLOWED_FLAG;
-        }
     }
 }
 
@@ -742,15 +770,16 @@ impl<O: MaybeOffset> TryFrom<Parsed> for DateTime<O> {
         // Some well-known formats explicitly allow leap seconds. We don't currently support them,
         // so treat it as the nearest preceding moment that can be represented. Because leap seconds
         // always fall at the end of a month UTC, reject any that are at other times.
-        let leap_second_input = if parsed.leap_second_allowed() && parsed.second() == Some(60) {
-            parsed.set_second(59).expect("59 is a valid second");
-            parsed
-                .set_subsecond(999_999_999)
-                .expect("999_999_999 is a valid subsecond");
-            true
-        } else {
-            false
-        };
+        let leap_second_input =
+            if parsed.get_flag(Parsed::LEAP_SECOND_ALLOWED_FLAG) && parsed.second() == Some(60) {
+                parsed.set_second(59).expect("59 is a valid second");
+                parsed
+                    .set_subsecond(999_999_999)
+                    .expect("999_999_999 is a valid subsecond");
+                true
+            } else {
+                false
+            };
 
         let dt = Self {
             date: Date::try_from(parsed)?,

@@ -912,6 +912,27 @@ fn parse_date_err() -> time::Result<()> {
 }
 
 #[test]
+fn parse_offset() -> time::Result<()> {
+    // Regression check for #522.
+    assert_eq!(
+        UtcOffset::parse(
+            "-00:01",
+            &fd::parse("[offset_hour sign:mandatory]:[offset_minute]")?,
+        ),
+        Ok(offset!(-00:01)),
+    );
+    assert_eq!(
+        UtcOffset::parse(
+            "-00:00:01",
+            &fd::parse("[offset_hour sign:mandatory]:[offset_minute]:[offset_second]")?,
+        ),
+        Ok(offset!(-00:00:01)),
+    );
+
+    Ok(())
+}
+
+#[test]
 fn parse_offset_err() -> time::Result<()> {
     assert!(matches!(
         UtcOffset::parse("", &fd::parse("")?),

@@ -259,16 +259,18 @@ pub(crate) fn parse_subsecond(
 
 // region: offset components
 /// Parse the "hour" component of a `UtcOffset`.
+///
+/// Returns the value and whether the value is negative. This is used for when "-0" is parsed.
 pub(crate) fn parse_offset_hour(
     input: &[u8],
     modifiers: modifier::OffsetHour,
-) -> Option<ParsedItem<'_, i8>> {
+) -> Option<ParsedItem<'_, (i8, bool)>> {
     let ParsedItem(input, sign) = opt(sign)(input);
     let ParsedItem(input, hour) = exactly_n_digits_padded::<2, u8>(modifiers.padding)(input)?;
     match sign {
-        Some(b'-') => Some(ParsedItem(input, -(hour as i8))),
+        Some(b'-') => Some(ParsedItem(input, (-(hour as i8), true))),
         None if modifiers.sign_is_mandatory => None,
-        _ => Some(ParsedItem(input, hour as i8)),
+        _ => Some(ParsedItem(input, (hour as i8, false))),
     }
 }
 
