@@ -18,7 +18,7 @@ use crate::date_time::offset_kind;
 use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
-use crate::{error, Date, DateTime, Duration, Month, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{error, util, Date, DateTime, Duration, Month, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// The actual type doing all the work.
 type Inner = DateTime<offset_kind::Fixed>;
@@ -948,6 +948,332 @@ impl OffsetDateTime {
     }
 }
 // endregion replacement
+
+// region: rounding
+/// Methods that map an `OffsetDateTime` to another rounded `OffsetDateTime`.
+impl OffsetDateTime {
+    /// Round down to the closest whole second.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_seconds(),
+    ///     datetime!(2022-04-18 03:17:12 UTC)
+    /// );
+    /// ```
+    pub fn floor_seconds(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+    }
+
+    /// Round down to the closest whole minute.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_minutes(),
+    ///     datetime!(2022-04-18 03:17:00 UTC)
+    /// );
+    /// ```
+    pub fn floor_minutes(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+    }
+
+    /// Round down to the closest whole hour.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_hours(),
+    ///     datetime!(2022-04-18 03:00:00 UTC)
+    /// );
+    /// ```
+    pub fn floor_hours(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .replace_minute(0).unwrap()
+    }
+
+    /// Round down to the closest whole day.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_days(),
+    ///     datetime!(2022-04-18 00:00:00 UTC)
+    /// );
+    /// ```
+    pub fn floor_days(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .replace_minute(0).unwrap()
+            .replace_hour(0).unwrap()
+    }
+
+    /// Round down to the closest whole monday-based week.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_monday_based_weeks(),
+    ///     datetime!(2022-04-18 00:00:00 UTC)
+    /// );
+    /// assert_eq!(
+    ///    datetime!(2022-04-21 03:17:12.123_456_789 UTC).floor_monday_based_weeks(),
+    ///    datetime!(2022-04-18 00:00:00 UTC)
+    /// );
+    /// ```
+    pub fn floor_monday_based_weeks(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .replace_minute(0).unwrap()
+            .replace_hour(0).unwrap()
+            .checked_sub(Duration::days(self.weekday().number_days_from_monday() as i64)).unwrap()
+    }
+
+    /// Round down to the closest whole sunday-based week.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_sunday_based_weeks(),
+    ///     datetime!(2022-04-17 00:00:00 UTC)
+    /// );
+    /// assert_eq!(
+    ///     datetime!(2022-04-21 03:17:12.123_456_789 UTC).floor_sunday_based_weeks(),
+    ///     datetime!(2022-04-17 00:00:00 UTC)
+    /// );
+    /// ```
+    pub fn floor_sunday_based_weeks(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .replace_minute(0).unwrap()
+            .replace_hour(0).unwrap()
+            .checked_sub(Duration::days(self.weekday().number_days_from_sunday() as i64)).unwrap()
+    }
+
+    /// Round down to the closest whole month.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_months(),
+    ///     datetime!(2022-04-01 00:00:00 UTC)
+    /// );
+    /// ```
+    pub fn floor_months(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .replace_minute(0).unwrap()
+            .replace_hour(0).unwrap()
+            .replace_day(1).unwrap()
+    }
+
+    /// Round down to the closest whole year.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_years(),
+    ///     datetime!(2022-01-01 00:00:00 UTC)
+    /// );
+    /// ```
+    pub fn floor_years(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .replace_minute(0).unwrap()
+            .replace_hour(0).unwrap()
+            .replace_day(1).unwrap()
+            .replace_month(Month::January).unwrap()
+    }
+
+    /// Get the next closest whole second.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_second(),
+    ///     datetime!(2022-04-18 03:17:13 UTC)
+    /// );
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:14 UTC).next_second(),
+    ///     datetime!(2022-04-18 03:17:15 UTC)
+    /// );
+    /// ```
+    pub fn next_second(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .checked_add(Duration::SECOND).unwrap()
+    }
+
+    /// Get the next closest whole minute.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_minute(),
+    ///     datetime!(2022-04-18 03:18:00 UTC)
+    /// );
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:00 UTC).next_minute(),
+    ///     datetime!(2022-04-18 03:18:00 UTC)
+    /// );
+    /// ```
+    pub fn next_minute(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .checked_add(Duration::MINUTE).unwrap()
+    }
+
+    /// Get the next closest whole hour.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_hour(),
+    ///     datetime!(2022-04-18 04:00:00 UTC)
+    /// );
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:00:00 UTC).next_hour(),
+    ///     datetime!(2022-04-18 04:00:00 UTC)
+    /// );
+    /// ```
+    pub fn next_hour(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .replace_minute(0).unwrap()
+            .checked_add(Duration::HOUR).unwrap()
+    }
+
+    /// Get the next closest whole day.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_day(),
+    ///     datetime!(2022-04-19 00:00:00 UTC)
+    /// );
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 00:00:00 UTC).next_day(),
+    ///     datetime!(2022-04-19 00:00:00 UTC)
+    /// );
+    /// assert_eq!(
+    ///     datetime!(2022-12-31 00:00:00 UTC).next_day(),
+    ///     datetime!(2023-01-01 00:00:00 UTC)
+    /// );
+    /// ```
+    pub fn next_day(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .replace_minute(0).unwrap()
+            .replace_hour(0).unwrap()
+            .checked_add(Duration::DAY).unwrap()
+    }
+
+    /// Get the next closest whole monday-based week.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_monday_based_week(),
+    ///     datetime!(2022-04-25 00:00:00 UTC)
+    /// );
+    /// assert_eq!(
+    ///     datetime!(2022-04-21 00:00:00 UTC).next_monday_based_week(),
+    ///     datetime!(2022-04-25 00:00:00 UTC)
+    /// );
+    pub fn next_monday_based_week(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .replace_minute(0).unwrap()
+            .replace_hour(0).unwrap()
+            .checked_sub(Duration::days(self.weekday().number_days_from_monday() as i64)).unwrap()
+            .checked_add(Duration::WEEK).unwrap()
+    }
+
+    /// Get the next closest whole sunday-based week.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_sunday_based_week(),
+    ///     datetime!(2022-04-24 00:00:00 UTC)
+    /// );
+    /// assert_eq!(
+    ///     datetime!(2022-04-21 00:00:00 UTC).next_sunday_based_week(),
+    ///     datetime!(2022-04-24 00:00:00 UTC)
+    /// );
+    /// ```
+    pub fn next_sunday_based_week(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .replace_minute(0).unwrap()
+            .replace_hour(0).unwrap()
+            .checked_sub(Duration::days(self.weekday().number_days_from_sunday() as i64)).unwrap()
+            .checked_add(Duration::WEEK).unwrap()
+    }
+
+    /// Get the next closest whole month.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_month(),
+    ///     datetime!(2022-05-01 00:00:00 UTC)
+    /// );
+    /// assert_eq!(
+    ///     datetime!(2022-04-01 00:00:00 UTC).next_month(),
+    ///     datetime!(2022-05-01 00:00:00 UTC)
+    /// );
+    /// ```
+    pub fn next_month(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .replace_minute(0).unwrap()
+            .replace_hour(0).unwrap()
+            .replace_day(1).unwrap()
+            .checked_add(Duration::days(util::days_in_year_month(self.year(), self.month()) as i64)).unwrap()
+    }
+
+    /// Get the next closest whole year.
+    /// 
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_year(),
+    ///     datetime!(2023-01-01 00:00:00 UTC)
+    /// );
+    /// assert_eq!(
+    ///    datetime!(2022-01-01 00:00:00 UTC).next_year(),
+    ///    datetime!(2023-01-01 00:00:00 UTC)
+    /// );
+    /// ```
+    pub fn next_year(self) -> Self {
+        self
+            .replace_nanosecond(0).unwrap()
+            .replace_second(0).unwrap()
+            .replace_minute(0).unwrap()
+            .replace_hour(0).unwrap()
+            .replace_day(1).unwrap()
+            .replace_month(Month::January).unwrap()
+            .checked_add(Duration::days(util::days_in_year(self.year()) as i64)).unwrap()
+    }
+}
+// endregion rounding
 
 // region: formatting & parsing
 #[cfg(feature = "formatting")]

@@ -319,6 +319,7 @@ mod instant;
 #[cfg(feature = "macros")]
 pub mod macros;
 mod month;
+mod offset_date_time_range;
 mod offset_date_time;
 #[cfg(feature = "parsing")]
 pub mod parsing;
@@ -346,6 +347,8 @@ pub use crate::error::Error;
 pub use crate::instant::Instant;
 pub use crate::month::Month;
 pub use crate::offset_date_time::OffsetDateTime;
+#[cfg(feature = "std")]
+pub use crate::offset_date_time_range::{ OffsetDateTimeRange, iter };
 pub use crate::primitive_date_time::PrimitiveDateTime;
 pub use crate::time::Time;
 pub use crate::utc_offset::UtcOffset;
