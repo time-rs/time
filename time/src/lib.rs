@@ -346,9 +346,9 @@ pub use crate::error::Error;
 #[cfg(feature = "std")]
 pub use crate::instant::Instant;
 pub use crate::month::Month;
-pub use crate::offset_date_time::OffsetDateTime;
 #[cfg(feature = "std")]
-pub use crate::offset_date_time_range::{ OffsetDateTimeRange, iter };
+pub use crate::offset_date_time_range::{ OffsetDateTimeRange, OffsetDateTimeRangeSlice, iter };
+pub use crate::offset_date_time::OffsetDateTime;
 pub use crate::primitive_date_time::PrimitiveDateTime;
 pub use crate::time::Time;
 pub use crate::utc_offset::UtcOffset;
