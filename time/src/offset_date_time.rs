@@ -1148,7 +1148,7 @@ impl From<OffsetDateTime> for SystemTime {
 }
 
 #[cfg(all(
-    target_arch = "wasm32",
+    target_family = "wasm",
     not(any(target_os = "emscripten", target_os = "wasi")),
     feature = "wasm-bindgen"
 ))]
@@ -1159,7 +1159,7 @@ impl From<js_sys::Date> for OffsetDateTime {
 }
 
 #[cfg(all(
-    target_arch = "wasm32",
+    target_family = "wasm",
     not(any(target_os = "emscripten", target_os = "wasi")),
     feature = "wasm-bindgen"
 ))]

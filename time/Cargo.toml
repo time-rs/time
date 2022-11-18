@@ -52,7 +52,7 @@ time-macros = { version = "=0.2.6", path = "../time-macros", optional = true }
 libc = { version = "0.2.98", optional = true }
 num_threads = { version = "0.1.2", optional = true }
 
-[target.'cfg(all(target_arch = "wasm32", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
+[target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 js-sys = { version = "0.3.58", optional = true }
 
 [dev-dependencies]

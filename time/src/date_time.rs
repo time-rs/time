@@ -270,7 +270,7 @@ impl<O: MaybeOffset> DateTime<O> {
         O: FixedOffset,
     {
         #[cfg(all(
-            target_arch = "wasm32",
+            target_family = "wasm",
             not(any(target_os = "emscripten", target_os = "wasi")),
             feature = "wasm-bindgen"
         ))]
@@ -279,7 +279,7 @@ impl<O: MaybeOffset> DateTime<O> {
         }
 
         #[cfg(not(all(
-            target_arch = "wasm32",
+            target_family = "wasm",
             not(any(target_os = "emscripten", target_os = "wasi")),
             feature = "wasm-bindgen"
         )))]
@@ -1082,8 +1082,9 @@ impl From<DateTime<offset_kind::Fixed>> for SystemTime {
 
 #[allow(clippy::fallible_impl_from)]
 #[cfg(all(
-    target_arch = "wasm32",
-    not(any(target_os = "emscripten", target_os = "wasi"))
+    target_family = "wasm",
+    not(any(target_os = "emscripten", target_os = "wasi")),
+    feature = "wasm-bindgen"
 ))]
 impl From<js_sys::Date> for DateTime<offset_kind::Fixed> {
     fn from(js_date: js_sys::Date) -> Self {
@@ -1095,8 +1096,9 @@ impl From<js_sys::Date> for DateTime<offset_kind::Fixed> {
 }
 
 #[cfg(all(
-    target_arch = "wasm32",
-    not(any(target_os = "emscripten", target_os = "wasi"))
+    target_family = "wasm",
+    not(any(target_os = "emscripten", target_os = "wasi")),
+    feature = "wasm-bindgen"
 ))]
 impl From<DateTime<offset_kind::Fixed>> for js_sys::Date {
     fn from(datetime: DateTime<offset_kind::Fixed>) -> Self {
