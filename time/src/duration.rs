@@ -326,7 +326,10 @@ impl Duration {
         if seconds.is_nan() {
             crate::expect_failed("passed NaN to `time::Duration::seconds_f64`");
         }
-        Self::new_unchecked(seconds as _, ((seconds % 1.) * 1_000_000_000.) as _)
+        let seconds_truncated = seconds as i64;
+        // This only works because we handle the overflow condition above.
+        let nanoseconds = ((seconds - seconds_truncated as f64) * 1_000_000_000.) as i32;
+        Self::new_unchecked(seconds_truncated, nanoseconds)
     }
 
     /// Creates a new `Duration` from the specified number of seconds represented as `f32`.
@@ -343,7 +346,10 @@ impl Duration {
         if seconds.is_nan() {
             crate::expect_failed("passed NaN to `time::Duration::seconds_f32`");
         }
-        Self::new_unchecked(seconds as _, ((seconds % 1.) * 1_000_000_000.) as _)
+        let seconds_truncated = seconds as i64;
+        // This only works because we handle the overflow condition above.
+        let nanoseconds = ((seconds - seconds_truncated as f32) * 1_000_000_000.) as i32;
+        Self::new_unchecked(seconds_truncated, nanoseconds)
     }
 
     /// Create a new `Duration` with the given number of milliseconds.
