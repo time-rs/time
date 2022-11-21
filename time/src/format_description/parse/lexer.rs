@@ -2,7 +2,7 @@
 
 use core::iter;
 
-use super::{Location, Spanned, SpannedValue};
+use super::{unused, Error, Location, Spanned, SpannedValue};
 
 /// An iterator over the lexed tokens.
 pub(super) struct Lexed<I: Iterator> {
@@ -18,7 +18,7 @@ impl<I: Iterator> Iterator for Lexed<I> {
     }
 }
 
-impl<'iter, 'token: 'iter, I: Iterator<Item = Token<'token>> + 'iter> Lexed<I> {
+impl<'iter, 'token: 'iter, I: Iterator<Item = Result<Token<'token>, Error>> + 'iter> Lexed<I> {
     /// Peek at the next item in the iterator.
     pub(super) fn peek(&mut self) -> Option<&I::Item> {
         self.iter.peek()
@@ -26,10 +26,10 @@ impl<'iter, 'token: 'iter, I: Iterator<Item = Token<'token>> + 'iter> Lexed<I> {
 
     /// Consume the next token if it is whitespace.
     pub(super) fn next_if_whitespace(&mut self) -> Option<Spanned<&'token [u8]>> {
-        if let Some(&Token::ComponentPart {
+        if let Some(&Ok(Token::ComponentPart {
             kind: ComponentKind::Whitespace,
             value,
-        }) = self.peek()
+        })) = self.peek()
         {
             self.next(); // consume
             Some(value)
@@ -40,10 +40,10 @@ impl<'iter, 'token: 'iter, I: Iterator<Item = Token<'token>> + 'iter> Lexed<I> {
 
     /// Consume the next token if it is a component item that is not whitespace.
     pub(super) fn next_if_not_whitespace(&mut self) -> Option<Spanned<&'token [u8]>> {
-        if let Some(&Token::ComponentPart {
+        if let Some(&Ok(Token::ComponentPart {
             kind: ComponentKind::NotWhitespace,
             value,
-        }) = self.peek()
+        })) = self.peek()
         {
             self.next(); // consume
             Some(value)
@@ -54,10 +54,10 @@ impl<'iter, 'token: 'iter, I: Iterator<Item = Token<'token>> + 'iter> Lexed<I> {
 
     /// Consume the next token if it is an opening bracket.
     pub(super) fn next_if_opening_bracket(&mut self) -> Option<Location> {
-        if let Some(&Token::Bracket {
+        if let Some(&Ok(Token::Bracket {
             kind: BracketKind::Opening,
             location,
-        }) = self.peek()
+        })) = self.peek()
         {
             self.next(); // consume
             Some(location)
@@ -68,10 +68,10 @@ impl<'iter, 'token: 'iter, I: Iterator<Item = Token<'token>> + 'iter> Lexed<I> {
 
     /// Peek at the next token if it is a closing bracket.
     pub(super) fn peek_closing_bracket(&'iter mut self) -> Option<&'iter Location> {
-        if let Some(Token::Bracket {
+        if let Some(Ok(Token::Bracket {
             kind: BracketKind::Closing,
             location,
-        }) = self.peek()
+        })) = self.peek()
         {
             Some(location)
         } else {
@@ -81,10 +81,10 @@ impl<'iter, 'token: 'iter, I: Iterator<Item = Token<'token>> + 'iter> Lexed<I> {
 
     /// Consume the next token if it is a closing bracket.
     pub(super) fn next_if_closing_bracket(&mut self) -> Option<Location> {
-        if let Some(&Token::Bracket {
+        if let Some(&Ok(Token::Bracket {
             kind: BracketKind::Closing,
             location,
-        }) = self.peek()
+        })) = self.peek()
         {
             self.next(); // consume
             Some(location)
@@ -130,43 +130,10 @@ pub(super) enum ComponentKind {
     NotWhitespace,
 }
 
-/// The state of the lexer as it relates to lexing the start of a nested description.
-enum NestedState {
-    /// The most recent tokens do not indicate the start of a nested description.
-    Inconsequential,
-    /// We are after an opening bracket, but have not yet seen a component name.
-    AfterOpeningBracket,
-    /// We are after an opening bracket and have seen a component name, but have not yet seen the
-    /// whitespace that follows the component name.
-    AfterNestedKeyword,
-    /// We have seen an opening bracket, the component name, and the subsequent whitespace. The
-    /// next token should be a bracket.
-    AfterWhitespaceAfterNestedKeyword,
-    /// We have seen an opening bracket, the component name, the subsequent whitespace, and the
-    /// bracket that starts the nested description.
-    AfterStartOfNestedDescriptionBracket,
-    /// We have just seen the closing bracket of a nested description.
-    AfterEndOfNestedDescription,
-    /// We have just seen the closing bracket of a nested description, and the whitespace that
-    /// follows it.
-    AfterWhiteSpaceAfterEndOfNestedDescription,
-}
-
-impl NestedState {
-    /// Whether the current state indicates that the depth should be incremented.
-    const fn should_increment_depth(&self) -> bool {
-        matches!(
-            self,
-            Self::AfterWhitespaceAfterNestedKeyword
-                | Self::AfterStartOfNestedDescriptionBracket
-                | Self::AfterEndOfNestedDescription
-                | Self::AfterWhiteSpaceAfterEndOfNestedDescription
-        )
-    }
-}
-
 /// Attach [`Location`] information to each byte in the iterator.
-fn attach_location(iter: impl Iterator<Item = u8>) -> impl Iterator<Item = (u8, Location)> {
+fn attach_location<'item>(
+    iter: impl Iterator<Item = &'item u8>,
+) -> impl Iterator<Item = (&'item u8, Location)> {
     let mut byte_pos = 0;
 
     iter.map(move |byte| {
@@ -177,47 +144,100 @@ fn attach_location(iter: impl Iterator<Item = u8>) -> impl Iterator<Item = (u8, 
 }
 
 /// Parse the string into a series of [`Token`]s.
-pub(super) fn lex(mut input: &[u8]) -> Lexed<impl Iterator<Item = Token<'_>>> {
+///
+/// `VERSION` controls the version of the format description that is being parsed. Currently, this
+/// must be 1 or 2.
+///
+/// - When `VERSION` is 0, `[[` is the only escape sequence, resulting in a literal `[`.
+/// - When `VERSION` is 1, all escape sequences begin with `\`. The only characters that may
+///   currently follow are `\`, `[`, and `]`, all of which result in the literal character. All
+///   other characters result in a lex error.
+pub(super) fn lex<const VERSION: u8>(
+    mut input: &[u8],
+) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
+    /// A helper macro to make version restrictions simpler to read and write.
+    macro_rules! version {
+        ($range:expr) => {
+            $range.contains(&VERSION)
+        };
+    }
+
+    assert!(version!(1..=2));
+
     let mut depth: u8 = 0;
-    let mut iter = attach_location(input.iter().copied()).peekable();
+    let mut iter = attach_location(input.iter()).peekable();
     let mut second_bracket_location = None;
-    // Used to keep track of whether we might be starting a nested description. Affects the behavior
-    // of `depth`.
-    let mut nested_state = NestedState::Inconsequential;
 
     let iter = iter::from_fn(move || {
-        // There is a flag set to emit the second half of an escaped bracket pair.
-        if let Some(location) = second_bracket_location.take() {
-            if nested_state.should_increment_depth() {
-                depth += 1;
+        // The flag is only set when version is zero.
+        if version!(..=1) {
+            // There is a flag set to emit the second half of an escaped bracket pair.
+            if let Some(location) = second_bracket_location.take() {
+                return Some(Ok(Token::Bracket {
+                    kind: BracketKind::Opening,
+                    location,
+                }));
             }
-            nested_state = NestedState::AfterOpeningBracket;
-
-            return Some(Token::Bracket {
-                kind: BracketKind::Opening,
-                location,
-            });
         }
 
-        Some(match iter.next()? {
-            (b'[', location) => {
-                if let Some((_, second_location)) = iter.next_if(|&(byte, _)| byte == b'[') {
-                    // Escaped bracket. This only increments the depth if we are starting a nested
-                    // description. Otherwise it will eventually be interpreted as a literal.
-                    second_bracket_location = Some(second_location);
-                    if nested_state.should_increment_depth() {
-                        depth += 1;
-                        nested_state = NestedState::AfterStartOfNestedDescriptionBracket;
-                    } else {
-                        nested_state = NestedState::AfterOpeningBracket;
+        Some(Ok(match iter.next()? {
+            // possible escape sequence
+            (b'\\', backslash_loc) if version!(2..) => {
+                match iter.next() {
+                    Some((b'\\' | b'[' | b']', char_loc)) => {
+                        // The escaped character is emitted as-is.
+                        let char = &input[1..2];
+                        input = &input[2..];
+                        if depth == 0 {
+                            Token::Literal(char.spanned(backslash_loc.to(char_loc)))
+                        } else {
+                            Token::ComponentPart {
+                                kind: ComponentKind::NotWhitespace,
+                                value: char.spanned(backslash_loc.to(char_loc)),
+                            }
+                        }
                     }
+                    Some((_, loc)) => {
+                        return Some(Err(Error {
+                            _inner: unused(loc.error("invalid escape sequence")),
+                            public: crate::error::InvalidFormatDescription::Expected {
+                                what: "valid escape sequence",
+                                index: loc.byte as _,
+                            },
+                        }));
+                    }
+                    None => {
+                        return Some(Err(Error {
+                            _inner: unused(backslash_loc.error("unexpected end of input")),
+                            public: crate::error::InvalidFormatDescription::Expected {
+                                what: "valid escape sequence",
+                                index: backslash_loc.byte as _,
+                            },
+                        }));
+                    }
+                }
+            }
+            // potentially escaped opening bracket
+            (b'[', location) if version!(..=1) => {
+                if let Some((_, second_location)) = iter.next_if(|&(&byte, _)| byte == b'[') {
+                    // Escaped bracket. Store the location of the second so we can emit it later.
+                    second_bracket_location = Some(second_location);
                     input = &input[2..];
                 } else {
                     // opening bracket
                     depth += 1;
                     input = &input[1..];
-                    nested_state = NestedState::AfterOpeningBracket;
                 }
+
+                Token::Bracket {
+                    kind: BracketKind::Opening,
+                    location,
+                }
+            }
+            // opening bracket
+            (b'[', location) => {
+                depth += 1;
+                input = &input[1..];
 
                 Token::Bracket {
                     kind: BracketKind::Opening,
@@ -228,30 +248,10 @@ pub(super) fn lex(mut input: &[u8]) -> Lexed<impl Iterator<Item = Token<'_>>> {
             (b']', location) if depth > 0 => {
                 depth -= 1;
                 input = &input[1..];
-                nested_state = NestedState::AfterEndOfNestedDescription;
 
                 Token::Bracket {
                     kind: BracketKind::Closing,
                     location,
-                }
-            }
-            (b'\\', backslash_loc) if depth > 0 => {
-                if let Some((_, bracket_loc)) = iter.next_if(|&(byte, _)| byte == b']') {
-                    let bracket = &input[1..2];
-                    input = &input[2..];
-
-                    Token::ComponentPart {
-                        kind: ComponentKind::NotWhitespace,
-                        value: bracket.spanned(backslash_loc.to(bracket_loc)),
-                    }
-                } else {
-                    // `#![feature(if_let_guard)]` would be ideal to avoid this branch.
-                    let backslash = &input[..1];
-                    input = &input[1..];
-                    Token::ComponentPart {
-                        kind: ComponentKind::NotWhitespace,
-                        value: backslash.spanned(backslash_loc.to(backslash_loc)),
-                    }
                 }
             }
             // literal
@@ -259,14 +259,15 @@ pub(super) fn lex(mut input: &[u8]) -> Lexed<impl Iterator<Item = Token<'_>>> {
                 let mut bytes = 1;
                 let mut end_location = start_location;
 
-                while let Some((_, location)) = iter.next_if(|&(byte, _)| byte != b'[') {
+                while let Some((_, location)) =
+                    iter.next_if(|&(&byte, _)| !((version!(2..) && byte == b'\\') || byte == b'['))
+                {
                     end_location = location;
                     bytes += 1;
                 }
 
                 let value = &input[..bytes];
                 input = &input[bytes..];
-                nested_state = NestedState::Inconsequential;
 
                 Token::Literal(value.spanned(start_location.to(end_location)))
             }
@@ -277,7 +278,8 @@ pub(super) fn lex(mut input: &[u8]) -> Lexed<impl Iterator<Item = Token<'_>>> {
                 let is_whitespace = byte.is_ascii_whitespace();
 
                 while let Some((_, location)) = iter.next_if(|&(byte, _)| {
-                    byte != b'[' && byte != b']' && is_whitespace == byte.is_ascii_whitespace()
+                    !matches!(byte, b'\\' | b'[' | b']')
+                        && is_whitespace == byte.is_ascii_whitespace()
                 }) {
                     end_location = location;
                     bytes += 1;
@@ -285,17 +287,6 @@ pub(super) fn lex(mut input: &[u8]) -> Lexed<impl Iterator<Item = Token<'_>>> {
 
                 let value = &input[..bytes];
                 input = &input[bytes..];
-
-                nested_state = match (&nested_state, is_whitespace) {
-                    (NestedState::AfterOpeningBracket, _) => NestedState::AfterNestedKeyword,
-                    (NestedState::AfterNestedKeyword, true) => {
-                        NestedState::AfterWhitespaceAfterNestedKeyword
-                    }
-                    (NestedState::AfterEndOfNestedDescription, true) => {
-                        NestedState::AfterWhiteSpaceAfterEndOfNestedDescription
-                    }
-                    _ => NestedState::Inconsequential,
-                };
 
                 Token::ComponentPart {
                     kind: if is_whitespace {
@@ -306,7 +297,7 @@ pub(super) fn lex(mut input: &[u8]) -> Lexed<impl Iterator<Item = Token<'_>>> {
                     value: value.spanned(start_location.to(end_location)),
                 }
             }
-        })
+        }))
     });
 
     Lexed {

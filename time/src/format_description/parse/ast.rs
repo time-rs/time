@@ -10,8 +10,12 @@ use super::{lexer, unused, Error, Location, Spanned, SpannedValue, Unused};
 /// One part of a complete format description.
 pub(super) enum Item<'a> {
     /// A literal string, formatted and parsed as-is.
+    ///
+    /// This should never be present inside a nested format description.
     Literal(Spanned<&'a [u8]>),
     /// A sequence of brackets. The first acts as the escape character.
+    ///
+    /// This should never be present if the lexer has `BACKSLASH_ESCAPE` set to `true`.
     EscapedBracket {
         /// The first bracket.
         _first: Unused<Location>,
@@ -92,14 +96,18 @@ pub(super) struct Modifier<'a> {
 /// Parse the provided tokens into an AST.
 pub(super) fn parse<'item: 'iter, 'iter>(
     // tokens: &'iter mut Peekable<impl Iterator<Item = lexer::Token<'item>>>,
-    tokens: &'iter mut lexer::Lexed<impl Iterator<Item = lexer::Token<'item>>>,
+    tokens: &'iter mut lexer::Lexed<impl Iterator<Item = Result<lexer::Token<'item>, Error>>>,
 ) -> impl Iterator<Item = Result<Item<'item>, Error>> + 'iter {
     parse_inner::<_, false>(tokens)
 }
 
 /// Parse the provided tokens into an AST. The const generic indicates whether the resulting
 /// [`Item`] will be used directly or as part of a [`NestedFormatDescription`].
-fn parse_inner<'item, I: Iterator<Item = lexer::Token<'item>>, const NESTED: bool>(
+fn parse_inner<
+    'item,
+    I: Iterator<Item = Result<lexer::Token<'item>, Error>>,
+    const NESTED: bool,
+>(
     tokens: &mut lexer::Lexed<I>,
 ) -> impl Iterator<Item = Result<Item<'item>, Error>> + '_ {
     iter::from_fn(move || {
@@ -107,7 +115,12 @@ fn parse_inner<'item, I: Iterator<Item = lexer::Token<'item>>, const NESTED: boo
             return None;
         }
 
-        Some(match tokens.next()? {
+        let next = match tokens.next()? {
+            Ok(token) => token,
+            Err(err) => return Some(Err(err)),
+        };
+
+        Some(match next {
             lexer::Token::Literal(Spanned { value: _, span: _ }) if NESTED => {
                 unreachable!("internal error: literal should not be present in nested description")
             }
@@ -156,7 +169,7 @@ fn parse_inner<'item, I: Iterator<Item = lexer::Token<'item>>, const NESTED: boo
 /// Parse a component. This assumes that the opening bracket has already been consumed.
 fn parse_component<'a>(
     opening_bracket: Location,
-    tokens: &mut lexer::Lexed<impl Iterator<Item = lexer::Token<'a>>>,
+    tokens: &mut lexer::Lexed<impl Iterator<Item = Result<lexer::Token<'a>, Error>>>,
 ) -> Result<Item<'a>, Error> {
     let leading_whitespace = tokens.next_if_whitespace();
 
@@ -325,7 +338,7 @@ fn parse_component<'a>(
 /// Parse a nested format description. The location provided is the the most recent one consumed.
 fn parse_nested<'a>(
     last_location: Location,
-    tokens: &mut lexer::Lexed<impl Iterator<Item = lexer::Token<'a>>>,
+    tokens: &mut lexer::Lexed<impl Iterator<Item = Result<lexer::Token<'a>, Error>>>,
 ) -> Result<NestedFormatDescription<'a>, Error> {
     guard!(let Some(opening_bracket) = tokens.next_if_opening_bracket() else {
         return Err(Error {

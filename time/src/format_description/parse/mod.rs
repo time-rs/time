@@ -7,6 +7,8 @@ mod ast;
 mod format_item;
 mod lexer;
 
+// TODO(jhpratt) document differences between `parse` and `parse_borrowed`.
+
 /// Parse a sequence of items from the format description.
 ///
 /// The syntax for the format description can be found in [the
@@ -15,7 +17,23 @@ pub fn parse(
     s: &str,
 ) -> Result<Vec<crate::format_description::FormatItem<'_>>, crate::error::InvalidFormatDescription>
 {
-    let mut lexed = lexer::lex(s.as_bytes());
+    let mut lexed = lexer::lex::<1>(s.as_bytes());
+    let ast = ast::parse(&mut lexed);
+    let format_items = format_item::parse(ast);
+    Ok(format_items
+        .map(|res| res.and_then(TryInto::try_into))
+        .collect::<Result<_, _>>()?)
+}
+
+/// Parse a sequence of items from the format description.
+///
+/// The syntax for the format description can be found in [the
+/// book](https://time-rs.github.io/book/api/format-description.html).
+pub fn parse_borrowed(
+    s: &str,
+) -> Result<Vec<crate::format_description::FormatItem<'_>>, crate::error::InvalidFormatDescription>
+{
+    let mut lexed = lexer::lex::<2>(s.as_bytes());
     let ast = ast::parse(&mut lexed);
     let format_items = format_item::parse(ast);
     Ok(format_items
@@ -35,7 +53,7 @@ pub fn parse(
 pub fn parse_owned(
     s: &str,
 ) -> Result<crate::format_description::OwnedFormatItem, crate::error::InvalidFormatDescription> {
-    let mut lexed = lexer::lex(s.as_bytes());
+    let mut lexed = lexer::lex::<2>(s.as_bytes());
     let ast = ast::parse(&mut lexed);
     let format_items = format_item::parse(ast);
     let items = format_items

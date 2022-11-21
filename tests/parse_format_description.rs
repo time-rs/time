@@ -535,13 +535,7 @@ fn first() {
 }
 
 #[test]
-fn nested_escape() {
-    assert_eq!(
-        format_description::parse_owned(r"[optional [[[]]"),
-        Ok(OwnedFormatItem::Optional(Box::new(
-            OwnedFormatItem::Literal(Box::new(*b"["))
-        )))
-    );
+fn backslash_escape() {
     assert_eq!(
         format_description::parse_owned(r"[optional [\]]]"),
         Ok(OwnedFormatItem::Optional(Box::new(
@@ -549,14 +543,91 @@ fn nested_escape() {
         )))
     );
     assert_eq!(
-        format_description::parse_owned(r"[optional [\a]]"),
+        format_description::parse_owned(r"[optional [\[]]"),
         Ok(OwnedFormatItem::Optional(Box::new(
-            OwnedFormatItem::Compound(Box::new([
-                OwnedFormatItem::Literal(Box::new(*br"\")),
-                OwnedFormatItem::Literal(Box::new(*b"a")),
-            ]))
+            OwnedFormatItem::Literal(Box::new(*b"["))
         )))
     );
+    assert_eq!(
+        format_description::parse_owned(r"[optional [\\]]"),
+        Ok(OwnedFormatItem::Optional(Box::new(
+            OwnedFormatItem::Literal(Box::new(*br"\"))
+        )))
+    );
+    assert_eq!(
+        format_description::parse_owned(r"\\"),
+        Ok(OwnedFormatItem::Literal(Box::new(*br"\")))
+    );
+    assert_eq!(
+        format_description::parse_owned(r"\["),
+        Ok(OwnedFormatItem::Literal(Box::new(*br"[")))
+    );
+    assert_eq!(
+        format_description::parse_owned(r"\]"),
+        Ok(OwnedFormatItem::Literal(Box::new(*br"]")))
+    );
+    assert_eq!(
+        format_description::parse_owned(r"foo\\"),
+        Ok(OwnedFormatItem::Compound(Box::new([
+            OwnedFormatItem::Literal(Box::new(*b"foo")),
+            OwnedFormatItem::Literal(Box::new(*br"\")),
+        ])))
+    );
+    assert_eq!(
+        format_description::parse_borrowed(r"\\"),
+        Ok(vec![FormatItem::Literal(br"\")])
+    );
+    assert_eq!(
+        format_description::parse_borrowed(r"\["),
+        Ok(vec![FormatItem::Literal(br"[")])
+    );
+    assert_eq!(
+        format_description::parse_borrowed(r"\]"),
+        Ok(vec![FormatItem::Literal(br"]")])
+    );
+    assert_eq!(
+        format_description::parse_borrowed(r"foo\\"),
+        Ok(vec![
+            FormatItem::Literal(b"foo"),
+            FormatItem::Literal(br"\"),
+        ])
+    );
+}
+
+#[test]
+fn backslash_escape_error() {
+    assert!(matches!(
+        format_description::parse_owned(r"\a"),
+        Err(InvalidFormatDescription::Expected {
+            what: "valid escape sequence",
+            index: 1,
+            ..
+        })
+    ));
+    assert!(matches!(
+        format_description::parse_owned(r"\"),
+        Err(InvalidFormatDescription::Expected {
+            what: "valid escape sequence",
+            index: 0,
+            ..
+        })
+    ));
+    assert!(matches!(
+        format_description::parse_borrowed(r"\a"),
+        Err(InvalidFormatDescription::Expected {
+            what: "valid escape sequence",
+            index: 1,
+            ..
+        })
+    ));
+    assert!(matches!(
+        format_description::parse_borrowed(r"\"),
+        Err(InvalidFormatDescription::Expected {
+            what: "valid escape sequence",
+            index: 0,
+            ..
+        })
+    ));
 }
 
 #[test]
