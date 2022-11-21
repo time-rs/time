@@ -59,7 +59,7 @@ impl fmt::Display for Error {
                 write!(f, "invalid component: {name} was {value}")
             }
             #[cfg(any(feature = "formatting", feature = "parsing"))]
-            Self::ExpectedString { .. } => f.write_str("expected string"),
+            Self::ExpectedString { .. } => f.write_str("expected string literal"),
             Self::UnexpectedToken { tree } => write!(f, "unexpected token: {tree}"),
             Self::UnexpectedEndOfInput => f.write_str("unexpected end of input"),
             #[cfg(any(feature = "formatting", feature = "parsing"))]
