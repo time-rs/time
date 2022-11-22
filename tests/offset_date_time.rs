@@ -529,6 +529,319 @@ fn replace_nanosecond() -> Result<()> {
 }
 
 #[test]
+fn floor_seconds() {
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_seconds(),
+        datetime!(2022-04-18 03:17:12 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12 UTC).floor_seconds(),
+        datetime!(2022-04-18 03:17:12 UTC)
+    );
+}
+
+#[test]
+fn floor_minutes() {
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_minutes(),
+        datetime!(2022-04-18 03:17:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-18 03:17:00 UTC).floor_minutes(),
+        datetime!(2022-04-18 03:17:00 UTC)
+    );
+}
+
+#[test]
+fn floor_hours() {
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_hours(),
+        datetime!(2022-04-18 03:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-18 03:00:00 UTC).floor_hours(),
+        datetime!(2022-04-18 03:00:00 UTC)
+    );
+}
+
+#[test]
+fn floor_days() {
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_days(),
+        datetime!(2022-04-18 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-18 00:00:00 UTC).floor_days(),
+        datetime!(2022-04-18 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn floor_monday_based_weeks() {
+    assert_eq!(
+        datetime!(2022-04-21 03:17:12.123_456_789 UTC).floor_monday_based_weeks(),
+        datetime!(2022-04-18 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-18 00:00:00 UTC).floor_monday_based_weeks(),
+        datetime!(2022-04-18 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn floor_sunday_based_weeks() {
+    assert_eq!(
+        datetime!(2022-04-21 03:17:12.123_456_789 UTC).floor_sunday_based_weeks(),
+        datetime!(2022-04-17 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-17 00:00:00 UTC).floor_sunday_based_weeks(),
+        datetime!(2022-04-17 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn floor_months() {
+    assert_eq!(
+        datetime!(2022-04-21 03:17:12.123_456_789 UTC).floor_months(),
+        datetime!(2022-04-01 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-01 00:00:00 UTC).floor_months(),
+        datetime!(2022-04-01 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn floor_years() {
+    assert_eq!(
+        datetime!(2022-04-21 03:17:12.123_456_789 UTC).floor_years(),
+        datetime!(2022-01-01 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-01-01 00:00:00 UTC).floor_years(),
+        datetime!(2022-01-01 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn ceil_seconds() {
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12.123_456_789 UTC).ceil_seconds(),
+        datetime!(2022-04-18 03:17:13 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12 UTC).ceil_seconds(),
+        datetime!(2022-04-18 03:17:12 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-30 23:59:59.5 UTC).next_hour(),
+        datetime!(2022-05-01 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn ceil_minutes() {
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12.123_456_789 UTC).ceil_minutes(),
+        datetime!(2022-04-18 03:18:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-18 03:17:00 UTC).ceil_minutes(),
+        datetime!(2022-04-18 03:17:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-30 23:59:30 UTC).next_hour(),
+        datetime!(2022-05-01 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn ceil_hours() {
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12.123_456_789 UTC).ceil_hours(),
+        datetime!(2022-04-18 04:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-18 03:00:00 UTC).ceil_hours(),
+        datetime!(2022-04-18 03:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-30 23:30:00 UTC).next_hour(),
+        datetime!(2022-05-01 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn ceil_monday_based_weeks() {
+    assert_eq!(
+        datetime!(2022-04-21 03:17:12.123_456_789 UTC).ceil_monday_based_weeks(),
+        datetime!(2022-04-25 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-25 00:00:00 UTC).ceil_monday_based_weeks(),
+        datetime!(2022-04-25 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-25 12:00:00 UTC).next_monday_based_week(),
+        datetime!(2022-05-02 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn ceil_sunday_based_weeks() {
+    assert_eq!(
+        datetime!(2022-04-21 03:17:12.123_456_789 UTC).ceil_sunday_based_weeks(),
+        datetime!(2022-04-24 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-24 00:00:00 UTC).ceil_sunday_based_weeks(),
+        datetime!(2022-04-24 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-24 12:00:00 UTC).next_sunday_based_week(),
+        datetime!(2022-05-01 00:00:00 UTC)
+    );
+}
+
+
+#[test]
+fn ceil_months() {
+    assert_eq!(
+        datetime!(2022-04-21 03:17:12.123_456_789 UTC).ceil_months(),
+        datetime!(2022-05-01 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-01 00:00:00 UTC).ceil_months(),
+        datetime!(2022-04-01 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-12-15 00:00:00 UTC).next_month(),
+        datetime!(2023-01-01 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn ceil_years() {
+    assert_eq!(
+        datetime!(2022-04-21 03:17:12.123_456_789 UTC).ceil_years(),
+        datetime!(2023-01-01 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-01-01 00:00:00 UTC).ceil_years(),
+        datetime!(2022-01-01 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn next_second() {
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_second(),
+        datetime!(2022-04-18 03:17:13 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12 UTC).next_second(),
+        datetime!(2022-04-18 03:17:13 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-30 23:59:59 UTC).next_hour(),
+        datetime!(2022-05-01 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn next_minute() {
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_minute(),
+        datetime!(2022-04-18 03:18:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-18 03:17:00 UTC).next_minute(),
+        datetime!(2022-04-18 03:18:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-30 23:59:00 UTC).next_hour(),
+        datetime!(2022-05-01 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn next_hour() {
+    assert_eq!(
+        datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_hour(),
+        datetime!(2022-04-18 04:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-18 03:00:00 UTC).next_hour(),
+        datetime!(2022-04-18 04:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-30 23:00:00 UTC).next_hour(),
+        datetime!(2022-05-01 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn next_monday_based_week() {
+    assert_eq!(
+        datetime!(2022-04-21 03:17:12.123_456_789 UTC).next_monday_based_week(),
+        datetime!(2022-04-25 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-21 00:00:00 UTC).next_monday_based_week(),
+        datetime!(2022-04-25 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-25 00:00:00 UTC).next_monday_based_week(),
+        datetime!(2022-05-02 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn next_sunday_based_week() {
+    assert_eq!(
+        datetime!(2022-04-15 03:17:12.123_456_789 UTC).next_sunday_based_week(),
+        datetime!(2022-04-17 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-17 00:00:00 UTC).next_sunday_based_week(),
+        datetime!(2022-04-24 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-24 00:00:00 UTC).next_sunday_based_week(),
+        datetime!(2022-05-01 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn next_month() {
+    assert_eq!(
+        datetime!(2022-04-21 03:17:12.123_456_789 UTC).next_month(),
+        datetime!(2022-05-01 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-04-01 00:00:00 UTC).next_month(),
+        datetime!(2022-05-01 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-12-01 00:00:00 UTC).next_month(),
+        datetime!(2023-01-01 00:00:00 UTC)
+    );
+}
+
+#[test]
+fn next_year() {
+    assert_eq!(
+        datetime!(2022-04-21 03:17:12.123_456_789 UTC).next_year(),
+        datetime!(2023-01-01 00:00:00 UTC)
+    );
+    assert_eq!(
+        datetime!(2022-01-01 00:00:00 UTC).next_year(),
+        datetime!(2023-01-01 00:00:00 UTC)
+    );
+}
+
+#[test]
 fn partial_eq() {
     assert_eq!(
         datetime!(2000-01-01 0:00 UTC).to_offset(offset!(-1)),

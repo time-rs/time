@@ -961,14 +961,6 @@ impl OffsetDateTime {
     ///     datetime!(2022-04-18 03:17:12 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 03:17:12 UTC).floor_seconds(),
-    ///     datetime!(2022-04-18 03:17:12 UTC)
-    /// );
-    /// ```
     pub fn floor_seconds(self) -> Self {
         self
             .replace_nanosecond(0).unwrap()
@@ -980,14 +972,6 @@ impl OffsetDateTime {
     /// # use time_macros::datetime;
     /// assert_eq!(
     ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_minutes(),
-    ///     datetime!(2022-04-18 03:17:00 UTC)
-    /// );
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 03:17:00 UTC).floor_minutes(),
     ///     datetime!(2022-04-18 03:17:00 UTC)
     /// );
     /// ```
@@ -1003,14 +987,6 @@ impl OffsetDateTime {
     /// # use time_macros::datetime;
     /// assert_eq!(
     ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_hours(),
-    ///     datetime!(2022-04-18 03:00:00 UTC)
-    /// );
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 03:00:00 UTC).floor_hours(),
     ///     datetime!(2022-04-18 03:00:00 UTC)
     /// );
     /// ```
@@ -1030,14 +1006,6 @@ impl OffsetDateTime {
     ///     datetime!(2022-04-18 00:00:00 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 00:00:00 UTC).floor_days(),
-    ///     datetime!(2022-04-18 00:00:00 UTC)
-    /// );
-    /// ```
     pub fn floor_days(self) -> Self {
         self
             .replace_nanosecond(0).unwrap()
@@ -1052,14 +1020,6 @@ impl OffsetDateTime {
     /// # use time_macros::datetime;
     /// assert_eq!(
     ///     datetime!(2022-04-21 03:17:12.123_456_789 UTC).floor_monday_based_weeks(),
-    ///     datetime!(2022-04-18 00:00:00 UTC)
-    /// );
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 00:00:00 UTC).floor_monday_based_weeks(),
     ///     datetime!(2022-04-18 00:00:00 UTC)
     /// );
     /// ```
@@ -1081,14 +1041,6 @@ impl OffsetDateTime {
     ///     datetime!(2022-04-17 00:00:00 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-17 00:00:00 UTC).floor_sunday_based_weeks(),
-    ///     datetime!(2022-04-17 00:00:00 UTC)
-    /// );
-    /// ```
     pub fn floor_sunday_based_weeks(self) -> Self {
         self
             .replace_nanosecond(0).unwrap()
@@ -1107,14 +1059,6 @@ impl OffsetDateTime {
     ///     datetime!(2022-04-01 00:00:00 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-01 00:00:00 UTC).floor_months(),
-    ///     datetime!(2022-04-01 00:00:00 UTC)
-    /// );
-    /// ```
     pub fn floor_months(self) -> Self {
         self
             .replace_nanosecond(0).unwrap()
@@ -1130,14 +1074,6 @@ impl OffsetDateTime {
     /// # use time_macros::datetime;
     /// assert_eq!(
     ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).floor_years(),
-    ///     datetime!(2022-01-01 00:00:00 UTC)
-    /// );
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-01-01 00:00:00 UTC).floor_years(),
     ///     datetime!(2022-01-01 00:00:00 UTC)
     /// );
     /// ```
@@ -1160,14 +1096,6 @@ impl OffsetDateTime {
     ///     datetime!(2022-04-18 03:17:13 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 03:17:12 UTC).ceil_seconds(),
-    ///     datetime!(2022-04-18 03:17:12 UTC)
-    /// );
-    /// ```
     pub fn ceil_seconds(self) -> Self {
         let floored = self.floor_seconds();
         if floored == self {
@@ -1184,14 +1112,6 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).ceil_minutes(),
     ///     datetime!(2022-04-18 03:18:00 UTC)
-    /// );
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 03:17:00 UTC).ceil_minutes(),
-    ///     datetime!(2022-04-18 03:17:00 UTC)
     /// );
     /// ```
     pub fn ceil_minutes(self) -> Self {
@@ -1212,14 +1132,6 @@ impl OffsetDateTime {
     ///     datetime!(2022-04-18 04:00:00 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 03:00:00 UTC).ceil_hours(),
-    ///     datetime!(2022-04-18 03:00:00 UTC)
-    /// );
-    /// ```
     pub fn ceil_hours(self) -> Self {
         let floored = self.floor_hours();
         if floored == self {
@@ -1238,14 +1150,6 @@ impl OffsetDateTime {
     ///     datetime!(2022-04-19 00:00:00 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 00:00:00 UTC).ceil_days(),
-    ///     datetime!(2022-04-18 00:00:00 UTC)
-    /// );
-    /// ```
     pub fn ceil_days(self) -> Self {
         let floored = self.floor_days();
         if floored == self {
@@ -1261,14 +1165,6 @@ impl OffsetDateTime {
     /// # use time_macros::datetime;
     /// assert_eq!(
     ///     datetime!(2022-04-20 03:17:12.123_456_789 UTC).ceil_monday_based_weeks(),
-    ///     datetime!(2022-04-25 00:00:00 UTC)
-    /// );
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-25 00:00:00 UTC).ceil_monday_based_weeks(),
     ///     datetime!(2022-04-25 00:00:00 UTC)
     /// );
     /// ```
@@ -1290,14 +1186,6 @@ impl OffsetDateTime {
     ///     datetime!(2022-04-24 00:00:00 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-24 00:00:00 UTC).ceil_sunday_based_weeks(),
-    ///     datetime!(2022-04-24 00:00:00 UTC)
-    /// );
-    /// ```
     pub fn ceil_sunday_based_weeks(self) -> Self {
         let floored = self.floor_sunday_based_weeks();
         if floored == self {
@@ -1314,14 +1202,6 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).ceil_months(),
     ///     datetime!(2022-05-01 00:00:00 UTC)
-    /// );
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-01 00:00:00 UTC).ceil_months(),
-    ///     datetime!(2022-04-01 00:00:00 UTC)
     /// );
     /// ```
     pub fn ceil_months(self) -> Self {
@@ -1342,14 +1222,6 @@ impl OffsetDateTime {
     ///     datetime!(2023-01-01 00:00:00 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-01-01 00:00:00 UTC).ceil_years(),
-    ///     datetime!(2022-01-01 00:00:00 UTC)
-    /// );
-    /// ```
     pub fn ceil_years(self) -> Self {
         let floored = self.floor_years();
         if floored == self {
@@ -1368,14 +1240,6 @@ impl OffsetDateTime {
     ///     datetime!(2022-04-18 03:17:13 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 03:17:14 UTC).next_second(),
-    ///     datetime!(2022-04-18 03:17:15 UTC)
-    /// );
-    /// ```
     pub fn next_second(self) -> Self {
         self
             .replace_nanosecond(0).unwrap()
@@ -1388,14 +1252,6 @@ impl OffsetDateTime {
     /// # use time_macros::datetime;
     /// assert_eq!(
     ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_minute(),
-    ///     datetime!(2022-04-18 03:18:00 UTC)
-    /// );
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 03:17:00 UTC).next_minute(),
     ///     datetime!(2022-04-18 03:18:00 UTC)
     /// );
     /// ```
@@ -1412,14 +1268,6 @@ impl OffsetDateTime {
     /// # use time_macros::datetime;
     /// assert_eq!(
     ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_hour(),
-    ///     datetime!(2022-04-18 04:00:00 UTC)
-    /// );
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 03:00:00 UTC).next_hour(),
     ///     datetime!(2022-04-18 04:00:00 UTC)
     /// );
     /// ```
@@ -1440,22 +1288,6 @@ impl OffsetDateTime {
     ///     datetime!(2022-04-19 00:00:00 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-18 00:00:00 UTC).next_day(),
-    ///     datetime!(2022-04-19 00:00:00 UTC)
-    /// );
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-12-31 00:00:00 UTC).next_day(),
-    ///     datetime!(2023-01-01 00:00:00 UTC)
-    /// );
-    /// ```
     pub fn next_day(self) -> Self {
         self
             .replace_nanosecond(0).unwrap()
@@ -1474,13 +1306,6 @@ impl OffsetDateTime {
     ///     datetime!(2022-04-25 00:00:00 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-25 00:00:00 UTC).next_monday_based_week(),
-    ///     datetime!(2022-05-02 00:00:00 UTC)
-    /// );
     pub fn next_monday_based_week(self) -> Self {
         self
             .replace_nanosecond(0).unwrap()
@@ -1498,14 +1323,6 @@ impl OffsetDateTime {
     /// assert_eq!(
     ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_sunday_based_week(),
     ///     datetime!(2022-04-24 00:00:00 UTC)
-    /// );
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-24 00:00:00 UTC).next_sunday_based_week(),
-    ///     datetime!(2022-05-01 00:00:00 UTC)
     /// );
     /// ```
     pub fn next_sunday_based_week(self) -> Self {
@@ -1527,14 +1344,6 @@ impl OffsetDateTime {
     ///     datetime!(2022-05-01 00:00:00 UTC)
     /// );
     /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-04-01 00:00:00 UTC).next_month(),
-    ///     datetime!(2022-05-01 00:00:00 UTC)
-    /// );
-    /// ```
     pub fn next_month(self) -> Self {
         self
             .replace_nanosecond(0).unwrap()
@@ -1551,14 +1360,6 @@ impl OffsetDateTime {
     /// # use time_macros::datetime;
     /// assert_eq!(
     ///     datetime!(2022-04-18 03:17:12.123_456_789 UTC).next_year(),
-    ///     datetime!(2023-01-01 00:00:00 UTC)
-    /// );
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time_macros::datetime;
-    /// assert_eq!(
-    ///     datetime!(2022-01-01 00:00:00 UTC).next_year(),
     ///     datetime!(2023-01-01 00:00:00 UTC)
     /// );
     /// ```
