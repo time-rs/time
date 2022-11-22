@@ -73,13 +73,6 @@
 //!   Enables [wasm-bindgen](https://github.com/rustwasm/wasm-bindgen) support for converting
 //!   [JavaScript dates](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Date.html), as
 //!   well as obtaining the UTC offset from JavaScript.
-//!
-//! <small>
-//! One feature only available to end users is the <code>unsound_local_offset</code> cfg. This
-//! enables obtaining the system's UTC offset even when it is unsound. To enable this, use the
-//! <code>RUSTFLAGS</code> environment variable. This is untested and officially unsupported. Do not
-//! use this unless you understand the risk.
-//! </small>
 
 #![doc(html_playground_url = "https://play.rust-lang.org")]
 #![cfg_attr(__time_03_docs, feature(doc_auto_cfg, doc_notable_trait))]

@@ -76,3 +76,19 @@ fn weeks_in_year() {
         assert_eq!(util::weeks_in_year(year), num_weeks);
     }
 }
+
+#[allow(unsafe_code)]
+#[test]
+fn local_offset_soundness() {
+    use time::util::local_offset::*;
+
+    // Safety for these calls: Technically they are unsound, as cargo runs tests in parallel.
+    // However, the odds of a test failing as a result of this is extremely low. It is better to
+    // test that these methods function as expected than to worry about a rare segfault.
+
+    assert_eq!(get_soundness(), Soundness::Sound);
+    unsafe { set_soundness(Soundness::Unsound) };
+    assert_eq!(get_soundness(), Soundness::Unsound);
+    unsafe { set_soundness(Soundness::Sound) };
+    assert_eq!(get_soundness(), Soundness::Sound);
+}

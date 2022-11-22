@@ -2,6 +2,7 @@
 
 use core::mem::MaybeUninit;
 
+use crate::util::local_offset::{self, Soundness};
 use crate::{OffsetDateTime, UtcOffset};
 
 /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on any error.
@@ -65,53 +66,26 @@ fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
 }
 
 /// Convert a `libc::tm` to a `UtcOffset`. Returns `None` on any error.
-#[cfg(all(
-    not(unsound_local_offset),
-    not(any(
-        target_os = "redox",
-        target_os = "linux",
-        target_os = "l4re",
-        target_os = "android",
-        target_os = "emscripten",
-        target_os = "macos",
-        target_os = "ios",
-        target_os = "watchos",
-        target_os = "freebsd",
-        target_os = "dragonfly",
-        target_os = "openbsd",
-        target_os = "netbsd",
-        target_os = "haiku",
-    ))
-))]
-#[allow(unused_variables, clippy::missing_const_for_fn)]
-fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
-    None
-}
-
-/// Convert a `libc::tm` to a `UtcOffset`. Returns `None` on any error.
-// This method can return an incorrect value, as it only approximates the `tm_gmtoff` field. As such
-// it is gated behind `--cfg unsound_local_offset`. The reason it can return an incorrect value is
-// that daylight saving time does not start on the same date every year, nor are the rules for
-// daylight saving time the same for every year. This implementation assumes 1970 is equivalent to
-// every other year, which is not always the case.
-#[cfg(all(
-    unsound_local_offset,
-    not(any(
-        target_os = "redox",
-        target_os = "linux",
-        target_os = "l4re",
-        target_os = "android",
-        target_os = "emscripten",
-        target_os = "macos",
-        target_os = "ios",
-        target_os = "watchos",
-        target_os = "freebsd",
-        target_os = "dragonfly",
-        target_os = "openbsd",
-        target_os = "netbsd",
-        target_os = "haiku",
-    ))
-))]
+///
+/// This method can return an incorrect value, as it only approximates the `tm_gmtoff` field. The
+/// reason for this is that daylight saving time does not start on the same date every year, nor are
+/// the rules for daylight saving time the same for every year. This implementation assumes 1970 is
+/// equivalent to every other year, which is not always the case.
+#[cfg(not(any(
+    target_os = "redox",
+    target_os = "linux",
+    target_os = "l4re",
+    target_os = "android",
+    target_os = "emscripten",
+    target_os = "macos",
+    target_os = "ios",
+    target_os = "watchos",
+    target_os = "freebsd",
+    target_os = "dragonfly",
+    target_os = "openbsd",
+    target_os = "netbsd",
+    target_os = "haiku",
+)))]
 fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
     use crate::Date;
 
@@ -148,7 +122,26 @@ pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     // fault by dereferencing a dangling pointer.
     // If the `num_threads` crate is incapable of determining the number of running threads, then
     // we conservatively return `None` to avoid a soundness bug.
-    if !cfg!(unsound_local_offset) && num_threads::is_single_threaded() != Some(true) {
+
+    // In release mode, let the user invoke undefined behavior if they so choose.
+    #[cfg(not(debug_assertions))]
+    if local_offset::get_soundness() == Soundness::Sound
+        && num_threads::is_single_threaded() != Some(true)
+    {
+        return None;
+    }
+    // In debug mode, abort the program if the user would have invoked undefined behavior.
+    #[cfg(debug_assertions)]
+    if num_threads::is_single_threaded() != Some(true) {
+        if local_offset::get_soundness() == Soundness::Unsound {
+            eprintln!(
+                "WARNING: You are attempting to obtain the local UTC offset in a multi-threaded \
+                 context. On Unix-like systems, this is undefined behavior. Either you or a \
+                 dependency explicitly opted into unsound behavior. See the safety documentation \
+                 for `time::local_offset::set_soundness` for further details."
+            );
+            std::process::abort();
+        }
         return None;
     }
 
