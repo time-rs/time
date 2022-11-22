@@ -60,7 +60,7 @@ unsafe fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
     target_os = "netbsd",
     target_os = "haiku",
 ))]
-fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
+fn tm_to_offset(_unix_timestamp: i64, tm: libc::tm) -> Option<UtcOffset> {
     let seconds = tm.tm_gmtoff.try_into().ok()?;
     UtcOffset::from_whole_seconds(seconds).ok()
 }
@@ -86,7 +86,7 @@ fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
     target_os = "netbsd",
     target_os = "haiku",
 )))]
-fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
+fn tm_to_offset(unix_timestamp: i64, tm: libc::tm) -> Option<UtcOffset> {
     use crate::Date;
 
     let mut tm = tm;
@@ -107,9 +107,7 @@ fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
             .assume_utc()
             .unix_timestamp();
 
-    let diff_secs = (local_timestamp - datetime.unix_timestamp())
-        .try_into()
-        .ok()?;
+    let diff_secs = (local_timestamp - unix_timestamp).try_into().ok()?;
 
     UtcOffset::from_whole_seconds(diff_secs).ok()
 }
@@ -145,8 +143,9 @@ pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
         return None;
     }
 
+    let unix_timestamp = datetime.unix_timestamp();
     // Safety: We have just confirmed that the process is single-threaded or the user has explicitly
     // opted out of soundness.
-    let tm = unsafe { timestamp_to_tm(datetime.unix_timestamp()) }?;
-    tm_to_offset(tm)
+    let tm = unsafe { timestamp_to_tm(unix_timestamp) }?;
+    tm_to_offset(unix_timestamp, tm)
 }
