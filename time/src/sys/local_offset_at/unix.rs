@@ -60,13 +60,8 @@ unsafe fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
     target_os = "haiku",
 ))]
 fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
-    let seconds: i32 = tm.tm_gmtoff.try_into().ok()?;
-    UtcOffset::from_hms(
-        (seconds / 3_600) as _,
-        ((seconds / 60) % 60) as _,
-        (seconds % 60) as _,
-    )
-    .ok()
+    let seconds = tm.tm_gmtoff.try_into().ok()?;
+    UtcOffset::from_whole_seconds(seconds).ok()
 }
 
 /// Convert a `libc::tm` to a `UtcOffset`. Returns `None` on any error.
@@ -138,16 +133,11 @@ fn tm_to_offset(tm: libc::tm) -> Option<UtcOffset> {
             .assume_utc()
             .unix_timestamp();
 
-    let diff_secs: i32 = (local_timestamp - datetime.unix_timestamp())
+    let diff_secs = (local_timestamp - datetime.unix_timestamp())
         .try_into()
         .ok()?;
 
-    UtcOffset::from_hms(
-        (diff_secs / 3_600) as _,
-        ((diff_secs / 60) % 60) as _,
-        (diff_secs % 60) as _,
-    )
-    .ok()
+    UtcOffset::from_whole_seconds(diff_secs).ok()
 }
 
 /// Obtain the system's UTC offset.

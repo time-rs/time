@@ -101,14 +101,9 @@ pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     let ft_system = systemtime_to_filetime(&systime_utc)?;
     let ft_local = systemtime_to_filetime(&systime_local)?;
 
-    let diff_secs: i32 = (filetime_to_secs(&ft_local) - filetime_to_secs(&ft_system))
+    let diff_secs = (filetime_to_secs(&ft_local) - filetime_to_secs(&ft_system))
         .try_into()
         .ok()?;
 
-    UtcOffset::from_hms(
-        (diff_secs / 3_600) as _,
-        ((diff_secs / 60) % 60) as _,
-        (diff_secs % 60) as _,
-    )
-    .ok()
+    UtcOffset::from_whole_seconds(diff_secs).ok()
 }
