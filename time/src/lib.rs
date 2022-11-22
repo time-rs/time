@@ -319,6 +319,7 @@ mod instant;
 #[cfg(feature = "macros")]
 pub mod macros;
 mod month;
+#[cfg(feature = "std")]
 mod offset_date_time_range;
 mod offset_date_time;
 #[cfg(feature = "parsing")]
