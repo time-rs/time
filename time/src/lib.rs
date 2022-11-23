@@ -133,6 +133,13 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+// TODO(jhpratt) remove this after a while
+#[cfg(unsound_local_offset)]
+compile_error!(
+    "The `unsound_local_offset` flag was removed in time 0.3.18. If you need this functionality, \
+     see the `time::util::local_offset::set_soundness` function."
+);
+
 // region: macros
 /// Helper macro for easily implementing `OpAssign`.
 macro_rules! __impl_assign {
