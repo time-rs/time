@@ -1,135 +1,136 @@
 //! Implementations of useful methods for the [`Range<OffsetDateTime>`] and [`&[Range<OffsetDateTime>]`](https://doc.rust-lang.org/std/primitive.slice.html) structs.
 
-use std::ops::Range;
-use crate::{OffsetDateTime, Duration, util, Month, Weekday};
+use crate::{Duration, Month, OffsetDateTime, Weekday};
 use iter::*;
+use std::ops::Range;
 
 /// Extension of [`Range<OffsetDateTime>`] containing useful methods.
-/// 
+///
 /// If you want to access these methods, you must import the [`OffsetDateTimeRangeExt`] trait.
 pub trait OffsetDateTimeRangeExt {
     /// Returns the length of the range using the specified duration as the unit.
-    /// 
-    /// Attention, using `Duration::DAY` as unit wouldn't count how many days are in the range, but rather how many day-long ranges would fits inside.
+    ///
+    /// Attention, using `Duration::DAY` as unit wouldn't count how many days are in the range, but rather how many day-long ranges would fit inside.
+    /// If you want to know the number of days starting in the range, use [`OffsetDateTimeRangeExt::days`] and [`iter::Days::len`] instead.
     fn len(self, unit: Duration) -> usize;
 
     /// Returns an iterator of all the seconds that start within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn seconds(self) -> Seconds;
 
     /// Returns an iterator of all the minutes that start within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn minutes(self) -> Minutes;
 
     /// Returns an iterator of all the hours that start within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn hours(self) -> Hours;
 
     /// Returns an iterator of all the days that start within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn days(self) -> Days;
 
     /// Returns an iterator of all the monday-based weeks that start within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn monday_based_weeks(self) -> MondayBasedWeeks;
 
     /// Returns an iterator of all the sunday-based weeks that start within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn sunday_based_weeks(self) -> SundayBasedWeeks;
 
     /// Returns an iterator of all the months that start within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn months(self) -> Months;
 
     /// Returns an iterator of all the years that start within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn years(self) -> Years;
 
     /// Returns an iterator of all the seconds that start and end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn full_seconds(self) -> Seconds;
 
     /// Returns an iterator of all the minutes that start and end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn full_minutes(self) -> Minutes;
 
     /// Returns an iterator of all the hours that start and end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn full_hours(self) -> Hours;
 
     /// Returns an iterator of all the days that start and end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn full_days(self) -> Days;
 
     /// Returns an iterator of all the monday-based weeks that start and end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn full_monday_based_weeks(self) -> MondayBasedWeeks;
 
     /// Returns an iterator of all the sunday-based weeks that start and end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn full_sunday_based_weeks(self) -> SundayBasedWeeks;
 
     /// Returns an iterator of all the months that start and end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn full_months(self) -> Months;
 
     /// Returns an iterator of all the years that start and end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn full_years(self) -> Years;
 
     /// Returns an iterator of all the seconds that start or end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn overlapping_seconds(self) -> Seconds;
 
     /// Returns an iterator of all the minutes that start or end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn overlapping_minutes(self) -> Minutes;
 
     /// Returns an iterator of all the hours that start or end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn overlapping_hours(self) -> Hours;
 
     /// Returns an iterator of all the days that start or end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn overlapping_days(self) -> Days;
 
     /// Returns an iterator of all the monday-based weeks that start or end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn overlapping_monday_based_weeks(self) -> MondayBasedWeeks;
 
     /// Returns an iterator of all the sunday-based weeks that start or end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn overlapping_sunday_based_weeks(self) -> SundayBasedWeeks;
 
     /// Returns an iterator of all the months that start or end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn overlapping_months(self) -> Months;
 
     /// Returns an iterator of all the years that start or end within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` returned by the iterator will have the same offset as the range start.
     fn overlapping_years(self) -> Years;
 
@@ -149,86 +150,92 @@ pub trait OffsetDateTimeRangeExt {
     fn engulfed_by(self, other: Range<OffsetDateTime>) -> bool;
 
     /// Split the range into two ranges at the specified `OffsetDateTime`.
-    /// 
+    ///
     /// If the `OffsetDateTime` is not within the range, the method will return `None`.
-    /// 
+    ///
     /// The `OffsetDateTime` in the `Range<OffsetDateTime>` returned will have the same offset as the range start.
-    fn split_at(self, date: OffsetDateTime) -> Option<(Range<OffsetDateTime>, Range<OffsetDateTime>)>;
+    fn split_at(
+        self,
+        date: OffsetDateTime,
+    ) -> Option<(Range<OffsetDateTime>, Range<OffsetDateTime>)>;
 
     /// Split the range into multiple ranges at the specified `OffsetDateTime`.
-    /// 
+    ///
     /// The range will only be split at the specified `OffsetDateTime` if it is within the range.
-    /// 
+    ///
     /// The `OffsetDateTime` in the `Range<OffsetDateTime>` returned will have the same offset as this range start.
     fn split_at_multiple(self, dates: &[OffsetDateTime]) -> Vec<Range<OffsetDateTime>>;
 
     /// Split the range into ranges of specified duration.
-    /// 
+    ///
     /// If the unit is not a multiple of the range's duration, the last range will be shorter.
-    /// 
+    /// If the unit is zero or negative, the method will panic.
+    ///
     /// The `OffsetDateTime` in the `Range<OffsetDateTime>` returned by the iterator will have the same offset as this range start.
     fn split_by(self, unit: Duration) -> SplitDuration;
 
     /// Split the range into a list of ranges of equal duration.
-    /// 
-    /// If the number_of_parts is not a multiple of the range's duration, the first ranges returned will be longer than the last ones.
-    /// 
+    ///
+    /// If the `number_of_parts` is not a multiple of the range's duration, the first ranges returned will be longer than the last ones.
+    /// If the `number_of_parts` is larger than the range's duration, the last ranges will be empty.
+    /// If the `number_of_parts` is 0, the method will panic.
+    ///
     /// The `OffsetDateTime` in the `Range<OffsetDateTime>` returned by the iterator will have the same offset as this range start.
     fn divide_equally(self, number_of_parts: usize) -> SplitCount;
 
     /// Returns a range that is the intersection of this range and the specified one.
-    /// 
+    ///
     /// If the ranges do not intersect, the method will return `None`.
-    /// 
+    ///
     /// The `OffsetDateTime` in the `Range<OffsetDateTime>` returned will have the same offset as this range start.
     fn intersection(self, other: Range<OffsetDateTime>) -> Option<Range<OffsetDateTime>>;
 
     /// Returns a range that is the union of this range and the specified one.
-    /// 
+    ///
     /// If the ranges do not overlap, the method will return `None`.
-    /// 
+    ///
     /// The `OffsetDateTime` in the `Range<OffsetDateTime>` returned will have the same offset as this range start.
     fn union(self, other: Range<OffsetDateTime>) -> Option<Range<OffsetDateTime>>;
 
     /// Returns a list of ranges that don't overlap with the specified one.
-    /// 
+    ///
     /// The `OffsetDateTime` in the `Range<OffsetDateTime>` returned will have the same offset as this range start.
     fn difference(self, other: Range<OffsetDateTime>) -> Vec<Range<OffsetDateTime>>;
 
     /// Returns a list of ranges that don't overlap with any of the specified one
-    /// 
+    ///
     /// The `OffsetDateTime` in the `Range<OffsetDateTime>` returned will have the same offset as this range start.
     fn difference_multiple(self, others: &[Range<OffsetDateTime>]) -> Vec<Range<OffsetDateTime>>;
 }
 
 /// Extension of [`&[Range<OffsetDateTime>]`](https://doc.rust-lang.org/std/primitive.slice.html) containing useful methods.
-/// 
+///
 /// If you want to access these methods, you must import the [`OffsetDateTimeRangeSliceExt`] trait.
 pub trait OffsetDateTimeRangeSliceExt {
     /// Returns an intersection of all the ranges in the slice.
-    /// 
+    ///
     /// If there is no point where all the ranges intersect, the method will return `None`.
-    /// 
+    ///
     /// The `OffsetDateTime` in the `Range<OffsetDateTime>` returned will have the same offset as the first range start.
     fn intersection(&self) -> Option<Range<OffsetDateTime>>;
 
     /// Returns a range that is the union of all the ranges in the slice. If the intervals are adjacent, they will be merged.
     /// It essentially returns a range with start equal to the smallest start in the slice and end equal to the largest end in the slice.
-    /// 
-    /// If the ranges don't fully overlap, ie there are spots that are not covered by any range, the method will return `None`.
-    /// 
+    ///
+    /// If the ranges don't fully overlap, ie there are gaps that are not covered by any range, the method will return `None`.
+    ///
     /// The `OffsetDateTime` in the `Range<OffsetDateTime>` returned will have the same offset as the first range start.
     fn union(&self) -> Option<Range<OffsetDateTime>>;
 
     /// Returns a list of ranges that are reduced to the minimum set of ranges that don't overlap.
-    /// 
+    ///
     /// This function combines oferlapping and adjacent ranges.
-    /// 
+    ///
     /// The `OffsetDateTime` in the `Range<OffsetDateTime>` returned will have the same offset as the first range start.
     fn merge(&self) -> Vec<Range<OffsetDateTime>>;
 
     /// Returns a list of ranges that only appear in one of the specified ranges.
-    /// 
+    ///
     /// The `OffsetDateTime` in the `Range<OffsetDateTime>` returned will have the same offset as the first range start.
     fn xor(&self) -> Vec<Range<OffsetDateTime>>;
 }
@@ -264,7 +271,7 @@ pub mod iter {
         fn len(&self) -> usize {
             // if the range start is after the range end, the range is empty
             // in that case, we return 0
-            if self.end < self.current {
+            if self.end <= self.current {
                 return 0;
             }
 
@@ -273,13 +280,12 @@ pub mod iter {
 
             // basically a ceil function, but without f64 conversion
             // this way we don't have to worry about rounding errors
-            let has_exceeded_second =
-                self.end.nanosecond() != 0;
-            
+            let has_exceeded_second = self.end.nanosecond() != 0;
+
             duration.whole_seconds() as usize + has_exceeded_second as usize
         }
     }
-    
+
     /// An iterator of the minutes within a range.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct Minutes {
@@ -307,7 +313,7 @@ pub mod iter {
         fn len(&self) -> usize {
             // if the range start is after the range end, the range is empty
             // in that case, we return 0
-            if self.end < self.current {
+            if self.end <= self.current {
                 return 0;
             }
 
@@ -316,10 +322,8 @@ pub mod iter {
 
             // basically a ceil function, but without f64 conversion
             // this way we don't have to worry about rounding errors
-            let has_exceeded_minute =
-                self.end.second() != 0 ||
-                self.end.nanosecond() != 0;
-                
+            let has_exceeded_minute = self.end.second() != 0 || self.end.nanosecond() != 0;
+
             duration.whole_minutes() as usize + has_exceeded_minute as usize
         }
     }
@@ -351,7 +355,7 @@ pub mod iter {
         fn len(&self) -> usize {
             // if the range start is after the range end, the range is empty
             // in that case, we return 0
-            if self.end < self.current {
+            if self.end <= self.current {
                 return 0;
             }
 
@@ -361,10 +365,8 @@ pub mod iter {
             // basically a ceil function, but without f64 conversion
             // this way we don't have to worry about rounding errors
             let has_exceeded_hour =
-                self.end.minute() != 0 ||
-                self.end.second() != 0 ||
-                self.end.nanosecond() != 0;
-                
+                self.end.minute() != 0 || self.end.second() != 0 || self.end.nanosecond() != 0;
+
             duration.whole_hours() as usize + has_exceeded_hour as usize
         }
     }
@@ -396,7 +398,7 @@ pub mod iter {
         fn len(&self) -> usize {
             // if the range start is after the range end, the range is empty
             // in that case, we return 0
-            if self.end < self.current {
+            if self.end <= self.current {
                 return 0;
             }
 
@@ -405,12 +407,11 @@ pub mod iter {
 
             // basically a ceil function, but without f64 conversion
             // this way we don't have to worry about rounding errors
-            let has_exceeded_day =
-                self.end.hour() != 0 ||
-                self.end.minute() != 0 ||
-                self.end.second() != 0 ||
-                self.end.nanosecond() != 0;
-            
+            let has_exceeded_day = self.end.hour() != 0
+                || self.end.minute() != 0
+                || self.end.second() != 0
+                || self.end.nanosecond() != 0;
+
             duration.whole_days() as usize + has_exceeded_day as usize
         }
     }
@@ -442,7 +443,7 @@ pub mod iter {
         fn len(&self) -> usize {
             // if the range start is after the range end, the range is empty
             // in that case, we return 0
-            if self.end < self.current {
+            if self.end <= self.current {
                 return 0;
             }
 
@@ -451,13 +452,12 @@ pub mod iter {
 
             // basically a ceil function, but without f64 conversion
             // this way we don't have to worry about rounding errors
-            let has_exceeded_week =
-                self.end.weekday() != Weekday::Monday ||
-                self.end.hour() != 0 ||
-                self.end.minute() != 0 ||
-                self.end.second() != 0 ||
-                self.end.nanosecond() != 0;
-                
+            let has_exceeded_week = self.end.weekday() != Weekday::Monday
+                || self.end.hour() != 0
+                || self.end.minute() != 0
+                || self.end.second() != 0
+                || self.end.nanosecond() != 0;
+
             duration.whole_weeks() as usize + has_exceeded_week as usize
         }
     }
@@ -489,7 +489,7 @@ pub mod iter {
         fn len(&self) -> usize {
             // if the range start is after the range end, the range is empty
             // in that case, we return 0
-            if self.end < self.current {
+            if self.end <= self.current {
                 return 0;
             }
 
@@ -498,13 +498,12 @@ pub mod iter {
 
             // basically a ceil function, but without f64 conversion
             // this way we don't have to worry about rounding errors
-            let has_exceeded_week =
-                self.end.weekday() != Weekday::Sunday ||
-                self.end.hour() != 0 ||
-                self.end.minute() != 0 ||
-                self.end.second() != 0 ||
-                self.end.nanosecond() != 0;
-                
+            let has_exceeded_week = self.end.weekday() != Weekday::Sunday
+                || self.end.hour() != 0
+                || self.end.minute() != 0
+                || self.end.second() != 0
+                || self.end.nanosecond() != 0;
+
             duration.whole_weeks() as usize + has_exceeded_week as usize
         }
     }
@@ -536,7 +535,7 @@ pub mod iter {
         fn len(&self) -> usize {
             // if the range start is after the range end, the range is empty
             // in that case, we return 0
-            if self.end < self.current {
+            if self.end <= self.current {
                 return 0;
             }
 
@@ -552,13 +551,12 @@ pub mod iter {
 
             // basically a ceil function, but without f64 conversion
             // this way we don't have to worry about rounding errors
-            let has_exceeded_month =
-                self.end.day() != 1 ||
-                self.end.hour() != 0 ||
-                self.end.minute() != 0 ||
-                self.end.second() != 0 ||
-                self.end.nanosecond() != 0;
-            
+            let has_exceeded_month = self.end.day() != 1
+                || self.end.hour() != 0
+                || self.end.minute() != 0
+                || self.end.second() != 0
+                || self.end.nanosecond() != 0;
+
             whole_months + has_exceeded_month as usize
         }
     }
@@ -590,7 +588,7 @@ pub mod iter {
         fn len(&self) -> usize {
             // if the range start is after the range end, the range is empty
             // in that case, we return 0
-            if self.end < self.current {
+            if self.end <= self.current {
                 return 0;
             }
 
@@ -599,14 +597,13 @@ pub mod iter {
 
             // basically a ceil function, but without f64 conversion
             // this way we don't have to worry about rounding errors
-            let has_exceeded_year =
-                self.end.month() != Month::January ||
-                self.end.day() != 1 ||
-                self.end.hour() != 0 ||
-                self.end.minute() != 0 ||
-                self.end.second() != 0 ||
-                self.end.nanosecond() != 0;
-                
+            let has_exceeded_year = self.end.month() != Month::January
+                || self.end.day() != 1
+                || self.end.hour() != 0
+                || self.end.minute() != 0
+                || self.end.second() != 0
+                || self.end.nanosecond() != 0;
+
             whole_years + has_exceeded_year as usize
         }
     }
@@ -614,9 +611,35 @@ pub mod iter {
     /// An iterator of the unit-wide ranges within a range.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct SplitDuration {
-        pub(super) current: OffsetDateTime,
-        pub(super) end: OffsetDateTime,
-        pub(super) unit: Duration,
+        current: OffsetDateTime,
+        end: OffsetDateTime,
+        unit: Duration,
+    }
+
+    impl SplitDuration {
+        pub(super) fn new(start: OffsetDateTime, end: OffsetDateTime, unit: Duration) -> Self {
+            // it is impossible to add enough 0 to get to the end of the range, so we panic
+            if unit == Duration::ZERO {
+                panic!("Cannot split a range into units of 0");
+            }
+
+            // if the unit is negative, we panic
+            if unit.is_negative() {
+                Self {
+                    current: start,
+                    end,
+                    unit,
+                }
+            }
+            // we build the iterator
+            else {
+                Self {
+                    current: start,
+                    end,
+                    unit,
+                }
+            }
+        }
     }
 
     impl Iterator for SplitDuration {
@@ -640,38 +663,108 @@ pub mod iter {
     /// An iterator of the  ranges within a range.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub struct SplitCount {
-        pub(super) current: OffsetDateTime,
-        pub(super) end: OffsetDateTime,
-        pub(super) number_of_parts: usize,
+        current: OffsetDateTime,
+        end: OffsetDateTime,
+        remaining_extended_ranges: usize,
+        extended_ranges_duration: Duration,
+        remaining_normal_ranges: usize,
+        normal_ranges_duration: Duration,
+    }
+
+    impl SplitCount {
+        pub(super) fn new(current: OffsetDateTime, end: OffsetDateTime, number_of_parts: usize) -> Self {
+            // it is impossible to divide something by 0, so we panic
+            if number_of_parts == 0 {
+                panic!("Cannot split a range into 0 parts");
+            }
+
+            // if the range start is after the range end, the range is empty
+            if end <= current {
+                Self {
+                    current,
+                    end,
+                    remaining_extended_ranges: 0,
+                    extended_ranges_duration: Duration::ZERO,
+                    remaining_normal_ranges: 0,
+                    normal_ranges_duration: Duration::ZERO,
+                }
+            }
+            // in case everything is normal
+            else {
+                // compute the duration of normal ranges
+                let range_duration = (end - current).whole_nanoseconds() as u128;
+                let normal_ranges_length = (range_duration / number_of_parts as u128) as i64;
+                let extended_ranges_count = (range_duration % number_of_parts as u128) as usize;
+
+                let normal_ranges_duration = Duration::nanoseconds(normal_ranges_length);
+                let extended_ranges_duration = Duration::nanoseconds(normal_ranges_length + 1);
+
+                Self {
+                    current,
+                    end,
+                    remaining_extended_ranges: extended_ranges_count,
+                    extended_ranges_duration,
+                    remaining_normal_ranges: number_of_parts - extended_ranges_count,
+                    normal_ranges_duration,
+                }
+            }
+        }
     }
 
     impl Iterator for SplitCount {
         type Item = Range<OffsetDateTime>;
 
         fn next(&mut self) -> Option<Self::Item> {
-            todo!()
+            // if there are still extended ranges to be returned, then return them first
+            if self.remaining_extended_ranges != 0 {
+                self.remaining_extended_ranges -= 1;
+                let current = self.current;
+                self.current += self.extended_ranges_duration;
+                Some(current..self.current)
+            }
+            // if there we don't have exhausted all the ranges yet, then continue returning them
+            else if self.remaining_normal_ranges != 0 {
+                self.remaining_normal_ranges -= 1;
+                let current = self.current;
+                self.current += self.normal_ranges_duration;
+                if self.current > self.end {
+                    Some(current..self.end)
+                } else {
+                    Some(current..self.current)
+                }
+            }
+            // once we are out of ranges, return None
+            else {
+                None
+            }
+        }
+    }
+
+    impl ExactSizeIterator for SplitCount {
+        fn len(&self) -> usize {
+            self.remaining_extended_ranges + self.remaining_normal_ranges
         }
     }
 }
 
-/// Implementation of the `OffsetDateTimeRange` trait for `Range<OffsetDateTime>`.
+/// Implementation of the `OffsetDateTimeRangeExt` trait for `Range<OffsetDateTime>`.
 impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
-
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// # use time::Duration;
-    /// let start = datetime!(2022-04-18 03:17:12.200 UTC);
-    /// let end = datetime!(2022-04-18 03:17:17.600 UTC);
-    /// assert_eq!((start..end).len(Duration::SECOND), 5);
-    /// ```
     fn len(self, unit: Duration) -> usize {
         // if the range start is after the range end, the range is empty
         // and we return 0
         if self.end <= self.start {
-            0
+            return 0;
         }
-        
+
+        // if the unit is zero, we return 0
+        if unit == Duration::ZERO {
+            return 0;
+        }
+
+        // if the duration is negative, we return 0
+        if unit.is_negative() {
+            return 0;
+        }
         // if the range isn't empty, then the duration is positive
         else {
             let range_duration = (self.end - self.start).whole_nanoseconds() as u128;
@@ -680,19 +773,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-18 03:17:12.200 UTC);
-    /// let end = datetime!(2022-04-18 03:17:17.600 UTC);
-    /// let mut seconds = (start..end).seconds();
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:13 UTC)));
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:14 UTC)));
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:15 UTC)));
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:16 UTC)));
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:17 UTC)));
-    /// assert_eq!(seconds.next(), None);
-    /// ```
     fn seconds(self) -> Seconds {
         Seconds {
             current: self.start.ceil_seconds(),
@@ -700,16 +780,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-18 03:17:17 UTC);
-    /// let end = datetime!(2022-04-18 03:19:42 UTC);
-    /// let mut minutes = (start..end).minutes();
-    /// assert_eq!(minutes.next(), Some(datetime!(2022-04-18 03:18:00 UTC)));
-    /// assert_eq!(minutes.next(), Some(datetime!(2022-04-18 03:19:00 UTC)));
-    /// assert_eq!(minutes.next(), None);
-    /// ```
     fn minutes(self) -> Minutes {
         Minutes {
             current: self.start.ceil_minutes(),
@@ -717,18 +787,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-18 03:17:00 UTC);
-    /// let end = datetime!(2022-04-18 07:42:00 UTC);
-    /// let mut hours = (start..end).hours();
-    /// assert_eq!(hours.next(), Some(datetime!(2022-04-18 04:00:00 UTC)));
-    /// assert_eq!(hours.next(), Some(datetime!(2022-04-18 05:00:00 UTC)));
-    /// assert_eq!(hours.next(), Some(datetime!(2022-04-18 06:00:00 UTC)));
-    /// assert_eq!(hours.next(), Some(datetime!(2022-04-18 07:00:00 UTC)));
-    /// assert_eq!(hours.next(), None);
-    /// ```
     fn hours(self) -> Hours {
         Hours {
             current: self.start.ceil_hours(),
@@ -736,16 +794,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-18 04:00:00 UTC);
-    /// let end = datetime!(2022-04-20 08:00:00 UTC);
-    /// let mut days = (start..end).days();
-    /// assert_eq!(days.next(), Some(datetime!(2022-04-19 00:00:00 UTC)));
-    /// assert_eq!(days.next(), Some(datetime!(2022-04-20 00:00:00 UTC)));
-    /// assert_eq!(days.next(), None);
-    /// ```
     fn days(self) -> Days {
         Days {
             current: self.start.ceil_days(),
@@ -753,16 +801,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-07 00:00:00 UTC);
-    /// let end = datetime!(2022-04-21 00:00:00 UTC);
-    /// let mut weeks = (start..end).monday_based_weeks();
-    /// assert_eq!(weeks.next(), Some(datetime!(2022-04-11 00:00:00 UTC)));
-    /// assert_eq!(weeks.next(), Some(datetime!(2022-04-18 00:00:00 UTC)));
-    /// assert_eq!(weeks.next(), None);
-    /// ```
     fn monday_based_weeks(self) -> MondayBasedWeeks {
         MondayBasedWeeks {
             current: self.start.ceil_monday_based_weeks(),
@@ -770,16 +808,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-07 00:00:00 UTC);
-    /// let end = datetime!(2022-04-21 00:00:00 UTC);
-    /// let mut weeks = (start..end).sunday_based_weeks();
-    /// assert_eq!(weeks.next(), Some(datetime!(2022-04-10 00:00:00 UTC)));
-    /// assert_eq!(weeks.next(), Some(datetime!(2022-04-17 00:00:00 UTC)));
-    /// assert_eq!(weeks.next(), None);
-    /// ```
     fn sunday_based_weeks(self) -> SundayBasedWeeks {
         SundayBasedWeeks {
             current: self.start.ceil_sunday_based_weeks(),
@@ -787,16 +815,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-13 00:00:00 UTC);
-    /// let end = datetime!(2022-06-26 00:00:00 UTC);
-    /// let mut months = (start..end).months();
-    /// assert_eq!(months.next(), Some(datetime!(2022-05-01 00:00:00 UTC)));
-    /// assert_eq!(months.next(), Some(datetime!(2022-06-01 00:00:00 UTC)));
-    /// assert_eq!(months.next(), None);
-    /// ```
     fn months(self) -> Months {
         Months {
             current: self.start.ceil_months(),
@@ -804,16 +822,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2020-06-01 00:00:00 UTC);
-    /// let end = datetime!(2022-09-01 00:00:00 UTC);
-    /// let mut years = (start..end).years();
-    /// assert_eq!(years.next(), Some(datetime!(2021-01-01 00:00:00 UTC)));
-    /// assert_eq!(years.next(), Some(datetime!(2022-01-01 00:00:00 UTC)));
-    /// assert_eq!(years.next(), None);
-    /// ```
     fn years(self) -> Years {
         Years {
             current: self.start.ceil_years(),
@@ -821,18 +829,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-18 03:17:12.200 UTC);
-    /// let end = datetime!(2022-04-18 03:17:17.600 UTC);
-    /// let mut seconds = (start..end).full_seconds();
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:13 UTC)));
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:14 UTC)));
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:15 UTC)));
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:16 UTC)));
-    /// assert_eq!(seconds.next(), None);
-    /// ```
     fn full_seconds(self) -> Seconds {
         Seconds {
             current: self.start.ceil_seconds(),
@@ -840,15 +836,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-18 03:17:17 UTC);
-    /// let end = datetime!(2022-04-18 03:19:42 UTC);
-    /// let mut minutes = (start..end).full_minutes();
-    /// assert_eq!(minutes.next(), Some(datetime!(2022-04-18 03:18:00 UTC)));
-    /// assert_eq!(minutes.next(), None);
-    /// ```
     fn full_minutes(self) -> Minutes {
         Minutes {
             current: self.start.ceil_minutes(),
@@ -856,17 +843,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-18 03:17:00 UTC);
-    /// let end = datetime!(2022-04-18 07:42:00 UTC);
-    /// let mut hours = (start..end).full_hours();
-    /// assert_eq!(hours.next(), Some(datetime!(2022-04-18 04:00:00 UTC)));
-    /// assert_eq!(hours.next(), Some(datetime!(2022-04-18 05:00:00 UTC)));
-    /// assert_eq!(hours.next(), Some(datetime!(2022-04-18 06:00:00 UTC)));
-    /// assert_eq!(hours.next(), None);
-    /// ```
     fn full_hours(self) -> Hours {
         Hours {
             current: self.start.ceil_hours(),
@@ -874,15 +850,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-18 04:00:00 UTC);
-    /// let end = datetime!(2022-04-20 08:00:00 UTC);
-    /// let mut days = (start..end).full_days();
-    /// assert_eq!(days.next(), Some(datetime!(2022-04-19 00:00:00 UTC)));
-    /// assert_eq!(days.next(), None);
-    /// ```
     fn full_days(self) -> Days {
         Days {
             current: self.start.ceil_days(),
@@ -890,15 +857,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-7 00:00:00 UTC);
-    /// let end = datetime!(2022-04-21 00:00:00 UTC);
-    /// let mut weeks = (start..end).full_monday_based_weeks();
-    /// assert_eq!(weeks.next(), Some(datetime!(2022-04-11 00:00:00 UTC)));
-    /// assert_eq!(weeks.next(), None);
-    /// ```
     fn full_monday_based_weeks(self) -> MondayBasedWeeks {
         MondayBasedWeeks {
             current: self.start.ceil_monday_based_weeks(),
@@ -906,15 +864,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-7 00:00:00 UTC);
-    /// let end = datetime!(2022-04-21 00:00:00 UTC);
-    /// let mut weeks = (start..end).full_sunday_based_weeks();
-    /// assert_eq!(weeks.next(), Some(datetime!(2022-04-10 00:00:00 UTC)));
-    /// assert_eq!(weeks.next(), None);
-    /// ```
     fn full_sunday_based_weeks(self) -> SundayBasedWeeks {
         SundayBasedWeeks {
             current: self.start.ceil_sunday_based_weeks(),
@@ -922,15 +871,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-13 00:00:00 UTC);
-    /// let end = datetime!(2022-06-26 00:00:00 UTC);
-    /// let mut months = (start..end).full_months();
-    /// assert_eq!(months.next(), Some(datetime!(2022-05-01 00:00:00 UTC)));
-    /// assert_eq!(months.next(), None);
-    /// ```
     fn full_months(self) -> Months {
         Months {
             current: self.start.ceil_months(),
@@ -938,15 +878,6 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2020-06-01 00:00:00 UTC);
-    /// let end = datetime!(2022-09-01 00:00:00 UTC);
-    /// let mut years = (start..end).full_years();
-    /// assert_eq!(years.next(), Some(datetime!(2021-01-01 00:00:00 UTC)));
-    /// assert_eq!(years.next(), None);
-    /// ```
     fn full_years(self) -> Years {
         Years {
             current: self.start.ceil_years(),
@@ -954,225 +885,66 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-18 03:17:12.200 UTC);
-    /// let end = datetime!(2022-04-18 03:17:17.600 UTC);
-    /// let mut seconds = (start..end).overlapping_seconds();
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:12 UTC)));
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:13 UTC)));
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:14 UTC)));
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:15 UTC)));
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:16 UTC)));
-    /// assert_eq!(seconds.next(), Some(datetime!(2022-04-18 03:17:17 UTC)));
-    /// assert_eq!(seconds.next(), None);
-    /// ```
     fn overlapping_seconds(self) -> Seconds {
         Seconds {
             current: self.start.floor_seconds(),
-            end: self.end,
+            end: self.end.ceil_seconds(),
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-18 03:17:17 UTC);
-    /// let end = datetime!(2022-04-18 03:19:42 UTC);
-    /// let mut minutes = (start..end).overlapping_minutes();
-    /// assert_eq!(minutes.next(), Some(datetime!(2022-04-18 03:17:00 UTC)));
-    /// assert_eq!(minutes.next(), Some(datetime!(2022-04-18 03:18:00 UTC)));
-    /// assert_eq!(minutes.next(), Some(datetime!(2022-04-18 03:19:00 UTC)));
-    /// assert_eq!(minutes.next(), None);
-    /// ```
     fn overlapping_minutes(self) -> Minutes {
         Minutes {
             current: self.start.floor_minutes(),
-            end: self.end,
+            end: self.end.ceil_minutes(),
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-18 03:17:00 UTC);
-    /// let end = datetime!(2022-04-18 07:42:00 UTC);
-    /// let mut hours = (start..end).overlapping_hours();
-    /// assert_eq!(hours.next(), Some(datetime!(2022-04-18 03:00:00 UTC)));
-    /// assert_eq!(hours.next(), Some(datetime!(2022-04-18 04:00:00 UTC)));
-    /// assert_eq!(hours.next(), Some(datetime!(2022-04-18 05:00:00 UTC)));
-    /// assert_eq!(hours.next(), Some(datetime!(2022-04-18 06:00:00 UTC)));
-    /// assert_eq!(hours.next(), Some(datetime!(2022-04-18 07:00:00 UTC)));
-    /// assert_eq!(hours.next(), None);
-    /// ```
     fn overlapping_hours(self) -> Hours {
         Hours {
             current: self.start.floor_hours(),
-            end: self.end,
+            end: self.end.ceil_hours(),
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-18 04:00:00 UTC);
-    /// let end = datetime!(2022-04-20 08:00:00 UTC);
-    /// let mut days = (start..end).overlapping_days();
-    /// assert_eq!(days.next(), Some(datetime!(2022-04-18 00:00:00 UTC)));
-    /// assert_eq!(days.next(), Some(datetime!(2022-04-19 00:00:00 UTC)));
-    /// assert_eq!(days.next(), Some(datetime!(2022-04-20 00:00:00 UTC)));
-    /// assert_eq!(days.next(), None);
-    /// ```
     fn overlapping_days(self) -> Days {
         Days {
             current: self.start.floor_days(),
-            end: self.end,
+            end: self.end.ceil_days(),
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-07 00:00:00 UTC);
-    /// let end = datetime!(2022-04-21 00:00:00 UTC);
-    /// let mut weeks = (start..end).overlapping_monday_based_weeks();
-    /// assert_eq!(weeks.next(), Some(datetime!(2022-04-04 00:00:00 UTC)));
-    /// assert_eq!(weeks.next(), Some(datetime!(2022-04-11 00:00:00 UTC)));
-    /// assert_eq!(weeks.next(), Some(datetime!(2022-04-18 00:00:00 UTC)));
-    /// assert_eq!(weeks.next(), None);
-    /// ```
     fn overlapping_monday_based_weeks(self) -> MondayBasedWeeks {
         MondayBasedWeeks {
             current: self.start.floor_monday_based_weeks(),
-            end: self.end,
+            end: self.end.ceil_monday_based_weeks(),
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-07 00:00:00 UTC);
-    /// let end = datetime!(2022-04-21 00:00:00 UTC);
-    /// let mut weeks = (start..end).overlapping_sunday_based_weeks();
-    /// assert_eq!(weeks.next(), Some(datetime!(2022-04-03 00:00:00 UTC)));
-    /// assert_eq!(weeks.next(), Some(datetime!(2022-04-10 00:00:00 UTC)));
-    /// assert_eq!(weeks.next(), Some(datetime!(2022-04-17 00:00:00 UTC)));
-    /// assert_eq!(weeks.next(), None);
-    /// ```
     fn overlapping_sunday_based_weeks(self) -> SundayBasedWeeks {
         SundayBasedWeeks {
             current: self.start.floor_sunday_based_weeks(),
-            end: self.end,
+            end: self.end.ceil_sunday_based_weeks(),
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2022-04-13 00:00:00 UTC);
-    /// let end = datetime!(2022-06-26 00:00:00 UTC);
-    /// let mut months = (start..end).overlapping_months();
-    /// assert_eq!(months.next(), Some(datetime!(2022-04-01 00:00:00 UTC)));
-    /// assert_eq!(months.next(), Some(datetime!(2022-05-01 00:00:00 UTC)));
-    /// assert_eq!(months.next(), Some(datetime!(2022-06-01 00:00:00 UTC)));
-    /// assert_eq!(months.next(), None);
-    /// ```
     fn overlapping_months(self) -> Months {
         Months {
             current: self.start.floor_months(),
-            end: self.end,
+            end: self.end.ceil_months(),
         }
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let start = datetime!(2020-06-01 00:00:00 UTC);
-    /// let end = datetime!(2022-09-01 00:00:00 UTC);
-    /// let mut years = (start..end).overlapping_years();
-    /// assert_eq!(years.next(), Some(datetime!(2020-01-01 00:00:00 UTC)));
-    /// assert_eq!(years.next(), Some(datetime!(2021-01-01 00:00:00 UTC)));
-    /// assert_eq!(years.next(), Some(datetime!(2022-01-01 00:00:00 UTC)));
-    /// assert_eq!(years.next(), None);
-    /// ```
     fn overlapping_years(self) -> Years {
         Years {
             current: self.start.floor_years(),
-            end: self.end,
+            end: self.end.ceil_years(),
         }
     }
 
-    /// Here `range1` and `range2` overlap between the `2022-04-08 UTC` and the `2022-04-10 UTC`.
-    /// 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let range1 = datetime!(2022-04-06 00:00:00 UTC)..datetime!(2022-04-10 00:00:00 UTC);
-    /// let range2 = datetime!(2022-04-08 00:00:00 UTC)..datetime!(2022-04-13 00:00:00 UTC);
-    /// // ranges can't be copied, so we are using `clone()` here
-    /// assert!(range1.clone().overlaps(range2.clone()));
-    /// assert!(range2.clone().overlaps(range1.clone()));
-    /// ```
-    /// 
-    /// Overlap, as `range1` is contained within `range2`.
-    /// 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let range1 = datetime!(2022-04-06 00:00:00 UTC)..datetime!(2022-04-10 00:00:00 UTC);
-    /// let range2 = datetime!(2022-04-03 00:00:00 UTC)..datetime!(2022-04-13 00:00:00 UTC);
-    /// // ranges can't be copied, so we are using `clone()` here
-    /// assert!(range1.clone().overlaps(range2.clone()));
-    /// assert!(range2.clone().overlaps(range1.clone()));
-    /// ```
-    /// 
-    /// No overlap here, there is a gap between the two ranges.
-    /// 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let range1 = datetime!(2022-04-06 00:00:00 UTC)..datetime!(2022-04-10 00:00:00 UTC);
-    /// let range2 = datetime!(2022-04-12 00:00:00 UTC)..datetime!(2022-04-13 00:00:00 UTC);
-    /// // ranges can't be copied, so we are using `clone()` here
-    /// assert!(!range1.clone().overlaps(range2.clone()));
-    /// assert!(!range2.clone().overlaps(range1.clone()));
-    /// ```
-    /// 
-    /// Negative ranges dont't overlap.
-    /// 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let range1 = datetime!(2022-04-10 00:00:00 UTC)..datetime!(2022-04-06 00:00:00 UTC);
-    /// let range2 = datetime!(2022-04-08 00:00:00 UTC)..datetime!(2022-04-13 00:00:00 UTC);
-    /// // ranges can't be copied, so we are using `clone()` here
-    /// assert!(!range1.clone().overlaps(range2.clone()));
-    /// assert!(!range2.clone().overlaps(range1.clone()));
-    /// ```
     fn overlaps(self, other: Range<OffsetDateTime>) -> bool {
         self.start < self.end && other.start < other.end && self.start < other.end && other.start < self.end
     }
 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let range1 = datetime!(2022-04-06 00:00:00 UTC)..datetime!(2022-04-10 00:00:00 UTC);
-    /// let range2 = datetime!(2022-04-10 00:00:00 UTC)..datetime!(2022-04-13 00:00:00 UTC);
-    /// // ranges can't be copied, so we are using `clone()` here
-    /// assert!(range1.clone().left_adjacent_to(range2.clone()));
-    /// assert!(!range2.clone().left_adjacent_to(range1.clone()));
-    /// ```
-    /// 
-    /// ```rust
-    /// # use time::macros::datetime;
-    /// # use time::OffsetDateTimeRangeExt;
-    /// let range1 = datetime!(2022-04-06 00:00:00 UTC)..datetime!(2022-04-10 00:00:00 UTC);
-    /// let range2 = datetime!(2022-04-12 00:00:00 UTC)..datetime!(2022-04-13 00:00:00 UTC);
-    /// // ranges can't be copied, so we are using `clone()` here
-    /// assert!(!range1.clone().left_adjacent_to(range2.clone()));
-    /// assert!(!range2.clone().left_adjacent_to(range1.clone()));
-    /// ```
     fn left_adjacent_to(self, other: Range<OffsetDateTime>) -> bool {
         self.start < self.end && other.start < other.end && self.end == other.start
     }
@@ -1194,15 +966,14 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
         if self.start < self.end && self.start < date && date < self.end {
             // find the start offset to make sure each sub-range has the same offset as the original
             let start_offset = self.start.offset();
-            
+
             // update the offsets to match the original offset
-            self.end = self.end.to_offset(start_offset);
             date = date.to_offset(start_offset);
-            
+            self.end = self.end.to_offset(start_offset);
+
             // split the range
             Some((self.start..date, date..self.end))
         }
-
         // if the range is reversed or the date is outside of the range, return `None`
         else {
             None
@@ -1217,7 +988,7 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
 
         // find the start offset to make sure each sub-range has the same offset as the original
         let start_offset = self.start.offset();
-        
+
         // ensure the end is in the same offset, else the last range will end with a different offset compared to others
         self.end = self.end.to_offset(start_offset);
 
@@ -1227,9 +998,7 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
             // convert &OffsetDateTime to OffsetDateTime
             .copied()
             // filter out dates that are not in the range
-            .filter(|date| self.contains(date))
-            // filter out dates that are the same as the start or end of the range
-            .filter(|date| *date != self.start && *date != self.end)
+            .filter(|date| self.start < *date && *date < self.end)
             // make sure all dates have the same offset as the start of the range
             .map(|date| date.to_offset(start_offset))
             // collect the date into a vector
@@ -1256,19 +1025,11 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
     }
 
     fn split_by(self, unit: Duration) -> SplitDuration {
-        SplitDuration {
-            current: self.start,
-            end: self.end,
-            unit,
-        }
+        SplitDuration::new(self.start, self.end, unit)
     }
 
     fn divide_equally(self, number_of_parts: usize) -> SplitCount {
-        SplitCount {
-            current: self.start,
-            end: self.end,
-            number_of_parts,
-        }
+        SplitCount::new(self.start, self.end, number_of_parts)
     }
 
     fn intersection(self, other: Range<OffsetDateTime>) -> Option<Range<OffsetDateTime>> {
@@ -1293,10 +1054,171 @@ impl OffsetDateTimeRangeExt for Range<OffsetDateTime> {
     }
 
     fn difference(self, other: Range<OffsetDateTime>) -> Vec<Range<OffsetDateTime>> {
-        todo!()
+        self.difference_multiple(&[other])
     }
 
     fn difference_multiple(self, others: &[Range<OffsetDateTime>]) -> Vec<Range<OffsetDateTime>> {
-        todo!()
+        // if the range is reversed, return an empty vector
+        if self.end <= self.start {
+            return vec![];
+        }
+
+        // compute the difference
+        [&[self.clone()], others]
+            .concat()
+            .xor()
+            .into_iter()
+            .filter_map(|range| range.intersection(self.clone()))
+            .filter(|range| range.start < range.end)
+            .collect::<Vec<_>>()
+    }
+}
+
+/// Implementation of the `OffsetDateTimeRangeSliceExt` trait for `&[Range<OffsetDateTime>]`.
+impl OffsetDateTimeRangeSliceExt for [Range<OffsetDateTime>] {
+    fn intersection(&self) -> Option<Range<OffsetDateTime>> {
+        // we intersect all the ranges one after another
+        let mut intersection = self.first()?.clone();
+
+        for range in self.iter().skip(1).cloned() {
+            // if one of the intersection fails, return `None`
+            intersection = intersection.intersection(range)?;
+        }
+
+        // return the intersection
+        Some(intersection)
+    }
+
+    fn union(&self) -> Option<Range<OffsetDateTime>> {
+        // we union all the ranges one after another
+        let mut union = self.first()?.clone();
+
+        for range in self.iter().skip(1).cloned() {
+            // if one of the union fails, return `None`
+            union = union.union(range)?;
+        }
+
+        // return the union
+        Some(union)
+    }
+
+    fn merge(&self) -> Vec<Range<OffsetDateTime>> {
+        // if slice is empty, return an empty vector
+        if self.is_empty() {
+            return vec![];
+        }
+
+        // find the start offset
+        let start_offset = self[0].start.offset();
+
+        // clone the range slice
+        let mut ranges: Vec<Range<OffsetDateTime>> = self
+            .iter()
+            .filter(|range| range.start < range.end)
+            .map(|range| range.start.to_offset(start_offset)..range.end.to_offset(start_offset))
+            .collect();
+
+        // sort the ranges
+        ranges.sort_by(|a, b| a.start.cmp(&b.start));
+
+        // combine the ranges
+        let (mut merged, last_option): (Vec<Range<OffsetDateTime>>, Option<Range<OffsetDateTime>>) =
+            ranges.iter().fold(
+                (vec![], None),
+                |(mut partial_merge, current_option), range| {
+                    if let Some(current) = current_option {
+                        if range.start <= current.end {
+                            (
+                                partial_merge,
+                                Some(current.start..current.end.max(range.end)),
+                            )
+                        } else {
+                            partial_merge.push(current);
+                            (partial_merge, Some(range.clone()))
+                        }
+                    } else {
+                        (partial_merge, Some(range.clone()))
+                    }
+                },
+            );
+
+        // add the last range to the merged ranges if it exists
+        if let Some(last) = last_option {
+            merged.push(last);
+        }
+
+        // return the merged ranges
+        merged
+    }
+
+    fn xor(&self) -> Vec<Range<OffsetDateTime>> {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        enum Timestamp {
+            Start(OffsetDateTime),
+            End(OffsetDateTime),
+        }
+
+        // if slice is empty, return an empty vector
+        if self.is_empty() {
+            return vec![];
+        }
+
+        // find the start offset
+        let start_offset = self[0].start.offset();
+
+        // split the ranges into start and end timestamps
+        let mut timestamps: Vec<Timestamp> = vec![];
+
+        // keep only the ranges that are not reversed
+        let ranges_iter = self
+            .iter()
+            .filter(|range| range.start < range.end)
+            .map(|range| range.start.to_offset(start_offset)..range.end.to_offset(start_offset));
+
+        for range in ranges_iter {
+            timestamps.push(Timestamp::Start(range.start));
+            timestamps.push(Timestamp::End(range.end));
+        }
+
+        // sort the timestamps by when they occur
+        timestamps.sort_by(|a, b| {
+            match (a, b) {
+                (Timestamp::Start(a), Timestamp::Start(b)) => a.cmp(b),
+                (Timestamp::End(a), Timestamp::End(b)) => a.cmp(b),
+                (Timestamp::Start(a), Timestamp::End(b)) => a.cmp(b),
+                (Timestamp::End(a), Timestamp::Start(b)) => a.cmp(b),
+            }
+        });
+
+        let mut ranges = vec![];
+        let mut count: usize = 0;
+        let mut start: Option<OffsetDateTime> = None;
+
+        for timestamp in timestamps {
+            let current_timestamp = match timestamp {
+                Timestamp::Start(date) => {
+                    count += 1;
+                    date
+                }
+                Timestamp::End(date) => {
+                    count -= 1;
+                    date
+                }
+            };
+
+            if count == 1 {
+                start = Some(current_timestamp);
+            } else {
+                if let Some(start_timestamp) = start {
+                    if start_timestamp != current_timestamp {
+                        ranges.push(start_timestamp..current_timestamp)
+                    }
+
+                    start = None;
+                }
+            }
+        }
+
+        ranges.merge()
     }
 }

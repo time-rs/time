@@ -137,6 +137,7 @@ require_all_features! {
     mod macros;
     mod meta;
     mod month;
+    mod offset_date_time_range;
     mod offset_date_time;
     mod parse_format_description;
     mod parsed;
