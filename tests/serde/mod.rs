@@ -9,6 +9,7 @@ mod macros;
 mod rfc2822;
 mod rfc3339;
 mod timestamps;
+mod timestamps_millis;
 
 #[test]
 fn time() {

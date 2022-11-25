@@ -76,6 +76,19 @@ fn from_unix_timestamp() {
 }
 
 #[test]
+fn from_unix_timestamp_millis() {
+    assert_eq!(
+        OffsetDateTime::from_unix_timestamp_millis(0),
+        Ok(OffsetDateTime::UNIX_EPOCH),
+    );
+    assert_eq!(
+        OffsetDateTime::from_unix_timestamp_millis(1_546_300_800_123),
+        Ok(datetime!(2019-01-01 0:00:00.123 UTC)),
+    );
+    assert!(OffsetDateTime::from_unix_timestamp_millis(i128::MAX).is_err());
+}
+
+#[test]
 fn from_unix_timestamp_nanos() {
     assert_eq!(
         OffsetDateTime::from_unix_timestamp_nanos(0),
@@ -110,6 +123,17 @@ fn unix_timestamp() {
         0,
     );
     assert_eq!(datetime!(1970-01-01 0:00 -1).unix_timestamp(), 3_600);
+}
+
+#[test]
+fn unix_timestamp_millis() {
+    assert_eq!(datetime!(1970-01-01 0:00 UTC).unix_timestamp_millis(), 0);
+    assert_eq!(
+        datetime!(1970-01-01 1:00 UTC)
+            .to_offset(offset!(-1))
+            .unix_timestamp_millis(),
+        3_600_000,
+    );
 }
 
 #[test]

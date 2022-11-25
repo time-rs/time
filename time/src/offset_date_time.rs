@@ -130,6 +130,27 @@ impl OffsetDateTime {
         Ok(Self(const_try!(Inner::from_unix_timestamp(timestamp))))
     }
 
+    /// Construct an `OffsetDateTime` from the provided Unix timestamp (in milliseconds). Calling
+    /// `.offset()` on the resulting value is guaranteed to return UTC.
+    ///
+    /// ```rust
+    /// # use time::OffsetDateTime;
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     OffsetDateTime::from_unix_timestamp_millis(0),
+    ///     Ok(OffsetDateTime::UNIX_EPOCH),
+    /// );
+    /// assert_eq!(
+    ///     OffsetDateTime::from_unix_timestamp_millis(1_546_300_800_123),
+    ///     Ok(datetime!(2019-01-01 0:00:00.123 UTC)),
+    /// );
+    /// ```
+    pub const fn from_unix_timestamp_millis(timestamp: i128) -> Result<Self, error::ComponentRange> {
+        Ok(Self(const_try!(Inner::from_unix_timestamp_millis(
+            timestamp
+        ))))
+    }
+
     /// Construct an `OffsetDateTime` from the provided Unix timestamp (in nanoseconds). Calling
     /// `.offset()` on the resulting value is guaranteed to return UTC.
     ///
@@ -173,6 +194,20 @@ impl OffsetDateTime {
     /// ```
     pub const fn unix_timestamp(self) -> i64 {
         self.0.unix_timestamp()
+    }
+
+    /// Get the Unix timestamp in milliseconds.
+    ///
+    /// ```rust
+    /// use time_macros::datetime;
+    /// assert_eq!(datetime!(1970-01-01 0:00 UTC).unix_timestamp_millis(), 0);
+    /// assert_eq!(
+    ///     datetime!(1970-01-01 0:00 -1).unix_timestamp_millis(),
+    ///     3_600_000,
+    /// );
+    /// ```
+    pub const fn unix_timestamp_millis(self) -> i128 {
+        self.unix_timestamp() as i128 * 1_000 + self.millisecond() as i128
     }
 
     /// Get the Unix timestamp in nanoseconds.

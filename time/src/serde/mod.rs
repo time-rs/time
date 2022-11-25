@@ -20,6 +20,7 @@ pub mod rfc2822;
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 pub mod rfc3339;
 pub mod timestamp;
+pub mod timestamp_millis;
 mod visitor;
 
 use core::marker::PhantomData;

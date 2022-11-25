@@ -103,6 +103,18 @@ fn unix_timestamp_roundtrip(odt: OffsetDateTime) -> TestResult {
 }
 
 #[quickcheck]
+fn unix_timestamp_millis_roundtrip(odt: OffsetDateTime) -> TestResult {
+    match odt.date() {
+        Date::MIN | Date::MAX => TestResult::discard(),
+        _ => TestResult::from_bool({
+            // nanoseconds are not stored in the millisecond Unix timestamp
+            let odt = odt - Duration::nanoseconds(odt.nanosecond().into());
+            OffsetDateTime::from_unix_timestamp_millis(odt.unix_timestamp_millis()) == Ok(odt)
+        }),
+    }
+}
+
+#[quickcheck]
 fn unix_timestamp_nanos_roundtrip(odt: OffsetDateTime) -> TestResult {
     match odt.date() {
         Date::MIN | Date::MAX => TestResult::discard(),

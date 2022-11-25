@@ -240,6 +240,26 @@ impl<O: MaybeOffset> DateTime<O> {
         })
     }
 
+    pub const fn from_unix_timestamp_millis(timestamp: i128) -> Result<Self, error::ComponentRange>
+    where
+        O: HasOffset,
+    {
+        let datetime = const_try!(Self::from_unix_timestamp(
+            div_floor!(timestamp, 1_000) as i64
+        ));
+
+        Ok(Self {
+            date: datetime.date,
+            time: Time::__from_hms_nanos_unchecked(
+                datetime.hour(),
+                datetime.minute(),
+                datetime.second(),
+                (timestamp * 1_000_000).rem_euclid(1_000_000_000) as u32,
+            ),
+            offset: UtcOffset::UTC,
+        })
+    }
+
     pub const fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange>
     where
         O: HasOffset,
