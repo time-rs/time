@@ -145,7 +145,9 @@ impl OffsetDateTime {
     ///     Ok(datetime!(2019-01-01 0:00:00.123 UTC)),
     /// );
     /// ```
-    pub const fn from_unix_timestamp_millis(timestamp: i128) -> Result<Self, error::ComponentRange> {
+    pub const fn from_unix_timestamp_millis(
+        timestamp: i128,
+    ) -> Result<Self, error::ComponentRange> {
         Ok(Self(const_try!(Inner::from_unix_timestamp_millis(
             timestamp
         ))))
