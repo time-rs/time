@@ -94,16 +94,16 @@ jobs:
           command: generate-lockfile
 
       # downgrade dev-dependencies for compatibility
-      - name: Downgrade cfg-if dependency
-        uses: actions-rs/cargo@v1
-        with:
-          command: update
-          args: -p cfg-if --precise 0.1.9
       - name: Downgrade log dependency
         uses: actions-rs/cargo@v1
         with:
           command: update
           args: -p log --precise 0.4.8
+      - name: Downgrade cfg-if dependency
+        uses: actions-rs/cargo@v1
+        with:
+          command: update
+          args: -p cfg-if --precise 0.1.9
 
       # default features
       - name: Run `cargo test`
