@@ -94,11 +94,16 @@ pub(super) struct Modifier<'a> {
 }
 
 /// Parse the provided tokens into an AST.
-pub(super) fn parse<'item: 'iter, 'iter>(
-    // tokens: &'iter mut Peekable<impl Iterator<Item = lexer::Token<'item>>>,
-    tokens: &'iter mut lexer::Lexed<impl Iterator<Item = Result<lexer::Token<'item>, Error>>>,
+pub(super) fn parse<
+    'item: 'iter,
+    'iter,
+    I: Iterator<Item = Result<lexer::Token<'item>, Error>>,
+    const VERSION: u8,
+>(
+    tokens: &'iter mut lexer::Lexed<I>,
 ) -> impl Iterator<Item = Result<Item<'item>, Error>> + 'iter {
-    parse_inner::<_, false>(tokens)
+    assert!(version!(1..=2));
+    parse_inner::<_, false, VERSION>(tokens)
 }
 
 /// Parse the provided tokens into an AST. The const generic indicates whether the resulting
@@ -107,6 +112,7 @@ fn parse_inner<
     'item,
     I: Iterator<Item = Result<lexer::Token<'item>, Error>>,
     const NESTED: bool,
+    const VERSION: u8,
 >(
     tokens: &mut lexer::Lexed<I>,
 ) -> impl Iterator<Item = Result<Item<'item>, Error>> + '_ {
@@ -129,13 +135,17 @@ fn parse_inner<
                 kind: lexer::BracketKind::Opening,
                 location,
             } => {
-                if let Some(second_location) = tokens.next_if_opening_bracket() {
-                    Ok(Item::EscapedBracket {
-                        _first: unused(location),
-                        _second: unused(second_location),
-                    })
+                if version!(..=1) {
+                    if let Some(second_location) = tokens.next_if_opening_bracket() {
+                        Ok(Item::EscapedBracket {
+                            _first: unused(location),
+                            _second: unused(second_location),
+                        })
+                    } else {
+                        parse_component::<_, VERSION>(location, tokens)
+                    }
                 } else {
-                    parse_component(location, tokens)
+                    parse_component::<_, VERSION>(location, tokens)
                 }
             }
             lexer::Token::Bracket {
@@ -167,9 +177,9 @@ fn parse_inner<
 }
 
 /// Parse a component. This assumes that the opening bracket has already been consumed.
-fn parse_component<'a>(
+fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, const VERSION: u8>(
     opening_bracket: Location,
-    tokens: &mut lexer::Lexed<impl Iterator<Item = Result<lexer::Token<'a>, Error>>>,
+    tokens: &mut lexer::Lexed<I>,
 ) -> Result<Item<'a>, Error> {
     let leading_whitespace = tokens.next_if_whitespace();
 
@@ -197,7 +207,7 @@ fn parse_component<'a>(
             });
         });
 
-        let nested = parse_nested(whitespace.span.end, tokens)?;
+        let nested = parse_nested::<_, VERSION>(whitespace.span.end, tokens)?;
 
         guard!(let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
             return Err(Error {
@@ -230,7 +240,7 @@ fn parse_component<'a>(
         });
 
         let mut nested_format_descriptions = Vec::new();
-        while let Ok(description) = parse_nested(whitespace.span.end, tokens) {
+        while let Ok(description) = parse_nested::<_, VERSION>(whitespace.span.end, tokens) {
             nested_format_descriptions.push(description);
         }
 
@@ -336,9 +346,9 @@ fn parse_component<'a>(
 }
 
 /// Parse a nested format description. The location provided is the the most recent one consumed.
-fn parse_nested<'a>(
+fn parse_nested<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, const VERSION: u8>(
     last_location: Location,
-    tokens: &mut lexer::Lexed<impl Iterator<Item = Result<lexer::Token<'a>, Error>>>,
+    tokens: &mut lexer::Lexed<I>,
 ) -> Result<NestedFormatDescription<'a>, Error> {
     guard!(let Some(opening_bracket) = tokens.next_if_opening_bracket() else {
         return Err(Error {
@@ -349,7 +359,7 @@ fn parse_nested<'a>(
             },
         });
     });
-    let items = parse_inner::<_, true>(tokens).collect::<Result<_, _>>()?;
+    let items = parse_inner::<_, true, VERSION>(tokens).collect::<Result<_, _>>()?;
     guard!(let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
         return Err(Error {
             _inner: unused(opening_bracket.error("unclosed bracket")),

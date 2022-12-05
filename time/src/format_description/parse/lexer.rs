@@ -155,13 +155,6 @@ fn attach_location<'item>(
 pub(super) fn lex<const VERSION: u8>(
     mut input: &[u8],
 ) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
-    /// A helper macro to make version restrictions simpler to read and write.
-    macro_rules! version {
-        ($range:expr) => {
-            $range.contains(&VERSION)
-        };
-    }
-
     assert!(version!(1..=2));
 
     let mut depth: u8 = 0;

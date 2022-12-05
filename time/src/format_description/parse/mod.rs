@@ -3,6 +3,13 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
+/// A helper macro to make version restrictions simpler to read and write.
+macro_rules! version {
+    ($range:expr) => {
+        $range.contains(&VERSION)
+    };
+}
+
 mod ast;
 mod format_item;
 mod lexer;
@@ -18,7 +25,7 @@ pub fn parse(
 ) -> Result<Vec<crate::format_description::FormatItem<'_>>, crate::error::InvalidFormatDescription>
 {
     let mut lexed = lexer::lex::<1>(s.as_bytes());
-    let ast = ast::parse(&mut lexed);
+    let ast = ast::parse::<_, 1>(&mut lexed);
     let format_items = format_item::parse(ast);
     Ok(format_items
         .map(|res| res.and_then(TryInto::try_into))
@@ -34,7 +41,7 @@ pub fn parse_borrowed(
 ) -> Result<Vec<crate::format_description::FormatItem<'_>>, crate::error::InvalidFormatDescription>
 {
     let mut lexed = lexer::lex::<2>(s.as_bytes());
-    let ast = ast::parse(&mut lexed);
+    let ast = ast::parse::<_, 2>(&mut lexed);
     let format_items = format_item::parse(ast);
     Ok(format_items
         .map(|res| res.and_then(TryInto::try_into))
@@ -54,7 +61,7 @@ pub fn parse_owned(
     s: &str,
 ) -> Result<crate::format_description::OwnedFormatItem, crate::error::InvalidFormatDescription> {
     let mut lexed = lexer::lex::<2>(s.as_bytes());
-    let ast = ast::parse(&mut lexed);
+    let ast = ast::parse::<_, 2>(&mut lexed);
     let format_items = format_item::parse(ast);
     let items = format_items
         .map(|res| res.map(Into::into))

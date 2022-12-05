@@ -473,13 +473,13 @@ fn optional() {
         )))
     );
     assert_eq!(
-        format_description::parse_owned("[optional [[[]]"),
+        format_description::parse_owned(r"[optional [\[]]"),
         Ok(OwnedFormatItem::Optional(Box::new(
             OwnedFormatItem::Literal(Box::new(*b"["))
         )))
     );
     assert_eq!(
-        format_description::parse_owned("[optional [ [[ ]]"),
+        format_description::parse_owned(r"[optional [ \[ ]]"),
         Ok(OwnedFormatItem::Optional(Box::new(
             OwnedFormatItem::Compound(Box::new([
                 OwnedFormatItem::Literal(Box::new(*b" ")),
@@ -513,10 +513,20 @@ fn first() {
         ])))
     );
     assert_eq!(
-        format_description::parse_owned("[first [a][[[]]"),
+        format_description::parse_owned(r"[first [a][\[]]"),
         Ok(OwnedFormatItem::First(Box::new([
             OwnedFormatItem::Literal(Box::new(*b"a")),
             OwnedFormatItem::Literal(Box::new(*b"[")),
+        ])))
+    );
+    assert_eq!(
+        format_description::parse_owned(r"[first [a][\[\[]]"),
+        Ok(OwnedFormatItem::First(Box::new([
+            OwnedFormatItem::Literal(Box::new(*b"a")),
+            OwnedFormatItem::Compound(Box::new([
+                OwnedFormatItem::Literal(Box::new(*b"[")),
+                OwnedFormatItem::Literal(Box::new(*b"[")),
+            ]))
         ])))
     );
     assert_eq!(
@@ -627,6 +637,22 @@ fn backslash_escape_error() {
             index: 0,
             ..
         })
+    ));
+}
+
+#[test]
+fn nested_v1_error() {
+    assert!(matches!(
+        format_description::parse_owned("[optional [[[]]"),
+        Err(InvalidFormatDescription::MissingComponentName { index: 11, .. })
+    ));
+    assert!(matches!(
+        format_description::parse_owned("[optional [ [[ ]]"),
+        Err(InvalidFormatDescription::MissingComponentName { index: 12, .. })
+    ));
+    assert!(matches!(
+        format_description::parse_owned("[first [a][[[]]"),
+        Err(InvalidFormatDescription::UnclosedOpeningBracket { index: 0, .. })
     ));
 }
 
