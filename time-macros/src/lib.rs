@@ -36,6 +36,9 @@
 
 #[macro_use]
 mod quote;
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+#[macro_use]
+mod shim;
 
 mod date;
 mod datetime;
@@ -49,8 +52,11 @@ mod serde_format_description;
 mod time;
 mod to_tokens;
 
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use std::iter::Peekable;
+
 use proc_macro::TokenStream;
-#[cfg(all(feature = "serde", any(feature = "formatting", feature = "parsing")))]
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 use proc_macro::TokenTree;
 
 use self::error::Error;
@@ -76,11 +82,48 @@ macro_rules! impl_macros {
 impl_macros![date datetime offset time];
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
+enum FormatDescriptionVersion {
+    V1,
+    V2,
+}
+
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+fn parse_format_description_version(
+    iter: &mut Peekable<proc_macro::token_stream::IntoIter>,
+) -> Result<Option<FormatDescriptionVersion>, Error> {
+    let version = if let Some(TokenTree::Ident(ident)) =
+        iter.next_if(|token| matches!(token, TokenTree::Ident(_)))
+    {
+        match ident.to_string().as_str() {
+            "v1" => FormatDescriptionVersion::V1,
+            "v2" => FormatDescriptionVersion::V2,
+            _ => {
+                return Err(Error::Custom {
+                    message: "expected `v1` or `v2`".into(),
+                    span_start: Some(ident.span()),
+                    span_end: Some(ident.span()),
+                });
+            }
+        }
+    } else {
+        return Ok(None);
+    };
+    helpers::consume_punct(',', iter)?;
+
+    Ok(Some(version))
+}
+
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 #[proc_macro]
 pub fn format_description(input: TokenStream) -> TokenStream {
     (|| {
+        let mut input = input.into_iter().peekable();
+        let version = parse_format_description_version(&mut input)?;
         let (span, string) = helpers::get_string_literal(input)?;
-        let items = format_description::parse(&string, span)?;
+        let items = match version {
+            Some(FormatDescriptionVersion::V1) | None => format_description::parse::<1>,
+            Some(FormatDescriptionVersion::V2) => format_description::parse::<2>,
+        }(&string, span)?;
 
         Ok(quote! {{
             const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = &[#S(
@@ -126,8 +169,8 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
         let (format, raw_format_string) = match tokens.peek() {
             // string literal
             Some(TokenTree::Literal(_)) => {
-                let (span, format_string) = helpers::get_string_literal(tokens.collect())?;
-                let items = format_description::parse(&format_string, span)?;
+                let (span, format_string) = helpers::get_string_literal(tokens)?;
+                let items = format_description::parse::<1>(&format_string, span)?;
                 let items: TokenStream =
                     items.into_iter().map(|item| quote! { #S(item), }).collect();
                 let items = quote! { &[#S(items)] };

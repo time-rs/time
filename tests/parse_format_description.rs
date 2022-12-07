@@ -711,7 +711,7 @@ fn nested_error() {
         Err(UnclosedOpeningBracket { index: 10, .. })
     ));
     assert!(matches!(
-        dbg!(format_description::parse_owned("[optional [[year")),
+        format_description::parse_owned("[optional [[year"),
         Err(UnclosedOpeningBracket { index: 11, .. })
     ));
     assert!(matches!(

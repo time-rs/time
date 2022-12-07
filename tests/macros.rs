@@ -27,6 +27,168 @@ fn nontrivial_string() {
 }
 
 #[test]
+fn format_description_version() {
+    assert_eq!(format_description!(v1, "[["), &[FormatItem::Literal(b"[")]);
+    assert_eq!(
+        format_description!(v1, r"\\"),
+        &[FormatItem::Literal(br"\\")]
+    );
+    assert_eq!(
+        format_description!(v2, r"\\"),
+        &[FormatItem::Literal(br"\")]
+    );
+}
+
+#[test]
+fn nested_v1() {
+    assert_eq!(
+        format_description!(v1, "[optional [[[]]"),
+        &[FormatItem::Optional(&FormatItem::Literal(b"["))]
+    );
+    assert_eq!(
+        format_description!(v1, "[optional [ [[ ]]"),
+        &[FormatItem::Optional(&FormatItem::Compound(&[
+            FormatItem::Literal(b" "),
+            FormatItem::Literal(b"["),
+            FormatItem::Literal(b" "),
+        ]))]
+    );
+    assert_eq!(
+        format_description!(v1, "[first [a][[[]]"),
+        &[FormatItem::First(&[
+            FormatItem::Literal(b"a"),
+            FormatItem::Literal(b"[")
+        ])]
+    );
+}
+
+#[test]
+fn optional() {
+    assert_eq!(
+        format_description!(v2, "[optional [:[year]]]"),
+        &[FormatItem::Optional(&FormatItem::Compound(&[
+            FormatItem::Literal(b":"),
+            FormatItem::Component(Component::Year(Default::default()))
+        ]))]
+    );
+    assert_eq!(
+        format_description!(v2, "[optional [[year]]]"),
+        &[FormatItem::Optional(&FormatItem::Component(
+            Component::Year(Default::default())
+        ))]
+    );
+    assert_eq!(
+        format_description!(v2, r"[optional [\[]]"),
+        &[FormatItem::Optional(&FormatItem::Literal(b"["))]
+    );
+    assert_eq!(
+        format_description!(v2, r"[optional [ \[ ]]"),
+        &[FormatItem::Optional(&FormatItem::Compound(&[
+            FormatItem::Literal(b" "),
+            FormatItem::Literal(b"["),
+            FormatItem::Literal(b" "),
+        ]))]
+    );
+}
+
+#[test]
+fn first() {
+    assert_eq!(
+        format_description!(v2, "[first [a]]"),
+        &[FormatItem::First(&[FormatItem::Literal(b"a")])]
+    );
+    assert_eq!(
+        format_description!(v2, "[first [a] [b]]"),
+        &[FormatItem::First(&[
+            FormatItem::Literal(b"a"),
+            FormatItem::Literal(b"b"),
+        ])]
+    );
+    assert_eq!(
+        format_description!(v2, "[first [a][b]]"),
+        &[FormatItem::First(&[
+            FormatItem::Literal(b"a"),
+            FormatItem::Literal(b"b"),
+        ])]
+    );
+    assert_eq!(
+        format_description!(v2, r"[first [a][\[]]"),
+        &[FormatItem::First(&[
+            FormatItem::Literal(b"a"),
+            FormatItem::Literal(b"["),
+        ])]
+    );
+    assert_eq!(
+        format_description!(v2, r"[first [a][\[\[]]"),
+        &[FormatItem::First(&[
+            FormatItem::Literal(b"a"),
+            FormatItem::Compound(&[FormatItem::Literal(b"["), FormatItem::Literal(b"["),])
+        ])]
+    );
+    assert_eq!(
+        format_description!(v2, "[first [[period case:upper]] [[period case:lower]] ]"),
+        &[FormatItem::First(&[
+            FormatItem::Component(Component::Period(modifier!(Period {
+                is_uppercase: true,
+                case_sensitive: true,
+            }))),
+            FormatItem::Component(Component::Period(modifier!(Period {
+                is_uppercase: false,
+                case_sensitive: true,
+            }))),
+        ])]
+    );
+}
+
+#[test]
+fn backslash_escape() {
+    assert_eq!(
+        format_description!(v2, r"[optional [\]]]"),
+        &[FormatItem::Optional(&FormatItem::Literal(b"]"))]
+    );
+    assert_eq!(
+        format_description!(v2, r"[optional [\[]]"),
+        &[FormatItem::Optional(&FormatItem::Literal(b"["))]
+    );
+    assert_eq!(
+        format_description!(v2, r"[optional [\\]]"),
+        &[FormatItem::Optional(&FormatItem::Literal(br"\"))]
+    );
+    assert_eq!(
+        format_description!(v2, r"\\"),
+        &[FormatItem::Literal(br"\")]
+    );
+    assert_eq!(
+        format_description!(v2, r"\["),
+        &[FormatItem::Literal(br"[")]
+    );
+    assert_eq!(
+        format_description!(v2, r"\]"),
+        &[FormatItem::Literal(br"]")]
+    );
+    assert_eq!(
+        format_description!(v2, r"foo\\"),
+        &[FormatItem::Literal(b"foo"), FormatItem::Literal(br"\"),]
+    );
+    assert_eq!(
+        format_description!(v2, r"\\"),
+        &[FormatItem::Literal(br"\")]
+    );
+    assert_eq!(
+        format_description!(v2, r"\["),
+        &[FormatItem::Literal(br"[")]
+    );
+    assert_eq!(
+        format_description!(v2, r"\]"),
+        &[FormatItem::Literal(br"]")]
+    );
+    assert_eq!(
+        format_description!(v2, r"foo\\"),
+        &[FormatItem::Literal(b"foo"), FormatItem::Literal(br"\"),]
+    );
+}
+
+#[test]
 fn format_description_coverage() {
     assert_eq!(
         format_description!("[day padding:space][day padding:zero][day padding:none]"),

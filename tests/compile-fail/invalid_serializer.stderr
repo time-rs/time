@@ -66,7 +66,7 @@ error: unexpected token: :
 12 | serde::format_description!(my_format, OffsetDateTime : "[year] [month]"); // not a comma
    |                                                      ^
 
-error: invalid component name `bad` at byte index 1
+error: invalid component
   --> ../tests/compile-fail/invalid_serializer.rs:13:55
    |
 13 | serde::format_description!(my_format, OffsetDateTime, "[bad]"); // bad component name
