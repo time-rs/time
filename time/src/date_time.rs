@@ -24,8 +24,8 @@ use crate::{error, util, Date, Duration, Month, Time, UtcOffset, Weekday};
 
 #[allow(missing_debug_implementations, missing_copy_implementations)]
 pub(crate) mod offset_kind {
-    pub struct None;
-    pub struct Fixed;
+    pub enum None {}
+    pub enum Fixed {}
 }
 
 pub(crate) use sealed::MaybeOffset;
