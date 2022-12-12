@@ -28,13 +28,16 @@ fn nontrivial_string() {
 
 #[test]
 fn format_description_version() {
-    assert_eq!(format_description!(v1, "[["), &[FormatItem::Literal(b"[")]);
     assert_eq!(
-        format_description!(v1, r"\\"),
+        format_description!(version = 1, "[["),
+        &[FormatItem::Literal(b"[")]
+    );
+    assert_eq!(
+        format_description!(version = 1, r"\\"),
         &[FormatItem::Literal(br"\\")]
     );
     assert_eq!(
-        format_description!(v2, r"\\"),
+        format_description!(version = 2, r"\\"),
         &[FormatItem::Literal(br"\")]
     );
 }
@@ -42,11 +45,11 @@ fn format_description_version() {
 #[test]
 fn nested_v1() {
     assert_eq!(
-        format_description!(v1, "[optional [[[]]"),
+        format_description!(version = 1, "[optional [[[]]"),
         &[FormatItem::Optional(&FormatItem::Literal(b"["))]
     );
     assert_eq!(
-        format_description!(v1, "[optional [ [[ ]]"),
+        format_description!(version = 1, "[optional [ [[ ]]"),
         &[FormatItem::Optional(&FormatItem::Compound(&[
             FormatItem::Literal(b" "),
             FormatItem::Literal(b"["),
@@ -54,7 +57,7 @@ fn nested_v1() {
         ]))]
     );
     assert_eq!(
-        format_description!(v1, "[first [a][[[]]"),
+        format_description!(version = 1, "[first [a][[[]]"),
         &[FormatItem::First(&[
             FormatItem::Literal(b"a"),
             FormatItem::Literal(b"[")
@@ -65,24 +68,24 @@ fn nested_v1() {
 #[test]
 fn optional() {
     assert_eq!(
-        format_description!(v2, "[optional [:[year]]]"),
+        format_description!(version = 2, "[optional [:[year]]]"),
         &[FormatItem::Optional(&FormatItem::Compound(&[
             FormatItem::Literal(b":"),
             FormatItem::Component(Component::Year(Default::default()))
         ]))]
     );
     assert_eq!(
-        format_description!(v2, "[optional [[year]]]"),
+        format_description!(version = 2, "[optional [[year]]]"),
         &[FormatItem::Optional(&FormatItem::Component(
             Component::Year(Default::default())
         ))]
     );
     assert_eq!(
-        format_description!(v2, r"[optional [\[]]"),
+        format_description!(version = 2, r"[optional [\[]]"),
         &[FormatItem::Optional(&FormatItem::Literal(b"["))]
     );
     assert_eq!(
-        format_description!(v2, r"[optional [ \[ ]]"),
+        format_description!(version = 2, r"[optional [ \[ ]]"),
         &[FormatItem::Optional(&FormatItem::Compound(&[
             FormatItem::Literal(b" "),
             FormatItem::Literal(b"["),
@@ -94,39 +97,42 @@ fn optional() {
 #[test]
 fn first() {
     assert_eq!(
-        format_description!(v2, "[first [a]]"),
+        format_description!(version = 2, "[first [a]]"),
         &[FormatItem::First(&[FormatItem::Literal(b"a")])]
     );
     assert_eq!(
-        format_description!(v2, "[first [a] [b]]"),
+        format_description!(version = 2, "[first [a] [b]]"),
         &[FormatItem::First(&[
             FormatItem::Literal(b"a"),
             FormatItem::Literal(b"b"),
         ])]
     );
     assert_eq!(
-        format_description!(v2, "[first [a][b]]"),
+        format_description!(version = 2, "[first [a][b]]"),
         &[FormatItem::First(&[
             FormatItem::Literal(b"a"),
             FormatItem::Literal(b"b"),
         ])]
     );
     assert_eq!(
-        format_description!(v2, r"[first [a][\[]]"),
+        format_description!(version = 2, r"[first [a][\[]]"),
         &[FormatItem::First(&[
             FormatItem::Literal(b"a"),
             FormatItem::Literal(b"["),
         ])]
     );
     assert_eq!(
-        format_description!(v2, r"[first [a][\[\[]]"),
+        format_description!(version = 2, r"[first [a][\[\[]]"),
         &[FormatItem::First(&[
             FormatItem::Literal(b"a"),
             FormatItem::Compound(&[FormatItem::Literal(b"["), FormatItem::Literal(b"["),])
         ])]
     );
     assert_eq!(
-        format_description!(v2, "[first [[period case:upper]] [[period case:lower]] ]"),
+        format_description!(
+            version = 2,
+            "[first [[period case:upper]] [[period case:lower]] ]"
+        ),
         &[FormatItem::First(&[
             FormatItem::Component(Component::Period(modifier!(Period {
                 is_uppercase: true,
@@ -143,47 +149,47 @@ fn first() {
 #[test]
 fn backslash_escape() {
     assert_eq!(
-        format_description!(v2, r"[optional [\]]]"),
+        format_description!(version = 2, r"[optional [\]]]"),
         &[FormatItem::Optional(&FormatItem::Literal(b"]"))]
     );
     assert_eq!(
-        format_description!(v2, r"[optional [\[]]"),
+        format_description!(version = 2, r"[optional [\[]]"),
         &[FormatItem::Optional(&FormatItem::Literal(b"["))]
     );
     assert_eq!(
-        format_description!(v2, r"[optional [\\]]"),
+        format_description!(version = 2, r"[optional [\\]]"),
         &[FormatItem::Optional(&FormatItem::Literal(br"\"))]
     );
     assert_eq!(
-        format_description!(v2, r"\\"),
+        format_description!(version = 2, r"\\"),
         &[FormatItem::Literal(br"\")]
     );
     assert_eq!(
-        format_description!(v2, r"\["),
+        format_description!(version = 2, r"\["),
         &[FormatItem::Literal(br"[")]
     );
     assert_eq!(
-        format_description!(v2, r"\]"),
+        format_description!(version = 2, r"\]"),
         &[FormatItem::Literal(br"]")]
     );
     assert_eq!(
-        format_description!(v2, r"foo\\"),
+        format_description!(version = 2, r"foo\\"),
         &[FormatItem::Literal(b"foo"), FormatItem::Literal(br"\"),]
     );
     assert_eq!(
-        format_description!(v2, r"\\"),
+        format_description!(version = 2, r"\\"),
         &[FormatItem::Literal(br"\")]
     );
     assert_eq!(
-        format_description!(v2, r"\["),
+        format_description!(version = 2, r"\["),
         &[FormatItem::Literal(br"[")]
     );
     assert_eq!(
-        format_description!(v2, r"\]"),
+        format_description!(version = 2, r"\]"),
         &[FormatItem::Literal(br"]")]
     );
     assert_eq!(
-        format_description!(v2, r"foo\\"),
+        format_description!(version = 2, r"foo\\"),
         &[FormatItem::Literal(b"foo"), FormatItem::Literal(br"\"),]
     );
 }

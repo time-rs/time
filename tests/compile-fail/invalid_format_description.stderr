@@ -36,7 +36,7 @@ error: unexpected token: x
 9 |     let _ = format_description!("" x);
   |                                    ^
 
-error: expected `v1` or `v2`
+error: expected string literal
   --> ../tests/compile-fail/invalid_format_description.rs:10:33
    |
 10 |     let _ = format_description!(x);
@@ -108,62 +108,110 @@ error: invalid modifier value
 22 |     let _ = format_description!("[day padding:invalid]");
    |                                 ^^^^^^^^^^^^^^^^^^^^^^^
 
-error: invalid escape sequence
-  --> ../tests/compile-fail/invalid_format_description.rs:24:37
+error: expected `=`
+  --> ../tests/compile-fail/invalid_format_description.rs:24:13
    |
-24 |     let _ = format_description!(v2, r"\a");
-   |                                     ^^^^^
+24 |     let _ = format_description!(version);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: expected `=`
+  --> ../tests/compile-fail/invalid_format_description.rs:25:41
+   |
+25 |     let _ = format_description!(version "");
+   |                                         ^^
+
+error: expected 1 or 2
+  --> ../tests/compile-fail/invalid_format_description.rs:26:13
+   |
+26 |     let _ = format_description!(version =);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: invalid format description version
+  --> ../tests/compile-fail/invalid_format_description.rs:27:43
+   |
+27 |     let _ = format_description!(version = 0);
+   |                                           ^
 
 error: unexpected end of input
-  --> ../tests/compile-fail/invalid_format_description.rs:25:37
+  --> ../tests/compile-fail/invalid_format_description.rs:28:13
    |
-25 |     let _ = format_description!(v2, r"\");
-   |                                     ^^^^
+28 |     let _ = format_description!(version = 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: invalid format description version
+  --> ../tests/compile-fail/invalid_format_description.rs:29:43
+   |
+29 |     let _ = format_description!(version = 3);
+   |                                           ^
+
+error: expected 1 or 2
+  --> ../tests/compile-fail/invalid_format_description.rs:30:43
+   |
+30 |     let _ = format_description!(version = two);
+   |                                           ^^^
+
+error: invalid escape sequence
+  --> ../tests/compile-fail/invalid_format_description.rs:32:46
+   |
+32 |     let _ = format_description!(version = 2, r"\a");
+   |                                              ^^^^^
+
+error: unexpected end of input
+  --> ../tests/compile-fail/invalid_format_description.rs:33:46
+   |
+33 |     let _ = format_description!(version = 2, r"\");
+   |                                              ^^^^
 
 error: modifier must be of the form `key:value`
-  --> ../tests/compile-fail/invalid_format_description.rs:27:37
+  --> ../tests/compile-fail/invalid_format_description.rs:35:46
    |
-27 |     let _ = format_description!(v2, "[year [month]]");
-   |                                     ^^^^^^^^^^^^^^^^
+35 |     let _ = format_description!(version = 2, "[year [month]]");
+   |                                              ^^^^^^^^^^^^^^^^
 
 error: expected whitespace after `optional`
-  --> ../tests/compile-fail/invalid_format_description.rs:28:37
+  --> ../tests/compile-fail/invalid_format_description.rs:36:46
    |
-28 |     let _ = format_description!(v2, "[optional[]]");
-   |                                     ^^^^^^^^^^^^^^
+36 |     let _ = format_description!(version = 2, "[optional[]]");
+   |                                              ^^^^^^^^^^^^^^
 
 error: expected whitespace after `first`
-  --> ../tests/compile-fail/invalid_format_description.rs:29:37
+  --> ../tests/compile-fail/invalid_format_description.rs:37:46
    |
-29 |     let _ = format_description!(v2, "[first[]]");
-   |                                     ^^^^^^^^^^^
+37 |     let _ = format_description!(version = 2, "[first[]]");
+   |                                              ^^^^^^^^^^^
 
 error: unclosed bracket
-  --> ../tests/compile-fail/invalid_format_description.rs:30:37
+  --> ../tests/compile-fail/invalid_format_description.rs:38:46
    |
-30 |     let _ = format_description!(v2, "[optional []");
-   |                                     ^^^^^^^^^^^^^^
+38 |     let _ = format_description!(version = 2, "[optional []");
+   |                                              ^^^^^^^^^^^^^^
 
 error: unclosed bracket
-  --> ../tests/compile-fail/invalid_format_description.rs:31:37
+  --> ../tests/compile-fail/invalid_format_description.rs:39:46
    |
-31 |     let _ = format_description!(v2, "[first []");
-   |                                     ^^^^^^^^^^^
+39 |     let _ = format_description!(version = 2, "[first []");
+   |                                              ^^^^^^^^^^^
 
 error: unclosed bracket
-  --> ../tests/compile-fail/invalid_format_description.rs:32:37
+  --> ../tests/compile-fail/invalid_format_description.rs:40:46
    |
-32 |     let _ = format_description!(v2, "[optional [");
-   |                                     ^^^^^^^^^^^^^
+40 |     let _ = format_description!(version = 2, "[optional [");
+   |                                              ^^^^^^^^^^^^^
 
 error: unclosed bracket
-  --> ../tests/compile-fail/invalid_format_description.rs:33:37
+  --> ../tests/compile-fail/invalid_format_description.rs:41:46
    |
-33 |     let _ = format_description!(v2, "[optional [[year");
-   |                                     ^^^^^^^^^^^^^^^^^^
+41 |     let _ = format_description!(version = 2, "[optional [[year");
+   |                                              ^^^^^^^^^^^^^^^^^^
 
 error: expected opening bracket
-  --> ../tests/compile-fail/invalid_format_description.rs:34:37
+  --> ../tests/compile-fail/invalid_format_description.rs:42:46
    |
-34 |     let _ = format_description!(v2, "[optional ");
-   |                                     ^^^^^^^^^^^^
+42 |     let _ = format_description!(version = 2, "[optional ");
+   |                                              ^^^^^^^^^^^^

@@ -13,7 +13,18 @@ mod format_item;
 mod lexer;
 mod public;
 
-pub(crate) fn parse<const VERSION: u8>(
+pub(crate) fn parse_with_version(
+    version: Option<crate::FormatDescriptionVersion>,
+    s: &[u8],
+    proc_span: proc_macro::Span,
+) -> Result<Vec<crate::format_description::public::OwnedFormatItem>, crate::Error> {
+    match version {
+        Some(crate::FormatDescriptionVersion::V1) | None => parse::<1>(s, proc_span),
+        Some(crate::FormatDescriptionVersion::V2) => parse::<2>(s, proc_span),
+    }
+}
+
+fn parse<const VERSION: u8>(
     s: &[u8],
     proc_span: proc_macro::Span,
 ) -> Result<Vec<crate::format_description::public::OwnedFormatItem>, crate::Error> {
