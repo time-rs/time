@@ -164,7 +164,7 @@ pub(crate) fn format_float(
         None => {
             let value = value.trunc() as u64;
             let width = digits_before_decimal as usize;
-            write!(output, "{value:0>width$?}", value = value, width = width)?;
+            write!(output, "{value:0>width$}", value = value, width = width)?;
             Ok(width)
         }
     }
