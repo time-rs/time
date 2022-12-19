@@ -8,7 +8,13 @@ use crate::Duration;
 mod sealed {
     /// A trait that cannot be implemented by downstream users.
     pub trait Sealed {}
+    impl Sealed for i8 {}
+    impl Sealed for i16 {}
+    impl Sealed for i32 {}
     impl Sealed for i64 {}
+    impl Sealed for u8 {}
+    impl Sealed for u16 {}
+    impl Sealed for u32 {}
     impl Sealed for u64 {}
     impl Sealed for f64 {}
 }
@@ -75,6 +81,51 @@ pub trait NumericalDuration: sealed::Sealed {
     /// Create a [`Duration`] from the number of weeks.
     fn weeks(self) -> Duration;
 }
+
+macro_rules! impl_numerical_duration_into {
+    ($Ty:ty) => {
+        impl NumericalDuration for $Ty {
+            fn nanoseconds(self) -> Duration {
+                Duration::nanoseconds(self.into())
+            }
+
+            fn microseconds(self) -> Duration {
+                Duration::microseconds(self.into())
+            }
+
+            fn milliseconds(self) -> Duration {
+                Duration::milliseconds(self.into())
+            }
+
+            fn seconds(self) -> Duration {
+                Duration::seconds(self.into())
+            }
+
+            fn minutes(self) -> Duration {
+                Duration::minutes(self.into())
+            }
+
+            fn hours(self) -> Duration {
+                Duration::hours(self.into())
+            }
+
+            fn days(self) -> Duration {
+                Duration::days(self.into())
+            }
+
+            fn weeks(self) -> Duration {
+                Duration::weeks(self.into())
+            }
+        }
+    }
+}
+
+impl_numerical_duration_into!(u8);
+impl_numerical_duration_into!(u16);
+impl_numerical_duration_into!(u32);
+impl_numerical_duration_into!(i8);
+impl_numerical_duration_into!(i16);
+impl_numerical_duration_into!(i32);
 
 impl NumericalDuration for i64 {
     fn nanoseconds(self) -> Duration {
