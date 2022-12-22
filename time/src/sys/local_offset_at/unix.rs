@@ -121,31 +121,15 @@ pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     // If the `num_threads` crate is incapable of determining the number of running threads, then
     // we conservatively return `None` to avoid a soundness bug.
 
-    // In release mode, let the user invoke undefined behavior if they so choose.
-    #[cfg(not(debug_assertions))]
-    if local_offset::get_soundness() == Soundness::Sound
-        && num_threads::is_single_threaded() != Some(true)
+    if local_offset::get_soundness() == Soundness::Unsound
+        || num_threads::is_single_threaded() == Some(true)
     {
-        return None;
+        let unix_timestamp = datetime.unix_timestamp();
+        // Safety: We have just confirmed that the process is single-threaded or the user has
+        // explicitly opted out of soundness.
+        let tm = unsafe { timestamp_to_tm(unix_timestamp) }?;
+        tm_to_offset(unix_timestamp, tm)
+    } else {
+        None
     }
-    // In debug mode, abort the program if the user would have invoked undefined behavior.
-    #[cfg(debug_assertions)]
-    if num_threads::is_single_threaded() != Some(true) {
-        if local_offset::get_soundness() == Soundness::Unsound {
-            eprintln!(
-                "WARNING: You are attempting to obtain the local UTC offset in a multi-threaded \
-                 context. On Unix-like systems, this is undefined behavior. Either you or a \
-                 dependency explicitly opted into unsound behavior. See the safety documentation \
-                 for `time::local_offset::set_soundness` for further details."
-            );
-            std::process::abort();
-        }
-        return None;
-    }
-
-    let unix_timestamp = datetime.unix_timestamp();
-    // Safety: We have just confirmed that the process is single-threaded or the user has explicitly
-    // opted out of soundness.
-    let tm = unsafe { timestamp_to_tm(unix_timestamp) }?;
-    tm_to_offset(unix_timestamp, tm)
 }
