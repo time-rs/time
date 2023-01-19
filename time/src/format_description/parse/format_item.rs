@@ -311,19 +311,6 @@ macro_rules! target_value {
     };
 }
 
-// TODO use `#[derive(Default)]` on enums once MSRV is 1.62 (NET 2022-12-30)
-/// Simulate `#[derive(Default)]` on enums.
-macro_rules! derived_default_on_enum {
-    ($type:ty; $default:expr) => {};
-    ($attr:meta $type:ty; $default:expr) => {
-        impl Default for $type {
-            fn default() -> Self {
-                $default
-            }
-        }
-    };
-}
-
 /// Declare the various modifiers.
 ///
 /// For the general case, ordinary syntax can be used. Note that you _must_ declare a default
@@ -350,13 +337,10 @@ macro_rules! modifier {
             ),* $(,)?
         }
     )+) => {$(
+        #[derive(Default)]
         enum $name {
-            $($variant),*
+            $($(#[$attr])? $variant),*
         }
-
-        $(derived_default_on_enum! {
-            $($attr)? $name; $name::$variant
-        })*
 
         impl $name {
             /// Parse the modifier from its string representation.

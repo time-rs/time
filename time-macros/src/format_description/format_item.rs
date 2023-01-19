@@ -249,17 +249,6 @@ macro_rules! target_value {
     };
 }
 
-macro_rules! derived_default_on_enum {
-    ($type:ty; $default:expr) => {};
-    ($attr:meta $type:ty; $default:expr) => {
-        impl Default for $type {
-            fn default() -> Self {
-                $default
-            }
-        }
-    };
-}
-
 macro_rules! modifier {
     ($(
         enum $name:ident $(($target_ty:ty))? {
@@ -269,13 +258,10 @@ macro_rules! modifier {
             ),* $(,)?
         }
     )+) => {$(
+        #[derive(Default)]
         enum $name {
-            $($variant),*
+            $($(#[$attr])? $variant),*
         }
-
-        $(derived_default_on_enum! {
-            $($attr)? $name; $name::$variant
-        })*
 
         impl $name {
             /// Parse the modifier from its string representation.
