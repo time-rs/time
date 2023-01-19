@@ -47,7 +47,7 @@ on:
 jobs:
   check-targets:
     name: Type checking (${{ matrix.rust.name }}, ${{ matrix.kind.name }})
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
     strategy:
       matrix:
@@ -129,7 +129,7 @@ jobs:
 
   check-benchmarks:
     name: Type-check benchmarks
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
     steps:
       - name: Checkout sources
@@ -190,7 +190,7 @@ jobs:
 
   miri:
     name: Test (miri)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
 
     steps:
@@ -209,7 +209,7 @@ jobs:
 
   cross-build:
     name: Cross-build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
 
     steps:
@@ -233,7 +233,7 @@ jobs:
 
   fmt:
     name: Formatting
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
 
     steps:
@@ -252,7 +252,7 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
 
     steps:
@@ -292,7 +292,7 @@ jobs:
 
   documentation:
     name: Documentation
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
 
     steps:
@@ -349,7 +349,7 @@ jobs:
 
   coverage:
     name: Coverage
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     permissions:
       issues: write
     if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
@@ -367,9 +367,6 @@ jobs:
         run: |
           curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/latest/download/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz \
           | tar xzf - -C ~/.cargo/bin
-
-      # - name: Cache cargo output
-      #   uses: Swatinem/rust-cache@v2
 
       - name: Generate coverage report
         run: |
