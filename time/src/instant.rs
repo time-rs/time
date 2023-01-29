@@ -156,6 +156,10 @@ impl Sub<Instant> for StdInstant {
     }
 }
 
+/// # Panics
+///
+/// This function may panic if the resulting point in time cannot be
+/// represented by the underlying [`std::time::Instant`].
 impl Add<Duration> for Instant {
     type Output = Self;
 
@@ -163,6 +167,7 @@ impl Add<Duration> for Instant {
         if duration.is_positive() {
             Self(self.0 + duration.unsigned_abs())
         } else if duration.is_negative() {
+            #[allow(clippy::unchecked_duration_subtraction)]
             Self(self.0 - duration.unsigned_abs())
         } else {
             debug_assert!(duration.is_zero());
@@ -190,11 +195,16 @@ impl Add<StdDuration> for Instant {
 impl_add_assign!(Instant: Duration, StdDuration);
 impl_add_assign!(StdInstant: Duration);
 
+/// # Panics
+///
+/// This function may panic if the resulting point in time cannot be
+/// represented by the underlying [`std::time::Instant`].
 impl Sub<Duration> for Instant {
     type Output = Self;
 
     fn sub(self, duration: Duration) -> Self::Output {
         if duration.is_positive() {
+            #[allow(clippy::unchecked_duration_subtraction)]
             Self(self.0 - duration.unsigned_abs())
         } else if duration.is_negative() {
             Self(self.0 + duration.unsigned_abs())
@@ -213,10 +223,15 @@ impl Sub<Duration> for StdInstant {
     }
 }
 
+/// # Panics
+///
+/// This function may panic if the resulting point in time cannot be
+/// represented by the underlying [`std::time::Instant`].
 impl Sub<StdDuration> for Instant {
     type Output = Self;
 
     fn sub(self, duration: StdDuration) -> Self::Output {
+        #[allow(clippy::unchecked_duration_subtraction)]
         Self(self.0 - duration)
     }
 }

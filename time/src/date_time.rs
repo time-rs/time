@@ -93,9 +93,10 @@ impl MaybeOffset for offset_kind::None {
     type OffsetType = ();
     type OffsetKind = Self;
 
-    #[allow(clippy::undocumented_unsafe_blocks)] // false positive
-    // SAFETY: `()` is not `UtcOffset`.
-    const HAS_OFFSET: UnsafeBool = unsafe { UnsafeBool::new(false) };
+    const HAS_OFFSET: UnsafeBool = {
+        // SAFETY: `()` is not `UtcOffset`.
+        unsafe { UnsafeBool::new(false) }
+    };
 
     fn as_offset(_: ()) -> Option<UtcOffset> {
         None
@@ -114,9 +115,10 @@ impl MaybeOffset for offset_kind::Fixed {
     type OffsetType = UtcOffset;
     type OffsetKind = Self;
 
-    #[allow(clippy::undocumented_unsafe_blocks)] // false positive
-    // Safety: `UtcOffset` is the offset type.
-    const HAS_OFFSET: UnsafeBool = unsafe { UnsafeBool::new(true) };
+    const HAS_OFFSET: UnsafeBool = {
+        // Safety: `UtcOffset` is the offset type.
+        unsafe { UnsafeBool::new(true) }
+    };
 
     fn as_offset(offset: UtcOffset) -> Option<UtcOffset> {
         Some(offset)
@@ -830,7 +832,7 @@ impl<O: MaybeOffset> fmt::Display for DateTime<O> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {}", self.date, self.time)?;
         if let Some(offset) = O::as_offset(self.offset) {
-            write!(f, " {}", offset)?;
+            write!(f, " {offset}")?;
         }
         Ok(())
     }
