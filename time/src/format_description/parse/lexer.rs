@@ -148,14 +148,14 @@ fn attach_location<'item>(
 /// `VERSION` controls the version of the format description that is being parsed. Currently, this
 /// must be 1 or 2.
 ///
-/// - When `VERSION` is 0, `[[` is the only escape sequence, resulting in a literal `[`.
-/// - When `VERSION` is 1, all escape sequences begin with `\`. The only characters that may
+/// - When `VERSION` is 1, `[[` is the only escape sequence, resulting in a literal `[`.
+/// - When `VERSION` is 2, all escape sequences begin with `\`. The only characters that may
 ///   currently follow are `\`, `[`, and `]`, all of which result in the literal character. All
 ///   other characters result in a lex error.
-pub(super) fn lex<const VERSION: u8>(
+pub(super) fn lex<const VERSION: usize>(
     mut input: &[u8],
 ) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
-    assert!(version!(1..=2));
+    validate_version!(VERSION);
 
     let mut depth: u8 = 0;
     let mut iter = attach_location(input.iter()).peekable();
