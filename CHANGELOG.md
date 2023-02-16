@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.18 [2022-02-16]
+
+### Changed
+
+- The minimum supported Rust version is now 1.62.0.
+
+### Added
+
+- `[first]` and `[optional]` items can now be included in format descriptions. To parse this at
+  runtime, you must use the `format_description::parse_owned` method.
+- `format_description::parse_borrowed`
+- An API has been added to opt out of soundness checks for obtaining the local offset. This replaces
+  the previous, officially unsupported `RUSTFLAGS="--cfg unsound_local_offset"`. End users may call
+  `time::util::local_offset::set_soundness(time::util::local_offset::Soundness::Unsound)`. This
+  method is `unsafe` because it enables undefined behavior if its safety requirements are not
+  upheld. Note that libraries **must not** set this to `Unsound`, as it is impossible for a library
+  to guarantee end users uphold the required invariants.
+
+### Fixed
+
+- Correctly parse offset sign when hour is zero. The parse was previously unconditionally positive,
+  even if the sign indicated otherwise.
+- Compilation is fixed for WebAssembly.
+
 ## 0.3.17 [2022-11-06]
 
 ### Changed
