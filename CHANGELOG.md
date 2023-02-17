@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.19 [2022-02-016]
+
+### Fixed
+
+This includes the update to the `format_description!` macro, which was supposed to be included in
+0.3.18.
+
 ## 0.3.18 [2022-02-16]
 
 ### Changed
