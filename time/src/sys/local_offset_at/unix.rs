@@ -17,7 +17,7 @@ const OS_HAS_THREAD_SAFE_ENVIRONMENT: bool = match std::env::consts::OS.as_bytes
     | b"netbsd"
     // https://github.com/apple-oss-distributions/Libc/blob/d526593760f0f79dfaeb8b96c3c8a42c791156ff/stdlib/FreeBSD/getenv.c
     // https://github.com/apple-oss-distributions/Libc/blob/d526593760f0f79dfaeb8b96c3c8a42c791156ff/stdlib/FreeBSD/setenv.c
-    | b"macros"
+    | b"macos"
     => true,
     _ => false,
 };
