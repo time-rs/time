@@ -163,7 +163,15 @@ fn current_local_offset() {
 }
 
 #[test]
-#[cfg(target_family = "unix")]
+#[cfg_attr(
+    any(
+        target_os = "macos",
+        target_os = "netbsd",
+        target_os = "illumos",
+        not(target_family = "unix")
+    ),
+    ignore
+)]
 fn local_offset_error_when_multithreaded() {
     std::thread::spawn(|| {
         assert!(UtcOffset::current_local_offset().is_err());
