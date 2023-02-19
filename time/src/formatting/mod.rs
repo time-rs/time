@@ -152,19 +152,13 @@ pub(crate) fn format_float(
         Some(digits_after_decimal) => {
             let digits_after_decimal = digits_after_decimal.get() as usize;
             let width = digits_before_decimal as usize + 1 + digits_after_decimal;
-            write!(
-                output,
-                "{value:0>width$.digits_after_decimal$}",
-                value = value,
-                width = width,
-                digits_after_decimal = digits_after_decimal,
-            )?;
+            write!(output, "{value:0>width$.digits_after_decimal$}")?;
             Ok(width)
         }
         None => {
             let value = value.trunc() as u64;
             let width = digits_before_decimal as usize;
-            write!(output, "{value:0>width$}", value = value, width = width)?;
+            write!(output, "{value:0>width$}")?;
             Ok(width)
         }
     }

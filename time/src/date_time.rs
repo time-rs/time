@@ -830,7 +830,7 @@ impl<O: MaybeOffset> fmt::Display for DateTime<O> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {}", self.date, self.time)?;
         if let Some(offset) = O::as_offset(self.offset) {
-            write!(f, " {}", offset)?;
+            write!(f, " {offset}")?;
         }
         Ok(())
     }

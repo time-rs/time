@@ -108,6 +108,7 @@
     clippy::print_stdout,
     clippy::todo,
     clippy::unimplemented,
+    clippy::uninlined_format_args,
     clippy::unnested_or_patterns,
     clippy::unwrap_in_result,
     clippy::unwrap_used,
