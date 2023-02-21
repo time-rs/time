@@ -79,7 +79,7 @@ fn alignment() {
     assert_alignment!(error::Parse, 8);
     assert_alignment!(error::ParseFromDescription, 8);
     assert_alignment!(error::TryFromParsed, 8);
-    assert_alignment!(Component, 1);
+    assert_alignment!(Component, 2);
     assert_alignment!(FormatItem<'_>, 8);
     assert_alignment!(modifier::MonthRepr, 1);
     assert_alignment!(modifier::Padding, 1);
@@ -156,7 +156,7 @@ fn size() {
     // assert_size!(error::Parse, 56, 56);
     assert_size!(error::ParseFromDescription, 16, 24);
     assert_size!(error::TryFromParsed, 48, 48);
-    assert_size!(Component, 5, 5);
+    assert_size!(Component, 6, 6);
     assert_size!(FormatItem<'_>, 24, 24);
     assert_size!(modifier::MonthRepr, 1, 1);
     assert_size!(modifier::Padding, 1, 1);

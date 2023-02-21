@@ -243,6 +243,7 @@ pub(crate) fn format_component(
         (OffsetHour(modifier), .., Some(offset)) => fmt_offset_hour(output, offset, modifier)?,
         (OffsetMinute(modifier), .., Some(offset)) => fmt_offset_minute(output, offset, modifier)?,
         (OffsetSecond(modifier), .., Some(offset)) => fmt_offset_second(output, offset, modifier)?,
+        (Ignore(_), ..) => 0,
         _ => return Err(error::Format::InsufficientTypeInformation),
     })
 }

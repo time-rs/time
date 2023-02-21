@@ -1,5 +1,7 @@
 //! Various modifiers for components.
 
+use core::num::NonZeroU16;
+
 // region: date modifiers
 /// Day of the month.
 #[non_exhaustive]
@@ -232,6 +234,25 @@ pub enum Padding {
     /// There is no padding. This can result in a width below the otherwise minimum number of
     /// characters.
     None,
+}
+
+/// Ignore some number of bytes.
+///
+/// This has no effect when formatting.
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Ignore {
+    /// The number of bytes to ignore.
+    pub count: NonZeroU16,
+}
+
+// Needed as `Default` is deliberately not implemented for `Ignore`. The number of bytes to ignore
+// must be explicitly provided.
+impl Ignore {
+    /// Create an instance of `Ignore` with the provided number of bytes to ignore.
+    pub const fn count(count: NonZeroU16) -> Self {
+        Self { count }
+    }
 }
 
 /// Generate the provided code if and only if `pub` is present.

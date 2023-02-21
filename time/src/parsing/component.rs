@@ -296,3 +296,13 @@ pub(crate) fn parse_offset_second(
     )
 }
 // endregion offset components
+
+/// Ignore the given number of bytes.
+pub(crate) fn parse_ignore(
+    input: &[u8],
+    modifiers: modifier::Ignore,
+) -> Option<ParsedItem<'_, ()>> {
+    let modifier::Ignore { count } = modifiers;
+    let input = input.get((count.get() as usize)..)?;
+    Some(ParsedItem(input, ()))
+}

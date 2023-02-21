@@ -1,7 +1,11 @@
+use core::num::NonZeroU16;
+
 mod iterator {
     use time::format_description::modifier::{
         MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,
     };
+
+    use super::*;
 
     pub(super) fn padding() -> impl Iterator<Item = (Padding, &'static str)> {
         [
@@ -106,11 +110,29 @@ mod iterator {
         .iter()
         .copied()
     }
+
+    pub(super) fn ignore_count() -> impl Iterator<Item = (NonZeroU16, &'static str)> {
+        [
+            (1, "count:1"),
+            (2, "count:2"),
+            (3, "count:3"),
+            (10, "count:10"),
+            (100, "count:100"),
+            (1_000, "count:1000"),
+        ]
+        .into_iter()
+        .map(|(count, name)| {
+            (
+                NonZeroU16::new(count).expect("number should not be zero"),
+                name,
+            )
+        })
+    }
 }
 
 use time::error::InvalidFormatDescription;
 use time::format_description::modifier::{
-    MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,
+    Ignore, MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,
 };
 use time::format_description::{self, Component, FormatItem, OwnedFormatItem};
 
@@ -304,6 +326,8 @@ fn errors() {
         "[day :mandatory]", InvalidModifier { value, index: 5,.. } if value.is_empty(),
         "[day sign:mandatory", UnclosedOpeningBracket { index: 0, .. },
         "[day padding:invalid]", InvalidModifier { value, index: 13, .. } if value == "invalid",
+        "[ignore]", MissingRequiredModifier { name: "count", index: 1, .. },
+        "[ignore count:70000]", InvalidModifier { value, index: 14, .. } if value == "70000",
     }
 }
 
@@ -450,6 +474,15 @@ fn component_with_modifiers() {
             format_description::parse(&format!("[subsecond {digits_str}]")),
             Ok(vec![FormatItem::Component(Component::Subsecond(
                 modifier!(Subsecond { digits })
+            ))])
+        );
+    }
+
+    for (count, count_str) in iterator::ignore_count() {
+        assert_eq!(
+            format_description::parse(&format!("[ignore {count_str}]")),
+            Ok(vec![FormatItem::Component(Component::Ignore(
+                Ignore::count(count)
             ))])
         );
     }

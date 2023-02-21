@@ -10,9 +10,9 @@ use crate::format_description::modifier::{WeekNumberRepr, YearRepr};
 use crate::format_description::OwnedFormatItem;
 use crate::format_description::{Component, FormatItem};
 use crate::parsing::component::{
-    parse_day, parse_hour, parse_minute, parse_month, parse_offset_hour, parse_offset_minute,
-    parse_offset_second, parse_ordinal, parse_period, parse_second, parse_subsecond,
-    parse_week_number, parse_weekday, parse_year, Period,
+    parse_day, parse_hour, parse_ignore, parse_minute, parse_month, parse_offset_hour,
+    parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
+    parse_subsecond, parse_week_number, parse_weekday, parse_year, Period,
 };
 use crate::parsing::ParsedItem;
 use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
@@ -340,6 +340,9 @@ impl Parsed {
                     parsed.consume_value(|value| self.set_offset_second_signed(value))
                 })
                 .ok_or(InvalidComponent("offset second")),
+            Component::Ignore(modifiers) => parse_ignore(input, modifiers)
+                .map(ParsedItem::<()>::into_inner)
+                .ok_or(InvalidComponent("ignore")),
         }
     }
 

@@ -1,5 +1,6 @@
-use std::num::NonZeroU8;
+use std::num::{NonZeroU16, NonZeroU8};
 
+use time::format_description::modifier::Ignore;
 use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use time::format_description::{modifier, Component, FormatItem, OwnedFormatItem};
 use time::macros::{date, datetime, offset, time};
@@ -1286,6 +1287,21 @@ fn parse_components() -> time::Result<()> {
         b"aM",
         _.hour_12_is_pm() == Some(false)
     );
+    let mut parsed = Parsed::new();
+    let result = parsed.parse_component(
+        b"abcdef",
+        Component::Ignore(Ignore::count(NonZeroU16::new(3).unwrap())),
+    )?;
+    assert_eq!(result, b"def");
+    let mut parsed = Parsed::new();
+    let result = parsed.parse_component(
+        b"abcdef",
+        Component::Ignore(Ignore::count(NonZeroU16::new(7).unwrap())),
+    );
+    assert!(matches!(
+        result,
+        Err(error::ParseFromDescription::InvalidComponent("ignore"))
+    ));
 
     Ok(())
 }

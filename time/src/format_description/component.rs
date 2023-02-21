@@ -34,4 +34,6 @@ pub enum Component {
     OffsetMinute(modifier::OffsetMinute),
     /// Second within the minute of the UTC offset.
     OffsetSecond(modifier::OffsetSecond),
+    /// A number of bytes to ignore when parsing. This has no effect on formatting.
+    Ignore(modifier::Ignore),
 }
