@@ -75,13 +75,13 @@ pub mod local_offset {
     /// - [`UtcOffset::local_offset_at`](crate::UtcOffset::local_offset_at)
     /// - [`UtcOffset::current_local_offset`](crate::UtcOffset::current_local_offset)
     pub unsafe fn set_soundness(soundness: Soundness) {
-        LOCAL_OFFSET_IS_SOUND.store(soundness == Soundness::Sound, Ordering::Relaxed);
+        LOCAL_OFFSET_IS_SOUND.store(soundness == Soundness::Sound, Ordering::SeqCst);
     }
 
     /// Obtains the soundness of obtaining the local UTC offset. If it is [`Soundness::Unsound`],
     /// it is allowed to invoke undefined behavior when obtaining the local UTC offset.
     pub fn get_soundness() -> Soundness {
-        match LOCAL_OFFSET_IS_SOUND.load(Ordering::Relaxed) {
+        match LOCAL_OFFSET_IS_SOUND.load(Ordering::SeqCst) {
             false => Soundness::Unsound,
             true => Soundness::Sound,
         }
