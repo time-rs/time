@@ -33,6 +33,13 @@
     clippy::option_if_let_else, // suggests terrible code
 )]
 
+macro_rules! bug {
+    () => { compile_error!("provide an error message to help fix a possible bug") };
+    ($descr:literal $($rest:tt)?) => {
+        unreachable!(concat!("internal error: ", $descr) $($rest)?)
+    }
+}
+
 #[macro_use]
 mod quote;
 #[cfg(any(feature = "formatting", feature = "parsing"))]
@@ -165,7 +172,7 @@ pub fn format_description(input: TokenStream) -> TokenStream {
             Some(VersionOrModuleName::Version(version)) => Some(version),
             None => None,
             // This branch should never occur here, as `false` is the provided as a const parameter.
-            Some(VersionOrModuleName::ModuleName(_)) => unreachable!(),
+            Some(VersionOrModuleName::ModuleName(_)) => bug!("branch should never occur"),
         };
         let (span, string) = helpers::get_string_literal(input)?;
         let items = format_description::parse_with_version(version, &string, span)?;

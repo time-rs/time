@@ -750,7 +750,7 @@ impl<const CONFIG: EncodedConfig> sealed::Sealed for Iso8601<CONFIG> {
         if !date_is_present && !time_is_present && !offset_is_present {
             match first_error {
                 Some(err) => return Err(err),
-                None => unreachable!("an error should be present if no components were parsed"),
+                None => bug!("an error should be present if no components were parsed"),
             }
         }
 

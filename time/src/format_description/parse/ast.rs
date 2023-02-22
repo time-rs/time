@@ -129,7 +129,7 @@ fn parse_inner<
 
         Some(match next {
             lexer::Token::Literal(Spanned { value: _, span: _ }) if NESTED => {
-                unreachable!("internal error: literal should not be present in nested description")
+                bug!("literal should not be present in nested description")
             }
             lexer::Token::Literal(value) => Ok(Item::Literal(value)),
             lexer::Token::Bracket {
@@ -153,26 +153,21 @@ fn parse_inner<
                 kind: lexer::BracketKind::Closing,
                 location: _,
             } if NESTED => {
-                unreachable!(
-                    "internal error: closing bracket should be caught by the `if` statement"
-                )
+                bug!("closing bracket should be caught by the `if` statement")
             }
             lexer::Token::Bracket {
                 kind: lexer::BracketKind::Closing,
                 location: _,
             } => {
-                unreachable!(
-                    "internal error: closing bracket should have been consumed by \
-                     `parse_component`"
-                )
+                bug!("closing bracket should have been consumed by `parse_component`")
             }
             lexer::Token::ComponentPart {
                 kind: _, // whitespace is significant in nested components
                 value,
             } if NESTED => Ok(Item::Literal(value)),
-            lexer::Token::ComponentPart { kind: _, value: _ } => unreachable!(
-                "internal error: component part should have been consumed by `parse_component`"
-            ),
+            lexer::Token::ComponentPart { kind: _, value: _ } => {
+                bug!("component part should have been consumed by `parse_component`")
+            }
         })
     })
 }

@@ -107,7 +107,7 @@ impl<'a> From<Box<[Item<'a>]>> for crate::format_description::public::OwnedForma
             if let Ok([item]) = <[_; 1]>::try_from(items) {
                 item.into()
             } else {
-                unreachable!("the length was just checked to be 1")
+                bug!("the length was just checked to be 1")
             }
         } else {
             Self::Compound(items.into_iter().map(Self::from).collect())
@@ -181,9 +181,7 @@ macro_rules! component_definition {
                                     then {
                                         match $field {
                                             Some(value) => value.into(),
-                                            None => unreachable!(
-                                                "internal error: required modifier was not set"
-                                            ),
+                                            None => bug!("required modifier was not set"),
                                         }
                                     } else {
                                         $field.unwrap_or_default().into()
