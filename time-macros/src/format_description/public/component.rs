@@ -18,6 +18,7 @@ pub(crate) enum Component {
     OffsetHour(modifier::OffsetHour),
     OffsetMinute(modifier::OffsetMinute),
     OffsetSecond(modifier::OffsetSecond),
+    Ignore(modifier::Ignore),
 }
 
 impl ToTokenStream for Component {
@@ -50,6 +51,7 @@ impl ToTokenStream for Component {
             OffsetHour
             OffsetMinute
             OffsetSecond
+            Ignore
         ];
         let component = Ident::new(component, Span::mixed_site());
 

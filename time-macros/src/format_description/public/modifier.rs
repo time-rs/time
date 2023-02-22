@@ -1,3 +1,5 @@
+use std::num::NonZeroU16;
+
 use proc_macro::{Ident, Span, TokenStream, TokenTree};
 
 use crate::to_tokens::{ToTokenStream, ToTokenTree};
@@ -213,5 +215,17 @@ to_tokens! {
         Space,
         Zero,
         None,
+    }
+}
+
+pub(crate) struct Ignore {
+    pub(crate) count: NonZeroU16,
+}
+
+impl ToTokenTree for Ignore {
+    fn into_token_tree(self) -> TokenTree {
+        quote_group! {{
+            ::time::format_description::modifier::Ignore::count(#(self.count))
+        }}
     }
 }

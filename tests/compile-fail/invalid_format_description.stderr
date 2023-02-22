@@ -215,3 +215,15 @@ error: expected opening bracket
    |
 42 |     let _ = format_description!(version = 2, "[optional ");
    |                                              ^^^^^^^^^^^^
+
+error: missing required modifier
+  --> ../tests/compile-fail/invalid_format_description.rs:44:33
+   |
+44 |     let _ = format_description!("[ignore]");
+   |                                 ^^^^^^^^^^
+
+error: invalid modifier value
+  --> ../tests/compile-fail/invalid_format_description.rs:45:33
+   |
+45 |     let _ = format_description!("[ignore count:0]");
+   |                                 ^^^^^^^^^^^^^^^^^^
