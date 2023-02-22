@@ -144,24 +144,37 @@ fn neg() {
     assert_eq!(-offset!(-23:59:59), offset!(+23:59:59));
 }
 
+#[cfg_attr(miri, ignore)]
 #[test]
 fn local_offset_at() {
-    #[cfg(not(target_family = "unix"))]
-    assert!(UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH).is_ok());
+    use time::util::local_offset::*;
 
-    #[cfg(target_family = "unix")]
-    let _ = UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH);
+    let _guard = crate::SOUNDNESS_LOCK.lock().unwrap();
+
+    // Safety: Technically not sound. However, this is a test, and it's highly improbable that we
+    // will run into issues with setting an environment variable a few times.
+    unsafe { set_soundness(Soundness::Unsound) };
+    assert!(UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH).is_ok());
+    // Safety: We're setting it back to sound.
+    unsafe { set_soundness(Soundness::Sound) };
 }
 
+#[cfg_attr(miri, ignore)]
 #[test]
 fn current_local_offset() {
-    #[cfg(not(target_family = "unix"))]
-    assert!(UtcOffset::current_local_offset().is_ok());
+    use time::util::local_offset::*;
 
-    #[cfg(target_family = "unix")]
-    let _ = UtcOffset::current_local_offset();
+    let _guard = crate::SOUNDNESS_LOCK.lock().unwrap();
+
+    // Safety: Technically not sound. However, this is a test, and it's highly improbable that we
+    // will run into issues with setting an environment variable a few times.
+    unsafe { set_soundness(Soundness::Unsound) };
+    assert!(UtcOffset::current_local_offset().is_ok());
+    // Safety: We're setting it back to sound.
+    unsafe { set_soundness(Soundness::Sound) };
 }
 
+// Note: This behavior is not guaranteed and will hopefully be changed in the future.
 #[test]
 #[cfg_attr(
     any(
