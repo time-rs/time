@@ -40,4 +40,7 @@ fn main() {
     let _ = format_description!(version = 2, "[optional [");
     let _ = format_description!(version = 2, "[optional [[year");
     let _ = format_description!(version = 2, "[optional ");
+
+    let _ = format_description!("[ignore]");
+    let _ = format_description!("[ignore count:0]");
 }

@@ -731,3 +731,10 @@ fn first() -> time::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn ignore() -> time::Result<()> {
+    assert_eq!(Time::MIDNIGHT.format(fd!("[ignore count:2]"))?, "");
+
+    Ok(())
+}
