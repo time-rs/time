@@ -795,6 +795,12 @@ fn error_display() {
             .to_string(),
         "optional item is not supported in runtime-parsed format descriptions at byte index 0"
     );
+    assert_eq!(
+        format_description::parse("[ignore]")
+            .unwrap_err()
+            .to_string(),
+        "missing required modifier `count` for component at byte index 1"
+    );
 }
 
 #[test]
