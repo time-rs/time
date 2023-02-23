@@ -2,7 +2,7 @@
 
 use core::ops::Deref;
 
-use crate::date_time::MaybeOffset;
+use crate::date_time::{maybe_offset_from_offset, MaybeOffset};
 use crate::error::TryFromParsed;
 use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
@@ -451,7 +451,7 @@ impl sealed::Sealed for Rfc2822 {
             Ok(DateTime {
                 date,
                 time,
-                offset: O::from_offset(offset),
+                offset: maybe_offset_from_offset::<O>(offset),
             })
         })()
         .map_err(TryFromParsed::ComponentRange)?;
@@ -681,7 +681,7 @@ impl sealed::Sealed for Rfc3339 {
             .map_err(TryFromParsed::ComponentRange)?;
         let time = Time::from_hms_nano(hour, minute, second, nanosecond)
             .map_err(TryFromParsed::ComponentRange)?;
-        let offset = O::from_offset(offset);
+        let offset = maybe_offset_from_offset::<O>(offset);
         let dt = DateTime { date, time, offset };
 
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {

@@ -305,7 +305,7 @@ macro_rules! expect_opt {
 macro_rules! bug {
     () => { compile_error!("provide an error message to help fix a possible bug") };
     ($descr:literal $($rest:tt)?) => {
-        unreachable!(concat!("internal error: ", $descr) $($rest)?)
+        panic!(concat!("internal error: ", $descr) $($rest)?)
     }
 }
 // endregion macros
