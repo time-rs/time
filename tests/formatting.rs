@@ -738,3 +738,32 @@ fn ignore() -> time::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn unix_timestamp() -> time::Result<()> {
+    let dt = datetime!(2009-02-13 23:31:30.123456789 UTC);
+
+    assert_eq!(dt.format(&fd!("[unix_timestamp]"))?, "1234567890");
+    assert_eq!(
+        dt.format(&fd!("[unix_timestamp sign:mandatory]"))?,
+        "+1234567890"
+    );
+    assert_eq!(
+        dt.format(&fd!("[unix_timestamp precision:millisecond]"))?,
+        "1234567890123"
+    );
+    assert_eq!(
+        dt.format(&fd!("[unix_timestamp precision:microsecond]"))?,
+        "1234567890123456"
+    );
+    assert_eq!(
+        dt.format(&fd!("[unix_timestamp precision:nanosecond]"))?,
+        "1234567890123456789"
+    );
+    assert_eq!(
+        datetime!(1969-12-31 23:59:59 UTC).format(&fd!("[unix_timestamp]"))?,
+        "-1"
+    );
+
+    Ok(())
+}

@@ -251,6 +251,10 @@ component_definition! {
         Subsecond = "subsecond" {
             digits = "digits": Option<SubsecondDigits> => digits,
         },
+        UnixTimestamp = "unix_timestamp" {
+            precision = "precision": Option<UnixTimestampPrecision> => precision,
+            sign_behavior = "sign": Option<SignBehavior> => sign_is_mandatory,
+        },
         Weekday = "weekday" {
             repr = "repr": Option<WeekdayRepr> => repr,
             one_indexed = "one_indexed": Option<WeekdayOneIndexed> => one_indexed,
@@ -379,6 +383,14 @@ modifier! {
         Nine = b"9",
         #[default]
         OneOrMore = b"1+",
+    }
+
+    enum UnixTimestampPrecision {
+        #[default]
+        Second = b"second",
+        Millisecond = b"millisecond",
+        Microsecond = b"microsecond",
+        Nanosecond = b"nanosecond",
     }
 
     enum WeekNumberRepr {

@@ -36,4 +36,6 @@ pub enum Component {
     OffsetSecond(modifier::OffsetSecond),
     /// A number of bytes to ignore when parsing. This has no effect on formatting.
     Ignore(modifier::Ignore),
+    /// A Unix timestamp.
+    UnixTimestamp(modifier::UnixTimestamp),
 }

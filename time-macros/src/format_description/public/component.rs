@@ -45,4 +45,5 @@ declare_component! {
     OffsetMinute
     OffsetSecond
     Ignore
+    UnixTimestamp
 }

@@ -1,6 +1,6 @@
-use time::format_description::modifier::{
-    MonthRepr, Padding, WeekNumberRepr, WeekdayRepr, YearRepr,
-};
+use core::num::NonZeroU16;
+
+use time::format_description::modifier::*;
 use time::format_description::{Component, FormatItem};
 use time::macros::{date, format_description, time};
 use time::{Date, Time};
@@ -293,6 +293,21 @@ fn format_description_coverage() {
     assert_eq!(
         format_description!("[[ "),
         &[FormatItem::Literal(b"["), FormatItem::Literal(b" ")]
+    );
+    assert_eq!(
+        format_description!("[ignore count:2]"),
+        &[FormatItem::Component(Component::Ignore(Ignore::count(
+            NonZeroU16::new(2).unwrap()
+        )))]
+    );
+    assert_eq!(
+        format_description!("[unix_timestamp precision:nanosecond sign:mandatory]"),
+        &[FormatItem::Component(Component::UnixTimestamp(modifier!(
+            UnixTimestamp {
+                precision: UnixTimestampPrecision::Nanosecond,
+                sign_is_mandatory: true,
+            }
+        )))]
     );
 }
 

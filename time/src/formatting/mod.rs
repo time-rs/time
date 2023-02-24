@@ -8,7 +8,7 @@ use std::io;
 
 pub use self::formattable::Formattable;
 use crate::format_description::{modifier, Component};
-use crate::{error, Date, Time, UtcOffset};
+use crate::{error, Date, OffsetDateTime, Time, UtcOffset};
 
 #[allow(clippy::missing_docs_in_private_items)]
 const MONTH_NAMES: [&[u8]; 12] = [
@@ -175,7 +175,7 @@ pub(crate) fn format_number<const WIDTH: u8>(
     match padding {
         modifier::Padding::Space => format_number_pad_space::<WIDTH>(output, value),
         modifier::Padding::Zero => format_number_pad_zero::<WIDTH>(output, value),
-        modifier::Padding::None => write(output, itoa::Buffer::new().format(value).as_bytes()),
+        modifier::Padding::None => format_number_pad_none(output, value),
     }
 }
 
@@ -209,6 +209,16 @@ pub(crate) fn format_number_pad_zero<const WIDTH: u8>(
     Ok(bytes)
 }
 
+/// Format a number with no padding.
+///
+/// If the sign is mandatory, the sign must be written by the caller.
+pub(crate) fn format_number_pad_none(
+    output: &mut impl io::Write,
+    value: impl itoa::Integer + Copy,
+) -> Result<usize, io::Error> {
+    write(output, itoa::Buffer::new().format(value).as_bytes())
+}
+
 /// Format the provided component into the designated output. An `Err` will be returned if the
 /// component requires information that it does not provide or if the value cannot be output to the
 /// stream.
@@ -236,6 +246,9 @@ pub(crate) fn format_component(
         (OffsetMinute(modifier), .., Some(offset)) => fmt_offset_minute(output, offset, modifier)?,
         (OffsetSecond(modifier), .., Some(offset)) => fmt_offset_second(output, offset, modifier)?,
         (Ignore(_), ..) => 0,
+        (UnixTimestamp(modifier), Some(date), Some(time), Some(offset)) => {
+            fmt_unix_timestamp(output, date, time, offset, modifier)?
+        }
         _ => return Err(error::Format::InsufficientTypeInformation),
     })
 }
@@ -489,3 +502,43 @@ fn fmt_offset_second(
     format_number::<2>(output, offset.seconds_past_minute().unsigned_abs(), padding)
 }
 // endregion offset formatters
+
+/// Format the Unix timestamp into the designated output.
+fn fmt_unix_timestamp(
+    output: &mut impl io::Write,
+    date: Date,
+    time: Time,
+    offset: UtcOffset,
+    modifier::UnixTimestamp {
+        precision,
+        sign_is_mandatory,
+    }: modifier::UnixTimestamp,
+) -> Result<usize, io::Error> {
+    let date_time = date
+        .with_time(time)
+        .assume_offset(offset)
+        .to_offset(UtcOffset::UTC);
+
+    if date_time < OffsetDateTime::UNIX_EPOCH {
+        write(output, b"-")?;
+    } else if sign_is_mandatory {
+        write(output, b"+")?;
+    }
+
+    match precision {
+        modifier::UnixTimestampPrecision::Second => {
+            format_number_pad_none(output, date_time.unix_timestamp().unsigned_abs())
+        }
+        modifier::UnixTimestampPrecision::Millisecond => format_number_pad_none(
+            output,
+            (date_time.unix_timestamp_nanos() / 1_000_000).unsigned_abs(),
+        ),
+        modifier::UnixTimestampPrecision::Microsecond => format_number_pad_none(
+            output,
+            (date_time.unix_timestamp_nanos() / 1_000).unsigned_abs(),
+        ),
+        modifier::UnixTimestampPrecision::Nanosecond => {
+            format_number_pad_none(output, date_time.unix_timestamp_nanos().unsigned_abs())
+        }
+    }
+}

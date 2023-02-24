@@ -70,7 +70,7 @@ fn alignment() {
     assert_alignment!(iso8601::FormattedComponents, 1);
     assert_alignment!(iso8601::OffsetPrecision, 1);
     assert_alignment!(iso8601::TimePrecision, 1);
-    assert_alignment!(Parsed, 4);
+    assert_alignment!(Parsed, 8);
     assert_alignment!(Month, 1);
     assert_alignment!(Weekday, 1);
     assert_alignment!(Error, 8);
@@ -147,7 +147,7 @@ fn size() {
     assert_size!(iso8601::FormattedComponents, 1, 1);
     assert_size!(iso8601::OffsetPrecision, 1, 1);
     assert_size!(iso8601::TimePrecision, 2, 2);
-    assert_size!(Parsed, 32, 32);
+    assert_size!(Parsed, 56, 56);
     assert_size!(Month, 1, 1);
     assert_size!(Weekday, 1, 1);
     // assert_size!(Error, 56, 56);

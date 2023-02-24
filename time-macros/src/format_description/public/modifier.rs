@@ -229,3 +229,19 @@ impl ToTokenTree for Ignore {
         }}
     }
 }
+
+to_tokens! {
+    pub(crate) enum UnixTimestampPrecision {
+        Second,
+        Millisecond,
+        Microsecond,
+        Nanosecond,
+    }
+}
+
+to_tokens! {
+    pub(crate) struct UnixTimestamp {
+        pub(crate) precision: UnixTimestampPrecision,
+        pub(crate) sign_is_mandatory: bool,
+    }
+}
