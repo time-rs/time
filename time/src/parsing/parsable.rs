@@ -434,7 +434,7 @@ impl sealed::Sealed for Rfc2822 {
         }
 
         let mut nanosecond = 0;
-        let leap_second_input = if !O::HAS_OFFSET.as_bool() {
+        let leap_second_input = if !O::HAS_LOGICAL_OFFSET {
             false
         } else if second == 60 {
             second = 59;

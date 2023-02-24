@@ -8,6 +8,7 @@
 use core::cmp::Ordering;
 use core::fmt;
 use core::hash::{Hash, Hasher};
+use core::mem::size_of;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
@@ -33,32 +34,16 @@ use sealed::*;
 mod sealed {
     use super::*;
 
+    /// A type that is guaranteed to be either `()` or [`UtcOffset`].
+    ///
+    /// **Do not** add any additional implementations of this trait.
     #[allow(unreachable_pub)] // intentional
     pub trait MaybeOffsetType {}
     impl MaybeOffsetType for () {}
     impl MaybeOffsetType for UtcOffset {}
 
-    #[allow(missing_debug_implementations)] // never stored as a field
-    #[allow(missing_copy_implementations)] // only used in const contexts
-    pub struct UnsafeBool(bool);
-    impl UnsafeBool {
-        // Skip code coverage because this is only used in const contexts. As such LLVM thinks it is
-        // never called.
-        #[cfg_attr(coverage_nightly, no_coverage)]
-        pub(super) const unsafe fn new(value: bool) -> Self {
-            Self(value)
-        }
-
-        // TODO When const trait impls are stabilized, change this to `impl const Deref for
-        // UnsafeBool`.
-        #[allow(clippy::wrong_self_convention)] // only used in const contexts
-        pub(crate) const fn as_bool(self) -> bool {
-            self.0
-        }
-    }
-
-    pub trait MaybeOffset {
-        // Statically restrict the type to be `()` and `UtcOffset`.
+    pub trait MaybeOffset: Sized {
+        /// The offset type as it is stored in memory.
         #[cfg(feature = "quickcheck")]
         type MemoryOffsetType: Copy + MaybeOffsetType + quickcheck::Arbitrary;
         #[cfg(not(feature = "quickcheck"))]
@@ -73,10 +58,17 @@ mod sealed {
         /// Required to be `Self`. Used for bound equality.
         type Self_;
 
-        // True if and only if `Offset` is `UtcOffset`.
-        // Note that an incorrect value here will cause undefined behavior inside
-        // `maybe_offset_as_offset`.
-        const HAS_OFFSET: UnsafeBool;
+        /// True if and only if `Self::LogicalOffsetType` is `UtcOffset`.
+        const HAS_LOGICAL_OFFSET: bool =
+            size_of::<Self::LogicalOffsetType>() == size_of::<UtcOffset>();
+        /// True if and only if `Self::MemoryOffsetType` is `UtcOffset`.
+        const HAS_MEMORY_OFFSET: bool =
+            size_of::<Self::MemoryOffsetType>() == size_of::<UtcOffset>();
+
+        /// `Some` if and only if the logical UTC offset is statically known.
+        // TODO(jhpratt) When const trait impls are stable, this can be removed in favor of
+        // `.as_offset_opt()`.
+        const STATIC_OFFSET: Option<UtcOffset>;
 
         #[cfg(feature = "parsing")]
         fn try_from_parsed(parsed: Parsed) -> Result<Self::MemoryOffsetType, error::TryFromParsed>;
@@ -123,9 +115,7 @@ impl MaybeOffset for offset_kind::None {
 
     type Self_ = Self;
 
-    #[allow(clippy::undocumented_unsafe_blocks)] // false positive
-    // Safety: `()` is not `UtcOffset`.
-    const HAS_OFFSET: UnsafeBool = unsafe { UnsafeBool::new(false) };
+    const STATIC_OFFSET: Option<UtcOffset> = None;
 
     #[cfg(feature = "parsing")]
     fn try_from_parsed(_: Parsed) -> Result<(), error::TryFromParsed> {
@@ -139,9 +129,7 @@ impl MaybeOffset for offset_kind::Fixed {
 
     type Self_ = Self;
 
-    #[allow(clippy::undocumented_unsafe_blocks)] // false positive
-    // Safety: `UtcOffset` is the offset type.
-    const HAS_OFFSET: UnsafeBool = unsafe { UnsafeBool::new(true) };
+    const STATIC_OFFSET: Option<UtcOffset> = None;
 
     #[cfg(feature = "parsing")]
     fn try_from_parsed(parsed: Parsed) -> Result<UtcOffset, error::TryFromParsed> {
@@ -155,7 +143,9 @@ impl MaybeOffset for offset_kind::Fixed {
 const fn maybe_offset_as_offset_opt<O: MaybeOffset>(
     offset: O::MemoryOffsetType,
 ) -> Option<UtcOffset> {
-    if O::HAS_OFFSET.as_bool() {
+    if O::STATIC_OFFSET.is_some() {
+        O::STATIC_OFFSET
+    } else if O::HAS_MEMORY_OFFSET {
         union Convert<O: MaybeOffset> {
             input: O::MemoryOffsetType,
             output: UtcOffset,
@@ -174,7 +164,7 @@ const fn maybe_offset_as_offset<O: MaybeOffset + HasLogicalOffset>(
 ) -> UtcOffset {
     match maybe_offset_as_offset_opt::<O>(offset) {
         Some(offset) => offset,
-        None => bug!("`MaybeOffset::as_offset` called on a type without an offset"),
+        None => bug!("`MaybeOffset::as_offset` called on a type without an offset in memory"),
     }
 }
 
@@ -806,7 +796,7 @@ impl<O: MaybeOffset> DateTime<O> {
     #[cfg(feature = "parsing")]
     pub(crate) const fn is_valid_leap_second_stand_in(self) -> bool {
         // Leap seconds aren't allowed if there is no offset.
-        if !O::HAS_OFFSET.as_bool() {
+        if !O::HAS_LOGICAL_OFFSET {
             return false;
         }
 
@@ -890,7 +880,7 @@ impl<O: MaybeOffset> fmt::Display for DateTime<O> {
 // region: trait impls
 impl<O: MaybeOffset> PartialEq for DateTime<O> {
     fn eq(&self, rhs: &Self) -> bool {
-        if O::HAS_OFFSET.as_bool() {
+        if O::HAS_LOGICAL_OFFSET {
             self.to_offset_raw(UtcOffset::UTC) == rhs.to_offset_raw(UtcOffset::UTC)
         } else {
             (self.date, self.time) == (rhs.date, rhs.time)
@@ -908,7 +898,7 @@ impl<O: MaybeOffset> PartialOrd for DateTime<O> {
 
 impl<O: MaybeOffset> Ord for DateTime<O> {
     fn cmp(&self, rhs: &Self) -> Ordering {
-        if O::HAS_OFFSET.as_bool() {
+        if O::HAS_LOGICAL_OFFSET {
             self.to_offset_raw(UtcOffset::UTC)
                 .cmp(&rhs.to_offset_raw(UtcOffset::UTC))
         } else {
@@ -919,7 +909,7 @@ impl<O: MaybeOffset> Ord for DateTime<O> {
 
 impl<O: MaybeOffset> Hash for DateTime<O> {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
-        if O::HAS_OFFSET.as_bool() {
+        if O::HAS_LOGICAL_OFFSET {
             self.to_offset_raw(UtcOffset::UTC).hash(hasher);
         } else {
             (self.date, self.time).hash(hasher);
