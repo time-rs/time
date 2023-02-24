@@ -186,6 +186,8 @@ fn current_local_offset() {
     ignore
 )]
 fn local_offset_error_when_multithreaded() {
+    let _guard = crate::SOUNDNESS_LOCK.lock().unwrap();
+
     std::thread::spawn(|| {
         assert!(UtcOffset::current_local_offset().is_err());
     })
