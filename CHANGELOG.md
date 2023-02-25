@@ -20,7 +20,8 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `[ignore]` component in format descriptions. A `count` modifier is required, indicating the number
   of bytes to ignore when parsing.
 - `[unix_timestamp]` component in format descriptions. This is currently only usable with
-  `OffsetDateTime`. Users can choose between seconds, milliseconds, microseconds, and nanoseconds, and whether the sign is mandatory or optional.
+  `OffsetDateTime`. Users can choose between seconds, milliseconds, microseconds, and nanoseconds,
+  and whether the sign is mandatory or optional.
 
 ### Fixed
 
@@ -855,7 +856,8 @@ likely to be chosen than a day in a non-leap year.
 ### Added
 
 - Support for formatting and parsing `OffsetDateTime`s as RFC3339.
-- Lazy formatting. To avoid exposing implementation details, we're just returning `impl Display`, rather than a concrete type.
+- Lazy formatting. To avoid exposing implementation details, we're just returning `impl Display`,
+  rather than a concrete type.
 - Add support for Illumos.
 
 ### Fixed
