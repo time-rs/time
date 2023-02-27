@@ -1,3 +1,7 @@
+//! A safe date and time library for Rust.
+//!
+//! [The book] is the main documentation for `time`.
+//!
 //! # Feature flags
 //!
 //! This crate exposes a number of features. These can be enabled or disabled as shown
