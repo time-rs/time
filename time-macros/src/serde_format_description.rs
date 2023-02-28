@@ -4,11 +4,9 @@ pub(crate) fn build(
     mod_name: Ident,
     ty: TokenTree,
     format: TokenStream,
-    raw_format_string: Option<String>,
+    format_description_display: String,
 ) -> TokenStream {
     let ty_s = &*ty.to_string();
-
-    let format_description_display = raw_format_string.unwrap_or_else(|| format.to_string());
 
     let visitor = if cfg!(feature = "parsing") {
         quote! {
