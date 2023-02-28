@@ -238,7 +238,10 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
                 let items = format_description::parse_with_version(version, &format_string, span)?;
                 let items: TokenStream =
                     items.into_iter().map(|item| quote! { #S(item), }).collect();
-                let items = quote! { &[#S(items)] };
+                let items = quote! {
+                    const ITEMS: &[::time::format_description::FormatItem<'_>] = &[#S(items)];
+                    ITEMS
+                };
 
                 (
                     items,

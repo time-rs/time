@@ -34,7 +34,7 @@ pub(crate) fn build(
                     self,
                     value: &str
                 ) -> Result<__TimeSerdeType, E> {
-                    __TimeSerdeType::parse(value, &DESCRIPTION).map_err(E::custom)
+                    __TimeSerdeType::parse(value, &description()).map_err(E::custom)
                 }
             }
 
@@ -81,7 +81,7 @@ pub(crate) fn build(
             ) -> Result<S::Ok, S::Error> {
                 use ::serde::Serialize;
                 datetime
-                    .format(&DESCRIPTION)
+                    .format(&description())
                     .map_err(::time::error::Format::into_invalid_serde_value::<S>)?
                     .serialize(serializer)
             }
@@ -110,7 +110,7 @@ pub(crate) fn build(
                 serializer: S,
             ) -> Result<S::Ok, S::Error> {
                 use ::serde::Serialize;
-                option.map(|datetime| datetime.format(&DESCRIPTION))
+                option.map(|datetime| datetime.format(&description()))
                     .transpose()
                     .map_err(::time::error::Format::into_invalid_serde_value::<S>)?
                     .serialize(serializer)
@@ -141,18 +141,29 @@ pub(crate) fn build(
         quote!()
     };
 
+    let fd_traits = match (cfg!(feature = "formatting"), cfg!(feature = "parsing")) {
+        (false, false) => {
+            bug!("serde_format_description::build called without formatting or parsing enabled")
+        }
+        (false, true) => quote! { ::time::parsing::Parsable },
+        (true, false) => quote! { ::time::formatting::Formattable },
+        (true, true) => quote! { ::time::formatting::Formattable + ::time::parsing::Parsable },
+    };
+
     quote! {
         mod #(mod_name) {
             use ::time::#(ty) as __TimeSerdeType;
 
-            const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = #S(format);
+            const fn description() -> impl #S(fd_traits) {
+                #S(format)
+            }
 
             #S(visitor)
             #S(serialize_primary)
             #S(deserialize_primary)
 
             pub(super) mod option {
-                use super::{DESCRIPTION, __TimeSerdeType};
+                use super::{description, __TimeSerdeType};
                 #S(deserialize_option_imports)
 
                 #S(serialize_option)
