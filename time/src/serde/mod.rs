@@ -39,18 +39,18 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 #[cfg_attr(
     all(feature = "formatting", feature = "parsing"),
     doc = "[`Formattable`](crate::formatting::Formattable) and \
-           [`Parsable`](crate::parsing::Parsable)"
+           [`Parsable`](crate::parsing::Parsable)."
 )]
 #[cfg_attr(
     all(feature = "formatting", not(feature = "parsing")),
-    doc = "[`Formattable`](crate::formatting::Formattable)"
+    doc = "[`Formattable`](crate::formatting::Formattable)."
 )]
 #[cfg_attr(
     all(not(feature = "formatting"), feature = "parsing"),
-    doc = "[`Parsable`](crate::parsing::Parsable)"
+    doc = "[`Parsable`](crate::parsing::Parsable)."
 )]
-/// . This puts a module named `mod_name` in the current scope that can be used to format
-/// `Date` structs. A submodule (`mod_name::option`) is also generated for `Option<Date>`. Both
+/// This puts a module named `mod_name` in the current scope that can be used to format `Date`
+/// structs. A submodule (`mod_name::option`) is also generated for `Option<Date>`. Both
 /// modules are only visible in the current scope.
 ///
 /// The returned `Option` will contain a deserialized value if present and `None` if the field
@@ -101,7 +101,6 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// }
 /// ```
 /// 
-/// \
 /// Define the format separately to be used in multiple places:
 /// ```rust,no_run
 /// # use time::OffsetDateTime;
@@ -120,12 +119,12 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// use time::serde;
 /// use time::format_description::FormatItem;
 ///
-/// const DATE_TIME_FOMRAT: &[FormatItem<'_>] = time::macros::format_description!(
+/// const DATE_TIME_FORMAT: &[FormatItem<'_>] = time::macros::format_description!(
 ///     "hour=[hour], minute=[minute]"
 /// );
 ///
 /// // Makes a module `mod my_format { ... }`.
-/// serde::format_description!(my_format, OffsetDateTime, DATE_TIME_FOMRAT);
+/// serde::format_description!(my_format, OffsetDateTime, DATE_TIME_FORMAT);
 ///
 /// # #[allow(dead_code)]
 #[cfg_attr(
@@ -149,11 +148,10 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 ///
 /// fn main() {
 ///     # #[allow(unused_variables)]
-///     let str_ts = OffsetDateTime::now_utc().format(DATE_TIME_FOMRAT).unwrap();
+///     let str_ts = OffsetDateTime::now_utc().format(DATE_TIME_FORMAT).unwrap();
 /// }
 /// ```
 /// 
-/// \
 /// Customize the configuration of ISO 8601 formatting/parsing:
 /// ```rust,no_run
 /// # use time::OffsetDateTime;
