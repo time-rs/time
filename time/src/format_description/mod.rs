@@ -5,7 +5,7 @@
 //! [`format_description!`](crate::macros::format_description) macro or a function listed below.
 //!
 //! For examples, see the implementors of [Formattable](crate::formatting::Formattable),
-//! e.g. [well_known::Rfc3339].
+//! e.g. [`well_known::Rfc3339`].
 
 mod borrowed_format_item;
 mod component;
