@@ -11,7 +11,12 @@ use crate::formatting::{
 };
 use crate::{error, Date, Time, UtcOffset};
 
-/// A type that can be formatted.
+/// A type that describes a format.
+///
+/// Implementors of [`Formattable`] are [format descriptions](crate::format_description).
+///
+/// [`Date::format`] and [`Time::format`] each use a format description to generate
+/// a String from their data. See the respective methods for usage examples.
 #[cfg_attr(__time_03_docs, doc(notable_trait))]
 pub trait Formattable: sealed::Sealed {}
 impl Formattable for FormatItem<'_> {}
