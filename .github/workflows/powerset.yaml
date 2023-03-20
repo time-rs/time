@@ -7,8 +7,6 @@ env:
     "thumbv7em-none-eabihf"
     ],
     "std_no_offset": [
-    "aarch64-fuchsia",
-    "x86_64-fuchsia"
     ],
     "std_with_offset": [
     "aarch64-unknown-linux-gnu",
