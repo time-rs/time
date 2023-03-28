@@ -32,6 +32,7 @@ pub(crate) const MAX_YEAR: i32 = if cfg!(feature = "large-dates") {
 /// inclusive by enabling the `large-dates` crate feature. Doing so has performance implications
 /// and introduces some ambiguities when parsing.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(bincode, derive(bincode::Encode, bincode::Decode))]
 pub struct Date {
     /// Bitpacked field containing both the year and ordinal.
     // |     xx     | xxxxxxxxxxxxxxxxxxxxx | xxxxxxxxx |

@@ -31,6 +31,7 @@ macros = ["dep:time-macros"]
 parsing = ["time-macros?/parsing"]
 quickcheck = ["dep:quickcheck", "alloc"]
 rand = ["dep:rand"]
+bincode = ["dep:bincode"]
 serde = ["dep:serde", "time-macros?/serde"]
 serde-human-readable = ["serde", "formatting", "parsing"]
 # Deprecated in favor of using the relevant flags directly.
@@ -44,6 +45,7 @@ wasm-bindgen = ["dep:js-sys"]
 itoa = { version = "1.0.1", optional = true }
 quickcheck = { version = "1.0.3", default-features = false, optional = true }
 rand = { version = "0.8.4", optional = true, default-features = false }
+bincode = { version = "2.0.0-rc", default-features = false, optional = true }
 serde = { version = "1.0.126", optional = true, default-features = false }
 time-core = { version = "=0.1.0", path = "../time-core" }
 time-macros = { version = "=0.2.8", path = "../time-macros", optional = true }

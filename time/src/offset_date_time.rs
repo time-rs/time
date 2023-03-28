@@ -21,12 +21,14 @@ use crate::parsing::Parsable;
 use crate::{error, Date, DateTime, Duration, Month, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// The actual type doing all the work.
+#[cfg_attr(bincode, derive(bincode::Encode, bincode::Decode))]
 type Inner = DateTime<offset_kind::Fixed>;
 
 /// A [`PrimitiveDateTime`] with a [`UtcOffset`].
 ///
 /// All comparisons are performed using the UTC time.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(bincode, derive(bincode::Encode, bincode::Decode))]
 pub struct OffsetDateTime(pub(crate) Inner);
 
 impl OffsetDateTime {

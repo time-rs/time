@@ -17,6 +17,7 @@ use crate::{error, Duration};
 /// perform niche value optimization.
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(bincode, derive(bincode::Encode, bincode::Decode))]
 pub(crate) enum Padding {
     #[allow(clippy::missing_docs_in_private_items)]
     Optimize,
@@ -29,6 +30,7 @@ pub(crate) enum Padding {
 ///
 /// When comparing two `Time`s, they are assumed to be in the same calendar date.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[cfg_attr(bincode, derive(bincode::Encode, bincode::Decode))]
 pub struct Time {
     #[allow(clippy::missing_docs_in_private_items)]
     hour: u8,

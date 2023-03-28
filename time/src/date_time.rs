@@ -25,7 +25,9 @@ use crate::{error, util, Date, Duration, Month, Time, UtcOffset, Weekday};
 
 #[allow(missing_debug_implementations, missing_copy_implementations)]
 pub(crate) mod offset_kind {
+    #[cfg_attr(bincode, derive(bincode::Encode, bincode::Decode))]
     pub enum None {}
+    #[cfg_attr(bincode, derive(bincode::Encode, bincode::Decode))]
     pub enum Fixed {}
 }
 
@@ -190,6 +192,7 @@ pub(crate) const fn maybe_offset_from_offset<O: MaybeOffset>(
 /// The Julian day of the Unix epoch.
 const UNIX_EPOCH_JULIAN_DAY: i32 = Date::__from_ordinal_date_unchecked(1970, 1).to_julian_day();
 
+#[cfg_attr(bincode, derive(bincode::Encode, bincode::Decode))]
 pub struct DateTime<O: MaybeOffset> {
     pub(crate) date: Date,
     pub(crate) time: Time,
