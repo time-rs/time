@@ -38,6 +38,7 @@ use alloc::boxed::Box;
 
 use quickcheck::{empty_shrinker, single_shrinker, Arbitrary, Gen};
 
+use crate::convert::*;
 use crate::date_time::{DateTime, MaybeOffset};
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
@@ -99,10 +100,10 @@ impl Arbitrary for Duration {
 impl Arbitrary for Time {
     fn arbitrary(g: &mut Gen) -> Self {
         Self::__from_hms_nanos_unchecked(
-            arbitrary_between!(u8; g, 0, 23),
-            arbitrary_between!(u8; g, 0, 59),
-            arbitrary_between!(u8; g, 0, 59),
-            arbitrary_between!(u32; g, 0, 999_999_999),
+            arbitrary_between!(u8; g, 0, Hour.per(Day) - 1),
+            arbitrary_between!(u8; g, 0, Minute.per(Hour) - 1),
+            arbitrary_between!(u8; g, 0, Second.per(Minute) - 1),
+            arbitrary_between!(u32; g, 0, Nanosecond.per(Second) - 1),
         )
     }
 
@@ -129,11 +130,12 @@ impl Arbitrary for PrimitiveDateTime {
 
 impl Arbitrary for UtcOffset {
     fn arbitrary(g: &mut Gen) -> Self {
-        let seconds = arbitrary_between!(i32; g, -86_399, 86_399);
+        let seconds =
+            arbitrary_between!(i32; g, -(Second.per(Day) as i32 - 1), Second.per(Day) as i32 - 1);
         Self::__from_hms_unchecked(
-            (seconds / 3600) as _,
-            ((seconds % 3600) / 60) as _,
-            (seconds % 60) as _,
+            (seconds / Second.per(Hour) as i32) as _,
+            ((seconds % Second.per(Hour) as i32) / Minute.per(Hour) as i32) as _,
+            (seconds % Second.per(Minute) as i32) as _,
         )
     }
 

@@ -7,6 +7,7 @@ use core::num::NonZeroU8;
 use std::io;
 
 pub use self::formattable::Formattable;
+use crate::convert::*;
 use crate::format_description::{modifier, Component};
 use crate::{error, Date, OffsetDateTime, Time, UtcOffset};
 
@@ -531,11 +532,11 @@ fn fmt_unix_timestamp(
         }
         modifier::UnixTimestampPrecision::Millisecond => format_number_pad_none(
             output,
-            (date_time.unix_timestamp_nanos() / 1_000_000).unsigned_abs(),
+            (date_time.unix_timestamp_nanos() / Nanosecond.per(Millisecond) as i128).unsigned_abs(),
         ),
         modifier::UnixTimestampPrecision::Microsecond => format_number_pad_none(
             output,
-            (date_time.unix_timestamp_nanos() / 1_000).unsigned_abs(),
+            (date_time.unix_timestamp_nanos() / Nanosecond.per(Microsecond) as i128).unsigned_abs(),
         ),
         modifier::UnixTimestampPrecision::Nanosecond => {
             format_number_pad_none(output, date_time.unix_timestamp_nanos().unsigned_abs())
