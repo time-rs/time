@@ -826,6 +826,7 @@ impl<O: MaybeOffset> DateTime<O> {
     // `OffsetDateTime` is made an alias of `DateTime<Fixed>`. Consider hiding these methods from
     // documentation in the future.
 
+    #[doc(hidden)]
     #[allow(dead_code)] // while functionally private
     #[deprecated(since = "0.3.18", note = "use `as_hms` instead")]
     pub const fn to_hms(self) -> (u8, u8, u8)
@@ -835,6 +836,7 @@ impl<O: MaybeOffset> DateTime<O> {
         self.time.as_hms()
     }
 
+    #[doc(hidden)]
     #[allow(dead_code)] // while functionally private
     #[deprecated(since = "0.3.18", note = "use `as_hms_milli` instead")]
     pub const fn to_hms_milli(self) -> (u8, u8, u8, u16)
@@ -844,6 +846,7 @@ impl<O: MaybeOffset> DateTime<O> {
         self.time.as_hms_milli()
     }
 
+    #[doc(hidden)]
     #[allow(dead_code)] // while functionally private
     #[deprecated(since = "0.3.18", note = "use `as_hms_micro` instead")]
     pub const fn to_hms_micro(self) -> (u8, u8, u8, u32)
@@ -853,6 +856,7 @@ impl<O: MaybeOffset> DateTime<O> {
         self.time.as_hms_micro()
     }
 
+    #[doc(hidden)]
     #[allow(dead_code)] // while functionally private
     #[deprecated(since = "0.3.18", note = "use `as_hms_nano` instead")]
     pub const fn to_hms_nano(self) -> (u8, u8, u8, u32)

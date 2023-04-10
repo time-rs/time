@@ -423,6 +423,7 @@ impl Parsed {
     }
 
     /// Obtain the absolute value of the offset minute.
+    #[doc(hidden)]
     #[deprecated(since = "0.3.8", note = "use `parsed.offset_minute_signed()` instead")]
     pub const fn offset_minute(&self) -> Option<u8> {
         Some(const_try_opt!(self.offset_minute_signed()).unsigned_abs())
@@ -447,6 +448,7 @@ impl Parsed {
     }
 
     /// Obtain the absolute value of the offset second.
+    #[doc(hidden)]
     #[deprecated(since = "0.3.8", note = "use `parsed.offset_second_signed()` instead")]
     pub const fn offset_second(&self) -> Option<u8> {
         Some(const_try_opt!(self.offset_second_signed()).unsigned_abs())
@@ -523,6 +525,7 @@ impl Parsed {
     }
 
     /// Set the named component.
+    #[doc(hidden)]
     #[deprecated(
         since = "0.3.8",
         note = "use `parsed.set_offset_minute_signed()` instead"
@@ -543,6 +546,7 @@ impl Parsed {
     }
 
     /// Set the named component.
+    #[doc(hidden)]
     #[deprecated(
         since = "0.3.8",
         note = "use `parsed.set_offset_second_signed()` instead"
@@ -615,6 +619,7 @@ impl Parsed {
     }
 
     /// Set the named component and return `self`.
+    #[doc(hidden)]
     #[deprecated(
         since = "0.3.8",
         note = "use `parsed.with_offset_minute_signed()` instead"
@@ -635,6 +640,7 @@ impl Parsed {
     }
 
     /// Set the named component and return `self`.
+    #[doc(hidden)]
     #[deprecated(
         since = "0.3.8",
         note = "use `parsed.with_offset_second_signed()` instead"
