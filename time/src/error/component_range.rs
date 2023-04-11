@@ -27,6 +27,21 @@ impl ComponentRange {
     pub const fn name(self) -> &'static str {
         self.name
     }
+    
+    /// Obtain the minimum value for the component range.
+    pub const fn minimum(self) -> i64 {
+        self.minimum
+    }
+    
+    /// Obtain the maximum value for the component range.
+    pub const fn maximum(self) -> i64 {
+        self.maximum
+    }
+    
+    /// Obtain the value for the component range.
+    pub const fn value(self) -> i64 {
+        self.value
+    }
 
     /// Whether the value's permitted range is conditional, i.e. whether an input with this
     /// value could have succeeded if the values of other components were different.
