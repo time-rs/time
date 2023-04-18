@@ -41,33 +41,33 @@ wasm-bindgen = ["dep:js-sys"]
 # If adding an optional dependency, be sure to use the `dep:` prefix above to avoid an implicit
 # feature gate.
 [dependencies]
-itoa = { version = "1.0.1", optional = true }
-quickcheck = { version = "1.0.3", default-features = false, optional = true }
-rand = { version = "0.8.4", optional = true, default-features = false }
-serde = { version = "1.0.126", optional = true, default-features = false }
-time-core = { version = "=0.1.0", path = "../time-core" }
-time-macros = { version = "=0.2.8", path = "../time-macros", optional = true }
+itoa = { workspace = true, optional = true }
+quickcheck = { workspace = true, optional = true }
+rand = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
+time-core = { workspace = true }
+time-macros = { workspace = true, optional = true }
 
 [target.'cfg(target_family = "unix")'.dependencies]
-libc = { version = "0.2.98", optional = true }
-num_threads = { version = "0.1.2", optional = true }
+libc = { workspace = true, optional = true }
+num_threads = { workspace = true, optional = true }
 
 [target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
-js-sys = { version = "0.3.58", optional = true }
+js-sys = { workspace = true, optional = true }
 
 [dev-dependencies]
-rand = { version = "0.8.4", default-features = false }
-serde = { version = "1.0.126", default-features = false, features = ["derive"] }
-serde_json = "1.0.68"
-serde_test = "1.0.126"
-quickcheck_macros = "1.0.0"
-time-macros = { version = "=0.2.8", path = "../time-macros" }
+rand = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+serde_test = { workspace = true }
+quickcheck_macros = { workspace = true }
+time-macros = { workspace = true }
 
 [target.'cfg(__ui_tests)'.dev-dependencies]
-trybuild = "1.0.68"
+trybuild = { workspace = true }
 
 [target.'cfg(bench)'.dev-dependencies]
-criterion = { version = "0.4.0", default-features = false }
+criterion = { workspace = true }
 
 # Significant contributions to the benchmarks provided by Emil Lundberg.
 [[bench]]
