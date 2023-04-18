@@ -312,9 +312,6 @@ macro_rules! bug {
 }
 // endregion macros
 
-#[macro_use]
-mod shim;
-
 mod date;
 mod date_time;
 mod duration;

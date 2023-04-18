@@ -224,9 +224,9 @@ impl Serialize for Date {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[cfg(feature = "serde-human-readable")]
         if serializer.is_human_readable() {
-            guard!(let Ok(s) = self.format(&DATE_FORMAT) else {
+            let Ok(s) = self.format(&DATE_FORMAT) else {
                 return Err(S::Error::custom("failed formatting `Date`"));
-            });
+            };
             return serializer.serialize_str(&s);
         }
 
@@ -287,9 +287,9 @@ impl Serialize for OffsetDateTime {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[cfg(feature = "serde-human-readable")]
         if serializer.is_human_readable() {
-            guard!(let Ok(s) = self.format(&OFFSET_DATE_TIME_FORMAT) else {
+            let Ok(s) = self.format(&OFFSET_DATE_TIME_FORMAT) else {
                 return Err(S::Error::custom("failed formatting `OffsetDateTime`"));
-            });
+            };
             return serializer.serialize_str(&s);
         }
 
@@ -332,9 +332,9 @@ impl Serialize for PrimitiveDateTime {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[cfg(feature = "serde-human-readable")]
         if serializer.is_human_readable() {
-            guard!(let Ok(s) = self.format(&PRIMITIVE_DATE_TIME_FORMAT) else {
+            let Ok(s) = self.format(&PRIMITIVE_DATE_TIME_FORMAT) else {
                 return Err(S::Error::custom("failed formatting `PrimitiveDateTime`"));
-            });
+            };
             return serializer.serialize_str(&s);
         }
 
@@ -378,9 +378,9 @@ impl Serialize for Time {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[cfg(feature = "serde-human-readable")]
         if serializer.is_human_readable() {
-            guard!(let Ok(s) = self.format(&TIME_FORMAT) else {
+            let Ok(s) = self.format(&TIME_FORMAT) else {
                 return Err(S::Error::custom("failed formatting `Time`"));
-            });
+            };
             return serializer.serialize_str(&s);
         }
 
@@ -414,9 +414,9 @@ impl Serialize for UtcOffset {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[cfg(feature = "serde-human-readable")]
         if serializer.is_human_readable() {
-            guard!(let Ok(s) = self.format(&UTC_OFFSET_FORMAT) else {
+            let Ok(s) = self.format(&UTC_OFFSET_FORMAT) else {
                 return Err(S::Error::custom("failed formatting `UtcOffset`"));
-            });
+            };
             return serializer.serialize_str(&s);
         }
 

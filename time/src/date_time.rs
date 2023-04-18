@@ -523,10 +523,10 @@ impl<O: MaybeOffset> DateTime<O> {
     /// Equivalent to `.to_offset(UtcOffset::UTC)`, but returning the year, ordinal, and time. This
     /// avoids constructing an invalid [`Date`] if the new value is out of range.
     pub(crate) const fn to_offset_raw(self, offset: UtcOffset) -> (i32, u16, Time) {
-        guard!(let Some(from) = maybe_offset_as_offset_opt::<O>(self.offset) else {
+        let Some(from) = maybe_offset_as_offset_opt::<O>(self.offset) else {
             // No adjustment is needed because there is no offset.
             return (self.year(), self.ordinal(), self.time);
-        });
+        };
         let to = offset;
 
         // Fast path for when no conversion is necessary.
@@ -810,7 +810,7 @@ impl<O: MaybeOffset> DateTime<O> {
         }
 
         let (year, ordinal, time) = self.to_offset_raw(UtcOffset::UTC);
-        guard!(let Ok(date) = Date::from_ordinal_date(year, ordinal) else { return false });
+        let Ok(date) = Date::from_ordinal_date(year, ordinal) else { return false };
 
         time.hour() == 23
             && time.minute() == 59

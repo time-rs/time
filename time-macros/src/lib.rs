@@ -42,9 +42,6 @@ macro_rules! bug {
 
 #[macro_use]
 mod quote;
-#[cfg(any(feature = "formatting", feature = "parsing"))]
-#[macro_use]
-mod shim;
 
 mod date;
 mod datetime;
