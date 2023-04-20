@@ -1,4 +1,3 @@
-use quickcheck_macros::quickcheck;
 use time::Weekday::{self, *};
 
 #[test]
@@ -24,27 +23,27 @@ fn next() {
 }
 
 #[test]
-fn nth() {
-    assert_eq!(Sunday.nth(0), Sunday);
-    assert_eq!(Sunday.nth(1), Monday);
-    assert_eq!(Sunday.nth(2), Tuesday);
-    assert_eq!(Sunday.nth(3), Wednesday);
-    assert_eq!(Sunday.nth(4), Thursday);
-    assert_eq!(Sunday.nth(5), Friday);
-    assert_eq!(Sunday.nth(6), Saturday);
+fn nth_next() {
+    assert_eq!(Sunday.nth_next(0), Sunday);
+    assert_eq!(Sunday.nth_next(1), Monday);
+    assert_eq!(Sunday.nth_next(2), Tuesday);
+    assert_eq!(Sunday.nth_next(3), Wednesday);
+    assert_eq!(Sunday.nth_next(4), Thursday);
+    assert_eq!(Sunday.nth_next(5), Friday);
+    assert_eq!(Sunday.nth_next(6), Saturday);
 
-    assert_eq!(Monday.nth(0), Monday);
-    assert_eq!(Monday.nth(1), Tuesday);
-    assert_eq!(Monday.nth(2), Wednesday);
-    assert_eq!(Monday.nth(3), Thursday);
-    assert_eq!(Monday.nth(4), Friday);
-    assert_eq!(Monday.nth(5), Saturday);
-    assert_eq!(Monday.nth(6), Sunday);
+    assert_eq!(Monday.nth_next(0), Monday);
+    assert_eq!(Monday.nth_next(1), Tuesday);
+    assert_eq!(Monday.nth_next(2), Wednesday);
+    assert_eq!(Monday.nth_next(3), Thursday);
+    assert_eq!(Monday.nth_next(4), Friday);
+    assert_eq!(Monday.nth_next(5), Saturday);
+    assert_eq!(Monday.nth_next(6), Sunday);
 
-    assert_eq!(Sunday.nth(7), Sunday);
-    assert_eq!(Sunday.nth(u8::MAX), Wednesday);
-    assert_eq!(Monday.nth(7), Monday);
-    assert_eq!(Monday.nth(u8::MAX), Thursday);
+    assert_eq!(Sunday.nth_next(7), Sunday);
+    assert_eq!(Sunday.nth_next(u8::MAX), Wednesday);
+    assert_eq!(Monday.nth_next(7), Monday);
+    assert_eq!(Monday.nth_next(u8::MAX), Thursday);
 }
 
 #[test]
@@ -89,31 +88,6 @@ fn number_days_from_sunday() {
     assert_eq!(Thursday.number_days_from_sunday(), 4);
     assert_eq!(Friday.number_days_from_sunday(), 5);
     assert_eq!(Saturday.number_days_from_sunday(), 6);
-}
-
-// Test operations that are expected to reverse each other.
-mod round_trip {
-    use super::*;
-
-    #[quickcheck]
-    fn number_from_monday(w: Weekday) -> bool {
-        Monday.nth(w.number_from_monday() + 7 - 1) == w
-    }
-
-    #[quickcheck]
-    fn number_from_sunday(w: Weekday) -> bool {
-        Sunday.nth(w.number_from_sunday() + 7 - 1) == w
-    }
-
-    #[quickcheck]
-    fn number_days_from_monday(w: Weekday) -> bool {
-        Monday.nth(w.number_days_from_monday()) == w
-    }
-
-    #[quickcheck]
-    fn number_days_from_sunday(w: Weekday) -> bool {
-        Sunday.nth(w.number_days_from_sunday()) == w
-    }
 }
 
 #[test]

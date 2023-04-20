@@ -25,26 +25,18 @@ setup_benchmark! {
     }
 
     fn nth(ben: &mut Bencher<'_>) {
-        ben.iter(|| Sunday.nth(0));
-        ben.iter(|| Sunday.nth(1));
-        ben.iter(|| Sunday.nth(2));
-        ben.iter(|| Sunday.nth(3));
-        ben.iter(|| Sunday.nth(4));
-        ben.iter(|| Sunday.nth(5));
-        ben.iter(|| Sunday.nth(6));
+        ben.iter(|| Sunday.nth_next(0));
+        ben.iter(|| Sunday.nth_next(1));
+        ben.iter(|| Sunday.nth_next(2));
+        ben.iter(|| Sunday.nth_next(3));
+        ben.iter(|| Sunday.nth_next(4));
+        ben.iter(|| Sunday.nth_next(5));
+        ben.iter(|| Sunday.nth_next(6));
 
-        ben.iter(|| Monday.nth(0));
-        ben.iter(|| Monday.nth(1));
-        ben.iter(|| Monday.nth(2));
-        ben.iter(|| Monday.nth(3));
-        ben.iter(|| Monday.nth(4));
-        ben.iter(|| Monday.nth(5));
-        ben.iter(|| Monday.nth(6));
-
-        ben.iter(|| Sunday.nth(7));
-        ben.iter(|| Sunday.nth(u8::MAX));
-        ben.iter(|| Monday.nth(7));
-        ben.iter(|| Monday.nth(u8::MAX));
+        ben.iter(|| Sunday.nth_next(7));
+        ben.iter(|| Sunday.nth_next(u8::MAX));
+        ben.iter(|| Monday.nth_next(7));
+        ben.iter(|| Monday.nth_next(u8::MAX));
     }
 
     fn number_from_monday(ben: &mut Bencher<'_>) {
