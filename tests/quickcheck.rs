@@ -1,5 +1,6 @@
 use quickcheck::{Arbitrary, TestResult};
 use quickcheck_macros::quickcheck;
+use time::Weekday::*;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 macro_rules! test_shrink {
@@ -113,6 +114,26 @@ fn unix_timestamp_nanos_roundtrip(odt: OffsetDateTime) -> TestResult {
 }
 
 #[quickcheck]
+fn number_from_monday_roundtrip(w: Weekday) -> bool {
+    Monday.nth_next(w.number_from_monday() + 7 - 1) == w
+}
+
+#[quickcheck]
+fn number_from_sunday_roundtrip(w: Weekday) -> bool {
+    Sunday.nth_next(w.number_from_sunday() + 7 - 1) == w
+}
+
+#[quickcheck]
+fn number_days_from_monday_roundtrip(w: Weekday) -> bool {
+    Monday.nth_next(w.number_days_from_monday()) == w
+}
+
+#[quickcheck]
+fn number_days_from_sunday_roundtrip(w: Weekday) -> bool {
+    Sunday.nth_next(w.number_days_from_sunday()) == w
+}
+
+#[quickcheck]
 fn weekday_supports_arbitrary(w: Weekday) -> bool {
     (1..=7).contains(&w.number_from_monday())
 }
@@ -120,7 +141,7 @@ fn weekday_supports_arbitrary(w: Weekday) -> bool {
 #[quickcheck]
 fn weekday_can_shrink(w: Weekday) -> bool {
     match w {
-        Weekday::Monday => w.shrink().next().is_none(),
+        Monday => w.shrink().next().is_none(),
         _ => w.shrink().next() == Some(w.previous()),
     }
 }
