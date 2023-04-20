@@ -50,6 +50,16 @@ impl PrimitiveDateTime {
     /// ```
     pub const MIN: Self = Self(Inner::MIN);
 
+    /// Midnight, 1 January, 1970 (without timezone!)
+    ///
+    /// ```rust
+    /// # use time::{PrimitiveDateTime, OffsetDateTime};
+    /// # use time_macros::datetime;
+    /// assert_eq!(PrimitiveDateTime::NAIVE_UNIX_EPOCH, datetime!(1970-01-01 0:00));
+    /// assert_eq!(PrimitiveDateTime::NAIVE_UNIX_EPOCH.assume_utc(), OffsetDateTime::UNIX_EPOCH);
+    /// ```
+    pub const NAIVE_UNIX_EPOCH: Self = Self(Inner::NAIVE_UNIX_EPOCH);
+
     /// The largest value that can be represented by `PrimitiveDateTime`.
     ///
     /// Depending on `large-dates` feature flag, value of this constant may vary.

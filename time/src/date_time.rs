@@ -220,6 +220,12 @@ impl DateTime<offset_kind::None> {
         time: Time::MAX,
         offset: (),
     };
+
+    pub const NAIVE_UNIX_EPOCH: Self = Self {
+        date: Date::__from_ordinal_date_unchecked(1970, 1),
+        time: Time::MIDNIGHT,
+        offset: (),
+    };
 }
 
 impl DateTime<offset_kind::Fixed> {
