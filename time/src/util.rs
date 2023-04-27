@@ -44,30 +44,40 @@ pub mod local_offset {
         /// Obtaining the local UTC offset is required to be sound. Undefined behavior will never
         /// occur. This is the default.
         Sound,
-        /// Obtaining the local UTC offset is allowed to invoke undefined behavior. Setting this
-        /// value is strongly discouraged. To do so, you must comply with the safety requirements
+        /// Obtaining the local UTC offset is allowed to invoke undefined behavior. **Setting this
+        /// value is strongly discouraged.** To do so, you must comply with the safety requirements
         /// of [`time::local_offset::set_soundness`](set_soundness).
         Unsound,
     }
 
-    /// Set whether obtaining the local UTC offset is allowed to invoke undefined behavior.
+    /// Set whether obtaining the local UTC offset is allowed to invoke undefined behavior. **Use of
+    /// this function is heavily discouraged.**
     ///
     /// # Safety
     ///
     /// If this method is called with [`Soundness::Sound`], the call is always sound. If this method
     /// is called with [`Soundness::Unsound`], the following conditions apply.
     ///
-    /// - If the operating system is not Unix-like, the call is sound.
+    /// - If the operating system provides a thread-safe environment, the call is sound.
     /// - If the process is single-threaded, the call is sound.
     /// - If the process is multi-threaded, no other thread may mutate the environment in any way at
     ///   the same time a call to a method that obtains the local UTC offset. This includes adding,
     ///   removing, or modifying an environment variable.
     ///
+    /// The first two conditions are automatically checked by `time`, such that you do not need to
+    /// declare your code unsound. Currently, the only known operating systems that does _not_
+    /// provide a thread-safe environment are some Unix-like OS's. All other operating systems
+    /// should succeed when attempting to obtain the local UTC offset.
+    ///
     /// Note that you must not only verify this safety condition for your code, but for **all** code
     /// that will be included in the final binary. Notably, it applies to both direct and transitive
-    /// dependencies and to both Rust and non-Rust code. For this reason it is not possible to
+    /// dependencies and to both Rust and non-Rust code. **For this reason it is not possible to
     /// soundly pass [`Soundness::Unsound`] to this method if you are writing a library that may
-    /// used by others.
+    /// used by others.**
+    ///
+    /// If using this method is absolutely necessary, it is recommended to keep the time between
+    /// setting the soundness to [`Soundness::Unsound`] and setting it back to [`Soundness::Sound`]
+    /// as short as possible.
     ///
     /// The following methods currently obtain the local UTC offset:
     ///
