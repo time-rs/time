@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.21 [2023-05-05]
+
+### Added
+
+- Any formattable/parsable type can now be used with the `time::serde::format_description!` macro.
+- `Weekday::nth_next`
+
+### Changed
+
+- The minimum supported Rust version is now 1.65.0.
+
 ## 0.3.20 [2023-02-24]
 
 ### Changed
