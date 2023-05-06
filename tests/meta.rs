@@ -93,23 +93,24 @@ fn alignment() {
 fn size() {
     macro_rules! assert_size {
         ($t:ty, $size:literal, $opt_size:literal) => {
-            assert_eq!(
+            assert!(
+                ::core::mem::size_of::<$t>() <= $size,
+                concat!("size of `{}` used to be ", $size, ", but is now {}"),
+                stringify!($t),
                 ::core::mem::size_of::<$t>(),
-                $size,
-                concat!("size of `{}` used to be ", $size),
-                stringify!($t),
             );
-            assert_eq!(
-                ::core::mem::size_of::<Option<$t>>(),
-                $opt_size,
-                concat!("size of `Option<{}>` used to be ", $opt_size),
+            assert!(
+                ::core::mem::size_of::<Option<$t>>() <= $opt_size,
+                concat!(
+                    "size of `Option<{}>` used to be ",
+                    $opt_size,
+                    ", but is now {}"
+                ),
                 stringify!($t),
+                ::core::mem::size_of::<Option<$t>>(),
             );
         };
     }
-
-    // A couple structs have their size decrease from 56 to 48 thanks to a compiler change. This
-    // change looks like it will land in 1.64 (2022-09-22).
 
     assert_size!(Date, 4, 8);
     assert_size!(Duration, 16, 16);
@@ -150,13 +151,13 @@ fn size() {
     assert_size!(Parsed, 56, 56);
     assert_size!(Month, 1, 1);
     assert_size!(Weekday, 1, 1);
-    // assert_size!(Error, 56, 56);
+    assert_size!(Error, 56, 56);
     assert_size!(error::Format, 24, 24);
     assert_size!(error::InvalidFormatDescription, 48, 48);
-    // assert_size!(error::Parse, 56, 56);
+    assert_size!(error::Parse, 48, 48);
     assert_size!(error::ParseFromDescription, 16, 24);
     assert_size!(error::TryFromParsed, 48, 48);
-    assert_size!(Component, 6, 6);
+    assert_size!(Component, 6, 6); // TODO Size is 4 starting with rustc 1.71.
     assert_size!(FormatItem<'_>, 24, 24);
     assert_size!(modifier::MonthRepr, 1, 1);
     assert_size!(modifier::Padding, 1, 1);
