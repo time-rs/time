@@ -51,6 +51,124 @@ impl fmt::Debug for Duration {
     }
 }
 
+/// This is adapted from the `std` implementation, which uses mostly bit
+/// operations to ensure the highest precision:
+/// https://github.com/rust-lang/rust/blob/3a37c2f0523c87147b64f1b8099fc9df22e8c53e/library/core/src/time.rs#L1262-L1340
+/// Changes from `std` are marked and explained below.
+#[rustfmt::skip] // Skip `rustfmt` because it reformats the arguments of the macro weirdly.
+macro_rules! try_from_secs {
+    (
+        secs = $secs: expr,
+        mantissa_bits = $mant_bits: literal,
+        exponent_bits = $exp_bits: literal,
+        offset = $offset: literal,
+        bits_ty = $bits_ty:ty,
+        bits_ty_signed = $bits_ty_signed:ty,
+        double_ty = $double_ty:ty,
+        float_ty = $float_ty:ty,
+        is_nan = $is_nan:expr,
+        is_overflow = $is_overflow:expr,
+    ) => {{
+        'value: {
+            const MIN_EXP: i16 = 1 - (1i16 << $exp_bits) / 2;
+            const MANT_MASK: $bits_ty = (1 << $mant_bits) - 1;
+            const EXP_MASK: $bits_ty = (1 << $exp_bits) - 1;
+
+            // Change from std: No error check for negative values necessary.
+
+            let bits = $secs.to_bits();
+            let mant = (bits & MANT_MASK) | (MANT_MASK + 1);
+            let exp = ((bits >> $mant_bits) & EXP_MASK) as i16 + MIN_EXP;
+
+            let (secs, nanos) = if exp < -31 {
+                // the input represents less than 1ns and can not be rounded to it
+                (0u64, 0u32)
+            } else if exp < 0 {
+                // the input is less than 1 second
+                let t = <$double_ty>::from(mant) << ($offset + exp);
+                let nanos_offset = $mant_bits + $offset;
+                let nanos_tmp = u128::from(Nanosecond.per(Second)) * u128::from(t);
+                let nanos = (nanos_tmp >> nanos_offset) as u32;
+
+                let rem_mask = (1 << nanos_offset) - 1;
+                let rem_msb_mask = 1 << (nanos_offset - 1);
+                let rem = nanos_tmp & rem_mask;
+                let is_tie = rem == rem_msb_mask;
+                let is_even = (nanos & 1) == 0;
+                let rem_msb = nanos_tmp & rem_msb_mask == 0;
+                let add_ns = !(rem_msb || (is_even && is_tie));
+
+                // f32 does not have enough precision to trigger the second branch
+                // since it can not represent numbers between 0.999_999_940_395 and 1.0.
+                let nanos = nanos + add_ns as u32;
+                if ($mant_bits == 23) || (nanos != Nanosecond.per(Second)) {
+                    (0, nanos)
+                } else {
+                    (1, 0)
+                }
+            } else if exp < $mant_bits {
+                let secs = u64::from(mant >> ($mant_bits - exp));
+                let t = <$double_ty>::from((mant << exp) & MANT_MASK);
+                let nanos_offset = $mant_bits;
+                let nanos_tmp = <$double_ty>::from(Nanosecond.per(Second)) * t;
+                let nanos = (nanos_tmp >> nanos_offset) as u32;
+
+                let rem_mask = (1 << nanos_offset) - 1;
+                let rem_msb_mask = 1 << (nanos_offset - 1);
+                let rem = nanos_tmp & rem_mask;
+                let is_tie = rem == rem_msb_mask;
+                let is_even = (nanos & 1) == 0;
+                let rem_msb = nanos_tmp & rem_msb_mask == 0;
+                let add_ns = !(rem_msb || (is_even && is_tie));
+
+                // f32 does not have enough precision to trigger the second branch.
+                // For example, it can not represent numbers between 1.999_999_880...
+                // and 2.0. Bigger values result in even smaller precision of the
+                // fractional part.
+                let nanos = nanos + add_ns as u32;
+                if ($mant_bits == 23) || (nanos != Nanosecond.per(Second)) {
+                    (secs, nanos)
+                } else {
+                    (secs + 1, 0)
+                }
+            } else if exp < 63 {
+                // Change from std: The exponent here is 63 instead of 64,
+                // because i64::MAX + 1 is 2^63.
+
+                // the input has no fractional part
+                let secs = u64::from(mant) << (exp - $mant_bits);
+                (secs, 0)
+            } else if bits == (i64::MIN as $float_ty).to_bits() {
+                // Change from std: Signed integers are asymmetrical in that
+                // iN::MIN is -iN::MAX - 1. So for example i8 covers the
+                // following numbers -128..=127. The check above (exp < 63)
+                // doesn't cover i64::MIN as that is -2^63, so we have this
+                // additional case to handle the asymmetry of iN::MIN.
+                break 'value Self::new_unchecked(i64::MIN, 0);
+            } else if $secs.is_nan() {
+                // Change from std: std doesn't differentiate between the error
+                // cases.
+                $is_nan
+            } else {
+                $is_overflow
+            };
+
+            // Change from std: All the code is mostly unmodified in that it
+            // simply calculates an unsigned integer. Here we extract the sign
+            // bit and assign it to the number. We basically manually do two's
+            // complement here, we could also use an if and just negate the
+            // numbers based on the sign, but it turns out to be quite a bit
+            // slower.
+            let mask = (bits as $bits_ty_signed) >> ($mant_bits + $exp_bits);
+            #[allow(trivial_numeric_casts)]
+            let secs_signed = ((secs as i64) ^ (mask as i64)) - (mask as i64);
+            #[allow(trivial_numeric_casts)]
+            let nanos_signed = ((nanos as i32) ^ (mask as i32)) - (mask as i32);
+            Self::new_unchecked(secs_signed, nanos_signed)
+        }
+    }};
+}
+
 impl Duration {
     // region: constants
     /// Equivalent to `0.seconds()`.
@@ -321,17 +439,18 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f64(-0.5), -0.5.seconds());
     /// ```
     pub fn seconds_f64(seconds: f64) -> Self {
-        if seconds > i64::MAX as f64 || seconds < i64::MIN as f64 {
-            crate::expect_failed("overflow constructing `time::Duration`");
-        }
-        if seconds.is_nan() {
-            crate::expect_failed("passed NaN to `time::Duration::seconds_f64`");
-        }
-        let seconds_truncated = seconds as i64;
-        // This only works because we handle the overflow condition above.
-        let nanoseconds =
-            ((seconds - seconds_truncated as f64) * Nanosecond.per(Second) as f64) as i32;
-        Self::new_unchecked(seconds_truncated, nanoseconds)
+        try_from_secs!(
+            secs = seconds,
+            mantissa_bits = 52,
+            exponent_bits = 11,
+            offset = 44,
+            bits_ty = u64,
+            bits_ty_signed = i64,
+            double_ty = u128,
+            float_ty = f64,
+            is_nan = crate::expect_failed("passed NaN to `time::Duration::seconds_f64`"),
+            is_overflow = crate::expect_failed("overflow constructing `time::Duration`"),
+        )
     }
 
     /// Creates a new `Duration` from the specified number of seconds represented as `f32`.
@@ -342,17 +461,146 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
     /// ```
     pub fn seconds_f32(seconds: f32) -> Self {
-        if seconds > i64::MAX as f32 || seconds < i64::MIN as f32 {
-            crate::expect_failed("overflow constructing `time::Duration`");
-        }
-        if seconds.is_nan() {
-            crate::expect_failed("passed NaN to `time::Duration::seconds_f32`");
-        }
-        let seconds_truncated = seconds as i64;
-        // This only works because we handle the overflow condition above.
-        let nanoseconds =
-            ((seconds - seconds_truncated as f32) * Nanosecond.per(Second) as f32) as i32;
-        Self::new_unchecked(seconds_truncated, nanoseconds)
+        try_from_secs!(
+            secs = seconds,
+            mantissa_bits = 23,
+            exponent_bits = 8,
+            offset = 41,
+            bits_ty = u32,
+            bits_ty_signed = i32,
+            double_ty = u64,
+            float_ty = f32,
+            is_nan = crate::expect_failed("passed NaN to `time::Duration::seconds_f32`"),
+            is_overflow = crate::expect_failed("overflow constructing `time::Duration`"),
+        )
+    }
+
+    /// Creates a new `Duration` from the specified number of seconds
+    /// represented as `f64`. Any values that are out of bounds are saturated at
+    /// the minimum or maximum respectively. `NaN` gets turned into a `Duration`
+    /// of 0 seconds.
+    ///
+    /// ```rust
+    /// # use time::{Duration, ext::NumericalDuration};
+    /// assert_eq!(Duration::saturating_seconds_f64(0.5), 0.5.seconds());
+    /// assert_eq!(Duration::saturating_seconds_f64(-0.5), -0.5.seconds());
+    /// assert_eq!(
+    ///     Duration::saturating_seconds_f64(f64::NAN),
+    ///     Duration::new(0, 0),
+    /// );
+    /// assert_eq!(
+    ///     Duration::saturating_seconds_f64(f64::NEG_INFINITY),
+    ///     Duration::MIN,
+    /// );
+    /// assert_eq!(
+    ///     Duration::saturating_seconds_f64(f64::INFINITY),
+    ///     Duration::MAX,
+    /// );
+    /// ```
+    pub fn saturating_seconds_f64(seconds: f64) -> Self {
+        try_from_secs!(
+            secs = seconds,
+            mantissa_bits = 52,
+            exponent_bits = 11,
+            offset = 44,
+            bits_ty = u64,
+            bits_ty_signed = i64,
+            double_ty = u128,
+            float_ty = f64,
+            is_nan = return Self::ZERO,
+            is_overflow = return if seconds < 0.0 { Self::MIN } else { Self::MAX },
+        )
+    }
+
+    /// Creates a new `Duration` from the specified number of seconds
+    /// represented as `f32`. Any values that are out of bounds are saturated at
+    /// the minimum or maximum respectively. `NaN` gets turned into a `Duration`
+    /// of 0 seconds.
+    ///
+    /// ```rust
+    /// # use time::{Duration, ext::NumericalDuration};
+    /// assert_eq!(Duration::saturating_seconds_f32(0.5), 0.5.seconds());
+    /// assert_eq!(Duration::saturating_seconds_f32(-0.5), (-0.5).seconds());
+    /// assert_eq!(
+    ///     Duration::saturating_seconds_f32(f32::NAN),
+    ///     Duration::new(0, 0),
+    /// );
+    /// assert_eq!(
+    ///     Duration::saturating_seconds_f32(f32::NEG_INFINITY),
+    ///     Duration::MIN,
+    /// );
+    /// assert_eq!(
+    ///     Duration::saturating_seconds_f32(f32::INFINITY),
+    ///     Duration::MAX,
+    /// );
+    /// ```
+    pub fn saturating_seconds_f32(seconds: f32) -> Self {
+        try_from_secs!(
+            secs = seconds,
+            mantissa_bits = 23,
+            exponent_bits = 8,
+            offset = 41,
+            bits_ty = u32,
+            bits_ty_signed = i32,
+            double_ty = u64,
+            float_ty = f32,
+            is_nan = return Self::ZERO,
+            is_overflow = return if seconds < 0.0 { Self::MIN } else { Self::MAX },
+        )
+    }
+
+    /// Creates a new `Duration` from the specified number of seconds
+    /// represented as `f64`. Returns `None` if the `Duration` can't be
+    /// represented.
+    ///
+    /// ```rust
+    /// # use time::{Duration, ext::NumericalDuration};
+    /// assert_eq!(Duration::checked_seconds_f64(0.5), Some(0.5.seconds()));
+    /// assert_eq!(Duration::checked_seconds_f64(-0.5), Some(-0.5.seconds()));
+    /// assert_eq!(Duration::checked_seconds_f64(f64::NAN), None);
+    /// assert_eq!(Duration::checked_seconds_f64(f64::NEG_INFINITY), None);
+    /// assert_eq!(Duration::checked_seconds_f64(f64::INFINITY), None);
+    /// ```
+    pub fn checked_seconds_f64(seconds: f64) -> Option<Self> {
+        Some(try_from_secs!(
+            secs = seconds,
+            mantissa_bits = 52,
+            exponent_bits = 11,
+            offset = 44,
+            bits_ty = u64,
+            bits_ty_signed = i64,
+            double_ty = u128,
+            float_ty = f64,
+            is_nan = return None,
+            is_overflow = return None,
+        ))
+    }
+
+    /// Creates a new `Duration` from the specified number of seconds
+    /// represented as `f32`. Returns `None` if the `Duration` can't be
+    /// represented.
+    ///
+    /// ```rust
+    /// # use time::{Duration, ext::NumericalDuration};
+    /// assert_eq!(Duration::checked_seconds_f32(0.5), Some(0.5.seconds()));
+    /// assert_eq!(Duration::checked_seconds_f32(-0.5), Some(-0.5.seconds()));
+    /// assert_eq!(Duration::checked_seconds_f32(f32::NAN), None);
+    /// assert_eq!(Duration::checked_seconds_f32(f32::NEG_INFINITY), None);
+    /// assert_eq!(Duration::checked_seconds_f32(f32::INFINITY), None);
+    /// ```
+    pub fn checked_seconds_f32(seconds: f32) -> Option<Self> {
+        Some(try_from_secs!(
+            secs = seconds,
+            mantissa_bits = 23,
+            exponent_bits = 8,
+            offset = 41,
+            bits_ty = u32,
+            bits_ty_signed = i32,
+            double_ty = u64,
+            float_ty = f32,
+            is_nan = return None,
+            is_overflow = return None,
+        ))
     }
 
     /// Create a new `Duration` with the given number of milliseconds.

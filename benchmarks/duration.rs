@@ -127,6 +127,26 @@ setup_benchmark! {
         ben.iter(|| Duration::seconds_f32(-0.5));
     }
 
+    fn saturating_seconds_f64(ben: &mut Bencher<'_>) {
+        ben.iter(|| Duration::saturating_seconds_f64(0.5));
+        ben.iter(|| Duration::saturating_seconds_f64(-0.5));
+    }
+
+    fn saturating_seconds_f32(ben: &mut Bencher<'_>) {
+        ben.iter(|| Duration::saturating_seconds_f32(0.5));
+        ben.iter(|| Duration::saturating_seconds_f32(-0.5));
+    }
+
+    fn checked_seconds_f64(ben: &mut Bencher<'_>) {
+        ben.iter(|| Duration::checked_seconds_f64(0.5));
+        ben.iter(|| Duration::checked_seconds_f64(-0.5));
+    }
+
+    fn checked_seconds_f32(ben: &mut Bencher<'_>) {
+        ben.iter(|| Duration::checked_seconds_f32(0.5));
+        ben.iter(|| Duration::checked_seconds_f32(-0.5));
+    }
+
     fn milliseconds(ben: &mut Bencher<'_>) {
         ben.iter(|| Duration::milliseconds(1));
         ben.iter(|| Duration::milliseconds(-1));
