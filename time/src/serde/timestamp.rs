@@ -14,34 +14,85 @@ use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use crate::OffsetDateTime;
 use crate::PrimitiveDateTime;
 
+use super::AsWellKnown;
+use super::FromWellKnown;
+
 /// Serialize an [`OffsetDateTime`] and [`PrimitiveDateTime`] as its Unix timestamp
 /// 
 /// Also works with [`Option<OffsetDateTime>`], and [`Option<PrimitiveDateTime>`].
+#[inline(always)]
 pub fn serialize<S: Serializer, T>(
-    datetime: &T,
+    t: &T,
     serializer: S,
 ) -> Result<S::Ok, S::Error> 
-    where for <'a> __private::Timestamp<&'a T> : Serialize {
-    Serialize::serialize(&__private::Timestamp(datetime),serializer)
+    where T : AsWellKnown<Timestamp> {
+    t.serialize_from_wellknown(serializer)
 }
 
 /// Deserialize an `OffsetDateTime` from its Unix timestamp
 /// 
 /// Also works with [`Option<OffsetDateTime>`], and [`Option<PrimitiveDateTime>`].
+#[inline(always)]
 pub fn deserialize<'a, D: Deserializer<'a>, T>(deserializer: D) -> Result<T, D::Error> 
-    where __private::Timestamp<T> : Deserialize<'a> {
-    let t = __private::Timestamp::deserialize(deserializer)?;
-    Ok(t.0)
+    where T : FromWellKnown<Timestamp> {
+    T::deserialize_from_well_known(deserializer)
 }
 
-fn drop_offset(v : OffsetDateTime) -> PrimitiveDateTime {
-    v.date().with_time(v.time())
+pub struct Timestamp;
+
+impl AsWellKnown<Timestamp> for OffsetDateTime {
+    type IntoWellKnownError = std::convert::Infallible;
+
+    type WellKnownSer<'s> = i64 where Self: 's;
+
+    fn as_well_known<'s>(&'s self) -> Result<Self::WellKnownSer<'s>,Self::IntoWellKnownError> {
+        Ok(self.unix_timestamp())
+    }
+}
+
+impl FromWellKnown<Timestamp> for OffsetDateTime {
+    type FromWellKnownError = crate::error::ComponentRange;
+
+    type WellKnownDeser<'de> = i64;
+
+    fn fmt_err<E : serde::de::Error>(e : Self::FromWellKnownError) -> E {
+        E::invalid_value(serde::de::Unexpected::Signed(e.value),&e)
+    }
+
+    fn from_well_known<'de>(wk : Self::WellKnownDeser<'de>) -> Result<Self,Self::FromWellKnownError> {
+        OffsetDateTime::from_unix_timestamp(wk)
+    }
+}
+
+
+impl AsWellKnown<Timestamp> for PrimitiveDateTime {
+    type IntoWellKnownError = std::convert::Infallible;
+
+    type WellKnownSer<'s> = i64 where Self: 's;
+
+    fn as_well_known<'s>(&'s self) -> Result<Self::WellKnownSer<'s>,Self::IntoWellKnownError> {
+        Ok(self.assume_utc().unix_timestamp())
+    }
+}
+
+impl FromWellKnown<Timestamp> for PrimitiveDateTime {
+    type FromWellKnownError = crate::error::ComponentRange;
+
+    type WellKnownDeser<'de> = i64;
+
+    fn from_well_known<'de>(wk : Self::WellKnownDeser<'de>) -> Result<Self,Self::FromWellKnownError> {
+        OffsetDateTime::from_unix_timestamp(wk)
+            .map(
+                |t| 
+                t.date().with_time(t.time())
+            )
+    }
 }
 
 #[doc(hidden)]
 mod __private {
-    use super::*;
 
+    /*
     pub struct Timestamp<T>(pub(super) T);
 
     impl<'de> Deserialize<'de> for Timestamp<OffsetDateTime> {
@@ -181,7 +232,7 @@ mod __private {
             S: Serializer {
             Timestamp(&self.0[..]).serialize(serializer)
         }
-    }
+    }*/
 }
 
 // Treat an [`OffsetDateTime`] as a [Unix timestamp (milliseconds)] for the purposes of serde.
@@ -195,177 +246,236 @@ mod __private {
 pub mod millis {
     use super::*;
 
-    /// Serialize as a Unix timestamp in milliseconds
+    /// Serialize an [`OffsetDateTime`] and [`PrimitiveDateTime`] as its Unix timestamp in milliseconds
+    /// 
+    /// Also works with [`Option<OffsetDateTime>`], and [`Option<PrimitiveDateTime>`].
+    #[inline(always)]
     pub fn serialize<S: Serializer, T>(
-        datetime: &T,
+        t: &T,
         serializer: S,
     ) -> Result<S::Ok, S::Error> 
-        where for <'a> private::TimestampMillis<&'a T> : Serialize {
-        Serialize::serialize(&private::TimestampMillis(datetime),serializer)
+        where T : AsWellKnown<TimestampMillis> {
+        t.serialize_from_wellknown(serializer)
     }
 
-    /// Deserialize as a Unix timestamp in milliseconds
+    /// Deserialize an `OffsetDateTime` from its Unix timestamp in milliseconds
+    /// 
+    /// Also works with [`Option<OffsetDateTime>`], and [`Option<PrimitiveDateTime>`].
+    #[inline(always)]
     pub fn deserialize<'a, D: Deserializer<'a>, T>(deserializer: D) -> Result<T, D::Error> 
-        where private::TimestampMillis<T> : Deserialize<'a> {
-        let t = private::TimestampMillis::deserialize(deserializer)?;
-        Ok(t.0)
+        where T : FromWellKnown<TimestampMillis> {
+        T::deserialize_from_well_known(deserializer)
     }
 
-    #[doc(hidden)]
-    mod private {
-        use super::*;
+    pub struct TimestampMillis;
 
-        fn from_i64<E : serde::de::Error>(v : i64) -> Result<OffsetDateTime,E> {
-            let seconds = v / 1000;
-            let millis = v % 1000;
+    impl AsWellKnown<TimestampMillis> for OffsetDateTime {
+        type IntoWellKnownError = std::convert::Infallible;
 
-            let d = 
-                OffsetDateTime::from_unix_timestamp(seconds)
-                    .map_err(|err| de::Error::invalid_value(de::Unexpected::Signed(err.value), &err))?
-                    + crate::Duration::milliseconds(millis);
-            Ok(d)
+        type WellKnownSer<'s> = i64 where Self: 's;
+
+        fn as_well_known<'s>(&'s self) -> Result<Self::WellKnownSer<'s>,Self::IntoWellKnownError> {
+            Ok((self.unix_timestamp_nanos() / 1_000_000) as i64)
+        }
+    }
+
+    impl FromWellKnown<TimestampMillis> for OffsetDateTime {
+        type FromWellKnownError = crate::error::ComponentRange;
+
+        type WellKnownDeser<'de> = i64;
+
+        fn fmt_err<E : serde::de::Error>(e : Self::FromWellKnownError) -> E {
+            E::invalid_value(serde::de::Unexpected::Signed(e.value),&e)
         }
 
-        fn to_i64(v : OffsetDateTime) -> i64 {
-            let seconds = v.unix_timestamp() * 1000;
-            seconds + v.millisecond() as i64
+        fn from_well_known<'de>(timestamp : Self::WellKnownDeser<'de>) -> Result<Self,Self::FromWellKnownError> {
+            let secs = timestamp / 1_000;
+            let millis = timestamp % 1000;
+
+            Ok(
+                OffsetDateTime::from_unix_timestamp(secs)? + 
+                    crate::Duration::milliseconds(millis)
+            )
         }
+    }
 
-        pub struct TimestampMillis<T>(pub(super) T);
+    impl AsWellKnown<TimestampMillis> for PrimitiveDateTime {
+        type IntoWellKnownError = std::convert::Infallible;
 
-        impl<'de> Deserialize<'de> for TimestampMillis<OffsetDateTime> {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: Deserializer<'de> {
-                let timestamp : i64 = <_>::deserialize(deserializer)?;
+        type WellKnownSer<'s> = i64 where Self: 's;
+
+        #[inline]
+        fn as_well_known<'s>(&'s self) -> Result<Self::WellKnownSer<'s>,Self::IntoWellKnownError> {
+            Ok((self.assume_utc().unix_timestamp_nanos() / 1_000_000) as i64 )
+        }
+    }
+
+    impl FromWellKnown<TimestampMillis> for PrimitiveDateTime {
+        type FromWellKnownError = crate::error::ComponentRange;
+
+        type WellKnownDeser<'de> = i64;
+
+        fn from_well_known<'de>(wk : Self::WellKnownDeser<'de>) -> Result<Self,Self::FromWellKnownError> {
+            let t = <OffsetDateTime as FromWellKnown<TimestampMillis>>::from_well_known(wk)?;
+            Ok(t.date().with_time(t.time()))
+        }
+    }
+
+    // #[doc(hidden)]
+    // mod private {
+    //     use super::*;
+
+    //     fn from_i64<E : serde::de::Error>(v : i64) -> Result<OffsetDateTime,E> {
+    //         let seconds = v / 1000;
+    //         let millis = v % 1000;
+
+    //         let d = 
+    //             OffsetDateTime::from_unix_timestamp(seconds)
+    //                 .map_err(|err| de::Error::invalid_value(de::Unexpected::Signed(err.value), &err))?
+    //                 + crate::Duration::milliseconds(millis);
+    //         Ok(d)
+    //     }
+
+    //     fn to_i64(v : OffsetDateTime) -> i64 {
+    //         let seconds = v.unix_timestamp() * 1000;
+    //         seconds + v.millisecond() as i64
+    //     }
+
+    //     pub struct TimestampMillis<T>(pub(super) T);
+
+    //     impl<'de> Deserialize<'de> for TimestampMillis<OffsetDateTime> {
+    //         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    //         where
+    //             D: Deserializer<'de> {
+    //             let timestamp : i64 = <_>::deserialize(deserializer)?;
                 
-                Ok(TimestampMillis(from_i64(timestamp)?))
-            }
-        }
+    //             Ok(TimestampMillis(from_i64(timestamp)?))
+    //         }
+    //     }
 
-        impl<'de> Deserialize<'de> for TimestampMillis<Option<OffsetDateTime>> {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: Deserializer<'de> {
-                let d = Option::deserialize(deserializer)?
-                    .map(from_i64)
-                    .transpose()?;
+    //     impl<'de> Deserialize<'de> for TimestampMillis<Option<OffsetDateTime>> {
+    //         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    //         where
+    //             D: Deserializer<'de> {
+    //             let d = Option::deserialize(deserializer)?
+    //                 .map(from_i64)
+    //                 .transpose()?;
 
-                Ok(TimestampMillis(d))
-            }
-        }
+    //             Ok(TimestampMillis(d))
+    //         }
+    //     }
 
-        impl<'de> Deserialize<'de> for TimestampMillis<Vec<OffsetDateTime>> {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: Deserializer<'de> {
-                let t = Vec::deserialize(deserializer)?;
+    //     impl<'de> Deserialize<'de> for TimestampMillis<Vec<OffsetDateTime>> {
+    //         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    //         where
+    //             D: Deserializer<'de> {
+    //             let t = Vec::deserialize(deserializer)?;
     
-                Ok(TimestampMillis(t.into_iter().map(from_i64).collect::<Result<Vec<_>,_>>()?))
-            }
-        }
+    //             Ok(TimestampMillis(t.into_iter().map(from_i64).collect::<Result<Vec<_>,_>>()?))
+    //         }
+    //     }
 
-        impl<'a> Serialize for TimestampMillis<&'a OffsetDateTime> {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: Serializer {
-                to_i64(*self.0).serialize(serializer)
-            }
-        }
+    //     impl<'a> Serialize for TimestampMillis<&'a OffsetDateTime> {
+    //         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    //         where
+    //             S: Serializer {
+    //             to_i64(*self.0).serialize(serializer)
+    //         }
+    //     }
 
-        impl<'a> Serialize for TimestampMillis<&'a Option<OffsetDateTime>> {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: Serializer {
-                self.0.map(to_i64).serialize(serializer)
-            }
-        }
+    //     impl<'a> Serialize for TimestampMillis<&'a Option<OffsetDateTime>> {
+    //         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    //         where
+    //             S: Serializer {
+    //             self.0.map(to_i64).serialize(serializer)
+    //         }
+    //     }
 
-        impl<'a> Serialize for TimestampMillis<&'a [OffsetDateTime]> {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: Serializer {
-                let mut seq = serializer.serialize_seq(Some(self.0.len()))?;
-                for t in self.0 {
-                    serde::ser::SerializeSeq::serialize_element(&mut seq, &TimestampMillis(t))?;
-                }
-                serde::ser::SerializeSeq::end(seq)
-            }
-        }
+    //     impl<'a> Serialize for TimestampMillis<&'a [OffsetDateTime]> {
+    //         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    //         where
+    //             S: Serializer {
+    //             let mut seq = serializer.serialize_seq(Some(self.0.len()))?;
+    //             for t in self.0 {
+    //                 serde::ser::SerializeSeq::serialize_element(&mut seq, &TimestampMillis(t))?;
+    //             }
+    //             serde::ser::SerializeSeq::end(seq)
+    //         }
+    //     }
     
-        impl<'a> Serialize for TimestampMillis<&'a Vec<OffsetDateTime>> {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: Serializer {
-                    TimestampMillis(&self.0[..]).serialize(serializer)
-            }
-        }
+    //     impl<'a> Serialize for TimestampMillis<&'a Vec<OffsetDateTime>> {
+    //         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    //         where
+    //             S: Serializer {
+    //                 TimestampMillis(&self.0[..]).serialize(serializer)
+    //         }
+    //     }
 
-        impl<'de> Deserialize<'de> for TimestampMillis<PrimitiveDateTime> {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: Deserializer<'de> {
-                let t : TimestampMillis<OffsetDateTime> = <_>::deserialize(deserializer)?;
-                Ok(TimestampMillis(t.0.date().with_time(t.0.time())))
-            }
-        }
+    //     impl<'de> Deserialize<'de> for TimestampMillis<PrimitiveDateTime> {
+    //         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    //         where
+    //             D: Deserializer<'de> {
+    //             let t : TimestampMillis<OffsetDateTime> = <_>::deserialize(deserializer)?;
+    //             Ok(TimestampMillis(t.0.date().with_time(t.0.time())))
+    //         }
+    //     }
     
-        impl<'de> Deserialize<'de> for TimestampMillis<Option<PrimitiveDateTime>> {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: Deserializer<'de> {
-                let t : TimestampMillis<Option<OffsetDateTime>> = <_>::deserialize(deserializer)?;
+    //     impl<'de> Deserialize<'de> for TimestampMillis<Option<PrimitiveDateTime>> {
+    //         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    //         where
+    //             D: Deserializer<'de> {
+    //             let t : TimestampMillis<Option<OffsetDateTime>> = <_>::deserialize(deserializer)?;
     
-                Ok(TimestampMillis(t.0.map(|t| t.date().with_time(t.time()))))
-            }
-        }
+    //             Ok(TimestampMillis(t.0.map(|t| t.date().with_time(t.time()))))
+    //         }
+    //     }
 
-        impl<'de> Deserialize<'de> for TimestampMillis<Vec<PrimitiveDateTime>> {
-            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-            where
-                D: Deserializer<'de> {
-                let t : TimestampMillis<Vec<OffsetDateTime>> = <_>::deserialize(deserializer)?;
+    //     impl<'de> Deserialize<'de> for TimestampMillis<Vec<PrimitiveDateTime>> {
+    //         fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    //         where
+    //             D: Deserializer<'de> {
+    //             let t : TimestampMillis<Vec<OffsetDateTime>> = <_>::deserialize(deserializer)?;
     
-                Ok(TimestampMillis(t.0.into_iter().map(drop_offset).collect()))
-            }
-        }
+    //             Ok(TimestampMillis(t.0.into_iter().map(drop_offset).collect()))
+    //         }
+    //     }
     
-        impl<'a> Serialize for TimestampMillis<&'a PrimitiveDateTime> {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: Serializer {
-                TimestampMillis(&self.0.assume_utc()).serialize(serializer)
-            }
-        }
+    //     impl<'a> Serialize for TimestampMillis<&'a PrimitiveDateTime> {
+    //         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    //         where
+    //             S: Serializer {
+    //             TimestampMillis(&self.0.assume_utc()).serialize(serializer)
+    //         }
+    //     }
     
-        impl<'a> Serialize for TimestampMillis<&'a Option<PrimitiveDateTime>> {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: Serializer {
-                TimestampMillis(&self.0.map(|t| t.assume_utc())).serialize(serializer)
-            }
-        }
+    //     impl<'a> Serialize for TimestampMillis<&'a Option<PrimitiveDateTime>> {
+    //         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    //         where
+    //             S: Serializer {
+    //             TimestampMillis(&self.0.map(|t| t.assume_utc())).serialize(serializer)
+    //         }
+    //     }
 
-        impl<'a> Serialize for TimestampMillis<&'a [PrimitiveDateTime]> {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: Serializer {
-                let mut seq = serializer.serialize_seq(Some(self.0.len()))?;
-                for t in self.0 {
-                    serde::ser::SerializeSeq::serialize_element(&mut seq, &TimestampMillis(t))?;
-                }
-                serde::ser::SerializeSeq::end(seq)
-            }
-        }
+    //     impl<'a> Serialize for TimestampMillis<&'a [PrimitiveDateTime]> {
+    //         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    //         where
+    //             S: Serializer {
+    //             let mut seq = serializer.serialize_seq(Some(self.0.len()))?;
+    //             for t in self.0 {
+    //                 serde::ser::SerializeSeq::serialize_element(&mut seq, &TimestampMillis(t))?;
+    //             }
+    //             serde::ser::SerializeSeq::end(seq)
+    //         }
+    //     }
     
-        impl<'a> Serialize for TimestampMillis<&'a Vec<PrimitiveDateTime>> {
-            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-            where
-                S: Serializer {
-                    TimestampMillis(&self.0[..]).serialize(serializer)
-            }
-        }
-    }
+    //     impl<'a> Serialize for TimestampMillis<&'a Vec<PrimitiveDateTime>> {
+    //         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    //         where
+    //             S: Serializer {
+    //                 TimestampMillis(&self.0[..]).serialize(serializer)
+    //         }
+    //     }
+    // }
 }
 
 /// Treat an `Option<OffsetDateTime>` as a [Unix timestamp] for the purposes of

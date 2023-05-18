@@ -489,3 +489,135 @@ impl<'a> Deserialize<'a> for Month {
     }
 }
 // endregion Month
+
+pub trait AsWellKnown<WellKnown> {
+    type IntoWellKnownError: core::fmt::Display;
+    type WellKnownSer<'s>: Serialize where Self: 's;
+
+    fn as_well_known<'s>(&'s self) -> Result<Self::WellKnownSer<'s>,Self::IntoWellKnownError>;
+
+    fn fmt_err<E : serde::ser::Error>(error : Self::IntoWellKnownError) -> E {
+        E::custom(error)
+    }
+
+    #[inline]
+    fn serialize_from_wellknown<S : Serializer>(&self, serializer : S) -> Result<S::Ok,S::Error> {
+        let wk = self.as_well_known().map_err(Self::fmt_err)?;
+        wk.serialize(serializer)
+    }
+}
+
+impl<W,T> AsWellKnown<W> for Option<T>
+    where T : AsWellKnown<W> {
+
+    type IntoWellKnownError = T::IntoWellKnownError;
+
+    type WellKnownSer<'s> = Option<T::WellKnownSer<'s>> where Self: 's, T : 's;
+
+    #[inline]
+    fn as_well_known<'s>(&'s self) -> Result<Self::WellKnownSer<'s>,Self::IntoWellKnownError> {
+        self.as_ref().map(T::as_well_known).transpose()
+    }
+}
+
+impl<W,T> AsWellKnown<W> for [T]
+    where T : AsWellKnown<W> {
+
+    type IntoWellKnownError = T::IntoWellKnownError;
+
+    type WellKnownSer<'s> = Vec<T::WellKnownSer<'s>> where Self: 's, T : 's;
+
+    #[inline]
+    fn as_well_known<'s>(&'s self) -> Result<Self::WellKnownSer<'s>,Self::IntoWellKnownError> {
+        self.iter().map(T::as_well_known).collect::<Result<_,_>>()
+    }
+
+    #[inline]
+    fn fmt_err<E : serde::ser::Error>(error : Self::IntoWellKnownError) -> E {
+        T::fmt_err(error)
+    }
+
+    fn serialize_from_wellknown<S : Serializer>(&self, serializer : S) -> Result<S::Ok,S::Error> {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+
+        for i in self {
+            let tmp = i.as_well_known().map_err(T::fmt_err)?;
+
+            serde::ser::SerializeSeq::serialize_element(&mut seq, &tmp)?;
+        }
+
+        serde::ser::SerializeSeq::end(seq)
+    }
+}
+
+
+impl<W,T> AsWellKnown<W> for Vec<T>
+    where T : AsWellKnown<W> {
+
+    type IntoWellKnownError = T::IntoWellKnownError;
+
+    type WellKnownSer<'s> = Vec<T::WellKnownSer<'s>> where Self: 's, T : 's;
+
+    #[inline]
+    fn as_well_known<'s>(&'s self) -> Result<Self::WellKnownSer<'s>,Self::IntoWellKnownError> {
+        self.iter().map(T::as_well_known).collect::<Result<_,_>>()
+    }
+
+    #[inline]
+    fn fmt_err<E : serde::ser::Error>(error : Self::IntoWellKnownError) -> E {
+        T::fmt_err(error)
+    }
+
+    fn serialize_from_wellknown<S : Serializer>(&self, serializer : S) -> Result<S::Ok,S::Error> {
+        let mut seq = serializer.serialize_seq(Some(self.len()))?;
+
+        for i in self {
+            let tmp = i.as_well_known()
+                .map_err(T::fmt_err)?;
+
+            serde::ser::SerializeSeq::serialize_element(&mut seq, &tmp)?;
+        }
+
+        serde::ser::SerializeSeq::end(seq)
+    }
+}
+
+pub trait FromWellKnown<WellKnown>: Sized {
+    type FromWellKnownError: std::fmt::Display;
+    type WellKnownDeser<'de>: Deserialize<'de> + 'de;
+
+    fn from_well_known<'de>(wk : Self::WellKnownDeser<'de>) -> Result<Self,Self::FromWellKnownError>;
+    fn fmt_err<E : serde::de::Error>(e : Self::FromWellKnownError) -> E {
+        E::custom(e)
+    }
+
+    #[inline]
+    fn deserialize_from_well_known<'de,D : Deserializer<'de>>(deserializer : D) -> Result<Self,D::Error> {
+        let wk = Self::WellKnownDeser::deserialize(deserializer)?;
+        Self::from_well_known(wk).map_err(Self::fmt_err)
+    }
+}
+
+impl<T,W> FromWellKnown<W> for Option<T> 
+    where T : FromWellKnown<W> {
+    type FromWellKnownError = T::FromWellKnownError;
+
+    type WellKnownDeser<'de> = Option<T::WellKnownDeser<'de>>;
+
+    #[inline]
+    fn from_well_known<'de>(wk : Self::WellKnownDeser<'de>) -> Result<Self,Self::FromWellKnownError> {
+        wk.map(T::from_well_known).transpose()
+    }
+}
+
+impl<T,W> FromWellKnown<W> for Vec<T> 
+    where T : FromWellKnown<W> {
+    type FromWellKnownError = T::FromWellKnownError;
+
+    type WellKnownDeser<'de> = Vec<T::WellKnownDeser<'de>> where T::WellKnownDeser<'de>: 'de;
+
+    #[inline]
+    fn from_well_known<'de>(wk : Self::WellKnownDeser<'de>) -> Result<Self,Self::FromWellKnownError> {
+        wk.into_iter().map(T::from_well_known).collect()
+    }
+}
