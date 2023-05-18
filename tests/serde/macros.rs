@@ -4,9 +4,15 @@ use serde_test::{
     assert_de_tokens, assert_de_tokens_error, assert_ser_tokens_error, assert_tokens, Configure,
     Token,
 };
+use time::format_description::well_known::{iso8601, Iso8601};
 use time::format_description::FormatItem;
 use time::macros::{date, datetime, offset, time};
 use time::{serde, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
+
+// Not used in the tests, but ensures that the macro compiles.
+const ISO_FORMAT: Iso8601<{ iso8601::Config::DEFAULT.encode() }> =
+    Iso8601::<{ iso8601::Config::DEFAULT.encode() }>;
+time::serde::format_description!(my_format, OffsetDateTime, ISO_FORMAT);
 
 serde::format_description!(
     offset_dt_format,

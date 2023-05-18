@@ -183,10 +183,45 @@ fn whole_seconds() {
 fn seconds_f64() {
     assert_eq!(Duration::seconds_f64(0.5), 0.5.seconds());
     assert_eq!(Duration::seconds_f64(-0.5), (-0.5).seconds());
+    assert_eq!(Duration::seconds_f64(123.250), 123.250.seconds());
+    assert_eq!(Duration::seconds_f64(0.000_000_000_012), Duration::ZERO);
 
     assert_panic!(Duration::seconds_f64(f64::MAX));
     assert_panic!(Duration::seconds_f64(f64::MIN));
     assert_panic!(Duration::seconds_f64(f64::NAN));
+}
+
+#[test]
+fn saturating_seconds_f64() {
+    assert_eq!(Duration::saturating_seconds_f64(0.5), 0.5.seconds());
+    assert_eq!(Duration::saturating_seconds_f64(-0.5), (-0.5).seconds());
+    assert_eq!(Duration::saturating_seconds_f64(123.250), 123.250.seconds());
+    assert_eq!(
+        Duration::saturating_seconds_f64(0.000_000_000_012),
+        Duration::ZERO
+    );
+
+    assert_eq!(Duration::saturating_seconds_f64(f64::MAX), Duration::MAX);
+    assert_eq!(Duration::saturating_seconds_f64(f64::MIN), Duration::MIN);
+    assert_eq!(Duration::saturating_seconds_f64(f64::NAN), Duration::ZERO);
+}
+
+#[test]
+fn checked_seconds_f64() {
+    assert_eq!(Duration::checked_seconds_f64(0.5), Some(0.5.seconds()));
+    assert_eq!(Duration::checked_seconds_f64(-0.5), Some((-0.5).seconds()));
+    assert_eq!(
+        Duration::checked_seconds_f64(123.250),
+        Some(123.250.seconds())
+    );
+    assert_eq!(
+        Duration::checked_seconds_f64(0.000_000_000_012),
+        Some(Duration::ZERO)
+    );
+
+    assert_eq!(Duration::checked_seconds_f64(f64::MAX), None);
+    assert_eq!(Duration::checked_seconds_f64(f64::MIN), None);
+    assert_eq!(Duration::checked_seconds_f64(f64::NAN), None);
 }
 
 #[test]
@@ -204,10 +239,45 @@ fn as_seconds_f64() {
 fn seconds_f32() {
     assert_eq!(Duration::seconds_f32(0.5), 0.5.seconds());
     assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
+    assert_eq!(Duration::seconds_f32(123.250), 123.250.seconds());
+    assert_eq!(Duration::seconds_f32(0.000_000_000_012), Duration::ZERO);
 
     assert_panic!(Duration::seconds_f32(f32::MAX));
     assert_panic!(Duration::seconds_f32(f32::MIN));
     assert_panic!(Duration::seconds_f32(f32::NAN));
+}
+
+#[test]
+fn saturating_seconds_f32() {
+    assert_eq!(Duration::saturating_seconds_f32(0.5), 0.5.seconds());
+    assert_eq!(Duration::saturating_seconds_f32(-0.5), (-0.5).seconds());
+    assert_eq!(Duration::saturating_seconds_f32(123.250), 123.250.seconds());
+    assert_eq!(
+        Duration::saturating_seconds_f32(0.000_000_000_012),
+        Duration::ZERO
+    );
+
+    assert_eq!(Duration::saturating_seconds_f32(f32::MAX), Duration::MAX);
+    assert_eq!(Duration::saturating_seconds_f32(f32::MIN), Duration::MIN);
+    assert_eq!(Duration::saturating_seconds_f32(f32::NAN), Duration::ZERO);
+}
+
+#[test]
+fn checked_seconds_f32() {
+    assert_eq!(Duration::checked_seconds_f32(0.5), Some(0.5.seconds()));
+    assert_eq!(Duration::checked_seconds_f32(-0.5), Some((-0.5).seconds()));
+    assert_eq!(
+        Duration::checked_seconds_f32(123.250),
+        Some(123.250.seconds())
+    );
+    assert_eq!(
+        Duration::checked_seconds_f32(0.000_000_000_012),
+        Some(Duration::ZERO)
+    );
+
+    assert_eq!(Duration::checked_seconds_f32(f32::MAX), None);
+    assert_eq!(Duration::checked_seconds_f32(f32::MIN), None);
+    assert_eq!(Duration::checked_seconds_f32(f32::NAN), None);
 }
 
 #[test]

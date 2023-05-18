@@ -6,6 +6,7 @@ use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
 
+use crate::convert::*;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 #[cfg(feature = "parsing")]
@@ -1013,8 +1014,10 @@ impl Add<StdDuration> for Date {
     type Output = Self;
 
     fn add(self, duration: StdDuration) -> Self::Output {
-        Self::from_julian_day(self.to_julian_day() + (duration.as_secs() / 86_400) as i32)
-            .expect("overflow adding duration to date")
+        Self::from_julian_day(
+            self.to_julian_day() + (duration.as_secs() / Second.per(Day) as u64) as i32,
+        )
+        .expect("overflow adding duration to date")
     }
 }
 
@@ -1033,8 +1036,10 @@ impl Sub<StdDuration> for Date {
     type Output = Self;
 
     fn sub(self, duration: StdDuration) -> Self::Output {
-        Self::from_julian_day(self.to_julian_day() - (duration.as_secs() / 86_400) as i32)
-            .expect("overflow subtracting duration from date")
+        Self::from_julian_day(
+            self.to_julian_day() - (duration.as_secs() / Second.per(Day) as u64) as i32,
+        )
+        .expect("overflow subtracting duration from date")
     }
 }
 

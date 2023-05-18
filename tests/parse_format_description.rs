@@ -1,10 +1,10 @@
 use core::num::NonZeroU16;
 
-mod iterator {
-    use time::format_description::modifier::{
-        MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,
-    };
+use time::error::InvalidFormatDescription;
+use time::format_description::modifier::*;
+use time::format_description::{self, Component, FormatItem, OwnedFormatItem};
 
+mod iterator {
     use super::*;
 
     pub(super) fn padding() -> impl Iterator<Item = (Padding, &'static str)> {
@@ -128,13 +128,18 @@ mod iterator {
             )
         })
     }
-}
 
-use time::error::InvalidFormatDescription;
-use time::format_description::modifier::{
-    Ignore, MonthRepr, Padding, SubsecondDigits, WeekNumberRepr, WeekdayRepr, YearRepr,
-};
-use time::format_description::{self, Component, FormatItem, OwnedFormatItem};
+    pub(super) fn unix_timestamp_precision()
+    -> impl Iterator<Item = (UnixTimestampPrecision, &'static str)> {
+        [
+            (UnixTimestampPrecision::Second, "precision:second"),
+            (UnixTimestampPrecision::Millisecond, "precision:millisecond"),
+            (UnixTimestampPrecision::Microsecond, "precision:microsecond"),
+            (UnixTimestampPrecision::Nanosecond, "precision:nanosecond"),
+        ]
+        .into_iter()
+    }
+}
 
 #[test]
 fn empty() {
@@ -265,6 +270,15 @@ fn simple_component() {
         Ok(vec![FormatItem::Component(Component::Subsecond(
             modifier!(Subsecond {
                 digits: SubsecondDigits::OneOrMore
+            })
+        ))])
+    );
+    assert_eq!(
+        format_description::parse("[unix_timestamp]"),
+        Ok(vec![FormatItem::Component(Component::UnixTimestamp(
+            modifier!(UnixTimestamp {
+                precision: UnixTimestampPrecision::Second,
+                sign_is_mandatory: false,
             })
         ))])
     );
@@ -466,6 +480,24 @@ fn component_with_modifiers() {
                     );
                 }
             }
+        }
+    }
+
+    for (sign_is_mandatory, sign_is_mandatory_str) in iterator::sign_is_mandatory() {
+        for (unix_timestamp_precision, unix_timestamp_precision_str) in
+            iterator::unix_timestamp_precision()
+        {
+            assert_eq!(
+                format_description::parse(&format!(
+                    "[unix_timestamp {sign_is_mandatory_str} {unix_timestamp_precision_str}]"
+                )),
+                Ok(vec![FormatItem::Component(Component::UnixTimestamp(
+                    modifier!(UnixTimestamp {
+                        sign_is_mandatory,
+                        precision: unix_timestamp_precision
+                    })
+                ))])
+            );
         }
     }
 
@@ -794,6 +826,12 @@ fn error_display() {
             .unwrap_err()
             .to_string(),
         "optional item is not supported in runtime-parsed format descriptions at byte index 0"
+    );
+    assert_eq!(
+        format_description::parse("[ignore]")
+            .unwrap_err()
+            .to_string(),
+        "missing required modifier `count` for component at byte index 1"
     );
 }
 

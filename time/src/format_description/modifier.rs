@@ -255,6 +255,30 @@ impl Ignore {
     }
 }
 
+/// The precision of a Unix timestamp.
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UnixTimestampPrecision {
+    /// Seconds since the Unix epoch.
+    Second,
+    /// Milliseconds since the Unix epoch.
+    Millisecond,
+    /// Microseconds since the Unix epoch.
+    Microsecond,
+    /// Nanoseconds since the Unix epoch.
+    Nanosecond,
+}
+
+/// A Unix timestamp.
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct UnixTimestamp {
+    /// The precision of the timestamp.
+    pub precision: UnixTimestampPrecision,
+    /// Whether the `+` sign must be present for a non-negative timestamp.
+    pub sign_is_mandatory: bool,
+}
+
 /// Generate the provided code if and only if `pub` is present.
 macro_rules! if_pub {
     (pub $(#[$attr:meta])*; $($x:tt)*) => {
@@ -373,4 +397,13 @@ impl_const_default! {
     @pub OffsetSecond => Self { padding: Padding::Zero };
     /// Creates a modifier that indicates the value is [padded with zeroes](Self::Zero).
     Padding => Self::Zero;
+    /// Creates a modifier that indicates the value represents the [number of seconds](Self::Second)
+    /// since the Unix epoch.
+    UnixTimestampPrecision => Self::Second;
+    /// Creates a modifier that indicates the value represents the [number of
+    /// seconds](UnixTimestampPrecision::Second) since the Unix epoch. The sign is not mandatory.
+    @pub UnixTimestamp => Self {
+        precision: UnixTimestampPrecision::Second,
+        sign_is_mandatory: false,
+    };
 }

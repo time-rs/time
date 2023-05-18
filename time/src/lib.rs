@@ -204,13 +204,15 @@ macro_rules! cascade {
     (@year year) => {};
 
     // Cascade an out-of-bounds value from "from" to "to".
-    ($from:ident in $min:literal.. $max:literal => $to:tt) => {
+    ($from:ident in $min:literal.. $max:expr => $to:tt) => {
         #[allow(unused_comparisons, unused_assignments)]
-        if $from >= $max {
-            $from -= $max - $min;
+        let min = $min;
+        let max = $max;
+        if $from >= max {
+            $from -= max - min;
             $to += 1;
-        } else if $from < $min {
-            $from += $max - $min;
+        } else if $from < min {
+            $from += max - min;
             $to -= 1;
         }
     };
@@ -300,10 +302,15 @@ macro_rules! expect_opt {
         }
     };
 }
-// endregion macros
 
-#[macro_use]
-mod shim;
+/// `unreachable!()`, but better.
+macro_rules! bug {
+    () => { compile_error!("provide an error message to help fix a possible bug") };
+    ($descr:literal $($rest:tt)?) => {
+        panic!(concat!("internal error: ", $descr) $($rest)?)
+    }
+}
+// endregion macros
 
 mod date;
 mod date_time;
@@ -337,6 +344,9 @@ mod time;
 mod utc_offset;
 pub mod util;
 mod weekday;
+
+// Not public yet.
+use time_core::convert;
 
 pub use crate::date::Date;
 use crate::date_time::DateTime;

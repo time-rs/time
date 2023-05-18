@@ -3,7 +3,7 @@
 use core::mem::MaybeUninit;
 use core::num::{NonZeroU16, NonZeroU8};
 
-use crate::date_time::{offset_kind, DateTime, MaybeOffset};
+use crate::date_time::{maybe_offset_from_offset, offset_kind, DateTime, MaybeOffset};
 use crate::error::TryFromParsed::InsufficientInformation;
 use crate::format_description::modifier::{WeekNumberRepr, YearRepr};
 #[cfg(feature = "alloc")]
@@ -12,7 +12,7 @@ use crate::format_description::{Component, FormatItem};
 use crate::parsing::component::{
     parse_day, parse_hour, parse_ignore, parse_minute, parse_month, parse_offset_hour,
     parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
-    parse_subsecond, parse_week_number, parse_weekday, parse_year, Period,
+    parse_subsecond, parse_unix_timestamp, parse_week_number, parse_weekday, parse_year, Period,
 };
 use crate::parsing::ParsedItem;
 use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
@@ -99,6 +99,10 @@ impl sealed::AnyFormatItem for OwnedFormatItem {
     }
 }
 
+/// The type of the `flags` field in [`Parsed`]. Allows for changing a single location and having it
+/// effect all uses.
+type Flag = u32;
+
 /// All information parsed.
 ///
 /// This information is directly used to construct the final values.
@@ -108,7 +112,7 @@ impl sealed::AnyFormatItem for OwnedFormatItem {
 #[derive(Debug, Clone, Copy)]
 pub struct Parsed {
     /// Bitflags indicating whether a particular field is present.
-    flags: u16,
+    flags: Flag,
     /// Calendar year.
     year: MaybeUninit<i32>,
     /// The last two digits of the calendar year.
@@ -150,32 +154,35 @@ pub struct Parsed {
     offset_minute: MaybeUninit<i8>,
     /// Seconds within the minute of the UTC offset.
     offset_second: MaybeUninit<i8>,
+    /// The Unix timestamp in nanoseconds.
+    unix_timestamp_nanos: MaybeUninit<i128>,
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
 impl Parsed {
-    const YEAR_FLAG: u16 = 1 << 0;
-    const YEAR_LAST_TWO_FLAG: u16 = 1 << 1;
-    const ISO_YEAR_FLAG: u16 = 1 << 2;
-    const ISO_YEAR_LAST_TWO_FLAG: u16 = 1 << 3;
-    const SUNDAY_WEEK_NUMBER_FLAG: u16 = 1 << 4;
-    const MONDAY_WEEK_NUMBER_FLAG: u16 = 1 << 5;
-    const HOUR_24_FLAG: u16 = 1 << 6;
-    const MINUTE_FLAG: u16 = 1 << 7;
-    const SECOND_FLAG: u16 = 1 << 8;
-    const SUBSECOND_FLAG: u16 = 1 << 9;
-    const OFFSET_HOUR_FLAG: u16 = 1 << 10;
-    const OFFSET_MINUTE_FLAG: u16 = 1 << 11;
-    const OFFSET_SECOND_FLAG: u16 = 1 << 12;
+    const YEAR_FLAG: Flag = 1 << 0;
+    const YEAR_LAST_TWO_FLAG: Flag = 1 << 1;
+    const ISO_YEAR_FLAG: Flag = 1 << 2;
+    const ISO_YEAR_LAST_TWO_FLAG: Flag = 1 << 3;
+    const SUNDAY_WEEK_NUMBER_FLAG: Flag = 1 << 4;
+    const MONDAY_WEEK_NUMBER_FLAG: Flag = 1 << 5;
+    const HOUR_24_FLAG: Flag = 1 << 6;
+    const MINUTE_FLAG: Flag = 1 << 7;
+    const SECOND_FLAG: Flag = 1 << 8;
+    const SUBSECOND_FLAG: Flag = 1 << 9;
+    const OFFSET_HOUR_FLAG: Flag = 1 << 10;
+    const OFFSET_MINUTE_FLAG: Flag = 1 << 11;
+    const OFFSET_SECOND_FLAG: Flag = 1 << 12;
     /// Indicates whether a leap second is permitted to be parsed. This is required by some
     /// well-known formats.
-    pub(super) const LEAP_SECOND_ALLOWED_FLAG: u16 = 1 << 13;
+    pub(super) const LEAP_SECOND_ALLOWED_FLAG: Flag = 1 << 13;
     /// Indicates whether the `UtcOffset` is negative. This information is obtained when parsing the
     /// offset hour, but may not otherwise be stored due to "-0" being equivalent to "0".
-    const OFFSET_IS_NEGATIVE_FLAG: u16 = 1 << 14;
+    const OFFSET_IS_NEGATIVE_FLAG: Flag = 1 << 14;
     /// Does the value at `OFFSET_IS_NEGATIVE_FLAG` have any semantic meaning, or is it just the
     /// default value? If the latter, the value should be considered to have no meaning.
-    const OFFSET_IS_NEGATIVE_FLAG_IS_INITIALIZED: u16 = 1 << 15;
+    const OFFSET_IS_NEGATIVE_FLAG_IS_INITIALIZED: Flag = 1 << 15;
+    const UNIX_TIMESTAMP_NANOS_FLAG: Flag = 1 << 16;
 }
 
 impl Parsed {
@@ -203,6 +210,7 @@ impl Parsed {
             offset_hour: MaybeUninit::uninit(),
             offset_minute: MaybeUninit::uninit(),
             offset_second: MaybeUninit::uninit(),
+            unix_timestamp_nanos: MaybeUninit::uninit(),
         }
     }
 
@@ -343,16 +351,21 @@ impl Parsed {
             Component::Ignore(modifiers) => parse_ignore(input, modifiers)
                 .map(ParsedItem::<()>::into_inner)
                 .ok_or(InvalidComponent("ignore")),
+            Component::UnixTimestamp(modifiers) => parse_unix_timestamp(input, modifiers)
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_unix_timestamp_nanos(value))
+                })
+                .ok_or(InvalidComponent("unix_timestamp")),
         }
     }
 
     /// Get the value of the provided flag.
-    const fn get_flag(&self, flag: u16) -> bool {
+    const fn get_flag(&self, flag: Flag) -> bool {
         self.flags & flag == flag
     }
 
     /// Set the value of the provided flag.
-    pub(super) fn set_flag(&mut self, flag: u16, value: bool) {
+    pub(super) fn set_flag(&mut self, flag: Flag, value: bool) {
         if value {
             self.flags |= flag;
         } else {
@@ -406,9 +419,11 @@ impl Parsed {
         @SECOND_FLAG second: u8,
         @SUBSECOND_FLAG subsecond: u32,
         @OFFSET_HOUR_FLAG offset_hour: i8,
+        @UNIX_TIMESTAMP_NANOS_FLAG unix_timestamp_nanos: i128,
     }
 
     /// Obtain the absolute value of the offset minute.
+    #[doc(hidden)]
     #[deprecated(since = "0.3.8", note = "use `parsed.offset_minute_signed()` instead")]
     pub const fn offset_minute(&self) -> Option<u8> {
         Some(const_try_opt!(self.offset_minute_signed()).unsigned_abs())
@@ -433,6 +448,7 @@ impl Parsed {
     }
 
     /// Obtain the absolute value of the offset second.
+    #[doc(hidden)]
     #[deprecated(since = "0.3.8", note = "use `parsed.offset_second_signed()` instead")]
     pub const fn offset_second(&self) -> Option<u8> {
         Some(const_try_opt!(self.offset_second_signed()).unsigned_abs())
@@ -505,9 +521,11 @@ impl Parsed {
         @SECOND_FLAG set_second second: u8,
         @SUBSECOND_FLAG set_subsecond subsecond: u32,
         @OFFSET_HOUR_FLAG set_offset_hour offset_hour: i8,
+        @UNIX_TIMESTAMP_NANOS_FLAG set_unix_timestamp_nanos unix_timestamp_nanos: i128,
     }
 
     /// Set the named component.
+    #[doc(hidden)]
     #[deprecated(
         since = "0.3.8",
         note = "use `parsed.set_offset_minute_signed()` instead"
@@ -528,6 +546,7 @@ impl Parsed {
     }
 
     /// Set the named component.
+    #[doc(hidden)]
     #[deprecated(
         since = "0.3.8",
         note = "use `parsed.set_offset_second_signed()` instead"
@@ -596,9 +615,11 @@ impl Parsed {
         @SECOND_FLAG with_second second: u8,
         @SUBSECOND_FLAG with_subsecond subsecond: u32,
         @OFFSET_HOUR_FLAG with_offset_hour offset_hour: i8,
+        @UNIX_TIMESTAMP_NANOS_FLAG with_unix_timestamp_nanos unix_timestamp_nanos: i128,
     }
 
     /// Set the named component and return `self`.
+    #[doc(hidden)]
     #[deprecated(
         since = "0.3.8",
         note = "use `parsed.with_offset_minute_signed()` instead"
@@ -619,6 +640,7 @@ impl Parsed {
     }
 
     /// Set the named component and return `self`.
+    #[doc(hidden)]
     #[deprecated(
         since = "0.3.8",
         note = "use `parsed.with_offset_second_signed()` instead"
@@ -770,6 +792,18 @@ impl<O: MaybeOffset> TryFrom<Parsed> for DateTime<O> {
 
     #[allow(clippy::unwrap_in_result)] // We know the values are valid.
     fn try_from(mut parsed: Parsed) -> Result<Self, Self::Error> {
+        if O::HAS_LOGICAL_OFFSET {
+            if let Some(timestamp) = parsed.unix_timestamp_nanos() {
+                let DateTime { date, time, offset } =
+                    DateTime::<offset_kind::Fixed>::from_unix_timestamp_nanos(timestamp)?;
+                return Ok(Self {
+                    date,
+                    time,
+                    offset: maybe_offset_from_offset::<O>(offset),
+                });
+            }
+        }
+
         // Some well-known formats explicitly allow leap seconds. We don't currently support them,
         // so treat it as the nearest preceding moment that can be represented. Because leap seconds
         // always fall at the end of a month UTC, reject any that are at other times.

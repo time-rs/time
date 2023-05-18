@@ -107,7 +107,7 @@ impl<'a> From<Box<[Item<'a>]>> for crate::format_description::public::OwnedForma
             if let Ok([item]) = <[_; 1]>::try_from(items) {
                 item.into()
             } else {
-                unreachable!("the length was just checked to be 1")
+                bug!("the length was just checked to be 1")
             }
         } else {
             Self::Compound(items.into_iter().map(Self::from).collect())
@@ -181,9 +181,7 @@ macro_rules! component_definition {
                                     then {
                                         match $field {
                                             Some(value) => value.into(),
-                                            None => unreachable!(
-                                                "internal error: required modifier was not set"
-                                            ),
+                                            None => bug!("required modifier was not set"),
                                         }
                                     } else {
                                         $field.unwrap_or_default().into()
@@ -252,6 +250,10 @@ component_definition! {
         },
         Subsecond = "subsecond" {
             digits = "digits": Option<SubsecondDigits> => digits,
+        },
+        UnixTimestamp = "unix_timestamp" {
+            precision = "precision": Option<UnixTimestampPrecision> => precision,
+            sign_behavior = "sign": Option<SignBehavior> => sign_is_mandatory,
         },
         Weekday = "weekday" {
             repr = "repr": Option<WeekdayRepr> => repr,
@@ -381,6 +383,14 @@ modifier! {
         Nine = b"9",
         #[default]
         OneOrMore = b"1+",
+    }
+
+    enum UnixTimestampPrecision {
+        #[default]
+        Second = b"second",
+        Millisecond = b"millisecond",
+        Microsecond = b"microsecond",
+        Nanosecond = b"nanosecond",
     }
 
     enum WeekNumberRepr {

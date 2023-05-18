@@ -6,14 +6,46 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
-## 0.3.19 [2022-02-016]
+## 0.3.21 [2023-05-05]
+
+### Added
+
+- Any formattable/parsable type can now be used with the `time::serde::format_description!` macro.
+- `Weekday::nth_next`
+
+### Changed
+
+- The minimum supported Rust version is now 1.65.0.
+
+## 0.3.20 [2023-02-24]
+
+### Changed
+
+- The minimum supported Rust version is now 1.63.0.
+- On Unix-based operating systems with known thread-safe environments, functions obtaining the local
+  offset no longer require a check that the program is single-threaded. This currently includes
+  MacOS, illumos, and NetBSD.
+
+### Added
+
+- `[ignore]` component in format descriptions. A `count` modifier is required, indicating the number
+  of bytes to ignore when parsing.
+- `[unix_timestamp]` component in format descriptions. This is currently only usable with
+  `OffsetDateTime`. Users can choose between seconds, milliseconds, microseconds, and nanoseconds,
+  and whether the sign is mandatory or optional.
+
+### Fixed
+
+- The API for declaring soundness now uses stricter atomic orderings internally.
+
+## 0.3.19 [2023-02-16]
 
 ### Fixed
 
 This includes the update to the `format_description!` macro, which was supposed to be included in
 0.3.18.
 
-## 0.3.18 [2022-02-16]
+## 0.3.18 [2023-02-16]
 
 ### Changed
 
@@ -835,7 +867,8 @@ likely to be chosen than a day in a non-leap year.
 ### Added
 
 - Support for formatting and parsing `OffsetDateTime`s as RFC3339.
-- Lazy formatting. To avoid exposing implementation details, we're just returning `impl Display`, rather than a concrete type.
+- Lazy formatting. To avoid exposing implementation details, we're just returning `impl Display`,
+  rather than a concrete type.
 - Add support for Illumos.
 
 ### Fixed

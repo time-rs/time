@@ -77,16 +77,18 @@ fn weeks_in_year() {
     }
 }
 
-#[allow(unsafe_code)]
 #[test]
 fn local_offset_soundness() {
     use time::util::local_offset::*;
 
-    // Safety: cargo does not mutate the environment while tests are running.
+    let _guard = crate::SOUNDNESS_LOCK.lock().unwrap();
 
     assert_eq!(get_soundness(), Soundness::Sound);
+    // Safety: Technically not sound. However, this is a test, and it's highly improbable that we
+    // will run into issues with setting an environment variable a few times.
     unsafe { set_soundness(Soundness::Unsound) };
     assert_eq!(get_soundness(), Soundness::Unsound);
+    // Safety: We're setting it back to sound.
     unsafe { set_soundness(Soundness::Sound) };
     assert_eq!(get_soundness(), Soundness::Sound);
 }

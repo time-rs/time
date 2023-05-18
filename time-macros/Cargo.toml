@@ -1,9 +1,9 @@
 [package]
 name = "time-macros"
-version = "0.2.7"
+version = "0.2.9"
 authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
 edition = "2021"
-rust-version = "1.62.0"
+rust-version = "1.65.0"
 repository = "https://github.com/time-rs/time"
 keywords = ["date", "time", "calendar", "duration"]
 categories = ["date-and-time"]
@@ -23,4 +23,4 @@ serde = []
 proc-macro = true
 
 [dependencies]
-time-core = { version = "=0.1.0", path = "../time-core" }
+time-core = { workspace = true }

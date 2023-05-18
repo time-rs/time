@@ -24,6 +24,21 @@ setup_benchmark! {
         ben.iter(|| Saturday.next());
     }
 
+    fn nth(ben: &mut Bencher<'_>) {
+        ben.iter(|| Sunday.nth_next(0));
+        ben.iter(|| Sunday.nth_next(1));
+        ben.iter(|| Sunday.nth_next(2));
+        ben.iter(|| Sunday.nth_next(3));
+        ben.iter(|| Sunday.nth_next(4));
+        ben.iter(|| Sunday.nth_next(5));
+        ben.iter(|| Sunday.nth_next(6));
+
+        ben.iter(|| Sunday.nth_next(7));
+        ben.iter(|| Sunday.nth_next(u8::MAX));
+        ben.iter(|| Monday.nth_next(7));
+        ben.iter(|| Monday.nth_next(u8::MAX));
+    }
+
     fn number_from_monday(ben: &mut Bencher<'_>) {
         ben.iter(|| Monday.number_from_monday());
         ben.iter(|| Tuesday.number_from_monday());

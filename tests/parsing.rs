@@ -1302,6 +1302,46 @@ fn parse_components() -> time::Result<()> {
         result,
         Err(error::ParseFromDescription::InvalidComponent("ignore"))
     ));
+    parse_component!(
+        Component::UnixTimestamp(modifier!(UnixTimestamp {
+            precision: modifier::UnixTimestampPrecision::Second,
+            sign_is_mandatory: false,
+        })),
+        b"1234567890",
+        _.unix_timestamp_nanos() == Some(1_234_567_890_000_000_000)
+    );
+    parse_component!(
+        Component::UnixTimestamp(modifier!(UnixTimestamp {
+            precision: modifier::UnixTimestampPrecision::Millisecond,
+            sign_is_mandatory: false,
+        })),
+        b"1234567890123",
+        _.unix_timestamp_nanos() == Some(1_234_567_890_123_000_000)
+    );
+    parse_component!(
+        Component::UnixTimestamp(modifier!(UnixTimestamp {
+            precision: modifier::UnixTimestampPrecision::Microsecond,
+            sign_is_mandatory: false,
+        })),
+        b"1234567890123456",
+        _.unix_timestamp_nanos() == Some(1_234_567_890_123_456_000)
+    );
+    parse_component!(
+        Component::UnixTimestamp(modifier!(UnixTimestamp {
+            precision: modifier::UnixTimestampPrecision::Nanosecond,
+            sign_is_mandatory: false,
+        })),
+        b"1234567890123456789",
+        _.unix_timestamp_nanos() == Some(1_234_567_890_123_456_789)
+    );
+    parse_component!(
+        Component::UnixTimestamp(modifier!(UnixTimestamp {
+            precision: modifier::UnixTimestampPrecision::Nanosecond,
+            sign_is_mandatory: false,
+        })),
+        b"-1234567890123456789",
+        _.unix_timestamp_nanos() == Some(-1_234_567_890_123_456_789)
+    );
 
     Ok(())
 }
@@ -1451,6 +1491,73 @@ fn parse_first() -> time::Result<()> {
         )
         .unwrap_err();
     assert_eq!(err, error::ParseFromDescription::InvalidComponent("period"));
+
+    Ok(())
+}
+
+#[test]
+fn parse_unix_timestamp() -> time::Result<()> {
+    assert_eq!(
+        OffsetDateTime::parse("1234567890", &fd::parse("[unix_timestamp]")?)?,
+        datetime!(2009-02-13 23:31:30 UTC)
+    );
+    assert_eq!(
+        OffsetDateTime::parse(
+            "1234567890123",
+            &fd::parse("[unix_timestamp precision:millisecond]")?
+        )?,
+        datetime!(2009-02-13 23:31:30.123 UTC)
+    );
+    assert_eq!(
+        OffsetDateTime::parse(
+            "1234567890123456",
+            &fd::parse("[unix_timestamp precision:microsecond]")?
+        )?,
+        datetime!(2009-02-13 23:31:30.123456 UTC)
+    );
+    assert_eq!(
+        OffsetDateTime::parse(
+            "1234567890123456789",
+            &fd::parse("[unix_timestamp precision:nanosecond]")?
+        )?,
+        datetime!(2009-02-13 23:31:30.123456789 UTC)
+    );
+
+    Ok(())
+}
+
+#[test]
+fn parse_unix_timestamp_err() -> time::Result<()> {
+    assert_eq!(
+        OffsetDateTime::parse("1234567890", &fd::parse("[unix_timestamp sign:mandatory]")?),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("unix_timestamp")
+        ))
+    );
+    assert_eq!(
+        OffsetDateTime::parse("a", &fd::parse("[unix_timestamp precision:second]")?),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("unix_timestamp")
+        ))
+    );
+    assert_eq!(
+        OffsetDateTime::parse("a", &fd::parse("[unix_timestamp precision:millisecond]")?),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("unix_timestamp")
+        ))
+    );
+    assert_eq!(
+        OffsetDateTime::parse("a", &fd::parse("[unix_timestamp precision:microsecond]")?),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("unix_timestamp")
+        ))
+    );
+    assert_eq!(
+        OffsetDateTime::parse("a", &fd::parse("[unix_timestamp precision:nanosecond]")?),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("unix_timestamp")
+        ))
+    );
 
     Ok(())
 }
