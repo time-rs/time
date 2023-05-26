@@ -101,10 +101,10 @@ mod sealed {
 
     pub trait IsOffsetKindFixed:
         MaybeOffset<
-            Self_ = offset_kind::Fixed,
-            MemoryOffsetType = UtcOffset,
-            LogicalOffsetType = UtcOffset,
-        >
+        Self_ = offset_kind::Fixed,
+        MemoryOffsetType = UtcOffset,
+        LogicalOffsetType = UtcOffset,
+    >
     {
     }
     impl IsOffsetKindFixed for offset_kind::Fixed {}
@@ -147,6 +147,7 @@ const fn maybe_offset_as_offset_opt<O: MaybeOffset>(
     if O::STATIC_OFFSET.is_some() {
         O::STATIC_OFFSET
     } else if O::HAS_MEMORY_OFFSET {
+        #[repr(C)] // needed to guarantee they align at the start
         union Convert<O: MaybeOffset> {
             input: O::MemoryOffsetType,
             output: UtcOffset,
@@ -172,6 +173,7 @@ const fn maybe_offset_as_offset<O: MaybeOffset + HasLogicalOffset>(
 pub(crate) const fn maybe_offset_from_offset<O: MaybeOffset>(
     offset: UtcOffset,
 ) -> O::MemoryOffsetType {
+    #[repr(C)] // needed to guarantee the types align at the start
     union Convert<O: MaybeOffset> {
         input: UtcOffset,
         output: O::MemoryOffsetType,
