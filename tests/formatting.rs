@@ -2,7 +2,7 @@ use std::io;
 
 use time::format_description::well_known::iso8601::{DateKind, OffsetPrecision, TimePrecision};
 use time::format_description::well_known::{iso8601, Iso8601, Rfc2822, Rfc3339};
-use time::format_description::{self, FormatItem, OwnedFormatItem};
+use time::format_description::{self, FormatItem, OwnedFormatItem, Component, modifier};
 use time::macros::{date, datetime, format_description as fd, offset, time};
 use time::{OffsetDateTime, Time};
 
@@ -271,6 +271,7 @@ fn format_time() -> time::Result<()> {
                 .format_into(&mut io::sink(), format_description)
                 .is_ok()
         );
+        
         assert_eq!(
             time!(13:02:03.456_789_012).format(&OwnedFormatItem::from(format_description))?,
             output
@@ -278,6 +279,18 @@ fn format_time() -> time::Result<()> {
         assert!(
             time!(13:02:03.456_789_012)
                 .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
+                .is_ok()
+        );
+
+        let opt_fd = OwnedFormatItem::Optional(Box::new(OwnedFormatItem::from(format_description)));
+
+        assert_eq!(
+            time!(13:02:03.456_789_012).format(&opt_fd)?,
+            output
+        );
+        assert!(
+            time!(13:02:03.456_789_012)
+                .format_into(&mut io::sink(), &opt_fd)
                 .is_ok()
         );
     }
@@ -385,6 +398,17 @@ fn format_date() -> time::Result<()> {
         assert!(
             date!(2019 - 12 - 31)
                 .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
+                .is_ok()
+        );
+
+        let opt_fd = OwnedFormatItem::Optional(Box::new(OwnedFormatItem::from(format_description)));
+        assert_eq!(
+            date!(2019 - 12 - 31).format(&opt_fd)?,
+            output
+        );
+        assert!(
+            date!(2019 - 12 - 31)
+                .format_into(&mut io::sink(), &opt_fd)
                 .is_ok()
         );
     }
@@ -714,8 +738,14 @@ fn failed_write() -> time::Result<()> {
 #[test]
 fn first() -> time::Result<()> {
     assert_eq!(Time::MIDNIGHT.format(&FormatItem::First(&[]))?, "");
+    assert_eq!(Time::MIDNIGHT.format(&FormatItem::Optional(&FormatItem::First(&[])))?, "");
     assert_eq!(
         Time::MIDNIGHT.format(&FormatItem::First(&[FormatItem::Compound(fd!("[hour]"))]))?,
+        "00"
+    );
+    
+    assert_eq!(
+        Time::MIDNIGHT.format(&FormatItem::Optional(&FormatItem::First(&[FormatItem::Compound(fd!("[hour]"))])))?,
         "00"
     );
     assert_eq!(
@@ -723,9 +753,19 @@ fn first() -> time::Result<()> {
         ""
     );
     assert_eq!(
+        Time::MIDNIGHT.format(&OwnedFormatItem::Optional(Box::new(OwnedFormatItem::First(Box::new([])))))?,
+        ""
+    );
+    assert_eq!(
         Time::MIDNIGHT.format(&OwnedFormatItem::from(FormatItem::First(&[
             FormatItem::Compound(fd!("[hour]"))
         ])))?,
+        "00"
+    );
+    assert_eq!(
+        Time::MIDNIGHT.format(&OwnedFormatItem::from(&FormatItem::Optional(&FormatItem::First(&[
+            FormatItem::Compound(fd!("[hour]"))
+        ]))))?,
         "00"
     );
 
@@ -743,7 +783,13 @@ fn ignore() -> time::Result<()> {
 fn unix_timestamp() -> time::Result<()> {
     let dt = datetime!(2009-02-13 23:31:30.123456789 UTC);
 
-    assert_eq!(dt.format(&fd!("[unix_timestamp]"))?, "1234567890");
+    let fd = fd!("[unix_timestamp]");
+    
+    assert_eq!(dt.format(fd)?, "1234567890");
+    
+    let opt_fd = FormatItem::Optional(&fd[0]);
+
+    assert_eq!(dt.format(&opt_fd)?, "1234567890");
     assert_eq!(
         dt.format(&fd!("[unix_timestamp sign:mandatory]"))?,
         "+1234567890"
@@ -763,6 +809,106 @@ fn unix_timestamp() -> time::Result<()> {
     assert_eq!(
         datetime!(1969-12-31 23:59:59 UTC).format(&fd!("[unix_timestamp]"))?,
         "-1"
+    );
+
+    Ok(())
+}
+
+
+#[test]
+fn optional_item() -> time::Result<()> {
+    assert_eq!(
+        datetime!(1970-01-01 00:00:00 UTC).format(&fd!("[optional [test [unix_timestamp]]]"))?,
+        "test 0"
+    );
+
+    assert_eq!(
+        datetime!(1970-01-01 00:00:00 UTC).format(&OwnedFormatItem::from(&fd!("[optional [test [unix_timestamp]]]")))?,
+        "test 0"
+    );
+
+    assert_eq!(
+        datetime!(1970-01-01 00:00:00 UTC).format(&fd!("[optional [test [offset_second]]]"))?,
+        "test 00"
+    );
+
+    assert_eq!(
+        datetime!(1970-01-01 00:00:00 UTC).format(&OwnedFormatItem::from(&fd!("[optional [test [offset_second]]]")))?,
+        "test 00"
+    );
+
+    assert_eq!(
+        datetime!(1970-01-01 00:00:00 UTC).format(&fd!("[optional [test [offset_minute]]]"))?,
+        "test 00"
+    );
+
+    assert_eq!(
+        datetime!(1970-01-01 00:00:00 UTC).format(&OwnedFormatItem::from(&fd!("[optional [test [offset_minute]]]")))?,
+        "test 00"
+    );
+
+    assert_eq!(
+        datetime!(1970-01-01 00:00:00 UTC).format(&fd!("[optional [test [second]]]"))?,
+        "test 00"
+    );
+
+    assert_eq!(
+        datetime!(1970-01-01 00:00:00 UTC).format(&OwnedFormatItem::from(&fd!("[optional [test [second]]]")))?,
+        "test 00"
+    );
+
+    assert_eq!(
+        datetime!(1970-01-01 00:00:00 UTC).format(&fd!("[optional [test [subsecond]]]"))?,
+        "test 0"
+    );
+
+    assert_eq!(
+        datetime!(1970-01-01 00:00:00 UTC).format(&OwnedFormatItem::from(&fd!("[optional [test [subsecond]]]")))?,
+        "test 0"
+    );
+    
+    let owned_fd = 
+        OwnedFormatItem::Optional(
+            Box::new(
+                OwnedFormatItem::Optional(
+                    Box::new(
+                        OwnedFormatItem::Component(
+                            Component::Second(modifier::Second::default())
+                        )
+                    )
+                )
+            )
+        );
+
+    assert_eq!(
+        datetime!(1970-01-01 00:00:00 UTC).format(&owned_fd)?,
+        "00"
+    );
+
+    let owned_fd = 
+        OwnedFormatItem::Optional(
+            Box::new(
+                OwnedFormatItem::Optional(
+                    Box::new(
+                        OwnedFormatItem::Compound(
+                            vec![
+                                OwnedFormatItem::Literal(
+                                    b"Test text".to_vec().into()
+                                ),
+                                OwnedFormatItem::Component(
+                                    Component::Second(modifier::Second::default())
+                                )
+                            ]
+                            .into()
+                        )
+                    )
+                )
+            )
+        );
+
+    assert_eq!(
+        datetime!(1970-01-01 00:00:00 UTC).format(&owned_fd)?,
+        "Test text00"
     );
 
     Ok(())

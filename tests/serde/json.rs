@@ -66,6 +66,8 @@ fn time_json() -> Result<(), Box<dyn Error>> {
     assert_eq!(serialize(time.readable())?, "\"12:40:20.0\"");
     assert_eq!(deserialize::<Time>("\"12:40:20.0\"", Readable)?, time);
     assert_eq!(deserialize::<Time>("[12,40,20,0]", Readable)?, time);
+    assert_eq!(deserialize::<Time>("\"12:40:20\"", Readable)?, time);
+    assert!(matches!(deserialize::<Time>("[12,40,20]", Readable), Err(_)));
 
     Ok(())
 }

@@ -368,10 +368,14 @@ const TIME_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Component(Component::Hour(<modifier::Hour>::default())),
     FormatItem::Literal(b":"),
     FormatItem::Component(Component::Minute(<modifier::Minute>::default())),
-    FormatItem::Literal(b":"),
-    FormatItem::Component(Component::Second(<modifier::Second>::default())),
-    FormatItem::Literal(b"."),
-    FormatItem::Component(Component::Subsecond(<modifier::Subsecond>::default())),
+    FormatItem::Optional(&FormatItem::Compound(&[
+        FormatItem::Literal(b":"),
+        FormatItem::Component(Component::Second(<modifier::Second>::default())),
+        FormatItem::Optional(&FormatItem::Compound(&[
+            FormatItem::Literal(b"."),
+            FormatItem::Component(Component::Subsecond(<modifier::Subsecond>::default())),
+        ])),
+    ])),
 ];
 
 impl Serialize for Time {
