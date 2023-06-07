@@ -69,6 +69,29 @@ fn to_offset_invalid_regression() {
 }
 
 #[test]
+fn checked_to_offset() {
+    assert_eq!(
+        datetime!(2000-01-01 0:00 UTC)
+            .checked_to_offset(offset!(-1))
+            .unwrap()
+            .year(),
+        1999,
+    );
+    assert_eq!(
+        PrimitiveDateTime::MAX
+            .assume_utc()
+            .checked_to_offset(offset!(+1)),
+        None
+    );
+    assert_eq!(
+        PrimitiveDateTime::MIN
+            .assume_utc()
+            .checked_to_offset(offset!(-1)),
+        None
+    );
+}
+
+#[test]
 fn from_unix_timestamp() {
     assert_eq!(
         OffsetDateTime::from_unix_timestamp(0),

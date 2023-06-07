@@ -101,10 +101,10 @@ mod sealed {
 
     pub trait IsOffsetKindFixed:
         MaybeOffset<
-        Self_ = offset_kind::Fixed,
-        MemoryOffsetType = UtcOffset,
-        LogicalOffsetType = UtcOffset,
-    >
+            Self_ = offset_kind::Fixed,
+            MemoryOffsetType = UtcOffset,
+            LogicalOffsetType = UtcOffset,
+        >
     {
     }
     impl IsOffsetKindFixed for offset_kind::Fixed {}
@@ -496,30 +496,40 @@ impl<O: MaybeOffset> DateTime<O> {
     where
         O: HasLogicalOffset,
     {
+        expect_opt!(
+            self.checked_to_offset(offset),
+            "local datetime out of valid range"
+        )
+    }
+
+    pub const fn checked_to_offset(self, offset: UtcOffset) -> Option<DateTime<offset_kind::Fixed>>
+    where
+        O: HasLogicalOffset,
+    {
         let self_offset = maybe_offset_as_offset::<O>(self.offset);
 
         if self_offset.whole_hours() == offset.whole_hours()
             && self_offset.minutes_past_hour() == offset.minutes_past_hour()
             && self_offset.seconds_past_minute() == offset.seconds_past_minute()
         {
-            return DateTime {
+            return Some(DateTime {
                 date: self.date,
                 time: self.time,
                 offset,
-            };
+            });
         }
 
         let (year, ordinal, time) = self.to_offset_raw(offset);
 
         if year > MAX_YEAR || year < MIN_YEAR {
-            panic!("local datetime out of valid range");
+            return None;
         }
 
-        DateTime {
+        Some(DateTime {
             date: Date::__from_ordinal_date_unchecked(year, ordinal),
             time,
             offset,
-        }
+        })
     }
 
     /// Equivalent to `.to_offset(UtcOffset::UTC)`, but returning the year, ordinal, and time. This
