@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.22 [2023-06-07]
+
+### Added
+
+- `OffsetDateTime::checked_to_offset`
+
 ## 0.3.21 [2023-05-05]
 
 ### Added
