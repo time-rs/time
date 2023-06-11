@@ -299,7 +299,10 @@ impl Duration {
     /// assert_eq!((-1).seconds().abs(), 1.seconds());
     /// ```
     pub const fn abs(self) -> Self {
-        Self::new_unchecked(self.seconds.saturating_abs(), self.nanoseconds.abs())
+        match self.seconds.checked_abs() {
+            Some(seconds) => Self::new_unchecked(seconds, self.nanoseconds.abs()),
+            None => Self::MAX,
+        }
     }
 
     /// Convert the existing `Duration` to a `std::time::Duration` and its sign. This returns a

@@ -49,6 +49,7 @@ fn abs() {
     assert_eq!(1.seconds().abs(), 1.seconds());
     assert_eq!(0.seconds().abs(), 0.seconds());
     assert_eq!((-1).seconds().abs(), 1.seconds());
+    assert_eq!(Duration::new(i64::MIN, 0).abs(), Duration::MAX);
 }
 
 #[test]
