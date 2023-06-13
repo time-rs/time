@@ -56,7 +56,7 @@ pub(crate) fn build(
                     deserializer: D
                 ) -> Result<Option<__TimeSerdeType>, D::Error> {
                     deserializer
-                        .deserialize_any(Visitor)
+                        .deserialize_str(Visitor)
                         .map(Some)
                 }
 
@@ -94,7 +94,7 @@ pub(crate) fn build(
                 deserializer: D
             ) -> Result<__TimeSerdeType, D::Error> {
                 use ::serde::Deserialize;
-                deserializer.deserialize_any(Visitor)
+                deserializer.deserialize_str(Visitor)
             }
         }
     } else {
