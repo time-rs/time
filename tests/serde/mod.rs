@@ -777,18 +777,18 @@ fn utc_offset_partial() {
         "expected offset hours",
     );
 
-    let value = UtcOffset::from_hms(23, 0, 0).unwrap();
+    let value = offset!(+23:0:0);
     assert_de_tokens::<Compact<UtcOffset>>(
         &value.compact(),
         &[Token::Tuple { len: 3 }, Token::I8(23), Token::TupleEnd],
     );
-    let value = UtcOffset::from_hms(23, 0, 0).unwrap();
+    let value = offset!(+23:0:0);
     assert_de_tokens::<Readable<UtcOffset>>(
         &value.readable(),
         &[Token::Tuple { len: 3 }, Token::I8(23), Token::TupleEnd],
     );
 
-    let value = UtcOffset::from_hms(23, 58, 0).unwrap();
+    let value = offset!(+23:58:0);
     assert_de_tokens::<Compact<UtcOffset>>(
         &value.compact(),
         &[
@@ -798,8 +798,7 @@ fn utc_offset_partial() {
             Token::TupleEnd,
         ],
     );
-
-    let value = UtcOffset::from_hms(23, 58, 0).unwrap();
+    let value = offset!(+23:58:0);
     assert_de_tokens::<Readable<UtcOffset>>(
         &value.readable(),
         &[

@@ -176,8 +176,6 @@ impl<'a> de::Visitor<'a> for Visitor<UtcOffset> {
                 seconds = sec;
             }
         };
-        // let minutes = item!(seq, "offset minutes").unwrap_or(0);
-        // let seconds = item!(seq, "offset seconds").unwrap_or(0);
 
         UtcOffset::from_hms(hours, minutes, seconds).map_err(ComponentRange::into_de_error)
     }
