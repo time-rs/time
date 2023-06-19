@@ -101,12 +101,6 @@ macro_rules! require_all_features {
 }
 
 require_all_features! {
-    use std::sync::Mutex;
-
-    /// A lock to ensure that certain tests don't run in parallel, which could lead to a test
-    /// unexpectedly failing.
-    static SOUNDNESS_LOCK: Mutex<()> = Mutex::new(());
-
     /// Construct a non-exhaustive modifier.
     macro_rules! modifier {
         ($name:ident {

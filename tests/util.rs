@@ -81,8 +81,6 @@ fn weeks_in_year() {
 fn local_offset_soundness() {
     use time::util::local_offset::*;
 
-    let _guard = crate::SOUNDNESS_LOCK.lock().unwrap();
-
     assert_eq!(get_soundness(), Soundness::Sound);
     // Safety: Technically not sound. However, this is a test, and it's highly improbable that we
     // will run into issues with setting an environment variable a few times.

@@ -14,16 +14,7 @@ fn now_utc() {
 #[cfg_attr(miri, ignore)]
 #[test]
 fn now_local() {
-    use time::util::local_offset::*;
-
-    let _guard = crate::SOUNDNESS_LOCK.lock().unwrap();
-
-    // Safety: Technically not sound. However, this is a test, and it's highly improbable that we
-    // will run into issues with setting an environment variable a few times.
-    unsafe { set_soundness(Soundness::Unsound) };
     assert!(OffsetDateTime::now_local().is_ok());
-    // Safety: We're setting it back to sound.
-    unsafe { set_soundness(Soundness::Sound) };
 }
 
 #[test]
