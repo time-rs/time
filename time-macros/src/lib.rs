@@ -32,7 +32,7 @@
     clippy::redundant_pub_crate, // suggests bad style
     clippy::option_if_let_else, // suggests terrible code
 )]
-
+#[allow(unused_macros)]
 macro_rules! bug {
     () => { compile_error!("provide an error message to help fix a possible bug") };
     ($descr:literal $($rest:tt)?) => {
