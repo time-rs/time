@@ -167,8 +167,17 @@ impl<'a> de::Visitor<'a> for Visitor<UtcOffset> {
 
     fn visit_seq<A: de::SeqAccess<'a>>(self, mut seq: A) -> Result<UtcOffset, A::Error> {
         let hours = item!(seq, "offset hours")?;
-        let minutes = item!(seq, "offset minutes").unwrap_or(0);
-        let seconds = item!(seq, "offset seconds").unwrap_or(0);
+        let mut minutes = 0;
+        let mut seconds = 0;
+
+        if let Ok(Some(min)) = seq.next_element() {
+            minutes = min;
+            if let Ok(Some(sec)) = seq.next_element() {
+                seconds = sec;
+            }
+        };
+        // let minutes = item!(seq, "offset minutes").unwrap_or(0);
+        // let seconds = item!(seq, "offset seconds").unwrap_or(0);
 
         UtcOffset::from_hms(hours, minutes, seconds).map_err(ComponentRange::into_de_error)
     }

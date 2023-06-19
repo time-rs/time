@@ -1,4 +1,6 @@
-use serde_test::{assert_de_tokens_error, assert_tokens, Compact, Configure, Readable, Token};
+use serde_test::{
+    assert_de_tokens, assert_de_tokens_error, assert_tokens, Compact, Configure, Readable, Token,
+};
 use time::macros::{date, datetime, offset, time};
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
@@ -770,36 +772,42 @@ fn utc_offset_partial() {
         &[Token::Tuple { len: 3 }, Token::TupleEnd],
         "expected offset hours",
     );
-    assert_de_tokens_error::<Compact<UtcOffset>>(
-        &[Token::Tuple { len: 3 }, Token::I8(23), Token::TupleEnd],
-        "expected offset minutes",
-    );
-    assert_de_tokens_error::<Compact<UtcOffset>>(
-        &[
-            Token::Tuple { len: 3 },
-            Token::I8(23),
-            Token::I8(58),
-            Token::TupleEnd,
-        ],
-        "expected offset seconds",
-    );
-
     assert_de_tokens_error::<Readable<UtcOffset>>(
         &[Token::Tuple { len: 3 }, Token::TupleEnd],
         "expected offset hours",
     );
-    assert_de_tokens_error::<Readable<UtcOffset>>(
+
+    let value = UtcOffset::from_hms(23, 0, 0).unwrap();
+    assert_de_tokens::<Compact<UtcOffset>>(
+        &value.compact(),
         &[Token::Tuple { len: 3 }, Token::I8(23), Token::TupleEnd],
-        "expected offset minutes",
     );
-    assert_de_tokens_error::<Readable<UtcOffset>>(
+    let value = UtcOffset::from_hms(23, 0, 0).unwrap();
+    assert_de_tokens::<Readable<UtcOffset>>(
+        &value.readable(),
+        &[Token::Tuple { len: 3 }, Token::I8(23), Token::TupleEnd],
+    );
+
+    let value = UtcOffset::from_hms(23, 58, 0).unwrap();
+    assert_de_tokens::<Compact<UtcOffset>>(
+        &value.compact(),
         &[
             Token::Tuple { len: 3 },
             Token::I8(23),
             Token::I8(58),
             Token::TupleEnd,
         ],
-        "expected offset seconds",
+    );
+
+    let value = UtcOffset::from_hms(23, 58, 0).unwrap();
+    assert_de_tokens::<Readable<UtcOffset>>(
+        &value.readable(),
+        &[
+            Token::Tuple { len: 3 },
+            Token::I8(23),
+            Token::I8(58),
+            Token::TupleEnd,
+        ],
     );
 }
 
