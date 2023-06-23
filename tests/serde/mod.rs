@@ -769,40 +769,40 @@ fn utc_offset_error() {
 #[test]
 fn utc_offset_partial() {
     assert_de_tokens_error::<Compact<UtcOffset>>(
-        &[Token::Tuple { len: 3 }, Token::TupleEnd],
+        &[Token::Tuple { len: 0 }, Token::TupleEnd],
         "expected offset hours",
     );
     assert_de_tokens_error::<Readable<UtcOffset>>(
-        &[Token::Tuple { len: 3 }, Token::TupleEnd],
+        &[Token::Tuple { len: 0 }, Token::TupleEnd],
         "expected offset hours",
     );
 
-    let value = offset!(+23:0:0);
+    let value = offset!(+23);
     assert_de_tokens::<Compact<UtcOffset>>(
         &value.compact(),
-        &[Token::Tuple { len: 3 }, Token::I8(23), Token::TupleEnd],
+        &[Token::Tuple { len: 1 }, Token::I8(23), Token::TupleEnd],
     );
-    let value = offset!(+23:0:0);
+    let value = offset!(+23);
     assert_de_tokens::<Readable<UtcOffset>>(
         &value.readable(),
-        &[Token::Tuple { len: 3 }, Token::I8(23), Token::TupleEnd],
+        &[Token::Tuple { len: 1 }, Token::I8(23), Token::TupleEnd],
     );
 
-    let value = offset!(+23:58:0);
+    let value = offset!(+23:58);
     assert_de_tokens::<Compact<UtcOffset>>(
         &value.compact(),
         &[
-            Token::Tuple { len: 3 },
+            Token::Tuple { len: 2 },
             Token::I8(23),
             Token::I8(58),
             Token::TupleEnd,
         ],
     );
-    let value = offset!(+23:58:0);
+    let value = offset!(+23:58);
     assert_de_tokens::<Readable<UtcOffset>>(
         &value.readable(),
         &[
-            Token::Tuple { len: 3 },
+            Token::Tuple { len: 2 },
             Token::I8(23),
             Token::I8(58),
             Token::TupleEnd,
