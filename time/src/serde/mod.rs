@@ -404,10 +404,14 @@ impl<'a> Deserialize<'a> for Time {
 #[cfg(feature = "parsing")]
 const UTC_OFFSET_FORMAT: &[FormatItem<'_>] = &[
     FormatItem::Component(Component::OffsetHour(modifier::OffsetHour::default())),
-    FormatItem::Literal(b":"),
-    FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute::default())),
-    FormatItem::Literal(b":"),
-    FormatItem::Component(Component::OffsetSecond(modifier::OffsetSecond::default())),
+    FormatItem::Optional(&FormatItem::Compound(&[
+        FormatItem::Literal(b":"),
+        FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute::default())),
+        FormatItem::Optional(&FormatItem::Compound(&[
+            FormatItem::Literal(b":"),
+            FormatItem::Component(Component::OffsetSecond(modifier::OffsetSecond::default())),
+        ])),
+    ])),
 ];
 
 impl Serialize for UtcOffset {
