@@ -266,7 +266,9 @@ fn parse_component<
 
     let mut modifiers = Vec::new();
     let trailing_whitespace = loop {
-        let Some(whitespace) = tokens.next_if_whitespace() else { break None };
+        let Some(whitespace) = tokens.next_if_whitespace() else {
+            break None;
+        };
 
         // This is not necessary for proper parsing, but provides a much better error when a nested
         // description is used where it's not allowed.

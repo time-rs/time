@@ -822,7 +822,9 @@ impl<O: MaybeOffset> DateTime<O> {
         }
 
         let (year, ordinal, time) = self.to_offset_raw(UtcOffset::UTC);
-        let Ok(date) = Date::from_ordinal_date(year, ordinal) else { return false };
+        let Ok(date) = Date::from_ordinal_date(year, ordinal) else {
+            return false;
+        };
 
         time.hour() == 23
             && time.minute() == 59

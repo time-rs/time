@@ -182,7 +182,9 @@ fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, cons
 
     let mut modifiers = Vec::new();
     let trailing_whitespace = loop {
-        let Some(whitespace) = tokens.next_if_whitespace() else { break None };
+        let Some(whitespace) = tokens.next_if_whitespace() else {
+            break None;
+        };
 
         if let Some(location) = tokens.next_if_opening_bracket() {
             return Err(location
