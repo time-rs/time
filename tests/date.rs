@@ -982,3 +982,45 @@ fn replace_day() {
     assert!(date!(2022 - 02 - 18).replace_day(0).is_err()); // 0 isn't a valid day
     assert!(date!(2022 - 02 - 18).replace_day(30).is_err()); // 30 isn't a valid day in February
 }
+
+#[test]
+fn next_occurrence_test() {
+    assert_eq!(date!(2023 - 06 - 25).next_occurrence(Weekday::Monday), date!(2023 - 06 - 26));
+    assert_eq!(date!(2023 - 06 - 26).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
+    assert_eq!(date!(2023 - 06 - 27).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
+    assert_eq!(date!(2023 - 06 - 28).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
+    assert_eq!(date!(2023 - 06 - 29).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
+    assert_eq!(date!(2023 - 06 - 30).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
+    assert_eq!(date!(2023 - 07 - 01).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
+    assert_eq!(date!(2023 - 07 - 02).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
+    assert_eq!(date!(2023 - 07 - 03).next_occurrence(Weekday::Monday), date!(2023 - 07 - 10));
+}
+
+#[test]
+fn prev_occurrence_test() {
+    assert_eq!(date!(2023 - 07 - 07).prev_occurrence(Weekday::Thursday), date!(2023 - 07 - 06));
+    assert_eq!(date!(2023 - 07 - 06).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
+    assert_eq!(date!(2023 - 07 - 05).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
+    assert_eq!(date!(2023 - 07 - 04).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
+    assert_eq!(date!(2023 - 07 - 03).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
+    assert_eq!(date!(2023 - 07 - 02).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
+    assert_eq!(date!(2023 - 07 - 01).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
+    assert_eq!(date!(2023 - 06 - 30).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
+    assert_eq!(date!(2023 - 06 - 29).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 22));
+}
+
+#[test]
+fn nth_next_occurrence_test() {
+    assert_eq!(date!(2023 - 06 - 25).nth_next_occurrence(Weekday::Monday, 5), date!(2023 - 07 - 24));
+    assert_eq!(date!(2023 - 06 - 26).nth_next_occurrence(Weekday::Monday, 5), date!(2023 - 07 - 31));
+
+    assert!(date!(2023 - 06 - 25).checked_nth_next_occurrence(Weekday::Monday, 0).is_none())
+}
+
+#[test]
+fn nth_prev_occurrence_test() {
+    assert_eq!(date!(2023 - 06 - 27).nth_prev_occurrence(Weekday::Monday, 3), date!(2023 - 06 - 12));
+    assert_eq!(date!(2023 - 06 - 26).nth_prev_occurrence(Weekday::Monday, 3), date!(2023 - 06 - 05));
+
+    assert!(date!(2023 - 06 - 27).checked_nth_prev_occurrence(Weekday::Monday, 0).is_none())
+}
