@@ -47,6 +47,30 @@ fn nth_next() {
 }
 
 #[test]
+fn nth_prev() {
+    assert_eq!(Sunday.nth_prev(0), Sunday);
+    assert_eq!(Sunday.nth_prev(1), Saturday);
+    assert_eq!(Sunday.nth_prev(2), Friday);
+    assert_eq!(Sunday.nth_prev(3), Thursday);
+    assert_eq!(Sunday.nth_prev(4), Wednesday);
+    assert_eq!(Sunday.nth_prev(5), Tuesday);
+    assert_eq!(Sunday.nth_prev(6), Monday);
+
+    assert_eq!(Monday.nth_prev(0), Monday);
+    assert_eq!(Monday.nth_prev(1), Sunday);
+    assert_eq!(Monday.nth_prev(2), Saturday);
+    assert_eq!(Monday.nth_prev(3), Friday);
+    assert_eq!(Monday.nth_prev(4), Thursday);
+    assert_eq!(Monday.nth_prev(5), Wednesday);
+    assert_eq!(Monday.nth_prev(6), Tuesday);
+
+    assert_eq!(Sunday.nth_prev(7), Sunday);
+    assert_eq!(Sunday.nth_prev(u8::MAX), Thursday);
+    assert_eq!(Monday.nth_prev(7), Monday);
+    assert_eq!(Monday.nth_prev(u8::MAX), Friday);
+}
+
+#[test]
 fn number_from_monday() {
     assert_eq!(Monday.number_from_monday(), 1);
     assert_eq!(Tuesday.number_from_monday(), 2);
