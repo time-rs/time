@@ -1013,14 +1013,46 @@ fn prev_occurrence_test() {
 fn nth_next_occurrence_test() {
     assert_eq!(date!(2023 - 06 - 25).nth_next_occurrence(Weekday::Monday, 5), date!(2023 - 07 - 24));
     assert_eq!(date!(2023 - 06 - 26).nth_next_occurrence(Weekday::Monday, 5), date!(2023 - 07 - 31));
-
-    assert!(date!(2023 - 06 - 25).checked_nth_next_occurrence(Weekday::Monday, 0).is_none())
 }
 
 #[test]
 fn nth_prev_occurrence_test() {
     assert_eq!(date!(2023 - 06 - 27).nth_prev_occurrence(Weekday::Monday, 3), date!(2023 - 06 - 12));
     assert_eq!(date!(2023 - 06 - 26).nth_prev_occurrence(Weekday::Monday, 3), date!(2023 - 06 - 05));
+}
 
-    assert!(date!(2023 - 06 - 27).checked_nth_prev_occurrence(Weekday::Monday, 0).is_none())
+#[test]
+#[should_panic]
+fn next_occurrence_overflow_test() {
+    date!(+999999 - 12 - 25).next_occurrence(Weekday::Saturday);
+}
+
+#[test]
+#[should_panic]
+fn prev_occurrence_overflow_test() {
+    date!(-999999 - 01 - 07).prev_occurrence(Weekday::Sunday);
+}
+
+#[test]
+#[should_panic]
+fn nth_next_occurrence_overflow_test() {
+    date!(+999999 - 12 - 25).nth_next_occurrence(Weekday::Saturday, 1);
+}
+
+#[test]
+#[should_panic]
+fn nth_next_occurence_zeroth_occurence_test() {
+    date!(2023 - 06 - 25).nth_next_occurrence(Weekday::Monday, 0);
+}
+
+#[test]
+#[should_panic]
+fn nth_prev_occurence_zeroth_occurence_test() {
+    date!(2023 - 06 - 27).nth_prev_occurrence(Weekday::Monday, 0);
+}
+
+#[test]
+#[should_panic]
+fn nth_prev_occurrence_overflow_test() {
+    date!(-999999 - 01 - 07).nth_prev_occurrence(Weekday::Sunday, 1);
 }

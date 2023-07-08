@@ -530,7 +530,7 @@ impl Date {
     }
 
     /// Calculates the first occurrence of a weekday that is strictly later than a given `Date`.
-    /// 
+    ///
     /// # Panics
     /// Panics if an overflow occurred.
     ///
@@ -538,8 +538,14 @@ impl Date {
     /// ```
     /// # use time::Weekday;
     /// # use time_macros::date;
-    /// assert_eq!(date!(2023 - 06 - 28).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
-    /// assert_eq!(date!(2023 - 06 - 19).next_occurrence(Weekday::Monday), date!(2023 - 06 - 26));
+    /// assert_eq!(
+    ///     date!(2023 - 06 - 28).next_occurrence(Weekday::Monday),
+    ///     date!(2023 - 07 - 03)
+    /// );
+    /// assert_eq!(
+    ///     date!(2023 - 06 - 19).next_occurrence(Weekday::Monday),
+    ///     date!(2023 - 06 - 26)
+    /// );
     /// ```
     pub const fn next_occurrence(self, weekday: Weekday) -> Self {
         expect_opt!(
@@ -549,7 +555,7 @@ impl Date {
     }
 
     /// Calculates the first occurrence of a weekday that is strictly earlier than a given `Date`.
-    /// 
+    ///
     /// # Panics
     /// Panics if an overflow occurred.
     ///
@@ -557,8 +563,14 @@ impl Date {
     /// ```
     /// # use time::Weekday;
     /// # use time_macros::date;
-    /// assert_eq!(date!(2023 - 06 - 28).prev_occurrence(Weekday::Monday), date!(2023 - 06 - 26));
-    /// assert_eq!(date!(2023 - 06 - 19).prev_occurrence(Weekday::Monday), date!(2023 - 06 - 12));
+    /// assert_eq!(
+    ///     date!(2023 - 06 - 28).prev_occurrence(Weekday::Monday),
+    ///     date!(2023 - 06 - 26)
+    /// );
+    /// assert_eq!(
+    ///     date!(2023 - 06 - 19).prev_occurrence(Weekday::Monday),
+    ///     date!(2023 - 06 - 12)
+    /// );
     /// ```
     pub const fn prev_occurrence(self, weekday: Weekday) -> Self {
         expect_opt!(
@@ -568,7 +580,7 @@ impl Date {
     }
 
     /// Calculates the `n`th occurrence of a weekday that is strictly later than a given `Date`.
-    /// 
+    ///
     /// # Panics
     /// Panics if an overflow occurred or if `n == 0`.
     ///
@@ -576,8 +588,14 @@ impl Date {
     /// ```
     /// # use time::Weekday;
     /// # use time_macros::date;
-    /// assert_eq!(date!(2023 - 06 - 25).nth_next_occurrence(Weekday::Monday, 5), date!(2023 - 07 - 24));
-    /// assert_eq!(date!(2023 - 06 - 26).nth_next_occurrence(Weekday::Monday, 5), date!(2023 - 07 - 31));
+    /// assert_eq!(
+    ///     date!(2023 - 06 - 25).nth_next_occurrence(Weekday::Monday, 5),
+    ///     date!(2023 - 07 - 24)
+    /// );
+    /// assert_eq!(
+    ///     date!(2023 - 06 - 26).nth_next_occurrence(Weekday::Monday, 5),
+    ///     date!(2023 - 07 - 31)
+    /// );
     /// ```
     pub const fn nth_next_occurrence(self, weekday: Weekday, n: u8) -> Self {
         expect_opt!(
@@ -587,7 +605,7 @@ impl Date {
     }
 
     /// Calculates the `n`th occurrence of a weekday that is strictly earlier than a given `Date`.
-    /// 
+    ///
     /// # Panics
     /// Panics if an overflow occurred or if `n == 0`.
     ///
@@ -595,8 +613,14 @@ impl Date {
     /// ```
     /// # use time::Weekday;
     /// # use time_macros::date;
-    /// assert_eq!(date!(2023 - 06 - 27).nth_prev_occurrence(Weekday::Monday, 3), date!(2023 - 06 - 12));
-    /// assert_eq!(date!(2023 - 06 - 26).nth_prev_occurrence(Weekday::Monday, 3), date!(2023 - 06 - 05));
+    /// assert_eq!(
+    ///     date!(2023 - 06 - 27).nth_prev_occurrence(Weekday::Monday, 3),
+    ///     date!(2023 - 06 - 12)
+    /// );
+    /// assert_eq!(
+    ///     date!(2023 - 06 - 26).nth_prev_occurrence(Weekday::Monday, 3),
+    ///     date!(2023 - 06 - 05)
+    /// );
     /// ```
     pub const fn nth_prev_occurrence(self, weekday: Weekday, n: u8) -> Self {
         expect_opt!(
@@ -720,15 +744,7 @@ impl Date {
 
     /// Calculates the first occurrence of a weekday that is strictly later than a given `Date`.
     /// Returns `None` if an overflow occurred.
-    ///
-    /// # Examples
-    /// ```
-    /// # use time::Weekday;
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2023 - 06 - 28).checked_next_occurrence(Weekday::Monday), Some(date!(2023 - 07 - 03)));
-    /// assert_eq!(date!(2023 - 06 - 19).checked_next_occurrence(Weekday::Monday), Some(date!(2023 - 06 - 26)));
-    /// ```
-    pub const fn checked_next_occurrence(self, weekday: Weekday) -> Option<Self> {
+    pub(crate) const fn checked_next_occurrence(self, weekday: Weekday) -> Option<Self> {
         let day_diff = match weekday as i8 - self.weekday() as i8 {
             1 | -6 => 1,
             2 | -5 => 2,
@@ -747,15 +763,7 @@ impl Date {
 
     /// Calculates the first occurrence of a weekday that is strictly earlier than a given `Date`.
     /// Returns `None` if an overflow occurred.
-    ///
-    /// # Examples
-    /// ```
-    /// # use time::Weekday;
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2023 - 06 - 28).checked_prev_occurrence(Weekday::Monday), Some(date!(2023 - 06 - 26)));
-    /// assert_eq!(date!(2023 - 06 - 19).checked_prev_occurrence(Weekday::Monday), Some(date!(2023 - 06 - 12)));
-    /// ```
-    pub const fn checked_prev_occurrence(self, weekday: Weekday) -> Option<Self> {
+    pub(crate) const fn checked_prev_occurrence(self, weekday: Weekday) -> Option<Self> {
         let day_diff = match weekday as i8 - self.weekday() as i8 {
             1 | -6 => 6,
             2 | -5 => 5,
@@ -774,17 +782,7 @@ impl Date {
 
     /// Calculates the `n`th occurrence of a weekday that is strictly later than a given `Date`.
     /// Returns `None` if an overflow occurred or if `n == 0`.
-    ///
-    /// # Examples
-    /// ```
-    /// # use time::Weekday;
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2023 - 06 - 25).checked_nth_next_occurrence(Weekday::Monday, 5), Some(date!(2023 - 07 - 24)));
-    /// assert_eq!(date!(2023 - 06 - 26).checked_nth_next_occurrence(Weekday::Monday, 5), Some(date!(2023 - 07 - 31)));
-    ///
-    /// assert!(date!(2023 - 06 - 25).checked_nth_next_occurrence(Weekday::Monday, 0).is_none())
-    /// ```
-    pub const fn checked_nth_next_occurrence(self, weekday: Weekday, n: u8) -> Option<Self> {
+    pub(crate) const fn checked_nth_next_occurrence(self, weekday: Weekday, n: u8) -> Option<Self> {
         if n == 0 {
             return None;
         }
@@ -799,17 +797,7 @@ impl Date {
 
     /// Calculates the `n`th occurrence of a weekday that is strictly earlier than a given `Date`.
     /// Returns `None` if an overflow occurred or if `n == 0`.
-    ///
-    /// # Examples
-    /// ```
-    /// # use time::Weekday;
-    /// # use time_macros::date;
-    /// assert_eq!(date!(2023 - 06 - 27).checked_nth_prev_occurrence(Weekday::Monday, 3), Some(date!(2023 - 06 - 12)));
-    /// assert_eq!(date!(2023 - 06 - 26).checked_nth_prev_occurrence(Weekday::Monday, 3), Some(date!(2023 - 06 - 05)));
-    ///
-    /// assert!(date!(2023 - 06 - 27).checked_nth_prev_occurrence(Weekday::Monday, 0).is_none())
-    /// ```
-    pub const fn checked_nth_prev_occurrence(self, weekday: Weekday, n: u8) -> Option<Self> {
+    pub(crate) const fn checked_nth_prev_occurrence(self, weekday: Weekday, n: u8) -> Option<Self> {
         if n == 0 {
             return None;
         }
