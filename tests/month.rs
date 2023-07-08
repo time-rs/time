@@ -33,6 +33,74 @@ fn next() {
 }
 
 #[test]
+fn nth_next() {
+    assert_eq!(January.nth_next(0), January);
+    assert_eq!(January.nth_next(1), February);
+    assert_eq!(January.nth_next(2), March);
+    assert_eq!(January.nth_next(3), April);
+    assert_eq!(January.nth_next(4), May);
+    assert_eq!(January.nth_next(5), June);
+    assert_eq!(January.nth_next(6), July);
+    assert_eq!(January.nth_next(7), August);
+    assert_eq!(January.nth_next(8), September);
+    assert_eq!(January.nth_next(9), October);
+    assert_eq!(January.nth_next(10), November);
+    assert_eq!(January.nth_next(11), December);
+
+    assert_eq!(December.nth_next(0), December);
+    assert_eq!(December.nth_next(1), January);
+    assert_eq!(December.nth_next(2), February);
+    assert_eq!(December.nth_next(3), March);
+    assert_eq!(December.nth_next(4), April);
+    assert_eq!(December.nth_next(5), May);
+    assert_eq!(December.nth_next(6), June);
+    assert_eq!(December.nth_next(7), July);
+    assert_eq!(December.nth_next(8), August);
+    assert_eq!(December.nth_next(9), September);
+    assert_eq!(December.nth_next(10), October);
+    assert_eq!(December.nth_next(11), November);
+
+    assert_eq!(January.nth_next(12), January);
+    assert_eq!(January.nth_next(u8::MAX), April);
+    assert_eq!(December.nth_next(12), December);
+    assert_eq!(December.nth_next(u8::MAX), March);
+}
+
+#[test]
+fn nth_prev() {
+    assert_eq!(January.nth_prev(0), January);
+    assert_eq!(January.nth_prev(1), December);
+    assert_eq!(January.nth_prev(2), November);
+    assert_eq!(January.nth_prev(3), October);
+    assert_eq!(January.nth_prev(4), September);
+    assert_eq!(January.nth_prev(5), August);
+    assert_eq!(January.nth_prev(6), July);
+    assert_eq!(January.nth_prev(7), June);
+    assert_eq!(January.nth_prev(8), May);
+    assert_eq!(January.nth_prev(9), April);
+    assert_eq!(January.nth_prev(10), March);
+    assert_eq!(January.nth_prev(11), February);
+
+    assert_eq!(December.nth_prev(0), December);
+    assert_eq!(December.nth_prev(1), November);
+    assert_eq!(December.nth_prev(2), October);
+    assert_eq!(December.nth_prev(3), September);
+    assert_eq!(December.nth_prev(4), August);
+    assert_eq!(December.nth_prev(5), July);
+    assert_eq!(December.nth_prev(6), June);
+    assert_eq!(December.nth_prev(7), May);
+    assert_eq!(December.nth_prev(8), April);
+    assert_eq!(December.nth_prev(9), March);
+    assert_eq!(December.nth_prev(10), February);
+    assert_eq!(December.nth_prev(11), January);
+
+    assert_eq!(January.nth_prev(12), January);
+    assert_eq!(January.nth_prev(u8::MAX), October);
+    assert_eq!(December.nth_prev(12), December);
+    assert_eq!(December.nth_prev(u8::MAX), September);
+}
+
+#[test]
 fn display() {
     assert_eq!(January.to_string(), "January");
     assert_eq!(February.to_string(), "February");

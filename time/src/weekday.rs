@@ -88,6 +88,28 @@ impl Weekday {
         }
     }
 
+    /// Get n-th previous day.
+    ///
+    /// ```rust
+    /// # use time::Weekday;
+    /// assert_eq!(Weekday::Monday.nth_prev(1), Weekday::Sunday);
+    /// assert_eq!(Weekday::Sunday.nth_prev(10), Weekday::Thursday);
+    /// ```
+    pub const fn nth_prev(self, n: u8) -> Self {
+        match self.number_days_from_monday() as i8 - (n % 7) as i8 {
+            1 | -6 => Tuesday,
+            2 | -5 => Wednesday,
+            3 | -4 => Thursday,
+            4 | -3 => Friday,
+            5 | -2 => Saturday,
+            6 | -1 => Sunday,
+            val => {
+                debug_assert!(val == 0);
+                Monday
+            }
+        }
+    }
+
     /// Get the one-indexed number of days from Monday.
     ///
     /// ```rust
