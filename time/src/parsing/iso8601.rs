@@ -271,17 +271,23 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
                 };
             }
 
-            let input = min(input)
-                .and_then(|parsed_item| {
-                    parsed_item.consume_value(|min| {
-                        parsed.set_offset_minute_signed(if sign == b'-' {
+            match min(input) {
+                Some(ParsedItem(new_input, min)) => {
+                    input = new_input;
+                    parsed
+                        .set_offset_minute_signed(if sign == b'-' {
                             -(min as i8)
                         } else {
                             min as _
                         })
-                    })
-                })
-                .ok_or(InvalidComponent("offset minute"))?;
+                        .ok_or(InvalidComponent("offset minute"))?;
+                }
+                None => {
+                    // Omitted offset minute is assumed to be zero.
+                    parsed.set_offset_minute_signed(0);
+                }
+            }
+
             // If `:` was present, the format has already been set to extended. As such, this call
             // will do nothing in that case. If there wasn't `:` but minutes were
             // present, we know it's the basic format. Do not use `?` on the call, as

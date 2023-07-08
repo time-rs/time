@@ -556,6 +556,7 @@ fn iso_8601() {
         OffsetDateTime::parse("20210102T0304Z", &Iso8601::DEFAULT),
         Ok(datetime!(2021-01-02 03:04:00 UTC))
     );
+    assert_eq!(UtcOffset::parse("+07", &Iso8601::DEFAULT), Ok(offset!(+7)));
     assert_eq!(
         UtcOffset::parse("+0304", &Iso8601::DEFAULT),
         Ok(offset!(+03:04))
