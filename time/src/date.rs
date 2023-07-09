@@ -787,12 +787,8 @@ impl Date {
             return None;
         }
 
-        let next_occ = self.checked_next_occurrence(weekday);
-        if let Some(val) = next_occ {
-            val.checked_add(Duration::weeks(n as i64 - 1))
-        } else {
-            None
-        }
+        const_try_opt!(self.checked_next_occurrence(weekday))
+            .checked_add(Duration::weeks(n as i64 - 1))
     }
 
     /// Calculates the `n`th occurrence of a weekday that is strictly earlier than a given `Date`.
@@ -802,12 +798,8 @@ impl Date {
             return None;
         }
 
-        let next_occ = self.checked_prev_occurrence(weekday);
-        if let Some(val) = next_occ {
-            val.checked_sub(Duration::weeks(n as i64 - 1))
-        } else {
-            None
-        }
+        const_try_opt!(self.checked_prev_occurrence(weekday))
+            .checked_sub(Duration::weeks(n as i64 - 1))
     }
     // endregion: checked arithmetic
 
