@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.23 [2023-07-08]
+
+### Added
+
+- `Date::next_occurrence`
+- `Date::prev_occurrence`
+- `Date::nth_next_occurrence`
+- `Date::nth_prev_occurrence`
+- `Weekday::nth_prev`
+- `Month::nth_next`
+- `Month::nth_prev`
+
+### Changed
+
+**The minimum supported Rust version policy has been updated.** See [the README][msrv-policy] for
+details.
+
+[msrv-policy]: https://github.com/time-rs/time#minimum-rust-version-policy
+
+### Fixed
+
+- `Duration::abs` correctly returns `Duration::MAX` when near the minimum value. The nanoseconds
+  value was previously incorrect.
+- Compliance with ISO 8601 has been improved. Previously, a UTC offset would be incorrectly rejected
+  in some cases.
+
 ## 0.3.22 [2023-06-07]
 
 ### Added

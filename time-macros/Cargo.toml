@@ -1,6 +1,6 @@
 [package]
 name = "time-macros"
-version = "0.2.9"
+version = "0.2.10"
 authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
 edition = "2021"
 rust-version = "1.65.0"
