@@ -29,21 +29,103 @@ pub(crate) enum Padding {
 /// (either positive or negative).
 ///
 /// When comparing two `Time`s, they are assumed to be in the same calendar date.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, Eq)]
+#[repr(C)]
 pub struct Time {
-    #[allow(clippy::missing_docs_in_private_items)]
-    hour: u8,
-    #[allow(clippy::missing_docs_in_private_items)]
-    minute: u8,
-    #[allow(clippy::missing_docs_in_private_items)]
-    second: u8,
+    // The order of this struct's fields matter!
+    // Do not change them.
+
+    // Little endian version
+    #[cfg(target_endian = "little")]
     #[allow(clippy::missing_docs_in_private_items)]
     nanosecond: u32,
+    #[cfg(target_endian = "little")]
+    #[allow(clippy::missing_docs_in_private_items)]
+    second: u8,
+    #[cfg(target_endian = "little")]
+    #[allow(clippy::missing_docs_in_private_items)]
+    minute: u8,
+    #[cfg(target_endian = "little")]
+    #[allow(clippy::missing_docs_in_private_items)]
+    hour: u8,
+    #[cfg(target_endian = "little")]
     #[allow(clippy::missing_docs_in_private_items)]
     padding: Padding,
+
+    // Big endian version
+    #[cfg(target_endian = "big")]
+    #[allow(clippy::missing_docs_in_private_items)]
+    padding: Padding,
+    #[cfg(target_endian = "big")]
+    #[allow(clippy::missing_docs_in_private_items)]
+    hour: u8,
+    #[cfg(target_endian = "big")]
+    #[allow(clippy::missing_docs_in_private_items)]
+    minute: u8,
+    #[cfg(target_endian = "big")]
+    #[allow(clippy::missing_docs_in_private_items)]
+    second: u8,
+    #[cfg(target_endian = "big")]
+    #[allow(clippy::missing_docs_in_private_items)]
+    nanosecond: u32,
+}
+
+impl core::hash::Hash for Time {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.as_u64().hash(state)
+    }
+}
+
+impl PartialEq for Time {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_u64().eq(&other.as_u64())
+    }
+}
+
+impl PartialOrd for Time {
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        self.as_u64().partial_cmp(&other.as_u64())
+    }
+}
+
+impl Ord for Time {
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        self.as_u64().cmp(&other.as_u64())
+    }
 }
 
 impl Time {
+    /// Provides an u64 based representation **of the correct endianness**
+    ///
+    /// This representation can be used to do comparisons equality testing or hashing.
+    const fn as_u64(self) -> u64 {
+        let nano_bytes = self.nanosecond.to_ne_bytes();
+
+        #[cfg(target_endian = "big")]
+        return u64::from_be_bytes([
+            self.padding as u8,
+            self.hour,
+            self.minute,
+            self.second,
+            nano_bytes[0],
+            nano_bytes[1],
+            nano_bytes[2],
+            nano_bytes[3],
+        ]);
+
+        #[cfg(target_endian = "little")]
+        return u64::from_le_bytes([
+            nano_bytes[0],
+            nano_bytes[1],
+            nano_bytes[2],
+            nano_bytes[3],
+            self.second,
+            self.minute,
+            self.hour,
+            self.padding as u8,
+        ]);
+    }
+
     /// Create a `Time` that is exactly midnight.
     ///
     /// ```rust

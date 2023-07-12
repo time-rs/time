@@ -342,6 +342,22 @@ fn ordering() {
 }
 
 #[test]
+fn ordering_lexico_endianness() {
+    // Endianness of nanoseconds
+    assert!(time!(00:00:00.4) > time!(00:00:00.1));
+    // Endianness of one field wrt the others
+    // Hourt wrt others
+    assert!(time!(01:00:00) > time!(00:01:00.0));
+    assert!(time!(01:00:00) > time!(00:00:01.0));
+    assert!(time!(01:00:00) > time!(00:00:00.1));
+    // Minutes wrt to others
+    assert!(time!(00:01:00) > time!(00:00:01.0));
+    assert!(time!(00:01:00) > time!(00:00:00.1));
+    // Second wrt to others
+    assert!(time!(00:00:01) > time!(00:00:00.1));
+}
+
+#[test]
 fn issue_481() {
     assert_eq!(time!(0:00) - time!(01:00:00.1), (-3600.1).seconds());
     assert_eq!(
