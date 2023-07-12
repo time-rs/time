@@ -1,3 +1,5 @@
+use std::hint::black_box;
+
 use criterion::Bencher;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::time;
@@ -206,6 +208,64 @@ setup_benchmark! {
         ben.iter(|| Time::MIDNIGHT < time!(0:00:01));
         ben.iter(|| time!(12:00) > time!(11:00));
         ben.iter(|| Time::MIDNIGHT == time!(0:00:00.000_000_001));
+    }
+
+    fn sort_align_8(ben: &mut Bencher<'_>) {
+        ben.iter_batched_ref(
+            || {
+                #[repr(C,align(8))]
+                struct Padder {
+                    arr: [Time;4096],
+                }
+                let mut res = Padder {
+                    arr: [Time::MIDNIGHT;4096]
+                };
+                let mut last = Time::MIDNIGHT;
+                let mut last_hour = 0;
+                for t in &mut res.arr {
+                    *t = last;
+                    t.replace_hour(last_hour).unwrap();
+                    last += 997.std_milliseconds();
+                    last_hour = (last_hour + 5) % 24;
+                }
+                res.arr.sort_unstable_by_key(|t|
+                    (t.nanosecond(),t.second(),t.minute(),t.hour())
+                );
+                res
+            },
+            |v| black_box(v).arr.sort_unstable(),
+            criterion::BatchSize::SmallInput
+        )
+    }
+
+    fn sort_align_4(ben: &mut Bencher<'_>) {
+        ben.iter_batched_ref(
+            || {
+                #[repr(C,align(8))]
+                struct Padder {
+                    pad: u32,
+                    arr: [Time;4096],
+                }
+                let mut res = Padder {
+                    pad: 0,
+                    arr: [Time::MIDNIGHT;4096]
+                };
+                let mut last = Time::MIDNIGHT;
+                let mut last_hour = 0;
+                for t in &mut res.arr {
+                    *t = last;
+                    t.replace_hour(last_hour).unwrap();
+                    last += 997.std_milliseconds();
+                    last_hour = (last_hour + 5) % 24;
+                }
+                res.arr.sort_unstable_by_key(|t|
+                    (t.nanosecond(),t.second(),t.minute(),t.hour())
+                );
+                res
+            },
+            |v| black_box(v).arr.sort_unstable(),
+            criterion::BatchSize::SmallInput
+        )
     }
     // endregion trait impls
 }
