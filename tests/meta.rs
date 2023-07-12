@@ -37,9 +37,9 @@ fn alignment() {
 
     assert_alignment!(Date, 4);
     assert_alignment!(Duration, 8);
-    assert_alignment!(OffsetDateTime, 4);
-    assert_alignment!(PrimitiveDateTime, 4);
-    assert_alignment!(Time, 4);
+    assert_alignment!(OffsetDateTime, 8);
+    assert_alignment!(PrimitiveDateTime, 8);
+    assert_alignment!(Time, 8);
     assert_alignment!(UtcOffset, 1);
     assert_alignment!(error::ComponentRange, 8);
     assert_alignment!(error::ConversionRange, 1);
@@ -115,7 +115,7 @@ fn size() {
     assert_size!(Date, 4, 8);
     assert_size!(Duration, 16, 16);
     assert_size!(OffsetDateTime, 16, 16);
-    assert_size!(PrimitiveDateTime, 12, 12);
+    assert_size!(PrimitiveDateTime, 16, 16);
     assert_size!(Time, 8, 8);
     assert_size!(UtcOffset, 3, 4);
     assert_size!(error::ComponentRange, 48, 48);

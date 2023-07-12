@@ -30,7 +30,9 @@ pub(crate) enum Padding {
 ///
 /// When comparing two `Time`s, they are assumed to be in the same calendar date.
 #[derive(Clone, Copy, Eq)]
-#[repr(C)]
+// The alignment is forced to 8 as an heuristic for performances. This is not
+// required for safety.
+#[repr(C, align(8))]
 pub struct Time {
     // The order of this struct's fields matter!
     // Do not change them.
