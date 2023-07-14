@@ -22,5 +22,8 @@ serde = []
 [lib]
 proc-macro = true
 
+[package.metadata.docs.rs]
+rustdoc-args = ["--generate-link-to-definition"]
+
 [dependencies]
 time-core = { workspace = true }
