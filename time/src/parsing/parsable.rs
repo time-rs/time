@@ -237,7 +237,8 @@ impl sealed::Sealed for Rfc2822 {
         };
 
         // The RFC explicitly allows leap seconds.
-        parsed.set_flag(Parsed::LEAP_SECOND_ALLOWED_FLAG, true);
+        // Safety: The flag does not represent a field.
+        unsafe { parsed.set_flag(Parsed::LEAP_SECOND_ALLOWED_FLAG, true) };
 
         #[allow(clippy::unnecessary_lazy_evaluations)] // rust-lang/rust-clippy#8522
         let zone_literal = first_match(
@@ -533,7 +534,8 @@ impl sealed::Sealed for Rfc3339 {
         };
 
         // The RFC explicitly allows leap seconds.
-        parsed.set_flag(Parsed::LEAP_SECOND_ALLOWED_FLAG, true);
+        // Safety: The flag does not represent a field.
+        unsafe { parsed.set_flag(Parsed::LEAP_SECOND_ALLOWED_FLAG, true) };
 
         if let Some(ParsedItem(input, ())) = ascii_char_ignore_case::<b'Z'>(input) {
             parsed

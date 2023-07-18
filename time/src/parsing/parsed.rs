@@ -112,6 +112,8 @@ type Flag = u32;
 #[derive(Debug, Clone, Copy)]
 pub struct Parsed {
     /// Bitflags indicating whether a particular field is present.
+    ///
+    /// **Do not set this field directly.** It is unsafe to do so. Use `Parsed::set_flag` instead.
     flags: Flag,
     /// Calendar year.
     year: MaybeUninit<i32>,
@@ -332,9 +334,13 @@ impl Parsed {
             Component::OffsetHour(modifiers) => parse_offset_hour(input, modifiers)
                 .and_then(|parsed| {
                     parsed.consume_value(|(value, is_negative)| {
-                        self.set_flag(Self::OFFSET_IS_NEGATIVE_FLAG_IS_INITIALIZED, true);
-                        self.set_flag(Self::OFFSET_IS_NEGATIVE_FLAG, is_negative);
-                        self.set_offset_hour(value)
+                        self.set_offset_hour(value)?;
+                        // Safety: the `offset_hour` field was just initialized.
+                        unsafe {
+                            self.set_flag(Self::OFFSET_IS_NEGATIVE_FLAG, is_negative);
+                            self.set_flag(Self::OFFSET_IS_NEGATIVE_FLAG_IS_INITIALIZED, true);
+                        }
+                        Some(())
                     })
                 })
                 .ok_or(InvalidComponent("offset hour")),
@@ -365,7 +371,9 @@ impl Parsed {
     }
 
     /// Set the value of the provided flag.
-    pub(super) fn set_flag(&mut self, flag: Flag, value: bool) {
+    ///
+    /// Safety: If `flag` represents a field and `value` is true, the field must be initialized.
+    pub(super) unsafe fn set_flag(&mut self, flag: Flag, value: bool) {
         if value {
             self.flags |= flag;
         } else {
@@ -491,7 +499,8 @@ macro_rules! setters {
         /// Set the named component.
         pub fn $setter_name(&mut self, value: $ty) -> Option<()> {
             self.$name = MaybeUninit::new(value);
-            self.set_flag(Self::$flag, true);
+            // Safety: The field was just initialized.
+            unsafe { self.set_flag(Self::$flag, true) };
             Some(())
         }
     };
@@ -541,7 +550,8 @@ impl Parsed {
     /// Set the `offset_minute` component.
     pub fn set_offset_minute_signed(&mut self, value: i8) -> Option<()> {
         self.offset_minute = MaybeUninit::new(value);
-        self.set_flag(Self::OFFSET_MINUTE_FLAG, true);
+        // Safety: The field was just initialized.
+        unsafe { self.set_flag(Self::OFFSET_MINUTE_FLAG, true) };
         Some(())
     }
 
@@ -562,7 +572,8 @@ impl Parsed {
     /// Set the `offset_second` component.
     pub fn set_offset_second_signed(&mut self, value: i8) -> Option<()> {
         self.offset_second = MaybeUninit::new(value);
-        self.set_flag(Self::OFFSET_SECOND_FLAG, true);
+        // Safety: The field was just initialized.
+        unsafe { self.set_flag(Self::OFFSET_SECOND_FLAG, true) };
         Some(())
     }
 }
@@ -585,6 +596,7 @@ macro_rules! builders {
         /// Set the named component and return `self`.
         pub const fn $builder_name(mut self, value: $ty) -> Option<Self> {
             self.$name = MaybeUninit::new(value);
+            // Safety: The field was just initialized.
             self.flags |= Self::$flag;
             Some(self)
         }
@@ -635,6 +647,7 @@ impl Parsed {
     /// Set the `offset_minute` component and return `self`.
     pub const fn with_offset_minute_signed(mut self, value: i8) -> Option<Self> {
         self.offset_minute = MaybeUninit::new(value);
+        // Safety: The field was just initialized.
         self.flags |= Self::OFFSET_MINUTE_FLAG;
         Some(self)
     }
