@@ -5,15 +5,14 @@ on:
     - cron: "0 0 * * 1,5" # midnight on Monday, Friday
   workflow_dispatch:
 
-permissions:
-  pull-requests: write
-
 jobs:
   stale:
     name: Close stale PRs
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
-      - uses: actions/stale@v6
+      - uses: actions/stale@v8
         with:
           enable-statistics: false
           stale-pr-message: This pull request has not had any activity recently. It will be closed without further activity.
@@ -24,12 +23,15 @@ jobs:
 
   security-audit:
     name: Security audit
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      checks: write
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
 
       - name: Audit dependencies
-        uses: actions-rs/audit-check@v1
+        uses: rustsec/audit-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
