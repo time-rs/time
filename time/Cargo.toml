@@ -7,7 +7,12 @@ rust-version = "1.67.0"
 repository = "https://github.com/time-rs/time"
 homepage = "https://time-rs.github.io"
 keywords = ["date", "time", "calendar", "duration"]
-categories = ["date-and-time", "no-std", "parser-implementations", "value-formatting"]
+categories = [
+    "date-and-time",
+    "no-std",
+    "parser-implementations",
+    "value-formatting",
+]
 readme = "../README.md"
 license = "MIT OR Apache-2.0"
 description = "Date and time library. Fully interoperable with the standard library. Mostly compatible with #![no_std]."
