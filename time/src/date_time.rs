@@ -653,6 +653,7 @@ impl<O: MaybeOffset> DateTime<O> {
     // endregion saturating arithmetic
 
     // region: replacement
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_time(self, time: Time) -> Self {
         Self {
             date: self.date,
@@ -661,6 +662,7 @@ impl<O: MaybeOffset> DateTime<O> {
         }
     }
 
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_date(self, date: Date) -> Self {
         Self {
             date,
@@ -669,6 +671,7 @@ impl<O: MaybeOffset> DateTime<O> {
         }
     }
 
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_date_time(self, date_time: DateTime<offset_kind::None>) -> Self
     where
         O: HasLogicalOffset,
@@ -680,6 +683,7 @@ impl<O: MaybeOffset> DateTime<O> {
         }
     }
 
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
         Ok(Self {
             date: const_try!(self.date.replace_year(year)),
@@ -688,6 +692,7 @@ impl<O: MaybeOffset> DateTime<O> {
         })
     }
 
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
         Ok(Self {
             date: const_try!(self.date.replace_month(month)),
@@ -696,6 +701,7 @@ impl<O: MaybeOffset> DateTime<O> {
         })
     }
 
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self {
             date: const_try!(self.date.replace_day(day)),
@@ -704,6 +710,7 @@ impl<O: MaybeOffset> DateTime<O> {
         })
     }
 
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_hour(self, hour: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self {
             date: self.date,
@@ -712,6 +719,7 @@ impl<O: MaybeOffset> DateTime<O> {
         })
     }
 
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_minute(self, minute: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self {
             date: self.date,
@@ -720,6 +728,7 @@ impl<O: MaybeOffset> DateTime<O> {
         })
     }
 
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_second(self, second: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self {
             date: self.date,
@@ -728,6 +737,7 @@ impl<O: MaybeOffset> DateTime<O> {
         })
     }
 
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_millisecond(
         self,
         millisecond: u16,
@@ -739,6 +749,7 @@ impl<O: MaybeOffset> DateTime<O> {
         })
     }
 
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_microsecond(
         self,
         microsecond: u32,
@@ -750,6 +761,7 @@ impl<O: MaybeOffset> DateTime<O> {
         })
     }
 
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_nanosecond(self, nanosecond: u32) -> Result<Self, error::ComponentRange> {
         Ok(Self {
             date: self.date,
@@ -760,6 +772,7 @@ impl<O: MaybeOffset> DateTime<O> {
 
     // Don't gate this on just having an offset, as `ZonedDateTime` cannot be set to an arbitrary
     // offset.
+    #[must_use = "this does not modify the original value"]
     pub const fn replace_offset(self, offset: UtcOffset) -> DateTime<offset_kind::Fixed>
     where
         O: IsOffsetKindFixed,
