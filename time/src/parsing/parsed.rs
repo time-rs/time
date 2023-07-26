@@ -109,7 +109,7 @@ type Flag = u32;
 ///
 /// Most users will not need think about this struct in any way. It is public to allow for manual
 /// control over values, in the instance that the default parser is insufficient.
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct Parsed {
     /// Bitflags indicating whether a particular field is present.
     ///
@@ -158,6 +158,38 @@ pub struct Parsed {
     offset_second: MaybeUninit<i8>,
     /// The Unix timestamp in nanoseconds.
     unix_timestamp_nanos: MaybeUninit<i128>,
+}
+
+impl core::fmt::Debug for Parsed {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Parsed")
+            .field("year", &self.year())
+            .field("year_last_two", &self.year_last_two())
+            .field("iso_year", &self.iso_year())
+            .field("iso_year_last_two", &self.iso_year_last_two())
+            .field("month", &self.month())
+            .field("sunday_week_number", &self.sunday_week_number())
+            .field("monday_week_number", &self.monday_week_number())
+            .field("iso_week_number", &self.iso_week_number())
+            .field("weekday", &self.weekday())
+            .field("ordinal", &self.ordinal())
+            .field("day", &self.day())
+            .field("hour_24", &self.hour_24())
+            .field("hour_12", &self.hour_12())
+            .field("hour_12_is_pm", &self.hour_12_is_pm())
+            .field("minute", &self.minute())
+            .field("second", &self.second())
+            .field("subsecond", &self.subsecond())
+            .field("offset_hour", &self.offset_hour())
+            .field("offset_minute", &self.offset_minute_signed())
+            .field("offset_second", &self.offset_second_signed())
+            .field("unix_timestamp_nanos", &self.unix_timestamp_nanos())
+            .field(
+                "leap_second_allowed",
+                &self.get_flag(Self::LEAP_SECOND_ALLOWED_FLAG),
+            )
+            .finish()
+    }
 }
 
 #[allow(clippy::missing_docs_in_private_items)]
