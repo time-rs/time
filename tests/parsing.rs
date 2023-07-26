@@ -1562,3 +1562,14 @@ fn parse_unix_timestamp_err() -> time::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn issue_601() {
+    let date = OffsetDateTime::parse(
+        "1234567890.123",
+        &fd::parse("[unix_timestamp].[subsecond digits:3]").unwrap(),
+    )
+    .unwrap();
+
+    assert_eq!(date, datetime!(2009-02-13 23:31:30.123 +00:00:00));
+}

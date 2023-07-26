@@ -809,11 +809,16 @@ impl<O: MaybeOffset> TryFrom<Parsed> for DateTime<O> {
             if let Some(timestamp) = parsed.unix_timestamp_nanos() {
                 let DateTime { date, time, offset } =
                     DateTime::<offset_kind::Fixed>::from_unix_timestamp_nanos(timestamp)?;
-                return Ok(Self {
+
+                let mut value = Self {
                     date,
                     time,
                     offset: maybe_offset_from_offset::<O>(offset),
-                });
+                };
+                if let Some(subsecond) = parsed.subsecond() {
+                    value = value.replace_nanosecond(subsecond)?;
+                }
+                return Ok(value);
             }
         }
 
