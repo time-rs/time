@@ -61,10 +61,10 @@ fn time_error() {
     );
     assert_de_tokens_error::<Readable<Time>>(
         &[Token::BorrowedStr("24:00:00.0")],
-        "hour must be in the range 0..=23",
+        "the 'hour' component could not be parsed",
     );
     assert_de_tokens_error::<Readable<Time>>(
-        &[Token::BorrowedStr("24-00:00.0")],
+        &[Token::BorrowedStr("23-00:00.0")],
         "a character literal was not valid",
     );
     assert_de_tokens_error::<Readable<Time>>(

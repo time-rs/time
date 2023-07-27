@@ -8,6 +8,7 @@ time-core = { path = "time-core", version = "=0.1.1" }
 time-macros = { path = "time-macros", version = "=0.2.10" }
 
 criterion = { version = "0.5.1", default-features = false }
+deranged = { version = "0.3.3", default-features = false }
 itoa = "1.0.1"
 js-sys = "0.3.58"
 libc = "0.2.98"

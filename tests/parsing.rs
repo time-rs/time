@@ -680,9 +680,9 @@ fn parse_time_err() -> time::Result<()> {
     ));
     assert!(matches!(
         Time::parse("13 PM", &fd::parse("[hour repr:12] [period]")?),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::ComponentRange(component)
-        )) if component.name() == "hour"
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("hour")
+        ))
     ));
     assert!(matches!(
         Time::parse(" ", &fd::parse("")?),
@@ -878,27 +878,60 @@ fn parse_date_err() -> time::Result<()> {
     ));
     assert!(matches!(
         Date::parse("2021-12-32", &fd::parse("[year]-[month]-[day]")?),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("day")
+        ))
+    ));
+    assert!(matches!(
+        Date::parse("2021-02-30", &fd::parse("[year]-[month]-[day]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::ComponentRange(component)
         )) if component.name() == "day"
     ));
     assert!(matches!(
-        Date::parse("2021-W54-1", &fd::parse("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?),
+        Date::parse("2019-W53-1", &fd::parse("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::ComponentRange(component)
         )) if component.name() == "week"
     ));
     assert!(matches!(
-        Date::parse("2021-W54-1", &fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:monday]")?),
+        Date::parse(
+            "2021-W54-1",
+            &fd::parse("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?
+        ),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("week number")
+        ))
+    ));
+    assert!(matches!(
+        Date::parse("2019-W53-1", &fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:monday]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::ComponentRange(component)
         )) if component.name() == "ordinal"
     ));
     assert!(matches!(
-        Date::parse("2021-W54-1", &fd::parse("[year]-W[week_number repr:monday]-[weekday repr:monday]")?),
+        Date::parse(
+            "2021-W54-1",
+            &fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:monday]")?
+        ),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("week number")
+        ))
+    ));
+    assert!(matches!(
+        Date::parse("2019-W53-1", &fd::parse("[year]-W[week_number repr:monday]-[weekday repr:monday]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::ComponentRange(component)
         )) if component.name() == "ordinal"
+    ));
+    assert!(matches!(
+        Date::parse(
+            "2021-W54-1",
+            &fd::parse("[year]-W[week_number repr:monday]-[weekday repr:monday]")?
+        ),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("week number")
+        ))
     ));
     assert!(matches!(
         Date::parse("Ja", &fd::parse("[month repr:short]")?),
@@ -953,15 +986,24 @@ fn parse_offset_err() -> time::Result<()> {
     );
     assert!(matches!(
         UtcOffset::parse("24", &fd::parse("[offset_hour]")?),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "offset hour"
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("offset hour")
+        ))
     ));
     assert!(matches!(
         UtcOffset::parse("00:60", &fd::parse("[offset_hour]:[offset_minute]")?),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "offset minute"
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("offset minute")
+        ))
     ));
     assert!(matches!(
-        UtcOffset::parse("00:00:60", &fd::parse("[offset_hour]:[offset_minute]:[offset_second]")?),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "offset second"
+        UtcOffset::parse(
+            "00:00:60",
+            &fd::parse("[offset_hour]:[offset_minute]:[offset_second]")?
+        ),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("offset second")
+        ))
     ));
 
     Ok(())
@@ -976,10 +1018,13 @@ fn parse_primitive_date_time_err() -> time::Result<()> {
         ))
     ));
     assert!(matches!(
-        PrimitiveDateTime::parse("2021-001 13 PM", &fd::parse("[year]-[ordinal] [hour repr:12] [period]")?),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::ComponentRange(component)
-        )) if component.name() == "hour"
+        PrimitiveDateTime::parse(
+            "2021-001 13 PM",
+            &fd::parse("[year]-[ordinal] [hour repr:12] [period]")?
+        ),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("hour")
+        ))
     ));
 
     Ok(())
@@ -1000,10 +1045,13 @@ fn parse_offset_date_time_err() -> time::Result<()> {
         ))
     ));
     assert!(matches!(
-        OffsetDateTime::parse("2021-001 12 PM +25", &fd::parse("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::ComponentRange(component)
-        )) if component.name() == "offset hour"
+        OffsetDateTime::parse(
+            "2021-001 12 PM +25",
+            &fd::parse("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?
+        ),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("offset hour")
+        ))
     ));
 
     Ok(())
