@@ -621,6 +621,7 @@ fn iso_8601_error() {
 fn parse_time() -> time::Result<()> {
     let format_input_output = [
         (fd::parse("[hour repr:12] [period]")?, "01 PM", time!(1 PM)),
+        (fd::parse("[hour]")?, "12", time!(12:00)),
         (
             fd::parse("[hour]:[minute]:[second]")?,
             "13:02:03",
@@ -668,12 +669,6 @@ fn parse_time_err() -> time::Result<()> {
     ));
     assert!(matches!(
         Time::parse("", &fd::parse("")?),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation { .. }
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("12", &fd::parse("[hour]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation { .. }
         ))
@@ -1010,6 +1005,16 @@ fn parse_offset_err() -> time::Result<()> {
 }
 
 #[test]
+fn parse_primitive_date_time() -> time::Result<()> {
+    assert_eq!(
+        PrimitiveDateTime::parse("2023-07-27 23", &fd::parse("[year]-[month]-[day] [hour]")?),
+        Ok(datetime!(2023-07-27 23:00))
+    );
+
+    Ok(())
+}
+
+#[test]
 fn parse_primitive_date_time_err() -> time::Result<()> {
     assert!(matches!(
         PrimitiveDateTime::parse("", &fd::parse("")?),
@@ -1025,6 +1030,13 @@ fn parse_primitive_date_time_err() -> time::Result<()> {
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("hour")
         ))
+    ));
+    assert!(matches!(
+        PrimitiveDateTime::parse(
+            "2023-07-27 23:30", 
+            &fd::parse("[year]-[month]-[day] [hour]")?
+        ),
+        Err(error::Parse::UnexpectedTrailingCharacters { .. })
     ));
 
     Ok(())
