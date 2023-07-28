@@ -130,20 +130,14 @@ impl Arbitrary for PrimitiveDateTime {
 
 impl Arbitrary for UtcOffset {
     fn arbitrary(g: &mut Gen) -> Self {
-        let seconds =
-            arbitrary_between!(i32; g, -(Second.per(Day) as i32 - 1), Second.per(Day) as i32 - 1);
-        Self::__from_hms_unchecked(
-            (seconds / Second.per(Hour) as i32) as _,
-            ((seconds % Second.per(Hour) as i32) / Minute.per(Hour) as i32) as _,
-            (seconds % Second.per(Minute) as i32) as _,
-        )
+        Self::from_hms_ranged(<_>::arbitrary(g), <_>::arbitrary(g), <_>::arbitrary(g))
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
         Box::new(
-            self.as_hms().shrink().map(|(hours, minutes, seconds)| {
-                Self::__from_hms_unchecked(hours, minutes, seconds)
-            }),
+            self.as_hms_ranged()
+                .shrink()
+                .map(|(hours, minutes, seconds)| Self::from_hms_ranged(hours, minutes, seconds)),
         )
     }
 }

@@ -27,12 +27,7 @@ impl Distribution<Date> for Standard {
 
 impl Distribution<UtcOffset> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> UtcOffset {
-        let seconds = rng.gen_range(-(Second.per(Day) as i32 - 1)..=(Second.per(Day) as i32 - 1));
-        UtcOffset::__from_hms_unchecked(
-            (seconds / Second.per(Hour) as i32) as _,
-            ((seconds % Second.per(Hour) as i32) / Minute.per(Hour) as i32) as _,
-            (seconds % Second.per(Minute) as i32) as _,
-        )
+        UtcOffset::from_hms_ranged(rng.gen(), rng.gen(), rng.gen())
     }
 }
 
