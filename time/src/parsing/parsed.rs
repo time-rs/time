@@ -784,6 +784,7 @@ impl TryFrom<Parsed> for Time {
             (_, Some(hour), Some(true)) => hour.get() + 12,
             _ => return Err(InsufficientInformation),
         };
+
         if parsed.hour_24().is_none()
             && parsed.hour_12().is_some()
             && parsed.hour_12_is_pm().is_some()
@@ -793,10 +794,17 @@ impl TryFrom<Parsed> for Time {
         {
             return Ok(Self::from_hms_nano(hour, 0, 0, 0)?);
         }
-        let minute = parsed.minute().unwrap_or(0);
-        let second = parsed.second().unwrap_or(0);
-        let subsecond = parsed.subsecond().unwrap_or(0);
-        Ok(Self::from_hms_nano(hour, minute, second, subsecond)?)
+
+        // Reject combinations such as hour-second with minute omitted.
+        match (parsed.minute(), parsed.second(), parsed.subsecond()) {
+            (None, None, None) => Ok(Self::from_hms_nano(hour, 0, 0, 0)?),
+            (Some(minute), None, None) => Ok(Self::from_hms_nano(hour, minute, 0, 0)?),
+            (Some(minute), Some(second), None) => Ok(Self::from_hms_nano(hour, minute, second, 0)?),
+            (Some(minute), Some(second), Some(subsecond)) => {
+                Ok(Self::from_hms_nano(hour, minute, second, subsecond)?)
+            }
+            _ => Err(InsufficientInformation),
+        }
     }
 }
 

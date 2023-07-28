@@ -674,6 +674,18 @@ fn parse_time_err() -> time::Result<()> {
         ))
     ));
     assert!(matches!(
+        Time::parse("12:34", &fd::parse("[hour]:[second]")?),
+        Err(error::Parse::TryFromParsed(
+            error::TryFromParsed::InsufficientInformation { .. }
+        ))
+    ));
+    assert!(matches!(
+        Time::parse("12:34", &fd::parse("[hour]:[subsecond]")?),
+        Err(error::Parse::TryFromParsed(
+            error::TryFromParsed::InsufficientInformation { .. }
+        ))
+    ));
+    assert!(matches!(
         Time::parse("13 PM", &fd::parse("[hour repr:12] [period]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("hour")
@@ -1033,7 +1045,7 @@ fn parse_primitive_date_time_err() -> time::Result<()> {
     ));
     assert!(matches!(
         PrimitiveDateTime::parse(
-            "2023-07-27 23:30", 
+            "2023-07-27 23:30",
             &fd::parse("[year]-[month]-[day] [hour]")?
         ),
         Err(error::Parse::UnexpectedTrailingCharacters { .. })
