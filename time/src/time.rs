@@ -160,6 +160,13 @@ impl Time {
 
     // region: constructors
     /// Create a `Time` from its components.
+    ///
+    /// # Safety
+    ///
+    /// - `hours` must be in the range `0..=23`.
+    /// - `minutes` must be in the range `0..=59`.
+    /// - `seconds` must be in the range `0..=59`.
+    /// - `nanoseconds` must be in the range `0..=999_999_999`.
     #[doc(hidden)]
     pub const unsafe fn __from_hms_nanos_unchecked(
         hour: u8,
@@ -875,7 +882,8 @@ impl Sub for Time {
             (seconds, nanosecond_diff)
         };
 
-        Duration::new_unchecked(seconds, nanoseconds)
+        // Safety: `nanoseconds` is in range due to the overflow handling.
+        unsafe { Duration::new_unchecked(seconds, nanoseconds) }
     }
 }
 // endregion trait impls

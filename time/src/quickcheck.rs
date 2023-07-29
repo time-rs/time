@@ -72,25 +72,22 @@ impl Arbitrary for Date {
 
 impl Arbitrary for Duration {
     fn arbitrary(g: &mut Gen) -> Self {
-        Self::nanoseconds_i128(arbitrary_between!(
-            i128;
-            g,
-            Self::MIN.whole_nanoseconds(),
-            Self::MAX.whole_nanoseconds()
-        ))
+        Self::new_ranged(<_>::arbitrary(g), <_>::arbitrary(g))
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
         Box::new(
-            (self.subsec_nanoseconds(), self.whole_seconds())
+            (self.subsec_nanoseconds_ranged(), self.whole_seconds())
                 .shrink()
                 .map(|(mut nanoseconds, seconds)| {
                     // Coerce the sign if necessary.
-                    if (seconds > 0 && nanoseconds < 0) || (seconds < 0 && nanoseconds > 0) {
-                        nanoseconds *= -1;
+                    if (seconds > 0 && nanoseconds.get() < 0)
+                        || (seconds < 0 && nanoseconds.get() > 0)
+                    {
+                        nanoseconds = nanoseconds.neg();
                     }
 
-                    Self::new_unchecked(seconds, nanoseconds)
+                    Self::new_ranged_unchecked(seconds, nanoseconds)
                 }),
         )
     }

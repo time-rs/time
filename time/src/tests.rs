@@ -72,14 +72,6 @@ fn digit_count() {
 }
 
 #[test]
-fn default() {
-    assert_eq!(
-        duration::Padding::Optimize.clone(),
-        duration::Padding::default()
-    );
-}
-
-#[test]
 fn debug() {
     let _ = format!("{:?}", duration::Padding::Optimize);
     let _ = format!("{:?}", parsing::ParsedItem(b"", 0));

@@ -40,9 +40,7 @@ impl Distribution<OffsetDateTime> for Standard {
 
 impl Distribution<Duration> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Duration {
-        Duration::nanoseconds_i128(
-            rng.gen_range(Duration::MIN.whole_nanoseconds()..=Duration::MAX.whole_nanoseconds()),
-        )
+        Duration::new_ranged(rng.gen(), rng.gen())
     }
 }
 
