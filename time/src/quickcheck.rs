@@ -38,7 +38,6 @@ use alloc::boxed::Box;
 
 use quickcheck::{empty_shrinker, single_shrinker, Arbitrary, Gen};
 
-use crate::convert::*;
 use crate::date_time::{DateTime, MaybeOffset};
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
@@ -99,20 +98,20 @@ impl Arbitrary for Duration {
 
 impl Arbitrary for Time {
     fn arbitrary(g: &mut Gen) -> Self {
-        Self::__from_hms_nanos_unchecked(
-            arbitrary_between!(u8; g, 0, Hour.per(Day) - 1),
-            arbitrary_between!(u8; g, 0, Minute.per(Hour) - 1),
-            arbitrary_between!(u8; g, 0, Second.per(Minute) - 1),
-            arbitrary_between!(u32; g, 0, Nanosecond.per(Second) - 1),
+        Self::from_hms_nanos_ranged(
+            <_>::arbitrary(g),
+            <_>::arbitrary(g),
+            <_>::arbitrary(g),
+            <_>::arbitrary(g),
         )
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
         Box::new(
-            self.as_hms_nano()
+            self.as_hms_nano_ranged()
                 .shrink()
                 .map(|(hour, minute, second, nanosecond)| {
-                    Self::__from_hms_nanos_unchecked(hour, minute, second, nanosecond)
+                    Self::from_hms_nanos_ranged(hour, minute, second, nanosecond)
                 }),
         )
     }

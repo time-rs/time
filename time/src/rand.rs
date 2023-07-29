@@ -3,17 +3,11 @@
 use rand::distributions::{Distribution, Standard};
 use rand::Rng;
 
-use crate::convert::*;
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 impl Distribution<Time> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Time {
-        Time::__from_hms_nanos_unchecked(
-            rng.gen_range(0..Hour.per(Day)),
-            rng.gen_range(0..Minute.per(Hour)),
-            rng.gen_range(0..Second.per(Minute)),
-            rng.gen_range(0..Nanosecond.per(Second)),
-        )
+        Time::from_hms_nanos_ranged(rng.gen(), rng.gen(), rng.gen(), rng.gen())
     }
 }
 

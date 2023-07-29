@@ -251,10 +251,7 @@ impl<O: MaybeOffset> DateTime<O> {
         #[allow(clippy::missing_docs_in_private_items)]
         const MIN_TIMESTAMP: i64 = Date::MIN.midnight().assume_utc().unix_timestamp();
         #[allow(clippy::missing_docs_in_private_items)]
-        const MAX_TIMESTAMP: i64 = Date::MAX
-            .with_time(Time::__from_hms_nanos_unchecked(23, 59, 59, 999_999_999))
-            .assume_utc()
-            .unix_timestamp();
+        const MAX_TIMESTAMP: i64 = Date::MAX.with_time(Time::MAX).assume_utc().unix_timestamp();
 
         ensure_value_in_range!(timestamp in MIN_TIMESTAMP => MAX_TIMESTAMP);
 
@@ -264,12 +261,15 @@ impl<O: MaybeOffset> DateTime<O> {
         );
 
         let seconds_within_day = timestamp.rem_euclid(Second.per(Day) as _);
-        let time = Time::__from_hms_nanos_unchecked(
-            (seconds_within_day / Second.per(Hour) as i64) as _,
-            ((seconds_within_day % Second.per(Hour) as i64) / Minute.per(Hour) as i64) as _,
-            (seconds_within_day % Second.per(Minute) as i64) as _,
-            0,
-        );
+        // Safety: All values are in range.
+        let time = unsafe {
+            Time::__from_hms_nanos_unchecked(
+                (seconds_within_day / Second.per(Hour) as i64) as _,
+                ((seconds_within_day % Second.per(Hour) as i64) / Minute.per(Hour) as i64) as _,
+                (seconds_within_day % Second.per(Minute) as i64) as _,
+                0,
+            )
+        };
 
         Ok(Self {
             date,
@@ -289,12 +289,15 @@ impl<O: MaybeOffset> DateTime<O> {
 
         Ok(Self {
             date: datetime.date,
-            time: Time::__from_hms_nanos_unchecked(
-                datetime.hour(),
-                datetime.minute(),
-                datetime.second(),
-                timestamp.rem_euclid(Nanosecond.per(Second) as _) as u32,
-            ),
+            // Safety: `nanosecond` is in range due to `rem_euclid`.
+            time: unsafe {
+                Time::__from_hms_nanos_unchecked(
+                    datetime.hour(),
+                    datetime.minute(),
+                    datetime.second(),
+                    timestamp.rem_euclid(Nanosecond.per(Second) as _) as u32,
+                )
+            },
             offset: maybe_offset_from_offset::<O>(UtcOffset::UTC),
         })
     }
@@ -572,12 +575,15 @@ impl<O: MaybeOffset> DateTime<O> {
         (
             year,
             ordinal as _,
-            Time::__from_hms_nanos_unchecked(
-                hour as _,
-                minute as _,
-                second as _,
-                self.nanosecond(),
-            ),
+            // Safety: The cascades above ensure the values are in range.
+            unsafe {
+                Time::__from_hms_nanos_unchecked(
+                    hour as _,
+                    minute as _,
+                    second as _,
+                    self.nanosecond(),
+                )
+            },
         )
     }
     // endregion to offset

@@ -107,12 +107,14 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Time
 impl ToTokenTree for Time {
     fn into_token_tree(self) -> TokenTree {
         quote_group! {{
-            const TIME: ::time::Time = ::time::Time::__from_hms_nanos_unchecked(
-                #(self.hour),
-                #(self.minute),
-                #(self.second),
-                #(self.nanosecond),
-            );
+            const TIME: ::time::Time = unsafe {
+                ::time::Time::__from_hms_nanos_unchecked(
+                    #(self.hour),
+                    #(self.minute),
+                    #(self.second),
+                    #(self.nanosecond),
+                )
+            };
             TIME
         }}
     }

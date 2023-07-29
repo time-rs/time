@@ -266,6 +266,39 @@ macro_rules! ensure_value_in_range {
     }};
 }
 
+/// Constructs a ranged integer, returning a `ComponentRange` error if the value is out of range.
+macro_rules! ensure_ranged {
+    ($type:ident : $value:ident) => {
+        match $type::new($value) {
+            Some(val) => val,
+            None => {
+                return Err(crate::error::ComponentRange {
+                    name: stringify!($value),
+                    minimum: $type::MIN.get() as _,
+                    maximum: $type::MAX.get() as _,
+                    value: $value as _,
+                    conditional_range: false,
+                });
+            }
+        }
+    };
+
+    ($type:ident : $value:ident $(as $as_type:ident)? * $factor:expr) => {
+        match $type::new($value $(as $as_type)? * $factor) {
+            Some(val) => val,
+            None => {
+                return Err(crate::error::ComponentRange {
+                    name: stringify!($value),
+                    minimum: $type::MIN.get() as i64 / $factor as i64,
+                    maximum: $type::MAX.get() as i64 / $factor as i64,
+                    value: $value as _,
+                    conditional_range: false,
+                });
+            }
+        }
+    };
+}
+
 /// Try to unwrap an expression, returning if not possible.
 ///
 /// This is similar to the `?` operator, but does not perform `.into()`. Because of this, it is
