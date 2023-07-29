@@ -91,26 +91,14 @@ impl UtcOffset {
     /// ```
     pub const fn from_hms(
         hours: i8,
-        mut minutes: i8,
-        mut seconds: i8,
+        minutes: i8,
+        seconds: i8,
     ) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(hours in Hours::MIN.get() => Hours::MAX.get());
-        ensure_value_in_range!(minutes in Minutes::MIN.get() => Minutes::MAX.get());
-        ensure_value_in_range!(seconds in Seconds::MIN.get() => Seconds::MAX.get());
-
-        if (hours > 0 && minutes < 0) || (hours < 0 && minutes > 0) {
-            minutes *= -1;
-        }
-        if (hours > 0 && seconds < 0)
-            || (hours < 0 && seconds > 0)
-            || (minutes > 0 && seconds < 0)
-            || (minutes < 0 && seconds > 0)
-        {
-            seconds *= -1;
-        }
-
-        // Safety: All values were checked to be in range.
-        Ok(unsafe { Self::__from_hms_unchecked(hours, minutes, seconds) })
+        Ok(Self::from_hms_ranged(
+            ensure_ranged!(Hours: hours),
+            ensure_ranged!(Minutes: minutes),
+            ensure_ranged!(Seconds: seconds),
+        ))
     }
 
     /// Create a `UtcOffset` representing an offset of the hours, minutes, and seconds provided. All
