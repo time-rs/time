@@ -51,10 +51,12 @@ impl fmt::Debug for Duration {
     }
 }
 
-/// This is adapted from the `std` implementation, which uses mostly bit
+/// This is adapted from the [`std` implementation][std], which uses mostly bit
 /// operations to ensure the highest precision:
-/// https://github.com/rust-lang/rust/blob/3a37c2f0523c87147b64f1b8099fc9df22e8c53e/library/core/src/time.rs#L1262-L1340
+///
 /// Changes from `std` are marked and explained below.
+///
+/// [std]: https://github.com/rust-lang/rust/blob/3a37c2f0523c87147b64f1b8099fc9df22e8c53e/library/core/src/time.rs#L1262-L1340
 #[rustfmt::skip] // Skip `rustfmt` because it reformats the arguments of the macro weirdly.
 macro_rules! try_from_secs {
     (
