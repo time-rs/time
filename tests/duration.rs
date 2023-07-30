@@ -389,6 +389,14 @@ fn checked_div() {
 }
 
 #[test]
+fn checked_div_regression() {
+    assert_eq!(
+        Duration::new(1, 1).checked_div(7),
+        Some(Duration::new(0, 142_857_143)) // manually verified
+    );
+}
+
+#[test]
 fn saturating_add() {
     assert_eq!(5.seconds().saturating_add(5.seconds()), 10.seconds());
     assert_eq!(Duration::MAX.saturating_add(1.nanoseconds()), Duration::MAX);
