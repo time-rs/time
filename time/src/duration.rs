@@ -906,6 +906,7 @@ impl Duration {
     }
 
     /// Get the number of nanoseconds past the number of whole seconds.
+    #[cfg(feature = "quickcheck")]
     pub(crate) const fn subsec_nanoseconds_ranged(self) -> Nanoseconds {
         self.nanoseconds
     }

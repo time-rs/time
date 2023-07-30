@@ -202,6 +202,7 @@ impl UtcOffset {
     /// assert_eq!(offset!(+1:02:03).as_hms(), (1, 2, 3));
     /// assert_eq!(offset!(-1:02:03).as_hms(), (-1, -2, -3));
     /// ```
+    #[cfg(feature = "quickcheck")]
     pub(crate) const fn as_hms_ranged(self) -> (Hours, Minutes, Seconds) {
         (self.hours, self.minutes, self.seconds)
     }
