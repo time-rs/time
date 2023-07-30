@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.24 [2023-07-30]
+
+### Added
+
+- The `subsecond` component is taken into account when parsing the `unix_timestamp` component. If
+  data is conflicting, the `subsecond` value takes precedence.
+- Parsing a `Time` with only the `hour` component is now supported. The `minute` and `second`, and
+  `subsecond` components are assumed to be zero.
+
+### Changed
+
+- The minimum supported Rust version is now 1.67.0.
+- The debug output for `Parsed` has been improved.
+- When parsing, invalid values are now rejected sooner. Previously, the entire input would be parsed
+  before being rejected in the final step. Now, invalid values are rejected as soon as they are
+  encountered. This affects the error variant returned, which may cause minor breakage for any code
+  (incorrectly) relying on the exact error variant.
+- When parsing a `Time`, an error is returned if components are present but not consecutive. For
+  example, if `hours` and `seconds` are present, `minutes` will not be assumed to be zero.
+
+### Fixed
+
+- The implementation of `Duration::checked_div` could return a slightly incorrect result in some
+  cases. This has been fixed.
+
 ## 0.3.23 [2023-07-08]
 
 ### Added
