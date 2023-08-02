@@ -26,13 +26,6 @@ pub(crate) enum Padding {
 type Nanoseconds =
     RangedI32<{ -(Nanosecond.per(Second) as i32 - 1) }, { Nanosecond.per(Second) as i32 - 1 }>;
 
-/// A value for the `nanoseconds` field that is exactly zero.
-///
-/// This is used in a few locations, so centralizing the `unsafe` makes sense.
-// Safety: Zero is in range.
-#[allow(clippy::undocumented_unsafe_blocks)] // rust-lang/rust-clippy#11246
-const ZERO: Nanoseconds = unsafe { Nanoseconds::new_unchecked(0) };
-
 /// A span of time with nanosecond precision.
 ///
 /// Each `Duration` is composed of a whole number of seconds and a fractional part represented in
@@ -63,7 +56,7 @@ impl Default for Duration {
     fn default() -> Self {
         Self {
             seconds: 0,
-            nanoseconds: ZERO,
+            nanoseconds: Nanoseconds::new_static::<0>(),
             padding: Padding::Optimize,
         }
     }
@@ -164,7 +157,7 @@ macro_rules! try_from_secs {
                 // following numbers -128..=127. The check above (exp < 63)
                 // doesn't cover i64::MIN as that is -2^63, so we have this
                 // additional case to handle the asymmetry of iN::MIN.
-                break 'value Self::new_ranged_unchecked(i64::MIN, ZERO);
+                break 'value Self::new_ranged_unchecked(i64::MIN, Nanoseconds::new_static::<0>());
             } else if $secs.is_nan() {
                 // Change from std: std doesn't differentiate between the error
                 // cases.
@@ -491,7 +484,7 @@ impl Duration {
     /// assert_eq!(Duration::seconds(1), 1_000.milliseconds());
     /// ```
     pub const fn seconds(seconds: i64) -> Self {
-        Self::new_ranged_unchecked(seconds, ZERO)
+        Self::new_ranged_unchecked(seconds, Nanoseconds::new_static::<0>())
     }
 
     /// Creates a new `Duration` from the specified number of seconds represented as `f64`.
