@@ -191,6 +191,13 @@ fn replace_millisecond() -> Result<()> {
 }
 
 #[test]
+fn replace_millisecond_regression() {
+    assert!(Time::MIDNIGHT.replace_millisecond(9999).is_err());
+    assert!(Time::MIDNIGHT.replace_millisecond(4294).is_err());
+    assert!(Time::MIDNIGHT.replace_millisecond(4295).is_err());
+}
+
+#[test]
 fn replace_microsecond() -> Result<()> {
     assert_eq!(
         time!(1:02:03.004_005_006).replace_microsecond(7_008)?,

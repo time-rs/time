@@ -284,8 +284,19 @@ macro_rules! ensure_ranged {
     };
 
     ($type:ident : $value:ident $(as $as_type:ident)? * $factor:expr) => {
-        match $type::new($value $(as $as_type)? * $factor) {
-            Some(val) => val,
+        match ($value $(as $as_type)?).checked_mul($factor) {
+            Some(val) => match $type::new(val) {
+                Some(val) => val,
+                None => {
+                    return Err(crate::error::ComponentRange {
+                        name: stringify!($value),
+                        minimum: $type::MIN.get() as i64 / $factor as i64,
+                        maximum: $type::MAX.get() as i64 / $factor as i64,
+                        value: $value as _,
+                        conditional_range: false,
+                    });
+                }
+            },
             None => {
                 return Err(crate::error::ComponentRange {
                     name: stringify!($value),
