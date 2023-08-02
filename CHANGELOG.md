@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.25 [2023-08-02]
+
+### Fixed
+
+- Methods such as `Time::replace_milliseconds` would panic on some out-of-range values. This has
+  been fixed.
+
 ## 0.3.24 [2023-07-30]
 
 ### Added
