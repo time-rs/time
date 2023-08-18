@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.26 [2023-08-18]
+
+This release contains only a single change. `serde` is required to be a version prior to 1.0.171.
+This is due to the decision by the maintainer of `serde` to include pre-built binaries that are
+executed without the end user's knowledge. As of the time of publishing, the included binary has not
+even been reproduced. This is a security risk, and the `time` project strongly opposes this
+decision. While this may break some users' builds due to conflicting versions, it is a necessary
+step to ensure the security.
+
 ## 0.3.25 [2023-08-02]
 
 ### Fixed
