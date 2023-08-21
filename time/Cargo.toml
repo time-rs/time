@@ -1,6 +1,6 @@
 [package]
 name = "time"
-version = "0.3.26"
+version = "0.3.27"
 authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
 edition = "2021"
 rust-version = "1.67.0"
