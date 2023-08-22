@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.27 [2023-08-22]
+
+This sets the `serde` dependency requirement to `>= 1.0.184` where the binaries have been removed.
+
 ## 0.3.26 [2023-08-18]
 
 This release contains only a single change. `serde` is required to be a version prior to 1.0.171.
