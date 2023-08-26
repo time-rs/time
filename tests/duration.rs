@@ -943,14 +943,14 @@ fn arithmetic_regression() {
 
 #[test]
 fn sum_iter_ref() {
-    let i = vec![1.6.seconds(), 1.6.seconds()];
+    let i = [1.6.seconds(), 1.6.seconds()];
     let sum = i.iter().sum::<Duration>();
     assert_eq!(sum, 3.2.seconds());
 }
 
 #[test]
 fn sum_iter() {
-    let i = vec![1.6.seconds(), 1.6.seconds()];
+    let i = [1.6.seconds(), 1.6.seconds()];
     let sum = i.into_iter().sum::<Duration>();
     assert_eq!(sum, 3.2.seconds());
 }

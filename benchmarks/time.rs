@@ -224,7 +224,7 @@ setup_benchmark! {
                 let mut last_hour = 0;
                 for t in &mut res.arr {
                     *t = last;
-                    t.replace_hour(last_hour).unwrap();
+                    t.replace_hour(last_hour).expect("failed to replace hour");
                     last += 997.std_milliseconds();
                     last_hour = (last_hour + 5) % 24;
                 }
@@ -254,7 +254,7 @@ setup_benchmark! {
                 let mut last_hour = 0;
                 for t in &mut res.arr {
                     *t = last;
-                    t.replace_hour(last_hour).unwrap();
+                    t.replace_hour(last_hour).expect("failed to replace hour");
                     last += 997.std_milliseconds();
                     last_hour = (last_hour + 5) % 24;
                 }
