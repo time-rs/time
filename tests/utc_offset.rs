@@ -178,7 +178,6 @@ fn current_local_offset() {
 #[test]
 #[cfg_attr(
     any(
-        target_os = "macos",
         target_os = "netbsd",
         target_os = "illumos",
         not(target_family = "unix")
