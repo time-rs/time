@@ -193,6 +193,10 @@ fn simple_component() {
         )))])
     );
     assert_eq!(
+        format_description::parse("[end]"),
+        Ok(vec![FormatItem::Component(Component::End(modifier!(End)))])
+    );
+    assert_eq!(
         format_description::parse("[hour]"),
         Ok(vec![FormatItem::Component(Component::Hour(modifier!(
             Hour {

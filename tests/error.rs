@@ -44,6 +44,15 @@ fn unexpected_trailing_characters() -> Parse {
     Time::parse("a", format_description!("")).unwrap_err()
 }
 
+fn unexpected_trailing_characters_from_description() -> ParseFromDescription {
+    match Time::parse("0", format_description!("[end]")) {
+        Err(Parse::ParseFromDescription(
+            err @ ParseFromDescription::UnexpectedTrailingCharacters { .. },
+        )) => err,
+        _ => panic!("unexpected result"),
+    }
+}
+
 fn invalid_format_description() -> InvalidFormatDescription {
     format_description::parse("[").unwrap_err()
 }
@@ -94,6 +103,10 @@ fn display() {
     assert_display_eq!(
         ParseFromDescription::InvalidComponent("a"),
         Parse::from(ParseFromDescription::InvalidComponent("a"))
+    );
+    assert_display_eq!(
+        unexpected_trailing_characters_from_description(),
+        Parse::from(unexpected_trailing_characters_from_description())
     );
     assert_display_eq!(
         component_range(),

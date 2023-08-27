@@ -155,7 +155,7 @@ fn size() {
     assert_size!(error::Format, 24, 24);
     assert_size!(error::InvalidFormatDescription, 48, 48);
     assert_size!(error::Parse, 48, 48);
-    assert_size!(error::ParseFromDescription, 16, 24);
+    assert_size!(error::ParseFromDescription, 24, 24);
     assert_size!(error::TryFromParsed, 48, 48);
     assert_size!(Component, 6, 6); // TODO Size is 4 starting with rustc 1.71.
     assert_size!(FormatItem<'_>, 24, 24);

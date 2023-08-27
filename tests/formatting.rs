@@ -740,6 +740,13 @@ fn ignore() -> time::Result<()> {
 }
 
 #[test]
+fn end() -> time::Result<()> {
+    assert_eq!(Time::MIDNIGHT.format(fd!("[end]"))?, "");
+
+    Ok(())
+}
+
+#[test]
 fn unix_timestamp() -> time::Result<()> {
     let dt = datetime!(2009-02-13 23:31:30.123456789 UTC);
 

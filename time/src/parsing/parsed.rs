@@ -11,12 +11,11 @@ use crate::convert::{Day, Hour, Minute, Nanosecond, Second};
 use crate::date::{MAX_YEAR, MIN_YEAR};
 use crate::date_time::{maybe_offset_from_offset, offset_kind, DateTime, MaybeOffset};
 use crate::error::TryFromParsed::InsufficientInformation;
-use crate::format_description::modifier::{WeekNumberRepr, YearRepr};
 #[cfg(feature = "alloc")]
 use crate::format_description::OwnedFormatItem;
-use crate::format_description::{Component, FormatItem};
+use crate::format_description::{modifier, Component, FormatItem};
 use crate::parsing::component::{
-    parse_day, parse_hour, parse_ignore, parse_minute, parse_month, parse_offset_hour,
+    parse_day, parse_end, parse_hour, parse_ignore, parse_minute, parse_month, parse_offset_hour,
     parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
     parse_subsecond, parse_unix_timestamp, parse_week_number, parse_weekday, parse_year, Period,
 };
@@ -276,11 +275,11 @@ impl Parsed {
                 let ParsedItem(remaining, value) =
                     parse_week_number(input, modifiers).ok_or(InvalidComponent("week number"))?;
                 match modifiers.repr {
-                    WeekNumberRepr::Iso => {
+                    modifier::WeekNumberRepr::Iso => {
                         NonZeroU8::new(value).and_then(|value| self.set_iso_week_number(value))
                     }
-                    WeekNumberRepr::Sunday => self.set_sunday_week_number(value),
-                    WeekNumberRepr::Monday => self.set_monday_week_number(value),
+                    modifier::WeekNumberRepr::Sunday => self.set_sunday_week_number(value),
+                    modifier::WeekNumberRepr::Monday => self.set_monday_week_number(value),
                 }
                 .ok_or(InvalidComponent("week number"))?;
                 Ok(remaining)
@@ -289,10 +288,10 @@ impl Parsed {
                 let ParsedItem(remaining, value) =
                     parse_year(input, modifiers).ok_or(InvalidComponent("year"))?;
                 match (modifiers.iso_week_based, modifiers.repr) {
-                    (false, YearRepr::Full) => self.set_year(value),
-                    (false, YearRepr::LastTwo) => self.set_year_last_two(value as _),
-                    (true, YearRepr::Full) => self.set_iso_year(value),
-                    (true, YearRepr::LastTwo) => self.set_iso_year_last_two(value as _),
+                    (false, modifier::YearRepr::Full) => self.set_year(value),
+                    (false, modifier::YearRepr::LastTwo) => self.set_year_last_two(value as _),
+                    (true, modifier::YearRepr::Full) => self.set_iso_year(value),
+                    (true, modifier::YearRepr::LastTwo) => self.set_iso_year_last_two(value as _),
                 }
                 .ok_or(InvalidComponent("year"))?;
                 Ok(remaining)
@@ -349,6 +348,9 @@ impl Parsed {
                     parsed.consume_value(|value| self.set_unix_timestamp_nanos(value))
                 })
                 .ok_or(InvalidComponent("unix_timestamp")),
+            Component::End(modifiers) => parse_end(input, modifiers)
+                .map(ParsedItem::<()>::into_inner)
+                .ok_or(error::ParseFromDescription::UnexpectedTrailingCharacters),
         }
     }
 }

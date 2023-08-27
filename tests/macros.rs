@@ -309,6 +309,10 @@ fn format_description_coverage() {
             }
         )))]
     );
+    assert_eq!(
+        format_description!("[end]"),
+        &[FormatItem::Component(Component::End(modifier!(End)))]
+    );
 }
 
 #[test]

@@ -1645,3 +1645,36 @@ fn issue_601() {
 
     assert_eq!(date, datetime!(2009-02-13 23:31:30.123 +00:00:00));
 }
+
+#[test]
+fn end() -> time::Result<()> {
+    let mut parsed = Parsed::new();
+    let remaining_input = parsed.parse_item(
+        b"",
+        &FormatItem::Component(Component::End(modifier::End::default())),
+    );
+    assert_eq!(remaining_input, Ok(b"".as_slice()));
+
+    assert_eq!(
+        Time::parse("00:00", &fd::parse("[hour]:[minute][end]")?),
+        Ok(time!(0:00))
+    );
+    assert_eq!(
+        Time::parse(
+            "00:00:00",
+            &fd::parse_owned::<2>("[hour]:[minute][optional [[end]]]:[second]")?
+        ),
+        Ok(time!(0:00))
+    );
+    assert!(matches!(
+        Time::parse(
+            "00:00:00",
+            &fd::parse_owned::<2>("[hour]:[minute][end]:[second]")?
+        ),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+
+    Ok(())
+}

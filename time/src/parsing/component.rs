@@ -331,3 +331,15 @@ pub(crate) fn parse_unix_timestamp(
         _ => Some(ParsedItem(input, nano_timestamp as _)),
     }
 }
+
+/// Parse the `end` component, which represents the end of input. If any input is remaining, `None`
+/// is returned.
+pub(crate) const fn parse_end(input: &[u8], end: modifier::End) -> Option<ParsedItem<'_, ()>> {
+    let modifier::End {} = end;
+
+    if input.is_empty() {
+        Some(ParsedItem(input, ()))
+    } else {
+        None
+    }
+}

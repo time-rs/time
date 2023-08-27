@@ -197,6 +197,7 @@ pub(crate) fn format_component(
         (UnixTimestamp(modifier), Some(date), Some(time), Some(offset)) => {
             fmt_unix_timestamp(output, date, time, offset, modifier)?
         }
+        (End(modifier::End {}), ..) => 0,
         _ => return Err(error::Format::InsufficientTypeInformation),
     })
 }

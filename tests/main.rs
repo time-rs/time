@@ -109,11 +109,13 @@ require_all_features! {
 
     /// Construct a non-exhaustive modifier.
     macro_rules! modifier {
-        ($name:ident {
-            $($field:ident $(: $value:expr)?),+ $(,)?
-        }) => {{
+        ($name:ident $({
+            $($field:ident $(: $value:expr)?),* $(,)?
+        })?) => {{
+            // Needed for when there are no fields.
+            #[allow(unused_mut)]
             let mut value = ::time::format_description::modifier::$name::default();
-            $(value.$field = modifier!(@value $field $($value)?);)+
+            $($(value.$field = modifier!(@value $field $($value)?);)*)?
             value
         }};
 
