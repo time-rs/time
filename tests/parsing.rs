@@ -418,7 +418,9 @@ fn rfc_3339_err() {
 
     assert!(matches!(
         OffsetDateTime::parse("2021-01-02T03:04:05Z ", &Rfc3339),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
     assert!(matches!(
         OffsetDateTime::parse("x", &Rfc3339),
@@ -571,43 +573,63 @@ fn iso_8601() {
 fn iso_8601_error() {
     assert!(matches!(
         OffsetDateTime::parse("20210102T03:04Z", &Iso8601::DEFAULT),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
     assert!(matches!(
         OffsetDateTime::parse("20210102T03.", &Iso8601::DEFAULT),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-0102", &Iso8601::DEFAULT),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-01-x", &Iso8601::DEFAULT),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-Wx", &Iso8601::DEFAULT),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-W012", &Iso8601::DEFAULT),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-W01-x", &Iso8601::DEFAULT),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-01-02T03:x", &Iso8601::DEFAULT),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-01-02T03:04x", &Iso8601::DEFAULT),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-01-02T03:04:", &Iso8601::DEFAULT),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
     assert!(matches!(
         OffsetDateTime::parse("01:02", &Iso8601::DEFAULT),
@@ -693,7 +715,9 @@ fn parse_time_err() -> time::Result<()> {
     ));
     assert!(matches!(
         Time::parse(" ", &fd::parse("")?),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
     assert!(matches!(
         Time::parse("a", &fd::parse("[subsecond digits:1]")?),
@@ -1048,7 +1072,9 @@ fn parse_primitive_date_time_err() -> time::Result<()> {
             "2023-07-27 23:30",
             &fd::parse("[year]-[month]-[day] [hour]")?
         ),
-        Err(error::Parse::UnexpectedTrailingCharacters { .. })
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
     ));
 
     Ok(())

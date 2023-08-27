@@ -73,7 +73,7 @@ fn time_error() {
     );
     assert_de_tokens_error::<Readable<Time>>(
         &[Token::BorrowedStr("00:00:00.0x")],
-        "unexpected trailing characters",
+        "unexpected trailing characters; the end of input was expected",
     );
     assert_de_tokens_error::<Readable<Time>>(
         &[Token::Bool(false)],
