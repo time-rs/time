@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.28 [2023-08-27]
+
+### Added
+
+- More additional constants for the well-known `Iso8601` format description have been added. This
+  avoids the need to manually configure the format.
+- An `[end]` component has been added. This is ignored during formatting, but is used to indicate
+  the end of input when parsing. If any input remains after this component, an error is returned.
+  This is useful when using the `[first]` component, as it avoids the need to reorder variants.
+
+### Changed
+
+- The exemption for MacOS introduced in 0.3.20 has been removed. This is because some supported
+  versions of MacOS do not meet the requirements for the exemption.
+- The `UnexpectedTrailingCharacters` error variant has been moved to `ParseFromDescription`. All
+  previously-existing locations of this variant have been deprecated and will no longer be returned.
+
 ## 0.3.27 [2023-08-22]
 
 This sets the `serde` dependency requirement to `>= 1.0.184` where the binaries have been removed.
