@@ -198,7 +198,18 @@ pub(crate) fn format_component(
             fmt_unix_timestamp(output, date, time, offset, modifier)?
         }
         (End(modifier::End {}), ..) => 0,
-        _ => return Err(error::Format::InsufficientTypeInformation),
+
+        // This is functionally the same as a wildcard arm, but it will cause an error if a new
+        // component is added. This is to avoid a bug where a new component, the code compiles, and
+        // formatting fails.
+        // Allow unreachable patterns because some branches may be fully matched above.
+        #[allow(unreachable_patterns)]
+        (
+            Day(_) | Month(_) | Ordinal(_) | Weekday(_) | WeekNumber(_) | Year(_) | Hour(_)
+            | Minute(_) | Period(_) | Second(_) | Subsecond(_) | OffsetHour(_) | OffsetMinute(_)
+            | OffsetSecond(_) | Ignore(_) | UnixTimestamp(_) | End(_),
+            ..,
+        ) => return Err(error::Format::InsufficientTypeInformation),
     })
 }
 
