@@ -27,3 +27,95 @@ debug = 0
 
 [profile.test]
 debug = 2
+
+# Deny-by-default lints: These are lints that indicate a lack of compiler guarantees, future
+# incompatibility (with no guarantees in the meantime) introduce surprising behavior, or are likely
+# to cause undesired behavior. Code that trigger these lints should only be allowed with a
+# compelling reason that is clearly documented.
+
+# Warn-by-default lints: These are lints that indicate possible errors, future incompatibility
+# (with guaranteed behavior in the meantime), or other stylistic issues (including idioms). Code
+# that trigger these lints should not cause undesired behavior and may be allowed as necessary.
+
+# All overrides need higher priority. Any overrides that are for a specific crate need to be done
+# the "traditional" way of using attributes at the crate root.
+
+[workspace.lints.rust]
+ambiguous-glob-reexports = "deny"
+clashing-extern-declarations = "deny"
+const-item-mutation = "deny"
+deref-nullptr = "deny"
+drop-bounds = "deny"
+future-incompatible = "deny"
+hidden-glob-reexports = "deny"
+improper-ctypes = "deny"
+improper-ctypes-definitions = "deny"
+invalid-from-utf8 = "deny"
+invalid-macro-export-arguments = "deny"
+invalid-nan-comparisons = "deny"
+invalid-reference-casting = "deny"
+invalid-value = "deny"
+named-arguments-used-positionally = "deny"
+non-ascii-idents = "deny"
+opaque-hidden-inferred-bound = "deny"
+overlapping-range-endpoints = "deny"
+suspicious-double-ref-op = "deny"
+temporary-cstring-as-ptr = "deny"
+unconditional-recursion = "deny"
+unnameable-test-items = "deny"
+unsafe-op-in-unsafe-fn = "deny"
+unstable-syntax-pre-expansion = "deny"
+
+keyword-idents = "warn"
+let-underscore = "warn"
+macro-use-extern-crate = "warn"
+meta-variable-misuse = "warn"
+missing-abi = "warn"
+missing-copy-implementations = "warn"
+missing-debug-implementations = "warn"
+missing-docs = "warn"
+noop-method-call = "warn"
+single-use-lifetimes = "warn"
+trivial-casts = "warn"
+trivial-numeric-casts = "warn"
+unreachable-pub = "warn"
+unstable-name-collisions = { level = "warn", priority = 1 } # overrides #![deny(future_incompatible)]
+unused = "warn"
+unused-import-braces = "warn"
+unused-lifetimes = "warn"
+unused-qualifications = "warn"
+# unused-results = "warn"
+unused-tuple-struct-fields = "warn"
+variant-size-differences = "warn"
+
+[workspace.lints.clippy]
+alloc-instead-of-core = "deny"
+std-instead-of-core = "deny"
+undocumented-unsafe-blocks = "deny"
+
+all = "warn"
+dbg-macro = "warn"
+decimal-literal-representation = "warn"
+explicit-auto-deref = "warn"
+get-unwrap = "warn"
+manual-let-else = "warn"
+missing-docs-in-private-items = "warn"
+missing-enforced-import-renames = "warn"
+nursery = "warn"
+obfuscated-if-else = "warn"
+print-stdout = "warn"
+semicolon-outside-block = "warn"
+todo = "warn"
+unimplemented = "warn"
+uninlined-format-args = "warn"
+unnested-or-patterns = "warn"
+unwrap-in-result = "warn"
+unwrap-used = "warn"
+use-debug = "warn"
+
+option-if-let-else = { level = "allow", priority = 1 }  # suggests terrible code, overrides #![warn(clippy::nursery)]
+redundant-pub-crate = { level = "allow", priority = 1 } # rust-lang/rust-clippy#5369, overrides #![warn(clippy::nursery)]
+
+[workspace.lints.rustdoc]
+private-doc-tests = "warn"
+unescaped-backticks = "warn"

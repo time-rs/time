@@ -1,34 +1,10 @@
-#![deny(
-    anonymous_parameters,
-    clippy::all,
-    illegal_floating_point_literal_pattern,
-    late_bound_lifetime_arguments,
-    path_statements,
-    patterns_in_fns_without_body,
-    rust_2018_idioms,
-    trivial_casts,
-    trivial_numeric_casts,
-    unreachable_pub,
-    unsafe_code,
-    unused_extern_crates
+#![allow(
+    missing_docs,
+    clippy::missing_docs_in_private_items,
+    clippy::std_instead_of_core, // irrelevant for benchmarks
+    clippy::std_instead_of_alloc, // irrelevant for benchmarks
+    clippy::alloc_instead_of_core, // irrelevant for benchmarks
 )]
-#![warn(
-    clippy::dbg_macro,
-    clippy::decimal_literal_representation,
-    clippy::get_unwrap,
-    clippy::nursery,
-    clippy::print_stdout,
-    clippy::todo,
-    clippy::unimplemented,
-    clippy::unwrap_in_result,
-    clippy::unwrap_used,
-    clippy::use_debug,
-    missing_copy_implementations,
-    missing_debug_implementations,
-    unused_qualifications,
-    variant_size_differences
-)]
-#![allow(clippy::many_single_char_names)]
 
 #[cfg(not(all(
     feature = "default",

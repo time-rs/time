@@ -13,4 +13,7 @@ description = "This crate is an implementation detail and should not be relied u
 [package.metadata.docs.rs]
 rustdoc-args = ["--generate-link-to-definition"]
 
+[lints]
+workspace = true
+
 [dependencies]

@@ -1,37 +1,12 @@
-#![deny(
-    anonymous_parameters,
-    clippy::all,
-    illegal_floating_point_literal_pattern,
-    late_bound_lifetime_arguments,
-    path_statements,
-    patterns_in_fns_without_body,
-    rust_2018_idioms,
-    trivial_casts,
-    trivial_numeric_casts,
-    unreachable_pub,
-    unsafe_code,
-    unused_extern_crates
-)]
-#![warn(
-    clippy::dbg_macro,
-    clippy::decimal_literal_representation,
-    clippy::get_unwrap,
-    clippy::nursery,
-    clippy::print_stdout,
-    clippy::todo,
-    clippy::unimplemented,
-    clippy::unnested_or_patterns,
-    clippy::unwrap_used,
-    clippy::use_debug,
-    single_use_lifetimes,
-    unused_qualifications,
-    variant_size_differences
-)]
 #![allow(
-    clippy::missing_const_for_fn, // useless in proc macro
-    clippy::redundant_pub_crate, // suggests bad style
-    clippy::option_if_let_else, // suggests terrible code
+    clippy::missing_const_for_fn, // irrelevant for proc macros
+    clippy::missing_docs_in_private_items, // TODO remove
+    clippy::std_instead_of_core, // irrelevant for proc macros
+    clippy::std_instead_of_alloc, // irrelevant for proc macros
+    clippy::alloc_instead_of_core, // irrelevant for proc macros
+    missing_docs, // TODO remove
 )]
+
 #[allow(unused_macros)]
 macro_rules! bug {
     () => { compile_error!("provide an error message to help fix a possible bug") };
