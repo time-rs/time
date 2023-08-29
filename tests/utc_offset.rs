@@ -149,7 +149,7 @@ fn neg() {
 fn local_offset_at() {
     use time::util::local_offset::*;
 
-    let _guard = crate::SOUNDNESS_LOCK.lock().unwrap();
+    let _guard = crate::SOUNDNESS_LOCK.lock().expect("lock is poisoned");
 
     // Safety: Technically not sound. However, this is a test, and it's highly improbable that we
     // will run into issues with setting an environment variable a few times.
@@ -164,7 +164,7 @@ fn local_offset_at() {
 fn current_local_offset() {
     use time::util::local_offset::*;
 
-    let _guard = crate::SOUNDNESS_LOCK.lock().unwrap();
+    let _guard = crate::SOUNDNESS_LOCK.lock().expect("lock is poisoned");
 
     // Safety: Technically not sound. However, this is a test, and it's highly improbable that we
     // will run into issues with setting an environment variable a few times.
@@ -185,7 +185,7 @@ fn current_local_offset() {
     ignore
 )]
 fn local_offset_error_when_multithreaded() {
-    let _guard = crate::SOUNDNESS_LOCK.lock().unwrap();
+    let _guard = crate::SOUNDNESS_LOCK.lock().expect("lock is poisoned");
 
     std::thread::spawn(|| {
         assert!(UtcOffset::current_local_offset().is_err());

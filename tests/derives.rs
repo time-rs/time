@@ -17,13 +17,14 @@ macro_rules! assert_cloned_eq {
 }
 
 fn component_range_error() -> error::ComponentRange {
-    Time::from_hms(24, 0, 0).unwrap_err()
+    Time::from_hms(24, 0, 0).expect_err("24 is not a valid hour")
 }
 
 fn invalid_format_description() -> error::InvalidFormatDescription {
-    format_description::parse("[").unwrap_err()
+    format_description::parse("[").expect_err("format description is invalid")
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn clone() {
     let instant = Instant::now();

@@ -317,6 +317,7 @@ fn simple_component() {
     );
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn errors() {
     use InvalidFormatDescription::*;
@@ -349,6 +350,7 @@ fn errors() {
     }
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn component_with_modifiers() {
     for (padding, padding_str) in iterator::padding() {
@@ -795,6 +797,7 @@ fn nested_error() {
     ));
 }
 
+#[allow(clippy::unwrap_used)] // It's the point of the test.
 #[test]
 fn error_display() {
     assert_eq!(

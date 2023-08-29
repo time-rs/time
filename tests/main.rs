@@ -3,8 +3,6 @@
     clippy::std_instead_of_core, // irrelevant for tests
     clippy::std_instead_of_alloc, // irrelevant for tests
     clippy::alloc_instead_of_core, // irrelevant for tests
-    clippy::cognitive_complexity, // TODO split up tests as necessary
-    clippy::unwrap_used, // TODO convert to expect or better error handling
 )]
 
 #[cfg(not(all(

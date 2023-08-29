@@ -39,8 +39,7 @@ fn weeks_in_year_exhaustive() {
 // leap day.
 
 #[test]
-fn test_monday_based_week() {
-    // A
+fn test_monday_based_week_dominical_a() {
     assert_eq!(date!(2023 - 01 - 01).monday_based_week(), 0);
     assert_eq!(date!(2023 - 01 - 02).monday_based_week(), 1);
     assert_eq!(date!(2023 - 01 - 03).monday_based_week(), 1);
@@ -48,8 +47,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2023 - 01 - 05).monday_based_week(), 1);
     assert_eq!(date!(2023 - 01 - 06).monday_based_week(), 1);
     assert_eq!(date!(2023 - 01 - 07).monday_based_week(), 1);
+}
 
-    // B
+#[test]
+fn test_monday_based_week_dominical_b() {
     assert_eq!(date!(2022 - 01 - 01).monday_based_week(), 0);
     assert_eq!(date!(2022 - 01 - 02).monday_based_week(), 0);
     assert_eq!(date!(2022 - 01 - 03).monday_based_week(), 1);
@@ -57,8 +58,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2022 - 01 - 05).monday_based_week(), 1);
     assert_eq!(date!(2022 - 01 - 06).monday_based_week(), 1);
     assert_eq!(date!(2022 - 01 - 07).monday_based_week(), 1);
+}
 
-    // C
+#[test]
+fn test_monday_based_week_dominical_c() {
     assert_eq!(date!(2021 - 01 - 01).monday_based_week(), 0);
     assert_eq!(date!(2021 - 01 - 02).monday_based_week(), 0);
     assert_eq!(date!(2021 - 01 - 03).monday_based_week(), 0);
@@ -66,8 +69,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2021 - 01 - 05).monday_based_week(), 1);
     assert_eq!(date!(2021 - 01 - 06).monday_based_week(), 1);
     assert_eq!(date!(2021 - 01 - 07).monday_based_week(), 1);
+}
 
-    // D
+#[test]
+fn test_monday_based_week_dominical_d() {
     assert_eq!(date!(2026 - 01 - 01).monday_based_week(), 0);
     assert_eq!(date!(2026 - 01 - 02).monday_based_week(), 0);
     assert_eq!(date!(2026 - 01 - 03).monday_based_week(), 0);
@@ -75,8 +80,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2026 - 01 - 05).monday_based_week(), 1);
     assert_eq!(date!(2026 - 01 - 06).monday_based_week(), 1);
     assert_eq!(date!(2026 - 01 - 07).monday_based_week(), 1);
+}
 
-    // E
+#[test]
+fn test_monday_based_week_dominical_e() {
     assert_eq!(date!(2025 - 01 - 01).monday_based_week(), 0);
     assert_eq!(date!(2025 - 01 - 02).monday_based_week(), 0);
     assert_eq!(date!(2025 - 01 - 03).monday_based_week(), 0);
@@ -84,8 +91,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2025 - 01 - 05).monday_based_week(), 0);
     assert_eq!(date!(2025 - 01 - 06).monday_based_week(), 1);
     assert_eq!(date!(2025 - 01 - 07).monday_based_week(), 1);
+}
 
-    // F
+#[test]
+fn test_monday_based_week_dominical_f() {
     assert_eq!(date!(2019 - 01 - 01).monday_based_week(), 0);
     assert_eq!(date!(2019 - 01 - 02).monday_based_week(), 0);
     assert_eq!(date!(2019 - 01 - 03).monday_based_week(), 0);
@@ -93,8 +102,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2019 - 01 - 05).monday_based_week(), 0);
     assert_eq!(date!(2019 - 01 - 06).monday_based_week(), 0);
     assert_eq!(date!(2019 - 01 - 07).monday_based_week(), 1);
+}
 
-    // G
+#[test]
+fn test_monday_based_week_dominical_g() {
     assert_eq!(date!(2018 - 01 - 01).monday_based_week(), 1);
     assert_eq!(date!(2018 - 01 - 02).monday_based_week(), 1);
     assert_eq!(date!(2018 - 01 - 03).monday_based_week(), 1);
@@ -102,8 +113,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2018 - 01 - 05).monday_based_week(), 1);
     assert_eq!(date!(2018 - 01 - 06).monday_based_week(), 1);
     assert_eq!(date!(2018 - 01 - 07).monday_based_week(), 1);
+}
 
-    // AG
+#[test]
+fn test_monday_based_week_dominical_ag() {
     assert_eq!(date!(2012 - 01 - 01).monday_based_week(), 0);
     assert_eq!(date!(2012 - 01 - 02).monday_based_week(), 1);
     assert_eq!(date!(2012 - 01 - 03).monday_based_week(), 1);
@@ -120,8 +133,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2012 - 03 - 05).monday_based_week(), 10);
     assert_eq!(date!(2012 - 03 - 06).monday_based_week(), 10);
     assert_eq!(date!(2012 - 03 - 07).monday_based_week(), 10);
+}
 
-    // BA
+#[test]
+fn test_monday_based_week_dominical_ba() {
     assert_eq!(date!(2028 - 01 - 01).monday_based_week(), 0);
     assert_eq!(date!(2028 - 01 - 02).monday_based_week(), 0);
     assert_eq!(date!(2028 - 01 - 03).monday_based_week(), 1);
@@ -138,8 +153,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2028 - 03 - 05).monday_based_week(), 9);
     assert_eq!(date!(2028 - 03 - 06).monday_based_week(), 10);
     assert_eq!(date!(2028 - 03 - 07).monday_based_week(), 10);
+}
 
-    // CB
+#[test]
+fn test_monday_based_week_dominical_cb() {
     assert_eq!(date!(2016 - 01 - 01).monday_based_week(), 0);
     assert_eq!(date!(2016 - 01 - 02).monday_based_week(), 0);
     assert_eq!(date!(2016 - 01 - 03).monday_based_week(), 0);
@@ -156,8 +173,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2016 - 03 - 05).monday_based_week(), 9);
     assert_eq!(date!(2016 - 03 - 06).monday_based_week(), 9);
     assert_eq!(date!(2016 - 03 - 07).monday_based_week(), 10);
+}
 
-    // DC
+#[test]
+fn test_monday_based_week_dominical_dc() {
     assert_eq!(date!(2032 - 01 - 01).monday_based_week(), 0);
     assert_eq!(date!(2032 - 01 - 02).monday_based_week(), 0);
     assert_eq!(date!(2032 - 01 - 03).monday_based_week(), 0);
@@ -174,8 +193,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2032 - 03 - 05).monday_based_week(), 9);
     assert_eq!(date!(2032 - 03 - 06).monday_based_week(), 9);
     assert_eq!(date!(2032 - 03 - 07).monday_based_week(), 9);
+}
 
-    // ED
+#[test]
+fn test_monday_based_week_dominical_ed() {
     assert_eq!(date!(2020 - 01 - 01).monday_based_week(), 0);
     assert_eq!(date!(2020 - 01 - 02).monday_based_week(), 0);
     assert_eq!(date!(2020 - 01 - 03).monday_based_week(), 0);
@@ -192,8 +213,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2020 - 03 - 05).monday_based_week(), 9);
     assert_eq!(date!(2020 - 03 - 06).monday_based_week(), 9);
     assert_eq!(date!(2020 - 03 - 07).monday_based_week(), 9);
+}
 
-    // FE
+#[test]
+fn test_monday_based_week_dominical_fe() {
     assert_eq!(date!(2036 - 01 - 01).monday_based_week(), 0);
     assert_eq!(date!(2036 - 01 - 02).monday_based_week(), 0);
     assert_eq!(date!(2036 - 01 - 03).monday_based_week(), 0);
@@ -210,8 +233,10 @@ fn test_monday_based_week() {
     assert_eq!(date!(2036 - 03 - 05).monday_based_week(), 9);
     assert_eq!(date!(2036 - 03 - 06).monday_based_week(), 9);
     assert_eq!(date!(2036 - 03 - 07).monday_based_week(), 9);
+}
 
-    // GF
+#[test]
+fn test_monday_based_week_dominical_gf() {
     assert_eq!(date!(2024 - 01 - 01).monday_based_week(), 1);
     assert_eq!(date!(2024 - 01 - 02).monday_based_week(), 1);
     assert_eq!(date!(2024 - 01 - 03).monday_based_week(), 1);
@@ -231,8 +256,7 @@ fn test_monday_based_week() {
 }
 
 #[test]
-fn test_sunday_based_week() {
-    // A
+fn test_sunday_based_week_dominical_a() {
     assert_eq!(date!(2023 - 01 - 01).sunday_based_week(), 1);
     assert_eq!(date!(2023 - 01 - 02).sunday_based_week(), 1);
     assert_eq!(date!(2023 - 01 - 03).sunday_based_week(), 1);
@@ -240,8 +264,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2023 - 01 - 05).sunday_based_week(), 1);
     assert_eq!(date!(2023 - 01 - 06).sunday_based_week(), 1);
     assert_eq!(date!(2023 - 01 - 07).sunday_based_week(), 1);
+}
 
-    // B
+#[test]
+fn test_sunday_based_week_dominical_b() {
     assert_eq!(date!(2022 - 01 - 01).sunday_based_week(), 0);
     assert_eq!(date!(2022 - 01 - 02).sunday_based_week(), 1);
     assert_eq!(date!(2022 - 01 - 03).sunday_based_week(), 1);
@@ -249,8 +275,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2022 - 01 - 05).sunday_based_week(), 1);
     assert_eq!(date!(2022 - 01 - 06).sunday_based_week(), 1);
     assert_eq!(date!(2022 - 01 - 07).sunday_based_week(), 1);
+}
 
-    // C
+#[test]
+fn test_sunday_based_week_dominical_c() {
     assert_eq!(date!(2021 - 01 - 01).sunday_based_week(), 0);
     assert_eq!(date!(2021 - 01 - 02).sunday_based_week(), 0);
     assert_eq!(date!(2021 - 01 - 03).sunday_based_week(), 1);
@@ -258,8 +286,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2021 - 01 - 05).sunday_based_week(), 1);
     assert_eq!(date!(2021 - 01 - 06).sunday_based_week(), 1);
     assert_eq!(date!(2021 - 01 - 07).sunday_based_week(), 1);
+}
 
-    // D
+#[test]
+fn test_sunday_based_week_dominical_d() {
     assert_eq!(date!(2026 - 01 - 01).sunday_based_week(), 0);
     assert_eq!(date!(2026 - 01 - 02).sunday_based_week(), 0);
     assert_eq!(date!(2026 - 01 - 03).sunday_based_week(), 0);
@@ -267,8 +297,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2026 - 01 - 05).sunday_based_week(), 1);
     assert_eq!(date!(2026 - 01 - 06).sunday_based_week(), 1);
     assert_eq!(date!(2026 - 01 - 07).sunday_based_week(), 1);
+}
 
-    // E
+#[test]
+fn test_sunday_based_week_dominical_e() {
     assert_eq!(date!(2025 - 01 - 01).sunday_based_week(), 0);
     assert_eq!(date!(2025 - 01 - 02).sunday_based_week(), 0);
     assert_eq!(date!(2025 - 01 - 03).sunday_based_week(), 0);
@@ -276,8 +308,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2025 - 01 - 05).sunday_based_week(), 1);
     assert_eq!(date!(2025 - 01 - 06).sunday_based_week(), 1);
     assert_eq!(date!(2025 - 01 - 07).sunday_based_week(), 1);
+}
 
-    // F
+#[test]
+fn test_sunday_based_week_dominical_f() {
     assert_eq!(date!(2019 - 01 - 01).sunday_based_week(), 0);
     assert_eq!(date!(2019 - 01 - 02).sunday_based_week(), 0);
     assert_eq!(date!(2019 - 01 - 03).sunday_based_week(), 0);
@@ -285,8 +319,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2019 - 01 - 05).sunday_based_week(), 0);
     assert_eq!(date!(2019 - 01 - 06).sunday_based_week(), 1);
     assert_eq!(date!(2019 - 01 - 07).sunday_based_week(), 1);
+}
 
-    // G
+#[test]
+fn test_sunday_based_week_dominical_g() {
     assert_eq!(date!(2018 - 01 - 01).sunday_based_week(), 0);
     assert_eq!(date!(2018 - 01 - 02).sunday_based_week(), 0);
     assert_eq!(date!(2018 - 01 - 03).sunday_based_week(), 0);
@@ -294,8 +330,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2018 - 01 - 05).sunday_based_week(), 0);
     assert_eq!(date!(2018 - 01 - 06).sunday_based_week(), 0);
     assert_eq!(date!(2018 - 01 - 07).sunday_based_week(), 1);
+}
 
-    // AG
+#[test]
+fn test_sunday_based_week_dominical_ag() {
     assert_eq!(date!(2012 - 01 - 01).sunday_based_week(), 1);
     assert_eq!(date!(2012 - 01 - 02).sunday_based_week(), 1);
     assert_eq!(date!(2012 - 01 - 03).sunday_based_week(), 1);
@@ -312,8 +350,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2012 - 03 - 05).sunday_based_week(), 10);
     assert_eq!(date!(2012 - 03 - 06).sunday_based_week(), 10);
     assert_eq!(date!(2012 - 03 - 07).sunday_based_week(), 10);
+}
 
-    // BA
+#[test]
+fn test_sunday_based_week_dominical_ba() {
     assert_eq!(date!(2028 - 01 - 01).sunday_based_week(), 0);
     assert_eq!(date!(2028 - 01 - 02).sunday_based_week(), 1);
     assert_eq!(date!(2028 - 01 - 03).sunday_based_week(), 1);
@@ -330,8 +370,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2028 - 03 - 05).sunday_based_week(), 10);
     assert_eq!(date!(2028 - 03 - 06).sunday_based_week(), 10);
     assert_eq!(date!(2028 - 03 - 07).sunday_based_week(), 10);
+}
 
-    // CB
+#[test]
+fn test_sunday_based_week_dominical_cb() {
     assert_eq!(date!(2016 - 01 - 01).sunday_based_week(), 0);
     assert_eq!(date!(2016 - 01 - 02).sunday_based_week(), 0);
     assert_eq!(date!(2016 - 01 - 03).sunday_based_week(), 1);
@@ -348,8 +390,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2016 - 03 - 05).sunday_based_week(), 9);
     assert_eq!(date!(2016 - 03 - 06).sunday_based_week(), 10);
     assert_eq!(date!(2016 - 03 - 07).sunday_based_week(), 10);
+}
 
-    // DC
+#[test]
+fn test_sunday_based_week_dominical_dc() {
     assert_eq!(date!(2032 - 01 - 01).sunday_based_week(), 0);
     assert_eq!(date!(2032 - 01 - 02).sunday_based_week(), 0);
     assert_eq!(date!(2032 - 01 - 03).sunday_based_week(), 0);
@@ -366,8 +410,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2032 - 03 - 05).sunday_based_week(), 9);
     assert_eq!(date!(2032 - 03 - 06).sunday_based_week(), 9);
     assert_eq!(date!(2032 - 03 - 07).sunday_based_week(), 10);
+}
 
-    // ED
+#[test]
+fn test_sunday_based_week_dominical_ed() {
     assert_eq!(date!(2020 - 01 - 01).sunday_based_week(), 0);
     assert_eq!(date!(2020 - 01 - 02).sunday_based_week(), 0);
     assert_eq!(date!(2020 - 01 - 03).sunday_based_week(), 0);
@@ -384,8 +430,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2020 - 03 - 05).sunday_based_week(), 9);
     assert_eq!(date!(2020 - 03 - 06).sunday_based_week(), 9);
     assert_eq!(date!(2020 - 03 - 07).sunday_based_week(), 9);
+}
 
-    // FE
+#[test]
+fn test_sunday_based_week_dominical_fe() {
     assert_eq!(date!(2036 - 01 - 01).sunday_based_week(), 0);
     assert_eq!(date!(2036 - 01 - 02).sunday_based_week(), 0);
     assert_eq!(date!(2036 - 01 - 03).sunday_based_week(), 0);
@@ -402,8 +450,10 @@ fn test_sunday_based_week() {
     assert_eq!(date!(2036 - 03 - 05).sunday_based_week(), 9);
     assert_eq!(date!(2036 - 03 - 06).sunday_based_week(), 9);
     assert_eq!(date!(2036 - 03 - 07).sunday_based_week(), 9);
+}
 
-    // GF
+#[test]
+fn test_sunday_based_week_dominical_gf() {
     assert_eq!(date!(2024 - 01 - 01).sunday_based_week(), 0);
     assert_eq!(date!(2024 - 01 - 02).sunday_based_week(), 0);
     assert_eq!(date!(2024 - 01 - 03).sunday_based_week(), 0);
@@ -985,40 +1035,106 @@ fn replace_day() {
 
 #[test]
 fn next_occurrence_test() {
-    assert_eq!(date!(2023 - 06 - 25).next_occurrence(Weekday::Monday), date!(2023 - 06 - 26));
-    assert_eq!(date!(2023 - 06 - 26).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
-    assert_eq!(date!(2023 - 06 - 27).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
-    assert_eq!(date!(2023 - 06 - 28).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
-    assert_eq!(date!(2023 - 06 - 29).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
-    assert_eq!(date!(2023 - 06 - 30).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
-    assert_eq!(date!(2023 - 07 - 01).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
-    assert_eq!(date!(2023 - 07 - 02).next_occurrence(Weekday::Monday), date!(2023 - 07 - 03));
-    assert_eq!(date!(2023 - 07 - 03).next_occurrence(Weekday::Monday), date!(2023 - 07 - 10));
+    assert_eq!(
+        date!(2023 - 06 - 25).next_occurrence(Weekday::Monday),
+        date!(2023 - 06 - 26)
+    );
+    assert_eq!(
+        date!(2023 - 06 - 26).next_occurrence(Weekday::Monday),
+        date!(2023 - 07 - 03)
+    );
+    assert_eq!(
+        date!(2023 - 06 - 27).next_occurrence(Weekday::Monday),
+        date!(2023 - 07 - 03)
+    );
+    assert_eq!(
+        date!(2023 - 06 - 28).next_occurrence(Weekday::Monday),
+        date!(2023 - 07 - 03)
+    );
+    assert_eq!(
+        date!(2023 - 06 - 29).next_occurrence(Weekday::Monday),
+        date!(2023 - 07 - 03)
+    );
+    assert_eq!(
+        date!(2023 - 06 - 30).next_occurrence(Weekday::Monday),
+        date!(2023 - 07 - 03)
+    );
+    assert_eq!(
+        date!(2023 - 07 - 01).next_occurrence(Weekday::Monday),
+        date!(2023 - 07 - 03)
+    );
+    assert_eq!(
+        date!(2023 - 07 - 02).next_occurrence(Weekday::Monday),
+        date!(2023 - 07 - 03)
+    );
+    assert_eq!(
+        date!(2023 - 07 - 03).next_occurrence(Weekday::Monday),
+        date!(2023 - 07 - 10)
+    );
 }
 
 #[test]
 fn prev_occurrence_test() {
-    assert_eq!(date!(2023 - 07 - 07).prev_occurrence(Weekday::Thursday), date!(2023 - 07 - 06));
-    assert_eq!(date!(2023 - 07 - 06).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
-    assert_eq!(date!(2023 - 07 - 05).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
-    assert_eq!(date!(2023 - 07 - 04).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
-    assert_eq!(date!(2023 - 07 - 03).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
-    assert_eq!(date!(2023 - 07 - 02).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
-    assert_eq!(date!(2023 - 07 - 01).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
-    assert_eq!(date!(2023 - 06 - 30).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 29));
-    assert_eq!(date!(2023 - 06 - 29).prev_occurrence(Weekday::Thursday), date!(2023 - 06 - 22));
+    assert_eq!(
+        date!(2023 - 07 - 07).prev_occurrence(Weekday::Thursday),
+        date!(2023 - 07 - 06)
+    );
+    assert_eq!(
+        date!(2023 - 07 - 06).prev_occurrence(Weekday::Thursday),
+        date!(2023 - 06 - 29)
+    );
+    assert_eq!(
+        date!(2023 - 07 - 05).prev_occurrence(Weekday::Thursday),
+        date!(2023 - 06 - 29)
+    );
+    assert_eq!(
+        date!(2023 - 07 - 04).prev_occurrence(Weekday::Thursday),
+        date!(2023 - 06 - 29)
+    );
+    assert_eq!(
+        date!(2023 - 07 - 03).prev_occurrence(Weekday::Thursday),
+        date!(2023 - 06 - 29)
+    );
+    assert_eq!(
+        date!(2023 - 07 - 02).prev_occurrence(Weekday::Thursday),
+        date!(2023 - 06 - 29)
+    );
+    assert_eq!(
+        date!(2023 - 07 - 01).prev_occurrence(Weekday::Thursday),
+        date!(2023 - 06 - 29)
+    );
+    assert_eq!(
+        date!(2023 - 06 - 30).prev_occurrence(Weekday::Thursday),
+        date!(2023 - 06 - 29)
+    );
+    assert_eq!(
+        date!(2023 - 06 - 29).prev_occurrence(Weekday::Thursday),
+        date!(2023 - 06 - 22)
+    );
 }
 
 #[test]
 fn nth_next_occurrence_test() {
-    assert_eq!(date!(2023 - 06 - 25).nth_next_occurrence(Weekday::Monday, 5), date!(2023 - 07 - 24));
-    assert_eq!(date!(2023 - 06 - 26).nth_next_occurrence(Weekday::Monday, 5), date!(2023 - 07 - 31));
+    assert_eq!(
+        date!(2023 - 06 - 25).nth_next_occurrence(Weekday::Monday, 5),
+        date!(2023 - 07 - 24)
+    );
+    assert_eq!(
+        date!(2023 - 06 - 26).nth_next_occurrence(Weekday::Monday, 5),
+        date!(2023 - 07 - 31)
+    );
 }
 
 #[test]
 fn nth_prev_occurrence_test() {
-    assert_eq!(date!(2023 - 06 - 27).nth_prev_occurrence(Weekday::Monday, 3), date!(2023 - 06 - 12));
-    assert_eq!(date!(2023 - 06 - 26).nth_prev_occurrence(Weekday::Monday, 3), date!(2023 - 06 - 05));
+    assert_eq!(
+        date!(2023 - 06 - 27).nth_prev_occurrence(Weekday::Monday, 3),
+        date!(2023 - 06 - 12)
+    );
+    assert_eq!(
+        date!(2023 - 06 - 26).nth_prev_occurrence(Weekday::Monday, 3),
+        date!(2023 - 06 - 05)
+    );
 }
 
 #[test]

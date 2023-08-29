@@ -31,30 +31,21 @@ macro_rules! assert_source {
 }
 
 fn component_range() -> ComponentRange {
-    Date::from_ordinal_date(0, 367).unwrap_err()
+    Date::from_ordinal_date(0, 367).expect_err("367 is not a valid day")
 }
 
 fn insufficient_type_information() -> Format {
     Time::MIDNIGHT
         .format(&time::format_description::well_known::Rfc3339)
-        .unwrap_err()
+        .expect_err("missing date and UTC offset")
 }
 
 fn unexpected_trailing_characters() -> Parse {
-    Time::parse("a", format_description!("")).unwrap_err()
+    Time::parse("a", format_description!("")).expect_err("should fail to parse")
 }
 
-// fn unexpected_trailing_characters() -> ParseFromDescription {
-//     match Time::parse("0", format_description!("[end]")) {
-//         Err(Parse::ParseFromDescription(
-//             err @ ParseFromDescription::UnexpectedTrailingCharacters { .. },
-//         )) => err,
-//         _ => panic!("unexpected result"),
-//     }
-// }
-
 fn invalid_format_description() -> InvalidFormatDescription {
-    format_description::parse("[").unwrap_err()
+    format_description::parse("[").expect_err("format description is invalid")
 }
 
 fn io_error() -> io::Error {
@@ -62,7 +53,7 @@ fn io_error() -> io::Error {
 }
 
 fn invalid_literal() -> ParseFromDescription {
-    Parsed::parse_literal(b"a", b"b").unwrap_err()
+    Parsed::parse_literal(b"a", b"b").expect_err("should fail to parse")
 }
 
 #[test]
@@ -166,6 +157,7 @@ fn component_name() {
     assert_eq!(component_range().name(), "ordinal");
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn conversion() {
     assert!(ComponentRange::try_from(Error::from(component_range())).is_ok());

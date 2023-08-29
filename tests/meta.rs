@@ -22,6 +22,7 @@ use time::{
     UtcOffset, Weekday,
 };
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn alignment() {
     macro_rules! assert_alignment {
@@ -89,6 +90,7 @@ fn alignment() {
     assert_alignment!(modifier::YearRepr, 1);
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn size() {
     macro_rules! assert_size {

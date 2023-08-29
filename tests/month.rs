@@ -32,6 +32,7 @@ fn next() {
     assert_eq!(December.next(), January);
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn nth_next() {
     assert_eq!(January.nth_next(0), January);
@@ -66,6 +67,7 @@ fn nth_next() {
     assert_eq!(December.nth_next(u8::MAX), March);
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn nth_prev() {
     assert_eq!(January.nth_prev(0), January);

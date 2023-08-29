@@ -297,7 +297,7 @@ fn format_description_coverage() {
     assert_eq!(
         format_description!("[ignore count:2]"),
         &[FormatItem::Component(Component::Ignore(Ignore::count(
-            NonZeroU16::new(2).unwrap()
+            NonZeroU16::new(2).expect("2 is not zero")
         )))]
     );
     assert_eq!(

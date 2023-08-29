@@ -16,7 +16,7 @@ fn now_utc() {
 fn now_local() {
     use time::util::local_offset::*;
 
-    let _guard = crate::SOUNDNESS_LOCK.lock().unwrap();
+    let _guard = crate::SOUNDNESS_LOCK.lock().expect("lock is poisoned");
 
     // Safety: Technically not sound. However, this is a test, and it's highly improbable that we
     // will run into issues with setting an environment variable a few times.
@@ -73,9 +73,8 @@ fn checked_to_offset() {
     assert_eq!(
         datetime!(2000-01-01 0:00 UTC)
             .checked_to_offset(offset!(-1))
-            .unwrap()
-            .year(),
-        1999,
+            .map(|odt| odt.year()),
+        Some(1999),
     );
     assert_eq!(
         PrimitiveDateTime::MAX

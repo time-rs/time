@@ -114,6 +114,7 @@ fn rfc_2822() -> time::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn rfc_2822_err() {
     // In the first test, the "weekday" component is invalid, we're actually testing the whitespace
@@ -326,6 +327,7 @@ fn rfc_3339() -> time::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn rfc_3339_err() {
     assert!(matches!(
@@ -683,6 +685,7 @@ fn parse_time() -> time::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn parse_time_err() -> time::Result<()> {
     assert!(matches!(
@@ -871,6 +874,7 @@ fn parse_date() -> time::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn parse_date_err() -> time::Result<()> {
     assert!(matches!(
@@ -1107,6 +1111,7 @@ fn parse_offset_date_time_err() -> time::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn parse_components() -> time::Result<()> {
     macro_rules! parse_component {
@@ -1389,13 +1394,13 @@ fn parse_components() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let result = parsed.parse_component(
         b"abcdef",
-        Component::Ignore(Ignore::count(NonZeroU16::new(3).unwrap())),
+        Component::Ignore(Ignore::count(NonZeroU16::new(3).expect("3 is not zero"))),
     )?;
     assert_eq!(result, b"def");
     let mut parsed = Parsed::new();
     let result = parsed.parse_component(
         b"abcdef",
-        Component::Ignore(Ignore::count(NonZeroU16::new(7).unwrap())),
+        Component::Ignore(Ignore::count(NonZeroU16::new(7).expect("7 is not zero"))),
     );
     assert!(matches!(
         result,
@@ -1496,6 +1501,7 @@ fn parse_optional() -> time::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn parse_first() -> time::Result<()> {
     // Ensure the first item is parsed correctly.
@@ -1576,7 +1582,7 @@ fn parse_first() -> time::Result<()> {
                 FormatItem::Compound(&fd::parse("x")?),
             ]),
         )
-        .unwrap_err();
+        .expect_err("parsing should fail");
     assert_eq!(err, error::ParseFromDescription::InvalidComponent("period"));
 
     let mut parsed = Parsed::new();
@@ -1588,7 +1594,7 @@ fn parse_first() -> time::Result<()> {
                 FormatItem::Compound(&fd::parse("x")?),
             ])),
         )
-        .unwrap_err();
+        .expect_err("parsing should fail");
     assert_eq!(err, error::ParseFromDescription::InvalidComponent("period"));
 
     Ok(())
@@ -1665,11 +1671,10 @@ fn parse_unix_timestamp_err() -> time::Result<()> {
 fn issue_601() {
     let date = OffsetDateTime::parse(
         "1234567890.123",
-        &fd::parse("[unix_timestamp].[subsecond digits:3]").unwrap(),
-    )
-    .unwrap();
+        &fd::parse("[unix_timestamp].[subsecond digits:3]").expect("format description is valid"),
+    );
 
-    assert_eq!(date, datetime!(2009-02-13 23:31:30.123 +00:00:00));
+    assert_eq!(date, Ok(datetime!(2009-02-13 23:31:30.123 +00:00:00)));
 }
 
 #[test]

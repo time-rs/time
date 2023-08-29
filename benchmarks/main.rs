@@ -1,5 +1,9 @@
+//! Benchmarks for `time`.
+//!
+//! These benchmarks are not very precise, but they're good enough to catch major performance
+//! regressions. Run them if you think that may be the case. CI **does not** run benchmarks.
+
 #![allow(
-    missing_docs,
     clippy::missing_docs_in_private_items,
     clippy::std_instead_of_core, // irrelevant for benchmarks
     clippy::std_instead_of_alloc, // irrelevant for benchmarks

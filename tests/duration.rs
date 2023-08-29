@@ -475,6 +475,7 @@ fn time_fn() {
     assert_eq!(value, 0);
 }
 
+#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn display() {
     assert_eq!(0.seconds().to_string(), "0s");
