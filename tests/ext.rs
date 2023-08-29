@@ -58,44 +58,44 @@ mod numerical_duration {
 }
 
 mod numerical_std_duration {
-    use std::time::Duration;
+    use std::time::Duration as StdDuration;
 
     use time::ext::NumericalStdDuration;
 
     #[test]
     fn unsigned() {
-        assert_eq!(5.std_nanoseconds(), Duration::from_nanos(5));
-        assert_eq!(5.std_microseconds(), Duration::from_micros(5));
-        assert_eq!(5.std_milliseconds(), Duration::from_millis(5));
-        assert_eq!(5.std_seconds(), Duration::from_secs(5));
-        assert_eq!(5.std_minutes(), Duration::from_secs(5 * 60));
-        assert_eq!(5.std_hours(), Duration::from_secs(5 * 3_600));
-        assert_eq!(5.std_days(), Duration::from_secs(5 * 86_400));
-        assert_eq!(5.std_weeks(), Duration::from_secs(5 * 604_800));
+        assert_eq!(5.std_nanoseconds(), StdDuration::from_nanos(5));
+        assert_eq!(5.std_microseconds(), StdDuration::from_micros(5));
+        assert_eq!(5.std_milliseconds(), StdDuration::from_millis(5));
+        assert_eq!(5.std_seconds(), StdDuration::from_secs(5));
+        assert_eq!(5.std_minutes(), StdDuration::from_secs(5 * 60));
+        assert_eq!(5.std_hours(), StdDuration::from_secs(5 * 3_600));
+        assert_eq!(5.std_days(), StdDuration::from_secs(5 * 86_400));
+        assert_eq!(5.std_weeks(), StdDuration::from_secs(5 * 604_800));
     }
 
     #[test]
     fn float() {
         // Ensure values truncate rather than round.
-        assert_eq!(1.9.std_nanoseconds(), Duration::from_nanos(1));
+        assert_eq!(1.9.std_nanoseconds(), StdDuration::from_nanos(1));
 
-        assert_eq!(1.0.std_nanoseconds(), Duration::from_nanos(1));
-        assert_eq!(1.0.std_microseconds(), Duration::from_micros(1));
-        assert_eq!(1.0.std_milliseconds(), Duration::from_millis(1));
-        assert_eq!(1.0.std_seconds(), Duration::from_secs(1));
-        assert_eq!(1.0.std_minutes(), Duration::from_secs(60));
-        assert_eq!(1.0.std_hours(), Duration::from_secs(3_600));
-        assert_eq!(1.0.std_days(), Duration::from_secs(86_400));
-        assert_eq!(1.0.std_weeks(), Duration::from_secs(604_800));
+        assert_eq!(1.0.std_nanoseconds(), StdDuration::from_nanos(1));
+        assert_eq!(1.0.std_microseconds(), StdDuration::from_micros(1));
+        assert_eq!(1.0.std_milliseconds(), StdDuration::from_millis(1));
+        assert_eq!(1.0.std_seconds(), StdDuration::from_secs(1));
+        assert_eq!(1.0.std_minutes(), StdDuration::from_secs(60));
+        assert_eq!(1.0.std_hours(), StdDuration::from_secs(3_600));
+        assert_eq!(1.0.std_days(), StdDuration::from_secs(86_400));
+        assert_eq!(1.0.std_weeks(), StdDuration::from_secs(604_800));
 
-        assert_eq!(1.5.std_nanoseconds(), Duration::from_nanos(1));
-        assert_eq!(1.5.std_microseconds(), Duration::from_nanos(1_500));
-        assert_eq!(1.5.std_milliseconds(), Duration::from_micros(1_500));
-        assert_eq!(1.5.std_seconds(), Duration::from_millis(1_500));
-        assert_eq!(1.5.std_minutes(), Duration::from_secs(90));
-        assert_eq!(1.5.std_hours(), Duration::from_secs(90 * 60));
-        assert_eq!(1.5.std_days(), Duration::from_secs(36 * 3_600));
-        assert_eq!(1.5.std_weeks(), Duration::from_secs(252 * 3_600));
+        assert_eq!(1.5.std_nanoseconds(), StdDuration::from_nanos(1));
+        assert_eq!(1.5.std_microseconds(), StdDuration::from_nanos(1_500));
+        assert_eq!(1.5.std_milliseconds(), StdDuration::from_micros(1_500));
+        assert_eq!(1.5.std_seconds(), StdDuration::from_millis(1_500));
+        assert_eq!(1.5.std_minutes(), StdDuration::from_secs(90));
+        assert_eq!(1.5.std_hours(), StdDuration::from_secs(90 * 60));
+        assert_eq!(1.5.std_days(), StdDuration::from_secs(36 * 3_600));
+        assert_eq!(1.5.std_weeks(), StdDuration::from_secs(252 * 3_600));
     }
 
     #[test]

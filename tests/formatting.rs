@@ -111,7 +111,7 @@ fn iso_8601() -> time::Result<()> {
 
     assert!(
         std::panic::catch_unwind(|| {
-            let _ = datetime!(2021-01-02 03:04:05 UTC).format(&Iso8601::PARSING);
+            let _unused = datetime!(2021-01-02 03:04:05 UTC).format(&Iso8601::PARSING);
         })
         .is_err()
     );

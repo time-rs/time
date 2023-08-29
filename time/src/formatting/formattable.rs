@@ -59,7 +59,7 @@ mod sealed {
 }
 
 // region: custom formats
-impl<'a> sealed::Sealed for FormatItem<'a> {
+impl sealed::Sealed for FormatItem<'_> {
     fn format_into(
         &self,
         output: &mut impl io::Write,
@@ -80,7 +80,7 @@ impl<'a> sealed::Sealed for FormatItem<'a> {
     }
 }
 
-impl<'a> sealed::Sealed for [FormatItem<'a>] {
+impl sealed::Sealed for [FormatItem<'_>] {
     fn format_into(
         &self,
         output: &mut impl io::Write,

@@ -13,19 +13,19 @@ use crate::error;
 /// Friday), this type does not implement `PartialOrd` or `Ord`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Weekday {
-    #[allow(clippy::missing_docs_in_private_items)]
+    #[allow(missing_docs)]
     Monday,
-    #[allow(clippy::missing_docs_in_private_items)]
+    #[allow(missing_docs)]
     Tuesday,
-    #[allow(clippy::missing_docs_in_private_items)]
+    #[allow(missing_docs)]
     Wednesday,
-    #[allow(clippy::missing_docs_in_private_items)]
+    #[allow(missing_docs)]
     Thursday,
-    #[allow(clippy::missing_docs_in_private_items)]
+    #[allow(missing_docs)]
     Friday,
-    #[allow(clippy::missing_docs_in_private_items)]
+    #[allow(missing_docs)]
     Saturday,
-    #[allow(clippy::missing_docs_in_private_items)]
+    #[allow(missing_docs)]
     Sunday,
 }
 

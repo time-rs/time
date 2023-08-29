@@ -8,21 +8,32 @@ use self::Month::*;
 use crate::error;
 
 /// Months of the year.
-#[allow(clippy::missing_docs_in_private_items)] // variants
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Month {
+    #[allow(missing_docs)]
     January = 1,
+    #[allow(missing_docs)]
     February = 2,
+    #[allow(missing_docs)]
     March = 3,
+    #[allow(missing_docs)]
     April = 4,
+    #[allow(missing_docs)]
     May = 5,
+    #[allow(missing_docs)]
     June = 6,
+    #[allow(missing_docs)]
     July = 7,
+    #[allow(missing_docs)]
     August = 8,
+    #[allow(missing_docs)]
     September = 9,
+    #[allow(missing_docs)]
     October = 10,
+    #[allow(missing_docs)]
     November = 11,
+    #[allow(missing_docs)]
     December = 12,
 }
 

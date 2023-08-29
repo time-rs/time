@@ -41,19 +41,24 @@ pub use try_from_parsed::TryFromParsed;
 /// This can be used when you either don't know or don't care about the exact error returned.
 /// `Result<_, time::Error>` (or its alias `time::Result<_>`) will work in these situations.
 #[allow(missing_copy_implementations, variant_size_differences)]
-#[allow(clippy::missing_docs_in_private_items)] // variants only
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum Error {
+    #[allow(missing_docs)]
     ConversionRange(ConversionRange),
+    #[allow(missing_docs)]
     ComponentRange(ComponentRange),
     #[cfg(feature = "local-offset")]
+    #[allow(missing_docs)]
     IndeterminateOffset(IndeterminateOffset),
     #[cfg(feature = "formatting")]
+    #[allow(missing_docs)]
     Format(Format),
     #[cfg(feature = "parsing")]
+    #[allow(missing_docs)]
     ParseFromDescription(ParseFromDescription),
     #[cfg(feature = "parsing")]
+    #[allow(missing_docs)]
     #[non_exhaustive]
     #[deprecated(
         since = "0.3.28",
@@ -61,10 +66,14 @@ pub enum Error {
     )]
     UnexpectedTrailingCharacters,
     #[cfg(feature = "parsing")]
+    #[allow(missing_docs)]
     TryFromParsed(TryFromParsed),
     #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
+    #[allow(missing_docs)]
     InvalidFormatDescription(InvalidFormatDescription),
+    #[allow(missing_docs)]
     DifferentVariant(DifferentVariant),
+    #[allow(missing_docs)]
     InvalidVariant(InvalidVariant),
 }
 

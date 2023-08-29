@@ -125,19 +125,19 @@ pub enum TimePrecision {
     /// Format the hour only. Minutes, seconds, and nanoseconds will be represented with the
     /// specified number of decimal digits, if any.
     Hour {
-        #[allow(clippy::missing_docs_in_private_items)]
+        #[allow(missing_docs)]
         decimal_digits: Option<NonZeroU8>,
     },
     /// Format the hour and minute. Seconds and nanoseconds will be represented with the specified
     /// number of decimal digits, if any.
     Minute {
-        #[allow(clippy::missing_docs_in_private_items)]
+        #[allow(missing_docs)]
         decimal_digits: Option<NonZeroU8>,
     },
     /// Format the hour, minute, and second. Nanoseconds will be represented with the specified
     /// number of decimal digits, if any.
     Second {
-        #[allow(clippy::missing_docs_in_private_items)]
+        #[allow(missing_docs)]
         decimal_digits: Option<NonZeroU8>,
     },
 }

@@ -9,9 +9,9 @@ use crate::error::{self, ParseFromDescription, TryFromParsed};
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Parse {
-    #[allow(clippy::missing_docs_in_private_items)]
+    #[allow(missing_docs)]
     TryFromParsed(TryFromParsed),
-    #[allow(clippy::missing_docs_in_private_items)]
+    #[allow(missing_docs)]
     ParseFromDescription(ParseFromDescription),
     /// The input should have ended, but there were characters remaining.
     #[non_exhaustive]

@@ -13,6 +13,7 @@ pub enum ParseFromDescription {
     InvalidLiteral,
     /// A dynamic component was not valid.
     InvalidComponent(&'static str),
+    /// The input was expected to have ended, but there are characters that remain.
     #[non_exhaustive]
     UnexpectedTrailingCharacters,
 }

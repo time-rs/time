@@ -40,6 +40,7 @@ fn clone() {
     assert_cloned_eq!(ConversionRange);
     assert_cloned_eq!(invalid_format_description());
     assert_cloned_eq!(TryFromParsed::InsufficientInformation);
+    #[allow(clippy::clone_on_copy)] // needed for coverage
     let _ = Parsed::new().clone();
     assert_cloned_eq!(error::Parse::ParseFromDescription(
         error::ParseFromDescription::InvalidComponent("foo")
@@ -128,7 +129,7 @@ fn ord() {
 fn debug() {
     macro_rules! debug_all {
         ($($x:expr;)*) => {$(
-            let _ = format!("{:?}", $x);
+            let _unused = format!("{:?}", $x);
         )*};
     }
 
