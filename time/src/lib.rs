@@ -179,45 +179,13 @@ macro_rules! cascade {
     };
 }
 
-/// Returns `Err(error::ComponentRange)` if the value is not in range.
-macro_rules! ensure_value_in_range {
-    ($value:ident in $start:expr => $end:expr) => {{
-        let _start = $start;
-        let _end = $end;
-        #[allow(trivial_numeric_casts, unused_comparisons)]
-        if $value < _start || $value > _end {
-            return Err(crate::error::ComponentRange {
-                name: stringify!($value),
-                minimum: _start as _,
-                maximum: _end as _,
-                value: $value as _,
-                conditional_range: false,
-            });
-        }
-    }};
-
-    ($value:ident conditionally in $start:expr => $end:expr) => {{
-        let _start = $start;
-        let _end = $end;
-        #[allow(trivial_numeric_casts, unused_comparisons)]
-        if $value < _start || $value > _end {
-            return Err(crate::error::ComponentRange {
-                name: stringify!($value),
-                minimum: _start as _,
-                maximum: _end as _,
-                value: $value as _,
-                conditional_range: true,
-            });
-        }
-    }};
-}
-
 /// Constructs a ranged integer, returning a `ComponentRange` error if the value is out of range.
 macro_rules! ensure_ranged {
     ($type:ident : $value:ident) => {
         match $type::new($value) {
             Some(val) => val,
             None => {
+                #[allow(trivial_numeric_casts)]
                 return Err(crate::error::ComponentRange {
                     name: stringify!($value),
                     minimum: $type::MIN.get() as _,
@@ -234,6 +202,7 @@ macro_rules! ensure_ranged {
             Some(val) => match $type::new(val) {
                 Some(val) => val,
                 None => {
+                    #[allow(trivial_numeric_casts)]
                     return Err(crate::error::ComponentRange {
                         name: stringify!($value),
                         minimum: $type::MIN.get() as i64 / $factor as i64,

@@ -6,6 +6,8 @@ use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
 
+use deranged::RangedI32;
+
 use crate::convert::*;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
@@ -13,6 +15,8 @@ use crate::formatting::Formattable;
 use crate::parsing::Parsable;
 use crate::util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year};
 use crate::{error, Duration, Month, PrimitiveDateTime, Time, Weekday};
+
+type Year = RangedI32<MIN_YEAR, MAX_YEAR>;
 
 /// The minimum valid year.
 pub(crate) const MIN_YEAR: i32 = if cfg!(feature = "large-dates") {
@@ -91,8 +95,20 @@ impl Date {
             [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
         ];
 
-        ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
-        ensure_value_in_range!(day conditionally in 1 => days_in_year_month(year, month));
+        ensure_ranged!(Year: year);
+        match day {
+            1..=28 => {}
+            29..=31 if day <= days_in_year_month(year, month) => {}
+            _ => {
+                return Err(crate::error::ComponentRange {
+                    name: "day",
+                    minimum: 1,
+                    maximum: days_in_year_month(year, month) as _,
+                    value: day as _,
+                    conditional_range: true,
+                });
+            }
+        }
 
         Ok(Self::__from_ordinal_date_unchecked(
             year,
@@ -114,8 +130,21 @@ impl Date {
     /// assert!(Date::from_ordinal_date(2019, 366).is_err()); // 2019 isn't a leap year.
     /// ```
     pub const fn from_ordinal_date(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
-        ensure_value_in_range!(ordinal conditionally in 1 => days_in_year(year));
+        ensure_ranged!(Year: year);
+        match ordinal {
+            1..=365 => {}
+            366 if is_leap_year(year) => {}
+            _ => {
+                return Err(crate::error::ComponentRange {
+                    name: "ordinal",
+                    minimum: 1,
+                    maximum: days_in_year(year) as _,
+                    value: ordinal as _,
+                    conditional_range: true,
+                });
+            }
+        }
+
         Ok(Self::__from_ordinal_date_unchecked(year, ordinal))
     }
 
@@ -137,8 +166,20 @@ impl Date {
         week: u8,
         weekday: Weekday,
     ) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
-        ensure_value_in_range!(week conditionally in 1 => weeks_in_year(year));
+        ensure_ranged!(Year: year);
+        match week {
+            1..=52 => {}
+            53 if week <= weeks_in_year(year) => {}
+            _ => {
+                return Err(crate::error::ComponentRange {
+                    name: "week",
+                    minimum: 1,
+                    maximum: weeks_in_year(year) as _,
+                    value: week as _,
+                    conditional_range: true,
+                });
+            }
+        }
 
         let adj_year = year - 1;
         let raw = 365 * adj_year + div_floor!(adj_year, 4) - div_floor!(adj_year, 100)
@@ -181,9 +222,8 @@ impl Date {
     /// ```
     #[doc(alias = "from_julian_date")]
     pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(
-            julian_day in Self::MIN.to_julian_day() => Self::MAX.to_julian_day()
-        );
+        type JulianDay = RangedI32<{ Date::MIN.to_julian_day() }, { Date::MAX.to_julian_day() }>;
+        ensure_ranged!(JulianDay: julian_day);
         Ok(Self::from_julian_day_unchecked(julian_day))
     }
 
@@ -899,7 +939,7 @@ impl Date {
     /// ```
     #[must_use = "This method does not mutate the original `Date`."]
     pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(year in MIN_YEAR => MAX_YEAR);
+        ensure_ranged!(Year: year);
 
         let ordinal = self.ordinal();
 
@@ -961,11 +1001,18 @@ impl Date {
     /// ```
     #[must_use = "This method does not mutate the original `Date`."]
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
-        // Days 1-28 are present in every month, so we can skip checking.
-        if day == 0 || day >= 29 {
-            ensure_value_in_range!(
-                day conditionally in 1 => days_in_year_month(self.year(), self.month())
-            );
+        match day {
+            1..=28 => {}
+            29..=31 if day <= days_in_year_month(self.year(), self.month()) => {}
+            _ => {
+                return Err(crate::error::ComponentRange {
+                    name: "day",
+                    minimum: 1,
+                    maximum: days_in_year_month(self.year(), self.month()) as _,
+                    value: day as _,
+                    conditional_range: true,
+                });
+            }
         }
 
         Ok(Self::__from_ordinal_date_unchecked(

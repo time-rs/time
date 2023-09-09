@@ -5,7 +5,7 @@ use core::ops::Neg;
 #[cfg(feature = "formatting")]
 use std::io;
 
-use deranged::RangedI8;
+use deranged::{RangedI32, RangedI8};
 
 use crate::convert::*;
 use crate::error;
@@ -166,9 +166,19 @@ impl UtcOffset {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub const fn from_whole_seconds(seconds: i32) -> Result<Self, error::ComponentRange> {
-        ensure_value_in_range!(
-            seconds in -24 * Second.per(Hour) as i32 - 1 => 24 * Second.per(Hour) as i32 - 1
-        );
+        type WholeSeconds = RangedI32<
+            {
+                Hours::MIN.get() as i32 * Second.per(Hour) as i32
+                    + Minutes::MIN.get() as i32 * Second.per(Minute) as i32
+                    + Seconds::MIN.get() as i32
+            },
+            {
+                Hours::MAX.get() as i32 * Second.per(Hour) as i32
+                    + Minutes::MAX.get() as i32 * Second.per(Minute) as i32
+                    + Seconds::MAX.get() as i32
+            },
+        >;
+        ensure_ranged!(WholeSeconds: seconds);
 
         // Safety: The value was checked to be in range.
         Ok(unsafe {

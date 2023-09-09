@@ -16,6 +16,8 @@ use std::io;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
+use deranged::RangedI64;
+
 use crate::convert::*;
 use crate::date::{MAX_YEAR, MIN_YEAR};
 #[cfg(feature = "formatting")]
@@ -248,12 +250,11 @@ impl<O: MaybeOffset> DateTime<O> {
     where
         O: HasLogicalOffset,
     {
-        #[allow(clippy::missing_docs_in_private_items)]
-        const MIN_TIMESTAMP: i64 = Date::MIN.midnight().assume_utc().unix_timestamp();
-        #[allow(clippy::missing_docs_in_private_items)]
-        const MAX_TIMESTAMP: i64 = Date::MAX.with_time(Time::MAX).assume_utc().unix_timestamp();
-
-        ensure_value_in_range!(timestamp in MIN_TIMESTAMP => MAX_TIMESTAMP);
+        type Timestamp = RangedI64<
+            { Date::MIN.midnight().assume_utc().unix_timestamp() },
+            { Date::MAX.with_time(Time::MAX).assume_utc().unix_timestamp() },
+        >;
+        ensure_ranged!(Timestamp: timestamp);
 
         // Use the unchecked method here, as the input validity has already been verified.
         let date = Date::from_julian_day_unchecked(
