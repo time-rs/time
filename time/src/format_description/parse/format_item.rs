@@ -6,6 +6,7 @@ use core::num::NonZeroU16;
 use core::str::{self, FromStr};
 
 use super::{ast, unused, Error, Span, Spanned};
+use crate::internal_macros::bug;
 
 /// Parse an AST iterator into a sequence of format items.
 pub(super) fn parse<'a>(

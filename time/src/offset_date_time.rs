@@ -16,6 +16,7 @@ use std::time::SystemTime;
 use crate::date_time::offset_kind;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
+use crate::internal_macros::{const_try, const_try_opt};
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::{error, Date, DateTime, Duration, Month, PrimitiveDateTime, Time, UtcOffset, Weekday};

@@ -10,6 +10,9 @@ use deranged::RangedI32;
 
 use crate::convert::*;
 use crate::error;
+use crate::internal_macros::{
+    const_try_opt, expect_opt, impl_add_assign, impl_div_assign, impl_mul_assign, impl_sub_assign,
+};
 #[cfg(feature = "std")]
 use crate::Instant;
 

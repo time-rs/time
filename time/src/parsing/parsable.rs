@@ -9,6 +9,7 @@ use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::format_description::FormatItem;
 #[cfg(feature = "alloc")]
 use crate::format_description::OwnedFormatItem;
+use crate::internal_macros::bug;
 use crate::parsing::{Parsed, ParsedItem};
 use crate::{error, Date, DateTime, Month, Time, UtcOffset, Weekday};
 

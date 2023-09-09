@@ -3,6 +3,7 @@
 use core::fmt;
 
 use crate::error::{self, ParseFromDescription, TryFromParsed};
+use crate::internal_macros::bug;
 
 /// An error that occurred at some stage of parsing.
 #[allow(variant_size_differences)]

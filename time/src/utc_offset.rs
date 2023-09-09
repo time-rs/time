@@ -11,6 +11,7 @@ use crate::convert::*;
 use crate::error;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
+use crate::internal_macros::ensure_ranged;
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 #[cfg(feature = "local-offset")]

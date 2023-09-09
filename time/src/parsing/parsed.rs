@@ -14,6 +14,7 @@ use crate::error::TryFromParsed::InsufficientInformation;
 #[cfg(feature = "alloc")]
 use crate::format_description::OwnedFormatItem;
 use crate::format_description::{modifier, Component, FormatItem};
+use crate::internal_macros::const_try_opt;
 use crate::parsing::component::{
     parse_day, parse_end, parse_hour, parse_ignore, parse_minute, parse_month, parse_offset_hour,
     parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,

@@ -36,6 +36,8 @@ pub use parse_from_description::ParseFromDescription;
 #[cfg(feature = "parsing")]
 pub use try_from_parsed::TryFromParsed;
 
+use crate::internal_macros::bug;
+
 /// A unified error type for anything returned by a method in the time crate.
 ///
 /// This can be used when you either don't know or don't care about the exact error returned.
