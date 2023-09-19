@@ -741,6 +741,49 @@ impl Date {
         }
     }
 
+    /// Computes `self + duration`, returning `None` if an overflow occurred.
+    ///
+    /// ```rust
+    /// # use time::{Date, ext::NumericalStdDuration};
+    /// # use time_macros::date;
+    /// assert_eq!(Date::MAX.checked_add_std(1.std_days()), None);
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).checked_add_std(2.std_days()),
+    ///     Some(date!(2021 - 01 - 02))
+    /// );
+    /// ```
+    ///
+    /// # Note
+    ///
+    /// This function only takes whole days into account.
+    ///
+    /// ```rust
+    /// # use time::{Date, ext::NumericalStdDuration};
+    /// # use time_macros::date;
+    /// assert_eq!(Date::MAX.checked_add_std(23.std_hours()), Some(Date::MAX));
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).checked_add_std(23.std_hours()),
+    ///     Some(date!(2020 - 12 - 31))
+    /// );
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).checked_add_std(47.std_hours()),
+    ///     Some(date!(2021 - 01 - 01))
+    /// );
+    /// ```
+    pub const fn checked_add_std(self, duration: StdDuration) -> Option<Self> {
+        let whole_days = duration.as_secs() / Second.per(Day) as u64;
+        if whole_days > i32::MAX as u64 {
+            return None;
+        }
+
+        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as _));
+        if let Ok(date) = Self::from_julian_day(julian_day) {
+            Some(date)
+        } else {
+            None
+        }
+    }
+
     /// Computes `self - duration`, returning `None` if an overflow occurred.
     ///
     /// ```
@@ -775,6 +818,49 @@ impl Date {
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
         let whole_days = duration.whole_days();
         if whole_days < i32::MIN as i64 || whole_days > i32::MAX as i64 {
+            return None;
+        }
+
+        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as _));
+        if let Ok(date) = Self::from_julian_day(julian_day) {
+            Some(date)
+        } else {
+            None
+        }
+    }
+
+    /// Computes `self - duration`, returning `None` if an overflow occurred.
+    ///
+    /// ```
+    /// # use time::{Date, ext::NumericalStdDuration};
+    /// # use time_macros::date;
+    /// assert_eq!(Date::MIN.checked_sub_std(1.std_days()), None);
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).checked_sub_std(2.std_days()),
+    ///     Some(date!(2020 - 12 - 29))
+    /// );
+    /// ```
+    ///
+    /// # Note
+    ///
+    /// This function only takes whole days into account.
+    ///
+    /// ```
+    /// # use time::{Date, ext::NumericalStdDuration};
+    /// # use time_macros::date;
+    /// assert_eq!(Date::MIN.checked_sub_std(23.std_hours()), Some(Date::MIN));
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).checked_sub_std(23.std_hours()),
+    ///     Some(date!(2020 - 12 - 31))
+    /// );
+    /// assert_eq!(
+    ///     date!(2020 - 12 - 31).checked_sub_std(47.std_hours()),
+    ///     Some(date!(2020 - 12 - 30))
+    /// );
+    /// ```
+    pub const fn checked_sub_std(self, duration: StdDuration) -> Option<Self> {
+        let whole_days = duration.as_secs() / Second.per(Day) as u64;
+        if whole_days > i32::MAX as u64 {
             return None;
         }
 
@@ -1225,10 +1311,8 @@ impl Add<StdDuration> for Date {
     type Output = Self;
 
     fn add(self, duration: StdDuration) -> Self::Output {
-        Self::from_julian_day(
-            self.to_julian_day() + (duration.as_secs() / Second.per(Day) as u64) as i32,
-        )
-        .expect("overflow adding duration to date")
+        self.checked_add_std(duration)
+            .expect("overflow adding duration to date")
     }
 }
 
@@ -1247,10 +1331,8 @@ impl Sub<StdDuration> for Date {
     type Output = Self;
 
     fn sub(self, duration: StdDuration) -> Self::Output {
-        Self::from_julian_day(
-            self.to_julian_day() - (duration.as_secs() / Second.per(Day) as u64) as i32,
-        )
-        .expect("overflow subtracting duration from date")
+        self.checked_sub_std(duration)
+            .expect("overflow subtracting duration from date")
     }
 }
 

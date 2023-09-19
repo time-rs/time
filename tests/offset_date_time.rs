@@ -1270,3 +1270,9 @@ fn saturating_sub_duration() {
         datetime!(+999999 - 12 - 31 23:59:59.999_999_999 +10)
     );
 }
+
+#[test]
+#[should_panic = "overflow adding duration to date"]
+fn issue_621() {
+    let _ = OffsetDateTime::UNIX_EPOCH + StdDuration::from_secs(18_157_382_926_370_278_155);
+}
