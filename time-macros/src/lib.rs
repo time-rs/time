@@ -68,6 +68,7 @@ enum FormatDescriptionVersion {
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 enum VersionOrModuleName {
     Version(FormatDescriptionVersion),
+    #[cfg_attr(not(feature = "serde"), allow(unused_tuple_struct_fields))]
     ModuleName(Ident),
 }
 

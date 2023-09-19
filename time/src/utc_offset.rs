@@ -207,12 +207,6 @@ impl UtcOffset {
 
     /// Obtain the UTC offset as its hours, minutes, and seconds. The sign of all three components
     /// will always match. A positive value indicates an offset to the east; a negative to the west.
-    ///
-    /// ```rust
-    /// # use time_macros::offset;
-    /// assert_eq!(offset!(+1:02:03).as_hms(), (1, 2, 3));
-    /// assert_eq!(offset!(-1:02:03).as_hms(), (-1, -2, -3));
-    /// ```
     #[cfg(feature = "quickcheck")]
     pub(crate) const fn as_hms_ranged(self) -> (Hours, Minutes, Seconds) {
         (self.hours, self.minutes, self.seconds)
