@@ -403,7 +403,11 @@ impl<'a> Deserialize<'a> for Time {
 /// The format used when serializing and deserializing a human-readable `UtcOffset`.
 #[cfg(feature = "parsing")]
 const UTC_OFFSET_FORMAT: &[FormatItem<'_>] = &[
-    FormatItem::Component(Component::OffsetHour(modifier::OffsetHour::default())),
+    FormatItem::Component(Component::OffsetHour({
+        let mut m = modifier::OffsetHour::default();
+        m.sign_is_mandatory = true;
+        m
+    })),
     FormatItem::Optional(&FormatItem::Compound(&[
         FormatItem::Literal(b":"),
         FormatItem::Component(Component::OffsetMinute(modifier::OffsetMinute::default())),
