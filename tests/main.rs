@@ -103,6 +103,19 @@ require_all_features! {
         }
     }
 
+    /// `assert_eq!` or `assert_ne!` depending on the value of `$is_eq`.
+    ///
+    /// This provides better diagnostics than `assert_eq!($left == $right, $is_eq)`.
+    macro_rules! assert_eq_ne {
+        ($left:expr, $right:expr, $is_eq:expr $(, $($rest:tt)*)?) => {{
+            if $is_eq {
+                assert_eq!($left, $right $(, $($rest)*)?);
+            } else {
+                assert_ne!($left, $right $(, $($rest)*)?);
+            }
+        }}
+    }
+
     mod date;
     mod derives;
     mod duration;

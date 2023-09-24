@@ -1,170 +1,178 @@
+use rstest::rstest;
 use time::Month::{self, *};
 
-#[test]
-fn previous() {
-    assert_eq!(January.previous(), December);
-    assert_eq!(February.previous(), January);
-    assert_eq!(March.previous(), February);
-    assert_eq!(April.previous(), March);
-    assert_eq!(May.previous(), April);
-    assert_eq!(June.previous(), May);
-    assert_eq!(July.previous(), June);
-    assert_eq!(August.previous(), July);
-    assert_eq!(September.previous(), August);
-    assert_eq!(October.previous(), September);
-    assert_eq!(November.previous(), October);
-    assert_eq!(December.previous(), November);
+#[rstest]
+#[case(January, December)]
+#[case(February, January)]
+#[case(March, February)]
+#[case(April, March)]
+#[case(May, April)]
+#[case(June, May)]
+#[case(July, June)]
+#[case(August, July)]
+#[case(September, August)]
+#[case(October, September)]
+#[case(November, October)]
+#[case(December, November)]
+fn previous(#[case] month: Month, #[case] expected: Month) {
+    assert_eq!(month.previous(), expected);
 }
 
-#[test]
-fn next() {
-    assert_eq!(January.next(), February);
-    assert_eq!(February.next(), March);
-    assert_eq!(March.next(), April);
-    assert_eq!(April.next(), May);
-    assert_eq!(May.next(), June);
-    assert_eq!(June.next(), July);
-    assert_eq!(July.next(), August);
-    assert_eq!(August.next(), September);
-    assert_eq!(September.next(), October);
-    assert_eq!(October.next(), November);
-    assert_eq!(November.next(), December);
-    assert_eq!(December.next(), January);
+#[rstest]
+#[case(January, February)]
+#[case(February, March)]
+#[case(March, April)]
+#[case(April, May)]
+#[case(May, June)]
+#[case(June, July)]
+#[case(July, August)]
+#[case(August, September)]
+#[case(September, October)]
+#[case(October, November)]
+#[case(November, December)]
+#[case(December, January)]
+fn next(#[case] month: Month, #[case] expected: Month) {
+    assert_eq!(month.next(), expected);
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
-#[test]
-fn nth_next() {
-    assert_eq!(January.nth_next(0), January);
-    assert_eq!(January.nth_next(1), February);
-    assert_eq!(January.nth_next(2), March);
-    assert_eq!(January.nth_next(3), April);
-    assert_eq!(January.nth_next(4), May);
-    assert_eq!(January.nth_next(5), June);
-    assert_eq!(January.nth_next(6), July);
-    assert_eq!(January.nth_next(7), August);
-    assert_eq!(January.nth_next(8), September);
-    assert_eq!(January.nth_next(9), October);
-    assert_eq!(January.nth_next(10), November);
-    assert_eq!(January.nth_next(11), December);
-
-    assert_eq!(December.nth_next(0), December);
-    assert_eq!(December.nth_next(1), January);
-    assert_eq!(December.nth_next(2), February);
-    assert_eq!(December.nth_next(3), March);
-    assert_eq!(December.nth_next(4), April);
-    assert_eq!(December.nth_next(5), May);
-    assert_eq!(December.nth_next(6), June);
-    assert_eq!(December.nth_next(7), July);
-    assert_eq!(December.nth_next(8), August);
-    assert_eq!(December.nth_next(9), September);
-    assert_eq!(December.nth_next(10), October);
-    assert_eq!(December.nth_next(11), November);
-
-    assert_eq!(January.nth_next(12), January);
-    assert_eq!(January.nth_next(u8::MAX), April);
-    assert_eq!(December.nth_next(12), December);
-    assert_eq!(December.nth_next(u8::MAX), March);
+#[rstest]
+#[case(January, 0, January)]
+#[case(January, 1, February)]
+#[case(January, 2, March)]
+#[case(January, 3, April)]
+#[case(January, 4, May)]
+#[case(January, 5, June)]
+#[case(January, 6, July)]
+#[case(January, 7, August)]
+#[case(January, 8, September)]
+#[case(January, 9, October)]
+#[case(January, 10, November)]
+#[case(January, 11, December)]
+#[case(December, 0, December)]
+#[case(December, 1, January)]
+#[case(December, 2, February)]
+#[case(December, 3, March)]
+#[case(December, 4, April)]
+#[case(December, 5, May)]
+#[case(December, 6, June)]
+#[case(December, 7, July)]
+#[case(December, 8, August)]
+#[case(December, 9, September)]
+#[case(December, 10, October)]
+#[case(December, 11, November)]
+#[case(January, 12, January)]
+#[case(January, u8::MAX, April)]
+#[case(December, 12, December)]
+#[case(December, u8::MAX, March)]
+fn nth_next(#[case] month: Month, #[case] n: u8, #[case] expected: Month) {
+    assert_eq!(month.nth_next(n), expected);
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
-#[test]
-fn nth_prev() {
-    assert_eq!(January.nth_prev(0), January);
-    assert_eq!(January.nth_prev(1), December);
-    assert_eq!(January.nth_prev(2), November);
-    assert_eq!(January.nth_prev(3), October);
-    assert_eq!(January.nth_prev(4), September);
-    assert_eq!(January.nth_prev(5), August);
-    assert_eq!(January.nth_prev(6), July);
-    assert_eq!(January.nth_prev(7), June);
-    assert_eq!(January.nth_prev(8), May);
-    assert_eq!(January.nth_prev(9), April);
-    assert_eq!(January.nth_prev(10), March);
-    assert_eq!(January.nth_prev(11), February);
-
-    assert_eq!(December.nth_prev(0), December);
-    assert_eq!(December.nth_prev(1), November);
-    assert_eq!(December.nth_prev(2), October);
-    assert_eq!(December.nth_prev(3), September);
-    assert_eq!(December.nth_prev(4), August);
-    assert_eq!(December.nth_prev(5), July);
-    assert_eq!(December.nth_prev(6), June);
-    assert_eq!(December.nth_prev(7), May);
-    assert_eq!(December.nth_prev(8), April);
-    assert_eq!(December.nth_prev(9), March);
-    assert_eq!(December.nth_prev(10), February);
-    assert_eq!(December.nth_prev(11), January);
-
-    assert_eq!(January.nth_prev(12), January);
-    assert_eq!(January.nth_prev(u8::MAX), October);
-    assert_eq!(December.nth_prev(12), December);
-    assert_eq!(December.nth_prev(u8::MAX), September);
+#[rstest]
+#[case(January, 0, January)]
+#[case(January, 1, December)]
+#[case(January, 2, November)]
+#[case(January, 3, October)]
+#[case(January, 4, September)]
+#[case(January, 5, August)]
+#[case(January, 6, July)]
+#[case(January, 7, June)]
+#[case(January, 8, May)]
+#[case(January, 9, April)]
+#[case(January, 10, March)]
+#[case(January, 11, February)]
+#[case(December, 0, December)]
+#[case(December, 1, November)]
+#[case(December, 2, October)]
+#[case(December, 3, September)]
+#[case(December, 4, August)]
+#[case(December, 5, July)]
+#[case(December, 6, June)]
+#[case(December, 7, May)]
+#[case(December, 8, April)]
+#[case(December, 9, March)]
+#[case(December, 10, February)]
+#[case(December, 11, January)]
+#[case(January, 12, January)]
+#[case(January, u8::MAX, October)]
+#[case(December, 12, December)]
+#[case(December, u8::MAX, September)]
+fn nth_prev(#[case] month: Month, #[case] n: u8, #[case] expected: Month) {
+    assert_eq!(month.nth_prev(n), expected);
 }
 
-#[test]
-fn display() {
-    assert_eq!(January.to_string(), "January");
-    assert_eq!(February.to_string(), "February");
-    assert_eq!(March.to_string(), "March");
-    assert_eq!(April.to_string(), "April");
-    assert_eq!(May.to_string(), "May");
-    assert_eq!(June.to_string(), "June");
-    assert_eq!(July.to_string(), "July");
-    assert_eq!(August.to_string(), "August");
-    assert_eq!(September.to_string(), "September");
-    assert_eq!(October.to_string(), "October");
-    assert_eq!(November.to_string(), "November");
-    assert_eq!(December.to_string(), "December");
+#[rstest]
+#[case(January, "January")]
+#[case(February, "February")]
+#[case(March, "March")]
+#[case(April, "April")]
+#[case(May, "May")]
+#[case(June, "June")]
+#[case(July, "July")]
+#[case(August, "August")]
+#[case(September, "September")]
+#[case(October, "October")]
+#[case(November, "November")]
+#[case(December, "December")]
+fn display(#[case] month: Month, #[case] expected: &str) {
+    assert_eq!(month.to_string(), expected);
 }
 
-#[test]
-fn from_str() {
-    assert_eq!("January".parse(), Ok(January));
-    assert_eq!("February".parse(), Ok(February));
-    assert_eq!("March".parse(), Ok(March));
-    assert_eq!("April".parse(), Ok(April));
-    assert_eq!("May".parse(), Ok(May));
-    assert_eq!("June".parse(), Ok(June));
-    assert_eq!("July".parse(), Ok(July));
-    assert_eq!("August".parse(), Ok(August));
-    assert_eq!("September".parse(), Ok(September));
-    assert_eq!("October".parse(), Ok(October));
-    assert_eq!("November".parse(), Ok(November));
-    assert_eq!("December".parse(), Ok(December));
-    assert_eq!("foo".parse::<Month>(), Err(time::error::InvalidVariant));
+#[rstest]
+#[case("January", Ok(January))]
+#[case("February", Ok(February))]
+#[case("March", Ok(March))]
+#[case("April", Ok(April))]
+#[case("May", Ok(May))]
+#[case("June", Ok(June))]
+#[case("July", Ok(July))]
+#[case("August", Ok(August))]
+#[case("September", Ok(September))]
+#[case("October", Ok(October))]
+#[case("November", Ok(November))]
+#[case("December", Ok(December))]
+#[case("foo", Err(time::error::InvalidVariant))]
+fn from_str(#[case] s: &str, #[case] expected: Result<Month, time::error::InvalidVariant>) {
+    assert_eq!(s.parse::<Month>(), expected);
 }
 
-#[test]
-fn to_u8() {
-    assert_eq!(u8::from(January), 1);
-    assert_eq!(u8::from(February), 2);
-    assert_eq!(u8::from(March), 3);
-    assert_eq!(u8::from(April), 4);
-    assert_eq!(u8::from(May), 5);
-    assert_eq!(u8::from(June), 6);
-    assert_eq!(u8::from(July), 7);
-    assert_eq!(u8::from(August), 8);
-    assert_eq!(u8::from(September), 9);
-    assert_eq!(u8::from(October), 10);
-    assert_eq!(u8::from(November), 11);
-    assert_eq!(u8::from(December), 12);
+#[rstest]
+#[case(January, 1)]
+#[case(February, 2)]
+#[case(March, 3)]
+#[case(April, 4)]
+#[case(May, 5)]
+#[case(June, 6)]
+#[case(July, 7)]
+#[case(August, 8)]
+#[case(September, 9)]
+#[case(October, 10)]
+#[case(November, 11)]
+#[case(December, 12)]
+fn to_u8(#[case] month: Month, #[case] expected: u8) {
+    assert_eq!(u8::from(month), expected);
 }
 
-#[test]
-fn try_from_u8() {
-    assert!(matches!(Month::try_from(0), Err(err) if err.name() == "month"));
-    assert_eq!(Month::try_from(1), Ok(January));
-    assert_eq!(Month::try_from(2), Ok(February));
-    assert_eq!(Month::try_from(3), Ok(March));
-    assert_eq!(Month::try_from(4), Ok(April));
-    assert_eq!(Month::try_from(5), Ok(May));
-    assert_eq!(Month::try_from(6), Ok(June));
-    assert_eq!(Month::try_from(7), Ok(July));
-    assert_eq!(Month::try_from(8), Ok(August));
-    assert_eq!(Month::try_from(9), Ok(September));
-    assert_eq!(Month::try_from(10), Ok(October));
-    assert_eq!(Month::try_from(11), Ok(November));
-    assert_eq!(Month::try_from(12), Ok(December));
-    assert!(matches!(Month::try_from(13), Err(err) if err.name() == "month"));
+#[rstest]
+#[case(1, January)]
+#[case(2, February)]
+#[case(3, March)]
+#[case(4, April)]
+#[case(5, May)]
+#[case(6, June)]
+#[case(7, July)]
+#[case(8, August)]
+#[case(9, September)]
+#[case(10, October)]
+#[case(11, November)]
+#[case(12, December)]
+fn try_from_u8_success(#[case] input: u8, #[case] expected: Month) {
+    assert_eq!(Month::try_from(input), Ok(expected));
+}
+
+#[rstest]
+#[case(0)]
+#[case(13)]
+fn try_from_u8_error(#[case] input: u8) {
+    assert!(matches!(Month::try_from(input), Err(err) if err.name() == "month"));
 }

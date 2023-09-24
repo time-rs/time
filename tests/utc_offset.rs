@@ -1,147 +1,158 @@
+use rstest::rstest;
 use time::macros::offset;
-use time::{OffsetDateTime, Result, UtcOffset};
+use time::{OffsetDateTime, UtcOffset};
 
 #[test]
 fn utc_is_zero() {
     assert_eq!(offset!(UTC), offset!(+0));
 }
 
-#[test]
-fn from_hms() -> Result<()> {
-    assert_eq!(UtcOffset::from_hms(0, 0, 0), Ok(offset!(UTC)));
-    assert_eq!(UtcOffset::from_hms(0, 0, 1), Ok(offset!(+0:00:01)));
-    assert_eq!(UtcOffset::from_hms(0, 0, -1), Ok(offset!(-0:00:01)));
-    assert_eq!(UtcOffset::from_hms(1, 0, 0), Ok(offset!(+1)));
-    assert_eq!(UtcOffset::from_hms(-1, 0, 0), Ok(offset!(-1)));
-    assert_eq!(UtcOffset::from_hms(23, 59, 0), Ok(offset!(+23:59)));
-    assert_eq!(UtcOffset::from_hms(-23, -59, 0), Ok(offset!(-23:59)));
-    assert_eq!(UtcOffset::from_hms(23, 59, 59), Ok(offset!(+23:59:59)));
-    assert_eq!(UtcOffset::from_hms(-23, -59, -59), Ok(offset!(-23:59:59)));
-    assert_eq!(UtcOffset::from_hms(1, 2, 3)?.as_hms(), (1, 2, 3));
-    assert_eq!(UtcOffset::from_hms(1, -2, -3)?.as_hms(), (1, 2, 3));
-    assert_eq!(UtcOffset::from_hms(0, 2, -3)?.as_hms(), (0, 2, 3));
-    Ok(())
+#[rstest]
+#[case(0, 0, 0, offset!(UTC))]
+#[case(0, 0, 1, offset!(+0:00:01))]
+#[case(0, 0, -1, offset!(-0:00:01))]
+#[case(1, 0, 0, offset!(+1))]
+#[case(-1, 0, 0, offset!(-1))]
+#[case(23, 59, 0, offset!(+23:59))]
+#[case(-23, -59, 0, offset!(-23:59))]
+#[case(23, 59, 59, offset!(+23:59:59))]
+#[case(-23, -59, -59, offset!(-23:59:59))]
+#[case(1, 2, 3, offset!(+1:02:03))]
+#[case(1, -2, -3, offset!(+1:02:03))]
+#[case(0, 2, -3, offset!(+0:02:03))]
+fn from_hms(
+    #[case] hours: i8,
+    #[case] minutes: i8,
+    #[case] seconds: i8,
+    #[case] expected: UtcOffset,
+) {
+    assert_eq!(UtcOffset::from_hms(hours, minutes, seconds), Ok(expected));
 }
 
-#[test]
-fn from_whole_seconds() {
-    assert_eq!(UtcOffset::from_whole_seconds(0), Ok(offset!(UTC)));
-    assert_eq!(UtcOffset::from_whole_seconds(1), Ok(offset!(+0:00:01)));
-    assert_eq!(UtcOffset::from_whole_seconds(-1), Ok(offset!(-0:00:01)));
-    assert_eq!(UtcOffset::from_whole_seconds(3_600), Ok(offset!(+1)));
-    assert_eq!(UtcOffset::from_whole_seconds(-3_600), Ok(offset!(-1)));
-    assert_eq!(UtcOffset::from_whole_seconds(86_340), Ok(offset!(+23:59)));
-    assert_eq!(UtcOffset::from_whole_seconds(-86_340), Ok(offset!(-23:59)));
-    assert_eq!(
-        UtcOffset::from_whole_seconds(86_399),
-        Ok(offset!(+23:59:59))
-    );
-    assert_eq!(
-        UtcOffset::from_whole_seconds(-86_399),
-        Ok(offset!(-23:59:59))
-    );
+#[rstest]
+#[case(0, offset!(UTC))]
+#[case(1, offset!(+0:00:01))]
+#[case(-1, offset!(-0:00:01))]
+#[case(3_600, offset!(+1))]
+#[case(-3_600, offset!(-1))]
+#[case(86_340, offset!(+23:59))]
+#[case(-86_340, offset!(-23:59))]
+#[case(86_399, offset!(+23:59:59))]
+#[case(-86_399, offset!(-23:59:59))]
+fn from_whole_seconds(#[case] seconds: i32, #[case] expected: UtcOffset) {
+    assert_eq!(UtcOffset::from_whole_seconds(seconds), Ok(expected));
 }
 
-#[test]
-fn as_hms() {
-    assert_eq!(offset!(UTC).as_hms(), (0, 0, 0));
-    assert_eq!(offset!(+0:00:01).as_hms(), (0, 0, 1));
-    assert_eq!(offset!(-0:00:01).as_hms(), (0, 0, -1));
-    assert_eq!(offset!(+1).as_hms(), (1, 0, 0));
-    assert_eq!(offset!(-1).as_hms(), (-1, 0, 0));
-    assert_eq!(offset!(+23:59).as_hms(), (23, 59, 0));
-    assert_eq!(offset!(-23:59).as_hms(), (-23, -59, 0));
-    assert_eq!(offset!(+23:59:59).as_hms(), (23, 59, 59));
-    assert_eq!(offset!(-23:59:59).as_hms(), (-23, -59, -59));
+#[rstest]
+#[case(offset!(UTC), (0, 0, 0))]
+#[case(offset!(+0:00:01), (0, 0, 1))]
+#[case(offset!(-0:00:01), (0, 0, -1))]
+#[case(offset!(+1), (1, 0, 0))]
+#[case(offset!(-1), (-1, 0, 0))]
+#[case(offset!(+23:59), (23, 59, 0))]
+#[case(offset!(-23:59), (-23, -59, 0))]
+#[case(offset!(+23:59:59), (23, 59, 59))]
+#[case(offset!(-23:59:59), (-23, -59, -59))]
+fn as_hms(#[case] offset: UtcOffset, #[case] expected: (i8, i8, i8)) {
+    assert_eq!(offset.as_hms(), expected);
 }
 
-#[test]
-fn whole_hours() {
-    assert_eq!(offset!(+1:02:03).whole_hours(), 1);
-    assert_eq!(offset!(-1:02:03).whole_hours(), -1);
+#[rstest]
+#[case(offset!(+1:02:03), 1)]
+#[case(offset!(-1:02:03), -1)]
+fn whole_hours(#[case] offset: UtcOffset, #[case] expected: i8) {
+    assert_eq!(offset.whole_hours(), expected);
 }
 
-#[test]
-fn whole_minutes() {
-    assert_eq!(offset!(+1:02:03).whole_minutes(), 62);
-    assert_eq!(offset!(-1:02:03).whole_minutes(), -62);
+#[rstest]
+#[case(offset!(+1:02:03), 62)]
+#[case(offset!(-1:02:03), -62)]
+fn whole_minutes(#[case] offset: UtcOffset, #[case] expected: i16) {
+    assert_eq!(offset.whole_minutes(), expected);
 }
 
-#[test]
-fn minutes_past_hour() {
-    assert_eq!(offset!(+1:02:03).minutes_past_hour(), 2);
-    assert_eq!(offset!(-1:02:03).minutes_past_hour(), -2);
+#[rstest]
+#[case(offset!(+1:02:03), 2)]
+#[case(offset!(-1:02:03), -2)]
+fn minutes_past_hour(#[case] offset: UtcOffset, #[case] expected: i8) {
+    assert_eq!(offset.minutes_past_hour(), expected);
 }
 
-#[test]
-fn whole_seconds() {
-    assert_eq!(offset!(UTC).whole_seconds(), 0);
-    assert_eq!(offset!(+0:00:01).whole_seconds(), 1);
-    assert_eq!(offset!(-0:00:01).whole_seconds(), -1);
-    assert_eq!(offset!(+1).whole_seconds(), 3_600);
-    assert_eq!(offset!(-1).whole_seconds(), -3_600);
-    assert_eq!(offset!(+23:59).whole_seconds(), 86_340);
-    assert_eq!(offset!(-23:59).whole_seconds(), -86_340);
-    assert_eq!(offset!(+23:59:59).whole_seconds(), 86_399);
-    assert_eq!(offset!(-23:59:59).whole_seconds(), -86_399);
+#[rstest]
+#[case(offset!(UTC), 0)]
+#[case(offset!(+0:00:01), 1)]
+#[case(offset!(-0:00:01), -1)]
+#[case(offset!(+1), 3_600)]
+#[case(offset!(-1), -3_600)]
+#[case(offset!(+23:59), 86_340)]
+#[case(offset!(-23:59), -86_340)]
+#[case(offset!(+23:59:59), 86_399)]
+#[case(offset!(-23:59:59), -86_399)]
+fn whole_seconds(#[case] offset: UtcOffset, #[case] expected: i32) {
+    assert_eq!(offset.whole_seconds(), expected);
 }
 
-#[test]
-fn seconds_past_minute() {
-    assert_eq!(offset!(+1:02:03).seconds_past_minute(), 3);
-    assert_eq!(offset!(-1:02:03).seconds_past_minute(), -3);
+#[rstest]
+#[case(offset!(+1:02:03), 3)]
+#[case(offset!(-1:02:03), -3)]
+fn seconds_past_minute(#[case] offset: UtcOffset, #[case] expected: i8) {
+    assert_eq!(offset.seconds_past_minute(), expected);
 }
 
-#[test]
-fn is_utc() {
-    assert!(offset!(UTC).is_utc());
-    assert!(!offset!(+0:00:01).is_utc());
-    assert!(!offset!(-0:00:01).is_utc());
-    assert!(!offset!(+1).is_utc());
-    assert!(!offset!(-1).is_utc());
-    assert!(!offset!(+23:59).is_utc());
-    assert!(!offset!(-23:59).is_utc());
-    assert!(!offset!(+23:59:59).is_utc());
-    assert!(!offset!(-23:59:59).is_utc());
+#[rstest]
+#[case(offset!(UTC), true)]
+#[case(offset!(+0:00:01), false)]
+#[case(offset!(-0:00:01), false)]
+#[case(offset!(+1), false)]
+#[case(offset!(-1), false)]
+#[case(offset!(+23:59), false)]
+#[case(offset!(-23:59), false)]
+#[case(offset!(+23:59:59), false)]
+#[case(offset!(-23:59:59), false)]
+fn is_utc(#[case] offset: UtcOffset, #[case] expected: bool) {
+    assert_eq!(offset.is_utc(), expected);
 }
 
-#[test]
-fn is_positive() {
-    assert!(!offset!(UTC).is_positive());
-    assert!(offset!(+0:00:01).is_positive());
-    assert!(!offset!(-0:00:01).is_positive());
-    assert!(offset!(+1).is_positive());
-    assert!(!offset!(-1).is_positive());
-    assert!(offset!(+23:59).is_positive());
-    assert!(!offset!(-23:59).is_positive());
-    assert!(offset!(+23:59:59).is_positive());
-    assert!(!offset!(-23:59:59).is_positive());
+#[rstest]
+#[case(offset!(UTC), false)]
+#[case(offset!(+0:00:01), true)]
+#[case(offset!(-0:00:01), false)]
+#[case(offset!(+1), true)]
+#[case(offset!(-1), false)]
+#[case(offset!(+23:59), true)]
+#[case(offset!(-23:59), false)]
+#[case(offset!(+23:59:59), true)]
+#[case(offset!(-23:59:59), false)]
+fn is_positive(#[case] offset: UtcOffset, #[case] expected: bool) {
+    assert_eq!(offset.is_positive(), expected);
 }
 
-#[test]
-fn is_negative() {
-    assert!(!offset!(UTC).is_negative());
-    assert!(!offset!(+0:00:01).is_negative());
-    assert!(offset!(-0:00:01).is_negative());
-    assert!(!offset!(+1).is_negative());
-    assert!(offset!(-1).is_negative());
-    assert!(!offset!(+23:59).is_negative());
-    assert!(offset!(-23:59).is_negative());
-    assert!(!offset!(+23:59:59).is_negative());
-    assert!(offset!(-23:59:59).is_negative());
+#[rstest]
+#[case(offset!(UTC), false)]
+#[case(offset!(+0:00:01), false)]
+#[case(offset!(-0:00:01), true)]
+#[case(offset!(+1), false)]
+#[case(offset!(-1), true)]
+#[case(offset!(+23:59), false)]
+#[case(offset!(-23:59), true)]
+#[case(offset!(+23:59:59), false)]
+#[case(offset!(-23:59:59), true)]
+fn is_negative(#[case] offset: UtcOffset, #[case] expected: bool) {
+    assert_eq!(offset.is_negative(), expected);
 }
 
-#[test]
-fn neg() {
-    assert_eq!(-offset!(UTC), offset!(UTC));
-    assert_eq!(-offset!(+0:00:01), offset!(-0:00:01));
-    assert_eq!(-offset!(-0:00:01), offset!(+0:00:01));
-    assert_eq!(-offset!(+1), offset!(-1));
-    assert_eq!(-offset!(-1), offset!(+1));
-    assert_eq!(-offset!(+23:59), offset!(-23:59));
-    assert_eq!(-offset!(-23:59), offset!(+23:59));
-    assert_eq!(-offset!(+23:59:59), offset!(-23:59:59));
-    assert_eq!(-offset!(-23:59:59), offset!(+23:59:59));
+#[rstest]
+#[case(offset!(UTC), offset!(UTC))]
+#[case(offset!(+0:00:01), offset!(-0:00:01))]
+#[case(offset!(-0:00:01), offset!(+0:00:01))]
+#[case(offset!(+1), offset!(-1))]
+#[case(offset!(-1), offset!(+1))]
+#[case(offset!(+23:59), offset!(-23:59))]
+#[case(offset!(-23:59), offset!(+23:59))]
+#[case(offset!(+23:59:59), offset!(-23:59:59))]
+#[case(offset!(-23:59:59), offset!(+23:59:59))]
+fn neg(#[case] offset: UtcOffset, #[case] expected: UtcOffset) {
+    assert_eq!(-offset, expected);
 }
 
 #[cfg_attr(miri, ignore)]

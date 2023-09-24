@@ -1,11 +1,12 @@
 use core::num::NonZeroU16;
 
+use rstest::rstest;
 use time::format_description::modifier::*;
 use time::format_description::{Component, FormatItem};
 use time::macros::{date, format_description, time};
 use time::{Date, Time};
 
-#[test]
+#[rstest]
 fn nontrivial_string() {
     assert!(format_description!(r"").is_empty());
     assert!(format_description!(r###""###).is_empty());
@@ -26,7 +27,7 @@ fn nontrivial_string() {
     );
 }
 
-#[test]
+#[rstest]
 fn format_description_version() {
     assert_eq!(
         format_description!(version = 1, "[["),
@@ -42,7 +43,7 @@ fn format_description_version() {
     );
 }
 
-#[test]
+#[rstest]
 fn nested_v1() {
     assert_eq!(
         format_description!(version = 1, "[optional [[[]]"),
@@ -65,7 +66,7 @@ fn nested_v1() {
     );
 }
 
-#[test]
+#[rstest]
 fn optional() {
     assert_eq!(
         format_description!(version = 2, "[optional [:[year]]]"),
@@ -94,7 +95,7 @@ fn optional() {
     );
 }
 
-#[test]
+#[rstest]
 fn first() {
     assert_eq!(
         format_description!(version = 2, "[first [a]]"),
@@ -146,7 +147,7 @@ fn first() {
     );
 }
 
-#[test]
+#[rstest]
 fn backslash_escape() {
     assert_eq!(
         format_description!(version = 2, r"[optional [\]]]"),
@@ -194,7 +195,7 @@ fn backslash_escape() {
     );
 }
 
-#[test]
+#[rstest]
 fn format_description_coverage() {
     assert_eq!(
         format_description!("[day padding:space][day padding:zero][day padding:none]"),
@@ -315,7 +316,7 @@ fn format_description_coverage() {
     );
 }
 
-#[test]
+#[rstest]
 fn date_coverage() {
     assert_eq!(Ok(date!(2000 - 001)), Date::from_ordinal_date(2000, 1));
     assert_eq!(Ok(date!(2019-W 01-1)), Date::from_ordinal_date(2018, 365));
@@ -323,7 +324,7 @@ fn date_coverage() {
     assert_eq!(Ok(date!(2021-W 34-5)), Date::from_ordinal_date(2021, 239));
 }
 
-#[test]
+#[rstest]
 fn time_coverage() {
     assert_eq!(time!(12 AM), Time::MIDNIGHT);
     assert_eq!(Ok(time!(12 PM)), Time::from_hms(12, 0, 0));

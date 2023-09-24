@@ -1,138 +1,145 @@
+use rstest::rstest;
 use time::Weekday::{self, *};
 
-#[test]
-fn previous() {
-    assert_eq!(Sunday.previous(), Saturday);
-    assert_eq!(Monday.previous(), Sunday);
-    assert_eq!(Tuesday.previous(), Monday);
-    assert_eq!(Wednesday.previous(), Tuesday);
-    assert_eq!(Thursday.previous(), Wednesday);
-    assert_eq!(Friday.previous(), Thursday);
-    assert_eq!(Saturday.previous(), Friday);
+#[rstest]
+#[case(Sunday, Saturday)]
+#[case(Monday, Sunday)]
+#[case(Tuesday, Monday)]
+#[case(Wednesday, Tuesday)]
+#[case(Thursday, Wednesday)]
+#[case(Friday, Thursday)]
+#[case(Saturday, Friday)]
+fn previous(#[case] current: Weekday, #[case] expected: Weekday) {
+    assert_eq!(current.previous(), expected);
 }
 
-#[test]
-fn next() {
-    assert_eq!(Sunday.next(), Monday);
-    assert_eq!(Monday.next(), Tuesday);
-    assert_eq!(Tuesday.next(), Wednesday);
-    assert_eq!(Wednesday.next(), Thursday);
-    assert_eq!(Thursday.next(), Friday);
-    assert_eq!(Friday.next(), Saturday);
-    assert_eq!(Saturday.next(), Sunday);
+#[rstest]
+#[case(Sunday, Monday)]
+#[case(Monday, Tuesday)]
+#[case(Tuesday, Wednesday)]
+#[case(Wednesday, Thursday)]
+#[case(Thursday, Friday)]
+#[case(Friday, Saturday)]
+#[case(Saturday, Sunday)]
+fn next(#[case] current: Weekday, #[case] expected: Weekday) {
+    assert_eq!(current.next(), expected);
 }
 
-#[test]
-fn nth_next() {
-    assert_eq!(Sunday.nth_next(0), Sunday);
-    assert_eq!(Sunday.nth_next(1), Monday);
-    assert_eq!(Sunday.nth_next(2), Tuesday);
-    assert_eq!(Sunday.nth_next(3), Wednesday);
-    assert_eq!(Sunday.nth_next(4), Thursday);
-    assert_eq!(Sunday.nth_next(5), Friday);
-    assert_eq!(Sunday.nth_next(6), Saturday);
-
-    assert_eq!(Monday.nth_next(0), Monday);
-    assert_eq!(Monday.nth_next(1), Tuesday);
-    assert_eq!(Monday.nth_next(2), Wednesday);
-    assert_eq!(Monday.nth_next(3), Thursday);
-    assert_eq!(Monday.nth_next(4), Friday);
-    assert_eq!(Monday.nth_next(5), Saturday);
-    assert_eq!(Monday.nth_next(6), Sunday);
-
-    assert_eq!(Sunday.nth_next(7), Sunday);
-    assert_eq!(Sunday.nth_next(u8::MAX), Wednesday);
-    assert_eq!(Monday.nth_next(7), Monday);
-    assert_eq!(Monday.nth_next(u8::MAX), Thursday);
+#[rstest]
+#[case(Sunday, 0, Sunday)]
+#[case(Sunday, 1, Monday)]
+#[case(Sunday, 2, Tuesday)]
+#[case(Sunday, 3, Wednesday)]
+#[case(Sunday, 4, Thursday)]
+#[case(Sunday, 5, Friday)]
+#[case(Sunday, 6, Saturday)]
+#[case(Monday, 0, Monday)]
+#[case(Monday, 1, Tuesday)]
+#[case(Monday, 2, Wednesday)]
+#[case(Monday, 3, Thursday)]
+#[case(Monday, 4, Friday)]
+#[case(Monday, 5, Saturday)]
+#[case(Monday, 6, Sunday)]
+#[case(Sunday, 7, Sunday)]
+#[case(Sunday, u8::MAX, Wednesday)]
+#[case(Monday, 7, Monday)]
+#[case(Monday, u8::MAX, Thursday)]
+fn nth_next(#[case] current: Weekday, #[case] n: u8, #[case] expected: Weekday) {
+    assert_eq!(current.nth_next(n), expected);
 }
 
-#[test]
-fn nth_prev() {
-    assert_eq!(Sunday.nth_prev(0), Sunday);
-    assert_eq!(Sunday.nth_prev(1), Saturday);
-    assert_eq!(Sunday.nth_prev(2), Friday);
-    assert_eq!(Sunday.nth_prev(3), Thursday);
-    assert_eq!(Sunday.nth_prev(4), Wednesday);
-    assert_eq!(Sunday.nth_prev(5), Tuesday);
-    assert_eq!(Sunday.nth_prev(6), Monday);
-
-    assert_eq!(Monday.nth_prev(0), Monday);
-    assert_eq!(Monday.nth_prev(1), Sunday);
-    assert_eq!(Monday.nth_prev(2), Saturday);
-    assert_eq!(Monday.nth_prev(3), Friday);
-    assert_eq!(Monday.nth_prev(4), Thursday);
-    assert_eq!(Monday.nth_prev(5), Wednesday);
-    assert_eq!(Monday.nth_prev(6), Tuesday);
-
-    assert_eq!(Sunday.nth_prev(7), Sunday);
-    assert_eq!(Sunday.nth_prev(u8::MAX), Thursday);
-    assert_eq!(Monday.nth_prev(7), Monday);
-    assert_eq!(Monday.nth_prev(u8::MAX), Friday);
+#[rstest]
+#[case(Sunday, 0, Sunday)]
+#[case(Sunday, 1, Saturday)]
+#[case(Sunday, 2, Friday)]
+#[case(Sunday, 3, Thursday)]
+#[case(Sunday, 4, Wednesday)]
+#[case(Sunday, 5, Tuesday)]
+#[case(Sunday, 6, Monday)]
+#[case(Monday, 0, Monday)]
+#[case(Monday, 1, Sunday)]
+#[case(Monday, 2, Saturday)]
+#[case(Monday, 3, Friday)]
+#[case(Monday, 4, Thursday)]
+#[case(Monday, 5, Wednesday)]
+#[case(Monday, 6, Tuesday)]
+#[case(Sunday, 7, Sunday)]
+#[case(Sunday, u8::MAX, Thursday)]
+#[case(Monday, 7, Monday)]
+#[case(Monday, u8::MAX, Friday)]
+fn nth_prev(#[case] current: Weekday, #[case] n: u8, #[case] expected: Weekday) {
+    assert_eq!(current.nth_prev(n), expected);
 }
 
-#[test]
-fn number_from_monday() {
-    assert_eq!(Monday.number_from_monday(), 1);
-    assert_eq!(Tuesday.number_from_monday(), 2);
-    assert_eq!(Wednesday.number_from_monday(), 3);
-    assert_eq!(Thursday.number_from_monday(), 4);
-    assert_eq!(Friday.number_from_monday(), 5);
-    assert_eq!(Saturday.number_from_monday(), 6);
-    assert_eq!(Sunday.number_from_monday(), 7);
+#[rstest]
+#[case(Monday, 1)]
+#[case(Tuesday, 2)]
+#[case(Wednesday, 3)]
+#[case(Thursday, 4)]
+#[case(Friday, 5)]
+#[case(Saturday, 6)]
+#[case(Sunday, 7)]
+fn number_from_monday(#[case] weekday: Weekday, #[case] expected: u8) {
+    assert_eq!(weekday.number_from_monday(), expected);
 }
 
-#[test]
-fn number_from_sunday() {
-    assert_eq!(Sunday.number_from_sunday(), 1);
-    assert_eq!(Monday.number_from_sunday(), 2);
-    assert_eq!(Tuesday.number_from_sunday(), 3);
-    assert_eq!(Wednesday.number_from_sunday(), 4);
-    assert_eq!(Thursday.number_from_sunday(), 5);
-    assert_eq!(Friday.number_from_sunday(), 6);
-    assert_eq!(Saturday.number_from_sunday(), 7);
+#[rstest]
+#[case(Sunday, 1)]
+#[case(Monday, 2)]
+#[case(Tuesday, 3)]
+#[case(Wednesday, 4)]
+#[case(Thursday, 5)]
+#[case(Friday, 6)]
+#[case(Saturday, 7)]
+fn number_from_sunday(#[case] weekday: Weekday, #[case] expected: u8) {
+    assert_eq!(weekday.number_from_sunday(), expected);
 }
 
-#[test]
-fn number_days_from_monday() {
-    assert_eq!(Monday.number_days_from_monday(), 0);
-    assert_eq!(Tuesday.number_days_from_monday(), 1);
-    assert_eq!(Wednesday.number_days_from_monday(), 2);
-    assert_eq!(Thursday.number_days_from_monday(), 3);
-    assert_eq!(Friday.number_days_from_monday(), 4);
-    assert_eq!(Saturday.number_days_from_monday(), 5);
-    assert_eq!(Sunday.number_days_from_monday(), 6);
+#[rstest]
+#[case(Monday, 0)]
+#[case(Tuesday, 1)]
+#[case(Wednesday, 2)]
+#[case(Thursday, 3)]
+#[case(Friday, 4)]
+#[case(Saturday, 5)]
+#[case(Sunday, 6)]
+fn number_days_from_monday(#[case] weekday: Weekday, #[case] expected: u8) {
+    assert_eq!(weekday.number_days_from_monday(), expected);
 }
 
-#[test]
-fn number_days_from_sunday() {
-    assert_eq!(Sunday.number_days_from_sunday(), 0);
-    assert_eq!(Monday.number_days_from_sunday(), 1);
-    assert_eq!(Tuesday.number_days_from_sunday(), 2);
-    assert_eq!(Wednesday.number_days_from_sunday(), 3);
-    assert_eq!(Thursday.number_days_from_sunday(), 4);
-    assert_eq!(Friday.number_days_from_sunday(), 5);
-    assert_eq!(Saturday.number_days_from_sunday(), 6);
+#[rstest]
+#[case(Sunday, 0)]
+#[case(Monday, 1)]
+#[case(Tuesday, 2)]
+#[case(Wednesday, 3)]
+#[case(Thursday, 4)]
+#[case(Friday, 5)]
+#[case(Saturday, 6)]
+fn number_days_from_sunday(#[case] weekday: Weekday, #[case] expected: u8) {
+    assert_eq!(weekday.number_days_from_sunday(), expected);
 }
 
-#[test]
-fn display() {
-    assert_eq!(Monday.to_string(), "Monday");
-    assert_eq!(Tuesday.to_string(), "Tuesday");
-    assert_eq!(Wednesday.to_string(), "Wednesday");
-    assert_eq!(Thursday.to_string(), "Thursday");
-    assert_eq!(Friday.to_string(), "Friday");
-    assert_eq!(Saturday.to_string(), "Saturday");
-    assert_eq!(Sunday.to_string(), "Sunday");
+#[rstest]
+#[case(Monday, "Monday")]
+#[case(Tuesday, "Tuesday")]
+#[case(Wednesday, "Wednesday")]
+#[case(Thursday, "Thursday")]
+#[case(Friday, "Friday")]
+#[case(Saturday, "Saturday")]
+#[case(Sunday, "Sunday")]
+fn display(#[case] weekday: Weekday, #[case] expected: &str) {
+    assert_eq!(weekday.to_string(), expected);
 }
 
-#[test]
-fn from_str() {
-    assert_eq!("Monday".parse(), Ok(Monday));
-    assert_eq!("Tuesday".parse(), Ok(Tuesday));
-    assert_eq!("Wednesday".parse(), Ok(Wednesday));
-    assert_eq!("Thursday".parse(), Ok(Thursday));
-    assert_eq!("Friday".parse(), Ok(Friday));
-    assert_eq!("Saturday".parse(), Ok(Saturday));
-    assert_eq!("Sunday".parse(), Ok(Sunday));
-    assert_eq!("foo".parse::<Weekday>(), Err(time::error::InvalidVariant));
+#[rstest]
+#[case("Monday", Ok(Monday))]
+#[case("Tuesday", Ok(Tuesday))]
+#[case("Wednesday", Ok(Wednesday))]
+#[case("Thursday", Ok(Thursday))]
+#[case("Friday", Ok(Friday))]
+#[case("Saturday", Ok(Saturday))]
+#[case("Sunday", Ok(Sunday))]
+#[case("foo", Err(time::error::InvalidVariant))]
+fn from_str(#[case] input: &str, #[case] expected: Result<Weekday, time::error::InvalidVariant>) {
+    assert_eq!(input.parse::<Weekday>(), expected);
 }

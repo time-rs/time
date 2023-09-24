@@ -1,470 +1,533 @@
 use core::u64;
 use std::cmp::Ordering;
+use std::cmp::Ordering::{Equal, Greater, Less};
 use std::time::Duration as StdDuration;
 
+use rstest::rstest;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::{error, Duration};
 
-#[test]
-fn unit_values() {
-    assert_eq!(Duration::ZERO, 0.seconds());
-    assert_eq!(Duration::NANOSECOND, 1.nanoseconds());
-    assert_eq!(Duration::MICROSECOND, 1.microseconds());
-    assert_eq!(Duration::MILLISECOND, 1.milliseconds());
-    assert_eq!(Duration::SECOND, 1.seconds());
-    assert_eq!(Duration::MINUTE, 60.seconds());
-    assert_eq!(Duration::HOUR, 3_600.seconds());
-    assert_eq!(Duration::DAY, 86_400.seconds());
-    assert_eq!(Duration::WEEK, 604_800.seconds());
+#[rstest]
+#[case(Duration::ZERO, 0.seconds())]
+#[case(Duration::NANOSECOND, 1.nanoseconds())]
+#[case(Duration::MICROSECOND, 1.microseconds())]
+#[case(Duration::MILLISECOND, 1.milliseconds())]
+#[case(Duration::SECOND, 1.seconds())]
+#[case(Duration::MINUTE, 60.seconds())]
+#[case(Duration::HOUR, 3_600.seconds())]
+#[case(Duration::DAY, 86_400.seconds())]
+#[case(Duration::WEEK, 604_800.seconds())]
+fn unit_values(#[case] input: Duration, #[case] expected: Duration) {
+    assert_eq!(input, expected);
 }
 
-#[test]
+#[rstest]
 fn default() {
     assert_eq!(Duration::default(), Duration::ZERO);
 }
 
-#[test]
-fn is_zero() {
-    assert!(!(-1).nanoseconds().is_zero());
-    assert!(0.seconds().is_zero());
-    assert!(!1.nanoseconds().is_zero());
+#[rstest]
+#[case((-1).seconds(), false)]
+#[case(0.seconds(), true)]
+#[case(1.seconds(), false)]
+fn is_zero(#[case] input: Duration, #[case] expected: bool) {
+    assert_eq!(input.is_zero(), expected);
 }
 
-#[test]
-fn is_negative() {
-    assert!((-1).seconds().is_negative());
-    assert!(!0.seconds().is_negative());
-    assert!(!1.seconds().is_negative());
+#[rstest]
+#[case((-1).seconds(), true)]
+#[case(0.seconds(), false)]
+#[case(1.seconds(), false)]
+fn is_negative(#[case] input: Duration, #[case] expected: bool) {
+    assert_eq!(input.is_negative(), expected);
 }
 
-#[test]
-fn is_positive() {
-    assert!(!(-1).seconds().is_positive());
-    assert!(!0.seconds().is_positive());
-    assert!(1.seconds().is_positive());
+#[rstest]
+#[case((-1).seconds(), false)]
+#[case(0.seconds(), false)]
+#[case(1.seconds(), true)]
+fn is_positive(#[case] input: Duration, #[case] expected: bool) {
+    assert_eq!(input.is_positive(), expected);
 }
 
-#[test]
-fn abs() {
-    assert_eq!(1.seconds().abs(), 1.seconds());
-    assert_eq!(0.seconds().abs(), 0.seconds());
-    assert_eq!((-1).seconds().abs(), 1.seconds());
-    assert_eq!(Duration::new(i64::MIN, 0).abs(), Duration::MAX);
+#[rstest]
+#[case(1.seconds(), 1.seconds())]
+#[case(0.seconds(), 0.seconds())]
+#[case((-1).seconds(), 1.seconds())]
+#[case(Duration::new(i64::MIN, 0), Duration::MAX)]
+fn abs(#[case] input: Duration, #[case] expected: Duration) {
+    assert_eq!(input.abs(), expected);
 }
 
-#[test]
-fn unsigned_abs() {
-    assert_eq!(1.seconds().unsigned_abs(), 1.std_seconds());
-    assert_eq!(0.seconds().unsigned_abs(), 0.std_seconds());
-    assert_eq!((-1).seconds().unsigned_abs(), 1.std_seconds());
+#[rstest]
+#[case(1.seconds(), 1.std_seconds())]
+#[case(0.seconds(), 0.std_seconds())]
+#[case((-1).seconds(), 1.std_seconds())]
+fn unsigned_abs(#[case] input: Duration, #[case] expected: StdDuration) {
+    assert_eq!(input.unsigned_abs(), expected);
 }
 
-#[test]
-fn new() {
-    assert_eq!(Duration::new(1, 0), 1.seconds());
-    assert_eq!(Duration::new(-1, 0), (-1).seconds());
-    assert_eq!(Duration::new(1, 2_000_000_000), 3.seconds());
-
-    assert_eq!(Duration::new(0, 0), 0.seconds());
-    assert_eq!(Duration::new(0, 1_000_000_000), 1.seconds());
-    assert_eq!(Duration::new(-1, 1_000_000_000), 0.seconds());
-    assert_eq!(Duration::new(-2, 1_000_000_000), (-1).seconds());
-
-    assert_eq!(Duration::new(1, -1), 999_999_999.nanoseconds());
-    assert_eq!(Duration::new(-1, 1), (-999_999_999).nanoseconds());
-    assert_eq!(Duration::new(1, 1), 1_000_000_001.nanoseconds());
-    assert_eq!(Duration::new(-1, -1), (-1_000_000_001).nanoseconds());
-    assert_eq!(Duration::new(0, 1), 1.nanoseconds());
-    assert_eq!(Duration::new(0, -1), (-1).nanoseconds());
-
-    assert_eq!(Duration::new(-1, 1_400_000_000), 400.milliseconds());
-    assert_eq!(Duration::new(-2, 1_400_000_000), (-600).milliseconds());
-    assert_eq!(Duration::new(-3, 1_400_000_000), (-1_600).milliseconds());
-    assert_eq!(Duration::new(1, -1_400_000_000), (-400).milliseconds());
-    assert_eq!(Duration::new(2, -1_400_000_000), 600.milliseconds());
-    assert_eq!(Duration::new(3, -1_400_000_000), 1_600.milliseconds());
-
-    assert_panic!(Duration::new(i64::MAX, 1_000_000_000));
-    assert_panic!(Duration::new(i64::MIN, -1_000_000_000));
+#[rstest]
+#[case(1, 0, 1.seconds())]
+#[case(-1, 0, (-1).seconds())]
+#[case(1, 2_000_000_000, 3.seconds())]
+#[case(0, 0, 0.seconds())]
+#[case(0, 1_000_000_000, 1.seconds())]
+#[case(-1, 1_000_000_000, 0.seconds())]
+#[case(-2, 1_000_000_000, (-1).seconds())]
+#[case(1, -1, 999_999_999.nanoseconds())]
+#[case(-1, 1, (-999_999_999).nanoseconds())]
+#[case(1, 1, 1_000_000_001.nanoseconds())]
+#[case(-1, -1, (-1_000_000_001).nanoseconds())]
+#[case(0, 1, 1.nanoseconds())]
+#[case(0, -1, (-1).nanoseconds())]
+#[case(-1, 1_400_000_000, 400.milliseconds())]
+#[case(-2, 1_400_000_000, (-600).milliseconds())]
+#[case(-3, 1_400_000_000, (-1_600).milliseconds())]
+#[case(1, -1_400_000_000, (-400).milliseconds())]
+#[case(2, -1_400_000_000, 600.milliseconds())]
+#[case(3, -1_400_000_000, 1_600.milliseconds())]
+fn new(#[case] secs: i64, #[case] nanos: i32, #[case] expected: Duration) {
+    assert_eq!(Duration::new(secs, nanos), expected);
 }
 
-#[test]
-fn weeks() {
-    assert_eq!(Duration::weeks(1), 604_800.seconds());
-    assert_eq!(Duration::weeks(2), (2 * 604_800).seconds());
-    assert_eq!(Duration::weeks(-1), (-604_800).seconds());
-    assert_eq!(Duration::weeks(-2), (2 * -604_800).seconds());
-
-    assert_panic!(Duration::weeks(i64::MAX));
-    assert_panic!(Duration::weeks(i64::MIN));
+#[rstest]
+#[case(i64::MAX, 1_000_000_000)]
+#[case(i64::MIN, -1_000_000_000)]
+#[should_panic]
+fn new_panic(#[case] secs: i64, #[case] nanos: i32) {
+    let _ = Duration::new(secs, nanos);
 }
 
-#[test]
-fn whole_weeks() {
-    assert_eq!(Duration::weeks(1).whole_weeks(), 1);
-    assert_eq!(Duration::weeks(-1).whole_weeks(), -1);
-    assert_eq!(Duration::days(6).whole_weeks(), 0);
-    assert_eq!(Duration::days(-6).whole_weeks(), 0);
+#[rstest]
+#[case(1, 604_800)]
+#[case(2, 2 * 604_800)]
+#[case(-1, -604_800)]
+#[case(-2, -2 * 604_800)]
+fn weeks(#[case] weeks_: i64, #[case] expected: i64) {
+    assert_eq!(Duration::weeks(weeks_), expected.seconds());
 }
 
-#[test]
-fn days() {
-    assert_eq!(Duration::days(1), 86_400.seconds());
-    assert_eq!(Duration::days(2), (2 * 86_400).seconds());
-    assert_eq!(Duration::days(-1), (-86_400).seconds());
-    assert_eq!(Duration::days(-2), (2 * -86_400).seconds());
-
-    assert_panic!(Duration::days(i64::MAX));
-    assert_panic!(Duration::days(i64::MIN));
+#[rstest]
+#[case(i64::MAX)]
+#[case(i64::MIN)]
+#[should_panic]
+fn weeks_panic(#[case] weeks: i64) {
+    let _ = Duration::weeks(weeks);
 }
 
-#[test]
-fn whole_days() {
-    assert_eq!(Duration::days(1).whole_days(), 1);
-    assert_eq!(Duration::days(-1).whole_days(), -1);
-    assert_eq!(Duration::hours(23).whole_days(), 0);
-    assert_eq!(Duration::hours(-23).whole_days(), 0);
+#[rstest]
+#[case(7, 1)]
+#[case(-7, -1)]
+#[case(6, 0)]
+#[case(-6, 0)]
+fn whole_weeks(#[case] days: i64, #[case] expected: i64) {
+    assert_eq!(Duration::days(days).whole_weeks(), expected);
 }
 
-#[test]
-fn hours() {
-    assert_eq!(Duration::hours(1), 3_600.seconds());
-    assert_eq!(Duration::hours(2), (2 * 3_600).seconds());
-    assert_eq!(Duration::hours(-1), (-3_600).seconds());
-    assert_eq!(Duration::hours(-2), (2 * -3_600).seconds());
-
-    assert_panic!(Duration::hours(i64::MAX));
-    assert_panic!(Duration::hours(i64::MIN));
+#[rstest]
+#[case(1, 86_400)]
+#[case(2, 2 * 86_400)]
+#[case(-1, -86_400)]
+#[case(-2, -2 * 86_400)]
+fn days(#[case] days_: i64, #[case] expected: i64) {
+    assert_eq!(Duration::days(days_), expected.seconds());
 }
 
-#[test]
-fn whole_hours() {
-    assert_eq!(Duration::hours(1).whole_hours(), 1);
-    assert_eq!(Duration::hours(-1).whole_hours(), -1);
-    assert_eq!(Duration::minutes(59).whole_hours(), 0);
-    assert_eq!(Duration::minutes(-59).whole_hours(), 0);
+#[rstest]
+#[case(i64::MAX)]
+#[case(i64::MIN)]
+#[should_panic]
+fn days_panic(#[case] days: i64) {
+    let _ = Duration::days(days);
 }
 
-#[test]
-fn minutes() {
-    assert_eq!(Duration::minutes(1), 60.seconds());
-    assert_eq!(Duration::minutes(2), (2 * 60).seconds());
-    assert_eq!(Duration::minutes(-1), (-60).seconds());
-    assert_eq!(Duration::minutes(-2), (2 * -60).seconds());
-
-    assert_panic!(Duration::minutes(i64::MAX));
-    assert_panic!(Duration::minutes(i64::MIN));
+#[rstest]
+#[case(24, 1)]
+#[case(-24, -1)]
+#[case(23, 0)]
+#[case(-23, 0)]
+fn whole_days(#[case] hours: i64, #[case] expected: i64) {
+    assert_eq!(Duration::hours(hours).whole_days(), expected);
 }
 
-#[test]
-fn whole_minutes() {
-    assert_eq!(1.minutes().whole_minutes(), 1);
-    assert_eq!((-1).minutes().whole_minutes(), -1);
-    assert_eq!(59.seconds().whole_minutes(), 0);
-    assert_eq!((-59).seconds().whole_minutes(), 0);
+#[rstest]
+#[case(1, 3_600)]
+#[case(2, 2 * 3_600)]
+#[case(-1, -3_600)]
+#[case(-2, -2 * 3_600)]
+fn hours(#[case] hours_: i64, #[case] expected: i64) {
+    assert_eq!(Duration::hours(hours_), expected.seconds());
 }
 
-#[test]
-fn seconds() {
-    assert_eq!(Duration::seconds(1), 1_000.milliseconds());
-    assert_eq!(Duration::seconds(2), (2 * 1_000).milliseconds());
-    assert_eq!(Duration::seconds(-1), (-1_000).milliseconds());
-    assert_eq!(Duration::seconds(-2), (2 * -1_000).milliseconds());
+#[rstest]
+#[case(i64::MAX)]
+#[case(i64::MIN)]
+#[should_panic]
+fn hours_panic(#[case] hours: i64) {
+    let _ = Duration::hours(hours);
 }
 
-#[test]
-fn whole_seconds() {
-    assert_eq!(1.seconds().whole_seconds(), 1);
-    assert_eq!((-1).seconds().whole_seconds(), -1);
-    assert_eq!(1.minutes().whole_seconds(), 60);
-    assert_eq!((-1).minutes().whole_seconds(), -60);
+#[rstest]
+#[case(60, 1)]
+#[case(-60, -1)]
+#[case(59, 0)]
+#[case(-59, 0)]
+fn whole_hours(#[case] minutes: i64, #[case] expected: i64) {
+    assert_eq!(Duration::minutes(minutes).whole_hours(), expected);
 }
 
-#[test]
-fn seconds_f64() {
-    assert_eq!(Duration::seconds_f64(0.5), 0.5.seconds());
-    assert_eq!(Duration::seconds_f64(-0.5), (-0.5).seconds());
-    assert_eq!(Duration::seconds_f64(123.250), 123.250.seconds());
-    assert_eq!(Duration::seconds_f64(0.000_000_000_012), Duration::ZERO);
-
-    assert_panic!(Duration::seconds_f64(f64::MAX));
-    assert_panic!(Duration::seconds_f64(f64::MIN));
-    assert_panic!(Duration::seconds_f64(f64::NAN));
+#[rstest]
+#[case(1, 60)]
+#[case(2, 2 * 60)]
+#[case(-1, -60)]
+#[case(-2, -2 * 60)]
+fn minutes(#[case] minutes_: i64, #[case] expected: i64) {
+    assert_eq!(Duration::minutes(minutes_), expected.seconds());
 }
 
-#[test]
-fn saturating_seconds_f64() {
-    assert_eq!(Duration::saturating_seconds_f64(0.5), 0.5.seconds());
-    assert_eq!(Duration::saturating_seconds_f64(-0.5), (-0.5).seconds());
-    assert_eq!(Duration::saturating_seconds_f64(123.250), 123.250.seconds());
+#[rstest]
+#[case(i64::MAX)]
+#[case(i64::MIN)]
+#[should_panic]
+fn minutes_panic(#[case] minutes: i64) {
+    let _ = Duration::minutes(minutes);
+}
+
+#[rstest]
+#[case(60, 1)]
+#[case(-60, -1)]
+#[case(59, 0)]
+#[case(-59, 0)]
+fn whole_minutes(#[case] seconds: i64, #[case] expected: i64) {
+    assert_eq!(Duration::seconds(seconds).whole_minutes(), expected);
+}
+
+#[rstest]
+#[case(1, 1_000)]
+#[case(2, 2 * 1_000)]
+#[case(-1, -1_000)]
+#[case(-2, -2 * 1_000)]
+fn seconds(#[case] seconds_: i64, #[case] expected: i64) {
+    assert_eq!(Duration::seconds(seconds_), expected.milliseconds());
+}
+
+#[rstest]
+#[case(1)]
+#[case(-1)]
+#[case(60)]
+#[case(-60)]
+fn whole_seconds(#[case] seconds: i64) {
+    assert_eq!(Duration::seconds(seconds).whole_seconds(), seconds);
+}
+
+#[rstest]
+#[case(0.5, Duration::milliseconds(500))]
+#[case(-0.5, Duration::milliseconds(-500))]
+#[case(123.250, Duration::milliseconds(123_250))]
+#[case(0.000_000_000_012, Duration::ZERO)]
+fn seconds_f64(#[case] seconds: f64, #[case] expected: Duration) {
+    assert_eq!(Duration::seconds_f64(seconds), expected);
+}
+
+#[rstest]
+#[case(f64::MAX)]
+#[case(f64::MIN)]
+#[case(f64::NAN)]
+#[should_panic]
+fn seconds_f64_panic(#[case] seconds: f64) {
+    let _ = Duration::seconds_f64(seconds);
+}
+
+#[rstest]
+#[case(0.5, Duration::milliseconds(500))]
+#[case(-0.5, Duration::milliseconds(-500))]
+#[case(123.250, Duration::milliseconds(123_250))]
+#[case(0.000_000_000_012, Duration::ZERO)]
+#[case(f64::MAX, Duration::MAX)]
+#[case(f64::MIN, Duration::MIN)]
+#[case(f64::NAN, Duration::ZERO)]
+fn saturating_seconds_f64(#[case] seconds: f64, #[case] expected: Duration) {
+    assert_eq!(Duration::saturating_seconds_f64(seconds), expected);
+}
+
+#[rstest]
+#[case(0.5, 0.5)]
+#[case(-0.5, -0.5)]
+#[case(123.250, 123.250)]
+#[case(0.000_000_000_012, 0.)]
+fn checked_seconds_f64_success(#[case] seconds: f64, #[case] expected: f64) {
     assert_eq!(
-        Duration::saturating_seconds_f64(0.000_000_000_012),
-        Duration::ZERO
-    );
-
-    assert_eq!(Duration::saturating_seconds_f64(f64::MAX), Duration::MAX);
-    assert_eq!(Duration::saturating_seconds_f64(f64::MIN), Duration::MIN);
-    assert_eq!(Duration::saturating_seconds_f64(f64::NAN), Duration::ZERO);
-}
-
-#[test]
-fn checked_seconds_f64() {
-    assert_eq!(Duration::checked_seconds_f64(0.5), Some(0.5.seconds()));
-    assert_eq!(Duration::checked_seconds_f64(-0.5), Some((-0.5).seconds()));
-    assert_eq!(
-        Duration::checked_seconds_f64(123.250),
-        Some(123.250.seconds())
-    );
-    assert_eq!(
-        Duration::checked_seconds_f64(0.000_000_000_012),
-        Some(Duration::ZERO)
-    );
-
-    assert_eq!(Duration::checked_seconds_f64(f64::MAX), None);
-    assert_eq!(Duration::checked_seconds_f64(f64::MIN), None);
-    assert_eq!(Duration::checked_seconds_f64(f64::NAN), None);
-}
-
-#[test]
-#[allow(clippy::float_cmp)]
-fn as_seconds_f64() {
-    assert_eq!(1.seconds().as_seconds_f64(), 1.0);
-    assert_eq!((-1).seconds().as_seconds_f64(), -1.0);
-    assert_eq!(1.minutes().as_seconds_f64(), 60.0);
-    assert_eq!((-1).minutes().as_seconds_f64(), -60.0);
-    assert_eq!(1.5.seconds().as_seconds_f64(), 1.5);
-    assert_eq!((-1.5).seconds().as_seconds_f64(), -1.5);
-}
-
-#[test]
-fn seconds_f32() {
-    assert_eq!(Duration::seconds_f32(0.5), 0.5.seconds());
-    assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
-    assert_eq!(Duration::seconds_f32(123.250), 123.250.seconds());
-    assert_eq!(Duration::seconds_f32(0.000_000_000_012), Duration::ZERO);
-
-    assert_panic!(Duration::seconds_f32(f32::MAX));
-    assert_panic!(Duration::seconds_f32(f32::MIN));
-    assert_panic!(Duration::seconds_f32(f32::NAN));
-}
-
-#[test]
-fn saturating_seconds_f32() {
-    assert_eq!(Duration::saturating_seconds_f32(0.5), 0.5.seconds());
-    assert_eq!(Duration::saturating_seconds_f32(-0.5), (-0.5).seconds());
-    assert_eq!(Duration::saturating_seconds_f32(123.250), 123.250.seconds());
-    assert_eq!(
-        Duration::saturating_seconds_f32(0.000_000_000_012),
-        Duration::ZERO
-    );
-
-    assert_eq!(Duration::saturating_seconds_f32(f32::MAX), Duration::MAX);
-    assert_eq!(Duration::saturating_seconds_f32(f32::MIN), Duration::MIN);
-    assert_eq!(Duration::saturating_seconds_f32(f32::NAN), Duration::ZERO);
-}
-
-#[test]
-fn checked_seconds_f32() {
-    assert_eq!(Duration::checked_seconds_f32(0.5), Some(0.5.seconds()));
-    assert_eq!(Duration::checked_seconds_f32(-0.5), Some((-0.5).seconds()));
-    assert_eq!(
-        Duration::checked_seconds_f32(123.250),
-        Some(123.250.seconds())
-    );
-    assert_eq!(
-        Duration::checked_seconds_f32(0.000_000_000_012),
-        Some(Duration::ZERO)
-    );
-
-    assert_eq!(Duration::checked_seconds_f32(f32::MAX), None);
-    assert_eq!(Duration::checked_seconds_f32(f32::MIN), None);
-    assert_eq!(Duration::checked_seconds_f32(f32::NAN), None);
-}
-
-#[test]
-#[allow(clippy::float_cmp)]
-fn as_seconds_f32() {
-    assert_eq!(1.seconds().as_seconds_f32(), 1.0);
-    assert_eq!((-1).seconds().as_seconds_f32(), -1.0);
-    assert_eq!(1.minutes().as_seconds_f32(), 60.0);
-    assert_eq!((-1).minutes().as_seconds_f32(), -60.0);
-    assert_eq!(1.5.seconds().as_seconds_f32(), 1.5);
-    assert_eq!((-1.5).seconds().as_seconds_f32(), -1.5);
-}
-
-#[test]
-fn milliseconds() {
-    assert_eq!(Duration::milliseconds(1), 1_000.microseconds());
-    assert_eq!(Duration::milliseconds(-1), (-1000).microseconds());
-}
-
-#[test]
-fn whole_milliseconds() {
-    assert_eq!(1.seconds().whole_milliseconds(), 1_000);
-    assert_eq!((-1).seconds().whole_milliseconds(), -1_000);
-    assert_eq!(1.milliseconds().whole_milliseconds(), 1);
-    assert_eq!((-1).milliseconds().whole_milliseconds(), -1);
-}
-
-#[test]
-fn subsec_milliseconds() {
-    assert_eq!(1.4.seconds().subsec_milliseconds(), 400);
-    assert_eq!((-1.4).seconds().subsec_milliseconds(), -400);
-}
-
-#[test]
-fn microseconds() {
-    assert_eq!(Duration::microseconds(1), 1_000.nanoseconds());
-    assert_eq!(Duration::microseconds(-1), (-1_000).nanoseconds());
-}
-
-#[test]
-fn whole_microseconds() {
-    assert_eq!(1.milliseconds().whole_microseconds(), 1_000);
-    assert_eq!((-1).milliseconds().whole_microseconds(), -1_000);
-    assert_eq!(1.microseconds().whole_microseconds(), 1);
-    assert_eq!((-1).microseconds().whole_microseconds(), -1);
-}
-
-#[test]
-fn subsec_microseconds() {
-    assert_eq!(1.0004.seconds().subsec_microseconds(), 400);
-    assert_eq!((-1.0004).seconds().subsec_microseconds(), -400);
-}
-
-#[test]
-fn nanoseconds() {
-    assert_eq!(Duration::nanoseconds(1), 1.microseconds() / 1_000);
-    assert_eq!(Duration::nanoseconds(-1), (-1).microseconds() / 1_000);
-}
-
-#[test]
-fn whole_nanoseconds() {
-    assert_eq!(1.microseconds().whole_nanoseconds(), 1_000);
-    assert_eq!((-1).microseconds().whole_nanoseconds(), -1_000);
-    assert_eq!(1.nanoseconds().whole_nanoseconds(), 1);
-    assert_eq!((-1).nanoseconds().whole_nanoseconds(), -1);
-}
-
-#[test]
-fn subsec_nanoseconds() {
-    assert_eq!(1.000_000_4.seconds().subsec_nanoseconds(), 400);
-    assert_eq!((-1.000_000_4).seconds().subsec_nanoseconds(), -400);
-}
-
-#[test]
-fn checked_add() {
-    assert_eq!(5.seconds().checked_add(5.seconds()), Some(10.seconds()));
-    assert_eq!(Duration::MAX.checked_add(1.nanoseconds()), None);
-    assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
-    assert_eq!(
-        1.seconds().checked_add((-1).milliseconds()),
-        Some(999.milliseconds())
+        Duration::checked_seconds_f64(seconds),
+        Some(expected.seconds())
     );
 }
 
-#[test]
-fn checked_sub() {
-    assert_eq!(5.seconds().checked_sub(5.seconds()), Some(0.seconds()));
-    assert_eq!(Duration::MIN.checked_sub(1.nanoseconds()), None);
-    assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
-    assert_eq!(Duration::MIN.checked_sub(Duration::MIN), Some(0.seconds()));
+#[rstest]
+#[case(f64::MAX)]
+#[case(f64::MIN)]
+#[case(f64::NAN)]
+fn checked_seconds_f64_edge_cases(#[case] seconds: f64) {
+    assert_eq!(Duration::checked_seconds_f64(seconds), None);
 }
 
-#[test]
-fn checked_mul() {
-    assert_eq!(5.seconds().checked_mul(2), Some(10.seconds()));
-    assert_eq!(5.seconds().checked_mul(-2), Some((-10).seconds()));
-    assert_eq!(5.seconds().checked_mul(0), Some(Duration::ZERO));
-    assert_eq!(Duration::MAX.checked_mul(2), None);
-    assert_eq!(Duration::MIN.checked_mul(2), None);
+#[rstest]
+#[case(1.)]
+#[case(-1.)]
+#[case(60.)]
+#[case(-60.)]
+#[case(1.5)]
+#[case(-1.5)]
+fn as_seconds_f64(#[case] seconds: f64) {
+    assert_eq!(Duration::seconds_f64(seconds).as_seconds_f64(), seconds);
 }
 
-#[test]
-fn checked_div() {
-    assert_eq!(10.seconds().checked_div(2), Some(5.seconds()));
-    assert_eq!(10.seconds().checked_div(-2), Some((-5).seconds()));
-    assert_eq!(1.seconds().checked_div(0), None);
-    assert_eq!(Duration::MIN.checked_div(-1), None);
+#[rstest]
+#[case(0.5, Duration::milliseconds(500))]
+#[case(-0.5, Duration::milliseconds(-500))]
+#[case(123.250, Duration::milliseconds(123_250))]
+#[case(0.000_000_000_012, Duration::ZERO)]
+fn seconds_f32_success(#[case] seconds: f32, #[case] expected: Duration) {
+    assert_eq!(Duration::seconds_f32(seconds), expected);
 }
 
-#[test]
+#[rstest]
+#[case(f32::MAX)]
+#[case(f32::MIN)]
+#[case(f32::NAN)]
+#[should_panic]
+fn seconds_f32_panic(#[case] seconds: f32) {
+    let _ = Duration::seconds_f32(seconds);
+}
+
+#[rstest]
+#[case(0.5, Duration::milliseconds(500))]
+#[case(-0.5, Duration::milliseconds(-500))]
+#[case(123.250, Duration::milliseconds(123_250))]
+#[case(0.000_000_000_012, Duration::ZERO)]
+#[case(f32::MAX, Duration::MAX)]
+#[case(f32::MIN, Duration::MIN)]
+#[case(f32::NAN, Duration::ZERO)]
+fn saturating_seconds_f32(#[case] seconds: f32, #[case] expected: Duration) {
+    assert_eq!(Duration::saturating_seconds_f32(seconds), expected);
+}
+
+#[rstest]
+#[case(0.5, 0.5)]
+#[case(-0.5, -0.5)]
+#[case(123.250, 123.250)]
+#[case(0.000_000_000_012, 0.0)]
+fn checked_seconds_f32_success(#[case] seconds: f32, #[case] expected: f64) {
+    assert_eq!(
+        Duration::checked_seconds_f32(seconds),
+        Some(expected.seconds())
+    );
+}
+
+#[rstest]
+#[case(f32::MAX)]
+#[case(f32::MIN)]
+#[case(f32::NAN)]
+fn checked_seconds_f32_none(#[case] seconds: f32) {
+    assert_eq!(Duration::checked_seconds_f32(seconds), None);
+}
+
+#[rstest]
+#[case(1.0, 1.0)]
+#[case(-1.0, -1.0)]
+#[case(60.0, 60.0)]
+#[case(-60.0, -60.0)]
+#[case(1.5, 1.5)]
+#[case(-1.5, -1.5)]
+fn as_seconds_f32(#[case] seconds: f32, #[case] expected: f32) {
+    assert_eq!(Duration::seconds_f32(seconds).as_seconds_f32(), expected);
+}
+
+#[rstest]
+#[case(1, 1_000)]
+#[case(-1, -1_000)]
+fn milliseconds(#[case] input: i64, #[case] expected: i64) {
+    assert_eq!(Duration::milliseconds(input), expected.microseconds());
+}
+
+#[rstest]
+#[case(1.seconds(), 1_000)]
+#[case((-1).seconds(), -1_000)]
+#[case(1.milliseconds(), 1)]
+#[case((-1).milliseconds(), -1)]
+fn whole_milliseconds(#[case] input: Duration, #[case] expected: i128) {
+    assert_eq!(input.whole_milliseconds(), expected);
+}
+
+#[rstest]
+#[case(1.4.seconds(), 400)]
+#[case((-1.4).seconds(), -400)]
+fn subsec_milliseconds(#[case] duration: Duration, #[case] expected: i16) {
+    assert_eq!(duration.subsec_milliseconds(), expected);
+}
+
+#[rstest]
+#[case(1, 1_000)]
+#[case(-1, -1_000)]
+fn microseconds(#[case] input: i64, #[case] expected: i64) {
+    assert_eq!(Duration::microseconds(input), expected.nanoseconds());
+}
+
+#[rstest]
+#[case(1.milliseconds(), 1_000)]
+#[case((-1).milliseconds(), -1_000)]
+#[case(1.microseconds(), 1)]
+#[case((-1).microseconds(), -1)]
+fn whole_microseconds(#[case] input: Duration, #[case] expected: i128) {
+    assert_eq!(input.whole_microseconds(), expected);
+}
+
+#[rstest]
+#[case(1.0004.seconds(), 400)]
+#[case((-1.0004).seconds(), -400)]
+fn subsec_microseconds(#[case] duration: Duration, #[case] expected: i32) {
+    assert_eq!(duration.subsec_microseconds(), expected);
+}
+
+#[rstest]
+#[case(1, 1.microseconds() / 1_000)]
+#[case(-1, (-1).microseconds() / 1_000)]
+fn nanoseconds(#[case] input: i64, #[case] expected: Duration) {
+    assert_eq!(Duration::nanoseconds(input), expected);
+}
+
+#[rstest]
+#[case(1.microseconds(), 1_000)]
+#[case((-1).microseconds(), -1_000)]
+#[case(1.nanoseconds(), 1)]
+#[case((-1).nanoseconds(), -1)]
+fn whole_nanoseconds(#[case] input: Duration, #[case] expected: i128) {
+    assert_eq!(input.whole_nanoseconds(), expected);
+}
+
+#[rstest]
+#[case(1.000_000_4.seconds(), 400)]
+#[case((-1.000_000_4).seconds(), -400)]
+fn subsec_nanoseconds(#[case] duration: Duration, #[case] expected: i32) {
+    assert_eq!(duration.subsec_nanoseconds(), expected);
+}
+
+#[rstest]
+#[case(5.seconds(), 5.seconds(), 10.seconds())]
+#[case((-5).seconds(), 5.seconds(), 0.seconds())]
+#[case(1.seconds(), (-1).milliseconds(), 999.milliseconds())]
+fn checked_add_some(#[case] a: Duration, #[case] b: Duration, #[case] expected: Duration) {
+    assert_eq!(a.checked_add(b), Some(expected));
+}
+
+#[rstest]
+#[case(Duration::MAX, 1.nanoseconds())]
+#[case(5.seconds(), Duration::MAX)]
+#[case(Duration::MIN, Duration::MIN)]
+fn checked_add_none(#[case] a: Duration, #[case] b: Duration) {
+    assert_eq!(a.checked_add(b), None);
+}
+
+#[rstest]
+#[case(5.seconds(), 5.seconds(), 0.seconds())]
+#[case(5.seconds(), 10.seconds(), (-5).seconds())]
+fn checked_sub_some(#[case] a: Duration, #[case] b: Duration, #[case] expected: Duration) {
+    assert_eq!(a.checked_sub(b), Some(expected));
+}
+
+#[rstest]
+#[case(Duration::MIN, 1.nanoseconds())]
+#[case(5.seconds(), Duration::MIN)]
+#[case(Duration::MAX, Duration::MIN)]
+fn checked_sub_none(#[case] a: Duration, #[case] b: Duration) {
+    assert_eq!(a.checked_sub(b), None);
+}
+
+#[rstest]
+#[case(5.seconds(), 2, 10.seconds())]
+#[case(5.seconds(), -2, (-10).seconds())]
+#[case(5.seconds(), 0, Duration::ZERO)]
+fn checked_mul_some(#[case] duration: Duration, #[case] rhs: i32, #[case] expected: Duration) {
+    assert_eq!(duration.checked_mul(rhs), Some(expected));
+}
+
+#[rstest]
+#[case(Duration::MIN, -1)]
+#[case(Duration::MAX, 2)]
+#[case(Duration::MIN, 2)]
+fn checked_mul_none(#[case] duration: Duration, #[case] rhs: i32) {
+    assert_eq!(duration.checked_mul(rhs), None);
+}
+
+#[rstest]
+#[case(10.seconds(), 2, 5.seconds())]
+#[case(10.seconds(), -2, (-5).seconds())]
+fn checked_div_some(#[case] duration: Duration, #[case] rhs: i32, #[case] expected: Duration) {
+    assert_eq!(duration.checked_div(rhs), Some(expected));
+}
+
+#[rstest]
+#[case(1.seconds(), 0)]
+#[case(Duration::MIN, -1)]
+fn checked_div_none(#[case] duration: Duration, #[case] rhs: i32) {
+    assert_eq!(duration.checked_div(rhs), None);
+}
+
+#[rstest]
 fn checked_div_regression() {
     assert_eq!(
         Duration::new(1, 1).checked_div(7),
         Some(Duration::new(0, 142_857_143)) // manually verified
     );
 }
-
-#[test]
-fn saturating_add() {
-    assert_eq!(5.seconds().saturating_add(5.seconds()), 10.seconds());
-    assert_eq!(Duration::MAX.saturating_add(1.nanoseconds()), Duration::MAX);
-    assert_eq!(Duration::MAX.saturating_add(1.seconds()), Duration::MAX);
-    assert_eq!(
-        Duration::MIN.saturating_add((-1).nanoseconds()),
-        Duration::MIN
-    );
-    assert_eq!(Duration::MIN.saturating_add((-1).seconds()), Duration::MIN);
-    assert_eq!((-5).seconds().saturating_add(5.seconds()), Duration::ZERO);
-    assert_eq!(
-        1_600.milliseconds().saturating_add(1_600.milliseconds()),
-        3_200.milliseconds()
-    );
-    assert_eq!(
-        1.seconds().saturating_add((-1).milliseconds()),
-        (999).milliseconds()
-    );
+#[rstest]
+#[case(5.seconds(), 5.seconds(), 10.seconds())]
+#[case(Duration::MAX, 1.nanoseconds(), Duration::MAX)]
+#[case(Duration::MAX, 1.seconds(), Duration::MAX)]
+#[case(Duration::MIN, (-1).nanoseconds(), Duration::MIN)]
+#[case(Duration::MIN, (-1).seconds(), Duration::MIN)]
+#[case((-5).seconds(), 5.seconds(), Duration::ZERO)]
+#[case(1_600.milliseconds(), 1_600.milliseconds(), 3_200.milliseconds())]
+#[case(1.seconds(), (-1).milliseconds(), 999.milliseconds())]
+fn saturating_add(#[case] a: Duration, #[case] b: Duration, #[case] expected: Duration) {
+    assert_eq!(a.saturating_add(b), expected);
 }
 
-#[test]
-fn saturating_sub() {
-    assert_eq!(5.seconds().saturating_sub(5.seconds()), Duration::ZERO);
-    assert_eq!(Duration::MIN.saturating_sub(1.nanoseconds()), Duration::MIN);
-    assert_eq!(
-        Duration::MAX.saturating_sub((-1).nanoseconds()),
-        Duration::MAX
-    );
-    assert_eq!(Duration::MAX.saturating_sub((-1).seconds()), Duration::MAX);
-    assert_eq!(5.seconds().saturating_sub(10.seconds()), (-5).seconds());
-    assert_eq!(
-        (-1_600).milliseconds().saturating_sub(1_600.milliseconds()),
-        (-3_200).milliseconds()
-    );
-    assert_eq!(0.seconds().saturating_sub(Duration::MIN), Duration::MIN);
-    assert_eq!(Duration::MIN.saturating_sub(5.seconds()), Duration::MIN);
-    assert_eq!(
-        1_200.milliseconds().saturating_sub(600.milliseconds()),
-        600.milliseconds()
-    );
-    assert_eq!(
-        (-1_200)
-            .milliseconds()
-            .saturating_sub((-600).milliseconds()),
-        (-600).milliseconds()
-    );
+#[rstest]
+#[case(5.seconds(), 5.seconds(), Duration::ZERO)]
+#[case(Duration::MIN, 1.nanoseconds(), Duration::MIN)]
+#[case(Duration::MAX, (-1).nanoseconds(), Duration::MAX)]
+#[case(Duration::MAX, (-1).seconds(), Duration::MAX)]
+#[case(5.seconds(), 10.seconds(), (-5).seconds())]
+#[case((-1_600).milliseconds(), 1_600.milliseconds(), (-3_200).milliseconds())]
+#[case(0.seconds(), Duration::MIN, Duration::MIN)]
+#[case(Duration::MIN, 5.seconds(), Duration::MIN)]
+#[case(1_200.milliseconds(), 600.milliseconds(), 600.milliseconds())]
+#[case((-1_200).milliseconds(), (-600).milliseconds(), (-600).milliseconds())]
+fn saturating_sub(#[case] a: Duration, #[case] b: Duration, #[case] expected: Duration) {
+    assert_eq!(a.saturating_sub(b), expected);
 }
 
-#[test]
-fn saturating_mul() {
-    assert_eq!(5.seconds().saturating_mul(2), 10.seconds());
-    assert_eq!(5.seconds().saturating_mul(-2), (-10).seconds());
-    assert_eq!(5.seconds().saturating_mul(0), Duration::ZERO);
-    assert_eq!(Duration::MAX.saturating_mul(2), Duration::MAX);
-    assert_eq!(Duration::MIN.saturating_mul(2), Duration::MIN);
-    assert_eq!(Duration::MAX.saturating_mul(-2), Duration::MIN);
-    assert_eq!(Duration::MIN.saturating_mul(-2), Duration::MAX);
-    assert_eq!(
-        Duration::new(1_844_674_407_370_955_161, 600_000_000).saturating_mul(5),
-        Duration::MAX
-    );
-    assert_eq!(
-        Duration::new(1_844_674_407_370_955_161, 800_000_000).saturating_mul(-5),
-        Duration::MIN
-    );
+#[rstest]
+#[case(5.seconds(), 2, 10.seconds())]
+#[case(5.seconds(), -2, (-10).seconds())]
+#[case(5.seconds(), 0, Duration::ZERO)]
+#[case(Duration::MAX, 2, Duration::MAX)]
+#[case(Duration::MIN, 2, Duration::MIN)]
+#[case(Duration::MAX, -2, Duration::MIN)]
+#[case(Duration::MIN, -2, Duration::MAX)]
+#[case(
+    Duration::new(1_844_674_407_370_955_161, 600_000_000),
+    5,
+    Duration::MAX
+)]
+#[case(Duration::new(1_844_674_407_370_955_161, 800_000_000), -5, Duration::MIN)]
+fn saturating_mul(#[case] duration: Duration, #[case] rhs: i32, #[case] expected: Duration) {
+    assert_eq!(duration.saturating_mul(rhs), expected);
 }
 
-#[test]
+#[rstest]
+#[timeout(StdDuration::from_millis(100))]
 fn time_fn() {
     let (time, value) = Duration::time_fn(|| {
         std::thread::sleep(1.std_milliseconds());
@@ -475,463 +538,484 @@ fn time_fn() {
     assert_eq!(value, 0);
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
-#[test]
-fn display() {
-    assert_eq!(0.seconds().to_string(), "0s");
-    assert_eq!(60.days().to_string(), "60d");
-    assert_eq!((-48).hours().to_string(), "-2d");
-    assert_eq!(48.hours().to_string(), "2d");
-    assert_eq!(1.minutes().to_string(), "1m");
-    assert_eq!(10.minutes().to_string(), "10m");
-    assert_eq!(1.seconds().to_string(), "1s");
-    assert_eq!(10.seconds().to_string(), "10s");
-    assert_eq!(1.milliseconds().to_string(), "1ms");
-    assert_eq!(10.milliseconds().to_string(), "10ms");
-    assert_eq!(100.milliseconds().to_string(), "100ms");
-    assert_eq!(1.microseconds().to_string(), "1µs");
-    assert_eq!(10.microseconds().to_string(), "10µs");
-    assert_eq!(100.microseconds().to_string(), "100µs");
-    assert_eq!(1.nanoseconds().to_string(), "1ns");
-    assert_eq!(10.nanoseconds().to_string(), "10ns");
-    assert_eq!(100.nanoseconds().to_string(), "100ns");
-
-    assert_eq!(1.days().to_string(), "1d");
-    assert_eq!(26.hours().to_string(), "1d2h");
-    assert_eq!(1_563.minutes().to_string(), "1d2h3m");
-    assert_eq!(93_784.seconds().to_string(), "1d2h3m4s");
-    assert_eq!(93_784_005.milliseconds().to_string(), "1d2h3m4s5ms");
-    assert_eq!(93_784_005_006.microseconds().to_string(), "1d2h3m4s5ms6µs");
-    assert_eq!(
-        93_784_005_006_007.nanoseconds().to_string(),
-        "1d2h3m4s5ms6µs7ns"
-    );
-
-    assert_eq!(format!("{:.3}", 0.seconds()), "0.000s");
-    assert_eq!(format!("{:.3}", 60.days()), "60.000d");
-    assert_eq!(format!("{:.3}", (-48).hours()), "-2.000d");
-    assert_eq!(format!("{:.3}", 48.hours()), "2.000d");
-    assert_eq!(format!("{:.3}", 1.minutes()), "1.000m");
-    assert_eq!(format!("{:.3}", 10.minutes()), "10.000m");
-    assert_eq!(format!("{:.3}", 1.seconds()), "1.000s");
-    assert_eq!(format!("{:.3}", 10.seconds()), "10.000s");
-    assert_eq!(format!("{:.3}", 1.milliseconds()), "1.000ms");
-    assert_eq!(format!("{:.3}", 10.milliseconds()), "10.000ms");
-    assert_eq!(format!("{:.3}", 100.milliseconds()), "100.000ms");
-    assert_eq!(format!("{:.3}", 1.microseconds()), "1.000µs");
-    assert_eq!(format!("{:.3}", 10.microseconds()), "10.000µs");
-    assert_eq!(format!("{:.3}", 100.microseconds()), "100.000µs");
-    assert_eq!(format!("{:.3}", 1.nanoseconds()), "1.000ns");
-    assert_eq!(format!("{:.3}", 10.nanoseconds()), "10.000ns");
-    assert_eq!(format!("{:.3}", 100.nanoseconds()), "100.000ns");
-
-    assert_eq!(format!("{:.3}", 1.days()), "1.000d");
-    assert_eq!(format!("{:.3}", 26.hours()), "1.083d");
-    assert_eq!(format!("{:.4}", 1_563.minutes()), "1.0854d");
-    assert_eq!(format!("{:.5}", 93_784.seconds()), "1.08546d");
-    assert_eq!(format!("{:.6}", 93_784_005.milliseconds()), "1.085463d");
-    assert_eq!(
-        format!("{:.9}", 93_784_005_006.microseconds()),
-        "1.085463021d"
-    );
-    assert_eq!(
-        format!("{:.12}", 93_784_005_006_007.nanoseconds()),
-        "1.085463020903d"
-    );
+#[rstest]
+#[case(0.seconds(), "0s")]
+#[case(60.days(), "60d")]
+#[case((-48).hours(), "-2d")]
+#[case(48.hours(), "2d")]
+#[case(1.minutes(), "1m")]
+#[case(10.minutes(), "10m")]
+#[case(1.seconds(), "1s")]
+#[case(10.seconds(), "10s")]
+#[case(1.milliseconds(), "1ms")]
+#[case(10.milliseconds(), "10ms")]
+#[case(100.milliseconds(), "100ms")]
+#[case(1.microseconds(), "1µs")]
+#[case(10.microseconds(), "10µs")]
+#[case(100.microseconds(), "100µs")]
+#[case(1.nanoseconds(), "1ns")]
+#[case(10.nanoseconds(), "10ns")]
+#[case(100.nanoseconds(), "100ns")]
+fn display_basic(#[case] duration: Duration, #[case] expected: &str) {
+    assert_eq!(duration.to_string(), expected);
 }
 
-#[test]
-fn try_from_std_duration() {
-    assert_eq!(Duration::try_from(0.std_seconds()), Ok(0.seconds()));
-    assert_eq!(Duration::try_from(1.std_seconds()), Ok(1.seconds()));
-    assert_eq!(
-        Duration::try_from(u64::MAX.std_seconds()),
-        Err(error::ConversionRange)
-    );
+#[rstest]
+#[case(1.days(), "1d")]
+#[case(26.hours(), "1d2h")]
+#[case(1_563.minutes(), "1d2h3m")]
+#[case(93_784.seconds(), "1d2h3m4s")]
+#[case(93_784_005.milliseconds(), "1d2h3m4s5ms")]
+#[case(93_784_005_006.microseconds(), "1d2h3m4s5ms6µs")]
+#[case(93_784_005_006_007.nanoseconds(), "1d2h3m4s5ms6µs7ns")]
+fn display_compound(#[case] duration: Duration, #[case] expected: &str) {
+    assert_eq!(duration.to_string(), expected);
 }
 
-#[test]
-fn try_to_std_duration() {
-    assert_eq!(StdDuration::try_from(0.seconds()), Ok(0.std_seconds()));
-    assert_eq!(StdDuration::try_from(1.seconds()), Ok(1.std_seconds()));
-    assert!(StdDuration::try_from((-1).seconds()).is_err());
-    assert_eq!(
-        StdDuration::try_from((-500).milliseconds()),
-        Err(error::ConversionRange)
-    );
+#[rstest]
+#[case(0.seconds(), 3, "0.000s")]
+#[case(60.days(), 3, "60.000d")]
+#[case((-48).hours(), 3, "-2.000d")]
+#[case(48.hours(), 3, "2.000d")]
+#[case(1.minutes(), 3, "1.000m")]
+#[case(10.minutes(), 3, "10.000m")]
+#[case(1.seconds(), 3, "1.000s")]
+#[case(10.seconds(), 3, "10.000s")]
+#[case(1.milliseconds(), 3, "1.000ms")]
+#[case(10.milliseconds(), 3, "10.000ms")]
+#[case(100.milliseconds(), 3, "100.000ms")]
+#[case(1.microseconds(), 3, "1.000µs")]
+#[case(10.microseconds(), 3, "10.000µs")]
+#[case(100.microseconds(), 3, "100.000µs")]
+#[case(1.nanoseconds(), 3, "1.000ns")]
+#[case(10.nanoseconds(), 3, "10.000ns")]
+#[case(100.nanoseconds(), 3, "100.000ns")]
+#[case(1.days(), 3, "1.000d")]
+#[case(26.hours(), 3, "1.083d")]
+#[case(1_563.minutes(), 4, "1.0854d")]
+#[case(93_784.seconds(), 5, "1.08546d")]
+#[case(93_784_005.milliseconds(), 6, "1.085463d")]
+#[case(93_784_005_006.microseconds(), 9, "1.085463021d")]
+#[case(93_784_005_006_007.nanoseconds(), 12, "1.085463020903d")]
+fn display_precision(#[case] duration: Duration, #[case] precision: usize, #[case] expected: &str) {
+    assert_eq!(format!("{duration:.precision$}"), expected);
 }
 
-#[test]
-fn add() {
-    assert_eq!(1.seconds() + 1.seconds(), 2.seconds());
-    assert_eq!(500.milliseconds() + 500.milliseconds(), 1.seconds());
-    assert_eq!(1.seconds() + (-1).seconds(), 0.seconds());
+#[rstest]
+#[case(0.std_seconds(), 0.seconds())]
+#[case(1.std_seconds(), 1.seconds())]
+fn try_from_std_duration_success(#[case] std_duration: StdDuration, #[case] expected: Duration) {
+    assert_eq!(Duration::try_from(std_duration), Ok(expected));
 }
 
-#[test]
-fn add_std() {
-    assert_eq!(1.seconds() + 1.std_seconds(), 2.seconds());
-    assert_eq!(500.milliseconds() + 500.std_milliseconds(), 1.seconds());
-    assert_eq!((-1).seconds() + 1.std_seconds(), 0.seconds());
+#[rstest]
+#[case(u64::MAX.std_seconds(), error::ConversionRange)]
+fn try_from_std_duration_error(
+    #[case] std_duration: StdDuration,
+    #[case] expected: error::ConversionRange,
+) {
+    assert_eq!(Duration::try_from(std_duration), Err(expected));
 }
 
-#[test]
-fn std_add() {
-    assert_eq!(1.std_seconds() + 1.seconds(), 2.seconds());
-    assert_eq!(500.std_milliseconds() + 500.milliseconds(), 1.seconds());
-    assert_eq!(1.std_seconds() + (-1).seconds(), 0.seconds());
+#[rstest]
+#[case(0.seconds(), 0.std_seconds())]
+#[case(1.seconds(), 1.std_seconds())]
+fn try_to_std_duration_success(#[case] duration: Duration, #[case] expected: StdDuration) {
+    assert_eq!(StdDuration::try_from(duration), Ok(expected));
 }
 
-#[test]
-fn add_assign() {
-    let mut duration = 1.seconds();
-    duration += 1.seconds();
-    assert_eq!(duration, 2.seconds());
-
-    let mut duration = 500.milliseconds();
-    duration += 500.milliseconds();
-    assert_eq!(duration, 1.seconds());
-
-    let mut duration = 1.seconds();
-    duration += (-1).seconds();
-    assert_eq!(duration, 0.seconds());
+#[rstest]
+#[case((-1).seconds())]
+#[case((-500).milliseconds())]
+fn try_to_std_duration_error(#[case] duration: Duration) {
+    assert_eq!(StdDuration::try_from(duration), Err(error::ConversionRange));
 }
 
-#[test]
-fn add_assign_std() {
-    let mut duration = 1.seconds();
-    duration += 1.std_seconds();
-    assert_eq!(duration, 2.seconds());
-
-    let mut duration = 500.milliseconds();
-    duration += 500.std_milliseconds();
-    assert_eq!(duration, 1.seconds());
-
-    let mut duration = (-1).seconds();
-    duration += 1.std_seconds();
-    assert_eq!(duration, 0.seconds());
+#[rstest]
+#[case(1.seconds(), 1.seconds(), 2.seconds())]
+#[case(500.milliseconds(), 500.milliseconds(), 1.seconds())]
+#[case(1.seconds(), (-1).seconds(), 0.seconds())]
+fn add(#[case] lhs: Duration, #[case] rhs: Duration, #[case] expected: Duration) {
+    assert_eq!(lhs + rhs, expected);
 }
 
-#[test]
-fn std_add_assign() {
-    let mut duration = 1.std_seconds();
-    duration += 1.seconds();
-    assert_eq!(duration, 2.seconds());
-
-    let mut duration = 500.std_milliseconds();
-    duration += 500.milliseconds();
-    assert_eq!(duration, 1.seconds());
+#[rstest]
+#[case(1.seconds(), 1.std_seconds(), 2.seconds())]
+#[case(500.milliseconds(), 500.std_milliseconds(), 1.seconds())]
+#[case((-1).seconds(), 1.std_seconds(), 0.seconds())]
+fn add_std(#[case] lhs: Duration, #[case] rhs: StdDuration, #[case] expected: Duration) {
+    assert_eq!(lhs + rhs, expected);
 }
 
-#[test]
-fn neg() {
-    assert_eq!(-(1.seconds()), (-1).seconds());
-    assert_eq!(-(-1).seconds(), 1.seconds());
-    assert_eq!(-(0.seconds()), 0.seconds());
+#[rstest]
+#[case(1.std_seconds(), 1.seconds(), 2.seconds())]
+#[case(500.std_milliseconds(), 500.milliseconds(), 1.seconds())]
+#[case(1.std_seconds(), (-1).seconds(), 0.seconds())]
+fn std_add(#[case] lhs: StdDuration, #[case] rhs: Duration, #[case] expected: Duration) {
+    assert_eq!(lhs + rhs, expected);
 }
 
-#[test]
-fn sub() {
-    assert_eq!(1.seconds() - 1.seconds(), 0.seconds());
-    assert_eq!(1_500.milliseconds() - 500.milliseconds(), 1.seconds());
-    assert_eq!(1.seconds() - (-1).seconds(), 2.seconds());
+#[rstest]
+#[case(1.seconds(), 1.seconds(), 2.seconds())]
+#[case(500.milliseconds(), 500.milliseconds(), 1.seconds())]
+#[case(1.seconds(), (-1).seconds(), 0.seconds())]
+fn add_assign(#[case] mut duration: Duration, #[case] other: Duration, #[case] expected: Duration) {
+    duration += other;
+    assert_eq!(duration, expected);
 }
 
-#[test]
-fn sub_std() {
-    assert_eq!(1.seconds() - 1.std_seconds(), 0.seconds());
-    assert_eq!(1_500.milliseconds() - 500.std_milliseconds(), 1.seconds());
-    assert_eq!((-1).seconds() - 1.std_seconds(), (-2).seconds());
+#[rstest]
+#[case(1.seconds(), 1.std_seconds(), 2.seconds())]
+#[case(500.milliseconds(), 500.std_milliseconds(), 1.seconds())]
+#[case((-1).seconds(), 1.std_seconds(), 0.seconds())]
+fn add_assign_std(
+    #[case] mut duration: Duration,
+    #[case] other: StdDuration,
+    #[case] expected: Duration,
+) {
+    duration += other;
+    assert_eq!(duration, expected);
 }
 
-#[test]
-fn std_sub() {
-    assert_eq!(1.std_seconds() - 1.seconds(), 0.seconds());
-    assert_eq!(1_500.std_milliseconds() - 500.milliseconds(), 1.seconds());
-    assert_eq!(1.std_seconds() - (-1).seconds(), 2.seconds());
+#[rstest]
+#[case(1.std_seconds(), 1.seconds(), 2.seconds())]
+#[case(500.std_milliseconds(), 500.milliseconds(), 1.seconds())]
+#[case(1.std_seconds(), (-1).seconds(), 0.seconds())]
+fn std_add_assign(
+    #[case] mut duration: StdDuration,
+    #[case] other: Duration,
+    #[case] expected: Duration,
+) {
+    duration += other;
+    assert_eq!(duration, expected);
 }
 
-#[test]
-fn sub_assign() {
-    let mut duration = 1.seconds();
-    duration -= 1.seconds();
-    assert_eq!(duration, 0.seconds());
-
-    let mut duration = 1_500.milliseconds();
-    duration -= 500.milliseconds();
-    assert_eq!(duration, 1.seconds());
-
-    let mut duration = 1.seconds();
-    duration -= (-1).seconds();
-    assert_eq!(duration, 2.seconds());
+#[rstest]
+#[case(1.seconds(), (-1).seconds())]
+#[case((-1).seconds(), 1.seconds())]
+#[case(0.seconds(), 0.seconds())]
+fn neg(#[case] duration: Duration, #[case] expected: Duration) {
+    assert_eq!(-duration, expected);
 }
 
-#[test]
-fn sub_assign_std() {
-    let mut duration = 1.seconds();
-    duration -= 1.std_seconds();
-    assert_eq!(duration, 0.seconds());
-
-    let mut duration = 1_500.milliseconds();
-    duration -= 500.std_milliseconds();
-    assert_eq!(duration, 1.seconds());
-
-    let mut duration = (-1).seconds();
-    duration -= 1.std_seconds();
-    assert_eq!(duration, (-2).seconds());
+#[rstest]
+#[case(1.seconds(), 1.seconds(), 0.seconds())]
+#[case(1_500.milliseconds(), 500.milliseconds(), 1.seconds())]
+#[case(1.seconds(), (-1).seconds(), 2.seconds())]
+fn sub(#[case] lhs: Duration, #[case] rhs: Duration, #[case] expected: Duration) {
+    assert_eq!(lhs - rhs, expected);
 }
 
-#[test]
-fn std_sub_assign() {
-    let mut duration = 1.std_seconds();
-    duration -= 1.seconds();
-    assert_eq!(duration, 0.seconds());
-
-    let mut duration = 1_500.std_milliseconds();
-    duration -= 500.milliseconds();
-    assert_eq!(duration, 1.seconds());
+#[rstest]
+#[case(1.seconds(), 1.std_seconds(), 0.seconds())]
+#[case(1_500.milliseconds(), 500.std_milliseconds(), 1.seconds())]
+#[case((-1).seconds(), 1.std_seconds(), -(2.seconds()))]
+fn sub_std(#[case] lhs: Duration, #[case] rhs: StdDuration, #[case] expected: Duration) {
+    assert_eq!(lhs - rhs, expected);
 }
 
-#[test]
+#[rstest]
+#[case(1.std_seconds(), 1.seconds(), 0.seconds())]
+#[case(1_500.std_milliseconds(), 500.milliseconds(), 1.seconds())]
+#[case(1.std_seconds(), (-1).seconds(), 2.seconds())]
+fn std_sub(#[case] lhs: StdDuration, #[case] rhs: Duration, #[case] expected: Duration) {
+    assert_eq!(lhs - rhs, expected);
+}
+
+#[rstest]
+#[case(1.seconds(), 1.seconds(), 0.seconds())]
+#[case(1_500.milliseconds(), 500.milliseconds(), 1.seconds())]
+#[case(1.seconds(), (-1).seconds(), 2.seconds())]
+fn sub_assign(#[case] mut duration: Duration, #[case] other: Duration, #[case] expected: Duration) {
+    duration -= other;
+    assert_eq!(duration, expected);
+}
+
+#[rstest]
+#[case(1.seconds(), 1.std_seconds(), 0.seconds())]
+#[case(1_500.milliseconds(), 500.std_milliseconds(), 1.seconds())]
+#[case((-1).seconds(), 1.std_seconds(), -(2.seconds()))]
+fn sub_assign_std(
+    #[case] mut duration: Duration,
+    #[case] other: StdDuration,
+    #[case] expected: Duration,
+) {
+    duration -= other;
+    assert_eq!(duration, expected);
+}
+
+#[rstest]
+#[case(1.std_seconds(), 1.seconds(), 0.seconds())]
+#[case(1_500.std_milliseconds(), 500.milliseconds(), 1.seconds())]
+#[case(1.std_seconds(), (-1).seconds(), 2.seconds())]
+fn std_sub_assign(
+    #[case] mut duration: StdDuration,
+    #[case] other: Duration,
+    #[case] expected: Duration,
+) {
+    duration -= other;
+    assert_eq!(duration, expected);
+}
+
+#[rstest]
 #[should_panic]
 fn std_sub_assign_overflow() {
     let mut duration = 1.std_seconds();
     duration -= 2.seconds();
 }
 
-#[test]
-fn mul_int() {
-    assert_eq!(1.seconds() * 2, 2.seconds());
-    assert_eq!(1.seconds() * -2, (-2).seconds());
-
-    assert_panic!(Duration::MAX * 2);
-    assert_panic!(Duration::MIN * 2);
+#[rstest]
+#[case(1.seconds(), 2, 2.seconds())]
+#[case(1.seconds(), -2, (-2).seconds())]
+fn mul_int_success(#[case] duration: Duration, #[case] rhs: i32, #[case] expected: Duration) {
+    assert_eq!(duration * rhs, expected);
 }
 
-#[test]
-fn mul_int_assign() {
-    let mut duration = 1.seconds();
-    duration *= 2;
-    assert_eq!(duration, 2.seconds());
-
-    let mut duration = 1.seconds();
-    duration *= -2;
-    assert_eq!(duration, (-2).seconds());
+#[rstest]
+#[case(Duration::MAX, 2)]
+#[case(Duration::MIN, 2)]
+#[should_panic]
+fn mul_int_panic(#[case] duration: Duration, #[case] rhs: i32) {
+    let _ = duration * rhs;
 }
 
-#[test]
-fn int_mul() {
-    assert_eq!(2 * 1.seconds(), 2.seconds());
-    assert_eq!(-2 * 1.seconds(), (-2).seconds());
+#[rstest]
+#[case(1.seconds(), 2, 2.seconds())]
+#[case(1.seconds(), -2, (-2).seconds())]
+fn mul_int_assign(#[case] mut duration: Duration, #[case] rhs: i32, #[case] expected: Duration) {
+    duration *= rhs;
+    assert_eq!(duration, expected);
 }
 
-#[test]
-fn div_int() {
-    assert_eq!(1.seconds() / 2, 500.milliseconds());
-    assert_eq!(1.seconds() / -2, (-500).milliseconds());
+#[rstest]
+#[case(2, 1.seconds(), 2.seconds())]
+#[case(-2, 1.seconds(), (-2).seconds())]
+fn int_mul(#[case] lhs: i32, #[case] duration: Duration, #[case] expected: Duration) {
+    assert_eq!(lhs * duration, expected);
 }
 
-#[test]
-fn div_int_assign() {
-    let mut duration = 1.seconds();
-    duration /= 2;
-    assert_eq!(duration, 500.milliseconds());
-
-    let mut duration = 1.seconds();
-    duration /= -2;
-    assert_eq!(duration, (-500).milliseconds());
+#[rstest]
+#[case(1.seconds(), 2, 500.milliseconds())]
+#[case(1.seconds(), -2, (-500).milliseconds())]
+fn div_int(#[case] duration: Duration, #[case] rhs: i32, #[case] expected: Duration) {
+    assert_eq!(duration / rhs, expected);
 }
 
-#[test]
+#[rstest]
+#[case(1.seconds(), 2, 500.milliseconds())]
+#[case(1.seconds(), -2, (-500).milliseconds())]
+fn div_int_assign(#[case] mut duration: Duration, #[case] rhs: i32, #[case] expected: Duration) {
+    duration /= rhs;
+    assert_eq!(duration, expected);
+}
+
+#[rstest]
+#[case(1.seconds(), 0.5.seconds(), 2.)]
+#[case(2.seconds(), 0.25.seconds(), 8.)]
 #[allow(clippy::float_cmp)]
-fn div() {
-    assert_eq!(1.seconds() / 0.5.seconds(), 2.);
-    assert_eq!(1.std_seconds() / 0.5.seconds(), 2.);
-    assert_eq!(1.seconds() / 0.5.std_seconds(), 2.);
+fn div(#[case] lhs: Duration, #[case] rhs: Duration, #[case] expected: f64) {
+    assert_eq!(lhs / rhs, expected);
 }
 
-#[test]
-fn mul_float() {
-    assert_eq!(1.seconds() * 1.5_f32, 1_500.milliseconds());
-    assert_eq!(1.seconds() * 2.5_f32, 2_500.milliseconds());
-    assert_eq!(1.seconds() * -1.5_f32, (-1_500).milliseconds());
-    assert_eq!(1.seconds() * 0_f32, 0.seconds());
-
-    assert_eq!(1.seconds() * 1.5_f64, 1_500.milliseconds());
-    assert_eq!(1.seconds() * 2.5_f64, 2_500.milliseconds());
-    assert_eq!(1.seconds() * -1.5_f64, (-1_500).milliseconds());
-    assert_eq!(1.seconds() * 0_f64, 0.seconds());
+#[rstest]
+#[case(1.seconds(), 0.5.std_seconds(), 2.)]
+#[case(2.seconds(), 0.25.std_seconds(), 8.)]
+#[allow(clippy::float_cmp)]
+fn div_std(#[case] lhs: Duration, #[case] rhs: StdDuration, #[case] expected: f64) {
+    assert_eq!(lhs / rhs, expected);
 }
 
-#[test]
-fn float_mul() {
-    assert_eq!(1.5_f32 * 1.seconds(), 1_500.milliseconds());
-    assert_eq!(2.5_f32 * 1.seconds(), 2_500.milliseconds());
-    assert_eq!(-1.5_f32 * 1.seconds(), (-1_500).milliseconds());
-    assert_eq!(0_f32 * 1.seconds(), 0.seconds());
-
-    assert_eq!(1.5_f64 * 1.seconds(), 1_500.milliseconds());
-    assert_eq!(2.5_f64 * 1.seconds(), 2_500.milliseconds());
-    assert_eq!(-1.5_f64 * 1.seconds(), (-1_500).milliseconds());
-    assert_eq!(0_f64 * 1.seconds(), 0.seconds());
+#[rstest]
+#[case(1.std_seconds(), 0.5.seconds(), 2.)]
+#[case(2.std_seconds(), 0.25.seconds(), 8.)]
+#[allow(clippy::float_cmp)]
+fn std_div(#[case] lhs: StdDuration, #[case] rhs: Duration, #[case] expected: f64) {
+    assert_eq!(lhs / rhs, expected);
 }
 
-#[test]
-fn mul_float_assign() {
-    let mut duration = 1.seconds();
-    duration *= 1.5_f32;
-    assert_eq!(duration, 1_500.milliseconds());
-
-    let mut duration = 1.seconds();
-    duration *= 2.5_f32;
-    assert_eq!(duration, 2_500.milliseconds());
-
-    let mut duration = 1.seconds();
-    duration *= -1.5_f32;
-    assert_eq!(duration, (-1_500).milliseconds());
-
-    let mut duration = 1.seconds();
-    duration *= 0_f32;
-    assert_eq!(duration, 0.seconds());
-
-    let mut duration = 1.seconds();
-    duration *= 1.5_f64;
-    assert_eq!(duration, 1_500.milliseconds());
-
-    let mut duration = 1.seconds();
-    duration *= 2.5_f64;
-    assert_eq!(duration, 2_500.milliseconds());
-
-    let mut duration = 1.seconds();
-    duration *= -1.5_f64;
-    assert_eq!(duration, (-1_500).milliseconds());
-
-    let mut duration = 1.seconds();
-    duration *= 0_f64;
-    assert_eq!(duration, 0.seconds());
+#[rstest]
+#[case(1.seconds(), 1.5, 1_500.milliseconds())]
+#[case(1.seconds(), 2.5, 2_500.milliseconds())]
+#[case(1.seconds(), -1.5, (-1_500).milliseconds())]
+#[case(1.seconds(), 0., 0.seconds())]
+fn mul_f32(#[case] duration: Duration, #[case] rhs: f32, #[case] expected: Duration) {
+    assert_eq!(duration * rhs, expected);
 }
 
-#[test]
-fn div_float() {
-    assert_eq!(1.seconds() / 1_f32, 1.seconds());
-    assert_eq!(1.seconds() / 2_f32, 500.milliseconds());
-    assert_eq!(1.seconds() / -1_f32, (-1).seconds());
-
-    assert_eq!(1.seconds() / 1_f64, 1.seconds());
-    assert_eq!(1.seconds() / 2_f64, 500.milliseconds());
-    assert_eq!(1.seconds() / -1_f64, (-1).seconds());
+#[rstest]
+#[case(1.seconds(), 1.5, 1_500.milliseconds())]
+#[case(1.seconds(), 2.5, 2_500.milliseconds())]
+#[case(1.seconds(), -1.5, (-1_500).milliseconds())]
+#[case(1.seconds(), 0., 0.seconds())]
+fn mul_f64(#[case] duration: Duration, #[case] rhs: f64, #[case] expected: Duration) {
+    assert_eq!(duration * rhs, expected);
 }
 
-#[test]
-fn div_float_assign() {
-    let mut duration = 1.seconds();
-    duration /= 1_f32;
-    assert_eq!(duration, 1.seconds());
-
-    let mut duration = 1.seconds();
-    duration /= 2_f32;
-    assert_eq!(duration, 500.milliseconds());
-
-    let mut duration = 1.seconds();
-    duration /= -1_f32;
-    assert_eq!(duration, (-1).seconds());
-
-    let mut duration = 1.seconds();
-    duration /= 1_f64;
-    assert_eq!(duration, 1.seconds());
-
-    let mut duration = 1.seconds();
-    duration /= 2_f64;
-    assert_eq!(duration, 500.milliseconds());
-
-    let mut duration = 1.seconds();
-    duration /= -1_f64;
-    assert_eq!(duration, (-1).seconds());
+#[rstest]
+#[case(1.5, 1.seconds(), 1_500.milliseconds())]
+#[case(2.5, 1.seconds(), 2_500.milliseconds())]
+#[case(-1.5, 1.seconds(), (-1_500).milliseconds())]
+#[case(0., 1.seconds(), 0.seconds())]
+fn f32_mul(#[case] lhs: f32, #[case] duration: Duration, #[case] expected: Duration) {
+    assert_eq!(lhs * duration, expected);
 }
 
-#[test]
-fn partial_eq() {
-    assert_eq!(1.seconds(), 1.seconds());
-    assert_eq!(0.seconds(), 0.seconds());
-    assert_eq!((-1).seconds(), (-1).seconds());
-    assert_ne!(1.minutes(), (-1).minutes());
-    assert_ne!(40.seconds(), 1.minutes());
+#[rstest]
+#[case(1.5, 1.seconds(), 1_500.milliseconds())]
+#[case(2.5, 1.seconds(), 2_500.milliseconds())]
+#[case(-1.5, 1.seconds(), (-1_500).milliseconds())]
+#[case(0., 1.seconds(), 0.seconds())]
+fn f64_mul(#[case] lhs: f64, #[case] duration: Duration, #[case] expected: Duration) {
+    assert_eq!(lhs * duration, expected);
 }
 
-#[test]
-fn partial_eq_std() {
-    assert_eq!(1.seconds(), 1.std_seconds());
-    assert_eq!(0.seconds(), 0.std_seconds());
-    assert_ne!((-1).seconds(), 1.std_seconds());
-    assert_ne!((-1).minutes(), 1.std_minutes());
-    assert_ne!(40.seconds(), 1.std_minutes());
+#[rstest]
+#[case(1.seconds(), 1.5, 1_500.milliseconds())]
+#[case(1.seconds(), 2.5, 2_500.milliseconds())]
+#[case(1.seconds(), -1.5, (-1_500).milliseconds())]
+#[case(1.seconds(), 0., 0.seconds())]
+fn mul_f32_assign(#[case] mut duration: Duration, #[case] rhs: f32, #[case] expected: Duration) {
+    duration *= rhs;
+    assert_eq!(duration, expected);
 }
 
-#[test]
-fn std_partial_eq() {
-    assert_eq!(1.std_seconds(), 1.seconds());
-    assert_eq!(0.std_seconds(), 0.seconds());
-    assert_ne!(1.std_seconds(), (-1).seconds());
-    assert_ne!(1.std_minutes(), (-1).minutes());
-    assert_ne!(40.std_seconds(), 1.minutes());
+#[rstest]
+#[case(1.seconds(), 1.5, 1_500.milliseconds())]
+#[case(1.seconds(), 2.5, 2_500.milliseconds())]
+#[case(1.seconds(), -1.5, (-1_500).milliseconds())]
+#[case(1.seconds(), 0., 0.seconds())]
+fn mul_f64_assign(#[case] mut duration: Duration, #[case] rhs: f64, #[case] expected: Duration) {
+    duration *= rhs;
+    assert_eq!(duration, expected);
 }
 
-#[test]
-fn partial_ord() {
-    use Ordering::*;
-    assert_eq!(0.seconds().partial_cmp(&0.seconds()), Some(Equal));
-    assert_eq!(1.seconds().partial_cmp(&0.seconds()), Some(Greater));
-    assert_eq!(1.seconds().partial_cmp(&(-1).seconds()), Some(Greater));
-    assert_eq!((-1).seconds().partial_cmp(&1.seconds()), Some(Less));
-    assert_eq!(0.seconds().partial_cmp(&(-1).seconds()), Some(Greater));
-    assert_eq!(0.seconds().partial_cmp(&1.seconds()), Some(Less));
-    assert_eq!((-1).seconds().partial_cmp(&0.seconds()), Some(Less));
-    assert_eq!(1.minutes().partial_cmp(&1.seconds()), Some(Greater));
-    assert_eq!((-1).minutes().partial_cmp(&(-1).seconds()), Some(Less));
+#[rstest]
+#[case(1.seconds(), 1., 1.seconds())]
+#[case(1.seconds(), 2., 500.milliseconds())]
+#[case(1.seconds(), 4., 250.milliseconds())]
+#[case(1.seconds(), 0.25, 4.seconds())]
+#[case(1.seconds(), -1., (-1).seconds())]
+fn div_f32(#[case] duration: Duration, #[case] rhs: f32, #[case] expected: Duration) {
+    assert_eq!(duration / rhs, expected);
 }
 
-#[test]
-fn partial_ord_std() {
-    use Ordering::*;
-    assert_eq!(0.seconds().partial_cmp(&0.std_seconds()), Some(Equal));
-    assert_eq!(1.seconds().partial_cmp(&0.std_seconds()), Some(Greater));
-    assert_eq!((-1).seconds().partial_cmp(&1.std_seconds()), Some(Less));
-    assert_eq!(0.seconds().partial_cmp(&1.std_seconds()), Some(Less));
-    assert_eq!((-1).seconds().partial_cmp(&0.std_seconds()), Some(Less));
-    assert_eq!(1.minutes().partial_cmp(&1.std_seconds()), Some(Greater));
-    assert_eq!(0.seconds().partial_cmp(&u64::MAX.std_seconds()), Some(Less));
+#[rstest]
+#[case(1.seconds(), 1., 1.seconds())]
+#[case(1.seconds(), 2., 500.milliseconds())]
+#[case(1.seconds(), 4., 250.milliseconds())]
+#[case(1.seconds(), 0.25, 4.seconds())]
+#[case(1.seconds(), -1., (-1).seconds())]
+fn div_f64(#[case] duration: Duration, #[case] rhs: f64, #[case] expected: Duration) {
+    assert_eq!(duration / rhs, expected);
 }
 
-#[test]
-fn std_partial_ord() {
-    use Ordering::*;
-    assert_eq!(0.std_seconds().partial_cmp(&0.seconds()), Some(Equal));
-    assert_eq!(1.std_seconds().partial_cmp(&0.seconds()), Some(Greater));
-    assert_eq!(1.std_seconds().partial_cmp(&(-1).seconds()), Some(Greater));
-    assert_eq!(0.std_seconds().partial_cmp(&(-1).seconds()), Some(Greater));
-    assert_eq!(0.std_seconds().partial_cmp(&1.seconds()), Some(Less));
-    assert_eq!(1.std_minutes().partial_cmp(&1.seconds()), Some(Greater));
+#[rstest]
+#[case(1.seconds(), 1., 1.seconds())]
+#[case(1.seconds(), 2., 500.milliseconds())]
+#[case(1.seconds(), 4., 250.milliseconds())]
+#[case(1.seconds(), 0.25, 4.seconds())]
+#[case(1.seconds(), -1., (-1).seconds())]
+fn div_f32_assign(#[case] mut duration: Duration, #[case] rhs: f32, #[case] expected: Duration) {
+    duration /= rhs;
+    assert_eq!(duration, expected);
 }
 
-#[test]
-fn ord() {
-    assert_eq!(0.seconds().cmp(&0.seconds()), Ordering::Equal);
-    assert_eq!(1.seconds().cmp(&0.seconds()), Ordering::Greater);
-    assert_eq!(1.seconds().cmp(&(-1).seconds()), Ordering::Greater);
-    assert_eq!((-1).seconds().cmp(&1.seconds()), Ordering::Less);
-    assert_eq!(0.seconds().cmp(&(-1).seconds()), Ordering::Greater);
-    assert_eq!(0.seconds().cmp(&1.seconds()), Ordering::Less);
-    assert_eq!((-1).seconds().cmp(&0.seconds()), Ordering::Less);
-    assert_eq!(1.minutes().cmp(&1.seconds()), Ordering::Greater);
-    assert_eq!((-1).minutes().cmp(&(-1).seconds()), Ordering::Less);
-    assert_eq!(100.nanoseconds().cmp(&200.nanoseconds()), Ordering::Less);
-    assert_eq!(
-        (-100).nanoseconds().cmp(&(-200).nanoseconds()),
-        Ordering::Greater
-    );
+#[rstest]
+#[case(1.seconds(), 1., 1.seconds())]
+#[case(1.seconds(), 2., 500.milliseconds())]
+#[case(1.seconds(), 4., 250.milliseconds())]
+#[case(1.seconds(), 0.25, 4.seconds())]
+#[case(1.seconds(), -1., (-1).seconds())]
+fn div_f64_assign(#[case] mut duration: Duration, #[case] rhs: f64, #[case] expected: Duration) {
+    duration /= rhs;
+    assert_eq!(duration, expected);
 }
 
-#[test]
+#[rstest]
+#[case(1.seconds(), 1.seconds(), true)]
+#[case(0.seconds(), 0.seconds(), true)]
+#[case(1.seconds(), 2.seconds(), false)]
+#[case(1.seconds(), (-1).seconds(), false)]
+#[case((-1).seconds(), (-1).seconds(), true)]
+#[case(40.seconds(), 1.minutes(), false)]
+fn partial_eq(#[case] lhs: Duration, #[case] rhs: Duration, #[case] expected: bool) {
+    assert_eq_ne!(lhs, rhs, expected);
+}
+
+#[rstest]
+#[case(1.seconds(), 1.std_seconds(), true)]
+#[case(0.seconds(), 0.std_seconds(), true)]
+#[case(1.seconds(), 2.std_seconds(), false)]
+#[case((-1).seconds(), 1.std_seconds(), false)]
+#[case(40.seconds(), 1.std_minutes(), false)]
+fn partial_eq_std(#[case] lhs: Duration, #[case] rhs: StdDuration, #[case] expected: bool) {
+    assert_eq_ne!(lhs, rhs, expected);
+}
+
+#[rstest]
+#[case(1.std_seconds(), 1.seconds(), true)]
+#[case(0.std_seconds(), 0.seconds(), true)]
+#[case(2.std_seconds(), 1.seconds(), false)]
+#[case(1.std_seconds(), (-1).seconds(), false)]
+#[case(1.std_minutes(), 40.seconds(), false)]
+fn std_partial_eq(#[case] lhs: StdDuration, #[case] rhs: Duration, #[case] expected: bool) {
+    assert_eq_ne!(lhs, rhs, expected);
+}
+
+#[rstest]
+#[case(0.seconds(), 0.seconds(), Equal)]
+#[case(1.seconds(), 0.seconds(), Greater)]
+#[case(1.seconds(), (-1).seconds(), Greater)]
+#[case((-1).seconds(), 1.seconds(), Less)]
+#[case(0.seconds(), (-1).seconds(), Greater)]
+#[case(0.seconds(), 1.seconds(), Less)]
+#[case((-1).seconds(), 0.seconds(), Less)]
+#[case(1.minutes(), 1.seconds(), Greater)]
+#[case((-1).minutes(), (-1).seconds(), Less)]
+fn partial_ord(#[case] lhs: Duration, #[case] rhs: Duration, #[case] expected: Ordering) {
+    assert_eq!(lhs.partial_cmp(&rhs), Some(expected));
+}
+
+#[rstest]
+#[case(0.seconds(), 0.std_seconds(), Equal)]
+#[case(1.seconds(), 0.std_seconds(), Greater)]
+#[case((-1).seconds(), 1.std_seconds(), Less)]
+#[case(0.seconds(), 1.std_seconds(), Less)]
+#[case((-1).seconds(), 0.std_seconds(), Less)]
+#[case(1.minutes(), 1.std_seconds(), Greater)]
+#[case(0.seconds(), u64::MAX.std_seconds(), Less)]
+fn partial_ord_std(#[case] lhs: Duration, #[case] rhs: StdDuration, #[case] expected: Ordering) {
+    assert_eq!(lhs.partial_cmp(&rhs), Some(expected));
+}
+
+#[rstest]
+#[case(0.std_seconds(), 0.seconds(), Equal)]
+#[case(1.std_seconds(), 0.seconds(), Greater)]
+#[case(1.std_seconds(), (-1).seconds(), Greater)]
+#[case(0.std_seconds(), (-1).seconds(), Greater)]
+#[case(0.std_seconds(), 1.seconds(), Less)]
+#[case(1.std_minutes(), 1.seconds(), Greater)]
+fn std_partial_ord(#[case] lhs: StdDuration, #[case] rhs: Duration, #[case] expected: Ordering) {
+    assert_eq!(lhs.partial_cmp(&rhs), Some(expected));
+}
+
+#[rstest]
+#[case(0.seconds(), 0.seconds(), Equal)]
+#[case(1.seconds(), 0.seconds(), Greater)]
+#[case(1.seconds(), (-1).seconds(), Greater)]
+#[case((-1).seconds(), 1.seconds(), Less)]
+#[case(0.seconds(), (-1).seconds(), Greater)]
+#[case(0.seconds(), 1.seconds(), Less)]
+#[case((-1).seconds(), 0.seconds(), Less)]
+#[case(1.minutes(), 1.seconds(), Greater)]
+#[case((-1).minutes(), (-1).seconds(), Less)]
+#[case(100.nanoseconds(), 200.nanoseconds(), Less)]
+#[case((-100).nanoseconds(), (-200).nanoseconds(), Greater)]
+fn ord(#[case] lhs: Duration, #[case] rhs: Duration, #[case] expected: Ordering) {
+    assert_eq!(lhs.cmp(&rhs), expected);
+}
+
+#[rstest]
 fn arithmetic_regression() {
     let added = 1.6.seconds() + 1.6.seconds();
     assert_eq!(added.whole_seconds(), 3);
@@ -942,14 +1026,14 @@ fn arithmetic_regression() {
     assert_eq!(subtracted.subsec_milliseconds(), 200);
 }
 
-#[test]
+#[rstest]
 fn sum_iter_ref() {
     let i = [1.6.seconds(), 1.6.seconds()];
     let sum = i.iter().sum::<Duration>();
     assert_eq!(sum, 3.2.seconds());
 }
 
-#[test]
+#[rstest]
 fn sum_iter() {
     let i = [1.6.seconds(), 1.6.seconds()];
     let sum = i.into_iter().sum::<Duration>();

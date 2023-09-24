@@ -1,57 +1,59 @@
+use rstest::rstest;
+use time::Month::*;
 use time::{util, Month};
 
-#[test]
-fn days_in_year_month() {
-    // Common year
-    assert_eq!(util::days_in_year_month(2019, Month::January), 31);
-    assert_eq!(util::days_in_year_month(2019, Month::February), 28);
-    assert_eq!(util::days_in_year_month(2019, Month::March), 31);
-    assert_eq!(util::days_in_year_month(2019, Month::April), 30);
-    assert_eq!(util::days_in_year_month(2019, Month::May), 31);
-    assert_eq!(util::days_in_year_month(2019, Month::June), 30);
-    assert_eq!(util::days_in_year_month(2019, Month::July), 31);
-    assert_eq!(util::days_in_year_month(2019, Month::August), 31);
-    assert_eq!(util::days_in_year_month(2019, Month::September), 30);
-    assert_eq!(util::days_in_year_month(2019, Month::October), 31);
-    assert_eq!(util::days_in_year_month(2019, Month::November), 30);
-    assert_eq!(util::days_in_year_month(2019, Month::December), 31);
-
-    // Leap year
-    assert_eq!(util::days_in_year_month(2020, Month::January), 31);
-    assert_eq!(util::days_in_year_month(2020, Month::February), 29);
-    assert_eq!(util::days_in_year_month(2020, Month::March), 31);
-    assert_eq!(util::days_in_year_month(2020, Month::April), 30);
-    assert_eq!(util::days_in_year_month(2020, Month::May), 31);
-    assert_eq!(util::days_in_year_month(2020, Month::June), 30);
-    assert_eq!(util::days_in_year_month(2020, Month::July), 31);
-    assert_eq!(util::days_in_year_month(2020, Month::August), 31);
-    assert_eq!(util::days_in_year_month(2020, Month::September), 30);
-    assert_eq!(util::days_in_year_month(2020, Month::October), 31);
-    assert_eq!(util::days_in_year_month(2020, Month::November), 30);
-    assert_eq!(util::days_in_year_month(2020, Month::December), 31);
+#[rstest]
+#[case(2019, January, 31)]
+#[case(2019, February, 28)]
+#[case(2019, March, 31)]
+#[case(2019, April, 30)]
+#[case(2019, May, 31)]
+#[case(2019, June, 30)]
+#[case(2019, July, 31)]
+#[case(2019, August, 31)]
+#[case(2019, September, 30)]
+#[case(2019, October, 31)]
+#[case(2019, November, 30)]
+#[case(2019, December, 31)]
+#[case(2020, January, 31)]
+#[case(2020, February, 29)]
+#[case(2020, March, 31)]
+#[case(2020, April, 30)]
+#[case(2020, May, 31)]
+#[case(2020, June, 30)]
+#[case(2020, July, 31)]
+#[case(2020, August, 31)]
+#[case(2020, September, 30)]
+#[case(2020, October, 31)]
+#[case(2020, November, 30)]
+#[case(2020, December, 31)]
+fn days_in_year_month(#[case] year: i32, #[case] month: Month, #[case] expected: u8) {
+    assert_eq!(util::days_in_year_month(year, month), expected);
 }
 
-#[test]
-fn is_leap_year() {
-    assert!(!util::is_leap_year(1900));
-    assert!(util::is_leap_year(2000));
-    assert!(util::is_leap_year(2004));
-    assert!(!util::is_leap_year(2005));
-    assert!(!util::is_leap_year(2100));
+#[rstest]
+#[case(1900, false)]
+#[case(2000, true)]
+#[case(2004, true)]
+#[case(2005, false)]
+#[case(2100, false)]
+fn is_leap_year(#[case] year: i32, #[case] expected: bool) {
+    assert_eq!(util::is_leap_year(year), expected);
 }
 
-#[test]
-fn days_in_year() {
-    assert_eq!(util::days_in_year(1900), 365);
-    assert_eq!(util::days_in_year(2000), 366);
-    assert_eq!(util::days_in_year(2004), 366);
-    assert_eq!(util::days_in_year(2005), 365);
-    assert_eq!(util::days_in_year(2100), 365);
+#[rstest]
+#[case(1900, 365)]
+#[case(2000, 366)]
+#[case(2004, 366)]
+#[case(2005, 365)]
+#[case(2100, 365)]
+fn days_in_year(#[case] year: i32, #[case] expected: u16) {
+    assert_eq!(util::days_in_year(year), expected);
 }
 
-#[test]
+#[rstest]
 fn weeks_in_year() {
-    let num_weeks_for_years = vec![
+    let num_weeks_for_years = [
         52, 52, 52, 52, 53, 52, 52, 52, 52, 53, 52, 52, 52, 52, 52, 53, 52, 52, 52, 52, 53, 52, 52,
         52, 52, 52, 53, 52, 52, 52, 52, 52, 53, 52, 52, 52, 52, 53, 52, 52, 52, 52, 52, 53, 52, 52,
         52, 52, 53, 52, 52, 52, 52, 52, 53, 52, 52, 52, 52, 52, 53, 52, 52, 52, 52, 53, 52, 52, 52,
@@ -77,7 +79,7 @@ fn weeks_in_year() {
     }
 }
 
-#[test]
+#[rstest]
 fn local_offset_soundness() {
     use time::util::local_offset::*;
 

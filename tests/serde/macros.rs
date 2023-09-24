@@ -17,7 +17,8 @@ time::serde::format_description!(my_format, OffsetDateTime, ISO_FORMAT);
 serde::format_description!(
     offset_dt_format,
     OffsetDateTime,
-    "custom format: [year]-[month]-[day] [hour]:[minute]:[second] [offset_hour]:[offset_minute]"
+    "custom format: [year]-[month]-[day] [hour]:[minute]:[second] [offset_hour \
+     sign:mandatory]:[offset_minute]"
 );
 serde::format_description!(
     primitive_dt_format,
@@ -29,7 +30,7 @@ serde::format_description!(date_format, Date, "custom format: [year]-[month]-[da
 serde::format_description!(
     offset_format,
     UtcOffset,
-    "custom format: [offset_hour]:[offset_minute]"
+    "custom format: [offset_hour sign:mandatory]:[offset_minute]"
 );
 
 const TIME_FORMAT_ALT: &[FormatItem<'_>] = time::macros::format_description!("[hour]:[minute]");
@@ -126,7 +127,8 @@ fn custom_serialize_error() {
             Token::Bool(false),
         ],
         "invalid type: boolean `false`, expected a(n) `OffsetDateTime` in the format \"custom \
-         format: [year]-[month]-[day] [hour]:[minute]:[second] [offset_hour]:[offset_minute]\"",
+         format: [year]-[month]-[day] [hour]:[minute]:[second] [offset_hour \
+         sign:mandatory]:[offset_minute]\"",
     );
     assert_de_tokens_error::<TestCustomFormat>(
         &[
