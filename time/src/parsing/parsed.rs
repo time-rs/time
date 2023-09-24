@@ -136,7 +136,7 @@ pub struct Parsed {
     /// Day of the month.
     day: OptionRangedU8<1, 31>,
     /// Hour within the day.
-    hour_24: OptionRangedU8<0, { Hour.per(Day) - 1 }>,
+    hour_24: OptionRangedU8<0, { Hour::per(Day) - 1 }>,
     /// Hour within the 12-hour period (midnight to noon or vice versa). This is typically used in
     /// conjunction with AM/PM, which is indicated by the `hour_12_is_pm` field.
     hour_12: OptionRangedU8<1, 12>,
@@ -144,20 +144,20 @@ pub struct Parsed {
     hour_12_is_pm: Option<bool>,
     /// Minute within the hour.
     // minute: MaybeUninit<u8>,
-    minute: OptionRangedU8<0, { Minute.per(Hour) - 1 }>,
+    minute: OptionRangedU8<0, { Minute::per(Hour) - 1 }>,
     /// Second within the minute.
     // do not subtract one, as leap seconds may be allowed
-    second: OptionRangedU8<0, { Second.per(Minute) }>,
+    second: OptionRangedU8<0, { Second::per(Minute) }>,
     /// Nanosecond within the second.
-    subsecond: OptionRangedU32<0, { Nanosecond.per(Second) - 1 }>,
+    subsecond: OptionRangedU32<0, { Nanosecond::per(Second) - 1 }>,
     /// Whole hours of the UTC offset.
     offset_hour: OptionRangedI8<-23, 23>,
     /// Minutes within the hour of the UTC offset.
     offset_minute:
-        OptionRangedI8<{ -((Minute.per(Hour) - 1) as i8) }, { (Minute.per(Hour) - 1) as _ }>,
+        OptionRangedI8<{ -((Minute::per(Hour) - 1) as i8) }, { (Minute::per(Hour) - 1) as _ }>,
     /// Seconds within the minute of the UTC offset.
     offset_second:
-        OptionRangedI8<{ -((Second.per(Minute) - 1) as i8) }, { (Second.per(Minute) - 1) as _ }>,
+        OptionRangedI8<{ -((Second::per(Minute) - 1) as i8) }, { (Second::per(Minute) - 1) as _ }>,
     /// The Unix timestamp in nanoseconds.
     // unix_timestamp_nanos: MaybeUninit<i128>,
     unix_timestamp_nanos: OptionRangedI128<

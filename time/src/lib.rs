@@ -119,8 +119,7 @@ mod utc_offset;
 pub mod util;
 mod weekday;
 
-// Not public yet.
-use time_core::convert;
+pub use time_core::convert;
 
 pub use crate::date::Date;
 use crate::date_time::DateTime;

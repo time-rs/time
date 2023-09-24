@@ -27,7 +27,7 @@ pub(crate) enum Padding {
 
 /// The type of the `nanosecond` field of `Duration`.
 type Nanoseconds =
-    RangedI32<{ -(Nanosecond.per(Second) as i32 - 1) }, { Nanosecond.per(Second) as i32 - 1 }>;
+    RangedI32<{ -(Nanosecond::per(Second) as i32 - 1) }, { Nanosecond::per(Second) as i32 - 1 }>;
 
 /// A span of time with nanosecond precision.
 ///
@@ -103,7 +103,7 @@ macro_rules! try_from_secs {
                 // the input is less than 1 second
                 let t = <$double_ty>::from(mant) << ($offset + exp);
                 let nanos_offset = $mant_bits + $offset;
-                let nanos_tmp = u128::from(Nanosecond.per(Second)) * u128::from(t);
+                let nanos_tmp = u128::from(Nanosecond::per(Second)) * u128::from(t);
                 let nanos = (nanos_tmp >> nanos_offset) as u32;
 
                 let rem_mask = (1 << nanos_offset) - 1;
@@ -117,7 +117,7 @@ macro_rules! try_from_secs {
                 // f32 does not have enough precision to trigger the second branch
                 // since it can not represent numbers between 0.999_999_940_395 and 1.0.
                 let nanos = nanos + add_ns as u32;
-                if ($mant_bits == 23) || (nanos != Nanosecond.per(Second)) {
+                if ($mant_bits == 23) || (nanos != Nanosecond::per(Second)) {
                     (0, nanos)
                 } else {
                     (1, 0)
@@ -126,7 +126,7 @@ macro_rules! try_from_secs {
                 let secs = u64::from(mant >> ($mant_bits - exp));
                 let t = <$double_ty>::from((mant << exp) & MANT_MASK);
                 let nanos_offset = $mant_bits;
-                let nanos_tmp = <$double_ty>::from(Nanosecond.per(Second)) * t;
+                let nanos_tmp = <$double_ty>::from(Nanosecond::per(Second)) * t;
                 let nanos = (nanos_tmp >> nanos_offset) as u32;
 
                 let rem_mask = (1 << nanos_offset) - 1;
@@ -142,7 +142,7 @@ macro_rules! try_from_secs {
                 // and 2.0. Bigger values result in even smaller precision of the
                 // fractional part.
                 let nanos = nanos + add_ns as u32;
-                if ($mant_bits == 23) || (nanos != Nanosecond.per(Second)) {
+                if ($mant_bits == 23) || (nanos != Nanosecond::per(Second)) {
                     (secs, nanos)
                 } else {
                     (secs + 1, 0)
@@ -382,19 +382,19 @@ impl Duration {
     /// ```
     pub const fn new(mut seconds: i64, mut nanoseconds: i32) -> Self {
         seconds = expect_opt!(
-            seconds.checked_add(nanoseconds as i64 / Nanosecond.per(Second) as i64),
+            seconds.checked_add(nanoseconds as i64 / Nanosecond::per(Second) as i64),
             "overflow constructing `time::Duration`"
         );
-        nanoseconds %= Nanosecond.per(Second) as i32;
+        nanoseconds %= Nanosecond::per(Second) as i32;
 
         if seconds > 0 && nanoseconds < 0 {
             // `seconds` cannot overflow here because it is positive.
             seconds -= 1;
-            nanoseconds += Nanosecond.per(Second) as i32;
+            nanoseconds += Nanosecond::per(Second) as i32;
         } else if seconds < 0 && nanoseconds > 0 {
             // `seconds` cannot overflow here because it is negative.
             seconds += 1;
-            nanoseconds -= Nanosecond.per(Second) as i32;
+            nanoseconds -= Nanosecond::per(Second) as i32;
         }
 
         // Safety: `nanoseconds` is in range due to the modulus above.
@@ -409,7 +409,7 @@ impl Duration {
             // Safety: `nanoseconds` is negative with a maximum of 999,999,999, so adding a billion
             // to it is guaranteed to result in an in-range value.
             nanoseconds = unsafe {
-                Nanoseconds::new_unchecked(nanoseconds.get() + Nanosecond.per(Second) as i32)
+                Nanoseconds::new_unchecked(nanoseconds.get() + Nanosecond::per(Second) as i32)
             };
         } else if seconds < 0 && nanoseconds.get() > 0 {
             // `seconds` cannot overflow here because it is negative.
@@ -417,7 +417,7 @@ impl Duration {
             // Safety: `nanoseconds` is positive with a minimum of -999,999,999, so subtracting a
             // billion from it is guaranteed to result in an in-range value.
             nanoseconds = unsafe {
-                Nanoseconds::new_unchecked(nanoseconds.get() - Nanosecond.per(Second) as i32)
+                Nanoseconds::new_unchecked(nanoseconds.get() - Nanosecond::per(Second) as i32)
             };
         }
 
@@ -433,7 +433,7 @@ impl Duration {
     /// ```
     pub const fn weeks(weeks: i64) -> Self {
         Self::seconds(expect_opt!(
-            weeks.checked_mul(Second.per(Week) as _),
+            weeks.checked_mul(Second::per(Week) as _),
             "overflow constructing `time::Duration`"
         ))
     }
@@ -447,7 +447,7 @@ impl Duration {
     /// ```
     pub const fn days(days: i64) -> Self {
         Self::seconds(expect_opt!(
-            days.checked_mul(Second.per(Day) as _),
+            days.checked_mul(Second::per(Day) as _),
             "overflow constructing `time::Duration`"
         ))
     }
@@ -461,7 +461,7 @@ impl Duration {
     /// ```
     pub const fn hours(hours: i64) -> Self {
         Self::seconds(expect_opt!(
-            hours.checked_mul(Second.per(Hour) as _),
+            hours.checked_mul(Second::per(Hour) as _),
             "overflow constructing `time::Duration`"
         ))
     }
@@ -475,7 +475,7 @@ impl Duration {
     /// ```
     pub const fn minutes(minutes: i64) -> Self {
         Self::seconds(expect_opt!(
-            minutes.checked_mul(Second.per(Minute) as _),
+            minutes.checked_mul(Second::per(Minute) as _),
             "overflow constructing `time::Duration`"
         ))
     }
@@ -673,9 +673,9 @@ impl Duration {
         // Safety: `nanoseconds` is guaranteed to be in range because of the modulus.
         unsafe {
             Self::new_unchecked(
-                milliseconds / Millisecond.per(Second) as i64,
-                (milliseconds % Millisecond.per(Second) as i64 * Nanosecond.per(Millisecond) as i64)
-                    as _,
+                milliseconds / Millisecond::per(Second) as i64,
+                (milliseconds % Millisecond::per(Second) as i64
+                    * Nanosecond::per(Millisecond) as i64) as _,
             )
         }
     }
@@ -691,9 +691,9 @@ impl Duration {
         // Safety: `nanoseconds` is guaranteed to be in range because of the modulus.
         unsafe {
             Self::new_unchecked(
-                microseconds / Microsecond.per(Second) as i64,
-                (microseconds % Microsecond.per(Second) as i64 * Nanosecond.per(Microsecond) as i64)
-                    as _,
+                microseconds / Microsecond::per(Second) as i64,
+                (microseconds % Microsecond::per(Second) as i64
+                    * Nanosecond::per(Microsecond) as i64) as _,
             )
         }
     }
@@ -709,8 +709,8 @@ impl Duration {
         // Safety: `nanoseconds` is guaranteed to be in range because of the modulus.
         unsafe {
             Self::new_unchecked(
-                nanoseconds / Nanosecond.per(Second) as i64,
-                (nanoseconds % Nanosecond.per(Second) as i64) as _,
+                nanoseconds / Nanosecond::per(Second) as i64,
+                (nanoseconds % Nanosecond::per(Second) as i64) as _,
             )
         }
     }
@@ -720,8 +720,8 @@ impl Duration {
     /// As the input range cannot be fully mapped to the output, this should only be used where it's
     /// known to result in a valid value.
     pub(crate) const fn nanoseconds_i128(nanoseconds: i128) -> Self {
-        let seconds = nanoseconds / Nanosecond.per(Second) as i128;
-        let nanoseconds = nanoseconds % Nanosecond.per(Second) as i128;
+        let seconds = nanoseconds / Nanosecond::per(Second) as i128;
+        let nanoseconds = nanoseconds % Nanosecond::per(Second) as i128;
 
         if seconds > i64::MAX as i128 || seconds < i64::MIN as i128 {
             crate::expect_failed("overflow constructing `time::Duration`");
@@ -743,7 +743,7 @@ impl Duration {
     /// assert_eq!((-6).days().whole_weeks(), 0);
     /// ```
     pub const fn whole_weeks(self) -> i64 {
-        self.whole_seconds() / Second.per(Week) as i64
+        self.whole_seconds() / Second::per(Week) as i64
     }
 
     /// Get the number of whole days in the duration.
@@ -756,7 +756,7 @@ impl Duration {
     /// assert_eq!((-23).hours().whole_days(), 0);
     /// ```
     pub const fn whole_days(self) -> i64 {
-        self.whole_seconds() / Second.per(Day) as i64
+        self.whole_seconds() / Second::per(Day) as i64
     }
 
     /// Get the number of whole hours in the duration.
@@ -769,7 +769,7 @@ impl Duration {
     /// assert_eq!((-59).minutes().whole_hours(), 0);
     /// ```
     pub const fn whole_hours(self) -> i64 {
-        self.whole_seconds() / Second.per(Hour) as i64
+        self.whole_seconds() / Second::per(Hour) as i64
     }
 
     /// Get the number of whole minutes in the duration.
@@ -782,7 +782,7 @@ impl Duration {
     /// assert_eq!((-59).seconds().whole_minutes(), 0);
     /// ```
     pub const fn whole_minutes(self) -> i64 {
-        self.whole_seconds() / Second.per(Minute) as i64
+        self.whole_seconds() / Second::per(Minute) as i64
     }
 
     /// Get the number of whole seconds in the duration.
@@ -806,7 +806,7 @@ impl Duration {
     /// assert_eq!((-1.5).seconds().as_seconds_f64(), -1.5);
     /// ```
     pub fn as_seconds_f64(self) -> f64 {
-        self.seconds as f64 + self.nanoseconds.get() as f64 / Nanosecond.per(Second) as f64
+        self.seconds as f64 + self.nanoseconds.get() as f64 / Nanosecond::per(Second) as f64
     }
 
     /// Get the number of fractional seconds in the duration.
@@ -817,7 +817,7 @@ impl Duration {
     /// assert_eq!((-1.5).seconds().as_seconds_f32(), -1.5);
     /// ```
     pub fn as_seconds_f32(self) -> f32 {
-        self.seconds as f32 + self.nanoseconds.get() as f32 / Nanosecond.per(Second) as f32
+        self.seconds as f32 + self.nanoseconds.get() as f32 / Nanosecond::per(Second) as f32
     }
 
     /// Get the number of whole milliseconds in the duration.
@@ -830,8 +830,8 @@ impl Duration {
     /// assert_eq!((-1).milliseconds().whole_milliseconds(), -1);
     /// ```
     pub const fn whole_milliseconds(self) -> i128 {
-        self.seconds as i128 * Millisecond.per(Second) as i128
-            + self.nanoseconds.get() as i128 / Nanosecond.per(Millisecond) as i128
+        self.seconds as i128 * Millisecond::per(Second) as i128
+            + self.nanoseconds.get() as i128 / Nanosecond::per(Millisecond) as i128
     }
 
     /// Get the number of milliseconds past the number of whole seconds.
@@ -845,7 +845,7 @@ impl Duration {
     /// ```
     // Allow the lint, as the value is guaranteed to be less than 1000.
     pub const fn subsec_milliseconds(self) -> i16 {
-        (self.nanoseconds.get() / Nanosecond.per(Millisecond) as i32) as _
+        (self.nanoseconds.get() / Nanosecond::per(Millisecond) as i32) as _
     }
 
     /// Get the number of whole microseconds in the duration.
@@ -858,8 +858,8 @@ impl Duration {
     /// assert_eq!((-1).microseconds().whole_microseconds(), -1);
     /// ```
     pub const fn whole_microseconds(self) -> i128 {
-        self.seconds as i128 * Microsecond.per(Second) as i128
-            + self.nanoseconds.get() as i128 / Nanosecond.per(Microsecond) as i128
+        self.seconds as i128 * Microsecond::per(Second) as i128
+            + self.nanoseconds.get() as i128 / Nanosecond::per(Microsecond) as i128
     }
 
     /// Get the number of microseconds past the number of whole seconds.
@@ -872,7 +872,7 @@ impl Duration {
     /// assert_eq!((-1.0004).seconds().subsec_microseconds(), -400);
     /// ```
     pub const fn subsec_microseconds(self) -> i32 {
-        self.nanoseconds.get() / Nanosecond.per(Microsecond) as i32
+        self.nanoseconds.get() / Nanosecond::per(Microsecond) as i32
     }
 
     /// Get the number of nanoseconds in the duration.
@@ -885,7 +885,7 @@ impl Duration {
     /// assert_eq!((-1).nanoseconds().whole_nanoseconds(), -1);
     /// ```
     pub const fn whole_nanoseconds(self) -> i128 {
-        self.seconds as i128 * Nanosecond.per(Second) as i128 + self.nanoseconds.get() as i128
+        self.seconds as i128 * Nanosecond::per(Second) as i128 + self.nanoseconds.get() as i128
     }
 
     /// Get the number of nanoseconds past the number of whole seconds.
@@ -921,12 +921,12 @@ impl Duration {
         let mut seconds = const_try_opt!(self.seconds.checked_add(rhs.seconds));
         let mut nanoseconds = self.nanoseconds.get() + rhs.nanoseconds.get();
 
-        if nanoseconds >= Nanosecond.per(Second) as _ || seconds < 0 && nanoseconds > 0 {
-            nanoseconds -= Nanosecond.per(Second) as i32;
+        if nanoseconds >= Nanosecond::per(Second) as _ || seconds < 0 && nanoseconds > 0 {
+            nanoseconds -= Nanosecond::per(Second) as i32;
             seconds = const_try_opt!(seconds.checked_add(1));
-        } else if nanoseconds <= -(Nanosecond.per(Second) as i32) || seconds > 0 && nanoseconds < 0
+        } else if nanoseconds <= -(Nanosecond::per(Second) as i32) || seconds > 0 && nanoseconds < 0
         {
-            nanoseconds += Nanosecond.per(Second) as i32;
+            nanoseconds += Nanosecond::per(Second) as i32;
             seconds = const_try_opt!(seconds.checked_sub(1));
         }
 
@@ -946,12 +946,12 @@ impl Duration {
         let mut seconds = const_try_opt!(self.seconds.checked_sub(rhs.seconds));
         let mut nanoseconds = self.nanoseconds.get() - rhs.nanoseconds.get();
 
-        if nanoseconds >= Nanosecond.per(Second) as _ || seconds < 0 && nanoseconds > 0 {
-            nanoseconds -= Nanosecond.per(Second) as i32;
+        if nanoseconds >= Nanosecond::per(Second) as _ || seconds < 0 && nanoseconds > 0 {
+            nanoseconds -= Nanosecond::per(Second) as i32;
             seconds = const_try_opt!(seconds.checked_add(1));
-        } else if nanoseconds <= -(Nanosecond.per(Second) as i32) || seconds > 0 && nanoseconds < 0
+        } else if nanoseconds <= -(Nanosecond::per(Second) as i32) || seconds > 0 && nanoseconds < 0
         {
-            nanoseconds += Nanosecond.per(Second) as i32;
+            nanoseconds += Nanosecond::per(Second) as i32;
             seconds = const_try_opt!(seconds.checked_sub(1));
         }
 
@@ -972,8 +972,8 @@ impl Duration {
     pub const fn checked_mul(self, rhs: i32) -> Option<Self> {
         // Multiply nanoseconds as i64, because it cannot overflow that way.
         let total_nanos = self.nanoseconds.get() as i64 * rhs as i64;
-        let extra_secs = total_nanos / Nanosecond.per(Second) as i64;
-        let nanoseconds = (total_nanos % Nanosecond.per(Second) as i64) as _;
+        let extra_secs = total_nanos / Nanosecond::per(Second) as i64;
+        let nanoseconds = (total_nanos % Nanosecond::per(Second) as i64) as _;
         let seconds = const_try_opt!(
             const_try_opt!(self.seconds.checked_mul(rhs as _)).checked_add(extra_secs)
         );
@@ -996,7 +996,7 @@ impl Duration {
             self.seconds % (rhs as i64),
         );
         let (mut nanos, extra_nanos) = (self.nanoseconds.get() / rhs, self.nanoseconds.get() % rhs);
-        nanos += ((extra_secs * (Nanosecond.per(Second) as i64) + extra_nanos as i64)
+        nanos += ((extra_secs * (Nanosecond::per(Second) as i64) + extra_nanos as i64)
             / (rhs as i64)) as i32;
 
         // Safety: `nanoseconds` is in range.
@@ -1027,15 +1027,15 @@ impl Duration {
         }
         let mut nanoseconds = self.nanoseconds.get() + rhs.nanoseconds.get();
 
-        if nanoseconds >= Nanosecond.per(Second) as _ || seconds < 0 && nanoseconds > 0 {
-            nanoseconds -= Nanosecond.per(Second) as i32;
+        if nanoseconds >= Nanosecond::per(Second) as _ || seconds < 0 && nanoseconds > 0 {
+            nanoseconds -= Nanosecond::per(Second) as i32;
             seconds = match seconds.checked_add(1) {
                 Some(seconds) => seconds,
                 None => return Self::MAX,
             };
-        } else if nanoseconds <= -(Nanosecond.per(Second) as i32) || seconds > 0 && nanoseconds < 0
+        } else if nanoseconds <= -(Nanosecond::per(Second) as i32) || seconds > 0 && nanoseconds < 0
         {
-            nanoseconds += Nanosecond.per(Second) as i32;
+            nanoseconds += Nanosecond::per(Second) as i32;
             seconds = match seconds.checked_sub(1) {
                 Some(seconds) => seconds,
                 None => return Self::MIN,
@@ -1068,15 +1068,15 @@ impl Duration {
         }
         let mut nanoseconds = self.nanoseconds.get() - rhs.nanoseconds.get();
 
-        if nanoseconds >= Nanosecond.per(Second) as _ || seconds < 0 && nanoseconds > 0 {
-            nanoseconds -= Nanosecond.per(Second) as i32;
+        if nanoseconds >= Nanosecond::per(Second) as _ || seconds < 0 && nanoseconds > 0 {
+            nanoseconds -= Nanosecond::per(Second) as i32;
             seconds = match seconds.checked_add(1) {
                 Some(seconds) => seconds,
                 None => return Self::MAX,
             };
-        } else if nanoseconds <= -(Nanosecond.per(Second) as i32) || seconds > 0 && nanoseconds < 0
+        } else if nanoseconds <= -(Nanosecond::per(Second) as i32) || seconds > 0 && nanoseconds < 0
         {
-            nanoseconds += Nanosecond.per(Second) as i32;
+            nanoseconds += Nanosecond::per(Second) as i32;
             seconds = match seconds.checked_sub(1) {
                 Some(seconds) => seconds,
                 None => return Self::MIN,
@@ -1102,8 +1102,8 @@ impl Duration {
     pub const fn saturating_mul(self, rhs: i32) -> Self {
         // Multiply nanoseconds as i64, because it cannot overflow that way.
         let total_nanos = self.nanoseconds.get() as i64 * rhs as i64;
-        let extra_secs = total_nanos / Nanosecond.per(Second) as i64;
-        let nanoseconds = (total_nanos % Nanosecond.per(Second) as i64) as _;
+        let extra_secs = total_nanos / Nanosecond::per(Second) as i64;
+        let nanoseconds = (total_nanos % Nanosecond::per(Second) as i64) as _;
         let (seconds, overflow1) = self.seconds.overflowing_mul(rhs as _);
         if overflow1 {
             if self.seconds > 0 && rhs > 0 || self.seconds < 0 && rhs < 0 {
@@ -1178,13 +1178,13 @@ impl fmt::Display for Duration {
             // Even if this produces a de-normal float, because we're rounding we don't really care.
             let seconds = self.unsigned_abs().as_secs_f64();
 
-            item!("d", seconds / Second.per(Day) as f64);
-            item!("h", seconds / Second.per(Hour) as f64);
-            item!("m", seconds / Second.per(Minute) as f64);
+            item!("d", seconds / Second::per(Day) as f64);
+            item!("h", seconds / Second::per(Hour) as f64);
+            item!("m", seconds / Second::per(Minute) as f64);
             item!("s", seconds);
-            item!("ms", seconds * Millisecond.per(Second) as f64);
-            item!("µs", seconds * Microsecond.per(Second) as f64);
-            item!("ns", seconds * Nanosecond.per(Second) as f64);
+            item!("ms", seconds * Millisecond::per(Second) as f64);
+            item!("µs", seconds * Microsecond::per(Second) as f64);
+            item!("ns", seconds * Nanosecond::per(Second) as f64);
         } else {
             // Precise, but verbose representation.
 
@@ -1205,23 +1205,23 @@ impl fmt::Display for Duration {
             let seconds = self.seconds.unsigned_abs();
             let nanoseconds = self.nanoseconds.get().unsigned_abs();
 
-            item!("d", seconds / Second.per(Day) as u64)?;
+            item!("d", seconds / Second::per(Day) as u64)?;
             item!(
                 "h",
-                seconds / Second.per(Hour) as u64 % Hour.per(Day) as u64
+                seconds / Second::per(Hour) as u64 % Hour::per(Day) as u64
             )?;
             item!(
                 "m",
-                seconds / Second.per(Minute) as u64 % Minute.per(Hour) as u64
+                seconds / Second::per(Minute) as u64 % Minute::per(Hour) as u64
             )?;
-            item!("s", seconds % Second.per(Minute) as u64)?;
-            item!("ms", nanoseconds / Nanosecond.per(Millisecond))?;
+            item!("s", seconds % Second::per(Minute) as u64)?;
+            item!("ms", nanoseconds / Nanosecond::per(Millisecond))?;
             item!(
                 "µs",
-                nanoseconds / Nanosecond.per(Microsecond) as u32
-                    % Microsecond.per(Millisecond) as u32
+                nanoseconds / Nanosecond::per(Microsecond) as u32
+                    % Microsecond::per(Millisecond) as u32
             )?;
-            item!("ns", nanoseconds % Nanosecond.per(Microsecond) as u32)?;
+            item!("ns", nanoseconds % Nanosecond::per(Microsecond) as u32)?;
         }
 
         Ok(())

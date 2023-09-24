@@ -266,16 +266,16 @@ impl<O: MaybeOffset> DateTime<O> {
 
         // Use the unchecked method here, as the input validity has already been verified.
         let date = Date::from_julian_day_unchecked(
-            UNIX_EPOCH_JULIAN_DAY + div_floor!(timestamp, Second.per(Day) as i64) as i32,
+            UNIX_EPOCH_JULIAN_DAY + div_floor!(timestamp, Second::per(Day) as i64) as i32,
         );
 
-        let seconds_within_day = timestamp.rem_euclid(Second.per(Day) as _);
+        let seconds_within_day = timestamp.rem_euclid(Second::per(Day) as _);
         // Safety: All values are in range.
         let time = unsafe {
             Time::__from_hms_nanos_unchecked(
-                (seconds_within_day / Second.per(Hour) as i64) as _,
-                ((seconds_within_day % Second.per(Hour) as i64) / Minute.per(Hour) as i64) as _,
-                (seconds_within_day % Second.per(Minute) as i64) as _,
+                (seconds_within_day / Second::per(Hour) as i64) as _,
+                ((seconds_within_day % Second::per(Hour) as i64) / Minute::per(Hour) as i64) as _,
+                (seconds_within_day % Second::per(Minute) as i64) as _,
                 0,
             )
         };
@@ -293,7 +293,7 @@ impl<O: MaybeOffset> DateTime<O> {
     {
         let datetime = const_try!(Self::from_unix_timestamp(div_floor!(
             timestamp,
-            Nanosecond.per(Second) as i128
+            Nanosecond::per(Second) as i128
         ) as i64));
 
         Ok(Self {
@@ -304,7 +304,7 @@ impl<O: MaybeOffset> DateTime<O> {
                     datetime.hour(),
                     datetime.minute(),
                     datetime.second(),
-                    timestamp.rem_euclid(Nanosecond.per(Second) as _) as u32,
+                    timestamp.rem_euclid(Nanosecond::per(Second) as _) as u32,
                 )
             },
             offset: maybe_offset_from_offset::<O>(UtcOffset::UTC),
@@ -467,9 +467,9 @@ impl<O: MaybeOffset> DateTime<O> {
         let offset = maybe_offset_as_offset::<O>(self.offset).whole_seconds() as i64;
 
         let days =
-            (self.to_julian_day() as i64 - UNIX_EPOCH_JULIAN_DAY as i64) * Second.per(Day) as i64;
-        let hours = self.hour() as i64 * Second.per(Hour) as i64;
-        let minutes = self.minute() as i64 * Second.per(Minute) as i64;
+            (self.to_julian_day() as i64 - UNIX_EPOCH_JULIAN_DAY as i64) * Second::per(Day) as i64;
+        let hours = self.hour() as i64 * Second::per(Hour) as i64;
+        let minutes = self.minute() as i64 * Second::per(Minute) as i64;
         let seconds = self.second() as i64;
         days + hours + minutes + seconds - offset
     }
@@ -478,7 +478,7 @@ impl<O: MaybeOffset> DateTime<O> {
     where
         O: HasLogicalOffset,
     {
-        self.unix_timestamp() as i128 * Nanosecond.per(Second) as i128 + self.nanosecond() as i128
+        self.unix_timestamp() as i128 * Nanosecond::per(Second) as i128 + self.nanosecond() as i128
     }
     // endregion unix timestamp getters
     // endregion: getters
@@ -571,12 +571,12 @@ impl<O: MaybeOffset> DateTime<O> {
         let mut ordinal = ordinal as i16;
 
         // Cascade the values twice. This is needed because the values are adjusted twice above.
-        cascade!(second in 0..Second.per(Minute) as i16 => minute);
-        cascade!(second in 0..Second.per(Minute) as i16 => minute);
-        cascade!(minute in 0..Minute.per(Hour) as i16 => hour);
-        cascade!(minute in 0..Minute.per(Hour) as i16 => hour);
-        cascade!(hour in 0..Hour.per(Day) as i8 => ordinal);
-        cascade!(hour in 0..Hour.per(Day) as i8 => ordinal);
+        cascade!(second in 0..Second::per(Minute) as i16 => minute);
+        cascade!(second in 0..Second::per(Minute) as i16 => minute);
+        cascade!(minute in 0..Minute::per(Hour) as i16 => hour);
+        cascade!(minute in 0..Minute::per(Hour) as i16 => hour);
+        cascade!(hour in 0..Hour::per(Day) as i8 => ordinal);
+        cascade!(hour in 0..Hour::per(Day) as i8 => ordinal);
         cascade!(ordinal => year);
 
         debug_assert!(ordinal > 0);
@@ -1187,7 +1187,7 @@ impl From<DateTime<offset_kind::Fixed>> for SystemTime {
 impl From<js_sys::Date> for DateTime<offset_kind::Fixed> {
     fn from(js_date: js_sys::Date) -> Self {
         // get_time() returns milliseconds
-        let timestamp_nanos = (js_date.get_time() * Nanosecond.per(Millisecond) as f64) as i128;
+        let timestamp_nanos = (js_date.get_time() * Nanosecond::per(Millisecond) as f64) as i128;
         Self::from_unix_timestamp_nanos(timestamp_nanos)
             .expect("invalid timestamp: Timestamp cannot fit in range")
     }
@@ -1202,7 +1202,7 @@ impl From<DateTime<offset_kind::Fixed>> for js_sys::Date {
     fn from(datetime: DateTime<offset_kind::Fixed>) -> Self {
         // new Date() takes milliseconds
         let timestamp =
-            (datetime.unix_timestamp_nanos() / Nanosecond.per(Millisecond) as i128) as f64;
+            (datetime.unix_timestamp_nanos() / Nanosecond::per(Millisecond) as i128) as f64;
         js_sys::Date::new(&timestamp.into())
     }
 }

@@ -491,11 +491,13 @@ fn fmt_unix_timestamp(
         }
         modifier::UnixTimestampPrecision::Millisecond => format_number_pad_none(
             output,
-            (date_time.unix_timestamp_nanos() / Nanosecond.per(Millisecond) as i128).unsigned_abs(),
+            (date_time.unix_timestamp_nanos() / Nanosecond::per(Millisecond) as i128)
+                .unsigned_abs(),
         ),
         modifier::UnixTimestampPrecision::Microsecond => format_number_pad_none(
             output,
-            (date_time.unix_timestamp_nanos() / Nanosecond.per(Microsecond) as i128).unsigned_abs(),
+            (date_time.unix_timestamp_nanos() / Nanosecond::per(Microsecond) as i128)
+                .unsigned_abs(),
         ),
         modifier::UnixTimestampPrecision::Nanosecond => {
             format_number_pad_none(output, date_time.unix_timestamp_nanos().unsigned_abs())

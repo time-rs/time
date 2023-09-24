@@ -316,12 +316,12 @@ pub(crate) fn parse_unix_timestamp(
     let ParsedItem(input, sign) = opt(sign)(input);
     let ParsedItem(input, nano_timestamp) = match modifiers.precision {
         modifier::UnixTimestampPrecision::Second => {
-            n_to_m_digits::<1, 14, u128>(input)?.map(|val| val * Nanosecond.per(Second) as u128)
+            n_to_m_digits::<1, 14, u128>(input)?.map(|val| val * Nanosecond::per(Second) as u128)
         }
         modifier::UnixTimestampPrecision::Millisecond => n_to_m_digits::<1, 17, u128>(input)?
-            .map(|val| val * Nanosecond.per(Millisecond) as u128),
+            .map(|val| val * Nanosecond::per(Millisecond) as u128),
         modifier::UnixTimestampPrecision::Microsecond => n_to_m_digits::<1, 20, u128>(input)?
-            .map(|val| val * Nanosecond.per(Microsecond) as u128),
+            .map(|val| val * Nanosecond::per(Microsecond) as u128),
         modifier::UnixTimestampPrecision::Nanosecond => n_to_m_digits::<1, 23, _>(input)?,
     };
 

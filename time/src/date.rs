@@ -798,7 +798,7 @@ impl Date {
     /// );
     /// ```
     pub const fn checked_add_std(self, duration: StdDuration) -> Option<Self> {
-        let whole_days = duration.as_secs() / Second.per(Day) as u64;
+        let whole_days = duration.as_secs() / Second::per(Day) as u64;
         if whole_days > i32::MAX as u64 {
             return None;
         }
@@ -886,7 +886,7 @@ impl Date {
     /// );
     /// ```
     pub const fn checked_sub_std(self, duration: StdDuration) -> Option<Self> {
-        let whole_days = duration.as_secs() / Second.per(Day) as u64;
+        let whole_days = duration.as_secs() / Second::per(Day) as u64;
         if whole_days > i32::MAX as u64 {
             return None;
         }

@@ -27,13 +27,13 @@ pub(crate) enum Padding {
 }
 
 /// The type of the `hour` field of `Time`.
-type Hours = RangedU8<0, { Hour.per(Day) - 1 }>;
+type Hours = RangedU8<0, { Hour::per(Day) - 1 }>;
 /// The type of the `minute` field of `Time`.
-type Minutes = RangedU8<0, { Minute.per(Hour) - 1 }>;
+type Minutes = RangedU8<0, { Minute::per(Hour) - 1 }>;
 /// The type of the `second` field of `Time`.
-type Seconds = RangedU8<0, { Second.per(Minute) - 1 }>;
+type Seconds = RangedU8<0, { Second::per(Minute) - 1 }>;
 /// The type of the `nanosecond` field of `Time`.
-type Nanoseconds = RangedU32<0, { Nanosecond.per(Second) - 1 }>;
+type Nanoseconds = RangedU32<0, { Nanosecond::per(Second) - 1 }>;
 
 /// The clock time within a given date. Nanosecond precision.
 ///
@@ -248,7 +248,7 @@ impl Time {
             ensure_ranged!(Hours: hour),
             ensure_ranged!(Minutes: minute),
             ensure_ranged!(Seconds: second),
-            ensure_ranged!(Nanoseconds: millisecond as u32 * Nanosecond.per(Millisecond)),
+            ensure_ranged!(Nanoseconds: millisecond as u32 * Nanosecond::per(Millisecond)),
         ))
     }
 
@@ -276,7 +276,7 @@ impl Time {
             ensure_ranged!(Hours: hour),
             ensure_ranged!(Minutes: minute),
             ensure_ranged!(Seconds: second),
-            ensure_ranged!(Nanoseconds: microsecond * Nanosecond.per(Microsecond) as u32),
+            ensure_ranged!(Nanoseconds: microsecond * Nanosecond::per(Microsecond) as u32),
         ))
     }
 
@@ -333,7 +333,7 @@ impl Time {
             self.hour.get(),
             self.minute.get(),
             self.second.get(),
-            (self.nanosecond.get() / Nanosecond.per(Millisecond)) as u16,
+            (self.nanosecond.get() / Nanosecond::per(Millisecond)) as u16,
         )
     }
 
@@ -352,7 +352,7 @@ impl Time {
             self.hour.get(),
             self.minute.get(),
             self.second.get(),
-            self.nanosecond.get() / Nanosecond.per(Microsecond) as u32,
+            self.nanosecond.get() / Nanosecond::per(Microsecond) as u32,
         )
     }
 
@@ -430,7 +430,7 @@ impl Time {
     /// assert_eq!(time!(23:59:59.999).millisecond(), 999);
     /// ```
     pub const fn millisecond(self) -> u16 {
-        (self.nanosecond.get() / Nanosecond.per(Millisecond)) as _
+        (self.nanosecond.get() / Nanosecond::per(Millisecond)) as _
     }
 
     /// Get the microseconds within the second.
@@ -443,7 +443,7 @@ impl Time {
     /// assert_eq!(time!(23:59:59.999_999).microsecond(), 999_999);
     /// ```
     pub const fn microsecond(self) -> u32 {
-        self.nanosecond.get() / Nanosecond.per(Microsecond) as u32
+        self.nanosecond.get() / Nanosecond::per(Microsecond) as u32
     }
 
     /// Get the nanoseconds within the second.
@@ -466,21 +466,21 @@ impl Time {
     pub(crate) const fn adjusting_add(self, duration: Duration) -> (DateAdjustment, Self) {
         let mut nanoseconds = self.nanosecond.get() as i32 + duration.subsec_nanoseconds();
         let mut seconds =
-            self.second.get() as i8 + (duration.whole_seconds() % Second.per(Minute) as i64) as i8;
+            self.second.get() as i8 + (duration.whole_seconds() % Second::per(Minute) as i64) as i8;
         let mut minutes =
-            self.minute.get() as i8 + (duration.whole_minutes() % Minute.per(Hour) as i64) as i8;
+            self.minute.get() as i8 + (duration.whole_minutes() % Minute::per(Hour) as i64) as i8;
         let mut hours =
-            self.hour.get() as i8 + (duration.whole_hours() % Hour.per(Day) as i64) as i8;
+            self.hour.get() as i8 + (duration.whole_hours() % Hour::per(Day) as i64) as i8;
         let mut date_adjustment = DateAdjustment::None;
 
-        cascade!(nanoseconds in 0..Nanosecond.per(Second) as _ => seconds);
-        cascade!(seconds in 0..Second.per(Minute) as _ => minutes);
-        cascade!(minutes in 0..Minute.per(Hour) as _ => hours);
-        if hours >= Hour.per(Day) as _ {
-            hours -= Hour.per(Day) as i8;
+        cascade!(nanoseconds in 0..Nanosecond::per(Second) as _ => seconds);
+        cascade!(seconds in 0..Second::per(Minute) as _ => minutes);
+        cascade!(minutes in 0..Minute::per(Hour) as _ => hours);
+        if hours >= Hour::per(Day) as _ {
+            hours -= Hour::per(Day) as i8;
             date_adjustment = DateAdjustment::Next;
         } else if hours < 0 {
-            hours += Hour.per(Day) as i8;
+            hours += Hour::per(Day) as i8;
             date_adjustment = DateAdjustment::Previous;
         }
 
@@ -503,21 +503,21 @@ impl Time {
     pub(crate) const fn adjusting_sub(self, duration: Duration) -> (DateAdjustment, Self) {
         let mut nanoseconds = self.nanosecond.get() as i32 - duration.subsec_nanoseconds();
         let mut seconds =
-            self.second.get() as i8 - (duration.whole_seconds() % Second.per(Minute) as i64) as i8;
+            self.second.get() as i8 - (duration.whole_seconds() % Second::per(Minute) as i64) as i8;
         let mut minutes =
-            self.minute.get() as i8 - (duration.whole_minutes() % Minute.per(Hour) as i64) as i8;
+            self.minute.get() as i8 - (duration.whole_minutes() % Minute::per(Hour) as i64) as i8;
         let mut hours =
-            self.hour.get() as i8 - (duration.whole_hours() % Hour.per(Day) as i64) as i8;
+            self.hour.get() as i8 - (duration.whole_hours() % Hour::per(Day) as i64) as i8;
         let mut date_adjustment = DateAdjustment::None;
 
-        cascade!(nanoseconds in 0..Nanosecond.per(Second) as _ => seconds);
-        cascade!(seconds in 0..Second.per(Minute) as _ => minutes);
-        cascade!(minutes in 0..Minute.per(Hour) as _ => hours);
-        if hours >= Hour.per(Day) as _ {
-            hours -= Hour.per(Day) as i8;
+        cascade!(nanoseconds in 0..Nanosecond::per(Second) as _ => seconds);
+        cascade!(seconds in 0..Second::per(Minute) as _ => minutes);
+        cascade!(minutes in 0..Minute::per(Hour) as _ => hours);
+        if hours >= Hour::per(Day) as _ {
+            hours -= Hour::per(Day) as i8;
             date_adjustment = DateAdjustment::Next;
         } else if hours < 0 {
-            hours += Hour.per(Day) as i8;
+            hours += Hour::per(Day) as i8;
             date_adjustment = DateAdjustment::Previous;
         }
 
@@ -539,18 +539,19 @@ impl Time {
     /// returning whether the date is the previous date as the first element of the tuple.
     pub(crate) const fn adjusting_add_std(self, duration: StdDuration) -> (bool, Self) {
         let mut nanosecond = self.nanosecond.get() + duration.subsec_nanos();
-        let mut second = self.second.get() + (duration.as_secs() % Second.per(Minute) as u64) as u8;
+        let mut second =
+            self.second.get() + (duration.as_secs() % Second::per(Minute) as u64) as u8;
         let mut minute = self.minute.get()
-            + ((duration.as_secs() / Second.per(Minute) as u64) % Minute.per(Hour) as u64) as u8;
+            + ((duration.as_secs() / Second::per(Minute) as u64) % Minute::per(Hour) as u64) as u8;
         let mut hour = self.hour.get()
-            + ((duration.as_secs() / Second.per(Hour) as u64) % Hour.per(Day) as u64) as u8;
+            + ((duration.as_secs() / Second::per(Hour) as u64) % Hour::per(Day) as u64) as u8;
         let mut is_next_day = false;
 
-        cascade!(nanosecond in 0..Nanosecond.per(Second) => second);
-        cascade!(second in 0..Second.per(Minute) => minute);
-        cascade!(minute in 0..Minute.per(Hour) => hour);
-        if hour >= Hour.per(Day) {
-            hour -= Hour.per(Day);
+        cascade!(nanosecond in 0..Nanosecond::per(Second) => second);
+        cascade!(second in 0..Second::per(Minute) => minute);
+        cascade!(minute in 0..Minute::per(Hour) => hour);
+        if hour >= Hour::per(Day) {
+            hour -= Hour::per(Day);
             is_next_day = true;
         }
 
@@ -566,18 +567,18 @@ impl Time {
     pub(crate) const fn adjusting_sub_std(self, duration: StdDuration) -> (bool, Self) {
         let mut nanosecond = self.nanosecond.get() as i32 - duration.subsec_nanos() as i32;
         let mut second =
-            self.second.get() as i8 - (duration.as_secs() % Second.per(Minute) as u64) as i8;
+            self.second.get() as i8 - (duration.as_secs() % Second::per(Minute) as u64) as i8;
         let mut minute = self.minute.get() as i8
-            - ((duration.as_secs() / Second.per(Minute) as u64) % Minute.per(Hour) as u64) as i8;
+            - ((duration.as_secs() / Second::per(Minute) as u64) % Minute::per(Hour) as u64) as i8;
         let mut hour = self.hour.get() as i8
-            - ((duration.as_secs() / Second.per(Hour) as u64) % Hour.per(Day) as u64) as i8;
+            - ((duration.as_secs() / Second::per(Hour) as u64) % Hour::per(Day) as u64) as i8;
         let mut is_previous_day = false;
 
-        cascade!(nanosecond in 0..Nanosecond.per(Second) as _ => second);
-        cascade!(second in 0..Second.per(Minute) as _ => minute);
-        cascade!(minute in 0..Minute.per(Hour) as _ => hour);
+        cascade!(nanosecond in 0..Nanosecond::per(Second) as _ => second);
+        cascade!(second in 0..Second::per(Minute) as _ => minute);
+        cascade!(minute in 0..Minute::per(Hour) as _ => hour);
         if hour < 0 {
-            hour += Hour.per(Day) as i8;
+            hour += Hour::per(Day) as i8;
             is_previous_day = true;
         }
 
@@ -661,7 +662,7 @@ impl Time {
         millisecond: u16,
     ) -> Result<Self, error::ComponentRange> {
         self.nanosecond =
-            ensure_ranged!(Nanoseconds: millisecond as u32 * Nanosecond.per(Millisecond));
+            ensure_ranged!(Nanoseconds: millisecond as u32 * Nanosecond::per(Millisecond));
         Ok(self)
     }
 
@@ -681,7 +682,7 @@ impl Time {
         microsecond: u32,
     ) -> Result<Self, error::ComponentRange> {
         self.nanosecond =
-            ensure_ranged!(Nanoseconds: microsecond * Nanosecond.per(Microsecond) as u32);
+            ensure_ranged!(Nanoseconds: microsecond * Nanosecond::per(Microsecond) as u32);
         Ok(self)
     }
 
@@ -872,14 +873,20 @@ impl Sub for Time {
         let second_diff = (self.second.get() as i8) - (rhs.second.get() as i8);
         let nanosecond_diff = (self.nanosecond.get() as i32) - (rhs.nanosecond.get() as i32);
 
-        let seconds = hour_diff as i64 * Second.per(Hour) as i64
-            + minute_diff as i64 * Second.per(Minute) as i64
+        let seconds = hour_diff as i64 * Second::per(Hour) as i64
+            + minute_diff as i64 * Second::per(Minute) as i64
             + second_diff as i64;
 
         let (seconds, nanoseconds) = if seconds > 0 && nanosecond_diff < 0 {
-            (seconds - 1, nanosecond_diff + Nanosecond.per(Second) as i32)
+            (
+                seconds - 1,
+                nanosecond_diff + Nanosecond::per(Second) as i32,
+            )
         } else if seconds < 0 && nanosecond_diff > 0 {
-            (seconds + 1, nanosecond_diff - Nanosecond.per(Second) as i32)
+            (
+                seconds + 1,
+                nanosecond_diff - Nanosecond::per(Second) as i32,
+            )
         } else {
             (seconds, nanosecond_diff)
         };

@@ -59,14 +59,14 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Offs
             span_start: Some(hours_span),
             span_end: Some(hours_span),
         })
-    } else if minutes >= Minute.per(Hour) as _ {
+    } else if minutes >= Minute::per(Hour) as _ {
         Err(Error::InvalidComponent {
             name: "minute",
             value: minutes.to_string(),
             span_start: Some(minutes_span),
             span_end: Some(minutes_span),
         })
-    } else if seconds >= Second.per(Minute) as _ {
+    } else if seconds >= Second::per(Minute) as _ {
         Err(Error::InvalidComponent {
             name: "second",
             value: seconds.to_string(),
