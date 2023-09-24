@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.29 [2023-09-24]
+
+### Added
+
+- Niche value optimization for `Date` has been added. Both `Date` and `Option<Date>` are four bytes.
+- Unit conversions have been added. It is now possible to write `Second::per(Day)`, which returns
+  the number of seconds in one day. See the types in the [`time::convert` module] for more
+  information.
+
+  [`time::convert` module]: https://time-rs.github.io/api/time/convert/index.html
+
+### Changed
+
+- The diagnostic for `--cfg unsound_local_offset` has been removed.
+- `#![feature(no_coverage)]` was previously used internally for code coverage. It is no longer used,
+  so it has been removed.
+- The default value for `modifier::OffsetHour` has been changed. This was unintentionally changed in
+  v0.3.17 and went unnoticed until now. The sign is now only present if needed by default, as was
+  the case previously. This does not affect any situation where `format_description!` or
+  `format_description::parse` is used.
+
+### Fixed
+
+- Adding or subtracting a `std::time::Duration` to/from an `OffsetDateTime` will not result in
+  integer overflow internally. It will still panic if the result is out of range.
+
 ## 0.3.28 [2023-08-27]
 
 ### Added
