@@ -114,7 +114,7 @@ fn size() {
         };
     }
 
-    assert_size!(Date, 4, 8);
+    assert_size!(Date, 4, 4);
     assert_size!(Duration, 16, 16);
     assert_size!(OffsetDateTime, 16, 16);
     assert_size!(PrimitiveDateTime, 12, 12);

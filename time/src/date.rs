@@ -1,6 +1,7 @@
 //! The [`Date`] struct and its associated `impl`s.
 
 use core::fmt;
+use core::num::NonZeroI32;
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
@@ -47,32 +48,43 @@ pub struct Date {
     // |   2 bits   |        21 bits        |  9 bits   |
     // | unassigned |         year          |  ordinal  |
     // The year is 15 bits when `large-dates` is not enabled.
-    value: i32,
+    value: NonZeroI32,
 }
 
 impl Date {
     /// The minimum valid `Date`.
     ///
     /// The value of this may vary depending on the feature flags enabled.
-    pub const MIN: Self = Self::__from_ordinal_date_unchecked(MIN_YEAR, 1);
+    // Safety: `ordinal` is not zero.
+    #[allow(clippy::undocumented_unsafe_blocks)]
+    pub const MIN: Self = unsafe { Self::__from_ordinal_date_unchecked(MIN_YEAR, 1) };
 
     /// The maximum valid `Date`.
     ///
     /// The value of this may vary depending on the feature flags enabled.
-    pub const MAX: Self = Self::__from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR));
+    // Safety: `ordinal` is not zero.
+    #[allow(clippy::undocumented_unsafe_blocks)]
+    pub const MAX: Self =
+        unsafe { Self::__from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)) };
 
     // region: constructors
     /// Construct a `Date` from the year and ordinal values, the validity of which must be
     /// guaranteed by the caller.
+    ///
+    /// # Safety
+    ///
+    /// `ordinal` must not be zero. `year` should be in the range `MIN_YEAR..=MAX_YEAR`, but this
+    /// is not a safety invariant.
     #[doc(hidden)]
-    pub const fn __from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
+    pub const unsafe fn __from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
         debug_assert!(year >= MIN_YEAR);
         debug_assert!(year <= MAX_YEAR);
         debug_assert!(ordinal != 0);
         debug_assert!(ordinal <= days_in_year(year));
 
         Self {
-            value: (year << 9) | ordinal as i32,
+            // Safety: The caller must guarantee that `ordinal` is not zero.
+            value: unsafe { NonZeroI32::new_unchecked((year << 9) | ordinal as i32) },
         }
     }
 
@@ -114,11 +126,14 @@ impl Date {
             }
         }
 
-        Ok(Self::__from_ordinal_date_unchecked(
-            year,
-            DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
-                + day as u16,
-        ))
+        // Safety: `ordinal` is not zero.
+        Ok(unsafe {
+            Self::__from_ordinal_date_unchecked(
+                year,
+                DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
+                    + day as u16,
+            )
+        })
     }
 
     /// Attempt to create a `Date` from the year and ordinal day number.
@@ -149,7 +164,8 @@ impl Date {
             }
         }
 
-        Ok(Self::__from_ordinal_date_unchecked(year, ordinal))
+        // Safety: `ordinal` is not zero.
+        Ok(unsafe { Self::__from_ordinal_date_unchecked(year, ordinal) })
     }
 
     /// Attempt to create a `Date` from the ISO year, week, and weekday.
@@ -200,14 +216,21 @@ impl Date {
         let ordinal = week as i16 * 7 + weekday.number_from_monday() as i16 - jan_4;
 
         Ok(if ordinal <= 0 {
-            Self::__from_ordinal_date_unchecked(
-                year - 1,
-                (ordinal as u16).wrapping_add(days_in_year(year - 1)),
-            )
+            // Safety: `ordinal` is not zero.
+            unsafe {
+                Self::__from_ordinal_date_unchecked(
+                    year - 1,
+                    (ordinal as u16).wrapping_add(days_in_year(year - 1)),
+                )
+            }
         } else if ordinal > days_in_year(year) as i16 {
-            Self::__from_ordinal_date_unchecked(year + 1, ordinal as u16 - days_in_year(year))
+            // Safety: `ordinal` is not zero.
+            unsafe {
+                Self::__from_ordinal_date_unchecked(year + 1, ordinal as u16 - days_in_year(year))
+            }
         } else {
-            Self::__from_ordinal_date_unchecked(year, ordinal as _)
+            // Safety: `ordinal` is not zero.
+            unsafe { Self::__from_ordinal_date_unchecked(year, ordinal as _) }
         })
     }
 
@@ -267,7 +290,8 @@ impl Date {
             cascade!(ordinal in 1..366 => year);
         }
 
-        Self::__from_ordinal_date_unchecked(year, ordinal)
+        // Safety: `ordinal` is not zero.
+        unsafe { Self::__from_ordinal_date_unchecked(year, ordinal) }
     }
     // endregion constructors
 
@@ -281,7 +305,7 @@ impl Date {
     /// assert_eq!(date!(2020 - 01 - 01).year(), 2020);
     /// ```
     pub const fn year(self) -> i32 {
-        self.value >> 9
+        self.value.get() >> 9
     }
 
     /// Get the month.
@@ -360,7 +384,7 @@ impl Date {
     /// assert_eq!(date!(2019 - 12 - 31).ordinal(), 365);
     /// ```
     pub const fn ordinal(self) -> u16 {
-        (self.value & 0x1FF) as _
+        (self.value.get() & 0x1FF) as _
     }
 
     /// Get the ISO 8601 year and week number.
@@ -527,14 +551,16 @@ impl Date {
     /// ```
     pub const fn next_day(self) -> Option<Self> {
         if self.ordinal() == 366 || (self.ordinal() == 365 && !is_leap_year(self.year())) {
-            if self.value == Self::MAX.value {
+            if self.value.get() == Self::MAX.value.get() {
                 None
             } else {
-                Some(Self::__from_ordinal_date_unchecked(self.year() + 1, 1))
+                // Safety: `ordinal` is not zero.
+                unsafe { Some(Self::__from_ordinal_date_unchecked(self.year() + 1, 1)) }
             }
         } else {
             Some(Self {
-                value: self.value + 1,
+                // Safety: `ordinal` is not zero.
+                value: unsafe { NonZeroI32::new_unchecked(self.value.get() + 1) },
             })
         }
     }
@@ -561,15 +587,16 @@ impl Date {
     pub const fn previous_day(self) -> Option<Self> {
         if self.ordinal() != 1 {
             Some(Self {
-                value: self.value - 1,
+                // Safety: `ordinal` is not zero.
+                value: unsafe { NonZeroI32::new_unchecked(self.value.get() - 1) },
             })
-        } else if self.value == Self::MIN.value {
+        } else if self.value.get() == Self::MIN.value.get() {
             None
         } else {
-            Some(Self::__from_ordinal_date_unchecked(
-                self.year() - 1,
-                days_in_year(self.year() - 1),
-            ))
+            // Safety: `ordinal` is not zero.
+            Some(unsafe {
+                Self::__from_ordinal_date_unchecked(self.year() - 1, days_in_year(self.year() - 1))
+            })
         }
     }
 
@@ -1035,11 +1062,15 @@ impl Date {
 
         // Dates in January and February are unaffected by leap years.
         if ordinal <= 59 {
-            return Ok(Self::__from_ordinal_date_unchecked(year, ordinal));
+            // Safety: `ordinal` is not zero.
+            return Ok(unsafe { Self::__from_ordinal_date_unchecked(year, ordinal) });
         }
 
         match (is_leap_year(self.year()), is_leap_year(year)) {
-            (false, false) | (true, true) => Ok(Self::__from_ordinal_date_unchecked(year, ordinal)),
+            (false, false) | (true, true) => {
+                // Safety: `ordinal` is not zero.
+                Ok(unsafe { Self::__from_ordinal_date_unchecked(year, ordinal) })
+            }
             // February 29 does not exist in common years.
             (true, false) if ordinal == 60 => Err(error::ComponentRange {
                 name: "day",
@@ -1050,10 +1081,12 @@ impl Date {
             }),
             // We're going from a common year to a leap year. Shift dates in March and later by
             // one day.
-            (false, true) => Ok(Self::__from_ordinal_date_unchecked(year, ordinal + 1)),
+            // Safety: `ordinal` is not zero.
+            (false, true) => Ok(unsafe { Self::__from_ordinal_date_unchecked(year, ordinal + 1) }),
             // We're going from a leap year to a common year. Shift dates in January and
             // February by one day.
-            (true, false) => Ok(Self::__from_ordinal_date_unchecked(year, ordinal - 1)),
+            // Safety: `ordinal` is not zero.
+            (true, false) => Ok(unsafe { Self::__from_ordinal_date_unchecked(year, ordinal - 1) }),
         }
     }
 
@@ -1105,10 +1138,13 @@ impl Date {
             }
         }
 
-        Ok(Self::__from_ordinal_date_unchecked(
-            self.year(),
-            (self.ordinal() as i16 - self.day() as i16 + day as i16) as _,
-        ))
+        // Safety: `ordinal` is not zero.
+        Ok(unsafe {
+            Self::__from_ordinal_date_unchecked(
+                self.year(),
+                (self.ordinal() as i16 - self.day() as i16 + day as i16) as _,
+            )
+        })
     }
     // endregion replacement
 }

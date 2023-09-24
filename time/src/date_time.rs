@@ -197,7 +197,10 @@ pub(crate) const fn maybe_offset_from_offset<O: MaybeOffset>(
 // endregion const trait methods hacks
 
 /// The Julian day of the Unix epoch.
-const UNIX_EPOCH_JULIAN_DAY: i32 = Date::__from_ordinal_date_unchecked(1970, 1).to_julian_day();
+// Safety: `ordinal` is not zero.
+#[allow(clippy::undocumented_unsafe_blocks)]
+const UNIX_EPOCH_JULIAN_DAY: i32 =
+    unsafe { Date::__from_ordinal_date_unchecked(1970, 1) }.to_julian_day();
 
 pub struct DateTime<O: MaybeOffset> {
     pub(crate) date: Date,
@@ -232,7 +235,8 @@ impl DateTime<offset_kind::None> {
 
 impl DateTime<offset_kind::Fixed> {
     pub const UNIX_EPOCH: Self = Self {
-        date: Date::__from_ordinal_date_unchecked(1970, 1),
+        // Safety: `ordinal` is not zero.
+        date: unsafe { Date::__from_ordinal_date_unchecked(1970, 1) },
         time: Time::MIDNIGHT,
         offset: UtcOffset::UTC,
     };
@@ -534,7 +538,8 @@ impl<O: MaybeOffset> DateTime<O> {
         }
 
         Some(DateTime {
-            date: Date::__from_ordinal_date_unchecked(year, ordinal),
+            // Safety: `ordinal` is not zero.
+            date: unsafe { Date::__from_ordinal_date_unchecked(year, ordinal) },
             time,
             offset,
         })

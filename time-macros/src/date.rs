@@ -127,10 +127,12 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
 impl ToTokenTree for Date {
     fn into_token_tree(self) -> TokenTree {
         quote_group! {{
-            const DATE: ::time::Date = ::time::Date::__from_ordinal_date_unchecked(
-                #(self.year),
-                #(self.ordinal),
-            );
+            const DATE: ::time::Date = unsafe {
+                ::time::Date::__from_ordinal_date_unchecked(
+                    #(self.year),
+                    #(self.ordinal),
+                )
+            };
             DATE
         }}
     }
