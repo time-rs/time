@@ -220,19 +220,31 @@ impl NumericalStdDuration for u64 {
     }
 
     fn std_minutes(self) -> StdDuration {
-        StdDuration::from_secs(self * Second::per(Minute) as Self)
+        StdDuration::from_secs(
+            self.checked_mul(Second::per(Minute) as Self)
+                .expect("overflow constructing `time::Duration`"),
+        )
     }
 
     fn std_hours(self) -> StdDuration {
-        StdDuration::from_secs(self * Second::per(Hour) as Self)
+        StdDuration::from_secs(
+            self.checked_mul(Second::per(Hour) as Self)
+                .expect("overflow constructing `time::Duration`"),
+        )
     }
 
     fn std_days(self) -> StdDuration {
-        StdDuration::from_secs(self * Second::per(Day) as Self)
+        StdDuration::from_secs(
+            self.checked_mul(Second::per(Day) as Self)
+                .expect("overflow constructing `time::Duration`"),
+        )
     }
 
     fn std_weeks(self) -> StdDuration {
-        StdDuration::from_secs(self * Second::per(Week) as Self)
+        StdDuration::from_secs(
+            self.checked_mul(Second::per(Week) as Self)
+                .expect("overflow constructing `time::Duration`"),
+        )
     }
 }
 
