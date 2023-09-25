@@ -77,6 +77,10 @@ require_all_features! {
     /// unexpectedly failing.
     static SOUNDNESS_LOCK: Mutex<()> = Mutex::new(());
 
+    // Required by the crate for technical reasons.
+    #[allow(clippy::single_component_path_imports)]
+    use rstest_reuse;
+
     /// Construct a non-exhaustive modifier.
     macro_rules! modifier {
         ($name:ident $({

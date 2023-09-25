@@ -65,7 +65,6 @@ num_threads = { workspace = true, optional = true }
 js-sys = { workspace = true, optional = true }
 
 [dev-dependencies]
-itertools = { workspace = true }
 rand = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
@@ -73,6 +72,7 @@ serde_test = { workspace = true }
 quickcheck_macros = { workspace = true }
 time-macros = { workspace = true }
 rstest = { workspace = true }
+rstest_reuse = { workspace = true }
 
 [target.'cfg(__ui_tests)'.dev-dependencies]
 trybuild = { workspace = true }

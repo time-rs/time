@@ -1,59 +1,56 @@
 use core::num::NonZeroU16;
 
-use itertools::iproduct;
-use rstest::{fixture, rstest};
+use rstest::rstest;
+use rstest_reuse::{apply, template};
 use time::error::InvalidFormatDescription;
 use time::format_description::modifier::*;
 use time::format_description::{self, Component, FormatItem, OwnedFormatItem};
 
-// Use type aliases to avoid writing out the full type in every test.
-type PaddingIter = [(Padding, &'static str); 3];
-type HourIs12HourClockIter = [(bool, &'static str); 2];
-type PeriodIsUppercaseIter = [(bool, &'static str); 2];
-type MonthReprIter = [(MonthRepr, &'static str); 3];
-type SubsecondDigitsIter = [(SubsecondDigits, &'static str); 10];
-type WeekdayReprIter = [(WeekdayRepr, &'static str); 4];
-type WeekNumberReprIter = [(WeekNumberRepr, &'static str); 3];
-type YearReprIter = [(YearRepr, &'static str); 2];
-type YearIsIsoWeekBasedIter = [(bool, &'static str); 2];
-type SignIsMandatoryIter = [(bool, &'static str); 2];
-type WeekdayIsOneIndexedIter = [(bool, &'static str); 2];
-type CaseSensitiveIter = [(bool, &'static str); 2];
-type IgnoreCountIter = [(NonZeroU16, &'static str); 6];
-type UnixTimestampPrecisionIter = [(UnixTimestampPrecision, &'static str); 4];
+/// Identical to `modifier!`, but obtains the value from `M<T>` automagically.
+macro_rules! modifier_m {
+    ($name:ident $({
+        $($field:ident $(: $value:expr)?),* $(,)?
+    })?) => {{
+        // Needed for when there are no fields.
+        #[allow(unused_mut)]
+        let mut value = ::time::format_description::modifier::$name::default();
+        $($(value.$field = modifier!(@value $field $($value)?).0;)*)?
+        value
+    }};
+}
 
-// region: fixtures
-#[fixture]
-fn padding() -> PaddingIter {
-    [
+/// A modifier with its value and string representation.
+///
+/// This alias is used to avoid repeating the tuple in countless locations.
+type M<T> = (T, &'static str);
+
+#[rustfmt::skip] // does not format well
+#[template]
+#[rstest]
+fn modifiers(
+    #[values(
         (Padding::Space, "padding:space"),
         (Padding::Zero, "padding:zero"),
         (Padding::None, "padding:none"),
-    ]
-}
-
-#[fixture]
-fn hour_is_12_hour_clock() -> HourIs12HourClockIter {
-    [(false, "repr:24"), (true, "repr:12")]
-}
-
-#[fixture]
-fn period_is_uppercase() -> PeriodIsUppercaseIter {
-    [(true, "case:upper"), (false, "case:lower")]
-}
-
-#[fixture]
-fn month_repr() -> MonthReprIter {
-    [
+    )]
+    padding: _,
+    #[values(
+        (false, "repr:24"),
+        (true, "repr:12"),
+    )]
+    hour_is_12_hour_clock: _,
+    #[values(
+        (true, "case:upper"),
+        (false, "case:lower"),
+    )]
+    period_is_uppercase: _,
+    #[values(
         (MonthRepr::Numerical, "repr:numerical"),
         (MonthRepr::Long, "repr:long"),
         (MonthRepr::Short, "repr:short"),
-    ]
-}
-
-#[fixture]
-fn subsecond_digits() -> SubsecondDigitsIter {
-    [
+    )]
+    month_repr: _,
+    #[values(
         (SubsecondDigits::One, "digits:1"),
         (SubsecondDigits::Two, "digits:2"),
         (SubsecondDigits::Three, "digits:3"),
@@ -64,82 +61,63 @@ fn subsecond_digits() -> SubsecondDigitsIter {
         (SubsecondDigits::Eight, "digits:8"),
         (SubsecondDigits::Nine, "digits:9"),
         (SubsecondDigits::OneOrMore, "digits:1+"),
-    ]
-}
-
-#[fixture]
-fn weekday_repr() -> WeekdayReprIter {
-    [
+    )]
+    subsecond_digits: _,
+    #[values(
         (WeekdayRepr::Short, "repr:short"),
         (WeekdayRepr::Long, "repr:long"),
         (WeekdayRepr::Sunday, "repr:sunday"),
         (WeekdayRepr::Monday, "repr:monday"),
-    ]
-}
-
-#[fixture]
-fn week_number_repr() -> WeekNumberReprIter {
-    [
+    )]
+    weekday_repr: _,
+    #[values(
         (WeekNumberRepr::Iso, "repr:iso"),
         (WeekNumberRepr::Sunday, "repr:sunday"),
         (WeekNumberRepr::Monday, "repr:monday"),
-    ]
-}
-
-#[fixture]
-fn year_repr() -> YearReprIter {
-    [
+    )]
+    week_number_repr: _,
+    #[values(
         (YearRepr::Full, "repr:full"),
         (YearRepr::LastTwo, "repr:last_two"),
-    ]
-}
-
-#[fixture]
-fn year_is_iso_week_based() -> YearIsIsoWeekBasedIter {
-    [(false, "base:calendar"), (true, "base:iso_week")]
-}
-
-#[fixture]
-fn sign_is_mandatory() -> SignIsMandatoryIter {
-    [(false, "sign:automatic"), (true, "sign:mandatory")]
-}
-
-#[fixture]
-fn weekday_is_one_indexed() -> WeekdayIsOneIndexedIter {
-    [(true, "one_indexed:true"), (false, "one_indexed:false")]
-}
-
-#[fixture]
-fn case_sensitive() -> CaseSensitiveIter {
-    [
+    )]
+    year_repr: _,
+    #[values(
+        (false, "base:calendar"),
+        (true, "base:iso_week"),
+    )]
+    year_is_iso_week_based: _,
+    #[values(
+        (false, "sign:automatic"),
+        (true, "sign:mandatory"),
+    )]
+    sign_is_mandatory: _,
+    #[values(
+        (true, "one_indexed:true"),
+        (false, "one_indexed:false"),
+    )]
+    weekday_is_one_indexed: _,
+    #[values(
         (true, "case_sensitive:true"),
         (false, "case_sensitive:false"),
-    ]
-}
-
-#[fixture]
-#[allow(clippy::unwrap_used)] // all values are valid
-fn ignore_count() -> IgnoreCountIter {
-    [
+    )]
+    case_sensitive: _,
+    #[values(
         (NonZeroU16::new(1).unwrap(), "count:1"),
         (NonZeroU16::new(2).unwrap(), "count:2"),
         (NonZeroU16::new(3).unwrap(), "count:3"),
         (NonZeroU16::new(10).unwrap(), "count:10"),
         (NonZeroU16::new(100).unwrap(), "count:100"),
         (NonZeroU16::new(1_000).unwrap(), "count:1000"),
-    ]
-}
-
-#[fixture]
-fn unix_timestamp_precision() -> UnixTimestampPrecisionIter {
-    [
+    )]
+    ignore_count: _,
+    #[values(
         (UnixTimestampPrecision::Second, "precision:second"),
         (UnixTimestampPrecision::Millisecond, "precision:millisecond"),
         (UnixTimestampPrecision::Microsecond, "precision:microsecond"),
         (UnixTimestampPrecision::Nanosecond, "precision:nanosecond"),
-    ]
-}
-// endregion fixtures
+    )]
+    unix_timestamp_precision: _,
+) {}
 
 #[rstest]
 fn empty() {
@@ -222,271 +200,243 @@ fn errors() {
 }
 
 // region: individual components
-#[rstest]
-fn day_component(padding: PaddingIter) {
-    for (padding, padding_str) in padding {
-        assert_eq!(
-            format_description::parse(&format!("[day {padding_str}]")),
-            Ok(vec![FormatItem::Component(Component::Day(modifier!(
-                Day { padding }
-            )))])
-        );
-    }
+macro_rules! placeholder {
+    ($($x:tt)*) => {
+        " {}"
+    };
 }
 
-#[rstest]
-fn minute_component(padding: PaddingIter) {
-    for (padding, padding_str) in padding {
-        assert_eq!(
-            format_description::parse(&format!("[minute {padding_str}]")),
-            Ok(vec![FormatItem::Component(Component::Minute(modifier!(
-                Minute { padding }
-            )))])
-        );
-    }
-}
-
-#[rstest]
-fn offset_minute_component(padding: PaddingIter) {
-    for (padding, padding_str) in padding {
-        assert_eq!(
-            format_description::parse(&format!("[offset_minute {padding_str}]")),
-            Ok(vec![FormatItem::Component(Component::OffsetMinute(
-                modifier!(OffsetMinute { padding })
-            ))])
-        );
-    }
-}
-
-#[rstest]
-fn offset_second_component(padding: PaddingIter) {
-    for (padding, padding_str) in padding {
-        assert_eq!(
-            format_description::parse(&format!("[offset_second {padding_str}]")),
-            Ok(vec![FormatItem::Component(Component::OffsetSecond(
-                modifier!(OffsetSecond { padding })
-            ))])
-        );
-    }
-}
-
-#[rstest]
-fn ordinal_component(padding: PaddingIter) {
-    for (padding, padding_str) in padding {
-        assert_eq!(
-            format_description::parse(&format!("[ordinal {padding_str}]")),
-            Ok(vec![FormatItem::Component(Component::Ordinal(modifier!(
-                Ordinal { padding }
-            )))])
-        );
-    }
-}
-
-#[rstest]
-fn second_component(padding: PaddingIter) {
-    for (padding, padding_str) in padding {
-        assert_eq!(
-            format_description::parse(&format!("[second {padding_str}]")),
-            Ok(vec![FormatItem::Component(Component::Second(modifier!(
-                Second { padding }
-            )))])
-        );
-    }
-}
-
-#[rstest]
-fn hour_component(padding: PaddingIter, hour_is_12_hour_clock: HourIs12HourClockIter) {
-    for ((padding, padding_str), (is_12_hour_clock, is_12_hour_clock_str)) in
-        iproduct!(padding, hour_is_12_hour_clock)
-    {
-        assert_eq!(
-            format_description::parse(&format!("[hour {padding_str} {is_12_hour_clock_str}]")),
-            Ok(vec![FormatItem::Component(Component::Hour(modifier!(
-                Hour {
-                    padding,
-                    is_12_hour_clock
-                }
-            )))])
-        );
-    }
-}
-
-#[rstest]
-fn month_component(
-    padding: PaddingIter,
-    case_sensitive: CaseSensitiveIter,
-    month_repr: MonthReprIter,
-) {
-    for ((padding, padding_str), (repr, repr_str), (case_sensitive, case_sensitive_str)) in
-        iproduct!(padding, month_repr, case_sensitive)
-    {
-        assert_eq!(
-            format_description::parse(&format!(
-                "[month {padding_str} {case_sensitive_str} {repr_str}]"
-            )),
-            Ok(vec![FormatItem::Component(Component::Month(modifier!(
-                Month {
-                    padding,
-                    repr,
-                    case_sensitive
-                }
-            )))])
-        );
-    }
-}
-
-#[rstest]
-fn period_component(case_sensitive: CaseSensitiveIter, period_is_uppercase: PeriodIsUppercaseIter) {
-    for ((case_sensitive, case_sensitive_repr), (is_uppercase, is_uppercase_str)) in
-        iproduct!(case_sensitive, period_is_uppercase)
-    {
-        assert_eq!(
-            format_description::parse(&format!(
-                "[period {is_uppercase_str} {case_sensitive_repr}]"
-            )),
-            Ok(vec![FormatItem::Component(Component::Period(modifier!(
-                Period {
-                    is_uppercase,
-                    case_sensitive
-                }
-            )))])
-        );
-    }
-}
-
-#[rstest]
-fn weekday_component(
-    case_sensitive: CaseSensitiveIter,
-    weekday_is_one_indexed: WeekdayIsOneIndexedIter,
-    weekday_repr: WeekdayReprIter,
-) {
-    for ((case_sensitive, case_sensitive_repr), (one_indexed, one_indexed_str), (repr, repr_str)) in
-        iproduct!(case_sensitive, weekday_is_one_indexed, weekday_repr)
-    {
-        assert_eq!(
-            format_description::parse(&format!(
-                "[weekday {repr_str} {one_indexed_str} {case_sensitive_repr} ]"
-            )),
-            Ok(vec![FormatItem::Component(Component::Weekday(modifier!(
-                Weekday {
-                    repr,
-                    one_indexed,
-                    case_sensitive
-                }
-            )))])
+macro_rules! parse_with_modifiers {
+    ($modifier_name:literal, $($modifier:ident),+) => {
+        format_description::parse(
+            &format!(
+                concat!(
+                    "[",
+                    $modifier_name,
+                    $(placeholder!($modifier),)+
+                    "]",
+                ),
+                $($modifier.1),+
+            )
         )
-    }
+    };
 }
 
-#[rstest]
-fn week_number_component(padding: PaddingIter, week_number_repr: WeekNumberReprIter) {
-    for ((padding, padding_str), (repr, repr_str)) in iproduct!(padding, week_number_repr) {
-        assert_eq!(
-            format_description::parse(&format!("[week_number {padding_str} {repr_str}]")),
-            Ok(vec![FormatItem::Component(Component::WeekNumber(
-                modifier!(WeekNumber { padding, repr })
-            ))])
-        );
-    }
+#[apply(modifiers)]
+fn day_component(padding: M<Padding>) {
+    assert_eq!(
+        parse_with_modifiers!("day", padding),
+        Ok(vec![FormatItem::Component(Component::Day(modifier_m!(
+            Day { padding }
+        )))])
+    );
 }
 
-#[rstest]
-fn offset_hour_component(padding: PaddingIter, sign_is_mandatory: SignIsMandatoryIter) {
-    for ((padding, padding_str), (sign_is_mandatory, sign_is_mandatory_str)) in
-        iproduct!(padding, sign_is_mandatory)
-    {
-        assert_eq!(
-            format_description::parse(&format!(
-                "[offset_hour {padding_str} {sign_is_mandatory_str}]"
-            )),
-            Ok(vec![FormatItem::Component(Component::OffsetHour(
-                modifier!(OffsetHour {
-                    padding,
-                    sign_is_mandatory
-                })
-            ))])
-        );
-    }
+#[apply(modifiers)]
+fn minute_component(padding: M<Padding>) {
+    assert_eq!(
+        parse_with_modifiers!("minute", padding),
+        Ok(vec![FormatItem::Component(Component::Minute(modifier_m!(
+            Minute { padding }
+        )))])
+    );
 }
 
-#[rstest]
+#[apply(modifiers)]
+fn offset_minute_component(padding: M<Padding>) {
+    assert_eq!(
+        parse_with_modifiers!("offset_minute", padding),
+        Ok(vec![FormatItem::Component(Component::OffsetMinute(
+            modifier_m!(OffsetMinute { padding })
+        ))])
+    );
+}
+
+#[apply(modifiers)]
+fn offset_second_component(padding: M<Padding>) {
+    assert_eq!(
+        parse_with_modifiers!("offset_second", padding),
+        Ok(vec![FormatItem::Component(Component::OffsetSecond(
+            modifier_m!(OffsetSecond { padding })
+        ))])
+    );
+}
+
+#[apply(modifiers)]
+fn ordinal_component(padding: M<Padding>) {
+    assert_eq!(
+        parse_with_modifiers!("ordinal", padding),
+        Ok(vec![FormatItem::Component(Component::Ordinal(
+            modifier_m!(Ordinal { padding })
+        ))])
+    );
+}
+
+#[apply(modifiers)]
+fn second_component(padding: M<Padding>) {
+    assert_eq!(
+        parse_with_modifiers!("second", padding),
+        Ok(vec![FormatItem::Component(Component::Second(modifier_m!(
+            Second { padding }
+        )))])
+    );
+}
+
+#[apply(modifiers)]
+fn hour_component(padding: M<Padding>, hour_is_12_hour_clock: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!("hour", padding, hour_is_12_hour_clock),
+        Ok(vec![FormatItem::Component(Component::Hour(modifier_m!(
+            Hour {
+                padding,
+                is_12_hour_clock: hour_is_12_hour_clock
+            }
+        )))])
+    );
+}
+
+#[apply(modifiers)]
+fn month_component(padding: M<Padding>, case_sensitive: M<bool>, month_repr: M<MonthRepr>) {
+    assert_eq!(
+        parse_with_modifiers!("month", padding, case_sensitive, month_repr),
+        Ok(vec![FormatItem::Component(Component::Month(modifier_m!(
+            Month {
+                padding,
+                repr: month_repr,
+                case_sensitive
+            }
+        )))])
+    );
+}
+
+#[apply(modifiers)]
+fn period_component(case_sensitive: M<bool>, period_is_uppercase: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!("period", period_is_uppercase, case_sensitive),
+        Ok(vec![FormatItem::Component(Component::Period(modifier_m!(
+            Period {
+                is_uppercase: period_is_uppercase,
+                case_sensitive
+            }
+        )))])
+    );
+}
+
+#[apply(modifiers)]
+fn weekday_component(
+    case_sensitive: M<bool>,
+    weekday_is_one_indexed: M<bool>,
+    weekday_repr: M<WeekdayRepr>,
+) {
+    assert_eq!(
+        parse_with_modifiers!(
+            "weekday",
+            case_sensitive,
+            weekday_is_one_indexed,
+            weekday_repr
+        ),
+        Ok(vec![FormatItem::Component(Component::Weekday(
+            modifier_m!(Weekday {
+                repr: weekday_repr,
+                one_indexed: weekday_is_one_indexed,
+                case_sensitive
+            })
+        ))])
+    );
+}
+
+#[apply(modifiers)]
+fn week_number_component(padding: M<Padding>, week_number_repr: M<WeekNumberRepr>) {
+    assert_eq!(
+        parse_with_modifiers!("week_number", padding, week_number_repr),
+        Ok(vec![FormatItem::Component(Component::WeekNumber(
+            modifier_m!(WeekNumber {
+                padding,
+                repr: week_number_repr
+            })
+        ))])
+    );
+}
+
+#[apply(modifiers)]
+fn offset_hour_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!("offset_hour", padding, sign_is_mandatory),
+        Ok(vec![FormatItem::Component(Component::OffsetHour(
+            modifier_m!(OffsetHour {
+                padding,
+                sign_is_mandatory
+            })
+        ))])
+    );
+}
+
+#[apply(modifiers)]
 fn year_component(
-    padding: PaddingIter,
-    year_repr: YearReprIter,
-    year_is_iso_week_based: YearIsIsoWeekBasedIter,
-    sign_is_mandatory: SignIsMandatoryIter,
+    padding: M<Padding>,
+    year_repr: M<YearRepr>,
+    year_is_iso_week_based: M<bool>,
+    sign_is_mandatory: M<bool>,
 ) {
-    for (
-        (padding, padding_str),
-        (repr, repr_str),
-        (iso_week_based, iso_week_based_str),
-        (sign_is_mandatory, sign_is_mandatory_str),
-    ) in iproduct!(
-        padding,
-        year_repr,
-        year_is_iso_week_based,
-        sign_is_mandatory
-    ) {
-        assert_eq!(
-            format_description::parse(&format!(
-                "[year {padding_str} {repr_str} {iso_week_based_str} {sign_is_mandatory_str}]"
-            )),
-            Ok(vec![FormatItem::Component(Component::Year(modifier!(
-                Year {
-                    padding,
-                    repr,
-                    iso_week_based,
-                    sign_is_mandatory
-                }
-            )))])
-        );
-    }
+    assert_eq!(
+        parse_with_modifiers!(
+            "year",
+            padding,
+            year_repr,
+            year_is_iso_week_based,
+            sign_is_mandatory
+        ),
+        Ok(vec![FormatItem::Component(Component::Year(modifier_m!(
+            Year {
+                padding,
+                repr: year_repr,
+                iso_week_based: year_is_iso_week_based,
+                sign_is_mandatory
+            }
+        )))])
+    );
 }
 
-#[rstest]
+#[apply(modifiers)]
 fn unix_timestamp_component(
-    sign_is_mandatory: SignIsMandatoryIter,
-    unix_timestamp_precision: UnixTimestampPrecisionIter,
+    sign_is_mandatory: M<bool>,
+    unix_timestamp_precision: M<UnixTimestampPrecision>,
 ) {
-    for ((sign_is_mandatory, sign_is_mandatory_str), (precision, precision_str)) in
-        iproduct!(sign_is_mandatory, unix_timestamp_precision)
-    {
-        assert_eq!(
-            format_description::parse(&format!(
-                "[unix_timestamp {sign_is_mandatory_str} {precision_str}]"
-            )),
-            Ok(vec![FormatItem::Component(Component::UnixTimestamp(
-                modifier!(UnixTimestamp {
-                    sign_is_mandatory,
-                    precision
-                })
-            ))])
-        );
-    }
+    assert_eq!(
+        parse_with_modifiers!(
+            "unix_timestamp",
+            sign_is_mandatory,
+            unix_timestamp_precision
+        ),
+        Ok(vec![FormatItem::Component(Component::UnixTimestamp(
+            modifier_m!(UnixTimestamp {
+                sign_is_mandatory,
+                precision: unix_timestamp_precision,
+            })
+        ))])
+    );
 }
 
-#[rstest]
-fn subsecond_component(subsecond_digits: SubsecondDigitsIter) {
-    for (digits, digits_str) in subsecond_digits {
-        assert_eq!(
-            format_description::parse(&format!("[subsecond {digits_str}]")),
-            Ok(vec![FormatItem::Component(Component::Subsecond(
-                modifier!(Subsecond { digits })
-            ))]),
-        );
-    }
+#[apply(modifiers)]
+fn subsecond_component(subsecond_digits: M<SubsecondDigits>) {
+    assert_eq!(
+        parse_with_modifiers!("subsecond", subsecond_digits),
+        Ok(vec![FormatItem::Component(Component::Subsecond(
+            modifier_m!(Subsecond {
+                digits: subsecond_digits
+            })
+        ))]),
+    );
 }
 
-#[rstest]
-fn ignore_component(ignore_count: IgnoreCountIter) {
-    for (count, count_str) in ignore_count {
-        assert_eq!(
-            format_description::parse(&format!("[ignore {count_str}]")),
-            Ok(vec![FormatItem::Component(Component::Ignore(
-                Ignore::count(count)
-            ))])
-        );
-    }
+#[apply(modifiers)]
+fn ignore_component(ignore_count: M<NonZeroU16>) {
+    assert_eq!(
+        parse_with_modifiers!("ignore", ignore_count),
+        Ok(vec![FormatItem::Component(Component::Ignore(
+            Ignore::count(ignore_count.0)
+        ))])
+    );
 }
 // endregion individual components
 
