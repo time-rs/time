@@ -27,7 +27,7 @@
 
 use std::num::NonZeroU8;
 
-use crate::formatting::DigitCount;
+use crate::ext::DigitCount;
 use crate::parsing::combinator::rfc::iso8601;
 use crate::parsing::shim::Integer;
 use crate::{duration, parsing};

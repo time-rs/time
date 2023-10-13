@@ -13,7 +13,9 @@ use std::io;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
-use crate::date_time::offset_kind;
+use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
+
+use crate::date_time::{offset_kind, DateTimeMetadata};
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{const_try, const_try_opt};
@@ -1034,9 +1036,25 @@ impl OffsetDateTime {
     }
 }
 
+impl SmartDisplay for OffsetDateTime {
+    type Metadata = DateTimeMetadata;
+
+    fn metadata(&self, f: FormatterOptions) -> Metadata<Self> {
+        self.0.metadata(f).reuse()
+    }
+
+    fn fmt_with_metadata(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+        metadata: Metadata<Self>,
+    ) -> fmt::Result {
+        self.0.fmt_with_metadata(f, metadata.reuse())
+    }
+}
+
 impl fmt::Display for OffsetDateTime {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0.fmt(f)
+        SmartDisplay::fmt(self, f)
     }
 }
 

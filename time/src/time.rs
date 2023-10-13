@@ -7,6 +7,8 @@ use core::time::Duration as StdDuration;
 use std::io;
 
 use deranged::{RangedU32, RangedU8};
+use powerfmt::ext::FormatterExt;
+use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
 
 use crate::convert::*;
 #[cfg(feature = "formatting")]
@@ -756,9 +758,24 @@ impl Time {
     }
 }
 
-impl fmt::Display for Time {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let (value, width) = match self.nanosecond() {
+mod private {
+    #[non_exhaustive]
+    #[derive(Debug, Clone, Copy)]
+    pub struct TimeMetadata {
+        /// How many characters wide the formatted subsecond is.
+        pub(super) subsecond_width: u8,
+        /// The value to use when formatting the subsecond. Leading zeroes will be added as
+        /// necessary.
+        pub(super) subsecond_value: u32,
+    }
+}
+use private::TimeMetadata;
+
+impl SmartDisplay for Time {
+    type Metadata = TimeMetadata;
+
+    fn metadata(&self, _: FormatterOptions) -> Metadata<Self> {
+        let (subsecond_value, subsecond_width) = match self.nanosecond() {
             nanos if nanos % 10 != 0 => (nanos, 9),
             nanos if (nanos / 10) % 10 != 0 => (nanos / 10, 8),
             nanos if (nanos / 100) % 10 != 0 => (nanos / 100, 7),
@@ -769,11 +786,47 @@ impl fmt::Display for Time {
             nanos if (nanos / 10_000_000) % 10 != 0 => (nanos / 10_000_000, 2),
             nanos => (nanos / 100_000_000, 1),
         };
-        write!(
-            f,
-            "{}:{:02}:{:02}.{value:0width$}",
-            self.hour, self.minute, self.second,
+
+        let formatted_width = smart_display::padded_width_of!(
+            self.hour.get(),
+            ":",
+            self.minute.get() => width(2) fill('0'),
+            ":",
+            self.second.get() => width(2) fill('0'),
+            ".",
+        ) + subsecond_width;
+
+        Metadata::new(
+            formatted_width,
+            self,
+            TimeMetadata {
+                subsecond_width: subsecond_width as _,
+                subsecond_value,
+            },
         )
+    }
+
+    fn fmt_with_metadata(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+        metadata: Metadata<Self>,
+    ) -> fmt::Result {
+        let subsecond_width = metadata.subsecond_width as usize;
+        let subsecond_value = metadata.subsecond_value;
+
+        f.pad_with_width(
+            metadata.unpadded_width(),
+            format_args!(
+                "{}:{:02}:{:02}.{subsecond_value:0subsecond_width$}",
+                self.hour, self.minute, self.second
+            ),
+        )
+    }
+}
+
+impl fmt::Display for Time {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        SmartDisplay::fmt(self, f)
     }
 }
 

@@ -4,6 +4,8 @@ use core::fmt;
 use core::num::NonZeroU8;
 use core::str::FromStr;
 
+use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
+
 use self::Month::*;
 use crate::error;
 
@@ -164,9 +166,35 @@ impl Month {
     }
 }
 
-impl fmt::Display for Month {
+mod private {
+    #[non_exhaustive]
+    #[derive(Debug, Clone, Copy)]
+    pub struct MonthMetadata;
+}
+use private::MonthMetadata;
+
+impl SmartDisplay for Month {
+    type Metadata = MonthMetadata;
+
+    fn metadata(&self, _: FormatterOptions) -> Metadata<Self> {
+        match self {
+            January => Metadata::new(7, self, MonthMetadata),
+            February => Metadata::new(8, self, MonthMetadata),
+            March => Metadata::new(5, self, MonthMetadata),
+            April => Metadata::new(5, self, MonthMetadata),
+            May => Metadata::new(3, self, MonthMetadata),
+            June => Metadata::new(4, self, MonthMetadata),
+            July => Metadata::new(4, self, MonthMetadata),
+            August => Metadata::new(6, self, MonthMetadata),
+            September => Metadata::new(9, self, MonthMetadata),
+            October => Metadata::new(7, self, MonthMetadata),
+            November => Metadata::new(8, self, MonthMetadata),
+            December => Metadata::new(8, self, MonthMetadata),
+        }
+    }
+
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(match self {
+        f.pad(match self {
             January => "January",
             February => "February",
             March => "March",
@@ -180,6 +208,12 @@ impl fmt::Display for Month {
             November => "November",
             December => "December",
         })
+    }
+}
+
+impl fmt::Display for Month {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        SmartDisplay::fmt(self, f)
     }
 }
 

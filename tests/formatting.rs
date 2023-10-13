@@ -342,6 +342,9 @@ fn display_time() {
     assert_eq!(time!(0:00:00.000_000_1).to_string(), "0:00:00.0000001");
     assert_eq!(time!(0:00:00.000_000_01).to_string(), "0:00:00.00000001");
     assert_eq!(time!(0:00:00.000_000_001).to_string(), "0:00:00.000000001");
+
+    assert_eq!(format!("{:>12}", time!(0:00)), "   0:00:00.0");
+    assert_eq!(format!("{:x^14}", time!(0:00)), "xx0:00:00.0xxx");
 }
 
 #[test]
@@ -464,6 +467,9 @@ fn display_offset() {
     assert_eq!(offset!(-23:59).to_string(), "-23:59:00");
     assert_eq!(offset!(+23:59:59).to_string(), "+23:59:59");
     assert_eq!(offset!(-23:59:59).to_string(), "-23:59:59");
+
+    assert_eq!(format!("{:>10}", offset!(UTC)), " +00:00:00");
+    assert_eq!(format!("{:x^14}", offset!(UTC)), "xx+00:00:00xxx");
 }
 
 #[test]

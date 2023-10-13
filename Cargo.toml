@@ -8,11 +8,14 @@ time-core = { path = "time-core", version = "=0.1.2" }
 time-macros = { path = "time-macros", version = "=0.2.15" }
 
 criterion = { version = "0.5.1", default-features = false }
-deranged = { version = "0.3.7", default-features = false }
+deranged = { version = "0.3.9", default-features = false, features = [
+    "powerfmt",
+] }
 itoa = "1.0.1"
 js-sys = "0.3.58"
 libc = "0.2.98"
 num_threads = "0.1.2"
+powerfmt = { version = "0.2.0", default-features = false }
 quickcheck = { version = "1.0.3", default-features = false }
 quickcheck_macros = "1.0.0"
 rand = { version = "0.8.4", default-features = false }

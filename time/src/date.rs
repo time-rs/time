@@ -1,15 +1,18 @@
 //! The [`Date`] struct and its associated `impl`s.
 
-use core::fmt;
 use core::num::NonZeroI32;
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
+use core::{cmp, fmt};
 #[cfg(feature = "formatting")]
 use std::io;
 
 use deranged::RangedI32;
+use powerfmt::ext::FormatterExt;
+use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
 
 use crate::convert::*;
+use crate::ext::DigitCount;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{
@@ -1303,26 +1306,89 @@ impl Date {
     }
 }
 
-impl fmt::Display for Date {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if cfg!(feature = "large-dates") && self.year().abs() >= 10_000 {
-            write!(
-                f,
-                "{:+}-{:02}-{:02}",
-                self.year(),
-                self.month() as u8,
-                self.day()
+mod private {
+    #[non_exhaustive]
+    #[derive(Debug, Clone, Copy)]
+    pub struct DateMetadata {
+        /// The width of the year component, including the sign.
+        pub(super) year_width: u8,
+        /// Whether the sign should be displayed.
+        pub(super) display_sign: bool,
+        pub(super) year: i32,
+        pub(super) month: u8,
+        pub(super) day: u8,
+    }
+}
+use private::DateMetadata;
+
+impl SmartDisplay for Date {
+    type Metadata = DateMetadata;
+
+    fn metadata(&self, _: FormatterOptions) -> Metadata<Self> {
+        let (year, month, day) = self.to_calendar_date();
+
+        // There is a minimum of four digits for any year.
+        let mut year_width = cmp::max(year.unsigned_abs().num_digits(), 4);
+        let display_sign = if !(0..10_000).contains(&year) {
+            // An extra character is required for the sign.
+            year_width += 1;
+            true
+        } else {
+            false
+        };
+
+        let formatted_width = year_width as usize
+            + smart_display::padded_width_of!(
+                "-",
+                month as u8 => width(2),
+                "-",
+                day => width(2),
+            );
+
+        Metadata::new(
+            formatted_width,
+            self,
+            DateMetadata {
+                year_width,
+                display_sign,
+                year,
+                month: month as u8,
+                day,
+            },
+        )
+    }
+
+    fn fmt_with_metadata(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+        metadata: Metadata<Self>,
+    ) -> fmt::Result {
+        let DateMetadata {
+            year_width,
+            display_sign,
+            year,
+            month,
+            day,
+        } = *metadata;
+        let year_width = year_width as usize;
+
+        if display_sign {
+            f.pad_with_width(
+                metadata.unpadded_width(),
+                format_args!("{year:+0year_width$}-{month:02}-{day:02}"),
             )
         } else {
-            write!(
-                f,
-                "{:0width$}-{:02}-{:02}",
-                self.year(),
-                self.month() as u8,
-                self.day(),
-                width = 4 + (self.year() < 0) as usize
+            f.pad_with_width(
+                metadata.unpadded_width(),
+                format_args!("{year:0year_width$}-{month:02}-{day:02}"),
             )
         }
+    }
+}
+
+impl fmt::Display for Date {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        SmartDisplay::fmt(self, f)
     }
 }
 

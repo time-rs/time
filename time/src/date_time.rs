@@ -17,6 +17,8 @@ use std::io;
 use std::time::SystemTime;
 
 use deranged::RangedI64;
+use powerfmt::ext::FormatterExt;
+use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
 
 use crate::convert::*;
 use crate::date::{MAX_YEAR, MIN_YEAR};
@@ -911,23 +913,60 @@ impl<O: MaybeOffset> DateTime<O> {
     // endregion deprecated time getters
 }
 
-impl<O: MaybeOffset> fmt::Debug for DateTime<O> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        <Self as fmt::Display>::fmt(self, f)
+// region: trait impls
+mod private {
+    use super::*;
+
+    #[non_exhaustive]
+    #[derive(Debug, Clone, Copy)]
+    pub struct DateTimeMetadata {
+        pub(super) maybe_offset: Option<UtcOffset>,
+    }
+}
+pub(crate) use private::DateTimeMetadata;
+
+impl<O: MaybeOffset> SmartDisplay for DateTime<O> {
+    type Metadata = DateTimeMetadata;
+
+    fn metadata(&self, _: FormatterOptions) -> Metadata<Self> {
+        let maybe_offset = maybe_offset_as_offset_opt::<O>(self.offset);
+        let width = match maybe_offset {
+            Some(offset) => smart_display::padded_width_of!(self.date, " ", self.time, " ", offset),
+            None => smart_display::padded_width_of!(self.date, " ", self.time),
+        };
+        Metadata::new(width, self, DateTimeMetadata { maybe_offset })
+    }
+
+    fn fmt_with_metadata(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+        metadata: Metadata<Self>,
+    ) -> fmt::Result {
+        match metadata.maybe_offset {
+            Some(offset) => f.pad_with_width(
+                metadata.unpadded_width(),
+                format_args!("{} {} {offset}", self.date, self.time),
+            ),
+            None => f.pad_with_width(
+                metadata.unpadded_width(),
+                format_args!("{} {}", self.date, self.time),
+            ),
+        }
     }
 }
 
 impl<O: MaybeOffset> fmt::Display for DateTime<O> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} {}", self.date, self.time)?;
-        if let Some(offset) = maybe_offset_as_offset_opt::<O>(self.offset) {
-            write!(f, " {offset}")?;
-        }
-        Ok(())
+        SmartDisplay::fmt(self, f)
     }
 }
 
-// region: trait impls
+impl<O: MaybeOffset> fmt::Debug for DateTime<O> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
+    }
+}
+
 impl<O: MaybeOffset> PartialEq for DateTime<O> {
     fn eq(&self, rhs: &Self) -> bool {
         if O::HAS_LOGICAL_OFFSET {
