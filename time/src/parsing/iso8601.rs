@@ -19,6 +19,7 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
     // Basic: [year]["W"][week][dayk]
     // Extended: [year]["-"]["W"][week]["-"][dayk]
     /// Parse a date in the basic or extended format. Reduced precision is permitted.
+    #[allow(clippy::needless_pass_by_ref_mut)] // rust-lang/rust-clippy#11620
     pub(crate) fn parse_date<'a>(
         parsed: &'a mut Parsed,
         extended_kind: &'a mut ExtendedKind,

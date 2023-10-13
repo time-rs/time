@@ -98,7 +98,7 @@ impl PartialEq for Time {
 
 impl PartialOrd for Time {
     fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
-        self.as_u64().partial_cmp(&other.as_u64())
+        Some(self.cmp(other))
     }
 }
 
