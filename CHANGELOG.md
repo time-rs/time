@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.30 [2023-10-13]
+
+### Added
+
+- `powerfmt::smart_display::SmartDisplay` has been added for the main types in the library. These
+  implementations ensure that values follow the requested fill, width, and alignment when using
+  `format!` or similar macros. `Display` is implemented in terms of `SmartDisplay`.
+
+### Fixed
+
+- Large values no longer wrap around in release mode when using `NumericalDuration` or
+  `NumericalStdDuration`.
+
 ## 0.3.29 [2023-09-24]
 
 ### Added
