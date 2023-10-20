@@ -109,10 +109,10 @@ mod sealed {
 
     pub trait IsOffsetKindFixed:
         MaybeOffset<
-            Self_ = offset_kind::Fixed,
-            MemoryOffsetType = UtcOffset,
-            LogicalOffsetType = UtcOffset,
-        >
+        Self_ = offset_kind::Fixed,
+        MemoryOffsetType = UtcOffset,
+        LogicalOffsetType = UtcOffset,
+    >
     {
     }
     impl IsOffsetKindFixed for offset_kind::Fixed {}
@@ -289,6 +289,50 @@ impl<O: MaybeOffset> DateTime<O> {
         })
     }
 
+    pub const fn from_unix_timestamp_millis(timestamp: i64) -> Result<Self, error::ComponentRange>
+    where
+        O: HasLogicalOffset,
+    {
+        let datetime = const_try!(Self::from_unix_timestamp(div_floor!(
+            timestamp,
+            Millisecond::per(Second) as i64
+        )));
+
+        Ok(Self {
+            date: datetime.date,
+            time: unsafe {
+                Time::__from_hms_nanos_unchecked(
+                    datetime.hour(),
+                    datetime.minute(),
+                    datetime.second(),
+                    timestamp.rem_euclid(Millisecond::per(Second) as _) as u32,
+                )
+            },
+            offset: maybe_offset_from_offset::<O>(UtcOffset::UTC),
+        })
+    }
+    pub const fn from_unix_timestamp_micros(timestamp: i64) -> Result<Self, error::ComponentRange>
+    where
+        O: HasLogicalOffset,
+    {
+        let datetime = const_try!(Self::from_unix_timestamp(div_floor!(
+            timestamp,
+            Microsecond::per(Second) as i64
+        )));
+
+        Ok(Self {
+            date: datetime.date,
+            time: unsafe {
+                Time::__from_hms_nanos_unchecked(
+                    datetime.hour(),
+                    datetime.minute(),
+                    datetime.second(),
+                    timestamp.rem_euclid(Microsecond::per(Second) as _) as u32,
+                )
+            },
+            offset: maybe_offset_from_offset::<O>(UtcOffset::UTC),
+        })
+    }
     pub const fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange>
     where
         O: HasLogicalOffset,

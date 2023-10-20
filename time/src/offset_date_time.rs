@@ -157,18 +157,61 @@ impl OffsetDateTime {
         Ok(Self(const_try!(Inner::from_unix_timestamp(timestamp))))
     }
 
+    /// Construct an `OffsetDateTime` from the provided Unix timestamp (in milliseconds). Calling
+    /// `.offset()` on the resulting value is guaranteed to return UTC.
+    ///
+    /// ```rust
+    /// # use time::OffsetDateTime;
+    /// # use time_macros::datetime;
+    ///
+    /// const TIMESTAMP_MILLIS: i64 = 1_546_300_800_000;
+    ///
+    /// assert_eq!(
+    ///     OffsetDateTime::from_unix_timestamp_millis(TIMESTAMP_MILLIS),
+    ///     Ok(datetime!(2019-01-01 0:00 UTC)),
+    /// );
+    /// ```
+    pub const fn from_unix_timestamp_millis(timestamp: i64) -> Result<Self, error::ComponentRange> {
+        Ok(Self(const_try!(Inner::from_unix_timestamp_millis(
+            timestamp
+        ))))
+    }
+
+    /// Construct an `OffsetDateTime` from the provided Unix timestamp (in milliseconds). Calling
+    /// `.offset()` on the resulting value is guaranteed to return UTC.
+    ///
+    /// ```rust
+    /// # use time::OffsetDateTime;
+    /// # use time_macros::datetime;
+    ///
+    /// const TIMESTAMP_MICROS: i64 = 1_546_300_800_000_000;
+    ///
+    /// assert_eq!(
+    ///     OffsetDateTime::from_unix_timestamp_micros(TIMESTAMP_MICROS),
+    ///     Ok(datetime!(2019-01-01 0:00 UTC)),
+    /// );
+    /// ```
+    pub const fn from_unix_timestamp_micros(timestamp: i64) -> Result<Self, error::ComponentRange> {
+        Ok(Self(const_try!(Inner::from_unix_timestamp_micros(
+            timestamp
+        ))))
+    }
+
     /// Construct an `OffsetDateTime` from the provided Unix timestamp (in nanoseconds). Calling
     /// `.offset()` on the resulting value is guaranteed to return UTC.
     ///
     /// ```rust
     /// # use time::OffsetDateTime;
     /// # use time_macros::datetime;
+    ///
+    /// const TIMESTAMP_NANOS: i128 = 1_546_300_800_000_000_000;
+    ///
     /// assert_eq!(
     ///     OffsetDateTime::from_unix_timestamp_nanos(0),
     ///     Ok(OffsetDateTime::UNIX_EPOCH),
     /// );
     /// assert_eq!(
-    ///     OffsetDateTime::from_unix_timestamp_nanos(1_546_300_800_000_000_000),
+    ///     OffsetDateTime::from_unix_timestamp_nanos(TIMESTAMP_NANOS),
     ///     Ok(datetime!(2019-01-01 0:00 UTC)),
     /// );
     /// ```
