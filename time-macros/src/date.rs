@@ -128,10 +128,15 @@ impl ToTokenTree for Date {
     fn into_token_tree(self) -> TokenTree {
         quote_group! {{
             const DATE: ::time::Date = unsafe {
-                ::time::Date::__from_ordinal_date_unchecked(
+                // FIXME
+                if let Ok(v) = ::time::Date::from_ordinal_date(
                     #(self.year),
                     #(self.ordinal),
-                )
+                ) {
+                    v
+                } else {
+                    ::core::hint::unreachable_unchecked()
+                }
             };
             DATE
         }}

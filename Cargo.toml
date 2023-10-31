@@ -8,6 +8,8 @@ time-core = { path = "time-core", version = "=0.1.2" }
 time-macros = { path = "time-macros", version = "=0.2.15" }
 
 criterion = { version = "0.5.1", default-features = false }
+
+datealgo = "0.2.0"
 deranged = { version = "0.3.9", default-features = false, features = [
     "powerfmt",
 ] }

@@ -736,8 +736,8 @@ impl TryFrom<Parsed> for Date {
         /// Get the value needed to adjust the ordinal day for Sunday and Monday-based week
         /// numbering.
         const fn adjustment(year: i32) -> i16 {
-            // Safety: `ordinal` is not zero.
-            match unsafe { Date::__from_ordinal_date_unchecked(year, 1) }.weekday() {
+            // Safety: `month` and `day` are not zero.
+            match unsafe { Date::__from_date_unchecked(year, 1, 1) }.weekday() {
                 Weekday::Monday => 7,
                 Weekday::Tuesday => 1,
                 Weekday::Wednesday => 2,

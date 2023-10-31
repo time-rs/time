@@ -283,7 +283,7 @@ fn fmt_year(
     }: modifier::Year,
 ) -> Result<usize, io::Error> {
     let full_year = if iso_week_based {
-        date.iso_year_week().0
+        date.to_iso_week_date().0
     } else {
         date.year()
     };
