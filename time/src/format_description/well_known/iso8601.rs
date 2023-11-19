@@ -4,7 +4,7 @@ mod adt_hack;
 
 use core::num::NonZeroU8;
 
-#[doc(hidden)]
+#[doc(hidden, no_inline)]
 pub use self::adt_hack::DoNotRelyOnWhatThisIs;
 pub use self::adt_hack::EncodedConfig;
 
