@@ -1009,6 +1009,9 @@ impl<O: MaybeOffset> Hash for DateTime<O> {
 impl<O: MaybeOffset> Add<Duration> for DateTime<O> {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn add(self, duration: Duration) -> Self {
         self.checked_add(duration)
             .expect("resulting value is out of range")
@@ -1018,6 +1021,9 @@ impl<O: MaybeOffset> Add<Duration> for DateTime<O> {
 impl<O: MaybeOffset> Add<StdDuration> for DateTime<O> {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn add(self, duration: StdDuration) -> Self::Output {
         let (is_next_day, time) = self.time.adjusting_add_std(duration);
 
@@ -1050,6 +1056,9 @@ impl<O: MaybeOffset> AddAssign<StdDuration> for DateTime<O> {
 impl<O: MaybeOffset> Sub<Duration> for DateTime<O> {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn sub(self, duration: Duration) -> Self {
         self.checked_sub(duration)
             .expect("resulting value is out of range")
@@ -1059,6 +1068,9 @@ impl<O: MaybeOffset> Sub<Duration> for DateTime<O> {
 impl<O: MaybeOffset> Sub<StdDuration> for DateTime<O> {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn sub(self, duration: StdDuration) -> Self::Output {
         let (is_previous_day, time) = self.time.adjusting_sub_std(duration);
 
@@ -1224,6 +1236,9 @@ impl From<DateTime<offset_kind::Fixed>> for SystemTime {
     feature = "wasm-bindgen"
 ))]
 impl From<js_sys::Date> for DateTime<offset_kind::Fixed> {
+    /// # Panics
+    ///
+    /// This may panic if the timestamp can not be represented by the return type.
     fn from(js_date: js_sys::Date) -> Self {
         // get_time() returns milliseconds
         let timestamp_nanos = (js_date.get_time() * Nanosecond::per(Millisecond) as f64) as i128;

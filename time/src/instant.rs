@@ -129,6 +129,9 @@ impl From<Instant> for StdInstant {
 impl Sub for Instant {
     type Output = Duration;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn sub(self, other: Self) -> Self::Output {
         match self.0.cmp(&other.0) {
             Ordering::Equal => Duration::ZERO,
