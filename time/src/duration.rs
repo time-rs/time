@@ -1317,7 +1317,7 @@ impl_add_assign!(Duration: Self, StdDuration);
 impl AddAssign<Duration> for StdDuration {
     /// # Panics
     ///
-    /// This may panic if the resulting addition cannot be represented by the return type.
+    /// This may panic if the resulting addition cannot be represented.
     fn add_assign(&mut self, rhs: Duration) {
         *self = (*self + rhs).try_into().expect(
             "Cannot represent a resulting duration in std. Try `let x = x + rhs;`, which will \
@@ -1376,7 +1376,7 @@ impl_sub_assign!(Duration: Self, StdDuration);
 impl SubAssign<Duration> for StdDuration {
     /// # Panics
     ///
-    /// This may panic if the resulting subtraction can not be represented by the return type.
+    /// This may panic if the resulting subtraction can not be represented.
     fn sub_assign(&mut self, rhs: Duration) {
         *self = (*self - rhs).try_into().expect(
             "Cannot represent a resulting duration in std. Try `let x = x - rhs;`, which will \

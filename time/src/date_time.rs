@@ -1238,7 +1238,7 @@ impl From<DateTime<offset_kind::Fixed>> for SystemTime {
 impl From<js_sys::Date> for DateTime<offset_kind::Fixed> {
     /// # Panics
     ///
-    /// This may panic if the timestamp can not be represented by the return type.
+    /// This may panic if the timestamp can not be represented.
     fn from(js_date: js_sys::Date) -> Self {
         // get_time() returns milliseconds
         let timestamp_nanos = (js_date.get_time() * Nanosecond::per(Millisecond) as f64) as i128;
