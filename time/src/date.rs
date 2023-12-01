@@ -1403,6 +1403,9 @@ impl fmt::Debug for Date {
 impl Add<Duration> for Date {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn add(self, duration: Duration) -> Self::Output {
         self.checked_add(duration)
             .expect("overflow adding duration to date")
@@ -1412,6 +1415,9 @@ impl Add<Duration> for Date {
 impl Add<StdDuration> for Date {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn add(self, duration: StdDuration) -> Self::Output {
         self.checked_add_std(duration)
             .expect("overflow adding duration to date")
@@ -1423,6 +1429,9 @@ impl_add_assign!(Date: Duration, StdDuration);
 impl Sub<Duration> for Date {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn sub(self, duration: Duration) -> Self::Output {
         self.checked_sub(duration)
             .expect("overflow subtracting duration from date")
@@ -1432,6 +1441,9 @@ impl Sub<Duration> for Date {
 impl Sub<StdDuration> for Date {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn sub(self, duration: StdDuration) -> Self::Output {
         self.checked_sub_std(duration)
             .expect("overflow subtracting duration from date")

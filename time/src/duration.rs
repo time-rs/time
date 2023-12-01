@@ -380,6 +380,10 @@ impl Duration {
     /// assert_eq!(Duration::new(-1, 0), (-1).seconds());
     /// assert_eq!(Duration::new(1, 2_000_000_000), 3.seconds());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     pub const fn new(mut seconds: i64, mut nanoseconds: i32) -> Self {
         seconds = expect_opt!(
             seconds.checked_add(nanoseconds as i64 / Nanosecond::per(Second) as i64),
@@ -431,6 +435,10 @@ impl Duration {
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::weeks(1), 604_800.seconds());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     pub const fn weeks(weeks: i64) -> Self {
         Self::seconds(expect_opt!(
             weeks.checked_mul(Second::per(Week) as _),
@@ -445,6 +453,10 @@ impl Duration {
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::days(1), 86_400.seconds());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     pub const fn days(days: i64) -> Self {
         Self::seconds(expect_opt!(
             days.checked_mul(Second::per(Day) as _),
@@ -459,6 +471,10 @@ impl Duration {
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::hours(1), 3_600.seconds());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     pub const fn hours(hours: i64) -> Self {
         Self::seconds(expect_opt!(
             hours.checked_mul(Second::per(Hour) as _),
@@ -473,6 +489,10 @@ impl Duration {
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::minutes(1), 60.seconds());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     pub const fn minutes(minutes: i64) -> Self {
         Self::seconds(expect_opt!(
             minutes.checked_mul(Second::per(Minute) as _),
@@ -1263,6 +1283,9 @@ impl TryFrom<Duration> for StdDuration {
 impl Add for Duration {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn add(self, rhs: Self) -> Self::Output {
         self.checked_add(rhs)
             .expect("overflow when adding durations")
@@ -1272,6 +1295,9 @@ impl Add for Duration {
 impl Add<StdDuration> for Duration {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn add(self, std_duration: StdDuration) -> Self::Output {
         self + Self::try_from(std_duration)
             .expect("overflow converting `std::time::Duration` to `time::Duration`")
@@ -1289,6 +1315,9 @@ impl Add<Duration> for StdDuration {
 impl_add_assign!(Duration: Self, StdDuration);
 
 impl AddAssign<Duration> for StdDuration {
+    /// # Panics
+    ///
+    /// This may panic if the resulting addition cannot be represented.
     fn add_assign(&mut self, rhs: Duration) {
         *self = (*self + rhs).try_into().expect(
             "Cannot represent a resulting duration in std. Try `let x = x + rhs;`, which will \
@@ -1308,6 +1337,9 @@ impl Neg for Duration {
 impl Sub for Duration {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn sub(self, rhs: Self) -> Self::Output {
         self.checked_sub(rhs)
             .expect("overflow when subtracting durations")
@@ -1317,6 +1349,9 @@ impl Sub for Duration {
 impl Sub<StdDuration> for Duration {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn sub(self, rhs: StdDuration) -> Self::Output {
         self - Self::try_from(rhs)
             .expect("overflow converting `std::time::Duration` to `time::Duration`")
@@ -1326,6 +1361,9 @@ impl Sub<StdDuration> for Duration {
 impl Sub<Duration> for StdDuration {
     type Output = Duration;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn sub(self, rhs: Duration) -> Self::Output {
         Duration::try_from(self)
             .expect("overflow converting `std::time::Duration` to `time::Duration`")
@@ -1336,6 +1374,9 @@ impl Sub<Duration> for StdDuration {
 impl_sub_assign!(Duration: Self, StdDuration);
 
 impl SubAssign<Duration> for StdDuration {
+    /// # Panics
+    ///
+    /// This may panic if the resulting subtraction can not be represented.
     fn sub_assign(&mut self, rhs: Duration) {
         *self = (*self - rhs).try_into().expect(
             "Cannot represent a resulting duration in std. Try `let x = x - rhs;`, which will \

@@ -219,6 +219,9 @@ impl NumericalStdDuration for u64 {
         StdDuration::from_secs(self)
     }
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn std_minutes(self) -> StdDuration {
         StdDuration::from_secs(
             self.checked_mul(Second::per(Minute) as Self)
@@ -226,6 +229,9 @@ impl NumericalStdDuration for u64 {
         )
     }
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn std_hours(self) -> StdDuration {
         StdDuration::from_secs(
             self.checked_mul(Second::per(Hour) as Self)
@@ -233,6 +239,9 @@ impl NumericalStdDuration for u64 {
         )
     }
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn std_days(self) -> StdDuration {
         StdDuration::from_secs(
             self.checked_mul(Second::per(Day) as Self)
@@ -240,6 +249,9 @@ impl NumericalStdDuration for u64 {
         )
     }
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     fn std_weeks(self) -> StdDuration {
         StdDuration::from_secs(
             self.checked_mul(Second::per(Week) as Self)
@@ -249,41 +261,65 @@ impl NumericalStdDuration for u64 {
 }
 
 impl NumericalStdDuration for f64 {
+    /// # Panics
+    ///
+    /// This will panic if self is negative.
     fn std_nanoseconds(self) -> StdDuration {
         assert!(self >= 0.);
         StdDuration::from_nanos(self as _)
     }
 
+    /// # Panics
+    ///
+    /// This will panic if self is negative.
     fn std_microseconds(self) -> StdDuration {
         assert!(self >= 0.);
         StdDuration::from_nanos((self * Nanosecond::per(Microsecond) as Self) as _)
     }
 
+    /// # Panics
+    ///
+    /// This will panic if self is negative.
     fn std_milliseconds(self) -> StdDuration {
         assert!(self >= 0.);
         StdDuration::from_nanos((self * Nanosecond::per(Millisecond) as Self) as _)
     }
 
+    /// # Panics
+    ///
+    /// This will panic if self is negative.
     fn std_seconds(self) -> StdDuration {
         assert!(self >= 0.);
         StdDuration::from_nanos((self * Nanosecond::per(Second) as Self) as _)
     }
 
+    /// # Panics
+    ///
+    /// This will panic if self is negative.
     fn std_minutes(self) -> StdDuration {
         assert!(self >= 0.);
         StdDuration::from_nanos((self * Nanosecond::per(Minute) as Self) as _)
     }
 
+    /// # Panics
+    ///
+    /// This will panic if self is negative.
     fn std_hours(self) -> StdDuration {
         assert!(self >= 0.);
         StdDuration::from_nanos((self * Nanosecond::per(Hour) as Self) as _)
     }
 
+    /// # Panics
+    ///
+    /// This will panic if self is negative.
     fn std_days(self) -> StdDuration {
         assert!(self >= 0.);
         StdDuration::from_nanos((self * Nanosecond::per(Day) as Self) as _)
     }
 
+    /// # Panics
+    ///
+    /// This will panic if self is negative.
     fn std_weeks(self) -> StdDuration {
         assert!(self >= 0.);
         StdDuration::from_nanos((self * Nanosecond::per(Week) as Self) as _)
