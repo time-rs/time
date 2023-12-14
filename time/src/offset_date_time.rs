@@ -86,7 +86,7 @@ impl OffsetDateTime {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn new(date: Date, time: Time, offset: UtcOffset) -> Self {
+    pub const fn new(date: Date, time: Time, offset: UtcOffset) -> Self {
         PrimitiveDateTime::new(date, time).assume_offset(offset)
     }
 
@@ -104,7 +104,7 @@ impl OffsetDateTime {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn new_utc(date: Date, time: Time) -> Self {
+    pub const fn new_utc(date: Date, time: Time) -> Self {
         PrimitiveDateTime::new(date, time).assume_utc()
     }
 
@@ -126,7 +126,10 @@ impl OffsetDateTime {
     /// ```
     #[cfg(feature = "local-offset")]
     pub fn new_local(date: Date, time: Time) -> Result<Self, error::IndeterminateOffset> {
-        Ok(Self::new(date, time, UtcOffset::current_local_offset()?))
+        match UtcOffset::current_local_offset() {
+            Ok(offset) => Ok(Self::new(date, time, offset)),
+            Err(err) => Err(err),
+        }
     }
 
     /// Convert the `OffsetDateTime` from the current [`UtcOffset`] to the provided [`UtcOffset`].
