@@ -38,7 +38,7 @@ use alloc::boxed::Box;
 
 use quickcheck::{empty_shrinker, single_shrinker, Arbitrary, Gen};
 
-use crate::date_time::{DateTime, MaybeOffset};
+use crate::date_time::{DateTime, MaybeOffset, NoOffset};
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// Obtain an arbitrary value between the minimum and maximum inclusive.
@@ -218,5 +218,11 @@ impl Arbitrary for Month {
             Self::January => empty_shrinker(),
             _ => single_shrinker(self.previous()),
         }
+    }
+}
+
+impl Arbitrary for NoOffset {
+    fn arbitrary(_: &mut Gen) -> Self {
+        Self
     }
 }

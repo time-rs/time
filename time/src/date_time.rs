@@ -38,17 +38,20 @@ pub(crate) mod offset_kind {
     pub enum Fixed {}
 }
 
-pub(crate) use sealed::MaybeOffset;
 use sealed::*;
+pub(crate) use sealed::{MaybeOffset, NoOffset};
 mod sealed {
     use super::*;
 
-    /// A type that is guaranteed to be either `()` or [`UtcOffset`].
+    #[derive(Debug, Clone, Copy)]
+    pub struct NoOffset;
+
+    /// A type that is guaranteed to be either [`NoOffset`] or [`UtcOffset`].
     ///
     /// **Do not** add any additional implementations of this trait.
     #[allow(unreachable_pub)] // intentional
     pub trait MaybeOffsetType {}
-    impl MaybeOffsetType for () {}
+    impl MaybeOffsetType for NoOffset {}
     impl MaybeOffsetType for UtcOffset {}
 
     pub trait MaybeOffset: Sized {
@@ -88,21 +91,25 @@ mod sealed {
     pub trait HasLogicalOffset: MaybeOffset<LogicalOffsetType = UtcOffset> {}
     impl<T: MaybeOffset<LogicalOffsetType = UtcOffset>> HasLogicalOffset for T {}
 
-    pub trait NoLogicalOffset: MaybeOffset<LogicalOffsetType = ()> {}
-    impl<T: MaybeOffset<LogicalOffsetType = ()>> NoLogicalOffset for T {}
+    pub trait NoLogicalOffset: MaybeOffset<LogicalOffsetType = NoOffset> {}
+    impl<T: MaybeOffset<LogicalOffsetType = NoOffset>> NoLogicalOffset for T {}
 
     // Traits to indicate whether a `MaybeOffset` has a memory offset type of `UtcOffset` or not.
 
     pub trait HasMemoryOffset: MaybeOffset<MemoryOffsetType = UtcOffset> {}
     impl<T: MaybeOffset<MemoryOffsetType = UtcOffset>> HasMemoryOffset for T {}
 
-    pub trait NoMemoryOffset: MaybeOffset<MemoryOffsetType = ()> {}
-    impl<T: MaybeOffset<MemoryOffsetType = ()>> NoMemoryOffset for T {}
+    pub trait NoMemoryOffset: MaybeOffset<MemoryOffsetType = NoOffset> {}
+    impl<T: MaybeOffset<MemoryOffsetType = NoOffset>> NoMemoryOffset for T {}
 
     // Traits to indicate backing type being implemented.
 
     pub trait IsOffsetKindNone:
-        MaybeOffset<Self_ = offset_kind::None, MemoryOffsetType = (), LogicalOffsetType = ()>
+        MaybeOffset<
+            Self_ = offset_kind::None,
+            MemoryOffsetType = NoOffset,
+            LogicalOffsetType = NoOffset,
+        >
     {
     }
     impl IsOffsetKindNone for offset_kind::None {}
@@ -119,16 +126,16 @@ mod sealed {
 }
 
 impl MaybeOffset for offset_kind::None {
-    type MemoryOffsetType = ();
-    type LogicalOffsetType = ();
+    type MemoryOffsetType = NoOffset;
+    type LogicalOffsetType = NoOffset;
 
     type Self_ = Self;
 
     const STATIC_OFFSET: Option<UtcOffset> = None;
 
     #[cfg(feature = "parsing")]
-    fn try_from_parsed(_: Parsed) -> Result<(), error::TryFromParsed> {
-        Ok(())
+    fn try_from_parsed(_: Parsed) -> Result<NoOffset, error::TryFromParsed> {
+        Ok(NoOffset)
     }
 }
 
@@ -225,13 +232,13 @@ impl DateTime<offset_kind::None> {
     pub const MIN: Self = Self {
         date: Date::MIN,
         time: Time::MIN,
-        offset: (),
+        offset: NoOffset,
     };
 
     pub const MAX: Self = Self {
         date: Date::MAX,
         time: Time::MAX,
-        offset: (),
+        offset: NoOffset,
     };
 }
 
@@ -252,7 +259,7 @@ impl<O: MaybeOffset> DateTime<O> {
         Self {
             date,
             time,
-            offset: (),
+            offset: NoOffset,
         }
     }
 
