@@ -6,6 +6,23 @@ use time::macros::{date, datetime, offset, time};
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Result, Weekday};
 
 #[test]
+fn new_utc() {
+    let dt = OffsetDateTime::new_utc(date!(2023 - 12 - 18), time!(10:13:44.250 AM));
+    assert_eq!(dt.year(), 2023);
+    assert_eq!(dt.millisecond(), 250);
+    assert_eq!(dt.offset(), offset!(UTC));
+}
+
+#[test]
+fn new_in_offset() {
+    let dt =
+        OffsetDateTime::new_in_offset(date!(2023 - 12 - 18), time!(10:13:44.250 AM), offset!(-4));
+    assert_eq!(dt.year(), 2023);
+    assert_eq!(dt.millisecond(), 250);
+    assert_eq!(dt.offset().whole_hours(), -4);
+}
+
+#[test]
 fn now_utc() {
     assert!(OffsetDateTime::now_utc().year() >= 2019);
     assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
@@ -433,16 +450,12 @@ fn replace_year() -> Result<()> {
         datetime!(2022 - 02 - 18 12:00 +01).replace_year(2019),
         Ok(datetime!(2019 - 02 - 18 12:00 +01))
     );
-    assert!(
-        datetime!(2022 - 02 - 18 12:00 +01)
-            .replace_year(-1_000_000_000)
-            .is_err()
-    ); // -1_000_000_000 isn't a valid year
-    assert!(
-        datetime!(2022 - 02 - 18 12:00 +01)
-            .replace_year(1_000_000_000)
-            .is_err()
-    ); // 1_000_000_000 isn't a valid year
+    assert!(datetime!(2022 - 02 - 18 12:00 +01)
+        .replace_year(-1_000_000_000)
+        .is_err()); // -1_000_000_000 isn't a valid year
+    assert!(datetime!(2022 - 02 - 18 12:00 +01)
+        .replace_year(1_000_000_000)
+        .is_err()); // 1_000_000_000 isn't a valid year
     Ok(())
 }
 
@@ -452,11 +465,9 @@ fn replace_month() -> Result<()> {
         datetime!(2022 - 02 - 18 12:00 +01).replace_month(Month::January),
         Ok(datetime!(2022 - 01 - 18 12:00 +01))
     );
-    assert!(
-        datetime!(2022 - 01 - 30 12:00 +01)
-            .replace_month(Month::February)
-            .is_err()
-    ); // 30 isn't a valid day in February
+    assert!(datetime!(2022 - 01 - 30 12:00 +01)
+        .replace_month(Month::February)
+        .is_err()); // 30 isn't a valid day in February
     Ok(())
 }
 
@@ -477,11 +488,9 @@ fn replace_hour() -> Result<()> {
         datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_hour(7),
         Ok(datetime!(2022 - 02 - 18 07:02:03.004_005_006 +01))
     );
-    assert!(
-        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
-            .replace_hour(24)
-            .is_err()
-    ); // 24 isn't a valid hour
+    assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
+        .replace_hour(24)
+        .is_err()); // 24 isn't a valid hour
     Ok(())
 }
 
@@ -491,11 +500,9 @@ fn replace_minute() -> Result<()> {
         datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_minute(7),
         Ok(datetime!(2022 - 02 - 18 01:07:03.004_005_006 +01))
     );
-    assert!(
-        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
-            .replace_minute(60)
-            .is_err()
-    ); // 60 isn't a valid minute
+    assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
+        .replace_minute(60)
+        .is_err()); // 60 isn't a valid minute
     Ok(())
 }
 
@@ -505,11 +512,9 @@ fn replace_second() -> Result<()> {
         datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_second(7),
         Ok(datetime!(2022 - 02 - 18 01:02:07.004_005_006 +01))
     );
-    assert!(
-        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
-            .replace_second(60)
-            .is_err()
-    ); // 60 isn't a valid second
+    assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
+        .replace_second(60)
+        .is_err()); // 60 isn't a valid second
     Ok(())
 }
 
@@ -519,11 +524,9 @@ fn replace_millisecond() -> Result<()> {
         datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_millisecond(7),
         Ok(datetime!(2022 - 02 - 18 01:02:03.007 +01))
     );
-    assert!(
-        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
-            .replace_millisecond(1_000)
-            .is_err()
-    ); // 1_000 isn't a valid millisecond
+    assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
+        .replace_millisecond(1_000)
+        .is_err()); // 1_000 isn't a valid millisecond
     Ok(())
 }
 
@@ -533,11 +536,9 @@ fn replace_microsecond() -> Result<()> {
         datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_microsecond(7_008),
         Ok(datetime!(2022 - 02 - 18 01:02:03.007_008 +01))
     );
-    assert!(
-        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
-            .replace_microsecond(1_000_000)
-            .is_err()
-    ); // 1_000_000 isn't a valid microsecond
+    assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
+        .replace_microsecond(1_000_000)
+        .is_err()); // 1_000_000 isn't a valid microsecond
     Ok(())
 }
 
@@ -547,11 +548,9 @@ fn replace_nanosecond() -> Result<()> {
         datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_nanosecond(7_008_009),
         Ok(datetime!(2022 - 02 - 18 01:02:03.007_008_009 +01))
     );
-    assert!(
-        datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
-            .replace_nanosecond(1_000_000_000)
-            .is_err()
-    ); // 1_000_000_000 isn't a valid nanosecond
+    assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01)
+        .replace_nanosecond(1_000_000_000)
+        .is_err()); // 1_000_000_000 isn't a valid nanosecond
     Ok(())
 }
 

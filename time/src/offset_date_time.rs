@@ -71,65 +71,37 @@ impl OffsetDateTime {
     }
     // endregion now
 
-    /// Create a new `OffsetDateTime` with the given [[`Date`]], [`Time`], and [`UtcOffset`].
+    /// Create a new `OffsetDateTime` with the given [`Date`], [`Time`], and [`UtcOffset`].
     ///
     /// ```
     /// # use time::{Date, Month, OffsetDateTime, Time, UtcOffset};
     /// # use time_macros::datetime;
-    /// # fn main() -> Result<(), time::error::Error> {
-    /// let dt = OffsetDateTime::new(
+    /// let dt = OffsetDateTime::new_in_offset(
     ///     Date::from_calendar_date(2024, Month::January, 1)?,
     ///     Time::from_hms_nano(12, 59, 59, 500_000_000)?,
     ///     UtcOffset::from_hms(-5, 0, 0)?,
     /// );
     /// assert_eq!(dt, datetime!(2024-01-01 12:59:59.5 -5));
-    /// # Ok(())
-    /// # }
+    /// # Ok::<_, time::error::Error>(())
     /// ```
-    pub const fn new(date: Date, time: Time, offset: UtcOffset) -> Self {
+    pub const fn new_in_offset(date: Date, time: Time, offset: UtcOffset) -> Self {
         PrimitiveDateTime::new(date, time).assume_offset(offset)
     }
 
-    /// Create a new `OffsetDateTime` with the given [[`Date`]] and [`Time`] in the UTC timezone.
+    /// Create a new `OffsetDateTime` with the given [`Date`] and [`Time`] in the UTC timezone.
     ///
     /// ```
     /// # use time::{Date, Month, OffsetDateTime, Time};
     /// # use time_macros::datetime;
-    /// # fn main() -> Result<(), time::error::Error> {
     /// let dt = OffsetDateTime::new_utc(
     ///     Date::from_calendar_date(2024, Month::January, 1)?,
     ///     Time::from_hms_nano(12, 59, 59, 500_000_000)?,
     /// );
     /// assert_eq!(dt, datetime!(2024-01-01 12:59:59.5 UTC));
-    /// # Ok(())
-    /// # }
+    /// # Ok::<_, time::error::Error>(())
     /// ```
     pub const fn new_utc(date: Date, time: Time) -> Self {
         PrimitiveDateTime::new(date, time).assume_utc()
-    }
-
-    /// Create a new `OffsetDateTime` with the given [[`Date`]] and [`Time`] in the UTC timezone.
-    /// If the offset cannot be determined, an error is returned.
-    ///
-    /// ```
-    /// # use time::{Date, Month, OffsetDateTime, Time};
-    /// # fn main() -> Result<(), time::error::Error> {
-    /// # if false {
-    /// let dt = OffsetDateTime::new_local(
-    ///     Date::from_calendar_date(2024, Month::January, 1)?,
-    ///     Time::from_hms_nano(12, 59, 59, 500_000_000)?,
-    /// );
-    /// assert!(dt.is_ok());
-    /// # }
-    /// # Ok(())
-    /// # }
-    /// ```
-    #[cfg(feature = "local-offset")]
-    pub fn new_local(date: Date, time: Time) -> Result<Self, error::IndeterminateOffset> {
-        match UtcOffset::current_local_offset() {
-            Ok(offset) => Ok(Self::new(date, time, offset)),
-            Err(err) => Err(err),
-        }
     }
 
     /// Convert the `OffsetDateTime` from the current [`UtcOffset`] to the provided [`UtcOffset`].
