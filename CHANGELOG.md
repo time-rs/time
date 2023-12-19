@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.31 [2023-12-19]
+
+### Added
+
+- `OFfsetDateTime::new_in_offset`
+- `OffsetDateTime::new_utc`
+
+### Changed
+
+- The valid range of `UtcOffset` has been expanded from ±23:59:59 to ±25:59:59. This is to support
+  the full POSIX range while permitting infallible negation.
+
 ## 0.3.30 [2023-10-13]
 
 ### Added

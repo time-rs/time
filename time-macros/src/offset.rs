@@ -52,7 +52,7 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Offs
         }
     }
 
-    if hours >= 24 {
+    if hours > 25 {
         Err(Error::InvalidComponent {
             name: "hour",
             value: hours.to_string(),
