@@ -493,12 +493,12 @@ fn offset_date_time_error() {
             Token::U8(0),
             Token::U8(0),
             Token::U32(0),
-            Token::I8(24),
+            Token::I8(26),
             Token::I8(0),
             Token::I8(0),
             Token::TupleEnd,
         ],
-        "invalid value: integer `24`, expected a value in the range -23..=23",
+        "invalid value: integer `26`, expected a value in the range -25..=25",
     );
     // the Deserialize impl does not recognize leap second times as valid
     assert_de_tokens_error::<Compact<OffsetDateTime>>(
@@ -757,12 +757,12 @@ fn utc_offset_error() {
     assert_de_tokens_error::<Compact<UtcOffset>>(
         &[
             Token::Tuple { len: 3 },
-            Token::I8(24),
+            Token::I8(26),
             Token::I8(0),
             Token::I8(0),
             Token::TupleEnd,
         ],
-        "invalid value: integer `24`, expected a value in the range -23..=23",
+        "invalid value: integer `26`, expected a value in the range -25..=25",
     );
 }
 

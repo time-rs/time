@@ -494,7 +494,7 @@ fn rfc_3339_err() {
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-01-01T00:00:00+24:00", &Rfc3339),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "offset hour"
+        invalid_component!("offset hour")
     ));
     assert!(matches!(
         OffsetDateTime::parse("2021-01-01T00:00:00+00:60", &Rfc3339),

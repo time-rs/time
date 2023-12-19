@@ -557,14 +557,15 @@ impl sealed::Sealed for Rfc3339 {
         let ParsedItem(input, offset_sign) = sign(input).ok_or(InvalidComponent("offset hour"))?;
         let input = exactly_n_digits::<2, u8>(input)
             .and_then(|item| {
-                item.map(|offset_hour| {
-                    if offset_sign == b'-' {
-                        -(offset_hour as i8)
-                    } else {
-                        offset_hour as _
-                    }
-                })
-                .consume_value(|value| parsed.set_offset_hour(value))
+                item.filter(|&offset_hour| offset_hour <= 23)?
+                    .map(|offset_hour| {
+                        if offset_sign == b'-' {
+                            -(offset_hour as i8)
+                        } else {
+                            offset_hour as _
+                        }
+                    })
+                    .consume_value(|value| parsed.set_offset_hour(value))
             })
             .ok_or(InvalidComponent("offset hour"))?;
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
@@ -635,8 +636,9 @@ impl sealed::Sealed for Rfc3339 {
             } else {
                 let ParsedItem(input, offset_sign) =
                     sign(input).ok_or(InvalidComponent("offset hour"))?;
-                let ParsedItem(input, offset_hour) =
-                    exactly_n_digits::<2, u8>(input).ok_or(InvalidComponent("offset hour"))?;
+                let ParsedItem(input, offset_hour) = exactly_n_digits::<2, u8>(input)
+                    .and_then(|parsed| parsed.filter(|&offset_hour| offset_hour <= 23))
+                    .ok_or(InvalidComponent("offset hour"))?;
                 let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
                 let ParsedItem(input, offset_minute) =
                     exactly_n_digits::<2, u8>(input).ok_or(InvalidComponent("offset minute"))?;

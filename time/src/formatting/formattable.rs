@@ -217,6 +217,9 @@ impl sealed::Sealed for Rfc3339 {
         if !(0..10_000).contains(&year) {
             return Err(error::Format::InvalidComponent("year"));
         }
+        if offset.whole_hours().unsigned_abs() > 23 {
+            return Err(error::Format::InvalidComponent("offset_hour"));
+        }
         if offset.seconds_past_minute() != 0 {
             return Err(error::Format::InvalidComponent("offset_second"));
         }

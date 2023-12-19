@@ -22,15 +22,28 @@ use crate::sys::local_offset_at;
 use crate::OffsetDateTime;
 
 /// The type of the `hours` field of `UtcOffset`.
-type Hours = RangedI8<{ -(Hour::per(Day) as i8 - 1) }, { Hour::per(Day) as i8 - 1 }>;
+type Hours = RangedI8<-25, 25>;
 /// The type of the `minutes` field of `UtcOffset`.
 type Minutes = RangedI8<{ -(Minute::per(Hour) as i8 - 1) }, { Minute::per(Hour) as i8 - 1 }>;
 /// The type of the `seconds` field of `UtcOffset`.
 type Seconds = RangedI8<{ -(Second::per(Minute) as i8 - 1) }, { Second::per(Minute) as i8 - 1 }>;
+/// The type capable of storing the range of whole seconds that a `UtcOffset` can encompass.
+type WholeSeconds = RangedI32<
+    {
+        Hours::MIN.get() as i32 * Second::per(Hour) as i32
+            + Minutes::MIN.get() as i32 * Second::per(Minute) as i32
+            + Seconds::MIN.get() as i32
+    },
+    {
+        Hours::MAX.get() as i32 * Second::per(Hour) as i32
+            + Minutes::MAX.get() as i32 * Second::per(Minute) as i32
+            + Seconds::MAX.get() as i32
+    },
+>;
 
 /// An offset from UTC.
 ///
-/// This struct can store values up to ±23:59:59. If you need support outside this range, please
+/// This struct can store values up to ±25:59:59. If you need support outside this range, please
 /// file an issue with your use case.
 // All three components _must_ have the same sign.
 #[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -51,9 +64,7 @@ impl UtcOffset {
     /// # use time_macros::offset;
     /// assert_eq!(UtcOffset::UTC, offset!(UTC));
     /// ```
-    #[allow(clippy::undocumented_unsafe_blocks)] // rust-lang/rust-clippy#11246
-    // Safety: All values are in range.
-    pub const UTC: Self = unsafe { Self::__from_hms_unchecked(0, 0, 0) };
+    pub const UTC: Self = Self::from_whole_seconds_ranged(WholeSeconds::new_static::<0>());
 
     // region: constructors
     /// Create a `UtcOffset` representing an offset of the hours, minutes, and seconds provided, the
@@ -62,7 +73,7 @@ impl UtcOffset {
     ///
     /// # Safety
     ///
-    /// - Hours must be in the range `-23..=23`.
+    /// - Hours must be in the range `-25..=25`.
     /// - Minutes must be in the range `-59..=59`.
     /// - Seconds must be in the range `-59..=59`.
     ///
@@ -169,28 +180,31 @@ impl UtcOffset {
     /// # Ok::<_, time::Error>(())
     /// ```
     pub const fn from_whole_seconds(seconds: i32) -> Result<Self, error::ComponentRange> {
-        type WholeSeconds = RangedI32<
-            {
-                Hours::MIN.get() as i32 * Second::per(Hour) as i32
-                    + Minutes::MIN.get() as i32 * Second::per(Minute) as i32
-                    + Seconds::MIN.get() as i32
-            },
-            {
-                Hours::MAX.get() as i32 * Second::per(Hour) as i32
-                    + Minutes::MAX.get() as i32 * Second::per(Minute) as i32
-                    + Seconds::MAX.get() as i32
-            },
-        >;
-        ensure_ranged!(WholeSeconds: seconds);
+        Ok(Self::from_whole_seconds_ranged(
+            ensure_ranged!(WholeSeconds: seconds),
+        ))
+    }
 
-        // Safety: The value was checked to be in range.
-        Ok(unsafe {
+    /// Create a `UtcOffset` representing an offset by the number of seconds provided.
+    // ignore because the function is crate-private
+    /// ```rust,ignore
+    /// # use time::UtcOffset;
+    /// # use deranged::RangedI32;
+    /// assert_eq!(
+    ///     UtcOffset::from_whole_seconds_ranged(RangedI32::new_static::<3_723>()).as_hms(),
+    ///     (1, 2, 3)
+    /// );
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    pub(crate) const fn from_whole_seconds_ranged(seconds: WholeSeconds) -> Self {
+        // Safety: The type of `seconds` guarantees that all values are in range.
+        unsafe {
             Self::__from_hms_unchecked(
-                (seconds / Second::per(Hour) as i32) as _,
-                ((seconds % Second::per(Hour) as i32) / Minute::per(Hour) as i32) as _,
-                (seconds % Second::per(Minute) as i32) as _,
+                (seconds.get() / Second::per(Hour) as i32) as _,
+                ((seconds.get() % Second::per(Hour) as i32) / Minute::per(Hour) as i32) as _,
+                (seconds.get() % Second::per(Minute) as i32) as _,
             )
-        })
+        }
     }
     // endregion constructors
 
