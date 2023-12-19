@@ -56,9 +56,6 @@ mod sealed {
 
     pub trait MaybeOffset: Sized {
         /// The offset type as it is stored in memory.
-        #[cfg(feature = "quickcheck")]
-        type MemoryOffsetType: Copy + MaybeOffsetType + quickcheck::Arbitrary;
-        #[cfg(not(feature = "quickcheck"))]
         type MemoryOffsetType: Copy + MaybeOffsetType;
 
         /// The offset type as it should be thought about.

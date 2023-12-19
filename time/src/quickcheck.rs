@@ -148,7 +148,10 @@ impl Arbitrary for OffsetDateTime {
     }
 }
 
-impl<O: MaybeOffset + 'static> Arbitrary for DateTime<O> {
+impl<O: MaybeOffset + 'static> Arbitrary for DateTime<O>
+where
+    O::MemoryOffsetType: Arbitrary,
+{
     fn arbitrary(g: &mut Gen) -> Self {
         Self {
             date: <_>::arbitrary(g),
