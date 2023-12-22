@@ -38,7 +38,7 @@ use alloc::boxed::Box;
 
 use quickcheck::{empty_shrinker, single_shrinker, Arbitrary, Gen};
 
-use crate::date_time::{DateTime, MaybeOffset, NoOffset};
+use crate::date_time::{DateTime, MaybeTz, MemoryOffsetType, NoOffset};
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// Obtain an arbitrary value between the minimum and maximum inclusive.
@@ -148,9 +148,9 @@ impl Arbitrary for OffsetDateTime {
     }
 }
 
-impl<O: MaybeOffset + 'static> Arbitrary for DateTime<O>
+impl<T: MaybeTz + 'static> Arbitrary for DateTime<T>
 where
-    O::MemoryOffsetType: Arbitrary,
+    MemoryOffsetType<T>: Arbitrary,
 {
     fn arbitrary(g: &mut Gen) -> Self {
         Self {

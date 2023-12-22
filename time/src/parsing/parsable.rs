@@ -2,7 +2,7 @@
 
 use core::ops::Deref;
 
-use crate::date_time::{maybe_offset_from_offset, MaybeOffset};
+use crate::date_time::{offset_logical_to_memory, MaybeTz};
 use crate::error::TryFromParsed;
 use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
@@ -76,10 +76,7 @@ mod sealed {
         }
 
         /// Parse a [`DateTime`] from the format description.
-        fn parse_date_time<O: MaybeOffset>(
-            &self,
-            input: &[u8],
-        ) -> Result<DateTime<O>, error::Parse> {
+        fn parse_date_time<T: MaybeTz>(&self, input: &[u8]) -> Result<DateTime<T>, error::Parse> {
             Ok(self.parse(input)?.try_into()?)
         }
     }
@@ -301,7 +298,7 @@ impl sealed::Sealed for Rfc2822 {
         Ok(input)
     }
 
-    fn parse_date_time<O: MaybeOffset>(&self, input: &[u8]) -> Result<DateTime<O>, error::Parse> {
+    fn parse_date_time<T: MaybeTz>(&self, input: &[u8]) -> Result<DateTime<T>, error::Parse> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
         use crate::parsing::combinator::rfc::rfc2822::{cfws, fws};
         use crate::parsing::combinator::{
@@ -440,7 +437,7 @@ impl sealed::Sealed for Rfc2822 {
         }
 
         let mut nanosecond = 0;
-        let leap_second_input = if !O::HAS_LOGICAL_OFFSET {
+        let leap_second_input = if !T::HAS_LOGICAL_OFFSET {
             false
         } else if second == 60 {
             second = 59;
@@ -457,7 +454,7 @@ impl sealed::Sealed for Rfc2822 {
             Ok(DateTime {
                 date,
                 time,
-                offset: maybe_offset_from_offset::<O>(offset),
+                offset: offset_logical_to_memory::<T>(offset),
             })
         })()
         .map_err(TryFromParsed::ComponentRange)?;
@@ -585,7 +582,7 @@ impl sealed::Sealed for Rfc3339 {
         Ok(input)
     }
 
-    fn parse_date_time<O: MaybeOffset>(&self, input: &[u8]) -> Result<DateTime<O>, error::Parse> {
+    fn parse_date_time<T: MaybeTz>(&self, input: &[u8]) -> Result<DateTime<T>, error::Parse> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
         use crate::parsing::combinator::{
             any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, sign,
@@ -691,7 +688,7 @@ impl sealed::Sealed for Rfc3339 {
             .map_err(TryFromParsed::ComponentRange)?;
         let time = Time::from_hms_nano(hour, minute, second, nanosecond)
             .map_err(TryFromParsed::ComponentRange)?;
-        let offset = maybe_offset_from_offset::<O>(offset);
+        let offset = offset_logical_to_memory::<T>(offset);
         let dt = DateTime { date, time, offset };
 
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {

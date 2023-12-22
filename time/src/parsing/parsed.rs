@@ -9,7 +9,7 @@ use deranged::{
 
 use crate::convert::{Day, Hour, Minute, Nanosecond, Second};
 use crate::date::{MAX_YEAR, MIN_YEAR};
-use crate::date_time::{maybe_offset_from_offset, offset_kind, DateTime, MaybeOffset};
+use crate::date_time::{offset_kind, offset_logical_to_memory, DateTime, MaybeTz};
 use crate::error::TryFromParsed::InsufficientInformation;
 #[cfg(feature = "alloc")]
 use crate::format_description::OwnedFormatItem;
@@ -850,12 +850,12 @@ impl TryFrom<Parsed> for OffsetDateTime {
     }
 }
 
-impl<O: MaybeOffset> TryFrom<Parsed> for DateTime<O> {
+impl<T: MaybeTz> TryFrom<Parsed> for DateTime<T> {
     type Error = error::TryFromParsed;
 
     #[allow(clippy::unwrap_in_result)] // We know the values are valid.
     fn try_from(mut parsed: Parsed) -> Result<Self, Self::Error> {
-        if O::HAS_LOGICAL_OFFSET {
+        if T::HAS_LOGICAL_OFFSET {
             if let Some(timestamp) = parsed.unix_timestamp_nanos() {
                 let DateTime { date, time, offset } =
                     DateTime::<offset_kind::Fixed>::from_unix_timestamp_nanos(timestamp)?;
@@ -863,7 +863,7 @@ impl<O: MaybeOffset> TryFrom<Parsed> for DateTime<O> {
                 let mut value = Self {
                     date,
                     time,
-                    offset: maybe_offset_from_offset::<O>(offset),
+                    offset: offset_logical_to_memory::<T>(offset),
                 };
                 if let Some(subsecond) = parsed.subsecond() {
                     value = value.replace_nanosecond(subsecond)?;
@@ -888,7 +888,7 @@ impl<O: MaybeOffset> TryFrom<Parsed> for DateTime<O> {
         let dt = Self {
             date: Date::try_from(parsed)?,
             time: Time::try_from(parsed)?,
-            offset: O::try_from_parsed(parsed)?,
+            offset: T::try_from_parsed(parsed)?,
         };
 
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {

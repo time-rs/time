@@ -5,10 +5,11 @@
 // This is intentional, as the struct will likely be exposed at some point.
 #![allow(unreachable_pub)]
 
+mod offset_tz;
+
 use core::cmp::Ordering;
 use core::fmt;
 use core::hash::{Hash, Hasher};
-use core::mem::size_of;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
@@ -20,187 +21,18 @@ use deranged::RangedI64;
 use powerfmt::ext::FormatterExt;
 use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
 
+pub(crate) use self::offset_tz::*;
 use crate::convert::*;
 use crate::date::{MAX_YEAR, MIN_YEAR};
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{
-    bug, cascade, const_try, const_try_opt, div_floor, ensure_ranged, expect_opt, impl_add_assign,
+    cascade, const_try, const_try_opt, div_floor, ensure_ranged, expect_opt, impl_add_assign,
     impl_sub_assign,
 };
 #[cfg(feature = "parsing")]
-use crate::parsing::{Parsable, Parsed};
+use crate::parsing::Parsable;
 use crate::{error, util, Date, Duration, Month, Time, UtcOffset, Weekday};
-
-#[allow(missing_debug_implementations, missing_copy_implementations)]
-pub(crate) mod offset_kind {
-    pub enum None {}
-    pub enum Fixed {}
-}
-
-use sealed::*;
-pub(crate) use sealed::{MaybeOffset, NoOffset};
-mod sealed {
-    use super::*;
-
-    #[derive(Debug, Clone, Copy)]
-    pub struct NoOffset;
-
-    /// A type that is guaranteed to be either [`NoOffset`] or [`UtcOffset`].
-    ///
-    /// **Do not** add any additional implementations of this trait.
-    #[allow(unreachable_pub)] // intentional
-    pub trait MaybeOffsetType {}
-    impl MaybeOffsetType for NoOffset {}
-    impl MaybeOffsetType for UtcOffset {}
-
-    pub trait MaybeOffset: Sized {
-        /// The offset type as it is stored in memory.
-        type MemoryOffsetType: Copy + MaybeOffsetType;
-
-        /// The offset type as it should be thought about.
-        ///
-        /// For example, a `DateTime<Utc>` has a logical offset type of [`UtcOffset`], but does not
-        /// actually store an offset in memory.
-        type LogicalOffsetType: Copy + MaybeOffsetType;
-
-        /// Required to be `Self`. Used for bound equality.
-        type Self_;
-
-        /// True if and only if `Self::LogicalOffsetType` is `UtcOffset`.
-        const HAS_LOGICAL_OFFSET: bool =
-            size_of::<Self::LogicalOffsetType>() == size_of::<UtcOffset>();
-        /// True if and only if `Self::MemoryOffsetType` is `UtcOffset`.
-        const HAS_MEMORY_OFFSET: bool =
-            size_of::<Self::MemoryOffsetType>() == size_of::<UtcOffset>();
-
-        /// `Some` if and only if the logical UTC offset is statically known.
-        // TODO(jhpratt) When const trait impls are stable, this can be removed in favor of
-        // `.as_offset_opt()`.
-        const STATIC_OFFSET: Option<UtcOffset>;
-
-        #[cfg(feature = "parsing")]
-        fn try_from_parsed(parsed: Parsed) -> Result<Self::MemoryOffsetType, error::TryFromParsed>;
-    }
-
-    // Traits to indicate whether a `MaybeOffset` has a logical offset type of `UtcOffset` or not.
-
-    pub trait HasLogicalOffset: MaybeOffset<LogicalOffsetType = UtcOffset> {}
-    impl<T: MaybeOffset<LogicalOffsetType = UtcOffset>> HasLogicalOffset for T {}
-
-    pub trait NoLogicalOffset: MaybeOffset<LogicalOffsetType = NoOffset> {}
-    impl<T: MaybeOffset<LogicalOffsetType = NoOffset>> NoLogicalOffset for T {}
-
-    // Traits to indicate whether a `MaybeOffset` has a memory offset type of `UtcOffset` or not.
-
-    pub trait HasMemoryOffset: MaybeOffset<MemoryOffsetType = UtcOffset> {}
-    impl<T: MaybeOffset<MemoryOffsetType = UtcOffset>> HasMemoryOffset for T {}
-
-    pub trait NoMemoryOffset: MaybeOffset<MemoryOffsetType = NoOffset> {}
-    impl<T: MaybeOffset<MemoryOffsetType = NoOffset>> NoMemoryOffset for T {}
-
-    // Traits to indicate backing type being implemented.
-
-    pub trait IsOffsetKindNone:
-        MaybeOffset<
-            Self_ = offset_kind::None,
-            MemoryOffsetType = NoOffset,
-            LogicalOffsetType = NoOffset,
-        >
-    {
-    }
-    impl IsOffsetKindNone for offset_kind::None {}
-
-    pub trait IsOffsetKindFixed:
-        MaybeOffset<
-            Self_ = offset_kind::Fixed,
-            MemoryOffsetType = UtcOffset,
-            LogicalOffsetType = UtcOffset,
-        >
-    {
-    }
-    impl IsOffsetKindFixed for offset_kind::Fixed {}
-}
-
-impl MaybeOffset for offset_kind::None {
-    type MemoryOffsetType = NoOffset;
-    type LogicalOffsetType = NoOffset;
-
-    type Self_ = Self;
-
-    const STATIC_OFFSET: Option<UtcOffset> = None;
-
-    #[cfg(feature = "parsing")]
-    fn try_from_parsed(_: Parsed) -> Result<NoOffset, error::TryFromParsed> {
-        Ok(NoOffset)
-    }
-}
-
-impl MaybeOffset for offset_kind::Fixed {
-    type MemoryOffsetType = UtcOffset;
-    type LogicalOffsetType = UtcOffset;
-
-    type Self_ = Self;
-
-    const STATIC_OFFSET: Option<UtcOffset> = None;
-
-    #[cfg(feature = "parsing")]
-    fn try_from_parsed(parsed: Parsed) -> Result<UtcOffset, error::TryFromParsed> {
-        parsed.try_into()
-    }
-}
-
-// region: const trait method hacks
-// TODO(jhpratt) When const trait impls are stable, these methods can be removed in favor of methods
-// in `MaybeOffset`, which would then be made `const`.
-const fn maybe_offset_as_offset_opt<O: MaybeOffset>(
-    offset: O::MemoryOffsetType,
-) -> Option<UtcOffset> {
-    if O::STATIC_OFFSET.is_some() {
-        O::STATIC_OFFSET
-    } else if O::HAS_MEMORY_OFFSET {
-        #[repr(C)] // needed to guarantee they align at the start
-        union Convert<O: MaybeOffset> {
-            input: O::MemoryOffsetType,
-            output: UtcOffset,
-        }
-
-        // Safety: `O::HAS_OFFSET` indicates that `O::Offset` is `UtcOffset`. This code effectively
-        // performs a transmute from `O::Offset` to `UtcOffset`, which we know is the same type.
-        Some(unsafe { Convert::<O> { input: offset }.output })
-    } else {
-        None
-    }
-}
-
-const fn maybe_offset_as_offset<O: MaybeOffset + HasLogicalOffset>(
-    offset: O::MemoryOffsetType,
-) -> UtcOffset {
-    match maybe_offset_as_offset_opt::<O>(offset) {
-        Some(offset) => offset,
-        None => bug!("`MaybeOffset::as_offset` called on a type without an offset in memory"),
-    }
-}
-
-pub(crate) const fn maybe_offset_from_offset<O: MaybeOffset>(
-    offset: UtcOffset,
-) -> O::MemoryOffsetType {
-    #[repr(C)] // needed to guarantee the types align at the start
-    union Convert<O: MaybeOffset> {
-        input: UtcOffset,
-        output: O::MemoryOffsetType,
-    }
-
-    // Safety: It is statically known that there are only two possibilities due to the trait bound
-    // of `O::MemoryOffsetType`, which ultimately relies on `MaybeOffsetType`. The two possibilities
-    // are:
-    //   1. UtcOffset -> UtcOffset
-    //   2. UtcOffset -> ()
-    // (1) is valid because it is an identity conversion, which is always valid. (2) is valid
-    // because `()` is a 1-ZST, so converting to it is always valid.
-    unsafe { Convert::<O> { input: offset }.output }
-}
-// endregion const trait methods hacks
 
 /// The Julian day of the Unix epoch.
 // Safety: `ordinal` is not zero.
@@ -208,21 +40,21 @@ pub(crate) const fn maybe_offset_from_offset<O: MaybeOffset>(
 const UNIX_EPOCH_JULIAN_DAY: i32 =
     unsafe { Date::__from_ordinal_date_unchecked(1970, 1) }.to_julian_day();
 
-pub struct DateTime<O: MaybeOffset> {
+pub struct DateTime<T: MaybeTz> {
     pub(crate) date: Date,
     pub(crate) time: Time,
-    pub(crate) offset: O::MemoryOffsetType,
+    pub(crate) offset: MemoryOffsetType<T>,
 }
 
 // Manual impl to remove extraneous bounds.
-impl<O: MaybeOffset> Clone for DateTime<O> {
+impl<T: MaybeTz> Clone for DateTime<T> {
     fn clone(&self) -> Self {
         *self
     }
 }
 
 // Manual impl to remove extraneous bounds.
-impl<O: MaybeOffset> Copy for DateTime<O> {}
+impl<T: MaybeTz> Copy for DateTime<T> where MemoryOffsetType<T>: Copy {}
 
 // region: constructors
 impl DateTime<offset_kind::None> {
@@ -248,10 +80,10 @@ impl DateTime<offset_kind::Fixed> {
     };
 }
 
-impl<O: MaybeOffset> DateTime<O> {
+impl<T: MaybeTz> DateTime<T> {
     pub const fn new(date: Date, time: Time) -> Self
     where
-        O: IsOffsetKindNone,
+        T: IsOffsetKindNone,
     {
         Self {
             date,
@@ -262,7 +94,7 @@ impl<O: MaybeOffset> DateTime<O> {
 
     pub const fn from_unix_timestamp(timestamp: i64) -> Result<Self, error::ComponentRange>
     where
-        O: HasLogicalOffset,
+        T: HasLogicalOffset,
     {
         type Timestamp = RangedI64<
             { Date::MIN.midnight().assume_utc().unix_timestamp() },
@@ -289,13 +121,13 @@ impl<O: MaybeOffset> DateTime<O> {
         Ok(Self {
             date,
             time,
-            offset: maybe_offset_from_offset::<O>(UtcOffset::UTC),
+            offset: offset_logical_to_memory::<T>(UtcOffset::UTC),
         })
     }
 
     pub const fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange>
     where
-        O: HasLogicalOffset,
+        T: HasLogicalOffset,
     {
         let datetime = const_try!(Self::from_unix_timestamp(div_floor!(
             timestamp,
@@ -313,7 +145,7 @@ impl<O: MaybeOffset> DateTime<O> {
                     timestamp.rem_euclid(Nanosecond::per(Second) as _) as u32,
                 )
             },
-            offset: maybe_offset_from_offset::<O>(UtcOffset::UTC),
+            offset: offset_logical_to_memory::<T>(UtcOffset::UTC),
         })
     }
     // endregion constructors
@@ -324,7 +156,7 @@ impl<O: MaybeOffset> DateTime<O> {
     #[cfg(feature = "std")]
     pub fn now_utc() -> DateTime<offset_kind::Fixed>
     where
-        O: IsOffsetKindFixed,
+        T: IsOffsetKindFixed,
     {
         #[cfg(all(
             target_family = "wasm",
@@ -348,7 +180,7 @@ impl<O: MaybeOffset> DateTime<O> {
     #[cfg(feature = "local-offset")]
     pub fn now_local() -> Result<DateTime<offset_kind::Fixed>, error::IndeterminateOffset>
     where
-        O: IsOffsetKindFixed,
+        T: IsOffsetKindFixed,
     {
         let t = DateTime::<offset_kind::Fixed>::now_utc();
         Ok(t.to_offset(UtcOffset::local_offset_at(crate::OffsetDateTime(t))?))
@@ -367,9 +199,9 @@ impl<O: MaybeOffset> DateTime<O> {
 
     pub const fn offset(self) -> UtcOffset
     where
-        O: HasLogicalOffset,
+        T: HasLogicalOffset,
     {
-        maybe_offset_as_offset::<O>(self.offset)
+        offset_memory_to_logical::<T>(self.offset)
     }
     // endregion component getters
 
@@ -468,9 +300,9 @@ impl<O: MaybeOffset> DateTime<O> {
     // region: unix timestamp getters
     pub const fn unix_timestamp(self) -> i64
     where
-        O: HasLogicalOffset,
+        T: HasLogicalOffset,
     {
-        let offset = maybe_offset_as_offset::<O>(self.offset).whole_seconds() as i64;
+        let offset = offset_memory_to_logical::<T>(self.offset).whole_seconds() as i64;
 
         let days =
             (self.to_julian_day() as i64 - UNIX_EPOCH_JULIAN_DAY as i64) * Second::per(Day) as i64;
@@ -482,7 +314,7 @@ impl<O: MaybeOffset> DateTime<O> {
 
     pub const fn unix_timestamp_nanos(self) -> i128
     where
-        O: HasLogicalOffset,
+        T: HasLogicalOffset,
     {
         self.unix_timestamp() as i128 * Nanosecond::per(Second) as i128 + self.nanosecond() as i128
     }
@@ -492,7 +324,7 @@ impl<O: MaybeOffset> DateTime<O> {
     // region: attach offset
     pub const fn assume_offset(self, offset: UtcOffset) -> DateTime<offset_kind::Fixed>
     where
-        O: NoLogicalOffset,
+        T: SansLogicalOffset,
     {
         DateTime {
             date: self.date,
@@ -503,7 +335,7 @@ impl<O: MaybeOffset> DateTime<O> {
 
     pub const fn assume_utc(self) -> DateTime<offset_kind::Fixed>
     where
-        O: NoLogicalOffset,
+        T: SansLogicalOffset,
     {
         self.assume_offset(UtcOffset::UTC)
     }
@@ -512,7 +344,7 @@ impl<O: MaybeOffset> DateTime<O> {
     // region: to offset
     pub const fn to_offset(self, offset: UtcOffset) -> DateTime<offset_kind::Fixed>
     where
-        O: HasLogicalOffset,
+        T: HasLogicalOffset,
     {
         expect_opt!(
             self.checked_to_offset(offset),
@@ -522,9 +354,9 @@ impl<O: MaybeOffset> DateTime<O> {
 
     pub const fn checked_to_offset(self, offset: UtcOffset) -> Option<DateTime<offset_kind::Fixed>>
     where
-        O: HasLogicalOffset,
+        T: HasLogicalOffset,
     {
-        let self_offset = maybe_offset_as_offset::<O>(self.offset);
+        let self_offset = offset_memory_to_logical::<T>(self.offset);
 
         if self_offset.whole_hours() == offset.whole_hours()
             && self_offset.minutes_past_hour() == offset.minutes_past_hour()
@@ -554,7 +386,7 @@ impl<O: MaybeOffset> DateTime<O> {
     /// Equivalent to `.to_offset(UtcOffset::UTC)`, but returning the year, ordinal, and time. This
     /// avoids constructing an invalid [`Date`] if the new value is out of range.
     pub(crate) const fn to_offset_raw(self, offset: UtcOffset) -> (i32, u16, Time) {
-        let Some(from) = maybe_offset_as_offset_opt::<O>(self.offset) else {
+        let Some(from) = offset_memory_to_logical_opt::<T>(self.offset) else {
             // No adjustment is needed because there is no offset.
             return (self.year(), self.ordinal(), self.time);
         };
@@ -696,7 +528,7 @@ impl<O: MaybeOffset> DateTime<O> {
     #[must_use = "this does not modify the original value"]
     pub const fn replace_date_time(self, date_time: DateTime<offset_kind::None>) -> Self
     where
-        O: HasLogicalOffset,
+        T: HasLogicalOffset,
     {
         Self {
             date: date_time.date,
@@ -797,7 +629,7 @@ impl<O: MaybeOffset> DateTime<O> {
     #[must_use = "this does not modify the original value"]
     pub const fn replace_offset(self, offset: UtcOffset) -> DateTime<offset_kind::Fixed>
     where
-        O: IsOffsetKindFixed,
+        T: IsOffsetKindFixed,
     {
         DateTime {
             date: self.date,
@@ -819,7 +651,7 @@ impl<O: MaybeOffset> DateTime<O> {
             output,
             Some(self.date),
             Some(self.time),
-            maybe_offset_as_offset_opt::<O>(self.offset),
+            offset_memory_to_logical_opt::<T>(self.offset),
         )
     }
 
@@ -828,7 +660,7 @@ impl<O: MaybeOffset> DateTime<O> {
         format.format(
             Some(self.date),
             Some(self.time),
-            maybe_offset_as_offset_opt::<O>(self.offset),
+            offset_memory_to_logical_opt::<T>(self.offset),
         )
     }
 
@@ -846,7 +678,7 @@ impl<O: MaybeOffset> DateTime<O> {
     #[cfg(feature = "parsing")]
     pub(crate) const fn is_valid_leap_second_stand_in(self) -> bool {
         // Leap seconds aren't allowed if there is no offset.
-        if !O::HAS_LOGICAL_OFFSET {
+        if !T::HAS_LOGICAL_OFFSET {
             return false;
         }
 
@@ -880,7 +712,7 @@ impl<O: MaybeOffset> DateTime<O> {
     #[deprecated(since = "0.3.18", note = "use `as_hms` instead")]
     pub const fn to_hms(self) -> (u8, u8, u8)
     where
-        O: IsOffsetKindFixed,
+        T: IsOffsetKindFixed,
     {
         self.time.as_hms()
     }
@@ -890,7 +722,7 @@ impl<O: MaybeOffset> DateTime<O> {
     #[deprecated(since = "0.3.18", note = "use `as_hms_milli` instead")]
     pub const fn to_hms_milli(self) -> (u8, u8, u8, u16)
     where
-        O: IsOffsetKindFixed,
+        T: IsOffsetKindFixed,
     {
         self.time.as_hms_milli()
     }
@@ -900,7 +732,7 @@ impl<O: MaybeOffset> DateTime<O> {
     #[deprecated(since = "0.3.18", note = "use `as_hms_micro` instead")]
     pub const fn to_hms_micro(self) -> (u8, u8, u8, u32)
     where
-        O: IsOffsetKindFixed,
+        T: IsOffsetKindFixed,
     {
         self.time.as_hms_micro()
     }
@@ -910,7 +742,7 @@ impl<O: MaybeOffset> DateTime<O> {
     #[deprecated(since = "0.3.18", note = "use `as_hms_nano` instead")]
     pub const fn to_hms_nano(self) -> (u8, u8, u8, u32)
     where
-        O: IsOffsetKindFixed,
+        T: IsOffsetKindFixed,
     {
         self.time.as_hms_nano()
     }
@@ -929,11 +761,11 @@ mod private {
 }
 pub(crate) use private::DateTimeMetadata;
 
-impl<O: MaybeOffset> SmartDisplay for DateTime<O> {
+impl<T: MaybeTz> SmartDisplay for DateTime<T> {
     type Metadata = DateTimeMetadata;
 
     fn metadata(&self, _: FormatterOptions) -> Metadata<Self> {
-        let maybe_offset = maybe_offset_as_offset_opt::<O>(self.offset);
+        let maybe_offset = offset_memory_to_logical_opt::<T>(self.offset);
         let width = match maybe_offset {
             Some(offset) => smart_display::padded_width_of!(self.date, " ", self.time, " ", offset),
             None => smart_display::padded_width_of!(self.date, " ", self.time),
@@ -959,21 +791,21 @@ impl<O: MaybeOffset> SmartDisplay for DateTime<O> {
     }
 }
 
-impl<O: MaybeOffset> fmt::Display for DateTime<O> {
+impl<T: MaybeTz> fmt::Display for DateTime<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         SmartDisplay::fmt(self, f)
     }
 }
 
-impl<O: MaybeOffset> fmt::Debug for DateTime<O> {
+impl<T: MaybeTz> fmt::Debug for DateTime<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(self, f)
     }
 }
 
-impl<O: MaybeOffset> PartialEq for DateTime<O> {
+impl<T: MaybeTz> PartialEq for DateTime<T> {
     fn eq(&self, rhs: &Self) -> bool {
-        if O::HAS_LOGICAL_OFFSET {
+        if T::HAS_LOGICAL_OFFSET {
             self.to_offset_raw(UtcOffset::UTC) == rhs.to_offset_raw(UtcOffset::UTC)
         } else {
             (self.date, self.time) == (rhs.date, rhs.time)
@@ -981,17 +813,17 @@ impl<O: MaybeOffset> PartialEq for DateTime<O> {
     }
 }
 
-impl<O: MaybeOffset> Eq for DateTime<O> {}
+impl<T: MaybeTz> Eq for DateTime<T> {}
 
-impl<O: MaybeOffset> PartialOrd for DateTime<O> {
+impl<T: MaybeTz> PartialOrd for DateTime<T> {
     fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
         Some(self.cmp(rhs))
     }
 }
 
-impl<O: MaybeOffset> Ord for DateTime<O> {
+impl<T: MaybeTz> Ord for DateTime<T> {
     fn cmp(&self, rhs: &Self) -> Ordering {
-        if O::HAS_LOGICAL_OFFSET {
+        if T::HAS_LOGICAL_OFFSET {
             self.to_offset_raw(UtcOffset::UTC)
                 .cmp(&rhs.to_offset_raw(UtcOffset::UTC))
         } else {
@@ -1000,9 +832,9 @@ impl<O: MaybeOffset> Ord for DateTime<O> {
     }
 }
 
-impl<O: MaybeOffset> Hash for DateTime<O> {
+impl<T: MaybeTz> Hash for DateTime<T> {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
-        if O::HAS_LOGICAL_OFFSET {
+        if T::HAS_LOGICAL_OFFSET {
             self.to_offset_raw(UtcOffset::UTC).hash(hasher);
         } else {
             (self.date, self.time).hash(hasher);
@@ -1010,7 +842,7 @@ impl<O: MaybeOffset> Hash for DateTime<O> {
     }
 }
 
-impl<O: MaybeOffset> Add<Duration> for DateTime<O> {
+impl<T: MaybeTz> Add<Duration> for DateTime<T> {
     type Output = Self;
 
     /// # Panics
@@ -1022,7 +854,7 @@ impl<O: MaybeOffset> Add<Duration> for DateTime<O> {
     }
 }
 
-impl<O: MaybeOffset> Add<StdDuration> for DateTime<O> {
+impl<T: MaybeTz> Add<StdDuration> for DateTime<T> {
     type Output = Self;
 
     /// # Panics
@@ -1045,19 +877,19 @@ impl<O: MaybeOffset> Add<StdDuration> for DateTime<O> {
     }
 }
 
-impl<O: MaybeOffset> AddAssign<Duration> for DateTime<O> {
+impl<T: MaybeTz> AddAssign<Duration> for DateTime<T> {
     fn add_assign(&mut self, rhs: Duration) {
         *self = *self + rhs;
     }
 }
 
-impl<O: MaybeOffset> AddAssign<StdDuration> for DateTime<O> {
+impl<T: MaybeTz> AddAssign<StdDuration> for DateTime<T> {
     fn add_assign(&mut self, rhs: StdDuration) {
         *self = *self + rhs;
     }
 }
 
-impl<O: MaybeOffset> Sub<Duration> for DateTime<O> {
+impl<T: MaybeTz> Sub<Duration> for DateTime<T> {
     type Output = Self;
 
     /// # Panics
@@ -1069,7 +901,7 @@ impl<O: MaybeOffset> Sub<Duration> for DateTime<O> {
     }
 }
 
-impl<O: MaybeOffset> Sub<StdDuration> for DateTime<O> {
+impl<T: MaybeTz> Sub<StdDuration> for DateTime<T> {
     type Output = Self;
 
     /// # Panics
@@ -1092,27 +924,27 @@ impl<O: MaybeOffset> Sub<StdDuration> for DateTime<O> {
     }
 }
 
-impl<O: MaybeOffset> SubAssign<Duration> for DateTime<O> {
+impl<T: MaybeTz> SubAssign<Duration> for DateTime<T> {
     fn sub_assign(&mut self, rhs: Duration) {
         *self = *self - rhs;
     }
 }
 
-impl<O: MaybeOffset> SubAssign<StdDuration> for DateTime<O> {
+impl<T: MaybeTz> SubAssign<StdDuration> for DateTime<T> {
     fn sub_assign(&mut self, rhs: StdDuration) {
         *self = *self - rhs;
     }
 }
 
-impl<O: MaybeOffset> Sub<Self> for DateTime<O> {
+impl<T: MaybeTz> Sub<Self> for DateTime<T> {
     type Output = Duration;
 
     fn sub(self, rhs: Self) -> Self::Output {
         let base = (self.date - rhs.date) + (self.time - rhs.time);
 
         match (
-            maybe_offset_as_offset_opt::<O>(self.offset),
-            maybe_offset_as_offset_opt::<O>(rhs.offset),
+            offset_memory_to_logical_opt::<T>(self.offset),
+            offset_memory_to_logical_opt::<T>(rhs.offset),
         ) {
             (Some(self_offset), Some(rhs_offset)) => {
                 let adjustment = Duration::seconds(
