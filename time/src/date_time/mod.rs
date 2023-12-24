@@ -18,6 +18,7 @@ use std::io;
 use std::time::SystemTime;
 
 use deranged::RangedI64;
+use num_conv::prelude::*;
 use powerfmt::ext::FormatterExt;
 use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
 
@@ -948,7 +949,7 @@ impl<T: MaybeTz> Sub<Self> for DateTime<T> {
         ) {
             (Some(self_offset), Some(rhs_offset)) => {
                 let adjustment = Duration::seconds(
-                    (self_offset.whole_seconds() - rhs_offset.whole_seconds()) as i64,
+                    (self_offset.whole_seconds() - rhs_offset.whole_seconds()).extend::<i64>(),
                 );
                 base - adjustment
             }
@@ -1091,8 +1092,9 @@ impl From<js_sys::Date> for DateTime<offset_kind::Fixed> {
 impl From<DateTime<offset_kind::Fixed>> for js_sys::Date {
     fn from(datetime: DateTime<offset_kind::Fixed>) -> Self {
         // new Date() takes milliseconds
-        let timestamp =
-            (datetime.unix_timestamp_nanos() / Nanosecond::per(Millisecond) as i128) as f64;
+        let timestamp = (datetime.unix_timestamp_nanos()
+            / Nanosecond::per(Millisecond).cast_signed().extend::<i128>())
+            as f64;
         js_sys::Date::new(&timestamp.into())
     }
 }

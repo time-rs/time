@@ -8,6 +8,7 @@ use core::{cmp, fmt};
 use std::io;
 
 use deranged::RangedI32;
+use num_conv::prelude::*;
 use powerfmt::ext::FormatterExt;
 use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
 
@@ -1337,10 +1338,10 @@ impl SmartDisplay for Date {
             false
         };
 
-        let formatted_width = year_width as usize
+        let formatted_width = year_width.extend::<usize>()
             + smart_display::padded_width_of!(
                 "-",
-                month as u8 => width(2),
+                u8::from(month) => width(2),
                 "-",
                 day => width(2),
             );
@@ -1352,7 +1353,7 @@ impl SmartDisplay for Date {
                 year_width,
                 display_sign,
                 year,
-                month: month as u8,
+                month: u8::from(month),
                 day,
             },
         )
@@ -1370,7 +1371,7 @@ impl SmartDisplay for Date {
             month,
             day,
         } = *metadata;
-        let year_width = year_width as usize;
+        let year_width = year_width.extend();
 
         if display_sign {
             f.pad_with_width(
@@ -1456,7 +1457,7 @@ impl Sub for Date {
     type Output = Duration;
 
     fn sub(self, other: Self) -> Self::Output {
-        Duration::days((self.to_julian_day() - other.to_julian_day()) as _)
+        Duration::days((self.to_julian_day() - other.to_julian_day()).extend())
     }
 }
 // endregion trait impls

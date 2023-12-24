@@ -483,7 +483,7 @@ impl Serialize for Month {
             return self.to_string().serialize(serializer);
         }
 
-        (*self as u8).serialize(serializer)
+        u8::from(*self).serialize(serializer)
     }
 }
 

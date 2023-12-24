@@ -1,5 +1,7 @@
 //! Parse parts of an ISO 8601-formatted value.
 
+use num_conv::prelude::*;
+
 use crate::convert::*;
 use crate::error;
 use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
@@ -255,9 +257,9 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
                 .and_then(|parsed_item| {
                     parsed_item.consume_value(|hour| {
                         parsed.set_offset_hour(if sign == b'-' {
-                            -(hour as i8)
+                            -hour.cast_signed()
                         } else {
-                            hour as _
+                            hour.cast_signed()
                         })
                     })
                 })
@@ -277,9 +279,9 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
                     input = new_input;
                     parsed
                         .set_offset_minute_signed(if sign == b'-' {
-                            -(min as i8)
+                            -min.cast_signed()
                         } else {
-                            min as _
+                            min.cast_signed()
                         })
                         .ok_or(InvalidComponent("offset minute"))?;
                 }

@@ -2,6 +2,8 @@
 
 use core::time::Duration as StdDuration;
 
+use num_conv::prelude::*;
+
 use crate::convert::*;
 use crate::Duration;
 
@@ -224,7 +226,7 @@ impl NumericalStdDuration for u64 {
     /// This may panic if an overflow occurs.
     fn std_minutes(self) -> StdDuration {
         StdDuration::from_secs(
-            self.checked_mul(Second::per(Minute) as Self)
+            self.checked_mul(Second::per(Minute).extend())
                 .expect("overflow constructing `time::Duration`"),
         )
     }
@@ -234,7 +236,7 @@ impl NumericalStdDuration for u64 {
     /// This may panic if an overflow occurs.
     fn std_hours(self) -> StdDuration {
         StdDuration::from_secs(
-            self.checked_mul(Second::per(Hour) as Self)
+            self.checked_mul(Second::per(Hour).extend())
                 .expect("overflow constructing `time::Duration`"),
         )
     }
@@ -244,7 +246,7 @@ impl NumericalStdDuration for u64 {
     /// This may panic if an overflow occurs.
     fn std_days(self) -> StdDuration {
         StdDuration::from_secs(
-            self.checked_mul(Second::per(Day) as Self)
+            self.checked_mul(Second::per(Day).extend())
                 .expect("overflow constructing `time::Duration`"),
         )
     }
@@ -254,7 +256,7 @@ impl NumericalStdDuration for u64 {
     /// This may panic if an overflow occurs.
     fn std_weeks(self) -> StdDuration {
         StdDuration::from_secs(
-            self.checked_mul(Second::per(Week) as Self)
+            self.checked_mul(Second::per(Week).extend())
                 .expect("overflow constructing `time::Duration`"),
         )
     }
@@ -343,7 +345,7 @@ macro_rules! impl_digit_count {
         $(impl DigitCount for $t {
             fn num_digits(self) -> u8 {
                 match self.checked_ilog10() {
-                    Some(n) => (n as u8) + 1,
+                    Some(n) => n.truncate::<u8>() + 1,
                     None => 1,
                 }
             }

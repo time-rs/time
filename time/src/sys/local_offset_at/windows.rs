@@ -2,6 +2,8 @@
 
 use core::mem::MaybeUninit;
 
+use num_conv::prelude::*;
+
 use crate::convert::*;
 use crate::{OffsetDateTime, UtcOffset};
 
@@ -58,20 +60,22 @@ fn systemtime_to_filetime(systime: &SystemTime) -> Option<FileTime> {
 fn filetime_to_secs(filetime: &FileTime) -> i64 {
     /// FILETIME represents 100-nanosecond intervals
     const FT_TO_SECS: i64 = Nanosecond::per(Second) as i64 / 100;
-    ((filetime.dwHighDateTime as i64) << 32 | filetime.dwLowDateTime as i64) / FT_TO_SECS
+    (filetime.dwHighDateTime.cast_signed().extend::<i64>() << 32
+        | filetime.dwLowDateTime.cast_signed().extend::<i64>())
+        / FT_TO_SECS
 }
 
 /// Convert an [`OffsetDateTime`] to a `SYSTEMTIME`.
 fn offset_to_systemtime(datetime: OffsetDateTime) -> SystemTime {
     let (_, month, day_of_month) = datetime.to_offset(UtcOffset::UTC).date().to_calendar_date();
     SystemTime {
-        wYear: datetime.year() as _,
-        wMonth: month as _,
-        wDay: day_of_month as _,
+        wYear: datetime.year().cast_unsigned().truncate(),
+        wMonth: u8::from(month).extend(),
+        wDay: day_of_month.extend(),
         wDayOfWeek: 0, // ignored
-        wHour: datetime.hour() as _,
-        wMinute: datetime.minute() as _,
-        wSecond: datetime.second() as _,
+        wHour: datetime.hour().extend(),
+        wMinute: datetime.minute().extend(),
+        wSecond: datetime.second().extend(),
         wMilliseconds: datetime.millisecond(),
     }
 }

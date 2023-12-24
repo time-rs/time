@@ -51,6 +51,7 @@ wasm-bindgen = ["dep:js-sys"]
 [dependencies]
 deranged = { workspace = true }
 itoa = { workspace = true, optional = true }
+num-conv = { workspace = true }
 powerfmt = { workspace = true }
 quickcheck = { workspace = true, optional = true }
 rand = { workspace = true, optional = true }

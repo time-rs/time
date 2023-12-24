@@ -6,6 +6,7 @@ use deranged::{
     OptionRangedI128, OptionRangedI32, OptionRangedI8, OptionRangedU16, OptionRangedU32,
     OptionRangedU8, RangedI128, RangedI32, RangedI8, RangedU16, RangedU32, RangedU8,
 };
+use num_conv::prelude::*;
 
 use crate::convert::{Day, Hour, Minute, Nanosecond, Second};
 use crate::date::{MAX_YEAR, MIN_YEAR};
@@ -290,9 +291,13 @@ impl Parsed {
                     parse_year(input, modifiers).ok_or(InvalidComponent("year"))?;
                 match (modifiers.iso_week_based, modifiers.repr) {
                     (false, modifier::YearRepr::Full) => self.set_year(value),
-                    (false, modifier::YearRepr::LastTwo) => self.set_year_last_two(value as _),
+                    (false, modifier::YearRepr::LastTwo) => {
+                        self.set_year_last_two(value.cast_unsigned().truncate())
+                    }
                     (true, modifier::YearRepr::Full) => self.set_iso_year(value),
-                    (true, modifier::YearRepr::LastTwo) => self.set_iso_year_last_two(value as _),
+                    (true, modifier::YearRepr::LastTwo) => {
+                        self.set_iso_year_last_two(value.cast_unsigned().truncate())
+                    }
                 }
                 .ok_or(InvalidComponent("year"))?;
                 Ok(remaining)
@@ -533,10 +538,10 @@ impl Parsed {
         note = "use `parsed.set_offset_minute_signed()` instead"
     )]
     pub fn set_offset_minute(&mut self, value: u8) -> Option<()> {
-        if value > i8::MAX as u8 {
+        if value > i8::MAX.cast_unsigned() {
             None
         } else {
-            self.set_offset_minute_signed(value as _)
+            self.set_offset_minute_signed(value.cast_signed())
         }
     }
 
@@ -547,10 +552,10 @@ impl Parsed {
         note = "use `parsed.set_offset_second_signed()` instead"
     )]
     pub fn set_offset_second(&mut self, value: u8) -> Option<()> {
-        if value > i8::MAX as u8 {
+        if value > i8::MAX.cast_unsigned() {
             None
         } else {
-            self.set_offset_second_signed(value as _)
+            self.set_offset_second_signed(value.cast_signed())
         }
     }
 }
@@ -761,15 +766,17 @@ impl TryFrom<Parsed> for Date {
             )?),
             (year, sunday_week_number, weekday) => Ok(Self::from_ordinal_date(
                 year,
-                (sunday_week_number as i16 * 7 + weekday.number_days_from_sunday() as i16
+                (sunday_week_number.cast_signed().extend::<i16>() * 7
+                    + weekday.number_days_from_sunday().cast_signed().extend::<i16>()
                     - adjustment(year)
-                    + 1) as u16,
+                    + 1).cast_unsigned(),
             )?),
             (year, monday_week_number, weekday) => Ok(Self::from_ordinal_date(
                 year,
-                (monday_week_number as i16 * 7 + weekday.number_days_from_monday() as i16
+                (monday_week_number.cast_signed().extend::<i16>() * 7
+                    + weekday.number_days_from_monday().cast_signed().extend::<i16>()
                     - adjustment(year)
-                    + 1) as u16,
+                    + 1).cast_unsigned(),
             )?),
             _ => Err(InsufficientInformation),
         }

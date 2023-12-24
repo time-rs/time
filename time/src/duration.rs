@@ -7,6 +7,7 @@ use core::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 
 use deranged::RangedI32;
+use num_conv::prelude::*;
 
 use crate::convert::*;
 use crate::error;
@@ -1225,23 +1226,26 @@ impl fmt::Display for Duration {
             let seconds = self.seconds.unsigned_abs();
             let nanoseconds = self.nanoseconds.get().unsigned_abs();
 
-            item!("d", seconds / Second::per(Day) as u64)?;
+            item!("d", seconds / Second::per(Day).extend::<u64>())?;
             item!(
                 "h",
-                seconds / Second::per(Hour) as u64 % Hour::per(Day) as u64
+                seconds / Second::per(Hour).extend::<u64>() % Hour::per(Day).extend::<u64>()
             )?;
             item!(
                 "m",
-                seconds / Second::per(Minute) as u64 % Minute::per(Hour) as u64
+                seconds / Second::per(Minute).extend::<u64>() % Minute::per(Hour).extend::<u64>()
             )?;
-            item!("s", seconds % Second::per(Minute) as u64)?;
+            item!("s", seconds % Second::per(Minute).extend::<u64>())?;
             item!("ms", nanoseconds / Nanosecond::per(Millisecond))?;
             item!(
                 "µs",
-                nanoseconds / Nanosecond::per(Microsecond) as u32
-                    % Microsecond::per(Millisecond) as u32
+                nanoseconds / Nanosecond::per(Microsecond).extend::<u32>()
+                    % Microsecond::per(Millisecond).extend::<u32>()
             )?;
-            item!("ns", nanoseconds % Nanosecond::per(Microsecond) as u32)?;
+            item!(
+                "ns",
+                nanoseconds % Nanosecond::per(Microsecond).extend::<u32>()
+            )?;
         }
 
         Ok(())
@@ -1257,7 +1261,7 @@ impl TryFrom<StdDuration> for Duration {
                 .as_secs()
                 .try_into()
                 .map_err(|_| error::ConversionRange)?,
-            original.subsec_nanos() as _,
+            original.subsec_nanos().cast_signed(),
         ))
     }
 }
@@ -1394,7 +1398,7 @@ macro_rules! duration_mul_div_int {
             fn mul(self, rhs: $type) -> Self::Output {
                 Self::nanoseconds_i128(
                     self.whole_nanoseconds()
-                        .checked_mul(rhs as _)
+                        .checked_mul(rhs.cast_signed().extend::<i128>())
                         .expect("overflow when multiplying duration")
                 )
             }
@@ -1412,7 +1416,9 @@ macro_rules! duration_mul_div_int {
             type Output = Self;
 
             fn div(self, rhs: $type) -> Self::Output {
-                Self::nanoseconds_i128(self.whole_nanoseconds() / rhs as i128)
+                Self::nanoseconds_i128(
+                    self.whole_nanoseconds() / rhs.cast_signed().extend::<i128>()
+                )
             }
         }
     )+};
@@ -1509,14 +1515,18 @@ impl PartialEq<Duration> for StdDuration {
 
 impl PartialOrd<StdDuration> for Duration {
     fn partial_cmp(&self, rhs: &StdDuration) -> Option<Ordering> {
-        if rhs.as_secs() > i64::MAX as _ {
+        if rhs.as_secs() > i64::MAX.cast_unsigned() {
             return Some(Ordering::Less);
         }
 
         Some(
             self.seconds
-                .cmp(&(rhs.as_secs() as _))
-                .then_with(|| self.nanoseconds.get().cmp(&(rhs.subsec_nanos() as _))),
+                .cmp(&rhs.as_secs().cast_signed())
+                .then_with(|| {
+                    self.nanoseconds
+                        .get()
+                        .cmp(&rhs.subsec_nanos().cast_signed())
+                }),
         )
     }
 }

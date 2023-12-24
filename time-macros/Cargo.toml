@@ -30,3 +30,4 @@ workspace = true
 
 [dependencies]
 time-core = { workspace = true }
+num-conv = { workspace = true }

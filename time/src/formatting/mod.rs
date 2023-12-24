@@ -5,6 +5,8 @@ mod iso8601;
 use core::num::NonZeroU8;
 use std::io;
 
+use num_conv::prelude::*;
+
 pub use self::formattable::Formattable;
 use crate::convert::*;
 use crate::ext::DigitCount;
@@ -71,14 +73,14 @@ pub(crate) fn format_float(
 ) -> io::Result<usize> {
     match digits_after_decimal {
         Some(digits_after_decimal) => {
-            let digits_after_decimal = digits_after_decimal.get() as usize;
-            let width = digits_before_decimal as usize + 1 + digits_after_decimal;
+            let digits_after_decimal = digits_after_decimal.get().extend();
+            let width = digits_before_decimal.extend::<usize>() + 1 + digits_after_decimal;
             write!(output, "{value:0>width$.digits_after_decimal$}")?;
             Ok(width)
         }
         None => {
             let value = value.trunc() as u64;
-            let width = digits_before_decimal as usize;
+            let width = digits_before_decimal.extend();
             write!(output, "{value:0>width$}")?;
             Ok(width)
         }
@@ -207,9 +209,17 @@ fn fmt_month(
     }: modifier::Month,
 ) -> Result<usize, io::Error> {
     match repr {
-        modifier::MonthRepr::Numerical => format_number::<2>(output, date.month() as u8, padding),
-        modifier::MonthRepr::Long => write(output, MONTH_NAMES[date.month() as usize - 1]),
-        modifier::MonthRepr::Short => write(output, &MONTH_NAMES[date.month() as usize - 1][..3]),
+        modifier::MonthRepr::Numerical => {
+            format_number::<2>(output, u8::from(date.month()), padding)
+        }
+        modifier::MonthRepr::Long => write(
+            output,
+            MONTH_NAMES[u8::from(date.month()).extend::<usize>() - 1],
+        ),
+        modifier::MonthRepr::Short => write(
+            output,
+            &MONTH_NAMES[u8::from(date.month()).extend::<usize>() - 1][..3],
+        ),
     }
 }
 
@@ -235,20 +245,20 @@ fn fmt_weekday(
     match repr {
         modifier::WeekdayRepr::Short => write(
             output,
-            &WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3],
+            &WEEKDAY_NAMES[date.weekday().number_days_from_monday().extend::<usize>()][..3],
         ),
         modifier::WeekdayRepr::Long => write(
             output,
-            WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize],
+            WEEKDAY_NAMES[date.weekday().number_days_from_monday().extend::<usize>()],
         ),
         modifier::WeekdayRepr::Sunday => format_number::<1>(
             output,
-            date.weekday().number_days_from_sunday() + one_indexed as u8,
+            date.weekday().number_days_from_sunday() + u8::from(one_indexed),
             modifier::Padding::None,
         ),
         modifier::WeekdayRepr::Monday => format_number::<1>(
             output,
-            date.weekday().number_days_from_monday() + one_indexed as u8,
+            date.weekday().number_days_from_monday() + u8::from(one_indexed),
             modifier::Padding::None,
         ),
     }
@@ -464,13 +474,15 @@ fn fmt_unix_timestamp(
         }
         modifier::UnixTimestampPrecision::Millisecond => format_number_pad_none(
             output,
-            (date_time.unix_timestamp_nanos() / Nanosecond::per(Millisecond) as i128)
-                .unsigned_abs(),
+            (date_time.unix_timestamp_nanos()
+                / Nanosecond::per(Millisecond).cast_signed().extend::<i128>())
+            .unsigned_abs(),
         ),
         modifier::UnixTimestampPrecision::Microsecond => format_number_pad_none(
             output,
-            (date_time.unix_timestamp_nanos() / Nanosecond::per(Microsecond) as i128)
-                .unsigned_abs(),
+            (date_time.unix_timestamp_nanos()
+                / Nanosecond::per(Microsecond).cast_signed().extend::<i128>())
+            .unsigned_abs(),
         ),
         modifier::UnixTimestampPrecision::Nanosecond => {
             format_number_pad_none(output, date_time.unix_timestamp_nanos().unsigned_abs())

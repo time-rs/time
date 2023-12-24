@@ -3,6 +3,8 @@
 use core::ops::Deref;
 use std::io;
 
+use num_conv::prelude::*;
+
 use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::format_description::{FormatItem, OwnedFormatItem};
@@ -175,14 +177,17 @@ impl sealed::Sealed for Rfc2822 {
 
         bytes += write(
             output,
-            &WEEKDAY_NAMES[date.weekday().number_days_from_monday() as usize][..3],
+            &WEEKDAY_NAMES[date.weekday().number_days_from_monday().extend::<usize>()][..3],
         )?;
         bytes += write(output, b", ")?;
         bytes += format_number_pad_zero::<2>(output, day)?;
         bytes += write(output, b" ")?;
-        bytes += write(output, &MONTH_NAMES[month as usize - 1][..3])?;
+        bytes += write(
+            output,
+            &MONTH_NAMES[u8::from(month).extend::<usize>() - 1][..3],
+        )?;
         bytes += write(output, b" ")?;
-        bytes += format_number_pad_zero::<4>(output, year as u32)?;
+        bytes += format_number_pad_zero::<4>(output, year.cast_unsigned())?;
         bytes += write(output, b" ")?;
         bytes += format_number_pad_zero::<2>(output, time.hour())?;
         bytes += write(output, b":")?;
@@ -224,9 +229,9 @@ impl sealed::Sealed for Rfc3339 {
             return Err(error::Format::InvalidComponent("offset_second"));
         }
 
-        bytes += format_number_pad_zero::<4>(output, year as u32)?;
+        bytes += format_number_pad_zero::<4>(output, year.cast_unsigned())?;
         bytes += write(output, b"-")?;
-        bytes += format_number_pad_zero::<2>(output, date.month() as u8)?;
+        bytes += format_number_pad_zero::<2>(output, u8::from(date.month()))?;
         bytes += write(output, b"-")?;
         bytes += format_number_pad_zero::<2>(output, date.day())?;
         bytes += write(output, b"T")?;
