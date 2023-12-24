@@ -12,7 +12,7 @@ jobs:
     permissions:
       pull-requests: write
     steps:
-      - uses: actions/stale@v8
+      - uses: actions/stale@v9
         with:
           enable-statistics: false
           stale-pr-message: This pull request has not had any activity recently. It will be closed without further activity.
@@ -29,7 +29,7 @@ jobs:
       checks: write
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Audit dependencies
         uses: rustsec/audit-check@v1
