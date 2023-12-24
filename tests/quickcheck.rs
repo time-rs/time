@@ -1,5 +1,7 @@
+use num_conv::prelude::*;
 use quickcheck::{Arbitrary, TestResult};
 use quickcheck_macros::quickcheck;
+use time::macros::time;
 use time::Weekday::*;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
@@ -148,7 +150,7 @@ fn weekday_can_shrink(w: Weekday) -> bool {
 
 #[quickcheck]
 fn month_supports_arbitrary(m: Month) -> bool {
-    (1..=12).contains(&(m as u8))
+    (1..=12).contains(&u8::from(m))
 }
 
 #[quickcheck]
@@ -248,7 +250,17 @@ fn odt_sub_no_panic(left: OffsetDateTime, right: OffsetDateTime) -> bool {
 
 #[quickcheck]
 fn odt_to_offset_no_panic(odt: OffsetDateTime, offset: UtcOffset) -> TestResult {
-    if odt.date() == Date::MIN || odt.date() == Date::MAX {
+    if Date::MIN
+        .midnight()
+        .assume_utc()
+        .checked_add(Duration::seconds(offset.whole_seconds().extend()))
+        .is_none()
+        || Date::MAX
+            .with_time(time!(23:59:59.999_999_999))
+            .assume_utc()
+            .checked_add(Duration::seconds(offset.whole_seconds().extend()))
+            .is_none()
+    {
         return TestResult::discard();
     }
 
@@ -259,7 +271,17 @@ fn odt_to_offset_no_panic(odt: OffsetDateTime, offset: UtcOffset) -> TestResult 
 
 #[quickcheck]
 fn odt_replace_offset_no_panic(odt: OffsetDateTime, offset: UtcOffset) -> TestResult {
-    if odt.date() == Date::MIN || odt.date() == Date::MAX {
+    if Date::MIN
+        .midnight()
+        .assume_offset(odt.offset())
+        .checked_add(Duration::seconds(offset.whole_seconds().extend()))
+        .is_none()
+        || Date::MAX
+            .with_time(time!(23:59:59.999_999_999))
+            .assume_offset(odt.offset())
+            .checked_add(Duration::seconds(offset.whole_seconds().extend()))
+            .is_none()
+    {
         return TestResult::discard();
     }
 

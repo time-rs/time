@@ -67,6 +67,7 @@ num_threads = { workspace = true, optional = true }
 js-sys = { workspace = true, optional = true }
 
 [dev-dependencies]
+num-conv = { workspace = true }
 rand = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
