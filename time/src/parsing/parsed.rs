@@ -10,12 +10,11 @@ use num_conv::prelude::*;
 
 use crate::convert::{Day, Hour, Minute, Nanosecond, Second};
 use crate::date::{MAX_YEAR, MIN_YEAR};
-use crate::date_time::{offset_kind, offset_logical_to_memory, DateTime, MaybeTz};
 use crate::error::TryFromParsed::InsufficientInformation;
 #[cfg(feature = "alloc")]
 use crate::format_description::OwnedFormatItem;
 use crate::format_description::{modifier, Component, FormatItem};
-use crate::internal_macros::const_try_opt;
+use crate::internal_macros::{bug, const_try_opt};
 use crate::parsing::component::{
     parse_day, parse_end, parse_hour, parse_ignore, parse_minute, parse_month, parse_offset_hour,
     parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
@@ -160,13 +159,13 @@ pub struct Parsed {
     offset_second:
         OptionRangedI8<{ -((Second::per(Minute) - 1) as i8) }, { (Second::per(Minute) - 1) as _ }>,
     /// The Unix timestamp in nanoseconds.
-    // unix_timestamp_nanos: MaybeUninit<i128>,
     unix_timestamp_nanos: OptionRangedI128<
-        { Date::MIN.midnight().assume_utc().unix_timestamp_nanos() },
         {
-            Date::MAX
-                .with_time(Time::MAX)
-                .assume_utc()
+            OffsetDateTime::new_in_offset(Date::MIN, Time::MIDNIGHT, UtcOffset::UTC)
+                .unix_timestamp_nanos()
+        },
+        {
+            OffsetDateTime::new_in_offset(Date::MAX, Time::MAX, UtcOffset::UTC)
                 .unix_timestamp_nanos()
         },
     >,
@@ -842,61 +841,45 @@ impl TryFrom<Parsed> for UtcOffset {
 }
 
 impl TryFrom<Parsed> for PrimitiveDateTime {
-    type Error = <DateTime<offset_kind::None> as TryFrom<Parsed>>::Error;
+    type Error = error::TryFromParsed;
 
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
-        parsed.try_into().map(Self)
+        Ok(Self::new(parsed.try_into()?, parsed.try_into()?))
     }
 }
 
 impl TryFrom<Parsed> for OffsetDateTime {
-    type Error = <DateTime<offset_kind::Fixed> as TryFrom<Parsed>>::Error;
-
-    fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
-        parsed.try_into().map(Self)
-    }
-}
-
-impl<T: MaybeTz> TryFrom<Parsed> for DateTime<T> {
     type Error = error::TryFromParsed;
 
-    #[allow(clippy::unwrap_in_result)] // We know the values are valid.
     fn try_from(mut parsed: Parsed) -> Result<Self, Self::Error> {
-        if T::HAS_LOGICAL_OFFSET {
-            if let Some(timestamp) = parsed.unix_timestamp_nanos() {
-                let DateTime { date, time, offset } =
-                    DateTime::<offset_kind::Fixed>::from_unix_timestamp_nanos(timestamp)?;
-
-                let mut value = Self {
-                    date,
-                    time,
-                    offset: offset_logical_to_memory::<T>(offset),
-                };
-                if let Some(subsecond) = parsed.subsecond() {
-                    value = value.replace_nanosecond(subsecond)?;
-                }
-                return Ok(value);
+        if let Some(timestamp) = parsed.unix_timestamp_nanos() {
+            let mut value = Self::from_unix_timestamp_nanos(timestamp)?;
+            if let Some(subsecond) = parsed.subsecond() {
+                value = value.replace_nanosecond(subsecond)?;
             }
+            return Ok(value);
         }
 
         // Some well-known formats explicitly allow leap seconds. We don't currently support them,
         // so treat it as the nearest preceding moment that can be represented. Because leap seconds
         // always fall at the end of a month UTC, reject any that are at other times.
         let leap_second_input = if parsed.leap_second_allowed && parsed.second() == Some(60) {
-            parsed.set_second(59).expect("59 is a valid second");
-            parsed
-                .set_subsecond(999_999_999)
-                .expect("999_999_999 is a valid subsecond");
+            if parsed.set_second(59).is_none() {
+                bug!("59 is a valid second");
+            }
+            if parsed.set_subsecond(999_999_999).is_none() {
+                bug!("999_999_999 is a valid subsecond");
+            }
             true
         } else {
             false
         };
 
-        let dt = Self {
-            date: Date::try_from(parsed)?,
-            time: Time::try_from(parsed)?,
-            offset: T::try_from_parsed(parsed)?,
-        };
+        let dt = Self::new_in_offset(
+            Date::try_from(parsed)?,
+            Time::try_from(parsed)?,
+            UtcOffset::try_from(parsed)?,
+        );
 
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {
             return Err(error::TryFromParsed::ComponentRange(

@@ -86,7 +86,6 @@
 extern crate alloc;
 
 mod date;
-mod date_time;
 mod duration;
 pub mod error;
 pub mod ext;
@@ -122,7 +121,6 @@ mod weekday;
 pub use time_core::convert;
 
 pub use crate::date::Date;
-use crate::date_time::DateTime;
 pub use crate::duration::Duration;
 pub use crate::error::Error;
 #[cfg(feature = "std")]

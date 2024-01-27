@@ -457,10 +457,7 @@ fn fmt_unix_timestamp(
         sign_is_mandatory,
     }: modifier::UnixTimestamp,
 ) -> Result<usize, io::Error> {
-    let date_time = date
-        .with_time(time)
-        .assume_offset(offset)
-        .to_offset(UtcOffset::UTC);
+    let date_time = OffsetDateTime::new_in_offset(date, time, offset).to_offset(UtcOffset::UTC);
 
     if date_time < OffsetDateTime::UNIX_EPOCH {
         write(output, b"-")?;

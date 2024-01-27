@@ -184,6 +184,7 @@ macro_rules! expect_opt {
 }
 
 /// `unreachable!()`, but better.
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 macro_rules! bug {
     () => { compile_error!("provide an error message to help fix a possible bug") };
     ($descr:literal $($rest:tt)?) => {
@@ -191,7 +192,9 @@ macro_rules! bug {
     }
 }
 
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+pub(crate) use bug;
 pub(crate) use {
-    __impl_assign, bug, cascade, const_try, const_try_opt, div_floor, ensure_ranged, expect_opt,
+    __impl_assign, cascade, const_try, const_try_opt, div_floor, ensure_ranged, expect_opt,
     impl_add_assign, impl_div_assign, impl_mul_assign, impl_sub_assign,
 };
