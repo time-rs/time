@@ -71,6 +71,9 @@ fn alignment() {
     assert_alignment!(iso8601::FormattedComponents, 1);
     assert_alignment!(iso8601::OffsetPrecision, 1);
     assert_alignment!(iso8601::TimePrecision, 1);
+    #[cfg(miri)]
+    assert_alignment!(Parsed, 16);
+    #[cfg(not(miri))]
     assert_alignment!(Parsed, 8);
     assert_alignment!(Month, 1);
     assert_alignment!(Weekday, 1);
