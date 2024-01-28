@@ -34,8 +34,6 @@ defaults:
     shell: bash
 
 on:
-  schedule:
-    - cron: "0 0 * * 1" # midnight on Monday
   push:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
@@ -87,10 +85,7 @@ jobs:
           toolchain: ${{ matrix.rust.version}}
 
       - name: Install cargo-hack
-        shell: bash
-        run: |
-          curl -LsSf https://github.com/taiki-e/cargo-hack/releases/latest/download/cargo-hack-x86_64-unknown-linux-gnu.tar.gz \
-          | tar xzf - -C ~/.cargo/bin
+        uses: taiki-e/install-action@cargo-hack
 
       - name: Check feature powerset
         run: |
@@ -109,20 +104,11 @@ jobs:
     name: Create release
     if: startsWith(github.ref, 'refs/tags') && github.run_attempt == 1
     needs: check
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Create release
-        uses: ncipollo/release-action@v1
-        with:
-          body: See the [changelog](https://github.com/time-rs/time/blob/main/CHANGELOG.md) for details.
-          prerelease: |
-            ${{
-              contains(github.ref, 'alpha')
-              || contains(github.ref, 'beta')
-              || contains(github.ref, 'rc')
-            }}
+    uses: ./.github/workflows/github-release.yaml
+    with:
+      prerelease: |
+        ${{
+          contains(github.ref, 'alpha')
+          || contains(github.ref, 'beta')
+          || contains(github.ref, 'rc')
+        }}

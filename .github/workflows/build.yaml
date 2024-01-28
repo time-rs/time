@@ -5,7 +5,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CARGO_INCREMENTAL: 0
   TYPE_CHECK_TARGETS: '{
     "no_std": [
     "thumbv7em-none-eabihf"
@@ -83,6 +82,9 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v2
+
       - name: Generate target list
         run: |
           echo $TYPE_CHECK_TARGETS \
@@ -95,15 +97,7 @@ jobs:
           targets: ${{ env.TARGETS }}
 
       - name: Install cargo-hack
-        shell: bash
-        run: |
-          curl -LsSf https://github.com/taiki-e/cargo-hack/releases/latest/download/cargo-hack-x86_64-unknown-linux-gnu.tar.gz \
-          | tar xzf - -C ~/.cargo/bin
-
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ matrix.kind.name }}
+        uses: taiki-e/install-action@cargo-hack
 
       - name: Check feature powerset
         env:
@@ -135,11 +129,11 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
-
       - name: Cache cargo output
         uses: Swatinem/rust-cache@v2
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Type-check benchmarks
         run: cargo check -p time --benches --all-features
@@ -164,26 +158,13 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v2
+
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust.version }}
-
-      - name: Install cargo-hack
-        run: |
-          host=$(rustc -Vv | grep host | sed 's/host: //')
-          if [[ $host =~ windows ]]; then
-              curl -LsSf https://github.com/taiki-e/cargo-hack/releases/latest/download/cargo-hack-${host}.zip -o cargo-hack.zip
-              7z x cargo-hack.zip -o$HOME/.cargo/bin
-          elif [[ $host =~ darwin|linux ]]; then
-              curl -LsSf https://github.com/taiki-e/cargo-hack/releases/latest/download/cargo-hack-${host}.tar.gz | tar xzf - -C ~/.cargo/bin
-          else
-              echo "unsupported operating system"
-              exit 1
-          fi
-
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
 
       - name: Test
         run: cargo test -p time --all-features
@@ -197,6 +178,9 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v2
+
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@nightly
         with:
@@ -206,6 +190,7 @@ jobs:
         run: cargo miri test -p time --all-features
         env:
           MIRIFLAGS: -Zmiri-disable-isolation -Zmiri-strict-provenance -Zmiri-symbolic-alignment-check
+          QUICKCHECK_MAX_TESTS: 100
 
   cross-build:
     name: Cross-build
@@ -216,13 +201,13 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v2
+
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-gnu
-
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
 
       - name: Install dependencies
         run: sudo apt install gcc-mingw-w64
@@ -259,23 +244,14 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@v4
 
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v2
+
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-
-      - name: Install targets
-        run: |
-          rustup target add \
-          x86_64-unknown-linux-gnu \
-          aarch64-apple-darwin \
-          x86_64-pc-windows-gnu \
-          x86_64-unknown-netbsd \
-          x86_64-unknown-illumos \
-          wasm32-wasi
-
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
+          targets: x86_64-unknown-linux-gnu,aarch64-apple-darwin,x86_64-pc-windows-gnu,x86_64-unknown-netbsd,x86_64-unknown-illumos,wasm32-wasi
 
       - name: Run clippy
         run: |
@@ -303,11 +279,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@nightly
-
       - name: Cache cargo output
         uses: Swatinem/rust-cache@v2
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@nightly
 
       - name: Document public API
         run: cargo doc -p time --all-features
@@ -362,16 +338,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v2
+
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install cargo-llvm-cov
-        run: |
-          curl -LsSf https://github.com/taiki-e/cargo-llvm-cov/releases/latest/download/cargo-llvm-cov-x86_64-unknown-linux-gnu.tar.gz \
-          | tar xzf - -C ~/.cargo/bin
-
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
+        uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: Generate coverage report
         run: |
