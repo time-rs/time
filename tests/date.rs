@@ -1033,6 +1033,21 @@ fn replace_day() {
 }
 
 #[test]
+fn replace_ordinal() {
+    assert_eq!(
+        date!(2022 - 02 - 18).replace_ordinal(1),
+        Ok(date!(2022 - 001))
+    );
+    assert_eq!(
+        date!(2024 - 02 - 29).replace_ordinal(366),
+        Ok(date!(2024 - 366))
+    );
+    assert!(date!(2022 - 049).replace_ordinal(0).is_err()); // 0 isn't a valid day
+    assert!(date!(2022 - 049).replace_ordinal(366).is_err()); // 2022 isn't a leap year
+    assert!(date!(2022 - 049).replace_ordinal(367).is_err()); // 367 isn't a valid day
+}
+
+#[test]
 fn next_occurrence_test() {
     assert_eq!(
         date!(2023 - 06 - 25).next_occurrence(Weekday::Monday),

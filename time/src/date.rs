@@ -1150,6 +1150,34 @@ impl Date {
             )
         })
     }
+
+    /// Replace the day of the year.
+    ///
+    /// ```rust
+    /// # use time_macros::date;
+    /// assert_eq!(date!(2022 - 049).replace_ordinal(1), Ok(date!(2022 - 001)));
+    /// assert!(date!(2022 - 049).replace_ordinal(0).is_err()); // 0 isn't a valid ordinal
+    /// assert!(date!(2022 - 049).replace_ordinal(366).is_err()); // 2022 isn't a leap year
+    /// ````
+    #[must_use = "This method does not mutate the original `Date`."]
+    pub const fn replace_ordinal(self, ordinal: u16) -> Result<Self, error::ComponentRange> {
+        match ordinal {
+            1..=365 => {}
+            366 if is_leap_year(self.year()) => {}
+            _ => {
+                return Err(crate::error::ComponentRange {
+                    name: "ordinal",
+                    minimum: 1,
+                    maximum: days_in_year(self.year()) as _,
+                    value: ordinal as _,
+                    conditional_range: true,
+                });
+            }
+        }
+
+        // Safety: `ordinal` is in range.
+        Ok(unsafe { Self::__from_ordinal_date_unchecked(self.year(), ordinal) })
+    }
     // endregion replacement
 }
 

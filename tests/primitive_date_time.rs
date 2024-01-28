@@ -292,6 +292,21 @@ fn replace_day() -> Result<()> {
 }
 
 #[test]
+fn replace_ordinal() {
+    assert_eq!(
+        datetime!(2022 - 02 - 18 12:00).replace_ordinal(1),
+        Ok(datetime!(2022 - 001 12:00))
+    );
+    assert_eq!(
+        datetime!(2024 - 02 - 29 12:00).replace_ordinal(366),
+        Ok(datetime!(2024 - 366 12:00))
+    );
+    assert!(datetime!(2022 - 049 12:00).replace_ordinal(0).is_err()); // 0 isn't a valid day
+    assert!(datetime!(2022 - 049 12:00).replace_ordinal(366).is_err()); // 2022 isn't a leap year
+    assert!(datetime!(2022 - 049 12:00).replace_ordinal(367).is_err()); // 367 isn't a valid day
+}
+
+#[test]
 fn replace_hour() -> Result<()> {
     assert_eq!(
         datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_hour(7),
