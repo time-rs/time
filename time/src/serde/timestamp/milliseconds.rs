@@ -1,4 +1,5 @@
-//! Treat an [`OffsetDateTime`] as a [Unix timestamp] for the purposes of serde.
+//! Treat an [`OffsetDateTime`] as a [Unix timestamp] with milliseconds for
+//! the purposes of serde.
 //!
 //! Use this module in combination with serde's [`#[with]`][with] attribute.
 //!
@@ -11,7 +12,7 @@ use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::OffsetDateTime;
 
-/// Serialize an `OffsetDateTime` as its Unix timestamp
+/// Serialize an `OffsetDateTime` as its Unix timestamp with milliseconds
 pub fn serialize<S: Serializer>(
     datetime: &OffsetDateTime,
     serializer: S,
@@ -20,15 +21,15 @@ pub fn serialize<S: Serializer>(
     timestamp.serialize(serializer)
 }
 
-/// Deserialize an `OffsetDateTime` from its Unix timestamp
+/// Deserialize an `OffsetDateTime` from its Unix timestamp with milliseconds
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
     let value: i128 = <_>::deserialize(deserializer)?;
     OffsetDateTime::from_unix_timestamp_nanos(value * 1_000_000)
         .map_err(|err| de::Error::invalid_value(de::Unexpected::Signed(err.value), &err))
 }
 
-/// Treat an `Option<OffsetDateTime>` as a [Unix timestamp] for the purposes of
-/// serde.
+/// Treat an `Option<OffsetDateTime>` as a [Unix timestamp] with milliseconds
+/// for the purposes of serde.
 ///
 /// Use this module in combination with serde's [`#[with]`][with] attribute.
 ///
@@ -40,7 +41,7 @@ pub mod option {
     #[allow(clippy::wildcard_imports)]
     use super::*;
 
-    /// Serialize an `Option<OffsetDateTime>` as its Unix timestamp
+    /// Serialize an `Option<OffsetDateTime>` as its Unix timestamp with milliseconds
     pub fn serialize<S: Serializer>(
         option: &Option<OffsetDateTime>,
         serializer: S,
@@ -50,7 +51,7 @@ pub mod option {
             .serialize(serializer)
     }
 
-    /// Deserialize an `Option<OffsetDateTime>` from its Unix timestamp
+    /// Deserialize an `Option<OffsetDateTime>` from its Unix timestamp with milliseconds
     pub fn deserialize<'a, D: Deserializer<'a>>(
         deserializer: D,
     ) -> Result<Option<OffsetDateTime>, D::Error> {
