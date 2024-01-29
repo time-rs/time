@@ -52,14 +52,6 @@
 //!   Libraries should never enable this feature, as the decision of what format to use should be up
 //!   to the user.
 //!
-//! - `serde-well-known` (_implicitly enables `serde-human-readable`_)
-//!
-//!   _This feature flag is deprecated and will be removed in a future breaking release. Use the
-//!   `serde-human-readable` feature instead._
-//!
-//!   Enables support for serializing and deserializing well-known formats using serde's
-//!   [`#[with]` attribute](https://serde.rs/field-attrs.html#with).
-//!
 //! - `rand`
 //!
 //!   Enables [rand](https://docs.rs/rand) support for all types.
