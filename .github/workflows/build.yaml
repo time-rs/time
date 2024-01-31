@@ -285,45 +285,26 @@ jobs:
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@nightly
 
-      - name: Document public API
-        run: cargo doc -p time --all-features
+      - name: Generate documentation
+        run: cargo doc --workspace --all-features --no-deps
         env:
-          RUSTDOCFLAGS: --cfg __time_03_docs -Zunstable-options --generate-link-to-definition
+          RUSTDOCFLAGS: --cfg __time_03_docs
 
-      - name: Create top-level redirect
-        run: |
-          echo "<meta http-equiv='refresh' content='0; url=https://time-rs.github.io/api/time'>" \
-          > ./target/doc/index.html
-
-      - name: Publish public docs
-        uses: JamesIves/github-pages-deploy-action@releases/v4
-        with:
-          token: ${{ secrets.ACCESS_TOKEN }}
-          branch: main
-          folder: target/doc
-          target-folder: api
-          repository-name: time-rs/time-rs.github.io
-        if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
-
-      - name: Document internal API
-        run: cargo doc -p time --all-features --document-private-items
-        env:
-          RUSTDOCFLAGS: --cfg __time_03_docs --document-hidden-items -Zunstable-options --generate-link-to-definition
-
-      - name: Create top-level redirect
-        run: |
-          echo "<meta http-equiv='refresh' content='0; url=https://time-rs.github.io/internal-api/time'>" \
-          > ./target/doc/index.html
-
-      - name: Publish internal docs
-        uses: JamesIves/github-pages-deploy-action@releases/v4
-        with:
-          token: ${{ secrets.ACCESS_TOKEN }}
-          branch: main
-          folder: target/doc
-          target-folder: internal-api
-          repository-name: time-rs/time-rs.github.io
-        if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
+  publish-documentation:
+    name: Publish docs
+    needs:
+      - documentation
+      - check-targets
+      - check-benchmarks
+      - test
+      - cross-build
+      - fmt
+      - clippy
+    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
+    uses: time-rs/time-rs.github.io/.github/workflows/trigger-deploy.yaml@main
+    secrets: inherit
+    permissions:
+      actions: write
 
   coverage:
     name: Coverage
