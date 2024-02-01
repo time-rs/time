@@ -529,6 +529,7 @@ fn saturating_mul(#[case] duration: Duration, #[case] rhs: i32, #[case] expected
 #[rstest]
 #[timeout(StdDuration::from_millis(100))]
 fn time_fn() {
+    #[allow(deprecated)]
     let (time, value) = Duration::time_fn(|| {
         std::thread::sleep(1.std_milliseconds());
         0

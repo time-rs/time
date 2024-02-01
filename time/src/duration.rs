@@ -1148,6 +1148,10 @@ impl Duration {
     /// Runs a closure, returning the duration of time it took to run. The return value of the
     /// closure is provided in the second part of the tuple.
     #[cfg(feature = "std")]
+    #[deprecated(
+        since = "0.3.32",
+        note = "extremely limited use case, not intended for benchmarking"
+    )]
     pub fn time_fn<T>(f: impl FnOnce() -> T) -> (Self, T) {
         let start = Instant::now();
         let return_value = f();
