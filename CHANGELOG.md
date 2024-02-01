@@ -6,11 +6,28 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.32 [2024-02-01]
+
+### Added
+
+- Methods to replace the day of the year.
+  - `Date::replace_ordinal`
+  - `PrimitiveDateTime::replace_ordinal`
+  - `OffsetDateTime::replace_ordinal`
+- Modules to treat an `OffsetDateTime` as a Unix timestamp with subsecond precision for serde.
+  - `time::serde::timestamp::milliseconds`
+  - `time::serde::timestamp::microseconds`
+  - `time::serde::timestamp::nanoseconds`
+
+### Changed
+
+- `Duration::time_fn` is deprecated.
+
 ## 0.3.31 [2023-12-19]
 
 ### Added
 
-- `OFfsetDateTime::new_in_offset`
+- `OffsetDateTime::new_in_offset`
 - `OffsetDateTime::new_utc`
 
 ### Changed

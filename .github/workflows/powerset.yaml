@@ -106,9 +106,6 @@ jobs:
     needs: check
     uses: ./.github/workflows/github-release.yaml
     with:
-      prerelease: |
-        ${{
-          contains(github.ref, 'alpha')
-          || contains(github.ref, 'beta')
-          || contains(github.ref, 'rc')
-        }}
+      prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+    permissions:
+      contents: write
