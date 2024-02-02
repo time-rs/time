@@ -1596,6 +1596,7 @@ impl From<js_sys::Date> for OffsetDateTime {
     ///
     /// This may panic if the timestamp can not be represented.
     fn from(js_date: js_sys::Date) -> Self {
+        use time_core::convert::Millisecond;
         // get_time() returns milliseconds
         let timestamp_nanos = (js_date.get_time() * Nanosecond::per(Millisecond) as f64) as i128;
         Self::from_unix_timestamp_nanos(timestamp_nanos)
@@ -1610,11 +1611,12 @@ impl From<js_sys::Date> for OffsetDateTime {
 ))]
 impl From<OffsetDateTime> for js_sys::Date {
     fn from(datetime: OffsetDateTime) -> Self {
+        use time_core::convert::Millisecond;
         // new Date() takes milliseconds
         let timestamp = (datetime.unix_timestamp_nanos()
             / Nanosecond::per(Millisecond).cast_signed().extend::<i128>())
             as f64;
-        js_sys::Date::new(&timestamp.into())
+        Self::new(&timestamp.into())
     }
 }
 // endregion trait impls
