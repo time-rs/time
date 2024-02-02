@@ -1,4 +1,4 @@
-use num_conv::{CastSigned, Extend};
+use num_conv::prelude::*;
 
 use crate::convert::*;
 use crate::{OffsetDateTime, UtcOffset};
