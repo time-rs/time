@@ -11,6 +11,7 @@
 /// assert!(!is_leap_year(2005));
 /// assert!(!is_leap_year(2100));
 /// ```
+#[must_use = "This method only computes the returned value"]
 pub const fn is_leap_year(year: i32) -> bool {
     year % 4 == 0 && (year % 25 != 0 || year % 16 == 0)
 }
@@ -27,6 +28,7 @@ pub const fn is_leap_year(year: i32) -> bool {
 /// assert_eq!(days_in_year(2005), 365);
 /// assert_eq!(days_in_year(2100), 365);
 /// ```
+#[must_use = "This method only computes the returned value"]
 pub const fn days_in_year(year: i32) -> u16 {
     if is_leap_year(year) { 366 } else { 365 }
 }
@@ -40,6 +42,7 @@ pub const fn days_in_year(year: i32) -> u16 {
 /// assert_eq!(weeks_in_year(2019), 52);
 /// assert_eq!(weeks_in_year(2020), 53);
 /// ```
+#[must_use = "This method only computes the returned value"]
 pub const fn weeks_in_year(year: i32) -> u8 {
     match year.rem_euclid(400) {
         4 | 9 | 15 | 20 | 26 | 32 | 37 | 43 | 48 | 54 | 60 | 65 | 71 | 76 | 82 | 88 | 93 | 99

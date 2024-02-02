@@ -38,6 +38,7 @@ impl Instant {
     /// # use time::Instant;
     /// println!("{:?}", Instant::now());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub fn now() -> Self {
         Self(StdInstant::now())
     }
@@ -52,6 +53,7 @@ impl Instant {
     /// thread::sleep(1.std_milliseconds());
     /// assert!(instant.elapsed() >= 1.milliseconds());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub fn elapsed(self) -> Duration {
         Self::now() - self
     }
@@ -68,6 +70,7 @@ impl Instant {
     /// assert_eq!(now.checked_add(5.seconds()), Some(now + 5.seconds()));
     /// assert_eq!(now.checked_add((-5).seconds()), Some(now + (-5).seconds()));
     /// ```
+    #[must_use = "This method does not mutate the original `Instant`."]
     pub fn checked_add(self, duration: Duration) -> Option<Self> {
         if duration.is_zero() {
             Some(self)
@@ -89,6 +92,7 @@ impl Instant {
     /// assert_eq!(now.checked_sub(5.seconds()), Some(now - 5.seconds()));
     /// assert_eq!(now.checked_sub((-5).seconds()), Some(now - (-5).seconds()));
     /// ```
+    #[must_use = "This method does not mutate the original `Instant`."]
     pub fn checked_sub(self, duration: Duration) -> Option<Self> {
         if duration.is_zero() {
             Some(self)
@@ -108,6 +112,7 @@ impl Instant {
     /// let now = Instant::now();
     /// assert_eq!(now.into_inner(), now.0);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn into_inner(self) -> StdInstant {
         self.0
     }

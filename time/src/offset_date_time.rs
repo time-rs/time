@@ -95,6 +95,7 @@ impl OffsetDateTime {
     /// assert_eq!(OffsetDateTime::now_utc().offset(), offset!(UTC));
     /// ```
     #[cfg(feature = "std")]
+    #[must_use = "This method only computes the returned value"]
     pub fn now_utc() -> Self {
         #[cfg(all(
             target_family = "wasm",
@@ -142,6 +143,7 @@ impl OffsetDateTime {
     /// assert_eq!(dt, datetime!(2024-01-01 12:59:59.5 -5));
     /// # Ok::<_, time::error::Error>(())
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn new_in_offset(date: Date, time: Time, offset: UtcOffset) -> Self {
         Self {
             local_date_time: date.with_time(time),
@@ -161,6 +163,7 @@ impl OffsetDateTime {
     /// assert_eq!(dt, datetime!(2024-01-01 12:59:59.5 UTC));
     /// # Ok::<_, time::error::Error>(())
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn new_utc(date: Date, time: Time) -> Self {
         PrimitiveDateTime::new(date, time).assume_utc()
     }
@@ -190,6 +193,7 @@ impl OffsetDateTime {
     /// # Panics
     ///
     /// This method panics if the local date-time in the new offset is outside the supported range.
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn to_offset(self, offset: UtcOffset) -> Self {
         expect_opt!(
             self.checked_to_offset(offset),
@@ -217,6 +221,7 @@ impl OffsetDateTime {
     ///     None,
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn checked_to_offset(self, offset: UtcOffset) -> Option<Self> {
         if self.offset.whole_hours() == offset.whole_hours()
             && self.offset.minutes_past_hour() == offset.minutes_past_hour()
@@ -393,6 +398,7 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!(2019-01-01 0:00 UTC).offset(), offset!(UTC));
     /// assert_eq!(datetime!(2019-01-01 0:00 +1).offset(), offset!(+1));
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn offset(self) -> UtcOffset {
         self.offset
     }
@@ -404,6 +410,7 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!(1970-01-01 0:00 UTC).unix_timestamp(), 0);
     /// assert_eq!(datetime!(1970-01-01 0:00 -1).unix_timestamp(), 3_600);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn unix_timestamp(self) -> i64 {
         let days =
             (self.to_julian_day() as i64 - UNIX_EPOCH_JULIAN_DAY as i64) * Second::per(Day) as i64;
@@ -424,11 +431,13 @@ impl OffsetDateTime {
     ///     3_600_000_000_000,
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn unix_timestamp_nanos(self) -> i128 {
         self.unix_timestamp() as i128 * Nanosecond::per(Second) as i128 + self.nanosecond() as i128
     }
 
     /// Get the [`PrimitiveDateTime`] in the stored offset.
+    #[must_use = "This method only computes the returned value"]
     const fn date_time(self) -> PrimitiveDateTime {
         self.local_date_time
     }
@@ -445,6 +454,7 @@ impl OffsetDateTime {
     ///     date!(2018-12-31),
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn date(self) -> Date {
         self.date_time().date()
     }
@@ -461,6 +471,7 @@ impl OffsetDateTime {
     ///     time!(23:00)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn time(self) -> Time {
         self.date_time().time()
     }
@@ -479,6 +490,7 @@ impl OffsetDateTime {
     /// );
     /// assert_eq!(datetime!(2020-01-01 0:00 UTC).year(), 2020);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn year(self) -> i32 {
         self.date().year()
     }
@@ -496,6 +508,7 @@ impl OffsetDateTime {
     ///     Month::January,
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn month(self) -> Month {
         self.date().month()
     }
@@ -514,6 +527,7 @@ impl OffsetDateTime {
     ///     1,
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn day(self) -> u8 {
         self.date().day()
     }
@@ -532,6 +546,7 @@ impl OffsetDateTime {
     ///     1,
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn ordinal(self) -> u16 {
         self.date().ordinal()
     }
@@ -547,6 +562,7 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!(2020-12-31 0:00 UTC).iso_week(), 53);
     /// assert_eq!(datetime!(2021-01-01 0:00 UTC).iso_week(), 53);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn iso_week(self) -> u8 {
         self.date().iso_week()
     }
@@ -562,6 +578,7 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!(2020-12-31 0:00 UTC).sunday_based_week(), 52);
     /// assert_eq!(datetime!(2021-01-01 0:00 UTC).sunday_based_week(), 0);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn sunday_based_week(self) -> u8 {
         self.date().sunday_based_week()
     }
@@ -577,6 +594,7 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!(2020-12-31 0:00 UTC).monday_based_week(), 52);
     /// assert_eq!(datetime!(2021-01-01 0:00 UTC).monday_based_week(), 0);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn monday_based_week(self) -> u8 {
         self.date().monday_based_week()
     }
@@ -591,6 +609,7 @@ impl OffsetDateTime {
     ///     (2019, Month::January, 1)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_calendar_date(self) -> (i32, Month, u8) {
         self.date().to_calendar_date()
     }
@@ -604,6 +623,7 @@ impl OffsetDateTime {
     ///     (2019, 1)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_ordinal_date(self) -> (i32, u16) {
         self.date().to_ordinal_date()
     }
@@ -634,6 +654,7 @@ impl OffsetDateTime {
     ///     (2020, 53, Friday)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_iso_week_date(self) -> (i32, u8, Weekday) {
         self.date().to_iso_week_date()
     }
@@ -647,6 +668,7 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!(2019-02-01 0:00 UTC).weekday(), Friday);
     /// assert_eq!(datetime!(2019-03-01 0:00 UTC).weekday(), Friday);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn weekday(self) -> Weekday {
         self.date().weekday()
     }
@@ -663,6 +685,7 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!(2019-01-01 0:00 UTC).to_julian_day(), 2_458_485);
     /// assert_eq!(datetime!(2019-12-31 0:00 UTC).to_julian_day(), 2_458_849);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_julian_day(self) -> i32 {
         self.date().to_julian_day()
     }
@@ -676,6 +699,7 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!(2020-01-01 0:00:00 UTC).to_hms(), (0, 0, 0));
     /// assert_eq!(datetime!(2020-01-01 23:59:59 UTC).to_hms(), (23, 59, 59));
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_hms(self) -> (u8, u8, u8) {
         self.time().as_hms()
     }
@@ -693,6 +717,7 @@ impl OffsetDateTime {
     ///     (23, 59, 59, 999)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_hms_milli(self) -> (u8, u8, u8, u16) {
         self.time().as_hms_milli()
     }
@@ -710,6 +735,7 @@ impl OffsetDateTime {
     ///     (23, 59, 59, 999_999)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_hms_micro(self) -> (u8, u8, u8, u32) {
         self.time().as_hms_micro()
     }
@@ -727,6 +753,7 @@ impl OffsetDateTime {
     ///     (23, 59, 59, 999_999_999)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_hms_nano(self) -> (u8, u8, u8, u32) {
         self.time().as_hms_nano()
     }
@@ -745,6 +772,7 @@ impl OffsetDateTime {
     ///     21,
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn hour(self) -> u8 {
         self.time().hour()
     }
@@ -763,6 +791,7 @@ impl OffsetDateTime {
     ///     29,
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn minute(self) -> u8 {
         self.time().minute()
     }
@@ -781,6 +810,7 @@ impl OffsetDateTime {
     ///     29,
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn second(self) -> u8 {
         self.time().second()
     }
@@ -797,6 +827,7 @@ impl OffsetDateTime {
     /// assert_eq!(datetime!(2019-01-01 0:00 UTC).millisecond(), 0);
     /// assert_eq!(datetime!(2019-01-01 23:59:59.999 UTC).millisecond(), 999);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn millisecond(self) -> u16 {
         self.time().millisecond()
     }
@@ -813,6 +844,7 @@ impl OffsetDateTime {
     ///     999_999,
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn microsecond(self) -> u32 {
         self.time().microsecond()
     }
@@ -829,6 +861,7 @@ impl OffsetDateTime {
     ///     999_999_999,
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn nanosecond(self) -> u32 {
         self.time().nanosecond()
     }
@@ -852,6 +885,7 @@ impl OffsetDateTime {
     ///     Some(datetime!(2019 - 11 - 26 18:30 +10))
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn checked_add(self, duration: Duration) -> Option<Self> {
         Some(const_try_opt!(self.date_time().checked_add(duration)).assume_offset(self.offset()))
     }
@@ -872,6 +906,7 @@ impl OffsetDateTime {
     ///     Some(datetime!(2019 - 11 - 24 12:30 +10))
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
         Some(const_try_opt!(self.date_time().checked_sub(duration)).assume_offset(self.offset()))
     }
@@ -923,6 +958,7 @@ impl OffsetDateTime {
     ///     datetime!(2019 - 11 - 26 18:30 +10)
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn saturating_add(self, duration: Duration) -> Self {
         if let Some(datetime) = self.checked_add(duration) {
             datetime
@@ -978,6 +1014,7 @@ impl OffsetDateTime {
     ///     datetime!(2019 - 11 - 24 12:30 +10)
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn saturating_sub(self, duration: Duration) -> Self {
         if let Some(datetime) = self.checked_sub(duration) {
             datetime

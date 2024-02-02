@@ -62,20 +62,28 @@ mod sealed {
 /// capacity.
 pub trait NumericalDuration: sealed::Sealed {
     /// Create a [`Duration`] from the number of nanoseconds.
+    #[must_use = "This method only computes the returned value"]
     fn nanoseconds(self) -> Duration;
     /// Create a [`Duration`] from the number of microseconds.
+    #[must_use = "This method only computes the returned value"]
     fn microseconds(self) -> Duration;
     /// Create a [`Duration`] from the number of milliseconds.
+    #[must_use = "This method only computes the returned value"]
     fn milliseconds(self) -> Duration;
     /// Create a [`Duration`] from the number of seconds.
+    #[must_use = "This method only computes the returned value"]
     fn seconds(self) -> Duration;
     /// Create a [`Duration`] from the number of minutes.
+    #[must_use = "This method only computes the returned value"]
     fn minutes(self) -> Duration;
     /// Create a [`Duration`] from the number of hours.
+    #[must_use = "This method only computes the returned value"]
     fn hours(self) -> Duration;
     /// Create a [`Duration`] from the number of days.
+    #[must_use = "This method only computes the returned value"]
     fn days(self) -> Duration;
     /// Create a [`Duration`] from the number of weeks.
+    #[must_use = "This method only computes the returned value"]
     fn weeks(self) -> Duration;
 }
 
@@ -187,20 +195,28 @@ impl NumericalDuration for f64 {
 /// capacity.
 pub trait NumericalStdDuration: sealed::Sealed {
     /// Create a [`std::time::Duration`] from the number of nanoseconds.
+    #[must_use = "This method only computes the returned value"]
     fn std_nanoseconds(self) -> StdDuration;
     /// Create a [`std::time::Duration`] from the number of microseconds.
+    #[must_use = "This method only computes the returned value"]
     fn std_microseconds(self) -> StdDuration;
     /// Create a [`std::time::Duration`] from the number of milliseconds.
+    #[must_use = "This method only computes the returned value"]
     fn std_milliseconds(self) -> StdDuration;
     /// Create a [`std::time::Duration`] from the number of seconds.
+    #[must_use = "This method only computes the returned value"]
     fn std_seconds(self) -> StdDuration;
     /// Create a [`std::time::Duration`] from the number of minutes.
+    #[must_use = "This method only computes the returned value"]
     fn std_minutes(self) -> StdDuration;
     /// Create a [`std::time::Duration`] from the number of hours.
+    #[must_use = "This method only computes the returned value"]
     fn std_hours(self) -> StdDuration;
     /// Create a [`std::time::Duration`] from the number of days.
+    #[must_use = "This method only computes the returned value"]
     fn std_days(self) -> StdDuration;
     /// Create a [`std::time::Duration`] from the number of weeks.
+    #[must_use = "This method only computes the returned value"]
     fn std_weeks(self) -> StdDuration;
 }
 

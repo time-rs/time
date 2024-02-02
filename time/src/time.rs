@@ -113,6 +113,7 @@ impl Time {
     /// Provides an u64 based representation **of the correct endianness**
     ///
     /// This representation can be used to do comparisons equality testing or hashing.
+    #[must_use = "This method only computes the returned value"]
     const fn as_u64(self) -> u64 {
         let nano_bytes = self.nanosecond.get().to_ne_bytes();
 
@@ -320,6 +321,7 @@ impl Time {
     /// assert_eq!(time!(0:00:00).as_hms(), (0, 0, 0));
     /// assert_eq!(time!(23:59:59).as_hms(), (23, 59, 59));
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn as_hms(self) -> (u8, u8, u8) {
         (self.hour.get(), self.minute.get(), self.second.get())
     }
@@ -331,6 +333,7 @@ impl Time {
     /// assert_eq!(time!(0:00:00).as_hms_milli(), (0, 0, 0, 0));
     /// assert_eq!(time!(23:59:59.999).as_hms_milli(), (23, 59, 59, 999));
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn as_hms_milli(self) -> (u8, u8, u8, u16) {
         (
             self.hour.get(),
@@ -350,6 +353,7 @@ impl Time {
     ///     (23, 59, 59, 999_999)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn as_hms_micro(self) -> (u8, u8, u8, u32) {
         (
             self.hour.get(),
@@ -369,6 +373,7 @@ impl Time {
     ///     (23, 59, 59, 999_999_999)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn as_hms_nano(self) -> (u8, u8, u8, u32) {
         (
             self.hour.get(),
@@ -393,6 +398,7 @@ impl Time {
     /// assert_eq!(time!(0:00:00).hour(), 0);
     /// assert_eq!(time!(23:59:59).hour(), 23);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn hour(self) -> u8 {
         self.hour.get()
     }
@@ -406,6 +412,7 @@ impl Time {
     /// assert_eq!(time!(0:00:00).minute(), 0);
     /// assert_eq!(time!(23:59:59).minute(), 59);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn minute(self) -> u8 {
         self.minute.get()
     }
@@ -419,6 +426,7 @@ impl Time {
     /// assert_eq!(time!(0:00:00).second(), 0);
     /// assert_eq!(time!(23:59:59).second(), 59);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn second(self) -> u8 {
         self.second.get()
     }
@@ -432,6 +440,7 @@ impl Time {
     /// assert_eq!(time!(0:00).millisecond(), 0);
     /// assert_eq!(time!(23:59:59.999).millisecond(), 999);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn millisecond(self) -> u16 {
         (self.nanosecond.get() / Nanosecond::per(Millisecond)) as _
     }
@@ -445,6 +454,7 @@ impl Time {
     /// assert_eq!(time!(0:00).microsecond(), 0);
     /// assert_eq!(time!(23:59:59.999_999).microsecond(), 999_999);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn microsecond(self) -> u32 {
         self.nanosecond.get() / Nanosecond::per(Microsecond) as u32
     }
@@ -458,6 +468,7 @@ impl Time {
     /// assert_eq!(time!(0:00).nanosecond(), 0);
     /// assert_eq!(time!(23:59:59.999_999_999).nanosecond(), 999_999_999);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn nanosecond(self) -> u32 {
         self.nanosecond.get()
     }

@@ -276,6 +276,7 @@ impl Duration {
     /// assert!(0.seconds().is_zero());
     /// assert!(!1.nanoseconds().is_zero());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn is_zero(self) -> bool {
         self.seconds == 0 && self.nanoseconds.get() == 0
     }
@@ -288,6 +289,7 @@ impl Duration {
     /// assert!(!0.seconds().is_negative());
     /// assert!(!1.seconds().is_negative());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn is_negative(self) -> bool {
         self.seconds < 0 || self.nanoseconds.get() < 0
     }
@@ -300,6 +302,7 @@ impl Duration {
     /// assert!(!0.seconds().is_positive());
     /// assert!(!(-1).seconds().is_positive());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn is_positive(self) -> bool {
         self.seconds > 0 || self.nanoseconds.get() > 0
     }
@@ -316,6 +319,7 @@ impl Duration {
     /// assert_eq!(0.seconds().abs(), 0.seconds());
     /// assert_eq!((-1).seconds().abs(), 1.seconds());
     /// ```
+    #[must_use = "This method does not mutate the original `Duration`."]
     pub const fn abs(self) -> Self {
         match self.seconds.checked_abs() {
             Some(seconds) => Self::new_ranged_unchecked(seconds, self.nanoseconds.abs()),
@@ -332,6 +336,7 @@ impl Duration {
     /// assert_eq!(0.seconds().unsigned_abs(), 0.std_seconds());
     /// assert_eq!((-1).seconds().unsigned_abs(), 1.std_seconds());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn unsigned_abs(self) -> StdDuration {
         StdDuration::new(
             self.seconds.unsigned_abs(),
@@ -385,6 +390,7 @@ impl Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[must_use = "This method only computes the returned value"]
     pub const fn new(mut seconds: i64, mut nanoseconds: i32) -> Self {
         seconds = expect_opt!(
             seconds.checked_add(nanoseconds as i64 / Nanosecond::per(Second) as i64),
@@ -440,6 +446,7 @@ impl Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[must_use = "This method only computes the returned value"]
     pub const fn weeks(weeks: i64) -> Self {
         Self::seconds(expect_opt!(
             weeks.checked_mul(Second::per(Week) as _),
@@ -458,6 +465,7 @@ impl Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[must_use = "This method only computes the returned value"]
     pub const fn days(days: i64) -> Self {
         Self::seconds(expect_opt!(
             days.checked_mul(Second::per(Day) as _),
@@ -476,6 +484,7 @@ impl Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[must_use = "This method only computes the returned value"]
     pub const fn hours(hours: i64) -> Self {
         Self::seconds(expect_opt!(
             hours.checked_mul(Second::per(Hour) as _),
@@ -494,6 +503,7 @@ impl Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[must_use = "This method only computes the returned value"]
     pub const fn minutes(minutes: i64) -> Self {
         Self::seconds(expect_opt!(
             minutes.checked_mul(Second::per(Minute) as _),
@@ -507,6 +517,7 @@ impl Duration {
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::seconds(1), 1_000.milliseconds());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn seconds(seconds: i64) -> Self {
         Self::new_ranged_unchecked(seconds, Nanoseconds::new_static::<0>())
     }
@@ -518,6 +529,7 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f64(0.5), 0.5.seconds());
     /// assert_eq!(Duration::seconds_f64(-0.5), -0.5.seconds());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub fn seconds_f64(seconds: f64) -> Self {
         try_from_secs!(
             secs = seconds,
@@ -540,6 +552,7 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f32(0.5), 0.5.seconds());
     /// assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub fn seconds_f32(seconds: f32) -> Self {
         try_from_secs!(
             secs = seconds,
@@ -577,6 +590,7 @@ impl Duration {
     ///     Duration::MAX,
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub fn saturating_seconds_f64(seconds: f64) -> Self {
         try_from_secs!(
             secs = seconds,
@@ -614,6 +628,7 @@ impl Duration {
     ///     Duration::MAX,
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub fn saturating_seconds_f32(seconds: f32) -> Self {
         try_from_secs!(
             secs = seconds,
@@ -641,6 +656,7 @@ impl Duration {
     /// assert_eq!(Duration::checked_seconds_f64(f64::NEG_INFINITY), None);
     /// assert_eq!(Duration::checked_seconds_f64(f64::INFINITY), None);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub fn checked_seconds_f64(seconds: f64) -> Option<Self> {
         Some(try_from_secs!(
             secs = seconds,
@@ -668,6 +684,7 @@ impl Duration {
     /// assert_eq!(Duration::checked_seconds_f32(f32::NEG_INFINITY), None);
     /// assert_eq!(Duration::checked_seconds_f32(f32::INFINITY), None);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub fn checked_seconds_f32(seconds: f32) -> Option<Self> {
         Some(try_from_secs!(
             secs = seconds,
@@ -690,6 +707,7 @@ impl Duration {
     /// assert_eq!(Duration::milliseconds(1), 1_000.microseconds());
     /// assert_eq!(Duration::milliseconds(-1), (-1_000).microseconds());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn milliseconds(milliseconds: i64) -> Self {
         // Safety: `nanoseconds` is guaranteed to be in range because of the modulus.
         unsafe {
@@ -708,6 +726,7 @@ impl Duration {
     /// assert_eq!(Duration::microseconds(1), 1_000.nanoseconds());
     /// assert_eq!(Duration::microseconds(-1), (-1_000).nanoseconds());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn microseconds(microseconds: i64) -> Self {
         // Safety: `nanoseconds` is guaranteed to be in range because of the modulus.
         unsafe {
@@ -726,6 +745,7 @@ impl Duration {
     /// assert_eq!(Duration::nanoseconds(1), 1.microseconds() / 1_000);
     /// assert_eq!(Duration::nanoseconds(-1), (-1).microseconds() / 1_000);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn nanoseconds(nanoseconds: i64) -> Self {
         // Safety: `nanoseconds` is guaranteed to be in range because of the modulus.
         unsafe {
@@ -763,6 +783,7 @@ impl Duration {
     /// assert_eq!(6.days().whole_weeks(), 0);
     /// assert_eq!((-6).days().whole_weeks(), 0);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn whole_weeks(self) -> i64 {
         self.whole_seconds() / Second::per(Week) as i64
     }
@@ -776,6 +797,7 @@ impl Duration {
     /// assert_eq!(23.hours().whole_days(), 0);
     /// assert_eq!((-23).hours().whole_days(), 0);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn whole_days(self) -> i64 {
         self.whole_seconds() / Second::per(Day) as i64
     }
@@ -789,6 +811,7 @@ impl Duration {
     /// assert_eq!(59.minutes().whole_hours(), 0);
     /// assert_eq!((-59).minutes().whole_hours(), 0);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn whole_hours(self) -> i64 {
         self.whole_seconds() / Second::per(Hour) as i64
     }
@@ -802,6 +825,7 @@ impl Duration {
     /// assert_eq!(59.seconds().whole_minutes(), 0);
     /// assert_eq!((-59).seconds().whole_minutes(), 0);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn whole_minutes(self) -> i64 {
         self.whole_seconds() / Second::per(Minute) as i64
     }
@@ -815,6 +839,7 @@ impl Duration {
     /// assert_eq!(1.minutes().whole_seconds(), 60);
     /// assert_eq!((-1).minutes().whole_seconds(), -60);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn whole_seconds(self) -> i64 {
         self.seconds
     }
@@ -826,6 +851,7 @@ impl Duration {
     /// assert_eq!(1.5.seconds().as_seconds_f64(), 1.5);
     /// assert_eq!((-1.5).seconds().as_seconds_f64(), -1.5);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub fn as_seconds_f64(self) -> f64 {
         self.seconds as f64 + self.nanoseconds.get() as f64 / Nanosecond::per(Second) as f64
     }
@@ -837,6 +863,7 @@ impl Duration {
     /// assert_eq!(1.5.seconds().as_seconds_f32(), 1.5);
     /// assert_eq!((-1.5).seconds().as_seconds_f32(), -1.5);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub fn as_seconds_f32(self) -> f32 {
         self.seconds as f32 + self.nanoseconds.get() as f32 / Nanosecond::per(Second) as f32
     }
@@ -850,6 +877,7 @@ impl Duration {
     /// assert_eq!(1.milliseconds().whole_milliseconds(), 1);
     /// assert_eq!((-1).milliseconds().whole_milliseconds(), -1);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn whole_milliseconds(self) -> i128 {
         self.seconds as i128 * Millisecond::per(Second) as i128
             + self.nanoseconds.get() as i128 / Nanosecond::per(Millisecond) as i128
@@ -865,6 +893,7 @@ impl Duration {
     /// assert_eq!((-1.4).seconds().subsec_milliseconds(), -400);
     /// ```
     // Allow the lint, as the value is guaranteed to be less than 1000.
+    #[must_use = "This method only computes the returned value"]
     pub const fn subsec_milliseconds(self) -> i16 {
         (self.nanoseconds.get() / Nanosecond::per(Millisecond) as i32) as _
     }
@@ -878,6 +907,7 @@ impl Duration {
     /// assert_eq!(1.microseconds().whole_microseconds(), 1);
     /// assert_eq!((-1).microseconds().whole_microseconds(), -1);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn whole_microseconds(self) -> i128 {
         self.seconds as i128 * Microsecond::per(Second) as i128
             + self.nanoseconds.get() as i128 / Nanosecond::per(Microsecond) as i128
@@ -892,6 +922,7 @@ impl Duration {
     /// assert_eq!(1.0004.seconds().subsec_microseconds(), 400);
     /// assert_eq!((-1.0004).seconds().subsec_microseconds(), -400);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn subsec_microseconds(self) -> i32 {
         self.nanoseconds.get() / Nanosecond::per(Microsecond) as i32
     }
@@ -905,6 +936,7 @@ impl Duration {
     /// assert_eq!(1.nanoseconds().whole_nanoseconds(), 1);
     /// assert_eq!((-1).nanoseconds().whole_nanoseconds(), -1);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn whole_nanoseconds(self) -> i128 {
         self.seconds as i128 * Nanosecond::per(Second) as i128 + self.nanoseconds.get() as i128
     }
@@ -918,6 +950,7 @@ impl Duration {
     /// assert_eq!(1.000_000_400.seconds().subsec_nanoseconds(), 400);
     /// assert_eq!((-1.000_000_400).seconds().subsec_nanoseconds(), -400);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn subsec_nanoseconds(self) -> i32 {
         self.nanoseconds.get()
     }
@@ -938,6 +971,7 @@ impl Duration {
     /// assert_eq!(Duration::MAX.checked_add(1.nanoseconds()), None);
     /// assert_eq!((-5).seconds().checked_add(5.seconds()), Some(0.seconds()));
     /// ```
+    #[must_use = "This method does not mutate the original `Duration`."]
     pub const fn checked_add(self, rhs: Self) -> Option<Self> {
         let mut seconds = const_try_opt!(self.seconds.checked_add(rhs.seconds));
         let mut nanoseconds = self.nanoseconds.get() + rhs.nanoseconds.get();
@@ -963,6 +997,7 @@ impl Duration {
     /// assert_eq!(Duration::MIN.checked_sub(1.nanoseconds()), None);
     /// assert_eq!(5.seconds().checked_sub(10.seconds()), Some((-5).seconds()));
     /// ```
+    #[must_use = "This method does not mutate the original `Duration`."]
     pub const fn checked_sub(self, rhs: Self) -> Option<Self> {
         let mut seconds = const_try_opt!(self.seconds.checked_sub(rhs.seconds));
         let mut nanoseconds = self.nanoseconds.get() - rhs.nanoseconds.get();
@@ -990,6 +1025,7 @@ impl Duration {
     /// assert_eq!(Duration::MAX.checked_mul(2), None);
     /// assert_eq!(Duration::MIN.checked_mul(2), None);
     /// ```
+    #[must_use = "This method does not mutate the original `Duration`."]
     pub const fn checked_mul(self, rhs: i32) -> Option<Self> {
         // Multiply nanoseconds as i64, because it cannot overflow that way.
         let total_nanos = self.nanoseconds.get() as i64 * rhs as i64;
@@ -1011,6 +1047,7 @@ impl Duration {
     /// assert_eq!(10.seconds().checked_div(-2), Some((-5).seconds()));
     /// assert_eq!(1.seconds().checked_div(0), None);
     /// ```
+    #[must_use = "This method does not mutate the original `Duration`."]
     pub const fn checked_div(self, rhs: i32) -> Option<Self> {
         let (secs, extra_secs) = (
             const_try_opt!(self.seconds.checked_div(rhs as i64)),
@@ -1038,6 +1075,7 @@ impl Duration {
     /// );
     /// assert_eq!((-5).seconds().saturating_add(5.seconds()), Duration::ZERO);
     /// ```
+    #[must_use = "This method does not mutate the original `Duration`."]
     pub const fn saturating_add(self, rhs: Self) -> Self {
         let (mut seconds, overflow) = self.seconds.overflowing_add(rhs.seconds);
         if overflow {
@@ -1079,6 +1117,7 @@ impl Duration {
     /// );
     /// assert_eq!(5.seconds().saturating_sub(10.seconds()), (-5).seconds());
     /// ```
+    #[must_use = "This method does not mutate the original `Duration`."]
     pub const fn saturating_sub(self, rhs: Self) -> Self {
         let (mut seconds, overflow) = self.seconds.overflowing_sub(rhs.seconds);
         if overflow {
@@ -1120,6 +1159,7 @@ impl Duration {
     /// assert_eq!(Duration::MAX.saturating_mul(-2), Duration::MIN);
     /// assert_eq!(Duration::MIN.saturating_mul(-2), Duration::MAX);
     /// ```
+    #[must_use = "This method does not mutate the original `Duration`."]
     pub const fn saturating_mul(self, rhs: i32) -> Self {
         // Multiply nanoseconds as i64, because it cannot overflow that way.
         let total_nanos = self.nanoseconds.get() as i64 * rhs as i64;

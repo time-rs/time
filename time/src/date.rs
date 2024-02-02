@@ -308,6 +308,7 @@ impl Date {
     /// assert_eq!(date!(2019 - 12 - 31).year(), 2019);
     /// assert_eq!(date!(2020 - 01 - 01).year(), 2020);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn year(self) -> i32 {
         self.value.get() >> 9
     }
@@ -320,6 +321,7 @@ impl Date {
     /// assert_eq!(date!(2019 - 01 - 01).month(), Month::January);
     /// assert_eq!(date!(2019 - 12 - 31).month(), Month::December);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn month(self) -> Month {
         self.month_day().0
     }
@@ -333,6 +335,7 @@ impl Date {
     /// assert_eq!(date!(2019 - 01 - 01).day(), 1);
     /// assert_eq!(date!(2019 - 12 - 31).day(), 31);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn day(self) -> u8 {
         self.month_day().1
     }
@@ -387,6 +390,7 @@ impl Date {
     /// assert_eq!(date!(2019 - 01 - 01).ordinal(), 1);
     /// assert_eq!(date!(2019 - 12 - 31).ordinal(), 365);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn ordinal(self) -> u16 {
         (self.value.get() & 0x1FF) as _
     }
@@ -414,6 +418,7 @@ impl Date {
     /// assert_eq!(date!(2020 - 12 - 31).iso_week(), 53);
     /// assert_eq!(date!(2021 - 01 - 01).iso_week(), 53);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn iso_week(self) -> u8 {
         self.iso_year_week().1
     }
@@ -429,6 +434,7 @@ impl Date {
     /// assert_eq!(date!(2020 - 12 - 31).sunday_based_week(), 52);
     /// assert_eq!(date!(2021 - 01 - 01).sunday_based_week(), 0);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn sunday_based_week(self) -> u8 {
         ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as _
     }
@@ -444,6 +450,7 @@ impl Date {
     /// assert_eq!(date!(2020 - 12 - 31).monday_based_week(), 52);
     /// assert_eq!(date!(2021 - 01 - 01).monday_based_week(), 0);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn monday_based_week(self) -> u8 {
         ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as _
     }
@@ -458,6 +465,7 @@ impl Date {
     ///     (2019, Month::January, 1)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_calendar_date(self) -> (i32, Month, u8) {
         let (month, day) = self.month_day();
         (self.year(), month, day)
@@ -469,6 +477,7 @@ impl Date {
     /// # use time_macros::date;
     /// assert_eq!(date!(2019 - 01 - 01).to_ordinal_date(), (2019, 1));
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_ordinal_date(self) -> (i32, u16) {
         (self.year(), self.ordinal())
     }
@@ -490,6 +499,7 @@ impl Date {
     /// );
     /// assert_eq!(date!(2021 - 01 - 01).to_iso_week_date(), (2020, 53, Friday));
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_iso_week_date(self) -> (i32, u8, Weekday) {
         let (year, ordinal) = self.to_ordinal_date();
         let weekday = self.weekday();
@@ -519,6 +529,7 @@ impl Date {
     /// assert_eq!(date!(2019 - 11 - 01).weekday(), Friday);
     /// assert_eq!(date!(2019 - 12 - 01).weekday(), Sunday);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn weekday(self) -> Weekday {
         match self.to_julian_day() % 7 {
             -6 | 1 => Weekday::Tuesday,
@@ -553,6 +564,7 @@ impl Date {
     /// );
     /// assert_eq!(Date::MAX.next_day(), None);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn next_day(self) -> Option<Self> {
         if self.ordinal() == 366 || (self.ordinal() == 365 && !is_leap_year(self.year())) {
             if self.value.get() == Self::MAX.value.get() {
@@ -588,6 +600,7 @@ impl Date {
     /// );
     /// assert_eq!(Date::MIN.previous_day(), None);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn previous_day(self) -> Option<Self> {
         if self.ordinal() != 1 {
             Some(Self {
@@ -622,6 +635,7 @@ impl Date {
     ///     date!(2023 - 06 - 26)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn next_occurrence(self, weekday: Weekday) -> Self {
         expect_opt!(
             self.checked_next_occurrence(weekday),
@@ -647,6 +661,7 @@ impl Date {
     ///     date!(2023 - 06 - 12)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn prev_occurrence(self, weekday: Weekday) -> Self {
         expect_opt!(
             self.checked_prev_occurrence(weekday),
@@ -672,6 +687,7 @@ impl Date {
     ///     date!(2023 - 07 - 31)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn nth_next_occurrence(self, weekday: Weekday, n: u8) -> Self {
         expect_opt!(
             self.checked_nth_next_occurrence(weekday, n),
@@ -697,6 +713,7 @@ impl Date {
     ///     date!(2023 - 06 - 05)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn nth_prev_occurrence(self, weekday: Weekday, n: u8) -> Self {
         expect_opt!(
             self.checked_nth_prev_occurrence(weekday, n),
@@ -716,6 +733,7 @@ impl Date {
     /// assert_eq!(date!(2019 - 01 - 01).to_julian_day(), 2_458_485);
     /// assert_eq!(date!(2019 - 12 - 31).to_julian_day(), 2_458_849);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_julian_day(self) -> i32 {
         let year = self.year() - 1;
         let ordinal = self.ordinal() as i32;
@@ -758,6 +776,7 @@ impl Date {
     ///     Some(date!(2021 - 01 - 01))
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `Date`."]
     pub const fn checked_add(self, duration: Duration) -> Option<Self> {
         let whole_days = duration.whole_days();
         if whole_days < i32::MIN as i64 || whole_days > i32::MAX as i64 {
@@ -801,6 +820,7 @@ impl Date {
     ///     Some(date!(2021 - 01 - 01))
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `Date`."]
     pub const fn checked_add_std(self, duration: StdDuration) -> Option<Self> {
         let whole_days = duration.as_secs() / Second::per(Day) as u64;
         if whole_days > i32::MAX as u64 {
@@ -846,6 +866,7 @@ impl Date {
     ///     Some(date!(2020 - 12 - 30))
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `Date`."]
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
         let whole_days = duration.whole_days();
         if whole_days < i32::MIN as i64 || whole_days > i32::MAX as i64 {
@@ -889,6 +910,7 @@ impl Date {
     ///     Some(date!(2020 - 12 - 30))
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `Date`."]
     pub const fn checked_sub_std(self, duration: StdDuration) -> Option<Self> {
         let whole_days = duration.as_secs() / Second::per(Day) as u64;
         if whole_days > i32::MAX as u64 {
@@ -994,6 +1016,7 @@ impl Date {
     ///     date!(2021 - 01 - 01)
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `Date`."]
     pub const fn saturating_add(self, duration: Duration) -> Self {
         if let Some(datetime) = self.checked_add(duration) {
             datetime
@@ -1034,6 +1057,7 @@ impl Date {
     ///     date!(2020 - 12 - 30)
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `Date`."]
     pub const fn saturating_sub(self, duration: Duration) -> Self {
         if let Some(datetime) = self.checked_sub(duration) {
             datetime
@@ -1191,6 +1215,7 @@ impl Date {
     /// # use time_macros::{date, datetime};
     /// assert_eq!(date!(1970-01-01).midnight(), datetime!(1970-01-01 0:00));
     /// ```
+    #[must_use = "This method does not mutate the original `Date`."]
     pub const fn midnight(self) -> PrimitiveDateTime {
         PrimitiveDateTime::new(self, Time::MIDNIGHT)
     }
@@ -1204,6 +1229,7 @@ impl Date {
     ///     datetime!(1970-01-01 0:00),
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `Date`."]
     pub const fn with_time(self, time: Time) -> PrimitiveDateTime {
         PrimitiveDateTime::new(self, time)
     }

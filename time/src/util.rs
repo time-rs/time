@@ -20,6 +20,7 @@ pub(crate) enum DateAdjustment {
 /// # use time::{Month, util};
 /// assert_eq!(util::days_in_year_month(2020, Month::February), 29);
 /// ```
+#[must_use = "This method only computes the returned value"]
 pub const fn days_in_year_month(year: i32, month: Month) -> u8 {
     use Month::*;
     match month {
@@ -90,6 +91,7 @@ pub mod local_offset {
 
     /// Obtains the soundness of obtaining the local UTC offset. If it is [`Soundness::Unsound`],
     /// it is allowed to invoke undefined behavior when obtaining the local UTC offset.
+    #[must_use = "This method only computes the returned value"]
     pub fn get_soundness() -> Soundness {
         match LOCAL_OFFSET_IS_SOUND.load(Ordering::SeqCst) {
             false => Soundness::Unsound,

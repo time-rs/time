@@ -37,6 +37,7 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Tuesday.previous(), Weekday::Monday);
     /// ```
+    #[must_use = "This method does not mutate the original `Weekday`."]
     pub const fn previous(self) -> Self {
         match self {
             Monday => Sunday,
@@ -55,6 +56,7 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.next(), Weekday::Tuesday);
     /// ```
+    #[must_use = "This method does not mutate the original `Weekday`."]
     pub const fn next(self) -> Self {
         match self {
             Monday => Tuesday,
@@ -74,6 +76,7 @@ impl Weekday {
     /// assert_eq!(Weekday::Monday.nth_next(1), Weekday::Tuesday);
     /// assert_eq!(Weekday::Sunday.nth_next(10), Weekday::Wednesday);
     /// ```
+    #[must_use = "This method does not mutate the original `Weekday`."]
     pub const fn nth_next(self, n: u8) -> Self {
         match (self.number_days_from_monday() + n % 7) % 7 {
             0 => Monday,
@@ -96,6 +99,7 @@ impl Weekday {
     /// assert_eq!(Weekday::Monday.nth_prev(1), Weekday::Sunday);
     /// assert_eq!(Weekday::Sunday.nth_prev(10), Weekday::Thursday);
     /// ```
+    #[must_use = "This method does not mutate the original `Weekday`."]
     pub const fn nth_prev(self, n: u8) -> Self {
         match self.number_days_from_monday() as i8 - (n % 7) as i8 {
             1 | -6 => Tuesday,
@@ -118,6 +122,7 @@ impl Weekday {
     /// assert_eq!(Weekday::Monday.number_from_monday(), 1);
     /// ```
     #[doc(alias = "iso_weekday_number")]
+    #[must_use = "This method only computes the returned value"]
     pub const fn number_from_monday(self) -> u8 {
         self.number_days_from_monday() + 1
     }
@@ -128,6 +133,7 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.number_from_sunday(), 2);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn number_from_sunday(self) -> u8 {
         self.number_days_from_sunday() + 1
     }
@@ -138,6 +144,7 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.number_days_from_monday(), 0);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn number_days_from_monday(self) -> u8 {
         self as _
     }
@@ -148,6 +155,7 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.number_days_from_sunday(), 1);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn number_days_from_sunday(self) -> u8 {
         match self {
             Monday => 1,

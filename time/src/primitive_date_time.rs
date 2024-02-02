@@ -98,6 +98,7 @@ impl PrimitiveDateTime {
     ///     datetime!(2019-01-01 0:00),
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn new(date: Date, time: Time) -> Self {
         Self { date, time }
     }
@@ -109,6 +110,7 @@ impl PrimitiveDateTime {
     /// # use time_macros::{date, datetime};
     /// assert_eq!(datetime!(2019-01-01 0:00).date(), date!(2019-01-01));
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn date(self) -> Date {
         self.date
     }
@@ -119,6 +121,7 @@ impl PrimitiveDateTime {
     /// # use time_macros::{datetime, time};
     /// assert_eq!(datetime!(2019-01-01 0:00).time(), time!(0:00));
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn time(self) -> Time {
         self.time
     }
@@ -133,6 +136,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2019-12-31 0:00).year(), 2019);
     /// assert_eq!(datetime!(2020-01-01 0:00).year(), 2020);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn year(self) -> i32 {
         self.date().year()
     }
@@ -145,6 +149,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2019-01-01 0:00).month(), Month::January);
     /// assert_eq!(datetime!(2019-12-31 0:00).month(), Month::December);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn month(self) -> Month {
         self.date().month()
     }
@@ -158,6 +163,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2019-01-01 0:00).day(), 1);
     /// assert_eq!(datetime!(2019-12-31 0:00).day(), 31);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn day(self) -> u8 {
         self.date().day()
     }
@@ -171,6 +177,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2019-01-01 0:00).ordinal(), 1);
     /// assert_eq!(datetime!(2019-12-31 0:00).ordinal(), 365);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn ordinal(self) -> u16 {
         self.date().ordinal()
     }
@@ -187,6 +194,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2020-12-31 0:00).iso_week(), 53);
     /// assert_eq!(datetime!(2021-01-01 0:00).iso_week(), 53);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn iso_week(self) -> u8 {
         self.date().iso_week()
     }
@@ -202,6 +210,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2020-12-31 0:00).sunday_based_week(), 52);
     /// assert_eq!(datetime!(2021-01-01 0:00).sunday_based_week(), 0);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn sunday_based_week(self) -> u8 {
         self.date().sunday_based_week()
     }
@@ -217,6 +226,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2020-12-31 0:00).monday_based_week(), 52);
     /// assert_eq!(datetime!(2021-01-01 0:00).monday_based_week(), 0);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn monday_based_week(self) -> u8 {
         self.date().monday_based_week()
     }
@@ -231,6 +241,7 @@ impl PrimitiveDateTime {
     ///     (2019, Month::January, 1)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_calendar_date(self) -> (i32, Month, u8) {
         self.date().to_calendar_date()
     }
@@ -241,6 +252,7 @@ impl PrimitiveDateTime {
     /// # use time_macros::datetime;
     /// assert_eq!(datetime!(2019-01-01 0:00).to_ordinal_date(), (2019, 1));
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_ordinal_date(self) -> (i32, u16) {
         self.date().to_ordinal_date()
     }
@@ -271,6 +283,7 @@ impl PrimitiveDateTime {
     ///     (2020, 53, Friday)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_iso_week_date(self) -> (i32, u8, Weekday) {
         self.date().to_iso_week_date()
     }
@@ -293,6 +306,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2019-11-01 0:00).weekday(), Friday);
     /// assert_eq!(datetime!(2019-12-01 0:00).weekday(), Sunday);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn weekday(self) -> Weekday {
         self.date().weekday()
     }
@@ -309,6 +323,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2019-01-01 0:00).to_julian_day(), 2_458_485);
     /// assert_eq!(datetime!(2019-12-31 0:00).to_julian_day(), 2_458_849);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn to_julian_day(self) -> i32 {
         self.date().to_julian_day()
     }
@@ -322,6 +337,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2020-01-01 0:00:00).as_hms(), (0, 0, 0));
     /// assert_eq!(datetime!(2020-01-01 23:59:59).as_hms(), (23, 59, 59));
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn as_hms(self) -> (u8, u8, u8) {
         self.time().as_hms()
     }
@@ -336,6 +352,7 @@ impl PrimitiveDateTime {
     ///     (23, 59, 59, 999)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn as_hms_milli(self) -> (u8, u8, u8, u16) {
         self.time().as_hms_milli()
     }
@@ -350,6 +367,7 @@ impl PrimitiveDateTime {
     ///     (23, 59, 59, 999_999)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn as_hms_micro(self) -> (u8, u8, u8, u32) {
         self.time().as_hms_micro()
     }
@@ -364,6 +382,7 @@ impl PrimitiveDateTime {
     ///     (23, 59, 59, 999_999_999)
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn as_hms_nano(self) -> (u8, u8, u8, u32) {
         self.time().as_hms_nano()
     }
@@ -377,6 +396,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2019-01-01 0:00).hour(), 0);
     /// assert_eq!(datetime!(2019-01-01 23:59:59).hour(), 23);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn hour(self) -> u8 {
         self.time().hour()
     }
@@ -390,6 +410,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2019-01-01 0:00).minute(), 0);
     /// assert_eq!(datetime!(2019-01-01 23:59:59).minute(), 59);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn minute(self) -> u8 {
         self.time().minute()
     }
@@ -403,6 +424,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2019-01-01 0:00).second(), 0);
     /// assert_eq!(datetime!(2019-01-01 23:59:59).second(), 59);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn second(self) -> u8 {
         self.time().second()
     }
@@ -416,6 +438,7 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime!(2019-01-01 0:00).millisecond(), 0);
     /// assert_eq!(datetime!(2019-01-01 23:59:59.999).millisecond(), 999);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn millisecond(self) -> u16 {
         self.time().millisecond()
     }
@@ -432,6 +455,7 @@ impl PrimitiveDateTime {
     ///     999_999
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn microsecond(self) -> u32 {
         self.time().microsecond()
     }
@@ -448,6 +472,7 @@ impl PrimitiveDateTime {
     ///     999_999_999,
     /// );
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn nanosecond(self) -> u32 {
         self.time().nanosecond()
     }
@@ -472,6 +497,7 @@ impl PrimitiveDateTime {
     ///     1_546_304_400,
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn assume_offset(self, offset: UtcOffset) -> OffsetDateTime {
         OffsetDateTime::new_in_offset(self.date, self.time, offset)
     }
@@ -486,6 +512,7 @@ impl PrimitiveDateTime {
     ///     1_546_300_800,
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn assume_utc(self) -> OffsetDateTime {
         self.assume_offset(UtcOffset::UTC)
     }
@@ -508,6 +535,7 @@ impl PrimitiveDateTime {
     ///     Some(datetime!(2019 - 11 - 26 18:30))
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn checked_add(self, duration: Duration) -> Option<Self> {
         let (date_adjustment, time) = self.time.adjusting_add(duration);
         let date = const_try_opt!(self.date.checked_add(duration));
@@ -538,6 +566,7 @@ impl PrimitiveDateTime {
     ///     Some(datetime!(2019 - 11 - 24 12:30))
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
         let (date_adjustment, time) = self.time.adjusting_sub(duration);
         let date = const_try_opt!(self.date.checked_sub(duration));
@@ -574,6 +603,7 @@ impl PrimitiveDateTime {
     ///     datetime!(2019 - 11 - 26 18:30)
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn saturating_add(self, duration: Duration) -> Self {
         if let Some(datetime) = self.checked_add(duration) {
             datetime
@@ -604,6 +634,7 @@ impl PrimitiveDateTime {
     ///     datetime!(2019 - 11 - 24 12:30)
     /// );
     /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn saturating_sub(self, duration: Duration) -> Self {
         if let Some(datetime) = self.checked_sub(duration) {
             datetime

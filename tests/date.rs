@@ -1154,35 +1154,35 @@ fn nth_prev_occurrence_test() {
 #[test]
 #[should_panic]
 fn next_occurrence_overflow_test() {
-    date!(+999999 - 12 - 25).next_occurrence(Weekday::Saturday);
+    let _ = date!(+999999 - 12 - 25).next_occurrence(Weekday::Saturday);
 }
 
 #[test]
 #[should_panic]
 fn prev_occurrence_overflow_test() {
-    date!(-999999 - 01 - 07).prev_occurrence(Weekday::Sunday);
+    let _ = date!(-999999 - 01 - 07).prev_occurrence(Weekday::Sunday);
 }
 
 #[test]
 #[should_panic]
 fn nth_next_occurrence_overflow_test() {
-    date!(+999999 - 12 - 25).nth_next_occurrence(Weekday::Saturday, 1);
+    let _ = date!(+999999 - 12 - 25).nth_next_occurrence(Weekday::Saturday, 1);
 }
 
 #[test]
 #[should_panic]
 fn nth_next_occurence_zeroth_occurence_test() {
-    date!(2023 - 06 - 25).nth_next_occurrence(Weekday::Monday, 0);
+    let _ = date!(2023 - 06 - 25).nth_next_occurrence(Weekday::Monday, 0);
 }
 
 #[test]
 #[should_panic]
 fn nth_prev_occurence_zeroth_occurence_test() {
-    date!(2023 - 06 - 27).nth_prev_occurrence(Weekday::Monday, 0);
+    let _ = date!(2023 - 06 - 27).nth_prev_occurrence(Weekday::Monday, 0);
 }
 
 #[test]
 #[should_panic]
 fn nth_prev_occurrence_overflow_test() {
-    date!(-999999 - 01 - 07).nth_prev_occurrence(Weekday::Sunday, 1);
+    let _ = date!(-999999 - 01 - 07).nth_prev_occurrence(Weekday::Sunday, 1);
 }

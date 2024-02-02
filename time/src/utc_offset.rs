@@ -217,6 +217,7 @@ impl UtcOffset {
     /// assert_eq!(offset!(+1:02:03).as_hms(), (1, 2, 3));
     /// assert_eq!(offset!(-1:02:03).as_hms(), (-1, -2, -3));
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn as_hms(self) -> (i8, i8, i8) {
         (self.hours.get(), self.minutes.get(), self.seconds.get())
     }
@@ -236,6 +237,7 @@ impl UtcOffset {
     /// assert_eq!(offset!(+1:02:03).whole_hours(), 1);
     /// assert_eq!(offset!(-1:02:03).whole_hours(), -1);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn whole_hours(self) -> i8 {
         self.hours.get()
     }
@@ -248,6 +250,7 @@ impl UtcOffset {
     /// assert_eq!(offset!(+1:02:03).whole_minutes(), 62);
     /// assert_eq!(offset!(-1:02:03).whole_minutes(), -62);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn whole_minutes(self) -> i16 {
         self.hours.get() as i16 * Minute::per(Hour) as i16 + self.minutes.get() as i16
     }
@@ -260,6 +263,7 @@ impl UtcOffset {
     /// assert_eq!(offset!(+1:02:03).minutes_past_hour(), 2);
     /// assert_eq!(offset!(-1:02:03).minutes_past_hour(), -2);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn minutes_past_hour(self) -> i8 {
         self.minutes.get()
     }
@@ -274,6 +278,7 @@ impl UtcOffset {
     /// ```
     // This may be useful for anyone manually implementing arithmetic, as it
     // would let them construct a `Duration` directly.
+    #[must_use = "This method only computes the returned value"]
     pub const fn whole_seconds(self) -> i32 {
         self.hours.get() as i32 * Second::per(Hour) as i32
             + self.minutes.get() as i32 * Second::per(Minute) as i32
@@ -288,6 +293,7 @@ impl UtcOffset {
     /// assert_eq!(offset!(+1:02:03).seconds_past_minute(), 3);
     /// assert_eq!(offset!(-1:02:03).seconds_past_minute(), -3);
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn seconds_past_minute(self) -> i8 {
         self.seconds.get()
     }
@@ -303,6 +309,7 @@ impl UtcOffset {
     /// assert!(!offset!(-1:02:03).is_utc());
     /// assert!(offset!(UTC).is_utc());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn is_utc(self) -> bool {
         self.hours.get() == 0 && self.minutes.get() == 0 && self.seconds.get() == 0
     }
@@ -315,6 +322,7 @@ impl UtcOffset {
     /// assert!(!offset!(-1:02:03).is_positive());
     /// assert!(!offset!(UTC).is_positive());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn is_positive(self) -> bool {
         self.hours.get() > 0 || self.minutes.get() > 0 || self.seconds.get() > 0
     }
@@ -327,6 +335,7 @@ impl UtcOffset {
     /// assert!(offset!(-1:02:03).is_negative());
     /// assert!(!offset!(UTC).is_negative());
     /// ```
+    #[must_use = "This method only computes the returned value"]
     pub const fn is_negative(self) -> bool {
         self.hours.get() < 0 || self.minutes.get() < 0 || self.seconds.get() < 0
     }

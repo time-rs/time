@@ -71,6 +71,7 @@ impl Month {
     /// # use time::Month;
     /// assert_eq!(Month::January.previous(), Month::December);
     /// ```
+    #[must_use = "This method does not mutate the original `Month`."]
     pub const fn previous(self) -> Self {
         match self {
             January => December,
@@ -94,6 +95,7 @@ impl Month {
     /// # use time::Month;
     /// assert_eq!(Month::January.next(), Month::February);
     /// ```
+    #[must_use = "This method does not mutate the original `Month`."]
     pub const fn next(self) -> Self {
         match self {
             January => February,
@@ -118,6 +120,7 @@ impl Month {
     /// assert_eq!(Month::January.nth_next(4), Month::May);
     /// assert_eq!(Month::July.nth_next(9), Month::April);
     /// ```
+    #[must_use = "This method does not mutate the original `Month`."]
     pub const fn nth_next(self, n: u8) -> Self {
         match (self as u8 - 1 + n % 12) % 12 {
             0 => January,
@@ -145,6 +148,7 @@ impl Month {
     /// assert_eq!(Month::January.nth_prev(4), Month::September);
     /// assert_eq!(Month::July.nth_prev(9), Month::October);
     /// ```
+    #[must_use = "This method does not mutate the original `Month`."]
     pub const fn nth_prev(self, n: u8) -> Self {
         match self as i8 - 1 - (n % 12) as i8 {
             1 | -11 => February,
