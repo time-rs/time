@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.34 [2024-12-03]
+
+### Fixed
+
+Computing the local offset on Windows works again. It was broken in some cases in v0.3.32 and
+v0.3.33.
+
 ## 0.3.33 [2024-02-03]
 
 ### Fixed
