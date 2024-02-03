@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.33 [2024-02-03]
+
+### Fixed
+
+Builds targeting `wasm32-unknown-unknown` now work again.
+
 ## 0.3.32 [2024-02-01]
 
 ### Added
