@@ -16,7 +16,7 @@ use deranged::RangedI64;
 use num_conv::prelude::*;
 use powerfmt::ext::FormatterExt as _;
 use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
-use time_core::convert::{Day, Hour, Minute, Nanosecond, Second};
+use time_core::convert::*;
 
 use crate::date::{MAX_YEAR, MIN_YEAR};
 #[cfg(feature = "formatting")]
@@ -1614,7 +1614,7 @@ impl From<OffsetDateTime> for js_sys::Date {
         let timestamp = (datetime.unix_timestamp_nanos()
             / Nanosecond::per(Millisecond).cast_signed().extend::<i128>())
             as f64;
-        js_sys::Date::new(&timestamp.into())
+        Self::new(&timestamp.into())
     }
 }
 // endregion trait impls
