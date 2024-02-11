@@ -91,7 +91,6 @@ unused-import-braces = "warn"
 unused-lifetimes = "warn"
 unused-qualifications = "warn"
 # unused-results = "warn"
-unused-tuple-struct-fields = "warn"
 variant-size-differences = "warn"
 
 [workspace.lints.clippy]

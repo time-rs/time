@@ -239,7 +239,6 @@ impl From<Error> for crate::error::InvalidFormatDescription {
 struct Unused<T>(core::marker::PhantomData<T>);
 
 /// Indicate that a value is currently unused.
-#[allow(clippy::missing_const_for_fn)] // false positive
 fn unused<T>(_: T) -> Unused<T> {
     Unused(core::marker::PhantomData)
 }
