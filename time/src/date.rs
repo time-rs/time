@@ -12,7 +12,6 @@ use num_conv::prelude::*;
 use powerfmt::ext::FormatterExt;
 use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
 
-use crate::convert::*;
 use crate::ext::DigitCount;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
@@ -23,6 +22,7 @@ use crate::internal_macros::{
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year};
+use crate::{convert::*, OffsetDateTime};
 use crate::{error, Duration, Month, PrimitiveDateTime, Time, Weekday};
 
 type Year = RangedI32<MIN_YEAR, MAX_YEAR>;
@@ -532,6 +532,21 @@ impl Date {
                 Weekday::Monday
             }
         }
+    }
+
+    /// Retrieve today's date.
+    ///
+    /// This is a basic wrapper around `OffsetDateTime::now_utc()`,
+    /// and simply returns the date component of the `OffsetDateTime`.
+    ///
+    /// Note: this function is not const as `OffsetDateTime::now_utc()` is not const.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// let today = Date::today();
+    /// ```
+    pub fn today() -> Self {
+        OffsetDateTime::now_utc().date()
     }
 
     /// Get the next calendar date.
