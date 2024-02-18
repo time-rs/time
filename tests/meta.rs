@@ -26,12 +26,14 @@ use time::{
 #[test]
 fn alignment() {
     macro_rules! assert_alignment {
-        ($t:ty, $alignment:literal) => {
+        ($t:ty, $alignment:expr) => {
+            let alignment = $alignment;
             assert_eq!(
                 ::core::mem::align_of::<$t>(),
-                $alignment,
-                concat!("alignment of `{}` was ", $alignment),
+                alignment,
+                "alignment of `{}` was {}",
                 stringify!($t),
+                alignment,
             );
         };
     }
@@ -71,10 +73,7 @@ fn alignment() {
     assert_alignment!(iso8601::FormattedComponents, 1);
     assert_alignment!(iso8601::OffsetPrecision, 1);
     assert_alignment!(iso8601::TimePrecision, 1);
-    #[cfg(miri)]
-    assert_alignment!(Parsed, 16);
-    #[cfg(not(miri))]
-    assert_alignment!(Parsed, 8);
+    assert_alignment!(Parsed, ::core::mem::align_of::<u128>());
     assert_alignment!(Month, 1);
     assert_alignment!(Weekday, 1);
     assert_alignment!(Error, 8);
