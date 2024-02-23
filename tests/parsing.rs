@@ -114,32 +114,31 @@ fn rfc_2822() -> time::Result<()> {
     Ok(())
 }
 
+#[test]
+fn issue_661() -> time::Result<()> {
+    assert_eq!(
+        OffsetDateTime::parse("02 Jan 2021 03:04:05 +0607", &Rfc2822)?,
+        datetime!(2021-01-02 03:04:05 +06:07),
+    );
+    assert_eq!(
+        Date::parse("02 Jan 2021 03:04:05 +0607", &Rfc2822)?,
+        date!(2021 - 01 - 02)
+    );
+
+    Ok(())
+}
+
 #[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn rfc_2822_err() {
     // In the first test, the "weekday" component is invalid, we're actually testing the whitespace
     // parser. The error is because the parser attempts and fails to parse the whitespace, but it's
     // optional so it backtracks and attempts to parse the weekday (while still having leading
-    // whitespace), thus failing.
+    // whitespace). The weekday is also optional, so it backtracks and attempts to parse the day.
+    // This component is required, so it fails at this point.
     assert!(matches!(
         OffsetDateTime::parse(" \r\nM", &Rfc2822),
-        invalid_component!("weekday")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon,(\u{0}", &Rfc2822),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon,(", &Rfc2822),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon,(\\\u{ff}", &Rfc2822),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon,((\\\u{0})(\\\u{b} )(\\\u{d})", &Rfc2822),
-        invalid_literal!()
+        invalid_component!("day")
     ));
 
     assert!(matches!(

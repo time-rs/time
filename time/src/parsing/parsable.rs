@@ -165,8 +165,8 @@ impl sealed::Sealed for Rfc2822 {
         let colon = ascii_char::<b':'>;
         let comma = ascii_char::<b','>;
 
-        let input = opt(fws)(input).into_inner();
-        let input = first_match(
+        let input = opt(cfws)(input).into_inner();
+        let weekday = first_match(
             [
                 (b"Mon".as_slice(), Weekday::Monday),
                 (b"Tue".as_slice(), Weekday::Tuesday),
@@ -177,11 +177,16 @@ impl sealed::Sealed for Rfc2822 {
                 (b"Sun".as_slice(), Weekday::Sunday),
             ],
             false,
-        )(input)
-        .and_then(|item| item.consume_value(|value| parsed.set_weekday(value)))
-        .ok_or(InvalidComponent("weekday"))?;
-        let input = comma(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
+        )(input);
+        let input = if let Some(item) = weekday {
+            let input = item
+                .consume_value(|value| parsed.set_weekday(value))
+                .ok_or(InvalidComponent("weekday"))?;
+            let input = comma(input).ok_or(InvalidLiteral)?.into_inner();
+            opt(cfws)(input).into_inner()
+        } else {
+            input
+        };
         let input = n_to_m_digits::<1, 2, _>(input)
             .and_then(|item| item.consume_value(|value| parsed.set_day(value)))
             .ok_or(InvalidComponent("day"))?;
@@ -307,6 +312,8 @@ impl sealed::Sealed for Rfc2822 {
             })
             .ok_or(InvalidComponent("offset minute"))?;
 
+        let input = opt(cfws)(input).into_inner();
+
         Ok(input)
     }
 
@@ -320,10 +327,10 @@ impl sealed::Sealed for Rfc2822 {
         let colon = ascii_char::<b':'>;
         let comma = ascii_char::<b','>;
 
-        let input = opt(fws)(input).into_inner();
+        let input = opt(cfws)(input).into_inner();
         // This parses the weekday, but we don't actually use the value anywhere. Because of this,
         // just return `()` to avoid unnecessary generated code.
-        let ParsedItem(input, ()) = first_match(
+        let weekday = first_match(
             [
                 (b"Mon".as_slice(), ()),
                 (b"Tue".as_slice(), ()),
@@ -334,10 +341,14 @@ impl sealed::Sealed for Rfc2822 {
                 (b"Sun".as_slice(), ()),
             ],
             false,
-        )(input)
-        .ok_or(InvalidComponent("weekday"))?;
-        let input = comma(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
+        )(input);
+        let input = if let Some(item) = weekday {
+            let input = item.into_inner();
+            let input = comma(input).ok_or(InvalidLiteral)?.into_inner();
+            opt(cfws)(input).into_inner()
+        } else {
+            input
+        };
         let ParsedItem(input, day) =
             n_to_m_digits::<1, 2, _>(input).ok_or(InvalidComponent("day"))?;
         let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
@@ -441,6 +452,8 @@ impl sealed::Sealed for Rfc2822 {
                 exactly_n_digits::<2, u8>(input).ok_or(InvalidComponent("offset minute"))?;
             (input, offset_hour, offset_minute.cast_signed())
         };
+
+        let input = opt(cfws)(input).into_inner();
 
         if !input.is_empty() {
             return Err(error::Parse::ParseFromDescription(
