@@ -1415,6 +1415,7 @@ impl SmartDisplay for Date {
     }
 }
 
+/// The format returned by this implementation is not stable and must not be relied upon.
 impl fmt::Display for Date {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         SmartDisplay::fmt(self, f)
