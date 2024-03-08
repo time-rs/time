@@ -857,7 +857,7 @@ impl Duration {
 
     /// Get the number of milliseconds past the number of whole seconds.
     ///
-    /// Always in the range `-1_000..1_000`.
+    /// Always in the range `-999..=999`.
     ///
     /// ```rust
     /// # use time::ext::NumericalDuration;
@@ -885,7 +885,7 @@ impl Duration {
 
     /// Get the number of microseconds past the number of whole seconds.
     ///
-    /// Always in the range `-1_000_000..1_000_000`.
+    /// Always in the range `-999_999..=999_999`.
     ///
     /// ```rust
     /// # use time::ext::NumericalDuration;
@@ -911,7 +911,7 @@ impl Duration {
 
     /// Get the number of nanoseconds past the number of whole seconds.
     ///
-    /// The returned value will always be in the range `-1_000_000_000..1_000_000_000`.
+    /// The returned value will always be in the range `-999_999_999..=999_999_999`.
     ///
     /// ```rust
     /// # use time::ext::NumericalDuration;
