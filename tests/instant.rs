@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use std::cmp::Ordering;
 use std::thread;
 use std::time::Instant as StdInstant;

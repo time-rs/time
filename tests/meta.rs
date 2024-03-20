@@ -17,9 +17,11 @@ use time::format_description::well_known::iso8601;
 use time::format_description::{modifier, well_known, Component, FormatItem};
 use time::formatting::Formattable;
 use time::parsing::{Parsable, Parsed};
+#[allow(deprecated)]
+use time::Instant;
 use time::{
-    error, ext, Date, Duration, Error, Instant, Month, OffsetDateTime, PrimitiveDateTime, Time,
-    UtcOffset, Weekday,
+    error, ext, Date, Duration, Error, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset,
+    Weekday,
 };
 
 #[allow(clippy::cognitive_complexity)] // all test the same thing
@@ -183,7 +185,8 @@ assert_obj_safe!(ext::NumericalStdDuration);
 // `Formattable` is not object safe.
 
 macro_rules! assert_impl {
-    ($($(@$lifetimes:lifetime),+ ;)? $type:ty: $($trait:path),+ $(,)?) => {
+    ($(#[$meta:meta])* $($(@$lifetimes:lifetime),+ ;)? $type:ty: $($trait:path),+ $(,)?) => {
+        $(#[$meta])*
         const _: fn() = || {
             fn assert_impl_all<$($($lifetimes,)+)? T: ?Sized $(+ $trait)+>() {}
             assert_impl_all::<$type>();
@@ -287,7 +290,7 @@ assert_impl! { @'a; Duration:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { Instant:
+assert_impl! { #[allow(deprecated)] Instant:
     Add<Duration, Output = Instant>,
     Add<StdDuration, Output = Instant>,
     AddAssign<Duration>,
@@ -1040,7 +1043,7 @@ assert_impl! { StdDuration:
     SubAssign<Duration>,
     TryFrom<Duration>,
 }
-assert_impl! { StdInstant:
+assert_impl! { #[allow(deprecated)] StdInstant:
     Add<Duration, Output = StdInstant>,
     AddAssign<Duration>,
     Sub<Duration, Output = StdInstant>,

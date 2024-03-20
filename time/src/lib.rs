@@ -116,6 +116,7 @@ pub use crate::date::Date;
 pub use crate::duration::Duration;
 pub use crate::error::Error;
 #[cfg(feature = "std")]
+#[allow(deprecated)]
 pub use crate::instant::Instant;
 pub use crate::month::Month;
 pub use crate::offset_date_time::OffsetDateTime;

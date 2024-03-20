@@ -7,7 +7,9 @@ use time::ext::NumericalDuration;
 use time::format_description::{self, modifier, well_known, Component, FormatItem, OwnedFormatItem};
 use time::macros::{date, offset, time};
 use time::parsing::Parsed;
-use time::{Duration, Error, Instant, Month, Time, Weekday};
+use time::{Duration, Error, Month, Time, Weekday};
+#[allow(deprecated)]
+use time::Instant;
 use time_macros::datetime;
 
 macro_rules! assert_cloned_eq {
@@ -27,6 +29,7 @@ fn invalid_format_description() -> error::InvalidFormatDescription {
 #[allow(clippy::cognitive_complexity)] // all test the same thing
 #[test]
 fn clone() {
+    #[allow(deprecated)]
     let instant = Instant::now();
     assert_cloned_eq!(date!(2021 - 001));
     assert_cloned_eq!(time!(0:00));
@@ -96,6 +99,7 @@ fn hash() {
     datetime!(2021-001 0:00 UTC).hash(&mut hasher);
     Weekday::Monday.hash(&mut hasher);
     Month::January.hash(&mut hasher);
+    #[allow(deprecated)]
     Instant::now().hash(&mut hasher);
     Duration::ZERO.hash(&mut hasher);
     component_range_error().hash(&mut hasher);
@@ -103,6 +107,7 @@ fn hash() {
 
 #[test]
 fn partial_ord() {
+    #[allow(deprecated)]
     let instant = Instant::now();
     assert_eq!(offset!(UTC).partial_cmp(&offset!(+1)), Some(Ordering::Less));
     assert_eq!(
@@ -129,9 +134,16 @@ fn ord() {
 #[test]
 fn debug() {
     macro_rules! debug_all {
-        ($($x:expr;)*) => {$(
+        () => {};
+        (#[$meta:meta] $x:expr; $($rest:tt)*) => {
+            #[$meta]
             let _unused = format!("{:?}", $x);
-        )*};
+            debug_all!($($rest)*);
+        };
+        ($x:expr; $($rest:tt)*) => {
+            let _unused = format!("{:?}", $x);
+            debug_all!($($rest)*);
+        };
     }
 
     debug_all! {
@@ -140,6 +152,7 @@ fn debug() {
         ConversionRange;
         TryFromParsed::InsufficientInformation;
         Parsed::new();
+        #[allow(deprecated)]
         Instant::now();
         error::ParseFromDescription::InvalidComponent("foo");
         error::Format::InvalidComponent("foo");
