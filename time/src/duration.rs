@@ -1023,6 +1023,25 @@ impl Duration {
         // Safety: `nanoseconds` is in range.
         unsafe { Some(Self::new_unchecked(secs, nanos)) }
     }
+
+    /// Computes `-self`, returning `None` if the result would overflow.
+    ///
+    /// ```rust
+    /// # use time::ext::NumericalDuration;
+    /// # use time::Duration;
+    /// assert_eq!(5.seconds().checked_neg(), Some((-5).seconds()));
+    /// assert_eq!(Duration::MIN.checked_neg(), None);
+    /// ```
+    pub const fn checked_neg(self) -> Option<Self> {
+        if self.seconds == i64::MIN {
+            None
+        } else {
+            Some(Self::new_ranged_unchecked(
+                -self.seconds,
+                self.nanoseconds.neg(),
+            ))
+        }
+    }
     // endregion checked arithmetic
 
     // region: saturating arithmetic
@@ -1338,7 +1357,7 @@ impl Neg for Duration {
     type Output = Self;
 
     fn neg(self) -> Self::Output {
-        Self::new_ranged_unchecked(-self.seconds, self.nanoseconds.neg())
+        self.checked_neg().expect("overflow when negating duration")
     }
 }
 

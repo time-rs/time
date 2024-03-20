@@ -480,6 +480,15 @@ fn checked_div_regression() {
         Some(Duration::new(0, 142_857_143)) // manually verified
     );
 }
+
+#[rstest]
+#[case(5.seconds(), Some((-5).seconds()))]
+#[case((-5).seconds(), Some(5.seconds()))]
+#[case(Duration::MIN, None)]
+fn checked_neg(#[case] duration: Duration, #[case] expected: Option<Duration>) {
+    assert_eq!(duration.checked_neg(), expected);
+}
+
 #[rstest]
 #[case(5.seconds(), 5.seconds(), 10.seconds())]
 #[case(Duration::MAX, 1.nanoseconds(), Duration::MAX)]
