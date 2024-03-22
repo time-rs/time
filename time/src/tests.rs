@@ -25,6 +25,7 @@
 //! This module should only be used when it is not possible to test the implementation in a
 //! reasonable manner externally.
 
+use std::format;
 use std::num::NonZeroU8;
 
 use crate::ext::DigitCount;

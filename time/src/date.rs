@@ -1,5 +1,7 @@
 //! The [`Date`] struct and its associated `impl`s.
 
+#[cfg(feature = "formatting")]
+use alloc::string::String;
 use core::num::NonZeroI32;
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
@@ -120,7 +122,7 @@ impl Date {
             1..=28 => {}
             29..=31 if day <= days_in_year_month(year, month) => {}
             _ => {
-                return Err(crate::error::ComponentRange {
+                return Err(error::ComponentRange {
                     name: "day",
                     minimum: 1,
                     maximum: days_in_year_month(year, month) as _,
@@ -158,7 +160,7 @@ impl Date {
             1..=365 => {}
             366 if is_leap_year(year) => {}
             _ => {
-                return Err(crate::error::ComponentRange {
+                return Err(error::ComponentRange {
                     name: "ordinal",
                     minimum: 1,
                     maximum: days_in_year(year) as _,
@@ -195,7 +197,7 @@ impl Date {
             1..=52 => {}
             53 if week <= weeks_in_year(year) => {}
             _ => {
-                return Err(crate::error::ComponentRange {
+                return Err(error::ComponentRange {
                     name: "week",
                     minimum: 1,
                     maximum: weeks_in_year(year) as _,
@@ -1132,7 +1134,7 @@ impl Date {
             1..=28 => {}
             29..=31 if day <= days_in_year_month(self.year(), self.month()) => {}
             _ => {
-                return Err(crate::error::ComponentRange {
+                return Err(error::ComponentRange {
                     name: "day",
                     minimum: 1,
                     maximum: days_in_year_month(self.year(), self.month()) as _,
@@ -1165,7 +1167,7 @@ impl Date {
             1..=365 => {}
             366 if is_leap_year(self.year()) => {}
             _ => {
-                return Err(crate::error::ComponentRange {
+                return Err(error::ComponentRange {
                     name: "ordinal",
                     minimum: 1,
                     maximum: days_in_year(self.year()) as _,

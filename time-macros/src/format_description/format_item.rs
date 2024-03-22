@@ -1,4 +1,3 @@
-use std::boxed::Box;
 use std::num::NonZeroU16;
 use std::str::{self, FromStr};
 

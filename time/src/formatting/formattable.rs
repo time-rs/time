@@ -1,5 +1,7 @@
 //! A trait that can be used to format an item from its components.
 
+use alloc::string::String;
+use alloc::vec::Vec;
 use core::ops::Deref;
 use std::io;
 

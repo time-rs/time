@@ -36,7 +36,7 @@ fn component_range() -> ComponentRange {
 
 fn insufficient_type_information() -> Format {
     Time::MIDNIGHT
-        .format(&time::format_description::well_known::Rfc3339)
+        .format(&format_description::well_known::Rfc3339)
         .expect_err("missing date and UTC offset")
 }
 
@@ -176,7 +176,7 @@ fn conversion() {
     assert!(ComponentRange::try_from(TryFromParsed::ComponentRange(component_range())).is_ok());
     assert!(TryFromParsed::try_from(Error::from(TryFromParsed::InsufficientInformation)).is_ok());
     assert!(TryFromParsed::try_from(Parse::from(TryFromParsed::InsufficientInformation)).is_ok());
-    assert!(std::io::Error::try_from(Format::from(io_error())).is_ok());
+    assert!(io::Error::try_from(Format::from(io_error())).is_ok());
 
     assert!(ComponentRange::try_from(Error::from(IndeterminateOffset)).is_err());
     assert!(ConversionRange::try_from(Error::from(IndeterminateOffset)).is_err());
@@ -190,5 +190,5 @@ fn conversion() {
     assert!(ComponentRange::try_from(TryFromParsed::InsufficientInformation).is_err());
     assert!(TryFromParsed::try_from(Error::from(IndeterminateOffset)).is_err());
     assert!(TryFromParsed::try_from(unexpected_trailing_characters()).is_err());
-    assert!(std::io::Error::try_from(insufficient_type_information()).is_err());
+    assert!(io::Error::try_from(insufficient_type_information()).is_err());
 }

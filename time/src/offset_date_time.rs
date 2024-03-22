@@ -1,8 +1,8 @@
 //! The [`OffsetDateTime`] struct and its associated `impl`s.
 
+#[cfg(feature = "formatting")]
+use alloc::string::String;
 use core::cmp::Ordering;
-#[cfg(feature = "std")]
-use core::convert::From;
 use core::fmt;
 use core::hash::Hash;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
@@ -26,9 +26,7 @@ use crate::internal_macros::{
 };
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
-#[cfg(feature = "parsing")]
-use crate::util;
-use crate::{error, Date, Duration, Month, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{error, util, Date, Duration, Month, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 /// The Julian day of the Unix epoch.
 // Safety: `ordinal` is not zero.
@@ -271,7 +269,7 @@ impl OffsetDateTime {
         cascade!(ordinal => year);
 
         debug_assert!(ordinal > 0);
-        debug_assert!(ordinal <= crate::util::days_in_year(year) as i16);
+        debug_assert!(ordinal <= util::days_in_year(year) as i16);
 
         (
             year,

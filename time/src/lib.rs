@@ -68,7 +68,7 @@
 
 #![doc(html_playground_url = "https://play.rust-lang.org")]
 #![cfg_attr(__time_03_docs, feature(doc_auto_cfg, doc_notable_trait))]
-#![cfg_attr(not(feature = "std"), no_std)]
+#![no_std]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(test(attr(deny(warnings))))]
@@ -76,6 +76,9 @@
 #[allow(unused_extern_crates)]
 #[cfg(feature = "alloc")]
 extern crate alloc;
+
+#[cfg(feature = "std")]
+extern crate std;
 
 mod date;
 mod duration;

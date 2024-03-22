@@ -1,5 +1,7 @@
 //! The [`Time`] struct and its associated `impl`s.
 
+#[cfg(feature = "formatting")]
+use alloc::string::String;
 use core::fmt;
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
@@ -718,7 +720,7 @@ impl Time {
         self,
         output: &mut impl io::Write,
         format: &(impl Formattable + ?Sized),
-    ) -> Result<usize, crate::error::Format> {
+    ) -> Result<usize, error::Format> {
         format.format_into(output, None, Some(self), None)
     }
 
@@ -731,10 +733,7 @@ impl Time {
     /// assert_eq!(time!(12:00).format(&format)?, "12:00:00");
     /// # Ok::<_, time::Error>(())
     /// ```
-    pub fn format(
-        self,
-        format: &(impl Formattable + ?Sized),
-    ) -> Result<String, crate::error::Format> {
+    pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
         format.format(None, Some(self), None)
     }
 }

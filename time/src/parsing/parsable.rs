@@ -34,7 +34,7 @@ impl<T: Deref> Parsable for T where T::Target: Parsable {}
 mod sealed {
     #[allow(clippy::wildcard_imports)]
     use super::*;
-    use crate::{OffsetDateTime, PrimitiveDateTime};
+    use crate::PrimitiveDateTime;
 
     /// Parse the item using a format description and an input.
     pub trait Sealed {

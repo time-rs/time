@@ -22,6 +22,8 @@ pub mod rfc3339;
 pub mod timestamp;
 mod visitor;
 
+#[cfg(feature = "serde-human-readable")]
+use alloc::string::ToString;
 use core::marker::PhantomData;
 
 #[cfg(feature = "serde-human-readable")]

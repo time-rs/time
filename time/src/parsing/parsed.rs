@@ -177,6 +177,12 @@ pub struct Parsed {
     pub(super) leap_second_allowed: bool,
 }
 
+impl Default for Parsed {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Parsed {
     /// Create a new instance of `Parsed` with no information known.
     pub const fn new() -> Self {
