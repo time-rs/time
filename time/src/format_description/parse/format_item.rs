@@ -149,14 +149,9 @@ impl From<Item<'_>> for crate::format_description::OwnedFormatItem {
 impl<'a> From<Box<[Item<'a>]>> for crate::format_description::OwnedFormatItem {
     fn from(items: Box<[Item<'a>]>) -> Self {
         let items = items.into_vec();
-        if items.len() == 1 {
-            if let Ok([item]) = <[_; 1]>::try_from(items) {
-                item.into()
-            } else {
-                bug!("the length was just checked to be 1")
-            }
-        } else {
-            Self::Compound(items.into_iter().map(Self::from).collect())
+        match <[_; 1]>::try_from(items) {
+            Ok([item]) => item.into(),
+            Err(vec) => Self::Compound(vec.into_iter().map(Into::into).collect()),
         }
     }
 }
