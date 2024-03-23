@@ -151,7 +151,7 @@ pub fn format_description(input: TokenStream) -> TokenStream {
         let items = format_description::parse_with_version(version, &string, span)?;
 
         Ok(quote! {{
-            const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = &[#S(
+            const DESCRIPTION: &[::time::format_description::BorrowedFormatItem<'_>] = &[#S(
                 items
                     .into_iter()
                     .map(|item| quote! { #S(item), })
@@ -212,7 +212,8 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
                 let items: TokenStream =
                     items.into_iter().map(|item| quote! { #S(item), }).collect();
                 let items = quote! {
-                    const ITEMS: &[::time::format_description::FormatItem<'_>] = &[#S(items)];
+                    const ITEMS: &[::time::format_description::BorrowedFormatItem<'_>]
+                        = &[#S(items)];
                     ITEMS
                 };
 

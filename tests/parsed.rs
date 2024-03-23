@@ -1,7 +1,7 @@
 use std::num::{NonZeroU16, NonZeroU8};
 
 use time::format_description::modifier::WeekNumberRepr;
-use time::format_description::{Component, FormatItem};
+use time::format_description::{BorrowedFormatItem, Component};
 use time::parsing::Parsed;
 use time::{error, Month, Time, Weekday};
 
@@ -129,8 +129,8 @@ fn builder_methods() {
 
 #[test]
 fn single_item_parse() {
-    assert!(Time::parse("a", &FormatItem::Literal(b"a")).is_err());
-    assert!(Time::parse("b", &FormatItem::Literal(b"a")).is_err());
+    assert!(Time::parse("a", &BorrowedFormatItem::Literal(b"a")).is_err());
+    assert!(Time::parse("b", &BorrowedFormatItem::Literal(b"a")).is_err());
 }
 
 #[test]

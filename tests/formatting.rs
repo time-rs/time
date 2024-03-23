@@ -2,7 +2,7 @@ use std::io;
 
 use time::format_description::well_known::iso8601::{DateKind, OffsetPrecision, TimePrecision};
 use time::format_description::well_known::{iso8601, Iso8601, Rfc2822, Rfc3339};
-use time::format_description::{self, FormatItem, OwnedFormatItem};
+use time::format_description::{self, BorrowedFormatItem, OwnedFormatItem};
 use time::macros::{date, datetime, format_description as fd, offset, time};
 use time::{OffsetDateTime, Time};
 
@@ -562,9 +562,9 @@ fn insufficient_type_information() {
     assert_insufficient_type_information(Time::MIDNIGHT.format(&Rfc2822));
     assert_insufficient_type_information(date!(2021 - 001).format(&Rfc2822));
     assert_insufficient_type_information(datetime!(2021 - 001 0:00).format(&Rfc2822));
-    assert_insufficient_type_information(
-        Time::MIDNIGHT.format(&FormatItem::First(&[FormatItem::Compound(fd!("[year]"))])),
-    );
+    assert_insufficient_type_information(Time::MIDNIGHT.format(&BorrowedFormatItem::First(&[
+        BorrowedFormatItem::Compound(fd!("[year]")),
+    ])));
     assert_insufficient_type_information(Time::MIDNIGHT.format(&Iso8601::DEFAULT));
     assert_insufficient_type_information(date!(2021 - 001).format(&Iso8601::DEFAULT));
     assert_insufficient_type_information(datetime!(2021-001 0:00).format(&Iso8601::DEFAULT));
@@ -591,14 +591,16 @@ fn failed_write() -> time::Result<()> {
 
     assert_err!(Time::MIDNIGHT, fd!("foo"));
     assert_err!(Time::MIDNIGHT, OwnedFormatItem::from(fd!("foo")));
-    assert_err!(Time::MIDNIGHT, FormatItem::Compound(fd!("foo")));
+    assert_err!(Time::MIDNIGHT, BorrowedFormatItem::Compound(fd!("foo")));
     assert_err!(
         Time::MIDNIGHT,
-        FormatItem::Optional(&FormatItem::Compound(fd!("foo")))
+        BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(fd!("foo")))
     );
     assert_err!(
         Time::MIDNIGHT,
-        OwnedFormatItem::from(FormatItem::Optional(&FormatItem::Compound(fd!("foo"))))
+        OwnedFormatItem::from(BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(
+            fd!("foo")
+        )))
     );
     assert_err!(OffsetDateTime::UNIX_EPOCH, Rfc3339);
     assert_err!(datetime!(2021-001 0:00:00.1 UTC), Rfc3339);
@@ -720,9 +722,11 @@ fn failed_write() -> time::Result<()> {
 
 #[test]
 fn first() -> time::Result<()> {
-    assert_eq!(Time::MIDNIGHT.format(&FormatItem::First(&[]))?, "");
+    assert_eq!(Time::MIDNIGHT.format(&BorrowedFormatItem::First(&[]))?, "");
     assert_eq!(
-        Time::MIDNIGHT.format(&FormatItem::First(&[FormatItem::Compound(fd!("[hour]"))]))?,
+        Time::MIDNIGHT.format(&BorrowedFormatItem::First(&[BorrowedFormatItem::Compound(
+            fd!("[hour]")
+        )]))?,
         "00"
     );
     assert_eq!(
@@ -730,8 +734,8 @@ fn first() -> time::Result<()> {
         ""
     );
     assert_eq!(
-        Time::MIDNIGHT.format(&OwnedFormatItem::from(FormatItem::First(&[
-            FormatItem::Compound(fd!("[hour]"))
+        Time::MIDNIGHT.format(&OwnedFormatItem::from(BorrowedFormatItem::First(&[
+            BorrowedFormatItem::Compound(fd!("[hour]"))
         ])))?,
         "00"
     );

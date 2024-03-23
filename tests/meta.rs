@@ -14,7 +14,7 @@ use quickcheck::Arbitrary;
 use rand::distributions::{Distribution, Standard};
 use serde::{Deserialize, Serialize};
 use time::format_description::well_known::iso8601;
-use time::format_description::{modifier, well_known, Component, FormatItem};
+use time::format_description::{modifier, well_known, BorrowedFormatItem, Component};
 use time::formatting::Formattable;
 use time::parsing::{Parsable, Parsed};
 #[allow(deprecated)]
@@ -85,7 +85,7 @@ fn alignment() {
     assert_alignment!(error::ParseFromDescription, 8);
     assert_alignment!(error::TryFromParsed, 8);
     assert_alignment!(Component, 2);
-    assert_alignment!(FormatItem<'_>, 8);
+    assert_alignment!(BorrowedFormatItem<'_>, 8);
     assert_alignment!(modifier::MonthRepr, 1);
     assert_alignment!(modifier::Padding, 1);
     assert_alignment!(modifier::SubsecondDigits, 1);
@@ -164,7 +164,7 @@ fn size() {
     assert_size!(error::ParseFromDescription, 24, 24);
     assert_size!(error::TryFromParsed, 48, 48);
     assert_size!(Component, 6, 6); // TODO Size is 4 starting with rustc 1.71.
-    assert_size!(FormatItem<'_>, 24, 24);
+    assert_size!(BorrowedFormatItem<'_>, 24, 24);
     assert_size!(modifier::MonthRepr, 1, 1);
     assert_size!(modifier::Padding, 1, 1);
     assert_size!(modifier::SubsecondDigits, 1, 1);
@@ -914,8 +914,8 @@ assert_impl! { @'a; Component:
     Clone,
     Debug,
     PartialEq<Component>,
-    PartialEq<FormatItem<'a>>,
-    TryFrom<FormatItem<'a>, Error = error::DifferentVariant>,
+    PartialEq<BorrowedFormatItem<'a>>,
+    TryFrom<BorrowedFormatItem<'a>, Error = error::DifferentVariant>,
     Copy,
     Eq,
     RefUnwindSafe,
@@ -924,14 +924,14 @@ assert_impl! { @'a; Component:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { @'a; FormatItem<'_>:
+assert_impl! { @'a; BorrowedFormatItem<'_>:
     Clone,
     Debug,
-    From<&'a [FormatItem<'a>]>,
+    From<&'a [BorrowedFormatItem<'a>]>,
     From<Component>,
-    PartialEq<&'a [FormatItem<'a>]>,
+    PartialEq<&'a [BorrowedFormatItem<'a>]>,
     PartialEq<Component>,
-    PartialEq<FormatItem<'a>>,
+    PartialEq<BorrowedFormatItem<'a>>,
     Eq,
     Formattable,
     Parsable,
@@ -941,9 +941,9 @@ assert_impl! { @'a; FormatItem<'_>:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { @'a; &[FormatItem<'_>]:
-    PartialEq<FormatItem<'a>>,
-    TryFrom<FormatItem<'a>, Error = error::DifferentVariant>,
+assert_impl! { @'a; &[BorrowedFormatItem<'_>]:
+    PartialEq<BorrowedFormatItem<'a>>,
+    TryFrom<BorrowedFormatItem<'a>, Error = error::DifferentVariant>,
 }
 assert_impl! { modifier::MonthRepr:
     Clone,

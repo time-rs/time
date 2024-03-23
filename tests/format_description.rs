@@ -1,29 +1,29 @@
-use time::format_description::{modifier, Component, FormatItem, OwnedFormatItem};
+use time::format_description::{modifier, BorrowedFormatItem, Component, OwnedFormatItem};
 
 #[test]
 fn borrowed_format_item_component_conversions() {
     let component = Component::Year(modifier::Year::default());
-    let item = FormatItem::from(component);
-    assert!(matches!(item, FormatItem::Component(inner) if inner == component));
+    let item = BorrowedFormatItem::from(component);
+    assert!(matches!(item, BorrowedFormatItem::Component(inner) if inner == component));
     assert_eq!(Component::try_from(item), Ok(component));
-    assert!(Component::try_from(FormatItem::Literal(b"")).is_err());
-    assert!(<&[FormatItem<'_>]>::try_from(FormatItem::Literal(b"")).is_err());
+    assert!(Component::try_from(BorrowedFormatItem::Literal(b"")).is_err());
+    assert!(<&[BorrowedFormatItem<'_>]>::try_from(BorrowedFormatItem::Literal(b"")).is_err());
 }
 
 #[test]
 fn borrowed_format_item_compound_conversions() {
-    let compound = [FormatItem::Literal(b"")].as_slice();
-    let item = FormatItem::from(compound);
-    assert!(matches!(item, FormatItem::Compound(inner) if inner == compound));
-    assert_eq!(<&[FormatItem<'_>]>::try_from(item), Ok(compound));
+    let compound = [BorrowedFormatItem::Literal(b"")].as_slice();
+    let item = BorrowedFormatItem::from(compound);
+    assert!(matches!(item, BorrowedFormatItem::Compound(inner) if inner == compound));
+    assert_eq!(<&[BorrowedFormatItem<'_>]>::try_from(item), Ok(compound));
 }
 
 #[test]
 fn borrowed_format_item_equality() {
     let component = Component::Year(modifier::Year::default());
-    let compound = [FormatItem::Literal(b"")].as_slice();
-    let component_item = FormatItem::from(component);
-    let compound_item = FormatItem::from(compound);
+    let compound = [BorrowedFormatItem::Literal(b"")].as_slice();
+    let component_item = BorrowedFormatItem::from(component);
+    let compound_item = BorrowedFormatItem::from(compound);
 
     assert_eq!(component, component_item);
     assert_eq!(component_item, component);
@@ -52,7 +52,7 @@ fn owned_format_item_compound_conversions() {
 #[test]
 fn owned_format_item_equality() {
     let component = Component::Year(modifier::Year::default());
-    let compound = OwnedFormatItem::from([FormatItem::Literal(b"")].as_slice());
+    let compound = OwnedFormatItem::from([BorrowedFormatItem::Literal(b"")].as_slice());
     let component_item = OwnedFormatItem::from(component);
 
     assert_eq!(component, component_item);

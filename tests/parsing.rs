@@ -2,7 +2,7 @@ use std::num::{NonZeroU16, NonZeroU8};
 
 use time::format_description::modifier::Ignore;
 use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
-use time::format_description::{modifier, Component, FormatItem, OwnedFormatItem};
+use time::format_description::{modifier, BorrowedFormatItem, Component, OwnedFormatItem};
 use time::macros::{date, datetime, offset, time};
 use time::parsing::Parsed;
 use time::{
@@ -1455,7 +1455,9 @@ fn parse_optional() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"2021-01-02",
-        &FormatItem::Optional(&FormatItem::Compound(&fd::parse("[year]-[month]-[day]")?)),
+        &BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&fd::parse(
+            "[year]-[month]-[day]",
+        )?)),
     )?;
     assert!(remaining_input.is_empty());
     assert_eq!(parsed.year(), Some(2021));
@@ -1465,9 +1467,9 @@ fn parse_optional() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"2021-01-02",
-        &OwnedFormatItem::from(FormatItem::Optional(&FormatItem::Compound(&fd::parse(
-            "[year]-[month]-[day]",
-        )?))),
+        &OwnedFormatItem::from(BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(
+            &fd::parse("[year]-[month]-[day]")?,
+        ))),
     )?;
     assert!(remaining_input.is_empty());
     assert_eq!(parsed.year(), Some(2021));
@@ -1478,7 +1480,9 @@ fn parse_optional() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"2021-01",
-        &FormatItem::Optional(&FormatItem::Compound(&fd::parse("[year]-[month]-[day]")?)),
+        &BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&fd::parse(
+            "[year]-[month]-[day]",
+        )?)),
     )?;
     assert_eq!(remaining_input, b"2021-01");
     assert!(parsed.year().is_none());
@@ -1488,9 +1492,9 @@ fn parse_optional() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"2021-01",
-        &OwnedFormatItem::from(FormatItem::Optional(&FormatItem::Compound(&fd::parse(
-            "[year]-[month]-[day]",
-        )?))),
+        &OwnedFormatItem::from(BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(
+            &fd::parse("[year]-[month]-[day]")?,
+        ))),
     )?;
     assert_eq!(remaining_input, b"2021-01");
     assert!(parsed.year().is_none());
@@ -1507,7 +1511,9 @@ fn parse_first() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"2021-01-02",
-        &FormatItem::First(&[FormatItem::Compound(&fd::parse("[year]-[month]-[day]")?)]),
+        &BorrowedFormatItem::First(&[BorrowedFormatItem::Compound(&fd::parse(
+            "[year]-[month]-[day]",
+        )?)]),
     )?;
     assert!(remaining_input.is_empty());
     assert_eq!(parsed.year(), Some(2021));
@@ -1517,9 +1523,9 @@ fn parse_first() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"2021-01-02",
-        &OwnedFormatItem::from(FormatItem::First(&[FormatItem::Compound(&fd::parse(
-            "[year]-[month]-[day]",
-        )?)])),
+        &OwnedFormatItem::from(BorrowedFormatItem::First(&[BorrowedFormatItem::Compound(
+            &fd::parse("[year]-[month]-[day]")?,
+        )])),
     )?;
     assert!(remaining_input.is_empty());
     assert_eq!(parsed.year(), Some(2021));
@@ -1528,7 +1534,7 @@ fn parse_first() -> time::Result<()> {
 
     // Ensure an empty slice is a no-op success.
     let mut parsed = Parsed::new();
-    let remaining_input = parsed.parse_item(b"2021-01-02", &FormatItem::First(&[]))?;
+    let remaining_input = parsed.parse_item(b"2021-01-02", &BorrowedFormatItem::First(&[]))?;
     assert_eq!(remaining_input, b"2021-01-02");
     assert!(parsed.year().is_none());
     assert!(parsed.month().is_none());
@@ -1546,10 +1552,10 @@ fn parse_first() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"2021-01-02",
-        &FormatItem::First(&[
-            FormatItem::Compound(&fd::parse("[period]")?),
-            FormatItem::Compound(&fd::parse("x")?),
-            FormatItem::Compound(&fd::parse("[year]-[month]-[day]")?),
+        &BorrowedFormatItem::First(&[
+            BorrowedFormatItem::Compound(&fd::parse("[period]")?),
+            BorrowedFormatItem::Compound(&fd::parse("x")?),
+            BorrowedFormatItem::Compound(&fd::parse("[year]-[month]-[day]")?),
         ]),
     )?;
     assert!(remaining_input.is_empty());
@@ -1560,10 +1566,10 @@ fn parse_first() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"2021-01-02",
-        &OwnedFormatItem::from(FormatItem::First(&[
-            FormatItem::Compound(&fd::parse("[period]")?),
-            FormatItem::Compound(&fd::parse("x")?),
-            FormatItem::Compound(&fd::parse("[year]-[month]-[day]")?),
+        &OwnedFormatItem::from(BorrowedFormatItem::First(&[
+            BorrowedFormatItem::Compound(&fd::parse("[period]")?),
+            BorrowedFormatItem::Compound(&fd::parse("x")?),
+            BorrowedFormatItem::Compound(&fd::parse("[year]-[month]-[day]")?),
         ])),
     )?;
     assert!(remaining_input.is_empty());
@@ -1576,9 +1582,9 @@ fn parse_first() -> time::Result<()> {
     let err = parsed
         .parse_item(
             b"2021-01-02",
-            &FormatItem::First(&[
-                FormatItem::Compound(&fd::parse("[period]")?),
-                FormatItem::Compound(&fd::parse("x")?),
+            &BorrowedFormatItem::First(&[
+                BorrowedFormatItem::Compound(&fd::parse("[period]")?),
+                BorrowedFormatItem::Compound(&fd::parse("x")?),
             ]),
         )
         .expect_err("parsing should fail");
@@ -1588,9 +1594,9 @@ fn parse_first() -> time::Result<()> {
     let err = parsed
         .parse_item(
             b"2021-01-02",
-            &OwnedFormatItem::from(FormatItem::First(&[
-                FormatItem::Compound(&fd::parse("[period]")?),
-                FormatItem::Compound(&fd::parse("x")?),
+            &OwnedFormatItem::from(BorrowedFormatItem::First(&[
+                BorrowedFormatItem::Compound(&fd::parse("[period]")?),
+                BorrowedFormatItem::Compound(&fd::parse("x")?),
             ])),
         )
         .expect_err("parsing should fail");
@@ -1681,7 +1687,7 @@ fn end() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"",
-        &FormatItem::Component(Component::End(modifier::End::default())),
+        &BorrowedFormatItem::Component(Component::End(modifier::End::default())),
     );
     assert_eq!(remaining_input, Ok(b"".as_slice()));
 

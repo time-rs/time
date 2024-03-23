@@ -5,7 +5,7 @@ use serde_test::{
     Token,
 };
 use time::format_description::well_known::{iso8601, Iso8601};
-use time::format_description::FormatItem;
+use time::format_description::BorrowedFormatItem;
 use time::macros::{date, datetime, offset, time};
 use time::{serde, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
@@ -34,7 +34,8 @@ serde::format_description!(
     "custom format: [offset_hour sign:mandatory]:[offset_minute]"
 );
 
-const TIME_FORMAT_ALT: &[FormatItem<'_>] = time::macros::format_description!("[hour]:[minute]");
+const TIME_FORMAT_ALT: &[BorrowedFormatItem<'_>] =
+    time::macros::format_description!("[hour]:[minute]");
 serde::format_description!(time_format_alt, Time, TIME_FORMAT_ALT);
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]

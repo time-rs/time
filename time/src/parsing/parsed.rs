@@ -13,7 +13,7 @@ use crate::date::{MAX_YEAR, MIN_YEAR};
 use crate::error::TryFromParsed::InsufficientInformation;
 #[cfg(feature = "alloc")]
 use crate::format_description::OwnedFormatItem;
-use crate::format_description::{modifier, Component, FormatItem};
+use crate::format_description::{modifier, BorrowedFormatItem, Component};
 use crate::internal_macros::{bug, const_try_opt};
 use crate::parsing::component::{
     parse_day, parse_end, parse_hour, parse_ignore, parse_minute, parse_month, parse_offset_hour,
@@ -38,7 +38,7 @@ mod sealed {
     }
 }
 
-impl sealed::AnyFormatItem for FormatItem<'_> {
+impl sealed::AnyFormatItem for BorrowedFormatItem<'_> {
     fn parse_item<'a>(
         &self,
         parsed: &mut Parsed,
@@ -213,11 +213,11 @@ impl Parsed {
         }
     }
 
-    /// Parse a single [`FormatItem`] or [`OwnedFormatItem`], mutating the struct. The remaining
-    /// input is returned as the `Ok` value.
+    /// Parse a single [`BorrowedFormatItem`] or [`OwnedFormatItem`], mutating the struct. The
+    /// remaining input is returned as the `Ok` value.
     ///
-    /// If a [`FormatItem::Optional`] or [`OwnedFormatItem::Optional`] is passed, parsing will not
-    /// fail; the input will be returned as-is if the expected format is not present.
+    /// If a [`BorrowedFormatItem::Optional`] or [`OwnedFormatItem::Optional`] is passed, parsing
+    /// will not fail; the input will be returned as-is if the expected format is not present.
     pub fn parse_item<'a>(
         &mut self,
         input: &'a [u8],
@@ -226,11 +226,11 @@ impl Parsed {
         item.parse_item(self, input)
     }
 
-    /// Parse a sequence of [`FormatItem`]s or [`OwnedFormatItem`]s, mutating the struct. The
-    /// remaining input is returned as the `Ok` value.
+    /// Parse a sequence of [`BorrowedFormatItem`]s or [`OwnedFormatItem`]s, mutating the struct.
+    /// The remaining input is returned as the `Ok` value.
     ///
-    /// This method will fail if any of the contained [`FormatItem`]s or [`OwnedFormatItem`]s fail
-    /// to parse. `self` will not be mutated in this instance.
+    /// This method will fail if any of the contained [`BorrowedFormatItem`]s or
+    /// [`OwnedFormatItem`]s fail to parse. `self` will not be mutated in this instance.
     pub fn parse_items<'a>(
         &mut self,
         mut input: &'a [u8],

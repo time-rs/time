@@ -3,6 +3,8 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
+use crate::{error, format_description};
+
 /// A helper macro to make version restrictions simpler to read and write.
 macro_rules! version {
     ($range:expr) => {
@@ -40,8 +42,7 @@ impl<const N: usize> Version<N> {
 /// `parse_borrowed`.
 pub fn parse(
     s: &str,
-) -> Result<Vec<crate::format_description::FormatItem<'_>>, crate::error::InvalidFormatDescription>
-{
+) -> Result<Vec<format_description::BorrowedFormatItem<'_>>, error::InvalidFormatDescription> {
     parse_borrowed::<1>(s)
 }
 
@@ -52,8 +53,7 @@ pub fn parse(
 /// description is provided as the const parameter. **It is recommended to use version 2.**
 pub fn parse_borrowed<const VERSION: usize>(
     s: &str,
-) -> Result<Vec<crate::format_description::FormatItem<'_>>, crate::error::InvalidFormatDescription>
-{
+) -> Result<Vec<format_description::BorrowedFormatItem<'_>>, error::InvalidFormatDescription> {
     validate_version!(VERSION);
     let mut lexed = lexer::lex::<VERSION>(s.as_bytes());
     let ast = ast::parse::<_, VERSION>(&mut lexed);
@@ -75,7 +75,7 @@ pub fn parse_borrowed<const VERSION: usize>(
 /// [`OwnedFormatItem`]: crate::format_description::OwnedFormatItem
 pub fn parse_owned<const VERSION: usize>(
     s: &str,
-) -> Result<crate::format_description::OwnedFormatItem, crate::error::InvalidFormatDescription> {
+) -> Result<format_description::OwnedFormatItem, error::InvalidFormatDescription> {
     validate_version!(VERSION);
     let mut lexed = lexer::lex::<VERSION>(s.as_bytes());
     let ast = ast::parse::<_, VERSION>(&mut lexed);
@@ -220,10 +220,10 @@ struct Error {
     /// The internal error.
     _inner: Unused<ErrorInner>,
     /// The error needed for interoperability with the rest of `time`.
-    public: crate::error::InvalidFormatDescription,
+    public: error::InvalidFormatDescription,
 }
 
-impl From<Error> for crate::error::InvalidFormatDescription {
+impl From<Error> for error::InvalidFormatDescription {
     fn from(error: Error) -> Self {
         error.public
     }

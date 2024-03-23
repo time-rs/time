@@ -9,7 +9,7 @@ use num_conv::prelude::*;
 
 use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
-use crate::format_description::{FormatItem, OwnedFormatItem};
+use crate::format_description::{BorrowedFormatItem, OwnedFormatItem};
 use crate::formatting::{
     format_component, format_number_pad_zero, iso8601, write, MONTH_NAMES, WEEKDAY_NAMES,
 };
@@ -23,8 +23,8 @@ use crate::{error, Date, Time, UtcOffset};
 /// a String from their data. See the respective methods for usage examples.
 #[cfg_attr(__time_03_docs, doc(notable_trait))]
 pub trait Formattable: sealed::Sealed {}
-impl Formattable for FormatItem<'_> {}
-impl Formattable for [FormatItem<'_>] {}
+impl Formattable for BorrowedFormatItem<'_> {}
+impl Formattable for [BorrowedFormatItem<'_>] {}
 impl Formattable for OwnedFormatItem {}
 impl Formattable for [OwnedFormatItem] {}
 impl Formattable for Rfc3339 {}
@@ -63,7 +63,7 @@ mod sealed {
 }
 
 // region: custom formats
-impl sealed::Sealed for FormatItem<'_> {
+impl sealed::Sealed for BorrowedFormatItem<'_> {
     fn format_into(
         &self,
         output: &mut impl io::Write,
@@ -84,7 +84,7 @@ impl sealed::Sealed for FormatItem<'_> {
     }
 }
 
-impl sealed::Sealed for [FormatItem<'_>] {
+impl sealed::Sealed for [BorrowedFormatItem<'_>] {
     fn format_into(
         &self,
         output: &mut impl io::Write,

@@ -4,7 +4,7 @@ use rstest::rstest;
 use rstest_reuse::{apply, template};
 use time::error::InvalidFormatDescription;
 use time::format_description::modifier::*;
-use time::format_description::{self, Component, FormatItem, OwnedFormatItem};
+use time::format_description::{self, BorrowedFormatItem, Component, OwnedFormatItem};
 
 /// Identical to `modifier!`, but obtains the value from `M<T>` automagically.
 macro_rules! modifier_m {
@@ -138,7 +138,10 @@ fn empty() {
 fn only_literal<const N: usize>(#[case] format_description: &str, #[case] expected: [&[u8]; N]) {
     assert_eq!(
         format_description::parse(format_description),
-        Ok(expected.into_iter().map(FormatItem::Literal).collect())
+        Ok(expected
+            .into_iter()
+            .map(BorrowedFormatItem::Literal)
+            .collect())
     );
 }
 
@@ -162,7 +165,7 @@ fn only_literal<const N: usize>(#[case] format_description: &str, #[case] expect
 fn simple_component(#[case] format_description: &str, #[case] component: Component) {
     assert_eq!(
         format_description::parse(format_description),
-        Ok(vec![FormatItem::Component(component)])
+        Ok(vec![BorrowedFormatItem::Component(component)])
     );
 }
 
@@ -226,9 +229,9 @@ macro_rules! parse_with_modifiers {
 fn day_component(padding: M<Padding>) {
     assert_eq!(
         parse_with_modifiers!("day", padding),
-        Ok(vec![FormatItem::Component(Component::Day(modifier_m!(
-            Day { padding }
-        )))])
+        Ok(vec![BorrowedFormatItem::Component(Component::Day(
+            modifier_m!(Day { padding })
+        ))])
     );
 }
 
@@ -236,9 +239,9 @@ fn day_component(padding: M<Padding>) {
 fn minute_component(padding: M<Padding>) {
     assert_eq!(
         parse_with_modifiers!("minute", padding),
-        Ok(vec![FormatItem::Component(Component::Minute(modifier_m!(
-            Minute { padding }
-        )))])
+        Ok(vec![BorrowedFormatItem::Component(Component::Minute(
+            modifier_m!(Minute { padding })
+        ))])
     );
 }
 
@@ -246,9 +249,9 @@ fn minute_component(padding: M<Padding>) {
 fn offset_minute_component(padding: M<Padding>) {
     assert_eq!(
         parse_with_modifiers!("offset_minute", padding),
-        Ok(vec![FormatItem::Component(Component::OffsetMinute(
-            modifier_m!(OffsetMinute { padding })
-        ))])
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::OffsetMinute(modifier_m!(OffsetMinute { padding }))
+        )])
     );
 }
 
@@ -256,9 +259,9 @@ fn offset_minute_component(padding: M<Padding>) {
 fn offset_second_component(padding: M<Padding>) {
     assert_eq!(
         parse_with_modifiers!("offset_second", padding),
-        Ok(vec![FormatItem::Component(Component::OffsetSecond(
-            modifier_m!(OffsetSecond { padding })
-        ))])
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::OffsetSecond(modifier_m!(OffsetSecond { padding }))
+        )])
     );
 }
 
@@ -266,7 +269,7 @@ fn offset_second_component(padding: M<Padding>) {
 fn ordinal_component(padding: M<Padding>) {
     assert_eq!(
         parse_with_modifiers!("ordinal", padding),
-        Ok(vec![FormatItem::Component(Component::Ordinal(
+        Ok(vec![BorrowedFormatItem::Component(Component::Ordinal(
             modifier_m!(Ordinal { padding })
         ))])
     );
@@ -276,9 +279,9 @@ fn ordinal_component(padding: M<Padding>) {
 fn second_component(padding: M<Padding>) {
     assert_eq!(
         parse_with_modifiers!("second", padding),
-        Ok(vec![FormatItem::Component(Component::Second(modifier_m!(
-            Second { padding }
-        )))])
+        Ok(vec![BorrowedFormatItem::Component(Component::Second(
+            modifier_m!(Second { padding })
+        ))])
     );
 }
 
@@ -286,12 +289,12 @@ fn second_component(padding: M<Padding>) {
 fn hour_component(padding: M<Padding>, hour_is_12_hour_clock: M<bool>) {
     assert_eq!(
         parse_with_modifiers!("hour", padding, hour_is_12_hour_clock),
-        Ok(vec![FormatItem::Component(Component::Hour(modifier_m!(
-            Hour {
+        Ok(vec![BorrowedFormatItem::Component(Component::Hour(
+            modifier_m!(Hour {
                 padding,
                 is_12_hour_clock: hour_is_12_hour_clock
-            }
-        )))])
+            })
+        ))])
     );
 }
 
@@ -299,13 +302,13 @@ fn hour_component(padding: M<Padding>, hour_is_12_hour_clock: M<bool>) {
 fn month_component(padding: M<Padding>, case_sensitive: M<bool>, month_repr: M<MonthRepr>) {
     assert_eq!(
         parse_with_modifiers!("month", padding, case_sensitive, month_repr),
-        Ok(vec![FormatItem::Component(Component::Month(modifier_m!(
-            Month {
+        Ok(vec![BorrowedFormatItem::Component(Component::Month(
+            modifier_m!(Month {
                 padding,
                 repr: month_repr,
                 case_sensitive
-            }
-        )))])
+            })
+        ))])
     );
 }
 
@@ -313,12 +316,12 @@ fn month_component(padding: M<Padding>, case_sensitive: M<bool>, month_repr: M<M
 fn period_component(case_sensitive: M<bool>, period_is_uppercase: M<bool>) {
     assert_eq!(
         parse_with_modifiers!("period", period_is_uppercase, case_sensitive),
-        Ok(vec![FormatItem::Component(Component::Period(modifier_m!(
-            Period {
+        Ok(vec![BorrowedFormatItem::Component(Component::Period(
+            modifier_m!(Period {
                 is_uppercase: period_is_uppercase,
                 case_sensitive
-            }
-        )))])
+            })
+        ))])
     );
 }
 
@@ -335,7 +338,7 @@ fn weekday_component(
             weekday_is_one_indexed,
             weekday_repr
         ),
-        Ok(vec![FormatItem::Component(Component::Weekday(
+        Ok(vec![BorrowedFormatItem::Component(Component::Weekday(
             modifier_m!(Weekday {
                 repr: weekday_repr,
                 one_indexed: weekday_is_one_indexed,
@@ -349,7 +352,7 @@ fn weekday_component(
 fn week_number_component(padding: M<Padding>, week_number_repr: M<WeekNumberRepr>) {
     assert_eq!(
         parse_with_modifiers!("week_number", padding, week_number_repr),
-        Ok(vec![FormatItem::Component(Component::WeekNumber(
+        Ok(vec![BorrowedFormatItem::Component(Component::WeekNumber(
             modifier_m!(WeekNumber {
                 padding,
                 repr: week_number_repr
@@ -362,7 +365,7 @@ fn week_number_component(padding: M<Padding>, week_number_repr: M<WeekNumberRepr
 fn offset_hour_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
     assert_eq!(
         parse_with_modifiers!("offset_hour", padding, sign_is_mandatory),
-        Ok(vec![FormatItem::Component(Component::OffsetHour(
+        Ok(vec![BorrowedFormatItem::Component(Component::OffsetHour(
             modifier_m!(OffsetHour {
                 padding,
                 sign_is_mandatory
@@ -386,14 +389,14 @@ fn year_component(
             year_is_iso_week_based,
             sign_is_mandatory
         ),
-        Ok(vec![FormatItem::Component(Component::Year(modifier_m!(
-            Year {
+        Ok(vec![BorrowedFormatItem::Component(Component::Year(
+            modifier_m!(Year {
                 padding,
                 repr: year_repr,
                 iso_week_based: year_is_iso_week_based,
                 sign_is_mandatory
-            }
-        )))])
+            })
+        ))])
     );
 }
 
@@ -408,12 +411,12 @@ fn unix_timestamp_component(
             sign_is_mandatory,
             unix_timestamp_precision
         ),
-        Ok(vec![FormatItem::Component(Component::UnixTimestamp(
-            modifier_m!(UnixTimestamp {
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::UnixTimestamp(modifier_m!(UnixTimestamp {
                 sign_is_mandatory,
                 precision: unix_timestamp_precision,
-            })
-        ))])
+            }))
+        )])
     );
 }
 
@@ -421,7 +424,7 @@ fn unix_timestamp_component(
 fn subsecond_component(subsecond_digits: M<SubsecondDigits>) {
     assert_eq!(
         parse_with_modifiers!("subsecond", subsecond_digits),
-        Ok(vec![FormatItem::Component(Component::Subsecond(
+        Ok(vec![BorrowedFormatItem::Component(Component::Subsecond(
             modifier_m!(Subsecond {
                 digits: subsecond_digits
             })
@@ -433,7 +436,7 @@ fn subsecond_component(subsecond_digits: M<SubsecondDigits>) {
 fn ignore_component(ignore_count: M<NonZeroU16>) {
     assert_eq!(
         parse_with_modifiers!("ignore", ignore_count),
-        Ok(vec![FormatItem::Component(Component::Ignore(
+        Ok(vec![BorrowedFormatItem::Component(Component::Ignore(
             Ignore::count(ignore_count.0)
         ))])
     );
@@ -572,21 +575,21 @@ fn backslash_escape() {
     );
     assert_eq!(
         format_description::parse_borrowed::<2>(r"\\"),
-        Ok(vec![FormatItem::Literal(br"\")])
+        Ok(vec![BorrowedFormatItem::Literal(br"\")])
     );
     assert_eq!(
         format_description::parse_borrowed::<2>(r"\["),
-        Ok(vec![FormatItem::Literal(br"[")])
+        Ok(vec![BorrowedFormatItem::Literal(br"[")])
     );
     assert_eq!(
         format_description::parse_borrowed::<2>(r"\]"),
-        Ok(vec![FormatItem::Literal(br"]")])
+        Ok(vec![BorrowedFormatItem::Literal(br"]")])
     );
     assert_eq!(
         format_description::parse_borrowed::<2>(r"foo\\"),
         Ok(vec![
-            FormatItem::Literal(b"foo"),
-            FormatItem::Literal(br"\"),
+            BorrowedFormatItem::Literal(b"foo"),
+            BorrowedFormatItem::Literal(br"\"),
         ])
     );
 }
@@ -751,44 +754,44 @@ fn rfc_3339() {
              sign:mandatory]:[offset_minute]"
         ),
         Ok(vec![
-            FormatItem::Component(Component::Year(modifier!(Year {
+            BorrowedFormatItem::Component(Component::Year(modifier!(Year {
                 padding: Padding::Zero,
                 repr: YearRepr::Full,
                 iso_week_based: false,
                 sign_is_mandatory: false
             }))),
-            FormatItem::Literal(b"-"),
-            FormatItem::Component(Component::Month(modifier!(Month {
+            BorrowedFormatItem::Literal(b"-"),
+            BorrowedFormatItem::Component(Component::Month(modifier!(Month {
                 padding: Padding::Zero,
                 repr: MonthRepr::Numerical
             }))),
-            FormatItem::Literal(b"-"),
-            FormatItem::Component(Component::Day(modifier!(Day {
+            BorrowedFormatItem::Literal(b"-"),
+            BorrowedFormatItem::Component(Component::Day(modifier!(Day {
                 padding: Padding::Zero
             }))),
-            FormatItem::Literal(b"T"),
-            FormatItem::Component(Component::Hour(modifier!(Hour {
+            BorrowedFormatItem::Literal(b"T"),
+            BorrowedFormatItem::Component(Component::Hour(modifier!(Hour {
                 padding: Padding::Zero,
                 is_12_hour_clock: false
             }))),
-            FormatItem::Literal(b":"),
-            FormatItem::Component(Component::Minute(modifier!(Minute {
+            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::Component(Component::Minute(modifier!(Minute {
                 padding: Padding::Zero
             }))),
-            FormatItem::Literal(b":"),
-            FormatItem::Component(Component::Second(modifier!(Second {
+            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::Component(Component::Second(modifier!(Second {
                 padding: Padding::Zero
             }))),
-            FormatItem::Literal(b"."),
-            FormatItem::Component(Component::Subsecond(modifier!(Subsecond {
+            BorrowedFormatItem::Literal(b"."),
+            BorrowedFormatItem::Component(Component::Subsecond(modifier!(Subsecond {
                 digits: SubsecondDigits::OneOrMore
             }))),
-            FormatItem::Component(Component::OffsetHour(modifier!(OffsetHour {
+            BorrowedFormatItem::Component(Component::OffsetHour(modifier!(OffsetHour {
                 padding: Padding::Zero,
                 sign_is_mandatory: true
             }))),
-            FormatItem::Literal(b":"),
-            FormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
+            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
                 padding: Padding::Zero
             })))
         ])

@@ -2,7 +2,7 @@ use core::num::NonZeroU16;
 
 use rstest::rstest;
 use time::format_description::modifier::*;
-use time::format_description::{Component, FormatItem};
+use time::format_description::{BorrowedFormatItem, Component};
 use time::macros::{date, format_description, time};
 use time::{Date, Time};
 
@@ -17,13 +17,13 @@ fn nontrivial_string() {
     assert_eq!(
         format_description!("foo\
         bar\n\r\t\\\"\'\0\x20\x4E\x4e\u{20}\u{4E}\u{4_e}"),
-        &[FormatItem::Literal(b"foobar\n\r\t\\\"'\0 NN NN")]
+        &[BorrowedFormatItem::Literal(b"foobar\n\r\t\\\"'\0 NN NN")]
     );
     #[rustfmt::skip]
     assert_eq!(
         format_description!(b"foo\
         bar\n\r\t\\\"\'\0\x20\x4E\x4e"),
-        &[FormatItem::Literal(b"foobar\n\r\t\\\"'\0 NN")]
+        &[BorrowedFormatItem::Literal(b"foobar\n\r\t\\\"'\0 NN")]
     );
 }
 
@@ -31,15 +31,15 @@ fn nontrivial_string() {
 fn format_description_version() {
     assert_eq!(
         format_description!(version = 1, "[["),
-        &[FormatItem::Literal(b"[")]
+        &[BorrowedFormatItem::Literal(b"[")]
     );
     assert_eq!(
         format_description!(version = 1, r"\\"),
-        &[FormatItem::Literal(br"\\")]
+        &[BorrowedFormatItem::Literal(br"\\")]
     );
     assert_eq!(
         format_description!(version = 2, r"\\"),
-        &[FormatItem::Literal(br"\")]
+        &[BorrowedFormatItem::Literal(br"\")]
     );
 }
 
@@ -47,21 +47,25 @@ fn format_description_version() {
 fn nested_v1() {
     assert_eq!(
         format_description!(version = 1, "[optional [[[]]"),
-        &[FormatItem::Optional(&FormatItem::Literal(b"["))]
+        &[BorrowedFormatItem::Optional(&BorrowedFormatItem::Literal(
+            b"["
+        ))]
     );
     assert_eq!(
         format_description!(version = 1, "[optional [ [[ ]]"),
-        &[FormatItem::Optional(&FormatItem::Compound(&[
-            FormatItem::Literal(b" "),
-            FormatItem::Literal(b"["),
-            FormatItem::Literal(b" "),
-        ]))]
+        &[BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(
+            &[
+                BorrowedFormatItem::Literal(b" "),
+                BorrowedFormatItem::Literal(b"["),
+                BorrowedFormatItem::Literal(b" "),
+            ]
+        ))]
     );
     assert_eq!(
         format_description!(version = 1, "[first [a][[[]]"),
-        &[FormatItem::First(&[
-            FormatItem::Literal(b"a"),
-            FormatItem::Literal(b"[")
+        &[BorrowedFormatItem::First(&[
+            BorrowedFormatItem::Literal(b"a"),
+            BorrowedFormatItem::Literal(b"[")
         ])]
     );
 }
@@ -70,28 +74,34 @@ fn nested_v1() {
 fn optional() {
     assert_eq!(
         format_description!(version = 2, "[optional [:[year]]]"),
-        &[FormatItem::Optional(&FormatItem::Compound(&[
-            FormatItem::Literal(b":"),
-            FormatItem::Component(Component::Year(Default::default()))
-        ]))]
-    );
-    assert_eq!(
-        format_description!(version = 2, "[optional [[year]]]"),
-        &[FormatItem::Optional(&FormatItem::Component(
-            Component::Year(Default::default())
+        &[BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(
+            &[
+                BorrowedFormatItem::Literal(b":"),
+                BorrowedFormatItem::Component(Component::Year(Default::default()))
+            ]
         ))]
     );
     assert_eq!(
+        format_description!(version = 2, "[optional [[year]]]"),
+        &[BorrowedFormatItem::Optional(
+            &BorrowedFormatItem::Component(Component::Year(Default::default()))
+        )]
+    );
+    assert_eq!(
         format_description!(version = 2, r"[optional [\[]]"),
-        &[FormatItem::Optional(&FormatItem::Literal(b"["))]
+        &[BorrowedFormatItem::Optional(&BorrowedFormatItem::Literal(
+            b"["
+        ))]
     );
     assert_eq!(
         format_description!(version = 2, r"[optional [ \[ ]]"),
-        &[FormatItem::Optional(&FormatItem::Compound(&[
-            FormatItem::Literal(b" "),
-            FormatItem::Literal(b"["),
-            FormatItem::Literal(b" "),
-        ]))]
+        &[BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(
+            &[
+                BorrowedFormatItem::Literal(b" "),
+                BorrowedFormatItem::Literal(b"["),
+                BorrowedFormatItem::Literal(b" "),
+            ]
+        ))]
     );
 }
 
@@ -99,34 +109,39 @@ fn optional() {
 fn first() {
     assert_eq!(
         format_description!(version = 2, "[first [a]]"),
-        &[FormatItem::First(&[FormatItem::Literal(b"a")])]
+        &[BorrowedFormatItem::First(&[BorrowedFormatItem::Literal(
+            b"a"
+        )])]
     );
     assert_eq!(
         format_description!(version = 2, "[first [a] [b]]"),
-        &[FormatItem::First(&[
-            FormatItem::Literal(b"a"),
-            FormatItem::Literal(b"b"),
+        &[BorrowedFormatItem::First(&[
+            BorrowedFormatItem::Literal(b"a"),
+            BorrowedFormatItem::Literal(b"b"),
         ])]
     );
     assert_eq!(
         format_description!(version = 2, "[first [a][b]]"),
-        &[FormatItem::First(&[
-            FormatItem::Literal(b"a"),
-            FormatItem::Literal(b"b"),
+        &[BorrowedFormatItem::First(&[
+            BorrowedFormatItem::Literal(b"a"),
+            BorrowedFormatItem::Literal(b"b"),
         ])]
     );
     assert_eq!(
         format_description!(version = 2, r"[first [a][\[]]"),
-        &[FormatItem::First(&[
-            FormatItem::Literal(b"a"),
-            FormatItem::Literal(b"["),
+        &[BorrowedFormatItem::First(&[
+            BorrowedFormatItem::Literal(b"a"),
+            BorrowedFormatItem::Literal(b"["),
         ])]
     );
     assert_eq!(
         format_description!(version = 2, r"[first [a][\[\[]]"),
-        &[FormatItem::First(&[
-            FormatItem::Literal(b"a"),
-            FormatItem::Compound(&[FormatItem::Literal(b"["), FormatItem::Literal(b"["),])
+        &[BorrowedFormatItem::First(&[
+            BorrowedFormatItem::Literal(b"a"),
+            BorrowedFormatItem::Compound(&[
+                BorrowedFormatItem::Literal(b"["),
+                BorrowedFormatItem::Literal(b"["),
+            ])
         ])]
     );
     assert_eq!(
@@ -134,12 +149,12 @@ fn first() {
             version = 2,
             "[first [[period case:upper]] [[period case:lower]] ]"
         ),
-        &[FormatItem::First(&[
-            FormatItem::Component(Component::Period(modifier!(Period {
+        &[BorrowedFormatItem::First(&[
+            BorrowedFormatItem::Component(Component::Period(modifier!(Period {
                 is_uppercase: true,
                 case_sensitive: true,
             }))),
-            FormatItem::Component(Component::Period(modifier!(Period {
+            BorrowedFormatItem::Component(Component::Period(modifier!(Period {
                 is_uppercase: false,
                 case_sensitive: true,
             }))),
@@ -151,47 +166,59 @@ fn first() {
 fn backslash_escape() {
     assert_eq!(
         format_description!(version = 2, r"[optional [\]]]"),
-        &[FormatItem::Optional(&FormatItem::Literal(b"]"))]
+        &[BorrowedFormatItem::Optional(&BorrowedFormatItem::Literal(
+            b"]"
+        ))]
     );
     assert_eq!(
         format_description!(version = 2, r"[optional [\[]]"),
-        &[FormatItem::Optional(&FormatItem::Literal(b"["))]
+        &[BorrowedFormatItem::Optional(&BorrowedFormatItem::Literal(
+            b"["
+        ))]
     );
     assert_eq!(
         format_description!(version = 2, r"[optional [\\]]"),
-        &[FormatItem::Optional(&FormatItem::Literal(br"\"))]
+        &[BorrowedFormatItem::Optional(&BorrowedFormatItem::Literal(
+            br"\"
+        ))]
     );
     assert_eq!(
         format_description!(version = 2, r"\\"),
-        &[FormatItem::Literal(br"\")]
+        &[BorrowedFormatItem::Literal(br"\")]
     );
     assert_eq!(
         format_description!(version = 2, r"\["),
-        &[FormatItem::Literal(br"[")]
+        &[BorrowedFormatItem::Literal(br"[")]
     );
     assert_eq!(
         format_description!(version = 2, r"\]"),
-        &[FormatItem::Literal(br"]")]
+        &[BorrowedFormatItem::Literal(br"]")]
     );
     assert_eq!(
         format_description!(version = 2, r"foo\\"),
-        &[FormatItem::Literal(b"foo"), FormatItem::Literal(br"\"),]
+        &[
+            BorrowedFormatItem::Literal(b"foo"),
+            BorrowedFormatItem::Literal(br"\"),
+        ]
     );
     assert_eq!(
         format_description!(version = 2, r"\\"),
-        &[FormatItem::Literal(br"\")]
+        &[BorrowedFormatItem::Literal(br"\")]
     );
     assert_eq!(
         format_description!(version = 2, r"\["),
-        &[FormatItem::Literal(br"[")]
+        &[BorrowedFormatItem::Literal(br"[")]
     );
     assert_eq!(
         format_description!(version = 2, r"\]"),
-        &[FormatItem::Literal(br"]")]
+        &[BorrowedFormatItem::Literal(br"]")]
     );
     assert_eq!(
         format_description!(version = 2, r"foo\\"),
-        &[FormatItem::Literal(b"foo"), FormatItem::Literal(br"\"),]
+        &[
+            BorrowedFormatItem::Literal(b"foo"),
+            BorrowedFormatItem::Literal(br"\"),
+        ]
     );
 }
 
@@ -200,13 +227,13 @@ fn format_description_coverage() {
     assert_eq!(
         format_description!("[day padding:space][day padding:zero][day padding:none]"),
         &[
-            FormatItem::Component(Component::Day(modifier!(Day {
+            BorrowedFormatItem::Component(Component::Day(modifier!(Day {
                 padding: Padding::Space,
             }))),
-            FormatItem::Component(Component::Day(modifier!(Day {
+            BorrowedFormatItem::Component(Component::Day(modifier!(Day {
                 padding: Padding::Zero,
             }))),
-            FormatItem::Component(Component::Day(modifier!(Day {
+            BorrowedFormatItem::Component(Component::Day(modifier!(Day {
                 padding: Padding::None,
             })))
         ]
@@ -216,13 +243,13 @@ fn format_description_coverage() {
             "[offset_minute padding:space][offset_minute padding:zero][offset_minute padding:none]"
         ),
         &[
-            FormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
+            BorrowedFormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
                 padding: Padding::Space,
             }))),
-            FormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
+            BorrowedFormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
                 padding: Padding::Zero,
             }))),
-            FormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
+            BorrowedFormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
                 padding: Padding::None,
             })))
         ]
@@ -232,13 +259,13 @@ fn format_description_coverage() {
             "[offset_second padding:space][offset_second padding:zero][offset_second padding:none]"
         ),
         &[
-            FormatItem::Component(Component::OffsetSecond(modifier!(OffsetSecond {
+            BorrowedFormatItem::Component(Component::OffsetSecond(modifier!(OffsetSecond {
                 padding: Padding::Space,
             }))),
-            FormatItem::Component(Component::OffsetSecond(modifier!(OffsetSecond {
+            BorrowedFormatItem::Component(Component::OffsetSecond(modifier!(OffsetSecond {
                 padding: Padding::Zero,
             }))),
-            FormatItem::Component(Component::OffsetSecond(modifier!(OffsetSecond {
+            BorrowedFormatItem::Component(Component::OffsetSecond(modifier!(OffsetSecond {
                 padding: Padding::None,
             }))),
         ]
@@ -246,73 +273,82 @@ fn format_description_coverage() {
     assert_eq!(
         format_description!("[ordinal padding:space][ordinal padding:zero][ordinal padding:none]"),
         &[
-            FormatItem::Component(Component::Ordinal(modifier!(Ordinal {
+            BorrowedFormatItem::Component(Component::Ordinal(modifier!(Ordinal {
                 padding: Padding::Space,
             }))),
-            FormatItem::Component(Component::Ordinal(modifier!(Ordinal {
+            BorrowedFormatItem::Component(Component::Ordinal(modifier!(Ordinal {
                 padding: Padding::Zero,
             }))),
-            FormatItem::Component(Component::Ordinal(modifier!(Ordinal {
+            BorrowedFormatItem::Component(Component::Ordinal(modifier!(Ordinal {
                 padding: Padding::None,
             }))),
         ]
     );
     assert_eq!(
         format_description!("[month repr:numerical]"),
-        &[FormatItem::Component(Component::Month(modifier!(Month {
-            repr: MonthRepr::Numerical,
-            padding: Padding::Zero,
-        })))]
+        &[BorrowedFormatItem::Component(Component::Month(modifier!(
+            Month {
+                repr: MonthRepr::Numerical,
+                padding: Padding::Zero,
+            }
+        )))]
     );
     assert_eq!(
         format_description!("[week_number repr:iso ]"),
-        &[FormatItem::Component(Component::WeekNumber(modifier!(
-            WeekNumber {
+        &[BorrowedFormatItem::Component(Component::WeekNumber(
+            modifier!(WeekNumber {
                 padding: Padding::Zero,
                 repr: WeekNumberRepr::Iso,
-            }
-        )))]
+            })
+        ))]
     );
     assert_eq!(
         format_description!("[weekday repr:long one_indexed:true]"),
-        &[FormatItem::Component(Component::Weekday(modifier!(
-            Weekday {
+        &[BorrowedFormatItem::Component(Component::Weekday(
+            modifier!(Weekday {
                 repr: WeekdayRepr::Long,
                 one_indexed: true,
-            }
-        )))]
+            })
+        ))]
     );
     assert_eq!(
         format_description!("[year repr:full base:calendar]"),
-        &[FormatItem::Component(Component::Year(modifier!(Year {
-            repr: YearRepr::Full,
-            iso_week_based: false,
-            padding: Padding::Zero,
-            sign_is_mandatory: false,
-        })))]
-    );
-    assert_eq!(
-        format_description!("[[ "),
-        &[FormatItem::Literal(b"["), FormatItem::Literal(b" ")]
-    );
-    assert_eq!(
-        format_description!("[ignore count:2]"),
-        &[FormatItem::Component(Component::Ignore(Ignore::count(
-            NonZeroU16::new(2).expect("2 is not zero")
-        )))]
-    );
-    assert_eq!(
-        format_description!("[unix_timestamp precision:nanosecond sign:mandatory]"),
-        &[FormatItem::Component(Component::UnixTimestamp(modifier!(
-            UnixTimestamp {
-                precision: UnixTimestampPrecision::Nanosecond,
-                sign_is_mandatory: true,
+        &[BorrowedFormatItem::Component(Component::Year(modifier!(
+            Year {
+                repr: YearRepr::Full,
+                iso_week_based: false,
+                padding: Padding::Zero,
+                sign_is_mandatory: false,
             }
         )))]
     );
     assert_eq!(
+        format_description!("[[ "),
+        &[
+            BorrowedFormatItem::Literal(b"["),
+            BorrowedFormatItem::Literal(b" ")
+        ]
+    );
+    assert_eq!(
+        format_description!("[ignore count:2]"),
+        &[BorrowedFormatItem::Component(Component::Ignore(
+            Ignore::count(NonZeroU16::new(2).expect("2 is not zero"))
+        ))]
+    );
+    assert_eq!(
+        format_description!("[unix_timestamp precision:nanosecond sign:mandatory]"),
+        &[BorrowedFormatItem::Component(Component::UnixTimestamp(
+            modifier!(UnixTimestamp {
+                precision: UnixTimestampPrecision::Nanosecond,
+                sign_is_mandatory: true,
+            })
+        ))]
+    );
+    assert_eq!(
         format_description!("[end]"),
-        &[FormatItem::Component(Component::End(modifier!(End)))]
+        &[BorrowedFormatItem::Component(Component::End(modifier!(
+            End
+        )))]
     );
 }
 

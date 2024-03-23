@@ -4,7 +4,7 @@ use std::hash::Hash;
 
 use time::error::{self, ConversionRange, IndeterminateOffset, TryFromParsed};
 use time::ext::NumericalDuration;
-use time::format_description::{self, modifier, well_known, Component, FormatItem, OwnedFormatItem};
+use time::format_description::{self, modifier, well_known, Component, BorrowedFormatItem, OwnedFormatItem};
 use time::macros::{date, offset, time};
 use time::parsing::Parsed;
 use time::{Duration, Error, Month, Time, Weekday};
@@ -64,7 +64,7 @@ fn clone() {
     assert_cloned_eq!(well_known::iso8601::OffsetPrecision::Hour);
     assert_cloned_eq!(well_known::iso8601::FormattedComponents::None);
     assert_cloned_eq!(component_range_error());
-    assert_cloned_eq!(FormatItem::Literal(b""));
+    assert_cloned_eq!(BorrowedFormatItem::Literal(b""));
     assert_cloned_eq!(time::util::local_offset::Soundness::Sound);
 
     assert_cloned_eq!(modifier::Day::default());
@@ -189,13 +189,13 @@ fn debug() {
         modifier::OffsetSecond::default();
         modifier::Padding::default();
 
-        FormatItem::Literal(b"abcdef");
-        FormatItem::Compound(&[FormatItem::Component(Component::Day(modifier::Day::default()))]);
-        FormatItem::Optional(&FormatItem::Compound(&[]));
-        FormatItem::First(&[]);
-        OwnedFormatItem::from(FormatItem::Literal(b"abcdef"));
-        OwnedFormatItem::from(FormatItem::Compound(&[FormatItem::Component(Component::Day(modifier::Day::default()))]));
-        OwnedFormatItem::from(FormatItem::Optional(&FormatItem::Compound(&[])));
-        OwnedFormatItem::from(FormatItem::First(&[]));
+        BorrowedFormatItem::Literal(b"abcdef");
+        BorrowedFormatItem::Compound(&[BorrowedFormatItem::Component(Component::Day(modifier::Day::default()))]);
+        BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&[]));
+        BorrowedFormatItem::First(&[]);
+        OwnedFormatItem::from(BorrowedFormatItem::Literal(b"abcdef"));
+        OwnedFormatItem::from(BorrowedFormatItem::Compound(&[BorrowedFormatItem::Component(Component::Day(modifier::Day::default()))]));
+        OwnedFormatItem::from(BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&[])));
+        OwnedFormatItem::from(BorrowedFormatItem::First(&[]));
     }
 }

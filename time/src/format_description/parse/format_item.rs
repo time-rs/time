@@ -102,7 +102,7 @@ impl Item<'_> {
     }
 }
 
-impl<'a> TryFrom<Item<'a>> for crate::format_description::FormatItem<'a> {
+impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a> {
     type Error = Error;
 
     fn try_from(item: Item<'a>) -> Result<Self, Self::Error> {
