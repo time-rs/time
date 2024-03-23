@@ -1,3 +1,9 @@
+error: invalid component: hour was 26
+ --> ../tests/compile-fail/invalid_offset.rs:4:22
+  |
+4 |     let _ = offset!(+26);
+  |                      ^^
+
 error: invalid component: minute was 60
  --> ../tests/compile-fail/invalid_offset.rs:5:24
   |

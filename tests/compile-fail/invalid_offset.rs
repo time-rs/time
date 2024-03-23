@@ -1,7 +1,7 @@
 use time::macros::offset;
 
 fn main() {
-    let _ = offset!(+24);
+    let _ = offset!(+26);
     let _ = offset!(+0:60);
     let _ = offset!(+0:00:60);
     let _ = offset!(0);
