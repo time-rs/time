@@ -739,6 +739,8 @@ impl<const CONFIG: EncodedConfig> sealed::Sealed for Iso8601<CONFIG> {
         let mut offset_is_present = false;
         let mut first_error = None;
 
+        parsed.leap_second_allowed = true;
+
         match Self::parse_date(parsed, &mut extended_kind)(input) {
             Ok(new_input) => {
                 input = new_input;
