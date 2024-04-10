@@ -6,7 +6,28 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
-## 0.3.34 [2024-12-03]
+## 0.3.35 [2024-04-10]
+
+## Added
+
+- `Duration::checked_neg`
+- `ext::InstantExt`, which provides methods for using `time::Duration` with `std::time::Instant`
+
+## Changed
+
+- `Instant` is deprecated. It is recommended to use `std::time::Instant` directly, importing
+  `time::ext::InstantExt` for interoperability with `time::Duration`.
+- `FormatItem` has been renamed to `BorrowedFormatItem`, avoiding confusion with `OwnedFormatItem`.
+  An alias has been added for backwards compatibility.
+
+## Fixed
+
+- The weekday is optional when parsing RFC2822.
+- The range of sub-second values in `Duration` is documented correctly. The previous documentation
+  contained an off-by-one error.
+- Leap seconds are now correctly handled when parsing ISO 8601.
+
+## 0.3.34 [2024-02-03]
 
 ### Fixed
 
