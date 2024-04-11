@@ -6,21 +6,29 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.36 [2024-04-10]
+
+### # Fixed
+
+- `FormatItem` can be used as part of an import path. See [#675] for details.
+
+[#675]: https://github.com/time-rs/time/issues/675
+
 ## 0.3.35 [2024-04-10]
 
-## Added
+### Added
 
 - `Duration::checked_neg`
 - `ext::InstantExt`, which provides methods for using `time::Duration` with `std::time::Instant`
 
-## Changed
+### Changed
 
 - `Instant` is deprecated. It is recommended to use `std::time::Instant` directly, importing
   `time::ext::InstantExt` for interoperability with `time::Duration`.
 - `FormatItem` has been renamed to `BorrowedFormatItem`, avoiding confusion with `OwnedFormatItem`.
   An alias has been added for backwards compatibility.
 
-## Fixed
+### Fixed
 
 - The weekday is optional when parsing RFC2822.
 - The range of sub-second values in `Duration` is documented correctly. The previous documentation
@@ -381,6 +389,9 @@ This includes the update to the `format_description!` macro, which was supposed 
 - [#479]: regression when parsing optional values with `serde`
 - [#481]: `Time` subtracted from `Time` can panic. This was caused by a bug that has always existed,
   in that an internal invariant was not upheld. Memory safety was not violated.
+
+[#479]: https://github.com/time-rs/time/issues/479
+[#481]: https://github.com/time-rs/time/issues/481
 
 ## 0.3.10 [2022-06-19]
 
