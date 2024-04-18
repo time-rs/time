@@ -28,7 +28,10 @@ use crate::Duration;
 ///
 /// This implementation allows for operations with signed [`Duration`]s, but is otherwise identical
 /// to [`std::time::Instant`].
-#[deprecated(since = "0.3.35", note = "import `time::ext::InstantExt` instead")]
+#[deprecated(
+    since = "0.3.35",
+    note = "import `std::time::Instant` and `time::ext::InstantExt` instead"
+)]
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Instant(pub StdInstant);
