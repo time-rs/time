@@ -2,7 +2,8 @@
 
 pub(crate) mod formattable;
 mod iso8601;
-use core::{fmt, num::NonZeroU8};
+use core::fmt;
+use core::num::NonZeroU8;
 use std::io;
 
 use num_conv::prelude::*;
@@ -73,11 +74,7 @@ pub(crate) fn write(output: &mut impl io::Write, bytes: &[u8]) -> io::Result<usi
 
 /// If `pred` is true, write all bytes to the output, returning the number of bytes written.
 pub(crate) fn write_if(output: &mut impl io::Write, pred: bool, bytes: &[u8]) -> io::Result<usize> {
-    if pred {
-        write(output, bytes)
-    } else {
-        Ok(0)
-    }
+    if pred { write(output, bytes) } else { Ok(0) }
 }
 
 /// If `pred` is true, write `true_bytes` to the output. Otherwise, write `false_bytes`.
