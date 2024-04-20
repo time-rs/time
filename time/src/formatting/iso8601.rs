@@ -90,7 +90,7 @@ pub(super) fn format_time<const CONFIG: EncodedConfig>(
                 + (minutes as f64) / Minute::per(Hour) as f64
                 + (seconds as f64) / Second::per(Hour) as f64
                 + (nanoseconds as f64) / Nanosecond::per(Hour) as f64;
-            format_float(output, hours, 2, decimal_digits)?;
+            format_float(output, hours.into(), 2, decimal_digits)?;
         }
         TimePrecision::Minute { decimal_digits } => {
             bytes += format_number_pad_zero::<2>(output, hours)?;
@@ -98,7 +98,7 @@ pub(super) fn format_time<const CONFIG: EncodedConfig>(
             let minutes = (minutes as f64)
                 + (seconds as f64) / Second::per(Minute) as f64
                 + (nanoseconds as f64) / Nanosecond::per(Minute) as f64;
-            bytes += format_float(output, minutes, 2, decimal_digits)?;
+            bytes += format_float(output, minutes.into(), 2, decimal_digits)?;
         }
         TimePrecision::Second { decimal_digits } => {
             bytes += format_number_pad_zero::<2>(output, hours)?;
@@ -106,7 +106,7 @@ pub(super) fn format_time<const CONFIG: EncodedConfig>(
             bytes += format_number_pad_zero::<2>(output, minutes)?;
             bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b":")?;
             let seconds = (seconds as f64) + (nanoseconds as f64) / Nanosecond::per(Second) as f64;
-            bytes += format_float(output, seconds, 2, decimal_digits)?;
+            bytes += format_float(output, seconds.into(), 2, decimal_digits)?;
         }
     }
 
