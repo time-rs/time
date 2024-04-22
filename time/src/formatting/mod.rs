@@ -60,9 +60,10 @@ impl core::fmt::Display for FloatNum {
             let trunc_num = 10.0_f64.powi(precision);
             let num_to_format = f64::trunc(self.0 * trunc_num) / trunc_num;
 
-            return num_to_format.fmt(fmt);
+            num_to_format.fmt(fmt)
+        } else {
+            self.0.fmt(fmt)
         }
-        self.0.fmt(fmt)
     }
 }
 
