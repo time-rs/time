@@ -5,6 +5,7 @@ use time::format_description::well_known::{iso8601, Iso8601, Rfc2822, Rfc3339};
 use time::format_description::{self, BorrowedFormatItem, OwnedFormatItem};
 use time::macros::{date, datetime, format_description as fd, offset, time};
 use time::{OffsetDateTime, Time};
+use time::formatting::FloatNum;
 
 #[test]
 fn rfc_2822() -> time::Result<()> {
