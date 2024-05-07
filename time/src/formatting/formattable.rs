@@ -21,7 +21,7 @@ use crate::{error, Date, Time, UtcOffset};
 ///
 /// [`Date::format`] and [`Time::format`] each use a format description to generate
 /// a String from their data. See the respective methods for usage examples.
-#[cfg_attr(__time_03_docs, doc(notable_trait))]
+#[cfg_attr(docsrs, doc(notable_trait))]
 pub trait Formattable: sealed::Sealed {}
 impl Formattable for BorrowedFormatItem<'_> {}
 impl Formattable for [BorrowedFormatItem<'_>] {}

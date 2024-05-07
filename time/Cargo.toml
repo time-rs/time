@@ -27,7 +27,7 @@ workspace = true
 [package.metadata.docs.rs]
 all-features = true
 targets = ["x86_64-unknown-linux-gnu"]
-rustdoc-args = ["--cfg", "__time_03_docs", "--generate-link-to-definition"]
+rustdoc-args = ["--generate-link-to-definition"]
 
 [features]
 default = ["std"]
