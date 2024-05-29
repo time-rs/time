@@ -2,7 +2,7 @@
 
 pub(crate) mod formattable;
 mod iso8601;
-use core::fmt;
+
 use core::num::NonZeroU8;
 use std::io;
 
@@ -41,32 +41,6 @@ const WEEKDAY_NAMES: [&[u8]; 7] = [
     b"Sunday",
 ];
 
-/// Wrapper struct for f64 with custom Display formatter
-#[derive(Debug, Clone, Copy)]
-pub struct FloatNum(f64);
-
-impl From<f64> for FloatNum {
-    fn from(num: f64) -> Self {
-        Self(num)
-    }
-}
-
-impl core::fmt::Display for FloatNum {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        if let Some(precision) = fmt.precision() {
-            let precision: i32 = precision.try_into().map_err(|_| fmt::Error)?;
-
-            // Truncate the decimal points up to the precision
-            let trunc_num = 10.0_f64.powi(precision);
-            let num_to_format = f64::trunc(self.0 * trunc_num) / trunc_num;
-
-            num_to_format.fmt(fmt)
-        } else {
-            self.0.fmt(fmt)
-        }
-    }
-}
-
 /// Write all bytes to the output, returning the number of bytes written.
 pub(crate) fn write(output: &mut impl io::Write, bytes: &[u8]) -> io::Result<usize> {
     output.write_all(bytes)?;
@@ -94,19 +68,23 @@ pub(crate) fn write_if_else(
 /// with zeroes to the left if necessary.
 pub(crate) fn format_float(
     output: &mut impl io::Write,
-    value: FloatNum,
+    value: f64,
     digits_before_decimal: u8,
     digits_after_decimal: Option<NonZeroU8>,
 ) -> io::Result<usize> {
     match digits_after_decimal {
         Some(digits_after_decimal) => {
+            // Truncate the decimal points up to the precision
+            let trunc_num = 10_f64.powi(digits_after_decimal.get().cast_signed().extend());
+            let value = f64::trunc(value * trunc_num) / trunc_num;
+
             let digits_after_decimal = digits_after_decimal.get().extend();
             let width = digits_before_decimal.extend::<usize>() + 1 + digits_after_decimal;
             write!(output, "{value:0>width$.digits_after_decimal$}")?;
             Ok(width)
         }
         None => {
-            let value = value.0.trunc() as u64;
+            let value = value.trunc() as u64;
             let width = digits_before_decimal.extend();
             write!(output, "{value:0>width$}")?;
             Ok(width)

@@ -1,11 +1,11 @@
 use std::io;
+use std::num::NonZeroU8;
 
 use time::format_description::well_known::iso8601::{DateKind, OffsetPrecision, TimePrecision};
 use time::format_description::well_known::{iso8601, Iso8601, Rfc2822, Rfc3339};
 use time::format_description::{self, BorrowedFormatItem, OwnedFormatItem};
 use time::macros::{date, datetime, format_description as fd, offset, time};
 use time::{OffsetDateTime, Time};
-use time::formatting::FloatNum;
 
 #[test]
 fn rfc_2822() -> time::Result<()> {
@@ -223,6 +223,26 @@ fn iso_8601() -> time::Result<()> {
         ),
         Err(time::error::Format::InvalidComponent("offset_minute"))
     ));
+
+    Ok(())
+}
+
+#[test]
+fn iso_8601_issue_678() -> time::Result<()> {
+    macro_rules! assert_format_config {
+        ($formatted:literal $(, $($config:tt)+)?) => {
+            assert_eq!(
+                datetime!(2021-01-02 03:04:05.999_999_999 UTC).format(
+                    &Iso8601::<{ iso8601::Config::DEFAULT$($($config)+)?.encode() }>
+                )?,
+                $formatted
+            );
+        };
+    }
+
+    assert_format_config!("2021-01-02T03:04:05.999999999Z", .set_time_precision(TimePrecision::Second { decimal_digits: NonZeroU8::new(9) }));
+    assert_format_config!("2021-01-02T03:04:05.999999Z", .set_time_precision(TimePrecision::Second { decimal_digits: NonZeroU8::new(6) }));
+    assert_format_config!("2021-01-02T03:04:05.999Z", .set_time_precision(TimePrecision::Second { decimal_digits: NonZeroU8::new(3) }));
 
     Ok(())
 }
@@ -783,26 +803,6 @@ fn unix_timestamp() -> time::Result<()> {
         datetime!(1969-12-31 23:59:59 UTC).format(&fd!("[unix_timestamp]"))?,
         "-1"
     );
-
-    Ok(())
-}
-
-#[test]
-fn test_float_formatting() -> time::Result<()> {
-    let num: FloatNum = 2.99999999.into();
-    let width = 3;
-
-    // Less than digits after decimal places
-    let precision = 3;
-    assert_eq!(format!("{num:0>width$.precision$}"), "2.999");
-
-    // More than digits after decimal places
-    let precision = 10;
-    assert_eq!(format!("{num:0>width$.precision$}"), "2.9999999900");
-
-    // Equal digits after decimal places
-    let precision = 8;
-    assert_eq!(format!("{num:0>width$.precision$}"), "2.99999999");
 
     Ok(())
 }
