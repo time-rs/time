@@ -1,4 +1,5 @@
 use std::io;
+use std::num::NonZeroU8;
 
 use time::format_description::well_known::iso8601::{DateKind, OffsetPrecision, TimePrecision};
 use time::format_description::well_known::{iso8601, Iso8601, Rfc2822, Rfc3339};
@@ -222,6 +223,26 @@ fn iso_8601() -> time::Result<()> {
         ),
         Err(time::error::Format::InvalidComponent("offset_minute"))
     ));
+
+    Ok(())
+}
+
+#[test]
+fn iso_8601_issue_678() -> time::Result<()> {
+    macro_rules! assert_format_config {
+        ($formatted:literal $(, $($config:tt)+)?) => {
+            assert_eq!(
+                datetime!(2021-01-02 03:04:05.999_999_999 UTC).format(
+                    &Iso8601::<{ iso8601::Config::DEFAULT$($($config)+)?.encode() }>
+                )?,
+                $formatted
+            );
+        };
+    }
+
+    assert_format_config!("2021-01-02T03:04:05.999999999Z", .set_time_precision(TimePrecision::Second { decimal_digits: NonZeroU8::new(9) }));
+    assert_format_config!("2021-01-02T03:04:05.999999Z", .set_time_precision(TimePrecision::Second { decimal_digits: NonZeroU8::new(6) }));
+    assert_format_config!("2021-01-02T03:04:05.999Z", .set_time_precision(TimePrecision::Second { decimal_digits: NonZeroU8::new(3) }));
 
     Ok(())
 }

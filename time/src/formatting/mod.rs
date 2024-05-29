@@ -2,6 +2,7 @@
 
 pub(crate) mod formattable;
 mod iso8601;
+
 use core::num::NonZeroU8;
 use std::io;
 
@@ -73,6 +74,10 @@ pub(crate) fn format_float(
 ) -> io::Result<usize> {
     match digits_after_decimal {
         Some(digits_after_decimal) => {
+            // Truncate the decimal points up to the precision
+            let trunc_num = 10_f64.powi(digits_after_decimal.get().cast_signed().extend());
+            let value = f64::trunc(value * trunc_num) / trunc_num;
+
             let digits_after_decimal = digits_after_decimal.get().extend();
             let width = digits_before_decimal.extend::<usize>() + 1 + digits_after_decimal;
             write!(output, "{value:0>width$.digits_after_decimal$}")?;
