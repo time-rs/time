@@ -154,14 +154,22 @@ impl Time {
 
     /// The smallest value that can be represented by `Time`.
     ///
-    /// `00:00:00.0`
-    pub(crate) const MIN: Self =
+    /// ```rust
+    /// # use time::Time;
+    /// # use time_macros::time;
+    /// assert_eq!(Time::MIN, time!(00:00:00.0));
+    /// ```
+    pub const MIN: Self =
         Self::from_hms_nanos_ranged(Hours::MIN, Minutes::MIN, Seconds::MIN, Nanoseconds::MIN);
 
     /// The largest value that can be represented by `Time`.
     ///
-    /// `23:59:59.999_999_999`
-    pub(crate) const MAX: Self =
+    /// ```rust
+    /// # use time::Time;
+    /// # use time_macros::time;
+    /// assert_eq!(Time::MAX, time!(23:59:59.999_999_999));
+    /// ```
+    pub const MAX: Self =
         Self::from_hms_nanos_ranged(Hours::MAX, Minutes::MAX, Seconds::MAX, Nanoseconds::MAX);
 
     // region: constructors
