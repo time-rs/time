@@ -58,7 +58,10 @@ impl<'a> de::Visitor<'a> for Visitor<Duration> {
             de::Error::invalid_value(de::Unexpected::Str(nanoseconds), &"nanoseconds")
         })?;
 
-        if seconds < 0 {
+        if seconds < 0
+            // make sure sign does not disappear when seconds == 0
+            || (seconds == 0 && value.starts_with("-"))
+        {
             nanoseconds *= -1;
         }
 

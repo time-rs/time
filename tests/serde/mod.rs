@@ -842,6 +842,14 @@ fn duration() {
         &Duration::ZERO.readable(),
         &[Token::BorrowedStr("0.000000000")],
     );
+    assert_tokens(
+        &Duration::nanoseconds(123).readable(),
+        &[Token::BorrowedStr("0.000000123")],
+    );
+    assert_tokens(
+        &Duration::nanoseconds(-123).readable(),
+        &[Token::BorrowedStr("-0.000000123")],
+    );
 }
 
 #[test]
