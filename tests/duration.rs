@@ -304,6 +304,7 @@ fn seconds_f32_panic(#[case] seconds: f32) {
 #[case(0.5, Duration::milliseconds(500))]
 #[case(-0.5, Duration::milliseconds(-500))]
 #[case(123.250, Duration::milliseconds(123_250))]
+#[case(-1.671875, Duration::nanoseconds(-1671875000))]
 #[case(0.000_000_000_012, Duration::ZERO)]
 #[case(f32::MAX, Duration::MAX)]
 #[case(f32::MIN, Duration::MIN)]
@@ -712,6 +713,8 @@ fn neg(#[case] duration: Duration, #[case] expected: Duration) {
 #[case(1.seconds(), 1.seconds(), 0.seconds())]
 #[case(1_500.milliseconds(), 500.milliseconds(), 1.seconds())]
 #[case(1.seconds(), (-1).seconds(), 2.seconds())]
+#[case(5.seconds(), (768).nanoseconds(), 4999999232.nanoseconds())]
+#[case((768).nanoseconds(), 5.seconds(), -4999999232.nanoseconds())]
 fn sub(#[case] lhs: Duration, #[case] rhs: Duration, #[case] expected: Duration) {
     assert_eq!(lhs - rhs, expected);
 }
