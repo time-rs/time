@@ -520,9 +520,20 @@ impl sealed::Sealed for Rfc3339 {
         let input = exactly_n_digits::<2, _>(input)
             .and_then(|item| item.consume_value(|value| parsed.set_day(value)))
             .ok_or(InvalidComponent("day"))?;
-        let input = ascii_char_ignore_case::<b'T'>(input)
-            .ok_or(InvalidLiteral)?
-            .into_inner();
+
+        // RFC3339 allows any separator, not just `T`, not just `space`.
+        // cf. Section 5.6: Internet Date/Time Format:
+        //   NOTE: ISO 8601 defines date and time separated by "T".
+        //   Applications using this syntax may choose, for the sake of
+        //   readability, to specify a full-date and full-time separated by
+        //   (say) a space character.
+        // Specifically, rusqlite uses space separators.
+        let input = if input.is_empty() {
+            return Err(InvalidComponent("separator").into());
+        } else {
+            &input[1..]
+        };
+
         let input = exactly_n_digits::<2, _>(input)
             .and_then(|item| item.consume_value(|value| parsed.set_hour_24(value)))
             .ok_or(InvalidComponent("hour"))?;
