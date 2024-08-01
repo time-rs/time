@@ -457,7 +457,10 @@ fn rfc_3339_err() {
         OffsetDateTime::parse("2021-01-0", &Rfc3339),
         invalid_component!("day")
     ));
-    // (note: any separator is allowed by RFC 3339)
+    assert!(matches!(
+        OffsetDateTime::parse("2021-01-01", &Rfc3339),
+        invalid_component!("separator")
+    ));
     assert!(matches!(
         OffsetDateTime::parse("2021-01-01T0", &Rfc3339),
         invalid_component!("hour")
