@@ -323,6 +323,16 @@ fn rfc_3339() -> time::Result<()> {
         offset!(-00:01),
     );
 
+    // Any separator is allowed by RFC 3339, not just `T`.
+    assert_eq!(
+        OffsetDateTime::parse("2021-01-02 03:04:05Z", &Rfc3339)?,
+        datetime!(2021-01-02 03:04:05 UTC),
+    );
+    assert_eq!(
+        OffsetDateTime::parse("2021-01-02$03:04:05Z", &Rfc3339)?,
+        datetime!(2021-01-02 03:04:05 UTC),
+    );
+
     Ok(())
 }
 
@@ -353,10 +363,7 @@ fn rfc_3339_err() {
         PrimitiveDateTime::parse("2021-01-0", &Rfc3339),
         invalid_component!("day")
     ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-01x", &Rfc3339),
-        invalid_literal!()
-    ));
+    // (note: any separator is allowed by RFC 3339)
     assert!(matches!(
         PrimitiveDateTime::parse("2021-01-01T0", &Rfc3339),
         invalid_component!("hour")
@@ -447,10 +454,7 @@ fn rfc_3339_err() {
         OffsetDateTime::parse("2021-01-0", &Rfc3339),
         invalid_component!("day")
     ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01x", &Rfc3339),
-        invalid_literal!()
-    ));
+    // (note: any separator is allowed by RFC 3339)
     assert!(matches!(
         OffsetDateTime::parse("2021-01-01T0", &Rfc3339),
         invalid_component!("hour")
