@@ -85,28 +85,28 @@ single-use-lifetimes = "warn"
 trivial-casts = "warn"
 trivial-numeric-casts = "warn"
 unreachable-pub = "warn"
-unstable-name-collisions = { level = "warn", priority = 1 } # overrides #![deny(future_incompatible)]
-unused = "warn"
+unused = { level = "warn", priority = -1 }
 unused-import-braces = "warn"
 unused-lifetimes = "warn"
 unused-qualifications = "warn"
-# unused-results = "warn"
 variant-size-differences = "warn"
+
+unstable-name-collisions = { level = "allow", priority = 1 } # overrides #![deny(future_incompatible)], temporary while `.cast_{un}signed()` is unstable
 
 [workspace.lints.clippy]
 alloc-instead-of-core = "deny"
 std-instead-of-core = "deny"
 undocumented-unsafe-blocks = "deny"
 
-all = "warn"
+missing-docs-in-private-items = "warn"
+all = { level = "warn", priority = -1 }
 dbg-macro = "warn"
 decimal-literal-representation = "warn"
 explicit-auto-deref = "warn"
 get-unwrap = "warn"
 manual-let-else = "warn"
-missing-docs-in-private-items = "warn"
 missing-enforced-import-renames = "warn"
-nursery = "warn"
+nursery = { level = "warn", priority = -1 }
 obfuscated-if-else = "warn"
 print-stdout = "warn"
 semicolon-outside-block = "warn"

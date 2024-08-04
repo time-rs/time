@@ -517,7 +517,7 @@ impl Duration {
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::seconds_f64(0.5), 0.5.seconds());
-    /// assert_eq!(Duration::seconds_f64(-0.5), -0.5.seconds());
+    /// assert_eq!(Duration::seconds_f64(-0.5), (-0.5).seconds());
     /// ```
     pub fn seconds_f64(seconds: f64) -> Self {
         try_from_secs!(
@@ -564,7 +564,7 @@ impl Duration {
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::saturating_seconds_f64(0.5), 0.5.seconds());
-    /// assert_eq!(Duration::saturating_seconds_f64(-0.5), -0.5.seconds());
+    /// assert_eq!(Duration::saturating_seconds_f64(-0.5), (-0.5).seconds());
     /// assert_eq!(
     ///     Duration::saturating_seconds_f64(f64::NAN),
     ///     Duration::new(0, 0),
@@ -637,7 +637,7 @@ impl Duration {
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::checked_seconds_f64(0.5), Some(0.5.seconds()));
-    /// assert_eq!(Duration::checked_seconds_f64(-0.5), Some(-0.5.seconds()));
+    /// assert_eq!(Duration::checked_seconds_f64(-0.5), Some((-0.5).seconds()));
     /// assert_eq!(Duration::checked_seconds_f64(f64::NAN), None);
     /// assert_eq!(Duration::checked_seconds_f64(f64::NEG_INFINITY), None);
     /// assert_eq!(Duration::checked_seconds_f64(f64::INFINITY), None);
@@ -664,7 +664,7 @@ impl Duration {
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(Duration::checked_seconds_f32(0.5), Some(0.5.seconds()));
-    /// assert_eq!(Duration::checked_seconds_f32(-0.5), Some(-0.5.seconds()));
+    /// assert_eq!(Duration::checked_seconds_f32(-0.5), Some((-0.5).seconds()));
     /// assert_eq!(Duration::checked_seconds_f32(f32::NAN), None);
     /// assert_eq!(Duration::checked_seconds_f32(f32::NEG_INFINITY), None);
     /// assert_eq!(Duration::checked_seconds_f32(f32::INFINITY), None);

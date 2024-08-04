@@ -11,7 +11,7 @@ macro_rules! bench_rand {
                 iter_batched_ref!(
                     ben,
                     || StepRng::new(0, 1),
-                    [|rng| rng.gen::<$type>()]
+                    [|rng| rng.r#gen::<$type>()]
                 );
             })*
         }

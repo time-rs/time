@@ -105,6 +105,7 @@ impl fmt::Display for Error {
 }
 
 #[cfg(feature = "std")]
+#[allow(clippy::std_instead_of_core)]
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {

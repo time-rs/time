@@ -34,7 +34,7 @@ fn run_with_all_features() -> Result<(), Box<dyn std::error::Error>> {
     impl std::error::Error for Error {}
 
     let status = std::process::Command::new("cargo")
-        .args(&["test", "--all-features"])
+        .args(["test", "--all-features"])
         .status()?;
 
     return if status.success() {

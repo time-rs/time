@@ -172,9 +172,11 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// use time::serde;
 /// use time::format_description::well_known::{iso8601, Iso8601};
 ///
+/// # #[allow(dead_code)]
 /// const CONFIG: iso8601::EncodedConfig = iso8601::Config::DEFAULT
 ///     .set_year_is_six_digits(false)
 ///     .encode();
+/// # #[allow(dead_code)]
 /// const FORMAT: Iso8601<CONFIG> = Iso8601::<CONFIG>;
 ///
 /// // Makes a module `mod my_format { ... }`.

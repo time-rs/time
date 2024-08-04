@@ -35,6 +35,7 @@ impl fmt::Display for Parse {
 }
 
 #[cfg(feature = "std")]
+#[allow(clippy::std_instead_of_core)]
 impl std::error::Error for Parse {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {

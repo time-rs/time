@@ -33,6 +33,7 @@ impl fmt::Display for ParseFromDescription {
 }
 
 #[cfg(feature = "std")]
+#[allow(clippy::std_instead_of_core)]
 impl std::error::Error for ParseFromDescription {}
 
 impl From<ParseFromDescription> for crate::Error {

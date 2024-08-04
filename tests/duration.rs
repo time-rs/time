@@ -1,4 +1,3 @@
-use core::u64;
 use std::cmp::Ordering;
 use std::cmp::Ordering::{Equal, Greater, Less};
 use std::time::Duration as StdDuration;
