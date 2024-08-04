@@ -108,5 +108,9 @@ mod numerical_std_duration {
             2.std_seconds() - 500.std_milliseconds(),
             1_500.std_milliseconds()
         );
+        assert_eq!(
+            1099511627735.std_seconds() - 1099511627775.std_milliseconds(),
+            1_098_412_116_107_225.std_milliseconds()
+        );
     }
 }
