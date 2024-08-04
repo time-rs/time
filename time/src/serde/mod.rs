@@ -102,7 +102,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 ///     maybe_dt: Option<OffsetDateTime>,
 /// }
 /// ```
-/// 
+///
 /// Define the format separately to be used in multiple places:
 /// ```rust,no_run
 /// # use time::OffsetDateTime;
@@ -153,7 +153,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 ///     let str_ts = OffsetDateTime::now_utc().format(DATE_TIME_FORMAT).unwrap();
 /// }
 /// ```
-/// 
+///
 /// Customize the configuration of ISO 8601 formatting/parsing:
 /// ```rust,no_run
 /// # use time::OffsetDateTime;
@@ -203,7 +203,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// }
 /// # fn main() {}
 /// ```
-/// 
+///
 /// [`format_description::parse()`]: crate::format_description::parse()
 #[cfg(all(feature = "macros", any(feature = "formatting", feature = "parsing"),))]
 pub use time_macros::serde_format_description as format_description;
@@ -254,10 +254,18 @@ impl Serialize for Duration {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[cfg(feature = "serde-human-readable")]
         if serializer.is_human_readable() {
+            // Simply extracting sign and then calling `self.whole_seconds().abs()` will
+            // cause overflow on `i64::MIN` seconds, hence this kludge.
+            let sign_fix = if self.is_negative() && self.whole_seconds() == 0 {
+                "-"
+            } else {
+                ""
+            };
+
             return serializer.collect_str(&format_args!(
-                "{}.{:>09}",
-                self.whole_seconds(),
-                self.subsec_nanoseconds().abs()
+                "{sign_fix}{seconds}.{nanoseconds:>09}",
+                seconds = self.whole_seconds(),
+                nanoseconds = self.subsec_nanoseconds().abs(),
             ));
         }
 
