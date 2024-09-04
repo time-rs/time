@@ -427,7 +427,7 @@ impl OffsetDateTime {
     }
 
     /// Get the [`PrimitiveDateTime`] in the stored offset.
-    /// 
+    ///
     /// ```rust
     /// # use time::PrimitiveDateTime;
     /// # use time_macros::{date, datetime, time};
