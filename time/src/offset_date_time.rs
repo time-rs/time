@@ -427,7 +427,17 @@ impl OffsetDateTime {
     }
 
     /// Get the [`PrimitiveDateTime`] in the stored offset.
-    const fn date_time(self) -> PrimitiveDateTime {
+    /// 
+    /// ```rust
+    /// # use time::PrimitiveDateTime;
+    /// # use time_macros::{date, datetime, time};
+    /// assert_eq!(datetime!(2019-01-01 0:00 UTC).date_time(), datetime!(2019-01-01 0:00));
+    /// assert_eq!(
+    ///    datetime!(2019-01-01 0:00 +1).date_time(),
+    ///     PrimitiveDateTime::new(date!(2019-01-01), time!(0:00))
+    /// );
+    /// ```
+    pub const fn date_time(self) -> PrimitiveDateTime {
         self.local_date_time
     }
 
