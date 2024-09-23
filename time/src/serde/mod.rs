@@ -205,7 +205,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// ```
 /// 
 /// [`format_description::parse()`]: crate::format_description::parse()
-#[cfg(all(feature = "macros", any(feature = "formatting", feature = "parsing"),))]
+#[cfg(all(feature = "macros", any(feature = "formatting", feature = "parsing")))]
 pub use time_macros::serde_format_description as format_description;
 
 use self::visitor::Visitor;
