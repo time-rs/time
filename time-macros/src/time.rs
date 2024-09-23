@@ -1,11 +1,11 @@
 use std::iter::Peekable;
 
-use proc_macro::{token_stream, Span, TokenTree};
+use proc_macro::{Span, TokenTree, token_stream};
 use time_core::convert::*;
 
+use crate::Error;
 use crate::helpers::{consume_any_ident, consume_number, consume_punct};
 use crate::to_tokens::ToTokenTree;
-use crate::Error;
 
 enum Period {
     Am,

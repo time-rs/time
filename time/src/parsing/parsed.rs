@@ -1,10 +1,10 @@
 //! Information parsed from an input and format description.
 
-use core::num::{NonZeroU16, NonZeroU8};
+use core::num::{NonZeroU8, NonZeroU16};
 
 use deranged::{
-    OptionRangedI128, OptionRangedI32, OptionRangedI8, OptionRangedU16, OptionRangedU32,
-    OptionRangedU8, RangedI128, RangedI32, RangedI8, RangedU16, RangedU32, RangedU8,
+    OptionRangedI8, OptionRangedI32, OptionRangedI128, OptionRangedU8, OptionRangedU16,
+    OptionRangedU32, RangedI8, RangedI32, RangedI128, RangedU8, RangedU16, RangedU32,
 };
 use num_conv::prelude::*;
 
@@ -13,15 +13,16 @@ use crate::date::{MAX_YEAR, MIN_YEAR};
 use crate::error::TryFromParsed::InsufficientInformation;
 #[cfg(feature = "alloc")]
 use crate::format_description::OwnedFormatItem;
-use crate::format_description::{modifier, BorrowedFormatItem, Component};
+use crate::format_description::{BorrowedFormatItem, Component, modifier};
 use crate::internal_macros::{bug, const_try_opt};
-use crate::parsing::component::{
-    parse_day, parse_end, parse_hour, parse_ignore, parse_minute, parse_month, parse_offset_hour,
-    parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
-    parse_subsecond, parse_unix_timestamp, parse_week_number, parse_weekday, parse_year, Period,
-};
 use crate::parsing::ParsedItem;
-use crate::{error, Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::parsing::component::{
+    Period, parse_day, parse_end, parse_hour, parse_ignore, parse_minute, parse_month,
+    parse_offset_hour, parse_offset_minute, parse_offset_second, parse_ordinal, parse_period,
+    parse_second, parse_subsecond, parse_unix_timestamp, parse_week_number, parse_weekday,
+    parse_year,
+};
+use crate::{Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday, error};
 
 /// Sealed to prevent downstream implementations.
 mod sealed {

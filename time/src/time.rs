@@ -8,7 +8,7 @@ use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
 
-use deranged::{RangedU32, RangedU8};
+use deranged::{RangedU8, RangedU32};
 use num_conv::prelude::*;
 use powerfmt::ext::FormatterExt;
 use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
@@ -20,7 +20,7 @@ use crate::internal_macros::{cascade, ensure_ranged, impl_add_assign, impl_sub_a
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::util::DateAdjustment;
-use crate::{error, Duration};
+use crate::{Duration, error};
 
 /// By explicitly inserting this enum where padding is expected, the compiler is able to better
 /// perform niche value optimization.
@@ -796,14 +796,10 @@ impl SmartDisplay for Time {
             ".",
         ) + subsecond_width;
 
-        Metadata::new(
-            formatted_width,
-            self,
-            TimeMetadata {
-                subsecond_width: subsecond_width.truncate(),
-                subsecond_value,
-            },
-        )
+        Metadata::new(formatted_width, self, TimeMetadata {
+            subsecond_width: subsecond_width.truncate(),
+            subsecond_value,
+        })
     }
 
     fn fmt_with_metadata(

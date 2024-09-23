@@ -26,7 +26,7 @@ use crate::internal_macros::{
 };
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
-use crate::{error, util, Date, Duration, Month, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{Date, Duration, Month, PrimitiveDateTime, Time, UtcOffset, Weekday, error, util};
 
 /// The Julian day of the Unix epoch.
 // Safety: `ordinal` is not zero.
