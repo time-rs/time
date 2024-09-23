@@ -14,9 +14,7 @@ impl fmt::Display for IndeterminateOffset {
     }
 }
 
-#[cfg(feature = "std")]
-#[allow(clippy::std_instead_of_core)]
-impl std::error::Error for IndeterminateOffset {}
+impl core::error::Error for IndeterminateOffset {}
 
 impl From<IndeterminateOffset> for crate::Error {
     fn from(err: IndeterminateOffset) -> Self {

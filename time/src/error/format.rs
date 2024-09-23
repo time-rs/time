@@ -54,10 +54,8 @@ impl TryFrom<Format> for io::Error {
     }
 }
 
-#[cfg(feature = "std")]
-#[allow(clippy::std_instead_of_core)]
-impl std::error::Error for Format {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+impl core::error::Error for Format {
+    fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
         match *self {
             Self::InsufficientTypeInformation | Self::InvalidComponent(_) => None,
             Self::StdIo(ref err) => Some(err),

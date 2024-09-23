@@ -13,9 +13,7 @@ impl fmt::Display for InvalidVariant {
     }
 }
 
-#[cfg(feature = "std")]
-#[allow(clippy::std_instead_of_core)]
-impl std::error::Error for InvalidVariant {}
+impl core::error::Error for InvalidVariant {}
 
 impl From<InvalidVariant> for crate::Error {
     fn from(err: InvalidVariant) -> Self {

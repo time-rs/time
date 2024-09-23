@@ -49,7 +49,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - { version: "1.67.0", name: MSRV }
+          - { version: "1.81.0", name: MSRV }
           - { version: stable, name: stable }
         kind:
           - name: no_std

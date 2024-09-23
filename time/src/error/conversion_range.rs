@@ -15,9 +15,7 @@ impl fmt::Display for ConversionRange {
     }
 }
 
-#[cfg(feature = "std")]
-#[allow(clippy::std_instead_of_core)]
-impl std::error::Error for ConversionRange {}
+impl core::error::Error for ConversionRange {}
 
 impl From<ConversionRange> for crate::Error {
     fn from(err: ConversionRange) -> Self {

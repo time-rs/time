@@ -13,9 +13,7 @@ impl fmt::Display for DifferentVariant {
     }
 }
 
-#[cfg(feature = "std")]
-#[allow(clippy::std_instead_of_core)]
-impl std::error::Error for DifferentVariant {}
+impl core::error::Error for DifferentVariant {}
 
 impl From<DifferentVariant> for crate::Error {
     fn from(err: DifferentVariant) -> Self {

@@ -88,6 +88,4 @@ impl ComponentRange {
     }
 }
 
-#[cfg(feature = "std")]
-#[allow(clippy::std_instead_of_core)]
-impl std::error::Error for ComponentRange {}
+impl core::error::Error for ComponentRange {}
