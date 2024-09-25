@@ -304,18 +304,24 @@ fn fmt_year(
     };
     let value = match repr {
         modifier::YearRepr::Full => full_year,
+        modifier::YearRepr::Four => (full_year % 10000).abs(),
         modifier::YearRepr::LastTwo => (full_year % 100).abs(),
     };
     let format_number = match repr {
+
         #[cfg(feature = "large-dates")]
         modifier::YearRepr::Full if value.abs() >= 100_000 => format_number::<6>,
         #[cfg(feature = "large-dates")]
+        modifier::YearRepr::Four if value.abs() >= 1_000 => format_number::<4>,
+        #[cfg(feature = "large-dates")]
         modifier::YearRepr::Full if value.abs() >= 10_000 => format_number::<5>,
+
         modifier::YearRepr::Full => format_number::<4>,
+        modifier::YearRepr::Four => format_number::<4>,
         modifier::YearRepr::LastTwo => format_number::<2>,
     };
     let mut bytes = 0;
-    if repr != modifier::YearRepr::LastTwo {
+    if repr == modifier::YearRepr::Full {
         if full_year < 0 {
             bytes += write(output, b"-")?;
         } else if sign_is_mandatory || cfg!(feature = "large-dates") && full_year >= 10_000 {

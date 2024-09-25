@@ -522,6 +522,7 @@ modifier! {
         #[default]
         Full = b"full",
         LastTwo = b"last_two",
+        Four = b"four",
     }
 }
 

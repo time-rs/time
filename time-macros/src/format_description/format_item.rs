@@ -425,6 +425,7 @@ modifier! {
     enum YearRepr {
         #[default]
         Full = b"full",
+        Four = b"four",
         LastTwo = b"last_two",
     }
 }
