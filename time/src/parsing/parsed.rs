@@ -6,7 +6,8 @@ use deranged::{
     OptionRangedI128, OptionRangedI32, OptionRangedI8, OptionRangedU16, OptionRangedU32,
     OptionRangedU8, RangedI128, RangedI32, RangedI8, RangedU16, RangedU32, RangedU8,
 };
-use num_conv::{prelude::*, CastUnsigned, Truncate};
+use num_conv::prelude::*;
+use num_conv::{CastUnsigned, Truncate};
 
 use crate::convert::{Day, Hour, Minute, Nanosecond, Second};
 use crate::date::{MAX_YEAR, MIN_YEAR};
@@ -296,16 +297,12 @@ impl Parsed {
                     parse_year(input, modifiers).ok_or(InvalidComponent("year"))?;
                 match (modifiers.iso_week_based, modifiers.repr) {
                     (false, modifier::YearRepr::Full) => self.set_year(value),
-                    (false, modifier::YearRepr::Four) => {
-                        self.set_year(value)
-                    }
+                    (false, modifier::YearRepr::Four) => self.set_year(value),
                     (false, modifier::YearRepr::LastTwo) => {
                         self.set_year_last_two(value.cast_unsigned().truncate())
                     }
                     (true, modifier::YearRepr::Full) => self.set_iso_year(value),
-                    (true, modifier::YearRepr::Four) => {
-                        self.set_iso_year(value)
-                    }
+                    (true, modifier::YearRepr::Four) => self.set_iso_year(value),
                     (true, modifier::YearRepr::LastTwo) => {
                         self.set_iso_year_last_two(value.cast_unsigned().truncate())
                     }

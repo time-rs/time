@@ -308,7 +308,6 @@ fn fmt_year(
         modifier::YearRepr::LastTwo => (full_year % 100).abs(),
     };
     let format_number = match repr {
-
         #[cfg(feature = "large-dates")]
         modifier::YearRepr::Full if value.abs() >= 100_000 => format_number::<6>,
         #[cfg(feature = "large-dates")]

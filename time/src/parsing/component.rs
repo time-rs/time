@@ -32,7 +32,7 @@ pub(crate) fn parse_year(input: &[u8], modifiers: modifier::Year) -> Option<Pars
                 _ => Some(ParsedItem(input, year.cast_signed())),
             }
         }
-        modifier::YearRepr::Four => Some (
+        modifier::YearRepr::Four => Some(
             exactly_n_digits_padded::<4, u32>(modifiers.padding)(input)?.map(|v| v.cast_signed()),
         ),
         modifier::YearRepr::LastTwo => Some(
