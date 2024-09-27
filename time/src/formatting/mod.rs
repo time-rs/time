@@ -311,8 +311,6 @@ fn fmt_year(
         #[cfg(feature = "large-dates")]
         modifier::YearRepr::Full if value.abs() >= 100_000 => format_number::<6>,
         #[cfg(feature = "large-dates")]
-        modifier::YearRepr::Four if value.abs() >= 1_000 => format_number::<4>,
-        #[cfg(feature = "large-dates")]
         modifier::YearRepr::Full if value.abs() >= 10_000 => format_number::<5>,
 
         modifier::YearRepr::Full => format_number::<4>,
