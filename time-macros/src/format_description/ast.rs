@@ -1,6 +1,6 @@
 use std::iter;
 
-use super::{lexer, unused, Error, Location, Spanned, SpannedValue, Unused};
+use super::{Error, Location, Spanned, SpannedValue, Unused, lexer, unused};
 
 pub(super) enum Item<'a> {
     Literal(Spanned<&'a [u8]>),

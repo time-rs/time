@@ -5,14 +5,14 @@ use core::ops::Deref;
 use num_conv::prelude::*;
 
 use crate::error::TryFromParsed;
-use crate::format_description::well_known::iso8601::EncodedConfig;
-use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::format_description::BorrowedFormatItem;
 #[cfg(feature = "alloc")]
 use crate::format_description::OwnedFormatItem;
+use crate::format_description::well_known::iso8601::EncodedConfig;
+use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::internal_macros::bug;
 use crate::parsing::{Parsed, ParsedItem};
-use crate::{error, Date, Month, OffsetDateTime, Time, UtcOffset, Weekday};
+use crate::{Date, Month, OffsetDateTime, Time, UtcOffset, Weekday, error};
 
 /// A type that can be parsed.
 #[cfg_attr(docsrs, doc(notable_trait))]

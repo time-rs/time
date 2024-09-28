@@ -5,8 +5,8 @@ pub(crate) mod rfc;
 use num_conv::prelude::*;
 
 use crate::format_description::modifier::Padding;
-use crate::parsing::shim::{Integer, IntegerParseBytes};
 use crate::parsing::ParsedItem;
+use crate::parsing::shim::{Integer, IntegerParseBytes};
 
 /// Parse a "+" or "-" sign. Returns the ASCII byte representing the sign, if present.
 pub(crate) const fn sign(input: &[u8]) -> Option<ParsedItem<'_, u8>> {

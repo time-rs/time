@@ -5,7 +5,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::iter;
 
-use super::{lexer, unused, Error, Location, Spanned, SpannedValue, Unused};
+use super::{Error, Location, Spanned, SpannedValue, Unused, lexer, unused};
 use crate::internal_macros::bug;
 
 /// One part of a complete format description.

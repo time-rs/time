@@ -1,17 +1,17 @@
 //! Parsing implementations for all [`Component`](crate::format_description::Component)s.
 
-use core::num::{NonZeroU16, NonZeroU8};
+use core::num::{NonZeroU8, NonZeroU16};
 
 use num_conv::prelude::*;
 
 use crate::convert::*;
 use crate::format_description::modifier;
+use crate::parsing::ParsedItem;
 #[cfg(feature = "large-dates")]
 use crate::parsing::combinator::n_to_m_digits_padded;
 use crate::parsing::combinator::{
     any_digit, exactly_n_digits, exactly_n_digits_padded, first_match, n_to_m_digits, opt, sign,
 };
-use crate::parsing::ParsedItem;
 use crate::{Month, Weekday};
 
 // region: date components

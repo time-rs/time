@@ -16,7 +16,7 @@ use crate::formatting::Formattable;
 use crate::internal_macros::{const_try, const_try_opt};
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
-use crate::{error, util, Date, Duration, Month, OffsetDateTime, Time, UtcOffset, Weekday};
+use crate::{Date, Duration, Month, OffsetDateTime, Time, UtcOffset, Weekday, error, util};
 
 /// Combined date and time.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]

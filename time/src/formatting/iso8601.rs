@@ -5,12 +5,12 @@ use std::io;
 use num_conv::prelude::*;
 
 use crate::convert::*;
+use crate::format_description::well_known::Iso8601;
 use crate::format_description::well_known::iso8601::{
     DateKind, EncodedConfig, OffsetPrecision, TimePrecision,
 };
-use crate::format_description::well_known::Iso8601;
 use crate::formatting::{format_float, format_number_pad_zero, write, write_if, write_if_else};
-use crate::{error, Date, Time, UtcOffset};
+use crate::{Date, Time, UtcOffset, error};
 
 /// Format the date portion of ISO 8601.
 pub(super) fn format_date<const CONFIG: EncodedConfig>(

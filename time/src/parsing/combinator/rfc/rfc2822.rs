@@ -2,9 +2,9 @@
 //!
 //! [RFC 2822]: https://datatracker.ietf.org/doc/html/rfc2822
 
+use crate::parsing::ParsedItem;
 use crate::parsing::combinator::rfc::rfc2234::wsp;
 use crate::parsing::combinator::{ascii_char, one_or_more, zero_or_more};
-use crate::parsing::ParsedItem;
 
 /// Consume the `fws` rule.
 // The full rule is equivalent to /\r\n[ \t]+|[ \t]+(?:\r\n[ \t]+)*/
