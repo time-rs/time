@@ -25,7 +25,7 @@ use crate::internal_macros::{
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year};
-use crate::{error, Duration, Month, PrimitiveDateTime, Time, Weekday};
+use crate::{Duration, Month, PrimitiveDateTime, Time, Weekday, error};
 
 type Year = RangedI32<MIN_YEAR, MAX_YEAR>;
 
@@ -1376,17 +1376,13 @@ impl SmartDisplay for Date {
                 day => width(2),
             );
 
-        Metadata::new(
-            formatted_width,
-            self,
-            DateMetadata {
-                year_width,
-                display_sign,
-                year,
-                month: u8::from(month),
-                day,
-            },
-        )
+        Metadata::new(formatted_width, self, DateMetadata {
+            year_width,
+            display_sign,
+            year,
+            month: u8::from(month),
+            day,
+        })
     }
 
     fn fmt_with_metadata(

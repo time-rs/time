@@ -2,12 +2,12 @@
 //!
 //! [ISO 8601]: https://www.iso.org/iso-8601-date-and-time-format.html
 
-use core::num::{NonZeroU16, NonZeroU8};
+use core::num::{NonZeroU8, NonZeroU16};
 
 use num_conv::prelude::*;
 
-use crate::parsing::combinator::{any_digit, ascii_char, exactly_n_digits, first_match, sign};
 use crate::parsing::ParsedItem;
+use crate::parsing::combinator::{any_digit, ascii_char, exactly_n_digits, first_match, sign};
 use crate::{Month, Weekday};
 
 /// What kind of format is being parsed. This is used to ensure each part of the format (date, time,

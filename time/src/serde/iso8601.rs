@@ -8,18 +8,18 @@
 #[cfg(feature = "parsing")]
 use core::marker::PhantomData;
 
-#[cfg(feature = "formatting")]
-use serde::ser::Error as _;
 #[cfg(feature = "parsing")]
 use serde::Deserializer;
+#[cfg(feature = "formatting")]
+use serde::ser::Error as _;
 #[cfg(feature = "formatting")]
 use serde::{Serialize, Serializer};
 
 #[cfg(feature = "parsing")]
 use super::Visitor;
-use crate::format_description::well_known::iso8601::{Config, EncodedConfig};
-use crate::format_description::well_known::Iso8601;
 use crate::OffsetDateTime;
+use crate::format_description::well_known::Iso8601;
+use crate::format_description::well_known::iso8601::{Config, EncodedConfig};
 
 /// The configuration of ISO 8601 used for serde implementations.
 pub(crate) const SERDE_CONFIG: EncodedConfig =

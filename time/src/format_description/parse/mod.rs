@@ -83,7 +83,7 @@ pub fn parse_owned<const VERSION: usize>(
     let items: Box<[format_item::Item<'_>]> = format_items
         .map(|res| res.map(Into::into))
         .collect::<Result<Vec<_>, _>>()?
-        .into_boxed_slice();  // Convert Vec into a boxed slice
+        .into_boxed_slice(); // Convert Vec into a boxed slice
     Ok(items.into())
 }
 

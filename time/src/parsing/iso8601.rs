@@ -5,10 +5,10 @@ use num_conv::prelude::*;
 use crate::convert::*;
 use crate::error;
 use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
-use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::Iso8601;
+use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::parsing::combinator::rfc::iso8601::{
-    day, dayk, dayo, float, hour, min, month, week, year, ExtendedKind,
+    ExtendedKind, day, dayk, dayo, float, hour, min, month, week, year,
 };
 use crate::parsing::combinator::{ascii_char, sign};
 use crate::parsing::{Parsed, ParsedItem};
