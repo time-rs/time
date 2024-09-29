@@ -75,12 +75,15 @@ pub fn parse_borrowed<const VERSION: usize>(
 /// [`OwnedFormatItem`]: crate::format_description::OwnedFormatItem
 pub fn parse_owned<const VERSION: usize>(
     s: &str,
-) -> Result<format_description::OwnedFormatItem, error::InvalidFormatDescription> {
+) -> Result<crate::format_description::OwnedFormatItem, crate::error::InvalidFormatDescription> {
     validate_version!(VERSION);
     let mut lexed = lexer::lex::<VERSION>(s.as_bytes());
     let ast = ast::parse::<_, VERSION>(&mut lexed);
     let format_items = format_item::parse(ast);
-    let items = format_items.collect::<Result<Box<_>, _>>()?;
+    let items: Box<[format_item::Item<'_>]> = format_items
+        .map(|res| res.map(Into::into))
+        .collect::<Result<Vec<_>, _>>()?
+        .into_boxed_slice();  // Convert Vec into a boxed slice
     Ok(items.into())
 }
 
