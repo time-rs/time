@@ -1,0 +1,111 @@
+name: "Check powerset"
+
+env:
+  RUSTFLAGS: -Dwarnings
+  TARGETS: '{
+    "no_std": [
+    "thumbv7em-none-eabihf"
+    ],
+    "std_no_offset": [
+    ],
+    "std_with_offset": [
+    "aarch64-unknown-linux-gnu",
+    "i686-pc-windows-gnu",
+    "i686-pc-windows-msvc",
+    "i686-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "x86_64-pc-windows-gnu",
+    "x86_64-pc-windows-msvc",
+    "x86_64-unknown-linux-gnu",
+    "aarch64-linux-android",
+    "wasm32-wasi",
+    "x86_64-linux-android",
+    "x86_64-unknown-netbsd",
+    "x86_64-unknown-illumos"
+    ]
+    }'
+
+concurrency:
+  group: powerset-${{ github.head_ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+"
+  workflow_dispatch:
+
+jobs:
+  check:
+    name: Type checking (${{ matrix.kind.name }}, ${{ matrix.rust.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - { version: "1.67.0", name: MSRV }
+          - { version: stable, name: stable }
+        kind:
+          - name: no_std
+            query: .no_std + .std_no_offset + .std_with_offset
+            exclude_features:
+              - std
+              - local-offset
+              - quickcheck
+              - formatting
+              - serde-human-readable
+              - serde-well-known
+          - name: std_no_offset
+            query: .std_no_offset + .std_with_offset
+            exclude_features: [local-offset]
+            enable_features: [std]
+          - name: std_with_offset
+            query: .std_with_offset
+            enable_features: [std, local-offset]
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Generate target list
+        run: |
+          echo $TARGETS \
+          | jq -r '${{ matrix.kind.query }} | join(",") | "TARGET_LIST=" + .' >> $GITHUB_ENV
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          targets: ${{ env.TARGET_LIST }}
+          toolchain: ${{ matrix.rust.version}}
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@cargo-hack
+
+      - name: Check feature powerset
+        run: |
+          echo $TARGETS \
+          | jq -r '${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
+          | xargs -d" " \
+          cargo hack check \
+          -p time \
+          --no-dev-deps \
+          --feature-powerset \
+          --optional-deps \
+          --exclude-features default,wasm-bindgen,${{ join(matrix.kind.exclude_features) }} ${{
+          matrix.kind.enable_features && format('--features {0}', join(matrix.kind.enable_features)) }}
+
+  release:
+    name: Create release
+    if: startsWith(github.ref, 'refs/tags') && github.run_attempt == 1
+    needs: check
+    uses: ./.github/workflows/github-release.yaml
+    with:
+      prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc') }}
+    permissions:
+      contents: write

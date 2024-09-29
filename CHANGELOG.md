@@ -1,0 +1,1186 @@
+# Changelog
+
+All notable changes to the time project will be documented in this file.
+
+The format is based on [Keep a Changelog]. This project adheres to [Semantic Versioning].
+
+---
+
+## 0.3.36 [2024-04-10]
+
+### # Fixed
+
+- `FormatItem` can be used as part of an import path. See [#675] for details.
+
+[#675]: https://github.com/time-rs/time/issues/675
+
+## 0.3.35 [2024-04-10]
+
+### Added
+
+- `Duration::checked_neg`
+- `ext::InstantExt`, which provides methods for using `time::Duration` with `std::time::Instant`
+
+### Changed
+
+- `Instant` is deprecated. It is recommended to use `std::time::Instant` directly, importing
+  `time::ext::InstantExt` for interoperability with `time::Duration`.
+- `FormatItem` has been renamed to `BorrowedFormatItem`, avoiding confusion with `OwnedFormatItem`.
+  An alias has been added for backwards compatibility.
+
+### Fixed
+
+- The weekday is optional when parsing RFC2822.
+- The range of sub-second values in `Duration` is documented correctly. The previous documentation
+  contained an off-by-one error.
+- Leap seconds are now correctly handled when parsing ISO 8601.
+
+## 0.3.34 [2024-02-03]
+
+### Fixed
+
+Computing the local offset on Windows works again. It was broken in some cases in v0.3.32 and
+v0.3.33.
+
+## 0.3.33 [2024-02-03]
+
+### Fixed
+
+Builds targeting `wasm32-unknown-unknown` now work again.
+
+## 0.3.32 [2024-02-01]
+
+### Added
+
+- Methods to replace the day of the year.
+  - `Date::replace_ordinal`
+  - `PrimitiveDateTime::replace_ordinal`
+  - `OffsetDateTime::replace_ordinal`
+- Modules to treat an `OffsetDateTime` as a Unix timestamp with subsecond precision for serde.
+  - `time::serde::timestamp::milliseconds`
+  - `time::serde::timestamp::microseconds`
+  - `time::serde::timestamp::nanoseconds`
+
+### Changed
+
+- `Duration::time_fn` is deprecated.
+
+## 0.3.31 [2023-12-19]
+
+### Added
+
+- `OffsetDateTime::new_in_offset`
+- `OffsetDateTime::new_utc`
+
+### Changed
+
+- The valid range of `UtcOffset` has been expanded from ±23:59:59 to ±25:59:59. This is to support
+  the full POSIX range while permitting infallible negation.
+
+## 0.3.30 [2023-10-13]
+
+### Added
+
+- `powerfmt::smart_display::SmartDisplay` has been added for the main types in the library. These
+  implementations ensure that values follow the requested fill, width, and alignment when using
+  `format!` or similar macros. `Display` is implemented in terms of `SmartDisplay`.
+
+### Fixed
+
+- Large values no longer wrap around in release mode when using `NumericalDuration` or
+  `NumericalStdDuration`.
+
+## 0.3.29 [2023-09-24]
+
+### Added
+
+- Niche value optimization for `Date` has been added. Both `Date` and `Option<Date>` are four bytes.
+- Unit conversions have been added. It is now possible to write `Second::per(Day)`, which returns
+  the number of seconds in one day. See the types in the [`time::convert` module] for more
+  information.
+
+  [`time::convert` module]: https://time-rs.github.io/api/time/convert/index.html
+
+### Changed
+
+- The diagnostic for `--cfg unsound_local_offset` has been removed.
+- `#![feature(no_coverage)]` was previously used internally for code coverage. It is no longer used,
+  so it has been removed.
+- The default value for `modifier::OffsetHour` has been changed. This was unintentionally changed in
+  v0.3.17 and went unnoticed until now. The sign is now only present if needed by default, as was
+  the case previously. This does not affect any situation where `format_description!` or
+  `format_description::parse` is used.
+
+### Fixed
+
+- Adding or subtracting a `std::time::Duration` to/from an `OffsetDateTime` will not result in
+  integer overflow internally. It will still panic if the result is out of range.
+
+## 0.3.28 [2023-08-27]
+
+### Added
+
+- More additional constants for the well-known `Iso8601` format description have been added. This
+  avoids the need to manually configure the format.
+- An `[end]` component has been added. This is ignored during formatting, but is used to indicate
+  the end of input when parsing. If any input remains after this component, an error is returned.
+  This is useful when using the `[first]` component, as it avoids the need to reorder variants.
+
+### Changed
+
+- The exemption for MacOS introduced in 0.3.20 has been removed. This is because some supported
+  versions of MacOS do not meet the requirements for the exemption.
+- The `UnexpectedTrailingCharacters` error variant has been moved to `ParseFromDescription`. All
+  previously-existing locations of this variant have been deprecated and will no longer be returned.
+
+## 0.3.27 [2023-08-22]
+
+This sets the `serde` dependency requirement to `>= 1.0.184` where the binaries have been removed.
+
+## 0.3.26 [2023-08-18]
+
+This release contains only a single change. `serde` is required to be a version prior to 1.0.171.
+This is due to the decision by the maintainer of `serde` to include pre-built binaries that are
+executed without the end user's knowledge. As of the time of publishing, the included binary has not
+even been reproduced. This is a security risk, and the `time` project strongly opposes this
+decision. While this may break some users' builds due to conflicting versions, it is a necessary
+step to ensure the security.
+
+## 0.3.25 [2023-08-02]
+
+### Fixed
+
+- Methods such as `Time::replace_milliseconds` would panic on some out-of-range values. This has
+  been fixed.
+
+## 0.3.24 [2023-07-30]
+
+### Added
+
+- The `subsecond` component is taken into account when parsing the `unix_timestamp` component. If
+  data is conflicting, the `subsecond` value takes precedence.
+- Parsing a `Time` with only the `hour` component is now supported. The `minute` and `second`, and
+  `subsecond` components are assumed to be zero.
+
+### Changed
+
+- The minimum supported Rust version is now 1.67.0.
+- The debug output for `Parsed` has been improved.
+- When parsing, invalid values are now rejected sooner. Previously, the entire input would be parsed
+  before being rejected in the final step. Now, invalid values are rejected as soon as they are
+  encountered. This affects the error variant returned, which may cause minor breakage for any code
+  (incorrectly) relying on the exact error variant.
+- When parsing a `Time`, an error is returned if components are present but not consecutive. For
+  example, if `hours` and `seconds` are present, `minutes` will not be assumed to be zero.
+
+### Fixed
+
+- The implementation of `Duration::checked_div` could return a slightly incorrect result in some
+  cases. This has been fixed.
+
+## 0.3.23 [2023-07-08]
+
+### Added
+
+- `Date::next_occurrence`
+- `Date::prev_occurrence`
+- `Date::nth_next_occurrence`
+- `Date::nth_prev_occurrence`
+- `Weekday::nth_prev`
+- `Month::nth_next`
+- `Month::nth_prev`
+
+### Changed
+
+**The minimum supported Rust version policy has been updated.** See [the README][msrv-policy] for
+details.
+
+[msrv-policy]: https://github.com/time-rs/time#minimum-rust-version-policy
+
+### Fixed
+
+- `Duration::abs` correctly returns `Duration::MAX` when near the minimum value. The nanoseconds
+  value was previously incorrect.
+- Compliance with ISO 8601 has been improved. Previously, a UTC offset would be incorrectly rejected
+  in some cases.
+
+## 0.3.22 [2023-06-07]
+
+### Added
+
+- `OffsetDateTime::checked_to_offset`
+
+## 0.3.21 [2023-05-05]
+
+### Added
+
+- Any formattable/parsable type can now be used with the `time::serde::format_description!` macro.
+- `Weekday::nth_next`
+
+### Changed
+
+- The minimum supported Rust version is now 1.65.0.
+
+## 0.3.20 [2023-02-24]
+
+### Changed
+
+- The minimum supported Rust version is now 1.63.0.
+- On Unix-based operating systems with known thread-safe environments, functions obtaining the local
+  offset no longer require a check that the program is single-threaded. This currently includes
+  MacOS, illumos, and NetBSD.
+
+### Added
+
+- `[ignore]` component in format descriptions. A `count` modifier is required, indicating the number
+  of bytes to ignore when parsing.
+- `[unix_timestamp]` component in format descriptions. This is currently only usable with
+  `OffsetDateTime`. Users can choose between seconds, milliseconds, microseconds, and nanoseconds,
+  and whether the sign is mandatory or optional.
+
+### Fixed
+
+- The API for declaring soundness now uses stricter atomic orderings internally.
+
+## 0.3.19 [2023-02-16]
+
+### Fixed
+
+This includes the update to the `format_description!` macro, which was supposed to be included in
+0.3.18.
+
+## 0.3.18 [2023-02-16]
+
+### Changed
+
+- The minimum supported Rust version is now 1.62.0.
+
+### Added
+
+- `[first]` and `[optional]` items can now be included in format descriptions. To parse this at
+  runtime, you must use the `format_description::parse_owned` method.
+- `format_description::parse_borrowed`
+- An API has been added to opt out of soundness checks for obtaining the local offset. This replaces
+  the previous, officially unsupported `RUSTFLAGS="--cfg unsound_local_offset"`. End users may call
+  `time::util::local_offset::set_soundness(time::util::local_offset::Soundness::Unsound)`. This
+  method is `unsafe` because it enables undefined behavior if its safety requirements are not
+  upheld. Note that libraries **must not** set this to `Unsound`, as it is impossible for a library
+  to guarantee end users uphold the required invariants.
+
+### Fixed
+
+- Correctly parse offset sign when hour is zero. The parse was previously unconditionally positive,
+  even if the sign indicated otherwise.
+- Compilation is fixed for WebAssembly.
+
+## 0.3.17 [2022-11-06]
+
+### Changed
+
+- The amount of code generated by `time::serde::format_description!` is reduced if not all feature
+  flags are active.
+- `cargo test --tests` works with any configuration of feature flags. This occurs by spawning a
+  subprocess that passes `--all-features`. `cargo test --doc` works with most combinations of
+  feature flags, including the default. The combination of these changes means that crater will now
+  run on `time`.
+- `libc` and `num_threads` are only included as dependencies when needed. They were previously
+  unconditionally included.
+
+### Added
+
+- `time::format_description::parse_owned`, which returns an `OwnedFormatItem`. This avoids "lifetime
+  hell", where all your structs now need a lifetime because a single field has one. Note that when
+  possible, the borrowed format item (just called `FormatItem`) is still preferred, as it has
+  significantly fewer allocations. The new `OwnedFormatItem` is usable for both formatting and
+  parsing, as you would expect.
+
+### Compatibility
+
+- The parser for runtime format descriptions has been rewritten. A side effect of this is that some
+  errors have slightly changed. No existing API has been altered, so this is not a breaking change.
+  However, you may notice different errors, which are hopefully better! The parser for compile-time
+  format descriptions has not yet been swapped out. If you notice any bugs, please file an issue.
+
+## 0.3.16 [2022-10-24]
+
+### Changed
+
+- The minimum supported Rust version is now 1.60.0.
+- The `serde-well-known` feature flag is deprecated. The necessary features for an item to be
+  enabled are indicated in documentation.
+- Feature gates have been loosened for well-known formats.
+
+### Added
+
+- `const`s can now be provided as the format description for `time::serde::format_description!`. The
+  `const` must be of type `&[FormatItem<'_>]`, which is what is returned by the
+  `time::macros::format_description!` macro.
+
+  ```rust
+  const TIME_FORMAT_ALT: &[FormatItem<'_>] = time::macros::format_description!("[hour]:[minute]");
+  time::serde::format_description!(time_format_alt, Time, TIME_FORMAT_ALT);
+  ```
+
+### Compatibility
+
+- Some feature flags have been removed. None of these have ever been documented as flags, so any use
+  was unsupported. These flags are:
+  - `js-sys`
+  - `quickcheck-dep`
+  - `itoa`
+  - `time-macros`
+
+## 0.3.15 [2022-10-03]
+
+### Changed
+
+- Better gating for `tm_gmtoff` extension. This should eliminate build failures on some untested
+  platforms.
+- `Debug` output for types are now human-readable. While this should not be relied upon, it is
+  currently the same as the output with `Display`.
+- Eliminate overflows in the constructors for `Duration. When there is an overflow, the methods now
+  panic. This was previously only the case in debug mode.
+- Panic if `NaN` is passed to `Duration::from_secs_f32` or `Duration::from_secs_f64`.
+
+### Fixed
+
+- Fix error when deserializing data types from bytes. This affects formats such as JSON.
+- Eliminate a panic in an edge case when converting `OffsetDateTime` to another `UtcOffset`. This
+  occurred due to an old assumption in code that was no longer the case.
+
+## 0.3.14 [2022-08-24]
+
+### Changed
+
+- The minimum supported Rust version is now 1.59.0.
+- `Duration::unsigned_abs` is now `const fn`.
+- The const parameter for `time::format_description::well_known::Iso8601` now has a default. This
+  means `Iso8601` is the same as `Iso8601::DEFAULT`.
+- The `Parsed` struct has been reduced in size from 56 to 32 bytes (a 43% reduction).
+
+## 0.3.13 [2022-08-09]
+
+### Fixed
+
+- wasm builds other than those using `wasm-bindgen` work again.
+
+## 0.3.12 [2022-08-01]
+
+### Added
+
+- `js-sys` now supports obtaining the system's local UTC offset.
+
+### Changed
+
+- Performance of many `Date` operations has improved when using the `large-dates` feature.
+- While an internal change, `OffsetDateTime` now stores the value in the attached `UtcOffset`, not
+  UTC. This leads to significant performance gains on nearly all `OffsetDateTime` methods.
+
+### Fixed
+
+- Subtracting two `Time`s can no longer panic. This previously occurred in some situations where the
+  result was invalid.
+- ISO 8601 parsing rounds the subseconds to avoid incorrectly truncating the value.
+
+## 0.3.11 [2022-06-21]
+
+### Fixed
+
+- [#479]: regression when parsing optional values with `serde`
+- [#481]: `Time` subtracted from `Time` can panic. This was caused by a bug that has always existed,
+  in that an internal invariant was not upheld. Memory safety was not violated.
+
+[#479]: https://github.com/time-rs/time/issues/479
+[#481]: https://github.com/time-rs/time/issues/481
+
+## 0.3.10 [2022-06-19]
+
+### Added
+
+- Serde support for non-self-describing formats
+- `Duration::unsigned_abs`, which returns a `std::time::Duration`
+- ISO 8601 well-known format
+- `Duration` can now be formatted with a `.N` specifier, providing a shorter representation when
+  using `Display`.
+- Parse `null` as `None` on serde structs
+
+### Fixed
+
+- Fix incorrect parsing of UTC offset in `Rfc3339`.
+
+### Changed
+
+- The minimum supported Rust version is now 1.57.0.
+- Performance for `Rfc2822` has been improved.
+- Debug assertions have been added in a few places. This should have no user facing impact, as it
+  only serves to catch bugs and is disabled in release mode.
+
+## 0.3.9 [2022-03-22]
+
+### Added
+
+- `time::serde::format_description!`
+  - This macro is similar to `time::format_description!`, but it generates a module that can be used
+    in `#[serde(with = "foo")]`. This makes it far easier to serialize/deserialize a custom format.
+- `Date::replace_year`
+- `Date::replace_month`
+- `Date::replace_day`
+- `Time::replace_hour`
+- `Time::replace_minute`
+- `Time::replace_second`
+- `Time::replace_millisecond`
+- `Time::replace_microsecond`
+- `Time::replace_nanosecond`
+- `PrimitiveDateTime::replace_year`
+- `PrimitiveDateTime::replace_month`
+- `PrimitiveDateTime::replace_day`
+- `PrimitiveDateTime::replace_hour`
+- `PrimitiveDateTime::replace_minute`
+- `PrimitiveDateTime::replace_second`
+- `PrimitiveDateTime::replace_millisecond`
+- `PrimitiveDateTime::replace_microsecond`
+- `PrimitiveDateTime::replace_nanosecond`
+- `OffsetDateTime::replace_year`
+- `OffsetDateTime::replace_month`
+- `OffsetDateTime::replace_day`
+- `OffsetDateTime::replace_hour`
+- `OffsetDateTime::replace_minute`
+- `OffsetDateTime::replace_second`
+- `OffsetDateTime::replace_millisecond`
+- `OffsetDateTime::replace_microsecond`
+- `OffsetDateTime::replace_nanosecond`
+- `Parsed::offset_minute_signed`
+- `Parsed::offset_second_signed`
+- `Parsed::set_offset_minute_signed`
+- `Parsed::set_offset_second_signed`
+- `Parsed::with_offset_minute_signed`
+- `Parsed::with_offset_second_signed`
+- `error::InvalidVariant`
+- `impl FromStr` for `Weekday`
+- `impl FromStr` for `Month`
+- `impl Display for Duration`
+
+### Deprecated
+
+The following methods have been deprecated in favor of the new, signed equivalent methods. The
+pre-existing methods
+
+- `Parsed::offset_minute`
+- `Parsed::offset_second`
+- `Parsed::set_offset_minute`
+- `Parsed::set_offset_second`
+- `Parsed::with_offset_minute`
+- `Parsed::with_offset_second`
+
+### Changed
+
+- Well-known formats that support leap seconds now return the `TryFromParsed::ComponentRange` error
+  variant if the leap second could not occur at that given moment.
+
+## 0.3.8 [2022-02-22] [YANKED]
+
+This release is broken and has been yanked.
+
+## 0.3.7 [2022-01-26]
+
+### Fixed
+
+Solaris and Illumos build again.
+
+## 0.3.6 [2022-01-20]
+
+### Added
+
+- `Date::saturating_add`
+- `Date::saturating_sub`
+- `PrimitiveDateTime::saturating_add`
+- `PrimitiveDateTime::saturating_sub`
+- `OffsetDateTime::saturating_add`
+- `OffsetDateTime::saturating_sub`
+- `PrimitiveDatetime::MIN`
+- `PrimitiveDatetime::MAX`
+- `Rfc2822` format description
+- Serde support for well-known formats
+  - This is placed behind the new `serde-well-known` feature flag.
+
+### Changed
+
+- MacOS and FreeBSD are supported obtaining the local offset when single-threaded.
+  - Starting with this version, this is delegated to the `num_threads` crate.
+- Leap seconds are now parsed as the final nanosecond of the preceding second.
+- The minimum supported Rust version is now 1.53.0.
+- Deserializers for human readable formats will fall back to the binary format if the human readable
+  format fails to deserialize.
+
+### Fixed
+
+- Deserialization will no longer fail when given a non-borrowed string.
+
+## 0.3.5 [2021-11-12]
+
+### Added
+
+- `Date::checked_add`
+- `Date::checked_sub`
+- `PrimitiveDateTime::checked_add`
+- `PrimitiveDateTime::checked_sub`
+- `OffsetDateTime::checked_add`
+- `OffsetDateTime::checked_sub`
+
+### Changed
+
+- Attempts to obtain the local UTC offset will now succeed on Linux if the process is
+  single-threaded. This does not affect other Unix platforms. As a reminder, the relevant methods
+  are fallible and may return an `Err` value for any reason.
+
+## 0.3.4 [2021-10-26]
+
+### Added
+
+- `error::DifferentVariant` and `Error::DifferentVariant`
+- `impl From<Component> for FormatItem<'_>`
+- `impl TryFrom<FormatItem<'_>> for Component`
+- `impl<'a> From<&'a [FormatItem<'_>]> for FormatItem<'a>`
+- `impl<'a> TryFrom<FormatItem<'a>> for &[FormatItem<'a>]`
+- `impl PartialEq<Component> for FormatItem<'_>`
+- `impl PartialEq<FormatItem<'_>> for Component`
+- `impl PartialEq<&[FormatItem<'_>]> for FormatItem<'_>`
+- `impl PartialEq<FormatItem<'_>> for &[FormatItem<'_>]`
+- `impl TryFrom<Error> for error::TryFromParsed`
+- `impl TryFrom<Error> for error::Parse`
+- `impl TryFrom<Error> for error::ParseFromDescription`
+- `impl TryFrom<Error> for error::InvalidFormatDescription`
+- `impl TryFrom<Error> for error::IndeterminateOffset`
+- `impl TryFrom<Error> for error::Format`
+- `impl TryFrom<Error> for error::ConversionRange`
+- `impl TryFrom<Error> for error::ComponentRange`
+- `impl TryFrom<error::TryFromParsed> for error::ComponentRange`
+- `impl TryFrom<error::Parse> for error::TryFromParsed`
+- `impl TryFrom<error::Parse> for error::ParseFromDescription`
+- `impl TryFrom<error::Format> for std::io::Error`
+- `impl Sum for Duration`
+- `impl Sum<&Duration> for Duration`
+- A `const fn default()` has been added to all modifiers that are `struct`s. These methods exist to
+  permit construction in `const` contexts and may be removed (without being considered a breaking
+  change) once `impl const Default` is stabilized.
+- `FormatItem::Optional`, which will consume the contained value if present but still succeed
+  otherwise.
+- `FormatItem::First`, which will consume the first successful parse, ignoring any prior errors.
+
+### Fixed
+
+- Cross-building to Windows now succeeds.
+- A parse error on a `UtcOffset` component now indicates the error comes from the offset.
+- Some arithmetic no longer panics in edge cases.
+
+## 0.3.3 [2021-09-25]
+
+### Added
+
+- `Parsed::parse_item`
+- `Parsed::parse_items`
+- `Parsed::parse_literal`
+- Builder methods for `Parsed`
+- The `format_description!` macro now supports the `case_sensitive` modifier.
+
+### Changed
+
+The minimum supported version is now 1.51.0.
+
+## 0.3.2 [2021-08-25]
+
+### Added
+
+- `Instant` is now `#[repr(transparent)]`
+
+### Fixed
+
+- Constructing a `Date` from its ISO year, week, and weekday now returns the correct value in all
+  circumstances. Previously, dates with an ISO year less than zero may have returned incorrect
+  values. This affects both the `Date::from_iso_week_date` method and the `date!` macro.
+
+## 0.3.1 [2021-08-06]
+
+### Added
+
+- `Month` now implements `TryFrom<u8>`
+- `From<Month>` is now implemented for `u8`
+- The parser now accepts "5 PM" and similar as a valid time. Only the 12-hour clock hour and the
+  AM/PM suffix may be present; any other components representing a time will cause an error (this
+  exact behavior is not guaranteed).
+- The `time!` macro accepts the "5 PM" syntax with the same restriction.
+
+### Fixed
+
+- Macros that have a time component (`time!` and `datetime!`) no longer accept "0:00 AM" and
+  similar. This was previously erroneously accepted.
+
+## 0.3.0 [2021-07-30]
+
+### Added
+
+- `datetime!` macro, which allows the construction of a statically verified `PrimitiveDateTime` or
+  `OffsetDateTime`.
+- `PrimitiveDateTime::replace_time`
+- `PrimitiveDateTime::replace_date`
+- `OffsetDateTime::replace_time`
+- `OffsetDateTime::replace_date`
+- `OffsetDateTime::replace_date_time`
+- `OffsetDateTime::replace_offset`
+- `#![no_alloc]` support
+- `Date::to_iso_week_date`, replacing `Date::iso_year_week`
+- `Date::MIN`
+- `Date::MAX`
+- `UtcOffset::from_hms`
+- `UtcOffset::from_whole_seconds`
+- `UtcOffset::as_hms`
+- `UtcOffset::whole_hours`
+- `UtcOffset::whole_minutes`
+- `UtcOffset::minutes_past_hour`
+- `UtcOffset::seconds_past_minute`
+- `UtcOffset::is_utc`
+- `UtcOffset::is_positive`
+- `UtcOffset::is_negative`
+- `OffsetDateTime::sunday_based_week`
+- `OffsetDateTime::monday_based_week`
+- `PrimitiveDateTime::to_calendar_date`
+- `PrimitiveDateTime::to_ordinal_date`
+- `PrimitiveDateTime::to_iso_week_date`
+- `PrimitiveDateTime::to_julian_day`
+- `OffsetDateTime::to_calendar_date`
+- `OffsetDateTime::to_ordinal_date`
+- `OffsetDateTime::to_iso_week_date`
+- `OffsetDateTime::to_julian_day`
+- `Time::as_hms`
+- `Time::as_hms_milli`
+- `Time::as_hms_micro`
+- `Time::as_hms_nano`
+- `PrimitiveDateTime::as_hms`
+- `PrimitiveDateTime::as_hms_milli`
+- `PrimitiveDateTime::as_hms_micro`
+- `PrimitiveDateTime::as_hms_nano`
+- `OffsetDateTime::to_hms`
+- `OffsetDateTime::to_hms_milli`
+- `OffsetDateTime::to_hms_micro`
+- `OffsetDateTime::to_hms_nano`
+- `Duration::saturating_add`
+- `Duration::saturating_sub`
+- `Duration::saturating_mul`
+- `util::days_in_year_month`
+- `Month`
+- `Instant::into_inner`
+- `impl AsRef<StdInstant>` and `impl Borrow<StdInstant>` for `Instant`
+- Support for obtaining the local UTC offset on Unix-like systems has been re-added under a
+  user-provided flag. This functionality is not tested in any way and is not guaranteed to work.
+  Library authors are unable to enable this feature, as it must be passed via `RUSTFLAGS`. Further
+  information is available in the documentation.
+
+### Changed
+
+- The minimum supported Rust version is now 1.48.0. Per the policy in the README, this may be bumped
+  within the 0.3 series without being a breaking change.
+- rand has been updated to 0.8.
+- quickcheck has been updated to 1.0.
+- Macros are placed behind the `macros` feature flag.
+- Renamed
+  - `OffsetDatetime::timestamp` → `OffsetDateTime::unix_timestamp`
+  - `OffsetDatetime::timestamp_nanos` → `OffsetDateTime::unix_timestamp_nanos`
+  - `Date::try_from_ymd` → `Date::from_calendar_date`
+  - `Date::try_from_yo` → `Date::from_ordinal_date`
+  - `Date::try_from_iso_ywd` → `Date::from_iso_week_date`
+  - `Date::as_ymd` → `Date::to_calendar_date`
+  - `Date::as_yo` → `Date::to_ordinal_date`
+  - `Date::try_with_hms` → `Date::with_hms`
+  - `Date::try_with_hms_milli` → `Date::with_hms_milli`
+  - `Date::try_with_hms_micro` → `Date::with_hms_micro`
+  - `Date::try_with_hms_nano` → `Date::with_hms_nano`
+  - `Time::try_from_hms` → `Time::from_hms`
+  - `Time::try_from_hms_milli` → `Time::from_hms_milli`
+  - `Time::try_from_hms_micro` → `Time::from_hms_micro`
+  - `Time::try_from_hms_nano` → `Time::from_hms_nano`
+  - `UtcOffset::try_local_offset_at` → `UtcOffset::local_offset_at`
+  - `UtcOffset::as_seconds` → `UtcOffset::whole_seconds`
+  - `OffsetDateTime::try_now_local` → `OffsetDateTime::now_local`
+  - `Date::week` → `Date::iso_week`
+  - `PrimitiveDateTime::week` → `PrimitiveDateTime::iso_week`
+  - `OffsetDateTime::week` → `OffsetDateTime::iso_week`
+  - `Date::julian_day` → `Date::to_julian_day`
+  - All `Duration` unit values, as well as the minimum and maximum, are now associated constants.
+  - `OffsetDateTime::unix_epoch()` → `OffsetDateTime::UNIX_EPOCH`
+  - `Time::midnight()` → `Time::MIDNIGHT`
+- Now `const fn` (on at least newer compilers)
+  - `Date::weekday`
+  - `Date::next_day`
+  - `Date::previous_day`
+  - `PrimitiveDateTime::assume_offset`
+  - `PrimitiveDateTime::weekday`
+  - `Duration::checked_add`
+  - `Duration::checked_sub`
+  - `Duration::checked_mul`
+  - `OffsetDateTime::from_unix_timestamp`
+  - `OffsetDateTime::from_unix_timestamp_nanos`
+  - `OffsetDateTime::date`
+  - `OffsetDateTime::time`
+  - `OffsetDateTime::year`
+  - `OffsetDateTime::month`
+  - `OffsetDateTime::day`
+  - `OffsetDateTime::ordinal`
+  - `OffsetDateTime::to_iso_week_date`
+  - `OffsetDateTime::week`
+  - `OffsetDateTime::weekday`
+  - `OffsetDateTime::hour`
+  - `OffsetDateTime::minute`
+  - `OffsetDateTime::second`
+  - `OffsetDateTime::millisecond`
+  - `OffsetDateTime::microsecond`
+  - `OffsetDateTime::nanosecond`
+  - `OffsetDateTime::unix_timestamp`
+  - `OffsetDateTime::unix_timestamp_nanos`
+- The following functions now return a `Result`:
+  - `Date::from_julian_day`
+  - `OffsetDateTime::from_unix_timestamp`
+  - `OffsetDateTime::from_unix_timestamp_nanos`
+- The following functions now return an `Option`:
+  - `Date::next_day`
+  - `Date::previous_day`
+- The range of valid years has changed. By default, it is ±9999. When using the `large-dates`
+  feature, this is increased to ±999,999. Enabling the feature has performance implications and
+  introduces ambiguities when parsing.
+- The following are now gated under the `local-offset` feature:
+  - `UtcOffset::local_offset_at`
+  - `OffsetDateTime::now_local`
+- `Instant` is now guaranteed to be represented as a tuple struct containing a `std::time::Instant`.
+- Macros are guaranteed to be evaluated at compile time.
+- `Date::to_julian_day` now returns an `i32` (was `i64`).
+- `Date::from_julian_day` now accepts an `i32` (was `i64`).
+- Extension traits are only implemented for some types and are now sealed. As they are intended to
+  be used with value literals, the breakage caused by this should be minimal.
+- The new `Month` enum is used instead of numerical values where appropriate.
+
+### Removed
+
+- v0.1 APIs, previously behind an enabled-by-default feature flag
+  - `PreciseTime`
+  - `SteadyTime`
+  - `precise_time_ns`
+  - `precise_time_s`
+  - `Instant::to`
+  - `Duration::num_weeks`
+  - `Duration::num_days`
+  - `Duration::num_hours`
+  - `Duration::num_minutes`
+  - `Duration::num_seconds`
+  - `Duration::num_milliseconds`
+  - `Duration::num_microseconds`
+  - `Duration::num_nanoseconds`
+  - `Duration::span`
+  - `Duration::from_std`
+  - `Duration::to_std`
+- Panicking APIs, previously behind a non-default feature flag
+  - `Date::from_ymd`
+  - `Date::from_yo`
+  - `Date::from_iso_ywd`
+  - `Date::with_hms`
+  - `Date::with_hms_milli`
+  - `Date::with_hms_micro`
+  - `Date::with_hms_nano`
+  - `Time::from_hms`
+  - `Time::from_hms_milli`
+  - `Time::from_hms_micro`
+  - `Time::from_hms_nano`
+- APIs that assumed an offset of UTC, previously enabled unconditionally
+  - `Date::today`
+  - `Time::now`
+  - `PrimitiveDateTime::now`
+  - `PrimitiveDateTime::unix_epoch`
+  - `PrimitiveDateTime::from_unix_timestamp`
+  - `PrimitiveDateTime::timestamp`
+  - `OffsetDateTime::now`
+  - `impl Sub<SystemTime> for PrimitiveDateTime`
+  - `impl Sub<PrimitiveDateTime> for SystemTime`
+  - `impl PartialEq<SystemTime> for PrimitiveDateTime`
+  - `impl PartialEq<PrimitiveDateTime> for SystemTime`
+  - `impl PartialOrd<SystemTime> for PrimitiveDateTime`
+  - `impl PartialOrd<PrimitiveDateTime> for SystemTime`
+  - `impl From<SystemTime> for PrimitiveDateTime`
+  - `impl From<PrimitiveDateTime> for SystemTime`
+  - `UtcOffset::local_offset_at` — assumed UTC if unable to determine local offset
+  - `OffsetDateTime::now_local` — assumed UTC if unable to determine local offset
+- Other APIs deprecated during the course of 0.2, previously enabled unconditionally
+  - `Duration::sign`
+  - `PrimitiveDateTime::using_offset`
+  - `Sign`
+- Re-exports of APIs moved during the course of 0.2
+  - `days_in_year`
+  - `is_leap_year`
+  - `validate_format_string`
+  - `weeks_in_year`
+  - `ComponentRangeError`
+  - `ConversionRangeError`
+  - `IndeterminateOffsetError`
+  - `ParseError`
+  - `NumericalDuration`
+  - `NumericalStdDuration`
+  - `NumericalStdDurationShort`
+  - All top-level macros
+- Lazy formatting, which was unidiomatic as a failure would have returned `fmt::Error`, indicating
+  an error unrelated to the time crate.
+  - `Time::lazy_format`
+  - `Date::lazy_format`
+  - `UtcOffset::lazy_format`
+  - `PrimitiveDateTime::lazy_format`
+  - `OffsetDateTime::lazy_format`
+- Support for stdweb has been removed, as the crate is unmaintained.
+- The `prelude` module has been removed in its entirety.
+- `Date::iso_year_week` in favor of `Date::to_iso_week_date`
+- `PrimitiveDateTime::iso_year_week`
+- `OffsetDateTime::iso_year_week`
+- `UtcOffset::east_hours`
+- `UtcOffset::west_hours`
+- `UtcOffset::hours`
+- `UtcOffset::east_minutes`
+- `UtcOffset::west_minutes`
+- `UtcOffset::minutes`
+- `UtcOffset::east_seconds`
+- `UtcOffset::west_seconds`
+- `UtcOffset::seconds`
+- `Date::month_day`
+- `PrimitiveDateTime::month_day`
+- `OffsetDateTime::month_day`
+- `Weekday::iso_weekday_number` (identical to `Weekday::number_from_monday`)
+- `ext::NumericalStdDurationShort`
+
+## 0.2.26 [2021-03-16]
+
+### Fixed
+
+- #316, where the build script was wrongly unable to determine the correct compiler version
+- Dependencies have been bumped to the latest patch version, ensuring compatibility.
+
+## 0.2.25 [2021-01-24]
+
+### Fixed
+
+- Fix #309, which can cause panics in certain situations.
+
+## 0.2.24 [2021-01-08]
+
+### Fixed
+
+- The implementation of `OffsetDateTime::timestamp`, `OffsetDateTime::unix_timestamp`,
+  `PrimitiveDatetime::timestamp`, and `OffsetDateTime::unix_timestamp` have been corrected. This
+  affects all negative timestamps with a nonzero subsecond value.
+
+## 0.2.23 [2020-11-17]
+
+### Compatibility notes
+
+Due to #293, any method that requires knowledge of the local offset will now
+_fail_ on Linux. For `try_` methods, this means returning an error. For others,
+it means assuming UTC.
+
+### Deprecated
+
+- `UtcOffset::timestamp` (moved to `UtcOffset::unix_timestamp`)
+- `UtcOffset::timestamp_nanos` (moved to `UtcOffset::unix_timestamp_nanos`)
+- `date` (moved to `macros::date`)
+- `time` (moved to `macros::time`)
+- `offset` (moved to `macros::offset`)
+- `OffsetDateTime::now_local` (assumes UTC if unable to be determined)
+- `UtcOffset::local_offset_at` (assumes UTC if unable to be determined)
+- `UtcOffset::current_local_offset` (assumes UTC if unable to be determined)
+
+## 0.2.22 [2020-09-25]
+
+### Fixed
+
+- Solaris & Illumos now successfully build.
+- `Duration::new` could previously result in an inconsistent internal state. This led to some odd
+  situations where a `Duration` could be both positive and negative. This has been fixed such that
+  the internal state maintains its invariants.
+
+## 0.2.21 [2020-09-20]
+
+### Changed
+
+- Implementation details of some error types have been exposed. This means that data about a
+  component being out of range can be directly obtained, while an invalid offset or conversion error
+  is guaranteed to be a zero-sized type.
+- The following functions are `const fn` on rustc ≥ 1.46:
+  - `Date::try_from_iso_ywd`
+  - `Date::iso_year_week`
+  - `Date::week`
+  - `Date::sunday_based_week`
+  - `Date::monday_based_week`
+  - `Date::try_with_hms`
+  - `Date::try_with_hms_milli`
+  - `Date::try_with_hms_micro`
+  - `Date::try_with_hms_nano`
+  - `PrimitiveDateTime::iso_year_week`
+  - `PrimitiveDateTime::week`
+  - `PrimitiveDateTime::sunday_based_week`
+  - `PrimitiveDateTime::monday_based_week`
+  - `util::weeks_in_year`
+
+## 0.2.20 [2020-09-16]
+
+### Added
+
+- `OffsetDateTime::timestamp_nanos`
+- `OffsetDateTime::from_unix_timestamp_nanos`
+
+### Fixed
+
+A bug with far-reaching consequences has been fixed. See #276 for complete details, but the gist is
+that the constructing a `Date` from a valid Julian day may result in an invalid value or even panic.
+As a consequence of implementation details, this affects nearly all arithmetic with `Date`s (and as
+a result also `PrimitiveDateTime`s and `OffsetDateTime`s).
+
+### Improvements
+
+- Document how to construct an `OffsetDateTime` from a timestamp-nanosecond pair
+
+## 0.2.19 [2020-09-12]
+
+### Fixed
+
+- The build script now declares a dependency on the `COMPILING_UNDER_CARGO_WEB` environment
+  variable.
+- Parsing the `%D` specifier no longer requires padding on the month. Previously,
+  `Err(InvalidMonth)` was incorrectly returned.
+- A `std::time::Duration` that is larger than `time::Duration::max_value()` now correctly returns
+  `Ordering::Greater` when compared.
+- Multiplying and assigning an integer by `Sign::Zero` now sets the integer to be zero. This
+  previously left the integer unmodified.
+
+## 0.2.18 [2020-09-08]
+
+### Changed
+
+- The following functions are `const fn` on rustc ≥ 1.46:
+  - `Date::try_from_ymd`
+  - `Date::try_from_yo`
+  - `Time::try_from_hms`
+  - `Time::try_from_hms_milli`
+  - `Time::try_from_hms_micro`
+  - `Time::try_from_hms_nano`
+- An `error` module has been created where all existing error types are contained. The `Error`
+  suffix has been dropped from these types.
+- An `ext` module has been created where extension traits are contained.
+- A `util` module has been created where utility functions are contained.
+- `error::ComponentRange` now implements `Copy`.
+
+For back-compatibility, all items that were moved to newly-contained modules have been re-exported
+from their previous locations (and in the case of the `error` module, with their previous name).
+
+### Fixes
+
+Parsing `format::Rfc3339` now correctly handles the UTC offset (#274).
+
+## 0.2.17 [2020-09-01]
+
+### Changed
+
+The following functions are `const fn` on rustc ≥ 1.46:
+
+- `Date::year`
+- `Date::month`
+- `Date::day`
+- `Date::month_day`
+- `Date::ordinal`
+- `Date::as_ymd`
+- `Date::as_yo`
+- `Date::julian_day`
+- `Duration::checked_div`
+- `PrimitiveDateTime::year`
+- `PrimitiveDateTime::month`
+- `PrimitiveDateTime::day`
+- `PrimitiveDateTime::month_day`
+- `PrimitiveDateTime::ordinal`
+- `Weekday::previous`
+- `Weekday::next`
+
+### Improvements
+
+- `size_of::<Date>()` has been reduced from 8 to 4. As a consequence,
+  `size_of::<PrimitiveDatetime>()` went from 16 to 12 and `size_of::<OffsetDateTime>()` from 20
+  to 16. This change also results in a performance improvement of approximately 30% on the
+  `Date::year` and `Date::ordinal` methods.
+- `cfg-if` has been removed as a dependency.
+
+### Fixed
+
+- `cfg` flags passed to rustc will no longer collide with other crates (at least unless they're
+  doing something very stupid).
+- The crate will successfully compile with any combination of feature flags. Previously, some
+  combinations would fail.
+
+## 0.2.16 [2020-05-12]
+
+### Added
+
+`OffsetDateTime`s can now be represented as Unix timestamps with serde. To do this, you can use the
+`time::serde::timestamp` and `time::serde::timestamp::option` modules.
+
+## 0.2.15 [2020-05-04]
+
+### Fixed
+
+`cargo-web` support works, and is now explicitly checked in CI. A previous change was made that made
+a method call ambiguous.
+
+## 0.2.14 [2020-05-02]
+
+### Fixed
+
+Adding/subtracting a `core::time::Duration` now correctly takes subsecond values into account. This
+also affects `PrimitiveDateTime` and `OffsetDateTime`.
+
+## 0.2.13 [2020-05-01]
+
+### Fixed
+
+Panicking APIs are re-exposed.
+
+## 0.2.12 [2020-04-30]
+
+### Fixed
+
+Subtracting `Instant`s can correctly result in a negative duration, rather than resulting in the
+absolute value of it.
+
+## 0.2.11 [2020-04-27]
+
+### Added
+
+- `OffsetDateTime::now_utc`
+
+### Deprecated
+
+- `OffsetDateTime::now` due to the offset not being clear from the method name alone.
+
+### Fixed
+
+`Date`s are now uniformly random when using the `rand` crate. Previously, both the year and day
+within the year were uniform, but this meant that any given day in a leap year was slightly less
+likely to be chosen than a day in a non-leap year.
+
+### Changed
+
+- MSRV is lowered to 1.32.0.
+
+## 0.2.10 [2020-04-19]
+
+### Added
+
+- Support for formatting and parsing `OffsetDateTime`s as RFC3339.
+- Lazy formatting. To avoid exposing implementation details, we're just returning `impl Display`,
+  rather than a concrete type.
+- Add support for Illumos.
+
+### Fixed
+
+- Deprecated APIs from time v0.1 are public again. They were previously hidden by accident in 0.2.9.
+
+## 0.2.9 [2020-03-13]
+
+### Fixed
+
+`cfg-if` now has a mandatory minimum of 0.1.10, rather than just 0.1. This is because compilation
+fails when using 0.1.9.
+
+## 0.2.8 [2020-03-12]
+
+### Added
+
+- `cargo_web` support has been added for getting a local offset. A general catch-all defaulting to
+  UTC has also been added.
+- `Error::source` has been implemented for the wrapper `time::Error`.
+- `UtcOffset::try_local_offset`, `UtcOffset::try_current_local_offset`,
+  `OffsetDateTime::try_now_local()` provide fallible alternatives when the default of UTC is not
+  desired. To facilitate this change, `IndeterminateOffsetError` has been added.
+- Support for parsing and formatting subsecond nanoseconds.
+
+### Changed
+
+- `#[non_exhaustive]` is simulated on compilers prior to 1.40.0.
+
+## 0.2.7 [2020-02-22]
+
+### Added
+
+- `Display` has been implemented for `Date`, `OffsetDateTime`, `PrimitiveDateTime`, `Time`,
+  `UtcOffset`, and `Weekday`.
+- `Hash` is now derived for `Duration`.
+- `SystemTime` can be converted to and from `OffsetDateTime`. The following trait implementations
+  have been made for interoperability:
+  - `impl Sub<SystemTime> for OffsetDateTime`
+  - `impl Sub<OffsetDateTime> for SystemTime`
+  - `impl PartialEq<SystemTime> for OffsetDateTime`
+  - `impl PartialEq<OffsetDateTime> for SystemTime`
+  - `impl PartialOrd<SystemTime> for OffsetDateTime`
+  - `impl PartialOrd<OffsetDateTime> for SystemTime`
+  - `impl From<SystemTime> for OffsetDateTime`
+  - `impl From<OffsetDateTime> for SystemTime`
+- All structs now `impl Duration<T> for Standard`, allowing usage with the `rand` crate. This is
+  gated behind the `rand` feature flag.
+- Documentation can now be built on stable. Some annotations will be missing if you do this.
+- `NumericalDuration` has been implemented for `f32` and `f64`. `NumericalStdDuration` and
+  `NumericalStdDurationShort` have been implemented for `f64` only.
+- `UtcOffset::local_offset_at(OffsetDateTime)`, which will obtain the system's local offset at the
+  provided moment in time.
+  - `OffsetDateTime::now_local()` is equivalent to calling
+    `OffsetDateTime::now().to_offset(UtcOffset::local_offset_at(OffsetDateTime::now()))` (but more
+    efficient).
+  - `UtcOffset::current_local_offset()` will return the equivalent of
+    `OffsetDateTime::now_local().offset()`.
+
+### Changed
+
+- All formatting and parsing methods now accept `impl AsRef<str>` as parameters, rather than just
+  `&str`. `time::validate_format_string` does this as well.
+- The requirement of a `Date` being between the years -100,000 and +100,000 (inclusive) is now
+  strictly enforced.
+- Overflow checks for `Duration` are now enabled by default. This behavior is the identical to what
+  the standard library does.
+- The `time`, `date`, and `offset` macros have been added to the prelude.
+
+### Deprecated
+
+- `Sign` has been deprecated in its entirety, along with `Duration::sign`.
+
+  To obtain the sign of a `Duration`, you can use the `Duration::is_positive`,
+  `Duration::is_negative`, and `Duration::is_zero` methods.
+
+- A number of functions and trait implementations that implicitly assumed a timezone (generally UTC)
+  have been deprecated. These are:
+  - `Date::today`
+  - `Time::now`
+  - `PrimitiveDateTime::now`
+  - `PrimitiveDateTime::unix_epoch`
+  - `PrimitiveDateTime::from_unix_timestamp`
+  - `PrimitiveDateTime::timestamp`
+  - `impl Sub<SystemTime> for PrimitiveDateTime`
+  - `impl Sub<PrimitiveDateTime> for SystemTime`
+  - `impl PartialEq<SystemTime> for PrimitiveDateTime`
+  - `impl PartialEq<PrimitiveDateTime> for SystemTime>`
+  - `impl PartialOrd<SystemTime> for PrimitiveDateTime`
+  - `impl PartialOrd<PrimitiveDateTime> for SystemTime>`
+  - `impl From<SystemTime> for PrimitiveDateTime`
+  - `impl From<PrimitiveDateTime> for SystemTime`
+
+### Fixed
+
+- Avoid panics when parsing an empty string (#215).
+- The nanoseconds component of a `Duration` is now always in range. Previously, it was possible (via
+  addition and/or subtraction) to obtain a value that was not internally consistent.
+- `Time::parse` erroneously returned an `InvalidMinute` error when it was actually the second that
+  was invalid.
+- `Date::parse("0000-01-01", "%Y-%m-%d")` incorrectly returned an `Err` (#221).
+
+## Pre-0.2.7
+
+Prior to v0.2.7, changes were listed in GitHub releases.
+
+[keep a changelog]: https://keepachangelog.com/en/1.0.0/
+[semantic versioning]: https://semver.org/spec/v2.0.0.html

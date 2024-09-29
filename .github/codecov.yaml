@@ -1,0 +1,13 @@
+codecov:
+  max_report_age: 1
+  require_ci_to_pass: false
+  notify:
+    wait_for_ci: false
+
+coverage:
+  precision: 1
+  round: "nearest"
+  status:
+    project:
+      default:
+        informational: true

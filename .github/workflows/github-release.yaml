@@ -1,0 +1,24 @@
+name: GitHub release
+
+on:
+  workflow_call:
+    inputs:
+      prerelease:
+        required: false
+        type: boolean
+
+jobs:
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          body: See the [changelog](https://github.com/time-rs/time/blob/main/CHANGELOG.md) for details.
+          prerelease: ${{ inputs.prerelease }}

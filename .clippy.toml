@@ -1,0 +1,21 @@
+msrv = "1.67"
+
+missing-docs-in-crate-items = true
+disallowed-macros = [
+    "std::column",
+    "std::env",
+    "std::file",
+    "std::include_bytes",
+    "std::include_str",
+    "std::include",
+    "std::line",
+    "std::module_path",
+    "std::option_env",
+]
+disallowed-names = ["alpha", "beta", "gamma", "delta"]
+matches-for-let-else = "AllTypes"
+enforced-import-renames = [
+    { path = "std::time::Duration", rename = "StdDuration" },
+    { path = "std::time::Instant", rename = "StdInstant" },
+]
+semicolon-outside-block-ignore-multiline = true

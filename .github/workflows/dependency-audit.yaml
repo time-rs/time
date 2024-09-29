@@ -1,0 +1,17 @@
+name: Dependency audit
+
+on:
+  schedule:
+    - cron: "0 0 * * 1" # midnight on Monday
+  workflow_dispatch:
+
+jobs:
+  security-audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Audit dependencies
+        uses: EmbarkStudios/cargo-deny-action@v1
