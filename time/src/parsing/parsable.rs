@@ -526,9 +526,7 @@ impl sealed::Sealed for Rfc3339 {
         //   readability, to specify a full-date and full-time separated by
         //   (say) a space character.
         // Specifically, rusqlite uses space separators.
-        let input = input
-            .get(1..)
-            .ok_or_else(|| InvalidComponent("separator"))?;
+        let input = input.get(1..).ok_or(InvalidComponent("separator"))?;
 
         let input = exactly_n_digits::<2, _>(input)
             .and_then(|item| item.consume_value(|value| parsed.set_hour_24(value)))
@@ -633,9 +631,7 @@ impl sealed::Sealed for Rfc3339 {
         //   readability, to specify a full-date and full-time separated by
         //   (say) a space character.
         // Specifically, rusqlite uses space separators.
-        let input = input
-            .get(1..)
-            .ok_or_else(|| InvalidComponent("separator"))?;
+        let input = input.get(1..).ok_or(InvalidComponent("separator"))?;
 
         let ParsedItem(input, hour) =
             exactly_n_digits::<2, _>(input).ok_or(InvalidComponent("hour"))?;
