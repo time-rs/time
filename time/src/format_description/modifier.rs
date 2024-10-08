@@ -101,6 +101,8 @@ pub struct WeekNumber {
 pub enum YearRepr {
     /// The full value of the year.
     Full,
+    /// Standard 4 digit format, to be used when `large-dates` feature is enabled
+    Four,
     /// Only the last two digits of the year.
     LastTwo,
 }

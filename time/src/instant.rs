@@ -8,8 +8,8 @@ use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
 use std::time::Instant as StdInstant;
 
-use crate::internal_macros::{impl_add_assign, impl_sub_assign};
 use crate::Duration;
+use crate::internal_macros::{impl_add_assign, impl_sub_assign};
 
 /// A measurement of a monotonically non-decreasing clock. Opaque and useful only with [`Duration`].
 ///

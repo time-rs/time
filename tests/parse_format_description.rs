@@ -78,6 +78,7 @@ fn modifiers(
     week_number_repr: _,
     #[values(
         (YearRepr::Full, "repr:full"),
+        (YearRepr::Four, "repr:four"),
         (YearRepr::LastTwo, "repr:last_two"),
     )]
     year_repr: _,

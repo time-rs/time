@@ -1130,7 +1130,6 @@ fn parse_components() -> time::Result<()> {
             assert_eq!(parsed.$property(), $expected);
         };
     }
-
     parse_component!(
         Component::Year(modifier!(Year {
             padding: modifier::Padding::Zero,
@@ -1141,6 +1140,17 @@ fn parse_components() -> time::Result<()> {
         b"2021",
         _.year() == Some(2021)
     );
+    parse_component!(
+        Component::Year(modifier!(Year {
+            padding: modifier::Padding::Zero,
+            repr: modifier::YearRepr::Four,
+            iso_week_based: false,
+            sign_is_mandatory: false,
+        })),
+        b"2021",
+        _.year() == Some(2021)
+    );
+;
     parse_component!(
         Component::Year(modifier!(Year {
             padding: modifier::Padding::Zero,
@@ -1164,6 +1174,16 @@ fn parse_components() -> time::Result<()> {
     parse_component!(
         Component::Year(modifier!(Year {
             padding: modifier::Padding::Zero,
+            repr: modifier::YearRepr::Four,
+            iso_week_based: true,
+            sign_is_mandatory: false,
+        })),
+        b"2021",
+        _.iso_year() == Some(2021)
+    );
+    parse_component!(
+        Component::Year(modifier!(Year {
+            padding: modifier::Padding::Zero,
             repr: modifier::YearRepr::LastTwo,
             iso_week_based: true,
             sign_is_mandatory: false,
@@ -1171,6 +1191,65 @@ fn parse_components() -> time::Result<()> {
         b"21",
         _.iso_year_last_two() == Some(21)
     );
+    #[cfg(feature = "large-dates")]
+    parse_component!(
+        Component::Year(modifier!(Year {
+            padding: modifier::Padding::Zero,
+            repr: modifier::YearRepr::Four,
+            iso_week_based: true,
+            sign_is_mandatory: false,
+        })),
+        b"202106",
+        _.iso_year() == Some(2021)
+    );
+    #[cfg(feature = "large-dates")]
+    parse_component!(
+        Component::Year(modifier!(Year {
+            padding: modifier::Padding::Zero,
+            repr: modifier::YearRepr::Four,
+            iso_week_based: false,
+            sign_is_mandatory: false,
+        })),
+        b"202106",
+        _.year() == Some(2021)
+    );
+
+    #[cfg(feature = "large-dates")]
+    parse_component!(
+        Component::Year(modifier!(Year {
+            padding: modifier::Padding::Zero,
+            repr: modifier::YearRepr::Full,
+            iso_week_based: true,
+            sign_is_mandatory: false,
+        })),
+        b"002021",
+        _.iso_year() == Some(2021)
+    );
+
+    #[cfg(feature = "large-dates")]
+    parse_component!(
+        Component::Year(modifier!(Year {
+            padding: modifier::Padding::Zero,
+            repr: modifier::YearRepr::Full,
+            iso_week_based: true,
+            sign_is_mandatory: false,
+        })),
+        b"+02021",
+        _.iso_year() == Some(2021)
+    );
+
+    #[cfg(feature = "large-dates")]
+    parse_component!(
+        Component::Year(modifier!(Year {
+            padding: modifier::Padding::Zero,
+            repr: modifier::YearRepr::Full,
+            iso_week_based: true,
+            sign_is_mandatory: false,
+        })),
+        b"-20210",
+        _.iso_year() == Some(-20210)
+    );
+
     parse_component!(
         Component::Month(modifier!(Month {
             padding: modifier::Padding::Space,

@@ -1,14 +1,14 @@
 use std::iter::Peekable;
 
 use num_conv::Truncate;
-use proc_macro::{token_stream, TokenTree};
+use proc_macro::{TokenTree, token_stream};
 use time_core::util::{days_in_year, weeks_in_year};
 
+use crate::Error;
 use crate::helpers::{
     consume_any_ident, consume_number, consume_punct, days_in_year_month, ymd_to_yo, ywd_to_yo,
 };
 use crate::to_tokens::ToTokenTree;
-use crate::Error;
 
 #[cfg(feature = "large-dates")]
 const MAX_YEAR: i32 = 999_999;

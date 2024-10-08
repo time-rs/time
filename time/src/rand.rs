@@ -1,7 +1,7 @@
 //! Implementation of [`Distribution`] for various structs.
 
-use rand::distributions::{Distribution, Standard};
 use rand::Rng;
+use rand::distributions::{Distribution, Standard};
 
 use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 

@@ -11,8 +11,8 @@ use num_conv::prelude::*;
 pub use self::formattable::Formattable;
 use crate::convert::*;
 use crate::ext::DigitCount;
-use crate::format_description::{modifier, Component};
-use crate::{error, Date, OffsetDateTime, Time, UtcOffset};
+use crate::format_description::{Component, modifier};
+use crate::{Date, OffsetDateTime, Time, UtcOffset, error};
 
 #[allow(clippy::missing_docs_in_private_items)]
 const MONTH_NAMES: [&[u8]; 12] = [
@@ -308,6 +308,7 @@ fn fmt_year(
     };
     let value = match repr {
         modifier::YearRepr::Full => full_year,
+        modifier::YearRepr::Four => (full_year % 10000).abs(),
         modifier::YearRepr::LastTwo => (full_year % 100).abs(),
     };
     let format_number = match repr {
@@ -315,11 +316,13 @@ fn fmt_year(
         modifier::YearRepr::Full if value.abs() >= 100_000 => format_number::<6>,
         #[cfg(feature = "large-dates")]
         modifier::YearRepr::Full if value.abs() >= 10_000 => format_number::<5>,
+
         modifier::YearRepr::Full => format_number::<4>,
+        modifier::YearRepr::Four => format_number::<4>,
         modifier::YearRepr::LastTwo => format_number::<2>,
     };
     let mut bytes = 0;
-    if repr != modifier::YearRepr::LastTwo {
+    if repr == modifier::YearRepr::Full {
         if full_year < 0 {
             bytes += write(output, b"-")?;
         } else if sign_is_mandatory || cfg!(feature = "large-dates") && full_year >= 10_000 {
