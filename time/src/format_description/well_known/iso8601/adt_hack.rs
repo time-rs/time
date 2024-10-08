@@ -227,12 +227,10 @@ mod tests {
 
     macro_rules! assert_decode_fail {
         ($encoding:expr) => {
-            assert!(
-                std::panic::catch_unwind(|| {
-                    Config::decode($encoding);
-                })
-                .is_err()
-            );
+            assert!(std::panic::catch_unwind(|| {
+                Config::decode($encoding);
+            })
+            .is_err());
         };
     }
 

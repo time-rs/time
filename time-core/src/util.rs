@@ -28,7 +28,11 @@ pub const fn is_leap_year(year: i32) -> bool {
 /// assert_eq!(days_in_year(2100), 365);
 /// ```
 pub const fn days_in_year(year: i32) -> u16 {
-    if is_leap_year(year) { 366 } else { 365 }
+    if is_leap_year(year) {
+        366
+    } else {
+        365
+    }
 }
 
 /// Get the number of weeks in the ISO year.

@@ -274,10 +274,9 @@ impl sealed::Sealed for Rfc2822 {
             false,
         )(input)
         .or_else(|| match input {
-            [
-                b'a'..=b'i' | b'k'..=b'z' | b'A'..=b'I' | b'K'..=b'Z',
-                rest @ ..,
-            ] => Some(ParsedItem(rest, 0)),
+            [b'a'..=b'i' | b'k'..=b'z' | b'A'..=b'I' | b'K'..=b'Z', rest @ ..] => {
+                Some(ParsedItem(rest, 0))
+            }
             _ => None,
         });
         if let Some(zone_literal) = zone_literal {
@@ -424,10 +423,9 @@ impl sealed::Sealed for Rfc2822 {
             false,
         )(input)
         .or_else(|| match input {
-            [
-                b'a'..=b'i' | b'k'..=b'z' | b'A'..=b'I' | b'K'..=b'Z',
-                rest @ ..,
-            ] => Some(ParsedItem(rest, 0)),
+            [b'a'..=b'i' | b'k'..=b'z' | b'A'..=b'I' | b'K'..=b'Z', rest @ ..] => {
+                Some(ParsedItem(rest, 0))
+            }
             _ => None,
         });
 

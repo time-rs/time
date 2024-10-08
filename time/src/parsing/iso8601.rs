@@ -322,5 +322,9 @@ fn round_impl(value: f64) -> f64 {
     debug_assert!(value.is_sign_positive() && !value.is_nan());
 
     let f = value % 1.;
-    if f < 0.5 { value - f } else { value - f + 1. }
+    if f < 0.5 {
+        value - f
+    } else {
+        value - f + 1.
+    }
 }

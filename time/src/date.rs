@@ -1105,11 +1105,9 @@ impl Date {
     ///     date!(2022 - 02 - 18).replace_month(Month::January),
     ///     Ok(date!(2022 - 01 - 18))
     /// );
-    /// assert!(
-    ///     date!(2022 - 01 - 30)
-    ///         .replace_month(Month::February)
-    ///         .is_err()
-    /// ); // 30 isn't a valid day in February
+    /// assert!(date!(2022 - 01 - 30)
+    ///     .replace_month(Month::February)
+    ///     .is_err()); // 30 isn't a valid day in February
     /// ```
     #[must_use = "This method does not mutate the original `Date`."]
     pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
