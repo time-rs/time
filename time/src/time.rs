@@ -143,25 +143,26 @@ impl Time {
         ]);
     }
 
-    /// Create a `Time` that is exactly midnight.
+    /// A `Time` that is exactly midnight. This is the smallest possible value for a `Time`.
     ///
     /// ```rust
     /// # use time::Time;
     /// # use time_macros::time;
     /// assert_eq!(Time::MIDNIGHT, time!(0:00));
     /// ```
-    pub const MIDNIGHT: Self = Self::MIN;
-
-    /// The smallest value that can be represented by `Time`.
-    ///
-    /// `00:00:00.0`
-    pub(crate) const MIN: Self =
+    #[doc(alias = "MIN")]
+    pub const MIDNIGHT: Self =
         Self::from_hms_nanos_ranged(Hours::MIN, Minutes::MIN, Seconds::MIN, Nanoseconds::MIN);
 
-    /// The largest value that can be represented by `Time`.
+    /// A `Time` that is one nanosecond before midnight. This is the largest possible value for a
+    /// `Time`.
     ///
-    /// `23:59:59.999_999_999`
-    pub(crate) const MAX: Self =
+    /// ```rust
+    /// # use time::Time;
+    /// # use time_macros::time;
+    /// assert_eq!(Time::MAX, time!(23:59:59.999_999_999));
+    /// ```
+    pub const MAX: Self =
         Self::from_hms_nanos_ranged(Hours::MAX, Minutes::MAX, Seconds::MAX, Nanoseconds::MAX);
 
     // region: constructors
