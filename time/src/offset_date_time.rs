@@ -1595,7 +1595,8 @@ impl From<js_sys::Date> for OffsetDateTime {
     /// This may panic if the timestamp can not be represented.
     fn from(js_date: js_sys::Date) -> Self {
         // get_time() returns milliseconds
-        let timestamp_nanos = (js_date.get_time() * Nanosecond::per(Millisecond) as f64) as i128;
+        let timestamp_nanos = js_date.get_time() as i128
+            * Nanosecond::per(Millisecond).cast_signed().extend::<i128>();
         Self::from_unix_timestamp_nanos(timestamp_nanos)
             .expect("invalid timestamp: Timestamp cannot fit in range")
     }
