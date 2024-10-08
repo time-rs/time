@@ -68,6 +68,10 @@ overlapping-range-endpoints = "deny"
 suspicious-double-ref-op = "deny"
 temporary-cstring-as-ptr = "deny"
 unconditional-recursion = "deny"
+unexpected_cfgs = { level = "deny", check-cfg = [
+    "cfg(__ui_tests)",
+    "cfg(bench)",
+] }
 unnameable-test-items = "deny"
 unsafe-op-in-unsafe-fn = "deny"
 unstable-syntax-pre-expansion = "deny"
