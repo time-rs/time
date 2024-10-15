@@ -308,6 +308,7 @@ fn fmt_year(
     };
     let value = match repr {
         modifier::YearRepr::Full => full_year,
+        modifier::YearRepr::Century => full_year / 100,
         modifier::YearRepr::LastTwo => (full_year % 100).abs(),
     };
     let format_number = match repr {
@@ -316,7 +317,11 @@ fn fmt_year(
         #[cfg(feature = "large-dates")]
         modifier::YearRepr::Full if value.abs() >= 10_000 => format_number::<5>,
         modifier::YearRepr::Full => format_number::<4>,
-        modifier::YearRepr::LastTwo => format_number::<2>,
+        #[cfg(feature = "large-dates")]
+        modifier::YearRepr::Century if value.abs() >= 1_000 => format_number::<4>,
+        #[cfg(feature = "large-dates")]
+        modifier::YearRepr::Century if value.abs() >= 100 => format_number::<3>,
+        modifier::YearRepr::Century | modifier::YearRepr::LastTwo => format_number::<2>,
     };
     let mut bytes = 0;
     if repr != modifier::YearRepr::LastTwo {

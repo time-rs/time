@@ -16,24 +16,62 @@ use crate::{Month, Weekday};
 
 // region: date components
 /// Parse the "year" component of a `Date`.
-pub(crate) fn parse_year(input: &[u8], modifiers: modifier::Year) -> Option<ParsedItem<'_, i32>> {
+pub(crate) fn parse_year(
+    input: &[u8],
+    modifiers: modifier::Year,
+) -> Option<ParsedItem<'_, (i32, bool)>> {
     match modifiers.repr {
         modifier::YearRepr::Full => {
             let ParsedItem(input, sign) = opt(sign)(input);
-            #[cfg(not(feature = "large-dates"))]
-            let ParsedItem(input, year) =
-                exactly_n_digits_padded::<4, u32>(modifiers.padding)(input)?;
-            #[cfg(feature = "large-dates")]
-            let ParsedItem(input, year) =
-                n_to_m_digits_padded::<4, 6, u32>(modifiers.padding)(input)?;
-            match sign {
-                Some(b'-') => Some(ParsedItem(input, -year.cast_signed())),
-                None if modifiers.sign_is_mandatory || year >= 10_000 => None,
-                _ => Some(ParsedItem(input, year.cast_signed())),
+
+            if let Some(sign) = sign {
+                #[cfg(not(feature = "large-dates"))]
+                let ParsedItem(input, year) =
+                    exactly_n_digits_padded::<4, u32>(modifiers.padding)(input)?;
+                #[cfg(feature = "large-dates")]
+                let ParsedItem(input, year) =
+                    n_to_m_digits_padded::<4, 6, u32>(modifiers.padding)(input)?;
+
+                Some(if sign == b'-' {
+                    ParsedItem(input, (-year.cast_signed(), true))
+                } else {
+                    ParsedItem(input, (year.cast_signed(), false))
+                })
+            } else if modifiers.sign_is_mandatory {
+                None
+            } else {
+                let ParsedItem(input, year) =
+                    exactly_n_digits_padded::<4, u32>(modifiers.padding)(input)?;
+                Some(ParsedItem(input, (year.cast_signed(), false)))
+            }
+        }
+        modifier::YearRepr::Century => {
+            let ParsedItem(input, sign) = opt(sign)(input);
+
+            if let Some(sign) = sign {
+                #[cfg(not(feature = "large-dates"))]
+                let ParsedItem(input, year) =
+                    exactly_n_digits_padded::<2, u32>(modifiers.padding)(input)?;
+                #[cfg(feature = "large-dates")]
+                let ParsedItem(input, year) =
+                    n_to_m_digits_padded::<2, 4, u32>(modifiers.padding)(input)?;
+
+                Some(if sign == b'-' {
+                    ParsedItem(input, (-year.cast_signed(), true))
+                } else {
+                    ParsedItem(input, (year.cast_signed(), false))
+                })
+            } else if modifiers.sign_is_mandatory {
+                None
+            } else {
+                let ParsedItem(input, year) =
+                    exactly_n_digits_padded::<2, u32>(modifiers.padding)(input)?;
+                Some(ParsedItem(input, (year.cast_signed(), false)))
             }
         }
         modifier::YearRepr::LastTwo => Some(
-            exactly_n_digits_padded::<2, u32>(modifiers.padding)(input)?.map(|v| v.cast_signed()),
+            exactly_n_digits_padded::<2, u32>(modifiers.padding)(input)?
+                .map(|v| (v.cast_signed(), false)),
         ),
     }
 }

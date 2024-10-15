@@ -867,8 +867,8 @@ fn parse_date() -> time::Result<()> {
                 "[year padding:space]-W[week_number repr:sunday padding:none]-[weekday \
                  repr:sunday]",
             )?,
-            " 2018-W01-2",
-            date!(2018 - 01 - 02),
+            " 201-W01-2",
+            date!(201 - 01 - 06),
         ),
     ];
 
@@ -1124,10 +1124,10 @@ fn parse_offset_date_time_err() -> time::Result<()> {
 #[test]
 fn parse_components() -> time::Result<()> {
     macro_rules! parse_component {
-        ($component:expr, $input:expr,_. $property:ident() == $expected:expr) => {
+        ($component:expr, $input:expr, $(_. $property:ident() == $expected:expr);+ $(;)?) => {
             let mut parsed = Parsed::new();
             parsed.parse_component($input, $component)?;
-            assert_eq!(parsed.$property(), $expected);
+            $(assert_eq!(parsed.$property(), $expected);)+
         };
     }
 
@@ -1140,6 +1140,17 @@ fn parse_components() -> time::Result<()> {
         })),
         b"2021",
         _.year() == Some(2021)
+    );
+    parse_component!(
+        Component::Year(modifier!(Year {
+            padding: modifier::Padding::Zero,
+            repr: modifier::YearRepr::Century,
+            iso_week_based: false,
+            sign_is_mandatory: false,
+        })),
+        b"20",
+        _.year_century() == Some(20);
+        _.year_century_is_negative() == Some(false);
     );
     parse_component!(
         Component::Year(modifier!(Year {
@@ -1160,6 +1171,17 @@ fn parse_components() -> time::Result<()> {
         })),
         b"2021",
         _.iso_year() == Some(2021)
+    );
+    parse_component!(
+        Component::Year(modifier!(Year {
+            padding: modifier::Padding::Zero,
+            repr: modifier::YearRepr::Century,
+            iso_week_based: true,
+            sign_is_mandatory: false,
+        })),
+        b"20",
+        _.iso_year_century() == Some(20);
+        _.iso_year_century_is_negative() == Some(false);
     );
     parse_component!(
         Component::Year(modifier!(Year {

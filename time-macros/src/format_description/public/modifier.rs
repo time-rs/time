@@ -131,6 +131,7 @@ to_tokens! {
 to_tokens! {
     pub(crate) enum YearRepr {
         Full,
+        Century,
         LastTwo,
     }
 }

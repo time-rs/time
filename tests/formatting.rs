@@ -391,6 +391,7 @@ fn format_date() -> time::Result<()> {
         (fd!("[year base:iso_week]"), "2020"),
         (fd!("[year sign:mandatory]"), "+2019"),
         (fd!("[year base:iso_week sign:mandatory]"), "+2020"),
+        (fd!("[year repr:century]"), "20"),
         (fd!("[year repr:last_two]"), "19"),
         (fd!("[year base:iso_week repr:last_two]"), "20"),
     ];

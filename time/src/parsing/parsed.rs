@@ -3,8 +3,9 @@
 use core::num::{NonZeroU16, NonZeroU8};
 
 use deranged::{
-    OptionRangedI128, OptionRangedI32, OptionRangedI8, OptionRangedU16, OptionRangedU32,
-    OptionRangedU8, RangedI128, RangedI32, RangedI8, RangedU16, RangedU32, RangedU8,
+    OptionRangedI128, OptionRangedI16, OptionRangedI32, OptionRangedI8, OptionRangedU16,
+    OptionRangedU32, OptionRangedU8, RangedI128, RangedI16, RangedI32, RangedI8, RangedU16,
+    RangedU32, RangedU8,
 };
 use num_conv::prelude::*;
 
@@ -115,10 +116,14 @@ impl sealed::AnyFormatItem for OwnedFormatItem {
 pub struct Parsed {
     /// Calendar year.
     year: OptionRangedI32<{ MIN_YEAR }, { MAX_YEAR }>,
+    /// All digits except the last two of the calendar year.
+    year_century: OptionRangedI16<{ (MIN_YEAR / 100) as i16 }, { (MAX_YEAR / 100) as i16 }>,
     /// The last two digits of the calendar year.
     year_last_two: OptionRangedU8<0, 99>,
     /// Year of the [ISO week date](https://en.wikipedia.org/wiki/ISO_week_date).
     iso_year: OptionRangedI32<{ MIN_YEAR }, { MAX_YEAR }>,
+    /// All digits except the last two of the ISO week year.
+    iso_year_century: OptionRangedI16<{ (MIN_YEAR / 100) as i16 }, { (MAX_YEAR / 100) as i16 }>,
     /// The last two digits of the ISO week year.
     iso_year_last_two: OptionRangedU8<0, 99>,
     /// Month of the year.
@@ -143,7 +148,6 @@ pub struct Parsed {
     /// Whether the `hour_12` field indicates a time that "PM".
     hour_12_is_pm: Option<bool>,
     /// Minute within the hour.
-    // minute: MaybeUninit<u8>,
     minute: OptionRangedU8<0, { Minute::per(Hour) - 1 }>,
     /// Second within the minute.
     // do not subtract one, as leap seconds may be allowed
@@ -171,7 +175,13 @@ pub struct Parsed {
     >,
     /// Indicates whether the [`UtcOffset`] is negative. This information is obtained when parsing
     /// the offset hour, but may not otherwise be stored due to "-0" being equivalent to "0".
-    offset_is_negative: Option<bool>,
+    offset_is_negative: bool,
+    /// Indicates whether the `year_century` component is negative. This information is obtained
+    /// when parsing, but may not otherwise be stored due to "-0" being equivalent to "0".
+    year_century_is_negative: bool,
+    /// Indicates whether the `iso_year_century` component is negative. This information is
+    /// obtained when parsing, but may not otherwise be stored due to "-0" being equivalent to "0".
+    iso_year_century_is_negative: bool,
     /// Indicates whether a leap second is permitted to be parsed. This is required by some
     /// well-known formats.
     pub(super) leap_second_allowed: bool,
@@ -188,8 +198,10 @@ impl Parsed {
     pub const fn new() -> Self {
         Self {
             year: OptionRangedI32::None,
+            year_century: OptionRangedI16::None,
             year_last_two: OptionRangedU8::None,
             iso_year: OptionRangedI32::None,
+            iso_year_century: OptionRangedI16::None,
             iso_year_last_two: OptionRangedU8::None,
             month: None,
             sunday_week_number: OptionRangedU8::None,
@@ -208,7 +220,9 @@ impl Parsed {
             offset_minute: OptionRangedI8::None,
             offset_second: OptionRangedI8::None,
             unix_timestamp_nanos: OptionRangedI128::None,
-            offset_is_negative: None,
+            offset_is_negative: false,
+            year_century_is_negative: false,
+            iso_year_century_is_negative: false,
             leap_second_allowed: false,
         }
     }
@@ -292,14 +306,20 @@ impl Parsed {
                 Ok(remaining)
             }
             Component::Year(modifiers) => {
-                let ParsedItem(remaining, value) =
+                let ParsedItem(remaining, (value, is_negative)) =
                     parse_year(input, modifiers).ok_or(InvalidComponent("year"))?;
                 match (modifiers.iso_week_based, modifiers.repr) {
                     (false, modifier::YearRepr::Full) => self.set_year(value),
+                    (false, modifier::YearRepr::Century) => {
+                        self.set_year_century(value.truncate(), is_negative)
+                    }
                     (false, modifier::YearRepr::LastTwo) => {
                         self.set_year_last_two(value.cast_unsigned().truncate())
                     }
                     (true, modifier::YearRepr::Full) => self.set_iso_year(value),
+                    (true, modifier::YearRepr::Century) => {
+                        self.set_iso_year_century(value.truncate(), is_negative)
+                    }
                     (true, modifier::YearRepr::LastTwo) => {
                         self.set_iso_year_last_two(value.cast_unsigned().truncate())
                     }
@@ -336,7 +356,7 @@ impl Parsed {
                 .and_then(|parsed| {
                     parsed.consume_value(|(value, is_negative)| {
                         self.set_offset_hour(value)?;
-                        self.offset_is_negative = Some(is_negative);
+                        self.offset_is_negative = is_negative;
                         Some(())
                     })
                 })
@@ -373,6 +393,25 @@ impl Parsed {
         self.year.get_primitive()
     }
 
+    /// Obtain the `year_century` component.
+    ///
+    /// If the year is zero, the sign of the century is not stored. To differentiate between
+    /// positive and negative zero, use `year_century_is_negative`.
+    pub const fn year_century(&self) -> Option<i16> {
+        self.year_century.get_primitive()
+    }
+
+    /// Obtain the `year_century_is_negative` component.
+    ///
+    /// This indicates whether the value returned from `year_century` is negative. If the year is
+    /// zero, it is necessary to call this method for disambiguation.
+    pub const fn year_century_is_negative(&self) -> Option<bool> {
+        match self.year_century() {
+            Some(_) => Some(self.year_century_is_negative),
+            None => None,
+        }
+    }
+
     /// Obtain the `year_last_two` component.
     pub const fn year_last_two(&self) -> Option<u8> {
         self.year_last_two.get_primitive()
@@ -381,6 +420,25 @@ impl Parsed {
     /// Obtain the `iso_year` component.
     pub const fn iso_year(&self) -> Option<i32> {
         self.iso_year.get_primitive()
+    }
+
+    /// Obtain the `iso_year_century` component.
+    ///
+    /// If the year is zero, the sign of the century is not stored. To differentiate between
+    /// positive and negative zero, use `iso_year_century_is_negative`.
+    pub const fn iso_year_century(&self) -> Option<i16> {
+        self.iso_year_century.get_primitive()
+    }
+
+    /// Obtain the `iso_year_century_is_negative` component.
+    ///
+    /// This indicates whether the value returned from `iso_year_century` is negative. If the year
+    /// is zero, it is necessary to call this method for disambiguation.
+    pub const fn iso_year_century_is_negative(&self) -> Option<bool> {
+        match self.iso_year_century() {
+            Some(_) => Some(self.iso_year_century_is_negative),
+            None => None,
+        }
     }
 
     /// Obtain the `iso_year_last_two` component.
@@ -468,7 +526,7 @@ impl Parsed {
     /// Obtain the `offset_minute` component.
     pub const fn offset_minute_signed(&self) -> Option<i8> {
         match (self.offset_minute.get_primitive(), self.offset_is_negative) {
-            (Some(offset_minute), Some(true)) => Some(-offset_minute),
+            (Some(offset_minute), true) => Some(-offset_minute),
             (Some(offset_minute), _) => Some(offset_minute),
             (None, _) => None,
         }
@@ -484,7 +542,7 @@ impl Parsed {
     /// Obtain the `offset_second` component.
     pub const fn offset_second_signed(&self) -> Option<i8> {
         match (self.offset_second.get_primitive(), self.offset_is_negative) {
-            (Some(offset_second), Some(true)) => Some(-offset_second),
+            (Some(offset_second), true) => Some(-offset_second),
             (Some(offset_second), _) => Some(offset_second),
             (None, _) => None,
         }
@@ -514,9 +572,43 @@ macro_rules! setters {
 impl Parsed {
     setters! {
         year set_year with_year i32;
+    }
+
+    /// Set the `year_century` component.
+    ///
+    /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
+    /// the sign is inferred from the value.
+    pub fn set_year_century(&mut self, value: i16, is_negative: bool) -> Option<()> {
+        self.year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
+        if value != 0 {
+            self.year_century_is_negative = value.is_negative();
+        } else {
+            self.year_century_is_negative = is_negative;
+        }
+        Some(())
+    }
+
+    setters! {
         year_last_two set_year_last_two with_year_last_two u8;
         iso_year set_iso_year with_iso_year i32;
         iso_year_last_two set_iso_year_last_two with_iso_year_last_two u8;
+    }
+
+    /// Set the `iso_year_century` component.
+    ///
+    /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
+    /// the sign is inferred from the value.
+    pub fn set_iso_year_century(&mut self, value: i16, is_negative: bool) -> Option<()> {
+        self.iso_year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
+        if value != 0 {
+            self.iso_year_century_is_negative = value.is_negative();
+        } else {
+            self.iso_year_century_is_negative = is_negative;
+        }
+        Some(())
+    }
+
+    setters! {
         month set_month with_month Month;
         sunday_week_number set_sunday_week_number with_sunday_week_number u8;
         monday_week_number set_monday_week_number with_monday_week_number u8;
@@ -576,6 +668,20 @@ impl Parsed {
         Some(self)
     }
 
+    /// Set the `year_century` component and return `self`.
+    ///
+    /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
+    /// the sign is inferred from the value.
+    pub const fn with_year_century(mut self, value: i16, is_negative: bool) -> Option<Self> {
+        self.year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
+        if value != 0 {
+            self.year_century_is_negative = value.is_negative();
+        } else {
+            self.year_century_is_negative = is_negative;
+        }
+        Some(self)
+    }
+
     /// Set the `year_last_two` component and return `self`.
     pub const fn with_year_last_two(mut self, value: u8) -> Option<Self> {
         self.year_last_two = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
@@ -585,6 +691,20 @@ impl Parsed {
     /// Set the `iso_year` component and return `self`.
     pub const fn with_iso_year(mut self, value: i32) -> Option<Self> {
         self.iso_year = OptionRangedI32::Some(const_try_opt!(RangedI32::new(value)));
+        Some(self)
+    }
+
+    /// Set the `iso_year_century` component and return `self`.
+    ///
+    /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
+    /// the sign is inferred from the value.
+    pub const fn with_iso_year_century(mut self, value: i16, is_negative: bool) -> Option<Self> {
+        self.iso_year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
+        if value != 0 {
+            self.iso_year_century_is_negative = value.is_negative();
+        } else {
+            self.iso_year_century_is_negative = is_negative;
+        }
         Some(self)
     }
 
@@ -728,7 +848,7 @@ impl Parsed {
 impl TryFrom<Parsed> for Date {
     type Error = error::TryFromParsed;
 
-    fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
+    fn try_from(mut parsed: Parsed) -> Result<Self, Self::Error> {
         /// Match on the components that need to be present.
         macro_rules! match_ {
             (_ => $catch_all:expr $(,)?) => {
@@ -758,8 +878,34 @@ impl TryFrom<Parsed> for Date {
             }
         }
 
-        // TODO Only the basics have been covered. There are many other valid values that are not
-        // currently constructed from the information known.
+        // If we do not have the year but we have *both* the century and the last two digits, we can
+        // construct the year. Likewise for the ISO year.
+        if let (None, Some(century), Some(is_negative), Some(last_two)) = (
+            parsed.year(),
+            parsed.year_century(),
+            parsed.year_century_is_negative(),
+            parsed.year_last_two(),
+        ) {
+            let year = if is_negative {
+                100 * century.extend::<i32>() - last_two.cast_signed().extend::<i32>()
+            } else {
+                100 * century.extend::<i32>() + last_two.cast_signed().extend::<i32>()
+            };
+            parsed.year = OptionRangedI32::from(RangedI32::new(year));
+        }
+        if let (None, Some(century), Some(is_negative), Some(last_two)) = (
+            parsed.iso_year(),
+            parsed.iso_year_century(),
+            parsed.iso_year_century_is_negative(),
+            parsed.iso_year_last_two(),
+        ) {
+            let iso_year = if is_negative {
+                100 * century.extend::<i32>() - last_two.cast_signed().extend::<i32>()
+            } else {
+                100 * century.extend::<i32>() + last_two.cast_signed().extend::<i32>()
+            };
+            parsed.iso_year = OptionRangedI32::from(RangedI32::new(iso_year));
+        }
 
         match_! {
             (year, ordinal) => Ok(Self::from_ordinal_date(year, ordinal.get())?),

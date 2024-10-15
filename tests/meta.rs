@@ -154,7 +154,7 @@ fn size() {
     assert_size!(iso8601::FormattedComponents, 1, 1);
     assert_size!(iso8601::OffsetPrecision, 1, 1);
     assert_size!(iso8601::TimePrecision, 2, 2);
-    assert_size!(Parsed, 56, 56);
+    assert_size!(Parsed, 64, 64);
     assert_size!(Month, 1, 1);
     assert_size!(Weekday, 1, 1);
     assert_size!(Error, 56, 56);

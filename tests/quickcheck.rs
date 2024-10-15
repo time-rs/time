@@ -1,7 +1,7 @@
 use num_conv::prelude::*;
 use quickcheck::{Arbitrary, TestResult};
 use quickcheck_macros::quickcheck;
-use time::macros::time;
+use time::macros::{format_description, time};
 use time::Weekday::*;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
@@ -54,6 +54,32 @@ fn date_ymd_roundtrip(d: Date) -> bool {
 fn date_ywd_roundtrip(d: Date) -> bool {
     let (year, week, weekday) = d.to_iso_week_date();
     Date::from_iso_week_date(year, week, weekday) == Ok(d)
+}
+
+#[quickcheck]
+fn date_format_century_last_two_equivalent(d: Date) -> bool {
+    let split_format = format_description!("[year repr:century][year repr:last_two]-[month]-[day]");
+    let split = d.format(&split_format).expect("formatting failed");
+
+    let combined_format = format_description!("[year]-[month]-[day]");
+    let combined = d.format(&combined_format).expect("formatting failed");
+
+    split == combined
+}
+
+#[quickcheck]
+fn date_parse_century_last_two_equivalent(d: Date) -> TestResult {
+    // There is an ambiguity when parsing a year with fewer than six digits, as the first four are
+    // consumed by the century, leaving at most one for the last two digits.
+    if !matches!(d.year().unsigned_abs().to_string().len(), 6) {
+        return TestResult::discard();
+    }
+
+    let split_format = format_description!("[year repr:century][year repr:last_two]-[month]-[day]");
+    let combined_format = format_description!("[year]-[month]-[day]");
+    let combined = d.format(&combined_format).expect("formatting failed");
+
+    TestResult::from_bool(Date::parse(&combined, &split_format).expect("parsing failed") == d)
 }
 
 #[quickcheck]
