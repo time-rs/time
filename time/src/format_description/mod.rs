@@ -24,7 +24,9 @@ pub use owned_format_item::OwnedFormatItem;
 
 pub use self::component::Component;
 #[cfg(feature = "alloc")]
-pub use self::parse::{parse, parse_borrowed, parse_owned};
+pub use self::parse::{
+    parse, parse_borrowed, parse_owned, parse_strftime_borrowed, parse_strftime_owned,
+};
 
 /// Well-known formats, typically standards.
 pub mod well_known {

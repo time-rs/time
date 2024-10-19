@@ -188,7 +188,7 @@ fn parse_component<
     let Some(name) = tokens.next_if_not_whitespace() else {
         let span = match leading_whitespace {
             Some(Spanned { value: _, span }) => span,
-            None => opening_bracket.to(opening_bracket),
+            None => opening_bracket.to_self(),
         };
         return Err(Error {
             _inner: unused(span.error("expected component name")),
@@ -277,7 +277,7 @@ fn parse_component<
             return Err(Error {
                 _inner: unused(
                     location
-                        .to(location)
+                        .to_self()
                         .error("modifier must be of the form `key:value`"),
                 ),
                 public: crate::error::InvalidFormatDescription::InvalidModifier {

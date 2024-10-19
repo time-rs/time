@@ -3,6 +3,7 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
+pub use self::strftime::{parse_strftime_borrowed, parse_strftime_owned};
 use crate::{error, format_description};
 
 /// A helper macro to make version restrictions simpler to read and write.
@@ -23,6 +24,7 @@ macro_rules! validate_version {
 mod ast;
 mod format_item;
 mod lexer;
+mod strftime;
 
 /// A struct that is used to ensure that the version is valid.
 struct Version<const N: usize>;
@@ -84,6 +86,19 @@ pub fn parse_owned<const VERSION: usize>(
     Ok(items.into())
 }
 
+/// Attach [`Location`] information to each byte in the iterator.
+fn attach_location<'item>(
+    iter: impl Iterator<Item = &'item u8>,
+) -> impl Iterator<Item = (&'item u8, Location)> {
+    let mut byte_pos = 0;
+
+    iter.map(move |byte| {
+        let location = Location { byte: byte_pos };
+        byte_pos += 1;
+        (byte, location)
+    })
+}
+
 /// A location within a string.
 #[derive(Clone, Copy)]
 struct Location {
@@ -95,6 +110,14 @@ impl Location {
     /// Create a new [`Span`] from `self` to `other`.
     const fn to(self, end: Self) -> Span {
         Span { start: self, end }
+    }
+
+    /// Create a new [`Span`] consisting entirely of `self`.
+    const fn to_self(self) -> Span {
+        Span {
+            start: self,
+            end: self,
+        }
     }
 
     /// Offset the location by the provided amount.

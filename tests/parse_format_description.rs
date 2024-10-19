@@ -5,6 +5,7 @@ use rstest_reuse::{apply, template};
 use time::error::InvalidFormatDescription;
 use time::format_description::modifier::*;
 use time::format_description::{self, BorrowedFormatItem, Component, OwnedFormatItem};
+use time::macros::format_description;
 
 /// Identical to `modifier!`, but obtains the value from `M<T>` automagically.
 macro_rules! modifier_m {
@@ -797,4 +798,76 @@ fn rfc_3339() {
             })))
         ])
     );
+}
+
+#[rstest]
+#[case("foo", format_description!("foo"))]
+#[case("%a", format_description!("[weekday repr:short]"))]
+#[case("%A", format_description!("[weekday]"))]
+#[case("%b", format_description!("[month repr:short]"))]
+#[case("%B", format_description!("[month repr:long]"))]
+#[case("%C", format_description!("[year repr:century]"))]
+#[case("%d", format_description!("[day]"))]
+#[case("%e", format_description!("[day padding:space]"))]
+#[case("%g", format_description!("[year repr:last_two base:iso_week]"))]
+#[case("%G", format_description!("[year base:iso_week]"))]
+#[case("%h", format_description!("[month repr:short]"))]
+#[case("%H", format_description!("[hour]"))]
+#[case("%I", format_description!("[hour repr:12]"))]
+#[case("%j", format_description!("[ordinal]"))]
+#[case("%k", format_description!("[hour padding:space]"))]
+#[case("%l", format_description!("[hour repr:12 padding:space]"))]
+#[case("%m", format_description!("[month]"))]
+#[case("%M", format_description!("[minute]"))]
+#[case("%n", format_description!("\n"))]
+#[case("%p", format_description!("[period]"))]
+#[case("%P", format_description!("[period case:lower]"))]
+#[case("%s", format_description!("[unix_timestamp]"))]
+#[case("%S", format_description!("[second]"))]
+#[case("%t", format_description!("\t"))]
+#[case("%u", format_description!("[weekday repr:monday]"))]
+#[case("%U", format_description!("[week_number repr:sunday]"))]
+#[case("%V", format_description!("[week_number]"))]
+#[case("%w", format_description!("[weekday repr:sunday]"))]
+#[case("%W", format_description!("[week_number repr:monday]"))]
+#[case("%y", format_description!("[year repr:last_two]"))]
+#[case("%Y", format_description!("[year]"))]
+#[case("%%", format_description!("%"))]
+fn strftime_equivalence(
+    #[case] strftime: &str,
+    #[case] custom: &[BorrowedFormatItem<'_>],
+) -> time::Result<()> {
+    let borrowed = format_description::parse_strftime_borrowed(strftime)?;
+    let owned = format_description::parse_strftime_owned(strftime)?;
+
+    assert_eq!(borrowed, custom);
+    assert_eq!(owned, OwnedFormatItem::from(custom));
+
+    Ok(())
+}
+
+#[rstest]
+#[case(
+    "%c",
+    "[weekday repr:short] [month repr:short] [day padding:space] [hour]:[minute]:[second] [year]"
+)]
+#[case("%D", "[month]/[day]/[year repr:last_two]")]
+#[case("%F", "[year]-[month repr:numerical]-[day]")]
+#[case("%r", "[hour repr:12]:[minute]:[second] [period]")]
+#[case("%R", "[hour]:[minute]")]
+#[case("%T", "[hour]:[minute]:[second]")]
+#[case("%x", "[month]/[day]/[year repr:last_two]")]
+#[case("%X", "[hour]:[minute]:[second]")]
+#[case("%z", "[offset_hour sign:mandatory][offset_minute]")]
+fn strftime_compound_equivalence(#[case] strftime: &str, #[case] custom: &str) -> time::Result<()> {
+    let borrowed = format_description::parse_strftime_borrowed(strftime)?;
+    let owned = format_description::parse_strftime_owned(strftime)?;
+    let custom = format_description::parse(custom)?;
+    // Until equality is implemented better, we need to convert to a compound.
+    let custom = vec![BorrowedFormatItem::Compound(&custom)];
+
+    assert_eq!(borrowed, custom);
+    assert_eq!(owned, OwnedFormatItem::from(custom));
+
+    Ok(())
 }
