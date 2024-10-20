@@ -1167,6 +1167,7 @@ impl Duration {
 
     /// Runs a closure, returning the duration of time it took to run. The return value of the
     /// closure is provided in the second part of the tuple.
+    #[doc(hidden)]
     #[cfg(feature = "std")]
     #[deprecated(
         since = "0.3.32",

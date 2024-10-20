@@ -41,7 +41,7 @@
 //!
 //! - `serde`
 //!
-//!   Enables [serde](https://docs.rs/serde) support for all types except [`Instant`].
+//!   Enables [serde](https://docs.rs/serde) support for all types.
 //!
 //! - `serde-human-readable` (_implicitly enables `serde`, `formatting`, and `parsing`_)
 //!
@@ -58,7 +58,7 @@
 //!
 //! - `quickcheck` (_implicitly enables `alloc`_)
 //!
-//!   Enables [quickcheck](https://docs.rs/quickcheck) support for all types except [`Instant`].
+//!   Enables [quickcheck](https://docs.rs/quickcheck) support for all types.
 //!
 //! - `wasm-bindgen`
 //!
@@ -118,6 +118,7 @@ pub use time_core::convert;
 pub use crate::date::Date;
 pub use crate::duration::Duration;
 pub use crate::error::Error;
+#[doc(hidden)]
 #[cfg(feature = "std")]
 #[allow(deprecated)]
 pub use crate::instant::Instant;

@@ -28,6 +28,7 @@ use crate::Duration;
 ///
 /// This implementation allows for operations with signed [`Duration`]s, but is otherwise identical
 /// to [`std::time::Instant`].
+#[doc(hidden)]
 #[deprecated(
     since = "0.3.35",
     note = "import `std::time::Instant` and `time::ext::InstantExt` instead"
