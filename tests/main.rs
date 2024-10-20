@@ -1,4 +1,5 @@
 #![allow(
+    missing_docs,
     clippy::missing_const_for_fn, // irrelevant for tests
     clippy::std_instead_of_core, // irrelevant for tests
     clippy::std_instead_of_alloc, // irrelevant for tests
@@ -71,12 +72,6 @@ macro_rules! require_all_features {
 }
 
 require_all_features! {
-    use std::sync::Mutex;
-
-    /// A lock to ensure that certain tests don't run in parallel, which could lead to a test
-    /// unexpectedly failing.
-    static SOUNDNESS_LOCK: Mutex<()> = Mutex::new(());
-
     // Required by the crate for technical reasons.
     #[allow(clippy::single_component_path_imports)]
     use rstest_reuse;

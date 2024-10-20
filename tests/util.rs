@@ -80,17 +80,16 @@ fn weeks_in_year() {
 }
 
 #[rstest]
+#[allow(deprecated)]
 fn local_offset_soundness() {
     use time::util::local_offset::*;
 
-    let _guard = crate::SOUNDNESS_LOCK.lock().expect("lock is poisoned");
-
+    // These functions no longer do anything so they always return `Sound`.
     assert_eq!(get_soundness(), Soundness::Sound);
-    // Safety: Technically not sound. However, this is a test, and it's highly improbable that we
-    // will run into issues with setting an environment variable a few times.
+    // Safety: This no longer has any safety requirements.
     unsafe { set_soundness(Soundness::Unsound) };
-    assert_eq!(get_soundness(), Soundness::Unsound);
-    // Safety: We're setting it back to sound.
+    assert_eq!(get_soundness(), Soundness::Sound);
+    // Safety: See above.
     unsafe { set_soundness(Soundness::Sound) };
     assert_eq!(get_soundness(), Soundness::Sound);
 }

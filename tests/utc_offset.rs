@@ -155,51 +155,20 @@ fn neg(#[case] offset: UtcOffset, #[case] expected: UtcOffset) {
     assert_eq!(-offset, expected);
 }
 
-#[cfg_attr(miri, ignore)]
 #[test]
 fn local_offset_at() {
-    use time::util::local_offset::*;
-
-    let _guard = crate::SOUNDNESS_LOCK.lock().expect("lock is poisoned");
-
-    // Safety: Technically not sound. However, this is a test, and it's highly improbable that we
-    // will run into issues with setting an environment variable a few times.
-    unsafe { set_soundness(Soundness::Unsound) };
     assert!(UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH).is_ok());
-    // Safety: We're setting it back to sound.
-    unsafe { set_soundness(Soundness::Sound) };
 }
 
-#[cfg_attr(miri, ignore)]
 #[test]
 fn current_local_offset() {
-    use time::util::local_offset::*;
-
-    let _guard = crate::SOUNDNESS_LOCK.lock().expect("lock is poisoned");
-
-    // Safety: Technically not sound. However, this is a test, and it's highly improbable that we
-    // will run into issues with setting an environment variable a few times.
-    unsafe { set_soundness(Soundness::Unsound) };
     assert!(UtcOffset::current_local_offset().is_ok());
-    // Safety: We're setting it back to sound.
-    unsafe { set_soundness(Soundness::Sound) };
 }
 
-// Note: This behavior is not guaranteed and will hopefully be changed in the future.
 #[test]
-#[cfg_attr(
-    any(
-        target_os = "netbsd",
-        target_os = "illumos",
-        not(target_family = "unix")
-    ),
-    ignore
-)]
-fn local_offset_error_when_multithreaded() {
-    let _guard = crate::SOUNDNESS_LOCK.lock().expect("lock is poisoned");
-
+fn local_offset_success_when_multithreaded() {
     std::thread::spawn(|| {
-        assert!(UtcOffset::current_local_offset().is_err());
+        assert!(UtcOffset::current_local_offset().is_ok());
     })
     .join()
     .expect("failed to join thread");

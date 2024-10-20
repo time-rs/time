@@ -65,7 +65,6 @@ fn clone() {
     assert_cloned_eq!(well_known::iso8601::FormattedComponents::None);
     assert_cloned_eq!(component_range_error());
     assert_cloned_eq!(BorrowedFormatItem::Literal(b""));
-    assert_cloned_eq!(time::util::local_offset::Soundness::Sound);
 
     assert_cloned_eq!(modifier::Day::default());
     assert_cloned_eq!(modifier::MonthRepr::default());
@@ -166,7 +165,6 @@ fn debug() {
         well_known::iso8601::Config::DEFAULT;
         component_range_error();
         Error::ConversionRange(ConversionRange);
-        time::util::local_offset::Soundness::Sound;
 
         modifier::Day::default();
         modifier::MonthRepr::default();
