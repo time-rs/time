@@ -223,22 +223,7 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
             Some(_) => {
                 let tokens = tokens.collect::<TokenStream>();
                 let tokens_string = tokens.to_string();
-                (
-                    quote! {{
-                        // We can't just do `super::path` because the path could be an absolute
-                        // path. In that case, we'd be generating `super::::path`, which is invalid.
-                        // Even if we took that into account, it's not possible to know if it's an
-                        // external crate, which would just require emitting `path` directly. By
-                        // taking this approach, we can leave it to the compiler to do the actual
-                        // resolution.
-                        mod __path_hack {
-                            pub(super) use super::super::*;
-                            pub(super) use #S(tokens) as FORMAT;
-                        }
-                        __path_hack::FORMAT
-                    }},
-                    tokens_string,
-                )
+                (tokens, tokens_string)
             }
             None => return Err(Error::UnexpectedEndOfInput),
         };

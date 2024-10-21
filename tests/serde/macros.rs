@@ -14,6 +14,11 @@ use time::{serde, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 const ISO_FORMAT: Iso8601<{ iso8601::Config::DEFAULT.encode() }> =
     Iso8601::<{ iso8601::Config::DEFAULT.encode() }>;
 time::serde::format_description!(my_format, OffsetDateTime, ISO_FORMAT);
+time::serde::format_description!(
+    my_format2,
+    OffsetDateTime,
+    Iso8601::<{ iso8601::Config::DEFAULT.encode() }>
+);
 
 serde::format_description!(
     offset_dt_format,
@@ -37,6 +42,11 @@ serde::format_description!(
 const TIME_FORMAT_ALT: &[BorrowedFormatItem<'_>] =
     time::macros::format_description!("[hour]:[minute]");
 serde::format_description!(time_format_alt, Time, TIME_FORMAT_ALT);
+serde::format_description!(
+    time_format_alt2,
+    Time,
+    time::macros::format_description!("[hour]:[minute]")
+);
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 struct TestCustomFormat {

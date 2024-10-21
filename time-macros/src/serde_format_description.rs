@@ -150,6 +150,8 @@ pub(crate) fn build(
 
     quote! {
         mod #(mod_name) {
+            use super::*;
+            // TODO Remove the prefix, forcing the user to import the type themself.
             use ::time::#(ty) as __TimeSerdeType;
 
             const fn description() -> impl #S(fd_traits) {
