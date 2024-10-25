@@ -18,16 +18,24 @@ pub(crate) enum DateAdjustment {
 ///
 /// ```rust
 /// # use time::{Month, util};
+/// assert_eq!(util::days_in_month(Month::February, 2020), 29);
+/// ```
+pub const fn days_in_month(month: Month, year: i32) -> u8 {
+    month.length(year)
+}
+
+/// Get the number of days in the month of a given year.
+///
+/// ```rust
+/// # use time::{Month, util};
 /// assert_eq!(util::days_in_year_month(2020, Month::February), 29);
 /// ```
+#[deprecated(
+    since = "0.3.37",
+    note = "use `days_in_month` or `Month::length` instead"
+)]
 pub const fn days_in_year_month(year: i32, month: Month) -> u8 {
-    use Month::*;
-    match month {
-        January | March | May | July | August | October | December => 31,
-        April | June | September | November => 30,
-        February if is_leap_year(year) => 29,
-        February => 28,
-    }
+    month.length(year)
 }
 
 /// Update time zone information from the system.

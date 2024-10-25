@@ -24,7 +24,7 @@ use crate::internal_macros::{
 };
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
-use crate::util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year};
+use crate::util::{days_in_year, is_leap_year, weeks_in_year};
 use crate::{error, Duration, Month, PrimitiveDateTime, Time, Weekday};
 
 type Year = RangedI32<MIN_YEAR, MAX_YEAR>;
@@ -120,12 +120,12 @@ impl Date {
         ensure_ranged!(Year: year);
         match day {
             1..=28 => {}
-            29..=31 if day <= days_in_year_month(year, month) => {}
+            29..=31 if day <= month.length(year) => {}
             _ => {
                 return Err(error::ComponentRange {
                     name: "day",
                     minimum: 1,
-                    maximum: days_in_year_month(year, month) as _,
+                    maximum: month.length(year) as _,
                     value: day as _,
                     conditional_range: true,
                 });
@@ -1103,12 +1103,12 @@ impl Date {
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
         match day {
             1..=28 => {}
-            29..=31 if day <= days_in_year_month(self.year(), self.month()) => {}
+            29..=31 if day <= self.month().length(self.year()) => {}
             _ => {
                 return Err(error::ComponentRange {
                     name: "day",
                     minimum: 1,
-                    maximum: days_in_year_month(self.year(), self.month()) as _,
+                    maximum: self.month().length(self.year()) as _,
                     value: day as _,
                     conditional_range: true,
                 });

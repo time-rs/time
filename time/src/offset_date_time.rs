@@ -1317,7 +1317,7 @@ impl OffsetDateTime {
         time.hour() == 23
             && time.minute() == 59
             && time.second() == 59
-            && date.day() == util::days_in_year_month(year, date.month())
+            && date.day() == date.month().length(year)
     }
 }
 
