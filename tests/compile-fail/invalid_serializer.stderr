@@ -72,42 +72,8 @@ error: invalid component
 13 | serde::format_description!(my_format, OffsetDateTime, "[bad]"); // bad component name
    |                                                       ^^^^^^^
 
-error[E0432]: unresolved import `not_string`
-  --> ../tests/compile-fail/invalid_serializer.rs:14:1
+error[E0425]: cannot find value `not_string` in this scope
+  --> ../tests/compile-fail/invalid_serializer.rs:14:55
    |
-14 | serde::format_description!(my_format, OffsetDateTime, not_string); // string format wrong type
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no external crate `not_string`
-   |
-   = note: this error originates in the macro `serde::format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-error[E0391]: cycle detected when computing type of opaque `my_format::description::{opaque#0}`
-  --> ../tests/compile-fail/invalid_serializer.rs:14:1
-   |
-14 | serde::format_description!(my_format, OffsetDateTime, not_string); // string format wrong type
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-note: ...which requires borrow-checking `my_format::description`...
-  --> ../tests/compile-fail/invalid_serializer.rs:14:1
-   |
-14 | serde::format_description!(my_format, OffsetDateTime, not_string); // string format wrong type
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-note: ...which requires promoting constants in MIR for `my_format::description`...
-  --> ../tests/compile-fail/invalid_serializer.rs:14:1
-   |
-14 | serde::format_description!(my_format, OffsetDateTime, not_string); // string format wrong type
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-note: ...which requires const checking `my_format::description`...
-  --> ../tests/compile-fail/invalid_serializer.rs:14:1
-   |
-14 | serde::format_description!(my_format, OffsetDateTime, not_string); // string format wrong type
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = note: ...which requires computing whether `my_format::description::{opaque#0}` is freeze...
-   = note: ...which requires evaluating trait selection obligation `my_format::description::{opaque#0}: core::marker::Freeze`...
-   = note: ...which again requires computing type of opaque `my_format::description::{opaque#0}`, completing the cycle
-note: cycle used when computing type of `my_format::description::{opaque#0}`
-  --> ../tests/compile-fail/invalid_serializer.rs:14:1
-   |
-14 | serde::format_description!(my_format, OffsetDateTime, not_string); // string format wrong type
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = note: see https://rustc-dev-guide.rust-lang.org/overview.html#queries and https://rustc-dev-guide.rust-lang.org/query.html for more information
-   = note: this error originates in the macro `serde::format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
+14 | serde::format_description!(my_format, OffsetDateTime, not_string); // not in scope
+   |                                                       ^^^^^^^^^^ not found in this scope

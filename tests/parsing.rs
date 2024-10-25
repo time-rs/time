@@ -74,28 +74,28 @@ fn rfc_2822() -> time::Result<()> {
 
     assert_eq!(
         Date::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
-        date!(2021 - 01 - 02)
+        date!(2021-01-02)
     );
     assert_eq!(
         Date::parse("Sat, 02 Jan 2021 03:04:05 +0607", &Rfc2822)?,
-        date!(2021 - 01 - 02)
+        date!(2021-01-02)
     );
     assert_eq!(
         Date::parse("Sat, 02 Jan 2021 03:04:05 -0607", &Rfc2822)?,
-        date!(2021 - 01 - 02)
+        date!(2021-01-02)
     );
     assert_eq!(
         Date::parse("Sat, 02 Jan 21 03:04:05 -0607", &Rfc2822)?,
-        date!(2021 - 01 - 02)
+        date!(2021-01-02)
     );
     assert_eq!(
         Date::parse("Sat, 02 Jan 71 03:04:05 -0607", &Rfc2822)?,
-        date!(1971 - 01 - 02)
+        date!(1971-01-02)
     );
 
     assert_eq!(
         OffsetDateTime::parse("Sat,(\\\u{a})02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
-        datetime!(2021 - 01 - 02 03:04:05 UTC),
+        datetime!(2021-01-02 03:04:05 UTC),
     );
     #[rustfmt::skip]
     assert_eq!(
@@ -122,7 +122,7 @@ fn issue_661() -> time::Result<()> {
     );
     assert_eq!(
         Date::parse("02 Jan 2021 03:04:05 +0607", &Rfc2822)?,
-        date!(2021 - 01 - 02)
+        date!(2021-01-02)
     );
 
     Ok(())
@@ -295,15 +295,15 @@ fn rfc_3339() -> time::Result<()> {
 
     assert_eq!(
         Date::parse("2021-01-02T03:04:05Z", &Rfc3339)?,
-        date!(2021 - 01 - 02),
+        date!(2021-01-02),
     );
     assert_eq!(
         Date::parse("2021-01-02T03:04:05.123+01:02", &Rfc3339)?,
-        date!(2021 - 01 - 02),
+        date!(2021-01-02),
     );
     assert_eq!(
         Date::parse("2021-01-02T03:04:05.123-01:02", &Rfc3339)?,
-        date!(2021 - 01 - 02),
+        date!(2021-01-02),
     );
 
     assert_eq!(
@@ -810,57 +810,53 @@ fn parse_date() -> time::Result<()> {
         (
             fd::parse("[year]-[month]-[day]")?,
             "2021-01-02",
-            date!(2021 - 01 - 02),
+            date!(2021-01-02),
         ),
-        (
-            fd::parse("[year]-[ordinal]")?,
-            "2021-002",
-            date!(2021 - 002),
-        ),
+        (fd::parse("[year]-[ordinal]")?, "2021-002", date!(2021-002)),
         (
             fd::parse("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?,
             "2020-W53-6",
-            date!(2021 - 01 - 02),
+            date!(2021-01-02),
         ),
         (
             fd::parse("[year]-W[week_number repr:monday]-[weekday repr:monday]")?,
             "2021-W00-6",
-            date!(2021 - 01 - 02),
+            date!(2021-01-02),
         ),
         (
             fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2021-W00-6",
-            date!(2021 - 01 - 02),
+            date!(2021-01-02),
         ),
         (
             fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2023-W01-1",
-            date!(2023 - 01 - 02),
+            date!(2023-01-02),
         ),
         (
             fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2022-W00-7",
-            date!(2022 - 01 - 02),
+            date!(2022-01-02),
         ),
         (
             fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2026-W00-5",
-            date!(2026 - 01 - 02),
+            date!(2026-01-02),
         ),
         (
             fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2025-W00-4",
-            date!(2025 - 01 - 02),
+            date!(2025-01-02),
         ),
         (
             fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2019-W00-3",
-            date!(2019 - 01 - 02),
+            date!(2019-01-02),
         ),
         (
             fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2018-W01-2",
-            date!(2018 - 01 - 02),
+            date!(2018-01-02),
         ),
         (
             fd::parse(
@@ -868,7 +864,7 @@ fn parse_date() -> time::Result<()> {
                  repr:sunday]",
             )?,
             " 201-W01-2",
-            date!(201 - 01 - 06),
+            date!(201-01-06),
         ),
     ];
 

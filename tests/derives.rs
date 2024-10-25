@@ -31,7 +31,7 @@ fn invalid_format_description() -> error::InvalidFormatDescription {
 fn clone() {
     #[allow(deprecated)]
     let instant = Instant::now();
-    assert_cloned_eq!(date!(2021 - 001));
+    assert_cloned_eq!(date!(2021-001));
     assert_cloned_eq!(time!(0:00));
     assert_cloned_eq!(offset!(UTC));
     assert_cloned_eq!(datetime!(2021-001 0:00));
@@ -91,7 +91,7 @@ fn clone() {
 #[test]
 fn hash() {
     let mut hasher = DefaultHasher::new();
-    date!(2021 - 001).hash(&mut hasher);
+    date!(2021-001).hash(&mut hasher);
     time!(0:00).hash(&mut hasher);
     offset!(UTC).hash(&mut hasher);
     datetime!(2021-001 0:00).hash(&mut hasher);

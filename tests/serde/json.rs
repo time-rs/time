@@ -135,7 +135,7 @@ fn duration_json() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn date_json() -> Result<(), Box<dyn Error>> {
-    let date = date!(2022 - 04 - 05);
+    let date = date!(2022-04-05);
 
     assert_eq!(serialize(date.compact())?, "[2022,95]");
     assert_eq!(deserialize::<Date>("[2022,95]", Compact)?, date);

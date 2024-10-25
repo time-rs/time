@@ -69,7 +69,7 @@ fn custom_serialize() {
     let value = TestCustomFormat {
         offset_dt: datetime!(2000-01-01 00:00 -4:00),
         primitive_dt: Some(datetime!(2000-01-01 00:00)),
-        date: date!(2000 - 01 - 01),
+        date: date!(2000-01-01),
         time: None,
         offset: offset!(-4),
         time_alt: time!(12:34),

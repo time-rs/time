@@ -11,6 +11,6 @@ serde::format_description!(my_format, OffsetDateTime,); // missing string format
 serde::format_description!(my_format, OffsetDateTime "[year] [month]"); // missing comma
 serde::format_description!(my_format, OffsetDateTime : "[year] [month]"); // not a comma
 serde::format_description!(my_format, OffsetDateTime, "[bad]"); // bad component name
-serde::format_description!(my_format, OffsetDateTime, not_string); // string format wrong type
+serde::format_description!(my_format, OffsetDateTime, not_string); // not in scope
 
 fn main() {}

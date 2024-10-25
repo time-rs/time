@@ -110,12 +110,10 @@ fn iso_8601() -> time::Result<()> {
         };
     }
 
-    assert!(
-        std::panic::catch_unwind(|| {
-            let _unused = datetime!(2021-01-02 03:04:05 UTC).format(&Iso8601::PARSING);
-        })
-        .is_err()
-    );
+    assert!(std::panic::catch_unwind(|| {
+        let _unused = datetime!(2021-01-02 03:04:05 UTC).format(&Iso8601::PARSING);
+    })
+    .is_err());
     assert_eq!(
         datetime!(-123_456-01-02 03:04:05 UTC).format(
             &Iso8601::<
@@ -287,20 +285,16 @@ fn format_time() -> time::Result<()> {
             time!(13:02:03.456_789_012).format(format_description)?,
             output
         );
-        assert!(
-            time!(13:02:03.456_789_012)
-                .format_into(&mut io::sink(), format_description)
-                .is_ok()
-        );
+        assert!(time!(13:02:03.456_789_012)
+            .format_into(&mut io::sink(), format_description)
+            .is_ok());
         assert_eq!(
             time!(13:02:03.456_789_012).format(&OwnedFormatItem::from(format_description))?,
             output
         );
-        assert!(
-            time!(13:02:03.456_789_012)
-                .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
-                .is_ok()
-        );
+        assert!(time!(13:02:03.456_789_012)
+            .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
+            .is_ok());
     }
 
     assert_eq!(
@@ -397,21 +391,17 @@ fn format_date() -> time::Result<()> {
     ];
 
     for &(format_description, output) in &format_output {
-        assert_eq!(date!(2019 - 12 - 31).format(format_description)?, output);
-        assert!(
-            date!(2019 - 12 - 31)
-                .format_into(&mut io::sink(), format_description)
-                .is_ok()
-        );
+        assert_eq!(date!(2019-12-31).format(format_description)?, output);
+        assert!(date!(2019-12-31)
+            .format_into(&mut io::sink(), format_description)
+            .is_ok());
         assert_eq!(
-            date!(2019 - 12 - 31).format(&OwnedFormatItem::from(format_description))?,
+            date!(2019-12-31).format(&OwnedFormatItem::from(format_description))?,
             output
         );
-        assert!(
-            date!(2019 - 12 - 31)
-                .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
-                .is_ok()
-        );
+        assert!(date!(2019-12-31)
+            .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
+            .is_ok());
     }
 
     Ok(())
@@ -419,8 +409,8 @@ fn format_date() -> time::Result<()> {
 
 #[test]
 fn display_date() {
-    assert_eq!(date!(2019 - 01 - 01).to_string(), "2019-01-01");
-    assert_eq!(date!(2019 - 12 - 31).to_string(), "2019-12-31");
+    assert_eq!(date!(2019-01-01).to_string(), "2019-01-01");
+    assert_eq!(date!(2019-12-31).to_string(), "2019-12-31");
     assert_eq!(date!(-4713 - 11 - 24).to_string(), "-4713-11-24");
     assert_eq!(date!(-0001 - 01 - 01).to_string(), "-0001-01-01");
 
@@ -459,20 +449,16 @@ fn format_offset() -> time::Result<()> {
 
     for &(value, format_description, output) in &value_format_output {
         assert_eq!(value.format(format_description)?, output);
-        assert!(
-            value
-                .format_into(&mut io::sink(), format_description)
-                .is_ok()
-        );
+        assert!(value
+            .format_into(&mut io::sink(), format_description)
+            .is_ok());
         assert_eq!(
             value.format(&OwnedFormatItem::from(format_description))?,
             output
         );
-        assert!(
-            value
-                .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
-                .is_ok()
-        );
+        assert!(value
+            .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
+            .is_ok());
     }
 
     Ok(())
@@ -502,20 +488,16 @@ fn format_pdt() -> time::Result<()> {
         datetime!(1970-01-01 0:00).format(format_description)?,
         "1970-01-01 00:00:00.0"
     );
-    assert!(
-        datetime!(1970-01-01 0:00)
-            .format_into(&mut io::sink(), format_description)
-            .is_ok()
-    );
+    assert!(datetime!(1970-01-01 0:00)
+        .format_into(&mut io::sink(), format_description)
+        .is_ok());
     assert_eq!(
         datetime!(1970-01-01 0:00).format(&OwnedFormatItem::from(format_description))?,
         "1970-01-01 00:00:00.0"
     );
-    assert!(
-        datetime!(1970-01-01 0:00)
-            .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
-            .is_ok()
-    );
+    assert!(datetime!(1970-01-01 0:00)
+        .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
+        .is_ok());
 
     Ok(())
 }
@@ -543,20 +525,16 @@ fn format_odt() -> time::Result<()> {
         datetime!(1970-01-01 0:00 UTC).format(&format_description)?,
         "1970-01-01 00:00:00.0 +00:00:00"
     );
-    assert!(
-        datetime!(1970-01-01 0:00 UTC)
-            .format_into(&mut io::sink(), &format_description)
-            .is_ok()
-    );
+    assert!(datetime!(1970-01-01 0:00 UTC)
+        .format_into(&mut io::sink(), &format_description)
+        .is_ok());
     assert_eq!(
         datetime!(1970-01-01 0:00 UTC).format(&OwnedFormatItem::from(&format_description))?,
         "1970-01-01 00:00:00.0 +00:00:00"
     );
-    assert!(
-        datetime!(1970-01-01 0:00 UTC)
-            .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
-            .is_ok()
-    );
+    assert!(datetime!(1970-01-01 0:00 UTC)
+        .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
+        .is_ok());
 
     Ok(())
 }
@@ -579,16 +557,16 @@ fn insufficient_type_information() {
     };
     assert_insufficient_type_information(Time::MIDNIGHT.format(fd!("[year]")));
     assert_insufficient_type_information(Time::MIDNIGHT.format(&Rfc3339));
-    assert_insufficient_type_information(date!(2021 - 001).format(&Rfc3339));
-    assert_insufficient_type_information(datetime!(2021 - 001 0:00).format(&Rfc3339));
+    assert_insufficient_type_information(date!(2021-001).format(&Rfc3339));
+    assert_insufficient_type_information(datetime!(2021-001 0:00).format(&Rfc3339));
     assert_insufficient_type_information(Time::MIDNIGHT.format(&Rfc2822));
-    assert_insufficient_type_information(date!(2021 - 001).format(&Rfc2822));
-    assert_insufficient_type_information(datetime!(2021 - 001 0:00).format(&Rfc2822));
+    assert_insufficient_type_information(date!(2021-001).format(&Rfc2822));
+    assert_insufficient_type_information(datetime!(2021-001 0:00).format(&Rfc2822));
     assert_insufficient_type_information(Time::MIDNIGHT.format(&BorrowedFormatItem::First(&[
         BorrowedFormatItem::Compound(fd!("[year]")),
     ])));
     assert_insufficient_type_information(Time::MIDNIGHT.format(&Iso8601::DEFAULT));
-    assert_insufficient_type_information(date!(2021 - 001).format(&Iso8601::DEFAULT));
+    assert_insufficient_type_information(date!(2021-001).format(&Iso8601::DEFAULT));
     assert_insufficient_type_information(datetime!(2021-001 0:00).format(&Iso8601::DEFAULT));
 }
 
@@ -711,7 +689,7 @@ fn failed_write() -> time::Result<()> {
     assert_err!(offset!(+1), fd!("[offset_hour sign:mandatory]"));
     assert_err!(offset!(-1), fd!("[offset_hour]"));
     assert_err!(date!(-1 - 001), fd!("[year]"));
-    assert_err!(date!(2021 - 001), fd!("[year sign:mandatory]"));
+    assert_err!(date!(2021-001), fd!("[year sign:mandatory]"));
     assert_err!(date!(+999_999 - 001), fd!("[year]"));
     assert_err!(date!(+99_999 - 001), fd!("[year]"));
 

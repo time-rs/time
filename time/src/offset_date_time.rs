@@ -74,7 +74,7 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::OffsetDateTime;
     /// # use time_macros::datetime;
-    /// assert_eq!(OffsetDateTime::UNIX_EPOCH, datetime!(1970-01-01 0:00 UTC),);
+    /// assert_eq!(OffsetDateTime::UNIX_EPOCH, datetime!(1970-01-01 0:00 UTC));
     /// ```
     pub const UNIX_EPOCH: Self = Self::new_in_offset(
         // Safety: `ordinal` is not zero.
@@ -846,8 +846,8 @@ impl OffsetDateTime {
     /// assert_eq!(datetime.checked_add(2.days()), None);
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30 +10).checked_add(27.hours()),
-    ///     Some(datetime!(2019 - 11 - 26 18:30 +10))
+    ///     datetime!(2019-11-25 15:30 +10).checked_add(27.hours()),
+    ///     Some(datetime!(2019-11-26 18:30 +10))
     /// );
     /// ```
     pub const fn checked_add(self, duration: Duration) -> Option<Self> {
@@ -866,8 +866,8 @@ impl OffsetDateTime {
     /// assert_eq!(datetime.checked_sub((-2).days()), None);
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30 +10).checked_sub(27.hours()),
-    ///     Some(datetime!(2019 - 11 - 24 12:30 +10))
+    ///     datetime!(2019-11-25 15:30 +10).checked_sub(27.hours()),
+    ///     Some(datetime!(2019-11-24 12:30 +10))
     /// );
     /// ```
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
@@ -917,8 +917,8 @@ impl OffsetDateTime {
     /// );
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30 +10).saturating_add(27.hours()),
-    ///     datetime!(2019 - 11 - 26 18:30 +10)
+    ///     datetime!(2019-11-25 15:30 +10).saturating_add(27.hours()),
+    ///     datetime!(2019-11-26 18:30 +10)
     /// );
     /// ```
     pub const fn saturating_add(self, duration: Duration) -> Self {
@@ -972,8 +972,8 @@ impl OffsetDateTime {
     /// );
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30 +10).saturating_sub(27.hours()),
-    ///     datetime!(2019 - 11 - 24 12:30 +10)
+    ///     datetime!(2019-11-25 15:30 +10).saturating_sub(27.hours()),
+    ///     datetime!(2019-11-24 12:30 +10)
     /// );
     /// ```
     pub const fn saturating_sub(self, duration: Duration) -> Self {
@@ -1071,11 +1071,11 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 12:00 +01).replace_year(2019),
-    ///     Ok(datetime!(2019 - 02 - 18 12:00 +01))
+    ///     datetime!(2022-02-18 12:00 +01).replace_year(2019),
+    ///     Ok(datetime!(2019-02-18 12:00 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
-    /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
+    /// assert!(datetime!(2022-02-18 12:00 +01).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
+    /// assert!(datetime!(2022-02-18 12:00 +01).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
     /// ```
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
@@ -1088,10 +1088,10 @@ impl OffsetDateTime {
     /// # use time_macros::datetime;
     /// # use time::Month;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 12:00 +01).replace_month(Month::January),
-    ///     Ok(datetime!(2022 - 01 - 18 12:00 +01))
+    ///     datetime!(2022-02-18 12:00 +01).replace_month(Month::January),
+    ///     Ok(datetime!(2022-01-18 12:00 +01))
     /// );
-    /// assert!(datetime!(2022 - 01 - 30 12:00 +01).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
+    /// assert!(datetime!(2022-01-30 12:00 +01).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
     /// ```
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
@@ -1103,11 +1103,11 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 12:00 +01).replace_day(1),
-    ///     Ok(datetime!(2022 - 02 - 01 12:00 +01))
+    ///     datetime!(2022-02-18 12:00 +01).replace_day(1),
+    ///     Ok(datetime!(2022-02-01 12:00 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_day(0).is_err()); // 00 isn't a valid day
-    /// assert!(datetime!(2022 - 02 - 18 12:00 +01).replace_day(30).is_err()); // 30 isn't a valid day in February
+    /// assert!(datetime!(2022-02-18 12:00 +01).replace_day(0).is_err()); // 00 isn't a valid day
+    /// assert!(datetime!(2022-02-18 12:00 +01).replace_day(30).is_err()); // 30 isn't a valid day in February
     /// ```
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
@@ -1132,10 +1132,10 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_hour(7),
-    ///     Ok(datetime!(2022 - 02 - 18 07:02:03.004_005_006 +01))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_hour(7),
+    ///     Ok(datetime!(2022-02-18 07:02:03.004_005_006 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_hour(24).is_err()); // 24 isn't a valid hour
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_hour(24).is_err()); // 24 isn't a valid hour
     /// ```
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn replace_hour(self, hour: u8) -> Result<Self, error::ComponentRange> {
@@ -1147,10 +1147,10 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_minute(7),
-    ///     Ok(datetime!(2022 - 02 - 18 01:07:03.004_005_006 +01))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_minute(7),
+    ///     Ok(datetime!(2022-02-18 01:07:03.004_005_006 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_minute(60).is_err()); // 60 isn't a valid minute
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_minute(60).is_err()); // 60 isn't a valid minute
     /// ```
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn replace_minute(self, minute: u8) -> Result<Self, error::ComponentRange> {
@@ -1162,10 +1162,10 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_second(7),
-    ///     Ok(datetime!(2022 - 02 - 18 01:02:07.004_005_006 +01))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_second(7),
+    ///     Ok(datetime!(2022-02-18 01:02:07.004_005_006 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_second(60).is_err()); // 60 isn't a valid second
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_second(60).is_err()); // 60 isn't a valid second
     /// ```
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn replace_second(self, second: u8) -> Result<Self, error::ComponentRange> {
@@ -1177,10 +1177,10 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_millisecond(7),
-    ///     Ok(datetime!(2022 - 02 - 18 01:02:03.007 +01))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_millisecond(7),
+    ///     Ok(datetime!(2022-02-18 01:02:03.007 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
     /// ```
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn replace_millisecond(
@@ -1198,10 +1198,10 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_microsecond(7_008),
-    ///     Ok(datetime!(2022 - 02 - 18 01:02:03.007_008 +01))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_microsecond(7_008),
+    ///     Ok(datetime!(2022-02-18 01:02:03.007_008 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
     /// ```
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn replace_microsecond(
@@ -1219,10 +1219,10 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_nanosecond(7_008_009),
-    ///     Ok(datetime!(2022 - 02 - 18 01:02:03.007_008_009 +01))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_nanosecond(7_008_009),
+    ///     Ok(datetime!(2022-02-18 01:02:03.007_008_009 +01))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006 +01).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006 +01).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
     /// ```
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     pub const fn replace_nanosecond(self, nanosecond: u32) -> Result<Self, error::ComponentRange> {
