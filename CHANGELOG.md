@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ## [0.3.36] - 2024-04-10
 
-### # Fixed
+### Fixed
 
 - `FormatItem` can be used as part of an import path. See [#675] for details.
 
