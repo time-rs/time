@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
-## 0.3.36 [2024-04-10]
+## [0.3.36] - 2024-04-10
 
 ### # Fixed
 
@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 [#675]: https://github.com/time-rs/time/issues/675
 
-## 0.3.35 [2024-04-10]
+## [0.3.35] - 2024-04-10
 
 ### Added
 
@@ -35,20 +35,20 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
   contained an off-by-one error.
 - Leap seconds are now correctly handled when parsing ISO 8601.
 
-## 0.3.34 [2024-02-03]
+## [0.3.34] - 2024-02-03
 
 ### Fixed
 
 Computing the local offset on Windows works again. It was broken in some cases in v0.3.32 and
 v0.3.33.
 
-## 0.3.33 [2024-02-03]
+## [0.3.33] - 2024-02-03
 
 ### Fixed
 
 Builds targeting `wasm32-unknown-unknown` now work again.
 
-## 0.3.32 [2024-02-01]
+## [0.3.32] - 2024-02-01
 
 ### Added
 
@@ -65,7 +65,7 @@ Builds targeting `wasm32-unknown-unknown` now work again.
 
 - `Duration::time_fn` is deprecated.
 
-## 0.3.31 [2023-12-19]
+## [0.3.31] - 2023-12-19
 
 ### Added
 
@@ -77,7 +77,7 @@ Builds targeting `wasm32-unknown-unknown` now work again.
 - The valid range of `UtcOffset` has been expanded from ±23:59:59 to ±25:59:59. This is to support
   the full POSIX range while permitting infallible negation.
 
-## 0.3.30 [2023-10-13]
+## [0.3.30] - 2023-10-13
 
 ### Added
 
@@ -90,7 +90,7 @@ Builds targeting `wasm32-unknown-unknown` now work again.
 - Large values no longer wrap around in release mode when using `NumericalDuration` or
   `NumericalStdDuration`.
 
-## 0.3.29 [2023-09-24]
+## [0.3.29] - 2023-09-24
 
 ### Added
 
@@ -116,7 +116,7 @@ Builds targeting `wasm32-unknown-unknown` now work again.
 - Adding or subtracting a `std::time::Duration` to/from an `OffsetDateTime` will not result in
   integer overflow internally. It will still panic if the result is out of range.
 
-## 0.3.28 [2023-08-27]
+## [0.3.28] - 2023-08-27
 
 ### Added
 
@@ -133,11 +133,11 @@ Builds targeting `wasm32-unknown-unknown` now work again.
 - The `UnexpectedTrailingCharacters` error variant has been moved to `ParseFromDescription`. All
   previously-existing locations of this variant have been deprecated and will no longer be returned.
 
-## 0.3.27 [2023-08-22]
+## [0.3.27] - 2023-08-22
 
 This sets the `serde` dependency requirement to `>= 1.0.184` where the binaries have been removed.
 
-## 0.3.26 [2023-08-18]
+## [0.3.26] - 2023-08-18
 
 This release contains only a single change. `serde` is required to be a version prior to 1.0.171.
 This is due to the decision by the maintainer of `serde` to include pre-built binaries that are
@@ -146,14 +146,14 @@ even been reproduced. This is a security risk, and the `time` project strongly o
 decision. While this may break some users' builds due to conflicting versions, it is a necessary
 step to ensure the security.
 
-## 0.3.25 [2023-08-02]
+## [0.3.25] - 2023-08-02
 
 ### Fixed
 
 - Methods such as `Time::replace_milliseconds` would panic on some out-of-range values. This has
   been fixed.
 
-## 0.3.24 [2023-07-30]
+## [0.3.24] - 2023-07-30
 
 ### Added
 
@@ -178,7 +178,7 @@ step to ensure the security.
 - The implementation of `Duration::checked_div` could return a slightly incorrect result in some
   cases. This has been fixed.
 
-## 0.3.23 [2023-07-08]
+## [0.3.23] - 2023-07-08
 
 ### Added
 
@@ -204,13 +204,13 @@ details.
 - Compliance with ISO 8601 has been improved. Previously, a UTC offset would be incorrectly rejected
   in some cases.
 
-## 0.3.22 [2023-06-07]
+## [0.3.22] - 2023-06-07
 
 ### Added
 
 - `OffsetDateTime::checked_to_offset`
 
-## 0.3.21 [2023-05-05]
+## [0.3.21] - 2023-05-05
 
 ### Added
 
@@ -221,7 +221,7 @@ details.
 
 - The minimum supported Rust version is now 1.65.0.
 
-## 0.3.20 [2023-02-24]
+## [0.3.20] - 2023-02-24
 
 ### Changed
 
@@ -242,14 +242,14 @@ details.
 
 - The API for declaring soundness now uses stricter atomic orderings internally.
 
-## 0.3.19 [2023-02-16]
+## [0.3.19] - 2023-02-16
 
 ### Fixed
 
 This includes the update to the `format_description!` macro, which was supposed to be included in
 0.3.18.
 
-## 0.3.18 [2023-02-16]
+## [0.3.18] - 2023-02-16
 
 ### Changed
 
@@ -273,7 +273,7 @@ This includes the update to the `format_description!` macro, which was supposed 
   even if the sign indicated otherwise.
 - Compilation is fixed for WebAssembly.
 
-## 0.3.17 [2022-11-06]
+## [0.3.17] - 2022-11-06
 
 ### Changed
 
@@ -301,7 +301,7 @@ This includes the update to the `format_description!` macro, which was supposed 
   However, you may notice different errors, which are hopefully better! The parser for compile-time
   format descriptions has not yet been swapped out. If you notice any bugs, please file an issue.
 
-## 0.3.16 [2022-10-24]
+## [0.3.16] - 2022-10-24
 
 ### Changed
 
@@ -330,7 +330,7 @@ This includes the update to the `format_description!` macro, which was supposed 
   - `itoa`
   - `time-macros`
 
-## 0.3.15 [2022-10-03]
+## [0.3.15] - 2022-10-03
 
 ### Changed
 
@@ -348,7 +348,7 @@ This includes the update to the `format_description!` macro, which was supposed 
 - Eliminate a panic in an edge case when converting `OffsetDateTime` to another `UtcOffset`. This
   occurred due to an old assumption in code that was no longer the case.
 
-## 0.3.14 [2022-08-24]
+## [0.3.14] - 2022-08-24
 
 ### Changed
 
@@ -358,13 +358,13 @@ This includes the update to the `format_description!` macro, which was supposed 
   means `Iso8601` is the same as `Iso8601::DEFAULT`.
 - The `Parsed` struct has been reduced in size from 56 to 32 bytes (a 43% reduction).
 
-## 0.3.13 [2022-08-09]
+## [0.3.13] - 2022-08-09
 
 ### Fixed
 
 - wasm builds other than those using `wasm-bindgen` work again.
 
-## 0.3.12 [2022-08-01]
+## [0.3.12] - 2022-08-01
 
 ### Added
 
@@ -382,7 +382,7 @@ This includes the update to the `format_description!` macro, which was supposed 
   result was invalid.
 - ISO 8601 parsing rounds the subseconds to avoid incorrectly truncating the value.
 
-## 0.3.11 [2022-06-21]
+## [0.3.11] - 2022-06-21
 
 ### Fixed
 
@@ -393,7 +393,7 @@ This includes the update to the `format_description!` macro, which was supposed 
 [#479]: https://github.com/time-rs/time/issues/479
 [#481]: https://github.com/time-rs/time/issues/481
 
-## 0.3.10 [2022-06-19]
+## [0.3.10] - 2022-06-19
 
 ### Added
 
@@ -415,7 +415,7 @@ This includes the update to the `format_description!` macro, which was supposed 
 - Debug assertions have been added in a few places. This should have no user facing impact, as it
   only serves to catch bugs and is disabled in release mode.
 
-## 0.3.9 [2022-03-22]
+## [0.3.9] - 2022-03-22
 
 ### Added
 
@@ -477,17 +477,17 @@ pre-existing methods
 - Well-known formats that support leap seconds now return the `TryFromParsed::ComponentRange` error
   variant if the leap second could not occur at that given moment.
 
-## 0.3.8 [2022-02-22] [YANKED]
+## [0.3.8] - 2022-02-22 [YANKED]
 
 This release is broken and has been yanked.
 
-## 0.3.7 [2022-01-26]
+## [0.3.7] - 2022-01-26
 
 ### Fixed
 
 Solaris and Illumos build again.
 
-## 0.3.6 [2022-01-20]
+## [0.3.6] - 2022-01-20
 
 ### Added
 
@@ -516,7 +516,7 @@ Solaris and Illumos build again.
 
 - Deserialization will no longer fail when given a non-borrowed string.
 
-## 0.3.5 [2021-11-12]
+## [0.3.5] - 2021-11-12
 
 ### Added
 
@@ -533,7 +533,7 @@ Solaris and Illumos build again.
   single-threaded. This does not affect other Unix platforms. As a reminder, the relevant methods
   are fallible and may return an `Err` value for any reason.
 
-## 0.3.4 [2021-10-26]
+## [0.3.4] - 2021-10-26
 
 ### Added
 
@@ -573,7 +573,7 @@ Solaris and Illumos build again.
 - A parse error on a `UtcOffset` component now indicates the error comes from the offset.
 - Some arithmetic no longer panics in edge cases.
 
-## 0.3.3 [2021-09-25]
+## [0.3.3] - 2021-09-25
 
 ### Added
 
@@ -587,7 +587,7 @@ Solaris and Illumos build again.
 
 The minimum supported version is now 1.51.0.
 
-## 0.3.2 [2021-08-25]
+## [0.3.2] - 2021-08-25
 
 ### Added
 
@@ -599,7 +599,7 @@ The minimum supported version is now 1.51.0.
   circumstances. Previously, dates with an ISO year less than zero may have returned incorrect
   values. This affects both the `Date::from_iso_week_date` method and the `date!` macro.
 
-## 0.3.1 [2021-08-06]
+## [0.3.1] - 2021-08-06
 
 ### Added
 
@@ -615,7 +615,7 @@ The minimum supported version is now 1.51.0.
 - Macros that have a time component (`time!` and `datetime!`) no longer accept "0:00 AM" and
   similar. This was previously erroneously accepted.
 
-## 0.3.0 [2021-07-30]
+## [0.3.0] - 2021-07-30
 
 ### Added
 
@@ -850,20 +850,20 @@ The minimum supported version is now 1.51.0.
 - `Weekday::iso_weekday_number` (identical to `Weekday::number_from_monday`)
 - `ext::NumericalStdDurationShort`
 
-## 0.2.26 [2021-03-16]
+## [0.2.26] - 2021-03-16
 
 ### Fixed
 
 - #316, where the build script was wrongly unable to determine the correct compiler version
 - Dependencies have been bumped to the latest patch version, ensuring compatibility.
 
-## 0.2.25 [2021-01-24]
+## [0.2.25] - 2021-01-24
 
 ### Fixed
 
 - Fix #309, which can cause panics in certain situations.
 
-## 0.2.24 [2021-01-08]
+## [0.2.24] - 2021-01-08
 
 ### Fixed
 
@@ -871,7 +871,7 @@ The minimum supported version is now 1.51.0.
   `PrimitiveDatetime::timestamp`, and `OffsetDateTime::unix_timestamp` have been corrected. This
   affects all negative timestamps with a nonzero subsecond value.
 
-## 0.2.23 [2020-11-17]
+## [0.2.23] - 2020-11-17
 
 ### Compatibility notes
 
@@ -890,7 +890,7 @@ it means assuming UTC.
 - `UtcOffset::local_offset_at` (assumes UTC if unable to be determined)
 - `UtcOffset::current_local_offset` (assumes UTC if unable to be determined)
 
-## 0.2.22 [2020-09-25]
+## [0.2.22] - 2020-09-25
 
 ### Fixed
 
@@ -899,7 +899,7 @@ it means assuming UTC.
   situations where a `Duration` could be both positive and negative. This has been fixed such that
   the internal state maintains its invariants.
 
-## 0.2.21 [2020-09-20]
+## [0.2.21] - 2020-09-20
 
 ### Changed
 
@@ -922,7 +922,7 @@ it means assuming UTC.
   - `PrimitiveDateTime::monday_based_week`
   - `util::weeks_in_year`
 
-## 0.2.20 [2020-09-16]
+## [0.2.20] - 2020-09-16
 
 ### Added
 
@@ -940,7 +940,7 @@ a result also `PrimitiveDateTime`s and `OffsetDateTime`s).
 
 - Document how to construct an `OffsetDateTime` from a timestamp-nanosecond pair
 
-## 0.2.19 [2020-09-12]
+## [0.2.19] - 2020-09-12
 
 ### Fixed
 
@@ -953,7 +953,7 @@ a result also `PrimitiveDateTime`s and `OffsetDateTime`s).
 - Multiplying and assigning an integer by `Sign::Zero` now sets the integer to be zero. This
   previously left the integer unmodified.
 
-## 0.2.18 [2020-09-08]
+## [0.2.18] - 2020-09-08
 
 ### Changed
 
@@ -977,7 +977,7 @@ from their previous locations (and in the case of the `error` module, with their
 
 Parsing `format::Rfc3339` now correctly handles the UTC offset (#274).
 
-## 0.2.17 [2020-09-01]
+## [0.2.17] - 2020-09-01
 
 ### Changed
 
@@ -1015,41 +1015,41 @@ The following functions are `const fn` on rustc ≥ 1.46:
 - The crate will successfully compile with any combination of feature flags. Previously, some
   combinations would fail.
 
-## 0.2.16 [2020-05-12]
+## [0.2.16] - 2020-05-12
 
 ### Added
 
 `OffsetDateTime`s can now be represented as Unix timestamps with serde. To do this, you can use the
 `time::serde::timestamp` and `time::serde::timestamp::option` modules.
 
-## 0.2.15 [2020-05-04]
+## [0.2.15] - 2020-05-04
 
 ### Fixed
 
 `cargo-web` support works, and is now explicitly checked in CI. A previous change was made that made
 a method call ambiguous.
 
-## 0.2.14 [2020-05-02]
+## [0.2.14] - 2020-05-02
 
 ### Fixed
 
 Adding/subtracting a `core::time::Duration` now correctly takes subsecond values into account. This
 also affects `PrimitiveDateTime` and `OffsetDateTime`.
 
-## 0.2.13 [2020-05-01]
+## [0.2.13] - 2020-05-01
 
 ### Fixed
 
 Panicking APIs are re-exposed.
 
-## 0.2.12 [2020-04-30]
+## [0.2.12] - 2020-04-30
 
 ### Fixed
 
 Subtracting `Instant`s can correctly result in a negative duration, rather than resulting in the
 absolute value of it.
 
-## 0.2.11 [2020-04-27]
+## [0.2.11] - 2020-04-27
 
 ### Added
 
@@ -1069,7 +1069,7 @@ likely to be chosen than a day in a non-leap year.
 
 - MSRV is lowered to 1.32.0.
 
-## 0.2.10 [2020-04-19]
+## [0.2.10] - 2020-04-19
 
 ### Added
 
@@ -1082,14 +1082,14 @@ likely to be chosen than a day in a non-leap year.
 
 - Deprecated APIs from time v0.1 are public again. They were previously hidden by accident in 0.2.9.
 
-## 0.2.9 [2020-03-13]
+## [0.2.9] - 2020-03-13
 
 ### Fixed
 
 `cfg-if` now has a mandatory minimum of 0.1.10, rather than just 0.1. This is because compilation
 fails when using 0.1.9.
 
-## 0.2.8 [2020-03-12]
+## [0.2.8] - 2020-03-12
 
 ### Added
 
@@ -1105,7 +1105,7 @@ fails when using 0.1.9.
 
 - `#[non_exhaustive]` is simulated on compilers prior to 1.40.0.
 
-## 0.2.7 [2020-02-22]
+## [0.2.7] - 2020-02-22
 
 ### Added
 
