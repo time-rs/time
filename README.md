@@ -10,7 +10,7 @@ Documentation:
 - [latest release](https://docs.rs/time)
 - [main branch](https://time-rs.github.io/api/time)
 - [book](https://time-rs.github.io/book)
-- [changelog] (https://time-rs.openchangelog.com)
+- [changelog](https://time-rs.openchangelog.com)
 
 ## Minimum Rust version policy
 
