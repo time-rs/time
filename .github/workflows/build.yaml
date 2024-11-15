@@ -51,7 +51,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - { version: "1.67.0", name: MSRV }
+          - { version: "1.67.1", name: MSRV }
           - { version: stable, name: stable }
         kind:
           - name: no_std
@@ -147,7 +147,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - { version: "1.67.0", name: MSRV }
+          - { version: "1.67.1", name: MSRV }
           - { version: stable, name: stable }
         os:
           - { name: Ubuntu, value: ubuntu-latest }
