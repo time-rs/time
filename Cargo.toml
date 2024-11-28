@@ -50,6 +50,7 @@ debug = 2
 ambiguous-glob-reexports = "deny"
 clashing-extern-declarations = "deny"
 const-item-mutation = "deny"
+dangling-pointers-from-temporaries = "deny"
 deref-nullptr = "deny"
 drop-bounds = "deny"
 future-incompatible = "deny"
@@ -66,7 +67,6 @@ non-ascii-idents = "deny"
 opaque-hidden-inferred-bound = "deny"
 overlapping-range-endpoints = "deny"
 suspicious-double-ref-op = "deny"
-temporary-cstring-as-ptr = "deny"
 unconditional-recursion = "deny"
 unexpected_cfgs = { level = "deny", check-cfg = [
     "cfg(__ui_tests)",
