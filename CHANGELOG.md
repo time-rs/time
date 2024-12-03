@@ -6,9 +6,49 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.37 [2024-12-03]
+
+### Added
+
+- `Time::MAX`, equivalent to `time!(23:59:59.999999999)`
+- `[year repr:century]` is now supported in format descriptions. When used in conjunction with
+  `[year repr:last_two]`, there is sufficient information to parse a date. Note that with the
+  `large-date` feature enabled, there is an ambiguity when parsing the two back-to-back.
+- Parsing of `strftime`-style format descriptions, located at
+  `time::format_description::parse_strftime_borrowed` and
+  `time::format_description::parse_strftime_owned`
+- `time::util::refresh_tz` and `time::util::refresh_tz_unchecked`, which updates information
+  obtained via the `TZ` environment variable. This is equivalent to the `tzset` syscall on Unix-like
+  systems, with and without built-in soundness checks, respectively.
+
+### Changed
+
+- Obtaining the system UTC offset on Unix-like systems should now succeed when multi-threaded.
+  However, if the `TZ` environment variable is altered, the program will not be aware of this until
+  `time::util::refresh_tz` or `time::util::refresh_tz_unchecked` is called. `refresh_tz` has the
+  same soundness requirements as obtaining the system UTC offset previously did, with the
+  requirements still being automatically enforced. `refresh_tz_unchecked` does not enforce these
+  requirements at the expense of being `unsafe`. Most programs should not need to call either
+  function.
+
+  Due to this change, the `time::util::local_offset` module has been deprecated in its entirety. The
+  `get_soundness` and `set_soundness` functions are now no-ops.
+
+  Note that while calls _should_ succeed, success is not guaranteed in any situation. Downstream
+  users should always be prepared to handle the error case.
+
+### Fixed
+
+- Floating point values are truncated, not rounded, when formatting.
+- RFC3339 allows arbitrary separators between the date and time components.
+- Serialization of negative `Duration`s less than one second is now correct. It previously omitted
+  the negative sign.
+- `From<js_sys::Date> for OffsetDateTime` now ensures sub-millisecond values are not erroneously
+  returned.
+
 ## 0.3.36 [2024-04-10]
 
-### # Fixed
+### Fixed
 
 - `FormatItem` can be used as part of an import path. See [#675] for details.
 
