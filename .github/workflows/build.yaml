@@ -339,3 +339,4 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           files: ./lcov.txt
+          token: ${{ secrets.CODECOV_TOKEN }}
