@@ -20,6 +20,9 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 - `time::util::refresh_tz` and `time::util::refresh_tz_unchecked`, which updates information
   obtained via the `TZ` environment variable. This is equivalent to the `tzset` syscall on Unix-like
   systems, with and without built-in soundness checks, respectively.
+- `Month::length` and `util::days_in_month`, replacing `util::days_in_year_month`.
+- Expressions are permitted in `time::serde::format_description!` rather than only paths. This also
+  drastically improves diagnostics when an invalid value is provided.
 
 ### Changed
 
