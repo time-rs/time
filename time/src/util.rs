@@ -27,6 +27,7 @@ pub const fn days_in_month(month: Month, year: i32) -> u8 {
 /// Get the number of days in the month of a given year.
 ///
 /// ```rust
+/// # #![allow(deprecated)]
 /// # use time::{Month, util};
 /// assert_eq!(util::days_in_year_month(2020, Month::February), 29);
 /// ```

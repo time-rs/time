@@ -65,7 +65,7 @@ pub use time_macros::datetime;
 /// );
 /// # Ok::<_, time::Error>(())
 /// ```
-///
+/// 
 /// The syntax accepted by this macro is the same as [`format_description::parse()`], which can
 /// be found in [the book](https://time-rs.github.io/book/api/format-description.html).
 ///

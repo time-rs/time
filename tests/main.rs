@@ -72,10 +72,6 @@ macro_rules! require_all_features {
 }
 
 require_all_features! {
-    // Required by the crate for technical reasons.
-    #[allow(clippy::single_component_path_imports)]
-    use rstest_reuse;
-
     /// Construct a non-exhaustive modifier.
     macro_rules! modifier {
         ($name:ident $({

@@ -28,7 +28,10 @@ use time::{util, Month};
 #[case(2020, November, 30)]
 #[case(2020, December, 31)]
 fn days_in_year_month(#[case] year: i32, #[case] month: Month, #[case] expected: u8) {
-    assert_eq!(util::days_in_year_month(year, month), expected);
+    #[allow(deprecated)]
+    {
+        assert_eq!(util::days_in_year_month(year, month), expected);
+    }
 }
 
 #[rstest]
