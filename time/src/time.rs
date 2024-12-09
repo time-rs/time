@@ -54,36 +54,26 @@ pub struct Time {
 
     // Little endian version
     #[cfg(target_endian = "little")]
-    #[allow(clippy::missing_docs_in_private_items)]
     nanosecond: Nanoseconds,
     #[cfg(target_endian = "little")]
-    #[allow(clippy::missing_docs_in_private_items)]
     second: Seconds,
     #[cfg(target_endian = "little")]
-    #[allow(clippy::missing_docs_in_private_items)]
     minute: Minutes,
     #[cfg(target_endian = "little")]
-    #[allow(clippy::missing_docs_in_private_items)]
     hour: Hours,
     #[cfg(target_endian = "little")]
-    #[allow(clippy::missing_docs_in_private_items)]
     padding: Padding,
 
     // Big endian version
     #[cfg(target_endian = "big")]
-    #[allow(clippy::missing_docs_in_private_items)]
     padding: Padding,
     #[cfg(target_endian = "big")]
-    #[allow(clippy::missing_docs_in_private_items)]
     hour: Hours,
     #[cfg(target_endian = "big")]
-    #[allow(clippy::missing_docs_in_private_items)]
     minute: Minutes,
     #[cfg(target_endian = "big")]
-    #[allow(clippy::missing_docs_in_private_items)]
     second: Seconds,
     #[cfg(target_endian = "big")]
-    #[allow(clippy::missing_docs_in_private_items)]
     nanosecond: Nanoseconds,
 }
 

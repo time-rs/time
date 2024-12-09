@@ -65,7 +65,6 @@ impl InstantExt for StdInstant {
         if duration.is_positive() {
             self.checked_add(duration.unsigned_abs())
         } else if duration.is_negative() {
-            #[allow(clippy::unchecked_duration_subtraction)]
             self.checked_sub(duration.unsigned_abs())
         } else {
             debug_assert!(duration.is_zero());
@@ -75,7 +74,6 @@ impl InstantExt for StdInstant {
 
     fn checked_sub_signed(&self, duration: Duration) -> Option<Self> {
         if duration.is_positive() {
-            #[allow(clippy::unchecked_duration_subtraction)]
             self.checked_sub(duration.unsigned_abs())
         } else if duration.is_negative() {
             self.checked_add(duration.unsigned_abs())

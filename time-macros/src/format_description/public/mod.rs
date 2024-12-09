@@ -6,7 +6,6 @@ use proc_macro::{Literal, TokenStream};
 pub(crate) use self::component::Component;
 use crate::to_tokens::ToTokenStream;
 
-#[allow(variant_size_differences)]
 pub(crate) enum OwnedFormatItem {
     Literal(Box<[u8]>),
     Component(Component),

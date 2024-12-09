@@ -124,9 +124,7 @@ pub(super) enum BracketKind {
 
 /// Indicates whether the component is whitespace or not.
 pub(super) enum ComponentKind {
-    #[allow(clippy::missing_docs_in_private_items)]
     Whitespace,
-    #[allow(clippy::missing_docs_in_private_items)]
     NotWhitespace,
 }
 

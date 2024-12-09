@@ -6,7 +6,6 @@ use crate::error::{self, ParseFromDescription, TryFromParsed};
 use crate::internal_macros::bug;
 
 /// An error that occurred at some stage of parsing.
-#[allow(variant_size_differences)]
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Parse {
@@ -35,7 +34,6 @@ impl fmt::Display for Parse {
 }
 
 #[cfg(feature = "std")]
-#[allow(clippy::std_instead_of_core)]
 impl std::error::Error for Parse {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {

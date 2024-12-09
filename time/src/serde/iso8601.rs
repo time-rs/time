@@ -51,7 +51,6 @@ pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDat
 /// [ISO 8601 format]: https://www.iso.org/iso-8601-date-and-time-format.html
 /// [with]: https://serde.rs/field-attrs.html#with
 pub mod option {
-    #[allow(clippy::wildcard_imports)]
     use super::*;
 
     /// Serialize an [`Option<OffsetDateTime>`] using the well-known ISO 8601 format.

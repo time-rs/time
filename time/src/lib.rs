@@ -103,7 +103,6 @@ mod quickcheck;
 #[cfg(feature = "rand")]
 mod rand;
 #[cfg(feature = "serde")]
-#[allow(missing_copy_implementations, missing_debug_implementations)]
 pub mod serde;
 mod sys;
 #[cfg(test)]

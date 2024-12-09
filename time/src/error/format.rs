@@ -7,7 +7,6 @@ use crate::error;
 
 /// An error occurred when formatting.
 #[non_exhaustive]
-#[allow(missing_copy_implementations)]
 #[derive(Debug)]
 pub enum Format {
     /// The type being formatted does not contain sufficient information to format a component.
@@ -55,7 +54,6 @@ impl TryFrom<Format> for io::Error {
 }
 
 #[cfg(feature = "std")]
-#[allow(clippy::std_instead_of_core)]
 impl std::error::Error for Format {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match *self {

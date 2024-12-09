@@ -81,7 +81,6 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
         consume_number::<u16>("month or ordinal", chars)?;
 
     // year-month-day
-    #[allow(clippy::branches_sharing_code)] // clarity
     if consume_punct('-', chars).is_ok() {
         let (month_span, month) = (month_or_ordinal_span, month_or_ordinal);
         let (day_span, day) = consume_number::<u8>("day", chars)?;

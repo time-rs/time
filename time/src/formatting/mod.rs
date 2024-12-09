@@ -14,7 +14,6 @@ use crate::ext::DigitCount;
 use crate::format_description::{modifier, Component};
 use crate::{error, Date, OffsetDateTime, Time, UtcOffset};
 
-#[allow(clippy::missing_docs_in_private_items)]
 const MONTH_NAMES: [&[u8]; 12] = [
     b"January",
     b"February",
@@ -30,7 +29,6 @@ const MONTH_NAMES: [&[u8]; 12] = [
     b"December",
 ];
 
-#[allow(clippy::missing_docs_in_private_items)]
 const WEEKDAY_NAMES: [&[u8]; 7] = [
     b"Monday",
     b"Tuesday",

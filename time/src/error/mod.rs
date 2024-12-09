@@ -43,7 +43,6 @@ use crate::internal_macros::bug;
 ///
 /// This can be used when you either don't know or don't care about the exact error returned.
 /// `Result<_, time::Error>` (or its alias `time::Result<_>`) will work in these situations.
-#[allow(missing_copy_implementations, variant_size_differences)]
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum Error {
@@ -105,7 +104,6 @@ impl fmt::Display for Error {
 }
 
 #[cfg(feature = "std")]
-#[allow(clippy::std_instead_of_core)]
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {

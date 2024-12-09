@@ -44,7 +44,6 @@ pub struct Duration {
     /// Number of nanoseconds within the second. The sign always matches the `seconds` field.
     // Sign must match that of `seconds` (though this is not a safety requirement).
     nanoseconds: Nanoseconds,
-    #[allow(clippy::missing_docs_in_private_items)]
     padding: Padding,
 }
 

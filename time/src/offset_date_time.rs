@@ -30,7 +30,6 @@ use crate::{error, util, Date, Duration, Month, PrimitiveDateTime, Time, UtcOffs
 
 /// The Julian day of the Unix epoch.
 // Safety: `ordinal` is not zero.
-#[allow(clippy::undocumented_unsafe_blocks)]
 const UNIX_EPOCH_JULIAN_DAY: i32 =
     unsafe { Date::__from_ordinal_date_unchecked(1970, 1) }.to_julian_day();
 

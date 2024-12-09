@@ -44,7 +44,6 @@ impl TryFrom<TryFromParsed> for error::ComponentRange {
 }
 
 #[cfg(feature = "std")]
-#[allow(clippy::std_instead_of_core)]
 impl std::error::Error for TryFromParsed {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {

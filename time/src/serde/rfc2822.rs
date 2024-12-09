@@ -46,7 +46,6 @@ pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDat
 /// [RFC2822 format]: https://tools.ietf.org/html/rfc2822#section-3.3
 /// [with]: https://serde.rs/field-attrs.html#with
 pub mod option {
-    #[allow(clippy::wildcard_imports)]
     use super::*;
 
     /// Serialize an [`Option<OffsetDateTime>`] using the well-known RFC2822 format.

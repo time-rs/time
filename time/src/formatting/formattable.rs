@@ -243,7 +243,6 @@ impl sealed::Sealed for Rfc3339 {
         bytes += write(output, b":")?;
         bytes += format_number_pad_zero::<2>(output, time.second())?;
 
-        #[allow(clippy::if_not_else)]
         if time.nanosecond() != 0 {
             let nanos = time.nanosecond();
             bytes += write(output, b".")?;

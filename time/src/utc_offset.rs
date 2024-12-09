@@ -50,11 +50,8 @@ type WholeSeconds = RangedI32<
 // All three components _must_ have the same sign.
 #[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct UtcOffset {
-    #[allow(clippy::missing_docs_in_private_items)]
     hours: Hours,
-    #[allow(clippy::missing_docs_in_private_items)]
     minutes: Minutes,
-    #[allow(clippy::missing_docs_in_private_items)]
     seconds: Seconds,
 }
 
