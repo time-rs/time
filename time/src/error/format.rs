@@ -1,5 +1,6 @@
 //! Error formatting a struct
 
+use alloc::boxed::Box;
 use core::fmt;
 use std::io;
 
@@ -16,6 +17,8 @@ pub enum Format {
     ///
     /// This variant is only returned when using well-known formats.
     InvalidComponent(&'static str),
+    /// A component provided was out of range.
+    ComponentRange(Box<error::ComponentRange>),
     /// A value of `std::io::Error` was returned internally.
     StdIo(io::Error),
 }
@@ -31,14 +34,32 @@ impl fmt::Display for Format {
                 f,
                 "The {component} component cannot be formatted into the requested format."
             ),
+            Self::ComponentRange(err) => err.fmt(f),
             Self::StdIo(err) => err.fmt(f),
         }
+    }
+}
+
+impl From<error::ComponentRange> for Format {
+    fn from(err: error::ComponentRange) -> Self {
+        Self::ComponentRange(Box::new(err))
     }
 }
 
 impl From<io::Error> for Format {
     fn from(err: io::Error) -> Self {
         Self::StdIo(err)
+    }
+}
+
+impl TryFrom<Format> for error::ComponentRange {
+    type Error = error::DifferentVariant;
+
+    fn try_from(err: Format) -> Result<Self, Self::Error> {
+        match err {
+            Format::ComponentRange(err) => Ok(*err),
+            _ => Err(error::DifferentVariant),
+        }
     }
 }
 
@@ -56,9 +77,10 @@ impl TryFrom<Format> for io::Error {
 #[cfg(feature = "std")]
 impl std::error::Error for Format {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match *self {
+        match self {
             Self::InsufficientTypeInformation | Self::InvalidComponent(_) => None,
-            Self::StdIo(ref err) => Some(err),
+            Self::ComponentRange(err) => Some(err),
+            Self::StdIo(err) => Some(err),
         }
     }
 }

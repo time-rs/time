@@ -483,7 +483,7 @@ impl sealed::Sealed for Rfc2822 {
                     minimum: 0,
                     maximum: 59,
                     value: 60,
-                    conditional_range: true,
+                    conditional_message: Some("because leap seconds are not supported"),
                 },
             )));
         }
@@ -728,7 +728,7 @@ impl sealed::Sealed for Rfc3339 {
                     minimum: 0,
                     maximum: 59,
                     value: 60,
-                    conditional_range: true,
+                    conditional_message: Some("because leap seconds are not supported"),
                 },
             )));
         }

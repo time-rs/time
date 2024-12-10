@@ -107,6 +107,21 @@ pub enum YearRepr {
     LastTwo,
 }
 
+/// The range of years that are supported.
+///
+/// This modifier has no effect when the year repr is [`LastTwo`](YearRepr::LastTwo).
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum YearRange {
+    /// Years between -9999 and 9999 are supported.
+    Standard,
+    /// Years between -999_999 and 999_999 are supported, with the sign being required if the year
+    /// contains more than four digits.
+    ///
+    /// If the `large-dates` feature is not enabled, this variant is equivalent to `Standard`.
+    Extended,
+}
+
 /// Year of the date.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -115,6 +130,8 @@ pub struct Year {
     pub padding: Padding,
     /// What kind of representation should be used?
     pub repr: YearRepr,
+    /// What range of years is supported?
+    pub range: YearRange,
     /// Whether the value is based on the ISO week number or the Gregorian calendar.
     pub iso_week_based: bool,
     /// Whether the `+` sign is present when a positive year contains fewer than five digits.
@@ -363,12 +380,15 @@ impl_const_default! {
     };
     /// Creates a modifier that indicates the value uses the [`Full`](Self::Full) representation.
     YearRepr => Self::Full;
+    /// Creates a modifier that indicates the value uses the [`Extended`](Self::Extended) range.
+    YearRange => Self::Extended;
     /// Creates a modifier that indicates the value uses the [`Full`](YearRepr::Full)
     /// representation, is [padded with zeroes](Padding::Zero), uses the Gregorian calendar as its
     /// base, and only includes the year's sign if necessary.
     @pub Year => Self {
         padding: Padding::Zero,
         repr: YearRepr::Full,
+        range: YearRange::Extended,
         iso_week_based: false,
         sign_is_mandatory: false,
     };

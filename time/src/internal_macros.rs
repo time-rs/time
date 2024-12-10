@@ -112,7 +112,7 @@ macro_rules! ensure_ranged {
                     minimum: $type::MIN.get() as _,
                     maximum: $type::MAX.get() as _,
                     value: $value as _,
-                    conditional_range: false,
+                    conditional_message: None,
                 });
             }
         }
@@ -129,7 +129,7 @@ macro_rules! ensure_ranged {
                         minimum: $type::MIN.get() as i64 / $factor as i64,
                         maximum: $type::MAX.get() as i64 / $factor as i64,
                         value: $value as _,
-                        conditional_range: false,
+                        conditional_message: None,
                     });
                 }
             },
@@ -139,7 +139,7 @@ macro_rules! ensure_ranged {
                     minimum: $type::MIN.get() as i64 / $factor as i64,
                     maximum: $type::MAX.get() as i64 / $factor as i64,
                     value: $value as _,
-                    conditional_range: false,
+                    conditional_message: None,
                 });
             }
         }

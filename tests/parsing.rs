@@ -812,6 +812,11 @@ fn parse_date() -> time::Result<()> {
             "2021-01-02",
             date!(2021-01-02),
         ),
+        (
+            fd::parse("[year repr:century range:standard][year repr:last_two]-[month]-[day]")?,
+            "2021-01-02",
+            date!(2021-01-02),
+        ),
         (fd::parse("[year]-[ordinal]")?, "2021-002", date!(2021-002)),
         (
             fd::parse("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?,
@@ -1131,6 +1136,7 @@ fn parse_components() -> time::Result<()> {
         Component::Year(modifier!(Year {
             padding: modifier::Padding::Zero,
             repr: modifier::YearRepr::Full,
+            range: modifier::YearRange::Extended,
             iso_week_based: false,
             sign_is_mandatory: false,
         })),
@@ -1141,6 +1147,7 @@ fn parse_components() -> time::Result<()> {
         Component::Year(modifier!(Year {
             padding: modifier::Padding::Zero,
             repr: modifier::YearRepr::Century,
+            range: modifier::YearRange::Extended,
             iso_week_based: false,
             sign_is_mandatory: false,
         })),
@@ -1152,6 +1159,7 @@ fn parse_components() -> time::Result<()> {
         Component::Year(modifier!(Year {
             padding: modifier::Padding::Zero,
             repr: modifier::YearRepr::LastTwo,
+            range: modifier::YearRange::Extended,
             iso_week_based: false,
             sign_is_mandatory: false,
         })),
@@ -1162,6 +1170,7 @@ fn parse_components() -> time::Result<()> {
         Component::Year(modifier!(Year {
             padding: modifier::Padding::Zero,
             repr: modifier::YearRepr::Full,
+            range: modifier::YearRange::Extended,
             iso_week_based: true,
             sign_is_mandatory: false,
         })),
@@ -1172,6 +1181,7 @@ fn parse_components() -> time::Result<()> {
         Component::Year(modifier!(Year {
             padding: modifier::Padding::Zero,
             repr: modifier::YearRepr::Century,
+            range: modifier::YearRange::Extended,
             iso_week_based: true,
             sign_is_mandatory: false,
         })),
@@ -1183,6 +1193,7 @@ fn parse_components() -> time::Result<()> {
         Component::Year(modifier!(Year {
             padding: modifier::Padding::Zero,
             repr: modifier::YearRepr::LastTwo,
+            range: modifier::YearRange::Extended,
             iso_week_based: true,
             sign_is_mandatory: false,
         })),

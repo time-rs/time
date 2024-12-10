@@ -84,6 +84,11 @@ fn modifiers(
     )]
     year_repr: _,
     #[values(
+        (YearRange::Standard, "range:standard"),
+        (YearRange::Extended, "range:extended"),
+    )]
+    year_range: _,
+    #[values(
         (false, "base:calendar"),
         (true, "base:iso_week"),
     )]
@@ -380,6 +385,7 @@ fn offset_hour_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
 fn year_component(
     padding: M<Padding>,
     year_repr: M<YearRepr>,
+    year_range: M<YearRange>,
     year_is_iso_week_based: M<bool>,
     sign_is_mandatory: M<bool>,
 ) {
@@ -388,6 +394,7 @@ fn year_component(
             "year",
             padding,
             year_repr,
+            year_range,
             year_is_iso_week_based,
             sign_is_mandatory
         ),
@@ -395,6 +402,7 @@ fn year_component(
             modifier_m!(Year {
                 padding,
                 repr: year_repr,
+                range: year_range,
                 iso_week_based: year_is_iso_week_based,
                 sign_is_mandatory
             })

@@ -295,10 +295,11 @@ fn fmt_year(
     modifier::Year {
         padding,
         repr,
+        range,
         iso_week_based,
         sign_is_mandatory,
     }: modifier::Year,
-) -> Result<usize, io::Error> {
+) -> Result<usize, error::Format> {
     let full_year = if iso_week_based {
         date.iso_year_week().0
     } else {
@@ -309,17 +310,35 @@ fn fmt_year(
         modifier::YearRepr::Century => full_year / 100,
         modifier::YearRepr::LastTwo => (full_year % 100).abs(),
     };
-    let format_number = match repr {
-        #[cfg(feature = "large-dates")]
-        modifier::YearRepr::Full if value.abs() >= 100_000 => format_number::<6>,
-        #[cfg(feature = "large-dates")]
-        modifier::YearRepr::Full if value.abs() >= 10_000 => format_number::<5>,
-        modifier::YearRepr::Full => format_number::<4>,
-        #[cfg(feature = "large-dates")]
-        modifier::YearRepr::Century if value.abs() >= 1_000 => format_number::<4>,
-        #[cfg(feature = "large-dates")]
-        modifier::YearRepr::Century if value.abs() >= 100 => format_number::<3>,
-        modifier::YearRepr::Century | modifier::YearRepr::LastTwo => format_number::<2>,
+    let format_number = if cfg!(feature = "large-dates") && range == modifier::YearRange::Extended {
+        match repr {
+            modifier::YearRepr::Full if value.abs() >= 100_000 => format_number::<6>,
+            modifier::YearRepr::Full if value.abs() >= 10_000 => format_number::<5>,
+            modifier::YearRepr::Full => format_number::<4>,
+            modifier::YearRepr::Century if value.abs() >= 1_000 => format_number::<4>,
+            modifier::YearRepr::Century if value.abs() >= 100 => format_number::<3>,
+            modifier::YearRepr::Century => format_number::<2>,
+            modifier::YearRepr::LastTwo => format_number::<2>,
+        }
+    } else {
+        match repr {
+            modifier::YearRepr::Full | modifier::YearRepr::Century if full_year.abs() >= 10_000 => {
+                return Err(error::ComponentRange {
+                    name: "year",
+                    minimum: -9999,
+                    maximum: 9999,
+                    value: full_year.extend(),
+                    conditional_message: Some("when `range:standard` is used"),
+                }
+                .into());
+            }
+            _ => {}
+        }
+        match repr {
+            modifier::YearRepr::Full => format_number::<4>,
+            modifier::YearRepr::Century => format_number::<2>,
+            modifier::YearRepr::LastTwo => format_number::<2>,
+        }
     };
     let mut bytes = 0;
     if repr != modifier::YearRepr::LastTwo {

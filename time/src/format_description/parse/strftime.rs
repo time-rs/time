@@ -210,6 +210,7 @@ fn parse_component(
             component!(Year {
                 padding: modifier::Padding::Zero,
                 repr: modifier::YearRepr::Full,
+                range: modifier::YearRange::Extended,
                 iso_week_based: false,
                 sign_is_mandatory: false,
             }),
@@ -217,6 +218,7 @@ fn parse_component(
         b'C' => component!(Year {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
             repr: modifier::YearRepr::Century,
+            range: modifier::YearRange::Extended,
             iso_week_based: false,
             sign_is_mandatory: false,
         }),
@@ -237,6 +239,7 @@ fn parse_component(
             component!(Year {
                 padding: modifier::Padding::Zero,
                 repr: modifier::YearRepr::LastTwo,
+                range: modifier::YearRange::Extended,
                 iso_week_based: false,
                 sign_is_mandatory: false,
             }),
@@ -248,6 +251,7 @@ fn parse_component(
             component!(Year {
                 padding: modifier::Padding::Zero,
                 repr: modifier::YearRepr::Full,
+                range: modifier::YearRange::Extended,
                 iso_week_based: false,
                 sign_is_mandatory: false,
             }),
@@ -265,12 +269,14 @@ fn parse_component(
         b'g' => component!(Year {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
             repr: modifier::YearRepr::LastTwo,
+            range: modifier::YearRange::Extended,
             iso_week_based: true,
             sign_is_mandatory: false,
         }),
         b'G' => component!(Year {
             padding: modifier::Padding::Zero,
             repr: modifier::YearRepr::Full,
+            range: modifier::YearRange::Extended,
             iso_week_based: true,
             sign_is_mandatory: false,
         }),
@@ -410,6 +416,7 @@ fn parse_component(
             component!(Year {
                 padding: modifier::Padding::Zero,
                 repr: modifier::YearRepr::LastTwo,
+                range: modifier::YearRange::Extended,
                 iso_week_based: false,
                 sign_is_mandatory: false,
             }),
@@ -431,12 +438,14 @@ fn parse_component(
         b'y' => component!(Year {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
             repr: modifier::YearRepr::LastTwo,
+            range: modifier::YearRange::Extended,
             iso_week_based: false,
             sign_is_mandatory: false,
         }),
         b'Y' => component!(Year {
             padding: modifier::Padding::Zero,
             repr: modifier::YearRepr::Full,
+            range: modifier::YearRange::Extended,
             iso_week_based: false,
             sign_is_mandatory: false,
         }),

@@ -6,10 +6,9 @@ use num_conv::prelude::*;
 
 use crate::convert::*;
 use crate::format_description::modifier;
-#[cfg(feature = "large-dates")]
-use crate::parsing::combinator::n_to_m_digits_padded;
 use crate::parsing::combinator::{
-    any_digit, exactly_n_digits, exactly_n_digits_padded, first_match, n_to_m_digits, opt, sign,
+    any_digit, exactly_n_digits, exactly_n_digits_padded, first_match, n_to_m_digits,
+    n_to_m_digits_padded, opt, sign,
 };
 use crate::parsing::ParsedItem;
 use crate::{Month, Weekday};
@@ -25,12 +24,13 @@ pub(crate) fn parse_year(
             let ParsedItem(input, sign) = opt(sign)(input);
 
             if let Some(sign) = sign {
-                #[cfg(not(feature = "large-dates"))]
-                let ParsedItem(input, year) =
-                    exactly_n_digits_padded::<4, u32>(modifiers.padding)(input)?;
-                #[cfg(feature = "large-dates")]
-                let ParsedItem(input, year) =
-                    n_to_m_digits_padded::<4, 6, u32>(modifiers.padding)(input)?;
+                let ParsedItem(input, year) = if cfg!(feature = "large-dates")
+                    && modifiers.range == modifier::YearRange::Extended
+                {
+                    n_to_m_digits_padded::<4, 6, u32>(modifiers.padding)(input)?
+                } else {
+                    exactly_n_digits_padded::<4, u32>(modifiers.padding)(input)?
+                };
 
                 Some(if sign == b'-' {
                     ParsedItem(input, (-year.cast_signed(), true))
@@ -49,12 +49,13 @@ pub(crate) fn parse_year(
             let ParsedItem(input, sign) = opt(sign)(input);
 
             if let Some(sign) = sign {
-                #[cfg(not(feature = "large-dates"))]
-                let ParsedItem(input, year) =
-                    exactly_n_digits_padded::<2, u32>(modifiers.padding)(input)?;
-                #[cfg(feature = "large-dates")]
-                let ParsedItem(input, year) =
-                    n_to_m_digits_padded::<2, 4, u32>(modifiers.padding)(input)?;
+                let ParsedItem(input, year) = if cfg!(feature = "large-dates")
+                    && modifiers.range == modifier::YearRange::Extended
+                {
+                    n_to_m_digits_padded::<2, 4, u32>(modifiers.padding)(input)?
+                } else {
+                    exactly_n_digits_padded::<2, u32>(modifiers.padding)(input)?
+                };
 
                 Some(if sign == b'-' {
                     ParsedItem(input, (-year.cast_signed(), true))

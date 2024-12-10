@@ -60,7 +60,7 @@ impl Month {
                 minimum: 1,
                 maximum: 12,
                 value: n as _,
-                conditional_range: false,
+                conditional_message: None,
             }),
         }
     }
@@ -271,7 +271,7 @@ impl TryFrom<u8> for Month {
                 minimum: 1,
                 maximum: 12,
                 value: 0,
-                conditional_range: false,
+                conditional_message: None,
             }),
         }
     }

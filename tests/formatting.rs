@@ -388,6 +388,9 @@ fn format_date() -> time::Result<()> {
         (fd!("[year repr:century]"), "20"),
         (fd!("[year repr:last_two]"), "19"),
         (fd!("[year base:iso_week repr:last_two]"), "20"),
+        (fd!("[year range:standard]"), "2019"),
+        (fd!("[year range:standard repr:century]"), "20"),
+        (fd!("[year range:standard repr:last_two]"), "19"),
     ];
 
     for &(format_description, output) in &format_output {
@@ -405,6 +408,18 @@ fn format_date() -> time::Result<()> {
     }
 
     Ok(())
+}
+
+#[test]
+fn format_date_err() {
+    assert!(matches!(
+        date!(+10_000-01-01).format(fd!("[year range:standard]")),
+        Err(time::error::Format::ComponentRange(cr)) if cr.name() == "year"
+    ));
+    assert!(matches!(
+        date!(+10_000-01-01).format(fd!("[year repr:century range:standard]")),
+        Err(time::error::Format::ComponentRange(cr)) if cr.name() == "year"
+    ));
 }
 
 #[test]

@@ -1040,7 +1040,7 @@ impl TryFrom<Parsed> for OffsetDateTime {
                     minimum: 0,
                     maximum: 59,
                     value: 60,
-                    conditional_range: true,
+                    conditional_message: Some("because leap seconds are not supported"),
                 },
             ));
         }

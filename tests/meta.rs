@@ -124,7 +124,7 @@ fn size() {
     assert_size!(PrimitiveDateTime, 12, 12);
     assert_size!(Time, 8, 8);
     assert_size!(UtcOffset, 3, 4);
-    assert_size!(error::ComponentRange, 48, 48);
+    assert_size!(error::ComponentRange, 56, 56);
     assert_size!(error::ConversionRange, 0, 1);
     assert_size!(error::DifferentVariant, 0, 1);
     assert_size!(error::IndeterminateOffset, 0, 1);
@@ -141,7 +141,7 @@ fn size() {
     assert_size!(modifier::Subsecond, 1, 1);
     assert_size!(modifier::WeekNumber, 2, 2);
     assert_size!(modifier::Weekday, 3, 3);
-    assert_size!(modifier::Year, 4, 4);
+    assert_size!(modifier::Year, 5, 5);
     assert_size!(well_known::Rfc2822, 0, 1);
     assert_size!(well_known::Rfc3339, 0, 1);
     assert_size!(
@@ -157,12 +157,12 @@ fn size() {
     assert_size!(Parsed, 64, 64);
     assert_size!(Month, 1, 1);
     assert_size!(Weekday, 1, 1);
-    assert_size!(Error, 56, 56);
+    assert_size!(Error, 64, 64);
     assert_size!(error::Format, 24, 24);
     assert_size!(error::InvalidFormatDescription, 48, 48);
-    assert_size!(error::Parse, 48, 48);
+    assert_size!(error::Parse, 64, 64);
     assert_size!(error::ParseFromDescription, 24, 24);
-    assert_size!(error::TryFromParsed, 48, 48);
+    assert_size!(error::TryFromParsed, 56, 64);
     assert_size!(Component, 6, 6); // TODO Size is 4 starting with rustc 1.71.
     assert_size!(BorrowedFormatItem<'_>, 24, 24);
     assert_size!(modifier::MonthRepr, 1, 1);

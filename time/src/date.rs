@@ -127,7 +127,7 @@ impl Date {
                     minimum: 1,
                     maximum: month.length(year) as _,
                     value: day as _,
-                    conditional_range: true,
+                    conditional_message: Some("for the given month and year"),
                 });
             }
         }
@@ -165,7 +165,7 @@ impl Date {
                     minimum: 1,
                     maximum: days_in_year(year) as _,
                     value: ordinal as _,
-                    conditional_range: true,
+                    conditional_message: Some("for the given year"),
                 });
             }
         }
@@ -202,7 +202,7 @@ impl Date {
                     minimum: 1,
                     maximum: weeks_in_year(year) as _,
                     value: week as _,
-                    conditional_range: true,
+                    conditional_message: Some("for the given year"),
                 });
             }
         }
@@ -1059,7 +1059,7 @@ impl Date {
                 value: 29,
                 minimum: 1,
                 maximum: 28,
-                conditional_range: true,
+                conditional_message: Some("for the given month and year"),
             }),
             // We're going from a common year to a leap year. Shift dates in March and later by
             // one day.
@@ -1110,7 +1110,7 @@ impl Date {
                     minimum: 1,
                     maximum: self.month().length(self.year()) as _,
                     value: day as _,
-                    conditional_range: true,
+                    conditional_message: Some("for the given month and year"),
                 });
             }
         }
@@ -1143,7 +1143,7 @@ impl Date {
                     minimum: 1,
                     maximum: days_in_year(self.year()) as _,
                     value: ordinal as _,
-                    conditional_range: true,
+                    conditional_message: Some("for the given year"),
                 });
             }
         }

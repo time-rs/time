@@ -68,15 +68,32 @@ fn date_format_century_last_two_equivalent(d: Date) -> bool {
 }
 
 #[quickcheck]
-fn date_parse_century_last_two_equivalent(d: Date) -> TestResult {
-    // There is an ambiguity when parsing a year with fewer than six digits, as the first four are
-    // consumed by the century, leaving at most one for the last two digits.
+fn date_parse_century_last_two_equivalent_extended(d: Date) -> TestResult {
+    // With the extended range, there is an ambiguity when parsing a year with fewer than six
+    // digits, as the first four are consumed by the century, leaving at most one for the last
+    // two digits.
     if !matches!(d.year().unsigned_abs().to_string().len(), 6) {
         return TestResult::discard();
     }
 
     let split_format = format_description!("[year repr:century][year repr:last_two]-[month]-[day]");
     let combined_format = format_description!("[year]-[month]-[day]");
+    let combined = d.format(&combined_format).expect("formatting failed");
+
+    TestResult::from_bool(Date::parse(&combined, &split_format).expect("parsing failed") == d)
+}
+
+#[quickcheck]
+fn date_parse_century_last_two_equivalent_standard(d: Date) -> TestResult {
+    // With the standard range, the year must be at most four digits.
+    if !matches!(d.year(), -9999..=9999) {
+        return TestResult::discard();
+    }
+
+    let split_format = format_description!(
+        "[year repr:century range:standard][year repr:last_two range:standard]-[month]-[day]"
+    );
+    let combined_format = format_description!("[year range:standard]-[month]-[day]");
     let combined = d.format(&combined_format).expect("formatting failed");
 
     TestResult::from_bool(Date::parse(&combined, &split_format).expect("parsing failed") == d)
