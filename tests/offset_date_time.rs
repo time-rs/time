@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use std::time::{Duration as StdDuration, SystemTime};
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
-use time::macros::{date, datetime, offset, time};
+use time::macros::{date, datetime, offset, time, utc_datetime};
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Weekday};
 
 #[test]
@@ -94,6 +94,33 @@ fn checked_to_offset() {
             .checked_to_offset(offset!(-1)),
         None
     );
+}
+
+#[test]
+fn to_utc() {
+    assert_eq!(datetime!(2000-01-01 0:00 +1).to_utc().year(), 1999);
+    assert_eq!(
+        datetime!(0000-001 0:00 UTC).to_utc(),
+        utc_datetime!(0000-001 0:00),
+    );
+}
+
+#[test]
+fn to_utc_panic() {
+    assert_panic!(datetime!(+999999-12-31 23:59:59 -1).to_utc());
+    assert_panic!(datetime!(-999999-01-01 00:00:00 +1).to_utc());
+}
+
+#[test]
+fn checked_to_utc() {
+    assert_eq!(
+        datetime!(2000-01-01 0:00 +1)
+            .checked_to_utc()
+            .map(|udt| udt.year()),
+        Some(1999)
+    );
+    assert_eq!(datetime!(+999999-12-31 23:59:59 -1).checked_to_utc(), None);
+    assert_eq!(datetime!(-999999-01-01 00:00:00 +1).checked_to_utc(), None);
 }
 
 #[test]

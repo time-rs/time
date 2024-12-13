@@ -26,12 +26,12 @@ use crate::internal_macros::{
 };
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
-use crate::{error, util, Date, Duration, Month, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{
+    error, util, Date, Duration, Month, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+};
 
 /// The Julian day of the Unix epoch.
-// Safety: `ordinal` is not zero.
-const UNIX_EPOCH_JULIAN_DAY: i32 =
-    unsafe { Date::__from_ordinal_date_unchecked(1970, 1) }.to_julian_day();
+const UNIX_EPOCH_JULIAN_DAY: i32 = OffsetDateTime::UNIX_EPOCH.to_julian_day();
 
 /// A [`PrimitiveDateTime`] with a [`UtcOffset`].
 ///
@@ -236,6 +236,51 @@ impl OffsetDateTime {
         ))
     }
 
+    /// Convert the `OffsetDateTime` from the current [`UtcOffset`] to UTC, returning a
+    /// [`UtcDateTime`].
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2000-01-01 0:00 +1)
+    ///         .to_utc()
+    ///         .year(),
+    ///     1999,
+    /// );
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the UTC date-time is outside the supported range.
+    pub const fn to_utc(self) -> UtcDateTime {
+        self.to_offset(UtcOffset::UTC).local_date_time.as_utc()
+    }
+
+    /// Convert the `OffsetDateTime` from the current [`UtcOffset`] to UTC, returning `None` if the
+    /// UTC date-time is invalid. Returns a [`UtcDateTime`].
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2000-01-01 0:00 +1)
+    ///         .checked_to_utc()
+    ///         .unwrap()
+    ///         .year(),
+    ///     1999,
+    /// );
+    /// assert_eq!(
+    ///     datetime!(+999999-12-31 23:59:59 -1).checked_to_utc(),
+    ///     None,
+    /// );
+    /// ```
+    pub const fn checked_to_utc(self) -> Option<UtcDateTime> {
+        Some(
+            const_try_opt!(self.checked_to_offset(UtcOffset::UTC))
+                .local_date_time
+                .as_utc(),
+        )
+    }
+
     /// Equivalent to `.to_offset(UtcOffset::UTC)`, but returning the year, ordinal, and time. This
     /// avoids constructing an invalid [`Date`] if the new value is out of range.
     pub(crate) const fn to_offset_raw(self, offset: UtcOffset) -> (i32, u16, Time) {
@@ -426,7 +471,7 @@ impl OffsetDateTime {
     }
 
     /// Get the [`PrimitiveDateTime`] in the stored offset.
-    const fn date_time(self) -> PrimitiveDateTime {
+    pub(crate) const fn date_time(self) -> PrimitiveDateTime {
         self.local_date_time
     }
 

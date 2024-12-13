@@ -29,6 +29,7 @@ mod offset;
 mod serde_format_description;
 mod time;
 mod to_tokens;
+mod utc_datetime;
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 use std::iter::Peekable;
@@ -57,7 +58,7 @@ macro_rules! impl_macros {
     )*};
 }
 
-impl_macros![date datetime offset time];
+impl_macros![date datetime utc_datetime offset time];
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 enum FormatDescriptionVersion {

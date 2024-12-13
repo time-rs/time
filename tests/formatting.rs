@@ -4,13 +4,17 @@ use std::num::NonZeroU8;
 use time::format_description::well_known::iso8601::{DateKind, OffsetPrecision, TimePrecision};
 use time::format_description::well_known::{iso8601, Iso8601, Rfc2822, Rfc3339};
 use time::format_description::{self, BorrowedFormatItem, OwnedFormatItem};
-use time::macros::{date, datetime, format_description as fd, offset, time};
+use time::macros::{date, datetime, format_description as fd, offset, time, utc_datetime};
 use time::{OffsetDateTime, Time};
 
 #[test]
 fn rfc_2822() -> time::Result<()> {
     assert_eq!(
         datetime!(2021-01-02 03:04:05 UTC).format(&Rfc2822)?,
+        "Sat, 02 Jan 2021 03:04:05 +0000"
+    );
+    assert_eq!(
+        utc_datetime!(2021-01-02 03:04:05).format(&Rfc2822)?,
         "Sat, 02 Jan 2021 03:04:05 +0000"
     );
     assert_eq!(
@@ -24,6 +28,10 @@ fn rfc_2822() -> time::Result<()> {
 
     assert!(matches!(
         datetime!(1885-01-01 01:01:01 UTC).format(&Rfc2822),
+        Err(time::error::Format::InvalidComponent("year"))
+    ));
+    assert!(matches!(
+        utc_datetime!(1885-01-01 01:01:01).format(&Rfc2822),
         Err(time::error::Format::InvalidComponent("year"))
     ));
     assert!(matches!(
@@ -559,6 +567,36 @@ fn display_odt() {
     assert_eq!(
         datetime!(1970-01-01 0:00 UTC).to_string(),
         "1970-01-01 0:00:00.0 +00:00:00"
+    );
+}
+
+#[test]
+fn format_udt() -> time::Result<()> {
+    let format_description = fd!("[year]-[month]-[day] [hour]:[minute]:[second].[subsecond]");
+
+    assert_eq!(
+        utc_datetime!(1970-01-01 0:00).format(format_description)?,
+        "1970-01-01 00:00:00.0"
+    );
+    assert!(utc_datetime!(1970-01-01 0:00)
+        .format_into(&mut io::sink(), format_description)
+        .is_ok());
+    assert_eq!(
+        utc_datetime!(1970-01-01 0:00).format(&OwnedFormatItem::from(format_description))?,
+        "1970-01-01 00:00:00.0"
+    );
+    assert!(utc_datetime!(1970-01-01 0:00)
+        .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
+        .is_ok());
+
+    Ok(())
+}
+
+#[test]
+fn display_udt() {
+    assert_eq!(
+        utc_datetime!(1970-01-01 0:00).to_string(),
+        "1970-01-01 0:00:00.0 +00"
     );
 }
 

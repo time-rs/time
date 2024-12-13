@@ -211,7 +211,9 @@ pub use time_macros::serde_format_description as format_description;
 use self::visitor::Visitor;
 #[cfg(feature = "parsing")]
 use crate::format_description::{modifier, BorrowedFormatItem, Component};
-use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{
+    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+};
 
 // region: Date
 /// The format used when serializing and deserializing a human-readable `Date`.
@@ -365,6 +367,44 @@ impl<'a> Deserialize<'a> for PrimitiveDateTime {
     }
 }
 // endregion PrimitiveDateTime
+
+// region: UtcDateTime
+/// The format used when serializing and deserializing a human-readable `UtcDateTime`.
+#[cfg(feature = "parsing")]
+const UTC_DATE_TIME_FORMAT: &[BorrowedFormatItem<'_>] = PRIMITIVE_DATE_TIME_FORMAT;
+
+impl Serialize for UtcDateTime {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        #[cfg(feature = "serde-human-readable")]
+        if serializer.is_human_readable() {
+            let Ok(s) = self.format(&PRIMITIVE_DATE_TIME_FORMAT) else {
+                return Err(S::Error::custom("failed formatting `UtcDateTime`"));
+            };
+            return serializer.serialize_str(&s);
+        }
+
+        (
+            self.year(),
+            self.ordinal(),
+            self.hour(),
+            self.minute(),
+            self.second(),
+            self.nanosecond(),
+        )
+            .serialize(serializer)
+    }
+}
+
+impl<'a> Deserialize<'a> for UtcDateTime {
+    fn deserialize<D: Deserializer<'a>>(deserializer: D) -> Result<Self, D::Error> {
+        if cfg!(feature = "serde-human-readable") && deserializer.is_human_readable() {
+            deserializer.deserialize_any(Visitor::<Self>(PhantomData))
+        } else {
+            deserializer.deserialize_tuple(6, Visitor::<Self>(PhantomData))
+        }
+    }
+}
+// endregion UtcDateTime
 
 // region: Time
 /// The format used when serializing and deserializing a human-readable `Time`.

@@ -3,11 +3,11 @@ use std::num::{NonZeroU16, NonZeroU8};
 use time::format_description::modifier::Ignore;
 use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use time::format_description::{modifier, BorrowedFormatItem, Component, OwnedFormatItem};
-use time::macros::{date, datetime, offset, time};
+use time::macros::{date, datetime, offset, time, utc_datetime};
 use time::parsing::Parsed;
 use time::{
     error, format_description as fd, Date, Month, OffsetDateTime, PrimitiveDateTime, Time,
-    UtcOffset, Weekday,
+    UtcDateTime, UtcOffset, Weekday,
 };
 
 macro_rules! invalid_literal {
@@ -70,6 +70,51 @@ fn rfc_2822() -> time::Result<()> {
     assert_eq!(
         OffsetDateTime::parse("Sat, 01 Jan 2022 06:06:60 +0607", &Rfc2822)?,
         datetime!(2022-01-01 06:06:59.999_999_999 +06:07),
+    );
+
+    assert_eq!(
+        UtcDateTime::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
+        utc_datetime!(2021-01-02 03:04:05),
+    );
+    assert_eq!(
+        UtcDateTime::parse("Sat, 02 Jan 2021 03:04:05 UT", &Rfc2822)?,
+        utc_datetime!(2021-01-02 03:04:05),
+    );
+    assert_eq!(
+        UtcDateTime::parse("Sat, 02 Jan 2021 03:04:05 +0000", &Rfc2822)?,
+        utc_datetime!(2021-01-02 03:04:05),
+    );
+    assert_eq!(
+        UtcDateTime::parse("Sat, 02 Jan 2021 03:04:05 +0607", &Rfc2822)?,
+        datetime!(2021-01-02 03:04:05 +06:07).to_utc(),
+    );
+    assert_eq!(
+        UtcDateTime::parse("Sat, 02 Jan 2021 03:04:05 -0607", &Rfc2822)?,
+        datetime!(2021-01-02 03:04:05 -06:07).to_utc(),
+    );
+    assert_eq!(
+        UtcDateTime::parse("Fri, 31 Dec 2021 23:59:60 Z", &Rfc2822)?,
+        utc_datetime!(2021-12-31 23:59:59.999_999_999),
+    );
+    assert_eq!(
+        UtcDateTime::parse("Fri, 31 Dec 2021 23:59:60 z", &Rfc2822)?,
+        utc_datetime!(2021-12-31 23:59:59.999_999_999),
+    );
+    assert_eq!(
+        UtcDateTime::parse("Fri, 31 Dec 2021 23:59:60 a", &Rfc2822)?,
+        utc_datetime!(2021-12-31 23:59:59.999_999_999),
+    );
+    assert_eq!(
+        UtcDateTime::parse("Fri, 31 Dec 2021 23:59:60 A", &Rfc2822)?,
+        utc_datetime!(2021-12-31 23:59:59.999_999_999),
+    );
+    assert_eq!(
+        UtcDateTime::parse("Fri, 31 Dec 2021 17:52:60 -0607", &Rfc2822)?,
+        datetime!(2021-12-31 17:52:59.999_999_999 -06:07).to_utc(),
+    );
+    assert_eq!(
+        UtcDateTime::parse("Sat, 01 Jan 2022 06:06:60 +0607", &Rfc2822)?,
+        datetime!(2022-01-01 06:06:59.999_999_999 +06:07).to_utc(),
     );
 
     assert_eq!(
@@ -569,6 +614,43 @@ fn iso_8601() {
         OffsetDateTime::parse("20210102T0304Z", &Iso8601::DEFAULT),
         Ok(datetime!(2021-01-02 03:04:00 UTC))
     );
+
+    assert_eq!(
+        UtcDateTime::parse("2021-01-02T03:04:05Z", &Iso8601::DEFAULT),
+        Ok(utc_datetime!(2021-01-02 03:04:05))
+    );
+    assert_eq!(
+        UtcDateTime::parse("2021-002T03:04:05Z", &Iso8601::DEFAULT),
+        Ok(utc_datetime!(2021-002 03:04:05))
+    );
+    assert_eq!(
+        UtcDateTime::parse("2021-W01-2T03:04:05Z", &Iso8601::DEFAULT),
+        Ok(utc_datetime!(2021-W 01-2 03:04:05))
+    );
+    assert_eq!(
+        UtcDateTime::parse("-002021-01-02T03:04:05+01:00", &Iso8601::DEFAULT),
+        Ok(datetime!(-002021-01-02 03:04:05 +01:00).to_utc())
+    );
+    assert_eq!(
+        UtcDateTime::parse("20210102T03.1Z", &Iso8601::DEFAULT),
+        Ok(utc_datetime!(2021-01-02 03:06:00))
+    );
+    assert_eq!(
+        UtcDateTime::parse("2021002T0304.1Z", &Iso8601::DEFAULT),
+        Ok(utc_datetime!(2021-002 03:04:06))
+    );
+    assert_eq!(
+        UtcDateTime::parse("2021W012T030405.1-0100", &Iso8601::DEFAULT),
+        Ok(datetime!(2021-W 01-2 03:04:05.1 -01:00).to_utc())
+    );
+    assert_eq!(
+        UtcDateTime::parse("20210102T03Z", &Iso8601::DEFAULT),
+        Ok(utc_datetime!(2021-01-02 03:00:00))
+    );
+    assert_eq!(
+        UtcDateTime::parse("20210102T0304Z", &Iso8601::DEFAULT),
+        Ok(utc_datetime!(2021-01-02 03:04:00))
+    );
     assert_eq!(UtcOffset::parse("+07", &Iso8601::DEFAULT), Ok(offset!(+7)));
     assert_eq!(
         UtcOffset::parse("+0304", &Iso8601::DEFAULT),
@@ -644,6 +726,73 @@ fn iso_8601_error() {
     ));
     assert!(matches!(
         OffsetDateTime::parse("01:02", &Iso8601::DEFAULT),
+        Err(error::Parse::TryFromParsed(
+            error::TryFromParsed::InsufficientInformation { .. }
+        ))
+    ));
+
+    assert!(matches!(
+        UtcDateTime::parse("20210102T03:04Z", &Iso8601::DEFAULT),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse("20210102T03.", &Iso8601::DEFAULT),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse("2021-0102", &Iso8601::DEFAULT),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse("2021-01-x", &Iso8601::DEFAULT),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse("2021-Wx", &Iso8601::DEFAULT),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse("2021-W012", &Iso8601::DEFAULT),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse("2021-W01-x", &Iso8601::DEFAULT),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse("2021-01-02T03:x", &Iso8601::DEFAULT),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse("2021-01-02T03:04x", &Iso8601::DEFAULT),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse("2021-01-02T03:04:", &Iso8601::DEFAULT),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse("01:02", &Iso8601::DEFAULT),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation { .. }
         ))
@@ -1110,6 +1259,61 @@ fn parse_offset_date_time_err() -> time::Result<()> {
     ));
     assert!(matches!(
         OffsetDateTime::parse(
+            "2021-001 12 PM +25",
+            &fd::parse("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?
+        ),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("offset hour")
+        ))
+    ));
+
+    Ok(())
+}
+
+#[test]
+fn parse_utc_date_time() -> time::Result<()> {
+    assert_eq!(
+        UtcDateTime::parse("2023-07-27 23", &fd::parse("[year]-[month]-[day] [hour]")?),
+        Ok(utc_datetime!(2023-07-27 23:00))
+    );
+
+    Ok(())
+}
+
+#[test]
+fn parse_utc_date_time_err() -> time::Result<()> {
+    assert!(matches!(
+        UtcDateTime::parse("", &fd::parse("")?),
+        Err(error::Parse::TryFromParsed(
+            error::TryFromParsed::InsufficientInformation { .. }
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse(
+            "2021-001 13 PM",
+            &fd::parse("[year]-[ordinal] [hour repr:12] [period]")?
+        ),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("hour")
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse(
+            "2023-07-27 23:30",
+            &fd::parse("[year]-[month]-[day] [hour]")?
+        ),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse("x", &fd::parse("[year]")?),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("year")
+        ))
+    ));
+    assert!(matches!(
+        UtcDateTime::parse(
             "2021-001 12 PM +25",
             &fd::parse("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?
         ),

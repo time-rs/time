@@ -34,7 +34,7 @@ impl<T: Deref> Parsable for T where T::Target: Parsable {}
 mod sealed {
     #[allow(clippy::wildcard_imports)]
     use super::*;
-    use crate::PrimitiveDateTime;
+    use crate::{PrimitiveDateTime, UtcDateTime};
 
     /// Parse the item using a format description and an input.
     pub trait Sealed {
@@ -82,6 +82,11 @@ mod sealed {
             &self,
             input: &[u8],
         ) -> Result<PrimitiveDateTime, error::Parse> {
+            Ok(self.parse(input)?.try_into()?)
+        }
+
+        /// Parse a [`UtcDateTime`] from the format description.
+        fn parse_utc_date_time(&self, input: &[u8]) -> Result<UtcDateTime, error::Parse> {
             Ok(self.parse(input)?.try_into()?)
         }
 

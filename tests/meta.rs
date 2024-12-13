@@ -20,8 +20,8 @@ use time::parsing::{Parsable, Parsed};
 #[allow(deprecated)]
 use time::Instant;
 use time::{
-    error, ext, Date, Duration, Error, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset,
-    Weekday,
+    error, ext, Date, Duration, Error, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime,
+    UtcOffset, Weekday,
 };
 
 #[allow(clippy::cognitive_complexity)] // all test the same thing
@@ -44,6 +44,7 @@ fn alignment() {
     assert_alignment!(Duration, 8);
     assert_alignment!(OffsetDateTime, 4);
     assert_alignment!(PrimitiveDateTime, 4);
+    assert_alignment!(UtcDateTime, 4);
     assert_alignment!(Time, 4);
     assert_alignment!(UtcOffset, 1);
     assert_alignment!(error::ComponentRange, 8);
@@ -122,6 +123,7 @@ fn size() {
     assert_size!(Duration, 16, 16);
     assert_size!(OffsetDateTime, 16, 16);
     assert_size!(PrimitiveDateTime, 12, 12);
+    assert_size!(UtcDateTime, 12, 12);
     assert_size!(Time, 8, 8);
     assert_size!(UtcOffset, 3, 4);
     assert_size!(error::ComponentRange, 56, 56);
@@ -371,6 +373,40 @@ assert_impl! { @'a; PrimitiveDateTime:
     Sub<Duration, Output = PrimitiveDateTime>,
     Sub<StdDuration, Output = PrimitiveDateTime>,
     Sub<PrimitiveDateTime>,
+    SubAssign<Duration>,
+    SubAssign<StdDuration>,
+    TryFrom<Parsed, Error = error::TryFromParsed>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { @'a; UtcDateTime:
+    Add<Duration, Output = UtcDateTime>,
+    Add<StdDuration, Output = UtcDateTime>,
+    AddAssign<Duration>,
+    AddAssign<StdDuration>,
+    Arbitrary,
+    Clone,
+    Debug,
+    Deserialize<'a>,
+    Display,
+    Hash,
+    Ord,
+    PartialEq<UtcDateTime>,
+    PartialEq<OffsetDateTime>,
+    PartialEq<SystemTime>,
+    PartialOrd<UtcDateTime>,
+    PartialOrd<OffsetDateTime>,
+    PartialOrd<SystemTime>,
+    Serialize,
+    Sub<Duration, Output = UtcDateTime>,
+    Sub<StdDuration, Output = UtcDateTime>,
+    Sub<UtcDateTime>,
+    Sub<OffsetDateTime>,
     SubAssign<Duration>,
     SubAssign<StdDuration>,
     TryFrom<Parsed, Error = error::TryFromParsed>,

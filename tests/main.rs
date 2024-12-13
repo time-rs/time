@@ -133,6 +133,7 @@ require_all_features! {
     mod serde;
     mod serde_helpers;
     mod time;
+    mod utc_date_time;
     mod utc_offset;
     mod util;
     mod weekday;

@@ -16,7 +16,9 @@ use crate::formatting::Formattable;
 use crate::internal_macros::{const_try, const_try_opt};
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
-use crate::{error, util, Date, Duration, Month, OffsetDateTime, Time, UtcOffset, Weekday};
+use crate::{
+    error, util, Date, Duration, Month, OffsetDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+};
 
 /// Combined date and time.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -488,8 +490,25 @@ impl PrimitiveDateTime {
     ///     1_546_300_800,
     /// );
     /// ```
+    ///
+    /// **Note**: You may want a [`UtcDateTime`] instead, which can be obtained with the
+    /// [`PrimitiveDateTime::as_utc`] method.
     pub const fn assume_utc(self) -> OffsetDateTime {
         self.assume_offset(UtcOffset::UTC)
+    }
+
+    /// Assuming that the existing `PrimitiveDateTime` represents a moment in UTC, return a
+    /// [`UtcDateTime`].
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2019-01-01 0:00).as_utc().unix_timestamp(),
+    ///     1_546_300_800,
+    /// );
+    /// ```
+    pub const fn as_utc(self) -> UtcDateTime {
+        UtcDateTime::from_primitive(self)
     }
     // endregion attach offset
 

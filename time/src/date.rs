@@ -79,8 +79,8 @@ impl Date {
     ///
     /// # Safety
     ///
-    /// `ordinal` must not be zero. `year` should be in the range `MIN_YEAR..=MAX_YEAR`, but this
-    /// is not a safety invariant.
+    /// `ordinal` must be non-zero and at most the number of days in `year`. `year` should be in the
+    /// range `MIN_YEAR..=MAX_YEAR`, but this is not a safety invariant.
     #[doc(hidden)]
     pub const unsafe fn __from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
         debug_assert!(year >= MIN_YEAR);

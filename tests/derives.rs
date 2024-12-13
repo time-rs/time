@@ -5,12 +5,11 @@ use std::hash::Hash;
 use time::error::{self, ConversionRange, IndeterminateOffset, TryFromParsed};
 use time::ext::NumericalDuration;
 use time::format_description::{self, modifier, well_known, Component, BorrowedFormatItem, OwnedFormatItem};
-use time::macros::{date, offset, time};
+use time::macros::{date, offset, time, utc_datetime, datetime};
 use time::parsing::Parsed;
 use time::{Duration, Error, Month, Time, Weekday};
 #[allow(deprecated)]
 use time::Instant;
-use time_macros::datetime;
 
 macro_rules! assert_cloned_eq {
     ($x:expr) => {
@@ -36,6 +35,7 @@ fn clone() {
     assert_cloned_eq!(offset!(UTC));
     assert_cloned_eq!(datetime!(2021-001 0:00));
     assert_cloned_eq!(datetime!(2021-001 0:00 UTC));
+    assert_cloned_eq!(utc_datetime!(2021-001 0:00));
     assert_cloned_eq!(Weekday::Monday);
     assert_cloned_eq!(Month::January);
     assert_cloned_eq!(Duration::ZERO);
@@ -96,6 +96,7 @@ fn hash() {
     offset!(UTC).hash(&mut hasher);
     datetime!(2021-001 0:00).hash(&mut hasher);
     datetime!(2021-001 0:00 UTC).hash(&mut hasher);
+    utc_datetime!(2021-001 0:00).hash(&mut hasher);
     Weekday::Monday.hash(&mut hasher);
     Month::January.hash(&mut hasher);
     #[allow(deprecated)]
@@ -146,6 +147,7 @@ fn debug() {
     }
 
     debug_all! {
+        utc_datetime!(2021-001 0:00);
         Duration::ZERO;
         IndeterminateOffset;
         ConversionRange;

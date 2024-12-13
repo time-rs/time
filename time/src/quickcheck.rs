@@ -38,7 +38,9 @@ use alloc::boxed::Box;
 
 use quickcheck::{empty_shrinker, single_shrinker, Arbitrary, Gen};
 
-use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{
+    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+};
 
 /// Obtain an arbitrary value between the minimum and maximum inclusive.
 macro_rules! arbitrary_between {
@@ -151,6 +153,20 @@ impl Arbitrary for OffsetDateTime {
             (self.date(), self.time(), self.offset())
                 .shrink()
                 .map(|(date, time, offset)| Self::new_in_offset(date, time, offset)),
+        )
+    }
+}
+
+impl Arbitrary for UtcDateTime {
+    fn arbitrary(g: &mut Gen) -> Self {
+        Self::new(<_>::arbitrary(g), <_>::arbitrary(g))
+    }
+
+    fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
+        Box::new(
+            (self.date(), self.time())
+                .shrink()
+                .map(|(date, time)| Self::new(date, time)),
         )
     }
 }

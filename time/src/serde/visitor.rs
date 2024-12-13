@@ -10,12 +10,14 @@ use serde::Deserializer;
 #[cfg(feature = "parsing")]
 use super::{
     DATE_FORMAT, OFFSET_DATE_TIME_FORMAT, PRIMITIVE_DATE_TIME_FORMAT, TIME_FORMAT,
-    UTC_OFFSET_FORMAT,
+    UTC_DATE_TIME_FORMAT, UTC_OFFSET_FORMAT,
 };
 use crate::error::ComponentRange;
 #[cfg(feature = "parsing")]
 use crate::format_description::well_known::*;
-use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{
+    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+};
 
 /// A serde visitor for various types.
 pub(super) struct Visitor<T: ?Sized>(pub(super) PhantomData<T>);
@@ -130,6 +132,33 @@ impl<'a> de::Visitor<'a> for Visitor<PrimitiveDateTime> {
 
         Date::from_ordinal_date(year, ordinal)
             .and_then(|date| date.with_hms_nano(hour, minute, second, nanosecond))
+            .map_err(ComponentRange::into_de_error)
+    }
+}
+
+impl<'a> de::Visitor<'a> for Visitor<UtcDateTime> {
+    type Value = UtcDateTime;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("a `PrimitiveDateTime`")
+    }
+
+    #[cfg(feature = "parsing")]
+    fn visit_str<E: de::Error>(self, value: &str) -> Result<UtcDateTime, E> {
+        UtcDateTime::parse(value, &UTC_DATE_TIME_FORMAT).map_err(E::custom)
+    }
+
+    fn visit_seq<A: de::SeqAccess<'a>>(self, mut seq: A) -> Result<UtcDateTime, A::Error> {
+        let year = item!(seq, "year")?;
+        let ordinal = item!(seq, "day of year")?;
+        let hour = item!(seq, "hour")?;
+        let minute = item!(seq, "minute")?;
+        let second = item!(seq, "second")?;
+        let nanosecond = item!(seq, "nanosecond")?;
+
+        Date::from_ordinal_date(year, ordinal)
+            .and_then(|date| date.with_hms_nano(hour, minute, second, nanosecond))
+            .map(UtcDateTime::from_primitive)
             .map_err(ComponentRange::into_de_error)
     }
 }
