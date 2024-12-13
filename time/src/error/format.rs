@@ -79,7 +79,7 @@ impl std::error::Error for Format {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::InsufficientTypeInformation | Self::InvalidComponent(_) => None,
-            Self::ComponentRange(err) => Some(err),
+            Self::ComponentRange(err) => Some(&**err),
             Self::StdIo(err) => Some(err),
         }
     }
