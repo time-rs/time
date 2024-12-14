@@ -122,8 +122,9 @@ unwrap-in-result = "warn"
 unwrap-used = "warn"
 use-debug = "warn"
 
-option-if-let-else = { level = "allow", priority = 1 }  # suggests terrible code, overrides #![warn(clippy::nursery)]
-redundant-pub-crate = { level = "allow", priority = 1 } # rust-lang/rust-clippy#5369, overrides #![warn(clippy::nursery)]
+option-if-let-else = { level = "allow", priority = 1 }     # suggests terrible code, overrides #![warn(clippy::nursery)]
+redundant-pub-crate = { level = "allow", priority = 1 }    # rust-lang/rust-clippy#5369, overrides #![warn(clippy::nursery)]
+uninhabited-references = { level = "allow", priority = 1 } # rust-lang/rust-clippy#11984
 
 [workspace.lints.rustdoc]
 private-doc-tests = "warn"

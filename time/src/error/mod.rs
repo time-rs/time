@@ -17,6 +17,7 @@ mod parse_from_description;
 #[cfg(feature = "parsing")]
 mod try_from_parsed;
 
+use core::convert::Infallible;
 use core::fmt;
 
 pub use component_range::ComponentRange;
@@ -35,9 +36,6 @@ pub use parse::Parse;
 pub use parse_from_description::ParseFromDescription;
 #[cfg(feature = "parsing")]
 pub use try_from_parsed::TryFromParsed;
-
-#[cfg(feature = "parsing")]
-use crate::internal_macros::bug;
 
 /// A unified error type for anything returned by a method in the time crate.
 ///
@@ -66,7 +64,10 @@ pub enum Error {
         since = "0.3.28",
         note = "no longer output. moved to the `ParseFromDescription` variant"
     )]
-    UnexpectedTrailingCharacters,
+    UnexpectedTrailingCharacters {
+        #[doc(hidden)]
+        never: Infallible,
+    },
     #[cfg(feature = "parsing")]
     #[allow(missing_docs)]
     TryFromParsed(TryFromParsed),
@@ -92,7 +93,7 @@ impl fmt::Display for Error {
             Self::ParseFromDescription(e) => e.fmt(f),
             #[cfg(feature = "parsing")]
             #[allow(deprecated)]
-            Self::UnexpectedTrailingCharacters => bug!("variant should not be used"),
+            Self::UnexpectedTrailingCharacters { never } => match *never {},
             #[cfg(feature = "parsing")]
             Self::TryFromParsed(e) => e.fmt(f),
             #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
@@ -117,7 +118,7 @@ impl std::error::Error for Error {
             Self::ParseFromDescription(err) => Some(err),
             #[cfg(feature = "parsing")]
             #[allow(deprecated)]
-            Self::UnexpectedTrailingCharacters => bug!("variant should not be used"),
+            Self::UnexpectedTrailingCharacters { never } => match *never {},
             #[cfg(feature = "parsing")]
             Self::TryFromParsed(err) => Some(err),
             #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
