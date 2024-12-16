@@ -66,7 +66,7 @@ pub(crate) fn parse_year(
                 None
             } else {
                 let ParsedItem(input, year) =
-                    exactly_n_digits_padded::<2, u32>(modifiers.padding)(input)?;
+                    n_to_m_digits_padded::<1, 2, u32>(modifiers.padding)(input)?;
                 Some(ParsedItem(input, (year.cast_signed(), false)))
             }
         }
