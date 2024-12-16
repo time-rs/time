@@ -58,22 +58,15 @@ fn ctext(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 /// Consume the `quoted_pair` rule.
 fn quoted_pair(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     input = ascii_char::<b'\\'>(input)?.into_inner();
-
-    let old_input_len = input.len();
-
     input = text(input).into_inner();
 
-    // If nothing is parsed, this means we hit the `obs-text` rule and nothing matched. This is
-    // technically a success, but we should still check the `obs-qp` rule to ensure we consume
-    // everything possible.
-    if input.len() == old_input_len {
-        match input {
-            [0..=127, rest @ ..] => Some(ParsedItem(rest, ())),
-            _ => Some(ParsedItem(input, ())),
-        }
-    } else {
-        Some(ParsedItem(input, ()))
-    }
+    // If nothing is parsed by `text`, this means by hit the `obs-text` rule and nothing matched.
+    // This is technically a success, and we used to check the `obs-qp` rule to ensure everything
+    // possible was consumed. After further analysis, it was determined that this check was
+    // unnecessary due to `obs-text` wholly subsuming `obs-qp` in this context. For this reason, if
+    // `text` fails to parse anything, we consider it a success without further consideration.
+
+    Some(ParsedItem(input, ()))
 }
 
 /// Consume the `no_ws_ctl` rule.
