@@ -72,11 +72,22 @@ impl Month {
     /// assert_eq!(Month::February.length(2020), 29);
     /// ```
     pub const fn length(self, year: i32) -> u8 {
-        match self {
-            January | March | May | July | August | October | December => 31,
-            April | June | September | November => 30,
-            February if util::is_leap_year(year) => 29,
-            February => 28,
+        let val = self as u8;
+        if val != 2 {
+            30 | val ^ val >> 3
+        } else {
+            // Until there's `likely`/`unlikely`/`cold_path` on stable, this is the only way to tell
+            // the compiler to put February after all other months. This results in a performance
+            // gain.
+            #[cold]
+            const fn february_length(year: i32) -> u8 {
+                if util::is_leap_year(year) {
+                    29
+                } else {
+                    28
+                }
+            }
+            february_length(year)
         }
     }
 

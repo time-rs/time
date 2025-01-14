@@ -33,4 +33,34 @@ setup_benchmark! {
         ben.iter(|| November.next());
         ben.iter(|| December.next());
     }
+
+    fn length(ben: &mut Bencher<'_>) {
+        // Common year
+        ben.iter(|| January.length(2019));
+        ben.iter(|| February.length(2019));
+        ben.iter(|| March.length(2019));
+        ben.iter(|| April.length(2019));
+        ben.iter(|| May.length(2019));
+        ben.iter(|| June.length(2019));
+        ben.iter(|| July.length(2019));
+        ben.iter(|| August.length(2019));
+        ben.iter(|| September.length(2019));
+        ben.iter(|| October.length(2019));
+        ben.iter(|| November.length(2019));
+        ben.iter(|| December.length(2019));
+
+        // Leap year
+        ben.iter(|| January.length(2020));
+        ben.iter(|| February.length(2020));
+        ben.iter(|| March.length(2020));
+        ben.iter(|| April.length(2020));
+        ben.iter(|| May.length(2020));
+        ben.iter(|| June.length(2020));
+        ben.iter(|| July.length(2020));
+        ben.iter(|| August.length(2020));
+        ben.iter(|| September.length(2020));
+        ben.iter(|| October.length(2020));
+        ben.iter(|| November.length(2020));
+        ben.iter(|| December.length(2020));
+    }
 }
