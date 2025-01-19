@@ -17,6 +17,7 @@ mod parse_from_description;
 #[cfg(feature = "parsing")]
 mod try_from_parsed;
 
+#[cfg(feature = "parsing")]
 use core::convert::Infallible;
 use core::fmt;
 

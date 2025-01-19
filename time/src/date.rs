@@ -2,7 +2,7 @@
 
 #[cfg(feature = "formatting")]
 use alloc::string::String;
-use core::num::{NonZero, NonZeroI32};
+use core::num::{NonZeroI32, NonZeroU8};
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
 use core::{cmp, fmt};
@@ -335,7 +335,7 @@ impl Date {
         let month = ((ordinal - day_adj) * 10 + 300) / 306 + month_adj;
         // Safety: `month` is guaranteed to be between 1 and 12 inclusive.
         unsafe {
-            match Month::from_number(NonZero::new_unchecked(month as u8)) {
+            match Month::from_number(NonZeroU8::new_unchecked(month as u8)) {
                 Ok(month) => month,
                 Err(_) => core::hint::unreachable_unchecked(),
             }
@@ -452,7 +452,7 @@ impl Date {
             year,
             // Safety: `month` is guaranteed to be between 1 and 12 inclusive.
             unsafe {
-                match Month::from_number(NonZero::new_unchecked(month as u8)) {
+                match Month::from_number(NonZeroU8::new_unchecked(month as u8)) {
                     Ok(month) => month,
                     Err(_) => core::hint::unreachable_unchecked(),
                 }

@@ -26,6 +26,7 @@ macro_rules! invalid_component {
 }
 
 #[test]
+#[allow(clippy::cognitive_complexity)]
 fn rfc_2822() -> time::Result<()> {
     assert_eq!(
         OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
@@ -664,6 +665,7 @@ fn iso_8601() {
 }
 
 #[test]
+#[allow(clippy::cognitive_complexity)]
 fn iso_8601_error() {
     assert!(matches!(
         OffsetDateTime::parse("20210102T03:04Z", &Iso8601::DEFAULT),
