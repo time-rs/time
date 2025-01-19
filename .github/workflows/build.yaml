@@ -4,6 +4,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true
 
+# TODO re-add wasm32-wasip1 to `std_no_offset` once MSRV is at least 1.78
 env:
   TYPE_CHECK_TARGETS: '{
     "no_std": [
@@ -11,8 +12,7 @@ env:
     ],
     "std_no_offset": [
     "x86_64-unknown-netbsd",
-    "x86_64-unknown-illumos",
-    "wasm32-wasi"
+    "x86_64-unknown-illumos"
     ],
     "std_with_offset": [
     "x86_64-unknown-linux-gnu",
@@ -251,7 +251,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-          targets: x86_64-unknown-linux-gnu,aarch64-apple-darwin,x86_64-pc-windows-gnu,x86_64-unknown-netbsd,x86_64-unknown-illumos,wasm32-wasi
+          targets: x86_64-unknown-linux-gnu,aarch64-apple-darwin,x86_64-pc-windows-gnu,x86_64-unknown-netbsd,x86_64-unknown-illumos,wasm32-wasip1
 
       - name: Run clippy
         run: |
@@ -263,7 +263,7 @@ jobs:
           --target x86_64-pc-windows-gnu \
           --target x86_64-unknown-netbsd \
           --target x86_64-unknown-illumos \
-          --target wasm32-wasi
+          --target wasm32-wasip1
         env:
           RUSTFLAGS: --cfg bench
 
