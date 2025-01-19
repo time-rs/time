@@ -1,7 +1,36 @@
+use std::hint::black_box;
+
 use criterion::Bencher;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::date;
 use time::{Date, Month, Time, Weekday};
+
+const DATES: [Date; 24] = [
+    date!(2019-01-01),
+    date!(2020-01-01),
+    date!(2019-02-01),
+    date!(2020-02-01),
+    date!(2019-03-01),
+    date!(2020-03-01),
+    date!(2019-04-01),
+    date!(2020-04-01),
+    date!(2019-05-01),
+    date!(2020-05-01),
+    date!(2019-06-01),
+    date!(2020-06-01),
+    date!(2019-07-01),
+    date!(2020-07-01),
+    date!(2019-08-01),
+    date!(2020-08-01),
+    date!(2019-09-01),
+    date!(2020-09-01),
+    date!(2019-10-01),
+    date!(2020-10-01),
+    date!(2019-11-01),
+    date!(2020-11-01),
+    date!(2019-12-01),
+    date!(2020-12-01),
+];
 
 setup_benchmark! {
     "Date",
@@ -43,153 +72,83 @@ setup_benchmark! {
     }
 
     fn month(ben: &mut Bencher<'_>) {
-        ben.iter(|| date!(2019-01-01).month());
-        ben.iter(|| date!(2019-02-01).month());
-        ben.iter(|| date!(2019-03-01).month());
-        ben.iter(|| date!(2019-04-01).month());
-        ben.iter(|| date!(2019-05-01).month());
-        ben.iter(|| date!(2019-06-01).month());
-        ben.iter(|| date!(2019-07-01).month());
-        ben.iter(|| date!(2019-08-01).month());
-        ben.iter(|| date!(2019-09-01).month());
-        ben.iter(|| date!(2019-10-01).month());
-        ben.iter(|| date!(2019-11-01).month());
-        ben.iter(|| date!(2019-12-01).month());
+        ben.iter(|| {
+            for date in DATES {
+                black_box(date.month());
+            }
+        });
     }
 
     fn day(ben: &mut Bencher<'_>) {
-        ben.iter(|| date!(2019-01-01).day());
-        ben.iter(|| date!(2019-02-01).day());
-        ben.iter(|| date!(2019-03-01).day());
-        ben.iter(|| date!(2019-04-01).day());
-        ben.iter(|| date!(2019-05-01).day());
-        ben.iter(|| date!(2019-06-01).day());
-        ben.iter(|| date!(2019-07-01).day());
-        ben.iter(|| date!(2019-08-01).day());
-        ben.iter(|| date!(2019-09-01).day());
-        ben.iter(|| date!(2019-10-01).day());
-        ben.iter(|| date!(2019-11-01).day());
-        ben.iter(|| date!(2019-12-01).day());
+        ben.iter(|| {
+            for date in DATES {
+                black_box(date.day());
+            }
+        });
     }
 
     fn ordinal(ben: &mut Bencher<'_>) {
-        ben.iter(|| date!(2019-01-01).ordinal());
-        ben.iter(|| date!(2019-02-01).ordinal());
-        ben.iter(|| date!(2019-03-01).ordinal());
-        ben.iter(|| date!(2019-04-01).ordinal());
-        ben.iter(|| date!(2019-05-01).ordinal());
-        ben.iter(|| date!(2019-06-01).ordinal());
-        ben.iter(|| date!(2019-07-01).ordinal());
-        ben.iter(|| date!(2019-08-01).ordinal());
-        ben.iter(|| date!(2019-09-01).ordinal());
-        ben.iter(|| date!(2019-10-01).ordinal());
-        ben.iter(|| date!(2019-11-01).ordinal());
-        ben.iter(|| date!(2019-12-01).ordinal());
+        ben.iter(|| {
+            for date in DATES {
+                black_box(date.ordinal());
+            }
+        });
     }
 
     fn iso_week(ben: &mut Bencher<'_>) {
-        ben.iter(|| date!(2019-01-01).iso_week());
-        ben.iter(|| date!(2019-02-01).iso_week());
-        ben.iter(|| date!(2019-03-01).iso_week());
-        ben.iter(|| date!(2019-04-01).iso_week());
-        ben.iter(|| date!(2019-05-01).iso_week());
-        ben.iter(|| date!(2019-06-01).iso_week());
-        ben.iter(|| date!(2019-07-01).iso_week());
-        ben.iter(|| date!(2019-08-01).iso_week());
-        ben.iter(|| date!(2019-09-01).iso_week());
-        ben.iter(|| date!(2019-10-01).iso_week());
-        ben.iter(|| date!(2019-11-01).iso_week());
-        ben.iter(|| date!(2019-12-01).iso_week());
+        ben.iter(|| {
+            for date in DATES {
+                black_box(date.iso_week());
+            }
+        });
     }
 
     fn sunday_based_week(ben: &mut Bencher<'_>) {
-        ben.iter(|| date!(2019-01-01).sunday_based_week());
-        ben.iter(|| date!(2019-02-01).sunday_based_week());
-        ben.iter(|| date!(2019-03-01).sunday_based_week());
-        ben.iter(|| date!(2019-04-01).sunday_based_week());
-        ben.iter(|| date!(2019-05-01).sunday_based_week());
-        ben.iter(|| date!(2019-06-01).sunday_based_week());
-        ben.iter(|| date!(2019-07-01).sunday_based_week());
-        ben.iter(|| date!(2019-08-01).sunday_based_week());
-        ben.iter(|| date!(2019-09-01).sunday_based_week());
-        ben.iter(|| date!(2019-10-01).sunday_based_week());
-        ben.iter(|| date!(2019-11-01).sunday_based_week());
-        ben.iter(|| date!(2019-12-01).sunday_based_week());
+        ben.iter(|| {
+            for date in DATES {
+                black_box(date.sunday_based_week());
+            }
+        });
     }
 
     fn monday_based_week(ben: &mut Bencher<'_>) {
-        ben.iter(|| date!(2019-01-01).monday_based_week());
-        ben.iter(|| date!(2019-02-01).monday_based_week());
-        ben.iter(|| date!(2019-03-01).monday_based_week());
-        ben.iter(|| date!(2019-04-01).monday_based_week());
-        ben.iter(|| date!(2019-05-01).monday_based_week());
-        ben.iter(|| date!(2019-06-01).monday_based_week());
-        ben.iter(|| date!(2019-07-01).monday_based_week());
-        ben.iter(|| date!(2019-08-01).monday_based_week());
-        ben.iter(|| date!(2019-09-01).monday_based_week());
-        ben.iter(|| date!(2019-10-01).monday_based_week());
-        ben.iter(|| date!(2019-11-01).monday_based_week());
-        ben.iter(|| date!(2019-12-01).monday_based_week());
+        ben.iter(|| {
+            for date in DATES {
+                black_box(date.monday_based_week());
+            }
+        });
     }
 
     fn to_calendar_date(ben: &mut Bencher<'_>) {
-        ben.iter(|| date!(2019-01-01).to_calendar_date());
-        ben.iter(|| date!(2019-02-01).to_calendar_date());
-        ben.iter(|| date!(2019-03-01).to_calendar_date());
-        ben.iter(|| date!(2019-04-01).to_calendar_date());
-        ben.iter(|| date!(2019-05-01).to_calendar_date());
-        ben.iter(|| date!(2019-06-01).to_calendar_date());
-        ben.iter(|| date!(2019-07-01).to_calendar_date());
-        ben.iter(|| date!(2019-08-01).to_calendar_date());
-        ben.iter(|| date!(2019-09-01).to_calendar_date());
-        ben.iter(|| date!(2019-10-01).to_calendar_date());
-        ben.iter(|| date!(2019-11-01).to_calendar_date());
-        ben.iter(|| date!(2019-12-01).to_calendar_date());
+        ben.iter(|| {
+            for date in DATES {
+                black_box(date.to_calendar_date());
+            }
+        });
     }
 
     fn to_ordinal_date(ben: &mut Bencher<'_>) {
-        ben.iter(|| date!(2019-01-01).to_ordinal_date());
-        ben.iter(|| date!(2019-02-01).to_ordinal_date());
-        ben.iter(|| date!(2019-03-01).to_ordinal_date());
-        ben.iter(|| date!(2019-04-01).to_ordinal_date());
-        ben.iter(|| date!(2019-05-01).to_ordinal_date());
-        ben.iter(|| date!(2019-06-01).to_ordinal_date());
-        ben.iter(|| date!(2019-07-01).to_ordinal_date());
-        ben.iter(|| date!(2019-08-01).to_ordinal_date());
-        ben.iter(|| date!(2019-09-01).to_ordinal_date());
-        ben.iter(|| date!(2019-10-01).to_ordinal_date());
-        ben.iter(|| date!(2019-11-01).to_ordinal_date());
-        ben.iter(|| date!(2019-12-01).to_ordinal_date());
+        ben.iter(|| {
+            for date in DATES {
+                black_box(date.to_ordinal_date());
+            }
+        });
     }
 
     fn to_iso_week_date(ben: &mut Bencher<'_>) {
-        ben.iter(|| date!(2019-01-01).to_iso_week_date());
-        ben.iter(|| date!(2019-02-01).to_iso_week_date());
-        ben.iter(|| date!(2019-03-01).to_iso_week_date());
-        ben.iter(|| date!(2019-04-01).to_iso_week_date());
-        ben.iter(|| date!(2019-05-01).to_iso_week_date());
-        ben.iter(|| date!(2019-06-01).to_iso_week_date());
-        ben.iter(|| date!(2019-07-01).to_iso_week_date());
-        ben.iter(|| date!(2019-08-01).to_iso_week_date());
-        ben.iter(|| date!(2019-09-01).to_iso_week_date());
-        ben.iter(|| date!(2019-10-01).to_iso_week_date());
-        ben.iter(|| date!(2019-11-01).to_iso_week_date());
-        ben.iter(|| date!(2019-12-01).to_iso_week_date());
+        ben.iter(|| {
+            for date in DATES {
+                black_box(date.to_iso_week_date());
+            }
+        });
     }
 
     fn weekday(ben: &mut Bencher<'_>) {
-        ben.iter(|| date!(2019-01-01).weekday());
-        ben.iter(|| date!(2019-02-01).weekday());
-        ben.iter(|| date!(2019-03-01).weekday());
-        ben.iter(|| date!(2019-04-01).weekday());
-        ben.iter(|| date!(2019-05-01).weekday());
-        ben.iter(|| date!(2019-06-01).weekday());
-        ben.iter(|| date!(2019-07-01).weekday());
-        ben.iter(|| date!(2019-08-01).weekday());
-        ben.iter(|| date!(2019-09-01).weekday());
-        ben.iter(|| date!(2019-10-01).weekday());
-        ben.iter(|| date!(2019-11-01).weekday());
-        ben.iter(|| date!(2019-12-01).weekday());
+        ben.iter(|| {
+            for date in DATES {
+                black_box(date.weekday());
+            }
+        });
     }
 
     fn next_day(ben: &mut Bencher<'_>) {
@@ -209,18 +168,13 @@ setup_benchmark! {
     }
 
     fn to_julian_day(ben: &mut Bencher<'_>) {
-        ben.iter(|| date!(2019-01-01).to_julian_day());
-        ben.iter(|| date!(2019-02-01).to_julian_day());
-        ben.iter(|| date!(2019-03-01).to_julian_day());
-        ben.iter(|| date!(2019-04-01).to_julian_day());
-        ben.iter(|| date!(2019-05-01).to_julian_day());
-        ben.iter(|| date!(2019-06-01).to_julian_day());
-        ben.iter(|| date!(2019-07-01).to_julian_day());
-        ben.iter(|| date!(2019-08-01).to_julian_day());
-        ben.iter(|| date!(2019-09-01).to_julian_day());
-        ben.iter(|| date!(2019-10-01).to_julian_day());
-        ben.iter(|| date!(2019-11-01).to_julian_day());
-        ben.iter(|| date!(2019-12-01).to_julian_day());
+        ben.iter(|| {
+            for date in DATES {
+                black_box(date.to_julian_day());
+
+
+            }
+        });
     }
     // endregion getters
 

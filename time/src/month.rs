@@ -7,7 +7,7 @@ use core::str::FromStr;
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
 use self::Month::*;
-use crate::{error, util};
+use crate::{error, hint, util};
 
 /// Months of the year.
 #[repr(u8)]
@@ -73,21 +73,14 @@ impl Month {
     /// ```
     pub const fn length(self, year: i32) -> u8 {
         let val = self as u8;
-        if val != 2 {
-            30 | val ^ val >> 3
-        } else {
-            // Until there's `likely`/`unlikely`/`cold_path` on stable, this is the only way to tell
-            // the compiler to put February after all other months. This results in a performance
-            // gain.
-            #[cold]
-            const fn february_length(year: i32) -> u8 {
-                if util::is_leap_year(year) {
-                    29
-                } else {
-                    28
-                }
+        if hint::unlikely(val == 2) {
+            if util::is_leap_year(year) {
+                29
+            } else {
+                28
             }
-            february_length(year)
+        } else {
+            30 | val ^ val >> 3
         }
     }
 

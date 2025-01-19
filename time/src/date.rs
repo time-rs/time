@@ -2,7 +2,7 @@
 
 #[cfg(feature = "formatting")]
 use alloc::string::String;
-use core::num::NonZeroI32;
+use core::num::{NonZero, NonZeroI32};
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
 use core::{cmp, fmt};
@@ -25,7 +25,7 @@ use crate::internal_macros::{
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::util::{days_in_year, is_leap_year, weeks_in_year};
-use crate::{error, Duration, Month, PrimitiveDateTime, Time, Weekday};
+use crate::{error, hint, Duration, Month, PrimitiveDateTime, Time, Weekday};
 
 type Year = RangedI32<MIN_YEAR, MAX_YEAR>;
 
@@ -323,7 +323,23 @@ impl Date {
     /// assert_eq!(date!(2019-12-31).month(), Month::December);
     /// ```
     pub const fn month(self) -> Month {
-        self.month_day().0
+        let (year, ordinal) = self.to_ordinal_date();
+        let jan_feb_len = 59 + is_leap_year(year) as u16;
+
+        let (month_adj, day_adj) = if ordinal <= jan_feb_len {
+            (0, 0)
+        } else {
+            (2, jan_feb_len)
+        };
+
+        let month = ((ordinal - day_adj) * 10 + 300) / 306 + month_adj;
+        // Safety: `month` is guaranteed to be between 1 and 12 inclusive.
+        unsafe {
+            match Month::from_number(NonZero::new_unchecked(month as u8)) {
+                Ok(month) => month,
+                Err(_) => core::hint::unreachable_unchecked(),
+            }
+        }
     }
 
     /// Get the day of the month.
@@ -336,48 +352,7 @@ impl Date {
     /// assert_eq!(date!(2019-12-31).day(), 31);
     /// ```
     pub const fn day(self) -> u8 {
-        self.month_day().1
-    }
-
-    /// Get the month and day. This is more efficient than fetching the components individually.
-    // For whatever reason, rustc has difficulty optimizing this function. It's significantly faster
-    // to write the statements out by hand.
-    pub(crate) const fn month_day(self) -> (Month, u8) {
-        /// The number of days up to and including the given month. Common years
-        /// are first, followed by leap years.
-        const CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP: [[u16; 11]; 2] = [
-            [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
-            [31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
-        ];
-
-        let days = CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(self.year()) as usize];
-        let ordinal = self.ordinal();
-
-        if ordinal > days[10] {
-            (Month::December, (ordinal - days[10]) as _)
-        } else if ordinal > days[9] {
-            (Month::November, (ordinal - days[9]) as _)
-        } else if ordinal > days[8] {
-            (Month::October, (ordinal - days[8]) as _)
-        } else if ordinal > days[7] {
-            (Month::September, (ordinal - days[7]) as _)
-        } else if ordinal > days[6] {
-            (Month::August, (ordinal - days[6]) as _)
-        } else if ordinal > days[5] {
-            (Month::July, (ordinal - days[5]) as _)
-        } else if ordinal > days[4] {
-            (Month::June, (ordinal - days[4]) as _)
-        } else if ordinal > days[3] {
-            (Month::May, (ordinal - days[3]) as _)
-        } else if ordinal > days[2] {
-            (Month::April, (ordinal - days[2]) as _)
-        } else if ordinal > days[1] {
-            (Month::March, (ordinal - days[1]) as _)
-        } else if ordinal > days[0] {
-            (Month::February, (ordinal - days[0]) as _)
-        } else {
-            (Month::January, ordinal as _)
-        }
+        self.to_calendar_date().2
     }
 
     /// Get the day of the year.
@@ -461,8 +436,29 @@ impl Date {
     /// );
     /// ```
     pub const fn to_calendar_date(self) -> (i32, Month, u8) {
-        let (month, day) = self.month_day();
-        (self.year(), month, day)
+        let (year, ordinal) = self.to_ordinal_date();
+        let jan_feb_len = 59 + is_leap_year(year) as u16;
+
+        let (month_adj, ordinal_adj_for_month, month_adj_for_day, ordinal_adj_for_day) =
+            if hint::unlikely(ordinal <= jan_feb_len) {
+                (0, 0, 3, 122)
+            } else {
+                (2, jan_feb_len, 1, 122 - jan_feb_len)
+            };
+
+        let month = ((ordinal - ordinal_adj_for_month) * 10 + 300) / 306 + month_adj;
+        let day = ordinal + ordinal_adj_for_day - (month + month_adj_for_day) * 153 / 5;
+        (
+            year,
+            // Safety: `month` is guaranteed to be between 1 and 12 inclusive.
+            unsafe {
+                match Month::from_number(NonZero::new_unchecked(month as u8)) {
+                    Ok(month) => month,
+                    Err(_) => core::hint::unreachable_unchecked(),
+                }
+            },
+            day as u8,
+        )
     }
 
     /// Get the year and ordinal day number.
@@ -1022,7 +1018,7 @@ impl Date {
             Self::MIN
         }
     }
-    // region: saturating arithmetic
+    // endregion saturating arithmetic
 
     // region: replacement
     /// Replace the year. The month and day will be unchanged.
