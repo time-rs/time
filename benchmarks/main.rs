@@ -63,8 +63,8 @@ macro_rules! setup_benchmark {
                 // noise, regardless of statistical significance.
                 .noise_threshold(0.05)
                 // Reduce the time taken to run each benchmark
-                .warm_up_time(::std::time::Duration::from_millis(100))
-                .measurement_time(::std::time::Duration::from_millis(400));
+                .warm_up_time(::std::time::Duration::from_secs(3))
+                .measurement_time(::std::time::Duration::from_secs(15));
             targets = $($fn_name,)*
         }
     };
