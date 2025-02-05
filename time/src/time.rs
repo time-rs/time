@@ -12,6 +12,7 @@ use deranged::{RangedU32, RangedU8};
 use num_conv::prelude::*;
 use powerfmt::ext::FormatterExt;
 use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
+use rusqlite::ToSql;
 
 use crate::convert::*;
 #[cfg(feature = "formatting")]
@@ -833,6 +834,13 @@ impl fmt::Debug for Time {
     }
 }
 // endregion formatting & parsing
+
+impl ToSql for Time {
+    fn to_sql(&self) -> Result<ToSqlOutput<'_> {
+        formatted_time = format!("{self.hour}:{self.minute}:{self.second}:{self.nanosecond}");
+        return ToSqlOutput::Owned(Value::Text(formatted_time));
+    }
+}
 
 // region: trait impls
 impl Add<Duration> for Time {
