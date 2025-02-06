@@ -514,7 +514,7 @@ impl Date {
         let (year, ordinal) = self.to_ordinal_date();
         let weekday = self.weekday();
 
-        match ((ordinal + 10 - self.weekday().number_from_monday() as u16) / 7) as _ {
+        match ((ordinal + 10 - weekday.number_from_monday() as u16) / 7) as _ {
             0 => (year - 1, weeks_in_year(year - 1), weekday),
             53 if weeks_in_year(year) == 52 => (year + 1, 1, weekday),
             week => (year, week, weekday),
