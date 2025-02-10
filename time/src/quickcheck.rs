@@ -54,12 +54,15 @@ macro_rules! arbitrary_between {
 
 impl Arbitrary for Date {
     fn arbitrary(g: &mut Gen) -> Self {
-        Self::from_julian_day_unchecked(arbitrary_between!(
-            i32;
-            g,
-            Self::MIN.to_julian_day(),
-            Self::MAX.to_julian_day()
-        ))
+        // Safety: The Julian day number is in range.
+        unsafe {
+            Self::from_julian_day_unchecked(arbitrary_between!(
+                i32;
+                g,
+                Self::MIN.to_julian_day(),
+                Self::MAX.to_julian_day()
+            ))
+        }
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {

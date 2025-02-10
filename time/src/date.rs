@@ -19,7 +19,7 @@ use crate::ext::DigitCount;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{
-    cascade, const_try, const_try_opt, div_floor, ensure_ranged, expect_opt, impl_add_assign,
+    const_try, const_try_opt, div_floor, ensure_ranged, expect_opt, impl_add_assign,
     impl_sub_assign,
 };
 #[cfg(feature = "parsing")]
@@ -74,6 +74,28 @@ impl Date {
         unsafe { Self::__from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)) };
 
     // region: constructors
+    /// Construct a `Date` from its internal representation, the validity of which must be
+    /// guaranteed by the caller.
+    ///
+    /// # Safety
+    ///
+    /// - `ordinal` must be non-zero and at most the number of days in `year`
+    /// - `is_leap_year` must be `true` if and only if `year` is a leap year
+    const unsafe fn from_parts(year: i32, is_leap_year: bool, ordinal: u16) -> Self {
+        debug_assert!(year >= MIN_YEAR);
+        debug_assert!(year <= MAX_YEAR);
+        debug_assert!(ordinal != 0);
+        debug_assert!(ordinal <= days_in_year(year));
+        debug_assert!(crate::util::is_leap_year(year) == is_leap_year);
+
+        Self {
+            // Safety: `ordinal` is not zero.
+            value: unsafe {
+                NonZeroI32::new_unchecked(year << 10 | (is_leap_year as i32) << 9 | ordinal as i32)
+            },
+        }
+    }
+
     /// Construct a `Date` from the year and ordinal values, the validity of which must be
     /// guaranteed by the caller.
     ///
@@ -83,17 +105,8 @@ impl Date {
     /// range `MIN_YEAR..=MAX_YEAR`, but this is not a safety invariant.
     #[doc(hidden)]
     pub const unsafe fn __from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
-        debug_assert!(year >= MIN_YEAR);
-        debug_assert!(year <= MAX_YEAR);
-        debug_assert!(ordinal != 0);
-        debug_assert!(ordinal <= days_in_year(year));
-
-        let is_leap = is_leap_year(year) as i32;
-
-        Self {
-            // Safety: The caller must guarantee that `ordinal` is not zero.
-            value: unsafe { NonZeroI32::new_unchecked(year << 10 | is_leap << 9 | ordinal as i32) },
-        }
+        // Safety: The caller must guarantee that `ordinal` is not zero.
+        unsafe { Self::from_parts(year, is_leap_year(year), ordinal) }
     }
 
     /// Attempt to create a `Date` from the year, month, and day.
@@ -259,47 +272,50 @@ impl Date {
     pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
         type JulianDay = RangedI32<{ Date::MIN.to_julian_day() }, { Date::MAX.to_julian_day() }>;
         ensure_ranged!(JulianDay: julian_day);
-        Ok(Self::from_julian_day_unchecked(julian_day))
+        // Safety: The Julian day number is in range.
+        Ok(unsafe { Self::from_julian_day_unchecked(julian_day) })
     }
 
     /// Create a `Date` from the Julian day.
     ///
-    /// This does not check the validity of the provided Julian day, and as such may result in an
-    /// internally invalid value.
-    #[doc(alias = "from_julian_date_unchecked")]
-    pub(crate) const fn from_julian_day_unchecked(julian_day: i32) -> Self {
+    /// # Safety
+    ///
+    /// The provided Julian day number must be between `Date::MIN.to_julian_day()` and
+    /// `Date::MAX.to_julian_day()` inclusive.
+    pub(crate) const unsafe fn from_julian_day_unchecked(julian_day: i32) -> Self {
         debug_assert!(julian_day >= Self::MIN.to_julian_day());
         debug_assert!(julian_day <= Self::MAX.to_julian_day());
 
-        // To avoid a potential overflow, the value may need to be widened for some arithmetic.
+        const S: i32 = 2_500;
+        const K: i32 = 719_468 + 146_097 * S;
+        const L: i32 = 400 * S;
 
-        let z = julian_day - 1_721_119;
-        let (mut year, mut ordinal) = if julian_day < -19_752_948 || julian_day > 23_195_514 {
-            let g = 100 * z as i64 - 25;
-            let a = (g / 3_652_425) as i32;
-            let b = a - a / 4;
-            let year = div_floor!(100 * b as i64 + g, 36525) as i32;
-            let ordinal = (b + z - div_floor!(36525 * year as i64, 100) as i32) as _;
-            (year, ordinal)
+        let julian_day = julian_day - 2_440_588;
+        let n = (julian_day + K) as u32;
+
+        let n_1 = 4 * n + 3;
+        let c = n_1 / 146_097;
+        let n_c = n_1 % 146_097 / 4;
+
+        let n_2 = 4 * n_c + 3;
+        let p_2 = 2_939_745 * n_2 as u64;
+        let z = (p_2 >> 32) as u32;
+        let n_y = p_2 as u32 / 2_939_745 / 4;
+        let y = 100 * c + z;
+
+        let j = n_y >= 306;
+        let y_g = y as i32 - L + j as i32;
+
+        let is_leap_year = is_leap_year(y_g);
+        let ordinal = if j {
+            n_y - 305
         } else {
-            let g = 100 * z - 25;
-            let a = g / 3_652_425;
-            let b = a - a / 4;
-            let year = div_floor!(100 * b + g, 36525);
-            let ordinal = (b + z - div_floor!(36525 * year, 100)) as _;
-            (year, ordinal)
+            n_y + 60 + is_leap_year as u32
         };
 
-        if is_leap_year(year) {
-            ordinal += 60;
-            cascade!(ordinal in 1..367 => year);
-        } else {
-            ordinal += 59;
-            cascade!(ordinal in 1..366 => year);
-        }
-
-        // Safety: `ordinal` is not zero.
-        unsafe { Self::__from_ordinal_date_unchecked(year, ordinal) }
+        // Safety: `ordinal` is not zero and `is_leap_year` is correct, so long as the Julian day
+        // number is in range.
+        unsafe { Self::from_parts(y_g, is_leap_year, ordinal as _) }
     }
     // endregion constructors
 
@@ -708,9 +724,6 @@ impl Date {
 
     /// Get the Julian day for the date.
     ///
-    /// The algorithm to perform this conversion is derived from one provided by Peter Baum; it is
-    /// freely available [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
-    ///
     /// ```rust
     /// # use time_macros::date;
     /// assert_eq!(date!(-4713 - 11 - 24).to_julian_day(), 0);
@@ -719,12 +732,15 @@ impl Date {
     /// assert_eq!(date!(2019-12-31).to_julian_day(), 2_458_849);
     /// ```
     pub const fn to_julian_day(self) -> i32 {
-        let year = self.year() - 1;
-        let ordinal = self.ordinal() as i32;
+        let (year, ordinal) = self.to_ordinal_date();
 
-        ordinal + 365 * year + div_floor!(year, 4) - div_floor!(year, 100)
-            + div_floor!(year, 400)
-            + 1_721_425
+        // The algorithm requires a non-negative year. Add the lowest value to make it so. This is
+        // adjusted for at the end with the final subtraction.
+        let adj_year = year + 999_999;
+        let century = adj_year / 100;
+
+        let days_before_year = (1461 * adj_year as i64 / 4) as i32 - century + century / 4;
+        days_before_year + ordinal as i32 - 363_521_075
     }
     // endregion getters
 

@@ -193,9 +193,12 @@ impl UtcDateTime {
         ensure_ranged!(Timestamp: timestamp);
 
         // Use the unchecked method here, as the input validity has already been verified.
-        let date = Date::from_julian_day_unchecked(
-            UNIX_EPOCH_JULIAN_DAY + div_floor!(timestamp, Second::per(Day) as i64) as i32,
-        );
+        // Safety: The Julian day number is in range.
+        let date = unsafe {
+            Date::from_julian_day_unchecked(
+                UNIX_EPOCH_JULIAN_DAY + div_floor!(timestamp, Second::per(Day) as i64) as i32,
+            )
+        };
 
         let seconds_within_day = timestamp.rem_euclid(Second::per(Day) as _);
         // Safety: All values are in range.

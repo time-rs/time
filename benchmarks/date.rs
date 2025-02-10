@@ -59,9 +59,12 @@ setup_benchmark! {
     }
 
     fn from_julian_day(ben: &mut Bencher<'_>) {
-        ben.iter(|| Date::from_julian_day(-34_803_190));
-        ben.iter(|| Date::from_julian_day(0));
-        ben.iter(|| Date::from_julian_day(2_459_753));
+        let dates = DATES.map(|date| date.to_julian_day());
+        ben.iter(|| {
+            for date in dates {
+                let _ = black_box(Date::from_julian_day(date));
+            }
+        });
     }
     // endregion constructors
 
@@ -171,8 +174,6 @@ setup_benchmark! {
         ben.iter(|| {
             for date in DATES {
                 black_box(date.to_julian_day());
-
-
             }
         });
     }
