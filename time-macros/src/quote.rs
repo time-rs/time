@@ -101,6 +101,20 @@ macro_rules! quote_inner {
         quote_inner!($ts $($tail)*);
     };
 
+    // Attribute
+    ($ts:ident #[$($inner:tt)*] $($tail:tt)*) => {
+        $ts.extend([
+            ::proc_macro::TokenTree::from(
+                ::proc_macro::Punct::new('#', ::proc_macro::Spacing::Alone)
+            ),
+            ::proc_macro::TokenTree::Group(::proc_macro::Group::new(
+                ::proc_macro::Delimiter::Bracket,
+                quote!($($inner)*)
+            )),
+        ]);
+        quote_inner!($ts $($tail)*);
+    };
+
     // Groups
     ($ts:ident ($($inner:tt)*) $($tail:tt)*) => {
         $ts.extend([::proc_macro::TokenTree::Group(::proc_macro::Group::new(
