@@ -715,7 +715,7 @@ impl Time {
     /// Format the `Time` using the provided [format description](crate::format_description).
     pub fn format_into(
         self,
-        output: &mut impl io::Write,
+        output: &mut (impl io::Write + ?Sized),
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
         format.format_into(output, None, Some(self), None)

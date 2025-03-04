@@ -40,13 +40,17 @@ const WEEKDAY_NAMES: [&[u8]; 7] = [
 ];
 
 /// Write all bytes to the output, returning the number of bytes written.
-pub(crate) fn write(output: &mut impl io::Write, bytes: &[u8]) -> io::Result<usize> {
+pub(crate) fn write(output: &mut (impl io::Write + ?Sized), bytes: &[u8]) -> io::Result<usize> {
     output.write_all(bytes)?;
     Ok(bytes.len())
 }
 
 /// If `pred` is true, write all bytes to the output, returning the number of bytes written.
-pub(crate) fn write_if(output: &mut impl io::Write, pred: bool, bytes: &[u8]) -> io::Result<usize> {
+pub(crate) fn write_if(
+    output: &mut (impl io::Write + ?Sized),
+    pred: bool,
+    bytes: &[u8],
+) -> io::Result<usize> {
     if pred {
         write(output, bytes)
     } else {
@@ -56,7 +60,7 @@ pub(crate) fn write_if(output: &mut impl io::Write, pred: bool, bytes: &[u8]) ->
 
 /// If `pred` is true, write `true_bytes` to the output. Otherwise, write `false_bytes`.
 pub(crate) fn write_if_else(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     pred: bool,
     true_bytes: &[u8],
     false_bytes: &[u8],
@@ -69,7 +73,7 @@ pub(crate) fn write_if_else(
 /// This method accepts the number of digits before and after the decimal. The value will be padded
 /// with zeroes to the left if necessary.
 pub(crate) fn format_float(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     value: f64,
     digits_before_decimal: u8,
     digits_after_decimal: Option<NonZeroU8>,
@@ -98,7 +102,7 @@ pub(crate) fn format_float(
 ///
 /// The sign must be written by the caller.
 pub(crate) fn format_number<const WIDTH: u8>(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     value: impl itoa::Integer + DigitCount + Copy,
     padding: modifier::Padding,
 ) -> Result<usize, io::Error> {
@@ -113,7 +117,7 @@ pub(crate) fn format_number<const WIDTH: u8>(
 ///
 /// The sign must be written by the caller.
 pub(crate) fn format_number_pad_space<const WIDTH: u8>(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     value: impl itoa::Integer + DigitCount + Copy,
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
@@ -128,7 +132,7 @@ pub(crate) fn format_number_pad_space<const WIDTH: u8>(
 ///
 /// The sign must be written by the caller.
 pub(crate) fn format_number_pad_zero<const WIDTH: u8>(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     value: impl itoa::Integer + DigitCount + Copy,
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
@@ -143,7 +147,7 @@ pub(crate) fn format_number_pad_zero<const WIDTH: u8>(
 ///
 /// If the sign is mandatory, the sign must be written by the caller.
 pub(crate) fn format_number_pad_none(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     value: impl itoa::Integer + Copy,
 ) -> Result<usize, io::Error> {
     write(output, itoa::Buffer::new().format(value).as_bytes())
@@ -153,7 +157,7 @@ pub(crate) fn format_number_pad_none(
 /// component requires information that it does not provide or if the value cannot be output to the
 /// stream.
 pub(crate) fn format_component(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     component: Component,
     date: Option<Date>,
     time: Option<Time>,
@@ -198,7 +202,7 @@ pub(crate) fn format_component(
 // region: date formatters
 /// Format the day into the designated output.
 fn fmt_day(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     date: Date,
     modifier::Day { padding }: modifier::Day,
 ) -> Result<usize, io::Error> {
@@ -207,7 +211,7 @@ fn fmt_day(
 
 /// Format the month into the designated output.
 fn fmt_month(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     date: Date,
     modifier::Month {
         padding,
@@ -232,7 +236,7 @@ fn fmt_month(
 
 /// Format the ordinal into the designated output.
 fn fmt_ordinal(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     date: Date,
     modifier::Ordinal { padding }: modifier::Ordinal,
 ) -> Result<usize, io::Error> {
@@ -241,7 +245,7 @@ fn fmt_ordinal(
 
 /// Format the weekday into the designated output.
 fn fmt_weekday(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     date: Date,
     modifier::Weekday {
         repr,
@@ -273,7 +277,7 @@ fn fmt_weekday(
 
 /// Format the week number into the designated output.
 fn fmt_week_number(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     date: Date,
     modifier::WeekNumber { padding, repr }: modifier::WeekNumber,
 ) -> Result<usize, io::Error> {
@@ -290,7 +294,7 @@ fn fmt_week_number(
 
 /// Format the year into the designated output.
 fn fmt_year(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     date: Date,
     modifier::Year {
         padding,
@@ -356,7 +360,7 @@ fn fmt_year(
 // region: time formatters
 /// Format the hour into the designated output.
 fn fmt_hour(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     time: Time,
     modifier::Hour {
         padding,
@@ -374,7 +378,7 @@ fn fmt_hour(
 
 /// Format the minute into the designated output.
 fn fmt_minute(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     time: Time,
     modifier::Minute { padding }: modifier::Minute,
 ) -> Result<usize, io::Error> {
@@ -383,7 +387,7 @@ fn fmt_minute(
 
 /// Format the period into the designated output.
 fn fmt_period(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     time: Time,
     modifier::Period {
         is_uppercase,
@@ -400,7 +404,7 @@ fn fmt_period(
 
 /// Format the second into the designated output.
 fn fmt_second(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     time: Time,
     modifier::Second { padding }: modifier::Second,
 ) -> Result<usize, io::Error> {
@@ -408,8 +412,8 @@ fn fmt_second(
 }
 
 /// Format the subsecond into the designated output.
-fn fmt_subsecond<W: io::Write>(
-    output: &mut W,
+fn fmt_subsecond(
+    output: &mut (impl io::Write + ?Sized),
     time: Time,
     modifier::Subsecond { digits }: modifier::Subsecond,
 ) -> Result<usize, io::Error> {
@@ -441,7 +445,7 @@ fn fmt_subsecond<W: io::Write>(
 // region: offset formatters
 /// Format the offset hour into the designated output.
 fn fmt_offset_hour(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     offset: UtcOffset,
     modifier::OffsetHour {
         padding,
@@ -460,7 +464,7 @@ fn fmt_offset_hour(
 
 /// Format the offset minute into the designated output.
 fn fmt_offset_minute(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     offset: UtcOffset,
     modifier::OffsetMinute { padding }: modifier::OffsetMinute,
 ) -> Result<usize, io::Error> {
@@ -469,7 +473,7 @@ fn fmt_offset_minute(
 
 /// Format the offset second into the designated output.
 fn fmt_offset_second(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     offset: UtcOffset,
     modifier::OffsetSecond { padding }: modifier::OffsetSecond,
 ) -> Result<usize, io::Error> {
@@ -479,7 +483,7 @@ fn fmt_offset_second(
 
 /// Format the Unix timestamp into the designated output.
 fn fmt_unix_timestamp(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     date: Date,
     time: Time,
     offset: UtcOffset,

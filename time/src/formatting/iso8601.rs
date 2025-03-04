@@ -14,7 +14,7 @@ use crate::{error, Date, Time, UtcOffset};
 
 /// Format the date portion of ISO 8601.
 pub(super) fn format_date<const CONFIG: EncodedConfig>(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     date: Date,
 ) -> Result<usize, error::Format> {
     let mut bytes = 0;
@@ -70,7 +70,7 @@ pub(super) fn format_date<const CONFIG: EncodedConfig>(
 
 /// Format the time portion of ISO 8601.
 pub(super) fn format_time<const CONFIG: EncodedConfig>(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     time: Time,
 ) -> Result<usize, error::Format> {
     let mut bytes = 0;
@@ -115,7 +115,7 @@ pub(super) fn format_time<const CONFIG: EncodedConfig>(
 
 /// Format the UTC offset portion of ISO 8601.
 pub(super) fn format_offset<const CONFIG: EncodedConfig>(
-    output: &mut impl io::Write,
+    output: &mut (impl io::Write + ?Sized),
     offset: UtcOffset,
 ) -> Result<usize, error::Format> {
     if Iso8601::<CONFIG>::FORMAT_TIME && offset.is_utc() {
