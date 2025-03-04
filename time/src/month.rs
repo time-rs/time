@@ -80,7 +80,7 @@ impl Month {
                 28
             }
         } else {
-            30 | val ^ val >> 3
+            30 | val ^ (val >> 3)
         }
     }
 

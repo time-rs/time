@@ -91,7 +91,9 @@ impl Date {
         Self {
             // Safety: `ordinal` is not zero.
             value: unsafe {
-                NonZeroI32::new_unchecked(year << 10 | (is_leap_year as i32) << 9 | ordinal as i32)
+                NonZeroI32::new_unchecked(
+                    (year << 10) | ((is_leap_year as i32) << 9) | ordinal as i32,
+                )
             },
         }
     }
@@ -325,7 +327,7 @@ impl Date {
     /// This method is optimized to take advantage of the fact that the value is pre-computed upon
     /// construction and stored in the bitpacked struct.
     const fn is_in_leap_year(self) -> bool {
-        self.value.get() >> 9 & 1 == 1
+        (self.value.get() >> 9) & 1 == 1
     }
 
     /// Get the year of the date.
