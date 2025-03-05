@@ -6,6 +6,53 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.38 [2025-03-05]
+
+### Added
+
+- The `[year]` component (in format descriptions) now supports a `range` modifier, which can be
+  either `standard` or `extended`. The default is `extended` for backwards compatibility. This is
+  intended as a manner to opt _out_ of the extended range when the `large-dates` feature is enabled.
+  When the `large-dates` feature is not enabled, the modifier has no effect.
+- `UtcDateTime`, which is semantically equivalent to an `OffsetDateTime` with UTC as its offset. The
+  advantage is that it is the same size as a `PrimitiveDateTime` and has improved operability with
+  well-known formats.
+
+  As part of this, there were some other additions:
+  - `utc_datetime!` macro, which is similar to the `datetime!` macro but constructs a `UtcDateTime`.
+  - `PrimitiveDateTime::as_utc`
+  - `OffsetDateTime::to_utc`
+  - `OffsetDateTime::checked_to_utc`
+- `time::serde::timestamp::milliseconds_i64`, which is a module to serialize/deserialize timestamps
+  as the Unix timestamp. The pre-existing module does this as an `i128` where an `i64` would
+  suffice. This new module should be preferred.
+
+### Changed
+
+- `error::Format` has had its `source()` implementation changed to no longer return a boxed value
+  from the `ComponentRange` variant. If you were explicitly expecting this, you will need to update
+  your code. The method API remains unchanged.
+- `[year repr:century]` supports single-digit values.
+- All `format_into` methods accept `?Sized` references.
+
+### Miscellaneous
+
+- Some non-exhaustive enum variants that are no longer used have been modified to be statically
+  proven as uninhabited. The relevant fields are doc-hidden and not semver-guaranteed to remain as
+  such, though it is unlikely to change.
+- An unnecessary check when parsing RFC 2822 has been removed.
+- Various methods have had their implementations changed, resulting in significant performance
+  gains. Among the methods changed are
+  - `util::is_leap_year`
+  - `util::weeks_in_year`
+  - `Month::length`
+  - `Date::to_calendar_date`
+  - `Date::month`
+  - `Date::day`
+  - `Date::from_julian_day`
+  - `Date::to_julian_day`
+  - other methods that call into these methods
+
 ## 0.3.37 [2024-12-03]
 
 ### Added

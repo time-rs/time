@@ -1,6 +1,6 @@
 [package]
 name = "time-core"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
 edition = "2021"
 rust-version = "1.67.1"
