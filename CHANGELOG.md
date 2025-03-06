@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.39 [2025-03-06]
+
+### Fixed
+
+- Doc tests run successfully with the default feature set.
+- wasm builds work again.
+
+Both of these were regressions in v0.3.38 and are now checked in CI.
+
 ## 0.3.38 [2025-03-05]
 
 ### Added
