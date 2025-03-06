@@ -18,6 +18,9 @@ env:
     "x86_64-unknown-linux-gnu",
     "x86_64-apple-darwin",
     "x86_64-pc-windows-gnu"
+    ],
+    "wasm": [
+    "wasm32-unknown-unknown"
     ]
     }'
 
@@ -58,22 +61,32 @@ jobs:
             query: .no_std + .std_no_offset + .std_with_offset
             exclude-features:
               - std
+              - wasm-bindgen
               - formatting
               - serde-human-readable
               - serde-well-known
               - local-offset
               - quickcheck
-            group-features: []
+            group-features:
+              - [serde, rand]
           - name: std_no_offset
             query: .std_no_offset + .std_with_offset
-            exclude-features: [local-offset]
+            exclude-features: [wasm-bindgen, local-offset]
             enable-features: [std]
             group-features:
+              - [serde, rand]
               - [formatting, parsing]
               - [serde-human-readable, serde-well-known]
           - name: std_with_offset
             query: .std_with_offset
-            enable-features: [std, local-offset]
+            enable-features: [wasm-bindgen, std, local-offset]
+            group-features:
+              - [serde, rand]
+              - [formatting, parsing]
+              - [serde-human-readable, serde-well-known]
+          - name: wasm
+            query: .wasm
+            exclude-features: [rand, quickcheck, local-offset]
             group-features:
               - [formatting, parsing]
               - [serde-human-readable, serde-well-known]
@@ -115,8 +128,7 @@ jobs:
           --no-dev-deps \
           --feature-powerset \
           --optional-deps \
-          --group-features serde,rand \
-          --exclude-features default,wasm-bindgen,${{ join(matrix.kind.exclude-features) }} \
+          --exclude-features default,${{ join(matrix.kind.exclude-features) }} \
           --features macros,${{ join(matrix.kind.enable-features) }} \
           --exclude-all-features \
           )
@@ -168,6 +180,25 @@ jobs:
 
       - name: Test
         run: cargo test -p time --all-features
+
+  test-docs:
+    name: Test (docs)
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      # Test with default feature set to prevent #735 from happening again.
+      - name: Doc test
+        run: cargo test -p time --doc
 
   miri:
     name: Test (miri)

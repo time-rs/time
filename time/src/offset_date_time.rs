@@ -269,7 +269,14 @@ impl OffsetDateTime {
     ///     1999,
     /// );
     /// assert_eq!(
-    ///     datetime!(+999999-12-31 23:59:59 -1).checked_to_utc(),
+    #[cfg_attr(
+        feature = "large-dates",
+        doc = "    datetime!(+999999-12-31 23:59:59 -1).checked_to_utc(),"
+    )]
+    #[cfg_attr(
+        not(feature = "large-dates"),
+        doc = "    datetime!(9999-12-31 23:59:59 -1).checked_to_utc(),"
+    )]
     ///     None,
     /// );
     /// ```

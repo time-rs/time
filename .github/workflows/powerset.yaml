@@ -22,6 +22,9 @@ env:
     "x86_64-linux-android",
     "x86_64-unknown-netbsd",
     "x86_64-unknown-illumos"
+    ],
+    "wasm": [
+    "wasm32-unknown-unknown"
     ]
     }'
 
@@ -56,6 +59,7 @@ jobs:
             query: .no_std + .std_no_offset + .std_with_offset
             exclude_features:
               - std
+              - wasm-bindgen
               - local-offset
               - quickcheck
               - formatting
@@ -63,11 +67,15 @@ jobs:
               - serde-well-known
           - name: std_no_offset
             query: .std_no_offset + .std_with_offset
-            exclude_features: [local-offset]
+            exclude_features: [local-offset, wasm-bindgen]
             enable_features: [std]
           - name: std_with_offset
             query: .std_with_offset
+            exclude_features: [wasm-bindgen]
             enable_features: [std, local-offset]
+          - name: wasm
+            query: .wasm
+            exclude_features: [rand, quickcheck, local-offset]
 
     steps:
       - name: Checkout sources
@@ -97,7 +105,7 @@ jobs:
           --no-dev-deps \
           --feature-powerset \
           --optional-deps \
-          --exclude-features default,wasm-bindgen,${{ join(matrix.kind.exclude_features) }} ${{
+          --exclude-features default,${{ join(matrix.kind.exclude_features) }} ${{
           matrix.kind.enable_features && format('--features {0}', join(matrix.kind.enable_features)) }}
 
   release:

@@ -1404,6 +1404,8 @@ impl From<js_sys::Date> for UtcDateTime {
 ))]
 impl From<UtcDateTime> for js_sys::Date {
     fn from(datetime: UtcDateTime) -> Self {
+        use num_conv::prelude::*;
+
         // new Date() takes milliseconds
         let timestamp = (datetime.unix_timestamp_nanos()
             / Nanosecond::per(Millisecond).cast_signed().extend::<i128>())
