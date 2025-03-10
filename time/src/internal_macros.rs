@@ -51,18 +51,27 @@ macro_rules! impl_div_assign {
 
 /// Division of integers, rounding the resulting value towards negative infinity.
 macro_rules! div_floor {
-    ($a:expr, $b:expr) => {{
-        let _a = $a;
-        let _b = $b;
+    ($self:expr, $rhs:expr) => {
+        match ($self, $rhs) {
+            (this, rhs) => {
+                let d = this / rhs;
+                let r = this % rhs;
 
-        let (_quotient, _remainder) = (_a / _b, _a % _b);
-
-        if (_remainder > 0 && _b < 0) || (_remainder < 0 && _b > 0) {
-            _quotient - 1
-        } else {
-            _quotient
+                // If the remainder is non-zero, we need to subtract one if the
+                // signs of self and rhs differ, as this means we rounded upwards
+                // instead of downwards. We do this branchlessly by creating a mask
+                // which is all-ones iff the signs differ, and 0 otherwise. Then by
+                // adding this mask (which corresponds to the signed value -1), we
+                // get our correction.
+                let correction = (this ^ rhs) >> (::core::mem::size_of_val(&this) * 8 - 1);
+                if r != 0 {
+                    d + correction
+                } else {
+                    d
+                }
+            }
         }
-    }};
+    };
 }
 
 /// Cascade an out-of-bounds value.
