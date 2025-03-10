@@ -34,9 +34,11 @@ mod utc_datetime;
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 use std::iter::Peekable;
 
+#[cfg(all(feature = "serde", any(feature = "formatting", feature = "parsing")))]
+use proc_macro::Delimiter;
 use proc_macro::TokenStream;
 #[cfg(any(feature = "formatting", feature = "parsing"))]
-use proc_macro::{Ident, TokenTree};
+use proc_macro::TokenTree;
 
 use self::error::Error;
 
@@ -61,33 +63,37 @@ macro_rules! impl_macros {
 impl_macros![date datetime utc_datetime offset time];
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
+type PeekableTokenStreamIter = Peekable<proc_macro::token_stream::IntoIter>;
+
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 enum FormatDescriptionVersion {
     V1,
     V2,
 }
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
-enum VersionOrModuleName {
-    Version(FormatDescriptionVersion),
-    #[cfg_attr(not(feature = "serde"), allow(dead_code))]
-    ModuleName(Ident),
-}
-
-#[cfg(any(feature = "formatting", feature = "parsing"))]
 fn parse_format_description_version<const NO_EQUALS_IS_MOD_NAME: bool>(
-    iter: &mut Peekable<proc_macro::token_stream::IntoIter>,
-) -> Result<Option<VersionOrModuleName>, Error> {
-    let version_ident = match iter.peek() {
-        Some(TokenTree::Ident(ident)) if ident.to_string() == "version" => match iter.next() {
-            Some(TokenTree::Ident(ident)) => ident,
-            _ => unreachable!(),
-        },
+    iter: &mut PeekableTokenStreamIter,
+) -> Result<Option<FormatDescriptionVersion>, Error> {
+    let version_ident = match iter.peek().ok_or(Error::UnexpectedEndOfInput)? {
+        version @ TokenTree::Ident(ident) if ident.to_string() == "version" => {
+            let version_ident = version.clone();
+            iter.next(); // consume `version`
+            version_ident
+        }
         _ => return Ok(None),
     };
+
     match iter.peek() {
         Some(TokenTree::Punct(punct)) if punct.as_char() == '=' => iter.next(),
         _ if NO_EQUALS_IS_MOD_NAME => {
-            return Ok(Some(VersionOrModuleName::ModuleName(version_ident)));
+            // Push the `version` ident to the front of the iterator.
+            *iter = std::iter::once(version_ident)
+                .chain(iter.clone())
+                .collect::<TokenStream>()
+                .into_iter()
+                .peekable();
+            return Ok(None);
         }
         Some(token) => {
             return Err(Error::Custom {
@@ -134,7 +140,29 @@ fn parse_format_description_version<const NO_EQUALS_IS_MOD_NAME: bool>(
     };
     helpers::consume_punct(',', iter)?;
 
-    Ok(Some(VersionOrModuleName::Version(version)))
+    Ok(Some(version))
+}
+
+#[cfg(all(feature = "serde", any(feature = "formatting", feature = "parsing")))]
+fn parse_visibility(iter: &mut PeekableTokenStreamIter) -> Result<TokenStream, Error> {
+    let mut visibility = match iter.peek().ok_or(Error::UnexpectedEndOfInput)? {
+        pub_ident @ TokenTree::Ident(ident) if ident.to_string() == "pub" => {
+            let visibility = quote! { #(pub_ident.clone()) };
+            iter.next(); // consume `pub`
+            visibility
+        }
+        _ => return Ok(quote! {}),
+    };
+
+    match iter.peek().ok_or(Error::UnexpectedEndOfInput)? {
+        group @ TokenTree::Group(path) if path.delimiter() == Delimiter::Parenthesis => {
+            visibility.extend(std::iter::once(group.clone()));
+            iter.next(); // consume parentheses and path
+        }
+        _ => {}
+    }
+
+    Ok(visibility)
 }
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
@@ -142,12 +170,7 @@ fn parse_format_description_version<const NO_EQUALS_IS_MOD_NAME: bool>(
 pub fn format_description(input: TokenStream) -> TokenStream {
     (|| {
         let mut input = input.into_iter().peekable();
-        let version = match parse_format_description_version::<false>(&mut input)? {
-            Some(VersionOrModuleName::Version(version)) => Some(version),
-            None => None,
-            // This branch should never occur here, as `false` is the provided as a const parameter.
-            Some(VersionOrModuleName::ModuleName(_)) => bug!("branch should never occur"),
-        };
+        let version = parse_format_description_version::<false>(&mut input)?;
         let (span, string) = helpers::get_string_literal(input)?;
         let items = format_description::parse_with_version(version, &string, span)?;
 
@@ -172,22 +195,16 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
 
         // First, the optional format description version.
         let version = parse_format_description_version::<true>(&mut tokens)?;
-        let (version, mod_name) = match version {
-            Some(VersionOrModuleName::ModuleName(module_name)) => (None, Some(module_name)),
-            Some(VersionOrModuleName::Version(version)) => (Some(version), None),
-            None => (None, None),
-        };
+
+        // Then, the visibility of the module.
+        let visibility = parse_visibility(&mut tokens)?;
 
         // Next, an identifier (the desired module name)
-        // Only parse this if it wasn't parsed when attempting to get the version.
-        let mod_name = match mod_name {
-            Some(mod_name) => mod_name,
-            None => match tokens.next() {
-                Some(TokenTree::Ident(ident)) => Ok(ident),
-                Some(tree) => Err(Error::UnexpectedToken { tree }),
-                None => Err(Error::UnexpectedEndOfInput),
-            }?,
-        };
+        let mod_name = match tokens.next() {
+            Some(TokenTree::Ident(ident)) => Ok(ident),
+            Some(tree) => Err(Error::UnexpectedToken { tree }),
+            None => Err(Error::UnexpectedEndOfInput),
+        }?;
 
         // Followed by a comma
         helpers::consume_punct(',', &mut tokens)?;
@@ -230,6 +247,7 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
         };
 
         Ok(serde_format_description::build(
+            visibility,
             mod_name,
             formattable,
             format,

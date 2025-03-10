@@ -20,18 +20,24 @@ time::serde::format_description!(
     Iso8601::<{ iso8601::Config::DEFAULT.encode() }>
 );
 
-serde::format_description!(
-    offset_dt_format,
-    OffsetDateTime,
-    "custom format: [year]-[month]-[day] [hour]:[minute]:[second] [offset_hour \
-     sign:mandatory]:[offset_minute]"
-);
-serde::format_description!(
-    primitive_dt_format,
-    PrimitiveDateTime,
-    "custom format: [year]-[month]-[day] [hour]:[minute]:[second]"
-);
-serde::format_description!(time_format, Time, "custom format: [minute]:[second]");
+mod nested {
+    time::serde::format_description!(
+        pub(super) offset_dt_format,
+        OffsetDateTime,
+        "custom format: [year]-[month]-[day] [hour]:[minute]:[second] [offset_hour \
+         sign:mandatory]:[offset_minute]"
+    );
+    time::serde::format_description!(
+        pub primitive_dt_format,
+        PrimitiveDateTime,
+        "custom format: [year]-[month]-[day] [hour]:[minute]:[second]"
+    );
+    time::serde::format_description!(
+        pub(in crate::serde::macros) time_format,
+        Time,
+        "custom format: [minute]:[second]"
+    );
+}
 serde::format_description!(date_format, Date, "custom format: [year]-[month]-[day]");
 serde::format_description!(
     offset_format,
@@ -50,13 +56,13 @@ serde::format_description!(
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 struct TestCustomFormat {
-    #[serde(with = "offset_dt_format")]
+    #[serde(with = "nested::offset_dt_format")]
     offset_dt: OffsetDateTime,
-    #[serde(with = "primitive_dt_format::option")]
+    #[serde(with = "nested::primitive_dt_format::option")]
     primitive_dt: Option<PrimitiveDateTime>,
     #[serde(with = "date_format")]
     date: Date,
-    #[serde(with = "time_format::option")]
+    #[serde(with = "nested::time_format::option")]
     time: Option<Time>,
     #[serde(with = "offset_format")]
     offset: UtcOffset,
