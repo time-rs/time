@@ -53,7 +53,9 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 )]
 /// This puts a module named `mod_name` in the current scope that can be used to format `Date`
 /// structs. A submodule (`mod_name::option`) is also generated for `Option<Date>`. Both
-/// modules are only visible in the current scope.
+/// modules are only visible in the current scope by default. To increase visibility, you can
+/// specify `pub`, `pub(crate)`, or similar before the module name:
+/// `serde::format_description!(pub mod_name, Date, FORMAT)`.
 ///
 /// The returned `Option` will contain a deserialized value if present and `None` if the field
 /// is present but the value is `null` (or the equivalent in other formats). To return `None`

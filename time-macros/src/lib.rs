@@ -75,7 +75,17 @@ enum FormatDescriptionVersion {
 fn parse_format_description_version<const NO_EQUALS_IS_MOD_NAME: bool>(
     iter: &mut PeekableTokenStreamIter,
 ) -> Result<Option<FormatDescriptionVersion>, Error> {
-    let version_ident = match iter.peek().ok_or(Error::UnexpectedEndOfInput)? {
+    let end_of_input_err = || {
+        if NO_EQUALS_IS_MOD_NAME {
+            Error::UnexpectedEndOfInput
+        } else {
+            Error::ExpectedString {
+                span_start: None,
+                span_end: None,
+            }
+        }
+    };
+    let version_ident = match iter.peek().ok_or_else(end_of_input_err)? {
         version @ TokenTree::Ident(ident) if ident.to_string() == "version" => {
             let version_ident = version.clone();
             iter.next(); // consume `version`

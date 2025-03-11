@@ -141,3 +141,12 @@ pub type Result<T> = core::result::Result<T, Error>;
 const fn expect_failed(message: &str) -> ! {
     panic!("{}", message)
 }
+
+/// Returns the size of the pointed-to value in bytes.
+///
+/// This is a `const fn` in the standard library starting in Rust 1.85. When MSRV is at least that,
+/// this can be removed.
+#[allow(unused_qualifications)] // added to prelude after MSRV
+const fn size_of_val<T>(_: &T) -> usize {
+    core::mem::size_of::<T>()
+}
