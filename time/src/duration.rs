@@ -19,8 +19,6 @@ use crate::internal_macros::{
 #[cfg(feature = "std")]
 #[allow(deprecated)]
 use crate::Instant;
-#[cfg(feature = "std")]
-use crate::OffsetDateTime;
 
 /// By explicitly inserting this enum where padding is expected, the compiler is able to better
 /// perform niche value optimization.
@@ -1586,7 +1584,14 @@ impl Sub<Duration> for SystemTime {
     type Output = Self;
 
     fn sub(self, duration: Duration) -> Self::Output {
-        (OffsetDateTime::from(self) - duration).into()
+        if duration.is_zero() {
+            self
+        } else if duration.is_positive() {
+            self - duration.unsigned_abs()
+        } else {
+            debug_assert!(duration.is_negative());
+            self + duration.unsigned_abs()
+        }
     }
 }
 
