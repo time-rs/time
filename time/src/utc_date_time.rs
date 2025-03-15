@@ -2,14 +2,11 @@
 
 #[cfg(feature = "formatting")]
 use alloc::string::String;
-use core::cmp::Ordering;
 use core::fmt;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
-#[cfg(feature = "std")]
-use std::time::SystemTime;
 
 use deranged::RangedI64;
 use powerfmt::ext::FormatterExt as _;
@@ -135,7 +132,7 @@ impl UtcDateTime {
             not(any(target_os = "emscripten", target_os = "wasi")),
             feature = "wasm-bindgen"
         )))]
-        SystemTime::now().into()
+        std::time::SystemTime::now().into()
     }
 
     /// Create a new `UtcDateTime` from the provided [`Date`] and [`Time`].
@@ -157,6 +154,12 @@ impl UtcDateTime {
     /// Create a new `UtcDateTime` from the [`PrimitiveDateTime`], assuming that the latter is UTC.
     pub(crate) const fn from_primitive(date_time: PrimitiveDateTime) -> Self {
         Self { inner: date_time }
+    }
+
+    /// Obtain the [`PrimitiveDateTime`] that this `UtcDateTime` represents. The no-longer-attached
+    /// [`UtcOffset`] is assumed to be UTC.
+    pub(crate) const fn as_primitive(self) -> PrimitiveDateTime {
+        self.inner
     }
 
     /// Create a `UtcDateTime` from the provided Unix timestamp.
@@ -1216,181 +1219,5 @@ impl Sub for UtcDateTime {
     /// This may panic if an overflow occurs.
     fn sub(self, rhs: Self) -> Self::Output {
         self.inner.sub(rhs.inner)
-    }
-}
-
-#[cfg(feature = "std")]
-impl Sub<SystemTime> for UtcDateTime {
-    type Output = Duration;
-
-    /// # Panics
-    ///
-    /// This may panic if an overflow occurs.
-    fn sub(self, rhs: SystemTime) -> Self::Output {
-        self - Self::from(rhs)
-    }
-}
-
-#[cfg(feature = "std")]
-impl Sub<UtcDateTime> for SystemTime {
-    type Output = Duration;
-
-    /// # Panics
-    ///
-    /// This may panic if an overflow occurs.
-    fn sub(self, rhs: UtcDateTime) -> Self::Output {
-        UtcDateTime::from(self) - rhs
-    }
-}
-
-impl Sub<OffsetDateTime> for UtcDateTime {
-    type Output = Duration;
-
-    /// # Panics
-    ///
-    /// This may panic if an overflow occurs.
-    fn sub(self, rhs: OffsetDateTime) -> Self::Output {
-        OffsetDateTime::from(self) - rhs
-    }
-}
-
-impl Sub<UtcDateTime> for OffsetDateTime {
-    type Output = Duration;
-
-    /// # Panics
-    ///
-    /// This may panic if an overflow occurs.
-    fn sub(self, rhs: UtcDateTime) -> Self::Output {
-        self - Self::from(rhs)
-    }
-}
-
-#[cfg(feature = "std")]
-impl PartialEq<SystemTime> for UtcDateTime {
-    fn eq(&self, rhs: &SystemTime) -> bool {
-        self == &Self::from(*rhs)
-    }
-}
-
-#[cfg(feature = "std")]
-impl PartialEq<UtcDateTime> for SystemTime {
-    fn eq(&self, rhs: &UtcDateTime) -> bool {
-        &UtcDateTime::from(*self) == rhs
-    }
-}
-
-impl PartialEq<OffsetDateTime> for UtcDateTime {
-    fn eq(&self, other: &OffsetDateTime) -> bool {
-        OffsetDateTime::from(*self) == *other
-    }
-}
-
-impl PartialEq<UtcDateTime> for OffsetDateTime {
-    fn eq(&self, other: &UtcDateTime) -> bool {
-        *self == Self::from(*other)
-    }
-}
-
-#[cfg(feature = "std")]
-impl PartialOrd<SystemTime> for UtcDateTime {
-    fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
-        self.partial_cmp(&Self::from(*other))
-    }
-}
-
-#[cfg(feature = "std")]
-impl PartialOrd<UtcDateTime> for SystemTime {
-    fn partial_cmp(&self, other: &UtcDateTime) -> Option<Ordering> {
-        UtcDateTime::from(*self).partial_cmp(other)
-    }
-}
-
-impl PartialOrd<OffsetDateTime> for UtcDateTime {
-    fn partial_cmp(&self, other: &OffsetDateTime) -> Option<Ordering> {
-        OffsetDateTime::from(*self).partial_cmp(other)
-    }
-}
-
-impl PartialOrd<UtcDateTime> for OffsetDateTime {
-    fn partial_cmp(&self, other: &UtcDateTime) -> Option<Ordering> {
-        self.partial_cmp(&Self::from(*other))
-    }
-}
-
-#[cfg(feature = "std")]
-impl From<SystemTime> for UtcDateTime {
-    fn from(system_time: SystemTime) -> Self {
-        match system_time.duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(duration) => Self::UNIX_EPOCH + duration,
-            Err(err) => Self::UNIX_EPOCH - err.duration(),
-        }
-    }
-}
-
-#[cfg(feature = "std")]
-impl From<UtcDateTime> for SystemTime {
-    fn from(datetime: UtcDateTime) -> Self {
-        let duration = datetime - UtcDateTime::UNIX_EPOCH;
-
-        if duration.is_zero() {
-            Self::UNIX_EPOCH
-        } else if duration.is_positive() {
-            Self::UNIX_EPOCH + duration.unsigned_abs()
-        } else {
-            debug_assert!(duration.is_negative());
-            Self::UNIX_EPOCH - duration.unsigned_abs()
-        }
-    }
-}
-
-impl From<OffsetDateTime> for UtcDateTime {
-    /// # Panics
-    ///
-    /// This may panic if an overflow occurs.
-    fn from(datetime: OffsetDateTime) -> Self {
-        datetime.to_utc()
-    }
-}
-
-impl From<UtcDateTime> for OffsetDateTime {
-    /// # Panics
-    ///
-    /// This may panic if an overflow occurs.
-    fn from(datetime: UtcDateTime) -> Self {
-        datetime.inner.assume_utc()
-    }
-}
-
-#[cfg(all(
-    target_family = "wasm",
-    not(any(target_os = "emscripten", target_os = "wasi")),
-    feature = "wasm-bindgen"
-))]
-impl From<js_sys::Date> for UtcDateTime {
-    /// # Panics
-    ///
-    /// This may panic if the timestamp can not be represented.
-    fn from(js_date: js_sys::Date) -> Self {
-        // get_time() returns milliseconds
-        let timestamp_nanos = (js_date.get_time() * Nanosecond::per(Millisecond) as f64) as i128;
-        Self::from_unix_timestamp_nanos(timestamp_nanos)
-            .expect("invalid timestamp: Timestamp cannot fit in range")
-    }
-}
-
-#[cfg(all(
-    target_family = "wasm",
-    not(any(target_os = "emscripten", target_os = "wasi")),
-    feature = "wasm-bindgen"
-))]
-impl From<UtcDateTime> for js_sys::Date {
-    fn from(datetime: UtcDateTime) -> Self {
-        use num_conv::prelude::*;
-
-        // new Date() takes milliseconds
-        let timestamp = (datetime.unix_timestamp_nanos()
-            / Nanosecond::per(Millisecond).cast_signed().extend::<i128>())
-            as f64;
-        Self::new(&timestamp.into())
     }
 }

@@ -5,6 +5,8 @@ use core::fmt;
 use core::iter::Sum;
 use core::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
 use core::time::Duration as StdDuration;
+#[cfg(feature = "std")]
+use std::time::SystemTime;
 
 use deranged::RangedI32;
 use num_conv::prelude::*;
@@ -17,6 +19,8 @@ use crate::internal_macros::{
 #[cfg(feature = "std")]
 #[allow(deprecated)]
 use crate::Instant;
+#[cfg(feature = "std")]
+use crate::OffsetDateTime;
 
 /// By explicitly inserting this enum where padding is expected, the compiler is able to better
 /// perform niche value optimization.
@@ -1558,3 +1562,32 @@ impl<'a> Sum<&'a Self> for Duration {
         iter.copied().sum()
     }
 }
+
+#[cfg(feature = "std")]
+impl Add<Duration> for SystemTime {
+    type Output = Self;
+
+    fn add(self, duration: Duration) -> Self::Output {
+        if duration.is_zero() {
+            self
+        } else if duration.is_positive() {
+            self + duration.unsigned_abs()
+        } else {
+            debug_assert!(duration.is_negative());
+            self - duration.unsigned_abs()
+        }
+    }
+}
+
+impl_add_assign!(SystemTime: #[cfg(feature = "std")] Duration);
+
+#[cfg(feature = "std")]
+impl Sub<Duration> for SystemTime {
+    type Output = Self;
+
+    fn sub(self, duration: Duration) -> Self::Output {
+        (OffsetDateTime::from(self) - duration).into()
+    }
+}
+
+impl_sub_assign!(SystemTime: #[cfg(feature = "std")] Duration);

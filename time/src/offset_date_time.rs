@@ -9,8 +9,6 @@ use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
-#[cfg(feature = "std")]
-use std::time::SystemTime;
 
 use deranged::RangedI64;
 use num_conv::prelude::*;
@@ -106,7 +104,7 @@ impl OffsetDateTime {
             not(any(target_os = "emscripten", target_os = "wasi")),
             feature = "wasm-bindgen"
         )))]
-        SystemTime::now().into()
+        std::time::SystemTime::now().into()
     }
 
     /// Attempt to create a new `OffsetDateTime` with the current date and time in the local offset.
@@ -1509,145 +1507,5 @@ impl Sub for OffsetDateTime {
             (self.offset.whole_seconds() - rhs.offset.whole_seconds()).extend::<i64>(),
         );
         base - adjustment
-    }
-}
-
-#[cfg(feature = "std")]
-impl Sub<SystemTime> for OffsetDateTime {
-    type Output = Duration;
-
-    /// # Panics
-    ///
-    /// This may panic if an overflow occurs.
-    fn sub(self, rhs: SystemTime) -> Self::Output {
-        self - Self::from(rhs)
-    }
-}
-
-#[cfg(feature = "std")]
-impl Sub<OffsetDateTime> for SystemTime {
-    type Output = Duration;
-
-    /// # Panics
-    ///
-    /// This may panic if an overflow occurs.
-    fn sub(self, rhs: OffsetDateTime) -> Self::Output {
-        OffsetDateTime::from(self) - rhs
-    }
-}
-
-#[cfg(feature = "std")]
-impl Add<Duration> for SystemTime {
-    type Output = Self;
-
-    fn add(self, duration: Duration) -> Self::Output {
-        if duration.is_zero() {
-            self
-        } else if duration.is_positive() {
-            self + duration.unsigned_abs()
-        } else {
-            debug_assert!(duration.is_negative());
-            self - duration.unsigned_abs()
-        }
-    }
-}
-
-crate::internal_macros::impl_add_assign!(SystemTime: #[cfg(feature = "std")] Duration);
-
-#[cfg(feature = "std")]
-impl Sub<Duration> for SystemTime {
-    type Output = Self;
-
-    fn sub(self, duration: Duration) -> Self::Output {
-        (OffsetDateTime::from(self) - duration).into()
-    }
-}
-
-crate::internal_macros::impl_sub_assign!(SystemTime: #[cfg(feature = "std")] Duration);
-
-#[cfg(feature = "std")]
-impl PartialEq<SystemTime> for OffsetDateTime {
-    fn eq(&self, rhs: &SystemTime) -> bool {
-        self == &Self::from(*rhs)
-    }
-}
-
-#[cfg(feature = "std")]
-impl PartialEq<OffsetDateTime> for SystemTime {
-    fn eq(&self, rhs: &OffsetDateTime) -> bool {
-        &OffsetDateTime::from(*self) == rhs
-    }
-}
-
-#[cfg(feature = "std")]
-impl PartialOrd<SystemTime> for OffsetDateTime {
-    fn partial_cmp(&self, other: &SystemTime) -> Option<Ordering> {
-        self.partial_cmp(&Self::from(*other))
-    }
-}
-
-#[cfg(feature = "std")]
-impl PartialOrd<OffsetDateTime> for SystemTime {
-    fn partial_cmp(&self, other: &OffsetDateTime) -> Option<Ordering> {
-        OffsetDateTime::from(*self).partial_cmp(other)
-    }
-}
-
-#[cfg(feature = "std")]
-impl From<SystemTime> for OffsetDateTime {
-    fn from(system_time: SystemTime) -> Self {
-        match system_time.duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(duration) => Self::UNIX_EPOCH + duration,
-            Err(err) => Self::UNIX_EPOCH - err.duration(),
-        }
-    }
-}
-
-#[cfg(feature = "std")]
-impl From<OffsetDateTime> for SystemTime {
-    fn from(datetime: OffsetDateTime) -> Self {
-        let duration = datetime - OffsetDateTime::UNIX_EPOCH;
-
-        if duration.is_zero() {
-            Self::UNIX_EPOCH
-        } else if duration.is_positive() {
-            Self::UNIX_EPOCH + duration.unsigned_abs()
-        } else {
-            debug_assert!(duration.is_negative());
-            Self::UNIX_EPOCH - duration.unsigned_abs()
-        }
-    }
-}
-
-#[cfg(all(
-    target_family = "wasm",
-    not(any(target_os = "emscripten", target_os = "wasi")),
-    feature = "wasm-bindgen"
-))]
-impl From<js_sys::Date> for OffsetDateTime {
-    /// # Panics
-    ///
-    /// This may panic if the timestamp can not be represented.
-    fn from(js_date: js_sys::Date) -> Self {
-        // get_time() returns milliseconds
-        let timestamp_nanos = js_date.get_time() as i128
-            * Nanosecond::per(Millisecond).cast_signed().extend::<i128>();
-        Self::from_unix_timestamp_nanos(timestamp_nanos)
-            .expect("invalid timestamp: Timestamp cannot fit in range")
-    }
-}
-
-#[cfg(all(
-    target_family = "wasm",
-    not(any(target_os = "emscripten", target_os = "wasi")),
-    feature = "wasm-bindgen"
-))]
-impl From<OffsetDateTime> for js_sys::Date {
-    fn from(datetime: OffsetDateTime) -> Self {
-        // new Date() takes milliseconds
-        let timestamp = (datetime.unix_timestamp_nanos()
-            / Nanosecond::per(Millisecond).cast_signed().extend::<i128>())
-            as f64;
-        Self::new(&timestamp.into())
     }
 }
