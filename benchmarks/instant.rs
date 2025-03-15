@@ -9,7 +9,6 @@ use time::{Duration, Instant};
 setup_benchmark! {
     "Instant",
 
-    // region: checked arithmetic
     fn checked_add(ben: &mut Bencher<'_>) {
         let instant = Instant::now();
         let dt = 5.seconds();
@@ -21,9 +20,7 @@ setup_benchmark! {
         let dt = 5.seconds();
         ben.iter(|| instant.checked_sub(dt));
     }
-    // endregion checked arithmetic
 
-    // region: trait impls
     fn sub(ben: &mut Bencher<'_>) {
         let start: Instant = Instant::now();
         let end: Instant = start + 1.milliseconds();
@@ -89,5 +86,4 @@ setup_benchmark! {
             [|instant| *instant -= dt]
         );
     }
-    // endregion trait impls
 }

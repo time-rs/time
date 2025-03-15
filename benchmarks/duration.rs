@@ -7,7 +7,6 @@ use time::Duration;
 setup_benchmark! {
     "Duration",
 
-    // region: is_{sign}
     fn is_zero(ben: &mut Bencher<'_>) {
         let a = (-1).nanoseconds();
         let b = 0.seconds();
@@ -34,9 +33,7 @@ setup_benchmark! {
         ben.iter(|| b.is_positive());
         ben.iter(|| c.is_positive());
     }
-    // endregion is_{sign}
 
-    // region: abs
     fn abs(ben: &mut Bencher<'_>) {
         let a = 1.seconds();
         let b = 0.seconds();
@@ -54,9 +51,7 @@ setup_benchmark! {
         ben.iter(|| b.unsigned_abs());
         ben.iter(|| c.unsigned_abs());
     }
-    // endregion abs
 
-    // region: constructors
     fn new(ben: &mut Bencher<'_>) {
         ben.iter(|| Duration::new(1, 0));
         ben.iter(|| Duration::new(-1, 0));
@@ -172,9 +167,7 @@ setup_benchmark! {
         ben.iter(|| c.whole_weeks());
         ben.iter(|| d.whole_weeks());
     }
-    // endregion constructors
 
-    // region: getters
     fn whole_days(ben: &mut Bencher<'_>) {
         let a = Duration::days(1);
         let b = Duration::days(-1);
@@ -302,9 +295,7 @@ setup_benchmark! {
         ben.iter(|| a.subsec_nanoseconds());
         ben.iter(|| b.subsec_nanoseconds());
     }
-    // endregion getters
 
-    // region: checked arithmetic
     fn checked_add(ben: &mut Bencher<'_>) {
         let a = 5.seconds();
         let b = Duration::MAX;
@@ -345,9 +336,7 @@ setup_benchmark! {
         ben.iter(|| a.checked_div(2));
         ben.iter(|| a.checked_div(0));
     }
-    // endregion checked arithmetic
 
-    // region: saturating arithmetic
     fn saturating_add(ben: &mut Bencher<'_>) {
         let a = 5.seconds();
         let b = Duration::MAX;
@@ -399,9 +388,7 @@ setup_benchmark! {
         ben.iter(|| f.saturating_mul(-2));
         ben.iter(|| g.saturating_mul(-2));
     }
-    // endregion saturating arithmetic
 
-    // region: trait impls
     fn try_from_std_duration(ben: &mut Bencher<'_>) {
         let a = 0.std_seconds();
         let b = 1.std_seconds();
@@ -724,5 +711,4 @@ setup_benchmark! {
         ben.iter(|| d > a);
         ben.iter(|| e < c);
     }
-    // endregion trait impls
 }

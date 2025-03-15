@@ -97,7 +97,6 @@ mod sealed {
     }
 }
 
-// region: custom formats
 impl sealed::Sealed for BorrowedFormatItem<'_> {
     fn parse_into<'a>(
         &self,
@@ -152,9 +151,7 @@ where
         self.deref().parse_into(input, parsed)
     }
 }
-// endregion custom formats
 
-// region: well-known formats
 impl sealed::Sealed for Rfc2822 {
     fn parse_into<'a>(
         &self,
@@ -801,4 +798,3 @@ impl<const CONFIG: EncodedConfig> sealed::Sealed for Iso8601<CONFIG> {
         Ok(input)
     }
 }
-// endregion well-known formats

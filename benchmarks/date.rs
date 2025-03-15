@@ -35,7 +35,6 @@ const DATES: [Date; 24] = [
 setup_benchmark! {
     "Date",
 
-    // region: constructors
     fn from_calendar_date(ben: &mut Bencher<'_>) {
         ben.iter(|| Date::from_calendar_date(2019, Month::January, 1));
         ben.iter(|| Date::from_calendar_date(2019, Month::December, 31));
@@ -66,9 +65,7 @@ setup_benchmark! {
             }
         });
     }
-    // endregion constructors
 
-    // region: getters
     fn year(ben: &mut Bencher<'_>) {
         let d = date!(2019-002);
         ben.iter(|| d.year());
@@ -177,9 +174,7 @@ setup_benchmark! {
             }
         });
     }
-    // endregion getters
 
-    // region: attach time
     fn midnight(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(1970-01-01).midnight());
     }
@@ -203,9 +198,7 @@ setup_benchmark! {
     fn with_hms_nano(ben: &mut Bencher<'_>) {
         ben.iter(|| date!(1970-01-01).with_hms_nano(0, 0, 0, 0));
     }
-    // endregion attach time
 
-    // region: trait impls
     fn add(ben: &mut Bencher<'_>) {
         let dt = 5.days();
         ben.iter(|| date!(2019-01-01) + dt);
@@ -281,5 +274,4 @@ setup_benchmark! {
         ben.iter(|| first.cmp(&second));
         ben.iter(|| second.cmp(&first));
     }
-    // endregion trait impls
 }

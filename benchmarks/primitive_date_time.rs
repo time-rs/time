@@ -8,7 +8,6 @@ setup_benchmark! {
     // All getters are trivially dispatched to the relevant field, and do not need to be benchmarked
     // a second time.
 
-    // region: attach offset
     fn assume_offset(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(2019-01-01 0:00).assume_offset(offset!(UTC)));
         ben.iter(|| datetime!(2019-01-01 0:00).assume_offset(offset!(-1)));
@@ -17,9 +16,7 @@ setup_benchmark! {
     fn assume_utc(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(2019-01-01 0:00).assume_utc());
     }
-    // endregion attach offset
 
-    // region: trait impls
     fn add_duration(ben: &mut Bencher<'_>) {
         let a = 5.days();
         let b = 1.days();
@@ -144,5 +141,4 @@ setup_benchmark! {
         ben.iter(|| datetime!(2019-01-01 0:00:01).partial_cmp(&datetime!(2019-01-01 0:00)));
         ben.iter(|| datetime!(2019-01-01 0:00:00.000_000_001).partial_cmp(&datetime!(2019-01-01 0:00)));
     }
-    // endregion trait impls
 }

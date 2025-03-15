@@ -113,7 +113,6 @@ impl UtcDateTime {
     /// ```
     pub const MAX: Self = Self::new(Date::MAX, Time::MAX);
 
-    // region: constructors
     /// Create a new `UtcDateTime` with the current date and time.
     ///
     /// ```rust
@@ -247,9 +246,7 @@ impl UtcDateTime {
             },
         ))
     }
-    // endregion constructors
 
-    // region: to_offset
     /// Convert the `UtcDateTime` from UTC to the provided [`UtcOffset`], returning an
     /// [`OffsetDateTime`].
     ///
@@ -351,9 +348,7 @@ impl UtcDateTime {
             },
         )
     }
-    // endregion to_offset
 
-    // region: getters
     /// Get the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time).
     ///
     /// ```rust
@@ -404,7 +399,6 @@ impl UtcDateTime {
         self.inner.time()
     }
 
-    // region: date getters
     /// Get the year of the date.
     ///
     /// ```rust
@@ -592,9 +586,7 @@ impl UtcDateTime {
     pub const fn to_julian_day(self) -> i32 {
         self.date().to_julian_day()
     }
-    // endregion date getters
 
-    // region: time getters
     /// Get the clock hour, minute, and second.
     ///
     /// ```rust
@@ -731,10 +723,7 @@ impl UtcDateTime {
     pub const fn nanosecond(self) -> u32 {
         self.time().nanosecond()
     }
-    // endregion time getters
-    // endregion getters
 
-    // region: checked arithmetic
     /// Computes `self + duration`, returning `None` if an overflow occurred.
     ///
     /// ```rust
@@ -770,9 +759,7 @@ impl UtcDateTime {
             .inner
             .checked_sub(duration))))
     }
-    // endregion checked arithmetic
 
-    // region: saturating arithmetic
     /// Computes `self + duration`, saturating value on overflow.
     ///
     /// ```rust
@@ -816,10 +803,8 @@ impl UtcDateTime {
     pub const fn saturating_sub(self, duration: Duration) -> Self {
         Self::from_primitive(self.inner.saturating_sub(duration))
     }
-    // endregion saturating arithmetic
 }
 
-// region: replacement
 /// Methods that replace part of the `UtcDateTime`.
 impl UtcDateTime {
     /// Replace the time, preserving the date.
@@ -1033,9 +1018,7 @@ impl UtcDateTime {
             .replace_nanosecond(nanosecond))))
     }
 }
-// endregion replacement
 
-// region: formatting & parsing
 #[cfg(feature = "formatting")]
 impl UtcDateTime {
     /// Format the `UtcDateTime` using the provided [format
@@ -1143,9 +1126,7 @@ impl fmt::Debug for UtcDateTime {
         fmt::Display::fmt(self, f)
     }
 }
-// endregion formatting & parsing
 
-// region: trait impls
 impl Add<Duration> for UtcDateTime {
     type Output = Self;
 
@@ -1413,4 +1394,3 @@ impl From<UtcDateTime> for js_sys::Date {
         Self::new(&timestamp.into())
     }
 }
-// endregion trait impls

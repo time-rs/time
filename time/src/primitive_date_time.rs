@@ -106,7 +106,6 @@ impl PrimitiveDateTime {
         Self { date, time }
     }
 
-    // region: component getters
     /// Get the [`Date`] component of the `PrimitiveDateTime`.
     ///
     /// ```rust
@@ -126,9 +125,7 @@ impl PrimitiveDateTime {
     pub const fn time(self) -> Time {
         self.time
     }
-    // endregion component getters
 
-    // region: date getters
     /// Get the year of the date.
     ///
     /// ```rust
@@ -316,9 +313,7 @@ impl PrimitiveDateTime {
     pub const fn to_julian_day(self) -> i32 {
         self.date().to_julian_day()
     }
-    // endregion date getters
 
-    // region: time getters
     /// Get the clock hour, minute, and second.
     ///
     /// ```rust
@@ -455,9 +450,7 @@ impl PrimitiveDateTime {
     pub const fn nanosecond(self) -> u32 {
         self.time().nanosecond()
     }
-    // endregion time getters
 
-    // region: attach offset
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in the provided
     /// [`UtcOffset`], return an [`OffsetDateTime`].
     ///
@@ -510,9 +503,7 @@ impl PrimitiveDateTime {
     pub const fn as_utc(self) -> UtcDateTime {
         UtcDateTime::from_primitive(self)
     }
-    // endregion attach offset
 
-    // region: checked arithmetic
     /// Computes `self + duration`, returning `None` if an overflow occurred.
     ///
     /// ```
@@ -572,9 +563,7 @@ impl PrimitiveDateTime {
             time,
         })
     }
-    // endregion: checked arithmetic
 
-    // region: saturating arithmetic
     /// Computes `self + duration`, saturating value on overflow.
     ///
     /// ```
@@ -634,10 +623,8 @@ impl PrimitiveDateTime {
             Self::MIN
         }
     }
-    // endregion: saturating arithmetic
 }
 
-// region: replacement
 /// Methods that replace part of the `PrimitiveDateTime`.
 impl PrimitiveDateTime {
     /// Replace the time, preserving the date.
@@ -861,9 +848,7 @@ impl PrimitiveDateTime {
         })
     }
 }
-// endregion replacement
 
-// region: formatting & parsing
 #[cfg(feature = "formatting")]
 impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided [format
@@ -948,9 +933,7 @@ impl fmt::Debug for PrimitiveDateTime {
         fmt::Display::fmt(self, f)
     }
 }
-// endregion formatting & parsing
 
-// region: trait impls
 impl Add<Duration> for PrimitiveDateTime {
     type Output = Self;
 
@@ -1065,4 +1048,3 @@ impl Sub for PrimitiveDateTime {
         (self.date - rhs.date) + (self.time - rhs.time)
     }
 }
-// endregion trait impls

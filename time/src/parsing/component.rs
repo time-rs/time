@@ -13,7 +13,6 @@ use crate::parsing::combinator::{
 use crate::parsing::ParsedItem;
 use crate::{Month, Weekday};
 
-// region: date components
 /// Parse the "year" component of a `Date`.
 pub(crate) fn parse_year(
     input: &[u8],
@@ -212,9 +211,7 @@ pub(crate) fn parse_day(
 ) -> Option<ParsedItem<'_, NonZeroU8>> {
     exactly_n_digits_padded::<2, _>(modifiers.padding)(input)
 }
-// endregion date components
 
-// region: time components
 /// Indicate whether the hour is "am" or "pm".
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Period {
@@ -297,9 +294,7 @@ pub(crate) fn parse_subsecond(
         }
     })
 }
-// endregion time components
 
-// region: offset components
 /// Parse the "hour" component of a `UtcOffset`.
 ///
 /// Returns the value and whether the value is negative. This is used for when "-0" is parsed.
@@ -337,7 +332,6 @@ pub(crate) fn parse_offset_second(
             .map(|offset_second| offset_second.cast_signed()),
     )
 }
-// endregion offset components
 
 /// Ignore the given number of bytes.
 pub(crate) fn parse_ignore(

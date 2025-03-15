@@ -217,7 +217,6 @@ use crate::{
     Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
 };
 
-// region: Date
 /// The format used when serializing and deserializing a human-readable `Date`.
 #[cfg(feature = "parsing")]
 const DATE_FORMAT: &[BorrowedFormatItem<'_>] = &[
@@ -251,9 +250,7 @@ impl<'a> Deserialize<'a> for Date {
         }
     }
 }
-// endregion date
 
-// region: Duration
 impl Serialize for Duration {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[cfg(feature = "serde-human-readable")]
@@ -279,9 +276,7 @@ impl<'a> Deserialize<'a> for Duration {
         }
     }
 }
-// endregion Duration
 
-// region: OffsetDateTime
 /// The format used when serializing and deserializing a human-readable `OffsetDateTime`.
 #[cfg(feature = "parsing")]
 const OFFSET_DATE_TIME_FORMAT: &[BorrowedFormatItem<'_>] = &[
@@ -326,9 +321,7 @@ impl<'a> Deserialize<'a> for OffsetDateTime {
         }
     }
 }
-// endregion OffsetDateTime
 
-// region: PrimitiveDateTime
 /// The format used when serializing and deserializing a human-readable `PrimitiveDateTime`.
 #[cfg(feature = "parsing")]
 const PRIMITIVE_DATE_TIME_FORMAT: &[BorrowedFormatItem<'_>] = &[
@@ -368,9 +361,7 @@ impl<'a> Deserialize<'a> for PrimitiveDateTime {
         }
     }
 }
-// endregion PrimitiveDateTime
 
-// region: UtcDateTime
 /// The format used when serializing and deserializing a human-readable `UtcDateTime`.
 #[cfg(feature = "parsing")]
 const UTC_DATE_TIME_FORMAT: &[BorrowedFormatItem<'_>] = PRIMITIVE_DATE_TIME_FORMAT;
@@ -406,9 +397,7 @@ impl<'a> Deserialize<'a> for UtcDateTime {
         }
     }
 }
-// endregion UtcDateTime
 
-// region: Time
 /// The format used when serializing and deserializing a human-readable `Time`.
 #[cfg(feature = "parsing")]
 const TIME_FORMAT: &[BorrowedFormatItem<'_>] = &[
@@ -444,9 +433,7 @@ impl<'a> Deserialize<'a> for Time {
         }
     }
 }
-// endregion Time
 
-// region: UtcOffset
 // FIXME: turn these constants into `const { ... }` blocks once we can depend on Rust 1.79.
 #[cfg(feature = "parsing")]
 const UTC_OFFSET_HOUR: modifier::OffsetHour = {
@@ -500,9 +487,7 @@ impl<'a> Deserialize<'a> for UtcOffset {
         }
     }
 }
-// endregion UtcOffset
 
-// region: Weekday
 impl Serialize for Weekday {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[cfg(feature = "serde-human-readable")]
@@ -525,9 +510,7 @@ impl<'a> Deserialize<'a> for Weekday {
         }
     }
 }
-// endregion Weekday
 
-// region: Month
 impl Serialize for Month {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         #[cfg(feature = "serde-human-readable")]
@@ -550,4 +533,3 @@ impl<'a> Deserialize<'a> for Month {
         }
     }
 }
-// endregion Month

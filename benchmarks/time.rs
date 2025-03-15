@@ -8,7 +8,6 @@ use time::Time;
 setup_benchmark! {
     "Time",
 
-    // region: constructors
     fn from_hms(ben: &mut Bencher<'_>) {
         ben.iter(|| Time::from_hms(1, 2, 3));
     }
@@ -24,9 +23,7 @@ setup_benchmark! {
     fn from_hms_nano(ben: &mut Bencher<'_>) {
         ben.iter(|| Time::from_hms_nano(1, 2, 3, 4));
     }
-    // endregion constructors
 
-    // region: getters
     fn as_hms(ben: &mut Bencher<'_>) {
         ben.iter(|| Time::MIDNIGHT.as_hms());
     }
@@ -66,9 +63,7 @@ setup_benchmark! {
     fn nanosecond(ben: &mut Bencher<'_>) {
         ben.iter(|| Time::MIDNIGHT.nanosecond());
     }
-    // endregion getters
 
-    // region: trait impls
     fn add_duration(ben: &mut Bencher<'_>) {
         let a = 1.milliseconds();
         let b = 1.seconds();
@@ -267,5 +262,4 @@ setup_benchmark! {
             criterion::BatchSize::SmallInput
         )
     }
-    // endregion trait impls
 }

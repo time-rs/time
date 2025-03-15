@@ -209,7 +209,6 @@ fn errors() {
     }
 }
 
-// region: individual components
 macro_rules! placeholder {
     ($($x:tt)*) => {
         " {}"
@@ -451,7 +450,6 @@ fn ignore_component(ignore_count: M<NonZeroU16>) {
         ))])
     );
 }
-// endregion individual components
 
 #[rstest]
 fn optional() {

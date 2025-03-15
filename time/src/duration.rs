@@ -188,7 +188,6 @@ macro_rules! try_from_secs {
 }
 
 impl Duration {
-    // region: constants
     /// Equivalent to `0.seconds()`.
     ///
     /// ```rust
@@ -266,9 +265,7 @@ impl Duration {
 
     /// The maximum possible duration. Adding any positive duration to this will cause an overflow.
     pub const MAX: Self = Self::new_ranged(i64::MAX, Nanoseconds::MAX);
-    // endregion constants
 
-    // region: is_{sign}
     /// Check if a duration is exactly zero.
     ///
     /// ```rust
@@ -303,9 +300,7 @@ impl Duration {
     pub const fn is_positive(self) -> bool {
         self.seconds > 0 || self.nanoseconds.get() > 0
     }
-    // endregion is_{sign}
 
-    // region: abs
     /// Get the absolute value of the duration.
     ///
     /// This method saturates the returned value if it would otherwise overflow.
@@ -338,9 +333,7 @@ impl Duration {
             self.nanoseconds.get().unsigned_abs(),
         )
     }
-    // endregion abs
 
-    // region: constructors
     /// Create a new `Duration` without checking the validity of the components.
     ///
     /// # Safety
@@ -751,9 +744,7 @@ impl Duration {
         // Safety: `nanoseconds` is guaranteed to be in range because of the modulus above.
         unsafe { Self::new_unchecked(seconds as _, nanoseconds as _) }
     }
-    // endregion constructors
 
-    // region: getters
     /// Get the number of whole weeks in the duration.
     ///
     /// ```rust
@@ -927,9 +918,7 @@ impl Duration {
     pub(crate) const fn subsec_nanoseconds_ranged(self) -> Nanoseconds {
         self.nanoseconds
     }
-    // endregion getters
 
-    // region: checked arithmetic
     /// Computes `self + rhs`, returning `None` if an overflow occurred.
     ///
     /// ```rust
@@ -1042,9 +1031,7 @@ impl Duration {
             ))
         }
     }
-    // endregion checked arithmetic
 
-    // region: saturating arithmetic
     /// Computes `self + rhs`, saturating if an overflow occurred.
     ///
     /// ```rust
@@ -1162,7 +1149,6 @@ impl Duration {
         // Safety: `nanoseconds` is guaranteed to be in range because of to the modulus above.
         unsafe { Self::new_unchecked(seconds, nanoseconds) }
     }
-    // endregion saturating arithmetic
 
     /// Runs a closure, returning the duration of time it took to run. The return value of the
     /// closure is provided in the second part of the tuple.
@@ -1182,7 +1168,6 @@ impl Duration {
     }
 }
 
-// region: trait impls
 /// The format returned by this implementation is not stable and must not be relied upon.
 ///
 /// By default this produces an exact, full-precision printout of the duration.
@@ -1573,4 +1558,3 @@ impl<'a> Sum<&'a Self> for Duration {
         iter.copied().sum()
     }
 }
-// endregion trait impls

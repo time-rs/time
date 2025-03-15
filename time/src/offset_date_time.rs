@@ -82,7 +82,6 @@ impl OffsetDateTime {
         UtcOffset::UTC,
     );
 
-    // region: now
     /// Create a new `OffsetDateTime` with the current date and time in UTC.
     ///
     /// ```rust
@@ -124,7 +123,6 @@ impl OffsetDateTime {
         let t = Self::now_utc();
         Ok(t.to_offset(UtcOffset::local_offset_at(t)?))
     }
-    // endregion now
 
     /// Create a new `OffsetDateTime` with the given [`Date`], [`Time`], and [`UtcOffset`].
     ///
@@ -337,7 +335,6 @@ impl OffsetDateTime {
         )
     }
 
-    // region: constructors
     /// Create an `OffsetDateTime` from the provided Unix timestamp. Calling `.offset()` on the
     /// resulting value is guaranteed to return UTC.
     ///
@@ -435,9 +432,7 @@ impl OffsetDateTime {
             UtcOffset::UTC,
         ))
     }
-    // endregion constructors
 
-    // region: getters
     /// Get the [`UtcOffset`].
     ///
     /// ```rust
@@ -517,7 +512,6 @@ impl OffsetDateTime {
         self.date_time().time()
     }
 
-    // region: date getters
     /// Get the year of the date in the stored offset.
     ///
     /// ```rust
@@ -718,9 +712,7 @@ impl OffsetDateTime {
     pub const fn to_julian_day(self) -> i32 {
         self.date().to_julian_day()
     }
-    // endregion date getters
 
-    // region: time getters
     /// Get the clock hour, minute, and second.
     ///
     /// ```rust
@@ -884,10 +876,7 @@ impl OffsetDateTime {
     pub const fn nanosecond(self) -> u32 {
         self.time().nanosecond()
     }
-    // endregion time getters
-    // endregion getters
 
-    // region: checked arithmetic
     /// Computes `self + duration`, returning `None` if an overflow occurred.
     ///
     /// ```
@@ -927,9 +916,7 @@ impl OffsetDateTime {
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
         Some(const_try_opt!(self.date_time().checked_sub(duration)).assume_offset(self.offset()))
     }
-    // endregion: checked arithmetic
 
-    // region: saturating arithmetic
     /// Computes `self + duration`, saturating value on overflow.
     ///
     /// ```
@@ -1039,10 +1026,8 @@ impl OffsetDateTime {
             PrimitiveDateTime::MIN.assume_offset(self.offset())
         }
     }
-    // endregion: saturating arithmetic
 }
 
-// region: replacement
 /// Methods that replace part of the `OffsetDateTime`.
 impl OffsetDateTime {
     /// Replace the time, which is assumed to be in the stored offset. The date and offset
@@ -1286,9 +1271,7 @@ impl OffsetDateTime {
         )
     }
 }
-// endregion replacement
 
-// region: formatting & parsing
 #[cfg(feature = "formatting")]
 impl OffsetDateTime {
     /// Format the `OffsetDateTime` using the provided [format
@@ -1407,9 +1390,7 @@ impl fmt::Debug for OffsetDateTime {
         fmt::Display::fmt(self, f)
     }
 }
-// endregion formatting & parsing
 
-// region: trait impls
 impl Add<Duration> for OffsetDateTime {
     type Output = Self;
 
@@ -1670,4 +1651,3 @@ impl From<OffsetDateTime> for js_sys::Date {
         Self::new(&timestamp.into())
     }
 }
-// endregion trait impls

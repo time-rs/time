@@ -62,7 +62,6 @@ mod sealed {
     }
 }
 
-// region: custom formats
 impl sealed::Sealed for BorrowedFormatItem<'_> {
     fn format_into(
         &self,
@@ -151,9 +150,7 @@ where
         self.deref().format_into(output, date, time, offset)
     }
 }
-// endregion custom formats
 
-// region: well-known formats
 impl sealed::Sealed for Rfc2822 {
     fn format_into(
         &self,
@@ -313,4 +310,3 @@ impl<const CONFIG: EncodedConfig> sealed::Sealed for Iso8601<CONFIG> {
         Ok(bytes)
     }
 }
-// endregion well-known formats

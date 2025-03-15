@@ -4,7 +4,6 @@ use time::{OffsetDateTime, UtcOffset};
 setup_benchmark! {
     "UtcOffset",
 
-    // region: constructors
     fn from_hms(ben: &mut Bencher<'_>) {
         ben.iter(|| UtcOffset::from_hms(0, 0, 0));
     }
@@ -12,9 +11,7 @@ setup_benchmark! {
     fn from_whole_seconds(ben: &mut Bencher<'_>) {
         ben.iter(|| UtcOffset::from_whole_seconds(0));
     }
-    // endregion constructors
 
-    // region: getters
     fn as_hms(ben: &mut Bencher<'_>) {
         ben.iter(|| UtcOffset::UTC.as_hms());
     }
@@ -38,9 +35,7 @@ setup_benchmark! {
     fn seconds_past_minute(ben: &mut Bencher<'_>) {
         ben.iter(|| UtcOffset::UTC.seconds_past_minute());
     }
-    // endregion getters
 
-    // region: is_{sign}
     fn is_utc(ben: &mut Bencher<'_>) {
         ben.iter(|| UtcOffset::UTC.is_utc());
     }
@@ -52,7 +47,6 @@ setup_benchmark! {
     fn is_negative(ben: &mut Bencher<'_>) {
         ben.iter(|| UtcOffset::UTC.is_negative());
     }
-    // endregion is_{sign}
 
     fn local_offset_at(ben: &mut Bencher<'_>) {
         ben.iter(|| UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH));

@@ -155,7 +155,6 @@ impl Time {
     pub const MAX: Self =
         Self::from_hms_nanos_ranged(Hours::MAX, Minutes::MAX, Seconds::MAX, Nanoseconds::MAX);
 
-    // region: constructors
     /// Create a `Time` from its components.
     ///
     /// # Safety
@@ -303,9 +302,7 @@ impl Time {
             ensure_ranged!(Nanoseconds: nanosecond),
         ))
     }
-    // endregion constructors
 
-    // region: getters
     /// Get the clock hour, minute, and second.
     ///
     /// ```rust
@@ -454,9 +451,7 @@ impl Time {
     pub const fn nanosecond(self) -> u32 {
         self.nanosecond.get()
     }
-    // endregion getters
 
-    // region: arithmetic helpers
     /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow, returning whether
     /// the date is different.
     pub(crate) const fn adjusting_add(self, duration: Duration) -> (DateAdjustment, Self) {
@@ -591,9 +586,7 @@ impl Time {
             },
         )
     }
-    // endregion arithmetic helpers
 
-    // region: replacement
     /// Replace the clock hour.
     ///
     /// ```rust
@@ -706,10 +699,8 @@ impl Time {
         self.nanosecond = ensure_ranged!(Nanoseconds: nanosecond);
         Ok(self)
     }
-    // endregion replacement
 }
 
-// region: formatting & parsing
 #[cfg(feature = "formatting")]
 impl Time {
     /// Format the `Time` using the provided [format description](crate::format_description).
@@ -832,9 +823,7 @@ impl fmt::Debug for Time {
         fmt::Display::fmt(self, f)
     }
 }
-// endregion formatting & parsing
 
-// region: trait impls
 impl Add<Duration> for Time {
     type Output = Self;
 
@@ -946,4 +935,3 @@ impl Sub for Time {
         unsafe { Duration::new_unchecked(seconds, nanoseconds) }
     }
 }
-// endregion trait impls

@@ -65,7 +65,6 @@ impl UtcOffset {
     /// ```
     pub const UTC: Self = Self::from_whole_seconds_ranged(WholeSeconds::new_static::<0>());
 
-    // region: constructors
     /// Create a `UtcOffset` representing an offset of the hours, minutes, and seconds provided, the
     /// validity of which must be guaranteed by the caller. All three parameters must have the same
     /// sign.
@@ -205,9 +204,7 @@ impl UtcOffset {
             )
         }
     }
-    // endregion constructors
 
-    // region: getters
     /// Obtain the UTC offset as its hours, minutes, and seconds. The sign of all three components
     /// will always match. A positive value indicates an offset to the east; a negative to the west.
     ///
@@ -290,9 +287,7 @@ impl UtcOffset {
     pub const fn seconds_past_minute(self) -> i8 {
         self.seconds.get()
     }
-    // endregion getters
 
-    // region: is_{sign}
     /// Check if the offset is exactly UTC.
     ///
     ///
@@ -329,9 +324,7 @@ impl UtcOffset {
     pub const fn is_negative(self) -> bool {
         self.hours.get() < 0 || self.minutes.get() < 0 || self.seconds.get() < 0
     }
-    // endregion is_{sign}
 
-    // region: local offset
     /// Attempt to obtain the system's UTC offset at a known moment in time. If the offset cannot be
     /// determined, an error is returned.
     ///
@@ -362,10 +355,8 @@ impl UtcOffset {
         let now = OffsetDateTime::now_utc();
         local_offset_at(now).ok_or(error::IndeterminateOffset)
     }
-    // endregion: local offset
 }
 
-// region: formatting & parsing
 #[cfg(feature = "formatting")]
 impl UtcOffset {
     /// Format the `UtcOffset` using the provided [format description](crate::format_description).
@@ -463,7 +454,6 @@ impl fmt::Debug for UtcOffset {
         fmt::Display::fmt(self, f)
     }
 }
-// endregion formatting & parsing
 
 impl Neg for UtcOffset {
     type Output = Self;

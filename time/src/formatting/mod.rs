@@ -199,7 +199,6 @@ pub(crate) fn format_component(
     })
 }
 
-// region: date formatters
 /// Format the day into the designated output.
 fn fmt_day(
     output: &mut (impl io::Write + ?Sized),
@@ -355,9 +354,7 @@ fn fmt_year(
     bytes += format_number(output, value.unsigned_abs(), padding)?;
     Ok(bytes)
 }
-// endregion date formatters
 
-// region: time formatters
 /// Format the hour into the designated output.
 fn fmt_hour(
     output: &mut (impl io::Write + ?Sized),
@@ -440,9 +437,7 @@ fn fmt_subsecond(
         format_number_pad_zero::<1>(output, nanos / 100_000_000)
     }
 }
-// endregion time formatters
 
-// region: offset formatters
 /// Format the offset hour into the designated output.
 fn fmt_offset_hour(
     output: &mut (impl io::Write + ?Sized),
@@ -479,7 +474,6 @@ fn fmt_offset_second(
 ) -> Result<usize, io::Error> {
     format_number::<2>(output, offset.seconds_past_minute().unsigned_abs(), padding)
 }
-// endregion offset formatters
 
 /// Format the Unix timestamp into the designated output.
 fn fmt_unix_timestamp(

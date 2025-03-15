@@ -73,7 +73,6 @@ impl Date {
     pub const MAX: Self =
         unsafe { Self::__from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)) };
 
-    // region: constructors
     /// Construct a `Date` from its internal representation, the validity of which must be
     /// guaranteed by the caller.
     ///
@@ -319,9 +318,7 @@ impl Date {
         // number is in range.
         unsafe { Self::from_parts(y_g, is_leap_year, ordinal as _) }
     }
-    // endregion constructors
 
-    // region: getters
     /// Whether `is_leap_year(self.year())` is `true`.
     ///
     /// This method is optimized to take advantage of the fact that the value is pre-computed upon
@@ -744,9 +741,7 @@ impl Date {
         let days_before_year = (1461 * adj_year as i64 / 4) as i32 - century + century / 4;
         days_before_year + ordinal as i32 - 363_521_075
     }
-    // endregion getters
 
-    // region: checked arithmetic
     /// Computes `self + duration`, returning `None` if an overflow occurred.
     ///
     /// ```rust
@@ -982,9 +977,7 @@ impl Date {
         const_try_opt!(self.checked_prev_occurrence(weekday))
             .checked_sub(Duration::weeks(n as i64 - 1))
     }
-    // endregion: checked arithmetic
 
-    // region: saturating arithmetic
     /// Computes `self + duration`, saturating value on overflow.
     ///
     /// ```rust
@@ -1064,9 +1057,7 @@ impl Date {
             Self::MIN
         }
     }
-    // endregion saturating arithmetic
 
-    // region: replacement
     /// Replace the year. The month and day will be unchanged.
     ///
     /// ```rust
@@ -1193,10 +1184,8 @@ impl Date {
         // Safety: `ordinal` is in range.
         Ok(unsafe { Self::__from_ordinal_date_unchecked(self.year(), ordinal) })
     }
-    // endregion replacement
 }
 
-// region: attach time
 /// Methods to add a [`Time`] component, resulting in a [`PrimitiveDateTime`].
 impl Date {
     /// Create a [`PrimitiveDateTime`] using the existing date. The [`Time`] component will be set
@@ -1302,9 +1291,7 @@ impl Date {
         ))
     }
 }
-// endregion attach time
 
-// region: formatting & parsing
 #[cfg(feature = "formatting")]
 impl Date {
     /// Format the `Date` using the provided [format description](crate::format_description).
@@ -1441,9 +1428,7 @@ impl fmt::Debug for Date {
         fmt::Display::fmt(self, f)
     }
 }
-// endregion formatting & parsing
 
-// region: trait impls
 impl Add<Duration> for Date {
     type Output = Self;
 
@@ -1503,4 +1488,3 @@ impl Sub for Date {
         Duration::days((self.to_julian_day() - other.to_julian_day()).extend())
     }
 }
-// endregion trait impls

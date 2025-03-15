@@ -8,7 +8,6 @@ use time::OffsetDateTime;
 setup_benchmark! {
     "OffsetDateTime",
 
-    // region: now
     fn now_utc(ben: &mut Bencher<'_>) {
         ben.iter(OffsetDateTime::now_utc);
     }
@@ -16,14 +15,12 @@ setup_benchmark! {
     fn now_local(ben: &mut Bencher<'_>) {
         ben.iter(OffsetDateTime::now_local);
     }
-    // endregion now
 
     fn to_offset(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(2000-01-01 0:00 +11).to_offset(offset!(-5)));
         ben.iter(|| datetime!(2000-01-01 0:00 +11).to_offset(offset!(-8)));
     }
 
-    // region: constructors
     fn from_unix_timestamp(ben: &mut Bencher<'_>) {
         ben.iter(|| OffsetDateTime::from_unix_timestamp(0));
         ben.iter(|| OffsetDateTime::from_unix_timestamp(1_546_300_800));
@@ -33,9 +30,7 @@ setup_benchmark! {
         ben.iter(|| OffsetDateTime::from_unix_timestamp_nanos(0));
         ben.iter(|| OffsetDateTime::from_unix_timestamp_nanos(1_546_300_800_000_000_000));
     }
-    // endregion constructors
 
-    // region: getters
     fn offset(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(2019-01-01 0:00 UTC).offset());
         ben.iter(|| datetime!(2019-01-01 0:00 +1).offset());
@@ -88,9 +83,7 @@ setup_benchmark! {
         ben.iter(|| datetime!(2019-01-01 0:00 UTC).second());
         ben.iter(|| datetime!(2018-12-31 23:00 -1).second());
     }
-    // endregion getters
 
-    // region: replacement
     fn replace_time(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(2020-01-01 5:00 UTC).replace_time(time!(12:00)));
         ben.iter(|| datetime!(2020-01-01 12:00 -5).replace_time(time!(7:00)));
@@ -110,9 +103,7 @@ setup_benchmark! {
     fn replace_offset(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(2020-01-01 0:00 UTC).replace_offset(offset!(-5)));
     }
-    // endregion replacement
 
-    // region: trait impls
     fn partial_eq(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(1999-12-31 23:00 -1) == datetime!(2000-01-01 0:00 UTC));
     }
@@ -425,5 +416,4 @@ setup_benchmark! {
         ben.iter(|| SystemTime::from(b));
         ben.iter(|| SystemTime::from(c));
     }
-    // endregion trait impls
 }
