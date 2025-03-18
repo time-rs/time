@@ -1,5 +1,7 @@
 //! Utility functions.
 
+use crate::hint;
+
 /// Returns if the provided year is a leap year in the proleptic Gregorian calendar. Uses
 /// [astronomical year numbering](https://en.wikipedia.org/wiki/Astronomical_year_numbering).
 ///
@@ -59,5 +61,28 @@ pub const fn weeks_in_year(year: i32) -> u8 {
         | 285 | 291 | 296 | 303 | 308 | 314 | 320 | 325 | 331 | 336 | 342 | 348 | 353 | 359
         | 364 | 370 | 376 | 381 | 387 | 392 | 398 => 53,
         _ => 52,
+    }
+}
+
+/// Get the number of days in the month of a given year.
+///
+/// ```rust
+/// # use time_core::util::days_in_month;
+/// assert_eq!(days_in_month(2, 2020), 29);
+/// ```
+///
+/// Note: This function is not exposed by the `time` crate. It is an implementation detail.
+pub const fn days_in_month(month: u8, year: i32) -> u8 {
+    debug_assert!(month >= 1);
+    debug_assert!(month <= 12);
+
+    if hint::unlikely(month == 2) {
+        if is_leap_year(year) {
+            29
+        } else {
+            28
+        }
+    } else {
+        30 | month ^ (month >> 3)
     }
 }

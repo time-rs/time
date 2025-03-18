@@ -21,7 +21,7 @@ pub(crate) enum DateAdjustment {
 /// assert_eq!(util::days_in_month(Month::February, 2020), 29);
 /// ```
 pub const fn days_in_month(month: Month, year: i32) -> u8 {
-    month.length(year)
+    time_core::util::days_in_month(month as u8, year)
 }
 
 /// Get the number of days in the month of a given year.
@@ -36,7 +36,7 @@ pub const fn days_in_month(month: Month, year: i32) -> u8 {
     note = "use `days_in_month` or `Month::length` instead"
 )]
 pub const fn days_in_year_month(year: i32, month: Month) -> u8 {
-    month.length(year)
+    days_in_month(month, year)
 }
 
 /// Update time zone information from the system.

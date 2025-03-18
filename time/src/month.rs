@@ -7,7 +7,7 @@ use core::str::FromStr;
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
 use self::Month::*;
-use crate::{error, hint, util};
+use crate::{error, util};
 
 /// Months of the year.
 #[repr(u8)]
@@ -72,16 +72,7 @@ impl Month {
     /// assert_eq!(Month::February.length(2020), 29);
     /// ```
     pub const fn length(self, year: i32) -> u8 {
-        let val = self as u8;
-        if hint::unlikely(val == 2) {
-            if util::is_leap_year(year) {
-                29
-            } else {
-                28
-            }
-        } else {
-            30 | val ^ (val >> 3)
-        }
+        util::days_in_month(self, year)
     }
 
     /// Get the previous month.
