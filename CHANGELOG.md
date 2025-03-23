@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.41 [2025-03-23]
+
+### Fixed
+
+- Compatibility with the latest release of `deranged`. This fix is permanent and covers future
+  similar changes upstream.
+
 ## 0.3.40 [2025-03-18]
 
 ### Added

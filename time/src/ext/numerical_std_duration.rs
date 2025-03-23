@@ -131,7 +131,7 @@ impl NumericalStdDuration for f64 {
     /// This will panic if self is negative.
     fn std_nanoseconds(self) -> StdDuration {
         assert!(self >= 0.);
-        StdDuration::from_nanos(self as _)
+        StdDuration::from_nanos(self as u64)
     }
 
     /// # Panics
@@ -139,7 +139,7 @@ impl NumericalStdDuration for f64 {
     /// This will panic if self is negative.
     fn std_microseconds(self) -> StdDuration {
         assert!(self >= 0.);
-        StdDuration::from_nanos((self * Nanosecond::per(Microsecond) as Self) as _)
+        StdDuration::from_nanos((self * Nanosecond::per(Microsecond) as Self) as u64)
     }
 
     /// # Panics
@@ -147,7 +147,7 @@ impl NumericalStdDuration for f64 {
     /// This will panic if self is negative.
     fn std_milliseconds(self) -> StdDuration {
         assert!(self >= 0.);
-        StdDuration::from_nanos((self * Nanosecond::per(Millisecond) as Self) as _)
+        StdDuration::from_nanos((self * Nanosecond::per(Millisecond) as Self) as u64)
     }
 
     /// # Panics
@@ -155,7 +155,7 @@ impl NumericalStdDuration for f64 {
     /// This will panic if self is negative.
     fn std_seconds(self) -> StdDuration {
         assert!(self >= 0.);
-        StdDuration::from_nanos((self * Nanosecond::per(Second) as Self) as _)
+        StdDuration::from_nanos((self * Nanosecond::per(Second) as Self) as u64)
     }
 
     /// # Panics
@@ -163,7 +163,7 @@ impl NumericalStdDuration for f64 {
     /// This will panic if self is negative.
     fn std_minutes(self) -> StdDuration {
         assert!(self >= 0.);
-        StdDuration::from_nanos((self * Nanosecond::per(Minute) as Self) as _)
+        StdDuration::from_nanos((self * Nanosecond::per(Minute) as Self) as u64)
     }
 
     /// # Panics
@@ -171,7 +171,7 @@ impl NumericalStdDuration for f64 {
     /// This will panic if self is negative.
     fn std_hours(self) -> StdDuration {
         assert!(self >= 0.);
-        StdDuration::from_nanos((self * Nanosecond::per(Hour) as Self) as _)
+        StdDuration::from_nanos((self * Nanosecond::per(Hour) as Self) as u64)
     }
 
     /// # Panics
@@ -179,7 +179,7 @@ impl NumericalStdDuration for f64 {
     /// This will panic if self is negative.
     fn std_days(self) -> StdDuration {
         assert!(self >= 0.);
-        StdDuration::from_nanos((self * Nanosecond::per(Day) as Self) as _)
+        StdDuration::from_nanos((self * Nanosecond::per(Day) as Self) as u64)
     }
 
     /// # Panics
@@ -187,6 +187,6 @@ impl NumericalStdDuration for f64 {
     /// This will panic if self is negative.
     fn std_weeks(self) -> StdDuration {
         assert!(self >= 0.);
-        StdDuration::from_nanos((self * Nanosecond::per(Week) as Self) as _)
+        StdDuration::from_nanos((self * Nanosecond::per(Week) as Self) as u64)
     }
 }

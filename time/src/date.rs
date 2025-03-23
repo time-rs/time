@@ -141,8 +141,8 @@ impl Date {
                 return Err(error::ComponentRange {
                     name: "day",
                     minimum: 1,
-                    maximum: month.length(year) as _,
-                    value: day as _,
+                    maximum: month.length(year) as i64,
+                    value: day as i64,
                     conditional_message: Some("for the given month and year"),
                 });
             }
@@ -179,8 +179,8 @@ impl Date {
                 return Err(error::ComponentRange {
                     name: "ordinal",
                     minimum: 1,
-                    maximum: days_in_year(year) as _,
-                    value: ordinal as _,
+                    maximum: days_in_year(year) as i64,
+                    value: ordinal as i64,
                     conditional_message: Some("for the given year"),
                 });
             }
@@ -216,8 +216,8 @@ impl Date {
                 return Err(error::ComponentRange {
                     name: "week",
                     minimum: 1,
-                    maximum: weeks_in_year(year) as _,
-                    value: week as _,
+                    maximum: weeks_in_year(year) as i64,
+                    value: week as i64,
                     conditional_message: Some("for the given year"),
                 });
             }
@@ -252,7 +252,7 @@ impl Date {
             }
         } else {
             // Safety: `ordinal` is not zero.
-            unsafe { Self::__from_ordinal_date_unchecked(year, ordinal as _) }
+            unsafe { Self::__from_ordinal_date_unchecked(year, ordinal as u16) }
         })
     }
 
@@ -316,7 +316,7 @@ impl Date {
 
         // Safety: `ordinal` is not zero and `is_leap_year` is correct, so long as the Julian day
         // number is in range.
-        unsafe { Self::from_parts(y_g, is_leap_year, ordinal as _) }
+        unsafe { Self::from_parts(y_g, is_leap_year, ordinal as u16) }
     }
 
     /// Whether `is_leap_year(self.year())` is `true`.
@@ -391,7 +391,7 @@ impl Date {
         let ordinal = ordinal - ordinal_adj;
         let month = (ordinal * 268 + 8031) >> 13;
         let days_in_preceding_months = (month * 3917 - 3866) >> 7;
-        (ordinal - days_in_preceding_months) as _
+        (ordinal - days_in_preceding_months) as u8
     }
 
     /// Get the day of the year.
@@ -404,14 +404,14 @@ impl Date {
     /// assert_eq!(date!(2019-12-31).ordinal(), 365);
     /// ```
     pub const fn ordinal(self) -> u16 {
-        (self.value.get() & 0x1FF) as _
+        (self.value.get() & 0x1FF) as u16
     }
 
     /// Get the ISO 8601 year and week number.
     pub(crate) const fn iso_year_week(self) -> (i32, u8) {
         let (year, ordinal) = self.to_ordinal_date();
 
-        match ((ordinal + 10 - self.weekday().number_from_monday() as u16) / 7) as _ {
+        match ((ordinal + 10 - self.weekday().number_from_monday() as u16) / 7) as u8 {
             0 => (year - 1, weeks_in_year(year - 1)),
             53 if weeks_in_year(year) == 52 => (year + 1, 1),
             week => (year, week),
@@ -446,7 +446,7 @@ impl Date {
     /// assert_eq!(date!(2021-01-01).sunday_based_week(), 0);
     /// ```
     pub const fn sunday_based_week(self) -> u8 {
-        ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as _
+        ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as u8
     }
 
     /// Get the week number where week 1 begins on the first Monday.
@@ -461,7 +461,7 @@ impl Date {
     /// assert_eq!(date!(2021-01-01).monday_based_week(), 0);
     /// ```
     pub const fn monday_based_week(self) -> u8 {
-        ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as _
+        ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as u8
     }
 
     /// Get the year, month, and day.
@@ -529,7 +529,7 @@ impl Date {
         let (year, ordinal) = self.to_ordinal_date();
         let weekday = self.weekday();
 
-        match ((ordinal + 10 - weekday.number_from_monday() as u16) / 7) as _ {
+        match ((ordinal + 10 - weekday.number_from_monday() as u16) / 7) as u8 {
             0 => (year - 1, weeks_in_year(year - 1), weekday),
             53 if weeks_in_year(year) == 52 => (year + 1, 1, weekday),
             week => (year, week, weekday),
@@ -779,7 +779,7 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as _));
+        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as i32));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
@@ -822,7 +822,7 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as _));
+        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as i32));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
@@ -867,7 +867,7 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as _));
+        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as i32));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
@@ -910,7 +910,7 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as _));
+        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as i32));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
@@ -1141,8 +1141,8 @@ impl Date {
                 return Err(error::ComponentRange {
                     name: "day",
                     minimum: 1,
-                    maximum: self.month().length(self.year()) as _,
-                    value: day as _,
+                    maximum: self.month().length(self.year()) as i64,
+                    value: day as i64,
                     conditional_message: Some("for the given month and year"),
                 });
             }
@@ -1152,7 +1152,7 @@ impl Date {
         Ok(unsafe {
             Self::__from_ordinal_date_unchecked(
                 self.year(),
-                (self.ordinal() as i16 - self.day() as i16 + day as i16) as _,
+                (self.ordinal() as i16 - self.day() as i16 + day as i16) as u16,
             )
         })
     }
@@ -1174,8 +1174,8 @@ impl Date {
                 return Err(error::ComponentRange {
                     name: "ordinal",
                     minimum: 1,
-                    maximum: days_in_year(self.year()) as _,
-                    value: ordinal as _,
+                    maximum: days_in_year(self.year()) as i64,
+                    value: ordinal as i64,
                     conditional_message: Some("for the given year"),
                 });
             }

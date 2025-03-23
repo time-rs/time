@@ -116,7 +116,7 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a>
                 public: crate::error::InvalidFormatDescription::NotSupported {
                     what: "optional item",
                     context: "runtime-parsed format descriptions",
-                    index: span.start.byte as _,
+                    index: span.start.byte as usize,
                 },
             }),
             Item::First { value: _, span } => Err(Error {
@@ -126,7 +126,7 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a>
                 public: crate::error::InvalidFormatDescription::NotSupported {
                     what: "'first' item",
                     context: "runtime-parsed format descriptions",
-                    index: span.start.byte as _,
+                    index: span.start.byte as usize,
                 },
             }),
         }
@@ -207,7 +207,7 @@ macro_rules! component_definition {
                         _inner: unused(modifier.key.span.error("invalid modifier key")),
                         public: crate::error::InvalidFormatDescription::InvalidModifier {
                             value: String::from_utf8_lossy(*modifier.key).into_owned(),
-                            index: modifier.key.span.start.byte as _,
+                            index: modifier.key.span.start.byte as usize,
                         }
                     });
                 }
@@ -219,7 +219,7 @@ macro_rules! component_definition {
                             public:
                                 crate::error::InvalidFormatDescription::MissingRequiredModifier {
                                     name: $parse_field,
-                                    index: _component_span.start.byte as _,
+                                    index: _component_span.start.byte as usize,
                                 }
                         });
                     }
@@ -265,7 +265,7 @@ macro_rules! component_definition {
                 _inner: unused(name.span.error("invalid component")),
                 public: crate::error::InvalidFormatDescription::InvalidComponentName {
                     name: String::from_utf8_lossy(name).into_owned(),
-                    index: name.span.start.byte as _,
+                    index: name.span.start.byte as usize,
                 },
             })
         }
@@ -402,7 +402,7 @@ macro_rules! modifier {
                     _inner: unused(value.span.error("invalid modifier value")),
                     public: crate::error::InvalidFormatDescription::InvalidModifier {
                         value: String::from_utf8_lossy(value).into_owned(),
-                        index: value.span.start.byte as _,
+                        index: value.span.start.byte as usize,
                     },
                 })
             }
@@ -543,7 +543,7 @@ fn parse_from_modifier_value<T: FromStr>(value: &Spanned<&[u8]>) -> Result<Optio
             _inner: unused(value.span.error("invalid modifier value")),
             public: crate::error::InvalidFormatDescription::InvalidModifier {
                 value: String::from_utf8_lossy(value).into_owned(),
-                index: value.span.start.byte as _,
+                index: value.span.start.byte as usize,
             },
         })
 }

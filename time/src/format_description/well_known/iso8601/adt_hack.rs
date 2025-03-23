@@ -65,8 +65,8 @@ impl Config {
             FC::DateTimeOffset => 5,
             FC::TimeOffset => 6,
         };
-        bytes[1] = self.use_separators as _;
-        bytes[2] = self.year_is_six_digits as _;
+        bytes[1] = self.use_separators as u8;
+        bytes[2] = self.year_is_six_digits as u8;
         bytes[3] = match self.date_kind {
             DateKind::Calendar => 0,
             DateKind::Week => 1,

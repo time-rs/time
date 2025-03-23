@@ -118,9 +118,9 @@ macro_rules! ensure_ranged {
                 #[allow(trivial_numeric_casts)]
                 return Err(crate::error::ComponentRange {
                     name: stringify!($value),
-                    minimum: $type::MIN.get() as _,
-                    maximum: $type::MAX.get() as _,
-                    value: $value as _,
+                    minimum: $type::MIN.get() as i64,
+                    maximum: $type::MAX.get() as i64,
+                    value: $value as i64,
                     conditional_message: None,
                 });
             }
@@ -137,7 +137,7 @@ macro_rules! ensure_ranged {
                         name: stringify!($value),
                         minimum: $type::MIN.get() as i64 / $factor as i64,
                         maximum: $type::MAX.get() as i64 / $factor as i64,
-                        value: $value as _,
+                        value: $value as i64,
                         conditional_message: None,
                     });
                 }
@@ -147,7 +147,7 @@ macro_rules! ensure_ranged {
                     name: stringify!($value),
                     minimum: $type::MIN.get() as i64 / $factor as i64,
                     maximum: $type::MAX.get() as i64 / $factor as i64,
-                    value: $value as _,
+                    value: $value as i64,
                     conditional_message: None,
                 });
             }

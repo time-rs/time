@@ -139,7 +139,7 @@ impl Weekday {
     /// assert_eq!(Weekday::Monday.number_days_from_monday(), 0);
     /// ```
     pub const fn number_days_from_monday(self) -> u8 {
-        self as _
+        self as u8
     }
 
     /// Get the zero-indexed number of days from Sunday.

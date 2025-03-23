@@ -59,7 +59,7 @@ impl Month {
                 name: "month",
                 minimum: 1,
                 maximum: 12,
-                value: n as _,
+                value: n as i64,
                 conditional_message: None,
             }),
         }
@@ -251,7 +251,7 @@ impl FromStr for Month {
 
 impl From<Month> for u8 {
     fn from(month: Month) -> Self {
-        month as _
+        month as Self
     }
 }
 

@@ -5,7 +5,7 @@ resolver = "2"
 
 [workspace.dependencies]
 time-core = { path = "time-core", version = "=0.1.4" }
-time-macros = { path = "time-macros", version = "=0.2.21" }
+time-macros = { path = "time-macros", version = "=0.2.22" }
 
 criterion = { version = "0.5.1", default-features = false }
 deranged = { version = "0.4.0", default-features = false, features = [
@@ -102,13 +102,14 @@ alloc-instead-of-core = "deny"
 std-instead-of-core = "deny"
 undocumented-unsafe-blocks = "deny"
 
-missing-docs-in-private-items = "warn"
 all = { level = "warn", priority = -1 }
+as-underscore = "warn"
 dbg-macro = "warn"
 decimal-literal-representation = "warn"
 explicit-auto-deref = "warn"
 get-unwrap = "warn"
 manual-let-else = "warn"
+missing-docs-in-private-items = "warn"
 missing-enforced-import-renames = "warn"
 nursery = { level = "warn", priority = -1 }
 obfuscated-if-else = "warn"

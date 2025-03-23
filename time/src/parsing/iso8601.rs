@@ -129,16 +129,17 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
                     *parsed = parsed
                         .with_hour_24(hour)
                         .ok_or(InvalidComponent("hour"))?
-                        .with_minute((fractional_part * Second::per(Minute) as f64) as _)
+                        .with_minute((fractional_part * Second::per(Minute) as f64) as u8)
                         .ok_or(InvalidComponent("minute"))?
                         .with_second(
                             (fractional_part * Second::per(Hour) as f64 % Minute::per(Hour) as f64)
-                                as _,
+                                as u8,
                         )
                         .ok_or(InvalidComponent("second"))?
                         .with_subsecond(
                             (fractional_part * Nanosecond::per(Hour) as f64
-                                % Nanosecond::per(Second) as f64) as _,
+                                % Nanosecond::per(Second) as f64)
+                                as u32,
                         )
                         .ok_or(InvalidComponent("subsecond"))?;
                     return Ok(input);
@@ -166,11 +167,12 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
                     *parsed = parsed
                         .with_minute(minute)
                         .ok_or(InvalidComponent("minute"))?
-                        .with_second((fractional_part * Second::per(Minute) as f64) as _)
+                        .with_second((fractional_part * Second::per(Minute) as f64) as u8)
                         .ok_or(InvalidComponent("second"))?
                         .with_subsecond(
                             (fractional_part * Nanosecond::per(Minute) as f64
-                                % Nanosecond::per(Second) as f64) as _,
+                                % Nanosecond::per(Second) as f64)
+                                as u32,
                         )
                         .ok_or(InvalidComponent("subsecond"))?;
                     return Ok(input);
@@ -213,7 +215,7 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
                 Some(ParsedItem(input, (second, Some(fractional_part)))) => (
                     input,
                     second,
-                    round(fractional_part * Nanosecond::per(Second) as f64) as _,
+                    round(fractional_part * Nanosecond::per(Second) as f64) as u32,
                 ),
                 None if extended_kind.is_extended() => {
                     return Err(error::Parse::ParseFromDescription(InvalidComponent(

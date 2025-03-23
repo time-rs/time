@@ -87,7 +87,7 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Time
             span_start: Some(minute_span),
             span_end: Some(minute_span),
         })
-    } else if second >= Second::per(Minute) as _ {
+    } else if second >= Second::per(Minute) as f64 {
         Err(Error::InvalidComponent {
             name: "second",
             value: second.to_string(),
@@ -98,8 +98,8 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Time
         Ok(Time {
             hour,
             minute,
-            second: second.trunc() as _,
-            nanosecond: (second.fract() * Nanosecond::per(Second) as f64).round() as _,
+            second: second.trunc() as u8,
+            nanosecond: (second.fract() * Nanosecond::per(Second) as f64).round() as u32,
         })
     }
 }

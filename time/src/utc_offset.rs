@@ -198,9 +198,9 @@ impl UtcOffset {
         // Safety: The type of `seconds` guarantees that all values are in range.
         unsafe {
             Self::__from_hms_unchecked(
-                (seconds.get() / Second::per(Hour) as i32) as _,
-                ((seconds.get() % Second::per(Hour) as i32) / Minute::per(Hour) as i32) as _,
-                (seconds.get() % Second::per(Minute) as i32) as _,
+                (seconds.get() / Second::per(Hour) as i32) as i8,
+                ((seconds.get() % Second::per(Hour) as i32) / Minute::per(Hour) as i32) as i8,
+                (seconds.get() % Second::per(Minute) as i32) as i8,
             )
         }
     }

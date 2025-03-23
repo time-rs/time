@@ -160,10 +160,10 @@ pub struct Parsed {
     offset_hour: OptionRangedI8<-23, 23>,
     /// Minutes within the hour of the UTC offset.
     offset_minute:
-        OptionRangedI8<{ -((Minute::per(Hour) - 1) as i8) }, { (Minute::per(Hour) - 1) as _ }>,
+        OptionRangedI8<{ -((Minute::per(Hour) - 1) as i8) }, { (Minute::per(Hour) - 1) as i8 }>,
     /// Seconds within the minute of the UTC offset.
     offset_second:
-        OptionRangedI8<{ -((Second::per(Minute) - 1) as i8) }, { (Second::per(Minute) - 1) as _ }>,
+        OptionRangedI8<{ -((Second::per(Minute) - 1) as i8) }, { (Second::per(Minute) - 1) as i8 }>,
     /// The Unix timestamp in nanoseconds.
     unix_timestamp_nanos: OptionRangedI128<
         {
@@ -810,7 +810,7 @@ impl Parsed {
         if value > i8::MAX as u8 {
             None
         } else {
-            self.with_offset_minute_signed(value as _)
+            self.with_offset_minute_signed(value as i8)
         }
     }
 
@@ -830,7 +830,7 @@ impl Parsed {
         if value > i8::MAX as u8 {
             None
         } else {
-            self.with_offset_second_signed(value as _)
+            self.with_offset_second_signed(value as i8)
         }
     }
 

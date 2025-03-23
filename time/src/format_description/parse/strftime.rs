@@ -91,7 +91,7 @@ fn lex(mut input: &[u8]) -> iter::Peekable<impl Iterator<Item = Result<Token<'_>
                         _inner: unused(percent_loc.error("unexpected end of input")),
                         public: InvalidFormatDescription::Expected {
                             what: "valid escape sequence",
-                            index: percent_loc.byte as _,
+                            index: percent_loc.byte as usize,
                         },
                     }));
                 }
@@ -317,7 +317,7 @@ fn parse_component(
                 public: InvalidFormatDescription::NotSupported {
                     what: "modifier",
                     context: "",
-                    index: component.span.start.byte as _,
+                    index: component.span.start.byte as usize,
                 },
             })
         }
@@ -467,7 +467,7 @@ fn parse_component(
                 public: InvalidFormatDescription::NotSupported {
                     what: "component",
                     context: "",
-                    index: component.span.start.byte as _,
+                    index: component.span.start.byte as usize,
                 },
             })
         }
@@ -479,7 +479,7 @@ fn parse_component(
                 }),
                 public: InvalidFormatDescription::InvalidComponentName {
                     name: String::from_utf8_lossy(&[*component]).into_owned(),
-                    index: component.span.start.byte as _,
+                    index: component.span.start.byte as usize,
                 },
             })
         }
