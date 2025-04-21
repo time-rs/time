@@ -147,6 +147,22 @@ fn nanosecond() -> Result<()> {
 }
 
 #[test]
+fn duration_until() -> Result<()> {
+    assert_eq!(time!(18:00).duration_until(Time::MIDNIGHT), 6.hours());
+    assert_eq!(time!(23:00).duration_until(time!(1:00)), 2.hours());
+    assert_eq!(time!(12:30).duration_until(time!(14:00)), 90.minutes());
+    Ok(())
+}
+
+#[test]
+fn duration_since() -> Result<()> {
+    assert_eq!(Time::MIDNIGHT.duration_since(time!(18:00)), 6.hours());
+    assert_eq!(time!(1:00).duration_since(time!(23:00)), 2.hours());
+    assert_eq!(time!(14:00).duration_since(time!(12:30)), 90.minutes());
+    Ok(())
+}
+
+#[test]
 fn replace_hour() {
     assert_eq!(
         time!(1:02:03.004_005_006).replace_hour(7),

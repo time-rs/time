@@ -20,7 +20,7 @@ use crate::internal_macros::{cascade, ensure_ranged, impl_add_assign, impl_sub_a
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::util::DateAdjustment;
-use crate::{error, Duration};
+use crate::{error, hint, Duration};
 
 /// By explicitly inserting this enum where padding is expected, the compiler is able to better
 /// perform niche value optimization.
@@ -450,6 +450,70 @@ impl Time {
     /// ```
     pub const fn nanosecond(self) -> u32 {
         self.nanosecond.get()
+    }
+
+    /// Determine the [`Duration`] that, if added to `self`, would result in the parameter.
+    ///
+    /// ```rust
+    /// # use time::Time;
+    /// # use time::ext::NumericalDuration;
+    /// # use time_macros::time;
+    /// assert_eq!(time!(18:00).duration_until(Time::MIDNIGHT), 6.hours());
+    /// assert_eq!(time!(23:00).duration_until(time!(1:00)), 2.hours());
+    /// ```
+    pub const fn duration_until(self, other: Self) -> Duration {
+        let mut nanoseconds = other.nanosecond.get() as i32 - self.nanosecond.get() as i32;
+        let mut seconds = other.second.get() as i8 - self.second.get() as i8;
+        let mut minutes = other.minute.get() as i8 - self.minute.get() as i8;
+        let mut hours = other.hour.get() as i8 - self.hour.get() as i8;
+
+        // Safety: For all four variables, the bounds are obviously true given the previous bounds
+        // and nature of subtraction.
+        unsafe {
+            hint::assert_unchecked(
+                nanoseconds >= Nanoseconds::MIN.get() as i32 - Nanoseconds::MAX.get() as i32,
+            );
+            hint::assert_unchecked(
+                nanoseconds <= Nanoseconds::MAX.get() as i32 - Nanoseconds::MIN.get() as i32,
+            );
+            hint::assert_unchecked(seconds >= Seconds::MIN.get() as i8 - Seconds::MAX.get() as i8);
+            hint::assert_unchecked(seconds <= Seconds::MAX.get() as i8 - Seconds::MIN.get() as i8);
+            hint::assert_unchecked(minutes >= Minutes::MIN.get() as i8 - Minutes::MAX.get() as i8);
+            hint::assert_unchecked(minutes <= Minutes::MAX.get() as i8 - Minutes::MIN.get() as i8);
+            hint::assert_unchecked(hours >= Hours::MIN.get() as i8 - Hours::MAX.get() as i8);
+            hint::assert_unchecked(hours <= Hours::MAX.get() as i8 - Hours::MIN.get() as i8);
+        }
+
+        if self.as_u64() > other.as_u64() {
+            hours += Hour::per(Day) as i8;
+        }
+
+        cascade!(nanoseconds in 0..Nanosecond::per(Second) as i32 => seconds);
+        cascade!(seconds in 0..Second::per(Minute) as i8 => minutes);
+        cascade!(minutes in 0..Minute::per(Hour) as i8 => hours);
+
+        // Safety: The range of `nanoseconds` is guaranteed by the cascades above.
+        unsafe {
+            Duration::new_unchecked(
+                hours as i64 * Second::per(Hour) as i64
+                    + minutes as i64 * Second::per(Minute) as i64
+                    + seconds as i64,
+                nanoseconds,
+            )
+        }
+    }
+
+    /// Determine the [`Duration`] that, if added to the parameter, would result in `self`.
+    ///
+    /// ```rust
+    /// # use time::Time;
+    /// # use time::ext::NumericalDuration;
+    /// # use time_macros::time;
+    /// assert_eq!(Time::MIDNIGHT.duration_since(time!(18:00)), 6.hours());
+    /// assert_eq!(time!(1:00).duration_since(time!(23:00)), 2.hours());
+    /// ```
+    pub const fn duration_since(self, other: Self) -> Duration {
+        other.duration_until(self)
     }
 
     /// Add the sub-day time of the [`Duration`] to the `Time`. Wraps on overflow, returning whether

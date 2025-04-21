@@ -24,3 +24,14 @@ pub(crate) const fn unlikely(b: bool) -> bool {
     }
     b
 }
+
+/// Indicate that the provided boolean condition is always true and may be relied upon for safety.
+#[track_caller]
+#[inline(always)]
+pub(crate) const unsafe fn assert_unchecked(b: bool) {
+    debug_assert!(b);
+    if !b {
+        // Safety: The caller has asserted that this condition is always true.
+        unsafe { core::hint::unreachable_unchecked() }
+    }
+}

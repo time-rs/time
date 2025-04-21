@@ -256,6 +256,34 @@ fn time_sub_time_no_panic(time_a: Time, time_b: Time) -> bool {
 }
 
 #[quickcheck]
+fn time_duration_until_since_range(time_a: Time, time_b: Time) -> bool {
+    let a_until_b = time_a.duration_until(time_b);
+    let b_until_a = time_b.duration_until(time_a);
+
+    let a_since_b = time_a.duration_since(time_b);
+    let b_since_a = time_b.duration_since(time_a);
+
+    (Duration::ZERO..Duration::DAY).contains(&a_until_b)
+        && (Duration::ZERO..Duration::DAY).contains(&b_until_a)
+        && (Duration::ZERO..Duration::DAY).contains(&a_since_b)
+        && (Duration::ZERO..Duration::DAY).contains(&b_since_a)
+}
+
+#[quickcheck]
+fn time_duration_until_since_arithmetic(time_a: Time, time_b: Time) -> bool {
+    let a_until_b = time_a.duration_until(time_b);
+    let b_until_a = time_b.duration_until(time_a);
+
+    let a_since_b = time_a.duration_since(time_b);
+    let b_since_a = time_b.duration_since(time_a);
+
+    time_a + a_until_b == time_b
+        && time_b + b_until_a == time_a
+        && time_b + a_since_b == time_a
+        && time_a + b_since_a == time_b
+}
+
+#[quickcheck]
 fn from_julian_day_no_panic(julian_day: i32) -> TestResult {
     if !(Date::MIN.to_julian_day()..=Date::MAX.to_julian_day()).contains(&julian_day) {
         return TestResult::discard();
