@@ -26,19 +26,20 @@ use crate::OffsetDateTime;
 /// The type of the `hours` field of `UtcOffset`.
 type Hours = RangedI8<-25, 25>;
 /// The type of the `minutes` field of `UtcOffset`.
-type Minutes = RangedI8<{ -(Minute::per(Hour) as i8 - 1) }, { Minute::per(Hour) as i8 - 1 }>;
+type Minutes = RangedI8<{ -(Minute::per_t::<i8>(Hour) - 1) }, { Minute::per_t::<i8>(Hour) - 1 }>;
 /// The type of the `seconds` field of `UtcOffset`.
-type Seconds = RangedI8<{ -(Second::per(Minute) as i8 - 1) }, { Second::per(Minute) as i8 - 1 }>;
+type Seconds =
+    RangedI8<{ -(Second::per_t::<i8>(Minute) - 1) }, { Second::per_t::<i8>(Minute) - 1 }>;
 /// The type capable of storing the range of whole seconds that a `UtcOffset` can encompass.
 type WholeSeconds = RangedI32<
     {
-        Hours::MIN.get() as i32 * Second::per(Hour) as i32
-            + Minutes::MIN.get() as i32 * Second::per(Minute) as i32
+        Hours::MIN.get() as i32 * Second::per_t::<i32>(Hour)
+            + Minutes::MIN.get() as i32 * Second::per_t::<i32>(Minute)
             + Seconds::MIN.get() as i32
     },
     {
-        Hours::MAX.get() as i32 * Second::per(Hour) as i32
-            + Minutes::MAX.get() as i32 * Second::per(Minute) as i32
+        Hours::MAX.get() as i32 * Second::per_t::<i32>(Hour)
+            + Minutes::MAX.get() as i32 * Second::per_t::<i32>(Minute)
             + Seconds::MAX.get() as i32
     },
 >;
@@ -198,9 +199,9 @@ impl UtcOffset {
         // Safety: The type of `seconds` guarantees that all values are in range.
         unsafe {
             Self::__from_hms_unchecked(
-                (seconds.get() / Second::per(Hour) as i32) as i8,
-                ((seconds.get() % Second::per(Hour) as i32) / Minute::per(Hour) as i32) as i8,
-                (seconds.get() % Second::per(Minute) as i32) as i8,
+                (seconds.get() / Second::per_t::<i32>(Hour)) as i8,
+                ((seconds.get() % Second::per_t::<i32>(Hour)) / Minute::per_t::<i32>(Hour)) as i8,
+                (seconds.get() % Second::per_t::<i32>(Minute)) as i8,
             )
         }
     }
@@ -245,7 +246,7 @@ impl UtcOffset {
     /// assert_eq!(offset!(-1:02:03).whole_minutes(), -62);
     /// ```
     pub const fn whole_minutes(self) -> i16 {
-        self.hours.get() as i16 * Minute::per(Hour) as i16 + self.minutes.get() as i16
+        self.hours.get() as i16 * Minute::per_t::<i16>(Hour) + self.minutes.get() as i16
     }
 
     /// Obtain the number of minutes past the hour the offset is from UTC. A positive value
@@ -271,8 +272,8 @@ impl UtcOffset {
     // This may be useful for anyone manually implementing arithmetic, as it
     // would let them construct a `Duration` directly.
     pub const fn whole_seconds(self) -> i32 {
-        self.hours.get() as i32 * Second::per(Hour) as i32
-            + self.minutes.get() as i32 * Second::per(Minute) as i32
+        self.hours.get() as i32 * Second::per_t::<i32>(Hour)
+            + self.minutes.get() as i32 * Second::per_t::<i32>(Minute)
             + self.seconds.get() as i32
     }
 

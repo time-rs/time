@@ -59,7 +59,7 @@ fn systemtime_to_filetime(systime: &SystemTime) -> Option<FileTime> {
 /// Convert a `FILETIME` to an `i64`, representing a number of seconds.
 fn filetime_to_secs(filetime: &FileTime) -> i64 {
     /// FILETIME represents 100-nanosecond intervals
-    const FT_TO_SECS: u64 = Nanosecond::per(Second) as u64 / 100;
+    const FT_TO_SECS: u64 = Nanosecond::per_t::<u64>(Second) / 100;
     ((filetime.dwHighDateTime.extend::<u64>() << 32 | filetime.dwLowDateTime.extend::<u64>())
         / FT_TO_SECS) as i64
 }

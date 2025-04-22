@@ -500,15 +500,13 @@ fn fmt_unix_timestamp(
         }
         modifier::UnixTimestampPrecision::Millisecond => format_number_pad_none(
             output,
-            (date_time.unix_timestamp_nanos()
-                / Nanosecond::per(Millisecond).cast_signed().extend::<i128>())
-            .unsigned_abs(),
+            (date_time.unix_timestamp_nanos() / Nanosecond::per_t::<i128>(Millisecond))
+                .unsigned_abs(),
         ),
         modifier::UnixTimestampPrecision::Microsecond => format_number_pad_none(
             output,
-            (date_time.unix_timestamp_nanos()
-                / Nanosecond::per(Microsecond).cast_signed().extend::<i128>())
-            .unsigned_abs(),
+            (date_time.unix_timestamp_nanos() / Nanosecond::per_t::<i128>(Microsecond))
+                .unsigned_abs(),
         ),
         modifier::UnixTimestampPrecision::Nanosecond => {
             format_number_pad_none(output, date_time.unix_timestamp_nanos().unsigned_abs())

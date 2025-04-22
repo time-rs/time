@@ -350,12 +350,13 @@ pub(crate) fn parse_unix_timestamp(
 ) -> Option<ParsedItem<'_, i128>> {
     let ParsedItem(input, sign) = opt(sign)(input);
     let ParsedItem(input, nano_timestamp) = match modifiers.precision {
-        modifier::UnixTimestampPrecision::Second => n_to_m_digits::<1, 14, u128>(input)?
-            .map(|val| val * Nanosecond::per(Second).extend::<u128>()),
+        modifier::UnixTimestampPrecision::Second => {
+            n_to_m_digits::<1, 14, u128>(input)?.map(|val| val * Nanosecond::per_t::<u128>(Second))
+        }
         modifier::UnixTimestampPrecision::Millisecond => n_to_m_digits::<1, 17, u128>(input)?
-            .map(|val| val * Nanosecond::per(Millisecond).extend::<u128>()),
+            .map(|val| val * Nanosecond::per_t::<u128>(Millisecond)),
         modifier::UnixTimestampPrecision::Microsecond => n_to_m_digits::<1, 20, u128>(input)?
-            .map(|val| val * Nanosecond::per(Microsecond).extend::<u128>()),
+            .map(|val| val * Nanosecond::per_t::<u128>(Microsecond)),
         modifier::UnixTimestampPrecision::Nanosecond => n_to_m_digits::<1, 23, _>(input)?,
     };
 

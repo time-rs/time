@@ -198,17 +198,18 @@ impl UtcDateTime {
         // Safety: The Julian day number is in range.
         let date = unsafe {
             Date::from_julian_day_unchecked(
-                UNIX_EPOCH_JULIAN_DAY + div_floor!(timestamp, Second::per(Day) as i64) as i32,
+                UNIX_EPOCH_JULIAN_DAY + div_floor!(timestamp, Second::per_t::<i64>(Day)) as i32,
             )
         };
 
-        let seconds_within_day = timestamp.rem_euclid(Second::per(Day) as i64);
+        let seconds_within_day = timestamp.rem_euclid(Second::per_t::<i64>(Day));
         // Safety: All values are in range.
         let time = unsafe {
             Time::__from_hms_nanos_unchecked(
-                (seconds_within_day / Second::per(Hour) as i64) as u8,
-                ((seconds_within_day % Second::per(Hour) as i64) / Minute::per(Hour) as i64) as u8,
-                (seconds_within_day % Second::per(Minute) as i64) as u8,
+                (seconds_within_day / Second::per_t::<i64>(Hour)) as u8,
+                ((seconds_within_day % Second::per_t::<i64>(Hour)) / Minute::per_t::<i64>(Hour))
+                    as u8,
+                (seconds_within_day % Second::per_t::<i64>(Minute)) as u8,
                 0,
             )
         };
@@ -233,7 +234,7 @@ impl UtcDateTime {
     pub const fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange> {
         let datetime = const_try!(Self::from_unix_timestamp(div_floor!(
             timestamp,
-            Nanosecond::per(Second) as i128
+            Nanosecond::per_t::<i128>(Second)
         ) as i64));
 
         Ok(Self::new(
@@ -244,7 +245,7 @@ impl UtcDateTime {
                     datetime.hour(),
                     datetime.minute(),
                     datetime.second(),
-                    timestamp.rem_euclid(Nanosecond::per(Second) as i128) as u32,
+                    timestamp.rem_euclid(Nanosecond::per_t(Second)) as u32,
                 )
             },
         ))
@@ -329,9 +330,9 @@ impl UtcDateTime {
         let (mut year, ordinal) = self.to_ordinal_date();
         let mut ordinal = ordinal as i16;
 
-        cascade!(second in 0..Second::per(Minute) as i16 => minute);
-        cascade!(minute in 0..Minute::per(Hour) as i16 => hour);
-        cascade!(hour in 0..Hour::per(Day) as i8 => ordinal);
+        cascade!(second in 0..Second::per_t(Minute) => minute);
+        cascade!(minute in 0..Minute::per_t(Hour) => hour);
+        cascade!(hour in 0..Hour::per_t(Day) => ordinal);
         cascade!(ordinal => year);
 
         debug_assert!(ordinal > 0);
@@ -360,10 +361,10 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(1970-01-01 1:00).unix_timestamp(), 3_600);
     /// ```
     pub const fn unix_timestamp(self) -> i64 {
-        let days =
-            (self.to_julian_day() as i64 - UNIX_EPOCH_JULIAN_DAY as i64) * Second::per(Day) as i64;
-        let hours = self.hour() as i64 * Second::per(Hour) as i64;
-        let minutes = self.minute() as i64 * Second::per(Minute) as i64;
+        let days = (self.to_julian_day() as i64 - UNIX_EPOCH_JULIAN_DAY as i64)
+            * Second::per_t::<i64>(Day);
+        let hours = self.hour() as i64 * Second::per_t::<i64>(Hour);
+        let minutes = self.minute() as i64 * Second::per_t::<i64>(Minute);
         let seconds = self.second() as i64;
         days + hours + minutes + seconds
     }
@@ -379,7 +380,8 @@ impl UtcDateTime {
     /// );
     /// ```
     pub const fn unix_timestamp_nanos(self) -> i128 {
-        self.unix_timestamp() as i128 * Nanosecond::per(Second) as i128 + self.nanosecond() as i128
+        self.unix_timestamp() as i128 * Nanosecond::per_t::<i128>(Second)
+            + self.nanosecond() as i128
     }
 
     /// Get the [`Date`] component of the `UtcDateTime`.
