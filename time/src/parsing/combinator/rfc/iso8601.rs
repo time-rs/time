@@ -4,6 +4,7 @@
 
 use core::num::{NonZeroU16, NonZeroU8};
 
+#[allow(unused_imports)] // MSRV of 1.87
 use num_conv::prelude::*;
 
 use crate::parsing::combinator::{any_digit, ascii_char, exactly_n_digits, first_match, sign};
