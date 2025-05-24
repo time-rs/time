@@ -11,7 +11,7 @@ use crate::{error, util};
 
 /// Months of the year.
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Month {
     #[allow(missing_docs)]
     January = 1,
