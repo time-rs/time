@@ -73,12 +73,8 @@ impl OffsetDateTime {
     /// # use time_macros::datetime;
     /// assert_eq!(OffsetDateTime::UNIX_EPOCH, datetime!(1970-01-01 0:00 UTC));
     /// ```
-    pub const UNIX_EPOCH: Self = Self::new_in_offset(
-        // Safety: `ordinal` is not zero.
-        unsafe { Date::__from_ordinal_date_unchecked(1970, 1) },
-        Time::MIDNIGHT,
-        UtcOffset::UTC,
-    );
+    pub const UNIX_EPOCH: Self =
+        Self::new_in_offset(Date::UNIX_EPOCH, Time::MIDNIGHT, UtcOffset::UTC);
 
     /// Create a new `OffsetDateTime` with the current date and time in UTC.
     ///

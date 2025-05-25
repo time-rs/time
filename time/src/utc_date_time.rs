@@ -46,11 +46,7 @@ impl UtcDateTime {
     /// # use time_macros::utc_datetime;
     /// assert_eq!(UtcDateTime::UNIX_EPOCH, utc_datetime!(1970-01-01 0:00));
     /// ```
-    pub const UNIX_EPOCH: Self = Self::new(
-        // Safety: `ordinal` is not zero.
-        unsafe { Date::__from_ordinal_date_unchecked(1970, 1) },
-        Time::MIDNIGHT,
-    );
+    pub const UNIX_EPOCH: Self = Self::new(Date::UNIX_EPOCH, Time::MIDNIGHT);
 
     /// The smallest value that can be represented by `UtcDateTime`.
     ///

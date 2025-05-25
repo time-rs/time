@@ -58,6 +58,11 @@ pub struct Date {
 }
 
 impl Date {
+    /// The Unix epoch: 1970-01-01
+    // Safety: `ordinal` is not zero.
+    #[allow(clippy::undocumented_unsafe_blocks)]
+    pub(crate) const UNIX_EPOCH: Self = unsafe { Self::__from_ordinal_date_unchecked(1970, 1) };
+
     /// The minimum valid `Date`.
     ///
     /// The value of this may vary depending on the feature flags enabled.
