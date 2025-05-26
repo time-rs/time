@@ -3,7 +3,9 @@
 use rand::distributions::{Distribution, Standard};
 use rand::Rng;
 
-use crate::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use crate::{
+    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+};
 
 impl Distribution<Time> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Time {
@@ -31,6 +33,12 @@ impl Distribution<UtcOffset> for Standard {
 impl Distribution<PrimitiveDateTime> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> PrimitiveDateTime {
         PrimitiveDateTime::new(Self.sample(rng), Self.sample(rng))
+    }
+}
+
+impl Distribution<UtcDateTime> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> UtcDateTime {
+        UtcDateTime::new(Self.sample(rng), Self.sample(rng))
     }
 }
 
