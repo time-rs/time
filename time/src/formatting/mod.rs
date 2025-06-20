@@ -5,6 +5,7 @@ mod iso8601;
 
 use core::num::NonZeroU8;
 use std::io;
+use std::string::ToString;
 
 use num_conv::prelude::*;
 
@@ -103,7 +104,7 @@ pub(crate) fn format_float(
 /// The sign must be written by the caller.
 pub(crate) fn format_number<const WIDTH: u8>(
     output: &mut (impl io::Write + ?Sized),
-    value: impl itoa::Integer + DigitCount + Copy,
+    value: impl ToString + DigitCount + Copy,
     padding: modifier::Padding,
 ) -> Result<usize, io::Error> {
     match padding {
@@ -118,13 +119,13 @@ pub(crate) fn format_number<const WIDTH: u8>(
 /// The sign must be written by the caller.
 pub(crate) fn format_number_pad_space<const WIDTH: u8>(
     output: &mut (impl io::Write + ?Sized),
-    value: impl itoa::Integer + DigitCount + Copy,
+    value: impl ToString + DigitCount + Copy,
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     for _ in 0..(WIDTH.saturating_sub(value.num_digits())) {
         bytes += write(output, b" ")?;
     }
-    bytes += write(output, itoa::Buffer::new().format(value).as_bytes())?;
+    bytes += write(output, value.to_string().as_bytes())?;
     Ok(bytes)
 }
 
@@ -133,13 +134,13 @@ pub(crate) fn format_number_pad_space<const WIDTH: u8>(
 /// The sign must be written by the caller.
 pub(crate) fn format_number_pad_zero<const WIDTH: u8>(
     output: &mut (impl io::Write + ?Sized),
-    value: impl itoa::Integer + DigitCount + Copy,
+    value: impl ToString + DigitCount + Copy,
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     for _ in 0..(WIDTH.saturating_sub(value.num_digits())) {
         bytes += write(output, b"0")?;
     }
-    bytes += write(output, itoa::Buffer::new().format(value).as_bytes())?;
+    bytes += write(output, value.to_string().as_bytes())?;
     Ok(bytes)
 }
 
@@ -148,9 +149,9 @@ pub(crate) fn format_number_pad_zero<const WIDTH: u8>(
 /// If the sign is mandatory, the sign must be written by the caller.
 pub(crate) fn format_number_pad_none(
     output: &mut (impl io::Write + ?Sized),
-    value: impl itoa::Integer + Copy,
+    value: impl ToString + Copy,
 ) -> Result<usize, io::Error> {
-    write(output, itoa::Buffer::new().format(value).as_bytes())
+    write(output, value.to_string().as_bytes())
 }
 
 /// Format the provided component into the designated output. An `Err` will be returned if the
