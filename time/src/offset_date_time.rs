@@ -1357,7 +1357,7 @@ impl OffsetDateTime {
 impl SmartDisplay for OffsetDateTime {
     type Metadata = ();
 
-    fn metadata(&self, _: FormatterOptions) -> Metadata<Self> {
+    fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
         let width =
             smart_display::padded_width_of!(self.date(), " ", self.time(), " ", self.offset());
         Metadata::new(width, self, ())

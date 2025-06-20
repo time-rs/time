@@ -828,7 +828,7 @@ use private::TimeMetadata;
 impl SmartDisplay for Time {
     type Metadata = TimeMetadata;
 
-    fn metadata(&self, _: FormatterOptions) -> Metadata<Self> {
+    fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
         let (subsecond_value, subsecond_width) = match self.nanosecond() {
             nanos if nanos % 10 != 0 => (nanos, 9),
             nanos if (nanos / 10) % 10 != 0 => (nanos / 10, 8),

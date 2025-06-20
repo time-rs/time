@@ -413,7 +413,7 @@ use private::UtcOffsetMetadata;
 impl SmartDisplay for UtcOffset {
     type Metadata = UtcOffsetMetadata;
 
-    fn metadata(&self, _: FormatterOptions) -> Metadata<Self> {
+    fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
         let sign = if self.is_negative() { '-' } else { '+' };
         let width = smart_display::padded_width_of!(
             sign,

@@ -186,7 +186,7 @@ use private::MonthMetadata;
 impl SmartDisplay for Month {
     type Metadata = MonthMetadata;
 
-    fn metadata(&self, _: FormatterOptions) -> Metadata<Self> {
+    fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
         match self {
             January => Metadata::new(7, self, MonthMetadata),
             February => Metadata::new(8, self, MonthMetadata),

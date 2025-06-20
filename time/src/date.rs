@@ -1360,7 +1360,7 @@ use private::DateMetadata;
 impl SmartDisplay for Date {
     type Metadata = DateMetadata;
 
-    fn metadata(&self, _: FormatterOptions) -> Metadata<Self> {
+    fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
         let (year, month, day) = self.to_calendar_date();
 
         // There is a minimum of four digits for any year.

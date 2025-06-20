@@ -1099,7 +1099,7 @@ impl UtcDateTime {
 impl SmartDisplay for UtcDateTime {
     type Metadata = ();
 
-    fn metadata(&self, _: FormatterOptions) -> Metadata<Self> {
+    fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
         let width = smart_display::padded_width_of!(self.date(), " ", self.time(), " +00");
         Metadata::new(width, self, ())
     }
