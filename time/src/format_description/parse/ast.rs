@@ -349,7 +349,7 @@ fn parse_component<
     })
 }
 
-/// Parse a nested format description. The location provided is the the most recent one consumed.
+/// Parse a nested format description. The location provided is the most recent one consumed.
 fn parse_nested<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, const VERSION: usize>(
     last_location: Location,
     tokens: &mut lexer::Lexed<I>,
