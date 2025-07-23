@@ -110,5 +110,4 @@ impl ComponentRange {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for ComponentRange {}
+impl core::error::Error for ComponentRange {}

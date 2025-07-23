@@ -32,8 +32,7 @@ impl fmt::Display for ParseFromDescription {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for ParseFromDescription {}
+impl core::error::Error for ParseFromDescription {}
 
 impl From<ParseFromDescription> for crate::Error {
     fn from(original: ParseFromDescription) -> Self {

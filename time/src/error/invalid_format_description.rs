@@ -128,5 +128,4 @@ impl fmt::Display for InvalidFormatDescription {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for InvalidFormatDescription {}
+impl core::error::Error for InvalidFormatDescription {}

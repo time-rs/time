@@ -15,8 +15,7 @@ impl fmt::Display for ConversionRange {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for ConversionRange {}
+impl core::error::Error for ConversionRange {}
 
 impl From<ConversionRange> for crate::Error {
     fn from(err: ConversionRange) -> Self {

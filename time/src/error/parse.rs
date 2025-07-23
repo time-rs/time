@@ -37,9 +37,8 @@ impl fmt::Display for Parse {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for Parse {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+impl core::error::Error for Parse {
+    fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
         match self {
             Self::TryFromParsed(err) => Some(err),
             Self::ParseFromDescription(err) => Some(err),
