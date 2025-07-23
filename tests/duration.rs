@@ -537,7 +537,7 @@ fn saturating_mul(#[case] duration: Duration, #[case] rhs: i32, #[case] expected
 #[rstest]
 #[timeout(StdDuration::from_millis(100))]
 fn time_fn() {
-    #[allow(deprecated)]
+    #[expect(deprecated)]
     let (time, value) = Duration::time_fn(|| {
         std::thread::sleep(1.std_milliseconds());
         0
@@ -821,7 +821,6 @@ fn div_int_assign(#[case] mut duration: Duration, #[case] rhs: i32, #[case] expe
 #[rstest]
 #[case(1.seconds(), 0.5.seconds(), 2.)]
 #[case(2.seconds(), 0.25.seconds(), 8.)]
-#[allow(clippy::float_cmp)]
 fn div(#[case] lhs: Duration, #[case] rhs: Duration, #[case] expected: f64) {
     assert_eq!(lhs / rhs, expected);
 }
@@ -829,7 +828,6 @@ fn div(#[case] lhs: Duration, #[case] rhs: Duration, #[case] expected: f64) {
 #[rstest]
 #[case(1.seconds(), 0.5.std_seconds(), 2.)]
 #[case(2.seconds(), 0.25.std_seconds(), 8.)]
-#[allow(clippy::float_cmp)]
 fn div_std(#[case] lhs: Duration, #[case] rhs: StdDuration, #[case] expected: f64) {
     assert_eq!(lhs / rhs, expected);
 }
@@ -837,7 +835,7 @@ fn div_std(#[case] lhs: Duration, #[case] rhs: StdDuration, #[case] expected: f6
 #[rstest]
 #[case(1.std_seconds(), 0.5.seconds(), 2.)]
 #[case(2.std_seconds(), 0.25.seconds(), 8.)]
-#[allow(clippy::float_cmp)]
+// #[expect(clippy::float_cmp)]
 fn std_div(#[case] lhs: StdDuration, #[case] rhs: Duration, #[case] expected: f64) {
     assert_eq!(lhs / rhs, expected);
 }

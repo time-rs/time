@@ -1,4 +1,4 @@
-#![allow(deprecated)]
+#![expect(deprecated)]
 
 use std::cmp::Ordering;
 use std::thread;
@@ -50,7 +50,6 @@ fn from_std() {
     assert_eq!(now_time, now_std);
 }
 
-#[allow(clippy::eq_op)]
 #[test]
 fn sub() {
     let start = Instant::now();

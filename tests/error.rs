@@ -157,7 +157,7 @@ fn component_name() {
     assert_eq!(component_range().name(), "ordinal");
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn conversion() {
     assert!(ComponentRange::try_from(Error::from(component_range())).is_ok());

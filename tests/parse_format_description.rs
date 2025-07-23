@@ -176,7 +176,6 @@ fn simple_component(#[case] format_description: &str, #[case] component: Compone
     );
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
 #[rstest]
 fn errors() {
     use InvalidFormatDescription::*;
@@ -724,7 +723,7 @@ fn nested_error() {
 )]
 fn error_display(#[case] format_description: &str, #[case] error: &str) {
     // la10736/rstest#217
-    #[allow(clippy::unwrap_used)] // It's the point of the test.
+    #[expect(clippy::unwrap_used, reason = "purpose of the test")]
     let test = || {
         assert_eq!(
             format_description::parse(format_description)
@@ -741,7 +740,7 @@ fn error_display(#[case] format_description: &str, #[case] error: &str) {
 #[case("[optional ", "expected opening bracket at byte index 9")]
 fn error_display_owned(#[case] format_description: &str, #[case] error: &str) {
     // la10736/rstest#217
-    #[allow(clippy::unwrap_used)] // It's the point of the test.
+    #[expect(clippy::unwrap_used, reason = "purpose of the test")]
     let test = || {
         assert_eq!(
             format_description::parse_owned::<2>(format_description)

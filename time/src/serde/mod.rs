@@ -151,7 +151,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// }
 ///
 /// fn main() {
-///     # #[allow(unused_variables)]
+///     # #[expect(unused_variables)]
 ///     let str_ts = OffsetDateTime::now_utc().format(DATE_TIME_FORMAT).unwrap();
 /// }
 /// ```

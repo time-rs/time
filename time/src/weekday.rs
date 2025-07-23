@@ -14,19 +14,19 @@ use crate::error;
 /// Friday), this type does not implement `PartialOrd` or `Ord`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Weekday {
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     Monday,
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     Tuesday,
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     Wednesday,
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     Thursday,
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     Friday,
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     Saturday,
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     Sunday,
 }
 

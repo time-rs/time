@@ -14,11 +14,10 @@
     feature = "serde",
 ))]
 #![allow(
-    let_underscore_drop,
-    clippy::clone_on_copy,
     clippy::cognitive_complexity,
-    clippy::std_instead_of_core
+    reason = "many tests in one function is okay"
 )]
+#![allow(clippy::std_instead_of_core, reason = "irrelevant for tests")]
 
 //! Tests for internal details.
 //!
@@ -72,6 +71,10 @@ fn digit_count() {
     assert_eq!(1_000_000_000_u32.num_digits(), 10);
 }
 
+#[expect(
+    let_underscore_drop,
+    reason = "no need for the resulting value, which is #![must_use]"
+)]
 #[test]
 fn debug() {
     let _ = format!("{:?}", duration::Padding::Optimize);
@@ -80,6 +83,7 @@ fn debug() {
     let _ = format!("{:?}", iso8601::ExtendedKind::Basic);
 }
 
+#[expect(clippy::clone_on_copy, reason = "purpose of the test")]
 #[test]
 fn clone() {
     assert_eq!(

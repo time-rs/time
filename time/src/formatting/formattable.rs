@@ -34,7 +34,6 @@ impl<T: Deref> Formattable for T where T::Target: Formattable {}
 
 /// Seal the trait to prevent downstream users from implementing it.
 mod sealed {
-    #[allow(clippy::wildcard_imports)]
     use super::*;
 
     /// Format the item using a format description, the intended output, and the various components.

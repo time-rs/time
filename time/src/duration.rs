@@ -17,7 +17,7 @@ use crate::internal_macros::{
     const_try_opt, expect_opt, impl_add_assign, impl_div_assign, impl_mul_assign, impl_sub_assign,
 };
 #[cfg(feature = "std")]
-#[allow(deprecated)]
+#[expect(deprecated)]
 use crate::Instant;
 
 /// By explicitly inserting this enum where padding is expected, the compiler is able to better
@@ -1160,7 +1160,7 @@ impl Duration {
         since = "0.3.32",
         note = "extremely limited use case, not intended for benchmarking"
     )]
-    #[allow(deprecated)]
+    #[expect(deprecated)]
     pub fn time_fn<T>(f: impl FnOnce() -> T) -> (Self, T) {
         let start = Instant::now();
         let return_value = f();

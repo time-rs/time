@@ -32,7 +32,6 @@ impl<T: Deref> Parsable for T where T::Target: Parsable {}
 /// Seal the trait to prevent downstream users from implementing it, while still allowing it to
 /// exist in generic bounds.
 mod sealed {
-    #[allow(clippy::wildcard_imports)]
     use super::*;
     use crate::{PrimitiveDateTime, UtcDateTime};
 
@@ -259,7 +258,10 @@ impl sealed::Sealed for Rfc2822 {
         // The RFC explicitly allows leap seconds.
         parsed.leap_second_allowed = true;
 
-        #[allow(clippy::unnecessary_lazy_evaluations)] // rust-lang/rust-clippy#8522
+        #[expect(
+            clippy::unnecessary_lazy_evaluations,
+            reason = "rust-lang/rust-clippy#8522"
+        )]
         let zone_literal = first_match(
             [
                 (b"UT".as_slice(), 0),
@@ -408,7 +410,10 @@ impl sealed::Sealed for Rfc2822 {
             (cfws(input).ok_or(InvalidLiteral)?.into_inner(), 0)
         };
 
-        #[allow(clippy::unnecessary_lazy_evaluations)] // rust-lang/rust-clippy#8522
+        #[expect(
+            clippy::unnecessary_lazy_evaluations,
+            reason = "rust-lang/rust-clippy#8522"
+        )]
         let zone_literal = first_match(
             [
                 (b"UT".as_slice(), 0),

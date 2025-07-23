@@ -1,6 +1,6 @@
 //! The [`Instant`] struct and its associated `impl`s.
 
-#![allow(deprecated)]
+#![expect(deprecated)]
 
 use core::borrow::Borrow;
 use core::cmp::{Ord, Ordering, PartialEq, PartialOrd};
@@ -41,7 +41,7 @@ impl Instant {
     /// Returns an `Instant` corresponding to "now".
     ///
     /// ```rust
-    /// # #![allow(deprecated)]
+    /// # #![expect(deprecated)]
     /// # use time::Instant;
     /// println!("{:?}", Instant::now());
     /// ```
@@ -53,7 +53,7 @@ impl Instant {
     /// be nonnegative if the instant is not synthetically created.
     ///
     /// ```rust
-    /// # #![allow(deprecated)]
+    /// # #![expect(deprecated)]
     /// # use time::{Instant, ext::{NumericalStdDuration, NumericalDuration}};
     /// # use std::thread;
     /// let instant = Instant::now();
@@ -69,7 +69,7 @@ impl Instant {
     /// otherwise.
     ///
     /// ```rust
-    /// # #![allow(deprecated)]
+    /// # #![expect(deprecated)]
     /// # use time::{Instant, ext::NumericalDuration};
     /// let now = Instant::now();
     /// assert_eq!(now.checked_add(5.seconds()), Some(now + 5.seconds()));
@@ -91,7 +91,7 @@ impl Instant {
     /// otherwise.
     ///
     /// ```rust
-    /// # #![allow(deprecated)]
+    /// # #![expect(deprecated)]
     /// # use time::{Instant, ext::NumericalDuration};
     /// let now = Instant::now();
     /// assert_eq!(now.checked_sub(5.seconds()), Some(now - 5.seconds()));
@@ -111,7 +111,7 @@ impl Instant {
     /// Obtain the inner [`std::time::Instant`].
     ///
     /// ```rust
-    /// # #![allow(deprecated)]
+    /// # #![expect(deprecated)]
     /// # use time::Instant;
     /// let now = Instant::now();
     /// assert_eq!(now.into_inner(), now.0);
@@ -178,7 +178,7 @@ impl Add<Duration> for Instant {
         if duration.is_positive() {
             Self(self.0 + duration.unsigned_abs())
         } else if duration.is_negative() {
-            #[allow(clippy::unchecked_duration_subtraction)]
+            #[expect(clippy::unchecked_duration_subtraction)]
             Self(self.0 - duration.unsigned_abs())
         } else {
             debug_assert!(duration.is_zero());
@@ -215,7 +215,7 @@ impl Sub<Duration> for Instant {
     /// underlying data structure.
     fn sub(self, duration: Duration) -> Self::Output {
         if duration.is_positive() {
-            #[allow(clippy::unchecked_duration_subtraction)]
+            #[expect(clippy::unchecked_duration_subtraction)]
             Self(self.0 - duration.unsigned_abs())
         } else if duration.is_negative() {
             Self(self.0 + duration.unsigned_abs())
@@ -242,7 +242,7 @@ impl Sub<StdDuration> for Instant {
     /// This function may panic if the resulting point in time cannot be represented by the
     /// underlying data structure.
     fn sub(self, duration: StdDuration) -> Self::Output {
-        #[allow(clippy::unchecked_duration_subtraction)]
+        #[expect(clippy::unchecked_duration_subtraction)]
         Self(self.0 - duration)
     }
 }

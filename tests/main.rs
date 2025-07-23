@@ -1,9 +1,10 @@
+#![allow(missing_docs, reason = "may be removed in the future")]
 #![allow(
-    missing_docs,
-    clippy::missing_const_for_fn, // irrelevant for tests
-    clippy::std_instead_of_core, // irrelevant for tests
-    clippy::std_instead_of_alloc, // irrelevant for tests
-    clippy::alloc_instead_of_core, // irrelevant for tests
+    clippy::missing_const_for_fn,
+    clippy::std_instead_of_core,
+    clippy::std_instead_of_alloc,
+    clippy::alloc_instead_of_core,
+    reason = "irrelevant for tests"
 )]
 
 #[cfg(not(all(

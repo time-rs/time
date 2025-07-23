@@ -3,7 +3,7 @@
 //! This enables users to write tests such as this, and have test values provided automatically:
 //!
 //! ```ignore
-//! # #![allow(dead_code)]
+//! # #![expect(dead_code)]
 //! use quickcheck::quickcheck;
 //! use time::Date;
 //!

@@ -27,7 +27,7 @@ pub const fn days_in_month(month: Month, year: i32) -> u8 {
 /// Get the number of days in the month of a given year.
 ///
 /// ```rust
-/// # #![allow(deprecated)]
+/// # #![expect(deprecated)]
 /// # use time::{Month, util};
 /// assert_eq!(util::days_in_year_month(2020, Month::February), 29);
 /// ```
@@ -88,7 +88,10 @@ pub fn refresh_tz() -> Option<()> {
 
 #[doc(hidden)]
 #[cfg(feature = "local-offset")]
-#[allow(clippy::missing_const_for_fn)]
+#[expect(
+    clippy::missing_const_for_fn,
+    reason = "no longer used; original implementation was not const"
+)]
 #[deprecated(since = "0.3.37", note = "no longer needed; TZ is refreshed manually")]
 pub mod local_offset {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]

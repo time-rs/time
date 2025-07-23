@@ -104,7 +104,7 @@ pub(crate) fn build(
 
     let serialize_option = if cfg!(feature = "formatting") {
         quote! {
-            #[allow(clippy::ref_option)]
+            #[expect(clippy::ref_option)]
             pub fn serialize<S: ::serde::Serializer>(
                 option: &Option<__TimeSerdeType>,
                 serializer: S,

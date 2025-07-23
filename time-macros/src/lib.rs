@@ -1,13 +1,20 @@
 #![allow(
-    clippy::missing_const_for_fn, // irrelevant for proc macros
-    clippy::missing_docs_in_private_items, // TODO remove
-    clippy::std_instead_of_core, // irrelevant for proc macros
-    clippy::std_instead_of_alloc, // irrelevant for proc macros
-    clippy::alloc_instead_of_core, // irrelevant for proc macros
-    missing_docs, // TODO remove
+    clippy::missing_const_for_fn,
+    clippy::std_instead_of_core,
+    clippy::std_instead_of_alloc,
+    clippy::alloc_instead_of_core,
+    reason = "irrelevant for proc macros"
+)]
+#![allow(
+    clippy::missing_docs_in_private_items,
+    missing_docs,
+    reason = "may be removed eventually"
 )]
 
-#[allow(unused_macros)]
+#[allow(
+    unused_macros,
+    reason = "may not be used for all feature flag combinations"
+)]
 macro_rules! bug {
     () => { compile_error!("provide an error message to help fix a possible bug") };
     ($descr:literal $($rest:tt)?) => {

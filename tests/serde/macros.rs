@@ -10,7 +10,7 @@ use time::macros::{date, datetime, offset, time};
 use time::{serde, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
 // Not used in the tests, but ensures that the macro compiles.
-#[allow(dead_code)]
+#[expect(dead_code)]
 const ISO_FORMAT: Iso8601<{ iso8601::Config::DEFAULT.encode() }> =
     Iso8601::<{ iso8601::Config::DEFAULT.encode() }>;
 time::serde::format_description!(my_format, OffsetDateTime, ISO_FORMAT);

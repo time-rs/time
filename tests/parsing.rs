@@ -26,7 +26,7 @@ macro_rules! invalid_component {
 }
 
 #[test]
-#[allow(clippy::cognitive_complexity)]
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 fn rfc_2822() -> time::Result<()> {
     assert_eq!(
         OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
@@ -175,7 +175,7 @@ fn issue_661() -> time::Result<()> {
     Ok(())
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn rfc_2822_err() {
     // In the first test, the "weekday" component is invalid, we're actually testing the whitespace
@@ -383,7 +383,7 @@ fn rfc_3339() -> time::Result<()> {
     Ok(())
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn rfc_3339_err() {
     assert!(matches!(
@@ -664,8 +664,8 @@ fn iso_8601() {
     );
 }
 
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
-#[allow(clippy::cognitive_complexity)]
 fn iso_8601_error() {
     assert!(matches!(
         OffsetDateTime::parse("20210102T03:04Z", &Iso8601::DEFAULT),
@@ -846,7 +846,7 @@ fn parse_time() -> time::Result<()> {
     Ok(())
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn parse_time_err() -> time::Result<()> {
     assert!(matches!(
@@ -1036,7 +1036,7 @@ fn parse_date() -> time::Result<()> {
     Ok(())
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn parse_date_err() -> time::Result<()> {
     assert!(matches!(
@@ -1328,7 +1328,7 @@ fn parse_utc_date_time_err() -> time::Result<()> {
     Ok(())
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn parse_components() -> time::Result<()> {
     macro_rules! parse_component {
@@ -1750,7 +1750,7 @@ fn parse_optional() -> time::Result<()> {
     Ok(())
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn parse_first() -> time::Result<()> {
     // Ensure the first item is parsed correctly.

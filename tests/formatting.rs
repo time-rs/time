@@ -623,7 +623,7 @@ fn insufficient_type_information() {
     assert_insufficient_type_information(datetime!(2021-001 0:00).format(&Iso8601::DEFAULT));
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn failed_write() -> time::Result<()> {
     macro_rules! assert_err {

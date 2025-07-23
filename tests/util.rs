@@ -28,7 +28,7 @@ use time::{util, Month};
 #[case(2020, November, 30)]
 #[case(2020, December, 31)]
 fn days_in_year_month(#[case] year: i32, #[case] month: Month, #[case] expected: u8) {
-    #[allow(deprecated)]
+    #[expect(deprecated)]
     {
         assert_eq!(util::days_in_year_month(year, month), expected);
     }
@@ -83,7 +83,7 @@ fn weeks_in_year() {
 }
 
 #[rstest]
-#[allow(deprecated)]
+#[expect(deprecated)]
 fn local_offset_soundness() {
     use time::util::local_offset::*;
 

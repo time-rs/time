@@ -193,7 +193,7 @@ macro_rules! component_definition {
                 };
 
                 for modifier in modifiers {
-                    $(#[allow(clippy::string_lit_as_bytes)]
+                    $(#[expect(clippy::string_lit_as_bytes)]
                     if modifier.key.eq_ignore_ascii_case($parse_field.as_bytes()) {
                         this.$field = component_definition!(@if_from_str $($from_str)?
                             then {
@@ -257,7 +257,7 @@ macro_rules! component_definition {
             name: &Spanned<&[u8]>,
             modifiers: &[ast::Modifier<'_>],
         ) -> Result<Component, Error> {
-            $(#[allow(clippy::string_lit_as_bytes)]
+            $(#[expect(clippy::string_lit_as_bytes)]
             if name.eq_ignore_ascii_case($parse_variant.as_bytes()) {
                 return Ok(Component::$variant($variant::with_modifiers(&modifiers, name.span)?));
             })*

@@ -1,6 +1,6 @@
 //! Parse parts of an ISO 8601-formatted value.
 
-#[allow(unused_imports)] // MSRV of 1.87
+#[allow(unused_imports, reason = "MSRV of 1.87")]
 use num_conv::prelude::*;
 
 use crate::convert::*;
@@ -320,7 +320,7 @@ fn round(value: f64) -> f64 {
 }
 
 #[cfg(not(feature = "std"))]
-#[allow(clippy::missing_docs_in_private_items)]
+#[expect(clippy::missing_docs_in_private_items)]
 fn round_impl(value: f64) -> f64 {
     debug_assert!(value.is_sign_positive() && !value.is_nan());
 

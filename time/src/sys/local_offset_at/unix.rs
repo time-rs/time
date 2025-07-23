@@ -6,8 +6,11 @@ use crate::{OffsetDateTime, UtcOffset};
 
 /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on any error.
 fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
-    // The exact type of `timestamp` beforehand can vary, so this conversion is necessary.
-    #[allow(clippy::useless_conversion)]
+    #[allow(
+        clippy::useless_conversion,
+        reason = "the exact type of `timestamp` beforehand can vary, so this conversion is \
+                  necessary"
+    )]
     let timestamp = timestamp.try_into().ok()?;
 
     let mut tm = MaybeUninit::uninit();

@@ -7,14 +7,13 @@ use crate::error::{self, ParseFromDescription, TryFromParsed};
 
 /// An error that occurred at some stage of parsing.
 #[non_exhaustive]
-#[allow(variant_size_differences)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Parse {
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     TryFromParsed(TryFromParsed),
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     ParseFromDescription(ParseFromDescription),
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     #[non_exhaustive]
     #[deprecated(
         since = "0.3.28",

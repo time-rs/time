@@ -17,14 +17,14 @@ use time::format_description::well_known::iso8601;
 use time::format_description::{modifier, well_known, BorrowedFormatItem, Component};
 use time::formatting::Formattable;
 use time::parsing::{Parsable, Parsed};
-#[allow(deprecated)]
+#[expect(deprecated)]
 use time::Instant;
 use time::{
     error, ext, Date, Duration, Error, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime,
     UtcOffset, Weekday,
 };
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn alignment() {
     macro_rules! assert_alignment {
@@ -95,7 +95,7 @@ fn alignment() {
     assert_alignment!(modifier::YearRepr, 1);
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn size() {
     macro_rules! assert_size {
@@ -292,7 +292,7 @@ assert_impl! { @'a; Duration:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { #[allow(deprecated)] Instant:
+assert_impl! { #[expect(deprecated)] Instant:
     Add<Duration, Output = Instant>,
     Add<StdDuration, Output = Instant>,
     AddAssign<Duration>,
@@ -1079,7 +1079,7 @@ assert_impl! { StdDuration:
     SubAssign<Duration>,
     TryFrom<Duration>,
 }
-assert_impl! { #[allow(deprecated)] StdInstant:
+assert_impl! { #[expect(deprecated)] StdInstant:
     Add<Duration, Output = StdInstant>,
     AddAssign<Duration>,
     Sub<Duration, Output = StdInstant>,

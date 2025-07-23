@@ -45,21 +45,21 @@ pub use try_from_parsed::TryFromParsed;
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum Error {
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     ConversionRange(ConversionRange),
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     ComponentRange(ComponentRange),
     #[cfg(feature = "local-offset")]
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     IndeterminateOffset(IndeterminateOffset),
     #[cfg(feature = "formatting")]
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     Format(Format),
     #[cfg(feature = "parsing")]
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     ParseFromDescription(ParseFromDescription),
     #[cfg(feature = "parsing")]
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     #[non_exhaustive]
     #[deprecated(
         since = "0.3.28",
@@ -70,14 +70,14 @@ pub enum Error {
         never: Infallible,
     },
     #[cfg(feature = "parsing")]
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     TryFromParsed(TryFromParsed),
     #[cfg(all(any(feature = "formatting", feature = "parsing"), feature = "alloc"))]
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     InvalidFormatDescription(InvalidFormatDescription),
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     DifferentVariant(DifferentVariant),
-    #[allow(missing_docs)]
+    #[expect(missing_docs)]
     InvalidVariant(InvalidVariant),
 }
 

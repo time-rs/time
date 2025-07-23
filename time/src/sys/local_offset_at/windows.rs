@@ -9,7 +9,8 @@ use crate::{OffsetDateTime, UtcOffset};
 
 // ffi: WINAPI FILETIME struct
 #[repr(C)]
-#[allow(non_snake_case, clippy::missing_docs_in_private_items)]
+#[expect(non_snake_case, reason = "system API")]
+#[expect(clippy::missing_docs_in_private_items)]
 struct FileTime {
     dwLowDateTime: u32,
     dwHighDateTime: u32,
@@ -17,7 +18,8 @@ struct FileTime {
 
 // ffi: WINAPI SYSTEMTIME struct
 #[repr(C)]
-#[allow(non_snake_case, clippy::missing_docs_in_private_items)]
+#[expect(non_snake_case, reason = "system API")]
+#[expect(clippy::missing_docs_in_private_items)]
 struct SystemTime {
     wYear: u16,
     wMonth: u16,

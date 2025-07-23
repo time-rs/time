@@ -8,7 +8,7 @@ use time::format_description::{self, modifier, well_known, Component, BorrowedFo
 use time::macros::{date, offset, time, utc_datetime, datetime};
 use time::parsing::Parsed;
 use time::{Duration, Error, Month, Time, Weekday};
-#[allow(deprecated)]
+#[expect(deprecated)]
 use time::Instant;
 
 macro_rules! assert_cloned_eq {
@@ -25,10 +25,10 @@ fn invalid_format_description() -> error::InvalidFormatDescription {
     format_description::parse("[").expect_err("format description is invalid")
 }
 
-#[allow(clippy::cognitive_complexity)] // all test the same thing
+#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn clone() {
-    #[allow(deprecated)]
+    #[expect(deprecated)]
     let instant = Instant::now();
     assert_cloned_eq!(date!(2021-001));
     assert_cloned_eq!(time!(0:00));
@@ -44,7 +44,7 @@ fn clone() {
     assert_cloned_eq!(ConversionRange);
     assert_cloned_eq!(invalid_format_description());
     assert_cloned_eq!(TryFromParsed::InsufficientInformation);
-    #[allow(clippy::clone_on_copy)] // needed for coverage
+    #[expect(clippy::clone_on_copy)] // needed for coverage
     let _ = Parsed::new().clone();
     assert_cloned_eq!(error::Parse::ParseFromDescription(
         error::ParseFromDescription::InvalidComponent("foo")
@@ -99,7 +99,7 @@ fn hash() {
     utc_datetime!(2021-001 0:00).hash(&mut hasher);
     Weekday::Monday.hash(&mut hasher);
     Month::January.hash(&mut hasher);
-    #[allow(deprecated)]
+    #[expect(deprecated)]
     Instant::now().hash(&mut hasher);
     Duration::ZERO.hash(&mut hasher);
     component_range_error().hash(&mut hasher);
@@ -107,7 +107,7 @@ fn hash() {
 
 #[test]
 fn partial_ord() {
-    #[allow(deprecated)]
+    #[expect(deprecated)]
     let instant = Instant::now();
     assert_eq!(offset!(UTC).partial_cmp(&offset!(+1)), Some(Ordering::Less));
     assert_eq!(
@@ -153,7 +153,7 @@ fn debug() {
         ConversionRange;
         TryFromParsed::InsufficientInformation;
         Parsed::new();
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         Instant::now();
         error::ParseFromDescription::InvalidComponent("foo");
         error::Format::InvalidComponent("foo");

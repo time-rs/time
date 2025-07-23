@@ -1,6 +1,9 @@
 //! A method to obtain the local offset from UTC.
 
-#![allow(clippy::missing_const_for_fn)]
+#![allow(
+    clippy::missing_const_for_fn,
+    reason = "system APIs are inherently not const, so this will only trigger on the fallback"
+)]
 
 #[cfg_attr(target_family = "windows", path = "windows.rs")]
 #[cfg_attr(target_family = "unix", path = "unix.rs")]

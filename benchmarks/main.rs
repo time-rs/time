@@ -4,10 +4,14 @@
 //! regressions. Run them if you think that may be the case. CI **does not** run benchmarks.
 
 #![allow(
+    clippy::std_instead_of_core,
+    clippy::std_instead_of_alloc,
+    clippy::alloc_instead_of_core,
+    reason = "irrelevant for benchmarks"
+)]
+#![allow(
     clippy::missing_docs_in_private_items,
-    clippy::std_instead_of_core, // irrelevant for benchmarks
-    clippy::std_instead_of_alloc, // irrelevant for benchmarks
-    clippy::alloc_instead_of_core, // irrelevant for benchmarks
+    reason = "may be removed in the future"
 )]
 
 #[cfg(not(all(
