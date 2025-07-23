@@ -31,7 +31,7 @@ fn alignment() {
         ($t:ty, $alignment:expr) => {
             let alignment = $alignment;
             assert_eq!(
-                ::core::mem::align_of::<$t>(),
+                align_of::<$t>(),
                 alignment,
                 "alignment of `{}` was {}",
                 stringify!($t),
@@ -76,7 +76,7 @@ fn alignment() {
     assert_alignment!(iso8601::FormattedComponents, 1);
     assert_alignment!(iso8601::OffsetPrecision, 1);
     assert_alignment!(iso8601::TimePrecision, 1);
-    assert_alignment!(Parsed, ::core::mem::align_of::<u128>());
+    assert_alignment!(Parsed, align_of::<u128>());
     assert_alignment!(Month, 1);
     assert_alignment!(Weekday, 1);
     assert_alignment!(Error, 8);
@@ -101,20 +101,20 @@ fn size() {
     macro_rules! assert_size {
         ($t:ty, $size:literal, $opt_size:literal) => {
             assert!(
-                ::core::mem::size_of::<$t>() <= $size,
+                size_of::<$t>() <= $size,
                 concat!("size of `{}` used to be ", $size, ", but is now {}"),
                 stringify!($t),
-                ::core::mem::size_of::<$t>(),
+                size_of::<$t>(),
             );
             assert!(
-                ::core::mem::size_of::<Option<$t>>() <= $opt_size,
+                size_of::<Option<$t>>() <= $opt_size,
                 concat!(
                     "size of `Option<{}>` used to be ",
                     $opt_size,
                     ", but is now {}"
                 ),
                 stringify!($t),
-                ::core::mem::size_of::<Option<$t>>(),
+                size_of::<Option<$t>>(),
             );
         };
     }
@@ -165,7 +165,7 @@ fn size() {
     assert_size!(error::Parse, 64, 64);
     assert_size!(error::ParseFromDescription, 24, 24);
     assert_size!(error::TryFromParsed, 56, 64);
-    assert_size!(Component, 6, 6); // TODO Size is 4 starting with rustc 1.71.
+    assert_size!(Component, 6, 6);
     assert_size!(BorrowedFormatItem<'_>, 24, 24);
     assert_size!(modifier::MonthRepr, 1, 1);
     assert_size!(modifier::Padding, 1, 1);
