@@ -69,6 +69,25 @@ pub(crate) fn write_if_else(
     write(output, if pred { true_bytes } else { false_bytes })
 }
 
+/// Helper function to obtain 10^x, guaranteeing determinism for x ≤ 9. For these cases, the
+/// function optimizes to a lookup table. For x ≥ 10, it falls back to `10_f64.powi(x)`. The only
+/// situation where this would occur is if the user explicitly requests such precision when
+/// configuring the ISO 8601 well known format. All other possibilities max out at nine digits.
+fn f64_10_pow_x(x: NonZeroU8) -> f64 {
+    match x.get() {
+        1 => 10.,
+        2 => 100.,
+        3 => 1_000.,
+        4 => 10_000.,
+        5 => 100_000.,
+        6 => 1_000_000.,
+        7 => 10_000_000.,
+        8 => 100_000_000.,
+        9 => 1_000_000_000.,
+        x => 10_f64.powi(x.cast_signed().extend()),
+    }
+}
+
 /// Write the floating point number to the output, returning the number of bytes written.
 ///
 /// This method accepts the number of digits before and after the decimal. The value will be padded
@@ -82,7 +101,7 @@ pub(crate) fn format_float(
     match digits_after_decimal {
         Some(digits_after_decimal) => {
             // Truncate the decimal points up to the precision
-            let trunc_num = 10_f64.powi(digits_after_decimal.get().cast_signed().extend());
+            let trunc_num = f64_10_pow_x(digits_after_decimal);
             let value = f64::trunc(value * trunc_num) / trunc_num;
 
             let digits_after_decimal = digits_after_decimal.get().extend();
