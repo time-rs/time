@@ -6,6 +6,7 @@ mod sealed {
     /// A trait for defining the ratio of two units of time.
     ///
     /// This trait is used to implement the `per` method on the various structs.
+    #[diagnostic::on_unimplemented(message = "`{Self}` is not an integer multiple of `{T}`")]
     pub trait MultipleOf<T, Output> {
         /// The number of one unit of time in the other.
         const VALUE: Output;

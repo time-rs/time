@@ -46,6 +46,8 @@ mod sealed {
 /// When called on floating point values, any remainder of the floating point value will be
 /// truncated. Keep in mind that floating point numbers are inherently imprecise and have
 /// limited capacity.
+#[diagnostic::on_unimplemented(note = "this extension trait is intended to be used with numeric \
+                                       literals, such as `5.std_seconds()`")]
 pub trait NumericalStdDuration: sealed::Sealed {
     /// Create a [`std::time::Duration`] from the number of nanoseconds.
     fn std_nanoseconds(self) -> StdDuration;
