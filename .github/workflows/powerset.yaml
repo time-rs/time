@@ -1,6 +1,5 @@
 name: "Check powerset"
 
-# TODO re-add wasm32-wasip1 to `std_with_offset` once MSRV is at least 1.78
 env:
   RUSTFLAGS: -Dwarnings
   TARGETS: '{
@@ -21,7 +20,8 @@ env:
     "aarch64-linux-android",
     "x86_64-linux-android",
     "x86_64-unknown-netbsd",
-    "x86_64-unknown-illumos"
+    "x86_64-unknown-illumos",
+    "wasm32-wasip1"
     ],
     "wasm": [
     "wasm32-unknown-unknown"
@@ -52,7 +52,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - { version: "1.67.1", name: MSRV }
+          - { version: "1.81.0", name: MSRV }
           - { version: stable, name: stable }
         kind:
           - name: no_std

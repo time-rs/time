@@ -4,7 +4,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true
 
-# TODO re-add wasm32-wasip1 to `std_no_offset` once MSRV is at least 1.78
 env:
   TYPE_CHECK_TARGETS: '{
     "no_std": [
@@ -12,7 +11,8 @@ env:
     ],
     "std_no_offset": [
     "x86_64-unknown-netbsd",
-    "x86_64-unknown-illumos"
+    "x86_64-unknown-illumos",
+    "wasm32-wasip1"
     ],
     "std_with_offset": [
     "x86_64-unknown-linux-gnu",
@@ -54,7 +54,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - { version: "1.67.1", name: MSRV }
+          - { version: "1.81.0", name: MSRV }
           - { version: stable, name: stable }
         kind:
           - name: no_std
@@ -159,7 +159,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - { version: "1.67.1", name: MSRV }
+          - { version: "1.81.0", name: MSRV }
           - { version: stable, name: stable }
         os:
           - { name: Ubuntu, value: ubuntu-latest }
