@@ -45,6 +45,6 @@ macro_rules! impl_parse_bytes_nonzero {
 }
 
 impl_parse_bytes_nonzero! {
-    core::num::NonZeroU8
-    core::num::NonZeroU16
+    core::num::NonZero<u8>
+    core::num::NonZero<u16>
 }

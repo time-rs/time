@@ -1,4 +1,4 @@
-use std::num::NonZeroU16;
+use std::num::NonZero;
 
 use proc_macro::{Ident, Span, TokenStream, TokenTree};
 
@@ -228,7 +228,7 @@ to_tokens! {
 }
 
 pub(crate) struct Ignore {
-    pub(crate) count: NonZeroU16,
+    pub(crate) count: NonZero<u16>,
 }
 
 impl ToTokenTree for Ignore {

@@ -3,7 +3,7 @@
 pub(crate) mod formattable;
 mod iso8601;
 
-use core::num::NonZeroU8;
+use core::num::NonZero;
 use std::io;
 use std::string::ToString;
 
@@ -73,7 +73,7 @@ pub(crate) fn write_if_else(
 /// function optimizes to a lookup table. For x ≥ 10, it falls back to `10_f64.powi(x)`. The only
 /// situation where this would occur is if the user explicitly requests such precision when
 /// configuring the ISO 8601 well known format. All other possibilities max out at nine digits.
-fn f64_10_pow_x(x: NonZeroU8) -> f64 {
+fn f64_10_pow_x(x: NonZero<u8>) -> f64 {
     match x.get() {
         1 => 10.,
         2 => 100.,
@@ -96,7 +96,7 @@ pub(crate) fn format_float(
     output: &mut (impl io::Write + ?Sized),
     value: f64,
     digits_before_decimal: u8,
-    digits_after_decimal: Option<NonZeroU8>,
+    digits_after_decimal: Option<NonZero<u8>>,
 ) -> io::Result<usize> {
     match digits_after_decimal {
         Some(digits_after_decimal) => {

@@ -1,4 +1,4 @@
-use std::num::{NonZeroU16, NonZeroU8};
+use std::num::NonZero;
 
 use time::format_description::modifier::WeekNumberRepr;
 use time::format_description::{BorrowedFormatItem, Component};
@@ -26,12 +26,12 @@ fn getters_setters() {
         set_month month Month::May;
         set_sunday_week_number sunday_week_number 5;
         set_monday_week_number monday_week_number 5;
-        set_iso_week_number iso_week_number NonZeroU8::new(5).expect("valid value");
+        set_iso_week_number iso_week_number NonZero::new(5).expect("valid value");
         set_weekday weekday Weekday::Monday;
-        set_ordinal ordinal NonZeroU16::new(5).expect("valid value");
-        set_day day NonZeroU8::new(5).expect("valid value");
+        set_ordinal ordinal NonZero::new(5).expect("valid value");
+        set_day day NonZero::new(5).expect("valid value");
         set_hour_24 hour_24 5;
-        set_hour_12 hour_12 NonZeroU8::new(5).expect("valid value");
+        set_hour_12 hour_12 NonZero::new(5).expect("valid value");
         set_hour_12_is_pm hour_12_is_pm true;
         set_minute minute 5;
         set_second second 5;
@@ -64,12 +64,12 @@ fn builder_methods() {
         .and_then(|parsed| parsed.with_month(Month::May))
         .and_then(|parsed| parsed.with_sunday_week_number(5))
         .and_then(|parsed| parsed.with_monday_week_number(5))
-        .and_then(|parsed| parsed.with_iso_week_number(NonZeroU8::new(5).expect("valid value")))
+        .and_then(|parsed| parsed.with_iso_week_number(NonZero::new(5).expect("valid value")))
         .and_then(|parsed| parsed.with_weekday(Weekday::Monday))
-        .and_then(|parsed| parsed.with_ordinal(NonZeroU16::new(5).expect("valid value")))
-        .and_then(|parsed| parsed.with_day(NonZeroU8::new(5).expect("valid value")))
+        .and_then(|parsed| parsed.with_ordinal(NonZero::new(5).expect("valid value")))
+        .and_then(|parsed| parsed.with_day(NonZero::new(5).expect("valid value")))
         .and_then(|parsed| parsed.with_hour_24(5))
-        .and_then(|parsed| parsed.with_hour_12(NonZeroU8::new(5).expect("valid value")))
+        .and_then(|parsed| parsed.with_hour_12(NonZero::new(5).expect("valid value")))
         .and_then(|parsed| parsed.with_hour_12_is_pm(true))
         .and_then(|parsed| parsed.with_minute(5))
         .and_then(|parsed| parsed.with_second(5))
@@ -88,18 +88,18 @@ fn builder_methods() {
     assert_eq!(parsed.monday_week_number(), Some(5));
     assert_eq!(
         parsed.iso_week_number(),
-        Some(NonZeroU8::new(5).expect("valid value"))
+        Some(NonZero::new(5).expect("valid value"))
     );
     assert_eq!(parsed.weekday(), Some(Weekday::Monday));
     assert_eq!(
         parsed.ordinal(),
-        Some(NonZeroU16::new(5).expect("valid value"))
+        Some(NonZero::new(5).expect("valid value"))
     );
-    assert_eq!(parsed.day(), Some(NonZeroU8::new(5).expect("valid value")));
+    assert_eq!(parsed.day(), Some(NonZero::new(5).expect("valid value")));
     assert_eq!(parsed.hour_24(), Some(5));
     assert_eq!(
         parsed.hour_12(),
-        Some(NonZeroU8::new(5).expect("valid value"))
+        Some(NonZero::new(5).expect("valid value"))
     );
     assert_eq!(parsed.hour_12_is_pm(), Some(true));
     assert_eq!(parsed.minute(), Some(5));

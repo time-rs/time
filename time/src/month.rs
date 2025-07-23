@@ -1,7 +1,7 @@
 //! The `Month` enum and its associated `impl`s.
 
 use core::fmt;
-use core::num::NonZeroU8;
+use core::num::NonZero;
 use core::str::FromStr;
 
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
@@ -41,7 +41,7 @@ pub enum Month {
 
 impl Month {
     /// Create a `Month` from its numerical value.
-    pub(crate) const fn from_number(n: NonZeroU8) -> Result<Self, error::ComponentRange> {
+    pub(crate) const fn from_number(n: NonZero<u8>) -> Result<Self, error::ComponentRange> {
         match n.get() {
             1 => Ok(January),
             2 => Ok(February),
@@ -259,7 +259,7 @@ impl TryFrom<u8> for Month {
     type Error = error::ComponentRange;
 
     fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match NonZeroU8::new(value) {
+        match NonZero::new(value) {
             Some(value) => Self::from_number(value),
             None => Err(error::ComponentRange {
                 name: "month",

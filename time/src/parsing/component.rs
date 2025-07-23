@@ -1,6 +1,6 @@
 //! Parsing implementations for all [`Component`](crate::format_description::Component)s.
 
-use core::num::{NonZeroU16, NonZeroU8};
+use core::num::NonZero;
 
 use num_conv::prelude::*;
 
@@ -200,7 +200,7 @@ pub(crate) fn parse_weekday(
 pub(crate) fn parse_ordinal(
     input: &[u8],
     modifiers: modifier::Ordinal,
-) -> Option<ParsedItem<'_, NonZeroU16>> {
+) -> Option<ParsedItem<'_, NonZero<u16>>> {
     exactly_n_digits_padded::<3, _>(modifiers.padding)(input)
 }
 
@@ -208,7 +208,7 @@ pub(crate) fn parse_ordinal(
 pub(crate) fn parse_day(
     input: &[u8],
     modifiers: modifier::Day,
-) -> Option<ParsedItem<'_, NonZeroU8>> {
+) -> Option<ParsedItem<'_, NonZero<u8>>> {
     exactly_n_digits_padded::<2, _>(modifiers.padding)(input)
 }
 

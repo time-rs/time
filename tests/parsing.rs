@@ -1,4 +1,4 @@
-use std::num::{NonZeroU16, NonZeroU8};
+use std::num::NonZero;
 
 use time::format_description::modifier::Ignore;
 use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
@@ -1639,13 +1639,13 @@ fn parse_components() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let result = parsed.parse_component(
         b"abcdef",
-        Component::Ignore(Ignore::count(NonZeroU16::new(3).expect("3 is not zero"))),
+        Component::Ignore(Ignore::count(NonZero::new(3).expect("3 is not zero"))),
     )?;
     assert_eq!(result, b"def");
     let mut parsed = Parsed::new();
     let result = parsed.parse_component(
         b"abcdef",
-        Component::Ignore(Ignore::count(NonZeroU16::new(7).expect("7 is not zero"))),
+        Component::Ignore(Ignore::count(NonZero::new(7).expect("7 is not zero"))),
     );
     assert!(matches!(
         result,
@@ -1708,7 +1708,7 @@ fn parse_optional() -> time::Result<()> {
     assert!(remaining_input.is_empty());
     assert_eq!(parsed.year(), Some(2021));
     assert_eq!(parsed.month(), Some(Month::January));
-    assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
+    assert_eq!(parsed.day().map(NonZero::get), Some(2));
 
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
@@ -1720,7 +1720,7 @@ fn parse_optional() -> time::Result<()> {
     assert!(remaining_input.is_empty());
     assert_eq!(parsed.year(), Some(2021));
     assert_eq!(parsed.month(), Some(Month::January));
-    assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
+    assert_eq!(parsed.day().map(NonZero::get), Some(2));
 
     // Ensure a successful partial parse *does not* mutate `parsed`.
     let mut parsed = Parsed::new();
@@ -1764,7 +1764,7 @@ fn parse_first() -> time::Result<()> {
     assert!(remaining_input.is_empty());
     assert_eq!(parsed.year(), Some(2021));
     assert_eq!(parsed.month(), Some(Month::January));
-    assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
+    assert_eq!(parsed.day().map(NonZero::get), Some(2));
 
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
@@ -1776,7 +1776,7 @@ fn parse_first() -> time::Result<()> {
     assert!(remaining_input.is_empty());
     assert_eq!(parsed.year(), Some(2021));
     assert_eq!(parsed.month(), Some(Month::January));
-    assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
+    assert_eq!(parsed.day().map(NonZero::get), Some(2));
 
     // Ensure an empty slice is a no-op success.
     let mut parsed = Parsed::new();
@@ -1807,7 +1807,7 @@ fn parse_first() -> time::Result<()> {
     assert!(remaining_input.is_empty());
     assert_eq!(parsed.year(), Some(2021));
     assert_eq!(parsed.month(), Some(Month::January));
-    assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
+    assert_eq!(parsed.day().map(NonZero::get), Some(2));
 
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
@@ -1821,7 +1821,7 @@ fn parse_first() -> time::Result<()> {
     assert!(remaining_input.is_empty());
     assert_eq!(parsed.year(), Some(2021));
     assert_eq!(parsed.month(), Some(Month::January));
-    assert_eq!(parsed.day().map(NonZeroU8::get), Some(2));
+    assert_eq!(parsed.day().map(NonZero::get), Some(2));
 
     // Ensure the first error is returned.
     let mut parsed = Parsed::new();

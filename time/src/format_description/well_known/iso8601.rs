@@ -2,7 +2,7 @@
 
 mod adt_hack;
 
-use core::num::NonZeroU8;
+use core::num::NonZero;
 
 #[doc(hidden, no_inline)]
 pub use self::adt_hack::DoNotRelyOnWhatThisIs;
@@ -126,19 +126,19 @@ pub enum TimePrecision {
     /// specified number of decimal digits, if any.
     Hour {
         #[allow(missing_docs)]
-        decimal_digits: Option<NonZeroU8>,
+        decimal_digits: Option<NonZero<u8>>,
     },
     /// Format the hour and minute. Seconds and nanoseconds will be represented with the specified
     /// number of decimal digits, if any.
     Minute {
         #[allow(missing_docs)]
-        decimal_digits: Option<NonZeroU8>,
+        decimal_digits: Option<NonZero<u8>>,
     },
     /// Format the hour, minute, and second. Nanoseconds will be represented with the specified
     /// number of decimal digits, if any.
     Second {
         #[allow(missing_docs)]
-        decimal_digits: Option<NonZeroU8>,
+        decimal_digits: Option<NonZero<u8>>,
     },
 }
 
@@ -192,7 +192,7 @@ impl Config {
         year_is_six_digits: false,
         date_kind: DateKind::Calendar,
         time_precision: TimePrecision::Second {
-            decimal_digits: NonZeroU8::new(9),
+            decimal_digits: NonZero::new(9),
         },
         offset_precision: OffsetPrecision::Minute,
     };

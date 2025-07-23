@@ -2,7 +2,7 @@
 
 use alloc::boxed::Box;
 use alloc::string::String;
-use core::num::NonZeroU16;
+use core::num::NonZero;
 use core::str::{self, FromStr};
 
 use super::{ast, unused, Error, Span, Spanned};
@@ -285,7 +285,7 @@ component_definition! {
         },
         Ignore = "ignore" {
             #[required]
-            count = "count": Option<#[from_str] NonZeroU16> => count,
+            count = "count": Option<#[from_str] NonZero<u16>> => count,
         },
         Minute = "minute" {
             padding = "padding": Option<Padding> => padding,

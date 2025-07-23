@@ -1,4 +1,4 @@
-use core::num::NonZeroU16;
+use core::num::NonZero;
 
 use rstest::rstest;
 use time::format_description::modifier::*;
@@ -332,7 +332,7 @@ fn format_description_coverage() {
     assert_eq!(
         format_description!("[ignore count:2]"),
         &[BorrowedFormatItem::Component(Component::Ignore(
-            Ignore::count(NonZeroU16::new(2).expect("2 is not zero"))
+            Ignore::count(NonZero::new(2).expect("2 is not zero"))
         ))]
     );
     assert_eq!(

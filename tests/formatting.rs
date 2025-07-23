@@ -1,5 +1,5 @@
 use std::io;
-use std::num::NonZeroU8;
+use std::num::NonZero;
 
 use time::format_description::well_known::iso8601::{DateKind, OffsetPrecision, TimePrecision};
 use time::format_description::well_known::{iso8601, Iso8601, Rfc2822, Rfc3339};
@@ -246,9 +246,9 @@ fn iso_8601_issue_678() -> time::Result<()> {
         };
     }
 
-    assert_format_config!("2021-01-02T03:04:05.999999999Z", .set_time_precision(TimePrecision::Second { decimal_digits: NonZeroU8::new(9) }));
-    assert_format_config!("2021-01-02T03:04:05.999999Z", .set_time_precision(TimePrecision::Second { decimal_digits: NonZeroU8::new(6) }));
-    assert_format_config!("2021-01-02T03:04:05.999Z", .set_time_precision(TimePrecision::Second { decimal_digits: NonZeroU8::new(3) }));
+    assert_format_config!("2021-01-02T03:04:05.999999999Z", .set_time_precision(TimePrecision::Second { decimal_digits: NonZero::new(9) }));
+    assert_format_config!("2021-01-02T03:04:05.999999Z", .set_time_precision(TimePrecision::Second { decimal_digits: NonZero::new(6) }));
+    assert_format_config!("2021-01-02T03:04:05.999Z", .set_time_precision(TimePrecision::Second { decimal_digits: NonZero::new(3) }));
 
     Ok(())
 }

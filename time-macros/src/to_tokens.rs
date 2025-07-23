@@ -1,4 +1,4 @@
-use std::num::NonZeroU16;
+use std::num::NonZero;
 
 use proc_macro::{Group, Ident, Literal, Punct, Span, TokenStream, TokenTree};
 
@@ -42,10 +42,10 @@ impl ToTokenTree for &str {
     }
 }
 
-impl ToTokenTree for NonZeroU16 {
+impl ToTokenTree for NonZero<u16> {
     fn into_token_tree(self) -> TokenTree {
         quote_group! {{
-            unsafe { ::core::num::NonZeroU16::new_unchecked(#(self.get())) }
+            unsafe { ::core::num::NonZero::<u16>::new_unchecked(#(self.get())) }
         }}
     }
 }

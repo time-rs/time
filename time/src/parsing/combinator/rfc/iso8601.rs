@@ -2,7 +2,7 @@
 //!
 //! [ISO 8601]: https://www.iso.org/iso-8601-date-and-time-format.html
 
-use core::num::{NonZeroU16, NonZeroU8};
+use core::num::NonZero;
 
 #[allow(unused_imports)] // MSRV of 1.87
 use num_conv::prelude::*;
@@ -98,12 +98,12 @@ pub(crate) fn month(input: &[u8]) -> Option<ParsedItem<'_, Month>> {
 }
 
 /// Parse a week number.
-pub(crate) fn week(input: &[u8]) -> Option<ParsedItem<'_, NonZeroU8>> {
+pub(crate) fn week(input: &[u8]) -> Option<ParsedItem<'_, NonZero<u8>>> {
     exactly_n_digits::<2, _>(input)
 }
 
 /// Parse a day of the month.
-pub(crate) fn day(input: &[u8]) -> Option<ParsedItem<'_, NonZeroU8>> {
+pub(crate) fn day(input: &[u8]) -> Option<ParsedItem<'_, NonZero<u8>>> {
     exactly_n_digits::<2, _>(input)
 }
 
@@ -124,7 +124,7 @@ pub(crate) fn dayk(input: &[u8]) -> Option<ParsedItem<'_, Weekday>> {
 }
 
 /// Parse a day of the year.
-pub(crate) fn dayo(input: &[u8]) -> Option<ParsedItem<'_, NonZeroU16>> {
+pub(crate) fn dayo(input: &[u8]) -> Option<ParsedItem<'_, NonZero<u16>>> {
     exactly_n_digits::<3, _>(input)
 }
 

@@ -13,6 +13,20 @@ disallowed-macros = [
     "std::option_env",
 ]
 disallowed-names = ["alpha", "beta", "gamma", "delta"]
+disallowed-types = [
+    { path = "core::num::NonZeroU8", reason = "use generic `NonZero`", replacement = "core::num::NonZero" },
+    { path = "core::num::NonZeroU16", reason = "use generic `NonZero`", replacement = "core::num::NonZero" },
+    { path = "core::num::NonZeroU32", reason = "use generic `NonZero`", replacement = "core::num::NonZero" },
+    { path = "core::num::NonZeroU64", reason = "use generic `NonZero`", replacement = "core::num::NonZero" },
+    { path = "core::num::NonZeroU128", reason = "use generic `NonZero`", replacement = "core::num::NonZero" },
+    { path = "core::num::NonZeroUsize", reason = "use generic `NonZero`", replacement = "core::num::NonZero" },
+    { path = "core::num::NonZeroI8", reason = "use generic `NonZero`", replacement = "core::num::NonZero" },
+    { path = "core::num::NonZeroI16", reason = "use generic `NonZero`", replacement = "core::num::NonZero" },
+    { path = "core::num::NonZeroI32", reason = "use generic `NonZero`", replacement = "core::num::NonZero" },
+    { path = "core::num::NonZeroI64", reason = "use generic `NonZero`", replacement = "core::num::NonZero" },
+    { path = "core::num::NonZeroI128", reason = "use generic `NonZero`", replacement = "core::num::NonZero" },
+    { path = "core::num::NonZeroIsize", reason = "use generic `NonZero`", replacement = "core::num::NonZero" },
+]
 matches-for-let-else = "AllTypes"
 enforced-import-renames = [
     { path = "std::time::Duration", rename = "StdDuration" },

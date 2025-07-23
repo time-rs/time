@@ -1,4 +1,4 @@
-use core::num::NonZeroU16;
+use core::num::NonZero;
 
 use rstest::rstest;
 use rstest_reuse::{apply, template};
@@ -109,12 +109,12 @@ fn modifiers(
     )]
     case_sensitive: _,
     #[values(
-        (NonZeroU16::new(1).unwrap(), "count:1"),
-        (NonZeroU16::new(2).unwrap(), "count:2"),
-        (NonZeroU16::new(3).unwrap(), "count:3"),
-        (NonZeroU16::new(10).unwrap(), "count:10"),
-        (NonZeroU16::new(100).unwrap(), "count:100"),
-        (NonZeroU16::new(1_000).unwrap(), "count:1000"),
+        (NonZero::new(1).unwrap(), "count:1"),
+        (NonZero::new(2).unwrap(), "count:2"),
+        (NonZero::new(3).unwrap(), "count:3"),
+        (NonZero::new(10).unwrap(), "count:10"),
+        (NonZero::new(100).unwrap(), "count:100"),
+        (NonZero::new(1_000).unwrap(), "count:1000"),
     )]
     ignore_count: _,
     #[values(
@@ -442,7 +442,7 @@ fn subsecond_component(subsecond_digits: M<SubsecondDigits>) {
 }
 
 #[apply(modifiers)]
-fn ignore_component(ignore_count: M<NonZeroU16>) {
+fn ignore_component(ignore_count: M<NonZero<u16>>) {
     assert_eq!(
         parse_with_modifiers!("ignore", ignore_count),
         Ok(vec![BorrowedFormatItem::Component(Component::Ignore(

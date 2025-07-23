@@ -1,6 +1,6 @@
 //! Information parsed from an input and format description.
 
-use core::num::{NonZeroU16, NonZeroU8};
+use core::num::NonZero;
 
 use deranged::{
     OptionRangedI128, OptionRangedI16, OptionRangedI32, OptionRangedI8, OptionRangedU16,
@@ -299,7 +299,7 @@ impl Parsed {
                     parse_week_number(input, modifiers).ok_or(InvalidComponent("week number"))?;
                 match modifiers.repr {
                     modifier::WeekNumberRepr::Iso => {
-                        NonZeroU8::new(value).and_then(|value| self.set_iso_week_number(value))
+                        NonZero::new(value).and_then(|value| self.set_iso_week_number(value))
                     }
                     modifier::WeekNumberRepr::Sunday => self.set_sunday_week_number(value),
                     modifier::WeekNumberRepr::Monday => self.set_monday_week_number(value),
@@ -333,7 +333,7 @@ impl Parsed {
                 let ParsedItem(remaining, value) =
                     parse_hour(input, modifiers).ok_or(InvalidComponent("hour"))?;
                 if modifiers.is_12_hour_clock {
-                    NonZeroU8::new(value).and_then(|value| self.set_hour_12(value))
+                    NonZero::new(value).and_then(|value| self.set_hour_12(value))
                 } else {
                     self.set_hour_24(value)
                 }
@@ -464,8 +464,8 @@ impl Parsed {
     }
 
     /// Obtain the `iso_week_number` component.
-    pub const fn iso_week_number(&self) -> Option<NonZeroU8> {
-        NonZeroU8::new(const_try_opt!(self.iso_week_number.get_primitive()))
+    pub const fn iso_week_number(&self) -> Option<NonZero<u8>> {
+        NonZero::new(const_try_opt!(self.iso_week_number.get_primitive()))
     }
 
     /// Obtain the `weekday` component.
@@ -474,13 +474,13 @@ impl Parsed {
     }
 
     /// Obtain the `ordinal` component.
-    pub const fn ordinal(&self) -> Option<NonZeroU16> {
-        NonZeroU16::new(const_try_opt!(self.ordinal.get_primitive()))
+    pub const fn ordinal(&self) -> Option<NonZero<u16>> {
+        NonZero::new(const_try_opt!(self.ordinal.get_primitive()))
     }
 
     /// Obtain the `day` component.
-    pub const fn day(&self) -> Option<NonZeroU8> {
-        NonZeroU8::new(const_try_opt!(self.day.get_primitive()))
+    pub const fn day(&self) -> Option<NonZero<u8>> {
+        NonZero::new(const_try_opt!(self.day.get_primitive()))
     }
 
     /// Obtain the `hour_24` component.
@@ -489,8 +489,8 @@ impl Parsed {
     }
 
     /// Obtain the `hour_12` component.
-    pub const fn hour_12(&self) -> Option<NonZeroU8> {
-        NonZeroU8::new(const_try_opt!(self.hour_12.get_primitive()))
+    pub const fn hour_12(&self) -> Option<NonZero<u8>> {
+        NonZero::new(const_try_opt!(self.hour_12.get_primitive()))
     }
 
     /// Obtain the `hour_12_is_pm` component.
@@ -614,12 +614,12 @@ impl Parsed {
         month set_month with_month Month;
         sunday_week_number set_sunday_week_number with_sunday_week_number u8;
         monday_week_number set_monday_week_number with_monday_week_number u8;
-        iso_week_number set_iso_week_number with_iso_week_number NonZeroU8;
+        iso_week_number set_iso_week_number with_iso_week_number NonZero<u8>;
         weekday set_weekday with_weekday Weekday;
-        ordinal set_ordinal with_ordinal NonZeroU16;
-        day set_day with_day NonZeroU8;
+        ordinal set_ordinal with_ordinal NonZero<u16>;
+        day set_day with_day NonZero<u8>;
         hour_24 set_hour_24 with_hour_24 u8;
-        hour_12 set_hour_12 with_hour_12 NonZeroU8;
+        hour_12 set_hour_12 with_hour_12 NonZero<u8>;
         hour_12_is_pm set_hour_12_is_pm with_hour_12_is_pm bool;
         minute set_minute with_minute u8;
         second set_second with_second u8;
@@ -735,7 +735,7 @@ impl Parsed {
     }
 
     /// Set the `iso_week_number` component and return `self`.
-    pub const fn with_iso_week_number(mut self, value: NonZeroU8) -> Option<Self> {
+    pub const fn with_iso_week_number(mut self, value: NonZero<u8>) -> Option<Self> {
         self.iso_week_number = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value.get())));
         Some(self)
     }
@@ -747,13 +747,13 @@ impl Parsed {
     }
 
     /// Set the `ordinal` component and return `self`.
-    pub const fn with_ordinal(mut self, value: NonZeroU16) -> Option<Self> {
+    pub const fn with_ordinal(mut self, value: NonZero<u16>) -> Option<Self> {
         self.ordinal = OptionRangedU16::Some(const_try_opt!(RangedU16::new(value.get())));
         Some(self)
     }
 
     /// Set the `day` component and return `self`.
-    pub const fn with_day(mut self, value: NonZeroU8) -> Option<Self> {
+    pub const fn with_day(mut self, value: NonZero<u8>) -> Option<Self> {
         self.day = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value.get())));
         Some(self)
     }
@@ -765,7 +765,7 @@ impl Parsed {
     }
 
     /// Set the `hour_12` component and return `self`.
-    pub const fn with_hour_12(mut self, value: NonZeroU8) -> Option<Self> {
+    pub const fn with_hour_12(mut self, value: NonZero<u8>) -> Option<Self> {
         self.hour_12 = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value.get())));
         Some(self)
     }

@@ -1,4 +1,4 @@
-use std::num::NonZeroU16;
+use std::num::NonZero;
 use std::str::{self, FromStr};
 
 use super::{ast, unused, Error, Span, Spanned, Unused};
@@ -214,7 +214,7 @@ component_definition! {
         },
         Ignore = "ignore" {
             #[required]
-            count = "count": Option<#[from_str] NonZeroU16> => count,
+            count = "count": Option<#[from_str] NonZero<u16>> => count,
         },
         Minute = "minute" {
             padding = "padding": Option<Padding> => padding,

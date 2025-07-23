@@ -2,7 +2,7 @@
 
 #[cfg(feature = "formatting")]
 use alloc::string::String;
-use core::num::{NonZeroI32, NonZeroU8};
+use core::num::NonZero;
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
 use core::{cmp, fmt};
@@ -54,7 +54,7 @@ pub struct Date {
     // |   1 bit    |        21 bits        |     1 bit     |  9 bits   |
     // | unassigned |         year          | is leap year? |  ordinal  |
     // The year is 15 bits when `large-dates` is not enabled.
-    value: NonZeroI32,
+    value: NonZero<i32>,
 }
 
 impl Date {
@@ -95,9 +95,7 @@ impl Date {
         Self {
             // Safety: `ordinal` is not zero.
             value: unsafe {
-                NonZeroI32::new_unchecked(
-                    (year << 10) | ((is_leap_year as i32) << 9) | ordinal as i32,
-                )
+                NonZero::new_unchecked((year << 10) | ((is_leap_year as i32) << 9) | ordinal as i32)
             },
         }
     }
@@ -367,7 +365,7 @@ impl Date {
 
         // Safety: `month` is guaranteed to be between 1 and 12 inclusive.
         unsafe {
-            match Month::from_number(NonZeroU8::new_unchecked(month as u8)) {
+            match Month::from_number(NonZero::new_unchecked(month as u8)) {
                 Ok(month) => month,
                 Err(_) => core::hint::unreachable_unchecked(),
             }
@@ -500,7 +498,7 @@ impl Date {
             year,
             // Safety: `month` is guaranteed to be between 1 and 12 inclusive.
             unsafe {
-                match Month::from_number(NonZeroU8::new_unchecked(month as u8)) {
+                match Month::from_number(NonZero::new_unchecked(month as u8)) {
                     Ok(month) => month,
                     Err(_) => core::hint::unreachable_unchecked(),
                 }
@@ -595,7 +593,7 @@ impl Date {
         } else {
             Some(Self {
                 // Safety: `ordinal` is not zero.
-                value: unsafe { NonZeroI32::new_unchecked(self.value.get() + 1) },
+                value: unsafe { NonZero::new_unchecked(self.value.get() + 1) },
             })
         }
     }
@@ -614,7 +612,7 @@ impl Date {
         if self.ordinal() != 1 {
             Some(Self {
                 // Safety: `ordinal` is not zero.
-                value: unsafe { NonZeroI32::new_unchecked(self.value.get() - 1) },
+                value: unsafe { NonZero::new_unchecked(self.value.get() - 1) },
             })
         } else if self.value.get() == Self::MIN.value.get() {
             None
