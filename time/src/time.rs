@@ -2,9 +2,9 @@
 
 #[cfg(feature = "formatting")]
 use alloc::string::String;
-use core::fmt;
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
+use core::{fmt, hint};
 #[cfg(feature = "formatting")]
 use std::io;
 
@@ -20,7 +20,7 @@ use crate::internal_macros::{cascade, ensure_ranged, impl_add_assign, impl_sub_a
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::util::DateAdjustment;
-use crate::{error, hint, Duration};
+use crate::{error, Duration};
 
 /// By explicitly inserting this enum where padding is expected, the compiler is able to better
 /// perform niche value optimization.
