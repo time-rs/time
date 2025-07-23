@@ -8,6 +8,10 @@ const OS_HAS_THREAD_SAFE_ENVIRONMENT: bool = match std::env::consts::OS.as_bytes
     // https://github.com/NetBSD/src/blob/f45028636a44111bc4af44d460924958a4460844/lib/libc/stdlib/getenv.c
     // https://github.com/NetBSD/src/blob/f45028636a44111bc4af44d460924958a4460844/lib/libc/stdlib/setenv.c
     | b"netbsd"
+    // https://github.com/apple-oss-distributions/Libc/blob/63976b830a836a22649b806fe62e8614fe3e5555/stdlib/FreeBSD/getenv.c#L118
+    // https://github.com/apple-oss-distributions/Libc/blob/63976b830a836a22649b806fe62e8614fe3e5555/stdlib/FreeBSD/setenv.c#L446
+    // https://blog.rust-lang.org/2023/09/25/Increasing-Apple-Version-Requirements/
+    | b"macos"
     => true,
     _ => false,
 };
