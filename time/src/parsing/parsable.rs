@@ -138,9 +138,9 @@ impl sealed::Sealed for [OwnedFormatItem] {
     }
 }
 
-impl<T: Deref> sealed::Sealed for T
+impl<T> sealed::Sealed for T
 where
-    T::Target: sealed::Sealed,
+    T: Deref<Target: sealed::Sealed>,
 {
     fn parse_into<'a>(
         &self,
