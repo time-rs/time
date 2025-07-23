@@ -727,12 +727,12 @@ fn iso_8601_error() {
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
         ))
     ));
-    assert!(matches!(
+    assert_eq!(
         OffsetDateTime::parse("01:02", &Iso8601::DEFAULT),
         Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation { .. }
+            error::TryFromParsed::InsufficientInformation
         ))
-    ));
+    );
 
     assert!(matches!(
         UtcDateTime::parse("20210102T03:04Z", &Iso8601::DEFAULT),
@@ -794,12 +794,12 @@ fn iso_8601_error() {
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
         ))
     ));
-    assert!(matches!(
+    assert_eq!(
         UtcDateTime::parse("01:02", &Iso8601::DEFAULT),
         Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation { .. }
+            error::TryFromParsed::InsufficientInformation
         ))
-    ));
+    );
 }
 
 #[test]
@@ -849,28 +849,28 @@ fn parse_time() -> time::Result<()> {
 #[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn parse_time_err() -> time::Result<()> {
-    assert!(matches!(
+    assert_eq!(
         Time::try_from(Parsed::new()),
-        Err(error::TryFromParsed::InsufficientInformation { .. })
-    ));
-    assert!(matches!(
+        Err(error::TryFromParsed::InsufficientInformation)
+    );
+    assert_eq!(
         Time::parse("", &fd::parse("")?),
         Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation { .. }
+            error::TryFromParsed::InsufficientInformation
         ))
-    ));
-    assert!(matches!(
+    );
+    assert_eq!(
         Time::parse("12:34", &fd::parse("[hour]:[second]")?),
         Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation { .. }
+            error::TryFromParsed::InsufficientInformation
         ))
-    ));
-    assert!(matches!(
+    );
+    assert_eq!(
         Time::parse("12:34", &fd::parse("[hour]:[subsecond]")?),
         Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation { .. }
+            error::TryFromParsed::InsufficientInformation
         ))
-    ));
+    );
     assert!(matches!(
         Time::parse("13 PM", &fd::parse("[hour repr:12] [period]")?),
         Err(error::Parse::ParseFromDescription(
@@ -1039,16 +1039,16 @@ fn parse_date() -> time::Result<()> {
 #[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
 #[test]
 fn parse_date_err() -> time::Result<()> {
-    assert!(matches!(
+    assert_eq!(
         Date::try_from(Parsed::new()),
-        Err(error::TryFromParsed::InsufficientInformation { .. })
-    ));
-    assert!(matches!(
+        Err(error::TryFromParsed::InsufficientInformation)
+    );
+    assert_eq!(
         Date::parse("", &fd::parse("")?),
         Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation { .. }
+            error::TryFromParsed::InsufficientInformation
         ))
-    ));
+    );
     assert!(matches!(
         Date::parse("a", &fd::parse("[year]")?),
         Err(error::Parse::ParseFromDescription(
@@ -1169,12 +1169,12 @@ fn parse_offset() -> time::Result<()> {
 
 #[test]
 fn parse_offset_err() -> time::Result<()> {
-    assert!(matches!(
+    assert_eq!(
         UtcOffset::parse("", &fd::parse("")?),
         Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation { .. }
+            error::TryFromParsed::InsufficientInformation
         ))
-    ));
+    );
     assert_eq!(
         UtcOffset::parse("01", &fd::parse("[offset_hour sign:mandatory]")?),
         Err(error::Parse::ParseFromDescription(
@@ -1218,12 +1218,12 @@ fn parse_primitive_date_time() -> time::Result<()> {
 
 #[test]
 fn parse_primitive_date_time_err() -> time::Result<()> {
-    assert!(matches!(
+    assert_eq!(
         PrimitiveDateTime::parse("", &fd::parse("")?),
         Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation { .. }
+            error::TryFromParsed::InsufficientInformation
         ))
-    ));
+    );
     assert!(matches!(
         PrimitiveDateTime::parse(
             "2021-001 13 PM",
@@ -1248,12 +1248,12 @@ fn parse_primitive_date_time_err() -> time::Result<()> {
 
 #[test]
 fn parse_offset_date_time_err() -> time::Result<()> {
-    assert!(matches!(
+    assert_eq!(
         OffsetDateTime::parse("", &fd::parse("")?),
         Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation { .. }
+            error::TryFromParsed::InsufficientInformation
         ))
-    ));
+    );
     assert!(matches!(
         OffsetDateTime::parse("x", &fd::parse("[year]")?),
         Err(error::Parse::ParseFromDescription(
@@ -1285,12 +1285,12 @@ fn parse_utc_date_time() -> time::Result<()> {
 
 #[test]
 fn parse_utc_date_time_err() -> time::Result<()> {
-    assert!(matches!(
+    assert_eq!(
         UtcDateTime::parse("", &fd::parse("")?),
         Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation { .. }
+            error::TryFromParsed::InsufficientInformation
         ))
-    ));
+    );
     assert!(matches!(
         UtcDateTime::parse(
             "2021-001 13 PM",
