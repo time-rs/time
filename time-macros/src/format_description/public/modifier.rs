@@ -26,11 +26,11 @@ macro_rules! to_tokens {
                 if matches!(($(&$field_name,)*), ($($default,)*)) {
                     return TokenTree::Group(Group::new(
                         Delimiter::None,
-                        quote! { $struct_name::default() }
+                        quote_! { $struct_name::default() }
                     ));
                 }
 
-                let mut tokens = quote! {
+                let mut tokens = quote_! {
                     let mut value = $struct_name::default();
                 };
                 $(

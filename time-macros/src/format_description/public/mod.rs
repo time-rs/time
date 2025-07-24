@@ -1,7 +1,7 @@
 mod component;
 pub(super) mod modifier;
 
-use proc_macro::{Literal, TokenStream};
+use proc_macro::TokenStream;
 
 pub(crate) use self::component::Component;
 use crate::to_tokens::ToTokenStream;
@@ -27,7 +27,7 @@ impl ToTokenStream for OwnedFormatItem {
                 let items = items
                     .into_vec()
                     .into_iter()
-                    .map(|item| quote! { #S(item), })
+                    .map(|item| quote_! { #S(item), })
                     .collect::<TokenStream>();
                 quote_append! { ts
                     BorrowedFormatItem::Compound { 0: &[#S(items)] }
@@ -40,7 +40,7 @@ impl ToTokenStream for OwnedFormatItem {
                 let items = items
                     .into_vec()
                     .into_iter()
-                    .map(|item| quote! { #S(item), })
+                    .map(|item| quote_! { #S(item), })
                     .collect::<TokenStream>();
                 quote_append! { ts
                     BorrowedFormatItem::First { 0: &[#S(items)] }

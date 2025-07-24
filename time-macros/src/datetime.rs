@@ -36,8 +36,8 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
 impl ToTokenStream for DateTime {
     fn append_to(self, ts: &mut TokenStream) {
         let maybe_offset = match self.offset {
-            Some(offset) => quote! { .assume_offset(#S(offset)) },
-            None => quote! {},
+            Some(offset) => quote_! { .assume_offset(#S(offset)) },
+            None => quote_! {},
         };
 
         quote_append! { ts

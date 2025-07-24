@@ -59,7 +59,7 @@ macro_rules! impl_macros {
             match $name::parse(&mut iter) {
                 Ok(value) => match iter.peek() {
                     Some(tree) => Error::UnexpectedToken { tree: tree.clone() }.to_compile_error(),
-                    None => quote! { const { #S(value.into_token_stream()) } },
+                    None => quote_! { const { #S(value.into_token_stream()) } },
                 },
                 Err(err) => err.to_compile_error(),
             }
@@ -164,11 +164,11 @@ fn parse_format_description_version<const NO_EQUALS_IS_MOD_NAME: bool>(
 fn parse_visibility(iter: &mut PeekableTokenStreamIter) -> Result<TokenStream, Error> {
     let mut visibility = match iter.peek().ok_or(Error::UnexpectedEndOfInput)? {
         pub_ident @ TokenTree::Ident(ident) if ident.to_string() == "pub" => {
-            let visibility = quote! { #(pub_ident.clone()) };
+            let visibility = quote_! { #(pub_ident.clone()) };
             iter.next(); // consume `pub`
             visibility
         }
-        _ => return Ok(quote! {}),
+        _ => return Ok(quote_! {}),
     };
 
     match iter.peek().ok_or(Error::UnexpectedEndOfInput)? {
@@ -191,13 +191,13 @@ pub fn format_description(input: TokenStream) -> TokenStream {
         let (span, string) = helpers::get_string_literal(input)?;
         let items = format_description::parse_with_version(version, &string, span)?;
 
-        Ok(quote! {
+        Ok(quote_! {
             const {
                 use ::time::format_description::{*, modifier::*};
                 &[#S(
                     items
                         .into_iter()
-                        .map(|item| quote! { #S(item), })
+                        .map(|item| quote_! { #S(item), })
                         .collect::<TokenStream>()
                 )] as &[BorrowedFormatItem]
             }
@@ -246,9 +246,11 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
             Some(TokenTree::Literal(_)) => {
                 let (span, format_string) = helpers::get_string_literal(tokens)?;
                 let items = format_description::parse_with_version(version, &format_string, span)?;
-                let items: TokenStream =
-                    items.into_iter().map(|item| quote! { #S(item), }).collect();
-                let items = quote! {
+                let items: TokenStream = items
+                    .into_iter()
+                    .map(|item| quote_! { #S(item), })
+                    .collect();
+                let items = quote_! {
                     const {
                         use ::time::format_description::{*, modifier::*};
                         &[#S(items)] as &[BorrowedFormatItem]
