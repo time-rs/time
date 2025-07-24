@@ -193,12 +193,13 @@ pub fn format_description(input: TokenStream) -> TokenStream {
 
         Ok(quote! {
             const {
+                use ::time::format_description::{*, modifier::*};
                 &[#S(
                     items
                         .into_iter()
                         .map(|item| quote! { #S(item), })
                         .collect::<TokenStream>()
-                )] as &[::time::format_description::BorrowedFormatItem]
+                )] as &[BorrowedFormatItem]
             }
         })
     })()
@@ -248,7 +249,10 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
                 let items: TokenStream =
                     items.into_iter().map(|item| quote! { #S(item), }).collect();
                 let items = quote! {
-                    const { &[#S(items)] as &[::time::format_description::BorrowedFormatItem] }
+                    const {
+                        use ::time::format_description::{*, modifier::*};
+                        &[#S(items)] as &[BorrowedFormatItem]
+                    }
                 };
 
                 (items, String::from_utf8_lossy(&format_string).into_owned())
