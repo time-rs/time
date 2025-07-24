@@ -1,10 +1,10 @@
 use std::iter::Peekable;
 
-use proc_macro::{token_stream, Span, TokenTree};
+use proc_macro::{token_stream, Span, TokenStream};
 use time_core::convert::*;
 
 use crate::helpers::{consume_any_ident, consume_number, consume_punct};
-use crate::to_tokens::ToTokenTree;
+use crate::to_tokens::ToTokenStream;
 use crate::Error;
 
 pub(crate) struct Offset {
@@ -82,17 +82,16 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Offs
     }
 }
 
-impl ToTokenTree for Offset {
-    fn into_token_tree(self) -> TokenTree {
-        quote_group! {{
-            const OFFSET: ::time::UtcOffset = unsafe {
+impl ToTokenStream for Offset {
+    fn append_to(self, ts: &mut TokenStream) {
+        quote_append! { ts
+            unsafe {
                 ::time::UtcOffset::__from_hms_unchecked(
                     #(self.hours),
                     #(self.minutes),
                     #(self.seconds),
                 )
-            };
-            OFFSET
-        }}
+            }
+        }
     }
 }

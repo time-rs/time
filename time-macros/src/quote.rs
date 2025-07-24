@@ -8,7 +8,6 @@ macro_rules! quote {
     }};
 }
 
-#[cfg(any(feature = "formatting", feature = "parsing"))]
 macro_rules! quote_append {
     ($ts:ident $($x:tt)*) => {{
         quote_inner!($ts $($x)*);

@@ -16,7 +16,9 @@ macro_rules! version {
 /// A helper macro to statically validate the version (when used as a const parameter).
 macro_rules! validate_version {
     ($version:ident) => {
-        let _ = $crate::format_description::parse::Version::<$version>::IS_VALID;
+        const {
+            assert!($version >= 1 && $version <= 2);
+        }
     };
 }
 
@@ -24,14 +26,6 @@ mod ast;
 mod format_item;
 mod lexer;
 mod strftime;
-
-/// A struct that is used to ensure that the version is valid.
-struct Version<const N: usize>;
-impl<const N: usize> Version<N> {
-    /// A constant that panics if the version is not valid. This results in a post-monomorphization
-    /// error.
-    const IS_VALID: () = assert!(N >= 1 && N <= 2);
-}
 
 /// Parse a sequence of items from the format description.
 ///

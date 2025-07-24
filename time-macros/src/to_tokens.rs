@@ -5,6 +5,11 @@ use proc_macro::{Group, Ident, Literal, Punct, Span, TokenStream, TokenTree};
 /// Turn a type into a [`TokenStream`].
 pub(crate) trait ToTokenStream: Sized {
     fn append_to(self, ts: &mut TokenStream);
+    fn into_token_stream(self) -> TokenStream {
+        let mut ts = TokenStream::new();
+        self.append_to(&mut ts);
+        ts
+    }
 }
 
 pub(crate) trait ToTokenTree: Sized {

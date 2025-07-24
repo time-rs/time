@@ -1,13 +1,13 @@
 use std::iter::Peekable;
 
 use num_conv::Truncate;
-use proc_macro::{token_stream, TokenTree};
+use proc_macro::token_stream;
 use time_core::util::{days_in_year, weeks_in_year};
 
 use crate::helpers::{
     consume_any_ident, consume_number, consume_punct, days_in_year_month, ymd_to_yo, ywd_to_yo,
 };
-use crate::to_tokens::ToTokenTree;
+use crate::to_tokens::ToTokenStream;
 use crate::Error;
 
 #[cfg(feature = "large-dates")]
@@ -124,16 +124,15 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
     }
 }
 
-impl ToTokenTree for Date {
-    fn into_token_tree(self) -> TokenTree {
-        quote_group! {{
-            const DATE: ::time::Date = unsafe {
+impl ToTokenStream for Date {
+    fn append_to(self, ts: &mut proc_macro::TokenStream) {
+        quote_append! { ts
+            unsafe {
                 ::time::Date::__from_ordinal_date_unchecked(
                     #(self.year),
                     #(self.ordinal),
                 )
-            };
-            DATE
-        }}
+            }
+        }
     }
 }

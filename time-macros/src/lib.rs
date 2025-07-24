@@ -53,13 +53,13 @@ macro_rules! impl_macros {
     ($($name:ident)*) => {$(
         #[proc_macro]
         pub fn $name(input: TokenStream) -> TokenStream {
-            use crate::to_tokens::ToTokenTree;
+            use crate::to_tokens::ToTokenStream;
 
             let mut iter = input.into_iter().peekable();
             match $name::parse(&mut iter) {
                 Ok(value) => match iter.peek() {
                     Some(tree) => Error::UnexpectedToken { tree: tree.clone() }.to_compile_error(),
-                    None => TokenStream::from(value.into_token_tree()),
+                    None => quote! { const { #S(value.into_token_stream()) } },
                 },
                 Err(err) => err.to_compile_error(),
             }
@@ -191,15 +191,16 @@ pub fn format_description(input: TokenStream) -> TokenStream {
         let (span, string) = helpers::get_string_literal(input)?;
         let items = format_description::parse_with_version(version, &string, span)?;
 
-        Ok(quote! {{
-            const DESCRIPTION: &[::time::format_description::BorrowedFormatItem<'_>] = &[#S(
-                items
-                    .into_iter()
-                    .map(|item| quote! { #S(item), })
-                    .collect::<TokenStream>()
-            )];
-            DESCRIPTION
-        }})
+        Ok(quote! {
+            const {
+                &[#S(
+                    items
+                        .into_iter()
+                        .map(|item| quote! { #S(item), })
+                        .collect::<TokenStream>()
+                )] as &[::time::format_description::BorrowedFormatItem]
+            }
+        })
     })()
     .unwrap_or_else(|err: Error| err.to_compile_error())
 }
@@ -247,9 +248,7 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
                 let items: TokenStream =
                     items.into_iter().map(|item| quote! { #S(item), }).collect();
                 let items = quote! {
-                    const ITEMS: &[::time::format_description::BorrowedFormatItem<'_>]
-                        = &[#S(items)];
-                    ITEMS
+                    const { &[#S(items)] as &[::time::format_description::BorrowedFormatItem] }
                 };
 
                 (items, String::from_utf8_lossy(&format_string).into_owned())
