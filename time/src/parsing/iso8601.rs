@@ -315,19 +315,13 @@ fn round(value: f64) -> f64 {
     }
     #[cfg(not(feature = "std"))]
     {
-        round_impl(value)
-    }
-}
+        debug_assert!(value.is_sign_positive() && !value.is_nan());
 
-#[cfg(not(feature = "std"))]
-#[expect(clippy::missing_docs_in_private_items)]
-fn round_impl(value: f64) -> f64 {
-    debug_assert!(value.is_sign_positive() && !value.is_nan());
-
-    let f = value % 1.;
-    if f < 0.5 {
-        value - f
-    } else {
-        value - f + 1.
+        let f = value % 1.;
+        if f < 0.5 {
+            value - f
+        } else {
+            value - f + 1.
+        }
     }
 }
