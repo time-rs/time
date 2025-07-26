@@ -111,3 +111,18 @@ fn issue_674_leap_second_support() {
         ],
     );
 }
+
+#[test]
+fn issue_724_truncation() {
+    #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+    struct Demo(#[serde(with = "time::serde::iso8601")] OffsetDateTime);
+
+    let value = datetime!(2025-01-10 23:01:16.000081999 UTC);
+    let info = Demo(value);
+
+    let serialized = serde_json::to_string(&info).expect("serialization failed");
+    assert_eq!(serialized, r#""+002025-01-10T23:01:16.000081999Z""#);
+
+    let deserialized: Demo = serde_json::from_str(&serialized).expect("deserialization failed");
+    assert_eq!(info, deserialized);
+}

@@ -94,15 +94,28 @@ fn f64_10_pow_x(x: NonZero<u8>) -> f64 {
 /// with zeroes to the left if necessary.
 pub(crate) fn format_float(
     output: &mut (impl io::Write + ?Sized),
-    value: f64,
+    mut value: f64,
     digits_before_decimal: u8,
     digits_after_decimal: Option<NonZero<u8>>,
 ) -> io::Result<usize> {
     match digits_after_decimal {
         Some(digits_after_decimal) => {
-            // Truncate the decimal points up to the precision
-            let trunc_num = f64_10_pow_x(digits_after_decimal);
-            let value = f64::trunc(value * trunc_num) / trunc_num;
+            // If the precision is less than nine digits after the decimal point, truncate the
+            // value. This avoids rounding up and causing the value to exceed the maximum permitted
+            // value (as in #678). If the precision is at least nine, then we don't truncate so as
+            // to avoid having an off-by-one error (as in #724). The latter is necessary
+            // because floating point values are inherently imprecise with decimal
+            // values, so a minuscule error can be amplified easily.
+            //
+            // Note that this is largely an issue for second values, as for minute and hour decimals
+            // the value is divided by 60 or 3,600, neither of which divide evenly into 10^x.
+            //
+            // While not a perfect approach, this addresses the bugs that have been reported so far
+            // without being overly complex.
+            if digits_after_decimal.get() < 9 {
+                let trunc_num = f64_10_pow_x(digits_after_decimal);
+                value = f64::trunc(value * trunc_num) / trunc_num;
+            }
 
             let digits_after_decimal = digits_after_decimal.get().extend();
             let width = digits_before_decimal.extend::<usize>() + 1 + digits_after_decimal;
