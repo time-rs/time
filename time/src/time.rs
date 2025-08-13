@@ -194,6 +194,7 @@ impl Time {
     /// assert!(Time::from_hms(0, 60, 0).is_err()); // 60 isn't a valid minute.
     /// assert!(Time::from_hms(0, 0, 60).is_err()); // 60 isn't a valid second.
     /// ```
+    #[inline]
     pub const fn from_hms(hour: u8, minute: u8, second: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self::from_hms_nanos_ranged(
             ensure_ranged!(Hours: hour),
