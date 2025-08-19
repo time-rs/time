@@ -38,12 +38,12 @@ local-offset = ["std", "dep:libc", "dep:num_threads"]
 macros = ["dep:time-macros"]
 parsing = ["time-macros?/parsing"]
 quickcheck = ["dep:quickcheck", "alloc", "deranged/quickcheck"]
-rand = ["dep:rand", "deranged/rand"]
+rand = ["dep:rand", "deranged/rand08"]
 serde = ["dep:serde", "time-macros?/serde", "deranged/serde"]
 serde-human-readable = ["serde", "formatting", "parsing"]
 # Deprecated in favor of using the relevant flags directly.
 serde-well-known = ["serde", "formatting", "parsing"]
-std = ["alloc", "deranged/std"]
+std = ["alloc"]
 wasm-bindgen = ["dep:js-sys"]
 
 # If adding an optional dependency, be sure to use the `dep:` prefix above to avoid an implicit
