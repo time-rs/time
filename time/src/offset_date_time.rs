@@ -32,8 +32,6 @@ use crate::{
 const UNIX_EPOCH_JULIAN_DAY: i32 = OffsetDateTime::UNIX_EPOCH.to_julian_day();
 
 /// A [`PrimitiveDateTime`] with a [`UtcOffset`].
-///
-/// All comparisons are performed using the UTC time.
 #[derive(Clone, Copy, Eq)]
 pub struct OffsetDateTime {
     local_date_time: PrimitiveDateTime,
@@ -42,7 +40,8 @@ pub struct OffsetDateTime {
 
 impl PartialEq for OffsetDateTime {
     fn eq(&self, other: &Self) -> bool {
-        self.to_offset_raw(UtcOffset::UTC) == other.to_offset_raw(UtcOffset::UTC)
+        raw_to_bits((self.year(), self.ordinal(), self.time()))
+            == raw_to_bits(other.to_offset_raw(self.offset()))
     }
 }
 
@@ -54,15 +53,19 @@ impl PartialOrd for OffsetDateTime {
 
 impl Ord for OffsetDateTime {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.to_offset_raw(UtcOffset::UTC)
-            .cmp(&other.to_offset_raw(UtcOffset::UTC))
+        raw_to_bits((self.year(), self.ordinal(), self.time()))
+            .cmp(&raw_to_bits(other.to_offset_raw(self.offset())))
     }
 }
 
 impl Hash for OffsetDateTime {
     fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
-        self.to_offset_raw(UtcOffset::UTC).hash(state);
+        raw_to_bits(self.to_utc_raw()).hash(state);
     }
+}
+
+const fn raw_to_bits((year, ordinal, time): (i32, u16, Time)) -> u128 {
+    ((year as u128) << 74) | ((ordinal as u128) << 64) | (time.as_u64() as u128)
 }
 
 impl OffsetDateTime {
