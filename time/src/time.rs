@@ -442,9 +442,9 @@ impl Time {
     /// ```
     pub const fn duration_until(self, other: Self) -> Duration {
         let mut nanoseconds = other.nanosecond.get() as i32 - self.nanosecond.get() as i32;
-        let mut seconds = other.second.get() as i8 - self.second.get() as i8;
-        let mut minutes = other.minute.get() as i8 - self.minute.get() as i8;
-        let mut hours = other.hour.get() as i8 - self.hour.get() as i8;
+        let seconds = other.second.get() as i8 - self.second.get() as i8;
+        let minutes = other.minute.get() as i8 - self.minute.get() as i8;
+        let hours = other.hour.get() as i8 - self.hour.get() as i8;
 
         // Safety: For all four variables, the bounds are obviously true given the previous bounds
         // and nature of subtraction.
@@ -463,23 +463,18 @@ impl Time {
             hint::assert_unchecked(hours <= Hours::MAX.get() as i8 - Hours::MIN.get() as i8);
         }
 
-        if self.as_u64() > other.as_u64() {
-            hours += Hour::per_t::<i8>(Day);
-        }
+        let mut total_seconds = hours as i32 * Second::per_t::<i32>(Hour)
+            + minutes as i32 * Second::per_t::<i32>(Minute)
+            + seconds as i32;
 
-        cascade!(nanoseconds in 0..Nanosecond::per_t(Second) => seconds);
-        cascade!(seconds in 0..Second::per_t(Minute) => minutes);
-        cascade!(minutes in 0..Minute::per_t(Hour) => hours);
+        cascade!(nanoseconds in 0..Nanosecond::per_t(Second) => total_seconds);
+
+        if total_seconds < 0 {
+            total_seconds += Second::per_t::<i32>(Day);
+        }
 
         // Safety: The range of `nanoseconds` is guaranteed by the cascades above.
-        unsafe {
-            Duration::new_unchecked(
-                hours as i64 * Second::per_t::<i64>(Hour)
-                    + minutes as i64 * Second::per_t::<i64>(Minute)
-                    + seconds as i64,
-                nanoseconds,
-            )
-        }
+        unsafe { Duration::new_unchecked(total_seconds as i64, nanoseconds) }
     }
 
     /// Determine the [`Duration`] that, if added to the parameter, would result in `self`.
