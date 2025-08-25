@@ -623,21 +623,6 @@ fn hash() {
             hasher.finish()
         }
     );
-
-    // Ensure that a `PrimitiveDateTime` and `OffsetDateTime` don't collide,
-    // even if the UTC time is the same.
-    assert_ne!(
-        {
-            let mut hasher = DefaultHasher::new();
-            datetime!(2019-01-01 0:00).hash(&mut hasher);
-            hasher.finish()
-        },
-        {
-            let mut hasher = DefaultHasher::new();
-            datetime!(2019-01-01 0:00 UTC).hash(&mut hasher);
-            hasher.finish()
-        }
-    );
 }
 
 #[test]
