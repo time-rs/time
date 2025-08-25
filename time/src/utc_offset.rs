@@ -2,7 +2,9 @@
 
 #[cfg(feature = "formatting")]
 use alloc::string::String;
+use core::cmp::Ordering;
 use core::fmt;
+use core::hash::{Hash, Hasher};
 use core::ops::Neg;
 #[cfg(feature = "formatting")]
 use std::io;
@@ -49,14 +51,73 @@ type WholeSeconds = RangedI32<
 /// This struct can store values up to ±25:59:59. If you need support outside this range, please
 /// file an issue with your use case.
 // All three components _must_ have the same sign.
-#[derive(Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, Eq)]
+#[cfg_attr(not(docsrs), repr(C))]
 pub struct UtcOffset {
-    hours: Hours,
+    /// The order of this struct's fields matter. Do not reorder them.
+
+    // Little endian version
+    #[cfg(target_endian = "little")]
+    seconds: Seconds,
+    #[cfg(target_endian = "little")]
     minutes: Minutes,
+    #[cfg(target_endian = "little")]
+    hours: Hours,
+
+    // Big endian version
+    #[cfg(target_endian = "big")]
+    hours: Hours,
+    #[cfg(target_endian = "big")]
+    minutes: Minutes,
+    #[cfg(target_endian = "big")]
     seconds: Seconds,
 }
 
+impl Hash for UtcOffset {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write_u32(self.as_u32());
+    }
+}
+
+impl PartialEq for UtcOffset {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_u32().eq(&other.as_u32())
+    }
+}
+
+impl PartialOrd for UtcOffset {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for UtcOffset {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.as_u32().cmp(&other.as_u32())
+    }
+}
+
 impl UtcOffset {
+    /// Provide a representation of the `UtcOffset` as a `u32`. This value can be used for equality,
+    /// hashing, and ordering.
+    pub(crate) const fn as_u32(self) -> u32 {
+        #[cfg(target_endian = "big")]
+        return u32::from_be_bytes([
+            self.seconds.get() as u8,
+            self.minutes.get() as u8,
+            self.hours.get() as u8,
+            0,
+        ]);
+
+        #[cfg(target_endian = "little")]
+        return u32::from_le_bytes([
+            self.seconds.get() as u8,
+            self.minutes.get() as u8,
+            self.hours.get() as u8,
+            0,
+        ]);
+    }
+
     /// A `UtcOffset` that is UTC.
     ///
     /// ```rust
