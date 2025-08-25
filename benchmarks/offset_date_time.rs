@@ -1,3 +1,4 @@
+use std::hint::black_box;
 use std::time::SystemTime;
 
 use criterion::Bencher;
@@ -19,6 +20,10 @@ setup_benchmark! {
     fn to_offset(ben: &mut Bencher<'_>) {
         ben.iter(|| datetime!(2000-01-01 0:00 +11).to_offset(offset!(-5)));
         ben.iter(|| datetime!(2000-01-01 0:00 +11).to_offset(offset!(-8)));
+    }
+
+    fn to_utc(ben: &mut Bencher<'_>) {
+        ben.iter(|| black_box(datetime!(2000-01-01 0:00 +11).to_utc()));
     }
 
     fn from_unix_timestamp(ben: &mut Bencher<'_>) {

@@ -262,4 +262,10 @@ setup_benchmark! {
             criterion::BatchSize::SmallInput
         )
     }
+
+    fn duration_until(ben: &mut Bencher<'_>) {
+        let a = black_box(time!(1:02:03.004_005_006));
+        let b = black_box(time!(4:05:06.007_008_009));
+        ben.iter(|| black_box(a.duration_until(b)));
+    }
 }

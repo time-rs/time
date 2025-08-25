@@ -1201,3 +1201,9 @@ fn saturating_sub_duration() {
 fn issue_621() {
     let _ = UtcDateTime::UNIX_EPOCH + StdDuration::from_secs(18_157_382_926_370_278_155);
 }
+
+#[test]
+fn to_offset_regression() {
+    let value = utc_datetime!(0000-01-01 23:59).to_offset(offset!(+24:59));
+    assert_eq!(value, datetime!(0000-01-03 0:58 +24:59));
+}
