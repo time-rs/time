@@ -2,6 +2,8 @@
 
 #[cfg(feature = "formatting")]
 use alloc::string::String;
+use core::cmp::Ordering;
+use core::hash::{Hash, Hasher};
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
 use core::{fmt, hint};
@@ -47,10 +49,9 @@ type Nanoseconds = RangedU32<0, { Nanosecond::per_t::<u32>(Second) - 1 }>;
 ///
 /// When comparing two `Time`s, they are assumed to be in the same calendar date.
 #[derive(Clone, Copy, Eq)]
-#[repr(C)]
+#[cfg_attr(not(docsrs), repr(C))]
 pub struct Time {
-    // The order of this struct's fields matter!
-    // Do not change them.
+    // The order of this struct's fields matter! Do not reorder them.
 
     // Little endian version
     #[cfg(target_endian = "little")]
@@ -77,8 +78,8 @@ pub struct Time {
     nanosecond: Nanoseconds,
 }
 
-impl core::hash::Hash for Time {
-    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+impl Hash for Time {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         self.as_u64().hash(state)
     }
 }
@@ -90,47 +91,25 @@ impl PartialEq for Time {
 }
 
 impl PartialOrd for Time {
-    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
 impl Ord for Time {
-    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+    fn cmp(&self, other: &Self) -> Ordering {
         self.as_u64().cmp(&other.as_u64())
     }
 }
 
 impl Time {
-    /// Provides an u64 based representation **of the correct endianness**
-    ///
-    /// This representation can be used to do comparisons equality testing or hashing.
-    const fn as_u64(self) -> u64 {
-        let nano_bytes = self.nanosecond.get().to_ne_bytes();
-
-        #[cfg(target_endian = "big")]
-        return u64::from_be_bytes([
-            self.padding as u8,
-            self.hour.get(),
-            self.minute.get(),
-            self.second.get(),
-            nano_bytes[0],
-            nano_bytes[1],
-            nano_bytes[2],
-            nano_bytes[3],
-        ]);
-
-        #[cfg(target_endian = "little")]
-        return u64::from_le_bytes([
-            nano_bytes[0],
-            nano_bytes[1],
-            nano_bytes[2],
-            nano_bytes[3],
-            self.second.get(),
-            self.minute.get(),
-            self.hour.get(),
-            self.padding as u8,
-        ]);
+    /// Provide a representation of `Time` as a `u64`. This value can be used for equality, hashing,
+    /// and ordering.
+    pub(crate) const fn as_u64(self) -> u64 {
+        // Safety: `self` is presumed valid because it exists, and any value of `u64` is valid. Size
+        // and alignment are enforced by the compiler. There is no implicit padding in either
+        // `Duration` or `u64`.
+        unsafe { core::mem::transmute(self) }
     }
 
     /// A `Time` that is exactly midnight. This is the smallest possible value for a `Time`.
