@@ -5,6 +5,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  __MSRV: &msrv "1.81.0"
   TYPE_CHECK_TARGETS: '{
     "no_std": [
     "thumbv7em-none-eabihf"
@@ -49,12 +50,12 @@ on:
 jobs:
   check-targets:
     name: Type checking (${{ matrix.rust.name }}, ${{ matrix.kind.name }})
-    runs-on: ubuntu-latest
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+    runs-on: &default-os ubuntu-latest
+    if: &pr-or-push (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
     strategy:
       matrix:
-        rust:
-          - { version: "1.81.0", name: MSRV }
+        rust: &rust-versions
+          - { version: *msrv, name: MSRV }
           - { version: stable, name: stable }
         kind:
           - name: no_std
@@ -92,10 +93,12 @@ jobs:
               - [serde-human-readable, serde-well-known]
 
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
+      - &checkout
+        name: Checkout sources
+        uses: actions/checkout@v5
 
-      - name: Cache cargo output
+      - &cache
+        name: Cache cargo output
         uses: Swatinem/rust-cache@v2
 
       - name: Generate target list
@@ -135,16 +138,14 @@ jobs:
 
   check-benchmarks:
     name: Type-check benchmarks
-    runs-on: ubuntu-latest
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+    runs-on: *default-os
+    if: *pr-or-push
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
+      - *checkout
+      - *cache
 
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install toolchain
+      - &toolchain-stable
+        name: Install toolchain
         uses: dtolnay/rust-toolchain@stable
 
       - name: Type-check benchmarks
@@ -155,23 +156,18 @@ jobs:
   test:
     name: Test (${{ matrix.os.name }}, ${{ matrix.rust.name }})
     runs-on: ${{ matrix.os.value }}
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+    if: *pr-or-push
     strategy:
       matrix:
-        rust:
-          - { version: "1.81.0", name: MSRV }
-          - { version: stable, name: stable }
+        rust: *rust-versions
         os:
           - { name: Ubuntu, value: ubuntu-latest }
           - { name: Windows, value: windows-latest }
           - { name: MacOS, value: macOS-latest }
 
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
+      - *checkout
+      - *cache
 
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@master
@@ -183,34 +179,25 @@ jobs:
 
   test-docs:
     name: Test (docs)
-    runs-on: ubuntu-latest
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+    runs-on: *default-os
+    if: *pr-or-push
 
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
-
+      - *checkout
+      - *cache
+      - *toolchain-stable
       # Test with default feature set to prevent #735 from happening again.
       - name: Doc test
         run: cargo test -p time --doc
 
   miri:
     name: Test (miri)
-    runs-on: ubuntu-latest
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+    runs-on: *default-os
+    if: *pr-or-push
 
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
+      - *checkout
+      - *cache
 
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@nightly
@@ -225,15 +212,12 @@ jobs:
 
   cross-build:
     name: Cross-build
-    runs-on: ubuntu-latest
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+    runs-on: *default-os
+    if: *pr-or-push
 
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
+      - *checkout
+      - *cache
 
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -249,12 +233,11 @@ jobs:
 
   fmt:
     name: Formatting
-    runs-on: ubuntu-latest
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+    runs-on: *default-os
+    if: *pr-or-push
 
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
+      - *checkout
 
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@nightly
@@ -268,15 +251,12 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-latest
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+    runs-on: *default-os
+    if: *pr-or-push
 
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v4
-
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
+      - *checkout
+      - *cache
 
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -300,17 +280,17 @@ jobs:
 
   documentation:
     name: Documentation
-    runs-on: ubuntu-latest
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+    runs-on: *default-os
+    if: *pr-or-push
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - &checkout-no-persist-credentials
+        name: Checkout
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
 
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
+      - *cache
 
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@nightly
@@ -338,22 +318,15 @@ jobs:
 
   coverage:
     name: Coverage
-    runs-on: ubuntu-latest
+    runs-on: *default-os
     permissions:
       issues: write
-    if: (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+    if: *pr-or-push
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
-
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - *checkout-no-persist-credentials
+      - *cache
+      - *toolchain-stable
 
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
@@ -367,7 +340,7 @@ jobs:
           RUSTFLAGS: --cfg __ui_tests
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: ./lcov.txt
           token: ${{ secrets.CODECOV_TOKEN }}

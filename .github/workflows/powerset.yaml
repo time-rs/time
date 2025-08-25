@@ -1,6 +1,7 @@
 name: "Check powerset"
 
 env:
+  __MSRV: &msrv "1.81.0"
   RUSTFLAGS: -Dwarnings
   TARGETS: '{
     "no_std": [
@@ -52,7 +53,7 @@ jobs:
     strategy:
       matrix:
         rust:
-          - { version: "1.81.0", name: MSRV }
+          - { version: *msrv, name: MSRV }
           - { version: stable, name: stable }
         kind:
           - name: no_std
@@ -79,7 +80,7 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Generate target list
         run: |
