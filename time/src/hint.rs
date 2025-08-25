@@ -1,10 +1,5 @@
 //! Hints to the compiler that affects how code should be emitted or optimized.
 
-#![expect(
-    dead_code,
-    reason = "may be used in the future and has minimal overhead"
-)]
-
 /// Indicate that a given branch is **not** likely to be taken, relatively speaking.
 #[inline(always)]
 #[cold]

@@ -17,7 +17,7 @@ use crate::date::{MAX_YEAR, MIN_YEAR};
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{
-    cascade, const_try, const_try_opt, div_floor, ensure_ranged, expect_opt,
+    carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged, expect_opt,
 };
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
@@ -317,18 +317,23 @@ impl UtcDateTime {
         ))
     }
 
-    /// Equivalent to `.to_offset(UtcOffset::UTC)`, but returning the year, ordinal, and time. This
-    /// avoids constructing an invalid [`Date`] if the new value is out of range.
+    /// Equivalent to `.to_offset(offset)`, but returning the year, ordinal, and time. This avoids
+    /// constructing an invalid [`Date`] if the new value is out of range.
     pub(crate) const fn to_offset_raw(self, offset: UtcOffset) -> (i32, u16, Time) {
-        let mut second = self.second() as i16 + offset.seconds_past_minute() as i16;
-        let mut minute = self.minute() as i16 + offset.minutes_past_hour() as i16;
-        let mut hour = self.hour() as i8 + offset.whole_hours();
+        let (second, carry) = carry!(@most_once
+            self.second() as i8 + offset.seconds_past_minute(),
+            0..Second::per_t(Minute)
+        );
+        let (minute, carry) = carry!(@most_once
+            self.minute() as i8 + offset.minutes_past_hour() + carry,
+            0..Minute::per_t(Hour)
+        );
+        let (hour, carry) = carry!(@most_twice
+            self.hour() as i8 + offset.whole_hours() + carry,
+            0..Hour::per_t(Day)
+        );
         let (mut year, ordinal) = self.to_ordinal_date();
-        let mut ordinal = ordinal as i16;
-
-        cascade!(second in 0..Second::per_t(Minute) => minute);
-        cascade!(minute in 0..Minute::per_t(Hour) => hour);
-        cascade!(hour in 0..Hour::per_t(Day) => ordinal);
+        let mut ordinal = ordinal as i16 + carry;
         cascade!(ordinal => year);
 
         debug_assert!(ordinal > 0);

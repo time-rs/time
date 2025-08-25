@@ -20,7 +20,7 @@ use crate::date::{MAX_YEAR, MIN_YEAR};
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{
-    cascade, const_try, const_try_opt, div_floor, ensure_ranged, expect_opt,
+    carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged, expect_opt,
 };
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
@@ -207,11 +207,8 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn checked_to_offset(self, offset: UtcOffset) -> Option<Self> {
-        if self.offset.whole_hours() == offset.whole_hours()
-            && self.offset.minutes_past_hour() == offset.minutes_past_hour()
-            && self.offset.seconds_past_minute() == offset.seconds_past_minute()
-        {
-            return Some(self.replace_offset(offset));
+        if self.offset.as_u32() == offset.as_u32() {
+            return Some(self);
         }
 
         let (year, ordinal, time) = self.to_offset_raw(offset);
@@ -245,7 +242,7 @@ impl OffsetDateTime {
     ///
     /// This method panics if the UTC date-time is outside the supported range.
     pub const fn to_utc(self) -> UtcDateTime {
-        self.to_offset(UtcOffset::UTC).local_date_time.as_utc()
+        expect_opt!(self.checked_to_utc(), "local datetime out of valid range")
     }
 
     /// Convert the `OffsetDateTime` from the current [`UtcOffset`] to UTC, returning `None` if the
@@ -273,42 +270,95 @@ impl OffsetDateTime {
     /// );
     /// ```
     pub const fn checked_to_utc(self) -> Option<UtcDateTime> {
-        Some(
-            const_try_opt!(self.checked_to_offset(UtcOffset::UTC))
-                .local_date_time
-                .as_utc(),
+        if self.offset.is_utc() {
+            return Some(self.local_date_time.as_utc());
+        }
+
+        let (year, ordinal, time) = self.to_utc_raw();
+
+        if year > MAX_YEAR || year < MIN_YEAR {
+            return None;
+        }
+
+        Some(UtcDateTime::new(
+            // Safety: `ordinal` is not zero.
+            unsafe { Date::__from_ordinal_date_unchecked(year, ordinal) },
+            time,
+        ))
+    }
+
+    /// Equivalent to `.to_utc()`, but returning the year, ordinal, and time. This avoids
+    /// constructing an invalid [`Date`] if the new value is out of range.
+    pub(crate) const fn to_utc_raw(self) -> (i32, u16, Time) {
+        let from = self.offset;
+
+        // Fast path for when no conversion is necessary.
+        if from.is_utc() {
+            return (self.year(), self.ordinal(), self.time());
+        }
+
+        let (second, carry) = carry!(@most_once
+            self.second() as i8 - from.seconds_past_minute(),
+            0..Second::per_t(Minute)
+        );
+        let (minute, carry) = carry!(@most_once
+            self.minute() as i8 - from.minutes_past_hour() + carry,
+            0..Minute::per_t(Hour)
+        );
+        let (hour, carry) = carry!(@most_twice
+            self.hour() as i8 - from.whole_hours() + carry,
+            0..Hour::per_t(Day)
+        );
+        let (mut year, ordinal) = self.to_ordinal_date();
+        let mut ordinal = ordinal as i16 + carry;
+        cascade!(ordinal => year);
+
+        debug_assert!(ordinal > 0);
+        debug_assert!(ordinal <= util::days_in_year(year) as i16);
+
+        (
+            year,
+            ordinal as u16,
+            // Safety: The cascades above ensure the values are in range.
+            unsafe {
+                Time::__from_hms_nanos_unchecked(
+                    hour as u8,
+                    minute as u8,
+                    second as u8,
+                    self.nanosecond(),
+                )
+            },
         )
     }
 
-    /// Equivalent to `.to_offset(UtcOffset::UTC)`, but returning the year, ordinal, and time. This
-    /// avoids constructing an invalid [`Date`] if the new value is out of range.
+    /// Equivalent to `.to_offset(offset)`, but returning the year, ordinal, and time. This avoids
+    /// constructing an invalid [`Date`] if the new value is out of range.
     pub(crate) const fn to_offset_raw(self, offset: UtcOffset) -> (i32, u16, Time) {
         let from = self.offset;
         let to = offset;
 
         // Fast path for when no conversion is necessary.
-        if from.whole_hours() == to.whole_hours()
-            && from.minutes_past_hour() == to.minutes_past_hour()
-            && from.seconds_past_minute() == to.seconds_past_minute()
-        {
+        if from.as_u32() == to.as_u32() {
             return (self.year(), self.ordinal(), self.time());
         }
 
-        let mut second = self.second() as i16 - from.seconds_past_minute() as i16
-            + to.seconds_past_minute() as i16;
-        let mut minute =
-            self.minute() as i16 - from.minutes_past_hour() as i16 + to.minutes_past_hour() as i16;
-        let mut hour = self.hour() as i8 - from.whole_hours() + to.whole_hours();
+        let (second, carry) = carry!(@most_twice
+            self.second() as i16 - from.seconds_past_minute() as i16
+                + to.seconds_past_minute() as i16,
+            0..Second::per_t(Minute)
+        );
+        let (minute, carry) = carry!(@most_twice
+            self.minute() as i16 - from.minutes_past_hour() as i16
+                + to.minutes_past_hour() as i16
+                + carry,
+            0..Minute::per_t(Hour)
+        );
+        let (hour, carry) = carry!(@most_thrice
+            self.hour() as i8 - from.whole_hours() + to.whole_hours() + carry,
+            0..Hour::per_t(Day)
+        );
         let (mut year, ordinal) = self.to_ordinal_date();
-        let mut ordinal = ordinal as i16;
-
-        // Cascade the values twice. This is needed because the values are adjusted twice above.
-        cascade!(second in 0..Second::per_t(Minute) => minute);
-        cascade!(second in 0..Second::per_t(Minute) => minute);
-        cascade!(minute in 0..Minute::per_t(Hour) => hour);
-        cascade!(minute in 0..Minute::per_t(Hour) => hour);
-        cascade!(hour in 0..Hour::per_t(Day) => ordinal);
-        cascade!(hour in 0..Hour::per_t(Day) => ordinal);
+        let mut ordinal = ordinal as i16 + carry;
         cascade!(ordinal => year);
 
         debug_assert!(ordinal > 0);
@@ -1342,7 +1392,7 @@ impl OffsetDateTime {
             return false;
         }
 
-        let (year, ordinal, time) = self.to_offset_raw(UtcOffset::UTC);
+        let (year, ordinal, time) = self.to_utc_raw();
         let Ok(date) = Date::from_ordinal_date(year, ordinal) else {
             return false;
         };
