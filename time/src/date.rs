@@ -58,6 +58,12 @@ pub struct Date {
 }
 
 impl Date {
+    /// Provide a representation of `Date` as a `u32`. This value can be used for equality, hashing,
+    /// and ordering.
+    pub(crate) const fn as_u32(self) -> u32 {
+        self.value.get() as u32
+    }
+
     /// The Unix epoch: 1970-01-01
     // Safety: `ordinal` is not zero.
     pub(crate) const UNIX_EPOCH: Self = unsafe { Self::__from_ordinal_date_unchecked(1970, 1) };

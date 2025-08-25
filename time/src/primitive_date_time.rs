@@ -2,7 +2,9 @@
 
 #[cfg(feature = "formatting")]
 use alloc::string::String;
+use core::cmp::Ordering;
 use core::fmt;
+use core::hash::{Hash, Hasher};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
@@ -21,13 +23,57 @@ use crate::{
 };
 
 /// Combined date and time.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, Eq)]
+#[cfg_attr(not(docsrs), repr(C))]
 pub struct PrimitiveDateTime {
+    // The order of this struct's fields matter! Do not reorder them.
+
+    // Little endian version
+    #[cfg(target_endian = "little")]
+    time: Time,
+    #[cfg(target_endian = "little")]
     date: Date,
+
+    // Big endian version
+    #[cfg(target_endian = "big")]
+    date: Date,
+    #[cfg(target_endian = "big")]
     time: Time,
 }
 
+impl Hash for PrimitiveDateTime {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.as_u128().hash(state);
+    }
+}
+
+impl PartialEq for PrimitiveDateTime {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_u128().eq(&other.as_u128())
+    }
+}
+
+impl PartialOrd for PrimitiveDateTime {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for PrimitiveDateTime {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.as_u128().cmp(&other.as_u128())
+    }
+}
+
 impl PrimitiveDateTime {
+    /// Provide a representation of `PrimitiveDateTime` as a `u128`. This value can be used for
+    /// equality, hashing, and ordering.
+    const fn as_u128(self) -> u128 {
+        let time = self.time.as_u64() as u128;
+        let date = self.date.as_u32() as u128;
+        (date << 64) | time
+    }
+
     /// The smallest value that can be represented by `PrimitiveDateTime`.
     ///
     /// Depending on `large-dates` feature flag, value of this constant may vary.
