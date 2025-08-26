@@ -9,6 +9,7 @@ impl Sub<OffsetDateTime> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, rhs: OffsetDateTime) -> Self::Output {
         OffsetDateTime::from(self) - rhs
     }
@@ -20,6 +21,7 @@ impl Sub<UtcDateTime> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, rhs: UtcDateTime) -> Self::Output {
         self - Self::from(rhs)
     }
@@ -53,6 +55,7 @@ impl From<OffsetDateTime> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn from(datetime: OffsetDateTime) -> Self {
         datetime.to_utc()
     }
@@ -62,6 +65,7 @@ impl From<UtcDateTime> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn from(datetime: UtcDateTime) -> Self {
         datetime.as_primitive().assume_utc()
     }

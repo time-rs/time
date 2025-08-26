@@ -986,6 +986,7 @@ impl Add<Duration> for PrimitiveDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add(self, duration: Duration) -> Self::Output {
         self.checked_add(duration)
             .expect("resulting value is out of range")
@@ -998,6 +999,7 @@ impl Add<StdDuration> for PrimitiveDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add(self, duration: StdDuration) -> Self::Output {
         let (is_next_day, time) = self.time.adjusting_add_std(duration);
 
@@ -1018,6 +1020,7 @@ impl AddAssign<Duration> for PrimitiveDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add_assign(&mut self, duration: Duration) {
         *self = *self + duration;
     }
@@ -1027,6 +1030,7 @@ impl AddAssign<StdDuration> for PrimitiveDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add_assign(&mut self, duration: StdDuration) {
         *self = *self + duration;
     }
@@ -1038,6 +1042,7 @@ impl Sub<Duration> for PrimitiveDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, duration: Duration) -> Self::Output {
         self.checked_sub(duration)
             .expect("resulting value is out of range")
@@ -1050,6 +1055,7 @@ impl Sub<StdDuration> for PrimitiveDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, duration: StdDuration) -> Self::Output {
         let (is_previous_day, time) = self.time.adjusting_sub_std(duration);
 
@@ -1070,6 +1076,7 @@ impl SubAssign<Duration> for PrimitiveDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub_assign(&mut self, duration: Duration) {
         *self = *self - duration;
     }
@@ -1079,6 +1086,7 @@ impl SubAssign<StdDuration> for PrimitiveDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub_assign(&mut self, duration: StdDuration) {
         *self = *self - duration;
     }
@@ -1090,6 +1098,7 @@ impl Sub for PrimitiveDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, rhs: Self) -> Self::Output {
         (self.date - rhs.date) + (self.time - rhs.time)
     }

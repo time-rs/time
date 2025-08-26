@@ -90,18 +90,22 @@ impl NumericalDuration for i64 {
         Duration::seconds(self)
     }
 
+    #[track_caller]
     fn minutes(self) -> Duration {
         Duration::minutes(self)
     }
 
+    #[track_caller]
     fn hours(self) -> Duration {
         Duration::hours(self)
     }
 
+    #[track_caller]
     fn days(self) -> Duration {
         Duration::days(self)
     }
 
+    #[track_caller]
     fn weeks(self) -> Duration {
         Duration::weeks(self)
     }
@@ -124,18 +128,22 @@ impl NumericalDuration for f64 {
         Duration::nanoseconds((self * Nanosecond::per_t::<Self>(Second)) as i64)
     }
 
+    #[track_caller]
     fn minutes(self) -> Duration {
         Duration::nanoseconds((self * Nanosecond::per_t::<Self>(Minute)) as i64)
     }
 
+    #[track_caller]
     fn hours(self) -> Duration {
         Duration::nanoseconds((self * Nanosecond::per_t::<Self>(Hour)) as i64)
     }
 
+    #[track_caller]
     fn days(self) -> Duration {
         Duration::nanoseconds((self * Nanosecond::per_t::<Self>(Day)) as i64)
     }
 
+    #[track_caller]
     fn weeks(self) -> Duration {
         Duration::nanoseconds((self * Nanosecond::per_t::<Self>(Week)) as i64)
     }

@@ -140,6 +140,7 @@ impl UtcOffset {
     /// While the signs of the parameters are required to match to avoid bugs, this is not a safety
     /// invariant.
     #[doc(hidden)]
+    #[track_caller]
     pub const unsafe fn __from_hms_unchecked(hours: i8, minutes: i8, seconds: i8) -> Self {
         // Safety: The caller must uphold the safety invariants.
         unsafe {
@@ -179,6 +180,7 @@ impl UtcOffset {
     /// three parameters must have the same sign.
     ///
     /// While the signs of the parameters are required to match, this is not a safety invariant.
+    #[track_caller]
     pub(crate) const fn from_hms_ranged_unchecked(
         hours: Hours,
         minutes: Minutes,

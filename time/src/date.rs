@@ -88,6 +88,7 @@ impl Date {
     ///
     /// - `ordinal` must be non-zero and at most the number of days in `year`
     /// - `is_leap_year` must be `true` if and only if `year` is a leap year
+    #[track_caller]
     const unsafe fn from_parts(year: i32, is_leap_year: bool, ordinal: u16) -> Self {
         debug_assert!(year >= MIN_YEAR);
         debug_assert!(year <= MAX_YEAR);
@@ -111,6 +112,7 @@ impl Date {
     /// `ordinal` must be non-zero and at most the number of days in `year`. `year` should be in the
     /// range `MIN_YEAR..=MAX_YEAR`, but this is not a safety invariant.
     #[doc(hidden)]
+    #[track_caller]
     pub const unsafe fn __from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
         // Safety: The caller must guarantee that `ordinal` is not zero.
         unsafe { Self::from_parts(year, is_leap_year(year), ordinal) }
@@ -645,6 +647,7 @@ impl Date {
     ///     date!(2023-06-26)
     /// );
     /// ```
+    #[track_caller]
     pub const fn next_occurrence(self, weekday: Weekday) -> Self {
         expect_opt!(
             self.checked_next_occurrence(weekday),
@@ -670,6 +673,7 @@ impl Date {
     ///     date!(2023-06-12)
     /// );
     /// ```
+    #[track_caller]
     pub const fn prev_occurrence(self, weekday: Weekday) -> Self {
         expect_opt!(
             self.checked_prev_occurrence(weekday),
@@ -695,6 +699,7 @@ impl Date {
     ///     date!(2023-07-31)
     /// );
     /// ```
+    #[track_caller]
     pub const fn nth_next_occurrence(self, weekday: Weekday, n: u8) -> Self {
         expect_opt!(
             self.checked_nth_next_occurrence(weekday, n),
@@ -720,6 +725,7 @@ impl Date {
     ///     date!(2023-06-05)
     /// );
     /// ```
+    #[track_caller]
     pub const fn nth_prev_occurrence(self, weekday: Weekday, n: u8) -> Self {
         expect_opt!(
             self.checked_nth_prev_occurrence(weekday, n),
@@ -1441,6 +1447,7 @@ impl Add<Duration> for Date {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add(self, duration: Duration) -> Self::Output {
         self.checked_add(duration)
             .expect("overflow adding duration to date")
@@ -1453,6 +1460,7 @@ impl Add<StdDuration> for Date {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add(self, duration: StdDuration) -> Self::Output {
         self.checked_add_std(duration)
             .expect("overflow adding duration to date")
@@ -1467,6 +1475,7 @@ impl Sub<Duration> for Date {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, duration: Duration) -> Self::Output {
         self.checked_sub(duration)
             .expect("overflow subtracting duration from date")
@@ -1479,6 +1488,7 @@ impl Sub<StdDuration> for Date {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, duration: StdDuration) -> Self::Output {
         self.checked_sub_std(duration)
             .expect("overflow subtracting duration from date")

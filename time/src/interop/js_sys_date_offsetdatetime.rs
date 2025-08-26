@@ -7,6 +7,7 @@ impl From<js_sys::Date> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if the timestamp can not be represented.
+    #[track_caller]
     fn from(js_date: js_sys::Date) -> Self {
         // get_time() returns milliseconds
         let timestamp_nanos = js_date.get_time() as i128 * Nanosecond::per_t::<i128>(Millisecond);

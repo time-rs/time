@@ -17,6 +17,7 @@ pub trait InstantExt: sealed::Sealed {
     /// This function may panic if the resulting point in time cannot be represented by the
     /// underlying data structure. See [`InstantExt::checked_add_signed`] for a non-panicking
     /// version.
+    #[track_caller]
     fn add_signed(self, duration: Duration) -> Self {
         self.checked_add_signed(duration)
             .expect("overflow when adding duration to instant")
@@ -27,6 +28,7 @@ pub trait InstantExt: sealed::Sealed {
     /// This function may panic if the resulting point in time cannot be represented by the
     /// underlying data structure. See [`InstantExt::checked_sub_signed`] for a non-panicking
     /// version.
+    #[track_caller]
     fn sub_signed(self, duration: Duration) -> Self {
         self.checked_sub_signed(duration)
             .expect("overflow when subtracting duration from instant")

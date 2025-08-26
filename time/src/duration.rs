@@ -344,6 +344,7 @@ impl Duration {
     ///
     /// While the sign of `nanoseconds` is required to be the same as the sign of `seconds`, this is
     /// not a safety invariant.
+    #[track_caller]
     pub(crate) const unsafe fn new_unchecked(seconds: i64, nanoseconds: i32) -> Self {
         Self::new_ranged_unchecked(
             seconds,
@@ -353,6 +354,7 @@ impl Duration {
     }
 
     /// Create a new `Duration` without checking the validity of the components.
+    #[track_caller]
     pub(crate) const fn new_ranged_unchecked(seconds: i64, nanoseconds: Nanoseconds) -> Self {
         if seconds < 0 {
             debug_assert!(nanoseconds.get() <= 0);
@@ -380,6 +382,7 @@ impl Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     pub const fn new(mut seconds: i64, mut nanoseconds: i32) -> Self {
         seconds = expect_opt!(
             seconds.checked_add(nanoseconds as i64 / Nanosecond::per_t::<i64>(Second)),
@@ -435,6 +438,7 @@ impl Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     pub const fn weeks(weeks: i64) -> Self {
         Self::seconds(expect_opt!(
             weeks.checked_mul(Second::per_t(Week)),
@@ -453,6 +457,7 @@ impl Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     pub const fn days(days: i64) -> Self {
         Self::seconds(expect_opt!(
             days.checked_mul(Second::per_t(Day)),
@@ -471,6 +476,7 @@ impl Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     pub const fn hours(hours: i64) -> Self {
         Self::seconds(expect_opt!(
             hours.checked_mul(Second::per_t(Hour)),
@@ -489,6 +495,7 @@ impl Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     pub const fn minutes(minutes: i64) -> Self {
         Self::seconds(expect_opt!(
             minutes.checked_mul(Second::per_t(Minute)),
@@ -513,6 +520,7 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f64(0.5), 0.5.seconds());
     /// assert_eq!(Duration::seconds_f64(-0.5), (-0.5).seconds());
     /// ```
+    #[track_caller]
     pub fn seconds_f64(seconds: f64) -> Self {
         try_from_secs!(
             secs = seconds,
@@ -535,6 +543,7 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f32(0.5), 0.5.seconds());
     /// assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
     /// ```
+    #[track_caller]
     pub fn seconds_f32(seconds: f32) -> Self {
         try_from_secs!(
             secs = seconds,
@@ -735,6 +744,7 @@ impl Duration {
     ///
     /// As the input range cannot be fully mapped to the output, this should only be used where it's
     /// known to result in a valid value.
+    #[track_caller]
     pub(crate) const fn nanoseconds_i128(nanoseconds: i128) -> Self {
         let seconds = nanoseconds / Nanosecond::per_t::<i128>(Second);
         let nanoseconds = nanoseconds % Nanosecond::per_t::<i128>(Second);
@@ -1155,6 +1165,7 @@ impl Duration {
     /// Runs a closure, returning the duration of time it took to run. The return value of the
     /// closure is provided in the second part of the tuple.
     #[doc(hidden)]
+    #[track_caller]
     #[cfg(feature = "std")]
     #[deprecated(
         since = "0.3.32",
@@ -1299,6 +1310,7 @@ impl Add for Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add(self, rhs: Self) -> Self::Output {
         self.checked_add(rhs)
             .expect("overflow when adding durations")
@@ -1311,6 +1323,7 @@ impl Add<StdDuration> for Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add(self, std_duration: StdDuration) -> Self::Output {
         self + Self::try_from(std_duration)
             .expect("overflow converting `std::time::Duration` to `time::Duration`")
@@ -1320,6 +1333,7 @@ impl Add<StdDuration> for Duration {
 impl Add<Duration> for StdDuration {
     type Output = Duration;
 
+    #[track_caller]
     fn add(self, rhs: Duration) -> Self::Output {
         rhs + self
     }
@@ -1331,6 +1345,7 @@ impl AddAssign<Duration> for StdDuration {
     /// # Panics
     ///
     /// This may panic if the resulting addition cannot be represented.
+    #[track_caller]
     fn add_assign(&mut self, rhs: Duration) {
         *self = (*self + rhs).try_into().expect(
             "Cannot represent a resulting duration in std. Try `let x = x + rhs;`, which will \
@@ -1342,6 +1357,7 @@ impl AddAssign<Duration> for StdDuration {
 impl Neg for Duration {
     type Output = Self;
 
+    #[track_caller]
     fn neg(self) -> Self::Output {
         self.checked_neg().expect("overflow when negating duration")
     }
@@ -1353,6 +1369,7 @@ impl Sub for Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, rhs: Self) -> Self::Output {
         self.checked_sub(rhs)
             .expect("overflow when subtracting durations")
@@ -1365,6 +1382,7 @@ impl Sub<StdDuration> for Duration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, rhs: StdDuration) -> Self::Output {
         self - Self::try_from(rhs)
             .expect("overflow converting `std::time::Duration` to `time::Duration`")
@@ -1377,6 +1395,7 @@ impl Sub<Duration> for StdDuration {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, rhs: Duration) -> Self::Output {
         Duration::try_from(self)
             .expect("overflow converting `std::time::Duration` to `time::Duration`")
@@ -1390,6 +1409,7 @@ impl SubAssign<Duration> for StdDuration {
     /// # Panics
     ///
     /// This may panic if the resulting subtraction can not be represented.
+    #[track_caller]
     fn sub_assign(&mut self, rhs: Duration) {
         *self = (*self - rhs).try_into().expect(
             "Cannot represent a resulting duration in std. Try `let x = x - rhs;`, which will \
@@ -1404,6 +1424,7 @@ macro_rules! duration_mul_div_int {
         impl Mul<$type> for Duration {
             type Output = Self;
 
+    #[track_caller]
             fn mul(self, rhs: $type) -> Self::Output {
                 Self::nanoseconds_i128(
                     self.whole_nanoseconds()
@@ -1416,6 +1437,7 @@ macro_rules! duration_mul_div_int {
         impl Mul<Duration> for $type {
             type Output = Duration;
 
+    #[track_caller]
             fn mul(self, rhs: Duration) -> Self::Output {
                 rhs * self
             }
@@ -1424,6 +1446,7 @@ macro_rules! duration_mul_div_int {
         impl Div<$type> for Duration {
             type Output = Self;
 
+    #[track_caller]
             fn div(self, rhs: $type) -> Self::Output {
                 Self::nanoseconds_i128(
                     self.whole_nanoseconds() / rhs.cast_signed().extend::<i128>()
@@ -1437,6 +1460,7 @@ duration_mul_div_int![i8, i16, i32, u8, u16, u32];
 impl Mul<f32> for Duration {
     type Output = Self;
 
+    #[track_caller]
     fn mul(self, rhs: f32) -> Self::Output {
         Self::seconds_f32(self.as_seconds_f32() * rhs)
     }
@@ -1445,6 +1469,7 @@ impl Mul<f32> for Duration {
 impl Mul<Duration> for f32 {
     type Output = Duration;
 
+    #[track_caller]
     fn mul(self, rhs: Duration) -> Self::Output {
         rhs * self
     }
@@ -1453,6 +1478,7 @@ impl Mul<Duration> for f32 {
 impl Mul<f64> for Duration {
     type Output = Self;
 
+    #[track_caller]
     fn mul(self, rhs: f64) -> Self::Output {
         Self::seconds_f64(self.as_seconds_f64() * rhs)
     }
@@ -1461,6 +1487,7 @@ impl Mul<f64> for Duration {
 impl Mul<Duration> for f64 {
     type Output = Duration;
 
+    #[track_caller]
     fn mul(self, rhs: Duration) -> Self::Output {
         rhs * self
     }
@@ -1471,6 +1498,7 @@ impl_mul_assign!(Duration: i8, i16, i32, u8, u16, u32, f32, f64);
 impl Div<f32> for Duration {
     type Output = Self;
 
+    #[track_caller]
     fn div(self, rhs: f32) -> Self::Output {
         Self::seconds_f32(self.as_seconds_f32() / rhs)
     }
@@ -1479,6 +1507,7 @@ impl Div<f32> for Duration {
 impl Div<f64> for Duration {
     type Output = Self;
 
+    #[track_caller]
     fn div(self, rhs: f64) -> Self::Output {
         Self::seconds_f64(self.as_seconds_f64() / rhs)
     }
@@ -1489,6 +1518,7 @@ impl_div_assign!(Duration: i8, i16, i32, u8, u16, u32, f32, f64);
 impl Div for Duration {
     type Output = f64;
 
+    #[track_caller]
     fn div(self, rhs: Self) -> Self::Output {
         self.as_seconds_f64() / rhs.as_seconds_f64()
     }
@@ -1497,6 +1527,7 @@ impl Div for Duration {
 impl Div<StdDuration> for Duration {
     type Output = f64;
 
+    #[track_caller]
     fn div(self, rhs: StdDuration) -> Self::Output {
         self.as_seconds_f64() / rhs.as_secs_f64()
     }
@@ -1505,6 +1536,7 @@ impl Div<StdDuration> for Duration {
 impl Div<Duration> for StdDuration {
     type Output = f64;
 
+    #[track_caller]
     fn div(self, rhs: Duration) -> Self::Output {
         self.as_secs_f64() / rhs.as_seconds_f64()
     }
@@ -1562,6 +1594,7 @@ impl<'a> Sum<&'a Self> for Duration {
 impl Add<Duration> for SystemTime {
     type Output = Self;
 
+    #[track_caller]
     fn add(self, duration: Duration) -> Self::Output {
         if duration.is_zero() {
             self
@@ -1580,6 +1613,7 @@ impl_add_assign!(SystemTime: #[cfg(feature = "std")] Duration);
 impl Sub<Duration> for SystemTime {
     type Output = Self;
 
+    #[track_caller]
     fn sub(self, duration: Duration) -> Self::Output {
         if duration.is_zero() {
             self

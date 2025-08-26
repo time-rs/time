@@ -271,6 +271,7 @@ impl UtcDateTime {
     /// # Panics
     ///
     /// This method panics if the local date-time in the new offset is outside the supported range.
+    #[track_caller]
     pub const fn to_offset(self, offset: UtcOffset) -> OffsetDateTime {
         expect_opt!(
             self.checked_to_offset(offset),
@@ -1139,6 +1140,7 @@ impl Add<Duration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add(self, duration: Duration) -> Self::Output {
         self.inner.add(duration).as_utc()
     }
@@ -1150,6 +1152,7 @@ impl Add<StdDuration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add(self, duration: StdDuration) -> Self::Output {
         self.inner.add(duration).as_utc()
     }
@@ -1159,6 +1162,7 @@ impl AddAssign<Duration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add_assign(&mut self, rhs: Duration) {
         self.inner.add_assign(rhs);
     }
@@ -1168,6 +1172,7 @@ impl AddAssign<StdDuration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add_assign(&mut self, rhs: StdDuration) {
         self.inner.add_assign(rhs);
     }
@@ -1179,6 +1184,7 @@ impl Sub<Duration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, rhs: Duration) -> Self::Output {
         self.checked_sub(rhs)
             .expect("resulting value is out of range")
@@ -1191,6 +1197,7 @@ impl Sub<StdDuration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, duration: StdDuration) -> Self::Output {
         Self::from_primitive(self.inner.sub(duration))
     }
@@ -1200,6 +1207,7 @@ impl SubAssign<Duration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub_assign(&mut self, rhs: Duration) {
         self.inner.sub_assign(rhs);
     }
@@ -1209,6 +1217,7 @@ impl SubAssign<StdDuration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub_assign(&mut self, rhs: StdDuration) {
         self.inner.sub_assign(rhs);
     }
@@ -1220,6 +1229,7 @@ impl Sub for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, rhs: Self) -> Self::Output {
         self.inner.sub(rhs.inner)
     }

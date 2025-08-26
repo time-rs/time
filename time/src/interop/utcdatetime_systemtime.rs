@@ -10,6 +10,7 @@ impl Sub<SystemTime> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, rhs: SystemTime) -> Self::Output {
         self - Self::from(rhs)
     }
@@ -21,6 +22,7 @@ impl Sub<UtcDateTime> for SystemTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, rhs: UtcDateTime) -> Self::Output {
         UtcDateTime::from(self) - rhs
     }

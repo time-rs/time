@@ -143,6 +143,7 @@ impl Time {
     /// - `seconds` must be in the range `0..=59`.
     /// - `nanoseconds` must be in the range `0..=999_999_999`.
     #[doc(hidden)]
+    #[track_caller]
     pub const unsafe fn __from_hms_nanos_unchecked(
         hour: u8,
         minute: u8,

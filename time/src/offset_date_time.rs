@@ -182,6 +182,7 @@ impl OffsetDateTime {
     /// # Panics
     ///
     /// This method panics if the local date-time in the new offset is outside the supported range.
+    #[track_caller]
     pub const fn to_offset(self, offset: UtcOffset) -> Self {
         expect_opt!(
             self.checked_to_offset(offset),
@@ -244,6 +245,7 @@ impl OffsetDateTime {
     /// # Panics
     ///
     /// This method panics if the UTC date-time is outside the supported range.
+    #[track_caller]
     pub const fn to_utc(self) -> UtcDateTime {
         expect_opt!(self.checked_to_utc(), "local datetime out of valid range")
     }
@@ -1446,6 +1448,7 @@ impl Add<Duration> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add(self, duration: Duration) -> Self::Output {
         self.checked_add(duration)
             .expect("resulting value is out of range")
@@ -1458,6 +1461,7 @@ impl Add<StdDuration> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add(self, duration: StdDuration) -> Self::Output {
         let (is_next_day, time) = self.time().adjusting_add_std(duration);
 
@@ -1479,6 +1483,7 @@ impl AddAssign<Duration> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add_assign(&mut self, rhs: Duration) {
         *self = *self + rhs;
     }
@@ -1488,6 +1493,7 @@ impl AddAssign<StdDuration> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn add_assign(&mut self, rhs: StdDuration) {
         *self = *self + rhs;
     }
@@ -1499,6 +1505,7 @@ impl Sub<Duration> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, rhs: Duration) -> Self::Output {
         self.checked_sub(rhs)
             .expect("resulting value is out of range")
@@ -1511,6 +1518,7 @@ impl Sub<StdDuration> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, duration: StdDuration) -> Self::Output {
         let (is_previous_day, time) = self.time().adjusting_sub_std(duration);
 
@@ -1532,6 +1540,7 @@ impl SubAssign<Duration> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub_assign(&mut self, rhs: Duration) {
         *self = *self - rhs;
     }
@@ -1541,6 +1550,7 @@ impl SubAssign<StdDuration> for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub_assign(&mut self, rhs: StdDuration) {
         *self = *self - rhs;
     }
@@ -1552,6 +1562,7 @@ impl Sub for OffsetDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[track_caller]
     fn sub(self, rhs: Self) -> Self::Output {
         let base = self.date_time() - rhs.date_time();
         let adjustment = Duration::seconds(
