@@ -953,9 +953,9 @@ impl Sub for Time {
         let nanosecond_diff =
             self.nanosecond.get().cast_signed() - rhs.nanosecond.get().cast_signed();
 
-        let seconds = hour_diff.extend::<i64>() * Second::per_t::<i64>(Hour)
-            + minute_diff.extend::<i64>() * Second::per_t::<i64>(Minute)
-            + second_diff.extend::<i64>();
+        let seconds = hour_diff.extend::<i32>() * Second::per_t::<i32>(Hour)
+            + minute_diff.extend::<i32>() * Second::per_t::<i32>(Minute)
+            + second_diff.extend::<i32>();
 
         let (seconds, nanoseconds) = if seconds > 0 && nanosecond_diff < 0 {
             (
@@ -972,6 +972,6 @@ impl Sub for Time {
         };
 
         // Safety: `nanoseconds` is in range due to the overflow handling.
-        unsafe { Duration::new_unchecked(seconds, nanoseconds) }
+        unsafe { Duration::new_unchecked(seconds.extend(), nanoseconds) }
     }
 }
