@@ -112,8 +112,8 @@ impl Time {
     #[inline]
     pub(crate) const fn as_u64(self) -> u64 {
         // Safety: `self` is presumed valid because it exists, and any value of `u64` is valid. Size
-        // and alignment are enforced by the compiler. There is no implicit padding in either
-        // `Duration` or `u64`.
+        // and alignment are enforced by the compiler. There is no implicit padding in either `Time`
+        // or `u64`.
         unsafe { core::mem::transmute(self) }
     }
 
