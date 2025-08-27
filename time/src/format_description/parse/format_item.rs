@@ -9,6 +9,7 @@ use super::{ast, unused, Error, Span, Spanned};
 use crate::internal_macros::bug;
 
 /// Parse an AST iterator into a sequence of format items.
+#[inline]
 pub(super) fn parse<'a>(
     ast_items: impl Iterator<Item = Result<ast::Item<'a>, Error>>,
 ) -> impl Iterator<Item = Result<Item<'a>, Error>> {
@@ -105,6 +106,7 @@ impl Item<'_> {
 impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a> {
     type Error = Error;
 
+    #[inline]
     fn try_from(item: Item<'a>) -> Result<Self, Self::Error> {
         match item {
             Item::Literal(literal) => Ok(Self::Literal(literal)),
@@ -134,6 +136,7 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a>
 }
 
 impl From<Item<'_>> for crate::format_description::OwnedFormatItem {
+    #[inline]
     fn from(item: Item<'_>) -> Self {
         match item {
             Item::Literal(literal) => Self::Literal(literal.to_vec().into_boxed_slice()),
@@ -147,6 +150,7 @@ impl From<Item<'_>> for crate::format_description::OwnedFormatItem {
 }
 
 impl<'a> From<Box<[Item<'a>]>> for crate::format_description::OwnedFormatItem {
+    #[inline]
     fn from(items: Box<[Item<'a>]>) -> Self {
         let items = items.into_vec();
         match <[_; 1]>::try_from(items) {
@@ -181,6 +185,7 @@ macro_rules! component_definition {
 
         $(impl $variant {
             /// Parse the component from the AST, given its modifiers.
+            #[inline]
             fn with_modifiers(
                 modifiers: &[ast::Modifier<'_>],
                 _component_span: Span,
@@ -230,6 +235,7 @@ macro_rules! component_definition {
         })*
 
         impl From<$name> for crate::format_description::Component {
+            #[inline]
             fn from(component: $name) -> Self {
                 match component {$(
                     $name::$variant($variant { $($field),* }) => {
@@ -253,6 +259,7 @@ macro_rules! component_definition {
         }
 
         /// Parse a component from the AST, given its name and modifiers.
+        #[inline]
         fn component_from_ast(
             name: &Spanned<&[u8]>,
             modifiers: &[ast::Modifier<'_>],
@@ -394,6 +401,7 @@ macro_rules! modifier {
 
         impl $name {
             /// Parse the modifier from its string representation.
+            #[inline]
             fn from_modifier_value(value: &Spanned<&[u8]>) -> Result<Option<Self>, Error> {
                 $(if value.eq_ignore_ascii_case($parse_variant) {
                     return Ok(Some(Self::$variant));
@@ -409,6 +417,7 @@ macro_rules! modifier {
         }
 
         impl From<$name> for target_ty!($name $($target_ty)?) {
+            #[inline]
             fn from(modifier: $name) -> Self {
                 match modifier {
                     $($name::$variant => target_value!($name $variant $($target_value)?)),*
@@ -534,6 +543,7 @@ modifier! {
 }
 
 /// Parse a modifier value using `FromStr`. Requires the modifier value to be valid UTF-8.
+#[inline]
 fn parse_from_modifier_value<T: FromStr>(value: &Spanned<&[u8]>) -> Result<Option<T>, Error> {
     str::from_utf8(value)
         .ok()

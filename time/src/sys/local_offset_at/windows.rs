@@ -45,6 +45,7 @@ extern "system" {
 }
 
 /// Convert a `SYSTEMTIME` to a `FILETIME`. Returns `None` if any error occurred.
+#[inline]
 fn systemtime_to_filetime(systime: &SystemTime) -> Option<FileTime> {
     let mut ft = MaybeUninit::uninit();
 
@@ -59,6 +60,7 @@ fn systemtime_to_filetime(systime: &SystemTime) -> Option<FileTime> {
 }
 
 /// Convert a `FILETIME` to an `i64`, representing a number of seconds.
+#[inline]
 fn filetime_to_secs(filetime: &FileTime) -> i64 {
     /// FILETIME represents 100-nanosecond intervals
     const FT_TO_SECS: u64 = Nanosecond::per_t::<u64>(Second) / 100;
@@ -67,6 +69,7 @@ fn filetime_to_secs(filetime: &FileTime) -> i64 {
 }
 
 /// Convert an [`OffsetDateTime`] to a `SYSTEMTIME`.
+#[inline]
 fn offset_to_systemtime(datetime: OffsetDateTime) -> SystemTime {
     let (_, month, day_of_month) = datetime.to_offset(UtcOffset::UTC).date().to_calendar_date();
     SystemTime {
@@ -82,6 +85,7 @@ fn offset_to_systemtime(datetime: OffsetDateTime) -> SystemTime {
 }
 
 /// Obtain the system's UTC offset.
+#[inline]
 pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     // This function falls back to UTC if any system call fails.
     let systime_utc = offset_to_systemtime(datetime.to_offset(UtcOffset::UTC));

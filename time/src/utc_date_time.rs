@@ -113,6 +113,7 @@ impl UtcDateTime {
     /// assert!(UtcDateTime::now().year() >= 2019);
     /// ```
     #[cfg(feature = "std")]
+    #[inline]
     pub fn now() -> Self {
         #[cfg(all(
             target_family = "wasm",
@@ -141,6 +142,7 @@ impl UtcDateTime {
     ///     utc_datetime!(2019-01-01 0:00),
     /// );
     /// ```
+    #[inline]
     pub const fn new(date: Date, time: Time) -> Self {
         Self {
             inner: PrimitiveDateTime::new(date, time),
@@ -148,12 +150,14 @@ impl UtcDateTime {
     }
 
     /// Create a new `UtcDateTime` from the [`PrimitiveDateTime`], assuming that the latter is UTC.
+    #[inline]
     pub(crate) const fn from_primitive(date_time: PrimitiveDateTime) -> Self {
         Self { inner: date_time }
     }
 
     /// Obtain the [`PrimitiveDateTime`] that this `UtcDateTime` represents. The no-longer-attached
     /// [`UtcOffset`] is assumed to be UTC.
+    #[inline]
     pub(crate) const fn as_primitive(self) -> PrimitiveDateTime {
         self.inner
     }
@@ -185,6 +189,7 @@ impl UtcDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
+    #[inline]
     pub const fn from_unix_timestamp(timestamp: i64) -> Result<Self, error::ComponentRange> {
         type Timestamp =
             RangedI64<{ UtcDateTime::MIN.unix_timestamp() }, { UtcDateTime::MAX.unix_timestamp() }>;
@@ -227,6 +232,7 @@ impl UtcDateTime {
     ///     Ok(utc_datetime!(2019-01-01 0:00)),
     /// );
     /// ```
+    #[inline]
     pub const fn from_unix_timestamp_nanos(timestamp: i128) -> Result<Self, error::ComponentRange> {
         let datetime = const_try!(Self::from_unix_timestamp(div_floor!(
             timestamp,
@@ -271,6 +277,7 @@ impl UtcDateTime {
     /// # Panics
     ///
     /// This method panics if the local date-time in the new offset is outside the supported range.
+    #[inline]
     #[track_caller]
     pub const fn to_offset(self, offset: UtcOffset) -> OffsetDateTime {
         expect_opt!(
@@ -298,6 +305,7 @@ impl UtcDateTime {
     ///     None,
     /// );
     /// ```
+    #[inline]
     pub const fn checked_to_offset(self, offset: UtcOffset) -> Option<OffsetDateTime> {
         // Fast path for when no conversion is necessary.
         if offset.is_utc() {
@@ -320,6 +328,7 @@ impl UtcDateTime {
 
     /// Equivalent to `.to_offset(offset)`, but returning the year, ordinal, and time. This avoids
     /// constructing an invalid [`Date`] if the new value is out of range.
+    #[inline]
     pub(crate) const fn to_offset_raw(self, offset: UtcOffset) -> (i32, u16, Time) {
         let (second, carry) = carry!(@most_once
             self.second() as i8 + offset.seconds_past_minute(),
@@ -362,6 +371,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(1970-01-01 0:00).unix_timestamp(), 0);
     /// assert_eq!(utc_datetime!(1970-01-01 1:00).unix_timestamp(), 3_600);
     /// ```
+    #[inline]
     pub const fn unix_timestamp(self) -> i64 {
         let days = (self.to_julian_day() as i64 - UNIX_EPOCH_JULIAN_DAY as i64)
             * Second::per_t::<i64>(Day);
@@ -381,6 +391,7 @@ impl UtcDateTime {
     ///     3_600_000_000_000,
     /// );
     /// ```
+    #[inline]
     pub const fn unix_timestamp_nanos(self) -> i128 {
         self.unix_timestamp() as i128 * Nanosecond::per_t::<i128>(Second)
             + self.nanosecond() as i128
@@ -392,6 +403,7 @@ impl UtcDateTime {
     /// # use time_macros::{date, utc_datetime};
     /// assert_eq!(utc_datetime!(2019-01-01 0:00).date(), date!(2019-01-01));
     /// ```
+    #[inline]
     pub const fn date(self) -> Date {
         self.inner.date()
     }
@@ -402,6 +414,7 @@ impl UtcDateTime {
     /// # use time_macros::{utc_datetime, time};
     /// assert_eq!(utc_datetime!(2019-01-01 0:00).time(), time!(0:00));
     /// ```
+    #[inline]
     pub const fn time(self) -> Time {
         self.inner.time()
     }
@@ -414,6 +427,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2019-12-31 0:00).year(), 2019);
     /// assert_eq!(utc_datetime!(2020-01-01 0:00).year(), 2020);
     /// ```
+    #[inline]
     pub const fn year(self) -> i32 {
         self.date().year()
     }
@@ -426,6 +440,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2019-01-01 0:00).month(), Month::January);
     /// assert_eq!(utc_datetime!(2019-12-31 0:00).month(), Month::December);
     /// ```
+    #[inline]
     pub const fn month(self) -> Month {
         self.date().month()
     }
@@ -439,6 +454,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2019-01-01 0:00).day(), 1);
     /// assert_eq!(utc_datetime!(2019-12-31 0:00).day(), 31);
     /// ```
+    #[inline]
     pub const fn day(self) -> u8 {
         self.date().day()
     }
@@ -452,6 +468,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2019-01-01 0:00).ordinal(), 1);
     /// assert_eq!(utc_datetime!(2019-12-31 0:00).ordinal(), 365);
     /// ```
+    #[inline]
     pub const fn ordinal(self) -> u16 {
         self.date().ordinal()
     }
@@ -468,6 +485,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2020-12-31 0:00).iso_week(), 53);
     /// assert_eq!(utc_datetime!(2021-01-01 0:00).iso_week(), 53);
     /// ```
+    #[inline]
     pub const fn iso_week(self) -> u8 {
         self.date().iso_week()
     }
@@ -483,6 +501,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2020-12-31 0:00).sunday_based_week(), 52);
     /// assert_eq!(utc_datetime!(2021-01-01 0:00).sunday_based_week(), 0);
     /// ```
+    #[inline]
     pub const fn sunday_based_week(self) -> u8 {
         self.date().sunday_based_week()
     }
@@ -498,6 +517,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2020-12-31 0:00).monday_based_week(), 52);
     /// assert_eq!(utc_datetime!(2021-01-01 0:00).monday_based_week(), 0);
     /// ```
+    #[inline]
     pub const fn monday_based_week(self) -> u8 {
         self.date().monday_based_week()
     }
@@ -512,6 +532,7 @@ impl UtcDateTime {
     ///     (2019, Month::January, 1)
     /// );
     /// ```
+    #[inline]
     pub const fn to_calendar_date(self) -> (i32, Month, u8) {
         self.date().to_calendar_date()
     }
@@ -522,6 +543,7 @@ impl UtcDateTime {
     /// # use time_macros::utc_datetime;
     /// assert_eq!(utc_datetime!(2019-01-01 0:00).to_ordinal_date(), (2019, 1));
     /// ```
+    #[inline]
     pub const fn to_ordinal_date(self) -> (i32, u16) {
         self.date().to_ordinal_date()
     }
@@ -552,6 +574,7 @@ impl UtcDateTime {
     ///     (2020, 53, Friday)
     /// );
     /// ```
+    #[inline]
     pub const fn to_iso_week_date(self) -> (i32, u8, Weekday) {
         self.date().to_iso_week_date()
     }
@@ -574,6 +597,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2019-11-01 0:00).weekday(), Friday);
     /// assert_eq!(utc_datetime!(2019-12-01 0:00).weekday(), Sunday);
     /// ```
+    #[inline]
     pub const fn weekday(self) -> Weekday {
         self.date().weekday()
     }
@@ -590,6 +614,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2019-01-01 0:00).to_julian_day(), 2_458_485);
     /// assert_eq!(utc_datetime!(2019-12-31 0:00).to_julian_day(), 2_458_849);
     /// ```
+    #[inline]
     pub const fn to_julian_day(self) -> i32 {
         self.date().to_julian_day()
     }
@@ -601,6 +626,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2020-01-01 0:00:00).as_hms(), (0, 0, 0));
     /// assert_eq!(utc_datetime!(2020-01-01 23:59:59).as_hms(), (23, 59, 59));
     /// ```
+    #[inline]
     pub const fn as_hms(self) -> (u8, u8, u8) {
         self.time().as_hms()
     }
@@ -615,6 +641,7 @@ impl UtcDateTime {
     ///     (23, 59, 59, 999)
     /// );
     /// ```
+    #[inline]
     pub const fn as_hms_milli(self) -> (u8, u8, u8, u16) {
         self.time().as_hms_milli()
     }
@@ -629,6 +656,7 @@ impl UtcDateTime {
     ///     (23, 59, 59, 999_999)
     /// );
     /// ```
+    #[inline]
     pub const fn as_hms_micro(self) -> (u8, u8, u8, u32) {
         self.time().as_hms_micro()
     }
@@ -643,6 +671,7 @@ impl UtcDateTime {
     ///     (23, 59, 59, 999_999_999)
     /// );
     /// ```
+    #[inline]
     pub const fn as_hms_nano(self) -> (u8, u8, u8, u32) {
         self.time().as_hms_nano()
     }
@@ -656,6 +685,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2019-01-01 0:00).hour(), 0);
     /// assert_eq!(utc_datetime!(2019-01-01 23:59:59).hour(), 23);
     /// ```
+    #[inline]
     pub const fn hour(self) -> u8 {
         self.time().hour()
     }
@@ -669,6 +699,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2019-01-01 0:00).minute(), 0);
     /// assert_eq!(utc_datetime!(2019-01-01 23:59:59).minute(), 59);
     /// ```
+    #[inline]
     pub const fn minute(self) -> u8 {
         self.time().minute()
     }
@@ -682,6 +713,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2019-01-01 0:00).second(), 0);
     /// assert_eq!(utc_datetime!(2019-01-01 23:59:59).second(), 59);
     /// ```
+    #[inline]
     pub const fn second(self) -> u8 {
         self.time().second()
     }
@@ -695,6 +727,7 @@ impl UtcDateTime {
     /// assert_eq!(utc_datetime!(2019-01-01 0:00).millisecond(), 0);
     /// assert_eq!(utc_datetime!(2019-01-01 23:59:59.999).millisecond(), 999);
     /// ```
+    #[inline]
     pub const fn millisecond(self) -> u16 {
         self.time().millisecond()
     }
@@ -711,6 +744,7 @@ impl UtcDateTime {
     ///     999_999
     /// );
     /// ```
+    #[inline]
     pub const fn microsecond(self) -> u32 {
         self.time().microsecond()
     }
@@ -727,6 +761,7 @@ impl UtcDateTime {
     ///     999_999_999,
     /// );
     /// ```
+    #[inline]
     pub const fn nanosecond(self) -> u32 {
         self.time().nanosecond()
     }
@@ -743,6 +778,7 @@ impl UtcDateTime {
     ///     Some(utc_datetime!(2019 - 11 - 26 18:30))
     /// );
     /// ```
+    #[inline]
     pub const fn checked_add(self, duration: Duration) -> Option<Self> {
         Some(Self::from_primitive(const_try_opt!(self
             .inner
@@ -761,6 +797,7 @@ impl UtcDateTime {
     ///     Some(utc_datetime!(2019 - 11 - 24 12:30))
     /// );
     /// ```
+    #[inline]
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
         Some(Self::from_primitive(const_try_opt!(self
             .inner
@@ -785,6 +822,7 @@ impl UtcDateTime {
     ///     utc_datetime!(2019 - 11 - 26 18:30)
     /// );
     /// ```
+    #[inline]
     pub const fn saturating_add(self, duration: Duration) -> Self {
         Self::from_primitive(self.inner.saturating_add(duration))
     }
@@ -807,6 +845,7 @@ impl UtcDateTime {
     ///     utc_datetime!(2019 - 11 - 24 12:30)
     /// );
     /// ```
+    #[inline]
     pub const fn saturating_sub(self, duration: Duration) -> Self {
         Self::from_primitive(self.inner.saturating_sub(duration))
     }
@@ -824,6 +863,7 @@ impl UtcDateTime {
     /// );
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
     pub const fn replace_time(self, time: Time) -> Self {
         Self::from_primitive(self.inner.replace_time(time))
     }
@@ -838,6 +878,7 @@ impl UtcDateTime {
     /// );
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
     pub const fn replace_date(self, date: Date) -> Self {
         Self::from_primitive(self.inner.replace_date(date))
     }
@@ -854,6 +895,7 @@ impl UtcDateTime {
     /// assert!(utc_datetime!(2022 - 02 - 18 12:00).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
     pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
         Ok(Self::from_primitive(const_try!(self
             .inner
@@ -872,6 +914,7 @@ impl UtcDateTime {
     /// assert!(utc_datetime!(2022 - 01 - 30 12:00).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
     pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
         Ok(Self::from_primitive(const_try!(self
             .inner
@@ -890,6 +933,7 @@ impl UtcDateTime {
     /// assert!(utc_datetime!(2022 - 02 - 18 12:00).replace_day(30).is_err()); // 30 isn't a valid day in February
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self::from_primitive(const_try!(self
             .inner
@@ -905,6 +949,7 @@ impl UtcDateTime {
     /// assert!(utc_datetime!(2022-049 12:00).replace_ordinal(366).is_err()); // 2022 isn't a leap year
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
     pub const fn replace_ordinal(self, ordinal: u16) -> Result<Self, error::ComponentRange> {
         Ok(Self::from_primitive(const_try!(self
             .inner
@@ -922,6 +967,7 @@ impl UtcDateTime {
     /// assert!(utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_hour(24).is_err()); // 24 isn't a valid hour
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
     pub const fn replace_hour(self, hour: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self::from_primitive(const_try!(self
             .inner
@@ -939,6 +985,7 @@ impl UtcDateTime {
     /// assert!(utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_minute(60).is_err()); // 60 isn't a valid minute
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
     pub const fn replace_minute(
         self,
         sunday_based_week: u8,
@@ -959,6 +1006,7 @@ impl UtcDateTime {
     /// assert!(utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_second(60).is_err()); // 60 isn't a valid second
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
     pub const fn replace_second(
         self,
         monday_based_week: u8,
@@ -979,6 +1027,7 @@ impl UtcDateTime {
     /// assert!(utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
     pub const fn replace_millisecond(
         self,
         millisecond: u16,
@@ -999,6 +1048,7 @@ impl UtcDateTime {
     /// assert!(utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
     pub const fn replace_microsecond(
         self,
         microsecond: u32,
@@ -1019,6 +1069,7 @@ impl UtcDateTime {
     /// assert!(utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
     pub const fn replace_nanosecond(self, nanosecond: u32) -> Result<Self, error::ComponentRange> {
         Ok(Self::from_primitive(const_try!(self
             .inner
@@ -1030,6 +1081,7 @@ impl UtcDateTime {
 impl UtcDateTime {
     /// Format the `UtcDateTime` using the provided [format
     /// description](crate::format_description).
+    #[inline]
     pub fn format_into(
         self,
         output: &mut (impl io::Write + ?Sized),
@@ -1059,6 +1111,7 @@ impl UtcDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
+    #[inline]
     pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
         format.format(Some(self.date()), Some(self.time()), Some(UtcOffset::UTC))
     }
@@ -1080,6 +1133,7 @@ impl UtcDateTime {
     /// );
     /// # Ok::<_, time::Error>(())
     /// ```
+    #[inline]
     pub fn parse(
         input: &str,
         description: &(impl Parsable + ?Sized),
@@ -1091,6 +1145,7 @@ impl UtcDateTime {
     /// Leap seconds, when parsed, are represented as the preceding nanosecond. However, leap
     /// seconds can only occur as the last second of a month UTC.
     #[cfg(feature = "parsing")]
+    #[inline]
     pub(crate) const fn is_valid_leap_second_stand_in(self) -> bool {
         let dt = self.inner;
 
@@ -1105,11 +1160,13 @@ impl UtcDateTime {
 impl SmartDisplay for UtcDateTime {
     type Metadata = ();
 
+    #[inline]
     fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
         let width = smart_display::padded_width_of!(self.date(), " ", self.time(), " +00");
         Metadata::new(width, self, ())
     }
 
+    #[inline]
     fn fmt_with_metadata(
         &self,
         f: &mut fmt::Formatter<'_>,
@@ -1123,12 +1180,14 @@ impl SmartDisplay for UtcDateTime {
 }
 
 impl fmt::Display for UtcDateTime {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         SmartDisplay::fmt(self, f)
     }
 }
 
 impl fmt::Debug for UtcDateTime {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(self, f)
     }
@@ -1140,6 +1199,7 @@ impl Add<Duration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn add(self, duration: Duration) -> Self::Output {
         self.inner.add(duration).as_utc()
@@ -1152,6 +1212,7 @@ impl Add<StdDuration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn add(self, duration: StdDuration) -> Self::Output {
         self.inner.add(duration).as_utc()
@@ -1162,6 +1223,7 @@ impl AddAssign<Duration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn add_assign(&mut self, rhs: Duration) {
         self.inner.add_assign(rhs);
@@ -1172,6 +1234,7 @@ impl AddAssign<StdDuration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn add_assign(&mut self, rhs: StdDuration) {
         self.inner.add_assign(rhs);
@@ -1184,6 +1247,7 @@ impl Sub<Duration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn sub(self, rhs: Duration) -> Self::Output {
         self.checked_sub(rhs)
@@ -1197,6 +1261,7 @@ impl Sub<StdDuration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn sub(self, duration: StdDuration) -> Self::Output {
         Self::from_primitive(self.inner.sub(duration))
@@ -1207,6 +1272,7 @@ impl SubAssign<Duration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn sub_assign(&mut self, rhs: Duration) {
         self.inner.sub_assign(rhs);
@@ -1217,6 +1283,7 @@ impl SubAssign<StdDuration> for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn sub_assign(&mut self, rhs: StdDuration) {
         self.inner.sub_assign(rhs);
@@ -1229,6 +1296,7 @@ impl Sub for UtcDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn sub(self, rhs: Self) -> Self::Output {
         self.inner.sub(rhs.inner)

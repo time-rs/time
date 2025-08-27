@@ -66,6 +66,7 @@ macro_rules! impl_per {
                 "  - `", stringify!($t), "::per(", stringify!($larger), ")` (returns `",
                 stringify!($default_output), "`)"
             )])+
+            #[inline]
             pub const fn per<T>(_larger: T) -> <T as DefaultOutput<Self>>::Output
             where
                 T: MultipleOf<Self, T::Output> + DefaultOutput<Self> + Copy,
@@ -83,6 +84,7 @@ macro_rules! impl_per {
                 "  - `", stringify!($t), "::per(", stringify!($larger), ")` (returns ",
                 stringify_outputs!($($int_output),+ , $($float_output),+), ")"
             )])+
+            #[inline]
             pub const fn per_t<Output>(larger: impl MultipleOf<Self, Output> + Copy) -> Output {
                 multiple_of_value(larger)
             }

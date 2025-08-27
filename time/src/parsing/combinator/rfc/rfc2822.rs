@@ -8,6 +8,7 @@ use crate::parsing::ParsedItem;
 
 /// Consume the `fws` rule.
 // The full rule is equivalent to /\r\n[ \t]+|[ \t]+(?:\r\n[ \t]+)*/
+#[inline]
 pub(crate) fn fws(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     if let [b'\r', b'\n', rest @ ..] = input {
         one_or_more(wsp)(rest)
@@ -22,11 +23,13 @@ pub(crate) fn fws(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 
 /// Consume the `cfws` rule.
 // The full rule is equivalent to any combination of `fws` and `comment` so long as it is not empty.
+#[inline]
 pub(crate) fn cfws(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     one_or_more(|input| fws(input).or_else(|| comment(input)))(input)
 }
 
 /// Consume the `comment` rule.
+#[inline]
 fn comment(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     input = ascii_char::<b'('>(input)?.into_inner();
     input = zero_or_more(fws)(input).into_inner();
@@ -40,6 +43,7 @@ fn comment(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 }
 
 /// Consume the `ccontent` rule.
+#[inline]
 fn ccontent(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     ctext(input)
         .or_else(|| quoted_pair(input))
@@ -51,6 +55,7 @@ fn ccontent(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     clippy::unnecessary_lazy_evaluations,
     reason = "rust-lang/rust-clippy#8522"
 )]
+#[inline]
 fn ctext(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     no_ws_ctl(input).or_else(|| match input {
         [33..=39 | 42..=91 | 93..=126, rest @ ..] => Some(ParsedItem(rest, ())),
@@ -59,6 +64,7 @@ fn ctext(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 }
 
 /// Consume the `quoted_pair` rule.
+#[inline]
 fn quoted_pair(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     input = ascii_char::<b'\\'>(input)?.into_inner();
     input = text(input).into_inner();
@@ -73,6 +79,7 @@ fn quoted_pair(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 }
 
 /// Consume the `no_ws_ctl` rule.
+#[inline]
 const fn no_ws_ctl(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
     match input {
         [1..=8 | 11..=12 | 14..=31 | 127, rest @ ..] => Some(ParsedItem(rest, ())),
@@ -81,6 +88,7 @@ const fn no_ws_ctl(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 }
 
 /// Consume the `text` rule.
+#[inline]
 fn text<'a>(input: &'a [u8]) -> ParsedItem<'a, ()> {
     let new_text = |input: &'a [u8]| match input {
         [1..=9 | 11..=12 | 14..=127, rest @ ..] => Some(ParsedItem(rest, ())),

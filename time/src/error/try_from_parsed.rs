@@ -16,6 +16,7 @@ pub enum TryFromParsed {
 }
 
 impl fmt::Display for TryFromParsed {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InsufficientInformation => f.write_str(
@@ -27,6 +28,7 @@ impl fmt::Display for TryFromParsed {
 }
 
 impl From<error::ComponentRange> for TryFromParsed {
+    #[inline]
     fn from(v: error::ComponentRange) -> Self {
         Self::ComponentRange(v)
     }
@@ -35,6 +37,7 @@ impl From<error::ComponentRange> for TryFromParsed {
 impl TryFrom<TryFromParsed> for error::ComponentRange {
     type Error = error::DifferentVariant;
 
+    #[inline]
     fn try_from(err: TryFromParsed) -> Result<Self, Self::Error> {
         match err {
             TryFromParsed::ComponentRange(err) => Ok(err),
@@ -44,6 +47,7 @@ impl TryFrom<TryFromParsed> for error::ComponentRange {
 }
 
 impl core::error::Error for TryFromParsed {
+    #[inline]
     fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
         match self {
             Self::InsufficientInformation => None,
@@ -53,6 +57,7 @@ impl core::error::Error for TryFromParsed {
 }
 
 impl From<TryFromParsed> for crate::Error {
+    #[inline]
     fn from(original: TryFromParsed) -> Self {
         Self::TryFromParsed(original)
     }
@@ -61,6 +66,7 @@ impl From<TryFromParsed> for crate::Error {
 impl TryFrom<crate::Error> for TryFromParsed {
     type Error = error::DifferentVariant;
 
+    #[inline]
     fn try_from(err: crate::Error) -> Result<Self, Self::Error> {
         match err {
             crate::Error::TryFromParsed(err) => Ok(err),

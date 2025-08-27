@@ -308,6 +308,7 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
 
 /// Round wrapper that uses hardware implementation if `std` is available, falling back to manual
 /// implementation for `no_std`
+#[inline]
 fn round(value: f64) -> f64 {
     #[cfg(feature = "std")]
     {

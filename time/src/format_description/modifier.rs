@@ -263,6 +263,7 @@ pub struct Ignore {
 // must be explicitly provided.
 impl Ignore {
     /// Create an instance of `Ignore` with the provided number of bytes to ignore.
+    #[inline]
     pub const fn count(count: NonZero<u16>) -> Self {
         Self { count }
     }
@@ -323,6 +324,7 @@ macro_rules! impl_const_default {
             if_pub! {
                 $($pub)?
                 $(#[$doc])*;
+                #[inline]
                 pub const fn default() -> Self {
                     $default
                 }
@@ -331,6 +333,7 @@ macro_rules! impl_const_default {
 
         $(#[$doc])*
         impl Default for $type {
+            #[inline]
             fn default() -> Self {
                 $default
             }

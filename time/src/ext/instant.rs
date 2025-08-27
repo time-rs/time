@@ -17,6 +17,7 @@ pub trait InstantExt: sealed::Sealed {
     /// This function may panic if the resulting point in time cannot be represented by the
     /// underlying data structure. See [`InstantExt::checked_add_signed`] for a non-panicking
     /// version.
+    #[inline]
     #[track_caller]
     fn add_signed(self, duration: Duration) -> Self {
         self.checked_add_signed(duration)
@@ -28,6 +29,7 @@ pub trait InstantExt: sealed::Sealed {
     /// This function may panic if the resulting point in time cannot be represented by the
     /// underlying data structure. See [`InstantExt::checked_sub_signed`] for a non-panicking
     /// version.
+    #[inline]
     #[track_caller]
     fn sub_signed(self, duration: Duration) -> Self {
         self.checked_sub_signed(duration)
@@ -63,6 +65,7 @@ pub trait InstantExt: sealed::Sealed {
 }
 
 impl InstantExt for StdInstant {
+    #[inline]
     fn checked_add_signed(&self, duration: Duration) -> Option<Self> {
         if duration.is_positive() {
             self.checked_add(duration.unsigned_abs())
@@ -74,6 +77,7 @@ impl InstantExt for StdInstant {
         }
     }
 
+    #[inline]
     fn checked_sub_signed(&self, duration: Duration) -> Option<Self> {
         if duration.is_positive() {
             self.checked_sub(duration.unsigned_abs())
@@ -85,6 +89,7 @@ impl InstantExt for StdInstant {
         }
     }
 
+    #[inline]
     fn signed_duration_since(&self, earlier: Self) -> Duration {
         if *self > earlier {
             self.saturating_duration_since(earlier)

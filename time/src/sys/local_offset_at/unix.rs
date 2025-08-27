@@ -5,6 +5,7 @@ use core::mem::MaybeUninit;
 use crate::{OffsetDateTime, UtcOffset};
 
 /// Convert the given Unix timestamp to a `libc::tm`. Returns `None` on any error.
+#[inline]
 fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
     #[allow(
         clippy::useless_conversion,
@@ -44,6 +45,7 @@ fn timestamp_to_tm(timestamp: i64) -> Option<libc::tm> {
     target_os = "netbsd",
     target_os = "haiku",
 ))]
+#[inline]
 fn tm_to_offset(_unix_timestamp: i64, tm: libc::tm) -> Option<UtcOffset> {
     let seconds = tm.tm_gmtoff.try_into().ok()?;
     UtcOffset::from_whole_seconds(seconds).ok()
@@ -70,6 +72,7 @@ fn tm_to_offset(_unix_timestamp: i64, tm: libc::tm) -> Option<UtcOffset> {
     target_os = "netbsd",
     target_os = "haiku",
 )))]
+#[inline]
 fn tm_to_offset(unix_timestamp: i64, tm: libc::tm) -> Option<UtcOffset> {
     use crate::Date;
 
@@ -97,6 +100,7 @@ fn tm_to_offset(unix_timestamp: i64, tm: libc::tm) -> Option<UtcOffset> {
 }
 
 /// Obtain the system's UTC offset.
+#[inline]
 pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     let unix_timestamp = datetime.unix_timestamp();
     let tm = timestamp_to_tm(unix_timestamp)?;

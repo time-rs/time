@@ -95,6 +95,7 @@ pub(super) struct Modifier<'a> {
 }
 
 /// Parse the provided tokens into an AST.
+#[inline]
 pub(super) fn parse<
     'item: 'iter,
     'iter,
@@ -109,6 +110,7 @@ pub(super) fn parse<
 
 /// Parse the provided tokens into an AST. The const generic indicates whether the resulting
 /// [`Item`] will be used directly or as part of a [`NestedFormatDescription`].
+#[inline]
 fn parse_inner<
     'item,
     I: Iterator<Item = Result<lexer::Token<'item>, Error>>,
@@ -350,6 +352,7 @@ fn parse_component<
 }
 
 /// Parse a nested format description. The location provided is the most recent one consumed.
+#[inline]
 fn parse_nested<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, const VERSION: usize>(
     last_location: Location,
     tokens: &mut lexer::Lexed<I>,

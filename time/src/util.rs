@@ -20,6 +20,7 @@ pub(crate) enum DateAdjustment {
 /// # use time::{Month, util};
 /// assert_eq!(util::days_in_month(Month::February, 2020), 29);
 /// ```
+#[inline]
 pub const fn days_in_month(month: Month, year: i32) -> u8 {
     time_core::util::days_in_month(month as u8, year)
 }
@@ -35,6 +36,7 @@ pub const fn days_in_month(month: Month, year: i32) -> u8 {
     since = "0.3.37",
     note = "use `days_in_month` or `Month::length` instead"
 )]
+#[inline]
 pub const fn days_in_year_month(year: i32, month: Month) -> u8 {
     days_in_month(month, year)
 }
@@ -73,6 +75,7 @@ pub const fn days_in_year_month(year: i32, month: Month) -> u8 {
 /// may change in the future if necessary, expanding the safety requirements. It is expected that,
 /// at a minimum, calling this method when the process is single-threaded will remain sound.
 #[cfg(feature = "local-offset")]
+#[inline]
 pub unsafe fn refresh_tz_unchecked() {
     // Safety: The caller must uphold the safety requirements.
     unsafe { crate::sys::refresh_tz_unchecked() };
@@ -82,6 +85,7 @@ pub unsafe fn refresh_tz_unchecked() {
 ///
 /// Returns `None` if the call is not known to be sound.
 #[cfg(feature = "local-offset")]
+#[inline]
 pub fn refresh_tz() -> Option<()> {
     crate::sys::refresh_tz()
 }
@@ -100,8 +104,10 @@ pub mod local_offset {
         Unsound,
     }
 
+    #[inline]
     pub unsafe fn set_soundness(_: Soundness) {}
 
+    #[inline]
     pub fn get_soundness() -> Soundness {
         Soundness::Sound
     }

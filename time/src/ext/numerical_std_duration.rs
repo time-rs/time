@@ -68,18 +68,22 @@ pub trait NumericalStdDuration: sealed::Sealed {
 }
 
 impl NumericalStdDuration for u64 {
+    #[inline]
     fn std_nanoseconds(self) -> StdDuration {
         StdDuration::from_nanos(self)
     }
 
+    #[inline]
     fn std_microseconds(self) -> StdDuration {
         StdDuration::from_micros(self)
     }
 
+    #[inline]
     fn std_milliseconds(self) -> StdDuration {
         StdDuration::from_millis(self)
     }
 
+    #[inline]
     fn std_seconds(self) -> StdDuration {
         StdDuration::from_secs(self)
     }
@@ -87,6 +91,7 @@ impl NumericalStdDuration for u64 {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn std_minutes(self) -> StdDuration {
         StdDuration::from_secs(
@@ -98,6 +103,7 @@ impl NumericalStdDuration for u64 {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn std_hours(self) -> StdDuration {
         StdDuration::from_secs(
@@ -109,6 +115,7 @@ impl NumericalStdDuration for u64 {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn std_days(self) -> StdDuration {
         StdDuration::from_secs(
@@ -120,6 +127,7 @@ impl NumericalStdDuration for u64 {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
+    #[inline]
     #[track_caller]
     fn std_weeks(self) -> StdDuration {
         StdDuration::from_secs(
@@ -133,6 +141,7 @@ impl NumericalStdDuration for f64 {
     /// # Panics
     ///
     /// This will panic if self is negative.
+    #[inline]
     #[track_caller]
     fn std_nanoseconds(self) -> StdDuration {
         assert!(self >= 0.);
@@ -142,6 +151,7 @@ impl NumericalStdDuration for f64 {
     /// # Panics
     ///
     /// This will panic if self is negative.
+    #[inline]
     #[track_caller]
     fn std_microseconds(self) -> StdDuration {
         assert!(self >= 0.);
@@ -151,6 +161,7 @@ impl NumericalStdDuration for f64 {
     /// # Panics
     ///
     /// This will panic if self is negative.
+    #[inline]
     #[track_caller]
     fn std_milliseconds(self) -> StdDuration {
         assert!(self >= 0.);
@@ -160,6 +171,7 @@ impl NumericalStdDuration for f64 {
     /// # Panics
     ///
     /// This will panic if self is negative.
+    #[inline]
     #[track_caller]
     fn std_seconds(self) -> StdDuration {
         assert!(self >= 0.);
@@ -169,6 +181,7 @@ impl NumericalStdDuration for f64 {
     /// # Panics
     ///
     /// This will panic if self is negative.
+    #[inline]
     #[track_caller]
     fn std_minutes(self) -> StdDuration {
         assert!(self >= 0.);
@@ -178,6 +191,7 @@ impl NumericalStdDuration for f64 {
     /// # Panics
     ///
     /// This will panic if self is negative.
+    #[inline]
     #[track_caller]
     fn std_hours(self) -> StdDuration {
         assert!(self >= 0.);
@@ -187,6 +201,7 @@ impl NumericalStdDuration for f64 {
     /// # Panics
     ///
     /// This will panic if self is negative.
+    #[inline]
     #[track_caller]
     fn std_days(self) -> StdDuration {
         assert!(self >= 0.);
@@ -196,6 +211,7 @@ impl NumericalStdDuration for f64 {
     /// # Panics
     ///
     /// This will panic if self is negative.
+    #[inline]
     #[track_caller]
     fn std_weeks(self) -> StdDuration {
         assert!(self >= 0.);

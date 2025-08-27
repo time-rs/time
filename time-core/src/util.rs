@@ -13,6 +13,7 @@ use crate::hint;
 /// assert!(!is_leap_year(2005));
 /// assert!(!is_leap_year(2100));
 /// ```
+#[inline]
 pub const fn is_leap_year(year: i32) -> bool {
     let d = if year % 100 == 0 { 15 } else { 3 };
     year & d == 0
@@ -30,6 +31,7 @@ pub const fn is_leap_year(year: i32) -> bool {
 /// assert_eq!(days_in_year(2005), 365);
 /// assert_eq!(days_in_year(2100), 365);
 /// ```
+#[inline]
 pub const fn days_in_year(year: i32) -> u16 {
     if is_leap_year(year) {
         366
@@ -47,6 +49,7 @@ pub const fn days_in_year(year: i32) -> u16 {
 /// assert_eq!(weeks_in_year(2019), 52);
 /// assert_eq!(weeks_in_year(2020), 53);
 /// ```
+#[inline]
 pub const fn weeks_in_year(year: i32) -> u8 {
     match year % 400 {
         -396 | -391 | -385 | -380 | -374 | -368 | -363 | -357 | -352 | -346 | -340 | -335
@@ -72,6 +75,7 @@ pub const fn weeks_in_year(year: i32) -> u8 {
 /// ```
 ///
 /// Note: This function is not exposed by the `time` crate. It is an implementation detail.
+#[inline]
 pub const fn days_in_month(month: u8, year: i32) -> u8 {
     debug_assert!(month >= 1);
     debug_assert!(month <= 12);

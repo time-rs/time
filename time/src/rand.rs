@@ -8,12 +8,14 @@ use crate::{
 };
 
 impl Distribution<Time> for Standard {
+    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Time {
         Time::from_hms_nanos_ranged(rng.r#gen(), rng.r#gen(), rng.r#gen(), rng.r#gen())
     }
 }
 
 impl Distribution<Date> for Standard {
+    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Date {
         // Safety: The Julian day number is in range.
         unsafe {
@@ -25,24 +27,28 @@ impl Distribution<Date> for Standard {
 }
 
 impl Distribution<UtcOffset> for Standard {
+    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> UtcOffset {
         UtcOffset::from_hms_ranged(rng.r#gen(), rng.r#gen(), rng.r#gen())
     }
 }
 
 impl Distribution<PrimitiveDateTime> for Standard {
+    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> PrimitiveDateTime {
         PrimitiveDateTime::new(Self.sample(rng), Self.sample(rng))
     }
 }
 
 impl Distribution<UtcDateTime> for Standard {
+    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> UtcDateTime {
         UtcDateTime::new(Self.sample(rng), Self.sample(rng))
     }
 }
 
 impl Distribution<OffsetDateTime> for Standard {
+    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> OffsetDateTime {
         let date_time: PrimitiveDateTime = Self.sample(rng);
         date_time.assume_offset(Self.sample(rng))
@@ -50,12 +56,14 @@ impl Distribution<OffsetDateTime> for Standard {
 }
 
 impl Distribution<Duration> for Standard {
+    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Duration {
         Duration::new_ranged(rng.r#gen(), rng.r#gen())
     }
 }
 
 impl Distribution<Weekday> for Standard {
+    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Weekday {
         use Weekday::*;
 
@@ -75,6 +83,7 @@ impl Distribution<Weekday> for Standard {
 }
 
 impl Distribution<Month> for Standard {
+    #[inline]
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Month {
         use Month::*;
         match rng.gen_range(1u8..=12) {

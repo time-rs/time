@@ -82,6 +82,7 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::ConversionRange(e) => e.fmt(f),
@@ -106,6 +107,7 @@ impl fmt::Display for Error {
 }
 
 impl core::error::Error for Error {
+    #[inline]
     fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
         match self {
             Self::ConversionRange(err) => Some(err),

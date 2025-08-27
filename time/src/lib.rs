@@ -147,6 +147,7 @@ const fn expect_failed(message: &str) -> ! {
 ///
 /// This is a `const fn` in the standard library starting in Rust 1.85. When MSRV is at least that,
 /// this can be removed.
+#[inline]
 const fn size_of_val<T>(_: &T) -> usize {
     size_of::<T>()
 }

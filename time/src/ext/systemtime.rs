@@ -43,6 +43,7 @@ pub trait SystemTimeExt: sealed::Sealed {
 }
 
 impl SystemTimeExt for SystemTime {
+    #[inline]
     fn checked_add_signed(&self, duration: Duration) -> Option<Self> {
         if duration.is_positive() {
             self.checked_add(duration.unsigned_abs())
@@ -53,6 +54,7 @@ impl SystemTimeExt for SystemTime {
         }
     }
 
+    #[inline]
     fn checked_sub_signed(&self, duration: Duration) -> Option<Self> {
         if duration.is_positive() {
             self.checked_sub(duration.unsigned_abs())
@@ -63,6 +65,7 @@ impl SystemTimeExt for SystemTime {
         }
     }
 
+    #[inline]
     fn signed_duration_since(&self, earlier: Self) -> Duration {
         match self.duration_since(earlier) {
             Ok(duration) => duration.try_into().unwrap_or(Duration::MAX),

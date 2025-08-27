@@ -37,6 +37,7 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Tuesday.previous(), Weekday::Monday);
     /// ```
+    #[inline]
     pub const fn previous(self) -> Self {
         match self {
             Monday => Sunday,
@@ -55,6 +56,7 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.next(), Weekday::Tuesday);
     /// ```
+    #[inline]
     pub const fn next(self) -> Self {
         match self {
             Monday => Tuesday,
@@ -74,6 +76,7 @@ impl Weekday {
     /// assert_eq!(Weekday::Monday.nth_next(1), Weekday::Tuesday);
     /// assert_eq!(Weekday::Sunday.nth_next(10), Weekday::Wednesday);
     /// ```
+    #[inline]
     pub const fn nth_next(self, n: u8) -> Self {
         match (self.number_days_from_monday() + n % 7) % 7 {
             0 => Monday,
@@ -96,6 +99,7 @@ impl Weekday {
     /// assert_eq!(Weekday::Monday.nth_prev(1), Weekday::Sunday);
     /// assert_eq!(Weekday::Sunday.nth_prev(10), Weekday::Thursday);
     /// ```
+    #[inline]
     pub const fn nth_prev(self, n: u8) -> Self {
         match self.number_days_from_monday() as i8 - (n % 7) as i8 {
             1 | -6 => Tuesday,
@@ -118,6 +122,7 @@ impl Weekday {
     /// assert_eq!(Weekday::Monday.number_from_monday(), 1);
     /// ```
     #[doc(alias = "iso_weekday_number")]
+    #[inline]
     pub const fn number_from_monday(self) -> u8 {
         self.number_days_from_monday() + 1
     }
@@ -128,6 +133,7 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.number_from_sunday(), 2);
     /// ```
+    #[inline]
     pub const fn number_from_sunday(self) -> u8 {
         self.number_days_from_sunday() + 1
     }
@@ -138,6 +144,7 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.number_days_from_monday(), 0);
     /// ```
+    #[inline]
     pub const fn number_days_from_monday(self) -> u8 {
         self as u8
     }
@@ -148,6 +155,7 @@ impl Weekday {
     /// # use time::Weekday;
     /// assert_eq!(Weekday::Monday.number_days_from_sunday(), 1);
     /// ```
+    #[inline]
     pub const fn number_days_from_sunday(self) -> u8 {
         match self {
             Monday => 1,
@@ -171,6 +179,7 @@ use private::WeekdayMetadata;
 impl SmartDisplay for Weekday {
     type Metadata = WeekdayMetadata;
 
+    #[inline]
     fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
         match self {
             Monday => Metadata::new(6, self, WeekdayMetadata),
@@ -183,6 +192,7 @@ impl SmartDisplay for Weekday {
         }
     }
 
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.pad(match self {
             Monday => "Monday",
@@ -197,6 +207,7 @@ impl SmartDisplay for Weekday {
 }
 
 impl fmt::Display for Weekday {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         SmartDisplay::fmt(self, f)
     }
@@ -205,6 +216,7 @@ impl fmt::Display for Weekday {
 impl FromStr for Weekday {
     type Err = error::InvalidVariant;
 
+    #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "Monday" => Ok(Monday),

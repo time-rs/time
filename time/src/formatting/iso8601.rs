@@ -70,6 +70,7 @@ pub(super) fn format_date<const CONFIG: EncodedConfig>(
 }
 
 /// Format the time portion of ISO 8601.
+#[inline]
 pub(super) fn format_time<const CONFIG: EncodedConfig>(
     output: &mut (impl io::Write + ?Sized),
     time: Time,
@@ -116,6 +117,7 @@ pub(super) fn format_time<const CONFIG: EncodedConfig>(
 }
 
 /// Format the UTC offset portion of ISO 8601.
+#[inline]
 pub(super) fn format_offset<const CONFIG: EncodedConfig>(
     output: &mut (impl io::Write + ?Sized),
     offset: UtcOffset,

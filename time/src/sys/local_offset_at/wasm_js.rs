@@ -4,6 +4,7 @@ use crate::convert::*;
 use crate::{OffsetDateTime, UtcOffset};
 
 /// Obtain the system's UTC offset.
+#[inline]
 pub(super) fn local_offset_at(datetime: OffsetDateTime) -> Option<UtcOffset> {
     let js_date: js_sys::Date = datetime.into();
     // The number of minutes returned by getTimezoneOffset() is positive if the local time zone

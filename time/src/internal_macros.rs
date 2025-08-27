@@ -6,6 +6,7 @@ macro_rules! __impl_assign {
         #[allow(unused_qualifications)]
         $(#[$attr])*
         impl core::ops::$op<$t> for $target {
+            #[inline]
             fn $fn(&mut self, rhs: $t) {
                 *self = *self $sym rhs;
             }

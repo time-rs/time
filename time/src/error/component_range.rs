@@ -24,18 +24,21 @@ pub struct ComponentRange {
 
 impl ComponentRange {
     /// Obtain the name of the component whose value was out of range.
+    #[inline]
     pub const fn name(self) -> &'static str {
         self.name
     }
 
     /// Whether the value's permitted range is conditional, i.e. whether an input with this
     /// value could have succeeded if the values of other components were different.
+    #[inline]
     pub const fn is_conditional(self) -> bool {
         self.conditional_message.is_some()
     }
 }
 
 impl PartialEq for ComponentRange {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
         && self.minimum == other.minimum
@@ -47,6 +50,7 @@ impl PartialEq for ComponentRange {
 }
 
 impl hash::Hash for ComponentRange {
+    #[inline]
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         self.name.hash(state);
         self.minimum.hash(state);
@@ -58,6 +62,7 @@ impl hash::Hash for ComponentRange {
 }
 
 impl fmt::Display for ComponentRange {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -74,6 +79,7 @@ impl fmt::Display for ComponentRange {
 }
 
 impl From<ComponentRange> for crate::Error {
+    #[inline]
     fn from(original: ComponentRange) -> Self {
         Self::ComponentRange(original)
     }
@@ -82,6 +88,7 @@ impl From<ComponentRange> for crate::Error {
 impl TryFrom<crate::Error> for ComponentRange {
     type Error = error::DifferentVariant;
 
+    #[inline]
     fn try_from(err: crate::Error) -> Result<Self, Self::Error> {
         match err {
             crate::Error::ComponentRange(err) => Ok(err),
@@ -93,6 +100,7 @@ impl TryFrom<crate::Error> for ComponentRange {
 /// **This trait implementation is deprecated and will be removed in a future breaking release.**
 #[cfg(feature = "serde")]
 impl serde::de::Expected for ComponentRange {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -105,6 +113,7 @@ impl serde::de::Expected for ComponentRange {
 #[cfg(feature = "serde")]
 impl ComponentRange {
     /// Convert the error to a deserialization error.
+    #[inline]
     pub(crate) fn into_de_error<E: serde::de::Error>(self) -> E {
         E::invalid_value(serde::de::Unexpected::Signed(self.value), &self)
     }

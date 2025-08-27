@@ -13,6 +13,7 @@ use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use crate::OffsetDateTime;
 
 /// Serialize an `OffsetDateTime` as its Unix timestamp with nanoseconds
+#[inline]
 pub fn serialize<S: Serializer>(
     datetime: &OffsetDateTime,
     serializer: S,
@@ -21,6 +22,7 @@ pub fn serialize<S: Serializer>(
 }
 
 /// Deserialize an `OffsetDateTime` from its Unix timestamp with nanoseconds
+#[inline]
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
     OffsetDateTime::from_unix_timestamp_nanos(<_>::deserialize(deserializer)?)
         .map_err(|err| de::Error::invalid_value(de::Unexpected::Signed(err.value), &err))
@@ -39,6 +41,7 @@ pub mod option {
     use super::*;
 
     /// Serialize an `Option<OffsetDateTime>` as its Unix timestamp with nanoseconds
+    #[inline]
     pub fn serialize<S: Serializer>(
         option: &Option<OffsetDateTime>,
         serializer: S,
@@ -49,6 +52,7 @@ pub mod option {
     }
 
     /// Deserialize an `Option<OffsetDateTime>` from its Unix timestamp with nanoseconds
+    #[inline]
     pub fn deserialize<'a, D: Deserializer<'a>>(
         deserializer: D,
     ) -> Result<Option<OffsetDateTime>, D::Error> {

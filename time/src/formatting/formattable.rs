@@ -48,6 +48,7 @@ mod sealed {
         ) -> Result<usize, error::Format>;
 
         /// Format the item directly to a `String`.
+        #[inline]
         fn format(
             &self,
             date: Option<Date>,
@@ -62,6 +63,7 @@ mod sealed {
 }
 
 impl sealed::Sealed for BorrowedFormatItem<'_> {
+    #[inline]
     fn format_into(
         &self,
         output: &mut (impl io::Write + ?Sized),
@@ -83,6 +85,7 @@ impl sealed::Sealed for BorrowedFormatItem<'_> {
 }
 
 impl sealed::Sealed for [BorrowedFormatItem<'_>] {
+    #[inline]
     fn format_into(
         &self,
         output: &mut (impl io::Write + ?Sized),
@@ -99,6 +102,7 @@ impl sealed::Sealed for [BorrowedFormatItem<'_>] {
 }
 
 impl sealed::Sealed for OwnedFormatItem {
+    #[inline]
     fn format_into(
         &self,
         output: &mut (impl io::Write + ?Sized),
@@ -120,6 +124,7 @@ impl sealed::Sealed for OwnedFormatItem {
 }
 
 impl sealed::Sealed for [OwnedFormatItem] {
+    #[inline]
     fn format_into(
         &self,
         output: &mut (impl io::Write + ?Sized),
@@ -139,6 +144,7 @@ impl<T> sealed::Sealed for T
 where
     T: Deref<Target: sealed::Sealed>,
 {
+    #[inline]
     fn format_into(
         &self,
         output: &mut (impl io::Write + ?Sized),
@@ -278,6 +284,7 @@ impl sealed::Sealed for Rfc3339 {
 }
 
 impl<const CONFIG: EncodedConfig> sealed::Sealed for Iso8601<CONFIG> {
+    #[inline]
     fn format_into(
         &self,
         output: &mut (impl io::Write + ?Sized),

@@ -35,6 +35,7 @@ mod strftime;
 /// This function exists for backward compatibility reasons. It is equivalent to calling
 /// `parse_borrowed::<1>(s)`. In the future, this function will be deprecated in favor of
 /// `parse_borrowed`.
+#[inline]
 pub fn parse(
     s: &str,
 ) -> Result<Vec<format_description::BorrowedFormatItem<'_>>, error::InvalidFormatDescription> {
@@ -46,6 +47,7 @@ pub fn parse(
 /// The syntax for the format description can be found in [the
 /// book](https://time-rs.github.io/book/api/format-description.html). The version of the format
 /// description is provided as the const parameter. **It is recommended to use version 2.**
+#[inline]
 pub fn parse_borrowed<const VERSION: usize>(
     s: &str,
 ) -> Result<Vec<format_description::BorrowedFormatItem<'_>>, error::InvalidFormatDescription> {
@@ -68,6 +70,7 @@ pub fn parse_borrowed<const VERSION: usize>(
 /// that there is no lifetime that needs to be handled. **It is recommended to use version 2.**
 ///
 /// [`OwnedFormatItem`]: crate::format_description::OwnedFormatItem
+#[inline]
 pub fn parse_owned<const VERSION: usize>(
     s: &str,
 ) -> Result<format_description::OwnedFormatItem, error::InvalidFormatDescription> {
@@ -80,6 +83,7 @@ pub fn parse_owned<const VERSION: usize>(
 }
 
 /// Attach [`Location`] information to each byte in the iterator.
+#[inline]
 fn attach_location<'item>(
     iter: impl Iterator<Item = &'item u8>,
 ) -> impl Iterator<Item = (&'item u8, Location)> {
@@ -101,11 +105,13 @@ struct Location {
 
 impl Location {
     /// Create a new [`Span`] from `self` to `other`.
+    #[inline]
     const fn to(self, end: Self) -> Span {
         Span { start: self, end }
     }
 
     /// Create a new [`Span`] consisting entirely of `self`.
+    #[inline]
     const fn to_self(self) -> Span {
         Span {
             start: self,
@@ -117,6 +123,7 @@ impl Location {
     ///
     /// Note that this assumes the resulting location is on the same line as the original location.
     #[must_use = "this does not modify the original value"]
+    #[inline]
     const fn offset(&self, offset: u32) -> Self {
         Self {
             byte: self.byte + offset,
@@ -124,6 +131,7 @@ impl Location {
     }
 
     /// Create an error with the provided message at this location.
+    #[inline]
     const fn error(self, message: &'static str) -> ErrorInner {
         ErrorInner {
             _message: message,
@@ -145,6 +153,7 @@ struct Span {
 impl Span {
     /// Obtain a `Span` pointing at the start of the pre-existing span.
     #[must_use = "this does not modify the original value"]
+    #[inline]
     const fn shrink_to_start(&self) -> Self {
         Self {
             start: self.start,
@@ -163,6 +172,7 @@ impl Span {
 
     /// Obtain a `Span` that ends before the provided position of the pre-existing span.
     #[must_use = "this does not modify the original value"]
+    #[inline]
     const fn shrink_to_before(&self, pos: u32) -> Self {
         Self {
             start: self.start,
@@ -174,6 +184,7 @@ impl Span {
 
     /// Obtain a `Span` that starts after provided position to the end of the pre-existing span.
     #[must_use = "this does not modify the original value"]
+    #[inline]
     const fn shrink_to_after(&self, pos: u32) -> Self {
         Self {
             start: Location {
@@ -184,6 +195,7 @@ impl Span {
     }
 
     /// Create an error with the provided message at this span.
+    #[inline]
     const fn error(self, message: &'static str) -> ErrorInner {
         ErrorInner {
             _message: message,
@@ -204,6 +216,7 @@ struct Spanned<T> {
 impl<T> core::ops::Deref for Spanned<T> {
     type Target = T;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.value
     }
@@ -216,6 +229,7 @@ trait SpannedValue: Sized {
 }
 
 impl<T> SpannedValue for T {
+    #[inline]
     fn spanned(self, span: Span) -> Spanned<Self> {
         Spanned { value: self, span }
     }
@@ -238,6 +252,7 @@ struct Error {
 }
 
 impl From<Error> for error::InvalidFormatDescription {
+    #[inline]
     fn from(error: Error) -> Self {
         error.public
     }
@@ -251,6 +266,7 @@ impl From<Error> for error::InvalidFormatDescription {
 struct Unused<T>(core::marker::PhantomData<T>);
 
 /// Indicate that a value is currently unused.
+#[inline]
 fn unused<T>(_: T) -> Unused<T> {
     Unused(core::marker::PhantomData)
 }

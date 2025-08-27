@@ -8,6 +8,7 @@ use core::fmt;
 pub struct DifferentVariant;
 
 impl fmt::Display for DifferentVariant {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "value was of a different variant than required")
     }
@@ -16,6 +17,7 @@ impl fmt::Display for DifferentVariant {
 impl core::error::Error for DifferentVariant {}
 
 impl From<DifferentVariant> for crate::Error {
+    #[inline]
     fn from(err: DifferentVariant) -> Self {
         Self::DifferentVariant(err)
     }
@@ -24,6 +26,7 @@ impl From<DifferentVariant> for crate::Error {
 impl TryFrom<crate::Error> for DifferentVariant {
     type Error = Self;
 
+    #[inline]
     fn try_from(err: crate::Error) -> Result<Self, Self::Error> {
         match err {
             crate::Error::DifferentVariant(err) => Ok(err),

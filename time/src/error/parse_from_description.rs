@@ -19,6 +19,7 @@ pub enum ParseFromDescription {
 }
 
 impl fmt::Display for ParseFromDescription {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidLiteral => f.write_str("a character literal was not valid"),
@@ -35,6 +36,7 @@ impl fmt::Display for ParseFromDescription {
 impl core::error::Error for ParseFromDescription {}
 
 impl From<ParseFromDescription> for crate::Error {
+    #[inline]
     fn from(original: ParseFromDescription) -> Self {
         Self::ParseFromDescription(original)
     }
@@ -43,6 +45,7 @@ impl From<ParseFromDescription> for crate::Error {
 impl TryFrom<crate::Error> for ParseFromDescription {
     type Error = error::DifferentVariant;
 
+    #[inline]
     fn try_from(err: crate::Error) -> Result<Self, Self::Error> {
         match err {
             crate::Error::ParseFromDescription(err) => Ok(err),

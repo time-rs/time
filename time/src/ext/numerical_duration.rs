@@ -74,37 +74,45 @@ pub trait NumericalDuration: sealed::Sealed {
 }
 
 impl NumericalDuration for i64 {
+    #[inline]
     fn nanoseconds(self) -> Duration {
         Duration::nanoseconds(self)
     }
 
+    #[inline]
     fn microseconds(self) -> Duration {
         Duration::microseconds(self)
     }
 
+    #[inline]
     fn milliseconds(self) -> Duration {
         Duration::milliseconds(self)
     }
 
+    #[inline]
     fn seconds(self) -> Duration {
         Duration::seconds(self)
     }
 
+    #[inline]
     #[track_caller]
     fn minutes(self) -> Duration {
         Duration::minutes(self)
     }
 
+    #[inline]
     #[track_caller]
     fn hours(self) -> Duration {
         Duration::hours(self)
     }
 
+    #[inline]
     #[track_caller]
     fn days(self) -> Duration {
         Duration::days(self)
     }
 
+    #[inline]
     #[track_caller]
     fn weeks(self) -> Duration {
         Duration::weeks(self)
@@ -112,37 +120,45 @@ impl NumericalDuration for i64 {
 }
 
 impl NumericalDuration for f64 {
+    #[inline]
     fn nanoseconds(self) -> Duration {
         Duration::nanoseconds(self as i64)
     }
 
+    #[inline]
     fn microseconds(self) -> Duration {
         Duration::nanoseconds((self * Nanosecond::per_t::<Self>(Microsecond)) as i64)
     }
 
+    #[inline]
     fn milliseconds(self) -> Duration {
         Duration::nanoseconds((self * Nanosecond::per_t::<Self>(Millisecond)) as i64)
     }
 
+    #[inline]
     fn seconds(self) -> Duration {
         Duration::nanoseconds((self * Nanosecond::per_t::<Self>(Second)) as i64)
     }
 
+    #[inline]
     #[track_caller]
     fn minutes(self) -> Duration {
         Duration::nanoseconds((self * Nanosecond::per_t::<Self>(Minute)) as i64)
     }
 
+    #[inline]
     #[track_caller]
     fn hours(self) -> Duration {
         Duration::nanoseconds((self * Nanosecond::per_t::<Self>(Hour)) as i64)
     }
 
+    #[inline]
     #[track_caller]
     fn days(self) -> Duration {
         Duration::nanoseconds((self * Nanosecond::per_t::<Self>(Day)) as i64)
     }
 
+    #[inline]
     #[track_caller]
     fn weeks(self) -> Duration {
         Duration::nanoseconds((self * Nanosecond::per_t::<Self>(Week)) as i64)

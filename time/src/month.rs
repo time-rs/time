@@ -41,6 +41,7 @@ pub enum Month {
 
 impl Month {
     /// Create a `Month` from its numerical value.
+    #[inline]
     pub(crate) const fn from_number(n: NonZero<u8>) -> Result<Self, error::ComponentRange> {
         match n.get() {
             1 => Ok(January),
@@ -71,6 +72,7 @@ impl Month {
     /// # use time::Month;
     /// assert_eq!(Month::February.length(2020), 29);
     /// ```
+    #[inline]
     pub const fn length(self, year: i32) -> u8 {
         util::days_in_month(self, year)
     }
@@ -81,6 +83,7 @@ impl Month {
     /// # use time::Month;
     /// assert_eq!(Month::January.previous(), Month::December);
     /// ```
+    #[inline]
     pub const fn previous(self) -> Self {
         match self {
             January => December,
@@ -104,6 +107,7 @@ impl Month {
     /// # use time::Month;
     /// assert_eq!(Month::January.next(), Month::February);
     /// ```
+    #[inline]
     pub const fn next(self) -> Self {
         match self {
             January => February,
@@ -128,6 +132,7 @@ impl Month {
     /// assert_eq!(Month::January.nth_next(4), Month::May);
     /// assert_eq!(Month::July.nth_next(9), Month::April);
     /// ```
+    #[inline]
     pub const fn nth_next(self, n: u8) -> Self {
         match (self as u8 - 1 + n % 12) % 12 {
             0 => January,
@@ -155,6 +160,7 @@ impl Month {
     /// assert_eq!(Month::January.nth_prev(4), Month::September);
     /// assert_eq!(Month::July.nth_prev(9), Month::October);
     /// ```
+    #[inline]
     pub const fn nth_prev(self, n: u8) -> Self {
         match self as i8 - 1 - (n % 12) as i8 {
             1 | -11 => February,
@@ -186,6 +192,7 @@ use private::MonthMetadata;
 impl SmartDisplay for Month {
     type Metadata = MonthMetadata;
 
+    #[inline]
     fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
         match self {
             January => Metadata::new(7, self, MonthMetadata),
@@ -203,6 +210,7 @@ impl SmartDisplay for Month {
         }
     }
 
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.pad(match self {
             January => "January",
@@ -222,6 +230,7 @@ impl SmartDisplay for Month {
 }
 
 impl fmt::Display for Month {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         SmartDisplay::fmt(self, f)
     }
@@ -230,6 +239,7 @@ impl fmt::Display for Month {
 impl FromStr for Month {
     type Err = error::InvalidVariant;
 
+    #[inline]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "January" => Ok(January),
@@ -250,6 +260,7 @@ impl FromStr for Month {
 }
 
 impl From<Month> for u8 {
+    #[inline]
     fn from(month: Month) -> Self {
         month as Self
     }
@@ -258,6 +269,7 @@ impl From<Month> for u8 {
 impl TryFrom<u8> for Month {
     type Error = error::ComponentRange;
 
+    #[inline]
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match NonZero::new(value) {
             Some(value) => Self::from_number(value),

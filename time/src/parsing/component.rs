@@ -197,6 +197,7 @@ pub(crate) fn parse_weekday(
 }
 
 /// Parse the "ordinal" component of a `Date`.
+#[inline]
 pub(crate) fn parse_ordinal(
     input: &[u8],
     modifiers: modifier::Ordinal,
@@ -205,6 +206,7 @@ pub(crate) fn parse_ordinal(
 }
 
 /// Parse the "day" component of a `Date`.
+#[inline]
 pub(crate) fn parse_day(
     input: &[u8],
     modifiers: modifier::Day,
@@ -222,11 +224,13 @@ pub(crate) enum Period {
 }
 
 /// Parse the "hour" component of a `Time`.
+#[inline]
 pub(crate) fn parse_hour(input: &[u8], modifiers: modifier::Hour) -> Option<ParsedItem<'_, u8>> {
     exactly_n_digits_padded::<2, _>(modifiers.padding)(input)
 }
 
 /// Parse the "minute" component of a `Time`.
+#[inline]
 pub(crate) fn parse_minute(
     input: &[u8],
     modifiers: modifier::Minute,
@@ -235,6 +239,7 @@ pub(crate) fn parse_minute(
 }
 
 /// Parse the "second" component of a `Time`.
+#[inline]
 pub(crate) fn parse_second(
     input: &[u8],
     modifiers: modifier::Second,
@@ -243,6 +248,7 @@ pub(crate) fn parse_second(
 }
 
 /// Parse the "period" component of a `Time`. Required if the hour is on a 12-hour clock.
+#[inline]
 pub(crate) fn parse_period(
     input: &[u8],
     modifiers: modifier::Period,
@@ -312,6 +318,7 @@ pub(crate) fn parse_offset_hour(
 }
 
 /// Parse the "minute" component of a `UtcOffset`.
+#[inline]
 pub(crate) fn parse_offset_minute(
     input: &[u8],
     modifiers: modifier::OffsetMinute,
@@ -323,6 +330,7 @@ pub(crate) fn parse_offset_minute(
 }
 
 /// Parse the "second" component of a `UtcOffset`.
+#[inline]
 pub(crate) fn parse_offset_second(
     input: &[u8],
     modifiers: modifier::OffsetSecond,
@@ -334,6 +342,7 @@ pub(crate) fn parse_offset_second(
 }
 
 /// Ignore the given number of bytes.
+#[inline]
 pub(crate) fn parse_ignore(
     input: &[u8],
     modifiers: modifier::Ignore,
@@ -369,6 +378,7 @@ pub(crate) fn parse_unix_timestamp(
 
 /// Parse the `end` component, which represents the end of input. If any input is remaining, `None`
 /// is returned.
+#[inline]
 pub(crate) const fn parse_end(input: &[u8], end: modifier::End) -> Option<ParsedItem<'_, ()>> {
     let modifier::End {} = end;
 

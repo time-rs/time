@@ -15,6 +15,7 @@ use crate::format_description::{self, modifier, BorrowedFormatItem, Component};
 ///
 /// [strftime docs]: https://man7.org/linux/man-pages/man3/strftime.3.html
 #[doc(alias = "parse_strptime_borrowed")]
+#[inline]
 pub fn parse_strftime_borrowed(
     s: &str,
 ) -> Result<Vec<BorrowedFormatItem<'_>>, InvalidFormatDescription> {
@@ -29,6 +30,7 @@ pub fn parse_strftime_borrowed(
 ///
 /// [strftime docs]: https://man7.org/linux/man-pages/man3/strftime.3.html
 #[doc(alias = "parse_strptime_owned")]
+#[inline]
 pub fn parse_strftime_owned(
     s: &str,
 ) -> Result<format_description::OwnedFormatItem, InvalidFormatDescription> {
@@ -56,6 +58,7 @@ enum Token<'a> {
     },
 }
 
+#[inline]
 fn lex(mut input: &[u8]) -> iter::Peekable<impl Iterator<Item = Result<Token<'_>, Error>>> {
     let mut iter = attach_location(input.iter()).peekable();
 
@@ -115,6 +118,7 @@ fn lex(mut input: &[u8]) -> iter::Peekable<impl Iterator<Item = Result<Token<'_>
     .peekable()
 }
 
+#[inline]
 fn into_items<'iter, 'token: 'iter>(
     mut tokens: iter::Peekable<impl Iterator<Item = Result<Token<'token>, Error>> + 'iter>,
 ) -> impl Iterator<Item = Result<BorrowedFormatItem<'token>, Error>> + 'iter {

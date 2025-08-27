@@ -42,6 +42,7 @@ mod sealed {
 }
 
 impl sealed::AnyFormatItem for BorrowedFormatItem<'_> {
+    #[inline]
     fn parse_item<'a>(
         &self,
         parsed: &mut Parsed,
@@ -76,6 +77,7 @@ impl sealed::AnyFormatItem for BorrowedFormatItem<'_> {
 
 #[cfg(feature = "alloc")]
 impl sealed::AnyFormatItem for OwnedFormatItem {
+    #[inline]
     fn parse_item<'a>(
         &self,
         parsed: &mut Parsed,
@@ -190,6 +192,7 @@ pub struct Parsed {
 }
 
 impl Default for Parsed {
+    #[inline]
     fn default() -> Self {
         Self::new()
     }
@@ -197,6 +200,7 @@ impl Default for Parsed {
 
 impl Parsed {
     /// Create a new instance of `Parsed` with no information known.
+    #[inline]
     pub const fn new() -> Self {
         Self {
             year: OptionRangedI32::None,
@@ -234,6 +238,7 @@ impl Parsed {
     ///
     /// If a [`BorrowedFormatItem::Optional`] or [`OwnedFormatItem::Optional`] is passed, parsing
     /// will not fail; the input will be returned as-is if the expected format is not present.
+    #[inline]
     pub fn parse_item<'a>(
         &mut self,
         input: &'a [u8],
@@ -247,6 +252,7 @@ impl Parsed {
     ///
     /// This method will fail if any of the contained [`BorrowedFormatItem`]s or
     /// [`OwnedFormatItem`]s fail to parse. `self` will not be mutated in this instance.
+    #[inline]
     pub fn parse_items<'a>(
         &mut self,
         mut input: &'a [u8],
@@ -263,6 +269,7 @@ impl Parsed {
     }
 
     /// Parse a literal byte sequence. The remaining input is returned as the `Ok` value.
+    #[inline]
     pub fn parse_literal<'a>(
         input: &'a [u8],
         literal: &[u8],
@@ -391,6 +398,7 @@ impl Parsed {
 /// Getter methods
 impl Parsed {
     /// Obtain the `year` component.
+    #[inline]
     pub const fn year(&self) -> Option<i32> {
         self.year.get_primitive()
     }
@@ -399,6 +407,7 @@ impl Parsed {
     ///
     /// If the year is zero, the sign of the century is not stored. To differentiate between
     /// positive and negative zero, use `year_century_is_negative`.
+    #[inline]
     pub const fn year_century(&self) -> Option<i16> {
         self.year_century.get_primitive()
     }
@@ -407,6 +416,7 @@ impl Parsed {
     ///
     /// This indicates whether the value returned from `year_century` is negative. If the year is
     /// zero, it is necessary to call this method for disambiguation.
+    #[inline]
     pub const fn year_century_is_negative(&self) -> Option<bool> {
         match self.year_century() {
             Some(_) => Some(self.year_century_is_negative),
@@ -415,11 +425,13 @@ impl Parsed {
     }
 
     /// Obtain the `year_last_two` component.
+    #[inline]
     pub const fn year_last_two(&self) -> Option<u8> {
         self.year_last_two.get_primitive()
     }
 
     /// Obtain the `iso_year` component.
+    #[inline]
     pub const fn iso_year(&self) -> Option<i32> {
         self.iso_year.get_primitive()
     }
@@ -428,6 +440,7 @@ impl Parsed {
     ///
     /// If the year is zero, the sign of the century is not stored. To differentiate between
     /// positive and negative zero, use `iso_year_century_is_negative`.
+    #[inline]
     pub const fn iso_year_century(&self) -> Option<i16> {
         self.iso_year_century.get_primitive()
     }
@@ -436,6 +449,7 @@ impl Parsed {
     ///
     /// This indicates whether the value returned from `iso_year_century` is negative. If the year
     /// is zero, it is necessary to call this method for disambiguation.
+    #[inline]
     pub const fn iso_year_century_is_negative(&self) -> Option<bool> {
         match self.iso_year_century() {
             Some(_) => Some(self.iso_year_century_is_negative),
@@ -444,76 +458,91 @@ impl Parsed {
     }
 
     /// Obtain the `iso_year_last_two` component.
+    #[inline]
     pub const fn iso_year_last_two(&self) -> Option<u8> {
         self.iso_year_last_two.get_primitive()
     }
 
     /// Obtain the `month` component.
+    #[inline]
     pub const fn month(&self) -> Option<Month> {
         self.month
     }
 
     /// Obtain the `sunday_week_number` component.
+    #[inline]
     pub const fn sunday_week_number(&self) -> Option<u8> {
         self.sunday_week_number.get_primitive()
     }
 
     /// Obtain the `monday_week_number` component.
+    #[inline]
     pub const fn monday_week_number(&self) -> Option<u8> {
         self.monday_week_number.get_primitive()
     }
 
     /// Obtain the `iso_week_number` component.
+    #[inline]
     pub const fn iso_week_number(&self) -> Option<NonZero<u8>> {
         NonZero::new(const_try_opt!(self.iso_week_number.get_primitive()))
     }
 
     /// Obtain the `weekday` component.
+    #[inline]
     pub const fn weekday(&self) -> Option<Weekday> {
         self.weekday
     }
 
     /// Obtain the `ordinal` component.
+    #[inline]
     pub const fn ordinal(&self) -> Option<NonZero<u16>> {
         NonZero::new(const_try_opt!(self.ordinal.get_primitive()))
     }
 
     /// Obtain the `day` component.
+    #[inline]
     pub const fn day(&self) -> Option<NonZero<u8>> {
         NonZero::new(const_try_opt!(self.day.get_primitive()))
     }
 
     /// Obtain the `hour_24` component.
+    #[inline]
     pub const fn hour_24(&self) -> Option<u8> {
         self.hour_24.get_primitive()
     }
 
     /// Obtain the `hour_12` component.
+    #[inline]
     pub const fn hour_12(&self) -> Option<NonZero<u8>> {
         NonZero::new(const_try_opt!(self.hour_12.get_primitive()))
     }
 
     /// Obtain the `hour_12_is_pm` component.
+    #[inline]
     pub const fn hour_12_is_pm(&self) -> Option<bool> {
         self.hour_12_is_pm
     }
 
     /// Obtain the `minute` component.
+    #[inline]
     pub const fn minute(&self) -> Option<u8> {
         self.minute.get_primitive()
     }
 
     /// Obtain the `second` component.
+    #[inline]
     pub const fn second(&self) -> Option<u8> {
         self.second.get_primitive()
     }
 
     /// Obtain the `subsecond` component.
+    #[inline]
     pub const fn subsecond(&self) -> Option<u32> {
         self.subsecond.get_primitive()
     }
 
     /// Obtain the `offset_hour` component.
+    #[inline]
     pub const fn offset_hour(&self) -> Option<i8> {
         self.offset_hour.get_primitive()
     }
@@ -521,11 +550,13 @@ impl Parsed {
     /// Obtain the absolute value of the `offset_minute` component.
     #[doc(hidden)]
     #[deprecated(since = "0.3.8", note = "use `parsed.offset_minute_signed()` instead")]
+    #[inline]
     pub const fn offset_minute(&self) -> Option<u8> {
         Some(const_try_opt!(self.offset_minute_signed()).unsigned_abs())
     }
 
     /// Obtain the `offset_minute` component.
+    #[inline]
     pub const fn offset_minute_signed(&self) -> Option<i8> {
         match (self.offset_minute.get_primitive(), self.offset_is_negative) {
             (Some(offset_minute), true) => Some(-offset_minute),
@@ -537,11 +568,13 @@ impl Parsed {
     /// Obtain the absolute value of the `offset_second` component.
     #[doc(hidden)]
     #[deprecated(since = "0.3.8", note = "use `parsed.offset_second_signed()` instead")]
+    #[inline]
     pub const fn offset_second(&self) -> Option<u8> {
         Some(const_try_opt!(self.offset_second_signed()).unsigned_abs())
     }
 
     /// Obtain the `offset_second` component.
+    #[inline]
     pub const fn offset_second_signed(&self) -> Option<i8> {
         match (self.offset_second.get_primitive(), self.offset_is_negative) {
             (Some(offset_second), true) => Some(-offset_second),
@@ -551,6 +584,7 @@ impl Parsed {
     }
 
     /// Obtain the `unix_timestamp_nanos` component.
+    #[inline]
     pub const fn unix_timestamp_nanos(&self) -> Option<i128> {
         self.unix_timestamp_nanos.get_primitive()
     }
@@ -560,6 +594,7 @@ impl Parsed {
 macro_rules! setters {
     ($($name:ident $setter:ident $builder:ident $type:ty;)*) => {$(
         #[doc = concat!("Set the `", stringify!($name), "` component.")]
+        #[inline]
         pub fn $setter(&mut self, value: $type) -> Option<()> {
             *self = self.$builder(value)?;
             Some(())
@@ -580,6 +615,7 @@ impl Parsed {
     ///
     /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
     /// the sign is inferred from the value.
+    #[inline]
     pub fn set_year_century(&mut self, value: i16, is_negative: bool) -> Option<()> {
         self.year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
         if value != 0 {
@@ -600,6 +636,7 @@ impl Parsed {
     ///
     /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
     /// the sign is inferred from the value.
+    #[inline]
     pub fn set_iso_year_century(&mut self, value: i16, is_negative: bool) -> Option<()> {
         self.iso_year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
         if value != 0 {
@@ -636,6 +673,7 @@ impl Parsed {
         since = "0.3.8",
         note = "use `parsed.set_offset_minute_signed()` instead"
     )]
+    #[inline]
     pub fn set_offset_minute(&mut self, value: u8) -> Option<()> {
         if value > i8::MAX.cast_unsigned() {
             None
@@ -650,6 +688,7 @@ impl Parsed {
         since = "0.3.8",
         note = "use `parsed.set_offset_second_signed()` instead"
     )]
+    #[inline]
     pub fn set_offset_second(&mut self, value: u8) -> Option<()> {
         if value > i8::MAX.cast_unsigned() {
             None
@@ -665,6 +704,7 @@ impl Parsed {
 /// not. The builder methods _may_ fail if the value is invalid, though behavior is not guaranteed.
 impl Parsed {
     /// Set the `year` component and return `self`.
+    #[inline]
     pub const fn with_year(mut self, value: i32) -> Option<Self> {
         self.year = OptionRangedI32::Some(const_try_opt!(RangedI32::new(value)));
         Some(self)
@@ -674,6 +714,7 @@ impl Parsed {
     ///
     /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
     /// the sign is inferred from the value.
+    #[inline]
     pub const fn with_year_century(mut self, value: i16, is_negative: bool) -> Option<Self> {
         self.year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
         if value != 0 {
@@ -685,12 +726,14 @@ impl Parsed {
     }
 
     /// Set the `year_last_two` component and return `self`.
+    #[inline]
     pub const fn with_year_last_two(mut self, value: u8) -> Option<Self> {
         self.year_last_two = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
         Some(self)
     }
 
     /// Set the `iso_year` component and return `self`.
+    #[inline]
     pub const fn with_iso_year(mut self, value: i32) -> Option<Self> {
         self.iso_year = OptionRangedI32::Some(const_try_opt!(RangedI32::new(value)));
         Some(self)
@@ -700,6 +743,7 @@ impl Parsed {
     ///
     /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
     /// the sign is inferred from the value.
+    #[inline]
     pub const fn with_iso_year_century(mut self, value: i16, is_negative: bool) -> Option<Self> {
         self.iso_year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
         if value != 0 {
@@ -711,90 +755,105 @@ impl Parsed {
     }
 
     /// Set the `iso_year_last_two` component and return `self`.
+    #[inline]
     pub const fn with_iso_year_last_two(mut self, value: u8) -> Option<Self> {
         self.iso_year_last_two = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
         Some(self)
     }
 
     /// Set the `month` component and return `self`.
+    #[inline]
     pub const fn with_month(mut self, value: Month) -> Option<Self> {
         self.month = Some(value);
         Some(self)
     }
 
     /// Set the `sunday_week_number` component and return `self`.
+    #[inline]
     pub const fn with_sunday_week_number(mut self, value: u8) -> Option<Self> {
         self.sunday_week_number = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
         Some(self)
     }
 
     /// Set the `monday_week_number` component and return `self`.
+    #[inline]
     pub const fn with_monday_week_number(mut self, value: u8) -> Option<Self> {
         self.monday_week_number = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
         Some(self)
     }
 
     /// Set the `iso_week_number` component and return `self`.
+    #[inline]
     pub const fn with_iso_week_number(mut self, value: NonZero<u8>) -> Option<Self> {
         self.iso_week_number = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value.get())));
         Some(self)
     }
 
     /// Set the `weekday` component and return `self`.
+    #[inline]
     pub const fn with_weekday(mut self, value: Weekday) -> Option<Self> {
         self.weekday = Some(value);
         Some(self)
     }
 
     /// Set the `ordinal` component and return `self`.
+    #[inline]
     pub const fn with_ordinal(mut self, value: NonZero<u16>) -> Option<Self> {
         self.ordinal = OptionRangedU16::Some(const_try_opt!(RangedU16::new(value.get())));
         Some(self)
     }
 
     /// Set the `day` component and return `self`.
+    #[inline]
     pub const fn with_day(mut self, value: NonZero<u8>) -> Option<Self> {
         self.day = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value.get())));
         Some(self)
     }
 
     /// Set the `hour_24` component and return `self`.
+    #[inline]
     pub const fn with_hour_24(mut self, value: u8) -> Option<Self> {
         self.hour_24 = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
         Some(self)
     }
 
     /// Set the `hour_12` component and return `self`.
+    #[inline]
     pub const fn with_hour_12(mut self, value: NonZero<u8>) -> Option<Self> {
         self.hour_12 = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value.get())));
         Some(self)
     }
 
     /// Set the `hour_12_is_pm` component and return `self`.
+    #[inline]
     pub const fn with_hour_12_is_pm(mut self, value: bool) -> Option<Self> {
         self.hour_12_is_pm = Some(value);
         Some(self)
     }
 
     /// Set the `minute` component and return `self`.
+    #[inline]
     pub const fn with_minute(mut self, value: u8) -> Option<Self> {
         self.minute = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
         Some(self)
     }
 
     /// Set the `second` component and return `self`.
+    #[inline]
     pub const fn with_second(mut self, value: u8) -> Option<Self> {
         self.second = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
         Some(self)
     }
 
     /// Set the `subsecond` component and return `self`.
+    #[inline]
     pub const fn with_subsecond(mut self, value: u32) -> Option<Self> {
         self.subsecond = OptionRangedU32::Some(const_try_opt!(RangedU32::new(value)));
         Some(self)
     }
 
     /// Set the `offset_hour` component and return `self`.
+    #[inline]
     pub const fn with_offset_hour(mut self, value: i8) -> Option<Self> {
         self.offset_hour = OptionRangedI8::Some(const_try_opt!(RangedI8::new(value)));
         Some(self)
@@ -806,6 +865,7 @@ impl Parsed {
         since = "0.3.8",
         note = "use `parsed.with_offset_minute_signed()` instead"
     )]
+    #[inline]
     pub const fn with_offset_minute(self, value: u8) -> Option<Self> {
         if value > i8::MAX as u8 {
             None
@@ -815,6 +875,7 @@ impl Parsed {
     }
 
     /// Set the `offset_minute` component and return `self`.
+    #[inline]
     pub const fn with_offset_minute_signed(mut self, value: i8) -> Option<Self> {
         self.offset_minute = OptionRangedI8::Some(const_try_opt!(RangedI8::new(value)));
         Some(self)
@@ -826,6 +887,7 @@ impl Parsed {
         since = "0.3.8",
         note = "use `parsed.with_offset_second_signed()` instead"
     )]
+    #[inline]
     pub const fn with_offset_second(self, value: u8) -> Option<Self> {
         if value > i8::MAX as u8 {
             None
@@ -835,12 +897,14 @@ impl Parsed {
     }
 
     /// Set the `offset_second` component and return `self`.
+    #[inline]
     pub const fn with_offset_second_signed(mut self, value: i8) -> Option<Self> {
         self.offset_second = OptionRangedI8::Some(const_try_opt!(RangedI8::new(value)));
         Some(self)
     }
 
     /// Set the `unix_timestamp_nanos` component and return `self`.
+    #[inline]
     pub const fn with_unix_timestamp_nanos(mut self, value: i128) -> Option<Self> {
         self.unix_timestamp_nanos = OptionRangedI128::Some(const_try_opt!(RangedI128::new(value)));
         Some(self)
@@ -850,6 +914,7 @@ impl Parsed {
 impl TryFrom<Parsed> for Date {
     type Error = error::TryFromParsed;
 
+    #[inline]
     fn try_from(mut parsed: Parsed) -> Result<Self, Self::Error> {
         /// Match on the components that need to be present.
         macro_rules! match_ {
@@ -867,6 +932,7 @@ impl TryFrom<Parsed> for Date {
 
         /// Get the value needed to adjust the ordinal day for Sunday and Monday-based week
         /// numbering.
+        #[inline]
         const fn adjustment(year: i32) -> i16 {
             // Safety: `ordinal` is not zero.
             match unsafe { Date::__from_ordinal_date_unchecked(year, 1) }.weekday() {
@@ -939,6 +1005,7 @@ impl TryFrom<Parsed> for Date {
 impl TryFrom<Parsed> for Time {
     type Error = error::TryFromParsed;
 
+    #[inline]
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
         let hour = match (parsed.hour_24(), parsed.hour_12(), parsed.hour_12_is_pm()) {
             (Some(hour), _, _) => hour,
@@ -972,6 +1039,7 @@ impl TryFrom<Parsed> for Time {
     }
 }
 
+#[inline]
 fn utc_offset_try_from_parsed<const REQUIRED: bool>(
     parsed: Parsed,
 ) -> Result<UtcOffset, error::TryFromParsed> {
@@ -1007,6 +1075,7 @@ fn utc_offset_try_from_parsed<const REQUIRED: bool>(
 impl TryFrom<Parsed> for UtcOffset {
     type Error = error::TryFromParsed;
 
+    #[inline]
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
         utc_offset_try_from_parsed::<true>(parsed)
     }
@@ -1015,6 +1084,7 @@ impl TryFrom<Parsed> for UtcOffset {
 impl TryFrom<Parsed> for PrimitiveDateTime {
     type Error = error::TryFromParsed;
 
+    #[inline]
     fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
         Ok(Self::new(parsed.try_into()?, parsed.try_into()?))
     }
@@ -1023,6 +1093,7 @@ impl TryFrom<Parsed> for PrimitiveDateTime {
 impl TryFrom<Parsed> for UtcDateTime {
     type Error = error::TryFromParsed;
 
+    #[inline]
     fn try_from(mut parsed: Parsed) -> Result<Self, Self::Error> {
         if let Some(timestamp) = parsed.unix_timestamp_nanos() {
             let mut value = Self::from_unix_timestamp_nanos(timestamp)?;
@@ -1072,6 +1143,7 @@ impl TryFrom<Parsed> for UtcDateTime {
 impl TryFrom<Parsed> for OffsetDateTime {
     type Error = error::TryFromParsed;
 
+    #[inline]
     fn try_from(mut parsed: Parsed) -> Result<Self, Self::Error> {
         if let Some(timestamp) = parsed.unix_timestamp_nanos() {
             let mut value = Self::from_unix_timestamp_nanos(timestamp)?;
