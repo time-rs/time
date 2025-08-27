@@ -446,27 +446,26 @@ impl<'a> Deserialize<'a> for Time {
     }
 }
 
-// FIXME: turn these constants into `const { ... }` blocks once we can depend on Rust 1.79.
-#[cfg(feature = "parsing")]
-const UTC_OFFSET_HOUR: modifier::OffsetHour = {
-    let mut m = modifier::OffsetHour::default();
-    m.sign_is_mandatory = true;
-    m
-};
-#[cfg(feature = "parsing")]
-const UTC_OFFSET_MINUTE: modifier::OffsetMinute = modifier::OffsetMinute::default();
-#[cfg(feature = "parsing")]
-const UTC_OFFSET_SECOND: modifier::OffsetSecond = modifier::OffsetSecond::default();
 /// The format used when serializing and deserializing a human-readable `UtcOffset`.
 #[cfg(feature = "parsing")]
 const UTC_OFFSET_FORMAT: &[BorrowedFormatItem<'_>] = &[
-    BorrowedFormatItem::Component(Component::OffsetHour(UTC_OFFSET_HOUR)),
+    BorrowedFormatItem::Component(Component::OffsetHour(
+        const {
+            let mut m = modifier::OffsetHour::default();
+            m.sign_is_mandatory = true;
+            m
+        },
+    )),
     BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&[
         BorrowedFormatItem::Literal(b":"),
-        BorrowedFormatItem::Component(Component::OffsetMinute(UTC_OFFSET_MINUTE)),
+        BorrowedFormatItem::Component(Component::OffsetMinute(
+            const { modifier::OffsetMinute::default() },
+        )),
         BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&[
             BorrowedFormatItem::Literal(b":"),
-            BorrowedFormatItem::Component(Component::OffsetSecond(UTC_OFFSET_SECOND)),
+            BorrowedFormatItem::Component(Component::OffsetSecond(
+                const { modifier::OffsetSecond::default() },
+            )),
         ])),
     ])),
 ];
