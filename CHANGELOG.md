@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ### Changed
 
+- The minimum supported Rust version is now 1.81.0.
 - The dependency on `itoa` has been removed, as the standard library now has similar functionality
   by default.
 - Formatting a component that involves a floating point number is now guaranteed to be
