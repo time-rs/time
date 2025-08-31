@@ -76,7 +76,7 @@ macro_rules! impl_per {
 
             #[doc = concat!("Obtain the number of times `", stringify!($t), "` can fit into `T`.")]
             #[doc = concat!("If `T` is smaller than `", stringify!($t), "`, the code will fail to")]
-            /// compile. The return type is any primitive integer type that can represent the value.
+            /// compile. The return type is any primitive numeric type that can represent the value.
             ///
             /// Valid calls:
             ///

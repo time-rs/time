@@ -4,8 +4,8 @@ members = ["time", "time-core", "time-macros"]
 resolver = "2"
 
 [workspace.dependencies]
-time-core = { path = "time-core", version = "=0.1.4" }
-time-macros = { path = "time-macros", version = "=0.2.22" }
+time-core = { path = "time-core", version = "=0.1.5" }
+time-macros = { path = "time-macros", version = "=0.2.23" }
 
 criterion = { version = "0.5.1", default-features = false }
 deranged = { version = "0.5.2", features = ["powerfmt"] }

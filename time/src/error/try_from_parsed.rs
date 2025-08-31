@@ -6,6 +6,7 @@ use crate::error;
 
 /// An error that occurred when converting a [`Parsed`](crate::parsing::Parsed) to another type.
 #[non_exhaustive]
+#[allow(variant_size_differences, reason = "only triggers on some platforms")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TryFromParsed {
     /// The [`Parsed`](crate::parsing::Parsed) did not include enough information to construct the
