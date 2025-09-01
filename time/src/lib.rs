@@ -41,20 +41,33 @@
 //!
 //! - `serde`
 //!
-//!   Enables [serde](https://docs.rs/serde) support for all types.
+//!   Enables [`serde`](https://docs.rs/serde) support for all types.
 //!
 //! - `serde-human-readable` (_implicitly enables `serde`, `formatting`, and `parsing`_)
 //!
-//!   Allows serde representations to use a human-readable format. This is determined by the
+//!   Allows `serde` representations to use a human-readable format. This is determined by the
 //!   serializer, not the user. If this feature is not enabled or if the serializer requests a
 //!   non-human-readable format, a format optimized for binary representation will be used.
 //!
 //!   Libraries should never enable this feature, as the decision of what format to use should be up
 //!   to the user.
 //!
-//! - `rand`
+//! - `rand` (_implicitly enables `rand08` and `rand09`_)
 //!
-//!   Enables [rand](https://docs.rs/rand) support for all types.
+//!   Previously, this would enable support for `rand` 0.8. Since the release of `rand` 0.9, the
+//!   feature has been split into `rand08` and `rand09` to allow support for both versions. For
+//!   backwards compatibility and simplicity, this feature enables support for _both_ series.
+//!
+//!   It is strongly recommended to enable `rand08` or `rand09` directly, as enabling `rand` will
+//!   needlessly pull in both versions.
+//!
+//! - `rand08`
+//!
+//!   Enables [`rand` 0.8](https://docs.rs/rand/0.8) support for all types.
+//!
+//! - `rand09`
+//!
+//!   Enables [`rand` 0.9](https://docs.rs/rand/0.9) support for all types.
 //!
 //! - `quickcheck` (_implicitly enables `alloc`_)
 //!
@@ -62,7 +75,7 @@
 //!
 //! - `wasm-bindgen`
 //!
-//!   Enables [wasm-bindgen](https://github.com/rustwasm/wasm-bindgen) support for converting
+//!   Enables [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) support for converting
 //!   [JavaScript dates](https://rustwasm.github.io/wasm-bindgen/api/js_sys/struct.Date.html), as
 //!   well as obtaining the UTC offset from JavaScript.
 
@@ -102,8 +115,10 @@ pub mod parsing;
 mod primitive_date_time;
 #[cfg(feature = "quickcheck")]
 mod quickcheck;
-#[cfg(feature = "rand")]
-mod rand;
+#[cfg(feature = "rand08")]
+mod rand08;
+#[cfg(feature = "rand09")]
+mod rand09;
 #[cfg(feature = "serde")]
 pub mod serde;
 mod sys;

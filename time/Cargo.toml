@@ -38,7 +38,9 @@ local-offset = ["std", "dep:libc", "dep:num_threads"]
 macros = ["dep:time-macros"]
 parsing = ["time-macros?/parsing"]
 quickcheck = ["dep:quickcheck", "alloc", "deranged/quickcheck"]
-rand = ["dep:rand", "deranged/rand08"]
+rand = ["rand08", "rand09"]
+rand08 = ["dep:rand08", "deranged/rand08"]
+rand09 = ["dep:rand09", "deranged/rand09"]
 serde = ["dep:serde", "time-macros?/serde", "deranged/serde"]
 serde-human-readable = ["serde", "formatting", "parsing"]
 # Deprecated in favor of using the relevant flags directly.
@@ -53,7 +55,8 @@ deranged = { workspace = true }
 num-conv = { workspace = true }
 powerfmt = { workspace = true }
 quickcheck = { workspace = true, optional = true }
-rand = { workspace = true, optional = true }
+rand08 = { workspace = true, optional = true }
+rand09 = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 time-core = { workspace = true }
 time-macros = { workspace = true, optional = true }
@@ -67,7 +70,8 @@ js-sys = { workspace = true, optional = true }
 
 [dev-dependencies]
 num-conv = { workspace = true }
-rand = { workspace = true }
+rand08 = { workspace = true }
+rand09 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 serde_test = { workspace = true }

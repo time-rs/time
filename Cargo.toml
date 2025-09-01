@@ -16,7 +16,8 @@ num_threads = "0.1.2"
 powerfmt = { version = "0.2.0", default-features = false }
 quickcheck = { version = "1.0.3", default-features = false }
 quickcheck_macros = "1.0.0"
-rand = { version = "0.8.4", default-features = false }
+rand08 = { package = "rand", version = "0.8.4", default-features = false }
+rand09 = { package = "rand", version = "0.9.2", default-features = false }
 rstest = { version = "0.23.0", default-features = false }
 rstest_reuse = "0.7.0"
 # ^1.0.184 due to serde-rs/serde#2538

@@ -1,6 +1,6 @@
 use criterion::Bencher;
-use rand::rngs::mock::StepRng;
-use rand::Rng;
+use rand08::rngs::mock::StepRng;
+use rand08::Rng;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 macro_rules! bench_rand {

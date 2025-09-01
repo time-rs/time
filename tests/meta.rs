@@ -11,7 +11,8 @@ use std::panic::{RefUnwindSafe, UnwindSafe};
 use std::time::{Duration as StdDuration, Instant as StdInstant, SystemTime};
 
 use quickcheck::Arbitrary;
-use rand::distributions::{Distribution, Standard};
+use rand08::distributions::{Distribution as DistributionRand08, Standard as StandardRand08};
+use rand09::distr::{Distribution as DistributionRand09, StandardUniform as StandardUniformRand09};
 use serde::{Deserialize, Serialize};
 use time::format_description::well_known::iso8601;
 use time::format_description::{modifier, well_known, BorrowedFormatItem, Component};
@@ -1059,15 +1060,27 @@ assert_impl! { modifier::YearRepr:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { Standard:
-    Distribution<Date>,
-    Distribution<Duration>,
-    Distribution<OffsetDateTime>,
-    Distribution<PrimitiveDateTime>,
-    Distribution<Time>,
-    Distribution<UtcOffset>,
-    Distribution<Month>,
-    Distribution<Weekday>,
+assert_impl! { StandardRand08:
+    DistributionRand08<Date>,
+    DistributionRand08<Duration>,
+    DistributionRand08<OffsetDateTime>,
+    DistributionRand08<UtcDateTime>,
+    DistributionRand08<PrimitiveDateTime>,
+    DistributionRand08<Time>,
+    DistributionRand08<UtcOffset>,
+    DistributionRand08<Month>,
+    DistributionRand08<Weekday>,
+}
+assert_impl! { StandardUniformRand09:
+    DistributionRand09<Date>,
+    DistributionRand09<Duration>,
+    DistributionRand09<OffsetDateTime>,
+    DistributionRand09<UtcDateTime>,
+    DistributionRand09<PrimitiveDateTime>,
+    DistributionRand09<Time>,
+    DistributionRand09<UtcOffset>,
+    DistributionRand09<Month>,
+    DistributionRand09<Weekday>,
 }
 assert_impl! { StdDuration:
     Add<Duration, Output = Duration>,

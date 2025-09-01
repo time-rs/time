@@ -100,7 +100,8 @@ mods![
     mod offset_date_time;
     mod parsing;
     mod primitive_date_time;
-    mod rand;
+    mod rand08;
+    mod rand09;
     mod time;
     mod utc_offset;
     mod util;
