@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.43 [2025-09-02]
+
+### Added
+
+- Support for `rand` 0.9
+
+### Fixed
+
+- In the `convert` module, any use of `per` with types that were not the same (such as
+  `Nanosecond::per(Second)`) would not compile due to a bug. This has been fixed.
+
 ## 0.3.42 [2025-08-31]
 
 ### Added
