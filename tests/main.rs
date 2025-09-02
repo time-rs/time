@@ -112,6 +112,7 @@ require_all_features! {
         }}
     }
 
+    mod convert;
     mod date;
     mod derives;
     mod duration;

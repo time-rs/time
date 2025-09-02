@@ -99,7 +99,7 @@ macro_rules! impl_per {
                 const VALUE: $float_output = $float_value;
             })+
 
-            impl DefaultOutput<$larger> for $t {
+            impl DefaultOutput<$t> for $larger {
                 type Output = $default_output;
             }
         )+
