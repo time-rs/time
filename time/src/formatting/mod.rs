@@ -5,7 +5,6 @@ mod iso8601;
 
 use core::num::NonZero;
 use std::io;
-use std::string::ToString;
 
 use num_conv::prelude::*;
 
@@ -142,7 +141,7 @@ pub(crate) fn format_float(
 #[inline]
 pub(crate) fn format_number<const WIDTH: u8>(
     output: &mut (impl io::Write + ?Sized),
-    value: impl ToString + DigitCount + Copy,
+    value: impl itoa::Integer + DigitCount + Copy,
     padding: modifier::Padding,
 ) -> Result<usize, io::Error> {
     match padding {
@@ -158,13 +157,13 @@ pub(crate) fn format_number<const WIDTH: u8>(
 #[inline]
 pub(crate) fn format_number_pad_space<const WIDTH: u8>(
     output: &mut (impl io::Write + ?Sized),
-    value: impl ToString + DigitCount + Copy,
+    value: impl itoa::Integer + DigitCount + Copy,
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     for _ in 0..(WIDTH.saturating_sub(value.num_digits())) {
         bytes += write(output, b" ")?;
     }
-    bytes += write(output, value.to_string().as_bytes())?;
+    bytes += write(output, itoa::Buffer::new().format(value).as_bytes())?;
     Ok(bytes)
 }
 
@@ -174,13 +173,13 @@ pub(crate) fn format_number_pad_space<const WIDTH: u8>(
 #[inline]
 pub(crate) fn format_number_pad_zero<const WIDTH: u8>(
     output: &mut (impl io::Write + ?Sized),
-    value: impl ToString + DigitCount + Copy,
+    value: impl itoa::Integer + DigitCount + Copy,
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     for _ in 0..(WIDTH.saturating_sub(value.num_digits())) {
         bytes += write(output, b"0")?;
     }
-    bytes += write(output, value.to_string().as_bytes())?;
+    bytes += write(output, itoa::Buffer::new().format(value).as_bytes())?;
     Ok(bytes)
 }
 
@@ -190,9 +189,9 @@ pub(crate) fn format_number_pad_zero<const WIDTH: u8>(
 #[inline]
 pub(crate) fn format_number_pad_none(
     output: &mut (impl io::Write + ?Sized),
-    value: impl ToString + Copy,
+    value: impl itoa::Integer + Copy,
 ) -> Result<usize, io::Error> {
-    write(output, value.to_string().as_bytes())
+    write(output, itoa::Buffer::new().format(value).as_bytes())
 }
 
 /// Format the provided component into the designated output. An `Err` will be returned if the

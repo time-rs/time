@@ -628,6 +628,7 @@ version = "0.3.43"
 dependencies = [
  "criterion",
  "deranged",
+ "itoa",
  "js-sys",
  "libc",
  "num-conv",
