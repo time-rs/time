@@ -624,7 +624,7 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.3.43"
+version = "0.3.44"
 dependencies = [
  "criterion",
  "deranged",

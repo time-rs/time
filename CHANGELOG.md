@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.44 [2025-09-19]
+
+### Fixed
+
+- Comparisons of `PrimitiveDateTime`, `UtcDateTime`, and `OffsetDateTime` with differing signs (i.e.
+  one negative and one positive year) would return the inverse result of what was expected. This was
+  introduced in v0.3.42 and has been fixed.
+- Type inference would fail due to feature unification when `wasm-bindgen` enabled `serde_json`.
+  This has been fixed by explicitly specifying the type in the relevant locations.
+
 ## 0.3.43 [2025-09-02]
 
 ### Added
