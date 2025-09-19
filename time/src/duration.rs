@@ -122,7 +122,7 @@ macro_rules! try_from_secs {
                 // f32 does not have enough precision to trigger the second branch
                 // since it can not represent numbers between 0.999_999_940_395 and 1.0.
                 let nanos = nanos + add_ns as u32;
-                if ($mant_bits == 23) || (nanos != Nanosecond::per_t(Second)) {
+                if ($mant_bits == 23) || (nanos != Nanosecond::per_t::<u32>(Second)) {
                     (0, nanos)
                 } else {
                     (1, 0)
@@ -147,7 +147,7 @@ macro_rules! try_from_secs {
                 // and 2.0. Bigger values result in even smaller precision of the
                 // fractional part.
                 let nanos = nanos + add_ns as u32;
-                if ($mant_bits == 23) || (nanos != Nanosecond::per_t(Second)) {
+                if ($mant_bits == 23) || (nanos != Nanosecond::per_t::<u32>(Second)) {
                     (secs, nanos)
                 } else {
                     (secs + 1, 0)
