@@ -68,9 +68,12 @@ impl Hash for OffsetDateTime {
     }
 }
 
+/// **Note**: This value is explicitly signed, so do not cast this to or treat this as an
+/// unsigned integer. Doing so will lead to incorrect results for values with differing
+/// signs.
 #[inline]
-const fn raw_to_bits((year, ordinal, time): (i32, u16, Time)) -> u128 {
-    ((year as u128) << 74) | ((ordinal as u128) << 64) | (time.as_u64() as u128)
+const fn raw_to_bits((year, ordinal, time): (i32, u16, Time)) -> i128 {
+    ((year as i128) << 74) | ((ordinal as i128) << 64) | (time.as_u64() as i128)
 }
 
 impl OffsetDateTime {

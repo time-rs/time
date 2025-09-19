@@ -58,11 +58,15 @@ pub struct Date {
 }
 
 impl Date {
-    /// Provide a representation of `Date` as a `u32`. This value can be used for equality, hashing,
+    /// Provide a representation of `Date` as a `i32`. This value can be used for equality, hashing,
     /// and ordering.
+    ///
+    /// **Note**: This value is explicitly signed, so do not cast this to or treat this as an
+    /// unsigned integer. Doing so will lead to incorrect results for values with differing
+    /// signs.
     #[inline]
-    pub(crate) const fn as_u32(self) -> u32 {
-        self.value.get() as u32
+    pub(crate) const fn as_i32(self) -> i32 {
+        self.value.get()
     }
 
     /// The Unix epoch: 1970-01-01

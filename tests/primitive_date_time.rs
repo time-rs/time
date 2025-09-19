@@ -596,6 +596,10 @@ fn ord() {
         datetime!(2019-01-01 0:00:00.000_000_001).partial_cmp(&datetime!(2019-01-01 0:00)),
         Some(Greater)
     );
+    assert_eq!(
+        datetime!(-0001-01-01 0:00).partial_cmp(&datetime!(0001-01-01 0:00)),
+        Some(Less)
+    );
 }
 
 #[test]

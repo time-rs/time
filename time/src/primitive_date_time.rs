@@ -44,14 +44,14 @@ pub struct PrimitiveDateTime {
 impl Hash for PrimitiveDateTime {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_u128().hash(state);
+        self.as_i128().hash(state);
     }
 }
 
 impl PartialEq for PrimitiveDateTime {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        self.as_u128().eq(&other.as_u128())
+        self.as_i128().eq(&other.as_i128())
     }
 }
 
@@ -65,17 +65,21 @@ impl PartialOrd for PrimitiveDateTime {
 impl Ord for PrimitiveDateTime {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
-        self.as_u128().cmp(&other.as_u128())
+        self.as_i128().cmp(&other.as_i128())
     }
 }
 
 impl PrimitiveDateTime {
-    /// Provide a representation of `PrimitiveDateTime` as a `u128`. This value can be used for
+    /// Provide a representation of `PrimitiveDateTime` as a `i128`. This value can be used for
     /// equality, hashing, and ordering.
+    ///
+    /// **Note**: This value is explicitly signed, so do not cast this to or treat this as an
+    /// unsigned integer. Doing so will lead to incorrect results for values with differing
+    /// signs.
     #[inline]
-    const fn as_u128(self) -> u128 {
-        let time = self.time.as_u64() as u128;
-        let date = self.date.as_u32() as u128;
+    const fn as_i128(self) -> i128 {
+        let time = self.time.as_u64() as i128;
+        let date = self.date.as_i32() as i128;
         (date << 64) | time
     }
 

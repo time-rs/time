@@ -602,6 +602,10 @@ fn ord() {
     let t1 = datetime!(2019-01-01 0:00 UTC);
     let t2 = datetime!(2019-01-01 0:00:00.000_000_001 UTC);
     assert!(t2 > t1);
+
+    let t1 = datetime!(-0001-01-01 0:00 UTC);
+    let t2 = datetime!(0001-01-01 0:00 UTC);
+    assert!(t2 > t1);
 }
 
 #[test]
