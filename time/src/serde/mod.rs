@@ -9,7 +9,7 @@
 macro_rules! item {
     ($seq:expr, $name:literal) => {
         $seq.next_element()?
-            .ok_or_else(|| <A::Error as serde::de::Error>::custom(concat!("expected ", $name)))
+            .ok_or_else(|| <A::Error as serde_core::de::Error>::custom(concat!("expected ", $name)))
     };
 }
 
@@ -27,8 +27,8 @@ use alloc::string::ToString;
 use core::marker::PhantomData;
 
 #[cfg(feature = "serde-human-readable")]
-use serde::ser::Error as _;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_core::ser::Error as _;
+use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 /// Generate a custom serializer and deserializer from a format string or an existing format.
 ///
 /// The syntax accepted by this macro is the same as [`format_description::parse()`], which can

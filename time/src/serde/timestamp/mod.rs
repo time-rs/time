@@ -12,7 +12,7 @@ pub mod milliseconds;
 pub mod milliseconds_i64;
 pub mod nanoseconds;
 
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde_core::{de, Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::OffsetDateTime;
 

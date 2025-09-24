@@ -9,11 +9,11 @@
 use core::marker::PhantomData;
 
 #[cfg(feature = "formatting")]
-use serde::ser::Error as _;
+use serde_core::ser::Error as _;
 #[cfg(feature = "parsing")]
-use serde::Deserializer;
+use serde_core::Deserializer;
 #[cfg(feature = "formatting")]
-use serde::{Serialize, Serializer};
+use serde_core::{Serialize, Serializer};
 
 #[cfg(feature = "parsing")]
 use super::Visitor;
