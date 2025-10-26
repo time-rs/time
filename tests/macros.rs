@@ -365,3 +365,16 @@ fn time_coverage() {
     assert_eq!(time!(12 AM), Time::MIDNIGHT);
     assert_eq!(Ok(time!(12 PM)), Time::from_hms(12, 0, 0));
 }
+
+mod demo {
+    #[expect(dead_code)]
+    type Result<T> = core::result::Result<T, ()>;
+    #[expect(dead_code)]
+    type Option = core::option::Option<()>;
+
+    time::serde::format_description!(
+        seconds,
+        OffsetDateTime,
+        "[year]-[month]-[day]T[hour]:[minute]:[second]Z"
+    );
+}

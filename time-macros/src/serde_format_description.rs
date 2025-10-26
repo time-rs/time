@@ -11,8 +11,8 @@ pub(crate) fn build(
 
     let visitor = if cfg!(feature = "parsing") {
         quote_! {
-            struct Visitor;
-            struct OptionVisitor;
+            pub(super) struct Visitor;
+            pub(super) struct OptionVisitor;
 
             impl<'a> ::serde::de::Visitor<'a> for Visitor {
                 type Value = __TimeSerdeType;
@@ -135,7 +135,7 @@ pub(crate) fn build(
 
     let deserialize_option_imports = if cfg!(feature = "parsing") {
         quote_! {
-            use super::{OptionVisitor, Visitor};
+            use super::__hygiene::{OptionVisitor, Visitor};
         }
     } else {
         quote_!()
@@ -156,14 +156,20 @@ pub(crate) fn build(
             // TODO Remove the prefix, forcing the user to import the type themself. This must be
             // done in a breaking change.
             use ::time::#(ty) as __TimeSerdeType;
+            #[expect(clippy::pub_use)]
+            pub use self::__hygiene::*;
 
             const fn description() -> impl #S(fd_traits) {
                 #S(format)
             }
 
-            #S(visitor)
-            #S(serialize_primary)
-            #S(deserialize_primary)
+            mod __hygiene {
+                use super::{description, __TimeSerdeType};
+
+                #S(visitor)
+                #S(serialize_primary)
+                #S(deserialize_primary)
+            }
 
             // While technically public, this is effectively the same visibility as the enclosing
             // module, which has its visibility controlled by the user.
