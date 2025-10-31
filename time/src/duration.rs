@@ -106,9 +106,10 @@ macro_rules! try_from_secs {
                 (0u64, 0u32)
             } else if exp < 0 {
                 // the input is less than 1 second
-                let t = <$double_ty>::from(mant) << ($offset + exp);
+                let t = (mant as $double_ty) << ($offset + exp);
                 let nanos_offset = $mant_bits + $offset;
-                let nanos_tmp = Nanosecond::per_t::<u128>(Second) * u128::from(t);
+                #[allow(trivial_numeric_casts)]
+                let nanos_tmp = Nanosecond::per_t::<u128>(Second) * t as u128;
                 let nanos = (nanos_tmp >> nanos_offset) as u32;
 
                 let rem_mask = (1 << nanos_offset) - 1;
@@ -128,8 +129,9 @@ macro_rules! try_from_secs {
                     (1, 0)
                 }
             } else if exp < $mant_bits {
-                let secs = u64::from(mant >> ($mant_bits - exp));
-                let t = <$double_ty>::from((mant << exp) & MANT_MASK);
+                #[allow(trivial_numeric_casts)]
+                let secs = (mant >> ($mant_bits - exp)) as u64;
+                let t = ((mant << exp) & MANT_MASK) as $double_ty;
                 let nanos_offset = $mant_bits;
                 let nanos_tmp = Nanosecond::per_t::<$double_ty>(Second) * t;
                 let nanos = (nanos_tmp >> nanos_offset) as u32;
@@ -157,7 +159,8 @@ macro_rules! try_from_secs {
                 // because i64::MAX + 1 is 2^63.
 
                 // the input has no fractional part
-                let secs = u64::from(mant) << (exp - $mant_bits);
+                #[allow(trivial_numeric_casts)]
+                let secs = (mant as u64) << (exp - $mant_bits);
                 (secs, 0)
             } else if bits == (i64::MIN as $float_ty).to_bits() {
                 // Change from std: Signed integers are asymmetrical in that
@@ -538,7 +541,7 @@ impl Duration {
     /// ```
     #[inline]
     #[track_caller]
-    pub fn seconds_f64(seconds: f64) -> Self {
+    pub const fn seconds_f64(seconds: f64) -> Self {
         try_from_secs!(
             secs = seconds,
             mantissa_bits = 52,
@@ -562,7 +565,7 @@ impl Duration {
     /// ```
     #[inline]
     #[track_caller]
-    pub fn seconds_f32(seconds: f32) -> Self {
+    pub const fn seconds_f32(seconds: f32) -> Self {
         try_from_secs!(
             secs = seconds,
             mantissa_bits = 23,
@@ -600,7 +603,7 @@ impl Duration {
     /// );
     /// ```
     #[inline]
-    pub fn saturating_seconds_f64(seconds: f64) -> Self {
+    pub const fn saturating_seconds_f64(seconds: f64) -> Self {
         try_from_secs!(
             secs = seconds,
             mantissa_bits = 52,
@@ -638,7 +641,7 @@ impl Duration {
     /// );
     /// ```
     #[inline]
-    pub fn saturating_seconds_f32(seconds: f32) -> Self {
+    pub const fn saturating_seconds_f32(seconds: f32) -> Self {
         try_from_secs!(
             secs = seconds,
             mantissa_bits = 23,
@@ -666,7 +669,7 @@ impl Duration {
     /// assert_eq!(Duration::checked_seconds_f64(f64::INFINITY), None);
     /// ```
     #[inline]
-    pub fn checked_seconds_f64(seconds: f64) -> Option<Self> {
+    pub const fn checked_seconds_f64(seconds: f64) -> Option<Self> {
         Some(try_from_secs!(
             secs = seconds,
             mantissa_bits = 52,
@@ -694,7 +697,7 @@ impl Duration {
     /// assert_eq!(Duration::checked_seconds_f32(f32::INFINITY), None);
     /// ```
     #[inline]
-    pub fn checked_seconds_f32(seconds: f32) -> Option<Self> {
+    pub const fn checked_seconds_f32(seconds: f32) -> Option<Self> {
         Some(try_from_secs!(
             secs = seconds,
             mantissa_bits = 23,
@@ -861,7 +864,7 @@ impl Duration {
     /// assert_eq!((-1.5).seconds().as_seconds_f64(), -1.5);
     /// ```
     #[inline]
-    pub fn as_seconds_f64(self) -> f64 {
+    pub const fn as_seconds_f64(self) -> f64 {
         self.seconds as f64 + self.nanoseconds.get() as f64 / Nanosecond::per_t::<f64>(Second)
     }
 
@@ -873,7 +876,7 @@ impl Duration {
     /// assert_eq!((-1.5).seconds().as_seconds_f32(), -1.5);
     /// ```
     #[inline]
-    pub fn as_seconds_f32(self) -> f32 {
+    pub const fn as_seconds_f32(self) -> f32 {
         self.seconds as f32 + self.nanoseconds.get() as f32 / Nanosecond::per_t::<f32>(Second)
     }
 
