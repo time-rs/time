@@ -6,7 +6,7 @@ resolver = "2"
 [workspace.package]
 authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
 edition = "2021"
-rust-version = "1.81.0"
+rust-version = "1.83.0"
 repository = "https://github.com/time-rs/time"
 homepage = "https://time-rs.github.io"
 keywords = ["date", "time", "calendar", "duration"]
