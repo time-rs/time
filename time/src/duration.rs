@@ -14,7 +14,7 @@ use num_conv::prelude::*;
 use crate::convert::*;
 use crate::error;
 use crate::internal_macros::{
-    const_try_opt, expect_opt, impl_add_assign, impl_div_assign, impl_mul_assign, impl_sub_assign,
+    const_try_opt, impl_add_assign, impl_div_assign, impl_mul_assign, impl_sub_assign,
 };
 #[cfg(feature = "std")]
 #[expect(deprecated)]
@@ -397,10 +397,9 @@ impl Duration {
     #[inline]
     #[track_caller]
     pub const fn new(mut seconds: i64, mut nanoseconds: i32) -> Self {
-        seconds = expect_opt!(
-            seconds.checked_add(nanoseconds as i64 / Nanosecond::per_t::<i64>(Second)),
-            "overflow constructing `time::Duration`"
-        );
+        seconds = seconds
+            .checked_add(nanoseconds as i64 / Nanosecond::per_t::<i64>(Second))
+            .expect("overflow constructing `time::Duration`");
         nanoseconds %= Nanosecond::per_t::<i32>(Second);
 
         if seconds > 0 && nanoseconds < 0 {
@@ -455,10 +454,11 @@ impl Duration {
     #[inline]
     #[track_caller]
     pub const fn weeks(weeks: i64) -> Self {
-        Self::seconds(expect_opt!(
-            weeks.checked_mul(Second::per_t(Week)),
-            "overflow constructing `time::Duration`"
-        ))
+        Self::seconds(
+            weeks
+                .checked_mul(Second::per_t(Week))
+                .expect("overflow constructing `time::Duration`"),
+        )
     }
 
     /// Create a new `Duration` with the given number of days. Equivalent to
@@ -475,10 +475,10 @@ impl Duration {
     #[inline]
     #[track_caller]
     pub const fn days(days: i64) -> Self {
-        Self::seconds(expect_opt!(
-            days.checked_mul(Second::per_t(Day)),
-            "overflow constructing `time::Duration`"
-        ))
+        Self::seconds(
+            days.checked_mul(Second::per_t(Day))
+                .expect("overflow constructing `time::Duration`"),
+        )
     }
 
     /// Create a new `Duration` with the given number of hours. Equivalent to
@@ -495,10 +495,11 @@ impl Duration {
     #[inline]
     #[track_caller]
     pub const fn hours(hours: i64) -> Self {
-        Self::seconds(expect_opt!(
-            hours.checked_mul(Second::per_t(Hour)),
-            "overflow constructing `time::Duration`"
-        ))
+        Self::seconds(
+            hours
+                .checked_mul(Second::per_t(Hour))
+                .expect("overflow constructing `time::Duration`"),
+        )
     }
 
     /// Create a new `Duration` with the given number of minutes. Equivalent to
@@ -515,10 +516,11 @@ impl Duration {
     #[inline]
     #[track_caller]
     pub const fn minutes(minutes: i64) -> Self {
-        Self::seconds(expect_opt!(
-            minutes.checked_mul(Second::per_t(Minute)),
-            "overflow constructing `time::Duration`"
-        ))
+        Self::seconds(
+            minutes
+                .checked_mul(Second::per_t(Minute))
+                .expect("overflow constructing `time::Duration`"),
+        )
     }
 
     /// Create a new `Duration` with the given number of seconds.
@@ -551,8 +553,8 @@ impl Duration {
             bits_ty_signed = i64,
             double_ty = u128,
             float_ty = f64,
-            is_nan = crate::expect_failed("passed NaN to `time::Duration::seconds_f64`"),
-            is_overflow = crate::expect_failed("overflow constructing `time::Duration`"),
+            is_nan = crate::panic("passed NaN to `time::Duration::seconds_f64`"),
+            is_overflow = crate::panic("overflow constructing `time::Duration`"),
         )
     }
 
@@ -575,8 +577,8 @@ impl Duration {
             bits_ty_signed = i32,
             double_ty = u64,
             float_ty = f32,
-            is_nan = crate::expect_failed("passed NaN to `time::Duration::seconds_f32`"),
-            is_overflow = crate::expect_failed("overflow constructing `time::Duration`"),
+            is_nan = crate::panic("passed NaN to `time::Duration::seconds_f32`"),
+            is_overflow = crate::panic("overflow constructing `time::Duration`"),
         )
     }
 
@@ -779,7 +781,7 @@ impl Duration {
         let nanoseconds = nanoseconds % Nanosecond::per_t::<i128>(Second);
 
         if seconds > i64::MAX as i128 || seconds < i64::MIN as i128 {
-            crate::expect_failed("overflow constructing `time::Duration`");
+            crate::panic("overflow constructing `time::Duration`");
         }
 
         // Safety: `nanoseconds` is guaranteed to be in range because of the modulus above.

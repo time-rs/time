@@ -16,9 +16,7 @@ use crate::convert::*;
 use crate::date::{MAX_YEAR, MIN_YEAR};
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
-use crate::internal_macros::{
-    carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged, expect_opt,
-};
+use crate::internal_macros::{carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged};
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::{
@@ -280,10 +278,8 @@ impl UtcDateTime {
     #[inline]
     #[track_caller]
     pub const fn to_offset(self, offset: UtcOffset) -> OffsetDateTime {
-        expect_opt!(
-            self.checked_to_offset(offset),
-            "local datetime out of valid range"
-        )
+        self.checked_to_offset(offset)
+            .expect("local datetime out of valid range")
     }
 
     /// Convert the `UtcDateTime` from UTC to the provided [`UtcOffset`], returning an

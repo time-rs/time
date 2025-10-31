@@ -19,8 +19,7 @@ use crate::ext::DigitCount;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{
-    const_try, const_try_opt, div_floor, ensure_ranged, expect_opt, impl_add_assign,
-    impl_sub_assign,
+    const_try, const_try_opt, div_floor, ensure_ranged, impl_add_assign, impl_sub_assign,
 };
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
@@ -676,10 +675,8 @@ impl Date {
     #[inline]
     #[track_caller]
     pub const fn next_occurrence(self, weekday: Weekday) -> Self {
-        expect_opt!(
-            self.checked_next_occurrence(weekday),
-            "overflow calculating the next occurrence of a weekday"
-        )
+        self.checked_next_occurrence(weekday)
+            .expect("overflow calculating the next occurrence of a weekday")
     }
 
     /// Calculates the first occurrence of a weekday that is strictly earlier than a given `Date`.
@@ -703,10 +700,8 @@ impl Date {
     #[inline]
     #[track_caller]
     pub const fn prev_occurrence(self, weekday: Weekday) -> Self {
-        expect_opt!(
-            self.checked_prev_occurrence(weekday),
-            "overflow calculating the previous occurrence of a weekday"
-        )
+        self.checked_prev_occurrence(weekday)
+            .expect("overflow calculating the previous occurrence of a weekday")
     }
 
     /// Calculates the `n`th occurrence of a weekday that is strictly later than a given `Date`.
@@ -730,10 +725,8 @@ impl Date {
     #[inline]
     #[track_caller]
     pub const fn nth_next_occurrence(self, weekday: Weekday, n: u8) -> Self {
-        expect_opt!(
-            self.checked_nth_next_occurrence(weekday, n),
-            "overflow calculating the next occurrence of a weekday"
-        )
+        self.checked_nth_next_occurrence(weekday, n)
+            .expect("overflow calculating the next occurrence of a weekday")
     }
 
     /// Calculates the `n`th occurrence of a weekday that is strictly earlier than a given `Date`.
@@ -757,10 +750,8 @@ impl Date {
     #[inline]
     #[track_caller]
     pub const fn nth_prev_occurrence(self, weekday: Weekday, n: u8) -> Self {
-        expect_opt!(
-            self.checked_nth_prev_occurrence(weekday, n),
-            "overflow calculating the previous occurrence of a weekday"
-        )
+        self.checked_nth_prev_occurrence(weekday, n)
+            .expect("overflow calculating the previous occurrence of a weekday")
     }
 
     /// Get the Julian day for the date.

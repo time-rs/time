@@ -252,18 +252,6 @@ macro_rules! const_try_opt {
     };
 }
 
-/// Try to unwrap an expression, panicking if not possible.
-///
-/// This is similar to `$e.expect($message)`, but is usable in `const` contexts.
-macro_rules! expect_opt {
-    ($e:expr, $message:literal) => {
-        match $e {
-            Some(value) => value,
-            None => crate::expect_failed($message),
-        }
-    };
-}
-
 /// `unreachable!()`, but better.
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 macro_rules! bug {
@@ -276,6 +264,6 @@ macro_rules! bug {
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 pub(crate) use bug;
 pub(crate) use {
-    __impl_assign, carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged, expect_opt,
+    __impl_assign, carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged,
     impl_add_assign, impl_div_assign, impl_mul_assign, impl_sub_assign,
 };
