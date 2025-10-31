@@ -10,7 +10,7 @@ categories = [
     "value-formatting",
 ]
 description = "Date and time library. Fully interoperable with the standard library. Mostly compatible with #![no_std]."
-include = ["src/**/*", "LICENSE-*", "README.md"]
+include = ["{src,tests,benchmarks}/**/*", "LICENSE-*", "README.md"]
 readme = "../README.md"
 
 authors.workspace = true
@@ -87,12 +87,11 @@ trybuild.workspace = true
 [target.'cfg(bench)'.dev-dependencies]
 criterion.workspace = true
 
-# Significant contributions to the benchmarks provided by Emil Lundberg.
 [[bench]]
 name = "benchmarks"
 harness = false
-path = "../benchmarks/main.rs"
+path = "benchmarks/main.rs"
 
 [[test]]
 name = "tests"
-path = "../tests/main.rs"
+path = "tests/integration/main.rs"
