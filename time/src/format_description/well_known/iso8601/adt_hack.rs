@@ -5,6 +5,7 @@ use core::num::NonZero;
 #[cfg(feature = "formatting")]
 use super::Iso8601;
 use super::{Config, DateKind, FormattedComponents as FC, OffsetPrecision, TimePrecision};
+use crate::panic;
 
 // This provides a way to include `EncodedConfig` in documentation without displaying the type it is
 // aliased to.
@@ -106,23 +107,23 @@ impl Config {
             4 => FC::DateTime,
             5 => FC::DateTimeOffset,
             6 => FC::TimeOffset,
-            _ => panic!("invalid configuration"),
+            _ => panic("invalid configuration"),
         };
         let use_separators = match bytes[1] {
             0 => false,
             1 => true,
-            _ => panic!("invalid configuration"),
+            _ => panic("invalid configuration"),
         };
         let year_is_six_digits = match bytes[2] {
             0 => false,
             1 => true,
-            _ => panic!("invalid configuration"),
+            _ => panic("invalid configuration"),
         };
         let date_kind = match bytes[3] {
             0 => DateKind::Calendar,
             1 => DateKind::Week,
             2 => DateKind::Ordinal,
-            _ => panic!("invalid configuration"),
+            _ => panic("invalid configuration"),
         };
         let time_precision = match bytes[4] {
             0 => TimePrecision::Hour {
@@ -134,18 +135,20 @@ impl Config {
             2 => TimePrecision::Second {
                 decimal_digits: NonZero::new(bytes[5]),
             },
-            _ => panic!("invalid configuration"),
+            _ => panic("invalid configuration"),
         };
         let offset_precision = match bytes[6] {
             0 => OffsetPrecision::Hour,
             1 => OffsetPrecision::Minute,
-            _ => panic!("invalid configuration"),
+            _ => panic("invalid configuration"),
         };
 
         // No `for` loops in `const fn`.
         let mut idx = 7; // first unused byte
         while idx < EncodedConfig::BITS as usize / 8 {
-            assert!(bytes[idx] == 0, "invalid configuration");
+            if bytes[idx] != 0 {
+                panic("invalid configuration");
+            }
             idx += 1;
         }
 
