@@ -3,6 +3,15 @@ default-members = ["time"]
 members = ["time", "time-core", "time-macros"]
 resolver = "2"
 
+[workspace.package]
+authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
+edition = "2021"
+rust-version = "1.81.0"
+repository = "https://github.com/time-rs/time"
+homepage = "https://time-rs.github.io"
+keywords = ["date", "time", "calendar", "duration"]
+license = "MIT OR Apache-2.0"
+
 [workspace.dependencies]
 time-core = { path = "time-core", version = "=0.1.6" }
 time-macros = { path = "time-macros", version = "=0.2.24" }
