@@ -595,9 +595,14 @@ macro_rules! setters {
     ($($name:ident $setter:ident $builder:ident $type:ty;)*) => {$(
         #[doc = concat!("Set the `", stringify!($name), "` component.")]
         #[inline]
-        pub fn $setter(&mut self, value: $type) -> Option<()> {
-            *self = self.$builder(value)?;
-            Some(())
+        pub const fn $setter(&mut self, value: $type) -> Option<()> {
+            match self.$builder(value) {
+                Some(value) => {
+                    *self = value;
+                    Some(())
+                },
+                None => None,
+            }
         }
     )*};
 }
@@ -616,7 +621,7 @@ impl Parsed {
     /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
     /// the sign is inferred from the value.
     #[inline]
-    pub fn set_year_century(&mut self, value: i16, is_negative: bool) -> Option<()> {
+    pub const fn set_year_century(&mut self, value: i16, is_negative: bool) -> Option<()> {
         self.year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
         if value != 0 {
             self.year_century_is_negative = value.is_negative();
@@ -637,7 +642,7 @@ impl Parsed {
     /// If the value is zero, the sign of the century is taken from the second parameter. Otherwise
     /// the sign is inferred from the value.
     #[inline]
-    pub fn set_iso_year_century(&mut self, value: i16, is_negative: bool) -> Option<()> {
+    pub const fn set_iso_year_century(&mut self, value: i16, is_negative: bool) -> Option<()> {
         self.iso_year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
         if value != 0 {
             self.iso_year_century_is_negative = value.is_negative();
@@ -674,11 +679,11 @@ impl Parsed {
         note = "use `parsed.set_offset_minute_signed()` instead"
     )]
     #[inline]
-    pub fn set_offset_minute(&mut self, value: u8) -> Option<()> {
-        if value > i8::MAX.cast_unsigned() {
+    pub const fn set_offset_minute(&mut self, value: u8) -> Option<()> {
+        if value > i8::MAX as u8 {
             None
         } else {
-            self.set_offset_minute_signed(value.cast_signed())
+            self.set_offset_minute_signed(value as i8)
         }
     }
 
@@ -689,11 +694,11 @@ impl Parsed {
         note = "use `parsed.set_offset_second_signed()` instead"
     )]
     #[inline]
-    pub fn set_offset_second(&mut self, value: u8) -> Option<()> {
-        if value > i8::MAX.cast_unsigned() {
+    pub const fn set_offset_second(&mut self, value: u8) -> Option<()> {
+        if value > i8::MAX as u8 {
             None
         } else {
-            self.set_offset_second_signed(value.cast_signed())
+            self.set_offset_second_signed(value as i8)
         }
     }
 }

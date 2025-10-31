@@ -39,7 +39,7 @@ impl ExtendedKind {
     /// If the kind is `Unknown`, make it `Basic`. Otherwise, do nothing. Returns `Some` if and only
     /// if the kind is now `Basic`.
     #[inline]
-    pub(crate) fn coerce_basic(&mut self) -> Option<()> {
+    pub(crate) const fn coerce_basic(&mut self) -> Option<()> {
         match self {
             Self::Basic => Some(()),
             Self::Extended => None,
@@ -53,7 +53,7 @@ impl ExtendedKind {
     /// If the kind is `Unknown`, make it `Extended`. Otherwise, do nothing. Returns `Some` if and
     /// only if the kind is now `Extended`.
     #[inline]
-    pub(crate) fn coerce_extended(&mut self) -> Option<()> {
+    pub(crate) const fn coerce_extended(&mut self) -> Option<()> {
         match self {
             Self::Basic => None,
             Self::Extended => Some(()),
