@@ -32,7 +32,7 @@ struct SystemTime {
 }
 
 #[link(name = "kernel32")]
-extern "system" {
+unsafe extern "system" {
     // https://docs.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-systemtimetofiletime
     fn SystemTimeToFileTime(lpSystemTime: *const SystemTime, lpFileTime: *mut FileTime) -> i32;
 
