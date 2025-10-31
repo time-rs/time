@@ -55,7 +55,7 @@ pub(super) fn parse<
     const VERSION: u8,
 >(
     tokens: &'iter mut lexer::Lexed<I>,
-) -> impl Iterator<Item = Result<Item<'item>, Error>> + 'iter {
+) -> impl Iterator<Item = Result<Item<'item>, Error>> + use<'item, 'iter, I, VERSION> {
     assert!(version!(1..=2));
     parse_inner::<_, false, VERSION>(tokens)
 }
@@ -67,7 +67,7 @@ fn parse_inner<
     const VERSION: u8,
 >(
     tokens: &mut lexer::Lexed<I>,
-) -> impl Iterator<Item = Result<Item<'item>, Error>> + '_ {
+) -> impl Iterator<Item = Result<Item<'item>, Error>> + use<'_, 'item, I, NESTED, VERSION> {
     iter::from_fn(move || {
         if NESTED && tokens.peek_closing_bracket().is_some() {
             return None;

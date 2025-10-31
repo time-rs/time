@@ -25,7 +25,7 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
     pub(crate) fn parse_date<'a>(
         parsed: &'a mut Parsed,
         extended_kind: &'a mut ExtendedKind,
-    ) -> impl FnMut(&[u8]) -> Result<&[u8], error::Parse> + 'a {
+    ) -> impl FnMut(&[u8]) -> Result<&[u8], error::Parse> + use<'a, CONFIG> {
         move |input| {
             // Same for any acceptable format.
             let ParsedItem(mut input, year) = year(input).ok_or(InvalidComponent("year"))?;
@@ -115,7 +115,7 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
         parsed: &'a mut Parsed,
         extended_kind: &'a mut ExtendedKind,
         date_is_present: bool,
-    ) -> impl FnMut(&[u8]) -> Result<&[u8], error::Parse> + 'a {
+    ) -> impl FnMut(&[u8]) -> Result<&[u8], error::Parse> + use<'a, CONFIG> {
         move |mut input| {
             if date_is_present {
                 input = ascii_char::<b'T'>(input)
@@ -243,7 +243,7 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
     pub(crate) fn parse_offset<'a>(
         parsed: &'a mut Parsed,
         extended_kind: &'a mut ExtendedKind,
-    ) -> impl FnMut(&[u8]) -> Result<&[u8], error::Parse> + 'a {
+    ) -> impl FnMut(&[u8]) -> Result<&[u8], error::Parse> + use<'a, CONFIG> {
         move |input| {
             if let Some(ParsedItem(input, ())) = ascii_char::<b'Z'>(input) {
                 *parsed = parsed
