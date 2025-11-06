@@ -54,7 +54,7 @@ type WholeSeconds = RangedI32<
 #[derive(Clone, Copy, Eq)]
 #[cfg_attr(not(docsrs), repr(C))]
 pub struct UtcOffset {
-    /// The order of this struct's fields matter. Do not reorder them.
+    // The order of this struct's fields matter. Do not reorder them.
 
     // Little endian version
     #[cfg(target_endian = "little")]
