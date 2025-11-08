@@ -199,7 +199,7 @@ pub fn format_description(input: TokenStream) -> TokenStream {
                         .into_iter()
                         .map(|item| quote_! { #S(item), })
                         .collect::<TokenStream>()
-                )] as &[BorrowedFormatItem]
+                )] as StaticFormatDescription
             }
         })
     })()
@@ -253,7 +253,7 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
                 let items = quote_! {
                     const {
                         use ::time::format_description::{*, modifier::*};
-                        &[#S(items)] as &[BorrowedFormatItem]
+                        &[#S(items)] as StaticFormatDescription
                     }
                 };
 

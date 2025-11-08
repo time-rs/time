@@ -121,9 +121,9 @@ use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
     doc = "use ::serde::Deserialize;"
 )]
 /// use time::serde;
-/// use time::format_description::BorrowedFormatItem;
+/// use time::format_description::StaticFormatDescription;
 ///
-/// const DATE_TIME_FORMAT: &[BorrowedFormatItem<'_>] = time::macros::format_description!(
+/// const DATE_TIME_FORMAT: StaticFormatDescription = time::macros::format_description!(
 ///     "hour=[hour], minute=[minute]"
 /// );
 ///
@@ -212,14 +212,14 @@ pub use time_macros::serde_format_description as format_description;
 
 use self::visitor::Visitor;
 #[cfg(feature = "parsing")]
-use crate::format_description::{modifier, BorrowedFormatItem, Component};
+use crate::format_description::{modifier, BorrowedFormatItem, Component, StaticFormatDescription};
 use crate::{
     Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
 };
 
 /// The format used when serializing and deserializing a human-readable `Date`.
 #[cfg(feature = "parsing")]
-const DATE_FORMAT: &[BorrowedFormatItem<'_>] = &[
+const DATE_FORMAT: StaticFormatDescription = &[
     BorrowedFormatItem::Component(Component::Year(modifier::Year::default())),
     BorrowedFormatItem::Literal(b"-"),
     BorrowedFormatItem::Component(Component::Month(modifier::Month::default())),
@@ -283,7 +283,7 @@ impl<'a> Deserialize<'a> for Duration {
 
 /// The format used when serializing and deserializing a human-readable `OffsetDateTime`.
 #[cfg(feature = "parsing")]
-const OFFSET_DATE_TIME_FORMAT: &[BorrowedFormatItem<'_>] = &[
+const OFFSET_DATE_TIME_FORMAT: StaticFormatDescription = &[
     BorrowedFormatItem::Compound(DATE_FORMAT),
     BorrowedFormatItem::Literal(b" "),
     BorrowedFormatItem::Compound(TIME_FORMAT),
@@ -330,7 +330,7 @@ impl<'a> Deserialize<'a> for OffsetDateTime {
 
 /// The format used when serializing and deserializing a human-readable `PrimitiveDateTime`.
 #[cfg(feature = "parsing")]
-const PRIMITIVE_DATE_TIME_FORMAT: &[BorrowedFormatItem<'_>] = &[
+const PRIMITIVE_DATE_TIME_FORMAT: StaticFormatDescription = &[
     BorrowedFormatItem::Compound(DATE_FORMAT),
     BorrowedFormatItem::Literal(b" "),
     BorrowedFormatItem::Compound(TIME_FORMAT),
@@ -372,7 +372,7 @@ impl<'a> Deserialize<'a> for PrimitiveDateTime {
 
 /// The format used when serializing and deserializing a human-readable `UtcDateTime`.
 #[cfg(feature = "parsing")]
-const UTC_DATE_TIME_FORMAT: &[BorrowedFormatItem<'_>] = PRIMITIVE_DATE_TIME_FORMAT;
+const UTC_DATE_TIME_FORMAT: StaticFormatDescription = PRIMITIVE_DATE_TIME_FORMAT;
 
 impl Serialize for UtcDateTime {
     #[inline]
@@ -410,7 +410,7 @@ impl<'a> Deserialize<'a> for UtcDateTime {
 
 /// The format used when serializing and deserializing a human-readable `Time`.
 #[cfg(feature = "parsing")]
-const TIME_FORMAT: &[BorrowedFormatItem<'_>] = &[
+const TIME_FORMAT: StaticFormatDescription = &[
     BorrowedFormatItem::Component(Component::Hour(modifier::Hour::default())),
     BorrowedFormatItem::Literal(b":"),
     BorrowedFormatItem::Component(Component::Minute(modifier::Minute::default())),
@@ -448,7 +448,7 @@ impl<'a> Deserialize<'a> for Time {
 
 /// The format used when serializing and deserializing a human-readable `UtcOffset`.
 #[cfg(feature = "parsing")]
-const UTC_OFFSET_FORMAT: &[BorrowedFormatItem<'_>] = &[
+const UTC_OFFSET_FORMAT: StaticFormatDescription = &[
     BorrowedFormatItem::Component(Component::OffsetHour(
         const {
             let mut m = modifier::OffsetHour::default();

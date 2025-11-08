@@ -4,7 +4,9 @@ use rstest::rstest;
 use rstest_reuse::{apply, template};
 use time::error::InvalidFormatDescription;
 use time::format_description::modifier::*;
-use time::format_description::{self, BorrowedFormatItem, Component, OwnedFormatItem};
+use time::format_description::{
+    self, BorrowedFormatItem, Component, OwnedFormatItem, StaticFormatDescription,
+};
 use time::macros::format_description;
 
 /// Identical to `modifier!`, but obtains the value from `M<T>` automagically.
@@ -840,7 +842,7 @@ fn rfc_3339() {
 #[case("%%", format_description!("%"))]
 fn strftime_equivalence(
     #[case] strftime: &str,
-    #[case] custom: &[BorrowedFormatItem<'_>],
+    #[case] custom: StaticFormatDescription,
 ) -> time::Result<()> {
     let borrowed = format_description::parse_strftime_borrowed(strftime)?;
     let owned = format_description::parse_strftime_owned(strftime)?;
