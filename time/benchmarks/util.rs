@@ -1,4 +1,6 @@
-use criterion::{black_box, Bencher};
+use std::hint::black_box;
+
+use criterion::Bencher;
 use time::util;
 
 setup_benchmark! {
