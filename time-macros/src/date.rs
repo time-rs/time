@@ -34,15 +34,15 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
         return Err(Error::InvalidComponent {
             name: "year",
             value: year.to_string(),
-            span_start: Some(year_sign_span.unwrap_or(year_span)),
-            span_end: Some(year_span),
+            span_start: Some(year_sign_span.unwrap_or_else(|| year_span.start())),
+            span_end: Some(year_span.end()),
         });
     }
     if !explicit_sign && year.abs() >= 10_000 {
         return Err(Error::Custom {
             message: "years with more than four digits must have an explicit sign".into(),
-            span_start: Some(year_sign_span.unwrap_or(year_span)),
-            span_end: Some(year_span),
+            span_start: Some(year_sign_span.unwrap_or_else(|| year_span.start())),
+            span_end: Some(year_span.end()),
         });
     }
 
@@ -58,16 +58,16 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
             return Err(Error::InvalidComponent {
                 name: "week",
                 value: week.to_string(),
-                span_start: Some(w_span),
-                span_end: Some(week_span),
+                span_start: Some(w_span.start()),
+                span_end: Some(week_span.end()),
             });
         }
         if day == 0 || day > 7 {
             return Err(Error::InvalidComponent {
                 name: "day",
                 value: day.to_string(),
-                span_start: Some(day_span),
-                span_end: Some(day_span),
+                span_start: Some(day_span.start()),
+                span_end: Some(day_span.end()),
             });
         }
 
@@ -89,8 +89,8 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
             return Err(Error::InvalidComponent {
                 name: "month",
                 value: month.to_string(),
-                span_start: Some(month_span),
-                span_end: Some(month_span),
+                span_start: Some(month_span.start()),
+                span_end: Some(month_span.end()),
             });
         }
         let month = month.truncate();
@@ -98,8 +98,8 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
             return Err(Error::InvalidComponent {
                 name: "day",
                 value: day.to_string(),
-                span_start: Some(day_span),
-                span_end: Some(day_span),
+                span_start: Some(day_span.start()),
+                span_end: Some(day_span.end()),
             });
         }
 
@@ -115,8 +115,8 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
             return Err(Error::InvalidComponent {
                 name: "ordinal",
                 value: ordinal.to_string(),
-                span_start: Some(ordinal_span),
-                span_end: Some(ordinal_span),
+                span_start: Some(ordinal_span.start()),
+                span_end: Some(ordinal_span.end()),
             });
         }
 
