@@ -6,6 +6,14 @@ use time::util;
 setup_benchmark! {
     "Utils",
 
+    fn noop(ben: &mut Bencher<'_>) {
+        ben.iter(|| {
+            for i in 0..400 {
+                let _ = bb(i);
+            }
+        });
+    }
+
     fn is_leap_year(ben: &mut Bencher<'_>) {
         ben.iter(|| {
             for year in 0..400 {
