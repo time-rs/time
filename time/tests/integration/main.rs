@@ -145,6 +145,6 @@ require_all_features! {
     fn compile_fail() {
         let tests = trybuild::TestCases::new();
         // Path is relative from `time/Cargo.toml`.
-        tests.compile_fail("../tests/compile-fail/*.rs");
+        tests.compile_fail("./tests/integration/compile-fail/*.rs");
     }
 }

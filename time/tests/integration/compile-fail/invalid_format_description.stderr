@@ -1,229 +1,229 @@
 error: expected string literal
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
+ --> tests/integration/compile-fail/invalid_format_description.rs:4:13
   |
-  |     let _ = format_description!();
+4 |     let _ = format_description!();
   |             ^^^^^^^^^^^^^^^^^^^^^
   |
   = note: this error originates in the macro `format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected component name
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
+ --> tests/integration/compile-fail/invalid_format_description.rs:5:33
   |
-  |     let _ = format_description!("[]");
+5 |     let _ = format_description!("[]");
   |                                 ^^^^
 
 error: invalid component
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
+ --> tests/integration/compile-fail/invalid_format_description.rs:6:33
   |
-  |     let _ = format_description!("[foo]");
+6 |     let _ = format_description!("[foo]");
   |                                 ^^^^^^^
 
 error: expected component name
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
+ --> tests/integration/compile-fail/invalid_format_description.rs:7:33
   |
-  |     let _ = format_description!("[");
+7 |     let _ = format_description!("[");
   |                                 ^^^
 
 error: modifier must be of the form `key:value`
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
+ --> tests/integration/compile-fail/invalid_format_description.rs:8:33
   |
-  |     let _ = format_description!("[hour foo]");
+8 |     let _ = format_description!("[hour foo]");
   |                                 ^^^^^^^^^^^^
 
 error: unexpected token: x
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
+ --> tests/integration/compile-fail/invalid_format_description.rs:9:36
   |
-  |     let _ = format_description!("" x);
+9 |     let _ = format_description!("" x);
   |                                    ^
 
 error: expected string literal
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(x);
-  |                                 ^
+  --> tests/integration/compile-fail/invalid_format_description.rs:10:33
+   |
+10 |     let _ = format_description!(x);
+   |                                 ^
 
 error: expected string literal
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(0);
-  |                                 ^
+  --> tests/integration/compile-fail/invalid_format_description.rs:11:33
+   |
+11 |     let _ = format_description!(0);
+   |                                 ^
 
 error: expected string literal
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!({});
-  |                                 ^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:12:33
+   |
+12 |     let _ = format_description!({});
+   |                                 ^^
 
 error: invalid component
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!("[ invalid ]");
-  |                                 ^^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:14:33
+   |
+14 |     let _ = format_description!("[ invalid ]");
+   |                                 ^^^^^^^^^^^^^
 
 error: expected component name
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!("[");
-  |                                 ^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:15:33
+   |
+15 |     let _ = format_description!("[");
+   |                                 ^^^
 
 error: expected component name
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!("[ ");
-  |                                 ^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:16:33
+   |
+16 |     let _ = format_description!("[ ");
+   |                                 ^^^^
 
 error: expected component name
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!("[]");
-  |                                 ^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:17:33
+   |
+17 |     let _ = format_description!("[]");
+   |                                 ^^^^
 
 error: invalid modifier key
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!("[day sign:mandatory]");
-  |                                 ^^^^^^^^^^^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:18:33
+   |
+18 |     let _ = format_description!("[day sign:mandatory]");
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^
 
 error: expected modifier value
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!("[day sign:]");
-  |                                 ^^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:19:33
+   |
+19 |     let _ = format_description!("[day sign:]");
+   |                                 ^^^^^^^^^^^^^
 
 error: expected modifier key
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!("[day :mandatory]");
-  |                                 ^^^^^^^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:20:33
+   |
+20 |     let _ = format_description!("[day :mandatory]");
+   |                                 ^^^^^^^^^^^^^^^^^^
 
 error: unclosed bracket
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!("[day sign:mandatory");
-  |                                 ^^^^^^^^^^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:21:33
+   |
+21 |     let _ = format_description!("[day sign:mandatory");
+   |                                 ^^^^^^^^^^^^^^^^^^^^^
 
 error: invalid modifier value
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!("[day padding:invalid]");
-  |                                 ^^^^^^^^^^^^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:22:33
+   |
+22 |     let _ = format_description!("[day padding:invalid]");
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^^
 
 error: expected `=`
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version);
-  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in the macro `format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
+  --> tests/integration/compile-fail/invalid_format_description.rs:24:13
+   |
+24 |     let _ = format_description!(version);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: expected `=`
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version "");
-  |                                         ^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:25:41
+   |
+25 |     let _ = format_description!(version "");
+   |                                         ^^
 
 error: expected 1 or 2
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version =);
-  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in the macro `format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
+  --> tests/integration/compile-fail/invalid_format_description.rs:26:13
+   |
+26 |     let _ = format_description!(version =);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: invalid format description version
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 0);
-  |                                           ^
+  --> tests/integration/compile-fail/invalid_format_description.rs:27:43
+   |
+27 |     let _ = format_description!(version = 0);
+   |                                           ^
 
 error: unexpected end of input
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 1);
-  |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in the macro `format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
+  --> tests/integration/compile-fail/invalid_format_description.rs:28:13
+   |
+28 |     let _ = format_description!(version = 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `format_description` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: invalid format description version
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 3);
-  |                                           ^
+  --> tests/integration/compile-fail/invalid_format_description.rs:29:43
+   |
+29 |     let _ = format_description!(version = 3);
+   |                                           ^
 
 error: expected 1 or 2
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = two);
-  |                                           ^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:30:43
+   |
+30 |     let _ = format_description!(version = two);
+   |                                           ^^^
 
 error: invalid escape sequence
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 2, r"\a");
-  |                                              ^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:32:46
+   |
+32 |     let _ = format_description!(version = 2, r"\a");
+   |                                              ^^^^^
 
 error: unexpected end of input
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 2, r"\");
-  |                                              ^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:33:46
+   |
+33 |     let _ = format_description!(version = 2, r"\");
+   |                                              ^^^^
 
 error: modifier must be of the form `key:value`
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 2, "[year [month]]");
-  |                                              ^^^^^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:35:46
+   |
+35 |     let _ = format_description!(version = 2, "[year [month]]");
+   |                                              ^^^^^^^^^^^^^^^^
 
 error: expected whitespace after `optional`
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 2, "[optional[]]");
-  |                                              ^^^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:36:46
+   |
+36 |     let _ = format_description!(version = 2, "[optional[]]");
+   |                                              ^^^^^^^^^^^^^^
 
 error: expected whitespace after `first`
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 2, "[first[]]");
-  |                                              ^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:37:46
+   |
+37 |     let _ = format_description!(version = 2, "[first[]]");
+   |                                              ^^^^^^^^^^^
 
 error: unclosed bracket
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 2, "[optional []");
-  |                                              ^^^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:38:46
+   |
+38 |     let _ = format_description!(version = 2, "[optional []");
+   |                                              ^^^^^^^^^^^^^^
 
 error: unclosed bracket
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 2, "[first []");
-  |                                              ^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:39:46
+   |
+39 |     let _ = format_description!(version = 2, "[first []");
+   |                                              ^^^^^^^^^^^
 
 error: unclosed bracket
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 2, "[optional [");
-  |                                              ^^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:40:46
+   |
+40 |     let _ = format_description!(version = 2, "[optional [");
+   |                                              ^^^^^^^^^^^^^
 
 error: unclosed bracket
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 2, "[optional [[year");
-  |                                              ^^^^^^^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:41:46
+   |
+41 |     let _ = format_description!(version = 2, "[optional [[year");
+   |                                              ^^^^^^^^^^^^^^^^^^
 
 error: expected opening bracket
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!(version = 2, "[optional ");
-  |                                              ^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:42:46
+   |
+42 |     let _ = format_description!(version = 2, "[optional ");
+   |                                              ^^^^^^^^^^^^
 
 error: missing required modifier
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!("[ignore]");
-  |                                 ^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:44:33
+   |
+44 |     let _ = format_description!("[ignore]");
+   |                                 ^^^^^^^^^^
 
 error: invalid modifier value
- --> $WORKSPACE/tests/compile-fail/invalid_format_description.rs
-  |
-  |     let _ = format_description!("[ignore count:0]");
-  |                                 ^^^^^^^^^^^^^^^^^^
+  --> tests/integration/compile-fail/invalid_format_description.rs:45:33
+   |
+45 |     let _ = format_description!("[ignore count:0]");
+   |                                 ^^^^^^^^^^^^^^^^^^
