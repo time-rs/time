@@ -1,4 +1,4 @@
-use std::hint::black_box;
+use std::hint::black_box as bb;
 
 use criterion::Bencher;
 use time::util;
@@ -9,7 +9,7 @@ setup_benchmark! {
     fn is_leap_year(ben: &mut Bencher<'_>) {
         ben.iter(|| {
             for year in 0..400 {
-                black_box(util::is_leap_year(year));
+                let _ = bb(util::is_leap_year(bb(year)));
             }
         });
     }
@@ -17,7 +17,7 @@ setup_benchmark! {
     fn days_in_year(ben: &mut Bencher<'_>) {
         ben.iter(|| {
             for year in 0..400 {
-                black_box(util::days_in_year(year));
+                let _ = bb(util::days_in_year(bb(year)));
             }
         });
     }
@@ -25,7 +25,7 @@ setup_benchmark! {
     fn weeks_in_year(ben: &mut Bencher<'_>) {
         ben.iter(|| {
             for year in 0..400 {
-                black_box(util::weeks_in_year(year));
+                let _ = bb(util::weeks_in_year(bb(year)));
             }
         });
     }
