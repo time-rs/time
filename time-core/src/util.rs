@@ -13,10 +13,16 @@ use crate::hint;
 /// assert!(!is_leap_year(2005));
 /// assert!(!is_leap_year(2100));
 /// ```
+// https://www.benjoffe.com/fast-leap-year
 #[inline]
 pub const fn is_leap_year(year: i32) -> bool {
-    let d = if year % 100 == 0 { 15 } else { 3 };
-    year & d == 0
+    const CEN_MUL: u32 = 42_949_673;
+    const CEN_CUTOFF: u32 = CEN_MUL * 4;
+    const CEN_BIAS: u32 = CEN_MUL / 2 * 100;
+
+    let low = (year as u32).wrapping_add(CEN_BIAS).wrapping_mul(CEN_MUL);
+    let maybe_cen = low < CEN_CUTOFF;
+    year & if maybe_cen { 15 } else { 3 } == 0
 }
 
 /// Get the number of calendar days in a given year.
