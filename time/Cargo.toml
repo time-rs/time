@@ -72,7 +72,7 @@ js-sys = { workspace = true, optional = true }
 [dev-dependencies]
 num-conv.workspace = true
 rand08.workspace = true
-rand09.workspace = true
+rand09 = { workspace = true, features = ["small_rng"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 serde_test.workspace = true
