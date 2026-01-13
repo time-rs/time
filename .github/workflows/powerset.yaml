@@ -1,7 +1,7 @@
 name: "Check powerset"
 
 env:
-  __MSRV: &msrv "1.83.0"
+  __MSRV: &msrv "1.88.0"
   RUSTFLAGS: -Dwarnings
   TARGETS: '{
     "no_std": [

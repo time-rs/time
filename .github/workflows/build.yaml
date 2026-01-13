@@ -5,7 +5,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  __MSRV: &msrv "1.83.0"
+  __MSRV: &msrv "1.88.0"
   TYPE_CHECK_TARGETS: '{
     "no_std": [
     "thumbv7em-none-eabihf"

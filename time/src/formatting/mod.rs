@@ -469,21 +469,21 @@ fn fmt_subsecond(
     use modifier::SubsecondDigits::*;
     let nanos = time.nanosecond();
 
-    if digits == Nine || (digits == OneOrMore && nanos % 10 != 0) {
+    if digits == Nine || (digits == OneOrMore && !nanos.is_multiple_of(10)) {
         format_number_pad_zero::<9>(output, nanos)
-    } else if digits == Eight || (digits == OneOrMore && (nanos / 10) % 10 != 0) {
+    } else if digits == Eight || (digits == OneOrMore && !(nanos / 10).is_multiple_of(10)) {
         format_number_pad_zero::<8>(output, nanos / 10)
-    } else if digits == Seven || (digits == OneOrMore && (nanos / 100) % 10 != 0) {
+    } else if digits == Seven || (digits == OneOrMore && !(nanos / 100).is_multiple_of(10)) {
         format_number_pad_zero::<7>(output, nanos / 100)
-    } else if digits == Six || (digits == OneOrMore && (nanos / 1_000) % 10 != 0) {
+    } else if digits == Six || (digits == OneOrMore && !(nanos / 1_000).is_multiple_of(10)) {
         format_number_pad_zero::<6>(output, nanos / 1_000)
-    } else if digits == Five || (digits == OneOrMore && (nanos / 10_000) % 10 != 0) {
+    } else if digits == Five || (digits == OneOrMore && !(nanos / 10_000).is_multiple_of(10)) {
         format_number_pad_zero::<5>(output, nanos / 10_000)
-    } else if digits == Four || (digits == OneOrMore && (nanos / 100_000) % 10 != 0) {
+    } else if digits == Four || (digits == OneOrMore && !(nanos / 100_000).is_multiple_of(10)) {
         format_number_pad_zero::<4>(output, nanos / 100_000)
-    } else if digits == Three || (digits == OneOrMore && (nanos / 1_000_000) % 10 != 0) {
+    } else if digits == Three || (digits == OneOrMore && !(nanos / 1_000_000).is_multiple_of(10)) {
         format_number_pad_zero::<3>(output, nanos / 1_000_000)
-    } else if digits == Two || (digits == OneOrMore && (nanos / 10_000_000) % 10 != 0) {
+    } else if digits == Two || (digits == OneOrMore && !(nanos / 10_000_000).is_multiple_of(10)) {
         format_number_pad_zero::<2>(output, nanos / 10_000_000)
     } else {
         format_number_pad_zero::<1>(output, nanos / 100_000_000)

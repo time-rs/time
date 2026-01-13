@@ -319,7 +319,7 @@ impl Date {
         let c_n = (day as u64 * CEN_MUL as u64) >> 15;
         let cen = (c_n >> 32) as u32;
         let cpt = c_n as u32;
-        let ijy = (cpt > CEN_CUT) || (cen % 4 == 0);
+        let ijy = cpt > CEN_CUT || cen.is_multiple_of(4);
         let jul = day - cen / 4 + cen;
         let y_n = (jul as u64 * JUL_MUL as u64) >> 8;
         let yrs = (y_n >> 32) as u32;
@@ -327,7 +327,7 @@ impl Date {
 
         let year = yrs.wrapping_sub(Y_SHIFT) as i32;
         let ordinal = ((ypt as u64 * 1_461) >> 34) as u32 + ijy as u32;
-        let leap = (yrs % 4 == 0) & ijy;
+        let leap = yrs.is_multiple_of(4) & ijy;
 
         // Safety: `ordinal` is not zero and `is_leap_year` is correct, so long as the Julian day
         // number is in range, which is guaranteed by the caller.
