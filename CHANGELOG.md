@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.45 [2026-01-13]
+
+### Added
+
+- `time::format_description::StaticFormatDescription` type alias for `&'static
+  [BorrowedFormatItem<'static>]`. This is the type returned by the
+  `time::macros::format_description!` macro.
+
+### Changed
+
+- The minimum supported Rust version is now 1.83.0.
+- All floating point methods on `Duration` are now `const fn`.
+- All setters on `Parsed` are now `const fn`.
+- The `serde` dependency has been replaced with `serde_core`, This reduces compile times by not
+  including unused parts of `serde`.
+- `Date::from_julian_day` uses a new algorithm, resulting in an approximately 16% performance
+  improvement. This method is used internally by numerous other methods.
+- `util::is_leap_year` uses a new algorithm, resulting in an approximately 8% performance
+  improvement.
+
 ## 0.3.44 [2025-09-19]
 
 ### Fixed

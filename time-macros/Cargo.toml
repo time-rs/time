@@ -2,7 +2,7 @@ lints.workspace = true
 
 [package]
 name = "time-macros"
-version = "0.2.24"
+version = "0.2.25"
 categories = ["date-and-time"]
 description = """
     Procedural macros for the time crate.
