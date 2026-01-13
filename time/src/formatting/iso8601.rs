@@ -2,9 +2,6 @@
 
 use std::io;
 
-#[allow(unused_imports, reason = "MSRV of 1.87")]
-use num_conv::prelude::*;
-
 use crate::convert::*;
 use crate::format_description::well_known::Iso8601;
 use crate::format_description::well_known::iso8601::{

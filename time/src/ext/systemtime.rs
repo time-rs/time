@@ -1,8 +1,5 @@
 use std::time::SystemTime;
 
-#[allow(unused_imports, reason = "MSRV of 1.87")]
-use num_conv::prelude::*;
-
 use crate::Duration;
 
 /// Sealed trait to prevent downstream implementations.

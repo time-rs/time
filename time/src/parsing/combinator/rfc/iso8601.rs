@@ -4,9 +4,6 @@
 
 use core::num::NonZero;
 
-#[allow(unused_imports, reason = "MSRV of 1.87")]
-use num_conv::prelude::*;
-
 use crate::parsing::ParsedItem;
 use crate::parsing::combinator::{any_digit, ascii_char, exactly_n_digits, first_match, sign};
 use crate::{Month, Weekday};

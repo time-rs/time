@@ -1,8 +1,5 @@
 //! Parse parts of an ISO 8601-formatted value.
 
-#[allow(unused_imports, reason = "MSRV of 1.87")]
-use num_conv::prelude::*;
-
 use crate::convert::*;
 use crate::error;
 use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
