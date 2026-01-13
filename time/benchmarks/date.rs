@@ -4,6 +4,7 @@
 )]
 
 use std::hint::black_box as bb;
+use std::sync::LazyLock;
 
 use criterion::Bencher;
 use time::ext::{NumericalDuration, NumericalStdDuration};
@@ -13,15 +14,12 @@ use time::{Date, Time};
 /// Generate a representative sample of all dates.
 ///
 /// The ratio of month sizes, week sizes, year sign, leap years, etc. are all identical to the full
-/// range. This ensures that benchmarks accurately reflect random data. To avoid caching effects,
-/// the dates are shuffled randomly but deterministically.
+/// range. This ensures that benchmarks accurately reflect random data.
 //
 // Note that this is a _very_ large array (over 1 MiB), so we silence the warning about large stack
 // frames at the top of this file.
 fn representative_dates() -> [Date; 292_194] {
-    static DATES: std::sync::LazyLock<[Date; 292_194]> = std::sync::LazyLock::new(|| {
-        use rand09::prelude::*;
-
+    static DATES: LazyLock<[Date; 292_194]> = LazyLock::new(|| {
         let mut dates = [Date::MIN; _];
         let mut current = date!(-0400-01-01);
         let mut i = 0;
@@ -30,11 +28,7 @@ fn representative_dates() -> [Date; 292_194] {
             current = current.next_day().expect("date is in range");
             i += 1;
         }
-
-        let mut seed = SmallRng::seed_from_u64(0);
-        dates.shuffle(&mut seed);
-
-        dates
+        crate::shuffle(dates)
     });
 
     *DATES
