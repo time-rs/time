@@ -64,7 +64,7 @@ macro_rules! div_floor {
                 // which is all-ones iff the signs differ, and 0 otherwise. Then by
                 // adding this mask (which corresponds to the signed value -1), we
                 // get our correction.
-                let correction = (this ^ rhs) >> ($crate::size_of_val(&this) * 8 - 1);
+                let correction = (this ^ rhs) >> (size_of_val(&this) * 8 - 1);
                 if r != 0 { d + correction } else { d }
             }
         }
