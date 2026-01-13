@@ -11,8 +11,8 @@ use num_conv::prelude::*;
 pub use self::formattable::Formattable;
 use crate::convert::*;
 use crate::ext::DigitCount;
-use crate::format_description::{modifier, Component};
-use crate::{error, Date, OffsetDateTime, Time, UtcOffset};
+use crate::format_description::{Component, modifier};
+use crate::{Date, OffsetDateTime, Time, UtcOffset, error};
 
 const MONTH_NAMES: [&[u8]; 12] = [
     b"January",
@@ -53,11 +53,7 @@ pub(crate) fn write_if(
     pred: bool,
     bytes: &[u8],
 ) -> io::Result<usize> {
-    if pred {
-        write(output, bytes)
-    } else {
-        Ok(0)
-    }
+    if pred { write(output, bytes) } else { Ok(0) }
 }
 
 /// If `pred` is true, write `true_bytes` to the output. Otherwise, write `false_bytes`.

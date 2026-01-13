@@ -1,7 +1,7 @@
 use std::num::NonZero;
 use std::str::{self, FromStr};
 
-use super::{ast, unused, Error, Span, Spanned, Unused};
+use super::{Error, Span, Spanned, Unused, ast, unused};
 
 pub(super) fn parse<'a>(
     ast_items: impl Iterator<Item = Result<ast::Item<'a>, Error>>,

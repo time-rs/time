@@ -1,11 +1,11 @@
 [workspace]
 default-members = ["time"]
 members = ["time", "time-core", "time-macros"]
-resolver = "2"
+resolver = "3"
 
 [workspace.package]
 authors = ["Jacob Pratt <open-source@jhpratt.dev>", "Time contributors"]
-edition = "2021"
+edition = "2024"
 rust-version = "1.88.0"
 repository = "https://github.com/time-rs/time"
 homepage = "https://time-rs.github.io"

@@ -2,7 +2,7 @@
 
 use core::iter;
 
-use super::{attach_location, unused, Error, Location, Spanned, SpannedValue};
+use super::{Error, Location, Spanned, SpannedValue, attach_location, unused};
 
 /// An iterator over the lexed tokens.
 pub(super) struct Lexed<I: Iterator> {

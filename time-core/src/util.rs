@@ -39,11 +39,7 @@ pub const fn is_leap_year(year: i32) -> bool {
 /// ```
 #[inline]
 pub const fn days_in_year(year: i32) -> u16 {
-    if is_leap_year(year) {
-        366
-    } else {
-        365
-    }
+    if is_leap_year(year) { 366 } else { 365 }
 }
 
 /// Get the number of weeks in the ISO year.
@@ -87,11 +83,7 @@ pub const fn days_in_month(month: u8, year: i32) -> u8 {
     debug_assert!(month <= 12);
 
     if hint::unlikely(month == 2) {
-        if is_leap_year(year) {
-            29
-        } else {
-            28
-        }
+        if is_leap_year(year) { 29 } else { 28 }
     } else {
         30 | month ^ (month >> 3)
     }

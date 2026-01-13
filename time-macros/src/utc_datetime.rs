@@ -1,6 +1,6 @@
 use std::iter::Peekable;
 
-use proc_macro::{token_stream, TokenStream};
+use proc_macro::{TokenStream, token_stream};
 
 use crate::date::Date;
 use crate::error::Error;

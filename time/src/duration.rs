@@ -11,14 +11,14 @@ use std::time::SystemTime;
 use deranged::RangedI32;
 use num_conv::prelude::*;
 
+#[cfg(feature = "std")]
+#[expect(deprecated)]
+use crate::Instant;
 use crate::convert::*;
 use crate::error;
 use crate::internal_macros::{
     const_try_opt, impl_add_assign, impl_div_assign, impl_mul_assign, impl_sub_assign,
 };
-#[cfg(feature = "std")]
-#[expect(deprecated)]
-use crate::Instant;
 
 /// By explicitly inserting this enum where padding is expected, the compiler is able to better
 /// perform niche value optimization.

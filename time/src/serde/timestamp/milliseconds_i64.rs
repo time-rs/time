@@ -9,7 +9,7 @@
 //! [with]: https://serde.rs/field-attrs.html#with
 
 use num_conv::prelude::*;
-use serde_core::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde_core::{Deserialize, Deserializer, Serialize, Serializer, de};
 
 use crate::OffsetDateTime;
 

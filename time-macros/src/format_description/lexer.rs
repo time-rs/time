@@ -133,13 +133,13 @@ pub(super) fn lex<const VERSION: u8>(
     let mut second_bracket_location = None;
 
     let iter = iter::from_fn(move || {
-        if version!(..=1) {
-            if let Some(location) = second_bracket_location.take() {
-                return Some(Ok(Token::Bracket {
-                    kind: BracketKind::Opening,
-                    location,
-                }));
-            }
+        if version!(..=1)
+            && let Some(location) = second_bracket_location.take()
+        {
+            return Some(Ok(Token::Bracket {
+                kind: BracketKind::Opening,
+                location,
+            }));
         }
 
         Some(Ok(match iter.next()? {

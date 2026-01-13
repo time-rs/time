@@ -5,7 +5,7 @@ use alloc::string::String;
 use core::num::NonZero;
 use core::str::{self, FromStr};
 
-use super::{ast, unused, Error, Span, Spanned};
+use super::{Error, Span, Spanned, ast, unused};
 use crate::internal_macros::bug;
 
 /// Parse an AST iterator into a sequence of format items.

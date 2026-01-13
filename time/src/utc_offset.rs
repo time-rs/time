@@ -9,10 +9,12 @@ use core::ops::Neg;
 #[cfg(feature = "formatting")]
 use std::io;
 
-use deranged::{RangedI32, RangedI8};
+use deranged::{RangedI8, RangedI32};
 use powerfmt::ext::FormatterExt;
 use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
 
+#[cfg(feature = "local-offset")]
+use crate::OffsetDateTime;
 use crate::convert::*;
 use crate::error;
 #[cfg(feature = "formatting")]
@@ -22,8 +24,6 @@ use crate::internal_macros::ensure_ranged;
 use crate::parsing::Parsable;
 #[cfg(feature = "local-offset")]
 use crate::sys::local_offset_at;
-#[cfg(feature = "local-offset")]
-use crate::OffsetDateTime;
 
 /// The type of the `hours` field of `UtcOffset`.
 type Hours = RangedI8<-25, 25>;

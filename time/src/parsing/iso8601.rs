@@ -6,10 +6,10 @@ use num_conv::prelude::*;
 use crate::convert::*;
 use crate::error;
 use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
-use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::Iso8601;
+use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::parsing::combinator::rfc::iso8601::{
-    day, dayk, dayo, float, hour, min, month, week, year, ExtendedKind,
+    ExtendedKind, day, dayk, dayo, float, hour, min, month, week, year,
 };
 use crate::parsing::combinator::{ascii_char, sign};
 use crate::parsing::{Parsed, ParsedItem};
@@ -269,14 +269,14 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
                 })
                 .ok_or(InvalidComponent("offset hour"))?;
 
-            if extended_kind.maybe_extended() {
-                if let Some(ParsedItem(new_input, ())) = ascii_char::<b':'>(input) {
-                    extended_kind
-                        .coerce_extended()
-                        .ok_or(InvalidComponent("offset minute"))?;
-                    input = new_input;
-                };
-            }
+            if extended_kind.maybe_extended()
+                && let Some(ParsedItem(new_input, ())) = ascii_char::<b':'>(input)
+            {
+                extended_kind
+                    .coerce_extended()
+                    .ok_or(InvalidComponent("offset minute"))?;
+                input = new_input;
+            };
 
             match min(input) {
                 Some(ParsedItem(new_input, min)) => {
@@ -319,10 +319,6 @@ fn round(value: f64) -> f64 {
         debug_assert!(value.is_sign_positive() && !value.is_nan());
 
         let f = value % 1.;
-        if f < 0.5 {
-            value - f
-        } else {
-            value - f + 1.
-        }
+        if f < 0.5 { value - f } else { value - f + 1. }
     }
 }

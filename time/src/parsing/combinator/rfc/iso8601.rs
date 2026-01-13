@@ -7,8 +7,8 @@ use core::num::NonZero;
 #[allow(unused_imports, reason = "MSRV of 1.87")]
 use num_conv::prelude::*;
 
-use crate::parsing::combinator::{any_digit, ascii_char, exactly_n_digits, first_match, sign};
 use crate::parsing::ParsedItem;
+use crate::parsing::combinator::{any_digit, ascii_char, exactly_n_digits, first_match, sign};
 use crate::{Month, Weekday};
 
 /// What kind of format is being parsed. This is used to ensure each part of the format (date, time,
@@ -71,11 +71,7 @@ pub(crate) fn year(input: &[u8]) -> Option<ParsedItem<'_, i32>> {
     Some(match sign(input) {
         Some(ParsedItem(input, sign)) => exactly_n_digits::<6, u32>(input)?.map(|val| {
             let val = val.cast_signed();
-            if sign == b'-' {
-                -val
-            } else {
-                val
-            }
+            if sign == b'-' { -val } else { val }
         }),
         None => exactly_n_digits::<4, u32>(input)?.map(|val| val.cast_signed()),
     })
@@ -160,9 +156,11 @@ pub(crate) fn min(input: &[u8]) -> Option<ParsedItem<'_, u8>> {
 pub(crate) fn float(input: &[u8]) -> Option<ParsedItem<'_, (u8, Option<f64>)>> {
     // Two digits before the decimal.
     let ParsedItem(input, integer_part) = match input {
-        [first_digit @ b'0'..=b'9', second_digit @ b'0'..=b'9', input @ ..] => {
-            ParsedItem(input, (first_digit - b'0') * 10 + (second_digit - b'0'))
-        }
+        [
+            first_digit @ b'0'..=b'9',
+            second_digit @ b'0'..=b'9',
+            input @ ..,
+        ] => ParsedItem(input, (first_digit - b'0') * 10 + (second_digit - b'0')),
         _ => return None,
     };
 

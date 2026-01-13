@@ -1,11 +1,11 @@
 use std::iter::Peekable;
 
-use proc_macro::{token_stream, Span, TokenStream};
+use proc_macro::{Span, TokenStream, token_stream};
 use time_core::convert::*;
 
+use crate::Error;
 use crate::helpers::{consume_any_ident, consume_number, consume_punct};
 use crate::to_tokens::ToTokenStream;
-use crate::Error;
 
 pub(crate) struct Offset {
     pub(crate) hours: i8,

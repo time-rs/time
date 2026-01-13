@@ -24,7 +24,7 @@ use crate::internal_macros::{
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::util::{days_in_year, is_leap_year, weeks_in_year};
-use crate::{error, Duration, Month, PrimitiveDateTime, Time, Weekday};
+use crate::{Duration, Month, PrimitiveDateTime, Time, Weekday, error};
 
 type Year = RangedI32<MIN_YEAR, MAX_YEAR>;
 

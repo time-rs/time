@@ -20,7 +20,7 @@ use crate::internal_macros::{carry, cascade, const_try, const_try_opt, div_floor
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::{
-    error, util, Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday,
+    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday, error, util,
 };
 
 /// The Julian day of the Unix epoch.
@@ -776,9 +776,9 @@ impl UtcDateTime {
     /// ```
     #[inline]
     pub const fn checked_add(self, duration: Duration) -> Option<Self> {
-        Some(Self::from_primitive(const_try_opt!(self
-            .inner
-            .checked_add(duration))))
+        Some(Self::from_primitive(const_try_opt!(
+            self.inner.checked_add(duration)
+        )))
     }
 
     /// Computes `self - duration`, returning `None` if an overflow occurred.
@@ -795,9 +795,9 @@ impl UtcDateTime {
     /// ```
     #[inline]
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
-        Some(Self::from_primitive(const_try_opt!(self
-            .inner
-            .checked_sub(duration))))
+        Some(Self::from_primitive(const_try_opt!(
+            self.inner.checked_sub(duration)
+        )))
     }
 
     /// Computes `self + duration`, saturating value on overflow.
@@ -893,9 +893,9 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(self
-            .inner
-            .replace_year(year))))
+        Ok(Self::from_primitive(const_try!(
+            self.inner.replace_year(year)
+        )))
     }
 
     /// Replace the month of the year.
@@ -912,9 +912,9 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(self
-            .inner
-            .replace_month(month))))
+        Ok(Self::from_primitive(const_try!(
+            self.inner.replace_month(month)
+        )))
     }
 
     /// Replace the day of the month.
@@ -931,9 +931,9 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(self
-            .inner
-            .replace_day(day))))
+        Ok(Self::from_primitive(const_try!(
+            self.inner.replace_day(day)
+        )))
     }
 
     /// Replace the day of the year.
@@ -947,9 +947,9 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_ordinal(self, ordinal: u16) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(self
-            .inner
-            .replace_ordinal(ordinal))))
+        Ok(Self::from_primitive(const_try!(
+            self.inner.replace_ordinal(ordinal)
+        )))
     }
 
     /// Replace the clock hour.
@@ -965,9 +965,9 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_hour(self, hour: u8) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(self
-            .inner
-            .replace_hour(hour))))
+        Ok(Self::from_primitive(const_try!(
+            self.inner.replace_hour(hour)
+        )))
     }
 
     /// Replace the minutes within the hour.
@@ -986,9 +986,9 @@ impl UtcDateTime {
         self,
         sunday_based_week: u8,
     ) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(self
-            .inner
-            .replace_minute(sunday_based_week))))
+        Ok(Self::from_primitive(const_try!(
+            self.inner.replace_minute(sunday_based_week)
+        )))
     }
 
     /// Replace the seconds within the minute.
@@ -1007,9 +1007,9 @@ impl UtcDateTime {
         self,
         monday_based_week: u8,
     ) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(self
-            .inner
-            .replace_second(monday_based_week))))
+        Ok(Self::from_primitive(const_try!(
+            self.inner.replace_second(monday_based_week)
+        )))
     }
 
     /// Replace the milliseconds within the second.
@@ -1028,9 +1028,9 @@ impl UtcDateTime {
         self,
         millisecond: u16,
     ) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(self
-            .inner
-            .replace_millisecond(millisecond))))
+        Ok(Self::from_primitive(const_try!(
+            self.inner.replace_millisecond(millisecond)
+        )))
     }
 
     /// Replace the microseconds within the second.
@@ -1049,9 +1049,9 @@ impl UtcDateTime {
         self,
         microsecond: u32,
     ) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(self
-            .inner
-            .replace_microsecond(microsecond))))
+        Ok(Self::from_primitive(const_try!(
+            self.inner.replace_microsecond(microsecond)
+        )))
     }
 
     /// Replace the nanoseconds within the second.
@@ -1067,9 +1067,9 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_nanosecond(self, nanosecond: u32) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(self
-            .inner
-            .replace_nanosecond(nanosecond))))
+        Ok(Self::from_primitive(const_try!(
+            self.inner.replace_nanosecond(nanosecond)
+        )))
     }
 }
 

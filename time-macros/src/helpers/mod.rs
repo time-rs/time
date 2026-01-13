@@ -5,7 +5,7 @@ use std::iter::Peekable;
 use std::str::FromStr;
 
 use num_conv::prelude::*;
-use proc_macro::{token_stream, Span, TokenTree};
+use proc_macro::{Span, TokenTree, token_stream};
 use time_core::util::{days_in_year, is_leap_year};
 
 use crate::Error;

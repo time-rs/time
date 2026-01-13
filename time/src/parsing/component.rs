@@ -6,11 +6,11 @@ use num_conv::prelude::*;
 
 use crate::convert::*;
 use crate::format_description::modifier;
+use crate::parsing::ParsedItem;
 use crate::parsing::combinator::{
     any_digit, exactly_n_digits, exactly_n_digits_padded, first_match, n_to_m_digits,
     n_to_m_digits_padded, opt, sign,
 };
-use crate::parsing::ParsedItem;
 use crate::{Month, Weekday};
 
 /// Parse the "year" component of a `Date`.

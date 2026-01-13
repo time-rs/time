@@ -3,9 +3,9 @@
 use core::fmt;
 use core::marker::PhantomData;
 
-use serde_core::de;
 #[cfg(feature = "parsing")]
 use serde_core::Deserializer;
+use serde_core::de;
 
 #[cfg(feature = "parsing")]
 use super::{

@@ -11,9 +11,9 @@ use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::format_description::{BorrowedFormatItem, OwnedFormatItem};
 use crate::formatting::{
-    format_component, format_number_pad_zero, iso8601, write, MONTH_NAMES, WEEKDAY_NAMES,
+    MONTH_NAMES, WEEKDAY_NAMES, format_component, format_number_pad_zero, iso8601, write,
 };
-use crate::{error, Date, Time, UtcOffset};
+use crate::{Date, Time, UtcOffset, error};
 
 /// A type that describes a format.
 ///

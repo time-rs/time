@@ -8,17 +8,17 @@
 #[cfg(feature = "parsing")]
 use core::marker::PhantomData;
 
-#[cfg(feature = "formatting")]
-use serde_core::ser::Error as _;
 #[cfg(feature = "parsing")]
 use serde_core::Deserializer;
+#[cfg(feature = "formatting")]
+use serde_core::ser::Error as _;
 #[cfg(feature = "formatting")]
 use serde_core::{Serialize, Serializer};
 
 #[cfg(feature = "parsing")]
 use super::Visitor;
-use crate::format_description::well_known::Rfc2822;
 use crate::OffsetDateTime;
+use crate::format_description::well_known::Rfc2822;
 
 /// Serialize an [`OffsetDateTime`] using the well-known RFC2822 format.
 #[cfg(feature = "formatting")]
