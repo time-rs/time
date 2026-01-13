@@ -121,7 +121,7 @@ fn lex(mut input: &[u8]) -> iter::Peekable<impl Iterator<Item = Result<Token<'_>
 #[inline]
 fn into_items<'iter, 'token: 'iter, I: Iterator<Item = Result<Token<'token>, Error>> + 'iter>(
     mut tokens: iter::Peekable<I>,
-) -> impl Iterator<Item = Result<BorrowedFormatItem<'token>, Error>> + use<'iter, 'token, I> {
+) -> impl Iterator<Item = Result<BorrowedFormatItem<'token>, Error>> + use<'token, I> {
     iter::from_fn(move || {
         let next = match tokens.next()? {
             Ok(token) => token,
