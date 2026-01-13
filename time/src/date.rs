@@ -305,36 +305,33 @@ impl Date {
         debug_assert!(julian_day >= Self::MIN.to_julian_day());
         debug_assert!(julian_day <= Self::MAX.to_julian_day());
 
-        const S: i32 = 2_500;
-        const K: i32 = 719_468 + 146_097 * S;
-        const L: i32 = 400 * S;
+        const ERAS: u32 = 5_949;
+        // Rata Die shift:
+        const D_SHIFT: u32 = 146097 * ERAS - 1_721_060;
+        // Year shift:
+        const Y_SHIFT: u32 = 400 * ERAS;
 
-        let julian_day = julian_day - 2_440_588;
-        let n = (julian_day + K) as u32;
+        const CEN_MUL: u32 = ((4u64 << 47) / 146_097) as u32;
+        const JUL_MUL: u32 = ((4u64 << 40) / 1_461 + 1) as u32;
+        const CEN_CUT: u32 = ((365u64 << 32) / 36_525) as u32;
 
-        let n_1 = 4 * n + 3;
-        let c = n_1 / 146_097;
-        let n_c = n_1 % 146_097 / 4;
+        let day = julian_day.wrapping_add_unsigned(D_SHIFT) as u32;
+        let c_n = (day as u64 * CEN_MUL as u64) >> 15;
+        let cen = (c_n >> 32) as u32;
+        let cpt = c_n as u32;
+        let ijy = (cpt > CEN_CUT) || (cen % 4 == 0);
+        let jul = day - cen / 4 + cen;
+        let y_n = (jul as u64 * JUL_MUL as u64) >> 8;
+        let yrs = (y_n >> 32) as u32;
+        let ypt = y_n as u32;
 
-        let n_2 = 4 * n_c + 3;
-        let p_2 = 2_939_745 * n_2 as u64;
-        let z = (p_2 >> 32) as u32;
-        let n_y = p_2 as u32 / 2_939_745 / 4;
-        let y = 100 * c + z;
-
-        let j = n_y >= 306;
-        let y_g = y as i32 - L + j as i32;
-
-        let is_leap_year = is_leap_year(y_g);
-        let ordinal = if j {
-            n_y - 305
-        } else {
-            n_y + 60 + is_leap_year as u32
-        };
+        let year = yrs.wrapping_sub(Y_SHIFT) as i32;
+        let ordinal = ((ypt as u64 * 1_461) >> 34) as u32 + ijy as u32;
+        let leap = (yrs % 4 == 0) & ijy;
 
         // Safety: `ordinal` is not zero and `is_leap_year` is correct, so long as the Julian day
-        // number is in range.
-        unsafe { Self::from_parts(y_g, is_leap_year, ordinal as u16) }
+        // number is in range, which is guaranteed by the caller.
+        unsafe { Self::from_parts(year, leap, ordinal as u16) }
     }
 
     /// Whether `is_leap_year(self.year())` is `true`.
