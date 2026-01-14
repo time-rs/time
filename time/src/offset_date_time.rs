@@ -884,6 +884,25 @@ impl OffsetDateTime {
         self.time().hour()
     }
 
+    /// Get the fractional clock hour (i.e. 1:30 -> 1.5).
+    ///
+    /// The returned value will always be in the range `0.0..24.0`.
+    ///
+    /// ```rust
+    /// # use time_macros::{datetime, offset};
+    /// assert_eq!(datetime!(2019-01-01 1:30:00 UTC).fractional_hour(), 1.5);
+    /// assert_eq!(
+    ///     datetime!(2019-01-01 23:30:45 UTC)
+    ///         .to_offset(offset!(-2))
+    ///         .fractional_hour(),
+    ///     21.5125,
+    /// );
+    /// ```
+    #[inline]
+    pub const fn fractional_hour(self) -> f32 {
+        self.time().fractional_hour()
+    }
+
     /// Get the minute within the hour in the stored offset.
     ///
     /// The returned value will always be in the range `0..60`.
@@ -903,6 +922,25 @@ impl OffsetDateTime {
         self.time().minute()
     }
 
+    /// Get the fractional minute within the hour (i.e. 1:30:30 -> 30.5).
+    ///
+    /// The returned value will always be in the range `0.0..60.0`.
+    ///
+    /// ```rust
+    /// # use time_macros::{datetime, offset};
+    /// assert_eq!(datetime!(2019-01-01 1:30:30 UTC).fractional_minute(), 30.5);
+    /// assert_eq!(
+    ///     datetime!(2019-01-01 23:15:45 UTC)
+    ///         .to_offset(offset!(+0:30))
+    ///         .fractional_minute(),
+    ///     45.75,
+    /// );
+    /// ```
+    #[inline]
+    pub const fn fractional_minute(self) -> f32 {
+        self.time().fractional_minute()
+    }
+
     /// Get the second within the minute in the stored offset.
     ///
     /// The returned value will always be in the range `0..60`.
@@ -920,6 +958,25 @@ impl OffsetDateTime {
     #[inline]
     pub const fn second(self) -> u8 {
         self.time().second()
+    }
+
+    /// Get the fractional second within the hour (i.e. 1:30:30 -> 30.5).
+    ///
+    /// The returned value will always be in the range `0.0..60.0`.
+    ///
+    /// ```rust
+    /// # use time_macros::{datetime, offset};
+    /// assert_eq!(datetime!(2019-01-01 1:00:30.550 UTC).fractional_second(), 30.55);
+    /// assert_eq!(
+    ///     datetime!(2019-01-01 23:00:15.500 UTC)
+    ///         .to_offset(offset!(+0:00:30))
+    ///         .fractional_second(),
+    ///     45.5,
+    /// );
+    /// ```
+    #[inline]
+    pub const fn fractional_second(self) -> f32 {
+        self.time().fractional_second()
     }
 
     // Because a `UtcOffset` is limited in resolution to one second, any subsecond value will not

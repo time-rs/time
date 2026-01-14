@@ -384,6 +384,23 @@ impl Time {
         self.hour.get()
     }
 
+    /// Get the fractional clock hour (i.e. 1:30 -> 1.5).
+    ///
+    /// The returned value will always be in the range `0.0..24.0`.
+    ///
+    /// ```rust
+    /// # use time_macros::time;
+    /// assert_eq!(time!(1:30:00).fractional_hour(), 1.5);
+    /// assert_eq!(time!(23:00:00).fractional_hour(), 23.0);
+    /// ```
+    #[inline]
+    pub const fn fractional_hour(self) -> f32 {
+        self.hour.get() as f32
+            + (self.minute.get() as f32 / 60.0)
+            + (self.second.get() as f32 / (60.0 * 60.0))
+            + (self.nanosecond.get() as f32 / (60.0 * 60.0 * 1.0e9))
+    }
+
     /// Get the minute within the hour.
     ///
     /// The returned value will always be in the range `0..60`.
@@ -398,6 +415,22 @@ impl Time {
         self.minute.get()
     }
 
+    /// Get the fractional minute within the hour (i.e. 1:30:30 -> 30.5).
+    ///
+    /// The returned value will always be in the range `0.0..60.0`.
+    ///
+    /// ```rust
+    /// # use time_macros::time;
+    /// assert_eq!(time!(1:30:30).fractional_minute(), 30.5);
+    /// assert_eq!(time!(23:00:30.600).fractional_minute(), 0.51);
+    /// ```
+    #[inline]
+    pub const fn fractional_minute(self) -> f32 {
+        self.minute.get() as f32
+            + (self.second.get() as f32 / (60.0))
+            + (self.nanosecond.get() as f32 / (60.0 * 1.0e9))
+    }
+
     /// Get the second within the minute.
     ///
     /// The returned value will always be in the range `0..60`.
@@ -410,6 +443,20 @@ impl Time {
     #[inline]
     pub const fn second(self) -> u8 {
         self.second.get()
+    }
+
+    /// Get the fractional second within the minute (i.e. 1:00:10.500 -> 10.5).
+    ///
+    /// The returned value will always be in the range `0.0..60.0`.
+    ///
+    /// ```rust
+    /// # use time_macros::time;
+    /// assert_eq!(time!(1:00:00.500).fractional_second(), 0.5);
+    /// assert_eq!(time!(23:00:30.500).fractional_second(), 30.5);
+    /// ```
+    #[inline]
+    pub const fn fractional_second(self) -> f32 {
+        self.second.get() as f32 + (self.nanosecond.get() as f32 / 1.0e9)
     }
 
     /// Get the milliseconds within the second.
