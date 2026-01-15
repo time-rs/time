@@ -318,33 +318,33 @@ impl OffsetDateTime {
         }
 
         let (second, carry) = carry!(@most_once
-            self.second() as i8 - from.seconds_past_minute(),
+            self.second().cast_signed() - from.seconds_past_minute(),
             0..Second::per_t(Minute)
         );
         let (minute, carry) = carry!(@most_once
-            self.minute() as i8 - from.minutes_past_hour() + carry,
+            self.minute().cast_signed() - from.minutes_past_hour() + carry,
             0..Minute::per_t(Hour)
         );
         let (hour, carry) = carry!(@most_twice
-            self.hour() as i8 - from.whole_hours() + carry,
+            self.hour().cast_signed() - from.whole_hours() + carry,
             0..Hour::per_t(Day)
         );
         let (mut year, ordinal) = self.to_ordinal_date();
-        let mut ordinal = ordinal as i16 + carry;
+        let mut ordinal = ordinal.cast_signed() + carry;
         cascade!(ordinal => year);
 
         debug_assert!(ordinal > 0);
-        debug_assert!(ordinal <= range_validated::days_in_year(year) as i16);
+        debug_assert!(ordinal <= range_validated::days_in_year(year).cast_signed());
 
         (
             year,
-            ordinal as u16,
+            ordinal.cast_unsigned(),
             // Safety: The cascades above ensure the values are in range.
             unsafe {
                 Time::__from_hms_nanos_unchecked(
-                    hour as u8,
-                    minute as u8,
-                    second as u8,
+                    hour.cast_unsigned(),
+                    minute.cast_unsigned(),
+                    second.cast_unsigned(),
                     self.nanosecond(),
                 )
             },
@@ -375,23 +375,23 @@ impl OffsetDateTime {
             0..Minute::per_t(Hour)
         );
         let (hour, carry) = carry!(@most_thrice
-            self.hour() as i8 - from.whole_hours() + to.whole_hours() + carry,
+            self.hour().cast_signed() - from.whole_hours() + to.whole_hours() + carry,
             0..Hour::per_t(Day)
         );
         let (mut year, ordinal) = self.to_ordinal_date();
-        let mut ordinal = ordinal as i16 + carry;
+        let mut ordinal = ordinal.cast_signed() + carry;
         cascade!(ordinal => year);
 
         debug_assert!(ordinal > 0);
-        debug_assert!(ordinal <= range_validated::days_in_year(year) as i16);
+        debug_assert!(ordinal <= range_validated::days_in_year(year).cast_signed());
 
         (
             year,
-            ordinal as u16,
+            ordinal.cast_unsigned(),
             // Safety: The cascades above ensure the values are in range.
             unsafe {
                 Time::__from_hms_nanos_unchecked(
-                    hour as u8,
+                    hour.cast_unsigned(),
                     minute as u8,
                     second as u8,
                     self.nanosecond(),

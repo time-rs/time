@@ -65,7 +65,8 @@ fn filetime_to_secs(filetime: &FileTime) -> i64 {
     /// FILETIME represents 100-nanosecond intervals
     const FT_TO_SECS: u64 = Nanosecond::per_t::<u64>(Second) / 100;
     ((filetime.dwHighDateTime.extend::<u64>() << 32 | filetime.dwLowDateTime.extend::<u64>())
-        / FT_TO_SECS) as i64
+        / FT_TO_SECS)
+        .cast_signed()
 }
 
 /// Convert an [`OffsetDateTime`] to a `SYSTEMTIME`.

@@ -101,7 +101,7 @@ impl Weekday {
     /// ```
     #[inline]
     pub const fn nth_prev(self, n: u8) -> Self {
-        match self.number_days_from_monday() as i8 - (n % 7) as i8 {
+        match self.number_days_from_monday().cast_signed() - (n % 7).cast_signed() {
             1 | -6 => Tuesday,
             2 | -5 => Wednesday,
             3 | -4 => Thursday,

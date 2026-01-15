@@ -108,17 +108,17 @@ impl UtcOffset {
     pub(crate) const fn as_u32(self) -> u32 {
         #[cfg(target_endian = "big")]
         return u32::from_be_bytes([
-            self.seconds.get() as u8,
-            self.minutes.get() as u8,
-            self.hours.get() as u8,
+            self.seconds.get().cast_unsigned(),
+            self.minutes.get().cast_unsigned(),
+            self.hours.get().cast_unsigned(),
             0,
         ]);
 
         #[cfg(target_endian = "little")]
         return u32::from_le_bytes([
-            self.seconds.get() as u8,
-            self.minutes.get() as u8,
-            self.hours.get() as u8,
+            self.seconds.get().cast_unsigned(),
+            self.minutes.get().cast_unsigned(),
+            self.hours.get().cast_unsigned(),
             0,
         ]);
     }

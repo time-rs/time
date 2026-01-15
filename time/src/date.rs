@@ -260,22 +260,25 @@ impl Date {
         };
         let ordinal = week as i16 * 7 + weekday.number_from_monday() as i16 - jan_4;
 
-        Ok(if ordinal <= 0 {
+        if ordinal <= 0 {
             // Safety: `ordinal` is not zero.
-            unsafe {
+            return Ok(unsafe {
                 Self::__from_ordinal_date_unchecked(
                     year - 1,
-                    (ordinal as u16).wrapping_add(range_validated::days_in_year(year - 1)),
+                    ordinal
+                        .cast_unsigned()
+                        .wrapping_add(range_validated::days_in_year(year - 1)),
                 )
-            }
-        } else if let days_in_year = range_validated::days_in_year(year)
-            && ordinal > days_in_year as i16
-        {
+            });
+        }
+        let days_in_year = range_validated::days_in_year(year);
+        let ordinal = ordinal.cast_unsigned();
+        Ok(if ordinal > days_in_year {
             // Safety: `ordinal` is not zero.
-            unsafe { Self::__from_ordinal_date_unchecked(year + 1, ordinal as u16 - days_in_year) }
+            unsafe { Self::__from_ordinal_date_unchecked(year + 1, ordinal - days_in_year) }
         } else {
             // Safety: `ordinal` is not zero.
-            unsafe { Self::__from_ordinal_date_unchecked(year, ordinal as u16) }
+            unsafe { Self::__from_ordinal_date_unchecked(year, ordinal) }
         })
     }
 
@@ -322,7 +325,7 @@ impl Date {
         const JUL_MUL: u32 = ((4u64 << 40) / 1_461 + 1) as u32;
         const CEN_CUT: u32 = ((365u64 << 32) / 36_525) as u32;
 
-        let day = julian_day.wrapping_add_unsigned(D_SHIFT) as u32;
+        let day = julian_day.cast_unsigned().wrapping_add(D_SHIFT);
         let c_n = (day as u64 * CEN_MUL as u64) >> 15;
         let cen = (c_n >> 32) as u32;
         let cpt = c_n as u32;
@@ -332,7 +335,7 @@ impl Date {
         let yrs = (y_n >> 32) as u32;
         let ypt = y_n as u32;
 
-        let year = yrs.wrapping_sub(Y_SHIFT) as i32;
+        let year = yrs.wrapping_sub(Y_SHIFT).cast_signed();
         let ordinal = ((ypt as u64 * 1_461) >> 34) as u32 + ijy as u32;
         let leap = yrs.is_multiple_of(4) & ijy;
 
@@ -476,7 +479,8 @@ impl Date {
     /// ```
     #[inline]
     pub const fn sunday_based_week(self) -> u8 {
-        ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as u8
+        ((self.ordinal().cast_signed() - self.weekday().number_days_from_sunday() as i16 + 6) / 7)
+            as u8
     }
 
     /// Get the week number where week 1 begins on the first Monday.
@@ -492,7 +496,8 @@ impl Date {
     /// ```
     #[inline]
     pub const fn monday_based_week(self) -> u8 {
-        ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as u8
+        ((self.ordinal().cast_signed() - self.weekday().number_days_from_monday() as i16 + 6) / 7)
+            as u8
     }
 
     /// Get the year, month, and day.
@@ -1206,7 +1211,7 @@ impl Date {
         Ok(unsafe {
             Self::__from_ordinal_date_unchecked(
                 self.year(),
-                (self.ordinal() as i16 - self.day() as i16 + day as i16) as u16,
+                (self.ordinal().cast_signed() - self.day() as i16 + day as i16).cast_unsigned(),
             )
         })
     }

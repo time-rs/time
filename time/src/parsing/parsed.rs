@@ -681,10 +681,10 @@ impl Parsed {
     )]
     #[inline]
     pub const fn set_offset_minute(&mut self, value: u8) -> Option<()> {
-        if value > i8::MAX as u8 {
+        if value > i8::MAX.cast_unsigned() {
             None
         } else {
-            self.set_offset_minute_signed(value as i8)
+            self.set_offset_minute_signed(value.cast_signed())
         }
     }
 
@@ -696,10 +696,10 @@ impl Parsed {
     )]
     #[inline]
     pub const fn set_offset_second(&mut self, value: u8) -> Option<()> {
-        if value > i8::MAX as u8 {
+        if value > i8::MAX.cast_unsigned() {
             None
         } else {
-            self.set_offset_second_signed(value as i8)
+            self.set_offset_second_signed(value.cast_signed())
         }
     }
 }
@@ -873,10 +873,10 @@ impl Parsed {
     )]
     #[inline]
     pub const fn with_offset_minute(self, value: u8) -> Option<Self> {
-        if value > i8::MAX as u8 {
+        if value > i8::MAX.cast_unsigned() {
             None
         } else {
-            self.with_offset_minute_signed(value as i8)
+            self.with_offset_minute_signed(value.cast_signed())
         }
     }
 
@@ -895,10 +895,10 @@ impl Parsed {
     )]
     #[inline]
     pub const fn with_offset_second(self, value: u8) -> Option<Self> {
-        if value > i8::MAX as u8 {
+        if value > i8::MAX.cast_unsigned() {
             None
         } else {
-            self.with_offset_second_signed(value as i8)
+            self.with_offset_second_signed(value.cast_signed())
         }
     }
 

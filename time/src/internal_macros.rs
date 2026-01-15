@@ -162,14 +162,14 @@ macro_rules! cascade {
         cascade!(@ordinal $ordinal);
         cascade!(@year $year);
 
-        let days_in_year = crate::util::range_validated::days_in_year($year) as i16;
+        let days_in_year = crate::util::range_validated::days_in_year($year).cast_signed();
         #[allow(unused_assignments)]
         if crate::hint::unlikely($ordinal > days_in_year) {
             $ordinal -= days_in_year;
             $year += 1;
         } else if crate::hint::unlikely($ordinal < 1) {
             $year -= 1;
-            $ordinal += crate::util::range_validated::days_in_year($year) as i16;
+            $ordinal += crate::util::range_validated::days_in_year($year).cast_signed();
         }
     };
 }
