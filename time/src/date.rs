@@ -153,8 +153,11 @@ impl Date {
         ensure_ranged!(Year: year);
         match day {
             1..=28 => {}
-            29..=31 if day <= range_validated::days_in_month(month as u8, year) => {}
+            29..=31 if day <= range_validated::days_in_month(month as u8, year) => {
+                hint::cold_path()
+            }
             _ => {
+                hint::cold_path();
                 return Err(error::ComponentRange {
                     name: "day",
                     minimum: 1,
@@ -1195,12 +1198,15 @@ impl Date {
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
         match day {
             1..=28 => {}
-            29..=31 if day <= self.month().length(self.year()) => {}
+            29..=31 if day <= range_validated::days_in_month(self.month() as u8, self.year()) => {
+                hint::cold_path()
+            }
             _ => {
+                hint::cold_path();
                 return Err(error::ComponentRange {
                     name: "day",
                     minimum: 1,
-                    maximum: self.month().length(self.year()) as i64,
+                    maximum: range_validated::days_in_month(self.month() as u8, self.year()) as i64,
                     value: day as i64,
                     conditional_message: Some("for the given month and year"),
                 });
@@ -1229,8 +1235,9 @@ impl Date {
     pub const fn replace_ordinal(self, ordinal: u16) -> Result<Self, error::ComponentRange> {
         match ordinal {
             1..=365 => {}
-            366 if self.is_in_leap_year() => {}
+            366 if self.is_in_leap_year() => hint::cold_path(),
             _ => {
+                hint::cold_path();
                 return Err(error::ComponentRange {
                     name: "ordinal",
                     minimum: 1,

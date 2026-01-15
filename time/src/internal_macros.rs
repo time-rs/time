@@ -231,7 +231,10 @@ macro_rules! const_try {
     ($e:expr) => {
         match $e {
             Ok(value) => value,
-            Err(error) => return Err(error),
+            Err(error) => {
+                $crate::hint::cold_path();
+                return Err(error);
+            }
         }
     };
 }
@@ -243,7 +246,10 @@ macro_rules! const_try_opt {
     ($e:expr) => {
         match $e {
             Some(value) => value,
-            None => return None,
+            None => {
+                $crate::hint::cold_path();
+                return None;
+            }
         }
     };
 }
