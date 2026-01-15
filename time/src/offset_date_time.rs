@@ -22,8 +22,9 @@ use crate::formatting::Formattable;
 use crate::internal_macros::{carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged};
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
+use crate::util::range_validated;
 use crate::{
-    Date, Duration, Month, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday, error, util,
+    Date, Duration, Month, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday, error,
 };
 
 /// The Julian day of the Unix epoch.
@@ -333,7 +334,7 @@ impl OffsetDateTime {
         cascade!(ordinal => year);
 
         debug_assert!(ordinal > 0);
-        debug_assert!(ordinal <= util::days_in_year(year) as i16);
+        debug_assert!(ordinal <= range_validated::days_in_year(year) as i16);
 
         (
             year,
@@ -382,7 +383,7 @@ impl OffsetDateTime {
         cascade!(ordinal => year);
 
         debug_assert!(ordinal > 0);
-        debug_assert!(ordinal <= util::days_in_year(year) as i16);
+        debug_assert!(ordinal <= range_validated::days_in_year(year) as i16);
 
         (
             year,

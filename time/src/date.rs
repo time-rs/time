@@ -23,8 +23,8 @@ use crate::internal_macros::{
 };
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
-use crate::util::{days_in_year, is_leap_year, weeks_in_year};
-use crate::{Duration, Month, PrimitiveDateTime, Time, Weekday, error};
+use crate::util::{range_validated, weeks_in_year};
+use crate::{Duration, Month, PrimitiveDateTime, Time, Weekday, error, hint};
 
 type Year = RangedI32<MIN_YEAR, MAX_YEAR>;
 
@@ -82,8 +82,9 @@ impl Date {
     ///
     /// The value of this may vary depending on the feature flags enabled.
     // Safety: `ordinal` is not zero.
-    pub const MAX: Self =
-        unsafe { Self::__from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)) };
+    pub const MAX: Self = unsafe {
+        Self::__from_ordinal_date_unchecked(MAX_YEAR, range_validated::days_in_year(MAX_YEAR))
+    };
 
     /// Construct a `Date` from its internal representation, the validity of which must be
     /// guaranteed by the caller.
@@ -98,8 +99,8 @@ impl Date {
         debug_assert!(year >= MIN_YEAR);
         debug_assert!(year <= MAX_YEAR);
         debug_assert!(ordinal != 0);
-        debug_assert!(ordinal <= days_in_year(year));
-        debug_assert!(crate::util::is_leap_year(year) == is_leap_year);
+        debug_assert!(ordinal <= range_validated::days_in_year(year));
+        debug_assert!(range_validated::is_leap_year(year) == is_leap_year);
 
         Self {
             // Safety: `ordinal` is not zero.
@@ -114,14 +115,15 @@ impl Date {
     ///
     /// # Safety
     ///
-    /// `ordinal` must be non-zero and at most the number of days in `year`. `year` should be in the
-    /// range `MIN_YEAR..=MAX_YEAR`, but this is not a safety invariant.
+    /// - `year` must be in the range `MIN_YEAR..=MAX_YEAR`.
+    /// - `ordinal` must be non-zero and at most the number of days in `year`.
     #[doc(hidden)]
     #[inline]
     #[track_caller]
     pub const unsafe fn __from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
-        // Safety: The caller must guarantee that `ordinal` is not zero.
-        unsafe { Self::from_parts(year, is_leap_year(year), ordinal) }
+        // Safety: The caller must guarantee that `ordinal` is not zero and that the year is in
+        // range.
+        unsafe { Self::from_parts(year, range_validated::is_leap_year(year), ordinal) }
     }
 
     /// Attempt to create a `Date` from the year, month, and day.
@@ -151,12 +153,12 @@ impl Date {
         ensure_ranged!(Year: year);
         match day {
             1..=28 => {}
-            29..=31 if day <= month.length(year) => {}
+            29..=31 if day <= range_validated::days_in_month(month as u8, year) => {}
             _ => {
                 return Err(error::ComponentRange {
                     name: "day",
                     minimum: 1,
-                    maximum: month.length(year) as i64,
+                    maximum: range_validated::days_in_month(month as u8, year) as i64,
                     value: day as i64,
                     conditional_message: Some("for the given month and year"),
                 });
@@ -167,7 +169,8 @@ impl Date {
         Ok(unsafe {
             Self::__from_ordinal_date_unchecked(
                 year,
-                DAYS_CUMULATIVE_COMMON_LEAP[is_leap_year(year) as usize][month as usize - 1]
+                DAYS_CUMULATIVE_COMMON_LEAP[range_validated::is_leap_year(year) as usize]
+                    [month as usize - 1]
                     + day as u16,
             )
         })
@@ -188,14 +191,17 @@ impl Date {
     #[inline]
     pub const fn from_ordinal_date(year: i32, ordinal: u16) -> Result<Self, error::ComponentRange> {
         ensure_ranged!(Year: year);
+
+        let is_leap_year = range_validated::is_leap_year(year);
         match ordinal {
             1..=365 => {}
-            366 if is_leap_year(year) => {}
+            366 if is_leap_year => hint::cold_path(),
             _ => {
+                hint::cold_path();
                 return Err(error::ComponentRange {
                     name: "ordinal",
                     minimum: 1,
-                    maximum: days_in_year(year) as i64,
+                    maximum: if is_leap_year { 366 } else { 365 },
                     value: ordinal as i64,
                     conditional_message: Some("for the given year"),
                 });
@@ -203,7 +209,7 @@ impl Date {
         }
 
         // Safety: `ordinal` is not zero.
-        Ok(unsafe { Self::__from_ordinal_date_unchecked(year, ordinal) })
+        Ok(unsafe { Self::from_parts(year, is_leap_year, ordinal) })
     }
 
     /// Attempt to create a `Date` from the ISO year, week, and weekday.
@@ -227,8 +233,9 @@ impl Date {
         ensure_ranged!(Year: year);
         match week {
             1..=52 => {}
-            53 if week <= weeks_in_year(year) => {}
+            53 if week <= weeks_in_year(year) => hint::cold_path(),
             _ => {
+                hint::cold_path();
                 return Err(error::ComponentRange {
                     name: "week",
                     minimum: 1,
@@ -258,14 +265,14 @@ impl Date {
             unsafe {
                 Self::__from_ordinal_date_unchecked(
                     year - 1,
-                    (ordinal as u16).wrapping_add(days_in_year(year - 1)),
+                    (ordinal as u16).wrapping_add(range_validated::days_in_year(year - 1)),
                 )
             }
-        } else if ordinal > days_in_year(year) as i16 {
+        } else if let days_in_year = range_validated::days_in_year(year)
+            && ordinal > days_in_year as i16
+        {
             // Safety: `ordinal` is not zero.
-            unsafe {
-                Self::__from_ordinal_date_unchecked(year + 1, ordinal as u16 - days_in_year(year))
-            }
+            unsafe { Self::__from_ordinal_date_unchecked(year + 1, ordinal as u16 - days_in_year) }
         } else {
             // Safety: `ordinal` is not zero.
             unsafe { Self::__from_ordinal_date_unchecked(year, ordinal as u16) }
@@ -646,7 +653,10 @@ impl Date {
         } else {
             // Safety: `ordinal` is not zero.
             Some(unsafe {
-                Self::__from_ordinal_date_unchecked(self.year() - 1, days_in_year(self.year() - 1))
+                Self::__from_ordinal_date_unchecked(
+                    self.year() - 1,
+                    range_validated::days_in_year(self.year() - 1),
+                )
             })
         }
     }
@@ -1123,7 +1133,7 @@ impl Date {
             return Ok(unsafe { Self::__from_ordinal_date_unchecked(year, ordinal) });
         }
 
-        match (self.is_in_leap_year(), is_leap_year(year)) {
+        match (self.is_in_leap_year(), range_validated::is_leap_year(year)) {
             (false, false) | (true, true) => {
                 // Safety: `ordinal` is not zero.
                 Ok(unsafe { Self::__from_ordinal_date_unchecked(year, ordinal) })
@@ -1219,7 +1229,7 @@ impl Date {
                 return Err(error::ComponentRange {
                     name: "ordinal",
                     minimum: 1,
-                    maximum: days_in_year(self.year()) as i64,
+                    maximum: range_validated::days_in_year(self.year()) as i64,
                     value: ordinal as i64,
                     conditional_message: Some("for the given year"),
                 });
