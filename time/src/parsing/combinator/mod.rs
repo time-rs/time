@@ -84,7 +84,10 @@ pub(crate) fn one_or_more<'a, P: Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>>>(
 pub(crate) fn n_to_m_digits<const N: u8, const M: u8, T: Integer>(
     mut input: &[u8],
 ) -> Option<ParsedItem<'_, T>> {
-    debug_assert!(M >= N);
+    const {
+        assert!(N > 0);
+        assert!(M >= N);
+    }
 
     let mut value = T::ZERO;
 
@@ -394,12 +397,14 @@ pub(crate) fn exactly_n_digits_padded<'a, const N: u8, T: Integer>(
 pub(crate) fn n_to_m_digits_padded<'a, const N: u8, const M: u8, T: Integer>(
     padding: Padding,
 ) -> impl Fn(&'a [u8]) -> Option<ParsedItem<'a, T>> {
-    debug_assert!(M >= N);
+    const {
+        assert!(N > 0);
+        assert!(M >= N);
+    }
+
     move |mut input| match padding {
         Padding::None => n_to_m_digits::<1, M, _>(input),
         Padding::Space => {
-            debug_assert!(N > 0);
-
             let mut value = T::ZERO;
 
             // Consume the padding.
@@ -458,7 +463,9 @@ pub(crate) const fn any_digit(input: &[u8]) -> Option<ParsedItem<'_, u8>> {
 /// Consume exactly one of the provided ASCII characters.
 #[inline]
 pub(crate) fn ascii_char<const CHAR: u8>(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
-    debug_assert!(CHAR.is_ascii_graphic() || CHAR.is_ascii_whitespace());
+    const {
+        assert!(CHAR.is_ascii_graphic() || CHAR.is_ascii_whitespace());
+    }
     match input {
         [c, remaining @ ..] if *c == CHAR => Some(ParsedItem(remaining, ())),
         _ => None,
@@ -468,7 +475,9 @@ pub(crate) fn ascii_char<const CHAR: u8>(input: &[u8]) -> Option<ParsedItem<'_, 
 /// Consume exactly one of the provided ASCII characters, case-insensitive.
 #[inline]
 pub(crate) fn ascii_char_ignore_case<const CHAR: u8>(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
-    debug_assert!(CHAR.is_ascii_graphic() || CHAR.is_ascii_whitespace());
+    const {
+        assert!(CHAR.is_ascii_graphic() || CHAR.is_ascii_whitespace());
+    }
     match input {
         [c, remaining @ ..] if c.eq_ignore_ascii_case(&CHAR) => Some(ParsedItem(remaining, ())),
         _ => None,
