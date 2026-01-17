@@ -8,7 +8,7 @@ use crate::convert::*;
 use crate::format_description::modifier;
 use crate::parsing::ParsedItem;
 use crate::parsing::combinator::{
-    any_digit, exactly_n_digits, exactly_n_digits_padded, first_match, n_to_m_digits,
+    ExactlyNDigits, Sign, any_digit, exactly_n_digits_padded, first_match, n_to_m_digits,
     n_to_m_digits_padded, opt, sign,
 };
 use crate::{Month, Weekday};
@@ -31,11 +31,13 @@ pub(crate) fn parse_year(
                     exactly_n_digits_padded::<4, u32>(modifiers.padding)(input)?
                 };
 
-                Some(if sign == b'-' {
-                    ParsedItem(input, (-year.cast_signed(), true))
-                } else {
-                    ParsedItem(input, (year.cast_signed(), false))
-                })
+                Some(ParsedItem(
+                    input,
+                    match sign {
+                        Sign::Negative => (-year.cast_signed(), true),
+                        Sign::Positive => (year.cast_signed(), false),
+                    },
+                ))
             } else if modifiers.sign_is_mandatory {
                 None
             } else {
@@ -56,11 +58,13 @@ pub(crate) fn parse_year(
                     exactly_n_digits_padded::<2, u32>(modifiers.padding)(input)?
                 };
 
-                Some(if sign == b'-' {
-                    ParsedItem(input, (-year.cast_signed(), true))
-                } else {
-                    ParsedItem(input, (year.cast_signed(), false))
-                })
+                Some(ParsedItem(
+                    input,
+                    match sign {
+                        Sign::Negative => (-year.cast_signed(), true),
+                        Sign::Positive => (year.cast_signed(), false),
+                    },
+                ))
             } else if modifiers.sign_is_mandatory {
                 None
             } else {
@@ -86,7 +90,7 @@ pub(crate) fn parse_month(
         match modifiers.repr {
             modifier::MonthRepr::Numerical => {
                 return exactly_n_digits_padded::<2, _>(modifiers.padding)(input)?
-                    .flat_map(|n| Month::from_number(n).ok());
+                    .flat_map(|n| Month::from_number(NonZero::new(n)?).ok());
             }
             modifier::MonthRepr::Long => [
                 (b"January".as_slice(), January),
@@ -135,65 +139,189 @@ pub(crate) fn parse_weekday(
     input: &[u8],
     modifiers: modifier::Weekday,
 ) -> Option<ParsedItem<'_, Weekday>> {
-    first_match(
-        match (modifiers.repr, modifiers.one_indexed) {
-            (modifier::WeekdayRepr::Short, _) => [
-                (b"Mon".as_slice(), Weekday::Monday),
-                (b"Tue".as_slice(), Weekday::Tuesday),
-                (b"Wed".as_slice(), Weekday::Wednesday),
-                (b"Thu".as_slice(), Weekday::Thursday),
-                (b"Fri".as_slice(), Weekday::Friday),
-                (b"Sat".as_slice(), Weekday::Saturday),
-                (b"Sun".as_slice(), Weekday::Sunday),
-            ],
-            (modifier::WeekdayRepr::Long, _) => [
-                (b"Monday".as_slice(), Weekday::Monday),
-                (b"Tuesday".as_slice(), Weekday::Tuesday),
-                (b"Wednesday".as_slice(), Weekday::Wednesday),
-                (b"Thursday".as_slice(), Weekday::Thursday),
-                (b"Friday".as_slice(), Weekday::Friday),
-                (b"Saturday".as_slice(), Weekday::Saturday),
-                (b"Sunday".as_slice(), Weekday::Sunday),
-            ],
-            (modifier::WeekdayRepr::Sunday, false) => [
-                (b"1".as_slice(), Weekday::Monday),
-                (b"2".as_slice(), Weekday::Tuesday),
-                (b"3".as_slice(), Weekday::Wednesday),
-                (b"4".as_slice(), Weekday::Thursday),
-                (b"5".as_slice(), Weekday::Friday),
-                (b"6".as_slice(), Weekday::Saturday),
-                (b"0".as_slice(), Weekday::Sunday),
-            ],
-            (modifier::WeekdayRepr::Sunday, true) => [
-                (b"2".as_slice(), Weekday::Monday),
-                (b"3".as_slice(), Weekday::Tuesday),
-                (b"4".as_slice(), Weekday::Wednesday),
-                (b"5".as_slice(), Weekday::Thursday),
-                (b"6".as_slice(), Weekday::Friday),
-                (b"7".as_slice(), Weekday::Saturday),
-                (b"1".as_slice(), Weekday::Sunday),
-            ],
-            (modifier::WeekdayRepr::Monday, false) => [
-                (b"0".as_slice(), Weekday::Monday),
-                (b"1".as_slice(), Weekday::Tuesday),
-                (b"2".as_slice(), Weekday::Wednesday),
-                (b"3".as_slice(), Weekday::Thursday),
-                (b"4".as_slice(), Weekday::Friday),
-                (b"5".as_slice(), Weekday::Saturday),
-                (b"6".as_slice(), Weekday::Sunday),
-            ],
-            (modifier::WeekdayRepr::Monday, true) => [
-                (b"1".as_slice(), Weekday::Monday),
-                (b"2".as_slice(), Weekday::Tuesday),
-                (b"3".as_slice(), Weekday::Wednesday),
-                (b"4".as_slice(), Weekday::Thursday),
-                (b"5".as_slice(), Weekday::Friday),
-                (b"6".as_slice(), Weekday::Saturday),
-                (b"7".as_slice(), Weekday::Sunday),
-            ],
+    match (modifiers.repr, modifiers.one_indexed) {
+        (modifier::WeekdayRepr::Short, _) if modifiers.case_sensitive => match input {
+            [b'M', b'o', b'n', rest @ ..] => Some(ParsedItem(rest, Weekday::Monday)),
+            [b'T', b'u', b'e', rest @ ..] => Some(ParsedItem(rest, Weekday::Tuesday)),
+            [b'W', b'e', b'd', rest @ ..] => Some(ParsedItem(rest, Weekday::Wednesday)),
+            [b'T', b'h', b'u', rest @ ..] => Some(ParsedItem(rest, Weekday::Thursday)),
+            [b'F', b'r', b'i', rest @ ..] => Some(ParsedItem(rest, Weekday::Friday)),
+            [b'S', b'a', b't', rest @ ..] => Some(ParsedItem(rest, Weekday::Saturday)),
+            [b'S', b'u', b'n', rest @ ..] => Some(ParsedItem(rest, Weekday::Sunday)),
+            _ => None,
         },
-        modifiers.case_sensitive,
-    )(input)
+        (modifier::WeekdayRepr::Short, _) => match input {
+            [b'M' | b'm', b'O' | b'o', b'N' | b'n', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Monday))
+            }
+            [b'T' | b't', b'U' | b'u', b'E' | b'e', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Tuesday))
+            }
+            [b'W' | b'w', b'E' | b'e', b'D' | b'd', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Wednesday))
+            }
+            [b'T' | b't', b'H' | b'h', b'U' | b'u', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Thursday))
+            }
+            [b'F' | b'f', b'R' | b'r', b'I' | b'i', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Friday))
+            }
+            [b'S' | b's', b'A' | b'a', b'T' | b't', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Saturday))
+            }
+            [b'S' | b's', b'U' | b'u', b'N' | b'n', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Sunday))
+            }
+            _ => None,
+        },
+        (modifier::WeekdayRepr::Long, _) if modifiers.case_sensitive => match input {
+            [b'M', b'o', b'n', b'd', b'a', b'y', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Monday))
+            }
+            [b'T', b'u', b'e', b's', b'd', b'a', b'y', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Tuesday))
+            }
+            [
+                b'W',
+                b'e',
+                b'd',
+                b'n',
+                b'e',
+                b's',
+                b'd',
+                b'a',
+                b'y',
+                rest @ ..,
+            ] => Some(ParsedItem(rest, Weekday::Wednesday)),
+            [b'T', b'h', b'u', b'r', b's', b'd', b'a', b'y', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Thursday))
+            }
+            [b'F', b'r', b'i', b'd', b'a', b'y', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Friday))
+            }
+            [b'S', b'a', b't', b'u', b'r', b'd', b'a', b'y', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Saturday))
+            }
+            [b'S', b'u', b'n', b'd', b'a', b'y', rest @ ..] => {
+                Some(ParsedItem(rest, Weekday::Sunday))
+            }
+            _ => None,
+        },
+        (modifier::WeekdayRepr::Long, _) => match input {
+            [
+                b'M' | b'm',
+                b'O' | b'o',
+                b'N' | b'n',
+                b'D' | b'd',
+                b'A' | b'a',
+                b'Y' | b'y',
+                rest @ ..,
+            ] => Some(ParsedItem(rest, Weekday::Monday)),
+            [
+                b'T' | b't',
+                b'U' | b'u',
+                b'E' | b'e',
+                b'S' | b's',
+                b'D' | b'd',
+                b'A' | b'a',
+                b'Y' | b'y',
+                rest @ ..,
+            ] => Some(ParsedItem(rest, Weekday::Tuesday)),
+            [
+                b'W' | b'w',
+                b'E' | b'e',
+                b'D' | b'd',
+                b'N' | b'n',
+                b'E' | b'e',
+                b'S' | b's',
+                b'D' | b'd',
+                b'A' | b'a',
+                b'Y' | b'y',
+                rest @ ..,
+            ] => Some(ParsedItem(rest, Weekday::Wednesday)),
+            [
+                b'T' | b't',
+                b'H' | b'h',
+                b'U' | b'u',
+                b'R' | b'r',
+                b'S' | b's',
+                b'D' | b'd',
+                b'A' | b'a',
+                b'Y' | b'y',
+                rest @ ..,
+            ] => Some(ParsedItem(rest, Weekday::Thursday)),
+            [
+                b'F' | b'f',
+                b'R' | b'r',
+                b'I' | b'i',
+                b'D' | b'd',
+                b'A' | b'a',
+                b'Y' | b'y',
+                rest @ ..,
+            ] => Some(ParsedItem(rest, Weekday::Friday)),
+            [
+                b'S' | b's',
+                b'A' | b'a',
+                b'T' | b't',
+                b'U' | b'u',
+                b'R' | b'r',
+                b'D' | b'd',
+                b'A' | b'a',
+                b'Y' | b'y',
+                rest @ ..,
+            ] => Some(ParsedItem(rest, Weekday::Saturday)),
+            [
+                b'S' | b's',
+                b'U' | b'u',
+                b'N' | b'n',
+                b'D' | b'd',
+                b'A' | b'a',
+                b'Y' | b'y',
+                rest @ ..,
+            ] => Some(ParsedItem(rest, Weekday::Sunday)),
+            _ => None,
+        },
+        (modifier::WeekdayRepr::Sunday, false) => match input {
+            [b'1', rest @ ..] => Some(ParsedItem(rest, Weekday::Monday)),
+            [b'2', rest @ ..] => Some(ParsedItem(rest, Weekday::Tuesday)),
+            [b'3', rest @ ..] => Some(ParsedItem(rest, Weekday::Wednesday)),
+            [b'4', rest @ ..] => Some(ParsedItem(rest, Weekday::Thursday)),
+            [b'5', rest @ ..] => Some(ParsedItem(rest, Weekday::Friday)),
+            [b'6', rest @ ..] => Some(ParsedItem(rest, Weekday::Saturday)),
+            [b'0', rest @ ..] => Some(ParsedItem(rest, Weekday::Sunday)),
+            _ => None,
+        },
+        (modifier::WeekdayRepr::Sunday, true) => match input {
+            [b'2', rest @ ..] => Some(ParsedItem(rest, Weekday::Monday)),
+            [b'3', rest @ ..] => Some(ParsedItem(rest, Weekday::Tuesday)),
+            [b'4', rest @ ..] => Some(ParsedItem(rest, Weekday::Wednesday)),
+            [b'5', rest @ ..] => Some(ParsedItem(rest, Weekday::Thursday)),
+            [b'6', rest @ ..] => Some(ParsedItem(rest, Weekday::Friday)),
+            [b'7', rest @ ..] => Some(ParsedItem(rest, Weekday::Saturday)),
+            [b'1', rest @ ..] => Some(ParsedItem(rest, Weekday::Sunday)),
+            _ => None,
+        },
+        (modifier::WeekdayRepr::Monday, false) => match input {
+            [b'0', rest @ ..] => Some(ParsedItem(rest, Weekday::Monday)),
+            [b'1', rest @ ..] => Some(ParsedItem(rest, Weekday::Tuesday)),
+            [b'2', rest @ ..] => Some(ParsedItem(rest, Weekday::Wednesday)),
+            [b'3', rest @ ..] => Some(ParsedItem(rest, Weekday::Thursday)),
+            [b'4', rest @ ..] => Some(ParsedItem(rest, Weekday::Friday)),
+            [b'5', rest @ ..] => Some(ParsedItem(rest, Weekday::Saturday)),
+            [b'6', rest @ ..] => Some(ParsedItem(rest, Weekday::Sunday)),
+            _ => None,
+        },
+        (modifier::WeekdayRepr::Monday, true) => match input {
+            [b'1', rest @ ..] => Some(ParsedItem(rest, Weekday::Monday)),
+            [b'2', rest @ ..] => Some(ParsedItem(rest, Weekday::Tuesday)),
+            [b'3', rest @ ..] => Some(ParsedItem(rest, Weekday::Wednesday)),
+            [b'4', rest @ ..] => Some(ParsedItem(rest, Weekday::Thursday)),
+            [b'5', rest @ ..] => Some(ParsedItem(rest, Weekday::Friday)),
+            [b'6', rest @ ..] => Some(ParsedItem(rest, Weekday::Saturday)),
+            [b'7', rest @ ..] => Some(ParsedItem(rest, Weekday::Sunday)),
+            _ => None,
+        },
+    }
 }
 
 /// Parse the "ordinal" component of a `Date`.
@@ -203,6 +331,7 @@ pub(crate) fn parse_ordinal(
     modifiers: modifier::Ordinal,
 ) -> Option<ParsedItem<'_, NonZero<u16>>> {
     exactly_n_digits_padded::<3, _>(modifiers.padding)(input)
+        .and_then(|parsed| parsed.flat_map(NonZero::new))
 }
 
 /// Parse the "day" component of a `Date`.
@@ -212,6 +341,7 @@ pub(crate) fn parse_day(
     modifiers: modifier::Day,
 ) -> Option<ParsedItem<'_, NonZero<u8>>> {
     exactly_n_digits_padded::<2, _>(modifiers.padding)(input)
+        .and_then(|parsed| parsed.flat_map(NonZero::new))
 }
 
 /// Indicate whether the hour is "am" or "pm".
@@ -253,20 +383,16 @@ pub(crate) fn parse_period(
     input: &[u8],
     modifiers: modifier::Period,
 ) -> Option<ParsedItem<'_, Period>> {
-    first_match(
-        if modifiers.is_uppercase {
-            [
-                (b"AM".as_slice(), Period::Am),
-                (b"PM".as_slice(), Period::Pm),
-            ]
-        } else {
-            [
-                (b"am".as_slice(), Period::Am),
-                (b"pm".as_slice(), Period::Pm),
-            ]
-        },
-        modifiers.case_sensitive,
-    )(input)
+    let (rest, period) = match (modifiers.is_uppercase, modifiers.case_sensitive, input) {
+        (true, _, [b'A', b'M', rest @ ..]) => (rest, Period::Am),
+        (true, _, [b'P', b'M', rest @ ..]) => (rest, Period::Pm),
+        (false, _, [b'a', b'm', rest @ ..]) => (rest, Period::Am),
+        (false, _, [b'p', b'm', rest @ ..]) => (rest, Period::Pm),
+        (_, false, [b'A' | b'a', b'M' | b'm', rest @ ..]) => (rest, Period::Am),
+        (_, false, [b'P' | b'p', b'M' | b'm', rest @ ..]) => (rest, Period::Pm),
+        _ => return None,
+    };
+    Some(ParsedItem(rest, period))
 }
 
 /// Parse the "subsecond" component of a `Time`.
@@ -276,15 +402,15 @@ pub(crate) fn parse_subsecond(
 ) -> Option<ParsedItem<'_, u32>> {
     use modifier::SubsecondDigits::*;
     Some(match modifiers.digits {
-        One => exactly_n_digits::<1, u32>(input)?.map(|v| v * 100_000_000),
-        Two => exactly_n_digits::<2, u32>(input)?.map(|v| v * 10_000_000),
-        Three => exactly_n_digits::<3, u32>(input)?.map(|v| v * 1_000_000),
-        Four => exactly_n_digits::<4, u32>(input)?.map(|v| v * 100_000),
-        Five => exactly_n_digits::<5, u32>(input)?.map(|v| v * 10_000),
-        Six => exactly_n_digits::<6, u32>(input)?.map(|v| v * 1_000),
-        Seven => exactly_n_digits::<7, u32>(input)?.map(|v| v * 100),
-        Eight => exactly_n_digits::<8, u32>(input)?.map(|v| v * 10),
-        Nine => exactly_n_digits::<9, _>(input)?,
+        One => ExactlyNDigits::<1>::parse(input)?.map(|v| v.extend::<u32>() * 100_000_000),
+        Two => ExactlyNDigits::<2>::parse(input)?.map(|v| v.extend::<u32>() * 10_000_000),
+        Three => ExactlyNDigits::<3>::parse(input)?.map(|v| v.extend::<u32>() * 1_000_000),
+        Four => ExactlyNDigits::<4>::parse(input)?.map(|v| v.extend::<u32>() * 100_000),
+        Five => ExactlyNDigits::<5>::parse(input)?.map(|v| v * 10_000),
+        Six => ExactlyNDigits::<6>::parse(input)?.map(|v| v * 1_000),
+        Seven => ExactlyNDigits::<7>::parse(input)?.map(|v| v * 100),
+        Eight => ExactlyNDigits::<8>::parse(input)?.map(|v| v * 10),
+        Nine => ExactlyNDigits::<9>::parse(input)?,
         OneOrMore => {
             let ParsedItem(mut input, mut value) =
                 any_digit(input)?.map(|v| (v - b'0').extend::<u32>() * 100_000_000);
@@ -311,7 +437,7 @@ pub(crate) fn parse_offset_hour(
     let ParsedItem(input, sign) = opt(sign)(input);
     let ParsedItem(input, hour) = exactly_n_digits_padded::<2, u8>(modifiers.padding)(input)?;
     match sign {
-        Some(b'-') => Some(ParsedItem(input, (-hour.cast_signed(), true))),
+        Some(Sign::Negative) => Some(ParsedItem(input, (-hour.cast_signed(), true))),
         None if modifiers.sign_is_mandatory => None,
         _ => Some(ParsedItem(input, (hour.cast_signed(), false))),
     }
@@ -370,7 +496,7 @@ pub(crate) fn parse_unix_timestamp(
     };
 
     match sign {
-        Some(b'-') => Some(ParsedItem(input, -nano_timestamp.cast_signed())),
+        Some(Sign::Negative) => Some(ParsedItem(input, -nano_timestamp.cast_signed())),
         None if modifiers.sign_is_mandatory => None,
         _ => Some(ParsedItem(input, nano_timestamp.cast_signed())),
     }

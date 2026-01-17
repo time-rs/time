@@ -25,11 +25,9 @@
 //! reasonable manner externally.
 
 use std::format;
-use std::num::NonZero;
 
 use crate::ext::DigitCount;
 use crate::parsing::combinator::rfc::iso8601;
-use crate::parsing::shim::Integer;
 use crate::{duration, parsing};
 
 #[test]
@@ -106,5 +104,4 @@ fn parsing_internals() {
             .flat_map(|_| None::<()>)
             .is_none()
     );
-    assert!(<NonZero<u8> as Integer>::parse_bytes(b"256").is_none());
 }

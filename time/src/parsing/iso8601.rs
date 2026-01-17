@@ -8,7 +8,7 @@ use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::parsing::combinator::rfc::iso8601::{
     ExtendedKind, day, dayk, dayo, float, hour, min, month, week, year,
 };
-use crate::parsing::combinator::{ascii_char, sign};
+use crate::parsing::combinator::{Sign, ascii_char, sign};
 use crate::parsing::{Parsed, ParsedItem};
 
 impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
@@ -257,10 +257,9 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
             let mut input = hour(input)
                 .and_then(|parsed_item| {
                     parsed_item.consume_value(|hour| {
-                        parsed.set_offset_hour(if sign == b'-' {
-                            -hour.cast_signed()
-                        } else {
-                            hour.cast_signed()
+                        parsed.set_offset_hour(match sign {
+                            Sign::Negative => -hour.cast_signed(),
+                            Sign::Positive => hour.cast_signed(),
                         })
                     })
                 })
@@ -279,10 +278,9 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
                 Some(ParsedItem(new_input, min)) => {
                     input = new_input;
                     parsed
-                        .set_offset_minute_signed(if sign == b'-' {
-                            -min.cast_signed()
-                        } else {
-                            min.cast_signed()
+                        .set_offset_minute_signed(match sign {
+                            Sign::Negative => -min.cast_signed(),
+                            Sign::Positive => min.cast_signed(),
                         })
                         .ok_or(InvalidComponent("offset minute"))?;
                 }

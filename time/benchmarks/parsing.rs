@@ -1,14 +1,15 @@
 use criterion::Bencher;
-use time::format_description::well_known::{Rfc2822, Rfc3339};
-use time::format_description::{modifier, Component};
-use time::parsing::Parsed;
 use time::OffsetDateTime;
+use time::format_description::well_known::{Rfc2822, Rfc3339};
+use time::format_description::{Component, modifier};
+use time::parsing::Parsed;
 
 macro_rules! component {
-    ($name:ident {$($field:ident : $value:expr),+ $(,)? }) => {{
+    ($name:ident {$($field:ident : $value:expr),* $(,)? }) => {{
         const COMPONENT: Component = Component::$name({
+            #[allow(unused_mut, reason = "macro-generated code")]
             let mut modifier = modifier::$name::default();
-            $(modifier.$field = $value;)+
+            $(modifier.$field = $value;)*
             modifier
         });
         COMPONENT
@@ -199,6 +200,11 @@ setup_benchmark! {
                 digits: modifier::SubsecondDigits::OneOrMore,
             }))
         });
+    }
+
+    fn parse_component_unix_timestamp(ben: &mut Bencher<'_>) {
+        let mut parsed = Parsed::new();
+        ben.iter(|| parsed.parse_component(std::hint::black_box(b"1234567890"), component!(UnixTimestamp {})));
     }
 
     fn parse_rfc3339(ben: &mut Bencher<'_>) {

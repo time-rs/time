@@ -1,5 +1,6 @@
 //! A trait that can be used to parse an item from an input.
 
+use core::num::NonZero;
 use core::ops::Deref;
 
 use num_conv::prelude::*;
@@ -11,6 +12,7 @@ use crate::format_description::OwnedFormatItem;
 use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::internal_macros::bug;
+use crate::parsing::combinator::{Sign, one_or_two_digits};
 use crate::parsing::{Parsed, ParsedItem};
 use crate::{Date, Month, OffsetDateTime, Time, UtcOffset, Weekday, error};
 
@@ -171,9 +173,7 @@ impl sealed::Sealed for Rfc2822 {
     ) -> Result<&'a [u8], error::Parse> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
         use crate::parsing::combinator::rfc::rfc2822::{cfws, fws};
-        use crate::parsing::combinator::{
-            ascii_char, exactly_n_digits, first_match, n_to_m_digits, opt, sign,
-        };
+        use crate::parsing::combinator::{ExactlyNDigits, ascii_char, first_match, opt, sign};
 
         let colon = ascii_char::<b':'>;
         let comma = ascii_char::<b','>;
@@ -200,8 +200,8 @@ impl sealed::Sealed for Rfc2822 {
         } else {
             input
         };
-        let input = n_to_m_digits::<1, 2, _>(input)
-            .and_then(|item| item.consume_value(|value| parsed.set_day(value)))
+        let input = one_or_two_digits(input)
+            .and_then(|item| item.consume_value(|value| parsed.set_day(NonZero::new(value)?)))
             .ok_or(InvalidComponent("day"))?;
         let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
         let input = first_match(
@@ -224,20 +224,21 @@ impl sealed::Sealed for Rfc2822 {
         .and_then(|item| item.consume_value(|value| parsed.set_month(value)))
         .ok_or(InvalidComponent("month"))?;
         let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = match exactly_n_digits::<4, u32>(input) {
+        let input = match ExactlyNDigits::<4>::parse(input) {
             Some(item) => {
                 let input = item
                     .flat_map(|year| if year >= 1900 { Some(year) } else { None })
                     .and_then(|item| {
-                        item.consume_value(|value| parsed.set_year(value.cast_signed()))
+                        item.consume_value(|value| parsed.set_year(value.cast_signed().extend()))
                     })
                     .ok_or(InvalidComponent("year"))?;
                 fws(input).ok_or(InvalidLiteral)?.into_inner()
             }
             None => {
-                let input = exactly_n_digits::<2, u32>(input)
+                let input = ExactlyNDigits::<2>::parse(input)
                     .and_then(|item| {
-                        item.map(|year| if year < 50 { year + 2000 } else { year + 1900 })
+                        item.map(|year| year.extend::<u32>())
+                            .map(|year| if year < 50 { year + 2000 } else { year + 1900 })
                             .map(|year| year.cast_signed())
                             .consume_value(|value| parsed.set_year(value))
                     })
@@ -246,20 +247,20 @@ impl sealed::Sealed for Rfc2822 {
             }
         };
 
-        let input = exactly_n_digits::<2, _>(input)
+        let input = ExactlyNDigits::<2>::parse(input)
             .and_then(|item| item.consume_value(|value| parsed.set_hour_24(value)))
             .ok_or(InvalidComponent("hour"))?;
         let input = opt(cfws)(input).into_inner();
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
         let input = opt(cfws)(input).into_inner();
-        let input = exactly_n_digits::<2, _>(input)
+        let input = ExactlyNDigits::<2>::parse(input)
             .and_then(|item| item.consume_value(|value| parsed.set_minute(value)))
             .ok_or(InvalidComponent("minute"))?;
 
         let input = if let Some(input) = colon(opt(cfws)(input).into_inner()) {
             let input = input.into_inner(); // discard the colon
             let input = opt(cfws)(input).into_inner();
-            let input = exactly_n_digits::<2, _>(input)
+            let input = ExactlyNDigits::<2>::parse(input)
                 .and_then(|item| item.consume_value(|value| parsed.set_second(value)))
                 .ok_or(InvalidComponent("second"))?;
             cfws(input).ok_or(InvalidLiteral)?.into_inner()
@@ -310,19 +311,16 @@ impl sealed::Sealed for Rfc2822 {
         }
 
         let ParsedItem(input, offset_sign) = sign(input).ok_or(InvalidComponent("offset hour"))?;
-        let input = exactly_n_digits::<2, u8>(input)
+        let input = ExactlyNDigits::<2>::parse(input)
             .and_then(|item| {
-                item.map(|offset_hour| {
-                    if offset_sign == b'-' {
-                        -offset_hour.cast_signed()
-                    } else {
-                        offset_hour.cast_signed()
-                    }
+                item.map(|offset_hour| match offset_sign {
+                    Sign::Negative => -offset_hour.cast_signed(),
+                    Sign::Positive => offset_hour.cast_signed(),
                 })
                 .consume_value(|value| parsed.set_offset_hour(value))
             })
             .ok_or(InvalidComponent("offset hour"))?;
-        let input = exactly_n_digits::<2, u8>(input)
+        let input = ExactlyNDigits::<2>::parse(input)
             .and_then(|item| {
                 item.consume_value(|value| parsed.set_offset_minute_signed(value.cast_signed()))
             })
@@ -336,9 +334,7 @@ impl sealed::Sealed for Rfc2822 {
     fn parse_offset_date_time(&self, input: &[u8]) -> Result<OffsetDateTime, error::Parse> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
         use crate::parsing::combinator::rfc::rfc2822::{cfws, fws};
-        use crate::parsing::combinator::{
-            ascii_char, exactly_n_digits, first_match, n_to_m_digits, opt, sign,
-        };
+        use crate::parsing::combinator::{ExactlyNDigits, ascii_char, first_match, opt, sign};
 
         let colon = ascii_char::<b':'>;
         let comma = ascii_char::<b','>;
@@ -365,8 +361,7 @@ impl sealed::Sealed for Rfc2822 {
         } else {
             input
         };
-        let ParsedItem(input, day) =
-            n_to_m_digits::<1, 2, _>(input).ok_or(InvalidComponent("day"))?;
+        let ParsedItem(input, day) = one_or_two_digits(input).ok_or(InvalidComponent("day"))?;
         let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
         let ParsedItem(input, month) = first_match(
             [
@@ -387,7 +382,7 @@ impl sealed::Sealed for Rfc2822 {
         )(input)
         .ok_or(InvalidComponent("month"))?;
         let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
-        let (input, year) = match exactly_n_digits::<4, u32>(input) {
+        let (input, year) = match ExactlyNDigits::<4>::parse(input) {
             Some(item) => {
                 let ParsedItem(input, year) = item
                     .flat_map(|year| if year >= 1900 { Some(year) } else { None })
@@ -396,8 +391,11 @@ impl sealed::Sealed for Rfc2822 {
                 (input, year)
             }
             None => {
-                let ParsedItem(input, year) = exactly_n_digits::<2, u32>(input)
-                    .map(|item| item.map(|year| if year < 50 { year + 2000 } else { year + 1900 }))
+                let ParsedItem(input, year) = ExactlyNDigits::<2>::parse(input)
+                    .map(|item| {
+                        item.map(|year| year.extend::<u16>())
+                            .map(|year| if year < 50 { year + 2000 } else { year + 1900 })
+                    })
                     .ok_or(InvalidComponent("year"))?;
                 let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
                 (input, year)
@@ -405,18 +403,18 @@ impl sealed::Sealed for Rfc2822 {
         };
 
         let ParsedItem(input, hour) =
-            exactly_n_digits::<2, _>(input).ok_or(InvalidComponent("hour"))?;
+            ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("hour"))?;
         let input = opt(cfws)(input).into_inner();
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
         let input = opt(cfws)(input).into_inner();
         let ParsedItem(input, minute) =
-            exactly_n_digits::<2, _>(input).ok_or(InvalidComponent("minute"))?;
+            ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("minute"))?;
 
         let (input, mut second) = if let Some(input) = colon(opt(cfws)(input).into_inner()) {
             let input = input.into_inner(); // discard the colon
             let input = opt(cfws)(input).into_inner();
             let ParsedItem(input, second) =
-                exactly_n_digits::<2, _>(input).ok_or(InvalidComponent("second"))?;
+                ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("second"))?;
             let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
             (input, second)
         } else {
@@ -456,19 +454,16 @@ impl sealed::Sealed for Rfc2822 {
         } else {
             let ParsedItem(input, offset_sign) =
                 sign(input).ok_or(InvalidComponent("offset hour"))?;
-            let ParsedItem(input, offset_hour) = exactly_n_digits::<2, u8>(input)
+            let ParsedItem(input, offset_hour) = ExactlyNDigits::<2>::parse(input)
                 .map(|item| {
-                    item.map(|offset_hour| {
-                        if offset_sign == b'-' {
-                            -offset_hour.cast_signed()
-                        } else {
-                            offset_hour.cast_signed()
-                        }
+                    item.map(|offset_hour| match offset_sign {
+                        Sign::Negative => -offset_hour.cast_signed(),
+                        Sign::Positive => offset_hour.cast_signed(),
                     })
                 })
                 .ok_or(InvalidComponent("offset hour"))?;
             let ParsedItem(input, offset_minute) =
-                exactly_n_digits::<2, u8>(input).ok_or(InvalidComponent("offset minute"))?;
+                ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("offset minute"))?;
             (input, offset_hour, offset_minute.cast_signed())
         };
 
@@ -490,7 +485,7 @@ impl sealed::Sealed for Rfc2822 {
         };
 
         let dt = (|| {
-            let date = Date::from_calendar_date(year.cast_signed(), month, day)?;
+            let date = Date::from_calendar_date(year.cast_signed().extend(), month, day)?;
             let time = Time::from_hms_nano(hour, minute, second, nanosecond)?;
             let offset = UtcOffset::from_hms(offset_hour, offset_minute, 0)?;
             Ok(OffsetDateTime::new_in_offset(date, time, offset))
@@ -521,23 +516,25 @@ impl sealed::Sealed for Rfc3339 {
     ) -> Result<&'a [u8], error::Parse> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
         use crate::parsing::combinator::{
-            any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, sign,
+            ExactlyNDigits, any_digit, ascii_char, ascii_char_ignore_case, sign,
         };
 
         let dash = ascii_char::<b'-'>;
         let colon = ascii_char::<b':'>;
 
-        let input = exactly_n_digits::<4, u32>(input)
-            .and_then(|item| item.consume_value(|value| parsed.set_year(value.cast_signed())))
+        let input = ExactlyNDigits::<4>::parse(input)
+            .and_then(|item| {
+                item.consume_value(|value| parsed.set_year(value.cast_signed().extend()))
+            })
             .ok_or(InvalidComponent("year"))?;
         let input = dash(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits::<2, _>(input)
-            .and_then(|item| item.flat_map(|value| Month::from_number(value).ok()))
+        let input = ExactlyNDigits::<2>::parse(input)
+            .and_then(|item| item.flat_map(|value| Month::from_number(NonZero::new(value)?).ok()))
             .and_then(|item| item.consume_value(|value| parsed.set_month(value)))
             .ok_or(InvalidComponent("month"))?;
         let input = dash(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits::<2, _>(input)
-            .and_then(|item| item.consume_value(|value| parsed.set_day(value)))
+        let input = ExactlyNDigits::<2>::parse(input)
+            .and_then(|item| item.consume_value(|value| parsed.set_day(NonZero::new(value)?)))
             .ok_or(InvalidComponent("day"))?;
 
         // RFC3339 allows any separator, not just `T`, not just `space`.
@@ -549,15 +546,15 @@ impl sealed::Sealed for Rfc3339 {
         // Specifically, rusqlite uses space separators.
         let input = input.get(1..).ok_or(InvalidComponent("separator"))?;
 
-        let input = exactly_n_digits::<2, _>(input)
+        let input = ExactlyNDigits::<2>::parse(input)
             .and_then(|item| item.consume_value(|value| parsed.set_hour_24(value)))
             .ok_or(InvalidComponent("hour"))?;
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits::<2, _>(input)
+        let input = ExactlyNDigits::<2>::parse(input)
             .and_then(|item| item.consume_value(|value| parsed.set_minute(value)))
             .ok_or(InvalidComponent("minute"))?;
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits::<2, _>(input)
+        let input = ExactlyNDigits::<2>::parse(input)
             .and_then(|item| item.consume_value(|value| parsed.set_second(value)))
             .ok_or(InvalidComponent("second"))?;
         let input = if let Some(ParsedItem(input, ())) = ascii_char::<b'.'>(input) {
@@ -597,28 +594,22 @@ impl sealed::Sealed for Rfc3339 {
         }
 
         let ParsedItem(input, offset_sign) = sign(input).ok_or(InvalidComponent("offset hour"))?;
-        let input = exactly_n_digits::<2, u8>(input)
+        let input = ExactlyNDigits::<2>::parse(input)
             .and_then(|item| {
                 item.filter(|&offset_hour| offset_hour <= 23)?
-                    .map(|offset_hour| {
-                        if offset_sign == b'-' {
-                            -offset_hour.cast_signed()
-                        } else {
-                            offset_hour.cast_signed()
-                        }
+                    .map(|offset_hour| match offset_sign {
+                        Sign::Negative => -offset_hour.cast_signed(),
+                        Sign::Positive => offset_hour.cast_signed(),
                     })
                     .consume_value(|value| parsed.set_offset_hour(value))
             })
             .ok_or(InvalidComponent("offset hour"))?;
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = exactly_n_digits::<2, u8>(input)
+        let input = ExactlyNDigits::<2>::parse(input)
             .and_then(|item| {
-                item.map(|offset_minute| {
-                    if offset_sign == b'-' {
-                        -offset_minute.cast_signed()
-                    } else {
-                        offset_minute.cast_signed()
-                    }
+                item.map(|offset_minute| match offset_sign {
+                    Sign::Negative => -offset_minute.cast_signed(),
+                    Sign::Positive => offset_minute.cast_signed(),
                 })
                 .consume_value(|value| parsed.set_offset_minute_signed(value))
             })
@@ -630,20 +621,21 @@ impl sealed::Sealed for Rfc3339 {
     fn parse_offset_date_time(&self, input: &[u8]) -> Result<OffsetDateTime, error::Parse> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
         use crate::parsing::combinator::{
-            any_digit, ascii_char, ascii_char_ignore_case, exactly_n_digits, sign,
+            ExactlyNDigits, any_digit, ascii_char, ascii_char_ignore_case, sign,
         };
 
         let dash = ascii_char::<b'-'>;
         let colon = ascii_char::<b':'>;
 
         let ParsedItem(input, year) =
-            exactly_n_digits::<4, u32>(input).ok_or(InvalidComponent("year"))?;
+            ExactlyNDigits::<4>::parse(input).ok_or(InvalidComponent("year"))?;
         let input = dash(input).ok_or(InvalidLiteral)?.into_inner();
-        let ParsedItem(input, month) =
-            exactly_n_digits::<2, _>(input).ok_or(InvalidComponent("month"))?;
+        let ParsedItem(input, month) = ExactlyNDigits::<2>::parse(input)
+            .and_then(|parsed| parsed.flat_map(NonZero::new))
+            .ok_or(InvalidComponent("month"))?;
         let input = dash(input).ok_or(InvalidLiteral)?.into_inner();
         let ParsedItem(input, day) =
-            exactly_n_digits::<2, _>(input).ok_or(InvalidComponent("day"))?;
+            ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("day"))?;
 
         // RFC3339 allows any separator, not just `T`, not just `space`.
         // cf. Section 5.6: Internet Date/Time Format:
@@ -655,13 +647,13 @@ impl sealed::Sealed for Rfc3339 {
         let input = input.get(1..).ok_or(InvalidComponent("separator"))?;
 
         let ParsedItem(input, hour) =
-            exactly_n_digits::<2, _>(input).ok_or(InvalidComponent("hour"))?;
+            ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("hour"))?;
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
         let ParsedItem(input, minute) =
-            exactly_n_digits::<2, _>(input).ok_or(InvalidComponent("minute"))?;
+            ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("minute"))?;
         let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
         let ParsedItem(input, mut second) =
-            exactly_n_digits::<2, _>(input).ok_or(InvalidComponent("second"))?;
+            ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("second"))?;
         let ParsedItem(input, mut nanosecond) =
             if let Some(ParsedItem(input, ())) = ascii_char::<b'.'>(input) {
                 let ParsedItem(mut input, mut value) = any_digit(input)
@@ -685,25 +677,24 @@ impl sealed::Sealed for Rfc3339 {
             } else {
                 let ParsedItem(input, offset_sign) =
                     sign(input).ok_or(InvalidComponent("offset hour"))?;
-                let ParsedItem(input, offset_hour) = exactly_n_digits::<2, u8>(input)
+                let ParsedItem(input, offset_hour) = ExactlyNDigits::<2>::parse(input)
                     .and_then(|parsed| parsed.filter(|&offset_hour| offset_hour <= 23))
                     .ok_or(InvalidComponent("offset hour"))?;
                 let input = colon(input).ok_or(InvalidLiteral)?.into_inner();
                 let ParsedItem(input, offset_minute) =
-                    exactly_n_digits::<2, u8>(input).ok_or(InvalidComponent("offset minute"))?;
-                UtcOffset::from_hms(
-                    if offset_sign == b'-' {
-                        -offset_hour.cast_signed()
-                    } else {
-                        offset_hour.cast_signed()
-                    },
-                    if offset_sign == b'-' {
-                        -offset_minute.cast_signed()
-                    } else {
-                        offset_minute.cast_signed()
-                    },
-                    0,
-                )
+                    ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("offset minute"))?;
+                match offset_sign {
+                    Sign::Negative => UtcOffset::from_hms(
+                        -offset_hour.cast_signed(),
+                        -offset_minute.cast_signed(),
+                        0,
+                    ),
+                    Sign::Positive => UtcOffset::from_hms(
+                        offset_hour.cast_signed(),
+                        offset_minute.cast_signed(),
+                        0,
+                    ),
+                }
                 .map(|offset| ParsedItem(input, offset))
                 .map_err(|mut err| {
                     // Provide the user a more accurate error.
@@ -736,7 +727,7 @@ impl sealed::Sealed for Rfc3339 {
         };
 
         let date = Month::from_number(month)
-            .and_then(|month| Date::from_calendar_date(year.cast_signed(), month, day))
+            .and_then(|month| Date::from_calendar_date(year.cast_signed().extend(), month, day))
             .map_err(TryFromParsed::ComponentRange)?;
         let time = Time::from_hms_nano(hour, minute, second, nanosecond)
             .map_err(TryFromParsed::ComponentRange)?;

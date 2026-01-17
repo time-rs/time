@@ -2,17 +2,27 @@
 
 pub(crate) mod rfc;
 
-use num_conv::prelude::*;
-
 use crate::format_description::modifier::Padding;
 use crate::parsing::ParsedItem;
-use crate::parsing::shim::{Integer, IntegerParseBytes};
+use crate::parsing::shim::Integer;
 
-/// Parse a "+" or "-" sign. Returns the ASCII byte representing the sign, if present.
+/// The sign of a number.
+#[allow(
+    clippy::missing_docs_in_private_items,
+    reason = "self-explanatory variants"
+)]
+#[derive(Debug)]
+pub(crate) enum Sign {
+    Negative,
+    Positive,
+}
+
+/// Parse a "+" or "-" sign.
 #[inline]
-pub(crate) const fn sign(input: &[u8]) -> Option<ParsedItem<'_, u8>> {
+pub(crate) const fn sign(input: &[u8]) -> Option<ParsedItem<'_, Sign>> {
     match input {
-        [sign @ (b'-' | b'+'), remaining @ ..] => Some(ParsedItem(remaining, *sign)),
+        [b'-', remaining @ ..] => Some(ParsedItem(remaining, Sign::Negative)),
+        [b'+', remaining @ ..] => Some(ParsedItem(remaining, Sign::Positive)),
         _ => None,
     }
 }
@@ -25,10 +35,10 @@ pub(crate) fn first_match<'a, T>(
 ) -> impl FnMut(&'a [u8]) -> Option<ParsedItem<'a, T>> {
     let mut options = options.into_iter();
     move |input| {
-        options.find_map(|(expected, t)| {
-            if case_sensitive {
-                Some(ParsedItem(input.strip_prefix(expected)?, t))
-            } else {
+        if case_sensitive {
+            options.find_map(|(expected, t)| Some(ParsedItem(input.strip_prefix(expected)?, t)))
+        } else {
+            options.find_map(|(expected, t)| {
                 let n = expected.len();
                 if n <= input.len() {
                     let (head, tail) = input.split_at(n);
@@ -37,8 +47,8 @@ pub(crate) fn first_match<'a, T>(
                     }
                 }
                 None
-            }
-        })
+            })
+        }
     }
 }
 
@@ -69,59 +79,311 @@ pub(crate) fn one_or_more<'a, P: Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>>>(
     }
 }
 
-/// Consume between `n` and `m` instances of the provided parser.
-#[inline]
-pub(crate) fn n_to_m<
-    'a,
-    const N: u8,
-    const M: u8,
-    T,
-    P: Fn(&'a [u8]) -> Option<ParsedItem<'a, T>>,
->(
-    parser: P,
-) -> impl Fn(&'a [u8]) -> Option<ParsedItem<'a, &'a [u8]>> {
-    debug_assert!(M >= N);
-    move |mut input| {
-        // We need to keep this to determine the total length eventually consumed.
-        let orig_input = input;
-
-        // Mandatory
-        for _ in 0..N {
-            input = parser(input)?.0;
-        }
-
-        // Optional
-        for _ in N..M {
-            match parser(input) {
-                Some(parsed) => input = parsed.0,
-                None => break,
-            }
-        }
-
-        Some(ParsedItem(
-            input,
-            &orig_input[..(orig_input.len() - input.len())],
-        ))
-    }
-}
-
 /// Consume between `n` and `m` digits, returning the numerical value.
 #[inline]
 pub(crate) fn n_to_m_digits<const N: u8, const M: u8, T: Integer>(
-    input: &[u8],
+    mut input: &[u8],
 ) -> Option<ParsedItem<'_, T>> {
     debug_assert!(M >= N);
-    n_to_m::<N, M, _, _>(any_digit)(input)?.flat_map(|value| value.parse_bytes())
+
+    let mut value = T::ZERO;
+
+    // Mandatory
+    for i in 0..N {
+        let digit;
+        ParsedItem(input, digit) = any_digit(input)?;
+
+        if i != T::MAX_NUM_DIGITS - 1 {
+            value = value.push_digit(digit - b'0');
+        } else {
+            value = value.checked_push_digit(digit - b'0')?;
+        }
+    }
+
+    // Optional
+    for i in N..M {
+        let Some(ParsedItem(new_input, digit)) = any_digit(input) else {
+            break;
+        };
+        input = new_input;
+
+        if i != T::MAX_NUM_DIGITS - 1 {
+            value = value.push_digit(digit - b'0');
+        } else {
+            value = value.checked_push_digit(digit - b'0')?;
+        }
+    }
+
+    Some(ParsedItem(input, value))
+}
+
+/// Consume one or two digits, returning the numerical value.
+#[inline]
+pub(crate) fn one_or_two_digits(input: &[u8]) -> Option<ParsedItem<'_, u8>> {
+    match input {
+        [a @ b'0'..=b'9', b @ b'0'..=b'9', remaining @ ..] => {
+            let a = *a - b'0';
+            let b = *b - b'0';
+            Some(ParsedItem(remaining, a * 10 + b))
+        }
+        [a @ b'0'..=b'9', remaining @ ..] => {
+            let a = *a - b'0';
+            Some(ParsedItem(remaining, a))
+        }
+        _ => None,
+    }
+}
+
+/// Parse an exact number of digits without padding.
+#[derive(Debug)]
+pub(crate) struct ExactlyNDigits<const N: u8>;
+
+impl ExactlyNDigits<1> {
+    /// Consume exactly one digit.
+    #[inline]
+    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u8>> {
+        match input {
+            [a @ b'0'..=b'9', remaining @ ..] => Some(ParsedItem(remaining, *a - b'0')),
+            _ => None,
+        }
+    }
+}
+
+impl ExactlyNDigits<2> {
+    /// Consume exactly two digits.
+    #[inline]
+    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u8>> {
+        match input {
+            [a @ b'0'..=b'9', b @ b'0'..=b'9', remaining @ ..] => {
+                let a = *a - b'0';
+                let b = *b - b'0';
+                Some(ParsedItem(remaining, a * 10 + b))
+            }
+            _ => None,
+        }
+    }
+}
+
+impl ExactlyNDigits<3> {
+    /// Consume exactly three digits.
+    #[inline]
+    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u16>> {
+        match input {
+            [
+                a @ b'0'..=b'9',
+                b @ b'0'..=b'9',
+                c @ b'0'..=b'9',
+                remaining @ ..,
+            ] => {
+                let a = (*a - b'0') as u16;
+                let b = (*b - b'0') as u16;
+                let c = (*c - b'0') as u16;
+                Some(ParsedItem(remaining, a * 100 + b * 10 + c))
+            }
+            _ => None,
+        }
+    }
+}
+
+impl ExactlyNDigits<4> {
+    /// Consume exactly four digits.
+    #[inline]
+    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u16>> {
+        match input {
+            [
+                a @ b'0'..=b'9',
+                b @ b'0'..=b'9',
+                c @ b'0'..=b'9',
+                d @ b'0'..=b'9',
+                remaining @ ..,
+            ] => {
+                let a = (*a - b'0') as u16;
+                let b = (*b - b'0') as u16;
+                let c = (*c - b'0') as u16;
+                let d = (*d - b'0') as u16;
+                Some(ParsedItem(remaining, a * 1000 + b * 100 + c * 10 + d))
+            }
+            _ => None,
+        }
+    }
+}
+
+impl ExactlyNDigits<5> {
+    /// Consume exactly five digits.
+    #[inline]
+    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
+        match input {
+            [
+                a @ b'0'..=b'9',
+                b @ b'0'..=b'9',
+                c @ b'0'..=b'9',
+                d @ b'0'..=b'9',
+                e @ b'0'..=b'9',
+                remaining @ ..,
+            ] => {
+                let a = (*a - b'0') as u32;
+                let b = (*b - b'0') as u32;
+                let c = (*c - b'0') as u32;
+                let d = (*d - b'0') as u32;
+                let e = (*e - b'0') as u32;
+                Some(ParsedItem(
+                    remaining,
+                    a * 10000 + b * 1000 + c * 100 + d * 10 + e,
+                ))
+            }
+            _ => None,
+        }
+    }
+}
+
+impl ExactlyNDigits<6> {
+    /// Consume exactly six digits.
+    #[inline]
+    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
+        match input {
+            [
+                a @ b'0'..=b'9',
+                b @ b'0'..=b'9',
+                c @ b'0'..=b'9',
+                d @ b'0'..=b'9',
+                e @ b'0'..=b'9',
+                f @ b'0'..=b'9',
+                remaining @ ..,
+            ] => {
+                let a = (*a - b'0') as u32;
+                let b = (*b - b'0') as u32;
+                let c = (*c - b'0') as u32;
+                let d = (*d - b'0') as u32;
+                let e = (*e - b'0') as u32;
+                let f = (*f - b'0') as u32;
+                Some(ParsedItem(
+                    remaining,
+                    a * 100000 + b * 10000 + c * 1000 + d * 100 + e * 10 + f,
+                ))
+            }
+            _ => None,
+        }
+    }
+}
+
+impl ExactlyNDigits<7> {
+    /// Consume exactly seven digits.
+    #[inline]
+    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
+        match input {
+            [
+                a @ b'0'..=b'9',
+                b @ b'0'..=b'9',
+                c @ b'0'..=b'9',
+                d @ b'0'..=b'9',
+                e @ b'0'..=b'9',
+                f @ b'0'..=b'9',
+                g @ b'0'..=b'9',
+                remaining @ ..,
+            ] => {
+                let a = (*a - b'0') as u32;
+                let b = (*b - b'0') as u32;
+                let c = (*c - b'0') as u32;
+                let d = (*d - b'0') as u32;
+                let e = (*e - b'0') as u32;
+                let f = (*f - b'0') as u32;
+                let g = (*g - b'0') as u32;
+                Some(ParsedItem(
+                    remaining,
+                    a * 1_000_000 + b * 100_000 + c * 10_000 + d * 1_000 + e * 100 + f * 10 + g,
+                ))
+            }
+            _ => None,
+        }
+    }
+}
+
+impl ExactlyNDigits<8> {
+    /// Consume exactly eight digits.
+    #[inline]
+    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
+        match input {
+            [
+                a @ b'0'..=b'9',
+                b @ b'0'..=b'9',
+                c @ b'0'..=b'9',
+                d @ b'0'..=b'9',
+                e @ b'0'..=b'9',
+                f @ b'0'..=b'9',
+                g @ b'0'..=b'9',
+                h @ b'0'..=b'9',
+                remaining @ ..,
+            ] => {
+                let a = (*a - b'0') as u32;
+                let b = (*b - b'0') as u32;
+                let c = (*c - b'0') as u32;
+                let d = (*d - b'0') as u32;
+                let e = (*e - b'0') as u32;
+                let f = (*f - b'0') as u32;
+                let g = (*g - b'0') as u32;
+                let h = (*h - b'0') as u32;
+                Some(ParsedItem(
+                    remaining,
+                    a * 10_000_000
+                        + b * 1_000_000
+                        + c * 100_000
+                        + d * 10_000
+                        + e * 1_000
+                        + f * 100
+                        + g * 10
+                        + h,
+                ))
+            }
+            _ => None,
+        }
+    }
+}
+
+impl ExactlyNDigits<9> {
+    /// Consume exactly nine digits.
+    #[inline]
+    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
+        match input {
+            [
+                a @ b'0'..=b'9',
+                b @ b'0'..=b'9',
+                c @ b'0'..=b'9',
+                d @ b'0'..=b'9',
+                e @ b'0'..=b'9',
+                f @ b'0'..=b'9',
+                g @ b'0'..=b'9',
+                h @ b'0'..=b'9',
+                i @ b'0'..=b'9',
+                remaining @ ..,
+            ] => {
+                let a = (*a - b'0') as u32;
+                let b = (*b - b'0') as u32;
+                let c = (*c - b'0') as u32;
+                let d = (*d - b'0') as u32;
+                let e = (*e - b'0') as u32;
+                let f = (*f - b'0') as u32;
+                let g = (*g - b'0') as u32;
+                let h = (*h - b'0') as u32;
+                let i = (*i - b'0') as u32;
+                Some(ParsedItem(
+                    remaining,
+                    a * 100_000_000
+                        + b * 10_000_000
+                        + c * 1_000_000
+                        + d * 100_000
+                        + e * 10_000
+                        + f * 1_000
+                        + g * 100
+                        + h * 10
+                        + i,
+                ))
+            }
+            _ => None,
+        }
+    }
 }
 
 /// Consume exactly `n` digits, returning the numerical value.
-#[inline]
-pub(crate) fn exactly_n_digits<const N: u8, T: Integer>(input: &[u8]) -> Option<ParsedItem<'_, T>> {
-    n_to_m_digits::<N, N, _>(input)
-}
-
-/// Consume exactly `n` digits, returning the numerical value.
-#[inline]
 pub(crate) fn exactly_n_digits_padded<'a, const N: u8, T: Integer>(
     padding: Padding,
 ) -> impl Fn(&'a [u8]) -> Option<ParsedItem<'a, T>> {
@@ -129,7 +391,6 @@ pub(crate) fn exactly_n_digits_padded<'a, const N: u8, T: Integer>(
 }
 
 /// Consume between `n` and `m` digits, returning the numerical value.
-#[inline]
 pub(crate) fn n_to_m_digits_padded<'a, const N: u8, const M: u8, T: Integer>(
     padding: Padding,
 ) -> impl Fn(&'a [u8]) -> Option<ParsedItem<'a, T>> {
@@ -139,28 +400,47 @@ pub(crate) fn n_to_m_digits_padded<'a, const N: u8, const M: u8, T: Integer>(
         Padding::Space => {
             debug_assert!(N > 0);
 
-            let mut orig_input = input;
+            let mut value = T::ZERO;
+
+            // Consume the padding.
+            let mut pad_width = 0;
             for _ in 0..(N - 1) {
                 match ascii_char::<b' '>(input) {
-                    Some(parsed) => input = parsed.0,
-                    None => break,
-                }
-            }
-            let pad_width = (orig_input.len() - input.len()).truncate::<u8>();
-
-            orig_input = input;
-            for _ in 0..(N - pad_width) {
-                input = any_digit(input)?.0;
-            }
-            for _ in N..M {
-                match any_digit(input) {
-                    Some(parsed) => input = parsed.0,
+                    Some(parsed) => {
+                        pad_width += 1;
+                        input = parsed.0;
+                    }
                     None => break,
                 }
             }
 
-            ParsedItem(input, &orig_input[..(orig_input.len() - input.len())])
-                .flat_map(|value| value.parse_bytes())
+            // Mandatory
+            for i in 0..(N - pad_width) {
+                let digit;
+                ParsedItem(input, digit) = any_digit(input)?;
+
+                value = if i != T::MAX_NUM_DIGITS - 1 {
+                    value.push_digit(digit - b'0')
+                } else {
+                    value.checked_push_digit(digit - b'0')?
+                };
+            }
+
+            // Optional
+            for i in N..M {
+                let Some(ParsedItem(new_input, digit)) = any_digit(input) else {
+                    break;
+                };
+                input = new_input;
+
+                value = if i - pad_width != T::MAX_NUM_DIGITS - 1 {
+                    value.push_digit(digit - b'0')
+                } else {
+                    value.checked_push_digit(digit - b'0')?
+                };
+            }
+
+            Some(ParsedItem(input, value))
         }
         Padding::Zero => n_to_m_digits::<N, M, _>(input),
     }
@@ -170,7 +450,7 @@ pub(crate) fn n_to_m_digits_padded<'a, const N: u8, const M: u8, T: Integer>(
 #[inline]
 pub(crate) const fn any_digit(input: &[u8]) -> Option<ParsedItem<'_, u8>> {
     match input {
-        [c, remaining @ ..] if c.is_ascii_digit() => Some(ParsedItem(remaining, *c)),
+        [c @ b'0'..=b'9', remaining @ ..] => Some(ParsedItem(remaining, *c)),
         _ => None,
     }
 }
