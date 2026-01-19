@@ -5,11 +5,11 @@ use criterion::Bencher;
 use time::util;
 
 /// Generate a representative sample of all years.
-fn representative_years() -> [i32; 400] {
-    static DATES: LazyLock<[i32; 400]> = LazyLock::new(|| {
+fn representative_years() -> [i32; 800] {
+    static DATES: LazyLock<[i32; 800]> = LazyLock::new(|| {
         let mut years = [0; _];
-        for year in 0..400 {
-            years[year as usize] = year;
+        for year in -400..400 {
+            years[(year + 400) as usize] = year;
         }
         crate::shuffle(years)
     });
