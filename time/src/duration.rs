@@ -772,11 +772,21 @@ impl Duration {
 
     /// Create a new `Duration` with the given number of nanoseconds.
     ///
-    /// As the input range cannot be fully mapped to the output, this should only be used where it's
-    /// known to result in a valid value.
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs. This may happen because the input range cannot be
+    /// fully mapped to the output.
+    ///
+    /// ```rust
+    /// # use time::{Duration, ext::NumericalDuration};
+    /// assert_eq!(
+    ///     Duration::nanoseconds_i128(1_234_567_890),
+    ///     1.seconds() + 234_567_890.nanoseconds()
+    /// );
+    /// ```
     #[inline]
     #[track_caller]
-    pub(crate) const fn nanoseconds_i128(nanoseconds: i128) -> Self {
+    pub const fn nanoseconds_i128(nanoseconds: i128) -> Self {
         let seconds = nanoseconds / Nanosecond::per_t::<i128>(Second);
         let nanoseconds = nanoseconds % Nanosecond::per_t::<i128>(Second);
 
