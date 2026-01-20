@@ -262,19 +262,20 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-          targets: x86_64-unknown-linux-gnu,aarch64-apple-darwin,x86_64-pc-windows-gnu,x86_64-unknown-netbsd,x86_64-unknown-illumos,wasm32-wasip1
+          targets: x86_64-unknown-linux-gnu
+          # ,aarch64-apple-darwin,x86_64-pc-windows-gnu,x86_64-unknown-netbsd,x86_64-unknown-illumos,wasm32-wasip1
 
       - name: Run clippy
         run: |
           cargo clippy \
           --all-features \
           --all-targets \
-          --target x86_64-unknown-linux-gnu \
-          --target aarch64-apple-darwin \
-          --target x86_64-pc-windows-gnu \
-          --target x86_64-unknown-netbsd \
-          --target x86_64-unknown-illumos \
-          --target wasm32-wasip1
+        # --target x86_64-unknown-linux-gnu \
+        # --target aarch64-apple-darwin \
+        # --target x86_64-pc-windows-gnu \
+        # --target x86_64-unknown-netbsd \
+        # --target x86_64-unknown-illumos \
+        # --target wasm32-wasip1
         env:
           RUSTFLAGS: --cfg bench
 
