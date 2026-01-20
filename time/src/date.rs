@@ -287,9 +287,6 @@ impl Date {
 
     /// Create a `Date` from the Julian day.
     ///
-    /// The algorithm to perform this conversion is derived from one provided by Peter Baum; it is
-    /// freely available [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
-    ///
     /// ```rust
     /// # use time::Date;
     /// # use time_macros::date;

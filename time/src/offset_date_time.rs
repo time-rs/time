@@ -785,9 +785,6 @@ impl OffsetDateTime {
 
     /// Get the Julian day for the date. The time is not taken into account for this calculation.
     ///
-    /// The algorithm to perform this conversion is derived from one provided by Peter Baum; it is
-    /// freely available [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
-    ///
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(datetime!(-4713-11-24 0:00 UTC).to_julian_day(), 0);
