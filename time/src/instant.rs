@@ -4,12 +4,11 @@
 
 use core::borrow::Borrow;
 use core::cmp::{Ord, Ordering, PartialEq, PartialOrd};
-use core::ops::{Add, Sub};
+use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 use std::time::Instant as StdInstant;
 
 use crate::Duration;
-use crate::internal_macros::{impl_add_assign, impl_sub_assign};
 
 /// A measurement of a monotonically non-decreasing clock. Opaque and useful only with [`Duration`].
 ///
@@ -201,6 +200,10 @@ impl Add<Duration> for Instant {
 impl Add<Duration> for StdInstant {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This function may panic if the resulting point in time cannot be represented by the
+    /// underlying data structure.
     #[inline]
     fn add(self, duration: Duration) -> Self::Output {
         (Instant(self) + duration).0
@@ -210,14 +213,48 @@ impl Add<Duration> for StdInstant {
 impl Add<StdDuration> for Instant {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This function may panic if the resulting point in time cannot be represented by the
+    /// underlying data structure.
     #[inline]
     fn add(self, duration: StdDuration) -> Self::Output {
         Self(self.0 + duration)
     }
 }
 
-impl_add_assign!(Instant: Duration, StdDuration);
-impl_add_assign!(StdInstant: Duration);
+impl AddAssign<Duration> for Instant {
+    /// # Panics
+    ///
+    /// This function may panic if the resulting point in time cannot be represented by the
+    /// underlying data structure.
+    #[inline]
+    fn add_assign(&mut self, rhs: Duration) {
+        *self = *self + rhs;
+    }
+}
+
+impl AddAssign<StdDuration> for Instant {
+    /// # Panics
+    ///
+    /// This function may panic if the resulting point in time cannot be represented by the
+    /// underlying data structure.
+    #[inline]
+    fn add_assign(&mut self, rhs: StdDuration) {
+        *self = *self + rhs;
+    }
+}
+
+impl AddAssign<Duration> for StdInstant {
+    /// # Panics
+    ///
+    /// This function may panic if the resulting point in time cannot be represented by the
+    /// underlying data structure.
+    #[inline]
+    fn add_assign(&mut self, rhs: Duration) {
+        *self = *self + rhs;
+    }
+}
 
 impl Sub<Duration> for Instant {
     type Output = Self;
@@ -243,6 +280,10 @@ impl Sub<Duration> for Instant {
 impl Sub<Duration> for StdInstant {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This function may panic if the resulting point in time cannot be represented by the
+    /// underlying data structure.
     #[inline]
     fn sub(self, duration: Duration) -> Self::Output {
         (Instant(self) - duration).0
@@ -263,8 +304,38 @@ impl Sub<StdDuration> for Instant {
     }
 }
 
-impl_sub_assign!(Instant: Duration, StdDuration);
-impl_sub_assign!(StdInstant: Duration);
+impl SubAssign<Duration> for Instant {
+    /// # Panics
+    ///
+    /// This function may panic if the resulting point in time cannot be represented by the
+    /// underlying data structure.
+    #[inline]
+    fn sub_assign(&mut self, rhs: Duration) {
+        *self = *self - rhs;
+    }
+}
+
+impl SubAssign<StdDuration> for Instant {
+    /// # Panics
+    ///
+    /// This function may panic if the resulting point in time cannot be represented by the
+    /// underlying data structure.
+    #[inline]
+    fn sub_assign(&mut self, rhs: StdDuration) {
+        *self = *self - rhs;
+    }
+}
+
+impl SubAssign<Duration> for StdInstant {
+    /// # Panics
+    ///
+    /// This function may panic if the resulting point in time cannot be represented by the
+    /// underlying data structure.
+    #[inline]
+    fn sub_assign(&mut self, rhs: Duration) {
+        *self = *self - rhs;
+    }
+}
 
 impl PartialEq<StdInstant> for Instant {
     #[inline]

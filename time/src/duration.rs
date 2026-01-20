@@ -3,7 +3,7 @@
 use core::cmp::Ordering;
 use core::fmt;
 use core::iter::Sum;
-use core::ops::{Add, AddAssign, Div, Mul, Neg, Sub, SubAssign};
+use core::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
@@ -16,9 +16,7 @@ use num_conv::prelude::*;
 use crate::Instant;
 use crate::convert::*;
 use crate::error;
-use crate::internal_macros::{
-    const_try_opt, impl_add_assign, impl_div_assign, impl_mul_assign, impl_sub_assign,
-};
+use crate::internal_macros::{const_try_opt, impl_div_assign};
 
 /// By explicitly inserting this enum where padding is expected, the compiler is able to better
 /// perform niche value optimization.
@@ -772,11 +770,6 @@ impl Duration {
 
     /// Create a new `Duration` with the given number of nanoseconds.
     ///
-    /// # Panics
-    ///
-    /// This may panic if an overflow occurs. This may happen because the input range cannot be
-    /// fully mapped to the output.
-    ///
     /// ```rust
     /// # use time::{Duration, ext::NumericalDuration};
     /// assert_eq!(
@@ -784,6 +777,11 @@ impl Duration {
     ///     1.seconds() + 234_567_890.nanoseconds()
     /// );
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs. This may happen because the input range cannot be
+    /// fully mapped to the output.
     #[inline]
     #[track_caller]
     pub const fn nanoseconds_i128(nanoseconds: i128) -> Self {
@@ -1400,6 +1398,9 @@ impl Add<StdDuration> for Duration {
 impl Add<Duration> for StdDuration {
     type Output = Duration;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
     fn add(self, rhs: Duration) -> Self::Output {
@@ -1407,7 +1408,27 @@ impl Add<Duration> for StdDuration {
     }
 }
 
-impl_add_assign!(Duration: Self, StdDuration);
+impl AddAssign<Self> for Duration {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn add_assign(&mut self, rhs: Self) {
+        *self = *self + rhs;
+    }
+}
+
+impl AddAssign<StdDuration> for Duration {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn add_assign(&mut self, rhs: StdDuration) {
+        *self = *self + rhs;
+    }
+}
 
 impl AddAssign<Duration> for StdDuration {
     /// # Panics
@@ -1426,6 +1447,9 @@ impl AddAssign<Duration> for StdDuration {
 impl Neg for Duration {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
     fn neg(self) -> Self::Output {
@@ -1476,7 +1500,27 @@ impl Sub<Duration> for StdDuration {
     }
 }
 
-impl_sub_assign!(Duration: Self, StdDuration);
+impl SubAssign<Self> for Duration {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = *self - rhs;
+    }
+}
+
+impl SubAssign<StdDuration> for Duration {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn sub_assign(&mut self, rhs: StdDuration) {
+        *self = *self - rhs;
+    }
+}
 
 impl SubAssign<Duration> for StdDuration {
     /// # Panics
@@ -1508,6 +1552,9 @@ macro_rules! duration_mul_div_int {
         impl Mul<$type> for Duration {
             type Output = Self;
 
+            /// # Panics
+            ///
+            /// This may panic if an overflow occurs.
             #[inline]
             #[track_caller]
             fn mul(self, rhs: $type) -> Self::Output {
@@ -1522,6 +1569,9 @@ macro_rules! duration_mul_div_int {
         impl Mul<Duration> for $type {
             type Output = Duration;
 
+            /// # Panics
+            ///
+            /// This may panic if an overflow occurs.
             #[inline]
             #[track_caller]
             fn mul(self, rhs: Duration) -> Self::Output {
@@ -1555,6 +1605,9 @@ duration_mul_div_int! {
 impl Mul<f32> for Duration {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
     fn mul(self, rhs: f32) -> Self::Output {
@@ -1565,6 +1618,9 @@ impl Mul<f32> for Duration {
 impl Mul<Duration> for f32 {
     type Output = Duration;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
     fn mul(self, rhs: Duration) -> Self::Output {
@@ -1575,6 +1631,9 @@ impl Mul<Duration> for f32 {
 impl Mul<f64> for Duration {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
     fn mul(self, rhs: f64) -> Self::Output {
@@ -1585,6 +1644,9 @@ impl Mul<f64> for Duration {
 impl Mul<Duration> for f64 {
     type Output = Duration;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
     fn mul(self, rhs: Duration) -> Self::Output {
@@ -1592,7 +1654,93 @@ impl Mul<Duration> for f64 {
     }
 }
 
-impl_mul_assign!(Duration: i8, i16, i32, u8, u16, u32, f32, f64);
+impl MulAssign<i8> for Duration {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn mul_assign(&mut self, rhs: i8) {
+        *self = *self * rhs;
+    }
+}
+
+impl MulAssign<i16> for Duration {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn mul_assign(&mut self, rhs: i16) {
+        *self = *self * rhs;
+    }
+}
+
+impl MulAssign<i32> for Duration {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn mul_assign(&mut self, rhs: i32) {
+        *self = *self * rhs;
+    }
+}
+
+impl MulAssign<u8> for Duration {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn mul_assign(&mut self, rhs: u8) {
+        *self = *self * rhs;
+    }
+}
+
+impl MulAssign<u16> for Duration {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn mul_assign(&mut self, rhs: u16) {
+        *self = *self * rhs;
+    }
+}
+
+impl MulAssign<u32> for Duration {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn mul_assign(&mut self, rhs: u32) {
+        *self = *self * rhs;
+    }
+}
+
+impl MulAssign<f32> for Duration {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn mul_assign(&mut self, rhs: f32) {
+        *self = *self * rhs;
+    }
+}
+
+impl MulAssign<f64> for Duration {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn mul_assign(&mut self, rhs: f64) {
+        *self = *self * rhs;
+    }
+}
 
 impl Div<f32> for Duration {
     type Output = Self;
@@ -1704,6 +1852,9 @@ impl<'a> Sum<&'a Self> for Duration {
 impl Add<Duration> for SystemTime {
     type Output = Self;
 
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
     #[inline]
     #[track_caller]
     fn add(self, duration: Duration) -> Self::Output {
@@ -1718,7 +1869,17 @@ impl Add<Duration> for SystemTime {
     }
 }
 
-impl_add_assign!(SystemTime: #[cfg(feature = "std")] Duration);
+#[cfg(feature = "std")]
+impl AddAssign<Duration> for SystemTime {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn add_assign(&mut self, rhs: Duration) {
+        *self = *self + rhs;
+    }
+}
 
 #[cfg(feature = "std")]
 impl Sub<Duration> for SystemTime {
@@ -1738,4 +1899,14 @@ impl Sub<Duration> for SystemTime {
     }
 }
 
-impl_sub_assign!(SystemTime: #[cfg(feature = "std")] Duration);
+#[cfg(feature = "std")]
+impl SubAssign<Duration> for SystemTime {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn sub_assign(&mut self, rhs: Duration) {
+        *self = *self - rhs;
+    }
+}

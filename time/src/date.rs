@@ -3,7 +3,7 @@
 #[cfg(feature = "formatting")]
 use alloc::string::String;
 use core::num::NonZero;
-use core::ops::{Add, Sub};
+use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 use core::{cmp, fmt};
 #[cfg(feature = "formatting")]
@@ -18,9 +18,7 @@ use crate::convert::*;
 use crate::ext::DigitCount;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
-use crate::internal_macros::{
-    const_try, const_try_opt, div_floor, ensure_ranged, impl_add_assign, impl_sub_assign,
-};
+use crate::internal_macros::{const_try, const_try_opt, div_floor, ensure_ranged};
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::util::{range_validated, weeks_in_year};
@@ -1534,7 +1532,27 @@ impl Add<StdDuration> for Date {
     }
 }
 
-impl_add_assign!(Date: Duration, StdDuration);
+impl AddAssign<Duration> for Date {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn add_assign(&mut self, rhs: Duration) {
+        *self = *self + rhs;
+    }
+}
+
+impl AddAssign<StdDuration> for Date {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn add_assign(&mut self, rhs: StdDuration) {
+        *self = *self + rhs;
+    }
+}
 
 impl Sub<Duration> for Date {
     type Output = Self;
@@ -1564,7 +1582,27 @@ impl Sub<StdDuration> for Date {
     }
 }
 
-impl_sub_assign!(Date: Duration, StdDuration);
+impl SubAssign<Duration> for Date {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn sub_assign(&mut self, rhs: Duration) {
+        *self = *self - rhs;
+    }
+}
+
+impl SubAssign<StdDuration> for Date {
+    /// # Panics
+    ///
+    /// This may panic if an overflow occurs.
+    #[inline]
+    #[track_caller]
+    fn sub_assign(&mut self, rhs: StdDuration) {
+        *self = *self - rhs;
+    }
+}
 
 impl Sub for Date {
     type Output = Duration;

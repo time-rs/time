@@ -69,6 +69,9 @@ impl From<SystemTime> for UtcDateTime {
 }
 
 impl From<UtcDateTime> for SystemTime {
+    /// # Panics
+    ///
+    /// This may panic if the resulting `SystemTime` cannot be represented.
     #[inline]
     fn from(datetime: UtcDateTime) -> Self {
         let duration = datetime - UtcDateTime::UNIX_EPOCH;

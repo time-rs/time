@@ -32,15 +32,6 @@ macro_rules! impl_sub_assign {
     };
 }
 
-/// Implement `MulAssign` for the provided types.
-macro_rules! impl_mul_assign {
-    ($target:ty : $($(#[$attr:meta])* $t:ty),+ $(,)?) => {
-        $crate::internal_macros::__impl_assign!(
-            * MulAssign mul_assign $target : $($(#[$attr])* $t),+
-        );
-    };
-}
-
 /// Implement `DivAssign` for the provided types.
 macro_rules! impl_div_assign {
     ($target:ty : $($(#[$attr:meta])* $t:ty),+ $(,)?) => {
@@ -269,5 +260,5 @@ macro_rules! bug {
 pub(crate) use bug;
 pub(crate) use {
     __impl_assign, carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged,
-    impl_add_assign, impl_div_assign, impl_mul_assign, impl_sub_assign,
+    impl_add_assign, impl_div_assign, impl_sub_assign,
 };

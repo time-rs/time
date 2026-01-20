@@ -67,6 +67,9 @@ impl From<SystemTime> for OffsetDateTime {
 }
 
 impl From<OffsetDateTime> for SystemTime {
+    /// # Panics
+    ///
+    /// This may panic if the resulting `SystemTime` cannot be represented.
     #[inline]
     fn from(datetime: OffsetDateTime) -> Self {
         let duration = datetime - OffsetDateTime::UNIX_EPOCH;
