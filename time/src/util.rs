@@ -1,6 +1,6 @@
 //! Utility functions, including updating time zone information.
 
-pub(crate) use time_core::util::range_validated;
+pub(crate) use time_core::util::{days_in_month_leap, range_validated};
 pub use time_core::util::{days_in_year, is_leap_year, weeks_in_year};
 
 use crate::Month;

@@ -61,14 +61,7 @@ pub mod range_validated {
         }
         #[cfg(not(feature = "large-dates"))]
         {
-            debug_assert!(month >= 1);
-            debug_assert!(month <= 12);
-
-            if crate::hint::unlikely(month == 2) {
-                if is_leap_year(year) { 29 } else { 28 }
-            } else {
-                30 | month ^ (month >> 3)
-            }
+            super::days_in_month_leap(month, is_leap_year(year))
         }
     }
 }
@@ -149,11 +142,21 @@ pub const fn weeks_in_year(year: i32) -> u8 {
 #[inline]
 #[track_caller]
 pub const fn days_in_month(month: u8, year: i32) -> u8 {
+    days_in_month_leap(month, is_leap_year(year))
+}
+
+/// Get the number of days in the month. The year does not need to be known, but whether the
+/// year is a leap year does.
+///
+/// Note: This function is not exposed by the `time` crate. It is an implementation detail.
+#[inline]
+#[track_caller]
+pub const fn days_in_month_leap(month: u8, is_leap_year: bool) -> u8 {
     debug_assert!(month >= 1);
     debug_assert!(month <= 12);
 
     if hint::unlikely(month == 2) {
-        if is_leap_year(year) { 29 } else { 28 }
+        if is_leap_year { 29 } else { 28 }
     } else {
         30 | month ^ (month >> 3)
     }
