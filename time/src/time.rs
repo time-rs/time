@@ -4,7 +4,7 @@
 use alloc::string::String;
 use core::cmp::Ordering;
 use core::hash::{Hash, Hasher};
-use core::ops::{Add, Sub};
+use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 use core::{fmt, hint};
 #[cfg(feature = "formatting")]
@@ -18,7 +18,7 @@ use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
 use crate::convert::*;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
-use crate::internal_macros::{cascade, ensure_ranged, impl_add_assign, impl_sub_assign};
+use crate::internal_macros::{cascade, ensure_ranged};
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::util::DateAdjustment;
@@ -945,6 +945,13 @@ impl Add<Duration> for Time {
     }
 }
 
+impl AddAssign<Duration> for Time {
+    #[inline]
+    fn add_assign(&mut self, rhs: Duration) {
+        *self = *self + rhs;
+    }
+}
+
 impl Add<StdDuration> for Time {
     type Output = Self;
 
@@ -962,7 +969,12 @@ impl Add<StdDuration> for Time {
     }
 }
 
-impl_add_assign!(Time: Duration, StdDuration);
+impl AddAssign<StdDuration> for Time {
+    #[inline]
+    fn add_assign(&mut self, rhs: StdDuration) {
+        *self = *self + rhs;
+    }
+}
 
 impl Sub<Duration> for Time {
     type Output = Self;
@@ -978,6 +990,13 @@ impl Sub<Duration> for Time {
     #[inline]
     fn sub(self, duration: Duration) -> Self::Output {
         self.adjusting_sub(duration).1
+    }
+}
+
+impl SubAssign<Duration> for Time {
+    #[inline]
+    fn sub_assign(&mut self, rhs: Duration) {
+        *self = *self - rhs;
     }
 }
 
@@ -998,7 +1017,12 @@ impl Sub<StdDuration> for Time {
     }
 }
 
-impl_sub_assign!(Time: Duration, StdDuration);
+impl SubAssign<StdDuration> for Time {
+    #[inline]
+    fn sub_assign(&mut self, rhs: StdDuration) {
+        *self = *self - rhs;
+    }
+}
 
 impl Sub for Time {
     type Output = Duration;

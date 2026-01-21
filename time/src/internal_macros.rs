@@ -1,46 +1,5 @@
 //! Macros for use within the library. They are not publicly available.
 
-/// Helper macro for easily implementing `OpAssign`.
-macro_rules! __impl_assign {
-    ($sym:tt $op:ident $fn:ident $target:ty : $($(#[$attr:meta])* $t:ty),+) => {$(
-        #[allow(unused_qualifications)]
-        $(#[$attr])*
-        impl core::ops::$op<$t> for $target {
-            #[inline]
-            fn $fn(&mut self, rhs: $t) {
-                *self = *self $sym rhs;
-            }
-        }
-    )+};
-}
-
-/// Implement `AddAssign` for the provided types.
-macro_rules! impl_add_assign {
-    ($target:ty : $($(#[$attr:meta])* $t:ty),+ $(,)?) => {
-        $crate::internal_macros::__impl_assign!(
-            + AddAssign add_assign $target : $($(#[$attr])* $t),+
-        );
-    };
-}
-
-/// Implement `SubAssign` for the provided types.
-macro_rules! impl_sub_assign {
-    ($target:ty : $($(#[$attr:meta])* $t:ty),+ $(,)?) => {
-        $crate::internal_macros::__impl_assign!(
-            - SubAssign sub_assign $target : $($(#[$attr])* $t),+
-        );
-    };
-}
-
-/// Implement `DivAssign` for the provided types.
-macro_rules! impl_div_assign {
-    ($target:ty : $($(#[$attr:meta])* $t:ty),+ $(,)?) => {
-        $crate::internal_macros::__impl_assign!(
-            / DivAssign div_assign $target : $($(#[$attr])* $t),+
-        );
-    };
-}
-
 /// Division of integers, rounding the resulting value towards negative infinity.
 macro_rules! div_floor {
     ($self:expr, $rhs:expr) => {
@@ -248,7 +207,4 @@ macro_rules! bug {
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 pub(crate) use bug;
-pub(crate) use {
-    __impl_assign, carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged,
-    impl_add_assign, impl_div_assign, impl_sub_assign,
-};
+pub(crate) use {carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged};
