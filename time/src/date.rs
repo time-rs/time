@@ -156,13 +156,7 @@ impl Date {
             29..=31 if day <= days_in_month_leap(month as u8, is_leap_year) => hint::cold_path(),
             _ => {
                 hint::cold_path();
-                return Err(error::ComponentRange {
-                    name: "day",
-                    minimum: 1,
-                    maximum: days_in_month_leap(month as u8, is_leap_year) as i64,
-                    value: day as i64,
-                    conditional_message: Some("for the given month and year"),
-                });
+                return Err(error::ComponentRange::conditional("day"));
             }
         }
 
@@ -198,13 +192,7 @@ impl Date {
             366 if is_leap_year => hint::cold_path(),
             _ => {
                 hint::cold_path();
-                return Err(error::ComponentRange {
-                    name: "ordinal",
-                    minimum: 1,
-                    maximum: if is_leap_year { 366 } else { 365 },
-                    value: ordinal as i64,
-                    conditional_message: Some("for the given year"),
-                });
+                return Err(error::ComponentRange::conditional("ordinal"));
             }
         }
 
@@ -236,13 +224,7 @@ impl Date {
             53 if week <= weeks_in_year(year) => hint::cold_path(),
             _ => {
                 hint::cold_path();
-                return Err(error::ComponentRange {
-                    name: "week",
-                    minimum: 1,
-                    maximum: weeks_in_year(year) as i64,
-                    value: week as i64,
-                    conditional_message: Some("for the given year"),
-                });
+                return Err(error::ComponentRange::conditional("week"));
             }
         }
 
@@ -1148,13 +1130,7 @@ impl Date {
                 })
             }
             // February 29 does not exist in common years.
-            (true, false) if ordinal == 60 => Err(error::ComponentRange {
-                name: "day",
-                value: 29,
-                minimum: 1,
-                maximum: 28,
-                conditional_message: Some("for the given month and year"),
-            }),
+            (true, false) if ordinal == 60 => Err(error::ComponentRange::conditional("day")),
             // We're going from a common year to a leap year. Shift dates in March and later by
             // one day.
             // Safety: `ordinal` is not zero and `is_leap_year` is correct.
@@ -1205,13 +1181,7 @@ impl Date {
             29..=31 if day <= days_in_month_leap(month as u8, is_leap_year) => hint::cold_path(),
             _ => {
                 hint::cold_path();
-                return Err(error::ComponentRange {
-                    name: "day",
-                    minimum: 1,
-                    maximum: days_in_month_leap(month as u8, is_leap_year) as i64,
-                    value: day as i64,
-                    conditional_message: Some("for the given month and year"),
-                });
+                return Err(error::ComponentRange::conditional("day"));
             }
         }
 
@@ -1244,13 +1214,7 @@ impl Date {
             }
             _ => {
                 hint::cold_path();
-                return Err(error::ComponentRange {
-                    name: "day",
-                    minimum: 1,
-                    maximum: days_in_month_leap(self.month() as u8, is_leap_year) as i64,
-                    value: day as i64,
-                    conditional_message: Some("for the given month and year"),
-                });
+                return Err(error::ComponentRange::conditional("day"));
             }
         }
 
@@ -1281,13 +1245,7 @@ impl Date {
             366 if is_leap_year => hint::cold_path(),
             _ => {
                 hint::cold_path();
-                return Err(error::ComponentRange {
-                    name: "ordinal",
-                    minimum: 1,
-                    maximum: if is_leap_year { 366 } else { 365 },
-                    value: ordinal as i64,
-                    conditional_message: Some("for the given year"),
-                });
+                return Err(error::ComponentRange::conditional("ordinal"));
             }
         }
 

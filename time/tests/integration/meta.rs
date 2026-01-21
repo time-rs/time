@@ -14,15 +14,15 @@ use quickcheck::Arbitrary;
 use rand08::distributions::{Distribution as DistributionRand08, Standard as StandardRand08};
 use rand09::distr::{Distribution as DistributionRand09, StandardUniform as StandardUniformRand09};
 use serde::{Deserialize, Serialize};
-use time::format_description::well_known::iso8601;
-use time::format_description::{modifier, well_known, BorrowedFormatItem, Component};
-use time::formatting::Formattable;
-use time::parsing::{Parsable, Parsed};
 #[expect(deprecated)]
 use time::Instant;
+use time::format_description::well_known::iso8601;
+use time::format_description::{BorrowedFormatItem, Component, modifier, well_known};
+use time::formatting::Formattable;
+use time::parsing::{Parsable, Parsed};
 use time::{
-    error, ext, Date, Duration, Error, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime,
-    UtcOffset, Weekday,
+    Date, Duration, Error, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset,
+    Weekday, error, ext,
 };
 
 #[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
@@ -127,7 +127,7 @@ fn size() {
     assert_size!(UtcDateTime, 12, 12);
     assert_size!(Time, 8, 8);
     assert_size!(UtcOffset, 3, 4);
-    assert_size!(error::ComponentRange, 56, 56);
+    assert_size!(error::ComponentRange, 24, 24);
     assert_size!(error::ConversionRange, 0, 1);
     assert_size!(error::DifferentVariant, 0, 1);
     assert_size!(error::IndeterminateOffset, 0, 1);
@@ -160,12 +160,12 @@ fn size() {
     assert_size!(Parsed, 64, 64);
     assert_size!(Month, 1, 1);
     assert_size!(Weekday, 1, 1);
-    assert_size!(Error, 64, 64);
+    assert_size!(Error, 48, 48);
     assert_size!(error::Format, 24, 24);
     assert_size!(error::InvalidFormatDescription, 48, 48);
-    assert_size!(error::Parse, 64, 64);
+    assert_size!(error::Parse, 32, 32);
     assert_size!(error::ParseFromDescription, 24, 24);
-    assert_size!(error::TryFromParsed, 56, 64);
+    assert_size!(error::TryFromParsed, 24, 24);
     assert_size!(Component, 6, 6);
     assert_size!(BorrowedFormatItem<'_>, 24, 24);
     assert_size!(modifier::MonthRepr, 1, 1);

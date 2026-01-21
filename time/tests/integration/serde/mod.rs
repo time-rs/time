@@ -1,5 +1,5 @@
 use serde_test::{
-    assert_de_tokens, assert_de_tokens_error, assert_tokens, Compact, Configure, Readable, Token,
+    Compact, Configure, Readable, Token, assert_de_tokens, assert_de_tokens_error, assert_tokens,
 };
 use time::macros::{date, datetime, offset, time};
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
@@ -57,7 +57,7 @@ fn time_error() {
             Token::U32(0),
             Token::TupleEnd,
         ],
-        "invalid value: integer `24`, expected a value in the range 0..=23",
+        "invalid hour, expected an in-range value",
     );
     assert_de_tokens_error::<Readable<Time>>(
         &[Token::BorrowedStr("24:00:00.0")],
@@ -266,7 +266,7 @@ fn primitive_date_time_error() {
             Token::U32(0),
             Token::TupleEnd,
         ],
-        "invalid value: integer `366`, expected a value in the range 1..=365",
+        "invalid ordinal, expected an in-range value",
     );
     assert_de_tokens_error::<Compact<PrimitiveDateTime>>(
         &[
@@ -279,7 +279,7 @@ fn primitive_date_time_error() {
             Token::U32(0),
             Token::TupleEnd,
         ],
-        "invalid value: integer `24`, expected a value in the range 0..=23",
+        "invalid hour, expected an in-range value",
     );
 }
 
@@ -466,7 +466,7 @@ fn offset_date_time_error() {
             Token::I8(0),
             Token::TupleEnd,
         ],
-        "invalid value: integer `366`, expected a value in the range 1..=365",
+        "invalid ordinal, expected an in-range value",
     );
     assert_de_tokens_error::<Compact<OffsetDateTime>>(
         &[
@@ -482,7 +482,7 @@ fn offset_date_time_error() {
             Token::I8(0),
             Token::TupleEnd,
         ],
-        "invalid value: integer `24`, expected a value in the range 0..=23",
+        "invalid hour, expected an in-range value",
     );
     assert_de_tokens_error::<Compact<OffsetDateTime>>(
         &[
@@ -498,7 +498,7 @@ fn offset_date_time_error() {
             Token::I8(0),
             Token::TupleEnd,
         ],
-        "invalid value: integer `26`, expected a value in the range -25..=25",
+        "invalid offset hour, expected an in-range value",
     );
     // the Deserialize impl does not recognize leap second times as valid
     assert_de_tokens_error::<Compact<OffsetDateTime>>(
@@ -515,11 +515,11 @@ fn offset_date_time_error() {
             Token::I8(0),
             Token::TupleEnd,
         ],
-        "invalid value: integer `60`, expected a value in the range 0..=59",
+        "invalid second, expected an in-range value",
     );
     assert_de_tokens_error::<Readable<OffsetDateTime>>(
         &[Token::BorrowedStr("2021-12-31 23:59:60.0 +00:00:00")],
-        "second must be in the range 0..=59",
+        "second was not in range",
     );
 }
 
@@ -762,7 +762,7 @@ fn utc_offset_error() {
             Token::I8(0),
             Token::TupleEnd,
         ],
-        "invalid value: integer `26`, expected a value in the range -25..=25",
+        "invalid offset hour, expected an in-range value",
     );
 }
 

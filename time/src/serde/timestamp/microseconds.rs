@@ -8,9 +8,10 @@
 //! [Unix timestamp]: https://en.wikipedia.org/wiki/Unix_time
 //! [with]: https://serde.rs/field-attrs.html#with
 
-use serde_core::{Deserialize, Deserializer, Serialize, Serializer, de};
+use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::OffsetDateTime;
+use crate::error::ComponentRange;
 
 /// Serialize an `OffsetDateTime` as its Unix timestamp with microseconds
 #[inline]
@@ -26,8 +27,7 @@ pub fn serialize<S: Serializer>(
 #[inline]
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
     let value: i128 = <_>::deserialize(deserializer)?;
-    OffsetDateTime::from_unix_timestamp_nanos(value * 1_000)
-        .map_err(|err| de::Error::invalid_value(de::Unexpected::Signed(err.value), &err))
+    OffsetDateTime::from_unix_timestamp_nanos(value * 1_000).map_err(ComponentRange::into_de_error)
 }
 
 /// Treat an `Option<OffsetDateTime>` as a [Unix timestamp] with microseconds
@@ -61,6 +61,6 @@ pub mod option {
         Option::deserialize(deserializer)?
             .map(|value: i128| OffsetDateTime::from_unix_timestamp_nanos(value * 1_000))
             .transpose()
-            .map_err(|err| de::Error::invalid_value(de::Unexpected::Signed(err.value), &err))
+            .map_err(ComponentRange::into_de_error)
     }
 }

@@ -177,9 +177,9 @@ impl UtcOffset {
         seconds: i8,
     ) -> Result<Self, error::ComponentRange> {
         Ok(Self::from_hms_ranged(
-            ensure_ranged!(Hours: hours),
-            ensure_ranged!(Minutes: minutes),
-            ensure_ranged!(Seconds: seconds),
+            ensure_ranged!(Hours: hours("offset hour")),
+            ensure_ranged!(Minutes: minutes("offset minute")),
+            ensure_ranged!(Seconds: seconds("offset second")),
         ))
     }
 

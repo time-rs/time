@@ -56,13 +56,7 @@ impl Month {
             10 => Ok(October),
             11 => Ok(November),
             12 => Ok(December),
-            n => Err(error::ComponentRange {
-                name: "month",
-                minimum: 1,
-                maximum: 12,
-                value: n as i64,
-                conditional_message: None,
-            }),
+            _ => Err(error::ComponentRange::unconditional("month")),
         }
     }
 
@@ -273,13 +267,7 @@ impl TryFrom<u8> for Month {
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match NonZero::new(value) {
             Some(value) => Self::from_number(value),
-            None => Err(error::ComponentRange {
-                name: "month",
-                minimum: 1,
-                maximum: 12,
-                value: 0,
-                conditional_message: None,
-            }),
+            None => Err(error::ComponentRange::unconditional("month")),
         }
     }
 }

@@ -369,14 +369,7 @@ fn fmt_year(
     } else {
         match repr {
             modifier::YearRepr::Full | modifier::YearRepr::Century if full_year.abs() >= 10_000 => {
-                return Err(error::ComponentRange {
-                    name: "year",
-                    minimum: -9999,
-                    maximum: 9999,
-                    value: full_year.extend(),
-                    conditional_message: Some("when `range:standard` is used"),
-                }
-                .into());
+                return Err(error::ComponentRange::conditional("year").into());
             }
             _ => {}
         }

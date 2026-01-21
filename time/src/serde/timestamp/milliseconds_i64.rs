@@ -9,9 +9,10 @@
 //! [with]: https://serde.rs/field-attrs.html#with
 
 use num_conv::prelude::*;
-use serde_core::{Deserialize, Deserializer, Serialize, Serializer, de};
+use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::OffsetDateTime;
+use crate::error::ComponentRange;
 
 /// Serialize an `OffsetDateTime` as its Unix timestamp with milliseconds
 #[inline]
@@ -28,7 +29,7 @@ pub fn serialize<S: Serializer>(
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
     let value: i64 = <_>::deserialize(deserializer)?;
     OffsetDateTime::from_unix_timestamp_nanos(value.extend::<i128>() * 1_000_000)
-        .map_err(|err| de::Error::invalid_value(de::Unexpected::Signed(err.value), &err))
+        .map_err(ComponentRange::into_de_error)
 }
 
 /// Treat an `Option<OffsetDateTime>` as a [Unix timestamp] with milliseconds
@@ -64,6 +65,6 @@ pub mod option {
                 OffsetDateTime::from_unix_timestamp_nanos(value.extend::<i128>() * 1_000_000)
             })
             .transpose()
-            .map_err(|err| de::Error::invalid_value(de::Unexpected::Signed(err.value), &err))
+            .map_err(ComponentRange::into_de_error)
     }
 }

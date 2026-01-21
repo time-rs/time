@@ -1065,17 +1065,7 @@ fn utc_offset_try_from_parsed<const REQUIRED: bool>(
     let minute = minute.unwrap_or(0);
     let second = second.unwrap_or(0);
 
-    UtcOffset::from_hms(hour, minute, second).map_err(|mut err| {
-        // Provide the user a more accurate error.
-        if err.name == "hours" {
-            err.name = "offset hour";
-        } else if err.name == "minutes" {
-            err.name = "offset minute";
-        } else if err.name == "seconds" {
-            err.name = "offset second";
-        }
-        err.into()
-    })
+    UtcOffset::from_hms(hour, minute, second).map_err(Into::into)
 }
 
 impl TryFrom<Parsed> for UtcOffset {
@@ -1133,13 +1123,7 @@ impl TryFrom<Parsed> for UtcDateTime {
 
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {
             return Err(error::TryFromParsed::ComponentRange(
-                error::ComponentRange {
-                    name: "second",
-                    minimum: 0,
-                    maximum: 59,
-                    value: 60,
-                    conditional_message: Some("because leap seconds are not supported"),
-                },
+                error::ComponentRange::conditional("second"),
             ));
         }
         Ok(dt)
@@ -1182,13 +1166,7 @@ impl TryFrom<Parsed> for OffsetDateTime {
 
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {
             return Err(error::TryFromParsed::ComponentRange(
-                error::ComponentRange {
-                    name: "second",
-                    minimum: 0,
-                    maximum: 59,
-                    value: 60,
-                    conditional_message: Some("because leap seconds are not supported"),
-                },
+                error::ComponentRange::conditional("second"),
             ));
         }
         Ok(dt)

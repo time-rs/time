@@ -8,9 +8,10 @@
 //! [Unix timestamp]: https://en.wikipedia.org/wiki/Unix_time
 //! [with]: https://serde.rs/field-attrs.html#with
 
-use serde_core::{Deserialize, Deserializer, Serialize, Serializer, de};
+use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::OffsetDateTime;
+use crate::error::ComponentRange;
 
 /// Serialize an `OffsetDateTime` as its Unix timestamp with nanoseconds
 #[inline]
@@ -25,7 +26,7 @@ pub fn serialize<S: Serializer>(
 #[inline]
 pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
     OffsetDateTime::from_unix_timestamp_nanos(<_>::deserialize(deserializer)?)
-        .map_err(|err| de::Error::invalid_value(de::Unexpected::Signed(err.value), &err))
+        .map_err(ComponentRange::into_de_error)
 }
 
 /// Treat an `Option<OffsetDateTime>` as a [Unix timestamp] with nanoseconds
@@ -59,6 +60,6 @@ pub mod option {
         Option::deserialize(deserializer)?
             .map(OffsetDateTime::from_unix_timestamp_nanos)
             .transpose()
-            .map_err(|err| de::Error::invalid_value(de::Unexpected::Signed(err.value), &err))
+            .map_err(ComponentRange::into_de_error)
     }
 }

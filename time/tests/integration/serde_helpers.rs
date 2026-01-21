@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use serde_test::{assert_de_tokens_error, assert_ser_tokens_error, assert_tokens, Token};
-use time::macros::datetime;
+use serde_test::{Token, assert_de_tokens_error, assert_ser_tokens_error, assert_tokens};
 use time::OffsetDateTime;
+use time::macros::datetime;
 
 #[test]
 fn success() {
@@ -214,12 +214,10 @@ fn timestamp_error() {
     );
     assert_de_tokens_error::<Timestamp>(
         &[Token::I64(100_000_000_000_000)],
-        "invalid value: integer `100000000000000`, expected a value in the range \
-         -31619087596800..=31494784780799",
+        "invalid timestamp, expected an in-range value",
     );
     assert_de_tokens_error::<OptTimestamp>(
         &[Token::Some, Token::I64(-100_000_000_000_000)],
-        "invalid value: integer `-100000000000000`, expected a value in the range \
-         -31619087596800..=31494784780799",
+        "invalid timestamp, expected an in-range value",
     );
 }

@@ -494,13 +494,7 @@ impl sealed::Sealed for Rfc2822 {
 
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {
             return Err(error::Parse::TryFromParsed(TryFromParsed::ComponentRange(
-                error::ComponentRange {
-                    name: "second",
-                    minimum: 0,
-                    maximum: 59,
-                    value: 60,
-                    conditional_message: Some("because leap seconds are not supported"),
-                },
+                error::ComponentRange::conditional("second"),
             )));
         }
 
@@ -696,15 +690,6 @@ impl sealed::Sealed for Rfc3339 {
                     ),
                 }
                 .map(|offset| ParsedItem(input, offset))
-                .map_err(|mut err| {
-                    // Provide the user a more accurate error.
-                    if err.name == "hours" {
-                        err.name = "offset hour";
-                    } else if err.name == "minutes" {
-                        err.name = "offset minute";
-                    }
-                    err
-                })
                 .map_err(TryFromParsed::ComponentRange)?
             }
         };
@@ -735,13 +720,7 @@ impl sealed::Sealed for Rfc3339 {
 
         if leap_second_input && !dt.is_valid_leap_second_stand_in() {
             return Err(error::Parse::TryFromParsed(TryFromParsed::ComponentRange(
-                error::ComponentRange {
-                    name: "second",
-                    minimum: 0,
-                    maximum: 59,
-                    value: 60,
-                    conditional_message: Some("because leap seconds are not supported"),
-                },
+                error::ComponentRange::conditional("second"),
             )));
         }
 
