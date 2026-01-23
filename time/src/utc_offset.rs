@@ -76,14 +76,14 @@ pub struct UtcOffset {
 impl Hash for UtcOffset {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
-        state.write_u32(self.as_u32());
+        state.write_u32(self.as_u32_for_equality());
     }
 }
 
 impl PartialEq for UtcOffset {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
-        self.as_u32().eq(&other.as_u32())
+        self.as_u32_for_equality().eq(&other.as_u32_for_equality())
     }
 }
 
@@ -97,30 +97,45 @@ impl PartialOrd for UtcOffset {
 impl Ord for UtcOffset {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
-        self.as_u32().cmp(&other.as_u32())
+        self.as_i32_for_comparison()
+            .cmp(&other.as_i32_for_comparison())
     }
 }
 
 impl UtcOffset {
-    /// Provide a representation of the `UtcOffset` as a `u32`. This value can be used for equality,
-    /// hashing, and ordering.
+    /// Provide a representation of the `UtcOffset` as a `i32`. This value can be used for equality,
+    /// and hashing. This value is not suitable for ordering; use `as_i32_for_comparison` instead.
     #[inline]
-    pub(crate) const fn as_u32(self) -> u32 {
-        #[cfg(target_endian = "big")]
-        return u32::from_be_bytes([
-            self.seconds.get().cast_unsigned(),
-            self.minutes.get().cast_unsigned(),
-            self.hours.get().cast_unsigned(),
-            0,
-        ]);
+    pub(crate) const fn as_u32_for_equality(self) -> u32 {
+        // Safety: Size and alignment are handled by the compiler. Both the source and destination
+        // types are plain old data (POD) types.
+        unsafe {
+            if const { cfg!(target_endian = "little") } {
+                core::mem::transmute::<[i8; 4], u32>([
+                    self.seconds.get(),
+                    self.minutes.get(),
+                    self.hours.get(),
+                    0,
+                ])
+            } else {
+                core::mem::transmute::<[i8; 4], u32>([
+                    self.hours.get(),
+                    self.minutes.get(),
+                    self.seconds.get(),
+                    0,
+                ])
+            }
+        }
+    }
 
-        #[cfg(target_endian = "little")]
-        return u32::from_le_bytes([
-            self.seconds.get().cast_unsigned(),
-            self.minutes.get().cast_unsigned(),
-            self.hours.get().cast_unsigned(),
-            0,
-        ]);
+    /// Provide a representation of the `UtcOffset` as a `i32`. This value can be used for ordering.
+    /// While it is suitable for equality, `as_u32_for_equality` is preferred for performance
+    /// reasons.
+    #[inline]
+    const fn as_i32_for_comparison(self) -> i32 {
+        (self.hours.get() as i32) << 16
+            | (self.minutes.get() as i32) << 8
+            | (self.seconds.get() as i32)
     }
 
     /// A `UtcOffset` that is UTC.
@@ -381,7 +396,7 @@ impl UtcOffset {
     /// ```
     #[inline]
     pub const fn is_utc(self) -> bool {
-        self.hours.get() == 0 && self.minutes.get() == 0 && self.seconds.get() == 0
+        self.as_u32_for_equality() == Self::UTC.as_u32_for_equality()
     }
 
     /// Check if the offset is positive, or east of UTC.
@@ -394,7 +409,7 @@ impl UtcOffset {
     /// ```
     #[inline]
     pub const fn is_positive(self) -> bool {
-        self.hours.get() > 0 || self.minutes.get() > 0 || self.seconds.get() > 0
+        self.as_i32_for_comparison() > Self::UTC.as_i32_for_comparison()
     }
 
     /// Check if the offset is negative, or west of UTC.
@@ -407,7 +422,7 @@ impl UtcOffset {
     /// ```
     #[inline]
     pub const fn is_negative(self) -> bool {
-        self.hours.get() < 0 || self.minutes.get() < 0 || self.seconds.get() < 0
+        self.as_i32_for_comparison() < Self::UTC.as_i32_for_comparison()
     }
 
     /// Attempt to obtain the system's UTC offset at a known moment in time. If the offset cannot be

@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use rstest::rstest;
 use time::macros::offset;
 use time::{OffsetDateTime, UtcOffset};
@@ -139,6 +141,21 @@ fn is_positive(#[case] offset: UtcOffset, #[case] expected: bool) {
 #[case(offset!(-23:59:59), true)]
 fn is_negative(#[case] offset: UtcOffset, #[case] expected: bool) {
     assert_eq!(offset.is_negative(), expected);
+}
+
+#[rstest]
+#[case(offset!(UTC), offset!(UTC), Ordering::Equal)]
+#[case(offset!(+1), offset!(+1), Ordering::Equal)]
+#[case(offset!(-1), offset!(-1), Ordering::Equal)]
+#[case(offset!(+1), offset!(UTC), Ordering::Greater)]
+#[case(offset!(UTC), offset!(-1), Ordering::Greater)]
+#[case(offset!(-1), offset!(+1), Ordering::Less)]
+#[case(offset!(+23:59), offset!(+23:58), Ordering::Greater)]
+#[case(offset!(-23:59), offset!(-23:58), Ordering::Less)]
+#[case(offset!(+23:59:59), offset!(+23:59:58), Ordering::Greater)]
+#[case(offset!(-23:59:59), offset!(-23:59:58), Ordering::Less)]
+fn ordering(#[case] a: UtcOffset, #[case] b: UtcOffset, #[case] expected: Ordering) {
+    assert_eq!(a.cmp(&b), expected);
 }
 
 #[rstest]

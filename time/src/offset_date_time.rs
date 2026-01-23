@@ -222,7 +222,7 @@ impl OffsetDateTime {
     /// ```
     #[inline]
     pub const fn checked_to_offset(self, offset: UtcOffset) -> Option<Self> {
-        if self.offset.as_u32() == offset.as_u32() {
+        if self.offset.as_u32_for_equality() == offset.as_u32_for_equality() {
             return Some(self);
         }
 
@@ -359,7 +359,7 @@ impl OffsetDateTime {
         let to = offset;
 
         // Fast path for when no conversion is necessary.
-        if from.as_u32() == to.as_u32() {
+        if from.as_u32_for_equality() == to.as_u32_for_equality() {
             return (self.year(), self.ordinal(), self.time());
         }
 
