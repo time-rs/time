@@ -201,7 +201,7 @@ macro_rules! bug {
         compile_error!("provide an error message to help fix a possible bug")
     };
     ($descr:literal) => {
-        $crate::panic(concat!("internal error: ", $descr))
+        panic!(concat!("internal error: ", $descr))
     };
 }
 

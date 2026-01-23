@@ -15,8 +15,8 @@ use num_conv::prelude::*;
 #[expect(deprecated)]
 use crate::Instant;
 use crate::convert::*;
+use crate::error;
 use crate::internal_macros::const_try_opt;
-use crate::{error, panic};
 
 #[derive(Debug)]
 enum FloatConstructorError {
@@ -587,9 +587,11 @@ impl Duration {
     pub const fn seconds_f64(seconds: f64) -> Self {
         match Self::try_seconds_f64(seconds) {
             Ok(duration) => duration,
-            Err(FloatConstructorError::Nan) => panic("passed NaN to `time::Duration::seconds_f64`"),
+            Err(FloatConstructorError::Nan) => {
+                panic!("passed NaN to `time::Duration::seconds_f64`");
+            }
             Err(FloatConstructorError::NegOverflow | FloatConstructorError::PosOverflow) => {
-                panic("overflow constructing `time::Duration`")
+                panic!("overflow constructing `time::Duration`");
             }
         }
     }
@@ -606,9 +608,11 @@ impl Duration {
     pub const fn seconds_f32(seconds: f32) -> Self {
         match Self::try_seconds_f32(seconds) {
             Ok(duration) => duration,
-            Err(FloatConstructorError::Nan) => panic("passed NaN to `time::Duration::seconds_f32`"),
+            Err(FloatConstructorError::Nan) => {
+                panic!("passed NaN to `time::Duration::seconds_f32`");
+            }
             Err(FloatConstructorError::NegOverflow | FloatConstructorError::PosOverflow) => {
-                panic("overflow constructing `time::Duration`")
+                panic!("overflow constructing `time::Duration`");
             }
         }
     }
@@ -794,7 +798,7 @@ impl Duration {
         let nanoseconds = nanoseconds % Nanosecond::per_t::<i128>(Second);
 
         if seconds > i64::MAX as i128 || seconds < i64::MIN as i128 {
-            panic("overflow constructing `time::Duration`");
+            panic!("overflow constructing `time::Duration`");
         }
 
         // Safety: `nanoseconds` is guaranteed to be in range because of the modulus above.

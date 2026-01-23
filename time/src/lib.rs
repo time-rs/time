@@ -149,11 +149,3 @@ pub use crate::weekday::Weekday;
 
 /// An alias for [`std::result::Result`] with a generic error from the time crate.
 pub type Result<T> = core::result::Result<T, Error>;
-
-/// This is a separate function to reduce the code size of explicit panics.
-#[inline(never)]
-#[cold]
-#[track_caller]
-const fn panic(message: &str) -> ! {
-    panic!("{}", message)
-}
