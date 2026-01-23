@@ -284,12 +284,16 @@ fn replace_year() {
         utc_datetime!(2022-02-18 12:00).replace_year(2019),
         Ok(utc_datetime!(2019-02-18 12:00))
     );
-    assert!(utc_datetime!(2022-02-18 12:00)
-        .replace_year(-1_000_000_000)
-        .is_err()); // -1_000_000_000 isn't a valid year
-    assert!(utc_datetime!(2022-02-18 12:00)
-        .replace_year(1_000_000_000)
-        .is_err()); // 1_000_000_000 isn't a valid year
+    assert!(
+        utc_datetime!(2022-02-18 12:00)
+            .replace_year(-1_000_000_000)
+            .is_err()
+    ); // -1_000_000_000 isn't a valid year
+    assert!(
+        utc_datetime!(2022-02-18 12:00)
+            .replace_year(1_000_000_000)
+            .is_err()
+    ); // 1_000_000_000 isn't a valid year
 }
 
 #[test]
@@ -298,9 +302,11 @@ fn replace_month() {
         utc_datetime!(2022-02-18 12:00).replace_month(Month::January),
         Ok(utc_datetime!(2022-01-18 12:00))
     );
-    assert!(utc_datetime!(2022-01-30 12:00)
-        .replace_month(Month::February)
-        .is_err()); // 30 isn't a valid day in February
+    assert!(
+        utc_datetime!(2022-01-30 12:00)
+            .replace_month(Month::February)
+            .is_err()
+    ); // 30 isn't a valid day in February
 }
 
 #[test]
@@ -336,9 +342,11 @@ fn replace_hour() {
         utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_hour(7),
         Ok(utc_datetime!(2022-02-18 07:02:03.004_005_006))
     );
-    assert!(utc_datetime!(2022-02-18 01:02:03.004_005_006)
-        .replace_hour(24)
-        .is_err()); // 24 isn't a valid hour
+    assert!(
+        utc_datetime!(2022-02-18 01:02:03.004_005_006)
+            .replace_hour(24)
+            .is_err()
+    ); // 24 isn't a valid hour
 }
 
 #[test]
@@ -347,9 +355,11 @@ fn replace_minute() {
         utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_minute(7),
         Ok(utc_datetime!(2022-02-18 01:07:03.004_005_006))
     );
-    assert!(utc_datetime!(2022-02-18 01:02:03.004_005_006)
-        .replace_minute(60)
-        .is_err()); // 60 isn't a valid minute
+    assert!(
+        utc_datetime!(2022-02-18 01:02:03.004_005_006)
+            .replace_minute(60)
+            .is_err()
+    ); // 60 isn't a valid minute
 }
 
 #[test]
@@ -358,9 +368,11 @@ fn replace_second() {
         utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_second(7),
         Ok(utc_datetime!(2022-02-18 01:02:07.004_005_006))
     );
-    assert!(utc_datetime!(2022-02-18 01:02:03.004_005_006)
-        .replace_second(60)
-        .is_err()); // 60 isn't a valid second
+    assert!(
+        utc_datetime!(2022-02-18 01:02:03.004_005_006)
+            .replace_second(60)
+            .is_err()
+    ); // 60 isn't a valid second
 }
 
 #[test]
@@ -369,9 +381,11 @@ fn replace_millisecond() {
         utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_millisecond(7),
         Ok(utc_datetime!(2022-02-18 01:02:03.007))
     );
-    assert!(utc_datetime!(2022-02-18 01:02:03.004_005_006)
-        .replace_millisecond(1_000)
-        .is_err()); // 1_000 isn't a valid millisecond
+    assert!(
+        utc_datetime!(2022-02-18 01:02:03.004_005_006)
+            .replace_millisecond(1_000)
+            .is_err()
+    ); // 1_000 isn't a valid millisecond
 }
 
 #[test]
@@ -380,9 +394,11 @@ fn replace_microsecond() {
         utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_microsecond(7_008),
         Ok(utc_datetime!(2022-02-18 01:02:03.007_008))
     );
-    assert!(utc_datetime!(2022-02-18 01:02:03.004_005_006)
-        .replace_microsecond(1_000_000)
-        .is_err()); // 1_000_000 isn't a valid microsecond
+    assert!(
+        utc_datetime!(2022-02-18 01:02:03.004_005_006)
+            .replace_microsecond(1_000_000)
+            .is_err()
+    ); // 1_000_000 isn't a valid microsecond
 }
 
 #[test]
@@ -391,9 +407,83 @@ fn replace_nanosecond() {
         utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_nanosecond(7_008_009),
         Ok(utc_datetime!(2022-02-18 01:02:03.007_008_009))
     );
-    assert!(utc_datetime!(2022-02-18 01:02:03.004_005_006)
-        .replace_nanosecond(1_000_000_000)
-        .is_err()); // 1_000_000_000 isn't a valid nanosecond
+    assert!(
+        utc_datetime!(2022-02-18 01:02:03.004_005_006)
+            .replace_nanosecond(1_000_000_000)
+            .is_err()
+    ); // 1_000_000_000 isn't a valid nanosecond
+}
+
+#[test]
+fn truncate_to_day() {
+    assert_eq!(
+        utc_datetime!(2021-11-12 17:47:53.123_456_789).truncate_to_day(),
+        utc_datetime!(2021-11-12 0:00)
+    );
+    assert_eq!(
+        utc_datetime!(2021-11-12 0:00).truncate_to_day(),
+        utc_datetime!(2021-11-12 0:00)
+    );
+}
+
+#[test]
+fn truncate_to_hour() {
+    assert_eq!(
+        utc_datetime!(2021-11-12 17:47:53.123_456_789).truncate_to_hour(),
+        utc_datetime!(2021-11-12 17:00)
+    );
+    assert_eq!(
+        utc_datetime!(2021-11-12 0:00).truncate_to_hour(),
+        utc_datetime!(2021-11-12 0:00)
+    );
+}
+
+#[test]
+fn truncate_to_minute() {
+    assert_eq!(
+        utc_datetime!(2021-11-12 17:47:53.123_456_789).truncate_to_minute(),
+        utc_datetime!(2021-11-12 17:47)
+    );
+    assert_eq!(
+        utc_datetime!(2021-11-12 0:00).truncate_to_minute(),
+        utc_datetime!(2021-11-12 0:00)
+    );
+}
+
+#[test]
+fn truncate_to_second() {
+    assert_eq!(
+        utc_datetime!(2021-11-12 17:47:53.123_456_789).truncate_to_second(),
+        utc_datetime!(2021-11-12 17:47:53)
+    );
+    assert_eq!(
+        utc_datetime!(2021-11-12 0:00).truncate_to_second(),
+        utc_datetime!(2021-11-12 0:00)
+    );
+}
+
+#[test]
+fn truncate_to_millisecond() {
+    assert_eq!(
+        utc_datetime!(2021-11-12 17:47:53.123_456_789).truncate_to_millisecond(),
+        utc_datetime!(2021-11-12 17:47:53.123)
+    );
+    assert_eq!(
+        utc_datetime!(2021-11-12 0:00).truncate_to_millisecond(),
+        utc_datetime!(2021-11-12 0:00)
+    );
+}
+
+#[test]
+fn truncate_to_microsecond() {
+    assert_eq!(
+        utc_datetime!(2021-11-12 17:47:53.123_456_789).truncate_to_microsecond(),
+        utc_datetime!(2021-11-12 17:47:53.123_456)
+    );
+    assert_eq!(
+        utc_datetime!(2021-11-12 0:00).truncate_to_microsecond(),
+        utc_datetime!(2021-11-12 0:00)
+    );
 }
 
 #[test]

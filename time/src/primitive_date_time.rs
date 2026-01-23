@@ -824,6 +824,21 @@ impl PrimitiveDateTime {
         })
     }
 
+    /// Truncate to the start of the day, setting the time to midnight.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-02-18 15:30:45.123_456_789).truncate_to_day(),
+    ///     datetime!(2022-02-18 0:00)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[inline]
+    pub const fn truncate_to_day(self) -> Self {
+        self.replace_time(Time::MIDNIGHT)
+    }
+
     /// Replace the clock hour.
     ///
     /// ```rust
@@ -841,6 +856,21 @@ impl PrimitiveDateTime {
             date: self.date,
             time: const_try!(self.time.replace_hour(hour)),
         })
+    }
+
+    /// Truncate to the hour, setting the minute, second, and subsecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-02-18 15:30:45.123_456_789).truncate_to_hour(),
+    ///     datetime!(2022-02-18 15:00)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[inline]
+    pub const fn truncate_to_hour(self) -> Self {
+        self.replace_time(self.time.truncate_to_hour())
     }
 
     /// Replace the minutes within the hour.
@@ -862,6 +892,21 @@ impl PrimitiveDateTime {
         })
     }
 
+    /// Truncate to the minute, setting the second and subsecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-02-18 15:30:45.123_456_789).truncate_to_minute(),
+    ///     datetime!(2022-02-18 15:30)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[inline]
+    pub const fn truncate_to_minute(self) -> Self {
+        self.replace_time(self.time.truncate_to_minute())
+    }
+
     /// Replace the seconds within the minute.
     ///
     /// ```rust
@@ -879,6 +924,21 @@ impl PrimitiveDateTime {
             date: self.date,
             time: const_try!(self.time.replace_second(second)),
         })
+    }
+
+    /// Truncate to the second, setting the subsecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-02-18 15:30:45.123_456_789).truncate_to_second(),
+    ///     datetime!(2022-02-18 15:30:45)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[inline]
+    pub const fn truncate_to_second(self) -> Self {
+        self.replace_time(self.time.truncate_to_second())
     }
 
     /// Replace the milliseconds within the second.
@@ -903,6 +963,21 @@ impl PrimitiveDateTime {
         })
     }
 
+    /// Truncate to the millisecond, setting the microsecond and nanosecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-02-18 15:30:45.123_456_789).truncate_to_millisecond(),
+    ///     datetime!(2022-02-18 15:30:45.123)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[inline]
+    pub const fn truncate_to_millisecond(self) -> Self {
+        self.replace_time(self.time.truncate_to_millisecond())
+    }
+
     /// Replace the microseconds within the second.
     ///
     /// ```rust
@@ -923,6 +998,21 @@ impl PrimitiveDateTime {
             date: self.date,
             time: const_try!(self.time.replace_microsecond(microsecond)),
         })
+    }
+
+    /// Truncate to the microsecond, setting the nanosecond component to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-02-18 15:30:45.123_456_789).truncate_to_microsecond(),
+    ///     datetime!(2022-02-18 15:30:45.123_456)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[inline]
+    pub const fn truncate_to_microsecond(self) -> Self {
+        self.replace_time(self.time.truncate_to_microsecond())
     }
 
     /// Replace the nanoseconds within the second.

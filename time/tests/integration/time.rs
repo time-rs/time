@@ -236,6 +236,45 @@ fn replace_nanosecond() {
 }
 
 #[test]
+fn truncate_to_hour() {
+    assert_eq!(time!(1:02:03.004_005_006).truncate_to_hour(), time!(1:00));
+    assert_eq!(Time::MIDNIGHT.truncate_to_hour(), Time::MIDNIGHT);
+}
+
+#[test]
+fn truncate_to_minute() {
+    assert_eq!(time!(1:02:03.004_005_006).truncate_to_minute(), time!(1:02));
+    assert_eq!(Time::MIDNIGHT.truncate_to_minute(), Time::MIDNIGHT);
+}
+
+#[test]
+fn truncate_to_second() {
+    assert_eq!(
+        time!(1:02:03.004_005_006).truncate_to_second(),
+        time!(1:02:03)
+    );
+    assert_eq!(Time::MIDNIGHT.truncate_to_second(), Time::MIDNIGHT);
+}
+
+#[test]
+fn truncate_to_millisecond() {
+    assert_eq!(
+        time!(1:02:03.004_005_006).truncate_to_millisecond(),
+        time!(1:02:03.004)
+    );
+    assert_eq!(Time::MIDNIGHT.truncate_to_millisecond(), Time::MIDNIGHT);
+}
+
+#[test]
+fn truncate_to_microsecond() {
+    assert_eq!(
+        time!(1:02:03.004_005_006).truncate_to_microsecond(),
+        time!(1:02:03.004_005)
+    );
+    assert_eq!(Time::MIDNIGHT.truncate_to_microsecond(), Time::MIDNIGHT);
+}
+
+#[test]
 fn add_duration() {
     assert_eq!(time!(0:00) + 1.seconds(), time!(0:00:01));
     assert_eq!(time!(0:00) + 1.minutes(), time!(0:01));

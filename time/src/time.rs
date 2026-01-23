@@ -689,6 +689,21 @@ impl Time {
         Ok(self)
     }
 
+    /// Truncate the time to the hour, setting the minute, second, and subsecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::time;
+    /// assert_eq!(time!(01:02:03.004_005_006).truncate_to_hour(), time!(01:00));
+    /// ```
+    #[must_use = "This method does not mutate the original `Time`."]
+    #[inline]
+    pub const fn truncate_to_hour(mut self) -> Self {
+        self.minute = Minutes::MIN;
+        self.second = Seconds::MIN;
+        self.nanosecond = Nanoseconds::MIN;
+        self
+    }
+
     /// Replace the minutes within the hour.
     ///
     /// ```rust
@@ -706,6 +721,23 @@ impl Time {
         Ok(self)
     }
 
+    /// Truncate the time to the minute, setting the second and subsecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::time;
+    /// assert_eq!(
+    ///     time!(01:02:03.004_005_006).truncate_to_minute(),
+    ///     time!(01:02)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `Time`."]
+    #[inline]
+    pub const fn truncate_to_minute(mut self) -> Self {
+        self.second = Seconds::MIN;
+        self.nanosecond = Nanoseconds::MIN;
+        self
+    }
+
     /// Replace the seconds within the minute.
     ///
     /// ```rust
@@ -721,6 +753,22 @@ impl Time {
     pub const fn replace_second(mut self, second: u8) -> Result<Self, error::ComponentRange> {
         self.second = ensure_ranged!(Seconds: second);
         Ok(self)
+    }
+
+    /// Truncate the time to the second, setting the subsecond component to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::time;
+    /// assert_eq!(
+    ///     time!(01:02:03.004_005_006).truncate_to_second(),
+    ///     time!(01:02:03)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `Time`."]
+    #[inline]
+    pub const fn truncate_to_second(mut self) -> Self {
+        self.nanosecond = Nanoseconds::MIN;
+        self
     }
 
     /// Replace the milliseconds within the second.
@@ -748,6 +796,26 @@ impl Time {
         Ok(self)
     }
 
+    /// Truncate the time to the millisecond, setting the microsecond and nanosecond components to
+    /// zero.
+    ///
+    /// ```rust
+    /// # use time_macros::time;
+    /// assert_eq!(
+    ///     time!(01:02:03.004_005_006).truncate_to_millisecond(),
+    ///     time!(01:02:03.004)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `Time`."]
+    #[inline]
+    pub const fn truncate_to_millisecond(mut self) -> Self {
+        // Safety: Truncating to the millisecond will always produce a valid nanosecond.
+        self.nanosecond = unsafe {
+            Nanoseconds::new_unchecked(self.nanosecond.get() - (self.nanosecond.get() % 1_000_000))
+        };
+        self
+    }
+
     /// Replace the microseconds within the second.
     ///
     /// ```rust
@@ -771,6 +839,25 @@ impl Time {
         self.nanosecond =
             ensure_ranged!(Nanoseconds: microsecond * Nanosecond::per_t::<u32>(Microsecond));
         Ok(self)
+    }
+
+    /// Truncate the time to the microsecond, setting the nanosecond component to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::time;
+    /// assert_eq!(
+    ///     time!(01:02:03.004_005_006).truncate_to_microsecond(),
+    ///     time!(01:02:03.004_005)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `Time`."]
+    #[inline]
+    pub const fn truncate_to_microsecond(mut self) -> Self {
+        // Safety: Truncating to the microsecond will always produce a valid nanosecond.
+        self.nanosecond = unsafe {
+            Nanoseconds::new_unchecked(self.nanosecond.get() - (self.nanosecond.get() % 1_000))
+        };
+        self
     }
 
     /// Replace the nanoseconds within the second.

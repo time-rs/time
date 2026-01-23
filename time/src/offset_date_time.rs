@@ -1272,6 +1272,22 @@ impl OffsetDateTime {
         Ok(const_try!(self.date_time().replace_ordinal(ordinal)).assume_offset(self.offset()))
     }
 
+    /// Truncate to the start of the day, setting the time to midnight.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-02-18 15:30:45.123 +01).truncate_to_day(),
+    ///     datetime!(2022-02-18 0:00 +01)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
+    #[inline]
+    pub const fn truncate_to_day(mut self) -> Self {
+        self.local_date_time = self.local_date_time.truncate_to_day();
+        self
+    }
+
     /// Replace the clock hour.
     ///
     /// ```rust
@@ -1286,6 +1302,22 @@ impl OffsetDateTime {
     #[inline]
     pub const fn replace_hour(self, hour: u8) -> Result<Self, error::ComponentRange> {
         Ok(const_try!(self.date_time().replace_hour(hour)).assume_offset(self.offset()))
+    }
+
+    /// Truncate to the hour, setting the minute, second, and subsecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-02-18 15:30:45.123 +01).truncate_to_hour(),
+    ///     datetime!(2022-02-18 15:00 +01)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
+    #[inline]
+    pub const fn truncate_to_hour(mut self) -> Self {
+        self.local_date_time = self.local_date_time.truncate_to_hour();
+        self
     }
 
     /// Replace the minutes within the hour.
@@ -1304,6 +1336,22 @@ impl OffsetDateTime {
         Ok(const_try!(self.date_time().replace_minute(minute)).assume_offset(self.offset()))
     }
 
+    /// Truncate to the minute, setting the second and subsecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-02-18 15:30:45.123 +01).truncate_to_minute(),
+    ///     datetime!(2022-02-18 15:30 +01)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
+    #[inline]
+    pub const fn truncate_to_minute(mut self) -> Self {
+        self.local_date_time = self.local_date_time.truncate_to_minute();
+        self
+    }
+
     /// Replace the seconds within the minute.
     ///
     /// ```rust
@@ -1318,6 +1366,22 @@ impl OffsetDateTime {
     #[inline]
     pub const fn replace_second(self, second: u8) -> Result<Self, error::ComponentRange> {
         Ok(const_try!(self.date_time().replace_second(second)).assume_offset(self.offset()))
+    }
+
+    /// Truncate to the second, setting the subsecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-02-18 15:30:45.123 +01).truncate_to_second(),
+    ///     datetime!(2022-02-18 15:30:45 +01)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
+    #[inline]
+    pub const fn truncate_to_second(mut self) -> Self {
+        self.local_date_time = self.local_date_time.truncate_to_second();
+        self
     }
 
     /// Replace the milliseconds within the second.
@@ -1342,6 +1406,22 @@ impl OffsetDateTime {
         )
     }
 
+    /// Truncate to the millisecond, setting the microsecond and nanosecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-02-18 15:30:45.123_456_789 +01).truncate_to_millisecond(),
+    ///     datetime!(2022-02-18 15:30:45.123 +01)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
+    #[inline]
+    pub const fn truncate_to_millisecond(mut self) -> Self {
+        self.local_date_time = self.local_date_time.truncate_to_millisecond();
+        self
+    }
+
     /// Replace the microseconds within the second.
     ///
     /// ```rust
@@ -1362,6 +1442,22 @@ impl OffsetDateTime {
             const_try!(self.date_time().replace_microsecond(microsecond))
                 .assume_offset(self.offset()),
         )
+    }
+
+    /// Truncate to the microsecond, setting the nanosecond component to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2022-02-18 15:30:45.123_456_789 +01).truncate_to_microsecond(),
+    ///     datetime!(2022-02-18 15:30:45.123_456 +01)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `OffsetDateTime`."]
+    #[inline]
+    pub const fn truncate_to_microsecond(mut self) -> Self {
+        self.local_date_time = self.local_date_time.truncate_to_microsecond();
+        self
     }
 
     /// Replace the nanoseconds within the second.

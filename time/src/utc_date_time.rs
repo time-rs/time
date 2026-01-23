@@ -950,6 +950,21 @@ impl UtcDateTime {
         )))
     }
 
+    /// Truncate to the start of the day, setting the time to midnight.
+    ///
+    /// ```rust
+    /// # use time_macros::utc_datetime;
+    /// assert_eq!(
+    ///     utc_datetime!(2022-02-18 15:30:45.123_456_789).truncate_to_day(),
+    ///     utc_datetime!(2022-02-18 0:00)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
+    pub const fn truncate_to_day(self) -> Self {
+        Self::from_primitive(self.inner.truncate_to_day())
+    }
+
     /// Replace the clock hour.
     ///
     /// ```rust
@@ -966,6 +981,21 @@ impl UtcDateTime {
         Ok(Self::from_primitive(const_try!(
             self.inner.replace_hour(hour)
         )))
+    }
+
+    /// Truncate to the hour, setting the minute, second, and subsecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::utc_datetime;
+    /// assert_eq!(
+    ///     utc_datetime!(2022-02-18 15:30:45.123_456_789).truncate_to_hour(),
+    ///     utc_datetime!(2022-02-18 15:00)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
+    pub const fn truncate_to_hour(self) -> Self {
+        Self::from_primitive(self.inner.truncate_to_hour())
     }
 
     /// Replace the minutes within the hour.
@@ -989,6 +1019,21 @@ impl UtcDateTime {
         )))
     }
 
+    /// Truncate to the minute, setting the second and subsecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::utc_datetime;
+    /// assert_eq!(
+    ///     utc_datetime!(2022-02-18 15:30:45.123_456_789).truncate_to_minute(),
+    ///     utc_datetime!(2022-02-18 15:30)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
+    pub const fn truncate_to_minute(self) -> Self {
+        Self::from_primitive(self.inner.truncate_to_minute())
+    }
+
     /// Replace the seconds within the minute.
     ///
     /// ```rust
@@ -1008,6 +1053,21 @@ impl UtcDateTime {
         Ok(Self::from_primitive(const_try!(
             self.inner.replace_second(monday_based_week)
         )))
+    }
+
+    /// Truncate to the second, setting the subsecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::utc_datetime;
+    /// assert_eq!(
+    ///     utc_datetime!(2022-02-18 15:30:45.123_456_789).truncate_to_second(),
+    ///     utc_datetime!(2022-02-18 15:30:45)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
+    pub const fn truncate_to_second(self) -> Self {
+        Self::from_primitive(self.inner.truncate_to_second())
     }
 
     /// Replace the milliseconds within the second.
@@ -1031,6 +1091,21 @@ impl UtcDateTime {
         )))
     }
 
+    /// Truncate to the millisecond, setting the microsecond and nanosecond components to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::utc_datetime;
+    /// assert_eq!(
+    ///     utc_datetime!(2022-02-18 15:30:45.123_456_789).truncate_to_millisecond(),
+    ///     utc_datetime!(2022-02-18 15:30:45.123)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
+    pub const fn truncate_to_millisecond(self) -> Self {
+        Self::from_primitive(self.inner.truncate_to_millisecond())
+    }
+
     /// Replace the microseconds within the second.
     ///
     /// ```rust
@@ -1050,6 +1125,21 @@ impl UtcDateTime {
         Ok(Self::from_primitive(const_try!(
             self.inner.replace_microsecond(microsecond)
         )))
+    }
+
+    /// Truncate to the microsecond, setting the nanosecond component to zero.
+    ///
+    /// ```rust
+    /// # use time_macros::utc_datetime;
+    /// assert_eq!(
+    ///     utc_datetime!(2022-02-18 15:30:45.123_456_789).truncate_to_microsecond(),
+    ///     utc_datetime!(2022-02-18 15:30:45.123_456)
+    /// );
+    /// ```
+    #[must_use = "This method does not mutate the original `UtcDateTime`."]
+    #[inline]
+    pub const fn truncate_to_microsecond(self) -> Self {
+        Self::from_primitive(self.inner.truncate_to_microsecond())
     }
 
     /// Replace the nanoseconds within the second.
