@@ -38,10 +38,14 @@ pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDat
 ///
 /// Use this module in combination with serde's [`#[with]`][with] attribute.
 ///
+/// Note: Due to [serde-rs/serde#2878], you will need to apply `#[serde(default)]` if you want a
+/// missing field to deserialize as `None`.
+///
 /// When deserializing, the offset is assumed to be UTC.
 ///
 /// [Unix timestamp]: https://en.wikipedia.org/wiki/Unix_time
 /// [with]: https://serde.rs/field-attrs.html#with
+/// [serde-rs/serde#2878]: https://github.com/serde-rs/serde/issues/2878
 pub mod option {
     use super::*;
 

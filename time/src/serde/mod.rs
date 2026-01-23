@@ -61,6 +61,9 @@ use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 /// is present but the value is `null` (or the equivalent in other formats). To return `None`
 /// when the field is not present, you should use `#[serde(default)]` on the field.
 ///
+/// Note: Due to [serde-rs/serde#2878], you will need to apply `#[serde(default)]` if you want
+/// a missing field to deserialize as `None`.
+///
 /// # Examples
 ///
 /// Using a format string:
@@ -100,11 +103,11 @@ use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 /// struct SerializesWithCustom {
 ///     #[serde(with = "my_format")]
 ///     dt: OffsetDateTime,
-///     #[serde(with = "my_format::option")]
+///     #[serde(with = "my_format::option", default)]
 ///     maybe_dt: Option<OffsetDateTime>,
 /// }
 /// ```
-/// 
+///
 /// Define the format separately to be used in multiple places:
 /// ```rust,no_run
 /// # use time::OffsetDateTime;
@@ -146,7 +149,7 @@ use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 /// struct SerializesWithCustom {
 ///     #[serde(with = "my_format")]
 ///     dt: OffsetDateTime,
-///     #[serde(with = "my_format::option")]
+///     #[serde(with = "my_format::option", default)]
 ///     maybe_dt: Option<OffsetDateTime>,
 /// }
 ///
@@ -155,7 +158,7 @@ use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 ///     let str_ts = OffsetDateTime::now_utc().format(DATE_TIME_FORMAT).unwrap();
 /// }
 /// ```
-/// 
+///
 /// Customize the configuration of ISO 8601 formatting/parsing:
 /// ```rust,no_run
 /// # use time::OffsetDateTime;
@@ -200,12 +203,12 @@ use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 /// struct SerializesWithCustom {
 ///     #[serde(with = "my_format")]
 ///     dt: OffsetDateTime,
-///     #[serde(with = "my_format::option")]
+///     #[serde(with = "my_format::option", default)]
 ///     maybe_dt: Option<OffsetDateTime>,
 /// }
 /// # fn main() {}
 /// ```
-/// 
+///
 /// [`format_description::parse()`]: crate::format_description::parse()
 #[cfg(all(feature = "macros", any(feature = "formatting", feature = "parsing")))]
 pub use time_macros::serde_format_description as format_description;
