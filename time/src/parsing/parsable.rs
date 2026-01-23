@@ -29,7 +29,7 @@ impl Parsable for [OwnedFormatItem] {}
 impl Parsable for Rfc2822 {}
 impl Parsable for Rfc3339 {}
 impl<const CONFIG: EncodedConfig> Parsable for Iso8601<CONFIG> {}
-impl<T: Deref> Parsable for T where T::Target: Parsable {}
+impl<T> Parsable for T where T: Deref<Target: Parsable> {}
 
 /// Seal the trait to prevent downstream users from implementing it, while still allowing it to
 /// exist in generic bounds.

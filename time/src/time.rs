@@ -80,7 +80,10 @@ pub struct Time {
 
 impl Hash for Time {
     #[inline]
-    fn hash<H: Hasher>(&self, state: &mut H) {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
         self.as_u64().hash(state)
     }
 }

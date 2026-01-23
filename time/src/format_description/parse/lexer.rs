@@ -5,12 +5,18 @@ use core::iter;
 use super::{Error, Location, Spanned, SpannedValue, attach_location, unused};
 
 /// An iterator over the lexed tokens.
-pub(super) struct Lexed<I: Iterator> {
+pub(super) struct Lexed<I>
+where
+    I: Iterator,
+{
     /// The internal iterator.
     iter: iter::Peekable<I>,
 }
 
-impl<I: Iterator> Iterator for Lexed<I> {
+impl<I> Iterator for Lexed<I>
+where
+    I: Iterator,
+{
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -18,7 +24,11 @@ impl<I: Iterator> Iterator for Lexed<I> {
     }
 }
 
-impl<'iter, 'token: 'iter, I: Iterator<Item = Result<Token<'token>, Error>> + 'iter> Lexed<I> {
+impl<'iter, 'token, I> Lexed<I>
+where
+    'token: 'iter,
+    I: Iterator<Item = Result<Token<'token>, Error>> + 'iter,
+{
     /// Peek at the next item in the iterator.
     #[inline]
     pub(super) fn peek(&mut self) -> Option<&I::Item> {

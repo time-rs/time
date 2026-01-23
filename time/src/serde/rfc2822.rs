@@ -23,10 +23,10 @@ use crate::format_description::well_known::Rfc2822;
 /// Serialize an [`OffsetDateTime`] using the well-known RFC2822 format.
 #[cfg(feature = "formatting")]
 #[inline]
-pub fn serialize<S: Serializer>(
-    datetime: &OffsetDateTime,
-    serializer: S,
-) -> Result<S::Ok, S::Error> {
+pub fn serialize<S>(datetime: &OffsetDateTime, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
     datetime
         .format(&Rfc2822)
         .map_err(S::Error::custom)?
@@ -36,7 +36,10 @@ pub fn serialize<S: Serializer>(
 /// Deserialize an [`OffsetDateTime`] from its RFC2822 representation.
 #[cfg(feature = "parsing")]
 #[inline]
-pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
+pub fn deserialize<'a, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
+where
+    D: Deserializer<'a>,
+{
     deserializer.deserialize_str(Visitor::<Rfc2822>(PhantomData))
 }
 
@@ -57,10 +60,10 @@ pub mod option {
     /// Serialize an [`Option<OffsetDateTime>`] using the well-known RFC2822 format.
     #[cfg(feature = "formatting")]
     #[inline]
-    pub fn serialize<S: Serializer>(
-        option: &Option<OffsetDateTime>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error> {
+    pub fn serialize<S>(option: &Option<OffsetDateTime>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         option
             .map(|odt| odt.format(&Rfc2822))
             .transpose()
@@ -71,9 +74,10 @@ pub mod option {
     /// Deserialize an [`Option<OffsetDateTime>`] from its RFC2822 representation.
     #[cfg(feature = "parsing")]
     #[inline]
-    pub fn deserialize<'a, D: Deserializer<'a>>(
-        deserializer: D,
-    ) -> Result<Option<OffsetDateTime>, D::Error> {
+    pub fn deserialize<'a, D>(deserializer: D) -> Result<Option<OffsetDateTime>, D::Error>
+    where
+        D: Deserializer<'a>,
+    {
         deserializer.deserialize_option(Visitor::<Option<Rfc2822>>(PhantomData))
     }
 }

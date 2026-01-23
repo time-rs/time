@@ -15,16 +15,19 @@ use crate::error::ComponentRange;
 
 /// Serialize an `OffsetDateTime` as its Unix timestamp with nanoseconds
 #[inline]
-pub fn serialize<S: Serializer>(
-    datetime: &OffsetDateTime,
-    serializer: S,
-) -> Result<S::Ok, S::Error> {
+pub fn serialize<S>(datetime: &OffsetDateTime, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
     datetime.unix_timestamp_nanos().serialize(serializer)
 }
 
 /// Deserialize an `OffsetDateTime` from its Unix timestamp with nanoseconds
 #[inline]
-pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
+pub fn deserialize<'a, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
+where
+    D: Deserializer<'a>,
+{
     OffsetDateTime::from_unix_timestamp_nanos(<_>::deserialize(deserializer)?)
         .map_err(ComponentRange::into_de_error)
 }
@@ -47,10 +50,10 @@ pub mod option {
 
     /// Serialize an `Option<OffsetDateTime>` as its Unix timestamp with nanoseconds
     #[inline]
-    pub fn serialize<S: Serializer>(
-        option: &Option<OffsetDateTime>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error> {
+    pub fn serialize<S>(option: &Option<OffsetDateTime>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         option
             .map(OffsetDateTime::unix_timestamp_nanos)
             .serialize(serializer)
@@ -58,9 +61,10 @@ pub mod option {
 
     /// Deserialize an `Option<OffsetDateTime>` from its Unix timestamp with nanoseconds
     #[inline]
-    pub fn deserialize<'a, D: Deserializer<'a>>(
-        deserializer: D,
-    ) -> Result<Option<OffsetDateTime>, D::Error> {
+    pub fn deserialize<'a, D>(deserializer: D) -> Result<Option<OffsetDateTime>, D::Error>
+    where
+        D: Deserializer<'a>,
+    {
         Option::deserialize(deserializer)?
             .map(OffsetDateTime::from_unix_timestamp_nanos)
             .transpose()

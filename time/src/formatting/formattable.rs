@@ -30,7 +30,7 @@ impl Formattable for [OwnedFormatItem] {}
 impl Formattable for Rfc3339 {}
 impl Formattable for Rfc2822 {}
 impl<const CONFIG: EncodedConfig> Formattable for Iso8601<CONFIG> {}
-impl<T: Deref> Formattable for T where T::Target: Formattable {}
+impl<T> Formattable for T where T: Deref<Target: Formattable> {}
 
 /// Seal the trait to prevent downstream users from implementing it.
 mod sealed {

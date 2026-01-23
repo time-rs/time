@@ -114,7 +114,10 @@ impl Format {
     /// Obtain an error type for the serializer.
     #[doc(hidden)] // Exposed only for the `declare_format_string` macro
     #[inline]
-    pub fn into_invalid_serde_value<S: serde_core::Serializer>(self) -> S::Error {
+    pub fn into_invalid_serde_value<S>(self) -> S::Error
+    where
+        S: serde_core::Serializer,
+    {
         use serde_core::ser::Error;
         S::Error::custom(self)
     }

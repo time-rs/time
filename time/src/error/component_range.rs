@@ -88,7 +88,10 @@ impl serde_core::de::Expected for ComponentRange {
 impl ComponentRange {
     /// Convert the error to a deserialization error.
     #[inline]
-    pub(crate) fn into_de_error<E: serde_core::de::Error>(self) -> E {
+    pub(crate) fn into_de_error<E>(self) -> E
+    where
+        E: serde_core::de::Error,
+    {
         serde_core::de::Error::custom(format_args!(
             "invalid {}, expected an in-range value",
             self.name

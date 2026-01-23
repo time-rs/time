@@ -75,7 +75,10 @@ pub struct UtcOffset {
 
 impl Hash for UtcOffset {
     #[inline]
-    fn hash<H: Hasher>(&self, state: &mut H) {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
         state.write_u32(self.as_u32_for_equality());
     }
 }

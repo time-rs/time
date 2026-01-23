@@ -89,7 +89,10 @@ impl From<Vec<BorrowedFormatItem<'_>>> for OwnedFormatItem {
     }
 }
 
-impl<'a, T: AsRef<[BorrowedFormatItem<'a>]> + ?Sized> From<&T> for OwnedFormatItem {
+impl<'a, T> From<&T> for OwnedFormatItem
+where
+    T: AsRef<[BorrowedFormatItem<'a>]> + ?Sized,
+{
     #[inline]
     fn from(items: &T) -> Self {
         Self::Compound(

@@ -29,10 +29,13 @@ pub(crate) const fn sign(input: &[u8]) -> Option<ParsedItem<'_, Sign>> {
 
 /// Consume the first matching item, returning its associated value.
 #[inline]
-pub(crate) fn first_match<'a, T>(
-    options: impl IntoIterator<Item = (&'a [u8], T)>,
+pub(crate) fn first_match<'a, T, I>(
+    options: I,
     case_sensitive: bool,
-) -> impl for<'b> FnMut(&'b [u8]) -> Option<ParsedItem<'b, T>> {
+) -> impl for<'b> FnMut(&'b [u8]) -> Option<ParsedItem<'b, T>>
+where
+    I: IntoIterator<Item = (&'a [u8], T)>,
+{
     let mut options = options.into_iter();
     move |input| {
         if case_sensitive {
@@ -54,9 +57,10 @@ pub(crate) fn first_match<'a, T>(
 
 /// Consume zero or more instances of the provided parser. The parser must return the unit value.
 #[inline]
-pub(crate) fn zero_or_more<P: for<'a> Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>>>(
-    parser: P,
-) -> impl for<'a> FnMut(&'a [u8]) -> ParsedItem<'a, ()> {
+pub(crate) fn zero_or_more<P>(parser: P) -> impl for<'a> FnMut(&'a [u8]) -> ParsedItem<'a, ()>
+where
+    P: for<'a> Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>>,
+{
     move |mut input| {
         while let Some(remaining) = parser(input) {
             input = remaining.into_inner();
@@ -67,9 +71,10 @@ pub(crate) fn zero_or_more<P: for<'a> Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>>
 
 /// Consume one of or more instances of the provided parser. The parser must produce the unit value.
 #[inline]
-pub(crate) fn one_or_more<P: for<'a> Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>>>(
-    parser: P,
-) -> impl for<'a> Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>> {
+pub(crate) fn one_or_more<P>(parser: P) -> impl for<'a> Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>>
+where
+    P: for<'a> Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>>,
+{
     move |mut input| {
         input = parser(input)?.into_inner();
         while let Some(remaining) = parser(input) {
@@ -81,9 +86,12 @@ pub(crate) fn one_or_more<P: for<'a> Fn(&'a [u8]) -> Option<ParsedItem<'a, ()>>>
 
 /// Consume between `n` and `m` digits, returning the numerical value.
 #[inline]
-pub(crate) fn n_to_m_digits<const N: u8, const M: u8, T: Integer>(
+pub(crate) fn n_to_m_digits<const N: u8, const M: u8, T>(
     mut input: &[u8],
-) -> Option<ParsedItem<'_, T>> {
+) -> Option<ParsedItem<'_, T>>
+where
+    T: Integer,
+{
     const {
         assert!(N > 0);
         assert!(M >= N);
@@ -387,16 +395,22 @@ impl ExactlyNDigits<9> {
 }
 
 /// Consume exactly `n` digits, returning the numerical value.
-pub(crate) fn exactly_n_digits_padded<const N: u8, T: Integer>(
+pub(crate) fn exactly_n_digits_padded<const N: u8, T>(
     padding: Padding,
-) -> impl for<'a> Fn(&'a [u8]) -> Option<ParsedItem<'a, T>> {
+) -> impl for<'a> Fn(&'a [u8]) -> Option<ParsedItem<'a, T>>
+where
+    T: Integer,
+{
     n_to_m_digits_padded::<N, N, _>(padding)
 }
 
 /// Consume between `n` and `m` digits, returning the numerical value.
-pub(crate) fn n_to_m_digits_padded<const N: u8, const M: u8, T: Integer>(
+pub(crate) fn n_to_m_digits_padded<const N: u8, const M: u8, T>(
     padding: Padding,
-) -> impl for<'a> Fn(&'a [u8]) -> Option<ParsedItem<'a, T>> {
+) -> impl for<'a> Fn(&'a [u8]) -> Option<ParsedItem<'a, T>>
+where
+    T: Integer,
+{
     const {
         assert!(N > 0);
         assert!(M >= N);

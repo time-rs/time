@@ -28,10 +28,10 @@ pub(crate) const SERDE_CONFIG: EncodedConfig =
 /// Serialize an [`OffsetDateTime`] using the well-known ISO 8601 format.
 #[cfg(feature = "formatting")]
 #[inline]
-pub fn serialize<S: Serializer>(
-    datetime: &OffsetDateTime,
-    serializer: S,
-) -> Result<S::Ok, S::Error> {
+pub fn serialize<S>(datetime: &OffsetDateTime, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
     datetime
         .format(&Iso8601::<SERDE_CONFIG>)
         .map_err(S::Error::custom)?
@@ -41,7 +41,10 @@ pub fn serialize<S: Serializer>(
 /// Deserialize an [`OffsetDateTime`] from its ISO 8601 representation.
 #[cfg(feature = "parsing")]
 #[inline]
-pub fn deserialize<'a, D: Deserializer<'a>>(deserializer: D) -> Result<OffsetDateTime, D::Error> {
+pub fn deserialize<'a, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
+where
+    D: Deserializer<'a>,
+{
     deserializer.deserialize_str(Visitor::<Iso8601<SERDE_CONFIG>>(PhantomData))
 }
 
@@ -62,10 +65,10 @@ pub mod option {
     /// Serialize an [`Option<OffsetDateTime>`] using the well-known ISO 8601 format.
     #[cfg(feature = "formatting")]
     #[inline]
-    pub fn serialize<S: Serializer>(
-        option: &Option<OffsetDateTime>,
-        serializer: S,
-    ) -> Result<S::Ok, S::Error> {
+    pub fn serialize<S>(option: &Option<OffsetDateTime>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
         option
             .map(|odt| odt.format(&Iso8601::<SERDE_CONFIG>))
             .transpose()
@@ -76,9 +79,10 @@ pub mod option {
     /// Deserialize an [`Option<OffsetDateTime>`] from its ISO 8601 representation.
     #[cfg(feature = "parsing")]
     #[inline]
-    pub fn deserialize<'a, D: Deserializer<'a>>(
-        deserializer: D,
-    ) -> Result<Option<OffsetDateTime>, D::Error> {
+    pub fn deserialize<'a, D>(deserializer: D) -> Result<Option<OffsetDateTime>, D::Error>
+    where
+        D: Deserializer<'a>,
+    {
         deserializer.deserialize_option(Visitor::<Option<Iso8601<SERDE_CONFIG>>>(PhantomData))
     }
 }

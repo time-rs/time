@@ -4,7 +4,7 @@
 use alloc::string::String;
 use core::cmp::Ordering;
 use core::fmt;
-use core::hash::Hash;
+use core::hash::{Hash, Hasher};
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
@@ -62,7 +62,10 @@ impl Ord for OffsetDateTime {
 
 impl Hash for OffsetDateTime {
     #[inline]
-    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
         raw_to_bits(self.to_utc_raw()).hash(state);
     }
 }

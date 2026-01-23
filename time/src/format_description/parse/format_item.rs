@@ -544,7 +544,10 @@ modifier! {
 
 /// Parse a modifier value using `FromStr`. Requires the modifier value to be valid UTF-8.
 #[inline]
-fn parse_from_modifier_value<T: FromStr>(value: &Spanned<&[u8]>) -> Result<Option<T>, Error> {
+fn parse_from_modifier_value<T>(value: &Spanned<&[u8]>) -> Result<Option<T>, Error>
+where
+    T: FromStr,
+{
     str::from_utf8(value)
         .ok()
         .and_then(|val| val.parse::<T>().ok())

@@ -9,14 +9,20 @@ use crate::{
 
 impl Distribution<Time> for StandardUniform {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Time {
+    fn sample<R>(&self, rng: &mut R) -> Time
+    where
+        R: Rng + ?Sized,
+    {
         Time::from_hms_nanos_ranged(rng.random(), rng.random(), rng.random(), rng.random())
     }
 }
 
 impl Distribution<Date> for StandardUniform {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Date {
+    fn sample<R>(&self, rng: &mut R) -> Date
+    where
+        R: Rng + ?Sized,
+    {
         // Safety: The Julian day number is in range.
         unsafe {
             Date::from_julian_day_unchecked(
@@ -28,28 +34,40 @@ impl Distribution<Date> for StandardUniform {
 
 impl Distribution<UtcOffset> for StandardUniform {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> UtcOffset {
+    fn sample<R>(&self, rng: &mut R) -> UtcOffset
+    where
+        R: Rng + ?Sized,
+    {
         UtcOffset::from_hms_ranged(rng.random(), rng.random(), rng.random())
     }
 }
 
 impl Distribution<PrimitiveDateTime> for StandardUniform {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> PrimitiveDateTime {
+    fn sample<R>(&self, rng: &mut R) -> PrimitiveDateTime
+    where
+        R: Rng + ?Sized,
+    {
         PrimitiveDateTime::new(Self.sample(rng), Self.sample(rng))
     }
 }
 
 impl Distribution<UtcDateTime> for StandardUniform {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> UtcDateTime {
+    fn sample<R>(&self, rng: &mut R) -> UtcDateTime
+    where
+        R: Rng + ?Sized,
+    {
         UtcDateTime::new(Self.sample(rng), Self.sample(rng))
     }
 }
 
 impl Distribution<OffsetDateTime> for StandardUniform {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> OffsetDateTime {
+    fn sample<R>(&self, rng: &mut R) -> OffsetDateTime
+    where
+        R: Rng + ?Sized,
+    {
         let date_time: PrimitiveDateTime = Self.sample(rng);
         date_time.assume_offset(Self.sample(rng))
     }
@@ -57,14 +75,20 @@ impl Distribution<OffsetDateTime> for StandardUniform {
 
 impl Distribution<Duration> for StandardUniform {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Duration {
+    fn sample<R>(&self, rng: &mut R) -> Duration
+    where
+        R: Rng + ?Sized,
+    {
         Duration::new_ranged(rng.random(), rng.random())
     }
 }
 
 impl Distribution<Weekday> for StandardUniform {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Weekday {
+    fn sample<R>(&self, rng: &mut R) -> Weekday
+    where
+        R: Rng + ?Sized,
+    {
         use Weekday::*;
 
         match rng.random_range(0u8..7) {
@@ -84,7 +108,10 @@ impl Distribution<Weekday> for StandardUniform {
 
 impl Distribution<Month> for StandardUniform {
     #[inline]
-    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Month {
+    fn sample<R>(&self, rng: &mut R) -> Month
+    where
+        R: Rng + ?Sized,
+    {
         use Month::*;
         match rng.random_range(1u8..=12) {
             1 => January,

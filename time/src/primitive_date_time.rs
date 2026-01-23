@@ -43,7 +43,10 @@ pub struct PrimitiveDateTime {
 
 impl Hash for PrimitiveDateTime {
     #[inline]
-    fn hash<H: Hasher>(&self, state: &mut H) {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
         self.as_i128().hash(state);
     }
 }
