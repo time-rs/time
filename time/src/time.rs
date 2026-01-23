@@ -934,6 +934,7 @@ impl Time {
 }
 
 mod private {
+    /// Metadata for `Time`.
     #[non_exhaustive]
     #[derive(Debug, Clone, Copy)]
     pub struct TimeMetadata {

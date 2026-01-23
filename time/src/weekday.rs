@@ -170,6 +170,7 @@ impl Weekday {
 }
 
 mod private {
+    /// Metadata for `Weekday`.
     #[non_exhaustive]
     #[derive(Debug, Clone, Copy)]
     pub struct WeekdayMetadata;

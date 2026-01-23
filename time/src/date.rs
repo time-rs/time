@@ -1415,6 +1415,7 @@ impl Date {
 }
 
 mod private {
+    /// Metadata for `Date`.
     #[non_exhaustive]
     #[derive(Debug, Clone, Copy)]
     pub struct DateMetadata {

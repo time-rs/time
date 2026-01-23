@@ -12,7 +12,9 @@ mod sealed {
         const VALUE: Output;
     }
 
+    /// A trait for defining the default output type for the `per` method.
     pub trait DefaultOutput<T> {
+        /// The default output type for the `per` method.
         type Output;
     }
 }

@@ -508,6 +508,7 @@ impl UtcOffset {
 }
 
 mod private {
+    /// Metadata for `UtcOffset`.
     #[non_exhaustive]
     #[derive(Debug, Clone, Copy)]
     pub struct UtcOffsetMetadata;

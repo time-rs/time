@@ -177,6 +177,7 @@ impl Month {
 }
 
 mod private {
+    /// Metadata for `Month`.
     #[non_exhaustive]
     #[derive(Debug, Clone, Copy)]
     pub struct MonthMetadata;
