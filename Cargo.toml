@@ -13,8 +13,8 @@ keywords = ["date", "time", "calendar", "duration"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-time-core = { path = "time-core", version = "=0.1.7" }
-time-macros = { path = "time-macros", version = "=0.2.25" }
+time-core = { path = "time-core", version = "=0.1.8" }
+time-macros = { path = "time-macros", version = "=0.2.26" }
 
 criterion = { version = "0.8.1", default-features = false }
 deranged = { version = "0.5.2", features = ["powerfmt"] }

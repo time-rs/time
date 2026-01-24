@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.46 [2026-01-23]
+
+### Added
+
+- All possible panics are now documented for the relevant methods.
+- The need to use `#[serde(default)]` when using custom `serde` formats is documented. This applies
+  only when deserializing an `Option<T>`.
+- `Duration::nanoseconds_i128` has been made public, mirroring
+  `std::time::Duration::from_nanos_u128`.
+- Various methods for truncating components have been added, avoiding the need to call the fallible
+  `replace` methods multiple times.
+
+  For `PrimitiveDateTime`, `UtcDateTime`, and `OffsetDateTime`:
+  - `truncate_to_day`
+
+  For `Time`, `PrimitiveDateTime`, `UtcDateTime`, and `OffsetDateTime`:
+  - `truncate_to_hour`
+  - `truncate_to_minute`
+  - `truncate_to_second`
+  - `truncate_to_millisecond`
+  - `truncate_to_microsecond`
+
+### Changed
+
+- The minimum supported Rust version is now 1.88.0.
+- Significant performance gains in numerous locations. No public APIs were changed or removed as
+  part of this.
+- The size of `error::ComponentRange`, along with types that contain it, has been significantly
+  reduced.
+
+### Fixed
+
+- The `PartialOrd` and `Ord` implementations of `UtcOffset` now return the expected result.
+
 ## 0.3.45 [2026-01-13]
 
 ### Added
