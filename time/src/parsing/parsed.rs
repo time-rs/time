@@ -14,14 +14,13 @@ use crate::date::{MAX_YEAR, MIN_YEAR};
 use crate::error::TryFromParsed::InsufficientInformation;
 #[cfg(feature = "alloc")]
 use crate::format_description::OwnedFormatItem;
-use crate::format_description::{BorrowedFormatItem, Component, modifier};
+use crate::format_description::{BorrowedFormatItem, Component, Period, modifier};
 use crate::internal_macros::{bug, const_try_opt};
 use crate::parsing::ParsedItem;
 use crate::parsing::component::{
-    Period, parse_day, parse_end, parse_hour, parse_ignore, parse_minute, parse_month,
-    parse_offset_hour, parse_offset_minute, parse_offset_second, parse_ordinal, parse_period,
-    parse_second, parse_subsecond, parse_unix_timestamp, parse_week_number, parse_weekday,
-    parse_year,
+    parse_day, parse_end, parse_hour, parse_ignore, parse_minute, parse_month, parse_offset_hour,
+    parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
+    parse_subsecond, parse_unix_timestamp, parse_week_number, parse_weekday, parse_year,
 };
 use crate::{
     Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday, error,
