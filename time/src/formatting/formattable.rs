@@ -13,7 +13,7 @@ use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::format_description::{BorrowedFormatItem, OwnedFormatItem};
 use crate::formatting::{
     ComponentProvider, MONTH_NAMES, WEEKDAY_NAMES, format_component, format_number_pad_zero,
-    iso8601, write,
+    iso8601, write, write_if_else,
 };
 
 /// A type that describes a format.
@@ -212,8 +212,12 @@ impl sealed::Sealed for Rfc2822 {
     where
         V: ComponentProvider,
     {
-        if !(V::SUPPLIES_DATE && V::SUPPLIES_TIME && V::SUPPLIES_OFFSET) {
-            return Err(error::Format::InsufficientTypeInformation);
+        const {
+            assert!(
+                V::SUPPLIES_DATE && V::SUPPLIES_TIME && V::SUPPLIES_OFFSET,
+                "Rfc2822 requires date, time, and offset components, but not all can be provided \
+                 by this type"
+            );
         }
 
         let mut bytes = 0;
@@ -225,20 +229,21 @@ impl sealed::Sealed for Rfc2822 {
             return Err(error::Format::InvalidComponent("offset_second"));
         }
 
-        bytes += write(
-            output,
-            &WEEKDAY_NAMES[value
+        // Safety: All weekday names are at least 3 bytes long.
+        bytes += write(output, unsafe {
+            WEEKDAY_NAMES[value
                 .weekday(state)
                 .number_days_from_monday()
-                .extend::<usize>()][..3],
-        )?;
+                .extend::<usize>()]
+            .get_unchecked(..3)
+        })?;
         bytes += write(output, b", ")?;
         bytes += format_number_pad_zero::<2>(output, value.day(state))?;
         bytes += write(output, b" ")?;
-        bytes += write(
-            output,
-            &MONTH_NAMES[u8::from(value.month(state)).extend::<usize>() - 1][..3],
-        )?;
+        // Safety: All month names are at least 3 bytes long.
+        bytes += write(output, unsafe {
+            MONTH_NAMES[u8::from(value.month(state)).extend::<usize>() - 1].get_unchecked(..3)
+        })?;
         bytes += write(output, b" ")?;
         bytes += format_number_pad_zero::<4>(output, value.calendar_year(state).cast_unsigned())?;
         bytes += write(output, b" ")?;
@@ -248,14 +253,7 @@ impl sealed::Sealed for Rfc2822 {
         bytes += write(output, b":")?;
         bytes += format_number_pad_zero::<2>(output, value.second(state))?;
         bytes += write(output, b" ")?;
-        bytes += write(
-            output,
-            if value.offset_is_negative(state) {
-                b"-"
-            } else {
-                b"+"
-            },
-        )?;
+        bytes += write_if_else(output, value.offset_is_negative(state), b"-", b"+")?;
         bytes += format_number_pad_zero::<2>(output, value.offset_hour(state).unsigned_abs())?;
         bytes += format_number_pad_zero::<2>(output, value.offset_minute(state).unsigned_abs())?;
 
@@ -278,8 +276,12 @@ impl sealed::Sealed for Rfc3339 {
     where
         V: ComponentProvider,
     {
-        if !(V::SUPPLIES_DATE && V::SUPPLIES_TIME && V::SUPPLIES_OFFSET) {
-            return Err(error::Format::InsufficientTypeInformation);
+        const {
+            assert!(
+                V::SUPPLIES_DATE && V::SUPPLIES_TIME && V::SUPPLIES_OFFSET,
+                "Rfc3339 requires date, time, and offset components, but not all can be provided \
+                 by this type"
+            );
         }
 
         let offset_hour = value.offset_hour(state);
@@ -336,14 +338,7 @@ impl sealed::Sealed for Rfc3339 {
             return Ok(bytes);
         }
 
-        bytes += write(
-            output,
-            if value.offset_is_negative(state) {
-                b"-"
-            } else {
-                b"+"
-            },
-        )?;
+        bytes += write_if_else(output, value.offset_is_negative(state), b"-", b"+")?;
         bytes += format_number_pad_zero::<2>(output, offset_hour.unsigned_abs())?;
         bytes += write(output, b":")?;
         bytes += format_number_pad_zero::<2>(output, value.offset_minute(state).unsigned_abs())?;
@@ -370,29 +365,36 @@ impl<const CONFIG: EncodedConfig> sealed::Sealed for Iso8601<CONFIG> {
     {
         let mut bytes = 0;
 
+        const {
+            assert!(
+                !Self::FORMAT_DATE || V::SUPPLIES_DATE,
+                "this Iso8601 configuration formats date components, but this type cannot provide \
+                 them"
+            );
+            assert!(
+                !Self::FORMAT_TIME || V::SUPPLIES_TIME,
+                "this Iso8601 configuration formats time components, but this type cannot provide \
+                 them"
+            );
+            assert!(
+                !Self::FORMAT_OFFSET || V::SUPPLIES_OFFSET,
+                "this Iso8601 configuration formats offset components, but this type cannot \
+                 provide them"
+            );
+            assert!(
+                Self::FORMAT_DATE || Self::FORMAT_TIME || Self::FORMAT_OFFSET,
+                "this Iso8601 configuration does not format any components"
+            );
+        }
+
         if Self::FORMAT_DATE {
-            if !V::SUPPLIES_DATE {
-                return Err(error::Format::InsufficientTypeInformation);
-            }
             bytes += iso8601::format_date::<_, CONFIG>(output, value, state)?;
         }
         if Self::FORMAT_TIME {
-            if !V::SUPPLIES_TIME {
-                return Err(error::Format::InsufficientTypeInformation);
-            }
             bytes += iso8601::format_time::<_, CONFIG>(output, value, state)?;
         }
         if Self::FORMAT_OFFSET {
-            if !V::SUPPLIES_OFFSET {
-                return Err(error::Format::InsufficientTypeInformation);
-            }
             bytes += iso8601::format_offset::<_, CONFIG>(output, value, state)?;
-        }
-
-        if bytes == 0 {
-            // The only reason there would be no bytes written is if the format was only for
-            // parsing.
-            panic!("attempted to format a parsing-only format description");
         }
 
         Ok(bytes)

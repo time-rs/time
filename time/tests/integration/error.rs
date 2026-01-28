@@ -7,7 +7,7 @@ use time::error::{
 };
 use time::macros::format_description;
 use time::parsing::Parsed;
-use time::{format_description, Date, Time};
+use time::{Date, Time, format_description};
 
 macro_rules! assert_display_eq {
     ($a:expr, $b:expr $(,)?) => {
@@ -36,7 +36,7 @@ fn component_range() -> ComponentRange {
 
 fn insufficient_type_information() -> Format {
     Time::MIDNIGHT
-        .format(&format_description::well_known::Rfc3339)
+        .format(format_description!("[year]"))
         .expect_err("missing date and UTC offset")
 }
 

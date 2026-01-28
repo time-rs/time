@@ -118,12 +118,6 @@ fn iso_8601() -> time::Result<()> {
         };
     }
 
-    assert!(
-        std::panic::catch_unwind(|| {
-            let _unused = datetime!(2021-01-02 03:04:05 UTC).format(&Iso8601::PARSING);
-        })
-        .is_err()
-    );
     assert_eq!(
         datetime!(-123_456-01-02 03:04:05 UTC).format(
             &Iso8601::<
@@ -635,18 +629,9 @@ fn insufficient_type_information() {
         ));
     };
     assert_insufficient_type_information(Time::MIDNIGHT.format(fd!("[year]")));
-    assert_insufficient_type_information(Time::MIDNIGHT.format(&Rfc3339));
-    assert_insufficient_type_information(date!(2021-001).format(&Rfc3339));
-    assert_insufficient_type_information(datetime!(2021-001 0:00).format(&Rfc3339));
-    assert_insufficient_type_information(Time::MIDNIGHT.format(&Rfc2822));
-    assert_insufficient_type_information(date!(2021-001).format(&Rfc2822));
-    assert_insufficient_type_information(datetime!(2021-001 0:00).format(&Rfc2822));
     assert_insufficient_type_information(Time::MIDNIGHT.format(&BorrowedFormatItem::First(&[
         BorrowedFormatItem::Compound(fd!("[year]")),
     ])));
-    assert_insufficient_type_information(Time::MIDNIGHT.format(&Iso8601::DEFAULT));
-    assert_insufficient_type_information(date!(2021-001).format(&Iso8601::DEFAULT));
-    assert_insufficient_type_information(datetime!(2021-001 0:00).format(&Iso8601::DEFAULT));
 }
 
 #[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
