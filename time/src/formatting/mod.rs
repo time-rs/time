@@ -338,10 +338,10 @@ fn fmt_month(
         modifier::MonthRepr::Long => {
             write(output, MONTH_NAMES[u8::from(month).extend::<usize>() - 1])
         }
-        modifier::MonthRepr::Short => write(
-            output,
-            &MONTH_NAMES[u8::from(month).extend::<usize>() - 1][..3],
-        ),
+        // Safety: All month names are at least three bytes long.
+        modifier::MonthRepr::Short => write(output, unsafe {
+            MONTH_NAMES[u8::from(month).extend::<usize>() - 1].get_unchecked(..3)
+        }),
     }
 }
 
@@ -367,10 +367,10 @@ fn fmt_weekday(
     }: modifier::Weekday,
 ) -> Result<usize, io::Error> {
     match repr {
-        modifier::WeekdayRepr::Short => write(
-            output,
-            &WEEKDAY_NAMES[weekday.number_days_from_monday().extend::<usize>()][..3],
-        ),
+        // Safety: All weekday names are at least three bytes long.
+        modifier::WeekdayRepr::Short => write(output, unsafe {
+            WEEKDAY_NAMES[weekday.number_days_from_monday().extend::<usize>()].get_unchecked(..3)
+        }),
         modifier::WeekdayRepr::Long => write(
             output,
             WEEKDAY_NAMES[weekday.number_days_from_monday().extend::<usize>()],
