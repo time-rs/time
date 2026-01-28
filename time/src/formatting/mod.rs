@@ -489,12 +489,15 @@ fn fmt_period(
         case_sensitive: _, // no effect on formatting
     }: modifier::Period,
 ) -> Result<usize, io::Error> {
-    match (period, is_uppercase) {
-        (Period::Am, false) => write(output, b"am"),
-        (Period::Am, true) => write(output, b"AM"),
-        (Period::Pm, false) => write(output, b"pm"),
-        (Period::Pm, true) => write(output, b"PM"),
-    }
+    write(
+        output,
+        match (period, is_uppercase) {
+            (Period::Am, false) => b"am",
+            (Period::Am, true) => b"AM",
+            (Period::Pm, false) => b"pm",
+            (Period::Pm, true) => b"PM",
+        },
+    )
 }
 
 /// Format the second into the designated output.
@@ -536,6 +539,21 @@ fn fmt_subsecond(
     }
 }
 
+#[inline]
+fn fmt_offset_sign(
+    output: &mut (impl io::Write + ?Sized),
+    is_negative: bool,
+    sign_is_mandatory: bool,
+) -> Result<usize, io::Error> {
+    if is_negative {
+        write(output, b"-")
+    } else if sign_is_mandatory {
+        write(output, b"+")
+    } else {
+        Ok(0)
+    }
+}
+
 /// Format the offset hour into the designated output.
 #[inline]
 fn fmt_offset_hour(
@@ -548,11 +566,7 @@ fn fmt_offset_hour(
     }: modifier::OffsetHour,
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
-    if is_negative {
-        bytes += write(output, b"-")?;
-    } else if sign_is_mandatory {
-        bytes += write(output, b"+")?;
-    }
+    bytes += fmt_offset_sign(output, is_negative, sign_is_mandatory)?;
     bytes += format_number::<2>(output, hour.unsigned_abs(), padding)?;
     Ok(bytes)
 }
@@ -589,13 +603,10 @@ fn fmt_unix_timestamp_seconds(
 ) -> Result<usize, io::Error> {
     debug_assert_eq!(precision, modifier::UnixTimestampPrecision::Second);
 
-    if timestamp < 0 {
-        write(output, b"-")?;
-    } else if sign_is_mandatory {
-        write(output, b"+")?;
-    }
-
-    format_number_pad_none(output, timestamp.unsigned_abs())
+    let mut bytes = 0;
+    bytes += fmt_offset_sign(output, timestamp < 0, sign_is_mandatory)?;
+    bytes += format_number_pad_none(output, timestamp.unsigned_abs())?;
+    Ok(bytes)
 }
 
 /// Format the Unix timestamp (in milliseconds) into the designated output.
@@ -610,13 +621,10 @@ fn fmt_unix_timestamp_milliseconds(
 ) -> Result<usize, io::Error> {
     debug_assert_eq!(precision, modifier::UnixTimestampPrecision::Millisecond);
 
-    if timestamp_millis < 0 {
-        write(output, b"-")?;
-    } else if sign_is_mandatory {
-        write(output, b"+")?;
-    }
-
-    format_number_pad_none(output, timestamp_millis.unsigned_abs())
+    let mut bytes = 0;
+    bytes += fmt_offset_sign(output, timestamp_millis < 0, sign_is_mandatory)?;
+    bytes += format_number_pad_none(output, timestamp_millis.unsigned_abs())?;
+    Ok(bytes)
 }
 
 /// Format the Unix timestamp into the designated output.
@@ -631,13 +639,10 @@ fn fmt_unix_timestamp_microseconds(
 ) -> Result<usize, io::Error> {
     debug_assert_eq!(precision, modifier::UnixTimestampPrecision::Microsecond);
 
-    if timestamp_micros < 0 {
-        write(output, b"-")?;
-    } else if sign_is_mandatory {
-        write(output, b"+")?;
-    }
-
-    format_number_pad_none(output, timestamp_micros.unsigned_abs())
+    let mut bytes = 0;
+    bytes += fmt_offset_sign(output, timestamp_micros < 0, sign_is_mandatory)?;
+    bytes += format_number_pad_none(output, timestamp_micros.unsigned_abs())?;
+    Ok(bytes)
 }
 
 /// Format the Unix timestamp into the designated output.
@@ -652,11 +657,8 @@ fn fmt_unix_timestamp_nanoseconds(
 ) -> Result<usize, io::Error> {
     debug_assert_eq!(precision, modifier::UnixTimestampPrecision::Nanosecond);
 
-    if timestamp_nanos < 0 {
-        write(output, b"-")?;
-    } else if sign_is_mandatory {
-        write(output, b"+")?;
-    }
-
-    format_number_pad_none(output, timestamp_nanos.unsigned_abs())
+    let mut bytes = 0;
+    bytes += fmt_offset_sign(output, timestamp_nanos < 0, sign_is_mandatory)?;
+    bytes += format_number_pad_none(output, timestamp_nanos.unsigned_abs())?;
+    Ok(bytes)
 }
