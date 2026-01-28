@@ -181,6 +181,22 @@ macro_rules! const_try {
 
 /// Try to unwrap an expression, returning if not possible.
 ///
+/// This is identical to `?` in terms of behavior, but marks the error path as cold.
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+macro_rules! try_likely_ok {
+    ($e:expr) => {
+        match $e {
+            Ok(value) => value,
+            Err(error) => {
+                $crate::hint::cold_path();
+                return Err(error.into());
+            }
+        }
+    };
+}
+
+/// Try to unwrap an expression, returning if not possible.
+///
 /// This is similar to the `?` operator, but is usable in `const` contexts.
 macro_rules! const_try_opt {
     ($e:expr) => {
@@ -206,5 +222,5 @@ macro_rules! bug {
 }
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
-pub(crate) use bug;
+pub(crate) use {bug, try_likely_ok};
 pub(crate) use {carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged};

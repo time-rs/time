@@ -897,7 +897,7 @@ impl Time {
         output: &mut (impl io::Write + ?Sized),
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
-        format.format_into(output, None, Some(self), None)
+        format.format_into(output, &self, &mut Default::default())
     }
 
     /// Format the `Time` using the provided [format description](crate::format_description).
@@ -911,7 +911,7 @@ impl Time {
     /// ```
     #[inline]
     pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
-        format.format(None, Some(self), None)
+        format.format(&self, &mut Default::default())
     }
 }
 

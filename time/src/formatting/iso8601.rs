@@ -3,23 +3,30 @@
 use std::io;
 
 use crate::convert::*;
+use crate::error;
 use crate::format_description::well_known::Iso8601;
 use crate::format_description::well_known::iso8601::{
     DateKind, EncodedConfig, OffsetPrecision, TimePrecision,
 };
-use crate::formatting::{format_float, format_number_pad_zero, write, write_if, write_if_else};
-use crate::{Date, Time, UtcOffset, error};
+use crate::formatting::{
+    ComponentProvider, format_float, format_number_pad_zero, write, write_if, write_if_else,
+};
 
 /// Format the date portion of ISO 8601.
-pub(super) fn format_date<const CONFIG: EncodedConfig>(
+pub(super) fn format_date<V, const CONFIG: EncodedConfig>(
     output: &mut (impl io::Write + ?Sized),
-    date: Date,
-) -> Result<usize, error::Format> {
+    value: &V,
+    state: &mut V::State,
+) -> Result<usize, error::Format>
+where
+    V: ComponentProvider,
+{
     let mut bytes = 0;
 
     match Iso8601::<CONFIG>::DATE_KIND {
         DateKind::Calendar => {
-            let (year, month, day) = date.to_calendar_date();
+            let year = value.calendar_year(state);
+
             if Iso8601::<CONFIG>::YEAR_IS_SIX_DIGITS {
                 bytes += write_if_else(output, year < 0, b"-", b"+")?;
                 bytes += format_number_pad_zero::<6>(output, year.unsigned_abs())?;
@@ -29,12 +36,13 @@ pub(super) fn format_date<const CONFIG: EncodedConfig>(
                 bytes += format_number_pad_zero::<4>(output, year.cast_unsigned())?;
             }
             bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b"-")?;
-            bytes += format_number_pad_zero::<2>(output, u8::from(month))?;
+            bytes += format_number_pad_zero::<2>(output, u8::from(value.month(state)))?;
             bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b"-")?;
-            bytes += format_number_pad_zero::<2>(output, day)?;
+            bytes += format_number_pad_zero::<2>(output, value.day(state))?;
         }
         DateKind::Week => {
-            let (year, week, day) = date.to_iso_week_date();
+            let year = value.iso_year(state);
+
             if Iso8601::<CONFIG>::YEAR_IS_SIX_DIGITS {
                 bytes += write_if_else(output, year < 0, b"-", b"+")?;
                 bytes += format_number_pad_zero::<6>(output, year.unsigned_abs())?;
@@ -44,12 +52,14 @@ pub(super) fn format_date<const CONFIG: EncodedConfig>(
                 bytes += format_number_pad_zero::<4>(output, year.cast_unsigned())?;
             }
             bytes += write_if_else(output, Iso8601::<CONFIG>::USE_SEPARATORS, b"-W", b"W")?;
-            bytes += format_number_pad_zero::<2>(output, week)?;
+            bytes += format_number_pad_zero::<2>(output, value.iso_week_number(state))?;
             bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b"-")?;
-            bytes += format_number_pad_zero::<1>(output, day.number_from_monday())?;
+            bytes +=
+                format_number_pad_zero::<1>(output, value.weekday(state).number_from_monday())?;
         }
         DateKind::Ordinal => {
-            let (year, day) = date.to_ordinal_date();
+            let year = value.calendar_year(state);
+
             if Iso8601::<CONFIG>::YEAR_IS_SIX_DIGITS {
                 bytes += write_if_else(output, year < 0, b"-", b"+")?;
                 bytes += format_number_pad_zero::<6>(output, year.unsigned_abs())?;
@@ -59,7 +69,7 @@ pub(super) fn format_date<const CONFIG: EncodedConfig>(
                 bytes += format_number_pad_zero::<4>(output, year.cast_unsigned())?;
             }
             bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b"-")?;
-            bytes += format_number_pad_zero::<3>(output, day)?;
+            bytes += format_number_pad_zero::<3>(output, value.ordinal(state))?;
         }
     }
 
@@ -68,10 +78,14 @@ pub(super) fn format_date<const CONFIG: EncodedConfig>(
 
 /// Format the time portion of ISO 8601.
 #[inline]
-pub(super) fn format_time<const CONFIG: EncodedConfig>(
+pub(super) fn format_time<V, const CONFIG: EncodedConfig>(
     output: &mut (impl io::Write + ?Sized),
-    time: Time,
-) -> Result<usize, error::Format> {
+    value: &V,
+    state: &mut V::State,
+) -> Result<usize, error::Format>
+where
+    V: ComponentProvider,
+{
     let mut bytes = 0;
 
     // The "T" can only be omitted in extended format where there is no date being formatted.
@@ -81,31 +95,29 @@ pub(super) fn format_time<const CONFIG: EncodedConfig>(
         b"T",
     )?;
 
-    let (hours, minutes, seconds, nanoseconds) = time.as_hms_nano();
-
     match Iso8601::<CONFIG>::TIME_PRECISION {
         TimePrecision::Hour { decimal_digits } => {
-            let hours = (hours as f64)
-                + (minutes as f64) / Minute::per_t::<f64>(Hour)
-                + (seconds as f64) / Second::per_t::<f64>(Hour)
-                + (nanoseconds as f64) / Nanosecond::per_t::<f64>(Hour);
+            let hours = (value.hour(state) as f64)
+                + (value.minute(state) as f64) / Minute::per_t::<f64>(Hour)
+                + (value.second(state) as f64) / Second::per_t::<f64>(Hour)
+                + (value.nanosecond(state) as f64) / Nanosecond::per_t::<f64>(Hour);
             format_float(output, hours, 2, decimal_digits)?;
         }
         TimePrecision::Minute { decimal_digits } => {
-            bytes += format_number_pad_zero::<2>(output, hours)?;
+            bytes += format_number_pad_zero::<2>(output, value.hour(state))?;
             bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b":")?;
-            let minutes = (minutes as f64)
-                + (seconds as f64) / Second::per_t::<f64>(Minute)
-                + (nanoseconds as f64) / Nanosecond::per_t::<f64>(Minute);
+            let minutes = (value.minute(state) as f64)
+                + (value.second(state) as f64) / Second::per_t::<f64>(Minute)
+                + (value.nanosecond(state) as f64) / Nanosecond::per_t::<f64>(Minute);
             bytes += format_float(output, minutes, 2, decimal_digits)?;
         }
         TimePrecision::Second { decimal_digits } => {
-            bytes += format_number_pad_zero::<2>(output, hours)?;
+            bytes += format_number_pad_zero::<2>(output, value.hour(state))?;
             bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b":")?;
-            bytes += format_number_pad_zero::<2>(output, minutes)?;
+            bytes += format_number_pad_zero::<2>(output, value.minute(state))?;
             bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b":")?;
-            let seconds =
-                (seconds as f64) + (nanoseconds as f64) / Nanosecond::per_t::<f64>(Second);
+            let seconds = (value.second(state) as f64)
+                + (value.nanosecond(state) as f64) / Nanosecond::per_t::<f64>(Second);
             bytes += format_float(output, seconds, 2, decimal_digits)?;
         }
     }
@@ -115,22 +127,27 @@ pub(super) fn format_time<const CONFIG: EncodedConfig>(
 
 /// Format the UTC offset portion of ISO 8601.
 #[inline]
-pub(super) fn format_offset<const CONFIG: EncodedConfig>(
+pub(super) fn format_offset<V, const CONFIG: EncodedConfig>(
     output: &mut (impl io::Write + ?Sized),
-    offset: UtcOffset,
-) -> Result<usize, error::Format> {
-    if Iso8601::<CONFIG>::FORMAT_TIME && offset.is_utc() {
+    value: &V,
+    state: &mut V::State,
+) -> Result<usize, error::Format>
+where
+    V: ComponentProvider,
+{
+    if Iso8601::<CONFIG>::FORMAT_TIME && value.offset_is_utc(state) {
         return Ok(write(output, b"Z")?);
     }
 
     let mut bytes = 0;
 
-    let (hours, minutes, seconds) = offset.as_hms();
-    if seconds != 0 {
+    if value.offset_second(state) != 0 {
         return Err(error::Format::InvalidComponent("offset_second"));
     }
-    bytes += write_if_else(output, offset.is_negative(), b"-", b"+")?;
-    bytes += format_number_pad_zero::<2>(output, hours.unsigned_abs())?;
+    bytes += write_if_else(output, value.offset_is_negative(state), b"-", b"+")?;
+    bytes += format_number_pad_zero::<2>(output, value.offset_hour(state).unsigned_abs())?;
+
+    let minutes = value.offset_minute(state);
 
     if Iso8601::<CONFIG>::OFFSET_PRECISION == OffsetPrecision::Hour && minutes != 0 {
         return Err(error::Format::InvalidComponent("offset_minute"));

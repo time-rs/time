@@ -5,7 +5,7 @@ use core::num::NonZero;
 use num_conv::prelude::*;
 
 use crate::convert::*;
-use crate::format_description::modifier;
+use crate::format_description::{Period, modifier};
 use crate::parsing::ParsedItem;
 use crate::parsing::combinator::{
     ExactlyNDigits, Sign, any_digit, exactly_n_digits_padded, first_match, n_to_m_digits,
@@ -342,15 +342,6 @@ pub(crate) fn parse_day(
 ) -> Option<ParsedItem<'_, NonZero<u8>>> {
     exactly_n_digits_padded::<2, _>(modifiers.padding)(input)
         .and_then(|parsed| parsed.flat_map(NonZero::new))
-}
-
-/// Indicate whether the hour is "am" or "pm".
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum Period {
-    #[allow(clippy::missing_docs_in_private_items)]
-    Am,
-    #[allow(clippy::missing_docs_in_private_items)]
-    Pm,
 }
 
 /// Parse the "hour" component of a `Time`.
