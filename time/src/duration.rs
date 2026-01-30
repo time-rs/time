@@ -582,7 +582,7 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f64(0.5), 0.5.seconds());
     /// assert_eq!(Duration::seconds_f64(-0.5), (-0.5).seconds());
     /// ```
-    #[inline(never)]
+    #[inline]
     #[track_caller]
     pub const fn seconds_f64(seconds: f64) -> Self {
         match Self::try_seconds_f64(seconds) {
@@ -639,7 +639,7 @@ impl Duration {
     ///     Duration::MAX,
     /// );
     /// ```
-    #[inline(never)]
+    #[inline]
     pub const fn saturating_seconds_f64(seconds: f64) -> Self {
         match Self::try_seconds_f64(seconds) {
             Ok(duration) => duration,
