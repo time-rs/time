@@ -27,34 +27,6 @@ pub(crate) const fn sign(input: &[u8]) -> Option<ParsedItem<'_, Sign>> {
     }
 }
 
-/// Consume the first matching item, returning its associated value.
-#[inline]
-pub(crate) fn first_match<'a, T, I>(
-    options: I,
-    case_sensitive: bool,
-) -> impl for<'b> FnMut(&'b [u8]) -> Option<ParsedItem<'b, T>>
-where
-    I: IntoIterator<Item = (&'a [u8], T)>,
-{
-    let mut options = options.into_iter();
-    move |input| {
-        if case_sensitive {
-            options.find_map(|(expected, t)| Some(ParsedItem(input.strip_prefix(expected)?, t)))
-        } else {
-            options.find_map(|(expected, t)| {
-                let n = expected.len();
-                if n <= input.len() {
-                    let (head, tail) = input.split_at(n);
-                    if head.eq_ignore_ascii_case(expected) {
-                        return Some(ParsedItem(tail, t));
-                    }
-                }
-                None
-            })
-        }
-    }
-}
-
 /// Consume zero or more instances of the provided parser. The parser must return the unit value.
 #[inline]
 pub(crate) fn zero_or_more<P>(parser: P) -> impl for<'a> FnMut(&'a [u8]) -> ParsedItem<'a, ()>

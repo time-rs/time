@@ -14,7 +14,7 @@ use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::internal_macros::bug;
 use crate::parsing::combinator::{Sign, one_or_two_digits};
 use crate::parsing::{Parsed, ParsedItem};
-use crate::{Date, Month, OffsetDateTime, Time, UtcOffset, Weekday, error};
+use crate::{Date, Month, OffsetDateTime, Time, UtcOffset, error};
 
 /// A type that can be parsed.
 #[cfg_attr(docsrs, doc(notable_trait))]
@@ -172,25 +172,23 @@ impl sealed::Sealed for Rfc2822 {
         parsed: &mut Parsed,
     ) -> Result<&'a [u8], error::Parse> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
-        use crate::parsing::combinator::rfc::rfc2822::{cfws, fws};
-        use crate::parsing::combinator::{ExactlyNDigits, ascii_char, first_match, opt, sign};
+        use crate::format_description::modifier;
+        use crate::parsing::combinator::rfc::rfc2822::{cfws, fws, zone_literal};
+        use crate::parsing::combinator::{ExactlyNDigits, ascii_char, opt, sign};
+        use crate::parsing::component;
 
         let colon = ascii_char::<b':'>;
         let comma = ascii_char::<b','>;
 
         let input = opt(cfws)(input).into_inner();
-        let weekday = first_match(
-            [
-                (b"Mon".as_slice(), Weekday::Monday),
-                (b"Tue".as_slice(), Weekday::Tuesday),
-                (b"Wed".as_slice(), Weekday::Wednesday),
-                (b"Thu".as_slice(), Weekday::Thursday),
-                (b"Fri".as_slice(), Weekday::Friday),
-                (b"Sat".as_slice(), Weekday::Saturday),
-                (b"Sun".as_slice(), Weekday::Sunday),
-            ],
-            false,
-        )(input);
+        let weekday = component::parse_weekday(
+            input,
+            modifier::Weekday {
+                repr: modifier::WeekdayRepr::Short,
+                one_indexed: false,
+                case_sensitive: false,
+            },
+        );
         let input = if let Some(item) = weekday {
             let input = item
                 .consume_value(|value| parsed.set_weekday(value))
@@ -204,23 +202,14 @@ impl sealed::Sealed for Rfc2822 {
             .and_then(|item| item.consume_value(|value| parsed.set_day(NonZero::new(value)?)))
             .ok_or(InvalidComponent("day"))?;
         let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
-        let input = first_match(
-            [
-                (b"Jan".as_slice(), Month::January),
-                (b"Feb".as_slice(), Month::February),
-                (b"Mar".as_slice(), Month::March),
-                (b"Apr".as_slice(), Month::April),
-                (b"May".as_slice(), Month::May),
-                (b"Jun".as_slice(), Month::June),
-                (b"Jul".as_slice(), Month::July),
-                (b"Aug".as_slice(), Month::August),
-                (b"Sep".as_slice(), Month::September),
-                (b"Oct".as_slice(), Month::October),
-                (b"Nov".as_slice(), Month::November),
-                (b"Dec".as_slice(), Month::December),
-            ],
-            false,
-        )(input)
+        let input = component::parse_month(
+            input,
+            modifier::Month {
+                padding: modifier::Padding::None,
+                repr: modifier::MonthRepr::Short,
+                case_sensitive: false,
+            },
+        )
         .and_then(|item| item.consume_value(|value| parsed.set_month(value)))
         .ok_or(InvalidComponent("month"))?;
         let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
@@ -271,33 +260,7 @@ impl sealed::Sealed for Rfc2822 {
         // The RFC explicitly allows leap seconds.
         parsed.leap_second_allowed = true;
 
-        #[expect(
-            clippy::unnecessary_lazy_evaluations,
-            reason = "rust-lang/rust-clippy#8522"
-        )]
-        let zone_literal = first_match(
-            [
-                (b"UT".as_slice(), 0),
-                (b"GMT".as_slice(), 0),
-                (b"EST".as_slice(), -5),
-                (b"EDT".as_slice(), -4),
-                (b"CST".as_slice(), -6),
-                (b"CDT".as_slice(), -5),
-                (b"MST".as_slice(), -7),
-                (b"MDT".as_slice(), -6),
-                (b"PST".as_slice(), -8),
-                (b"PDT".as_slice(), -7),
-            ],
-            false,
-        )(input)
-        .or_else(|| match input {
-            [
-                b'a'..=b'i' | b'k'..=b'z' | b'A'..=b'I' | b'K'..=b'Z',
-                rest @ ..,
-            ] => Some(ParsedItem(rest, 0)),
-            _ => None,
-        });
-        if let Some(zone_literal) = zone_literal {
+        if let Some(zone_literal) = zone_literal(input) {
             let input = zone_literal
                 .consume_value(|value| parsed.set_offset_hour(value))
                 .ok_or(InvalidComponent("offset hour"))?;
@@ -333,29 +296,25 @@ impl sealed::Sealed for Rfc2822 {
 
     fn parse_offset_date_time(&self, input: &[u8]) -> Result<OffsetDateTime, error::Parse> {
         use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
-        use crate::parsing::combinator::rfc::rfc2822::{cfws, fws};
-        use crate::parsing::combinator::{ExactlyNDigits, ascii_char, first_match, opt, sign};
+        use crate::format_description::modifier;
+        use crate::parsing::combinator::rfc::rfc2822::{cfws, fws, zone_literal};
+        use crate::parsing::combinator::{ExactlyNDigits, ascii_char, opt, sign};
+        use crate::parsing::component;
 
         let colon = ascii_char::<b':'>;
         let comma = ascii_char::<b','>;
 
         let input = opt(cfws)(input).into_inner();
-        // This parses the weekday, but we don't actually use the value anywhere. Because of this,
-        // just return `()` to avoid unnecessary generated code.
-        let weekday = first_match(
-            [
-                (b"Mon".as_slice(), ()),
-                (b"Tue".as_slice(), ()),
-                (b"Wed".as_slice(), ()),
-                (b"Thu".as_slice(), ()),
-                (b"Fri".as_slice(), ()),
-                (b"Sat".as_slice(), ()),
-                (b"Sun".as_slice(), ()),
-            ],
-            false,
-        )(input);
+        let weekday = component::parse_weekday(
+            input,
+            modifier::Weekday {
+                repr: modifier::WeekdayRepr::Short,
+                one_indexed: false,
+                case_sensitive: false,
+            },
+        );
         let input = if let Some(item) = weekday {
-            let input = item.into_inner();
+            let input = item.discard_value();
             let input = comma(input).ok_or(InvalidLiteral)?.into_inner();
             opt(cfws)(input).into_inner()
         } else {
@@ -363,23 +322,14 @@ impl sealed::Sealed for Rfc2822 {
         };
         let ParsedItem(input, day) = one_or_two_digits(input).ok_or(InvalidComponent("day"))?;
         let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
-        let ParsedItem(input, month) = first_match(
-            [
-                (b"Jan".as_slice(), Month::January),
-                (b"Feb".as_slice(), Month::February),
-                (b"Mar".as_slice(), Month::March),
-                (b"Apr".as_slice(), Month::April),
-                (b"May".as_slice(), Month::May),
-                (b"Jun".as_slice(), Month::June),
-                (b"Jul".as_slice(), Month::July),
-                (b"Aug".as_slice(), Month::August),
-                (b"Sep".as_slice(), Month::September),
-                (b"Oct".as_slice(), Month::October),
-                (b"Nov".as_slice(), Month::November),
-                (b"Dec".as_slice(), Month::December),
-            ],
-            false,
-        )(input)
+        let ParsedItem(input, month) = component::parse_month(
+            input,
+            modifier::Month {
+                padding: modifier::Padding::None,
+                repr: modifier::MonthRepr::Short,
+                case_sensitive: false,
+            },
+        )
         .ok_or(InvalidComponent("month"))?;
         let input = cfws(input).ok_or(InvalidLiteral)?.into_inner();
         let (input, year) = match ExactlyNDigits::<4>::parse(input) {
@@ -421,34 +371,7 @@ impl sealed::Sealed for Rfc2822 {
             (cfws(input).ok_or(InvalidLiteral)?.into_inner(), 0)
         };
 
-        #[expect(
-            clippy::unnecessary_lazy_evaluations,
-            reason = "rust-lang/rust-clippy#8522"
-        )]
-        let zone_literal = first_match(
-            [
-                (b"UT".as_slice(), 0),
-                (b"GMT".as_slice(), 0),
-                (b"EST".as_slice(), -5),
-                (b"EDT".as_slice(), -4),
-                (b"CST".as_slice(), -6),
-                (b"CDT".as_slice(), -5),
-                (b"MST".as_slice(), -7),
-                (b"MDT".as_slice(), -6),
-                (b"PST".as_slice(), -8),
-                (b"PDT".as_slice(), -7),
-            ],
-            false,
-        )(input)
-        .or_else(|| match input {
-            [
-                b'a'..=b'i' | b'k'..=b'z' | b'A'..=b'I' | b'K'..=b'Z',
-                rest @ ..,
-            ] => Some(ParsedItem(rest, 0)),
-            _ => None,
-        });
-
-        let (input, offset_hour, offset_minute) = if let Some(zone_literal) = zone_literal {
+        let (input, offset_hour, offset_minute) = if let Some(zone_literal) = zone_literal(input) {
             let ParsedItem(input, offset_hour) = zone_literal;
             (input, offset_hour, 0)
         } else {

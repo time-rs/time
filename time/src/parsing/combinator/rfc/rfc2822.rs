@@ -2,6 +2,8 @@
 //!
 //! [RFC 2822]: https://datatracker.ietf.org/doc/html/rfc2822
 
+use num_conv::prelude::*;
+
 use crate::parsing::ParsedItem;
 use crate::parsing::combinator::rfc::rfc2234::wsp;
 use crate::parsing::combinator::{ascii_char, one_or_more, zero_or_more};
@@ -116,4 +118,71 @@ fn text<'a>(input: &'a [u8]) -> ParsedItem<'a, ()> {
     };
 
     new_text(input).unwrap_or_else(|| obs_text(input))
+}
+
+/// Consume an old zone literal, returning the offset in hours.
+#[inline]
+pub(crate) fn zone_literal(input: &[u8]) -> Option<ParsedItem<'_, i8>> {
+    let [first, second, third, rest @ ..] = input else {
+        const UT_VARIANTS: [u16; 4] = [
+            u16::from_ne_bytes([b'u', b't']),
+            u16::from_ne_bytes([b'u', b'T']),
+            u16::from_ne_bytes([b'U', b't']),
+            u16::from_ne_bytes([b'U', b'T']),
+        ];
+
+        let [first, rest @ ..] = input else {
+            return None;
+        };
+        if let [second, rest @ ..] = rest
+            && UT_VARIANTS.contains(&u16::from_ne_bytes([*first, *second]))
+        {
+            return Some(ParsedItem(rest, 0));
+        }
+        return (*first != b'j' && *first != b'J' && first.is_ascii_alphabetic())
+            .then_some(ParsedItem(rest, 0));
+    };
+    let byte = u32::from_ne_bytes([
+        0,
+        first.to_ascii_lowercase(),
+        second.to_ascii_lowercase(),
+        third.to_ascii_lowercase(),
+    ]);
+    const ZONES: [u32; 8] = [
+        u32::from_ne_bytes([0, b'e', b's', b't']),
+        u32::from_ne_bytes([0, b'e', b'd', b't']),
+        u32::from_ne_bytes([0, b'c', b's', b't']),
+        u32::from_ne_bytes([0, b'c', b'd', b't']),
+        u32::from_ne_bytes([0, b'm', b's', b't']),
+        u32::from_ne_bytes([0, b'm', b'd', b't']),
+        u32::from_ne_bytes([0, b'p', b's', b't']),
+        u32::from_ne_bytes([0, b'p', b'd', b't']),
+    ];
+
+    let eq = [
+        if ZONES[0] == byte { i32::MAX } else { 0 },
+        if ZONES[1] == byte { i32::MAX } else { 0 },
+        if ZONES[2] == byte { i32::MAX } else { 0 },
+        if ZONES[3] == byte { i32::MAX } else { 0 },
+        if ZONES[4] == byte { i32::MAX } else { 0 },
+        if ZONES[5] == byte { i32::MAX } else { 0 },
+        if ZONES[6] == byte { i32::MAX } else { 0 },
+        if ZONES[7] == byte { i32::MAX } else { 0 },
+    ];
+    if eq == [0; 8] && byte != const { u32::from_ne_bytes([0, b'g', b'm', b't']) } {
+        return None;
+    }
+
+    let nonzero_zones = [
+        eq[0] & -5,
+        eq[1] & -4,
+        eq[2] & -6,
+        eq[3] & -5,
+        eq[4] & -7,
+        eq[5] & -6,
+        eq[6] & -8,
+        eq[7] & -7,
+    ];
+    let zone = nonzero_zones.iter().sum::<i32>().truncate();
+    Some(ParsedItem(rest, zone))
 }
