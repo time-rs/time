@@ -199,198 +199,164 @@ impl ExactlyNDigits<3> {
 impl ExactlyNDigits<4> {
     /// Consume exactly four digits.
     #[inline]
-    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u16>> {
-        match input {
-            [
-                a @ b'0'..=b'9',
-                b @ b'0'..=b'9',
-                c @ b'0'..=b'9',
-                d @ b'0'..=b'9',
-                remaining @ ..,
-            ] => {
-                let a = (*a - b'0') as u16;
-                let b = (*b - b'0') as u16;
-                let c = (*c - b'0') as u16;
-                let d = (*d - b'0') as u16;
-                Some(ParsedItem(remaining, a * 1000 + b * 100 + c * 10 + d))
-            }
-            _ => None,
+    pub(crate) fn parse(input: &[u8]) -> Option<ParsedItem<'_, u16>> {
+        let [a, b, c, d, remaining @ ..] = input else {
+            return None;
+        };
+
+        let digits = [a, b, c, d].map(|d| (*d as u16).wrapping_sub(b'0' as u16));
+        if digits.iter().any(|&digit| digit > 9) {
+            return None;
         }
+
+        let value = digits[0] * 1000 + digits[1] * 100 + digits[2] * 10 + digits[3];
+        Some(ParsedItem(remaining, value))
     }
 }
 
 impl ExactlyNDigits<5> {
     /// Consume exactly five digits.
     #[inline]
-    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
-        match input {
-            [
-                a @ b'0'..=b'9',
-                b @ b'0'..=b'9',
-                c @ b'0'..=b'9',
-                d @ b'0'..=b'9',
-                e @ b'0'..=b'9',
-                remaining @ ..,
-            ] => {
-                let a = (*a - b'0') as u32;
-                let b = (*b - b'0') as u32;
-                let c = (*c - b'0') as u32;
-                let d = (*d - b'0') as u32;
-                let e = (*e - b'0') as u32;
-                Some(ParsedItem(
-                    remaining,
-                    a * 10000 + b * 1000 + c * 100 + d * 10 + e,
-                ))
-            }
-            _ => None,
+    pub(crate) fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
+        let [a, b, c, d, e, remaining @ ..] = input else {
+            return None;
+        };
+
+        let digits = [a, b, c, d, e].map(|d| (*d as u32).wrapping_sub(b'0' as u32));
+        if digits.iter().any(|&digit| digit > 9) {
+            return None;
         }
+
+        let value =
+            digits[0] * 10_000 + digits[1] * 1_000 + digits[2] * 100 + digits[3] * 10 + digits[4];
+        Some(ParsedItem(remaining, value))
     }
 }
 
 impl ExactlyNDigits<6> {
     /// Consume exactly six digits.
     #[inline]
-    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
-        match input {
-            [
-                a @ b'0'..=b'9',
-                b @ b'0'..=b'9',
-                c @ b'0'..=b'9',
-                d @ b'0'..=b'9',
-                e @ b'0'..=b'9',
-                f @ b'0'..=b'9',
-                remaining @ ..,
-            ] => {
-                let a = (*a - b'0') as u32;
-                let b = (*b - b'0') as u32;
-                let c = (*c - b'0') as u32;
-                let d = (*d - b'0') as u32;
-                let e = (*e - b'0') as u32;
-                let f = (*f - b'0') as u32;
-                Some(ParsedItem(
-                    remaining,
-                    a * 100000 + b * 10000 + c * 1000 + d * 100 + e * 10 + f,
-                ))
-            }
-            _ => None,
+    pub(crate) fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
+        let [a, b, c, d, e, f, remaining @ ..] = input else {
+            return None;
+        };
+
+        // Calling `.map` successively results in slightly better codegen.
+        let digits = [a, b, c, d, e, f]
+            .map(|d| *d as u32)
+            .map(|d| d.wrapping_sub(b'0' as u32));
+        if digits.iter().any(|&digit| digit > 9) {
+            return None;
         }
+
+        let value = digits[0] * 100_000
+            + digits[1] * 10_000
+            + digits[2] * 1_000
+            + digits[3] * 100
+            + digits[4] * 10
+            + digits[5];
+        Some(ParsedItem(remaining, value))
     }
 }
 
 impl ExactlyNDigits<7> {
     /// Consume exactly seven digits.
     #[inline]
-    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
-        match input {
-            [
-                a @ b'0'..=b'9',
-                b @ b'0'..=b'9',
-                c @ b'0'..=b'9',
-                d @ b'0'..=b'9',
-                e @ b'0'..=b'9',
-                f @ b'0'..=b'9',
-                g @ b'0'..=b'9',
-                remaining @ ..,
-            ] => {
-                let a = (*a - b'0') as u32;
-                let b = (*b - b'0') as u32;
-                let c = (*c - b'0') as u32;
-                let d = (*d - b'0') as u32;
-                let e = (*e - b'0') as u32;
-                let f = (*f - b'0') as u32;
-                let g = (*g - b'0') as u32;
-                Some(ParsedItem(
-                    remaining,
-                    a * 1_000_000 + b * 100_000 + c * 10_000 + d * 1_000 + e * 100 + f * 10 + g,
-                ))
-            }
-            _ => None,
+    pub(crate) fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
+        let [a, b, c, d, e, f, g, remaining @ ..] = input else {
+            return None;
+        };
+
+        // For whatever reason, the compiler does *not* autovectorize if `.map` is applied directly.
+        let mut digits = [*a, *b, *c, *d, *e, *f, *g];
+        digits = digits.map(|d| d.wrapping_sub(b'0'));
+
+        if digits.iter().any(|&digit| digit > 9) {
+            return None;
         }
+
+        let value = digits[0] as u32 * 1_000_000
+            + digits[1] as u32 * 100_000
+            + digits[2] as u32 * 10_000
+            + digits[3] as u32 * 1_000
+            + digits[4] as u32 * 100
+            + digits[5] as u32 * 10
+            + digits[6] as u32;
+        Some(ParsedItem(remaining, value))
     }
 }
 
 impl ExactlyNDigits<8> {
     /// Consume exactly eight digits.
     #[inline]
-    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
-        match input {
-            [
-                a @ b'0'..=b'9',
-                b @ b'0'..=b'9',
-                c @ b'0'..=b'9',
-                d @ b'0'..=b'9',
-                e @ b'0'..=b'9',
-                f @ b'0'..=b'9',
-                g @ b'0'..=b'9',
-                h @ b'0'..=b'9',
-                remaining @ ..,
-            ] => {
-                let a = (*a - b'0') as u32;
-                let b = (*b - b'0') as u32;
-                let c = (*c - b'0') as u32;
-                let d = (*d - b'0') as u32;
-                let e = (*e - b'0') as u32;
-                let f = (*f - b'0') as u32;
-                let g = (*g - b'0') as u32;
-                let h = (*h - b'0') as u32;
-                Some(ParsedItem(
-                    remaining,
-                    a * 10_000_000
-                        + b * 1_000_000
-                        + c * 100_000
-                        + d * 10_000
-                        + e * 1_000
-                        + f * 100
-                        + g * 10
-                        + h,
-                ))
-            }
-            _ => None,
+    pub(crate) fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
+        let [a, b, c, d, e, f, g, h, remaining @ ..] = input else {
+            return None;
+        };
+
+        let mut digits = [*a, *b, *c, *d, *e, *f, *g, *h];
+        digits = [
+            digits[0].wrapping_sub(b'0'),
+            digits[1].wrapping_sub(b'0'),
+            digits[2].wrapping_sub(b'0'),
+            digits[3].wrapping_sub(b'0'),
+            digits[4].wrapping_sub(b'0'),
+            digits[5].wrapping_sub(b'0'),
+            digits[6].wrapping_sub(b'0'),
+            digits[7].wrapping_sub(b'0'),
+        ];
+
+        if digits.iter().any(|&digit| digit > 9) {
+            return None;
         }
+
+        let value = digits[0] as u32 * 10_000_000
+            + digits[1] as u32 * 1_000_000
+            + digits[2] as u32 * 100_000
+            + digits[3] as u32 * 10_000
+            + digits[4] as u32 * 1_000
+            + digits[5] as u32 * 100
+            + digits[6] as u32 * 10
+            + digits[7] as u32;
+        Some(ParsedItem(remaining, value))
     }
 }
 
 impl ExactlyNDigits<9> {
     /// Consume exactly nine digits.
     #[inline]
-    pub(crate) const fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
-        match input {
-            [
-                a @ b'0'..=b'9',
-                b @ b'0'..=b'9',
-                c @ b'0'..=b'9',
-                d @ b'0'..=b'9',
-                e @ b'0'..=b'9',
-                f @ b'0'..=b'9',
-                g @ b'0'..=b'9',
-                h @ b'0'..=b'9',
-                i @ b'0'..=b'9',
-                remaining @ ..,
-            ] => {
-                let a = (*a - b'0') as u32;
-                let b = (*b - b'0') as u32;
-                let c = (*c - b'0') as u32;
-                let d = (*d - b'0') as u32;
-                let e = (*e - b'0') as u32;
-                let f = (*f - b'0') as u32;
-                let g = (*g - b'0') as u32;
-                let h = (*h - b'0') as u32;
-                let i = (*i - b'0') as u32;
-                Some(ParsedItem(
-                    remaining,
-                    a * 100_000_000
-                        + b * 10_000_000
-                        + c * 1_000_000
-                        + d * 100_000
-                        + e * 10_000
-                        + f * 1_000
-                        + g * 100
-                        + h * 10
-                        + i,
-                ))
-            }
-            _ => None,
+    pub(crate) fn parse(input: &[u8]) -> Option<ParsedItem<'_, u32>> {
+        let [a, b, c, d, e, f, g, h, i, remaining @ ..] = input else {
+            return None;
+        };
+
+        let mut digits = [*a, *b, *c, *d, *e, *f, *g, *h];
+        digits = [
+            digits[0] - b'0',
+            digits[1] - b'0',
+            digits[2] - b'0',
+            digits[3] - b'0',
+            digits[4] - b'0',
+            digits[5] - b'0',
+            digits[6] - b'0',
+            digits[7] - b'0',
+        ];
+        let ones_digit = (*i as u32).wrapping_sub(b'0' as u32);
+
+        if digits.iter().any(|&digit| digit > 9) || ones_digit > 9 {
+            return None;
         }
+
+        let value = digits[0] as u32 * 100_000_000
+            + digits[1] as u32 * 10_000_000
+            + digits[2] as u32 * 1_000_000
+            + digits[3] as u32 * 100_000
+            + digits[4] as u32 * 10_000
+            + digits[5] as u32 * 1_000
+            + digits[6] as u32 * 100
+            + digits[7] as u32 * 10
+            + ones_digit;
+        Some(ParsedItem(remaining, value))
     }
 }
 
