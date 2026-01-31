@@ -3,7 +3,7 @@ use std::collections::HashSet;
 
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, time};
-use time::{util, Date, Duration, Month, Weekday};
+use time::{Date, Duration, Month, Weekday, util};
 
 #[test]
 fn debug() {
@@ -485,7 +485,7 @@ fn from_iso_week_date() {
         Date::from_iso_week_date(-1, 52, Saturday),
         Ok(date!(0000-01-01))
     );
-    assert_eq!(date!(-0001-W 52-6), date!(0000-01-01));
+    assert_eq!(date!(-0001-W52-6), date!(0000-01-01));
 }
 
 #[test]

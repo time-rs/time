@@ -355,9 +355,9 @@ fn format_description_coverage() {
 #[rstest]
 fn date_coverage() {
     assert_eq!(Ok(date!(2000-001)), Date::from_ordinal_date(2000, 1));
-    assert_eq!(Ok(date!(2019-W 01-1)), Date::from_ordinal_date(2018, 365));
-    assert_eq!(Ok(date!(2021-W 52-6)), Date::from_ordinal_date(2022, 1));
-    assert_eq!(Ok(date!(2021-W 34-5)), Date::from_ordinal_date(2021, 239));
+    assert_eq!(Ok(date!(2019-W01-1)), Date::from_ordinal_date(2018, 365));
+    assert_eq!(Ok(date!(2021-W52-6)), Date::from_ordinal_date(2022, 1));
+    assert_eq!(Ok(date!(2021-W34-5)), Date::from_ordinal_date(2021, 239));
 }
 
 #[rstest]

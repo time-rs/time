@@ -186,7 +186,7 @@ fn iso_8601() -> time::Result<()> {
         Err(time::error::Format::InvalidComponent("year"))
     ));
     assert!(matches!(
-        datetime!(+10_000-W 01-1 0:00 UTC).format(
+        datetime!(+10_000-W01-1 0:00 UTC).format(
             &Iso8601::<
                 {
                     iso8601::Config::DEFAULT

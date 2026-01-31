@@ -5,9 +5,7 @@ use proc_macro::token_stream;
 use time_core::util::{days_in_year, weeks_in_year};
 
 use crate::Error;
-use crate::helpers::{
-    consume_any_ident, consume_number, consume_punct, days_in_year_month, ymd_to_yo, ywd_to_yo,
-};
+use crate::helpers::{consume_number, consume_punct, days_in_year_month, ymd_to_yo, ywd_to_yo};
 use crate::to_tokens::ToTokenStream;
 
 #[cfg(feature = "large-dates")]
@@ -49,10 +47,36 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
     consume_punct('-', chars)?;
 
     // year-week-day
-    if let Ok(w_span) = consume_any_ident(&["W"], chars) {
-        let (week_span, week) = consume_number::<u8>("week", chars)?;
-        consume_punct('-', chars)?;
-        let (day_span, day) = consume_number::<u8>("day", chars)?;
+    if let Some(proc_macro::TokenTree::Ident(ident)) = chars.peek()
+        && let s = ident.to_string()
+        && s.starts_with('W')
+    {
+        let w_span = ident.span();
+        drop(chars.next()); // consume 'W' and possibly the week number
+
+        let (week_span, week, day_span, day);
+
+        if s.len() == 1 {
+            (week_span, week) = consume_number::<u8>("week", chars)?;
+            consume_punct('-', chars)?;
+            (day_span, day) = consume_number::<u8>("day", chars)?;
+        } else {
+            let presumptive_week = &s[1..];
+            if presumptive_week.bytes().all(|d| d.is_ascii_digit())
+                && let Ok(week_number) = presumptive_week.replace('_', "").parse()
+            {
+                (week_span, week) = (w_span, week_number);
+                consume_punct('-', chars)?;
+                (day_span, day) = consume_number::<u8>("day", chars)?;
+            } else {
+                return Err(Error::InvalidComponent {
+                    name: "week",
+                    value: presumptive_week.to_string(),
+                    span_start: Some(w_span.start()),
+                    span_end: Some(w_span.end()),
+                });
+            }
+        };
 
         if week > weeks_in_year(year) {
             return Err(Error::InvalidComponent {

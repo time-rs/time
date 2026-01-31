@@ -2,12 +2,12 @@ use std::num::NonZero;
 
 use time::format_description::modifier::Ignore;
 use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
-use time::format_description::{modifier, BorrowedFormatItem, Component, OwnedFormatItem};
+use time::format_description::{BorrowedFormatItem, Component, OwnedFormatItem, modifier};
 use time::macros::{date, datetime, offset, time, utc_datetime};
 use time::parsing::Parsed;
 use time::{
-    error, format_description as fd, Date, Month, OffsetDateTime, PrimitiveDateTime, Time,
-    UtcDateTime, UtcOffset, Weekday,
+    Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday, error,
+    format_description as fd,
 };
 
 macro_rules! invalid_literal {
@@ -590,7 +590,7 @@ fn iso_8601() {
     );
     assert_eq!(
         OffsetDateTime::parse("2021-W01-2T03:04:05Z", &Iso8601::DEFAULT),
-        Ok(datetime!(2021-W 01-2 03:04:05 UTC))
+        Ok(datetime!(2021-W01-2 03:04:05 UTC))
     );
     assert_eq!(
         OffsetDateTime::parse("-002021-01-02T03:04:05+01:00", &Iso8601::DEFAULT),
@@ -606,7 +606,7 @@ fn iso_8601() {
     );
     assert_eq!(
         OffsetDateTime::parse("2021W012T030405.1-0100", &Iso8601::DEFAULT),
-        Ok(datetime!(2021-W 01-2 03:04:05.1 -01:00))
+        Ok(datetime!(2021-W01-2 03:04:05.1 -01:00))
     );
     assert_eq!(
         OffsetDateTime::parse("20210102T03Z", &Iso8601::DEFAULT),
@@ -627,7 +627,7 @@ fn iso_8601() {
     );
     assert_eq!(
         UtcDateTime::parse("2021-W01-2T03:04:05Z", &Iso8601::DEFAULT),
-        Ok(utc_datetime!(2021-W 01-2 03:04:05))
+        Ok(utc_datetime!(2021-W01-2 03:04:05))
     );
     assert_eq!(
         UtcDateTime::parse("-002021-01-02T03:04:05+01:00", &Iso8601::DEFAULT),
@@ -643,7 +643,7 @@ fn iso_8601() {
     );
     assert_eq!(
         UtcDateTime::parse("2021W012T030405.1-0100", &Iso8601::DEFAULT),
-        Ok(datetime!(2021-W 01-2 03:04:05.1 -01:00).to_utc())
+        Ok(datetime!(2021-W01-2 03:04:05.1 -01:00).to_utc())
     );
     assert_eq!(
         UtcDateTime::parse("20210102T03Z", &Iso8601::DEFAULT),

@@ -9,7 +9,7 @@
 /// ```rust
 /// # use time::{Date, Weekday::*, Month, macros::date};
 /// assert_eq!(
-///     date!(2020 - W 01 - 3),
+///     date!(2020 - W01 - 3),
 ///     Date::from_iso_week_date(2020, 1, Wednesday)?
 /// );
 /// assert_eq!(date!(2020-001), Date::from_ordinal_date(2020, 1)?);
@@ -68,7 +68,7 @@ pub use time_macros::datetime;
 /// );
 /// # Ok::<_, time::Error>(())
 /// ```
-/// 
+///
 /// The syntax accepted by this macro is the same as [`format_description::parse()`], which can
 /// be found in [the book](https://time-rs.github.io/book/api/format-description.html).
 ///
