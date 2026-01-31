@@ -768,8 +768,8 @@ impl UtcDateTime {
     /// assert_eq!(UtcDateTime::MIN.checked_add((-2).days()), None);
     /// assert_eq!(UtcDateTime::MAX.checked_add(1.days()), None);
     /// assert_eq!(
-    ///     utc_datetime!(2019 - 11 - 25 15:30).checked_add(27.hours()),
-    ///     Some(utc_datetime!(2019 - 11 - 26 18:30))
+    ///     utc_datetime!(2019-11-25 15:30).checked_add(27.hours()),
+    ///     Some(utc_datetime!(2019-11-26 18:30))
     /// );
     /// ```
     #[inline]
@@ -787,8 +787,8 @@ impl UtcDateTime {
     /// assert_eq!(UtcDateTime::MIN.checked_sub(2.days()), None);
     /// assert_eq!(UtcDateTime::MAX.checked_sub((-1).days()), None);
     /// assert_eq!(
-    ///     utc_datetime!(2019 - 11 - 25 15:30).checked_sub(27.hours()),
-    ///     Some(utc_datetime!(2019 - 11 - 24 12:30))
+    ///     utc_datetime!(2019-11-25 15:30).checked_sub(27.hours()),
+    ///     Some(utc_datetime!(2019-11-24 12:30))
     /// );
     /// ```
     #[inline]
@@ -812,8 +812,8 @@ impl UtcDateTime {
     ///     UtcDateTime::MAX
     /// );
     /// assert_eq!(
-    ///     utc_datetime!(2019 - 11 - 25 15:30).saturating_add(27.hours()),
-    ///     utc_datetime!(2019 - 11 - 26 18:30)
+    ///     utc_datetime!(2019-11-25 15:30).saturating_add(27.hours()),
+    ///     utc_datetime!(2019-11-26 18:30)
     /// );
     /// ```
     #[inline]
@@ -835,8 +835,8 @@ impl UtcDateTime {
     ///     UtcDateTime::MAX
     /// );
     /// assert_eq!(
-    ///     utc_datetime!(2019 - 11 - 25 15:30).saturating_sub(27.hours()),
-    ///     utc_datetime!(2019 - 11 - 24 12:30)
+    ///     utc_datetime!(2019-11-25 15:30).saturating_sub(27.hours()),
+    ///     utc_datetime!(2019-11-24 12:30)
     /// );
     /// ```
     #[inline]
@@ -882,11 +882,11 @@ impl UtcDateTime {
     /// ```rust
     /// # use time_macros::utc_datetime;
     /// assert_eq!(
-    ///     utc_datetime!(2022 - 02 - 18 12:00).replace_year(2019),
-    ///     Ok(utc_datetime!(2019 - 02 - 18 12:00))
+    ///     utc_datetime!(2022-02-18 12:00).replace_year(2019),
+    ///     Ok(utc_datetime!(2019-02-18 12:00))
     /// );
-    /// assert!(utc_datetime!(2022 - 02 - 18 12:00).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
-    /// assert!(utc_datetime!(2022 - 02 - 18 12:00).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
+    /// assert!(utc_datetime!(2022-02-18 12:00).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
+    /// assert!(utc_datetime!(2022-02-18 12:00).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
@@ -902,10 +902,10 @@ impl UtcDateTime {
     /// # use time_macros::utc_datetime;
     /// # use time::Month;
     /// assert_eq!(
-    ///     utc_datetime!(2022 - 02 - 18 12:00).replace_month(Month::January),
-    ///     Ok(utc_datetime!(2022 - 01 - 18 12:00))
+    ///     utc_datetime!(2022-02-18 12:00).replace_month(Month::January),
+    ///     Ok(utc_datetime!(2022-01-18 12:00))
     /// );
-    /// assert!(utc_datetime!(2022 - 01 - 30 12:00).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
+    /// assert!(utc_datetime!(2022-01-30 12:00).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
@@ -920,11 +920,11 @@ impl UtcDateTime {
     /// ```rust
     /// # use time_macros::utc_datetime;
     /// assert_eq!(
-    ///     utc_datetime!(2022 - 02 - 18 12:00).replace_day(1),
-    ///     Ok(utc_datetime!(2022 - 02 - 01 12:00))
+    ///     utc_datetime!(2022-02-18 12:00).replace_day(1),
+    ///     Ok(utc_datetime!(2022-02-01 12:00))
     /// );
-    /// assert!(utc_datetime!(2022 - 02 - 18 12:00).replace_day(0).is_err()); // 00 isn't a valid day
-    /// assert!(utc_datetime!(2022 - 02 - 18 12:00).replace_day(30).is_err()); // 30 isn't a valid day in February
+    /// assert!(utc_datetime!(2022-02-18 12:00).replace_day(0).is_err()); // 00 isn't a valid day
+    /// assert!(utc_datetime!(2022-02-18 12:00).replace_day(30).is_err()); // 30 isn't a valid day in February
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
@@ -970,10 +970,10 @@ impl UtcDateTime {
     /// ```rust
     /// # use time_macros::utc_datetime;
     /// assert_eq!(
-    ///     utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_hour(7),
-    ///     Ok(utc_datetime!(2022 - 02 - 18 07:02:03.004_005_006))
+    ///     utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_hour(7),
+    ///     Ok(utc_datetime!(2022-02-18 07:02:03.004_005_006))
     /// );
-    /// assert!(utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_hour(24).is_err()); // 24 isn't a valid hour
+    /// assert!(utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_hour(24).is_err()); // 24 isn't a valid hour
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
@@ -1003,10 +1003,10 @@ impl UtcDateTime {
     /// ```rust
     /// # use time_macros::utc_datetime;
     /// assert_eq!(
-    ///     utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_minute(7),
-    ///     Ok(utc_datetime!(2022 - 02 - 18 01:07:03.004_005_006))
+    ///     utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_minute(7),
+    ///     Ok(utc_datetime!(2022-02-18 01:07:03.004_005_006))
     /// );
-    /// assert!(utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_minute(60).is_err()); // 60 isn't a valid minute
+    /// assert!(utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_minute(60).is_err()); // 60 isn't a valid minute
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
@@ -1039,10 +1039,10 @@ impl UtcDateTime {
     /// ```rust
     /// # use time_macros::utc_datetime;
     /// assert_eq!(
-    ///     utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_second(7),
-    ///     Ok(utc_datetime!(2022 - 02 - 18 01:02:07.004_005_006))
+    ///     utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_second(7),
+    ///     Ok(utc_datetime!(2022-02-18 01:02:07.004_005_006))
     /// );
-    /// assert!(utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_second(60).is_err()); // 60 isn't a valid second
+    /// assert!(utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_second(60).is_err()); // 60 isn't a valid second
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
@@ -1075,10 +1075,10 @@ impl UtcDateTime {
     /// ```rust
     /// # use time_macros::utc_datetime;
     /// assert_eq!(
-    ///     utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_millisecond(7),
-    ///     Ok(utc_datetime!(2022 - 02 - 18 01:02:03.007))
+    ///     utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_millisecond(7),
+    ///     Ok(utc_datetime!(2022-02-18 01:02:03.007))
     /// );
-    /// assert!(utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
+    /// assert!(utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
@@ -1111,10 +1111,10 @@ impl UtcDateTime {
     /// ```rust
     /// # use time_macros::utc_datetime;
     /// assert_eq!(
-    ///     utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_microsecond(7_008),
-    ///     Ok(utc_datetime!(2022 - 02 - 18 01:02:03.007_008))
+    ///     utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_microsecond(7_008),
+    ///     Ok(utc_datetime!(2022-02-18 01:02:03.007_008))
     /// );
-    /// assert!(utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
+    /// assert!(utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
@@ -1147,10 +1147,10 @@ impl UtcDateTime {
     /// ```rust
     /// # use time_macros::utc_datetime;
     /// assert_eq!(
-    ///     utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_nanosecond(7_008_009),
-    ///     Ok(utc_datetime!(2022 - 02 - 18 01:02:03.007_008_009))
+    ///     utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_nanosecond(7_008_009),
+    ///     Ok(utc_datetime!(2022-02-18 01:02:03.007_008_009))
     /// );
-    /// assert!(utc_datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
+    /// assert!(utc_datetime!(2022-02-18 01:02:03.004_005_006).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]

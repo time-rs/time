@@ -438,13 +438,13 @@ fn format_date_err() {
 fn display_date() {
     assert_eq!(date!(2019-01-01).to_string(), "2019-01-01");
     assert_eq!(date!(2019-12-31).to_string(), "2019-12-31");
-    assert_eq!(date!(-4713 - 11 - 24).to_string(), "-4713-11-24");
-    assert_eq!(date!(-0001 - 01 - 01).to_string(), "-0001-01-01");
+    assert_eq!(date!(-4713-11-24).to_string(), "-4713-11-24");
+    assert_eq!(date!(-0001-01-01).to_string(), "-0001-01-01");
 
     assert_eq!(date!(+10_000-01-01).to_string(), "+10000-01-01");
     assert_eq!(date!(+100_000-01-01).to_string(), "+100000-01-01");
-    assert_eq!(date!(-10_000 - 01 - 01).to_string(), "-10000-01-01");
-    assert_eq!(date!(-100_000 - 01 - 01).to_string(), "-100000-01-01");
+    assert_eq!(date!(-10_000-01-01).to_string(), "-10000-01-01");
+    assert_eq!(date!(-100_000-01-01).to_string(), "-100000-01-01");
 }
 
 #[test]
@@ -752,10 +752,10 @@ fn failed_write() -> time::Result<()> {
     assert_err!(Time::MIDNIGHT, fd!("[hour padding:space]"));
     assert_err!(offset!(+1), fd!("[offset_hour sign:mandatory]"));
     assert_err!(offset!(-1), fd!("[offset_hour]"));
-    assert_err!(date!(-1 - 001), fd!("[year]"));
+    assert_err!(date!(-1-001), fd!("[year]"));
     assert_err!(date!(2021-001), fd!("[year sign:mandatory]"));
-    assert_err!(date!(+999_999 - 001), fd!("[year]"));
-    assert_err!(date!(+99_999 - 001), fd!("[year]"));
+    assert_err!(date!(+999_999-001), fd!("[year]"));
+    assert_err!(date!(+99_999-001), fd!("[year]"));
 
     let component_names = [
         "day",

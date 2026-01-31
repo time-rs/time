@@ -615,9 +615,9 @@ fn previous_day() {
 
 #[test]
 fn to_julian_day() {
-    assert_eq!(date!(-999_999 - 01 - 01).to_julian_day(), -363_521_074);
-    assert_eq!(date!(-9999 - 01 - 01).to_julian_day(), -1_930_999);
-    assert_eq!(date!(-4713 - 11 - 24).to_julian_day(), 0);
+    assert_eq!(date!(-999_999-01-01).to_julian_day(), -363_521_074);
+    assert_eq!(date!(-9999-01-01).to_julian_day(), -1_930_999);
+    assert_eq!(date!(-4713-11-24).to_julian_day(), 0);
     assert_eq!(date!(2000-01-01).to_julian_day(), 2_451_545);
     assert_eq!(date!(2019-01-01).to_julian_day(), 2_458_485);
     assert_eq!(date!(2019-12-31).to_julian_day(), 2_458_849);
@@ -627,13 +627,10 @@ fn to_julian_day() {
 fn from_julian_day() {
     assert_eq!(
         Date::from_julian_day(-363_521_074),
-        Ok(date!(-999_999 - 01 - 01))
+        Ok(date!(-999_999-01-01))
     );
-    assert_eq!(
-        Date::from_julian_day(-1_930_999),
-        Ok(date!(-9999 - 01 - 01))
-    );
-    assert_eq!(Date::from_julian_day(0), Ok(date!(-4713 - 11 - 24)));
+    assert_eq!(Date::from_julian_day(-1_930_999), Ok(date!(-9999-01-01)));
+    assert_eq!(Date::from_julian_day(0), Ok(date!(-4713-11-24)));
     assert_eq!(Date::from_julian_day(2_451_545), Ok(date!(2000-01-01)));
     assert_eq!(Date::from_julian_day(2_458_485), Ok(date!(2019-01-01)));
     assert_eq!(Date::from_julian_day(2_458_849), Ok(date!(2019-12-31)));
@@ -1082,19 +1079,19 @@ fn nth_prev_occurrence_test() {
 #[test]
 #[should_panic]
 fn next_occurrence_overflow_test() {
-    date!(+999999 - 12 - 25).next_occurrence(Weekday::Saturday);
+    date!(+999999-12-25).next_occurrence(Weekday::Saturday);
 }
 
 #[test]
 #[should_panic]
 fn prev_occurrence_overflow_test() {
-    date!(-999999 - 01 - 07).prev_occurrence(Weekday::Sunday);
+    date!(-999999-01-07).prev_occurrence(Weekday::Sunday);
 }
 
 #[test]
 #[should_panic]
 fn nth_next_occurrence_overflow_test() {
-    date!(+999999 - 12 - 25).nth_next_occurrence(Weekday::Saturday, 1);
+    date!(+999999-12-25).nth_next_occurrence(Weekday::Saturday, 1);
 }
 
 #[test]
@@ -1112,5 +1109,5 @@ fn nth_prev_occurence_zeroth_occurence_test() {
 #[test]
 #[should_panic]
 fn nth_prev_occurrence_overflow_test() {
-    date!(-999999 - 01 - 07).nth_prev_occurrence(Weekday::Sunday, 1);
+    date!(-999999-01-07).nth_prev_occurrence(Weekday::Sunday, 1);
 }

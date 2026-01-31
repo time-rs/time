@@ -271,7 +271,7 @@ impl Date {
     /// ```rust
     /// # use time::Date;
     /// # use time_macros::date;
-    /// assert_eq!(Date::from_julian_day(0), Ok(date!(-4713 - 11 - 24)));
+    /// assert_eq!(Date::from_julian_day(0), Ok(date!(-4713-11-24)));
     /// assert_eq!(Date::from_julian_day(2_451_545), Ok(date!(2000-01-01)));
     /// assert_eq!(Date::from_julian_day(2_458_485), Ok(date!(2019-01-01)));
     /// assert_eq!(Date::from_julian_day(2_458_849), Ok(date!(2019-12-31)));
@@ -750,7 +750,7 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(-4713 - 11 - 24).to_julian_day(), 0);
+    /// assert_eq!(date!(-4713-11-24).to_julian_day(), 0);
     /// assert_eq!(date!(2000-01-01).to_julian_day(), 2_451_545);
     /// assert_eq!(date!(2019-01-01).to_julian_day(), 2_458_485);
     /// assert_eq!(date!(2019-12-31).to_julian_day(), 2_458_849);

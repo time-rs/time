@@ -730,29 +730,29 @@ fn checked_add_duration() {
 
     // Addition with underflow
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 0:00).checked_add((-1).nanoseconds()),
+        datetime!(-999_999-01-01 0:00).checked_add((-1).nanoseconds()),
         None
     );
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 0:00).checked_add(Duration::MIN),
+        datetime!(-999_999-01-01 0:00).checked_add(Duration::MIN),
         None
     );
     assert_eq!(
-        datetime!(-999_990 - 01 - 01 0:00).checked_add((-530).weeks()),
+        datetime!(-999_990-01-01 0:00).checked_add((-530).weeks()),
         None
     );
 
     // Addition with overflow
     assert_eq!(
-        datetime!(+999_999 - 12 - 31 23:59:59.999_999_999).checked_add(1.nanoseconds()),
+        datetime!(+999_999-12-31 23:59:59.999_999_999).checked_add(1.nanoseconds()),
         None
     );
     assert_eq!(
-        datetime!(+999_999 - 12 - 31 23:59:59.999_999_999).checked_add(Duration::MAX),
+        datetime!(+999_999-12-31 23:59:59.999_999_999).checked_add(Duration::MAX),
         None
     );
     assert_eq!(
-        datetime!(+999_990 - 12 - 31 23:59:59.999_999_999).checked_add(530.weeks()),
+        datetime!(+999_990-12-31 23:59:59.999_999_999).checked_add(530.weeks()),
         None
     );
 }
@@ -795,29 +795,29 @@ fn checked_sub_duration() {
 
     // Subtraction with underflow
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 0:00).checked_sub(1.nanoseconds()),
+        datetime!(-999_999-01-01 0:00).checked_sub(1.nanoseconds()),
         None
     );
     assert_eq!(
-        datetime!(-999_999 - 01 - 01 0:00).checked_sub(Duration::MAX),
+        datetime!(-999_999-01-01 0:00).checked_sub(Duration::MAX),
         None
     );
     assert_eq!(
-        datetime!(-999_990 - 01 - 01 0:00).checked_sub(530.weeks()),
+        datetime!(-999_990-01-01 0:00).checked_sub(530.weeks()),
         None
     );
 
     // Subtraction with overflow
     assert_eq!(
-        datetime!(+999_999 - 12 - 31 23:59:59.999_999_999).checked_sub((-1).nanoseconds()),
+        datetime!(+999_999-12-31 23:59:59.999_999_999).checked_sub((-1).nanoseconds()),
         None
     );
     assert_eq!(
-        datetime!(+999_999 - 12 - 31 23:59:59.999_999_999).checked_sub(Duration::MIN),
+        datetime!(+999_999-12-31 23:59:59.999_999_999).checked_sub(Duration::MIN),
         None
     );
     assert_eq!(
-        datetime!(+999_990 - 12 - 31 23:59:59.999_999_999).checked_sub((-530).weeks()),
+        datetime!(+999_990-12-31 23:59:59.999_999_999).checked_sub((-530).weeks()),
         None
     );
 }

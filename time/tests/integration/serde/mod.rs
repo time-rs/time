@@ -147,7 +147,7 @@ fn time_partial() {
 #[test]
 fn date() {
     assert_tokens(
-        &date!(-9999 - 001).compact(),
+        &date!(-9999-001).compact(),
         &[
             Token::Tuple { len: 2 },
             Token::I32(-9999),
@@ -165,7 +165,7 @@ fn date() {
         ],
     );
     assert_tokens(
-        &date!(-9999 - 001).readable(),
+        &date!(-9999-001).readable(),
         &[Token::BorrowedStr("-9999-01-01")],
     );
     assert_tokens(
