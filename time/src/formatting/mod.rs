@@ -297,7 +297,7 @@ where
                 ))
             }
         },
-        End(modifier::End {}) => 0,
+        End(modifier::End { trailing_input: _ }) => 0,
 
         // This is functionally the same as a wildcard arm, but it will cause an error if a new
         // component is added. This is to avoid a bug where a new component, the code compiles, and

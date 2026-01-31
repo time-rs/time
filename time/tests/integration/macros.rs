@@ -347,7 +347,25 @@ fn format_description_coverage() {
     assert_eq!(
         format_description!("[end]"),
         &[BorrowedFormatItem::Component(Component::End(modifier!(
-            End
+            End {
+                trailing_input: TrailingInput::Prohibit,
+            }
+        )))]
+    );
+    assert_eq!(
+        format_description!("[end trailing_input:prohibit]"),
+        &[BorrowedFormatItem::Component(Component::End(modifier!(
+            End {
+                trailing_input: TrailingInput::Prohibit,
+            }
+        )))]
+    );
+    assert_eq!(
+        format_description!("[end trailing_input:discard]"),
+        &[BorrowedFormatItem::Component(Component::End(modifier!(
+            End {
+                trailing_input: TrailingInput::Discard,
+            }
         )))]
     );
 }

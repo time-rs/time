@@ -126,6 +126,11 @@ fn modifiers(
         (UnixTimestampPrecision::Nanosecond, "precision:nanosecond"),
     )]
     unix_timestamp_precision: _,
+    #[values(
+        (TrailingInput::Prohibit, "trailing_input:prohibit"),
+        (TrailingInput::Discard, "trailing_input:discard"),
+    )]
+    trailing_input: _,
 ) {}
 
 #[rstest]
@@ -238,6 +243,16 @@ fn day_component(padding: M<Padding>) {
         parse_with_modifiers!("day", padding),
         Ok(vec![BorrowedFormatItem::Component(Component::Day(
             modifier_m!(Day { padding })
+        ))])
+    );
+}
+
+#[apply(modifiers)]
+fn end_component(trailing_input: M<TrailingInput>) {
+    assert_eq!(
+        parse_with_modifiers!("end", trailing_input),
+        Ok(vec![BorrowedFormatItem::Component(Component::End(
+            modifier_m!(End { trailing_input })
         ))])
     );
 }

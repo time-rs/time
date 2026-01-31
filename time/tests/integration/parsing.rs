@@ -1943,6 +1943,13 @@ fn end() -> time::Result<()> {
     );
     assert_eq!(
         Time::parse(
+            "00:00abcdef",
+            &fd::parse("[hour]:[minute][end trailing_input:discard]")?
+        ),
+        Ok(time!(0:00))
+    );
+    assert_eq!(
+        Time::parse(
             "00:00:00",
             &fd::parse_owned::<2>("[hour]:[minute][optional [[end]]]:[second]")?
         ),
@@ -1955,6 +1962,15 @@ fn end() -> time::Result<()> {
         ),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+    assert!(matches!(
+        Time::parse(
+            "00:00:00",
+            &fd::parse_owned::<2>("[hour]:[minute][end trailing_input:discard]:[second]")?
+        ),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidLiteral { .. }
         ))
     ));
 

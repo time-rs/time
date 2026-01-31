@@ -266,5 +266,14 @@ to_tokens! {
 }
 
 to_tokens! {
-    pub(crate) struct End {}
+    pub(crate) enum TrailingInput {
+        Prohibit,
+        Discard,
+    }
+}
+
+to_tokens! {
+    pub(crate) struct End {
+        pub(crate) trailing_input: TrailingInput = TrailingInput::Prohibit,
+    }
 }

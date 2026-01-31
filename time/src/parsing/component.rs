@@ -471,14 +471,15 @@ pub(crate) fn parse_unix_timestamp(
     }
 }
 
-/// Parse the `end` component, which represents the end of input. If any input is remaining, `None`
-/// is returned.
+/// Parse the `end` component, which represents the end of input. If any input is remaining _and_
+/// trailing input is prohibited, `None` is returned. If trailing input is permitted, it is
+/// discarded.
 #[inline]
-pub(crate) const fn parse_end(input: &[u8], end: modifier::End) -> Option<ParsedItem<'_, ()>> {
-    let modifier::End {} = end;
+pub(crate) fn parse_end(input: &[u8], end: modifier::End) -> Option<ParsedItem<'_, ()>> {
+    let modifier::End { trailing_input } = end;
 
-    if input.is_empty() {
-        Some(ParsedItem(input, ()))
+    if trailing_input == modifier::TrailingInput::Discard || input.is_empty() {
+        Some(ParsedItem(b"", ()))
     } else {
         None
     }

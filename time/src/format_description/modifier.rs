@@ -293,12 +293,22 @@ pub struct UnixTimestamp {
     pub sign_is_mandatory: bool,
 }
 
+/// Whether trailing input after the declared end is permitted.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TrailingInput {
+    /// Trailing input is not permitted and will cause an error.
+    Prohibit,
+    /// Trailing input is permitted but discarded.
+    Discard,
+}
+
 /// The end of input.
-///
-/// There is currently not customization for this modifier.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct End;
+pub struct End {
+    /// How to handle any input after this component.
+    pub trailing_input: TrailingInput,
+}
 
 /// Generate the provided code if and only if `pub` is present.
 macro_rules! if_pub {
@@ -432,6 +442,10 @@ impl_const_default! {
         precision: UnixTimestampPrecision::Second,
         sign_is_mandatory: false,
     };
-    /// Creates a modifier used to represent the end of input.
-    @pub End => End;
+    /// Indicate that any trailing characters after the end of input are prohibited and will cause
+    /// an error when used with `parse`.
+    TrailingInput => Self::Prohibit;
+    /// Creates a modifier used to represent the end of input, not allowing any trailing input (i.e.
+    /// the input must be fully consumed).
+    @pub End => Self { trailing_input: TrailingInput::Prohibit };
 }
