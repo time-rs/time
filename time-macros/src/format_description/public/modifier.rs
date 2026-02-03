@@ -31,17 +31,15 @@ macro_rules! to_tokens {
                 }
 
                 let mut tokens = quote_! {
-                    let mut value = $struct_name::default();
+                    $struct_name::default()
                 };
                 $(
                     #[allow(clippy::redundant_pattern_matching)]
                     if !matches!($field_name, $default) {
-                        quote_append!(tokens value.$field_name =);
-                        $field_name.append_to(&mut tokens);
-                        quote_append!(tokens ;);
+                        let method_name = Ident::new(concat!("with_", stringify!($field_name)), Span::mixed_site());
+                        quote_append!(tokens .#(method_name)(#S($field_name)));
                     }
                 )*
-                quote_append!(tokens value);
 
                 TokenTree::Group(Group::new(
                     Delimiter::Brace,

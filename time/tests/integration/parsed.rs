@@ -1,9 +1,9 @@
 use std::num::NonZero;
 
-use time::format_description::modifier::WeekNumberRepr;
+use time::format_description::modifier::{Hour, WeekNumber, WeekNumberRepr};
 use time::format_description::{BorrowedFormatItem, Component};
 use time::parsing::Parsed;
-use time::{error, Month, Time, Weekday};
+use time::{Month, Time, Weekday, error};
 
 #[test]
 fn getters_setters() {
@@ -171,16 +171,12 @@ fn component_err() {
 
     assert_invalid_component!(
         "week number",
-        Component::WeekNumber(modifier!(WeekNumber {
-            repr: WeekNumberRepr::Iso,
-        })),
+        Component::WeekNumber(WeekNumber::default().with_repr(WeekNumberRepr::Iso)),
         b"00"
     );
     assert_invalid_component!(
         "hour",
-        Component::Hour(modifier!(Hour {
-            is_12_hour_clock: true,
-        })),
+        Component::Hour(Hour::default().with_is_12_hour_clock(true)),
         b"00"
     );
 }

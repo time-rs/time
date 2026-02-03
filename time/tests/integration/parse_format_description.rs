@@ -9,19 +9,6 @@ use time::format_description::{
 };
 use time::macros::format_description;
 
-/// Identical to `modifier!`, but obtains the value from `M<T>` automagically.
-macro_rules! modifier_m {
-    ($name:ident $({
-        $($field:ident $(: $value:expr)?),* $(,)?
-    })?) => {{
-        // Needed for when there are no fields.
-        #[allow(unused_mut)]
-        let mut value = ::time::format_description::modifier::$name::default();
-        $($(value.$field = modifier!(@value $field $($value)?).0;)*)?
-        value
-    }};
-}
-
 /// A modifier with its value and string representation.
 ///
 /// This alias is used to avoid repeating the tuple in countless locations.
@@ -160,22 +147,22 @@ fn only_literal<const N: usize>(#[case] format_description: &str, #[case] expect
 }
 
 #[rstest]
-#[case("[day]", Component::Day(modifier!(Day)))]
-#[case("[end]", Component::End(modifier!(End)))]
-#[case("[hour]", Component::Hour(modifier!(Hour)))]
-#[case("[minute]", Component::Minute(modifier!(Minute)))]
-#[case("[month]", Component::Month(modifier!(Month)))]
-#[case("[offset_hour]", Component::OffsetHour(modifier!(OffsetHour)))]
-#[case("[offset_minute]", Component::OffsetMinute(modifier!(OffsetMinute)))]
-#[case("[offset_second]", Component::OffsetSecond(modifier!(OffsetSecond)))]
-#[case("[ordinal]", Component::Ordinal(modifier!(Ordinal)))]
-#[case("[period]", Component::Period(modifier!(Period)))]
-#[case("[second]", Component::Second(modifier!(Second)))]
-#[case("[subsecond]", Component::Subsecond(modifier!(Subsecond)))]
-#[case("[unix_timestamp]", Component::UnixTimestamp(modifier!(UnixTimestamp)))]
-#[case("[weekday]", Component::Weekday(modifier!(Weekday)))]
-#[case("[week_number]", Component::WeekNumber(modifier!(WeekNumber)))]
-#[case("[year]", Component::Year(modifier!(Year)))]
+#[case("[day]", Component::Day(Day::default()))]
+#[case("[end]", Component::End(End::default()))]
+#[case("[hour]", Component::Hour(Hour::default()))]
+#[case("[minute]", Component::Minute(Minute::default()))]
+#[case("[month]", Component::Month(Month::default()))]
+#[case("[offset_hour]", Component::OffsetHour(OffsetHour::default()))]
+#[case("[offset_minute]", Component::OffsetMinute(OffsetMinute::default()))]
+#[case("[offset_second]", Component::OffsetSecond(OffsetSecond::default()))]
+#[case("[ordinal]", Component::Ordinal(Ordinal::default()))]
+#[case("[period]", Component::Period(Period::default()))]
+#[case("[second]", Component::Second(Second::default()))]
+#[case("[subsecond]", Component::Subsecond(Subsecond::default()))]
+#[case("[unix_timestamp]", Component::UnixTimestamp(UnixTimestamp::default()))]
+#[case("[weekday]", Component::Weekday(Weekday::default()))]
+#[case("[week_number]", Component::WeekNumber(WeekNumber::default()))]
+#[case("[year]", Component::Year(Year::default()))]
 fn simple_component(#[case] format_description: &str, #[case] component: Component) {
     assert_eq!(
         format_description::parse(format_description),
@@ -242,7 +229,7 @@ fn day_component(padding: M<Padding>) {
     assert_eq!(
         parse_with_modifiers!("day", padding),
         Ok(vec![BorrowedFormatItem::Component(Component::Day(
-            modifier_m!(Day { padding })
+            Day::default().with_padding(padding.0)
         ))])
     );
 }
@@ -252,7 +239,7 @@ fn end_component(trailing_input: M<TrailingInput>) {
     assert_eq!(
         parse_with_modifiers!("end", trailing_input),
         Ok(vec![BorrowedFormatItem::Component(Component::End(
-            modifier_m!(End { trailing_input })
+            End::default().with_trailing_input(trailing_input.0)
         ))])
     );
 }
@@ -262,7 +249,7 @@ fn minute_component(padding: M<Padding>) {
     assert_eq!(
         parse_with_modifiers!("minute", padding),
         Ok(vec![BorrowedFormatItem::Component(Component::Minute(
-            modifier_m!(Minute { padding })
+            Minute::default().with_padding(padding.0)
         ))])
     );
 }
@@ -272,7 +259,7 @@ fn offset_minute_component(padding: M<Padding>) {
     assert_eq!(
         parse_with_modifiers!("offset_minute", padding),
         Ok(vec![BorrowedFormatItem::Component(
-            Component::OffsetMinute(modifier_m!(OffsetMinute { padding }))
+            Component::OffsetMinute(OffsetMinute::default().with_padding(padding.0))
         )])
     );
 }
@@ -282,7 +269,7 @@ fn offset_second_component(padding: M<Padding>) {
     assert_eq!(
         parse_with_modifiers!("offset_second", padding),
         Ok(vec![BorrowedFormatItem::Component(
-            Component::OffsetSecond(modifier_m!(OffsetSecond { padding }))
+            Component::OffsetSecond(OffsetSecond::default().with_padding(padding.0))
         )])
     );
 }
@@ -292,7 +279,7 @@ fn ordinal_component(padding: M<Padding>) {
     assert_eq!(
         parse_with_modifiers!("ordinal", padding),
         Ok(vec![BorrowedFormatItem::Component(Component::Ordinal(
-            modifier_m!(Ordinal { padding })
+            Ordinal::default().with_padding(padding.0)
         ))])
     );
 }
@@ -302,7 +289,7 @@ fn second_component(padding: M<Padding>) {
     assert_eq!(
         parse_with_modifiers!("second", padding),
         Ok(vec![BorrowedFormatItem::Component(Component::Second(
-            modifier_m!(Second { padding })
+            Second::default().with_padding(padding.0)
         ))])
     );
 }
@@ -312,10 +299,9 @@ fn hour_component(padding: M<Padding>, hour_is_12_hour_clock: M<bool>) {
     assert_eq!(
         parse_with_modifiers!("hour", padding, hour_is_12_hour_clock),
         Ok(vec![BorrowedFormatItem::Component(Component::Hour(
-            modifier_m!(Hour {
-                padding,
-                is_12_hour_clock: hour_is_12_hour_clock
-            })
+            Hour::default()
+                .with_padding(padding.0)
+                .with_is_12_hour_clock(hour_is_12_hour_clock.0)
         ))])
     );
 }
@@ -325,11 +311,10 @@ fn month_component(padding: M<Padding>, case_sensitive: M<bool>, month_repr: M<M
     assert_eq!(
         parse_with_modifiers!("month", padding, case_sensitive, month_repr),
         Ok(vec![BorrowedFormatItem::Component(Component::Month(
-            modifier_m!(Month {
-                padding,
-                repr: month_repr,
-                case_sensitive
-            })
+            Month::default()
+                .with_padding(padding.0)
+                .with_repr(month_repr.0)
+                .with_case_sensitive(case_sensitive.0)
         ))])
     );
 }
@@ -339,10 +324,9 @@ fn period_component(case_sensitive: M<bool>, period_is_uppercase: M<bool>) {
     assert_eq!(
         parse_with_modifiers!("period", period_is_uppercase, case_sensitive),
         Ok(vec![BorrowedFormatItem::Component(Component::Period(
-            modifier_m!(Period {
-                is_uppercase: period_is_uppercase,
-                case_sensitive
-            })
+            Period::default()
+                .with_is_uppercase(period_is_uppercase.0)
+                .with_case_sensitive(case_sensitive.0)
         ))])
     );
 }
@@ -361,11 +345,10 @@ fn weekday_component(
             weekday_repr
         ),
         Ok(vec![BorrowedFormatItem::Component(Component::Weekday(
-            modifier_m!(Weekday {
-                repr: weekday_repr,
-                one_indexed: weekday_is_one_indexed,
-                case_sensitive
-            })
+            Weekday::default()
+                .with_repr(weekday_repr.0)
+                .with_one_indexed(weekday_is_one_indexed.0)
+                .with_case_sensitive(case_sensitive.0)
         ))])
     );
 }
@@ -375,10 +358,9 @@ fn week_number_component(padding: M<Padding>, week_number_repr: M<WeekNumberRepr
     assert_eq!(
         parse_with_modifiers!("week_number", padding, week_number_repr),
         Ok(vec![BorrowedFormatItem::Component(Component::WeekNumber(
-            modifier_m!(WeekNumber {
-                padding,
-                repr: week_number_repr
-            })
+            WeekNumber::default()
+                .with_padding(padding.0)
+                .with_repr(week_number_repr.0)
         ))])
     );
 }
@@ -388,10 +370,9 @@ fn offset_hour_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
     assert_eq!(
         parse_with_modifiers!("offset_hour", padding, sign_is_mandatory),
         Ok(vec![BorrowedFormatItem::Component(Component::OffsetHour(
-            modifier_m!(OffsetHour {
-                padding,
-                sign_is_mandatory
-            })
+            OffsetHour::default()
+                .with_padding(padding.0)
+                .with_sign_is_mandatory(sign_is_mandatory.0)
         ))])
     );
 }
@@ -414,13 +395,12 @@ fn year_component(
             sign_is_mandatory
         ),
         Ok(vec![BorrowedFormatItem::Component(Component::Year(
-            modifier_m!(Year {
-                padding,
-                repr: year_repr,
-                range: year_range,
-                iso_week_based: year_is_iso_week_based,
-                sign_is_mandatory
-            })
+            Year::default()
+                .with_padding(padding.0)
+                .with_repr(year_repr.0)
+                .with_range(year_range.0)
+                .with_iso_week_based(year_is_iso_week_based.0)
+                .with_sign_is_mandatory(sign_is_mandatory.0)
         ))])
     );
 }
@@ -437,10 +417,11 @@ fn unix_timestamp_component(
             unix_timestamp_precision
         ),
         Ok(vec![BorrowedFormatItem::Component(
-            Component::UnixTimestamp(modifier_m!(UnixTimestamp {
-                sign_is_mandatory,
-                precision: unix_timestamp_precision,
-            }))
+            Component::UnixTimestamp(
+                UnixTimestamp::default()
+                    .with_sign_is_mandatory(sign_is_mandatory.0)
+                    .with_precision(unix_timestamp_precision.0)
+            )
         )])
     );
 }
@@ -450,9 +431,7 @@ fn subsecond_component(subsecond_digits: M<SubsecondDigits>) {
     assert_eq!(
         parse_with_modifiers!("subsecond", subsecond_digits),
         Ok(vec![BorrowedFormatItem::Component(Component::Subsecond(
-            modifier_m!(Subsecond {
-                digits: subsecond_digits
-            })
+            Subsecond::default().with_digits(subsecond_digits.0)
         ))]),
     );
 }
@@ -546,14 +525,16 @@ fn first() {
             "[first [[period case:upper]] [[period case:lower]] ]"
         ),
         Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::Component(Component::Period(modifier!(Period {
-                is_uppercase: true,
-                case_sensitive: true,
-            }))),
-            OwnedFormatItem::Component(Component::Period(modifier!(Period {
-                is_uppercase: false,
-                case_sensitive: true,
-            }))),
+            OwnedFormatItem::Component(Component::Period(
+                Period::default()
+                    .with_is_uppercase(true)
+                    .with_case_sensitive(true)
+            )),
+            OwnedFormatItem::Component(Component::Period(
+                Period::default()
+                    .with_is_uppercase(false)
+                    .with_case_sensitive(true)
+            )),
         ])))
     );
 }
@@ -778,46 +759,48 @@ fn rfc_3339() {
              sign:mandatory]:[offset_minute]"
         ),
         Ok(vec![
-            BorrowedFormatItem::Component(Component::Year(modifier!(Year {
-                padding: Padding::Zero,
-                repr: YearRepr::Full,
-                iso_week_based: false,
-                sign_is_mandatory: false
-            }))),
+            BorrowedFormatItem::Component(Component::Year(
+                Year::default()
+                    .with_padding(Padding::Zero)
+                    .with_repr(YearRepr::Full)
+                    .with_iso_week_based(false)
+                    .with_sign_is_mandatory(false)
+            )),
             BorrowedFormatItem::Literal(b"-"),
-            BorrowedFormatItem::Component(Component::Month(modifier!(Month {
-                padding: Padding::Zero,
-                repr: MonthRepr::Numerical
-            }))),
+            BorrowedFormatItem::Component(Component::Month(
+                Month::default().with_padding(Padding::Zero)
+            )),
             BorrowedFormatItem::Literal(b"-"),
-            BorrowedFormatItem::Component(Component::Day(modifier!(Day {
-                padding: Padding::Zero
-            }))),
+            BorrowedFormatItem::Component(Component::Day(
+                Day::default().with_padding(Padding::Zero)
+            )),
             BorrowedFormatItem::Literal(b"T"),
-            BorrowedFormatItem::Component(Component::Hour(modifier!(Hour {
-                padding: Padding::Zero,
-                is_12_hour_clock: false
-            }))),
+            BorrowedFormatItem::Component(Component::Hour(
+                Hour::default()
+                    .with_padding(Padding::Zero)
+                    .with_is_12_hour_clock(false)
+            )),
             BorrowedFormatItem::Literal(b":"),
-            BorrowedFormatItem::Component(Component::Minute(modifier!(Minute {
-                padding: Padding::Zero
-            }))),
+            BorrowedFormatItem::Component(Component::Minute(
+                Minute::default().with_padding(Padding::Zero)
+            )),
             BorrowedFormatItem::Literal(b":"),
-            BorrowedFormatItem::Component(Component::Second(modifier!(Second {
-                padding: Padding::Zero
-            }))),
+            BorrowedFormatItem::Component(Component::Second(
+                Second::default().with_padding(Padding::Zero)
+            )),
             BorrowedFormatItem::Literal(b"."),
-            BorrowedFormatItem::Component(Component::Subsecond(modifier!(Subsecond {
-                digits: SubsecondDigits::OneOrMore
-            }))),
-            BorrowedFormatItem::Component(Component::OffsetHour(modifier!(OffsetHour {
-                padding: Padding::Zero,
-                sign_is_mandatory: true
-            }))),
+            BorrowedFormatItem::Component(Component::Subsecond(
+                Subsecond::default().with_digits(SubsecondDigits::OneOrMore)
+            )),
+            BorrowedFormatItem::Component(Component::OffsetHour(
+                OffsetHour::default()
+                    .with_padding(Padding::Zero)
+                    .with_sign_is_mandatory(true)
+            )),
             BorrowedFormatItem::Literal(b":"),
-            BorrowedFormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
-                padding: Padding::Zero
-            })))
+            BorrowedFormatItem::Component(Component::OffsetMinute(
+                OffsetMinute::default().with_padding(Padding::Zero)
+            ))
         ])
     );
 }

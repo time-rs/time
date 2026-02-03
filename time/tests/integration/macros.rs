@@ -1,7 +1,11 @@
 use core::num::NonZero;
 
 use rstest::rstest;
-use time::format_description::modifier::*;
+use time::format_description::modifier::{
+    Day, End, Ignore, Month, MonthRepr, OffsetMinute, OffsetSecond, Ordinal, Padding, Period,
+    TrailingInput, UnixTimestamp, UnixTimestampPrecision, WeekNumber, WeekNumberRepr, Weekday,
+    WeekdayRepr, Year, YearRepr,
+};
 use time::format_description::{BorrowedFormatItem, Component};
 use time::macros::{date, format_description, time};
 use time::{Date, Time};
@@ -150,14 +154,16 @@ fn first() {
             "[first [[period case:upper]] [[period case:lower]] ]"
         ),
         &[BorrowedFormatItem::First(&[
-            BorrowedFormatItem::Component(Component::Period(modifier!(Period {
-                is_uppercase: true,
-                case_sensitive: true,
-            }))),
-            BorrowedFormatItem::Component(Component::Period(modifier!(Period {
-                is_uppercase: false,
-                case_sensitive: true,
-            }))),
+            BorrowedFormatItem::Component(Component::Period(
+                Period::default()
+                    .with_is_uppercase(true)
+                    .with_case_sensitive(true)
+            )),
+            BorrowedFormatItem::Component(Component::Period(
+                Period::default()
+                    .with_is_uppercase(false)
+                    .with_case_sensitive(true)
+            )),
         ])]
     );
 }
@@ -227,15 +233,15 @@ fn format_description_coverage() {
     assert_eq!(
         format_description!("[day padding:space][day padding:zero][day padding:none]"),
         &[
-            BorrowedFormatItem::Component(Component::Day(modifier!(Day {
-                padding: Padding::Space,
-            }))),
-            BorrowedFormatItem::Component(Component::Day(modifier!(Day {
-                padding: Padding::Zero,
-            }))),
-            BorrowedFormatItem::Component(Component::Day(modifier!(Day {
-                padding: Padding::None,
-            })))
+            BorrowedFormatItem::Component(Component::Day(
+                Day::default().with_padding(Padding::Space)
+            )),
+            BorrowedFormatItem::Component(Component::Day(
+                Day::default().with_padding(Padding::Zero)
+            )),
+            BorrowedFormatItem::Component(Component::Day(
+                Day::default().with_padding(Padding::None)
+            ))
         ]
     );
     assert_eq!(
@@ -243,15 +249,15 @@ fn format_description_coverage() {
             "[offset_minute padding:space][offset_minute padding:zero][offset_minute padding:none]"
         ),
         &[
-            BorrowedFormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
-                padding: Padding::Space,
-            }))),
-            BorrowedFormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
-                padding: Padding::Zero,
-            }))),
-            BorrowedFormatItem::Component(Component::OffsetMinute(modifier!(OffsetMinute {
-                padding: Padding::None,
-            })))
+            BorrowedFormatItem::Component(Component::OffsetMinute(
+                OffsetMinute::default().with_padding(Padding::Space)
+            )),
+            BorrowedFormatItem::Component(Component::OffsetMinute(
+                OffsetMinute::default().with_padding(Padding::Zero)
+            )),
+            BorrowedFormatItem::Component(Component::OffsetMinute(
+                OffsetMinute::default().with_padding(Padding::None)
+            ))
         ]
     );
     assert_eq!(
@@ -259,68 +265,64 @@ fn format_description_coverage() {
             "[offset_second padding:space][offset_second padding:zero][offset_second padding:none]"
         ),
         &[
-            BorrowedFormatItem::Component(Component::OffsetSecond(modifier!(OffsetSecond {
-                padding: Padding::Space,
-            }))),
-            BorrowedFormatItem::Component(Component::OffsetSecond(modifier!(OffsetSecond {
-                padding: Padding::Zero,
-            }))),
-            BorrowedFormatItem::Component(Component::OffsetSecond(modifier!(OffsetSecond {
-                padding: Padding::None,
-            }))),
+            BorrowedFormatItem::Component(Component::OffsetSecond(
+                OffsetSecond::default().with_padding(Padding::Space)
+            )),
+            BorrowedFormatItem::Component(Component::OffsetSecond(
+                OffsetSecond::default().with_padding(Padding::Zero)
+            )),
+            BorrowedFormatItem::Component(Component::OffsetSecond(
+                OffsetSecond::default().with_padding(Padding::None)
+            )),
         ]
     );
     assert_eq!(
         format_description!("[ordinal padding:space][ordinal padding:zero][ordinal padding:none]"),
         &[
-            BorrowedFormatItem::Component(Component::Ordinal(modifier!(Ordinal {
-                padding: Padding::Space,
-            }))),
-            BorrowedFormatItem::Component(Component::Ordinal(modifier!(Ordinal {
-                padding: Padding::Zero,
-            }))),
-            BorrowedFormatItem::Component(Component::Ordinal(modifier!(Ordinal {
-                padding: Padding::None,
-            }))),
+            BorrowedFormatItem::Component(Component::Ordinal(
+                Ordinal::default().with_padding(Padding::Space)
+            )),
+            BorrowedFormatItem::Component(Component::Ordinal(
+                Ordinal::default().with_padding(Padding::Zero)
+            )),
+            BorrowedFormatItem::Component(Component::Ordinal(
+                Ordinal::default().with_padding(Padding::None)
+            )),
         ]
     );
     assert_eq!(
         format_description!("[month repr:numerical]"),
-        &[BorrowedFormatItem::Component(Component::Month(modifier!(
-            Month {
-                repr: MonthRepr::Numerical,
-                padding: Padding::Zero,
-            }
-        )))]
+        &[BorrowedFormatItem::Component(Component::Month(
+            Month::default()
+                .with_repr(MonthRepr::Numerical)
+                .with_padding(Padding::Zero)
+        ))]
     );
     assert_eq!(
         format_description!("[week_number repr:iso ]"),
         &[BorrowedFormatItem::Component(Component::WeekNumber(
-            modifier!(WeekNumber {
-                padding: Padding::Zero,
-                repr: WeekNumberRepr::Iso,
-            })
+            WeekNumber::default()
+                .with_padding(Padding::Zero)
+                .with_repr(WeekNumberRepr::Iso)
         ))]
     );
     assert_eq!(
         format_description!("[weekday repr:long one_indexed:true]"),
         &[BorrowedFormatItem::Component(Component::Weekday(
-            modifier!(Weekday {
-                repr: WeekdayRepr::Long,
-                one_indexed: true,
-            })
+            Weekday::default()
+                .with_repr(WeekdayRepr::Long)
+                .with_one_indexed(true)
         ))]
     );
     assert_eq!(
         format_description!("[year repr:full base:calendar]"),
-        &[BorrowedFormatItem::Component(Component::Year(modifier!(
-            Year {
-                repr: YearRepr::Full,
-                iso_week_based: false,
-                padding: Padding::Zero,
-                sign_is_mandatory: false,
-            }
-        )))]
+        &[BorrowedFormatItem::Component(Component::Year(
+            Year::default()
+                .with_repr(YearRepr::Full)
+                .with_iso_week_based(false)
+                .with_padding(Padding::Zero)
+                .with_sign_is_mandatory(false)
+        ))]
     );
     assert_eq!(
         format_description!("[[ "),
@@ -332,41 +334,34 @@ fn format_description_coverage() {
     assert_eq!(
         format_description!("[ignore count:2]"),
         &[BorrowedFormatItem::Component(Component::Ignore(
-            Ignore::count(NonZero::new(2).expect("2 is not zero"))
+            Ignore::count(const { NonZero::new(2).unwrap() })
         ))]
     );
     assert_eq!(
         format_description!("[unix_timestamp precision:nanosecond sign:mandatory]"),
         &[BorrowedFormatItem::Component(Component::UnixTimestamp(
-            modifier!(UnixTimestamp {
-                precision: UnixTimestampPrecision::Nanosecond,
-                sign_is_mandatory: true,
-            })
+            UnixTimestamp::default()
+                .with_precision(UnixTimestampPrecision::Nanosecond)
+                .with_sign_is_mandatory(true)
         ))]
     );
     assert_eq!(
         format_description!("[end]"),
-        &[BorrowedFormatItem::Component(Component::End(modifier!(
-            End {
-                trailing_input: TrailingInput::Prohibit,
-            }
-        )))]
+        &[BorrowedFormatItem::Component(
+            Component::End(End::default())
+        )]
     );
     assert_eq!(
         format_description!("[end trailing_input:prohibit]"),
-        &[BorrowedFormatItem::Component(Component::End(modifier!(
-            End {
-                trailing_input: TrailingInput::Prohibit,
-            }
-        )))]
+        &[BorrowedFormatItem::Component(Component::End(
+            End::default().with_trailing_input(TrailingInput::Prohibit)
+        ))]
     );
     assert_eq!(
         format_description!("[end trailing_input:discard]"),
-        &[BorrowedFormatItem::Component(Component::End(modifier!(
-            End {
-                trailing_input: TrailingInput::Discard,
-            }
-        )))]
+        &[BorrowedFormatItem::Component(Component::End(
+            End::default().with_trailing_input(TrailingInput::Discard)
+        ))]
     );
 }
 
