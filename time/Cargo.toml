@@ -2,7 +2,7 @@ lints.workspace = true
 
 [package]
 name = "time"
-version = "0.3.46"
+version = "0.3.47"
 categories = [
     "date-and-time",
     "no-std",

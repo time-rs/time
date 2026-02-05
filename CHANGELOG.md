@@ -6,6 +6,47 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.47 [2026-02-05]
+
+### Security
+
+- The possibility of a stack exhaustion denial of service attack when parsing RFC 2822 has been
+  eliminated. Previously, it was possible to craft input that would cause unbounded recursion. Now,
+  the depth of the recursion is tracked, causing an error to be returned if it exceeds a reasonable
+  limit.
+
+  This attack vector requires parsing user-provided input, with any type, using the RFC 2822 format.
+
+### Compatibility
+
+- Attempting to format a value with a well-known format (i.e. RFC 3339, RFC 2822, or ISO 8601) will
+  error at compile time if the type being formatted does not provide sufficient information. This
+  would previously fail at runtime. Similarly, attempting to format a value with ISO 8601 that is
+  only configured for parsing (i.e. `Iso8601::PARSING`) will error at compile time.
+
+### Added
+
+- Builder methods for format description modifiers, eliminating the need for verbose initialization
+  when done manually.
+- `date!(2026-W01-2)` is now supported. Previously, a space was required between `W` and `01`.
+- `[end]` now has a `trailing_input` modifier which can either be `prohibit` (the default) or
+  `discard`. When it is `discard`, all remaining input is ignored. Note that if there are components
+  after `[end]`, they will still attempt to be parsed, likely resulting in an error.
+
+### Changed
+
+- More performance gains when parsing.
+
+### Fixed
+
+- If manually formatting a value, the number of bytes written was one short for some components.
+  This has been fixed such that the number of bytes written is always correct.
+- The possibility of integer overflow when parsing an owned format description has been effectively
+  eliminated. This would previously wrap when overflow checks were disabled. Instead of storing the
+  depth as `u8`, it is stored as `u32`. This would require multiple gigabytes of nested input to
+  overflow, at which point we've got other problems and trivial mitigations are available by
+  downstream users.
+
 ## 0.3.46 [2026-01-23]
 
 ### Added
