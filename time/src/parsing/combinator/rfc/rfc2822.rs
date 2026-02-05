@@ -8,6 +8,8 @@ use crate::parsing::ParsedItem;
 use crate::parsing::combinator::rfc::rfc2234::wsp;
 use crate::parsing::combinator::{ascii_char, one_or_more, zero_or_more};
 
+const DEPTH_LIMIT: u8 = 32;
+
 /// Consume the `fws` rule.
 // The full rule is equivalent to /\r\n[ \t]+|[ \t]+(?:\r\n[ \t]+)*/
 #[inline]
@@ -27,15 +29,24 @@ pub(crate) fn fws(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 // The full rule is equivalent to any combination of `fws` and `comment` so long as it is not empty.
 #[inline]
 pub(crate) fn cfws(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
-    one_or_more(|input| fws(input).or_else(|| comment(input)))(input)
+    one_or_more(|input| fws(input).or_else(|| comment(input, 1)))(input)
 }
 
 /// Consume the `comment` rule.
 #[inline]
-fn comment(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
+fn comment(mut input: &[u8], depth: u8) -> Option<ParsedItem<'_, ()>> {
+    // Avoid stack exhaustion DoS by limiting recursion depth. This will cause highly-nested
+    // comments to fail parsing, but comments *at all* are incredibly rare in practice.
+    //
+    // The error from this will not be descriptive, but the rarity and near-certain maliciousness of
+    // such inputs makes this an acceptable trade-off.
+    if depth == DEPTH_LIMIT {
+        return None;
+    }
+
     input = ascii_char::<b'('>(input)?.into_inner();
     input = zero_or_more(fws)(input).into_inner();
-    while let Some(rest) = ccontent(input) {
+    while let Some(rest) = ccontent(input, depth + 1) {
         input = rest.into_inner();
         input = zero_or_more(fws)(input).into_inner();
     }
@@ -46,10 +57,10 @@ fn comment(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 
 /// Consume the `ccontent` rule.
 #[inline]
-fn ccontent(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
+fn ccontent(input: &[u8], depth: u8) -> Option<ParsedItem<'_, ()>> {
     ctext(input)
         .or_else(|| quoted_pair(input))
-        .or_else(|| comment(input))
+        .or_else(|| comment(input, depth))
 }
 
 /// Consume the `ctext` rule.
