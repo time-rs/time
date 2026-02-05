@@ -128,7 +128,7 @@ pub(super) fn lex<const VERSION: u8>(
 ) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
     assert!(version!(1..=2));
 
-    let mut depth: u8 = 0;
+    let mut depth: u32 = 0;
     let mut iter = attach_location(input.iter(), proc_span).peekable();
     let mut second_bracket_location = None;
 

@@ -159,7 +159,7 @@ pub(super) fn lex<const VERSION: usize>(
 ) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
     validate_version!(VERSION);
 
-    let mut depth: u8 = 0;
+    let mut depth: u32 = 0;
     let mut iter = attach_location(input.iter()).peekable();
     let mut second_bracket_location = None;
 
