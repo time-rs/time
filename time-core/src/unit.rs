@@ -2,23 +2,6 @@
 
 use self::sealed::{DefaultOutput, MultipleOf};
 
-mod sealed {
-    /// A trait for defining the ratio of two units of time.
-    ///
-    /// This trait is used to implement the `per` method on the various structs.
-    #[diagnostic::on_unimplemented(message = "`{Self}` is not an integer multiple of `{T}`")]
-    pub trait MultipleOf<T, Output> {
-        /// The number of one unit of time in the other.
-        const VALUE: Output;
-    }
-
-    /// A trait for defining the default output type for the `per` method.
-    pub trait DefaultOutput<T> {
-        /// The default output type for the `per` method.
-        type Output;
-    }
-}
-
 /// Given the list of types, stringify them as a list.
 macro_rules! stringify_outputs {
     (@inner $first:ty) => {
@@ -35,21 +18,12 @@ macro_rules! stringify_outputs {
     };
 }
 
-// Split this out to a separate function to permit naming `T` while also using `impl Trait` as a
-// parameter in the public API.`
-const fn multiple_of_value<T, U, Output>(_: T) -> Output
-where
-    T: MultipleOf<U, Output> + Copy,
-{
-    T::VALUE
-}
-
 /// Declare all unit types.
 macro_rules! declare_types {
     ($($t:ident ($str:literal))+) => {$(
-        #[doc = concat!("A unit of time representing exactly one ", $str, ".")]
-        #[derive(Debug, Clone, Copy)]
-        pub struct $t;
+        #[doc = concat!("A unit of time representing exactly `N` ", $str, "s.")]
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        pub struct $t<const N: u128 = 1>;
     )+};
 }
 
@@ -61,7 +35,7 @@ macro_rules! impl_per {
         $($int_output:ty)|+ = $int_value:expr;
         $($float_output:ty)|+ = $float_value:expr;
     )+})*) => {$(
-        impl $t {
+        impl $t<1> {
             #[doc = concat!("Obtain the number of times `", stringify!($t), "` can fit into `T`.")]
             #[doc = concat!("If `T` is smaller than `", stringify!($t), "`, the code will fail to")]
             /// compile. The return type is the smallest unsigned integer type that can represent
@@ -111,6 +85,105 @@ macro_rules! impl_per {
             }
         )+
     )*};
+}
+
+/// Implement `PartialEq` and `PartialOrd` between unit types.
+macro_rules! impl_partial_eq_ord {
+    ($($self:ident {
+        $(> $($bigger:ident)+;)?
+        $(< $($smaller:ident)+;)?
+    })*) => {$(
+        $($(
+            impl<const N: u128> PartialEq<$bigger<N>> for $self<N> {
+                #[inline]
+                fn eq(&self, _: &$bigger<N>) -> bool {
+                    false
+                }
+            }
+
+            impl<const N: u128> PartialOrd<$bigger<N>> for $self<N> {
+                #[inline]
+                fn partial_cmp(&self, _: &$bigger<N>) -> Option<core::cmp::Ordering> {
+                    Some(core::cmp::Ordering::Greater)
+                }
+            }
+        )+)?
+
+        $($(
+            impl<const N: u128> PartialEq<$smaller<N>> for $self<N> {
+                #[inline]
+                fn eq(&self, _: &$smaller<N>) -> bool {
+                    false
+                }
+            }
+
+            impl<const N: u128> PartialOrd<$smaller<N>> for $self<N> {
+                #[inline]
+                fn partial_cmp(&self, _: &$smaller<N>) -> Option<core::cmp::Ordering> {
+                    Some(core::cmp::Ordering::Less)
+                }
+            }
+        )+)?
+    )*};
+}
+
+/// Symmetrically implement `PartialEq` and `PartialOrd` between `Unit` and all unit types.
+macro_rules! impl_partial_eq_ord_for_unit {
+    ($($ty:ident)+) => {$(
+        impl<const N: u128> PartialEq<$ty<N>> for Unit<N> {
+            #[inline]
+            fn eq(&self, _: &$ty<N>) -> bool {
+                *self == Self::$ty
+            }
+        }
+
+        impl<const N: u128> PartialEq<Unit<N>> for $ty<N> {
+            #[inline]
+            fn eq(&self, other: &Unit<N>) -> bool {
+                *other == Unit::$ty
+            }
+        }
+
+        impl<const N: u128> PartialOrd<$ty<N>> for Unit<N> {
+            #[inline]
+            fn partial_cmp(&self, _: &$ty<N>) -> Option<core::cmp::Ordering> {
+                self.partial_cmp(&Unit::$ty)
+            }
+        }
+
+        impl<const N: u128> PartialOrd<Unit<N>> for $ty<N> {
+            #[inline]
+            fn partial_cmp(&self, other: &Unit<N>) -> Option<core::cmp::Ordering> {
+                Unit::$ty.partial_cmp(other)
+            }
+        }
+    )+};
+}
+
+mod sealed {
+    /// A trait for defining the ratio of two units of time.
+    ///
+    /// This trait is used to implement the `per` method on the various structs.
+    #[diagnostic::on_unimplemented(message = "`{Self}` is not an integer multiple of `{T}`")]
+    pub trait MultipleOf<T, Output> {
+        /// The number of one unit of time in the other.
+        const VALUE: Output;
+    }
+
+    /// A trait for defining the default output type for the `per` method.
+    pub trait DefaultOutput<T> {
+        /// The default output type for the `per` method.
+        type Output;
+    }
+}
+
+// Split this out to a separate function to permit naming `T` while also using `impl Trait` as a
+// parameter in the public API.`
+const fn multiple_of_value<T, U, Output>(_: T) -> Output
+where
+    T: MultipleOf<U, Output> + Copy,
+{
+    T::VALUE
 }
 
 declare_types! {
@@ -179,3 +252,60 @@ impl_per! {
         Week: [u8] u8|u16|u32|u64|u128|usize|i8|i16|i32|i64|i128|isize = 1; f32|f64 = 1.;
     }
 }
+
+impl_partial_eq_ord! {
+    Nanosecond {
+        < Microsecond Millisecond Second Minute Hour Day Week;
+    }
+    Microsecond {
+        > Nanosecond;
+        < Millisecond Second Minute Hour Day Week;
+    }
+    Millisecond {
+        > Nanosecond Microsecond;
+        < Second Minute Hour Day Week;
+    }
+    Second {
+        > Nanosecond Microsecond Millisecond;
+        < Minute Hour Day Week;
+    }
+    Minute {
+        > Nanosecond Microsecond Millisecond Second;
+        < Hour Day Week;
+    }
+    Hour {
+        > Nanosecond Microsecond Millisecond Second Minute;
+        < Day Week;
+    }
+    Day {
+        > Nanosecond Microsecond Millisecond Second Minute Hour;
+        < Week;
+    }
+    Week {
+        > Nanosecond Microsecond Millisecond Second Minute Hour Day;
+    }
+}
+
+/// A statically-known multiple of a given unit of time.
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Unit<const N: u128 = 1> {
+    #[expect(missing_docs)]
+    Nanosecond,
+    #[expect(missing_docs)]
+    Microsecond,
+    #[expect(missing_docs)]
+    Millisecond,
+    #[expect(missing_docs)]
+    Second,
+    #[expect(missing_docs)]
+    Minute,
+    #[expect(missing_docs)]
+    Hour,
+    #[expect(missing_docs)]
+    Day,
+    #[expect(missing_docs)]
+    Week,
+}
+
+impl_partial_eq_ord_for_unit![Nanosecond Microsecond Millisecond Second Minute Hour Day Week];
