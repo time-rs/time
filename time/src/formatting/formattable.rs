@@ -20,8 +20,7 @@ use crate::formatting::{
 ///
 /// Implementors of [`Formattable`] are [format descriptions](crate::format_description).
 ///
-/// [`Date::format`] and [`Time::format`] each use a format description to generate
-/// a String from their data. See the respective methods for usage examples.
+/// To format a value into a String, use the `format` method on the respective type.
 #[cfg_attr(docsrs, doc(notable_trait))]
 pub trait Formattable: sealed::Sealed {}
 impl Formattable for BorrowedFormatItem<'_> {}
