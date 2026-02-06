@@ -1,6 +1,6 @@
 use core::time::Duration as StdDuration;
 
-use crate::convert::*;
+use crate::unit::*;
 
 /// Sealed trait to prevent downstream implementations.
 mod sealed {

@@ -15,7 +15,7 @@ use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
 
 #[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
-use crate::convert::*;
+use crate::unit::*;
 use crate::error;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;

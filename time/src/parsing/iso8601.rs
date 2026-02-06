@@ -1,6 +1,5 @@
 //! Parse parts of an ISO 8601-formatted value.
 
-use crate::convert::*;
 use crate::error;
 use crate::error::ParseFromDescription::{InvalidComponent, InvalidLiteral};
 use crate::format_description::well_known::Iso8601;
@@ -11,6 +10,7 @@ use crate::parsing::combinator::rfc::iso8601::{
 };
 use crate::parsing::combinator::{Sign, ascii_char, sign};
 use crate::parsing::{Parsed, ParsedItem};
+use crate::unit::*;
 
 impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
     // Basic: [year][month][day]

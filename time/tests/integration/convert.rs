@@ -1,5 +1,5 @@
 use rstest::rstest;
-use time::convert::*;
+use time::unit::*;
 
 #[rstest]
 fn issue_749() {

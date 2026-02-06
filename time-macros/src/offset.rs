@@ -1,7 +1,7 @@
 use std::iter::Peekable;
 
 use proc_macro::{Span, TokenStream, token_stream};
-use time_core::convert::*;
+use time_core::unit::*;
 
 use crate::Error;
 use crate::helpers::{consume_any_ident, consume_number, consume_punct};

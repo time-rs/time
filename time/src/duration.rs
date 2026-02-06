@@ -14,7 +14,7 @@ use num_conv::prelude::*;
 #[cfg(feature = "std")]
 #[expect(deprecated)]
 use crate::Instant;
-use crate::convert::*;
+use crate::unit::*;
 use crate::error;
 use crate::internal_macros::const_try_opt;
 

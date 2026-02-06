@@ -9,7 +9,6 @@ use deranged::{
 };
 use num_conv::prelude::*;
 
-use crate::convert::{Day, Hour, Minute, Nanosecond, Second};
 use crate::date::{MAX_YEAR, MIN_YEAR};
 use crate::error::TryFromParsed::InsufficientInformation;
 #[cfg(feature = "alloc")]
@@ -22,6 +21,7 @@ use crate::parsing::component::{
     parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
     parse_subsecond, parse_unix_timestamp, parse_week_number, parse_weekday, parse_year,
 };
+use crate::unit::{Day, Hour, Minute, Nanosecond, Second};
 use crate::{
     Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday, error,
 };

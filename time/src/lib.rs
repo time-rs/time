@@ -93,6 +93,11 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+/// Deprecated module for units of time.
+#[deprecated(note = "import from `time::unit` instead")]
+pub mod convert {
+    pub use time_core::unit::*;
+}
 mod date;
 mod duration;
 pub mod error;
@@ -130,7 +135,7 @@ mod utc_offset;
 pub mod util;
 mod weekday;
 
-pub use time_core::convert;
+pub use time_core::unit;
 
 pub use crate::date::Date;
 pub use crate::duration::Duration;
