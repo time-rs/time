@@ -2,6 +2,7 @@
 
 use core::cmp::Ordering;
 use core::fmt;
+use core::hash::{Hash, Hasher};
 use core::iter::Sum;
 use core::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use core::time::Duration as StdDuration;
@@ -14,9 +15,9 @@ use num_conv::prelude::*;
 #[cfg(feature = "std")]
 #[expect(deprecated)]
 use crate::Instant;
-use crate::unit::*;
 use crate::error;
 use crate::internal_macros::const_try_opt;
+use crate::unit::*;
 
 #[derive(Debug)]
 enum FloatConstructorError {
@@ -28,7 +29,7 @@ enum FloatConstructorError {
 /// By explicitly inserting this enum where padding is expected, the compiler is able to better
 /// perform niche value optimization.
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) enum Padding {
     #[allow(clippy::missing_docs_in_private_items)]
     Optimize,
@@ -44,14 +45,15 @@ type Nanoseconds =
 /// nanoseconds.
 ///
 /// This implementation allows for negative durations, unlike [`core::time::Duration`].
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[repr(C)]
+#[derive(Clone, Copy)]
 pub struct Duration {
     /// Number of whole seconds.
     seconds: i64,
     /// Number of nanoseconds within the second. The sign always matches the `seconds` field.
     // Sign must match that of `seconds` (though this is not a safety requirement).
     nanoseconds: Nanoseconds,
-    padding: Padding,
+    _padding: Padding,
 }
 
 impl fmt::Debug for Duration {
@@ -64,14 +66,44 @@ impl fmt::Debug for Duration {
     }
 }
 
+impl PartialEq for Duration {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.as_int_for_equality() == other.as_int_for_equality()
+    }
+}
+
+impl Eq for Duration {}
+
+impl PartialOrd for Duration {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Duration {
+    #[inline]
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.seconds
+            .cmp(&other.seconds)
+            .then_with(|| self.nanoseconds.cmp(&other.nanoseconds))
+    }
+}
+
+impl Hash for Duration {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.as_int_for_equality().hash(state);
+    }
+}
+
 impl Default for Duration {
     #[inline]
     fn default() -> Self {
-        Self {
-            seconds: 0,
-            nanoseconds: Nanoseconds::new_static::<0>(),
-            padding: Padding::Optimize,
-        }
+        Self::ZERO
     }
 }
 
@@ -200,6 +232,11 @@ macro_rules! try_from_secs {
 }
 
 impl Duration {
+    const fn as_int_for_equality(self) -> i128 {
+        // Safety: There are no padding bytes that are not permitted to be read.
+        unsafe { core::mem::transmute(self) }
+    }
+
     /// Equivalent to `0.seconds()`.
     ///
     /// ```rust
@@ -287,7 +324,7 @@ impl Duration {
     /// ```
     #[inline]
     pub const fn is_zero(self) -> bool {
-        self.seconds == 0 && self.nanoseconds.get() == 0
+        self.as_int_for_equality() == Self::ZERO.as_int_for_equality()
     }
 
     /// Check if a duration is negative.
@@ -382,7 +419,7 @@ impl Duration {
         Self {
             seconds,
             nanoseconds,
-            padding: Padding::Optimize,
+            _padding: Padding::Optimize,
         }
     }
 
