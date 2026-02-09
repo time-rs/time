@@ -10,12 +10,10 @@ use core::ops::Neg;
 use std::io;
 
 use deranged::{RangedI8, RangedI32};
-use powerfmt::ext::FormatterExt;
-use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
+use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
 #[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
-use crate::unit::*;
 use crate::error;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
@@ -24,6 +22,7 @@ use crate::internal_macros::ensure_ranged;
 use crate::parsing::Parsable;
 #[cfg(feature = "local-offset")]
 use crate::sys::local_offset_at;
+use crate::unit::*;
 
 /// The type of the `hours` field of `UtcOffset`.
 type Hours = RangedI8<-25, 25>;
@@ -518,46 +517,59 @@ mod private {
 }
 use private::UtcOffsetMetadata;
 
+// This no longer needs special handling, as the format is fixed and doesn't require anything
+// advanced. Trait impls can't be deprecated and the info is still useful for other types
+// implementing `SmartDisplay`, so leave it as-is for now.
 impl SmartDisplay for UtcOffset {
     type Metadata = UtcOffsetMetadata;
 
     #[inline]
     fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
-        let sign = if self.is_negative() { '-' } else { '+' };
-        let width = smart_display::padded_width_of!(
-            sign,
-            self.hours.abs() => width(2),
-            ":",
-            self.minutes.abs() => width(2),
-            ":",
-            self.seconds.abs() => width(2),
-        );
-        Metadata::new(width, self, UtcOffsetMetadata)
+        Metadata::new(9, self, UtcOffsetMetadata)
     }
 
     #[inline]
-    fn fmt_with_metadata(
-        &self,
-        f: &mut fmt::Formatter<'_>,
-        metadata: Metadata<Self>,
-    ) -> fmt::Result {
-        f.pad_with_width(
-            metadata.unpadded_width(),
-            format_args!(
-                "{}{:02}:{:02}:{:02}",
-                if self.is_negative() { '-' } else { '+' },
-                self.hours.abs(),
-                self.minutes.abs(),
-                self.seconds.abs(),
-            ),
-        )
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
+}
+
+/// Obtain a pointer to the two ASCII digits representing `n`.
+///
+/// # Safety: `n` must be less than 100.
+#[inline]
+unsafe fn digits_ptr(n: u8) -> *const u8 {
+    const DIGIT_PAIRS: [u8; 200] = *b"0001020304050607080910111213141516171819\
+                                      2021222324252627282930313233343536373839\
+                                      4041424344454647484950515253545556575859\
+                                      6061626364656667686970717273747576777879\
+                                      8081828384858687888990919293949596979899";
+
+    debug_assert!(n < 100);
+    // Safety: We're staying within the bounds of the array.
+    unsafe { DIGIT_PAIRS.as_ptr().add((n as usize) * 2) }
 }
 
 impl fmt::Display for UtcOffset {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        SmartDisplay::fmt(self, f)
+        let hours = self.hours.get().unsigned_abs();
+        let minutes = self.minutes.get().unsigned_abs();
+        let seconds = self.seconds.get().unsigned_abs();
+
+        let sign = if self.is_negative() { b'-' } else { b'+' };
+        let mut buf = [sign, 0, 0, b':', 0, 0, b':', 0, 0];
+
+        // Safety: `hours`, `minutes` and `seconds` are all less than 100. Both the source and
+        // destination are valid for two bytes, aligned, and do not overlap.
+        unsafe {
+            digits_ptr(hours).copy_to_nonoverlapping(buf.as_mut_ptr().add(1), 2);
+            digits_ptr(minutes).copy_to_nonoverlapping(buf.as_mut_ptr().add(4), 2);
+            digits_ptr(seconds).copy_to_nonoverlapping(buf.as_mut_ptr().add(7), 2);
+        }
+
+        // Safety: All bytes are ASCII, which is a subset of UTF-8.
+        f.pad(unsafe { str::from_utf8_unchecked(&buf) })
     }
 }
 
