@@ -150,6 +150,16 @@ pub(crate) fn build(
         (true, true) => quote_! { ::time::formatting::Formattable + ::time::parsing::Parsable },
     };
 
+    let hygiene_imports = match (cfg!(feature = "formatting"), cfg!(feature = "parsing")) {
+        (false, false) => bug!(
+            "`serde_format_description` cannot be enabled without either the `formatting` or \
+             `parsing` features"
+        ),
+        (false, true) => quote_! { pub use self::__hygiene::deserialize; },
+        (true, false) => quote_! { pub use self::__hygiene::serialize; },
+        (true, true) => quote_! { pub use self::__hygiene::{serialize, deserialize}; },
+    };
+
     quote_! {
         #S(visibility) mod #(mod_name) {
             use super::*;
@@ -157,7 +167,7 @@ pub(crate) fn build(
             // done in a breaking change.
             use ::time::#(ty) as __TimeSerdeType;
             #[expect(clippy::pub_use)]
-            pub use self::__hygiene::*;
+            #S(hygiene_imports)
 
             const fn description() -> impl #S(fd_traits) {
                 #S(format)

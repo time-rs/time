@@ -385,6 +385,11 @@ mod demo {
     #[expect(dead_code)]
     type Option = core::option::Option<()>;
 
+    #[expect(dead_code)]
+    fn serialize() {}
+    #[expect(dead_code)]
+    fn deserialize() {}
+
     time::serde::format_description!(
         seconds,
         OffsetDateTime,
