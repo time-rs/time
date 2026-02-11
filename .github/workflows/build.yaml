@@ -87,7 +87,8 @@ jobs:
               - [serde-human-readable, serde-well-known]
           - name: wasm
             query: .wasm
-            exclude-features: [rand, quickcheck, local-offset]
+            exclude-features:
+              [rand, rand08, rand09, rand010, quickcheck, local-offset]
             group-features:
               - [formatting, parsing]
               - [serde-human-readable, serde-well-known]

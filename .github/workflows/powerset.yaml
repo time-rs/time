@@ -76,7 +76,8 @@ jobs:
             enable_features: [std, local-offset]
           - name: wasm
             query: .wasm
-            exclude_features: [rand, quickcheck, local-offset]
+            exclude_features:
+              [rand, rand08, rand09, rand010, quickcheck, local-offset]
 
     steps:
       - name: Checkout sources

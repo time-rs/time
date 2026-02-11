@@ -38,9 +38,10 @@ local-offset = ["std", "dep:libc", "dep:num_threads"]
 macros = ["dep:time-macros"]
 parsing = ["time-macros?/parsing"]
 quickcheck = ["dep:quickcheck", "alloc", "deranged/quickcheck"]
-rand = ["rand08", "rand09"]
+rand = ["rand08", "rand09", "rand010"]
 rand08 = ["dep:rand08", "deranged/rand08"]
 rand09 = ["dep:rand09", "deranged/rand09"]
+rand010 = ["dep:rand010", "deranged/rand010"]
 serde = ["dep:serde_core", "time-macros?/serde", "deranged/serde"]
 serde-human-readable = ["serde", "formatting", "parsing"]
 # Deprecated in favor of using the relevant flags directly.
@@ -58,6 +59,7 @@ powerfmt.workspace = true
 quickcheck = { workspace = true, optional = true }
 rand08 = { workspace = true, optional = true }
 rand09 = { workspace = true, optional = true }
+rand010 = { workspace = true, optional = true }
 serde_core = { workspace = true, optional = true }
 time-core.workspace = true
 time-macros = { workspace = true, optional = true }
