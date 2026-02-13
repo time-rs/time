@@ -1,5 +1,5 @@
 use crate::UtcDateTime;
-use crate::convert::*;
+use crate::unit::*;
 
 impl From<js_sys::Date> for UtcDateTime {
     /// # Panics
