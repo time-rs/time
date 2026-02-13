@@ -1253,11 +1253,7 @@ impl SubAssign<StdDuration> for PrimitiveDateTime {
 impl Sub for PrimitiveDateTime {
     type Output = Duration;
 
-    /// # Panics
-    ///
-    /// This may panic if an overflow occurs.
     #[inline]
-    #[track_caller]
     fn sub(self, rhs: Self) -> Self::Output {
         (self.date - rhs.date) + (self.time - rhs.time)
     }

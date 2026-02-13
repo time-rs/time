@@ -1372,11 +1372,7 @@ impl SubAssign<StdDuration> for UtcDateTime {
 impl Sub for UtcDateTime {
     type Output = Duration;
 
-    /// # Panics
-    ///
-    /// This may panic if an overflow occurs.
     #[inline]
-    #[track_caller]
     fn sub(self, rhs: Self) -> Self::Output {
         self.inner.sub(rhs.inner)
     }

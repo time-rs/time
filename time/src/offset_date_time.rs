@@ -1730,11 +1730,7 @@ impl SubAssign<StdDuration> for OffsetDateTime {
 impl Sub for OffsetDateTime {
     type Output = Duration;
 
-    /// # Panics
-    ///
-    /// This may panic if an overflow occurs.
     #[inline]
-    #[track_caller]
     fn sub(self, rhs: Self) -> Self::Output {
         let base = self.date_time() - rhs.date_time();
         let adjustment = Duration::seconds(
