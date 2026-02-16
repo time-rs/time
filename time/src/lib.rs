@@ -114,6 +114,7 @@ mod interop;
 #[cfg(feature = "macros")]
 pub mod macros;
 mod month;
+mod num_fmt;
 mod offset_date_time;
 #[cfg(feature = "parsing")]
 pub mod parsing;

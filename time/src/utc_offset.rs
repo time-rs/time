@@ -18,6 +18,7 @@ use crate::error;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::ensure_ranged;
+use crate::num_fmt::two_digits_zero_padded;
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 #[cfg(feature = "local-offset")]
@@ -534,22 +535,6 @@ impl SmartDisplay for UtcOffset {
     }
 }
 
-/// Obtain a pointer to the two ASCII digits representing `n`.
-///
-/// # Safety: `n` must be less than 100.
-#[inline]
-unsafe fn digits_ptr(n: u8) -> *const u8 {
-    const DIGIT_PAIRS: [u8; 200] = *b"0001020304050607080910111213141516171819\
-                                      2021222324252627282930313233343536373839\
-                                      4041424344454647484950515253545556575859\
-                                      6061626364656667686970717273747576777879\
-                                      8081828384858687888990919293949596979899";
-
-    debug_assert!(n < 100);
-    // Safety: We're staying within the bounds of the array.
-    unsafe { DIGIT_PAIRS.as_ptr().add((n as usize) * 2) }
-}
-
 impl fmt::Display for UtcOffset {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -563,9 +548,15 @@ impl fmt::Display for UtcOffset {
         // Safety: `hours`, `minutes` and `seconds` are all less than 100. Both the source and
         // destination are valid for two bytes, aligned, and do not overlap.
         unsafe {
-            digits_ptr(hours).copy_to_nonoverlapping(buf.as_mut_ptr().add(1), 2);
-            digits_ptr(minutes).copy_to_nonoverlapping(buf.as_mut_ptr().add(4), 2);
-            digits_ptr(seconds).copy_to_nonoverlapping(buf.as_mut_ptr().add(7), 2);
+            two_digits_zero_padded(hours)
+                .as_ptr()
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(1), 2);
+            two_digits_zero_padded(minutes)
+                .as_ptr()
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(4), 2);
+            two_digits_zero_padded(seconds)
+                .as_ptr()
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(7), 2);
         }
 
         // Safety: All bytes are ASCII, which is a subset of UTF-8.

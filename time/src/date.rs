@@ -2,22 +2,22 @@
 
 #[cfg(feature = "formatting")]
 use alloc::string::String;
+use core::fmt;
+use core::mem::MaybeUninit;
 use core::num::NonZero;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
-use core::{cmp, fmt};
 #[cfg(feature = "formatting")]
 use std::io;
 
 use deranged::RangedI32;
 use num_conv::prelude::*;
-use powerfmt::ext::FormatterExt;
-use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
+use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
-use crate::ext::DigitCount;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{const_try, const_try_opt, div_floor, ensure_ranged};
+use crate::num_fmt::{four_to_six_digits, str_from_raw_parts, two_digits_zero_padded};
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::unit::*;
@@ -1417,90 +1417,111 @@ impl Date {
 mod private {
     /// Metadata for `Date`.
     #[non_exhaustive]
-    #[derive(Debug, Clone, Copy)]
-    pub struct DateMetadata {
-        /// The width of the year component, including the sign.
-        pub(super) year_width: u8,
-        /// Whether the sign should be displayed.
-        pub(super) display_sign: bool,
-        pub(super) year: i32,
-        pub(super) month: u8,
-        pub(super) day: u8,
-    }
+    #[derive(Debug)]
+    pub struct DateMetadata;
 }
 use private::DateMetadata;
 
+// This no longer needs special handling, as the format is fixed and doesn't require anything
+// advanced. Trait impls can't be deprecated and the info is still useful for other types
+// implementing `SmartDisplay`, so leave it as-is for now.
 impl SmartDisplay for Date {
     type Metadata = DateMetadata;
 
     #[inline]
     fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
-        let (year, month, day) = self.to_calendar_date();
+        use crate::ext::DigitCount as _;
 
-        // There is a minimum of four digits for any year.
-        let mut year_width = cmp::max(year.unsigned_abs().num_digits(), 4);
-        let display_sign = if !(0..10_000).contains(&year) {
-            // An extra character is required for the sign.
-            year_width += 1;
-            true
-        } else {
-            false
-        };
+        let year_sign_width =
+            if self.year() < 0 || (cfg!(feature = "large-dates") && self.year() >= 10_000) {
+                1
+            } else {
+                0
+            };
+        let year_width = self.year().unsigned_abs().num_digits().clamp(4, 6);
+        let formatted_width = year_sign_width + year_width + 6; // include two dashes and two digits each for month and day
 
-        let formatted_width = year_width.extend::<usize>()
-            + smart_display::padded_width_of!(
-                "-",
-                u8::from(month) => width(2),
-                "-",
-                day => width(2),
-            );
-
-        Metadata::new(
-            formatted_width,
-            self,
-            DateMetadata {
-                year_width,
-                display_sign,
-                year,
-                month: u8::from(month),
-                day,
-            },
-        )
+        Metadata::new(formatted_width as usize, self, DateMetadata)
     }
 
     #[inline]
-    fn fmt_with_metadata(
-        &self,
-        f: &mut fmt::Formatter<'_>,
-        metadata: Metadata<Self>,
-    ) -> fmt::Result {
-        let DateMetadata {
-            year_width,
-            display_sign,
-            year,
-            month,
-            day,
-        } = *metadata;
-        let year_width = year_width.extend();
-
-        if display_sign {
-            f.pad_with_width(
-                metadata.unpadded_width(),
-                format_args!("{year:+0year_width$}-{month:02}-{day:02}"),
-            )
-        } else {
-            f.pad_with_width(
-                metadata.unpadded_width(),
-                format_args!("{year:0year_width$}-{month:02}-{day:02}"),
-            )
-        }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 
 impl fmt::Display for Date {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        SmartDisplay::fmt(self, f)
+        let mut buf = [MaybeUninit::uninit(); 13];
+        let mut idx = 0;
+        let (year, month, day) = self.to_calendar_date();
+
+        // Compute the sign of the integer, if any. Doing this in a branchless manner gives a
+        // significant performance improvement.
+        let neg = year.is_negative() as u8;
+        let pos = (cfg!(feature = "large-dates") && year - 10_000 >= 0) as u8;
+        let sign = b'+' + 2 * neg; // b'-' if `neg` is true, b'+' otherwise
+        // Always write the computed byte, even if it's later overwritten by the first digit of the
+        // year.
+        buf[idx] = MaybeUninit::new(sign);
+        idx += (neg | pos) as usize;
+
+        // Safety: `year.unsigned_abs()` is less than 1,000,000.
+        let [first_two, second_two, third_two] = unsafe { four_to_six_digits(year.unsigned_abs()) };
+        // Safety:
+        // - both `first_two` and `buf` are valid for reads and writes of up to 2 bytes.
+        // - `u8` is 1-aligned, so that is not a concern.
+        // - `first_two` points to static memory, while `buf` is a local variable, so they do not
+        //   overlap.
+        unsafe {
+            first_two
+                .as_ptr()
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), first_two.len());
+        }
+        idx += first_two.len();
+        // Safety: See above.
+        unsafe {
+            second_two
+                .as_ptr()
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), 2);
+        }
+        idx += 2;
+        // Safety: See above.
+        unsafe {
+            third_two
+                .as_ptr()
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), 2);
+        }
+        idx += 2;
+
+        buf[idx] = MaybeUninit::new(b'-');
+        idx += 1;
+
+        // Safety: See above for `copy_to_nonoverlapping`. `two_digits` is valid because `month` is
+        // in the range 1..=12.
+        unsafe {
+            two_digits_zero_padded(u8::from(month))
+                .as_ptr()
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), 2);
+        }
+        idx += 2;
+
+        buf[idx] = MaybeUninit::new(b'-');
+        idx += 1;
+
+        // Safety: See above for `copy_to_nonoverlapping`. `two_digits` is valid because `day` is in
+        // the range 1..=31.
+        unsafe {
+            two_digits_zero_padded(day)
+                .as_ptr()
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), 2);
+        }
+        idx += 2;
+
+        // Safety: All bytes up to `idx` have been initialized with ASCII characters.
+        let s = unsafe { str_from_raw_parts((&raw const buf).cast(), idx) };
+        f.pad(s)
     }
 }
 
