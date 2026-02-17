@@ -5,6 +5,7 @@ use alloc::string::String;
 use core::cmp::Ordering;
 use core::fmt;
 use core::hash::{Hash, Hasher};
+use core::mem::MaybeUninit;
 use core::ops::Neg;
 #[cfg(feature = "formatting")]
 use std::io;
@@ -18,7 +19,7 @@ use crate::error;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::ensure_ranged;
-use crate::num_fmt::two_digits_zero_padded;
+use crate::num_fmt::{str_from_raw_parts, two_digits_zero_padded};
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 #[cfg(feature = "local-offset")]
@@ -535,32 +536,53 @@ impl SmartDisplay for UtcOffset {
     }
 }
 
-impl fmt::Display for UtcOffset {
+impl UtcOffset {
+    /// The maximum number of bytes that the `fmt_into_buffer` method will write, which is also used
+    /// for the `Display` implementation.
+    pub(crate) const DISPLAY_BUFFER_SIZE: usize = 9;
+
+    /// Format the `UtcOffset` into the provided buffer, returning the number of bytes written.
     #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    pub(crate) const fn fmt_into_buffer(
+        self,
+        buf: &mut [MaybeUninit<u8>; Self::DISPLAY_BUFFER_SIZE],
+    ) -> usize {
         let hours = self.hours.get().unsigned_abs();
         let minutes = self.minutes.get().unsigned_abs();
         let seconds = self.seconds.get().unsigned_abs();
 
         let sign = if self.is_negative() { b'-' } else { b'+' };
-        let mut buf = [sign, 0, 0, b':', 0, 0, b':', 0, 0];
+        buf[0] = MaybeUninit::new(sign);
+        buf[3] = MaybeUninit::new(b':');
+        buf[6] = MaybeUninit::new(b':');
 
         // Safety: `hours`, `minutes` and `seconds` are all less than 100. Both the source and
         // destination are valid for two bytes, aligned, and do not overlap.
         unsafe {
             two_digits_zero_padded(hours)
                 .as_ptr()
-                .copy_to_nonoverlapping(buf.as_mut_ptr().add(1), 2);
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(1).cast(), 2);
             two_digits_zero_padded(minutes)
                 .as_ptr()
-                .copy_to_nonoverlapping(buf.as_mut_ptr().add(4), 2);
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(4).cast(), 2);
             two_digits_zero_padded(seconds)
                 .as_ptr()
-                .copy_to_nonoverlapping(buf.as_mut_ptr().add(7), 2);
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(7).cast(), 2);
         }
 
-        // Safety: All bytes are ASCII, which is a subset of UTF-8.
-        f.pad(unsafe { str::from_utf8_unchecked(&buf) })
+        // The number of bytes written does not vary; it is always 9.
+        9
+    }
+}
+
+impl fmt::Display for UtcOffset {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut buf = [MaybeUninit::uninit(); Self::DISPLAY_BUFFER_SIZE];
+        let len = self.fmt_into_buffer(&mut buf);
+        // Safety: All bytes up to `len` have been initialized with ASCII characters.
+        let s = unsafe { str_from_raw_parts(buf.as_ptr().cast(), len) };
+        f.pad(s)
     }
 }
 

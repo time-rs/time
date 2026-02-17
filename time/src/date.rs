@@ -1450,10 +1450,17 @@ impl SmartDisplay for Date {
     }
 }
 
-impl fmt::Display for Date {
+impl Date {
+    /// The maximum number of bytes that the `fmt_into_buffer` method will write, which is also used
+    /// for the `Display` implementation.
+    pub(crate) const DISPLAY_BUFFER_SIZE: usize = 13;
+
+    /// Format the `Date` into the provided buffer, returning the number of bytes written.
     #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut buf = [MaybeUninit::uninit(); 13];
+    pub(crate) fn fmt_into_buffer(
+        self,
+        buf: &mut [MaybeUninit<u8>; Self::DISPLAY_BUFFER_SIZE],
+    ) -> usize {
         let mut idx = 0;
         let (year, month, day) = self.to_calendar_date();
 
@@ -1519,8 +1526,17 @@ impl fmt::Display for Date {
         }
         idx += 2;
 
-        // Safety: All bytes up to `idx` have been initialized with ASCII characters.
-        let s = unsafe { str_from_raw_parts((&raw const buf).cast(), idx) };
+        idx
+    }
+}
+
+impl fmt::Display for Date {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut buf = [MaybeUninit::uninit(); 13];
+        let len = self.fmt_into_buffer(&mut buf);
+        // Safety: All bytes up to `len` have been initialized with ASCII characters.
+        let s = unsafe { str_from_raw_parts((&raw const buf).cast(), len) };
         f.pad(s)
     }
 }

@@ -979,10 +979,17 @@ impl SmartDisplay for Time {
     }
 }
 
-impl fmt::Display for Time {
+impl Time {
+    /// The maximum number of bytes that the `fmt_into_buffer` method will write, which is also used
+    /// for the `Display` implementation.
+    pub(crate) const DISPLAY_BUFFER_SIZE: usize = 18;
+
+    /// Format the `Time` into the provided buffer, returning the number of bytes written.
     #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut buf = [MaybeUninit::uninit(); 18];
+    pub(crate) fn fmt_into_buffer(
+        self,
+        buf: &mut [MaybeUninit<u8>; Self::DISPLAY_BUFFER_SIZE],
+    ) -> usize {
         let mut idx = 0;
 
         // Safety: `self.hour()` is in the range `0..=23`.
@@ -1033,8 +1040,17 @@ impl fmt::Display for Time {
         };
         idx += subsecond.len();
 
-        // Safety: All bytes up to `idx` have been initialized with ASCII characters.
-        let s = unsafe { str_from_raw_parts(buf.as_ptr().cast(), idx) };
+        idx
+    }
+}
+
+impl fmt::Display for Time {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut buf = [MaybeUninit::uninit(); Self::DISPLAY_BUFFER_SIZE];
+        let len = self.fmt_into_buffer(&mut buf);
+        // Safety: All bytes up to `len` have been initialized with ASCII characters.
+        let s = unsafe { str_from_raw_parts(buf.as_ptr().cast(), len) };
         f.pad(s)
     }
 }
