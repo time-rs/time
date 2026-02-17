@@ -4,6 +4,7 @@
 use alloc::string::String;
 use core::cmp::Ordering;
 use core::hash::{Hash, Hasher};
+use core::mem::MaybeUninit;
 use core::ops::{Add, AddAssign, Sub, SubAssign};
 use core::time::Duration as StdDuration;
 use core::{fmt, hint};
@@ -12,12 +13,15 @@ use std::io;
 
 use deranged::{RangedU8, RangedU32};
 use num_conv::prelude::*;
-use powerfmt::ext::FormatterExt;
-use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
+use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{cascade, ensure_ranged};
+use crate::num_fmt::{
+    str_from_raw_parts, truncated_subsecond_from_nanos, two_digits_zero_padded,
+    under_100_no_padding,
+};
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
 use crate::unit::*;
@@ -939,76 +943,99 @@ impl Time {
 mod private {
     /// Metadata for `Time`.
     #[non_exhaustive]
-    #[derive(Debug, Clone, Copy)]
-    pub struct TimeMetadata {
-        /// How many characters wide the formatted subsecond is.
-        pub(super) subsecond_width: u8,
-        /// The value to use when formatting the subsecond. Leading zeroes will be added as
-        /// necessary.
-        pub(super) subsecond_value: u32,
-    }
+    #[derive(Debug)]
+    pub struct TimeMetadata;
 }
 use private::TimeMetadata;
 
+// This no longer needs special handling, as the format is fixed and doesn't require anything
+// advanced. Trait impls can't be deprecated and the info is still useful for other types
+// implementing `SmartDisplay`, so leave it as-is for now.
 impl SmartDisplay for Time {
     type Metadata = TimeMetadata;
 
     #[inline]
     fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
-        let (subsecond_value, subsecond_width) = match self.nanosecond() {
-            nanos if nanos % 10 != 0 => (nanos, 9),
-            nanos if (nanos / 10) % 10 != 0 => (nanos / 10, 8),
-            nanos if (nanos / 100) % 10 != 0 => (nanos / 100, 7),
-            nanos if (nanos / 1_000) % 10 != 0 => (nanos / 1_000, 6),
-            nanos if (nanos / 10_000) % 10 != 0 => (nanos / 10_000, 5),
-            nanos if (nanos / 100_000) % 10 != 0 => (nanos / 100_000, 4),
-            nanos if (nanos / 1_000_000) % 10 != 0 => (nanos / 1_000_000, 3),
-            nanos if (nanos / 10_000_000) % 10 != 0 => (nanos / 10_000_000, 2),
-            nanos => (nanos / 100_000_000, 1),
+        let hour_width = if self.hour() < 10 { 1 } else { 2 };
+        let subsecond_width = match self.nanosecond() {
+            nanos if nanos % 10 != 0 => 9,
+            nanos if (nanos / 10) % 10 != 0 => 8,
+            nanos if (nanos / 100) % 10 != 0 => 7,
+            nanos if (nanos / 1_000) % 10 != 0 => 6,
+            nanos if (nanos / 10_000) % 10 != 0 => 5,
+            nanos if (nanos / 100_000) % 10 != 0 => 4,
+            nanos if (nanos / 1_000_000) % 10 != 0 => 3,
+            nanos if (nanos / 10_000_000) % 10 != 0 => 2,
+            _ => 1,
         };
+        let total_width = hour_width + subsecond_width + 7;
 
-        let formatted_width = smart_display::padded_width_of!(
-            self.hour.get(),
-            ":",
-            self.minute.get() => width(2) fill('0'),
-            ":",
-            self.second.get() => width(2) fill('0'),
-            ".",
-        ) + subsecond_width;
-
-        Metadata::new(
-            formatted_width,
-            self,
-            TimeMetadata {
-                subsecond_width: subsecond_width.truncate(),
-                subsecond_value,
-            },
-        )
+        Metadata::new(total_width, self, TimeMetadata)
     }
 
     #[inline]
-    fn fmt_with_metadata(
-        &self,
-        f: &mut fmt::Formatter<'_>,
-        metadata: Metadata<Self>,
-    ) -> fmt::Result {
-        let subsecond_width = metadata.subsecond_width.extend();
-        let subsecond_value = metadata.subsecond_value;
-
-        f.pad_with_width(
-            metadata.unpadded_width(),
-            format_args!(
-                "{}:{:02}:{:02}.{subsecond_value:0subsecond_width$}",
-                self.hour, self.minute, self.second
-            ),
-        )
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 
 impl fmt::Display for Time {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        SmartDisplay::fmt(self, f)
+        let mut buf = [MaybeUninit::uninit(); 18];
+        let mut idx = 0;
+
+        // Safety: `self.hour()` is in the range `0..=23`.
+        let hour = unsafe { under_100_no_padding(self.hour()) };
+        // Safety:
+        // - both `hour` and `buf` are valid for reads and writes of up to 2 bytes.
+        // - `u8` is 1-aligned, so that is not a concern.
+        // - `hour` points to static memory, while `buf` is a local variable, so they do not
+        //   overlap.
+        unsafe {
+            hour.as_ptr()
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), hour.len())
+        };
+        idx += hour.len();
+
+        buf[idx] = MaybeUninit::new(b':');
+        idx += 1;
+
+        // Safety: See above.
+        unsafe {
+            two_digits_zero_padded(self.minute())
+                .as_ptr()
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), 2)
+        };
+        idx += 2;
+
+        buf[idx] = MaybeUninit::new(b':');
+        idx += 1;
+
+        // Safety: See above.
+        unsafe {
+            two_digits_zero_padded(self.second())
+                .as_ptr()
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), 2)
+        };
+        idx += 2;
+
+        buf[idx] = MaybeUninit::new(b'.');
+        idx += 1;
+
+        // Safety: `self.nanosecond()` is guaranteed to be less than 1,000,000,000.
+        let subsecond = unsafe { truncated_subsecond_from_nanos(self.nanosecond()) };
+        // Safety: See above, except `subsecond` is valid for 9 bytes.
+        unsafe {
+            subsecond
+                .as_ptr()
+                .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), subsecond.len())
+        };
+        idx += subsecond.len();
+
+        // Safety: All bytes up to `idx` have been initialized with ASCII characters.
+        let s = unsafe { str_from_raw_parts(buf.as_ptr().cast(), idx) };
+        f.pad(s)
     }
 }
 
