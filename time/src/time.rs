@@ -992,8 +992,8 @@ impl Time {
     ) -> usize {
         let mut idx = 0;
 
-        // Safety: `self.hour()` is in the range `0..=23`.
-        let hour = unsafe { under_100_no_padding(self.hour()) };
+        // Safety: `self.hour()` is in the range required by its type.
+        let hour = under_100_no_padding(unsafe { Hours::new_unchecked(self.hour()) }.expand());
         // Safety:
         // - both `hour` and `buf` are valid for reads and writes of up to 2 bytes.
         // - `u8` is 1-aligned, so that is not a concern.
@@ -1010,7 +1010,7 @@ impl Time {
 
         // Safety: See above.
         unsafe {
-            two_digits_zero_padded(self.minute())
+            two_digits_zero_padded(Minutes::new_unchecked(self.minute()).expand())
                 .as_ptr()
                 .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), 2)
         };
@@ -1021,7 +1021,7 @@ impl Time {
 
         // Safety: See above.
         unsafe {
-            two_digits_zero_padded(self.second())
+            two_digits_zero_padded(Seconds::new_unchecked(self.second()).expand())
                 .as_ptr()
                 .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), 2)
         };
@@ -1031,7 +1031,9 @@ impl Time {
         idx += 1;
 
         // Safety: `self.nanosecond()` is guaranteed to be less than 1,000,000,000.
-        let subsecond = unsafe { truncated_subsecond_from_nanos(self.nanosecond()) };
+        let subsecond = truncated_subsecond_from_nanos(unsafe {
+            Nanoseconds::new_unchecked(self.nanosecond())
+        });
         // Safety: See above, except `subsecond` is valid for 9 bytes.
         unsafe {
             subsecond

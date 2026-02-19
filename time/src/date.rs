@@ -10,7 +10,7 @@ use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
 
-use deranged::RangedI32;
+use deranged::{RangedI32, RangedU8, RangedU32};
 use num_conv::prelude::*;
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
@@ -1475,7 +1475,8 @@ impl Date {
         idx += (neg | pos) as usize;
 
         // Safety: `year.unsigned_abs()` is less than 1,000,000.
-        let [first_two, second_two, third_two] = unsafe { four_to_six_digits(year.unsigned_abs()) };
+        let [first_two, second_two, third_two] =
+            four_to_six_digits(unsafe { RangedU32::new_unchecked(year.unsigned_abs()) });
         // Safety:
         // - both `first_two` and `buf` are valid for reads and writes of up to 2 bytes.
         // - `u8` is 1-aligned, so that is not a concern.
@@ -1505,10 +1506,9 @@ impl Date {
         buf[idx] = MaybeUninit::new(b'-');
         idx += 1;
 
-        // Safety: See above for `copy_to_nonoverlapping`. `two_digits` is valid because `month` is
-        // in the range 1..=12.
+        // Safety: See above for `copy_to_nonoverlapping`. `month` is in the range 1..=12.
         unsafe {
-            two_digits_zero_padded(u8::from(month))
+            two_digits_zero_padded(RangedU8::new_unchecked(u8::from(month)))
                 .as_ptr()
                 .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), 2);
         }
@@ -1517,10 +1517,9 @@ impl Date {
         buf[idx] = MaybeUninit::new(b'-');
         idx += 1;
 
-        // Safety: See above for `copy_to_nonoverlapping`. `two_digits` is valid because `day` is in
-        // the range 1..=31.
+        // Safety: See above for `copy_to_nonoverlapping`. `day` is in the range 1..=31.
         unsafe {
-            two_digits_zero_padded(day)
+            two_digits_zero_padded(RangedU8::new_unchecked(day))
                 .as_ptr()
                 .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), 2);
         }

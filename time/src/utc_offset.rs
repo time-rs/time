@@ -10,7 +10,7 @@ use core::ops::Neg;
 #[cfg(feature = "formatting")]
 use std::io;
 
-use deranged::{RangedI8, RangedI32};
+use deranged::{RangedI8, RangedI32, RangedU8};
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
 #[cfg(feature = "local-offset")]
@@ -559,13 +559,13 @@ impl UtcOffset {
         // Safety: `hours`, `minutes` and `seconds` are all less than 100. Both the source and
         // destination are valid for two bytes, aligned, and do not overlap.
         unsafe {
-            two_digits_zero_padded(hours)
+            two_digits_zero_padded(RangedU8::new_unchecked(hours))
                 .as_ptr()
                 .copy_to_nonoverlapping(buf.as_mut_ptr().add(1).cast(), 2);
-            two_digits_zero_padded(minutes)
+            two_digits_zero_padded(RangedU8::new_unchecked(minutes))
                 .as_ptr()
                 .copy_to_nonoverlapping(buf.as_mut_ptr().add(4).cast(), 2);
-            two_digits_zero_padded(seconds)
+            two_digits_zero_padded(RangedU8::new_unchecked(seconds))
                 .as_ptr()
                 .copy_to_nonoverlapping(buf.as_mut_ptr().add(7).cast(), 2);
         }

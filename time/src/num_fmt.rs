@@ -6,7 +6,9 @@
 
 use core::mem::MaybeUninit;
 use core::ops::Deref;
-use core::{hint, slice};
+use core::slice;
+
+use deranged::{RangedU8, RangedU16, RangedU32};
 
 static SINGLE_DIGITS: [u8; 10] = *b"0123456789";
 
@@ -68,29 +70,18 @@ pub(crate) const unsafe fn str_from_raw_parts<'a>(ptr: *const u8, len: usize) ->
 }
 
 /// Obtain a string containing a single ASCII digit representing `n`.
-///
-/// # Safety:
-///
-/// `n` must be less than 10.
 #[inline]
-pub(crate) const unsafe fn single_digit_no_padding(n: u8) -> &'static str {
-    debug_assert!(n < 10);
-
+pub(crate) const fn single_digit_no_padding(n: RangedU8<0, 9>) -> &'static str {
     // Safety: We're staying within the bounds of the array. The array contains only ASCII
     // characters, so it's valid UTF-8.
-    unsafe { str_from_raw_parts(SINGLE_DIGITS.as_ptr().add(n as usize), 1) }
+    unsafe { str_from_raw_parts(SINGLE_DIGITS.as_ptr().add(n.get() as usize), 1) }
 }
 
 /// Obtain a string of one or two ASCII digits representing `n`. No leading zeros or spaces are
 /// included.
-///
-/// # Safety
-///
-/// `n` must be less than 100.
 #[inline]
-pub(crate) const unsafe fn under_100_no_padding(n: u8) -> &'static str {
-    debug_assert!(n < 100);
-
+pub(crate) const fn under_100_no_padding(n: RangedU8<0, 99>) -> &'static str {
+    let n = n.get();
     let is_single_digit = n < 10;
     // Safety: We're staying within the bounds of the array. The array contains only ASCII
     // characters, so it's valid UTF-8.
@@ -106,56 +97,40 @@ pub(crate) const unsafe fn under_100_no_padding(n: u8) -> &'static str {
 
 /// Obtain a string of two ASCII digits representing `n`. This includes a leading zero if `n` is
 /// less than 10.
-///
-/// # Safety
-///
-/// `n` must be less than 100.
 #[inline]
-pub(crate) const unsafe fn two_digits_zero_padded(n: u8) -> &'static str {
-    debug_assert!(n < 100);
-
+pub(crate) const fn two_digits_zero_padded(n: RangedU8<0, 99>) -> &'static str {
     // Safety: We're staying within the bounds of the array. The array contains only ASCII
     // characters, so it's valid UTF-8.
-    unsafe { str_from_raw_parts(ZERO_PADDED_PAIRS.as_ptr().add((n as usize) * 2), 2) }
+    unsafe { str_from_raw_parts(ZERO_PADDED_PAIRS.as_ptr().add((n.get() as usize) * 2), 2) }
 }
 
 /// Obtain a string of two ASCII digits representing `n`. This includes a leading space if `n` is
 /// less than 10.
-///
-/// # Safety
-///
-/// `n` must be less than 100.
 #[expect(dead_code, reason = "likely to be used in the future")]
 #[inline]
-pub(crate) const unsafe fn two_digits_space_padded(n: u8) -> &'static str {
-    debug_assert!(n < 100);
-
+pub(crate) const fn two_digits_space_padded(n: RangedU8<0, 99>) -> &'static str {
     // Safety: We're staying within the bounds of the array. The array contains only ASCII
     // characters, so it's valid UTF-8.
-    unsafe { str_from_raw_parts(SPACE_PADDED_PAIRS.as_ptr().add((n as usize) * 2), 2) }
+    unsafe { str_from_raw_parts(SPACE_PADDED_PAIRS.as_ptr().add((n.get() as usize) * 2), 2) }
 }
 
 /// Obtain two strings of two ASCII digits each representing `n`. The first string is the most
 /// significant. Leading zeros are included if the number has fewer than 4 digits.
-///
-/// # Safety
-///
-/// `n` must be less than 10,000.
 #[inline]
-pub(crate) const unsafe fn four_digits(n: u16) -> [&'static str; 2] {
-    debug_assert!(n < 10_000);
-
+pub(crate) const fn four_digits(n: RangedU16<0, 9_999>) -> [&'static str; 2] {
     const EXP: u32 = 19; // 19 is faster or equal to 12 even for 3 digits.
     const SIG: u32 = (1 << EXP) / 100 + 1;
+
+    let n = n.get();
 
     let high = (n as u32 * SIG) >> EXP; // value / 100
     let low = n as u32 - high * 100;
 
-    // Safety: We're staying within the bounds of the array.
+    // Safety: Both `high` and `low` are guaranteed to be less than 100 due to the arithmetic above.
     unsafe {
         [
-            two_digits_zero_padded(high as u8),
-            two_digits_zero_padded(low as u8),
+            two_digits_zero_padded(RangedU8::new_unchecked(high as u8)),
+            two_digits_zero_padded(RangedU8::new_unchecked(low as u8)),
         ]
     }
 }
@@ -163,15 +138,9 @@ pub(crate) const unsafe fn four_digits(n: u16) -> [&'static str; 2] {
 /// Obtain three strings which together represent `n`. The first string is the most significant.
 /// Leading zeros are included if the number has fewer than 4 digits. The first string will be empty
 /// if `n` is less than 10,000.
-///
-/// # Safety
-///
-/// `n` must be less than 1,000,000.
 #[inline]
-pub(crate) const unsafe fn four_to_six_digits(n: u32) -> [&'static str; 3] {
-    debug_assert!(n < 1_000_000);
-    // Safety: The caller must ensure that this is true.
-    unsafe { hint::assert_unchecked(n < 1_000_000) };
+pub(crate) const fn four_to_six_digits(n: RangedU32<0, 999_999>) -> [&'static str; 3] {
+    let n = n.get();
 
     let (first_two, remaining) = (n / 10_000, n % 10_000);
 
@@ -182,7 +151,7 @@ pub(crate) const unsafe fn four_to_six_digits(n: u32) -> [&'static str; 3] {
     // so it's valid UTF-8.
     let first_two = unsafe { str_from_raw_parts(ZERO_PADDED_PAIRS.as_ptr().add(offset), size) };
     // Safety: `remaining` is guaranteed to be less than 10,000 due to the modulus above.
-    let [second_two, last_two] = unsafe { four_digits(remaining as u16) };
+    let [second_two, last_two] = four_digits(unsafe { RangedU16::new_unchecked(remaining as u16) });
     [first_two, second_two, last_two]
 }
 
@@ -191,21 +160,20 @@ pub(crate) const unsafe fn four_to_six_digits(n: u32) -> [&'static str; 3] {
 /// This value is intended to be used after a decimal point to represent a fractional second. The
 /// first string will always contain exactly one digit; the remaining four will contain two digits
 /// each.
-///
-/// # Safety
-///
-/// `n` must be less than 1,000,000,000.
 #[inline]
-pub(crate) const unsafe fn subsecond_from_nanos(n: u32) -> [&'static str; 5] {
+pub(crate) const fn subsecond_from_nanos(n: RangedU32<0, 999_999_999>) -> [&'static str; 5] {
+    let n = n.get();
     let (digits_1_thru_5, digits_6_thru_9) = (n / 10_000, n % 10_000);
     let (digit_1, digits_2_thru_5) = (digits_1_thru_5 / 10_000, digits_1_thru_5 % 10_000);
 
     // Safety: The caller must ensure that `n` is less than 1,000,000,000. Combined with the
     // arithmetic above, this guarantees that all values are in the required ranges.
     unsafe {
-        let digit_1 = single_digit_no_padding(digit_1 as u8);
-        let [digits_2_and_3, digits_4_and_5] = four_digits(digits_2_thru_5 as u16);
-        let [digits_6_and_7, digits_8_and_9] = four_digits(digits_6_thru_9 as u16);
+        let digit_1 = single_digit_no_padding(RangedU8::new_unchecked(digit_1 as u8));
+        let [digits_2_and_3, digits_4_and_5] =
+            four_digits(RangedU16::new_unchecked(digits_2_thru_5 as u16));
+        let [digits_6_and_7, digits_8_and_9] =
+            four_digits(RangedU16::new_unchecked(digits_6_thru_9 as u16));
 
         [
             digit_1,
@@ -221,12 +189,8 @@ pub(crate) const unsafe fn subsecond_from_nanos(n: u32) -> [&'static str; 5] {
 ///
 /// This value is intended to be used after a decimal point to represent a fractional second.
 /// Trailing zeros are truncated, but at least one digit is always present.
-///
-/// # Safety
-///
-/// `n` must be less than 1,000,000,000.
 #[inline]
-pub(crate) const unsafe fn truncated_subsecond_from_nanos(n: u32) -> StackStr<9> {
+pub(crate) const fn truncated_subsecond_from_nanos(n: RangedU32<0, 999_999_999>) -> StackStr<9> {
     #[repr(C, align(8))]
     #[derive(Clone, Copy)]
     struct Digits {
@@ -235,14 +199,13 @@ pub(crate) const unsafe fn truncated_subsecond_from_nanos(n: u32) -> StackStr<9>
         digits_2_thru_9: [u8; 8],
     }
 
-    // Safety: The caller must ensure that `n` is less than 1,000,000,000.
     let [
         digit_1,
         digits_2_and_3,
         digits_4_and_5,
         digits_6_and_7,
         digits_8_and_9,
-    ] = unsafe { subsecond_from_nanos(n) };
+    ] = subsecond_from_nanos(n);
 
     // Ensure that digits 2 thru 9 are stored as a single array that is 8-aligned. This allows the
     // conversion to a `u64` to be zero cost, resulting in a nontrivial performance improvement.
