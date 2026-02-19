@@ -1126,16 +1126,15 @@ impl PrimitiveDateTime {
         self,
         buf: &mut [MaybeUninit<u8>; Self::DISPLAY_BUFFER_SIZE],
     ) -> usize {
-        let date_len = self.date.fmt_into_buffer(
-            buf.first_chunk_mut()
-                .expect("buffer should be large enough"),
-        );
+        // Safety: The buffer is large enough that the first chunk is in bounds.
+        let date_len = self
+            .date
+            .fmt_into_buffer(unsafe { buf.first_chunk_mut().unwrap_unchecked() });
         buf[date_len].write(b' ');
-        let time_len = self.time.fmt_into_buffer(
-            buf[date_len + 1..]
-                .first_chunk_mut()
-                .expect("buffer should be large enough"),
-        );
+        // Safety: The buffer is large enough that the first chunk is in bounds.
+        let time_len = self
+            .time
+            .fmt_into_buffer(unsafe { buf[date_len + 1..].first_chunk_mut().unwrap_unchecked() });
         date_len + time_len + 1
     }
 }
