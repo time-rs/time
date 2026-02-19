@@ -55,7 +55,7 @@ impl<const MAX_LEN: usize> Deref for StackStr<MAX_LEN> {
     }
 }
 
-/// Safety:
+/// # Safety
 ///
 /// - `ptr` must be non-null and point to `len` initialized bytes of UTF-8 data.
 /// - `ptr` is valid for (and not mutated during) lifetime `'a`.
@@ -69,7 +69,9 @@ pub(crate) const unsafe fn str_from_raw_parts<'a>(ptr: *const u8, len: usize) ->
 
 /// Obtain a string containing a single ASCII digit representing `n`.
 ///
-/// # Safety: `n` must be less than 10.
+/// # Safety:
+///
+/// `n` must be less than 10.
 #[inline]
 pub(crate) const unsafe fn single_digit_no_padding(n: u8) -> &'static str {
     debug_assert!(n < 10);
@@ -82,7 +84,9 @@ pub(crate) const unsafe fn single_digit_no_padding(n: u8) -> &'static str {
 /// Obtain a string of one or two ASCII digits representing `n`. No leading zeros or spaces are
 /// included.
 ///
-/// # Safety: `n` must be less than 100.
+/// # Safety
+///
+/// `n` must be less than 100.
 #[inline]
 pub(crate) const unsafe fn under_100_no_padding(n: u8) -> &'static str {
     debug_assert!(n < 100);
@@ -103,7 +107,9 @@ pub(crate) const unsafe fn under_100_no_padding(n: u8) -> &'static str {
 /// Obtain a string of two ASCII digits representing `n`. This includes a leading zero if `n` is
 /// less than 10.
 ///
-/// # Safety: `n` must be less than 100.
+/// # Safety
+///
+/// `n` must be less than 100.
 #[inline]
 pub(crate) const unsafe fn two_digits_zero_padded(n: u8) -> &'static str {
     debug_assert!(n < 100);
@@ -116,7 +122,9 @@ pub(crate) const unsafe fn two_digits_zero_padded(n: u8) -> &'static str {
 /// Obtain a string of two ASCII digits representing `n`. This includes a leading space if `n` is
 /// less than 10.
 ///
-/// # Safety: `n` must be less than 100.
+/// # Safety
+///
+/// `n` must be less than 100.
 #[expect(dead_code, reason = "likely to be used in the future")]
 #[inline]
 pub(crate) const unsafe fn two_digits_space_padded(n: u8) -> &'static str {
@@ -130,7 +138,9 @@ pub(crate) const unsafe fn two_digits_space_padded(n: u8) -> &'static str {
 /// Obtain two strings of two ASCII digits each representing `n`. The first string is the most
 /// significant. Leading zeros are included if the number has fewer than 4 digits.
 ///
-/// # Safety: `n` must be less than 10,000.
+/// # Safety
+///
+/// `n` must be less than 10,000.
 #[inline]
 pub(crate) const unsafe fn four_digits(n: u16) -> [&'static str; 2] {
     debug_assert!(n < 10_000);
@@ -154,7 +164,9 @@ pub(crate) const unsafe fn four_digits(n: u16) -> [&'static str; 2] {
 /// Leading zeros are included if the number has fewer than 4 digits. The first string will be empty
 /// if `n` is less than 10,000.
 ///
-/// # Safety: `n` must be less than 1,000,000.
+/// # Safety
+///
+/// `n` must be less than 1,000,000.
 #[inline]
 pub(crate) const unsafe fn four_to_six_digits(n: u32) -> [&'static str; 3] {
     debug_assert!(n < 1_000_000);
@@ -180,7 +192,9 @@ pub(crate) const unsafe fn four_to_six_digits(n: u32) -> [&'static str; 3] {
 /// first string will always contain exactly one digit; the remaining four will contain two digits
 /// each.
 ///
-/// # Safety: `n` must be less than 1,000,000,000.
+/// # Safety
+///
+/// `n` must be less than 1,000,000,000.
 #[inline]
 pub(crate) const unsafe fn subsecond_from_nanos(n: u32) -> [&'static str; 5] {
     let (digits_1_thru_5, digits_6_thru_9) = (n / 10_000, n % 10_000);
@@ -208,7 +222,9 @@ pub(crate) const unsafe fn subsecond_from_nanos(n: u32) -> [&'static str; 5] {
 /// This value is intended to be used after a decimal point to represent a fractional second.
 /// Trailing zeros are truncated, but at least one digit is always present.
 ///
-/// # Safety: `n` must be less than 1,000,000,000.
+/// # Safety
+///
+/// `n` must be less than 1,000,000,000.
 #[inline]
 pub(crate) const unsafe fn truncated_subsecond_from_nanos(n: u32) -> StackStr<9> {
     #[repr(C, align(8))]
