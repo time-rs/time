@@ -19,8 +19,8 @@ use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 use crate::formatting::Formattable;
 use crate::internal_macros::{cascade, ensure_ranged};
 use crate::num_fmt::{
-    str_from_raw_parts, truncated_subsecond_from_nanos, two_digits_zero_padded,
-    under_100_no_padding,
+    one_to_two_digits_no_padding, str_from_raw_parts, truncated_subsecond_from_nanos,
+    two_digits_zero_padded,
 };
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
@@ -38,13 +38,13 @@ pub(crate) enum Padding {
 }
 
 /// The type of the `hour` field of `Time`.
-type Hours = RangedU8<0, { Hour::per_t::<u8>(Day) - 1 }>;
+pub(crate) type Hours = RangedU8<0, { Hour::per_t::<u8>(Day) - 1 }>;
 /// The type of the `minute` field of `Time`.
-type Minutes = RangedU8<0, { Minute::per_t::<u8>(Hour) - 1 }>;
+pub(crate) type Minutes = RangedU8<0, { Minute::per_t::<u8>(Hour) - 1 }>;
 /// The type of the `second` field of `Time`.
-type Seconds = RangedU8<0, { Second::per_t::<u8>(Minute) - 1 }>;
+pub(crate) type Seconds = RangedU8<0, { Second::per_t::<u8>(Minute) - 1 }>;
 /// The type of the `nanosecond` field of `Time`.
-type Nanoseconds = RangedU32<0, { Nanosecond::per_t::<u32>(Second) - 1 }>;
+pub(crate) type Nanoseconds = RangedU32<0, { Nanosecond::per_t::<u32>(Second) - 1 }>;
 
 /// The clock time within a given date. Nanosecond precision.
 ///
@@ -371,7 +371,6 @@ impl Time {
     }
 
     /// Get the clock hour, minute, second, and nanosecond.
-    #[cfg(feature = "quickcheck")]
     #[inline]
     pub(crate) const fn as_hms_nano_ranged(self) -> (Hours, Minutes, Seconds, Nanoseconds) {
         (self.hour, self.minute, self.second, self.nanosecond)
@@ -993,7 +992,8 @@ impl Time {
         let mut idx = 0;
 
         // Safety: `self.hour()` is in the range required by its type.
-        let hour = under_100_no_padding(unsafe { Hours::new_unchecked(self.hour()) }.expand());
+        let hour =
+            one_to_two_digits_no_padding(unsafe { Hours::new_unchecked(self.hour()) }.expand());
         // Safety:
         // - both `hour` and `buf` are valid for reads and writes of up to 2 bytes.
         // - `u8` is 1-aligned, so that is not a concern.

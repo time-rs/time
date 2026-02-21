@@ -27,11 +27,12 @@ use crate::sys::local_offset_at;
 use crate::unit::*;
 
 /// The type of the `hours` field of `UtcOffset`.
-type Hours = RangedI8<-25, 25>;
+pub(crate) type Hours = RangedI8<-25, 25>;
 /// The type of the `minutes` field of `UtcOffset`.
-type Minutes = RangedI8<{ -(Minute::per_t::<i8>(Hour) - 1) }, { Minute::per_t::<i8>(Hour) - 1 }>;
+pub(crate) type Minutes =
+    RangedI8<{ -(Minute::per_t::<i8>(Hour) - 1) }, { Minute::per_t::<i8>(Hour) - 1 }>;
 /// The type of the `seconds` field of `UtcOffset`.
-type Seconds =
+pub(crate) type Seconds =
     RangedI8<{ -(Second::per_t::<i8>(Minute) - 1) }, { Second::per_t::<i8>(Minute) - 1 }>;
 /// The type capable of storing the range of whole seconds that a `UtcOffset` can encompass.
 type WholeSeconds = RangedI32<
@@ -314,7 +315,6 @@ impl UtcOffset {
 
     /// Obtain the UTC offset as its hours, minutes, and seconds. The sign of all three components
     /// will always match. A positive value indicates an offset to the east; a negative to the west.
-    #[cfg(feature = "quickcheck")]
     #[inline]
     pub(crate) const fn as_hms_ranged(self) -> (Hours, Minutes, Seconds) {
         (self.hours, self.minutes, self.seconds)

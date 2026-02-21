@@ -1,9 +1,12 @@
-use core::mem::MaybeUninit;
-use core::num::NonZero;
-
 use num_conv::prelude::*;
 
 use crate::format_description::Period;
+use crate::formatting::{
+    Day, IsoWeekNumber, MondayBasedWeek, OptionDay, OptionIsoWeekNumber, OptionYear, Ordinal,
+    SundayBasedWeek, Year,
+};
+use crate::time::{Hours, Minutes, Nanoseconds, Seconds};
+use crate::utc_offset::{Hours as OffsetHours, Minutes as OffsetMinutes, Seconds as OffsetSeconds};
 use crate::{
     Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
 };
@@ -12,25 +15,12 @@ use crate::{
 ///
 /// This is used to avoid redundant computations when multiple date components are almost certainly
 /// going to be requested within the same formatting invocation.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub(crate) struct DateState {
-    day: Option<NonZero<u8>>,
+    day: OptionDay,
     month: Option<Month>,
-    iso_week: Option<NonZero<u8>>,
-    iso_year_is_initialized: bool,
-    iso_year: MaybeUninit<i32>,
-}
-
-impl Default for DateState {
-    fn default() -> Self {
-        Self {
-            day: Default::default(),
-            month: Default::default(),
-            iso_week: Default::default(),
-            iso_year_is_initialized: Default::default(),
-            iso_year: MaybeUninit::uninit(),
-        }
-    }
+    iso_week: OptionIsoWeekNumber,
+    iso_year: OptionYear,
 }
 
 macro_rules! unimplemented_methods {
@@ -96,43 +86,43 @@ pub(crate) trait ComponentProvider {
 
     unimplemented_methods! {
         /// Obtain the day of the month.
-        ("date") day => u8;
+        ("date") day => Day;
         /// Obtain the month of the year.
         ("date") month => Month;
         /// Obtain the ordinal day of the year.
-        ("date") ordinal => u16;
+        ("date") ordinal => Ordinal;
         /// Obtain the day of the week.
         ("date") weekday => Weekday;
         /// Obtain the ISO week number.
-        ("date") iso_week_number => u8;
+        ("date") iso_week_number => IsoWeekNumber;
         /// Obtain the Monday-based week number.
-        ("date") monday_based_week => u8;
+        ("date") monday_based_week => MondayBasedWeek;
         /// Obtain the Sunday-based week number.
-        ("date") sunday_based_week => u8;
+        ("date") sunday_based_week => SundayBasedWeek;
         /// Obtain the calendar year.
-        ("date") calendar_year => i32;
+        ("date") calendar_year => Year;
         /// Obtain the ISO week-based year.
-        ("date") iso_year => i32;
+        ("date") iso_year => Year;
         /// Obtain the hour within the day.
-        ("time") hour => u8;
+        ("time") hour => Hours;
         /// Obtain the minute within the hour.
-        ("time") minute => u8;
+        ("time") minute => Minutes;
         /// Obtain the period of the day (AM/PM).
         ("time") period => Period;
         /// Obtain the second within the minute.
-        ("time") second => u8;
+        ("time") second => Seconds;
         /// Obtain the nanosecond within the second.
-        ("time") nanosecond => u32;
+        ("time") nanosecond => Nanoseconds;
         /// Obtain whether the offset is negative.
         ("offset") offset_is_negative => bool;
         /// Obtain whether the offset is UTC.
         ("offset") offset_is_utc => bool;
         /// Obtain the hour component of the UTC offset.
-        ("offset") offset_hour => i8;
+        ("offset") offset_hour => OffsetHours;
         /// Obtain the minute component of the UTC offset.
-        ("offset") offset_minute => i8;
+        ("offset") offset_minute => OffsetMinutes;
         /// Obtain the second component of the UTC offset.
-        ("offset") offset_second => i8;
+        ("offset") offset_second => OffsetSeconds;
         /// Obtain the Unix timestamp in seconds.
         ("timestamp") unix_timestamp_seconds => i64;
         /// Obtain the Unix timestamp in milliseconds.
@@ -150,13 +140,13 @@ impl ComponentProvider for Time {
     const SUPPLIES_TIME: bool = true;
 
     #[inline]
-    fn hour(&self, _: &mut Self::State) -> u8 {
-        (*self).hour()
+    fn hour(&self, _: &mut Self::State) -> Hours {
+        self.as_hms_nano_ranged().0
     }
 
     #[inline]
-    fn minute(&self, _: &mut Self::State) -> u8 {
-        (*self).minute()
+    fn minute(&self, _: &mut Self::State) -> Minutes {
+        self.as_hms_nano_ranged().1
     }
 
     #[inline]
@@ -169,13 +159,13 @@ impl ComponentProvider for Time {
     }
 
     #[inline]
-    fn second(&self, _: &mut Self::State) -> u8 {
-        (*self).second()
+    fn second(&self, _: &mut Self::State) -> Seconds {
+        self.as_hms_nano_ranged().2
     }
 
     #[inline]
-    fn nanosecond(&self, _: &mut Self::State) -> u32 {
-        (*self).nanosecond()
+    fn nanosecond(&self, _: &mut Self::State) -> Nanoseconds {
+        self.as_hms_nano_ranged().3
     }
 }
 
@@ -185,15 +175,16 @@ impl ComponentProvider for Date {
     const SUPPLIES_DATE: bool = true;
 
     #[inline]
-    fn day(&self, state: &mut Self::State) -> u8 {
-        if let Some(day) = state.day {
-            return day.get();
+    fn day(&self, state: &mut Self::State) -> Day {
+        if let Some(day) = state.day.get() {
+            return day;
         }
 
         let (_, month, day) = (*self).to_calendar_date();
+        // Safety: `day` is guaranteed to be in range.
+        let day = unsafe { Day::new_unchecked(day) };
         state.month = Some(month);
-        // Safety: `day` is guaranteed to be non-zero.
-        state.day = Some(unsafe { NonZero::new_unchecked(day) });
+        state.day = OptionDay::Some(day);
         day
     }
 
@@ -203,8 +194,9 @@ impl ComponentProvider for Date {
     }
 
     #[inline]
-    fn ordinal(&self, _: &mut Self::State) -> u16 {
-        (*self).ordinal()
+    fn ordinal(&self, _: &mut Self::State) -> Ordinal {
+        // Safety: `self.ordinal()` is guaranteed to be in range.
+        unsafe { Ordinal::new_unchecked((*self).ordinal()) }
     }
 
     #[inline]
@@ -213,46 +205,51 @@ impl ComponentProvider for Date {
     }
 
     #[inline]
-    fn iso_week_number(&self, state: &mut Self::State) -> u8 {
-        if let Some(week) = state.iso_week {
-            return week.get();
+    fn iso_week_number(&self, state: &mut Self::State) -> IsoWeekNumber {
+        if let Some(week) = state.iso_week.get() {
+            return week;
         }
 
         let (iso_year, iso_week) = (*self).iso_year_week();
-        state.iso_year = MaybeUninit::new(iso_year);
-        state.iso_year_is_initialized = true;
         // Safety: `iso_week` is guaranteed to be non-zero.
-        state.iso_week = Some(unsafe { NonZero::new_unchecked(iso_week) });
+        let iso_week = unsafe { IsoWeekNumber::new_unchecked(iso_week) };
+        // Safety: `iso_year` is guaranteed to be in range.
+        state.iso_year = OptionYear::Some(unsafe { Year::new_unchecked(iso_year) });
+        state.iso_week = OptionIsoWeekNumber::Some(iso_week);
         iso_week
     }
 
     #[inline]
-    fn monday_based_week(&self, _: &mut Self::State) -> u8 {
-        (*self).monday_based_week()
+    fn monday_based_week(&self, _: &mut Self::State) -> MondayBasedWeek {
+        // Safety: `self.monday_based_week()` is guaranteed to be in range.
+        unsafe { MondayBasedWeek::new_unchecked((*self).monday_based_week()) }
     }
 
     #[inline]
-    fn sunday_based_week(&self, _: &mut Self::State) -> u8 {
-        (*self).sunday_based_week()
+    fn sunday_based_week(&self, _: &mut Self::State) -> SundayBasedWeek {
+        // Safety: `self.sunday_based_week()` is guaranteed to be in range.
+        unsafe { SundayBasedWeek::new_unchecked((*self).sunday_based_week()) }
     }
 
     #[inline]
-    fn calendar_year(&self, _: &mut Self::State) -> i32 {
-        (*self).year()
+    fn calendar_year(&self, _: &mut Self::State) -> Year {
+        // Safety: `self.year()` is guaranteed to be in range.
+        unsafe { Year::new_unchecked((*self).year()) }
     }
 
     #[inline]
-    fn iso_year(&self, state: &mut Self::State) -> i32 {
-        if state.iso_year_is_initialized {
-            // Safety: `iso_year` was declared to be initialized.
-            return unsafe { state.iso_year.assume_init() };
+    fn iso_year(&self, state: &mut Self::State) -> Year {
+        if let Some(iso_year) = state.iso_year.get() {
+            return iso_year;
         }
 
         let (iso_year, iso_week) = (*self).iso_year_week();
-        state.iso_year = MaybeUninit::new(iso_year);
-        state.iso_year_is_initialized = true;
+        // Safety: `iso_year_week` returns a valid ISO year.
+        let iso_year = unsafe { Year::new_unchecked(iso_year) };
+        state.iso_year = OptionYear::Some(iso_year);
         // Safety: `iso_week` is guaranteed to be non-zero.
-        state.iso_week = Some(unsafe { NonZero::new_unchecked(iso_week) });
+        state.iso_week =
+            OptionIsoWeekNumber::Some(unsafe { IsoWeekNumber::new_unchecked(iso_week) });
         iso_year
     }
 }
@@ -264,22 +261,22 @@ impl ComponentProvider for PrimitiveDateTime {
     const SUPPLIES_TIME: bool = true;
 
     delegate_providers!(date {
-        day -> u8
+        day -> Day
         month -> Month
-        ordinal -> u16
+        ordinal -> Ordinal
         weekday -> Weekday
-        iso_week_number -> u8
-        monday_based_week -> u8
-        sunday_based_week -> u8
-        calendar_year -> i32
-        iso_year -> i32
+        iso_week_number -> IsoWeekNumber
+        monday_based_week -> MondayBasedWeek
+        sunday_based_week -> SundayBasedWeek
+        calendar_year -> Year
+        iso_year -> Year
     });
     delegate_providers!(time (&mut ()) {
-        hour -> u8
-        minute -> u8
+        hour -> Hours
+        minute -> Minutes
         period -> Period
-        second -> u8
-        nanosecond -> u32
+        second -> Seconds
+        nanosecond -> Nanoseconds
     });
 }
 
@@ -299,18 +296,18 @@ impl ComponentProvider for UtcOffset {
     }
 
     #[inline]
-    fn offset_hour(&self, _: &mut Self::State) -> i8 {
-        (*self).whole_hours()
+    fn offset_hour(&self, _: &mut Self::State) -> OffsetHours {
+        (*self).as_hms_ranged().0
     }
 
     #[inline]
-    fn offset_minute(&self, _: &mut Self::State) -> i8 {
-        (*self).minutes_past_hour()
+    fn offset_minute(&self, _: &mut Self::State) -> OffsetMinutes {
+        (*self).as_hms_ranged().1
     }
 
     #[inline]
-    fn offset_second(&self, _: &mut Self::State) -> i8 {
-        (*self).seconds_past_minute()
+    fn offset_second(&self, _: &mut Self::State) -> OffsetSeconds {
+        (*self).as_hms_ranged().2
     }
 }
 
@@ -323,22 +320,22 @@ impl ComponentProvider for UtcDateTime {
     const SUPPLIES_TIMESTAMP: bool = true;
 
     delegate_providers!(date {
-        day -> u8
+        day -> Day
         month -> Month
-        ordinal -> u16
+        ordinal -> Ordinal
         weekday -> Weekday
-        iso_week_number -> u8
-        monday_based_week -> u8
-        sunday_based_week -> u8
-        calendar_year -> i32
-        iso_year -> i32
+        iso_week_number -> IsoWeekNumber
+        monday_based_week -> MondayBasedWeek
+        sunday_based_week -> SundayBasedWeek
+        calendar_year -> Year
+        iso_year -> Year
     });
     delegate_providers!(time (&mut ()) {
-        hour -> u8
-        minute -> u8
+        hour -> Hours
+        minute -> Minutes
         period -> Period
-        second -> u8
-        nanosecond -> u32
+        second -> Seconds
+        nanosecond -> Nanoseconds
     });
 
     #[inline]
@@ -352,18 +349,18 @@ impl ComponentProvider for UtcDateTime {
     }
 
     #[inline]
-    fn offset_hour(&self, _: &mut Self::State) -> i8 {
-        0
+    fn offset_hour(&self, _: &mut Self::State) -> OffsetHours {
+        OffsetHours::new_static::<0>()
     }
 
     #[inline]
-    fn offset_minute(&self, _: &mut Self::State) -> i8 {
-        0
+    fn offset_minute(&self, _: &mut Self::State) -> OffsetMinutes {
+        OffsetMinutes::new_static::<0>()
     }
 
     #[inline]
-    fn offset_second(&self, _: &mut Self::State) -> i8 {
-        0
+    fn offset_second(&self, _: &mut Self::State) -> OffsetSeconds {
+        OffsetSeconds::new_static::<0>()
     }
 
     #[inline]
@@ -396,29 +393,29 @@ impl ComponentProvider for OffsetDateTime {
     const SUPPLIES_TIMESTAMP: bool = true;
 
     delegate_providers!(date {
-        day -> u8
+        day -> Day
         month -> Month
-        ordinal -> u16
+        ordinal -> Ordinal
         weekday -> Weekday
-        iso_week_number -> u8
-        monday_based_week -> u8
-        sunday_based_week -> u8
-        calendar_year -> i32
-        iso_year -> i32
+        iso_week_number -> IsoWeekNumber
+        monday_based_week -> MondayBasedWeek
+        sunday_based_week -> SundayBasedWeek
+        calendar_year -> Year
+        iso_year -> Year
     });
     delegate_providers!(time (&mut ()) {
-        hour -> u8
-        minute -> u8
+        hour -> Hours
+        minute -> Minutes
         period -> Period
-        second -> u8
-        nanosecond -> u32
+        second -> Seconds
+        nanosecond -> Nanoseconds
     });
     delegate_providers!(offset (&mut ()) {
         offset_is_negative -> bool
         offset_is_utc -> bool
-        offset_hour -> i8
-        offset_minute -> i8
-        offset_second -> i8
+        offset_hour -> OffsetHours
+        offset_minute -> OffsetMinutes
+        offset_second -> OffsetSeconds
     });
 
     #[inline]
