@@ -11,6 +11,7 @@ pub(super) fn parse<'a>(
 
 pub(super) enum Item<'a> {
     Literal(&'a [u8]),
+    StringLiteral(&'a str),
     Component(Component),
     Optional {
         value: Box<[Self]>,
@@ -33,11 +34,17 @@ impl Item<'_> {
                 _trailing_whitespace: _,
                 _closing_bracket: _,
             } => Item::Component(component_from_ast(&name, &modifiers)?),
-            ast::Item::Literal(Spanned { value, span: _ }) => Item::Literal(value),
+            ast::Item::Literal(Spanned { value, span: _ }) => {
+                if let Ok(value) = str::from_utf8(value) {
+                    Item::StringLiteral(value)
+                } else {
+                    Item::Literal(value)
+                }
+            }
             ast::Item::EscapedBracket {
                 _first: _,
                 _second: _,
-            } => Item::Literal(b"["),
+            } => Item::StringLiteral("["),
             ast::Item::Optional {
                 opening_bracket,
                 _leading_whitespace: _,
@@ -90,6 +97,7 @@ impl From<Item<'_>> for crate::format_description::public::OwnedFormatItem {
     fn from(item: Item<'_>) -> Self {
         match item {
             Item::Literal(literal) => Self::Literal(literal.to_vec().into_boxed_slice()),
+            Item::StringLiteral(string) => Self::StringLiteral(string.to_owned().into_boxed_str()),
             Item::Component(component) => Self::Component(component.into()),
             Item::Optional { value, _span: _ } => Self::Optional(Box::new(value.into())),
             Item::First { value, _span: _ } => {

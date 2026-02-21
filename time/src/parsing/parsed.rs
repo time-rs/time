@@ -49,7 +49,9 @@ impl sealed::AnyFormatItem for BorrowedFormatItem<'_> {
         input: &'a [u8],
     ) -> Result<&'a [u8], error::ParseFromDescription> {
         match self {
+            #[expect(deprecated)]
             Self::Literal(literal) => Parsed::parse_literal(input, literal),
+            Self::StringLiteral(literal) => Parsed::parse_literal(input, literal.as_bytes()),
             Self::Component(component) => parsed.parse_component(input, *component),
             Self::Compound(compound) => parsed.parse_items(input, compound),
             Self::Optional(item) => parsed.parse_item(input, *item).or(Ok(input)),
@@ -84,7 +86,9 @@ impl sealed::AnyFormatItem for OwnedFormatItem {
         input: &'a [u8],
     ) -> Result<&'a [u8], error::ParseFromDescription> {
         match self {
+            #[expect(deprecated)]
             Self::Literal(literal) => Parsed::parse_literal(input, literal),
+            Self::StringLiteral(literal) => Parsed::parse_literal(input, literal.as_bytes()),
             Self::Component(component) => parsed.parse_component(input, *component),
             Self::Compound(compound) => parsed.parse_items(input, compound),
             Self::Optional(item) => parsed.parse_item(input, item.as_ref()).or(Ok(input)),

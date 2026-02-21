@@ -87,7 +87,9 @@ impl sealed::Sealed for BorrowedFormatItem<'_> {
         V: ComponentProvider,
     {
         Ok(match *self {
+            #[expect(deprecated)]
             Self::Literal(literal) => try_likely_ok!(write(output, literal)),
+            Self::StringLiteral(literal) => try_likely_ok!(write(output, literal.as_bytes())),
             Self::Component(component) => {
                 try_likely_ok!(format_component(output, component, value, state))
             }
@@ -142,7 +144,9 @@ impl sealed::Sealed for OwnedFormatItem {
         V: ComponentProvider,
     {
         match self {
+            #[expect(deprecated)]
             Self::Literal(literal) => Ok(try_likely_ok!(write(output, literal))),
+            Self::StringLiteral(literal) => Ok(try_likely_ok!(write(output, literal.as_bytes()))),
             Self::Component(component) => format_component(output, *component, value, state),
             Self::Compound(items) => (**items).format_into(output, value, state),
             Self::Optional(item) => (**item).format_into(output, value, state),

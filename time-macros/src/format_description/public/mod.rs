@@ -8,6 +8,7 @@ use crate::to_tokens::ToTokenStream;
 
 pub(crate) enum OwnedFormatItem {
     Literal(Box<[u8]>),
+    StringLiteral(Box<str>),
     Component(Component),
     Compound(Box<[Self]>),
     Optional(Box<Self>),
@@ -19,6 +20,9 @@ impl ToTokenStream for OwnedFormatItem {
         match self {
             Self::Literal(bytes) => quote_append! { ts
                 BorrowedFormatItem::Literal(#(Literal::byte_string(bytes.as_ref())))
+            },
+            Self::StringLiteral(string) => quote_append! { ts
+                BorrowedFormatItem::StringLiteral(#(string.as_ref()))
             },
             Self::Component(component) => quote_append! { ts
                 BorrowedFormatItem::Component { 0: #S(component) }

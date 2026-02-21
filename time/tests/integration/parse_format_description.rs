@@ -9,6 +9,12 @@ use time::format_description::{
 };
 use time::macros::format_description;
 
+macro_rules! boxed {
+    ($s:literal) => {
+        $s.to_owned().into_boxed_str()
+    };
+}
+
 /// A modifier with its value and string representation.
 ///
 /// This alias is used to avoid repeating the tuple in countless locations.
@@ -130,18 +136,18 @@ fn empty() {
 }
 
 #[rstest]
-#[case("foo bar", [b"foo bar".as_slice()])]
-#[case("  leading spaces", [b"  leading spaces".as_slice()])]
-#[case("trailing spaces  ", [b"trailing spaces  ".as_slice()])]
-#[case("     ", [b"     ".as_slice()])]
-#[case("[[", [b"[".as_slice()])]
-#[case("foo[[bar", [b"foo".as_slice(), b"[".as_slice(), b"bar".as_slice()])]
-fn only_literal<const N: usize>(#[case] format_description: &str, #[case] expected: [&[u8]; N]) {
+#[case("foo bar", ["foo bar"])]
+#[case("  leading spaces", ["  leading spaces"])]
+#[case("trailing spaces  ", ["trailing spaces  "])]
+#[case("     ", ["     "])]
+#[case("[[", ["["])]
+#[case("foo[[bar", ["foo", "[", "bar"])]
+fn only_literal<const N: usize>(#[case] format_description: &str, #[case] expected: [&str; N]) {
     assert_eq!(
         format_description::parse(format_description),
         Ok(expected
             .into_iter()
-            .map(BorrowedFormatItem::Literal)
+            .map(BorrowedFormatItem::StringLiteral)
             .collect())
     );
 }
@@ -452,7 +458,7 @@ fn optional() {
         format_description::parse_owned::<2>("[optional [:[year]]]"),
         Ok(OwnedFormatItem::Optional(Box::new(
             OwnedFormatItem::Compound(Box::new([
-                OwnedFormatItem::Literal(Box::new(*b":")),
+                OwnedFormatItem::StringLiteral(boxed!(":")),
                 OwnedFormatItem::Component(Component::Year(Default::default()))
             ]))
         )))
@@ -466,16 +472,16 @@ fn optional() {
     assert_eq!(
         format_description::parse_owned::<2>(r"[optional [\[]]"),
         Ok(OwnedFormatItem::Optional(Box::new(
-            OwnedFormatItem::Literal(Box::new(*b"["))
+            OwnedFormatItem::StringLiteral(boxed!("["))
         )))
     );
     assert_eq!(
         format_description::parse_owned::<2>(r"[optional [ \[ ]]"),
         Ok(OwnedFormatItem::Optional(Box::new(
             OwnedFormatItem::Compound(Box::new([
-                OwnedFormatItem::Literal(Box::new(*b" ")),
-                OwnedFormatItem::Literal(Box::new(*b"[")),
-                OwnedFormatItem::Literal(Box::new(*b" ")),
+                OwnedFormatItem::StringLiteral(boxed!(" ")),
+                OwnedFormatItem::StringLiteral(boxed!("[")),
+                OwnedFormatItem::StringLiteral(boxed!(" ")),
             ]))
         )))
     );
@@ -486,37 +492,37 @@ fn first() {
     assert_eq!(
         format_description::parse_owned::<2>("[first [a]]"),
         Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::Literal(Box::new(*b"a"))
+            OwnedFormatItem::StringLiteral(boxed!("a"))
         ])))
     );
     assert_eq!(
         format_description::parse_owned::<2>("[first [a] [b]]"),
         Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::Literal(Box::new(*b"a")),
-            OwnedFormatItem::Literal(Box::new(*b"b")),
+            OwnedFormatItem::StringLiteral(boxed!("a")),
+            OwnedFormatItem::StringLiteral(boxed!("b")),
         ])))
     );
     assert_eq!(
         format_description::parse_owned::<2>("[first [a][b]]"),
         Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::Literal(Box::new(*b"a")),
-            OwnedFormatItem::Literal(Box::new(*b"b")),
+            OwnedFormatItem::StringLiteral(boxed!("a")),
+            OwnedFormatItem::StringLiteral(boxed!("b")),
         ])))
     );
     assert_eq!(
         format_description::parse_owned::<2>(r"[first [a][\[]]"),
         Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::Literal(Box::new(*b"a")),
-            OwnedFormatItem::Literal(Box::new(*b"[")),
+            OwnedFormatItem::StringLiteral(boxed!("a")),
+            OwnedFormatItem::StringLiteral(boxed!("[")),
         ])))
     );
     assert_eq!(
         format_description::parse_owned::<2>(r"[first [a][\[\[]]"),
         Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::Literal(Box::new(*b"a")),
+            OwnedFormatItem::StringLiteral(boxed!("a")),
             OwnedFormatItem::Compound(Box::new([
-                OwnedFormatItem::Literal(Box::new(*b"[")),
-                OwnedFormatItem::Literal(Box::new(*b"[")),
+                OwnedFormatItem::StringLiteral(boxed!("[")),
+                OwnedFormatItem::StringLiteral(boxed!("[")),
             ]))
         ])))
     );
@@ -544,57 +550,57 @@ fn backslash_escape() {
     assert_eq!(
         format_description::parse_owned::<2>(r"[optional [\]]]"),
         Ok(OwnedFormatItem::Optional(Box::new(
-            OwnedFormatItem::Literal(Box::new(*b"]"))
+            OwnedFormatItem::StringLiteral(boxed!("]"))
         )))
     );
     assert_eq!(
         format_description::parse_owned::<2>(r"[optional [\[]]"),
         Ok(OwnedFormatItem::Optional(Box::new(
-            OwnedFormatItem::Literal(Box::new(*b"["))
+            OwnedFormatItem::StringLiteral(boxed!("["))
         )))
     );
     assert_eq!(
         format_description::parse_owned::<2>(r"[optional [\\]]"),
         Ok(OwnedFormatItem::Optional(Box::new(
-            OwnedFormatItem::Literal(Box::new(*br"\"))
+            OwnedFormatItem::StringLiteral(boxed!(r"\"))
         )))
     );
     assert_eq!(
         format_description::parse_owned::<2>(r"\\"),
-        Ok(OwnedFormatItem::Literal(Box::new(*br"\")))
+        Ok(OwnedFormatItem::StringLiteral(boxed!(r"\")))
     );
     assert_eq!(
         format_description::parse_owned::<2>(r"\["),
-        Ok(OwnedFormatItem::Literal(Box::new(*br"[")))
+        Ok(OwnedFormatItem::StringLiteral(boxed!(r"[")))
     );
     assert_eq!(
         format_description::parse_owned::<2>(r"\]"),
-        Ok(OwnedFormatItem::Literal(Box::new(*br"]")))
+        Ok(OwnedFormatItem::StringLiteral(boxed!(r"]")))
     );
     assert_eq!(
         format_description::parse_owned::<2>(r"foo\\"),
         Ok(OwnedFormatItem::Compound(Box::new([
-            OwnedFormatItem::Literal(Box::new(*b"foo")),
-            OwnedFormatItem::Literal(Box::new(*br"\")),
+            OwnedFormatItem::StringLiteral(boxed!("foo")),
+            OwnedFormatItem::StringLiteral(boxed!(r"\")),
         ])))
     );
     assert_eq!(
         format_description::parse_borrowed::<2>(r"\\"),
-        Ok(vec![BorrowedFormatItem::Literal(br"\")])
+        Ok(vec![BorrowedFormatItem::StringLiteral(r"\")])
     );
     assert_eq!(
         format_description::parse_borrowed::<2>(r"\["),
-        Ok(vec![BorrowedFormatItem::Literal(br"[")])
+        Ok(vec![BorrowedFormatItem::StringLiteral(r"[")])
     );
     assert_eq!(
         format_description::parse_borrowed::<2>(r"\]"),
-        Ok(vec![BorrowedFormatItem::Literal(br"]")])
+        Ok(vec![BorrowedFormatItem::StringLiteral(r"]")])
     );
     assert_eq!(
         format_description::parse_borrowed::<2>(r"foo\\"),
         Ok(vec![
-            BorrowedFormatItem::Literal(b"foo"),
-            BorrowedFormatItem::Literal(br"\"),
+            BorrowedFormatItem::StringLiteral("foo"),
+            BorrowedFormatItem::StringLiteral(r"\"),
         ])
     );
 }
@@ -766,29 +772,29 @@ fn rfc_3339() {
                     .with_iso_week_based(false)
                     .with_sign_is_mandatory(false)
             )),
-            BorrowedFormatItem::Literal(b"-"),
+            BorrowedFormatItem::StringLiteral("-"),
             BorrowedFormatItem::Component(Component::Month(
                 Month::default().with_padding(Padding::Zero)
             )),
-            BorrowedFormatItem::Literal(b"-"),
+            BorrowedFormatItem::StringLiteral("-"),
             BorrowedFormatItem::Component(Component::Day(
                 Day::default().with_padding(Padding::Zero)
             )),
-            BorrowedFormatItem::Literal(b"T"),
+            BorrowedFormatItem::StringLiteral("T"),
             BorrowedFormatItem::Component(Component::Hour(
                 Hour::default()
                     .with_padding(Padding::Zero)
                     .with_is_12_hour_clock(false)
             )),
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             BorrowedFormatItem::Component(Component::Minute(
                 Minute::default().with_padding(Padding::Zero)
             )),
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             BorrowedFormatItem::Component(Component::Second(
                 Second::default().with_padding(Padding::Zero)
             )),
-            BorrowedFormatItem::Literal(b"."),
+            BorrowedFormatItem::StringLiteral("."),
             BorrowedFormatItem::Component(Component::Subsecond(
                 Subsecond::default().with_digits(SubsecondDigits::OneOrMore)
             )),
@@ -797,7 +803,7 @@ fn rfc_3339() {
                     .with_padding(Padding::Zero)
                     .with_sign_is_mandatory(true)
             )),
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             BorrowedFormatItem::Component(Component::OffsetMinute(
                 OffsetMinute::default().with_padding(Padding::Zero)
             ))

@@ -64,7 +64,7 @@ fn clone() {
     assert_cloned_eq!(well_known::iso8601::OffsetPrecision::Hour);
     assert_cloned_eq!(well_known::iso8601::FormattedComponents::None);
     assert_cloned_eq!(component_range_error());
-    assert_cloned_eq!(BorrowedFormatItem::Literal(b""));
+    assert_cloned_eq!(BorrowedFormatItem::StringLiteral(""));
 
     assert_cloned_eq!(modifier::Day::default());
     assert_cloned_eq!(modifier::MonthRepr::default());
@@ -189,11 +189,15 @@ fn debug() {
         modifier::OffsetSecond::default();
         modifier::Padding::default();
 
+        #[expect(deprecated)]
         BorrowedFormatItem::Literal(b"abcdef");
+        BorrowedFormatItem::StringLiteral("abcdef");
         BorrowedFormatItem::Compound(&[BorrowedFormatItem::Component(Component::Day(modifier::Day::default()))]);
         BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&[]));
         BorrowedFormatItem::First(&[]);
+        #[expect(deprecated)]
         OwnedFormatItem::from(BorrowedFormatItem::Literal(b"abcdef"));
+        OwnedFormatItem::from(BorrowedFormatItem::StringLiteral("abcdef"));
         OwnedFormatItem::from(BorrowedFormatItem::Compound(&[BorrowedFormatItem::Component(Component::Day(modifier::Day::default()))]));
         OwnedFormatItem::from(BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&[])));
         OwnedFormatItem::from(BorrowedFormatItem::First(&[]));

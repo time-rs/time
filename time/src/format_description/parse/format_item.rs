@@ -109,6 +109,7 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a>
     #[inline]
     fn try_from(item: Item<'a>) -> Result<Self, Self::Error> {
         match item {
+            #[expect(deprecated)]
             Item::Literal(literal) => Ok(Self::Literal(literal)),
             Item::Component(component) => Ok(Self::Component(component.into())),
             Item::Optional { value: _, span } => Err(Error {
@@ -139,6 +140,7 @@ impl From<Item<'_>> for crate::format_description::OwnedFormatItem {
     #[inline]
     fn from(item: Item<'_>) -> Self {
         match item {
+            #[expect(deprecated)]
             Item::Literal(literal) => Self::Literal(literal.to_vec().into_boxed_slice()),
             Item::Component(component) => Self::Component(component.into()),
             Item::Optional { value, span: _ } => Self::Optional(Box::new(value.into())),

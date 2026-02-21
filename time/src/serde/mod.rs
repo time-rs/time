@@ -224,9 +224,9 @@ use crate::{
 #[cfg(feature = "parsing")]
 const DATE_FORMAT: StaticFormatDescription = &[
     BorrowedFormatItem::Component(Component::Year(modifier::Year::default())),
-    BorrowedFormatItem::Literal(b"-"),
+    BorrowedFormatItem::StringLiteral("-"),
     BorrowedFormatItem::Component(Component::Month(modifier::Month::default())),
-    BorrowedFormatItem::Literal(b"-"),
+    BorrowedFormatItem::StringLiteral("-"),
     BorrowedFormatItem::Component(Component::Day(modifier::Day::default())),
 ];
 
@@ -300,9 +300,9 @@ impl<'a> Deserialize<'a> for Duration {
 #[cfg(feature = "parsing")]
 const OFFSET_DATE_TIME_FORMAT: StaticFormatDescription = &[
     BorrowedFormatItem::Compound(DATE_FORMAT),
-    BorrowedFormatItem::Literal(b" "),
+    BorrowedFormatItem::StringLiteral(" "),
     BorrowedFormatItem::Compound(TIME_FORMAT),
-    BorrowedFormatItem::Literal(b" "),
+    BorrowedFormatItem::StringLiteral(" "),
     BorrowedFormatItem::Compound(UTC_OFFSET_FORMAT),
 ];
 
@@ -353,7 +353,7 @@ impl<'a> Deserialize<'a> for OffsetDateTime {
 #[cfg(feature = "parsing")]
 const PRIMITIVE_DATE_TIME_FORMAT: StaticFormatDescription = &[
     BorrowedFormatItem::Compound(DATE_FORMAT),
-    BorrowedFormatItem::Literal(b" "),
+    BorrowedFormatItem::StringLiteral(" "),
     BorrowedFormatItem::Compound(TIME_FORMAT),
 ];
 
@@ -445,11 +445,11 @@ impl<'a> Deserialize<'a> for UtcDateTime {
 #[cfg(feature = "parsing")]
 const TIME_FORMAT: StaticFormatDescription = &[
     BorrowedFormatItem::Component(Component::Hour(modifier::Hour::default())),
-    BorrowedFormatItem::Literal(b":"),
+    BorrowedFormatItem::StringLiteral(":"),
     BorrowedFormatItem::Component(Component::Minute(modifier::Minute::default())),
-    BorrowedFormatItem::Literal(b":"),
+    BorrowedFormatItem::StringLiteral(":"),
     BorrowedFormatItem::Component(Component::Second(modifier::Second::default())),
-    BorrowedFormatItem::Literal(b"."),
+    BorrowedFormatItem::StringLiteral("."),
     BorrowedFormatItem::Component(Component::Subsecond(modifier::Subsecond::default())),
 ];
 
@@ -496,12 +496,12 @@ const UTC_OFFSET_FORMAT: StaticFormatDescription = &[
         },
     )),
     BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&[
-        BorrowedFormatItem::Literal(b":"),
+        BorrowedFormatItem::StringLiteral(":"),
         BorrowedFormatItem::Component(Component::OffsetMinute(
             const { modifier::OffsetMinute::default() },
         )),
         BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&[
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             BorrowedFormatItem::Component(Component::OffsetSecond(
                 const { modifier::OffsetSecond::default() },
             )),

@@ -129,8 +129,8 @@ fn builder_methods() {
 
 #[test]
 fn single_item_parse() {
-    assert!(Time::parse("a", &BorrowedFormatItem::Literal(b"a")).is_err());
-    assert!(Time::parse("b", &BorrowedFormatItem::Literal(b"a")).is_err());
+    assert!(Time::parse("a", &BorrowedFormatItem::StringLiteral("a")).is_err());
+    assert!(Time::parse("b", &BorrowedFormatItem::StringLiteral("a")).is_err());
 }
 
 #[test]

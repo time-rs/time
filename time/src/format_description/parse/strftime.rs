@@ -133,7 +133,11 @@ where
         };
 
         Some(match next {
-            Token::Literal(spanned) => Ok(BorrowedFormatItem::Literal(*spanned)),
+            // Safety: `parse_strftime` functions only accept strings, so UTF-8 validation is
+            // unnecessary
+            Token::Literal(spanned) => Ok(BorrowedFormatItem::StringLiteral(unsafe {
+                str::from_utf8_unchecked(*spanned)
+            })),
             Token::Component {
                 _percent,
                 padding,
@@ -164,7 +168,7 @@ fn parse_component(
     }
 
     Ok(match *component {
-        b'%' => BorrowedFormatItem::Literal(b"%"),
+        b'%' => BorrowedFormatItem::StringLiteral("%"),
         b'a' => component!(Weekday {
             repr: modifier::WeekdayRepr::Short,
             one_indexed: true,
@@ -191,30 +195,30 @@ fn parse_component(
                 one_indexed: true,
                 case_sensitive: true,
             }),
-            BorrowedFormatItem::Literal(b" "),
+            BorrowedFormatItem::StringLiteral(" "),
             component!(Month {
                 repr: modifier::MonthRepr::Short,
                 padding: modifier::Padding::Zero,
                 case_sensitive: true,
             }),
-            BorrowedFormatItem::Literal(b" "),
+            BorrowedFormatItem::StringLiteral(" "),
             component!(Day {
                 padding: modifier::Padding::Space
             }),
-            BorrowedFormatItem::Literal(b" "),
+            BorrowedFormatItem::StringLiteral(" "),
             component!(Hour {
                 padding: modifier::Padding::Zero,
                 is_12_hour_clock: false,
             }),
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             component!(Minute {
                 padding: modifier::Padding::Zero,
             }),
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             component!(Second {
                 padding: modifier::Padding::Zero,
             }),
-            BorrowedFormatItem::Literal(b" "),
+            BorrowedFormatItem::StringLiteral(" "),
             component!(Year {
                 padding: modifier::Padding::Zero,
                 repr: modifier::YearRepr::Full,
@@ -239,11 +243,11 @@ fn parse_component(
                 padding: modifier::Padding::Zero,
                 case_sensitive: true,
             }),
-            BorrowedFormatItem::Literal(b"/"),
+            BorrowedFormatItem::StringLiteral("/"),
             component!(Day {
                 padding: modifier::Padding::Zero,
             }),
-            BorrowedFormatItem::Literal(b"/"),
+            BorrowedFormatItem::StringLiteral("/"),
             component!(Year {
                 padding: modifier::Padding::Zero,
                 repr: modifier::YearRepr::LastTwo,
@@ -263,13 +267,13 @@ fn parse_component(
                 iso_week_based: false,
                 sign_is_mandatory: false,
             }),
-            BorrowedFormatItem::Literal(b"-"),
+            BorrowedFormatItem::StringLiteral("-"),
             component!(Month {
                 padding: modifier::Padding::Zero,
                 repr: modifier::MonthRepr::Numerical,
                 case_sensitive: true,
             }),
-            BorrowedFormatItem::Literal(b"-"),
+            BorrowedFormatItem::StringLiteral("-"),
             component!(Day {
                 padding: modifier::Padding::Zero,
             }),
@@ -315,7 +319,7 @@ fn parse_component(
         b'M' => component!(Minute {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
         }),
-        b'n' => BorrowedFormatItem::Literal(b"\n"),
+        b'n' => BorrowedFormatItem::StringLiteral("\n"),
         b'O' => {
             return Err(Error {
                 _inner: unused(ErrorInner {
@@ -342,15 +346,15 @@ fn parse_component(
                 padding: modifier::Padding::Zero,
                 is_12_hour_clock: true,
             }),
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             component!(Minute {
                 padding: modifier::Padding::Zero,
             }),
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             component!(Second {
                 padding: modifier::Padding::Zero,
             }),
-            BorrowedFormatItem::Literal(b" "),
+            BorrowedFormatItem::StringLiteral(" "),
             component!(Period {
                 is_uppercase: true,
                 case_sensitive: true,
@@ -361,7 +365,7 @@ fn parse_component(
                 padding: modifier::Padding::Zero,
                 is_12_hour_clock: false,
             }),
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             component!(Minute {
                 padding: modifier::Padding::Zero,
             }),
@@ -373,17 +377,17 @@ fn parse_component(
         b'S' => component!(Second {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
         }),
-        b't' => BorrowedFormatItem::Literal(b"\t"),
+        b't' => BorrowedFormatItem::StringLiteral("\t"),
         b'T' => BorrowedFormatItem::Compound(&[
             component!(Hour {
                 padding: modifier::Padding::Zero,
                 is_12_hour_clock: false,
             }),
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             component!(Minute {
                 padding: modifier::Padding::Zero,
             }),
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             component!(Second {
                 padding: modifier::Padding::Zero,
             }),
@@ -416,11 +420,11 @@ fn parse_component(
                 padding: modifier::Padding::Zero,
                 case_sensitive: true,
             }),
-            BorrowedFormatItem::Literal(b"/"),
+            BorrowedFormatItem::StringLiteral("/"),
             component!(Day {
                 padding: modifier::Padding::Zero
             }),
-            BorrowedFormatItem::Literal(b"/"),
+            BorrowedFormatItem::StringLiteral("/"),
             component!(Year {
                 padding: modifier::Padding::Zero,
                 repr: modifier::YearRepr::LastTwo,
@@ -434,11 +438,11 @@ fn parse_component(
                 padding: modifier::Padding::Zero,
                 is_12_hour_clock: false,
             }),
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             component!(Minute {
                 padding: modifier::Padding::Zero,
             }),
-            BorrowedFormatItem::Literal(b":"),
+            BorrowedFormatItem::StringLiteral(":"),
             component!(Second {
                 padding: modifier::Padding::Zero,
             }),
