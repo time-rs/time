@@ -118,6 +118,12 @@ fn iso_8601() -> time::Result<()> {
         };
     }
 
+    // #759
+    assert_eq!(
+        time!(01:02:03.123_456_789).format(&Iso8601::TIME)?,
+        "01:02:03.123456789"
+    );
+
     assert_eq!(
         datetime!(-123_456-01-02 03:04:05 UTC).format(
             &Iso8601::<

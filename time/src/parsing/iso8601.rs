@@ -122,9 +122,10 @@ impl<const CONFIG: EncodedConfig> Iso8601<CONFIG> {
         date_is_present: bool,
     ) -> impl FnMut(&[u8]) -> Result<&[u8], error::Parse> + use<'a, CONFIG> {
         move |mut input| {
-            if date_is_present {
-                input =
-                    try_likely_ok!(ascii_char::<b'T'>(input).ok_or(InvalidLiteral)).into_inner();
+            match ascii_char::<b'T'>(input) {
+                Some(parsed) => input = parsed.into_inner(),
+                None if date_is_present => return Err(InvalidLiteral.into()),
+                None => {}
             }
 
             let ParsedItem(mut input, hour) =

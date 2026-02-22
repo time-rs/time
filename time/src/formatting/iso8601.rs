@@ -117,7 +117,7 @@ where
     // The "T" can only be omitted in extended format where there is no date being formatted.
     bytes += write_if(
         output,
-        Iso8601::<CONFIG>::USE_SEPARATORS || Iso8601::<CONFIG>::FORMAT_DATE,
+        !Iso8601::<CONFIG>::USE_SEPARATORS || Iso8601::<CONFIG>::FORMAT_DATE,
         "T",
     )?;
 

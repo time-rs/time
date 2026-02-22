@@ -661,6 +661,12 @@ fn iso_8601() {
         PrimitiveDateTime::parse("2022-07-22T12:52:50.349409", &Iso8601::DEFAULT),
         Ok(datetime!(2022-07-22 12:52:50.349409000))
     );
+
+    // #759
+    assert_eq!(
+        Time::parse("T01:02:03.123456789", &Iso8601::DEFAULT),
+        Ok(time!(01:02:03.123_456_789))
+    )
 }
 
 #[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
