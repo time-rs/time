@@ -3,9 +3,8 @@
 use core::num::NonZero;
 
 use deranged::{
-    OptionRangedI8, OptionRangedI16, OptionRangedI32, OptionRangedI128, OptionRangedU8,
-    OptionRangedU16, OptionRangedU32, RangedI8, RangedI16, RangedI32, RangedI128, RangedU8,
-    RangedU16, RangedU32,
+    Option_ri8, Option_ri16, Option_ri32, Option_ri128, Option_ru8, Option_ru16, Option_ru32, ri8,
+    ri16, ri32, ri128, ru8, ru16, ru32,
 };
 use num_conv::prelude::*;
 
@@ -123,55 +122,55 @@ impl sealed::AnyFormatItem for OwnedFormatItem {
 #[derive(Debug, Clone, Copy)]
 pub struct Parsed {
     /// Calendar year.
-    year: OptionRangedI32<{ MIN_YEAR }, { MAX_YEAR }>,
+    year: Option_ri32<{ MIN_YEAR }, { MAX_YEAR }>,
     /// All digits except the last two of the calendar year.
-    year_century: OptionRangedI16<{ (MIN_YEAR / 100) as i16 }, { (MAX_YEAR / 100) as i16 }>,
+    year_century: Option_ri16<{ (MIN_YEAR / 100) as i16 }, { (MAX_YEAR / 100) as i16 }>,
     /// The last two digits of the calendar year.
-    year_last_two: OptionRangedU8<0, 99>,
+    year_last_two: Option_ru8<0, 99>,
     /// Year of the [ISO week date](https://en.wikipedia.org/wiki/ISO_week_date).
-    iso_year: OptionRangedI32<{ MIN_YEAR }, { MAX_YEAR }>,
+    iso_year: Option_ri32<{ MIN_YEAR }, { MAX_YEAR }>,
     /// All digits except the last two of the ISO week year.
-    iso_year_century: OptionRangedI16<{ (MIN_YEAR / 100) as i16 }, { (MAX_YEAR / 100) as i16 }>,
+    iso_year_century: Option_ri16<{ (MIN_YEAR / 100) as i16 }, { (MAX_YEAR / 100) as i16 }>,
     /// The last two digits of the ISO week year.
-    iso_year_last_two: OptionRangedU8<0, 99>,
+    iso_year_last_two: Option_ru8<0, 99>,
     /// Month of the year.
     month: Option<Month>,
     /// Week of the year, where week one begins on the first Sunday of the calendar year.
-    sunday_week_number: OptionRangedU8<0, 53>,
+    sunday_week_number: Option_ru8<0, 53>,
     /// Week of the year, where week one begins on the first Monday of the calendar year.
-    monday_week_number: OptionRangedU8<0, 53>,
+    monday_week_number: Option_ru8<0, 53>,
     /// Week of the year, where week one is the Monday-to-Sunday period containing January 4.
-    iso_week_number: OptionRangedU8<1, 53>,
+    iso_week_number: Option_ru8<1, 53>,
     /// Day of the week.
     weekday: Option<Weekday>,
     /// Day of the year.
-    ordinal: OptionRangedU16<1, 366>,
+    ordinal: Option_ru16<1, 366>,
     /// Day of the month.
-    day: OptionRangedU8<1, 31>,
+    day: Option_ru8<1, 31>,
     /// Hour within the day.
-    hour_24: OptionRangedU8<0, { Hour::per_t::<u8>(Day) - 1 }>,
+    hour_24: Option_ru8<0, { Hour::per_t::<u8>(Day) - 1 }>,
     /// Hour within the 12-hour period (midnight to noon or vice versa). This is typically used in
     /// conjunction with AM/PM, which is indicated by the `hour_12_is_pm` field.
-    hour_12: OptionRangedU8<1, 12>,
+    hour_12: Option_ru8<1, 12>,
     /// Whether the `hour_12` field indicates a time that "PM".
     hour_12_is_pm: Option<bool>,
     /// Minute within the hour.
-    minute: OptionRangedU8<0, { Minute::per_t::<u8>(Hour) - 1 }>,
+    minute: Option_ru8<0, { Minute::per_t::<u8>(Hour) - 1 }>,
     /// Second within the minute.
     // do not subtract one, as leap seconds may be allowed
-    second: OptionRangedU8<0, { Second::per_t::<u8>(Minute) }>,
+    second: Option_ru8<0, { Second::per_t::<u8>(Minute) }>,
     /// Nanosecond within the second.
-    subsecond: OptionRangedU32<0, { Nanosecond::per_t::<u32>(Second) - 1 }>,
+    subsecond: Option_ru32<0, { Nanosecond::per_t::<u32>(Second) - 1 }>,
     /// Whole hours of the UTC offset.
-    offset_hour: OptionRangedI8<-23, 23>,
+    offset_hour: Option_ri8<-23, 23>,
     /// Minutes within the hour of the UTC offset.
     offset_minute:
-        OptionRangedI8<{ -Minute::per_t::<i8>(Hour) + 1 }, { Minute::per_t::<i8>(Hour) - 1 }>,
+        Option_ri8<{ -Minute::per_t::<i8>(Hour) + 1 }, { Minute::per_t::<i8>(Hour) - 1 }>,
     /// Seconds within the minute of the UTC offset.
     offset_second:
-        OptionRangedI8<{ -Second::per_t::<i8>(Minute) + 1 }, { Second::per_t::<i8>(Minute) - 1 }>,
+        Option_ri8<{ -Second::per_t::<i8>(Minute) + 1 }, { Second::per_t::<i8>(Minute) - 1 }>,
     /// The Unix timestamp in nanoseconds.
-    unix_timestamp_nanos: OptionRangedI128<
+    unix_timestamp_nanos: Option_ri128<
         {
             OffsetDateTime::new_in_offset(Date::MIN, Time::MIDNIGHT, UtcOffset::UTC)
                 .unix_timestamp_nanos()
@@ -207,29 +206,29 @@ impl Parsed {
     #[inline]
     pub const fn new() -> Self {
         Self {
-            year: OptionRangedI32::None,
-            year_century: OptionRangedI16::None,
-            year_last_two: OptionRangedU8::None,
-            iso_year: OptionRangedI32::None,
-            iso_year_century: OptionRangedI16::None,
-            iso_year_last_two: OptionRangedU8::None,
+            year: Option_ri32::None,
+            year_century: Option_ri16::None,
+            year_last_two: Option_ru8::None,
+            iso_year: Option_ri32::None,
+            iso_year_century: Option_ri16::None,
+            iso_year_last_two: Option_ru8::None,
             month: None,
-            sunday_week_number: OptionRangedU8::None,
-            monday_week_number: OptionRangedU8::None,
-            iso_week_number: OptionRangedU8::None,
+            sunday_week_number: Option_ru8::None,
+            monday_week_number: Option_ru8::None,
+            iso_week_number: Option_ru8::None,
             weekday: None,
-            ordinal: OptionRangedU16::None,
-            day: OptionRangedU8::None,
-            hour_24: OptionRangedU8::None,
-            hour_12: OptionRangedU8::None,
+            ordinal: Option_ru16::None,
+            day: Option_ru8::None,
+            hour_24: Option_ru8::None,
+            hour_12: Option_ru8::None,
             hour_12_is_pm: None,
-            minute: OptionRangedU8::None,
-            second: OptionRangedU8::None,
-            subsecond: OptionRangedU32::None,
-            offset_hour: OptionRangedI8::None,
-            offset_minute: OptionRangedI8::None,
-            offset_second: OptionRangedI8::None,
-            unix_timestamp_nanos: OptionRangedI128::None,
+            minute: Option_ru8::None,
+            second: Option_ru8::None,
+            subsecond: Option_ru32::None,
+            offset_hour: Option_ri8::None,
+            offset_minute: Option_ri8::None,
+            offset_second: Option_ri8::None,
+            unix_timestamp_nanos: Option_ri128::None,
             offset_is_negative: false,
             year_century_is_negative: false,
             iso_year_century_is_negative: false,
@@ -626,7 +625,7 @@ impl Parsed {
     /// the sign is inferred from the value.
     #[inline]
     pub const fn set_year_century(&mut self, value: i16, is_negative: bool) -> Option<()> {
-        self.year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
+        self.year_century = Option_ri16::Some(const_try_opt!(ri16::new(value)));
         if value != 0 {
             self.year_century_is_negative = value.is_negative();
         } else {
@@ -647,7 +646,7 @@ impl Parsed {
     /// the sign is inferred from the value.
     #[inline]
     pub const fn set_iso_year_century(&mut self, value: i16, is_negative: bool) -> Option<()> {
-        self.iso_year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
+        self.iso_year_century = Option_ri16::Some(const_try_opt!(ri16::new(value)));
         if value != 0 {
             self.iso_year_century_is_negative = value.is_negative();
         } else {
@@ -715,7 +714,7 @@ impl Parsed {
     /// Set the `year` component and return `self`.
     #[inline]
     pub const fn with_year(mut self, value: i32) -> Option<Self> {
-        self.year = OptionRangedI32::Some(const_try_opt!(RangedI32::new(value)));
+        self.year = Option_ri32::Some(const_try_opt!(ri32::new(value)));
         Some(self)
     }
 
@@ -725,7 +724,7 @@ impl Parsed {
     /// the sign is inferred from the value.
     #[inline]
     pub const fn with_year_century(mut self, value: i16, is_negative: bool) -> Option<Self> {
-        self.year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
+        self.year_century = Option_ri16::Some(const_try_opt!(ri16::new(value)));
         if value != 0 {
             self.year_century_is_negative = value.is_negative();
         } else {
@@ -737,14 +736,14 @@ impl Parsed {
     /// Set the `year_last_two` component and return `self`.
     #[inline]
     pub const fn with_year_last_two(mut self, value: u8) -> Option<Self> {
-        self.year_last_two = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
+        self.year_last_two = Option_ru8::Some(const_try_opt!(ru8::new(value)));
         Some(self)
     }
 
     /// Set the `iso_year` component and return `self`.
     #[inline]
     pub const fn with_iso_year(mut self, value: i32) -> Option<Self> {
-        self.iso_year = OptionRangedI32::Some(const_try_opt!(RangedI32::new(value)));
+        self.iso_year = Option_ri32::Some(const_try_opt!(ri32::new(value)));
         Some(self)
     }
 
@@ -754,7 +753,7 @@ impl Parsed {
     /// the sign is inferred from the value.
     #[inline]
     pub const fn with_iso_year_century(mut self, value: i16, is_negative: bool) -> Option<Self> {
-        self.iso_year_century = OptionRangedI16::Some(const_try_opt!(RangedI16::new(value)));
+        self.iso_year_century = Option_ri16::Some(const_try_opt!(ri16::new(value)));
         if value != 0 {
             self.iso_year_century_is_negative = value.is_negative();
         } else {
@@ -766,7 +765,7 @@ impl Parsed {
     /// Set the `iso_year_last_two` component and return `self`.
     #[inline]
     pub const fn with_iso_year_last_two(mut self, value: u8) -> Option<Self> {
-        self.iso_year_last_two = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
+        self.iso_year_last_two = Option_ru8::Some(const_try_opt!(ru8::new(value)));
         Some(self)
     }
 
@@ -780,21 +779,21 @@ impl Parsed {
     /// Set the `sunday_week_number` component and return `self`.
     #[inline]
     pub const fn with_sunday_week_number(mut self, value: u8) -> Option<Self> {
-        self.sunday_week_number = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
+        self.sunday_week_number = Option_ru8::Some(const_try_opt!(ru8::new(value)));
         Some(self)
     }
 
     /// Set the `monday_week_number` component and return `self`.
     #[inline]
     pub const fn with_monday_week_number(mut self, value: u8) -> Option<Self> {
-        self.monday_week_number = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
+        self.monday_week_number = Option_ru8::Some(const_try_opt!(ru8::new(value)));
         Some(self)
     }
 
     /// Set the `iso_week_number` component and return `self`.
     #[inline]
     pub const fn with_iso_week_number(mut self, value: NonZero<u8>) -> Option<Self> {
-        self.iso_week_number = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value.get())));
+        self.iso_week_number = Option_ru8::Some(const_try_opt!(ru8::new(value.get())));
         Some(self)
     }
 
@@ -808,28 +807,28 @@ impl Parsed {
     /// Set the `ordinal` component and return `self`.
     #[inline]
     pub const fn with_ordinal(mut self, value: NonZero<u16>) -> Option<Self> {
-        self.ordinal = OptionRangedU16::Some(const_try_opt!(RangedU16::new(value.get())));
+        self.ordinal = Option_ru16::Some(const_try_opt!(ru16::new(value.get())));
         Some(self)
     }
 
     /// Set the `day` component and return `self`.
     #[inline]
     pub const fn with_day(mut self, value: NonZero<u8>) -> Option<Self> {
-        self.day = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value.get())));
+        self.day = Option_ru8::Some(const_try_opt!(ru8::new(value.get())));
         Some(self)
     }
 
     /// Set the `hour_24` component and return `self`.
     #[inline]
     pub const fn with_hour_24(mut self, value: u8) -> Option<Self> {
-        self.hour_24 = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
+        self.hour_24 = Option_ru8::Some(const_try_opt!(ru8::new(value)));
         Some(self)
     }
 
     /// Set the `hour_12` component and return `self`.
     #[inline]
     pub const fn with_hour_12(mut self, value: NonZero<u8>) -> Option<Self> {
-        self.hour_12 = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value.get())));
+        self.hour_12 = Option_ru8::Some(const_try_opt!(ru8::new(value.get())));
         Some(self)
     }
 
@@ -843,28 +842,28 @@ impl Parsed {
     /// Set the `minute` component and return `self`.
     #[inline]
     pub const fn with_minute(mut self, value: u8) -> Option<Self> {
-        self.minute = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
+        self.minute = Option_ru8::Some(const_try_opt!(ru8::new(value)));
         Some(self)
     }
 
     /// Set the `second` component and return `self`.
     #[inline]
     pub const fn with_second(mut self, value: u8) -> Option<Self> {
-        self.second = OptionRangedU8::Some(const_try_opt!(RangedU8::new(value)));
+        self.second = Option_ru8::Some(const_try_opt!(ru8::new(value)));
         Some(self)
     }
 
     /// Set the `subsecond` component and return `self`.
     #[inline]
     pub const fn with_subsecond(mut self, value: u32) -> Option<Self> {
-        self.subsecond = OptionRangedU32::Some(const_try_opt!(RangedU32::new(value)));
+        self.subsecond = Option_ru32::Some(const_try_opt!(ru32::new(value)));
         Some(self)
     }
 
     /// Set the `offset_hour` component and return `self`.
     #[inline]
     pub const fn with_offset_hour(mut self, value: i8) -> Option<Self> {
-        self.offset_hour = OptionRangedI8::Some(const_try_opt!(RangedI8::new(value)));
+        self.offset_hour = Option_ri8::Some(const_try_opt!(ri8::new(value)));
         Some(self)
     }
 
@@ -886,7 +885,7 @@ impl Parsed {
     /// Set the `offset_minute` component and return `self`.
     #[inline]
     pub const fn with_offset_minute_signed(mut self, value: i8) -> Option<Self> {
-        self.offset_minute = OptionRangedI8::Some(const_try_opt!(RangedI8::new(value)));
+        self.offset_minute = Option_ri8::Some(const_try_opt!(ri8::new(value)));
         Some(self)
     }
 
@@ -908,14 +907,14 @@ impl Parsed {
     /// Set the `offset_second` component and return `self`.
     #[inline]
     pub const fn with_offset_second_signed(mut self, value: i8) -> Option<Self> {
-        self.offset_second = OptionRangedI8::Some(const_try_opt!(RangedI8::new(value)));
+        self.offset_second = Option_ri8::Some(const_try_opt!(ri8::new(value)));
         Some(self)
     }
 
     /// Set the `unix_timestamp_nanos` component and return `self`.
     #[inline]
     pub const fn with_unix_timestamp_nanos(mut self, value: i128) -> Option<Self> {
-        self.unix_timestamp_nanos = OptionRangedI128::Some(const_try_opt!(RangedI128::new(value)));
+        self.unix_timestamp_nanos = Option_ri128::Some(const_try_opt!(ri128::new(value)));
         Some(self)
     }
 }
@@ -968,7 +967,7 @@ impl TryFrom<Parsed> for Date {
             } else {
                 100 * century.extend::<i32>() + last_two.cast_signed().extend::<i32>()
             };
-            parsed.year = OptionRangedI32::from(RangedI32::new(year));
+            parsed.year = Option_ri32::from(ri32::new(year));
         }
         if let (None, Some(century), Some(is_negative), Some(last_two)) = (
             parsed.iso_year(),
@@ -981,7 +980,7 @@ impl TryFrom<Parsed> for Date {
             } else {
                 100 * century.extend::<i32>() + last_two.cast_signed().extend::<i32>()
             };
-            parsed.iso_year = OptionRangedI32::from(RangedI32::new(iso_year));
+            parsed.iso_year = Option_ri32::from(ri32::new(iso_year));
         }
 
         match_! {

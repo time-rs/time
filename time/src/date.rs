@@ -10,7 +10,7 @@ use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
 
-use deranged::{RangedI32, RangedU8, RangedU32};
+use deranged::{ri32, ru8, ru32};
 use num_conv::prelude::*;
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
@@ -24,7 +24,7 @@ use crate::unit::*;
 use crate::util::{days_in_month_leap, range_validated, weeks_in_year};
 use crate::{Duration, Month, PrimitiveDateTime, Time, Weekday, error, hint};
 
-type Year = RangedI32<MIN_YEAR, MAX_YEAR>;
+type Year = ri32<MIN_YEAR, MAX_YEAR>;
 
 /// The minimum valid year.
 pub(crate) const MIN_YEAR: i32 = if cfg!(feature = "large-dates") {
@@ -279,7 +279,7 @@ impl Date {
     #[doc(alias = "from_julian_date")]
     #[inline]
     pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
-        type JulianDay = RangedI32<{ Date::MIN.to_julian_day() }, { Date::MAX.to_julian_day() }>;
+        type JulianDay = ri32<{ Date::MIN.to_julian_day() }, { Date::MAX.to_julian_day() }>;
         ensure_ranged!(JulianDay: julian_day);
         // Safety: The Julian day number is in range.
         Ok(unsafe { Self::from_julian_day_unchecked(julian_day) })
@@ -1476,7 +1476,7 @@ impl Date {
 
         // Safety: `year.unsigned_abs()` is less than 1,000,000.
         let [first_two, second_two, third_two] =
-            four_to_six_digits(unsafe { RangedU32::new_unchecked(year.unsigned_abs()) });
+            four_to_six_digits(unsafe { ru32::new_unchecked(year.unsigned_abs()) });
         // Safety:
         // - both `first_two` and `buf` are valid for reads and writes of up to 2 bytes.
         // - `u8` is 1-aligned, so that is not a concern.
@@ -1508,7 +1508,7 @@ impl Date {
 
         // Safety: See above for `copy_to_nonoverlapping`. `month` is in the range 1..=12.
         unsafe {
-            two_digits_zero_padded(RangedU8::new_unchecked(u8::from(month)))
+            two_digits_zero_padded(ru8::new_unchecked(u8::from(month)))
                 .as_ptr()
                 .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), 2);
         }
@@ -1519,7 +1519,7 @@ impl Date {
 
         // Safety: See above for `copy_to_nonoverlapping`. `day` is in the range 1..=31.
         unsafe {
-            two_digits_zero_padded(RangedU8::new_unchecked(day))
+            two_digits_zero_padded(ru8::new_unchecked(day))
                 .as_ptr()
                 .copy_to_nonoverlapping(buf.as_mut_ptr().add(idx).cast(), 2);
         }

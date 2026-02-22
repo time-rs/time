@@ -11,7 +11,7 @@ use core::{fmt, hint};
 #[cfg(feature = "formatting")]
 use std::io;
 
-use deranged::{RangedU8, RangedU32};
+use deranged::{ru8, ru32};
 use num_conv::prelude::*;
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
@@ -38,13 +38,13 @@ pub(crate) enum Padding {
 }
 
 /// The type of the `hour` field of `Time`.
-pub(crate) type Hours = RangedU8<0, { Hour::per_t::<u8>(Day) - 1 }>;
+pub(crate) type Hours = ru8<0, { Hour::per_t::<u8>(Day) - 1 }>;
 /// The type of the `minute` field of `Time`.
-pub(crate) type Minutes = RangedU8<0, { Minute::per_t::<u8>(Hour) - 1 }>;
+pub(crate) type Minutes = ru8<0, { Minute::per_t::<u8>(Hour) - 1 }>;
 /// The type of the `second` field of `Time`.
-pub(crate) type Seconds = RangedU8<0, { Second::per_t::<u8>(Minute) - 1 }>;
+pub(crate) type Seconds = ru8<0, { Second::per_t::<u8>(Minute) - 1 }>;
 /// The type of the `nanosecond` field of `Time`.
-pub(crate) type Nanoseconds = RangedU32<0, { Nanosecond::per_t::<u32>(Second) - 1 }>;
+pub(crate) type Nanoseconds = ru32<0, { Nanosecond::per_t::<u32>(Second) - 1 }>;
 
 /// The clock time within a given date. Nanosecond precision.
 ///

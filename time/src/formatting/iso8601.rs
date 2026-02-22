@@ -2,7 +2,7 @@
 
 use std::io;
 
-use deranged::{RangedU8, RangedU16, RangedU32};
+use deranged::{ru8, ru16, ru32};
 use num_conv::prelude::*;
 
 use crate::error;
@@ -38,10 +38,10 @@ where
                 // Safety: `calendar_year` returns a value whose absolute value is guaranteed to be
                 // less than 1,000,000.
                 bytes += format_six_digits_pad_zero(output, unsafe {
-                    RangedU32::new_unchecked(year.unsigned_abs())
+                    ru32::new_unchecked(year.unsigned_abs())
                 })?;
             } else {
-                let year = RangedU16::new(year.cast_unsigned().truncate())
+                let year = ru16::new(year.cast_unsigned().truncate())
                     .ok_or(error::Format::InvalidComponent("year"))?;
                 bytes += format_four_digits_pad_zero(output, year)?;
             }
@@ -49,7 +49,7 @@ where
             // Safety: `month` is guaranteed to be in the range `1..=12`.
             bytes += format_two_digits(
                 output,
-                unsafe { RangedU8::new_unchecked(u8::from(value.month(state))) },
+                unsafe { ru8::new_unchecked(u8::from(value.month(state))) },
                 Padding::Zero,
             )?;
             bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, "-")?;
@@ -63,10 +63,10 @@ where
                 // Safety: `iso_year` returns a value whose absolute value is guaranteed to be less
                 // than 1,000,000.
                 bytes += format_six_digits_pad_zero(output, unsafe {
-                    RangedU32::new_unchecked(year.unsigned_abs())
+                    ru32::new_unchecked(year.unsigned_abs())
                 })?;
             } else {
-                let year = RangedU16::new(year.cast_unsigned().truncate())
+                let year = ru16::new(year.cast_unsigned().truncate())
                     .ok_or(error::Format::InvalidComponent("year"))?;
                 bytes += format_four_digits_pad_zero(output, year)?;
             }
@@ -76,7 +76,7 @@ where
             bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, "-")?;
             // Safety: The value is in the range `1..=7`.
             bytes += format_single_digit(output, unsafe {
-                RangedU8::new_unchecked(value.weekday(state).number_from_monday())
+                ru8::new_unchecked(value.weekday(state).number_from_monday())
             })?;
         }
         DateKind::Ordinal => {
@@ -87,10 +87,10 @@ where
                 // Safety: `calendar_year` returns a value whose absolute value is guaranteed to be
                 // less than 1,000,000.
                 bytes += format_six_digits_pad_zero(output, unsafe {
-                    RangedU32::new_unchecked(year.unsigned_abs())
+                    ru32::new_unchecked(year.unsigned_abs())
                 })?;
             } else {
-                let year = RangedU16::new(year.cast_unsigned().truncate())
+                let year = ru16::new(year.cast_unsigned().truncate())
                     .ok_or(error::Format::InvalidComponent("year"))?;
                 bytes += format_four_digits_pad_zero(output, year)?;
             }
@@ -174,7 +174,7 @@ where
     // Safety: The value is in the range `-25..=25`.
     bytes += format_two_digits(
         output,
-        unsafe { RangedU8::new_unchecked(value.offset_hour(state).get().unsigned_abs()) },
+        unsafe { ru8::new_unchecked(value.offset_hour(state).get().unsigned_abs()) },
         Padding::Zero,
     )?;
 
@@ -187,7 +187,7 @@ where
         // Safety: The value is in the range `0..=59`.
         bytes += format_two_digits(
             output,
-            unsafe { RangedU8::new_unchecked(minutes.get().unsigned_abs()) },
+            unsafe { ru8::new_unchecked(minutes.get().unsigned_abs()) },
             Padding::Zero,
         )?;
     }

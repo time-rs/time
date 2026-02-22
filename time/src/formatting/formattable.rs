@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use core::ops::Deref;
 use std::io;
 
-use deranged::{RangedU8, RangedU16};
+use deranged::{ru8, ru16};
 use num_conv::prelude::*;
 
 use crate::format_description::modifier::Padding;
@@ -275,7 +275,7 @@ impl sealed::Sealed for Rfc2822 {
         bytes += try_likely_ok!(write(output, " "));
         // Safety: Years with five or more digits were rejected above. Likewise with negative years.
         bytes += try_likely_ok!(format_four_digits_pad_zero(output, unsafe {
-            RangedU16::new_unchecked(value.calendar_year(state).get().cast_unsigned().truncate())
+            ru16::new_unchecked(value.calendar_year(state).get().cast_unsigned().truncate())
         }));
         bytes += try_likely_ok!(write(output, " "));
         bytes += try_likely_ok!(format_two_digits(
@@ -306,14 +306,14 @@ impl sealed::Sealed for Rfc2822 {
             output,
             // Safety: `OffsetHours` is guaranteed to be in the range `-25..=25`, so the absolute
             // value is guaranteed to be in the range `0..=25`.
-            unsafe { RangedU8::new_unchecked(value.offset_hour(state).get().unsigned_abs()) },
+            unsafe { ru8::new_unchecked(value.offset_hour(state).get().unsigned_abs()) },
             Padding::Zero,
         ));
         bytes += try_likely_ok!(format_two_digits(
             output,
             // Safety: `OffsetMinutes` is guaranteed to be in the range `-59..=59`, so the absolute
             // value is guaranteed to be in the range `0..=59`.
-            unsafe { RangedU8::new_unchecked(value.offset_minute(state).get().unsigned_abs()) },
+            unsafe { ru8::new_unchecked(value.offset_minute(state).get().unsigned_abs()) },
             Padding::Zero,
         ));
 
@@ -362,13 +362,13 @@ impl sealed::Sealed for Rfc3339 {
 
         // Safety: Years outside this range were rejected above.
         bytes += try_likely_ok!(format_four_digits_pad_zero(output, unsafe {
-            RangedU16::new_unchecked(value.calendar_year(state).get().cast_unsigned().truncate())
+            ru16::new_unchecked(value.calendar_year(state).get().cast_unsigned().truncate())
         }));
         bytes += try_likely_ok!(write(output, "-"));
         bytes += try_likely_ok!(format_two_digits(
             output,
             // Safety: `month` is guaranteed to be in the range `1..=12`.
-            unsafe { RangedU8::new_unchecked(u8::from(value.month(state))) },
+            unsafe { ru8::new_unchecked(u8::from(value.month(state))) },
             Padding::Zero,
         ));
         bytes += try_likely_ok!(write(output, "-"));
@@ -420,7 +420,7 @@ impl sealed::Sealed for Rfc3339 {
             output,
             // Safety: `OffsetHours` is guaranteed to be in the range `-23..=23`, so the absolute
             // value is guaranteed to be in the range `0..=23`.
-            unsafe { RangedU8::new_unchecked(offset_hour.get().unsigned_abs()) },
+            unsafe { ru8::new_unchecked(offset_hour.get().unsigned_abs()) },
             Padding::Zero,
         ));
         bytes += try_likely_ok!(write(output, ":"));
@@ -428,7 +428,7 @@ impl sealed::Sealed for Rfc3339 {
             output,
             // Safety: `OffsetMinutes` is guaranteed to be in the range `-59..=59`, so the absolute
             // value is guaranteed to be in the range `0..=59`.
-            unsafe { RangedU8::new_unchecked(value.offset_minute(state).get().unsigned_abs()) },
+            unsafe { ru8::new_unchecked(value.offset_minute(state).get().unsigned_abs()) },
             Padding::Zero,
         ));
 

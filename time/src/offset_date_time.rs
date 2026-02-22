@@ -11,7 +11,7 @@ use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
 
-use deranged::RangedI64;
+use deranged::ri64;
 use num_conv::prelude::*;
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
@@ -434,7 +434,7 @@ impl OffsetDateTime {
     /// ```
     #[inline]
     pub const fn from_unix_timestamp(timestamp: i64) -> Result<Self, error::ComponentRange> {
-        type Timestamp = RangedI64<
+        type Timestamp = ri64<
             {
                 OffsetDateTime::new_in_offset(Date::MIN, Time::MIDNIGHT, UtcOffset::UTC)
                     .unix_timestamp()

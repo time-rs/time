@@ -10,7 +10,7 @@ use core::ops::Neg;
 #[cfg(feature = "formatting")]
 use std::io;
 
-use deranged::{RangedI8, RangedI32, RangedU8};
+use deranged::{ri8, ri32, ru8};
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
 #[cfg(feature = "local-offset")]
@@ -27,15 +27,15 @@ use crate::sys::local_offset_at;
 use crate::unit::*;
 
 /// The type of the `hours` field of `UtcOffset`.
-pub(crate) type Hours = RangedI8<-25, 25>;
+pub(crate) type Hours = ri8<-25, 25>;
 /// The type of the `minutes` field of `UtcOffset`.
 pub(crate) type Minutes =
-    RangedI8<{ -(Minute::per_t::<i8>(Hour) - 1) }, { Minute::per_t::<i8>(Hour) - 1 }>;
+    ri8<{ -(Minute::per_t::<i8>(Hour) - 1) }, { Minute::per_t::<i8>(Hour) - 1 }>;
 /// The type of the `seconds` field of `UtcOffset`.
 pub(crate) type Seconds =
-    RangedI8<{ -(Second::per_t::<i8>(Minute) - 1) }, { Second::per_t::<i8>(Minute) - 1 }>;
+    ri8<{ -(Second::per_t::<i8>(Minute) - 1) }, { Second::per_t::<i8>(Minute) - 1 }>;
 /// The type capable of storing the range of whole seconds that a `UtcOffset` can encompass.
-type WholeSeconds = RangedI32<
+type WholeSeconds = ri32<
     {
         Hours::MIN.get() as i32 * Second::per_t::<i32>(Hour)
             + Minutes::MIN.get() as i32 * Second::per_t::<i32>(Minute)
@@ -559,13 +559,13 @@ impl UtcOffset {
         // Safety: `hours`, `minutes` and `seconds` are all less than 100. Both the source and
         // destination are valid for two bytes, aligned, and do not overlap.
         unsafe {
-            two_digits_zero_padded(RangedU8::new_unchecked(hours))
+            two_digits_zero_padded(ru8::new_unchecked(hours))
                 .as_ptr()
                 .copy_to_nonoverlapping(buf.as_mut_ptr().add(1).cast(), 2);
-            two_digits_zero_padded(RangedU8::new_unchecked(minutes))
+            two_digits_zero_padded(ru8::new_unchecked(minutes))
                 .as_ptr()
                 .copy_to_nonoverlapping(buf.as_mut_ptr().add(4).cast(), 2);
-            two_digits_zero_padded(RangedU8::new_unchecked(seconds))
+            two_digits_zero_padded(ru8::new_unchecked(seconds))
                 .as_ptr()
                 .copy_to_nonoverlapping(buf.as_mut_ptr().add(7).cast(), 2);
         }

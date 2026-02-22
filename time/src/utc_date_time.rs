@@ -9,7 +9,7 @@ use core::time::Duration as StdDuration;
 #[cfg(feature = "formatting")]
 use std::io;
 
-use deranged::RangedI64;
+use deranged::ri64;
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
 use crate::date::{MAX_YEAR, MIN_YEAR};
@@ -192,7 +192,7 @@ impl UtcDateTime {
     #[inline]
     pub const fn from_unix_timestamp(timestamp: i64) -> Result<Self, error::ComponentRange> {
         type Timestamp =
-            RangedI64<{ UtcDateTime::MIN.unix_timestamp() }, { UtcDateTime::MAX.unix_timestamp() }>;
+            ri64<{ UtcDateTime::MIN.unix_timestamp() }, { UtcDateTime::MAX.unix_timestamp() }>;
         ensure_ranged!(Timestamp: timestamp);
 
         // Use the unchecked method here, as the input validity has already been verified.

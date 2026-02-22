@@ -9,7 +9,7 @@ use core::mem::MaybeUninit;
 use core::num::NonZero;
 use std::io;
 
-use deranged::{OptionRangedI32, OptionRangedU8, RangedI32, RangedU8, RangedU16, RangedU32};
+use deranged::{Option_ri32, Option_ru8, ri32, ru8, ru16, ru32};
 use num_conv::prelude::*;
 
 use self::component_provider::ComponentProvider;
@@ -20,16 +20,16 @@ use crate::time::{Hours, Minutes, Nanoseconds, Seconds};
 use crate::utc_offset::{Hours as OffsetHours, Minutes as OffsetMinutes, Seconds as OffsetSeconds};
 use crate::{Month, Weekday, error, num_fmt};
 
-type Day = RangedU8<1, 31>;
-type OptionDay = OptionRangedU8<1, 31>;
-type Ordinal = RangedU16<1, 366>;
-type IsoWeekNumber = RangedU8<1, 53>;
-type OptionIsoWeekNumber = OptionRangedU8<1, 53>;
-type MondayBasedWeek = RangedU8<0, 53>;
-type SundayBasedWeek = RangedU8<0, 53>;
-type Year = RangedI32<-999_999, 999_999>;
-type OptionYear = OptionRangedI32<-999_999, 999_999>;
-type AnyWeekNumber = RangedU8<0, 53>;
+type Day = ru8<1, 31>;
+type OptionDay = Option_ru8<1, 31>;
+type Ordinal = ru16<1, 366>;
+type IsoWeekNumber = ru8<1, 53>;
+type OptionIsoWeekNumber = Option_ru8<1, 53>;
+type MondayBasedWeek = ru8<0, 53>;
+type SundayBasedWeek = ru8<0, 53>;
+type Year = ri32<-999_999, 999_999>;
+type OptionYear = Option_ri32<-999_999, 999_999>;
+type AnyWeekNumber = ru8<0, 53>;
 
 const MONTH_NAMES: [&str; 12] = [
     "January",
@@ -176,7 +176,7 @@ pub(crate) fn format_float(
 #[inline]
 pub(crate) fn format_single_digit(
     output: &mut (impl io::Write + ?Sized),
-    value: RangedU8<0, 9>,
+    value: ru8<0, 9>,
 ) -> io::Result<usize> {
     write(output, num_fmt::single_digit(value))
 }
@@ -185,7 +185,7 @@ pub(crate) fn format_single_digit(
 #[inline]
 pub(crate) fn format_two_digits(
     output: &mut (impl io::Write + ?Sized),
-    value: RangedU8<0, 99>,
+    value: ru8<0, 99>,
     padding: modifier::Padding,
 ) -> io::Result<usize> {
     let s = match padding {
@@ -200,7 +200,7 @@ pub(crate) fn format_two_digits(
 #[inline]
 pub(crate) fn format_three_digits(
     output: &mut (impl io::Write + ?Sized),
-    value: RangedU16<0, 999>,
+    value: ru16<0, 999>,
     padding: modifier::Padding,
 ) -> io::Result<usize> {
     let [first, second_and_third] = match padding {
@@ -215,7 +215,7 @@ pub(crate) fn format_three_digits(
 #[inline]
 pub(crate) fn format_four_digits(
     output: &mut (impl io::Write + ?Sized),
-    value: RangedU16<0, 9_999>,
+    value: ru16<0, 9_999>,
     padding: modifier::Padding,
 ) -> io::Result<usize> {
     let [first_and_second, third_and_fourth] = match padding {
@@ -230,7 +230,7 @@ pub(crate) fn format_four_digits(
 #[inline]
 pub(crate) fn format_four_digits_pad_zero(
     output: &mut (impl io::Write + ?Sized),
-    value: RangedU16<0, 9_999>,
+    value: ru16<0, 9_999>,
 ) -> io::Result<usize> {
     write_many(output, num_fmt::four_digits_zero_padded(value))
 }
@@ -239,7 +239,7 @@ pub(crate) fn format_four_digits_pad_zero(
 #[inline]
 pub(crate) fn format_five_digits_pad_zero(
     output: &mut (impl io::Write + ?Sized),
-    value: RangedU32<0, 99_999>,
+    value: ru32<0, 99_999>,
 ) -> io::Result<usize> {
     write_many(output, num_fmt::five_digits_zero_padded(value))
 }
@@ -248,7 +248,7 @@ pub(crate) fn format_five_digits_pad_zero(
 #[inline]
 pub(crate) fn format_six_digits_pad_zero(
     output: &mut (impl io::Write + ?Sized),
-    value: RangedU32<0, 999_999>,
+    value: ru32<0, 999_999>,
 ) -> io::Result<usize> {
     write_many(output, num_fmt::six_digits_zero_padded(value))
 }
@@ -423,7 +423,7 @@ fn fmt_month(
         modifier::MonthRepr::Numerical => format_two_digits(
             output,
             // Safety: The month is guaranteed to be in the range `1..=12`.
-            unsafe { RangedU8::new_unchecked(u8::from(month)) },
+            unsafe { ru8::new_unchecked(u8::from(month)) },
             padding,
         ),
         modifier::MonthRepr::Long => {
@@ -468,11 +468,11 @@ fn fmt_weekday(
         ),
         // Safety: The value is guaranteed to be in the range `1..=7`.
         modifier::WeekdayRepr::Sunday => format_single_digit(output, unsafe {
-            RangedU8::new_unchecked(weekday.number_days_from_sunday() + u8::from(one_indexed))
+            ru8::new_unchecked(weekday.number_days_from_sunday() + u8::from(one_indexed))
         }),
         // Safety: The value is guaranteed to be in the range `1..=7`.
         modifier::WeekdayRepr::Monday => format_single_digit(output, unsafe {
-            RangedU8::new_unchecked(weekday.number_days_from_monday() + u8::from(one_indexed))
+            ru8::new_unchecked(weekday.number_days_from_monday() + u8::from(one_indexed))
         }),
     }
 }
@@ -509,7 +509,7 @@ fn fmt_full_year(
     bytes += if cfg!(feature = "large-dates") && range == modifier::YearRange::Extended {
         // Safety: We just called `.abs()`, so zero is the minimum. The maximum is
         // unchanged.
-        let value: RangedU32<0, 999_999> =
+        let value: ru32<0, 999_999> =
             unsafe { full_year.abs().narrow_unchecked::<0, 999_999>().into() };
 
         if let Some(value) = value.narrow::<0, 9_999>() {
@@ -550,8 +550,8 @@ fn fmt_century(
     bytes += if cfg!(feature = "large-dates") && range == modifier::YearRange::Extended {
         // Safety: The maximum divided by 100 is 9,9999, and the minimum is zero due to the
         // `.unsigned_abs()` call.
-        let value: RangedU16<0, 9_999> =
-            unsafe { RangedU16::new_unchecked((full_year.get().unsigned_abs() / 100).truncate()) };
+        let value: ru16<0, 9_999> =
+            unsafe { ru16::new_unchecked((full_year.get().unsigned_abs() / 100).truncate()) };
 
         if let Some(value) = value.narrow::<0, 99>() {
             try_likely_ok!(format_two_digits(output, value.into(), padding))
@@ -564,7 +564,7 @@ fn fmt_century(
         // Safety: The maximum year in any configuration is 999,999, so dividing by 100
         // results in 9,999. The minimum is zero due to the `.unsigned_abs()` call.
         let value =
-            unsafe { RangedU32::<0, 9_999>::new_unchecked(full_year.get().unsigned_abs() / 100) };
+            unsafe { ru32::<0, 9_999>::new_unchecked(full_year.get().unsigned_abs() / 100) };
 
         if let Some(value) = value.narrow::<0, 99>() {
             try_likely_ok!(format_two_digits(output, value.into(), padding))
@@ -590,8 +590,7 @@ fn fmt_year_last_two(
     let mut bytes = 0;
     // Safety: Modulus of 100 followed by `.unsigned_abs()` guarantees that the value
     // is in the range `0..=99`.
-    let value =
-        unsafe { RangedU8::new_unchecked((full_year.get() % 100).unsigned_abs().truncate()) };
+    let value = unsafe { ru8::new_unchecked((full_year.get() % 100).unsigned_abs().truncate()) };
     bytes += try_likely_ok!(format_two_digits(output, value, padding));
     Ok(bytes)
 }
@@ -764,7 +763,7 @@ fn fmt_offset_hour(
     // Safety: The value is guaranteed to be under 100 because of `OffsetHours`.
     bytes += try_likely_ok!(format_two_digits(
         output,
-        unsafe { RangedU8::new_unchecked(hour.get().unsigned_abs()) },
+        unsafe { ru8::new_unchecked(hour.get().unsigned_abs()) },
         padding,
     ));
     Ok(bytes)
@@ -781,7 +780,7 @@ fn fmt_offset_minute(
         output,
         // Safety: `OffsetMinutes` is guaranteed to be in the range `-59..=59`, so the absolute
         // value is guaranteed to be in the range `0..=59`.
-        unsafe { RangedU8::new_unchecked(offset_minute.get().unsigned_abs()) },
+        unsafe { ru8::new_unchecked(offset_minute.get().unsigned_abs()) },
         padding,
     )
 }
@@ -797,7 +796,7 @@ fn fmt_offset_second(
         output,
         // Safety: `OffsetSeconds` is guaranteed to be in the range `-59..=59`, so the absolute
         // value is guaranteed to be in the range `0..=59`.
-        unsafe { RangedU8::new_unchecked(offset_second.get().unsigned_abs()) },
+        unsafe { ru8::new_unchecked(offset_second.get().unsigned_abs()) },
         padding,
     )
 }

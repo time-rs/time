@@ -9,7 +9,7 @@ use core::time::Duration as StdDuration;
 #[cfg(feature = "std")]
 use std::time::SystemTime;
 
-use deranged::RangedI32;
+use deranged::ri32;
 use num_conv::prelude::*;
 
 #[cfg(feature = "std")]
@@ -37,7 +37,7 @@ pub(crate) enum Padding {
 
 /// The type of the `nanosecond` field of `Duration`.
 type Nanoseconds =
-    RangedI32<{ -Nanosecond::per_t::<i32>(Second) + 1 }, { Nanosecond::per_t::<i32>(Second) - 1 }>;
+    ri32<{ -Nanosecond::per_t::<i32>(Second) + 1 }, { Nanosecond::per_t::<i32>(Second) - 1 }>;
 
 /// A span of time with nanosecond precision.
 ///

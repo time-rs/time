@@ -8,7 +8,7 @@ use core::mem::MaybeUninit;
 use core::ops::Deref;
 use core::slice;
 
-use deranged::{RangedU8, RangedU16, RangedU32};
+use deranged::{ru8, ru16, ru32};
 
 static SINGLE_DIGITS: [u8; 10] = *b"0123456789";
 
@@ -70,7 +70,7 @@ pub(crate) const unsafe fn str_from_raw_parts<'a>(ptr: *const u8, len: usize) ->
 }
 
 #[inline]
-const fn div_100(n: RangedU16<0, 9_999>) -> [RangedU8<0, 99>; 2] {
+const fn div_100(n: ru16<0, 9_999>) -> [ru8<0, 99>; 2] {
     const EXP: u32 = 19; // 19 is faster or equal to 12 even for 3 digits.
     const SIG: u32 = (1 << EXP) / 100 + 1;
 
@@ -83,15 +83,15 @@ const fn div_100(n: RangedU16<0, 9_999>) -> [RangedU8<0, 99>; 2] {
     // due to the arithmetic above.
     unsafe {
         [
-            RangedU8::new_unchecked(high as u8),
-            RangedU8::new_unchecked(low as u8),
+            ru8::new_unchecked(high as u8),
+            ru8::new_unchecked(low as u8),
         ]
     }
 }
 
 /// Obtain a string containing a single ASCII digit representing `n`.
 #[inline]
-pub(crate) const fn single_digit(n: RangedU8<0, 9>) -> &'static str {
+pub(crate) const fn single_digit(n: ru8<0, 9>) -> &'static str {
     // Safety: We're staying within the bounds of the array. The array contains only ASCII
     // characters, so it's valid UTF-8.
     unsafe { str_from_raw_parts(SINGLE_DIGITS.as_ptr().add(n.get() as usize), 1) }
@@ -100,7 +100,7 @@ pub(crate) const fn single_digit(n: RangedU8<0, 9>) -> &'static str {
 /// Obtain a string of one or two ASCII digits representing `n`. No leading zeros or spaces are
 /// included.
 #[inline]
-pub(crate) const fn one_to_two_digits_no_padding(n: RangedU8<0, 99>) -> &'static str {
+pub(crate) const fn one_to_two_digits_no_padding(n: ru8<0, 99>) -> &'static str {
     let n = n.get();
     let is_single_digit = n < 10;
     // Safety: We're staying within the bounds of the array. The array contains only ASCII
@@ -118,7 +118,7 @@ pub(crate) const fn one_to_two_digits_no_padding(n: RangedU8<0, 99>) -> &'static
 /// Obtain a string of two ASCII digits representing `n`. This includes a leading zero if `n` is
 /// less than 10.
 #[inline]
-pub(crate) const fn two_digits_zero_padded(n: RangedU8<0, 99>) -> &'static str {
+pub(crate) const fn two_digits_zero_padded(n: ru8<0, 99>) -> &'static str {
     // Safety: We're staying within the bounds of the array. The array contains only ASCII
     // characters, so it's valid UTF-8.
     unsafe { str_from_raw_parts(ZERO_PADDED_PAIRS.as_ptr().add((n.get() as usize) * 2), 2) }
@@ -127,7 +127,7 @@ pub(crate) const fn two_digits_zero_padded(n: RangedU8<0, 99>) -> &'static str {
 /// Obtain a string of two ASCII digits representing `n`. This includes a leading space if `n` is
 /// less than 10.
 #[inline]
-pub(crate) const fn two_digits_space_padded(n: RangedU8<0, 99>) -> &'static str {
+pub(crate) const fn two_digits_space_padded(n: ru8<0, 99>) -> &'static str {
     // Safety: We're staying within the bounds of the array. The array contains only ASCII
     // characters, so it's valid UTF-8.
     unsafe { str_from_raw_parts(SPACE_PADDED_PAIRS.as_ptr().add((n.get() as usize) * 2), 2) }
@@ -136,7 +136,7 @@ pub(crate) const fn two_digits_space_padded(n: RangedU8<0, 99>) -> &'static str 
 /// Obtain two strings of ASCII digits representing `n`. The first string is most significant. No
 /// leading zeros or spaces are included.
 #[inline]
-pub(crate) fn one_to_three_digits_no_padding(n: RangedU16<0, 999>) -> [&'static str; 2] {
+pub(crate) fn one_to_three_digits_no_padding(n: ru16<0, 999>) -> [&'static str; 2] {
     if let Some(n) = n.narrow::<0, 99>() {
         crate::hint::cold_path();
         ["", one_to_two_digits_no_padding(n.into())]
@@ -148,7 +148,7 @@ pub(crate) fn one_to_three_digits_no_padding(n: RangedU16<0, 999>) -> [&'static 
 /// Obtain two strings of ASCII digits representing `n`. The first string is the most significant.
 /// Leading zeros are included if the number has fewer than 3 digits.
 #[inline]
-pub(crate) const fn three_digits_zero_padded(n: RangedU16<0, 999>) -> [&'static str; 2] {
+pub(crate) const fn three_digits_zero_padded(n: ru16<0, 999>) -> [&'static str; 2] {
     let [high, low] = div_100(n.expand());
     [
         // Safety: `high` is guaranteed to be less than 10 due to the range of the input.
@@ -160,7 +160,7 @@ pub(crate) const fn three_digits_zero_padded(n: RangedU16<0, 999>) -> [&'static 
 /// Obtain two strings of ASCII digits representing `n`. The first string is the most significant.
 /// Leading spaces are included if the number has fewer than 3 digits.
 #[inline]
-pub(crate) const fn three_digits_space_padded(n: RangedU16<0, 999>) -> [&'static str; 2] {
+pub(crate) const fn three_digits_space_padded(n: ru16<0, 999>) -> [&'static str; 2] {
     let [high, low] = div_100(n.expand());
 
     if let Some(high) = high.narrow::<1, 9>() {
@@ -173,7 +173,7 @@ pub(crate) const fn three_digits_space_padded(n: RangedU16<0, 999>) -> [&'static
 /// Obtain two strings of ASCII digits representing `n`. The first string is the most significant.
 /// No leading zeros or spaces are included.
 #[inline]
-pub(crate) fn one_to_four_digits_no_padding(n: RangedU16<0, 9_999>) -> [&'static str; 2] {
+pub(crate) fn one_to_four_digits_no_padding(n: ru16<0, 9_999>) -> [&'static str; 2] {
     if let Some(n) = n.narrow::<0, 999>() {
         crate::hint::cold_path();
         one_to_three_digits_no_padding(n)
@@ -185,7 +185,7 @@ pub(crate) fn one_to_four_digits_no_padding(n: RangedU16<0, 9_999>) -> [&'static
 /// Obtain two strings of two ASCII digits each representing `n`. The first string is the most
 /// significant. Leading zeros are included if the number has fewer than 4 digits.
 #[inline]
-pub(crate) const fn four_digits_zero_padded(n: RangedU16<0, 9_999>) -> [&'static str; 2] {
+pub(crate) const fn four_digits_zero_padded(n: ru16<0, 9_999>) -> [&'static str; 2] {
     let [high, low] = div_100(n);
     [two_digits_zero_padded(high), two_digits_zero_padded(low)]
 }
@@ -193,7 +193,7 @@ pub(crate) const fn four_digits_zero_padded(n: RangedU16<0, 9_999>) -> [&'static
 /// Obtain two strings of two ASCII digits each representing `n`. The first string is the most
 /// significant. Leading spaces are included if the number has fewer than 4 digits.
 #[inline]
-pub(crate) const fn four_digits_space_padded(n: RangedU16<0, 9_999>) -> [&'static str; 2] {
+pub(crate) const fn four_digits_space_padded(n: ru16<0, 9_999>) -> [&'static str; 2] {
     let [high, low] = div_100(n);
 
     if high.get() == 0 {
@@ -207,7 +207,7 @@ pub(crate) const fn four_digits_space_padded(n: RangedU16<0, 9_999>) -> [&'stati
 /// Leading zeros are included if the number has fewer than 4 digits. The first string will be empty
 /// if `n` is less than 10,000.
 #[inline]
-pub(crate) const fn four_to_six_digits(n: RangedU32<0, 999_999>) -> [&'static str; 3] {
+pub(crate) const fn four_to_six_digits(n: ru32<0, 999_999>) -> [&'static str; 3] {
     let n = n.get();
 
     let (first_two, remaining) = (n / 10_000, n % 10_000);
@@ -220,7 +220,7 @@ pub(crate) const fn four_to_six_digits(n: RangedU32<0, 999_999>) -> [&'static st
     let first_two = unsafe { str_from_raw_parts(ZERO_PADDED_PAIRS.as_ptr().add(offset), size) };
     // Safety: `remaining` is guaranteed to be less than 10,000 due to the modulus above.
     let [second_two, last_two] =
-        four_digits_zero_padded(unsafe { RangedU16::new_unchecked(remaining as u16) });
+        four_digits_zero_padded(unsafe { ru16::new_unchecked(remaining as u16) });
     [first_two, second_two, last_two]
 }
 
@@ -228,32 +228,32 @@ pub(crate) const fn four_to_six_digits(n: RangedU32<0, 999_999>) -> [&'static st
 /// Leading zeros are included if the number has fewer than 5 digits. The first string will be empty
 /// if `n` is less than 10,000.
 #[inline]
-pub(crate) const fn five_digits_zero_padded(n: RangedU32<0, 99_999>) -> [&'static str; 3] {
+pub(crate) const fn five_digits_zero_padded(n: ru32<0, 99_999>) -> [&'static str; 3] {
     let n = n.get();
 
     let (first_one, remaining) = (n / 10_000, n % 10_000);
 
     // Safety: `first_one` is guaranteed to be less than 10 due to the division above.
-    let first_one = single_digit(unsafe { RangedU8::new_unchecked(first_one as u8) });
+    let first_one = single_digit(unsafe { ru8::new_unchecked(first_one as u8) });
     // Safety: `remaining` is guaranteed to be less than 10,000 due to the modulus above.
     let [second_two, last_two] =
-        four_digits_zero_padded(unsafe { RangedU16::new_unchecked(remaining as u16) });
+        four_digits_zero_padded(unsafe { ru16::new_unchecked(remaining as u16) });
     [first_one, second_two, last_two]
 }
 
 /// Obtain three strings which together represent `n`. The first string is the most significant.
 /// Leading zeroes are included if the number has fewer than 6 digits.
 #[inline]
-pub(crate) const fn six_digits_zero_padded(n: RangedU32<0, 999_999>) -> [&'static str; 3] {
+pub(crate) const fn six_digits_zero_padded(n: ru32<0, 999_999>) -> [&'static str; 3] {
     let n = n.get();
 
     let (first_two, remaining) = (n / 10_000, n % 10_000);
 
     // Safety: `first_two` is guaranteed to be less than 100 due to the division above.
-    let first_two = two_digits_zero_padded(unsafe { RangedU8::new_unchecked(first_two as u8) });
+    let first_two = two_digits_zero_padded(unsafe { ru8::new_unchecked(first_two as u8) });
     // Safety: `remaining` is guaranteed to be less than 10,000 due to the modulus above.
     let [second_two, last_two] =
-        four_digits_zero_padded(unsafe { RangedU16::new_unchecked(remaining as u16) });
+        four_digits_zero_padded(unsafe { ru16::new_unchecked(remaining as u16) });
     [first_two, second_two, last_two]
 }
 
@@ -263,7 +263,7 @@ pub(crate) const fn six_digits_zero_padded(n: RangedU32<0, 999_999>) -> [&'stati
 /// first string will always contain exactly one digit; the remaining four will contain two digits
 /// each.
 #[inline]
-pub(crate) const fn subsecond_from_nanos(n: RangedU32<0, 999_999_999>) -> [&'static str; 5] {
+pub(crate) const fn subsecond_from_nanos(n: ru32<0, 999_999_999>) -> [&'static str; 5] {
     let n = n.get();
     let (digits_1_thru_5, digits_6_thru_9) = (n / 10_000, n % 10_000);
     let (digit_1, digits_2_thru_5) = (digits_1_thru_5 / 10_000, digits_1_thru_5 % 10_000);
@@ -271,11 +271,11 @@ pub(crate) const fn subsecond_from_nanos(n: RangedU32<0, 999_999_999>) -> [&'sta
     // Safety: The caller must ensure that `n` is less than 1,000,000,000. Combined with the
     // arithmetic above, this guarantees that all values are in the required ranges.
     unsafe {
-        let digit_1 = single_digit(RangedU8::new_unchecked(digit_1 as u8));
+        let digit_1 = single_digit(ru8::new_unchecked(digit_1 as u8));
         let [digits_2_and_3, digits_4_and_5] =
-            four_digits_zero_padded(RangedU16::new_unchecked(digits_2_thru_5 as u16));
+            four_digits_zero_padded(ru16::new_unchecked(digits_2_thru_5 as u16));
         let [digits_6_and_7, digits_8_and_9] =
-            four_digits_zero_padded(RangedU16::new_unchecked(digits_6_thru_9 as u16));
+            four_digits_zero_padded(ru16::new_unchecked(digits_6_thru_9 as u16));
 
         [
             digit_1,
@@ -292,7 +292,7 @@ pub(crate) const fn subsecond_from_nanos(n: RangedU32<0, 999_999_999>) -> [&'sta
 /// This value is intended to be used after a decimal point to represent a fractional second.
 /// Trailing zeros are truncated, but at least one digit is always present.
 #[inline]
-pub(crate) const fn truncated_subsecond_from_nanos(n: RangedU32<0, 999_999_999>) -> StackStr<9> {
+pub(crate) const fn truncated_subsecond_from_nanos(n: ru32<0, 999_999_999>) -> StackStr<9> {
     #[repr(C, align(8))]
     #[derive(Clone, Copy)]
     struct Digits {
