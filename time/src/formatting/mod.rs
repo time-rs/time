@@ -278,20 +278,16 @@ where
     V: ComponentProvider,
 {
     use Component::*;
-    Ok(match component {
-        Day(modifier) if V::SUPPLIES_DATE => {
-            try_likely_ok!(fmt_day(output, value.day(state), modifier))
-        }
-        Month(modifier) if V::SUPPLIES_DATE => {
-            try_likely_ok!(fmt_month(output, value.month(state), modifier))
-        }
+    match component {
+        Day(modifier) if V::SUPPLIES_DATE => fmt_day(output, value.day(state), modifier),
+        Month(modifier) if V::SUPPLIES_DATE => fmt_month(output, value.month(state), modifier),
         Ordinal(modifier) if V::SUPPLIES_DATE => {
-            try_likely_ok!(fmt_ordinal(output, value.ordinal(state), modifier))
+            fmt_ordinal(output, value.ordinal(state), modifier)
         }
         Weekday(modifier) if V::SUPPLIES_DATE => {
-            try_likely_ok!(fmt_weekday(output, value.weekday(state), modifier))
+            fmt_weekday(output, value.weekday(state), modifier)
         }
-        WeekNumber(modifier) if V::SUPPLIES_DATE => try_likely_ok!(fmt_week_number(
+        WeekNumber(modifier) if V::SUPPLIES_DATE => fmt_week_number(
             output,
             match modifier.repr {
                 modifier::WeekNumberRepr::Iso => value.iso_week_number(state).expand(),
@@ -299,77 +295,94 @@ where
                 modifier::WeekNumberRepr::Monday => value.monday_based_week(state).expand(),
             },
             modifier,
-        )),
-        Year(modifier) if V::SUPPLIES_DATE => try_likely_ok!(fmt_year(
-            output,
-            if modifier.iso_week_based {
-                value.iso_year(state)
-            } else {
-                value.calendar_year(state)
+        ),
+        Year(
+            modifier @ modifier::Year {
+                repr: modifier::YearRepr::Full,
+                iso_week_based: false,
+                ..
             },
-            modifier,
-        )),
-        Hour(modifier) if V::SUPPLIES_TIME => {
-            try_likely_ok!(fmt_hour(output, value.hour(state), modifier))
+        ) if V::SUPPLIES_DATE => {
+            return fmt_full_year(output, value.calendar_year(state), modifier);
         }
-        Minute(modifier) if V::SUPPLIES_TIME => {
-            try_likely_ok!(fmt_minute(output, value.minute(state), modifier))
+        Year(
+            modifier @ modifier::Year {
+                repr: modifier::YearRepr::Century,
+                iso_week_based: false,
+                ..
+            },
+        ) if V::SUPPLIES_DATE => return fmt_century(output, value.calendar_year(state), modifier),
+        Year(
+            modifier @ modifier::Year {
+                repr: modifier::YearRepr::LastTwo,
+                iso_week_based: false,
+                ..
+            },
+        ) if V::SUPPLIES_DATE => fmt_year_last_two(output, value.calendar_year(state), modifier),
+        Year(
+            modifier @ modifier::Year {
+                repr: modifier::YearRepr::Full,
+                iso_week_based: true,
+                ..
+            },
+        ) if V::SUPPLIES_DATE => {
+            return fmt_full_year(output, value.iso_year(state), modifier);
         }
-        Period(modifier) if V::SUPPLIES_TIME => {
-            try_likely_ok!(fmt_period(output, value.period(state), modifier))
-        }
-        Second(modifier) if V::SUPPLIES_TIME => {
-            try_likely_ok!(fmt_second(output, value.second(state), modifier))
-        }
+        Year(
+            modifier @ modifier::Year {
+                repr: modifier::YearRepr::Century,
+                iso_week_based: true,
+                ..
+            },
+        ) if V::SUPPLIES_DATE => return fmt_century(output, value.iso_year(state), modifier),
+        Year(
+            modifier @ modifier::Year {
+                repr: modifier::YearRepr::LastTwo,
+                iso_week_based: true,
+                ..
+            },
+        ) if V::SUPPLIES_DATE => fmt_year_last_two(output, value.iso_year(state), modifier),
+        Hour(modifier) if V::SUPPLIES_TIME => fmt_hour(output, value.hour(state), modifier),
+        Minute(modifier) if V::SUPPLIES_TIME => fmt_minute(output, value.minute(state), modifier),
+        Period(modifier) if V::SUPPLIES_TIME => fmt_period(output, value.period(state), modifier),
+        Second(modifier) if V::SUPPLIES_TIME => fmt_second(output, value.second(state), modifier),
         Subsecond(modifier) if V::SUPPLIES_TIME => {
-            try_likely_ok!(fmt_subsecond(output, value.nanosecond(state), modifier))
+            fmt_subsecond(output, value.nanosecond(state), modifier)
         }
-        OffsetHour(modifier) if V::SUPPLIES_OFFSET => try_likely_ok!(fmt_offset_hour(
+        OffsetHour(modifier) if V::SUPPLIES_OFFSET => fmt_offset_hour(
             output,
             value.offset_is_negative(state),
             value.offset_hour(state),
             modifier,
-        )),
-        OffsetMinute(modifier) if V::SUPPLIES_OFFSET => try_likely_ok!(fmt_offset_minute(
-            output,
-            value.offset_minute(state),
-            modifier
-        )),
-        OffsetSecond(modifier) if V::SUPPLIES_OFFSET => try_likely_ok!(fmt_offset_second(
-            output,
-            value.offset_second(state),
-            modifier
-        )),
-        Ignore(_) => 0,
+        ),
+        OffsetMinute(modifier) if V::SUPPLIES_OFFSET => {
+            fmt_offset_minute(output, value.offset_minute(state), modifier)
+        }
+        OffsetSecond(modifier) if V::SUPPLIES_OFFSET => {
+            fmt_offset_second(output, value.offset_second(state), modifier)
+        }
+        Ignore(_) => return Ok(0),
         UnixTimestamp(modifier) if V::SUPPLIES_TIMESTAMP => match modifier.precision {
-            modifier::UnixTimestampPrecision::Second => try_likely_ok!(fmt_unix_timestamp_seconds(
+            modifier::UnixTimestampPrecision::Second => {
+                fmt_unix_timestamp_seconds(output, value.unix_timestamp_seconds(state), modifier)
+            }
+            modifier::UnixTimestampPrecision::Millisecond => fmt_unix_timestamp_milliseconds(
                 output,
-                value.unix_timestamp_seconds(state),
+                value.unix_timestamp_milliseconds(state),
                 modifier,
-            )),
-            modifier::UnixTimestampPrecision::Millisecond => {
-                try_likely_ok!(fmt_unix_timestamp_milliseconds(
-                    output,
-                    value.unix_timestamp_milliseconds(state),
-                    modifier,
-                ))
-            }
-            modifier::UnixTimestampPrecision::Microsecond => {
-                try_likely_ok!(fmt_unix_timestamp_microseconds(
-                    output,
-                    value.unix_timestamp_microseconds(state),
-                    modifier,
-                ))
-            }
-            modifier::UnixTimestampPrecision::Nanosecond => {
-                try_likely_ok!(fmt_unix_timestamp_nanoseconds(
-                    output,
-                    value.unix_timestamp_nanoseconds(state),
-                    modifier,
-                ))
-            }
+            ),
+            modifier::UnixTimestampPrecision::Microsecond => fmt_unix_timestamp_microseconds(
+                output,
+                value.unix_timestamp_microseconds(state),
+                modifier,
+            ),
+            modifier::UnixTimestampPrecision::Nanosecond => fmt_unix_timestamp_nanoseconds(
+                output,
+                value.unix_timestamp_nanoseconds(state),
+                modifier,
+            ),
         },
-        End(modifier::End { trailing_input: _ }) => 0,
+        End(modifier::End { trailing_input: _ }) => return Ok(0),
 
         // This is functionally the same as a wildcard arm, but it will cause an error if a new
         // component is added. This is to avoid a bug where a new component, the code compiles, and
@@ -381,7 +394,8 @@ where
         | OffsetSecond(_) | Ignore(_) | UnixTimestamp(_) | End(_) => {
             return Err(error::Format::InsufficientTypeInformation);
         }
-    })
+    }
+    .map_err(Into::into)
 }
 
 /// Format the day into the designated output.
@@ -473,100 +487,112 @@ fn fmt_week_number(
     format_two_digits(output, week_number.expand(), padding)
 }
 
-/// Format the year into the designated output.
-fn fmt_year(
+/// Format the full year into the designated output.
+#[inline]
+fn fmt_full_year(
     output: &mut (impl io::Write + ?Sized),
     full_year: Year,
     modifier::Year {
         padding,
-        repr,
+        repr: _,
         range,
         iso_week_based: _,
         sign_is_mandatory,
     }: modifier::Year,
 ) -> Result<usize, error::Format> {
     let mut bytes = 0;
-    if repr != modifier::YearRepr::LastTwo {
-        bytes += try_likely_ok!(fmt_sign(
-            output,
-            full_year.is_negative(),
-            sign_is_mandatory || (cfg!(feature = "large-dates") && full_year.get() >= 10_000),
-        ));
-    }
+    bytes += try_likely_ok!(fmt_sign(
+        output,
+        full_year.is_negative(),
+        sign_is_mandatory || (cfg!(feature = "large-dates") && full_year.get() >= 10_000),
+    ));
     bytes += if cfg!(feature = "large-dates") && range == modifier::YearRange::Extended {
-        match repr {
-            modifier::YearRepr::Full => {
-                // Safety: We just called `.abs()`, so zero is the minimum. The maximum is
-                // unchanged.
-                let value: RangedU32<0, 999_999> =
-                    unsafe { full_year.abs().narrow_unchecked::<0, 999_999>().into() };
+        // Safety: We just called `.abs()`, so zero is the minimum. The maximum is
+        // unchanged.
+        let value: RangedU32<0, 999_999> =
+            unsafe { full_year.abs().narrow_unchecked::<0, 999_999>().into() };
 
-                if let Some(value) = value.narrow::<0, 9_999>() {
-                    try_likely_ok!(format_four_digits(output, value.into(), padding))
-                } else if let Some(value) = value.narrow::<0, 99_999>() {
-                    try_likely_ok!(format_five_digits_pad_zero(output, value))
-                } else {
-                    try_likely_ok!(format_six_digits_pad_zero(output, value))
-                }
-            }
-            modifier::YearRepr::Century => {
-                // Safety: The maximum divided by 100 is 9,9999, and the minimum is zero due to the
-                // `.unsigned_abs()` call.
-                let value: RangedU16<0, 9_999> = unsafe {
-                    RangedU16::new_unchecked((full_year.get().unsigned_abs() / 100).truncate())
-                };
+        if let Some(value) = value.narrow::<0, 9_999>() {
+            try_likely_ok!(format_four_digits(output, value.into(), padding))
+        } else if let Some(value) = value.narrow::<0, 99_999>() {
+            try_likely_ok!(format_five_digits_pad_zero(output, value))
+        } else {
+            try_likely_ok!(format_six_digits_pad_zero(output, value))
+        }
+    } else if let Some(value) = full_year.abs().narrow::<0, 9_999>() {
+        try_likely_ok!(format_four_digits(output, value.into(), padding))
+    } else {
+        return Err(error::ComponentRange::conditional("year").into());
+    };
+    Ok(bytes)
+}
 
-                if let Some(value) = value.narrow::<0, 99>() {
-                    try_likely_ok!(format_two_digits(output, value.into(), padding))
-                } else if let Some(value) = value.narrow::<0, 999>() {
-                    try_likely_ok!(format_three_digits(output, value, padding))
-                } else {
-                    try_likely_ok!(format_four_digits(output, value, padding))
-                }
-            }
-            modifier::YearRepr::LastTwo => {
-                // Safety: Modulus followed by `.unsigned_abs()` guarantees that the value is
-                // in the range `0..=99`.
-                let value = unsafe {
-                    RangedU8::new_unchecked((full_year.get() % 100).unsigned_abs().truncate())
-                };
-                try_likely_ok!(format_two_digits(output, value, padding))
-            }
+/// Format the century into the designated output. Requires the full year be provided as an
+/// argument.
+#[inline]
+fn fmt_century(
+    output: &mut (impl io::Write + ?Sized),
+    full_year: Year,
+    modifier::Year {
+        padding,
+        repr: _,
+        range,
+        iso_week_based: _,
+        sign_is_mandatory,
+    }: modifier::Year,
+) -> Result<usize, error::Format> {
+    let mut bytes = 0;
+    bytes += try_likely_ok!(fmt_sign(
+        output,
+        full_year.is_negative(),
+        sign_is_mandatory || (cfg!(feature = "large-dates") && full_year.get() >= 10_000),
+    ));
+    bytes += if cfg!(feature = "large-dates") && range == modifier::YearRange::Extended {
+        // Safety: The maximum divided by 100 is 9,9999, and the minimum is zero due to the
+        // `.unsigned_abs()` call.
+        let value: RangedU16<0, 9_999> =
+            unsafe { RangedU16::new_unchecked((full_year.get().unsigned_abs() / 100).truncate()) };
+
+        if let Some(value) = value.narrow::<0, 99>() {
+            try_likely_ok!(format_two_digits(output, value.into(), padding))
+        } else if let Some(value) = value.narrow::<0, 999>() {
+            try_likely_ok!(format_three_digits(output, value, padding))
+        } else {
+            try_likely_ok!(format_four_digits(output, value, padding))
         }
     } else {
-        match repr {
-            modifier::YearRepr::Full => {
-                if let Some(value) = full_year.abs().narrow::<0, 9_999>() {
-                    try_likely_ok!(format_four_digits(output, value.into(), padding))
-                } else {
-                    return Err(error::ComponentRange::conditional("year").into());
-                }
-            }
-            // Safety: Both the century and last two digits are guaranteed to be at most 99 due to
-            // the range of the input and validation above.
-            modifier::YearRepr::Century => {
-                // Safety: The maximum year in any configuration is 999,999, so dividing by 100
-                // results in 9,999. The minimum is zero due to the `.unsigned_abs()` call.
-                let value = unsafe {
-                    RangedU32::<0, 9_999>::new_unchecked(full_year.get().unsigned_abs() / 100)
-                };
+        // Safety: The maximum year in any configuration is 999,999, so dividing by 100
+        // results in 9,999. The minimum is zero due to the `.unsigned_abs()` call.
+        let value =
+            unsafe { RangedU32::<0, 9_999>::new_unchecked(full_year.get().unsigned_abs() / 100) };
 
-                if let Some(value) = value.narrow::<0, 99>() {
-                    try_likely_ok!(format_two_digits(output, value.into(), padding))
-                } else {
-                    return Err(error::ComponentRange::conditional("year").into());
-                }
-            }
-            modifier::YearRepr::LastTwo => {
-                // Safety: Modulus of 100 followed by `.unsigned_abs()` guarantees that the value
-                // is in the range `0..=99`.
-                let value = unsafe {
-                    RangedU8::new_unchecked((full_year.get() % 100).unsigned_abs().truncate())
-                };
-                try_likely_ok!(format_two_digits(output, value, padding))
-            }
+        if let Some(value) = value.narrow::<0, 99>() {
+            try_likely_ok!(format_two_digits(output, value.into(), padding))
+        } else {
+            return Err(error::ComponentRange::conditional("year").into());
         }
     };
+    Ok(bytes)
+}
+
+#[inline]
+fn fmt_year_last_two(
+    output: &mut (impl io::Write + ?Sized),
+    full_year: Year,
+    modifier::Year {
+        padding,
+        repr: _,
+        range: _,
+        iso_week_based: _,
+        sign_is_mandatory: _,
+    }: modifier::Year,
+) -> Result<usize, io::Error> {
+    let mut bytes = 0;
+    // Safety: Modulus of 100 followed by `.unsigned_abs()` guarantees that the value
+    // is in the range `0..=99`.
+    let value =
+        unsafe { RangedU8::new_unchecked((full_year.get() % 100).unsigned_abs().truncate()) };
+    bytes += try_likely_ok!(format_two_digits(output, value, padding));
     Ok(bytes)
 }
 
