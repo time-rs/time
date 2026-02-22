@@ -3,6 +3,7 @@
 mod component_provider;
 pub(crate) mod formattable;
 mod iso8601;
+mod metadata;
 
 use core::mem::MaybeUninit;
 use core::num::NonZero;
@@ -30,71 +31,81 @@ type Year = RangedI32<-999_999, 999_999>;
 type OptionYear = OptionRangedI32<-999_999, 999_999>;
 type AnyWeekNumber = RangedU8<0, 53>;
 
-const MONTH_NAMES: [&[u8]; 12] = [
-    b"January",
-    b"February",
-    b"March",
-    b"April",
-    b"May",
-    b"June",
-    b"July",
-    b"August",
-    b"September",
-    b"October",
-    b"November",
-    b"December",
+const MONTH_NAMES: [&str; 12] = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
 ];
 
-const WEEKDAY_NAMES: [&[u8]; 7] = [
-    b"Monday",
-    b"Tuesday",
-    b"Wednesday",
-    b"Thursday",
-    b"Friday",
-    b"Saturday",
-    b"Sunday",
+const WEEKDAY_NAMES: [&str; 7] = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
 ];
 
 /// Write all bytes to the output, returning the number of bytes written.
 #[inline]
-pub(crate) fn write(output: &mut (impl io::Write + ?Sized), bytes: &[u8]) -> io::Result<usize> {
+pub(crate) fn write_bytes(
+    output: &mut (impl io::Write + ?Sized),
+    bytes: &[u8],
+) -> io::Result<usize> {
     try_likely_ok!(output.write_all(bytes));
     Ok(bytes.len())
 }
 
-/// Write all byte slices to the output (in order), returning the total number of bytes written.
+/// Write the string to the output, returning the number of bytes written.
+#[inline]
+pub(crate) fn write(output: &mut (impl io::Write + ?Sized), s: &str) -> io::Result<usize> {
+    try_likely_ok!(output.write_all(s.as_bytes()));
+    Ok(s.len())
+}
+
+/// Write all strings to the output (in order), returning the total number of bytes written.
 #[inline]
 pub(crate) fn write_many<const N: usize>(
     output: &mut (impl io::Write + ?Sized),
-    arr: [&[u8]; N],
+    arr: [&str; N],
 ) -> io::Result<usize> {
-    let mut bytes_written = 0;
-    for bytes in arr {
-        try_likely_ok!(output.write_all(bytes));
-        bytes_written += bytes.len();
+    let mut bytes = 0;
+    for s in arr {
+        try_likely_ok!(output.write_all(s.as_bytes()));
+        bytes += s.len();
     }
-    Ok(bytes_written)
+    Ok(bytes)
 }
 
-/// If `pred` is true, write all bytes to the output, returning the number of bytes written.
+/// If `pred` is true, write the string to the output, returning the number of bytes written.
 #[inline]
 pub(crate) fn write_if(
     output: &mut (impl io::Write + ?Sized),
     pred: bool,
-    bytes: &[u8],
+    s: &str,
 ) -> io::Result<usize> {
-    if pred { write(output, bytes) } else { Ok(0) }
+    if pred { write(output, s) } else { Ok(0) }
 }
 
-/// If `pred` is true, write `true_bytes` to the output. Otherwise, write `false_bytes`.
+/// If `pred` is true, write `true_str` to the output. Otherwise, write `false_str`.
 #[inline]
 pub(crate) fn write_if_else(
     output: &mut (impl io::Write + ?Sized),
     pred: bool,
-    true_bytes: &[u8],
-    false_bytes: &[u8],
+    true_str: &str,
+    false_str: &str,
 ) -> io::Result<usize> {
-    write(output, if pred { true_bytes } else { false_bytes })
+    write(output, if pred { true_str } else { false_str })
 }
 
 /// Helper function to obtain 10^x, guaranteeing determinism for x ≤ 9. For these cases, the
@@ -167,7 +178,7 @@ pub(crate) fn format_single_digit(
     output: &mut (impl io::Write + ?Sized),
     value: RangedU8<0, 9>,
 ) -> io::Result<usize> {
-    write(output, num_fmt::single_digit(value).as_bytes())
+    write(output, num_fmt::single_digit(value))
 }
 
 /// Format a two digit number with the specified padding.
@@ -182,7 +193,7 @@ pub(crate) fn format_two_digits(
         modifier::Padding::Zero => num_fmt::two_digits_zero_padded(value),
         modifier::Padding::None => num_fmt::one_to_two_digits_no_padding(value),
     };
-    write(output, s.as_bytes())
+    write(output, s)
 }
 
 /// Format a three digit number with the specified padding.
@@ -197,7 +208,7 @@ pub(crate) fn format_three_digits(
         modifier::Padding::Zero => num_fmt::three_digits_zero_padded(value),
         modifier::Padding::None => num_fmt::one_to_three_digits_no_padding(value),
     };
-    write_many(output, [first, second_and_third].map(str::as_bytes))
+    write_many(output, [first, second_and_third])
 }
 
 /// Format a four digit number with the specified padding.
@@ -212,10 +223,7 @@ pub(crate) fn format_four_digits(
         modifier::Padding::Zero => num_fmt::four_digits_zero_padded(value),
         modifier::Padding::None => num_fmt::one_to_four_digits_no_padding(value),
     };
-    write_many(
-        output,
-        [first_and_second, third_and_fourth].map(str::as_bytes),
-    )
+    write_many(output, [first_and_second, third_and_fourth])
 }
 
 /// Format a four digit number that is padded with zeroes.
@@ -224,10 +232,7 @@ pub(crate) fn format_four_digits_pad_zero(
     output: &mut (impl io::Write + ?Sized),
     value: RangedU16<0, 9_999>,
 ) -> io::Result<usize> {
-    write_many(
-        output,
-        num_fmt::four_digits_zero_padded(value).map(str::as_bytes),
-    )
+    write_many(output, num_fmt::four_digits_zero_padded(value))
 }
 
 /// Format a five digit number that is padded with zeroes.
@@ -236,10 +241,7 @@ pub(crate) fn format_five_digits_pad_zero(
     output: &mut (impl io::Write + ?Sized),
     value: RangedU32<0, 99_999>,
 ) -> io::Result<usize> {
-    write_many(
-        output,
-        num_fmt::five_digits_zero_padded(value).map(str::as_bytes),
-    )
+    write_many(output, num_fmt::five_digits_zero_padded(value))
 }
 
 /// Format a six digit number that is padded with zeroes.
@@ -248,10 +250,7 @@ pub(crate) fn format_six_digits_pad_zero(
     output: &mut (impl io::Write + ?Sized),
     value: RangedU32<0, 999_999>,
 ) -> io::Result<usize> {
-    write_many(
-        output,
-        num_fmt::six_digits_zero_padded(value).map(str::as_bytes),
-    )
+    write_many(output, num_fmt::six_digits_zero_padded(value))
 }
 
 /// Format a number with no padding.
@@ -262,7 +261,7 @@ pub(crate) fn format_number_pad_none(
     output: &mut (impl io::Write + ?Sized),
     value: impl itoa::Integer + Copy,
 ) -> Result<usize, io::Error> {
-    write(output, itoa::Buffer::new().format(value).as_bytes())
+    write(output, itoa::Buffer::new().format(value))
 }
 
 /// Format the provided component into the designated output. An `Err` will be returned if the
@@ -614,10 +613,10 @@ fn fmt_period(
     write(
         output,
         match (period, is_uppercase) {
-            (Period::Am, false) => b"am",
-            (Period::Am, true) => b"AM",
-            (Period::Pm, false) => b"pm",
-            (Period::Pm, true) => b"PM",
+            (Period::Am, false) => "am",
+            (Period::Am, true) => "AM",
+            (Period::Pm, false) => "pm",
+            (Period::Pm, true) => "PM",
         },
     )
 }
@@ -705,7 +704,7 @@ fn fmt_subsecond(
             len,
         )
     };
-    write(output, s.as_bytes())
+    write(output, &s)
 }
 
 #[inline]
@@ -715,9 +714,9 @@ fn fmt_sign(
     sign_is_mandatory: bool,
 ) -> Result<usize, io::Error> {
     if is_negative {
-        write(output, b"-")
+        write(output, "-")
     } else if sign_is_mandatory {
-        write(output, b"+")
+        write(output, "+")
     } else {
         Ok(0)
     }

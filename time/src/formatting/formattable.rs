@@ -14,7 +14,7 @@ use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::format_description::{BorrowedFormatItem, OwnedFormatItem};
 use crate::formatting::{
     ComponentProvider, MONTH_NAMES, WEEKDAY_NAMES, format_component, format_four_digits_pad_zero,
-    format_two_digits, iso8601, write, write_if_else,
+    format_two_digits, iso8601, write, write_bytes, write_if_else,
 };
 use crate::internal_macros::try_likely_ok;
 use crate::{error, num_fmt};
@@ -39,6 +39,7 @@ impl<T> Formattable for T where T: Deref<Target: Formattable> {}
 mod sealed {
     use super::*;
     use crate::formatting::ComponentProvider;
+    use crate::formatting::metadata::ComputeMetadata;
 
     /// Format the item using a format description, the intended output, and the various components.
     #[expect(
@@ -46,7 +47,7 @@ mod sealed {
         private_interfaces,
         reason = "irrelevant due to being a sealed trait"
     )]
-    pub trait Sealed {
+    pub trait Sealed: ComputeMetadata {
         /// Format the item into the provided output, returning the number of bytes written.
         fn format_into<V>(
             &self,
@@ -63,9 +64,19 @@ mod sealed {
         where
             V: ComponentProvider,
         {
-            let mut buf = Vec::new();
+            let crate::formatting::metadata::Metadata {
+                max_bytes_needed,
+                guaranteed_utf8,
+            } = self.compute_metadata();
+
+            let mut buf = Vec::with_capacity(max_bytes_needed);
             try_likely_ok!(self.format_into(&mut buf, value, state));
-            Ok(String::from_utf8_lossy(&buf).into_owned())
+            Ok(if guaranteed_utf8 {
+                // Safety: The output is guaranteed to be UTF-8.
+                unsafe { String::from_utf8_unchecked(buf) }
+            } else {
+                String::from_utf8_lossy(&buf).into_owned()
+            })
         }
     }
 }
@@ -88,8 +99,8 @@ impl sealed::Sealed for BorrowedFormatItem<'_> {
     {
         Ok(match *self {
             #[expect(deprecated)]
-            Self::Literal(literal) => try_likely_ok!(write(output, literal)),
-            Self::StringLiteral(literal) => try_likely_ok!(write(output, literal.as_bytes())),
+            Self::Literal(literal) => try_likely_ok!(write_bytes(output, literal)),
+            Self::StringLiteral(literal) => try_likely_ok!(write(output, literal)),
             Self::Component(component) => {
                 try_likely_ok!(format_component(output, component, value, state))
             }
@@ -145,8 +156,8 @@ impl sealed::Sealed for OwnedFormatItem {
     {
         match self {
             #[expect(deprecated)]
-            Self::Literal(literal) => Ok(try_likely_ok!(write(output, literal))),
-            Self::StringLiteral(literal) => Ok(try_likely_ok!(write(output, literal.as_bytes()))),
+            Self::Literal(literal) => Ok(try_likely_ok!(write_bytes(output, literal))),
+            Self::StringLiteral(literal) => Ok(try_likely_ok!(write(output, literal))),
             Self::Component(component) => format_component(output, *component, value, state),
             Self::Compound(items) => (**items).format_into(output, value, state),
             Self::Optional(item) => (**item).format_into(output, value, state),
@@ -250,46 +261,46 @@ impl sealed::Sealed for Rfc2822 {
                 .extend::<usize>()]
             .get_unchecked(..3)
         }));
-        bytes += try_likely_ok!(write(output, b", "));
+        bytes += try_likely_ok!(write(output, ", "));
         bytes += try_likely_ok!(format_two_digits(
             output,
             value.day(state).expand(),
             Padding::Zero
         ));
-        bytes += try_likely_ok!(write(output, b" "));
+        bytes += try_likely_ok!(write(output, " "));
         // Safety: All month names are at least 3 bytes long.
         bytes += try_likely_ok!(write(output, unsafe {
             MONTH_NAMES[u8::from(value.month(state)).extend::<usize>() - 1].get_unchecked(..3)
         }));
-        bytes += try_likely_ok!(write(output, b" "));
+        bytes += try_likely_ok!(write(output, " "));
         // Safety: Years with five or more digits were rejected above. Likewise with negative years.
         bytes += try_likely_ok!(format_four_digits_pad_zero(output, unsafe {
             RangedU16::new_unchecked(value.calendar_year(state).get().cast_unsigned().truncate())
         }));
-        bytes += try_likely_ok!(write(output, b" "));
+        bytes += try_likely_ok!(write(output, " "));
         bytes += try_likely_ok!(format_two_digits(
             output,
             value.hour(state).expand(),
             Padding::Zero
         ));
-        bytes += try_likely_ok!(write(output, b":"));
+        bytes += try_likely_ok!(write(output, ":"));
         bytes += try_likely_ok!(format_two_digits(
             output,
             value.minute(state).expand(),
             Padding::Zero
         ));
-        bytes += try_likely_ok!(write(output, b":"));
+        bytes += try_likely_ok!(write(output, ":"));
         bytes += try_likely_ok!(format_two_digits(
             output,
             value.second(state).expand(),
             Padding::Zero
         ));
-        bytes += try_likely_ok!(write(output, b" "));
+        bytes += try_likely_ok!(write(output, " "));
         bytes += try_likely_ok!(write_if_else(
             output,
             value.offset_is_negative(state),
-            b"-",
-            b"+"
+            "-",
+            "+"
         ));
         bytes += try_likely_ok!(format_two_digits(
             output,
@@ -307,17 +318,6 @@ impl sealed::Sealed for Rfc2822 {
         ));
 
         Ok(bytes)
-    }
-
-    #[inline]
-    fn format<V>(&self, value: &V, state: &mut V::State) -> Result<String, error::Format>
-    where
-        V: ComponentProvider,
-    {
-        let mut buf = Vec::with_capacity(31);
-        try_likely_ok!(self.format_into(&mut buf, value, state));
-        // Safety: All components output are ASCII.
-        Ok(unsafe { String::from_utf8_unchecked(buf) })
     }
 }
 
@@ -364,32 +364,32 @@ impl sealed::Sealed for Rfc3339 {
         bytes += try_likely_ok!(format_four_digits_pad_zero(output, unsafe {
             RangedU16::new_unchecked(value.calendar_year(state).get().cast_unsigned().truncate())
         }));
-        bytes += try_likely_ok!(write(output, b"-"));
+        bytes += try_likely_ok!(write(output, "-"));
         bytes += try_likely_ok!(format_two_digits(
             output,
             // Safety: `month` is guaranteed to be in the range `1..=12`.
             unsafe { RangedU8::new_unchecked(u8::from(value.month(state))) },
             Padding::Zero,
         ));
-        bytes += try_likely_ok!(write(output, b"-"));
+        bytes += try_likely_ok!(write(output, "-"));
         bytes += try_likely_ok!(format_two_digits(
             output,
             value.day(state).expand(),
             Padding::Zero
         ));
-        bytes += try_likely_ok!(write(output, b"T"));
+        bytes += try_likely_ok!(write(output, "T"));
         bytes += try_likely_ok!(format_two_digits(
             output,
             value.hour(state).expand(),
             Padding::Zero
         ));
-        bytes += try_likely_ok!(write(output, b":"));
+        bytes += try_likely_ok!(write(output, ":"));
         bytes += try_likely_ok!(format_two_digits(
             output,
             value.minute(state).expand(),
             Padding::Zero
         ));
-        bytes += try_likely_ok!(write(output, b":"));
+        bytes += try_likely_ok!(write(output, ":"));
         bytes += try_likely_ok!(format_two_digits(
             output,
             value.second(state).expand(),
@@ -398,23 +398,23 @@ impl sealed::Sealed for Rfc3339 {
 
         let nanos = value.nanosecond(state);
         if nanos.get() != 0 {
-            bytes += try_likely_ok!(write(output, b"."));
+            bytes += try_likely_ok!(write(output, "."));
             try_likely_ok!(write(
                 output,
-                num_fmt::truncated_subsecond_from_nanos(nanos).as_bytes(),
+                &num_fmt::truncated_subsecond_from_nanos(nanos)
             ));
         }
 
         if value.offset_is_utc(state) {
-            bytes += try_likely_ok!(write(output, b"Z"));
+            bytes += try_likely_ok!(write(output, "Z"));
             return Ok(bytes);
         }
 
         bytes += try_likely_ok!(write_if_else(
             output,
             value.offset_is_negative(state),
-            b"-",
-            b"+"
+            "-",
+            "+"
         ));
         bytes += try_likely_ok!(format_two_digits(
             output,
@@ -423,7 +423,7 @@ impl sealed::Sealed for Rfc3339 {
             unsafe { RangedU8::new_unchecked(offset_hour.get().unsigned_abs()) },
             Padding::Zero,
         ));
-        bytes += try_likely_ok!(write(output, b":"));
+        bytes += try_likely_ok!(write(output, ":"));
         bytes += try_likely_ok!(format_two_digits(
             output,
             // Safety: `OffsetMinutes` is guaranteed to be in the range `-59..=59`, so the absolute
@@ -433,16 +433,6 @@ impl sealed::Sealed for Rfc3339 {
         ));
 
         Ok(bytes)
-    }
-
-    fn format<V>(&self, value: &V, state: &mut V::State) -> Result<String, error::Format>
-    where
-        V: ComponentProvider,
-    {
-        let mut buf = Vec::with_capacity(35);
-        try_likely_ok!(self.format_into(&mut buf, value, state));
-        // Safety: All components output are ASCII.
-        Ok(unsafe { String::from_utf8_unchecked(buf) })
     }
 }
 

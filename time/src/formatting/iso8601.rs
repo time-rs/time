@@ -34,7 +34,7 @@ where
             let year = value.calendar_year(state).get();
 
             if Iso8601::<CONFIG>::YEAR_IS_SIX_DIGITS {
-                bytes += write_if_else(output, year < 0, b"-", b"+")?;
+                bytes += write_if_else(output, year < 0, "-", "+")?;
                 // Safety: `calendar_year` returns a value whose absolute value is guaranteed to be
                 // less than 1,000,000.
                 bytes += format_six_digits_pad_zero(output, unsafe {
@@ -45,21 +45,21 @@ where
                     .ok_or(error::Format::InvalidComponent("year"))?;
                 bytes += format_four_digits_pad_zero(output, year)?;
             }
-            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b"-")?;
+            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, "-")?;
             // Safety: `month` is guaranteed to be in the range `1..=12`.
             bytes += format_two_digits(
                 output,
                 unsafe { RangedU8::new_unchecked(u8::from(value.month(state))) },
                 Padding::Zero,
             )?;
-            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b"-")?;
+            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, "-")?;
             bytes += format_two_digits(output, value.day(state).expand(), Padding::Zero)?;
         }
         DateKind::Week => {
             let year = value.iso_year(state).get();
 
             if Iso8601::<CONFIG>::YEAR_IS_SIX_DIGITS {
-                bytes += write_if_else(output, year < 0, b"-", b"+")?;
+                bytes += write_if_else(output, year < 0, "-", "+")?;
                 // Safety: `iso_year` returns a value whose absolute value is guaranteed to be less
                 // than 1,000,000.
                 bytes += format_six_digits_pad_zero(output, unsafe {
@@ -70,10 +70,10 @@ where
                     .ok_or(error::Format::InvalidComponent("year"))?;
                 bytes += format_four_digits_pad_zero(output, year)?;
             }
-            bytes += write_if_else(output, Iso8601::<CONFIG>::USE_SEPARATORS, b"-W", b"W")?;
+            bytes += write_if_else(output, Iso8601::<CONFIG>::USE_SEPARATORS, "-W", "W")?;
             bytes +=
                 format_two_digits(output, value.iso_week_number(state).expand(), Padding::Zero)?;
-            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b"-")?;
+            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, "-")?;
             // Safety: The value is in the range `1..=7`.
             bytes += format_single_digit(output, unsafe {
                 RangedU8::new_unchecked(value.weekday(state).number_from_monday())
@@ -83,7 +83,7 @@ where
             let year = value.calendar_year(state).get();
 
             if Iso8601::<CONFIG>::YEAR_IS_SIX_DIGITS {
-                bytes += write_if_else(output, year < 0, b"-", b"+")?;
+                bytes += write_if_else(output, year < 0, "-", "+")?;
                 // Safety: `calendar_year` returns a value whose absolute value is guaranteed to be
                 // less than 1,000,000.
                 bytes += format_six_digits_pad_zero(output, unsafe {
@@ -94,7 +94,7 @@ where
                     .ok_or(error::Format::InvalidComponent("year"))?;
                 bytes += format_four_digits_pad_zero(output, year)?;
             }
-            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b"-")?;
+            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, "-")?;
             bytes += format_three_digits(output, value.ordinal(state).expand(), Padding::Zero)?;
         }
     }
@@ -118,7 +118,7 @@ where
     bytes += write_if(
         output,
         Iso8601::<CONFIG>::USE_SEPARATORS || Iso8601::<CONFIG>::FORMAT_DATE,
-        b"T",
+        "T",
     )?;
 
     match Iso8601::<CONFIG>::TIME_PRECISION {
@@ -131,7 +131,7 @@ where
         }
         TimePrecision::Minute { decimal_digits } => {
             bytes += format_two_digits(output, value.hour(state).expand(), Padding::Zero)?;
-            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b":")?;
+            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, ":")?;
             let minutes = (value.minute(state).get() as f64)
                 + (value.second(state).get() as f64) / Second::per_t::<f64>(Minute)
                 + (value.nanosecond(state).get() as f64) / Nanosecond::per_t::<f64>(Minute);
@@ -139,9 +139,9 @@ where
         }
         TimePrecision::Second { decimal_digits } => {
             bytes += format_two_digits(output, value.hour(state).expand(), Padding::Zero)?;
-            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b":")?;
+            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, ":")?;
             bytes += format_two_digits(output, value.minute(state).expand(), Padding::Zero)?;
-            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b":")?;
+            bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, ":")?;
             let seconds = (value.second(state).get() as f64)
                 + (value.nanosecond(state).get() as f64) / Nanosecond::per_t::<f64>(Second);
             bytes += format_float(output, seconds, 2, decimal_digits)?;
@@ -162,7 +162,7 @@ where
     V: ComponentProvider,
 {
     if Iso8601::<CONFIG>::FORMAT_TIME && value.offset_is_utc(state) {
-        return Ok(write(output, b"Z")?);
+        return Ok(write(output, "Z")?);
     }
 
     let mut bytes = 0;
@@ -170,7 +170,7 @@ where
     if value.offset_second(state).get() != 0 {
         return Err(error::Format::InvalidComponent("offset_second"));
     }
-    bytes += write_if_else(output, value.offset_is_negative(state), b"-", b"+")?;
+    bytes += write_if_else(output, value.offset_is_negative(state), "-", "+")?;
     // Safety: The value is in the range `-25..=25`.
     bytes += format_two_digits(
         output,
@@ -183,7 +183,7 @@ where
     if Iso8601::<CONFIG>::OFFSET_PRECISION == OffsetPrecision::Hour && minutes.get() != 0 {
         return Err(error::Format::InvalidComponent("offset_minute"));
     } else if Iso8601::<CONFIG>::OFFSET_PRECISION == OffsetPrecision::Minute {
-        bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, b":")?;
+        bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, ":")?;
         // Safety: The value is in the range `0..=59`.
         bytes += format_two_digits(
             output,
