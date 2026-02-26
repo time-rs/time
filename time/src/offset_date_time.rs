@@ -404,6 +404,21 @@ impl OffsetDateTime {
         )
     }
 
+    /// Convert the `OffsetDateTime` to a `PrimitiveDateTime` in whatever offset
+    /// it happens to be.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2000-01-01 0:00 UTC).to_primitive(),
+    ///     datetime!(2000-01-01 0:00),
+    /// );
+    /// ```
+    #[inline]
+    pub const fn to_primitive(self) -> PrimitiveDateTime {
+        PrimitiveDateTime::new(self.date(), self.time())
+    }
+
     /// Create an `OffsetDateTime` from the provided Unix timestamp. Calling `.offset()` on the
     /// resulting value is guaranteed to return UTC.
     ///
