@@ -1252,6 +1252,43 @@ impl Date {
         // Safety: `ordinal` is in range and `is_leap_year` is correct.
         Ok(unsafe { Self::from_parts(self.year(), is_leap_year, ordinal) })
     }
+
+    /// Get the first day of the year.
+    ///
+    /// ```rust
+    /// # use time_macros::date;
+    /// assert_eq!(date!(2022-049).first_day_of_year(), date!(2022-001));
+    /// ```
+    #[inline]
+    #[must_use = "This method does not mutate the original `Date`."]
+    pub const fn first_day_of_year(self) -> Self {
+        let is_leap_year = self.is_in_leap_year();
+        // Safety: ordinal of 1 is in range and `is_leap_year` is correct.
+        unsafe { Self::from_parts(self.year(), is_leap_year, 1) }
+    }
+
+    /// Get the last day of the year.
+    ///
+    /// ```rust
+    /// # use time_macros::date;
+    /// // 2022 isn't a leap year
+    /// assert_eq!(date!(2022-049).last_day_of_year(), date!(2022-365));
+    /// // 2024 is a leap year
+    /// assert_eq!(date!(2024-001).last_day_of_year(), date!(2024-366));
+    /// ```
+    #[inline]
+    #[must_use = "This method does not mutate the original `Date`."]
+    pub const fn last_day_of_year(self) -> Self {
+        let is_leap_year = self.is_in_leap_year();
+        let last_ordinal = if !is_leap_year {
+            365
+        } else {
+            hint::cold_path();
+            366
+        };
+        // Safety: ordinals are checked to be in range and `is_leap_year` is correct.
+        unsafe { Self::from_parts(self.year(), is_leap_year, last_ordinal) }
+    }
 }
 
 /// Methods to add a [`Time`] component, resulting in a [`PrimitiveDateTime`].

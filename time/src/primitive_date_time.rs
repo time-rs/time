@@ -982,6 +982,39 @@ impl PrimitiveDateTime {
         self.replace_time(self.time.truncate_to_millisecond())
     }
 
+    /// Get the start of the first day of the year.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(datetime!(2022-049 12:00:00).first_day_of_year(), datetime!(2022-001 00:00:00));
+    /// ```
+    #[inline]
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    pub const fn first_day_of_year(self) -> Self {
+        PrimitiveDateTime {
+            time: Time::MIDNIGHT,
+            date: self.date.first_day_of_year(),
+        }
+    }
+
+    /// Get the start of the last day of the year.
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// // 2022 isn't a leap year
+    /// assert_eq!(datetime!(2022-049 12:00:00).last_day_of_year(), datetime!(2022-365 00:00:00));
+    /// // 2024 is a leap year
+    /// assert_eq!(datetime!(2024-001 12:00:00).last_day_of_year(), datetime!(2024-366 00:00:00));
+    /// ```
+    #[inline]
+    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    pub const fn last_day_of_year(self) -> Self {
+        PrimitiveDateTime {
+            time: Time::MIDNIGHT,
+            date: self.date.last_day_of_year(),
+        }
+    }
+
     /// Replace the microseconds within the second.
     ///
     /// ```rust
