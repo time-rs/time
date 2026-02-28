@@ -21,11 +21,18 @@ macro_rules! if_pub {
 /// `default` method that is `const fn`, permitting the default value to be used in const contexts.
 // Every modifier should use this macro rather than a derived `Default`.
 macro_rules! impl_const_default {
-    ($($(#[$doc:meta])* $(@$pub:ident)? $type:ty => $default:expr;)*) => {$(
+    ($($(
+        #[doc = $doc:expr])*
+        $(#[cfg($($cfg:tt)+)])?
+        $(#[expect($($expected:tt)+)])?
+        $(@$pub:ident)? $type:ty => $default:expr;
+    )*) => {$(
+        $(#[cfg($($cfg)+)])?
+        $(#[expect($($expected)+)])?
         impl $type {
             if_pub! {
                 $($pub)?
-                $(#[$doc])*;
+                $(#[doc = $doc])*;
                 #[inline]
                 pub const fn default() -> Self {
                     $default
@@ -33,7 +40,9 @@ macro_rules! impl_const_default {
             }
         }
 
-        $(#[$doc])*
+        $(#[doc = $doc])*
+        $(#[cfg($($cfg)+)])?
+        $(#[expect($($expected)+)])?
         impl Default for $type {
             #[inline]
             fn default() -> Self {
@@ -49,10 +58,15 @@ impl_const_default! {
     @pub Day => Self { padding: Padding::Zero };
     /// Creates a modifier that indicates the value uses the
     /// [`Numerical`](Self::Numerical) representation.
+    #[expect(deprecated)]
     MonthRepr => Self::Numerical;
+    @pub MonthShort => Self { case_sensitive: true };
+    @pub MonthLong => Self { case_sensitive: true };
+    @pub MonthNumerical => Self { padding: Padding::Zero };
     /// Creates an instance of this type that indicates the value uses the
     /// [`Numerical`](MonthRepr::Numerical) representation, is [padded with zeroes](Padding::Zero),
     /// and is case-sensitive when parsing.
+    #[expect(deprecated)]
     @pub Month => Self {
         padding: Padding::Zero,
         repr: MonthRepr::Numerical,
@@ -61,30 +75,82 @@ impl_const_default! {
     /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero).
     @pub Ordinal => Self { padding: Padding::Zero };
     /// Creates a modifier that indicates the value uses the [`Long`](Self::Long) representation.
+    #[expect(deprecated)]
     WeekdayRepr => Self::Long;
+    @pub WeekdayShort => Self { case_sensitive: true };
+    @pub WeekdayLong => Self { case_sensitive: true };
+    @pub WeekdaySunday => Self { one_indexed: true };
+    @pub WeekdayMonday => Self { one_indexed: true };
     /// Creates a modifier that indicates the value uses the [`Long`](WeekdayRepr::Long)
     /// representation and is case-sensitive when parsing. If the representation is changed to a
     /// numerical one, the instance defaults to one-based indexing.
+    #[expect(deprecated)]
     @pub Weekday => Self {
         repr: WeekdayRepr::Long,
         one_indexed: true,
         case_sensitive: true,
     };
     /// Creates a modifier that indicates that the value uses the [`Iso`](Self::Iso) representation.
+    #[expect(deprecated)]
     WeekNumberRepr => Self::Iso;
+    @pub WeekNumberIso => Self { padding: Padding::Zero };
+    @pub WeekNumberSunday => Self { padding: Padding::Zero };
+    @pub WeekNumberMonday => Self { padding: Padding::Zero };
     /// Creates a modifier that indicates that the value is [padded with zeroes](Padding::Zero)
-            /// and uses the [`Iso`](WeekNumberRepr::Iso) representation.
+    /// and uses the [`Iso`](WeekNumberRepr::Iso) representation.
+    #[expect(deprecated)]
     @pub WeekNumber => Self {
         padding: Padding::Zero,
         repr: WeekNumberRepr::Iso,
     };
     /// Creates a modifier that indicates the value uses the [`Full`](Self::Full) representation.
+    #[expect(deprecated)]
     YearRepr => Self::Full;
     /// Creates a modifier that indicates the value uses the [`Extended`](Self::Extended) range.
+    #[expect(deprecated)]
     YearRange => Self::Extended;
+    @pub CalendarYearFullExtendedRange => Self {
+        padding: Padding::Zero,
+        sign_is_mandatory: false,
+    };
+    @pub CalendarYearFullStandardRange => Self {
+        padding: Padding::Zero,
+        sign_is_mandatory: false,
+    };
+    @pub IsoYearFullExtendedRange => Self {
+        padding: Padding::Zero,
+        sign_is_mandatory: false,
+    };
+    @pub IsoYearFullStandardRange => Self {
+        padding: Padding::Zero,
+        sign_is_mandatory: false,
+    };
+    @pub CalendarYearCenturyExtendedRange => Self {
+        padding: Padding::Zero,
+        sign_is_mandatory: false,
+    };
+    @pub CalendarYearCenturyStandardRange => Self {
+        padding: Padding::Zero,
+        sign_is_mandatory: false,
+    };
+    @pub IsoYearCenturyExtendedRange => Self {
+        padding: Padding::Zero,
+        sign_is_mandatory: false,
+    };
+    @pub IsoYearCenturyStandardRange => Self {
+        padding: Padding::Zero,
+        sign_is_mandatory: false,
+    };
+    @pub CalendarYearLastTwo => Self {
+        padding: Padding::Zero,
+    };
+    @pub IsoYearLastTwo => Self {
+        padding: Padding::Zero,
+    };
     /// Creates a modifier that indicates the value uses the [`Full`](YearRepr::Full)
     /// representation, is [padded with zeroes](Padding::Zero), uses the Gregorian calendar as its
     /// base, and only includes the year's sign if necessary.
+    #[expect(deprecated)]
     @pub Year => Self {
         padding: Padding::Zero,
         repr: YearRepr::Full,
@@ -92,8 +158,11 @@ impl_const_default! {
         iso_week_based: false,
         sign_is_mandatory: false,
     };
+    @pub Hour12 => Self { padding: Padding::Zero };
+    @pub Hour24 => Self { padding: Padding::Zero };
     /// Creates a modifier that indicates the value is [padded with zeroes](Padding::Zero) and
     /// has the 24-hour representation.
+    #[expect(deprecated)]
     @pub Hour => Self {
         padding: Padding::Zero,
         is_12_hour_clock: false,
@@ -128,9 +197,15 @@ impl_const_default! {
     Padding => Self::Zero;
     /// Creates a modifier that indicates the value represents the [number of seconds](Self::Second)
     /// since the Unix epoch.
+    #[expect(deprecated)]
     UnixTimestampPrecision => Self::Second;
+    @pub UnixTimestampSecond => Self { sign_is_mandatory: false };
+    @pub UnixTimestampMillisecond => Self { sign_is_mandatory: false };
+    @pub UnixTimestampMicrosecond => Self { sign_is_mandatory: false };
+    @pub UnixTimestampNanosecond => Self { sign_is_mandatory: false };
     /// Creates a modifier that indicates the value represents the [number of
     /// seconds](UnixTimestampPrecision::Second) since the Unix epoch. The sign is not mandatory.
+    #[expect(deprecated)]
     @pub UnixTimestamp => Self {
         precision: UnixTimestampPrecision::Second,
         sign_is_mandatory: false,
@@ -162,6 +237,10 @@ impl Day {
 
 /// The representation of a month.
 #[non_exhaustive]
+#[deprecated(
+    since = "0.3.48",
+    note = "used only in the deprecated `Month` component"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MonthRepr {
     /// The number of the month (January is 1, December is 12).
@@ -172,8 +251,61 @@ pub enum MonthRepr {
     Short,
 }
 
+/// Month of the year using the short form of the month name (e.g. "Jan").
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MonthShort {
+    /// Is the value case sensitive when parsing?
+    pub(crate) case_sensitive: bool,
+}
+
+impl MonthShort {
+    /// Set whether the value is case sensitive when parsing.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_case_sensitive(self, case_sensitive: bool) -> Self {
+        Self { case_sensitive }
+    }
+}
+
+/// Month of the year using the long form of the month name (e.g. "January").
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MonthLong {
+    /// Is the value case sensitive when parsing?
+    pub(crate) case_sensitive: bool,
+}
+
+impl MonthLong {
+    /// Set whether the value is case sensitive when parsing.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_case_sensitive(self, case_sensitive: bool) -> Self {
+        Self { case_sensitive }
+    }
+}
+
+/// Month of the year using a numerical representation (e.g. "1" for January).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MonthNumerical {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+}
+
+impl MonthNumerical {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding }
+    }
+}
+
 /// Month of the year.
 #[non_exhaustive]
+#[allow(deprecated)]
+#[deprecated(
+    since = "0.3.48",
+    note = "use `MonthShort`, `MonthLong`, or `MonthNumeric` instead"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Month {
     /// The padding to obtain the minimum width.
@@ -184,6 +316,7 @@ pub struct Month {
     pub case_sensitive: bool,
 }
 
+#[expect(deprecated)]
 impl Month {
     /// Set the padding type.
     #[inline]
@@ -229,6 +362,10 @@ impl Ordinal {
 
 /// The representation used for the day of the week.
 #[non_exhaustive]
+#[deprecated(
+    since = "0.3.48",
+    note = "used only in the deprecated `Weekday` component"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WeekdayRepr {
     /// The short form of the weekday (e.g. "Mon").
@@ -245,8 +382,77 @@ pub enum WeekdayRepr {
     Monday,
 }
 
+/// Day of the week using the short form of the weekday (e.g. "Mon").
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WeekdayShort {
+    /// Is the value case sensitive when parsing?
+    pub(crate) case_sensitive: bool,
+}
+
+impl WeekdayShort {
+    /// Set whether the value is case sensitive when parsing.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_case_sensitive(self, case_sensitive: bool) -> Self {
+        Self { case_sensitive }
+    }
+}
+
+/// Day of the week using the long form of the weekday (e.g. "Monday").
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WeekdayLong {
+    /// Is the value case sensitive when parsing?
+    pub(crate) case_sensitive: bool,
+}
+
+impl WeekdayLong {
+    /// Set whether the value is case sensitive when parsing.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_case_sensitive(self, case_sensitive: bool) -> Self {
+        Self { case_sensitive }
+    }
+}
+
+/// Day of the week using a numerical representation with Sunday as the first day of the week.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WeekdaySunday {
+    /// Is the value zero or one-indexed?
+    pub(crate) one_indexed: bool,
+}
+
+impl WeekdaySunday {
+    /// Set whether the value is one-indexed.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_one_indexed(self, one_indexed: bool) -> Self {
+        Self { one_indexed }
+    }
+}
+
+/// Day of the week using a numerical representation with Monday as the first day of the week.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WeekdayMonday {
+    /// Is the value zero or one-indexed?
+    pub(crate) one_indexed: bool,
+}
+
+impl WeekdayMonday {
+    /// Set whether the value is one-indexed.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_one_indexed(self, one_indexed: bool) -> Self {
+        Self { one_indexed }
+    }
+}
+
 /// Day of the week.
 #[non_exhaustive]
+#[allow(deprecated)]
+#[deprecated(
+    since = "0.3.48",
+    note = "use `WeekdayShort`, `WeekdayLong`, `WeekdaySunday`, or `WeekdayMonday` instead"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Weekday {
     /// What form of representation should be used?
@@ -257,6 +463,7 @@ pub struct Weekday {
     pub case_sensitive: bool,
 }
 
+#[expect(deprecated)]
 impl Weekday {
     /// Set the manner in which the weekday is represented.
     #[inline]
@@ -288,6 +495,10 @@ impl Weekday {
 
 /// The representation used for the week number.
 #[non_exhaustive]
+#[deprecated(
+    since = "0.3.48",
+    note = "used only in the deprecated `WeekNumber` component"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WeekNumberRepr {
     /// Week 1 is the week that contains January 4.
@@ -298,8 +509,67 @@ pub enum WeekNumberRepr {
     Monday,
 }
 
+/// Week within the year using the ISO week calendar.
+///
+/// Week 1 is the week that contains January 4. All weeks begin on a Monday.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WeekNumberIso {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
+}
+
+impl WeekNumberIso {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding }
+    }
+}
+
+/// Week within the calendar year.
+///
+/// Week 1 begins on the first Sunday of the calendar year.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WeekNumberSunday {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
+}
+
+impl WeekNumberSunday {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding }
+    }
+}
+
+/// Week within the calendar year.
+///
+/// Week 1 begins on the first Monday of the calendar year.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WeekNumberMonday {
+    /// The padding to obtain the minimum width.
+    pub padding: Padding,
+}
+
+impl WeekNumberMonday {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding }
+    }
+}
+
 /// Week within the year.
 #[non_exhaustive]
+#[allow(deprecated)]
+#[deprecated(
+    since = "0.3.48",
+    note = "use `WeekNumberIso`, `WeekNumberSunday`, or `WeekNumberMonday` instead"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WeekNumber {
     /// The padding to obtain the minimum width.
@@ -308,6 +578,7 @@ pub struct WeekNumber {
     pub repr: WeekNumberRepr,
 }
 
+#[expect(deprecated)]
 impl WeekNumber {
     /// Set the padding type.
     #[inline]
@@ -326,6 +597,10 @@ impl WeekNumber {
 
 /// The representation used for a year value.
 #[non_exhaustive]
+#[deprecated(
+    since = "0.3.48",
+    note = "used only in the deprecated `Year` component"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum YearRepr {
     /// The full value of the year.
@@ -340,6 +615,10 @@ pub enum YearRepr {
 ///
 /// This modifier has no effect when the year repr is [`LastTwo`](YearRepr::LastTwo).
 #[non_exhaustive]
+#[deprecated(
+    since = "0.3.48",
+    note = "used only in the deprecated `Year` component"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum YearRange {
     /// Years between -9999 and 9999 are supported.
@@ -351,8 +630,288 @@ pub enum YearRange {
     Extended,
 }
 
+/// Year of the date. All digits are included, the calendar year is used, and the range of years
+/// supported is ±999,999.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CalendarYearFullExtendedRange {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+    /// Whether the `+` sign is present when a non-negative year contains fewer digits than
+    /// necessary.
+    pub(crate) sign_is_mandatory: bool,
+}
+
+impl CalendarYearFullExtendedRange {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding, ..self }
+    }
+
+    /// Set whether the `+` sign is mandatory for non-negative years with more than four digits.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
+        Self {
+            sign_is_mandatory,
+            ..self
+        }
+    }
+}
+
+/// Year of the date. All digits are included, the calendar year is used, and the range of years
+/// supported is ±9,999.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CalendarYearFullStandardRange {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+    /// Whether the `+` sign is present when a non-negative year contains fewer digits than
+    /// necessary.
+    pub(crate) sign_is_mandatory: bool,
+}
+
+impl CalendarYearFullStandardRange {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding, ..self }
+    }
+
+    /// Set whether the `+` sign is present on non-negative years.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
+        Self {
+            sign_is_mandatory,
+            ..self
+        }
+    }
+}
+
+/// Year of the date. All digits are included, the ISO week-numbering year is used, and the range of
+/// years supported is ±999,999.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct IsoYearFullExtendedRange {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+    /// Whether the `+` sign is present when a non-negative year contains fewer digits than
+    /// necessary.
+    pub(crate) sign_is_mandatory: bool,
+}
+
+impl IsoYearFullExtendedRange {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding, ..self }
+    }
+
+    /// Set whether the `+` sign is mandatory for non-negative years with more than four digits.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
+        Self {
+            sign_is_mandatory,
+            ..self
+        }
+    }
+}
+
+/// Year of the date. All digits are included, the ISO week-numbering year is used, and the range of
+/// supported is ±9,999.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct IsoYearFullStandardRange {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+    /// Whether the `+` sign is present when a non-negative year contains fewer digits than
+    /// necessary.
+    pub(crate) sign_is_mandatory: bool,
+}
+
+impl IsoYearFullStandardRange {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding, ..self }
+    }
+
+    /// Set whether the `+` sign is present on non-negative years.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
+        Self {
+            sign_is_mandatory,
+            ..self
+        }
+    }
+}
+
+/// Year of the date. Only the century is included (i.e. all digits except the last two), the
+/// calendar year is used, and the range of years supported is ±999,999.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CalendarYearCenturyExtendedRange {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+    /// Whether the `+` sign is present when a non-negative year contains fewer digits than
+    /// necessary.
+    pub(crate) sign_is_mandatory: bool,
+}
+
+impl CalendarYearCenturyExtendedRange {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding, ..self }
+    }
+
+    /// Set whether the `+` sign is mandatory for non-negative years with more than four digits.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
+        Self {
+            sign_is_mandatory,
+            ..self
+        }
+    }
+}
+
+/// Year of the date. Only the century is included (i.e. all digits except the last two), the
+/// calendar year is used, and the range of years supported is ±9,999.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CalendarYearCenturyStandardRange {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+    /// Whether the `+` sign is present when a non-negative year contains fewer digits than
+    /// necessary.
+    pub(crate) sign_is_mandatory: bool,
+}
+
+impl CalendarYearCenturyStandardRange {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding, ..self }
+    }
+
+    /// Set whether the `+` sign is present on non-negative years.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
+        Self {
+            sign_is_mandatory,
+            ..self
+        }
+    }
+}
+
+/// Year of the date. Only the century is included (i.e. all digits except the last two), the ISO
+/// week-numbering year is used, and the range of years supported is ±999,999.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct IsoYearCenturyExtendedRange {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+    /// Whether the `+` sign is present when a non-negative year contains fewer digits than
+    /// necessary.
+    pub(crate) sign_is_mandatory: bool,
+}
+
+impl IsoYearCenturyExtendedRange {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding, ..self }
+    }
+
+    /// Set whether the `+` sign is mandatory for non-negative years with more than four digits.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
+        Self {
+            sign_is_mandatory,
+            ..self
+        }
+    }
+}
+
+/// Year of the date. Only the century is included (i.e. all digits except the last two), the ISO
+/// week-numbering year is used, and the range of years supported is ±9,999.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct IsoYearCenturyStandardRange {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+    /// Whether the `+` sign is present when a non-negative year contains fewer digits than
+    /// necessary.
+    pub(crate) sign_is_mandatory: bool,
+}
+
+impl IsoYearCenturyStandardRange {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding, ..self }
+    }
+
+    /// Set whether the `+` sign is present on non-negative years.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
+        Self {
+            sign_is_mandatory,
+            ..self
+        }
+    }
+}
+
+/// Year of the date. Only the last two digits are included, and the calendar year is used.
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CalendarYearLastTwo {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+}
+
+impl CalendarYearLastTwo {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding }
+    }
+}
+
+/// Year of the date. Only the last two digits are included, and the ISO week-numbering year is
+/// used.
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct IsoYearLastTwo {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+}
+
+impl IsoYearLastTwo {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding }
+    }
+}
+
 /// Year of the date.
 #[non_exhaustive]
+#[allow(deprecated)]
+#[deprecated(
+    since = "0.3.48",
+    note = "use one of the various `Year*` components instead"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Year {
     /// The padding to obtain the minimum width.
@@ -363,10 +922,12 @@ pub struct Year {
     pub range: YearRange,
     /// Whether the value is based on the ISO week number or the Gregorian calendar.
     pub iso_week_based: bool,
-    /// Whether the `+` sign is present when a positive year contains fewer than five digits.
+    /// Whether the `+` sign is present when a non-negative year contains fewer digits than
+    /// necessary.
     pub sign_is_mandatory: bool,
 }
 
+#[expect(deprecated)]
 impl Year {
     /// Set the padding type.
     #[inline]
@@ -410,8 +971,41 @@ impl Year {
     }
 }
 
+/// Hour of the day using a 12-hour clock.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Hour12 {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+}
+
+impl Hour12 {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding }
+    }
+}
+
+/// Hour of the day using a 24-hour clock.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Hour24 {
+    /// The padding to obtain the minimum width.
+    pub(crate) padding: Padding,
+}
+
+impl Hour24 {
+    /// Set the padding type.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_padding(self, padding: Padding) -> Self {
+        Self { padding }
+    }
+}
+
 /// Hour of the day.
 #[non_exhaustive]
+#[deprecated(since = "0.3.48", note = "use `Hour12` or `Hour24` instead")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Hour {
     /// The padding to obtain the minimum width.
@@ -420,6 +1014,7 @@ pub struct Hour {
     pub is_12_hour_clock: bool,
 }
 
+#[expect(deprecated)]
 impl Hour {
     /// Set the padding type.
     #[inline]
@@ -656,6 +1251,10 @@ impl Ignore {
 
 /// The precision of a Unix timestamp.
 #[non_exhaustive]
+#[deprecated(
+    since = "0.3.48",
+    note = "only used in the deprecated `UnixTimestamp` component"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnixTimestampPrecision {
     /// Seconds since the Unix epoch.
@@ -668,8 +1267,78 @@ pub enum UnixTimestampPrecision {
     Nanosecond,
 }
 
+/// A Unix timestamp in seconds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct UnixTimestampSecond {
+    /// Whether the `+` sign must be present for a non-negative timestamp.
+    pub(crate) sign_is_mandatory: bool,
+}
+
+impl UnixTimestampSecond {
+    /// Set whether the `+` sign is mandatory for non-negative timestamps.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
+        Self { sign_is_mandatory }
+    }
+}
+
+/// A Unix timestamp in milliseconds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct UnixTimestampMillisecond {
+    /// Whether the `+` sign must be present for a non-negative timestamp.
+    pub(crate) sign_is_mandatory: bool,
+}
+
+impl UnixTimestampMillisecond {
+    /// Set whether the `+` sign is mandatory for non-negative timestamps.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
+        Self { sign_is_mandatory }
+    }
+}
+
+/// A Unix timestamp in microseconds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct UnixTimestampMicrosecond {
+    /// Whether the `+` sign must be present for a non-negative timestamp.
+    pub(crate) sign_is_mandatory: bool,
+}
+
+impl UnixTimestampMicrosecond {
+    /// Set whether the `+` sign is mandatory for non-negative timestamps.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
+        Self { sign_is_mandatory }
+    }
+}
+
+/// A Unix timestamp in nanoseconds.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct UnixTimestampNanosecond {
+    /// Whether the `+` sign must be present for a non-negative timestamp.
+    pub(crate) sign_is_mandatory: bool,
+}
+
+impl UnixTimestampNanosecond {
+    /// Set whether the `+` sign is mandatory for non-negative timestamps.
+    #[inline]
+    #[must_use = "this returns the result of the operation, without modifying the original"]
+    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
+        Self { sign_is_mandatory }
+    }
+}
+
 /// A Unix timestamp.
 #[non_exhaustive]
+#[allow(deprecated)]
+#[deprecated(
+    since = "0.3.48",
+    note = "use `UnixTimestampSeconds`, `UnixTimestampMilliseconds`, `UnixTimestampMicroseconds`, \
+            or `UnixTimestampNanoseconds` instead"
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct UnixTimestamp {
     /// The precision of the timestamp.
@@ -678,6 +1347,7 @@ pub struct UnixTimestamp {
     pub sign_is_mandatory: bool,
 }
 
+#[expect(deprecated)]
 impl UnixTimestamp {
     /// Set the precision of the timestamp.
     #[inline]

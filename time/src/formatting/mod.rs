@@ -9,7 +9,7 @@ use core::mem::MaybeUninit;
 use core::num::NonZero;
 use std::io;
 
-use deranged::{Option_ri32, Option_ru8, ri32, ru8, ru16, ru32};
+use deranged::{Option_ri32, Option_ru8, ri8, ri16, ri32, ru8, ru16, ru32};
 use num_conv::prelude::*;
 
 use self::component_provider::ComponentProvider;
@@ -28,7 +28,11 @@ type OptionIsoWeekNumber = Option_ru8<1, 53>;
 type MondayBasedWeek = ru8<0, 53>;
 type SundayBasedWeek = ru8<0, 53>;
 type Year = ri32<-999_999, 999_999>;
+type StandardYear = ri16<-9_999, 9_999>;
 type OptionYear = Option_ri32<-999_999, 999_999>;
+type ExtendedCentury = ri16<-9_999, 9_999>;
+type StandardCentury = ri8<-99, 99>;
+type LastTwo = ru8<0, 99>;
 type AnyWeekNumber = ru8<0, 53>;
 
 const MONTH_NAMES: [&str; 12] = [
@@ -280,69 +284,128 @@ where
     use Component::*;
     match component {
         Day(modifier) if V::SUPPLIES_DATE => fmt_day(output, value.day(state), modifier),
-        Month(modifier) if V::SUPPLIES_DATE => fmt_month(output, value.month(state), modifier),
+        MonthShort(modifier) if V::SUPPLIES_DATE => {
+            fmt_month_short(output, value.month(state), modifier)
+        }
+        MonthLong(modifier) if V::SUPPLIES_DATE => {
+            fmt_month_long(output, value.month(state), modifier)
+        }
+        MonthNumerical(modifier) if V::SUPPLIES_DATE => {
+            fmt_month_numerical(output, value.month(state), modifier)
+        }
         Ordinal(modifier) if V::SUPPLIES_DATE => {
             fmt_ordinal(output, value.ordinal(state), modifier)
         }
-        Weekday(modifier) if V::SUPPLIES_DATE => {
-            fmt_weekday(output, value.weekday(state), modifier)
+        WeekdayShort(modifier) if V::SUPPLIES_DATE => {
+            fmt_weekday_short(output, value.weekday(state), modifier)
         }
-        WeekNumber(modifier) if V::SUPPLIES_DATE => fmt_week_number(
+        WeekdayLong(modifier) if V::SUPPLIES_DATE => {
+            fmt_weekday_long(output, value.weekday(state), modifier)
+        }
+        WeekdaySunday(modifier) if V::SUPPLIES_DATE => {
+            fmt_weekday_sunday(output, value.weekday(state), modifier)
+        }
+        WeekdayMonday(modifier) if V::SUPPLIES_DATE => {
+            fmt_weekday_monday(output, value.weekday(state), modifier)
+        }
+        WeekNumberIso(modifier) if V::SUPPLIES_DATE => {
+            fmt_week_number_iso(output, value.iso_week_number(state), modifier)
+        }
+        WeekNumberSunday(modifier) if V::SUPPLIES_DATE => {
+            fmt_week_number_sunday(output, value.sunday_based_week(state), modifier)
+        }
+        WeekNumberMonday(modifier) if V::SUPPLIES_DATE => {
+            fmt_week_number_monday(output, value.monday_based_week(state), modifier)
+        }
+        CalendarYearFullExtendedRange(modifier) if V::SUPPLIES_DATE => {
+            fmt_calendar_year_full_extended_range(output, value.calendar_year(state), modifier)
+        }
+        CalendarYearFullStandardRange(modifier) if V::SUPPLIES_DATE => {
+            fmt_calendar_year_full_standard_range(
+                output,
+                try_likely_ok!(
+                    value
+                        .calendar_year(state)
+                        .narrow::<-9_999, 9_999>()
+                        .ok_or_else(|| error::ComponentRange::conditional("year"))
+                )
+                .into(),
+                modifier,
+            )
+        }
+        IsoYearFullExtendedRange(modifier) if V::SUPPLIES_DATE => {
+            fmt_iso_year_full_extended_range(output, value.iso_year(state), modifier)
+        }
+        IsoYearFullStandardRange(modifier) if V::SUPPLIES_DATE => fmt_iso_year_full_standard_range(
             output,
-            match modifier.repr {
-                modifier::WeekNumberRepr::Iso => value.iso_week_number(state).expand(),
-                modifier::WeekNumberRepr::Sunday => value.sunday_based_week(state).expand(),
-                modifier::WeekNumberRepr::Monday => value.monday_based_week(state).expand(),
-            },
+            try_likely_ok!(
+                value
+                    .iso_year(state)
+                    .narrow::<-9_999, 9_999>()
+                    .ok_or_else(|| error::ComponentRange::conditional("year"))
+            )
+            .into(),
             modifier,
         ),
-        Year(
-            modifier @ modifier::Year {
-                repr: modifier::YearRepr::Full,
-                iso_week_based: false,
-                ..
-            },
-        ) if V::SUPPLIES_DATE => {
-            return fmt_full_year(output, value.calendar_year(state), modifier);
+        CalendarYearCenturyExtendedRange(modifier) if V::SUPPLIES_DATE => {
+            let year = value.calendar_year(state);
+            // Safety: Given the range of `year`, the range of the century is `-9_999..=9_999`.
+            let century = unsafe { ri16::new_unchecked((year.get() / 100).truncate()) };
+            fmt_calendar_year_century_extended_range(output, century, year.is_negative(), modifier)
         }
-        Year(
-            modifier @ modifier::Year {
-                repr: modifier::YearRepr::Century,
-                iso_week_based: false,
-                ..
-            },
-        ) if V::SUPPLIES_DATE => return fmt_century(output, value.calendar_year(state), modifier),
-        Year(
-            modifier @ modifier::Year {
-                repr: modifier::YearRepr::LastTwo,
-                iso_week_based: false,
-                ..
-            },
-        ) if V::SUPPLIES_DATE => fmt_year_last_two(output, value.calendar_year(state), modifier),
-        Year(
-            modifier @ modifier::Year {
-                repr: modifier::YearRepr::Full,
-                iso_week_based: true,
-                ..
-            },
-        ) if V::SUPPLIES_DATE => {
-            return fmt_full_year(output, value.iso_year(state), modifier);
+        CalendarYearCenturyStandardRange(modifier) if V::SUPPLIES_DATE => {
+            let year = value.calendar_year(state);
+            let is_negative = year.is_negative();
+            // Safety: Given the range of `year`, the range of the century is `-9_999..=9_999`.
+            let year = unsafe { ri16::<0, 9_999>::new_unchecked((year.get() / 100).truncate()) };
+            fmt_calendar_year_century_standard_range(
+                output,
+                year.narrow::<0, 99>()
+                    .ok_or_else(|| error::ComponentRange::conditional("year"))?
+                    .into(),
+                is_negative,
+                modifier,
+            )
         }
-        Year(
-            modifier @ modifier::Year {
-                repr: modifier::YearRepr::Century,
-                iso_week_based: true,
-                ..
-            },
-        ) if V::SUPPLIES_DATE => return fmt_century(output, value.iso_year(state), modifier),
-        Year(
-            modifier @ modifier::Year {
-                repr: modifier::YearRepr::LastTwo,
-                iso_week_based: true,
-                ..
-            },
-        ) if V::SUPPLIES_DATE => fmt_year_last_two(output, value.iso_year(state), modifier),
-        Hour(modifier) if V::SUPPLIES_TIME => fmt_hour(output, value.hour(state), modifier),
+        IsoYearCenturyExtendedRange(modifier) if V::SUPPLIES_DATE => {
+            let year = value.iso_year(state);
+            // Safety: Given the range of `year`, the range of the century is `-9_999..=9_999`.
+            let century = unsafe { ri16::new_unchecked((year.get() / 100).truncate()) };
+            fmt_iso_year_century_extended_range(output, century, year.is_negative(), modifier)
+        }
+        IsoYearCenturyStandardRange(modifier) if V::SUPPLIES_DATE => {
+            let year = value.iso_year(state);
+            // Safety: Given the range of `year`, the range of the century is `-9_999..=9_999`.
+            let year = unsafe { ri16::<0, 9_999>::new_unchecked((year.get() / 100).truncate()) };
+            fmt_iso_year_century_standard_range(
+                output,
+                year.narrow::<0, 99>()
+                    .ok_or_else(|| error::ComponentRange::conditional("year"))?
+                    .into(),
+                year.is_negative(),
+                modifier,
+            )
+        }
+        CalendarYearLastTwo(modifier) if V::SUPPLIES_DATE => {
+            // Safety: Modulus of 100 followed by `.unsigned_abs()` guarantees that the value is in
+            // the range `0..=99`.
+            let last_two = unsafe {
+                ru8::new_unchecked(
+                    (value.calendar_year(state).get().unsigned_abs() % 100).truncate(),
+                )
+            };
+            fmt_calendar_year_last_two(output, last_two, modifier)
+        }
+        IsoYearLastTwo(modifier) if V::SUPPLIES_DATE => {
+            // Safety: Modulus of 100 followed by `.unsigned_abs()` guarantees that the value is in
+            // the range `0..=99`.
+            let last_two = unsafe {
+                ru8::new_unchecked((value.iso_year(state).get().unsigned_abs() % 100).truncate())
+            };
+            fmt_iso_year_last_two(output, last_two, modifier)
+        }
+        Hour12(modifier) if V::SUPPLIES_TIME => fmt_hour_12(output, value.hour(state), modifier),
+        Hour24(modifier) if V::SUPPLIES_TIME => fmt_hour_24(output, value.hour(state), modifier),
         Minute(modifier) if V::SUPPLIES_TIME => fmt_minute(output, value.minute(state), modifier),
         Period(modifier) if V::SUPPLIES_TIME => fmt_period(output, value.period(state), modifier),
         Second(modifier) if V::SUPPLIES_TIME => fmt_second(output, value.second(state), modifier),
@@ -362,38 +425,225 @@ where
             fmt_offset_second(output, value.offset_second(state), modifier)
         }
         Ignore(_) => return Ok(0),
-        UnixTimestamp(modifier) if V::SUPPLIES_TIMESTAMP => match modifier.precision {
-            modifier::UnixTimestampPrecision::Second => {
-                fmt_unix_timestamp_seconds(output, value.unix_timestamp_seconds(state), modifier)
-            }
-            modifier::UnixTimestampPrecision::Millisecond => fmt_unix_timestamp_milliseconds(
+        UnixTimestampSecond(modifier) if V::SUPPLIES_TIMESTAMP => {
+            fmt_unix_timestamp_second(output, value.unix_timestamp_seconds(state), modifier)
+        }
+        UnixTimestampMillisecond(modifier) if V::SUPPLIES_TIMESTAMP => {
+            fmt_unix_timestamp_millisecond(
                 output,
                 value.unix_timestamp_milliseconds(state),
                 modifier,
-            ),
-            modifier::UnixTimestampPrecision::Microsecond => fmt_unix_timestamp_microseconds(
+            )
+        }
+        UnixTimestampMicrosecond(modifier) if V::SUPPLIES_TIMESTAMP => {
+            fmt_unix_timestamp_microsecond(
                 output,
                 value.unix_timestamp_microseconds(state),
                 modifier,
+            )
+        }
+        UnixTimestampNanosecond(modifier) if V::SUPPLIES_TIMESTAMP => {
+            fmt_unix_timestamp_nanosecond(output, value.unix_timestamp_nanoseconds(state), modifier)
+        }
+        End(modifier::End { trailing_input: _ }) => return Ok(0),
+
+        // Deprecated components that are no long emitted by macros or parsers.
+        #[expect(deprecated)]
+        Month(modifier::Month {
+            padding,
+            repr,
+            case_sensitive,
+        }) if V::SUPPLIES_DATE => {
+            let month = value.month(state);
+            match repr {
+                modifier::MonthRepr::Numerical => {
+                    fmt_month_numerical(output, month, modifier::MonthNumerical { padding })
+                }
+                modifier::MonthRepr::Long => {
+                    fmt_month_long(output, month, modifier::MonthLong { case_sensitive })
+                }
+                modifier::MonthRepr::Short => {
+                    fmt_month_short(output, month, modifier::MonthShort { case_sensitive })
+                }
+            }
+        }
+        #[expect(deprecated)]
+        Weekday(modifier::Weekday {
+            repr,
+            one_indexed,
+            case_sensitive,
+        }) if V::SUPPLIES_DATE => {
+            let weekday = value.weekday(state);
+            match repr {
+                modifier::WeekdayRepr::Short => {
+                    fmt_weekday_short(output, weekday, modifier::WeekdayShort { case_sensitive })
+                }
+                modifier::WeekdayRepr::Long => {
+                    fmt_weekday_long(output, weekday, modifier::WeekdayLong { case_sensitive })
+                }
+                modifier::WeekdayRepr::Sunday => {
+                    fmt_weekday_sunday(output, weekday, modifier::WeekdaySunday { one_indexed })
+                }
+                modifier::WeekdayRepr::Monday => {
+                    fmt_weekday_monday(output, weekday, modifier::WeekdayMonday { one_indexed })
+                }
+            }
+        }
+        #[expect(deprecated)]
+        Hour(modifier::Hour {
+            padding,
+            is_12_hour_clock,
+        }) if V::SUPPLIES_TIME => {
+            let hour = value.hour(state);
+            if is_12_hour_clock {
+                fmt_hour_12(output, hour, modifier::Hour12 { padding })
+            } else {
+                fmt_hour_24(output, hour, modifier::Hour24 { padding })
+            }
+        }
+        #[expect(deprecated)]
+        UnixTimestamp(modifier) if V::SUPPLIES_TIMESTAMP => match modifier.precision {
+            modifier::UnixTimestampPrecision::Second => fmt_unix_timestamp_second(
+                output,
+                value.unix_timestamp_seconds(state),
+                modifier::UnixTimestampSecond {
+                    sign_is_mandatory: modifier.sign_is_mandatory,
+                },
             ),
-            modifier::UnixTimestampPrecision::Nanosecond => fmt_unix_timestamp_nanoseconds(
+            modifier::UnixTimestampPrecision::Millisecond => fmt_unix_timestamp_millisecond(
+                output,
+                value.unix_timestamp_milliseconds(state),
+                modifier::UnixTimestampMillisecond {
+                    sign_is_mandatory: modifier.sign_is_mandatory,
+                },
+            ),
+            modifier::UnixTimestampPrecision::Microsecond => fmt_unix_timestamp_microsecond(
+                output,
+                value.unix_timestamp_microseconds(state),
+                modifier::UnixTimestampMicrosecond {
+                    sign_is_mandatory: modifier.sign_is_mandatory,
+                },
+            ),
+            modifier::UnixTimestampPrecision::Nanosecond => fmt_unix_timestamp_nanosecond(
                 output,
                 value.unix_timestamp_nanoseconds(state),
-                modifier,
+                modifier::UnixTimestampNanosecond {
+                    sign_is_mandatory: modifier.sign_is_mandatory,
+                },
             ),
         },
-        End(modifier::End { trailing_input: _ }) => return Ok(0),
+        #[expect(deprecated)]
+        WeekNumber(modifier) if V::SUPPLIES_DATE => fmt_week_number(
+            output,
+            match modifier.repr {
+                modifier::WeekNumberRepr::Iso => value.iso_week_number(state).expand(),
+                modifier::WeekNumberRepr::Sunday => value.sunday_based_week(state).expand(),
+                modifier::WeekNumberRepr::Monday => value.monday_based_week(state).expand(),
+            },
+            modifier,
+        ),
+        #[expect(deprecated)]
+        Year(
+            modifier @ modifier::Year {
+                repr: modifier::YearRepr::Full,
+                iso_week_based: false,
+                ..
+            },
+        ) if V::SUPPLIES_DATE => {
+            return fmt_full_year(output, value.calendar_year(state), modifier);
+        }
+        #[expect(deprecated)]
+        Year(
+            modifier @ modifier::Year {
+                repr: modifier::YearRepr::Century,
+                iso_week_based: false,
+                ..
+            },
+        ) if V::SUPPLIES_DATE => return fmt_century(output, value.calendar_year(state), modifier),
+        #[expect(deprecated)]
+        Year(
+            modifier @ modifier::Year {
+                repr: modifier::YearRepr::LastTwo,
+                iso_week_based: false,
+                ..
+            },
+        ) if V::SUPPLIES_DATE => fmt_year_last_two(output, value.calendar_year(state), modifier),
+        #[expect(deprecated)]
+        Year(
+            modifier @ modifier::Year {
+                repr: modifier::YearRepr::Full,
+                iso_week_based: true,
+                ..
+            },
+        ) if V::SUPPLIES_DATE => {
+            return fmt_full_year(output, value.iso_year(state), modifier);
+        }
+        #[expect(deprecated)]
+        Year(
+            modifier @ modifier::Year {
+                repr: modifier::YearRepr::Century,
+                iso_week_based: true,
+                ..
+            },
+        ) if V::SUPPLIES_DATE => return fmt_century(output, value.iso_year(state), modifier),
+        #[expect(deprecated)]
+        Year(
+            modifier @ modifier::Year {
+                repr: modifier::YearRepr::LastTwo,
+                iso_week_based: true,
+                ..
+            },
+        ) if V::SUPPLIES_DATE => fmt_year_last_two(output, value.iso_year(state), modifier),
 
         // This is functionally the same as a wildcard arm, but it will cause an error if a new
         // component is added. This is to avoid a bug where a new component, the code compiles, and
         // formatting fails.
         // Allow unreachable patterns because some branches may be fully matched above.
         #[allow(unreachable_patterns)]
-        Day(_) | Month(_) | Ordinal(_) | Weekday(_) | WeekNumber(_) | Year(_) | Hour(_)
-        | Minute(_) | Period(_) | Second(_) | Subsecond(_) | OffsetHour(_) | OffsetMinute(_)
-        | OffsetSecond(_) | Ignore(_) | UnixTimestamp(_) | End(_) => {
-            return Err(error::Format::InsufficientTypeInformation);
-        }
+        #[expect(deprecated)]
+        Day(_)
+        | MonthShort(_)
+        | MonthLong(_)
+        | MonthNumerical(_)
+        | Ordinal(_)
+        | WeekdayShort(_)
+        | WeekdayLong(_)
+        | WeekdaySunday(_)
+        | WeekdayMonday(_)
+        | WeekNumberIso(_)
+        | WeekNumberSunday(_)
+        | WeekNumberMonday(_)
+        | CalendarYearFullExtendedRange(_)
+        | CalendarYearFullStandardRange(_)
+        | IsoYearFullExtendedRange(_)
+        | IsoYearFullStandardRange(_)
+        | CalendarYearCenturyExtendedRange(_)
+        | CalendarYearCenturyStandardRange(_)
+        | IsoYearCenturyExtendedRange(_)
+        | IsoYearCenturyStandardRange(_)
+        | CalendarYearLastTwo(_)
+        | IsoYearLastTwo(_)
+        | Hour12(_)
+        | Hour24(_)
+        | Minute(_)
+        | Period(_)
+        | Second(_)
+        | Subsecond(_)
+        | OffsetHour(_)
+        | OffsetMinute(_)
+        | OffsetSecond(_)
+        | Ignore(_)
+        | UnixTimestampSecond(_)
+        | UnixTimestampMillisecond(_)
+        | UnixTimestampMicrosecond(_)
+        | UnixTimestampNanosecond(_)
+        | End(_)
+        | Month(_)
+        | Weekday(_)
+        | Hour(_)
+        | UnixTimestamp(_)
+        | WeekNumber(_)
+        | Year(_) => return Err(error::Format::InsufficientTypeInformation),
     }
     .map_err(Into::into)
 }
@@ -408,32 +658,46 @@ fn fmt_day(
     format_two_digits(output, day.expand(), padding)
 }
 
-/// Format the month into the designated output.
+/// Format the month into the designated output using the abbreviated name.
 #[inline]
-fn fmt_month(
+fn fmt_month_short(
     output: &mut (impl io::Write + ?Sized),
     month: Month,
-    modifier::Month {
-        padding,
-        repr,
+    modifier::MonthShort {
         case_sensitive: _, // no effect on formatting
-    }: modifier::Month,
-) -> Result<usize, io::Error> {
-    match repr {
-        modifier::MonthRepr::Numerical => format_two_digits(
-            output,
-            // Safety: The month is guaranteed to be in the range `1..=12`.
-            unsafe { ru8::new_unchecked(u8::from(month)) },
-            padding,
-        ),
-        modifier::MonthRepr::Long => {
-            write(output, MONTH_NAMES[u8::from(month).extend::<usize>() - 1])
-        }
-        // Safety: All month names are at least three bytes long.
-        modifier::MonthRepr::Short => write(output, unsafe {
-            MONTH_NAMES[u8::from(month).extend::<usize>() - 1].get_unchecked(..3)
-        }),
-    }
+    }: modifier::MonthShort,
+) -> io::Result<usize> {
+    // Safety: All month names are at least three bytes long.
+    write(output, unsafe {
+        MONTH_NAMES[u8::from(month).extend::<usize>() - 1].get_unchecked(..3)
+    })
+}
+
+/// Format the month into the designated output using the full name.
+#[inline]
+fn fmt_month_long(
+    output: &mut (impl io::Write + ?Sized),
+    month: Month,
+    modifier::MonthLong {
+        case_sensitive: _, // no effect on formatting
+    }: modifier::MonthLong,
+) -> io::Result<usize> {
+    write(output, MONTH_NAMES[u8::from(month).extend::<usize>() - 1])
+}
+
+/// Format the month into the designated output as a number from 1-12.
+#[inline]
+fn fmt_month_numerical(
+    output: &mut (impl io::Write + ?Sized),
+    month: Month,
+    modifier::MonthNumerical { padding }: modifier::MonthNumerical,
+) -> io::Result<usize> {
+    format_two_digits(
+        output,
+        // Safety: The month is guaranteed to be in the range `1..=12`.
+        unsafe { ru8::new_unchecked(u8::from(month)) },
+        padding,
+    )
 }
 
 /// Format the ordinal into the designated output.
@@ -446,39 +710,95 @@ fn fmt_ordinal(
     format_three_digits(output, ordinal.expand(), padding)
 }
 
-/// Format the weekday into the designated output.
+/// Format the weekday into the designated output using the abbreviated name.
 #[inline]
-fn fmt_weekday(
+fn fmt_weekday_short(
     output: &mut (impl io::Write + ?Sized),
     weekday: Weekday,
-    modifier::Weekday {
-        repr,
-        one_indexed,
+    modifier::WeekdayShort {
         case_sensitive: _, // no effect on formatting
-    }: modifier::Weekday,
-) -> Result<usize, io::Error> {
-    match repr {
-        // Safety: All weekday names are at least three bytes long.
-        modifier::WeekdayRepr::Short => write(output, unsafe {
-            WEEKDAY_NAMES[weekday.number_days_from_monday().extend::<usize>()].get_unchecked(..3)
-        }),
-        modifier::WeekdayRepr::Long => write(
-            output,
-            WEEKDAY_NAMES[weekday.number_days_from_monday().extend::<usize>()],
-        ),
-        // Safety: The value is guaranteed to be in the range `1..=7`.
-        modifier::WeekdayRepr::Sunday => format_single_digit(output, unsafe {
-            ru8::new_unchecked(weekday.number_days_from_sunday() + u8::from(one_indexed))
-        }),
-        // Safety: The value is guaranteed to be in the range `1..=7`.
-        modifier::WeekdayRepr::Monday => format_single_digit(output, unsafe {
-            ru8::new_unchecked(weekday.number_days_from_monday() + u8::from(one_indexed))
-        }),
-    }
+    }: modifier::WeekdayShort,
+) -> io::Result<usize> {
+    // Safety: All weekday names are at least three bytes long.
+    write(output, unsafe {
+        WEEKDAY_NAMES[weekday.number_days_from_monday().extend::<usize>()].get_unchecked(..3)
+    })
+}
+
+/// Format the weekday into the designated output using the full name.
+#[inline]
+fn fmt_weekday_long(
+    output: &mut (impl io::Write + ?Sized),
+    weekday: Weekday,
+    modifier::WeekdayLong {
+        case_sensitive: _, // no effect on formatting
+    }: modifier::WeekdayLong,
+) -> io::Result<usize> {
+    write(
+        output,
+        WEEKDAY_NAMES[weekday.number_days_from_monday().extend::<usize>()],
+    )
+}
+
+/// Format the weekday into the designated output as a number from either 0-6 or 1-7 (depending on
+/// the modifier), where Sunday is either 0 or 1.
+#[inline]
+fn fmt_weekday_sunday(
+    output: &mut (impl io::Write + ?Sized),
+    weekday: Weekday,
+    modifier::WeekdaySunday { one_indexed }: modifier::WeekdaySunday,
+) -> io::Result<usize> {
+    // Safety: The value is guaranteed to be in the range `0..=7`.
+    format_single_digit(output, unsafe {
+        ru8::new_unchecked(weekday.number_days_from_sunday() + u8::from(one_indexed))
+    })
+}
+
+/// Format the weekday into the designated output as a number from either 0-6 or 1-7 (depending on
+/// the modifier), where Monday is either 0 or 1.
+#[inline]
+fn fmt_weekday_monday(
+    output: &mut (impl io::Write + ?Sized),
+    weekday: Weekday,
+    modifier::WeekdayMonday { one_indexed }: modifier::WeekdayMonday,
+) -> io::Result<usize> {
+    // Safety: The value is guaranteed to be in the range `0..=7`.
+    format_single_digit(output, unsafe {
+        ru8::new_unchecked(weekday.number_days_from_monday() + u8::from(one_indexed))
+    })
+}
+
+#[inline]
+fn fmt_week_number_iso(
+    output: &mut (impl io::Write + ?Sized),
+    week_number: IsoWeekNumber,
+    modifier::WeekNumberIso { padding }: modifier::WeekNumberIso,
+) -> io::Result<usize> {
+    format_two_digits(output, week_number.expand(), padding)
+}
+
+#[inline]
+fn fmt_week_number_sunday(
+    output: &mut (impl io::Write + ?Sized),
+    week_number: SundayBasedWeek,
+    modifier::WeekNumberSunday { padding }: modifier::WeekNumberSunday,
+) -> io::Result<usize> {
+    format_two_digits(output, week_number.expand(), padding)
+}
+
+#[inline]
+fn fmt_week_number_monday(
+    output: &mut (impl io::Write + ?Sized),
+    week_number: MondayBasedWeek,
+    modifier::WeekNumberMonday { padding }: modifier::WeekNumberMonday,
+) -> io::Result<usize> {
+    format_two_digits(output, week_number.expand(), padding)
 }
 
 /// Format the week number into the designated output.
 #[inline]
+#[expect(deprecated)]
+#[deprecated(since = "0.3.48", note = "use `fmt_week_number_*` methods instead")]
 fn fmt_week_number(
     output: &mut (impl io::Write + ?Sized),
     week_number: AnyWeekNumber,
@@ -487,8 +807,221 @@ fn fmt_week_number(
     format_two_digits(output, week_number.expand(), padding)
 }
 
+#[inline]
+fn fmt_calendar_year_full_extended_range(
+    output: &mut (impl io::Write + ?Sized),
+    full_year: Year,
+    modifier::CalendarYearFullExtendedRange {
+        padding,
+        sign_is_mandatory,
+    }: modifier::CalendarYearFullExtendedRange,
+) -> io::Result<usize> {
+    let mut bytes = 0;
+    bytes += try_likely_ok!(fmt_sign(
+        output,
+        full_year.is_negative(),
+        sign_is_mandatory || full_year.get() >= 10_000,
+    ));
+    // Safety: We just called `.abs()`, so zero is the minimum. The maximum is
+    // unchanged.
+    let value: ru32<0, 999_999> =
+        unsafe { full_year.abs().narrow_unchecked::<0, 999_999>().into() };
+
+    bytes += if let Some(value) = value.narrow::<0, 9_999>() {
+        try_likely_ok!(format_four_digits(output, value.into(), padding))
+    } else if let Some(value) = value.narrow::<0, 99_999>() {
+        try_likely_ok!(format_five_digits_pad_zero(output, value))
+    } else {
+        try_likely_ok!(format_six_digits_pad_zero(output, value))
+    };
+    Ok(bytes)
+}
+
+#[inline]
+fn fmt_calendar_year_full_standard_range(
+    output: &mut (impl io::Write + ?Sized),
+    full_year: StandardYear,
+    modifier::CalendarYearFullStandardRange {
+        padding,
+        sign_is_mandatory,
+    }: modifier::CalendarYearFullStandardRange,
+) -> io::Result<usize> {
+    let mut bytes = 0;
+    bytes += try_likely_ok!(fmt_sign(output, full_year.is_negative(), sign_is_mandatory));
+    // Safety: The minimum is zero due to the `.abs()` call; the maximum is unchanged.
+    bytes += try_likely_ok!(format_four_digits(
+        output,
+        unsafe { full_year.abs().narrow_unchecked::<0, 9_999>().into() },
+        padding
+    ));
+    Ok(bytes)
+}
+
+#[inline]
+fn fmt_iso_year_full_extended_range(
+    output: &mut (impl io::Write + ?Sized),
+    full_year: Year,
+    modifier::IsoYearFullExtendedRange {
+        padding,
+        sign_is_mandatory,
+    }: modifier::IsoYearFullExtendedRange,
+) -> io::Result<usize> {
+    let mut bytes = 0;
+    bytes += try_likely_ok!(fmt_sign(
+        output,
+        full_year.is_negative(),
+        sign_is_mandatory || full_year.get() >= 10_000,
+    ));
+    // Safety: The minimum is zero due to the `.abs()` call, with the maximum is unchanged.
+    let value: ru32<0, 999_999> =
+        unsafe { full_year.abs().narrow_unchecked::<0, 999_999>().into() };
+
+    bytes += if let Some(value) = value.narrow::<0, 9_999>() {
+        try_likely_ok!(format_four_digits(output, value.into(), padding))
+    } else if let Some(value) = value.narrow::<0, 99_999>() {
+        try_likely_ok!(format_five_digits_pad_zero(output, value))
+    } else {
+        try_likely_ok!(format_six_digits_pad_zero(output, value))
+    };
+    Ok(bytes)
+}
+
+#[inline]
+fn fmt_iso_year_full_standard_range(
+    output: &mut (impl io::Write + ?Sized),
+    year: StandardYear,
+    modifier::IsoYearFullStandardRange {
+        padding,
+        sign_is_mandatory,
+    }: modifier::IsoYearFullStandardRange,
+) -> io::Result<usize> {
+    let mut bytes = 0;
+    bytes += try_likely_ok!(fmt_sign(output, year.is_negative(), sign_is_mandatory));
+    // Safety: The minimum is zero due to the `.abs()` call; the maximum is unchanged.
+    bytes += try_likely_ok!(format_four_digits(
+        output,
+        unsafe { year.abs().narrow_unchecked::<0, 9_999>().into() },
+        padding
+    ));
+    Ok(bytes)
+}
+
+#[inline]
+fn fmt_calendar_year_century_extended_range(
+    output: &mut (impl io::Write + ?Sized),
+    century: ExtendedCentury,
+    is_negative: bool,
+    modifier::CalendarYearCenturyExtendedRange {
+        padding,
+        sign_is_mandatory,
+    }: modifier::CalendarYearCenturyExtendedRange,
+) -> io::Result<usize> {
+    let mut bytes = 0;
+    bytes += try_likely_ok!(fmt_sign(
+        output,
+        is_negative,
+        sign_is_mandatory || century.get() >= 100,
+    ));
+    // Safety: The minimum is zero due to the `.abs()` call;  the maximum is unchanged.
+    let century: ru16<0, 9_999> = unsafe { century.abs().narrow_unchecked::<0, 9_999>().into() };
+
+    bytes += if let Some(century) = century.narrow::<0, 99>() {
+        try_likely_ok!(format_two_digits(output, century.into(), padding))
+    } else if let Some(century) = century.narrow::<0, 999>() {
+        try_likely_ok!(format_three_digits(output, century, padding))
+    } else {
+        try_likely_ok!(format_four_digits(output, century, padding))
+    };
+    Ok(bytes)
+}
+
+#[inline]
+fn fmt_calendar_year_century_standard_range(
+    output: &mut (impl io::Write + ?Sized),
+    century: StandardCentury,
+    is_negative: bool,
+    modifier::CalendarYearCenturyStandardRange {
+        padding,
+        sign_is_mandatory,
+    }: modifier::CalendarYearCenturyStandardRange,
+) -> io::Result<usize> {
+    let mut bytes = 0;
+    bytes += try_likely_ok!(fmt_sign(output, is_negative, sign_is_mandatory));
+    // Safety: The minimum is zero due to the `.unsigned_abs()` call.
+    let century = unsafe { century.abs().narrow_unchecked::<0, 99>() };
+    bytes += try_likely_ok!(format_two_digits(output, century.into(), padding));
+    Ok(bytes)
+}
+
+#[inline]
+fn fmt_iso_year_century_extended_range(
+    output: &mut (impl io::Write + ?Sized),
+    century: ExtendedCentury,
+    is_negative: bool,
+    modifier::IsoYearCenturyExtendedRange {
+        padding,
+        sign_is_mandatory,
+    }: modifier::IsoYearCenturyExtendedRange,
+) -> io::Result<usize> {
+    let mut bytes = 0;
+    bytes += try_likely_ok!(fmt_sign(
+        output,
+        is_negative,
+        sign_is_mandatory || century.get() >= 100,
+    ));
+    // Safety: The minimum is zero due to the `.unsigned_abs()` call, with the maximum is unchanged.
+    let century: ru16<0, 9_999> = unsafe { century.abs().narrow_unchecked::<0, 9_999>().into() };
+
+    bytes += if let Some(century) = century.narrow::<0, 99>() {
+        try_likely_ok!(format_two_digits(output, century.into(), padding))
+    } else if let Some(century) = century.narrow::<0, 999>() {
+        try_likely_ok!(format_three_digits(output, century, padding))
+    } else {
+        try_likely_ok!(format_four_digits(output, century, padding))
+    };
+    Ok(bytes)
+}
+
+#[inline]
+fn fmt_iso_year_century_standard_range(
+    output: &mut (impl io::Write + ?Sized),
+    century: StandardCentury,
+    is_negative: bool,
+    modifier::IsoYearCenturyStandardRange {
+        padding,
+        sign_is_mandatory,
+    }: modifier::IsoYearCenturyStandardRange,
+) -> io::Result<usize> {
+    let mut bytes = 0;
+    bytes += try_likely_ok!(fmt_sign(output, is_negative, sign_is_mandatory));
+    // Safety: The minimum is zero due to the `.unsigned_abs()` call.
+    let century = unsafe { century.abs().narrow_unchecked::<0, 99>() };
+    bytes += try_likely_ok!(format_two_digits(output, century.into(), padding));
+    Ok(bytes)
+}
+
+#[inline]
+fn fmt_calendar_year_last_two(
+    output: &mut (impl io::Write + ?Sized),
+    last_two: LastTwo,
+    modifier::CalendarYearLastTwo { padding }: modifier::CalendarYearLastTwo,
+) -> io::Result<usize> {
+    format_two_digits(output, last_two, padding)
+}
+
+#[inline]
+fn fmt_iso_year_last_two(
+    output: &mut (impl io::Write + ?Sized),
+    last_two: LastTwo,
+    modifier::IsoYearLastTwo { padding }: modifier::IsoYearLastTwo,
+) -> io::Result<usize> {
+    format_two_digits(output, last_two, padding)
+}
+
 /// Format the full year into the designated output.
 #[inline]
+#[expect(deprecated)]
+#[deprecated]
 fn fmt_full_year(
     output: &mut (impl io::Write + ?Sized),
     full_year: Year,
@@ -530,6 +1063,8 @@ fn fmt_full_year(
 /// Format the century into the designated output. Requires the full year be provided as an
 /// argument.
 #[inline]
+#[expect(deprecated)]
+#[deprecated]
 fn fmt_century(
     output: &mut (impl io::Write + ?Sized),
     full_year: Year,
@@ -576,6 +1111,8 @@ fn fmt_century(
 }
 
 #[inline]
+#[expect(deprecated)]
+#[deprecated]
 fn fmt_year_last_two(
     output: &mut (impl io::Write + ?Sized),
     full_year: Year,
@@ -595,24 +1132,29 @@ fn fmt_year_last_two(
     Ok(bytes)
 }
 
-/// Format the hour into the designated output.
+/// Format the hour into the designated output using the 12-hour clock.
 #[inline]
-fn fmt_hour(
+fn fmt_hour_12(
     output: &mut (impl io::Write + ?Sized),
     hour: Hours,
-    modifier::Hour {
+    modifier::Hour12 { padding }: modifier::Hour12,
+) -> io::Result<usize> {
+    // Safety: The value is guaranteed to be in the range `1..=12`.
+    format_two_digits(
+        output,
+        unsafe { ru8::new_unchecked((hour.get() + 11) % 12 + 1) },
         padding,
-        is_12_hour_clock,
-    }: modifier::Hour,
-) -> Result<usize, io::Error> {
-    let value = match (hour.get(), is_12_hour_clock) {
-        (_, false) => hour,
-        (0 | 12, true) => Hours::new_static::<12>(),
-        (_, true) if hour.get() < 12 => hour,
-        // Safety: The resulting value is guaranteed to be in the range `1..=11`.
-        (_, true) => unsafe { Hours::new_unchecked(hour.get() - 12) },
-    };
-    format_two_digits(output, value.expand(), padding)
+    )
+}
+
+/// Format the hour into the designated output using the 24-hour clock.
+#[inline]
+fn fmt_hour_24(
+    output: &mut (impl io::Write + ?Sized),
+    hour: Hours,
+    modifier::Hour24 { padding }: modifier::Hour24,
+) -> io::Result<usize> {
+    format_two_digits(output, hour.expand(), padding)
 }
 
 /// Format the minute into the designated output.
@@ -803,16 +1345,11 @@ fn fmt_offset_second(
 
 /// Format the Unix timestamp (in seconds) into the designated output.
 #[inline]
-fn fmt_unix_timestamp_seconds(
+fn fmt_unix_timestamp_second(
     output: &mut (impl io::Write + ?Sized),
     timestamp: i64,
-    modifier::UnixTimestamp {
-        precision,
-        sign_is_mandatory,
-    }: modifier::UnixTimestamp,
+    modifier::UnixTimestampSecond { sign_is_mandatory }: modifier::UnixTimestampSecond,
 ) -> Result<usize, io::Error> {
-    debug_assert_eq!(precision, modifier::UnixTimestampPrecision::Second);
-
     let mut bytes = 0;
     bytes += try_likely_ok!(fmt_sign(output, timestamp < 0, sign_is_mandatory));
     bytes += try_likely_ok!(format_number_pad_none(output, timestamp.unsigned_abs()));
@@ -821,16 +1358,11 @@ fn fmt_unix_timestamp_seconds(
 
 /// Format the Unix timestamp (in milliseconds) into the designated output.
 #[inline]
-fn fmt_unix_timestamp_milliseconds(
+fn fmt_unix_timestamp_millisecond(
     output: &mut (impl io::Write + ?Sized),
     timestamp_millis: i64,
-    modifier::UnixTimestamp {
-        precision,
-        sign_is_mandatory,
-    }: modifier::UnixTimestamp,
+    modifier::UnixTimestampMillisecond { sign_is_mandatory }: modifier::UnixTimestampMillisecond,
 ) -> Result<usize, io::Error> {
-    debug_assert_eq!(precision, modifier::UnixTimestampPrecision::Millisecond);
-
     let mut bytes = 0;
     bytes += try_likely_ok!(fmt_sign(output, timestamp_millis < 0, sign_is_mandatory));
     bytes += try_likely_ok!(format_number_pad_none(
@@ -840,18 +1372,13 @@ fn fmt_unix_timestamp_milliseconds(
     Ok(bytes)
 }
 
-/// Format the Unix timestamp into the designated output.
+/// Format the Unix timestamp (in microseconds) into the designated output.
 #[inline]
-fn fmt_unix_timestamp_microseconds(
+fn fmt_unix_timestamp_microsecond(
     output: &mut (impl io::Write + ?Sized),
     timestamp_micros: i128,
-    modifier::UnixTimestamp {
-        precision,
-        sign_is_mandatory,
-    }: modifier::UnixTimestamp,
+    modifier::UnixTimestampMicrosecond { sign_is_mandatory }: modifier::UnixTimestampMicrosecond,
 ) -> Result<usize, io::Error> {
-    debug_assert_eq!(precision, modifier::UnixTimestampPrecision::Microsecond);
-
     let mut bytes = 0;
     bytes += try_likely_ok!(fmt_sign(output, timestamp_micros < 0, sign_is_mandatory));
     bytes += try_likely_ok!(format_number_pad_none(
@@ -861,18 +1388,13 @@ fn fmt_unix_timestamp_microseconds(
     Ok(bytes)
 }
 
-/// Format the Unix timestamp into the designated output.
+/// Format the Unix timestamp (in nanoseconds) into the designated output.
 #[inline]
-fn fmt_unix_timestamp_nanoseconds(
+fn fmt_unix_timestamp_nanosecond(
     output: &mut (impl io::Write + ?Sized),
     timestamp_nanos: i128,
-    modifier::UnixTimestamp {
-        precision,
-        sign_is_mandatory,
-    }: modifier::UnixTimestamp,
+    modifier::UnixTimestampNanosecond { sign_is_mandatory }: modifier::UnixTimestampNanosecond,
 ) -> Result<usize, io::Error> {
-    debug_assert_eq!(precision, modifier::UnixTimestampPrecision::Nanosecond);
-
     let mut bytes = 0;
     bytes += try_likely_ok!(fmt_sign(output, timestamp_nanos < 0, sign_is_mandatory));
     bytes += try_likely_ok!(format_number_pad_none(

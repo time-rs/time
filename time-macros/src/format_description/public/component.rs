@@ -4,8 +4,9 @@ use super::modifier;
 use crate::to_tokens::ToTokenStream;
 
 macro_rules! declare_component {
-    ($($name:ident)*) => {
+    ($($(#[cfg($cfg_inner:meta)])* $name:ident)*) => {
         pub(crate) enum Component {$(
+            $(#[cfg($cfg_inner)])*
             $name(modifier::$name),
         )*}
 
@@ -14,6 +15,7 @@ macro_rules! declare_component {
                 let mut mts = TokenStream::new();
 
                 let component = match self {$(
+                    $(#[cfg($cfg_inner)])*
                     Self::$name(modifier) => {
                         modifier.append_to(&mut mts);
                         stringify!($name)
@@ -31,12 +33,29 @@ macro_rules! declare_component {
 
 declare_component! {
     Day
-    Month
+    MonthShort
+    MonthLong
+    MonthNumerical
     Ordinal
-    Weekday
-    WeekNumber
-    Year
-    Hour
+    WeekdayShort
+    WeekdayLong
+    WeekdaySunday
+    WeekdayMonday
+    WeekNumberIso
+    WeekNumberSunday
+    WeekNumberMonday
+    CalendarYearFullExtendedRange
+    CalendarYearFullStandardRange
+    IsoYearFullExtendedRange
+    IsoYearFullStandardRange
+    CalendarYearCenturyExtendedRange
+    CalendarYearCenturyStandardRange
+    IsoYearCenturyExtendedRange
+    IsoYearCenturyStandardRange
+    CalendarYearLastTwo
+    IsoYearLastTwo
+    Hour12
+    Hour24
     Minute
     Period
     Second
@@ -45,6 +64,9 @@ declare_component! {
     OffsetMinute
     OffsetSecond
     Ignore
-    UnixTimestamp
+    UnixTimestampSecond
+    UnixTimestampMillisecond
+    UnixTimestampMicrosecond
+    UnixTimestampNanosecond
     End
 }

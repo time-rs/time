@@ -316,6 +316,7 @@ impl UtcOffset {
     /// Obtain the UTC offset as its hours, minutes, and seconds. The sign of all three components
     /// will always match. A positive value indicates an offset to the east; a negative to the west.
     #[inline]
+    #[cfg(any(feature = "formatting", feature = "quickcheck"))]
     pub(crate) const fn as_hms_ranged(self) -> (Hours, Minutes, Seconds) {
         (self.hours, self.minutes, self.seconds)
     }

@@ -372,6 +372,7 @@ impl Time {
 
     /// Get the clock hour, minute, second, and nanosecond.
     #[inline]
+    #[cfg(any(feature = "formatting", feature = "quickcheck"))]
     pub(crate) const fn as_hms_nano_ranged(self) -> (Hours, Minutes, Seconds, Nanoseconds) {
         (self.hour, self.minute, self.second, self.nanosecond)
     }

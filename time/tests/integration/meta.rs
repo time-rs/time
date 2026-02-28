@@ -26,6 +26,7 @@ use time::{
 };
 
 #[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
+#[expect(deprecated, reason = "cannot apply to `assert_eq!` macro")]
 #[test]
 fn alignment() {
     macro_rules! assert_alignment {
@@ -97,6 +98,7 @@ fn alignment() {
 }
 
 #[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
+#[expect(deprecated, reason = "cannot apply to `assert_eq!` macro")]
 #[test]
 fn size() {
     macro_rules! assert_size {
@@ -545,7 +547,33 @@ assert_impl! { modifier::Day:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { modifier::Hour:
+assert_impl! { modifier::Hour12:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::Hour12>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::Hour24:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::Hour24>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { #[expect(deprecated)] modifier::Hour:
     Clone,
     Debug,
     Default,
@@ -571,7 +599,46 @@ assert_impl! { modifier::Minute:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { modifier::Month:
+assert_impl! { modifier::MonthNumerical:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::MonthNumerical>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::MonthShort:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::MonthShort>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::MonthLong:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::MonthLong>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { #[expect(deprecated)] modifier::Month:
     Clone,
     Debug,
     Default,
@@ -675,7 +742,46 @@ assert_impl! { modifier::Subsecond:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { modifier::WeekNumber:
+assert_impl! { modifier::WeekNumberIso:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::WeekNumberIso>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::WeekNumberSunday:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::WeekNumberSunday>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::WeekNumberMonday:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::WeekNumberMonday>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { #[expect(deprecated)] modifier::WeekNumber:
     Clone,
     Debug,
     Default,
@@ -688,7 +794,59 @@ assert_impl! { modifier::WeekNumber:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { modifier::Weekday:
+assert_impl! { modifier::WeekdayShort:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::WeekdayShort>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::WeekdayLong:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::WeekdayLong>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::WeekdaySunday:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::WeekdaySunday>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::WeekdayMonday:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::WeekdayMonday>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { #[expect(deprecated)] modifier::Weekday:
     Clone,
     Debug,
     Default,
@@ -701,7 +859,137 @@ assert_impl! { modifier::Weekday:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { modifier::Year:
+assert_impl! { modifier::CalendarYearFullExtendedRange:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::CalendarYearFullExtendedRange>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::CalendarYearFullStandardRange:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::CalendarYearFullStandardRange>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::IsoYearFullExtendedRange:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::IsoYearFullExtendedRange>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::IsoYearFullStandardRange:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::IsoYearFullStandardRange>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::CalendarYearCenturyExtendedRange:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::CalendarYearCenturyExtendedRange>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::CalendarYearCenturyStandardRange:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::CalendarYearCenturyStandardRange>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::IsoYearCenturyExtendedRange:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::IsoYearCenturyExtendedRange>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::IsoYearCenturyStandardRange:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::IsoYearCenturyStandardRange>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::CalendarYearLastTwo:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::CalendarYearLastTwo>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { modifier::IsoYearLastTwo:
+    Clone,
+    Debug,
+    Default,
+    PartialEq<modifier::IsoYearLastTwo>,
+    Copy,
+    Eq,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { #[expect(deprecated)] modifier::Year:
     Clone,
     Debug,
     Default,
@@ -982,7 +1270,7 @@ assert_impl! { @'a; &[BorrowedFormatItem<'_>]:
     PartialEq<BorrowedFormatItem<'a>>,
     TryFrom<BorrowedFormatItem<'a>, Error = error::DifferentVariant>,
 }
-assert_impl! { modifier::MonthRepr:
+assert_impl! { #[expect(deprecated)] modifier::MonthRepr:
     Clone,
     Debug,
     Default,
@@ -1021,7 +1309,7 @@ assert_impl! { modifier::SubsecondDigits:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { modifier::WeekNumberRepr:
+assert_impl! { #[expect(deprecated)] modifier::WeekNumberRepr:
     Clone,
     Debug,
     Default,
@@ -1034,7 +1322,7 @@ assert_impl! { modifier::WeekNumberRepr:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { modifier::WeekdayRepr:
+assert_impl! { #[expect(deprecated)] modifier::WeekdayRepr:
     Clone,
     Debug,
     Default,
@@ -1047,7 +1335,7 @@ assert_impl! { modifier::WeekdayRepr:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { modifier::YearRepr:
+assert_impl! { #[expect(deprecated)] modifier::YearRepr:
     Clone,
     Debug,
     Default,

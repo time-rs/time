@@ -181,11 +181,9 @@ impl sealed::Sealed for Rfc2822 {
         let comma = ascii_char::<b','>;
 
         let input = opt(cfws)(input).into_inner();
-        let weekday = component::parse_weekday(
+        let weekday = component::parse_weekday_short(
             input,
-            modifier::Weekday {
-                repr: modifier::WeekdayRepr::Short,
-                one_indexed: false,
+            modifier::WeekdayShort {
                 case_sensitive: false,
             },
         );
@@ -206,11 +204,9 @@ impl sealed::Sealed for Rfc2822 {
         );
         let input = try_likely_ok!(cfws(input).ok_or(InvalidLiteral)).into_inner();
         let input = try_likely_ok!(
-            component::parse_month(
+            component::parse_month_short(
                 input,
-                modifier::Month {
-                    padding: modifier::Padding::None,
-                    repr: modifier::MonthRepr::Short,
+                modifier::MonthShort {
                     case_sensitive: false,
                 },
             )
@@ -328,11 +324,9 @@ impl sealed::Sealed for Rfc2822 {
         let comma = ascii_char::<b','>;
 
         let input = opt(cfws)(input).into_inner();
-        let weekday = component::parse_weekday(
+        let weekday = component::parse_weekday_short(
             input,
-            modifier::Weekday {
-                repr: modifier::WeekdayRepr::Short,
-                one_indexed: false,
+            modifier::WeekdayShort {
                 case_sensitive: false,
             },
         );
@@ -347,11 +341,9 @@ impl sealed::Sealed for Rfc2822 {
             try_likely_ok!(one_or_two_digits(input).ok_or(InvalidComponent("day")));
         let input = try_likely_ok!(cfws(input).ok_or(InvalidLiteral)).into_inner();
         let ParsedItem(input, month) = try_likely_ok!(
-            component::parse_month(
+            component::parse_month_short(
                 input,
-                modifier::Month {
-                    padding: modifier::Padding::None,
-                    repr: modifier::MonthRepr::Short,
+                modifier::MonthShort {
                     case_sensitive: false,
                 },
             )

@@ -22,58 +22,47 @@ setup_benchmark! {
     fn parse_component_year(ben: &mut Bencher<'_>) {
         let mut parsed = Parsed::new();
         ben.iter(|| {
-            parsed.parse_component(b"2021", component!(Year {
-                padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::Full,
-                iso_week_based: false,
-                sign_is_mandatory: false,
-            }))
+            parsed.parse_component(b"2021", Component::CalendarYearFullStandardRange(
+                modifier::CalendarYearFullStandardRange::default()
+                    .with_padding(modifier::Padding::Zero)
+                    .with_sign_is_mandatory(false)
+            ))
         });
         ben.iter(|| {
-            parsed.parse_component(b"21", component!(Year {
-                padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::LastTwo,
-                iso_week_based: false,
-                sign_is_mandatory: false,
-            }))
+            parsed.parse_component(b"21", Component::CalendarYearLastTwo(
+                modifier::CalendarYearLastTwo::default().with_padding(modifier::Padding::Zero)
+            ))
         });
         ben.iter(|| {
-            parsed.parse_component(b"2021", component!(Year {
-                padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::Full,
-                iso_week_based: true,
-                sign_is_mandatory: false,
-            }))
+            parsed.parse_component(b"2021", Component::IsoYearFullStandardRange(
+                modifier::IsoYearFullStandardRange::default()
+                    .with_padding(modifier::Padding::Zero)
+                    .with_sign_is_mandatory(false)
+            ))
         });
         ben.iter(|| {
-            parsed.parse_component(b"21", component!(Year {
-                padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::LastTwo,
-                iso_week_based: true,
-                sign_is_mandatory: false,
-            }))
+            parsed.parse_component(b"21", Component::IsoYearLastTwo(
+                modifier::IsoYearLastTwo::default().with_padding(modifier::Padding::Zero)
+            ))
         });
     }
 
     fn parse_component_month(ben: &mut Bencher<'_>) {
         let mut parsed = Parsed::new();
         ben.iter(|| {
-            parsed.parse_component(b" 1", component!(Month {
-                padding: modifier::Padding::Space,
-                repr: modifier::MonthRepr::Numerical,
-            }))
+            parsed.parse_component(b" 1", Component::MonthNumerical(
+                modifier::MonthNumerical::default().with_padding(modifier::Padding::Space)
+            ))
         });
         ben.iter(|| {
-            parsed.parse_component(b"Jan", component!(Month {
-                padding: modifier::Padding::None,
-                repr: modifier::MonthRepr::Short,
-            }))
+            parsed.parse_component(b"Jan", Component::MonthShort(
+                modifier::MonthShort::default().with_case_sensitive(true)
+            ))
         });
         ben.iter(|| {
-            parsed.parse_component(b"January", component!(Month {
-                padding: modifier::Padding::None,
-                repr: modifier::MonthRepr::Long,
-            }))
+            parsed.parse_component(b"January", Component::MonthLong(
+                modifier::MonthLong::default().with_case_sensitive(true)
+            ))
         });
     }
 
@@ -89,61 +78,58 @@ setup_benchmark! {
     fn parse_component_weekday(ben: &mut Bencher<'_>) {
         let mut parsed = Parsed::new();
         ben.iter(|| {
-            parsed.parse_component(b"Sun", component!(Weekday {
-                repr: modifier::WeekdayRepr::Short,
-                one_indexed: false,
-            }))
+            parsed.parse_component(
+                b"Sun",
+                Component::WeekdayShort(modifier::WeekdayShort::default())
+            )
         });
         ben.iter(|| {
-            parsed.parse_component(b"Sunday", component!(Weekday {
-                repr: modifier::WeekdayRepr::Long,
-                one_indexed: false,
-            }))
+            parsed.parse_component(
+                b"Sunday",
+                Component::WeekdayLong(modifier::WeekdayLong::default())
+            )
         });
         ben.iter(|| {
-            parsed.parse_component(b"0", component!(Weekday {
-                repr: modifier::WeekdayRepr::Sunday,
-                one_indexed: false,
-            }))
+            parsed.parse_component(
+                b"0",
+                Component::WeekdaySunday(modifier::WeekdaySunday::default().with_one_indexed(false))
+            )
         });
         ben.iter(|| {
-            parsed.parse_component(b"1", component!(Weekday {
-                repr: modifier::WeekdayRepr::Sunday,
-                one_indexed: true,
-            }))
+            parsed.parse_component(
+                b"1",
+                Component::WeekdaySunday(modifier::WeekdaySunday::default().with_one_indexed(true))
+            )
         });
         ben.iter(|| {
-            parsed.parse_component(b"6", component!(Weekday {
-                repr: modifier::WeekdayRepr::Monday,
-                one_indexed: false,
-            }))
+            parsed.parse_component(
+                b"6",
+                Component::WeekdayMonday(modifier::WeekdayMonday::default().with_one_indexed(false))
+            )
         });
         ben.iter(|| {
-            parsed.parse_component(b"7", component!(Weekday {
-                repr: modifier::WeekdayRepr::Monday,
-                one_indexed: true,
-            }))
+            parsed.parse_component(
+                b"7",
+                Component::WeekdayMonday(modifier::WeekdayMonday::default().with_one_indexed(true))
+            )
         });
     }
 
     fn parse_component_week_number(ben: &mut Bencher<'_>) {
         let mut parsed = Parsed::new();
         ben.iter(|| {
-            parsed.parse_component(b"2", component!(WeekNumber {
+            parsed.parse_component(b"2", component!(WeekNumberSunday {
                 padding: modifier::Padding::None,
-                repr: modifier::WeekNumberRepr::Sunday,
             }))
         });
         ben.iter(|| {
-            parsed.parse_component(b"2", component!(WeekNumber {
+            parsed.parse_component(b"2", component!(WeekNumberMonday {
                 padding: modifier::Padding::None,
-                repr: modifier::WeekNumberRepr::Monday,
             }))
         });
         ben.iter(|| {
-            parsed.parse_component(b"2", component!(WeekNumber {
+            parsed.parse_component(b"2", component!(WeekNumberIso {
                 padding: modifier::Padding::None,
-                repr: modifier::WeekNumberRepr::Iso,
             }))
         });
     }
@@ -204,7 +190,7 @@ setup_benchmark! {
 
     fn parse_component_unix_timestamp(ben: &mut Bencher<'_>) {
         let mut parsed = Parsed::new();
-        ben.iter(|| parsed.parse_component(std::hint::black_box(b"1234567890"), component!(UnixTimestamp {})));
+        ben.iter(|| parsed.parse_component(std::hint::black_box(b"1234567890"), component!(UnixTimestampSecond {})));
     }
 
     fn parse_rfc3339(ben: &mut Bencher<'_>) {

@@ -31,21 +31,10 @@ fn modifiers(
     )]
     padding: _,
     #[values(
-        (false, "repr:24"),
-        (true, "repr:12"),
-    )]
-    hour_is_12_hour_clock: _,
-    #[values(
         (true, "case:upper"),
         (false, "case:lower"),
     )]
     period_is_uppercase: _,
-    #[values(
-        (MonthRepr::Numerical, "repr:numerical"),
-        (MonthRepr::Long, "repr:long"),
-        (MonthRepr::Short, "repr:short"),
-    )]
-    month_repr: _,
     #[values(
         (SubsecondDigits::One, "digits:1"),
         (SubsecondDigits::Two, "digits:2"),
@@ -59,35 +48,6 @@ fn modifiers(
         (SubsecondDigits::OneOrMore, "digits:1+"),
     )]
     subsecond_digits: _,
-    #[values(
-        (WeekdayRepr::Short, "repr:short"),
-        (WeekdayRepr::Long, "repr:long"),
-        (WeekdayRepr::Sunday, "repr:sunday"),
-        (WeekdayRepr::Monday, "repr:monday"),
-    )]
-    weekday_repr: _,
-    #[values(
-        (WeekNumberRepr::Iso, "repr:iso"),
-        (WeekNumberRepr::Sunday, "repr:sunday"),
-        (WeekNumberRepr::Monday, "repr:monday"),
-    )]
-    week_number_repr: _,
-    #[values(
-        (YearRepr::Full, "repr:full"),
-        (YearRepr::Century, "repr:century"),
-        (YearRepr::LastTwo, "repr:last_two"),
-    )]
-    year_repr: _,
-    #[values(
-        (YearRange::Standard, "range:standard"),
-        (YearRange::Extended, "range:extended"),
-    )]
-    year_range: _,
-    #[values(
-        (false, "base:calendar"),
-        (true, "base:iso_week"),
-    )]
-    year_is_iso_week_based: _,
     #[values(
         (false, "sign:automatic"),
         (true, "sign:mandatory"),
@@ -112,13 +72,6 @@ fn modifiers(
         (NonZero::new(1_000).unwrap(), "count:1000"),
     )]
     ignore_count: _,
-    #[values(
-        (UnixTimestampPrecision::Second, "precision:second"),
-        (UnixTimestampPrecision::Millisecond, "precision:millisecond"),
-        (UnixTimestampPrecision::Microsecond, "precision:microsecond"),
-        (UnixTimestampPrecision::Nanosecond, "precision:nanosecond"),
-    )]
-    unix_timestamp_precision: _,
     #[values(
         (TrailingInput::Prohibit, "trailing_input:prohibit"),
         (TrailingInput::Discard, "trailing_input:discard"),
@@ -155,9 +108,9 @@ fn only_literal<const N: usize>(#[case] format_description: &str, #[case] expect
 #[rstest]
 #[case("[day]", Component::Day(Day::default()))]
 #[case("[end]", Component::End(End::default()))]
-#[case("[hour]", Component::Hour(Hour::default()))]
+#[case("[hour]", Component::Hour24(Hour24::default()))]
 #[case("[minute]", Component::Minute(Minute::default()))]
-#[case("[month]", Component::Month(Month::default()))]
+#[case("[month]", Component::MonthNumerical(MonthNumerical::default()))]
 #[case("[offset_hour]", Component::OffsetHour(OffsetHour::default()))]
 #[case("[offset_minute]", Component::OffsetMinute(OffsetMinute::default()))]
 #[case("[offset_second]", Component::OffsetSecond(OffsetSecond::default()))]
@@ -165,10 +118,16 @@ fn only_literal<const N: usize>(#[case] format_description: &str, #[case] expect
 #[case("[period]", Component::Period(Period::default()))]
 #[case("[second]", Component::Second(Second::default()))]
 #[case("[subsecond]", Component::Subsecond(Subsecond::default()))]
-#[case("[unix_timestamp]", Component::UnixTimestamp(UnixTimestamp::default()))]
-#[case("[weekday]", Component::Weekday(Weekday::default()))]
-#[case("[week_number]", Component::WeekNumber(WeekNumber::default()))]
-#[case("[year]", Component::Year(Year::default()))]
+#[case(
+    "[unix_timestamp]",
+    Component::UnixTimestampSecond(UnixTimestampSecond::default())
+)]
+#[case("[weekday]", Component::WeekdayLong(WeekdayLong::default()))]
+#[case("[week_number]", Component::WeekNumberIso(WeekNumberIso::default()))]
+#[case(
+    "[year]",
+    Component::CalendarYearFullExtendedRange(CalendarYearFullExtendedRange::default())
+)]
 fn simple_component(#[case] format_description: &str, #[case] component: Component) {
     assert_eq!(
         format_description::parse(format_description),
@@ -301,26 +260,51 @@ fn second_component(padding: M<Padding>) {
 }
 
 #[apply(modifiers)]
-fn hour_component(padding: M<Padding>, hour_is_12_hour_clock: M<bool>) {
+fn hour_12_component(padding: M<Padding>) {
     assert_eq!(
-        parse_with_modifiers!("hour", padding, hour_is_12_hour_clock),
-        Ok(vec![BorrowedFormatItem::Component(Component::Hour(
-            Hour::default()
-                .with_padding(padding.0)
-                .with_is_12_hour_clock(hour_is_12_hour_clock.0)
+        parse_with_modifiers!("hour repr:12", padding),
+        Ok(vec![BorrowedFormatItem::Component(Component::Hour12(
+            Hour12::default().with_padding(padding.0)
         ))])
     );
 }
 
 #[apply(modifiers)]
-fn month_component(padding: M<Padding>, case_sensitive: M<bool>, month_repr: M<MonthRepr>) {
+fn hour_24_component(padding: M<Padding>) {
     assert_eq!(
-        parse_with_modifiers!("month", padding, case_sensitive, month_repr),
-        Ok(vec![BorrowedFormatItem::Component(Component::Month(
-            Month::default()
-                .with_padding(padding.0)
-                .with_repr(month_repr.0)
-                .with_case_sensitive(case_sensitive.0)
+        parse_with_modifiers!("hour repr:24", padding),
+        Ok(vec![BorrowedFormatItem::Component(Component::Hour24(
+            Hour24::default().with_padding(padding.0)
+        ))])
+    );
+}
+
+#[apply(modifiers)]
+fn month_numerical_component(padding: M<Padding>) {
+    assert_eq!(
+        parse_with_modifiers!("month repr:numerical", padding),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::MonthNumerical(MonthNumerical::default().with_padding(padding.0))
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn month_short_component(case_sensitive: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!("month repr:short", case_sensitive),
+        Ok(vec![BorrowedFormatItem::Component(Component::MonthShort(
+            MonthShort::default().with_case_sensitive(case_sensitive.0)
+        ))])
+    );
+}
+
+#[apply(modifiers)]
+fn month_long_component(case_sensitive: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!("month repr:long", case_sensitive),
+        Ok(vec![BorrowedFormatItem::Component(Component::MonthLong(
+            MonthLong::default().with_case_sensitive(case_sensitive.0)
         ))])
     );
 }
@@ -338,36 +322,76 @@ fn period_component(case_sensitive: M<bool>, period_is_uppercase: M<bool>) {
 }
 
 #[apply(modifiers)]
-fn weekday_component(
-    case_sensitive: M<bool>,
-    weekday_is_one_indexed: M<bool>,
-    weekday_repr: M<WeekdayRepr>,
-) {
+fn weekday_short_component(case_sensitive: M<bool>) {
     assert_eq!(
-        parse_with_modifiers!(
-            "weekday",
-            case_sensitive,
-            weekday_is_one_indexed,
-            weekday_repr
-        ),
-        Ok(vec![BorrowedFormatItem::Component(Component::Weekday(
-            Weekday::default()
-                .with_repr(weekday_repr.0)
-                .with_one_indexed(weekday_is_one_indexed.0)
-                .with_case_sensitive(case_sensitive.0)
+        parse_with_modifiers!("weekday repr:short", case_sensitive),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::WeekdayShort(WeekdayShort::default().with_case_sensitive(case_sensitive.0))
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn weekday_long_component(case_sensitive: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!("weekday repr:long", case_sensitive),
+        Ok(vec![BorrowedFormatItem::Component(Component::WeekdayLong(
+            WeekdayLong::default().with_case_sensitive(case_sensitive.0)
         ))])
     );
 }
 
 #[apply(modifiers)]
-fn week_number_component(padding: M<Padding>, week_number_repr: M<WeekNumberRepr>) {
+fn weekday_sunday_component(weekday_is_one_indexed: M<bool>) {
     assert_eq!(
-        parse_with_modifiers!("week_number", padding, week_number_repr),
-        Ok(vec![BorrowedFormatItem::Component(Component::WeekNumber(
-            WeekNumber::default()
-                .with_padding(padding.0)
-                .with_repr(week_number_repr.0)
-        ))])
+        parse_with_modifiers!("weekday repr:sunday", weekday_is_one_indexed),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::WeekdaySunday(
+                WeekdaySunday::default().with_one_indexed(weekday_is_one_indexed.0)
+            )
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn weekday_monday_component(weekday_is_one_indexed: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!("weekday repr:monday", weekday_is_one_indexed),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::WeekdayMonday(
+                WeekdayMonday::default().with_one_indexed(weekday_is_one_indexed.0)
+            )
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn week_number_iso_component(padding: M<Padding>) {
+    assert_eq!(
+        parse_with_modifiers!("week_number repr:iso", padding),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::WeekNumberIso(WeekNumberIso::default().with_padding(padding.0))
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn week_number_sunday_component(padding: M<Padding>) {
+    assert_eq!(
+        parse_with_modifiers!("week_number repr:sunday", padding),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::WeekNumberSunday(WeekNumberSunday::default().with_padding(padding.0))
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn week_number_monday_component(padding: M<Padding>) {
+    assert_eq!(
+        parse_with_modifiers!("week_number repr:monday", padding),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::WeekNumberMonday(WeekNumberMonday::default().with_padding(padding.0))
+        )])
     );
 }
 
@@ -384,49 +408,212 @@ fn offset_hour_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
 }
 
 #[apply(modifiers)]
-fn year_component(
-    padding: M<Padding>,
-    year_repr: M<YearRepr>,
-    year_range: M<YearRange>,
-    year_is_iso_week_based: M<bool>,
-    sign_is_mandatory: M<bool>,
-) {
+fn calendar_year_full_extended_range_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
     assert_eq!(
         parse_with_modifiers!(
-            "year",
+            "year base:calendar repr:full range:extended",
             padding,
-            year_repr,
-            year_range,
-            year_is_iso_week_based,
             sign_is_mandatory
         ),
-        Ok(vec![BorrowedFormatItem::Component(Component::Year(
-            Year::default()
-                .with_padding(padding.0)
-                .with_repr(year_repr.0)
-                .with_range(year_range.0)
-                .with_iso_week_based(year_is_iso_week_based.0)
-                .with_sign_is_mandatory(sign_is_mandatory.0)
-        ))])
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::CalendarYearFullExtendedRange(
+                CalendarYearFullExtendedRange::default()
+                    .with_padding(padding.0)
+                    .with_sign_is_mandatory(sign_is_mandatory.0)
+            )
+        )])
     );
 }
 
 #[apply(modifiers)]
-fn unix_timestamp_component(
-    sign_is_mandatory: M<bool>,
-    unix_timestamp_precision: M<UnixTimestampPrecision>,
-) {
+fn calendar_year_full_standard_range_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
     assert_eq!(
         parse_with_modifiers!(
-            "unix_timestamp",
-            sign_is_mandatory,
-            unix_timestamp_precision
+            "year base:calendar repr:full range:standard",
+            padding,
+            sign_is_mandatory
         ),
         Ok(vec![BorrowedFormatItem::Component(
-            Component::UnixTimestamp(
-                UnixTimestamp::default()
+            Component::CalendarYearFullStandardRange(
+                CalendarYearFullStandardRange::default()
+                    .with_padding(padding.0)
                     .with_sign_is_mandatory(sign_is_mandatory.0)
-                    .with_precision(unix_timestamp_precision.0)
+            )
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn iso_year_full_extended_range_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!(
+            "year base:iso_week repr:full range:extended",
+            padding,
+            sign_is_mandatory
+        ),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::IsoYearFullExtendedRange(
+                IsoYearFullExtendedRange::default()
+                    .with_padding(padding.0)
+                    .with_sign_is_mandatory(sign_is_mandatory.0)
+            )
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn iso_year_full_standard_range_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!(
+            "year base:iso_week repr:full range:standard",
+            padding,
+            sign_is_mandatory
+        ),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::IsoYearFullStandardRange(
+                IsoYearFullStandardRange::default()
+                    .with_padding(padding.0)
+                    .with_sign_is_mandatory(sign_is_mandatory.0)
+            )
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn calendar_year_century_extended_range_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!(
+            "year base:calendar repr:century range:extended",
+            padding,
+            sign_is_mandatory
+        ),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::CalendarYearCenturyExtendedRange(
+                CalendarYearCenturyExtendedRange::default()
+                    .with_padding(padding.0)
+                    .with_sign_is_mandatory(sign_is_mandatory.0)
+            )
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn calendar_year_century_standard_range_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!(
+            "year base:calendar repr:century range:standard",
+            padding,
+            sign_is_mandatory
+        ),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::CalendarYearCenturyStandardRange(
+                CalendarYearCenturyStandardRange::default()
+                    .with_padding(padding.0)
+                    .with_sign_is_mandatory(sign_is_mandatory.0)
+            )
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn iso_year_century_extended_range_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!(
+            "year base:iso_week repr:century range:extended",
+            padding,
+            sign_is_mandatory
+        ),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::IsoYearCenturyExtendedRange(
+                IsoYearCenturyExtendedRange::default()
+                    .with_padding(padding.0)
+                    .with_sign_is_mandatory(sign_is_mandatory.0)
+            )
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn iso_year_century_standard_range_component(padding: M<Padding>, sign_is_mandatory: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!(
+            "year base:iso_week repr:century range:standard",
+            padding,
+            sign_is_mandatory
+        ),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::IsoYearCenturyStandardRange(
+                IsoYearCenturyStandardRange::default()
+                    .with_padding(padding.0)
+                    .with_sign_is_mandatory(sign_is_mandatory.0)
+            )
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn calendar_year_last_two_component(padding: M<Padding>) {
+    assert_eq!(
+        parse_with_modifiers!("year base:calendar repr:last_two", padding),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::CalendarYearLastTwo(CalendarYearLastTwo::default().with_padding(padding.0))
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn iso_year_last_two_component(padding: M<Padding>) {
+    assert_eq!(
+        parse_with_modifiers!("year base:iso_week repr:last_two", padding),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::IsoYearLastTwo(IsoYearLastTwo::default().with_padding(padding.0))
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn unix_timestamp_second_component(sign_is_mandatory: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!("unix_timestamp precision:second", sign_is_mandatory),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::UnixTimestampSecond(
+                UnixTimestampSecond::default().with_sign_is_mandatory(sign_is_mandatory.0)
+            )
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn unix_timestamp_millisecond_component(sign_is_mandatory: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!("unix_timestamp precision:millisecond", sign_is_mandatory),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::UnixTimestampMillisecond(
+                UnixTimestampMillisecond::default().with_sign_is_mandatory(sign_is_mandatory.0)
+            )
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn unix_timestamp_microsecond_component(sign_is_mandatory: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!("unix_timestamp precision:microsecond", sign_is_mandatory),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::UnixTimestampMicrosecond(
+                UnixTimestampMicrosecond::default().with_sign_is_mandatory(sign_is_mandatory.0)
+            )
+        )])
+    );
+}
+
+#[apply(modifiers)]
+fn unix_timestamp_nanosecond_component(sign_is_mandatory: M<bool>) {
+    assert_eq!(
+        parse_with_modifiers!("unix_timestamp precision:nanosecond", sign_is_mandatory),
+        Ok(vec![BorrowedFormatItem::Component(
+            Component::UnixTimestampNanosecond(
+                UnixTimestampNanosecond::default().with_sign_is_mandatory(sign_is_mandatory.0)
             )
         )])
     );
@@ -459,14 +646,18 @@ fn optional() {
         Ok(OwnedFormatItem::Optional(Box::new(
             OwnedFormatItem::Compound(Box::new([
                 OwnedFormatItem::StringLiteral(boxed!(":")),
-                OwnedFormatItem::Component(Component::Year(Default::default()))
+                OwnedFormatItem::Component(Component::CalendarYearFullExtendedRange(
+                    Default::default()
+                ))
             ]))
         )))
     );
     assert_eq!(
         format_description::parse_owned::<2>("[optional [[year]]]"),
         Ok(OwnedFormatItem::Optional(Box::new(
-            OwnedFormatItem::Component(Component::Year(Default::default()))
+            OwnedFormatItem::Component(
+                Component::CalendarYearFullExtendedRange(Default::default())
+            )
         )))
     );
     assert_eq!(
@@ -765,26 +956,22 @@ fn rfc_3339() {
              sign:mandatory]:[offset_minute]"
         ),
         Ok(vec![
-            BorrowedFormatItem::Component(Component::Year(
-                Year::default()
+            BorrowedFormatItem::Component(Component::CalendarYearFullExtendedRange(
+                CalendarYearFullExtendedRange::default()
                     .with_padding(Padding::Zero)
-                    .with_repr(YearRepr::Full)
-                    .with_iso_week_based(false)
                     .with_sign_is_mandatory(false)
             )),
             BorrowedFormatItem::StringLiteral("-"),
-            BorrowedFormatItem::Component(Component::Month(
-                Month::default().with_padding(Padding::Zero)
+            BorrowedFormatItem::Component(Component::MonthNumerical(
+                MonthNumerical::default().with_padding(Padding::Zero)
             )),
             BorrowedFormatItem::StringLiteral("-"),
             BorrowedFormatItem::Component(Component::Day(
                 Day::default().with_padding(Padding::Zero)
             )),
             BorrowedFormatItem::StringLiteral("T"),
-            BorrowedFormatItem::Component(Component::Hour(
-                Hour::default()
-                    .with_padding(Padding::Zero)
-                    .with_is_12_hour_clock(false)
+            BorrowedFormatItem::Component(Component::Hour24(
+                Hour24::default().with_padding(Padding::Zero)
             )),
             BorrowedFormatItem::StringLiteral(":"),
             BorrowedFormatItem::Component(Component::Minute(

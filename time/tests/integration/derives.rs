@@ -26,6 +26,7 @@ fn invalid_format_description() -> error::InvalidFormatDescription {
 }
 
 #[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
+#[expect(deprecated, reason = "does not work when applied to macro")]
 #[test]
 fn clone() {
     #[expect(deprecated)]
@@ -67,15 +68,37 @@ fn clone() {
     assert_cloned_eq!(BorrowedFormatItem::StringLiteral(""));
 
     assert_cloned_eq!(modifier::Day::default());
+    assert_cloned_eq!(modifier::MonthNumerical::default());
+    assert_cloned_eq!(modifier::MonthShort::default());
+    assert_cloned_eq!(modifier::MonthLong::default());
     assert_cloned_eq!(modifier::MonthRepr::default());
     assert_cloned_eq!(modifier::Month::default());
     assert_cloned_eq!(modifier::Ordinal::default());
     assert_cloned_eq!(modifier::WeekdayRepr::default());
+    assert_cloned_eq!(modifier::WeekdayShort::default());
+    assert_cloned_eq!(modifier::WeekdayLong::default());
+    assert_cloned_eq!(modifier::WeekdaySunday::default());
+    assert_cloned_eq!(modifier::WeekdayMonday::default());
     assert_cloned_eq!(modifier::Weekday::default());
     assert_cloned_eq!(modifier::WeekNumberRepr::default());
+    assert_cloned_eq!(modifier::WeekNumberIso::default());
+    assert_cloned_eq!(modifier::WeekNumberSunday::default());
+    assert_cloned_eq!(modifier::WeekNumberMonday::default());
     assert_cloned_eq!(modifier::WeekNumber::default());
     assert_cloned_eq!(modifier::YearRepr::default());
+    assert_cloned_eq!(modifier::CalendarYearFullExtendedRange::default());
+    assert_cloned_eq!(modifier::CalendarYearFullStandardRange::default());
+    assert_cloned_eq!(modifier::IsoYearFullExtendedRange::default());
+    assert_cloned_eq!(modifier::IsoYearFullStandardRange::default());
+    assert_cloned_eq!(modifier::CalendarYearCenturyExtendedRange::default());
+    assert_cloned_eq!(modifier::CalendarYearCenturyStandardRange::default());
+    assert_cloned_eq!(modifier::IsoYearCenturyExtendedRange::default());
+    assert_cloned_eq!(modifier::IsoYearCenturyStandardRange::default());
+    assert_cloned_eq!(modifier::CalendarYearLastTwo::default());
+    assert_cloned_eq!(modifier::IsoYearLastTwo::default());
     assert_cloned_eq!(modifier::Year::default());
+    assert_cloned_eq!(modifier::Hour12::default());
+    assert_cloned_eq!(modifier::Hour24::default());
     assert_cloned_eq!(modifier::Hour::default());
     assert_cloned_eq!(modifier::Minute::default());
     assert_cloned_eq!(modifier::Period::default());
@@ -169,15 +192,46 @@ fn debug() {
         Error::ConversionRange(ConversionRange);
 
         modifier::Day::default();
+        #[expect(deprecated)]
         modifier::MonthRepr::default();
+        modifier::MonthNumerical::default();
+        modifier::MonthShort::default();
+        modifier::MonthLong::default();
+        #[expect(deprecated)]
         modifier::Month::default();
         modifier::Ordinal::default();
+        #[expect(deprecated)]
         modifier::WeekdayRepr::default();
+        modifier::WeekdayShort::default();
+        modifier::WeekdayLong::default();
+        modifier::WeekdaySunday::default();
+        modifier::WeekdayMonday::default();
+        #[expect(deprecated)]
         modifier::Weekday::default();
+        #[expect(deprecated)]
         modifier::WeekNumberRepr::default();
+        modifier::WeekNumberIso::default();
+        modifier::WeekNumberSunday::default();
+        modifier::WeekNumberMonday::default();
+        #[expect(deprecated)]
         modifier::WeekNumber::default();
+        #[expect(deprecated)]
         modifier::YearRepr::default();
+        modifier::CalendarYearFullExtendedRange::default();
+        modifier::CalendarYearFullStandardRange::default();
+        modifier::IsoYearFullExtendedRange::default();
+        modifier::IsoYearFullStandardRange::default();
+        modifier::CalendarYearCenturyExtendedRange::default();
+        modifier::CalendarYearCenturyStandardRange::default();
+        modifier::IsoYearCenturyExtendedRange::default();
+        modifier::IsoYearCenturyStandardRange::default();
+        modifier::CalendarYearLastTwo::default();
+        modifier::IsoYearLastTwo::default();
+        #[expect(deprecated)]
         modifier::Year::default();
+        modifier::Hour12::default();
+        modifier::Hour24::default();
+        #[expect(deprecated)]
         modifier::Hour::default();
         modifier::Minute::default();
         modifier::Period::default();

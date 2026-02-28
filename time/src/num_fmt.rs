@@ -18,6 +18,7 @@ static ZERO_PADDED_PAIRS: [u8; 200] = *b"000102030405060708091011121314151617181
                                          6061626364656667686970717273747576777879\
                                          8081828384858687888990919293949596979899";
 
+#[cfg(feature = "formatting")]
 static SPACE_PADDED_PAIRS: [u8; 200] = *b" 0 1 2 3 4 5 6 7 8 910111213141516171819\
                                           2021222324252627282930313233343536373839\
                                           4041424344454647484950515253545556575859\
@@ -127,6 +128,7 @@ pub(crate) const fn two_digits_zero_padded(n: ru8<0, 99>) -> &'static str {
 /// Obtain a string of two ASCII digits representing `n`. This includes a leading space if `n` is
 /// less than 10.
 #[inline]
+#[cfg(feature = "formatting")]
 pub(crate) const fn two_digits_space_padded(n: ru8<0, 99>) -> &'static str {
     // Safety: We're staying within the bounds of the array. The array contains only ASCII
     // characters, so it's valid UTF-8.
@@ -136,6 +138,7 @@ pub(crate) const fn two_digits_space_padded(n: ru8<0, 99>) -> &'static str {
 /// Obtain two strings of ASCII digits representing `n`. The first string is most significant. No
 /// leading zeros or spaces are included.
 #[inline]
+#[cfg(feature = "formatting")]
 pub(crate) fn one_to_three_digits_no_padding(n: ru16<0, 999>) -> [&'static str; 2] {
     if let Some(n) = n.narrow::<0, 99>() {
         crate::hint::cold_path();
@@ -148,6 +151,7 @@ pub(crate) fn one_to_three_digits_no_padding(n: ru16<0, 999>) -> [&'static str; 
 /// Obtain two strings of ASCII digits representing `n`. The first string is the most significant.
 /// Leading zeros are included if the number has fewer than 3 digits.
 #[inline]
+#[cfg(feature = "formatting")]
 pub(crate) const fn three_digits_zero_padded(n: ru16<0, 999>) -> [&'static str; 2] {
     let [high, low] = div_100(n.expand());
     [
@@ -160,6 +164,7 @@ pub(crate) const fn three_digits_zero_padded(n: ru16<0, 999>) -> [&'static str; 
 /// Obtain two strings of ASCII digits representing `n`. The first string is the most significant.
 /// Leading spaces are included if the number has fewer than 3 digits.
 #[inline]
+#[cfg(feature = "formatting")]
 pub(crate) const fn three_digits_space_padded(n: ru16<0, 999>) -> [&'static str; 2] {
     let [high, low] = div_100(n.expand());
 
@@ -173,6 +178,7 @@ pub(crate) const fn three_digits_space_padded(n: ru16<0, 999>) -> [&'static str;
 /// Obtain two strings of ASCII digits representing `n`. The first string is the most significant.
 /// No leading zeros or spaces are included.
 #[inline]
+#[cfg(feature = "formatting")]
 pub(crate) fn one_to_four_digits_no_padding(n: ru16<0, 9_999>) -> [&'static str; 2] {
     if let Some(n) = n.narrow::<0, 999>() {
         crate::hint::cold_path();
@@ -193,6 +199,7 @@ pub(crate) const fn four_digits_zero_padded(n: ru16<0, 9_999>) -> [&'static str;
 /// Obtain two strings of two ASCII digits each representing `n`. The first string is the most
 /// significant. Leading spaces are included if the number has fewer than 4 digits.
 #[inline]
+#[cfg(feature = "formatting")]
 pub(crate) const fn four_digits_space_padded(n: ru16<0, 9_999>) -> [&'static str; 2] {
     let [high, low] = div_100(n);
 
@@ -228,6 +235,7 @@ pub(crate) const fn four_to_six_digits(n: ru32<0, 999_999>) -> [&'static str; 3]
 /// Leading zeros are included if the number has fewer than 5 digits. The first string will be empty
 /// if `n` is less than 10,000.
 #[inline]
+#[cfg(feature = "formatting")]
 pub(crate) const fn five_digits_zero_padded(n: ru32<0, 99_999>) -> [&'static str; 3] {
     let n = n.get();
 
@@ -244,6 +252,7 @@ pub(crate) const fn five_digits_zero_padded(n: ru32<0, 99_999>) -> [&'static str
 /// Obtain three strings which together represent `n`. The first string is the most significant.
 /// Leading zeroes are included if the number has fewer than 6 digits.
 #[inline]
+#[cfg(feature = "formatting")]
 pub(crate) const fn six_digits_zero_padded(n: ru32<0, 999_999>) -> [&'static str; 3] {
     let n = n.get();
 

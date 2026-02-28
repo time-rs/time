@@ -2,7 +2,9 @@ use time::format_description::{BorrowedFormatItem, Component, OwnedFormatItem, m
 
 #[test]
 fn borrowed_format_item_component_conversions() {
-    let component = Component::Year(modifier::Year::default());
+    let component = Component::CalendarYearFullExtendedRange(
+        modifier::CalendarYearFullExtendedRange::default(),
+    );
     let item = BorrowedFormatItem::from(component);
     assert!(matches!(item, BorrowedFormatItem::Component(inner) if inner == component));
     assert_eq!(Component::try_from(item), Ok(component));
@@ -20,7 +22,9 @@ fn borrowed_format_item_compound_conversions() {
 
 #[test]
 fn borrowed_format_item_equality() {
-    let component = Component::Year(modifier::Year::default());
+    let component = Component::CalendarYearFullExtendedRange(
+        modifier::CalendarYearFullExtendedRange::default(),
+    );
     let compound = [BorrowedFormatItem::StringLiteral("")].as_slice();
     let component_item = BorrowedFormatItem::from(component);
     let compound_item = BorrowedFormatItem::from(compound);
@@ -33,7 +37,9 @@ fn borrowed_format_item_equality() {
 
 #[test]
 fn owned_format_item_component_conversions() {
-    let component = Component::Year(modifier::Year::default());
+    let component = Component::CalendarYearFullExtendedRange(
+        modifier::CalendarYearFullExtendedRange::default(),
+    );
     let item = OwnedFormatItem::from(component);
     assert!(matches!(item, OwnedFormatItem::Component(inner) if inner == component));
     assert_eq!(Component::try_from(item), Ok(component));
@@ -63,7 +69,9 @@ fn owned_format_item_compound_conversions() {
 
 #[test]
 fn owned_format_item_equality() {
-    let component = Component::Year(modifier::Year::default());
+    let component = Component::CalendarYearFullExtendedRange(
+        modifier::CalendarYearFullExtendedRange::default(),
+    );
     let compound = OwnedFormatItem::from([BorrowedFormatItem::StringLiteral("")].as_slice());
     let component_item = OwnedFormatItem::from(component);
 

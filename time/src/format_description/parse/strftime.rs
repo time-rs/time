@@ -169,36 +169,24 @@ fn parse_component(
 
     Ok(match *component {
         b'%' => BorrowedFormatItem::StringLiteral("%"),
-        b'a' => component!(Weekday {
-            repr: modifier::WeekdayRepr::Short,
-            one_indexed: true,
+        b'a' => component!(WeekdayShort {
+            case_sensitive: true
+        }),
+        b'A' => component!(WeekdayLong {
             case_sensitive: true,
         }),
-        b'A' => component!(Weekday {
-            repr: modifier::WeekdayRepr::Long,
-            one_indexed: true,
+        b'b' | b'h' => component!(MonthShort {
             case_sensitive: true,
         }),
-        b'b' | b'h' => component!(Month {
-            repr: modifier::MonthRepr::Short,
-            padding: modifier::Padding::Zero,
-            case_sensitive: true,
-        }),
-        b'B' => component!(Month {
-            repr: modifier::MonthRepr::Long,
-            padding: modifier::Padding::Zero,
+        b'B' => component!(MonthLong {
             case_sensitive: true,
         }),
         b'c' => BorrowedFormatItem::Compound(&[
-            component!(Weekday {
-                repr: modifier::WeekdayRepr::Short,
-                one_indexed: true,
+            component!(WeekdayShort {
                 case_sensitive: true,
             }),
             BorrowedFormatItem::StringLiteral(" "),
-            component!(Month {
-                repr: modifier::MonthRepr::Short,
-                padding: modifier::Padding::Zero,
+            component!(MonthShort {
                 case_sensitive: true,
             }),
             BorrowedFormatItem::StringLiteral(" "),
@@ -206,9 +194,8 @@ fn parse_component(
                 padding: modifier::Padding::Space
             }),
             BorrowedFormatItem::StringLiteral(" "),
-            component!(Hour {
+            component!(Hour24 {
                 padding: modifier::Padding::Zero,
-                is_12_hour_clock: false,
             }),
             BorrowedFormatItem::StringLiteral(":"),
             component!(Minute {
@@ -219,102 +206,96 @@ fn parse_component(
                 padding: modifier::Padding::Zero,
             }),
             BorrowedFormatItem::StringLiteral(" "),
-            component!(Year {
+            #[cfg(feature = "large-dates")]
+            component!(CalendarYearFullExtendedRange {
                 padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::Full,
-                range: modifier::YearRange::Extended,
-                iso_week_based: false,
+                sign_is_mandatory: false,
+            }),
+            #[cfg(not(feature = "large-dates"))]
+            component!(CalendarYearFullStandardRange {
+                padding: modifier::Padding::Zero,
                 sign_is_mandatory: false,
             }),
         ]),
-        b'C' => component!(Year {
+        #[cfg(feature = "large-dates")]
+        b'C' => component!(CalendarYearCenturyExtendedRange {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
-            repr: modifier::YearRepr::Century,
-            range: modifier::YearRange::Extended,
-            iso_week_based: false,
+            sign_is_mandatory: false,
+        }),
+        #[cfg(not(feature = "large-dates"))]
+        b'C' => component!(CalendarYearCenturyStandardRange {
+            padding: padding_or_default(*padding, modifier::Padding::Zero),
             sign_is_mandatory: false,
         }),
         b'd' => component!(Day {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
         }),
         b'D' => BorrowedFormatItem::Compound(&[
-            component!(Month {
-                repr: modifier::MonthRepr::Numerical,
+            component!(MonthNumerical {
                 padding: modifier::Padding::Zero,
-                case_sensitive: true,
             }),
             BorrowedFormatItem::StringLiteral("/"),
             component!(Day {
                 padding: modifier::Padding::Zero,
             }),
             BorrowedFormatItem::StringLiteral("/"),
-            component!(Year {
+            component!(CalendarYearLastTwo {
                 padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::LastTwo,
-                range: modifier::YearRange::Extended,
-                iso_week_based: false,
-                sign_is_mandatory: false,
             }),
         ]),
         b'e' => component!(Day {
             padding: padding_or_default(*padding, modifier::Padding::Space),
         }),
         b'F' => BorrowedFormatItem::Compound(&[
-            component!(Year {
+            #[cfg(feature = "large-dates")]
+            component!(CalendarYearFullExtendedRange {
                 padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::Full,
-                range: modifier::YearRange::Extended,
-                iso_week_based: false,
+                sign_is_mandatory: false,
+            }),
+            #[cfg(not(feature = "large-dates"))]
+            component!(CalendarYearFullStandardRange {
+                padding: modifier::Padding::Zero,
                 sign_is_mandatory: false,
             }),
             BorrowedFormatItem::StringLiteral("-"),
-            component!(Month {
+            component!(MonthNumerical {
                 padding: modifier::Padding::Zero,
-                repr: modifier::MonthRepr::Numerical,
-                case_sensitive: true,
             }),
             BorrowedFormatItem::StringLiteral("-"),
             component!(Day {
                 padding: modifier::Padding::Zero,
             }),
         ]),
-        b'g' => component!(Year {
+        b'g' => component!(IsoYearLastTwo {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
-            repr: modifier::YearRepr::LastTwo,
-            range: modifier::YearRange::Extended,
-            iso_week_based: true,
-            sign_is_mandatory: false,
         }),
-        b'G' => component!(Year {
+        #[cfg(feature = "large-dates")]
+        b'G' => component!(IsoYearFullExtendedRange {
             padding: modifier::Padding::Zero,
-            repr: modifier::YearRepr::Full,
-            range: modifier::YearRange::Extended,
-            iso_week_based: true,
             sign_is_mandatory: false,
         }),
-        b'H' => component!(Hour {
-            padding: padding_or_default(*padding, modifier::Padding::Zero),
-            is_12_hour_clock: false,
+        #[cfg(not(feature = "large-dates"))]
+        b'G' => component!(IsoYearFullStandardRange {
+            padding: modifier::Padding::Zero,
+            sign_is_mandatory: false,
         }),
-        b'I' => component!(Hour {
+        b'H' => component!(Hour24 {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
-            is_12_hour_clock: true,
+        }),
+        b'I' => component!(Hour12 {
+            padding: padding_or_default(*padding, modifier::Padding::Zero),
         }),
         b'j' => component!(Ordinal {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
         }),
-        b'k' => component!(Hour {
+        b'k' => component!(Hour24 {
             padding: padding_or_default(*padding, modifier::Padding::Space),
-            is_12_hour_clock: false,
         }),
-        b'l' => component!(Hour {
+        b'l' => component!(Hour12 {
             padding: padding_or_default(*padding, modifier::Padding::Space),
-            is_12_hour_clock: true,
         }),
-        b'm' => component!(Month {
+        b'm' => component!(MonthNumerical {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
-            repr: modifier::MonthRepr::Numerical,
-            case_sensitive: true,
         }),
         b'M' => component!(Minute {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
@@ -342,9 +323,8 @@ fn parse_component(
             case_sensitive: true
         }),
         b'r' => BorrowedFormatItem::Compound(&[
-            component!(Hour {
+            component!(Hour12 {
                 padding: modifier::Padding::Zero,
-                is_12_hour_clock: true,
             }),
             BorrowedFormatItem::StringLiteral(":"),
             component!(Minute {
@@ -361,17 +341,15 @@ fn parse_component(
             }),
         ]),
         b'R' => BorrowedFormatItem::Compound(&[
-            component!(Hour {
+            component!(Hour24 {
                 padding: modifier::Padding::Zero,
-                is_12_hour_clock: false,
             }),
             BorrowedFormatItem::StringLiteral(":"),
             component!(Minute {
                 padding: modifier::Padding::Zero,
             }),
         ]),
-        b's' => component!(UnixTimestamp {
-            precision: modifier::UnixTimestampPrecision::Second,
+        b's' => component!(UnixTimestampSecond {
             sign_is_mandatory: false,
         }),
         b'S' => component!(Second {
@@ -379,9 +357,8 @@ fn parse_component(
         }),
         b't' => BorrowedFormatItem::StringLiteral("\t"),
         b'T' => BorrowedFormatItem::Compound(&[
-            component!(Hour {
+            component!(Hour24 {
                 padding: modifier::Padding::Zero,
-                is_12_hour_clock: false,
             }),
             BorrowedFormatItem::StringLiteral(":"),
             component!(Minute {
@@ -392,51 +369,33 @@ fn parse_component(
                 padding: modifier::Padding::Zero,
             }),
         ]),
-        b'u' => component!(Weekday {
-            repr: modifier::WeekdayRepr::Monday,
-            one_indexed: true,
-            case_sensitive: true,
-        }),
-        b'U' => component!(WeekNumber {
+        b'u' => component!(WeekdayMonday { one_indexed: true }),
+        b'U' => component!(WeekNumberSunday {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
-            repr: modifier::WeekNumberRepr::Sunday,
         }),
-        b'V' => component!(WeekNumber {
+        b'V' => component!(WeekNumberIso {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
-            repr: modifier::WeekNumberRepr::Iso,
         }),
-        b'w' => component!(Weekday {
-            repr: modifier::WeekdayRepr::Sunday,
-            one_indexed: true,
-            case_sensitive: true,
-        }),
-        b'W' => component!(WeekNumber {
+        b'w' => component!(WeekdaySunday { one_indexed: true }),
+        b'W' => component!(WeekNumberMonday {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
-            repr: modifier::WeekNumberRepr::Monday,
         }),
         b'x' => BorrowedFormatItem::Compound(&[
-            component!(Month {
-                repr: modifier::MonthRepr::Numerical,
+            component!(MonthNumerical {
                 padding: modifier::Padding::Zero,
-                case_sensitive: true,
             }),
             BorrowedFormatItem::StringLiteral("/"),
             component!(Day {
                 padding: modifier::Padding::Zero
             }),
             BorrowedFormatItem::StringLiteral("/"),
-            component!(Year {
+            component!(CalendarYearLastTwo {
                 padding: modifier::Padding::Zero,
-                repr: modifier::YearRepr::LastTwo,
-                range: modifier::YearRange::Extended,
-                iso_week_based: false,
-                sign_is_mandatory: false,
             }),
         ]),
         b'X' => BorrowedFormatItem::Compound(&[
-            component!(Hour {
+            component!(Hour24 {
                 padding: modifier::Padding::Zero,
-                is_12_hour_clock: false,
             }),
             BorrowedFormatItem::StringLiteral(":"),
             component!(Minute {
@@ -447,18 +406,17 @@ fn parse_component(
                 padding: modifier::Padding::Zero,
             }),
         ]),
-        b'y' => component!(Year {
+        b'y' => component!(CalendarYearLastTwo {
             padding: padding_or_default(*padding, modifier::Padding::Zero),
-            repr: modifier::YearRepr::LastTwo,
-            range: modifier::YearRange::Extended,
-            iso_week_based: false,
+        }),
+        #[cfg(feature = "large-dates")]
+        b'Y' => component!(CalendarYearFullExtendedRange {
+            padding: modifier::Padding::Zero,
             sign_is_mandatory: false,
         }),
-        b'Y' => component!(Year {
+        #[cfg(not(feature = "large-dates"))]
+        b'Y' => component!(CalendarYearFullStandardRange {
             padding: modifier::Padding::Zero,
-            repr: modifier::YearRepr::Full,
-            range: modifier::YearRange::Extended,
-            iso_week_based: false,
             sign_is_mandatory: false,
         }),
         b'z' => BorrowedFormatItem::Compound(&[

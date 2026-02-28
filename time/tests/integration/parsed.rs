@@ -1,6 +1,6 @@
 use std::num::NonZero;
 
-use time::format_description::modifier::{Hour, WeekNumber, WeekNumberRepr};
+use time::format_description::modifier::{Hour12, WeekNumberIso};
 use time::format_description::{BorrowedFormatItem, Component};
 use time::parsing::Parsed;
 use time::{Month, Time, Weekday, error};
@@ -156,11 +156,14 @@ fn component_err() {
     }
 
     assert_invalid_component!("day", Component::Day(<_>::default()));
-    assert_invalid_component!("month", Component::Month(<_>::default()));
+    assert_invalid_component!("month", Component::MonthNumerical(<_>::default()));
     assert_invalid_component!("ordinal", Component::Ordinal(<_>::default()));
-    assert_invalid_component!("weekday", Component::Weekday(<_>::default()));
-    assert_invalid_component!("week number", Component::WeekNumber(<_>::default()));
-    assert_invalid_component!("year", Component::Year(<_>::default()));
+    assert_invalid_component!("weekday", Component::WeekdayLong(<_>::default()));
+    assert_invalid_component!("week number", Component::WeekNumberIso(<_>::default()));
+    assert_invalid_component!(
+        "year",
+        Component::CalendarYearFullExtendedRange(<_>::default())
+    );
     assert_invalid_component!("minute", Component::Minute(<_>::default()));
     assert_invalid_component!("period", Component::Period(<_>::default()));
     assert_invalid_component!("second", Component::Second(<_>::default()));
@@ -168,15 +171,15 @@ fn component_err() {
     assert_invalid_component!("offset hour", Component::OffsetHour(<_>::default()));
     assert_invalid_component!("offset minute", Component::OffsetMinute(<_>::default()));
     assert_invalid_component!("offset second", Component::OffsetSecond(<_>::default()));
+    assert_invalid_component!(
+        "unix_timestamp",
+        Component::UnixTimestampSecond(<_>::default())
+    );
 
     assert_invalid_component!(
         "week number",
-        Component::WeekNumber(WeekNumber::default().with_repr(WeekNumberRepr::Iso)),
+        Component::WeekNumberIso(WeekNumberIso::default()),
         b"00"
     );
-    assert_invalid_component!(
-        "hour",
-        Component::Hour(Hour::default().with_is_12_hour_clock(true)),
-        b"00"
-    );
+    assert_invalid_component!("hour", Component::Hour12(Hour12::default()), b"00");
 }

@@ -223,9 +223,18 @@ use crate::{
 /// The format used when serializing and deserializing a human-readable `Date`.
 #[cfg(feature = "parsing")]
 const DATE_FORMAT: StaticFormatDescription = &[
-    BorrowedFormatItem::Component(Component::Year(modifier::Year::default())),
+    #[cfg(feature = "large-dates")]
+    BorrowedFormatItem::Component(Component::CalendarYearFullExtendedRange(
+        modifier::CalendarYearFullExtendedRange::default(),
+    )),
+    #[cfg(not(feature = "large-dates"))]
+    BorrowedFormatItem::Component(Component::CalendarYearFullStandardRange(
+        modifier::CalendarYearFullStandardRange::default(),
+    )),
     BorrowedFormatItem::StringLiteral("-"),
-    BorrowedFormatItem::Component(Component::Month(modifier::Month::default())),
+    BorrowedFormatItem::Component(Component::MonthNumerical(
+        modifier::MonthNumerical::default(),
+    )),
     BorrowedFormatItem::StringLiteral("-"),
     BorrowedFormatItem::Component(Component::Day(modifier::Day::default())),
 ];
@@ -444,7 +453,7 @@ impl<'a> Deserialize<'a> for UtcDateTime {
 /// The format used when serializing and deserializing a human-readable `Time`.
 #[cfg(feature = "parsing")]
 const TIME_FORMAT: StaticFormatDescription = &[
-    BorrowedFormatItem::Component(Component::Hour(modifier::Hour::default())),
+    BorrowedFormatItem::Component(Component::Hour24(modifier::Hour24::default())),
     BorrowedFormatItem::StringLiteral(":"),
     BorrowedFormatItem::Component(Component::Minute(modifier::Minute::default())),
     BorrowedFormatItem::StringLiteral(":"),

@@ -1345,23 +1345,17 @@ fn parse_components() -> time::Result<()> {
     }
 
     parse_component!(
-        Component::Year(
-            modifier::Year::default()
+        Component::CalendarYearFullExtendedRange(
+            modifier::CalendarYearFullExtendedRange::default()
                 .with_padding(modifier::Padding::Zero)
-                .with_repr(modifier::YearRepr::Full)
-                .with_range(modifier::YearRange::Extended)
-                .with_iso_week_based(false)
                 .with_sign_is_mandatory(false)
         ),
         b"2021",
         _.year() == Some(2021)
     );
     parse_component!(
-        Component::Year(modifier::Year::default()
+        Component::CalendarYearCenturyExtendedRange(modifier::CalendarYearCenturyExtendedRange::default()
             .with_padding(modifier::Padding::Zero)
-            .with_repr(modifier::YearRepr::Century)
-            .with_range(modifier::YearRange::Extended)
-            .with_iso_week_based(false)
             .with_sign_is_mandatory(false)
         ),
         b"20",
@@ -1369,35 +1363,24 @@ fn parse_components() -> time::Result<()> {
         _.year_century_is_negative() == Some(false);
     );
     parse_component!(
-        Component::Year(
-            modifier::Year::default()
-                .with_padding(modifier::Padding::Zero)
-                .with_repr(modifier::YearRepr::LastTwo)
-                .with_range(modifier::YearRange::Extended)
-                .with_iso_week_based(false)
-                .with_sign_is_mandatory(false)
+        Component::CalendarYearLastTwo(
+            modifier::CalendarYearLastTwo::default().with_padding(modifier::Padding::Zero)
         ),
         b"21",
         _.year_last_two() == Some(21)
     );
     parse_component!(
-        Component::Year(
-            modifier::Year::default()
+        Component::IsoYearFullExtendedRange(
+            modifier::IsoYearFullExtendedRange::default()
                 .with_padding(modifier::Padding::Zero)
-                .with_repr(modifier::YearRepr::Full)
-                .with_range(modifier::YearRange::Extended)
-                .with_iso_week_based(true)
                 .with_sign_is_mandatory(false)
         ),
         b"2021",
         _.iso_year() == Some(2021)
     );
     parse_component!(
-        Component::Year(modifier::Year::default()
+        Component::IsoYearCenturyExtendedRange(modifier::IsoYearCenturyExtendedRange::default()
             .with_padding(modifier::Padding::Zero)
-            .with_repr(modifier::YearRepr::Century)
-            .with_range(modifier::YearRange::Extended)
-            .with_iso_week_based(true)
             .with_sign_is_mandatory(false)
         ),
         b"20",
@@ -1405,62 +1388,43 @@ fn parse_components() -> time::Result<()> {
         _.iso_year_century_is_negative() == Some(false);
     );
     parse_component!(
-        Component::Year(
-            modifier::Year::default()
-                .with_padding(modifier::Padding::Zero)
-                .with_repr(modifier::YearRepr::LastTwo)
-                .with_range(modifier::YearRange::Extended)
-                .with_iso_week_based(true)
-                .with_sign_is_mandatory(false)
+        Component::IsoYearLastTwo(
+            modifier::IsoYearLastTwo::default().with_padding(modifier::Padding::Zero)
         ),
         b"21",
         _.iso_year_last_two() == Some(21)
     );
     parse_component!(
-        Component::Month(
-            modifier::Month::default()
+        Component::MonthNumerical(modifier::MonthNumerical::default()
                 .with_padding(modifier::Padding::Space)
-                .with_repr(modifier::MonthRepr::Numerical)
         ),
         b" 1",
         _.month() == Some(Month::January)
     );
     parse_component!(
-        Component::Month(
-            modifier::Month::default()
-                .with_padding(modifier::Padding::None)
-                .with_repr(modifier::MonthRepr::Short)
-                .with_case_sensitive(true)
+        Component::MonthShort(
+            modifier::MonthShort::default().with_case_sensitive(true)
         ),
         b"Jan",
         _.month() == Some(Month::January)
     );
     parse_component!(
-        Component::Month(
-            modifier::Month::default()
-                .with_padding(modifier::Padding::None)
-                .with_repr(modifier::MonthRepr::Short)
-                .with_case_sensitive(false)
+        Component::MonthShort(
+            modifier::MonthShort::default().with_case_sensitive(false)
         ),
         b"jAn",
         _.month() == Some(Month::January)
     );
     parse_component!(
-        Component::Month(
-            modifier::Month::default()
-                .with_padding(modifier::Padding::None)
-                .with_repr(modifier::MonthRepr::Long)
-                .with_case_sensitive(true)
+        Component::MonthLong(
+            modifier::MonthLong::default().with_case_sensitive(true)
         ),
         b"January",
         _.month() == Some(Month::January)
     );
     parse_component!(
-        Component::Month(
-            modifier::Month::default()
-                .with_padding(modifier::Padding::None)
-                .with_repr(modifier::MonthRepr::Long)
-                .with_case_sensitive(false)
+        Component::MonthLong(
+            modifier::MonthLong::default().with_case_sensitive(false)
         ),
         b"jAnUaRy",
         _.month() == Some(Month::January)
@@ -1471,104 +1435,78 @@ fn parse_components() -> time::Result<()> {
         _.ordinal() == 12.try_into().ok()
     );
     parse_component!(
-        Component::Weekday(
-            modifier::Weekday::default()
-                .with_repr(modifier::WeekdayRepr::Short)
-                .with_one_indexed(false)
-                .with_case_sensitive(true)
+        Component::WeekdayShort(
+            modifier::WeekdayShort::default().with_case_sensitive(true)
         ),
         b"Sun",
         _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
-        Component::Weekday(
-            modifier::Weekday::default()
-                .with_repr(modifier::WeekdayRepr::Short)
-                .with_one_indexed(false)
-                .with_case_sensitive(false)
+        Component::WeekdayShort(
+            modifier::WeekdayShort::default().with_case_sensitive(false)
         ),
         b"sUn",
         _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
-        Component::Weekday(
-            modifier::Weekday::default()
-                .with_repr(modifier::WeekdayRepr::Long)
-                .with_one_indexed(false)
-                .with_case_sensitive(true)
+        Component::WeekdayLong(
+            modifier::WeekdayLong::default().with_case_sensitive(true)
         ),
         b"Sunday",
         _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
-        Component::Weekday(
-            modifier::Weekday::default()
-                .with_repr(modifier::WeekdayRepr::Long)
-                .with_one_indexed(false)
-                .with_case_sensitive(false)
+        Component::WeekdayLong(
+            modifier::WeekdayLong::default().with_case_sensitive(false)
         ),
         b"sUnDaY",
         _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
-        Component::Weekday(
-            modifier::Weekday::default()
-                .with_repr(modifier::WeekdayRepr::Sunday)
-                .with_one_indexed(false)
+        Component::WeekdaySunday(
+            modifier::WeekdaySunday::default().with_one_indexed(false)
         ),
         b"0",
         _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
-        Component::Weekday(
-            modifier::Weekday::default()
-                .with_repr(modifier::WeekdayRepr::Sunday)
-                .with_one_indexed(true)
+        Component::WeekdaySunday(
+            modifier::WeekdaySunday::default().with_one_indexed(true)
         ),
         b"1",
         _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
-        Component::Weekday(
-            modifier::Weekday::default()
-                .with_repr(modifier::WeekdayRepr::Monday)
-                .with_one_indexed(false)
+        Component::WeekdayMonday(
+            modifier::WeekdayMonday::default().with_one_indexed(false)
         ),
         b"6",
         _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
-        Component::Weekday(
-            modifier::Weekday::default()
-                .with_repr(modifier::WeekdayRepr::Monday)
-                .with_one_indexed(true)
+        Component::WeekdayMonday(
+            modifier::WeekdayMonday::default().with_one_indexed(true)
         ),
         b"7",
         _.weekday() == Some(Weekday::Sunday)
     );
     parse_component!(
-        Component::WeekNumber(
-            modifier::WeekNumber::default()
-                .with_padding(modifier::Padding::None)
-                .with_repr(modifier::WeekNumberRepr::Sunday)
+        Component::WeekNumberSunday(
+            modifier::WeekNumberSunday::default().with_padding(modifier::Padding::None)
         ),
         b"2",
         _.sunday_week_number() == Some(2)
     );
     parse_component!(
-        Component::WeekNumber(
-            modifier::WeekNumber::default()
-                .with_padding(modifier::Padding::None)
-                .with_repr(modifier::WeekNumberRepr::Monday)
+        Component::WeekNumberMonday(
+            modifier::WeekNumberMonday::default().with_padding(modifier::Padding::None)
         ),
         b"2",
         _.monday_week_number() == Some(2)
     );
     parse_component!(
-        Component::WeekNumber(
-            modifier::WeekNumber::default()
-                .with_padding(modifier::Padding::None)
-                .with_repr(modifier::WeekNumberRepr::Iso)
+        Component::WeekNumberIso(
+            modifier::WeekNumberIso::default().with_padding(modifier::Padding::None)
         ),
         b"2",
         _.iso_week_number() == 2.try_into().ok()
@@ -1677,46 +1615,36 @@ fn parse_components() -> time::Result<()> {
         Err(error::ParseFromDescription::InvalidComponent("ignore"))
     ));
     parse_component!(
-        Component::UnixTimestamp(
-            modifier::UnixTimestamp::default()
-                .with_precision(modifier::UnixTimestampPrecision::Second)
-                .with_sign_is_mandatory(false)
+        Component::UnixTimestampSecond(
+            modifier::UnixTimestampSecond::default().with_sign_is_mandatory(false)
         ),
         b"1234567890",
         _.unix_timestamp_nanos() == Some(1_234_567_890_000_000_000)
     );
     parse_component!(
-        Component::UnixTimestamp(
-            modifier::UnixTimestamp::default()
-                .with_precision(modifier::UnixTimestampPrecision::Millisecond)
-                .with_sign_is_mandatory(false)
+        Component::UnixTimestampMillisecond(
+            modifier::UnixTimestampMillisecond::default().with_sign_is_mandatory(false)
         ),
         b"1234567890123",
         _.unix_timestamp_nanos() == Some(1_234_567_890_123_000_000)
     );
     parse_component!(
-        Component::UnixTimestamp(
-            modifier::UnixTimestamp::default()
-                .with_precision(modifier::UnixTimestampPrecision::Microsecond)
-                .with_sign_is_mandatory(false)
+        Component::UnixTimestampMicrosecond(
+            modifier::UnixTimestampMicrosecond::default().with_sign_is_mandatory(false)
         ),
         b"1234567890123456",
         _.unix_timestamp_nanos() == Some(1_234_567_890_123_456_000)
     );
     parse_component!(
-        Component::UnixTimestamp(
-            modifier::UnixTimestamp::default()
-                .with_precision(modifier::UnixTimestampPrecision::Nanosecond)
-                .with_sign_is_mandatory(false)
+        Component::UnixTimestampNanosecond(
+            modifier::UnixTimestampNanosecond::default().with_sign_is_mandatory(false)
         ),
         b"1234567890123456789",
         _.unix_timestamp_nanos() == Some(1_234_567_890_123_456_789)
     );
     parse_component!(
-        Component::UnixTimestamp(
-            modifier::UnixTimestamp::default()
-                .with_precision(modifier::UnixTimestampPrecision::Nanosecond)
-                .with_sign_is_mandatory(false)
+        Component::UnixTimestampNanosecond(
+            modifier::UnixTimestampNanosecond::default().with_sign_is_mandatory(false)
         ),
         b"-1234567890123456789",
         _.unix_timestamp_nanos() == Some(-1_234_567_890_123_456_789)

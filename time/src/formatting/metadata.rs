@@ -209,34 +209,26 @@ impl ComputeMetadata for Component {
     fn compute_metadata(&self) -> Metadata {
         let max_bytes_needed = match self {
             Self::Day(_) => 2,
-            Self::Month(modifier) => match modifier.repr {
-                modifier::MonthRepr::Numerical => 2,
-                modifier::MonthRepr::Long => 9,
-                modifier::MonthRepr::Short => 3,
-            },
+            Self::MonthShort(_) => 3,
+            Self::MonthLong(_) => 9,
+            Self::MonthNumerical(_) => 2,
             Self::Ordinal(_) => 3,
-            Self::Weekday(modifier) => match modifier.repr {
-                modifier::WeekdayRepr::Short => 3,
-                modifier::WeekdayRepr::Long => 9,
-                modifier::WeekdayRepr::Sunday | modifier::WeekdayRepr::Monday => 1,
-            },
-            Self::WeekNumber(_) => 2,
-            #[cfg(feature = "large-dates")]
-            Self::Year(modifier) => match modifier.repr {
-                modifier::YearRepr::Full => 7,
-                modifier::YearRepr::Century => 5,
-                modifier::YearRepr::LastTwo => 2,
-            },
-            #[cfg(not(feature = "large-dates"))]
-            Self::Year(modifier) => match modifier.repr {
-                modifier::YearRepr::Full => 5,
-                modifier::YearRepr::Century => 3,
-                modifier::YearRepr::LastTwo => 2,
-            },
-            Self::Hour(_) => 2,
-            Self::Minute(_) => 2,
-            Self::Period(_) => 2,
-            Self::Second(_) => 2,
+            Self::WeekdayShort(_) => 3,
+            Self::WeekdayLong(_) => 9,
+            Self::WeekdaySunday(_) | Self::WeekdayMonday(_) => 1,
+            Self::WeekNumberIso(_) | Self::WeekNumberSunday(_) | Self::WeekNumberMonday(_) => 2,
+            Self::CalendarYearFullExtendedRange(_) => 7,
+            Self::CalendarYearFullStandardRange(_) => 5,
+            Self::IsoYearFullExtendedRange(_) => 7,
+            Self::IsoYearFullStandardRange(_) => 5,
+            Self::CalendarYearCenturyExtendedRange(_) => 5,
+            Self::CalendarYearCenturyStandardRange(_) => 3,
+            Self::IsoYearCenturyExtendedRange(_) => 5,
+            Self::IsoYearCenturyStandardRange(_) => 3,
+            Self::CalendarYearLastTwo(_) => 2,
+            Self::IsoYearLastTwo(_) => 2,
+            Self::Hour12(_) | Self::Hour24(_) => 2,
+            Self::Minute(_) | Self::Period(_) | Self::Second(_) => 2,
             Self::Subsecond(modifier) => match modifier.digits {
                 modifier::SubsecondDigits::One => 1,
                 modifier::SubsecondDigits::Two => 2,
@@ -250,9 +242,44 @@ impl ComputeMetadata for Component {
                 modifier::SubsecondDigits::OneOrMore => 9,
             },
             Self::OffsetHour(_) => 3,
-            Self::OffsetMinute(_) => 2,
-            Self::OffsetSecond(_) => 2,
+            Self::OffsetMinute(_) | Self::OffsetSecond(_) => 2,
             #[cfg(feature = "large-dates")]
+            Self::UnixTimestampSecond(_) => 15,
+            #[cfg(not(feature = "large-dates"))]
+            Self::UnixTimestampSecond(_) => 13,
+            #[cfg(feature = "large-dates")]
+            Self::UnixTimestampMillisecond(_) => 18,
+            #[cfg(not(feature = "large-dates"))]
+            Self::UnixTimestampMillisecond(_) => 16,
+            #[cfg(feature = "large-dates")]
+            Self::UnixTimestampMicrosecond(_) => 21,
+            #[cfg(not(feature = "large-dates"))]
+            Self::UnixTimestampMicrosecond(_) => 19,
+            #[cfg(feature = "large-dates")]
+            Self::UnixTimestampNanosecond(_) => 24,
+            #[cfg(not(feature = "large-dates"))]
+            Self::UnixTimestampNanosecond(_) => 22,
+            Self::Ignore(_) | Self::End(_) => 0,
+
+            // Start of deprecated components that are no longer emitted by macros or parsers.
+            #[expect(deprecated)]
+            Self::Month(modifier) => match modifier.repr {
+                modifier::MonthRepr::Numerical => 2,
+                modifier::MonthRepr::Long => 9,
+                modifier::MonthRepr::Short => 3,
+            },
+            #[expect(deprecated)]
+            Self::Weekday(modifier) => match modifier.repr {
+                modifier::WeekdayRepr::Short => 3,
+                modifier::WeekdayRepr::Long => 9,
+                modifier::WeekdayRepr::Sunday | modifier::WeekdayRepr::Monday => 1,
+            },
+            #[expect(deprecated)]
+            Self::WeekNumber(_) => 2,
+            #[expect(deprecated)]
+            Self::Hour(_) => 2,
+            #[cfg(feature = "large-dates")]
+            #[expect(deprecated)]
             Self::UnixTimestamp(modifier) => match modifier.precision {
                 modifier::UnixTimestampPrecision::Second => 15,
                 modifier::UnixTimestampPrecision::Millisecond => 18,
@@ -260,13 +287,27 @@ impl ComputeMetadata for Component {
                 modifier::UnixTimestampPrecision::Nanosecond => 24,
             },
             #[cfg(not(feature = "large-dates"))]
+            #[expect(deprecated)]
             Self::UnixTimestamp(modifier) => match modifier.precision {
                 modifier::UnixTimestampPrecision::Second => 13,
                 modifier::UnixTimestampPrecision::Millisecond => 16,
                 modifier::UnixTimestampPrecision::Microsecond => 19,
                 modifier::UnixTimestampPrecision::Nanosecond => 22,
             },
-            Self::Ignore(_) | Self::End(_) => 0,
+            #[cfg(feature = "large-dates")]
+            #[expect(deprecated)]
+            Self::Year(modifier) => match modifier.repr {
+                modifier::YearRepr::Full => 7,
+                modifier::YearRepr::Century => 5,
+                modifier::YearRepr::LastTwo => 2,
+            },
+            #[cfg(not(feature = "large-dates"))]
+            #[expect(deprecated)]
+            Self::Year(modifier) => match modifier.repr {
+                modifier::YearRepr::Full => 5,
+                modifier::YearRepr::Century => 3,
+                modifier::YearRepr::LastTwo => 2,
+            },
         };
 
         Metadata {

@@ -16,9 +16,17 @@ use crate::format_description::{BorrowedFormatItem, Component, Period, modifier}
 use crate::internal_macros::{bug, const_try_opt};
 use crate::parsing::ParsedItem;
 use crate::parsing::component::{
-    parse_day, parse_end, parse_hour, parse_ignore, parse_minute, parse_month, parse_offset_hour,
-    parse_offset_minute, parse_offset_second, parse_ordinal, parse_period, parse_second,
-    parse_subsecond, parse_unix_timestamp, parse_week_number, parse_weekday, parse_year,
+    parse_calendar_year_century_extended_range, parse_calendar_year_century_standard_range,
+    parse_calendar_year_full_extended_range, parse_calendar_year_full_standard_range,
+    parse_calendar_year_last_two, parse_day, parse_end, parse_hour_12, parse_hour_24, parse_ignore,
+    parse_iso_year_century_extended_range, parse_iso_year_century_standard_range,
+    parse_iso_year_full_extended_range, parse_iso_year_full_standard_range,
+    parse_iso_year_last_two, parse_minute, parse_month_long, parse_month_numerical,
+    parse_month_short, parse_offset_hour, parse_offset_minute, parse_offset_second, parse_ordinal,
+    parse_period, parse_second, parse_subsecond, parse_unix_timestamp_microsecond,
+    parse_unix_timestamp_millisecond, parse_unix_timestamp_nanosecond, parse_unix_timestamp_second,
+    parse_week_number_iso, parse_week_number_monday, parse_week_number_sunday, parse_weekday_long,
+    parse_weekday_monday, parse_weekday_short, parse_weekday_sunday, parse_year,
 };
 use crate::unit::{Day, Hour, Minute, Nanosecond, Second};
 use crate::{
@@ -41,7 +49,7 @@ mod sealed {
 }
 
 impl sealed::AnyFormatItem for BorrowedFormatItem<'_> {
-    #[inline]
+    #[inline(always)]
     fn parse_item<'a>(
         &self,
         parsed: &mut Parsed,
@@ -284,6 +292,7 @@ impl Parsed {
 
     /// Parse a single component, mutating the struct. The remaining input is returned as the `Ok`
     /// value.
+    #[inline]
     pub fn parse_component<'a>(
         &mut self,
         input: &'a [u8],
@@ -295,61 +304,113 @@ impl Parsed {
             Component::Day(modifiers) => parse_day(input, modifiers)
                 .and_then(|parsed| parsed.consume_value(|value| self.set_day(value)))
                 .ok_or(InvalidComponent("day")),
-            Component::Month(modifiers) => parse_month(input, modifiers)
+            Component::MonthShort(modifiers) => parse_month_short(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_month(value)))
+                .ok_or(InvalidComponent("month")),
+            Component::MonthLong(modifiers) => parse_month_long(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_month(value)))
+                .ok_or(InvalidComponent("month")),
+            Component::MonthNumerical(modifiers) => parse_month_numerical(input, modifiers)
                 .and_then(|parsed| parsed.consume_value(|value| self.set_month(value)))
                 .ok_or(InvalidComponent("month")),
             Component::Ordinal(modifiers) => parse_ordinal(input, modifiers)
                 .and_then(|parsed| parsed.consume_value(|value| self.set_ordinal(value)))
                 .ok_or(InvalidComponent("ordinal")),
-            Component::Weekday(modifiers) => parse_weekday(input, modifiers)
+            Component::WeekdayShort(modifiers) => parse_weekday_short(input, modifiers)
                 .and_then(|parsed| parsed.consume_value(|value| self.set_weekday(value)))
                 .ok_or(InvalidComponent("weekday")),
-            Component::WeekNumber(modifiers) => {
-                let ParsedItem(remaining, value) =
-                    parse_week_number(input, modifiers).ok_or(InvalidComponent("week number"))?;
-                match modifiers.repr {
-                    modifier::WeekNumberRepr::Iso => {
-                        NonZero::new(value).and_then(|value| self.set_iso_week_number(value))
-                    }
-                    modifier::WeekNumberRepr::Sunday => self.set_sunday_week_number(value),
-                    modifier::WeekNumberRepr::Monday => self.set_monday_week_number(value),
-                }
-                .ok_or(InvalidComponent("week number"))?;
-                Ok(remaining)
+            Component::WeekdayLong(modifiers) => parse_weekday_long(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_weekday(value)))
+                .ok_or(InvalidComponent("weekday")),
+            Component::WeekdaySunday(modifiers) => parse_weekday_sunday(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_weekday(value)))
+                .ok_or(InvalidComponent("weekday")),
+            Component::WeekdayMonday(modifiers) => parse_weekday_monday(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_weekday(value)))
+                .ok_or(InvalidComponent("weekday")),
+            Component::WeekNumberIso(modifiers) => parse_week_number_iso(input, modifiers)
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_iso_week_number(NonZero::new(value)?))
+                })
+                .ok_or(InvalidComponent("week number")),
+            Component::WeekNumberSunday(modifiers) => parse_week_number_sunday(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_sunday_week_number(value)))
+                .ok_or(InvalidComponent("week number")),
+            Component::WeekNumberMonday(modifiers) => parse_week_number_monday(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_monday_week_number(value)))
+                .ok_or(InvalidComponent("week number")),
+            Component::CalendarYearFullExtendedRange(modifiers) => {
+                parse_calendar_year_full_extended_range(input, modifiers)
+                    .and_then(|parsed| parsed.consume_value(|value| self.set_year(value)))
+                    .ok_or(InvalidComponent("year"))
             }
-            Component::Year(modifiers) => {
-                let ParsedItem(remaining, (value, is_negative)) =
-                    parse_year(input, modifiers).ok_or(InvalidComponent("year"))?;
-                match (modifiers.iso_week_based, modifiers.repr) {
-                    (false, modifier::YearRepr::Full) => self.set_year(value),
-                    (false, modifier::YearRepr::Century) => {
-                        self.set_year_century(value.truncate(), is_negative)
-                    }
-                    (false, modifier::YearRepr::LastTwo) => {
-                        self.set_year_last_two(value.cast_unsigned().truncate())
-                    }
-                    (true, modifier::YearRepr::Full) => self.set_iso_year(value),
-                    (true, modifier::YearRepr::Century) => {
-                        self.set_iso_year_century(value.truncate(), is_negative)
-                    }
-                    (true, modifier::YearRepr::LastTwo) => {
-                        self.set_iso_year_last_two(value.cast_unsigned().truncate())
-                    }
-                }
-                .ok_or(InvalidComponent("year"))?;
-                Ok(remaining)
+            Component::CalendarYearFullStandardRange(modifiers) => {
+                parse_calendar_year_full_standard_range(input, modifiers)
+                    .and_then(|parsed| parsed.consume_value(|value| self.set_year(value)))
+                    .ok_or(InvalidComponent("year"))
             }
-            Component::Hour(modifiers) => {
-                let ParsedItem(remaining, value) =
-                    parse_hour(input, modifiers).ok_or(InvalidComponent("hour"))?;
-                if modifiers.is_12_hour_clock {
-                    NonZero::new(value).and_then(|value| self.set_hour_12(value))
-                } else {
-                    self.set_hour_24(value)
-                }
-                .ok_or(InvalidComponent("hour"))?;
-                Ok(remaining)
+            Component::IsoYearFullExtendedRange(modifiers) => {
+                parse_iso_year_full_extended_range(input, modifiers)
+                    .and_then(|parsed| parsed.consume_value(|value| self.set_iso_year(value)))
+                    .ok_or(InvalidComponent("year"))
             }
+            Component::IsoYearFullStandardRange(modifiers) => {
+                parse_iso_year_full_standard_range(input, modifiers)
+                    .and_then(|parsed| parsed.consume_value(|value| self.set_iso_year(value)))
+                    .ok_or(InvalidComponent("year"))
+            }
+            Component::CalendarYearCenturyExtendedRange(modifiers) => {
+                parse_calendar_year_century_extended_range(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|(value, is_negative)| {
+                            self.set_year_century(value, is_negative)
+                        })
+                    })
+                    .ok_or(InvalidComponent("year"))
+            }
+            Component::CalendarYearCenturyStandardRange(modifiers) => {
+                parse_calendar_year_century_standard_range(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|(value, is_negative)| {
+                            self.set_year_century(value, is_negative)
+                        })
+                    })
+                    .ok_or(InvalidComponent("year"))
+            }
+            Component::IsoYearCenturyExtendedRange(modifiers) => {
+                parse_iso_year_century_extended_range(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|(value, is_negative)| {
+                            self.set_iso_year_century(value, is_negative)
+                        })
+                    })
+                    .ok_or(InvalidComponent("year"))
+            }
+            Component::IsoYearCenturyStandardRange(modifiers) => {
+                parse_iso_year_century_standard_range(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|(value, is_negative)| {
+                            self.set_iso_year_century(value, is_negative)
+                        })
+                    })
+                    .ok_or(InvalidComponent("year"))
+            }
+            Component::CalendarYearLastTwo(modifiers) => {
+                parse_calendar_year_last_two(input, modifiers)
+                    .and_then(|parsed| parsed.consume_value(|value| self.set_year_last_two(value)))
+                    .ok_or(InvalidComponent("year"))
+            }
+            Component::IsoYearLastTwo(modifiers) => parse_iso_year_last_two(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_iso_year_last_two(value)))
+                .ok_or(InvalidComponent("year")),
+            Component::Hour12(modifiers) => parse_hour_12(input, modifiers)
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_hour_12(NonZero::new(value)?))
+                })
+                .ok_or(InvalidComponent("hour")),
+            Component::Hour24(modifiers) => parse_hour_24(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_hour_24(value)))
+                .ok_or(InvalidComponent("hour")),
             Component::Minute(modifiers) => parse_minute(input, modifiers)
                 .and_then(|parsed| parsed.consume_value(|value| self.set_minute(value)))
                 .ok_or(InvalidComponent("minute")),
@@ -386,14 +447,196 @@ impl Parsed {
             Component::Ignore(modifiers) => parse_ignore(input, modifiers)
                 .map(ParsedItem::<()>::into_inner)
                 .ok_or(InvalidComponent("ignore")),
-            Component::UnixTimestamp(modifiers) => parse_unix_timestamp(input, modifiers)
-                .and_then(|parsed| {
-                    parsed.consume_value(|value| self.set_unix_timestamp_nanos(value))
-                })
-                .ok_or(InvalidComponent("unix_timestamp")),
+            Component::UnixTimestampSecond(modifiers) => {
+                parse_unix_timestamp_second(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|value| self.set_unix_timestamp_nanos(value))
+                    })
+                    .ok_or(InvalidComponent("unix_timestamp"))
+            }
+            Component::UnixTimestampMillisecond(modifiers) => {
+                parse_unix_timestamp_millisecond(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|value| self.set_unix_timestamp_nanos(value))
+                    })
+                    .ok_or(InvalidComponent("unix_timestamp"))
+            }
+            Component::UnixTimestampMicrosecond(modifiers) => {
+                parse_unix_timestamp_microsecond(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|value| self.set_unix_timestamp_nanos(value))
+                    })
+                    .ok_or(InvalidComponent("unix_timestamp"))
+            }
+            Component::UnixTimestampNanosecond(modifiers) => {
+                parse_unix_timestamp_nanosecond(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|value| self.set_unix_timestamp_nanos(value))
+                    })
+                    .ok_or(InvalidComponent("unix_timestamp"))
+            }
             Component::End(modifiers) => parse_end(input, modifiers)
                 .map(ParsedItem::<()>::into_inner)
                 .ok_or(error::ParseFromDescription::UnexpectedTrailingCharacters),
+
+            // Start of deprecated components. These are no longer emitted by macros or parsers, so
+            // they should be last for performance reasons as they're unlikely to be encountered.
+            #[expect(deprecated)]
+            Component::Month(modifiers) => match modifiers.repr {
+                modifier::MonthRepr::Short => parse_month_short(
+                    input,
+                    modifier::MonthShort {
+                        case_sensitive: modifiers.case_sensitive,
+                    },
+                ),
+                modifier::MonthRepr::Long => parse_month_long(
+                    input,
+                    modifier::MonthLong {
+                        case_sensitive: modifiers.case_sensitive,
+                    },
+                ),
+                modifier::MonthRepr::Numerical => parse_month_numerical(
+                    input,
+                    modifier::MonthNumerical {
+                        padding: modifiers.padding,
+                    },
+                ),
+            }
+            .and_then(|parsed| parsed.consume_value(|value| self.set_month(value)))
+            .ok_or(InvalidComponent("month")),
+            #[expect(deprecated)]
+            Component::Hour(modifiers) => if modifiers.is_12_hour_clock {
+                parse_hour_12(
+                    input,
+                    modifier::Hour12 {
+                        padding: modifiers.padding,
+                    },
+                )
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_hour_12(NonZero::new(value)?))
+                })
+            } else {
+                parse_hour_24(
+                    input,
+                    modifier::Hour24 {
+                        padding: modifiers.padding,
+                    },
+                )
+                .and_then(|parsed| parsed.consume_value(|value| self.set_hour_24(value)))
+            }
+            .ok_or(InvalidComponent("hour")),
+            #[expect(deprecated)]
+            Component::WeekNumber(modifiers) => match modifiers.repr {
+                modifier::WeekNumberRepr::Iso => parse_week_number_iso(
+                    input,
+                    modifier::WeekNumberIso {
+                        padding: modifiers.padding,
+                    },
+                )
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_iso_week_number(NonZero::new(value)?))
+                }),
+                modifier::WeekNumberRepr::Sunday => parse_week_number_sunday(
+                    input,
+                    modifier::WeekNumberSunday {
+                        padding: modifiers.padding,
+                    },
+                )
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_sunday_week_number(value))
+                }),
+                modifier::WeekNumberRepr::Monday => parse_week_number_monday(
+                    input,
+                    modifier::WeekNumberMonday {
+                        padding: modifiers.padding,
+                    },
+                )
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_monday_week_number(value))
+                }),
+            }
+            .ok_or(InvalidComponent("week number")),
+            #[expect(deprecated)]
+            Component::Weekday(modifiers) => match modifiers.repr {
+                modifier::WeekdayRepr::Short => parse_weekday_short(
+                    input,
+                    modifier::WeekdayShort {
+                        case_sensitive: modifiers.case_sensitive,
+                    },
+                ),
+                modifier::WeekdayRepr::Long => parse_weekday_long(
+                    input,
+                    modifier::WeekdayLong {
+                        case_sensitive: modifiers.case_sensitive,
+                    },
+                ),
+                modifier::WeekdayRepr::Sunday => parse_weekday_sunday(
+                    input,
+                    modifier::WeekdaySunday {
+                        one_indexed: modifiers.one_indexed,
+                    },
+                ),
+                modifier::WeekdayRepr::Monday => parse_weekday_monday(
+                    input,
+                    modifier::WeekdayMonday {
+                        one_indexed: modifiers.one_indexed,
+                    },
+                ),
+            }
+            .and_then(|parsed| parsed.consume_value(|value| self.set_weekday(value)))
+            .ok_or(InvalidComponent("weekday")),
+            #[expect(deprecated)]
+            Component::UnixTimestamp(modifiers) => match modifiers.precision {
+                modifier::UnixTimestampPrecision::Second => parse_unix_timestamp_second(
+                    input,
+                    modifier::UnixTimestampSecond {
+                        sign_is_mandatory: modifiers.sign_is_mandatory,
+                    },
+                ),
+                modifier::UnixTimestampPrecision::Millisecond => parse_unix_timestamp_millisecond(
+                    input,
+                    modifier::UnixTimestampMillisecond {
+                        sign_is_mandatory: modifiers.sign_is_mandatory,
+                    },
+                ),
+                modifier::UnixTimestampPrecision::Microsecond => parse_unix_timestamp_microsecond(
+                    input,
+                    modifier::UnixTimestampMicrosecond {
+                        sign_is_mandatory: modifiers.sign_is_mandatory,
+                    },
+                ),
+                modifier::UnixTimestampPrecision::Nanosecond => parse_unix_timestamp_nanosecond(
+                    input,
+                    modifier::UnixTimestampNanosecond {
+                        sign_is_mandatory: modifiers.sign_is_mandatory,
+                    },
+                ),
+            }
+            .and_then(|parsed| parsed.consume_value(|value| self.set_unix_timestamp_nanos(value)))
+            .ok_or(InvalidComponent("unix_timestamp")),
+            #[expect(deprecated)]
+            Component::Year(modifiers) => {
+                let ParsedItem(remaining, (value, is_negative)) =
+                    parse_year(input, modifiers).ok_or(InvalidComponent("year"))?;
+                match (modifiers.iso_week_based, modifiers.repr) {
+                    (false, modifier::YearRepr::Full) => self.set_year(value),
+                    (false, modifier::YearRepr::Century) => {
+                        self.set_year_century(value.truncate(), is_negative)
+                    }
+                    (false, modifier::YearRepr::LastTwo) => {
+                        self.set_year_last_two(value.cast_unsigned().truncate())
+                    }
+                    (true, modifier::YearRepr::Full) => self.set_iso_year(value),
+                    (true, modifier::YearRepr::Century) => {
+                        self.set_iso_year_century(value.truncate(), is_negative)
+                    }
+                    (true, modifier::YearRepr::LastTwo) => {
+                        self.set_iso_year_last_two(value.cast_unsigned().truncate())
+                    }
+                }
+                .ok_or(InvalidComponent("year"))?;
+                Ok(remaining)
+            }
         }
     }
 }
