@@ -13,23 +13,52 @@ const DEPTH_LIMIT: u8 = 32;
 /// Consume the `fws` rule.
 // The full rule is equivalent to /\r\n[ \t]+|[ \t]+(?:\r\n[ \t]+)*/
 #[inline]
-pub(crate) fn fws(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
-    if let [b'\r', b'\n', rest @ ..] = input {
-        one_or_more(wsp)(rest)
-    } else {
-        input = one_or_more(wsp)(input)?.into_inner();
-        while let [b'\r', b'\n', rest @ ..] = input {
-            input = one_or_more(wsp)(rest)?.into_inner();
-        }
-        Some(ParsedItem(input, ()))
+pub(crate) fn fws(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
+    if !matches!(input.first(), Some(b'\r' | b' ' | b'\t')) {
+        return None;
     }
+
+    if !matches!(input.get(1), Some(b' ' | b'\r' | b'\n' | b'\t')) {
+        return Some(ParsedItem(&input[1..], ()));
+    }
+
+    #[inline(never)]
+    fn fws_uncommon(mut input: &[u8]) -> Option<ParsedItem<'_, ()>> {
+        if let [b'\r', b'\n', rest @ ..] = input {
+            one_or_more(wsp)(rest)
+        } else {
+            input = one_or_more(wsp)(input)?.into_inner();
+            while let [b'\r', b'\n', rest @ ..] = input {
+                input = one_or_more(wsp)(rest)?.into_inner();
+            }
+            Some(ParsedItem(input, ()))
+        }
+    }
+    fws_uncommon(input)
 }
 
 /// Consume the `cfws` rule.
 // The full rule is equivalent to any combination of `fws` and `comment` so long as it is not empty.
 #[inline]
 pub(crate) fn cfws(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
-    one_or_more(|input| fws(input).or_else(|| comment(input, 1)))(input)
+    if input.first() != Some(&b'(') {
+        if !matches!(input.first(), Some(b'\r' | b' ' | b'\t')) {
+            return None;
+        }
+
+        if !matches!(
+            input.get(1),
+            Some(b'(' | b' ' | b'\r' | b'\n' | b'\t' | b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9')
+        ) {
+            return Some(ParsedItem(&input[1..], ()));
+        }
+    }
+
+    #[inline(never)]
+    fn cfws_uncommon(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
+        one_or_more(|input| fws(input).or_else(|| comment(input, 1)))(input)
+    }
+    cfws_uncommon(input)
 }
 
 /// Consume the `comment` rule.
@@ -134,6 +163,12 @@ fn text<'a>(input: &'a [u8]) -> ParsedItem<'a, ()> {
 /// Consume an old zone literal, returning the offset in hours.
 #[inline]
 pub(crate) fn zone_literal(input: &[u8]) -> Option<ParsedItem<'_, i8>> {
+    if matches!(input.first(), Some(b'-' | b'+')) {
+        return None;
+    }
+
+    crate::hint::cold_path();
+
     let [first, second, third, rest @ ..] = input else {
         const UT_VARIANTS: [u16; 4] = [
             u16::from_ne_bytes([b'u', b't']),

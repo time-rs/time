@@ -273,6 +273,7 @@ impl sealed::Sealed for Rfc2822 {
         parsed.leap_second_allowed = true;
 
         if let Some(zone_literal) = zone_literal(input) {
+            crate::hint::cold_path();
             let input = try_likely_ok!(
                 zone_literal
                     .consume_value(|value| parsed.set_offset_hour(value))
@@ -395,26 +396,29 @@ impl sealed::Sealed for Rfc2822 {
             )
         };
 
-        let (input, offset_hour, offset_minute) = if let Some(zone_literal) = zone_literal(input) {
-            let ParsedItem(input, offset_hour) = zone_literal;
-            (input, offset_hour, 0)
-        } else {
-            let ParsedItem(input, offset_sign) =
-                try_likely_ok!(sign(input).ok_or(InvalidComponent("offset hour")));
-            let ParsedItem(input, offset_hour) = try_likely_ok!(
-                ExactlyNDigits::<2>::parse(input)
-                    .map(|item| {
-                        item.map(|offset_hour| match offset_sign {
-                            Sign::Negative => -offset_hour.cast_signed(),
-                            Sign::Positive => offset_hour.cast_signed(),
+        let sign = sign(input);
+        let (input, offset_hour, offset_minute) = match sign {
+            None => {
+                let ParsedItem(input, offset_hour) =
+                    zone_literal(input).ok_or(InvalidComponent("offset hour"))?;
+                (input, offset_hour, 0)
+            }
+            Some(ParsedItem(input, offset_sign)) => {
+                let ParsedItem(input, offset_hour) = try_likely_ok!(
+                    ExactlyNDigits::<2>::parse(input)
+                        .map(|item| {
+                            item.map(|offset_hour| match offset_sign {
+                                Sign::Negative => -offset_hour.cast_signed(),
+                                Sign::Positive => offset_hour.cast_signed(),
+                            })
                         })
-                    })
-                    .ok_or(InvalidComponent("offset hour"))
-            );
-            let ParsedItem(input, offset_minute) = try_likely_ok!(
-                ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("offset minute"))
-            );
-            (input, offset_hour, offset_minute.cast_signed())
+                        .ok_or(InvalidComponent("offset hour"))
+                );
+                let ParsedItem(input, offset_minute) = try_likely_ok!(
+                    ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("offset minute"))
+                );
+                (input, offset_hour, offset_minute.cast_signed())
+            }
         };
 
         let input = opt(cfws)(input).into_inner();
