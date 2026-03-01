@@ -218,6 +218,21 @@ impl_const_default! {
     @pub End => Self { trailing_input: TrailingInput::Prohibit };
 }
 
+macro_rules! builder_methods {
+    ($(
+        $(#[$fn_attr:meta])*
+        fn $method:ident($field:ident : $field_ty:ty);
+    )+) => {$(
+        $(#[$fn_attr])*
+        #[allow(clippy::needless_update, reason = "needed for types with multiple fields")]
+        #[inline]
+        #[must_use = "this returns the result of the operation, without modifying the original"]
+        pub const fn $method(self, $field: $field_ty) -> Self {
+            Self { $field, ..self }
+        }
+    )+ };
+}
+
 /// Day of the month.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -227,11 +242,9 @@ pub struct Day {
 }
 
 impl Day {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -259,11 +272,9 @@ pub struct MonthShort {
 }
 
 impl MonthShort {
-    /// Set whether the value is case sensitive when parsing.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_case_sensitive(self, case_sensitive: bool) -> Self {
-        Self { case_sensitive }
+    builder_methods! {
+        /// Set whether the value is case sensitive when parsing.
+        fn with_case_sensitive(case_sensitive: bool);
     }
 }
 
@@ -275,11 +286,9 @@ pub struct MonthLong {
 }
 
 impl MonthLong {
-    /// Set whether the value is case sensitive when parsing.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_case_sensitive(self, case_sensitive: bool) -> Self {
-        Self { case_sensitive }
+    builder_methods! {
+        /// Set whether the value is case sensitive when parsing.
+        fn with_case_sensitive(case_sensitive: bool);
     }
 }
 
@@ -291,11 +300,9 @@ pub struct MonthNumerical {
 }
 
 impl MonthNumerical {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -318,28 +325,13 @@ pub struct Month {
 
 #[expect(deprecated)]
 impl Month {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
-    }
-
-    /// Set the manner in which the month is represented.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_repr(self, repr: MonthRepr) -> Self {
-        Self { repr, ..self }
-    }
-
-    /// Set whether the value is case sensitive when parsing.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_case_sensitive(self, case_sensitive: bool) -> Self {
-        Self {
-            case_sensitive,
-            ..self
-        }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
+        /// Set the manner in which the month is represented.
+        fn with_repr(repr: MonthRepr);
+        /// Set whether the value is case sensitive when parsing.
+        fn with_case_sensitive(case_sensitive: bool);
     }
 }
 
@@ -352,11 +344,9 @@ pub struct Ordinal {
 }
 
 impl Ordinal {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -390,11 +380,9 @@ pub struct WeekdayShort {
 }
 
 impl WeekdayShort {
-    /// Set whether the value is case sensitive when parsing.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_case_sensitive(self, case_sensitive: bool) -> Self {
-        Self { case_sensitive }
+    builder_methods! {
+        /// Set whether the value is case sensitive when parsing.
+        fn with_case_sensitive(case_sensitive: bool);
     }
 }
 
@@ -406,11 +394,9 @@ pub struct WeekdayLong {
 }
 
 impl WeekdayLong {
-    /// Set whether the value is case sensitive when parsing.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_case_sensitive(self, case_sensitive: bool) -> Self {
-        Self { case_sensitive }
+    builder_methods! {
+        /// Set whether the value is case sensitive when parsing.
+        fn with_case_sensitive(case_sensitive: bool);
     }
 }
 
@@ -422,11 +408,9 @@ pub struct WeekdaySunday {
 }
 
 impl WeekdaySunday {
-    /// Set whether the value is one-indexed.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_one_indexed(self, one_indexed: bool) -> Self {
-        Self { one_indexed }
+    builder_methods! {
+        /// Set whether the value is one-indexed.
+        fn with_one_indexed(one_indexed: bool);
     }
 }
 
@@ -438,11 +422,9 @@ pub struct WeekdayMonday {
 }
 
 impl WeekdayMonday {
-    /// Set whether the value is one-indexed.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_one_indexed(self, one_indexed: bool) -> Self {
-        Self { one_indexed }
+    builder_methods! {
+        /// Set whether the value is one-indexed.
+        fn with_one_indexed(one_indexed: bool);
     }
 }
 
@@ -465,31 +447,13 @@ pub struct Weekday {
 
 #[expect(deprecated)]
 impl Weekday {
-    /// Set the manner in which the weekday is represented.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_repr(self, repr: WeekdayRepr) -> Self {
-        Self { repr, ..self }
-    }
-
-    /// Set whether the value is one-indexed when using a numerical representation.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_one_indexed(self, one_indexed: bool) -> Self {
-        Self {
-            one_indexed,
-            ..self
-        }
-    }
-
-    /// Set whether the value is case sensitive when parsing.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_case_sensitive(self, case_sensitive: bool) -> Self {
-        Self {
-            case_sensitive,
-            ..self
-        }
+    builder_methods! {
+        /// Set the manner in which the weekday is represented.
+        fn with_repr(repr: WeekdayRepr);
+        /// Set whether the value is one-indexed when using a numerical representation.
+        fn with_one_indexed(one_indexed: bool);
+        /// Set whether the value is case sensitive when parsing.
+        fn with_case_sensitive(case_sensitive: bool);
     }
 }
 
@@ -519,11 +483,9 @@ pub struct WeekNumberIso {
 }
 
 impl WeekNumberIso {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -537,11 +499,9 @@ pub struct WeekNumberSunday {
 }
 
 impl WeekNumberSunday {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -555,11 +515,9 @@ pub struct WeekNumberMonday {
 }
 
 impl WeekNumberMonday {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -580,18 +538,11 @@ pub struct WeekNumber {
 
 #[expect(deprecated)]
 impl WeekNumber {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
-    }
-
-    /// Set the manner in which the week number is represented.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_repr(self, repr: WeekNumberRepr) -> Self {
-        Self { repr, ..self }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
+        /// Set the manner in which the week number is represented.
+        fn with_repr(repr: WeekNumberRepr);
     }
 }
 
@@ -642,21 +593,11 @@ pub struct CalendarYearFullExtendedRange {
 }
 
 impl CalendarYearFullExtendedRange {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
-    }
-
-    /// Set whether the `+` sign is mandatory for non-negative years with more than four digits.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self {
-            sign_is_mandatory,
-            ..self
-        }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
+        /// Set whether the `+` sign is mandatory for non-negative years with more than four digits.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -672,21 +613,11 @@ pub struct CalendarYearFullStandardRange {
 }
 
 impl CalendarYearFullStandardRange {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
-    }
-
-    /// Set whether the `+` sign is present on non-negative years.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self {
-            sign_is_mandatory,
-            ..self
-        }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
+        /// Set whether the `+` sign is present on non-negative years.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -702,21 +633,11 @@ pub struct IsoYearFullExtendedRange {
 }
 
 impl IsoYearFullExtendedRange {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
-    }
-
-    /// Set whether the `+` sign is mandatory for non-negative years with more than four digits.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self {
-            sign_is_mandatory,
-            ..self
-        }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
+        /// Set whether the `+` sign is mandatory for non-negative years with more than four digits.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -732,21 +653,11 @@ pub struct IsoYearFullStandardRange {
 }
 
 impl IsoYearFullStandardRange {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
-    }
-
-    /// Set whether the `+` sign is present on non-negative years.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self {
-            sign_is_mandatory,
-            ..self
-        }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
+        /// Set whether the `+` sign is present on non-negative years.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -762,21 +673,11 @@ pub struct CalendarYearCenturyExtendedRange {
 }
 
 impl CalendarYearCenturyExtendedRange {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
-    }
-
-    /// Set whether the `+` sign is mandatory for non-negative years with more than four digits.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self {
-            sign_is_mandatory,
-            ..self
-        }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
+        /// Set whether the `+` sign is mandatory for non-negative years with more than four digits.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -792,21 +693,11 @@ pub struct CalendarYearCenturyStandardRange {
 }
 
 impl CalendarYearCenturyStandardRange {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
-    }
-
-    /// Set whether the `+` sign is present on non-negative years.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self {
-            sign_is_mandatory,
-            ..self
-        }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
+        /// Set whether the `+` sign is present on non-negative years.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -822,21 +713,11 @@ pub struct IsoYearCenturyExtendedRange {
 }
 
 impl IsoYearCenturyExtendedRange {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
-    }
-
-    /// Set whether the `+` sign is mandatory for non-negative years with more than four digits.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self {
-            sign_is_mandatory,
-            ..self
-        }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
+        /// Set whether the `+` sign is mandatory for non-negative years with more than four digits.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -852,21 +733,11 @@ pub struct IsoYearCenturyStandardRange {
 }
 
 impl IsoYearCenturyStandardRange {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
-    }
-
-    /// Set whether the `+` sign is present on non-negative years.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self {
-            sign_is_mandatory,
-            ..self
-        }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
+        /// Set whether the `+` sign is present on non-negative years.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -879,11 +750,9 @@ pub struct CalendarYearLastTwo {
 }
 
 impl CalendarYearLastTwo {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -897,11 +766,9 @@ pub struct IsoYearLastTwo {
 }
 
 impl IsoYearLastTwo {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -929,45 +796,17 @@ pub struct Year {
 
 #[expect(deprecated)]
 impl Year {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
-    }
-
-    /// Set the manner in which the year is represented.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_repr(self, repr: YearRepr) -> Self {
-        Self { repr, ..self }
-    }
-
-    /// Set the range of years that are supported.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_range(self, range: YearRange) -> Self {
-        Self { range, ..self }
-    }
-
-    /// Set whether the year is based on the ISO week number.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_iso_week_based(self, iso_week_based: bool) -> Self {
-        Self {
-            iso_week_based,
-            ..self
-        }
-    }
-
-    /// Set whether the `+` sign is mandatory for positive years with fewer than five digits.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self {
-            sign_is_mandatory,
-            ..self
-        }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
+        /// Set the manner in which the year is represented.
+        fn with_repr(repr: YearRepr);
+        /// Set the range of years that are supported.
+        fn with_range(range: YearRange);
+        /// Set whether the year is based on the ISO week number.
+        fn with_iso_week_based(iso_week_based: bool);
+        /// Set whether the `+` sign is mandatory for positive years with fewer than five digits.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -979,11 +818,9 @@ pub struct Hour12 {
 }
 
 impl Hour12 {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -995,11 +832,9 @@ pub struct Hour24 {
 }
 
 impl Hour24 {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -1016,21 +851,11 @@ pub struct Hour {
 
 #[expect(deprecated)]
 impl Hour {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
-    }
-
-    /// Set whether the hour uses a 12-hour clock.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_is_12_hour_clock(self, is_12_hour_clock: bool) -> Self {
-        Self {
-            is_12_hour_clock,
-            ..self
-        }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
+        /// Set whether the hour uses a 12-hour clock.
+        fn with_is_12_hour_clock(is_12_hour_clock: bool);
     }
 }
 
@@ -1043,11 +868,9 @@ pub struct Minute {
 }
 
 impl Minute {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -1064,24 +887,11 @@ pub struct Period {
 }
 
 impl Period {
-    /// Set whether the period is uppercase.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_is_uppercase(self, is_uppercase: bool) -> Self {
-        Self {
-            is_uppercase,
-            ..self
-        }
-    }
-
-    /// Set whether the value is case sensitive when parsing.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_case_sensitive(self, case_sensitive: bool) -> Self {
-        Self {
-            case_sensitive,
-            ..self
-        }
+    builder_methods! {
+        /// Set whether the period is uppercase.
+        fn with_is_uppercase(is_uppercase: bool);
+        /// Set whether the value is case sensitive when parsing.
+        fn with_case_sensitive(case_sensitive: bool);
     }
 }
 
@@ -1094,11 +904,9 @@ pub struct Second {
 }
 
 impl Second {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -1138,11 +946,9 @@ pub struct Subsecond {
 }
 
 impl Subsecond {
-    /// Set the number of digits present in the subsecond representation.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_digits(self, digits: SubsecondDigits) -> Self {
-        Self { digits }
+    builder_methods! {
+        /// Set the number of digits present in the subsecond representation.
+        fn with_digits(digits: SubsecondDigits);
     }
 }
 
@@ -1157,21 +963,11 @@ pub struct OffsetHour {
 }
 
 impl OffsetHour {
-    /// Set whether the `+` sign is mandatory for positive values.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self {
-            sign_is_mandatory,
-            ..self
-        }
-    }
-
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding, ..self }
+    builder_methods! {
+        /// Set whether the `+` sign is mandatory for positive values.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -1184,11 +980,9 @@ pub struct OffsetMinute {
 }
 
 impl OffsetMinute {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -1201,11 +995,9 @@ pub struct OffsetSecond {
 }
 
 impl OffsetSecond {
-    /// Set the padding type.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_padding(self, padding: Padding) -> Self {
-        Self { padding }
+    builder_methods! {
+        /// Set the padding type.
+        fn with_padding(padding: Padding);
     }
 }
 
@@ -1241,11 +1033,9 @@ impl Ignore {
         Self { count }
     }
 
-    /// Set the number of bytes to ignore.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_count(self, count: NonZero<u16>) -> Self {
-        Self { count }
+    builder_methods! {
+        /// Set the number of bytes to ignore.
+        fn with_count(count: NonZero<u16>);
     }
 }
 
@@ -1275,11 +1065,9 @@ pub struct UnixTimestampSecond {
 }
 
 impl UnixTimestampSecond {
-    /// Set whether the `+` sign is mandatory for non-negative timestamps.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self { sign_is_mandatory }
+    builder_methods! {
+        /// Set whether the `+` sign is mandatory for non-negative timestamps.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -1291,11 +1079,9 @@ pub struct UnixTimestampMillisecond {
 }
 
 impl UnixTimestampMillisecond {
-    /// Set whether the `+` sign is mandatory for non-negative timestamps.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self { sign_is_mandatory }
+    builder_methods! {
+        /// Set whether the `+` sign is mandatory for non-negative timestamps.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -1307,11 +1093,9 @@ pub struct UnixTimestampMicrosecond {
 }
 
 impl UnixTimestampMicrosecond {
-    /// Set whether the `+` sign is mandatory for non-negative timestamps.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self { sign_is_mandatory }
+    builder_methods! {
+        /// Set whether the `+` sign is mandatory for non-negative timestamps.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -1323,11 +1107,9 @@ pub struct UnixTimestampNanosecond {
 }
 
 impl UnixTimestampNanosecond {
-    /// Set whether the `+` sign is mandatory for non-negative timestamps.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self { sign_is_mandatory }
+    builder_methods! {
+        /// Set whether the `+` sign is mandatory for non-negative timestamps.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -1349,21 +1131,11 @@ pub struct UnixTimestamp {
 
 #[expect(deprecated)]
 impl UnixTimestamp {
-    /// Set the precision of the timestamp.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_precision(self, precision: UnixTimestampPrecision) -> Self {
-        Self { precision, ..self }
-    }
-
-    /// Set whether the `+` sign is mandatory for non-negative timestamps.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_sign_is_mandatory(self, sign_is_mandatory: bool) -> Self {
-        Self {
-            sign_is_mandatory,
-            ..self
-        }
+    builder_methods! {
+        /// Set the precision of the timestamp.
+        fn with_precision(precision: UnixTimestampPrecision);
+        /// Set whether the `+` sign is mandatory for non-negative timestamps.
+        fn with_sign_is_mandatory(sign_is_mandatory: bool);
     }
 }
 
@@ -1385,13 +1157,8 @@ pub struct End {
 }
 
 impl End {
-    /// Set how to handle any input after this component.
-    #[inline]
-    #[must_use = "this returns the result of the operation, without modifying the original"]
-    pub const fn with_trailing_input(self, trailing_input: TrailingInput) -> Self {
-        Self {
-            trailing_input,
-            ..self
-        }
+    builder_methods! {
+        /// Set how to handle any input after this component.
+        fn with_trailing_input(trailing_input: TrailingInput);
     }
 }
