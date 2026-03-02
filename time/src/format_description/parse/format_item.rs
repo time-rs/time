@@ -21,7 +21,7 @@ pub(super) enum Item<'a> {
     /// A literal string.
     Literal(&'a [u8]),
     /// Part of a type, along with its modifiers.
-    Component(Component),
+    Component(AstComponent),
     /// A sequence of optional items.
     Optional {
         /// The items themselves.
@@ -59,10 +59,27 @@ impl Item<'_> {
                 opening_bracket,
                 _leading_whitespace: _,
                 _optional_kw: _,
-                _whitespace: _,
+                _whitespace_after_kw: _,
+                modifiers,
+                _whitespace_after_modifiers: _,
                 nested_format_description,
                 closing_bracket,
             } => {
+                if let Some(first_modifier) = modifiers.first() {
+                    return Err(Error {
+                        _inner: unused(
+                            first_modifier
+                                .key
+                                .span
+                                .error("modifiers are not supported on `optional` components"),
+                        ),
+                        public: crate::error::InvalidFormatDescription::NotSupported {
+                            what: "modifiers",
+                            context: "`optional` components",
+                            index: first_modifier.key.span.start.byte as usize,
+                        },
+                    });
+                }
                 let items = nested_format_description
                     .items
                     .into_vec()
@@ -78,10 +95,27 @@ impl Item<'_> {
                 opening_bracket,
                 _leading_whitespace: _,
                 _first_kw: _,
-                _whitespace: _,
+                _whitespace_after_kw: _,
+                modifiers,
+                _whitespace_after_modifiers: _,
                 nested_format_descriptions,
                 closing_bracket,
             } => {
+                if let Some(first_modifier) = modifiers.first() {
+                    return Err(Error {
+                        _inner: unused(
+                            first_modifier
+                                .key
+                                .span
+                                .error("modifiers are not supported on `first` components"),
+                        ),
+                        public: crate::error::InvalidFormatDescription::NotSupported {
+                            what: "modifiers",
+                            context: "`first` components",
+                            index: first_modifier.key.span.start.byte as usize,
+                        },
+                    });
+                }
                 let items = nested_format_descriptions
                     .into_vec()
                     .into_iter()
@@ -240,10 +274,10 @@ macro_rules! component_definition {
         fn component_from_ast(
             name: &Spanned<&[u8]>,
             modifiers: &[ast::Modifier<'_>],
-        ) -> Result<Component, Error> {
+        ) -> Result<AstComponent, Error> {
             $(#[expect(clippy::string_lit_as_bytes)]
             if name.eq_ignore_ascii_case($parse_variant.as_bytes()) {
-                return Ok(Component::$variant($variant::with_modifiers(&modifiers, name.span)?));
+                return Ok(AstComponent::$variant($variant::with_modifiers(&modifiers, name.span)?));
             })*
             Err(Error {
                 _inner: unused(name.span.error("invalid component")),
@@ -258,7 +292,7 @@ macro_rules! component_definition {
 
 // Keep in alphabetical order.
 component_definition! {
-    pub(super) enum Component {
+    pub(super) enum AstComponent {
         Day = "day" {
             padding = "padding": Option<Padding>,
         },
@@ -327,18 +361,18 @@ component_definition! {
     }
 }
 
-impl From<Component> for crate::format_description::Component {
+impl From<AstComponent> for crate::format_description::Component {
     #[inline]
-    fn from(component: Component) -> Self {
+    fn from(component: AstComponent) -> Self {
         use crate::format_description::modifier;
         match component {
-            Component::Day(Day { padding }) => Self::Day(modifier::Day {
+            AstComponent::Day(Day { padding }) => Self::Day(modifier::Day {
                 padding: padding.unwrap_or_default().into(),
             }),
-            Component::End(End { trailing_input }) => Self::End(modifier::End {
+            AstComponent::End(End { trailing_input }) => Self::End(modifier::End {
                 trailing_input: trailing_input.unwrap_or_default().into(),
             }),
-            Component::Hour(Hour { padding, base }) => match base.unwrap_or_default() {
+            AstComponent::Hour(Hour { padding, base }) => match base.unwrap_or_default() {
                 HourBase::Twelve => Self::Hour12(modifier::Hour12 {
                     padding: padding.unwrap_or_default().into(),
                 }),
@@ -346,16 +380,16 @@ impl From<Component> for crate::format_description::Component {
                     padding: padding.unwrap_or_default().into(),
                 }),
             },
-            Component::Ignore(Ignore { count }) => Self::Ignore(modifier::Ignore {
+            AstComponent::Ignore(Ignore { count }) => Self::Ignore(modifier::Ignore {
                 count: match count {
                     Some(value) => value,
                     None => bug!("required modifier was not set"),
                 },
             }),
-            Component::Minute(Minute { padding }) => Self::Minute(modifier::Minute {
+            AstComponent::Minute(Minute { padding }) => Self::Minute(modifier::Minute {
                 padding: padding.unwrap_or_default().into(),
             }),
-            Component::Month(Month {
+            AstComponent::Month(Month {
                 padding,
                 repr,
                 case_sensitive,
@@ -370,40 +404,40 @@ impl From<Component> for crate::format_description::Component {
                     case_sensitive: case_sensitive.unwrap_or_default().into(),
                 }),
             },
-            Component::OffsetHour(OffsetHour {
+            AstComponent::OffsetHour(OffsetHour {
                 sign_behavior,
                 padding,
             }) => Self::OffsetHour(modifier::OffsetHour {
                 sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
                 padding: padding.unwrap_or_default().into(),
             }),
-            Component::OffsetMinute(OffsetMinute { padding }) => {
+            AstComponent::OffsetMinute(OffsetMinute { padding }) => {
                 Self::OffsetMinute(modifier::OffsetMinute {
                     padding: padding.unwrap_or_default().into(),
                 })
             }
-            Component::OffsetSecond(OffsetSecond { padding }) => {
+            AstComponent::OffsetSecond(OffsetSecond { padding }) => {
                 Self::OffsetSecond(modifier::OffsetSecond {
                     padding: padding.unwrap_or_default().into(),
                 })
             }
-            Component::Ordinal(Ordinal { padding }) => Self::Ordinal(modifier::Ordinal {
+            AstComponent::Ordinal(Ordinal { padding }) => Self::Ordinal(modifier::Ordinal {
                 padding: padding.unwrap_or_default().into(),
             }),
-            Component::Period(Period {
+            AstComponent::Period(Period {
                 case,
                 case_sensitive,
             }) => Self::Period(modifier::Period {
                 is_uppercase: case.unwrap_or_default().into(),
                 case_sensitive: case_sensitive.unwrap_or_default().into(),
             }),
-            Component::Second(Second { padding }) => Self::Second(modifier::Second {
+            AstComponent::Second(Second { padding }) => Self::Second(modifier::Second {
                 padding: padding.unwrap_or_default().into(),
             }),
-            Component::Subsecond(Subsecond { digits }) => Self::Subsecond(modifier::Subsecond {
+            AstComponent::Subsecond(Subsecond { digits }) => Self::Subsecond(modifier::Subsecond {
                 digits: digits.unwrap_or_default().into(),
             }),
-            Component::UnixTimestamp(UnixTimestamp {
+            AstComponent::UnixTimestamp(UnixTimestamp {
                 precision,
                 sign_behavior,
             }) => match precision.unwrap_or_default() {
@@ -428,7 +462,7 @@ impl From<Component> for crate::format_description::Component {
                     })
                 }
             },
-            Component::Weekday(Weekday {
+            AstComponent::Weekday(Weekday {
                 repr,
                 one_indexed,
                 case_sensitive,
@@ -446,18 +480,20 @@ impl From<Component> for crate::format_description::Component {
                     one_indexed: one_indexed.unwrap_or_default().into(),
                 }),
             },
-            Component::WeekNumber(WeekNumber { padding, repr }) => match repr.unwrap_or_default() {
-                WeekNumberRepr::Iso => Self::WeekNumberIso(modifier::WeekNumberIso {
-                    padding: padding.unwrap_or_default().into(),
-                }),
-                WeekNumberRepr::Sunday => Self::WeekNumberSunday(modifier::WeekNumberSunday {
-                    padding: padding.unwrap_or_default().into(),
-                }),
-                WeekNumberRepr::Monday => Self::WeekNumberMonday(modifier::WeekNumberMonday {
-                    padding: padding.unwrap_or_default().into(),
-                }),
-            },
-            Component::Year(Year {
+            AstComponent::WeekNumber(WeekNumber { padding, repr }) => {
+                match repr.unwrap_or_default() {
+                    WeekNumberRepr::Iso => Self::WeekNumberIso(modifier::WeekNumberIso {
+                        padding: padding.unwrap_or_default().into(),
+                    }),
+                    WeekNumberRepr::Sunday => Self::WeekNumberSunday(modifier::WeekNumberSunday {
+                        padding: padding.unwrap_or_default().into(),
+                    }),
+                    WeekNumberRepr::Monday => Self::WeekNumberMonday(modifier::WeekNumberMonday {
+                        padding: padding.unwrap_or_default().into(),
+                    }),
+                }
+            }
+            AstComponent::Year(Year {
                 padding,
                 repr,
                 range,

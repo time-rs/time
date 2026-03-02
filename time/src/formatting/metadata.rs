@@ -1,9 +1,13 @@
 use core::iter::Sum;
 use core::ops::{Add, Deref};
 
+use crate::format_description::format_description_v3::FormatDescriptionV3Inner;
 use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
-use crate::format_description::{BorrowedFormatItem, Component, OwnedFormatItem, modifier};
+use crate::format_description::{
+    BorrowedFormatItem, Component, FormatDescriptionV3, OwnedFormatItem, modifier,
+};
+use crate::internal_macros::bug;
 
 /// Metadata about a format description.
 #[derive(Debug)]
@@ -155,6 +159,26 @@ impl<const CONFIG: EncodedConfig> ComputeMetadata for Iso8601<CONFIG> {
                 guaranteed_utf8: true,
             }
         }
+    }
+}
+
+impl ComputeMetadata for FormatDescriptionV3<'_> {
+    #[inline]
+    fn compute_metadata(&self) -> Metadata {
+        Metadata {
+            max_bytes_needed: self.max_bytes_needed,
+            guaranteed_utf8: true,
+        }
+    }
+}
+
+impl ComputeMetadata for FormatDescriptionV3Inner<'_> {
+    #[inline]
+    fn compute_metadata(&self) -> Metadata {
+        bug!(
+            "`FormatDescriptionV3Inner` should never be directly used to compute metadata. \
+             Instead, the metadata should be pre-computed and stored in `FormatDescriptionV3`."
+        )
     }
 }
 

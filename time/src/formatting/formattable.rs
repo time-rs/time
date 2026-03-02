@@ -11,10 +11,12 @@ use num_conv::prelude::*;
 use crate::format_description::modifier::Padding;
 use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
-use crate::format_description::{BorrowedFormatItem, OwnedFormatItem};
+use crate::format_description::{
+    BorrowedFormatItem, FormatDescriptionV3, OwnedFormatItem, format_description_v3,
+};
 use crate::formatting::{
-    ComponentProvider, MONTH_NAMES, WEEKDAY_NAMES, format_component, format_four_digits_pad_zero,
-    format_two_digits, iso8601, write, write_bytes, write_if_else,
+    ComponentProvider, MONTH_NAMES, WEEKDAY_NAMES, fmt_component_v3, format_component,
+    format_four_digits_pad_zero, format_two_digits, iso8601, write, write_bytes, write_if_else,
 };
 use crate::internal_macros::try_likely_ok;
 use crate::{error, num_fmt};
@@ -26,6 +28,7 @@ use crate::{error, num_fmt};
 /// To format a value into a String, use the `format` method on the respective type.
 #[cfg_attr(docsrs, doc(notable_trait))]
 pub trait Formattable: sealed::Sealed {}
+impl Formattable for FormatDescriptionV3<'_> {}
 impl Formattable for BorrowedFormatItem<'_> {}
 impl Formattable for [BorrowedFormatItem<'_>] {}
 impl Formattable for OwnedFormatItem {}
@@ -77,6 +80,78 @@ mod sealed {
             } else {
                 String::from_utf8_lossy(&buf).into_owned()
             })
+        }
+    }
+}
+
+impl sealed::Sealed for FormatDescriptionV3<'_> {
+    #[expect(
+        private_bounds,
+        private_interfaces,
+        reason = "irrelevant due to being a sealed trait"
+    )]
+    #[inline]
+    fn format_into<V>(
+        &self,
+        output: &mut (impl io::Write + ?Sized),
+        value: &V,
+        state: &mut V::State,
+    ) -> Result<usize, error::Format>
+    where
+        V: ComponentProvider,
+    {
+        self.inner.format_into(output, value, state)
+    }
+}
+
+impl sealed::Sealed for format_description_v3::FormatDescriptionV3Inner<'_> {
+    #[expect(
+        private_bounds,
+        private_interfaces,
+        reason = "irrelevant due to being a sealed trait"
+    )]
+    #[inline]
+    fn format_into<V>(
+        &self,
+        output: &mut (impl io::Write + ?Sized),
+        value: &V,
+        state: &mut V::State,
+    ) -> Result<usize, error::Format>
+    where
+        V: ComponentProvider,
+    {
+        match &self {
+            Self::Component(component) => fmt_component_v3(output, value, state, component),
+            Self::BorrowedLiteral(literal) => {
+                write_bytes(output, literal.as_bytes()).map_err(Into::into)
+            }
+            Self::BorrowedCompound(items) => {
+                let mut bytes = 0;
+                for item in *items {
+                    bytes += try_likely_ok!(item.format_into(output, value, state));
+                }
+                Ok(bytes)
+            }
+            Self::BorrowedOptional(item) => item.format_into(output, value, state),
+            Self::BorrowedFirst(items) => match items {
+                [] => Ok(0),
+                [item, ..] => item.format_into(output, value, state),
+            },
+            Self::OwnedLiteral(literal) => {
+                write_bytes(output, literal.as_bytes()).map_err(Into::into)
+            }
+            Self::OwnedCompound(items) => {
+                let mut bytes = 0;
+                for item in &**items {
+                    bytes += try_likely_ok!(item.format_into(output, value, state));
+                }
+                Ok(bytes)
+            }
+            Self::OwnedOptional(item) => item.format_into(output, value, state),
+            Self::OwnedFirst(items) => match &items[..] {
+                [] => Ok(0),
+                [item, ..] => item.format_into(output, value, state),
+            },
         }
     }
 }
