@@ -63,6 +63,14 @@ pub enum InvalidFormatDescription {
         /// The zero-based index the error occurred at.
         index: usize,
     },
+    /// A modifier was present more than once.
+    #[non_exhaustive]
+    DuplicateModifier {
+        /// The name of the modifier that is duplicated.
+        name: &'static str,
+        /// The zero-based index of the second occurrence of the modifier.
+        index: usize,
+    },
 }
 
 impl From<InvalidFormatDescription> for crate::Error {
@@ -126,6 +134,9 @@ impl fmt::Display for InvalidFormatDescription {
                         "{what} is not supported in {context} at byte index {index}"
                     )
                 }
+            }
+            DuplicateModifier { name, index } => {
+                write!(f, "duplicate modifier `{name}` at byte index {index}")
             }
         }
     }

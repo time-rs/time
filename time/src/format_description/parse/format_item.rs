@@ -5,8 +5,60 @@ use alloc::string::String;
 use core::num::NonZero;
 use core::str::{self, FromStr};
 
-use super::{Error, Span, Spanned, ast, unused};
+use super::{Error, OptionExt as _, Span, Spanned, SpannedValue as _, ast, unused};
 use crate::internal_macros::bug;
+
+macro_rules! parse_modifiers {
+    ($modifiers:expr, struct {}) => {{
+        struct Parsed {}
+        drop($modifiers);
+        Ok(Parsed {})
+    }};
+    ($modifiers:expr, struct { $($field:ident : $modifier:ident),* $(,)? }) => {
+        'block: {
+            struct Parsed {
+                $($field: Option<Spanned<<$modifier as ModifierValue>::Type>>),*
+            }
+
+            let mut parsed = Parsed {
+                $($field: None),*
+            };
+
+            for modifier in $modifiers {
+                $(if modifier.key.eq_ignore_ascii_case(stringify!($field).as_bytes()) {
+                    if parsed.$field.is_some() {
+                        break 'block Err(Error {
+                            _inner: unused(modifier.key.span.error("duplicate modifier key")),
+                            public: crate::error::InvalidFormatDescription::DuplicateModifier {
+                                name: stringify!($field),
+                                index: modifier.key.span.start.byte as usize,
+                            }
+                        });
+                    }
+                    match <$modifier>::from_modifier_value(&modifier.value) {
+                        Ok(value) => {
+                            parsed.$field = Some(
+                                <<$modifier as ModifierValue>::Type>::from(value)
+                                    .spanned(modifier.value.span)
+                            )
+                        },
+                        Err(err) => break 'block Err(err),
+                    }
+                    continue;
+                })*
+                break 'block Err(Error {
+                    _inner: unused(modifier.key.span.error("invalid modifier key")),
+                    public: crate::error::InvalidFormatDescription::InvalidModifier {
+                        value: String::from_utf8_lossy(*modifier.key).into_owned(),
+                        index: modifier.key.span.start.byte as usize,
+                    }
+                });
+            }
+
+            Ok(parsed)
+        }
+    };
+}
 
 /// Parse an AST iterator into a sequence of format items.
 #[inline]
@@ -26,6 +78,8 @@ pub(super) enum Item<'a> {
     Optional {
         /// The items themselves.
         value: Box<[Self]>,
+        /// Whether the value should be formatted.
+        format: Spanned<bool>,
         /// The span of the full sequence.
         span: Span,
     },
@@ -65,21 +119,11 @@ impl Item<'_> {
                 nested_format_description,
                 closing_bracket,
             } => {
-                if let Some(first_modifier) = modifiers.first() {
-                    return Err(Error {
-                        _inner: unused(
-                            first_modifier
-                                .key
-                                .span
-                                .error("modifiers are not supported on `optional` components"),
-                        ),
-                        public: crate::error::InvalidFormatDescription::NotSupported {
-                            what: "modifiers",
-                            context: "`optional` components",
-                            index: first_modifier.key.span.start.byte as usize,
-                        },
-                    });
-                }
+                let modifiers = parse_modifiers!(modifiers, struct {
+                    format: OptionalFormat,
+                })?;
+                let format = modifiers.format.transpose().map(|val| val.unwrap_or(true));
+
                 let items = nested_format_description
                     .items
                     .into_vec()
@@ -88,6 +132,7 @@ impl Item<'_> {
                     .collect::<Result<_, _>>()?;
                 Item::Optional {
                     value: items,
+                    format,
                     span: opening_bracket.to(closing_bracket),
                 }
             }
@@ -101,21 +146,8 @@ impl Item<'_> {
                 nested_format_descriptions,
                 closing_bracket,
             } => {
-                if let Some(first_modifier) = modifiers.first() {
-                    return Err(Error {
-                        _inner: unused(
-                            first_modifier
-                                .key
-                                .span
-                                .error("modifiers are not supported on `first` components"),
-                        ),
-                        public: crate::error::InvalidFormatDescription::NotSupported {
-                            what: "modifiers",
-                            context: "`first` components",
-                            index: first_modifier.key.span.start.byte as usize,
-                        },
-                    });
-                }
+                let _modifiers = parse_modifiers!(modifiers, struct {})?;
+
                 let items = nested_format_descriptions
                     .into_vec()
                     .into_iter()
@@ -146,7 +178,11 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a>
             #[expect(deprecated)]
             Item::Literal(literal) => Ok(Self::Literal(literal)),
             Item::Component(component) => Ok(Self::Component(component.into())),
-            Item::Optional { value: _, span } => Err(Error {
+            Item::Optional {
+                value: _,
+                format: _,
+                span,
+            } => Err(Error {
                 _inner: unused(span.error(
                     "optional items are not supported in runtime-parsed format descriptions",
                 )),
@@ -170,28 +206,59 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a>
     }
 }
 
-impl From<Item<'_>> for crate::format_description::OwnedFormatItem {
+impl TryFrom<Item<'_>> for crate::format_description::OwnedFormatItem {
+    type Error = Error;
+
     #[inline]
-    fn from(item: Item<'_>) -> Self {
+    fn try_from(item: Item<'_>) -> Result<Self, Self::Error> {
         match item {
             #[expect(deprecated)]
-            Item::Literal(literal) => Self::Literal(literal.to_vec().into_boxed_slice()),
-            Item::Component(component) => Self::Component(component.into()),
-            Item::Optional { value, span: _ } => Self::Optional(Box::new(value.into())),
-            Item::First { value, span: _ } => {
-                Self::First(value.into_vec().into_iter().map(Into::into).collect())
+            Item::Literal(literal) => Ok(Self::Literal(literal.to_vec().into_boxed_slice())),
+            Item::Component(component) => Ok(Self::Component(component.into())),
+            Item::Optional {
+                value,
+                format,
+                span: _,
+            } => {
+                if !*format {
+                    return Err(Error {
+                        _inner: unused(format.span.error(
+                            "v1 and v2 format descriptions do not support optional items that are \
+                             not formatted",
+                        )),
+                        public: crate::error::InvalidFormatDescription::NotSupported {
+                            what: "optional item with `format:false`",
+                            context: "v1 and v2 format descriptions",
+                            index: format.span.start.byte as usize,
+                        },
+                    });
+                }
+                Ok(Self::Optional(Box::new(value.try_into()?)))
             }
+            Item::First { value, span: _ } => Ok(Self::First(
+                value
+                    .into_vec()
+                    .into_iter()
+                    .map(Self::try_from)
+                    .collect::<Result<_, _>>()?,
+            )),
         }
     }
 }
 
-impl<'a> From<Box<[Item<'a>]>> for crate::format_description::OwnedFormatItem {
+impl<'a> TryFrom<Box<[Item<'a>]>> for crate::format_description::OwnedFormatItem {
+    type Error = Error;
+
     #[inline]
-    fn from(items: Box<[Item<'a>]>) -> Self {
+    fn try_from(items: Box<[Item<'a>]>) -> Result<Self, Self::Error> {
         let items = items.into_vec();
         match <[_; 1]>::try_from(items) {
-            Ok([item]) => item.into(),
-            Err(vec) => Self::Compound(vec.into_iter().map(Into::into).collect()),
+            Ok([item]) => item.try_into(),
+            Err(vec) => Ok(Self::Compound(
+                vec.into_iter()
+                    .map(Self::try_from)
+                    .collect::<Result<_, _>>()?,
+            )),
         }
     }
 }
@@ -235,12 +302,15 @@ macro_rules! component_definition {
                 for modifier in modifiers {
                     $(#[expect(clippy::string_lit_as_bytes)]
                     if modifier.key.eq_ignore_ascii_case($parse_field.as_bytes()) {
-                        this.$field = component_definition!(@if_from_str $($from_str)?
-                            then {
-                                parse_from_modifier_value::<$field_type>(&modifier.value)?
-                            } else {
-                                <$field_type>::from_modifier_value(&modifier.value)?
-                            });
+                        this.$field = Some(
+                            component_definition!(@if_from_str $($from_str)?
+                                then {
+                                    parse_from_modifier_value::<$field_type>(&modifier.value)?
+                                } else {
+                                    <$field_type>::from_modifier_value(&modifier.value)?
+                                }
+                            )
+                        );
                         continue;
                     })*
                     return Err(Error {
@@ -595,6 +665,10 @@ macro_rules! target_value {
     };
 }
 
+trait ModifierValue {
+    type Type;
+}
+
 /// Declare the various modifiers.
 ///
 /// For the general case, ordinary syntax can be used. Note that you _must_ declare a default
@@ -630,9 +704,9 @@ macro_rules! modifier {
         impl $name {
             /// Parse the modifier from its string representation.
             #[inline]
-            fn from_modifier_value(value: &Spanned<&[u8]>) -> Result<Option<Self>, Error> {
+            fn from_modifier_value(value: &Spanned<&[u8]>) -> Result<Self, Error> {
                 $(if value.eq_ignore_ascii_case($parse_variant) {
-                    return Ok(Some(Self::$variant));
+                    return Ok(Self::$variant);
                 })*
                 Err(Error {
                     _inner: unused(value.span.error("invalid modifier value")),
@@ -645,7 +719,12 @@ macro_rules! modifier {
         }
 
         $(#[expect($expect_inner)])?
-        impl From<$name> for target_ty!($name $($target_ty)?) {
+        impl ModifierValue for $name {
+            type Type = target_ty!($name $($target_ty)?);
+        }
+
+        $(#[expect($expect_inner)])?
+        impl From<$name> for <$name as ModifierValue>::Type {
             #[inline]
             fn from(modifier: $name) -> Self {
                 match modifier {
@@ -676,6 +755,12 @@ modifier! {
         Numerical = b"numerical",
         Long = b"long",
         Short = b"short",
+    }
+
+    enum OptionalFormat(bool) {
+        False(false) = b"false",
+        #[default]
+        True(true) = b"true",
     }
 
     enum Padding {
@@ -785,14 +870,13 @@ modifier! {
 
 /// Parse a modifier value using `FromStr`. Requires the modifier value to be valid UTF-8.
 #[inline]
-fn parse_from_modifier_value<T>(value: &Spanned<&[u8]>) -> Result<Option<T>, Error>
+fn parse_from_modifier_value<T>(value: &Spanned<&[u8]>) -> Result<T, Error>
 where
     T: FromStr,
 {
     str::from_utf8(value)
         .ok()
         .and_then(|val| val.parse::<T>().ok())
-        .map(|val| Some(val))
         .ok_or_else(|| Error {
             _inner: unused(value.span.error("invalid modifier value")),
             public: crate::error::InvalidFormatDescription::InvalidModifier {

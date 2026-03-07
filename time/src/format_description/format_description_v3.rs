@@ -59,7 +59,12 @@ pub enum FormatDescriptionV3Inner<'a> {
     BorrowedCompound(&'a [Self]),
     /// An item that may or may not be present when parsing. If parsing fails, there will be no
     /// effect on the resulting `struct`.
-    BorrowedOptional(&'a Self),
+    BorrowedOptional {
+        /// Whether the item should be formatted.
+        format: bool,
+        /// The item in question.
+        item: &'a Self,
+    },
     /// A series of items where, when parsing, the first successful parse is used. When formatting,
     /// the first item is used. If no items are present, both formatting and parsing are no-ops.
     BorrowedFirst(&'a [Self]),
@@ -72,7 +77,12 @@ pub enum FormatDescriptionV3Inner<'a> {
     /// An item that may or may not be present when parsing. If parsing fails, there will be no
     /// effect on the resulting `struct`.
     #[cfg(feature = "alloc")]
-    OwnedOptional(Box<Self>),
+    OwnedOptional {
+        /// Whether the item should be formatted.
+        format: bool,
+        /// The item in question.
+        item: Box<Self>,
+    },
     /// A series of items where, when parsing, the first successful parse is used. When formatting,
     /// the first item is used. If no items are present, both formatting and parsing are no-ops.
     #[cfg(feature = "alloc")]
@@ -86,14 +96,28 @@ impl fmt::Debug for FormatDescriptionV3Inner<'_> {
             Self::Component(component) => f.debug_tuple("Component").field(component).finish(),
             Self::BorrowedLiteral(literal) => f.debug_tuple("Literal").field(literal).finish(),
             Self::BorrowedCompound(compound) => f.debug_tuple("Compound").field(compound).finish(),
-            Self::BorrowedOptional(item) => f.debug_tuple("Optional").field(item).finish(),
+            Self::BorrowedOptional {
+                format: should_format,
+                item,
+            } => f
+                .debug_struct("Optional")
+                .field("should_format", should_format)
+                .field("item", item)
+                .finish(),
             Self::BorrowedFirst(items) => f.debug_tuple("First").field(items).finish(),
             #[cfg(feature = "alloc")]
             Self::OwnedLiteral(literal) => f.debug_tuple("Literal").field(literal).finish(),
             #[cfg(feature = "alloc")]
             Self::OwnedCompound(compound) => f.debug_tuple("Compound").field(compound).finish(),
             #[cfg(feature = "alloc")]
-            Self::OwnedOptional(item) => f.debug_tuple("Optional").field(item).finish(),
+            Self::OwnedOptional {
+                format: should_format,
+                item,
+            } => f
+                .debug_struct("Optional")
+                .field("should_format", should_format)
+                .field("item", item)
+                .finish(),
             #[cfg(feature = "alloc")]
             Self::OwnedFirst(items) => f.debug_tuple("First").field(items).finish(),
         }
@@ -121,9 +145,10 @@ impl<'a> FormatDescriptionV3Inner<'a> {
                     .collect::<Vec<_>>()
                     .into_boxed_slice(),
             ),
-            Self::BorrowedOptional(item) => {
-                FormatDescriptionV3Inner::OwnedOptional(Box::new((*item).to_owned()))
-            }
+            Self::BorrowedOptional { format, item } => FormatDescriptionV3Inner::OwnedOptional {
+                format: *format,
+                item: Box::new((*item).to_owned()),
+            },
             Self::BorrowedFirst(items) => FormatDescriptionV3Inner::OwnedFirst(
                 items
                     .iter()
@@ -139,9 +164,10 @@ impl<'a> FormatDescriptionV3Inner<'a> {
                     .collect::<Vec<_>>()
                     .into_boxed_slice(),
             ),
-            Self::OwnedOptional(item) => {
-                FormatDescriptionV3Inner::OwnedOptional(Box::new((**item).to_owned()))
-            }
+            Self::OwnedOptional { format, item } => FormatDescriptionV3Inner::OwnedOptional {
+                format: *format,
+                item: Box::new((**item).to_owned()),
+            },
             Self::OwnedFirst(items) => FormatDescriptionV3Inner::OwnedFirst(
                 items
                     .into_iter()
@@ -178,7 +204,13 @@ impl<'a> FormatDescriptionV3Inner<'a> {
                 }
                 max_bytes_needed
             }
-            FormatDescriptionV3Inner::BorrowedOptional(item) => item.max_bytes_needed(),
+            FormatDescriptionV3Inner::BorrowedOptional { format, item } => {
+                if *format {
+                    item.max_bytes_needed()
+                } else {
+                    0
+                }
+            }
             FormatDescriptionV3Inner::BorrowedFirst(items) => {
                 if items.is_empty() {
                     0
@@ -196,7 +228,13 @@ impl<'a> FormatDescriptionV3Inner<'a> {
                 }
                 max_bytes_needed
             }
-            FormatDescriptionV3Inner::OwnedOptional(item) => item.max_bytes_needed(),
+            FormatDescriptionV3Inner::OwnedOptional { format, item } => {
+                if *format {
+                    item.max_bytes_needed()
+                } else {
+                    0
+                }
+            }
             FormatDescriptionV3Inner::OwnedFirst(items) => {
                 if items.is_empty() {
                     0

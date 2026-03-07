@@ -132,7 +132,16 @@ impl sealed::Sealed for format_description_v3::FormatDescriptionV3Inner<'_> {
                 }
                 Ok(bytes)
             }
-            Self::BorrowedOptional(item) => item.format_into(output, value, state),
+            Self::BorrowedOptional {
+                format: should_format,
+                item,
+            } => {
+                if *should_format {
+                    item.format_into(output, value, state)
+                } else {
+                    Ok(0)
+                }
+            }
             Self::BorrowedFirst(items) => match items {
                 [] => Ok(0),
                 [item, ..] => item.format_into(output, value, state),
@@ -147,7 +156,16 @@ impl sealed::Sealed for format_description_v3::FormatDescriptionV3Inner<'_> {
                 }
                 Ok(bytes)
             }
-            Self::OwnedOptional(item) => item.format_into(output, value, state),
+            Self::OwnedOptional {
+                format: should_format,
+                item,
+            } => {
+                if *should_format {
+                    item.format_into(output, value, state)
+                } else {
+                    Ok(0)
+                }
+            }
             Self::OwnedFirst(items) => match &items[..] {
                 [] => Ok(0),
                 [item, ..] => item.format_into(output, value, state),

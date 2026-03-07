@@ -79,7 +79,7 @@ pub fn parse_owned<const VERSION: usize>(
     let ast = ast::parse::<_, VERSION>(&mut lexed);
     let format_items = format_item::parse(ast);
     let items = format_items.collect::<Result<Box<_>, _>>()?;
-    Ok(items.into())
+    Ok(items.try_into()?)
 }
 
 /// Attach [`Location`] information to each byte in the iterator.
@@ -151,6 +151,11 @@ struct Span {
 }
 
 impl Span {
+    const DUMMY: Self = Self {
+        start: Location { byte: u32::MAX },
+        end: Location { byte: u32::MAX },
+    };
+
     /// Obtain a `Span` pointing at the start of the pre-existing span.
     #[must_use = "this does not modify the original value"]
     #[inline]
@@ -219,6 +224,39 @@ impl<T> core::ops::Deref for Spanned<T> {
     #[inline]
     fn deref(&self) -> &Self::Target {
         &self.value
+    }
+}
+
+impl<T> Spanned<T> {
+    #[inline]
+    fn map<F, U>(self, f: F) -> Spanned<U>
+    where
+        F: FnOnce(T) -> U,
+    {
+        Spanned {
+            value: f(self.value),
+            span: self.span,
+        }
+    }
+}
+
+trait OptionExt<T> {
+    fn transpose(self) -> Spanned<Option<T>>;
+}
+
+impl<T> OptionExt<T> for Option<Spanned<T>> {
+    #[inline]
+    fn transpose(self) -> Spanned<Option<T>> {
+        match self {
+            Some(spanned) => Spanned {
+                value: Some(spanned.value),
+                span: spanned.span,
+            },
+            None => Spanned {
+                value: None,
+                span: Span::DUMMY,
+            },
+        }
     }
 }
 
