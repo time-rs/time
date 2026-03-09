@@ -105,8 +105,8 @@ pub(super) struct Modifier<'a> {
 
 /// Parse the provided tokens into an AST.
 #[inline]
-pub(super) fn parse<'item, 'iter, I, const VERSION: usize>(
-    tokens: &'iter mut lexer::Lexed<I>,
+pub(super) fn parse<'item, 'iter, const VERSION: usize, I>(
+    tokens: &'iter mut lexer::Lexed<VERSION, I>,
 ) -> impl Iterator<Item = Result<Item<'item>, Error>> + use<'item, 'iter, I, VERSION>
 where
     'item: 'iter,
@@ -120,7 +120,7 @@ where
 /// [`Item`] will be used directly or as part of a [`NestedFormatDescription`].
 #[inline]
 fn parse_inner<'item, I, const NESTED: bool, const VERSION: usize>(
-    tokens: &mut lexer::Lexed<I>,
+    tokens: &mut lexer::Lexed<VERSION, I>,
 ) -> impl Iterator<Item = Result<Item<'item>, Error>> + use<'_, 'item, I, NESTED, VERSION>
 where
     I: Iterator<Item = Result<lexer::Token<'item>, Error>>,
@@ -184,7 +184,7 @@ where
 /// Parse a component. This assumes that the opening bracket has already been consumed.
 fn parse_component<'a, I, const VERSION: usize>(
     opening_bracket: Location,
-    tokens: &mut lexer::Lexed<I>,
+    tokens: &mut lexer::Lexed<VERSION, I>,
 ) -> Result<Item<'a>, Error>
 where
     I: Iterator<Item = Result<lexer::Token<'a>, Error>>,
@@ -353,7 +353,7 @@ struct Modifiers<'a> {
 }
 
 impl<'a> Modifiers<'a> {
-    fn parse<I>(tokens: &mut lexer::Lexed<I>) -> Result<Self, Error>
+    fn parse<const VERSION: usize, I>(tokens: &mut lexer::Lexed<VERSION, I>) -> Result<Self, Error>
     where
         I: Iterator<Item = Result<lexer::Token<'a>, Error>>,
     {
@@ -434,7 +434,7 @@ impl<'a> Modifiers<'a> {
 #[inline]
 fn parse_nested<'a, I, const VERSION: usize>(
     last_location: Location,
-    tokens: &mut lexer::Lexed<I>,
+    tokens: &mut lexer::Lexed<VERSION, I>,
 ) -> Result<NestedFormatDescription<'a>, Error>
 where
     I: Iterator<Item = Result<lexer::Token<'a>, Error>>,

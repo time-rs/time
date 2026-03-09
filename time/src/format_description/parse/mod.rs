@@ -67,7 +67,7 @@ impl VersionedParser for Version<1> {
         s: &str,
     ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
         let mut lexed = lexer::lex::<1>(s.as_bytes());
-        let ast = ast::parse::<_, 1>(&mut lexed);
+        let ast = ast::parse(&mut lexed);
         let format_items = format_item::parse(ast);
         Ok(format_items
             .map(|res| res.and_then(TryInto::try_into))
@@ -77,7 +77,7 @@ impl VersionedParser for Version<1> {
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
         let mut lexed = lexer::lex::<1>(s.as_bytes());
-        let ast = ast::parse::<_, 1>(&mut lexed);
+        let ast = ast::parse(&mut lexed);
         let format_items = format_item::parse(ast);
         let items = format_items.collect::<Result<Box<_>, _>>()?;
         Ok(items.try_into()?)
@@ -93,7 +93,7 @@ impl VersionedParser for Version<2> {
         s: &str,
     ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
         let mut lexed = lexer::lex::<2>(s.as_bytes());
-        let ast = ast::parse::<_, 2>(&mut lexed);
+        let ast = ast::parse(&mut lexed);
         let format_items = format_item::parse(ast);
         Ok(format_items
             .map(|res| res.and_then(TryInto::try_into))
@@ -103,7 +103,7 @@ impl VersionedParser for Version<2> {
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
         let mut lexed = lexer::lex::<2>(s.as_bytes());
-        let ast = ast::parse::<_, 2>(&mut lexed);
+        let ast = ast::parse(&mut lexed);
         let format_items = format_item::parse(ast);
         let items = format_items.collect::<Result<Box<_>, _>>()?;
         Ok(items.try_into()?)
@@ -119,7 +119,7 @@ impl VersionedParser for Version<3> {
         s: &str,
     ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
         let mut lexed = lexer::lex::<3>(s.as_bytes());
-        let ast = ast::parse::<_, 3>(&mut lexed);
+        let ast = ast::parse(&mut lexed);
         let format_items = format_item::parse(ast);
         let items = format_items.collect::<Result<Box<_>, _>>()?;
         let inner = format_description::__private::FormatDescriptionV3Inner::try_from(items)?;
@@ -129,7 +129,7 @@ impl VersionedParser for Version<3> {
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
         let mut lexed = lexer::lex::<3>(s.as_bytes());
-        let ast = ast::parse::<_, 3>(&mut lexed);
+        let ast = ast::parse(&mut lexed);
         let format_items = format_item::parse(ast);
         let items = format_items.collect::<Result<Box<_>, _>>()?;
         let inner = format_description::__private::FormatDescriptionV3Inner::try_from(items)?;

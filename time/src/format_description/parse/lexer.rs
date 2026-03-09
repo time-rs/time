@@ -5,7 +5,7 @@ use core::iter;
 use super::{Error, Location, Spanned, SpannedValue, attach_location, unused};
 
 /// An iterator over the lexed tokens.
-pub(super) struct Lexed<I>
+pub(super) struct Lexed<const VERSION: usize, I>
 where
     I: Iterator,
 {
@@ -13,7 +13,7 @@ where
     iter: iter::Peekable<I>,
 }
 
-impl<I> Iterator for Lexed<I>
+impl<const VERSION: usize, I> Iterator for Lexed<VERSION, I>
 where
     I: Iterator,
 {
@@ -24,7 +24,7 @@ where
     }
 }
 
-impl<'iter, 'token, I> Lexed<I>
+impl<'iter, 'token, const VERSION: usize, I> Lexed<VERSION, I>
 where
     'token: 'iter,
     I: Iterator<Item = Result<Token<'token>, Error>> + 'iter,
@@ -156,7 +156,7 @@ pub(super) enum ComponentKind {
 #[inline]
 pub(super) fn lex<const VERSION: usize>(
     mut input: &[u8],
-) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
+) -> Lexed<VERSION, impl Iterator<Item = Result<Token<'_>, Error>>> {
     validate_version!(VERSION);
 
     let mut depth: u32 = 0;
