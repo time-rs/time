@@ -263,6 +263,56 @@ impl<'a> TryFrom<Box<[Item<'a>]>> for crate::format_description::OwnedFormatItem
     }
 }
 
+impl<'a> TryFrom<Item<'a>> for crate::format_description::__private::FormatDescriptionV3Inner<'a> {
+    type Error = Error;
+
+    #[inline]
+    fn try_from(item: Item<'a>) -> Result<Self, Self::Error> {
+        match item {
+            // Safety: The only way to get a literal for a version 3 format description originates
+            // with `&str`, which is guaranteed to be UTF-8.
+            Item::Literal(literal) => Ok(Self::BorrowedLiteral(unsafe {
+                str::from_utf8_unchecked(literal)
+            })),
+            Item::Component(component) => Ok(Self::Component(component.into())),
+            Item::Optional {
+                value,
+                format,
+                span: _,
+            } => Ok(Self::OwnedOptional {
+                format: *format,
+                item: Box::new(value.try_into()?),
+            }),
+            Item::First { value, span: _ } => Ok(Self::OwnedFirst(
+                value
+                    .into_vec()
+                    .into_iter()
+                    .map(Self::try_from)
+                    .collect::<Result<_, _>>()?,
+            )),
+        }
+    }
+}
+
+impl<'a> TryFrom<Box<[Item<'a>]>>
+    for crate::format_description::__private::FormatDescriptionV3Inner<'a>
+{
+    type Error = Error;
+
+    #[inline]
+    fn try_from(items: Box<[Item<'a>]>) -> Result<Self, Self::Error> {
+        let items = items.into_vec();
+        match <[_; 1]>::try_from(items) {
+            Ok([item]) => item.try_into(),
+            Err(vec) => Ok(Self::OwnedCompound(
+                vec.into_iter()
+                    .map(Self::try_from)
+                    .collect::<Result<_, _>>()?,
+            )),
+        }
+    }
+}
+
 /// Declare the `Component` struct.
 macro_rules! component_definition {
     (@if_required required then { $($then:tt)* } $(else { $($else:tt)* })?) => { $($then)* };
@@ -431,219 +481,244 @@ component_definition! {
     }
 }
 
-impl From<AstComponent> for crate::format_description::Component {
-    #[inline]
-    fn from(component: AstComponent) -> Self {
-        use crate::format_description::modifier;
-        match component {
-            AstComponent::Day(Day { padding }) => Self::Day(modifier::Day {
-                padding: padding.unwrap_or_default().into(),
-            }),
-            AstComponent::End(End { trailing_input }) => Self::End(modifier::End {
-                trailing_input: trailing_input.unwrap_or_default().into(),
-            }),
-            AstComponent::Hour(Hour { padding, base }) => match base.unwrap_or_default() {
-                HourBase::Twelve => Self::Hour12(modifier::Hour12 {
-                    padding: padding.unwrap_or_default().into(),
-                }),
-                HourBase::TwentyFour => Self::Hour24(modifier::Hour24 {
-                    padding: padding.unwrap_or_default().into(),
-                }),
-            },
-            AstComponent::Ignore(Ignore { count }) => Self::Ignore(modifier::Ignore {
-                count: match count {
-                    Some(value) => value,
-                    None => bug!("required modifier was not set"),
-                },
-            }),
-            AstComponent::Minute(Minute { padding }) => Self::Minute(modifier::Minute {
-                padding: padding.unwrap_or_default().into(),
-            }),
-            AstComponent::Month(Month {
-                padding,
-                repr,
-                case_sensitive,
-            }) => match repr.unwrap_or_default() {
-                MonthRepr::Numerical => Self::MonthNumerical(modifier::MonthNumerical {
-                    padding: padding.unwrap_or_default().into(),
-                }),
-                MonthRepr::Long => Self::MonthLong(modifier::MonthLong {
-                    case_sensitive: case_sensitive.unwrap_or_default().into(),
-                }),
-                MonthRepr::Short => Self::MonthShort(modifier::MonthShort {
-                    case_sensitive: case_sensitive.unwrap_or_default().into(),
-                }),
-            },
-            AstComponent::OffsetHour(OffsetHour {
-                sign_behavior,
-                padding,
-            }) => Self::OffsetHour(modifier::OffsetHour {
-                sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                padding: padding.unwrap_or_default().into(),
-            }),
-            AstComponent::OffsetMinute(OffsetMinute { padding }) => {
-                Self::OffsetMinute(modifier::OffsetMinute {
-                    padding: padding.unwrap_or_default().into(),
-                })
-            }
-            AstComponent::OffsetSecond(OffsetSecond { padding }) => {
-                Self::OffsetSecond(modifier::OffsetSecond {
-                    padding: padding.unwrap_or_default().into(),
-                })
-            }
-            AstComponent::Ordinal(Ordinal { padding }) => Self::Ordinal(modifier::Ordinal {
-                padding: padding.unwrap_or_default().into(),
-            }),
-            AstComponent::Period(Period {
-                case,
-                case_sensitive,
-            }) => Self::Period(modifier::Period {
-                is_uppercase: case.unwrap_or_default().into(),
-                case_sensitive: case_sensitive.unwrap_or_default().into(),
-            }),
-            AstComponent::Second(Second { padding }) => Self::Second(modifier::Second {
-                padding: padding.unwrap_or_default().into(),
-            }),
-            AstComponent::Subsecond(Subsecond { digits }) => Self::Subsecond(modifier::Subsecond {
-                digits: digits.unwrap_or_default().into(),
-            }),
-            AstComponent::UnixTimestamp(UnixTimestamp {
-                precision,
-                sign_behavior,
-            }) => match precision.unwrap_or_default() {
-                UnixTimestampPrecision::Second => {
-                    Self::UnixTimestampSecond(modifier::UnixTimestampSecond {
-                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                    })
-                }
-                UnixTimestampPrecision::Millisecond => {
-                    Self::UnixTimestampMillisecond(modifier::UnixTimestampMillisecond {
-                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                    })
-                }
-                UnixTimestampPrecision::Microsecond => {
-                    Self::UnixTimestampMicrosecond(modifier::UnixTimestampMicrosecond {
-                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                    })
-                }
-                UnixTimestampPrecision::Nanosecond => {
-                    Self::UnixTimestampNanosecond(modifier::UnixTimestampNanosecond {
-                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                    })
-                }
-            },
-            AstComponent::Weekday(Weekday {
-                repr,
-                one_indexed,
-                case_sensitive,
-            }) => match repr.unwrap_or_default() {
-                WeekdayRepr::Short => Self::WeekdayShort(modifier::WeekdayShort {
-                    case_sensitive: case_sensitive.unwrap_or_default().into(),
-                }),
-                WeekdayRepr::Long => Self::WeekdayLong(modifier::WeekdayLong {
-                    case_sensitive: case_sensitive.unwrap_or_default().into(),
-                }),
-                WeekdayRepr::Sunday => Self::WeekdaySunday(modifier::WeekdaySunday {
-                    one_indexed: one_indexed.unwrap_or_default().into(),
-                }),
-                WeekdayRepr::Monday => Self::WeekdayMonday(modifier::WeekdayMonday {
-                    one_indexed: one_indexed.unwrap_or_default().into(),
-                }),
-            },
-            AstComponent::WeekNumber(WeekNumber { padding, repr }) => {
-                match repr.unwrap_or_default() {
-                    WeekNumberRepr::Iso => Self::WeekNumberIso(modifier::WeekNumberIso {
+macro_rules! impl_from_ast_component_for {
+    ($($ty:ty),+ $(,)?) => {$(
+        impl From<AstComponent> for $ty {
+            #[inline]
+            fn from(component: AstComponent) -> Self {
+                use crate::format_description::modifier;
+                match component {
+                    AstComponent::Day(Day { padding }) => Self::Day(modifier::Day {
                         padding: padding.unwrap_or_default().into(),
                     }),
-                    WeekNumberRepr::Sunday => Self::WeekNumberSunday(modifier::WeekNumberSunday {
-                        padding: padding.unwrap_or_default().into(),
+                    AstComponent::End(End { trailing_input }) => Self::End(modifier::End {
+                        trailing_input: trailing_input.unwrap_or_default().into(),
                     }),
-                    WeekNumberRepr::Monday => Self::WeekNumberMonday(modifier::WeekNumberMonday {
-                        padding: padding.unwrap_or_default().into(),
-                    }),
-                }
-            }
-            AstComponent::Year(Year {
-                padding,
-                repr,
-                range,
-                base,
-                sign_behavior,
-            }) => match (
-                base.unwrap_or_default(),
-                repr.unwrap_or_default(),
-                range.unwrap_or_default(),
-            ) {
-                #[cfg(feature = "large-dates")]
-                (YearBase::Calendar, YearRepr::Full, YearRange::Extended) => {
-                    Self::CalendarYearFullExtendedRange(modifier::CalendarYearFullExtendedRange {
-                        padding: padding.unwrap_or_default().into(),
-                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                    })
-                }
-                (YearBase::Calendar, YearRepr::Full, _) => {
-                    Self::CalendarYearFullStandardRange(modifier::CalendarYearFullStandardRange {
-                        padding: padding.unwrap_or_default().into(),
-                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                    })
-                }
-                #[cfg(feature = "large-dates")]
-                (YearBase::Calendar, YearRepr::Century, YearRange::Extended) => {
-                    Self::CalendarYearCenturyExtendedRange(
-                        modifier::CalendarYearCenturyExtendedRange {
+                    AstComponent::Hour(Hour { padding, base }) => match base.unwrap_or_default() {
+                        HourBase::Twelve => Self::Hour12(modifier::Hour12 {
                             padding: padding.unwrap_or_default().into(),
-                            sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                        },
-                    )
-                }
-                (YearBase::Calendar, YearRepr::Century, _) => {
-                    Self::CalendarYearCenturyStandardRange(
-                        modifier::CalendarYearCenturyStandardRange {
+                        }),
+                        HourBase::TwentyFour => Self::Hour24(modifier::Hour24 {
                             padding: padding.unwrap_or_default().into(),
-                            sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                        }),
+                    },
+                    AstComponent::Ignore(Ignore { count }) => Self::Ignore(modifier::Ignore {
+                        count: match count {
+                            Some(value) => value,
+                            None => bug!("required modifier was not set"),
                         },
-                    )
-                }
-                #[cfg(feature = "large-dates")]
-                (YearBase::IsoWeek, YearRepr::Full, YearRange::Extended) => {
-                    Self::IsoYearFullExtendedRange(modifier::IsoYearFullExtendedRange {
+                    }),
+                    AstComponent::Minute(Minute { padding }) => Self::Minute(modifier::Minute {
                         padding: padding.unwrap_or_default().into(),
+                    }),
+                    AstComponent::Month(Month {
+                        padding,
+                        repr,
+                        case_sensitive,
+                    }) => match repr.unwrap_or_default() {
+                        MonthRepr::Numerical => Self::MonthNumerical(modifier::MonthNumerical {
+                            padding: padding.unwrap_or_default().into(),
+                        }),
+                        MonthRepr::Long => Self::MonthLong(modifier::MonthLong {
+                            case_sensitive: case_sensitive.unwrap_or_default().into(),
+                        }),
+                        MonthRepr::Short => Self::MonthShort(modifier::MonthShort {
+                            case_sensitive: case_sensitive.unwrap_or_default().into(),
+                        }),
+                    },
+                    AstComponent::OffsetHour(OffsetHour {
+                        sign_behavior,
+                        padding,
+                    }) => Self::OffsetHour(modifier::OffsetHour {
                         sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                    })
-                }
-                (YearBase::IsoWeek, YearRepr::Full, _) => {
-                    Self::IsoYearFullStandardRange(modifier::IsoYearFullStandardRange {
                         padding: padding.unwrap_or_default().into(),
-                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                    })
-                }
-                #[cfg(feature = "large-dates")]
-                (YearBase::IsoWeek, YearRepr::Century, YearRange::Extended) => {
-                    Self::IsoYearCenturyExtendedRange(modifier::IsoYearCenturyExtendedRange {
+                    }),
+                    AstComponent::OffsetMinute(OffsetMinute { padding }) => {
+                        Self::OffsetMinute(modifier::OffsetMinute {
+                            padding: padding.unwrap_or_default().into(),
+                        })
+                    }
+                    AstComponent::OffsetSecond(OffsetSecond { padding }) => {
+                        Self::OffsetSecond(modifier::OffsetSecond {
+                            padding: padding.unwrap_or_default().into(),
+                        })
+                    }
+                    AstComponent::Ordinal(Ordinal { padding }) => Self::Ordinal(modifier::Ordinal {
                         padding: padding.unwrap_or_default().into(),
-                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                    })
-                }
-                (YearBase::IsoWeek, YearRepr::Century, _) => {
-                    Self::IsoYearCenturyStandardRange(modifier::IsoYearCenturyStandardRange {
+                    }),
+                    AstComponent::Period(Period {
+                        case,
+                        case_sensitive,
+                    }) => Self::Period(modifier::Period {
+                        is_uppercase: case.unwrap_or_default().into(),
+                        case_sensitive: case_sensitive.unwrap_or_default().into(),
+                    }),
+                    AstComponent::Second(Second { padding }) => Self::Second(modifier::Second {
                         padding: padding.unwrap_or_default().into(),
-                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                    })
+                    }),
+                    AstComponent::Subsecond(Subsecond { digits }) => {
+                        Self::Subsecond(modifier::Subsecond {
+                            digits: digits.unwrap_or_default().into(),
+                        })
+                    },
+                    AstComponent::UnixTimestamp(UnixTimestamp {
+                        precision,
+                        sign_behavior,
+                    }) => match precision.unwrap_or_default() {
+                        UnixTimestampPrecision::Second => {
+                            Self::UnixTimestampSecond(modifier::UnixTimestampSecond {
+                                sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                            })
+                        }
+                        UnixTimestampPrecision::Millisecond => {
+                            Self::UnixTimestampMillisecond(modifier::UnixTimestampMillisecond {
+                                sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                            })
+                        }
+                        UnixTimestampPrecision::Microsecond => {
+                            Self::UnixTimestampMicrosecond(modifier::UnixTimestampMicrosecond {
+                                sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                            })
+                        }
+                        UnixTimestampPrecision::Nanosecond => {
+                            Self::UnixTimestampNanosecond(modifier::UnixTimestampNanosecond {
+                                sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                            })
+                        }
+                    },
+                    AstComponent::Weekday(Weekday {
+                        repr,
+                        one_indexed,
+                        case_sensitive,
+                    }) => match repr.unwrap_or_default() {
+                        WeekdayRepr::Short => Self::WeekdayShort(modifier::WeekdayShort {
+                            case_sensitive: case_sensitive.unwrap_or_default().into(),
+                        }),
+                        WeekdayRepr::Long => Self::WeekdayLong(modifier::WeekdayLong {
+                            case_sensitive: case_sensitive.unwrap_or_default().into(),
+                        }),
+                        WeekdayRepr::Sunday => Self::WeekdaySunday(modifier::WeekdaySunday {
+                            one_indexed: one_indexed.unwrap_or_default().into(),
+                        }),
+                        WeekdayRepr::Monday => Self::WeekdayMonday(modifier::WeekdayMonday {
+                            one_indexed: one_indexed.unwrap_or_default().into(),
+                        }),
+                    },
+                    AstComponent::WeekNumber(WeekNumber { padding, repr }) => {
+                        match repr.unwrap_or_default() {
+                            WeekNumberRepr::Iso => {
+                                Self::WeekNumberIso(modifier::WeekNumberIso {
+                                    padding: padding.unwrap_or_default().into(),
+                                })
+                            },
+                            WeekNumberRepr::Sunday => {
+                                Self::WeekNumberSunday(modifier::WeekNumberSunday {
+                                    padding: padding.unwrap_or_default().into(),
+                                })
+                            },
+                            WeekNumberRepr::Monday => {
+                                Self::WeekNumberMonday(modifier::WeekNumberMonday {
+                                    padding: padding.unwrap_or_default().into(),
+                                })
+                            },
+                        }
+                    }
+                    AstComponent::Year(Year {
+                        padding,
+                        repr,
+                        range,
+                        base,
+                        sign_behavior,
+                    }) => match (
+                        base.unwrap_or_default(),
+                        repr.unwrap_or_default(),
+                        range.unwrap_or_default(),
+                    ) {
+                        #[cfg(feature = "large-dates")]
+                        (YearBase::Calendar, YearRepr::Full, YearRange::Extended) => {
+                            Self::CalendarYearFullExtendedRange(
+                                modifier::CalendarYearFullExtendedRange {
+                                    padding: padding.unwrap_or_default().into(),
+                                    sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                                },
+                            )
+                        }
+                        (YearBase::Calendar, YearRepr::Full, _) => {
+                            Self::CalendarYearFullStandardRange(
+                                modifier::CalendarYearFullStandardRange {
+                                    padding: padding.unwrap_or_default().into(),
+                                    sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                                },
+                            )
+                        }
+                        #[cfg(feature = "large-dates")]
+                        (YearBase::Calendar, YearRepr::Century, YearRange::Extended) => {
+                            Self::CalendarYearCenturyExtendedRange(
+                                modifier::CalendarYearCenturyExtendedRange {
+                                    padding: padding.unwrap_or_default().into(),
+                                    sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                                },
+                            )
+                        }
+                        (YearBase::Calendar, YearRepr::Century, _) => {
+                            Self::CalendarYearCenturyStandardRange(
+                                modifier::CalendarYearCenturyStandardRange {
+                                    padding: padding.unwrap_or_default().into(),
+                                    sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                                },
+                            )
+                        }
+                        #[cfg(feature = "large-dates")]
+                        (YearBase::IsoWeek, YearRepr::Full, YearRange::Extended) => {
+                            Self::IsoYearFullExtendedRange(modifier::IsoYearFullExtendedRange {
+                                padding: padding.unwrap_or_default().into(),
+                                sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                            })
+                        }
+                        (YearBase::IsoWeek, YearRepr::Full, _) => {
+                            Self::IsoYearFullStandardRange(modifier::IsoYearFullStandardRange {
+                                padding: padding.unwrap_or_default().into(),
+                                sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                            })
+                        }
+                        #[cfg(feature = "large-dates")]
+                        (YearBase::IsoWeek, YearRepr::Century, YearRange::Extended) => {
+                            Self::IsoYearCenturyExtendedRange(
+                                modifier::IsoYearCenturyExtendedRange {
+                                    padding: padding.unwrap_or_default().into(),
+                                    sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                                },
+                            )
+                        }
+                        (YearBase::IsoWeek, YearRepr::Century, _) => {
+                            Self::IsoYearCenturyStandardRange(
+                                modifier::IsoYearCenturyStandardRange {
+                                    padding: padding.unwrap_or_default().into(),
+                                    sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                                },
+                            )
+                        }
+                        (YearBase::Calendar, YearRepr::LastTwo, _) => {
+                            Self::CalendarYearLastTwo(modifier::CalendarYearLastTwo {
+                                padding: padding.unwrap_or_default().into(),
+                            })
+                        }
+                        (YearBase::IsoWeek, YearRepr::LastTwo, _) => {
+                            Self::IsoYearLastTwo(modifier::IsoYearLastTwo {
+                                padding: padding.unwrap_or_default().into(),
+                            })
+                        }
+                    },
                 }
-                (YearBase::Calendar, YearRepr::LastTwo, _) => {
-                    Self::CalendarYearLastTwo(modifier::CalendarYearLastTwo {
-                        padding: padding.unwrap_or_default().into(),
-                    })
-                }
-                (YearBase::IsoWeek, YearRepr::LastTwo, _) => {
-                    Self::IsoYearLastTwo(modifier::IsoYearLastTwo {
-                        padding: padding.unwrap_or_default().into(),
-                    })
-                }
-            },
-        }
+            }
+        })+
     }
 }
+
+impl_from_ast_component_for!(
+    crate::format_description::Component,
+    crate::format_description::__private::Component,
+);
 
 /// Get the target type for a given enum.
 macro_rules! target_ty {

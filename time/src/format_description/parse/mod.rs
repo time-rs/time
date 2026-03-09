@@ -3,6 +3,7 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
+use self::sealed::{Version, VersionedParser};
 pub use self::strftime::{parse_strftime_borrowed, parse_strftime_owned};
 use crate::{error, format_description};
 
@@ -17,7 +18,7 @@ macro_rules! version {
 macro_rules! validate_version {
     ($version:ident) => {
         const {
-            assert!($version >= 1 && $version <= 2);
+            assert!($version >= 1 && $version <= 3);
         }
     };
 }
@@ -26,6 +27,115 @@ mod ast;
 mod format_item;
 mod lexer;
 mod strftime;
+
+mod sealed {
+    use super::*;
+
+    /// The version of the parser, represented in the type system.
+    #[expect(
+        missing_debug_implementations,
+        reason = "only used at the type level; not public API"
+    )]
+    pub struct Version<const N: usize>;
+
+    /// A trait for parsing format descriptions, with different output types depending on the
+    /// version.
+    pub trait VersionedParser {
+        /// The output type of the borrowed parser. This type avoids allocating where possible.
+        type BorrowedOutput<'input>;
+
+        /// The output type of the owned parser. This type may allocate but is valid for `'static`.
+        type OwnedOutput;
+
+        /// Parse a format description into a type that avoids allocating where possible.
+        fn parse_borrowed(
+            s: &str,
+        ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription>;
+
+        /// Parse a format description into an owned type, which may allocate but is valid for
+        /// `'static`.
+        fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription>;
+    }
+}
+
+impl VersionedParser for Version<1> {
+    type BorrowedOutput<'input> = Vec<format_description::BorrowedFormatItem<'input>>;
+    type OwnedOutput = format_description::OwnedFormatItem;
+
+    #[inline]
+    fn parse_borrowed(
+        s: &str,
+    ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
+        let mut lexed = lexer::lex::<1>(s.as_bytes());
+        let ast = ast::parse::<_, 1>(&mut lexed);
+        let format_items = format_item::parse(ast);
+        Ok(format_items
+            .map(|res| res.and_then(TryInto::try_into))
+            .collect::<Result<_, _>>()?)
+    }
+
+    #[inline]
+    fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
+        let mut lexed = lexer::lex::<1>(s.as_bytes());
+        let ast = ast::parse::<_, 1>(&mut lexed);
+        let format_items = format_item::parse(ast);
+        let items = format_items.collect::<Result<Box<_>, _>>()?;
+        Ok(items.try_into()?)
+    }
+}
+
+impl VersionedParser for Version<2> {
+    type BorrowedOutput<'input> = Vec<format_description::BorrowedFormatItem<'input>>;
+    type OwnedOutput = format_description::OwnedFormatItem;
+
+    #[inline]
+    fn parse_borrowed(
+        s: &str,
+    ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
+        let mut lexed = lexer::lex::<2>(s.as_bytes());
+        let ast = ast::parse::<_, 2>(&mut lexed);
+        let format_items = format_item::parse(ast);
+        Ok(format_items
+            .map(|res| res.and_then(TryInto::try_into))
+            .collect::<Result<_, _>>()?)
+    }
+
+    #[inline]
+    fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
+        let mut lexed = lexer::lex::<2>(s.as_bytes());
+        let ast = ast::parse::<_, 2>(&mut lexed);
+        let format_items = format_item::parse(ast);
+        let items = format_items.collect::<Result<Box<_>, _>>()?;
+        Ok(items.try_into()?)
+    }
+}
+
+impl VersionedParser for Version<3> {
+    type BorrowedOutput<'input> = format_description::FormatDescriptionV3<'input>;
+    type OwnedOutput = format_description::FormatDescriptionV3<'static>;
+
+    #[inline]
+    fn parse_borrowed(
+        s: &str,
+    ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
+        let mut lexed = lexer::lex::<3>(s.as_bytes());
+        let ast = ast::parse::<_, 3>(&mut lexed);
+        let format_items = format_item::parse(ast);
+        let items = format_items.collect::<Result<Box<_>, _>>()?;
+        let inner = format_description::__private::FormatDescriptionV3Inner::try_from(items)?;
+        Ok(inner.into_opaque())
+    }
+
+    #[inline]
+    fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
+        let mut lexed = lexer::lex::<3>(s.as_bytes());
+        let ast = ast::parse::<_, 3>(&mut lexed);
+        let format_items = format_item::parse(ast);
+        let items = format_items.collect::<Result<Box<_>, _>>()?;
+        let inner = format_description::__private::FormatDescriptionV3Inner::try_from(items)?;
+        Ok(inner.into_opaque().to_owned())
+    }
+}
 
 /// Parse a sequence of items from the format description.
 ///
@@ -46,18 +156,27 @@ pub fn parse(
 ///
 /// The syntax for the format description can be found in [the
 /// book](https://time-rs.github.io/book/api/format-description.html). The version of the format
-/// description is provided as the const parameter. **It is recommended to use version 2.**
+/// description is provided as the const parameter. **It is recommended to use version 3.**
+///
+/// # Return type
+///
+/// The return type of this function depends on the version provided.
+///
+/// - For versions 1 and 2, the function returns `Result<Vec<BorrowedFormatItem<'_>>,
+///   InvalidFormatDescription>`.
+/// - For version 3, the function returns `Result<FormatDescriptionV3<'_>,
+///   InvalidFormatDescription>`.
 #[inline]
 pub fn parse_borrowed<const VERSION: usize>(
     s: &str,
-) -> Result<Vec<format_description::BorrowedFormatItem<'_>>, error::InvalidFormatDescription> {
-    validate_version!(VERSION);
-    let mut lexed = lexer::lex::<VERSION>(s.as_bytes());
-    let ast = ast::parse::<_, VERSION>(&mut lexed);
-    let format_items = format_item::parse(ast);
-    Ok(format_items
-        .map(|res| res.and_then(TryInto::try_into))
-        .collect::<Result<_, _>>()?)
+) -> Result<
+    <Version<VERSION> as VersionedParser>::BorrowedOutput<'_>,
+    error::InvalidFormatDescription,
+>
+where
+    Version<VERSION>: VersionedParser,
+{
+    Version::<VERSION>::parse_borrowed(s)
 }
 
 /// Parse a sequence of items from the format description.
@@ -69,17 +188,24 @@ pub fn parse_borrowed<const VERSION: usize>(
 /// Unlike [`parse`], this function returns [`OwnedFormatItem`], which owns its contents. This means
 /// that there is no lifetime that needs to be handled. **It is recommended to use version 2.**
 ///
+/// # Return type
+///
+/// The return type of this function depends on the version provided.
+///
+/// - For versions 1 and 2, the function returns `Result<OwnedFormatItem,
+///   InvalidFormatDescription>`.
+/// - For version 3, the function returns `Result<FormatDescriptionV3<'static>,
+///   InvalidFormatDescription>`.
+///
 /// [`OwnedFormatItem`]: crate::format_description::OwnedFormatItem
 #[inline]
 pub fn parse_owned<const VERSION: usize>(
     s: &str,
-) -> Result<format_description::OwnedFormatItem, error::InvalidFormatDescription> {
-    validate_version!(VERSION);
-    let mut lexed = lexer::lex::<VERSION>(s.as_bytes());
-    let ast = ast::parse::<_, VERSION>(&mut lexed);
-    let format_items = format_item::parse(ast);
-    let items = format_items.collect::<Result<Box<_>, _>>()?;
-    Ok(items.try_into()?)
+) -> Result<<Version<VERSION> as VersionedParser>::OwnedOutput, error::InvalidFormatDescription>
+where
+    Version<VERSION>: VersionedParser,
+{
+    Version::<VERSION>::parse_owned(s)
 }
 
 /// Attach [`Location`] information to each byte in the iterator.
