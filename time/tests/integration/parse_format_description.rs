@@ -97,7 +97,7 @@ fn empty() {
 #[case("foo[[bar", ["foo", "[", "bar"])]
 fn only_literal<const N: usize>(#[case] format_description: &str, #[case] expected: [&str; N]) {
     assert_eq!(
-        format_description::parse(format_description),
+        format_description::parse_borrowed::<1>(format_description),
         Ok(expected
             .into_iter()
             .map(BorrowedFormatItem::StringLiteral)
@@ -130,7 +130,7 @@ fn only_literal<const N: usize>(#[case] format_description: &str, #[case] expect
 )]
 fn simple_component(#[case] format_description: &str, #[case] component: Component) {
     assert_eq!(
-        format_description::parse(format_description),
+        format_description::parse_borrowed::<2>(format_description),
         Ok(vec![BorrowedFormatItem::Component(component)])
     );
 }
@@ -142,11 +142,11 @@ fn errors() {
     macro_rules! assert_errs {
         ($($format_description:literal, $error:pat $(if $condition:expr)?,)*) => {$(
             assert!(matches!(
-                format_description::parse($format_description),
+                format_description::parse_borrowed::<3>($format_description),
                 Err($error) $(if $condition)?
             ));
             assert!(matches!(
-                format_description::parse_owned::<2>($format_description),
+                format_description::parse_owned::<3>($format_description),
                 Err($error) $(if $condition)?
             ));
         )*};
@@ -175,7 +175,7 @@ macro_rules! placeholder {
 
 macro_rules! parse_with_modifiers {
     ($modifier_name:literal, $($modifier:ident),+) => {
-        format_description::parse(
+        format_description::parse_borrowed::<2>(
             &format!(
                 concat!(
                     "[",
@@ -839,7 +839,7 @@ fn nested_error() {
     use InvalidFormatDescription::*;
 
     assert!(matches!(
-        format_description::parse("[optional []]"),
+        format_description::parse_borrowed::<1>("[optional []]"),
         Err(NotSupported {
             what: "optional item",
             context: "runtime-parsed format descriptions",
@@ -848,7 +848,7 @@ fn nested_error() {
         })
     ));
     assert!(matches!(
-        format_description::parse("[first []]"),
+        format_description::parse_borrowed::<1>("[first []]"),
         Err(NotSupported {
             what: "'first' item",
             context: "runtime-parsed format descriptions",
@@ -921,7 +921,7 @@ fn error_display(#[case] format_description: &str, #[case] error: &str) {
     #[expect(clippy::unwrap_used, reason = "purpose of the test")]
     let test = || {
         assert_eq!(
-            format_description::parse(format_description)
+            format_description::parse_borrowed::<1>(format_description)
                 .unwrap_err()
                 .to_string(),
             error
@@ -951,7 +951,7 @@ fn error_display_owned(#[case] format_description: &str, #[case] error: &str) {
 #[rstest]
 fn rfc_3339() {
     assert_eq!(
-        format_description::parse(
+        format_description::parse_borrowed::<2>(
             "[year]-[month repr:numerical]-[day]T[hour]:[minute]:[second].[subsecond][offset_hour \
              sign:mandatory]:[offset_minute]"
         ),
@@ -1060,7 +1060,7 @@ fn strftime_equivalence(
 fn strftime_compound_equivalence(#[case] strftime: &str, #[case] custom: &str) -> time::Result<()> {
     let borrowed = format_description::parse_strftime_borrowed(strftime)?;
     let owned = format_description::parse_strftime_owned(strftime)?;
-    let custom = format_description::parse(custom)?;
+    let custom = format_description::parse_borrowed::<2>(custom)?;
     // Until equality is implemented better, we need to convert to a compound.
     let custom = vec![BorrowedFormatItem::Compound(&custom)];
 

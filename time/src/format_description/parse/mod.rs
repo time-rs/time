@@ -143,8 +143,11 @@ impl VersionedParser for Version<3> {
 /// book](https://time-rs.github.io/book/api/format-description.html).
 ///
 /// This function exists for backward compatibility reasons. It is equivalent to calling
-/// `parse_borrowed::<1>(s)`. In the future, this function will be deprecated in favor of
-/// `parse_borrowed`.
+/// `parse_borrowed::<1>(s)`. **It is recommended to use version 3, not version 1.**
+#[deprecated(
+    since = "0.3.48",
+    note = "use `parse_borrowed` with the appropriate version for clarity"
+)]
 #[inline]
 pub fn parse(
     s: &str,

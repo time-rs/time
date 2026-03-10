@@ -557,7 +557,7 @@ fn display_pdt() {
 
 #[test]
 fn format_odt() -> time::Result<()> {
-    let format_description = format_description::parse(
+    let format_description = format_description::parse_borrowed::<2>(
         "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond digits:1+] [offset_hour \
          sign:mandatory]:[offset_minute]:[offset_second]",
     )?;
@@ -578,6 +578,32 @@ fn format_odt() -> time::Result<()> {
     assert!(
         datetime!(1970-01-01 0:00 UTC)
             .format_into(&mut io::sink(), &OwnedFormatItem::from(format_description))
+            .is_ok()
+    );
+
+
+    let format_description_v3 = format_description::parse_borrowed::<3>(
+        "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond digits:1+] [offset_hour \
+         sign:mandatory]:[offset_minute]:[offset_second]",
+    )?;
+
+    assert_eq!(
+        datetime!(1970-01-01 0:00 UTC).format(&format_description_v3)?,
+        "1970-01-01 00:00:00.0 +00:00:00"
+    );
+    assert!(
+        datetime!(1970-01-01 0:00 UTC)
+            .format_into(&mut io::sink(), &format_description_v3)
+            .is_ok()
+    );
+    let format_description_v3 = format_description_v3.to_owned();
+    assert_eq!(
+        datetime!(1970-01-01 0:00 UTC).format(&format_description_v3)?,
+        "1970-01-01 00:00:00.0 +00:00:00"
+    );
+    assert!(
+        datetime!(1970-01-01 0:00 UTC)
+            .format_into(&mut io::sink(), &format_description_v3)
             .is_ok()
     );
 
@@ -783,7 +809,7 @@ fn failed_write() -> time::Result<()> {
         let component = format!("[{component}]");
         assert_err!(
             OffsetDateTime::UNIX_EPOCH,
-            format_description::parse(&component)?
+            format_description::parse_borrowed::<3>(&component)?
         );
     }
 

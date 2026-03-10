@@ -174,7 +174,7 @@ setup_benchmark! {
     }
 
     fn format_odt(ben: &mut Bencher<'_>) {
-        let format_description = format_description::parse(
+        let format_description = format_description::parse_borrowed::<1>(
             "[year]-[month]-[day] [hour]:[minute]:[second].[subsecond] [offset_hour \
             sign:mandatory]:[offset_minute]:[offset_second]",
         ).expect("invalid format description");

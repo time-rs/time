@@ -481,7 +481,8 @@ impl UtcOffset {
     /// ```rust
     /// # use time::format_description;
     /// # use time_macros::offset;
-    /// let format = format_description::parse("[offset_hour sign:mandatory]:[offset_minute]")?;
+    /// let format =
+    ///     format_description::parse_borrowed::<3>("[offset_hour sign:mandatory]:[offset_minute]")?;
     /// assert_eq!(offset!(+1).format(&format)?, "+01:00");
     /// # Ok::<_, time::Error>(())
     /// ```

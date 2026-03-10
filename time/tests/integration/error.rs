@@ -45,7 +45,7 @@ fn unexpected_trailing_characters() -> Parse {
 }
 
 fn invalid_format_description() -> InvalidFormatDescription {
-    format_description::parse("[").expect_err("format description is invalid")
+    format_description::parse_borrowed::<3>("[").expect_err("format description is invalid")
 }
 
 fn io_error() -> io::Error {

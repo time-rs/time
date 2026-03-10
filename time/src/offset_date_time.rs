@@ -1503,7 +1503,7 @@ impl OffsetDateTime {
     /// ```rust
     /// # use time::format_description;
     /// # use time_macros::datetime;
-    /// let format = format_description::parse(
+    /// let format = format_description::parse_borrowed::<3>(
     ///     "[year]-[month]-[day] [hour]:[minute]:[second] [offset_hour \
     ///          sign:mandatory]:[offset_minute]:[offset_second]",
     /// )?;

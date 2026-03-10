@@ -909,7 +909,7 @@ impl Time {
     /// ```rust
     /// # use time::format_description;
     /// # use time_macros::time;
-    /// let format = format_description::parse("[hour]:[minute]:[second]")?;
+    /// let format = format_description::parse_borrowed::<3>("[hour]:[minute]:[second]")?;
     /// assert_eq!(time!(12:00).format(&format)?, "12:00:00");
     /// # Ok::<_, time::Error>(())
     /// ```

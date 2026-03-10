@@ -64,7 +64,7 @@ pub use time_macros::datetime;
 /// # use time::{format_description, macros::format_description};
 /// assert_eq!(
 ///     format_description!("[hour]:[minute]:[second]"),
-///     format_description::parse("[hour]:[minute]:[second]")?
+///     format_description::parse_borrowed::<2>("[hour]:[minute]:[second]")?
 /// );
 /// # Ok::<_, time::Error>(())
 /// ```

@@ -1381,9 +1381,9 @@ impl Date {
     /// Format the `Date` using the provided [format description](crate::format_description).
     ///
     /// ```rust
-    /// # use time::{format_description};
+    /// # use time::format_description;
     /// # use time_macros::date;
-    /// let format = format_description::parse("[year]-[month]-[day]")?;
+    /// let format = format_description::parse_borrowed::<3>("[year]-[month]-[day]")?;
     /// assert_eq!(date!(2020-01-02).format(&format)?, "2020-01-02");
     /// # Ok::<_, time::Error>(())
     /// ```

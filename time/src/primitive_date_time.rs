@@ -1058,7 +1058,9 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time::format_description;
     /// # use time_macros::datetime;
-    /// let format = format_description::parse("[year]-[month]-[day] [hour]:[minute]:[second]")?;
+    /// let format = format_description::parse_borrowed::<3>(
+    ///     "[year]-[month]-[day] [hour]:[minute]:[second]"
+    /// )?;
     /// assert_eq!(
     ///     datetime!(2020-01-02 03:04:05).format(&format)?,
     ///     "2020-01-02 03:04:05"

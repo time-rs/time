@@ -22,7 +22,7 @@ fn component_range_error() -> error::ComponentRange {
 }
 
 fn invalid_format_description() -> error::InvalidFormatDescription {
-    format_description::parse("[").expect_err("format description is invalid")
+    format_description::parse_borrowed::<3>("[").expect_err("format description is invalid")
 }
 
 #[expect(clippy::cognitive_complexity, reason = "all test the same thing")]

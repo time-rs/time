@@ -810,27 +810,27 @@ fn iso_8601_error() {
 #[test]
 fn parse_time() -> time::Result<()> {
     let format_input_output = [
-        (fd::parse("[hour repr:12] [period]")?, "01 PM", time!(1 PM)),
-        (fd::parse("[hour]")?, "12", time!(12:00)),
+        (fd::parse_borrowed::<1>("[hour repr:12] [period]")?, "01 PM", time!(1 PM)),
+        (fd::parse_borrowed::<1>("[hour]")?, "12", time!(12:00)),
         (
-            fd::parse("[hour]:[minute]:[second]")?,
+            fd::parse_borrowed::<1>("[hour]:[minute]:[second]")?,
             "13:02:03",
             time!(13:02:03),
         ),
         (
-            fd::parse("[hour repr:12]:[minute] [period]")?,
+            fd::parse_borrowed::<1>("[hour repr:12]:[minute] [period]")?,
             "01:02 PM",
             time!(1:02 PM),
         ),
-        (fd::parse("[hour]:[minute]")?, "01:02", time!(1:02)),
+        (fd::parse_borrowed::<1>("[hour]:[minute]")?, "01:02", time!(1:02)),
         (
-            fd::parse("[hour repr:12]:[minute] [period]")?,
+            fd::parse_borrowed::<1>("[hour repr:12]:[minute] [period]")?,
             "01:02 AM",
             time!(1:02 AM),
         ),
-        (fd::parse("[hour]:[minute]")?, "01:02", time!(1:02)),
-        (fd::parse("[hour repr:12] [period]")?, "12 AM", time!(12 AM)),
-        (fd::parse("[hour repr:12] [period]")?, "12 PM", time!(12 PM)),
+        (fd::parse_borrowed::<1>("[hour]:[minute]")?, "01:02", time!(1:02)),
+        (fd::parse_borrowed::<1>("[hour repr:12] [period]")?, "12 AM", time!(12 AM)),
+        (fd::parse_borrowed::<1>("[hour repr:12] [period]")?, "12 PM", time!(12 PM)),
     ];
 
     for (format_description, input, output) in &format_input_output {
@@ -859,43 +859,43 @@ fn parse_time_err() -> time::Result<()> {
         Err(error::TryFromParsed::InsufficientInformation)
     );
     assert_eq!(
-        Time::parse("", &fd::parse("")?),
+        Time::parse("", &fd::parse_borrowed::<1>("")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
     );
     assert_eq!(
-        Time::parse("12:34", &fd::parse("[hour]:[second]")?),
+        Time::parse("12:34", &fd::parse_borrowed::<1>("[hour]:[second]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
     );
     assert_eq!(
-        Time::parse("12:34", &fd::parse("[hour]:[subsecond]")?),
+        Time::parse("12:34", &fd::parse_borrowed::<1>("[hour]:[subsecond]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
     );
     assert!(matches!(
-        Time::parse("13 PM", &fd::parse("[hour repr:12] [period]")?),
+        Time::parse("13 PM", &fd::parse_borrowed::<1>("[hour repr:12] [period]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("hour")
         ))
     ));
     assert!(matches!(
-        Time::parse(" ", &fd::parse("")?),
+        Time::parse(" ", &fd::parse_borrowed::<1>("")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
         ))
     ));
     assert!(matches!(
-        Time::parse("a", &fd::parse("[subsecond digits:1]")?),
+        Time::parse("a", &fd::parse_borrowed::<1>("[subsecond digits:1]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("subsecond")
         ))
     ));
     assert!(matches!(
-        Time::parse("1a", &fd::parse("[subsecond digits:2]")?),
+        Time::parse("1a", &fd::parse_borrowed::<1>("[subsecond digits:2]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("subsecond")
         ))
@@ -916,43 +916,43 @@ fn parse_time_err() -> time::Result<()> {
         ))
     ));
     assert!(matches!(
-        Time::parse("12a", &fd::parse("[subsecond digits:3]")?),
+        Time::parse("12a", &fd::parse_borrowed::<1>("[subsecond digits:3]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("subsecond")
         ))
     ));
     assert!(matches!(
-        Time::parse("123a", &fd::parse("[subsecond digits:4]")?),
+        Time::parse("123a", &fd::parse_borrowed::<1>("[subsecond digits:4]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("subsecond")
         ))
     ));
     assert!(matches!(
-        Time::parse("1234a", &fd::parse("[subsecond digits:5]")?),
+        Time::parse("1234a", &fd::parse_borrowed::<1>("[subsecond digits:5]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("subsecond")
         ))
     ));
     assert!(matches!(
-        Time::parse("12345a", &fd::parse("[subsecond digits:6]")?),
+        Time::parse("12345a", &fd::parse_borrowed::<1>("[subsecond digits:6]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("subsecond")
         ))
     ));
     assert!(matches!(
-        Time::parse("123456a", &fd::parse("[subsecond digits:7]")?),
+        Time::parse("123456a", &fd::parse_borrowed::<1>("[subsecond digits:7]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("subsecond")
         ))
     ));
     assert!(matches!(
-        Time::parse("1234567a", &fd::parse("[subsecond digits:8]")?),
+        Time::parse("1234567a", &fd::parse_borrowed::<1>("[subsecond digits:8]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("subsecond")
         ))
     ));
     assert!(matches!(
-        Time::parse("12345678a", &fd::parse("[subsecond digits:9]")?),
+        Time::parse("12345678a", &fd::parse_borrowed::<1>("[subsecond digits:9]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("subsecond")
         ))
@@ -965,63 +965,63 @@ fn parse_time_err() -> time::Result<()> {
 fn parse_date() -> time::Result<()> {
     let format_input_output = [
         (
-            fd::parse("[year]-[month]-[day]")?,
+            fd::parse_borrowed::<1>("[year]-[month]-[day]")?,
             "2021-01-02",
             date!(2021-01-02),
         ),
         (
-            fd::parse("[year repr:century range:standard][year repr:last_two]-[month]-[day]")?,
+            fd::parse_borrowed::<1>("[year repr:century range:standard][year repr:last_two]-[month]-[day]")?,
             "2021-01-02",
             date!(2021-01-02),
         ),
-        (fd::parse("[year]-[ordinal]")?, "2021-002", date!(2021-002)),
+        (fd::parse_borrowed::<1>("[year]-[ordinal]")?, "2021-002", date!(2021-002)),
         (
-            fd::parse("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?,
+            fd::parse_borrowed::<1>("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?,
             "2020-W53-6",
             date!(2021-01-02),
         ),
         (
-            fd::parse("[year]-W[week_number repr:monday]-[weekday repr:monday]")?,
+            fd::parse_borrowed::<1>("[year]-W[week_number repr:monday]-[weekday repr:monday]")?,
             "2021-W00-6",
             date!(2021-01-02),
         ),
         (
-            fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
+            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2021-W00-6",
             date!(2021-01-02),
         ),
         (
-            fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
+            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2023-W01-1",
             date!(2023-01-02),
         ),
         (
-            fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
+            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2022-W00-7",
             date!(2022-01-02),
         ),
         (
-            fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
+            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2026-W00-5",
             date!(2026-01-02),
         ),
         (
-            fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
+            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2025-W00-4",
             date!(2025-01-02),
         ),
         (
-            fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
+            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2019-W00-3",
             date!(2019-01-02),
         ),
         (
-            fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
+            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
             "2018-W01-2",
             date!(2018-01-02),
         ),
         (
-            fd::parse(
+            fd::parse_borrowed::<1>(
                 "[year padding:space]-W[week_number repr:sunday padding:none]-[weekday \
                  repr:sunday]",
             )?,
@@ -1049,49 +1049,49 @@ fn parse_date_err() -> time::Result<()> {
         Err(error::TryFromParsed::InsufficientInformation)
     );
     assert_eq!(
-        Date::parse("", &fd::parse("")?),
+        Date::parse("", &fd::parse_borrowed::<1>("")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
     );
     assert!(matches!(
-        Date::parse("a", &fd::parse("[year]")?),
+        Date::parse("a", &fd::parse_borrowed::<1>("[year]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("year")
         ))
     ));
     assert!(matches!(
-        Date::parse("0001", &fd::parse("[year sign:mandatory]")?),
+        Date::parse("0001", &fd::parse_borrowed::<1>("[year sign:mandatory]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("year")
         ))
     ));
     assert!(matches!(
-        Date::parse("0a", &fd::parse("[year repr:last_two]")?),
+        Date::parse("0a", &fd::parse_borrowed::<1>("[year repr:last_two]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("year")
         ))
     ));
     assert!(matches!(
-        Date::parse("2021-366", &fd::parse("[year]-[ordinal]")?),
+        Date::parse("2021-366", &fd::parse_borrowed::<1>("[year]-[ordinal]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::ComponentRange(component)
         )) if component.name() == "ordinal"
     ));
     assert!(matches!(
-        Date::parse("2021-12-32", &fd::parse("[year]-[month]-[day]")?),
+        Date::parse("2021-12-32", &fd::parse_borrowed::<1>("[year]-[month]-[day]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("day")
         ))
     ));
     assert!(matches!(
-        Date::parse("2021-02-30", &fd::parse("[year]-[month]-[day]")?),
+        Date::parse("2021-02-30", &fd::parse_borrowed::<1>("[year]-[month]-[day]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::ComponentRange(component)
         )) if component.name() == "day"
     ));
     assert!(matches!(
-        Date::parse("2019-W53-1", &fd::parse("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?),
+        Date::parse("2019-W53-1", &fd::parse_borrowed::<1>("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::ComponentRange(component)
         )) if component.name() == "week"
@@ -1099,14 +1099,14 @@ fn parse_date_err() -> time::Result<()> {
     assert!(matches!(
         Date::parse(
             "2021-W54-1",
-            &fd::parse("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?
+            &fd::parse_borrowed::<1>("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?
         ),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("week number")
         ))
     ));
     assert!(matches!(
-        Date::parse("2019-W53-1", &fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:monday]")?),
+        Date::parse("2019-W53-1", &fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:monday]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::ComponentRange(component)
         )) if component.name() == "ordinal"
@@ -1114,14 +1114,14 @@ fn parse_date_err() -> time::Result<()> {
     assert!(matches!(
         Date::parse(
             "2021-W54-1",
-            &fd::parse("[year]-W[week_number repr:sunday]-[weekday repr:monday]")?
+            &fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:monday]")?
         ),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("week number")
         ))
     ));
     assert!(matches!(
-        Date::parse("2019-W53-1", &fd::parse("[year]-W[week_number repr:monday]-[weekday repr:monday]")?),
+        Date::parse("2019-W53-1", &fd::parse_borrowed::<1>("[year]-W[week_number repr:monday]-[weekday repr:monday]")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::ComponentRange(component)
         )) if component.name() == "ordinal"
@@ -1129,20 +1129,20 @@ fn parse_date_err() -> time::Result<()> {
     assert!(matches!(
         Date::parse(
             "2021-W54-1",
-            &fd::parse("[year]-W[week_number repr:monday]-[weekday repr:monday]")?
+            &fd::parse_borrowed::<1>("[year]-W[week_number repr:monday]-[weekday repr:monday]")?
         ),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("week number")
         ))
     ));
     assert!(matches!(
-        Date::parse("Ja", &fd::parse("[month repr:short]")?),
+        Date::parse("Ja", &fd::parse_borrowed::<1>("[month repr:short]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("month")
         ))
     ));
     assert!(matches!(
-        Date::parse("  2a21", &fd::parse("[year padding:space]")?),
+        Date::parse("  2a21", &fd::parse_borrowed::<1>("[year padding:space]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("year")
         ))
@@ -1157,14 +1157,14 @@ fn parse_offset() -> time::Result<()> {
     assert_eq!(
         UtcOffset::parse(
             "-00:01",
-            &fd::parse("[offset_hour sign:mandatory]:[offset_minute]")?,
+            &fd::parse_borrowed::<1>("[offset_hour sign:mandatory]:[offset_minute]")?,
         ),
         Ok(offset!(-00:01)),
     );
     assert_eq!(
         UtcOffset::parse(
             "-00:00:01",
-            &fd::parse("[offset_hour sign:mandatory]:[offset_minute]:[offset_second]")?,
+            &fd::parse_borrowed::<1>("[offset_hour sign:mandatory]:[offset_minute]:[offset_second]")?,
         ),
         Ok(offset!(-00:00:01)),
     );
@@ -1175,25 +1175,25 @@ fn parse_offset() -> time::Result<()> {
 #[test]
 fn parse_offset_err() -> time::Result<()> {
     assert_eq!(
-        UtcOffset::parse("", &fd::parse("")?),
+        UtcOffset::parse("", &fd::parse_borrowed::<1>("")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
     );
     assert_eq!(
-        UtcOffset::parse("01", &fd::parse("[offset_hour sign:mandatory]")?),
+        UtcOffset::parse("01", &fd::parse_borrowed::<1>("[offset_hour sign:mandatory]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("offset hour")
         ))
     );
     assert!(matches!(
-        UtcOffset::parse("24", &fd::parse("[offset_hour]")?),
+        UtcOffset::parse("24", &fd::parse_borrowed::<1>("[offset_hour]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("offset hour")
         ))
     ));
     assert!(matches!(
-        UtcOffset::parse("00:60", &fd::parse("[offset_hour]:[offset_minute]")?),
+        UtcOffset::parse("00:60", &fd::parse_borrowed::<1>("[offset_hour]:[offset_minute]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("offset minute")
         ))
@@ -1201,7 +1201,7 @@ fn parse_offset_err() -> time::Result<()> {
     assert!(matches!(
         UtcOffset::parse(
             "00:00:60",
-            &fd::parse("[offset_hour]:[offset_minute]:[offset_second]")?
+            &fd::parse_borrowed::<1>("[offset_hour]:[offset_minute]:[offset_second]")?
         ),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("offset second")
@@ -1214,7 +1214,7 @@ fn parse_offset_err() -> time::Result<()> {
 #[test]
 fn parse_primitive_date_time() -> time::Result<()> {
     assert_eq!(
-        PrimitiveDateTime::parse("2023-07-27 23", &fd::parse("[year]-[month]-[day] [hour]")?),
+        PrimitiveDateTime::parse("2023-07-27 23", &fd::parse_borrowed::<1>("[year]-[month]-[day] [hour]")?),
         Ok(datetime!(2023-07-27 23:00))
     );
 
@@ -1224,7 +1224,7 @@ fn parse_primitive_date_time() -> time::Result<()> {
 #[test]
 fn parse_primitive_date_time_err() -> time::Result<()> {
     assert_eq!(
-        PrimitiveDateTime::parse("", &fd::parse("")?),
+        PrimitiveDateTime::parse("", &fd::parse_borrowed::<1>("")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
@@ -1232,7 +1232,7 @@ fn parse_primitive_date_time_err() -> time::Result<()> {
     assert!(matches!(
         PrimitiveDateTime::parse(
             "2021-001 13 PM",
-            &fd::parse("[year]-[ordinal] [hour repr:12] [period]")?
+            &fd::parse_borrowed::<1>("[year]-[ordinal] [hour repr:12] [period]")?
         ),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("hour")
@@ -1241,7 +1241,7 @@ fn parse_primitive_date_time_err() -> time::Result<()> {
     assert!(matches!(
         PrimitiveDateTime::parse(
             "2023-07-27 23:30",
-            &fd::parse("[year]-[month]-[day] [hour]")?
+            &fd::parse_borrowed::<1>("[year]-[month]-[day] [hour]")?
         ),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
@@ -1254,13 +1254,13 @@ fn parse_primitive_date_time_err() -> time::Result<()> {
 #[test]
 fn parse_offset_date_time_err() -> time::Result<()> {
     assert_eq!(
-        OffsetDateTime::parse("", &fd::parse("")?),
+        OffsetDateTime::parse("", &fd::parse_borrowed::<1>("")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
     );
     assert!(matches!(
-        OffsetDateTime::parse("x", &fd::parse("[year]")?),
+        OffsetDateTime::parse("x", &fd::parse_borrowed::<1>("[year]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("year")
         ))
@@ -1268,7 +1268,7 @@ fn parse_offset_date_time_err() -> time::Result<()> {
     assert!(matches!(
         OffsetDateTime::parse(
             "2021-001 12 PM +25",
-            &fd::parse("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?
+            &fd::parse_borrowed::<1>("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?
         ),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("offset hour")
@@ -1281,7 +1281,7 @@ fn parse_offset_date_time_err() -> time::Result<()> {
 #[test]
 fn parse_utc_date_time() -> time::Result<()> {
     assert_eq!(
-        UtcDateTime::parse("2023-07-27 23", &fd::parse("[year]-[month]-[day] [hour]")?),
+        UtcDateTime::parse("2023-07-27 23", &fd::parse_borrowed::<1>("[year]-[month]-[day] [hour]")?),
         Ok(utc_datetime!(2023-07-27 23:00))
     );
 
@@ -1291,7 +1291,7 @@ fn parse_utc_date_time() -> time::Result<()> {
 #[test]
 fn parse_utc_date_time_err() -> time::Result<()> {
     assert_eq!(
-        UtcDateTime::parse("", &fd::parse("")?),
+        UtcDateTime::parse("", &fd::parse_borrowed::<1>("")?),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
@@ -1299,7 +1299,7 @@ fn parse_utc_date_time_err() -> time::Result<()> {
     assert!(matches!(
         UtcDateTime::parse(
             "2021-001 13 PM",
-            &fd::parse("[year]-[ordinal] [hour repr:12] [period]")?
+            &fd::parse_borrowed::<1>("[year]-[ordinal] [hour repr:12] [period]")?
         ),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("hour")
@@ -1308,14 +1308,14 @@ fn parse_utc_date_time_err() -> time::Result<()> {
     assert!(matches!(
         UtcDateTime::parse(
             "2023-07-27 23:30",
-            &fd::parse("[year]-[month]-[day] [hour]")?
+            &fd::parse_borrowed::<1>("[year]-[month]-[day] [hour]")?
         ),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
         ))
     ));
     assert!(matches!(
-        UtcDateTime::parse("x", &fd::parse("[year]")?),
+        UtcDateTime::parse("x", &fd::parse_borrowed::<1>("[year]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("year")
         ))
@@ -1323,7 +1323,7 @@ fn parse_utc_date_time_err() -> time::Result<()> {
     assert!(matches!(
         UtcDateTime::parse(
             "2021-001 12 PM +25",
-            &fd::parse("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?
+            &fd::parse_borrowed::<1>("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?
         ),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("offset hour")
@@ -1659,7 +1659,7 @@ fn parse_optional() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"2021-01-02",
-        &BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&fd::parse(
+        &BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>(
             "[year]-[month]-[day]",
         )?)),
     )?;
@@ -1672,7 +1672,7 @@ fn parse_optional() -> time::Result<()> {
     let remaining_input = parsed.parse_item(
         b"2021-01-02",
         &OwnedFormatItem::from(BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(
-            &fd::parse("[year]-[month]-[day]")?,
+            &fd::parse_borrowed::<1>("[year]-[month]-[day]")?,
         ))),
     )?;
     assert!(remaining_input.is_empty());
@@ -1684,7 +1684,7 @@ fn parse_optional() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"2021-01",
-        &BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&fd::parse(
+        &BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>(
             "[year]-[month]-[day]",
         )?)),
     )?;
@@ -1697,7 +1697,7 @@ fn parse_optional() -> time::Result<()> {
     let remaining_input = parsed.parse_item(
         b"2021-01",
         &OwnedFormatItem::from(BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(
-            &fd::parse("[year]-[month]-[day]")?,
+            &fd::parse_borrowed::<1>("[year]-[month]-[day]")?,
         ))),
     )?;
     assert_eq!(remaining_input, b"2021-01");
@@ -1715,7 +1715,7 @@ fn parse_first() -> time::Result<()> {
     let mut parsed = Parsed::new();
     let remaining_input = parsed.parse_item(
         b"2021-01-02",
-        &BorrowedFormatItem::First(&[BorrowedFormatItem::Compound(&fd::parse(
+        &BorrowedFormatItem::First(&[BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>(
             "[year]-[month]-[day]",
         )?)]),
     )?;
@@ -1728,7 +1728,7 @@ fn parse_first() -> time::Result<()> {
     let remaining_input = parsed.parse_item(
         b"2021-01-02",
         &OwnedFormatItem::from(BorrowedFormatItem::First(&[BorrowedFormatItem::Compound(
-            &fd::parse("[year]-[month]-[day]")?,
+            &fd::parse_borrowed::<1>("[year]-[month]-[day]")?,
         )])),
     )?;
     assert!(remaining_input.is_empty());
@@ -1757,9 +1757,9 @@ fn parse_first() -> time::Result<()> {
     let remaining_input = parsed.parse_item(
         b"2021-01-02",
         &BorrowedFormatItem::First(&[
-            BorrowedFormatItem::Compound(&fd::parse("[period]")?),
-            BorrowedFormatItem::Compound(&fd::parse("x")?),
-            BorrowedFormatItem::Compound(&fd::parse("[year]-[month]-[day]")?),
+            BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("[period]")?),
+            BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("x")?),
+            BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("[year]-[month]-[day]")?),
         ]),
     )?;
     assert!(remaining_input.is_empty());
@@ -1771,9 +1771,9 @@ fn parse_first() -> time::Result<()> {
     let remaining_input = parsed.parse_item(
         b"2021-01-02",
         &OwnedFormatItem::from(BorrowedFormatItem::First(&[
-            BorrowedFormatItem::Compound(&fd::parse("[period]")?),
-            BorrowedFormatItem::Compound(&fd::parse("x")?),
-            BorrowedFormatItem::Compound(&fd::parse("[year]-[month]-[day]")?),
+            BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("[period]")?),
+            BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("x")?),
+            BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("[year]-[month]-[day]")?),
         ])),
     )?;
     assert!(remaining_input.is_empty());
@@ -1787,8 +1787,8 @@ fn parse_first() -> time::Result<()> {
         .parse_item(
             b"2021-01-02",
             &BorrowedFormatItem::First(&[
-                BorrowedFormatItem::Compound(&fd::parse("[period]")?),
-                BorrowedFormatItem::Compound(&fd::parse("x")?),
+                BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("[period]")?),
+                BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("x")?),
             ]),
         )
         .expect_err("parsing should fail");
@@ -1799,8 +1799,8 @@ fn parse_first() -> time::Result<()> {
         .parse_item(
             b"2021-01-02",
             &OwnedFormatItem::from(BorrowedFormatItem::First(&[
-                BorrowedFormatItem::Compound(&fd::parse("[period]")?),
-                BorrowedFormatItem::Compound(&fd::parse("x")?),
+                BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("[period]")?),
+                BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("x")?),
             ])),
         )
         .expect_err("parsing should fail");
@@ -1812,27 +1812,27 @@ fn parse_first() -> time::Result<()> {
 #[test]
 fn parse_unix_timestamp() -> time::Result<()> {
     assert_eq!(
-        OffsetDateTime::parse("1234567890", &fd::parse("[unix_timestamp]")?)?,
+        OffsetDateTime::parse("1234567890", &fd::parse_borrowed::<1>("[unix_timestamp]")?)?,
         datetime!(2009-02-13 23:31:30 UTC)
     );
     assert_eq!(
         OffsetDateTime::parse(
             "1234567890123",
-            &fd::parse("[unix_timestamp precision:millisecond]")?
+            &fd::parse_borrowed::<1>("[unix_timestamp precision:millisecond]")?
         )?,
         datetime!(2009-02-13 23:31:30.123 UTC)
     );
     assert_eq!(
         OffsetDateTime::parse(
             "1234567890123456",
-            &fd::parse("[unix_timestamp precision:microsecond]")?
+            &fd::parse_borrowed::<1>("[unix_timestamp precision:microsecond]")?
         )?,
         datetime!(2009-02-13 23:31:30.123456 UTC)
     );
     assert_eq!(
         OffsetDateTime::parse(
             "1234567890123456789",
-            &fd::parse("[unix_timestamp precision:nanosecond]")?
+            &fd::parse_borrowed::<1>("[unix_timestamp precision:nanosecond]")?
         )?,
         datetime!(2009-02-13 23:31:30.123456789 UTC)
     );
@@ -1843,31 +1843,31 @@ fn parse_unix_timestamp() -> time::Result<()> {
 #[test]
 fn parse_unix_timestamp_err() -> time::Result<()> {
     assert_eq!(
-        OffsetDateTime::parse("1234567890", &fd::parse("[unix_timestamp sign:mandatory]")?),
+        OffsetDateTime::parse("1234567890", &fd::parse_borrowed::<1>("[unix_timestamp sign:mandatory]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("unix_timestamp")
         ))
     );
     assert_eq!(
-        OffsetDateTime::parse("a", &fd::parse("[unix_timestamp precision:second]")?),
+        OffsetDateTime::parse("a", &fd::parse_borrowed::<1>("[unix_timestamp precision:second]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("unix_timestamp")
         ))
     );
     assert_eq!(
-        OffsetDateTime::parse("a", &fd::parse("[unix_timestamp precision:millisecond]")?),
+        OffsetDateTime::parse("a", &fd::parse_borrowed::<1>("[unix_timestamp precision:millisecond]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("unix_timestamp")
         ))
     );
     assert_eq!(
-        OffsetDateTime::parse("a", &fd::parse("[unix_timestamp precision:microsecond]")?),
+        OffsetDateTime::parse("a", &fd::parse_borrowed::<1>("[unix_timestamp precision:microsecond]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("unix_timestamp")
         ))
     );
     assert_eq!(
-        OffsetDateTime::parse("a", &fd::parse("[unix_timestamp precision:nanosecond]")?),
+        OffsetDateTime::parse("a", &fd::parse_borrowed::<1>("[unix_timestamp precision:nanosecond]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("unix_timestamp")
         ))
@@ -1880,7 +1880,7 @@ fn parse_unix_timestamp_err() -> time::Result<()> {
 fn issue_601() {
     let date = OffsetDateTime::parse(
         "1234567890.123",
-        &fd::parse("[unix_timestamp].[subsecond digits:3]").expect("format description is valid"),
+        &fd::parse_borrowed::<1>("[unix_timestamp].[subsecond digits:3]").expect("format description is valid"),
     );
 
     assert_eq!(date, Ok(datetime!(2009-02-13 23:31:30.123 +00:00:00)));
@@ -1896,13 +1896,13 @@ fn end() -> time::Result<()> {
     assert_eq!(remaining_input, Ok(b"".as_slice()));
 
     assert_eq!(
-        Time::parse("00:00", &fd::parse("[hour]:[minute][end]")?),
+        Time::parse("00:00", &fd::parse_borrowed::<1>("[hour]:[minute][end]")?),
         Ok(time!(0:00))
     );
     assert_eq!(
         Time::parse(
             "00:00abcdef",
-            &fd::parse("[hour]:[minute][end trailing_input:discard]")?
+            &fd::parse_borrowed::<1>("[hour]:[minute][end trailing_input:discard]")?
         ),
         Ok(time!(0:00))
     );
