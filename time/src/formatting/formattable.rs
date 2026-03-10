@@ -15,8 +15,8 @@ use crate::format_description::{
     BorrowedFormatItem, FormatDescriptionV3, OwnedFormatItem, format_description_v3,
 };
 use crate::formatting::{
-    ComponentProvider, MONTH_NAMES, WEEKDAY_NAMES, fmt_component_v3, format_component,
-    format_four_digits_pad_zero, format_two_digits, iso8601, write, write_bytes, write_if_else,
+    ComponentProvider, MONTH_NAMES, WEEKDAY_NAMES, fmt_component_v3, format_four_digits_pad_zero,
+    format_two_digits, iso8601, write, write_bytes, write_if_else,
 };
 use crate::internal_macros::try_likely_ok;
 use crate::{error, num_fmt};
@@ -195,7 +195,7 @@ impl sealed::Sealed for BorrowedFormatItem<'_> {
             Self::Literal(literal) => try_likely_ok!(write_bytes(output, literal)),
             Self::StringLiteral(literal) => try_likely_ok!(write(output, literal)),
             Self::Component(component) => {
-                try_likely_ok!(format_component(output, component, value, state))
+                try_likely_ok!(fmt_component_v3(output, value, state, &component.into()))
             }
             Self::Compound(items) => try_likely_ok!((*items).format_into(output, value, state)),
             Self::Optional(item) => try_likely_ok!((*item).format_into(output, value, state)),
@@ -251,7 +251,9 @@ impl sealed::Sealed for OwnedFormatItem {
             #[expect(deprecated)]
             Self::Literal(literal) => Ok(try_likely_ok!(write_bytes(output, literal))),
             Self::StringLiteral(literal) => Ok(try_likely_ok!(write(output, literal))),
-            Self::Component(component) => format_component(output, *component, value, state),
+            Self::Component(component) => {
+                fmt_component_v3(output, value, state, &((*component).into()))
+            }
             Self::Compound(items) => (**items).format_into(output, value, state),
             Self::Optional(item) => (**item).format_into(output, value, state),
             Self::First(items) => match &**items {

@@ -122,3 +122,217 @@ pub enum Component {
     )]
     Year(modifier::Year),
 }
+
+impl From<Component> for super::format_description_v3::Component {
+    #[inline]
+    fn from(component: Component) -> Self {
+        match component {
+            Component::Day(modifier) => Self::Day(modifier),
+            Component::MonthShort(modifier) => Self::MonthShort(modifier),
+            Component::MonthLong(modifier) => Self::MonthLong(modifier),
+            Component::MonthNumerical(modifier) => Self::MonthNumerical(modifier),
+            Component::Ordinal(modifier) => Self::Ordinal(modifier),
+            Component::WeekdayShort(modifier) => Self::WeekdayShort(modifier),
+            Component::WeekdayLong(modifier) => Self::WeekdayLong(modifier),
+            Component::WeekdaySunday(modifier) => Self::WeekdaySunday(modifier),
+            Component::WeekdayMonday(modifier) => Self::WeekdayMonday(modifier),
+            Component::WeekNumberIso(modifier) => Self::WeekNumberIso(modifier),
+            Component::WeekNumberSunday(modifier) => Self::WeekNumberSunday(modifier),
+            Component::WeekNumberMonday(modifier) => Self::WeekNumberMonday(modifier),
+            Component::CalendarYearFullExtendedRange(modifier) => {
+                Self::CalendarYearFullExtendedRange(modifier)
+            }
+            Component::CalendarYearFullStandardRange(modifier) => {
+                Self::CalendarYearFullStandardRange(modifier)
+            }
+            Component::IsoYearFullExtendedRange(modifier) => {
+                Self::IsoYearFullExtendedRange(modifier)
+            }
+            Component::IsoYearFullStandardRange(modifier) => {
+                Self::IsoYearFullStandardRange(modifier)
+            }
+            Component::CalendarYearCenturyExtendedRange(modifier) => {
+                Self::CalendarYearCenturyExtendedRange(modifier)
+            }
+            Component::CalendarYearCenturyStandardRange(modifier) => {
+                Self::CalendarYearCenturyStandardRange(modifier)
+            }
+            Component::IsoYearCenturyExtendedRange(modifier) => {
+                Self::IsoYearCenturyExtendedRange(modifier)
+            }
+            Component::IsoYearCenturyStandardRange(modifier) => {
+                Self::IsoYearCenturyStandardRange(modifier)
+            }
+            Component::CalendarYearLastTwo(modifier) => Self::CalendarYearLastTwo(modifier),
+            Component::IsoYearLastTwo(modifier) => Self::IsoYearLastTwo(modifier),
+            Component::Hour12(modifier) => Self::Hour12(modifier),
+            Component::Hour24(modifier) => Self::Hour24(modifier),
+            Component::Minute(modifier) => Self::Minute(modifier),
+            Component::Period(modifier) => Self::Period(modifier),
+            Component::Second(modifier) => Self::Second(modifier),
+            Component::Subsecond(modifier) => Self::Subsecond(modifier),
+            Component::OffsetHour(modifier) => Self::OffsetHour(modifier),
+            Component::OffsetMinute(modifier) => Self::OffsetMinute(modifier),
+            Component::OffsetSecond(modifier) => Self::OffsetSecond(modifier),
+            Component::Ignore(modifier) => Self::Ignore(modifier),
+            Component::UnixTimestampSecond(modifier) => Self::UnixTimestampSecond(modifier),
+            Component::UnixTimestampMillisecond(modifier) => {
+                Self::UnixTimestampMillisecond(modifier)
+            }
+            Component::UnixTimestampMicrosecond(modifier) => {
+                Self::UnixTimestampMicrosecond(modifier)
+            }
+            Component::UnixTimestampNanosecond(modifier) => Self::UnixTimestampNanosecond(modifier),
+            Component::End(modifier) => Self::End(modifier),
+
+            // Start of deprecated components.
+            #[expect(deprecated)]
+            Component::Month(modifier) => match modifier.repr {
+                modifier::MonthRepr::Short => Self::MonthShort(
+                    modifier::MonthShort::default().with_case_sensitive(modifier.case_sensitive),
+                ),
+                modifier::MonthRepr::Long => Self::MonthLong(
+                    modifier::MonthLong::default().with_case_sensitive(modifier.case_sensitive),
+                ),
+                modifier::MonthRepr::Numerical => Self::MonthNumerical(
+                    modifier::MonthNumerical::default().with_padding(modifier.padding),
+                ),
+            },
+            #[expect(deprecated)]
+            Component::Weekday(modifier) => match modifier.repr {
+                modifier::WeekdayRepr::Short => Self::WeekdayShort(
+                    modifier::WeekdayShort::default().with_case_sensitive(modifier.case_sensitive),
+                ),
+                modifier::WeekdayRepr::Long => Self::WeekdayLong(
+                    modifier::WeekdayLong::default().with_case_sensitive(modifier.case_sensitive),
+                ),
+                modifier::WeekdayRepr::Sunday => Self::WeekdaySunday(
+                    modifier::WeekdaySunday::default().with_one_indexed(modifier.one_indexed),
+                ),
+                modifier::WeekdayRepr::Monday => Self::WeekdayMonday(
+                    modifier::WeekdayMonday::default().with_one_indexed(modifier.one_indexed),
+                ),
+            },
+            #[expect(deprecated)]
+            Component::WeekNumber(modifier) => match modifier.repr {
+                modifier::WeekNumberRepr::Iso => Self::WeekNumberIso(
+                    modifier::WeekNumberIso::default().with_padding(modifier.padding),
+                ),
+                modifier::WeekNumberRepr::Sunday => Self::WeekNumberSunday(
+                    modifier::WeekNumberSunday::default().with_padding(modifier.padding),
+                ),
+                modifier::WeekNumberRepr::Monday => Self::WeekNumberMonday(
+                    modifier::WeekNumberMonday::default().with_padding(modifier.padding),
+                ),
+            },
+            #[expect(deprecated)]
+            Component::Hour(modifier) => {
+                if modifier.is_12_hour_clock {
+                    Self::Hour12(modifier::Hour12::default().with_padding(modifier.padding))
+                } else {
+                    Self::Hour24(modifier::Hour24::default().with_padding(modifier.padding))
+                }
+            }
+            #[expect(deprecated)]
+            Component::UnixTimestamp(modifier) => match modifier.precision {
+                modifier::UnixTimestampPrecision::Second => Self::UnixTimestampSecond(
+                    modifier::UnixTimestampSecond::default()
+                        .with_sign_is_mandatory(modifier.sign_is_mandatory),
+                ),
+                modifier::UnixTimestampPrecision::Millisecond => Self::UnixTimestampMillisecond(
+                    modifier::UnixTimestampMillisecond::default()
+                        .with_sign_is_mandatory(modifier.sign_is_mandatory),
+                ),
+                modifier::UnixTimestampPrecision::Microsecond => Self::UnixTimestampMicrosecond(
+                    modifier::UnixTimestampMicrosecond::default()
+                        .with_sign_is_mandatory(modifier.sign_is_mandatory),
+                ),
+                modifier::UnixTimestampPrecision::Nanosecond => Self::UnixTimestampNanosecond(
+                    modifier::UnixTimestampNanosecond::default()
+                        .with_sign_is_mandatory(modifier.sign_is_mandatory),
+                ),
+            },
+            #[expect(deprecated)]
+            Component::Year(modifier) => {
+                match (modifier.iso_week_based, modifier.repr, modifier.range) {
+                    (true, modifier::YearRepr::Full, modifier::YearRange::Standard) => {
+                        Self::IsoYearFullStandardRange(
+                            modifier::IsoYearFullStandardRange::default()
+                                .with_padding(modifier.padding)
+                                .with_sign_is_mandatory(modifier.sign_is_mandatory),
+                        )
+                    }
+                    (true, modifier::YearRepr::Full, modifier::YearRange::Extended) => {
+                        Self::IsoYearFullExtendedRange(
+                            modifier::IsoYearFullExtendedRange::default()
+                                .with_padding(modifier.padding)
+                                .with_sign_is_mandatory(modifier.sign_is_mandatory),
+                        )
+                    }
+                    (false, modifier::YearRepr::Full, modifier::YearRange::Standard) => {
+                        Self::CalendarYearFullStandardRange(
+                            modifier::CalendarYearFullStandardRange::default()
+                                .with_padding(modifier.padding)
+                                .with_sign_is_mandatory(modifier.sign_is_mandatory),
+                        )
+                    }
+                    (false, modifier::YearRepr::Full, modifier::YearRange::Extended) => {
+                        Self::CalendarYearFullExtendedRange(
+                            modifier::CalendarYearFullExtendedRange::default()
+                                .with_padding(modifier.padding)
+                                .with_sign_is_mandatory(modifier.sign_is_mandatory),
+                        )
+                    }
+                    (true, modifier::YearRepr::Century, modifier::YearRange::Standard) => {
+                        Self::IsoYearCenturyStandardRange(
+                            modifier::IsoYearCenturyStandardRange::default()
+                                .with_padding(modifier.padding)
+                                .with_sign_is_mandatory(modifier.sign_is_mandatory),
+                        )
+                    }
+                    (true, modifier::YearRepr::Century, modifier::YearRange::Extended) => {
+                        Self::IsoYearCenturyExtendedRange(
+                            modifier::IsoYearCenturyExtendedRange::default()
+                                .with_padding(modifier.padding)
+                                .with_sign_is_mandatory(modifier.sign_is_mandatory),
+                        )
+                    }
+                    (false, modifier::YearRepr::Century, modifier::YearRange::Standard) => {
+                        Self::CalendarYearCenturyStandardRange(
+                            modifier::CalendarYearCenturyStandardRange::default()
+                                .with_padding(modifier.padding)
+                                .with_sign_is_mandatory(modifier.sign_is_mandatory),
+                        )
+                    }
+                    (false, modifier::YearRepr::Century, modifier::YearRange::Extended) => {
+                        Self::CalendarYearCenturyExtendedRange(
+                            modifier::CalendarYearCenturyExtendedRange::default()
+                                .with_padding(modifier.padding)
+                                .with_sign_is_mandatory(modifier.sign_is_mandatory),
+                        )
+                    }
+                    (true, modifier::YearRepr::LastTwo, modifier::YearRange::Standard) => {
+                        Self::IsoYearLastTwo(
+                            modifier::IsoYearLastTwo::default().with_padding(modifier.padding),
+                        )
+                    }
+                    (true, modifier::YearRepr::LastTwo, modifier::YearRange::Extended) => {
+                        Self::IsoYearLastTwo(
+                            modifier::IsoYearLastTwo::default().with_padding(modifier.padding),
+                        )
+                    }
+                    (false, modifier::YearRepr::LastTwo, modifier::YearRange::Standard) => {
+                        Self::CalendarYearLastTwo(
+                            modifier::CalendarYearLastTwo::default().with_padding(modifier.padding),
+                        )
+                    }
+                    (false, modifier::YearRepr::LastTwo, modifier::YearRange::Extended) => {
+                        Self::CalendarYearLastTwo(
+                            modifier::CalendarYearLastTwo::default().with_padding(modifier.padding),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
