@@ -11,7 +11,7 @@ use crate::error::TryFromParsed;
 use crate::format_description::OwnedFormatItem;
 use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
-use crate::format_description::{BorrowedFormatItem, modifier};
+use crate::format_description::{BorrowedFormatItem, FormatDescriptionV3, modifier};
 use crate::internal_macros::{bug, try_likely_ok};
 use crate::parsing::combinator::{
     ExactlyNDigits, Sign, any_digit, ascii_char, ascii_char_ignore_case, one_or_two_digits, opt,
@@ -24,6 +24,7 @@ use crate::{Date, Month, OffsetDateTime, Time, UtcOffset, error};
 #[cfg_attr(docsrs, doc(notable_trait))]
 #[doc(alias = "Parseable")]
 pub trait Parsable: sealed::Sealed {}
+impl Parsable for FormatDescriptionV3<'_> {}
 impl Parsable for BorrowedFormatItem<'_> {}
 impl Parsable for [BorrowedFormatItem<'_>] {}
 #[cfg(feature = "alloc")]
@@ -106,6 +107,17 @@ mod sealed {
         fn parse_offset_date_time(&self, input: &[u8]) -> Result<OffsetDateTime, error::Parse> {
             Ok(self.parse(input)?.try_into()?)
         }
+    }
+}
+
+impl sealed::Sealed for FormatDescriptionV3<'_> {
+    #[inline]
+    fn parse_into<'a>(
+        &self,
+        input: &'a [u8],
+        parsed: &mut Parsed,
+    ) -> Result<&'a [u8], error::Parse> {
+        Ok(parsed.parse_v3_inner(input, &self.inner)?)
     }
 }
 

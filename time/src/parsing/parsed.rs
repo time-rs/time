@@ -10,6 +10,7 @@ use num_conv::prelude::*;
 
 use crate::date::{MAX_YEAR, MIN_YEAR};
 use crate::error::TryFromParsed::InsufficientInformation;
+use crate::format_description::__private::{Component as ComponentV3, FormatDescriptionV3Inner};
 #[cfg(feature = "alloc")]
 use crate::format_description::OwnedFormatItem;
 use crate::format_description::{BorrowedFormatItem, Component, Period, modifier};
@@ -241,6 +242,280 @@ impl Parsed {
             year_century_is_negative: false,
             iso_year_century_is_negative: false,
             leap_second_allowed: false,
+        }
+    }
+
+    /// Parse a [`FormatDescriptionV3Inner`], mutating the struct. The remaining input is returned
+    /// as the `Ok` value.
+    #[inline]
+    pub(crate) fn parse_v3_inner<'a>(
+        &mut self,
+        mut input: &'a [u8],
+        format_description: &FormatDescriptionV3Inner<'_>,
+    ) -> Result<&'a [u8], error::ParseFromDescription> {
+        match format_description {
+            FormatDescriptionV3Inner::Component(component) => {
+                self.parse_component_v3(input, *component)
+            }
+            FormatDescriptionV3Inner::BorrowedLiteral(literal) => {
+                Self::parse_literal(input, literal.as_bytes())
+            }
+            FormatDescriptionV3Inner::BorrowedCompound(items) => {
+                let mut this = *self;
+                for item in *items {
+                    input = this.parse_v3_inner(input, item)?;
+                }
+                *self = this;
+                Ok(input)
+            }
+            FormatDescriptionV3Inner::BorrowedOptional { format: _, item } => {
+                self.parse_v3_inner(input, item).or(Ok(input))
+            }
+            FormatDescriptionV3Inner::BorrowedFirst(items) => {
+                let mut first_err = None;
+
+                for item in items.iter() {
+                    match self.parse_v3_inner(input, item) {
+                        Ok(remaining_input) => return Ok(remaining_input),
+                        Err(err) if first_err.is_none() => first_err = Some(err),
+                        Err(_) => {}
+                    }
+                }
+
+                match first_err {
+                    Some(err) => Err(err),
+                    // This location will be reached if the slice is empty, skipping the `for` loop.
+                    // As this case is expected to be uncommon, there's no need to check up front.
+                    None => Ok(input),
+                }
+            }
+            #[cfg(feature = "alloc")]
+            FormatDescriptionV3Inner::OwnedLiteral(literal) => {
+                Self::parse_literal(input, literal.as_bytes())
+            }
+            #[cfg(feature = "alloc")]
+            FormatDescriptionV3Inner::OwnedCompound(items) => {
+                let mut this = *self;
+                for item in items {
+                    input = this.parse_v3_inner(input, item)?;
+                }
+                *self = this;
+                Ok(input)
+            }
+            #[cfg(feature = "alloc")]
+            FormatDescriptionV3Inner::OwnedOptional { format: _, item } => {
+                self.parse_v3_inner(input, item).or(Ok(input))
+            }
+            #[cfg(feature = "alloc")]
+            FormatDescriptionV3Inner::OwnedFirst(items) => {
+                let mut first_err = None;
+
+                for item in items {
+                    match self.parse_v3_inner(input, item) {
+                        Ok(remaining_input) => return Ok(remaining_input),
+                        Err(err) if first_err.is_none() => first_err = Some(err),
+                        Err(_) => {}
+                    }
+                }
+
+                match first_err {
+                    Some(err) => Err(err),
+                    // This location will be reached if the slice is empty, skipping the `for` loop.
+                    // As this case is expected to be uncommon, there's no need to check up front.
+                    None => Ok(input),
+                }
+            }
+        }
+    }
+
+    /// Parse a single component, mutating the struct. The remaining input is returned as the `Ok`
+    /// value.
+    #[inline]
+    fn parse_component_v3<'a>(
+        &mut self,
+        input: &'a [u8],
+        component: ComponentV3,
+    ) -> Result<&'a [u8], error::ParseFromDescription> {
+        use error::ParseFromDescription::InvalidComponent;
+
+        match component {
+            ComponentV3::Day(modifiers) => parse_day(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_day(value)))
+                .ok_or(InvalidComponent("day")),
+            ComponentV3::MonthShort(modifiers) => parse_month_short(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_month(value)))
+                .ok_or(InvalidComponent("month")),
+            ComponentV3::MonthLong(modifiers) => parse_month_long(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_month(value)))
+                .ok_or(InvalidComponent("month")),
+            ComponentV3::MonthNumerical(modifiers) => parse_month_numerical(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_month(value)))
+                .ok_or(InvalidComponent("month")),
+            ComponentV3::Ordinal(modifiers) => parse_ordinal(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_ordinal(value)))
+                .ok_or(InvalidComponent("ordinal")),
+            ComponentV3::WeekdayShort(modifiers) => parse_weekday_short(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_weekday(value)))
+                .ok_or(InvalidComponent("weekday")),
+            ComponentV3::WeekdayLong(modifiers) => parse_weekday_long(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_weekday(value)))
+                .ok_or(InvalidComponent("weekday")),
+            ComponentV3::WeekdaySunday(modifiers) => parse_weekday_sunday(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_weekday(value)))
+                .ok_or(InvalidComponent("weekday")),
+            ComponentV3::WeekdayMonday(modifiers) => parse_weekday_monday(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_weekday(value)))
+                .ok_or(InvalidComponent("weekday")),
+            ComponentV3::WeekNumberIso(modifiers) => parse_week_number_iso(input, modifiers)
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_iso_week_number(NonZero::new(value)?))
+                })
+                .ok_or(InvalidComponent("week number")),
+            ComponentV3::WeekNumberSunday(modifiers) => parse_week_number_sunday(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_sunday_week_number(value)))
+                .ok_or(InvalidComponent("week number")),
+            ComponentV3::WeekNumberMonday(modifiers) => parse_week_number_monday(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_monday_week_number(value)))
+                .ok_or(InvalidComponent("week number")),
+            ComponentV3::CalendarYearFullExtendedRange(modifiers) => {
+                parse_calendar_year_full_extended_range(input, modifiers)
+                    .and_then(|parsed| parsed.consume_value(|value| self.set_year(value)))
+                    .ok_or(InvalidComponent("year"))
+            }
+            ComponentV3::CalendarYearFullStandardRange(modifiers) => {
+                parse_calendar_year_full_standard_range(input, modifiers)
+                    .and_then(|parsed| parsed.consume_value(|value| self.set_year(value)))
+                    .ok_or(InvalidComponent("year"))
+            }
+            ComponentV3::IsoYearFullExtendedRange(modifiers) => {
+                parse_iso_year_full_extended_range(input, modifiers)
+                    .and_then(|parsed| parsed.consume_value(|value| self.set_iso_year(value)))
+                    .ok_or(InvalidComponent("year"))
+            }
+            ComponentV3::IsoYearFullStandardRange(modifiers) => {
+                parse_iso_year_full_standard_range(input, modifiers)
+                    .and_then(|parsed| parsed.consume_value(|value| self.set_iso_year(value)))
+                    .ok_or(InvalidComponent("year"))
+            }
+            ComponentV3::CalendarYearCenturyExtendedRange(modifiers) => {
+                parse_calendar_year_century_extended_range(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|(value, is_negative)| {
+                            self.set_year_century(value, is_negative)
+                        })
+                    })
+                    .ok_or(InvalidComponent("year"))
+            }
+            ComponentV3::CalendarYearCenturyStandardRange(modifiers) => {
+                parse_calendar_year_century_standard_range(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|(value, is_negative)| {
+                            self.set_year_century(value, is_negative)
+                        })
+                    })
+                    .ok_or(InvalidComponent("year"))
+            }
+            ComponentV3::IsoYearCenturyExtendedRange(modifiers) => {
+                parse_iso_year_century_extended_range(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|(value, is_negative)| {
+                            self.set_iso_year_century(value, is_negative)
+                        })
+                    })
+                    .ok_or(InvalidComponent("year"))
+            }
+            ComponentV3::IsoYearCenturyStandardRange(modifiers) => {
+                parse_iso_year_century_standard_range(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|(value, is_negative)| {
+                            self.set_iso_year_century(value, is_negative)
+                        })
+                    })
+                    .ok_or(InvalidComponent("year"))
+            }
+            ComponentV3::CalendarYearLastTwo(modifiers) => {
+                parse_calendar_year_last_two(input, modifiers)
+                    .and_then(|parsed| parsed.consume_value(|value| self.set_year_last_two(value)))
+                    .ok_or(InvalidComponent("year"))
+            }
+            ComponentV3::IsoYearLastTwo(modifiers) => parse_iso_year_last_two(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_iso_year_last_two(value)))
+                .ok_or(InvalidComponent("year")),
+            ComponentV3::Hour12(modifiers) => parse_hour_12(input, modifiers)
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_hour_12(NonZero::new(value)?))
+                })
+                .ok_or(InvalidComponent("hour")),
+            ComponentV3::Hour24(modifiers) => parse_hour_24(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_hour_24(value)))
+                .ok_or(InvalidComponent("hour")),
+            ComponentV3::Minute(modifiers) => parse_minute(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_minute(value)))
+                .ok_or(InvalidComponent("minute")),
+            ComponentV3::Period(modifiers) => parse_period(input, modifiers)
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_hour_12_is_pm(value == Period::Pm))
+                })
+                .ok_or(InvalidComponent("period")),
+            ComponentV3::Second(modifiers) => parse_second(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_second(value)))
+                .ok_or(InvalidComponent("second")),
+            ComponentV3::Subsecond(modifiers) => parse_subsecond(input, modifiers)
+                .and_then(|parsed| parsed.consume_value(|value| self.set_subsecond(value)))
+                .ok_or(InvalidComponent("subsecond")),
+            ComponentV3::OffsetHour(modifiers) => parse_offset_hour(input, modifiers)
+                .and_then(|parsed| {
+                    parsed.consume_value(|(value, is_negative)| {
+                        self.set_offset_hour(value)?;
+                        self.offset_is_negative = is_negative;
+                        Some(())
+                    })
+                })
+                .ok_or(InvalidComponent("offset hour")),
+            ComponentV3::OffsetMinute(modifiers) => parse_offset_minute(input, modifiers)
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_offset_minute_signed(value))
+                })
+                .ok_or(InvalidComponent("offset minute")),
+            ComponentV3::OffsetSecond(modifiers) => parse_offset_second(input, modifiers)
+                .and_then(|parsed| {
+                    parsed.consume_value(|value| self.set_offset_second_signed(value))
+                })
+                .ok_or(InvalidComponent("offset second")),
+            ComponentV3::Ignore(modifiers) => parse_ignore(input, modifiers)
+                .map(ParsedItem::<()>::into_inner)
+                .ok_or(InvalidComponent("ignore")),
+            ComponentV3::UnixTimestampSecond(modifiers) => {
+                parse_unix_timestamp_second(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|value| self.set_unix_timestamp_nanos(value))
+                    })
+                    .ok_or(InvalidComponent("unix_timestamp"))
+            }
+            ComponentV3::UnixTimestampMillisecond(modifiers) => {
+                parse_unix_timestamp_millisecond(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|value| self.set_unix_timestamp_nanos(value))
+                    })
+                    .ok_or(InvalidComponent("unix_timestamp"))
+            }
+            ComponentV3::UnixTimestampMicrosecond(modifiers) => {
+                parse_unix_timestamp_microsecond(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|value| self.set_unix_timestamp_nanos(value))
+                    })
+                    .ok_or(InvalidComponent("unix_timestamp"))
+            }
+            ComponentV3::UnixTimestampNanosecond(modifiers) => {
+                parse_unix_timestamp_nanosecond(input, modifiers)
+                    .and_then(|parsed| {
+                        parsed.consume_value(|value| self.set_unix_timestamp_nanos(value))
+                    })
+                    .ok_or(InvalidComponent("unix_timestamp"))
+            }
+            ComponentV3::End(modifiers) => parse_end(input, modifiers)
+                .map(ParsedItem::<()>::into_inner)
+                .ok_or(error::ParseFromDescription::UnexpectedTrailingCharacters),
         }
     }
 
