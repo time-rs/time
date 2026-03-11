@@ -171,7 +171,7 @@ pub struct Parsed {
     /// Nanosecond within the second.
     subsecond: Option_ru32<0, { Nanosecond::per_t::<u32>(Second) - 1 }>,
     /// Whole hours of the UTC offset.
-    offset_hour: Option_ri8<-23, 23>,
+    offset_hour: Option_ri8<-25, 25>,
     /// Minutes within the hour of the UTC offset.
     offset_minute:
         Option_ri8<{ -Minute::per_t::<i8>(Hour) + 1 }, { Minute::per_t::<i8>(Hour) - 1 }>,

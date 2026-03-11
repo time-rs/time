@@ -1187,7 +1187,7 @@ fn parse_offset_err() -> time::Result<()> {
         ))
     );
     assert!(matches!(
-        UtcOffset::parse("24", &fd::parse_borrowed::<1>("[offset_hour]")?),
+        UtcOffset::parse("26", &fd::parse_borrowed::<1>("[offset_hour]")?),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("offset hour")
         ))
@@ -1267,7 +1267,7 @@ fn parse_offset_date_time_err() -> time::Result<()> {
     ));
     assert!(matches!(
         OffsetDateTime::parse(
-            "2021-001 12 PM +25",
+            "2021-001 12 PM +26",
             &fd::parse_borrowed::<1>("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?
         ),
         Err(error::Parse::ParseFromDescription(
@@ -1322,7 +1322,7 @@ fn parse_utc_date_time_err() -> time::Result<()> {
     ));
     assert!(matches!(
         UtcDateTime::parse(
-            "2021-001 12 PM +25",
+            "2021-001 12 PM +26",
             &fd::parse_borrowed::<1>("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?
         ),
         Err(error::Parse::ParseFromDescription(
