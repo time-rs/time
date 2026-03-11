@@ -52,22 +52,20 @@
 //!   Libraries should never enable this feature, as the decision of what format to use should be up
 //!   to the user.
 //!
-//! - `rand` (_implicitly enables `rand08` and `rand09`_)
+//! - `rand` (_implicitly enables `rand08`, `rand09`, and `rand010`_)
 //!
 //!   Previously, this would enable support for `rand` 0.8. Since the release of `rand` 0.9, the
-//!   feature has been split into `rand08` and `rand09` to allow support for both versions. For
-//!   backwards compatibility and simplicity, this feature enables support for _both_ series.
+//!   feature has been split into `rand08` and `rand09` to allow support for both versions. `rand`
+//!   0.10 has since been added. For backwards compatibility and simplicity, this feature enables
+//!   support for _all_ series.
 //!
-//!   It is strongly recommended to enable `rand08` or `rand09` directly, as enabling `rand` will
-//!   needlessly pull in both versions.
+//!   It is strongly recommended to enable the version you need directly, as enabling `rand` will
+//!   needlessly pull in all versions.
 //!
-//! - `rand08`
+//! - `rand08`, `rand09`, `rand010`
 //!
-//!   Enables [`rand` 0.8](https://docs.rs/rand/0.8) support for all types.
-//!
-//! - `rand09`
-//!
-//!   Enables [`rand` 0.9](https://docs.rs/rand/0.9) support for all types.
+//!   Enables [`rand` 0.8](https://docs.rs/rand/0.8), [`rand` 0.9](https://docs.rs/rand/0.9), and
+//!   [`rand` 0.10](https://docs.rs/rand/0.10) support for all types, respectively.
 //!
 //! - `quickcheck` (_implicitly enables `alloc`_)
 //!
