@@ -5,7 +5,8 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::iter;
 
-use super::{Error, Location, Spanned, SpannedValue, Unused, lexer, unused};
+use super::{Error, Location, Span, Spanned, SpannedValue, Unused, lexer, unused};
+use crate::error;
 use crate::internal_macros::bug;
 
 /// One part of a complete format description.
@@ -46,12 +47,10 @@ pub(super) enum Item<'a> {
         _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
         /// The "optional" keyword.
         _optional_kw: Unused<Spanned<&'a [u8]>>,
-        /// Whitespace between the "optional" keyword and either the modifiers or the opening
-        /// bracket of the nested description.
-        _whitespace_after_kw: Unused<Spanned<&'a [u8]>>,
         /// The modifiers for the optional description.
         modifiers: Box<[Modifier<'a>]>,
-        /// Whitespace between the modifiers and the opening bracket of the nested description.
+        /// Whitespace between either the "optional" keyword or modifiers and the opening bracket
+        /// of the nested description.
         _whitespace_after_modifiers: Unused<Option<Spanned<&'a [u8]>>>,
         /// The items within the optional sequence.
         nested_format_description: NestedFormatDescription<'a>,
@@ -66,11 +65,10 @@ pub(super) enum Item<'a> {
         _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
         /// The "first" keyword.
         _first_kw: Unused<Spanned<&'a [u8]>>,
-        /// Whitespace between the "first" keyword and the opening bracket.
-        _whitespace_after_kw: Unused<Spanned<&'a [u8]>>,
         /// The modifiers for the optional description.
         modifiers: Box<[Modifier<'a>]>,
-        /// Whitespace between the modifiers and the opening bracket of the nested description.
+        /// Whitespace between either the "first" keyword or modifiers and the opening bracket of
+        /// the nested description.
         _whitespace_after_modifiers: Unused<Option<Spanned<&'a [u8]>>>,
         /// The sequences of items to try.
         nested_format_descriptions: Box<[NestedFormatDescription<'a>]>,
@@ -101,6 +99,62 @@ pub(super) struct Modifier<'a> {
     pub(super) _colon: Unused<Location>,
     /// The value of the modifier.
     pub(super) value: Spanned<&'a [u8]>,
+}
+
+impl<'a> Modifier<'a> {
+    fn from_leading_whitespace_and_token(
+        leading_whitespace: Spanned<&'a [u8]>,
+        token: Spanned<&'a [u8]>,
+    ) -> Result<Self, Error> {
+        let Some(colon_index) = token.iter().position(|&b| b == b':') else {
+            return Err(Error {
+                _inner: unused(token.span.error("modifier must be of the form `key:value`")),
+                public: error::InvalidFormatDescription::InvalidModifier {
+                    value: String::from_utf8_lossy(*token).into_owned(),
+                    index: token.span.start.byte as usize,
+                },
+            });
+        };
+        let key = &token[..colon_index];
+        let value = &token[colon_index + 1..];
+
+        if key.is_empty() {
+            return Err(Error {
+                _inner: unused(token.span.shrink_to_start().error("expected modifier key")),
+                public: error::InvalidFormatDescription::InvalidModifier {
+                    value: String::new(),
+                    index: token.span.start.byte as usize,
+                },
+            });
+        }
+        if value.is_empty() {
+            return Err(Error {
+                _inner: unused(token.span.shrink_to_end().error("expected modifier value")),
+                public: error::InvalidFormatDescription::InvalidModifier {
+                    value: String::new(),
+                    index: token.span.start.byte as usize + colon_index,
+                },
+            });
+        }
+
+        Ok(Self {
+            _leading_whitespace: unused(leading_whitespace),
+            key: key.spanned(
+                token
+                    .span
+                    .start
+                    .to(token.span.start.offset(colon_index as u32)),
+            ),
+            _colon: unused(token.span.start.offset(colon_index as u32)),
+            value: value.spanned(
+                token
+                    .span
+                    .start
+                    .offset(colon_index as u32 + 1)
+                    .to(token.span.end),
+            ),
+        })
+    }
 }
 
 /// Parse the provided tokens into an AST.
@@ -145,15 +199,13 @@ where
                 kind: lexer::BracketKind::Opening,
                 location,
             } => {
-                if version!(..=1) {
-                    if let Some(second_location) = tokens.next_if_opening_bracket() {
-                        Ok(Item::EscapedBracket {
-                            _first: unused(location),
-                            _second: unused(second_location),
-                        })
-                    } else {
-                        parse_component::<_, VERSION>(location, tokens)
-                    }
+                if version!(..=1)
+                    && let Some(second_location) = tokens.next_if_opening_bracket()
+                {
+                    Ok(Item::EscapedBracket {
+                        _first: unused(location),
+                        _second: unused(second_location),
+                    })
                 } else {
                     parse_component::<_, VERSION>(location, tokens)
                 }
@@ -199,125 +251,134 @@ where
         };
         return Err(Error {
             _inner: unused(span.error("expected component name")),
-            public: crate::error::InvalidFormatDescription::MissingComponentName {
+            public: error::InvalidFormatDescription::MissingComponentName {
                 index: span.start.byte as usize,
             },
         });
     };
 
     if *name == b"optional" {
-        let Some(whitespace_after_kw) = tokens.next_if_whitespace() else {
-            return Err(Error {
-                _inner: unused(name.span.error("expected whitespace after `optional`")),
-                public: crate::error::InvalidFormatDescription::Expected {
-                    what: "whitespace after `optional`",
-                    index: name.span.end.byte as usize,
-                },
-            });
-        };
-
-        let Modifiers {
-            modifiers,
-            trailing_whitespace: whitespace_after_modifiers,
-        } = Modifiers::parse(tokens)?;
-
-        if whitespace_after_modifiers.is_none()
-            && let Some(last_modifier) = modifiers.last()
-        {
-            return Err(Error {
-                _inner: unused(
-                    last_modifier
-                        .value
-                        .span
-                        .shrink_to_end()
-                        .error("expected whitespace between modifiers and nested description"),
-                ),
-                public: crate::error::InvalidFormatDescription::Expected {
-                    what: "whitespace between modifiers and nested description",
-                    index: last_modifier.value.span.end.byte as usize,
-                },
-            });
-        }
-
-        let nested = parse_nested::<_, VERSION>(whitespace_after_kw.span.end, tokens)?;
+        let modifiers = Modifiers::parse(true, tokens)?;
+        let nested = parse_nested::<_, VERSION>(modifiers.span().end, tokens)?;
 
         let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
             return Err(Error {
                 _inner: unused(opening_bracket.error("unclosed bracket")),
-                public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
+                public: error::InvalidFormatDescription::UnclosedOpeningBracket {
                     index: opening_bracket.byte as usize,
                 },
             });
         };
 
+        if modifiers.trailing_whitespace.is_none() {
+            if let Some(modifier) = modifiers.modifiers.last() {
+                return Err(Error {
+                    _inner: unused(
+                        modifier
+                            .value
+                            .span
+                            .shrink_to_end()
+                            .error("expected whitespace between modifiers and nested description"),
+                    ),
+                    public: error::InvalidFormatDescription::Expected {
+                        what: "whitespace between modifiers and nested description",
+                        index: modifier.value.span.end.byte as usize,
+                    },
+                });
+            } else {
+                return Err(Error {
+                    _inner: unused(
+                        name.span
+                            .shrink_to_end()
+                            .error("expected whitespace between `optional` and nested description"),
+                    ),
+                    public: error::InvalidFormatDescription::Expected {
+                        what: "whitespace between `optional` and nested description",
+                        index: name.span.end.byte as usize,
+                    },
+                });
+            }
+        }
+
         return Ok(Item::Optional {
             opening_bracket,
             _leading_whitespace: unused(leading_whitespace),
             _optional_kw: unused(name),
-            _whitespace_after_kw: unused(whitespace_after_kw),
-            modifiers,
-            _whitespace_after_modifiers: unused(whitespace_after_modifiers),
+            modifiers: modifiers.modifiers,
+            _whitespace_after_modifiers: unused(modifiers.trailing_whitespace),
             nested_format_description: nested,
             closing_bracket,
         });
     }
 
     if *name == b"first" {
-        let Some(whitespace_after_kw) = tokens.next_if_whitespace() else {
-            return Err(Error {
-                _inner: unused(name.span.error("expected whitespace after `first`")),
-                public: crate::error::InvalidFormatDescription::Expected {
-                    what: "whitespace after `first`",
-                    index: name.span.end.byte as usize,
-                },
-            });
-        };
+        let modifiers = Modifiers::parse(true, tokens)?;
 
         let mut nested_format_descriptions = Vec::new();
-        while let Ok(description) = parse_nested::<_, VERSION>(whitespace_after_kw.span.end, tokens)
-        {
+        while let Ok(description) = parse_nested::<_, VERSION>(modifiers.span().end, tokens) {
             nested_format_descriptions.push(description);
+        }
+
+        if version!(3..) && nested_format_descriptions.is_empty() {
+            return Err(Error {
+                _inner: unused(
+                    modifiers
+                        .span()
+                        .shrink_to_end()
+                        .error("expected at least one nested description"),
+                ),
+                public: error::InvalidFormatDescription::Expected {
+                    what: "at least one nested description",
+                    index: modifiers.span().end.byte as usize,
+                },
+            });
         }
 
         let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
             return Err(Error {
                 _inner: unused(opening_bracket.error("unclosed bracket")),
-                public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
+                public: error::InvalidFormatDescription::UnclosedOpeningBracket {
                     index: opening_bracket.byte as usize,
                 },
             });
         };
 
-        let Modifiers {
-            modifiers,
-            trailing_whitespace: whitespace_after_modifiers,
-        } = Modifiers::parse(tokens)?;
-
-        if whitespace_after_modifiers.is_none()
-            && let Some(last_modifier) = modifiers.last()
-        {
-            return Err(Error {
-                _inner: unused(
-                    last_modifier
-                        .value
-                        .span
-                        .shrink_to_end()
-                        .error("expected whitespace between modifiers and nested description"),
-                ),
-                public: crate::error::InvalidFormatDescription::Expected {
-                    what: "whitespace between modifiers and nested description",
-                    index: last_modifier.value.span.end.byte as usize,
-                },
-            });
+        if modifiers.trailing_whitespace.is_none() {
+            if let Some(modifier) = modifiers.modifiers.last() {
+                return Err(Error {
+                    _inner: unused(
+                        modifier
+                            .value
+                            .span
+                            .shrink_to_end()
+                            .error("expected whitespace between modifiers and nested descriptions"),
+                    ),
+                    public: error::InvalidFormatDescription::Expected {
+                        what: "whitespace between modifiers and nested descriptions",
+                        index: modifier.value.span.end.byte as usize,
+                    },
+                });
+            } else {
+                return Err(Error {
+                    _inner: unused(
+                        name.span
+                            .shrink_to_end()
+                            .error("expected whitespace between `first` and nested descriptions"),
+                    ),
+                    public: error::InvalidFormatDescription::Expected {
+                        what: "whitespace between `first` and nested descriptions",
+                        index: name.span.end.byte as usize,
+                    },
+                });
+            }
         }
 
         return Ok(Item::First {
             opening_bracket,
             _leading_whitespace: unused(leading_whitespace),
             _first_kw: unused(name),
-            _whitespace_after_kw: unused(whitespace_after_kw),
-            modifiers,
-            _whitespace_after_modifiers: unused(whitespace_after_modifiers),
+            modifiers: modifiers.modifiers,
+            _whitespace_after_modifiers: unused(modifiers.trailing_whitespace),
             nested_format_descriptions: nested_format_descriptions.into_boxed_slice(),
             closing_bracket,
         });
@@ -326,12 +387,12 @@ where
     let Modifiers {
         modifiers,
         trailing_whitespace,
-    } = Modifiers::parse(tokens)?;
+    } = Modifiers::parse(false, tokens)?;
 
     let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
         return Err(Error {
             _inner: unused(opening_bracket.error("unclosed bracket")),
-            public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
+            public: error::InvalidFormatDescription::UnclosedOpeningBracket {
                 index: opening_bracket.byte as usize,
             },
         });
@@ -353,7 +414,10 @@ struct Modifiers<'a> {
 }
 
 impl<'a> Modifiers<'a> {
-    fn parse<const VERSION: usize, I>(tokens: &mut lexer::Lexed<VERSION, I>) -> Result<Self, Error>
+    fn parse<const VERSION: usize, I>(
+        nested_is_allowed: bool,
+        tokens: &mut lexer::Lexed<VERSION, I>,
+    ) -> Result<Self, Error>
     where
         I: Iterator<Item = Result<lexer::Token<'a>, Error>>,
     {
@@ -368,64 +432,40 @@ impl<'a> Modifiers<'a> {
 
             // This is not necessary for proper parsing, but provides a much better error when a
             // nested description is used where it's not allowed.
-            if let Some(location) = tokens.next_if_opening_bracket() {
+            if !nested_is_allowed && let Some(location) = tokens.next_if_opening_bracket() {
                 return Err(Error {
                     _inner: unused(
                         location
                             .to_self()
                             .error("modifier must be of the form `key:value`"),
                     ),
-                    public: crate::error::InvalidFormatDescription::InvalidModifier {
+                    public: error::InvalidFormatDescription::InvalidModifier {
                         value: String::from("["),
                         index: location.byte as usize,
                     },
                 });
             }
 
-            let Some(Spanned { value, span }) = tokens.next_if_not_whitespace() else {
+            let Some(token) = tokens.next_if_not_whitespace() else {
                 return Ok(Self {
                     modifiers: modifiers.into_boxed_slice(),
                     trailing_whitespace: Some(whitespace),
                 });
             };
 
-            let Some(colon_index) = value.iter().position(|&b| b == b':') else {
-                return Err(Error {
-                    _inner: unused(span.error("modifier must be of the form `key:value`")),
-                    public: crate::error::InvalidFormatDescription::InvalidModifier {
-                        value: String::from_utf8_lossy(value).into_owned(),
-                        index: span.start.byte as usize,
-                    },
-                });
-            };
-            let key = &value[..colon_index];
-            let value = &value[colon_index + 1..];
+            let modifier = Modifier::from_leading_whitespace_and_token(whitespace, token)?;
+            modifiers.push(modifier);
+        }
+    }
 
-            if key.is_empty() {
-                return Err(Error {
-                    _inner: unused(span.shrink_to_start().error("expected modifier key")),
-                    public: crate::error::InvalidFormatDescription::InvalidModifier {
-                        value: String::new(),
-                        index: span.start.byte as usize,
-                    },
-                });
-            }
-            if value.is_empty() {
-                return Err(Error {
-                    _inner: unused(span.shrink_to_end().error("expected modifier value")),
-                    public: crate::error::InvalidFormatDescription::InvalidModifier {
-                        value: String::new(),
-                        index: span.shrink_to_end().start.byte as usize,
-                    },
-                });
-            }
-
-            modifiers.push(Modifier {
-                _leading_whitespace: unused(whitespace),
-                key: key.spanned(span.shrink_to_before(colon_index as u32)),
-                _colon: unused(span.start.offset(colon_index as u32)),
-                value: value.spanned(span.shrink_to_after(colon_index as u32)),
-            });
+    fn span(&self) -> Span {
+        match &*self.modifiers {
+            [] => self
+                .trailing_whitespace
+                .map(|whitespace| whitespace.span)
+                .unwrap_or(Span::DUMMY),
+            [modifier] => modifier.key.span.start.to(modifier.value.span.end),
+            [first, .., last] => first.key.span.start.to(last.value.span.end),
         }
     }
 }
@@ -443,7 +483,7 @@ where
     let Some(opening_bracket) = tokens.next_if_opening_bracket() else {
         return Err(Error {
             _inner: unused(last_location.error("expected opening bracket")),
-            public: crate::error::InvalidFormatDescription::Expected {
+            public: error::InvalidFormatDescription::Expected {
                 what: "opening bracket",
                 index: last_location.byte as usize,
             },
@@ -453,7 +493,7 @@ where
     let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
         return Err(Error {
             _inner: unused(opening_bracket.error("unclosed bracket")),
-            public: crate::error::InvalidFormatDescription::UnclosedOpeningBracket {
+            public: error::InvalidFormatDescription::UnclosedOpeningBracket {
                 index: opening_bracket.byte as usize,
             },
         });

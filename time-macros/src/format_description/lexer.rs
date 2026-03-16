@@ -2,11 +2,11 @@ use core::iter;
 
 use super::{Error, Location, Spanned, SpannedValue};
 
-pub(super) struct Lexed<I: Iterator> {
+pub(super) struct Lexed<const VERSION: u8, I: Iterator> {
     iter: iter::Peekable<I>,
 }
 
-impl<I: Iterator> Iterator for Lexed<I> {
+impl<const VERSION: u8, I: Iterator> Iterator for Lexed<VERSION, I> {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -14,7 +14,13 @@ impl<I: Iterator> Iterator for Lexed<I> {
     }
 }
 
-impl<'iter, 'token: 'iter, I: Iterator<Item = Result<Token<'token>, Error>> + 'iter> Lexed<I> {
+impl<
+    'iter,
+    'token: 'iter,
+    const VERSION: u8,
+    I: Iterator<Item = Result<Token<'token>, Error>> + 'iter,
+> Lexed<VERSION, I>
+{
     pub(super) fn peek(&mut self) -> Option<&I::Item> {
         self.iter.peek()
     }
@@ -96,11 +102,34 @@ pub(super) enum Token<'a> {
     },
 }
 
+impl std::fmt::Debug for Token<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Literal(arg0) => f
+                .debug_tuple("Literal")
+                .field(&String::from_utf8_lossy(arg0))
+                .finish(),
+            Self::Bracket { kind, location } => f
+                .debug_struct("Bracket")
+                .field("kind", kind)
+                .field("location", location)
+                .finish(),
+            Self::ComponentPart { kind, value } => f
+                .debug_struct("ComponentPart")
+                .field("kind", kind)
+                .field("value", &String::from_utf8_lossy(value))
+                .finish(),
+        }
+    }
+}
+
+#[derive(Debug)]
 pub(super) enum BracketKind {
     Opening,
     Closing,
 }
 
+#[derive(Debug)]
 pub(super) enum ComponentKind {
     Whitespace,
     NotWhitespace,
@@ -125,8 +154,8 @@ fn attach_location<'item>(
 pub(super) fn lex<const VERSION: u8>(
     mut input: &[u8],
     proc_span: proc_macro::Span,
-) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
-    assert!(version!(1..=2));
+) -> Lexed<VERSION, impl Iterator<Item = Result<Token<'_>, Error>>> {
+    assert!(version!(1..=3));
 
     let mut depth: u32 = 0;
     let mut iter = attach_location(input.iter(), proc_span).peekable();

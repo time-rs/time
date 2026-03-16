@@ -863,7 +863,7 @@ fn nested_error() {
     assert!(matches!(
         format_description::parse_owned::<2>("[optional[]]"),
         Err(Expected {
-            what: "whitespace after `optional`",
+            what: "whitespace between `optional` and nested description",
             index: 8,
             ..
         })
@@ -871,7 +871,7 @@ fn nested_error() {
     assert!(matches!(
         format_description::parse_owned::<2>("[first[]]"),
         Err(Expected {
-            what: "whitespace after `first`",
+            what: "whitespace between `first` and nested descriptions",
             index: 5,
             ..
         })

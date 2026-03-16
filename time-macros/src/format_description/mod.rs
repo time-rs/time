@@ -1,5 +1,7 @@
 //! Parser for format descriptions.
 
+use crate::FormatDescriptionVersion;
+
 macro_rules! version {
     ($range:expr) => {
         $range.contains(&VERSION)
@@ -9,32 +11,60 @@ macro_rules! version {
 mod ast;
 mod format_item;
 mod lexer;
-mod public;
+pub(crate) mod public;
 
 pub(crate) fn parse_with_version(
-    version: Option<crate::FormatDescriptionVersion>,
+    version: FormatDescriptionVersion,
     s: &[u8],
     proc_span: proc_macro::Span,
 ) -> Result<Vec<public::OwnedFormatItem>, crate::Error> {
     match version {
-        Some(crate::FormatDescriptionVersion::V1) | None => parse::<1>(s, proc_span),
-        Some(crate::FormatDescriptionVersion::V2) => parse::<2>(s, proc_span),
+        FormatDescriptionVersion::V1 => {
+            let mut lexed = lexer::lex::<1>(s, proc_span);
+            let ast = ast::parse(&mut lexed);
+            let format_items = format_item::parse(ast);
+            format_items
+                .map(|res| {
+                    res.map(|item| public::OwnedFormatItem {
+                        version,
+                        inner: item.into(),
+                    })
+                    .map_err(Into::into)
+                })
+                .collect()
+        }
+        FormatDescriptionVersion::V2 => {
+            let mut lexed = lexer::lex::<2>(s, proc_span);
+            let ast = ast::parse(&mut lexed);
+            let format_items = format_item::parse(ast);
+            format_items
+                .map(|res| {
+                    res.map(|item| public::OwnedFormatItem {
+                        version,
+                        inner: item.into(),
+                    })
+                    .map_err(Into::into)
+                })
+                .collect()
+        }
+        FormatDescriptionVersion::V3 => {
+            let mut lexed = lexer::lex::<3>(s, proc_span);
+            let ast = ast::parse(&mut lexed);
+            let format_items = format_item::parse(ast);
+            format_items
+                .map(|res| {
+                    res.map(|item| public::OwnedFormatItem {
+                        version,
+                        inner: item.into(),
+                    })
+                    .map_err(Into::into)
+                })
+                .collect()
+        }
     }
 }
 
-fn parse<const VERSION: u8>(
-    s: &[u8],
-    proc_span: proc_macro::Span,
-) -> Result<Vec<public::OwnedFormatItem>, crate::Error> {
-    let mut lexed = lexer::lex::<VERSION>(s, proc_span);
-    let ast = ast::parse::<_, VERSION>(&mut lexed);
-    let format_items = format_item::parse(ast);
-    Ok(format_items
-        .map(|res| res.map(Into::into))
-        .collect::<Result<_, _>>()?)
-}
-
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 struct Location {
     byte: u32,
     proc_span: proc_macro::Span,
@@ -65,13 +95,26 @@ impl Location {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 struct Span {
     start: Location,
     end: Location,
 }
 
 impl Span {
+    fn dummy() -> Self {
+        Self {
+            start: Location {
+                byte: u32::MAX,
+                proc_span: proc_macro::Span::call_site(),
+            },
+            end: Location {
+                byte: u32::MAX,
+                proc_span: proc_macro::Span::call_site(),
+            },
+        }
+    }
+
     #[must_use = "this does not modify the original value"]
     const fn shrink_to_start(&self) -> Self {
         Self {
@@ -88,28 +131,6 @@ impl Span {
         }
     }
 
-    #[must_use = "this does not modify the original value"]
-    const fn shrink_to_before(&self, pos: u32) -> Self {
-        Self {
-            start: self.start,
-            end: Location {
-                byte: self.start.byte + pos - 1,
-                proc_span: self.start.proc_span,
-            },
-        }
-    }
-
-    #[must_use = "this does not modify the original value"]
-    fn shrink_to_after(&self, pos: u32) -> Self {
-        Self {
-            start: Location {
-                byte: self.start.byte + pos + 1,
-                proc_span: self.start.proc_span,
-            },
-            end: self.end,
-        }
-    }
-
     fn error(self, message: &'static str) -> Error {
         Error {
             message,
@@ -119,7 +140,7 @@ impl Span {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 struct Spanned<T> {
     value: T,
     span: Span,
@@ -133,6 +154,39 @@ impl<T> core::ops::Deref for Spanned<T> {
     }
 }
 
+impl<T> Spanned<T> {
+    #[inline]
+    fn map<F, U>(self, f: F) -> Spanned<U>
+    where
+        F: FnOnce(T) -> U,
+    {
+        Spanned {
+            value: f(self.value),
+            span: self.span,
+        }
+    }
+}
+
+trait OptionExt<T> {
+    fn transpose(self) -> Spanned<Option<T>>;
+}
+
+impl<T> OptionExt<T> for Option<Spanned<T>> {
+    #[inline]
+    fn transpose(self) -> Spanned<Option<T>> {
+        match self {
+            Some(spanned) => Spanned {
+                value: Some(spanned.value),
+                span: spanned.span,
+            },
+            None => Spanned {
+                value: None,
+                span: Span::dummy(),
+            },
+        }
+    }
+}
+
 trait SpannedValue: Sized {
     fn spanned(self, span: Span) -> Spanned<Self>;
 }
@@ -143,6 +197,7 @@ impl<T> SpannedValue for T {
     }
 }
 
+#[derive(Debug)]
 struct Error {
     message: &'static str,
     _span: Unused<Span>,
@@ -160,6 +215,12 @@ impl From<Error> for crate::Error {
 }
 
 struct Unused<T>(core::marker::PhantomData<T>);
+
+impl<T> core::fmt::Debug for Unused<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_tuple("Unused").finish()
+    }
+}
 
 fn unused<T>(_: T) -> Unused<T> {
     Unused(core::marker::PhantomData)

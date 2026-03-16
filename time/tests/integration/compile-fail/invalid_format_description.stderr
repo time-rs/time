@@ -122,7 +122,7 @@ error: expected `=`
 25 |     let _ = format_description!(version "");
    |                                         ^^
 
-error: expected 1 or 2
+error: expected 1, 2, or 3
   --> tests/integration/compile-fail/invalid_format_description.rs:26:13
    |
 26 |     let _ = format_description!(version =);
@@ -147,10 +147,10 @@ error: unexpected end of input
 error: invalid format description version
   --> tests/integration/compile-fail/invalid_format_description.rs:29:43
    |
-29 |     let _ = format_description!(version = 3);
+29 |     let _ = format_description!(version = 4);
    |                                           ^
 
-error: expected 1 or 2
+error: expected 1, 2, or 3
   --> tests/integration/compile-fail/invalid_format_description.rs:30:43
    |
 30 |     let _ = format_description!(version = two);
@@ -174,13 +174,13 @@ error: modifier must be of the form `key:value`
 35 |     let _ = format_description!(version = 2, "[year [month]]");
    |                                              ^^^^^^^^^^^^^^^^
 
-error: expected whitespace after `optional`
+error: expected whitespace between `optional` and nested description
   --> tests/integration/compile-fail/invalid_format_description.rs:36:46
    |
 36 |     let _ = format_description!(version = 2, "[optional[]]");
    |                                              ^^^^^^^^^^^^^^
 
-error: expected whitespace after `first`
+error: expected whitespace between `first` and nested descriptions
   --> tests/integration/compile-fail/invalid_format_description.rs:37:46
    |
 37 |     let _ = format_description!(version = 2, "[first[]]");

@@ -304,30 +304,6 @@ impl Span {
         }
     }
 
-    /// Obtain a `Span` that ends before the provided position of the pre-existing span.
-    #[must_use = "this does not modify the original value"]
-    #[inline]
-    const fn shrink_to_before(&self, pos: u32) -> Self {
-        Self {
-            start: self.start,
-            end: Location {
-                byte: self.start.byte + pos - 1,
-            },
-        }
-    }
-
-    /// Obtain a `Span` that starts after provided position to the end of the pre-existing span.
-    #[must_use = "this does not modify the original value"]
-    #[inline]
-    const fn shrink_to_after(&self, pos: u32) -> Self {
-        Self {
-            start: Location {
-                byte: self.start.byte + pos + 1,
-            },
-            end: self.end,
-        }
-    }
-
     /// Create an error with the provided message at this span.
     #[inline]
     const fn error(self, message: &'static str) -> ErrorInner {

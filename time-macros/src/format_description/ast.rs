@@ -1,8 +1,9 @@
 use std::iter;
 
 use super::{Error, Location, Spanned, SpannedValue, Unused, lexer, unused};
+use crate::format_description::Span;
 
-pub(super) enum Item<'a> {
+pub(super) enum Item<'a, const VERSION: u8> {
     Literal(Spanned<&'a [u8]>),
     EscapedBracket {
         _first: Unused<Location>,
@@ -20,32 +21,62 @@ pub(super) enum Item<'a> {
         opening_bracket: Location,
         _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
         _optional_kw: Unused<Spanned<&'a [u8]>>,
-        _whitespace: Unused<Spanned<&'a [u8]>>,
-        nested_format_description: NestedFormatDescription<'a>,
+        modifiers: Box<[Modifier<'a>]>,
+        _whitespace_after_modifiers: Unused<Option<Spanned<&'a [u8]>>>,
+        nested_format_description: NestedFormatDescription<'a, VERSION>,
         closing_bracket: Location,
     },
     First {
         opening_bracket: Location,
         _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
         _first_kw: Unused<Spanned<&'a [u8]>>,
-        _whitespace: Unused<Spanned<&'a [u8]>>,
-        nested_format_descriptions: Box<[NestedFormatDescription<'a>]>,
+        modifiers: Box<[Modifier<'a>]>,
+        _whitespace_after_modifiers: Unused<Option<Spanned<&'a [u8]>>>,
+        nested_format_descriptions: Box<[NestedFormatDescription<'a, VERSION>]>,
         closing_bracket: Location,
     },
 }
 
-pub(super) struct NestedFormatDescription<'a> {
+pub(super) struct NestedFormatDescription<'a, const VERSION: u8> {
     pub(super) _opening_bracket: Unused<Location>,
-    pub(super) items: Box<[Item<'a>]>,
+    pub(super) items: Box<[Item<'a, VERSION>]>,
     pub(super) _closing_bracket: Unused<Location>,
     pub(super) _trailing_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
 }
 
+#[derive(Debug)]
 pub(super) struct Modifier<'a> {
     pub(super) _leading_whitespace: Unused<Spanned<&'a [u8]>>,
     pub(super) key: Spanned<&'a [u8]>,
     pub(super) _colon: Unused<Location>,
     pub(super) value: Spanned<&'a [u8]>,
+}
+
+impl<'a> Modifier<'a> {
+    fn from_leading_whitespace_and_token(
+        leading_whitespace: Spanned<&'a [u8]>,
+        token: Spanned<&'a [u8]>,
+    ) -> Result<Self, Error> {
+        let Some(colon_index) = token.iter().position(|&b| b == b':') else {
+            return Err(token.span.error("modifier must be of the form `key:value`"));
+        };
+        let key = &token[..colon_index];
+        let value = &token[colon_index + 1..];
+
+        if key.is_empty() {
+            return Err(token.span.shrink_to_start().error("expected modifier key"));
+        }
+        if value.is_empty() {
+            return Err(token.span.shrink_to_end().error("expected modifier value"));
+        }
+
+        Ok(Self {
+            _leading_whitespace: unused(leading_whitespace),
+            key: key.spanned(token.span),
+            _colon: unused(token.span.start.offset(colon_index as u32)),
+            value: value.spanned(token.span),
+        })
+    }
 }
 
 pub(super) fn parse<
@@ -54,9 +85,9 @@ pub(super) fn parse<
     I: Iterator<Item = Result<lexer::Token<'item>, Error>>,
     const VERSION: u8,
 >(
-    tokens: &'iter mut lexer::Lexed<I>,
-) -> impl Iterator<Item = Result<Item<'item>, Error>> + use<'item, 'iter, I, VERSION> {
-    assert!(version!(1..=2));
+    tokens: &'iter mut lexer::Lexed<VERSION, I>,
+) -> impl Iterator<Item = Result<Item<'item, VERSION>, Error>> + use<'item, 'iter, I, VERSION> {
+    assert!(version!(1..=3));
     parse_inner::<_, false, VERSION>(tokens)
 }
 
@@ -66,8 +97,9 @@ fn parse_inner<
     const NESTED: bool,
     const VERSION: u8,
 >(
-    tokens: &mut lexer::Lexed<I>,
-) -> impl Iterator<Item = Result<Item<'item>, Error>> + use<'_, 'item, I, NESTED, VERSION> {
+    tokens: &mut lexer::Lexed<VERSION, I>,
+) -> impl Iterator<Item = Result<Item<'item, VERSION>, Error>> + use<'_, 'item, I, NESTED, VERSION>
+{
     iter::from_fn(move || {
         if NESTED && tokens.peek_closing_bracket().is_some() {
             return None;
@@ -87,15 +119,13 @@ fn parse_inner<
                 kind: lexer::BracketKind::Opening,
                 location,
             } => {
-                if version!(..=1) {
-                    if let Some(second_location) = tokens.next_if_opening_bracket() {
-                        Ok(Item::EscapedBracket {
-                            _first: unused(location),
-                            _second: unused(second_location),
-                        })
-                    } else {
-                        parse_component::<_, VERSION>(location, tokens)
-                    }
+                if version!(..=1)
+                    && let Some(second_location) = tokens.next_if_opening_bracket()
+                {
+                    Ok(Item::EscapedBracket {
+                        _first: unused(location),
+                        _second: unused(second_location),
+                    })
                 } else {
                     parse_component::<_, VERSION>(location, tokens)
                 }
@@ -120,10 +150,62 @@ fn parse_inner<
     })
 }
 
+struct Modifiers<'a> {
+    modifiers: Box<[Modifier<'a>]>,
+    trailing_whitespace: Option<Spanned<&'a [u8]>>,
+}
+
+impl<'a> Modifiers<'a> {
+    fn parse<const VERSION: u8, I>(
+        nested_is_allowed: bool,
+        tokens: &mut lexer::Lexed<VERSION, I>,
+    ) -> Result<Self, Error>
+    where
+        I: Iterator<Item = Result<lexer::Token<'a>, Error>>,
+    {
+        let mut modifiers = Vec::new();
+        loop {
+            let Some(whitespace) = tokens.next_if_whitespace() else {
+                return Ok(Self {
+                    modifiers: modifiers.into_boxed_slice(),
+                    trailing_whitespace: None,
+                });
+            };
+
+            // This is not necessary for proper parsing, but provides a much better error when a
+            // nested description is used where it's not allowed.
+            if !nested_is_allowed && let Some(location) = tokens.next_if_opening_bracket() {
+                return Err(location.error("modifier must be of the form `key:value`"));
+            }
+
+            let Some(token) = tokens.next_if_not_whitespace() else {
+                return Ok(Self {
+                    modifiers: modifiers.into_boxed_slice(),
+                    trailing_whitespace: Some(whitespace),
+                });
+            };
+
+            let modifier = Modifier::from_leading_whitespace_and_token(whitespace, token)?;
+            modifiers.push(modifier);
+        }
+    }
+
+    fn span(&self) -> Span {
+        match &*self.modifiers {
+            [] => self
+                .trailing_whitespace
+                .map(|whitespace| whitespace.span)
+                .unwrap_or_else(Span::dummy),
+            [modifier] => modifier.key.span.start.to(modifier.value.span.end),
+            [first, .., last] => first.key.span.start.to(last.value.span.end),
+        }
+    }
+}
+
 fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, const VERSION: u8>(
     opening_bracket: Location,
-    tokens: &mut lexer::Lexed<I>,
-) -> Result<Item<'a>, Error> {
+    tokens: &mut lexer::Lexed<VERSION, I>,
+) -> Result<Item<'a, VERSION>, Error> {
     let leading_whitespace = tokens.next_if_whitespace();
 
     let Some(name) = tokens.next_if_not_whitespace() else {
@@ -135,86 +217,88 @@ fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, cons
     };
 
     if *name == b"optional" {
-        let Some(whitespace) = tokens.next_if_whitespace() else {
-            return Err(name.span.error("expected whitespace after `optional`"));
-        };
-
-        let nested = parse_nested::<_, VERSION>(whitespace.span.end, tokens)?;
+        let modifiers = Modifiers::parse(true, tokens)?;
+        let nested = parse_nested::<_, VERSION>(modifiers.span().end, tokens)?;
 
         let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
             return Err(opening_bracket.error("unclosed bracket"));
         };
 
+        if modifiers.trailing_whitespace.is_none() {
+            if let Some(modifier) = modifiers.modifiers.last() {
+                return Err(modifier
+                    .value
+                    .span
+                    .shrink_to_end()
+                    .error("expected whitespace between modifiers and nested description"));
+            } else {
+                return Err(name
+                    .span
+                    .shrink_to_end()
+                    .error("expected whitespace between `optional` and nested description"));
+            }
+        }
+
         return Ok(Item::Optional {
             opening_bracket,
             _leading_whitespace: unused(leading_whitespace),
             _optional_kw: unused(name),
-            _whitespace: unused(whitespace),
+            modifiers: modifiers.modifiers,
+            _whitespace_after_modifiers: unused(modifiers.trailing_whitespace),
             nested_format_description: nested,
             closing_bracket,
         });
     }
 
     if *name == b"first" {
-        let Some(whitespace) = tokens.next_if_whitespace() else {
-            return Err(name.span.error("expected whitespace after `first`"));
-        };
+        let modifiers = Modifiers::parse(true, tokens)?;
 
         let mut nested_format_descriptions = Vec::new();
-        while let Ok(description) = parse_nested::<_, VERSION>(whitespace.span.end, tokens) {
+        while let Ok(description) = parse_nested::<_, VERSION>(modifiers.span().end, tokens) {
             nested_format_descriptions.push(description);
+        }
+
+        if version!(3..) && nested_format_descriptions.is_empty() {
+            return Err(modifiers
+                .span()
+                .shrink_to_end()
+                .error("expected at least one nested description"));
         }
 
         let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
             return Err(opening_bracket.error("unclosed bracket"));
         };
 
+        if modifiers.trailing_whitespace.is_none() {
+            if let Some(modifier) = modifiers.modifiers.last() {
+                return Err(modifier
+                    .value
+                    .span
+                    .shrink_to_end()
+                    .error("expected whitespace between modifiers and nested descriptions"));
+            } else {
+                return Err(name
+                    .span
+                    .shrink_to_end()
+                    .error("expected whitespace between `first` and nested descriptions"));
+            }
+        }
+
         return Ok(Item::First {
             opening_bracket,
             _leading_whitespace: unused(leading_whitespace),
             _first_kw: unused(name),
-            _whitespace: unused(whitespace),
+            modifiers: modifiers.modifiers,
+            _whitespace_after_modifiers: unused(modifiers.trailing_whitespace),
             nested_format_descriptions: nested_format_descriptions.into_boxed_slice(),
             closing_bracket,
         });
     }
 
-    let mut modifiers = Vec::new();
-    let trailing_whitespace = loop {
-        let Some(whitespace) = tokens.next_if_whitespace() else {
-            break None;
-        };
-
-        if let Some(location) = tokens.next_if_opening_bracket() {
-            return Err(location
-                .to(location)
-                .error("modifier must be of the form `key:value`"));
-        }
-
-        let Some(Spanned { value, span }) = tokens.next_if_not_whitespace() else {
-            break Some(whitespace);
-        };
-
-        let Some(colon_index) = value.iter().position(|&b| b == b':') else {
-            return Err(span.error("modifier must be of the form `key:value`"));
-        };
-        let key = &value[..colon_index];
-        let value = &value[colon_index + 1..];
-
-        if key.is_empty() {
-            return Err(span.shrink_to_start().error("expected modifier key"));
-        }
-        if value.is_empty() {
-            return Err(span.shrink_to_end().error("expected modifier value"));
-        }
-
-        modifiers.push(Modifier {
-            _leading_whitespace: unused(whitespace),
-            key: key.spanned(span.shrink_to_before(colon_index as u32)),
-            _colon: unused(span.start.offset(colon_index as u32)),
-            value: value.spanned(span.shrink_to_after(colon_index as u32)),
-        });
-    };
+    let Modifiers {
+        modifiers,
+        trailing_whitespace,
+    } = Modifiers::parse(false, tokens)?;
 
     let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
         return Err(opening_bracket.error("unclosed bracket"));
@@ -224,7 +308,7 @@ fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, cons
         _opening_bracket: unused(opening_bracket),
         _leading_whitespace: unused(leading_whitespace),
         name,
-        modifiers: modifiers.into_boxed_slice(),
+        modifiers,
         _trailing_whitespace: unused(trailing_whitespace),
         _closing_bracket: unused(closing_bracket),
     })
@@ -232,8 +316,8 @@ fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, cons
 
 fn parse_nested<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, const VERSION: u8>(
     last_location: Location,
-    tokens: &mut lexer::Lexed<I>,
-) -> Result<NestedFormatDescription<'a>, Error> {
+    tokens: &mut lexer::Lexed<VERSION, I>,
+) -> Result<NestedFormatDescription<'a, VERSION>, Error> {
     let Some(opening_bracket) = tokens.next_if_opening_bracket() else {
         return Err(last_location.error("expected opening bracket"));
     };

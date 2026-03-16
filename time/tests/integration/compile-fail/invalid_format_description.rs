@@ -26,7 +26,7 @@ fn main() {
     let _ = format_description!(version =);
     let _ = format_description!(version = 0);
     let _ = format_description!(version = 1);
-    let _ = format_description!(version = 3);
+    let _ = format_description!(version = 4);
     let _ = format_description!(version = two);
 
     let _ = format_description!(version = 2, r"\a");

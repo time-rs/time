@@ -13,6 +13,7 @@ macro_rules! to_tokens {
         ),* $(,)?}
     ) => {
         $(#[$struct_attr])*
+        #[derive(Clone, Copy)]
         $struct_vis struct $struct_name {$(
             $(#[$field_attr])*
             $field_vis $field_name: $field_ty
@@ -57,6 +58,7 @@ macro_rules! to_tokens {
         ),+ $(,)?}
     ) => {
         $(#[$enum_attr])*
+        #[derive(Clone, Copy)]
         $enum_vis enum $enum_name {$(
             $(#[$variant_attr])*
             $variant_name
@@ -295,6 +297,7 @@ to_tokens! {
     }
 }
 
+#[derive(Clone, Copy)]
 pub(crate) struct Ignore {
     pub(crate) count: NonZero<u16>,
 }

@@ -1,10 +1,51 @@
 use std::num::NonZero;
 use std::str::{self, FromStr};
 
-use super::{Error, Span, Spanned, Unused, ast, unused};
+use super::{Error, OptionExt as _, Span, Spanned, Unused, ast, unused};
+use crate::format_description::SpannedValue as _;
 
-pub(super) fn parse<'a>(
-    ast_items: impl Iterator<Item = Result<ast::Item<'a>, Error>>,
+macro_rules! parse_modifiers {
+    ($modifiers:expr, struct {}) => {{
+        struct Parsed {}
+        drop($modifiers);
+        Ok(Parsed {})
+    }};
+    ($modifiers:expr, struct { $($field:ident : $modifier:ident),* $(,)? }) => {
+        'block: {
+            struct Parsed {
+                $($field: Option<Spanned<<$modifier as ModifierValue>::Type>>),*
+            }
+
+            let mut parsed = Parsed {
+                $($field: None),*
+            };
+
+            for modifier in $modifiers {
+                $(if modifier.key.eq_ignore_ascii_case(stringify!($field).as_bytes()) {
+                    if parsed.$field.is_some() {
+                        break 'block Err(modifier.key.span.error("duplicate modifier key"));
+                    }
+                    match <$modifier>::from_modifier_value(&modifier.value) {
+                        Ok(value) => {
+                            parsed.$field = Some(
+                                <<$modifier as ModifierValue>::Type>::from(value)
+                                    .spanned(modifier.value.span)
+                            )
+                        },
+                        Err(err) => break 'block Err(err),
+                    }
+                    continue;
+                })*
+                break 'block Err(modifier.key.span.error("invalid modifier key"));
+            }
+
+            Ok(parsed)
+        }
+    };
+}
+
+pub(super) fn parse<'a, const VERSION: u8>(
+    ast_items: impl Iterator<Item = Result<ast::Item<'a, VERSION>, Error>>,
 ) -> impl Iterator<Item = Result<Item<'a>, Error>> {
     ast_items.map(|ast_item| ast_item.and_then(Item::from_ast))
 }
@@ -15,6 +56,7 @@ pub(super) enum Item<'a> {
     Component(Component),
     Optional {
         value: Box<[Self]>,
+        format: Spanned<bool>,
         _span: Unused<Span>,
     },
     First {
@@ -24,7 +66,9 @@ pub(super) enum Item<'a> {
 }
 
 impl Item<'_> {
-    pub(super) fn from_ast(ast_item: ast::Item<'_>) -> Result<Item<'_>, Error> {
+    pub(super) fn from_ast<const VERSION: u8>(
+        ast_item: ast::Item<'_, VERSION>,
+    ) -> Result<Item<'_>, Error> {
         Ok(match ast_item {
             ast::Item::Component {
                 _opening_bracket: _,
@@ -34,9 +78,11 @@ impl Item<'_> {
                 _trailing_whitespace: _,
                 _closing_bracket: _,
             } => Item::Component(component_from_ast(&name, &modifiers)?),
-            ast::Item::Literal(Spanned { value, span: _ }) => {
+            ast::Item::Literal(Spanned { value, span }) => {
                 if let Ok(value) = str::from_utf8(value) {
                     Item::StringLiteral(value)
+                } else if version!(3..) {
+                    return Err(span.error("v3 format descriptions must be valid UTF-8"));
                 } else {
                     Item::Literal(value)
                 }
@@ -49,7 +95,8 @@ impl Item<'_> {
                 opening_bracket,
                 _leading_whitespace: _,
                 _optional_kw: _,
-                _whitespace: _,
+                modifiers,
+                _whitespace_after_modifiers: _,
                 nested_format_description,
                 closing_bracket,
             } => {
@@ -59,8 +106,18 @@ impl Item<'_> {
                     .into_iter()
                     .map(Item::from_ast)
                     .collect::<Result<_, _>>()?;
+
+                let modifiers = parse_modifiers!(modifiers, struct { format: OptionalFormat })?;
+                let format = modifiers.format.transpose().map(|val| val.unwrap_or(true));
+                if version!(..=2) && !*format {
+                    return Err(format
+                        .span
+                        .error("v1 and v2 format descriptions must format optional items"));
+                }
+
                 Item::Optional {
                     value: items,
+                    format,
                     _span: unused(opening_bracket.to(closing_bracket)),
                 }
             }
@@ -68,7 +125,8 @@ impl Item<'_> {
                 opening_bracket,
                 _leading_whitespace: _,
                 _first_kw: _,
-                _whitespace: _,
+                modifiers,
+                _whitespace_after_modifiers: _,
                 nested_format_descriptions,
                 closing_bracket,
             } => {
@@ -84,6 +142,9 @@ impl Item<'_> {
                             .collect()
                     })
                     .collect::<Result<_, _>>()?;
+
+                let _modifiers = parse_modifiers!(modifiers, struct {})?;
+
                 Item::First {
                     value: items,
                     _span: unused(opening_bracket.to(closing_bracket)),
@@ -93,13 +154,20 @@ impl Item<'_> {
     }
 }
 
-impl From<Item<'_>> for crate::format_description::public::OwnedFormatItem {
+impl From<Item<'_>> for crate::format_description::public::OwnedFormatItemInner {
     fn from(item: Item<'_>) -> Self {
         match item {
             Item::Literal(literal) => Self::Literal(literal.to_vec().into_boxed_slice()),
             Item::StringLiteral(string) => Self::StringLiteral(string.to_owned().into_boxed_str()),
             Item::Component(component) => Self::Component(component.into()),
-            Item::Optional { value, _span: _ } => Self::Optional(Box::new(value.into())),
+            Item::Optional {
+                format,
+                value,
+                _span: _,
+            } => Self::Optional {
+                format: *format,
+                item: Box::new(value.into()),
+            },
             Item::First { value, _span: _ } => {
                 Self::First(value.into_vec().into_iter().map(Into::into).collect())
             }
@@ -107,7 +175,7 @@ impl From<Item<'_>> for crate::format_description::public::OwnedFormatItem {
     }
 }
 
-impl<'a> From<Box<[Item<'a>]>> for crate::format_description::public::OwnedFormatItem {
+impl<'a> From<Box<[Item<'a>]>> for crate::format_description::public::OwnedFormatItemInner {
     fn from(items: Box<[Item<'a>]>) -> Self {
         let items = items.into_vec();
         match <[_; 1]>::try_from(items) {
@@ -152,12 +220,12 @@ macro_rules! component_definition {
                 for modifier in modifiers {
                     $(#[allow(clippy::string_lit_as_bytes)]
                     if modifier.key.eq_ignore_ascii_case($parse_field.as_bytes()) {
-                        this.$field = component_definition!(@if_from_str $($from_str)?
+                        this.$field = Some(component_definition!(@if_from_str $($from_str)?
                             then {
                                 parse_from_modifier_value::<$field_type>(&modifier.value)?
                             } else {
                                 <$field_type>::from_modifier_value(&modifier.value)?
-                            });
+                            }));
                         continue;
                     })*
                     return Err(modifier.key.span.error("invalid modifier key"));
@@ -488,6 +556,10 @@ macro_rules! if_not_parse_only {
     ($($x:tt)*) => { $($x)* };
 }
 
+trait ModifierValue {
+    type Type;
+}
+
 macro_rules! modifier {
     ($(
         $(@$instruction:ident)? enum $name:ident $(($target_ty:ty))? {
@@ -504,16 +576,21 @@ macro_rules! modifier {
 
         impl $name {
             /// Parse the modifier from its string representation.
-            fn from_modifier_value(value: &Spanned<&[u8]>) -> Result<Option<Self>, Error> {
+            fn from_modifier_value(value: &Spanned<&[u8]>) -> Result<Self, Error> {
                 $(if value.eq_ignore_ascii_case($parse_variant) {
-                    return Ok(Some(Self::$variant));
+                    return Ok(Self::$variant);
                 })*
                 Err(value.span.error("invalid modifier value"))
             }
         }
 
         if_not_parse_only! { $(@$instruction)?
-            impl From<$name> for target_ty!($name $($target_ty)?) {
+            impl ModifierValue for $name {
+                type Type = target_ty!($name $($target_ty)?);
+            }
+
+            impl From<$name> for <$name as ModifierValue>::Type {
+                #[inline]
                 fn from(modifier: $name) -> Self {
                     match modifier {
                         $($name::$variant => target_value!($name $variant $($target_value)?)),*
@@ -542,6 +619,12 @@ modifier! {
         Numerical = b"numerical",
         Long = b"long",
         Short = b"short",
+    }
+
+    enum OptionalFormat(bool) {
+        False(false) = b"false",
+        #[default]
+        True(true) = b"true",
     }
 
     enum Padding {
@@ -644,10 +727,9 @@ modifier! {
     }
 }
 
-fn parse_from_modifier_value<T: FromStr>(value: &Spanned<&[u8]>) -> Result<Option<T>, Error> {
+fn parse_from_modifier_value<T: FromStr>(value: &Spanned<&[u8]>) -> Result<T, Error> {
     str::from_utf8(value)
         .ok()
         .and_then(|val| val.parse::<T>().ok())
-        .map(|val| Some(val))
         .ok_or_else(|| value.span.error("invalid modifier value"))
 }

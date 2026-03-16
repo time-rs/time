@@ -5,6 +5,7 @@ use crate::to_tokens::ToTokenStream;
 
 macro_rules! declare_component {
     ($($(#[cfg($cfg_inner:meta)])* $name:ident)*) => {
+        #[derive(Clone, Copy)]
         pub(crate) enum Component {$(
             $(#[cfg($cfg_inner)])*
             $name(modifier::$name),

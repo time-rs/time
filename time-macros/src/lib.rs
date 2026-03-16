@@ -73,9 +73,11 @@ impl_macros![date datetime utc_datetime offset time];
 type PeekableTokenStreamIter = Peekable<proc_macro::token_stream::IntoIter>;
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
+#[derive(Clone, Copy)]
 enum FormatDescriptionVersion {
     V1,
     V2,
+    V3,
 }
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
@@ -131,14 +133,14 @@ fn parse_format_description_version<const NO_EQUALS_IS_MOD_NAME: bool>(
         Some(TokenTree::Literal(literal)) => literal,
         Some(token) => {
             return Err(Error::Custom {
-                message: "expected 1 or 2".into(),
+                message: "expected 1, 2, or 3".into(),
                 span_start: Some(token.span()),
                 span_end: Some(token.span()),
             });
         }
         None => {
             return Err(Error::Custom {
-                message: "expected 1 or 2".into(),
+                message: "expected 1, 2, or 3".into(),
                 span_start: None,
                 span_end: None,
             });
@@ -147,6 +149,7 @@ fn parse_format_description_version<const NO_EQUALS_IS_MOD_NAME: bool>(
     let version = match version_literal.to_string().as_str() {
         "1" => FormatDescriptionVersion::V1,
         "2" => FormatDescriptionVersion::V2,
+        "3" => FormatDescriptionVersion::V3,
         _ => {
             return Err(Error::Custom {
                 message: "invalid format description version".into(),
@@ -187,21 +190,44 @@ fn parse_visibility(iter: &mut PeekableTokenStreamIter) -> Result<TokenStream, E
 pub fn format_description(input: TokenStream) -> TokenStream {
     (|| {
         let mut input = input.into_iter().peekable();
-        let version = parse_format_description_version::<false>(&mut input)?;
+        let version = parse_format_description_version::<false>(&mut input)?
+            .unwrap_or(FormatDescriptionVersion::V1);
         let (span, string) = helpers::get_string_literal(input)?;
         let items = format_description::parse_with_version(version, &string, span)?;
 
-        Ok(quote_! {
-            const {
-                use ::time::format_description::{*, modifier::*};
-                &[#S(
-                    items
-                        .into_iter()
-                        .map(|item| quote_! { #S(item), })
-                        .collect::<TokenStream>()
-                )] as StaticFormatDescription
+        match version {
+            FormatDescriptionVersion::V1 | FormatDescriptionVersion::V2 => Ok(quote_! {
+                const {
+                    use ::time::format_description::{*, modifier::*};
+                    &[#S(
+                        items
+                            .into_iter()
+                            .map(|item| quote_! { #S(item), })
+                            .collect::<TokenStream>()
+                    )] as StaticFormatDescription
+                }
+            }),
+            FormatDescriptionVersion::V3 if items.len() == 1 => Ok(quote_! {
+                const {
+                    use ::time::format_description::__private::*;
+                    use ::time::format_description::modifier::*;
+                    #S(items[0].clone()).into_opaque()
+                }
+            }),
+            FormatDescriptionVersion::V3 => {
+                let inner = format_description::public::OwnedFormatItemInner::Compound(
+                    items.into_iter().map(|item| item.inner).collect(),
+                );
+                let item = format_description::public::OwnedFormatItem { version, inner };
+                Ok(quote_! {
+                    const {
+                        use ::time::format_description::__private::*;
+                        use ::time::format_description::modifier::*;
+                        #S(item).into_opaque()
+                    }
+                })
             }
-        })
+        }
     })()
     .unwrap_or_else(|err: Error| err.to_compile_error())
 }
@@ -213,7 +239,8 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
         let mut tokens = input.into_iter().peekable();
 
         // First, the optional format description version.
-        let version = parse_format_description_version::<true>(&mut tokens)?;
+        let version = parse_format_description_version::<true>(&mut tokens)?
+            .unwrap_or(FormatDescriptionVersion::V1);
 
         // Then, the visibility of the module.
         let visibility = parse_visibility(&mut tokens)?;
