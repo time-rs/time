@@ -2,12 +2,6 @@
 
 use crate::FormatDescriptionVersion;
 
-macro_rules! version {
-    ($range:expr) => {
-        $range.contains(&VERSION)
-    };
-}
-
 mod ast;
 mod format_item;
 mod lexer;
@@ -18,50 +12,18 @@ pub(crate) fn parse_with_version(
     s: &[u8],
     proc_span: proc_macro::Span,
 ) -> Result<Vec<public::OwnedFormatItem>, crate::Error> {
-    match version {
-        FormatDescriptionVersion::V1 => {
-            let mut lexed = lexer::lex::<1>(s, proc_span);
-            let ast = ast::parse(&mut lexed);
-            let format_items = format_item::parse(ast);
-            format_items
-                .map(|res| {
-                    res.map(|item| public::OwnedFormatItem {
-                        version,
-                        inner: item.into(),
-                    })
-                    .map_err(Into::into)
-                })
-                .collect()
-        }
-        FormatDescriptionVersion::V2 => {
-            let mut lexed = lexer::lex::<2>(s, proc_span);
-            let ast = ast::parse(&mut lexed);
-            let format_items = format_item::parse(ast);
-            format_items
-                .map(|res| {
-                    res.map(|item| public::OwnedFormatItem {
-                        version,
-                        inner: item.into(),
-                    })
-                    .map_err(Into::into)
-                })
-                .collect()
-        }
-        FormatDescriptionVersion::V3 => {
-            let mut lexed = lexer::lex::<3>(s, proc_span);
-            let ast = ast::parse(&mut lexed);
-            let format_items = format_item::parse(ast);
-            format_items
-                .map(|res| {
-                    res.map(|item| public::OwnedFormatItem {
-                        version,
-                        inner: item.into(),
-                    })
-                    .map_err(Into::into)
-                })
-                .collect()
-        }
-    }
+    let mut lexed = lexer::lex(version, s, proc_span);
+    let ast = ast::parse(version, &mut lexed);
+    let format_items = format_item::parse(ast);
+    format_items
+        .map(|res| {
+            res.map(|item| public::OwnedFormatItem {
+                version,
+                inner: item.into(),
+            })
+            .map_err(Into::into)
+        })
+        .collect()
 }
 
 #[derive(Debug, Clone, Copy)]

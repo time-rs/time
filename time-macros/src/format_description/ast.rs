@@ -1,10 +1,14 @@
 use std::iter;
 
 use super::{Error, Location, Spanned, SpannedValue, Unused, lexer, unused};
+use crate::FormatDescriptionVersion;
 use crate::format_description::Span;
 
-pub(super) enum Item<'a, const VERSION: u8> {
-    Literal(Spanned<&'a [u8]>),
+pub(super) enum Item<'a> {
+    Literal {
+        version: FormatDescriptionVersion,
+        value: Spanned<&'a [u8]>,
+    },
     EscapedBracket {
         _first: Unused<Location>,
         _second: Unused<Location>,
@@ -18,12 +22,13 @@ pub(super) enum Item<'a, const VERSION: u8> {
         _closing_bracket: Unused<Location>,
     },
     Optional {
+        version: FormatDescriptionVersion,
         opening_bracket: Location,
         _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
         _optional_kw: Unused<Spanned<&'a [u8]>>,
         modifiers: Box<[Modifier<'a>]>,
         _whitespace_after_modifiers: Unused<Option<Spanned<&'a [u8]>>>,
-        nested_format_description: NestedFormatDescription<'a, VERSION>,
+        nested_format_description: NestedFormatDescription<'a>,
         closing_bracket: Location,
     },
     First {
@@ -32,14 +37,14 @@ pub(super) enum Item<'a, const VERSION: u8> {
         _first_kw: Unused<Spanned<&'a [u8]>>,
         modifiers: Box<[Modifier<'a>]>,
         _whitespace_after_modifiers: Unused<Option<Spanned<&'a [u8]>>>,
-        nested_format_descriptions: Box<[NestedFormatDescription<'a, VERSION>]>,
+        nested_format_descriptions: Box<[NestedFormatDescription<'a>]>,
         closing_bracket: Location,
     },
 }
 
-pub(super) struct NestedFormatDescription<'a, const VERSION: u8> {
+pub(super) struct NestedFormatDescription<'a> {
     pub(super) _opening_bracket: Unused<Location>,
-    pub(super) items: Box<[Item<'a, VERSION>]>,
+    pub(super) items: Box<[Item<'a>]>,
     pub(super) _closing_bracket: Unused<Location>,
     pub(super) _trailing_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
 }
@@ -79,29 +84,20 @@ impl<'a> Modifier<'a> {
     }
 }
 
-pub(super) fn parse<
-    'item: 'iter,
-    'iter,
-    I: Iterator<Item = Result<lexer::Token<'item>, Error>>,
-    const VERSION: u8,
->(
-    tokens: &'iter mut lexer::Lexed<VERSION, I>,
-) -> impl Iterator<Item = Result<Item<'item, VERSION>, Error>> + use<'item, 'iter, I, VERSION> {
-    assert!(version!(1..=3));
-    parse_inner::<_, false, VERSION>(tokens)
+pub(super) fn parse<'item: 'iter, 'iter, I: Iterator<Item = Result<lexer::Token<'item>, Error>>>(
+    version: FormatDescriptionVersion,
+    tokens: &'iter mut lexer::Lexed<I>,
+) -> impl Iterator<Item = Result<Item<'item>, Error>> + use<'item, 'iter, I> {
+    parse_inner(version, false, tokens)
 }
 
-fn parse_inner<
-    'item,
-    I: Iterator<Item = Result<lexer::Token<'item>, Error>>,
-    const NESTED: bool,
-    const VERSION: u8,
->(
-    tokens: &mut lexer::Lexed<VERSION, I>,
-) -> impl Iterator<Item = Result<Item<'item, VERSION>, Error>> + use<'_, 'item, I, NESTED, VERSION>
-{
+fn parse_inner<'item, I: Iterator<Item = Result<lexer::Token<'item>, Error>>>(
+    version: FormatDescriptionVersion,
+    nested: bool,
+    tokens: &mut lexer::Lexed<I>,
+) -> impl Iterator<Item = Result<Item<'item>, Error>> + use<'_, 'item, I> {
     iter::from_fn(move || {
-        if NESTED && tokens.peek_closing_bracket().is_some() {
+        if nested && tokens.peek_closing_bracket().is_some() {
             return None;
         }
 
@@ -111,15 +107,15 @@ fn parse_inner<
         };
 
         Some(match next {
-            lexer::Token::Literal(Spanned { value: _, span: _ }) if NESTED => {
+            lexer::Token::Literal(Spanned { value: _, span: _ }) if nested => {
                 bug!("literal should not be present in nested description")
             }
-            lexer::Token::Literal(value) => Ok(Item::Literal(value)),
+            lexer::Token::Literal(value) => Ok(Item::Literal { version, value }),
             lexer::Token::Bracket {
                 kind: lexer::BracketKind::Opening,
                 location,
             } => {
-                if version!(..=1)
+                if version.is_v1()
                     && let Some(second_location) = tokens.next_if_opening_bracket()
                 {
                     Ok(Item::EscapedBracket {
@@ -127,13 +123,13 @@ fn parse_inner<
                         _second: unused(second_location),
                     })
                 } else {
-                    parse_component::<_, VERSION>(location, tokens)
+                    parse_component(version, location, tokens)
                 }
             }
             lexer::Token::Bracket {
                 kind: lexer::BracketKind::Closing,
                 location: _,
-            } if NESTED => {
+            } if nested => {
                 bug!("closing bracket should be caught by the `if` statement")
             }
             lexer::Token::Bracket {
@@ -142,7 +138,9 @@ fn parse_inner<
             } => {
                 bug!("closing bracket should have been consumed by `parse_component`")
             }
-            lexer::Token::ComponentPart { kind: _, value } if NESTED => Ok(Item::Literal(value)),
+            lexer::Token::ComponentPart { kind: _, value } if nested => {
+                Ok(Item::Literal { version, value })
+            }
             lexer::Token::ComponentPart { kind: _, value: _ } => {
                 bug!("component part should have been consumed by `parse_component`")
             }
@@ -156,10 +154,7 @@ struct Modifiers<'a> {
 }
 
 impl<'a> Modifiers<'a> {
-    fn parse<const VERSION: u8, I>(
-        nested_is_allowed: bool,
-        tokens: &mut lexer::Lexed<VERSION, I>,
-    ) -> Result<Self, Error>
+    fn parse<I>(nested_is_allowed: bool, tokens: &mut lexer::Lexed<I>) -> Result<Self, Error>
     where
         I: Iterator<Item = Result<lexer::Token<'a>, Error>>,
     {
@@ -202,10 +197,11 @@ impl<'a> Modifiers<'a> {
     }
 }
 
-fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, const VERSION: u8>(
+fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>>(
+    version: FormatDescriptionVersion,
     opening_bracket: Location,
-    tokens: &mut lexer::Lexed<VERSION, I>,
-) -> Result<Item<'a, VERSION>, Error> {
+    tokens: &mut lexer::Lexed<I>,
+) -> Result<Item<'a>, Error> {
     let leading_whitespace = tokens.next_if_whitespace();
 
     let Some(name) = tokens.next_if_not_whitespace() else {
@@ -218,7 +214,7 @@ fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, cons
 
     if *name == b"optional" {
         let modifiers = Modifiers::parse(true, tokens)?;
-        let nested = parse_nested::<_, VERSION>(modifiers.span().end, tokens)?;
+        let nested = parse_nested(version, modifiers.span().end, tokens)?;
 
         let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
             return Err(opening_bracket.error("unclosed bracket"));
@@ -240,6 +236,7 @@ fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, cons
         }
 
         return Ok(Item::Optional {
+            version,
             opening_bracket,
             _leading_whitespace: unused(leading_whitespace),
             _optional_kw: unused(name),
@@ -254,11 +251,11 @@ fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, cons
         let modifiers = Modifiers::parse(true, tokens)?;
 
         let mut nested_format_descriptions = Vec::new();
-        while let Ok(description) = parse_nested::<_, VERSION>(modifiers.span().end, tokens) {
+        while let Ok(description) = parse_nested(version, modifiers.span().end, tokens) {
             nested_format_descriptions.push(description);
         }
 
-        if version!(3..) && nested_format_descriptions.is_empty() {
+        if version.is_at_least_v3() && nested_format_descriptions.is_empty() {
             return Err(modifiers
                 .span()
                 .shrink_to_end()
@@ -314,14 +311,15 @@ fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, cons
     })
 }
 
-fn parse_nested<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>, const VERSION: u8>(
+fn parse_nested<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>>(
+    version: FormatDescriptionVersion,
     last_location: Location,
-    tokens: &mut lexer::Lexed<VERSION, I>,
-) -> Result<NestedFormatDescription<'a, VERSION>, Error> {
+    tokens: &mut lexer::Lexed<I>,
+) -> Result<NestedFormatDescription<'a>, Error> {
     let Some(opening_bracket) = tokens.next_if_opening_bracket() else {
         return Err(last_location.error("expected opening bracket"));
     };
-    let items = parse_inner::<_, true, VERSION>(tokens).collect::<Result<_, _>>()?;
+    let items = parse_inner(version, true, tokens).collect::<Result<_, _>>()?;
     let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
         return Err(opening_bracket.error("unclosed bracket"));
     };

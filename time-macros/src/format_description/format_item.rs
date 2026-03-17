@@ -44,8 +44,8 @@ macro_rules! parse_modifiers {
     };
 }
 
-pub(super) fn parse<'a, const VERSION: u8>(
-    ast_items: impl Iterator<Item = Result<ast::Item<'a, VERSION>, Error>>,
+pub(super) fn parse<'a>(
+    ast_items: impl Iterator<Item = Result<ast::Item<'a>, Error>>,
 ) -> impl Iterator<Item = Result<Item<'a>, Error>> {
     ast_items.map(|ast_item| ast_item.and_then(Item::from_ast))
 }
@@ -66,9 +66,7 @@ pub(super) enum Item<'a> {
 }
 
 impl Item<'_> {
-    pub(super) fn from_ast<const VERSION: u8>(
-        ast_item: ast::Item<'_, VERSION>,
-    ) -> Result<Item<'_>, Error> {
+    pub(super) fn from_ast(ast_item: ast::Item<'_>) -> Result<Item<'_>, Error> {
         Ok(match ast_item {
             ast::Item::Component {
                 _opening_bracket: _,
@@ -78,10 +76,13 @@ impl Item<'_> {
                 _trailing_whitespace: _,
                 _closing_bracket: _,
             } => Item::Component(component_from_ast(&name, &modifiers)?),
-            ast::Item::Literal(Spanned { value, span }) => {
+            ast::Item::Literal {
+                version,
+                value: Spanned { value, span },
+            } => {
                 if let Ok(value) = str::from_utf8(value) {
                     Item::StringLiteral(value)
-                } else if version!(3..) {
+                } else if version.is_at_least_v3() {
                     return Err(span.error("v3 format descriptions must be valid UTF-8"));
                 } else {
                     Item::Literal(value)
@@ -92,6 +93,7 @@ impl Item<'_> {
                 _second: _,
             } => Item::StringLiteral("["),
             ast::Item::Optional {
+                version,
                 opening_bracket,
                 _leading_whitespace: _,
                 _optional_kw: _,
@@ -109,7 +111,7 @@ impl Item<'_> {
 
                 let modifiers = parse_modifiers!(modifiers, struct { format: OptionalFormat })?;
                 let format = modifiers.format.transpose().map(|val| val.unwrap_or(true));
-                if version!(..=2) && !*format {
+                if version.is_at_most_v2() && !*format {
                     return Err(format
                         .span
                         .error("v1 and v2 format descriptions must format optional items"));

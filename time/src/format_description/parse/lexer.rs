@@ -3,9 +3,10 @@
 use core::iter;
 
 use super::{Error, Location, Spanned, SpannedValue, attach_location, unused};
+use crate::format_description::FormatDescriptionVersion;
 
 /// An iterator over the lexed tokens.
-pub(super) struct Lexed<const VERSION: usize, I>
+pub(super) struct Lexed<I>
 where
     I: Iterator,
 {
@@ -13,7 +14,7 @@ where
     iter: iter::Peekable<I>,
 }
 
-impl<const VERSION: usize, I> Iterator for Lexed<VERSION, I>
+impl<I> Iterator for Lexed<I>
 where
     I: Iterator,
 {
@@ -24,7 +25,7 @@ where
     }
 }
 
-impl<'iter, 'token, const VERSION: usize, I> Lexed<VERSION, I>
+impl<'iter, 'token, I> Lexed<I>
 where
     'token: 'iter,
     I: Iterator<Item = Result<Token<'token>, Error>> + 'iter,
@@ -154,18 +155,17 @@ pub(super) enum ComponentKind {
 ///   currently follow are `\`, `[`, and `]`, all of which result in the literal character. All
 ///   other characters result in a lex error.
 #[inline]
-pub(super) fn lex<const VERSION: usize>(
+pub(super) fn lex(
+    version: FormatDescriptionVersion,
     mut input: &[u8],
-) -> Lexed<VERSION, impl Iterator<Item = Result<Token<'_>, Error>>> {
-    validate_version!(VERSION);
-
+) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
     let mut depth: u32 = 0;
     let mut iter = attach_location(input.iter()).peekable();
     let mut second_bracket_location = None;
 
     let iter = iter::from_fn(move || {
         // The flag is only set when version is zero.
-        if version!(..=1) {
+        if version.is_v1() {
             // There is a flag set to emit the second half of an escaped bracket pair.
             if let Some(location) = second_bracket_location.take() {
                 return Some(Ok(Token::Bracket {
@@ -177,7 +177,7 @@ pub(super) fn lex<const VERSION: usize>(
 
         Some(Ok(match iter.next()? {
             // possible escape sequence
-            (b'\\', backslash_loc) if version!(2..) => {
+            (b'\\', backslash_loc) if version.is_at_least_v2() => {
                 match iter.next() {
                     Some((b'\\' | b'[' | b']', char_loc)) => {
                         // The escaped character is emitted as-is.
@@ -213,7 +213,7 @@ pub(super) fn lex<const VERSION: usize>(
                 }
             }
             // potentially escaped opening bracket
-            (b'[', location) if version!(..=1) => {
+            (b'[', location) if version.is_v1() => {
                 if let Some((_, second_location)) = iter.next_if(|&(&byte, _)| byte == b'[') {
                     // Escaped bracket. Store the location of the second so we can emit it later.
                     second_bracket_location = Some(second_location);
@@ -254,9 +254,9 @@ pub(super) fn lex<const VERSION: usize>(
                 let mut bytes = 1;
                 let mut end_location = start_location;
 
-                while let Some((_, location)) =
-                    iter.next_if(|&(&byte, _)| !((version!(2..) && byte == b'\\') || byte == b'['))
-                {
+                while let Some((_, location)) = iter.next_if(|&(&byte, _)| {
+                    !((version.is_at_least_v2() && byte == b'\\') || byte == b'[')
+                }) {
                     end_location = location;
                     bytes += 1;
                 }

@@ -1,12 +1,13 @@
 use core::iter;
 
 use super::{Error, Location, Spanned, SpannedValue};
+use crate::FormatDescriptionVersion;
 
-pub(super) struct Lexed<const VERSION: u8, I: Iterator> {
+pub(super) struct Lexed<I: Iterator> {
     iter: iter::Peekable<I>,
 }
 
-impl<const VERSION: u8, I: Iterator> Iterator for Lexed<VERSION, I> {
+impl<I: Iterator> Iterator for Lexed<I> {
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -14,13 +15,7 @@ impl<const VERSION: u8, I: Iterator> Iterator for Lexed<VERSION, I> {
     }
 }
 
-impl<
-    'iter,
-    'token: 'iter,
-    const VERSION: u8,
-    I: Iterator<Item = Result<Token<'token>, Error>> + 'iter,
-> Lexed<VERSION, I>
-{
+impl<'iter, 'token: 'iter, I: Iterator<Item = Result<Token<'token>, Error>> + 'iter> Lexed<I> {
     pub(super) fn peek(&mut self) -> Option<&I::Item> {
         self.iter.peek()
     }
@@ -151,18 +146,17 @@ fn attach_location<'item>(
     })
 }
 
-pub(super) fn lex<const VERSION: u8>(
+pub(super) fn lex(
+    version: FormatDescriptionVersion,
     mut input: &[u8],
     proc_span: proc_macro::Span,
-) -> Lexed<VERSION, impl Iterator<Item = Result<Token<'_>, Error>>> {
-    assert!(version!(1..=3));
-
+) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
     let mut depth: u32 = 0;
     let mut iter = attach_location(input.iter(), proc_span).peekable();
     let mut second_bracket_location = None;
 
     let iter = iter::from_fn(move || {
-        if version!(..=1)
+        if version.is_v1()
             && let Some(location) = second_bracket_location.take()
         {
             return Some(Ok(Token::Bracket {
@@ -172,7 +166,7 @@ pub(super) fn lex<const VERSION: u8>(
         }
 
         Some(Ok(match iter.next()? {
-            (b'\\', backslash_loc) if version!(2..) => match iter.next() {
+            (b'\\', backslash_loc) if version.is_at_least_v2() => match iter.next() {
                 Some((b'\\' | b'[' | b']', char_loc)) => {
                     let char = &input[1..2];
                     input = &input[2..];
@@ -192,7 +186,7 @@ pub(super) fn lex<const VERSION: u8>(
                     return Some(Err(backslash_loc.error("unexpected end of input")));
                 }
             },
-            (b'[', location) if version!(..=1) => {
+            (b'[', location) if version.is_v1() => {
                 if let Some((_, second_location)) = iter.next_if(|&(&byte, _)| byte == b'[') {
                     second_bracket_location = Some(second_location);
                     input = &input[2..];
@@ -228,9 +222,9 @@ pub(super) fn lex<const VERSION: u8>(
                 let mut bytes = 1;
                 let mut end_location = start_location;
 
-                while let Some((_, location)) =
-                    iter.next_if(|&(&byte, _)| !((version!(2..) && byte == b'\\') || byte == b'['))
-                {
+                while let Some((_, location)) = iter.next_if(|&(&byte, _)| {
+                    !(version.is_at_least_v2() && byte == b'\\' || byte == b'[')
+                }) {
                     end_location = location;
                     bytes += 1;
                 }

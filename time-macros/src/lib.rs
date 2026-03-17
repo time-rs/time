@@ -81,6 +81,37 @@ enum FormatDescriptionVersion {
 }
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
+impl FormatDescriptionVersion {
+    fn is_v1(self) -> bool {
+        match self {
+            Self::V1 => true,
+            Self::V2 | Self::V3 => false,
+        }
+    }
+
+    fn is_at_most_v2(self) -> bool {
+        match self {
+            Self::V1 | Self::V2 => true,
+            Self::V3 => false,
+        }
+    }
+
+    fn is_at_least_v2(self) -> bool {
+        match self {
+            Self::V1 => false,
+            Self::V2 | Self::V3 => true,
+        }
+    }
+
+    fn is_at_least_v3(self) -> bool {
+        match self {
+            Self::V1 | Self::V2 => false,
+            Self::V3 => true,
+        }
+    }
+}
+
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 fn parse_format_description_version<const NO_EQUALS_IS_MOD_NAME: bool>(
     iter: &mut PeekableTokenStreamIter,
 ) -> Result<Option<FormatDescriptionVersion>, Error> {

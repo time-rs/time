@@ -64,3 +64,38 @@ pub(crate) enum Period {
     #[allow(clippy::missing_docs_in_private_items)]
     Pm,
 }
+
+/// The version of a format description.
+#[allow(clippy::missing_docs_in_private_items, reason = "self-explanatory")]
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum FormatDescriptionVersion {
+    V1,
+    V2,
+    V3,
+}
+
+impl FormatDescriptionVersion {
+    #[inline]
+    const fn is_v1(self) -> bool {
+        match self {
+            Self::V1 => true,
+            Self::V2 | Self::V3 => false,
+        }
+    }
+
+    #[inline]
+    const fn is_at_least_v2(self) -> bool {
+        match self {
+            Self::V1 => false,
+            Self::V2 | Self::V3 => true,
+        }
+    }
+
+    #[inline]
+    const fn is_at_least_v3(self) -> bool {
+        match self {
+            Self::V1 | Self::V2 => false,
+            Self::V3 => true,
+        }
+    }
+}
