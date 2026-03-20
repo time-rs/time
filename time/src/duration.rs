@@ -1642,7 +1642,7 @@ macro_rules! duration_mul_div_int {
 
             /// # Panics
             ///
-            /// This may panic if an overflow occurs.
+            /// This may panic if an overflow occurs or if `rhs == 0`.
             #[inline]
             #[track_caller]
             fn div(self, rhs: $type) -> Self::Output {
@@ -1655,7 +1655,7 @@ macro_rules! duration_mul_div_int {
         impl DivAssign<$type> for Duration {
             /// # Panics
             ///
-            /// This may panic if an overflow occurs.
+            /// This may panic if an overflow occurs or if `rhs == 0`.
             #[inline]
             #[track_caller]
             fn div_assign(&mut self, rhs: $type) {
@@ -1753,7 +1753,7 @@ impl Div<f32> for Duration {
 
     /// # Panics
     ///
-    /// This may panic if an overflow occurs.
+    /// This may panic if an overflow occurs or if `rhs == 0`.
     #[inline]
     #[track_caller]
     fn div(self, rhs: f32) -> Self::Output {
@@ -1766,7 +1766,7 @@ impl Div<f64> for Duration {
 
     /// # Panics
     ///
-    /// This may panic if an overflow occurs.
+    /// This may panic if an overflow occurs or if `rhs == 0`.
     #[inline]
     #[track_caller]
     fn div(self, rhs: f64) -> Self::Output {
@@ -1777,7 +1777,7 @@ impl Div<f64> for Duration {
 impl DivAssign<f32> for Duration {
     /// # Panics
     ///
-    /// This may panic if an overflow occurs.
+    /// This may panic if an overflow occurs or if `rhs == 0`.
     #[inline]
     #[track_caller]
     fn div_assign(&mut self, rhs: f32) {
@@ -1788,7 +1788,7 @@ impl DivAssign<f32> for Duration {
 impl DivAssign<f64> for Duration {
     /// # Panics
     ///
-    /// This may panic if an overflow occurs.
+    /// This may panic if an overflow occurs or if `rhs == 0`.
     #[inline]
     #[track_caller]
     fn div_assign(&mut self, rhs: f64) {
@@ -1799,6 +1799,9 @@ impl DivAssign<f64> for Duration {
 impl Div for Duration {
     type Output = f64;
 
+    /// # Panics
+    ///
+    /// This may panic if `rhs == Duration::ZERO`.
     #[inline]
     #[track_caller]
     fn div(self, rhs: Self) -> Self::Output {
@@ -1809,6 +1812,9 @@ impl Div for Duration {
 impl Div<StdDuration> for Duration {
     type Output = f64;
 
+    /// # Panics
+    ///
+    /// This may panic if `rhs == Duration::ZERO`.
     #[inline]
     #[track_caller]
     fn div(self, rhs: StdDuration) -> Self::Output {
@@ -1819,6 +1825,9 @@ impl Div<StdDuration> for Duration {
 impl Div<Duration> for StdDuration {
     type Output = f64;
 
+    /// # Panics
+    ///
+    /// This may panic if `rhs == Duration::ZERO`.
     #[inline]
     #[track_caller]
     fn div(self, rhs: Duration) -> Self::Output {
