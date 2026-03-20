@@ -6,8 +6,12 @@
 
 use core::mem::MaybeUninit;
 use core::ops::Deref;
+#[cfg(feature = "formatting")]
+use core::ptr;
 use core::slice;
 
+#[cfg(feature = "formatting")]
+use deranged::ru64;
 use deranged::{ru8, ru16, ru32};
 
 static SINGLE_DIGITS: [u8; 10] = *b"0123456789";
@@ -55,6 +59,82 @@ impl<const MAX_LEN: usize> Deref for StackStr<MAX_LEN> {
         // Safety: This type can only be constructed when the caller asserts that the buffer is
         // valid UTF-8 for the first `len` bytes.
         unsafe { str_from_raw_parts(self.buf.as_ptr().cast(), self.len) }
+    }
+}
+
+/// A string type with a maximum length known at compile time, stored on the stack.
+///
+/// Note that while the _maximum_ length is known at compile time, the string may be shorter. This
+/// information is stored inline.
+#[cfg(feature = "formatting")]
+#[derive(Clone, Copy)]
+pub(crate) struct StackTrailingStr<const MAX_LEN: usize> {
+    buf: [MaybeUninit<u8>; MAX_LEN],
+    start_index: usize,
+}
+
+#[cfg(feature = "formatting")]
+impl<const MAX_LEN: usize> StackTrailingStr<MAX_LEN> {
+    /// # Safety:
+    ///
+    /// - The last `MAX_LEN - start_index` bytes of `buf` must be initialized and valid UTF-8.
+    #[inline]
+    pub(crate) const unsafe fn new(buf: [MaybeUninit<u8>; MAX_LEN], start_index: usize) -> Self {
+        debug_assert!(start_index <= MAX_LEN);
+        Self { buf, start_index }
+    }
+}
+
+#[cfg(feature = "formatting")]
+impl<const MAX_LEN: usize> Deref for StackTrailingStr<MAX_LEN> {
+    type Target = str;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        // Safety: This type can only be constructed when the caller asserts that the buffer is
+        // valid UTF-8 for the last `len` bytes.
+        unsafe {
+            str_from_raw_parts(
+                self.buf.as_ptr().add(self.start_index).cast(),
+                MAX_LEN - self.start_index,
+            )
+        }
+    }
+}
+
+/// Write a two digit integer to `buf` at `offset` and `offset + 1`.
+///
+/// # Safety
+///
+/// `buf` must be at least `offset + 2` bytes long.
+#[inline]
+#[cfg(feature = "formatting")]
+const unsafe fn write_two_digits(buf: &mut [MaybeUninit<u8>], offset: usize, value: ru8<0, 99>) {
+    // Safety: `buf` is at least `offset + 2` bytes long.
+    unsafe {
+        ptr::copy_nonoverlapping(
+            two_digits_zero_padded(value).as_ptr().cast(),
+            buf.as_mut_ptr().add(offset),
+            2,
+        );
+    }
+}
+
+/// Write a single digit integer to `buf` at `offset`.
+///
+/// # Safety
+///
+/// `buf` must be at least `offset` bytes long.
+#[inline]
+#[cfg(feature = "formatting")]
+const unsafe fn write_one_digit(buf: &mut [MaybeUninit<u8>], offset: usize, value: ru8<0, 9>) {
+    // Safety: `buf` is at least `offset` bytes long.
+    unsafe {
+        ptr::copy_nonoverlapping(
+            single_digit(value).as_ptr().cast(),
+            buf.as_mut_ptr().add(offset),
+            1,
+        );
     }
 }
 
@@ -277,7 +357,7 @@ pub(crate) const fn subsecond_from_nanos(n: ru32<0, 999_999_999>) -> [&'static s
     let (digits_1_thru_5, digits_6_thru_9) = (n / 10_000, n % 10_000);
     let (digit_1, digits_2_thru_5) = (digits_1_thru_5 / 10_000, digits_1_thru_5 % 10_000);
 
-    // Safety: The caller must ensure that `n` is less than 1,000,000,000. Combined with the
+    // Safety: The type of `n` ensures that `n` is less than 1,000,000,000. Combined with the
     // arithmetic above, this guarantees that all values are in the required ranges.
     unsafe {
         let digit_1 = single_digit(ru8::new_unchecked(digit_1 as u8));
@@ -353,4 +433,196 @@ pub(crate) const fn truncated_subsecond_from_nanos(n: ru32<0, 999_999_999>) -> S
             len,
         )
     }
+}
+
+/// Format a `u64` into a string with no padding.
+#[inline]
+#[cfg(feature = "formatting")]
+pub(crate) const fn u64_pad_none(value: u64) -> StackTrailingStr<20> {
+    let mut bytes = [MaybeUninit::uninit(); 20];
+
+    let mut offset = 20;
+    let mut remain = value;
+
+    while remain > 999 {
+        offset -= 4;
+        let quad = remain % 1_00_00;
+        remain /= 1_00_00;
+        // Safety: `quad` is guaranteed to be less than 10,000 due to the modulus above.
+        let [pair1, pair2] = div_100(unsafe { ru16::new_unchecked(quad as u16) });
+        // Safety: `buf` is at least `offset + 4` bytes long.
+        unsafe {
+            write_two_digits(&mut bytes, offset, pair1);
+            write_two_digits(&mut bytes, offset + 2, pair2);
+        }
+    }
+
+    if remain > 9 {
+        offset -= 2;
+
+        // Safety: `remain` is guaranteed to be less than 10,000 due to the loop above.
+        let [last, pair] = div_100(unsafe { ru16::new_unchecked(remain as u16) });
+        remain = last.get() as u64;
+        // Safety: `buf` is at least `offset + 2` bytes long.
+        unsafe { write_two_digits(&mut bytes, offset, pair) };
+    }
+
+    if remain != 0 || value == 0 {
+        offset -= 1;
+
+        let last = remain as u8 & 15;
+        // Safety: `offset` is known to be in bounds, and the value is known to be less than 10 due
+        // to the conditionals and bitwise AND above.
+        unsafe { write_one_digit(&mut bytes, offset, ru8::new_unchecked(last)) };
+    }
+
+    // Safety: All bytes starting at `offset` are initialized and valid UTF-8.
+    unsafe { StackTrailingStr::new(bytes, offset) }
+}
+
+/// Format a `u128` into a string with no padding.
+#[inline]
+#[cfg(feature = "formatting")]
+pub(crate) const fn u128_pad_none(value: u128) -> StackTrailingStr<39> {
+    let mut bytes = [MaybeUninit::uninit(); 39];
+
+    // Take the 16 least-significant decimals.
+    let (quot_1e16, mod_1e16) = div_rem_1e16(value);
+    let (mut remain, mut offset) = if quot_1e16 == 0 {
+        (mod_1e16.get(), 39)
+    } else {
+        // Write digits at buf[23..39].
+        // Safety: `bytes` is 39 bytes long, so writing at offset 23 for 16 bytes is sound.
+        unsafe { enc_16lsd::<23>(&mut bytes, mod_1e16) };
+
+        // Take another 16 decimals.
+        let (quot2, mod2) = div_rem_1e16(quot_1e16);
+        if quot2 == 0 {
+            (mod2.get(), 23)
+        } else {
+            // Write digits at buf[7..23].
+            // Safety: `bytes` is 39 bytes long, so writing at offset 7 for 16 bytes is sound.
+            unsafe { enc_16lsd::<7>(&mut bytes, mod2) };
+            // Safety: `quot2`` has at most 7 decimals remaining after two 1e16 divisions.
+            (quot2 as u64, 7)
+        }
+    };
+
+    // Format per four digits from the lookup table.
+    while remain > 999 {
+        offset -= 4;
+
+        // pull two pairs
+        let quad = remain % 1_00_00;
+        remain /= 1_00_00;
+        // Safety: `quad` is guaranteed to be less than 10,000 due to the modulus above.
+        let [pair1, pair2] = div_100(unsafe { ru16::new_unchecked(quad as u16) });
+        // Safety: `buf` is at least `offset + 4` bytes long.
+        unsafe {
+            write_two_digits(&mut bytes, offset, pair1);
+            write_two_digits(&mut bytes, offset + 2, pair2);
+        }
+    }
+
+    // Format per two digits from the lookup table.
+    if remain > 9 {
+        offset -= 2;
+
+        // Safety: `remain` is guaranteed to be less than 10,000 due to the loop above.
+        let [last, pair] = div_100(unsafe { ru16::new_unchecked(remain as u16) });
+        remain = last.get() as u64;
+        // Safety: `buf` is at least `offset + 2` bytes long.
+        unsafe { write_two_digits(&mut bytes, offset, pair) };
+    }
+
+    // Format the last remaining digit, if any.
+    if remain != 0 || value == 0 {
+        offset -= 1;
+
+        // Either the compiler sees that remain < 10, or it prevents a boundary check up next.
+        let last = remain as u8 & 15;
+        // Safety: `offset` is known to be in bounds, and the value is known to be less than 10 due
+        // to the conditionals and bitwise AND above.
+        unsafe { write_one_digit(&mut bytes, offset, ru8::new_unchecked(last)) };
+    }
+
+    // Safety: All bytes starting at `offset` are initialized and valid UTF-8.
+    unsafe { StackTrailingStr::new(bytes, offset) }
+}
+
+/// Encodes the 16 least-significant decimals of n into `buf[OFFSET..OFFSET + 16]`.
+///
+/// # Safety
+///
+/// - `buf` must be at least `OFFSET + 16` bytes long.
+#[cfg(feature = "formatting")]
+const unsafe fn enc_16lsd<const OFFSET: usize>(
+    buf: &mut [MaybeUninit<u8>],
+    n: ru64<0, 9999_9999_9999_9999>,
+) {
+    // Consume the least-significant decimals from a working copy.
+    let mut remain = n.get();
+
+    let mut quad_index = 3;
+    while quad_index >= 1 {
+        let quad = remain % 1_00_00;
+        remain /= 1_00_00;
+        // Safety: `quad` is guaranteed to be less than 10,000 due to the modulus above.
+        let [pair1, pair2] = div_100(unsafe { ru16::new_unchecked(quad as u16) });
+        // Safety: `buf` is at least `quad_index * 4 + OFFSET + 4` bytes long.
+        unsafe {
+            write_two_digits(buf, quad_index * 4 + OFFSET, pair1);
+            write_two_digits(buf, quad_index * 4 + OFFSET + 2, pair2);
+        }
+        quad_index -= 1;
+    }
+
+    // Safety: `remain` is guaranteed to be less than 10,000 due the range of `n` and the arithmetic
+    // in the loop above.
+    let [pair1, pair2] = div_100(unsafe { ru16::new_unchecked(remain as u16) });
+    // Safety: `buf` is at least `OFFSET + 4` bytes long.
+    unsafe {
+        write_two_digits(buf, OFFSET, pair1);
+        write_two_digits(buf, OFFSET + 2, pair2);
+    }
+}
+
+// Euclidean division plus remainder with constant 1e16 basically consumes 16
+// decimals from n.
+#[cfg(feature = "formatting")]
+const fn div_rem_1e16(n: u128) -> (u128, ru64<0, 9999_9999_9999_9999>) {
+    const D: u128 = 1_0000_0000_0000_0000;
+    if n < D {
+        // Safety: We just checked that `n` is in range.
+        return (0, unsafe { ru64::new_unchecked(n as u64) });
+    }
+
+    const M_HIGH: u128 = 76_624_777_043_294_442_917_917_351_357_515_459_181;
+    const SH_POST: u8 = 51;
+
+    // n.widening_mul(M_HIGH).1 >> SH_POST
+    let quot = mulhi(n, M_HIGH) >> SH_POST;
+    let rem = n - quot * D;
+    // Safety: The arithmetic above ensures that `rem` is in range.
+    (quot, unsafe { ru64::new_unchecked(rem as u64) })
+}
+
+/// Multiply unsigned 128 bit integers, return upper 128 bits of the result
+#[inline]
+#[cfg(feature = "formatting")]
+const fn mulhi(x: u128, y: u128) -> u128 {
+    let x_lo = x as u64;
+    let x_hi = (x >> 64) as u64;
+    let y_lo = y as u64;
+    let y_hi = (y >> 64) as u64;
+
+    // handle possibility of overflow
+    let carry = (x_lo as u128 * y_lo as u128) >> 64;
+    let m = x_lo as u128 * y_hi as u128 + carry;
+    let high1 = m >> 64;
+
+    let m_lo = m as u64;
+    let high2 = (x_hi as u128 * y_lo as u128 + m_lo as u128) >> 64;
+
+    x_hi as u128 * y_hi as u128 + high1 + high2
 }

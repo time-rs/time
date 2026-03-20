@@ -17,12 +17,12 @@ time-core = { path = "time-core", version = "=0.1.8" }
 time-macros = { path = "time-macros", version = "=0.2.27" }
 
 criterion = { version = "0.8.1", default-features = false }
-deranged = { version = "0.5.8", features = ["powerfmt"] }
-itoa = "1.0.1"
+deranged = "0.5.8"
 js-sys = "0.3.58"
 libc = "0.2.98"
 num-conv = "0.2.0"
 num_threads = "0.1.2"
+# no longer used for anything, but needed for back-compatibility
 powerfmt = { version = "0.2.0", default-features = false }
 quickcheck = { version = "1.0.3", default-features = false }
 quickcheck_macros = "1.0.0"

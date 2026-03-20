@@ -32,7 +32,7 @@ bench = false
 [features]
 default = ["std"]
 alloc = ["serde_core?/alloc"]
-formatting = ["dep:itoa", "std", "time-macros?/formatting"]
+formatting = ["std", "time-macros?/formatting"]
 large-dates = ["time-core/large-dates", "time-macros?/large-dates"]
 local-offset = ["std", "dep:libc", "dep:num_threads"]
 macros = ["dep:time-macros"]
@@ -53,7 +53,6 @@ wasm-bindgen = ["dep:js-sys"]
 # feature gate.
 [dependencies]
 deranged.workspace = true
-itoa = { workspace = true, optional = true }
 num-conv.workspace = true
 powerfmt.workspace = true
 quickcheck = { workspace = true, optional = true }

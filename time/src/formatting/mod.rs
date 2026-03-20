@@ -260,11 +260,22 @@ pub(crate) fn format_six_digits_pad_zero(
 ///
 /// If the sign is mandatory, the sign must be written by the caller.
 #[inline]
-pub(crate) fn format_number_pad_none(
+pub(crate) fn format_u64_pad_none(
     output: &mut (impl io::Write + ?Sized),
-    value: impl itoa::Integer + Copy,
-) -> Result<usize, io::Error> {
-    write(output, itoa::Buffer::new().format(value))
+    value: u64,
+) -> io::Result<usize> {
+    write(output, &num_fmt::u64_pad_none(value))
+}
+
+/// Format a number with no padding.
+///
+/// If the sign is mandatory, the sign must be written by the caller.
+#[inline]
+pub(crate) fn format_u128_pad_none(
+    output: &mut (impl io::Write + ?Sized),
+    value: u128,
+) -> io::Result<usize> {
+    write(output, &num_fmt::u128_pad_none(value))
 }
 
 /// Format the provided component into the designated output. An `Err` will be returned if the
@@ -1081,7 +1092,7 @@ fn fmt_unix_timestamp_second(
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     bytes += try_likely_ok!(fmt_sign(output, timestamp < 0, sign_is_mandatory));
-    bytes += try_likely_ok!(format_number_pad_none(output, timestamp.unsigned_abs()));
+    bytes += try_likely_ok!(format_u64_pad_none(output, timestamp.unsigned_abs()));
     Ok(bytes)
 }
 
@@ -1094,10 +1105,7 @@ fn fmt_unix_timestamp_millisecond(
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     bytes += try_likely_ok!(fmt_sign(output, timestamp_millis < 0, sign_is_mandatory));
-    bytes += try_likely_ok!(format_number_pad_none(
-        output,
-        timestamp_millis.unsigned_abs()
-    ));
+    bytes += try_likely_ok!(format_u64_pad_none(output, timestamp_millis.unsigned_abs()));
     Ok(bytes)
 }
 
@@ -1110,7 +1118,7 @@ fn fmt_unix_timestamp_microsecond(
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     bytes += try_likely_ok!(fmt_sign(output, timestamp_micros < 0, sign_is_mandatory));
-    bytes += try_likely_ok!(format_number_pad_none(
+    bytes += try_likely_ok!(format_u128_pad_none(
         output,
         timestamp_micros.unsigned_abs()
     ));
@@ -1126,9 +1134,6 @@ fn fmt_unix_timestamp_nanosecond(
 ) -> Result<usize, io::Error> {
     let mut bytes = 0;
     bytes += try_likely_ok!(fmt_sign(output, timestamp_nanos < 0, sign_is_mandatory));
-    bytes += try_likely_ok!(format_number_pad_none(
-        output,
-        timestamp_nanos.unsigned_abs()
-    ));
+    bytes += try_likely_ok!(format_u128_pad_none(output, timestamp_nanos.unsigned_abs()));
     Ok(bytes)
 }
