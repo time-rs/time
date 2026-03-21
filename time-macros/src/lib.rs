@@ -216,6 +216,45 @@ fn parse_visibility(iter: &mut PeekableTokenStreamIter) -> Result<TokenStream, E
     Ok(visibility)
 }
 
+fn expand_format_description(
+    version: FormatDescriptionVersion,
+    items: Vec<format_description::public::OwnedFormatItem>,
+) -> TokenStream {
+    match version {
+        FormatDescriptionVersion::V1 | FormatDescriptionVersion::V2 => quote_! {
+            const {
+                use ::time::format_description::{*, modifier::*};
+                &[#S(
+                    items
+                        .into_iter()
+                        .map(|item| quote_! { #S(item), })
+                        .collect::<TokenStream>()
+                )] as StaticFormatDescription
+            }
+        },
+        FormatDescriptionVersion::V3 if items.len() == 1 => quote_! {
+            const {
+                use ::time::format_description::__private::*;
+                use ::time::format_description::modifier::*;
+                #S(items[0].clone()).into_opaque()
+            }
+        },
+        FormatDescriptionVersion::V3 => {
+            let inner = format_description::public::OwnedFormatItemInner::Compound(
+                items.into_iter().map(|item| item.inner).collect(),
+            );
+            let item = format_description::public::OwnedFormatItem { version, inner };
+            quote_! {
+                const {
+                    use ::time::format_description::__private::*;
+                    use ::time::format_description::modifier::*;
+                    #S(item).into_opaque()
+                }
+            }
+        }
+    }
+}
+
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 #[proc_macro]
 pub fn format_description(input: TokenStream) -> TokenStream {
@@ -226,39 +265,7 @@ pub fn format_description(input: TokenStream) -> TokenStream {
         let (span, string) = helpers::get_string_literal(input)?;
         let items = format_description::parse_with_version(version, &string, span)?;
 
-        match version {
-            FormatDescriptionVersion::V1 | FormatDescriptionVersion::V2 => Ok(quote_! {
-                const {
-                    use ::time::format_description::{*, modifier::*};
-                    &[#S(
-                        items
-                            .into_iter()
-                            .map(|item| quote_! { #S(item), })
-                            .collect::<TokenStream>()
-                    )] as StaticFormatDescription
-                }
-            }),
-            FormatDescriptionVersion::V3 if items.len() == 1 => Ok(quote_! {
-                const {
-                    use ::time::format_description::__private::*;
-                    use ::time::format_description::modifier::*;
-                    #S(items[0].clone()).into_opaque()
-                }
-            }),
-            FormatDescriptionVersion::V3 => {
-                let inner = format_description::public::OwnedFormatItemInner::Compound(
-                    items.into_iter().map(|item| item.inner).collect(),
-                );
-                let item = format_description::public::OwnedFormatItem { version, inner };
-                Ok(quote_! {
-                    const {
-                        use ::time::format_description::__private::*;
-                        use ::time::format_description::modifier::*;
-                        #S(item).into_opaque()
-                    }
-                })
-            }
-        }
+        Ok(expand_format_description(version, items))
     })()
     .unwrap_or_else(|err: Error| err.to_compile_error())
 }
@@ -276,44 +283,76 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
         // Then, the visibility of the module.
         let visibility = parse_visibility(&mut tokens)?;
 
-        // Next, an identifier (the desired module name)
-        let mod_name = match tokens.next() {
-            Some(TokenTree::Ident(ident)) => Ok(ident),
-            Some(tree) => Err(Error::UnexpectedToken { tree }),
-            None => Err(Error::UnexpectedEndOfInput),
-        }?;
+        let (mod_name, ty) = match version {
+            FormatDescriptionVersion::V1 | FormatDescriptionVersion::V2 => {
+                // Next, an identifier (the desired module name)
+                let mod_name = match tokens.next() {
+                    Some(TokenTree::Ident(ident)) => Ok(ident),
+                    Some(tree) => Err(Error::UnexpectedToken { tree }),
+                    None => Err(Error::UnexpectedEndOfInput),
+                }?;
 
-        // Followed by a comma
-        helpers::consume_punct(',', &mut tokens)?;
+                // Followed by a comma
+                helpers::consume_punct(',', &mut tokens)?;
 
-        // Then, the type to create serde serializers for (e.g., `OffsetDateTime`).
-        let formattable = match tokens.next() {
-            Some(tree @ TokenTree::Ident(_)) => Ok(tree),
-            Some(tree) => Err(Error::UnexpectedToken { tree }),
-            None => Err(Error::UnexpectedEndOfInput),
-        }?;
+                // Then, the type to create serde serializers for (e.g., `OffsetDateTime`).
+                let ty = match tokens.next() {
+                    Some(tree @ TokenTree::Ident(_)) => Ok(tree.into()),
+                    Some(tree) => Err(Error::UnexpectedToken { tree }),
+                    None => Err(Error::UnexpectedEndOfInput),
+                }?;
 
-        // Another comma
-        helpers::consume_punct(',', &mut tokens)?;
+                // Another comma
+                helpers::consume_punct(',', &mut tokens)?;
 
-        // We now have two options. The user can either provide a format description as a string or
-        // they can provide a path to a format description. If the latter, all remaining tokens are
-        // assumed to be part of the path.
+                (mod_name, ty)
+            }
+            FormatDescriptionVersion::V3 => {
+                // Next, the `mod` token.
+                match tokens.next() {
+                    Some(TokenTree::Ident(ident)) if ident.to_string() == "mod" => {}
+                    Some(tree) => {
+                        return Err(Error::Custom {
+                            message: "expected `mod`".into(),
+                            span_start: Some(tree.span().start()),
+                            span_end: Some(tree.span().end()),
+                        });
+                    }
+                    None => return Err(Error::UnexpectedEndOfInput),
+                };
+
+                // Next, an identifier (the desired module name)
+                let mod_name = match tokens.next() {
+                    Some(TokenTree::Ident(ident)) => Ok(ident),
+                    Some(tree) => Err(Error::UnexpectedToken { tree }),
+                    None => Err(Error::UnexpectedEndOfInput),
+                }?;
+
+                // Followed by the type to create implementations for, placed in brackets.
+                let ty = match tokens.next() {
+                    Some(TokenTree::Group(group)) if group.delimiter() == Delimiter::Bracket => {
+                        Ok(group.stream())
+                    }
+                    Some(tree) => Err(Error::UnexpectedToken { tree }),
+                    None => Err(Error::UnexpectedEndOfInput),
+                }?;
+
+                // Then an equals sign
+                helpers::consume_punct('=', &mut tokens)?;
+
+                (mod_name, ty)
+            }
+        };
+
+        // We now have two options. The user can either provide a format description as a
+        // string or they can provide a path to a format description. If the
+        // latter, all remaining tokens are assumed to be part of the path.
         let (format, format_description_display) = match tokens.peek() {
             // string literal
             Some(TokenTree::Literal(_)) => {
                 let (span, format_string) = helpers::get_string_literal(tokens)?;
                 let items = format_description::parse_with_version(version, &format_string, span)?;
-                let items: TokenStream = items
-                    .into_iter()
-                    .map(|item| quote_! { #S(item), })
-                    .collect();
-                let items = quote_! {
-                    const {
-                        use ::time::format_description::{*, modifier::*};
-                        &[#S(items)] as StaticFormatDescription
-                    }
-                };
+                let items = expand_format_description(version, items);
 
                 (items, String::from_utf8_lossy(&format_string).into_owned())
             }
@@ -327,9 +366,10 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
         };
 
         Ok(serde_format_description::build(
+            version,
             visibility,
             mod_name,
-            formattable,
+            ty,
             format,
             format_description_display,
         ))
