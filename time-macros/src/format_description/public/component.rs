@@ -45,12 +45,16 @@ declare_component! {
     WeekNumberIso
     WeekNumberSunday
     WeekNumberMonday
+    #[cfg(feature = "large-dates")]
     CalendarYearFullExtendedRange
     CalendarYearFullStandardRange
+    #[cfg(feature = "large-dates")]
     IsoYearFullExtendedRange
     IsoYearFullStandardRange
+    #[cfg(feature = "large-dates")]
     CalendarYearCenturyExtendedRange
     CalendarYearCenturyStandardRange
+    #[cfg(feature = "large-dates")]
     IsoYearCenturyExtendedRange
     IsoYearCenturyStandardRange
     CalendarYearLastTwo

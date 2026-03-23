@@ -157,6 +157,7 @@ to_tokens! {
     }
 }
 
+#[cfg(feature = "large-dates")]
 to_tokens! {
     pub(crate) struct CalendarYearFullExtendedRange {
         pub(crate) padding: Padding = Padding::Zero,
@@ -171,6 +172,7 @@ to_tokens! {
     }
 }
 
+#[cfg(feature = "large-dates")]
 to_tokens! {
     pub(crate) struct CalendarYearCenturyExtendedRange {
         pub(crate) padding: Padding = Padding::Zero,
@@ -185,6 +187,7 @@ to_tokens! {
     }
 }
 
+#[cfg(feature = "large-dates")]
 to_tokens! {
     pub(crate) struct IsoYearFullExtendedRange {
         pub(crate) padding: Padding = Padding::Zero,
@@ -199,6 +202,7 @@ to_tokens! {
     }
 }
 
+#[cfg(feature = "large-dates")]
 to_tokens! {
     pub(crate) struct IsoYearCenturyExtendedRange {
         pub(crate) padding: Padding = Padding::Zero,

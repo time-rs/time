@@ -17,9 +17,11 @@ pub(crate) fn parse_with_version(
     let format_items = format_item::parse(ast);
     format_items
         .map(|res| {
-            res.map(|item| public::OwnedFormatItem {
-                version,
-                inner: item.into(),
+            res.and_then(|item| {
+                Ok(public::OwnedFormatItem {
+                    version,
+                    inner: (version, item).try_into()?,
+                })
             })
             .map_err(Into::into)
         })

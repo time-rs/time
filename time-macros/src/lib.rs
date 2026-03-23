@@ -216,6 +216,7 @@ fn parse_visibility(iter: &mut PeekableTokenStreamIter) -> Result<TokenStream, E
     Ok(visibility)
 }
 
+#[cfg(any(feature = "formatting", feature = "parsing"))]
 fn expand_format_description(
     version: FormatDescriptionVersion,
     items: Vec<format_description::public::OwnedFormatItem>,

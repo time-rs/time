@@ -82,6 +82,10 @@ impl<'a> Modifier<'a> {
             value: value.spanned(token.span),
         })
     }
+
+    pub(super) fn key_value_span(&self) -> Span {
+        self.key.span.start.to(self.value.span.end)
+    }
 }
 
 pub(super) fn parse<'item: 'iter, 'iter, I: Iterator<Item = Result<lexer::Token<'item>, Error>>>(

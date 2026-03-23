@@ -5,7 +5,10 @@ use alloc::string::String;
 use core::num::NonZero;
 use core::str::{self, FromStr};
 
-use super::{Error, OptionExt as _, Span, Spanned, SpannedValue as _, ast, unused};
+use super::{
+    Error, FormatDescriptionVersion, OptionExt as _, Span, Spanned, SpannedValue as _, ast, unused,
+};
+use crate::error::InvalidFormatDescription;
 use crate::internal_macros::bug;
 
 macro_rules! parse_modifiers {
@@ -29,7 +32,7 @@ macro_rules! parse_modifiers {
                     if parsed.$field.is_some() {
                         break 'block Err(Error {
                             _inner: unused(modifier.key.span.error("duplicate modifier key")),
-                            public: crate::error::InvalidFormatDescription::DuplicateModifier {
+                            public: InvalidFormatDescription::DuplicateModifier {
                                 name: stringify!($field),
                                 index: modifier.key.span.start.byte as usize,
                             }
@@ -48,7 +51,7 @@ macro_rules! parse_modifiers {
                 })*
                 break 'block Err(Error {
                     _inner: unused(modifier.key.span.error("invalid modifier key")),
-                    public: crate::error::InvalidFormatDescription::InvalidModifier {
+                    public: InvalidFormatDescription::InvalidModifier {
                         value: String::from_utf8_lossy(*modifier.key).into_owned(),
                         index: modifier.key.span.start.byte as usize,
                     }
@@ -97,13 +100,14 @@ impl Item<'_> {
     pub(super) fn from_ast(ast_item: ast::Item<'_>) -> Result<Item<'_>, Error> {
         Ok(match ast_item {
             ast::Item::Component {
+                version,
                 _opening_bracket: _,
                 _leading_whitespace: _,
                 name,
                 modifiers,
                 _trailing_whitespace: _,
                 _closing_bracket: _,
-            } => Item::Component(component_from_ast(&name, &modifiers)?),
+            } => Item::Component(component_from_ast(version, &name, &modifiers)?),
             ast::Item::Literal(Spanned { value, span: _ }) => Item::Literal(value),
             ast::Item::EscapedBracket {
                 _first: _,
@@ -175,7 +179,7 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a>
         match item {
             #[expect(deprecated)]
             Item::Literal(literal) => Ok(Self::Literal(literal)),
-            Item::Component(component) => Ok(Self::Component(component.into())),
+            Item::Component(component) => Ok(Self::Component(component.try_into()?)),
             Item::Optional {
                 value: _,
                 format: _,
@@ -184,7 +188,7 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a>
                 _inner: unused(span.error(
                     "optional items are not supported in runtime-parsed format descriptions",
                 )),
-                public: crate::error::InvalidFormatDescription::NotSupported {
+                public: InvalidFormatDescription::NotSupported {
                     what: "optional item",
                     context: "runtime-parsed format descriptions",
                     index: span.start.byte as usize,
@@ -194,7 +198,7 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a>
                 _inner: unused(span.error(
                     "'first' items are not supported in runtime-parsed format descriptions",
                 )),
-                public: crate::error::InvalidFormatDescription::NotSupported {
+                public: InvalidFormatDescription::NotSupported {
                     what: "'first' item",
                     context: "runtime-parsed format descriptions",
                     index: span.start.byte as usize,
@@ -212,7 +216,7 @@ impl TryFrom<Item<'_>> for crate::format_description::OwnedFormatItem {
         match item {
             #[expect(deprecated)]
             Item::Literal(literal) => Ok(Self::Literal(literal.to_vec().into_boxed_slice())),
-            Item::Component(component) => Ok(Self::Component(component.into())),
+            Item::Component(component) => Ok(Self::Component(component.try_into()?)),
             Item::Optional {
                 value,
                 format,
@@ -224,7 +228,7 @@ impl TryFrom<Item<'_>> for crate::format_description::OwnedFormatItem {
                             "v1 and v2 format descriptions do not support optional items that are \
                              not formatted",
                         )),
-                        public: crate::error::InvalidFormatDescription::NotSupported {
+                        public: InvalidFormatDescription::NotSupported {
                             what: "optional item with `format:false`",
                             context: "v1 and v2 format descriptions",
                             index: format.span.start.byte as usize,
@@ -272,7 +276,7 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::__private::FormatDescr
             Item::Literal(literal) => Ok(Self::BorrowedLiteral(unsafe {
                 str::from_utf8_unchecked(literal)
             })),
-            Item::Component(component) => Ok(Self::Component(component.into())),
+            Item::Component(component) => Ok(Self::Component(component.try_into()?)),
             Item::Optional {
                 value,
                 format,
@@ -330,13 +334,14 @@ macro_rules! component_definition {
         }
 
         $($vis struct $variant {
-            $($field: Option<$field_type>),*
+            $($field: Spanned<Option<$field_type>>),*
         })*
 
         $(impl $variant {
             /// Parse the component from the AST, given its modifiers.
             #[inline]
             fn with_modifiers(
+                version: FormatDescriptionVersion,
                 modifiers: &[ast::Modifier<'_>],
                 _component_span: Span,
             ) -> Result<Self, Error>
@@ -344,12 +349,21 @@ macro_rules! component_definition {
                 // rustc will complain if the modifier is empty.
                 #[allow(unused_mut)]
                 let mut this = Self {
-                    $($field: None),*
+                    $($field: None.spanned(Span::DUMMY)),*
                 };
 
                 for modifier in modifiers {
                     $(#[expect(clippy::string_lit_as_bytes)]
                     if modifier.key.eq_ignore_ascii_case($parse_field.as_bytes()) {
+                        if version.is_at_least_v3() && this.$field.is_some() {
+                            return Err(Error {
+                                _inner: unused(modifier.key.span.error("duplicate modifier key")),
+                                public: InvalidFormatDescription::DuplicateModifier {
+                                    name: stringify!($field),
+                                    index: modifier.key.span.start.byte as usize,
+                                }
+                            });
+                        }
                         this.$field = Some(
                             component_definition!(@if_from_str $($from_str)?
                                 then {
@@ -358,12 +372,12 @@ macro_rules! component_definition {
                                     <$field_type>::from_modifier_value(&modifier.value)?
                                 }
                             )
-                        );
+                        ).spanned(modifier.key_value_span());
                         continue;
                     })*
                     return Err(Error {
                         _inner: unused(modifier.key.span.error("invalid modifier key")),
-                        public: crate::error::InvalidFormatDescription::InvalidModifier {
+                        public: InvalidFormatDescription::InvalidModifier {
                             value: String::from_utf8_lossy(*modifier.key).into_owned(),
                             index: modifier.key.span.start.byte as usize,
                         }
@@ -375,7 +389,7 @@ macro_rules! component_definition {
                         return Err(Error {
                             _inner: unused(_component_span.error("missing required modifier")),
                             public:
-                                crate::error::InvalidFormatDescription::MissingRequiredModifier {
+                                InvalidFormatDescription::MissingRequiredModifier {
                                     name: $parse_field,
                                     index: _component_span.start.byte as usize,
                                 }
@@ -390,16 +404,19 @@ macro_rules! component_definition {
         /// Parse a component from the AST, given its name and modifiers.
         #[inline]
         fn component_from_ast(
+            version: FormatDescriptionVersion,
             name: &Spanned<&[u8]>,
             modifiers: &[ast::Modifier<'_>],
         ) -> Result<AstComponent, Error> {
             $(#[expect(clippy::string_lit_as_bytes)]
             if name.eq_ignore_ascii_case($parse_variant.as_bytes()) {
-                return Ok(AstComponent::$variant($variant::with_modifiers(&modifiers, name.span)?));
+                return Ok(AstComponent::$variant(
+                    $variant::with_modifiers(version, &modifiers, name.span)?
+                ));
             })*
             Err(Error {
                 _inner: unused(name.span.error("invalid component")),
-                public: crate::error::InvalidFormatDescription::InvalidComponentName {
+                public: InvalidFormatDescription::InvalidComponentName {
                     name: String::from_utf8_lossy(name).into_owned(),
                     index: name.span.start.byte as usize,
                 },
@@ -480,12 +497,34 @@ component_definition! {
 }
 
 macro_rules! impl_from_ast_component_for {
-    ($($ty:ty),+ $(,)?) => {$(
-        impl From<AstComponent> for $ty {
+    ($([$reject_nonsensical:literal] $ty:ty),+ $(,)?) => {$(
+        impl TryFrom<AstComponent> for $ty {
+            type Error = Error;
+
             #[inline]
-            fn from(component: AstComponent) -> Self {
+            fn try_from(component: AstComponent) -> Result<Self, Self::Error> {
+                macro_rules! reject_modifier {
+                    ($modifier:ident, $modifier_str:literal, $context:literal) => {
+                        if $reject_nonsensical && $modifier.value.is_some() {
+                            return Err(Error {
+                                _inner: unused($modifier.span.error(concat!(
+                                    "the '",
+                                    $modifier_str,
+                                    "' modifier is not valid ",
+                                    $context
+                                ))),
+                                public: InvalidFormatDescription::InvalidModifierCombination {
+                                    modifier: $modifier_str,
+                                    context: $context,
+                                    index: $modifier.span.start.byte as usize,
+                                },
+                            });
+                        }
+                    };
+                }
+
                 use crate::format_description::modifier;
-                match component {
+                Ok(match component {
                     AstComponent::Day(Day { padding }) => Self::Day(modifier::Day {
                         padding: padding.unwrap_or_default().into(),
                     }),
@@ -501,7 +540,7 @@ macro_rules! impl_from_ast_component_for {
                         }),
                     },
                     AstComponent::Ignore(Ignore { count }) => Self::Ignore(modifier::Ignore {
-                        count: match count {
+                        count: match *count {
                             Some(value) => value,
                             None => bug!("required modifier was not set"),
                         },
@@ -514,15 +553,28 @@ macro_rules! impl_from_ast_component_for {
                         repr,
                         case_sensitive,
                     }) => match repr.unwrap_or_default() {
-                        MonthRepr::Numerical => Self::MonthNumerical(modifier::MonthNumerical {
-                            padding: padding.unwrap_or_default().into(),
-                        }),
-                        MonthRepr::Long => Self::MonthLong(modifier::MonthLong {
-                            case_sensitive: case_sensitive.unwrap_or_default().into(),
-                        }),
-                        MonthRepr::Short => Self::MonthShort(modifier::MonthShort {
-                            case_sensitive: case_sensitive.unwrap_or_default().into(),
-                        }),
+                        MonthRepr::Numerical => {
+                            reject_modifier!(
+                                case_sensitive,
+                                "case_sensitive",
+                                "for numerical month"
+                            );
+                            Self::MonthNumerical(modifier::MonthNumerical {
+                                padding: padding.unwrap_or_default().into(),
+                            })
+                        },
+                        MonthRepr::Long => {
+                            reject_modifier!(padding, "padding", "for long month");
+                            Self::MonthLong(modifier::MonthLong {
+                                case_sensitive: case_sensitive.unwrap_or_default().into(),
+                            })
+                        },
+                        MonthRepr::Short => {
+                            reject_modifier!(padding, "padding", "for short month");
+                            Self::MonthShort(modifier::MonthShort {
+                                case_sensitive: case_sensitive.unwrap_or_default().into(),
+                            })
+                        },
                     },
                     AstComponent::OffsetHour(OffsetHour {
                         sign_behavior,
@@ -589,18 +641,38 @@ macro_rules! impl_from_ast_component_for {
                         one_indexed,
                         case_sensitive,
                     }) => match repr.unwrap_or_default() {
-                        WeekdayRepr::Short => Self::WeekdayShort(modifier::WeekdayShort {
-                            case_sensitive: case_sensitive.unwrap_or_default().into(),
-                        }),
-                        WeekdayRepr::Long => Self::WeekdayLong(modifier::WeekdayLong {
-                            case_sensitive: case_sensitive.unwrap_or_default().into(),
-                        }),
-                        WeekdayRepr::Sunday => Self::WeekdaySunday(modifier::WeekdaySunday {
-                            one_indexed: one_indexed.unwrap_or_default().into(),
-                        }),
-                        WeekdayRepr::Monday => Self::WeekdayMonday(modifier::WeekdayMonday {
-                            one_indexed: one_indexed.unwrap_or_default().into(),
-                        }),
+                        WeekdayRepr::Short => {
+                            reject_modifier!(one_indexed, "one_indexed", "for short weekday");
+                            Self::WeekdayShort(modifier::WeekdayShort {
+                                case_sensitive: case_sensitive.unwrap_or_default().into(),
+                            })
+                        },
+                        WeekdayRepr::Long => {
+                            reject_modifier!(one_indexed, "one_indexed", "for long weekday");
+                            Self::WeekdayLong(modifier::WeekdayLong {
+                                case_sensitive: case_sensitive.unwrap_or_default().into(),
+                            })
+                        },
+                        WeekdayRepr::Sunday => {
+                            reject_modifier!(
+                                case_sensitive,
+                                "case_sensitive",
+                                "for numerical weekday"
+                            );
+                            Self::WeekdaySunday(modifier::WeekdaySunday {
+                                one_indexed: one_indexed.unwrap_or_default().into(),
+                            })
+                        },
+                        WeekdayRepr::Monday => {
+                            reject_modifier!(
+                                case_sensitive,
+                                "case_sensitive",
+                                "for numerical weekday"
+                            );
+                            Self::WeekdayMonday(modifier::WeekdayMonday {
+                                one_indexed: one_indexed.unwrap_or_default().into(),
+                            })
+                        },
                     },
                     AstComponent::WeekNumber(WeekNumber { padding, repr }) => {
                         match repr.unwrap_or_default() {
@@ -627,95 +699,108 @@ macro_rules! impl_from_ast_component_for {
                         range,
                         base,
                         sign_behavior,
-                    }) => match (
-                        base.unwrap_or_default(),
-                        repr.unwrap_or_default(),
-                        range.unwrap_or_default(),
-                    ) {
-                        #[cfg(feature = "large-dates")]
-                        (YearBase::Calendar, YearRepr::Full, YearRange::Extended) => {
-                            Self::CalendarYearFullExtendedRange(
-                                modifier::CalendarYearFullExtendedRange {
+                    }) => {
+                        #[cfg(not(feature = "large-dates"))]
+                        reject_modifier!(
+                            range,
+                            "range",
+                            "when the `large-dates` feature is not enabled"
+                        );
+
+                        match (
+                            base.unwrap_or_default(),
+                            repr.unwrap_or_default(),
+                            range.unwrap_or_default(),
+                        ) {
+                            #[cfg(feature = "large-dates")]
+                            (YearBase::Calendar, YearRepr::Full, YearRange::Extended) => {
+                                Self::CalendarYearFullExtendedRange(
+                                    modifier::CalendarYearFullExtendedRange {
+                                        padding: padding.unwrap_or_default().into(),
+                                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                                    },
+                                )
+                            }
+                            (YearBase::Calendar, YearRepr::Full, _) => {
+                                Self::CalendarYearFullStandardRange(
+                                    modifier::CalendarYearFullStandardRange {
+                                        padding: padding.unwrap_or_default().into(),
+                                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                                    },
+                                )
+                            }
+                            #[cfg(feature = "large-dates")]
+                            (YearBase::Calendar, YearRepr::Century, YearRange::Extended) => {
+                                Self::CalendarYearCenturyExtendedRange(
+                                    modifier::CalendarYearCenturyExtendedRange {
+                                        padding: padding.unwrap_or_default().into(),
+                                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                                    },
+                                )
+                            }
+                            (YearBase::Calendar, YearRepr::Century, _) => {
+                                Self::CalendarYearCenturyStandardRange(
+                                    modifier::CalendarYearCenturyStandardRange {
+                                        padding: padding.unwrap_or_default().into(),
+                                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                                    },
+                                )
+                            }
+                            #[cfg(feature = "large-dates")]
+                            (YearBase::IsoWeek, YearRepr::Full, YearRange::Extended) => {
+                                Self::IsoYearFullExtendedRange(modifier::IsoYearFullExtendedRange {
                                     padding: padding.unwrap_or_default().into(),
                                     sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                                },
-                            )
-                        }
-                        (YearBase::Calendar, YearRepr::Full, _) => {
-                            Self::CalendarYearFullStandardRange(
-                                modifier::CalendarYearFullStandardRange {
+                                })
+                            }
+                            (YearBase::IsoWeek, YearRepr::Full, _) => {
+                                Self::IsoYearFullStandardRange(modifier::IsoYearFullStandardRange {
                                     padding: padding.unwrap_or_default().into(),
                                     sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                                },
-                            )
-                        }
-                        #[cfg(feature = "large-dates")]
-                        (YearBase::Calendar, YearRepr::Century, YearRange::Extended) => {
-                            Self::CalendarYearCenturyExtendedRange(
-                                modifier::CalendarYearCenturyExtendedRange {
+                                })
+                            }
+                            #[cfg(feature = "large-dates")]
+                            (YearBase::IsoWeek, YearRepr::Century, YearRange::Extended) => {
+                                Self::IsoYearCenturyExtendedRange(
+                                    modifier::IsoYearCenturyExtendedRange {
+                                        padding: padding.unwrap_or_default().into(),
+                                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                                    },
+                                )
+                            }
+                            (YearBase::IsoWeek, YearRepr::Century, _) => {
+                                Self::IsoYearCenturyStandardRange(
+                                    modifier::IsoYearCenturyStandardRange {
+                                        padding: padding.unwrap_or_default().into(),
+                                        sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
+                                    },
+                                )
+                            }
+                            (YearBase::Calendar, YearRepr::LastTwo, _) => {
+                                #[cfg(feature = "large-dates")]
+                                reject_modifier!(range, "range", "when `repr:last_two` is used");
+                                Self::CalendarYearLastTwo(modifier::CalendarYearLastTwo {
                                     padding: padding.unwrap_or_default().into(),
-                                    sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                                },
-                            )
-                        }
-                        (YearBase::Calendar, YearRepr::Century, _) => {
-                            Self::CalendarYearCenturyStandardRange(
-                                modifier::CalendarYearCenturyStandardRange {
+                                })
+                            }
+                            (YearBase::IsoWeek, YearRepr::LastTwo, _) => {
+                                #[cfg(feature = "large-dates")]
+                                reject_modifier!(range, "range", "when `repr:last_two` is used");
+                                Self::IsoYearLastTwo(modifier::IsoYearLastTwo {
                                     padding: padding.unwrap_or_default().into(),
-                                    sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                                },
-                            )
+                                })
+                            }
                         }
-                        #[cfg(feature = "large-dates")]
-                        (YearBase::IsoWeek, YearRepr::Full, YearRange::Extended) => {
-                            Self::IsoYearFullExtendedRange(modifier::IsoYearFullExtendedRange {
-                                padding: padding.unwrap_or_default().into(),
-                                sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                            })
-                        }
-                        (YearBase::IsoWeek, YearRepr::Full, _) => {
-                            Self::IsoYearFullStandardRange(modifier::IsoYearFullStandardRange {
-                                padding: padding.unwrap_or_default().into(),
-                                sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                            })
-                        }
-                        #[cfg(feature = "large-dates")]
-                        (YearBase::IsoWeek, YearRepr::Century, YearRange::Extended) => {
-                            Self::IsoYearCenturyExtendedRange(
-                                modifier::IsoYearCenturyExtendedRange {
-                                    padding: padding.unwrap_or_default().into(),
-                                    sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                                },
-                            )
-                        }
-                        (YearBase::IsoWeek, YearRepr::Century, _) => {
-                            Self::IsoYearCenturyStandardRange(
-                                modifier::IsoYearCenturyStandardRange {
-                                    padding: padding.unwrap_or_default().into(),
-                                    sign_is_mandatory: sign_behavior.unwrap_or_default().into(),
-                                },
-                            )
-                        }
-                        (YearBase::Calendar, YearRepr::LastTwo, _) => {
-                            Self::CalendarYearLastTwo(modifier::CalendarYearLastTwo {
-                                padding: padding.unwrap_or_default().into(),
-                            })
-                        }
-                        (YearBase::IsoWeek, YearRepr::LastTwo, _) => {
-                            Self::IsoYearLastTwo(modifier::IsoYearLastTwo {
-                                padding: padding.unwrap_or_default().into(),
-                            })
-                        }
-                    },
-                }
+                    }
+                })
             }
         })+
     }
 }
 
 impl_from_ast_component_for!(
-    crate::format_description::Component,
-    crate::format_description::__private::Component,
+    [false] crate::format_description::Component,
+    [true] crate::format_description::__private::Component,
 );
 
 /// Get the target type for a given enum.
@@ -769,7 +854,7 @@ macro_rules! modifier {
             ),* $(,)?
         }
     )+) => {$(
-        #[derive(Default)]
+        #[derive(Default, Clone, Copy)]
         enum $name {
             $($(#[$attr])? $variant),*
         }
@@ -783,7 +868,7 @@ macro_rules! modifier {
                 })*
                 Err(Error {
                     _inner: unused(value.span.error("invalid modifier value")),
-                    public: crate::error::InvalidFormatDescription::InvalidModifier {
+                    public: InvalidFormatDescription::InvalidModifier {
                         value: String::from_utf8_lossy(value).into_owned(),
                         index: value.span.start.byte as usize,
                     },
@@ -952,7 +1037,7 @@ where
         .and_then(|val| val.parse::<T>().ok())
         .ok_or_else(|| Error {
             _inner: unused(value.span.error("invalid modifier value")),
-            public: crate::error::InvalidFormatDescription::InvalidModifier {
+            public: InvalidFormatDescription::InvalidModifier {
                 value: String::from_utf8_lossy(value).into_owned(),
                 index: value.span.start.byte as usize,
             },

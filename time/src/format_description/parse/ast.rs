@@ -27,6 +27,7 @@ pub(super) enum Item<'a> {
     },
     /// Part of a type, along with its modifiers.
     Component {
+        version: FormatDescriptionVersion,
         /// Where the opening bracket was in the format string.
         _opening_bracket: Unused<Location>,
         /// Whitespace between the opening bracket and name.
@@ -155,6 +156,10 @@ impl<'a> Modifier<'a> {
                     .to(token.span.end),
             ),
         })
+    }
+
+    pub(super) const fn key_value_span(&self) -> Span {
+        self.key.span.start.to(self.value.span.end)
     }
 }
 
@@ -401,6 +406,7 @@ where
     };
 
     Ok(Item::Component {
+        version,
         _opening_bracket: unused(opening_bracket),
         _leading_whitespace: unused(leading_whitespace),
         name,
