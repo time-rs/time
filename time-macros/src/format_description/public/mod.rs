@@ -1,5 +1,6 @@
 mod component;
 pub(super) mod modifier;
+mod optimizing;
 
 use proc_macro::TokenStream;
 
@@ -15,12 +16,12 @@ pub(crate) struct OwnedFormatItem {
 
 #[derive(Clone)]
 pub(crate) enum OwnedFormatItemInner {
-    Literal(Box<[u8]>),
-    StringLiteral(Box<str>),
+    Literal(Vec<u8>),
+    StringLiteral(String),
     Component(Component),
-    Compound(Box<[Self]>),
+    Compound(Vec<Self>),
     Optional { format: bool, item: Box<Self> },
-    First(Box<[Self]>),
+    First(Vec<Self>),
 }
 
 impl ToTokenStream for OwnedFormatItem {
@@ -38,7 +39,6 @@ impl ToTokenStream for OwnedFormatItem {
                 },
                 OwnedFormatItemInner::Compound(items) => {
                     let items = items
-                        .into_vec()
                         .into_iter()
                         .map(|item| {
                             quote_! { #S(Self { version: self.version, inner: item }), }
@@ -60,7 +60,6 @@ impl ToTokenStream for OwnedFormatItem {
                 }
                 OwnedFormatItemInner::First(items) => {
                     let items = items
-                        .into_vec()
                         .into_iter()
                         .map(|item| {
                             quote_! { #S(Self { version: self.version, inner: item }), }

@@ -56,13 +56,9 @@ fn nested_v1() {
     );
     assert_eq!(
         format_description!(version = 1, "[optional [ [[ ]]"),
-        &[BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(
-            &[
-                BorrowedFormatItem::StringLiteral(" "),
-                BorrowedFormatItem::StringLiteral("["),
-                BorrowedFormatItem::StringLiteral(" "),
-            ]
-        ))]
+        &[BorrowedFormatItem::Optional(
+            &BorrowedFormatItem::StringLiteral(" [ ")
+        )]
     );
     assert_eq!(
         format_description!(version = 1, "[first [a][[[]]"),
@@ -102,13 +98,9 @@ fn optional() {
     );
     assert_eq!(
         format_description!(version = 2, r"[optional [ \[ ]]"),
-        &[BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(
-            &[
-                BorrowedFormatItem::StringLiteral(" "),
-                BorrowedFormatItem::StringLiteral("["),
-                BorrowedFormatItem::StringLiteral(" "),
-            ]
-        ))]
+        &[BorrowedFormatItem::Optional(
+            &BorrowedFormatItem::StringLiteral(" [ ")
+        )]
     );
 }
 
@@ -116,9 +108,7 @@ fn optional() {
 fn first() {
     assert_eq!(
         format_description!(version = 2, "[first [a]]"),
-        &[BorrowedFormatItem::First(&[
-            BorrowedFormatItem::StringLiteral("a")
-        ])]
+        &[BorrowedFormatItem::StringLiteral("a")]
     );
     assert_eq!(
         format_description!(version = 2, "[first [a] [b]]"),
@@ -145,10 +135,7 @@ fn first() {
         format_description!(version = 2, r"[first [a][\[\[]]"),
         &[BorrowedFormatItem::First(&[
             BorrowedFormatItem::StringLiteral("a"),
-            BorrowedFormatItem::Compound(&[
-                BorrowedFormatItem::StringLiteral("["),
-                BorrowedFormatItem::StringLiteral("["),
-            ])
+            BorrowedFormatItem::StringLiteral("[["),
         ])]
     );
     assert_eq!(
@@ -205,10 +192,7 @@ fn backslash_escape() {
     );
     assert_eq!(
         format_description!(version = 2, r"foo\\"),
-        &[
-            BorrowedFormatItem::StringLiteral("foo"),
-            BorrowedFormatItem::StringLiteral(r"\"),
-        ]
+        &[BorrowedFormatItem::StringLiteral(r"foo\"),]
     );
     assert_eq!(
         format_description!(version = 2, r"\\"),
@@ -224,10 +208,7 @@ fn backslash_escape() {
     );
     assert_eq!(
         format_description!(version = 2, r"foo\\"),
-        &[
-            BorrowedFormatItem::StringLiteral("foo"),
-            BorrowedFormatItem::StringLiteral(r"\"),
-        ]
+        &[BorrowedFormatItem::StringLiteral(r"foo\")]
     );
 }
 
@@ -323,10 +304,7 @@ fn format_description_coverage() {
     );
     assert_eq!(
         format_description!("[[ "),
-        &[
-            BorrowedFormatItem::StringLiteral("["),
-            BorrowedFormatItem::StringLiteral(" ")
-        ]
+        &[BorrowedFormatItem::StringLiteral("[ ")]
     );
     assert_eq!(
         format_description!("[ignore count:2]"),

@@ -11,21 +11,32 @@ pub(crate) fn parse_with_version(
     version: FormatDescriptionVersion,
     s: &[u8],
     proc_span: proc_macro::Span,
-) -> Result<Vec<public::OwnedFormatItem>, crate::Error> {
+) -> Result<public::OwnedFormatItem, crate::Error> {
     let mut lexed = lexer::lex(version, s, proc_span);
     let ast = ast::parse(version, &mut lexed);
-    let format_items = format_item::parse(ast);
-    format_items
-        .map(|res| {
-            res.and_then(|item| {
-                Ok(public::OwnedFormatItem {
-                    version,
-                    inner: (version, item).try_into()?,
-                })
-            })
-            .map_err(Into::into)
-        })
-        .collect()
+    let format_items = format_item::parse(ast)
+        .map(|res| res.and_then(|item| (version, item).try_into()))
+        .collect::<Result<_, _>>()?;
+
+    let mut fd = public::OwnedFormatItem {
+        version,
+        inner: public::OwnedFormatItemInner::Compound(format_items),
+    };
+    fd.optimize();
+
+    let top_level_item = if let public::OwnedFormatItemInner::Compound(items) = &mut fd.inner
+        && items.len() == 1
+        && let Some(item) = items.pop()
+    {
+        public::OwnedFormatItem {
+            version,
+            inner: item,
+        }
+    } else {
+        fd
+    };
+
+    Ok(top_level_item)
 }
 
 #[derive(Debug, Clone, Copy)]

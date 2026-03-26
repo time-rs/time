@@ -217,42 +217,42 @@ fn parse_visibility(iter: &mut PeekableTokenStreamIter) -> Result<TokenStream, E
 }
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
-fn expand_format_description(
-    version: FormatDescriptionVersion,
-    items: Vec<format_description::public::OwnedFormatItem>,
-) -> TokenStream {
-    match version {
-        FormatDescriptionVersion::V1 | FormatDescriptionVersion::V2 => quote_! {
-            const {
-                use ::time::format_description::{*, modifier::*};
-                &[#S(
-                    items
-                        .into_iter()
-                        .map(|item| quote_! { #S(item), })
-                        .collect::<TokenStream>()
-                )] as StaticFormatDescription
+fn expand_format_description(item: format_description::public::OwnedFormatItem) -> TokenStream {
+    match item.version {
+        FormatDescriptionVersion::V1 | FormatDescriptionVersion::V2 => match &item.inner {
+            format_description::public::OwnedFormatItemInner::Compound(items) => {
+                let items = items
+                    .iter()
+                    .map(|inner_item| {
+                        quote_! {
+                            #S(format_description::public::OwnedFormatItem {
+                                version: item.version,
+                                inner: inner_item.clone(),
+                            }),
+                        }
+                    })
+                    .collect::<TokenStream>();
+                quote_! {
+                    const {
+                        use ::time::format_description::{*, modifier::*};
+                        &[#S(items)] as StaticFormatDescription
+                    }
+                }
             }
+            _ => quote_! {
+                const {
+                    use ::time::format_description::{*, modifier::*};
+                    &[#S(item)] as StaticFormatDescription
+                }
+            },
         },
-        FormatDescriptionVersion::V3 if items.len() == 1 => quote_! {
+        FormatDescriptionVersion::V3 => quote_! {
             const {
                 use ::time::format_description::__private::*;
                 use ::time::format_description::modifier::*;
-                #S(items[0].clone()).into_opaque()
+                #S(item).into_opaque()
             }
         },
-        FormatDescriptionVersion::V3 => {
-            let inner = format_description::public::OwnedFormatItemInner::Compound(
-                items.into_iter().map(|item| item.inner).collect(),
-            );
-            let item = format_description::public::OwnedFormatItem { version, inner };
-            quote_! {
-                const {
-                    use ::time::format_description::__private::*;
-                    use ::time::format_description::modifier::*;
-                    #S(item).into_opaque()
-                }
-            }
-        }
     }
 }
 
@@ -266,7 +266,7 @@ pub fn format_description(input: TokenStream) -> TokenStream {
         let (span, string) = helpers::get_string_literal(input)?;
         let items = format_description::parse_with_version(version, &string, span)?;
 
-        Ok(expand_format_description(version, items))
+        Ok(expand_format_description(items))
     })()
     .unwrap_or_else(|err: Error| err.to_compile_error())
 }
@@ -353,7 +353,7 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
             Some(TokenTree::Literal(_)) => {
                 let (span, format_string) = helpers::get_string_literal(tokens)?;
                 let items = format_description::parse_with_version(version, &format_string, span)?;
-                let items = expand_format_description(version, items);
+                let items = expand_format_description(items);
 
                 (items, String::from_utf8_lossy(&format_string).into_owned())
             }

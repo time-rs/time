@@ -164,8 +164,8 @@ impl TryFrom<(FormatDescriptionVersion, Item<'_>)> for public::OwnedFormatItemIn
         (version, item): (FormatDescriptionVersion, Item<'_>),
     ) -> Result<Self, Self::Error> {
         Ok(match item {
-            Item::Literal(literal) => Self::Literal(literal.to_vec().into_boxed_slice()),
-            Item::StringLiteral(string) => Self::StringLiteral(string.to_owned().into_boxed_str()),
+            Item::Literal(literal) => Self::Literal(literal.to_vec()),
+            Item::StringLiteral(string) => Self::StringLiteral(string.to_owned()),
             Item::Component(component) => Self::Component((version, component).try_into()?),
             Item::Optional {
                 format,
@@ -191,15 +191,12 @@ impl<'a> TryFrom<(FormatDescriptionVersion, Box<[Item<'a>]>)> for public::OwnedF
     fn try_from(
         (version, items): (FormatDescriptionVersion, Box<[Item<'a>]>),
     ) -> Result<Self, Self::Error> {
-        let items = items.into_vec();
-        Ok(match <[_; 1]>::try_from(items) {
-            Ok([item]) => (version, item).try_into()?,
-            Err(vec) => Self::Compound(
-                vec.into_iter()
-                    .map(|item| (version, item).try_into())
-                    .collect::<Result<_, _>>()?,
-            ),
-        })
+        Ok(Self::Compound(
+            items
+                .into_iter()
+                .map(|item| (version, item).try_into())
+                .collect::<Result<_, _>>()?,
+        ))
     }
 }
 
