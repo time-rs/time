@@ -11,7 +11,7 @@
 use std::convert::identity;
 use std::mem;
 
-use super::{OwnedFormatItem, OwnedFormatItemInner};
+use super::{Component, OwnedFormatItem, OwnedFormatItemInner};
 
 impl OwnedFormatItem {
     pub(crate) fn optimize(&mut self) {
@@ -29,6 +29,7 @@ impl OwnedFormatItemInner {
             Self::unnest_nested_first,
             Self::only_formatting_uplift_optional,
             Self::only_formatting_uplift_first,
+            Self::only_formatting_eliminate_end,
             Self::compound_containing_empty_string,
         ];
 
@@ -209,6 +210,21 @@ impl OwnedFormatItemInner {
 
         *self = items.remove(0);
         true
+    }
+
+    fn only_formatting_eliminate_end(&mut self) -> bool {
+        // This optimization only makes sense when *only* formatting is enabled, as otherwise the
+        // remaining items may be needed for parsing.
+        if !cfg!(feature = "formatting") || cfg!(feature = "parsing") {
+            return false;
+        }
+
+        if let Self::Component(Component::End(_)) = self {
+            *self = Self::no_op();
+            true
+        } else {
+            false
+        }
     }
 
     /// When a compound item contains an empty string literal, it can be removed as it has no
