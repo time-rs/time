@@ -1,7 +1,8 @@
+use rstest::rstest;
 use serde::{Deserialize, Serialize, Serializer};
-use serde_test::{assert_ser_tokens_error, Token};
+use serde_test::{Token, assert_ser_tokens_error};
 use time::macros::{datetime, format_description};
-use time::{error, OffsetDateTime};
+use time::{OffsetDateTime, error};
 
 /// Trigger `time::error::Format::StdIo` errors.
 ///
@@ -27,7 +28,7 @@ struct TestBadIo {
     dt: OffsetDateTime,
 }
 
-#[test]
+#[rstest]
 fn custom_serialize_io_error() {
     let value = TestBadIo {
         dt: datetime!(2000-01-01 00:00 -4:00),

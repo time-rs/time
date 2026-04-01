@@ -4,7 +4,7 @@ use rstest::rstest;
 use time::macros::offset;
 use time::{OffsetDateTime, UtcOffset};
 
-#[test]
+#[rstest]
 fn utc_is_zero() {
     assert_eq!(offset!(UTC), offset!(+0));
 }
@@ -172,17 +172,17 @@ fn neg(#[case] offset: UtcOffset, #[case] expected: UtcOffset) {
     assert_eq!(-offset, expected);
 }
 
-#[test]
+#[rstest]
 fn local_offset_at() {
     assert!(UtcOffset::local_offset_at(OffsetDateTime::UNIX_EPOCH).is_ok());
 }
 
-#[test]
+#[rstest]
 fn current_local_offset() {
     assert!(UtcOffset::current_local_offset().is_ok());
 }
 
-#[test]
+#[rstest]
 fn local_offset_success_when_multithreaded() {
     std::thread::spawn(|| {
         assert!(UtcOffset::current_local_offset().is_ok());

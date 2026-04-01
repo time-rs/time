@@ -1,7 +1,11 @@
-use std::error::Error;
+use std::fmt::Debug;
+use std::marker::PhantomData;
 
+use rstest::rstest;
 use serde::{Deserialize, Serialize};
 use serde_test::Configure;
+use time::Month::*;
+use time::Weekday::*;
 use time::macros::{date, datetime, time};
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, Weekday};
 
@@ -12,137 +16,96 @@ enum Format {
 
 use Format::*;
 
-fn serialize<T: Serialize>(val: T) -> Result<String, Box<dyn Error>> {
+#[rstest]
+#[case(Monday.compact(), "1")]
+#[case(Monday.readable(), r#""Monday""#)]
+#[case(March.compact(), "3")]
+#[case(March.readable(), r#""March""#)]
+#[case(time!(12:40:20).compact(), "[12,40,20,0]")]
+#[case(time!(12:40:20).readable(), r#""12:40:20.0""#)]
+#[case(datetime!(2022-05-20 12:40:20).compact(), "[2022,140,12,40,20,0]")]
+#[case(datetime!(2022-05-20 12:40:20).readable(), r#""2022-05-20 12:40:20.0""#)]
+#[case(datetime!(2022-05-20 12:40:20 UTC).compact(), "[2022,140,12,40,20,0,0,0,0]")]
+#[case(datetime!(2022-05-20 12:40:20 UTC).readable(), r#""2022-05-20 12:40:20.0 +00:00:00""#)]
+#[case(Duration::new(50, 0).compact(), "[50,0]")]
+#[case(Duration::new(50, 0).readable(), r#""50.000000000""#)]
+#[case(date!(2022-04-05).compact(), "[2022,95]")]
+#[case(date!(2022-04-05).readable(), r#""2022-04-05""#)]
+fn serialize<T>(#[case] value: T, #[case] expected: &str)
+where
+    T: Serialize,
+{
     let mut buf: Vec<u8> = Vec::new();
     let mut ser = serde_json::Serializer::new(&mut buf);
-    val.serialize(&mut ser)?;
-    let str = String::from_utf8(buf)?;
-    Ok(str)
+    value.serialize(&mut ser).expect("serialization failed");
+    assert_eq!(String::from_utf8(buf).as_deref(), Ok(expected));
 }
 
-fn deserialize<'a, T: Deserialize<'a>>(from: &'a str, fmt: Format) -> serde_json::Result<T> {
-    let mut de = serde_json::Deserializer::from_str(from);
-    match fmt {
+#[rstest]
+#[case(PhantomData::<Weekday>, Compact, "1", Monday)]
+#[case(PhantomData::<Weekday>, Readable, "1", Monday)]
+#[case(PhantomData::<Weekday>, Readable, r#""Monday""#, Monday)]
+#[case(PhantomData::<Month>, Compact, "3", March)]
+#[case(PhantomData::<Month>, Readable, "3", March)]
+#[case(PhantomData::<Month>, Readable, r#""March""#, March)]
+#[case(PhantomData::<Time>, Compact, "[12,40,20,0]", time!(12:40:20))]
+#[case(PhantomData::<Time>, Readable, "[12,40,20,0]", time!(12:40:20))]
+#[case(PhantomData::<Time>, Readable, r#""12:40:20.0""#, time!(12:40:20))]
+#[case(
+    PhantomData::<PrimitiveDateTime>,
+    Compact,
+    "[2022,140,12,40,20,0]",
+    datetime!(2022-05-20 12:40:20),
+)]
+#[case(
+    PhantomData::<PrimitiveDateTime>,
+    Readable,
+    "[2022,140,12,40,20,0]",
+    datetime!(2022-05-20 12:40:20),
+)]
+#[case(
+    PhantomData::<PrimitiveDateTime>,
+    Readable,
+    r#""2022-05-20 12:40:20.0""#,
+    datetime!(2022-05-20 12:40:20),
+)]
+#[case(
+    PhantomData::<OffsetDateTime>,
+    Compact,
+    "[2022,140,12,40,20,0,0,0,0]",
+    datetime!(2022-05-20 12:40:20 UTC),
+)]
+#[case(
+    PhantomData::<OffsetDateTime>,
+    Readable,
+    "[2022,140,12,40,20,0,0,0,0]",
+    datetime!(2022-05-20 12:40:20 UTC),
+)]
+#[case(
+    PhantomData::<OffsetDateTime>,
+    Readable,
+    r#""2022-05-20 12:40:20.0 +00:00:00""#,
+    datetime!(2022-05-20 12:40:20 UTC),
+)]
+#[case(PhantomData::<Duration>, Compact, "[50,0]", Duration::new(50, 0))]
+#[case(PhantomData::<Duration>, Readable, "[50,0]", Duration::new(50, 0))]
+#[case(PhantomData::<Duration>, Readable, r#""50.000000000""#, Duration::new(50, 0))]
+#[case(PhantomData::<Date>, Compact, "[2022,95]", date!(2022-04-05))]
+#[case(PhantomData::<Date>, Readable, "[2022,95]", date!(2022-04-05))]
+#[case(PhantomData::<Date>, Readable, r#""2022-04-05""#, date!(2022-04-05))]
+fn deserialize<T>(
+    #[case] _type: PhantomData<T>,
+    #[case] format: Format,
+    #[case] value: &str,
+    #[case] expected: T,
+) where
+    T: Debug + PartialEq + for<'de> Deserialize<'de>,
+{
+    let mut de = serde_json::Deserializer::from_str(value);
+    let value = match format {
         Compact => T::deserialize((&mut de).compact()),
         Readable => T::deserialize((&mut de).readable()),
     }
-}
-
-#[test]
-fn weekday_json() -> Result<(), Box<dyn Error>> {
-    use Weekday::*;
-
-    assert_eq!(serialize(Monday.compact())?, "1");
-    assert_eq!(deserialize::<Weekday>("1", Compact)?, Monday);
-
-    assert_eq!(serialize(Monday.readable())?, "\"Monday\"");
-    assert_eq!(deserialize::<Weekday>("\"Monday\"", Readable)?, Monday);
-    assert_eq!(deserialize::<Weekday>("1", Readable)?, Monday);
-
-    Ok(())
-}
-
-#[test]
-fn month_json() -> Result<(), Box<dyn Error>> {
-    use Month::*;
-
-    assert_eq!(serialize(March.compact())?, "3");
-    assert_eq!(deserialize::<Month>("3", Compact)?, March);
-
-    assert_eq!(serialize(March.readable())?, "\"March\"");
-    assert_eq!(deserialize::<Month>("\"March\"", Readable)?, March);
-    assert_eq!(deserialize::<Month>("3", Readable)?, March);
-
-    Ok(())
-}
-
-#[test]
-fn time_json() -> Result<(), Box<dyn Error>> {
-    let time = time!(12:40:20);
-
-    assert_eq!(serialize(time.compact())?, "[12,40,20,0]");
-    assert_eq!(deserialize::<Time>("[12,40,20,0]", Compact)?, time);
-
-    assert_eq!(serialize(time.readable())?, "\"12:40:20.0\"");
-    assert_eq!(deserialize::<Time>("\"12:40:20.0\"", Readable)?, time);
-    assert_eq!(deserialize::<Time>("[12,40,20,0]", Readable)?, time);
-
-    Ok(())
-}
-
-#[test]
-fn primitive_datetime_json() -> Result<(), Box<dyn Error>> {
-    let dt = datetime!(2022-05-20 12:40:20);
-
-    assert_eq!(serialize(dt.compact())?, "[2022,140,12,40,20,0]");
-    assert_eq!(
-        deserialize::<PrimitiveDateTime>("[2022,140,12,40,20,0]", Compact)?,
-        dt
-    );
-
-    assert_eq!(serialize(dt.readable())?, "\"2022-05-20 12:40:20.0\"");
-    assert_eq!(
-        deserialize::<PrimitiveDateTime>("\"2022-05-20 12:40:20.0\"", Readable)?,
-        dt
-    );
-    assert_eq!(
-        deserialize::<PrimitiveDateTime>("[2022,140,12,40,20,0]", Readable)?,
-        dt
-    );
-
-    Ok(())
-}
-
-#[test]
-fn offset_datetime_json() -> Result<(), Box<dyn Error>> {
-    let dt = datetime!(2022-05-20 12:40:20).assume_utc();
-
-    assert_eq!(serialize(dt.compact())?, "[2022,140,12,40,20,0,0,0,0]");
-    assert_eq!(
-        deserialize::<OffsetDateTime>("[2022,140,12,40,20,0,0,0,0]", Compact)?,
-        dt
-    );
-
-    assert_eq!(
-        serialize(dt.readable())?,
-        "\"2022-05-20 12:40:20.0 +00:00:00\""
-    );
-    assert_eq!(
-        deserialize::<OffsetDateTime>("\"2022-05-20 12:40:20.0 +00:00:00\"", Readable)?,
-        dt
-    );
-    assert_eq!(
-        deserialize::<OffsetDateTime>("[2022,140,12,40,20,0,0,0,0]", Readable)?,
-        dt
-    );
-
-    Ok(())
-}
-
-#[test]
-fn duration_json() -> Result<(), Box<dyn Error>> {
-    let dur = Duration::new(50, 0);
-
-    assert_eq!(serialize(dur.compact())?, "[50,0]");
-    assert_eq!(deserialize::<Duration>("[50,0]", Compact)?, dur);
-
-    assert_eq!(serialize(dur.readable())?, "\"50.000000000\"");
-    assert_eq!(deserialize::<Duration>("\"50.000000000\"", Readable)?, dur);
-    assert_eq!(deserialize::<Duration>("[50,0]", Readable)?, dur);
-
-    Ok(())
-}
-
-#[test]
-fn date_json() -> Result<(), Box<dyn Error>> {
-    let date = date!(2022-04-05);
-
-    assert_eq!(serialize(date.compact())?, "[2022,95]");
-    assert_eq!(deserialize::<Date>("[2022,95]", Compact)?, date);
-
-    assert_eq!(serialize(date.readable())?, "\"2022-04-05\"");
-    assert_eq!(deserialize::<Date>("\"2022-04-05\"", Readable)?, date);
-    assert_eq!(deserialize::<Date>("[2022,95]", Readable)?, date);
-
-    Ok(())
+    .expect("deserialization failed");
+    assert_eq!(value, expected);
 }

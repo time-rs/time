@@ -1,185 +1,152 @@
+use std::fmt::Debug;
 use std::num::NonZero;
 
+use rstest::rstest;
 use time::format_description::modifier::{Hour12, WeekNumberIso};
 use time::format_description::{BorrowedFormatItem, Component};
 use time::parsing::Parsed;
 use time::{Month, Time, Weekday, error};
 
-#[test]
-fn getters_setters() {
-    macro_rules! getters_setters {
-        ($( $(#[$attr:meta])* $setter:ident $getter:ident $value:expr;)*) => {$(
-            $(#[$attr])*
-            {
-                let mut parsed = Parsed::new();
-                parsed.$setter($value);
-                assert_eq!(parsed.$getter(), Some($value));
-            }
-        )*};
-    }
-
-    getters_setters! {
-        set_year year 5;
-        set_year_last_two year_last_two 5;
-        set_iso_year iso_year 5;
-        set_iso_year_last_two iso_year_last_two 5;
-        set_month month Month::May;
-        set_sunday_week_number sunday_week_number 5;
-        set_monday_week_number monday_week_number 5;
-        set_iso_week_number iso_week_number NonZero::new(5).expect("valid value");
-        set_weekday weekday Weekday::Monday;
-        set_ordinal ordinal NonZero::new(5).expect("valid value");
-        set_day day NonZero::new(5).expect("valid value");
-        set_hour_24 hour_24 5;
-        set_hour_12 hour_12 NonZero::new(5).expect("valid value");
-        set_hour_12_is_pm hour_12_is_pm true;
-        set_minute minute 5;
-        set_second second 5;
-        set_subsecond subsecond 5;
-        set_offset_hour offset_hour 5;
-        #[expect(deprecated)] set_offset_minute offset_minute 5;
-        set_offset_minute_signed offset_minute_signed -5;
-        #[expect(deprecated)] set_offset_second offset_second 5;
-        set_offset_second_signed offset_second_signed -5;
-    }
-
-    #[expect(deprecated)]
-    {
-        let mut parsed = Parsed::new();
-        parsed.set_offset_minute(200);
-        assert_eq!(parsed.offset_minute(), None);
-        parsed.set_offset_second(200);
-        assert_eq!(parsed.offset_second(), None);
-    }
+#[rstest]
+#[case(Parsed::set_year, Parsed::year, 5)]
+#[case(Parsed::set_year_last_two, Parsed::year_last_two, 5)]
+#[case(Parsed::set_iso_year, Parsed::iso_year, 5)]
+#[case(Parsed::set_iso_year_last_two, Parsed::iso_year_last_two, 5)]
+#[case(Parsed::set_month, Parsed::month, Month::May)]
+#[case(Parsed::set_sunday_week_number, Parsed::sunday_week_number, 5)]
+#[case(Parsed::set_monday_week_number, Parsed::monday_week_number, 5)]
+#[case(Parsed::set_iso_week_number, Parsed::iso_week_number, const { NonZero::new(5).unwrap() })]
+#[case(Parsed::set_weekday, Parsed::weekday, Weekday::Monday)]
+#[case(Parsed::set_ordinal, Parsed::ordinal, const { NonZero::new(5).unwrap() })]
+#[case(Parsed::set_day, Parsed::day, const { NonZero::new(5).unwrap() })]
+#[case(Parsed::set_hour_24, Parsed::hour_24, 5)]
+#[case(Parsed::set_hour_12, Parsed::hour_12, const { NonZero::new(5).unwrap() })]
+#[case(Parsed::set_hour_12_is_pm, Parsed::hour_12_is_pm, true)]
+#[case(Parsed::set_minute, Parsed::minute, 5)]
+#[case(Parsed::set_second, Parsed::second, 5)]
+#[case(Parsed::set_subsecond, Parsed::subsecond, 5)]
+#[case(Parsed::set_offset_hour, Parsed::offset_hour, 5)]
+#[expect(deprecated)]
+#[case(Parsed::set_offset_minute, Parsed::offset_minute, 5)]
+#[case(Parsed::set_offset_minute_signed, Parsed::offset_minute_signed, -5)]
+#[expect(deprecated)]
+#[case(Parsed::set_offset_second, Parsed::offset_second, 5)]
+#[case(Parsed::set_offset_second_signed, Parsed::offset_second_signed, -5)]
+fn getters_setters<T>(
+    #[case] setter: fn(&mut Parsed, T) -> Option<()>,
+    #[case] getter: fn(&Parsed) -> Option<T>,
+    #[case] value: T,
+) where
+    T: PartialEq + Copy + Debug,
+{
+    let mut parsed = Parsed::new();
+    assert!(setter(&mut parsed, value).is_some());
+    assert_eq!(getter(&parsed), Some(value));
 }
 
-#[test]
-fn builder_methods() {
-    #[expect(deprecated)]
-    let parsed = Parsed::new()
-        .with_year(5)
-        .and_then(|parsed| parsed.with_year_last_two(5))
-        .and_then(|parsed| parsed.with_iso_year(5))
-        .and_then(|parsed| parsed.with_iso_year_last_two(5))
-        .and_then(|parsed| parsed.with_month(Month::May))
-        .and_then(|parsed| parsed.with_sunday_week_number(5))
-        .and_then(|parsed| parsed.with_monday_week_number(5))
-        .and_then(|parsed| parsed.with_iso_week_number(NonZero::new(5).expect("valid value")))
-        .and_then(|parsed| parsed.with_weekday(Weekday::Monday))
-        .and_then(|parsed| parsed.with_ordinal(NonZero::new(5).expect("valid value")))
-        .and_then(|parsed| parsed.with_day(NonZero::new(5).expect("valid value")))
-        .and_then(|parsed| parsed.with_hour_24(5))
-        .and_then(|parsed| parsed.with_hour_12(NonZero::new(5).expect("valid value")))
-        .and_then(|parsed| parsed.with_hour_12_is_pm(true))
-        .and_then(|parsed| parsed.with_minute(5))
-        .and_then(|parsed| parsed.with_second(5))
-        .and_then(|parsed| parsed.with_subsecond(5))
-        .and_then(|parsed| parsed.with_offset_hour(5))
-        .and_then(|parsed| parsed.with_offset_minute(5))
-        .and_then(|parsed| parsed.with_offset_second(5))
-        .expect("all values are valid");
-
-    assert_eq!(parsed.year(), Some(5));
-    assert_eq!(parsed.year_last_two(), Some(5));
-    assert_eq!(parsed.iso_year(), Some(5));
-    assert_eq!(parsed.iso_year_last_two(), Some(5));
-    assert_eq!(parsed.month(), Some(Month::May));
-    assert_eq!(parsed.sunday_week_number(), Some(5));
-    assert_eq!(parsed.monday_week_number(), Some(5));
-    assert_eq!(
-        parsed.iso_week_number(),
-        Some(NonZero::new(5).expect("valid value"))
-    );
-    assert_eq!(parsed.weekday(), Some(Weekday::Monday));
-    assert_eq!(
-        parsed.ordinal(),
-        Some(NonZero::new(5).expect("valid value"))
-    );
-    assert_eq!(parsed.day(), Some(NonZero::new(5).expect("valid value")));
-    assert_eq!(parsed.hour_24(), Some(5));
-    assert_eq!(
-        parsed.hour_12(),
-        Some(NonZero::new(5).expect("valid value"))
-    );
-    assert_eq!(parsed.hour_12_is_pm(), Some(true));
-    assert_eq!(parsed.minute(), Some(5));
-    assert_eq!(parsed.second(), Some(5));
-    assert_eq!(parsed.subsecond(), Some(5));
-    assert_eq!(parsed.offset_hour(), Some(5));
-    #[expect(deprecated)]
-    {
-        assert_eq!(parsed.offset_minute(), Some(5));
-        assert_eq!(parsed.offset_second(), Some(5));
-    }
-
-    let parsed = Parsed::new()
-        .with_offset_minute_signed(-5)
-        .and_then(|parsed| parsed.with_offset_second_signed(-5))
-        .expect("all values are valid");
-
-    assert_eq!(parsed.offset_minute_signed(), Some(-5));
-    assert_eq!(parsed.offset_second_signed(), Some(-5));
-
-    #[expect(deprecated)]
-    {
-        assert!(Parsed::new().with_offset_minute(200).is_none());
-        assert!(Parsed::new().with_offset_second(200).is_none());
-    }
+#[rstest]
+#[expect(deprecated)]
+#[case(Parsed::set_offset_minute, Parsed::offset_minute, 200)]
+#[expect(deprecated)]
+#[case(Parsed::set_offset_second, Parsed::offset_second, 200)]
+fn getters_setters_fail<T>(
+    #[case] setter: fn(&mut Parsed, T) -> Option<()>,
+    #[case] getter: fn(&Parsed) -> Option<T>,
+    #[case] value: T,
+) {
+    let mut parsed = Parsed::new();
+    assert!(setter(&mut parsed, value).is_none());
+    assert!(getter(&parsed).is_none());
 }
 
-#[test]
-fn single_item_parse() {
-    assert!(Time::parse("a", &BorrowedFormatItem::StringLiteral("a")).is_err());
-    assert!(Time::parse("b", &BorrowedFormatItem::StringLiteral("a")).is_err());
+#[rstest]
+#[case(Parsed::with_year, Parsed::year, 5)]
+#[case(Parsed::with_year_last_two, Parsed::year_last_two, 5)]
+#[case(Parsed::with_iso_year, Parsed::iso_year, 5)]
+#[case(Parsed::with_iso_year_last_two, Parsed::iso_year_last_two, 5)]
+#[case(Parsed::with_month, Parsed::month, Month::May)]
+#[case(Parsed::with_sunday_week_number, Parsed::sunday_week_number, 5)]
+#[case(Parsed::with_monday_week_number, Parsed::monday_week_number, 5)]
+#[case(Parsed::with_iso_week_number, Parsed::iso_week_number, const { NonZero::new(5).unwrap() })]
+#[case(Parsed::with_weekday, Parsed::weekday, Weekday::Monday)]
+#[case(Parsed::with_ordinal, Parsed::ordinal, const { NonZero::new(5).unwrap() })]
+#[case(Parsed::with_day, Parsed::day, const { NonZero::new(5).unwrap() })]
+#[case(Parsed::with_hour_24, Parsed::hour_24, 5)]
+#[case(Parsed::with_hour_12, Parsed::hour_12, const { NonZero::new(5).unwrap() })]
+#[case(Parsed::with_hour_12_is_pm, Parsed::hour_12_is_pm, true)]
+#[case(Parsed::with_minute, Parsed::minute, 5)]
+#[case(Parsed::with_second, Parsed::second, 5)]
+#[case(Parsed::with_subsecond, Parsed::subsecond, 5)]
+#[case(Parsed::with_offset_hour, Parsed::offset_hour, 5)]
+#[expect(deprecated)]
+#[case(Parsed::with_offset_minute, Parsed::offset_minute, 5)]
+#[case(Parsed::with_offset_minute_signed, Parsed::offset_minute_signed, -5)]
+#[expect(deprecated)]
+#[case(Parsed::with_offset_second, Parsed::offset_second, 5)]
+#[case(Parsed::with_offset_second_signed, Parsed::offset_second_signed, -5)]
+fn builder_methods<T>(
+    #[case] builder: fn(Parsed, T) -> Option<Parsed>,
+    #[case] getter: fn(&Parsed) -> Option<T>,
+    #[case] value: T,
+) where
+    T: PartialEq + Copy + Debug,
+{
+    let parsed = builder(Parsed::new(), value).expect("valid value");
+    assert_eq!(getter(&parsed), Some(value));
 }
 
-#[test]
-fn component_err() {
-    macro_rules! input_or_empty {
-        () => {
-            b""
-        };
-        ($input:expr) => {
-            $input
-        };
-    }
-    macro_rules! assert_invalid_component {
-        ($component_name:expr, $component:expr $(, $input:expr)?) => {{
-            let mut parsed = Parsed::new();
-            assert_eq!(
-                parsed.parse_component(input_or_empty!($($input)?), $component),
-                Err(error::ParseFromDescription::InvalidComponent(
-                    $component_name
-                ))
-            );
-        }};
-    }
+#[rstest]
+#[expect(deprecated)]
+#[case(Parsed::with_offset_minute, Parsed::offset_minute, 200)]
+#[expect(deprecated)]
+#[case(Parsed::with_offset_second, Parsed::offset_second, 200)]
+fn builder_methods_fail<T>(
+    #[case] builder: fn(Parsed, T) -> Option<Parsed>,
+    #[case] getter: fn(&Parsed) -> Option<T>,
+    #[case] value: T,
+) {
+    assert!(builder(Parsed::new(), value).is_none());
+    assert!(getter(&Parsed::new()).is_none());
+}
 
-    assert_invalid_component!("day", Component::Day(<_>::default()));
-    assert_invalid_component!("month", Component::MonthNumerical(<_>::default()));
-    assert_invalid_component!("ordinal", Component::Ordinal(<_>::default()));
-    assert_invalid_component!("weekday", Component::WeekdayLong(<_>::default()));
-    assert_invalid_component!("week number", Component::WeekNumberIso(<_>::default()));
-    assert_invalid_component!(
-        "year",
-        Component::CalendarYearFullExtendedRange(<_>::default())
-    );
-    assert_invalid_component!("minute", Component::Minute(<_>::default()));
-    assert_invalid_component!("period", Component::Period(<_>::default()));
-    assert_invalid_component!("second", Component::Second(<_>::default()));
-    assert_invalid_component!("subsecond", Component::Subsecond(<_>::default()));
-    assert_invalid_component!("offset hour", Component::OffsetHour(<_>::default()));
-    assert_invalid_component!("offset minute", Component::OffsetMinute(<_>::default()));
-    assert_invalid_component!("offset second", Component::OffsetSecond(<_>::default()));
-    assert_invalid_component!(
-        "unix_timestamp",
-        Component::UnixTimestampSecond(<_>::default())
-    );
+#[rstest]
+#[case("a", BorrowedFormatItem::StringLiteral("a"))]
+#[case("b", BorrowedFormatItem::StringLiteral("a"))]
+fn single_item_parse(#[case] input: &str, #[case] format_item: BorrowedFormatItem) {
+    assert!(Time::parse(input, &format_item).is_err());
+}
 
-    assert_invalid_component!(
-        "week number",
-        Component::WeekNumberIso(WeekNumberIso::default()),
-        b"00"
+#[rstest]
+#[case("day", Component::Day(<_>::default()), b"")]
+#[case("month", Component::MonthNumerical(<_>::default()), b"")]
+#[case("ordinal", Component::Ordinal(<_>::default()), b"")]
+#[case("weekday", Component::WeekdayLong(<_>::default()), b"")]
+#[case("week number", Component::WeekNumberIso(<_>::default()), b"")]
+#[case("year", Component::CalendarYearFullExtendedRange(<_>::default()), b"")]
+#[case("minute", Component::Minute(<_>::default()), b"")]
+#[case("period", Component::Period(<_>::default()), b"")]
+#[case("second", Component::Second(<_>::default()), b"")]
+#[case("subsecond", Component::Subsecond(<_>::default()), b"")]
+#[case("offset hour", Component::OffsetHour(<_>::default()), b"")]
+#[case("offset minute", Component::OffsetMinute(<_>::default()), b"")]
+#[case("offset second", Component::OffsetSecond(<_>::default()), b"")]
+#[case("unix_timestamp", Component::UnixTimestampSecond(<_>::default()), b"")]
+#[case(
+    "week number",
+    Component::WeekNumberIso(WeekNumberIso::default()),
+    b"00"
+)]
+#[case("hour", Component::Hour12(Hour12::default()), b"00")]
+fn component_err(
+    #[case] component_name: &'static str,
+    #[case] component: Component,
+    #[case] input: &[u8],
+) {
+    let mut parsed = Parsed::new();
+    assert_eq!(
+        parsed.parse_component(input, component),
+        Err(error::ParseFromDescription::InvalidComponent(
+            component_name
+        ))
     );
-    assert_invalid_component!("hour", Component::Hour12(Hour12::default()), b"00");
 }

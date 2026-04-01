@@ -1,147 +1,66 @@
+use std::fmt::Debug;
 use std::num::NonZero;
 
+use rstest::rstest;
 use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
-use time::format_description::{BorrowedFormatItem, Component, OwnedFormatItem, modifier};
-use time::macros::{date, datetime, offset, time, utc_datetime};
+use time::format_description::{Component, OwnedFormatItem, StaticFormatDescription, modifier};
+use time::macros::{date, datetime, format_description as fd, offset, time, utc_datetime};
 use time::parsing::Parsed;
 use time::{
     Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday, error,
     format_description as fd,
 };
 
-macro_rules! invalid_literal {
-    () => {
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidLiteral { .. },
-        ))
-    };
+#[rstest]
+#[case("Sat, 02 Jan 2021 03:04:05 GMT", datetime!(2021-01-02 03:04:05 UTC))]
+#[case("Sat, 02 Jan 2021 03:04:05 UT", datetime!(2021-01-02 03:04:05 UTC))]
+#[case("Sat, 02 Jan 2021 03:04:05 +0000", datetime!(2021-01-02 03:04:05 UTC))]
+#[case("Sat, 02 Jan 2021 03:04:05 +0607", datetime!(2021-01-02 03:04:05 +06:07))]
+#[case("Sat, 02 Jan 2021 03:04:05 -0607", datetime!(2021-01-02 03:04:05 -06:07))]
+#[case("Fri, 31 Dec 2021 23:59:60 Z", datetime!(2021-12-31 23:59:59.999_999_999 UTC))]
+#[case("Fri, 31 Dec 2021 23:59:60 z", datetime!(2021-12-31 23:59:59.999_999_999 UTC))]
+#[case("Fri, 31 Dec 2021 23:59:60 a", datetime!(2021-12-31 23:59:59.999_999_999 UTC))]
+#[case("Fri, 31 Dec 2021 23:59:60 A", datetime!(2021-12-31 23:59:59.999_999_999 UTC))]
+#[case("Fri, 31 Dec 2021 17:52:60 -0607", datetime!(2021-12-31 17:52:59.999_999_999 -06:07))]
+#[case("Sat, 01 Jan 2022 06:06:60 +0607", datetime!(2022-01-01 06:06:59.999_999_999 +06:07))]
+fn rfc_2822_odt(#[case] input: &str, #[case] expected: OffsetDateTime) {
+    assert_eq!(OffsetDateTime::parse(input, &Rfc2822).ok(), Some(expected));
 }
-macro_rules! invalid_component {
-    ($name:literal) => {
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent($name),
-        ))
-    };
+
+#[rstest]
+#[case("Sat, 02 Jan 2021 03:04:05 GMT", utc_datetime!(2021-01-02 03:04:05))]
+#[case("Sat, 02 Jan 2021 03:04:05 UT", utc_datetime!(2021-01-02 03:04:05))]
+#[case("Sat, 02 Jan 2021 03:04:05 +0000", utc_datetime!(2021-01-02 03:04:05))]
+#[case("Sat, 02 Jan 2021 03:04:05 +0607", datetime!(2021-01-02 03:04:05 +06:07).to_utc())]
+#[case("Sat, 02 Jan 2021 03:04:05 -0607", datetime!(2021-01-02 03:04:05 -06:07).to_utc())]
+#[case("Fri, 31 Dec 2021 23:59:60 Z", utc_datetime!(2021-12-31 23:59:59.999_999_999))]
+#[case("Fri, 31 Dec 2021 23:59:60 z", utc_datetime!(2021-12-31 23:59:59.999_999_999))]
+#[case("Fri, 31 Dec 2021 23:59:60 a", utc_datetime!(2021-12-31 23:59:59.999_999_999))]
+#[case("Fri, 31 Dec 2021 23:59:60 A", utc_datetime!(2021-12-31 23:59:59.999_999_999))]
+#[case(
+    "Fri, 31 Dec 2021 17:52:60 -0607",
+    datetime!(2021-12-31 17:52:59.999_999_999 -06:07).to_utc()
+)]
+#[case(
+    "Sat, 01 Jan 2022 06:06:60 +0607",
+    datetime!(2022-01-01 06:06:59.999_999_999 +06:07).to_utc()
+)]
+fn rfc_2822_udt(#[case] input: &str, #[case] expected: UtcDateTime) {
+    assert_eq!(UtcDateTime::parse(input, &Rfc2822).ok(), Some(expected));
 }
 
-#[test]
-#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
-fn rfc_2822() -> time::Result<()> {
-    assert_eq!(
-        OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
-        datetime!(2021-01-02 03:04:05 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 UT", &Rfc2822)?,
-        datetime!(2021-01-02 03:04:05 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 +0000", &Rfc2822)?,
-        datetime!(2021-01-02 03:04:05 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 +0607", &Rfc2822)?,
-        datetime!(2021-01-02 03:04:05 +06:07),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("Sat, 02 Jan 2021 03:04:05 -0607", &Rfc2822)?,
-        datetime!(2021-01-02 03:04:05 -06:07),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("Fri, 31 Dec 2021 23:59:60 Z", &Rfc2822)?,
-        datetime!(2021-12-31 23:59:59.999_999_999 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("Fri, 31 Dec 2021 23:59:60 z", &Rfc2822)?,
-        datetime!(2021-12-31 23:59:59.999_999_999 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("Fri, 31 Dec 2021 23:59:60 a", &Rfc2822)?,
-        datetime!(2021-12-31 23:59:59.999_999_999 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("Fri, 31 Dec 2021 23:59:60 A", &Rfc2822)?,
-        datetime!(2021-12-31 23:59:59.999_999_999 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("Fri, 31 Dec 2021 17:52:60 -0607", &Rfc2822)?,
-        datetime!(2021-12-31 17:52:59.999_999_999 -06:07),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("Sat, 01 Jan 2022 06:06:60 +0607", &Rfc2822)?,
-        datetime!(2022-01-01 06:06:59.999_999_999 +06:07),
-    );
+#[rstest]
+#[case("Sat, 02 Jan 2021 03:04:05 GMT", date!(2021-01-02))]
+#[case("Sat, 02 Jan 2021 03:04:05 +0607", date!(2021-01-02))]
+#[case("Sat, 02 Jan 2021 03:04:05 -0607", date!(2021-01-02))]
+#[case("Sat, 02 Jan 21 03:04:05 -0607", date!(2021-01-02))]
+#[case("Sat, 02 Jan 71 03:04:05 -0607", date!(1971-01-02))]
+fn rfc_2822_date(#[case] input: &str, #[case] expected: Date) {
+    assert_eq!(Date::parse(input, &Rfc2822).ok(), Some(expected));
+}
 
-    assert_eq!(
-        UtcDateTime::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
-        utc_datetime!(2021-01-02 03:04:05),
-    );
-    assert_eq!(
-        UtcDateTime::parse("Sat, 02 Jan 2021 03:04:05 UT", &Rfc2822)?,
-        utc_datetime!(2021-01-02 03:04:05),
-    );
-    assert_eq!(
-        UtcDateTime::parse("Sat, 02 Jan 2021 03:04:05 +0000", &Rfc2822)?,
-        utc_datetime!(2021-01-02 03:04:05),
-    );
-    assert_eq!(
-        UtcDateTime::parse("Sat, 02 Jan 2021 03:04:05 +0607", &Rfc2822)?,
-        datetime!(2021-01-02 03:04:05 +06:07).to_utc(),
-    );
-    assert_eq!(
-        UtcDateTime::parse("Sat, 02 Jan 2021 03:04:05 -0607", &Rfc2822)?,
-        datetime!(2021-01-02 03:04:05 -06:07).to_utc(),
-    );
-    assert_eq!(
-        UtcDateTime::parse("Fri, 31 Dec 2021 23:59:60 Z", &Rfc2822)?,
-        utc_datetime!(2021-12-31 23:59:59.999_999_999),
-    );
-    assert_eq!(
-        UtcDateTime::parse("Fri, 31 Dec 2021 23:59:60 z", &Rfc2822)?,
-        utc_datetime!(2021-12-31 23:59:59.999_999_999),
-    );
-    assert_eq!(
-        UtcDateTime::parse("Fri, 31 Dec 2021 23:59:60 a", &Rfc2822)?,
-        utc_datetime!(2021-12-31 23:59:59.999_999_999),
-    );
-    assert_eq!(
-        UtcDateTime::parse("Fri, 31 Dec 2021 23:59:60 A", &Rfc2822)?,
-        utc_datetime!(2021-12-31 23:59:59.999_999_999),
-    );
-    assert_eq!(
-        UtcDateTime::parse("Fri, 31 Dec 2021 17:52:60 -0607", &Rfc2822)?,
-        datetime!(2021-12-31 17:52:59.999_999_999 -06:07).to_utc(),
-    );
-    assert_eq!(
-        UtcDateTime::parse("Sat, 01 Jan 2022 06:06:60 +0607", &Rfc2822)?,
-        datetime!(2022-01-01 06:06:59.999_999_999 +06:07).to_utc(),
-    );
-
-    assert_eq!(
-        Date::parse("Sat, 02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
-        date!(2021-01-02)
-    );
-    assert_eq!(
-        Date::parse("Sat, 02 Jan 2021 03:04:05 +0607", &Rfc2822)?,
-        date!(2021-01-02)
-    );
-    assert_eq!(
-        Date::parse("Sat, 02 Jan 2021 03:04:05 -0607", &Rfc2822)?,
-        date!(2021-01-02)
-    );
-    assert_eq!(
-        Date::parse("Sat, 02 Jan 21 03:04:05 -0607", &Rfc2822)?,
-        date!(2021-01-02)
-    );
-    assert_eq!(
-        Date::parse("Sat, 02 Jan 71 03:04:05 -0607", &Rfc2822)?,
-        date!(1971-01-02)
-    );
-
-    assert_eq!(
-        OffsetDateTime::parse("Sat,(\\\u{a})02 Jan 2021 03:04:05 GMT", &Rfc2822)?,
-        datetime!(2021-01-02 03:04:05 UTC),
-    );
+#[rstest]
+fn rfc_2822_time() {
     #[rustfmt::skip]
     assert_eq!(
         Time::parse(
@@ -153,652 +72,344 @@ fn rfc_2822() -> time::Result<()> {
             (\\\n\\\u{b})\
             02 \r\n  \r\n Jan 2021 03:04:05 GMT",
             &Rfc2822
-        )?,
-        time!(03:04:05)
+        ).ok(),
+        Some(time!(03:04:05))
     );
-
-    Ok(())
 }
 
-#[test]
-fn issue_661() -> time::Result<()> {
-    assert_eq!(
-        OffsetDateTime::parse("02 Jan 2021 03:04:05 +0607", &Rfc2822)?,
-        datetime!(2021-01-02 03:04:05 +06:07),
-    );
-    assert_eq!(
-        Date::parse("02 Jan 2021 03:04:05 +0607", &Rfc2822)?,
-        date!(2021-01-02)
-    );
-
-    Ok(())
+#[rstest]
+#[case("02 Jan 2021 03:04:05 +0607", datetime!(2021-01-02 03:04:05 +06:07))]
+fn issue_661_odt(#[case] input: &str, #[case] expected: OffsetDateTime) {
+    assert_eq!(OffsetDateTime::parse(input, &Rfc2822).ok(), Some(expected));
 }
 
-#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
-#[test]
-fn rfc_2822_err() {
-    // In the first test, the "weekday" component is invalid, we're actually testing the whitespace
-    // parser. The error is because the parser attempts and fails to parse the whitespace, but it's
-    // optional so it backtracks and attempts to parse the weekday (while still having leading
-    // whitespace). The weekday is also optional, so it backtracks and attempts to parse the day.
-    // This component is required, so it fails at this point.
-    assert!(matches!(
-        OffsetDateTime::parse(" \r\nM", &Rfc2822),
-        invalid_component!("day")
-    ));
+#[rstest]
+#[case("02 Jan 2021 03:04:05 +0607", date!(2021-01-02))]
+fn issue_661_date(#[case] input: &str, #[case] expected: Date) {
+    assert_eq!(Date::parse(input, &Rfc2822).ok(), Some(expected));
+}
 
+#[rstest]
+#[case(" \r\nM", "day")]
+#[case("Mon, o2", "day")]
+#[case("Mon, 02 jxn", "month")]
+#[case("Mon, 02 Jan abcd", "year")]
+#[case("Mon, 02 Jan 1899", "year")]
+#[case("Mon, 02 Jan 2021 ab", "hour")]
+#[case("Mon, 02 Jan 2021 03:04:ab", "second")]
+#[case("Mon, 02 Jan 2021 03:04 6", "offset hour")]
+#[case("Mon, 02 Jan 2021 03:04:05 -6", "offset hour")]
+#[case("Mon, 02 Jan 2021 03:04:05 -060", "offset minute")]
+fn rfc_2822_err_invalid_component(#[case] input: &str, #[case] component_name: &str) {
     assert!(matches!(
-        OffsetDateTime::parse("Mon:", &Rfc2822),
-        invalid_literal!()
+        OffsetDateTime::parse(input, &Rfc2822),
+        Err(error::Parse::ParseFromDescription(error::ParseFromDescription::InvalidComponent(name)))
+            if name == component_name
     ));
+}
+
+#[rstest]
+#[case("Mon:")]
+#[case("Mon, 02_")]
+#[case("Mon, 02 Jan_")]
+#[case("Mon, 02 Jan 2021_")]
+#[case("Mon, 02 Jan 21_")]
+#[case("Mon, 02 Jan 2021 03_")]
+#[case("Mon, 02 Jan 2021 03:04_")]
+#[case("Mon, 02 Jan 2021 03:04:05_")]
+#[case("Mon, 02 Jan 2021 03:04:05:ab")]
+fn rfc_2822_err_invalid_literal(#[case] input: &str) {
     assert!(matches!(
-        OffsetDateTime::parse("Mon, o2", &Rfc2822),
-        invalid_component!("day")
+        OffsetDateTime::parse(input, &Rfc2822),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidLiteral { .. }
+        ))
     ));
+}
+
+#[rstest]
+#[case("Fri, 31 Dec 2021 23:59:61 Z", false)]
+#[case("Fri, 31 Dec 2021 03:04:60 Z", true)]
+#[case("Fri, 30 Dec 2021 23:59:60 Z", true)]
+fn rfc_2822_err_component_range(#[case] input: &str, #[case] conditional: bool) {
     assert!(matches!(
-        OffsetDateTime::parse("Mon, 02_", &Rfc2822),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 jxn", &Rfc2822),
-        invalid_component!("month")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan_", &Rfc2822),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan abcd", &Rfc2822),
-        invalid_component!("year")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan 1899", &Rfc2822),
-        invalid_component!("year")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan 2021_", &Rfc2822),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan 21_", &Rfc2822),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan 2021 ab", &Rfc2822),
-        invalid_component!("hour")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan 2021 03_", &Rfc2822),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan 2021 03:ab", &Rfc2822),
-        invalid_component!("minute")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan 2021 03:04_", &Rfc2822),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan 2021 03:04:ab", &Rfc2822),
-        invalid_component!("second")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan 2021 03:04:05_", &Rfc2822),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan 2021 03:04 6", &Rfc2822),
-        invalid_component!("offset hour")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan 2021 03:04:05 -6", &Rfc2822),
-        invalid_component!("offset hour")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Mon, 02 Jan 2021 03:04:05 -060", &Rfc2822),
-        invalid_component!("offset minute")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("Fri, 31 Dec 2021 23:59:61 Z", &Rfc2822),
+        OffsetDateTime::parse(input, &Rfc2822),
         Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
-            if component.name() == "second" && !component.is_conditional()
+            if component.name() == "second" && component.is_conditional() == conditional
     ));
+}
+
+#[rstest]
+#[case("2021-01-02T03:04:05Z", datetime!(2021-01-02 03:04:05 UTC))]
+#[case("2021-12-31T23:59:60Z", datetime!(2021-12-31 23:59:59.999_999_999 UTC))]
+#[case("2015-07-01T00:59:60+01:00", datetime!(2015-06-30 23:59:59.999_999_999 UTC))]
+#[case("2021-01-02T03:04:05.1Z", datetime!(2021-01-02 03:04:05.1 UTC))]
+#[case("2021-01-02T03:04:05.12Z", datetime!(2021-01-02 03:04:05.12 UTC))]
+#[case("2021-01-02T03:04:05.123Z", datetime!(2021-01-02 03:04:05.123 UTC))]
+#[case("2021-01-02T03:04:05.1234Z", datetime!(2021-01-02 03:04:05.123_4 UTC))]
+#[case("2021-01-02T03:04:05.12345Z", datetime!(2021-01-02 03:04:05.123_45 UTC))]
+#[case("2021-01-02T03:04:05.123456Z", datetime!(2021-01-02 03:04:05.123_456 UTC))]
+#[case("2021-01-02T03:04:05.1234567Z", datetime!(2021-01-02 03:04:05.123_456_7 UTC))]
+#[case("2021-01-02T03:04:05.12345678Z", datetime!(2021-01-02 03:04:05.123_456_78 UTC))]
+#[case("2021-01-02T03:04:05.123456789Z", datetime!(2021-01-02 03:04:05.123_456_789 UTC))]
+#[case("2021-01-02T03:04:05.123456789-01:02", datetime!(2021-01-02 03:04:05.123_456_789 -01:02))]
+#[case("2021-01-02T03:04:05.123456789+01:02", datetime!(2021-01-02 03:04:05.123_456_789 +01:02))]
+#[case("2021-01-02T03:04:05.123-00:01", datetime!(2021-01-02 03:04:05.123 -00:01))]
+#[case("2021-01-02 03:04:05Z", datetime!(2021-01-02 03:04:05 UTC))]
+#[case("2021-01-02$03:04:05Z", datetime!(2021-01-02 03:04:05 UTC))]
+fn rfc_3339_odt(#[case] input: &str, #[case] expected: OffsetDateTime) {
+    assert_eq!(OffsetDateTime::parse(input, &Rfc3339).ok(), Some(expected));
+}
+
+#[rstest]
+#[case("2021-01-02T03:04:05Z", date!(2021-01-02))]
+#[case("2021-01-02T03:04:05.123+01:02", date!(2021-01-02))]
+#[case("2021-01-02T03:04:05.123-01:02", date!(2021-01-02))]
+fn rfc_3339_date(#[case] input: &str, #[case] expected: Date) {
+    assert_eq!(Date::parse(input, &Rfc3339).ok(), Some(expected));
+}
+
+#[rstest]
+#[case("2021-01-02T03:04:05Z", offset!(UTC))]
+#[case("2021-01-02T03:04:05.123+01:02", offset!(+01:02))]
+#[case("2021-01-02T03:04:05.123-01:02", offset!(-01:02))]
+#[case("2021-01-02T03:04:05.123-00:01", offset!(-00:01))]
+fn rfc_3339_utc_offset(#[case] input: &str, #[case] expected: UtcOffset) {
+    assert_eq!(UtcOffset::parse(input, &Rfc3339).ok(), Some(expected));
+}
+
+#[rstest]
+#[case("x", "year")]
+#[case("2021-x", "month")]
+#[case("2021-0", "month")]
+#[case("2021-01-0", "day")]
+#[case("2021-01-01", "separator")]
+#[case("2021-01-01T0", "hour")]
+#[case("2021-01-01T00:0", "minute")]
+#[case("2021-01-01T00:00:0", "second")]
+#[case("2021-01-01T00:00:00.x", "subsecond")]
+#[case("2021-01-01T00:00:00x", "offset hour")]
+#[case("2021-01-01T00:00:00+0", "offset hour")]
+#[case("2021-01-01T00:00:00+00:0", "offset minute")]
+#[case("2021-01-01T00:00:00+24:00", "offset hour")]
+fn rfc_3339_err_invalid_component(#[case] input: &str, #[case] component_name: &str) {
     assert!(matches!(
-        OffsetDateTime::parse("Fri, 31 Dec 2021 03:04:60 Z", &Rfc2822),
+        OffsetDateTime::parse(input, &Rfc3339),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent(name)
+        )) if name == component_name
+    ));
+}
+
+#[rstest]
+#[case("2021x")]
+#[case("2021-01x")]
+#[case("2021-01-01T00x")]
+#[case("2021-01-01T00:00x")]
+#[case("2021-01-01T00:00:00+00x")]
+fn rfc_3339_err_invalid_literal(#[case] input: &str) {
+    assert!(matches!(
+        OffsetDateTime::parse(input, &Rfc3339),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidLiteral { .. }
+        ))
+    ));
+}
+
+#[rstest]
+#[case("2021-13-01T00:00:00Z", "month", false)]
+#[case("2021-12-31T23:59:61Z", "second", false)]
+#[case("2021-01-02T23:59:60Z", "second", true)]
+#[case("2021-12-31T03:04:60Z", "second", true)]
+#[case("2021-12-31T23:59:60+01:00", "second", true)]
+#[case("2021-01-01T00:00:00+00:60", "offset minute", false)]
+fn rfc_3339_err_component_range(
+    #[case] input: &str,
+    #[case] component_name: &str,
+    #[case] is_conditional: bool,
+) {
+    assert!(matches!(
+        OffsetDateTime::parse(input, &Rfc3339),
         Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
-            if component.name() == "second" && component.is_conditional()
+            if component.name() == component_name && component.is_conditional() == is_conditional
     ));
+}
+
+#[rstest]
+#[case("2021-01-02T03:04:05Z ")]
+fn rfc_3339_err_unexpected_trailing_offset(#[case] input: &str) {
     assert!(matches!(
-        OffsetDateTime::parse("Fri, 30 Dec 2021 23:59:60 Z", &Rfc2822),
+        OffsetDateTime::parse(input, &Rfc3339),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+        ))
+    ));
+}
+
+#[rstest]
+#[case("2021-01-02T03:04:60Z", "second", false)]
+fn rfc_3339_err_component_range_pdt(
+    #[case] input: &str,
+    #[case] component_name: &str,
+    #[case] is_conditional: bool,
+) {
+    assert!(matches!(
+        PrimitiveDateTime::parse(input, &Rfc3339),
         Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
-            if component.name() == "second" && component.is_conditional()
+            if component.name() == component_name && component.is_conditional() == is_conditional
     ));
 }
 
-#[test]
-fn rfc_3339() -> time::Result<()> {
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-12-31T23:59:60Z", &Rfc3339)?,
-        datetime!(2021-12-31 23:59:59.999_999_999 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2015-07-01T00:59:60+01:00", &Rfc3339)?,
-        datetime!(2015-06-30 23:59:59.999_999_999 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05.1Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05.1 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05.12Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05.12 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05.123Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05.123 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05.1234Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05.123_4 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05.12345Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05.123_45 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05.123456Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05.123_456 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05.1234567Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05.123_456_7 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05.12345678Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05.123_456_78 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05.123456789Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05.123_456_789 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05.123456789-01:02", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05.123_456_789 -01:02),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05.123456789+01:02", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05.123_456_789 +01:02),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05.123-00:01", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05.123 -00:01),
-    );
-
-    assert_eq!(
-        Date::parse("2021-01-02T03:04:05Z", &Rfc3339)?,
-        date!(2021-01-02),
-    );
-    assert_eq!(
-        Date::parse("2021-01-02T03:04:05.123+01:02", &Rfc3339)?,
-        date!(2021-01-02),
-    );
-    assert_eq!(
-        Date::parse("2021-01-02T03:04:05.123-01:02", &Rfc3339)?,
-        date!(2021-01-02),
-    );
-
-    assert_eq!(
-        UtcOffset::parse("2021-01-02T03:04:05Z", &Rfc3339)?,
-        offset!(UTC),
-    );
-    assert_eq!(
-        UtcOffset::parse("2021-01-02T03:04:05.123+01:02", &Rfc3339)?,
-        offset!(+01:02),
-    );
-    assert_eq!(
-        UtcOffset::parse("2021-01-02T03:04:05.123-01:02", &Rfc3339)?,
-        offset!(-01:02),
-    );
-    assert_eq!(
-        UtcOffset::parse("2021-01-02T03:04:05.123-00:01", &Rfc3339)?,
-        offset!(-00:01),
-    );
-
-    // Any separator is allowed by RFC 3339, not just `T`.
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02 03:04:05Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05 UTC),
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02$03:04:05Z", &Rfc3339)?,
-        datetime!(2021-01-02 03:04:05 UTC),
-    );
-
-    Ok(())
-}
-
-#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
-#[test]
-fn rfc_3339_err() {
+#[rstest]
+#[case("2021x")]
+#[case("2021-01x")]
+#[case("2021-01-01T00x")]
+#[case("2021-01-01T00:00x")]
+#[case("2021-01-01T00:00:00+00x")]
+fn rfc_3339_err_invalid_literal_pdt(#[case] input: &str) {
     assert!(matches!(
-        PrimitiveDateTime::parse("x", &Rfc3339),
-        invalid_component!("year")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021x", &Rfc3339),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-x", &Rfc3339),
-        invalid_component!("month")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-0", &Rfc3339),
-        invalid_component!("month")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01x", &Rfc3339),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-0", &Rfc3339),
-        invalid_component!("day")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-01", &Rfc3339),
-        invalid_component!("separator")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-01T0", &Rfc3339),
-        invalid_component!("hour")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-01T00x", &Rfc3339),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-01T00:0", &Rfc3339),
-        invalid_component!("minute")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-01T00:00x", &Rfc3339),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-01T00:00:0", &Rfc3339),
-        invalid_component!("second")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-01T00:00:00.x", &Rfc3339),
-        invalid_component!("subsecond")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-01T00:00:00x", &Rfc3339),
-        invalid_component!("offset hour")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-01T00:00:00+0", &Rfc3339),
-        invalid_component!("offset hour")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-01T00:00:00+00x", &Rfc3339),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-01T00:00:00+00:0", &Rfc3339),
-        invalid_component!("offset minute")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-13-01T00:00:00Z", &Rfc3339),
-        invalid_component!("month")
-    ));
-    assert!(matches!(
-        PrimitiveDateTime::parse("2021-01-02T03:04:60Z", &Rfc3339),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second"
-    ));
-
-    // Conversions to offset-unaware types do not perform special treatment for leap seconds
-    // even if the input could refer to one.
-    assert!(matches!(
-        PrimitiveDateTime::parse("2022-01-01T00:59:60+01:00", &Rfc3339),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second"
-    ));
-    assert!(matches!(
-        Time::parse("2021-12-31T23:04:60Z", &Rfc3339),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second"
-    ));
-
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-02T03:04:05Z ", &Rfc3339),
+        PrimitiveDateTime::parse(input, &Rfc3339),
         Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
+            error::ParseFromDescription::InvalidLiteral { .. }
         ))
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("x", &Rfc3339),
-        invalid_component!("year")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021x", &Rfc3339),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-x", &Rfc3339),
-        invalid_component!("month")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-0", &Rfc3339),
-        invalid_component!("month")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01x", &Rfc3339),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-0", &Rfc3339),
-        invalid_component!("day")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01", &Rfc3339),
-        invalid_component!("separator")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01T0", &Rfc3339),
-        invalid_component!("hour")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01T00x", &Rfc3339),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01T00:0", &Rfc3339),
-        invalid_component!("minute")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01T00:00x", &Rfc3339),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01T00:00:0", &Rfc3339),
-        invalid_component!("second")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01T00:00:00.x", &Rfc3339),
-        invalid_component!("subsecond")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01T00:00:00x", &Rfc3339),
-        invalid_component!("offset hour")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01T00:00:00+0", &Rfc3339),
-        invalid_component!("offset hour")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01T00:00:00+00x", &Rfc3339),
-        invalid_literal!()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01T00:00:00+00:0", &Rfc3339),
-        invalid_component!("offset minute")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01T00:00:00+24:00", &Rfc3339),
-        invalid_component!("offset hour")
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-01T00:00:00+00:60", &Rfc3339),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "offset minute"
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-13-01T00:00:00Z", &Rfc3339),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "month"
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-12-31T23:59:61Z", &Rfc3339),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && !component.is_conditional()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-02T23:59:60Z", &Rfc3339),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && component.is_conditional()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-12-31T03:04:60Z", &Rfc3339),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && component.is_conditional()
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-12-31T23:59:60+01:00", &Rfc3339),
-        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component))) if component.name() == "second" && component.is_conditional()
     ));
 }
 
-#[test]
-fn iso_8601() {
-    assert_eq!(
-        OffsetDateTime::parse("2021-01-02T03:04:05Z", &Iso8601::DEFAULT),
-        Ok(datetime!(2021-01-02 03:04:05 UTC))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-002T03:04:05Z", &Iso8601::DEFAULT),
-        Ok(datetime!(2021-002 03:04:05 UTC))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021-W01-2T03:04:05Z", &Iso8601::DEFAULT),
-        Ok(datetime!(2021-W01-2 03:04:05 UTC))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("-002021-01-02T03:04:05+01:00", &Iso8601::DEFAULT),
-        Ok(datetime!(-002021-01-02 03:04:05 +01:00))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("20210102T03.1Z", &Iso8601::DEFAULT),
-        Ok(datetime!(2021-01-02 03:06:00 UTC))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021002T0304.1Z", &Iso8601::DEFAULT),
-        Ok(datetime!(2021-002 03:04:06 UTC))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("2021W012T030405.1-0100", &Iso8601::DEFAULT),
-        Ok(datetime!(2021-W01-2 03:04:05.1 -01:00))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("20210102T03Z", &Iso8601::DEFAULT),
-        Ok(datetime!(2021-01-02 03:00:00 UTC))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("20210102T0304Z", &Iso8601::DEFAULT),
-        Ok(datetime!(2021-01-02 03:04:00 UTC))
-    );
-
-    assert_eq!(
-        UtcDateTime::parse("2021-01-02T03:04:05Z", &Iso8601::DEFAULT),
-        Ok(utc_datetime!(2021-01-02 03:04:05))
-    );
-    assert_eq!(
-        UtcDateTime::parse("2021-002T03:04:05Z", &Iso8601::DEFAULT),
-        Ok(utc_datetime!(2021-002 03:04:05))
-    );
-    assert_eq!(
-        UtcDateTime::parse("2021-W01-2T03:04:05Z", &Iso8601::DEFAULT),
-        Ok(utc_datetime!(2021-W01-2 03:04:05))
-    );
-    assert_eq!(
-        UtcDateTime::parse("-002021-01-02T03:04:05+01:00", &Iso8601::DEFAULT),
-        Ok(datetime!(-002021-01-02 03:04:05 +01:00).to_utc())
-    );
-    assert_eq!(
-        UtcDateTime::parse("20210102T03.1Z", &Iso8601::DEFAULT),
-        Ok(utc_datetime!(2021-01-02 03:06:00))
-    );
-    assert_eq!(
-        UtcDateTime::parse("2021002T0304.1Z", &Iso8601::DEFAULT),
-        Ok(utc_datetime!(2021-002 03:04:06))
-    );
-    assert_eq!(
-        UtcDateTime::parse("2021W012T030405.1-0100", &Iso8601::DEFAULT),
-        Ok(datetime!(2021-W01-2 03:04:05.1 -01:00).to_utc())
-    );
-    assert_eq!(
-        UtcDateTime::parse("20210102T03Z", &Iso8601::DEFAULT),
-        Ok(utc_datetime!(2021-01-02 03:00:00))
-    );
-    assert_eq!(
-        UtcDateTime::parse("20210102T0304Z", &Iso8601::DEFAULT),
-        Ok(utc_datetime!(2021-01-02 03:04:00))
-    );
-    assert_eq!(UtcOffset::parse("+07", &Iso8601::DEFAULT), Ok(offset!(+7)));
-    assert_eq!(
-        UtcOffset::parse("+0304", &Iso8601::DEFAULT),
-        Ok(offset!(+03:04))
-    );
-    assert_eq!(
-        PrimitiveDateTime::parse("2022-07-22T12:52:50.349409", &Iso8601::DEFAULT),
-        Ok(datetime!(2022-07-22 12:52:50.349409000))
-    );
-
-    // #759
-    assert_eq!(
-        Time::parse("T01:02:03.123456789", &Iso8601::DEFAULT),
-        Ok(time!(01:02:03.123_456_789))
-    )
+#[rstest]
+#[case("x", "year")]
+#[case("2021-x", "month")]
+#[case("2021-0", "month")]
+#[case("2021-13-01T00:00:00Z", "month")]
+#[case("2021-01-0", "day")]
+#[case("2021-01-01", "separator")]
+#[case("2021-01-01T0", "hour")]
+#[case("2021-01-01T00:0", "minute")]
+#[case("2021-01-01T00:00:0", "second")]
+#[case("2021-01-01T00:00:00.x", "subsecond")]
+#[case("2021-01-01T00:00:00x", "offset hour")]
+#[case("2021-01-01T00:00:00+0", "offset hour")]
+#[case("2021-01-01T00:00:00+00:0", "offset minute")]
+#[case("2021-01-01T00:00:00+24:00", "offset hour")]
+fn rfc_3339_err_invalid_component_pdt(#[case] input: &str, #[case] component_name: &str) {
+    assert!(matches!(
+        PrimitiveDateTime::parse(input, &Rfc3339),
+        Err(error::Parse::ParseFromDescription(error::ParseFromDescription::InvalidComponent(name)))
+            if name == component_name
+    ));
 }
 
-#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
-#[test]
-fn iso_8601_error() {
+#[rstest]
+#[case("2022-01-01T00:59:60+01:00", false)]
+#[case("2021-12-31T23:04:60Z", false)]
+fn rfc_3339_err_component_range_time(#[case] input: &str, #[case] is_conditional: bool) {
     assert!(matches!(
-        OffsetDateTime::parse("20210102T03:04Z", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
+        Time::parse(input, &Rfc3339),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
+            if component.name() == "second" && component.is_conditional() == is_conditional
     ));
-    assert!(matches!(
-        OffsetDateTime::parse("20210102T03.", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-0102", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-x", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-Wx", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-W012", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-W01-x", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-02T03:x", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-02T03:04x", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse("2021-01-02T03:04:", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert_eq!(
-        OffsetDateTime::parse("01:02", &Iso8601::DEFAULT),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation
-        ))
-    );
+}
 
+#[rstest]
+#[case("2021-01-02T03:04:05Z", datetime!(2021-01-02 03:04:05 UTC))]
+#[case("2021-002T03:04:05Z", datetime!(2021-002 03:04:05 UTC))]
+#[case("2021-W01-2T03:04:05Z", datetime!(2021-W01-2 03:04:05 UTC))]
+#[case("-002021-01-02T03:04:05+01:00", datetime!(-002021-01-02 03:04:05 +01:00))]
+#[case("20210102T03.1Z", datetime!(2021-01-02 03:06:00 UTC))]
+#[case("2021002T0304.1Z", datetime!(2021-002 03:04:06 UTC))]
+#[case("2021W012T030405.1-0100", datetime!(2021-W01-2 03:04:05.1 -01:00))]
+#[case("20210102T03Z", datetime!(2021-01-02 03:00:00 UTC))]
+#[case("20210102T0304Z", datetime!(2021-01-02 03:04:00 UTC))]
+fn iso_8601_odt(#[case] input: &str, #[case] expected: OffsetDateTime) {
+    assert_eq!(
+        OffsetDateTime::parse(input, &Iso8601::DEFAULT).ok(),
+        Some(expected)
+    );
+}
+
+#[rstest]
+#[case("2021-01-02T03:04:05Z", utc_datetime!(2021-01-02 03:04:05))]
+#[case("2021-002T03:04:05Z", utc_datetime!(2021-002 03:04:05))]
+#[case("2021-W01-2T03:04:05Z", utc_datetime!(2021-W01-2 03:04:05))]
+#[case("-002021-01-02T03:04:05+01:00", datetime!(-002021-01-02 03:04:05 +01:00).to_utc())]
+#[case("20210102T03.1Z", utc_datetime!(2021-01-02 03:06:00))]
+#[case("2021002T0304.1Z", utc_datetime!(2021-002 03:04:06))]
+#[case("2021W012T030405.1-0100", datetime!(2021-W01-2 03:04:05.1 -01:00).to_utc())]
+#[case("20210102T03Z", utc_datetime!(2021-01-02 03:00:00))]
+#[case("20210102T0304Z", utc_datetime!(2021-01-02 03:04:00))]
+fn iso_8601_udt(#[case] input: &str, #[case] expected: UtcDateTime) {
+    assert_eq!(
+        UtcDateTime::parse(input, &Iso8601::DEFAULT).ok(),
+        Some(expected)
+    );
+}
+
+#[rstest]
+#[case("+07", offset!(+7))]
+#[case("+0304", offset!(+03:04))]
+fn iso_8601_offset(#[case] input: &str, #[case] expected: UtcOffset) {
+    assert_eq!(
+        UtcOffset::parse(input, &Iso8601::DEFAULT).ok(),
+        Some(expected)
+    );
+}
+
+#[rstest]
+#[case("2022-07-22T12:52:50.349409", datetime!(2022-07-22 12:52:50.349409000))]
+fn iso_8601_pdt(#[case] input: &str, #[case] expected: PrimitiveDateTime) {
+    assert_eq!(
+        PrimitiveDateTime::parse(input, &Iso8601::DEFAULT).ok(),
+        Some(expected)
+    );
+}
+
+#[rstest]
+#[case("T01:02:03.123456789", time!(01:02:03.123_456_789))]
+fn iso_8601_time(#[case] input: &str, #[case] expected: Time) {
+    assert_eq!(Time::parse(input, &Iso8601::DEFAULT).ok(), Some(expected));
+}
+
+#[rstest]
+#[case("20210102T03:04Z")]
+#[case("20210102T03.")]
+#[case("2021-0102")]
+#[case("2021-01-x")]
+#[case("2021-Wx")]
+#[case("2021-W012")]
+#[case("2021-W01-x")]
+#[case("2021-01-02T03:x")]
+#[case("2021-01-02T03:04x")]
+#[case("2021-01-02T03:04:")]
+fn iso_8601_unexpected_trailing_odt(#[case] input: &str) {
     assert!(matches!(
-        UtcDateTime::parse("20210102T03:04Z", &Iso8601::DEFAULT),
+        OffsetDateTime::parse(input, &Iso8601::DEFAULT),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
         ))
     ));
+}
+
+#[rstest]
+#[case("20210102T03:04Z")]
+#[case("20210102T03.")]
+#[case("2021-0102")]
+#[case("2021-01-x")]
+#[case("2021-Wx")]
+#[case("2021-W012")]
+#[case("2021-W01-x")]
+#[case("2021-01-02T03:x")]
+#[case("2021-01-02T03:04x")]
+#[case("2021-01-02T03:04:")]
+fn iso_8601_unexpected_trailing_udt(#[case] input: &str) {
     assert!(matches!(
-        UtcDateTime::parse("20210102T03.", &Iso8601::DEFAULT),
+        UtcDateTime::parse(input, &Iso8601::DEFAULT),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
         ))
     ));
-    assert!(matches!(
-        UtcDateTime::parse("2021-0102", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        UtcDateTime::parse("2021-01-x", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        UtcDateTime::parse("2021-Wx", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        UtcDateTime::parse("2021-W012", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        UtcDateTime::parse("2021-W01-x", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        UtcDateTime::parse("2021-01-02T03:x", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        UtcDateTime::parse("2021-01-02T03:04x", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
-    assert!(matches!(
-        UtcDateTime::parse("2021-01-02T03:04:", &Iso8601::DEFAULT),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
-        ))
-    ));
+}
+
+#[rstest]
+fn iso_8601_error_insufficient_type_information() {
     assert_eq!(
         UtcDateTime::parse("01:02", &Iso8601::DEFAULT),
         Err(error::Parse::TryFromParsed(
@@ -807,1130 +418,994 @@ fn iso_8601_error() {
     );
 }
 
-#[test]
-fn parse_time() -> time::Result<()> {
-    let format_input_output = [
-        (fd::parse_borrowed::<1>("[hour repr:12] [period]")?, "01 PM", time!(1 PM)),
-        (fd::parse_borrowed::<1>("[hour]")?, "12", time!(12:00)),
-        (
-            fd::parse_borrowed::<1>("[hour]:[minute]:[second]")?,
-            "13:02:03",
-            time!(13:02:03),
-        ),
-        (
-            fd::parse_borrowed::<1>("[hour repr:12]:[minute] [period]")?,
-            "01:02 PM",
-            time!(1:02 PM),
-        ),
-        (fd::parse_borrowed::<1>("[hour]:[minute]")?, "01:02", time!(1:02)),
-        (
-            fd::parse_borrowed::<1>("[hour repr:12]:[minute] [period]")?,
-            "01:02 AM",
-            time!(1:02 AM),
-        ),
-        (fd::parse_borrowed::<1>("[hour]:[minute]")?, "01:02", time!(1:02)),
-        (fd::parse_borrowed::<1>("[hour repr:12] [period]")?, "12 AM", time!(12 AM)),
-        (fd::parse_borrowed::<1>("[hour repr:12] [period]")?, "12 PM", time!(12 PM)),
-    ];
-
-    for (format_description, input, output) in &format_input_output {
-        assert_eq!(&Time::parse(input, format_description)?, output);
-        assert_eq!(
-            &Time::parse(input, &OwnedFormatItem::from(format_description))?,
-            output
-        );
-        assert_eq!(
-            &Time::parse(
-                input,
-                [OwnedFormatItem::from(format_description)].as_slice()
-            )?,
-            output
-        );
-    }
-
-    Ok(())
+#[rstest]
+#[case(fd!("[hour repr:12] [period]"), "01 PM", time!(1 PM))]
+#[case(fd!("[hour]"), "12", time!(12:00))]
+#[case(fd!("[hour]:[minute]:[second]"), "13:02:03", time!(13:02:03))]
+#[case(fd!("[hour repr:12]:[minute] [period]"), "01:02 PM", time!(1:02 PM))]
+#[case(fd!("[hour]:[minute]"), "01:02", time!(1:02))]
+#[case(fd!("[hour repr:12]:[minute] [period]"), "01:02 AM", time!(1:02 AM))]
+#[case(fd!("[hour]:[minute]"), "01:02", time!(1:02))]
+#[case(fd!("[hour repr:12] [period]"), "12 AM", time!(12 AM))]
+#[case(fd!("[hour repr:12] [period]"), "12 PM", time!(12 PM))]
+fn parse_time(
+    #[case] format_description: StaticFormatDescription,
+    #[case] input: &str,
+    #[case] expected: Time,
+) {
+    assert_eq!(Time::parse(input, format_description).ok(), Some(expected));
+    assert_eq!(
+        Time::parse(input, &OwnedFormatItem::from(format_description)).ok(),
+        Some(expected)
+    );
+    assert_eq!(
+        Time::parse(
+            input,
+            [OwnedFormatItem::from(format_description)].as_slice()
+        )
+        .ok(),
+        Some(expected)
+    );
 }
 
-#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
-#[test]
-fn parse_time_err() -> time::Result<()> {
+#[rstest]
+fn parse_time_insufficient_information_standalone() {
     assert_eq!(
         Time::try_from(Parsed::new()),
         Err(error::TryFromParsed::InsufficientInformation)
     );
+}
+
+#[rstest]
+#[case("", fd!(""))]
+#[case("12:34", fd!("[hour]:[second]"))]
+#[case("12:34", fd!("[hour]:[subsecond]"))]
+fn parse_time_insufficient_information(#[case] input: &str, #[case] fd: StaticFormatDescription) {
     assert_eq!(
-        Time::parse("", &fd::parse_borrowed::<1>("")?),
+        Time::parse(input, fd),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
     );
-    assert_eq!(
-        Time::parse("12:34", &fd::parse_borrowed::<1>("[hour]:[second]")?),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation
-        ))
-    );
-    assert_eq!(
-        Time::parse("12:34", &fd::parse_borrowed::<1>("[hour]:[subsecond]")?),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation
-        ))
-    );
+}
+
+#[rstest]
+#[case(" ", fd!(""))]
+fn parse_time_unexpected_trailing_characters(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+) {
     assert!(matches!(
-        Time::parse("13 PM", &fd::parse_borrowed::<1>("[hour repr:12] [period]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("hour")
-        ))
-    ));
-    assert!(matches!(
-        Time::parse(" ", &fd::parse_borrowed::<1>("")?),
+        Time::parse(input, fd),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
         ))
     ));
-    assert!(matches!(
-        Time::parse("a", &fd::parse_borrowed::<1>("[subsecond digits:1]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("subsecond")
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("1a", &fd::parse_borrowed::<1>("[subsecond digits:2]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("subsecond")
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("1a", &fd::parse_owned::<2>("[subsecond digits:2]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("subsecond")
-        ))
-    ));
-    assert!(matches!(
-        Time::parse(
-            "1a",
-            [fd::parse_owned::<2>("[subsecond digits:2]")?].as_slice()
-        ),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("subsecond")
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("12a", &fd::parse_borrowed::<1>("[subsecond digits:3]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("subsecond")
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("123a", &fd::parse_borrowed::<1>("[subsecond digits:4]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("subsecond")
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("1234a", &fd::parse_borrowed::<1>("[subsecond digits:5]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("subsecond")
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("12345a", &fd::parse_borrowed::<1>("[subsecond digits:6]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("subsecond")
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("123456a", &fd::parse_borrowed::<1>("[subsecond digits:7]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("subsecond")
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("1234567a", &fd::parse_borrowed::<1>("[subsecond digits:8]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("subsecond")
-        ))
-    ));
-    assert!(matches!(
-        Time::parse("12345678a", &fd::parse_borrowed::<1>("[subsecond digits:9]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("subsecond")
-        ))
-    ));
-
-    Ok(())
 }
 
-#[test]
-fn parse_date() -> time::Result<()> {
-    let format_input_output = [
-        (
-            fd::parse_borrowed::<1>("[year]-[month]-[day]")?,
-            "2021-01-02",
-            date!(2021-01-02),
-        ),
-        (
-            fd::parse_borrowed::<1>("[year repr:century range:standard][year repr:last_two]-[month]-[day]")?,
-            "2021-01-02",
-            date!(2021-01-02),
-        ),
-        (fd::parse_borrowed::<1>("[year]-[ordinal]")?, "2021-002", date!(2021-002)),
-        (
-            fd::parse_borrowed::<1>("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?,
-            "2020-W53-6",
-            date!(2021-01-02),
-        ),
-        (
-            fd::parse_borrowed::<1>("[year]-W[week_number repr:monday]-[weekday repr:monday]")?,
-            "2021-W00-6",
-            date!(2021-01-02),
-        ),
-        (
-            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
-            "2021-W00-6",
-            date!(2021-01-02),
-        ),
-        (
-            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
-            "2023-W01-1",
-            date!(2023-01-02),
-        ),
-        (
-            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
-            "2022-W00-7",
-            date!(2022-01-02),
-        ),
-        (
-            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
-            "2026-W00-5",
-            date!(2026-01-02),
-        ),
-        (
-            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
-            "2025-W00-4",
-            date!(2025-01-02),
-        ),
-        (
-            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
-            "2019-W00-3",
-            date!(2019-01-02),
-        ),
-        (
-            fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:sunday]")?,
-            "2018-W01-2",
-            date!(2018-01-02),
-        ),
-        (
-            fd::parse_borrowed::<1>(
-                "[year padding:space]-W[week_number repr:sunday padding:none]-[weekday \
-                 repr:sunday]",
-            )?,
-            " 201-W01-2",
-            date!(201-01-06),
-        ),
-    ];
-
-    for (format_description, input, output) in &format_input_output {
-        assert_eq!(&Date::parse(input, format_description)?, output);
-        assert_eq!(
-            &Date::parse(input, &OwnedFormatItem::from(format_description))?,
-            output
-        );
-    }
-
-    Ok(())
+#[rstest]
+#[case("13 PM", fd!("[hour repr:12] [period]"), "hour")]
+#[case("a", fd!("[subsecond digits:1]"), "subsecond")]
+#[case("1a", fd!("[subsecond digits:2]"), "subsecond")]
+#[case("12a", fd!("[subsecond digits:3]"), "subsecond")]
+#[case("123a", fd!("[subsecond digits:4]"), "subsecond")]
+#[case("1234a", fd!("[subsecond digits:5]"), "subsecond")]
+#[case("12345a", fd!("[subsecond digits:6]"), "subsecond")]
+#[case("123456a", fd!("[subsecond digits:7]"), "subsecond")]
+#[case("1234567a", fd!("[subsecond digits:8]"), "subsecond")]
+#[case("12345678a", fd!("[subsecond digits:9]"), "subsecond")]
+fn parse_time_invalid_component(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+    #[case] component_name: &str,
+) {
+    assert!(matches!(
+        Time::parse(input, fd),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent(name)
+        )) if name == component_name
+    ));
 }
 
-#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
-#[test]
-fn parse_date_err() -> time::Result<()> {
+#[rstest]
+#[case(fd!("[year]-[month]-[day]"), "2021-01-02", date!(2021-01-02))]
+#[case(
+    fd!("[year repr:century range:standard][year repr:last_two]-[month]-[day]"),
+    "2021-01-02",
+    date!(2021-01-02)
+)]
+#[case(fd!("[year]-[ordinal]"), "2021-002", date!(2021-002))]
+#[case(
+    fd!("[year base:iso_week]-W[week_number]-[weekday repr:monday]"),
+    "2020-W53-6",
+    date!(2021-01-02)
+)]
+#[case(
+    fd!("[year]-W[week_number repr:monday]-[weekday repr:monday]"),
+    "2021-W00-6",
+    date!(2021-01-02)
+)]
+#[case(
+    fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
+    "2021-W00-6",
+    date!(2021-01-02)
+)]
+#[case(
+    fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
+    "2023-W01-1",
+    date!(2023-01-02)
+)]
+#[case(
+    fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
+    "2022-W00-7",
+    date!(2022-01-02)
+)]
+#[case(
+    fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
+    "2026-W00-5",
+    date!(2026-01-02)
+)]
+#[case(
+    fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
+    "2025-W00-4",
+    date!(2025-01-02)
+)]
+#[case(
+    fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
+    "2019-W00-3",
+    date!(2019-01-02)
+)]
+#[case(
+    fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"),
+    "2018-W01-2",
+    date!(2018-01-02)
+)]
+#[case(
+    fd!("[year padding:space]-W[week_number repr:sunday padding:none]-[weekday repr:sunday]"),
+    " 201-W01-2",
+    date!(201-01-06)
+)]
+fn parse_date(
+    #[case] format_description: StaticFormatDescription,
+    #[case] input: &str,
+    #[case] expected: Date,
+) {
+    assert_eq!(Date::parse(input, format_description).ok(), Some(expected));
+    assert_eq!(
+        Date::parse(input, &OwnedFormatItem::from(format_description)).ok(),
+        Some(expected)
+    );
+}
+
+#[rstest]
+fn parse_date_insufficient_information_standalone() {
     assert_eq!(
         Date::try_from(Parsed::new()),
         Err(error::TryFromParsed::InsufficientInformation)
     );
-    assert_eq!(
-        Date::parse("", &fd::parse_borrowed::<1>("")?),
+}
+
+#[rstest]
+#[case("", fd!(""))]
+fn parse_date_insufficient_information(#[case] input: &str, #[case] fd: StaticFormatDescription) {
+    assert!(matches!(
+        Date::parse(input, fd),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
-    );
-    assert!(matches!(
-        Date::parse("a", &fd::parse_borrowed::<1>("[year]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("year")
-        ))
     ));
-    assert!(matches!(
-        Date::parse("0001", &fd::parse_borrowed::<1>("[year sign:mandatory]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("year")
-        ))
-    ));
-    assert!(matches!(
-        Date::parse("0a", &fd::parse_borrowed::<1>("[year repr:last_two]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("year")
-        ))
-    ));
-    assert!(matches!(
-        Date::parse("2021-366", &fd::parse_borrowed::<1>("[year]-[ordinal]")?),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::ComponentRange(component)
-        )) if component.name() == "ordinal"
-    ));
-    assert!(matches!(
-        Date::parse("2021-12-32", &fd::parse_borrowed::<1>("[year]-[month]-[day]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("day")
-        ))
-    ));
-    assert!(matches!(
-        Date::parse("2021-02-30", &fd::parse_borrowed::<1>("[year]-[month]-[day]")?),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::ComponentRange(component)
-        )) if component.name() == "day"
-    ));
-    assert!(matches!(
-        Date::parse("2019-W53-1", &fd::parse_borrowed::<1>("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::ComponentRange(component)
-        )) if component.name() == "week"
-    ));
-    assert!(matches!(
-        Date::parse(
-            "2021-W54-1",
-            &fd::parse_borrowed::<1>("[year base:iso_week]-W[week_number]-[weekday repr:monday]")?
-        ),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("week number")
-        ))
-    ));
-    assert!(matches!(
-        Date::parse("2019-W53-1", &fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:monday]")?),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::ComponentRange(component)
-        )) if component.name() == "ordinal"
-    ));
-    assert!(matches!(
-        Date::parse(
-            "2021-W54-1",
-            &fd::parse_borrowed::<1>("[year]-W[week_number repr:sunday]-[weekday repr:monday]")?
-        ),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("week number")
-        ))
-    ));
-    assert!(matches!(
-        Date::parse("2019-W53-1", &fd::parse_borrowed::<1>("[year]-W[week_number repr:monday]-[weekday repr:monday]")?),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::ComponentRange(component)
-        )) if component.name() == "ordinal"
-    ));
-    assert!(matches!(
-        Date::parse(
-            "2021-W54-1",
-            &fd::parse_borrowed::<1>("[year]-W[week_number repr:monday]-[weekday repr:monday]")?
-        ),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("week number")
-        ))
-    ));
-    assert!(matches!(
-        Date::parse("Ja", &fd::parse_borrowed::<1>("[month repr:short]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("month")
-        ))
-    ));
-    assert!(matches!(
-        Date::parse("  2a21", &fd::parse_borrowed::<1>("[year padding:space]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("year")
-        ))
-    ));
-
-    Ok(())
 }
 
-#[test]
-fn parse_offset() -> time::Result<()> {
-    // Regression check for #522.
-    assert_eq!(
-        UtcOffset::parse(
-            "-00:01",
-            &fd::parse_borrowed::<1>("[offset_hour sign:mandatory]:[offset_minute]")?,
-        ),
-        Ok(offset!(-00:01)),
-    );
-    assert_eq!(
-        UtcOffset::parse(
-            "-00:00:01",
-            &fd::parse_borrowed::<1>("[offset_hour sign:mandatory]:[offset_minute]:[offset_second]")?,
-        ),
-        Ok(offset!(-00:00:01)),
-    );
-
-    Ok(())
+#[rstest]
+#[case("a", fd!("[year]"), "year")]
+#[case("0001", fd!("[year sign:mandatory]"), "year")]
+#[case("0a", fd!("[year repr:last_two]"), "year")]
+#[case("2021-12-32", fd!("[year]-[month]-[day]"), "day")]
+#[case(
+    "2021-W54-1",
+    fd!("[year base:iso_week]-W[week_number]-[weekday repr:monday]"),
+    "week number"
+)]
+#[case("2021-W54-1", fd!("[year]-W[week_number repr:monday]-[weekday repr:monday]"), "week number")]
+#[case("2021-W54-1", fd!("[year]-W[week_number repr:sunday]-[weekday repr:sunday]"), "week number")]
+#[case("Ja", fd!("[month repr:short]"), "month")]
+#[case("  2a21", fd!("[year padding:space]"), "year")]
+fn parse_date_invalid_component(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+    #[case] component_name: &str,
+) {
+    assert!(matches!(
+        Date::parse(input, fd),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent(name)
+        )) if name == component_name
+    ));
 }
 
-#[test]
-fn parse_offset_err() -> time::Result<()> {
-    assert_eq!(
-        UtcOffset::parse("", &fd::parse_borrowed::<1>("")?),
+#[rstest]
+#[case("2021-366", fd!("[year]-[ordinal]"), "ordinal")]
+#[case("2021-02-30", fd!("[year]-[month]-[day]"), "day")]
+#[case("2019-W53-1", fd!("[year base:iso_week]-W[week_number]-[weekday repr:monday]"), "week")]
+#[case("2019-W53-1", fd!("[year]-W[week_number repr:sunday]-[weekday repr:monday]"), "ordinal")]
+#[case("2019-W53-1", fd!("[year]-W[week_number repr:monday]-[weekday repr:monday]"), "ordinal")]
+fn parse_date_component_range(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+    #[case] component_name: &str,
+) {
+    assert!(matches!(
+        Date::parse(input, fd),
         Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation
-        ))
-    );
-    assert_eq!(
-        UtcOffset::parse("01", &fd::parse_borrowed::<1>("[offset_hour sign:mandatory]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("offset hour")
-        ))
-    );
-    assert!(matches!(
-        UtcOffset::parse("26", &fd::parse_borrowed::<1>("[offset_hour]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("offset hour")
-        ))
+            error::TryFromParsed::ComponentRange(component)
+        )) if component.name() == component_name
     ));
-    assert!(matches!(
-        UtcOffset::parse("00:60", &fd::parse_borrowed::<1>("[offset_hour]:[offset_minute]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("offset minute")
-        ))
-    ));
-    assert!(matches!(
-        UtcOffset::parse(
-            "00:00:60",
-            &fd::parse_borrowed::<1>("[offset_hour]:[offset_minute]:[offset_second]")?
-        ),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("offset second")
-        ))
-    ));
-
-    Ok(())
 }
 
-#[test]
-fn parse_primitive_date_time() -> time::Result<()> {
+#[rstest]
+#[case("-00:01", fd!("[offset_hour sign:mandatory]:[offset_minute]"), offset!(-00:01))]
+#[case(
+    "-00:00:01",
+    fd!("[offset_hour sign:mandatory]:[offset_minute]:[offset_second]"),
+    offset!(-00:00:01)
+)]
+fn parse_offset(
+    #[case] input: &str,
+    #[case] format_description: StaticFormatDescription,
+    #[case] expected: UtcOffset,
+) {
     assert_eq!(
-        PrimitiveDateTime::parse("2023-07-27 23", &fd::parse_borrowed::<1>("[year]-[month]-[day] [hour]")?),
-        Ok(datetime!(2023-07-27 23:00))
+        UtcOffset::parse(input, format_description).ok(),
+        Some(expected)
     );
-
-    Ok(())
+    assert_eq!(
+        UtcOffset::parse(input, &OwnedFormatItem::from(format_description)).ok(),
+        Some(expected)
+    );
 }
 
-#[test]
-fn parse_primitive_date_time_err() -> time::Result<()> {
+#[rstest]
+fn parse_offset_insufficient_information_standalone() {
     assert_eq!(
-        PrimitiveDateTime::parse("", &fd::parse_borrowed::<1>("")?),
-        Err(error::Parse::TryFromParsed(
-            error::TryFromParsed::InsufficientInformation
-        ))
+        UtcOffset::try_from(Parsed::new()),
+        Err(error::TryFromParsed::InsufficientInformation)
     );
+}
+
+#[rstest]
+#[case("01", fd!("[offset_hour sign:mandatory]"), "offset hour")]
+#[case("26", fd!("[offset_hour]"), "offset hour")]
+#[case("00:60", fd!("[offset_hour]:[offset_minute]"), "offset minute")]
+#[case("00:00:60", fd!("[offset_hour]:[offset_minute]:[offset_second]"), "offset second")]
+fn parse_offset_invalid_component(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+    #[case] component_name: &str,
+) {
     assert!(matches!(
-        PrimitiveDateTime::parse(
-            "2021-001 13 PM",
-            &fd::parse_borrowed::<1>("[year]-[ordinal] [hour repr:12] [period]")?
-        ),
+        UtcOffset::parse(input, fd),
         Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("hour")
-        ))
+            error::ParseFromDescription::InvalidComponent(name)
+        )) if name == component_name
     ));
+}
+
+#[rstest]
+#[case("2023-07-27 23", fd!("[year]-[month]-[day] [hour]"), datetime!(2023-07-27 23:00))]
+fn parse_primitive_date_time(
+    #[case] input: &str,
+    #[case] format_description: StaticFormatDescription,
+    #[case] expected: PrimitiveDateTime,
+) {
+    assert_eq!(
+        PrimitiveDateTime::parse(input, format_description).ok(),
+        Some(expected)
+    );
+    assert_eq!(
+        PrimitiveDateTime::parse(input, &OwnedFormatItem::from(format_description)).ok(),
+        Some(expected)
+    );
+}
+
+#[rstest]
+fn parse_primitive_date_time_insufficient_information_standalone() {
+    assert_eq!(
+        PrimitiveDateTime::try_from(Parsed::new()),
+        Err(error::TryFromParsed::InsufficientInformation)
+    );
+}
+
+#[rstest]
+#[case("2021-001 13 PM", fd!("[year]-[ordinal] [hour repr:12] [period]"), "hour")]
+fn parse_primitive_date_time_invalid_component(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+    #[case] component_name: &str,
+) {
     assert!(matches!(
-        PrimitiveDateTime::parse(
-            "2023-07-27 23:30",
-            &fd::parse_borrowed::<1>("[year]-[month]-[day] [hour]")?
-        ),
+        PrimitiveDateTime::parse(input, fd),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent(name)
+        )) if name == component_name
+    ));
+}
+
+#[rstest]
+#[case("2023-07-27 23:30", fd!("[year]-[month]-[day] [hour]"))]
+fn parse_primitive_date_time_unexpected_trailing_characters(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+) {
+    assert!(matches!(
+        PrimitiveDateTime::parse(input, fd),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
         ))
     ));
-
-    Ok(())
 }
 
-#[test]
-fn parse_offset_date_time_err() -> time::Result<()> {
+#[rstest]
+fn parse_offset_date_time_insufficient_information_standalone() {
     assert_eq!(
-        OffsetDateTime::parse("", &fd::parse_borrowed::<1>("")?),
+        OffsetDateTime::try_from(Parsed::new()),
+        Err(error::TryFromParsed::InsufficientInformation)
+    );
+}
+
+#[rstest]
+#[case("", fd!(""))]
+fn parse_offset_date_time_insufficient_information(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+) {
+    assert_eq!(
+        OffsetDateTime::parse(input, fd),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
     );
-    assert!(matches!(
-        OffsetDateTime::parse("x", &fd::parse_borrowed::<1>("[year]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("year")
-        ))
-    ));
-    assert!(matches!(
-        OffsetDateTime::parse(
-            "2021-001 12 PM +26",
-            &fd::parse_borrowed::<1>("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?
-        ),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("offset hour")
-        ))
-    ));
-
-    Ok(())
 }
 
-#[test]
-fn parse_utc_date_time() -> time::Result<()> {
+#[rstest]
+#[case("x", fd!("[year]"), "year")]
+#[case(
+    "2021-001 12 PM +26",
+    fd!("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]"),
+    "offset hour"
+)]
+fn parse_offset_date_time_invalid_component(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+    #[case] component_name: &str,
+) {
+    assert!(matches!(
+        OffsetDateTime::parse(input, fd),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent(name)
+        )) if name == component_name
+    ));
+}
+
+#[rstest]
+#[case("2023-07-27 23", fd!("[year]-[month]-[day] [hour]"), utc_datetime!(2023-07-27 23:00))]
+fn parse_utc_date_time(
+    #[case] input: &str,
+    #[case] format_description: StaticFormatDescription,
+    #[case] expected: UtcDateTime,
+) {
     assert_eq!(
-        UtcDateTime::parse("2023-07-27 23", &fd::parse_borrowed::<1>("[year]-[month]-[day] [hour]")?),
-        Ok(utc_datetime!(2023-07-27 23:00))
+        UtcDateTime::parse(input, format_description).ok(),
+        Some(expected)
     );
-
-    Ok(())
+    assert_eq!(
+        UtcDateTime::parse(input, &OwnedFormatItem::from(format_description)).ok(),
+        Some(expected)
+    );
 }
 
-#[test]
-fn parse_utc_date_time_err() -> time::Result<()> {
+#[rstest]
+fn parse_utc_date_time_insufficient_information_standalone() {
     assert_eq!(
-        UtcDateTime::parse("", &fd::parse_borrowed::<1>("")?),
+        UtcDateTime::try_from(Parsed::new()),
+        Err(error::TryFromParsed::InsufficientInformation)
+    );
+}
+
+#[rstest]
+#[case("", fd!(""))]
+fn parse_utc_date_time_insufficient_information(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+) {
+    assert_eq!(
+        UtcDateTime::parse(input, fd),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
     );
+}
+
+#[rstest]
+#[case("2021 001 13 PM", fd!("[year] [ordinal] [hour repr:12] [period]"), "hour")]
+#[case("x", fd!("[year]"), "year")]
+#[case(
+    "2021-001 12 PM +26",
+    fd!("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]"),
+    "offset hour"
+)]
+fn parse_utc_date_time_invalid_component(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+    #[case] component_name: &str,
+) {
     assert!(matches!(
-        UtcDateTime::parse(
-            "2021-001 13 PM",
-            &fd::parse_borrowed::<1>("[year]-[ordinal] [hour repr:12] [period]")?
-        ),
+        UtcDateTime::parse(input, fd),
         Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("hour")
-        ))
+            error::ParseFromDescription::InvalidComponent(name)
+        )) if name == component_name
     ));
+}
+
+#[rstest]
+fn parse_utc_date_time_unexpected_trailing_characters() {
     assert!(matches!(
-        UtcDateTime::parse(
-            "2023-07-27 23:30",
-            &fd::parse_borrowed::<1>("[year]-[month]-[day] [hour]")?
-        ),
+        UtcDateTime::parse("2023-07-27 23:30", &fd!("[year]-[month]-[day] [hour]")),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
         ))
     ));
-    assert!(matches!(
-        UtcDateTime::parse("x", &fd::parse_borrowed::<1>("[year]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("year")
-        ))
-    ));
-    assert!(matches!(
-        UtcDateTime::parse(
-            "2021-001 12 PM +26",
-            &fd::parse_borrowed::<1>("[year]-[ordinal] [hour repr:12] [period] [offset_hour sign:mandatory]")?
-        ),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("offset hour")
-        ))
-    ));
-
-    Ok(())
 }
 
-#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
-#[test]
-fn parse_components() -> time::Result<()> {
-    macro_rules! parse_component {
-        ($component:expr, $input:expr, $(_. $property:ident() == $expected:expr);+ $(;)?) => {
-            let mut parsed = Parsed::new();
-            parsed.parse_component($input, $component)?;
-            $(assert_eq!(parsed.$property(), $expected);)+
-        };
-    }
+#[rstest]
+#[case(
+    Component::CalendarYearFullExtendedRange(
+        modifier::CalendarYearFullExtendedRange::default()
+            .with_padding(modifier::Padding::Zero)
+            .with_sign_is_mandatory(false)
+    ),
+    "2021",
+    Parsed::year,
+    2021,
+)]
+#[case(
+    Component::CalendarYearCenturyExtendedRange(
+        modifier::CalendarYearCenturyExtendedRange::default()
+            .with_padding(modifier::Padding::Zero)
+            .with_sign_is_mandatory(false)
+    ),
+    "20",
+    Parsed::year_century,
+    20,
+)]
+#[case(
+    Component::CalendarYearCenturyExtendedRange(
+        modifier::CalendarYearCenturyExtendedRange::default()
+            .with_padding(modifier::Padding::Zero)
+            .with_sign_is_mandatory(false)
+    ),
+    "20",
+    Parsed::year_century_is_negative,
+    false,
+)]
+#[case(
+    Component::CalendarYearLastTwo(
+        modifier::CalendarYearLastTwo::default().with_padding(modifier::Padding::Zero)
+    ),
+    "21",
+    Parsed::year_last_two,
+    21,
+)]
+#[case(
+    Component::IsoYearFullExtendedRange(
+        modifier::IsoYearFullExtendedRange::default()
+            .with_padding(modifier::Padding::Zero)
+            .with_sign_is_mandatory(false)
+    ),
+    "2021",
+    Parsed::iso_year,
+    2021,
+)]
+#[case(
+    Component::IsoYearCenturyExtendedRange(modifier::IsoYearCenturyExtendedRange::default()
+        .with_padding(modifier::Padding::Zero)
+        .with_sign_is_mandatory(false)
+    ),
+    "20",
+    Parsed::iso_year_century,
+    20,
+)]
+#[case(
+    Component::IsoYearCenturyExtendedRange(modifier::IsoYearCenturyExtendedRange::default()
+        .with_padding(modifier::Padding::Zero)
+        .with_sign_is_mandatory(false)
+    ),
+    "20",
+    Parsed::iso_year_century_is_negative,
+    false,
+)]
+#[case(
+    Component::IsoYearLastTwo(
+        modifier::IsoYearLastTwo::default().with_padding(modifier::Padding::Zero)
+    ),
+    "21",
+    Parsed::iso_year_last_two,
+    21,
+)]
+#[case(
+    Component::MonthNumerical(
+        modifier::MonthNumerical::default().with_padding(modifier::Padding::Space)
+    ),
+    " 1",
+    Parsed::month,
+    Month::January,
+)]
+#[case(
+    Component::MonthShort(modifier::MonthShort::default().with_case_sensitive(true)),
+    "Jan",
+    Parsed::month,
+    Month::January,
+)]
+#[case(
+    Component::MonthShort(modifier::MonthShort::default().with_case_sensitive(false)),
+    "jAn",
+    Parsed::month,
+    Month::January,
+)]
+#[case(
+    Component::MonthLong(modifier::MonthLong::default().with_case_sensitive(true)),
+    "January",
+    Parsed::month,
+    Month::January,
+)]
+#[case(
+    Component::MonthLong(modifier::MonthLong::default().with_case_sensitive(false)),
+    "jAnUaRy",
+    Parsed::month,
+    Month::January,
+)]
+#[case(
+    Component::Ordinal(modifier::Ordinal::default().with_padding(modifier::Padding::Zero)),
+    "012",
+    Parsed::ordinal,
+    12.try_into().ok(),
+)]
+#[case(
+    Component::WeekdayShort(modifier::WeekdayShort::default().with_case_sensitive(true)),
+    "Sun",
+    Parsed::weekday,
+    Weekday::Sunday,
+)]
+#[case(
+    Component::WeekdayShort(modifier::WeekdayShort::default().with_case_sensitive(false)),
+    "sUn",
+    Parsed::weekday,
+    Weekday::Sunday,
+)]
+#[case(
+    Component::WeekdayLong(modifier::WeekdayLong::default().with_case_sensitive(true)),
+    "Sunday",
+    Parsed::weekday,
+    Weekday::Sunday,
+)]
+#[case(
+    Component::WeekdayLong(modifier::WeekdayLong::default().with_case_sensitive(false)),
+    "sUnDaY",
+    Parsed::weekday,
+    Weekday::Sunday,
+)]
+#[case(
+    Component::WeekdaySunday(modifier::WeekdaySunday::default().with_one_indexed(false)),
+    "0",
+    Parsed::weekday,
+    Weekday::Sunday,
+)]
+#[case(
+    Component::WeekdaySunday(modifier::WeekdaySunday::default().with_one_indexed(true)),
+    "1",
+    Parsed::weekday,
+    Weekday::Sunday,
+)]
+#[case(
+    Component::WeekdayMonday(modifier::WeekdayMonday::default().with_one_indexed(false)),
+    "6",
+    Parsed::weekday,
+    Weekday::Sunday,
+)]
+#[case(
+    Component::WeekdayMonday(modifier::WeekdayMonday::default().with_one_indexed(true)),
+    "7",
+    Parsed::weekday,
+    Weekday::Sunday,
+)]
+#[case(
+    Component::WeekNumberSunday(
+        modifier::WeekNumberSunday::default().with_padding(modifier::Padding::None)
+    ),
+    "2",
+    Parsed::sunday_week_number,
+    2,
+)]
+#[case(
+    Component::WeekNumberMonday(
+        modifier::WeekNumberMonday::default().with_padding(modifier::Padding::None)
+    ),
+    "2",
+    Parsed::monday_week_number,
+    2,
+)]
+#[case(
+    Component::WeekNumberIso(
+        modifier::WeekNumberIso::default().with_padding(modifier::Padding::None)
+    ),
+    "2",
+    Parsed::iso_week_number,
+    2.try_into().ok(),
+)]
+#[case(
+    Component::Subsecond(
+        modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::One)
+    ),
+    "1",
+    Parsed::subsecond,
+    100_000_000,
+)]
+#[case(
+    Component::Subsecond(
+        modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Two)
+    ),
+    "12",
+    Parsed::subsecond,
+    120_000_000,
+)]
+#[case(
+    Component::Subsecond(
+        modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Three)
+    ),
+    "123",
+    Parsed::subsecond,
+    123_000_000,
+)]
+#[case(
+    Component::Subsecond(
+        modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Four)
+    ),
+    "1234",
+    Parsed::subsecond,
+    123_400_000,
+)]
+#[case(
+    Component::Subsecond(
+        modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Five)
+    ),
+    "12345",
+    Parsed::subsecond,
+    123_450_000,
+)]
+#[case(
+    Component::Subsecond(
+        modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Six)
+    ),
+    "123456",
+    Parsed::subsecond,
+    123_456_000,
+)]
+#[case(
+    Component::Subsecond(
+        modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Seven)
+    ),
+    "1234567",
+    Parsed::subsecond,
+    123_456_700,
+)]
+#[case(
+    Component::Subsecond(
+        modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Eight)
+    ),
+    "12345678",
+    Parsed::subsecond,
+    123_456_780,
+)]
+#[case(
+    Component::Subsecond(
+        modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Nine)
+    ),
+    "123456789",
+    Parsed::subsecond,
+    123_456_789,
+)]
+#[case(
+    Component::Subsecond(
+        modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::OneOrMore)
+    ),
+    "123456789",
+    Parsed::subsecond,
+    123_456_789,
+)]
+#[case(
+    Component::Period(
+        modifier::Period::default()
+            .with_is_uppercase(false)
+            .with_case_sensitive(true)
+    ),
+    "am",
+    Parsed::hour_12_is_pm,
+    false,
+)]
+#[case(
+    Component::Period(
+        modifier::Period::default()
+            .with_is_uppercase(false)
+            .with_case_sensitive(false)
+    ),
+    "aM",
+    Parsed::hour_12_is_pm,
+    false,
+)]
+#[case(
+    Component::UnixTimestampSecond(
+        modifier::UnixTimestampSecond::default().with_sign_is_mandatory(false)
+    ),
+    "1234567890",
+    Parsed::unix_timestamp_nanos,
+    1_234_567_890_000_000_000,
+)]
+#[case(
+    Component::UnixTimestampMillisecond(
+        modifier::UnixTimestampMillisecond::default().with_sign_is_mandatory(false)
+    ),
+    "1234567890123",
+    Parsed::unix_timestamp_nanos,
+    1_234_567_890_123_000_000,
+)]
+#[case(
+    Component::UnixTimestampMicrosecond(
+        modifier::UnixTimestampMicrosecond::default().with_sign_is_mandatory(false)
+    ),
+    "1234567890123456",
+    Parsed::unix_timestamp_nanos,
+    1_234_567_890_123_456_000,
+)]
+#[case(
+    Component::UnixTimestampNanosecond(
+        modifier::UnixTimestampNanosecond::default().with_sign_is_mandatory(false)
+    ),
+    "1234567890123456789",
+    Parsed::unix_timestamp_nanos,
+    1_234_567_890_123_456_789,
+)]
+#[case(
+    Component::UnixTimestampNanosecond(
+        modifier::UnixTimestampNanosecond::default().with_sign_is_mandatory(false)
+    ),
+    "-1234567890123456789",
+    Parsed::unix_timestamp_nanos,
+    -1_234_567_890_123_456_789,
+)]
+fn parse_component<T>(
+    #[case] component: Component,
+    #[case] input: &str,
+    #[case] property_accessor: fn(&Parsed) -> Option<T>,
+    #[case] property_value: impl Into<Option<T>>,
+) where
+    T: PartialEq + Debug,
+{
+    let mut parsed = Parsed::new();
+    parsed
+        .parse_component(input.as_bytes(), component)
+        .expect("parsing should succeed");
+    assert_eq!(property_accessor(&parsed), property_value.into());
+}
 
-    parse_component!(
-        Component::CalendarYearFullExtendedRange(
-            modifier::CalendarYearFullExtendedRange::default()
-                .with_padding(modifier::Padding::Zero)
-                .with_sign_is_mandatory(false)
-        ),
-        b"2021",
-        _.year() == Some(2021)
-    );
-    parse_component!(
-        Component::CalendarYearCenturyExtendedRange(modifier::CalendarYearCenturyExtendedRange::default()
-            .with_padding(modifier::Padding::Zero)
-            .with_sign_is_mandatory(false)
-        ),
-        b"20",
-        _.year_century() == Some(20);
-        _.year_century_is_negative() == Some(false);
-    );
-    parse_component!(
-        Component::CalendarYearLastTwo(
-            modifier::CalendarYearLastTwo::default().with_padding(modifier::Padding::Zero)
-        ),
-        b"21",
-        _.year_last_two() == Some(21)
-    );
-    parse_component!(
-        Component::IsoYearFullExtendedRange(
-            modifier::IsoYearFullExtendedRange::default()
-                .with_padding(modifier::Padding::Zero)
-                .with_sign_is_mandatory(false)
-        ),
-        b"2021",
-        _.iso_year() == Some(2021)
-    );
-    parse_component!(
-        Component::IsoYearCenturyExtendedRange(modifier::IsoYearCenturyExtendedRange::default()
-            .with_padding(modifier::Padding::Zero)
-            .with_sign_is_mandatory(false)
-        ),
-        b"20",
-        _.iso_year_century() == Some(20);
-        _.iso_year_century_is_negative() == Some(false);
-    );
-    parse_component!(
-        Component::IsoYearLastTwo(
-            modifier::IsoYearLastTwo::default().with_padding(modifier::Padding::Zero)
-        ),
-        b"21",
-        _.iso_year_last_two() == Some(21)
-    );
-    parse_component!(
-        Component::MonthNumerical(modifier::MonthNumerical::default()
-                .with_padding(modifier::Padding::Space)
-        ),
-        b" 1",
-        _.month() == Some(Month::January)
-    );
-    parse_component!(
-        Component::MonthShort(
-            modifier::MonthShort::default().with_case_sensitive(true)
-        ),
-        b"Jan",
-        _.month() == Some(Month::January)
-    );
-    parse_component!(
-        Component::MonthShort(
-            modifier::MonthShort::default().with_case_sensitive(false)
-        ),
-        b"jAn",
-        _.month() == Some(Month::January)
-    );
-    parse_component!(
-        Component::MonthLong(
-            modifier::MonthLong::default().with_case_sensitive(true)
-        ),
-        b"January",
-        _.month() == Some(Month::January)
-    );
-    parse_component!(
-        Component::MonthLong(
-            modifier::MonthLong::default().with_case_sensitive(false)
-        ),
-        b"jAnUaRy",
-        _.month() == Some(Month::January)
-    );
-    parse_component!(
-        Component::Ordinal(modifier::Ordinal::default().with_padding(modifier::Padding::Zero)),
-        b"012",
-        _.ordinal() == 12.try_into().ok()
-    );
-    parse_component!(
-        Component::WeekdayShort(
-            modifier::WeekdayShort::default().with_case_sensitive(true)
-        ),
-        b"Sun",
-        _.weekday() == Some(Weekday::Sunday)
-    );
-    parse_component!(
-        Component::WeekdayShort(
-            modifier::WeekdayShort::default().with_case_sensitive(false)
-        ),
-        b"sUn",
-        _.weekday() == Some(Weekday::Sunday)
-    );
-    parse_component!(
-        Component::WeekdayLong(
-            modifier::WeekdayLong::default().with_case_sensitive(true)
-        ),
-        b"Sunday",
-        _.weekday() == Some(Weekday::Sunday)
-    );
-    parse_component!(
-        Component::WeekdayLong(
-            modifier::WeekdayLong::default().with_case_sensitive(false)
-        ),
-        b"sUnDaY",
-        _.weekday() == Some(Weekday::Sunday)
-    );
-    parse_component!(
-        Component::WeekdaySunday(
-            modifier::WeekdaySunday::default().with_one_indexed(false)
-        ),
-        b"0",
-        _.weekday() == Some(Weekday::Sunday)
-    );
-    parse_component!(
-        Component::WeekdaySunday(
-            modifier::WeekdaySunday::default().with_one_indexed(true)
-        ),
-        b"1",
-        _.weekday() == Some(Weekday::Sunday)
-    );
-    parse_component!(
-        Component::WeekdayMonday(
-            modifier::WeekdayMonday::default().with_one_indexed(false)
-        ),
-        b"6",
-        _.weekday() == Some(Weekday::Sunday)
-    );
-    parse_component!(
-        Component::WeekdayMonday(
-            modifier::WeekdayMonday::default().with_one_indexed(true)
-        ),
-        b"7",
-        _.weekday() == Some(Weekday::Sunday)
-    );
-    parse_component!(
-        Component::WeekNumberSunday(
-            modifier::WeekNumberSunday::default().with_padding(modifier::Padding::None)
-        ),
-        b"2",
-        _.sunday_week_number() == Some(2)
-    );
-    parse_component!(
-        Component::WeekNumberMonday(
-            modifier::WeekNumberMonday::default().with_padding(modifier::Padding::None)
-        ),
-        b"2",
-        _.monday_week_number() == Some(2)
-    );
-    parse_component!(
-        Component::WeekNumberIso(
-            modifier::WeekNumberIso::default().with_padding(modifier::Padding::None)
-        ),
-        b"2",
-        _.iso_week_number() == 2.try_into().ok()
-    );
-    parse_component!(
-        Component::Subsecond(
-            modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::One)
-        ),
-        b"1",
-        _.subsecond() == Some(100_000_000)
-    );
-    parse_component!(
-        Component::Subsecond(
-            modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Two)
-        ),
-        b"12",
-        _.subsecond() == Some(120_000_000)
-    );
-    parse_component!(
-        Component::Subsecond(
-            modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Three)
-        ),
-        b"123",
-        _.subsecond() == Some(123_000_000)
-    );
-    parse_component!(
-        Component::Subsecond(
-            modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Four)
-        ),
-        b"1234",
-        _.subsecond() == Some(123_400_000)
-    );
-    parse_component!(
-        Component::Subsecond(
-            modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Five)
-        ),
-        b"12345",
-        _.subsecond() == Some(123_450_000)
-    );
-    parse_component!(
-        Component::Subsecond(
-            modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Six)
-        ),
-        b"123456",
-        _.subsecond() == Some(123_456_000)
-    );
-    parse_component!(
-        Component::Subsecond(
-            modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Seven)
-        ),
-        b"1234567",
-        _.subsecond() == Some(123_456_700)
-    );
-    parse_component!(
-        Component::Subsecond(
-            modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Eight)
-        ),
-        b"12345678",
-        _.subsecond() == Some(123_456_780)
-    );
-    parse_component!(
-        Component::Subsecond(
-            modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::Nine)
-        ),
-        b"123456789",
-        _.subsecond() == Some(123_456_789)
-    );
-    parse_component!(
-        Component::Subsecond(
-            modifier::Subsecond::default().with_digits(modifier::SubsecondDigits::OneOrMore)
-        ),
-        b"123456789",
-        _.subsecond() == Some(123_456_789)
-    );
-    parse_component!(
-        Component::Period(
-            modifier::Period::default()
-                .with_is_uppercase(false)
-                .with_case_sensitive(true)
-        ),
-        b"am",
-        _.hour_12_is_pm() == Some(false)
-    );
-    parse_component!(
-        Component::Period(
-            modifier::Period::default()
-                .with_is_uppercase(false)
-                .with_case_sensitive(false)
-        ),
-        b"aM",
-        _.hour_12_is_pm() == Some(false)
-    );
+#[rstest]
+#[case("abcdef", const { NonZero::new(3).unwrap() })]
+fn parse_ignore_component(#[case] input: &str, #[case] count: NonZero<u16>) {
     let mut parsed = Parsed::new();
     let result = parsed.parse_component(
-        b"abcdef",
-        Component::Ignore(modifier::Ignore::count(const { NonZero::new(3).unwrap() })),
-    )?;
-    assert_eq!(result, b"def");
+        input.as_bytes(),
+        Component::Ignore(modifier::Ignore::count(count)),
+    );
+    assert_eq!(result, Ok(b"def".as_slice()));
+}
+
+#[rstest]
+#[case("abcdef", const { NonZero::new(7).unwrap() })]
+fn parse_ignore_component_too_short(#[case] input: &str, #[case] count: NonZero<u16>) {
     let mut parsed = Parsed::new();
     let result = parsed.parse_component(
-        b"abcdef",
-        Component::Ignore(modifier::Ignore::count(const { NonZero::new(7).unwrap() })),
+        input.as_bytes(),
+        Component::Ignore(modifier::Ignore::count(count)),
     );
     assert!(matches!(
         result,
         Err(error::ParseFromDescription::InvalidComponent("ignore"))
     ));
-    parse_component!(
-        Component::UnixTimestampSecond(
-            modifier::UnixTimestampSecond::default().with_sign_is_mandatory(false)
-        ),
-        b"1234567890",
-        _.unix_timestamp_nanos() == Some(1_234_567_890_000_000_000)
-    );
-    parse_component!(
-        Component::UnixTimestampMillisecond(
-            modifier::UnixTimestampMillisecond::default().with_sign_is_mandatory(false)
-        ),
-        b"1234567890123",
-        _.unix_timestamp_nanos() == Some(1_234_567_890_123_000_000)
-    );
-    parse_component!(
-        Component::UnixTimestampMicrosecond(
-            modifier::UnixTimestampMicrosecond::default().with_sign_is_mandatory(false)
-        ),
-        b"1234567890123456",
-        _.unix_timestamp_nanos() == Some(1_234_567_890_123_456_000)
-    );
-    parse_component!(
-        Component::UnixTimestampNanosecond(
-            modifier::UnixTimestampNanosecond::default().with_sign_is_mandatory(false)
-        ),
-        b"1234567890123456789",
-        _.unix_timestamp_nanos() == Some(1_234_567_890_123_456_789)
-    );
-    parse_component!(
-        Component::UnixTimestampNanosecond(
-            modifier::UnixTimestampNanosecond::default().with_sign_is_mandatory(false)
-        ),
-        b"-1234567890123456789",
-        _.unix_timestamp_nanos() == Some(-1_234_567_890_123_456_789)
-    );
-
-    Ok(())
 }
 
-#[test]
-fn parse_optional() -> time::Result<()> {
-    // Ensure full parsing works as expected.
+#[rstest]
+#[case(
+    "2021-01-02",
+    fd!(version = 2, "[optional [[year]-[month]-[day]]]"),
+    "",
+    (2021, Month::January, 2)
+)]
+#[case(
+    "2021-01",
+    fd!(version = 2, "[optional [[year]-[month]-[day]]]"),
+    "2021-01",
+    (None, None, None),
+)]
+fn parse_optional(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+    #[case] remaining_input: &str,
+    #[case] (year, month, day): (
+        impl Into<Option<i32>>,
+        impl Into<Option<Month>>,
+        impl Into<Option<u8>>,
+    ),
+) {
     let mut parsed = Parsed::new();
-    let remaining_input = parsed.parse_item(
-        b"2021-01-02",
-        &BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>(
-            "[year]-[month]-[day]",
-        )?)),
-    )?;
-    assert!(remaining_input.is_empty());
-    assert_eq!(parsed.year(), Some(2021));
-    assert_eq!(parsed.month(), Some(Month::January));
-    assert_eq!(parsed.day().map(NonZero::get), Some(2));
-
-    let mut parsed = Parsed::new();
-    let remaining_input = parsed.parse_item(
-        b"2021-01-02",
-        &OwnedFormatItem::from(BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(
-            &fd::parse_borrowed::<1>("[year]-[month]-[day]")?,
-        ))),
-    )?;
-    assert!(remaining_input.is_empty());
-    assert_eq!(parsed.year(), Some(2021));
-    assert_eq!(parsed.month(), Some(Month::January));
-    assert_eq!(parsed.day().map(NonZero::get), Some(2));
-
-    // Ensure a successful partial parse *does not* mutate `parsed`.
-    let mut parsed = Parsed::new();
-    let remaining_input = parsed.parse_item(
-        b"2021-01",
-        &BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>(
-            "[year]-[month]-[day]",
-        )?)),
-    )?;
-    assert_eq!(remaining_input, b"2021-01");
-    assert!(parsed.year().is_none());
-    assert!(parsed.month().is_none());
-    assert!(parsed.day().is_none());
-
-    let mut parsed = Parsed::new();
-    let remaining_input = parsed.parse_item(
-        b"2021-01",
-        &OwnedFormatItem::from(BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(
-            &fd::parse_borrowed::<1>("[year]-[month]-[day]")?,
-        ))),
-    )?;
-    assert_eq!(remaining_input, b"2021-01");
-    assert!(parsed.year().is_none());
-    assert!(parsed.month().is_none());
-    assert!(parsed.day().is_none());
-
-    Ok(())
+    let remaining = parsed
+        .parse_items(input.as_bytes(), fd)
+        .expect("parsing should succeed");
+    assert_eq!(remaining, remaining_input.as_bytes());
+    assert_eq!(parsed.year(), year.into());
+    assert_eq!(parsed.month(), month.into());
+    assert_eq!(parsed.day().map(NonZero::get), day.into());
 }
 
-#[expect(clippy::cognitive_complexity, reason = "all test the same thing")]
-#[test]
-fn parse_first() -> time::Result<()> {
-    // Ensure the first item is parsed correctly.
+#[rstest]
+#[case(
+    "2021-01-02",
+    fd!(version = 2, "[first [[year]-[month]-[day]]]"),
+    "",
+    (2021, Month::January, 2)
+)]
+#[case("2021-01-02", fd!(version = 2, "[first []]"), "2021-01-02", (None, None, None))]
+#[case(
+    "2021-01-02",
+    fd!(version = 2, "[first [[period]][x][[year]-[month]-[day]]]"),
+    "",
+    (2021, Month::January, 2)
+)]
+fn parse_first_item(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+    #[case] remaining_input: &str,
+    #[case] (year, month, day): (
+        impl Into<Option<i32>>,
+        impl Into<Option<Month>>,
+        impl Into<Option<u8>>,
+    ),
+) {
     let mut parsed = Parsed::new();
-    let remaining_input = parsed.parse_item(
-        b"2021-01-02",
-        &BorrowedFormatItem::First(&[BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>(
-            "[year]-[month]-[day]",
-        )?)]),
-    )?;
-    assert!(remaining_input.is_empty());
-    assert_eq!(parsed.year(), Some(2021));
-    assert_eq!(parsed.month(), Some(Month::January));
-    assert_eq!(parsed.day().map(NonZero::get), Some(2));
+    let remaining = parsed
+        .parse_items(input.as_bytes(), fd)
+        .expect("parsing should succeed");
+    assert_eq!(remaining, remaining_input.as_bytes());
+    assert_eq!(parsed.year(), year.into());
+    assert_eq!(parsed.month(), month.into());
+    assert_eq!(parsed.day().map(NonZero::get), day.into());
+}
 
-    let mut parsed = Parsed::new();
-    let remaining_input = parsed.parse_item(
-        b"2021-01-02",
-        &OwnedFormatItem::from(BorrowedFormatItem::First(&[BorrowedFormatItem::Compound(
-            &fd::parse_borrowed::<1>("[year]-[month]-[day]")?,
-        )])),
-    )?;
-    assert!(remaining_input.is_empty());
-    assert_eq!(parsed.year(), Some(2021));
-    assert_eq!(parsed.month(), Some(Month::January));
-    assert_eq!(parsed.day().map(NonZero::get), Some(2));
-
-    // Ensure an empty slice is a no-op success.
-    let mut parsed = Parsed::new();
-    let remaining_input = parsed.parse_item(b"2021-01-02", &BorrowedFormatItem::First(&[]))?;
-    assert_eq!(remaining_input, b"2021-01-02");
-    assert!(parsed.year().is_none());
-    assert!(parsed.month().is_none());
-    assert!(parsed.day().is_none());
-
-    let mut parsed = Parsed::new();
-    let remaining_input =
-        parsed.parse_item(b"2021-01-02", &OwnedFormatItem::First(Box::new([])))?;
-    assert_eq!(remaining_input, b"2021-01-02");
-    assert!(parsed.year().is_none());
-    assert!(parsed.month().is_none());
-    assert!(parsed.day().is_none());
-
-    // Ensure success when the first item fails.
-    let mut parsed = Parsed::new();
-    let remaining_input = parsed.parse_item(
-        b"2021-01-02",
-        &BorrowedFormatItem::First(&[
-            BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("[period]")?),
-            BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("x")?),
-            BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("[year]-[month]-[day]")?),
-        ]),
-    )?;
-    assert!(remaining_input.is_empty());
-    assert_eq!(parsed.year(), Some(2021));
-    assert_eq!(parsed.month(), Some(Month::January));
-    assert_eq!(parsed.day().map(NonZero::get), Some(2));
-
-    let mut parsed = Parsed::new();
-    let remaining_input = parsed.parse_item(
-        b"2021-01-02",
-        &OwnedFormatItem::from(BorrowedFormatItem::First(&[
-            BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("[period]")?),
-            BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("x")?),
-            BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("[year]-[month]-[day]")?),
-        ])),
-    )?;
-    assert!(remaining_input.is_empty());
-    assert_eq!(parsed.year(), Some(2021));
-    assert_eq!(parsed.month(), Some(Month::January));
-    assert_eq!(parsed.day().map(NonZero::get), Some(2));
-
-    // Ensure the first error is returned.
+#[rstest]
+#[case("2021-01-02", fd!(version = 2, "[first [[period]][x]]"), "period")]
+fn parse_first_item_err(
+    #[case] input: &str,
+    #[case] fd: StaticFormatDescription,
+    #[case] component_name: &str,
+) {
     let mut parsed = Parsed::new();
     let err = parsed
-        .parse_item(
-            b"2021-01-02",
-            &BorrowedFormatItem::First(&[
-                BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("[period]")?),
-                BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("x")?),
-            ]),
-        )
+        .parse_items(input.as_bytes(), fd)
         .expect_err("parsing should fail");
-    assert_eq!(err, error::ParseFromDescription::InvalidComponent("period"));
-
-    let mut parsed = Parsed::new();
-    let err = parsed
-        .parse_item(
-            b"2021-01-02",
-            &OwnedFormatItem::from(BorrowedFormatItem::First(&[
-                BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("[period]")?),
-                BorrowedFormatItem::Compound(&fd::parse_borrowed::<1>("x")?),
-            ])),
-        )
-        .expect_err("parsing should fail");
-    assert_eq!(err, error::ParseFromDescription::InvalidComponent("period"));
-
-    Ok(())
+    assert!(matches!(
+        err,
+        error::ParseFromDescription::InvalidComponent(name) if name == component_name
+    ));
 }
 
-#[test]
-fn parse_unix_timestamp() -> time::Result<()> {
+#[rstest]
+#[case("1234567890", fd!("[unix_timestamp]"), datetime!(2009-02-13 23:31:30 UTC))]
+#[case(
+    "1234567890123",
+    fd!("[unix_timestamp precision:millisecond]"),
+    datetime!(2009-02-13 23:31:30.123 UTC)
+)]
+#[case(
+    "1234567890123456",
+    fd!("[unix_timestamp precision:microsecond]"),
+    datetime!(2009-02-13 23:31:30.123456 UTC)
+)]
+#[case(
+    "1234567890123456789",
+    fd!("[unix_timestamp precision:nanosecond]"),
+    datetime!(2009-02-13 23:31:30.123456789 UTC)
+)]
+fn parse_unix_timestamp(
+    #[case] input: &str,
+    #[case] format_description: StaticFormatDescription,
+    #[case] expected: OffsetDateTime,
+) {
     assert_eq!(
-        OffsetDateTime::parse("1234567890", &fd::parse_borrowed::<1>("[unix_timestamp]")?)?,
-        datetime!(2009-02-13 23:31:30 UTC)
+        OffsetDateTime::parse(input, format_description).ok(),
+        Some(expected)
     );
     assert_eq!(
-        OffsetDateTime::parse(
-            "1234567890123",
-            &fd::parse_borrowed::<1>("[unix_timestamp precision:millisecond]")?
-        )?,
-        datetime!(2009-02-13 23:31:30.123 UTC)
+        OffsetDateTime::parse(input, &OwnedFormatItem::from(format_description)).ok(),
+        Some(expected)
     );
-    assert_eq!(
-        OffsetDateTime::parse(
-            "1234567890123456",
-            &fd::parse_borrowed::<1>("[unix_timestamp precision:microsecond]")?
-        )?,
-        datetime!(2009-02-13 23:31:30.123456 UTC)
-    );
-    assert_eq!(
-        OffsetDateTime::parse(
-            "1234567890123456789",
-            &fd::parse_borrowed::<1>("[unix_timestamp precision:nanosecond]")?
-        )?,
-        datetime!(2009-02-13 23:31:30.123456789 UTC)
-    );
-
-    Ok(())
 }
 
-#[test]
-fn parse_unix_timestamp_err() -> time::Result<()> {
-    assert_eq!(
-        OffsetDateTime::parse("1234567890", &fd::parse_borrowed::<1>("[unix_timestamp sign:mandatory]")?),
+#[rstest]
+#[case("1234567890", fd!("[unix_timestamp sign:mandatory]"))]
+#[case("a", fd!("[unix_timestamp precision:second]"))]
+#[case("a", fd!("[unix_timestamp precision:millisecond]"))]
+#[case("a", fd!("[unix_timestamp precision:microsecond]"))]
+#[case("a", fd!("[unix_timestamp precision:nanosecond]"))]
+fn parse_unix_timestamp_err(
+    #[case] input: &str,
+    #[case] format_description: StaticFormatDescription,
+) {
+    assert!(matches!(
+        OffsetDateTime::parse(input, format_description),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent("unix_timestamp")
         ))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("a", &fd::parse_borrowed::<1>("[unix_timestamp precision:second]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("unix_timestamp")
-        ))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("a", &fd::parse_borrowed::<1>("[unix_timestamp precision:millisecond]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("unix_timestamp")
-        ))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("a", &fd::parse_borrowed::<1>("[unix_timestamp precision:microsecond]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("unix_timestamp")
-        ))
-    );
-    assert_eq!(
-        OffsetDateTime::parse("a", &fd::parse_borrowed::<1>("[unix_timestamp precision:nanosecond]")?),
-        Err(error::Parse::ParseFromDescription(
-            error::ParseFromDescription::InvalidComponent("unix_timestamp")
-        ))
-    );
-
-    Ok(())
+    ));
 }
 
-#[test]
+#[rstest]
 fn issue_601() {
     let date = OffsetDateTime::parse(
         "1234567890.123",
-        &fd::parse_borrowed::<1>("[unix_timestamp].[subsecond digits:3]").expect("format description is valid"),
+        &fd::parse_borrowed::<1>("[unix_timestamp].[subsecond digits:3]")
+            .expect("format description is valid"),
     );
 
     assert_eq!(date, Ok(datetime!(2009-02-13 23:31:30.123 +00:00:00)));
 }
 
-#[test]
-fn end() -> time::Result<()> {
-    let mut parsed = Parsed::new();
-    let remaining_input = parsed.parse_item(
-        b"",
-        &BorrowedFormatItem::Component(Component::End(modifier::End::default())),
+#[rstest]
+#[case("00:00", fd!("[hour]:[minute][end]"), time!(0:00))]
+#[case("00:00abcdef", fd!("[hour]:[minute][end trailing_input:discard]"), time!(0:00))]
+#[case("00:00:00", fd!(version = 2, "[hour]:[minute][optional [[end]]]:[second]"), time!(0:00))]
+fn end(
+    #[case] input: &str,
+    #[case] format_description: StaticFormatDescription,
+    #[case] expected: Time,
+) {
+    assert_eq!(Time::parse(input, format_description).ok(), Some(expected));
+    assert_eq!(
+        Time::parse(input, &OwnedFormatItem::from(format_description)).ok(),
+        Some(expected)
     );
-    assert_eq!(remaining_input, Ok(b"".as_slice()));
+}
 
-    assert_eq!(
-        Time::parse("00:00", &fd::parse_borrowed::<1>("[hour]:[minute][end]")?),
-        Ok(time!(0:00))
-    );
-    assert_eq!(
-        Time::parse(
-            "00:00abcdef",
-            &fd::parse_borrowed::<1>("[hour]:[minute][end trailing_input:discard]")?
-        ),
-        Ok(time!(0:00))
-    );
-    assert_eq!(
-        Time::parse(
-            "00:00:00",
-            &fd::parse_owned::<2>("[hour]:[minute][optional [[end]]]:[second]")?
-        ),
-        Ok(time!(0:00))
-    );
+#[rstest]
+#[case("00:00:00", fd!("[hour]:[minute][end]:[second]"))]
+fn end_err_unexpected_trailing(
+    #[case] input: &str,
+    #[case] format_description: StaticFormatDescription,
+) {
     assert!(matches!(
-        Time::parse(
-            "00:00:00",
-            &fd::parse_owned::<2>("[hour]:[minute][end]:[second]")?
-        ),
+        Time::parse(input, format_description),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
         ))
     ));
+}
+
+#[rstest]
+#[case("00:00:00", fd!("[hour]:[minute][end trailing_input:discard]:[second]"))]
+fn end_err_invalid_literal(
+    #[case] input: &str,
+    #[case] format_description: StaticFormatDescription,
+) {
     assert!(matches!(
-        Time::parse(
-            "00:00:00",
-            &fd::parse_owned::<2>("[hour]:[minute][end trailing_input:discard]:[second]")?
-        ),
+        Time::parse(input, format_description),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidLiteral { .. }
         ))
     ));
-
-    Ok(())
 }

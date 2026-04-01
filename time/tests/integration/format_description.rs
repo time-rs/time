@@ -1,6 +1,7 @@
+use rstest::rstest;
 use time::format_description::{BorrowedFormatItem, Component, OwnedFormatItem, modifier};
 
-#[test]
+#[rstest]
 fn borrowed_format_item_component_conversions() {
     let component = Component::CalendarYearFullExtendedRange(
         modifier::CalendarYearFullExtendedRange::default(),
@@ -12,7 +13,7 @@ fn borrowed_format_item_component_conversions() {
     assert!(<&[BorrowedFormatItem<'_>]>::try_from(BorrowedFormatItem::StringLiteral("")).is_err());
 }
 
-#[test]
+#[rstest]
 fn borrowed_format_item_compound_conversions() {
     let compound = [BorrowedFormatItem::StringLiteral("")].as_slice();
     let item = BorrowedFormatItem::from(compound);
@@ -20,7 +21,7 @@ fn borrowed_format_item_compound_conversions() {
     assert_eq!(<&[BorrowedFormatItem<'_>]>::try_from(item), Ok(compound));
 }
 
-#[test]
+#[rstest]
 fn borrowed_format_item_equality() {
     let component = Component::CalendarYearFullExtendedRange(
         modifier::CalendarYearFullExtendedRange::default(),
@@ -35,7 +36,7 @@ fn borrowed_format_item_equality() {
     assert_eq!(compound_item, compound);
 }
 
-#[test]
+#[rstest]
 fn owned_format_item_component_conversions() {
     let component = Component::CalendarYearFullExtendedRange(
         modifier::CalendarYearFullExtendedRange::default(),
@@ -57,7 +58,7 @@ fn owned_format_item_component_conversions() {
     );
 }
 
-#[test]
+#[rstest]
 fn owned_format_item_compound_conversions() {
     let compound = vec![OwnedFormatItem::StringLiteral(
         "".to_owned().into_boxed_str(),
@@ -67,7 +68,7 @@ fn owned_format_item_compound_conversions() {
     assert_eq!(Vec::<OwnedFormatItem>::try_from(item), Ok(compound));
 }
 
-#[test]
+#[rstest]
 fn owned_format_item_equality() {
     let component = Component::CalendarYearFullExtendedRange(
         modifier::CalendarYearFullExtendedRange::default(),

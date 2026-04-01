@@ -1,5 +1,6 @@
 #![expect(deprecated)]
 
+use rstest::rstest;
 use std::cmp::Ordering;
 use std::thread;
 use std::time::Instant as StdInstant;
@@ -7,205 +8,229 @@ use std::time::Instant as StdInstant;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::{Duration, Instant};
 
-#[test]
+#[rstest]
 fn elapsed() {
     let instant = Instant::now();
     thread::sleep(1.std_milliseconds());
     assert!(instant.elapsed() >= 1.milliseconds());
 }
 
-#[test]
-fn checked_add() {
+#[rstest]
+#[case(0.seconds())]
+#[case(5.seconds())]
+#[case((-5).seconds())]
+fn checked_add(#[case] duration: Duration) {
     let now = Instant::now();
-    assert_eq!(now.checked_add(0.seconds()), Some(now));
-    assert_eq!(now.checked_add(5.seconds()), Some(now + 5.seconds()));
-    assert_eq!(now.checked_add((-5).seconds()), Some(now + (-5).seconds()));
+    assert_eq!(now.checked_add(duration), Some(now + duration));
 }
 
-#[test]
-fn checked_sub() {
+#[rstest]
+#[case(0.seconds())]
+#[case(5.seconds())]
+#[case((-5).seconds())]
+fn checked_sub(#[case] duration: Duration) {
     let now = Instant::now();
-    assert_eq!(now.checked_sub(0.seconds()), Some(now));
-    assert_eq!(now.checked_sub(5.seconds()), Some(now - 5.seconds()));
-    assert_eq!(now.checked_sub((-5).seconds()), Some(now - (-5).seconds()));
+    assert_eq!(now.checked_sub(duration), Some(now - duration));
 }
 
-#[test]
+#[rstest]
 fn into_inner() {
     let now = Instant::now();
     assert_eq!(now.into_inner(), now.0);
 }
 
-#[test]
+#[rstest]
 fn std_from() {
     let now_time = Instant::now();
     let now_std = StdInstant::from(now_time);
     assert_eq!(now_time, now_std);
 }
 
-#[test]
+#[rstest]
 fn from_std() {
     let now_std = StdInstant::now();
     let now_time = Instant::from(now_std);
     assert_eq!(now_time, now_std);
 }
 
-#[test]
-fn sub() {
+#[rstest]
+#[case(0)]
+#[case(1)]
+fn sub(#[case] ms: u64) {
     let start = Instant::now();
-    thread::sleep(1.std_milliseconds());
-    assert!(Instant::now() - start >= 1.milliseconds());
-    assert_eq!(start - start, Duration::ZERO);
+    thread::sleep(ms.std_milliseconds());
+    assert!(Instant::now() - start >= ms.cast_signed().milliseconds());
 }
 
-#[test]
-fn sub_std() {
+#[rstest]
+#[case(0)]
+#[case(1)]
+fn sub_std(#[case] ms: u64) {
     let start = StdInstant::now();
-    thread::sleep(1.std_milliseconds());
-    assert!(Instant::now() - start >= 1.milliseconds());
+    thread::sleep(ms.std_milliseconds());
+    assert!(Instant::now() - start >= ms.cast_signed().milliseconds());
 }
 
-#[test]
-fn std_sub() {
+#[rstest]
+#[case(0)]
+#[case(1)]
+fn std_sub(#[case] ms: u64) {
     let start = Instant::now();
-    thread::sleep(1.std_milliseconds());
-    assert!(StdInstant::now() - start >= 1.milliseconds());
+    thread::sleep(ms.std_milliseconds());
+    assert!(StdInstant::now() - start >= ms.cast_signed().milliseconds());
 }
 
-#[test]
-fn add_duration() {
+#[rstest]
+#[case(0)]
+#[case(1)]
+fn add_duration(#[case] ms: u64) {
     let start = Instant::now();
-    assert!(start + 0.seconds() <= Instant::now());
-    thread::sleep(1.std_milliseconds());
-    assert!(start + 1.milliseconds() <= Instant::now());
+    thread::sleep(ms.std_milliseconds());
+    assert!(start + ms.cast_signed().milliseconds() <= Instant::now());
 }
 
-#[test]
-fn std_add_duration() {
+#[rstest]
+#[case(0)]
+#[case(1)]
+fn std_add_duration(#[case] ms: u64) {
     let start = StdInstant::now();
-    thread::sleep(1.std_milliseconds());
-    assert!(start + 1.milliseconds() <= StdInstant::now());
+    thread::sleep(ms.std_milliseconds());
+    assert!(start + ms.cast_signed().milliseconds() <= StdInstant::now());
 }
 
-#[test]
-fn add_std_duration() {
+#[rstest]
+#[case(0)]
+#[case(1)]
+fn add_std_duration(#[case] ms: u64) {
     let start = Instant::now();
-    thread::sleep(1.std_milliseconds());
-    assert!(start + 1.std_milliseconds() <= Instant::now());
+    thread::sleep(ms.std_milliseconds());
+    assert!(start + ms.std_milliseconds() <= Instant::now());
 }
 
-#[test]
-fn add_assign_duration() {
+#[rstest]
+#[case(0)]
+#[case(1)]
+fn add_assign_duration(#[case] ms: u64) {
     let mut start = Instant::now();
-    thread::sleep(1.std_milliseconds());
-    start += 1.milliseconds();
+    thread::sleep(ms.std_milliseconds());
+    start += ms.cast_signed().milliseconds();
     assert!(start <= Instant::now());
 }
 
-#[test]
-fn std_add_assign_duration() {
+#[rstest]
+#[case(0)]
+#[case(1)]
+fn std_add_assign_duration(#[case] ms: u64) {
     let mut start = StdInstant::now();
-    thread::sleep(1.std_milliseconds());
-    start += 1.milliseconds();
+    thread::sleep(ms.std_milliseconds());
+    start += ms.cast_signed().milliseconds();
     assert!(start <= StdInstant::now());
 }
 
-#[test]
-fn add_assign_std_duration() {
+#[rstest]
+#[case(0)]
+#[case(1)]
+fn add_assign_std_duration(#[case] ms: u64) {
     let mut start = Instant::now();
-    thread::sleep(1.std_milliseconds());
-    start += 1.std_milliseconds();
+    thread::sleep(ms.std_milliseconds());
+    start += ms.std_milliseconds();
     assert!(start <= Instant::now());
 }
 
-#[test]
-fn sub_duration() {
+#[rstest]
+#[case(0)]
+#[case(100)]
+fn sub_duration(#[case] ms: i64) {
     let instant = Instant::now();
-    assert!(instant - 100.milliseconds() <= Instant::now());
+    assert!(instant - ms.milliseconds() <= Instant::now());
     assert_eq!(instant - Duration::ZERO, instant);
 }
 
-#[test]
-fn std_sub_duration() {
+#[rstest]
+#[case(0)]
+#[case(100)]
+fn std_sub_duration(#[case] ms: i64) {
     let instant = StdInstant::now();
-    assert!(instant - 100.milliseconds() <= StdInstant::now());
+    assert!(instant - ms.milliseconds() <= StdInstant::now());
 }
 
-#[test]
-fn sub_std_duration() {
+#[rstest]
+#[case(0)]
+#[case(100)]
+fn sub_std_duration(#[case] ms: u64) {
     let instant = Instant::now();
-    assert!(instant - 100.std_milliseconds() <= Instant::now());
+    assert!(instant - ms.std_milliseconds() <= Instant::now());
 }
 
-#[test]
-fn sub_assign_duration() {
+#[rstest]
+#[case(0)]
+#[case(100)]
+fn sub_assign_duration(#[case] ms: i64) {
     let mut instant = Instant::now();
-    instant -= 100.milliseconds();
+    instant -= ms.milliseconds();
     assert!(instant <= Instant::now());
 }
 
-#[test]
-fn std_sub_assign_duration() {
+#[rstest]
+#[case(0)]
+#[case(100)]
+fn std_sub_assign_duration(#[case] ms: i64) {
     let mut instant = StdInstant::now();
-    instant -= 100.milliseconds();
+    instant -= ms.milliseconds();
     assert!(instant <= StdInstant::now());
 }
 
-#[test]
-fn sub_assign_std_duration() {
+#[rstest]
+#[case(0)]
+#[case(100)]
+fn sub_assign_std_duration(#[case] ms: u64) {
     let mut instant = Instant::now();
-    instant -= 100.std_milliseconds();
+    instant -= ms.std_milliseconds();
     assert!(instant <= Instant::now());
 }
 
-#[test]
+#[rstest]
 fn eq_std() {
     let now_time = Instant::now();
     let now_std = StdInstant::from(now_time);
     assert_eq!(now_time, now_std);
 }
 
-#[test]
+#[rstest]
 fn std_eq() {
     let now_time = Instant::now();
     let now_std = StdInstant::from(now_time);
     assert_eq!(now_std, now_time);
 }
 
-#[test]
-fn ord() {
+#[rstest]
+#[case(1.seconds(), Ordering::Less)]
+#[case((-1).seconds(), Ordering::Greater)]
+fn ord(#[case] duration: Duration, #[case] expected: Ordering) {
     let now_time = Instant::now();
-    let now_std = now_time + 1.seconds();
-    assert_eq!(now_time.cmp(&now_std), Ordering::Less);
-
-    let now_time = Instant::now();
-    let now_std = now_time - 1.seconds();
-    assert_eq!(now_time.cmp(&now_std), Ordering::Greater);
+    let now_std = now_time + duration;
+    assert_eq!(now_time.cmp(&now_std), expected);
 }
 
-#[test]
-fn partial_ord_std() {
+#[rstest]
+#[case(1.seconds(), Ordering::Less)]
+#[case((-1).seconds(), Ordering::Greater)]
+fn partial_ord_std(#[case] duration: Duration, #[case] expected: Ordering) {
     let now_time = Instant::now();
-    let now_std = StdInstant::from(now_time) + 1.seconds();
-    assert!(now_time < now_std);
-
-    let now_time = Instant::now();
-    let now_std = StdInstant::from(now_time) - 1.seconds();
-    assert!(now_time > now_std);
+    let now_std = StdInstant::from(now_time) + duration;
+    assert_eq!(now_time.partial_cmp(&now_std), Some(expected));
 }
 
-#[test]
-fn std_partial_ord() {
+#[rstest]
+#[case(1.seconds(), Ordering::Greater)]
+#[case((-1).seconds(), Ordering::Less)]
+fn std_partial_ord(#[case] duration: Duration, #[case] expected: Ordering) {
     let now_time = Instant::now();
-    let now_std = StdInstant::from(now_time) + 1.seconds();
-    assert!(now_std > now_time);
-
-    let now_time = Instant::now();
-    let now_std = StdInstant::from(now_time) - 1.seconds();
-    assert!(now_std < now_time);
+    let now_std = StdInstant::from(now_time) + duration;
+    assert_eq!(now_std.partial_cmp(&now_time), Some(expected));
 }
 
-#[test]
+#[rstest]
 fn sub_regression() {
     let now = Instant::now();
     let future = now + Duration::seconds(5);
@@ -220,13 +245,13 @@ fn sub_regression() {
     assert_eq!(past - future, Duration::seconds(-10));
 }
 
-#[test]
+#[rstest]
 fn as_ref() {
     let now = Instant::now();
     assert_eq!(now.as_ref(), now.as_ref());
 }
 
-#[test]
+#[rstest]
 fn borrow() {
     use std::borrow::Borrow;
     let now = Instant::now();

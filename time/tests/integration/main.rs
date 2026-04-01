@@ -22,7 +22,7 @@
     feature = "rand",
     feature = "serde",
 )))]
-#[test]
+#[rstest]
 fn run_with_all_features() -> Result<(), Box<dyn std::error::Error>> {
     #[derive(Debug)]
     struct Error(std::process::ExitStatus);
@@ -73,16 +73,6 @@ macro_rules! require_all_features {
 }
 
 require_all_features! {
-    /// Assert that the given expression panics.
-    macro_rules! assert_panic {
-        ($($x:tt)*) => {
-            assert!(std::panic::catch_unwind(|| {
-                $($x)*
-            })
-            .is_err())
-        }
-    }
-
     /// `assert_eq!` or `assert_ne!` depending on the value of `$is_eq`.
     ///
     /// This provides better diagnostics than `assert_eq!($left == $right, $is_eq)`.
@@ -95,6 +85,9 @@ require_all_features! {
             }
         }}
     }
+
+    #[cfg(__ui_tests)]
+    use rstest::rstest;
 
     mod convert;
     mod date;
@@ -125,7 +118,7 @@ require_all_features! {
     mod weekday;
 
     #[cfg(__ui_tests)]
-    #[test]
+    #[rstest]
     fn compile_fail() {
         let tests = trybuild::TestCases::new();
         // Path is relative from `time/Cargo.toml`.
