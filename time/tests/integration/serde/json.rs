@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 
 use rstest::rstest;
 use serde::{Deserialize, Serialize};
-use serde_test::Configure;
+use serde_test2::Configure;
 use time::Month::*;
 use time::Weekday::*;
 use time::macros::{date, datetime, time};

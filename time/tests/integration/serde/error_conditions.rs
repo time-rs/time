@@ -1,6 +1,6 @@
 use rstest::rstest;
 use serde::{Deserialize, Serialize, Serializer};
-use serde_test::{Token, assert_ser_tokens_error};
+use serde_test2::{Token, assert_ser_tokens_error};
 use time::macros::{datetime, format_description};
 use time::{OffsetDateTime, error};
 

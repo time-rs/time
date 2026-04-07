@@ -1,10 +1,11 @@
 use serde::{Deserialize, Serialize};
-use serde_test::{
-    assert_de_tokens_error, assert_ser_tokens_error, assert_tokens, Configure, Token,
+use serde_test2::{
+    Configure, Token, assert_de_tokens, assert_de_tokens_error, assert_ser_tokens_error,
+    assert_tokens,
 };
+use time::OffsetDateTime;
 use time::macros::datetime;
 use time::serde::iso8601;
-use time::OffsetDateTime;
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 struct Test {
@@ -92,7 +93,7 @@ fn deserialize_error() {
 
 #[test]
 fn issue_674_leap_second_support() {
-    serde_test::assert_de_tokens::<Test>(
+    assert_de_tokens::<Test>(
         &Test {
             dt: datetime!(2016-12-31 23:59:59.999999999 UTC),
             option_dt: Some(datetime!(2016-12-31 23:59:59.999999999 UTC)),

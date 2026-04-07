@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use serde_test::{assert_tokens, Configure, Token};
-use time::serde::rfc2822;
+use serde_test2::{Configure, Token, assert_tokens};
 use time::OffsetDateTime;
+use time::serde::rfc2822;
 use time_macros::datetime;
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]

@@ -667,12 +667,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_test"
-version = "1.0.177"
+name = "serde_test2"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f901ee573cab6b3060453d2d5f0bae4e6d628c23c0a962ff9b5f1d7c8d4f1ed"
+checksum = "95a9eac4d4fc2509eef1f6d4f03b7ee3834fe055349ba336ab5388206176cb30"
 dependencies = [
- "serde",
+ "serde_core",
 ]
 
 [[package]]
@@ -728,7 +728,7 @@ dependencies = [
  "serde",
  "serde_core",
  "serde_json",
- "serde_test",
+ "serde_test2",
  "time-core",
  "time-macros",
  "trybuild",

@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 
 use rstest::rstest;
 use serde::{Deserialize, Serialize};
-use serde_test::{
+use serde_test2::{
     Compact, Configure, Readable, Token, assert_de_tokens, assert_de_tokens_error, assert_tokens,
 };
 use time::Month::*;

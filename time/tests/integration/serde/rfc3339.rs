@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
-use serde_test::{
-    assert_de_tokens_error, assert_ser_tokens_error, assert_tokens, Configure, Token,
+use serde_test2::{
+    Configure, Token, assert_de_tokens_error, assert_ser_tokens_error, assert_tokens,
 };
+use time::OffsetDateTime;
 use time::macros::datetime;
 use time::serde::rfc3339;
-use time::OffsetDateTime;
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 struct Test {

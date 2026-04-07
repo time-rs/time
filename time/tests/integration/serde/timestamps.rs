@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 
 use rstest::rstest;
 use serde::{Deserialize, Serialize};
-use serde_test::{Token, assert_de_tokens_error, assert_tokens};
+use serde_test2::{Token, assert_de_tokens_error, assert_tokens};
 use time::OffsetDateTime;
 use time::macros::datetime;
 use time::serde::timestamp;

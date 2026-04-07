@@ -1,13 +1,13 @@
 #[rustfmt::skip] // Tries to remove the leading `::`, which breaks compilation.
 use ::serde::{Deserialize, Serialize};
-use serde_test::{
-    assert_de_tokens, assert_de_tokens_error, assert_ser_tokens_error, assert_tokens, Configure,
-    Token,
+use serde_test2::{
+    Configure, Token, assert_de_tokens, assert_de_tokens_error, assert_ser_tokens_error,
+    assert_tokens,
 };
-use time::format_description::well_known::{iso8601, Iso8601};
 use time::format_description::BorrowedFormatItem;
+use time::format_description::well_known::{Iso8601, iso8601};
 use time::macros::{date, datetime, offset, time};
-use time::{serde, Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
+use time::{Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, serde};
 
 // Not used in the tests, but ensures that the macro compiles.
 #[expect(dead_code)]
@@ -112,7 +112,7 @@ fn custom_serialize_error() {
         &[
             Token::Struct {
                 name: "TestCustomFormat",
-                len: 5,
+                len: 6,
             },
             Token::Str("offset_dt"),
             Token::BorrowedStr("custom format: 2000-01-01 0:00:00 -04:00"),
@@ -124,7 +124,7 @@ fn custom_serialize_error() {
         &[
             Token::Struct {
                 name: "TestCustomFormat",
-                len: 5,
+                len: 6,
             },
             Token::Str("offset_dt"),
             Token::BorrowedStr("custom format: 2000-01-01 00:00:00 -04:00"),
@@ -139,7 +139,7 @@ fn custom_serialize_error() {
         &[
             Token::Struct {
                 name: "TestCustomFormat",
-                len: 5,
+                len: 6,
             },
             Token::Str("offset_dt"),
             Token::Bool(false),
@@ -152,7 +152,7 @@ fn custom_serialize_error() {
         &[
             Token::Struct {
                 name: "TestCustomFormat",
-                len: 5,
+                len: 6,
             },
             Token::Str("offset_dt"),
             Token::BorrowedStr("custom format: 2000-01-01 00:00:00 -04:00"),

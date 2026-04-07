@@ -35,7 +35,7 @@ rstest_reuse = "0.7.0"
 serde = { version = "1.0.184", default-features = false }
 serde_core = { version = "1.0.220", default-features = false }
 serde_json = "1.0.68"
-serde_test = "1.0.126"
+serde_test2 = "2.0.0"
 trybuild = "1.0.102"
 
 [profile.dev]

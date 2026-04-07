@@ -74,9 +74,9 @@ js-sys = { workspace = true, optional = true }
 num-conv.workspace = true
 rand08.workspace = true
 rand09 = { workspace = true, features = ["small_rng"] }
-serde = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive", "alloc"] }
 serde_json.workspace = true
-serde_test.workspace = true
+serde_test2.workspace = true
 quickcheck_macros.workspace = true
 time-macros.workspace = true
 rstest.workspace = true
