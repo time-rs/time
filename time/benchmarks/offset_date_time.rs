@@ -2,9 +2,9 @@ use std::hint::black_box;
 use std::time::SystemTime;
 
 use criterion::Bencher;
+use time::OffsetDateTime;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, offset, time};
-use time::OffsetDateTime;
 
 setup_benchmark! {
     "OffsetDateTime",

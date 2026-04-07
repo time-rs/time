@@ -1,17 +1,19 @@
-use std::fmt::Debug;
 use std::cmp::Ordering;
 use std::collections::hash_map::DefaultHasher;
+use std::fmt::Debug;
 use std::hash::Hash;
 
 use rstest::rstest;
-use time::error::{self, ConversionRange, IndeterminateOffset, TryFromParsed};
-use time::ext::NumericalDuration;
-use time::format_description::{self, modifier, well_known, Component, BorrowedFormatItem, OwnedFormatItem};
-use time::macros::{date, offset, time, utc_datetime, datetime};
-use time::parsing::Parsed;
-use time::{Duration, Error, Month, Time, Weekday};
 #[expect(deprecated)]
 use time::Instant;
+use time::error::{self, ConversionRange, IndeterminateOffset, TryFromParsed};
+use time::ext::NumericalDuration;
+use time::format_description::{
+    self, BorrowedFormatItem, Component, OwnedFormatItem, modifier, well_known,
+};
+use time::macros::{date, datetime, offset, time, utc_datetime};
+use time::parsing::Parsed;
+use time::{Duration, Error, Month, Time, Weekday};
 
 fn component_range_error() -> error::ComponentRange {
     Time::from_hms(24, 0, 0).expect_err("24 is not a valid hour")
@@ -139,7 +141,10 @@ fn hash(#[case] value: impl Hash) {
 #[case(Instant::now() - 1.seconds(), Instant::now(), Ordering::Less)]
 #[expect(deprecated)]
 #[case(Instant::now() + 1.seconds(), Instant::now(), Ordering::Greater)]
-fn partial_ord<T>(#[case] a: T, #[case] b: T, #[case] ordering: Ordering) where T: PartialOrd {
+fn partial_ord<T>(#[case] a: T, #[case] b: T, #[case] ordering: Ordering)
+where
+    T: PartialOrd,
+{
     assert_eq!(a.partial_cmp(&b), Some(ordering));
 }
 
@@ -226,13 +231,17 @@ fn ord(#[case] a: time::UtcOffset, #[case] b: time::UtcOffset, #[case] ordering:
 #[expect(deprecated)]
 #[case(BorrowedFormatItem::Literal(b"abcdef"))]
 #[case(BorrowedFormatItem::StringLiteral("abcdef"))]
-#[case(BorrowedFormatItem::Compound(const { &[BorrowedFormatItem::Component(Component::Day(modifier::Day::default()))] }))]
+#[case(BorrowedFormatItem::Compound(
+    const { &[BorrowedFormatItem::Component(Component::Day(modifier::Day::default()))] }
+))]
 #[case(BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&[])))]
 #[case(BorrowedFormatItem::First(&[]))]
 #[expect(deprecated)]
 #[case(OwnedFormatItem::from(BorrowedFormatItem::Literal(b"abcdef")))]
 #[case(OwnedFormatItem::from(BorrowedFormatItem::StringLiteral("abcdef")))]
-#[case(OwnedFormatItem::from(BorrowedFormatItem::Compound(&[BorrowedFormatItem::Component(Component::Day(modifier::Day::default()))])))]
+#[case(OwnedFormatItem::from(BorrowedFormatItem::Compound(
+    &[BorrowedFormatItem::Component(Component::Day(modifier::Day::default()))]
+)))]
 #[case(OwnedFormatItem::from(BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&[]))))]
 #[case(OwnedFormatItem::from(BorrowedFormatItem::First(&[])))]
 fn debug(#[case] value: impl Debug) {

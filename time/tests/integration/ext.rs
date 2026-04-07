@@ -1,7 +1,7 @@
 mod numerical_duration {
     use rstest::rstest;
-    use time::ext::NumericalDuration;
     use time::Duration;
+    use time::ext::NumericalDuration;
 
     #[rstest]
     #[case(5.nanoseconds(), Duration::nanoseconds(5))]

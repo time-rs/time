@@ -4,7 +4,7 @@ use std::time::Duration as StdDuration;
 
 use rstest::rstest;
 use time::ext::{NumericalDuration, NumericalStdDuration};
-use time::{error, Duration};
+use time::{Duration, error};
 
 #[rstest]
 #[case(Duration::ZERO, 0.seconds())]

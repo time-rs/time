@@ -132,13 +132,17 @@ setup_benchmark! {
         ben.iter(|| datetime!(2019-01-01 0:00).partial_cmp(&datetime!(2019-01-01 1:00)));
         ben.iter(|| datetime!(2019-01-01 0:00).partial_cmp(&datetime!(2019-01-01 0:01)));
         ben.iter(|| datetime!(2019-01-01 0:00).partial_cmp(&datetime!(2019-01-01 0:00:01)));
-        ben.iter(|| datetime!(2019-01-01 0:00).partial_cmp(&datetime!(2019-01-01 0:00:00.000_000_001)));
+        ben.iter(||
+            datetime!(2019-01-01 0:00).partial_cmp(&datetime!(2019-01-01 0:00:00.000_000_001))
+        );
         ben.iter(|| datetime!(2020-01-01 0:00).partial_cmp(&datetime!(2019-01-01 0:00)));
         ben.iter(|| datetime!(2019-02-01 0:00).partial_cmp(&datetime!(2019-01-01 0:00)));
         ben.iter(|| datetime!(2019-01-02 0:00).partial_cmp(&datetime!(2019-01-01 0:00)));
         ben.iter(|| datetime!(2019-01-01 1:00).partial_cmp(&datetime!(2019-01-01 0:00)));
         ben.iter(|| datetime!(2019-01-01 0:01).partial_cmp(&datetime!(2019-01-01 0:00)));
         ben.iter(|| datetime!(2019-01-01 0:00:01).partial_cmp(&datetime!(2019-01-01 0:00)));
-        ben.iter(|| datetime!(2019-01-01 0:00:00.000_000_001).partial_cmp(&datetime!(2019-01-01 0:00)));
+        ben.iter(||
+            datetime!(2019-01-01 0:00:00.000_000_001).partial_cmp(&datetime!(2019-01-01 0:00))
+        );
     }
 }

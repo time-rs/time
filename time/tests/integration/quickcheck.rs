@@ -1,8 +1,8 @@
 use num_conv::prelude::*;
 use quickcheck::{Arbitrary, TestResult};
 use quickcheck_macros::quickcheck;
-use time::macros::{format_description, time};
 use time::Weekday::*;
+use time::macros::{format_description, time};
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 
 macro_rules! test_shrink {

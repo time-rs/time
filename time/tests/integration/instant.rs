@@ -1,10 +1,10 @@
 #![expect(deprecated)]
 
-use rstest::rstest;
 use std::cmp::Ordering;
 use std::thread;
 use std::time::Instant as StdInstant;
 
+use rstest::rstest;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::{Duration, Instant};
 
