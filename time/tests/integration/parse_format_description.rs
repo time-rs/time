@@ -734,6 +734,23 @@ fn first() {
             )),
         ])))
     );
+    assert_eq!(
+        format_description::parse_owned::<1>(
+            "[first [[period case:upper]] [[period case:lower]] ]"
+        ),
+        Ok(OwnedFormatItem::First(Box::new([
+            OwnedFormatItem::Component(Component::Period(
+                Period::default()
+                    .with_is_uppercase(true)
+                    .with_case_sensitive(true)
+            )),
+            OwnedFormatItem::Component(Component::Period(
+                Period::default()
+                    .with_is_uppercase(false)
+                    .with_case_sensitive(true)
+            )),
+        ])))
+    );
 }
 
 #[rstest]

@@ -152,6 +152,7 @@ pub(super) fn lex(
     proc_span: proc_macro::Span,
 ) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
     let mut depth: u32 = 0;
+    let mut nested_component_name_seen = false;
     let mut iter = attach_location(input.iter(), proc_span).peekable();
     let mut second_bracket_location = None;
 
@@ -186,7 +187,7 @@ pub(super) fn lex(
                     return Some(Err(backslash_loc.error("unexpected end of input")));
                 }
             },
-            (b'[', location) if version.is_v1() => {
+            (b'[', location) if version.is_v1() && !nested_component_name_seen => {
                 if let Some((_, second_location)) = iter.next_if(|&(&byte, _)| byte == b'[') {
                     second_bracket_location = Some(second_location);
                     input = &input[2..];
@@ -211,6 +212,9 @@ pub(super) fn lex(
             }
             (b']', location) if depth > 0 => {
                 depth -= 1;
+                if version.is_v1() {
+                    nested_component_name_seen = depth != 0;
+                }
                 input = &input[1..];
 
                 Token::Bracket {
@@ -249,6 +253,10 @@ pub(super) fn lex(
 
                 let value = &input[..bytes];
                 input = &input[bytes..];
+
+                if version.is_v1() && !is_whitespace {
+                    nested_component_name_seen = true;
+                }
 
                 Token::ComponentPart {
                     kind: if is_whitespace {

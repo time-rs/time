@@ -147,11 +147,13 @@ pub(super) enum ComponentKind {
 
 /// Parse the string into a series of [`Token`]s.
 ///
-/// `VERSION` controls the version of the format description that is being parsed. Currently, this
-/// must be 1 or 2.
+/// `version` controls the version of the format description that is being parsed.
 ///
-/// - When `VERSION` is 1, `[[` is the only escape sequence, resulting in a literal `[`.
-/// - When `VERSION` is 2, all escape sequences begin with `\`. The only characters that may
+/// - When `version` is 1, `[[` is the only escape sequence, resulting in a literal `[`. For the
+///   start of a nested format description, a single `[` is used and is _never_ part of the escape
+///   sequence. For example, `[optional [[day]]]` will lex successfully, ultimately resulting in a
+///   component named `optional` with the nested component `day`.
+/// - When `version` is 2 or 3, all escape sequences begin with `\`. The only characters that may
 ///   currently follow are `\`, `[`, and `]`, all of which result in the literal character. All
 ///   other characters result in a lex error.
 #[inline]
@@ -160,6 +162,10 @@ pub(super) fn lex(
     mut input: &[u8],
 ) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
     let mut depth: u32 = 0;
+    // Whether, within a nested format description, we have seen the component name. This is used to
+    // distinguish between `[[` as an escaped literal and `[[` as the start of a nested format
+    // description (and the start of a component). This is only relevant for v1 format descriptions.
+    let mut nested_component_name_seen = false;
     let mut iter = attach_location(input.iter()).peekable();
     let mut second_bracket_location = None;
 
@@ -213,7 +219,9 @@ pub(super) fn lex(
                 }
             }
             // potentially escaped opening bracket
-            (b'[', location) if version.is_v1() => {
+            // If we have seen a nested component name, then we know for sure that this is not
+            // an escaped bracket. If we have not, then we check for the escape sequence.
+            (b'[', location) if version.is_v1() && !nested_component_name_seen => {
                 if let Some((_, second_location)) = iter.next_if(|&(&byte, _)| byte == b'[') {
                     // Escaped bracket. Store the location of the second so we can emit it later.
                     second_bracket_location = Some(second_location);
@@ -242,6 +250,13 @@ pub(super) fn lex(
             // closing bracket
             (b']', location) if depth > 0 => {
                 depth -= 1;
+                if version.is_v1() {
+                    // If the depth is zero, then we are no longer in a nested component. As such we
+                    // have not seen the component name. If the depth is not zero, then we have just
+                    // completed a nested format description or nested component. In either case,
+                    // the nested component name comes before this, so we have seen it.
+                    nested_component_name_seen = depth != 0;
+                }
                 input = &input[1..];
 
                 Token::Bracket {
@@ -282,6 +297,14 @@ pub(super) fn lex(
 
                 let value = &input[..bytes];
                 input = &input[bytes..];
+
+                // If what we just consumed is not whitespace, then it is either the component name
+                // or a modifier (which comes after the component name). In either situation, we
+                // have seen the component name, so we set the flag. This is only relevant for v1
+                // format descriptions.
+                if version.is_v1() && !is_whitespace {
+                    nested_component_name_seen = true;
+                }
 
                 Token::ComponentPart {
                     kind: if is_whitespace {
