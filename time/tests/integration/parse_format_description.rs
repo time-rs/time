@@ -640,116 +640,124 @@ fn ignore_component(ignore_count: M<NonZero<u16>>) {
 }
 
 #[rstest]
-fn optional() {
+#[case(
+    "[optional [:[year]]]",
+    OwnedFormatItem::Optional(Box::new(
+    OwnedFormatItem::Compound(Box::new([
+        OwnedFormatItem::StringLiteral(boxed!(":")),
+        OwnedFormatItem::Component(Component::CalendarYearFullExtendedRange(
+            Default::default()
+        ))
+    ]))
+)))]
+#[case(
+    "[optional [[year]]]",
+    OwnedFormatItem::Optional(Box::new(OwnedFormatItem::Component(
+        Component::CalendarYearFullExtendedRange(Default::default())
+    )))
+)]
+#[case(
+    r"[optional [\[]]",
+    OwnedFormatItem::Optional(Box::new(
+    OwnedFormatItem::StringLiteral(boxed!("["))
+)))]
+#[case(
+    r"[optional [ \[ ]]",
+    OwnedFormatItem::Optional(Box::new(
+        OwnedFormatItem::Compound(Box::new([
+            OwnedFormatItem::StringLiteral(boxed!(" ")),
+            OwnedFormatItem::StringLiteral(boxed!("[")),
+            OwnedFormatItem::StringLiteral(boxed!(" ")),
+        ]))
+    ))
+)]
+fn optional(#[case] format_description: &str, #[case] expected: OwnedFormatItem) {
     assert_eq!(
-        format_description::parse_owned::<2>("[optional [:[year]]]"),
-        Ok(OwnedFormatItem::Optional(Box::new(
-            OwnedFormatItem::Compound(Box::new([
-                OwnedFormatItem::StringLiteral(boxed!(":")),
-                OwnedFormatItem::Component(Component::CalendarYearFullExtendedRange(
-                    Default::default()
-                ))
-            ]))
-        )))
-    );
-    assert_eq!(
-        format_description::parse_owned::<2>("[optional [[year]]]"),
-        Ok(OwnedFormatItem::Optional(Box::new(
-            OwnedFormatItem::Component(
-                Component::CalendarYearFullExtendedRange(Default::default())
-            )
-        )))
-    );
-    assert_eq!(
-        format_description::parse_owned::<2>(r"[optional [\[]]"),
-        Ok(OwnedFormatItem::Optional(Box::new(
-            OwnedFormatItem::StringLiteral(boxed!("["))
-        )))
-    );
-    assert_eq!(
-        format_description::parse_owned::<2>(r"[optional [ \[ ]]"),
-        Ok(OwnedFormatItem::Optional(Box::new(
-            OwnedFormatItem::Compound(Box::new([
-                OwnedFormatItem::StringLiteral(boxed!(" ")),
-                OwnedFormatItem::StringLiteral(boxed!("[")),
-                OwnedFormatItem::StringLiteral(boxed!(" ")),
-            ]))
-        )))
+        format_description::parse_owned::<2>(format_description),
+        Ok(expected)
     );
 }
 
 #[rstest]
-fn first() {
-    assert_eq!(
-        format_description::parse_owned::<2>("[first [a]]"),
-        Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::StringLiteral(boxed!("a"))
-        ])))
-    );
-    assert_eq!(
-        format_description::parse_owned::<2>("[first [a] [b]]"),
-        Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::StringLiteral(boxed!("a")),
-            OwnedFormatItem::StringLiteral(boxed!("b")),
-        ])))
-    );
-    assert_eq!(
-        format_description::parse_owned::<2>("[first [a][b]]"),
-        Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::StringLiteral(boxed!("a")),
-            OwnedFormatItem::StringLiteral(boxed!("b")),
-        ])))
-    );
-    assert_eq!(
-        format_description::parse_owned::<2>(r"[first [a][\[]]"),
-        Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::StringLiteral(boxed!("a")),
+#[case(
+    "[first [a]]",
+    OwnedFormatItem::First(Box::new([
+        OwnedFormatItem::StringLiteral(boxed!("a"))
+    ]))
+)]
+#[case(
+    "[first [a] [b]]",
+    OwnedFormatItem::First(Box::new([
+        OwnedFormatItem::StringLiteral(boxed!("a")),
+        OwnedFormatItem::StringLiteral(boxed!("b")),
+    ]))
+)]
+#[case(
+    "[first [a] [b] ]",
+    OwnedFormatItem::First(Box::new([
+        OwnedFormatItem::StringLiteral(boxed!("a")),
+        OwnedFormatItem::StringLiteral(boxed!("b")),
+    ]))
+)]
+#[case(
+    r"[first [a][\[]]",
+    OwnedFormatItem::First(Box::new([
+        OwnedFormatItem::StringLiteral(boxed!("a")),
+        OwnedFormatItem::StringLiteral(boxed!("[")),
+    ]))
+)]
+#[case(
+    r"[first [a][\[\[]]",
+    OwnedFormatItem::First(Box::new([
+        OwnedFormatItem::StringLiteral(boxed!("a")),
+        OwnedFormatItem::Compound(Box::new([
             OwnedFormatItem::StringLiteral(boxed!("[")),
-        ])))
-    );
+            OwnedFormatItem::StringLiteral(boxed!("[")),
+        ]))
+    ]))
+)]
+#[case(
+    "[first [[period case:upper]] [[period case:lower]] ]",
+    OwnedFormatItem::First(Box::new([
+        OwnedFormatItem::Component(Component::Period(
+            Period::default()
+                .with_is_uppercase(true)
+                .with_case_sensitive(true)
+        )),
+        OwnedFormatItem::Component(Component::Period(
+            Period::default()
+                .with_is_uppercase(false)
+                .with_case_sensitive(true)
+        )),
+    ]))
+)]
+fn first(#[case] format_description: &str, #[case] expected: OwnedFormatItem) {
     assert_eq!(
-        format_description::parse_owned::<2>(r"[first [a][\[\[]]"),
-        Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::StringLiteral(boxed!("a")),
-            OwnedFormatItem::Compound(Box::new([
-                OwnedFormatItem::StringLiteral(boxed!("[")),
-                OwnedFormatItem::StringLiteral(boxed!("[")),
-            ]))
-        ])))
+        format_description::parse_owned::<2>(format_description),
+        Ok(expected)
     );
+}
+
+#[rstest]
+#[case(
+    "[first [[period case:upper]] [[period case:lower]] ]",
+    OwnedFormatItem::First(Box::new([
+        OwnedFormatItem::Component(Component::Period(
+            Period::default()
+                .with_is_uppercase(true)
+                .with_case_sensitive(true)
+        )),
+        OwnedFormatItem::Component(Component::Period(
+            Period::default()
+                .with_is_uppercase(false)
+                .with_case_sensitive(true)
+        )),
+    ]))
+)]
+fn first_v1(#[case] format_description: &str, #[case] expected: OwnedFormatItem) {
     assert_eq!(
-        format_description::parse_owned::<2>(
-            "[first [[period case:upper]] [[period case:lower]] ]"
-        ),
-        Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::Component(Component::Period(
-                Period::default()
-                    .with_is_uppercase(true)
-                    .with_case_sensitive(true)
-            )),
-            OwnedFormatItem::Component(Component::Period(
-                Period::default()
-                    .with_is_uppercase(false)
-                    .with_case_sensitive(true)
-            )),
-        ])))
-    );
-    assert_eq!(
-        format_description::parse_owned::<1>(
-            "[first [[period case:upper]] [[period case:lower]] ]"
-        ),
-        Ok(OwnedFormatItem::First(Box::new([
-            OwnedFormatItem::Component(Component::Period(
-                Period::default()
-                    .with_is_uppercase(true)
-                    .with_case_sensitive(true)
-            )),
-            OwnedFormatItem::Component(Component::Period(
-                Period::default()
-                    .with_is_uppercase(false)
-                    .with_case_sensitive(true)
-            )),
-        ])))
+        format_description::parse_owned::<1>(format_description),
+        Ok(expected)
     );
 }
 
@@ -836,86 +844,86 @@ fn backslash_escape_error(#[case] format_description: &str, #[case] expected_ind
 }
 
 #[rstest]
-fn nested_v1_error() {
+#[case("[optional [[[]]", 11)]
+#[case("[optional [ [[ ]]", 12)]
+fn nested_v2_error_missing_component_name(
+    #[case] format_description: &str,
+    #[case] expected_index: usize,
+) {
     assert!(matches!(
-        format_description::parse_owned::<2>("[optional [[[]]"),
-        Err(InvalidFormatDescription::MissingComponentName { index: 11, .. })
-    ));
-    assert!(matches!(
-        format_description::parse_owned::<2>("[optional [ [[ ]]"),
-        Err(InvalidFormatDescription::MissingComponentName { index: 12, .. })
-    ));
-    assert!(matches!(
-        format_description::parse_owned::<2>("[first [a][[[]]"),
-        Err(InvalidFormatDescription::UnclosedOpeningBracket { index: 0, .. })
+        format_description::parse_owned::<2>(format_description),
+        Err(InvalidFormatDescription::MissingComponentName { index, .. }) if index == expected_index
     ));
 }
 
 #[rstest]
-fn nested_error() {
-    use InvalidFormatDescription::*;
+#[case("[first [a][[[]]", 0)]
+#[case("[optional []", 0)]
+#[case("[first []", 0)]
+#[case("[optional [", 10)]
+#[case("[optional [[year", 11)]
+fn nested_v2_error_unclosed(#[case] format_description: &str, #[case] expected_index: usize) {
+    assert!(matches!(
+        format_description::parse_owned::<2>(format_description),
+        Err(InvalidFormatDescription::UnclosedOpeningBracket { index, .. })
+            if index == expected_index
+    ));
+}
 
+#[rstest]
+#[case(
+    "[optional []]",
+    "optional item",
+    "runtime-parsed format descriptions",
+    0
+)]
+#[case("[first []]", "'first' item", "runtime-parsed format descriptions", 0)]
+fn nested_v1_error_not_supported(
+    #[case] format_description: &str,
+    #[case] expected_what: &str,
+    #[case] expected_context: &str,
+    #[case] expected_index: usize,
+) {
     assert!(matches!(
-        format_description::parse_borrowed::<1>("[optional []]"),
-        Err(NotSupported {
-            what: "optional item",
-            context: "runtime-parsed format descriptions",
-            index: 0,
-            ..
-        })
+        format_description::parse_borrowed::<1>(format_description),
+        Err(InvalidFormatDescription::NotSupported { what, context, index, .. })
+            if what == expected_what
+                && context == expected_context
+                && index == expected_index
     ));
+}
+
+#[rstest]
+#[case("[year [month]]", "[", 6)]
+fn nested_v2_error_invalid_modifier(
+    #[case] format_description: &str,
+    #[case] expected_value: &str,
+    #[case] expected_index: usize,
+) {
     assert!(matches!(
-        format_description::parse_borrowed::<1>("[first []]"),
-        Err(NotSupported {
-            what: "'first' item",
-            context: "runtime-parsed format descriptions",
-            index: 0,
-            ..
-        })
+        format_description::parse_owned::<2>(format_description),
+        Err(InvalidFormatDescription::InvalidModifier { value, index, .. })
+            if value == expected_value && index == expected_index
     ));
+}
+
+#[rstest]
+#[case(
+    "[optional[]]",
+    "whitespace between `optional` and nested description",
+    8
+)]
+#[case("[first[]]", "whitespace between `first` and nested descriptions", 5)]
+#[case("[optional ", "opening bracket", 9)]
+fn nested_v2_error_expected(
+    #[case] format_description: &str,
+    #[case] expected_what: &str,
+    #[case] expected_index: usize,
+) {
     assert!(matches!(
-        format_description::parse_owned::<2>("[year [month]]"),
-        Err(InvalidModifier { value, index: 6, .. }) if value == "["
-    ));
-    assert!(matches!(
-        format_description::parse_owned::<2>("[optional[]]"),
-        Err(Expected {
-            what: "whitespace between `optional` and nested description",
-            index: 8,
-            ..
-        })
-    ));
-    assert!(matches!(
-        format_description::parse_owned::<2>("[first[]]"),
-        Err(Expected {
-            what: "whitespace between `first` and nested descriptions",
-            index: 5,
-            ..
-        })
-    ));
-    assert!(matches!(
-        format_description::parse_owned::<2>("[optional []"),
-        Err(UnclosedOpeningBracket { index: 0, .. })
-    ));
-    assert!(matches!(
-        format_description::parse_owned::<2>("[first []"),
-        Err(UnclosedOpeningBracket { index: 0, .. })
-    ));
-    assert!(matches!(
-        format_description::parse_owned::<2>("[optional ["),
-        Err(UnclosedOpeningBracket { index: 10, .. })
-    ));
-    assert!(matches!(
-        format_description::parse_owned::<2>("[optional [[year"),
-        Err(UnclosedOpeningBracket { index: 11, .. })
-    ));
-    assert!(matches!(
-        format_description::parse_owned::<2>("[optional "),
-        Err(Expected {
-            what: "opening bracket",
-            index: 9,
-            ..
-        })
+        format_description::parse_owned::<2>(format_description),
+        Err(InvalidFormatDescription::Expected { what, index, .. })
+            if what == expected_what && index == expected_index
     ));
 }
 

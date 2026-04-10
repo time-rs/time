@@ -1,6 +1,7 @@
+use rstest::rstest;
 use serde::{Deserialize, Serialize};
 use serde_test2::{
-    Configure, Token, assert_de_tokens, assert_de_tokens_error, assert_ser_tokens_error,
+    Compact, Configure, Token, assert_de_tokens, assert_de_tokens_error, assert_ser_tokens_error,
     assert_tokens,
 };
 use time::OffsetDateTime;
@@ -15,83 +16,83 @@ struct Test {
     option_dt: Option<OffsetDateTime>,
 }
 
-#[test]
-fn serialize() {
-    let value = Test {
+#[rstest]
+#[case(
+    Test {
         dt: datetime!(2000-01-01 00:00:00 UTC),
         option_dt: Some(datetime!(2000-01-01 00:00:00 UTC)),
-    };
-    assert_tokens(
-        &value.compact(),
-        &[
-            Token::Struct {
-                name: "Test",
-                len: 2,
-            },
-            Token::Str("dt"),
-            Token::BorrowedStr("+002000-01-01T00:00:00.000000000Z"),
-            Token::Str("option_dt"),
-            Token::Some,
-            Token::BorrowedStr("+002000-01-01T00:00:00.000000000Z"),
-            Token::StructEnd,
-        ],
-    );
-    let value = Test {
+    }.compact(),
+    &[
+        Token::Struct {
+            name: "Test",
+            len: 2,
+        },
+        Token::Str("dt"),
+        Token::BorrowedStr("+002000-01-01T00:00:00.000000000Z"),
+        Token::Str("option_dt"),
+        Token::Some,
+        Token::BorrowedStr("+002000-01-01T00:00:00.000000000Z"),
+        Token::StructEnd,
+    ]
+)]
+#[case(
+    Test {
         dt: datetime!(2000-01-01 00:00:00 UTC),
         option_dt: None,
-    };
-    assert_tokens(
-        &value.compact(),
-        &[
-            Token::Struct {
-                name: "Test",
-                len: 2,
-            },
-            Token::Str("dt"),
-            Token::BorrowedStr("+002000-01-01T00:00:00.000000000Z"),
-            Token::Str("option_dt"),
-            Token::None,
-            Token::StructEnd,
-        ],
-    );
+    }.compact(),
+    &[
+        Token::Struct {
+            name: "Test",
+            len: 2,
+        },
+        Token::Str("dt"),
+        Token::BorrowedStr("+002000-01-01T00:00:00.000000000Z"),
+        Token::Str("option_dt"),
+        Token::None,
+        Token::StructEnd,
+    ]
+)]
+fn serialize(#[case] test: Compact<Test>, #[case] tokens: &[Token]) {
+    assert_tokens(&test, tokens);
 }
 
-#[test]
-fn serialize_error() {
-    let value = Test {
+#[rstest]
+#[case(
+    Test {
         dt: datetime!(2000-01-01 00:00:00 +00:00:01),
         option_dt: None,
-    };
-    assert_ser_tokens_error::<Test>(
-        &value,
-        &[
-            Token::Struct {
-                name: "Test",
-                len: 2,
-            },
-            Token::Str("dt"),
-        ],
-        "The offset_second component cannot be formatted into the requested format.",
-    );
+    },
+    &[
+        Token::Struct {
+            name: "Test",
+            len: 2,
+        },
+        Token::Str("dt"),
+    ],
+    "The offset_second component cannot be formatted into the requested format.",
+)]
+fn serialize_error(#[case] value: Test, #[case] tokens: &[Token], #[case] error: &str) {
+    assert_ser_tokens_error::<Test>(&value, tokens, error);
 }
 
-#[test]
-fn deserialize_error() {
-    assert_de_tokens_error::<Test>(
-        &[
-            Token::Struct {
-                name: "Test",
-                len: 2,
-            },
-            Token::Str("dt"),
-            Token::BorrowedStr("bad"),
-            Token::StructEnd,
-        ],
-        "the 'year' component could not be parsed",
-    );
+#[rstest]
+#[case(
+    &[
+        Token::Struct {
+            name: "Test",
+            len: 2,
+        },
+        Token::Str("dt"),
+        Token::BorrowedStr("bad"),
+        Token::StructEnd,
+    ],
+    "the 'year' component could not be parsed"
+)]
+fn deserialize_error(#[case] tokens: &[Token], #[case] error: &str) {
+    assert_de_tokens_error::<Test>(tokens, error);
 }
 
-#[test]
+#[rstest]
 fn issue_674_leap_second_support() {
     assert_de_tokens::<Test>(
         &Test {
@@ -113,7 +114,7 @@ fn issue_674_leap_second_support() {
     );
 }
 
-#[test]
+#[rstest]
 fn issue_724_truncation() {
     #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
     struct Demo(#[serde(with = "time::serde::iso8601")] OffsetDateTime);
