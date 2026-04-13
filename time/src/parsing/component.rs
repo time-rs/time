@@ -644,14 +644,32 @@ pub(crate) fn parse_subsecond(
         Eight => ExactlyNDigits::<8>::parse(input)?.map(|v| v * 10),
         Nine => ExactlyNDigits::<9>::parse(input)?,
         OneOrMore => {
+            const MULTIPLIERS: [u32; 8] =
+                [10_000_000, 1_000_000, 100_000, 10_000, 1_000, 100, 10, 1];
+
+            // Consume the first digit, which is mandatory.
             let ParsedItem(mut input, mut value) =
                 any_digit(input)?.map(|v| (v - b'0').extend::<u32>() * 100_000_000);
 
-            let mut multiplier = 10_000_000;
-            while let Some(ParsedItem(new_input, digit)) = any_digit(input) {
-                value += (digit - b'0').extend::<u32>() * multiplier;
-                input = new_input;
-                multiplier /= 10;
+            // Consume digits 2 thru 9, all of which are optional.
+            for multiplier in MULTIPLIERS {
+                if let Some(ParsedItem(new_input, digit)) = any_digit(input) {
+                    value += (digit - b'0').extend::<u32>() * multiplier;
+                    input = new_input;
+                } else {
+                    break;
+                }
+            }
+
+            // Consume any remaining digits, up to 32 total to avoid consuming unbounded user input.
+            // As these digits are past the nanosecond precision supported, they don't need to be
+            // involved in calculating the value.
+            for _ in 10..33 {
+                if let Some(ParsedItem(new_input, _)) = any_digit(input) {
+                    input = new_input;
+                } else {
+                    break;
+                }
             }
 
             ParsedItem(input, value)
