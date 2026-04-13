@@ -482,9 +482,21 @@ impl Parsed {
                     parsed.consume_value(|value| self.set_offset_second_signed(value))
                 })
                 .ok_or(InvalidComponent("offset second")),
-            ComponentV3::Ignore(modifiers) => parse_ignore(input, modifiers)
-                .map(ParsedItem::<()>::into_inner)
-                .ok_or(InvalidComponent("ignore")),
+            ComponentV3::Ignore(modifiers) => {
+                let remaining = parse_ignore(input, modifiers)
+                    .map(ParsedItem::<()>::into_inner)
+                    .ok_or(InvalidComponent("ignore"))?;
+
+                // Check that the first byte of the remaining input (if any) is not a UTF-8
+                // continuation byte. If it is, then we know that the remaining input is not valid
+                // UTF-8 and need to return an error. This is needed because v3 format descriptions
+                // are guaranteed to be UTF-8.
+                if remaining.is_empty() || remaining[0] & 0xC0 != 0x80 {
+                    Ok(remaining)
+                } else {
+                    Err(InvalidComponent("ignore"))
+                }
+            }
             ComponentV3::UnixTimestampSecond(modifiers) => {
                 parse_unix_timestamp_second(input, modifiers)
                     .and_then(|parsed| {
@@ -573,7 +585,19 @@ impl Parsed {
         input: &'a [u8],
         component: Component,
     ) -> Result<&'a [u8], error::ParseFromDescription> {
-        self.parse_component_v3(input, component.into())
+        use error::ParseFromDescription::InvalidComponent;
+
+        let component_v3: ComponentV3 = component.into();
+
+        // Legacy behavior: `Ignore` consumes bytes without enforcing UTF-8 boundaries.
+        if let ComponentV3::Ignore(modifiers) = component_v3 {
+            return parse_ignore(input, modifiers)
+                .map(ParsedItem::<()>::into_inner)
+                .ok_or(InvalidComponent("ignore"));
+        }
+
+        // For all other components, defer to the v3-aware parser.
+        self.parse_component_v3(input, component_v3)
     }
 }
 

@@ -3,7 +3,9 @@ use std::num::NonZero;
 
 use rstest::rstest;
 use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
-use time::format_description::{Component, OwnedFormatItem, StaticFormatDescription, modifier};
+use time::format_description::{
+    Component, FormatDescriptionV3, OwnedFormatItem, StaticFormatDescription, modifier,
+};
 use time::macros::{date, datetime, format_description as fd, offset, time, utc_datetime};
 use time::parsing::Parsed;
 use time::{
@@ -1219,6 +1221,42 @@ fn parse_ignore_component_too_short(#[case] input: &str, #[case] count: NonZero<
         result,
         Err(error::ParseFromDescription::InvalidComponent("ignore"))
     ));
+}
+
+#[rstest]
+#[case("£", fd!(version = 3, "[ignore count:1]"))]
+#[case("€", fd!(version = 3, "[ignore count:1]"))]
+#[case("€", fd!(version = 3, "[ignore count:2]"))]
+#[case("🦀", fd!(version = 3, "[ignore count:1]"))]
+#[case("🦀", fd!(version = 3, "[ignore count:2]"))]
+#[case("🦀", fd!(version = 3, "[ignore count:3]"))]
+fn parse_ignore_component_v3_not_utf8_boundary(
+    #[case] input: &str,
+    #[case] fd: FormatDescriptionV3<'_>,
+) {
+    let result = Date::parse(input, &fd);
+    assert_eq!(
+        result,
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent("ignore")
+        ))
+    );
+}
+
+#[rstest]
+#[case("£", const { NonZero::new(1).unwrap() })]
+#[case("€", const { NonZero::new(1).unwrap() })]
+#[case("€", const { NonZero::new(2).unwrap() })]
+#[case("🦀", const { NonZero::new(1).unwrap() })]
+#[case("🦀", const { NonZero::new(2).unwrap() })]
+#[case("🦀", const { NonZero::new(3).unwrap() })]
+fn parse_ignore_component_v2_not_utf8_boundary(#[case] input: &str, #[case] count: NonZero<u16>) {
+    let mut parsed = Parsed::new();
+    let result = parsed.parse_component(
+        input.as_bytes(),
+        Component::Ignore(modifier::Ignore::count(count)),
+    );
+    assert!(result.is_ok());
 }
 
 #[rstest]
