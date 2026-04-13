@@ -590,6 +590,7 @@ impl TryFrom<(FormatDescriptionVersion, Component)> for public::Component {
                     (YearBase::Calendar, YearRepr::LastTwo, _) => {
                         #[cfg(feature = "large-dates")]
                         reject_modifier!(range, "range", "when `repr:last_two` is used");
+                        reject_modifier!(sign_behavior, "sign", "when `repr:last_two` is used");
                         Self::CalendarYearLastTwo(modifier::CalendarYearLastTwo {
                             padding: padding.unwrap_or_default().into(),
                         })
@@ -597,6 +598,7 @@ impl TryFrom<(FormatDescriptionVersion, Component)> for public::Component {
                     (YearBase::IsoWeek, YearRepr::LastTwo, _) => {
                         #[cfg(feature = "large-dates")]
                         reject_modifier!(range, "range", "when `repr:last_two` is used");
+                        reject_modifier!(sign_behavior, "sign", "when `repr:last_two` is used");
                         Self::IsoYearLastTwo(modifier::IsoYearLastTwo {
                             padding: padding.unwrap_or_default().into(),
                         })
