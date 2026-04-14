@@ -107,7 +107,18 @@ impl Item<'_> {
                 modifiers,
                 _trailing_whitespace: _,
                 _closing_bracket: _,
-            } => Item::Component(component_from_ast(version, &name, &modifiers)?),
+            } => {
+                let mut component = component_from_ast(version, &name, &modifiers)?;
+                // v3 format descriptions default to `range:standard` rather than `range:extended`
+                // for v1 and v2.
+                if version.is_at_least_v3()
+                    && let AstComponent::Year(y) = &mut component
+                    && y.range.value.is_none()
+                {
+                    y.range = Some(YearRange::Standard).spanned(Span::DUMMY);
+                }
+                Item::Component(component)
+            }
             ast::Item::Literal(Spanned { value, span: _ }) => Item::Literal(value),
             ast::Item::EscapedBracket {
                 _first: _,
@@ -1028,6 +1039,9 @@ modifier! {
         LastTwo = b"last_two",
     }
 
+    // For v1 and v2 format descriptions, the default is `extended`. For v3 format descriptions,
+    // the default is `standard`. For backwards compatibility, the default here needs to stay
+    // `extended`.
     #[expect(deprecated)]
     enum YearRange {
         Standard = b"standard",

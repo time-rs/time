@@ -524,10 +524,18 @@ impl TryFrom<(FormatDescriptionVersion, Component)> for public::Component {
                     "when the `large-dates` feature is not enabled"
                 );
 
+                // Handle the change in default modifier value between versions. For v1 and v2, the
+                // default is `extended`, but for v3, the default is `standard`.
+                let computed_range = if version.is_at_least_v3() {
+                    range.unwrap_or(YearRange::Standard)
+                } else {
+                    range.unwrap_or_default()
+                };
+
                 match (
                     base.unwrap_or_default(),
                     repr.unwrap_or_default(),
-                    range.unwrap_or_default(),
+                    computed_range,
                 ) {
                     #[cfg(feature = "large-dates")]
                     (YearBase::Calendar, YearRepr::Full, YearRange::Extended) => {
@@ -797,6 +805,9 @@ modifier! {
         LastTwo = b"last_two",
     }
 
+    // `Extended` is the default for v1 and v2 format descriptions, but `Standard` is the default
+    // for v3 format descriptions. To ensure the macro outputs the correct code, we need to use
+    // `Extended` as the default for symmetry with the runtime parser.
     @parse_only enum YearRange {
         Standard = b"standard",
         #[default]

@@ -107,6 +107,9 @@ impl_const_default! {
     #[expect(deprecated)]
     YearRepr => Self::Full;
     /// Creates a modifier that indicates the value uses the [`Extended`](Self::Extended) range.
+    ///
+    /// Note that this is the default modifier for version 1 and 2 format descriptions. Version 3
+    /// format descriptions (which cannot be manually constructed) use `Standard` as the default.
     #[expect(deprecated)]
     YearRange => Self::Extended;
     @pub CalendarYearFullExtendedRange => Self {

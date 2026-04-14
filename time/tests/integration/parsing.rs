@@ -1260,6 +1260,48 @@ fn parse_ignore_component_v2_not_utf8_boundary(#[case] input: &str, #[case] coun
 }
 
 #[rstest]
+fn year_default_modifier_by_version_runtime() -> time::Result<()> {
+    let input = "+10000-01-01";
+
+    let fd_v2 = fd::parse_borrowed::<2>("[year]-[month]-[day]")?;
+    let fd_v3 = fd::parse_borrowed::<3>("[year]-[month]-[day]")?;
+
+    // v2 defaults to the extended range and should accept +10000
+    assert!(Date::parse(input, &fd_v2).is_ok());
+
+    // v3 should fail because the runtime parser defaults to the standard range. This will consume
+    // the sign and four digits, attempting to parse a `-` where the final `0` in the year exists.
+    assert!(matches!(
+        Date::parse(input, &fd_v3),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidLiteral { .. }
+        ))
+    ));
+
+    Ok(())
+}
+
+#[rstest]
+fn year_default_modifier_by_version_macro() {
+    let input = "+10000-01-01";
+
+    let fd_v2 = fd!(version = 2, "[year]-[month]-[day]");
+    let fd_v3 = fd!(version = 3, "[year]-[month]-[day]");
+
+    // v2 defaults to the extended range and should accept +10000
+    assert!(Date::parse(input, &fd_v2).is_ok());
+
+    // v3 should fail because the runtime parser defaults to the standard range. This will consume
+    // the sign and four digits, attempting to parse a `-` where the final `0` in the year exists.
+    assert!(matches!(
+        Date::parse(input, &fd_v3),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidLiteral { .. }
+        ))
+    ));
+}
+
+#[rstest]
 #[case(
     "2021-01-02",
     fd!(version = 2, "[optional [[year]-[month]-[day]]]"),

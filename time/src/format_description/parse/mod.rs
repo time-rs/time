@@ -174,7 +174,7 @@ where
 /// description is provided as the const parameter.
 ///
 /// Unlike [`parse`], this function returns [`OwnedFormatItem`], which owns its contents. This means
-/// that there is no lifetime that needs to be handled. **It is recommended to use version 2.**
+/// that there is no lifetime that needs to be handled. **It is recommended to use version 3.**
 ///
 /// # Return type
 ///
