@@ -372,10 +372,11 @@ where
             let is_negative = year.is_negative();
             // Safety: Given the range of `year`, the range of the century is
             // `-9_999..=9_999`.
-            let year = unsafe { ri16::<0, 9_999>::new_unchecked((year.get() / 100).truncate()) };
+            let year =
+                unsafe { ri16::<-9_999, 9_999>::new_unchecked((year.get() / 100).truncate()) };
             fmt_calendar_year_century_standard_range(
                 output,
-                year.narrow::<0, 99>()
+                year.narrow::<-99, 99>()
                     .ok_or_else(|| error::ComponentRange::conditional("year"))?
                     .into(),
                 is_negative,
@@ -384,22 +385,25 @@ where
         }
         IsoYearCenturyExtendedRange(modifier) if V::SUPPLIES_DATE => {
             let year = value.iso_year(state);
+            let is_negative = year.is_negative();
             // Safety: Given the range of `year`, the range of the century is
             // `-9_999..=9_999`.
             let century = unsafe { ri16::new_unchecked((year.get() / 100).truncate()) };
-            fmt_iso_year_century_extended_range(output, century, year.is_negative(), *modifier)
+            fmt_iso_year_century_extended_range(output, century, is_negative, *modifier)
         }
         IsoYearCenturyStandardRange(modifier) if V::SUPPLIES_DATE => {
             let year = value.iso_year(state);
+            let is_negative = year.is_negative();
             // Safety: Given the range of `year`, the range of the century is
             // `-9_999..=9_999`.
-            let year = unsafe { ri16::<0, 9_999>::new_unchecked((year.get() / 100).truncate()) };
+            let year =
+                unsafe { ri16::<-9_999, 9_999>::new_unchecked((year.get() / 100).truncate()) };
             fmt_iso_year_century_standard_range(
                 output,
-                year.narrow::<0, 99>()
+                year.narrow::<-99, 99>()
                     .ok_or_else(|| error::ComponentRange::conditional("year"))?
                     .into(),
-                year.is_negative(),
+                is_negative,
                 *modifier,
             )
         }
@@ -674,7 +678,7 @@ fn fmt_calendar_year_full_extended_range(
     bytes += try_likely_ok!(fmt_sign(
         output,
         full_year.is_negative(),
-        sign_is_mandatory || full_year.get() >= 10_000,
+        sign_is_mandatory || full_year.get() >= 10_000
     ));
     // Safety: We just called `.abs()`, so zero is the minimum. The maximum is
     // unchanged.
@@ -774,7 +778,7 @@ fn fmt_calendar_year_century_extended_range(
     bytes += try_likely_ok!(fmt_sign(
         output,
         is_negative,
-        sign_is_mandatory || century.get() >= 100,
+        sign_is_mandatory || century.get() >= 100
     ));
     // Safety: The minimum is zero due to the `.abs()` call;  the maximum is unchanged.
     let century: ru16<0, 9_999> = unsafe { century.abs().narrow_unchecked::<0, 9_999>().into() };
