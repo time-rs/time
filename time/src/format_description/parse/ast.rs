@@ -16,15 +16,6 @@ pub(super) enum Item<'a> {
     ///
     /// This should never be present inside a nested format description.
     Literal(Spanned<&'a [u8]>),
-    /// A sequence of brackets. The first acts as the escape character.
-    ///
-    /// This should never be present if the lexer has `BACKSLASH_ESCAPE` set to `true`.
-    EscapedBracket {
-        /// The first bracket.
-        _first: Unused<Location>,
-        /// The second bracket.
-        _second: Unused<Location>,
-    },
     /// Part of a type, along with its modifiers.
     Component {
         version: FormatDescriptionVersion,
@@ -209,10 +200,9 @@ where
                 if version.is_v1()
                     && let Some(second_location) = tokens.next_if_opening_bracket()
                 {
-                    Ok(Item::EscapedBracket {
-                        _first: unused(location),
-                        _second: unused(second_location),
-                    })
+                    Ok(Item::Literal(
+                        b"[".as_slice().spanned(location.to(second_location)),
+                    ))
                 } else {
                     parse_component(version, location, tokens)
                 }

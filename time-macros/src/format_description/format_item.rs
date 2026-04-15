@@ -89,10 +89,6 @@ impl Item<'_> {
                     Item::Literal(value)
                 }
             }
-            ast::Item::EscapedBracket {
-                _first: _,
-                _second: _,
-            } => Item::StringLiteral("["),
             ast::Item::Optional {
                 version,
                 opening_bracket,

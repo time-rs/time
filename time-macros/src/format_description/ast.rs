@@ -9,10 +9,6 @@ pub(super) enum Item<'a> {
         version: FormatDescriptionVersion,
         value: Spanned<&'a [u8]>,
     },
-    EscapedBracket {
-        _first: Unused<Location>,
-        _second: Unused<Location>,
-    },
     Component {
         _opening_bracket: Unused<Location>,
         _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
@@ -122,9 +118,9 @@ fn parse_inner<'item, I: Iterator<Item = Result<lexer::Token<'item>, Error>>>(
                 if version.is_v1()
                     && let Some(second_location) = tokens.next_if_opening_bracket()
                 {
-                    Ok(Item::EscapedBracket {
-                        _first: unused(location),
-                        _second: unused(second_location),
+                    Ok(Item::Literal {
+                        version,
+                        value: b"[".as_slice().spanned(location.to(second_location)),
                     })
                 } else {
                     parse_component(version, location, tokens)

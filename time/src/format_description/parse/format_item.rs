@@ -120,10 +120,6 @@ impl Item<'_> {
                 Item::Component(component)
             }
             ast::Item::Literal(Spanned { value, span: _ }) => Item::Literal(value),
-            ast::Item::EscapedBracket {
-                _first: _,
-                _second: _,
-            } => Item::Literal(b"["),
             ast::Item::Optional {
                 opening_bracket,
                 _leading_whitespace: _,
