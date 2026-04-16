@@ -844,8 +844,8 @@ fn backslash_escape_error(#[case] format_description: &str, #[case] expected_ind
 }
 
 #[rstest]
-#[case("[optional [[[]]", 11)]
-#[case("[optional [ [[ ]]", 12)]
+#[case("[]", 0)]
+#[case("[   ]", 1)]
 fn nested_v2_error_missing_component_name(
     #[case] format_description: &str,
     #[case] expected_index: usize,
@@ -860,8 +860,8 @@ fn nested_v2_error_missing_component_name(
 #[case("[first [a][[[]]", 0)]
 #[case("[optional []", 0)]
 #[case("[first []", 0)]
-#[case("[optional [", 10)]
-#[case("[optional [[year", 11)]
+#[case("[optional [", 0)]
+#[case("[optional [[year", 0)]
 fn nested_v2_error_unclosed(#[case] format_description: &str, #[case] expected_index: usize) {
     assert!(matches!(
         format_description::parse_owned::<2>(format_description),
@@ -894,7 +894,7 @@ fn nested_v1_error_not_supported(
 }
 
 #[rstest]
-#[case("[year [month]]", "[", 6)]
+#[case("[year foo]", "foo", 6)]
 fn nested_v2_error_invalid_modifier(
     #[case] format_description: &str,
     #[case] expected_value: &str,
@@ -908,13 +908,9 @@ fn nested_v2_error_invalid_modifier(
 }
 
 #[rstest]
-#[case(
-    "[optional[]]",
-    "whitespace between `optional` and nested description",
-    8
-)]
-#[case("[first[]]", "whitespace between `first` and nested descriptions", 5)]
-#[case("[optional ", "opening bracket", 9)]
+#[case("[optional[]]", "whitespace before nested format description", 9)]
+#[case("[first[]]", "whitespace before nested format description", 6)]
+#[case("[optional]", "nested format description", 9)]
 fn nested_v2_error_expected(
     #[case] format_description: &str,
     #[case] expected_what: &str,
@@ -957,7 +953,7 @@ fn error_display(#[case] format_description: &str, #[case] error: &str) {
 }
 
 #[rstest]
-#[case("[optional ", "expected opening bracket at byte index 9")]
+#[case("[optional ", "unclosed opening bracket at byte index 0")]
 fn error_display_owned(#[case] format_description: &str, #[case] error: &str) {
     // la10736/rstest#217
     #[expect(clippy::unwrap_used, reason = "purpose of the test")]

@@ -32,7 +32,7 @@ fn main() {
     let _ = format_description!(version = 2, r"\a");
     let _ = format_description!(version = 2, r"\");
 
-    let _ = format_description!(version = 2, "[year [month]]");
+    let _ = format_description!(version = 2, "[year foo]");
     let _ = format_description!(version = 2, "[optional[]]");
     let _ = format_description!(version = 2, "[first[]]");
     let _ = format_description!(version = 2, "[optional []");

@@ -171,16 +171,16 @@ error: unexpected end of input
 error: modifier must be of the form `key:value`
   --> tests/integration/compile-fail/invalid_format_description.rs:35:46
    |
-35 |     let _ = format_description!(version = 2, "[year [month]]");
-   |                                              ^^^^^^^^^^^^^^^^
+35 |     let _ = format_description!(version = 2, "[year foo]");
+   |                                              ^^^^^^^^^^^^
 
-error: expected whitespace between `optional` and nested description
+error: missing leading whitespace before nested format description
   --> tests/integration/compile-fail/invalid_format_description.rs:36:46
    |
 36 |     let _ = format_description!(version = 2, "[optional[]]");
    |                                              ^^^^^^^^^^^^^^
 
-error: expected whitespace between `first` and nested descriptions
+error: missing leading whitespace before nested format description
   --> tests/integration/compile-fail/invalid_format_description.rs:37:46
    |
 37 |     let _ = format_description!(version = 2, "[first[]]");
@@ -210,7 +210,7 @@ error: unclosed bracket
 41 |     let _ = format_description!(version = 2, "[optional [[year");
    |                                              ^^^^^^^^^^^^^^^^^^
 
-error: expected opening bracket
+error: unclosed bracket
   --> tests/integration/compile-fail/invalid_format_description.rs:42:46
    |
 42 |     let _ = format_description!(version = 2, "[optional ");

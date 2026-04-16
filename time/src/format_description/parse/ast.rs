@@ -16,55 +16,22 @@ pub(super) enum Item<'a> {
     ///
     /// This should never be present inside a nested format description.
     Literal(Spanned<&'a [u8]>),
-    /// Part of a type, along with its modifiers.
+    /// Part of a type, along with its modifiers and nested format descriptions.
     Component {
+        /// The version of the format description, which may affect how the component is parsed.
         version: FormatDescriptionVersion,
         /// Where the opening bracket was in the format string.
-        _opening_bracket: Unused<Location>,
+        opening_bracket: Location,
         /// Whitespace between the opening bracket and name.
         _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
         /// The name of the component.
         name: Spanned<&'a [u8]>,
         /// The modifiers for the component.
         modifiers: Box<[Modifier<'a>]>,
-        /// Whitespace between the modifiers and closing bracket.
-        _trailing_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
-        /// Where the closing bracket was in the format string.
-        _closing_bracket: Unused<Location>,
-    },
-    /// An optional sequence of items.
-    Optional {
-        /// Where the opening bracket was in the format string.
-        opening_bracket: Location,
-        /// Whitespace between the opening bracket and "optional".
-        _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
-        /// The "optional" keyword.
-        _optional_kw: Unused<Spanned<&'a [u8]>>,
-        /// The modifiers for the optional description.
-        modifiers: Box<[Modifier<'a>]>,
-        /// Whitespace between either the "optional" keyword or modifiers and the opening bracket
-        /// of the nested description.
-        _whitespace_after_modifiers: Unused<Option<Spanned<&'a [u8]>>>,
-        /// The items within the optional sequence.
-        nested_format_description: NestedFormatDescription<'a>,
-        /// Where the closing bracket was in the format string.
-        closing_bracket: Location,
-    },
-    /// The first matching parse of a sequence of items.
-    First {
-        /// Where the opening bracket was in the format string.
-        opening_bracket: Location,
-        /// Whitespace between the opening bracket and "first".
-        _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
-        /// The "first" keyword.
-        _first_kw: Unused<Spanned<&'a [u8]>>,
-        /// The modifiers for the optional description.
-        modifiers: Box<[Modifier<'a>]>,
-        /// Whitespace between either the "first" keyword or modifiers and the opening bracket of
-        /// the nested description.
-        _whitespace_after_modifiers: Unused<Option<Spanned<&'a [u8]>>>,
-        /// The sequences of items to try.
+        /// The nested format descriptions within the component.
         nested_format_descriptions: Box<[NestedFormatDescription<'a>]>,
+        /// Whitespace between the modifiers/nested format descriptions and closing bracket.
+        _trailing_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
         /// Where the closing bracket was in the format string.
         closing_bracket: Location,
     },
@@ -72,14 +39,14 @@ pub(super) enum Item<'a> {
 
 /// A format description that is nested within another format description.
 pub(super) struct NestedFormatDescription<'a> {
+    /// Whitespace between the end of the previous item and the opening bracket.
+    pub(super) leading_whitespace: Option<Spanned<&'a [u8]>>,
     /// Where the opening bracket was in the format string.
-    pub(super) _opening_bracket: Unused<Location>,
+    pub(super) opening_bracket: Location,
     /// The items within the nested format description.
     pub(super) items: Box<[Item<'a>]>,
     /// Where the closing bracket was in the format string.
-    pub(super) _closing_bracket: Unused<Location>,
-    /// Whitespace between the closing bracket and the next item.
-    pub(super) _trailing_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
+    pub(super) closing_bracket: Location,
 }
 
 /// A modifier for a component.
@@ -254,137 +221,25 @@ where
         });
     };
 
-    if *name == b"optional" {
-        let modifiers = Modifiers::parse(true, tokens)?;
-        let nested = parse_nested(version, modifiers.span().end, tokens)?;
+    let modifiers = Modifiers::parse(tokens)?;
 
-        let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
-            return Err(Error {
-                _inner: unused(opening_bracket.error("unclosed bracket")),
-                public: error::InvalidFormatDescription::UnclosedOpeningBracket {
-                    index: opening_bracket.byte as usize,
-                },
-            });
-        };
-
-        if modifiers.trailing_whitespace.is_none() {
-            if let Some(modifier) = modifiers.modifiers.last() {
-                return Err(Error {
-                    _inner: unused(
-                        modifier
-                            .value
-                            .span
-                            .shrink_to_end()
-                            .error("expected whitespace between modifiers and nested description"),
-                    ),
-                    public: error::InvalidFormatDescription::Expected {
-                        what: "whitespace between modifiers and nested description",
-                        index: modifier.value.span.end.byte as usize,
-                    },
-                });
-            } else {
-                return Err(Error {
-                    _inner: unused(
-                        name.span
-                            .shrink_to_end()
-                            .error("expected whitespace between `optional` and nested description"),
-                    ),
-                    public: error::InvalidFormatDescription::Expected {
-                        what: "whitespace between `optional` and nested description",
-                        index: name.span.end.byte as usize,
-                    },
-                });
-            }
-        }
-
-        return Ok(Item::Optional {
-            opening_bracket,
-            _leading_whitespace: unused(leading_whitespace),
-            _optional_kw: unused(name),
-            modifiers: modifiers.modifiers,
-            _whitespace_after_modifiers: unused(modifiers.trailing_whitespace),
-            nested_format_description: nested,
-            closing_bracket,
-        });
+    let mut nested_format_descriptions = Vec::new();
+    while let Ok(description) = parse_nested(version, modifiers.span().end, tokens) {
+        nested_format_descriptions.push(description);
     }
 
-    if *name == b"first" {
-        let modifiers = Modifiers::parse(true, tokens)?;
-
-        let mut nested_format_descriptions = Vec::new();
-        while let Ok(description) = parse_nested(version, modifiers.span().end, tokens) {
-            nested_format_descriptions.push(description);
-        }
-
-        if version.is_at_least_v3() && nested_format_descriptions.is_empty() {
-            return Err(Error {
-                _inner: unused(
-                    modifiers
-                        .span()
-                        .shrink_to_end()
-                        .error("expected at least one nested description"),
-                ),
-                public: error::InvalidFormatDescription::Expected {
-                    what: "at least one nested description",
-                    index: modifiers.span().end.byte as usize,
-                },
-            });
-        }
-
-        let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
-            return Err(Error {
-                _inner: unused(opening_bracket.error("unclosed bracket")),
-                public: error::InvalidFormatDescription::UnclosedOpeningBracket {
-                    index: opening_bracket.byte as usize,
-                },
-            });
-        };
-
-        if modifiers.trailing_whitespace.is_none() {
-            if let Some(modifier) = modifiers.modifiers.last() {
-                return Err(Error {
-                    _inner: unused(
-                        modifier
-                            .value
-                            .span
-                            .shrink_to_end()
-                            .error("expected whitespace between modifiers and nested descriptions"),
-                    ),
-                    public: error::InvalidFormatDescription::Expected {
-                        what: "whitespace between modifiers and nested descriptions",
-                        index: modifier.value.span.end.byte as usize,
-                    },
-                });
-            } else {
-                return Err(Error {
-                    _inner: unused(
-                        name.span
-                            .shrink_to_end()
-                            .error("expected whitespace between `first` and nested descriptions"),
-                    ),
-                    public: error::InvalidFormatDescription::Expected {
-                        what: "whitespace between `first` and nested descriptions",
-                        index: name.span.end.byte as usize,
-                    },
-                });
-            }
-        }
-
-        return Ok(Item::First {
-            opening_bracket,
-            _leading_whitespace: unused(leading_whitespace),
-            _first_kw: unused(name),
-            modifiers: modifiers.modifiers,
-            _whitespace_after_modifiers: unused(modifiers.trailing_whitespace),
-            nested_format_descriptions: nested_format_descriptions.into_boxed_slice(),
-            closing_bracket,
-        });
+    if modifiers.trailing_whitespace.is_some()
+        && let Some(first_nested) = nested_format_descriptions.first_mut()
+    {
+        first_nested.leading_whitespace = modifiers.trailing_whitespace;
     }
 
-    let Modifiers {
-        modifiers,
-        trailing_whitespace,
-    } = Modifiers::parse(false, tokens)?;
+    let nested_fds_trailing_whitespace =
+        if modifiers.trailing_whitespace.is_some() && nested_format_descriptions.is_empty() {
+            modifiers.trailing_whitespace
+        } else {
+            tokens.next_if_whitespace()
+        };
 
     let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
         return Err(Error {
@@ -397,12 +252,13 @@ where
 
     Ok(Item::Component {
         version,
-        _opening_bracket: unused(opening_bracket),
+        opening_bracket,
         _leading_whitespace: unused(leading_whitespace),
         name,
-        modifiers,
-        _trailing_whitespace: unused(trailing_whitespace),
-        _closing_bracket: unused(closing_bracket),
+        modifiers: modifiers.modifiers,
+        nested_format_descriptions: nested_format_descriptions.into_boxed_slice(),
+        _trailing_whitespace: unused(nested_fds_trailing_whitespace),
+        closing_bracket,
     })
 }
 
@@ -412,7 +268,9 @@ struct Modifiers<'a> {
 }
 
 impl<'a> Modifiers<'a> {
-    fn parse<I>(nested_is_allowed: bool, tokens: &mut lexer::Lexed<I>) -> Result<Self, Error>
+    /// Parse modifiers until there are none left. Returns the modifiers along with any trailing
+    /// whitespace after the last modifier.
+    fn parse<I>(tokens: &mut lexer::Lexed<I>) -> Result<Self, Error>
     where
         I: Iterator<Item = Result<lexer::Token<'a>, Error>>,
     {
@@ -424,30 +282,12 @@ impl<'a> Modifiers<'a> {
                     trailing_whitespace: None,
                 });
             };
-
-            // This is not necessary for proper parsing, but provides a much better error when a
-            // nested description is used where it's not allowed.
-            if !nested_is_allowed && let Some(location) = tokens.next_if_opening_bracket() {
-                return Err(Error {
-                    _inner: unused(
-                        location
-                            .to_self()
-                            .error("modifier must be of the form `key:value`"),
-                    ),
-                    public: error::InvalidFormatDescription::InvalidModifier {
-                        value: String::from("["),
-                        index: location.byte as usize,
-                    },
-                });
-            }
-
             let Some(token) = tokens.next_if_not_whitespace() else {
                 return Ok(Self {
                     modifiers: modifiers.into_boxed_slice(),
                     trailing_whitespace: Some(whitespace),
                 });
             };
-
             let modifier = Modifier::from_leading_whitespace_and_token(whitespace, token)?;
             modifiers.push(modifier);
         }
@@ -455,10 +295,7 @@ impl<'a> Modifiers<'a> {
 
     fn span(&self) -> Span {
         match &*self.modifiers {
-            [] => self
-                .trailing_whitespace
-                .map(|whitespace| whitespace.span)
-                .unwrap_or(Span::DUMMY),
+            [] => Span::DUMMY,
             [modifier] => modifier.key.span.start.to(modifier.value.span.end),
             [first, .., last] => first.key.span.start.to(last.value.span.end),
         }
@@ -475,6 +312,7 @@ fn parse_nested<'a, I>(
 where
     I: Iterator<Item = Result<lexer::Token<'a>, Error>>,
 {
+    let leading_whitespace = tokens.next_if_whitespace();
     let Some(opening_bracket) = tokens.next_if_opening_bracket() else {
         return Err(Error {
             _inner: unused(last_location.error("expected opening bracket")),
@@ -493,12 +331,11 @@ where
             },
         });
     };
-    let trailing_whitespace = tokens.next_if_whitespace();
 
     Ok(NestedFormatDescription {
-        _opening_bracket: unused(opening_bracket),
+        leading_whitespace,
+        opening_bracket,
         items,
-        _closing_bracket: unused(closing_bracket),
-        _trailing_whitespace: unused(trailing_whitespace),
+        closing_bracket,
     })
 }

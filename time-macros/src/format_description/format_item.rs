@@ -1,7 +1,7 @@
 use std::num::NonZero;
 use std::str::{self, FromStr};
 
-use super::{Error, OptionExt as _, Span, Spanned, Unused, ast, unused};
+use super::{Error, Location, OptionExt as _, Span, Spanned, Unused, ast, unused};
 use crate::FormatDescriptionVersion;
 use crate::format_description::{SpannedValue as _, public};
 
@@ -66,17 +66,9 @@ pub(super) enum Item<'a> {
     },
 }
 
-impl Item<'_> {
-    pub(super) fn from_ast(ast_item: ast::Item<'_>) -> Result<Item<'_>, Error> {
+impl<'a> Item<'a> {
+    pub(super) fn from_ast(ast_item: ast::Item<'a>) -> Result<Self, Error> {
         Ok(match ast_item {
-            ast::Item::Component {
-                _opening_bracket: _,
-                _leading_whitespace: _,
-                name,
-                modifiers,
-                _trailing_whitespace: _,
-                _closing_bracket: _,
-            } => Item::Component(component_from_ast(&name, &modifiers)?),
             ast::Item::Literal {
                 version,
                 value: Spanned { value, span },
@@ -89,66 +81,125 @@ impl Item<'_> {
                     Item::Literal(value)
                 }
             }
-            ast::Item::Optional {
+            ast::Item::Component {
                 version,
                 opening_bracket,
                 _leading_whitespace: _,
-                _optional_kw: _,
+                name,
                 modifiers,
-                _whitespace_after_modifiers: _,
-                nested_format_description,
-                closing_bracket,
-            } => {
-                let items = nested_format_description
-                    .items
-                    .into_vec()
-                    .into_iter()
-                    .map(Item::from_ast)
-                    .collect::<Result<_, _>>()?;
-
-                let modifiers = parse_modifiers!(modifiers, struct { format: OptionalFormat })?;
-                let format = modifiers.format.transpose().map(|val| val.unwrap_or(true));
-                if version.is_at_most_v2() && !*format {
-                    return Err(format
-                        .span
-                        .error("v1 and v2 format descriptions must format optional items"));
-                }
-
-                Item::Optional {
-                    value: items,
-                    format,
-                    _span: unused(opening_bracket.to(closing_bracket)),
-                }
-            }
-            ast::Item::First {
-                opening_bracket,
-                _leading_whitespace: _,
-                _first_kw: _,
-                modifiers,
-                _whitespace_after_modifiers: _,
                 nested_format_descriptions,
+                _trailing_whitespace: _,
                 closing_bracket,
             } => {
-                let items = nested_format_descriptions
-                    .into_vec()
-                    .into_iter()
-                    .map(|nested_format_description| {
-                        nested_format_description
-                            .items
-                            .into_vec()
-                            .into_iter()
-                            .map(Item::from_ast)
-                            .collect()
-                    })
-                    .collect::<Result<_, _>>()?;
+                if let Some(first_nested_fd) = nested_format_descriptions.first()
+                    && first_nested_fd.leading_whitespace.is_none()
+                {
+                    return Err(Span {
+                        start: opening_bracket,
+                        end: closing_bracket,
+                    }
+                    .error("missing leading whitespace before nested format description"));
+                }
 
-                let _modifiers = parse_modifiers!(modifiers, struct {})?;
+                if name.eq_ignore_ascii_case(b"optional") {
+                    Self::optional_from_parts(
+                        version,
+                        opening_bracket,
+                        &modifiers,
+                        nested_format_descriptions,
+                        closing_bracket,
+                    )?
+                } else if name.eq_ignore_ascii_case(b"first") {
+                    let _modifiers = parse_modifiers!(modifiers, struct {})?;
 
-                Item::First {
-                    value: items,
-                    _span: unused(opening_bracket.to(closing_bracket)),
+                    if version.is_at_least_v3() && nested_format_descriptions.is_empty() {
+                        return Err(Span {
+                            start: opening_bracket,
+                            end: closing_bracket,
+                        }
+                        .error(
+                            "the `first` component requires at least one nested format description",
+                        ));
+                    }
+
+                    let items = nested_format_descriptions
+                        .into_iter()
+                        .map(|nested_format_description| {
+                            nested_format_description
+                                .items
+                                .into_iter()
+                                .map(Item::from_ast)
+                                .collect()
+                        })
+                        .collect::<Result<_, _>>()?;
+
+                    Item::First {
+                        value: items,
+                        _span: unused(opening_bracket.to(closing_bracket)),
+                    }
+                } else {
+                    if !nested_format_descriptions.is_empty() {
+                        return Err(Span {
+                            start: opening_bracket,
+                            end: closing_bracket,
+                        }
+                        .error("this component does not support nested format descriptions"));
+                    }
+
+                    Item::Component(component_from_ast(&name, &modifiers)?)
                 }
             }
+        })
+    }
+
+    fn optional_from_parts(
+        version: FormatDescriptionVersion,
+        opening_bracket: Location,
+        modifiers: &[ast::Modifier<'a>],
+        nested_format_descriptions: Box<[ast::NestedFormatDescription<'a>]>,
+        closing_bracket: Location,
+    ) -> Result<Self, Error> {
+        let modifiers = parse_modifiers!(modifiers, struct {
+            format: OptionalFormat,
+        })?;
+
+        let [nested_format_description] = if let Some(second_fd) = nested_format_descriptions.get(1)
+        {
+            return Err(Span {
+                start: second_fd.opening_bracket,
+                end: second_fd.closing_bracket,
+            }
+            .error("the `optional` component only allows a single nested format description"));
+        } else if let Ok(nested_format_description) =
+            <Box<[_; 1]>>::try_from(nested_format_descriptions)
+        {
+            *nested_format_description
+        } else {
+            return Err(Span {
+                start: opening_bracket,
+                end: closing_bracket,
+            }
+            .error("missing nested format description for `optional` component"));
+        };
+
+        let format = modifiers.format.transpose().map(|val| val.unwrap_or(true));
+        let items = nested_format_description
+            .items
+            .into_vec()
+            .into_iter()
+            .map(Item::from_ast)
+            .collect::<Result<_, _>>()?;
+
+        if version.is_at_most_v2() && !*format {
+            return Err(format
+                .span
+                .error("v1 and v2 format descriptions must format optional items"));
+        }
+
+        Ok(Item::Optional {
+            value: items,
+            format,
+            _span: unused(opening_bracket.to(closing_bracket)),
         })
     }
 }
