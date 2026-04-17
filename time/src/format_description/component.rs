@@ -123,7 +123,7 @@ pub enum Component {
     Year(modifier::Year),
 }
 
-impl From<Component> for super::format_description_v3::Component {
+impl From<Component> for super::format_description_v3::FormatDescriptionV3Inner<'_> {
     #[inline]
     fn from(component: Component) -> Self {
         match component {

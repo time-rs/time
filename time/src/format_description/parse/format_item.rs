@@ -367,7 +367,7 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::__private::FormatDescr
             Item::Literal(literal) => Ok(Self::BorrowedLiteral(unsafe {
                 str::from_utf8_unchecked(literal)
             })),
-            Item::Component(component) => Ok(Self::Component(component.try_into()?)),
+            Item::Component(component) => Ok(component.try_into()?),
             Item::Optional {
                 value,
                 format,
@@ -901,7 +901,7 @@ macro_rules! impl_from_ast_component_for {
 
 impl_from_ast_component_for!(
     [false] crate::format_description::Component,
-    [true] crate::format_description::__private::Component,
+    [true] crate::format_description::__private::FormatDescriptionV3Inner<'_>,
 );
 
 /// Get the target type for a given enum.

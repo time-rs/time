@@ -78,9 +78,19 @@ impl ToTokenStream for OwnedFormatItem {
                     FormatDescriptionV3Inner::BorrowedLiteral(#(string.as_ref()))
                 },
                 OwnedFormatItemInner::Component(component) => {
-                    quote_append! { ts
-                        FormatDescriptionV3Inner::Component(#S(component))
+                    // v3 format descriptions have components directly on the item, not as a
+                    // sub-enum. Swap out the name of the enum that is being constructed.
+                    let tokens = component.into_token_stream();
+                    let mut iter = tokens.into_iter().peekable();
+                    if let Some(first) = iter.peek_mut() {
+                        *first = proc_macro::TokenTree::Ident(proc_macro::Ident::new(
+                            "FormatDescriptionV3Inner",
+                            proc_macro::Span::mixed_site(),
+                        ));
+                    } else {
+                        bug!("component should have at least one token")
                     }
+                    ts.extend(iter);
                 }
                 OwnedFormatItemInner::Compound(items) => {
                     let items = items
