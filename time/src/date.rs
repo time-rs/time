@@ -258,7 +258,11 @@ impl Date {
         let days_in_year = if is_leap_year { 366 } else { 365 };
         let ordinal = ordinal.cast_unsigned();
         Ok(if ordinal > days_in_year {
-            // Safety: `ordinal` is not zero.
+            // Issue #777
+            if hint::unlikely(year == MAX_YEAR) {
+                return Err(error::ComponentRange::conditional("weekday"));
+            }
+            // Safety: the year is in range and `ordinal` is not zero.
             unsafe { Self::__from_ordinal_date_unchecked(year + 1, ordinal - days_in_year) }
         } else {
             // Safety: `ordinal` is not zero and `is_leap_year` is correct.

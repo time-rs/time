@@ -764,6 +764,7 @@ fn from_iso_week_date_ok(#[case] year: i32, #[case] week: u8, #[case] weekday: W
 
 #[rstest]
 #[case(2019, 53, Monday)]
+#[case(999999, 52, Saturday)]
 fn from_iso_week_date_err(#[case] year: i32, #[case] week: u8, #[case] weekday: Weekday) {
     assert!(Date::from_iso_week_date(year, week, weekday).is_err());
 }
