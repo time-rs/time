@@ -1,7 +1,7 @@
 //! Typed, validated representation of a parsed format description.
 
+use alloc::borrow::ToOwned as _;
 use alloc::boxed::Box;
-use alloc::string::String;
 use core::num::NonZero;
 use core::str::{self, FromStr};
 
@@ -29,7 +29,7 @@ macro_rules! parse_modifiers {
             };
 
             for modifier in $modifiers {
-                $(if modifier.key.eq_ignore_ascii_case(stringify!($field).as_bytes()) {
+                $(if modifier.key.eq_ignore_ascii_case(stringify!($field)) {
                     if parsed.$field.is_some() {
                         break 'block Err(Error {
                             _inner: unused(modifier.key.span.error("duplicate modifier key")),
@@ -53,7 +53,7 @@ macro_rules! parse_modifiers {
                 break 'block Err(Error {
                     _inner: unused(modifier.key.span.error("invalid modifier key")),
                     public: InvalidFormatDescription::InvalidModifier {
-                        value: String::from_utf8_lossy(*modifier.key).into_owned(),
+                        value: (**modifier.key).to_owned(),
                         index: modifier.key.span.start.byte as usize,
                     }
                 });
@@ -75,7 +75,7 @@ pub(super) fn parse<'a>(
 /// A description of how to format and parse one part of a type.
 pub(super) enum Item<'a> {
     /// A literal string.
-    Literal(&'a [u8]),
+    Literal(&'a str),
     /// Part of a type, along with its modifiers.
     Component(AstComponent),
     /// A sequence of optional items.
@@ -133,14 +133,14 @@ impl<'a> Item<'a> {
                 // Parse the actual component, starting with those that require nested format
                 // descriptions.
 
-                if name.eq_ignore_ascii_case(b"optional") {
+                if name.eq_ignore_ascii_case("optional") {
                     Self::optional_from_parts(
                         opening_bracket,
                         &modifiers,
                         nested_format_descriptions,
                         closing_bracket,
                     )?
-                } else if name.eq_ignore_ascii_case(b"first") {
+                } else if name.eq_ignore_ascii_case("first") {
                     let _modifiers = parse_modifiers!(modifiers, struct {})?;
 
                     if version.is_at_least_v3() && nested_format_descriptions.is_empty() {
@@ -268,8 +268,7 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a>
     #[inline]
     fn try_from(item: Item<'a>) -> Result<Self, Self::Error> {
         match item {
-            #[expect(deprecated)]
-            Item::Literal(literal) => Ok(Self::Literal(literal)),
+            Item::Literal(literal) => Ok(Self::StringLiteral(literal)),
             Item::Component(component) => Ok(Self::Component(component.try_into()?)),
             Item::Optional {
                 value: _,
@@ -305,8 +304,7 @@ impl TryFrom<Item<'_>> for crate::format_description::OwnedFormatItem {
     #[inline]
     fn try_from(item: Item<'_>) -> Result<Self, Self::Error> {
         match item {
-            #[expect(deprecated)]
-            Item::Literal(literal) => Ok(Self::Literal(literal.to_vec().into_boxed_slice())),
+            Item::Literal(literal) => Ok(Self::StringLiteral(literal.to_owned().into_boxed_str())),
             Item::Component(component) => Ok(Self::Component(component.try_into()?)),
             Item::Optional {
                 value,
@@ -362,11 +360,7 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::__private::FormatDescr
     #[inline]
     fn try_from(item: Item<'a>) -> Result<Self, Self::Error> {
         match item {
-            // Safety: The only way to get a literal for a version 3 format description originates
-            // with `&str`, which is guaranteed to be UTF-8.
-            Item::Literal(literal) => Ok(Self::BorrowedLiteral(unsafe {
-                str::from_utf8_unchecked(literal)
-            })),
+            Item::Literal(literal) => Ok(Self::BorrowedLiteral(literal)),
             Item::Component(component) => Ok(component.try_into()?),
             Item::Optional {
                 value,
@@ -444,8 +438,7 @@ macro_rules! component_definition {
                 };
 
                 for modifier in modifiers {
-                    $(#[expect(clippy::string_lit_as_bytes)]
-                    if modifier.key.eq_ignore_ascii_case($parse_field.as_bytes()) {
+                    $(if modifier.key.eq_ignore_ascii_case($parse_field) {
                         if version.is_at_least_v3() && this.$field.is_some() {
                             return Err(Error {
                                 _inner: unused(modifier.key.span.error("duplicate modifier key")),
@@ -469,7 +462,7 @@ macro_rules! component_definition {
                     return Err(Error {
                         _inner: unused(modifier.key.span.error("invalid modifier key")),
                         public: InvalidFormatDescription::InvalidModifier {
-                            value: String::from_utf8_lossy(*modifier.key).into_owned(),
+                            value: (**modifier.key).to_owned(),
                             index: modifier.key.span.start.byte as usize,
                         }
                     });
@@ -496,11 +489,10 @@ macro_rules! component_definition {
         #[inline]
         fn component_from_ast(
             version: FormatDescriptionVersion,
-            name: &Spanned<&[u8]>,
+            name: &Spanned<&str>,
             modifiers: &[ast::Modifier<'_>],
         ) -> Result<AstComponent, Error> {
-            $(#[expect(clippy::string_lit_as_bytes)]
-            if name.eq_ignore_ascii_case($parse_variant.as_bytes()) {
+            $(if name.eq_ignore_ascii_case($parse_variant) {
                 return Ok(AstComponent::$variant(
                     $variant::with_modifiers(version, &modifiers, name.span)?
                 ));
@@ -508,7 +500,7 @@ macro_rules! component_definition {
             Err(Error {
                 _inner: unused(name.span.error("invalid component")),
                 public: InvalidFormatDescription::InvalidComponentName {
-                    name: String::from_utf8_lossy(name).into_owned(),
+                    name: (**name).to_owned(),
                     index: name.span.start.byte as usize,
                 },
             })
@@ -963,14 +955,14 @@ macro_rules! modifier {
         impl $name {
             /// Parse the modifier from its string representation.
             #[inline]
-            fn from_modifier_value(value: &Spanned<&[u8]>) -> Result<Self, Error> {
+            fn from_modifier_value(value: &Spanned<&str>) -> Result<Self, Error> {
                 $(if value.eq_ignore_ascii_case($parse_variant) {
                     return Ok(Self::$variant);
                 })*
                 Err(Error {
                     _inner: unused(value.span.error("invalid modifier value")),
                     public: InvalidFormatDescription::InvalidModifier {
-                        value: String::from_utf8_lossy(value).into_owned(),
+                        value: (**value).to_owned(),
                         index: value.span.start.byte as usize,
                     },
                 })
@@ -997,126 +989,126 @@ macro_rules! modifier {
 // Keep in alphabetical order.
 modifier! {
     enum HourBase(bool) {
-        Twelve(true) = b"12",
+        Twelve(true) = "12",
         #[default]
-        TwentyFour(false) = b"24",
+        TwentyFour(false) = "24",
     }
 
     enum MonthCaseSensitive(bool) {
-        False(false) = b"false",
+        False(false) = "false",
         #[default]
-        True(true) = b"true",
+        True(true) = "true",
     }
 
     #[expect(deprecated)]
     enum MonthRepr {
         #[default]
-        Numerical = b"numerical",
-        Long = b"long",
-        Short = b"short",
+        Numerical = "numerical",
+        Long = "long",
+        Short = "short",
     }
 
     enum OptionalFormat(bool) {
-        False(false) = b"false",
+        False(false) = "false",
         #[default]
-        True(true) = b"true",
+        True(true) = "true",
     }
 
     enum Padding {
-        Space = b"space",
+        Space = "space",
         #[default]
-        Zero = b"zero",
-        None = b"none",
+        Zero = "zero",
+        None = "none",
     }
 
     enum PeriodCase(bool) {
-        Lower(false) = b"lower",
+        Lower(false) = "lower",
         #[default]
-        Upper(true) = b"upper",
+        Upper(true) = "upper",
     }
 
     enum PeriodCaseSensitive(bool) {
-        False(false) = b"false",
+        False(false) = "false",
         #[default]
-        True(true) = b"true",
+        True(true) = "true",
     }
 
     enum SignBehavior(bool) {
         #[default]
-        Automatic(false) = b"automatic",
-        Mandatory(true) = b"mandatory",
+        Automatic(false) = "automatic",
+        Mandatory(true) = "mandatory",
     }
 
     enum SubsecondDigits {
-        One = b"1",
-        Two = b"2",
-        Three = b"3",
-        Four = b"4",
-        Five = b"5",
-        Six = b"6",
-        Seven = b"7",
-        Eight = b"8",
-        Nine = b"9",
+        One = "1",
+        Two = "2",
+        Three = "3",
+        Four = "4",
+        Five = "5",
+        Six = "6",
+        Seven = "7",
+        Eight = "8",
+        Nine = "9",
         #[default]
-        OneOrMore = b"1+",
+        OneOrMore = "1+",
     }
 
     enum TrailingInput {
         #[default]
-        Prohibit = b"prohibit",
-        Discard = b"discard",
+        Prohibit = "prohibit",
+        Discard = "discard",
     }
 
     #[expect(deprecated)]
     enum UnixTimestampPrecision {
         #[default]
-        Second = b"second",
-        Millisecond = b"millisecond",
-        Microsecond = b"microsecond",
-        Nanosecond = b"nanosecond",
+        Second = "second",
+        Millisecond = "millisecond",
+        Microsecond = "microsecond",
+        Nanosecond = "nanosecond",
     }
 
     #[expect(deprecated)]
     enum WeekNumberRepr {
         #[default]
-        Iso = b"iso",
-        Sunday = b"sunday",
-        Monday = b"monday",
+        Iso = "iso",
+        Sunday = "sunday",
+        Monday = "monday",
     }
 
     enum WeekdayCaseSensitive(bool) {
-        False(false) = b"false",
+        False(false) = "false",
         #[default]
-        True(true) = b"true",
+        True(true) = "true",
     }
 
     enum WeekdayOneIndexed(bool) {
-        False(false) = b"false",
+        False(false) = "false",
         #[default]
-        True(true) = b"true",
+        True(true) = "true",
     }
 
     #[expect(deprecated)]
     enum WeekdayRepr {
-        Short = b"short",
+        Short = "short",
         #[default]
-        Long = b"long",
-        Sunday = b"sunday",
-        Monday = b"monday",
+        Long = "long",
+        Sunday = "sunday",
+        Monday = "monday",
     }
 
     enum YearBase(bool) {
         #[default]
-        Calendar(false) = b"calendar",
-        IsoWeek(true) = b"iso_week",
+        Calendar(false) = "calendar",
+        IsoWeek(true) = "iso_week",
     }
 
     #[expect(deprecated)]
     enum YearRepr {
         #[default]
-        Full = b"full",
-        Century = b"century",
-        LastTwo = b"last_two",
+        Full = "full",
+        Century = "century",
+        LastTwo = "last_two",
     }
 
     // For v1 and v2 format descriptions, the default is `extended`. For v3 format descriptions,
@@ -1124,26 +1116,23 @@ modifier! {
     // `extended`.
     #[expect(deprecated)]
     enum YearRange {
-        Standard = b"standard",
+        Standard = "standard",
         #[default]
-        Extended = b"extended",
+        Extended = "extended",
     }
 }
 
 /// Parse a modifier value using `FromStr`. Requires the modifier value to be valid UTF-8.
 #[inline]
-fn parse_from_modifier_value<T>(value: &Spanned<&[u8]>) -> Result<T, Error>
+fn parse_from_modifier_value<T>(value: &Spanned<&str>) -> Result<T, Error>
 where
     T: FromStr,
 {
-    str::from_utf8(value)
-        .ok()
-        .and_then(|val| val.parse::<T>().ok())
-        .ok_or_else(|| Error {
-            _inner: unused(value.span.error("invalid modifier value")),
-            public: InvalidFormatDescription::InvalidModifier {
-                value: String::from_utf8_lossy(value).into_owned(),
-                index: value.span.start.byte as usize,
-            },
-        })
+    value.parse::<T>().map_err(|_| Error {
+        _inner: unused(value.span.error("invalid modifier value")),
+        public: InvalidFormatDescription::InvalidModifier {
+            value: (**value).to_owned(),
+            index: value.span.start.byte as usize,
+        },
+    })
 }

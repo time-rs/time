@@ -38,7 +38,7 @@ where
 
     /// Consume the next token if it is whitespace.
     #[inline]
-    pub(super) fn next_if_whitespace(&mut self) -> Option<Spanned<&'token [u8]>> {
+    pub(super) fn next_if_whitespace(&mut self) -> Option<Spanned<&'token str>> {
         if let Some(&Ok(Token::ComponentPart {
             kind: ComponentKind::Whitespace,
             value,
@@ -53,7 +53,7 @@ where
 
     /// Consume the next token if it is a component item that is not whitespace.
     #[inline]
-    pub(super) fn next_if_not_whitespace(&mut self) -> Option<Spanned<&'token [u8]>> {
+    pub(super) fn next_if_not_whitespace(&mut self) -> Option<Spanned<&'token str>> {
         if let Some(&Ok(Token::ComponentPart {
             kind: ComponentKind::NotWhitespace,
             value,
@@ -114,7 +114,7 @@ where
 /// A token emitted by the lexer. There is no semantic meaning at this stage.
 pub(super) enum Token<'a> {
     /// A literal string, formatted and parsed as-is.
-    Literal(Spanned<&'a [u8]>),
+    Literal(Spanned<&'a str>),
     /// An opening or closing bracket. May or may not be the start or end of a component.
     Bracket {
         /// Whether the bracket is opening or closing.
@@ -127,7 +127,7 @@ pub(super) enum Token<'a> {
         /// Whether the part is whitespace or not.
         kind: ComponentKind,
         /// The part itself.
-        value: Spanned<&'a [u8]>,
+        value: Spanned<&'a str>,
     },
 }
 
@@ -159,8 +159,11 @@ pub(super) enum ComponentKind {
 #[inline]
 pub(super) fn lex(
     version: FormatDescriptionVersion,
-    mut input: &[u8],
+    input: &str,
 ) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
+    // Avoid checking for character boundaries on every indexing operation. Everything still results
+    // in valid UTF-8.
+    let mut input = input.as_bytes();
     let mut depth: u32 = 0;
     // Whether, within a nested format description, we have seen the component name. This is used to
     // distinguish between `[[` as an escaped literal and `[[` as the start of a nested format
@@ -187,7 +190,9 @@ pub(super) fn lex(
                 match iter.next() {
                     Some((b'\\' | b'[' | b']', char_loc)) => {
                         // The escaped character is emitted as-is.
-                        let char = &input[1..2];
+                        // Safety: We know that this is either a left bracket, right bracket, or
+                        // backslash.
+                        let char = unsafe { str::from_utf8_unchecked(&input[1..2]) };
                         input = &input[2..];
                         if depth == 0 {
                             Token::Literal(char.spanned(backslash_loc.to(char_loc)))
@@ -276,7 +281,9 @@ pub(super) fn lex(
                     bytes += 1;
                 }
 
-                let value = &input[..bytes];
+                // Safety: A string was passed to this function, and only UTF-8 has been consumed,
+                // leaving behind a string known to begin at a character boundary.
+                let value = unsafe { str::from_utf8_unchecked(&input[..bytes]) };
                 input = &input[bytes..];
 
                 Token::Literal(value.spanned(start_location.to(end_location)))
@@ -295,7 +302,9 @@ pub(super) fn lex(
                     bytes += 1;
                 }
 
-                let value = &input[..bytes];
+                // Safety: A string was passed to this function, and only UTF-8 has been consumed,
+                // leaving behind a string known to begin at a character boundary.
+                let value = unsafe { str::from_utf8_unchecked(&input[..bytes]) };
                 input = &input[bytes..];
 
                 // If what we just consumed is not whitespace, then it is either the component name

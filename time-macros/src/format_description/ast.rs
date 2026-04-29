@@ -12,17 +12,17 @@ pub(super) enum Item<'a> {
     Component {
         version: FormatDescriptionVersion,
         opening_bracket: Location,
-        _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
-        name: Spanned<&'a [u8]>,
+        _leading_whitespace: Unused<Option<Spanned<&'a str>>>,
+        name: Spanned<&'a str>,
         modifiers: Box<[Modifier<'a>]>,
         nested_format_descriptions: Box<[NestedFormatDescription<'a>]>,
-        _trailing_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
+        _trailing_whitespace: Unused<Option<Spanned<&'a str>>>,
         closing_bracket: Location,
     },
 }
 
 pub(super) struct NestedFormatDescription<'a> {
-    pub(super) leading_whitespace: Option<Spanned<&'a [u8]>>,
+    pub(super) leading_whitespace: Option<Spanned<&'a str>>,
     pub(super) opening_bracket: Location,
     pub(super) items: Box<[Item<'a>]>,
     pub(super) closing_bracket: Location,
@@ -30,18 +30,18 @@ pub(super) struct NestedFormatDescription<'a> {
 
 #[derive(Debug)]
 pub(super) struct Modifier<'a> {
-    pub(super) _leading_whitespace: Unused<Spanned<&'a [u8]>>,
-    pub(super) key: Spanned<&'a [u8]>,
+    pub(super) _leading_whitespace: Unused<Spanned<&'a str>>,
+    pub(super) key: Spanned<&'a str>,
     pub(super) _colon: Unused<Location>,
-    pub(super) value: Spanned<&'a [u8]>,
+    pub(super) value: Spanned<&'a str>,
 }
 
 impl<'a> Modifier<'a> {
     fn from_leading_whitespace_and_token(
-        leading_whitespace: Spanned<&'a [u8]>,
-        token: Spanned<&'a [u8]>,
+        leading_whitespace: Spanned<&'a str>,
+        token: Spanned<&'a str>,
     ) -> Result<Self, Error> {
-        let Some(colon_index) = token.iter().position(|&b| b == b':') else {
+        let Some(colon_index) = token.bytes().position(|b| b == b':') else {
             return Err(token.span.error("modifier must be of the form `key:value`"));
         };
         let key = &token[..colon_index];
@@ -121,9 +121,10 @@ fn parse_inner<'item, I: Iterator<Item = Result<lexer::Token<'item>, Error>>>(
             } => {
                 bug!("closing bracket should have been consumed by `parse_component`")
             }
-            lexer::Token::ComponentPart { kind: _, value } if nested => {
-                Ok(Item::Literal { version, value })
-            }
+            lexer::Token::ComponentPart { kind: _, value } if nested => Ok(Item::Literal {
+                version,
+                value: value.map(str::as_bytes),
+            }),
             lexer::Token::ComponentPart { kind: _, value: _ } => {
                 bug!("component part should have been consumed by `parse_component`")
             }
@@ -133,7 +134,7 @@ fn parse_inner<'item, I: Iterator<Item = Result<lexer::Token<'item>, Error>>>(
 
 struct Modifiers<'a> {
     modifiers: Box<[Modifier<'a>]>,
-    trailing_whitespace: Option<Spanned<&'a [u8]>>,
+    trailing_whitespace: Option<Spanned<&'a str>>,
 }
 
 impl<'a> Modifiers<'a> {

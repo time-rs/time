@@ -51,7 +51,7 @@ impl VersionedParser for Version<1> {
     fn parse_borrowed(
         s: &str,
     ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
-        let mut lexed = lexer::lex(FormatDescriptionVersion::V1, s.as_bytes());
+        let mut lexed = lexer::lex(FormatDescriptionVersion::V1, s);
         let ast = ast::parse(FormatDescriptionVersion::V1, &mut lexed);
         let format_items = format_item::parse(ast);
         Ok(format_items
@@ -61,7 +61,7 @@ impl VersionedParser for Version<1> {
 
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
-        let mut lexed = lexer::lex(FormatDescriptionVersion::V1, s.as_bytes());
+        let mut lexed = lexer::lex(FormatDescriptionVersion::V1, s);
         let ast = ast::parse(FormatDescriptionVersion::V1, &mut lexed);
         let format_items = format_item::parse(ast);
         let items = format_items.collect::<Result<Box<_>, _>>()?;
@@ -77,7 +77,7 @@ impl VersionedParser for Version<2> {
     fn parse_borrowed(
         s: &str,
     ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
-        let mut lexed = lexer::lex(FormatDescriptionVersion::V2, s.as_bytes());
+        let mut lexed = lexer::lex(FormatDescriptionVersion::V2, s);
         let ast = ast::parse(FormatDescriptionVersion::V2, &mut lexed);
         let format_items = format_item::parse(ast);
         Ok(format_items
@@ -87,7 +87,7 @@ impl VersionedParser for Version<2> {
 
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
-        let mut lexed = lexer::lex(FormatDescriptionVersion::V2, s.as_bytes());
+        let mut lexed = lexer::lex(FormatDescriptionVersion::V2, s);
         let ast = ast::parse(FormatDescriptionVersion::V2, &mut lexed);
         let format_items = format_item::parse(ast);
         let items = format_items.collect::<Result<Box<_>, _>>()?;
@@ -103,7 +103,7 @@ impl VersionedParser for Version<3> {
     fn parse_borrowed(
         s: &str,
     ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
-        let mut lexed = lexer::lex(FormatDescriptionVersion::V3, s.as_bytes());
+        let mut lexed = lexer::lex(FormatDescriptionVersion::V3, s);
         let ast = ast::parse(FormatDescriptionVersion::V3, &mut lexed);
         let format_items = format_item::parse(ast);
         let items = format_items.collect::<Result<Box<_>, _>>()?;
@@ -113,7 +113,7 @@ impl VersionedParser for Version<3> {
 
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
-        let mut lexed = lexer::lex(FormatDescriptionVersion::V3, s.as_bytes());
+        let mut lexed = lexer::lex(FormatDescriptionVersion::V3, s);
         let ast = ast::parse(FormatDescriptionVersion::V3, &mut lexed);
         let format_items = format_item::parse(ast);
         let items = format_items.collect::<Result<Box<_>, _>>()?;

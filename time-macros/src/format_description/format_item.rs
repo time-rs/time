@@ -22,7 +22,7 @@ macro_rules! parse_modifiers {
             };
 
             for modifier in $modifiers {
-                $(if modifier.key.eq_ignore_ascii_case(stringify!($field).as_bytes()) {
+                $(if modifier.key.eq_ignore_ascii_case(stringify!($field)) {
                     if parsed.$field.is_some() {
                         break 'block Err(modifier.key.span.error("duplicate modifier key"));
                     }
@@ -101,7 +101,7 @@ impl<'a> Item<'a> {
                     .error("missing leading whitespace before nested format description"));
                 }
 
-                if name.eq_ignore_ascii_case(b"optional") {
+                if name.eq_ignore_ascii_case("optional") {
                     Self::optional_from_parts(
                         version,
                         opening_bracket,
@@ -109,7 +109,7 @@ impl<'a> Item<'a> {
                         nested_format_descriptions,
                         closing_bracket,
                     )?
-                } else if name.eq_ignore_ascii_case(b"first") {
+                } else if name.eq_ignore_ascii_case("first") {
                     let _modifiers = parse_modifiers!(modifiers, struct {})?;
 
                     if version.is_at_least_v3() && nested_format_descriptions.is_empty() {
@@ -281,7 +281,7 @@ macro_rules! component_definition {
 
                 for modifier in modifiers {
                     $(#[allow(clippy::string_lit_as_bytes)]
-                    if modifier.key.eq_ignore_ascii_case($parse_field.as_bytes()) {
+                    if modifier.key.eq_ignore_ascii_case($parse_field) {
                         this.$field = Some(
                             component_definition!(@if_from_str $($from_str)?
                                 then {
@@ -307,11 +307,11 @@ macro_rules! component_definition {
         })*
 
         fn component_from_ast(
-            name: &Spanned<&[u8]>,
+            name: &Spanned<&str>,
             modifiers: &[ast::Modifier<'_>],
         ) -> Result<Component, Error> {
             $(#[allow(clippy::string_lit_as_bytes)]
-            if name.eq_ignore_ascii_case($parse_variant.as_bytes()) {
+            if name.eq_ignore_ascii_case($parse_variant) {
                 return Ok(Component::$variant($variant::with_modifiers(&modifiers, name.span)?));
             })*
             Err(name.span.error("invalid component"))
@@ -708,7 +708,7 @@ macro_rules! modifier {
 
         impl $name {
             /// Parse the modifier from its string representation.
-            fn from_modifier_value(value: &Spanned<&[u8]>) -> Result<Self, Error> {
+            fn from_modifier_value(value: &Spanned<&str>) -> Result<Self, Error> {
                 $(if value.eq_ignore_ascii_case($parse_variant) {
                     return Ok(Self::$variant);
                 })*
@@ -735,136 +735,135 @@ macro_rules! modifier {
 
 modifier! {
     enum HourBase(bool) {
-        Twelve(true) = b"12",
+        Twelve(true) = "12",
         #[default]
-        TwentyFour(false) = b"24",
+        TwentyFour(false) = "24",
     }
 
     enum MonthCaseSensitive(bool) {
-        False(false) = b"false",
+        False(false) = "false",
         #[default]
-        True(true) = b"true",
+        True(true) = "true",
     }
 
     @parse_only enum MonthRepr {
         #[default]
-        Numerical = b"numerical",
-        Long = b"long",
-        Short = b"short",
+        Numerical = "numerical",
+        Long = "long",
+        Short = "short",
     }
 
     enum OptionalFormat(bool) {
-        False(false) = b"false",
+        False(false) = "false",
         #[default]
-        True(true) = b"true",
+        True(true) = "true",
     }
 
     enum Padding {
-        Space = b"space",
+        Space = "space",
         #[default]
-        Zero = b"zero",
-        None = b"none",
+        Zero = "zero",
+        None = "none",
     }
 
     enum PeriodCase(bool) {
-        Lower(false) = b"lower",
+        Lower(false) = "lower",
         #[default]
-        Upper(true) = b"upper",
+        Upper(true) = "upper",
     }
 
     enum PeriodCaseSensitive(bool) {
-        False(false) = b"false",
+        False(false) = "false",
         #[default]
-        True(true) = b"true",
+        True(true) = "true",
     }
 
     enum SignBehavior(bool) {
         #[default]
-        Automatic(false) = b"automatic",
-        Mandatory(true) = b"mandatory",
+        Automatic(false) = "automatic",
+        Mandatory(true) = "mandatory",
     }
 
     enum SubsecondDigits {
-        One = b"1",
-        Two = b"2",
-        Three = b"3",
-        Four = b"4",
-        Five = b"5",
-        Six = b"6",
-        Seven = b"7",
-        Eight = b"8",
-        Nine = b"9",
+        One = "1",
+        Two = "2",
+        Three = "3",
+        Four = "4",
+        Five = "5",
+        Six = "6",
+        Seven = "7",
+        Eight = "8",
+        Nine = "9",
         #[default]
-        OneOrMore = b"1+",
+        OneOrMore = "1+",
     }
 
     enum TrailingInput {
         #[default]
-        Prohibit = b"prohibit",
-        Discard = b"discard",
+        Prohibit = "prohibit",
+        Discard = "discard",
     }
 
     @parse_only enum UnixTimestampPrecision {
         #[default]
-        Second = b"second",
-        Millisecond = b"millisecond",
-        Microsecond = b"microsecond",
-        Nanosecond = b"nanosecond",
+        Second = "second",
+        Millisecond = "millisecond",
+        Microsecond = "microsecond",
+        Nanosecond = "nanosecond",
     }
 
     @parse_only enum WeekNumberRepr {
         #[default]
-        Iso = b"iso",
-        Sunday = b"sunday",
-        Monday = b"monday",
+        Iso = "iso",
+        Sunday = "sunday",
+        Monday = "monday",
     }
 
     enum WeekdayCaseSensitive(bool) {
-        False(false) = b"false",
+        False(false) = "false",
         #[default]
-        True(true) = b"true",
+        True(true) = "true",
     }
 
     enum WeekdayOneIndexed(bool) {
-        False(false) = b"false",
+        False(false) = "false",
         #[default]
-        True(true) = b"true",
+        True(true) = "true",
     }
 
     @parse_only enum WeekdayRepr {
-        Short = b"short",
+        Short = "short",
         #[default]
-        Long = b"long",
-        Sunday = b"sunday",
-        Monday = b"monday",
+        Long = "long",
+        Sunday = "sunday",
+        Monday = "monday",
     }
 
     enum YearBase(bool) {
         #[default]
-        Calendar(false) = b"calendar",
-        IsoWeek(true) = b"iso_week",
+        Calendar(false) = "calendar",
+        IsoWeek(true) = "iso_week",
     }
 
     @parse_only enum YearRepr {
         #[default]
-        Full = b"full",
-        Century = b"century",
-        LastTwo = b"last_two",
+        Full = "full",
+        Century = "century",
+        LastTwo = "last_two",
     }
 
     // `Extended` is the default for v1 and v2 format descriptions, but `Standard` is the default
     // for v3 format descriptions. To ensure the macro outputs the correct code, we need to use
     // `Extended` as the default for symmetry with the runtime parser.
     @parse_only enum YearRange {
-        Standard = b"standard",
+        Standard = "standard",
         #[default]
-        Extended = b"extended",
+        Extended = "extended",
     }
 }
 
-fn parse_from_modifier_value<T: FromStr>(value: &Spanned<&[u8]>) -> Result<T, Error> {
-    str::from_utf8(value)
-        .ok()
-        .and_then(|val| val.parse::<T>().ok())
-        .ok_or_else(|| value.span.error("invalid modifier value"))
+fn parse_from_modifier_value<T: FromStr>(value: &Spanned<&str>) -> Result<T, Error> {
+    value
+        .parse::<T>()
+        .map_err(|_| value.span.error("invalid modifier value"))
 }

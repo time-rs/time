@@ -263,7 +263,7 @@ pub fn format_description(input: TokenStream) -> TokenStream {
         let mut input = input.into_iter().peekable();
         let version = parse_format_description_version::<false>(&mut input)?
             .unwrap_or(FormatDescriptionVersion::V1);
-        let (span, string) = helpers::get_string_literal(input)?;
+        let (span, string) = helpers::get_string_literal(version.is_at_most_v2(), input)?;
         let items = format_description::parse_with_version(version, &string, span)?;
 
         Ok(expand_format_description(items))
@@ -351,7 +351,8 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
         let (format, format_description_display) = match tokens.peek() {
             // string literal
             Some(TokenTree::Literal(_)) => {
-                let (span, format_string) = helpers::get_string_literal(tokens)?;
+                let (span, format_string) =
+                    helpers::get_string_literal(version.is_at_most_v2(), tokens)?;
                 let items = format_description::parse_with_version(version, &format_string, span)?;
                 let items = expand_format_description(items);
 

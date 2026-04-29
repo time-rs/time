@@ -20,7 +20,7 @@ impl<'iter, 'token: 'iter, I: Iterator<Item = Result<Token<'token>, Error>> + 'i
         self.iter.peek()
     }
 
-    pub(super) fn next_if_whitespace(&mut self) -> Option<Spanned<&'token [u8]>> {
+    pub(super) fn next_if_whitespace(&mut self) -> Option<Spanned<&'token str>> {
         if let Some(&Ok(Token::ComponentPart {
             kind: ComponentKind::Whitespace,
             value,
@@ -33,7 +33,7 @@ impl<'iter, 'token: 'iter, I: Iterator<Item = Result<Token<'token>, Error>> + 'i
         }
     }
 
-    pub(super) fn next_if_not_whitespace(&mut self) -> Option<Spanned<&'token [u8]>> {
+    pub(super) fn next_if_not_whitespace(&mut self) -> Option<Spanned<&'token str>> {
         if let Some(&Ok(Token::ComponentPart {
             kind: ComponentKind::NotWhitespace,
             value,
@@ -93,7 +93,7 @@ pub(super) enum Token<'a> {
     },
     ComponentPart {
         kind: ComponentKind,
-        value: Spanned<&'a [u8]>,
+        value: Spanned<&'a str>,
     },
 }
 
@@ -112,7 +112,7 @@ impl std::fmt::Debug for Token<'_> {
             Self::ComponentPart { kind, value } => f
                 .debug_struct("ComponentPart")
                 .field("kind", kind)
-                .field("value", &String::from_utf8_lossy(value))
+                .field("value", value)
                 .finish(),
         }
     }
@@ -169,10 +169,12 @@ pub(super) fn lex(
         Some(Ok(match iter.next()? {
             (b'\\', backslash_loc) if version.is_at_least_v2() => match iter.next() {
                 Some((b'\\' | b'[' | b']', char_loc)) => {
-                    let char = &input[1..2];
+                    // Safety: We know that the character is either a left bracket, a right bracket,
+                    // or a backslash.
+                    let char = unsafe { str::from_utf8_unchecked(&input[1..2]) };
                     input = &input[2..];
                     if depth == 0 {
-                        Token::Literal(char.spanned(backslash_loc.to(char_loc)))
+                        Token::Literal(char.as_bytes().spanned(backslash_loc.to(char_loc)))
                     } else {
                         Token::ComponentPart {
                             kind: ComponentKind::NotWhitespace,
@@ -251,7 +253,9 @@ pub(super) fn lex(
                     bytes += 1;
                 }
 
-                let value = &input[..bytes];
+                let Ok(value) = str::from_utf8(&input[..bytes]) else {
+                    return Some(Err(start_location.error("components must be valid UTF-8")));
+                };
                 input = &input[bytes..];
 
                 if version.is_v1() && !is_whitespace {

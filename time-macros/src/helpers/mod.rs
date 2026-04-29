@@ -12,10 +12,11 @@ use crate::Error;
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 pub(crate) fn get_string_literal(
+    permit_byte_strings: bool,
     mut tokens: impl Iterator<Item = TokenTree>,
 ) -> Result<(Span, Vec<u8>), Error> {
     match (tokens.next(), tokens.next()) {
-        (Some(TokenTree::Literal(literal)), None) => string::parse(&literal),
+        (Some(TokenTree::Literal(literal)), None) => string::parse(permit_byte_strings, &literal),
         (Some(tree), None) => Err(Error::ExpectedString {
             span_start: Some(tree.span()),
             span_end: Some(tree.span()),

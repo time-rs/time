@@ -35,6 +35,10 @@ pub(crate) enum Error {
         tree: TokenTree,
     },
     UnexpectedEndOfInput,
+    ByteStringNotPermitted {
+        span_start: Option<Span>,
+        span_end: Option<Span>,
+    },
     Custom {
         message: Cow<'static, str>,
         span_start: Option<Span>,
@@ -53,6 +57,7 @@ impl fmt::Display for Error {
             Self::ExpectedString { .. } => f.write_str("expected string literal"),
             Self::UnexpectedToken { tree } => write!(f, "unexpected token: {tree}"),
             Self::UnexpectedEndOfInput => f.write_str("unexpected end of input"),
+            Self::ByteStringNotPermitted { .. } => f.write_str("byte strings are not permitted"),
             Self::Custom { message, .. } => f.write_str(message),
         }
     }
@@ -63,6 +68,7 @@ impl Error {
         match self {
             Self::MissingComponent { span_start, .. }
             | Self::InvalidComponent { span_start, .. }
+            | Self::ByteStringNotPermitted { span_start, .. }
             | Self::Custom { span_start, .. } => *span_start,
             #[cfg(any(feature = "formatting", feature = "parsing"))]
             Self::ExpectedString { span_start, .. } => *span_start,
@@ -76,6 +82,7 @@ impl Error {
         match self {
             Self::MissingComponent { span_end, .. }
             | Self::InvalidComponent { span_end, .. }
+            | Self::ByteStringNotPermitted { span_end, .. }
             | Self::Custom { span_end, .. } => *span_end,
             #[cfg(any(feature = "formatting", feature = "parsing"))]
             Self::ExpectedString { span_end, .. } => *span_end,

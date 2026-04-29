@@ -1,5 +1,6 @@
 //! AST for parsing format descriptions.
 
+use alloc::borrow::ToOwned as _;
 use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -15,7 +16,7 @@ pub(super) enum Item<'a> {
     /// A literal string, formatted and parsed as-is.
     ///
     /// This should never be present inside a nested format description.
-    Literal(Spanned<&'a [u8]>),
+    Literal(Spanned<&'a str>),
     /// Part of a type, along with its modifiers and nested format descriptions.
     Component {
         /// The version of the format description, which may affect how the component is parsed.
@@ -23,15 +24,15 @@ pub(super) enum Item<'a> {
         /// Where the opening bracket was in the format string.
         opening_bracket: Location,
         /// Whitespace between the opening bracket and name.
-        _leading_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
+        _leading_whitespace: Unused<Option<Spanned<&'a str>>>,
         /// The name of the component.
-        name: Spanned<&'a [u8]>,
+        name: Spanned<&'a str>,
         /// The modifiers for the component.
         modifiers: Box<[Modifier<'a>]>,
         /// The nested format descriptions within the component.
         nested_format_descriptions: Box<[NestedFormatDescription<'a>]>,
         /// Whitespace between the modifiers/nested format descriptions and closing bracket.
-        _trailing_whitespace: Unused<Option<Spanned<&'a [u8]>>>,
+        _trailing_whitespace: Unused<Option<Spanned<&'a str>>>,
         /// Where the closing bracket was in the format string.
         closing_bracket: Location,
     },
@@ -40,7 +41,7 @@ pub(super) enum Item<'a> {
 /// A format description that is nested within another format description.
 pub(super) struct NestedFormatDescription<'a> {
     /// Whitespace between the end of the previous item and the opening bracket.
-    pub(super) leading_whitespace: Option<Spanned<&'a [u8]>>,
+    pub(super) leading_whitespace: Option<Spanned<&'a str>>,
     /// Where the opening bracket was in the format string.
     pub(super) opening_bracket: Location,
     /// The items within the nested format description.
@@ -52,25 +53,25 @@ pub(super) struct NestedFormatDescription<'a> {
 /// A modifier for a component.
 pub(super) struct Modifier<'a> {
     /// Whitespace preceding the modifier.
-    pub(super) _leading_whitespace: Unused<Spanned<&'a [u8]>>,
+    pub(super) _leading_whitespace: Unused<Spanned<&'a str>>,
     /// The key of the modifier.
-    pub(super) key: Spanned<&'a [u8]>,
+    pub(super) key: Spanned<&'a str>,
     /// Where the colon of the modifier was in the format string.
     pub(super) _colon: Unused<Location>,
     /// The value of the modifier.
-    pub(super) value: Spanned<&'a [u8]>,
+    pub(super) value: Spanned<&'a str>,
 }
 
 impl<'a> Modifier<'a> {
     fn from_leading_whitespace_and_token(
-        leading_whitespace: Spanned<&'a [u8]>,
-        token: Spanned<&'a [u8]>,
+        leading_whitespace: Spanned<&'a str>,
+        token: Spanned<&'a str>,
     ) -> Result<Self, Error> {
-        let Some(colon_index) = token.iter().position(|&b| b == b':') else {
+        let Some(colon_index) = token.bytes().position(|b| b == b':') else {
             return Err(Error {
                 _inner: unused(token.span.error("modifier must be of the form `key:value`")),
                 public: error::InvalidFormatDescription::InvalidModifier {
-                    value: String::from_utf8_lossy(*token).into_owned(),
+                    value: (*token).to_owned(),
                     index: token.span.start.byte as usize,
                 },
             });
@@ -167,9 +168,7 @@ where
                 if version.is_v1()
                     && let Some(second_location) = tokens.next_if_opening_bracket()
                 {
-                    Ok(Item::Literal(
-                        b"[".as_slice().spanned(location.to(second_location)),
-                    ))
+                    Ok(Item::Literal("[".spanned(location.to(second_location))))
                 } else {
                     parse_component(version, location, tokens)
                 }
@@ -264,7 +263,7 @@ where
 
 struct Modifiers<'a> {
     modifiers: Box<[Modifier<'a>]>,
-    trailing_whitespace: Option<Spanned<&'a [u8]>>,
+    trailing_whitespace: Option<Spanned<&'a str>>,
 }
 
 impl<'a> Modifiers<'a> {
