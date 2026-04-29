@@ -216,9 +216,10 @@ macro_rules! bug {
     () => {
         compile_error!("provide an error message to help fix a possible bug")
     };
-    ($descr:literal) => {
+    ($descr:literal) => {{
+        $crate::hint::cold_path();
         panic!(concat!("internal error: ", $descr))
-    };
+    }};
 }
 
 pub(crate) use carry;

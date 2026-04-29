@@ -7,9 +7,9 @@ use alloc::vec::Vec;
 use core::iter;
 
 use super::{Error, Location, Span, Spanned, SpannedValue, Unused, lexer, unused};
-use crate::error;
 use crate::format_description::FormatDescriptionVersion;
-use crate::internal_macros::bug;
+use crate::internal_macros::{bug, const_try_opt};
+use crate::{error, hint};
 
 /// One part of a complete format description.
 pub(super) enum Item<'a> {
@@ -151,9 +151,12 @@ where
             return None;
         }
 
-        let next = match tokens.next()? {
+        let next = match const_try_opt!(tokens.next()) {
             Ok(token) => token,
-            Err(err) => return Some(Err(err)),
+            Err(err) => {
+                hint::cold_path();
+                return Some(Err(err));
+            }
         };
 
         Some(match next {

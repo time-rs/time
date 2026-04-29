@@ -10,7 +10,7 @@ use super::{
     ast, unused,
 };
 use crate::error::InvalidFormatDescription;
-use crate::internal_macros::bug;
+use crate::internal_macros::{bug, try_likely_ok};
 
 macro_rules! parse_modifiers {
     ($version:expr, $modifiers:expr, struct {}) => {{
@@ -507,7 +507,7 @@ macro_rules! component_definition {
         ) -> Result<AstComponent, Error> {
             $(if ident_eq(version, &name, $parse_variant) {
                 return Ok(AstComponent::$variant(
-                    $variant::with_modifiers(version, &modifiers, name.span)?
+                    try_likely_ok!($variant::with_modifiers(version, &modifiers, name.span))
                 ));
             })*
             Err(Error {
