@@ -6,12 +6,12 @@ use crate::FormatDescriptionVersion;
 use crate::format_description::{SpannedValue as _, public};
 
 macro_rules! parse_modifiers {
-    ($modifiers:expr, struct {}) => {{
+    ($version:expr, $modifiers:expr, struct {}) => {{
         struct Parsed {}
-        drop($modifiers);
+        drop(($version, $modifiers));
         Ok(Parsed {})
     }};
-    ($modifiers:expr, struct { $($field:ident : $modifier:ident),* $(,)? }) => {
+    ($version:expr, $modifiers:expr, struct { $($field:ident : $modifier:ident),* $(,)? }) => {
         'block: {
             struct Parsed {
                 $($field: Option<Spanned<<$modifier as ModifierValue>::Type>>),*
@@ -22,11 +22,11 @@ macro_rules! parse_modifiers {
             };
 
             for modifier in $modifiers {
-                $(if modifier.key.eq_ignore_ascii_case(stringify!($field)) {
+                $(if ident_eq($version, *modifier.key, stringify!($field)) {
                     if parsed.$field.is_some() {
                         break 'block Err(modifier.key.span.error("duplicate modifier key"));
                     }
-                    match <$modifier>::from_modifier_value(&modifier.value) {
+                    match <$modifier>::from_modifier_value($version, &modifier.value) {
                         Ok(value) => {
                             parsed.$field = Some(
                                 <<$modifier as ModifierValue>::Type>::from(value)
@@ -43,6 +43,16 @@ macro_rules! parse_modifiers {
             Ok(parsed)
         }
     };
+}
+
+fn ident_eq(version: FormatDescriptionVersion, provided: &str, expected: &str) -> bool {
+    if version.is_at_least_v3() {
+        provided == expected
+    } else {
+        provided.len() == expected.len()
+            && core::iter::zip(provided.bytes(), expected.bytes())
+                .all(|(p, e)| p.to_ascii_lowercase() == e)
+    }
 }
 
 pub(super) fn parse<'a>(
@@ -101,7 +111,7 @@ impl<'a> Item<'a> {
                     .error("missing leading whitespace before nested format description"));
                 }
 
-                if name.eq_ignore_ascii_case("optional") {
+                if ident_eq(version, *name, "optional") {
                     Self::optional_from_parts(
                         version,
                         opening_bracket,
@@ -109,8 +119,8 @@ impl<'a> Item<'a> {
                         nested_format_descriptions,
                         closing_bracket,
                     )?
-                } else if name.eq_ignore_ascii_case("first") {
-                    let _modifiers = parse_modifiers!(modifiers, struct {})?;
+                } else if ident_eq(version, *name, "first") {
+                    let _modifiers = parse_modifiers!(version, modifiers, struct {})?;
 
                     if version.is_at_least_v3() && nested_format_descriptions.is_empty() {
                         return Err(Span {
@@ -146,7 +156,7 @@ impl<'a> Item<'a> {
                         .error("this component does not support nested format descriptions"));
                     }
 
-                    Item::Component(component_from_ast(&name, &modifiers)?)
+                    Item::Component(component_from_ast(version, &name, &modifiers)?)
                 }
             }
         })
@@ -159,7 +169,7 @@ impl<'a> Item<'a> {
         nested_format_descriptions: Box<[ast::NestedFormatDescription<'a>]>,
         closing_bracket: Location,
     ) -> Result<Self, Error> {
-        let modifiers = parse_modifiers!(modifiers, struct {
+        let modifiers = parse_modifiers!(version, modifiers, struct {
             format: OptionalFormat,
         })?;
 
@@ -270,6 +280,7 @@ macro_rules! component_definition {
 
         $(impl $variant {
             fn with_modifiers(
+                version: FormatDescriptionVersion,
                 modifiers: &[ast::Modifier<'_>],
                 _component_span: Span,
             ) -> Result<Self, Error>
@@ -281,13 +292,13 @@ macro_rules! component_definition {
 
                 for modifier in modifiers {
                     $(#[allow(clippy::string_lit_as_bytes)]
-                    if modifier.key.eq_ignore_ascii_case($parse_field) {
+                    if ident_eq(version, *modifier.key, $parse_field) {
                         this.$field = Some(
                             component_definition!(@if_from_str $($from_str)?
                                 then {
                                     parse_from_modifier_value::<$field_type>(&modifier.value)?
                                 } else {
-                                    <$field_type>::from_modifier_value(&modifier.value)?
+                                    <$field_type>::from_modifier_value(version, &modifier.value)?
                                 }
                             )
                         ).spanned(modifier.key_value_span());
@@ -307,12 +318,15 @@ macro_rules! component_definition {
         })*
 
         fn component_from_ast(
+            version: FormatDescriptionVersion,
             name: &Spanned<&str>,
             modifiers: &[ast::Modifier<'_>],
         ) -> Result<Component, Error> {
             $(#[allow(clippy::string_lit_as_bytes)]
-            if name.eq_ignore_ascii_case($parse_variant) {
-                return Ok(Component::$variant($variant::with_modifiers(&modifiers, name.span)?));
+            if ident_eq(version, &name, $parse_variant) {
+                return Ok(Component::$variant(
+                    $variant::with_modifiers(version, &modifiers, name.span)?
+                ));
             })*
             Err(name.span.error("invalid component"))
         }
@@ -708,8 +722,12 @@ macro_rules! modifier {
 
         impl $name {
             /// Parse the modifier from its string representation.
-            fn from_modifier_value(value: &Spanned<&str>) -> Result<Self, Error> {
-                $(if value.eq_ignore_ascii_case($parse_variant) {
+            fn from_modifier_value(
+                version: FormatDescriptionVersion,
+                value: &Spanned<&str>,
+            ) -> Result<Self, Error>
+            {
+                $(if ident_eq(version, &value, $parse_variant) {
                     return Ok(Self::$variant);
                 })*
                 Err(value.span.error("invalid modifier value"))
