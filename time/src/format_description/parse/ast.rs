@@ -6,20 +6,17 @@ use alloc::vec::Vec;
 use core::iter;
 
 use super::{Error, Location, Span, Spanned, SpannedValue, Unused, lexer, unused};
-use crate::format_description::FormatDescriptionVersion;
 use crate::internal_macros::{bug, const_try_opt};
 use crate::{error, hint};
 
 /// One part of a complete format description.
-pub(super) enum Item<'a> {
+pub(super) enum Item<'a, const VERSION: u8> {
     /// A literal string, formatted and parsed as-is.
     ///
     /// This should never be present inside a nested format description.
     Literal(Spanned<&'a str>),
     /// Part of a type, along with its modifiers and nested format descriptions.
     Component {
-        /// The version of the format description, which may affect how the component is parsed.
-        version: FormatDescriptionVersion,
         /// Where the opening bracket was in the format string.
         opening_bracket: Location,
         /// Whitespace between the opening bracket and name.
@@ -29,7 +26,7 @@ pub(super) enum Item<'a> {
         /// The modifiers for the component.
         modifiers: Vec<Modifier<'a>>,
         /// The nested format descriptions within the component.
-        nested_format_descriptions: Vec<NestedFormatDescription<'a>>,
+        nested_format_descriptions: Vec<NestedFormatDescription<'a, VERSION>>,
         /// Whitespace between the modifiers/nested format descriptions and closing bracket.
         _trailing_whitespace: Unused<Option<Spanned<&'a str>>>,
         /// Where the closing bracket was in the format string.
@@ -38,13 +35,13 @@ pub(super) enum Item<'a> {
 }
 
 /// A format description that is nested within another format description.
-pub(super) struct NestedFormatDescription<'a> {
+pub(super) struct NestedFormatDescription<'a, const VERSION: u8> {
     /// Whitespace between the end of the previous item and the opening bracket.
     pub(super) leading_whitespace: Option<Spanned<&'a str>>,
     /// Where the opening bracket was in the format string.
     pub(super) opening_bracket: Location,
     /// The items within the nested format description.
-    pub(super) items: Vec<Item<'a>>,
+    pub(super) items: Vec<Item<'a, VERSION>>,
     /// Where the closing bracket was in the format string.
     pub(super) closing_bracket: Location,
 }
@@ -123,28 +120,29 @@ impl<'a> Modifier<'a> {
 
 /// Parse the provided tokens into an AST.
 #[inline]
-pub(super) fn parse<'item, 'iter, I>(
-    version: FormatDescriptionVersion,
+pub(super) fn parse<'item, 'iter, const VERSION: u8, I>(
     tokens: &'iter mut lexer::Lexed<I>,
-) -> impl Iterator<Item = Result<Item<'item>, Error>> + use<'item, 'iter, I>
+) -> impl Iterator<Item = Result<Item<'item, VERSION>, Error>> + use<'item, 'iter, VERSION, I>
 where
     'item: 'iter,
     I: Iterator<Item = Result<lexer::Token<'item>, Error>>,
 {
-    parse_inner(version, false, tokens)
+    assert_version!();
+    parse_inner::<VERSION, _>(false, tokens)
 }
 
 /// Parse the provided tokens into an AST. The const generic indicates whether the resulting
 /// [`Item`] will be used directly or as part of a [`NestedFormatDescription`].
 #[inline]
-fn parse_inner<'item, I>(
-    version: FormatDescriptionVersion,
+fn parse_inner<'item, const VERSION: u8, I>(
     nested: bool,
     tokens: &mut lexer::Lexed<I>,
-) -> impl Iterator<Item = Result<Item<'item>, Error>> + use<'_, 'item, I>
+) -> impl Iterator<Item = Result<Item<'item, VERSION>, Error>> + use<'_, 'item, VERSION, I>
 where
     I: Iterator<Item = Result<lexer::Token<'item>, Error>>,
 {
+    assert_version!();
+
     iter::from_fn(move || {
         if nested && tokens.peek_closing_bracket().is_some() {
             return None;
@@ -167,12 +165,12 @@ where
                 kind: lexer::BracketKind::Opening,
                 location,
             } => {
-                if version.is_v1()
+                if version!(1)
                     && let Some(second_location) = tokens.next_if_opening_bracket()
                 {
                     Ok(Item::Literal("[".spanned(location.to(second_location))))
                 } else {
-                    parse_component(version, location, tokens)
+                    parse_component::<VERSION, _>(location, tokens)
                 }
             }
             lexer::Token::Bracket {
@@ -199,14 +197,15 @@ where
 }
 
 /// Parse a component. This assumes that the opening bracket has already been consumed.
-fn parse_component<'a, I>(
-    version: FormatDescriptionVersion,
+fn parse_component<'a, const VERSION: u8, I>(
     opening_bracket: Location,
     tokens: &mut lexer::Lexed<I>,
-) -> Result<Item<'a>, Error>
+) -> Result<Item<'a, VERSION>, Error>
 where
     I: Iterator<Item = Result<lexer::Token<'a>, Error>>,
 {
+    assert_version!();
+
     let leading_whitespace = tokens.next_if_whitespace();
 
     let Some(name) = tokens.next_if_not_whitespace() else {
@@ -225,7 +224,7 @@ where
     let modifiers = Modifiers::parse(tokens)?;
 
     let mut nested_format_descriptions = Vec::new();
-    while let Ok(description) = parse_nested(version, modifiers.span().end, tokens) {
+    while let Ok(description) = parse_nested::<VERSION, _>(modifiers.span().end, tokens) {
         nested_format_descriptions.push(description);
     }
 
@@ -252,7 +251,6 @@ where
     };
 
     Ok(Item::Component {
-        version,
         opening_bracket,
         _leading_whitespace: unused(leading_whitespace),
         name,
@@ -305,14 +303,15 @@ impl<'a> Modifiers<'a> {
 
 /// Parse a nested format description. The location provided is the most recent one consumed.
 #[inline]
-fn parse_nested<'a, I>(
-    version: FormatDescriptionVersion,
+fn parse_nested<'a, const VERSION: u8, I>(
     last_location: Location,
     tokens: &mut lexer::Lexed<I>,
-) -> Result<NestedFormatDescription<'a>, Error>
+) -> Result<NestedFormatDescription<'a, VERSION>, Error>
 where
     I: Iterator<Item = Result<lexer::Token<'a>, Error>>,
 {
+    assert_version!();
+
     let leading_whitespace = tokens.next_if_whitespace();
     let Some(opening_bracket) = tokens.next_if_opening_bracket() else {
         return Err(Error {
@@ -323,7 +322,7 @@ where
             },
         });
     };
-    let items = parse_inner(version, true, tokens).collect::<Result<_, _>>()?;
+    let items = parse_inner::<VERSION, _>(true, tokens).collect::<Result<_, _>>()?;
     let Some(closing_bracket) = tokens.next_if_closing_bracket() else {
         return Err(Error {
             _inner: unused(opening_bracket.error("unclosed bracket")),

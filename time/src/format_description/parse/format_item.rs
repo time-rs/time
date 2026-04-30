@@ -6,10 +6,7 @@ use alloc::vec::Vec;
 use core::num::NonZero;
 use core::str::{self, FromStr};
 
-use super::{
-    Error, FormatDescriptionVersion, Location, OptionExt as _, Span, Spanned, SpannedValue as _,
-    ast, unused,
-};
+use super::{Error, Location, OptionExt as _, Span, Spanned, SpannedValue as _, ast, unused};
 use crate::error::InvalidFormatDescription;
 use crate::internal_macros::{bug, try_likely_ok};
 
@@ -30,7 +27,7 @@ macro_rules! parse_modifiers {
             };
 
             for modifier in $modifiers {
-                $(if ident_eq($version, *modifier.key, stringify!($field)) {
+                $(if ident_eq::<VERSION>(*modifier.key, stringify!($field)) {
                     if parsed.$field.is_some() {
                         break 'block Err(Error {
                             _inner: unused(modifier.key.span.error("duplicate modifier key")),
@@ -40,7 +37,7 @@ macro_rules! parse_modifiers {
                             }
                         });
                     }
-                    match <$modifier>::from_modifier_value($version, &modifier.value) {
+                    match <$modifier>::from_modifier_value::<VERSION>(&modifier.value) {
                         Ok(value) => {
                             parsed.$field = Some(
                                 <<$modifier as ModifierValue>::Type>::from(value)
@@ -66,8 +63,9 @@ macro_rules! parse_modifiers {
 }
 
 #[inline]
-fn ident_eq(version: FormatDescriptionVersion, provided: &str, expected: &str) -> bool {
-    if version.is_at_least_v3() {
+fn ident_eq<const VERSION: u8>(provided: &str, expected: &str) -> bool {
+    assert_version!();
+    if version!(3..) {
         provided == expected
     } else {
         provided.len() == expected.len()
@@ -78,14 +76,15 @@ fn ident_eq(version: FormatDescriptionVersion, provided: &str, expected: &str) -
 
 /// Parse an AST iterator into a sequence of format items.
 #[inline]
-pub(super) fn parse<'a>(
-    ast_items: impl Iterator<Item = Result<ast::Item<'a>, Error>>,
-) -> impl Iterator<Item = Result<Item<'a>, Error>> {
+pub(super) fn parse<'a, const VERSION: u8>(
+    ast_items: impl Iterator<Item = Result<ast::Item<'a, VERSION>, Error>>,
+) -> impl Iterator<Item = Result<Item<'a, VERSION>, Error>> {
+    assert_version!();
     ast_items.map(|ast_item| ast_item.and_then(Item::from_ast))
 }
 
 /// A description of how to format and parse one part of a type.
-pub(super) enum Item<'a> {
+pub(super) enum Item<'a, const VERSION: u8> {
     /// A literal string.
     Literal(&'a str),
     /// Part of a type, along with its modifiers.
@@ -108,13 +107,14 @@ pub(super) enum Item<'a> {
     },
 }
 
-impl<'a> Item<'a> {
+impl<'a, const VERSION: u8> Item<'a, VERSION> {
     /// Parse an AST item into a format item.
-    pub(super) fn from_ast(ast_item: ast::Item<'a>) -> Result<Self, Error> {
+    pub(super) fn from_ast(ast_item: ast::Item<'a, VERSION>) -> Result<Self, Error> {
+        assert_version!();
+
         Ok(match ast_item {
             ast::Item::Literal(Spanned { value, span: _ }) => Item::Literal(value),
             ast::Item::Component {
-                version,
                 opening_bracket,
                 _leading_whitespace: _,
                 name,
@@ -145,18 +145,17 @@ impl<'a> Item<'a> {
                 // Parse the actual component, starting with those that require nested format
                 // descriptions.
 
-                if ident_eq(version, *name, "optional") {
+                if ident_eq::<VERSION>(*name, "optional") {
                     Self::optional_from_parts(
-                        version,
                         opening_bracket,
                         &modifiers,
                         nested_format_descriptions,
                         closing_bracket,
                     )?
-                } else if ident_eq(version, *name, "first") {
-                    let _modifiers = parse_modifiers!(version, modifiers, struct {})?;
+                } else if ident_eq::<VERSION>(*name, "first") {
+                    let _modifiers = parse_modifiers!(VERSION, modifiers, struct {})?;
 
-                    if version.is_at_least_v3() && nested_format_descriptions.is_empty() {
+                    if version!(3..) && nested_format_descriptions.is_empty() {
                         return Err(Error {
                             _inner: unused(opening_bracket.to(closing_bracket).error(
                                 "the `first` component requires at least one nested format \
@@ -199,10 +198,10 @@ impl<'a> Item<'a> {
                         });
                     }
 
-                    let mut component = component_from_ast(version, &name, &modifiers)?;
+                    let mut component = component_from_ast::<VERSION>(&name, &modifiers)?;
                     // v3 format descriptions default to `range:standard` rather than
                     // `range:extended` for v1 and v2.
-                    if version.is_at_least_v3()
+                    if version!(3..)
                         && let AstComponent::Year(y) = &mut component
                         && y.range.value.is_none()
                     {
@@ -215,13 +214,14 @@ impl<'a> Item<'a> {
     }
 
     fn optional_from_parts(
-        version: FormatDescriptionVersion,
         opening_bracket: Location,
         modifiers: &[ast::Modifier<'_>],
-        nested_format_descriptions: Vec<ast::NestedFormatDescription<'a>>,
+        nested_format_descriptions: Vec<ast::NestedFormatDescription<'a, VERSION>>,
         closing_bracket: Location,
     ) -> Result<Self, Error> {
-        let modifiers = parse_modifiers!(version, modifiers, struct {
+        assert_version!();
+
+        let modifiers = parse_modifiers!(VERSION, modifiers, struct {
             format: OptionalFormat,
         })?;
 
@@ -273,11 +273,14 @@ impl<'a> Item<'a> {
     }
 }
 
-impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a> {
+impl<'a, const VERSION: u8> TryFrom<Item<'a, VERSION>>
+    for crate::format_description::BorrowedFormatItem<'a>
+{
     type Error = Error;
 
     #[inline]
-    fn try_from(item: Item<'a>) -> Result<Self, Self::Error> {
+    fn try_from(item: Item<'a, VERSION>) -> Result<Self, Self::Error> {
+        assert_version!();
         match item {
             Item::Literal(literal) => Ok(Self::StringLiteral(literal)),
             Item::Component(component) => Ok(Self::Component(component.try_into()?)),
@@ -309,11 +312,12 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::BorrowedFormatItem<'a>
     }
 }
 
-impl TryFrom<Item<'_>> for crate::format_description::OwnedFormatItem {
+impl<const VERSION: u8> TryFrom<Item<'_, VERSION>> for crate::format_description::OwnedFormatItem {
     type Error = Error;
 
     #[inline]
-    fn try_from(item: Item<'_>) -> Result<Self, Self::Error> {
+    fn try_from(item: Item<'_, VERSION>) -> Result<Self, Self::Error> {
+        assert_version!();
         match item {
             Item::Literal(literal) => Ok(Self::StringLiteral(literal.to_owned().into_boxed_str())),
             Item::Component(component) => Ok(Self::Component(component.try_into()?)),
@@ -347,11 +351,14 @@ impl TryFrom<Item<'_>> for crate::format_description::OwnedFormatItem {
     }
 }
 
-impl<'a> TryFrom<Vec<Item<'a>>> for crate::format_description::OwnedFormatItem {
+impl<'a, const VERSION: u8> TryFrom<Vec<Item<'a, VERSION>>>
+    for crate::format_description::OwnedFormatItem
+{
     type Error = Error;
 
     #[inline]
-    fn try_from(items: Vec<Item<'a>>) -> Result<Self, Self::Error> {
+    fn try_from(items: Vec<Item<'a, VERSION>>) -> Result<Self, Self::Error> {
+        assert_version!();
         match <[_; 1]>::try_from(items) {
             Ok([item]) => item.try_into(),
             Err(vec) => Ok(Self::Compound(
@@ -363,11 +370,14 @@ impl<'a> TryFrom<Vec<Item<'a>>> for crate::format_description::OwnedFormatItem {
     }
 }
 
-impl<'a> TryFrom<Item<'a>> for crate::format_description::__private::FormatDescriptionV3Inner<'a> {
+impl<'a, const VERSION: u8> TryFrom<Item<'a, VERSION>>
+    for crate::format_description::__private::FormatDescriptionV3Inner<'a>
+{
     type Error = Error;
 
     #[inline]
-    fn try_from(item: Item<'a>) -> Result<Self, Self::Error> {
+    fn try_from(item: Item<'a, VERSION>) -> Result<Self, Self::Error> {
+        assert_version!();
         match item {
             Item::Literal(literal) => Ok(Self::BorrowedLiteral(literal)),
             Item::Component(component) => Ok(component.try_into()?),
@@ -389,13 +399,14 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::__private::FormatDescr
     }
 }
 
-impl<'a> TryFrom<Vec<Item<'a>>>
+impl<'a, const VERSION: u8> TryFrom<Vec<Item<'a, VERSION>>>
     for crate::format_description::__private::FormatDescriptionV3Inner<'a>
 {
     type Error = Error;
 
     #[inline]
-    fn try_from(items: Vec<Item<'a>>) -> Result<Self, Self::Error> {
+    fn try_from(items: Vec<Item<'a, VERSION>>) -> Result<Self, Self::Error> {
+        assert_version!();
         match <[_; 1]>::try_from(items) {
             Ok([item]) => item.try_into(),
             Err(vec) => Ok(Self::OwnedCompound(
@@ -432,12 +443,13 @@ macro_rules! component_definition {
         $(impl $variant {
             /// Parse the component from the AST, given its modifiers.
             #[inline]
-            fn with_modifiers(
-                version: FormatDescriptionVersion,
+            fn with_modifiers<const VERSION: u8>(
                 modifiers: &[ast::Modifier<'_>],
                 _component_span: Span,
             ) -> Result<Self, Error>
             {
+                assert_version!();
+
                 // rustc will complain if the modifier is empty.
                 #[allow(unused_mut)]
                 let mut this = Self {
@@ -445,8 +457,8 @@ macro_rules! component_definition {
                 };
 
                 for modifier in modifiers {
-                    $(if ident_eq(version, *modifier.key, $parse_field) {
-                        if version.is_at_least_v3() && this.$field.is_some() {
+                    $(if ident_eq::<VERSION>(*modifier.key, $parse_field) {
+                        if version!(3..) && this.$field.is_some() {
                             return Err(Error {
                                 _inner: unused(modifier.key.span.error("duplicate modifier key")),
                                 public: InvalidFormatDescription::DuplicateModifier {
@@ -460,7 +472,7 @@ macro_rules! component_definition {
                                 then {
                                     parse_from_modifier_value::<$field_type>(&modifier.value)?
                                 } else {
-                                    <$field_type>::from_modifier_value(version, &modifier.value)?
+                                    <$field_type>::from_modifier_value::<VERSION>(&modifier.value)?
                                 }
                             )
                         ).spanned(modifier.key_value_span());
@@ -494,14 +506,15 @@ macro_rules! component_definition {
 
         /// Parse a component from the AST, given its name and modifiers.
         #[inline]
-        fn component_from_ast(
-            version: FormatDescriptionVersion,
+        fn component_from_ast<const VERSION: u8>(
             name: &Spanned<&str>,
             modifiers: &[ast::Modifier<'_>],
         ) -> Result<AstComponent, Error> {
-            $(if ident_eq(version, &name, $parse_variant) {
+            assert_version!();
+
+            $(if ident_eq::<VERSION>(&name, $parse_variant) {
                 return Ok(AstComponent::$variant(
-                    try_likely_ok!($variant::with_modifiers(version, &modifiers, name.span))
+                    try_likely_ok!($variant::with_modifiers::<VERSION>(&modifiers, name.span))
                 ));
             })*
             Err(Error {
@@ -962,12 +975,13 @@ macro_rules! modifier {
         impl $name {
             /// Parse the modifier from its string representation.
             #[inline]
-            fn from_modifier_value(
-                version: FormatDescriptionVersion,
+            fn from_modifier_value<const VERSION: u8>(
                 value: &Spanned<&str>,
             ) -> Result<Self, Error>
             {
-                $(if ident_eq(version, &value, $parse_variant) {
+                assert_version!();
+
+                $(if ident_eq::<VERSION>(&value, $parse_variant) {
                     return Ok(Self::$variant);
                 })*
                 Err(Error {

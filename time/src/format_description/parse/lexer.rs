@@ -3,7 +3,6 @@
 use core::iter;
 
 use super::{Error, Location, Spanned, SpannedValue, unused};
-use crate::format_description::FormatDescriptionVersion;
 use crate::internal_macros::const_try_opt;
 
 /// An iterator over the lexed tokens.
@@ -158,10 +157,11 @@ pub(super) enum ComponentKind {
 ///   currently follow are `\`, `[`, and `]`, all of which result in the literal character. All
 ///   other characters result in a lex error.
 #[inline]
-pub(super) fn lex(
-    version: FormatDescriptionVersion,
+pub(super) fn lex<const VERSION: u8>(
     input: &str,
 ) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
+    assert_version!();
+
     // Avoid checking for character boundaries on every indexing operation. Everything still results
     // in valid UTF-8.
     let mut input = input.as_bytes();
@@ -175,7 +175,7 @@ pub(super) fn lex(
 
     let iter = iter::from_fn(move || {
         // The flag is only set when version is zero.
-        if version.is_v1() {
+        if version!(1) {
             // There is a flag set to emit the second half of an escaped bracket pair.
             if let Some(location) = second_bracket_location.take() {
                 return Some(Ok(Token::Bracket {
@@ -190,7 +190,7 @@ pub(super) fn lex(
 
         Some(Ok(match byte {
             // possible escape sequence
-            b'\\' if version.is_at_least_v2() => {
+            b'\\' if version!(2..) => {
                 let backslash_loc = location;
                 match input.get(1) {
                     Some(b'\\' | b'[' | b']') => {
@@ -234,7 +234,7 @@ pub(super) fn lex(
             // potentially escaped opening bracket
             // If we have seen a nested component name, then we know for sure that this is not
             // an escaped bracket. If we have not, then we check for the escape sequence.
-            b'[' if version.is_v1() && !nested_component_name_seen => {
+            b'[' if version!(1) && !nested_component_name_seen => {
                 // Escaped bracket. Store the location of the second so we can emit it later.
                 if input.get(1) == Some(&b'[') {
                     let second_location = Location { byte: byte_pos + 1 };
@@ -267,7 +267,7 @@ pub(super) fn lex(
             // closing bracket
             b']' if depth > 0 => {
                 depth -= 1;
-                if version.is_v1() {
+                if version!(1) {
                     // If the depth is zero, then we are no longer in a nested component. As such we
                     // have not seen the component name. If the depth is not zero, then we have just
                     // completed a nested format description or nested component. In either case,
@@ -287,7 +287,7 @@ pub(super) fn lex(
                 let mut bytes: u32 = 1;
                 let mut end_location = location;
                 while let Some(&next_byte) = input.get(bytes as usize) {
-                    if (version.is_at_least_v2() && next_byte == b'\\') || next_byte == b'[' {
+                    if (version!(2..) && next_byte == b'\\') || next_byte == b'[' {
                         break;
                     }
                     end_location = Location {
@@ -332,7 +332,7 @@ pub(super) fn lex(
                 // or a modifier (which comes after the component name). In either situation, we
                 // have seen the component name, so we set the flag. This is only relevant for v1
                 // format descriptions.
-                if version.is_v1() && !is_whitespace {
+                if version!(1) && !is_whitespace {
                     nested_component_name_seen = true;
                 }
 
