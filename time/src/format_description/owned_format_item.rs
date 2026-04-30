@@ -100,18 +100,12 @@ impl From<&BorrowedFormatItem<'_>> for OwnedFormatItem {
                     .iter()
                     .cloned()
                     .map(Into::into)
-                    .collect::<Vec<_>>()
-                    .into_boxed_slice(),
+                    .collect(),
             ),
             BorrowedFormatItem::Optional(item) => Self::Optional(Box::new((*item).into())),
-            BorrowedFormatItem::First(items) => Self::First(
-                items
-                    .iter()
-                    .cloned()
-                    .map(Into::into)
-                    .collect::<Vec<_>>()
-                    .into_boxed_slice(),
-            ),
+            BorrowedFormatItem::First(items) => {
+                Self::First(items.iter().cloned().map(Into::into).collect())
+            }
         }
     }
 }
@@ -135,8 +129,7 @@ where
                 .iter()
                 .cloned()
                 .map(Into::into)
-                .collect::<Vec<_>>()
-                .into_boxed_slice(),
+                .collect(),
         )
     }
 }

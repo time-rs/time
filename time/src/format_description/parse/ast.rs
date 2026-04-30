@@ -1,7 +1,6 @@
 //! AST for parsing format descriptions.
 
 use alloc::borrow::ToOwned as _;
-use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::iter;
@@ -28,9 +27,9 @@ pub(super) enum Item<'a> {
         /// The name of the component.
         name: Spanned<&'a str>,
         /// The modifiers for the component.
-        modifiers: Box<[Modifier<'a>]>,
+        modifiers: Vec<Modifier<'a>>,
         /// The nested format descriptions within the component.
-        nested_format_descriptions: Box<[NestedFormatDescription<'a>]>,
+        nested_format_descriptions: Vec<NestedFormatDescription<'a>>,
         /// Whitespace between the modifiers/nested format descriptions and closing bracket.
         _trailing_whitespace: Unused<Option<Spanned<&'a str>>>,
         /// Where the closing bracket was in the format string.
@@ -45,7 +44,7 @@ pub(super) struct NestedFormatDescription<'a> {
     /// Where the opening bracket was in the format string.
     pub(super) opening_bracket: Location,
     /// The items within the nested format description.
-    pub(super) items: Box<[Item<'a>]>,
+    pub(super) items: Vec<Item<'a>>,
     /// Where the closing bracket was in the format string.
     pub(super) closing_bracket: Location,
 }
@@ -258,14 +257,14 @@ where
         _leading_whitespace: unused(leading_whitespace),
         name,
         modifiers: modifiers.modifiers,
-        nested_format_descriptions: nested_format_descriptions.into_boxed_slice(),
+        nested_format_descriptions,
         _trailing_whitespace: unused(nested_fds_trailing_whitespace),
         closing_bracket,
     })
 }
 
 struct Modifiers<'a> {
-    modifiers: Box<[Modifier<'a>]>,
+    modifiers: Vec<Modifier<'a>>,
     trailing_whitespace: Option<Spanned<&'a str>>,
 }
 
@@ -280,13 +279,13 @@ impl<'a> Modifiers<'a> {
         loop {
             let Some(whitespace) = tokens.next_if_whitespace() else {
                 return Ok(Self {
-                    modifiers: modifiers.into_boxed_slice(),
+                    modifiers,
                     trailing_whitespace: None,
                 });
             };
             let Some(token) = tokens.next_if_not_whitespace() else {
                 return Ok(Self {
-                    modifiers: modifiers.into_boxed_slice(),
+                    modifiers,
                     trailing_whitespace: Some(whitespace),
                 });
             };

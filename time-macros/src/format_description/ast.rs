@@ -14,8 +14,8 @@ pub(super) enum Item<'a> {
         opening_bracket: Location,
         _leading_whitespace: Unused<Option<Spanned<&'a str>>>,
         name: Spanned<&'a str>,
-        modifiers: Box<[Modifier<'a>]>,
-        nested_format_descriptions: Box<[NestedFormatDescription<'a>]>,
+        modifiers: Vec<Modifier<'a>>,
+        nested_format_descriptions: Vec<NestedFormatDescription<'a>>,
         _trailing_whitespace: Unused<Option<Spanned<&'a str>>>,
         closing_bracket: Location,
     },
@@ -24,7 +24,7 @@ pub(super) enum Item<'a> {
 pub(super) struct NestedFormatDescription<'a> {
     pub(super) leading_whitespace: Option<Spanned<&'a str>>,
     pub(super) opening_bracket: Location,
-    pub(super) items: Box<[Item<'a>]>,
+    pub(super) items: Vec<Item<'a>>,
     pub(super) closing_bracket: Location,
 }
 
@@ -133,7 +133,7 @@ fn parse_inner<'item, I: Iterator<Item = Result<lexer::Token<'item>, Error>>>(
 }
 
 struct Modifiers<'a> {
-    modifiers: Box<[Modifier<'a>]>,
+    modifiers: Vec<Modifier<'a>>,
     trailing_whitespace: Option<Spanned<&'a str>>,
 }
 
@@ -148,14 +148,14 @@ impl<'a> Modifiers<'a> {
         loop {
             let Some(whitespace) = tokens.next_if_whitespace() else {
                 return Ok(Self {
-                    modifiers: modifiers.into_boxed_slice(),
+                    modifiers,
                     trailing_whitespace: None,
                 });
             };
 
             let Some(token) = tokens.next_if_not_whitespace() else {
                 return Ok(Self {
-                    modifiers: modifiers.into_boxed_slice(),
+                    modifiers,
                     trailing_whitespace: Some(whitespace),
                 });
             };
@@ -219,7 +219,7 @@ fn parse_component<'a, I: Iterator<Item = Result<lexer::Token<'a>, Error>>>(
         _leading_whitespace: unused(leading_whitespace),
         name,
         modifiers: modifiers.modifiers,
-        nested_format_descriptions: nested_format_descriptions.into_boxed_slice(),
+        nested_format_descriptions,
         _trailing_whitespace: unused(nested_fds_trailing_whitespace),
         closing_bracket,
     })

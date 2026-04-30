@@ -2,6 +2,7 @@
 
 use alloc::borrow::ToOwned as _;
 use alloc::boxed::Box;
+use alloc::vec::Vec;
 use core::num::NonZero;
 use core::str::{self, FromStr};
 
@@ -92,7 +93,7 @@ pub(super) enum Item<'a> {
     /// A sequence of optional items.
     Optional {
         /// The items themselves.
-        value: Box<[Self]>,
+        value: Vec<Self>,
         /// Whether the value should be formatted.
         format: Spanned<bool>,
         /// The span of the full sequence.
@@ -101,7 +102,7 @@ pub(super) enum Item<'a> {
     /// The first matching parse of a sequence of format descriptions.
     First {
         /// The sequence of format descriptions.
-        value: Box<[Box<[Self]>]>,
+        value: Vec<Vec<Self>>,
         /// The span of the full sequence.
         span: Span,
     },
@@ -217,15 +218,14 @@ impl<'a> Item<'a> {
         version: FormatDescriptionVersion,
         opening_bracket: Location,
         modifiers: &[ast::Modifier<'_>],
-        nested_format_descriptions: Box<[ast::NestedFormatDescription<'a>]>,
+        nested_format_descriptions: Vec<ast::NestedFormatDescription<'a>>,
         closing_bracket: Location,
     ) -> Result<Self, Error> {
         let modifiers = parse_modifiers!(version, modifiers, struct {
             format: OptionalFormat,
         })?;
 
-        let [nested_format_description] = if let Some(second_fd) = nested_format_descriptions.get(1)
-        {
+        let nested_format_description = if let Some(second_fd) = nested_format_descriptions.get(1) {
             return Err(Error {
                 _inner: unused(
                     second_fd
@@ -242,10 +242,8 @@ impl<'a> Item<'a> {
                     index: second_fd.opening_bracket.byte as usize,
                 },
             });
-        } else if let Ok(nested_format_description) =
-            <Box<[_; 1]>>::try_from(nested_format_descriptions)
-        {
-            *nested_format_description
+        } else if let Ok([first_fd]) = <[_; 1]>::try_from(nested_format_descriptions) {
+            first_fd
         } else {
             return Err(Error {
                 _inner: unused(
@@ -341,7 +339,6 @@ impl TryFrom<Item<'_>> for crate::format_description::OwnedFormatItem {
             }
             Item::First { value, span: _ } => Ok(Self::First(
                 value
-                    .into_vec()
                     .into_iter()
                     .map(Self::try_from)
                     .collect::<Result<_, _>>()?,
@@ -350,12 +347,11 @@ impl TryFrom<Item<'_>> for crate::format_description::OwnedFormatItem {
     }
 }
 
-impl<'a> TryFrom<Box<[Item<'a>]>> for crate::format_description::OwnedFormatItem {
+impl<'a> TryFrom<Vec<Item<'a>>> for crate::format_description::OwnedFormatItem {
     type Error = Error;
 
     #[inline]
-    fn try_from(items: Box<[Item<'a>]>) -> Result<Self, Self::Error> {
-        let items = items.into_vec();
+    fn try_from(items: Vec<Item<'a>>) -> Result<Self, Self::Error> {
         match <[_; 1]>::try_from(items) {
             Ok([item]) => item.try_into(),
             Err(vec) => Ok(Self::Compound(
@@ -385,7 +381,6 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::__private::FormatDescr
             }),
             Item::First { value, span: _ } => Ok(Self::OwnedFirst(
                 value
-                    .into_vec()
                     .into_iter()
                     .map(Self::try_from)
                     .collect::<Result<_, _>>()?,
@@ -394,14 +389,13 @@ impl<'a> TryFrom<Item<'a>> for crate::format_description::__private::FormatDescr
     }
 }
 
-impl<'a> TryFrom<Box<[Item<'a>]>>
+impl<'a> TryFrom<Vec<Item<'a>>>
     for crate::format_description::__private::FormatDescriptionV3Inner<'a>
 {
     type Error = Error;
 
     #[inline]
-    fn try_from(items: Box<[Item<'a>]>) -> Result<Self, Self::Error> {
-        let items = items.into_vec();
+    fn try_from(items: Vec<Item<'a>>) -> Result<Self, Self::Error> {
         match <[_; 1]>::try_from(items) {
             Ok([item]) => item.try_into(),
             Err(vec) => Ok(Self::OwnedCompound(

@@ -66,12 +66,12 @@ pub(super) enum Item<'a> {
     StringLiteral(&'a str),
     Component(Component),
     Optional {
-        value: Box<[Self]>,
+        value: Vec<Self>,
         format: Spanned<bool>,
         _span: Unused<Span>,
     },
     First {
-        value: Box<[Box<[Self]>]>,
+        value: Vec<Vec<Self>>,
         _span: Unused<Span>,
     },
 }
@@ -166,24 +166,23 @@ impl<'a> Item<'a> {
         version: FormatDescriptionVersion,
         opening_bracket: Location,
         modifiers: &[ast::Modifier<'a>],
-        nested_format_descriptions: Box<[ast::NestedFormatDescription<'a>]>,
+        nested_format_descriptions: Vec<ast::NestedFormatDescription<'a>>,
         closing_bracket: Location,
     ) -> Result<Self, Error> {
         let modifiers = parse_modifiers!(version, modifiers, struct {
             format: OptionalFormat,
         })?;
 
-        let [nested_format_description] = if let Some(second_fd) = nested_format_descriptions.get(1)
-        {
+        let nested_format_description = if let Some(second_fd) = nested_format_descriptions.get(1) {
             return Err(Span {
                 start: second_fd.opening_bracket,
                 end: second_fd.closing_bracket,
             }
             .error("the `optional` component only allows a single nested format description"));
-        } else if let Ok(nested_format_description) =
-            <Box<[_; 1]>>::try_from(nested_format_descriptions)
+        } else if let Ok([nested_format_description]) =
+            <[_; 1]>::try_from(nested_format_descriptions)
         {
-            *nested_format_description
+            nested_format_description
         } else {
             return Err(Span {
                 start: opening_bracket,
@@ -195,7 +194,6 @@ impl<'a> Item<'a> {
         let format = modifiers.format.transpose().map(|val| val.unwrap_or(true));
         let items = nested_format_description
             .items
-            .into_vec()
             .into_iter()
             .map(Item::from_ast)
             .collect::<Result<_, _>>()?;
@@ -242,11 +240,11 @@ impl TryFrom<(FormatDescriptionVersion, Item<'_>)> for public::OwnedFormatItemIn
     }
 }
 
-impl<'a> TryFrom<(FormatDescriptionVersion, Box<[Item<'a>]>)> for public::OwnedFormatItemInner {
+impl<'a> TryFrom<(FormatDescriptionVersion, Vec<Item<'a>>)> for public::OwnedFormatItemInner {
     type Error = Error;
 
     fn try_from(
-        (version, items): (FormatDescriptionVersion, Box<[Item<'a>]>),
+        (version, items): (FormatDescriptionVersion, Vec<Item<'a>>),
     ) -> Result<Self, Self::Error> {
         Ok(Self::Compound(
             items

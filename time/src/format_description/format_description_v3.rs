@@ -241,7 +241,6 @@ impl<'a> FormatDescriptionV3Inner<'a> {
     fn to_owned(&self) -> FormatDescriptionV3Inner<'static> {
         use alloc::borrow::ToOwned as _;
         use alloc::boxed::Box;
-        use alloc::vec::Vec;
 
         match self {
             Self::Day(day) => FormatDescriptionV3Inner::Day(*day),
@@ -343,41 +342,25 @@ impl<'a> FormatDescriptionV3Inner<'a> {
                 FormatDescriptionV3Inner::OwnedLiteral((*literal).to_owned().into_boxed_str())
             }
             Self::BorrowedCompound(compound) => FormatDescriptionV3Inner::OwnedCompound(
-                compound
-                    .iter()
-                    .map(|v| v.to_owned())
-                    .collect::<Vec<_>>()
-                    .into_boxed_slice(),
+                compound.iter().map(|v| v.to_owned()).collect(),
             ),
             Self::BorrowedOptional { format, item } => FormatDescriptionV3Inner::OwnedOptional {
                 format: *format,
                 item: Box::new((*item).to_owned()),
             },
-            Self::BorrowedFirst(items) => FormatDescriptionV3Inner::OwnedFirst(
-                items
-                    .iter()
-                    .map(|v| v.to_owned())
-                    .collect::<Vec<_>>()
-                    .into_boxed_slice(),
-            ),
+            Self::BorrowedFirst(items) => {
+                FormatDescriptionV3Inner::OwnedFirst(items.iter().map(|v| v.to_owned()).collect())
+            }
             Self::OwnedLiteral(literal) => FormatDescriptionV3Inner::OwnedLiteral(literal.clone()),
             Self::OwnedCompound(compound) => FormatDescriptionV3Inner::OwnedCompound(
-                compound
-                    .into_iter()
-                    .map(|v| v.to_owned())
-                    .collect::<Vec<_>>()
-                    .into_boxed_slice(),
+                compound.into_iter().map(|v| v.to_owned()).collect(),
             ),
             Self::OwnedOptional { format, item } => FormatDescriptionV3Inner::OwnedOptional {
                 format: *format,
                 item: Box::new((**item).to_owned()),
             },
             Self::OwnedFirst(items) => FormatDescriptionV3Inner::OwnedFirst(
-                items
-                    .into_iter()
-                    .map(|v| v.to_owned())
-                    .collect::<Vec<_>>()
-                    .into_boxed_slice(),
+                items.into_iter().map(|v| v.to_owned()).collect(),
             ),
         }
     }

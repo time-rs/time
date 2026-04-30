@@ -1,6 +1,5 @@
 //! Parser for format descriptions.
 
-use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use self::sealed::{Version, VersionedParser};
@@ -64,7 +63,7 @@ impl VersionedParser for Version<1> {
         let mut lexed = lexer::lex(FormatDescriptionVersion::V1, s);
         let ast = ast::parse(FormatDescriptionVersion::V1, &mut lexed);
         let format_items = format_item::parse(ast);
-        let items = format_items.collect::<Result<Box<_>, _>>()?;
+        let items = format_items.collect::<Result<Vec<_>, _>>()?;
         Ok(items.try_into()?)
     }
 }
@@ -90,7 +89,7 @@ impl VersionedParser for Version<2> {
         let mut lexed = lexer::lex(FormatDescriptionVersion::V2, s);
         let ast = ast::parse(FormatDescriptionVersion::V2, &mut lexed);
         let format_items = format_item::parse(ast);
-        let items = format_items.collect::<Result<Box<_>, _>>()?;
+        let items = format_items.collect::<Result<Vec<_>, _>>()?;
         Ok(items.try_into()?)
     }
 }
@@ -106,7 +105,7 @@ impl VersionedParser for Version<3> {
         let mut lexed = lexer::lex(FormatDescriptionVersion::V3, s);
         let ast = ast::parse(FormatDescriptionVersion::V3, &mut lexed);
         let format_items = format_item::parse(ast);
-        let items = format_items.collect::<Result<Box<_>, _>>()?;
+        let items = format_items.collect::<Result<Vec<_>, _>>()?;
         let inner = format_description::__private::FormatDescriptionV3Inner::try_from(items)?;
         Ok(inner.into_opaque())
     }
@@ -116,7 +115,7 @@ impl VersionedParser for Version<3> {
         let mut lexed = lexer::lex(FormatDescriptionVersion::V3, s);
         let ast = ast::parse(FormatDescriptionVersion::V3, &mut lexed);
         let format_items = format_item::parse(ast);
-        let items = format_items.collect::<Result<Box<_>, _>>()?;
+        let items = format_items.collect::<Result<Vec<_>, _>>()?;
         let inner = format_description::__private::FormatDescriptionV3Inner::try_from(items)?;
         Ok(inner.into_opaque().to_owned())
     }
