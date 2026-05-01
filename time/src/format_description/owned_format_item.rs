@@ -95,13 +95,9 @@ impl From<&BorrowedFormatItem<'_>> for OwnedFormatItem {
                 Self::StringLiteral((*literal).to_owned().into_boxed_str())
             }
             BorrowedFormatItem::Component(component) => Self::Component(*component),
-            BorrowedFormatItem::Compound(compound) => Self::Compound(
-                compound
-                    .iter()
-                    .cloned()
-                    .map(Into::into)
-                    .collect(),
-            ),
+            BorrowedFormatItem::Compound(compound) => {
+                Self::Compound(compound.iter().cloned().map(Into::into).collect())
+            }
             BorrowedFormatItem::Optional(item) => Self::Optional(Box::new((*item).into())),
             BorrowedFormatItem::First(items) => {
                 Self::First(items.iter().cloned().map(Into::into).collect())
@@ -123,14 +119,7 @@ where
 {
     #[inline]
     fn from(items: &T) -> Self {
-        Self::Compound(
-            items
-                .as_ref()
-                .iter()
-                .cloned()
-                .map(Into::into)
-                .collect(),
-        )
+        Self::Compound(items.as_ref().iter().cloned().map(Into::into).collect())
     }
 }
 

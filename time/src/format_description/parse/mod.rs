@@ -4,7 +4,9 @@ use alloc::vec::Vec;
 
 use self::sealed::{Version, VersionedParser};
 pub use self::strftime::{parse_strftime_borrowed, parse_strftime_owned};
-use crate::{error, format_description};
+use crate::error;
+use crate::format_description::__private::FormatDescriptionV3Inner;
+use crate::format_description::{BorrowedFormatItem, FormatDescriptionV3, OwnedFormatItem};
 
 macro_rules! version {
     ($pat:pat) => {
@@ -56,8 +58,8 @@ mod sealed {
 }
 
 impl VersionedParser for Version<1> {
-    type BorrowedOutput<'input> = Vec<format_description::BorrowedFormatItem<'input>>;
-    type OwnedOutput = format_description::OwnedFormatItem;
+    type BorrowedOutput<'input> = Vec<BorrowedFormatItem<'input>>;
+    type OwnedOutput = OwnedFormatItem;
 
     #[inline]
     fn parse_borrowed(
@@ -82,8 +84,8 @@ impl VersionedParser for Version<1> {
 }
 
 impl VersionedParser for Version<2> {
-    type BorrowedOutput<'input> = Vec<format_description::BorrowedFormatItem<'input>>;
-    type OwnedOutput = format_description::OwnedFormatItem;
+    type BorrowedOutput<'input> = Vec<BorrowedFormatItem<'input>>;
+    type OwnedOutput = OwnedFormatItem;
 
     #[inline]
     fn parse_borrowed(
@@ -108,8 +110,8 @@ impl VersionedParser for Version<2> {
 }
 
 impl VersionedParser for Version<3> {
-    type BorrowedOutput<'input> = format_description::FormatDescriptionV3<'input>;
-    type OwnedOutput = format_description::FormatDescriptionV3<'static>;
+    type BorrowedOutput<'input> = FormatDescriptionV3<'input>;
+    type OwnedOutput = FormatDescriptionV3<'static>;
 
     #[inline]
     fn parse_borrowed(
@@ -118,8 +120,10 @@ impl VersionedParser for Version<3> {
         let mut lexed = lexer::lex::<3>(s);
         let ast = ast::parse::<3, _>(&mut lexed);
         let format_items = format_item::parse(ast);
-        let items = format_items.collect::<Result<Vec<_>, _>>()?;
-        let inner = format_description::__private::FormatDescriptionV3Inner::try_from(items)?;
+        let items = format_items
+            .map(|res| res.and_then(TryInto::try_into))
+            .collect::<Result<_, _>>()?;
+        let inner = FormatDescriptionV3Inner::OwnedCompound(items);
         Ok(inner.into_opaque())
     }
 
@@ -128,8 +132,10 @@ impl VersionedParser for Version<3> {
         let mut lexed = lexer::lex::<3>(s);
         let ast = ast::parse::<3, _>(&mut lexed);
         let format_items = format_item::parse(ast);
-        let items = format_items.collect::<Result<Vec<_>, _>>()?;
-        let inner = format_description::__private::FormatDescriptionV3Inner::try_from(items)?;
+        let items = format_items
+            .map(|res| res.and_then(TryInto::try_into))
+            .collect::<Result<_, _>>()?;
+        let inner = FormatDescriptionV3Inner::OwnedCompound(items);
         Ok(inner.into_opaque().to_owned())
     }
 }
@@ -146,9 +152,7 @@ impl VersionedParser for Version<3> {
     note = "use `parse_borrowed` with the appropriate version for clarity"
 )]
 #[inline]
-pub fn parse(
-    s: &str,
-) -> Result<Vec<format_description::BorrowedFormatItem<'_>>, error::InvalidFormatDescription> {
+pub fn parse(s: &str) -> Result<Vec<BorrowedFormatItem<'_>>, error::InvalidFormatDescription> {
     parse_borrowed::<1>(s)
 }
 

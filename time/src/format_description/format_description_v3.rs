@@ -39,7 +39,7 @@ impl FormatDescriptionV3<'_> {
     #[inline]
     pub fn to_owned(self) -> FormatDescriptionV3<'static> {
         FormatDescriptionV3 {
-            inner: self.inner.to_owned(),
+            inner: self.inner.into_owned(),
             #[cfg(feature = "formatting")]
             max_bytes_needed: self.max_bytes_needed,
         }
@@ -235,133 +235,143 @@ impl fmt::Debug for FormatDescriptionV3Inner<'_> {
 }
 
 impl<'a> FormatDescriptionV3Inner<'a> {
-    /// Convert the format description to an owned version, enabling it to be stored without regard
-    /// for lifetime.
+    /// Convert the format description to an owned version in place, replacing borrowed
+    /// components with their owned equivalents.
     #[cfg(feature = "alloc")]
-    fn to_owned(&self) -> FormatDescriptionV3Inner<'static> {
+    pub(super) fn into_owned(self) -> FormatDescriptionV3Inner<'static> {
         use alloc::borrow::ToOwned as _;
         use alloc::boxed::Box;
 
         match self {
-            Self::Day(day) => FormatDescriptionV3Inner::Day(*day),
-            Self::MonthShort(month_short) => FormatDescriptionV3Inner::MonthShort(*month_short),
-            Self::MonthLong(month_long) => FormatDescriptionV3Inner::MonthLong(*month_long),
-            Self::MonthNumerical(month_numerical) => {
-                FormatDescriptionV3Inner::MonthNumerical(*month_numerical)
-            }
-            Self::Ordinal(ordinal) => FormatDescriptionV3Inner::Ordinal(*ordinal),
-            Self::WeekdayShort(weekday_short) => {
-                FormatDescriptionV3Inner::WeekdayShort(*weekday_short)
-            }
-            Self::WeekdayLong(weekday_long) => FormatDescriptionV3Inner::WeekdayLong(*weekday_long),
-            Self::WeekdaySunday(weekday_sunday) => {
-                FormatDescriptionV3Inner::WeekdaySunday(*weekday_sunday)
-            }
-            Self::WeekdayMonday(weekday_monday) => {
-                FormatDescriptionV3Inner::WeekdayMonday(*weekday_monday)
-            }
-            Self::WeekNumberIso(week_number_iso) => {
-                FormatDescriptionV3Inner::WeekNumberIso(*week_number_iso)
-            }
-            Self::WeekNumberSunday(week_number_sunday) => {
-                FormatDescriptionV3Inner::WeekNumberSunday(*week_number_sunday)
-            }
-            Self::WeekNumberMonday(week_number_monday) => {
-                FormatDescriptionV3Inner::WeekNumberMonday(*week_number_monday)
-            }
-            Self::CalendarYearFullExtendedRange(calendar_year_full_extended_range) => {
-                FormatDescriptionV3Inner::CalendarYearFullExtendedRange(
-                    *calendar_year_full_extended_range,
-                )
-            }
-            Self::CalendarYearFullStandardRange(calendar_year_full_standard_range) => {
-                FormatDescriptionV3Inner::CalendarYearFullStandardRange(
-                    *calendar_year_full_standard_range,
-                )
-            }
-            Self::IsoYearFullExtendedRange(iso_year_full_extended_range) => {
-                FormatDescriptionV3Inner::IsoYearFullExtendedRange(*iso_year_full_extended_range)
-            }
-            Self::IsoYearFullStandardRange(iso_year_full_standard_range) => {
-                FormatDescriptionV3Inner::IsoYearFullStandardRange(*iso_year_full_standard_range)
-            }
-            Self::CalendarYearCenturyExtendedRange(calendar_year_century_extended_range) => {
-                FormatDescriptionV3Inner::CalendarYearCenturyExtendedRange(
-                    *calendar_year_century_extended_range,
-                )
-            }
-            Self::CalendarYearCenturyStandardRange(calendar_year_century_standard_range) => {
-                FormatDescriptionV3Inner::CalendarYearCenturyStandardRange(
-                    *calendar_year_century_standard_range,
-                )
-            }
-            Self::IsoYearCenturyExtendedRange(iso_year_century_extended_range) => {
-                FormatDescriptionV3Inner::IsoYearCenturyExtendedRange(
-                    *iso_year_century_extended_range,
-                )
-            }
-            Self::IsoYearCenturyStandardRange(iso_year_century_standard_range) => {
-                FormatDescriptionV3Inner::IsoYearCenturyStandardRange(
-                    *iso_year_century_standard_range,
-                )
-            }
-            Self::CalendarYearLastTwo(calendar_year_last_two) => {
-                FormatDescriptionV3Inner::CalendarYearLastTwo(*calendar_year_last_two)
-            }
-            Self::IsoYearLastTwo(iso_year_last_two) => {
-                FormatDescriptionV3Inner::IsoYearLastTwo(*iso_year_last_two)
-            }
-            Self::Hour12(hour12) => FormatDescriptionV3Inner::Hour12(*hour12),
-            Self::Hour24(hour24) => FormatDescriptionV3Inner::Hour24(*hour24),
-            Self::Minute(minute) => FormatDescriptionV3Inner::Minute(*minute),
-            Self::Period(period) => FormatDescriptionV3Inner::Period(*period),
-            Self::Second(second) => FormatDescriptionV3Inner::Second(*second),
-            Self::Subsecond(subsecond) => FormatDescriptionV3Inner::Subsecond(*subsecond),
-            Self::OffsetHour(offset_hour) => FormatDescriptionV3Inner::OffsetHour(*offset_hour),
-            Self::OffsetMinute(offset_minute) => {
-                FormatDescriptionV3Inner::OffsetMinute(*offset_minute)
-            }
-            Self::OffsetSecond(offset_second) => {
-                FormatDescriptionV3Inner::OffsetSecond(*offset_second)
-            }
-            Self::Ignore(ignore) => FormatDescriptionV3Inner::Ignore(*ignore),
-            Self::UnixTimestampSecond(unix_timestamp_second) => {
-                FormatDescriptionV3Inner::UnixTimestampSecond(*unix_timestamp_second)
-            }
-            Self::UnixTimestampMillisecond(unix_timestamp_millisecond) => {
-                FormatDescriptionV3Inner::UnixTimestampMillisecond(*unix_timestamp_millisecond)
-            }
-            Self::UnixTimestampMicrosecond(unix_timestamp_microsecond) => {
-                FormatDescriptionV3Inner::UnixTimestampMicrosecond(*unix_timestamp_microsecond)
-            }
-            Self::UnixTimestampNanosecond(unix_timestamp_nanosecond) => {
-                FormatDescriptionV3Inner::UnixTimestampNanosecond(*unix_timestamp_nanosecond)
-            }
-            Self::End(end) => FormatDescriptionV3Inner::End(*end),
             Self::BorrowedLiteral(literal) => {
-                FormatDescriptionV3Inner::OwnedLiteral((*literal).to_owned().into_boxed_str())
+                FormatDescriptionV3Inner::OwnedLiteral(literal.to_owned().into_boxed_str())
             }
-            Self::BorrowedCompound(compound) => FormatDescriptionV3Inner::OwnedCompound(
-                compound.iter().map(|v| v.to_owned()).collect(),
-            ),
+            Self::BorrowedCompound(compound) => {
+                let owned = compound
+                    .iter()
+                    .map(|item| item.clone().into_owned())
+                    .collect();
+                FormatDescriptionV3Inner::OwnedCompound(owned)
+            }
             Self::BorrowedOptional { format, item } => FormatDescriptionV3Inner::OwnedOptional {
-                format: *format,
-                item: Box::new((*item).to_owned()),
+                format,
+                item: Box::new(item.clone().into_owned()),
             },
             Self::BorrowedFirst(items) => {
-                FormatDescriptionV3Inner::OwnedFirst(items.iter().map(|v| v.to_owned()).collect())
+                let owned = items.iter().map(|item| item.clone().into_owned()).collect();
+                FormatDescriptionV3Inner::OwnedFirst(owned)
             }
-            Self::OwnedLiteral(literal) => FormatDescriptionV3Inner::OwnedLiteral(literal.clone()),
-            Self::OwnedCompound(compound) => FormatDescriptionV3Inner::OwnedCompound(
-                compound.into_iter().map(|v| v.to_owned()).collect(),
-            ),
-            Self::OwnedOptional { format, item } => FormatDescriptionV3Inner::OwnedOptional {
-                format: *format,
-                item: Box::new((**item).to_owned()),
-            },
-            Self::OwnedFirst(items) => FormatDescriptionV3Inner::OwnedFirst(
-                items.into_iter().map(|v| v.to_owned()).collect(),
-            ),
+            Self::OwnedCompound(mut compound) => {
+                let len = compound.len();
+                let compound_ptr = compound.as_mut_ptr();
+                for idx in 0..len {
+                    // Safety: We know that `idx` is in bounds because of the loop. Reading and
+                    // writing is valid because we have mutable access to `compound` and the items
+                    // are the same size and alignment.
+                    unsafe {
+                        let loc = compound_ptr.add(idx);
+                        let item = loc.read();
+                        loc.write(item.into_owned());
+                    }
+                }
+                // Safety: The only difference is the lifetime and all items have been converted to
+                // variants without lifetimes.
+                FormatDescriptionV3Inner::OwnedCompound(unsafe {
+                    core::mem::transmute::<
+                        Box<[FormatDescriptionV3Inner<'a>]>,
+                        Box<[FormatDescriptionV3Inner<'static>]>,
+                    >(compound)
+                })
+            }
+            Self::OwnedOptional { format, mut item } => {
+                let ptr = &raw mut *item;
+                // Safety: Reading and writing is valid because we have mutable access to `item` and
+                // the items are the same size and alignment.
+                unsafe {
+                    let item = ptr.read();
+                    ptr.write(item.into_owned());
+                }
+                FormatDescriptionV3Inner::OwnedOptional {
+                    format,
+                    // Safety: The only difference is the lifetime and the item has been converted
+                    // to a variant without lifetimes.
+                    item: unsafe {
+                        core::mem::transmute::<
+                            Box<FormatDescriptionV3Inner<'a>>,
+                            Box<FormatDescriptionV3Inner<'static>>,
+                        >(item)
+                    },
+                }
+            }
+            Self::OwnedFirst(mut items) => {
+                let len = items.len();
+                let ptr = items.as_mut_ptr();
+                for idx in 0..len {
+                    // Safety: We know that `idx` is in bounds because of the loop. Reading and
+                    // writing is valid because we have mutable access to `compound` and the items
+                    // are the same size and alignment.
+                    unsafe {
+                        let loc = ptr.add(idx);
+                        let item = loc.read();
+                        loc.write(item.into_owned());
+                    }
+                }
+                // Safety: The only difference is the lifetime and all items have been converted to
+                // variants without lifetimes.
+                FormatDescriptionV3Inner::OwnedFirst(unsafe {
+                    core::mem::transmute::<
+                        Box<[FormatDescriptionV3Inner<'a>]>,
+                        Box<[FormatDescriptionV3Inner<'static>]>,
+                    >(items)
+                })
+            }
+            FormatDescriptionV3Inner::Day(_)
+            | FormatDescriptionV3Inner::MonthShort(_)
+            | FormatDescriptionV3Inner::MonthLong(_)
+            | FormatDescriptionV3Inner::MonthNumerical(_)
+            | FormatDescriptionV3Inner::Ordinal(_)
+            | FormatDescriptionV3Inner::WeekdayShort(_)
+            | FormatDescriptionV3Inner::WeekdayLong(_)
+            | FormatDescriptionV3Inner::WeekdaySunday(_)
+            | FormatDescriptionV3Inner::WeekdayMonday(_)
+            | FormatDescriptionV3Inner::WeekNumberIso(_)
+            | FormatDescriptionV3Inner::WeekNumberSunday(_)
+            | FormatDescriptionV3Inner::WeekNumberMonday(_)
+            | FormatDescriptionV3Inner::CalendarYearFullExtendedRange(_)
+            | FormatDescriptionV3Inner::CalendarYearFullStandardRange(_)
+            | FormatDescriptionV3Inner::IsoYearFullExtendedRange(_)
+            | FormatDescriptionV3Inner::IsoYearFullStandardRange(_)
+            | FormatDescriptionV3Inner::CalendarYearCenturyExtendedRange(_)
+            | FormatDescriptionV3Inner::CalendarYearCenturyStandardRange(_)
+            | FormatDescriptionV3Inner::IsoYearCenturyExtendedRange(_)
+            | FormatDescriptionV3Inner::IsoYearCenturyStandardRange(_)
+            | FormatDescriptionV3Inner::CalendarYearLastTwo(_)
+            | FormatDescriptionV3Inner::IsoYearLastTwo(_)
+            | FormatDescriptionV3Inner::Hour12(_)
+            | FormatDescriptionV3Inner::Hour24(_)
+            | FormatDescriptionV3Inner::Minute(_)
+            | FormatDescriptionV3Inner::Period(_)
+            | FormatDescriptionV3Inner::Second(_)
+            | FormatDescriptionV3Inner::Subsecond(_)
+            | FormatDescriptionV3Inner::OffsetHour(_)
+            | FormatDescriptionV3Inner::OffsetMinute(_)
+            | FormatDescriptionV3Inner::OffsetSecond(_)
+            | FormatDescriptionV3Inner::Ignore(_)
+            | FormatDescriptionV3Inner::UnixTimestampSecond(_)
+            | FormatDescriptionV3Inner::UnixTimestampMillisecond(_)
+            | FormatDescriptionV3Inner::UnixTimestampMicrosecond(_)
+            | FormatDescriptionV3Inner::UnixTimestampNanosecond(_)
+            | FormatDescriptionV3Inner::End(_)
+            | FormatDescriptionV3Inner::OwnedLiteral(_) => {
+                // Safety: All of the variants listed do not contain any references, so the types
+                // are identical.
+                unsafe {
+                    core::mem::transmute::<
+                        FormatDescriptionV3Inner<'a>,
+                        FormatDescriptionV3Inner<'static>,
+                    >(self)
+                }
+            }
         }
     }
 
