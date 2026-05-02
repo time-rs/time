@@ -1,50 +1,63 @@
 //! Lexer for parsing format descriptions.
 
-use core::iter;
+use core::iter::FusedIterator;
 
 use super::{Error, Location, Spanned, SpannedValue, unused};
+use crate::error::InvalidFormatDescription;
+use crate::hint;
 use crate::internal_macros::const_try_opt;
 
 /// An iterator over the lexed tokens.
-pub(super) struct Lexed<I>
-where
-    I: Iterator,
-{
-    /// The internal iterator.
-    iter: iter::Peekable<I>,
+pub(super) struct Lexer<'input, const VERSION: u8> {
+    input: &'input [u8],
+    depth: u8,
+    byte_pos: u32,
+    nested_component_name_seen: bool,
 }
 
-impl<I> Iterator for Lexed<I>
-where
-    I: Iterator,
-{
-    type Item = I::Item;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next()
-    }
+pub(super) enum PeekKind {
+    Literal,
+    OpeningBracket,
+    ClosingBracket,
+    ComponentWhitespace,
+    ComponentNotWhitespace,
 }
 
-impl<'iter, 'token, I> Lexed<I>
-where
-    'token: 'iter,
-    I: Iterator<Item = Result<Token<'token>, Error>> + 'iter,
-{
-    /// Peek at the next item in the iterator.
+impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
     #[inline]
-    pub(super) fn peek(&mut self) -> Option<&I::Item> {
-        self.iter.peek()
+    fn advance(&mut self, bytes: u32) {
+        self.input = &self.input[bytes as usize..];
+        self.byte_pos += bytes;
+    }
+
+    #[inline]
+    fn peek_kind(&self) -> Option<PeekKind> {
+        Some(match *self.input.first()? {
+            b'\\' if version!(2..) && self.depth == 0 => PeekKind::Literal,
+            b'\\' if version!(2..) => PeekKind::ComponentNotWhitespace,
+            b'[' if version!(1)
+                && !self.nested_component_name_seen
+                && self.input.get(1) == Some(&b'[') =>
+            {
+                PeekKind::Literal
+            }
+            b'[' => PeekKind::OpeningBracket,
+            b']' if self.depth > 0 => PeekKind::ClosingBracket,
+            _ if self.depth == 0 => PeekKind::Literal,
+            byte if byte.is_ascii_whitespace() => PeekKind::ComponentWhitespace,
+            _ => PeekKind::ComponentNotWhitespace,
+        })
     }
 
     /// Consume the next token if it is whitespace.
     #[inline]
-    pub(super) fn next_if_whitespace(&mut self) -> Option<Spanned<&'token str>> {
-        if let Some(&Ok(Token::ComponentPart {
-            kind: ComponentKind::Whitespace,
-            value,
-        })) = self.peek()
+    pub(super) fn next_if_whitespace(&mut self) -> Option<Spanned<&'input str>> {
+        if matches!(self.peek_kind(), Some(PeekKind::ComponentWhitespace))
+            && let Some(Ok(Token::ComponentPart {
+                kind: ComponentKind::Whitespace,
+                value,
+            })) = self.next()
         {
-            self.next(); // consume
             Some(value)
         } else {
             None
@@ -53,13 +66,13 @@ where
 
     /// Consume the next token if it is a component item that is not whitespace.
     #[inline]
-    pub(super) fn next_if_not_whitespace(&mut self) -> Option<Spanned<&'token str>> {
-        if let Some(&Ok(Token::ComponentPart {
-            kind: ComponentKind::NotWhitespace,
-            value,
-        })) = self.peek()
+    pub(super) fn next_if_not_whitespace(&mut self) -> Option<Spanned<&'input str>> {
+        if matches!(self.peek_kind(), Some(PeekKind::ComponentNotWhitespace))
+            && let Some(Ok(Token::ComponentPart {
+                kind: ComponentKind::NotWhitespace,
+                value,
+            })) = self.next()
         {
-            self.next(); // consume
             Some(value)
         } else {
             None
@@ -69,12 +82,12 @@ where
     /// Consume the next token if it is an opening bracket.
     #[inline]
     pub(super) fn next_if_opening_bracket(&mut self) -> Option<Location> {
-        if let Some(&Ok(Token::Bracket {
-            kind: BracketKind::Opening,
-            location,
-        })) = self.peek()
+        if matches!(self.peek_kind(), Some(PeekKind::OpeningBracket))
+            && let Some(Ok(Token::Bracket {
+                kind: BracketKind::Opening,
+                location,
+            })) = self.next()
         {
-            self.next(); // consume
             Some(location)
         } else {
             None
@@ -83,27 +96,24 @@ where
 
     /// Peek at the next token if it is a closing bracket.
     #[inline]
-    pub(super) fn peek_closing_bracket(&'iter mut self) -> Option<&'iter Location> {
-        if let Some(Ok(Token::Bracket {
-            kind: BracketKind::Closing,
-            location,
-        })) = self.peek()
-        {
-            Some(location)
-        } else {
-            None
+    pub(super) fn peek_closing_bracket(&self) -> Option<Location> {
+        match self.peek_kind() {
+            Some(PeekKind::ClosingBracket) => Some(Location {
+                byte: self.byte_pos,
+            }),
+            _ => None,
         }
     }
 
     /// Consume the next token if it is a closing bracket.
     #[inline]
     pub(super) fn next_if_closing_bracket(&mut self) -> Option<Location> {
-        if let Some(&Ok(Token::Bracket {
-            kind: BracketKind::Closing,
-            location,
-        })) = self.peek()
+        if matches!(self.peek_kind(), Some(PeekKind::ClosingBracket))
+            && let Some(Ok(Token::Bracket {
+                kind: BracketKind::Closing,
+                location,
+            })) = self.next()
         {
-            self.next(); // consume
             Some(location)
         } else {
             None
@@ -145,63 +155,32 @@ pub(super) enum ComponentKind {
     NotWhitespace,
 }
 
-/// Parse the string into a series of [`Token`]s.
-///
-/// `version` controls the version of the format description that is being parsed.
-///
-/// - When `version` is 1, `[[` is the only escape sequence, resulting in a literal `[`. For the
-///   start of a nested format description, a single `[` is used and is _never_ part of the escape
-///   sequence. For example, `[optional [[day]]]` will lex successfully, ultimately resulting in a
-///   component named `optional` with the nested component `day`.
-/// - When `version` is 2 or 3, all escape sequences begin with `\`. The only characters that may
-///   currently follow are `\`, `[`, and `]`, all of which result in the literal character. All
-///   other characters result in a lex error.
-#[inline]
-pub(super) fn lex<const VERSION: u8>(
-    input: &str,
-) -> Lexed<impl Iterator<Item = Result<Token<'_>, Error>>> {
-    assert_version!();
+impl<'input, const VERSION: u8> Iterator for Lexer<'input, VERSION> {
+    type Item = Result<Token<'input>, Error>;
 
-    // Avoid checking for character boundaries on every indexing operation. Everything still results
-    // in valid UTF-8.
-    let mut input = input.as_bytes();
-    let mut depth: u32 = 0;
-    let mut byte_pos: u32 = 0;
-    // Whether, within a nested format description, we have seen the component name. This is used to
-    // distinguish between `[[` as an escaped literal and `[[` as the start of a nested format
-    // description (and the start of a component). This is only relevant for v1 format descriptions.
-    let mut nested_component_name_seen = false;
-    let mut second_bracket_location = None;
+    fn next(&mut self) -> Option<Self::Item> {
+        assert_version!();
 
-    let iter = iter::from_fn(move || {
-        // The flag is only set when version is zero.
-        if version!(1) {
-            // There is a flag set to emit the second half of an escaped bracket pair.
-            if let Some(location) = second_bracket_location.take() {
-                return Some(Ok(Token::Bracket {
-                    kind: BracketKind::Opening,
-                    location,
-                }));
-            }
-        }
-
-        let byte = const_try_opt!(input.first());
-        let location = Location { byte: byte_pos };
+        let byte = const_try_opt!(self.input.first());
+        let location = Location {
+            byte: self.byte_pos,
+        };
 
         Some(Ok(match byte {
             // possible escape sequence
             b'\\' if version!(2..) => {
                 let backslash_loc = location;
-                match input.get(1) {
+                match self.input.get(1) {
                     Some(b'\\' | b'[' | b']') => {
-                        let char_loc = Location { byte: byte_pos + 1 };
+                        let char_loc = Location {
+                            byte: self.byte_pos + 1,
+                        };
                         // The escaped character is emitted as-is.
                         // Safety: We know that this is either a left bracket, right bracket, or
                         // backslash.
-                        let char = unsafe { str::from_utf8_unchecked(&input[1..2]) };
-                        input = &input[2..];
-                        byte_pos += 2;
-                        if depth == 0 {
+                        let char = unsafe { str::from_utf8_unchecked(&self.input[1..2]) };
+                        self.advance(2);
+                        if self.depth == 0 {
                             Token::Literal(char.spanned(backslash_loc.to(char_loc)))
                         } else {
                             Token::ComponentPart {
@@ -211,10 +190,12 @@ pub(super) fn lex<const VERSION: u8>(
                         }
                     }
                     Some(_) => {
-                        let loc = Location { byte: byte_pos + 1 };
+                        let loc = Location {
+                            byte: self.byte_pos + 1,
+                        };
                         return Some(Err(Error {
                             _inner: unused(loc.error("invalid escape sequence")),
-                            public: crate::error::InvalidFormatDescription::Expected {
+                            public: InvalidFormatDescription::Expected {
                                 what: "valid escape sequence",
                                 index: loc.byte as usize,
                             },
@@ -223,7 +204,7 @@ pub(super) fn lex<const VERSION: u8>(
                     None => {
                         return Some(Err(Error {
                             _inner: unused(backslash_loc.error("unexpected end of input")),
-                            public: crate::error::InvalidFormatDescription::Expected {
+                            public: InvalidFormatDescription::Expected {
                                 what: "valid escape sequence",
                                 index: backslash_loc.byte as usize,
                             },
@@ -231,33 +212,36 @@ pub(super) fn lex<const VERSION: u8>(
                     }
                 }
             }
-            // potentially escaped opening bracket
-            // If we have seen a nested component name, then we know for sure that this is not
-            // an escaped bracket. If we have not, then we check for the escape sequence.
-            b'[' if version!(1) && !nested_component_name_seen => {
-                // Escaped bracket. Store the location of the second so we can emit it later.
-                if input.get(1) == Some(&b'[') {
-                    let second_location = Location { byte: byte_pos + 1 };
-                    second_bracket_location = Some(second_location);
-                    input = &input[2..];
-                    byte_pos += 2;
-                } else {
-                    // opening bracket
-                    depth += 1;
-                    input = &input[1..];
-                    byte_pos += 1;
-                }
-
-                Token::Bracket {
-                    kind: BracketKind::Opening,
-                    location,
-                }
+            // If we have no seen a nested component name and the following character is `[`, then
+            // we know that this is an escaped bracket. If either is not the case, then it's an
+            // opening bracket handled by the following branch.
+            b'[' if version!(1)
+                && !self.nested_component_name_seen
+                && self.input.get(1) == Some(&b'[') =>
+            {
+                let second_location = Location {
+                    byte: self.byte_pos + 1,
+                };
+                self.advance(2);
+                Token::Literal("[".spanned(location.to(second_location)))
             }
             // opening bracket
             b'[' => {
-                depth += 1;
-                input = &input[1..];
-                byte_pos += 1;
+                match self.depth.checked_add(1) {
+                    Some(depth) => self.depth = depth,
+                    None => {
+                        hint::cold_path();
+                        return Some(Err(Error {
+                            _inner: unused(location.error("too much nesting")),
+                            public: InvalidFormatDescription::NotSupported {
+                                what: "highly-nested format description",
+                                context: "",
+                                index: location.byte as usize,
+                            },
+                        }));
+                    }
+                }
+                self.advance(1);
 
                 Token::Bracket {
                     kind: BracketKind::Opening,
@@ -265,17 +249,16 @@ pub(super) fn lex<const VERSION: u8>(
                 }
             }
             // closing bracket
-            b']' if depth > 0 => {
-                depth -= 1;
+            b']' if self.depth > 0 => {
+                self.depth -= 1;
                 if version!(1) {
                     // If the depth is zero, then we are no longer in a nested component. As such we
                     // have not seen the component name. If the depth is not zero, then we have just
                     // completed a nested format description or nested component. In either case,
                     // the nested component name comes before this, so we have seen it.
-                    nested_component_name_seen = depth != 0;
+                    self.nested_component_name_seen = self.depth != 0;
                 }
-                input = &input[1..];
-                byte_pos += 1;
+                self.advance(1);
 
                 Token::Bracket {
                     kind: BracketKind::Closing,
@@ -283,24 +266,23 @@ pub(super) fn lex<const VERSION: u8>(
                 }
             }
             // literal
-            _ if depth == 0 => {
+            _ if self.depth == 0 => {
                 let mut bytes: u32 = 1;
                 let mut end_location = location;
-                while let Some(&next_byte) = input.get(bytes as usize) {
+                while let Some(&next_byte) = self.input.get(bytes as usize) {
                     if (version!(2..) && next_byte == b'\\') || next_byte == b'[' {
                         break;
                     }
                     end_location = Location {
-                        byte: byte_pos + bytes,
+                        byte: self.byte_pos + bytes,
                     };
                     bytes += 1;
                 }
 
                 // Safety: A string was passed to this function, and only UTF-8 has been consumed,
                 // leaving behind a string known to begin at a character boundary.
-                let value = unsafe { str::from_utf8_unchecked(&input[..bytes as usize]) };
-                input = &input[bytes as usize..];
-                byte_pos += bytes;
+                let value = unsafe { str::from_utf8_unchecked(&self.input[..bytes as usize]) };
+                self.advance(bytes);
 
                 Token::Literal(value.spanned(location.to(end_location)))
             }
@@ -310,30 +292,29 @@ pub(super) fn lex<const VERSION: u8>(
                 let mut end_location = location;
                 let is_whitespace = byte.is_ascii_whitespace();
 
-                while let Some(&next_byte) = input.get(bytes as usize) {
+                while let Some(&next_byte) = self.input.get(bytes as usize) {
                     if matches!(next_byte, b'\\' | b'[' | b']')
                         || is_whitespace != next_byte.is_ascii_whitespace()
                     {
                         break;
                     }
                     end_location = Location {
-                        byte: byte_pos + bytes,
+                        byte: self.byte_pos + bytes,
                     };
                     bytes += 1;
                 }
 
                 // Safety: A string was passed to this function, and only UTF-8 has been consumed,
                 // leaving behind a string known to begin at a character boundary.
-                let value = unsafe { str::from_utf8_unchecked(&input[..bytes as usize]) };
-                input = &input[bytes as usize..];
-                byte_pos += bytes;
+                let value = unsafe { str::from_utf8_unchecked(&self.input[..bytes as usize]) };
+                self.advance(bytes);
 
                 // If what we just consumed is not whitespace, then it is either the component name
                 // or a modifier (which comes after the component name). In either situation, we
                 // have seen the component name, so we set the flag. This is only relevant for v1
                 // format descriptions.
                 if version!(1) && !is_whitespace {
-                    nested_component_name_seen = true;
+                    self.nested_component_name_seen = true;
                 }
 
                 Token::ComponentPart {
@@ -346,9 +327,41 @@ pub(super) fn lex<const VERSION: u8>(
                 }
             }
         }))
-    });
+    }
 
-    Lexed {
-        iter: iter.peekable(),
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (
+            // We're guaranteed at least one token if there is any input.
+            if self.input.is_empty() { 0 } else { 1 },
+            // The maximum number of tokens occurs when everything is an escape sequence, which is
+            // two bytes per token.
+            Some(self.input.len() / 2),
+        )
+    }
+}
+
+impl<const VERSION: u8> FusedIterator for Lexer<'_, VERSION> {}
+
+/// Parse the string into a series of [`Token`]s.
+///
+/// `VERSION` controls the version of the format description that is being parsed.
+///
+/// - When `VERSION` is 1, `[[` is the only escape sequence, resulting in a literal `[`. For the
+///   start of a nested format description, a single `[` is used and is _never_ part of the escape
+///   sequence. For example, `[optional [[day]]]` will lex successfully, ultimately resulting in a
+///   component named `optional` with the nested component `day`.
+/// - When `VERSION` is 2 or 3, all escape sequences begin with `\`. The only characters that may
+///   currently follow are `\`, `[`, and `]`, all of which result in the literal character. All
+///   other characters result in a lex error.
+#[inline]
+pub(super) const fn lex<const VERSION: u8>(input: &str) -> Lexer<'_, VERSION> {
+    assert_version!();
+
+    Lexer {
+        input: input.as_bytes(),
+        depth: 0,
+        byte_pos: 0,
+        nested_component_name_seen: false,
     }
 }
