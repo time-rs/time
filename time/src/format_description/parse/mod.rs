@@ -2,6 +2,7 @@
 
 use alloc::vec::Vec;
 
+use self::lexer_ast::Lexer;
 use self::sealed::{Version, VersionedParser};
 pub use self::strftime::{parse_strftime_borrowed, parse_strftime_owned};
 use crate::error;
@@ -22,9 +23,8 @@ macro_rules! assert_version {
     };
 }
 
-mod ast;
 mod format_item;
-mod lexer;
+mod lexer_ast;
 mod strftime;
 
 mod sealed {
@@ -65,21 +65,16 @@ impl VersionedParser for Version<1> {
     fn parse_borrowed(
         s: &str,
     ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
-        let mut lexed = lexer::lex::<1>(s);
-        let ast = ast::parse(&mut lexed);
-        let format_items = format_item::parse(ast);
-        Ok(format_items
+        Ok(Lexer::<1>::new(s)
             .map(|res| res.and_then(TryInto::try_into))
             .collect::<Result<_, _>>()?)
     }
 
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
-        let mut lexed = lexer::lex::<1>(s);
-        let ast = ast::parse(&mut lexed);
-        let format_items = format_item::parse(ast);
-        let items = format_items.collect::<Result<Vec<_>, _>>()?;
-        Ok(items.try_into()?)
+        Ok(Lexer::<1>::new(s)
+            .collect::<Result<Vec<_>, _>>()?
+            .try_into()?)
     }
 }
 
@@ -91,21 +86,16 @@ impl VersionedParser for Version<2> {
     fn parse_borrowed(
         s: &str,
     ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
-        let mut lexed = lexer::lex::<2>(s);
-        let ast = ast::parse(&mut lexed);
-        let format_items = format_item::parse(ast);
-        Ok(format_items
+        Ok(Lexer::<2>::new(s)
             .map(|res| res.and_then(TryInto::try_into))
             .collect::<Result<_, _>>()?)
     }
 
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
-        let mut lexed = lexer::lex::<2>(s);
-        let ast = ast::parse(&mut lexed);
-        let format_items = format_item::parse(ast);
-        let items = format_items.collect::<Result<Vec<_>, _>>()?;
-        Ok(items.try_into()?)
+        Ok(Lexer::<2>::new(s)
+            .collect::<Result<Vec<_>, _>>()?
+            .try_into()?)
     }
 }
 
@@ -117,26 +107,23 @@ impl VersionedParser for Version<3> {
     fn parse_borrowed(
         s: &str,
     ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
-        let mut lexed = lexer::lex::<3>(s);
-        let ast = ast::parse(&mut lexed);
-        let format_items = format_item::parse(ast);
-        let items = format_items
-            .map(|res| res.and_then(TryInto::try_into))
-            .collect::<Result<_, _>>()?;
-        let inner = FormatDescriptionV3Inner::OwnedCompound(items);
-        Ok(inner.into_opaque())
+        Ok(FormatDescriptionV3Inner::OwnedCompound(
+            Lexer::<3>::new(s)
+                .map(|res| res.and_then(TryInto::try_into))
+                .collect::<Result<_, _>>()?,
+        )
+        .into_opaque())
     }
 
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
-        let mut lexed = lexer::lex::<3>(s);
-        let ast = ast::parse(&mut lexed);
-        let format_items = format_item::parse(ast);
-        let items = format_items
-            .map(|res| res.and_then(TryInto::try_into))
-            .collect::<Result<_, _>>()?;
-        let inner = FormatDescriptionV3Inner::OwnedCompound(items);
-        Ok(inner.into_opaque().to_owned())
+        Ok(FormatDescriptionV3Inner::OwnedCompound(
+            Lexer::<3>::new(s)
+                .map(|res| res.and_then(TryInto::try_into))
+                .collect::<Result<_, _>>()?,
+        )
+        .into_opaque()
+        .to_owned())
     }
 }
 

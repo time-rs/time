@@ -6,16 +6,12 @@ use alloc::vec::Vec;
 use core::num::NonZero;
 use core::str::{self, FromStr};
 
-use super::{Error, Location, OptionExt as _, Span, Spanned, SpannedValue as _, ast, unused};
+use super::lexer_ast::{Modifier, NestedFormatDescription};
+use super::{Error, Location, OptionExt as _, Span, Spanned, SpannedValue as _, unused};
 use crate::error::InvalidFormatDescription;
 use crate::internal_macros::{bug, try_likely_ok};
 
 macro_rules! parse_modifiers {
-    ($version:expr, $modifiers:expr, struct {}) => {{
-        struct Parsed {}
-        drop(($version, $modifiers));
-        Ok(Parsed {})
-    }};
     ($version:expr, $modifiers:expr, struct { $($field:ident : $modifier:ident),* $(,)? }) => {
         'block: {
             struct Parsed {
@@ -63,7 +59,7 @@ macro_rules! parse_modifiers {
 }
 
 #[inline]
-fn ident_eq<const VERSION: u8>(provided: &str, expected: &str) -> bool {
+pub(super) fn ident_eq<const VERSION: u8>(provided: &str, expected: &str) -> bool {
     assert_version!();
     if version!(3..) {
         provided == expected
@@ -72,15 +68,6 @@ fn ident_eq<const VERSION: u8>(provided: &str, expected: &str) -> bool {
             && core::iter::zip(provided.bytes(), expected.bytes())
                 .all(|(p, e)| p.to_ascii_lowercase() == e)
     }
-}
-
-/// Parse an AST iterator into a sequence of format items.
-#[inline]
-pub(super) fn parse<'a, const VERSION: u8>(
-    ast_items: impl Iterator<Item = Result<ast::Item<'a, VERSION>, Error>>,
-) -> impl Iterator<Item = Result<Item<'a, VERSION>, Error>> {
-    assert_version!();
-    ast_items.map(|ast_item| ast_item.and_then(Item::from_ast))
 }
 
 /// A description of how to format and parse one part of a type.
@@ -108,115 +95,10 @@ pub(super) enum Item<'a, const VERSION: u8> {
 }
 
 impl<'a, const VERSION: u8> Item<'a, VERSION> {
-    /// Parse an AST item into a format item.
-    pub(super) fn from_ast(ast_item: ast::Item<'a, VERSION>) -> Result<Self, Error> {
-        assert_version!();
-
-        Ok(match ast_item {
-            ast::Item::Literal(Spanned { value, span: _ }) => Item::Literal(value),
-            ast::Item::Component {
-                opening_bracket,
-                _leading_whitespace: _,
-                name,
-                modifiers,
-                nested_format_descriptions,
-                _trailing_whitespace: _,
-                closing_bracket,
-            } => {
-                // Perform additional syntactic checks that are required, even though not
-                // semantically relevant.
-
-                if let Some(first_nested_fd) = nested_format_descriptions.first()
-                    && first_nested_fd.leading_whitespace.is_none()
-                {
-                    return Err(Error {
-                        _inner: unused(
-                            opening_bracket.to(closing_bracket).error(
-                                "missing leading whitespace before nested format description",
-                            ),
-                        ),
-                        public: InvalidFormatDescription::Expected {
-                            what: "whitespace before nested format description",
-                            index: first_nested_fd.opening_bracket.byte as usize,
-                        },
-                    });
-                }
-
-                // Parse the actual component, starting with those that require nested format
-                // descriptions.
-
-                if ident_eq::<VERSION>(*name, "optional") {
-                    Self::optional_from_parts(
-                        opening_bracket,
-                        &modifiers,
-                        nested_format_descriptions,
-                        closing_bracket,
-                    )?
-                } else if ident_eq::<VERSION>(*name, "first") {
-                    let _modifiers = parse_modifiers!(VERSION, modifiers, struct {})?;
-
-                    if version!(3..) && nested_format_descriptions.is_empty() {
-                        return Err(Error {
-                            _inner: unused(opening_bracket.to(closing_bracket).error(
-                                "the `first` component requires at least one nested format \
-                                 description",
-                            )),
-                            public: InvalidFormatDescription::Expected {
-                                what: "at least one nested format description",
-                                index: closing_bracket.byte as usize,
-                            },
-                        });
-                    }
-
-                    let items = nested_format_descriptions
-                        .into_iter()
-                        .map(|nested_format_description| {
-                            nested_format_description
-                                .items
-                                .into_iter()
-                                .map(Item::from_ast)
-                                .collect()
-                        })
-                        .collect::<Result<_, _>>()?;
-
-                    Item::First {
-                        value: items,
-                        span: opening_bracket.to(closing_bracket),
-                    }
-                } else {
-                    // Ensure no nested format descriptions are present.
-                    if !nested_format_descriptions.is_empty() {
-                        return Err(Error {
-                            _inner: unused(opening_bracket.to(closing_bracket).error(
-                                "this component does not support nested format descriptions",
-                            )),
-                            public: InvalidFormatDescription::NotSupported {
-                                what: "nested format descriptions",
-                                context: "on this component",
-                                index: opening_bracket.byte as usize,
-                            },
-                        });
-                    }
-
-                    let mut component = component_from_ast::<VERSION>(&name, &modifiers)?;
-                    // v3 format descriptions default to `range:standard` rather than
-                    // `range:extended` for v1 and v2.
-                    if version!(3..)
-                        && let AstComponent::Year(y) = &mut component
-                        && y.range.value.is_none()
-                    {
-                        y.range = Some(YearRange::Standard).spanned(Span::DUMMY);
-                    }
-                    Item::Component(component)
-                }
-            }
-        })
-    }
-
-    fn optional_from_parts(
+    pub(super) fn optional_from_parts(
         opening_bracket: Location,
-        modifiers: &[ast::Modifier<'_>],
-        nested_format_descriptions: Vec<ast::NestedFormatDescription<'a, VERSION>>,
+        modifiers: &[Modifier<'_>],
+        nested_format_descriptions: Vec<NestedFormatDescription<'a, VERSION>>,
         closing_bracket: Location,
     ) -> Result<Self, Error> {
         assert_version!();
@@ -259,11 +141,7 @@ impl<'a, const VERSION: u8> Item<'a, VERSION> {
         };
 
         let format = modifiers.format.transpose().map(|val| val.unwrap_or(true));
-        let items = nested_format_description
-            .items
-            .into_iter()
-            .map(Item::from_ast)
-            .collect::<Result<_, _>>()?;
+        let items = nested_format_description.items;
 
         Ok(Item::Optional {
             value: items,
@@ -444,7 +322,7 @@ macro_rules! component_definition {
             /// Parse the component from the AST, given its modifiers.
             #[inline]
             fn with_modifiers<const VERSION: u8>(
-                modifiers: &[ast::Modifier<'_>],
+                modifiers: &[Modifier<'_>],
                 _component_span: Span,
             ) -> Result<Self, Error>
             {
@@ -506,16 +384,23 @@ macro_rules! component_definition {
 
         /// Parse a component from the AST, given its name and modifiers.
         #[inline]
-        fn component_from_ast<const VERSION: u8>(
+        pub(super) fn component_from_ast<const VERSION: u8>(
             name: &Spanned<&str>,
-            modifiers: &[ast::Modifier<'_>],
+            modifiers: &[Modifier<'_>],
         ) -> Result<AstComponent, Error> {
             assert_version!();
 
             $(if ident_eq::<VERSION>(&name, $parse_variant) {
-                return Ok(AstComponent::$variant(
+                let mut component = AstComponent::$variant(
                     try_likely_ok!($variant::with_modifiers::<VERSION>(&modifiers, name.span))
-                ));
+                );
+                if version!(3..)
+                    && let AstComponent::Year(y) = &mut component
+                    && y.range.value.is_none()
+                {
+                    y.range = Some(YearRange::Standard).spanned(Span::DUMMY);
+                }
+                return Ok(component);
             })*
             Err(Error {
                 _inner: unused(name.span.error("invalid component")),
