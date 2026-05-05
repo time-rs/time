@@ -212,20 +212,6 @@ where
     Version::<VERSION>::parse_owned(s)
 }
 
-/// Attach [`Location`] information to each byte in the iterator.
-#[inline]
-fn attach_location<'item>(
-    iter: impl Iterator<Item = &'item u8>,
-) -> impl Iterator<Item = (&'item u8, Location)> {
-    let mut byte_pos = 0;
-
-    iter.map(move |byte| {
-        let location = Location { byte: byte_pos };
-        byte_pos += 1;
-        (byte, location)
-    })
-}
-
 /// A location within a string.
 #[derive(Clone, Copy)]
 struct Location {
