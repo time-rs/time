@@ -1011,12 +1011,9 @@ impl UtcDateTime {
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
-    pub const fn replace_minute(
-        self,
-        sunday_based_week: u8,
-    ) -> Result<Self, error::ComponentRange> {
+    pub const fn replace_minute(self, minute: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self::from_primitive(const_try!(
-            self.inner.replace_minute(sunday_based_week)
+            self.inner.replace_minute(minute)
         )))
     }
 
@@ -1047,12 +1044,9 @@ impl UtcDateTime {
     /// ```
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
-    pub const fn replace_second(
-        self,
-        monday_based_week: u8,
-    ) -> Result<Self, error::ComponentRange> {
+    pub const fn replace_second(self, second: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self::from_primitive(const_try!(
-            self.inner.replace_second(monday_based_week)
+            self.inner.replace_second(second)
         )))
     }
 
