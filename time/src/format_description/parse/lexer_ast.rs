@@ -4,9 +4,12 @@ use alloc::borrow::ToOwned as _;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::format_item::Item;
-use super::{Error, Location, Span, Spanned, SpannedValue, Unused, unused};
+use super::format_item::{Item, ident_eq};
+use super::{
+    Error, Location, Span, Spanned, SpannedValue, WithLocation, WithLocationValue as _, unused,
+};
 use crate::error::InvalidFormatDescription;
+use crate::hint;
 use crate::internal_macros::{const_try_opt, try_likely_ok};
 
 #[must_use]
@@ -120,6 +123,7 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
             .count() as u32;
 
         if bytes == 0 {
+            hint::cold_path();
             return None;
         }
 
@@ -142,6 +146,7 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
     #[inline]
     fn consume_closing_bracket(&mut self) -> Option<Location> {
         if self.input.first() != Some(&b']') {
+            hint::cold_path();
             return None;
         }
 
@@ -160,37 +165,40 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
     fn consume_component_name(
         &mut self,
         opening_bracket: Location,
-    ) -> Result<(Option<Spanned<&'input str>>, Spanned<&'input str>), Error> {
-        let leading_whitespace = self.consume_whitespace();
+    ) -> Result<Spanned<&'input str>, Error> {
+        let leading_whitespace = self.consume_whitespace().is_some();
 
         let Some(name) = self.consume_component_part() else {
-            let span = match leading_whitespace {
-                Some(Spanned { value: _, span }) => span,
-                None => opening_bracket.to_self(),
+            hint::cold_path();
+            let location = if leading_whitespace {
+                opening_bracket.offset(1)
+            } else {
+                opening_bracket
             };
             return Err(Error {
-                _inner: unused(span.error("expected component name")),
+                _inner: unused(location.error("expected component name")),
                 public: InvalidFormatDescription::MissingComponentName {
-                    index: span.start.byte as usize,
+                    index: location.byte as usize,
                 },
             });
         };
 
-        Ok((leading_whitespace, name))
+        Ok(name)
     }
 
     #[inline]
     fn consume_modifier(&mut self) -> Result<NextModifier<'input>, Error> {
         let Some(whitespace) = self.consume_whitespace() else {
+            hint::cold_path();
             return Ok(NextModifier::None);
         };
 
         let Some(token) = self.consume_component_part() else {
+            hint::cold_path();
             return Ok(NextModifier::TrailingWhitespace(whitespace));
         };
 
-        let modifier =
-            try_likely_ok!(self.modifier_from_leading_whitespace_and_token(whitespace, token));
+        let modifier = try_likely_ok!(self.modifier_from_token(token));
         Ok(NextModifier::Modifier(modifier))
     }
 
@@ -202,6 +210,7 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
         match self.depth.checked_add(1) {
             Some(depth) => self.depth = depth,
             None => {
+                hint::cold_path();
                 return Err(Error {
                     _inner: unused(opening_bracket.error("too much nesting")),
                     public: InvalidFormatDescription::NotSupported {
@@ -215,17 +224,14 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
         // consume the opening bracket, which was checked prior to calling this method
         self.advance(1);
 
-        let (_leading_whitespace, name) =
-            try_likely_ok!(self.consume_component_name(opening_bracket));
+        let name = try_likely_ok!(self.consume_component_name(opening_bracket));
         let modifiers = try_likely_ok!(Modifiers::parse(self));
 
         let mut nested_format_descriptions = Vec::new();
-        while self.is_nested_description_start() {
-            if let Ok(description) = self.consume_nested(modifiers.span().end) {
-                nested_format_descriptions.push(description);
-            } else {
-                break;
-            }
+        while self.is_nested_description_start()
+            && let Ok(description) = self.consume_nested(modifiers.end_location())
+        {
+            nested_format_descriptions.push(description);
         }
 
         if modifiers.trailing_whitespace.is_some()
@@ -234,14 +240,12 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
             first_nested.leading_whitespace = modifiers.trailing_whitespace;
         }
 
-        let _nested_fds_trailing_whitespace =
-            if modifiers.trailing_whitespace.is_some() && nested_format_descriptions.is_empty() {
-                modifiers.trailing_whitespace
-            } else {
-                self.consume_whitespace()
-            };
+        if modifiers.trailing_whitespace.is_none() || !nested_format_descriptions.is_empty() {
+            self.consume_whitespace();
+        }
 
         let Some(closing_bracket) = self.consume_closing_bracket() else {
+            hint::cold_path();
             return Err(Error {
                 _inner: unused(opening_bracket.error("unclosed bracket")),
                 public: InvalidFormatDescription::UnclosedOpeningBracket {
@@ -253,6 +257,7 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
         if let Some(first_nested_fd) = nested_format_descriptions.first()
             && first_nested_fd.leading_whitespace.is_none()
         {
+            hint::cold_path();
             return Err(Error {
                 _inner: unused(
                     opening_bracket
@@ -266,7 +271,8 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
             });
         }
 
-        if super::format_item::ident_eq::<VERSION>(*name, "optional") {
+        if ident_eq::<VERSION>(*name, "optional") {
+            hint::cold_path();
             return Item::optional_from_parts(
                 opening_bracket,
                 &modifiers.modifiers,
@@ -275,19 +281,22 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
             );
         }
 
-        if super::format_item::ident_eq::<VERSION>(*name, "first") {
+        if ident_eq::<VERSION>(*name, "first") {
+            hint::cold_path();
             if !modifiers.modifiers.is_empty() {
+                hint::cold_path();
                 let modifier = &modifiers.modifiers[0];
                 return Err(Error {
-                    _inner: unused(modifier.key.span.error("invalid modifier key")),
+                    _inner: unused(modifier.key_span().error("invalid modifier key")),
                     public: InvalidFormatDescription::InvalidModifier {
-                        value: (**modifier.key).to_owned(),
-                        index: modifier.key.span.start.byte as usize,
+                        value: (*modifier.key).to_owned(),
+                        index: modifier.key.location.byte as usize,
                     },
                 });
             }
 
             if version!(3..) && nested_format_descriptions.is_empty() {
+                hint::cold_path();
                 return Err(Error {
                     _inner: unused(opening_bracket.to(closing_bracket).error(
                         "the `first` component requires at least one nested format description",
@@ -311,6 +320,7 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
         }
 
         if !nested_format_descriptions.is_empty() {
+            hint::cold_path();
             return Err(Error {
                 _inner: unused(
                     opening_bracket
@@ -345,6 +355,7 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
             match self.depth.checked_add(1) {
                 Some(depth) => self.depth = depth,
                 None => {
+                    hint::cold_path();
                     return Err(Error {
                         _inner: unused(last_location.error("too much nesting")),
                         public: InvalidFormatDescription::NotSupported {
@@ -377,6 +388,7 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
         }
 
         let Some(closing_bracket) = self.consume_closing_bracket() else {
+            hint::cold_path();
             return Err(Error {
                 _inner: unused(opening_bracket.error("unclosed bracket")),
                 public: InvalidFormatDescription::UnclosedOpeningBracket {
@@ -393,12 +405,9 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
         })
     }
 
-    fn modifier_from_leading_whitespace_and_token(
-        &self,
-        leading_whitespace: Spanned<&'input str>,
-        token: Spanned<&'input str>,
-    ) -> Result<Modifier<'input>, Error> {
+    fn modifier_from_token(&self, token: Spanned<&'input str>) -> Result<Modifier<'input>, Error> {
         let Some(colon_index) = token.bytes().position(|b| b == b':') else {
+            hint::cold_path();
             return Err(Error {
                 _inner: unused(token.span.error("modifier must be of the form `key:value`")),
                 public: InvalidFormatDescription::InvalidModifier {
@@ -411,6 +420,7 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
         let value = &token[colon_index + 1..];
 
         if key.is_empty() {
+            hint::cold_path();
             return Err(Error {
                 _inner: unused(token.span.shrink_to_start().error("expected modifier key")),
                 public: InvalidFormatDescription::InvalidModifier {
@@ -420,6 +430,7 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
             });
         }
         if value.is_empty() {
+            hint::cold_path();
             return Err(Error {
                 _inner: unused(token.span.shrink_to_end().error("expected modifier value")),
                 public: InvalidFormatDescription::InvalidModifier {
@@ -430,21 +441,8 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
         }
 
         Ok(Modifier {
-            _leading_whitespace: unused(leading_whitespace),
-            key: key.spanned(
-                token
-                    .span
-                    .start
-                    .to(token.span.start.offset(colon_index as u32)),
-            ),
-            _colon: unused(token.span.start.offset(colon_index as u32)),
-            value: value.spanned(
-                token
-                    .span
-                    .start
-                    .offset(colon_index as u32 + 1)
-                    .to(token.span.end),
-            ),
+            key: key.with_location(token.span.start),
+            value,
         })
     }
 
@@ -502,23 +500,10 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
                 // backslash.
                 let char = unsafe { str::from_utf8_unchecked(&self.input[1..2]) };
                 self.advance(2);
-                if self.context().is_literal() {
-                    char
-                } else {
-                    // TODO find a way to handle this
-                    return Err(Error {
-                        _inner: unused(
-                            backslash_loc.error("escape sequences are not allowed in components"),
-                        ),
-                        public: InvalidFormatDescription::NotSupported {
-                            what: "escape sequence",
-                            context: "components",
-                            index: backslash_loc.byte as usize,
-                        },
-                    });
-                }
+                char
             }
             Some(_) => {
+                hint::cold_path();
                 let loc = Location {
                     byte: self.byte_pos + 1,
                 };
@@ -531,6 +516,7 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
                 });
             }
             None => {
+                hint::cold_path();
                 return Err(Error {
                     _inner: unused(backslash_loc.error("unexpected end of input")),
                     public: InvalidFormatDescription::Expected {
@@ -560,13 +546,16 @@ impl<'input, const VERSION: u8> Iterator for Lexer<'input, VERSION> {
                 Some(Ok(Item::Literal("[")))
             }
             b'[' => Some(self.consume_component(location)),
-            b']' if version!(3..) => Some(Err(Error {
-                _inner: unused(location.error("right brackets must be escaped")),
-                public: InvalidFormatDescription::Expected {
-                    what: "right bracket to be escaped",
-                    index: location.byte as usize,
-                },
-            })),
+            b']' if version!(3..) => {
+                hint::cold_path();
+                Some(Err(Error {
+                    _inner: unused(location.error("right brackets must be escaped")),
+                    public: InvalidFormatDescription::Expected {
+                        what: "right bracket to be escaped",
+                        index: location.byte as usize,
+                    },
+                }))
+            }
             b']' => {
                 self.advance(1);
                 Some(Ok(Item::Literal("]")))
@@ -594,20 +583,31 @@ pub(super) struct NestedFormatDescription<'a, const VERSION: u8> {
 
 /// A modifier for a component.
 pub(super) struct Modifier<'a> {
-    /// Whitespace preceding the modifier.
-    pub(super) _leading_whitespace: Unused<Spanned<&'a str>>,
     /// The key of the modifier.
-    pub(super) key: Spanned<&'a str>,
-    /// Where the colon of the modifier was in the format string.
-    pub(super) _colon: Unused<Location>,
+    pub(super) key: WithLocation<&'a str>,
     /// The value of the modifier.
-    pub(super) value: Spanned<&'a str>,
+    pub(super) value: &'a str,
 }
 
 impl Modifier<'_> {
     #[inline]
-    pub(super) const fn key_value_span(&self) -> Span {
-        self.key.span.start.to(self.value.span.end)
+    pub(super) fn key_value_span(&self) -> Span {
+        self.key
+            .location
+            .with_length(self.key.len() + self.value.len() + 1)
+    }
+
+    #[inline]
+    pub(super) fn key_span(&self) -> Span {
+        self.key.location.with_length(self.key.len())
+    }
+
+    #[inline]
+    pub(super) fn value_span(&self) -> Span {
+        self.key
+            .location
+            .offset(self.key.len() as u32 + 1)
+            .with_length(self.value.len())
     }
 }
 
@@ -642,11 +642,10 @@ impl<'a> Modifiers<'a> {
     }
 
     #[inline]
-    pub(super) fn span(&self) -> Span {
+    pub(super) fn end_location(&self) -> Location {
         match &*self.modifiers {
-            [] => Span::DUMMY,
-            [modifier] => modifier.key.span.start.to(modifier.value.span.end),
-            [first, .., last] => first.key.span.start.to(last.value.span.end),
+            [] => Location::DUMMY,
+            [.., modifier] => modifier.value_span().end,
         }
     }
 }

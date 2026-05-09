@@ -207,6 +207,8 @@ struct Location {
 }
 
 impl Location {
+    const DUMMY: Self = Self { byte: u32::MAX };
+
     /// Create a new [`Span`] from `self` to `other`.
     #[inline]
     const fn to(self, end: Self) -> Span {
@@ -219,6 +221,16 @@ impl Location {
         Span {
             start: self,
             end: self,
+        }
+    }
+
+    #[inline]
+    const fn with_length(self, length: usize) -> Span {
+        Span {
+            start: self,
+            end: Self {
+                byte: self.byte + length as u32 - 1,
+            },
         }
     }
 
@@ -242,6 +254,40 @@ impl Location {
                 start: self,
                 end: self,
             },
+        }
+    }
+}
+
+/// A value with an associated [`Location`].
+#[derive(Clone, Copy)]
+struct WithLocation<T> {
+    /// The value.
+    value: T,
+    /// Where the value was in the format string.
+    location: Location,
+}
+
+impl<T> core::ops::Deref for WithLocation<T> {
+    type Target = T;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &self.value
+    }
+}
+
+/// Helper trait to attach a [`Location`] to a value.
+trait WithLocationValue: Sized {
+    /// Attach a [`Location`] to a value.
+    fn with_location(self, location: Location) -> WithLocation<Self>;
+}
+
+impl<T> WithLocationValue for T {
+    #[inline]
+    fn with_location(self, location: Location) -> WithLocation<Self> {
+        WithLocation {
+            value: self,
+            location,
         }
     }
 }

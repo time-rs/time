@@ -9,6 +9,7 @@ use core::str::{self, FromStr};
 use super::lexer_ast::{Modifier, NestedFormatDescription};
 use super::{Error, Location, OptionExt as _, Span, Spanned, SpannedValue as _, unused};
 use crate::error::InvalidFormatDescription;
+use crate::hint;
 use crate::internal_macros::{bug, try_likely_ok};
 
 macro_rules! parse_modifiers {
@@ -23,32 +24,41 @@ macro_rules! parse_modifiers {
             };
 
             for modifier in $modifiers {
-                $(if ident_eq::<VERSION>(*modifier.key, stringify!($field)) {
+                $(if ident_eq::<VERSION>(&modifier.key, stringify!($field)) {
+                    hint::cold_path();
                     if parsed.$field.is_some() {
                         break 'block Err(Error {
-                            _inner: unused(modifier.key.span.error("duplicate modifier key")),
+                            _inner: unused(modifier.key_span().error("duplicate modifier key")),
                             public: InvalidFormatDescription::DuplicateModifier {
                                 name: stringify!($field),
-                                index: modifier.key.span.start.byte as usize,
+                                index: modifier.key.location.byte as usize,
                             }
                         });
                     }
-                    match <$modifier>::from_modifier_value::<VERSION>(&modifier.value) {
+                    match <$modifier>::from_modifier_value::<VERSION>(
+                        || modifier.value_span(),
+                        modifier.value,
+                    ) {
                         Ok(value) => {
                             parsed.$field = Some(
                                 <<$modifier as ModifierValue>::Type>::from(value)
-                                    .spanned(modifier.value.span)
+                                    .spanned(modifier.value_span())
                             )
                         },
-                        Err(err) => break 'block Err(err),
+                        Err(err) => {
+                            hint::cold_path();
+                            break 'block Err(err)
+                        },
                     }
                     continue;
                 })*
+
+                hint::cold_path();
                 break 'block Err(Error {
-                    _inner: unused(modifier.key.span.error("invalid modifier key")),
+                    _inner: unused(modifier.key_span().error("invalid modifier key")),
                     public: InvalidFormatDescription::InvalidModifier {
-                        value: (**modifier.key).to_owned(),
-                        index: modifier.key.span.start.byte as usize,
+                        value: (*modifier.key).to_owned(),
+                        index: modifier.key.location.byte as usize,
                     }
                 });
             }
@@ -108,6 +118,7 @@ impl<'a, const VERSION: u8> Item<'a, VERSION> {
         })?;
 
         let nested_format_description = if let Some(second_fd) = nested_format_descriptions.get(1) {
+            hint::cold_path();
             return Err(Error {
                 _inner: unused(
                     second_fd
@@ -127,6 +138,7 @@ impl<'a, const VERSION: u8> Item<'a, VERSION> {
         } else if let Ok([first_fd]) = <[_; 1]>::try_from(nested_format_descriptions) {
             first_fd
         } else {
+            hint::cold_path();
             return Err(Error {
                 _inner: unused(
                     opening_bracket
@@ -166,26 +178,32 @@ impl<'a, const VERSION: u8> TryFrom<Item<'a, VERSION>>
                 value: _,
                 format: _,
                 span,
-            } => Err(Error {
-                _inner: unused(span.error(
-                    "optional items are not supported in runtime-parsed format descriptions",
-                )),
-                public: InvalidFormatDescription::NotSupported {
-                    what: "optional item",
-                    context: "runtime-parsed format descriptions",
-                    index: span.start.byte as usize,
-                },
-            }),
-            Item::First { value: _, span } => Err(Error {
-                _inner: unused(span.error(
-                    "'first' items are not supported in runtime-parsed format descriptions",
-                )),
-                public: InvalidFormatDescription::NotSupported {
-                    what: "'first' item",
-                    context: "runtime-parsed format descriptions",
-                    index: span.start.byte as usize,
-                },
-            }),
+            } => {
+                hint::cold_path();
+                Err(Error {
+                    _inner: unused(span.error(
+                        "optional items are not supported in runtime-parsed format descriptions",
+                    )),
+                    public: InvalidFormatDescription::NotSupported {
+                        what: "optional item",
+                        context: "runtime-parsed format descriptions",
+                        index: span.start.byte as usize,
+                    },
+                })
+            }
+            Item::First { value: _, span } => {
+                hint::cold_path();
+                Err(Error {
+                    _inner: unused(span.error(
+                        "'first' items are not supported in runtime-parsed format descriptions",
+                    )),
+                    public: InvalidFormatDescription::NotSupported {
+                        what: "'first' item",
+                        context: "runtime-parsed format descriptions",
+                        index: span.start.byte as usize,
+                    },
+                })
+            }
         }
     }
 }
@@ -205,6 +223,7 @@ impl<const VERSION: u8> TryFrom<Item<'_, VERSION>> for crate::format_description
                 span: _,
             } => {
                 if !*format {
+                    hint::cold_path();
                     return Err(Error {
                         _inner: unused(format.span.error(
                             "v1 and v2 format descriptions do not support optional items that are \
@@ -335,38 +354,48 @@ macro_rules! component_definition {
                 };
 
                 for modifier in modifiers {
-                    $(if ident_eq::<VERSION>(*modifier.key, $parse_field) {
+                    $(if ident_eq::<VERSION>(&modifier.key, $parse_field) {
                         if version!(3..) && this.$field.is_some() {
+                            hint::cold_path();
                             return Err(Error {
-                                _inner: unused(modifier.key.span.error("duplicate modifier key")),
+                                _inner: unused(modifier.key_span().error("duplicate modifier key")),
                                 public: InvalidFormatDescription::DuplicateModifier {
                                     name: stringify!($field),
-                                    index: modifier.key.span.start.byte as usize,
+                                    index: modifier.key.location.byte as usize,
                                 }
                             });
                         }
                         this.$field = Some(
                             component_definition!(@if_from_str $($from_str)?
                                 then {
-                                    parse_from_modifier_value::<$field_type>(&modifier.value)?
+                                    parse_from_modifier_value::<$field_type>(
+                                        || modifier.value_span(),
+                                        modifier.value,
+                                    )?
                                 } else {
-                                    <$field_type>::from_modifier_value::<VERSION>(&modifier.value)?
+                                    <$field_type>::from_modifier_value::<VERSION>(
+                                        || modifier.value_span(),
+                                        modifier.value,
+                                    )?
                                 }
                             )
                         ).spanned(modifier.key_value_span());
                         continue;
                     })*
+
+                    hint::cold_path();
                     return Err(Error {
-                        _inner: unused(modifier.key.span.error("invalid modifier key")),
+                        _inner: unused(modifier.key_span().error("invalid modifier key")),
                         public: InvalidFormatDescription::InvalidModifier {
-                            value: (**modifier.key).to_owned(),
-                            index: modifier.key.span.start.byte as usize,
+                            value: (*modifier.key).to_owned(),
+                            index: modifier.key.location.byte as usize,
                         }
                     });
                 }
 
                 $(component_definition! { @if_required $($required)? then {
                     if this.$field.is_none() {
+                        hint::cold_path();
                         return Err(Error {
                             _inner: unused(_component_span.error("missing required modifier")),
                             public:
@@ -402,6 +431,8 @@ macro_rules! component_definition {
                 }
                 return Ok(component);
             })*
+
+            hint::cold_path();
             Err(Error {
                 _inner: unused(name.span.error("invalid component")),
                 public: InvalidFormatDescription::InvalidComponentName {
@@ -494,6 +525,7 @@ macro_rules! impl_from_ast_component_for {
                 macro_rules! reject_modifier {
                     ($modifier:ident, $modifier_str:literal, $context:literal) => {
                         if $reject_nonsensical && $modifier.value.is_some() {
+                            hint::cold_path();
                             return Err(Error {
                                 _inner: unused($modifier.span.error(concat!(
                                     "the '",
@@ -861,7 +893,8 @@ macro_rules! modifier {
             /// Parse the modifier from its string representation.
             #[inline]
             fn from_modifier_value<const VERSION: u8>(
-                value: &Spanned<&str>,
+                value_span: impl FnOnce() -> Span,
+                value: &str,
             ) -> Result<Self, Error>
             {
                 assert_version!();
@@ -869,11 +902,14 @@ macro_rules! modifier {
                 $(if ident_eq::<VERSION>(&value, $parse_variant) {
                     return Ok(Self::$variant);
                 })*
+
+                hint::cold_path();
+                let span = value_span();
                 Err(Error {
-                    _inner: unused(value.span.error("invalid modifier value")),
+                    _inner: unused(span.error("invalid modifier value")),
                     public: InvalidFormatDescription::InvalidModifier {
-                        value: (**value).to_owned(),
-                        index: value.span.start.byte as usize,
+                        value: value.to_owned(),
+                        index: span.start.byte as usize,
                     },
                 })
             }
@@ -1034,15 +1070,19 @@ modifier! {
 
 /// Parse a modifier value using `FromStr`. Requires the modifier value to be valid UTF-8.
 #[inline]
-fn parse_from_modifier_value<T>(value: &Spanned<&str>) -> Result<T, Error>
+fn parse_from_modifier_value<T>(value_span: impl FnOnce() -> Span, value: &str) -> Result<T, Error>
 where
     T: FromStr,
 {
-    value.parse::<T>().map_err(|_| Error {
-        _inner: unused(value.span.error("invalid modifier value")),
-        public: InvalidFormatDescription::InvalidModifier {
-            value: (**value).to_owned(),
-            index: value.span.start.byte as usize,
-        },
+    value.parse::<T>().map_err(|_| {
+        hint::cold_path();
+        let span = value_span();
+        Error {
+            _inner: unused(span.error("invalid modifier value")),
+            public: InvalidFormatDescription::InvalidModifier {
+                value: value.to_owned(),
+                index: span.start.byte as usize,
+            },
+        }
     })
 }
