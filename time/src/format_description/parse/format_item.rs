@@ -321,9 +321,11 @@ macro_rules! component_definition {
     (@if_required then { $($then:tt)* } $(else { $($else:tt)* })?) => { $($($else)*)? };
     (@if_from_str from_str then { $($then:tt)* } $(else { $($else:tt)* })?) => { $($then)* };
     (@if_from_str then { $($then:tt)* } $(else { $($else:tt)* })?) => { $($($else)*)? };
+    (@if_year "year" $($then:tt)*) => { $($then)* };
+    (@if_year $lit:tt $($then:tt)*) => {};
 
     ($vis:vis enum $name:ident {$(
-        $variant:ident = $parse_variant:literal {$(
+        $variant:ident = $parse_variant:tt {$(
             $(#[$required:tt])?
             $field:ident = $parse_field:literal:
             Option<$(#[$from_str:tt])? $field_type:ty>
@@ -420,15 +422,18 @@ macro_rules! component_definition {
             assert_version!();
 
             $(if ident_eq::<VERSION>(&name, $parse_variant) {
+                #[allow(unused_mut)] // only used for some variants
                 let mut component = AstComponent::$variant(
                     try_likely_ok!($variant::with_modifiers::<VERSION>(&modifiers, name.span))
                 );
-                if version!(3..)
-                    && let AstComponent::Year(y) = &mut component
-                    && y.range.value.is_none()
-                {
-                    y.range = Some(YearRange::Standard).spanned(Span::DUMMY);
-                }
+                component_definition!(@if_year $parse_variant
+                    if version!(3..)
+                        && let AstComponent::Year(y) = &mut component
+                        && y.range.value.is_none()
+                    {
+                        y.range = Some(YearRange::Standard).spanned(Span::DUMMY);
+                    }
+                );
                 return Ok(component);
             })*
 
