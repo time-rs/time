@@ -610,7 +610,7 @@ impl sealed::Sealed for Rfc2822 {
             WEEKDAY_NAMES[value
                 .weekday(state)
                 .number_days_from_monday()
-                .extend::<usize>()]
+                .widen::<usize>()]
             .get_unchecked(..3)
         }));
         bytes += try_likely_ok!(write(output, ", "));
@@ -622,7 +622,7 @@ impl sealed::Sealed for Rfc2822 {
         bytes += try_likely_ok!(write(output, " "));
         // Safety: All month names are at least 3 bytes long.
         bytes += try_likely_ok!(write(output, unsafe {
-            MONTH_NAMES[u8::from(value.month(state)).extend::<usize>() - 1].get_unchecked(..3)
+            MONTH_NAMES[u8::from(value.month(state)).widen::<usize>() - 1].get_unchecked(..3)
         }));
         bytes += try_likely_ok!(write(output, " "));
         // Safety: Years with five or more digits were rejected above. Likewise with negative years.

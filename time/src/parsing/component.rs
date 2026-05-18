@@ -634,10 +634,10 @@ pub(crate) fn parse_subsecond(
 ) -> Option<ParsedItem<'_, u32>> {
     use modifier::SubsecondDigits::*;
     Some(match modifiers.digits {
-        One => ExactlyNDigits::<1>::parse(input)?.map(|v| v.extend::<u32>() * 100_000_000),
-        Two => ExactlyNDigits::<2>::parse(input)?.map(|v| v.extend::<u32>() * 10_000_000),
-        Three => ExactlyNDigits::<3>::parse(input)?.map(|v| v.extend::<u32>() * 1_000_000),
-        Four => ExactlyNDigits::<4>::parse(input)?.map(|v| v.extend::<u32>() * 100_000),
+        One => ExactlyNDigits::<1>::parse(input)?.map(|v| v.widen::<u32>() * 100_000_000),
+        Two => ExactlyNDigits::<2>::parse(input)?.map(|v| v.widen::<u32>() * 10_000_000),
+        Three => ExactlyNDigits::<3>::parse(input)?.map(|v| v.widen::<u32>() * 1_000_000),
+        Four => ExactlyNDigits::<4>::parse(input)?.map(|v| v.widen::<u32>() * 100_000),
         Five => ExactlyNDigits::<5>::parse(input)?.map(|v| v * 10_000),
         Six => ExactlyNDigits::<6>::parse(input)?.map(|v| v * 1_000),
         Seven => ExactlyNDigits::<7>::parse(input)?.map(|v| v * 100),
@@ -649,12 +649,12 @@ pub(crate) fn parse_subsecond(
 
             // Consume the first digit, which is mandatory.
             let ParsedItem(mut input, mut value) =
-                any_digit(input)?.map(|v| (v - b'0').extend::<u32>() * 100_000_000);
+                any_digit(input)?.map(|v| (v - b'0').widen::<u32>() * 100_000_000);
 
             // Consume digits 2 thru 9, all of which are optional.
             for multiplier in MULTIPLIERS {
                 if let Some(ParsedItem(new_input, digit)) = any_digit(input) {
-                    value += (digit - b'0').extend::<u32>() * multiplier;
+                    value += (digit - b'0').widen::<u32>() * multiplier;
                     input = new_input;
                 } else {
                     break;
@@ -725,7 +725,7 @@ pub(crate) fn parse_ignore(
     modifiers: modifier::Ignore,
 ) -> Option<ParsedItem<'_, ()>> {
     let modifier::Ignore { count } = modifiers;
-    let input = input.get((count.get().extend())..)?;
+    let input = input.get((count.get().widen())..)?;
     Some(ParsedItem(input, ()))
 }
 

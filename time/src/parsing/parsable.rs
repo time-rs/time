@@ -231,9 +231,7 @@ impl sealed::Sealed for Rfc2822 {
                 let input = try_likely_ok!(
                     item.flat_map(|year| if year >= 1900 { Some(year) } else { None })
                         .and_then(|item| {
-                            item.consume_value(|value| {
-                                parsed.set_year(value.cast_signed().extend())
-                            })
+                            item.consume_value(|value| parsed.set_year(value.cast_signed().widen()))
                         })
                         .ok_or(InvalidComponent("year"))
                 );
@@ -243,7 +241,7 @@ impl sealed::Sealed for Rfc2822 {
                 let input = try_likely_ok!(
                     ExactlyNDigits::<2>::parse(input)
                         .and_then(|item| {
-                            item.map(|year| year.extend::<u32>())
+                            item.map(|year| year.widen::<u32>())
                                 .map(|year| if year < 50 { year + 2000 } else { year + 1900 })
                                 .map(|year| year.cast_signed())
                                 .consume_value(|value| parsed.set_year(value))
@@ -376,7 +374,7 @@ impl sealed::Sealed for Rfc2822 {
                 let ParsedItem(input, year) = try_likely_ok!(
                     ExactlyNDigits::<2>::parse(input)
                         .map(|item| {
-                            item.map(|year| year.extend::<u16>())
+                            item.map(|year| year.widen::<u16>())
                                 .map(|year| if year < 50 { year + 2000 } else { year + 1900 })
                         })
                         .ok_or(InvalidComponent("year"))
@@ -453,7 +451,7 @@ impl sealed::Sealed for Rfc2822 {
         let dt = try_likely_ok!(
             (|| {
                 let date = try_likely_ok!(Date::from_calendar_date(
-                    year.cast_signed().extend(),
+                    year.cast_signed().widen(),
                     month,
                     day
                 ));
@@ -486,7 +484,7 @@ impl sealed::Sealed for Rfc3339 {
         let input = try_likely_ok!(
             ExactlyNDigits::<4>::parse(input)
                 .and_then(|item| {
-                    item.consume_value(|value| parsed.set_year(value.cast_signed().extend()))
+                    item.consume_value(|value| parsed.set_year(value.cast_signed().widen()))
                 })
                 .ok_or(InvalidComponent("year"))
         );
@@ -535,11 +533,11 @@ impl sealed::Sealed for Rfc3339 {
         let input = if let Some(ParsedItem(input, ())) = ascii_char::<b'.'>(input) {
             let ParsedItem(mut input, mut value) =
                 try_likely_ok!(any_digit(input).ok_or(InvalidComponent("subsecond")))
-                    .map(|v| (v - b'0').extend::<u32>() * 100_000_000);
+                    .map(|v| (v - b'0').widen::<u32>() * 100_000_000);
 
             let mut multiplier = 10_000_000;
             while let Some(ParsedItem(new_input, digit)) = any_digit(input) {
-                value += (digit - b'0').extend::<u32>() * multiplier;
+                value += (digit - b'0').widen::<u32>() * multiplier;
                 input = new_input;
                 multiplier /= 10;
             }
@@ -643,11 +641,11 @@ impl sealed::Sealed for Rfc3339 {
             if let Some(ParsedItem(input, ())) = ascii_char::<b'.'>(input) {
                 let ParsedItem(mut input, mut value) =
                     try_likely_ok!(any_digit(input).ok_or(InvalidComponent("subsecond")))
-                        .map(|v| (v - b'0').extend::<u32>() * 100_000_000);
+                        .map(|v| (v - b'0').widen::<u32>() * 100_000_000);
 
                 let mut multiplier = 10_000_000;
                 while let Some(ParsedItem(new_input, digit)) = any_digit(input) {
-                    value += (digit - b'0').extend::<u32>() * multiplier;
+                    value += (digit - b'0').widen::<u32>() * multiplier;
                     input = new_input;
                     multiplier /= 10;
                 }
@@ -709,7 +707,7 @@ impl sealed::Sealed for Rfc3339 {
 
         let date = try_likely_ok!(
             Month::from_number(month)
-                .and_then(|month| Date::from_calendar_date(year.cast_signed().extend(), month, day))
+                .and_then(|month| Date::from_calendar_date(year.cast_signed().widen(), month, day))
                 .map_err(TryFromParsed::ComponentRange)
         );
         let time = try_likely_ok!(

@@ -75,7 +75,7 @@ pub(crate) fn year(input: &[u8]) -> Option<ParsedItem<'_, i32>> {
                 Sign::Positive => val,
             }
         }),
-        None => ExactlyNDigits::<4>::parse(input)?.map(|val| val.cast_signed().extend()),
+        None => ExactlyNDigits::<4>::parse(input)?.map(|val| val.cast_signed().widen()),
     })
 }
 

@@ -1179,9 +1179,9 @@ impl TryFrom<Parsed> for Date {
             parsed.year_last_two(),
         ) {
             let year = if is_negative {
-                100 * century.extend::<i32>() - last_two.cast_signed().extend::<i32>()
+                100 * century.widen::<i32>() - last_two.cast_signed().widen::<i32>()
             } else {
-                100 * century.extend::<i32>() + last_two.cast_signed().extend::<i32>()
+                100 * century.widen::<i32>() + last_two.cast_signed().widen::<i32>()
             };
             parsed.year = Option_ri32::from(ri32::new(year));
         }
@@ -1192,9 +1192,9 @@ impl TryFrom<Parsed> for Date {
             parsed.iso_year_last_two(),
         ) {
             let iso_year = if is_negative {
-                100 * century.extend::<i32>() - last_two.cast_signed().extend::<i32>()
+                100 * century.widen::<i32>() - last_two.cast_signed().widen::<i32>()
             } else {
-                100 * century.extend::<i32>() + last_two.cast_signed().extend::<i32>()
+                100 * century.widen::<i32>() + last_two.cast_signed().widen::<i32>()
             };
             parsed.iso_year = Option_ri32::from(ri32::new(iso_year));
         }
@@ -1209,15 +1209,15 @@ impl TryFrom<Parsed> for Date {
             )?),
             (year, sunday_week_number, weekday) => Ok(Self::from_ordinal_date(
                 year,
-                (sunday_week_number.cast_signed().extend::<i16>() * 7
-                    + weekday.number_days_from_sunday().cast_signed().extend::<i16>()
+                (sunday_week_number.cast_signed().widen::<i16>() * 7
+                    + weekday.number_days_from_sunday().cast_signed().widen::<i16>()
                     - adjustment(year)
                     + 1).cast_unsigned(),
             )?),
             (year, monday_week_number, weekday) => Ok(Self::from_ordinal_date(
                 year,
-                (monday_week_number.cast_signed().extend::<i16>() * 7
-                    + weekday.number_days_from_monday().cast_signed().extend::<i16>()
+                (monday_week_number.cast_signed().widen::<i16>() * 7
+                    + weekday.number_days_from_monday().cast_signed().widen::<i16>()
                     - adjustment(year)
                     + 1).cast_unsigned(),
             )?),

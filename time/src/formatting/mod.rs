@@ -127,7 +127,7 @@ fn f64_10_pow_x(x: NonZero<u8>) -> f64 {
         7 => 10_000_000.,
         8 => 100_000_000.,
         9 => 1_000_000_000.,
-        x => 10_f64.powi(x.cast_signed().extend()),
+        x => 10_f64.powi(x.cast_signed().widen()),
     }
 }
 
@@ -161,14 +161,14 @@ pub(crate) fn format_float(
                 value = f64::trunc(value * trunc_num) / trunc_num;
             }
 
-            let digits_after_decimal = digits_after_decimal.get().extend();
-            let width = digits_before_decimal.extend::<usize>() + 1 + digits_after_decimal;
+            let digits_after_decimal = digits_after_decimal.get().widen();
+            let width = digits_before_decimal.widen::<usize>() + 1 + digits_after_decimal;
             try_likely_ok!(write!(output, "{value:0>width$.digits_after_decimal$}"));
             Ok(width)
         }
         None => {
             let value = value.trunc() as u64;
-            let width = digits_before_decimal.extend();
+            let width = digits_before_decimal.widen();
             try_likely_ok!(write!(output, "{value:0>width$}"));
             Ok(width)
         }
@@ -299,7 +299,7 @@ fn fmt_month_short(
 ) -> io::Result<usize> {
     // Safety: All month names are at least three bytes long.
     write(output, unsafe {
-        MONTH_NAMES[u8::from(month).extend::<usize>() - 1].get_unchecked(..3)
+        MONTH_NAMES[u8::from(month).widen::<usize>() - 1].get_unchecked(..3)
     })
 }
 
@@ -312,7 +312,7 @@ fn fmt_month_long(
         case_sensitive: _, // no effect on formatting
     }: modifier::MonthLong,
 ) -> io::Result<usize> {
-    write(output, MONTH_NAMES[u8::from(month).extend::<usize>() - 1])
+    write(output, MONTH_NAMES[u8::from(month).widen::<usize>() - 1])
 }
 
 /// Format the month into the designated output as a number from 1-12.
@@ -351,7 +351,7 @@ fn fmt_weekday_short(
 ) -> io::Result<usize> {
     // Safety: All weekday names are at least three bytes long.
     write(output, unsafe {
-        WEEKDAY_NAMES[weekday.number_days_from_monday().extend::<usize>()].get_unchecked(..3)
+        WEEKDAY_NAMES[weekday.number_days_from_monday().widen::<usize>()].get_unchecked(..3)
     })
 }
 
@@ -366,7 +366,7 @@ fn fmt_weekday_long(
 ) -> io::Result<usize> {
     write(
         output,
-        WEEKDAY_NAMES[weekday.number_days_from_monday().extend::<usize>()],
+        WEEKDAY_NAMES[weekday.number_days_from_monday().widen::<usize>()],
     )
 }
 

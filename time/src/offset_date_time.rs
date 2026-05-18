@@ -1764,7 +1764,7 @@ impl Sub for OffsetDateTime {
     fn sub(self, rhs: Self) -> Self::Output {
         let base = self.date_time() - rhs.date_time();
         let adjustment = Duration::seconds(
-            (self.offset.whole_seconds() - rhs.offset.whole_seconds()).extend::<i64>(),
+            (self.offset.whole_seconds() - rhs.offset.whole_seconds()).widen::<i64>(),
         );
         base - adjustment
     }

@@ -1656,6 +1656,6 @@ impl Sub for Date {
 
     #[inline]
     fn sub(self, other: Self) -> Self::Output {
-        Duration::days((self.to_julian_day() - other.to_julian_day()).extend())
+        Duration::days((self.to_julian_day() - other.to_julian_day()).widen())
     }
 }

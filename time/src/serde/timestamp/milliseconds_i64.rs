@@ -31,7 +31,7 @@ where
     D: Deserializer<'a>,
 {
     let value: i64 = <_>::deserialize(deserializer)?;
-    OffsetDateTime::from_unix_timestamp_nanos(value.extend::<i128>() * 1_000_000)
+    OffsetDateTime::from_unix_timestamp_nanos(value.widen::<i128>() * 1_000_000)
         .map_err(ComponentRange::into_de_error)
 }
 
@@ -70,7 +70,7 @@ pub mod option {
     {
         Option::deserialize(deserializer)?
             .map(|value: i64| {
-                OffsetDateTime::from_unix_timestamp_nanos(value.extend::<i128>() * 1_000_000)
+                OffsetDateTime::from_unix_timestamp_nanos(value.widen::<i128>() * 1_000_000)
             })
             .transpose()
             .map_err(ComponentRange::into_de_error)
