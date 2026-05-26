@@ -619,6 +619,10 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f64(0.5), 0.5.seconds());
     /// assert_eq!(Duration::seconds_f64(-0.5), (-0.5).seconds());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if `seconds` is `NaN` or overflows the representable range of `Duration`.
     #[inline]
     #[track_caller]
     pub const fn seconds_f64(seconds: f64) -> Self {
@@ -640,6 +644,10 @@ impl Duration {
     /// assert_eq!(Duration::seconds_f32(0.5), 0.5.seconds());
     /// assert_eq!(Duration::seconds_f32(-0.5), (-0.5).seconds());
     /// ```
+    ///
+    /// # Panics
+    ///
+    /// This may panic if `seconds` is `NaN` or overflows the representable range of `Duration`.
     #[inline]
     #[track_caller]
     pub const fn seconds_f32(seconds: f32) -> Self {
