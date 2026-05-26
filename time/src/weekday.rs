@@ -12,6 +12,7 @@ use crate::error;
 ///
 /// As order is dependent on context (Sunday could be either two days after or five days before
 /// Friday), this type does not implement `PartialOrd` or `Ord`.
+#[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Weekday {
     #[expect(missing_docs)]
