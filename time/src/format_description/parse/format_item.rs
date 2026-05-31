@@ -9,6 +9,8 @@ use core::str::{self, FromStr};
 use super::lexer_ast::{Modifier, NestedFormatDescription};
 use super::{Error, Location, OptionExt as _, Span, Spanned, SpannedValue as _, unused};
 use crate::error::InvalidFormatDescription;
+use crate::format_description::__private::FormatDescriptionV3Inner;
+use crate::format_description::{BorrowedFormatItem, OwnedFormatItem};
 use crate::hint;
 use crate::internal_macros::{bug, try_likely_ok};
 
@@ -163,9 +165,7 @@ impl<'a, const VERSION: u8> Item<'a, VERSION> {
     }
 }
 
-impl<'a, const VERSION: u8> TryFrom<Item<'a, VERSION>>
-    for crate::format_description::BorrowedFormatItem<'a>
-{
+impl<'a, const VERSION: u8> TryFrom<Item<'a, VERSION>> for BorrowedFormatItem<'a> {
     type Error = Error;
 
     #[inline]
@@ -208,7 +208,7 @@ impl<'a, const VERSION: u8> TryFrom<Item<'a, VERSION>>
     }
 }
 
-impl<const VERSION: u8> TryFrom<Item<'_, VERSION>> for crate::format_description::OwnedFormatItem {
+impl<const VERSION: u8> TryFrom<Item<'_, VERSION>> for OwnedFormatItem {
     type Error = Error;
 
     #[inline]
@@ -248,9 +248,7 @@ impl<const VERSION: u8> TryFrom<Item<'_, VERSION>> for crate::format_description
     }
 }
 
-impl<'a, const VERSION: u8> TryFrom<Vec<Item<'a, VERSION>>>
-    for crate::format_description::OwnedFormatItem
-{
+impl<'a, const VERSION: u8> TryFrom<Vec<Item<'a, VERSION>>> for OwnedFormatItem {
     type Error = Error;
 
     #[inline]
@@ -267,9 +265,7 @@ impl<'a, const VERSION: u8> TryFrom<Vec<Item<'a, VERSION>>>
     }
 }
 
-impl<'a, const VERSION: u8> TryFrom<Item<'a, VERSION>>
-    for crate::format_description::__private::FormatDescriptionV3Inner<'a>
-{
+impl<'a, const VERSION: u8> TryFrom<Item<'a, VERSION>> for FormatDescriptionV3Inner<'a> {
     type Error = Error;
 
     #[inline]
@@ -296,9 +292,7 @@ impl<'a, const VERSION: u8> TryFrom<Item<'a, VERSION>>
     }
 }
 
-impl<'a, const VERSION: u8> TryFrom<Vec<Item<'a, VERSION>>>
-    for crate::format_description::__private::FormatDescriptionV3Inner<'a>
-{
+impl<'a, const VERSION: u8> TryFrom<Vec<Item<'a, VERSION>>> for FormatDescriptionV3Inner<'a> {
     type Error = Error;
 
     #[inline]
@@ -309,6 +303,46 @@ impl<'a, const VERSION: u8> TryFrom<Vec<Item<'a, VERSION>>>
             Err(vec) => Ok(Self::OwnedCompound(
                 vec.into_iter()
                     .map(Self::try_from)
+                    .collect::<Result<_, _>>()?,
+            )),
+        }
+    }
+}
+
+pub(super) fn items_into_owned_v3<const VERSION: u8>(
+    items: Vec<Item<'_, VERSION>>,
+) -> Result<FormatDescriptionV3Inner<'static>, Error> {
+    assert_version!();
+    match <[_; 1]>::try_from(items) {
+        Ok([item]) => item.into_owned_v3(),
+        Err(vec) => Ok(FormatDescriptionV3Inner::OwnedCompound(
+            vec.into_iter()
+                .map(Item::into_owned_v3)
+                .collect::<Result<_, _>>()?,
+        )),
+    }
+}
+
+impl<const VERSION: u8> Item<'_, VERSION> {
+    pub(super) fn into_owned_v3(self) -> Result<FormatDescriptionV3Inner<'static>, Error> {
+        assert_version!();
+        match self {
+            Item::Literal(literal) => Ok(FormatDescriptionV3Inner::OwnedLiteral(
+                literal.to_owned().into_boxed_str(),
+            )),
+            Item::Component(component) => Ok(component.try_into()?),
+            Item::Optional {
+                value,
+                format,
+                span: _,
+            } => Ok(FormatDescriptionV3Inner::OwnedOptional {
+                format: *format,
+                item: Box::new(items_into_owned_v3(value)?),
+            }),
+            Item::First { value, span: _ } => Ok(FormatDescriptionV3Inner::OwnedFirst(
+                value
+                    .into_iter()
+                    .map(items_into_owned_v3)
                     .collect::<Result<_, _>>()?,
             )),
         }
@@ -835,7 +869,7 @@ macro_rules! impl_from_ast_component_for {
 
 impl_from_ast_component_for!(
     [false] crate::format_description::Component,
-    [true] crate::format_description::__private::FormatDescriptionV3Inner<'_>,
+    [true] FormatDescriptionV3Inner<'_>,
 );
 
 /// Get the target type for a given enum.

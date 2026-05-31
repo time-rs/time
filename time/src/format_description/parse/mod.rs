@@ -117,13 +117,17 @@ impl VersionedParser for Version<3> {
 
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
-        Ok(FormatDescriptionV3Inner::OwnedCompound(
-            Lexer::<3>::new(s)
-                .map(|res| res.and_then(TryInto::try_into))
-                .collect::<Result<_, _>>()?,
-        )
-        .into_opaque()
-        .to_owned())
+        let items = Lexer::<3>::new(s).collect::<Result<Vec<_>, _>>()?;
+        let inner = match <[_; 1]>::try_from(items) {
+            Ok([item]) => item.into_owned_v3()?,
+            Err(vec) => FormatDescriptionV3Inner::OwnedCompound(
+                vec.into_iter()
+                    .map(format_item::Item::into_owned_v3)
+                    .collect::<Result<_, _>>()?,
+            ),
+        };
+
+        Ok(inner.into_opaque())
     }
 }
 
