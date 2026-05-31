@@ -235,95 +235,52 @@ impl fmt::Debug for FormatDescriptionV3Inner<'_> {
 }
 
 impl<'a> FormatDescriptionV3Inner<'a> {
-    /// Convert the format description to an owned version in place, replacing borrowed
-    /// components with their owned equivalents.
+    /// Recursively convert to an owned version, doing so in-place when possible.
     #[cfg(feature = "alloc")]
-    pub(super) fn into_owned(self) -> FormatDescriptionV3Inner<'static> {
+    fn make_owned_in_place(&mut self) {
         use alloc::borrow::ToOwned as _;
         use alloc::boxed::Box;
 
         match self {
             Self::BorrowedLiteral(literal) => {
-                FormatDescriptionV3Inner::OwnedLiteral(literal.to_owned().into_boxed_str())
+                *self = Self::OwnedLiteral(literal.to_owned().into_boxed_str());
             }
             Self::BorrowedCompound(compound) => {
-                let owned = compound
-                    .iter()
-                    .map(|item| item.clone().into_owned())
-                    .collect();
-                FormatDescriptionV3Inner::OwnedCompound(owned)
+                *self = Self::OwnedCompound(
+                    compound
+                        .iter()
+                        .cloned()
+                        .map(|item| item.into_owned())
+                        .collect(),
+                );
             }
-            Self::BorrowedOptional { format, item } => FormatDescriptionV3Inner::OwnedOptional {
-                format,
-                item: Box::new(item.clone().into_owned()),
-            },
+            Self::BorrowedOptional { format, item } => {
+                *self = Self::OwnedOptional {
+                    format: *format,
+                    item: Box::new(item.clone().into_owned()),
+                };
+            }
             Self::BorrowedFirst(items) => {
-                let owned = items.iter().map(|item| item.clone().into_owned()).collect();
-                FormatDescriptionV3Inner::OwnedFirst(owned)
+                *self = Self::OwnedFirst(
+                    items
+                        .iter()
+                        .cloned()
+                        .map(|item| item.into_owned())
+                        .collect(),
+                );
             }
-            Self::OwnedCompound(mut compound) => {
-                let len = compound.len();
-                let compound_ptr = compound.as_mut_ptr();
-                for idx in 0..len {
-                    // Safety: We know that `idx` is in bounds because of the loop. Reading and
-                    // writing is valid because we have mutable access to `compound` and the items
-                    // are the same size and alignment.
-                    unsafe {
-                        let loc = compound_ptr.add(idx);
-                        let item = loc.read();
-                        loc.write(item.into_owned());
-                    }
-                }
-                // Safety: The only difference is the lifetime and all items have been converted to
-                // variants without lifetimes.
-                FormatDescriptionV3Inner::OwnedCompound(unsafe {
-                    core::mem::transmute::<
-                        Box<[FormatDescriptionV3Inner<'a>]>,
-                        Box<[FormatDescriptionV3Inner<'static>]>,
-                    >(compound)
-                })
-            }
-            Self::OwnedOptional { format, mut item } => {
-                let ptr = &raw mut *item;
-                // Safety: Reading and writing is valid because we have mutable access to `item` and
-                // the items are the same size and alignment.
-                unsafe {
-                    let item = ptr.read();
-                    ptr.write(item.into_owned());
-                }
-                FormatDescriptionV3Inner::OwnedOptional {
-                    format,
-                    // Safety: The only difference is the lifetime and the item has been converted
-                    // to a variant without lifetimes.
-                    item: unsafe {
-                        core::mem::transmute::<
-                            Box<FormatDescriptionV3Inner<'a>>,
-                            Box<FormatDescriptionV3Inner<'static>>,
-                        >(item)
-                    },
+            Self::OwnedCompound(compound) => {
+                for item in compound {
+                    item.make_owned_in_place();
                 }
             }
-            Self::OwnedFirst(mut items) => {
-                let len = items.len();
-                let ptr = items.as_mut_ptr();
-                for idx in 0..len {
-                    // Safety: We know that `idx` is in bounds because of the loop. Reading and
-                    // writing is valid because we have mutable access to `compound` and the items
-                    // are the same size and alignment.
-                    unsafe {
-                        let loc = ptr.add(idx);
-                        let item = loc.read();
-                        loc.write(item.into_owned());
-                    }
+            Self::OwnedOptional { format: _, item } => {
+                item.make_owned_in_place();
+            }
+            Self::OwnedFirst(items) => {
+                for item in items {
+                    item.make_owned_in_place();
                 }
-                // Safety: The only difference is the lifetime and all items have been converted to
-                // variants without lifetimes.
-                FormatDescriptionV3Inner::OwnedFirst(unsafe {
-                    core::mem::transmute::<
-                        Box<[FormatDescriptionV3Inner<'a>]>,
-                        Box<[FormatDescriptionV3Inner<'static>]>,
-                    >(items)
-                })
             }
             FormatDescriptionV3Inner::Day(_)
             | FormatDescriptionV3Inner::MonthShort(_)
@@ -363,15 +320,24 @@ impl<'a> FormatDescriptionV3Inner<'a> {
             | FormatDescriptionV3Inner::UnixTimestampNanosecond(_)
             | FormatDescriptionV3Inner::End(_)
             | FormatDescriptionV3Inner::OwnedLiteral(_) => {
-                // Safety: All of the variants listed do not contain any references, so the types
-                // are identical.
-                unsafe {
-                    core::mem::transmute::<
-                        FormatDescriptionV3Inner<'a>,
-                        FormatDescriptionV3Inner<'static>,
-                    >(self)
-                }
+                // no-op, as these variants do not contain any references
             }
+        }
+    }
+
+    /// Convert the format description to an owned version in place, replacing borrowed
+    /// components with their owned equivalents.
+    #[cfg(feature = "alloc")]
+    pub(super) fn into_owned(mut self) -> FormatDescriptionV3Inner<'static> {
+        self.make_owned_in_place();
+
+        // Safety: `make_owned_in_place` recursively eliminates all variants that contain
+        // references, so we can transmute between lifetimes freely. ADTs do not vary in layout when
+        // only the lifetime differs.
+        unsafe {
+            core::mem::transmute::<FormatDescriptionV3Inner<'a>, FormatDescriptionV3Inner<'static>>(
+                self,
+            )
         }
     }
 
