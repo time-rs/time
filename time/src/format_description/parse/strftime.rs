@@ -75,16 +75,26 @@ impl<'input> Iterator for Tokenizer<'input> {
             return Some(Ok(BorrowedFormatItem::StringLiteral(value)));
         }
 
-        let (padding, component, advance) = match self.input.get(1) {
-            Some(&b'_') => (Some(Padding::Space), self.input[2], 3),
-            Some(&b'-') => (Some(Padding::None), self.input[2], 3),
-            Some(&b'0') => (Some(Padding::Zero), self.input[2], 3),
-            Some(_) => (None, self.input[1], 2),
-            _ => {
+        let padding = match self.input.get(1) {
+            Some(&b'_') => Some(Padding::Space),
+            Some(&b'-') => Some(Padding::None),
+            Some(&b'0') => Some(Padding::Zero),
+            Some(_) => None,
+            None => {
                 return Some(Err(error_expected_end(Location {
                     byte: self.byte_pos,
                 })));
             }
+        };
+
+        let (component, advance) = match (padding, self.input.get(2)) {
+            (Some(_), Some(&component)) => (component, 3),
+            (Some(_), None) => {
+                return Some(Err(error_expected_end(Location {
+                    byte: self.byte_pos + 2,
+                })));
+            }
+            (None, _) => (self.input[1], 2),
         };
 
         let component_loc = Location {
