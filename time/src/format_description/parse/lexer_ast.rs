@@ -1,16 +1,21 @@
 //! Lexer for parsing format descriptions.
 
 use alloc::borrow::ToOwned as _;
+use alloc::boxed::Box;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::format_item::{Item, ident_eq};
+use super::format_item::{
+    AstComponent, component_from_ast, ident_eq, parse_optional_format_modifier,
+};
 use super::{
     Error, Location, Span, Spanned, SpannedValue, WithLocation, WithLocationValue as _, unused,
 };
 use crate::error::InvalidFormatDescription;
+use crate::format_description::__private::FormatDescriptionV3Inner;
+use crate::format_description::{BorrowedFormatItem, FormatDescriptionV3, OwnedFormatItem};
 use crate::hint;
-use crate::internal_macros::{const_try_opt, try_likely_ok};
+use crate::internal_macros::try_likely_ok;
 
 #[must_use]
 enum Context {
@@ -36,14 +41,297 @@ enum NextModifier<'a> {
     None,
 }
 
+type ParseItemWithLiteralLifetime<'input, const VERSION: u8, const OWNED: bool> =
+    <() as ParseTarget<'input, VERSION, OWNED>>::ItemWithLiteralLifetime;
+type ParseOutput<'input, const VERSION: u8, const OWNED: bool> =
+    <() as ParseTarget<'input, VERSION, OWNED>>::Output;
+
+pub(super) trait ParseTarget<'input, const VERSION: u8, const OWNED: bool> {
+    type ItemWithLiteralLifetime;
+    type ItemWithStaticLifetime;
+    type Component: TryFrom<AstComponent, Error: Into<Error>>;
+    type Output;
+
+    fn literal(value: &'input str) -> Self::ItemWithLiteralLifetime;
+    fn component(component: Self::Component) -> Result<Self::ItemWithLiteralLifetime, Error>;
+    fn optional(
+        value: Vec<Self::ItemWithLiteralLifetime>,
+        format: bool,
+        span: Span,
+    ) -> Result<Self::ItemWithLiteralLifetime, Error>;
+    fn first(
+        value: Vec<Vec<Self::ItemWithLiteralLifetime>>,
+        span: Span,
+    ) -> Result<Self::ItemWithLiteralLifetime, Error>;
+    fn parse(s: &'input str) -> Result<Self::Output, Error>;
+}
+
+pub(super) fn parse_generic<'input, const VERSION: u8, const OWNED: bool>(
+    s: &'input str,
+) -> Result<ParseOutput<'input, VERSION, OWNED>, Error>
+where
+    (): ParseTarget<'input, VERSION, OWNED>,
+{
+    <() as ParseTarget<'input, VERSION, OWNED>>::parse(s)
+}
+
+macro_rules! v1_v2_parse_target {
+    ($($version:literal)+) => {$(
+        impl<'input> ParseTarget<'input, $version, false> for () {
+            type ItemWithLiteralLifetime = BorrowedFormatItem<'input>;
+            type ItemWithStaticLifetime = BorrowedFormatItem<'static>;
+            type Component = AstComponent;
+            type Output = Vec<BorrowedFormatItem<'input>>;
+
+            #[inline]
+            fn literal(value: &'input str) -> Self::ItemWithLiteralLifetime {
+                BorrowedFormatItem::StringLiteral(value)
+            }
+
+            #[inline]
+            fn component(component: Self::Component) -> Result<Self::ItemWithStaticLifetime, Error>
+            {
+                Ok(BorrowedFormatItem::Component(try_likely_ok!(
+                    component.try_into()
+                )))
+            }
+
+            #[inline]
+            fn optional(
+                _value: Vec<Self::ItemWithLiteralLifetime>,
+                _format: bool,
+                span: Span,
+            ) -> Result<Self::ItemWithLiteralLifetime, Error> {
+                hint::cold_path();
+                Err(Error {
+                    _inner: unused(span.error(
+                        "optional items are not supported in runtime-parsed format descriptions",
+                    )),
+                    public: InvalidFormatDescription::NotSupported {
+                        what: "optional item",
+                        context: "runtime-parsed format descriptions",
+                        index: span.start.byte as usize,
+                    },
+                })
+            }
+
+            #[inline]
+            fn first(_value: Vec<Vec<Self::ItemWithLiteralLifetime>>, span: Span)
+                -> Result<Self::ItemWithLiteralLifetime, Error>
+            {
+                hint::cold_path();
+                Err(Error {
+                    _inner: unused(span.error(
+                        "'first' items are not supported in runtime-parsed format descriptions",
+                    )),
+                    public: InvalidFormatDescription::NotSupported {
+                        what: "'first' item",
+                        context: "runtime-parsed format descriptions",
+                        index: span.start.byte as usize,
+                    },
+                })
+            }
+
+            #[inline]
+            fn parse(s: &'input str) -> Result<ParseOutput<'input, $version, false>, Error> {
+                let mut items = Vec::with_capacity(16);
+                let mut lexer = Lexer::<$version, false>::new(s);
+                while !lexer.input.is_empty() {
+                    items.push(try_likely_ok!(lexer.parse_next_item()));
+                }
+                Ok(items)
+            }
+        }
+
+        impl<'input> ParseTarget<'input, $version, true> for () {
+            type ItemWithLiteralLifetime = OwnedFormatItem;
+            type ItemWithStaticLifetime = OwnedFormatItem;
+            type Component = AstComponent;
+            type Output = OwnedFormatItem;
+
+            #[inline]
+            fn literal(value: &'input str) -> Self::ItemWithLiteralLifetime {
+                OwnedFormatItem::StringLiteral(value.to_owned().into_boxed_str())
+            }
+
+            #[inline]
+            fn component(component: Self::Component) -> Result<Self::ItemWithStaticLifetime, Error>
+            {
+                Ok(OwnedFormatItem::Component(try_likely_ok!(
+                    component.try_into()
+                )))
+            }
+
+            #[inline]
+            fn optional(
+                value: Vec<Self::ItemWithLiteralLifetime>,
+                format: bool,
+                span: Span,
+            ) -> Result<Self::ItemWithLiteralLifetime, Error> {
+                if !format {
+                    hint::cold_path();
+                    return Err(Error {
+                        _inner: unused(span.error(
+                            "v1 and v2 format descriptions do not support optional items that are \
+                             not formatted",
+                        )),
+                        public: InvalidFormatDescription::NotSupported {
+                            what: "optional item with `format:false`",
+                            context: "v1 and v2 format descriptions",
+                            index: span.start.byte as usize,
+                        },
+                    });
+                }
+
+                Ok(OwnedFormatItem::Optional(Box::new(
+                    items_to_owned_format_item(value),
+                )))
+            }
+
+            #[inline]
+            fn first(value: Vec<Vec<Self::ItemWithLiteralLifetime>>, _span: Span)
+                -> Result<Self::ItemWithLiteralLifetime, Error>
+            {
+                Ok(OwnedFormatItem::First(
+                    value.into_iter().map(items_to_owned_format_item).collect(),
+                ))
+            }
+
+            #[inline]
+            fn parse(s: &'input str) -> Result<ParseOutput<'input, $version, true>, Error> {
+                let mut items = Vec::with_capacity(16);
+                let mut lexer = Lexer::<$version, true>::new(s);
+                while !lexer.input.is_empty() {
+                    items.push(try_likely_ok!(lexer.parse_next_item()));
+                }
+                Ok(items_to_owned_format_item(items))
+            }
+        }
+    )+};
+}
+
+macro_rules! v3_parse_target {
+    ($owned:tt, $output_lt:lifetime, $literal:expr, $items_to_v3:expr) => {
+        impl<'input> ParseTarget<'input, 3, $owned> for () {
+            type ItemWithLiteralLifetime = FormatDescriptionV3Inner<$output_lt>;
+            type ItemWithStaticLifetime = FormatDescriptionV3Inner<'static>;
+            type Component = FormatDescriptionV3Inner<'static>;
+            type Output = FormatDescriptionV3<$output_lt>;
+
+            #[inline]
+            fn literal(value: &'input str) -> Self::ItemWithLiteralLifetime {
+                $literal(value.into())
+            }
+
+            #[inline]
+            fn component(
+                component: Self::Component,
+            ) -> Result<Self::ItemWithStaticLifetime, Error> {
+                Ok(component)
+            }
+
+            #[inline]
+            fn optional(
+                value: Vec<Self::ItemWithLiteralLifetime>,
+                format: bool,
+                _span: Span,
+            ) -> Result<Self::ItemWithLiteralLifetime, Error> {
+                Ok(FormatDescriptionV3Inner::OwnedOptional {
+                    format,
+                    item: Box::new($items_to_v3(value)),
+                })
+            }
+
+            #[inline]
+            fn first(
+                value: Vec<Vec<Self::ItemWithLiteralLifetime>>,
+                _span: Span,
+            ) -> Result<Self::ItemWithLiteralLifetime, Error> {
+                Ok(FormatDescriptionV3Inner::OwnedFirst(
+                    value.into_iter().map($items_to_v3).collect(),
+                ))
+            }
+
+            #[inline]
+            fn parse(s: &'input str) -> Result<Self::Output, Error> {
+                let mut items = Vec::with_capacity(16);
+                let mut lexer = Lexer::<3, false>::new(s);
+
+                while let Some(&byte) = lexer.input.first() {
+                    let location = Location {
+                        byte: lexer.byte_pos,
+                    };
+                    let token = match byte {
+                        b'[' => lexer.consume_component(location),
+                        b']' => {
+                            hint::cold_path();
+                            return Err(Error {
+                                _inner: unused(location.error("right brackets must be escaped")),
+                                public: InvalidFormatDescription::Expected {
+                                    what: "right bracket to be escaped",
+                                    index: location.byte as usize,
+                                },
+                            });
+                        }
+                        b'\\' => lexer
+                            .consume_backslash_escape_sequence(location)
+                            .map(<() as ParseTarget<'input, 3, $owned>>::literal),
+                        _ => Ok(<() as ParseTarget<'input, 3, $owned>>::literal(
+                            lexer.consume_literal().into(),
+                        )),
+                    };
+
+                    items.push(try_likely_ok!(token));
+                }
+
+                Ok($items_to_v3(items).into_opaque())
+            }
+        }
+    };
+}
+
+v1_v2_parse_target!(1 2);
+v3_parse_target!(false, 'input, FormatDescriptionV3Inner::BorrowedLiteral, items_to_v3_borrowed);
+v3_parse_target!(true, 'static, FormatDescriptionV3Inner::OwnedLiteral, items_to_v3_owned);
+
+fn items_to_owned_format_item(items: Vec<OwnedFormatItem>) -> OwnedFormatItem {
+    match <[_; 1]>::try_from(items) {
+        Ok([item]) => item,
+        Err(items) => OwnedFormatItem::Compound(items.into_boxed_slice()),
+    }
+}
+
+fn items_to_v3_borrowed<'input>(
+    items: Vec<FormatDescriptionV3Inner<'input>>,
+) -> FormatDescriptionV3Inner<'input> {
+    match <[_; 1]>::try_from(items) {
+        Ok([item]) => item,
+        Err(items) => FormatDescriptionV3Inner::OwnedCompound(items.into_boxed_slice()),
+    }
+}
+
+fn items_to_v3_owned(
+    items: Vec<FormatDescriptionV3Inner<'_>>,
+) -> FormatDescriptionV3Inner<'static> {
+    match <[_; 1]>::try_from(items) {
+        Ok([item]) => item.into_owned(),
+        Err(items) => FormatDescriptionV3Inner::OwnedCompound(
+            items
+                .into_iter()
+                .map(FormatDescriptionV3Inner::into_owned)
+                .collect(),
+        ),
+    }
+}
+
 /// An iterator over the lexed tokens.
-pub(super) struct Lexer<'input, const VERSION: u8> {
+pub(super) struct Lexer<'input, const VERSION: u8, const OWNED: bool> {
     input: &'input [u8],
     depth: u8,
     byte_pos: u32,
 }
 
-impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
+impl<'input, const VERSION: u8, const OWNED: bool> Lexer<'input, VERSION, OWNED> {
     /// Parse the string into a series of [`Token`]s.
     ///
     /// `VERSION` controls the version of the format description that is being parsed.
@@ -203,10 +491,14 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
     }
 
     /// Parse a component.
+    #[inline]
     fn consume_component(
         &mut self,
         opening_bracket: Location,
-    ) -> Result<Item<'input, VERSION>, Error> {
+    ) -> Result<ParseItemWithLiteralLifetime<'input, VERSION, OWNED>, Error>
+    where
+        (): ParseTarget<'input, VERSION, OWNED>,
+    {
         match self.depth.checked_add(1) {
             Some(depth) => self.depth = depth,
             None => {
@@ -225,7 +517,7 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
         self.advance(1);
 
         let name = try_likely_ok!(self.consume_component_name(opening_bracket));
-        let modifiers = try_likely_ok!(Modifiers::parse(self));
+        let modifiers = try_likely_ok!(Modifiers::parse::<VERSION, OWNED>(self));
 
         let mut nested_format_descriptions = Vec::new();
         while self.is_nested_description_start()
@@ -273,11 +565,47 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
 
         if ident_eq::<VERSION>(*name, "optional") {
             hint::cold_path();
-            return Item::optional_from_parts(
-                opening_bracket,
+
+            let format = try_likely_ok!(parse_optional_format_modifier::<VERSION>(
                 &modifiers.modifiers,
-                nested_format_descriptions,
-                closing_bracket,
+            ));
+
+            let nested_format_description = match <[_; 1]>::try_from(nested_format_descriptions) {
+                Ok([nested_format_description]) => nested_format_description,
+                Err(e) => {
+                    hint::cold_path();
+                    if let Some((second_fd, last_fd)) = e.first().zip(e.last()) {
+                        return Err(Error {
+                            _inner: unused(
+                                second_fd.opening_bracket.to(last_fd.closing_bracket).error(
+                                    "the `optional` component only allows a single nested format \
+                                     description",
+                                ),
+                            ),
+                            public: InvalidFormatDescription::NotSupported {
+                                what: "more than one nested format description",
+                                context: "`optional` components",
+                                index: second_fd.opening_bracket.byte as usize,
+                            },
+                        });
+                    } else {
+                        return Err(Error {
+                            _inner: unused(opening_bracket.to(closing_bracket).error(
+                                "missing nested format description for `optional` component",
+                            )),
+                            public: InvalidFormatDescription::Expected {
+                                what: "nested format description",
+                                index: closing_bracket.byte as usize,
+                            },
+                        });
+                    }
+                }
+            };
+
+            return <() as ParseTarget<'input, VERSION, OWNED>>::optional(
+                nested_format_description.items,
+                *format,
+                opening_bracket.to(closing_bracket),
             );
         }
 
@@ -313,10 +641,10 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
                 .map(|nested_format_description| nested_format_description.items)
                 .collect();
 
-            return Ok(Item::First {
-                value: items,
-                span: opening_bracket.to(closing_bracket),
-            });
+            return <() as ParseTarget<'input, VERSION, OWNED>>::first(
+                items,
+                opening_bracket.to(closing_bracket),
+            );
         }
 
         if !nested_format_descriptions.is_empty() {
@@ -335,12 +663,8 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
             });
         }
 
-        let component = try_likely_ok!(super::format_item::component_from_ast::<VERSION>(
-            &name,
-            &modifiers.modifiers
-        ));
-
-        Ok(Item::Component(component))
+        let component = try_likely_ok!(component_from_ast::<VERSION>(&name, &modifiers.modifiers));
+        <() as ParseTarget<'input, VERSION, OWNED>>::component(try_likely_ok!(component.try_into()))
     }
 
     /// Parse a nested format description. The location provided is the most recent one consumed.
@@ -348,7 +672,13 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
     fn consume_nested(
         &mut self,
         last_location: Location,
-    ) -> Result<NestedFormatDescription<'input, VERSION>, Error> {
+    ) -> Result<
+        NestedFormatDescription<'input, ParseItemWithLiteralLifetime<'input, VERSION, OWNED>>,
+        Error,
+    >
+    where
+        (): ParseTarget<'input, VERSION, OWNED>,
+    {
         let leading_whitespace = self.consume_whitespace();
 
         let opening_bracket = {
@@ -374,17 +704,14 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
         };
 
         let mut items = Vec::new();
-        loop {
+        while !self.input.is_empty() {
             // If we're in a literal context and the next byte is a closing bracket, stop so that we
             // can consume it.
             if self.context().is_literal() && self.input.first() == Some(&b']') {
                 break;
             }
 
-            let Some(token) = self.next() else {
-                break;
-            };
-            items.push(try_likely_ok!(token));
+            items.push(try_likely_ok!(self.parse_next_item()));
         }
 
         let Some(closing_bracket) = self.consume_closing_bracket() else {
@@ -405,6 +732,7 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
         })
     }
 
+    #[inline]
     fn modifier_from_token(&self, token: Spanned<&'input str>) -> Result<Modifier<'input>, Error> {
         let Some(colon_index) = token.bytes().position(|b| b == b':') else {
             hint::cold_path();
@@ -529,54 +857,57 @@ impl<'input, const VERSION: u8> Lexer<'input, VERSION> {
     }
 }
 
-impl<'input, const VERSION: u8> Iterator for Lexer<'input, VERSION> {
-    type Item = Result<Item<'input, VERSION>, Error>;
-
-    #[inline]
-    fn next(&mut self) -> Option<Self::Item> {
-        let byte = *const_try_opt!(self.input.first());
-
+impl<'input, const VERSION: u8, const OWNED: bool> Lexer<'input, VERSION, OWNED> {
+    #[inline(always)]
+    fn parse_next_item(
+        &mut self,
+    ) -> Result<ParseItemWithLiteralLifetime<'input, VERSION, OWNED>, Error>
+    where
+        (): ParseTarget<'input, VERSION, OWNED>,
+    {
+        let byte = self.input[0];
         let location = Location {
             byte: self.byte_pos,
         };
 
-        match byte {
+        Ok(match byte {
             b'[' if version!(1) && self.input.get(1) == Some(&b'[') => {
                 self.advance(2);
-                Some(Ok(Item::Literal("[")))
+                <() as ParseTarget<'input, VERSION, OWNED>>::literal("[")
             }
-            b'[' => Some(self.consume_component(location)),
+            b'[' => return self.consume_component(location),
             b']' if version!(3..) => {
                 hint::cold_path();
-                Some(Err(Error {
+                return Err(Error {
                     _inner: unused(location.error("right brackets must be escaped")),
                     public: InvalidFormatDescription::Expected {
                         what: "right bracket to be escaped",
                         index: location.byte as usize,
                     },
-                }))
+                });
             }
-            b']' => {
+            b']' if version!(1..=2) => {
                 self.advance(1);
-                Some(Ok(Item::Literal("]")))
+                <() as ParseTarget<'input, VERSION, OWNED>>::literal("]")
             }
-            b'\\' if version!(2..) => Some(
-                self.consume_backslash_escape_sequence(location)
-                    .map(Item::Literal),
-            ),
-            _ => Some(Ok(Item::Literal(self.consume_literal()))),
-        }
+            b'\\' if version!(2..) => {
+                return self
+                    .consume_backslash_escape_sequence(location)
+                    .map(<() as ParseTarget<'input, VERSION, OWNED>>::literal);
+            }
+            _ => <() as ParseTarget<'input, VERSION, OWNED>>::literal(self.consume_literal()),
+        })
     }
 }
 
 /// A format description that is nested within another format description.
-pub(super) struct NestedFormatDescription<'a, const VERSION: u8> {
+pub(super) struct NestedFormatDescription<'a, Item> {
     /// Whitespace between the end of the previous item and the opening bracket.
     pub(super) leading_whitespace: Option<Spanned<&'a str>>,
     /// Where the opening bracket was in the format string.
     pub(super) opening_bracket: Location,
     /// The items within the nested format description.
-    pub(super) items: Vec<Item<'a, VERSION>>,
+    pub(super) items: Vec<Item>,
     /// Where the closing bracket was in the format string.
     pub(super) closing_bracket: Location,
 }
@@ -620,7 +951,9 @@ impl<'a> Modifiers<'a> {
     /// Parse modifiers until there are none left. Returns the modifiers along with any trailing
     /// whitespace after the last modifier.
     #[inline]
-    pub(super) fn parse<const VERSION: u8>(tokens: &mut Lexer<'a, VERSION>) -> Result<Self, Error> {
+    pub(super) fn parse<const VERSION: u8, const OWNED: bool>(
+        tokens: &mut Lexer<'a, VERSION, OWNED>,
+    ) -> Result<Self, Error> {
         let mut modifiers = Vec::new();
         loop {
             match try_likely_ok!(tokens.consume_modifier()) {

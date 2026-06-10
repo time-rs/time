@@ -2,11 +2,10 @@
 
 use alloc::vec::Vec;
 
-use self::lexer_ast::Lexer;
+use self::lexer_ast::parse_generic;
 use self::sealed::{Version, VersionedParser};
 pub use self::strftime::{parse_strftime_borrowed, parse_strftime_owned};
 use crate::error;
-use crate::format_description::__private::FormatDescriptionV3Inner;
 use crate::format_description::{BorrowedFormatItem, FormatDescriptionV3, OwnedFormatItem};
 
 macro_rules! version {
@@ -65,16 +64,12 @@ impl VersionedParser for Version<1> {
     fn parse_borrowed(
         s: &str,
     ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
-        Ok(Lexer::<1>::new(s)
-            .map(|res| res.and_then(TryInto::try_into))
-            .collect::<Result<_, _>>()?)
+        Ok(parse_generic::<1, false>(s)?)
     }
 
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
-        Ok(Lexer::<1>::new(s)
-            .collect::<Result<Vec<_>, _>>()?
-            .try_into()?)
+        Ok(parse_generic::<1, true>(s)?)
     }
 }
 
@@ -86,16 +81,12 @@ impl VersionedParser for Version<2> {
     fn parse_borrowed(
         s: &str,
     ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
-        Ok(Lexer::<2>::new(s)
-            .map(|res| res.and_then(TryInto::try_into))
-            .collect::<Result<_, _>>()?)
+        Ok(parse_generic::<2, false>(s)?)
     }
 
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
-        Ok(Lexer::<2>::new(s)
-            .collect::<Result<Vec<_>, _>>()?
-            .try_into()?)
+        Ok(parse_generic::<2, true>(s)?)
     }
 }
 
@@ -107,27 +98,12 @@ impl VersionedParser for Version<3> {
     fn parse_borrowed(
         s: &str,
     ) -> Result<Self::BorrowedOutput<'_>, error::InvalidFormatDescription> {
-        Ok(FormatDescriptionV3Inner::OwnedCompound(
-            Lexer::<3>::new(s)
-                .map(|res| res.and_then(TryInto::try_into))
-                .collect::<Result<_, _>>()?,
-        )
-        .into_opaque())
+        Ok(parse_generic::<3, false>(s)?)
     }
 
     #[inline]
     fn parse_owned(s: &str) -> Result<Self::OwnedOutput, error::InvalidFormatDescription> {
-        let items = Lexer::<3>::new(s).collect::<Result<Vec<_>, _>>()?;
-        let inner = match <[_; 1]>::try_from(items) {
-            Ok([item]) => item.into_owned_v3()?,
-            Err(vec) => FormatDescriptionV3Inner::OwnedCompound(
-                vec.into_iter()
-                    .map(format_item::Item::into_owned_v3)
-                    .collect::<Result<_, _>>()?,
-            ),
-        };
-
-        Ok(inner.into_opaque())
+        Ok(parse_generic::<3, true>(s)?)
     }
 }
 
@@ -422,6 +398,13 @@ impl From<Error> for error::InvalidFormatDescription {
     #[inline]
     fn from(error: Error) -> Self {
         error.public
+    }
+}
+
+impl From<core::convert::Infallible> for Error {
+    #[inline]
+    fn from(v: core::convert::Infallible) -> Self {
+        match v {}
     }
 }
 
