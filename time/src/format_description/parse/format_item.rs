@@ -25,7 +25,7 @@ macro_rules! parse_modifiers {
             for modifier in $modifiers {
                 $(if ident_eq::<VERSION>(&modifier.key, stringify!($field)) {
                     hint::cold_path();
-                    if parsed.$field.is_some() {
+                    if version!(3..) && parsed.$field.is_some() {
                         break 'block Err(Error {
                             _inner: unused(modifier.key_span().error("duplicate modifier key")),
                             public: InvalidFormatDescription::DuplicateModifier {
