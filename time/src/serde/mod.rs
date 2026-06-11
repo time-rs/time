@@ -31,13 +31,20 @@ use serde_core::ser::Error as _;
 use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 /// Generate a custom serializer and deserializer from a format string or an existing format.
 ///
-/// The syntax accepted by this macro is the same as [`format_description::parse()`], which can
-/// be found in [the book](https://time-rs.github.io/book/api/format-description.html).
+/// The format description syntax accepted by this macro is the same as
+/// [`format_description::parse()`], which can be found in [the
+/// book][format-description-syntax].
 ///
-/// # Usage
+/// [format-description-syntax]: https://time-rs.github.io/book/api/format-description.html
 ///
-/// Invoked as `serde::format_description!(mod_name, Date, FORMAT)` where `FORMAT` is either a
-/// `"<format string>"` or something that implements
+/// # Syntax
+///
+/// **It is recommended to use version 3.** For backwards compatibility, this macro defaults to
+/// version 1. To use version 2 or version 3, you can specify the version as the first
+/// argument: `serde::format_description!(version = 2, mod_name, Date, FORMAT)`.
+///
+/// For versions 1 and 2, this macro is invoked as `serde::format_description!(mod_name, Date,
+/// FORMAT)` where `FORMAT` is either a `"<format string>"` or something that implements
 #[cfg_attr(
     all(feature = "formatting", feature = "parsing"),
     doc = "[`Formattable`](crate::formatting::Formattable) and \
@@ -57,12 +64,20 @@ use serde_core::{Deserialize, Deserializer, Serialize, Serializer};
 /// specify `pub`, `pub(crate)`, or similar before the module name:
 /// `serde::format_description!(pub mod_name, Date, FORMAT)`.
 ///
+/// For version 3, this macro is invoked as `serde::format_description!(mod mod_name [Date] =
+/// FORMAT)`. As with versions 1 and 2, visibility can be specified before the `mod` keyword.
+/// The type being formatted and/or parsed must be in scope, as the macro will not import it
+/// for you. Note: the `mod` keyword indicates that this is version 3 of the macro; specifying
+/// `version = 3` is accepted but unnecessary.
+///
+/// # Semantics
+///
 /// The returned `Option` will contain a deserialized value if present and `None` if the field
 /// is present but the value is `null` (or the equivalent in other formats). To return `None`
 /// when the field is not present, you should use `#[serde(default)]` on the field.
 ///
-/// Note: Due to [serde-rs/serde#2878], you will need to apply `#[serde(default)]` if you want
-/// a missing field to deserialize as `None`.
+/// Note: Due to [serde-rs/serde#2878](https://github.com/serde-rs/serde#2878), you will need to
+/// apply `#[serde(default)]` if you want a missing field to deserialize as `None`.
 ///
 /// # Examples
 ///

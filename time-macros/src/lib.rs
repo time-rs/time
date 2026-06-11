@@ -278,11 +278,23 @@ pub fn serde_format_description(input: TokenStream) -> TokenStream {
         let mut tokens = input.into_iter().peekable();
 
         // First, the optional format description version.
-        let version = parse_format_description_version::<true>(&mut tokens)?
-            .unwrap_or(FormatDescriptionVersion::V1);
+        let maybe_version = parse_format_description_version::<true>(&mut tokens)?;
 
         // Then, the visibility of the module.
         let visibility = parse_visibility(&mut tokens)?;
+
+        // If no explicit version was provided, allow `mod` (possibly after visibility) to imply v3
+        // syntax: `mod foo [Type] = ...`. Otherwise fall back to v1 for backwards compatibility.
+        let version = if let Some(version) = maybe_version {
+            version
+        } else if maybe_version.is_none()
+            && let Some(TokenTree::Ident(ident)) = tokens.peek()
+            && ident.to_string() == "mod"
+        {
+            FormatDescriptionVersion::V3
+        } else {
+            FormatDescriptionVersion::V1
+        };
 
         let (mod_name, ty) = match version {
             FormatDescriptionVersion::V1 | FormatDescriptionVersion::V2 => {
