@@ -230,29 +230,30 @@ pub use time_macros::serde_format_description as format_description;
 
 use self::visitor::Visitor;
 #[cfg(feature = "parsing")]
-use crate::format_description::{BorrowedFormatItem, Component, StaticFormatDescription, modifier};
+use crate::format_description::__private::FormatDescriptionV3Inner;
+#[cfg(feature = "parsing")]
+use crate::format_description::{FormatDescriptionV3, modifier};
 use crate::{
     Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
 };
 
 /// The format used when serializing and deserializing a human-readable `Date`.
 #[cfg(feature = "parsing")]
-const DATE_FORMAT: StaticFormatDescription = &[
+const DATE_FORMAT: FormatDescriptionV3<'_> = FormatDescriptionV3Inner::BorrowedCompound(&[
     #[cfg(feature = "large-dates")]
-    BorrowedFormatItem::Component(Component::CalendarYearFullExtendedRange(
+    FormatDescriptionV3Inner::CalendarYearFullExtendedRange(
         modifier::CalendarYearFullExtendedRange::default(),
-    )),
+    ),
     #[cfg(not(feature = "large-dates"))]
-    BorrowedFormatItem::Component(Component::CalendarYearFullStandardRange(
+    FormatDescriptionV3Inner::CalendarYearFullStandardRange(
         modifier::CalendarYearFullStandardRange::default(),
-    )),
-    BorrowedFormatItem::StringLiteral("-"),
-    BorrowedFormatItem::Component(Component::MonthNumerical(
-        modifier::MonthNumerical::default(),
-    )),
-    BorrowedFormatItem::StringLiteral("-"),
-    BorrowedFormatItem::Component(Component::Day(modifier::Day::default())),
-];
+    ),
+    FormatDescriptionV3Inner::BorrowedLiteral("-"),
+    FormatDescriptionV3Inner::MonthNumerical(modifier::MonthNumerical::default()),
+    FormatDescriptionV3Inner::BorrowedLiteral("-"),
+    FormatDescriptionV3Inner::Day(modifier::Day::default()),
+])
+.into_opaque();
 
 impl Serialize for Date {
     #[inline]
@@ -322,13 +323,38 @@ impl<'a> Deserialize<'a> for Duration {
 
 /// The format used when serializing and deserializing a human-readable `OffsetDateTime`.
 #[cfg(feature = "parsing")]
-const OFFSET_DATE_TIME_FORMAT: StaticFormatDescription = &[
-    BorrowedFormatItem::Compound(DATE_FORMAT),
-    BorrowedFormatItem::StringLiteral(" "),
-    BorrowedFormatItem::Compound(TIME_FORMAT),
-    BorrowedFormatItem::StringLiteral(" "),
-    BorrowedFormatItem::Compound(UTC_OFFSET_FORMAT),
-];
+const OFFSET_DATE_TIME_FORMAT: FormatDescriptionV3<'_> =
+    FormatDescriptionV3Inner::BorrowedCompound(&[
+        #[cfg(feature = "large-dates")]
+        FormatDescriptionV3Inner::CalendarYearFullExtendedRange(
+            modifier::CalendarYearFullExtendedRange::default(),
+        ),
+        #[cfg(not(feature = "large-dates"))]
+        FormatDescriptionV3Inner::CalendarYearFullStandardRange(
+            modifier::CalendarYearFullStandardRange::default(),
+        ),
+        FormatDescriptionV3Inner::BorrowedLiteral("-"),
+        FormatDescriptionV3Inner::MonthNumerical(modifier::MonthNumerical::default()),
+        FormatDescriptionV3Inner::BorrowedLiteral("-"),
+        FormatDescriptionV3Inner::Day(modifier::Day::default()),
+        FormatDescriptionV3Inner::BorrowedLiteral(" "),
+        FormatDescriptionV3Inner::Hour24(modifier::Hour24::default()),
+        FormatDescriptionV3Inner::BorrowedLiteral(":"),
+        FormatDescriptionV3Inner::Minute(modifier::Minute::default()),
+        FormatDescriptionV3Inner::BorrowedLiteral(":"),
+        FormatDescriptionV3Inner::Second(modifier::Second::default()),
+        FormatDescriptionV3Inner::BorrowedLiteral("."),
+        FormatDescriptionV3Inner::Subsecond(modifier::Subsecond::default()),
+        FormatDescriptionV3Inner::BorrowedLiteral(" "),
+        FormatDescriptionV3Inner::OffsetHour(
+            modifier::OffsetHour::default().with_sign_is_mandatory(true),
+        ),
+        FormatDescriptionV3Inner::BorrowedLiteral(":"),
+        FormatDescriptionV3Inner::OffsetMinute(modifier::OffsetMinute::default()),
+        FormatDescriptionV3Inner::BorrowedLiteral(":"),
+        FormatDescriptionV3Inner::OffsetSecond(modifier::OffsetSecond::default()),
+    ])
+    .into_opaque();
 
 impl Serialize for OffsetDateTime {
     #[inline]
@@ -375,11 +401,30 @@ impl<'a> Deserialize<'a> for OffsetDateTime {
 
 /// The format used when serializing and deserializing a human-readable `PrimitiveDateTime`.
 #[cfg(feature = "parsing")]
-const PRIMITIVE_DATE_TIME_FORMAT: StaticFormatDescription = &[
-    BorrowedFormatItem::Compound(DATE_FORMAT),
-    BorrowedFormatItem::StringLiteral(" "),
-    BorrowedFormatItem::Compound(TIME_FORMAT),
-];
+const PRIMITIVE_DATE_TIME_FORMAT: FormatDescriptionV3<'_> =
+    FormatDescriptionV3Inner::BorrowedCompound(&[
+        #[cfg(feature = "large-dates")]
+        FormatDescriptionV3Inner::CalendarYearFullExtendedRange(
+            modifier::CalendarYearFullExtendedRange::default(),
+        ),
+        #[cfg(not(feature = "large-dates"))]
+        FormatDescriptionV3Inner::CalendarYearFullStandardRange(
+            modifier::CalendarYearFullStandardRange::default(),
+        ),
+        FormatDescriptionV3Inner::BorrowedLiteral("-"),
+        FormatDescriptionV3Inner::MonthNumerical(modifier::MonthNumerical::default()),
+        FormatDescriptionV3Inner::BorrowedLiteral("-"),
+        FormatDescriptionV3Inner::Day(modifier::Day::default()),
+        FormatDescriptionV3Inner::BorrowedLiteral(" "),
+        FormatDescriptionV3Inner::Hour24(modifier::Hour24::default()),
+        FormatDescriptionV3Inner::BorrowedLiteral(":"),
+        FormatDescriptionV3Inner::Minute(modifier::Minute::default()),
+        FormatDescriptionV3Inner::BorrowedLiteral(":"),
+        FormatDescriptionV3Inner::Second(modifier::Second::default()),
+        FormatDescriptionV3Inner::BorrowedLiteral("."),
+        FormatDescriptionV3Inner::Subsecond(modifier::Subsecond::default()),
+    ])
+    .into_opaque();
 
 impl Serialize for PrimitiveDateTime {
     #[inline]
@@ -423,7 +468,7 @@ impl<'a> Deserialize<'a> for PrimitiveDateTime {
 
 /// The format used when serializing and deserializing a human-readable `UtcDateTime`.
 #[cfg(feature = "parsing")]
-const UTC_DATE_TIME_FORMAT: StaticFormatDescription = PRIMITIVE_DATE_TIME_FORMAT;
+const UTC_DATE_TIME_FORMAT: FormatDescriptionV3<'_> = PRIMITIVE_DATE_TIME_FORMAT;
 
 impl Serialize for UtcDateTime {
     #[inline]
@@ -467,15 +512,16 @@ impl<'a> Deserialize<'a> for UtcDateTime {
 
 /// The format used when serializing and deserializing a human-readable `Time`.
 #[cfg(feature = "parsing")]
-const TIME_FORMAT: StaticFormatDescription = &[
-    BorrowedFormatItem::Component(Component::Hour24(modifier::Hour24::default())),
-    BorrowedFormatItem::StringLiteral(":"),
-    BorrowedFormatItem::Component(Component::Minute(modifier::Minute::default())),
-    BorrowedFormatItem::StringLiteral(":"),
-    BorrowedFormatItem::Component(Component::Second(modifier::Second::default())),
-    BorrowedFormatItem::StringLiteral("."),
-    BorrowedFormatItem::Component(Component::Subsecond(modifier::Subsecond::default())),
-];
+const TIME_FORMAT: FormatDescriptionV3<'_> = FormatDescriptionV3Inner::BorrowedCompound(&[
+    FormatDescriptionV3Inner::Hour24(modifier::Hour24::default()),
+    FormatDescriptionV3Inner::BorrowedLiteral(":"),
+    FormatDescriptionV3Inner::Minute(modifier::Minute::default()),
+    FormatDescriptionV3Inner::BorrowedLiteral(":"),
+    FormatDescriptionV3Inner::Second(modifier::Second::default()),
+    FormatDescriptionV3Inner::BorrowedLiteral("."),
+    FormatDescriptionV3Inner::Subsecond(modifier::Subsecond::default()),
+])
+.into_opaque();
 
 impl Serialize for Time {
     #[inline]
@@ -511,27 +557,16 @@ impl<'a> Deserialize<'a> for Time {
 
 /// The format used when serializing and deserializing a human-readable `UtcOffset`.
 #[cfg(feature = "parsing")]
-const UTC_OFFSET_FORMAT: StaticFormatDescription = &[
-    BorrowedFormatItem::Component(Component::OffsetHour(
-        const {
-            let mut m = modifier::OffsetHour::default();
-            m.sign_is_mandatory = true;
-            m
-        },
-    )),
-    BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&[
-        BorrowedFormatItem::StringLiteral(":"),
-        BorrowedFormatItem::Component(Component::OffsetMinute(
-            const { modifier::OffsetMinute::default() },
-        )),
-        BorrowedFormatItem::Optional(&BorrowedFormatItem::Compound(&[
-            BorrowedFormatItem::StringLiteral(":"),
-            BorrowedFormatItem::Component(Component::OffsetSecond(
-                const { modifier::OffsetSecond::default() },
-            )),
-        ])),
-    ])),
-];
+const UTC_OFFSET_FORMAT: FormatDescriptionV3<'_> = FormatDescriptionV3Inner::BorrowedCompound(&[
+    FormatDescriptionV3Inner::OffsetHour(
+        modifier::OffsetHour::default().with_sign_is_mandatory(true),
+    ),
+    FormatDescriptionV3Inner::BorrowedLiteral(":"),
+    FormatDescriptionV3Inner::OffsetMinute(modifier::OffsetMinute::default()),
+    FormatDescriptionV3Inner::BorrowedLiteral(":"),
+    FormatDescriptionV3Inner::OffsetSecond(modifier::OffsetSecond::default()),
+])
+.into_opaque();
 
 impl Serialize for UtcOffset {
     #[inline]
