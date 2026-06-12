@@ -6,6 +6,73 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.48 [2026-06-12]
+
+### Security
+
+- The number of digits parsed by `[subsecond digits:1+]` is capped at 32 to avoid parsing unbounded
+  user input. Digits after the 9<sup>th</sup> have no semantic meaning.
+- Explicitly specify `#[repr]` for `Weekday`. The value of the variants is relied upon in multiple
+  locations for soundness. The practical effect of this change is nothing, as Rust has always mapped
+  C-like `enum`s to 0..N in memory.
+
+### Compatibility
+
+- Non-UTF-8 formatting and parsing is deprecated without replacement. It is recommended to only
+  format and parse valid UTF-8.
+- `format_description::parse` is deprecated. It is recommended to use
+  `format_description::parse_borrowed::<3>` or `format_description::parse_owned::<3>`.
+
+### Added
+
+- All types in the `unit` module have a generic parameter, though this is currently not used for
+  much. Usage will be expanded in the future.
+- Comparisons between types in the `unit` module and the generic `Unit` type are permitted.
+- Support for `rand` 0.10
+- Version 3 format descriptions
+  - Only UTF-8 is supported. As a side effect of this, `[ignore]` requires that the remaining input
+    not begin mid-codepoint.
+  - Representation is deliberately opaque to allow for arbitrary changes going forward.
+  - `format:false` is supported on `[optional]` components. This is not possible in version 1 and
+    version 2 format descriptions due to API compatibility.
+  - The `time::serde::format_description!` macro uses a new, clearer syntax for version 3.
+    - `time::serde::format_description!(mod foo [Date] = "[year]-[month]-[day]");`
+    - Unlike version 1 and version 2 format descriptions, the type is not automatically brought into
+      scope. You must import it yourself.
+  - Nonsensical combinations of modifiers are rejected. For example, you cannot specify
+    case-sensitivity when parsing a numerical month.
+  - `[year]` defaults to `range:standard`
+  - Components and modifiers are case sensitive (and always lowercase).
+
+### Changed
+
+- The `convert` module has been renamed to `unit`.
+
+### Fixed
+
+- Macro hygiene has been improved by specifying re-exports.
+- Fix handling of `T` in ISO 8601
+- Support parsing the full range of UTC offset hours
+- Version 1 nested format descriptions may now start with a component. Previously, a lexer bug
+  unintentionally prohibited this.
+- Error when ISO week date overflows the max year. This would previously panic.
+- Error when padding is specified in `strftime` format descriptions but the component is not. This
+  would previously panic.
+
+### Performance
+
+Huge performance gains across multiple areas, including:
+
+- optimizing equality checks for `Duration`
+- optimizing `Display` impls for all major types
+- optimizing the formatting of components and well-known formats
+- precomputing metadata when formatting, reducing allocations
+- adding fast path for typical RFC 2822 usage
+- optimizing `strftime` parsing
+- refactoring format description parsing
+
+Depending on the area, gains range from 3× to even 11×.
+
 ## 0.3.47 [2026-02-05]
 
 ### Security
