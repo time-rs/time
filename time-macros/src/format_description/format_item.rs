@@ -737,7 +737,7 @@ macro_rules! modifier {
                 type Type = target_ty!($name $($target_ty)?);
             }
 
-            impl From<$name> for <$name as ModifierValue>::Type {
+            impl From<$name> for target_ty!($name $($target_ty)?) {
                 #[inline]
                 fn from(modifier: $name) -> Self {
                     match modifier {
