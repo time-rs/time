@@ -700,7 +700,7 @@ macro_rules! modifier {
         }
 
         $(#[expect($expect_inner)])?
-        impl From<$name> for <$name as ModifierValue>::Type {
+        impl From<$name> for target_ty!($name $($target_ty)?) {
             #[inline]
             fn from(modifier: $name) -> Self {
                 match modifier {
