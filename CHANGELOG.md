@@ -6,7 +6,14 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
-## 0.3.48 [2026-06-12]
+## 0.3.49 [2026-06-13]
+
+### Fixed
+
+- Due to a long-standing bug in the Rust compiler, v0.3.48 caused a number of crates to stop
+  compiling. A patch has been added that avoids triggering the bug.
+
+## 0.3.48 [2026-06-12] [YANKED]
 
 ### Security
 
