@@ -16,7 +16,8 @@ use crate::error::ComponentRange;
 #[cfg(feature = "parsing")]
 use crate::format_description::well_known::*;
 use crate::{
-    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, Timestamp, UtcDateTime,
+    UtcOffset, Weekday,
 };
 
 /// A serde visitor for various types.
@@ -275,6 +276,23 @@ impl<'a> de::Visitor<'a> for Visitor<UtcOffset> {
         };
 
         UtcOffset::from_hms(hours, minutes, seconds).map_err(ComponentRange::into_de_error)
+    }
+}
+
+impl de::Visitor<'_> for Visitor<Timestamp> {
+    type Value = Timestamp;
+
+    #[inline]
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("a `Timestamp`")
+    }
+
+    #[inline]
+    fn visit_i128<E>(self, value: i128) -> Result<Timestamp, E>
+    where
+        E: de::Error,
+    {
+        Timestamp::from_nanoseconds(value).map_err(ComponentRange::into_de_error)
     }
 }
 

@@ -6,9 +6,7 @@
 
 use core::mem::MaybeUninit;
 use core::ops::Deref;
-#[cfg(feature = "formatting")]
-use core::ptr;
-use core::slice;
+use core::{ptr, slice};
 
 #[cfg(feature = "formatting")]
 use deranged::ru64;
@@ -66,14 +64,12 @@ impl<const MAX_LEN: usize> Deref for StackStr<MAX_LEN> {
 ///
 /// Note that while the _maximum_ length is known at compile time, the string may be shorter. This
 /// information is stored inline.
-#[cfg(feature = "formatting")]
 #[derive(Clone, Copy)]
 pub(crate) struct StackTrailingStr<const MAX_LEN: usize> {
     buf: [MaybeUninit<u8>; MAX_LEN],
     start_index: usize,
 }
 
-#[cfg(feature = "formatting")]
 impl<const MAX_LEN: usize> StackTrailingStr<MAX_LEN> {
     /// # Safety:
     ///
@@ -83,9 +79,18 @@ impl<const MAX_LEN: usize> StackTrailingStr<MAX_LEN> {
         debug_assert!(start_index <= MAX_LEN);
         Self { buf, start_index }
     }
+
+    /// Return the length of `self` in bytes.
+    #[inline]
+    pub(crate) const fn len(&self) -> usize {
+        let len = MAX_LEN - self.start_index;
+        // Safety: `self.start_index` is an unsigned integer, so `len` cannot be larger than
+        // `MAX_LEN` with the arithmetic above.
+        unsafe { core::hint::assert_unchecked(len <= MAX_LEN) };
+        len
+    }
 }
 
-#[cfg(feature = "formatting")]
 impl<const MAX_LEN: usize> Deref for StackTrailingStr<MAX_LEN> {
     type Target = str;
 
@@ -108,7 +113,6 @@ impl<const MAX_LEN: usize> Deref for StackTrailingStr<MAX_LEN> {
 ///
 /// `buf` must be at least `offset + 2` bytes long.
 #[inline]
-#[cfg(feature = "formatting")]
 const unsafe fn write_two_digits(buf: &mut [MaybeUninit<u8>], offset: usize, value: ru8<0, 99>) {
     // Safety: `buf` is at least `offset + 2` bytes long.
     unsafe {
@@ -126,7 +130,6 @@ const unsafe fn write_two_digits(buf: &mut [MaybeUninit<u8>], offset: usize, val
 ///
 /// `buf` must be at least `offset` bytes long.
 #[inline]
-#[cfg(feature = "formatting")]
 const unsafe fn write_one_digit(buf: &mut [MaybeUninit<u8>], offset: usize, value: ru8<0, 9>) {
     // Safety: `buf` is at least `offset` bytes long.
     unsafe {
@@ -437,7 +440,6 @@ pub(crate) const fn truncated_subsecond_from_nanos(n: ru32<0, 999_999_999>) -> S
 
 /// Format a `u64` into a string with no padding.
 #[inline]
-#[cfg(feature = "formatting")]
 pub(crate) const fn u64_pad_none(value: u64) -> StackTrailingStr<20> {
     let mut bytes = [MaybeUninit::uninit(); 20];
 

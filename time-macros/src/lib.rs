@@ -35,6 +35,7 @@ mod offset;
 #[cfg(all(feature = "serde", any(feature = "formatting", feature = "parsing")))]
 mod serde_format_description;
 mod time;
+mod timestamp;
 mod to_tokens;
 mod utc_datetime;
 
@@ -67,7 +68,7 @@ macro_rules! impl_macros {
     )*};
 }
 
-impl_macros![date datetime utc_datetime offset time];
+impl_macros![date datetime utc_datetime offset time timestamp];
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 type PeekableTokenStreamIter = Peekable<proc_macro::token_stream::IntoIter>;

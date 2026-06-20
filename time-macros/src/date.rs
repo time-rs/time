@@ -8,10 +8,12 @@ use crate::Error;
 use crate::helpers::{consume_number, consume_punct, days_in_year_month, ymd_to_yo, ywd_to_yo};
 use crate::to_tokens::ToTokenStream;
 
+pub(crate) const MIN_YEAR: i32 = -MAX_YEAR;
+
 #[cfg(feature = "large-dates")]
-const MAX_YEAR: i32 = 999_999;
+pub(crate) const MAX_YEAR: i32 = 999_999;
 #[cfg(not(feature = "large-dates"))]
-const MAX_YEAR: i32 = 9_999;
+pub(crate) const MAX_YEAR: i32 = 9_999;
 
 pub(crate) struct Date {
     pub(crate) year: i32,

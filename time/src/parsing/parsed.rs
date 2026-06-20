@@ -31,7 +31,8 @@ use crate::parsing::component::{
 };
 use crate::unit::{Day, Hour, Minute, Nanosecond, Second};
 use crate::{
-    Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday, error,
+    Date, Month, OffsetDateTime, PrimitiveDateTime, Time, Timestamp, UtcDateTime, UtcOffset,
+    Weekday, error,
 };
 
 /// Sealed to prevent downstream implementations.
@@ -1388,5 +1389,22 @@ impl TryFrom<Parsed> for OffsetDateTime {
             ));
         }
         Ok(dt)
+    }
+}
+
+impl TryFrom<Parsed> for Timestamp {
+    type Error = error::TryFromParsed;
+
+    #[inline]
+    fn try_from(parsed: Parsed) -> Result<Self, Self::Error> {
+        // Fast path for when we have a timestamp.
+        if let Some(timestamp) = parsed.unix_timestamp_nanos() {
+            return Ok(Self::from_nanoseconds(timestamp)?);
+        }
+        // If that's not the case, fall back to a `UtcDateTime` and its parsing.
+        if let Ok(dt) = UtcDateTime::try_from(parsed) {
+            return Ok(dt.into());
+        }
+        Err(InsufficientInformation)
     }
 }

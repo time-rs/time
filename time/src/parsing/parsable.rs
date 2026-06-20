@@ -40,7 +40,7 @@ impl<T> Parsable for T where T: Deref<Target: Parsable> {}
 /// exist in generic bounds.
 mod sealed {
     use super::*;
-    use crate::{PrimitiveDateTime, UtcDateTime};
+    use crate::{PrimitiveDateTime, Timestamp, UtcDateTime};
 
     /// Parse the item using a format description and an input.
     pub trait Sealed {
@@ -105,6 +105,12 @@ mod sealed {
         /// Parse a [`OffsetDateTime`] from the format description.
         #[inline]
         fn parse_offset_date_time(&self, input: &[u8]) -> Result<OffsetDateTime, error::Parse> {
+            Ok(self.parse(input)?.try_into()?)
+        }
+
+        /// Parse a [`Timestamp`] from the format description.
+        #[inline]
+        fn parse_timestamp(&self, input: &[u8]) -> Result<Timestamp, error::Parse> {
             Ok(self.parse(input)?.try_into()?)
         }
     }

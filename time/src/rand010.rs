@@ -4,7 +4,8 @@ use rand010::distr::{Distribution, StandardUniform};
 use rand010::{Rng, RngExt as _};
 
 use crate::{
-    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, Timestamp, UtcDateTime,
+    UtcOffset, Weekday,
 };
 
 impl Distribution<Time> for StandardUniform {
@@ -70,6 +71,16 @@ impl Distribution<OffsetDateTime> for StandardUniform {
     {
         let date_time: PrimitiveDateTime = Self.sample(rng);
         date_time.assume_offset(Self.sample(rng))
+    }
+}
+
+impl Distribution<Timestamp> for StandardUniform {
+    #[inline]
+    fn sample<R>(&self, rng: &mut R) -> Timestamp
+    where
+        R: Rng + ?Sized,
+    {
+        Timestamp::new_ranged(rng.random(), rng.random())
     }
 }
 

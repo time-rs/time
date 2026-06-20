@@ -8,7 +8,8 @@ use crate::formatting::{
 use crate::time::{Hours, Minutes, Nanoseconds, Seconds};
 use crate::utc_offset::{Hours as OffsetHours, Minutes as OffsetMinutes, Seconds as OffsetSeconds};
 use crate::{
-    Date, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+    Date, Month, OffsetDateTime, PrimitiveDateTime, Time, Timestamp, UtcDateTime, UtcOffset,
+    Weekday,
 };
 
 /// State used by date-providing types to cache computed values.
@@ -21,6 +22,17 @@ pub(crate) struct DateState {
     month: Option<Month>,
     iso_week: OptionIsoWeekNumber,
     iso_year: OptionYear,
+}
+
+/// State used by `Timestamp` to cache computed date and time values.
+///
+/// `Date` and `Time` are cached separately, with the `Date`'s state being stored to allow for
+/// reusing existing methods.
+#[derive(Debug, Default)]
+pub(crate) struct TimestampState {
+    date: Option<Date>,
+    time: Option<Time>,
+    date_state: <Date as ComponentProvider>::State,
 }
 
 macro_rules! unimplemented_methods {
@@ -436,5 +448,144 @@ impl ComponentProvider for OffsetDateTime {
     #[inline]
     fn unix_timestamp_nanoseconds(&self, _: &mut Self::State) -> i128 {
         (*self).unix_timestamp_nanos()
+    }
+}
+
+impl ComponentProvider for Timestamp {
+    type State = TimestampState;
+
+    const SUPPLIES_DATE: bool = true;
+    const SUPPLIES_TIME: bool = true;
+    const SUPPLIES_OFFSET: bool = true;
+    const SUPPLIES_TIMESTAMP: bool = true;
+
+    #[inline]
+    fn day(&self, state: &mut Self::State) -> Day {
+        let date = state.date.get_or_insert_with(|| self.date());
+        ComponentProvider::day(date, &mut state.date_state)
+    }
+
+    #[inline]
+    fn month(&self, state: &mut Self::State) -> Month {
+        let date = state.date.get_or_insert_with(|| self.date());
+        ComponentProvider::month(date, &mut state.date_state)
+    }
+
+    #[inline]
+    fn ordinal(&self, state: &mut Self::State) -> Ordinal {
+        let date = state.date.get_or_insert_with(|| self.date());
+        ComponentProvider::ordinal(date, &mut state.date_state)
+    }
+
+    #[inline]
+    fn weekday(&self, state: &mut Self::State) -> Weekday {
+        let date = state.date.get_or_insert_with(|| self.date());
+        ComponentProvider::weekday(date, &mut state.date_state)
+    }
+
+    #[inline]
+    fn iso_week_number(&self, state: &mut Self::State) -> IsoWeekNumber {
+        let date = state.date.get_or_insert_with(|| self.date());
+        ComponentProvider::iso_week_number(date, &mut state.date_state)
+    }
+
+    #[inline]
+    fn monday_based_week(&self, state: &mut Self::State) -> MondayBasedWeek {
+        let date = state.date.get_or_insert_with(|| self.date());
+        ComponentProvider::monday_based_week(date, &mut state.date_state)
+    }
+
+    #[inline]
+    fn sunday_based_week(&self, state: &mut Self::State) -> SundayBasedWeek {
+        let date = state.date.get_or_insert_with(|| self.date());
+        ComponentProvider::sunday_based_week(date, &mut state.date_state)
+    }
+
+    #[inline]
+    fn calendar_year(&self, state: &mut Self::State) -> Year {
+        let date = state.date.get_or_insert_with(|| self.date());
+        ComponentProvider::calendar_year(date, &mut state.date_state)
+    }
+
+    #[inline]
+    fn iso_year(&self, state: &mut Self::State) -> Year {
+        let date = state.date.get_or_insert_with(|| self.date());
+        ComponentProvider::iso_year(date, &mut state.date_state)
+    }
+
+    #[inline]
+    fn hour(&self, state: &mut Self::State) -> Hours {
+        let time = state.time.get_or_insert_with(|| self.time());
+        ComponentProvider::hour(time, &mut ())
+    }
+
+    #[inline]
+    fn minute(&self, state: &mut Self::State) -> Minutes {
+        let time = state.time.get_or_insert_with(|| self.time());
+        ComponentProvider::minute(time, &mut ())
+    }
+
+    #[inline]
+    fn period(&self, state: &mut Self::State) -> Period {
+        let time = state.time.get_or_insert_with(|| self.time());
+        ComponentProvider::period(time, &mut ())
+    }
+
+    #[inline]
+    fn second(&self, state: &mut Self::State) -> Seconds {
+        let time = state.time.get_or_insert_with(|| self.time());
+        ComponentProvider::second(time, &mut ())
+    }
+
+    #[inline]
+    fn nanosecond(&self, _: &mut Self::State) -> Nanoseconds {
+        // No need to cache time here, as nanosecond is stored separately in `Timestamp` and can be
+        // directly accessed.
+        self.as_parts_ranged().1
+    }
+
+    #[inline]
+    fn offset_is_negative(&self, _: &mut Self::State) -> bool {
+        false
+    }
+
+    #[inline]
+    fn offset_is_utc(&self, _: &mut Self::State) -> bool {
+        true
+    }
+
+    #[inline]
+    fn offset_hour(&self, _: &mut Self::State) -> OffsetHours {
+        OffsetHours::new_static::<0>()
+    }
+
+    #[inline]
+    fn offset_minute(&self, _: &mut Self::State) -> OffsetMinutes {
+        OffsetMinutes::new_static::<0>()
+    }
+
+    #[inline]
+    fn offset_second(&self, _: &mut Self::State) -> OffsetSeconds {
+        OffsetSeconds::new_static::<0>()
+    }
+
+    #[inline]
+    fn unix_timestamp_seconds(&self, _: &mut Self::State) -> i64 {
+        self.as_seconds()
+    }
+
+    #[inline]
+    fn unix_timestamp_milliseconds(&self, _: &mut Self::State) -> i64 {
+        self.as_milliseconds()
+    }
+
+    #[inline]
+    fn unix_timestamp_microseconds(&self, _: &mut Self::State) -> i128 {
+        self.as_microseconds()
+    }
+
+    #[inline]
+    fn unix_timestamp_nanoseconds(&self, _: &mut Self::State) -> i128 {
+        self.as_nanoseconds()
     }
 }

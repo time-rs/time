@@ -131,6 +131,7 @@ mod sys;
 #[cfg(test)]
 mod tests;
 mod time;
+mod timestamp;
 mod utc_date_time;
 mod utc_offset;
 pub mod util;
@@ -149,6 +150,7 @@ pub use crate::month::Month;
 pub use crate::offset_date_time::OffsetDateTime;
 pub use crate::primitive_date_time::PrimitiveDateTime;
 pub use crate::time::Time;
+pub use crate::timestamp::Timestamp;
 pub use crate::utc_date_time::UtcDateTime;
 pub use crate::utc_offset::UtcOffset;
 pub use crate::weekday::Weekday;

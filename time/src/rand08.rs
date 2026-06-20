@@ -4,7 +4,8 @@ use rand08::Rng;
 use rand08::distributions::{Distribution, Standard};
 
 use crate::{
-    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, Timestamp, UtcDateTime,
+    UtcOffset, Weekday,
 };
 
 impl Distribution<Time> for Standard {
@@ -70,6 +71,13 @@ impl Distribution<OffsetDateTime> for Standard {
     {
         let date_time: PrimitiveDateTime = Self.sample(rng);
         date_time.assume_offset(Self.sample(rng))
+    }
+}
+
+impl Distribution<Timestamp> for Standard {
+    #[inline]
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Timestamp {
+        Timestamp::new_ranged(rng.r#gen(), rng.r#gen())
     }
 }
 
