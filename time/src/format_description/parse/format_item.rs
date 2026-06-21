@@ -201,6 +201,7 @@ macro_rules! component_definition {
                     try_likely_ok!($variant::with_modifiers::<VERSION>(&modifiers, name.span))
                 );
                 component_definition!(@if_year $parse_variant
+                    #[cfg(feature = "large-dates")]
                     if version!(3..)
                         && let AstComponent::Year(y) = &mut component
                         && y.range.value.is_none()
