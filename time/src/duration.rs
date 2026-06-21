@@ -232,6 +232,7 @@ macro_rules! try_from_secs {
 }
 
 impl Duration {
+    #[inline]
     const fn as_int_for_equality(self) -> i128 {
         // Safety: There are no padding bytes that are not permitted to be read.
         unsafe { core::mem::transmute(self) }
