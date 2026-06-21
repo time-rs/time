@@ -810,7 +810,23 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as i32));
+        let year = self.year();
+        let is_leap_year = self.is_in_leap_year();
+        let ordinal = self.ordinal() as i32;
+
+        let days_in_year = if is_leap_year { 366 } else { 365 };
+        let whole_days = whole_days as i32;
+
+        // Fast path for when the result is in the same year.
+        if let Some(new_ordinal) = ordinal.checked_add(whole_days)
+            && new_ordinal >= 1
+            && new_ordinal <= days_in_year
+        {
+            // Safety: `new_ordinal` is in range and `is_leap_year` is correct
+            return Some(unsafe { Self::from_parts(year, is_leap_year, new_ordinal as u16) });
+        }
+
+        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
@@ -854,7 +870,23 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as i32));
+        let year = self.year();
+        let is_leap_year = self.is_in_leap_year();
+        let ordinal = self.ordinal() as i32;
+
+        let days_in_year = if is_leap_year { 366 } else { 365 };
+        let whole_days = whole_days as i32;
+
+        // Fast path for when the result is in the same year.
+        if let Some(new_ordinal) = ordinal.checked_add(whole_days)
+            && new_ordinal >= 1
+            && new_ordinal <= days_in_year
+        {
+            // Safety: `new_ordinal` is in range and `is_leap_year` is correct
+            return Some(unsafe { Self::from_parts(year, is_leap_year, new_ordinal as u16) });
+        }
+
+        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
@@ -900,7 +932,23 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as i32));
+        let year = self.year();
+        let is_leap_year = self.is_in_leap_year();
+        let ordinal = self.ordinal() as i32;
+
+        let days_in_year = if is_leap_year { 366 } else { 365 };
+        let whole_days = whole_days as i32;
+
+        // Fast path for when the result is in the same year.
+        if let Some(new_ordinal) = ordinal.checked_sub(whole_days)
+            && new_ordinal >= 1
+            && new_ordinal <= days_in_year
+        {
+            // Safety: `new_ordinal` is in range and `is_leap_year` is correct
+            return Some(unsafe { Self::from_parts(year, is_leap_year, new_ordinal as u16) });
+        }
+
+        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
@@ -944,7 +992,23 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as i32));
+        let year = self.year();
+        let is_leap_year = self.is_in_leap_year();
+        let ordinal = self.ordinal() as i32;
+
+        let days_in_year = if is_leap_year { 366 } else { 365 };
+        let whole_days = whole_days as i32;
+
+        // Fast path for when the result is in the same year.
+        if let Some(new_ordinal) = ordinal.checked_sub(whole_days)
+            && new_ordinal >= 1
+            && new_ordinal <= days_in_year
+        {
+            // Safety: `new_ordinal` is in range and `is_leap_year` is correct
+            return Some(unsafe { Self::from_parts(year, is_leap_year, new_ordinal as u16) });
+        }
+
+        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
