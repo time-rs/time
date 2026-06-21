@@ -49,10 +49,24 @@ pub(crate) fn consume_number<T: FromStr>(
     chars: &mut Peekable<token_stream::IntoIter>,
 ) -> Result<(Span, T), Error> {
     match chars.next() {
-        Some(TokenTree::Literal(literal)) => Ok((
-            literal.span(),
-            parse_number(component_name, &literal.to_string())?,
-        )),
+        Some(TokenTree::Literal(literal)) => {
+            let span = literal.span();
+            match parse_number(component_name, &literal.to_string()) {
+                Ok(val) => Ok((span, val)),
+                Err(Error::InvalidComponent {
+                    name,
+                    value,
+                    span_start: _,
+                    span_end: _,
+                }) => Err(Error::InvalidComponent {
+                    name,
+                    value,
+                    span_start: Some(span.start()),
+                    span_end: Some(span.end()),
+                }),
+                Err(e) => Err(e),
+            }
+        }
         Some(tree) => Err(Error::UnexpectedToken { tree }),
         None => Err(Error::UnexpectedEndOfInput),
     }
