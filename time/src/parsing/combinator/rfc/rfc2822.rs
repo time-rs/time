@@ -46,10 +46,7 @@ pub(crate) fn cfws(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
             return None;
         }
 
-        if !matches!(
-            input.get(1),
-            Some(b'(' | b' ' | b'\r' | b'\n' | b'\t' | b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9')
-        ) {
+        if !matches!(input.get(1), Some(b'(' | b' ' | b'\r' | b'\n' | b'\t')) {
             return Some(ParsedItem(&input[1..], ()));
         }
     }
