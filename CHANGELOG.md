@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.50 [2026-06-22]
+
+### Added
+
+- `Timestamp` type
+
+### Fixed
+
+- `[year]` in a runtime-parsed version 3 format description when the `large-dates` feature is not
+  enabled now succeeds. This previously failed due to a missing `#[cfg]`.
+
+### Performance
+
+- Further gains when parsing with the non-deprecated parts of the RFC 2822 well-known format
+- Gains when formatting with the ISO 8601 well-known format
+- `Date` arithmetic is improved in common situations
+
 ## 0.3.49 [2026-06-13]
 
 ### Fixed
