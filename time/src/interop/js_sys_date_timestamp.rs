@@ -1,7 +1,4 @@
-use num_conv::prelude::*;
-
 use crate::Timestamp;
-use crate::convert::*;
 
 impl From<js_sys::Date> for Timestamp {
     /// # Panics
