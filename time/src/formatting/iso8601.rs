@@ -1,5 +1,6 @@
 //! Helpers for implementing formatting for ISO 8601.
 
+use core::cmp::min;
 use std::io;
 
 use deranged::{ru8, ru16, ru32};
@@ -12,9 +13,9 @@ use crate::format_description::well_known::iso8601::{
     DateKind, EncodedConfig, OffsetPrecision, TimePrecision,
 };
 use crate::formatting::{
-    ComponentProvider, format_float, format_four_digits_pad_zero, format_single_digit,
-    format_six_digits_pad_zero, format_three_digits, format_two_digits, write, write_if,
-    write_if_else,
+    ComponentProvider, format_float, format_four_digits_pad_zero, format_int_padded,
+    format_single_digit, format_six_digits_pad_zero, format_three_digits, format_two_digits, write,
+    write_if, write_if_else,
 };
 use crate::unit::*;
 
@@ -142,9 +143,29 @@ where
             bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, ":")?;
             bytes += format_two_digits(output, value.minute(state).expand(), Padding::Zero)?;
             bytes += write_if(output, Iso8601::<CONFIG>::USE_SEPARATORS, ":")?;
-            let seconds = (value.second(state).get() as f64)
-                + (value.nanosecond(state).get() as f64) / Nanosecond::per_t::<f64>(Second);
-            bytes += format_float(output, seconds, 2, decimal_digits)?;
+            bytes += format_two_digits(output, value.second(state).expand(), Padding::Zero)?;
+            if let Some(digits) = decimal_digits {
+                const POW_TABLE: [u64; 9] = [
+                    1,
+                    10,
+                    100,
+                    1_000,
+                    10_000,
+                    100_000,
+                    1_000_000,
+                    10_000_000,
+                    100_000_000,
+                ];
+
+                bytes += write(output, ".")?;
+                let nano = value.nanosecond(state).get() as u64;
+                let sub_digits = min(digits.get(), 9);
+                let truncated = nano / POW_TABLE[9 - sub_digits as usize];
+                bytes += format_int_padded(output, truncated, sub_digits)?;
+                for _ in 9..digits.get() {
+                    bytes += write(output, "0")?;
+                }
+            }
         }
     }
 

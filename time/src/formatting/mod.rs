@@ -131,6 +131,25 @@ fn f64_10_pow_x(x: NonZero<u8>) -> f64 {
     }
 }
 
+/// Write an integer with zeros as trailing padding if necessary to reach the requested width.
+///
+/// This function is intended to be used for formatting the fractional part of a value, as the
+/// trailing zeros would change the semantic meaning for non-fractional values.
+#[inline]
+fn format_int_padded(
+    output: &mut (impl io::Write + ?Sized),
+    value: u64,
+    width: u8,
+) -> io::Result<usize> {
+    let s = num_fmt::u64_pad_none(value);
+    let digit_count = s.len() as u8;
+    for _ in digit_count..width {
+        try_likely_ok!(output.write_all(b"0"));
+    }
+    try_likely_ok!(output.write_all(s.as_bytes()));
+    Ok(width as usize)
+}
+
 /// Write the floating point number to the output, returning the number of bytes written.
 ///
 /// This method accepts the number of digits before and after the decimal. The value will be padded
@@ -159,19 +178,39 @@ pub(crate) fn format_float(
             if digits_after_decimal.get() < 9 {
                 let trunc_num = f64_10_pow_x(digits_after_decimal);
                 value = f64::trunc(value * trunc_num) / trunc_num;
-            }
 
-            let digits_after_decimal = digits_after_decimal.get().widen();
-            let width = digits_before_decimal.widen::<usize>() + 1 + digits_after_decimal;
-            try_likely_ok!(write!(output, "{value:0>width$.digits_after_decimal$}"));
-            Ok(width)
+                let int_part = value.trunc() as u64;
+                let frac_part =
+                    f64::round(value.fract() * f64_10_pow_x(digits_after_decimal)) as u64;
+
+                let width = digits_before_decimal.widen::<usize>()
+                    + 1
+                    + digits_after_decimal.get().widen::<usize>();
+
+                try_likely_ok!(format_int_padded(
+                    output,
+                    int_part,
+                    digits_before_decimal.widen()
+                ));
+                try_likely_ok!(output.write_all(b"."));
+                try_likely_ok!(format_int_padded(
+                    output,
+                    frac_part,
+                    digits_after_decimal.get().widen()
+                ));
+
+                Ok(width)
+            } else {
+                // For precision >= 9, use write! to avoid off-by-one errors from floating point
+                // rounding (see #724). Integer extraction of the fractional part could overflow
+                // the digit count when rounding causes a carry.
+                let digits_after = digits_after_decimal.get().widen::<usize>();
+                let width = digits_before_decimal.widen::<usize>() + 1 + digits_after;
+                try_likely_ok!(write!(output, "{value:0>width$.digits_after$}"));
+                Ok(width)
+            }
         }
-        None => {
-            let value = value.trunc() as u64;
-            let width = digits_before_decimal.widen();
-            try_likely_ok!(write!(output, "{value:0>width$}"));
-            Ok(width)
-        }
+        None => format_int_padded(output, value.trunc() as u64, digits_before_decimal),
     }
 }
 
