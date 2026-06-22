@@ -171,6 +171,15 @@ fn iso_8601_time(#[case] value: Time, #[case] format: impl Formattable, #[case] 
     Iso8601::<{ iso8601::Config::DEFAULT.set_date_kind(DateKind::Week).encode() }>,
     "2020-W53-6T03:04:05.000000000Z",
 )]
+#[case::issue_773(
+    datetime!(2026-03-23 09:27:03.631670 UTC),
+    Iso8601::<{
+        iso8601::Config::DEFAULT
+            .set_time_precision(TimePrecision::Second { decimal_digits: NonZero::new(6) })
+            .encode()
+    }>,
+    "2026-03-23T09:27:03.631670Z",
+)]
 fn iso_8601_odt(
     #[case] value: OffsetDateTime,
     #[case] format: impl Formattable,
