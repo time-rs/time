@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.51 [2026-06-22]
+
+### Fixed
+
+- `time` compiles with `macros` enabled. This version is otherwise identical to v0.3.50.
+
 ## 0.3.50 [2026-06-22]
 
 ### Added
