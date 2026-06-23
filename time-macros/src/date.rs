@@ -97,7 +97,7 @@ pub(crate) fn parse(chars: &mut Peekable<token_stream::IntoIter>) -> Result<Date
             });
         }
 
-        let (year, ordinal) = ywd_to_yo(year, week, day);
+        let (year, ordinal) = ywd_to_yo(year, week, day, day_span)?;
 
         return Ok(Date { year, ordinal });
     }

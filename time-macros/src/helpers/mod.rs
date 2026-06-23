@@ -9,6 +9,7 @@ use proc_macro::{Span, TokenTree, token_stream};
 use time_core::util::{days_in_year, is_leap_year};
 
 use crate::Error;
+use crate::date::MAX_YEAR;
 
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 pub(crate) fn get_string_literal(
@@ -128,19 +129,32 @@ pub(crate) fn days_in_year_month(year: i32, month: u8) -> u8 {
         + u8::from(month == 2 && is_leap_year(year))
 }
 
-pub(crate) fn ywd_to_yo(year: i32, week: u8, iso_weekday_number: u8) -> (i32, u16) {
+pub(crate) fn ywd_to_yo(
+    year: i32,
+    week: u8,
+    iso_weekday_number: u8,
+    iso_weekday_span: Span,
+) -> Result<(i32, u16), Error> {
     let (ordinal, overflow) = (u16::from(week) * 7 + u16::from(iso_weekday_number))
         .overflowing_sub(u16::from(jan_weekday(year, 4)) + 4);
 
     if overflow || ordinal == 0 {
-        return (year - 1, (ordinal.wrapping_add(days_in_year(year - 1))));
+        return Ok((year - 1, (ordinal.wrapping_add(days_in_year(year - 1)))));
     }
 
     let days_in_cur_year = days_in_year(year);
     if ordinal > days_in_cur_year {
-        (year + 1, ordinal - days_in_cur_year)
+        if year == MAX_YEAR {
+            return Err(Error::InvalidComponent {
+                name: "weekday",
+                value: iso_weekday_number.to_string(),
+                span_start: Some(iso_weekday_span),
+                span_end: Some(iso_weekday_span),
+            });
+        }
+        Ok((year + 1, ordinal - days_in_cur_year))
     } else {
-        (year, ordinal)
+        Ok((year, ordinal))
     }
 }
 
