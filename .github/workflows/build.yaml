@@ -6,24 +6,25 @@ concurrency:
 
 env:
   __MSRV: &msrv "1.88.0"
-  TYPE_CHECK_TARGETS: '{
-    "no_std": [
-    "thumbv7em-none-eabihf"
-    ],
-    "std_no_offset": [
-    "x86_64-unknown-netbsd",
-    "x86_64-unknown-illumos",
-    "wasm32-wasip1"
-    ],
-    "std_with_offset": [
-    "x86_64-unknown-linux-gnu",
-    "x86_64-apple-darwin",
-    "x86_64-pc-windows-gnu"
-    ],
-    "wasm": [
-    "wasm32-unknown-unknown"
-    ]
-    }'
+  TYPE_CHECK_TARGETS: >
+    {
+      "no_std": [
+        "thumbv7em-none-eabihf"
+      ],
+      "std_no_offset": [
+        "x86_64-unknown-netbsd",
+        "x86_64-unknown-illumos",
+        "wasm32-wasip1"
+      ],
+      "std_with_offset": [
+        "x86_64-unknown-linux-gnu",
+        "x86_64-apple-darwin",
+        "x86_64-pc-windows-gnu"
+      ],
+      "wasm": [
+        "wasm32-unknown-unknown"
+      ]
+    }
 
 defaults:
   run:
@@ -96,22 +97,24 @@ jobs:
     steps:
       - &checkout
         name: Checkout sources
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - &cache
         name: Cache cargo output
         uses: Swatinem/rust-cache@v2
 
       - name: Generate target list
+        id: generate-target-list
         run: |
-          echo $TYPE_CHECK_TARGETS \
-          | jq -r '${{ matrix.kind.query }} | join(",") | "TARGETS=" + .' >> $GITHUB_ENV
+          echo "TARGETS<<EOF" >> $GITHUB_OUTPUT
+          echo "$TYPE_CHECK_TARGETS" | jq -r '${{ matrix.kind.query }} | join(",")' >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust.version }}
-          targets: ${{ env.TARGETS }}
+          targets: ${{ steps.generate-target-list.outputs.TARGETS }}
 
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
@@ -288,7 +291,7 @@ jobs:
     steps:
       - &checkout-no-persist-credentials
         name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -336,7 +339,7 @@ jobs:
       - name: Generate coverage report
         run: |
           cargo llvm-cov clean --workspace
-          cargo llvm-cov test -p time --no-report --all-features -- --test-threads=1
+          cargo llvm-cov test -p time --no-report --all-features
           cargo llvm-cov report --lcov > lcov.txt
         env:
           RUSTFLAGS: --cfg __ui_tests
