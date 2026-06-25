@@ -6,6 +6,8 @@ concurrency:
 
 env:
   __MSRV: &msrv "1.88.0"
+  CHECK_SHARDS: 7 # for *each* MSRV and stable, so double for total check jobs
+  MIRI_SHARDS: 5
   TYPE_CHECK_TARGETS: >
     {
       "no_std": [
@@ -47,52 +49,47 @@ on:
       - .editorconfig
       - .gitignore
       - logo.svg
-
 jobs:
-  check-targets:
-    name: Type checking (${{ matrix.rust.name }}, ${{ matrix.kind.name }})
+  compute-shards:
+    name: Compute shards
     runs-on: &default-os ubuntu-latest
     if: &pr-or-push (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push'
+    outputs:
+      check-matrix: ${{ steps.build-check-matrix.outputs.matrix }}
+      miri-matrix: ${{ steps.build-miri-matrix.outputs.matrix }}
+    steps:
+      - name: Build check matrix
+        id: build-check-matrix
+        run: |
+          MATRIX=$(jq -c -n \
+            --argjson shards "${{ env.CHECK_SHARDS }}" \
+            --arg msrv "${{ env.__MSRV }}" \
+            '[
+              range(1; $shards + 1) as $shard |
+              {shard: $shard, version: $msrv, name: "MSRV"},
+              {shard: $shard, version: "stable", name: "stable"}
+            ]')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+      - name: Build miri matrix
+        id: build-miri-matrix
+        run: |
+          MATRIX=$(jq -c -n \
+            --argjson shards "${{ env.MIRI_SHARDS }}" \
+            '[
+              range(1; $shards + 1) as $shard |
+              {shard: $shard}
+            ]')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+  check-targets:
+    name: Type checking (${{ matrix.name }}, shard ${{ matrix.shard }})
+    runs-on: *default-os
+    needs: compute-shards
+    if: *pr-or-push
     strategy:
       matrix:
-        rust: &rust-versions
-          - { version: *msrv, name: MSRV }
-          - { version: stable, name: stable }
-        kind:
-          - name: no_std
-            query: .no_std + .std_no_offset + .std_with_offset
-            exclude-features:
-              - std
-              - wasm-bindgen
-              - formatting
-              - serde-human-readable
-              - serde-well-known
-              - local-offset
-              - quickcheck
-            group-features:
-              - [serde, rand]
-          - name: std_no_offset
-            query: .std_no_offset + .std_with_offset
-            exclude-features: [wasm-bindgen, local-offset]
-            enable-features: [std]
-            group-features:
-              - [serde, rand]
-              - [formatting, parsing]
-              - [serde-human-readable, serde-well-known]
-          - name: std_with_offset
-            query: .std_with_offset
-            enable-features: [wasm-bindgen, std, local-offset]
-            group-features:
-              - [serde, rand]
-              - [formatting, parsing]
-              - [serde-human-readable, serde-well-known]
-          - name: wasm
-            query: .wasm
-            exclude-features:
-              [rand, rand08, rand09, rand010, quickcheck, local-offset]
-            group-features:
-              - [formatting, parsing]
-              - [serde-human-readable, serde-well-known]
+        include: ${{ fromJSON(needs.compute-shards.outputs.check-matrix) }}
 
     steps:
       - &checkout
@@ -103,42 +100,156 @@ jobs:
         name: Cache cargo output
         uses: Swatinem/rust-cache@v2
 
-      - name: Generate target list
-        id: generate-target-list
-        run: |
-          echo "TARGETS<<EOF" >> $GITHUB_OUTPUT
-          echo "$TYPE_CHECK_TARGETS" | jq -r '${{ matrix.kind.query }} | join(",")' >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ matrix.rust.version }}
-          targets: ${{ steps.generate-target-list.outputs.TARGETS }}
+          toolchain: ${{ matrix.version }}
 
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
 
-      - name: Check feature powerset
-        env:
-          GROUP_FEATURES: ${{ toJSON(matrix.kind.group-features) }}
+      - name: Remove dev-dependencies
         run: |
-          echo $GROUP_FEATURES \
-          | jq -r '[.[] | join(",")] | map("--group-features " + .) | join(" ")' \
-          | xargs -d" " \
-          | ( \
-          echo $TYPE_CHECK_TARGETS \
-          | jq -r '${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
-          | xargs -d" " \
-          cargo hack check \
-          -p time \
-          --no-dev-deps \
-          --feature-powerset \
-          --optional-deps \
-          --exclude-features default,${{ join(matrix.kind.exclude-features) }} \
-          --features macros,${{ join(matrix.kind.enable-features) }} \
-          --exclude-all-features \
-          )
+          cargo hack check --remove-dev-deps -p time --features macros --target x86_64-unknown-linux-gnu
+
+      - name: Generate shard commands
+        id: generate
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          set -euo pipefail
+
+          CHECK_SHARDS='${{ env.CHECK_SHARDS }}'
+          ALL_COMMANDS=$(mktemp)
+
+          for kind in no_std std_no_offset std_with_offset wasm; do
+            case "$kind" in
+              no_std)
+                query='.no_std + .std_no_offset + .std_with_offset'
+                exclude='std,wasm-bindgen,formatting,serde-human-readable,serde-well-known,local-offset,quickcheck'
+                enable='macros'
+                groups=(
+                  --group-features 'serde,rand'
+                )
+                ;;
+              std_no_offset)
+                query='.std_no_offset + .std_with_offset'
+                exclude='wasm-bindgen,local-offset'
+                enable='macros,std'
+                groups=(
+                  --group-features 'serde,rand'
+                  --group-features 'formatting,parsing'
+                  --group-features 'serde-human-readable,serde-well-known'
+                )
+                ;;
+              std_with_offset)
+                query='.std_with_offset'
+                exclude=''
+                enable='macros,wasm-bindgen,std,local-offset'
+                groups=(
+                  --group-features 'serde,rand'
+                  --group-features 'formatting,parsing'
+                  --group-features 'serde-human-readable,serde-well-known'
+                )
+                ;;
+              wasm)
+                query='.wasm'
+                exclude='rand,rand08,rand09,rand010,quickcheck,local-offset'
+                enable='macros'
+                groups=(
+                  --group-features 'formatting,parsing'
+                  --group-features 'serde-human-readable,serde-well-known'
+                )
+                ;;
+            esac
+
+            TARGET_ARGS=$(echo "$TYPE_CHECK_TARGETS" \
+              | jq -r "$query | map(\"--target \" + .) | join(\" \")")
+            [ -z "$TARGET_ARGS" ] && continue
+
+            echo "$TARGET_ARGS" \
+            | xargs -d" " \
+            cargo hack --print-command-list check \
+              -p time \
+              --feature-powerset \
+              --optional-deps \
+              --exclude-features "default,$exclude" \
+              --features "$enable" \
+              "${groups[@]}" \
+              --exclude-all-features \
+              2>/dev/null \
+            | grep -v '^info:' \
+            | awk '{
+                if ($0 ~ /^ /) {
+                  cmd = cmd $0
+                } else {
+                  if (cmd != "") split_and_print(cmd)
+                  cmd = $0
+                }
+              }
+              END {
+                if (cmd != "") split_and_print(cmd)
+              }
+
+              function split_and_print(c) {
+                n = split(c, parts, " ")
+                prefix = ""
+                delete targets
+                idx = 0
+                for (i = 1; i <= n; i++) {
+                  if (parts[i] == "--target") {
+                    targets[++idx] = parts[++i]
+                  } else {
+                    if (prefix == "") {
+                      prefix = parts[i]
+                    } else {
+                      prefix = prefix " " parts[i]
+                    }
+                  }
+                }
+                for (i = 1; i <= idx; i++) {
+                  print prefix " --target " targets[i]
+                }
+              }' \
+            >> "$ALL_COMMANDS"
+          done
+
+          TOTAL_COMMANDS=$(wc -l < "$ALL_COMMANDS")
+          echo "$TOTAL_COMMANDS total commands"
+
+          FILTERED_COMMANDS=$(mktemp)
+          awk -v shards="$CHECK_SHARDS" -v shard="$SHARD" \
+            '(NR-1) % shards == (shard - 1)' \
+            "$ALL_COMMANDS" > "$FILTERED_COMMANDS"
+
+          SHARD_COMMANDS=$(wc -l < "$FILTERED_COMMANDS")
+          echo "$SHARD_COMMANDS commands in shard $SHARD"
+          echo "count=$SHARD_COMMANDS" >> "$GITHUB_OUTPUT"
+          echo "path=$FILTERED_COMMANDS" >> "$GITHUB_OUTPUT"
+
+          if [ "$SHARD_COMMANDS" -eq 0 ]; then echo "No commands for this shard"; exit 0; fi
+
+          NEEDED_TARGETS=$(grep -oP '(?<=--target )\S+' "$FILTERED_COMMANDS" \
+            | sort -u | paste -sd ' ' || true)
+          if [ -n "$NEEDED_TARGETS" ]; then
+            rustup target add $NEEDED_TARGETS
+          fi
+
+      - name: Run shard commands
+        env:
+          SHARD: ${{ matrix.shard }}
+          SHARD_COMMANDS: ${{ steps.generate.outputs.count }}
+        run: |
+          set -euo pipefail
+
+          count=0
+          while IFS= read -r cmd; do
+            [ -z "$cmd" ] && continue
+            count=$((count + 1))
+            echo "::group::[$count/$SHARD_COMMANDS] $cmd"
+            eval "$cmd"
+            echo "::endgroup::"
+          done < "${{ steps.generate.outputs.path }}"
 
   check-benchmarks:
     name: Type-check benchmarks
@@ -163,7 +274,9 @@ jobs:
     if: *pr-or-push
     strategy:
       matrix:
-        rust: *rust-versions
+        rust:
+          - { version: *msrv, name: MSRV }
+          - { version: stable, name: stable }
         os:
           - { name: Ubuntu, value: ubuntu-latest }
           - { name: Windows, value: windows-latest }
@@ -194,25 +307,170 @@ jobs:
       - name: Doc test
         run: cargo test -p time --doc
 
-  miri:
-    name: Test (miri)
+  miri-prepare:
+    name: Prepare miri
     runs-on: *default-os
     if: *pr-or-push
-
     steps:
       - *checkout
-      - *cache
 
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@nightly
         with:
-          components: miri
+          components: miri, rust-src
 
-      - name: Test
-        run: cargo miri test -p time --all-features
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: miri-cache
+
+      - name: Setup Miri sysroot
+        run: cargo miri setup
+
+      - name: Copy sysroot to workspace
+        run: |
+          mkdir -p miri-sysroot
+          cp -a "$HOME/.cache/miri/lib" miri-sysroot/
+
+      - name: Enumerate miri tests
+        run: cargo miri test --no-run -p time --all-features
         env:
-          MIRIFLAGS: -Zmiri-disable-isolation -Zmiri-strict-provenance -Zmiri-symbolic-alignment-check
+          MIRI_SYSROOT: ${{ github.workspace }}/miri-sysroot
+          MIRIFLAGS: &miriflags -Zmiri-disable-isolation -Zmiri-strict-provenance -Zmiri-symbolic-alignment-check
           QUICKCHECK_MAX_TESTS: 100
+
+      - name: List tests and create shard files
+        env:
+          MIRI_SYSROOT: ${{ github.workspace }}/miri-sysroot
+        run: |
+          set -euo pipefail
+
+          MIRI_SHARDS='${{ env.MIRI_SHARDS }}'
+
+          # Capture binary paths from the --no-run output.
+          # Lib+doc tests share the time-<hash> binary; integration tests use tests-<hash>.
+          LIB_BINARY=$(cargo +nightly miri test --no-run -p time --all-features --lib 2>&1 \
+            | grep -oP 'target/miri/[^ )]+')
+          TESTS_BINARY=$(cargo +nightly miri test --no-run -p time --all-features --test tests 2>&1 \
+            | grep -oP 'target/miri/[^ )]+')
+
+          echo "lib binary: $LIB_BINARY"
+          echo "tests binary: $TESTS_BINARY"
+
+          mkdir -p miri-tests
+
+          # Lib tests
+          cargo test -p time --all-features --lib -- --list 2>/dev/null \
+            | grep -oP '^[\w:]+(?=: test$)' \
+            | awk -v n="$MIRI_SHARDS" '{ f="miri-tests/shard-" ((NR-1) % n + 1); print "lib " $0 >> f }'
+
+          # Integration tests
+          cargo test -p time --all-features --test tests -- --list 2>/dev/null \
+            | grep -oP '^[\w:]+(?=: test$)' \
+            | awk -v n="$MIRI_SHARDS" '{ f="miri-tests/shard-" ((NR-1) % n + 1); print "tests " $0 >> f }'
+
+          # Doc tests
+          cargo test -p time --all-features --doc -- --list 2>/dev/null \
+            | sed -n 's/: test$//p' \
+            | awk -v n="$MIRI_SHARDS" '{ f="miri-tests/shard-" ((NR-1) % n + 1); print "doc " $0 >> f }'
+
+          for s in $(seq 1 "$MIRI_SHARDS"); do
+            count=$(wc -l < "miri-tests/shard-$s")
+            echo "shard $s: $count tests"
+          done
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: miri-artifact
+          path: |
+            miri-sysroot/
+            miri-tests/
+
+  miri:
+    name: Test (miri, shard ${{ matrix.shard }})
+    runs-on: *default-os
+    needs: [compute-shards, miri-prepare]
+    if: *pr-or-push
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.compute-shards.outputs.miri-matrix) }}
+
+    steps:
+      - *checkout
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: miri, rust-src
+
+      - name: Cache cargo output
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: miri-cache
+
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: miri-artifact
+
+      - name: Fix build script permissions
+        run: |
+          find target/miri -name 'build-script-build' -exec chmod +x {} \;
+
+      - name: Run shard tests
+        env:
+          SHARD: ${{ matrix.shard }}
+          MIRIFLAGS: *miriflags
+          QUICKCHECK_MAX_TESTS: 100
+        run: |
+          set -euo pipefail
+
+          export MIRI_SYSROOT="$PWD/miri-sysroot"
+
+          shard_file="miri-tests/shard-$SHARD"
+          if [ ! -f "$shard_file" ] || [ ! -s "$shard_file" ]; then
+            echo "No tests for this shard"
+            exit 0
+          fi
+
+          # Group tests by source type (newline-separated for space-safe doc test names)
+          lib_tests=""
+          tests_tests=""
+          doc_tests=""
+          while IFS=' ' read -r source_type test_name; do
+            case "$source_type" in
+              lib)   lib_tests="${lib_tests}${test_name}"$'\n' ;;
+              tests) tests_tests="${tests_tests}${test_name}"$'\n' ;;
+              doc)   doc_tests="${doc_tests}${test_name}"$'\n' ;;
+            esac
+          done < "$shard_file"
+
+          run_group() {
+            local label="$1" tests="$2" extra_args="$3"
+            [ -z "$tests" ] && return 0
+            local n
+            n=$(printf '%s' "$tests" | wc -l)
+            echo "::group::$label ($n tests in shard)"
+            test_args=()
+            while IFS= read -r test_name; do
+              [ -z "$test_name" ] && continue
+              test_args+=("$test_name")
+            done < <(printf '%s' "$tests")
+            cargo miri test -p time --all-features $extra_args -- --exact "${test_args[@]}"
+            local exit_code=$?
+            echo "::endgroup::"
+            return "$exit_code"
+          }
+
+          fails=0
+          run_group "Lib tests" "$lib_tests" "--lib" || fails=$((fails + 1))
+          run_group "Integration tests" "$tests_tests" "--test tests" || fails=$((fails + 1))
+          run_group "Doc tests" "$doc_tests" "--doc" || fails=$((fails + 1))
+
+          if [ "$fails" -ne 0 ]; then
+            exit 1
+          fi
 
   cross-build:
     name: Cross-build
