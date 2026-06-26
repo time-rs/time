@@ -251,23 +251,6 @@ jobs:
             echo "::endgroup::"
           done < "${{ steps.generate.outputs.path }}"
 
-  check-benchmarks:
-    name: Type-check benchmarks
-    runs-on: *default-os
-    if: *pr-or-push
-    steps:
-      - *checkout
-      - *cache
-
-      - &toolchain-stable
-        name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Type-check benchmarks
-        run: cargo check -p time --benches --all-features
-        env:
-          RUSTFLAGS: --cfg bench
-
   test:
     name: Test (${{ matrix.os.name }}, ${{ matrix.rust.name }})
     runs-on: ${{ matrix.os.value }}
@@ -293,19 +276,6 @@ jobs:
 
       - name: Test
         run: cargo test -p time --all-features
-
-  test-docs:
-    name: Test (docs)
-    runs-on: *default-os
-    if: *pr-or-push
-
-    steps:
-      - *checkout
-      - *cache
-      - *toolchain-stable
-      # Test with default feature set to prevent #735 from happening again.
-      - name: Doc test
-        run: cargo test -p time --doc
 
   miri-prepare:
     name: Prepare miri
@@ -472,124 +442,68 @@ jobs:
             exit 1
           fi
 
-  cross-build:
-    name: Cross-build
+  miri-cleanup:
+    name: Clean up miri artifact
     runs-on: *default-os
-    if: *pr-or-push
-
+    needs: miri
+    if: ${{ always() && ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) || github.event_name == 'push') }}
     steps:
-      - *checkout
-      - *cache
-
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - uses: geekyeggo/delete-artifact@v6
         with:
-          targets: x86_64-pc-windows-gnu
+          name: miri-artifact
 
-      - name: Install dependencies
-        run: sudo apt install gcc-mingw-w64
-
-      # We're testing the linking, so running `cargo check` is insufficient.
-      - name: Cross-build tests
-        run: cargo build -p time --tests --all-features --target x86_64-pc-windows-gnu
-
-  fmt:
-    name: Formatting
-    runs-on: *default-os
-    if: *pr-or-push
-
-    steps:
-      - *checkout
-
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@nightly
-        with:
-          components: rustfmt
-
-      - name: Check formatting
-        run: cargo fmt --all -- {time,time-macros,time-core}/**/*.rs --check
-        env:
-          RUSTFLAGS: --cfg bench
-
-  clippy:
-    name: Clippy
-    runs-on: *default-os
-    if: *pr-or-push
-
-    steps:
-      - *checkout
-      - *cache
-
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-          targets: x86_64-unknown-linux-gnu
-          # ,aarch64-apple-darwin,x86_64-pc-windows-gnu,x86_64-unknown-netbsd,x86_64-unknown-illumos,wasm32-wasip1
-
-      - name: Run clippy
-        run: |
-          cargo clippy \
-          --all-features \
-          --all-targets \
-        # --target x86_64-unknown-linux-gnu \
-        # --target aarch64-apple-darwin \
-        # --target x86_64-pc-windows-gnu \
-        # --target x86_64-unknown-netbsd \
-        # --target x86_64-unknown-illumos \
-        # --target wasm32-wasip1
-        env:
-          RUSTFLAGS: --cfg bench
-
-  documentation:
-    name: Documentation
-    runs-on: *default-os
-    if: *pr-or-push
-
-    steps:
-      - &checkout-no-persist-credentials
-        name: Checkout
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - *cache
-
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@nightly
-
-      - name: Generate documentation
-        run: cargo doc --workspace --all-features --no-deps
-        env:
-          RUSTDOCFLAGS: --cfg docsrs
-
-  publish-documentation:
-    name: Publish docs
-    needs:
-      - documentation
-      - check-targets
-      - check-benchmarks
-      - test
-      - cross-build
-      - fmt
-      - clippy
-    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
-    uses: time-rs/time-rs.github.io/.github/workflows/trigger-deploy.yaml@main
-    secrets: inherit
-    permissions:
-      actions: write
-
-  coverage:
-    name: Coverage
+  misc:
+    name: Miscellaneous
     runs-on: *default-os
     permissions:
       issues: write
     if: *pr-or-push
-
     steps:
-      - *checkout-no-persist-credentials
+      - *checkout
       - *cache
-      - *toolchain-stable
+
+      - name: Install nightly toolchain
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+          targets: x86_64-unknown-linux-gnu, x86_64-pc-windows-gnu
+
+      - name: Check formatting
+        run: cargo +nightly fmt --all -- {time,time-macros,time-core}/**/*.rs --check
+        env:
+          RUSTFLAGS: --cfg bench
+
+      - name: Run clippy
+        run: |
+          cargo clippy --all-features --all-targets
+        env:
+          RUSTFLAGS: --cfg bench
+
+      - name: Type-check benchmarks
+        run: cargo +stable check -p time --benches --all-features
+        env:
+          RUSTFLAGS: --cfg bench
+
+      - name: Install cross-compilation dependencies
+        run: sudo apt install gcc-mingw-w64
+
+      # We're testing the linking, so running `cargo check` is insufficient.
+      - name: Cross-build tests
+        run: cargo +stable build -p time --tests --all-features --target x86_64-pc-windows-gnu
+
+      # Test with default feature set to prevent #735 from happening again.
+      - name: Doc test (default features)
+        run: cargo +stable test -p time --doc
+
+      - name: Generate documentation
+        run: cargo +nightly doc --workspace --all-features --no-deps
+        env:
+          RUSTDOCFLAGS: --cfg docsrs
 
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
@@ -607,3 +521,16 @@ jobs:
         with:
           files: ./lcov.txt
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  publish-documentation:
+    name: Publish docs
+    needs:
+      - misc
+      - check-targets
+      - miri
+      - test
+    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.master_branch)
+    uses: time-rs/time-rs.github.io/.github/workflows/trigger-deploy.yaml@main
+    secrets: inherit
+    permissions:
+      actions: write
