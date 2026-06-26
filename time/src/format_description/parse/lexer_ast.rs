@@ -716,6 +716,13 @@ impl<'input, const VERSION: u8, const OWNED: bool> Lexer<'input, VERSION, OWNED>
 
         let Some(closing_bracket) = self.consume_closing_bracket() else {
             hint::cold_path();
+            // The opening bracket consumed above incremented `self.depth` but was never matched by
+            // a closing bracket. `consume_component` swallows this error and then re-derives the
+            // outer "unclosed bracket" error itself, so we must leave `depth` (and therefore
+            // `context()`) exactly as it was on entry; otherwise the subsequent
+            // `debug_assert!(self.context().is_component())` calls (e.g. in `consume_whitespace`)
+            // are tripped on inputs such as `[a[` or `[hour[`.
+            self.depth -= 1;
             return Err(Error {
                 _inner: unused(opening_bracket.error("unclosed bracket")),
                 public: InvalidFormatDescription::UnclosedOpeningBracket {
