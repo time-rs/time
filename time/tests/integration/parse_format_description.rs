@@ -862,6 +862,11 @@ fn nested_v2_error_missing_component_name(
 #[case("[first []", 0)]
 #[case("[optional [", 0)]
 #[case("[optional [[year", 0)]
+// A component header immediately followed by an unclosed nested bracket (no whitespace, so the
+// nested attempt is swallowed and the lexer continues with the outer component). These previously
+// tripped `debug_assert!(self.context().is_component())` instead of reporting the unclosed bracket.
+#[case("[a[", 0)]
+#[case("[hour[", 0)]
 fn nested_v2_error_unclosed(#[case] format_description: &str, #[case] expected_index: usize) {
     assert!(matches!(
         format_description::parse_owned::<2>(format_description),
