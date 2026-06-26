@@ -1,9 +1,10 @@
 name: "Check powerset"
 
 env:
-  __MSRV: &msrv "1.88.0"
+  __MSRV: "1.88.0"
   RUSTFLAGS: -Dwarnings
-  TARGETS: >
+  SHARDS: 15 # for *each* MSRV and stable, so double for total check jobs
+  TARGET_GROUPS: >
     {
       "no_std": [
         "thumbv7em-none-eabihf"
@@ -28,6 +29,34 @@ env:
         "wasm32-unknown-unknown"
       ]
     }
+  KINDS: >
+    [{
+      "name": "no_std",
+      "targetGroups": ["no_std", "std_no_offset", "std_with_offset"],
+      "exclude": [
+        "std",
+        "wasm-bindgen",
+        "local-offset",
+        "quickcheck",
+        "formatting",
+        "serde-human-readable",
+        "serde-well-known"
+      ]
+    }, {
+      "name": "std_no_offset",
+      "targetGroups": ["std_no_offset", "std_with_offset"],
+      "exclude": ["local-offset", "wasm-bindgen"],
+      "enable": ["std"]
+    }, {
+      "name": "std_with_offset",
+      "targetGroups": ["std_with_offset"],
+      "exclude": ["wasm-bindgen"],
+      "enable": ["std", "local-offset"]
+    }, {
+      "name": "wasm",
+      "targetGroups": ["wasm"],
+      "exclude": ["rand", "rand08", "rand09", "rand010", "quickcheck", "local-offset"]
+    }]
 
 concurrency:
   group: powerset-${{ github.head_ref }}
@@ -45,70 +74,165 @@ on:
   workflow_dispatch:
 
 jobs:
-  check:
-    name: Type checking (${{ matrix.kind.name }}, ${{ matrix.rust.name }})
+  compute-shards:
+    name: Compute shards
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.build-matrix.outputs.matrix }}
+    steps:
+      - name: Build matrix
+        id: build-matrix
+        run: |
+          MATRIX=$(jq -c -n \
+            --argjson shards "${{ env.SHARDS }}" \
+            --arg msrv "${{ env.__MSRV }}" \
+            '[
+              range(1; $shards + 1) as $shard |
+              {shard: $shard, version: $msrv, name: "MSRV"},
+              {shard: $shard, version: "stable", name: "stable"}
+            ]')
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+  check:
+    name: Type checking (shard ${{ matrix.shard }}, ${{ matrix.name }})
+    runs-on: ubuntu-latest
+    needs: compute-shards
     strategy:
       matrix:
-        rust:
-          - { version: *msrv, name: MSRV }
-          - { version: stable, name: stable }
-        kind:
-          - name: no_std
-            query: .no_std + .std_no_offset + .std_with_offset
-            exclude_features:
-              - std
-              - wasm-bindgen
-              - local-offset
-              - quickcheck
-              - formatting
-              - serde-human-readable
-              - serde-well-known
-          - name: std_no_offset
-            query: .std_no_offset + .std_with_offset
-            exclude_features: [local-offset, wasm-bindgen]
-            enable_features: [std]
-          - name: std_with_offset
-            query: .std_with_offset
-            exclude_features: [wasm-bindgen]
-            enable_features: [std, local-offset]
-          - name: wasm
-            query: .wasm
-            exclude_features:
-              [rand, rand08, rand09, rand010, quickcheck, local-offset]
+        include: ${{ fromJSON(needs.compute-shards.outputs.matrix) }}
 
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7
 
-      - name: Generate target list
-        id: generate-target-list
-        run: |
-          echo "TARGETS<<EOF" >> $GITHUB_OUTPUT
-          echo "$TARGETS" | jq -r '${{ matrix.kind.query }} | join(",")' >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Install toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          targets: ${{ steps.generate-target-list.outputs.TARGETS }}
-          toolchain: ${{ matrix.rust.version}}
+          toolchain: ${{ matrix.version }}
 
       - name: Install cargo-hack
         uses: taiki-e/install-action@cargo-hack
 
-      - name: Check feature powerset
+      - name: Generate shard commands
+        id: generate
         run: |
-          echo $TARGETS \
-          | jq -r '${{ matrix.kind.query }} | map("--target " + .) | join(" ")' \
-          | xargs -d" " \
-          cargo hack check \
-          -p time \
-          --no-dev-deps \
-          --feature-powerset \
-          --optional-deps \
-          --exclude-features default,${{ join(matrix.kind.exclude_features) }} \
-          ${{ matrix.kind.enable_features && format('--features {0}', join(matrix.kind.enable_features)) }}
+          set -euo pipefail
+
+          shard="${{ matrix.shard }}"
+          shards="${{ env.SHARDS }}"
+          output=$(mktemp)
+
+          cmds=()
+
+          # Collect all commands
+          while IFS= read -r kind; do
+            exclude=$(jq -r '.exclude // [] | join(",")' <<< "$kind")
+            enable=$(jq -r '.enable // [] | join(",")' <<< "$kind")
+
+            mapfile -t targets < <(
+              jq -r --argjson k "$kind" '[$k.targetGroups[]] as $gs | .[$gs[]][]' <<< "$TARGET_GROUPS" | sort -u
+            )
+
+            if [ ${#targets[@]} -eq 0 ]; then continue; fi
+
+            args=(hack --print-command-list check -p time --no-dev-deps --feature-powerset --optional-deps)
+            args+=(--exclude-features "default,$exclude")
+            if [ -n "$enable" ]; then
+              args+=(--features "$enable")
+            fi
+            for t in "${targets[@]}"; do
+              args+=(--target "$t")
+            done
+
+            while IFS= read -r cmd; do
+              cmds+=("$cmd")
+            done < <(cargo "${args[@]}" | awk '
+              { sub(/[ \t]+$/, "") }
+              /^info:/ || /^$/ { next }
+              /^[ \t]/ { gsub(/^[ \t]+/, ""); buf = buf " " $0; next }
+              { if (buf != "") print buf; buf = $0 }
+              END { if (buf != "") print buf }
+            ')
+          done < <(jq -c '.[]' <<< "$KINDS")
+
+          # Sort by target for better compile times
+          mapfile -t cmds < <(
+            printf '%s\n' "${cmds[@]}" | awk '
+              {
+                tgt = ""
+                if (match($0, /--target[ \t]+[^ \t]+/)) {
+                  s = substr($0, RSTART, RLENGTH)
+                  gsub(/^--target[ \t]+/, "", s)
+                  tgt = s
+                }
+                printf "%s\x1f%s\n", tgt, $0
+              }
+            ' | sort -t$'\x1f' -k1,1 | cut -d$'\x1f' -f2-
+          )
+          # Assign commands to shards and output those for this shard
+          shard_loads=()
+          declare -A target_shards
+
+          for cmd in "${cmds[@]}"; do
+            tgt=""
+            [[ $cmd =~ --target[[:space:]]+([^[:space:]]+) ]] && tgt="${BASH_REMATCH[1]}"
+
+            min_load=${shard_loads[0]:-0}
+            for ((i = 1; i < shards; i++)); do
+              if (( ${shard_loads[i]:-0} < min_load )); then
+                min_load=${shard_loads[i]:-0}
+              fi
+            done
+
+            chosen=0
+            for ((i = 0; i < shards; i++)); do
+              if (( ${shard_loads[i]:-0} != min_load )); then continue; fi
+              chosen=$i
+              if [[ -n $tgt ]] && [[ " ${target_shards[$tgt]-} " == *" $i "* ]]; then
+                break
+              fi
+            done
+
+            (( ++shard_loads[chosen] ))
+            if [[ -n $tgt ]]; then
+              target_shards[$tgt]="${target_shards[$tgt]-} $chosen "
+            fi
+            if (( chosen == shard - 1 )); then
+              printf '%s\n' "$cmd"
+            fi
+          done > "$output"
+
+          SHARD_COMMANDS=$(wc -l < "$output")
+          echo "count=$SHARD_COMMANDS" >> "$GITHUB_OUTPUT"
+          echo "path=$output" >> "$GITHUB_OUTPUT"
+
+          if [ "$SHARD_COMMANDS" -eq 0 ]; then echo "No commands for this shard"; exit 0; fi
+
+      - name: Install targets
+        run: |
+          set -euo pipefail
+
+          NEEDED_TARGETS=$(grep -oP '(?<=--target )\S+' "${{ steps.generate.outputs.path }}" \
+            | sort -u | paste -sd ' ' || true)
+          if [ -n "$NEEDED_TARGETS" ]; then
+            rustup target add $NEEDED_TARGETS
+          fi
+
+      - name: Run shard commands
+        env:
+          SHARD: ${{ matrix.shard }}
+          SHARD_COMMANDS: ${{ steps.generate.outputs.count }}
+        run: |
+          set -euo pipefail
+
+          count=0
+          while IFS= read -r cmd; do
+            [ -z "$cmd" ] && continue
+            count=$((count + 1))
+            echo "::group::[$count/$SHARD_COMMANDS] $cmd"
+            eval "$cmd"
+            echo "::endgroup::"
+          done < "${{ steps.generate.outputs.path }}"
 
   release:
     name: Create GitHub release
