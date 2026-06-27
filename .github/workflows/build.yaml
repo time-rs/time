@@ -100,13 +100,14 @@ jobs:
         name: Cache cargo output
         uses: Swatinem/rust-cache@v2
 
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.version }}
+      - parallel:
+        - name: Install toolchain
+          uses: dtolnay/rust-toolchain@master
+          with:
+            toolchain: ${{ matrix.version }}
 
-      - name: Install cargo-hack
-        uses: taiki-e/install-action@cargo-hack
+        - name: Install cargo-hack
+          uses: taiki-e/install-action@cargo-hack
 
       - name: Remove dev-dependencies
         run: |
@@ -374,15 +375,16 @@ jobs:
         with:
           components: miri, rust-src
 
-      - name: Cache cargo output
-        uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: miri-cache
+      - parallel:
+        - name: Cache cargo output
+          uses: Swatinem/rust-cache@v2
+          with:
+            shared-key: miri-cache
 
-      - name: Download artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: miri-artifact
+        - name: Download artifact
+          uses: actions/download-artifact@v8
+          with:
+            name: miri-artifact
 
       - name: Fix build script permissions
         run: |
@@ -463,24 +465,48 @@ jobs:
       - *cache
 
       - name: Install nightly toolchain
+        id: nightly-toolchain
         uses: dtolnay/rust-toolchain@nightly
         with:
           components: rustfmt
+        background: true
 
       - name: Install stable toolchain
+        id: stable-toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
           targets: x86_64-unknown-linux-gnu, x86_64-pc-windows-gnu
+        background: true
+
+      - name: Install cross-compilation dependencies
+        id: cross-compilation-deps
+        run: sudo apt install gcc-mingw-w64
+        background: true
+
+      - name: Install cargo-llvm-cov
+        id: cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+        background: true
+
+      - name: Wait for nightly toolchain to be available
+        wait: [nightly-toolchain]
 
       - name: Check formatting
         run: cargo +nightly fmt --all -- {time,time-macros,time-core}/**/*.rs --check
         env:
           RUSTFLAGS: --cfg bench
 
+      - name: Generate documentation
+        run: cargo +nightly doc --workspace --all-features --no-deps
+        env:
+          RUSTDOCFLAGS: --cfg docsrs
+
+      - name: Wait for stable toolchain to be available
+        wait: [stable-toolchain]
+
       - name: Run clippy
-        run: |
-          cargo clippy --all-features --all-targets
+        run: cargo +stable clippy --all-features --all-targets
         env:
           RUSTFLAGS: --cfg bench
 
@@ -489,38 +515,38 @@ jobs:
         env:
           RUSTFLAGS: --cfg bench
 
-      - name: Install cross-compilation dependencies
-        run: sudo apt install gcc-mingw-w64
+      # Test with default feature set to prevent #735 from happening again.
+      - name: Doc test (default features)
+        run: cargo +stable test -p time --doc
+
+      - name: Wait for cargo-llvm-cov to be available
+        wait: [cargo-llvm-cov]
+
+      - name: Generate coverage report
+        run: |
+          cargo +stable llvm-cov clean --workspace
+          cargo +stable llvm-cov test -p time --no-report --all-features
+          cargo +stable llvm-cov report --lcov > lcov.txt
+        env:
+          RUSTFLAGS: --cfg __ui_tests
+
+      - name: Upload coverage report
+        id: upload-coverage
+        uses: codecov/codecov-action@v7
+        with:
+          files: ./lcov.txt
+          token: ${{ secrets.CODECOV_TOKEN }}
+        background: true
+
+      - name: Wait for cross-compilation dependencies to be available
+        wait: [cross-compilation-deps]
 
       # We're testing the linking, so running `cargo check` is insufficient.
       - name: Cross-build tests
         run: cargo +stable build -p time --tests --all-features --target x86_64-pc-windows-gnu
 
-      # Test with default feature set to prevent #735 from happening again.
-      - name: Doc test (default features)
-        run: cargo +stable test -p time --doc
-
-      - name: Generate documentation
-        run: cargo +nightly doc --workspace --all-features --no-deps
-        env:
-          RUSTDOCFLAGS: --cfg docsrs
-
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-
-      - name: Generate coverage report
-        run: |
-          cargo llvm-cov clean --workspace
-          cargo llvm-cov test -p time --no-report --all-features
-          cargo llvm-cov report --lcov > lcov.txt
-        env:
-          RUSTFLAGS: --cfg __ui_tests
-
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v7
-        with:
-          files: ./lcov.txt
-          token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Wait for coverage report upload
+        wait: [upload-coverage]
 
   publish-documentation:
     name: Publish docs

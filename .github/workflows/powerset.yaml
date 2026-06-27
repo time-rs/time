@@ -102,16 +102,17 @@ jobs:
         include: ${{ fromJSON(needs.compute-shards.outputs.matrix) }}
 
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v7
+      - parallel:
+        - name: Checkout sources
+          uses: actions/checkout@v7
 
-      - name: Install toolchain
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.version }}
+        - name: Install toolchain
+          uses: dtolnay/rust-toolchain@master
+          with:
+            toolchain: ${{ matrix.version }}
 
-      - name: Install cargo-hack
-        uses: taiki-e/install-action@cargo-hack
+        - name: Install cargo-hack
+          uses: taiki-e/install-action@cargo-hack
 
       - name: Generate shard commands
         id: generate
