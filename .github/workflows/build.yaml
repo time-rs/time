@@ -6,8 +6,8 @@ concurrency:
 
 env:
   __MSRV: &msrv "1.88.0"
-  CHECK_SHARDS: 7 # for *each* MSRV and stable, so double for total check jobs
-  MIRI_SHARDS: 5
+  CHECK_SHARDS: 11 # for *each* MSRV and stable, so double for total check jobs
+  MIRI_SHARDS: 7
   TYPE_CHECK_TARGETS: >
     {
       "no_std": [
