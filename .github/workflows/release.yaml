@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  workflow_call:
+    inputs:
+      user-agent:
+        required: true
+        type: string
+      crates-in-order:
+        required: true
+        type: string
+      prerelease:
+        required: false
+        type: boolean
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Create GitHub release
+        id: github-release
+        uses: ncipollo/release-action@v1
+        with:
+          body: See the [changelog](https://github.com/time-rs/time/blob/main/CHANGELOG.md) for details.
+          prerelease: ${{ inputs.prerelease }}
+        background: true
+
+      - name: Authenticate with crates.io
+        uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+        background: true
+
+      - name: Checkout sources
+        uses: actions/checkout@v7
+
+      - name: Get crate versions
+        id: versions
+        run: |
+          MAP=$(cargo metadata --format-version 1 --no-deps \
+            | jq -c '[.packages[] | {key: .name, value: .version}] | from_entries')
+          echo "CRATE_VERSIONS=$MAP" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for authentication
+        wait: [auth]
+
+      - name: Publish on crates.io
+        env:
+          CRATE_VERSIONS: ${{ steps.versions.outputs.CRATE_VERSIONS }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+          USER_AGENT: ${{ inputs.user-agent }}
+          CRATES_IN_ORDER: ${{ inputs.crates-in-order }}
+        run: |
+          for crate in $CRATES_IN_ORDER; do
+            VERSION=$(echo "$CRATE_VERSIONS" | jq -r --arg c "$crate" '.[$c]')
+            if curl -sL -H "User-Agent: $USER_AGENT" \
+              "https://crates.io/api/v1/crates/$crate" \
+              | jq -e --arg v "$VERSION" '(.versions // []) | any(.num == $v)' > /dev/null 2>&1; then
+              echo "$crate v$VERSION already published, skipping"
+            else
+              cargo publish -p "$crate"
+            fi
+          done
+
+      - name: Wait for GitHub release
+        wait: [github-release]
