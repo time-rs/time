@@ -542,6 +542,11 @@ impl Timestamp {
     /// Get the Sunday-based week number of the timestamp in UTC.
     ///
     /// The returned value will always be in the range `0..=53`.
+    ///
+    /// ```rust
+    /// # use time_macros::timestamp;
+    /// assert_eq!(timestamp!(1_546_398_245).sunday_based_week(), 0);
+    /// ```
     #[inline]
     pub const fn sunday_based_week(self) -> u8 {
         self.date().sunday_based_week()
@@ -550,6 +555,11 @@ impl Timestamp {
     /// Get the Monday-based week number of the timestamp in UTC.
     ///
     /// The returned value will always be in the range `0..=53`.
+    ///
+    /// ```rust
+    /// # use time_macros::timestamp;
+    /// assert_eq!(timestamp!(1_546_398_245).monday_based_week(), 0);
+    /// ```
     #[inline]
     pub const fn monday_based_week(self) -> u8 {
         self.date().monday_based_week()
@@ -626,6 +636,11 @@ impl Timestamp {
     }
 
     /// Get the Julian day of the timestamp.
+    ///
+    /// ```rust
+    /// # use time_macros::timestamp;
+    /// assert_eq!(timestamp!(1_546_398_245).to_julian_day(), 2_458_486);
+    /// ```
     #[inline]
     pub const fn to_julian_day(self) -> i32 {
         const UNIX_EPOCH_JULIAN_DAY: i32 = Date::UNIX_EPOCH.to_julian_day();
