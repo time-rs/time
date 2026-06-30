@@ -1542,7 +1542,7 @@ impl OffsetDateTime {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_offset_date_time(input.as_bytes(), None)
+        description.parse_offset_date_time(input.as_bytes(), None, crate::parsing::SealedToken)
     }
 
     /// Parse an `OffsetDateTime` from the input using the provided [format
@@ -1568,7 +1568,7 @@ impl OffsetDateTime {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_offset_date_time(input, Some(defaults))
+        description.parse_offset_date_time(input, Some(defaults), crate::parsing::SealedToken)
     }
 
     /// A helper method to check if the `OffsetDateTime` is a valid representation of a leap second.

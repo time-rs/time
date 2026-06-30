@@ -36,11 +36,16 @@ impl Parsable for Rfc3339 {}
 impl<const CONFIG: EncodedConfig> Parsable for Iso8601<CONFIG> {}
 impl<T> Parsable for T where T: Deref<Target: Parsable> {}
 
+pub(crate) use sealed::Token as SealedToken;
+
 /// Seal the trait to prevent downstream users from implementing it, while still allowing it to
 /// exist in generic bounds.
 mod sealed {
     use super::*;
     use crate::{PrimitiveDateTime, Timestamp, UtcDateTime};
+    
+    #[allow(clippy::missing_copy_implementations, clippy::missing_debug_implementations)]
+    pub struct Token;
 
     /// Parse the item using a format description and an input.
     pub trait Sealed {
@@ -51,6 +56,7 @@ mod sealed {
             &self,
             input: &'a [u8],
             parsed: &mut Parsed,
+            _: Token
         ) -> Result<&'a [u8], error::Parse>;
 
         /// Parse the items into a [`Parsed`] struct, using the provided defaults for any components
@@ -59,9 +65,9 @@ mod sealed {
         /// This method can only be used to parse a complete value of a type. If any characters
         /// remain after parsing, an error will be returned.
         #[inline]
-        fn parse(&self, input: &[u8], defaults: Option<Parsed>) -> Result<Parsed, error::Parse> {
+        fn parse(&self, input: &[u8], defaults: Option<Parsed>, _: Token) -> Result<Parsed, error::Parse> {
             let mut parsed = defaults.unwrap_or_default();
-            if self.parse_into(input, &mut parsed)?.is_empty() {
+            if self.parse_into(input, &mut parsed, Token)?.is_empty() {
                 Ok(parsed)
             } else {
                 Err(error::Parse::ParseFromDescription(
@@ -72,14 +78,14 @@ mod sealed {
 
         /// Parse a [`Date`] from the format description.
         #[inline]
-        fn parse_date(&self, input: &[u8], defaults: Option<Parsed>) -> Result<Date, error::Parse> {
-            Ok(self.parse(input, defaults)?.try_into()?)
+        fn parse_date(&self, input: &[u8], defaults: Option<Parsed>, _: Token) -> Result<Date, error::Parse> {
+            Ok(self.parse(input, defaults, Token)?.try_into()?)
         }
 
         /// Parse a [`Time`] from the format description.
         #[inline]
-        fn parse_time(&self, input: &[u8], defaults: Option<Parsed>) -> Result<Time, error::Parse> {
-            Ok(self.parse(input, defaults)?.try_into()?)
+        fn parse_time(&self, input: &[u8], defaults: Option<Parsed>, _: Token) -> Result<Time, error::Parse> {
+            Ok(self.parse(input, defaults, Token)?.try_into()?)
         }
 
         /// Parse a [`UtcOffset`] from the format description.
@@ -88,8 +94,9 @@ mod sealed {
             &self,
             input: &[u8],
             defaults: Option<Parsed>,
+            _: Token
         ) -> Result<UtcOffset, error::Parse> {
-            Ok(self.parse(input, defaults)?.try_into()?)
+            Ok(self.parse(input, defaults, Token)?.try_into()?)
         }
 
         /// Parse a [`PrimitiveDateTime`] from the format description.
@@ -98,8 +105,9 @@ mod sealed {
             &self,
             input: &[u8],
             defaults: Option<Parsed>,
+            _: Token
         ) -> Result<PrimitiveDateTime, error::Parse> {
-            Ok(self.parse(input, defaults)?.try_into()?)
+            Ok(self.parse(input, defaults, Token)?.try_into()?)
         }
 
         /// Parse a [`UtcDateTime`] from the format description.
@@ -108,8 +116,9 @@ mod sealed {
             &self,
             input: &[u8],
             defaults: Option<Parsed>,
+            _: Token
         ) -> Result<UtcDateTime, error::Parse> {
-            Ok(self.parse(input, defaults)?.try_into()?)
+            Ok(self.parse(input, defaults, Token)?.try_into()?)
         }
 
         /// Parse a [`OffsetDateTime`] from the format description.
@@ -118,8 +127,9 @@ mod sealed {
             &self,
             input: &[u8],
             defaults: Option<Parsed>,
+            _: Token
         ) -> Result<OffsetDateTime, error::Parse> {
-            Ok(self.parse(input, defaults)?.try_into()?)
+            Ok(self.parse(input, defaults, Token)?.try_into()?)
         }
 
         /// Parse a [`Timestamp`] from the format description.
@@ -128,8 +138,9 @@ mod sealed {
             &self,
             input: &[u8],
             defaults: Option<Parsed>,
+            _: Token
         ) -> Result<Timestamp, error::Parse> {
-            Ok(self.parse(input, defaults)?.try_into()?)
+            Ok(self.parse(input, defaults, Token)?.try_into()?)
         }
     }
 }
@@ -140,6 +151,7 @@ impl sealed::Sealed for FormatDescriptionV3<'_> {
         &self,
         input: &'a [u8],
         parsed: &mut Parsed,
+        _: SealedToken
     ) -> Result<&'a [u8], error::Parse> {
         Ok(parsed.parse_v3_inner(input, &self.inner)?)
     }
@@ -151,6 +163,7 @@ impl sealed::Sealed for BorrowedFormatItem<'_> {
         &self,
         input: &'a [u8],
         parsed: &mut Parsed,
+        _: SealedToken
     ) -> Result<&'a [u8], error::Parse> {
         Ok(parsed.parse_item(input, self)?)
     }
@@ -162,6 +175,7 @@ impl sealed::Sealed for [BorrowedFormatItem<'_>] {
         &self,
         input: &'a [u8],
         parsed: &mut Parsed,
+        _: SealedToken
     ) -> Result<&'a [u8], error::Parse> {
         Ok(parsed.parse_items(input, self)?)
     }
@@ -174,6 +188,7 @@ impl sealed::Sealed for OwnedFormatItem {
         &self,
         input: &'a [u8],
         parsed: &mut Parsed,
+        _: SealedToken
     ) -> Result<&'a [u8], error::Parse> {
         Ok(parsed.parse_item(input, self)?)
     }
@@ -186,6 +201,7 @@ impl sealed::Sealed for [OwnedFormatItem] {
         &self,
         input: &'a [u8],
         parsed: &mut Parsed,
+        _: SealedToken
     ) -> Result<&'a [u8], error::Parse> {
         Ok(parsed.parse_items(input, self)?)
     }
@@ -200,8 +216,9 @@ where
         &self,
         input: &'a [u8],
         parsed: &mut Parsed,
+        _: SealedToken
     ) -> Result<&'a [u8], error::Parse> {
-        self.deref().parse_into(input, parsed)
+        self.deref().parse_into(input, parsed, SealedToken)
     }
 }
 
@@ -210,6 +227,7 @@ impl sealed::Sealed for Rfc2822 {
         &self,
         input: &'a [u8],
         parsed: &mut Parsed,
+        _: SealedToken
     ) -> Result<&'a [u8], error::Parse> {
         use crate::parsing::combinator::rfc::rfc2822::{cfws, fws, zone_literal};
 
@@ -356,12 +374,13 @@ impl sealed::Sealed for Rfc2822 {
         &self,
         input: &[u8],
         defaults: Option<Parsed>,
+        _: SealedToken
     ) -> Result<OffsetDateTime, error::Parse> {
         use crate::parsing::combinator::rfc::rfc2822::{cfws, fws, zone_literal};
 
         if let Some(mut defaults) = defaults {
             crate::hint::cold_path();
-            return self.parse_into(input, &mut defaults).and_then(|remaining| {
+            return self.parse_into(input, &mut defaults, SealedToken).and_then(|remaining| {
                 if remaining.is_empty() {
                     defaults.try_into().map_err(error::Parse::TryFromParsed)
                 } else {
@@ -518,6 +537,7 @@ impl sealed::Sealed for Rfc3339 {
         &self,
         input: &'a [u8],
         parsed: &mut Parsed,
+        _: SealedToken
     ) -> Result<&'a [u8], error::Parse> {
         let dash = ascii_char::<b'-'>;
         let colon = ascii_char::<b':'>;
@@ -649,10 +669,11 @@ impl sealed::Sealed for Rfc3339 {
         &self,
         input: &[u8],
         defaults: Option<Parsed>,
+        _: SealedToken
     ) -> Result<OffsetDateTime, error::Parse> {
         if let Some(mut defaults) = defaults {
             crate::hint::cold_path();
-            return self.parse_into(input, &mut defaults).and_then(|remaining| {
+            return self.parse_into(input, &mut defaults, SealedToken).and_then(|remaining| {
                 if remaining.is_empty() {
                     defaults.try_into().map_err(error::Parse::TryFromParsed)
                 } else {
@@ -790,6 +811,7 @@ impl<const CONFIG: EncodedConfig> sealed::Sealed for Iso8601<CONFIG> {
         &self,
         mut input: &'a [u8],
         parsed: &mut Parsed,
+        _: SealedToken
     ) -> Result<&'a [u8], error::Parse> {
         use crate::parsing::combinator::rfc::iso8601::ExtendedKind;
 

@@ -936,7 +936,7 @@ impl Time {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_time(input.as_bytes(), None)
+        description.parse_time(input.as_bytes(), None, crate::parsing::SealedToken)
     }
 
     /// Parse a `Time` from the input using the provided [format
@@ -960,7 +960,7 @@ impl Time {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_time(input, Some(defaults))
+        description.parse_time(input, Some(defaults), crate::parsing::SealedToken)
     }
 }
 

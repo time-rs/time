@@ -1093,7 +1093,7 @@ impl PrimitiveDateTime {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_primitive_date_time(input.as_bytes(), None)
+        description.parse_primitive_date_time(input.as_bytes(), None, crate::parsing::SealedToken)
     }
 
     /// Parse a `PrimitiveDateTime` from the input using the provided [format
@@ -1117,7 +1117,7 @@ impl PrimitiveDateTime {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_primitive_date_time(input, Some(defaults))
+        description.parse_primitive_date_time(input, Some(defaults), crate::parsing::SealedToken)
     }
 }
 

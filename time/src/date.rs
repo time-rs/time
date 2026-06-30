@@ -1478,7 +1478,7 @@ impl Date {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_date(input.as_bytes(), None)
+        description.parse_date(input.as_bytes(), None, crate::parsing::SealedToken)
     }
 
     /// Parse a `Date` from the input using the provided [format
@@ -1502,7 +1502,7 @@ impl Date {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_date(input, Some(defaults))
+        description.parse_date(input, Some(defaults), crate::parsing::SealedToken)
     }
 }
 

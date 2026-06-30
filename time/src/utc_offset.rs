@@ -509,7 +509,7 @@ impl UtcOffset {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_offset(input.as_bytes(), None)
+        description.parse_offset(input.as_bytes(), None, crate::parsing::SealedToken)
     }
 
     /// Parse a `UtcOffset` from the input using the provided [format
@@ -535,7 +535,7 @@ impl UtcOffset {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_offset(input, Some(defaults))
+        description.parse_offset(input, Some(defaults), crate::parsing::SealedToken)
     }
 }
 

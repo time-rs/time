@@ -1212,7 +1212,7 @@ impl UtcDateTime {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_utc_date_time(input.as_bytes(), None)
+        description.parse_utc_date_time(input.as_bytes(), None, crate::parsing::SealedToken)
     }
 
     /// Parse a `UtcDateTime` from the input using the provided [format
@@ -1236,7 +1236,7 @@ impl UtcDateTime {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_utc_date_time(input, Some(defaults))
+        description.parse_utc_date_time(input, Some(defaults), crate::parsing::SealedToken)
     }
 
     /// A helper method to check if the `UtcDateTime` is a valid representation of a leap second.

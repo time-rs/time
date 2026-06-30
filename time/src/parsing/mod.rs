@@ -7,6 +7,7 @@ pub(crate) mod parsable;
 mod parsed;
 pub(crate) mod shim;
 
+pub(crate) use self::parsable::SealedToken;
 pub use self::parsable::Parsable;
 pub use self::parsed::Parsed;
 
