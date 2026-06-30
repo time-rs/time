@@ -44,7 +44,10 @@ mod sealed {
     use super::*;
     use crate::{PrimitiveDateTime, Timestamp, UtcDateTime};
     
-    #[allow(clippy::missing_copy_implementations, clippy::missing_debug_implementations)]
+    #[allow(
+        missing_copy_implementations,
+        missing_debug_implementations
+    )]
     pub struct Token;
 
     /// Parse the item using a format description and an input.
