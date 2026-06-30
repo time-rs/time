@@ -19,7 +19,7 @@ use crate::formatting::Formattable;
 use crate::internal_macros::{const_try, const_try_opt, div_floor, ensure_ranged};
 use crate::num_fmt::{four_to_six_digits, str_from_raw_parts, two_digits_zero_padded};
 #[cfg(feature = "parsing")]
-use crate::parsing::Parsable;
+use crate::parsing::{Parsable, Parsed};
 use crate::unit::*;
 use crate::util::{days_in_month_leap, range_validated, weeks_in_year};
 use crate::{Duration, Month, PrimitiveDateTime, Time, Weekday, error, hint};
@@ -1478,7 +1478,31 @@ impl Date {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_date(input.as_bytes())
+        description.parse_date(input.as_bytes(), None)
+    }
+
+    /// Parse a `Date` from the input using the provided [format
+    /// description](crate::format_description) and default values.
+    ///
+    /// ```rust
+    /// # use time::Date;
+    /// # use time::parsing::Parsed;
+    /// # use time_macros::{date, format_description};
+    /// let format = format_description!("[month]-[day]");
+    /// let defaults = Parsed::new().with_year(2020).expect("2020 is a valid year");
+    /// assert_eq!(
+    ///     Date::parse_with_defaults(b"01-15", &format, defaults)?,
+    ///     date!(2020-01-15)
+    /// );
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    #[inline]
+    pub fn parse_with_defaults(
+        input: &[u8],
+        description: &(impl Parsable + ?Sized),
+        defaults: Parsed,
+    ) -> Result<Self, error::Parse> {
+        description.parse_date(input, Some(defaults))
     }
 }
 

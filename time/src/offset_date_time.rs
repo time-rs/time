@@ -21,7 +21,7 @@ use crate::formatting::Formattable;
 use crate::internal_macros::{carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged};
 use crate::num_fmt::str_from_raw_parts;
 #[cfg(feature = "parsing")]
-use crate::parsing::Parsable;
+use crate::parsing::{Parsable, Parsed};
 use crate::unit::*;
 use crate::util::days_in_year;
 use crate::{
@@ -1542,7 +1542,33 @@ impl OffsetDateTime {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_offset_date_time(input.as_bytes())
+        description.parse_offset_date_time(input.as_bytes(), None)
+    }
+
+    /// Parse an `OffsetDateTime` from the input using the provided [format
+    /// description](crate::format_description) and default values.
+    ///
+    /// ```rust
+    /// # use time::OffsetDateTime;
+    /// # use time::parsing::Parsed;
+    /// # use time_macros::{datetime, format_description};
+    /// let format = format_description!("[year]-[month]-[day] [hour]:[minute]");
+    /// let defaults = Parsed::new()
+    ///     .with_offset_hour(0).expect("0 is a valid offset hour")
+    ///     .with_offset_minute_signed(0).expect("0 is a valid offset minute");
+    /// assert_eq!(
+    ///     OffsetDateTime::parse_with_defaults(b"2020-01-02 03:04", &format, defaults)?,
+    ///     datetime!(2020-01-02 03:04 +0:00)
+    /// );
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    #[inline]
+    pub fn parse_with_defaults(
+        input: &[u8],
+        description: &(impl Parsable + ?Sized),
+        defaults: Parsed,
+    ) -> Result<Self, error::Parse> {
+        description.parse_offset_date_time(input, Some(defaults))
     }
 
     /// A helper method to check if the `OffsetDateTime` is a valid representation of a leap second.

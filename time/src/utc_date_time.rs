@@ -18,7 +18,7 @@ use crate::formatting::Formattable;
 use crate::internal_macros::{carry, cascade, const_try, const_try_opt, div_floor, ensure_ranged};
 use crate::num_fmt::str_from_raw_parts;
 #[cfg(feature = "parsing")]
-use crate::parsing::Parsable;
+use crate::parsing::{Parsable, Parsed};
 use crate::unit::*;
 use crate::util::days_in_year;
 use crate::{
@@ -1212,7 +1212,31 @@ impl UtcDateTime {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_utc_date_time(input.as_bytes())
+        description.parse_utc_date_time(input.as_bytes(), None)
+    }
+
+    /// Parse a `UtcDateTime` from the input using the provided [format
+    /// description](crate::format_description) and default values.
+    ///
+    /// ```rust
+    /// # use time::UtcDateTime;
+    /// # use time::parsing::Parsed;
+    /// # use time_macros::{utc_datetime, format_description};
+    /// let format = format_description!("[year]-[month]-[day]");
+    /// let defaults = Parsed::new().with_hour_24(12).expect("12 is a valid hour");
+    /// assert_eq!(
+    ///     UtcDateTime::parse_with_defaults(b"2020-01-02", &format, defaults)?,
+    ///     utc_datetime!(2020-01-02 12:00)
+    /// );
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    #[inline]
+    pub fn parse_with_defaults(
+        input: &[u8],
+        description: &(impl Parsable + ?Sized),
+        defaults: Parsed,
+    ) -> Result<Self, error::Parse> {
+        description.parse_utc_date_time(input, Some(defaults))
     }
 
     /// A helper method to check if the `UtcDateTime` is a valid representation of a leap second.

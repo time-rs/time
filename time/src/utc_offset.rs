@@ -21,7 +21,7 @@ use crate::formatting::Formattable;
 use crate::internal_macros::ensure_ranged;
 use crate::num_fmt::{str_from_raw_parts, two_digits_zero_padded};
 #[cfg(feature = "parsing")]
-use crate::parsing::Parsable;
+use crate::parsing::{Parsable, Parsed};
 #[cfg(feature = "local-offset")]
 use crate::sys::local_offset_at;
 use crate::unit::*;
@@ -509,7 +509,33 @@ impl UtcOffset {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_offset(input.as_bytes())
+        description.parse_offset(input.as_bytes(), None)
+    }
+
+    /// Parse a `UtcOffset` from the input using the provided [format
+    /// description](crate::format_description) and default values.
+    ///
+    /// ```rust
+    /// # use time::UtcOffset;
+    /// # use time::parsing::Parsed;
+    /// # use time_macros::{offset, format_description};
+    /// let format = format_description!("[offset_hour sign:mandatory]");
+    /// let defaults = Parsed::new()
+    ///     .with_offset_minute_signed(30)
+    ///     .expect("30 is a valid offset minute");
+    /// assert_eq!(
+    ///     UtcOffset::parse_with_defaults(b"+05", &format, defaults)?,
+    ///     offset!(+5:30)
+    /// );
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    #[inline]
+    pub fn parse_with_defaults(
+        input: &[u8],
+        description: &(impl Parsable + ?Sized),
+        defaults: Parsed,
+    ) -> Result<Self, error::Parse> {
+        description.parse_offset(input, Some(defaults))
     }
 }
 

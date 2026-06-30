@@ -53,13 +53,14 @@ mod sealed {
             parsed: &mut Parsed,
         ) -> Result<&'a [u8], error::Parse>;
 
-        /// Parse the item into a new [`Parsed`] struct.
+        /// Parse the items into a [`Parsed`] struct, using the provided defaults for any components
+        /// that are not present in the input.
         ///
         /// This method can only be used to parse a complete value of a type. If any characters
         /// remain after parsing, an error will be returned.
         #[inline]
-        fn parse(&self, input: &[u8]) -> Result<Parsed, error::Parse> {
-            let mut parsed = Parsed::new();
+        fn parse(&self, input: &[u8], defaults: Option<Parsed>) -> Result<Parsed, error::Parse> {
+            let mut parsed = defaults.unwrap_or_default();
             if self.parse_into(input, &mut parsed)?.is_empty() {
                 Ok(parsed)
             } else {
@@ -71,20 +72,24 @@ mod sealed {
 
         /// Parse a [`Date`] from the format description.
         #[inline]
-        fn parse_date(&self, input: &[u8]) -> Result<Date, error::Parse> {
-            Ok(self.parse(input)?.try_into()?)
+        fn parse_date(&self, input: &[u8], defaults: Option<Parsed>) -> Result<Date, error::Parse> {
+            Ok(self.parse(input, defaults)?.try_into()?)
         }
 
         /// Parse a [`Time`] from the format description.
         #[inline]
-        fn parse_time(&self, input: &[u8]) -> Result<Time, error::Parse> {
-            Ok(self.parse(input)?.try_into()?)
+        fn parse_time(&self, input: &[u8], defaults: Option<Parsed>) -> Result<Time, error::Parse> {
+            Ok(self.parse(input, defaults)?.try_into()?)
         }
 
         /// Parse a [`UtcOffset`] from the format description.
         #[inline]
-        fn parse_offset(&self, input: &[u8]) -> Result<UtcOffset, error::Parse> {
-            Ok(self.parse(input)?.try_into()?)
+        fn parse_offset(
+            &self,
+            input: &[u8],
+            defaults: Option<Parsed>,
+        ) -> Result<UtcOffset, error::Parse> {
+            Ok(self.parse(input, defaults)?.try_into()?)
         }
 
         /// Parse a [`PrimitiveDateTime`] from the format description.
@@ -92,26 +97,39 @@ mod sealed {
         fn parse_primitive_date_time(
             &self,
             input: &[u8],
+            defaults: Option<Parsed>,
         ) -> Result<PrimitiveDateTime, error::Parse> {
-            Ok(self.parse(input)?.try_into()?)
+            Ok(self.parse(input, defaults)?.try_into()?)
         }
 
         /// Parse a [`UtcDateTime`] from the format description.
         #[inline]
-        fn parse_utc_date_time(&self, input: &[u8]) -> Result<UtcDateTime, error::Parse> {
-            Ok(self.parse(input)?.try_into()?)
+        fn parse_utc_date_time(
+            &self,
+            input: &[u8],
+            defaults: Option<Parsed>,
+        ) -> Result<UtcDateTime, error::Parse> {
+            Ok(self.parse(input, defaults)?.try_into()?)
         }
 
         /// Parse a [`OffsetDateTime`] from the format description.
         #[inline]
-        fn parse_offset_date_time(&self, input: &[u8]) -> Result<OffsetDateTime, error::Parse> {
-            Ok(self.parse(input)?.try_into()?)
+        fn parse_offset_date_time(
+            &self,
+            input: &[u8],
+            defaults: Option<Parsed>,
+        ) -> Result<OffsetDateTime, error::Parse> {
+            Ok(self.parse(input, defaults)?.try_into()?)
         }
 
         /// Parse a [`Timestamp`] from the format description.
         #[inline]
-        fn parse_timestamp(&self, input: &[u8]) -> Result<Timestamp, error::Parse> {
-            Ok(self.parse(input)?.try_into()?)
+        fn parse_timestamp(
+            &self,
+            input: &[u8],
+            defaults: Option<Parsed>,
+        ) -> Result<Timestamp, error::Parse> {
+            Ok(self.parse(input, defaults)?.try_into()?)
         }
     }
 }
@@ -334,8 +352,25 @@ impl sealed::Sealed for Rfc2822 {
         Ok(input)
     }
 
-    fn parse_offset_date_time(&self, input: &[u8]) -> Result<OffsetDateTime, error::Parse> {
+    fn parse_offset_date_time(
+        &self,
+        input: &[u8],
+        defaults: Option<Parsed>,
+    ) -> Result<OffsetDateTime, error::Parse> {
         use crate::parsing::combinator::rfc::rfc2822::{cfws, fws, zone_literal};
+
+        if let Some(mut defaults) = defaults {
+            crate::hint::cold_path();
+            return self.parse_into(input, &mut defaults).and_then(|remaining| {
+                if remaining.is_empty() {
+                    defaults.try_into().map_err(error::Parse::TryFromParsed)
+                } else {
+                    Err(error::Parse::ParseFromDescription(
+                        error::ParseFromDescription::UnexpectedTrailingCharacters,
+                    ))
+                }
+            });
+        }
 
         let colon = ascii_char::<b':'>;
         let comma = ascii_char::<b','>;
@@ -610,7 +645,24 @@ impl sealed::Sealed for Rfc3339 {
         Ok(input)
     }
 
-    fn parse_offset_date_time(&self, input: &[u8]) -> Result<OffsetDateTime, error::Parse> {
+    fn parse_offset_date_time(
+        &self,
+        input: &[u8],
+        defaults: Option<Parsed>,
+    ) -> Result<OffsetDateTime, error::Parse> {
+        if let Some(mut defaults) = defaults {
+            crate::hint::cold_path();
+            return self.parse_into(input, &mut defaults).and_then(|remaining| {
+                if remaining.is_empty() {
+                    defaults.try_into().map_err(error::Parse::TryFromParsed)
+                } else {
+                    Err(error::Parse::ParseFromDescription(
+                        error::ParseFromDescription::UnexpectedTrailingCharacters,
+                    ))
+                }
+            });
+        }
+
         let dash = ascii_char::<b'-'>;
         let colon = ascii_char::<b':'>;
 

@@ -20,7 +20,7 @@ use crate::formatting::Formattable;
 use crate::internal_macros::{bug, const_try, div_floor, ensure_ranged};
 use crate::num_fmt::{str_from_raw_parts, truncated_subsecond_from_nanos, u64_pad_none};
 #[cfg(feature = "parsing")]
-use crate::parsing::Parsable;
+use crate::parsing::{Parsable, Parsed};
 use crate::unit::*;
 use crate::util::Overflow;
 use crate::{
@@ -1337,7 +1337,31 @@ impl Timestamp {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_timestamp(input.as_bytes())
+        description.parse_timestamp(input.as_bytes(), None)
+    }
+
+    /// Parse a `Timestamp` from the input using the provided [format
+    /// description](crate::format_description) and default values.
+    ///
+    /// ```rust
+    /// # use time::Timestamp;
+    /// # use time::parsing::Parsed;
+    /// # use time_macros::{format_description, timestamp};
+    /// let format = format_description!("[year]-[month]-[day]");
+    /// let defaults = Parsed::new().with_hour_24(0).expect("0 is a valid hour");
+    /// assert_eq!(
+    ///     Timestamp::parse_with_defaults(b"2020-01-02", &format, defaults)?,
+    ///     timestamp!(1_577_923_200)
+    /// );
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    #[inline]
+    pub fn parse_with_defaults(
+        input: &[u8],
+        description: &(impl Parsable + ?Sized),
+        defaults: Parsed,
+    ) -> Result<Self, error::Parse> {
+        description.parse_timestamp(input, Some(defaults))
     }
 }
 

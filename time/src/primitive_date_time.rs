@@ -18,7 +18,7 @@ use crate::formatting::Formattable;
 use crate::internal_macros::{const_try, const_try_opt};
 use crate::num_fmt::str_from_raw_parts;
 #[cfg(feature = "parsing")]
-use crate::parsing::Parsable;
+use crate::parsing::{Parsable, Parsed};
 use crate::{
     Date, Duration, Month, OffsetDateTime, Time, UtcDateTime, UtcOffset, Weekday, error, util,
 };
@@ -1093,7 +1093,31 @@ impl PrimitiveDateTime {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_primitive_date_time(input.as_bytes())
+        description.parse_primitive_date_time(input.as_bytes(), None)
+    }
+
+    /// Parse a `PrimitiveDateTime` from the input using the provided [format
+    /// description](crate::format_description) and default values.
+    ///
+    /// ```rust
+    /// # use time::PrimitiveDateTime;
+    /// # use time::parsing::Parsed;
+    /// # use time_macros::{datetime, format_description};
+    /// let format = format_description!("[year]-[month]-[day]");
+    /// let defaults = Parsed::new().with_hour_24(12).expect("12 is a valid hour");
+    /// assert_eq!(
+    ///     PrimitiveDateTime::parse_with_defaults(b"2020-01-02", &format, defaults)?,
+    ///     datetime!(2020-01-02 12:00)
+    /// );
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    #[inline]
+    pub fn parse_with_defaults(
+        input: &[u8],
+        description: &(impl Parsable + ?Sized),
+        defaults: Parsed,
+    ) -> Result<Self, error::Parse> {
+        description.parse_primitive_date_time(input, Some(defaults))
     }
 }
 

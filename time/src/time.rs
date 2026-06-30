@@ -23,7 +23,7 @@ use crate::num_fmt::{
     two_digits_zero_padded,
 };
 #[cfg(feature = "parsing")]
-use crate::parsing::Parsable;
+use crate::parsing::{Parsable, Parsed};
 use crate::unit::*;
 use crate::util::DateAdjustment;
 use crate::{Duration, error};
@@ -936,7 +936,31 @@ impl Time {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_time(input.as_bytes())
+        description.parse_time(input.as_bytes(), None)
+    }
+
+    /// Parse a `Time` from the input using the provided [format
+    /// description](crate::format_description) and default values.
+    ///
+    /// ```rust
+    /// # use time::Time;
+    /// # use time::parsing::Parsed;
+    /// # use time_macros::{time, format_description};
+    /// let format = format_description!("[hour]");
+    /// let defaults = Parsed::new().with_minute(30).expect("30 is a valid minute");
+    /// assert_eq!(
+    ///     Time::parse_with_defaults(b"12", &format, defaults)?,
+    ///     time!(12:30)
+    /// );
+    /// # Ok::<_, time::Error>(())
+    /// ```
+    #[inline]
+    pub fn parse_with_defaults(
+        input: &[u8],
+        description: &(impl Parsable + ?Sized),
+        defaults: Parsed,
+    ) -> Result<Self, error::Parse> {
+        description.parse_time(input, Some(defaults))
     }
 }
 
