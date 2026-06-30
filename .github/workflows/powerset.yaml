@@ -240,6 +240,9 @@ jobs:
     if: startsWith(github.ref, 'refs/tags')
     needs: check
     uses: ./.github/workflows/release.yaml
+    permissions:
+      contents: write
+      id-token: write
     with:
       prerelease: ${{ contains(github.ref, '-') }}
       user-agent: "time crate GitHub CI"
