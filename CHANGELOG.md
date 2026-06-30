@@ -6,13 +6,31 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.52 [2026-06-30]
+
+### Fixed
+
+- Subsecond values in the `time!` macro are parsed using the textual representation, ensuring
+  accuracy. Previously, they were parsed using the floating point representation, which could result
+  in a loss of precision and even invalid values.
+- The `date!` macro could previously create an invalid value that would then panic at compile time.
+  The macro now emits a proper error instead.
+- When parsing an invalid format description, an edge case would inadvertently panic. This now
+  returns an error as intended.
+
+### Added
+
+- Support default values when parsing
+
 ## 0.3.51 [2026-06-22]
 
 ### Fixed
 
 - `time` compiles with `macros` enabled. This version is otherwise identical to v0.3.50.
 
-## 0.3.50 [2026-06-22]
+## 0.3.50 [2026-06-22] [YANKED]
+
+_This version was yanked because it would not compile when the `macros` feature was enabled._
 
 ### Added
 
@@ -37,6 +55,8 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
   compiling. A patch has been added that avoids triggering the bug.
 
 ## 0.3.48 [2026-06-12] [YANKED]
+
+_This version was yanked due to a bug in the Rust compiler._
 
 ### Security
 
