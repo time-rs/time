@@ -20,7 +20,7 @@ use crate::formatting::{
     iso8601, write, write_bytes, write_if_else,
 };
 use crate::internal_macros::try_likely_ok;
-use crate::{error, num_fmt};
+use crate::{PrivateMethod, error, num_fmt};
 
 macro_rules! fmt_component_match {
     ($self:expr, $output:ident, $value:ident, $state:ident, $($extra:tt)*) => {
@@ -281,23 +281,29 @@ mod sealed {
             output: &mut (impl io::Write + ?Sized),
             value: &V,
             state: &mut V::State,
+            _: PrivateMethod,
         ) -> Result<usize, error::Format>
         where
             V: ComponentProvider;
 
         /// Format the item directly to a `String`.
         #[inline]
-        fn format<V>(&self, value: &V, state: &mut V::State) -> Result<String, error::Format>
+        fn format<V>(
+            &self,
+            value: &V,
+            state: &mut V::State,
+            _: PrivateMethod,
+        ) -> Result<String, error::Format>
         where
             V: ComponentProvider,
         {
             let crate::formatting::metadata::Metadata {
                 max_bytes_needed,
                 guaranteed_utf8,
-            } = self.compute_metadata();
+            } = self.compute_metadata(PrivateMethod);
 
             let mut buf = Vec::with_capacity(max_bytes_needed);
-            try_likely_ok!(self.format_into(&mut buf, value, state));
+            try_likely_ok!(self.format_into(&mut buf, value, state, PrivateMethod));
             Ok(if guaranteed_utf8 {
                 // Safety: The output is guaranteed to be UTF-8.
                 unsafe { String::from_utf8_unchecked(buf) }
@@ -320,11 +326,12 @@ impl sealed::Sealed for FormatDescriptionV3<'_> {
         output: &mut (impl io::Write + ?Sized),
         value: &V,
         state: &mut V::State,
+        _: PrivateMethod,
     ) -> Result<usize, error::Format>
     where
         V: ComponentProvider,
     {
-        self.inner.format_into(output, value, state)
+        self.inner.format_into(output, value, state, PrivateMethod)
     }
 }
 
@@ -340,6 +347,7 @@ impl sealed::Sealed for FormatDescriptionV3Inner<'_> {
         output: &mut (impl io::Write + ?Sized),
         value: &V,
         state: &mut V::State,
+        _: PrivateMethod,
     ) -> Result<usize, error::Format>
     where
         V: ComponentProvider,
@@ -353,7 +361,7 @@ impl sealed::Sealed for FormatDescriptionV3Inner<'_> {
             Self::BorrowedCompound(items) => {
                 let mut bytes = 0;
                 for item in *items {
-                    bytes += try_likely_ok!(item.format_into(output, value, state));
+                    bytes += try_likely_ok!(item.format_into(output, value, state, PrivateMethod));
                 }
                 Ok(bytes)
             }
@@ -362,14 +370,14 @@ impl sealed::Sealed for FormatDescriptionV3Inner<'_> {
                 item,
             } => {
                 if *should_format {
-                    item.format_into(output, value, state)
+                    item.format_into(output, value, state, PrivateMethod)
                 } else {
                     Ok(0)
                 }
             }
             Self::BorrowedFirst(items) => match items {
                 [] => Ok(0),
-                [item, ..] => item.format_into(output, value, state),
+                [item, ..] => item.format_into(output, value, state, PrivateMethod),
             },
             Self::OwnedLiteral(literal) => {
                 write_bytes(output, literal.as_bytes()).map_err(Into::into)
@@ -377,7 +385,7 @@ impl sealed::Sealed for FormatDescriptionV3Inner<'_> {
             Self::OwnedCompound(items) => {
                 let mut bytes = 0;
                 for item in &**items {
-                    bytes += try_likely_ok!(item.format_into(output, value, state));
+                    bytes += try_likely_ok!(item.format_into(output, value, state, PrivateMethod));
                 }
                 Ok(bytes)
             }
@@ -386,14 +394,14 @@ impl sealed::Sealed for FormatDescriptionV3Inner<'_> {
                 item,
             } => {
                 if *should_format {
-                    item.format_into(output, value, state)
+                    item.format_into(output, value, state, PrivateMethod)
                 } else {
                     Ok(0)
                 }
             }
             Self::OwnedFirst(items) => match &items[..] {
                 [] => Ok(0),
-                [item, ..] => item.format_into(output, value, state),
+                [item, ..] => item.format_into(output, value, state, PrivateMethod),
             },
 
             // This is functionally the same as a wildcard arm, but it will cause an error
@@ -464,16 +472,20 @@ impl Component {
             Self::Month(_) | Self::Weekday(_) | Self::WeekNumber(_)
                 if V::SUPPLIES_DATE =>
             {
-                FormatDescriptionV3Inner::from(*self).format_into(output, value, state)
+                FormatDescriptionV3Inner::from(*self)
+                    .format_into(output, value, state, PrivateMethod)
             }
             Self::Hour(_) if V::SUPPLIES_TIME => {
-                FormatDescriptionV3Inner::from(*self).format_into(output, value, state)
+                FormatDescriptionV3Inner::from(*self)
+                    .format_into(output, value, state, PrivateMethod)
             }
             Self::UnixTimestamp(_) if V::SUPPLIES_TIMESTAMP => {
-                FormatDescriptionV3Inner::from(*self).format_into(output, value, state)
+                FormatDescriptionV3Inner::from(*self)
+                    .format_into(output, value, state, PrivateMethod)
             }
             Self::Year(_) if V::SUPPLIES_DATE => {
-                FormatDescriptionV3Inner::from(*self).format_into(output, value, state)
+                FormatDescriptionV3Inner::from(*self)
+                    .format_into(output, value, state, PrivateMethod)
             }
 
             // Unmatched component (e.g. time component on a date-only type).
@@ -537,6 +549,7 @@ impl sealed::Sealed for BorrowedFormatItem<'_> {
         output: &mut (impl io::Write + ?Sized),
         value: &V,
         state: &mut V::State,
+        _: PrivateMethod,
     ) -> Result<usize, error::Format>
     where
         V: ComponentProvider,
@@ -546,11 +559,17 @@ impl sealed::Sealed for BorrowedFormatItem<'_> {
             Self::Literal(literal) => try_likely_ok!(write_bytes(output, literal)),
             Self::StringLiteral(literal) => try_likely_ok!(write(output, literal)),
             Self::Component(component) => component.format_into(output, value, state)?,
-            Self::Compound(items) => try_likely_ok!((*items).format_into(output, value, state)),
-            Self::Optional(item) => try_likely_ok!((*item).format_into(output, value, state)),
+            Self::Compound(items) => {
+                try_likely_ok!((*items).format_into(output, value, state, PrivateMethod))
+            }
+            Self::Optional(item) => {
+                try_likely_ok!((*item).format_into(output, value, state, PrivateMethod))
+            }
             Self::First(items) => match items {
                 [] => 0,
-                [item, ..] => try_likely_ok!((*item).format_into(output, value, state)),
+                [item, ..] => {
+                    try_likely_ok!((*item).format_into(output, value, state, PrivateMethod))
+                }
             },
         })
     }
@@ -568,13 +587,14 @@ impl sealed::Sealed for [BorrowedFormatItem<'_>] {
         output: &mut (impl io::Write + ?Sized),
         value: &V,
         state: &mut V::State,
+        _: PrivateMethod,
     ) -> Result<usize, error::Format>
     where
         V: ComponentProvider,
     {
         let mut bytes = 0;
         for item in self.iter() {
-            bytes += try_likely_ok!(item.format_into(output, value, state));
+            bytes += try_likely_ok!(item.format_into(output, value, state, PrivateMethod));
         }
         Ok(bytes)
     }
@@ -592,6 +612,7 @@ impl sealed::Sealed for OwnedFormatItem {
         output: &mut (impl io::Write + ?Sized),
         value: &V,
         state: &mut V::State,
+        _: PrivateMethod,
     ) -> Result<usize, error::Format>
     where
         V: ComponentProvider,
@@ -600,14 +621,13 @@ impl sealed::Sealed for OwnedFormatItem {
             #[expect(deprecated)]
             Self::Literal(literal) => Ok(try_likely_ok!(write_bytes(output, literal))),
             Self::StringLiteral(literal) => Ok(try_likely_ok!(write(output, literal))),
-            Self::Component(component) => {
-                FormatDescriptionV3Inner::<'_>::from(*component).format_into(output, value, state)
-            }
-            Self::Compound(items) => (**items).format_into(output, value, state),
-            Self::Optional(item) => (**item).format_into(output, value, state),
+            Self::Component(component) => FormatDescriptionV3Inner::<'_>::from(*component)
+                .format_into(output, value, state, PrivateMethod),
+            Self::Compound(items) => (**items).format_into(output, value, state, PrivateMethod),
+            Self::Optional(item) => (**item).format_into(output, value, state, PrivateMethod),
             Self::First(items) => match &**items {
                 [] => Ok(0),
-                [item, ..] => (*item).format_into(output, value, state),
+                [item, ..] => (*item).format_into(output, value, state, PrivateMethod),
             },
         }
     }
@@ -625,13 +645,14 @@ impl sealed::Sealed for [OwnedFormatItem] {
         output: &mut (impl io::Write + ?Sized),
         value: &V,
         state: &mut V::State,
+        _: PrivateMethod,
     ) -> Result<usize, error::Format>
     where
         V: ComponentProvider,
     {
         let mut bytes = 0;
         for item in self.iter() {
-            bytes += try_likely_ok!(item.format_into(output, value, state));
+            bytes += try_likely_ok!(item.format_into(output, value, state, PrivateMethod));
         }
         Ok(bytes)
     }
@@ -652,11 +673,13 @@ where
         output: &mut (impl io::Write + ?Sized),
         value: &V,
         state: &mut V::State,
+        _: PrivateMethod,
     ) -> Result<usize, error::Format>
     where
         V: ComponentProvider,
     {
-        self.deref().format_into(output, value, state)
+        self.deref()
+            .format_into(output, value, state, PrivateMethod)
     }
 }
 
@@ -671,6 +694,7 @@ impl sealed::Sealed for Rfc2822 {
         output: &mut (impl io::Write + ?Sized),
         value: &V,
         state: &mut V::State,
+        _: PrivateMethod,
     ) -> Result<usize, error::Format>
     where
         V: ComponentProvider,
@@ -776,6 +800,7 @@ impl sealed::Sealed for Rfc3339 {
         output: &mut (impl io::Write + ?Sized),
         value: &V,
         state: &mut V::State,
+        _: PrivateMethod,
     ) -> Result<usize, error::Format>
     where
         V: ComponentProvider,
@@ -892,6 +917,7 @@ impl<const CONFIG: EncodedConfig> sealed::Sealed for Iso8601<CONFIG> {
         output: &mut (impl io::Write + ?Sized),
         value: &V,
         state: &mut V::State,
+        _: PrivateMethod,
     ) -> Result<usize, error::Format>
     where
         V: ComponentProvider,

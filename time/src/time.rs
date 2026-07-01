@@ -15,6 +15,8 @@ use deranged::{ru8, ru32};
 use num_conv::prelude::*;
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use crate::PrivateMethod;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{cascade, ensure_ranged};
@@ -901,7 +903,7 @@ impl Time {
         output: &mut (impl io::Write + ?Sized),
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
-        format.format_into(output, &self, &mut Default::default())
+        format.format_into(output, &self, &mut Default::default(), PrivateMethod)
     }
 
     /// Format the `Time` using the provided [format description](crate::format_description).
@@ -915,7 +917,7 @@ impl Time {
     /// ```
     #[inline]
     pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
-        format.format(&self, &mut Default::default())
+        format.format(&self, &mut Default::default(), PrivateMethod)
     }
 }
 
@@ -936,7 +938,7 @@ impl Time {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_time(input.as_bytes(), None)
+        description.parse_time(input.as_bytes(), None, PrivateMethod)
     }
 
     /// Parse a `Time` from the input using the provided [format
@@ -960,7 +962,7 @@ impl Time {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_time(input, Some(defaults))
+        description.parse_time(input, Some(defaults), PrivateMethod)
     }
 }
 

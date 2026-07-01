@@ -1,6 +1,7 @@
 use core::iter::Sum;
 use core::ops::{Add, Deref};
 
+use crate::PrivateMethod;
 use crate::format_description::format_description_v3::FormatDescriptionV3Inner;
 use crate::format_description::well_known::iso8601::EncodedConfig;
 use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
@@ -59,12 +60,12 @@ impl Sum for Metadata {
 /// A trait for computing metadata about a format description.
 pub(crate) trait ComputeMetadata {
     /// Compute the metadata for a format description.
-    fn compute_metadata(&self) -> Metadata;
+    fn compute_metadata(&self, _: PrivateMethod) -> Metadata;
 }
 
 impl ComputeMetadata for Rfc2822 {
     #[inline]
-    fn compute_metadata(&self) -> Metadata {
+    fn compute_metadata(&self, _: PrivateMethod) -> Metadata {
         Metadata {
             max_bytes_needed: 31,
             guaranteed_utf8: true,
@@ -74,7 +75,7 @@ impl ComputeMetadata for Rfc2822 {
 
 impl ComputeMetadata for Rfc3339 {
     #[inline]
-    fn compute_metadata(&self) -> Metadata {
+    fn compute_metadata(&self, _: PrivateMethod) -> Metadata {
         Metadata {
             max_bytes_needed: 35,
             guaranteed_utf8: true,
@@ -84,7 +85,7 @@ impl ComputeMetadata for Rfc3339 {
 
 impl<const CONFIG: EncodedConfig> ComputeMetadata for Iso8601<CONFIG> {
     #[inline]
-    fn compute_metadata(&self) -> Metadata {
+    fn compute_metadata(&self, _: PrivateMethod) -> Metadata {
         const {
             use crate::format_description::well_known::iso8601::{
                 DateKind, OffsetPrecision, TimePrecision,
@@ -164,7 +165,7 @@ impl<const CONFIG: EncodedConfig> ComputeMetadata for Iso8601<CONFIG> {
 
 impl ComputeMetadata for FormatDescriptionV3<'_> {
     #[inline]
-    fn compute_metadata(&self) -> Metadata {
+    fn compute_metadata(&self, _: PrivateMethod) -> Metadata {
         Metadata {
             max_bytes_needed: self.max_bytes_needed,
             guaranteed_utf8: true,
@@ -174,7 +175,7 @@ impl ComputeMetadata for FormatDescriptionV3<'_> {
 
 impl ComputeMetadata for FormatDescriptionV3Inner<'_> {
     #[inline]
-    fn compute_metadata(&self) -> Metadata {
+    fn compute_metadata(&self, _: PrivateMethod) -> Metadata {
         bug!(
             "`FormatDescriptionV3Inner` should never be directly used to compute metadata. \
              Instead, the metadata should be pre-computed and stored in `FormatDescriptionV3`."
@@ -184,7 +185,7 @@ impl ComputeMetadata for FormatDescriptionV3Inner<'_> {
 
 impl ComputeMetadata for BorrowedFormatItem<'_> {
     #[inline]
-    fn compute_metadata(&self) -> Metadata {
+    fn compute_metadata(&self, _: PrivateMethod) -> Metadata {
         match self {
             #[expect(deprecated)]
             Self::Literal(bytes) => Metadata {
@@ -195,19 +196,25 @@ impl ComputeMetadata for BorrowedFormatItem<'_> {
                 max_bytes_needed: s.len(),
                 guaranteed_utf8: true,
             },
-            Self::Component(component) => component.compute_metadata(),
-            Self::Compound(borrowed_format_items) => borrowed_format_items.compute_metadata(),
-            Self::Optional(borrowed_format_item) => borrowed_format_item.compute_metadata(),
+            Self::Component(component) => component.compute_metadata(PrivateMethod),
+            Self::Compound(borrowed_format_items) => {
+                borrowed_format_items.compute_metadata(PrivateMethod)
+            }
+            Self::Optional(borrowed_format_item) => {
+                borrowed_format_item.compute_metadata(PrivateMethod)
+            }
             Self::First(borrowed_format_items) => borrowed_format_items
                 .first()
-                .map_or_else(Metadata::default, ComputeMetadata::compute_metadata),
+                .map_or_else(Metadata::default, |item| {
+                    item.compute_metadata(PrivateMethod)
+                }),
         }
     }
 }
 
 impl ComputeMetadata for OwnedFormatItem {
     #[inline]
-    fn compute_metadata(&self) -> Metadata {
+    fn compute_metadata(&self, _: PrivateMethod) -> Metadata {
         match self {
             #[expect(deprecated)]
             Self::Literal(bytes) => Metadata {
@@ -218,19 +225,23 @@ impl ComputeMetadata for OwnedFormatItem {
                 max_bytes_needed: s.len(),
                 guaranteed_utf8: true,
             },
-            Self::Component(component) => component.compute_metadata(),
-            Self::Compound(owned_format_items) => owned_format_items.compute_metadata(),
-            Self::Optional(owned_format_item) => owned_format_item.compute_metadata(),
+            Self::Component(component) => component.compute_metadata(PrivateMethod),
+            Self::Compound(owned_format_items) => {
+                owned_format_items.compute_metadata(PrivateMethod)
+            }
+            Self::Optional(owned_format_item) => owned_format_item.compute_metadata(PrivateMethod),
             Self::First(owned_format_items) => owned_format_items
                 .first()
-                .map_or_else(Metadata::default, ComputeMetadata::compute_metadata),
+                .map_or_else(Metadata::default, |item| {
+                    item.compute_metadata(PrivateMethod)
+                }),
         }
     }
 }
 
 impl ComputeMetadata for Component {
     #[inline]
-    fn compute_metadata(&self) -> Metadata {
+    fn compute_metadata(&self, _: PrivateMethod) -> Metadata {
         let max_bytes_needed = match self {
             Self::Day(_) => 2,
             Self::MonthShort(_) => 3,
@@ -346,8 +357,10 @@ where
     T: ComputeMetadata,
 {
     #[inline]
-    fn compute_metadata(&self) -> Metadata {
-        self.iter().map(ComputeMetadata::compute_metadata).sum()
+    fn compute_metadata(&self, _: PrivateMethod) -> Metadata {
+        self.iter()
+            .map(|item| item.compute_metadata(PrivateMethod))
+            .sum()
     }
 }
 
@@ -356,7 +369,7 @@ where
     T: Deref<Target: ComputeMetadata>,
 {
     #[inline]
-    fn compute_metadata(&self) -> Metadata {
-        self.deref().compute_metadata()
+    fn compute_metadata(&self, _: PrivateMethod) -> Metadata {
+        self.deref().compute_metadata(PrivateMethod)
     }
 }

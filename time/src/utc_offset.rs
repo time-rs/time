@@ -15,6 +15,8 @@ use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
 #[cfg(feature = "local-offset")]
 use crate::OffsetDateTime;
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use crate::PrivateMethod;
 use crate::error;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
@@ -473,7 +475,7 @@ impl UtcOffset {
         output: &mut (impl io::Write + ?Sized),
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
-        format.format_into(output, &self, &mut Default::default())
+        format.format_into(output, &self, &mut Default::default(), PrivateMethod)
     }
 
     /// Format the `UtcOffset` using the provided [format description](crate::format_description).
@@ -488,7 +490,7 @@ impl UtcOffset {
     /// ```
     #[inline]
     pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
-        format.format(&self, &mut Default::default())
+        format.format(&self, &mut Default::default(), PrivateMethod)
     }
 }
 
@@ -509,7 +511,7 @@ impl UtcOffset {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_offset(input.as_bytes(), None)
+        description.parse_offset(input.as_bytes(), None, PrivateMethod)
     }
 
     /// Parse a `UtcOffset` from the input using the provided [format
@@ -535,7 +537,7 @@ impl UtcOffset {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_offset(input, Some(defaults))
+        description.parse_offset(input, Some(defaults), PrivateMethod)
     }
 }
 

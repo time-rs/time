@@ -15,6 +15,8 @@ use std::time::SystemTime;
 
 use deranged::{ri64, ri128, ru8, ru32};
 
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use crate::PrivateMethod;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{bug, const_try, div_floor, ensure_ranged};
@@ -1300,7 +1302,7 @@ impl Timestamp {
         output: &mut (impl io::Write + ?Sized),
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
-        format.format_into(output, &self, &mut Default::default())
+        format.format_into(output, &self, &mut Default::default(), PrivateMethod)
     }
 
     /// Format the `Timestamp` using the provided [format description](crate::format_description).
@@ -1313,7 +1315,7 @@ impl Timestamp {
     /// ```
     #[inline]
     pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
-        format.format(&self, &mut Default::default())
+        format.format(&self, &mut Default::default(), PrivateMethod)
     }
 }
 
@@ -1337,7 +1339,7 @@ impl Timestamp {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_timestamp(input.as_bytes(), None)
+        description.parse_timestamp(input.as_bytes(), None, PrivateMethod)
     }
 
     /// Parse a `Timestamp` from the input using the provided [format
@@ -1361,7 +1363,7 @@ impl Timestamp {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_timestamp(input, Some(defaults))
+        description.parse_timestamp(input, Some(defaults), PrivateMethod)
     }
 }
 

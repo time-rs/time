@@ -157,3 +157,9 @@ pub use crate::weekday::Weekday;
 
 /// An alias for [`std::result::Result`] with a generic error from the time crate.
 pub type Result<T> = core::result::Result<T, Error>;
+
+/// A private type used to restrict the ability to call methods that are not intended to be called
+/// by downstream users.
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+#[derive(Debug)]
+struct PrivateMethod;

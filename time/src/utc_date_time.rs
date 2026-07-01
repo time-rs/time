@@ -12,6 +12,8 @@ use std::io;
 use deranged::ri64;
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use crate::PrivateMethod;
 use crate::date::{MAX_YEAR, MIN_YEAR};
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
@@ -1166,7 +1168,7 @@ impl UtcDateTime {
         output: &mut (impl io::Write + ?Sized),
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
-        format.format_into(output, &self, &mut Default::default())
+        format.format_into(output, &self, &mut Default::default(), PrivateMethod)
     }
 
     /// Format the `UtcDateTime` using the provided [format
@@ -1187,7 +1189,7 @@ impl UtcDateTime {
     /// ```
     #[inline]
     pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
-        format.format(&self, &mut Default::default())
+        format.format(&self, &mut Default::default(), PrivateMethod)
     }
 }
 
@@ -1212,7 +1214,7 @@ impl UtcDateTime {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_utc_date_time(input.as_bytes(), None)
+        description.parse_utc_date_time(input.as_bytes(), None, PrivateMethod)
     }
 
     /// Parse a `UtcDateTime` from the input using the provided [format
@@ -1236,7 +1238,7 @@ impl UtcDateTime {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_utc_date_time(input, Some(defaults))
+        description.parse_utc_date_time(input, Some(defaults), PrivateMethod)
     }
 
     /// A helper method to check if the `UtcDateTime` is a valid representation of a leap second.

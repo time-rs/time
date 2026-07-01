@@ -13,6 +13,8 @@ use std::io;
 
 use powerfmt::smart_display::{self, FormatterOptions, Metadata, SmartDisplay};
 
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use crate::PrivateMethod;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{const_try, const_try_opt};
@@ -1049,7 +1051,7 @@ impl PrimitiveDateTime {
         output: &mut (impl io::Write + ?Sized),
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
-        format.format_into(output, &self, &mut Default::default())
+        format.format_into(output, &self, &mut Default::default(), PrivateMethod)
     }
 
     /// Format the `PrimitiveDateTime` using the provided [format
@@ -1069,7 +1071,7 @@ impl PrimitiveDateTime {
     /// ```
     #[inline]
     pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
-        format.format(&self, &mut Default::default())
+        format.format(&self, &mut Default::default(), PrivateMethod)
     }
 }
 
@@ -1093,7 +1095,7 @@ impl PrimitiveDateTime {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_primitive_date_time(input.as_bytes(), None)
+        description.parse_primitive_date_time(input.as_bytes(), None, PrivateMethod)
     }
 
     /// Parse a `PrimitiveDateTime` from the input using the provided [format
@@ -1117,7 +1119,7 @@ impl PrimitiveDateTime {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_primitive_date_time(input, Some(defaults))
+        description.parse_primitive_date_time(input, Some(defaults), PrivateMethod)
     }
 }
 

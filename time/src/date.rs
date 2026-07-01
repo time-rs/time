@@ -14,6 +14,8 @@ use deranged::{ri32, ru8, ru32};
 use num_conv::prelude::*;
 use powerfmt::smart_display::{FormatterOptions, Metadata, SmartDisplay};
 
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+use crate::PrivateMethod;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{const_try, const_try_opt, div_floor, ensure_ranged};
@@ -1443,7 +1445,7 @@ impl Date {
         output: &mut (impl io::Write + ?Sized),
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
-        format.format_into(output, &self, &mut Default::default())
+        format.format_into(output, &self, &mut Default::default(), PrivateMethod)
     }
 
     /// Format the `Date` using the provided [format description](crate::format_description).
@@ -1457,7 +1459,7 @@ impl Date {
     /// ```
     #[inline]
     pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
-        format.format(&self, &mut Default::default())
+        format.format(&self, &mut Default::default(), PrivateMethod)
     }
 }
 
@@ -1478,7 +1480,7 @@ impl Date {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_date(input.as_bytes(), None)
+        description.parse_date(input.as_bytes(), None, PrivateMethod)
     }
 
     /// Parse a `Date` from the input using the provided [format
@@ -1502,7 +1504,7 @@ impl Date {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_date(input, Some(defaults))
+        description.parse_date(input, Some(defaults), PrivateMethod)
     }
 }
 
