@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.53 [2026-07-01]
+
+There are no publicly-facing changes in this release. It solely works around the `cookie` crate
+relying on an implementation detail of `time` that was never part of the public API (and thus
+subject to semver guarantees). The internal API has been reverted to the extent necessary for
+`cookie` to compile. This measure is temporary; the internal change will be re-applied in an
+yet-to-be-determined future release.
+
 ## 0.3.52 [2026-06-30]
 
 ### Fixed
