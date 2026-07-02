@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog]. This project adheres to [Semantic Ver
 
 ---
 
+## 0.3.54 [unreleased]
+
+### Added
+
+- `Rfc6265` is now available as a well-known format for parsing cookie expiration dates and
+  formatting `Expires` values.
+
 ## 0.3.53 [2026-07-01]
 
 There are no publicly-facing changes in this release. It solely works around the `cookie` crate

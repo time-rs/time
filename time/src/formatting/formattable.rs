@@ -11,7 +11,7 @@ use num_conv::prelude::*;
 use crate::format_description::format_description_v3::FormatDescriptionV3Inner;
 use crate::format_description::modifier::Padding;
 use crate::format_description::well_known::iso8601::EncodedConfig;
-use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
+use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339, Rfc6265};
 use crate::format_description::{
     BorrowedFormatItem, Component, FormatDescriptionV3, OwnedFormatItem,
 };
@@ -20,7 +20,7 @@ use crate::formatting::{
     iso8601, write, write_bytes, write_if_else,
 };
 use crate::internal_macros::try_likely_ok;
-use crate::{PrivateMethod, error, num_fmt};
+use crate::{Date, OffsetDateTime, PrivateMethod, Time, UtcOffset, error, num_fmt};
 
 macro_rules! fmt_component_match {
     ($self:expr, $output:ident, $value:ident, $state:ident, $($extra:tt)*) => {
@@ -259,6 +259,7 @@ impl Formattable for OwnedFormatItem {}
 impl Formattable for [OwnedFormatItem] {}
 impl Formattable for Rfc3339 {}
 impl Formattable for Rfc2822 {}
+impl Formattable for Rfc6265 {}
 impl<const CONFIG: EncodedConfig> Formattable for Iso8601<CONFIG> {}
 impl<T> Formattable for T where T: Deref<Target: Formattable> {}
 
@@ -784,6 +785,95 @@ impl sealed::Sealed for Rfc2822 {
             unsafe { ru8::new_unchecked(value.offset_minute(state).get().unsigned_abs()) },
             Padding::Zero,
         ));
+
+        Ok(bytes)
+    }
+}
+
+#[expect(
+    private_bounds,
+    private_interfaces,
+    reason = "irrelevant due to being a sealed trait"
+)]
+impl sealed::Sealed for Rfc6265 {
+    fn format_into<V>(
+        &self,
+        output: &mut (impl io::Write + ?Sized),
+        value: &V,
+        state: &mut V::State,
+        _: PrivateMethod,
+    ) -> Result<usize, error::Format>
+    where
+        V: ComponentProvider,
+    {
+        const {
+            assert!(
+                V::SUPPLIES_DATE && V::SUPPLIES_TIME && V::SUPPLIES_OFFSET,
+                "Rfc6265 requires date, time, and offset components, but not all can be provided \
+                 by this type"
+            );
+        }
+
+        let date = Date::from_calendar_date(
+            value.calendar_year(state).get(),
+            value.month(state),
+            value.day(state).get(),
+        )?;
+        let time = Time::from_hms(
+            value.hour(state).get(),
+            value.minute(state).get(),
+            value.second(state).get(),
+        )?;
+        let offset = UtcOffset::from_hms(
+            value.offset_hour(state).get(),
+            value.offset_minute(state).get(),
+            value.offset_second(state).get(),
+        )?;
+        let utc = OffsetDateTime::new_in_offset(date, time, offset)
+            .checked_to_utc()
+            .ok_or(error::Format::InvalidComponent("offset"))?;
+        let (year, month, day) = utc.to_calendar_date();
+        let (hour, minute, second, _) = utc.time().as_hms_nano_ranged();
+
+        // RFC 6265 section 4.1.1 defines Expires as sane-cookie-date, while
+        // section 5.1.1 says user agents reject cookie-date years before 1601.
+        // Keep formatting inside the same cookie-date range this type parses.
+        if !(1601..10_000).contains(&year) {
+            crate::hint::cold_path();
+            return Err(error::Format::InvalidComponent("year"));
+        }
+
+        let mut bytes = 0;
+
+        // Safety: All weekday names are at least 3 bytes long.
+        bytes += try_likely_ok!(write(output, unsafe {
+            WEEKDAY_NAMES[utc.weekday().number_days_from_monday().widen::<usize>()]
+                .get_unchecked(..3)
+        }));
+        bytes += try_likely_ok!(write(output, ", "));
+        bytes += try_likely_ok!(format_two_digits(
+            output,
+            // Safety: `day` comes from a valid date, so it is in the range `1..=31`.
+            unsafe { ru8::new_unchecked(day) },
+            Padding::Zero
+        ));
+        bytes += try_likely_ok!(write(output, " "));
+        // Safety: All month names are at least 3 bytes long.
+        bytes += try_likely_ok!(write(output, unsafe {
+            MONTH_NAMES[u8::from(month).widen::<usize>() - 1].get_unchecked(..3)
+        }));
+        bytes += try_likely_ok!(write(output, " "));
+        // Safety: Years outside the four-digit range were rejected above.
+        bytes += try_likely_ok!(format_four_digits_pad_zero(output, unsafe {
+            ru16::new_unchecked(year.cast_unsigned().truncate())
+        }));
+        bytes += try_likely_ok!(write(output, " "));
+        bytes += try_likely_ok!(format_two_digits(output, hour.expand(), Padding::Zero));
+        bytes += try_likely_ok!(write(output, ":"));
+        bytes += try_likely_ok!(format_two_digits(output, minute.expand(), Padding::Zero));
+        bytes += try_likely_ok!(write(output, ":"));
+        bytes += try_likely_ok!(format_two_digits(output, second.expand(), Padding::Zero));
+        bytes += try_likely_ok!(write(output, " GMT"));
 
         Ok(bytes)
     }

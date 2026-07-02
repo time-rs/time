@@ -10,9 +10,10 @@ use crate::error::TryFromParsed;
 #[cfg(feature = "alloc")]
 use crate::format_description::OwnedFormatItem;
 use crate::format_description::well_known::iso8601::EncodedConfig;
-use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
+use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339, Rfc6265};
 use crate::format_description::{BorrowedFormatItem, FormatDescriptionV3, modifier};
 use crate::internal_macros::{bug, try_likely_ok};
+use crate::parsing::combinator::rfc::rfc6265;
 use crate::parsing::combinator::{
     ExactlyNDigits, Sign, any_digit, ascii_char, ascii_char_ignore_case, one_or_two_digits, opt,
     sign,
@@ -33,6 +34,7 @@ impl Parsable for OwnedFormatItem {}
 impl Parsable for [OwnedFormatItem] {}
 impl Parsable for Rfc2822 {}
 impl Parsable for Rfc3339 {}
+impl Parsable for Rfc6265 {}
 impl<const CONFIG: EncodedConfig> Parsable for Iso8601<CONFIG> {}
 impl<T> Parsable for T where T: Deref<Target: Parsable> {}
 
@@ -294,6 +296,69 @@ where
         _: PrivateMethod,
     ) -> Result<&'a [u8], error::Parse> {
         self.deref().parse_into(input, parsed, PrivateMethod)
+    }
+}
+
+#[expect(
+    private_interfaces,
+    reason = "not intended to be used by downstream users"
+)]
+impl sealed::Sealed for Rfc6265 {
+    fn parse_into<'a>(
+        &self,
+        input: &'a [u8],
+        parsed: &mut Parsed,
+        _: PrivateMethod,
+    ) -> Result<&'a [u8], error::Parse> {
+        let date_time = rfc6265::parse(input)?;
+        let (year, month, day) = date_time.to_calendar_date();
+
+        parsed
+            .set_year(year)
+            .ok_or_else(|| rfc6265::invalid_component("year"))?;
+        parsed
+            .set_month(month)
+            .ok_or_else(|| rfc6265::invalid_component("month"))?;
+        parsed
+            .set_day(NonZero::new(day).ok_or_else(|| rfc6265::invalid_component("day"))?)
+            .ok_or_else(|| rfc6265::invalid_component("day"))?;
+        parsed
+            .set_hour_24(date_time.hour())
+            .ok_or_else(|| rfc6265::invalid_component("hour"))?;
+        parsed
+            .set_minute(date_time.minute())
+            .ok_or_else(|| rfc6265::invalid_component("minute"))?;
+        parsed
+            .set_second(date_time.second())
+            .ok_or_else(|| rfc6265::invalid_component("second"))?;
+        parsed
+            .set_offset_hour(0)
+            .ok_or_else(|| rfc6265::invalid_component("offset hour"))?;
+        parsed
+            .set_offset_minute_signed(0)
+            .ok_or_else(|| rfc6265::invalid_component("offset minute"))?;
+        parsed
+            .set_offset_second_signed(0)
+            .ok_or_else(|| rfc6265::invalid_component("offset second"))?;
+
+        Ok(&input[input.len()..])
+    }
+
+    fn parse_offset_date_time(
+        &self,
+        input: &[u8],
+        defaults: Option<Parsed>,
+        _: PrivateMethod,
+    ) -> Result<OffsetDateTime, error::Parse> {
+        if defaults.is_some() {
+            crate::hint::cold_path();
+            return self
+                .parse_internal(input, defaults, PrivateMethod)?
+                .try_into()
+                .map_err(error::Parse::TryFromParsed);
+        }
+
+        rfc6265::parse(input)
     }
 }
 

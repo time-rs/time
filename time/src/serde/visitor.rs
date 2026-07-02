@@ -464,6 +464,7 @@ macro_rules! well_known {
 
 well_known!("an", "RFC2822", Rfc2822);
 well_known!("an", "RFC3339", Rfc3339);
+well_known!("an", "RFC6265", Rfc6265);
 well_known!(
     "an",
     "ISO 8601",

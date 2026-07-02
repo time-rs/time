@@ -3,7 +3,7 @@ use std::num::NonZero;
 
 use rstest::rstest;
 use time::format_description::well_known::iso8601::{DateKind, OffsetPrecision, TimePrecision};
-use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339, iso8601};
+use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339, Rfc6265, iso8601};
 use time::format_description::{self, BorrowedFormatItem, OwnedFormatItem};
 use time::formatting::Formattable;
 use time::macros::{date, datetime, format_description as fd, offset, time, utc_datetime};
@@ -38,6 +38,30 @@ fn rfc_2822_invalid_odt(#[case] odt: OffsetDateTime, #[case] component: &str) {
 fn rfc_2822_invalid_udt(#[case] udt: UtcDateTime, #[case] component: &str) {
     assert!(matches!(
         udt.format(&Rfc2822),
+        Err(time::error::Format::InvalidComponent(c)) if c == component
+    ));
+}
+
+#[rstest]
+#[case(datetime!(1994-11-06 08:49:37 UTC), "Sun, 06 Nov 1994 08:49:37 GMT")]
+#[case(datetime!(1994-11-06 03:49:37 -5), "Sun, 06 Nov 1994 08:49:37 GMT")]
+#[case(datetime!(1994-11-06 13:49:37 +5), "Sun, 06 Nov 1994 08:49:37 GMT")]
+#[case(datetime!(1994-11-06 08:49:38 +0:00:01), "Sun, 06 Nov 1994 08:49:37 GMT")]
+fn rfc_6265_odt(#[case] dt: OffsetDateTime, #[case] expected: &str) {
+    assert_eq!(dt.format(&Rfc6265).ok().as_deref(), Some(expected));
+}
+
+#[rstest]
+#[case(utc_datetime!(1994-11-06 08:49:37), "Sun, 06 Nov 1994 08:49:37 GMT")]
+fn rfc_6265_udt(#[case] dt: UtcDateTime, #[case] expected: &str) {
+    assert_eq!(dt.format(&Rfc6265).ok().as_deref(), Some(expected));
+}
+
+#[rstest]
+#[case(datetime!(1600-01-01 00:00:00 UTC), "year")]
+fn rfc_6265_invalid_odt(#[case] odt: OffsetDateTime, #[case] component: &str) {
+    assert!(matches!(
+        odt.format(&Rfc6265),
         Err(time::error::Format::InvalidComponent(c)) if c == component
     ));
 }
@@ -620,6 +644,7 @@ fn failed_write_time(#[case] format: impl Formattable) -> time::Result<()> {
 #[rstest]
 #[case(Rfc3339)]
 #[case(Rfc2822)]
+#[case(Rfc6265)]
 #[case(Iso8601::DEFAULT)]
 #[case(
     Iso8601::<{
