@@ -19,6 +19,8 @@ pub mod iso8601;
 pub mod rfc2822;
 #[cfg(any(feature = "formatting", feature = "parsing"))]
 pub mod rfc3339;
+#[cfg(any(feature = "formatting", feature = "parsing"))]
+pub mod rfc6265;
 pub mod timestamp;
 mod visitor;
 

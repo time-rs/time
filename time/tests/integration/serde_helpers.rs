@@ -22,6 +22,13 @@ struct Rfc3339(
 );
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+struct Rfc6265(
+    #[serde(with = "time::serde::rfc6265")] OffsetDateTime,
+    #[serde(with = "time::serde::rfc6265::option")] Option<OffsetDateTime>,
+    #[serde(with = "time::serde::rfc6265::option")] Option<OffsetDateTime>,
+);
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 #[serde(transparent)]
 struct Timestamp(#[serde(with = "time::serde::timestamp")] OffsetDateTime);
 
@@ -60,6 +67,23 @@ struct OptTimestamp(#[serde(with = "time::serde::timestamp::option")] Option<Off
         Token::Str("2021-01-02T03:04:05Z"),
         Token::Some,
         Token::Str("2021-01-02T03:04:05Z"),
+        Token::None,
+        Token::TupleStructEnd,
+    ],
+)]
+#[case(
+    Rfc6265(
+        datetime!(2021-01-02 03:04:05 UTC),
+        Some(datetime!(2021-01-02 03:04:05 UTC)),
+        None
+    ), &[
+        Token::TupleStruct {
+            name: "Rfc6265",
+            len: 3,
+        },
+        Token::Str("Sat, 02 Jan 2021 03:04:05 GMT"),
+        Token::Some,
+        Token::Str("Sat, 02 Jan 2021 03:04:05 GMT"),
         Token::None,
         Token::TupleStructEnd,
     ],
@@ -190,6 +214,42 @@ where
         Token::Bool(false),
     ],
     "invalid type: boolean `false`, expected an RFC3339-formatted `OffsetDateTime`",
+)]
+#[case(
+    PhantomData::<Rfc6265>,
+    &[
+        Token::TupleStruct {
+            name: "Rfc6265",
+            len: 3,
+        },
+        Token::Bool(false),
+    ],
+    "invalid type: boolean `false`, expected an RFC6265-formatted `OffsetDateTime`",
+)]
+#[case(
+    PhantomData::<Rfc6265>,
+    &[
+        Token::TupleStruct {
+            name: "Rfc6265",
+            len: 3,
+        },
+        Token::Str("Sat, 02 Jan 2021 03:04:05 GMT"),
+        Token::Bool(false),
+    ],
+    "invalid type: boolean `false`, expected an RFC6265-formatted `Option<OffsetDateTime>`",
+)]
+#[case(
+    PhantomData::<Rfc6265>,
+    &[
+        Token::TupleStruct {
+            name: "Rfc6265",
+            len: 3,
+        },
+        Token::Str("Sat, 02 Jan 2021 03:04:05 GMT"),
+        Token::Some,
+        Token::Bool(false),
+    ],
+    "invalid type: boolean `false`, expected an RFC6265-formatted `OffsetDateTime`",
 )]
 #[case(
     PhantomData::<Rfc3339>,

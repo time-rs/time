@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::num::NonZero;
 
 use rstest::rstest;
-use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
+use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339, Rfc6265};
 use time::format_description::{
     Component, FormatDescriptionV3, OwnedFormatItem, StaticFormatDescription, modifier,
 };
@@ -140,6 +140,80 @@ fn rfc_2822_err_component_range(#[case] input: &str, #[case] conditional: bool) 
         OffsetDateTime::parse(input, &Rfc2822),
         Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
             if component.name() == "second" && component.is_conditional() == conditional
+    ));
+}
+
+#[rstest]
+#[case("Sun, 06 Nov 1994 08:49:37 GMT", datetime!(1994-11-06 08:49:37 UTC))]
+#[case("08:49:37 ; Nov/06 @ 1994", datetime!(1994-11-06 08:49:37 UTC))]
+#[case("Mon, 06 Nov 1994 08:49:37 GMT", datetime!(1994-11-06 08:49:37 UTC))]
+#[case("Sun, 06 Nov 1994 08:49:37 PST", datetime!(1994-11-06 08:49:37 UTC))]
+#[case("Sun, 06 Nov 69 08:49:37 GMT", datetime!(2069-11-06 08:49:37 UTC))]
+#[case("Sun, 06 Nov 70 08:49:37 GMT", datetime!(1970-11-06 08:49:37 UTC))]
+#[case("Sun, 06 Nov 99 08:49:37 GMT", datetime!(1999-11-06 08:49:37 UTC))]
+#[case("Sun, 06 Nov 00 08:49:37 GMT", datetime!(2000-11-06 08:49:37 UTC))]
+#[case("Sun, 06 Nov 0000 08:49:37 GMT", datetime!(2000-11-06 08:49:37 UTC))]
+#[case("Sun, 06 Nov 0069 08:49:37 GMT", datetime!(2069-11-06 08:49:37 UTC))]
+#[case("Sun, 06 Nov 0099 08:49:37 GMT", datetime!(1999-11-06 08:49:37 UTC))]
+#[case("06 nOvember 1994 08:49:37", datetime!(1994-11-06 08:49:37 UTC))]
+#[case("06zz Novjunk 1994abc 08:49:37zz", datetime!(1994-11-06 08:49:37 UTC))]
+#[case("ignore-token; 08:49:37; 06; Nov; 1994", datetime!(1994-11-06 08:49:37 UTC))]
+fn rfc_6265_odt(#[case] input: &str, #[case] expected: OffsetDateTime) {
+    assert_eq!(OffsetDateTime::parse(input, &Rfc6265).ok(), Some(expected));
+}
+
+#[rstest]
+#[case("06 Nov 1994 08:49:37 09:10:11", datetime!(1994-11-06 08:49:37 UTC))]
+#[case("Nov 1994 06 07 08:49:37", datetime!(1994-11-06 08:49:37 UTC))]
+#[case("06 1994 Nov Dec 08:49:37", datetime!(1994-11-06 08:49:37 UTC))]
+#[case("06 Nov 1994 2000 08:49:37", datetime!(1994-11-06 08:49:37 UTC))]
+fn rfc_6265_first_matching_component_wins(
+    #[case] input: &str,
+    #[case] expected: OffsetDateTime,
+) {
+    assert_eq!(OffsetDateTime::parse(input, &Rfc6265).ok(), Some(expected));
+}
+
+#[rstest]
+#[case("Sun, 06 Nov 1994 08:49:37 GMT", date!(1994-11-06))]
+fn rfc_6265_date(#[case] input: &str, #[case] expected: Date) {
+    assert_eq!(Date::parse(input, &Rfc6265).ok(), Some(expected));
+}
+
+#[rstest]
+#[case("Sun, 06 Nov 1994 08:49:37 GMT", time!(08:49:37))]
+fn rfc_6265_time(#[case] input: &str, #[case] expected: Time) {
+    assert_eq!(Time::parse(input, &Rfc6265).ok(), Some(expected));
+}
+
+#[rstest]
+#[case("Sun, 06 Nov 1994 GMT", "hour")]
+#[case("Sun, Nov 1994 08:49:37 GMT", "day")]
+#[case("Sun, 06 1994 08:49:37 GMT", "month")]
+#[case("Sun, 06 Nov 08:49:37 GMT", "year")]
+#[case("Sun, 06 Nov 1600 08:49:37 GMT", "year")]
+#[case("Sun, 06 Nov 0100 08:49:37 GMT", "year")]
+#[case("Sun, 00 Nov 1994 08:49:37 GMT", "day")]
+#[case("Sun, 32 Nov 1994 08:49:37 GMT", "day")]
+#[case("Sun, 06 Nov 1994 24:49:37 GMT", "hour")]
+#[case("Sun, 06 Nov 1994 08:60:37 GMT", "minute")]
+#[case("Sun, 06 Nov 1994 08:49:60 GMT", "second")]
+fn rfc_6265_err_invalid_component(#[case] input: &str, #[case] component_name: &str) {
+    assert!(matches!(
+        OffsetDateTime::parse(input, &Rfc6265),
+        Err(error::Parse::ParseFromDescription(
+            error::ParseFromDescription::InvalidComponent(name)
+        )) if name == component_name
+    ));
+}
+
+#[rstest]
+#[case("Sun, 30 Feb 1994 08:49:37 GMT", "day")]
+fn rfc_6265_err_component_range(#[case] input: &str, #[case] component_name: &str) {
+    assert!(matches!(
+        OffsetDateTime::parse(input, &Rfc6265),
+        Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
+            if component.name() == component_name
     ));
 }
 

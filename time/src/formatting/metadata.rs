@@ -4,7 +4,7 @@ use core::ops::{Add, Deref};
 use crate::PrivateMethod;
 use crate::format_description::format_description_v3::FormatDescriptionV3Inner;
 use crate::format_description::well_known::iso8601::EncodedConfig;
-use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
+use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339, Rfc6265};
 use crate::format_description::{
     BorrowedFormatItem, Component, FormatDescriptionV3, OwnedFormatItem, modifier,
 };
@@ -78,6 +78,16 @@ impl ComputeMetadata for Rfc3339 {
     fn compute_metadata(&self, _: PrivateMethod) -> Metadata {
         Metadata {
             max_bytes_needed: 35,
+            guaranteed_utf8: true,
+        }
+    }
+}
+
+impl ComputeMetadata for Rfc6265 {
+    #[inline]
+    fn compute_metadata(&self, _: PrivateMethod) -> Metadata {
+        Metadata {
+            max_bytes_needed: 29,
             guaranteed_utf8: true,
         }
     }

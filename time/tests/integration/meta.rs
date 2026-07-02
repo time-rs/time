@@ -60,6 +60,7 @@ use time::{
 #[case(PhantomData::<modifier::Year>, 1)]
 #[case(PhantomData::<well_known::Rfc2822>, 1)]
 #[case(PhantomData::<well_known::Rfc3339>, 1)]
+#[case(PhantomData::<well_known::Rfc6265>, 1)]
 #[case(PhantomData::<well_known::Iso8601<{ iso8601::Config::DEFAULT.encode() }>>, 1)]
 #[case(PhantomData::<iso8601::Config>, 1)]
 #[case(PhantomData::<iso8601::DateKind>, 1)]
@@ -129,6 +130,7 @@ fn alignment<T>(#[case] _type: PhantomData<T>, #[case] expected: usize) {
 #[case(PhantomData::<modifier::Year>, 5, 5)]
 #[case(PhantomData::<well_known::Rfc2822>, 0, 1)]
 #[case(PhantomData::<well_known::Rfc3339>, 0, 1)]
+#[case(PhantomData::<well_known::Rfc6265>, 0, 1)]
 #[case(PhantomData::<well_known::Iso8601<{ iso8601::Config::DEFAULT.encode() }>>, 0, 1)]
 #[case(PhantomData::<iso8601::Config>, 7, 7)]
 #[case(PhantomData::<iso8601::DateKind>, 1, 1)]
@@ -1017,6 +1019,20 @@ assert_impl! { well_known::Rfc3339:
     Clone,
     Debug,
     PartialEq<well_known::Rfc3339>,
+    Copy,
+    Eq,
+    Formattable,
+    Parsable,
+    RefUnwindSafe,
+    Send,
+    Sync,
+    Unpin,
+    UnwindSafe,
+}
+assert_impl! { well_known::Rfc6265:
+    Clone,
+    Debug,
+    PartialEq<well_known::Rfc6265>,
     Copy,
     Eq,
     Formattable,
