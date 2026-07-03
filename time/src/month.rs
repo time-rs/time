@@ -176,32 +176,24 @@ impl Month {
     }
 }
 
-mod private {
-    /// Metadata for `Month`.
-    #[non_exhaustive]
-    #[derive(Debug, Clone, Copy)]
-    pub struct MonthMetadata;
-}
-use private::MonthMetadata;
-
 impl SmartDisplay for Month {
-    type Metadata = MonthMetadata;
+    type Metadata = ();
 
     #[inline]
     fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
         match self {
-            January => Metadata::new(7, self, MonthMetadata),
-            February => Metadata::new(8, self, MonthMetadata),
-            March => Metadata::new(5, self, MonthMetadata),
-            April => Metadata::new(5, self, MonthMetadata),
-            May => Metadata::new(3, self, MonthMetadata),
-            June => Metadata::new(4, self, MonthMetadata),
-            July => Metadata::new(4, self, MonthMetadata),
-            August => Metadata::new(6, self, MonthMetadata),
-            September => Metadata::new(9, self, MonthMetadata),
-            October => Metadata::new(7, self, MonthMetadata),
-            November => Metadata::new(8, self, MonthMetadata),
-            December => Metadata::new(8, self, MonthMetadata),
+            January => Metadata::new(7, self, ()),
+            February => Metadata::new(8, self, ()),
+            March => Metadata::new(5, self, ()),
+            April => Metadata::new(5, self, ()),
+            May => Metadata::new(3, self, ()),
+            June => Metadata::new(4, self, ()),
+            July => Metadata::new(4, self, ()),
+            August => Metadata::new(6, self, ()),
+            September => Metadata::new(9, self, ()),
+            October => Metadata::new(7, self, ()),
+            November => Metadata::new(8, self, ()),
+            December => Metadata::new(8, self, ()),
         }
     }
 

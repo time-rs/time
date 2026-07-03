@@ -966,19 +966,11 @@ impl Time {
     }
 }
 
-mod private {
-    /// Metadata for `Time`.
-    #[non_exhaustive]
-    #[derive(Debug)]
-    pub struct TimeMetadata;
-}
-use private::TimeMetadata;
-
 // This no longer needs special handling, as the format is fixed and doesn't require anything
 // advanced. Trait impls can't be deprecated and the info is still useful for other types
 // implementing `SmartDisplay`, so leave it as-is for now.
 impl SmartDisplay for Time {
-    type Metadata = TimeMetadata;
+    type Metadata = ();
 
     #[inline]
     fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
@@ -996,7 +988,7 @@ impl SmartDisplay for Time {
         };
         let total_width = hour_width + subsecond_width + 7;
 
-        Metadata::new(total_width, self, TimeMetadata)
+        Metadata::new(total_width, self, ())
     }
 
     #[inline]

@@ -541,23 +541,15 @@ impl UtcOffset {
     }
 }
 
-mod private {
-    /// Metadata for `UtcOffset`.
-    #[non_exhaustive]
-    #[derive(Debug, Clone, Copy)]
-    pub struct UtcOffsetMetadata;
-}
-use private::UtcOffsetMetadata;
-
 // This no longer needs special handling, as the format is fixed and doesn't require anything
 // advanced. Trait impls can't be deprecated and the info is still useful for other types
 // implementing `SmartDisplay`, so leave it as-is for now.
 impl SmartDisplay for UtcOffset {
-    type Metadata = UtcOffsetMetadata;
+    type Metadata = ();
 
     #[inline]
     fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
-        Metadata::new(9, self, UtcOffsetMetadata)
+        Metadata::new(9, self, ())
     }
 
     #[inline]

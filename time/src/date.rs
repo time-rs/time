@@ -1508,19 +1508,11 @@ impl Date {
     }
 }
 
-mod private {
-    /// Metadata for `Date`.
-    #[non_exhaustive]
-    #[derive(Debug)]
-    pub struct DateMetadata;
-}
-use private::DateMetadata;
-
 // This no longer needs special handling, as the format is fixed and doesn't require anything
 // advanced. Trait impls can't be deprecated and the info is still useful for other types
 // implementing `SmartDisplay`, so leave it as-is for now.
 impl SmartDisplay for Date {
-    type Metadata = DateMetadata;
+    type Metadata = ();
 
     #[inline]
     fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
@@ -1535,7 +1527,7 @@ impl SmartDisplay for Date {
         let year_width = self.year().unsigned_abs().num_digits().clamp(4, 6);
         let formatted_width = year_sign_width + year_width + 6; // include two dashes and two digits each for month and day
 
-        Metadata::new(formatted_width as usize, self, DateMetadata)
+        Metadata::new(formatted_width as usize, self, ())
     }
 
     #[inline]

@@ -170,27 +170,19 @@ impl Weekday {
     }
 }
 
-mod private {
-    /// Metadata for `Weekday`.
-    #[non_exhaustive]
-    #[derive(Debug, Clone, Copy)]
-    pub struct WeekdayMetadata;
-}
-use private::WeekdayMetadata;
-
 impl SmartDisplay for Weekday {
-    type Metadata = WeekdayMetadata;
+    type Metadata = ();
 
     #[inline]
     fn metadata(&self, _: FormatterOptions) -> Metadata<'_, Self> {
         match self {
-            Monday => Metadata::new(6, self, WeekdayMetadata),
-            Tuesday => Metadata::new(7, self, WeekdayMetadata),
-            Wednesday => Metadata::new(9, self, WeekdayMetadata),
-            Thursday => Metadata::new(8, self, WeekdayMetadata),
-            Friday => Metadata::new(6, self, WeekdayMetadata),
-            Saturday => Metadata::new(8, self, WeekdayMetadata),
-            Sunday => Metadata::new(6, self, WeekdayMetadata),
+            Monday => Metadata::new(6, self, ()),
+            Tuesday => Metadata::new(7, self, ()),
+            Wednesday => Metadata::new(9, self, ()),
+            Thursday => Metadata::new(8, self, ()),
+            Friday => Metadata::new(6, self, ()),
+            Saturday => Metadata::new(8, self, ()),
+            Sunday => Metadata::new(6, self, ()),
         }
     }
 
