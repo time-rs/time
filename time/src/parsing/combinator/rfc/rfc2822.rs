@@ -14,6 +14,15 @@ const DEPTH_LIMIT: u8 = 32;
 // The full rule is equivalent to /\r\n[ \t]+|[ \t]+(?:\r\n[ \t]+)*/
 #[inline]
 pub(crate) fn fws(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
+    // Fast path for a single space followed by any ASCII character above space (the highest
+    // codepoint for ASCII whitespace).
+    if input.first() == Some(&b' ') && matches!(input.get(1), Some(0x21..)) {
+        return Some(ParsedItem(&input[1..], ()));
+    }
+
+    crate::hint::cold_path();
+
+    // Secondary fast path for single whitespace character followed by non-whitespace.
     if !matches!(input.first(), Some(b'\r' | b' ' | b'\t')) {
         return None;
     }
@@ -41,6 +50,15 @@ pub(crate) fn fws(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
 // The full rule is equivalent to any combination of `fws` and `comment` so long as it is not empty.
 #[inline]
 pub(crate) fn cfws(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
+    // Fast path for a single space followed by any ASCII character above the left parenthesis
+    // (which would start a comment).
+    if input.first() == Some(&b' ') && matches!(input.get(1), Some(0x29..)) {
+        return Some(ParsedItem(&input[1..], ()));
+    }
+
+    crate::hint::cold_path();
+
+    // Secondary fast path for whitespace other than a single space.
     if input.first() != Some(&b'(') {
         if !matches!(input.first(), Some(b'\r' | b' ' | b'\t')) {
             return None;
@@ -56,6 +74,32 @@ pub(crate) fn cfws(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
         one_or_more(|input| fws(input).or_else(|| comment(input, 1)))(input)
     }
     cfws_uncommon(input)
+}
+
+/// Optional `cfws` rule. This is equivalent to `opt(cfws)`, but is better optimized for the common
+/// case where no `cfws` is present.
+#[inline]
+pub(crate) fn opt_cfws(input: &[u8]) -> ParsedItem<'_, ()> {
+    if matches!(input.first(), Some(0x29..)) {
+        ParsedItem(input, ())
+    } else {
+        cfws(input).unwrap_or(ParsedItem(input, ()))
+    }
+}
+
+/// Equivalent to `opt(cfws)`, `ascii_char::<b':'>`, and `opt(cfws)` called in sequence, but is
+/// better optimized for the common case where no `cfws` is present.
+#[inline]
+pub(crate) fn opt_cfws_colon_opt_cfws(input: &[u8]) -> Option<ParsedItem<'_, ()>> {
+    if input.first() == Some(&b':') && matches!(input.get(1), Some(0x29..)) {
+        Some(ParsedItem(&input[1..], ()))
+    } else {
+        crate::hint::cold_path();
+        let input = opt_cfws(input).into_inner();
+        let input = ascii_char::<b':'>(input)?.into_inner();
+        let input = opt_cfws(input).into_inner();
+        Some(ParsedItem(input, ()))
+    }
 }
 
 /// Consume the `comment` rule.
@@ -158,14 +202,7 @@ fn text<'a>(input: &'a [u8]) -> ParsedItem<'a, ()> {
 }
 
 /// Consume an old zone literal, returning the offset in hours.
-#[inline]
 pub(crate) fn zone_literal(input: &[u8]) -> Option<ParsedItem<'_, i8>> {
-    if matches!(input.first(), Some(b'-' | b'+')) {
-        return None;
-    }
-
-    crate::hint::cold_path();
-
     let [first, second, third, rest @ ..] = input else {
         const UT_VARIANTS: [u16; 4] = [
             u16::from_ne_bytes([b'u', b't']),

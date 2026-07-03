@@ -59,12 +59,3 @@ impl<'a> ParsedItem<'a, ()> {
         self.0
     }
 }
-
-impl<'a> ParsedItem<'a, Option<()>> {
-    /// Discard the potential unit value, returning the remaining input.
-    #[must_use = "this returns the remaining input"]
-    #[inline]
-    pub(crate) const fn into_inner(self) -> &'a [u8] {
-        self.0
-    }
-}

@@ -14,8 +14,7 @@ use crate::format_description::well_known::{Iso8601, Rfc2822, Rfc3339};
 use crate::format_description::{BorrowedFormatItem, FormatDescriptionV3, modifier};
 use crate::internal_macros::{bug, try_likely_ok};
 use crate::parsing::combinator::{
-    ExactlyNDigits, Sign, any_digit, ascii_char, ascii_char_ignore_case, one_or_two_digits, opt,
-    sign,
+    ExactlyNDigits, Sign, any_digit, ascii_char, ascii_char_ignore_case, one_or_two_digits, sign,
 };
 use crate::parsing::{Parsed, ParsedItem, component};
 use crate::{Date, Month, OffsetDateTime, PrivateMethod, Time, UtcOffset, error};
@@ -308,12 +307,13 @@ impl sealed::Sealed for Rfc2822 {
         parsed: &mut Parsed,
         _: PrivateMethod,
     ) -> Result<&'a [u8], error::Parse> {
-        use crate::parsing::combinator::rfc::rfc2822::{cfws, fws, zone_literal};
+        use crate::parsing::combinator::rfc::rfc2822::{
+            cfws, fws, opt_cfws, opt_cfws_colon_opt_cfws, zone_literal,
+        };
 
-        let colon = ascii_char::<b':'>;
         let comma = ascii_char::<b','>;
 
-        let input = opt(cfws)(input).into_inner();
+        let input = opt_cfws(input).into_inner();
         let weekday = component::parse_weekday_short(
             input,
             modifier::WeekdayShort {
@@ -326,7 +326,7 @@ impl sealed::Sealed for Rfc2822 {
                     .ok_or(InvalidComponent("weekday"))
             );
             let input = try_likely_ok!(comma(input).ok_or(InvalidLiteral)).into_inner();
-            opt(cfws)(input).into_inner()
+            opt_cfws(input).into_inner()
         } else {
             input
         };
@@ -347,54 +347,49 @@ impl sealed::Sealed for Rfc2822 {
             .ok_or(InvalidComponent("month"))
         );
         let input = try_likely_ok!(cfws(input).ok_or(InvalidLiteral)).into_inner();
-        let input = match ExactlyNDigits::<4>::parse(input) {
-            Some(item) => {
-                let input = try_likely_ok!(
-                    item.flat_map(|year| if year >= 1900 { Some(year) } else { None })
-                        .and_then(|item| {
-                            item.consume_value(|value| parsed.set_year(value.cast_signed().widen()))
-                        })
-                        .ok_or(InvalidComponent("year"))
-                );
-                try_likely_ok!(fws(input).ok_or(InvalidLiteral)).into_inner()
+        let input = if let Some(ParsedItem(input, year_val)) = ExactlyNDigits::<4>::parse(input) {
+            if year_val < 1900 {
+                return Err(error::Parse::ParseFromDescription(InvalidComponent("year")));
             }
-            None => {
-                let input = try_likely_ok!(
-                    ExactlyNDigits::<2>::parse(input)
-                        .and_then(|item| {
-                            item.map(|year| year.widen::<u32>())
-                                .map(|year| if year < 50 { year + 2000 } else { year + 1900 })
-                                .map(|year| year.cast_signed())
-                                .consume_value(|value| parsed.set_year(value))
-                        })
-                        .ok_or(InvalidComponent("year"))
-                );
-                try_likely_ok!(cfws(input).ok_or(InvalidLiteral)).into_inner()
-            }
+            try_likely_ok!(
+                parsed
+                    .set_year(year_val.cast_signed().widen())
+                    .ok_or(InvalidComponent("year"))
+            );
+            try_likely_ok!(fws(input).ok_or(InvalidLiteral)).into_inner()
+        } else {
+            crate::hint::cold_path();
+            let ParsedItem(input, year) = try_likely_ok!(
+                ExactlyNDigits::<2>::parse(input)
+                    .map(|item| {
+                        item.map(|year| year.widen::<u32>())
+                            .map(|year| if year < 50 { year + 2000 } else { year + 1900 })
+                    })
+                    .ok_or(InvalidComponent("year"))
+            );
+            try_likely_ok!(
+                parsed
+                    .set_year(year.cast_signed())
+                    .ok_or(InvalidComponent("year"))
+            );
+            try_likely_ok!(cfws(input).ok_or(InvalidLiteral)).into_inner()
         };
 
-        let input = try_likely_ok!(
-            ExactlyNDigits::<2>::parse(input)
-                .and_then(|item| item.consume_value(|value| parsed.set_hour_24(value)))
-                .ok_or(InvalidComponent("hour"))
-        );
-        let input = opt(cfws)(input).into_inner();
-        let input = try_likely_ok!(colon(input).ok_or(InvalidLiteral)).into_inner();
-        let input = opt(cfws)(input).into_inner();
-        let input = try_likely_ok!(
-            ExactlyNDigits::<2>::parse(input)
-                .and_then(|item| item.consume_value(|value| parsed.set_minute(value)))
-                .ok_or(InvalidComponent("minute"))
-        );
+        let ParsedItem(input, hour) =
+            try_likely_ok!(ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("hour")));
+        try_likely_ok!(parsed.set_hour_24(hour).ok_or(InvalidComponent("hour")));
+        let input =
+            try_likely_ok!(opt_cfws_colon_opt_cfws(input).ok_or(InvalidLiteral)).into_inner();
+        let ParsedItem(input, minute) =
+            try_likely_ok!(ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("minute")));
+        try_likely_ok!(parsed.set_minute(minute).ok_or(InvalidComponent("minute")));
 
-        let input = if let Some(input) = colon(opt(cfws)(input).into_inner()) {
-            let input = input.into_inner(); // discard the colon
-            let input = opt(cfws)(input).into_inner();
-            let input = try_likely_ok!(
-                ExactlyNDigits::<2>::parse(input)
-                    .and_then(|item| item.consume_value(|value| parsed.set_second(value)))
-                    .ok_or(InvalidComponent("second"))
-            );
+        let input = if let Some(input) =
+            opt_cfws_colon_opt_cfws(input).map(|item| item.into_inner())
+        {
+            let ParsedItem(input, second) =
+                try_likely_ok!(ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("second")));
+            try_likely_ok!(parsed.set_second(second).ok_or(InvalidComponent("second")));
             try_likely_ok!(cfws(input).ok_or(InvalidLiteral)).into_inner()
         } else {
             try_likely_ok!(cfws(input).ok_or(InvalidLiteral)).into_inner()
@@ -444,7 +439,7 @@ impl sealed::Sealed for Rfc2822 {
                 .ok_or(InvalidComponent("offset minute"))
         );
 
-        let input = opt(cfws)(input).into_inner();
+        let input = opt_cfws(input).into_inner();
 
         Ok(input)
     }
@@ -455,7 +450,9 @@ impl sealed::Sealed for Rfc2822 {
         defaults: Option<Parsed>,
         _: PrivateMethod,
     ) -> Result<OffsetDateTime, error::Parse> {
-        use crate::parsing::combinator::rfc::rfc2822::{cfws, fws, zone_literal};
+        use crate::parsing::combinator::rfc::rfc2822::{
+            cfws, fws, opt_cfws, opt_cfws_colon_opt_cfws, zone_literal,
+        };
 
         if let Some(mut defaults) = defaults {
             crate::hint::cold_path();
@@ -472,10 +469,9 @@ impl sealed::Sealed for Rfc2822 {
                 });
         }
 
-        let colon = ascii_char::<b':'>;
         let comma = ascii_char::<b','>;
 
-        let input = opt(cfws)(input).into_inner();
+        let input = opt_cfws(input).into_inner();
         let weekday = component::parse_weekday_short(
             input,
             modifier::WeekdayShort {
@@ -485,7 +481,7 @@ impl sealed::Sealed for Rfc2822 {
         let input = if let Some(item) = weekday {
             let input = item.discard_value();
             let input = try_likely_ok!(comma(input).ok_or(InvalidLiteral)).into_inner();
-            opt(cfws)(input).into_inner()
+            opt_cfws(input).into_inner()
         } else {
             input
         };
@@ -502,16 +498,16 @@ impl sealed::Sealed for Rfc2822 {
             .ok_or(InvalidComponent("month"))
         );
         let input = try_likely_ok!(cfws(input).ok_or(InvalidLiteral)).into_inner();
-        let (input, year) = match ExactlyNDigits::<4>::parse(input) {
-            Some(item) => {
-                let ParsedItem(input, year) = try_likely_ok!(
-                    item.flat_map(|year| if year >= 1900 { Some(year) } else { None })
-                        .ok_or(InvalidComponent("year"))
-                );
+        let (input, year) =
+            if let Some(ParsedItem(input, year_val)) = ExactlyNDigits::<4>::parse(input) {
+                if year_val < 1900 {
+                    return Err(error::Parse::ParseFromDescription(InvalidComponent("year")));
+                }
+
                 let input = try_likely_ok!(fws(input).ok_or(InvalidLiteral)).into_inner();
-                (input, year)
-            }
-            None => {
+                (input, year_val)
+            } else {
+                crate::hint::cold_path();
                 let ParsedItem(input, year) = try_likely_ok!(
                     ExactlyNDigits::<2>::parse(input)
                         .map(|item| {
@@ -522,20 +518,18 @@ impl sealed::Sealed for Rfc2822 {
                 );
                 let input = try_likely_ok!(cfws(input).ok_or(InvalidLiteral)).into_inner();
                 (input, year)
-            }
-        };
+            };
 
         let ParsedItem(input, hour) =
             try_likely_ok!(ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("hour")));
-        let input = opt(cfws)(input).into_inner();
-        let input = try_likely_ok!(colon(input).ok_or(InvalidLiteral)).into_inner();
-        let input = opt(cfws)(input).into_inner();
+        let input =
+            try_likely_ok!(opt_cfws_colon_opt_cfws(input).ok_or(InvalidLiteral)).into_inner();
         let ParsedItem(input, minute) =
             try_likely_ok!(ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("minute")));
 
-        let (input, mut second) = if let Some(input) = colon(opt(cfws)(input).into_inner()) {
-            let input = input.into_inner(); // discard the colon
-            let input = opt(cfws)(input).into_inner();
+        let (input, mut second) = if let Some(input) =
+            opt_cfws_colon_opt_cfws(input).map(|item| item.into_inner())
+        {
             let ParsedItem(input, second) =
                 try_likely_ok!(ExactlyNDigits::<2>::parse(input).ok_or(InvalidComponent("second")));
             let input = try_likely_ok!(cfws(input).ok_or(InvalidLiteral)).into_inner();
@@ -550,6 +544,7 @@ impl sealed::Sealed for Rfc2822 {
         let sign = sign(input);
         let (input, offset_hour, offset_minute) = match sign {
             None => {
+                crate::hint::cold_path();
                 let ParsedItem(input, offset_hour) =
                     zone_literal(input).ok_or(InvalidComponent("offset hour"))?;
                 (input, offset_hour, 0)
@@ -572,7 +567,7 @@ impl sealed::Sealed for Rfc2822 {
             }
         };
 
-        let input = opt(cfws)(input).into_inner();
+        let input = opt_cfws(input).into_inner();
 
         if !input.is_empty() {
             return Err(error::Parse::ParseFromDescription(
