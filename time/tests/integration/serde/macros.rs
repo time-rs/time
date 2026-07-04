@@ -9,7 +9,7 @@ use serde_test2::{
 use time::format_description::BorrowedFormatItem;
 use time::format_description::well_known::{Iso8601, iso8601};
 use time::macros::{date, datetime, offset, time};
-use time::{Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, serde};
+use time::{Date, OffsetDateTime, PlainDateTime, Time, UtcOffset, serde};
 
 // Not used in the tests, but ensures that the macro compiles.
 #[expect(dead_code)]
@@ -31,7 +31,7 @@ mod nested {
     );
     time::serde::format_description!(
         pub primitive_dt_format,
-        PrimitiveDateTime,
+        PlainDateTime,
         "custom format: [year]-[month]-[day] [hour]:[minute]:[second]"
     );
     time::serde::format_description!(
@@ -61,7 +61,7 @@ struct TestCustomFormat {
     #[serde(with = "nested::offset_dt_format")]
     offset_dt: OffsetDateTime,
     #[serde(with = "nested::primitive_dt_format::option")]
-    primitive_dt: Option<PrimitiveDateTime>,
+    primitive_dt: Option<PlainDateTime>,
     #[serde(with = "date_format")]
     date: Date,
     #[serde(with = "nested::time_format::option")]
@@ -156,24 +156,24 @@ fn custom_serialize(#[case] value: Compact<TestCustomFormat>, #[case] tokens: &[
         Token::Str("primitive_dt"),
         Token::Bool(false),
     ],
-    "invalid type: boolean `false`, expected an `Option<PrimitiveDateTime>` in the format \"custom \
+    "invalid type: boolean `false`, expected an `Option<PlainDateTime>` in the format \"custom \
     format: [year]-[month]-[day] [hour]:[minute]:[second]\""
 )]
 fn custom_deserialize_error(#[case] tokens: &[Token], #[case] error: &str) {
     assert_de_tokens_error::<TestCustomFormat>(tokens, error);
 }
 
-// This format string has offset_hour and offset_minute, but is for formatting PrimitiveDateTime.
+// This format string has offset_hour and offset_minute, but is for formatting PlainDateTime.
 serde::format_description!(
     primitive_date_time_format_bad,
-    PrimitiveDateTime,
+    PlainDateTime,
     "[offset_hour]:[offset_minute]"
 );
 
 #[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
 struct TestCustomFormatPrimitiveDateTimeBad {
     #[serde(with = "primitive_date_time_format_bad")]
-    dt: PrimitiveDateTime,
+    dt: PlainDateTime,
 }
 
 #[rstest]

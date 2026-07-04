@@ -26,17 +26,15 @@ use crate::num_fmt::str_from_raw_parts;
 use crate::parsing::{Parsable, Parsed};
 use crate::unit::*;
 use crate::util::days_in_year;
-use crate::{
-    Date, Duration, Month, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday, error,
-};
+use crate::{Date, Duration, Month, PlainDateTime, Time, UtcDateTime, UtcOffset, Weekday, error};
 
 /// The Julian day of the Unix epoch.
 const UNIX_EPOCH_JULIAN_DAY: i32 = OffsetDateTime::UNIX_EPOCH.to_julian_day();
 
-/// A [`PrimitiveDateTime`] with a [`UtcOffset`].
+/// A [`PlainDateTime`] with a [`UtcOffset`].
 #[derive(Clone, Copy, Eq)]
 pub struct OffsetDateTime {
-    local_date_time: PrimitiveDateTime,
+    local_date_time: PlainDateTime,
     offset: UtcOffset,
 }
 
@@ -171,7 +169,7 @@ impl OffsetDateTime {
     /// ```
     #[inline]
     pub const fn new_utc(date: Date, time: Time) -> Self {
-        PrimitiveDateTime::new(date, time).assume_utc()
+        PlainDateTime::new(date, time).assume_utc()
     }
 
     /// Convert the `OffsetDateTime` from the current [`UtcOffset`] to the provided [`UtcOffset`].
@@ -210,7 +208,7 @@ impl OffsetDateTime {
     /// returning `None` if the date-time in the resulting offset is invalid.
     ///
     /// ```rust
-    /// # use time::PrimitiveDateTime;
+    /// # use time::PlainDateTime;
     /// # use time_macros::{datetime, offset};
     /// assert_eq!(
     ///     datetime!(2000-01-01 0:00 UTC)
@@ -220,7 +218,7 @@ impl OffsetDateTime {
     ///     1999,
     /// );
     /// assert_eq!(
-    ///     PrimitiveDateTime::MAX
+    ///     PlainDateTime::MAX
     ///         .assume_utc()
     ///         .checked_to_offset(offset!(+1)),
     ///     None,
@@ -553,9 +551,9 @@ impl OffsetDateTime {
             + self.nanosecond() as i128
     }
 
-    /// Get the [`PrimitiveDateTime`] in the stored offset.
+    /// Get the [`PlainDateTime`] in the stored offset.
     #[inline]
-    pub(crate) const fn date_time(self) -> PrimitiveDateTime {
+    pub(crate) const fn date_time(self) -> PlainDateTime {
         self.local_date_time
     }
 
@@ -1069,9 +1067,9 @@ impl OffsetDateTime {
         if let Some(datetime) = self.checked_add(duration) {
             datetime
         } else if duration.is_negative() {
-            PrimitiveDateTime::MIN.assume_offset(self.offset())
+            PlainDateTime::MIN.assume_offset(self.offset())
         } else {
-            PrimitiveDateTime::MAX.assume_offset(self.offset())
+            PlainDateTime::MAX.assume_offset(self.offset())
         }
     }
 
@@ -1125,9 +1123,9 @@ impl OffsetDateTime {
         if let Some(datetime) = self.checked_sub(duration) {
             datetime
         } else if duration.is_negative() {
-            PrimitiveDateTime::MAX.assume_offset(self.offset())
+            PlainDateTime::MAX.assume_offset(self.offset())
         } else {
-            PrimitiveDateTime::MIN.assume_offset(self.offset())
+            PlainDateTime::MIN.assume_offset(self.offset())
         }
     }
 }
@@ -1194,7 +1192,7 @@ impl OffsetDateTime {
     /// ```
     #[must_use = "This method does not mutate the original `OffsetDateTime`."]
     #[inline]
-    pub const fn replace_date_time(self, date_time: PrimitiveDateTime) -> Self {
+    pub const fn replace_date_time(self, date_time: PlainDateTime) -> Self {
         date_time.assume_offset(self.offset())
     }
 
@@ -1621,10 +1619,9 @@ impl OffsetDateTime {
     /// The maximum number of bytes that the `fmt_into_buffer` method will write, which is also used
     /// for the `Display` implementation.
     pub(crate) const DISPLAY_BUFFER_SIZE: usize =
-        PrimitiveDateTime::DISPLAY_BUFFER_SIZE + UtcOffset::DISPLAY_BUFFER_SIZE + 1;
+        PlainDateTime::DISPLAY_BUFFER_SIZE + UtcOffset::DISPLAY_BUFFER_SIZE + 1;
 
-    /// Format the `PrimitiveDateTime` into the provided buffer, returning the number of bytes
-    /// written.
+    /// Format the `OffsetDateTime` into the provided buffer, returning the number of bytes written.
     #[inline]
     pub(crate) fn fmt_into_buffer(
         self,

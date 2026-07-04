@@ -116,7 +116,7 @@ mod num_fmt;
 mod offset_date_time;
 #[cfg(feature = "parsing")]
 pub mod parsing;
-mod primitive_date_time;
+mod plain_date_time;
 #[cfg(feature = "quickcheck")]
 mod quickcheck;
 #[cfg(feature = "rand010")]
@@ -148,7 +148,7 @@ pub use crate::error::Error;
 pub use crate::instant::Instant;
 pub use crate::month::Month;
 pub use crate::offset_date_time::OffsetDateTime;
-pub use crate::primitive_date_time::PrimitiveDateTime;
+pub use crate::plain_date_time::PlainDateTime;
 pub use crate::time::Time;
 pub use crate::timestamp::Timestamp;
 pub use crate::utc_date_time::UtcDateTime;
@@ -157,6 +157,12 @@ pub use crate::weekday::Weekday;
 
 /// An alias for [`std::result::Result`] with a generic error from the time crate.
 pub type Result<T> = core::result::Result<T, Error>;
+/// A [`PlainDateTime`] under its original name.
+///
+/// This type is not currently deprecated, but it likely will be in the future. Use
+/// [`PlainDateTime`] when writing new code. In the next breaking release, this alias will be
+/// removed.
+pub type PrimitiveDateTime = PlainDateTime;
 
 /// A private type used to restrict the ability to call methods that are not intended to be called
 /// by downstream users.

@@ -105,7 +105,7 @@ require_all_features! {
     mod parse_format_description;
     mod parsed;
     mod parsing;
-    mod primitive_date_time;
+    mod plain_date_time;
     #[path = "quickcheck.rs"]
     mod quickcheck_mod;
     mod rand;

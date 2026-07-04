@@ -3,7 +3,7 @@ use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{datetime, offset};
 
 setup_benchmark! {
-    "PrimitiveDateTime",
+    "PlainDateTime",
 
     // All getters are trivially dispatched to the relevant field, and do not need to be benchmarked
     // a second time.

@@ -1,7 +1,7 @@
 use criterion::Bencher;
 use rand08::Rng;
 use rand08::rngs::mock::StepRng;
-use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use time::{Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, UtcOffset, Weekday};
 
 macro_rules! bench_rand {
     ($($name:ident : $type:ty),* $(,)?) => {
@@ -22,7 +22,7 @@ bench_rand![
     time: Time,
     date: Date,
     utc_offset: UtcOffset,
-    primitive_date_time: PrimitiveDateTime,
+    primitive_date_time: PlainDateTime,
     offset_date_time: OffsetDateTime,
     duration: Duration,
     weekday: Weekday,

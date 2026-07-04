@@ -6,7 +6,7 @@ use time::Weekday::*;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, offset, time, utc_datetime};
 use time::{
-    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+    Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, UtcDateTime, UtcOffset, Weekday,
 };
 
 #[rstest]
@@ -53,8 +53,8 @@ fn to_offset(
 }
 
 #[rstest]
-#[case(PrimitiveDateTime::MAX.assume_utc(), offset!(+1))]
-#[case(PrimitiveDateTime::MIN.assume_utc(), offset!(-1))]
+#[case(PlainDateTime::MAX.assume_utc(), offset!(+1))]
+#[case(PlainDateTime::MIN.assume_utc(), offset!(-1))]
 #[should_panic]
 fn to_offset_panic(#[case] input: OffsetDateTime, #[case] offset: UtcOffset) {
     input.to_offset(offset);
@@ -72,8 +72,8 @@ fn to_offset_invalid_regression(
 
 #[rstest]
 #[case(datetime!(2000-01-01 0:00 UTC), offset!(-1), 1999)]
-#[case(PrimitiveDateTime::MAX.assume_utc(), offset!(+1), None)]
-#[case(PrimitiveDateTime::MIN.assume_utc(), offset!(-1), None)]
+#[case(PlainDateTime::MAX.assume_utc(), offset!(+1), None)]
+#[case(PlainDateTime::MIN.assume_utc(), offset!(-1), None)]
 fn checked_to_offset(
     #[case] input: OffsetDateTime,
     #[case] offset: UtcOffset,
@@ -93,8 +93,8 @@ fn to_utc(#[case] input: OffsetDateTime, #[case] expected: UtcDateTime) {
 }
 
 #[rstest]
-#[case(PrimitiveDateTime::MAX.assume_offset(offset!(-1)))]
-#[case(PrimitiveDateTime::MIN.assume_offset(offset!(+1)))]
+#[case(PlainDateTime::MAX.assume_offset(offset!(-1)))]
+#[case(PlainDateTime::MIN.assume_offset(offset!(+1)))]
 #[should_panic]
 fn to_utc_panic(#[case] input: OffsetDateTime) {
     input.to_utc();
@@ -372,7 +372,7 @@ fn replace_date(
 #[case(datetime!(2020-01-01 12:00 +1), datetime!(2020-01-30 0:00), datetime!(2020-01-30 0:00 +1))]
 fn replace_date_time(
     #[case] input: OffsetDateTime,
-    #[case] new_datetime: PrimitiveDateTime,
+    #[case] new_datetime: PlainDateTime,
     #[case] expected: OffsetDateTime,
 ) {
     assert_eq!(input.replace_date_time(new_datetime), expected);

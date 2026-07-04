@@ -39,8 +39,8 @@ use alloc::boxed::Box;
 use quickcheck::{Arbitrary, Gen, empty_shrinker, single_shrinker};
 
 use crate::{
-    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, Timestamp, UtcDateTime,
-    UtcOffset, Weekday,
+    Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, Timestamp, UtcDateTime, UtcOffset,
+    Weekday,
 };
 
 /// Obtain an arbitrary value between the minimum and maximum inclusive.
@@ -125,7 +125,7 @@ impl Arbitrary for Time {
     }
 }
 
-impl Arbitrary for PrimitiveDateTime {
+impl Arbitrary for PlainDateTime {
     #[inline]
     fn arbitrary(g: &mut Gen) -> Self {
         Self::new(<_>::arbitrary(g), <_>::arbitrary(g))

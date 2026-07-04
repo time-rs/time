@@ -24,7 +24,7 @@ use crate::num_fmt::{four_to_six_digits, str_from_raw_parts, two_digits_zero_pad
 use crate::parsing::{Parsable, Parsed};
 use crate::unit::*;
 use crate::util::{days_in_month_leap, range_validated, weeks_in_year};
-use crate::{Duration, Month, PrimitiveDateTime, Time, Weekday, error, hint};
+use crate::{Duration, Month, PlainDateTime, Time, Weekday, error, hint};
 
 type Year = ri32<MIN_YEAR, MAX_YEAR>;
 
@@ -1324,21 +1324,21 @@ impl Date {
     }
 }
 
-/// Methods to add a [`Time`] component, resulting in a [`PrimitiveDateTime`].
+/// Methods to add a [`Time`] component, resulting in a [`PlainDateTime`].
 impl Date {
-    /// Create a [`PrimitiveDateTime`] using the existing date. The [`Time`] component will be set
-    /// to midnight.
+    /// Create a [`PlainDateTime`] using the existing date. The [`Time`] component will be set to
+    /// midnight.
     ///
     /// ```rust
     /// # use time_macros::{date, datetime};
     /// assert_eq!(date!(1970-01-01).midnight(), datetime!(1970-01-01 0:00));
     /// ```
     #[inline]
-    pub const fn midnight(self) -> PrimitiveDateTime {
-        PrimitiveDateTime::new(self, Time::MIDNIGHT)
+    pub const fn midnight(self) -> PlainDateTime {
+        PlainDateTime::new(self, Time::MIDNIGHT)
     }
 
-    /// Create a [`PrimitiveDateTime`] using the existing date and the provided [`Time`].
+    /// Create a [`PlainDateTime`] using the existing date and the provided [`Time`].
     ///
     /// ```rust
     /// # use time_macros::{date, datetime, time};
@@ -1348,11 +1348,11 @@ impl Date {
     /// );
     /// ```
     #[inline]
-    pub const fn with_time(self, time: Time) -> PrimitiveDateTime {
-        PrimitiveDateTime::new(self, time)
+    pub const fn with_time(self, time: Time) -> PlainDateTime {
+        PlainDateTime::new(self, time)
     }
 
-    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and the provided time.
+    /// Attempt to create a [`PlainDateTime`] using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time_macros::date;
@@ -1365,14 +1365,14 @@ impl Date {
         hour: u8,
         minute: u8,
         second: u8,
-    ) -> Result<PrimitiveDateTime, error::ComponentRange> {
-        Ok(PrimitiveDateTime::new(
+    ) -> Result<PlainDateTime, error::ComponentRange> {
+        Ok(PlainDateTime::new(
             self,
             const_try!(Time::from_hms(hour, minute, second)),
         ))
     }
 
-    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and the provided time.
+    /// Attempt to create a [`PlainDateTime`] using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time_macros::date;
@@ -1386,14 +1386,14 @@ impl Date {
         minute: u8,
         second: u8,
         millisecond: u16,
-    ) -> Result<PrimitiveDateTime, error::ComponentRange> {
-        Ok(PrimitiveDateTime::new(
+    ) -> Result<PlainDateTime, error::ComponentRange> {
+        Ok(PlainDateTime::new(
             self,
             const_try!(Time::from_hms_milli(hour, minute, second, millisecond)),
         ))
     }
 
-    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and the provided time.
+    /// Attempt to create a [`PlainDateTime`] using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time_macros::date;
@@ -1407,14 +1407,14 @@ impl Date {
         minute: u8,
         second: u8,
         microsecond: u32,
-    ) -> Result<PrimitiveDateTime, error::ComponentRange> {
-        Ok(PrimitiveDateTime::new(
+    ) -> Result<PlainDateTime, error::ComponentRange> {
+        Ok(PlainDateTime::new(
             self,
             const_try!(Time::from_hms_micro(hour, minute, second, microsecond)),
         ))
     }
 
-    /// Attempt to create a [`PrimitiveDateTime`] using the existing date and the provided time.
+    /// Attempt to create a [`PlainDateTime`] using the existing date and the provided time.
     ///
     /// ```rust
     /// # use time_macros::date;
@@ -1428,8 +1428,8 @@ impl Date {
         minute: u8,
         second: u8,
         nanosecond: u32,
-    ) -> Result<PrimitiveDateTime, error::ComponentRange> {
-        Ok(PrimitiveDateTime::new(
+    ) -> Result<PlainDateTime, error::ComponentRange> {
+        Ok(PlainDateTime::new(
             self,
             const_try!(Time::from_hms_nano(hour, minute, second, nanosecond)),
         ))

@@ -5,7 +5,7 @@ use rstest::rstest;
 use time::Weekday::*;
 use time::ext::{NumericalDuration, NumericalStdDuration};
 use time::macros::{date, datetime, time};
-use time::{Date, Duration, Month, PrimitiveDateTime, Weekday, util};
+use time::{Date, Duration, Month, PlainDateTime, Weekday, util};
 
 #[rstest]
 #[case(date!(2020-02-03), "2020-02-03")]
@@ -913,17 +913,13 @@ fn from_julian_day(#[case] julian_day: i32, #[case] expected: impl Into<Option<D
 #[case(date!(1970-01-01), datetime!(1970-01-01 0:00))]
 #[case(date!(2023-06-15), datetime!(2023-06-15 0:00))]
 #[case(date!(2000-01-01), datetime!(2000-01-01 0:00))]
-fn midnight(#[case] date: Date, #[case] expected: PrimitiveDateTime) {
+fn midnight(#[case] date: Date, #[case] expected: PlainDateTime) {
     assert_eq!(date.midnight(), expected);
 }
 
 #[rstest]
 #[case(date!(1970-01-01), time!(0:00), datetime!(1970-01-01 0:00))]
-fn with_time(
-    #[case] date: Date,
-    #[case] time_value: time::Time,
-    #[case] expected: PrimitiveDateTime,
-) {
+fn with_time(#[case] date: Date, #[case] time_value: time::Time, #[case] expected: PlainDateTime) {
     assert_eq!(date.with_time(time_value), expected);
 }
 
@@ -934,7 +930,7 @@ fn with_hms(
     #[case] hour: u8,
     #[case] minute: u8,
     #[case] second: u8,
-    #[case] expected: impl Into<Option<PrimitiveDateTime>>,
+    #[case] expected: impl Into<Option<PlainDateTime>>,
 ) {
     let result = date!(1970-01-01).with_hms(hour, minute, second);
 
@@ -953,7 +949,7 @@ fn with_hms_milli(
     #[case] minute: u8,
     #[case] second: u8,
     #[case] millisecond: u16,
-    #[case] expected: impl Into<Option<PrimitiveDateTime>>,
+    #[case] expected: impl Into<Option<PlainDateTime>>,
 ) {
     let result = date!(1970-01-01).with_hms_milli(hour, minute, second, millisecond);
 
@@ -972,7 +968,7 @@ fn with_hms_micro(
     #[case] minute: u8,
     #[case] second: u8,
     #[case] microsecond: u32,
-    #[case] expected: impl Into<Option<PrimitiveDateTime>>,
+    #[case] expected: impl Into<Option<PlainDateTime>>,
 ) {
     let result = date!(1970-01-01).with_hms_micro(hour, minute, second, microsecond);
 
@@ -991,7 +987,7 @@ fn with_hms_nano(
     #[case] minute: u8,
     #[case] second: u8,
     #[case] nanosecond: u32,
-    #[case] expected: impl Into<Option<PrimitiveDateTime>>,
+    #[case] expected: impl Into<Option<PlainDateTime>>,
 ) {
     let result = date!(1970-01-01).with_hms_nano(hour, minute, second, nanosecond);
 

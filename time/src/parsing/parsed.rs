@@ -31,8 +31,8 @@ use crate::parsing::component::{
 };
 use crate::unit::{Day, Hour, Minute, Nanosecond, Second};
 use crate::{
-    Date, Month, OffsetDateTime, PrimitiveDateTime, Time, Timestamp, UtcDateTime, UtcOffset,
-    Weekday, error,
+    Date, Month, OffsetDateTime, PlainDateTime, Time, Timestamp, UtcDateTime, UtcOffset, Weekday,
+    error,
 };
 
 /// Sealed to prevent downstream implementations.
@@ -1296,7 +1296,7 @@ impl TryFrom<Parsed> for UtcOffset {
     }
 }
 
-impl TryFrom<Parsed> for PrimitiveDateTime {
+impl TryFrom<Parsed> for PlainDateTime {
     type Error = error::TryFromParsed;
 
     #[inline]

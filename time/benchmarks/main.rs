@@ -100,7 +100,7 @@ mods![
     mod offset_date_time;
     mod parse_format_description;
     mod parsing;
-    mod primitive_date_time;
+    mod plain_date_time;
     mod rand08;
     mod rand09;
     mod time;

@@ -39,7 +39,7 @@ impl<T> Parsable for T where T: Deref<Target: Parsable> {}
 /// exist in generic bounds.
 mod sealed {
     use super::*;
-    use crate::{PrimitiveDateTime, Timestamp, UtcDateTime};
+    use crate::{PlainDateTime, Timestamp, UtcDateTime};
 
     /// Parse the item using a format description and an input.
     #[expect(
@@ -141,14 +141,14 @@ mod sealed {
                 .try_into()?)
         }
 
-        /// Parse a [`PrimitiveDateTime`] from the format description.
+        /// Parse a [`PlainDateTime`] from the format description.
         #[inline]
         fn parse_primitive_date_time(
             &self,
             input: &[u8],
             defaults: Option<Parsed>,
             _: PrivateMethod,
-        ) -> Result<PrimitiveDateTime, error::Parse> {
+        ) -> Result<PlainDateTime, error::Parse> {
             Ok(self
                 .parse_internal(input, defaults, PrivateMethod)?
                 .try_into()?)

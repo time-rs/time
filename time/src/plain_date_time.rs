@@ -1,4 +1,4 @@
-//! The [`PrimitiveDateTime`] struct and its associated `impl`s.
+//! The [`PlainDateTime`] struct and its associated `impl`s.
 
 #[cfg(feature = "formatting")]
 use alloc::string::String;
@@ -28,7 +28,7 @@ use crate::{
 /// Combined date and time.
 #[derive(Clone, Copy, Eq)]
 #[cfg_attr(not(docsrs), repr(C))]
-pub struct PrimitiveDateTime {
+pub struct PlainDateTime {
     // The order of this struct's fields matter! Do not reorder them.
 
     // Little endian version
@@ -44,7 +44,7 @@ pub struct PrimitiveDateTime {
     time: Time,
 }
 
-impl Hash for PrimitiveDateTime {
+impl Hash for PlainDateTime {
     #[inline]
     fn hash<H>(&self, state: &mut H)
     where
@@ -54,29 +54,29 @@ impl Hash for PrimitiveDateTime {
     }
 }
 
-impl PartialEq for PrimitiveDateTime {
+impl PartialEq for PlainDateTime {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.as_i128().eq(&other.as_i128())
     }
 }
 
-impl PartialOrd for PrimitiveDateTime {
+impl PartialOrd for PlainDateTime {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for PrimitiveDateTime {
+impl Ord for PlainDateTime {
     #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
         self.as_i128().cmp(&other.as_i128())
     }
 }
 
-impl PrimitiveDateTime {
-    /// Provide a representation of `PrimitiveDateTime` as a `i128`. This value can be used for
+impl PlainDateTime {
+    /// Provide a representation of `PlainDateTime` as a `i128`. This value can be used for
     /// equality, hashing, and ordering.
     ///
     /// **Note**: This value is explicitly signed, so do not cast this to or treat this as an
@@ -89,7 +89,7 @@ impl PrimitiveDateTime {
         (date << 64) | time
     }
 
-    /// The smallest value that can be represented by `PrimitiveDateTime`.
+    /// The smallest value that can be represented by `PlainDateTime`.
     ///
     /// Depending on `large-dates` feature flag, value of this constant may vary.
     ///
@@ -97,7 +97,7 @@ impl PrimitiveDateTime {
     /// 2. With `large-dates` enabled it is equal to `-999999-01-01 00:00:00.0`
     ///
     /// ```rust
-    /// # use time::PrimitiveDateTime;
+    /// # use time::PlainDateTime;
     /// # use time_macros::datetime;
     #[cfg_attr(
         feature = "large-dates",
@@ -105,7 +105,7 @@ impl PrimitiveDateTime {
     )]
     #[cfg_attr(
         feature = "large-dates",
-        doc = "assert_eq!(PrimitiveDateTime::MIN, datetime!(-999999-01-01 0:00));"
+        doc = "assert_eq!(PlainDateTime::MIN, datetime!(-999999-01-01 0:00));"
     )]
     #[cfg_attr(
         not(feature = "large-dates"),
@@ -113,7 +113,7 @@ impl PrimitiveDateTime {
     )]
     #[cfg_attr(
         not(feature = "large-dates"),
-        doc = "assert_eq!(PrimitiveDateTime::MIN, datetime!(-9999-01-01 0:00));"
+        doc = "assert_eq!(PlainDateTime::MIN, datetime!(-9999-01-01 0:00));"
     )]
     /// ```
     pub const MIN: Self = Self {
@@ -121,7 +121,7 @@ impl PrimitiveDateTime {
         time: Time::MIDNIGHT,
     };
 
-    /// The largest value that can be represented by `PrimitiveDateTime`.
+    /// The largest value that can be represented by `PlainDateTime`.
     ///
     /// Depending on `large-dates` feature flag, value of this constant may vary.
     ///
@@ -129,7 +129,7 @@ impl PrimitiveDateTime {
     /// 2. With `large-dates` enabled it is equal to `999999-12-31 23:59:59.999_999_999`
     ///
     /// ```rust
-    /// # use time::PrimitiveDateTime;
+    /// # use time::PlainDateTime;
     /// # use time_macros::datetime;
     #[cfg_attr(
         feature = "large-dates",
@@ -137,7 +137,7 @@ impl PrimitiveDateTime {
     )]
     #[cfg_attr(
         feature = "large-dates",
-        doc = "assert_eq!(PrimitiveDateTime::MAX, datetime!(+999999-12-31 23:59:59.999_999_999));"
+        doc = "assert_eq!(PlainDateTime::MAX, datetime!(+999999-12-31 23:59:59.999_999_999));"
     )]
     #[cfg_attr(
         not(feature = "large-dates"),
@@ -145,7 +145,7 @@ impl PrimitiveDateTime {
     )]
     #[cfg_attr(
         not(feature = "large-dates"),
-        doc = "assert_eq!(PrimitiveDateTime::MAX, datetime!(+9999-12-31 23:59:59.999_999_999));"
+        doc = "assert_eq!(PlainDateTime::MAX, datetime!(+9999-12-31 23:59:59.999_999_999));"
     )]
     /// ```
     pub const MAX: Self = Self {
@@ -153,13 +153,13 @@ impl PrimitiveDateTime {
         time: Time::MAX,
     };
 
-    /// Create a new `PrimitiveDateTime` from the provided [`Date`] and [`Time`].
+    /// Create a new `PlainDateTime` from the provided [`Date`] and [`Time`].
     ///
     /// ```rust
-    /// # use time::PrimitiveDateTime;
+    /// # use time::PlainDateTime;
     /// # use time_macros::{date, datetime, time};
     /// assert_eq!(
-    ///     PrimitiveDateTime::new(date!(2019-01-01), time!(0:00)),
+    ///     PlainDateTime::new(date!(2019-01-01), time!(0:00)),
     ///     datetime!(2019-01-01 0:00),
     /// );
     /// ```
@@ -168,7 +168,7 @@ impl PrimitiveDateTime {
         Self { date, time }
     }
 
-    /// Get the [`Date`] component of the `PrimitiveDateTime`.
+    /// Get the [`Date`] component of the `PlainDateTime`.
     ///
     /// ```rust
     /// # use time_macros::{date, datetime};
@@ -179,7 +179,7 @@ impl PrimitiveDateTime {
         self.date
     }
 
-    /// Get the [`Time`] component of the `PrimitiveDateTime`.
+    /// Get the [`Time`] component of the `PlainDateTime`.
     ///
     /// ```rust
     /// # use time_macros::{datetime, time};
@@ -534,7 +534,7 @@ impl PrimitiveDateTime {
         self.time().nanosecond()
     }
 
-    /// Assuming that the existing `PrimitiveDateTime` represents a moment in the provided
+    /// Assuming that the existing `PlainDateTime` represents a moment in the provided
     /// [`UtcOffset`], return an [`OffsetDateTime`].
     ///
     /// ```rust
@@ -557,7 +557,7 @@ impl PrimitiveDateTime {
         OffsetDateTime::new_in_offset(self.date, self.time, offset)
     }
 
-    /// Assuming that the existing `PrimitiveDateTime` represents a moment in UTC, return an
+    /// Assuming that the existing `PlainDateTime` represents a moment in UTC, return an
     /// [`OffsetDateTime`].
     ///
     /// ```rust
@@ -569,13 +569,13 @@ impl PrimitiveDateTime {
     /// ```
     ///
     /// **Note**: You may want a [`UtcDateTime`] instead, which can be obtained with the
-    /// [`PrimitiveDateTime::as_utc`] method.
+    /// [`PlainDateTime::as_utc`] method.
     #[inline]
     pub const fn assume_utc(self) -> OffsetDateTime {
         self.assume_offset(UtcOffset::UTC)
     }
 
-    /// Assuming that the existing `PrimitiveDateTime` represents a moment in UTC, return a
+    /// Assuming that the existing `PlainDateTime` represents a moment in UTC, return a
     /// [`UtcDateTime`].
     ///
     /// ```rust
@@ -655,16 +655,16 @@ impl PrimitiveDateTime {
     /// Computes `self + duration`, saturating value on overflow.
     ///
     /// ```
-    /// # use time::{PrimitiveDateTime, ext::NumericalDuration};
+    /// # use time::{PlainDateTime, ext::NumericalDuration};
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     PrimitiveDateTime::MIN.saturating_add((-2).days()),
-    ///     PrimitiveDateTime::MIN
+    ///     PlainDateTime::MIN.saturating_add((-2).days()),
+    ///     PlainDateTime::MIN
     /// );
     ///
     /// assert_eq!(
-    ///     PrimitiveDateTime::MAX.saturating_add(2.days()),
-    ///     PrimitiveDateTime::MAX
+    ///     PlainDateTime::MAX.saturating_add(2.days()),
+    ///     PlainDateTime::MAX
     /// );
     ///
     /// assert_eq!(
@@ -686,16 +686,16 @@ impl PrimitiveDateTime {
     /// Computes `self - duration`, saturating value on overflow.
     ///
     /// ```
-    /// # use time::{PrimitiveDateTime, ext::NumericalDuration};
+    /// # use time::{PlainDateTime, ext::NumericalDuration};
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     PrimitiveDateTime::MIN.saturating_sub(2.days()),
-    ///     PrimitiveDateTime::MIN
+    ///     PlainDateTime::MIN.saturating_sub(2.days()),
+    ///     PlainDateTime::MIN
     /// );
     ///
     /// assert_eq!(
-    ///     PrimitiveDateTime::MAX.saturating_sub((-2).days()),
-    ///     PrimitiveDateTime::MAX
+    ///     PlainDateTime::MAX.saturating_sub((-2).days()),
+    ///     PlainDateTime::MAX
     /// );
     ///
     /// assert_eq!(
@@ -715,8 +715,8 @@ impl PrimitiveDateTime {
     }
 }
 
-/// Methods that replace part of the `PrimitiveDateTime`.
-impl PrimitiveDateTime {
+/// Methods that replace part of the `PlainDateTime`.
+impl PlainDateTime {
     /// Replace the time, preserving the date.
     ///
     /// ```rust
@@ -726,7 +726,7 @@ impl PrimitiveDateTime {
     ///     datetime!(2020-01-01 5:00)
     /// );
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn replace_time(self, time: Time) -> Self {
         Self {
@@ -744,7 +744,7 @@ impl PrimitiveDateTime {
     ///     datetime!(2020-01-30 12:00)
     /// );
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn replace_date(self, date: Date) -> Self {
         Self {
@@ -764,7 +764,7 @@ impl PrimitiveDateTime {
     /// assert!(datetime!(2022-02-18 12:00).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
     /// assert!(datetime!(2022-02-18 12:00).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
         Ok(Self {
@@ -784,7 +784,7 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022-01-30 12:00).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
         Ok(Self {
@@ -804,7 +804,7 @@ impl PrimitiveDateTime {
     /// assert!(datetime!(2022-02-18 12:00).replace_day(0).is_err()); // 00 isn't a valid day
     /// assert!(datetime!(2022-02-18 12:00).replace_day(30).is_err()); // 30 isn't a valid day in February
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self {
@@ -821,7 +821,7 @@ impl PrimitiveDateTime {
     /// assert!(datetime!(2022-049 12:00).replace_ordinal(0).is_err()); // 0 isn't a valid ordinal
     /// assert!(datetime!(2022-049 12:00).replace_ordinal(366).is_err()); // 2022 isn't a leap year
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn replace_ordinal(self, ordinal: u16) -> Result<Self, error::ComponentRange> {
         Ok(Self {
@@ -839,7 +839,7 @@ impl PrimitiveDateTime {
     ///     datetime!(2022-02-18 0:00)
     /// );
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn truncate_to_day(self) -> Self {
         self.replace_time(Time::MIDNIGHT)
@@ -855,7 +855,7 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022-02-18 01:02:03.004_005_006).replace_hour(24).is_err()); // 24 isn't a valid hour
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn replace_hour(self, hour: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self {
@@ -873,7 +873,7 @@ impl PrimitiveDateTime {
     ///     datetime!(2022-02-18 15:00)
     /// );
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn truncate_to_hour(self) -> Self {
         self.replace_time(self.time.truncate_to_hour())
@@ -889,7 +889,7 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022-02-18 01:02:03.004_005_006).replace_minute(60).is_err()); // 60 isn't a valid minute
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn replace_minute(self, minute: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self {
@@ -907,7 +907,7 @@ impl PrimitiveDateTime {
     ///     datetime!(2022-02-18 15:30)
     /// );
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn truncate_to_minute(self) -> Self {
         self.replace_time(self.time.truncate_to_minute())
@@ -923,7 +923,7 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022-02-18 01:02:03.004_005_006).replace_second(60).is_err()); // 60 isn't a valid second
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn replace_second(self, second: u8) -> Result<Self, error::ComponentRange> {
         Ok(Self {
@@ -941,7 +941,7 @@ impl PrimitiveDateTime {
     ///     datetime!(2022-02-18 15:30:45)
     /// );
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn truncate_to_second(self) -> Self {
         self.replace_time(self.time.truncate_to_second())
@@ -957,7 +957,7 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022-02-18 01:02:03.004_005_006).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn replace_millisecond(
         self,
@@ -978,7 +978,7 @@ impl PrimitiveDateTime {
     ///     datetime!(2022-02-18 15:30:45.123)
     /// );
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn truncate_to_millisecond(self) -> Self {
         self.replace_time(self.time.truncate_to_millisecond())
@@ -994,7 +994,7 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022-02-18 01:02:03.004_005_006).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn replace_microsecond(
         self,
@@ -1015,7 +1015,7 @@ impl PrimitiveDateTime {
     ///     datetime!(2022-02-18 15:30:45.123_456)
     /// );
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn truncate_to_microsecond(self) -> Self {
         self.replace_time(self.time.truncate_to_microsecond())
@@ -1031,7 +1031,7 @@ impl PrimitiveDateTime {
     /// );
     /// assert!(datetime!(2022-02-18 01:02:03.004_005_006).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
     /// ```
-    #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
+    #[must_use = "This method does not mutate the original `PlainDateTime`."]
     #[inline]
     pub const fn replace_nanosecond(self, nanosecond: u32) -> Result<Self, error::ComponentRange> {
         Ok(Self {
@@ -1042,8 +1042,8 @@ impl PrimitiveDateTime {
 }
 
 #[cfg(feature = "formatting")]
-impl PrimitiveDateTime {
-    /// Format the `PrimitiveDateTime` using the provided [format
+impl PlainDateTime {
+    /// Format the `PlainDateTime` using the provided [format ///
     /// description](crate::format_description).
     #[inline]
     pub fn format_into(
@@ -1054,7 +1054,7 @@ impl PrimitiveDateTime {
         format.format_into(output, &self, &mut Default::default(), PrivateMethod)
     }
 
-    /// Format the `PrimitiveDateTime` using the provided [format
+    /// Format the `PlainDateTime` using the provided [format
     /// description](crate::format_description).
     ///
     /// ```rust
@@ -1076,16 +1076,16 @@ impl PrimitiveDateTime {
 }
 
 #[cfg(feature = "parsing")]
-impl PrimitiveDateTime {
-    /// Parse a `PrimitiveDateTime` from the input using the provided [format
+impl PlainDateTime {
+    /// Parse a `PlainDateTime` from the input using the provided [format
     /// description](crate::format_description).
     ///
     /// ```rust
-    /// # use time::PrimitiveDateTime;
+    /// # use time::PlainDateTime;
     /// # use time_macros::{datetime, format_description};
     /// let format = format_description!("[year]-[month]-[day] [hour]:[minute]:[second]");
     /// assert_eq!(
-    ///     PrimitiveDateTime::parse("2020-01-02 03:04:05", &format)?,
+    ///     PlainDateTime::parse("2020-01-02 03:04:05", &format)?,
     ///     datetime!(2020-01-02 03:04:05)
     /// );
     /// # Ok::<_, time::Error>(())
@@ -1098,17 +1098,17 @@ impl PrimitiveDateTime {
         description.parse_primitive_date_time(input.as_bytes(), None, PrivateMethod)
     }
 
-    /// Parse a `PrimitiveDateTime` from the input using the provided [format
+    /// Parse a `PlainDateTime` from the input using the provided [format
     /// description](crate::format_description) and default values.
     ///
     /// ```rust
-    /// # use time::PrimitiveDateTime;
+    /// # use time::PlainDateTime;
     /// # use time::parsing::Parsed;
     /// # use time_macros::{datetime, format_description};
     /// let format = format_description!("[year]-[month]-[day]");
     /// let defaults = Parsed::new().with_hour_24(12).expect("12 is a valid hour");
     /// assert_eq!(
-    ///     PrimitiveDateTime::parse_with_defaults(b"2020-01-02", &format, defaults)?,
+    ///     PlainDateTime::parse_with_defaults(b"2020-01-02", &format, defaults)?,
     ///     datetime!(2020-01-02 12:00)
     /// );
     /// # Ok::<_, time::Error>(())
@@ -1126,7 +1126,7 @@ impl PrimitiveDateTime {
 // This no longer needs special handling, as the format is fixed and doesn't require anything
 // advanced. Trait impls can't be deprecated and the info is still useful for other types
 // implementing `SmartDisplay`, so leave it as-is for now.
-impl SmartDisplay for PrimitiveDateTime {
+impl SmartDisplay for PlainDateTime {
     type Metadata = ();
 
     #[inline]
@@ -1141,14 +1141,13 @@ impl SmartDisplay for PrimitiveDateTime {
     }
 }
 
-impl PrimitiveDateTime {
+impl PlainDateTime {
     /// The maximum number of bytes that the `fmt_into_buffer` method will write, which is also used
     /// for the `Display` implementation.
     pub(crate) const DISPLAY_BUFFER_SIZE: usize =
         Date::DISPLAY_BUFFER_SIZE + Time::DISPLAY_BUFFER_SIZE + 1;
 
-    /// Format the `PrimitiveDateTime` into the provided buffer, returning the number of bytes
-    /// written.
+    /// Format the `PlainDateTime` into the provided buffer, returning the number of bytes written.
     #[inline]
     pub(crate) fn fmt_into_buffer(
         self,
@@ -1167,7 +1166,7 @@ impl PrimitiveDateTime {
     }
 }
 
-impl fmt::Display for PrimitiveDateTime {
+impl fmt::Display for PlainDateTime {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut buf = [MaybeUninit::uninit(); Self::DISPLAY_BUFFER_SIZE];
@@ -1178,14 +1177,14 @@ impl fmt::Display for PrimitiveDateTime {
     }
 }
 
-impl fmt::Debug for PrimitiveDateTime {
+impl fmt::Debug for PlainDateTime {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(self, f)
     }
 }
 
-impl Add<Duration> for PrimitiveDateTime {
+impl Add<Duration> for PlainDateTime {
     type Output = Self;
 
     /// # Panics
@@ -1199,7 +1198,7 @@ impl Add<Duration> for PrimitiveDateTime {
     }
 }
 
-impl Add<StdDuration> for PrimitiveDateTime {
+impl Add<StdDuration> for PlainDateTime {
     type Output = Self;
 
     /// # Panics
@@ -1223,7 +1222,7 @@ impl Add<StdDuration> for PrimitiveDateTime {
     }
 }
 
-impl AddAssign<Duration> for PrimitiveDateTime {
+impl AddAssign<Duration> for PlainDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
@@ -1234,7 +1233,7 @@ impl AddAssign<Duration> for PrimitiveDateTime {
     }
 }
 
-impl AddAssign<StdDuration> for PrimitiveDateTime {
+impl AddAssign<StdDuration> for PlainDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
@@ -1245,7 +1244,7 @@ impl AddAssign<StdDuration> for PrimitiveDateTime {
     }
 }
 
-impl Sub<Duration> for PrimitiveDateTime {
+impl Sub<Duration> for PlainDateTime {
     type Output = Self;
 
     /// # Panics
@@ -1259,7 +1258,7 @@ impl Sub<Duration> for PrimitiveDateTime {
     }
 }
 
-impl Sub<StdDuration> for PrimitiveDateTime {
+impl Sub<StdDuration> for PlainDateTime {
     type Output = Self;
 
     /// # Panics
@@ -1283,7 +1282,7 @@ impl Sub<StdDuration> for PrimitiveDateTime {
     }
 }
 
-impl SubAssign<Duration> for PrimitiveDateTime {
+impl SubAssign<Duration> for PlainDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
@@ -1294,7 +1293,7 @@ impl SubAssign<Duration> for PrimitiveDateTime {
     }
 }
 
-impl SubAssign<StdDuration> for PrimitiveDateTime {
+impl SubAssign<StdDuration> for PlainDateTime {
     /// # Panics
     ///
     /// This may panic if an overflow occurs.
@@ -1305,7 +1304,7 @@ impl SubAssign<StdDuration> for PrimitiveDateTime {
     }
 }
 
-impl Sub for PrimitiveDateTime {
+impl Sub for PlainDateTime {
     type Output = Duration;
 
     #[inline]

@@ -3,7 +3,7 @@ use quickcheck::{Arbitrary, TestResult};
 use quickcheck_macros::quickcheck;
 use time::Weekday::*;
 use time::macros::{format_description, time};
-use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use time::{Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, UtcOffset, Weekday};
 
 macro_rules! test_shrink {
     ($type:ty,
@@ -115,8 +115,8 @@ fn time_roundtrip(t: Time) -> bool {
 }
 
 #[quickcheck]
-fn primitive_date_time_roundtrip(a: PrimitiveDateTime) -> bool {
-    PrimitiveDateTime::new(a.date(), a.time()) == a
+fn primitive_date_time_roundtrip(a: PlainDateTime) -> bool {
+    PlainDateTime::new(a.date(), a.time()) == a
 }
 
 #[quickcheck]
@@ -133,7 +133,7 @@ fn offset_date_time_roundtrip(a: OffsetDateTime) -> TestResult {
         return TestResult::discard();
     }
 
-    TestResult::from_bool(PrimitiveDateTime::new(a.date(), a.time()).assume_offset(a.offset()) == a)
+    TestResult::from_bool(PlainDateTime::new(a.date(), a.time()).assume_offset(a.offset()) == a)
 }
 
 #[quickcheck]
@@ -226,21 +226,21 @@ fn time_replace_hour(time: Time, hour: u8) -> bool {
 }
 
 #[quickcheck]
-fn pdt_replace_year(pdt: PrimitiveDateTime, year: i32) -> bool {
+fn pdt_replace_year(pdt: PlainDateTime, year: i32) -> bool {
     pdt.replace_year(year)
         == Date::from_calendar_date(year, pdt.month(), pdt.day())
             .map(|date| date.with_time(pdt.time()))
 }
 
 #[quickcheck]
-fn pdt_replace_month(pdt: PrimitiveDateTime, month: Month) -> bool {
+fn pdt_replace_month(pdt: PlainDateTime, month: Month) -> bool {
     pdt.replace_month(month)
         == Date::from_calendar_date(pdt.year(), month, pdt.day())
             .map(|date| date.with_time(pdt.time()))
 }
 
 #[quickcheck]
-fn pdt_replace_day(pdt: PrimitiveDateTime, day: u8) -> bool {
+fn pdt_replace_day(pdt: PlainDateTime, day: u8) -> bool {
     pdt.replace_day(day)
         == Date::from_calendar_date(pdt.year(), pdt.month(), day)
             .map(|date| date.with_time(pdt.time()))
@@ -373,34 +373,26 @@ test_shrink!(Time, time_can_shrink_minute, minute());
 test_shrink!(Time, time_can_shrink_second, second());
 test_shrink!(Time, time_can_shrink_nanosecond, nanosecond());
 
+test_shrink!(PlainDateTime, primitive_date_time_can_shrink_year, year());
 test_shrink!(
-    PrimitiveDateTime,
-    primitive_date_time_can_shrink_year,
-    year()
-);
-test_shrink!(
-    PrimitiveDateTime,
+    PlainDateTime,
     primitive_date_time_can_shrink_ordinal,
     ordinal(),
     min = 1
 );
+test_shrink!(PlainDateTime, primitive_date_time_can_shrink_hour, hour());
 test_shrink!(
-    PrimitiveDateTime,
-    primitive_date_time_can_shrink_hour,
-    hour()
-);
-test_shrink!(
-    PrimitiveDateTime,
+    PlainDateTime,
     primitive_date_time_can_shrink_minute,
     minute()
 );
 test_shrink!(
-    PrimitiveDateTime,
+    PlainDateTime,
     primitive_date_time_can_shrink_second,
     second()
 );
 test_shrink!(
-    PrimitiveDateTime,
+    PlainDateTime,
     primitive_date_time_can_shrink_nanosecond,
     nanosecond()
 );

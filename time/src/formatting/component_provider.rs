@@ -8,8 +8,7 @@ use crate::formatting::{
 use crate::time::{Hours, Minutes, Nanoseconds, Seconds};
 use crate::utc_offset::{Hours as OffsetHours, Minutes as OffsetMinutes, Seconds as OffsetSeconds};
 use crate::{
-    Date, Month, OffsetDateTime, PrimitiveDateTime, Time, Timestamp, UtcDateTime, UtcOffset,
-    Weekday,
+    Date, Month, OffsetDateTime, PlainDateTime, Time, Timestamp, UtcDateTime, UtcOffset, Weekday,
 };
 
 /// State used by date-providing types to cache computed values.
@@ -266,7 +265,7 @@ impl ComponentProvider for Date {
     }
 }
 
-impl ComponentProvider for PrimitiveDateTime {
+impl ComponentProvider for PlainDateTime {
     type State = DateState;
 
     const SUPPLIES_DATE: bool = true;

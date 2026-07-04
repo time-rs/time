@@ -23,7 +23,7 @@ use time::format_description::{BorrowedFormatItem, Component, modifier, well_kno
 use time::formatting::Formattable;
 use time::parsing::{Parsable, Parsed};
 use time::{
-    Date, Duration, Error, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset,
+    Date, Duration, Error, Month, OffsetDateTime, PlainDateTime, Time, UtcDateTime, UtcOffset,
     Weekday, error, ext,
 };
 
@@ -31,7 +31,7 @@ use time::{
 #[case(PhantomData::<Date>, 4)]
 #[case(PhantomData::<Duration>, 8)]
 #[case(PhantomData::<OffsetDateTime>, 4)]
-#[case(PhantomData::<PrimitiveDateTime>, 4)]
+#[case(PhantomData::<PlainDateTime>, 4)]
 #[case(PhantomData::<UtcDateTime>, 4)]
 #[case(PhantomData::<Time>, 4)]
 #[case(PhantomData::<UtcOffset>, 1)]
@@ -100,7 +100,7 @@ fn alignment<T>(#[case] _type: PhantomData<T>, #[case] expected: usize) {
 #[case(PhantomData::<Date>, 4, 4)]
 #[case(PhantomData::<Duration>, 16, 16)]
 #[case(PhantomData::<OffsetDateTime>, 16, 16)]
-#[case(PhantomData::<PrimitiveDateTime>, 12, 12)]
+#[case(PhantomData::<PlainDateTime>, 12, 12)]
 #[case(PhantomData::<UtcDateTime>, 12, 12)]
 #[case(PhantomData::<Time>, 8, 8)]
 #[case(PhantomData::<UtcOffset>, 3, 4)]
@@ -355,9 +355,9 @@ assert_impl! { @'a; OffsetDateTime:
     Unpin,
     UnwindSafe,
 }
-assert_impl! { @'a; PrimitiveDateTime:
-    Add<Duration, Output = PrimitiveDateTime>,
-    Add<StdDuration, Output = PrimitiveDateTime>,
+assert_impl! { @'a; PlainDateTime:
+    Add<Duration, Output = PlainDateTime>,
+    Add<StdDuration, Output = PlainDateTime>,
     AddAssign<Duration>,
     AddAssign<StdDuration>,
     Arbitrary,
@@ -367,12 +367,12 @@ assert_impl! { @'a; PrimitiveDateTime:
     Display,
     Hash,
     Ord,
-    PartialEq<PrimitiveDateTime>,
-    PartialOrd<PrimitiveDateTime>,
+    PartialEq<PlainDateTime>,
+    PartialOrd<PlainDateTime>,
     Serialize,
-    Sub<Duration, Output = PrimitiveDateTime>,
-    Sub<StdDuration, Output = PrimitiveDateTime>,
-    Sub<PrimitiveDateTime>,
+    Sub<Duration, Output = PlainDateTime>,
+    Sub<StdDuration, Output = PlainDateTime>,
+    Sub<PlainDateTime>,
     SubAssign<Duration>,
     SubAssign<StdDuration>,
     TryFrom<Parsed, Error = error::TryFromParsed>,
@@ -1350,7 +1350,7 @@ assert_impl! { StandardRand08:
     DistributionRand08<Duration>,
     DistributionRand08<OffsetDateTime>,
     DistributionRand08<UtcDateTime>,
-    DistributionRand08<PrimitiveDateTime>,
+    DistributionRand08<PlainDateTime>,
     DistributionRand08<Time>,
     DistributionRand08<UtcOffset>,
     DistributionRand08<Month>,
@@ -1361,7 +1361,7 @@ assert_impl! { StandardUniformRand09:
     DistributionRand09<Duration>,
     DistributionRand09<OffsetDateTime>,
     DistributionRand09<UtcDateTime>,
-    DistributionRand09<PrimitiveDateTime>,
+    DistributionRand09<PlainDateTime>,
     DistributionRand09<Time>,
     DistributionRand09<UtcOffset>,
     DistributionRand09<Month>,

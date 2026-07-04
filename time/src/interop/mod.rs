@@ -3,8 +3,8 @@
 //! Currently, full interoperability is present between [`OffsetDateTime`](crate::OffsetDateTime),
 //! [`Timestamp`](crate::Timestamp), [`UtcDateTime`](crate::UtcDateTime), and
 //! [`SystemTime`](std::time::SystemTime). Partial interoperability is present with
-//! [`js_sys::Date`]. Note that [`PrimitiveDateTime`](crate::PrimitiveDateTime) is not interoperable
-//! with any of these types due to the lack of an associated UTC offset.
+//! [`js_sys::Date`]. Note that [`PlainDateTime`](crate::PlainDateTime) is not interoperable with
+//! any of these types due to the lack of an associated UTC offset.
 
 // Module names should have the two types sorted in alphabetical order. This avoids any question
 // of which type should be the "primary" type in the module name.

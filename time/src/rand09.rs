@@ -4,8 +4,8 @@ use rand09::Rng;
 use rand09::distr::{Distribution, StandardUniform};
 
 use crate::{
-    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, Timestamp, UtcDateTime,
-    UtcOffset, Weekday,
+    Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, Timestamp, UtcDateTime, UtcOffset,
+    Weekday,
 };
 
 impl Distribution<Time> for StandardUniform {
@@ -43,13 +43,13 @@ impl Distribution<UtcOffset> for StandardUniform {
     }
 }
 
-impl Distribution<PrimitiveDateTime> for StandardUniform {
+impl Distribution<PlainDateTime> for StandardUniform {
     #[inline]
-    fn sample<R>(&self, rng: &mut R) -> PrimitiveDateTime
+    fn sample<R>(&self, rng: &mut R) -> PlainDateTime
     where
         R: Rng + ?Sized,
     {
-        PrimitiveDateTime::new(Self.sample(rng), Self.sample(rng))
+        PlainDateTime::new(Self.sample(rng), Self.sample(rng))
     }
 }
 
@@ -69,7 +69,7 @@ impl Distribution<OffsetDateTime> for StandardUniform {
     where
         R: Rng + ?Sized,
     {
-        let date_time: PrimitiveDateTime = Self.sample(rng);
+        let date_time: PlainDateTime = Self.sample(rng);
         date_time.assume_offset(Self.sample(rng))
     }
 }

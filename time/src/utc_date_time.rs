@@ -24,20 +24,20 @@ use crate::parsing::{Parsable, Parsed};
 use crate::unit::*;
 use crate::util::days_in_year;
 use crate::{
-    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday, error,
+    Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, UtcOffset, Weekday, error,
 };
 
 /// The Julian day of the Unix epoch.
 const UNIX_EPOCH_JULIAN_DAY: i32 = UtcDateTime::UNIX_EPOCH.to_julian_day();
 
-/// A [`PrimitiveDateTime`] that is known to be UTC.
+/// A [`PlainDateTime`] that is known to be UTC.
 ///
-/// `UtcDateTime` is guaranteed to be ABI-compatible with [`PrimitiveDateTime`], meaning that
+/// `UtcDateTime` is guaranteed to be ABI-compatible with [`PlainDateTime`], meaning that
 /// transmuting from one to the other will not result in undefined behavior.
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct UtcDateTime {
-    inner: PrimitiveDateTime,
+    inner: PlainDateTime,
 }
 
 impl UtcDateTime {
@@ -147,20 +147,20 @@ impl UtcDateTime {
     #[inline]
     pub const fn new(date: Date, time: Time) -> Self {
         Self {
-            inner: PrimitiveDateTime::new(date, time),
+            inner: PlainDateTime::new(date, time),
         }
     }
 
-    /// Create a new `UtcDateTime` from the [`PrimitiveDateTime`], assuming that the latter is UTC.
+    /// Create a new `UtcDateTime` from the [`PlainDateTime`], assuming that the latter is UTC.
     #[inline]
-    pub(crate) const fn from_primitive(date_time: PrimitiveDateTime) -> Self {
+    pub(crate) const fn from_primitive(date_time: PlainDateTime) -> Self {
         Self { inner: date_time }
     }
 
-    /// Obtain the [`PrimitiveDateTime`] that this `UtcDateTime` represents. The no-longer-attached
+    /// Obtain the [`PlainDateTime`] that this `UtcDateTime` represents. The no-longer-attached
     /// [`UtcOffset`] is assumed to be UTC.
     #[inline]
-    pub(crate) const fn as_primitive(self) -> PrimitiveDateTime {
+    pub(crate) const fn as_primitive(self) -> PlainDateTime {
         self.inner
     }
 
@@ -1278,10 +1278,9 @@ impl SmartDisplay for UtcDateTime {
 impl UtcDateTime {
     /// The maximum number of bytes that the `fmt_into_buffer` method will write, which is also used
     /// for the `Display` implementation.
-    pub(crate) const DISPLAY_BUFFER_SIZE: usize = PrimitiveDateTime::DISPLAY_BUFFER_SIZE + 4;
+    pub(crate) const DISPLAY_BUFFER_SIZE: usize = PlainDateTime::DISPLAY_BUFFER_SIZE + 4;
 
-    /// Format the `PrimitiveDateTime` into the provided buffer, returning the number of bytes
-    /// written.
+    /// Format the `PlainDateTime` into the provided buffer, returning the number of bytes written.
     #[inline]
     pub(crate) fn fmt_into_buffer(
         self,

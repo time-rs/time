@@ -11,8 +11,8 @@ use time::macros::{
 };
 use time::parsing::Parsed;
 use time::{
-    Date, Month, OffsetDateTime, PrimitiveDateTime, Time, Timestamp, UtcDateTime, UtcOffset,
-    Weekday, error, format_description as fd,
+    Date, Month, OffsetDateTime, PlainDateTime, Time, Timestamp, UtcDateTime, UtcOffset, Weekday,
+    error, format_description as fd,
 };
 
 #[rstest]
@@ -258,7 +258,7 @@ fn rfc_3339_err_component_range_pdt(
     #[case] is_conditional: bool,
 ) {
     assert!(matches!(
-        PrimitiveDateTime::parse(input, &Rfc3339),
+        PlainDateTime::parse(input, &Rfc3339),
         Err(error::Parse::TryFromParsed(error::TryFromParsed::ComponentRange(component)))
             if component.name() == component_name && component.is_conditional() == is_conditional
     ));
@@ -272,7 +272,7 @@ fn rfc_3339_err_component_range_pdt(
 #[case("2021-01-01T00:00:00+00x")]
 fn rfc_3339_err_invalid_literal_pdt(#[case] input: &str) {
     assert!(matches!(
-        PrimitiveDateTime::parse(input, &Rfc3339),
+        PlainDateTime::parse(input, &Rfc3339),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidLiteral { .. }
         ))
@@ -296,7 +296,7 @@ fn rfc_3339_err_invalid_literal_pdt(#[case] input: &str) {
 #[case("2021-01-01T00:00:00+24:00", "offset hour")]
 fn rfc_3339_err_invalid_component_pdt(#[case] input: &str, #[case] component_name: &str) {
     assert!(matches!(
-        PrimitiveDateTime::parse(input, &Rfc3339),
+        PlainDateTime::parse(input, &Rfc3339),
         Err(error::Parse::ParseFromDescription(error::ParseFromDescription::InvalidComponent(name)))
             if name == component_name
     ));
@@ -359,9 +359,9 @@ fn iso_8601_offset(#[case] input: &str, #[case] expected: UtcOffset) {
 
 #[rstest]
 #[case("2022-07-22T12:52:50.349409", datetime!(2022-07-22 12:52:50.349409000))]
-fn iso_8601_pdt(#[case] input: &str, #[case] expected: PrimitiveDateTime) {
+fn iso_8601_pdt(#[case] input: &str, #[case] expected: PlainDateTime) {
     assert_eq!(
-        PrimitiveDateTime::parse(input, &Iso8601::DEFAULT).ok(),
+        PlainDateTime::parse(input, &Iso8601::DEFAULT).ok(),
         Some(expected)
     );
 }
@@ -699,14 +699,14 @@ fn parse_offset_invalid_component(
 fn parse_primitive_date_time(
     #[case] input: &str,
     #[case] format_description: StaticFormatDescription,
-    #[case] expected: PrimitiveDateTime,
+    #[case] expected: PlainDateTime,
 ) {
     assert_eq!(
-        PrimitiveDateTime::parse(input, format_description).ok(),
+        PlainDateTime::parse(input, format_description).ok(),
         Some(expected)
     );
     assert_eq!(
-        PrimitiveDateTime::parse(input, &OwnedFormatItem::from(format_description)).ok(),
+        PlainDateTime::parse(input, &OwnedFormatItem::from(format_description)).ok(),
         Some(expected)
     );
 }
@@ -714,7 +714,7 @@ fn parse_primitive_date_time(
 #[rstest]
 fn parse_primitive_date_time_insufficient_information_standalone() {
     assert_eq!(
-        PrimitiveDateTime::try_from(Parsed::new()),
+        PlainDateTime::try_from(Parsed::new()),
         Err(error::TryFromParsed::InsufficientInformation)
     );
 }
@@ -727,7 +727,7 @@ fn parse_primitive_date_time_invalid_component(
     #[case] component_name: &str,
 ) {
     assert!(matches!(
-        PrimitiveDateTime::parse(input, fd),
+        PlainDateTime::parse(input, fd),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent(name)
         )) if name == component_name
@@ -741,7 +741,7 @@ fn parse_primitive_date_time_unexpected_trailing_characters(
     #[case] fd: StaticFormatDescription,
 ) {
     assert!(matches!(
-        PrimitiveDateTime::parse(input, fd),
+        PlainDateTime::parse(input, fd),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::UnexpectedTrailingCharacters { .. }
         ))
@@ -1708,10 +1708,10 @@ fn parse_with_defaults_primitive_date_time_success(
     #[case] format: StaticFormatDescription,
     #[case] input: &[u8],
     #[case] defaults: Parsed,
-    #[case] expected: PrimitiveDateTime,
+    #[case] expected: PlainDateTime,
 ) {
     assert_eq!(
-        PrimitiveDateTime::parse_with_defaults(input, &format, defaults).ok(),
+        PlainDateTime::parse_with_defaults(input, &format, defaults).ok(),
         Some(expected)
     );
 }
@@ -1724,7 +1724,7 @@ fn parse_with_defaults_primitive_date_time_insufficient_information(
     #[case] defaults: Parsed,
 ) {
     assert_eq!(
-        PrimitiveDateTime::parse_with_defaults(input, &format, defaults),
+        PlainDateTime::parse_with_defaults(input, &format, defaults),
         Err(error::Parse::TryFromParsed(
             error::TryFromParsed::InsufficientInformation
         ))
@@ -1745,7 +1745,7 @@ fn parse_with_defaults_primitive_date_time_invalid_component(
     #[case] component_name: &str,
 ) {
     assert!(matches!(
-        PrimitiveDateTime::parse_with_defaults(input, &format, defaults),
+        PlainDateTime::parse_with_defaults(input, &format, defaults),
         Err(error::Parse::ParseFromDescription(
             error::ParseFromDescription::InvalidComponent(name)
         )) if name == component_name

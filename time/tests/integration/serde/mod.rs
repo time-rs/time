@@ -9,7 +9,7 @@ use serde_test2::{
 use time::Month::*;
 use time::Weekday::*;
 use time::macros::{date, datetime, offset, time};
-use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
+use time::{Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, UtcOffset, Weekday};
 
 mod error_conditions;
 mod iso8601;
@@ -279,17 +279,17 @@ where
     "invalid type: boolean `false`, expected a `Date`",
 )]
 #[case(
-    PhantomData::<Readable<PrimitiveDateTime>>,
+    PhantomData::<Readable<PlainDateTime>>,
     &[Token::Bool(false)],
-    "invalid type: boolean `false`, expected a `PrimitiveDateTime`",
+    "invalid type: boolean `false`, expected a `PlainDateTime`",
 )]
 #[case(
-    PhantomData::<Compact<PrimitiveDateTime>>,
+    PhantomData::<Compact<PlainDateTime>>,
     &[Token::Bool(false)],
-    "invalid type: boolean `false`, expected a `PrimitiveDateTime`",
+    "invalid type: boolean `false`, expected a `PlainDateTime`",
 )]
 #[case(
-    PhantomData::<Compact<PrimitiveDateTime>>,
+    PhantomData::<Compact<PlainDateTime>>,
     &[
         Token::Tuple { len: 6 },
         Token::I32(2021),
@@ -303,7 +303,7 @@ where
     "invalid ordinal, expected an in-range value",
 )]
 #[case(
-    PhantomData::<Compact<PrimitiveDateTime>>,
+    PhantomData::<Compact<PlainDateTime>>,
     &[
         Token::Tuple { len: 6 },
         Token::I32(2021),
@@ -579,17 +579,17 @@ fn deserialize_error<T>(
     "expected day of year",
 )]
 #[case(
-    PhantomData::<Compact<PrimitiveDateTime>>,
+    PhantomData::<Compact<PlainDateTime>>,
     &[Token::Tuple { len: 6 }, Token::TupleEnd],
     "expected year",
 )]
 #[case(
-    PhantomData::<Compact<PrimitiveDateTime>>,
+    PhantomData::<Compact<PlainDateTime>>,
     &[Token::Tuple { len: 6 }, Token::I32(9999), Token::TupleEnd],
     "expected day of year",
 )]
 #[case(
-    PhantomData::<Compact<PrimitiveDateTime>>,
+    PhantomData::<Compact<PlainDateTime>>,
     &[
         Token::Tuple { len: 6 },
         Token::I32(9999),
@@ -599,7 +599,7 @@ fn deserialize_error<T>(
     "expected hour",
 )]
 #[case(
-    PhantomData::<Compact<PrimitiveDateTime>>,
+    PhantomData::<Compact<PlainDateTime>>,
     &[
         Token::Tuple { len: 6 },
         Token::I32(9999),
@@ -610,7 +610,7 @@ fn deserialize_error<T>(
     "expected minute",
 )]
 #[case(
-    PhantomData::<Compact<PrimitiveDateTime>>,
+    PhantomData::<Compact<PlainDateTime>>,
     &[
         Token::Tuple { len: 6 },
         Token::I32(9999),
@@ -622,7 +622,7 @@ fn deserialize_error<T>(
     "expected second",
 )]
 #[case(
-    PhantomData::<Compact<PrimitiveDateTime>>,
+    PhantomData::<Compact<PlainDateTime>>,
     &[
         Token::Tuple { len: 6 },
         Token::I32(9999),
@@ -635,17 +635,17 @@ fn deserialize_error<T>(
     "expected nanosecond",
 )]
 #[case(
-    PhantomData::<Readable<PrimitiveDateTime>>,
+    PhantomData::<Readable<PlainDateTime>>,
     &[Token::Tuple { len: 6 }, Token::TupleEnd],
     "expected year",
 )]
 #[case(
-    PhantomData::<Readable<PrimitiveDateTime>>,
+    PhantomData::<Readable<PlainDateTime>>,
     &[Token::Tuple { len: 6 }, Token::I32(9999), Token::TupleEnd],
     "expected day of year",
 )]
 #[case(
-    PhantomData::<Readable<PrimitiveDateTime>>,
+    PhantomData::<Readable<PlainDateTime>>,
     &[
         Token::Tuple { len: 6 },
         Token::I32(9999),
@@ -655,7 +655,7 @@ fn deserialize_error<T>(
     "expected hour",
 )]
 #[case(
-    PhantomData::<Readable<PrimitiveDateTime>>,
+    PhantomData::<Readable<PlainDateTime>>,
     &[
         Token::Tuple { len: 6 },
         Token::I32(9999),
@@ -666,7 +666,7 @@ fn deserialize_error<T>(
     "expected minute",
 )]
 #[case(
-    PhantomData::<Readable<PrimitiveDateTime>>,
+    PhantomData::<Readable<PlainDateTime>>,
     &[
         Token::Tuple { len: 6 },
         Token::I32(9999),
@@ -678,7 +678,7 @@ fn deserialize_error<T>(
     "expected second",
 )]
 #[case(
-    PhantomData::<Readable<PrimitiveDateTime>>,
+    PhantomData::<Readable<PlainDateTime>>,
     &[
         Token::Tuple { len: 6 },
         Token::I32(9999),

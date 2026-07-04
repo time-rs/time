@@ -20,16 +20,16 @@
 /// # Ok::<_, time::Error>(())
 /// ```
 pub use time_macros::date;
-/// Construct a [`PrimitiveDateTime`] or [`OffsetDateTime`] with a statically known value.
+/// Construct a [`PlainDateTime`] or [`OffsetDateTime`] with a statically known value.
 ///
 /// The resulting expression can be used in `const` or `static` declarations.
 ///
 /// The syntax accepted by this macro is the same as [`date!`] and [`time!`], with an optional
 /// [`offset!`], all space-separated. If an [`offset!`] is provided, the resulting value will
-/// be an [`OffsetDateTime`]; otherwise it will be a [`PrimitiveDateTime`].
+/// be an [`OffsetDateTime`]; otherwise it will be a [`PlainDateTime`].
 ///
 /// [`OffsetDateTime`]: crate::OffsetDateTime
-/// [`PrimitiveDateTime`]: crate::PrimitiveDateTime
+/// [`PlainDateTime`]: crate::PlainDateTime
 ///
 /// ```rust
 /// # use time::{Date, Month, macros::datetime, UtcOffset};

@@ -16,8 +16,8 @@ use crate::error::ComponentRange;
 #[cfg(feature = "parsing")]
 use crate::format_description::well_known::*;
 use crate::{
-    Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, Timestamp, UtcDateTime,
-    UtcOffset, Weekday,
+    Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, Timestamp, UtcDateTime, UtcOffset,
+    Weekday,
 };
 
 /// A serde visitor for various types.
@@ -140,25 +140,25 @@ impl<'a> de::Visitor<'a> for Visitor<OffsetDateTime> {
     }
 }
 
-impl<'a> de::Visitor<'a> for Visitor<PrimitiveDateTime> {
-    type Value = PrimitiveDateTime;
+impl<'a> de::Visitor<'a> for Visitor<PlainDateTime> {
+    type Value = PlainDateTime;
 
     #[inline]
     fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("a `PrimitiveDateTime`")
+        formatter.write_str("a `PlainDateTime`")
     }
 
     #[cfg(feature = "parsing")]
     #[inline]
-    fn visit_str<E>(self, value: &str) -> Result<PrimitiveDateTime, E>
+    fn visit_str<E>(self, value: &str) -> Result<PlainDateTime, E>
     where
         E: de::Error,
     {
-        PrimitiveDateTime::parse(value, &PRIMITIVE_DATE_TIME_FORMAT).map_err(E::custom)
+        PlainDateTime::parse(value, &PRIMITIVE_DATE_TIME_FORMAT).map_err(E::custom)
     }
 
     #[inline]
-    fn visit_seq<A>(self, mut seq: A) -> Result<PrimitiveDateTime, A::Error>
+    fn visit_seq<A>(self, mut seq: A) -> Result<PlainDateTime, A::Error>
     where
         A: de::SeqAccess<'a>,
     {
@@ -180,7 +180,7 @@ impl<'a> de::Visitor<'a> for Visitor<UtcDateTime> {
 
     #[inline]
     fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("a `PrimitiveDateTime`")
+        formatter.write_str("a `PlainDateTime`")
     }
 
     #[cfg(feature = "parsing")]

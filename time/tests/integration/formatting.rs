@@ -7,7 +7,7 @@ use time::format_description::well_known::{Iso8601, Rfc2822, Rfc3339, iso8601};
 use time::format_description::{self, BorrowedFormatItem, OwnedFormatItem};
 use time::formatting::Formattable;
 use time::macros::{date, datetime, format_description as fd, offset, time, utc_datetime};
-use time::{Date, OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset};
+use time::{Date, OffsetDateTime, PlainDateTime, Time, UtcDateTime, UtcOffset};
 
 #[rstest]
 #[case(datetime!(2021-01-02 03:04:05 UTC), "Sat, 02 Jan 2021 03:04:05 +0000")]
@@ -478,7 +478,7 @@ fn display_offset_padding() {
     "1970-01-01 00:00:00.0",
 )]
 fn format_pdt(
-    #[case] pdt: PrimitiveDateTime,
+    #[case] pdt: PlainDateTime,
     #[case] format_description: &[BorrowedFormatItem<'_>],
     #[case] expected: &str,
 ) -> time::Result<()> {
@@ -499,7 +499,7 @@ fn format_pdt(
 #[rstest]
 #[case(datetime!(1970-01-01 0:00), "1970-01-01 0:00:00.0")]
 #[case(datetime!(1970-01-01 0:00:01), "1970-01-01 0:00:01.0")]
-fn display_pdt(#[case] pdt: PrimitiveDateTime, #[case] expected: &str) {
+fn display_pdt(#[case] pdt: PlainDateTime, #[case] expected: &str) {
     assert_eq!(pdt.to_string(), expected);
 }
 

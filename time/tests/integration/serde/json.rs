@@ -7,7 +7,7 @@ use serde_test2::Configure;
 use time::Month::*;
 use time::Weekday::*;
 use time::macros::{date, datetime, time};
-use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, Weekday};
+use time::{Date, Duration, Month, OffsetDateTime, PlainDateTime, Time, Weekday};
 
 enum Format {
     Compact,
@@ -52,19 +52,19 @@ where
 #[case(PhantomData::<Time>, Readable, "[12,40,20,0]", time!(12:40:20))]
 #[case(PhantomData::<Time>, Readable, r#""12:40:20.0""#, time!(12:40:20))]
 #[case(
-    PhantomData::<PrimitiveDateTime>,
+    PhantomData::<PlainDateTime>,
     Compact,
     "[2022,140,12,40,20,0]",
     datetime!(2022-05-20 12:40:20),
 )]
 #[case(
-    PhantomData::<PrimitiveDateTime>,
+    PhantomData::<PlainDateTime>,
     Readable,
     "[2022,140,12,40,20,0]",
     datetime!(2022-05-20 12:40:20),
 )]
 #[case(
-    PhantomData::<PrimitiveDateTime>,
+    PhantomData::<PlainDateTime>,
     Readable,
     r#""2022-05-20 12:40:20.0""#,
     datetime!(2022-05-20 12:40:20),
