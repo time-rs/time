@@ -22,7 +22,7 @@ bench_rand![
     time: Time,
     date: Date,
     utc_offset: UtcOffset,
-    primitive_date_time: PlainDateTime,
+    plain_date_time: PlainDateTime,
     offset_date_time: OffsetDateTime,
     duration: Duration,
     weekday: Weekday,

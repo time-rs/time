@@ -9,7 +9,7 @@ use serde_core::de;
 
 #[cfg(feature = "parsing")]
 use super::{
-    DATE_FORMAT, OFFSET_DATE_TIME_FORMAT, PRIMITIVE_DATE_TIME_FORMAT, TIME_FORMAT,
+    DATE_FORMAT, OFFSET_DATE_TIME_FORMAT, PLAIN_DATE_TIME_FORMAT, TIME_FORMAT,
     UTC_DATE_TIME_FORMAT, UTC_OFFSET_FORMAT,
 };
 use crate::error::ComponentRange;
@@ -154,7 +154,7 @@ impl<'a> de::Visitor<'a> for Visitor<PlainDateTime> {
     where
         E: de::Error,
     {
-        PlainDateTime::parse(value, &PRIMITIVE_DATE_TIME_FORMAT).map_err(E::custom)
+        PlainDateTime::parse(value, &PLAIN_DATE_TIME_FORMAT).map_err(E::custom)
     }
 
     #[inline]
@@ -206,7 +206,7 @@ impl<'a> de::Visitor<'a> for Visitor<UtcDateTime> {
 
         Date::from_ordinal_date(year, ordinal)
             .and_then(|date| date.with_hms_nano(hour, minute, second, nanosecond))
-            .map(UtcDateTime::from_primitive)
+            .map(UtcDateTime::from_plain)
             .map_err(ComponentRange::into_de_error)
     }
 }

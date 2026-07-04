@@ -75,6 +75,6 @@ impl From<UtcDateTime> for OffsetDateTime {
     #[inline]
     #[track_caller]
     fn from(datetime: UtcDateTime) -> Self {
-        datetime.as_primitive().assume_utc()
+        datetime.as_plain().assume_utc()
     }
 }

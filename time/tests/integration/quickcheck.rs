@@ -115,7 +115,7 @@ fn time_roundtrip(t: Time) -> bool {
 }
 
 #[quickcheck]
-fn primitive_date_time_roundtrip(a: PlainDateTime) -> bool {
+fn plain_date_time_roundtrip(a: PlainDateTime) -> bool {
     PlainDateTime::new(a.date(), a.time()) == a
 }
 
@@ -373,27 +373,19 @@ test_shrink!(Time, time_can_shrink_minute, minute());
 test_shrink!(Time, time_can_shrink_second, second());
 test_shrink!(Time, time_can_shrink_nanosecond, nanosecond());
 
-test_shrink!(PlainDateTime, primitive_date_time_can_shrink_year, year());
+test_shrink!(PlainDateTime, plain_date_time_can_shrink_year, year());
 test_shrink!(
     PlainDateTime,
-    primitive_date_time_can_shrink_ordinal,
+    plain_date_time_can_shrink_ordinal,
     ordinal(),
     min = 1
 );
-test_shrink!(PlainDateTime, primitive_date_time_can_shrink_hour, hour());
+test_shrink!(PlainDateTime, plain_date_time_can_shrink_hour, hour());
+test_shrink!(PlainDateTime, plain_date_time_can_shrink_minute, minute());
+test_shrink!(PlainDateTime, plain_date_time_can_shrink_second, second());
 test_shrink!(
     PlainDateTime,
-    primitive_date_time_can_shrink_minute,
-    minute()
-);
-test_shrink!(
-    PlainDateTime,
-    primitive_date_time_can_shrink_second,
-    second()
-);
-test_shrink!(
-    PlainDateTime,
-    primitive_date_time_can_shrink_nanosecond,
+    plain_date_time_can_shrink_nanosecond,
     nanosecond()
 );
 

@@ -143,7 +143,7 @@ mod sealed {
 
         /// Parse a [`PlainDateTime`] from the format description.
         #[inline]
-        fn parse_primitive_date_time(
+        fn parse_plain_date_time(
             &self,
             input: &[u8],
             defaults: Option<Parsed>,

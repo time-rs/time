@@ -153,14 +153,14 @@ impl UtcDateTime {
 
     /// Create a new `UtcDateTime` from the [`PlainDateTime`], assuming that the latter is UTC.
     #[inline]
-    pub(crate) const fn from_primitive(date_time: PlainDateTime) -> Self {
+    pub(crate) const fn from_plain(date_time: PlainDateTime) -> Self {
         Self { inner: date_time }
     }
 
     /// Obtain the [`PlainDateTime`] that this `UtcDateTime` represents. The no-longer-attached
     /// [`UtcOffset`] is assumed to be UTC.
     #[inline]
-    pub(crate) const fn as_primitive(self) -> PlainDateTime {
+    pub(crate) const fn as_plain(self) -> PlainDateTime {
         self.inner
     }
 
@@ -777,7 +777,7 @@ impl UtcDateTime {
     /// ```
     #[inline]
     pub const fn checked_add(self, duration: Duration) -> Option<Self> {
-        Some(Self::from_primitive(const_try_opt!(
+        Some(Self::from_plain(const_try_opt!(
             self.inner.checked_add(duration)
         )))
     }
@@ -796,7 +796,7 @@ impl UtcDateTime {
     /// ```
     #[inline]
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
-        Some(Self::from_primitive(const_try_opt!(
+        Some(Self::from_plain(const_try_opt!(
             self.inner.checked_sub(duration)
         )))
     }
@@ -821,7 +821,7 @@ impl UtcDateTime {
     /// ```
     #[inline]
     pub const fn saturating_add(self, duration: Duration) -> Self {
-        Self::from_primitive(self.inner.saturating_add(duration))
+        Self::from_plain(self.inner.saturating_add(duration))
     }
 
     /// Computes `self - duration`, saturating value on overflow.
@@ -844,7 +844,7 @@ impl UtcDateTime {
     /// ```
     #[inline]
     pub const fn saturating_sub(self, duration: Duration) -> Self {
-        Self::from_primitive(self.inner.saturating_sub(duration))
+        Self::from_plain(self.inner.saturating_sub(duration))
     }
 }
 
@@ -862,7 +862,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_time(self, time: Time) -> Self {
-        Self::from_primitive(self.inner.replace_time(time))
+        Self::from_plain(self.inner.replace_time(time))
     }
 
     /// Replace the date, preserving the time.
@@ -877,7 +877,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_date(self, date: Date) -> Self {
-        Self::from_primitive(self.inner.replace_date(date))
+        Self::from_plain(self.inner.replace_date(date))
     }
 
     /// Replace the year. The month and day will be unchanged.
@@ -894,9 +894,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(
-            self.inner.replace_year(year)
-        )))
+        Ok(Self::from_plain(const_try!(self.inner.replace_year(year))))
     }
 
     /// Replace the month of the year.
@@ -913,7 +911,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(
+        Ok(Self::from_plain(const_try!(
             self.inner.replace_month(month)
         )))
     }
@@ -932,9 +930,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(
-            self.inner.replace_day(day)
-        )))
+        Ok(Self::from_plain(const_try!(self.inner.replace_day(day))))
     }
 
     /// Replace the day of the year.
@@ -948,7 +944,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_ordinal(self, ordinal: u16) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(
+        Ok(Self::from_plain(const_try!(
             self.inner.replace_ordinal(ordinal)
         )))
     }
@@ -965,7 +961,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn truncate_to_day(self) -> Self {
-        Self::from_primitive(self.inner.truncate_to_day())
+        Self::from_plain(self.inner.truncate_to_day())
     }
 
     /// Replace the clock hour.
@@ -981,9 +977,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_hour(self, hour: u8) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(
-            self.inner.replace_hour(hour)
-        )))
+        Ok(Self::from_plain(const_try!(self.inner.replace_hour(hour))))
     }
 
     /// Truncate to the hour, setting the minute, second, and subsecond components to zero.
@@ -998,7 +992,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn truncate_to_hour(self) -> Self {
-        Self::from_primitive(self.inner.truncate_to_hour())
+        Self::from_plain(self.inner.truncate_to_hour())
     }
 
     /// Replace the minutes within the hour.
@@ -1014,7 +1008,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_minute(self, minute: u8) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(
+        Ok(Self::from_plain(const_try!(
             self.inner.replace_minute(minute)
         )))
     }
@@ -1031,7 +1025,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn truncate_to_minute(self) -> Self {
-        Self::from_primitive(self.inner.truncate_to_minute())
+        Self::from_plain(self.inner.truncate_to_minute())
     }
 
     /// Replace the seconds within the minute.
@@ -1047,7 +1041,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_second(self, second: u8) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(
+        Ok(Self::from_plain(const_try!(
             self.inner.replace_second(second)
         )))
     }
@@ -1064,7 +1058,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn truncate_to_second(self) -> Self {
-        Self::from_primitive(self.inner.truncate_to_second())
+        Self::from_plain(self.inner.truncate_to_second())
     }
 
     /// Replace the milliseconds within the second.
@@ -1083,7 +1077,7 @@ impl UtcDateTime {
         self,
         millisecond: u16,
     ) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(
+        Ok(Self::from_plain(const_try!(
             self.inner.replace_millisecond(millisecond)
         )))
     }
@@ -1100,7 +1094,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn truncate_to_millisecond(self) -> Self {
-        Self::from_primitive(self.inner.truncate_to_millisecond())
+        Self::from_plain(self.inner.truncate_to_millisecond())
     }
 
     /// Replace the microseconds within the second.
@@ -1119,7 +1113,7 @@ impl UtcDateTime {
         self,
         microsecond: u32,
     ) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(
+        Ok(Self::from_plain(const_try!(
             self.inner.replace_microsecond(microsecond)
         )))
     }
@@ -1136,7 +1130,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn truncate_to_microsecond(self) -> Self {
-        Self::from_primitive(self.inner.truncate_to_microsecond())
+        Self::from_plain(self.inner.truncate_to_microsecond())
     }
 
     /// Replace the nanoseconds within the second.
@@ -1152,7 +1146,7 @@ impl UtcDateTime {
     #[must_use = "This method does not mutate the original `UtcDateTime`."]
     #[inline]
     pub const fn replace_nanosecond(self, nanosecond: u32) -> Result<Self, error::ComponentRange> {
-        Ok(Self::from_primitive(const_try!(
+        Ok(Self::from_plain(const_try!(
             self.inner.replace_nanosecond(nanosecond)
         )))
     }
@@ -1265,7 +1259,7 @@ impl SmartDisplay for UtcDateTime {
 
     #[inline]
     fn metadata(&self, f: FormatterOptions) -> Metadata<'_, Self> {
-        let width = self.as_primitive().metadata(f).unpadded_width() + 4;
+        let width = self.as_plain().metadata(f).unpadded_width() + 4;
         Metadata::new(width, self, ())
     }
 
@@ -1389,7 +1383,7 @@ impl Sub<StdDuration> for UtcDateTime {
     #[inline]
     #[track_caller]
     fn sub(self, duration: StdDuration) -> Self::Output {
-        Self::from_primitive(self.inner.sub(duration))
+        Self::from_plain(self.inner.sub(duration))
     }
 }
 

@@ -696,7 +696,7 @@ fn parse_offset_invalid_component(
 
 #[rstest]
 #[case("2023-07-27 23", fd!("[year]-[month]-[day] [hour]"), datetime!(2023-07-27 23:00))]
-fn parse_primitive_date_time(
+fn parse_plain_date_time(
     #[case] input: &str,
     #[case] format_description: StaticFormatDescription,
     #[case] expected: PlainDateTime,
@@ -712,7 +712,7 @@ fn parse_primitive_date_time(
 }
 
 #[rstest]
-fn parse_primitive_date_time_insufficient_information_standalone() {
+fn parse_plain_date_time_insufficient_information_standalone() {
     assert_eq!(
         PlainDateTime::try_from(Parsed::new()),
         Err(error::TryFromParsed::InsufficientInformation)
@@ -721,7 +721,7 @@ fn parse_primitive_date_time_insufficient_information_standalone() {
 
 #[rstest]
 #[case("2021-001 13 PM", fd!("[year]-[ordinal] [hour repr:12] [period]"), "hour")]
-fn parse_primitive_date_time_invalid_component(
+fn parse_plain_date_time_invalid_component(
     #[case] input: &str,
     #[case] fd: StaticFormatDescription,
     #[case] component_name: &str,
@@ -736,7 +736,7 @@ fn parse_primitive_date_time_invalid_component(
 
 #[rstest]
 #[case("2023-07-27 23:30", fd!("[year]-[month]-[day] [hour]"))]
-fn parse_primitive_date_time_unexpected_trailing_characters(
+fn parse_plain_date_time_unexpected_trailing_characters(
     #[case] input: &str,
     #[case] fd: StaticFormatDescription,
 ) {
@@ -1704,7 +1704,7 @@ fn parse_with_defaults_utc_offset_invalid_component(
     Parsed::new().with_hour_24(0).expect("value is valid"),
     datetime!(2020-01-02 12:00),
 )]
-fn parse_with_defaults_primitive_date_time_success(
+fn parse_with_defaults_plain_date_time_success(
     #[case] format: StaticFormatDescription,
     #[case] input: &[u8],
     #[case] defaults: Parsed,
@@ -1718,7 +1718,7 @@ fn parse_with_defaults_primitive_date_time_success(
 
 #[rstest]
 #[case(fd!("[month]-[day]"), b"01-15", Parsed::new())]
-fn parse_with_defaults_primitive_date_time_insufficient_information(
+fn parse_with_defaults_plain_date_time_insufficient_information(
     #[case] format: StaticFormatDescription,
     #[case] input: &[u8],
     #[case] defaults: Parsed,
@@ -1738,7 +1738,7 @@ fn parse_with_defaults_primitive_date_time_insufficient_information(
     Parsed::new().with_hour_24(12).expect("value is valid"),
     "hour",
 )]
-fn parse_with_defaults_primitive_date_time_invalid_component(
+fn parse_with_defaults_plain_date_time_invalid_component(
     #[case] format: StaticFormatDescription,
     #[case] input: &[u8],
     #[case] defaults: Parsed,

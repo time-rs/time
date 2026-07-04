@@ -587,7 +587,7 @@ impl PlainDateTime {
     /// ```
     #[inline]
     pub const fn as_utc(self) -> UtcDateTime {
-        UtcDateTime::from_primitive(self)
+        UtcDateTime::from_plain(self)
     }
 
     /// Computes `self + duration`, returning `None` if an overflow occurred.
@@ -1095,7 +1095,7 @@ impl PlainDateTime {
         input: &str,
         description: &(impl Parsable + ?Sized),
     ) -> Result<Self, error::Parse> {
-        description.parse_primitive_date_time(input.as_bytes(), None, PrivateMethod)
+        description.parse_plain_date_time(input.as_bytes(), None, PrivateMethod)
     }
 
     /// Parse a `PlainDateTime` from the input using the provided [format
@@ -1119,7 +1119,7 @@ impl PlainDateTime {
         description: &(impl Parsable + ?Sized),
         defaults: Parsed,
     ) -> Result<Self, error::Parse> {
-        description.parse_primitive_date_time(input, Some(defaults), PrivateMethod)
+        description.parse_plain_date_time(input, Some(defaults), PrivateMethod)
     }
 }
 

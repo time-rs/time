@@ -402,7 +402,7 @@ impl<'a> Deserialize<'a> for OffsetDateTime {
 
 /// The format used when serializing and deserializing a human-readable `PlainDateTime`.
 #[cfg(feature = "parsing")]
-const PRIMITIVE_DATE_TIME_FORMAT: FormatDescriptionV3<'_> =
+const PLAIN_DATE_TIME_FORMAT: FormatDescriptionV3<'_> =
     FormatDescriptionV3Inner::BorrowedCompound(&[
         #[cfg(feature = "large-dates")]
         FormatDescriptionV3Inner::CalendarYearFullExtendedRange(
@@ -435,7 +435,7 @@ impl Serialize for PlainDateTime {
     {
         #[cfg(feature = "serde-human-readable")]
         if serializer.is_human_readable() {
-            let Ok(s) = self.format(&PRIMITIVE_DATE_TIME_FORMAT) else {
+            let Ok(s) = self.format(&PLAIN_DATE_TIME_FORMAT) else {
                 return Err(S::Error::custom("failed formatting `PlainDateTime`"));
             };
             return serializer.serialize_str(&s);
@@ -469,7 +469,7 @@ impl<'a> Deserialize<'a> for PlainDateTime {
 
 /// The format used when serializing and deserializing a human-readable `UtcDateTime`.
 #[cfg(feature = "parsing")]
-const UTC_DATE_TIME_FORMAT: FormatDescriptionV3<'_> = PRIMITIVE_DATE_TIME_FORMAT;
+const UTC_DATE_TIME_FORMAT: FormatDescriptionV3<'_> = PLAIN_DATE_TIME_FORMAT;
 
 impl Serialize for UtcDateTime {
     #[inline]
@@ -479,7 +479,7 @@ impl Serialize for UtcDateTime {
     {
         #[cfg(feature = "serde-human-readable")]
         if serializer.is_human_readable() {
-            let Ok(s) = self.format(&PRIMITIVE_DATE_TIME_FORMAT) else {
+            let Ok(s) = self.format(&PLAIN_DATE_TIME_FORMAT) else {
                 return Err(S::Error::custom("failed formatting `UtcDateTime`"));
             };
             return serializer.serialize_str(&s);
